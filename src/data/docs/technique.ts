@@ -8,7 +8,7 @@ export const TECHNIQUE: DocPage = {
   visibility: "desk",
   audience: ["tech", "admin"],
   order: 7,
-  checkedOn: "2026-09-23",
+  checkedOn: "2026-10-11",
   owner: "Georges",
   chapters: [
     {
@@ -71,7 +71,7 @@ export const TECHNIQUE: DocPage = {
           items: [
             l("Avant de publier une modification : npx tsc --noEmit -p . (types), npx eslint src (qualité), npx vitest run (53 tests), npx next build (construction). Les quatre doivent passer.", "Before publishing a change: npx tsc --noEmit -p . (types), npx eslint src (quality), npx vitest run (53 tests), npx next build (build). All four must pass."),
             l("git push sur master : Vercel construit et met en production en deux à trois minutes ; l'adresse ne change pas.", "git push to master: Vercel builds and puts into production in two to three minutes; the address does not change."),
-            l("Si une migration SQL accompagne le changement (nouveau fichier dans supabase/migrations), l'appliquer d'abord dans Supabase › SQL Editor ; le message de commit le signale.", "If an SQL migration comes with the change (new file under supabase/migrations), apply it first in Supabase › SQL Editor; the commit message says so."),
+            l("Si une migration SQL accompagne le changement (nouveau fichier dans supabase/migrations), l'appliquer d'abord sur la base ; le message de commit le signale. Une migration est écrite pour être additive : elle ajoute, elle ne retire pas, de sorte qu'un retour en arrière du code ne casse rien.", "If an SQL migration comes with the change (new file under supabase/migrations), apply it first in Supabase › SQL Editor; the commit message says so."),
             l("Vérifier : /desk/sante, puis la page touchée.", "Check: /desk/sante, then the page concerned."),
             l("Revenir en arrière : Vercel › Deployments › version précédente › Promote to Production. Une migration ne se défait pas seule : elle est écrite pour être additive (ajout de colonne, jamais suppression).", "Rolling back: Vercel › Deployments › previous version › Promote to Production. A migration does not undo itself: it is written to be additive (adding a column, never dropping)."),
           ],
@@ -83,7 +83,7 @@ export const TECHNIQUE: DocPage = {
       id: "taches",
       title: l("Les tâches planifiées", "Scheduled tasks"),
       blocks: [
-        { type: "lead", text: l("Sept tâches, déclenchées par Vercel (vercel.json) avec le jeton CRON_SECRET ; chacune peut aussi être lancée à la main depuis Vercel › Cron Jobs › Run ou par une requête avec le jeton.", "Seven tasks, triggered by Vercel (vercel.json) with the CRON_SECRET token; each can also be run by hand from Vercel › Cron Jobs › Run or with a request carrying the token.") },
+        { type: "lead", text: l("Treize tâches, déclenchées par Vercel (vercel.json) avec le jeton CRON_SECRET ; chacune peut aussi être lancée à la main depuis Vercel › Cron Jobs › Run ou par une requête avec le jeton.", "Thirteen tasks, triggered by Vercel (vercel.json) with the CRON_SECRET token; each can also be run by hand from Vercel › Cron Jobs › Run or with a request carrying the token.") },
         {
           type: "table",
           head: [l("Adresse", "Address"), l("Quand (UTC)", "When (UTC)"), l("Fait", "Does")],
@@ -95,6 +95,12 @@ export const TECHNIQUE: DocPage = {
             [l("/api/cron/emetteurs", "/api/cron/emetteurs"), l("Lundi 6 h", "Monday 6 am"), l("Collecte les documents des sociétés cotées sur bvm-ac.org.", "Collects listed companies' documents from bvm-ac.org.")],
             [l("/api/cron/actualites", "/api/cron/actualites"), l("4 h", "4 am"), l("Veille des flux (BVMAC + NEWS_FEEDS), vérification des liens publiés.", "Feed watch (BVMAC + NEWS_FEEDS), check of published links.")],
             [l("/api/cron/actualites-hebdo", "/api/cron/actualites-hebdo"), l("Vendredi 16 h", "Friday 4 pm"), l("Résumé des actualités aux clients qui acceptent nos messages.", "News digest to clients who accept our messages.")],
+            [l("/api/cron/epargne", "/api/cron/epargne"), l("8 h", "8 am"), l("Les versements programmés du jour : préavis, couverture sur la provision ou appel de fonds.", "The day's scheduled payments: notice, cover from the float or call for funds.")],
+            [l("/api/cron/beac", "/api/cron/beac"), l("9 h", "9 am"), l("Le calendrier des adjudications BEAC et les avis d'émission.", "The BEAC auction calendar and the issue notices.")],
+            [l("/api/cron/beac-courbe", "/api/cron/beac-courbe"), l("Le 3 du mois, 5 h", "3rd of the month, 5 am"), l("La courbe des taux publiée par la BEAC.", "The yield curve published by the BEAC.")],
+            [l("/api/cron/note-indice", "/api/cron/note-indice"), l("Le 3 du mois, 6 h 40", "3rd of the month, 6:40 am"), l("La note mensuelle de l'indice, pour le desk.", "The monthly index note, for the desk.")],
+            [l("/api/cron/note-trimestre", "/api/cron/note-trimestre"), l("Le 5 janvier, avril, juillet, octobre, 7 h", "5 January, April, July, October, 7 am"), l("La note trimestrielle, publique.", "The quarterly note, public.")],
+            [l("/api/cron/purge-gestes", "/api/cron/purge-gestes"), l("Le 2 du mois, 3 h", "2nd of the month, 3 am"), l("Les gestes de plus de treize mois deviennent des compteurs : c'est l'article 8 de la convention qui le promet.", "Moves older than thirteen months become counters: article 8 of the agreement promises it.")],
           ],
         },
       ],

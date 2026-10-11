@@ -14,7 +14,7 @@ export const CLIENTELE: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 2,
-  checkedOn: "2026-10-10",
+  checkedOn: "2026-10-11",
   owner: "Georges",
   chapters: [
     {
@@ -24,16 +24,16 @@ export const CLIENTELE: DocPage = {
         {
           type: "lead",
           text: l(
-            "Jusqu'au 10 octobre 2026, huit gestes sur les quarante et un qu'un client peut faire laissaient une trace, et seulement ceux qui touchaient une décision du desk. Signer un mandat, prouver un numéro, déposer une pièce, abandonner un dossier à mi-chemin : rien ne s'écrivait. La maison ne savait de son client que ce qu'il avait acheté.",
-            "Until 10 October 2026, eight of the forty-one moves a client can make left a trace, and only those touching a desk decision. Signing a mandate, proving a number, uploading a document, abandoning a file halfway: nothing was written. The firm knew of its client only what they had bought.",
+            "Jusqu'au 10 octobre 2026, huit gestes seulement laissaient une trace, et seulement ceux qui touchaient une décision du desk. Signer un mandat, prouver un numéro, déposer une pièce, abandonner un dossier à mi-chemin : rien ne s'écrivait. La maison ne savait de son client que ce qu'il avait acheté.",
+            "Until 10 October 2026, only eight moves left a trace, and only those touching a desk decision. Signing a mandate, proving a number, uploading a document, abandoning a file halfway: nothing was written. The firm knew of its client only what they had bought.",
           ),
         },
         {
           type: "list",
           items: [
             l(
-              "Noté : les trente-sept gestes du catalogue, chacun avec sa date, son objet, son canal et l'appareil employé.",
-              "Recorded: the thirty-seven moves of the catalogue, each with its date, object, channel and device used.",
+              "Noté : les quarante gestes du catalogue, chacun avec sa date, son objet, son canal et l'appareil employé.",
+              "Recorded: the forty moves of the catalogue, each with its date, object, channel and device used.",
             ),
             l(
               "Noté aussi : la consultation d'un objet nommé, fiche, document, portefeuille ou séance, UNE FOIS par jour et par objet.",

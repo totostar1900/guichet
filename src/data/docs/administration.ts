@@ -8,7 +8,7 @@ export const ADMINISTRATION: DocPage = {
   visibility: "desk",
   audience: ["admin"],
   order: 6,
-  checkedOn: "2026-09-18",
+  checkedOn: "2026-10-11",
   owner: "Georges",
   chapters: [
     {
@@ -130,6 +130,13 @@ export const ADMINISTRATION: DocPage = {
             l("Échéanciers : une ligne par obligation cotée. En orange, celles sans échéancier exact (le prix court sur l'année du bulletin) avec « Créer l'échéancier » pré-rempli ; en gris, les échéanciers de lignes échues ou retirées (« hors bulletin »). La boîte filtre par ISIN, émetteur, ligne ou source, le menu par état, les colonnes se trient.", "Schedules: one row per listed bond. In orange, those without an exact schedule (the price runs on the bulletin's year) with “Create the schedule” pre-filled; in grey, schedules of matured or delisted lines (“off the bulletin”). The box filters by ISIN, issuer, line or source, the menu by state, columns sort."),
           ],
         },
+        {
+          type: "p",
+          text: l(
+            "Trois écrans vivent à côté de ces six onglets, et se règlent de la même façon, en brouillon puis publication : Modèles, le texte de chaque document que la maison émet ; Barème, les poids du score d'activité ; Registre, les personnes que la maison a décidé de ne pas servir. Ils ne sont pas des onglets parce qu'ils ne sont pas des listes de référence : chacun a ses propres garde-fous, et le registre demande en plus une seconde personne.",
+            "Three screens live beside those six tabs, and are set the same way, draft then publication: Models, the wording of every document the firm issues; Scale, the weights of the activity score; Register, the people the firm has decided not to serve. They are not tabs because they are not reference lists: each has its own safeguards, and the register also requires a second person.",
+          ),
+        },
         { type: "note", kind: "info", text: l("Chaque modification est versionnée dans le Journal (entité Référentiel) : on voit qui a changé quoi, avant / après, et on peut revenir en arrière.", "Every change is versioned in the audit log (entity Reference data): who changed what, before / after, and it can be undone.") },
       ],
     },
@@ -143,7 +150,7 @@ export const ADMINISTRATION: DocPage = {
           rows: [
             [l("Journal", "Audit log"), l("La piste d'audit : chaque action métier avec auteur, avant / après, raison, chaînée pour ne pas être altérée. Filtres par entité (lignes, intentions, référentiel, équipe, approbations, actualités).", "The audit trail: every business action with author, before / after, reason, chained so it cannot be altered. Filters by entity."), l("À la demande ; export pour un contrôle.", "On demand; export for an inspection.")],
             [l("Reporting", "Reporting"), l("Le mois : ordres par ligne et par état, montants réglés, positions, registre des clients, horodatage de chaque étape.", "The month: orders by line and state, settled amounts, positions, client register, time-stamp of every step."), l("Fin de mois ; pièce pour la COSUMAF.", "Month-end; a piece for the COSUMAF.")],
-            [l("Santé", "Health"), l("Huit points vert / orange / rouge : bulletin, ingestions, cours manquants, VL en retard, messages sans réponse, échéanciers, prix, actualités. Un point rouge le soir déclenche un e-mail au desk.", "Eight green / orange / red points: bulletin, ingestions, missing prices, late NAVs, unanswered messages, schedules, prices, news. A red point in the evening e-mails the desk."), l("Chaque matin.", "Every morning.")],
+            [l("Santé", "Health"), l("Vingt-quatre points vert / orange / rouge, rangés en familles : les sources (bulletin, ingestions, cours, VL), l'argent (virements, prélèvements, versements), la clientèle (tenue, mesures, registre des écartés, accès), et la maison (barème, quatre-yeux, registre des gestes). Chaque point dit où aller et quoi y faire. Un point rouge le soir déclenche un e-mail au desk.", "Twenty-four green / orange / red points, grouped in families: the sources (bulletin, ingestions, prices, NAVs), the money (transfers, debits, payments), the clientele (conduct, measures, register of barred persons, accesses), and the firm (scale, four-eyes, register of moves). Each point says where to go and what to do there. A red point in the evening triggers an e-mail to the desk."), l("Chaque matin.", "Every morning.")],
           ],
         },
       ],
