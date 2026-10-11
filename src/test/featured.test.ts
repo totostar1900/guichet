@@ -30,12 +30,26 @@ const form = (o: Record<string, string>) => {
   return f;
 };
 
+
+const avantLaCloture = async (offerId: string) => {
+  const { repo } = await import("@/lib/data");
+  const o = (await repo().getOffer(offerId))!;
+  const cloture = o.deadlineAt.slice(0, 10);
+  const dans5 = new Date(Date.now() + 5 * 86_400_000).toISOString().slice(0, 10);
+  return dans5 < cloture ? dans5 : cloture;
+};
+
 describe("sélection du desk et diffusion", () => {
   it("refuses a recommendation and accepts a factual reason; the badge appears", async () => {
     const { featureOfferAction } = await import("@/app/desk/featured/actions");
     const { repo } = await import("@/lib/data");
     const { summarize } = await import("@/lib/domain/summary");
-    const until = new Date(Date.now() + 5 * 86_400_000).toISOString().slice(0, 10);
+    /* UNE DATE À RETARDEMENT : ce cas prenait « aujourd hui + 5 jours »,
+       et la mise à la une ne peut pas dépasser la clôture de la ligne. Le
+       jeu d essai clôt bhc-ipo-t2 le 15 octobre 2026 : le cas a donc passé
+       jusqu au 10 octobre et a commencé à échouer le 11, sans que rien
+       n ait changé. La date se prend maintenant AVANT la clôture. */
+    const until = await avantLaCloture("bhc-ipo-t2");
     const bad = await featureOfferAction(null, form({ offerId: "bhc-ipo-t2", reason: "Le meilleur placement du moment", until }));
     expect(bad.ok).toBe(false);
     const ok = await featureOfferAction(null, form({ offerId: "bhc-ipo-t2", reason: "Clôture cette semaine", until }));
@@ -48,7 +62,12 @@ describe("sélection du desk et diffusion", () => {
 
   it("refuses a closed line and a date past the line's closing", async () => {
     const { featureOfferAction } = await import("@/app/desk/featured/actions");
-    const until = new Date(Date.now() + 5 * 86_400_000).toISOString().slice(0, 10);
+    /* UNE DATE À RETARDEMENT : ce cas prenait « aujourd hui + 5 jours »,
+       et la mise à la une ne peut pas dépasser la clôture de la ligne. Le
+       jeu d essai clôt bhc-ipo-t2 le 15 octobre 2026 : le cas a donc passé
+       jusqu au 10 octobre et a commencé à échouer le 11, sans que rien
+       n ait changé. La date se prend maintenant AVANT la clôture. */
+    const until = await avantLaCloture("bhc-ipo-t2");
     const closed = await featureOfferAction(null, form({ offerId: "cg-bta-52-2027", reason: "Nouvelle ligne", until }));
     expect(closed.ok).toBe(false);
     expect(said(closed)).toMatch(/clôturée/);
@@ -59,7 +78,12 @@ describe("sélection du desk et diffusion", () => {
 
   it("caps the selection at three", async () => {
     const { featureOfferAction } = await import("@/app/desk/featured/actions");
-    const until = new Date(Date.now() + 5 * 86_400_000).toISOString().slice(0, 10);
+    /* UNE DATE À RETARDEMENT : ce cas prenait « aujourd hui + 5 jours »,
+       et la mise à la une ne peut pas dépasser la clôture de la ligne. Le
+       jeu d essai clôt bhc-ipo-t2 le 15 octobre 2026 : le cas a donc passé
+       jusqu au 10 octobre et a commencé à échouer le 11, sans que rien
+       n ait changé. La date se prend maintenant AVANT la clôture. */
+    const until = await avantLaCloture("bhc-ipo-t2");
     for (const id of ["mkt-bhc", "mkt-ecmr-2031"]) expect((await featureOfferAction(null, form({ offerId: id, reason: "Nouvelle ligne", until }))).ok).toBe(true);
     const fourth = await featureOfferAction(null, form({ offerId: "cg-bta-52-2027", reason: "Nouvelle ligne", until }));
     expect(fourth.ok).toBe(false);

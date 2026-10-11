@@ -57,6 +57,38 @@ export const ADMINISTRATION: DocPage = {
             [l("Des frais de fonds au-dessus du plafond", "Fund fees above the ceiling"), l("Engagement contractuel.", "Contractual commitment.")],
             [l("Une diffusion à tous les clients", "A broadcast to every client"), l("Un message de masse ne se rattrape pas.", "A mass message cannot be taken back.")],
             [l("Un changement de rôle", "A role change"), l("Quatre yeux sur les accès.", "Four eyes on access.")],
+            [
+              l("Une mesure posée sur un compte, ou levée", "A measure set on an account, or lifted"),
+              l("C'est la seule chose que la plateforme fasse CONTRE un client : elle ne se décide pas seul.", "It is the only thing the platform does AGAINST a client: it is not decided alone."),
+            ],
+            [
+              l("Une publication au registre des personnes écartées", "A publication to the register of barred persons"),
+              l(
+                "Écarter quelqu'un vaut une mesure posée d'avance sur un compte qui n'existe pas encore, et dont l'intéressé ne saura rien.",
+                "Barring someone is worth a measure set in advance on an account that does not yet exist, and of which the person will know nothing.",
+              ),
+            ],
+            [
+              l("Un accès nommé accordé sur un compte", "A named access granted on an account"),
+              l(
+                "Un ordre est borné, réversible et tracé ; donner à quelqu'un la main sur un compte ne l'est pas. C'est là que la place met son second regard, et pas sur les ordres.",
+                "An order is capped, reversible and traced; giving someone the keys to an account is not. That is where the market puts its second pair of eyes, and not on orders.",
+              ),
+            ],
+            [
+              l("Un plafond par ordre relevé, ou retiré", "A per-order cap raised, or removed"),
+              l(
+                "Élargir ce qu'une personne engage seule est le même geste que lui donner un accès. L'abaisser, non : une restriction se pose d'une main.",
+                "Widening what one person commits alone is the same move as granting them access. Lowering it is not: a restriction is set with one hand.",
+              ),
+            ],
+            [
+              l("Un signataire ajouté à un dossier approuvé", "A signatory added to an approved file"),
+              l(
+                "Qui écrit la liste des personnes commande qui peut recevoir un accès : sans deux regards ici, le contrôle de l'accès se contourne en une ligne. L'acte qui le désigne est exigé en plus.",
+                "Whoever writes the list of persons commands who may receive an access: without two pairs of eyes here, the access control is bypassed in one line. The deed appointing them is required as well.",
+              ),
+            ],
           ],
         },
         { type: "p", text: l("Décider : ouvrir la demande, lire le avant / après, approuver ou refuser avec une note. La décision est journalisée ; l'opérateur est prévenu dans le flux. Les bornes elles-mêmes se règlent dans Référentiel › Types de produits.", "Deciding: open the request, read the before / after, approve or refuse with a note. The decision is logged; the operator is told in the feed. The bounds themselves are set under Reference data › Product types.") },

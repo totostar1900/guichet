@@ -35,7 +35,7 @@ export const TECHNIQUE: DocPage = {
       id: "donnees",
       title: l("Les données et qui peut les voir", "The data and who can see it"),
       blocks: [
-        { type: "lead", text: l("Tout est dans une base Postgres chez Supabase, en Europe, chiffrée au repos. Vingt-cinq migrations SQL versionnées dans le dépôt (supabase/migrations) décrivent chaque table ; on les applique à la main, dans l'ordre, avant le déploiement qui les utilise.", "Everything is in a Postgres database at Supabase, in Europe, encrypted at rest. Twenty-five SQL migrations versioned in the repo (supabase/migrations) describe every table; they are applied by hand, in order, before the deployment that uses them.") },
+        { type: "lead", text: l("Tout est dans une base Postgres chez Supabase, en Europe, chiffrée au repos. Quatre-vingt-huit migrations SQL versionnées dans le dépôt (supabase/migrations) décrivent chaque table ; on les applique à la main, dans l'ordre, avant le déploiement qui les utilise.", "Everything is in a Postgres database at Supabase, in Europe, encrypted at rest. Eighty-eight SQL migrations versioned in the repo (supabase/migrations) describe every table; they are applied by hand, in order, before the deployment that uses them.") },
         {
           type: "table",
           head: [l("Table", "Table"), l("Contenu", "Content"), l("Qui lit / qui écrit", "Who reads / who writes")],
@@ -46,6 +46,16 @@ export const TECHNIQUE: DocPage = {
             [l("quotes, fund_navs, bulletins", "quotes, fund_navs, bulletins"), l("Cours et VL historisés, un bulletin par séance.", "Historised prices and NAVs, one bulletin per session."), l("Tout le monde lit ; les tâches planifiées écrivent.", "Everyone reads; scheduled tasks write.")],
             [l("news", "news"), l("Les actualités : publiées, brouillons, liens reçus.", "News: published, drafts, received links."), l("Tout le monde lit les publiées seulement ; le desk tout.", "Everyone reads published only; the desk everything.")],
             [l("notifications, inbound_messages", "notifications, inbound_messages"), l("Tout ce qui est envoyé et reçu (WhatsApp, e-mail, push).", "Everything sent and received."), l("Desk.", "Desk.")],
+            [
+              l("client_actions", "client_actions"),
+              l("Le registre des gestes du client : un geste, sa date, son objet, et le nom de la personne qui l'a fait quand le compte est à plusieurs mains. Détail treize mois, puis des compteurs.", "The register of the client's moves: a move, its date, its object, and the name of the person who made it when the account has several hands. Thirteen months of detail, then counters."),
+              l("Le client lit les siens ; le desk tout.", "The client reads their own; the desk everything."),
+            ],
+            [
+              l("acces_compte", "acces_compte"),
+              l("Qui peut se connecter sur le compte d'une personne morale, d'une association ou d'une indivision, à quel titre, jusqu'à quel montant, et depuis ou jusqu'à quand.", "Who may sign in on the account of a legal entity, an association or an undivided account, in what capacity, up to what amount, and from or until when."),
+              l("La personne lit le sien et le compte le sait ; le desk écrit.", "The person reads their own and the account knows it; the desk writes."),
+            ],
             [l("audit, approvals, reference", "audit, approvals, reference"), l("Piste d'audit chaînée par empreintes, demandes d'approbation, données de référence.", "Hash-chained audit trail, approval requests, reference data."), l("Desk ; le journal ne se modifie jamais.", "Desk; the log is never edited.")],
           ],
         },

@@ -289,6 +289,12 @@ export const CLIENTELE: DocPage = {
             "Setting or lifting a measure goes through the four-eyes control, and the client reads theirs at the top of their space, with its cause and its term: a restriction discovered by bumping into it is a silent failure, they think they mis-clicked.",
           ),
         },
+        {
+          type: "link",
+          href: "/desk/docs/comptes-a-plusieurs-mains#mesures",
+          label: l("Une mesure sur un compte à plusieurs mains", "A measure on an account with several hands"),
+          hint: l("Elle vit sur le compte, donc elle frappe toutes les mains. Quand le problème est une seule personne, l outil est ailleurs.", "It lives on the account, so it strikes every hand. When the problem is one person, the tool is elsewhere."),
+        },
       ],
     },
     {
