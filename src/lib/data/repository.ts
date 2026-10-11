@@ -355,6 +355,19 @@ export interface Repository {
   upsertQuotes(quotes: Quote[]): Promise<void>;
   /** History of one line, most recent first. */
   listQuotes(isin: string, limit?: number): Promise<Quote[]>;
+  /**
+   * Le dernier nominal NON NUL de chaque obligation, strictement avant une
+   * séance. Une requête, et c'est voulu.
+   *
+   * C'est la seconde identité du lecteur : sur une ligne amortissable le prix
+   * reste rapporté au nominal qui courait avant le remboursement du capital,
+   * et le bulletin finit par imprimer zéro.
+   *
+   * NON NUL, parce qu'un zéro n'apprend rien et effacerait la seule référence
+   * utile : sur une ligne arrivée au bout, la dernière lecture ramène le zéro
+   * qu'on vient justement de ne pas savoir couper.
+   */
+  nominauxDeReference(avant: string): Promise<Map<string, number>>;
   /** Latest quote of every line. */
   latestQuotes(): Promise<Quote[]>;
   /** Every line quoted at one session. */

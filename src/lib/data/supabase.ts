@@ -2269,6 +2269,18 @@ export const supabaseRepository: Repository = {
     if (error) fail("latestQuotes", error);
     return (data as QuoteRow[]).map(toQuote);
   },
+  async nominauxDeReference(avant) {
+    const { data, error } = await db().rpc("nominaux_de_reference", { avant });
+    if (error) {
+      /* Migration 0093 pas encore appliquée : une carte vide rend au lecteur
+         le comportement d'avant la seconde identité, c'est-à-dire une lecture
+         plus pauvre mais jamais fausse. Le refuser serait pire : la séance
+         entière ne serait pas lue. */
+      if (/nominaux_de_reference/.test(error.message)) return new Map<string, number>();
+      fail("nominauxDeReference", error);
+    }
+    return new Map((data as { isin: string; nominal: string | number }[]).map((r) => [r.isin, Number(r.nominal)]));
+  },
   async upsertFundNavs(navs) {
     if (!navs.length) return;
     const { error } = await db().from("fund_navs").upsert(navs.map(fromNav), { onConflict: "fund_key,nav_date" });

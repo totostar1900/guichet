@@ -1302,6 +1302,23 @@ export const memoryRepository: Repository = {
     }
     return structuredClone([...latest.values()]);
   },
+  async nominauxDeReference(avant) {
+    /* Le même « distinct on (isin) order by session_date desc » que la
+       fonction SQL, écrit à la main : on garde, pour chaque obligation, le
+       nominal non nul de sa cotation la plus récente d'avant la date. */
+    const out = new Map<string, number>();
+    const quand = new Map<string, string>();
+    for (const q of store().quotes) {
+      if (q.instrument !== "obligation" || q.sessionDate >= avant) continue;
+      if (q.nominalRemaining == null || q.nominalRemaining <= 0) continue;
+      const vu = quand.get(q.isin);
+      if (!vu || q.sessionDate > vu) {
+        quand.set(q.isin, q.sessionDate);
+        out.set(q.isin, q.nominalRemaining);
+      }
+    }
+    return out;
+  },
   async upsertFundNavs(navs) {
     const s = store();
     for (const n of navs) {
