@@ -8,7 +8,7 @@ export const SUPPORT: DocPage = {
   visibility: "desk",
   audience: ["desk"],
   order: 5,
-  checkedOn: "2026-09-18",
+  checkedOn: "2026-10-11",
   owner: "Desk",
   chapters: [
     {
@@ -75,6 +75,42 @@ export const SUPPORT: DocPage = {
             [l("« Que me conseillez-vous ? »", "\"What do you recommend?\""), l("« Nous ne donnons pas de conseil ; nous pouvons vous expliquer chaque ligne et comparer deux lignes ensemble (Info › Comparer). »", "\"We do not give advice; we can explain every line and compare two lines together (Info › Compare).\"")],
           ],
         },
+      ],
+    },
+    {
+      id: "comptes-a-plusieurs",
+      title: l("Comptes de société, d association, de tontine", "Company, association and group accounts"),
+      blocks: [
+        {
+          type: "p",
+          text: l(
+            "Ces comptes sont tenus par plusieurs personnes, chacune avec sa propre connexion. Les appels qu ils produisent ne ressemblent à aucun autre, et la doctrine entière tient sur sa page ; voici seulement de quoi répondre tout de suite.",
+            "These accounts are held by several people, each with their own sign-in. The calls they produce resemble no others, and the whole doctrine has its own page; here is only enough to answer straight away.",
+          ),
+        },
+        {
+          type: "table",
+          head: [l("Le client dit", "The client says"), l("On répond", "We answer")],
+          rows: [
+            [
+              l("« Je ne peux pas me connecter au compte de la société »", "« I cannot sign in to the company account »"),
+              l("Cinq causes, dans cet ordre : accès retiré (son écran le lui dit alors), mauvais canal (un accès posé sur un numéro ne s ouvre pas avec une adresse), un chiffre faux dans le numéro, il a déjà un compte à son nom, ou son accès est lié à une autre identité. Dossiers › le compte › Qui peut se connecter.", "Five causes, in this order: access withdrawn (their screen then says so), wrong channel (an access set on a number does not open with an address), a wrong digit in the number, they already have an account of their own, or their access is bound to another identity. Files › the account › Who may sign in."),
+            ],
+            [
+              l("« Mon ordre est refusé, il dépasse un plafond »", "« My order is refused, it exceeds a cap »"),
+              l("C est voulu : au-delà du plafond que le PV a fixé, l ordre se passe avec un conseiller. NE PAS proposer de relever le plafond pour dépanner, ce serait défaire la règle que le groupe s est donnée. Demander la confirmation du groupe selon sa règle de décision, passer l ordre, ranger la confirmation dans l échange du dossier.", "This is intended: beyond the cap set by the minutes, the order is placed with an adviser. DO NOT offer to raise the cap to help out, that would undo the rule the group gave itself. Ask for the group s confirmation under its decision rule, place the order, file the confirmation in the file s exchange."),
+            ],
+            [
+              l("« Notre directeur est parti, que faut-il faire ? »", "« Our director has left, what should we do? »"),
+              l("Demander l acte : PV du conseil, décision de l assemblée. Rien ne bouge sans lui, et le dire n est pas une lenteur, c est la protection de leur propre société. Le desk retire l ancien d abord, ce qui ferme son accès, puis ajoute le nouveau.", "Ask for the deed: board minutes, meeting decision. Nothing moves without it, and saying so is not slowness, it is the protection of their own company. The desk removes the outgoing one first, which closes their access, then adds the new one."),
+            ],
+            [
+              l("Un tiers appelle pour passer un ordre", "A third party calls to place an order"),
+              l("La même réponse pour tous : « Je ne peux prendre un ordre que du titulaire lui-même. Demandez-lui de nous écrire ou de nous appeler, nous le rappelons dans l heure. » Ne rien promettre au tiers, ne rien dire du dossier. La maison n accepte aucune procuration.", "The same answer for everyone: « I can only take an order from the holder themselves. Ask them to write or call us, we call back within the hour. » Promise the third party nothing, say nothing about the file. The firm accepts no power of attorney."),
+            ],
+          ],
+        },
+        { type: "link", href: "/desk/docs/comptes-a-plusieurs-mains", label: l("Les comptes à plusieurs mains", "Accounts with several hands"), hint: l("Qui peut agir, qui reçoit un accès, jusqu à quel montant, et les quatre situations pas à pas.", "Who may act, who receives an access, up to what amount, and the four situations step by step.") },
       ],
     },
     {

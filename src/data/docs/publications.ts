@@ -13,7 +13,7 @@ export const PUBLICATIONS: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin", "tech"],
   order: 4,
-  checkedOn: "2026-09-22",
+  checkedOn: "2026-10-11",
   owner: "Georges",
   chapters: [
     {
