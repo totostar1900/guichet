@@ -2,6 +2,7 @@ import type { ActionClient } from "@/lib/domain/journal-client";
 import type { FinancialProfile } from "@/data/profile";
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
 import { REF_AUCTIONS, REF_OFFERS, semisDense } from "@/data/reference";
+import { SEED_GESTES } from "@/data/gestes-seed";
 import { SEED_NEWS } from "@/data/news-seed";
 import { coteDEssai } from "@/data/cote-seed";
 import type { NewsItem } from "@/lib/news/model";
@@ -331,7 +332,9 @@ function store(): Store {
       news: structuredClone(SEED_NEWS),
       versions: [],
       audit: [],
-      gestes: [],
+      /* Des gestes de clients, pour que la cadence, les compteurs par genre et
+         « Votre activité » soient exerçables hors production. */
+      gestes: structuredClone(SEED_GESTES),
       gestesMensuel: {},
       approvals: [],
       push: [],

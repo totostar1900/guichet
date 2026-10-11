@@ -1,0 +1,31 @@
+/* Douze barres sur vingt-six pixels, comme la maquette les dessine : assez
+   hautes pour qu'une différence se voie, assez basses pour tenir dans une
+   rangée de tableau sans la faire grandir. */
+.cadence {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 26px;
+  width: calc(12 * 7px + 11 * 2px);
+}
+
+.barre,
+.vide {
+  width: 7px;
+  flex: none;
+}
+
+/* La barre prend le filet accentué de la maison, qui tient sur les deux
+   thèmes ; la maquette l'avait en or, et c'est le même rôle. */
+.barre {
+  background: var(--bar-edge, var(--ink-3));
+  min-height: 3px;
+}
+
+/* UN MOIS SANS GESTE N'EST PAS UNE BARRE DE ZÉRO : c'est un creux, et il doit
+   se voir comme tel. Un trait d'un pixel au ras du sol dit « rien ce mois-ci »
+   là où l'absence de tout dessin dirait « pas de donnée ». */
+.vide {
+  height: 1px;
+  background: var(--line);
+}

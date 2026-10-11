@@ -8,7 +8,7 @@ export const TECHNIQUE: DocPage = {
   visibility: "desk",
   audience: ["tech", "admin"],
   order: 7,
-  checkedOn: "2026-10-11",
+  checkedOn: "2026-10-12",
   owner: "Georges",
   chapters: [
     {
@@ -22,7 +22,7 @@ export const TECHNIQUE: DocPage = {
           head: [l("Couche", "Layer"), l("Où", "Where"), l("En clair", "Plainly")],
           rows: [
             [l("Pages et écrans", "Pages and screens"), l("src/app : une dossier par adresse (/, /fonds, /societes, /actualites, /info, /moi, /desk/…)", "src/app : one folder per address"), l("Les pages sont rendues sur le serveur à chaque visite (données fraîches), avec quelques composants interactifs dans le navigateur (filtres, formulaires, recherche).", "Pages are rendered on the server at each visit (fresh data), with a few interactive parts in the browser (filters, forms, search).")],
-            [l("Règles métier", "Business rules"), l("src/lib/domain (statuts, estimations, contrôles d'ordre), src/lib/finance (calculs de rendement), src/lib/kyc, src/lib/results, src/lib/news", "src/lib/domain, src/lib/finance, src/lib/kyc, src/lib/results, src/lib/news"), l("Les calculs et les règles sont dans du code testé, hors des pages ; 53 tests automatiques les vérifient à chaque modification.", "Calculations and rules live in tested code, outside the pages; 53 automatic tests check them on every change.")],
+            [l("Règles métier", "Business rules"), l("src/lib/domain (statuts, estimations, contrôles d'ordre), src/lib/finance (calculs de rendement), src/lib/kyc, src/lib/results, src/lib/news", "src/lib/domain, src/lib/finance, src/lib/kyc, src/lib/results, src/lib/news"), l("Les calculs et les règles sont dans du code testé, hors des pages ; plus de deux mille tests automatiques les vérifient à chaque modification.", "Calculations and rules live in tested code, outside the pages; more than two thousand automatic tests check them on every change.")],
             [l("Accès aux données", "Data access"), l("src/lib/data : une interface (repository.ts), deux implémentations : mémoire (démonstration) et Supabase (production)", "src/lib/data : one interface, two implementations: memory (demo) and Supabase (production)"), l("La même application tourne sans base, sur un jeu de démonstration, pour les tests et les captures d'écran du guide.", "The same app runs without a database, on a demo dataset, for tests and the guide's screenshots.")],
             [l("Données de référence", "Reference data"), l("src/data (valeurs par défaut) + table reference (ce que le desk modifie)", "src/data (defaults) + table reference (what the desk changes)"), l("Types de produits, glossaire, sociétés, échéanciers, éclairages, guide, documentation.", "Product types, glossary, companies, schedules, insights, guide, documentation.")],
             [l("Bilingue", "Bilingual"), l("src/i18n : dictionnaire français → anglais", "src/i18n : French → English dictionary"), l("Chaque texte est écrit en français dans le code ; l'anglais est cherché dans le dictionnaire ; un texte sans traduction reste en français plutôt que de casser la page.", "Every text is written in French in the code; English is looked up in the dictionary; an untranslated text stays French rather than breaking the page.")],
@@ -35,7 +35,7 @@ export const TECHNIQUE: DocPage = {
       id: "donnees",
       title: l("Les données et qui peut les voir", "The data and who can see it"),
       blocks: [
-        { type: "lead", text: l("Tout est dans une base Postgres chez Supabase, en Europe, chiffrée au repos. Quatre-vingt-treize migrations SQL versionnées dans le dépôt (supabase/migrations) décrivent chaque table ; on les applique à la main, dans l'ordre, avant le déploiement qui les utilise.", "Everything is in a Postgres database at Supabase, in Europe, encrypted at rest. Ninety-three SQL migrations versioned in the repo (supabase/migrations) describe every table; they are applied by hand, in order, before the deployment that uses them.") },
+        { type: "lead", text: l("Tout est dans une base Postgres chez Supabase, en Europe, chiffrée au repos. Quatre-vingt-quatorze migrations SQL versionnées dans le dépôt (supabase/migrations) décrivent chaque table ; on les applique à la main, dans l'ordre, avant le déploiement qui les utilise.", "Everything is in a Postgres database at Supabase, in Europe, encrypted at rest. Ninety-four SQL migrations versioned in the repo (supabase/migrations) describe every table; they are applied by hand, in order, before the deployment that uses them.") },
         {
           type: "table",
           head: [l("Table", "Table"), l("Contenu", "Content"), l("Qui lit / qui écrit", "Who reads / who writes")],

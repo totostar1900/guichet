@@ -9,6 +9,10 @@ import { cohortesDeTous } from "@/lib/desk/cohortes-data";
 import { COHORTES, COHORTE_LABEL, COHORTE_QUOI, estCohorte } from "@/lib/domain/cohortes";
 import type { Activite } from "@/lib/domain/activite";
 import { CRAN_LABEL, type Tenue } from "@/lib/domain/tenue";
+import { cadencesDeTous } from "@/lib/desk/cadence-data";
+import { Cadence } from "@/components/Cadence";
+import type { Cadence as Chiffres } from "@/lib/domain/cadence";
+import { GESTES } from "@/lib/domain/journal-client";
 import { parsePeopleQuery, peopleMatch } from "@/lib/search/people";
 import styles from "./page.module.css";
 
@@ -39,13 +43,35 @@ const TIER: Record<number, { label: string; hint: string }> = {
   2: { label: "Compte ouvert", hint: "compte-titres chez le dépositaire" },
 };
 
-export default async function RepertoirePage({ searchParams }: { searchParams: Promise<{ q?: string; palier?: string; canal?: string; cohorte?: string }> }) {
+/**
+ * DEUX VUES DU MÊME RÉPERTOIRE, ET LA RAISON EST DE LARGEUR.
+ *
+ * La maquette du 10 octobre 2026 dessinait sept colonnes, dont la cadence sur
+ * douze mois, les actions sur trente jours et la dernière action. L'écran en
+ * portait neuf, les cinq dernières venant du répertoire d'avant. Les seize
+ * ensemble ne tiennent à aucune largeur lisible, et c'est pour cela que le lot
+ * avait été greffé en perdant son dessin.
+ *
+ * Un seul tableau, deux préréglages, comme le dépôt des bulletins : la vue
+ * « dossier » garde les colonnes d'aujourd'hui, la vue « activité » porte
+ * celles de la maquette. Rien n'est supprimé, et chaque vue est lisible.
+ */
+const VUES = ["dossier", "activite"] as const;
+type Vue = (typeof VUES)[number];
+const estVue = (v?: string): v is Vue => !!v && (VUES as readonly string[]).includes(v);
+
+export default async function RepertoirePage({ searchParams }: { searchParams: Promise<{ q?: string; palier?: string; canal?: string; cohorte?: string; vue?: string }> }) {
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
   const [contacts, files, intents, tenues] = await Promise.all([r.listContacts(), r.listClientFiles().catch(() => []), r.listIntents().catch(() => []), tenuesDeTous().catch(() => new Map())]);
   const activites = await activitesDeTous().catch(() => new Map());
   const cohortes = await cohortesDeTous().catch(() => ({ parClient: new Map<string, string>(), comptes: {} as Record<string, number>, bareme: 0 }));
+  const vue: Vue = estVue(sp.vue) ? sp.vue : "dossier";
+  /* On ne lit le registre des gestes que si la vue le montre : il grossit de
+     plusieurs milliers de lignes par mois, et la vue « dossier » n'en a pas
+     besoin. */
+  const cadences = vue === "activite" ? await cadencesDeTous().catch(() => new Map()) : new Map();
   const withFile = new Set(files.map((f) => f.userId));
   const ordered = new Map<string, number>();
   for (const i of intents) if (i.clientId) ordered.set(i.clientId, (ordered.get(i.clientId) ?? 0) + 1);
@@ -105,9 +131,33 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
         <input name="q" defaultValue={sp.q} placeholder={t("Un nom, une adresse, un numéro")} aria-label={t("Chercher")} title={t("Deux mots se cumulent · un numéro se cherche par ses chiffres · palier:2 · canal:email · dossier:non · ordres:oui")} />
         {sp.palier && <input type="hidden" name="palier" value={sp.palier} />}
         {sp.canal && <input type="hidden" name="canal" value={sp.canal} />}
+        {sp.cohorte && <input type="hidden" name="cohorte" value={sp.cohorte} />}
+        {/* Chercher ne doit pas renvoyer à l'autre vue : le formulaire emporte
+            la vue courante comme il emporte les autres filtres. */}
+        {vue !== "dossier" && <input type="hidden" name="vue" value={vue} />}
         <button className="btn sm" type="submit">
           {t("Chercher")}
         </button>
+        <span className={styles.spacer} />
+        {/* LES DEUX VUES, ET ELLES GARDENT LES FILTRES. Changer de vue en
+            perdant sa recherche ferait recommencer à chaque aller-retour : le
+            lien reprend donc tout ce qui est posé, et ne change que « vue ».
+            C'est l'idiome du dépôt des bulletins, où le même tableau se lit
+            sous plusieurs préréglages. */}
+        {VUES.map((v) => {
+          const params = new URLSearchParams();
+          if (sp.q) params.set("q", sp.q);
+          if (sp.palier) params.set("palier", sp.palier);
+          if (sp.canal) params.set("canal", sp.canal);
+          if (sp.cohorte) params.set("cohorte", sp.cohorte);
+          if (v !== "dossier") params.set("vue", v);
+          const qs = params.toString();
+          return (
+            <Link key={v} className={`btn sm ${vue === v ? "" : "ghost"}`} href={qs ? `/desk/repertoire?${qs}` : "/desk/repertoire"} aria-current={vue === v ? "page" : undefined}>
+              {v === "dossier" ? t("Dossier") : t("Activité")}
+            </Link>
+          );
+        })}
         <span className={styles.spacer} />
         {[0, 1, 2].map((n) => chip("palier", String(n), t(TIER[n].label)))}
         {chip("canal", "whatsapp", t("WhatsApp ✓"))}
@@ -120,7 +170,7 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
             key={co}
             className={`btn sm ${sp.cohorte === co ? "" : "ghost"}`}
             title={t(COHORTE_QUOI[co])}
-            href={sp.cohorte === co ? "/desk/repertoire" : `/desk/repertoire?cohorte=${co}`}
+            href={sp.cohorte === co ? (vue === "dossier" ? "/desk/repertoire" : `/desk/repertoire?vue=${vue}`) : `/desk/repertoire?cohorte=${co}${vue === "dossier" ? "" : `&vue=${vue}`}`}
           >
             {t(COHORTE_LABEL[co])} <span className="muted">{cohortes.comptes[co] ?? 0}</span>
           </Link>
@@ -154,11 +204,26 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
                 <th>{t("Palier")}</th>
                 <th>{t("Tenue")}</th>
                 <th className="r">{t("Activité")}</th>
-                <th>{t("Coordonnées")}</th>
-                <th>{t("Informations")}</th>
-                <th className="r">{t("Ordres")}</th>
-                <th>{t("Dossier")}</th>
-                <th>{t("Depuis")}</th>
+                {vue === "activite" ? (
+                  <>
+                    {/* LES TROIS COLONNES DE LA MAQUETTE. La cadence dit le
+                        SENS, « Actions 30 j » dit la TAILLE que les barres
+                        mises à l'échelle de chaque ligne ne disent pas, et la
+                        dernière action dit DEPUIS QUAND. Les trois ensemble se
+                        lisent d'un coup d'œil ; chacune seule trompe. */}
+                    <th>{t("Cadence, 12 mois")}</th>
+                    <th className="r">{t("Actions 30 j")}</th>
+                    <th>{t("Dernière action")}</th>
+                  </>
+                ) : (
+                  <>
+                    <th>{t("Coordonnées")}</th>
+                    <th>{t("Informations")}</th>
+                    <th className="r">{t("Ordres")}</th>
+                    <th>{t("Dossier")}</th>
+                    <th>{t("Depuis")}</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -213,23 +278,51 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
                       );
                     })()}
                   </td>
-                  <td className={styles.wrap}>
-                    {c.email ?? "—"}
-                    <br />
-                    <small className="mono muted">{c.phone ?? "—"}</small>
-                  </td>
-                  <td className={styles.consents}>
-                    <span className={c.whatsappOptIn ? styles.yes : styles.no}>{t("WhatsApp")}</span>
-                    <span className={c.emailOptIn ? styles.yes : styles.no}>{t("E-mail")}</span>
-                  </td>
-                  <td className="r num">{ordered.get(c.id) ?? 0}</td>
-                  <td>{withFile.has(c.id) ? <Link href={`/desk/clients?file=${files.find((f) => f.userId === c.id)?.id}`}>{t("Ouvrir")}</Link> : <span className="muted">{t("aucun")}</span>}</td>
-                  <td className="muted">{c.since ? fmtDate(c.since) : "—"}</td>
+                  {vue === "activite" ? (
+                    (() => {
+                      const cad = (cadences as Map<string, Chiffres>).get(c.id);
+                      return (
+                        <>
+                          <td>{cad ? <Cadence c={cad} titre={c.name} /> : <span className="muted">—</span>}</td>
+                          <td className="r num">{cad ? cad.recents : <span className="muted">—</span>}</td>
+                          <td>
+                            {cad?.dernier ? (
+                              <>
+                                {cad.dernier.jours === 0 ? t("aujourd'hui") : t("il y a {n} j", { n: cad.dernier.jours })}
+                                <br />
+                                {/* LE GESTE SE DIT EN MOTS, pas par sa clef :
+                                    « ordre.depose » n'est pas une phrase, et le
+                                    catalogue porte déjà la tournure du desk. */}
+                                <small className="muted">{t(GESTES[cad.dernier.geste]?.auDesk ?? cad.dernier.geste)}</small>
+                              </>
+                            ) : (
+                              <span className="muted">{t("aucun geste")}</span>
+                            )}
+                          </td>
+                        </>
+                      );
+                    })()
+                  ) : (
+                    <>
+                      <td className={styles.wrap}>
+                        {c.email ?? "—"}
+                        <br />
+                        <small className="mono muted">{c.phone ?? "—"}</small>
+                      </td>
+                      <td className={styles.consents}>
+                        <span className={c.whatsappOptIn ? styles.yes : styles.no}>{t("WhatsApp")}</span>
+                        <span className={c.emailOptIn ? styles.yes : styles.no}>{t("E-mail")}</span>
+                      </td>
+                      <td className="r num">{ordered.get(c.id) ?? 0}</td>
+                      <td>{withFile.has(c.id) ? <Link href={`/desk/clients?file=${files.find((f) => f.userId === c.id)?.id}`}>{t("Ouvrir")}</Link> : <span className="muted">{t("aucun")}</span>}</td>
+                      <td className="muted">{c.since ? fmtDate(c.since) : "—"}</td>
+                    </>
+                  )}
                 </tr>
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="muted">
+                  <td colSpan={vue === "activite" ? 7 : 9} className="muted">
                     {t("Personne ne répond à cette recherche.")}
                   </td>
                 </tr>

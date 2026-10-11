@@ -25,7 +25,24 @@ import type { MarketBulletin } from "./market";
  * avant l'ancre, qui en ouvre un.
  */
 
-/** Ce qu'un jugement peut dire. Liste fermée : un motif libre redeviendrait une phrase. */
+/**
+ * Ce qu'un jugement peut dire. Liste fermée : un motif libre redeviendrait
+ * une phrase.
+ *
+ * UNE LISTE FERMÉE À LAQUELLE MANQUE LE MOTIF VRAI NE PRODUIT PAS DU SILENCE,
+ * ELLE PRODUIT DES FAUX. Les cinq premiers motifs veulent tous dire « cesse
+ * de demander ». Le 12 octobre 2026, devant le bulletin du 22 décembre 2023,
+ * Georges a cherché comment dire « la ligne est là, page 2, parfaitement
+ * lisible, c'est le lecteur qui l'a manquée » : le plus proche affirmait que
+ * le document est illisible à cet endroit, ce qui est faux. Signer cela aurait
+ * mis au registre une affirmation fausse sur un document, et cette signature
+ * aurait ensuite servi à ne plus jamais relire la séance.
+ *
+ * Le sixième motif répare ce trou, et il a une propriété que les cinq autres
+ * n'ont pas : il NE FERME PAS la remarque. Il la redirige. La séance quitte la
+ * pile « une personne doit regarder » pour la pile « le lecteur doit être
+ * corrigé », et elle y reste jusqu'à ce qu'il le soit.
+ */
 export const MOTIFS_DE_JUGEMENT = {
   pas_encore_publie: {
     libelle: "La bourse ne publiait pas encore cette donnée",
@@ -35,32 +52,55 @@ export const MOTIFS_DE_JUGEMENT = {
        que l'on peut tenir sans ouvrir un document. Les autres motifs sont des
        affirmations sur UN document, et personne ne lit cent douze PDF. */
     surUnePeriode: true,
+    ferme: true,
+    exigeLaPage: false,
   },
   absent_du_document: {
     libelle: "Regardé : la donnée n'est pas dans ce document",
     dit: "Le document a été ouvert à la page indiquée, la donnée n'y figure pas.",
     surUnePeriode: false,
+    ferme: true,
+    exigeLaPage: true,
   },
   illisible_a_la_source: {
     libelle: "Elle y est, mais le document est illisible à cet endroit",
     dit: "La donnée est imprimée et le document l'abîme : ni le lecteur ni une personne ne peut la relever.",
     surUnePeriode: false,
+    ferme: true,
+    exigeLaPage: true,
   },
   vraie_sortie_de_cote: {
     libelle: "La ligne a réellement quitté la cote",
     dit: "Ce n'est pas un défaut de lecture : la ligne n'est plus cotée, et elle ne reviendra pas.",
     surUnePeriode: false,
+    ferme: true,
+    exigeLaPage: false,
   },
   vrai_mouvement: {
     libelle: "Le mouvement est réel",
     dit: "Le saut de valeur a été vérifié à la source : le marché a bougé, le lecteur a bien lu.",
     surUnePeriode: false,
+    ferme: true,
+    exigeLaPage: false,
+  },
+  le_lecteur_l_a_manquee: {
+    libelle: "Le lecteur l'a manquée : la donnée est là, et lisible",
+    dit: "Le document porte la ligne à la page indiquée, et une personne l'a lue sans peine. C'est le lecteur qui doit être corrigé, donc la remarque reste ouverte.",
+    surUnePeriode: false,
+    /* IL NE FERME PAS. Enterrer un défaut du lecteur sous un jugement serait
+       la façon la plus propre de ne jamais le corriger. */
+    ferme: false,
+    exigeLaPage: true,
   },
 } as const;
 
 export type MotifDeJugement = keyof typeof MOTIFS_DE_JUGEMENT;
 export const MOTIFS = Object.keys(MOTIFS_DE_JUGEMENT) as MotifDeJugement[];
 export const motifSurUnePeriode = (m: MotifDeJugement): boolean => MOTIFS_DE_JUGEMENT[m].surUnePeriode;
+/** Ce motif fait-il cesser la question, ou la redirige-t-il vers le lecteur ? */
+export const motifFerme = (m: MotifDeJugement): boolean => MOTIFS_DE_JUGEMENT[m].ferme;
+/** Ce motif affirme quelque chose sur un endroit du document : il exige la page. */
+export const motifExigeLaPage = (m: MotifDeJugement): boolean => MOTIFS_DE_JUGEMENT[m].exigeLaPage;
 
 /**
  * Le jugement d'une personne sur une remarque du lecteur.
@@ -94,6 +134,15 @@ export interface JugementBulletin {
   famille?: string;
   depuis?: string;
   jusquau?: string;
+  /**
+   * La page du document où la personne a regardé.
+   *
+   * Exigée par les motifs qui affirment quelque chose sur un ENDROIT : « j'ai
+   * regardé, ce n'est pas là », « c'est là et c'est illisible », « le lecteur
+   * l'a manquée ». Sans elle ces trois phrases ne sont pas vérifiables, et
+   * une affirmation invérifiable sur un document ne vaut pas qu'on la signe.
+   */
+  page?: number;
   /** Ce que la personne ajoute, et qui n'est jamais le fait lui-même. */
   note?: string;
   par: string;
@@ -115,11 +164,31 @@ export const jugementVivant = (j: JugementBulletin): boolean => !j.retireLe;
  */
 export function couvre(j: JugementBulletin, seance: string, phrase: string, codeDeLaPhrase: (p: string) => string): boolean {
   if (!jugementVivant(j)) return false;
+  /* UN MOTIF QUI NE FERME PAS NE COUVRE PAS. « Le lecteur l'a manquée » vise
+     la même remarque, mais il ne la retire pas de la file : il dit où
+     regarder, et la question reste posée au lecteur. */
+  if (!motifFerme(j.motif)) return false;
   if (j.portee === "seance") return j.seance === seance && j.cible === phrase;
   if (j.famille !== codeDeLaPhrase(phrase)) return false;
   if (j.depuis && seance < j.depuis) return false;
   if (j.jusquau && seance > j.jusquau) return false;
   return true;
+}
+
+/**
+ * Ce que le desk a INDIQUÉ, et qui attend le lecteur et non une personne.
+ *
+ * On les compte à part : ce sont les seules remarques dont on sait déjà
+ * qu'elles valent un travail de lecteur, et où regarder pour le faire.
+ */
+export function indications(
+  b: Pick<MarketBulletin, "sessionDate" | "warnings" | "anomalies">,
+  jugements: JugementBulletin[],
+): { phrase: string; page?: number; par: string; note?: string }[] {
+  const phrases = new Set([...(b.anomalies ?? []), ...(b.warnings ?? [])]);
+  return jugements
+    .filter((j) => jugementVivant(j) && !motifFerme(j.motif) && j.portee === "seance" && j.seance === b.sessionDate && j.cible && phrases.has(j.cible))
+    .map((j) => ({ phrase: j.cible!, page: j.page, par: j.par, note: j.note }));
 }
 
 /** Les remarques d'une séance que personne n'a encore jugées. */

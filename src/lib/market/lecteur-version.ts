@@ -51,8 +51,15 @@
  *                             anciens les impriment. Sur le gabarit du
  *                             25 avril 2024 : six obligations lues contre
  *                             douze, et aucun autre gabarit ne bouge.
+ *   7  (2026-10-12)           les ACTIONS lues par la géométrie, avec leurs
+ *                             deux identités : les seuils valent le cours
+ *                             précédent ± 10 % (4 302 cotations sur 4 843) et
+ *                             la variation annoncée vaut celle que la clôture
+ *                             donne (4 917 sur 4 968). Le 22 décembre 2023,
+ *                             LA REGIONALE est rendue à 42 500 sans que
+ *                             personne ne tape un chiffre.
  */
-export const VERSION_DU_LECTEUR = 6;
+export const VERSION_DU_LECTEUR = 7;
 
 /** Les fichiers qui FONT la lecture : eux seuls commandent le numéro. */
 export const FICHIERS_DU_LECTEUR = ["src/lib/market/boc-parse.ts", "src/lib/market/boc-geometrie.ts"];

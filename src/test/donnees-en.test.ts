@@ -148,6 +148,6 @@ describe("les motifs d'un jugement de bulletin passent en anglais", () => {
   });
 
   it("et la table regarde bien quelque chose", () => {
-    expect(MOTIFS.length).toBe(5);
+    expect(MOTIFS.length).toBe(6);
   });
 });

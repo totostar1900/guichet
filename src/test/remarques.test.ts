@@ -37,6 +37,7 @@ const RÉELS: [string, string][] = [
   ["S", "En-tête du bulletin non reconnu (numéro / date)."],
   ["T", "Obligation CM0000020115 : cellules incomplètes."],
   ["U", "Lecture géométrique impossible : Invalid PDF structure."],
+  ["V", "Écriture refusée par la base : upsertQuotes: numeric field overflow. Le lecteur avait lu 6 action(s), 0 obligation(s) et 31 OPCVM."],
 ];
 
 describe("chaque phrase du lecteur trouve sa famille", () => {
@@ -53,7 +54,7 @@ describe("chaque phrase du lecteur trouve sa famille", () => {
     expect(perdues).toEqual([]);
   });
 
-  it("les vingt-et-une familles sont toutes exercées, et leurs lettres sont uniques", () => {
+  it("les vingt-deux familles sont toutes exercées, et leurs lettres sont uniques", () => {
     // Non vacuité : une famille sans exemple ne serait vérifiée par personne.
     expect(RÉELS.length).toBe(FAMILLES.length);
     expect(new Set(FAMILLES.map((f) => f.code)).size).toBe(FAMILLES.length);
@@ -158,7 +159,11 @@ describe("les formes relevées en production", () => {
      Il en va de même de U, le renoncement de la lecture géométrique.
      Les déclarer ici vaut mieux que d'affaiblir l'assertion : le jour où elle
      paraît, le gabarit la verra, et la liste devra maigrir. */
-  const JAMAIS_VUES = ["T", "U"];
+  /* V naît le 12 octobre 2026 : avant elle, une écriture refusée emportait
+     la fonction entière et le bulletin n'était jamais réécrit, donc la phrase
+     n'existait nulle part. Elle paraîtra à la première relecture d'une séance
+     que la base refuse. */
+  const JAMAIS_VUES = ["T", "U", "V"];
 
   it("et elles exercent toutes les familles, sauf celles déclarées jamais vues", () => {
     /* Non vacuité à l'envers : si le gabarit ne couvrait que trois familles,

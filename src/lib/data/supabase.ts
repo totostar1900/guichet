@@ -671,12 +671,12 @@ const toBulletin = (r: BulletinRow): MarketBulletin => ({
 });
 type JugementRow = {
   id: string; portee: JugementBulletin["portee"]; motif: JugementBulletin["motif"]; seance: string | null; cible: string | null;
-  famille: string | null; depuis: string | null; jusquau: string | null; note: string | null; par: string; at: string;
+  famille: string | null; depuis: string | null; jusquau: string | null; page: number | null; note: string | null; par: string; at: string;
   retire_le: string | null; retire_par: string | null;
 };
 const toJugement = (r: JugementRow): JugementBulletin => ({
   id: r.id, portee: r.portee, motif: r.motif, seance: u(r.seance), cible: u(r.cible), famille: u(r.famille),
-  depuis: u(r.depuis), jusquau: u(r.jusquau), note: u(r.note), par: r.par, at: r.at, retireLe: u(r.retire_le), retirePar: u(r.retire_par),
+  depuis: u(r.depuis), jusquau: u(r.jusquau), page: u(r.page), note: u(r.note), par: r.par, at: r.at, retireLe: u(r.retire_le), retirePar: u(r.retire_par),
 });
 const fromBulletin = (b: MarketBulletin): BulletinRow => ({
   session_date: b.sessionDate, number: b.number, source_url: b.sourceUrl ?? null, file_key: b.fileKey ?? null, ingested_at: b.ingestedAt, ingested_by: b.ingestedBy, status: b.status,
@@ -2209,7 +2209,7 @@ export const supabaseRepository: Repository = {
   async ajouterJugementBulletin(j) {
     const { data, error } = await db()
       .from("bulletin_jugements")
-      .insert({ portee: j.portee, motif: j.motif, seance: j.seance ?? null, cible: j.cible ?? null, famille: j.famille ?? null, depuis: j.depuis ?? null, jusquau: j.jusquau ?? null, note: j.note ?? null, par: j.par })
+      .insert({ portee: j.portee, motif: j.motif, seance: j.seance ?? null, cible: j.cible ?? null, famille: j.famille ?? null, depuis: j.depuis ?? null, jusquau: j.jusquau ?? null, page: j.page ?? null, note: j.note ?? null, par: j.par })
       .select("*")
       .single();
     if (error) fail("ajouterJugementBulletin", error);

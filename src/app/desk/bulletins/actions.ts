@@ -17,7 +17,7 @@ import { repo } from "@/lib/data";
 import { ARRIERE_PAR_TOUR, bulletinsToReread, REREAD_BATCH, rereadOrder } from "@/lib/health";
 import { ingestBoc } from "@/lib/market/boc";
 import type { RereadResult } from "@/lib/desk/reprise";
-import { MOTIFS, MOTIFS_DE_JUGEMENT, motifSurUnePeriode, porteeDUnJugement, type JugementBulletin, type MotifDeJugement } from "@/lib/domain/jugement-bulletin";
+import { MOTIFS, MOTIFS_DE_JUGEMENT, motifExigeLaPage, motifFerme, motifSurUnePeriode, porteeDUnJugement, type JugementBulletin, type MotifDeJugement } from "@/lib/domain/jugement-bulletin";
 import { classer } from "@/lib/market/remarques";
 
 export type { RereadResult } from "@/lib/desk/reprise";
@@ -172,15 +172,24 @@ export async function jugerAction(_prev: JugementResult | null, form: FormData):
 
   const cible = String(form.get("cible") ?? "");
   if (!seance || !cible) return { error: "Remarque introuvable." };
-  await repo().ajouterJugementBulletin({ portee: "seance", motif, seance, cible, note, par: desk.userId });
-  await repo().logEvent({ kind: "desk", html: `<b>Remarque jugée</b> (séance du ${seance}) : ${MOTIFS_DE_JUGEMENT[motif].libelle.toLowerCase()} · « ${cible.slice(0, 120)} » · par ${desk.name}` });
+  /* LA PAGE EST EXIGÉE PAR LES MOTIFS QUI PARLENT D'UN ENDROIT. « J'ai
+     regardé, ce n'est pas là », « c'est là et c'est illisible », « le lecteur
+     l'a manquée » : sans la page, ces trois phrases ne sont pas vérifiables,
+     et une affirmation invérifiable sur un document ne vaut pas qu'on la
+     signe. La base porte la même règle, parce qu'une règle qui n'existe qu'en
+     TypeScript se contourne par un script. */
+  const page = Number(form.get("page"));
+  const aUnePage = Number.isInteger(page) && page > 0 && page < 1000;
+  if (motifExigeLaPage(motif) && !aUnePage) return { error: "Ce motif dit ce qu'une personne a vu à un endroit du document : il demande la page." };
+  await repo().ajouterJugementBulletin({ portee: "seance", motif, seance, cible, page: aUnePage ? page : undefined, note, par: desk.userId });
+  await repo().logEvent({ kind: "desk", html: `<b>Remarque ${motifFerme(motif) ? "jugée" : "indiquée au lecteur"}</b> (séance du ${seance}) : ${MOTIFS_DE_JUGEMENT[motif].libelle.toLowerCase()}${aUnePage ? `, page ${page}` : ""} · « ${cible.slice(0, 120)} » · par ${desk.name}` });
   /* « layout » et non la page : le rapport est rendu deux fois, en page
      entière et en tiroir par la route interceptée @rapport. Rafraîchir la
      seule page laissait le tiroir sur sa copie, donc le desk cliquait et ne
      voyait rien changer, ce qui est pire que pas de bouton. */
   revalidatePath("/desk/bulletins", "layout");
   revalidatePath("/desk/sante");
-  return { ok: "Noté. Cette remarque ne demande plus rien à personne." };
+  return { ok: motifFerme(motif) ? "Noté. Cette remarque ne demande plus rien à personne." : "Noté, et la remarque reste ouverte : c'est au lecteur d'être corrigé, et on sait maintenant où regarder." };
 }
 
 /** Ce qu'un jugement de période ferme, compté sur les bulletins en base. */

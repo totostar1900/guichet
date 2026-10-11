@@ -9,7 +9,7 @@ import { comparer, juger, verdict, type Ecart } from "@/lib/market/comparer";
 import { fmtDateTime } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
-import { couvre } from "@/lib/domain/jugement-bulletin";
+import { couvre, jugementVivant } from "@/lib/domain/jugement-bulletin";
 import { Juger } from "./Juger";
 
 /**
@@ -146,6 +146,15 @@ export async function Rapport({ seance }: { seance: string }) {
      une séance lue avant cette date n'a que celles-là. */
   const notes = b.notes?.length ? b.notes : (frais?.notes ?? []);
   const jugements = await r.listJugementsBulletin().catch(() => []);
+  /* CE QUE LE LECTEUR D'AUJOURD'HUI DIT ENCORE, et ce qu'il ne dit plus.
+     Les remarques affichées venaient de la base, donc de la PREMIÈRE lecture
+     de la séance. Sur le bulletin du 22 décembre 2023, cinq des six
+     avertissements n'étaient plus vrais depuis des mois : le desk était invité
+     à répondre à six questions dont une seule tenait encore. Une question
+     périmée coûte deux fois, en travail et en confiance. */
+  const fraiches = frais ? new Set([...frais.anomalies, ...frais.notes.map((n) => n.message)]) : undefined;
+  const perimee = (texte: string) => fraiches != null && !fraiches.has(texte);
+  const combienPerimees = [...(b.anomalies ?? []), ...(b.warnings ?? [])].filter(perimee).length;
   const statutFrais = frais ? (frais.anomalies.length || frais.notes.length ? "partiel" : "ok") : undefined;
   /* Le seul chiffre qui décide : le lecteur d'aujourd'hui ferait-il mieux ? */
   const gagnerait = frais ? frais.actions > (b.counts?.equities ?? 0) || frais.obligations > (b.counts?.bonds ?? 0) || frais.opcvm > (b.counts?.funds ?? 0) : false;
@@ -216,6 +225,7 @@ export async function Rapport({ seance }: { seance: string }) {
       <section className="panel">
         <div className="panel-h">
           <h2>{t("{n} remarques, telles que la base les garde", { n: enBase.length })}</h2>
+          {combienPerimees > 0 && <span className="muted">{t("{n} que le lecteur d'aujourd'hui ne dit plus", { n: combienPerimees })}</span>}
         </div>
         {enBase.length === 0 ? (
           <p className={styles.p}>{t("Aucune : la séance est entrée entière.")}</p>
@@ -226,18 +236,30 @@ export async function Rapport({ seance }: { seance: string }) {
               /* La note porte la page : « il est en page 3 » ne se dit pas
                  sans elle, et c'est elle qui fait d'une plainte une question. */
               const note = notes.find((n) => n.message === x.texte);
-              const vu = jugements.find((j) => couvre(j, seance, x.texte, classer));
+              /* Un jugement qui ferme couvre la remarque ; une indication au
+                 lecteur ne la couvre pas, et c'est voulu. On cherche donc le
+                 geste par la cible, pas par la couverture. */
+              const vu = jugements.find((j) => jugementVivant(j) && j.portee === "seance" && j.seance === seance && j.cible === x.texte) ?? jugements.find((j) => couvre(j, seance, x.texte, classer));
+              const vieille = perimee(x.texte);
               return (
-                <div key={i} className={`${styles.rem} ${x.genre === "anomalie" ? styles.remA : styles.remW} ${vu ? styles.remVu : ""}`}>
+                <div key={i} className={`${styles.rem} ${x.genre === "anomalie" ? styles.remA : styles.remW} ${vu || vieille ? styles.remVu : ""}`}>
                   <span className={`${styles.code} ${x.genre === "anomalie" ? styles.codeA : styles.codeW}`}>{x.code}</span>
                   <div>
                     <small>
                       {f ? t(f.libelle) : t("famille inconnue")} · {t(x.genre)}
                       {note?.page != null ? ` · ${t("page {n} du document", { n: note.page })}` : ""}
                     </small>
-                    <p>{x.texte}</p>
+                    <p className={vieille ? styles.perimee : undefined}>{x.texte}</p>
                     {f && <small className={styles.conseil}>{t(f.quoiFaire)}</small>}
-                    <Juger seance={seance} code={x.code} texte={x.texte} jugement={vu && !vu.retireLe ? { id: vu.id, motif: vu.motif, portee: vu.portee, note: vu.note, at: vu.at } : undefined} bornes={DEPUIS_QUE_LA_BOURSE_PUBLIE[x.code] ? { jusquau: DEPUIS_QUE_LA_BOURSE_PUBLIE[x.code] } : undefined} />
+                    {/* ON NE DEMANDE RIEN SUR UNE REMARQUE PÉRIMÉE : le lecteur
+                        ne la porte plus, elle ne quittera la base qu'à la
+                        prochaine écriture réussie, et y répondre serait
+                        répondre à un fantôme. */}
+                    {vieille ? (
+                      <small className={styles.conseil}>{t("Le lecteur d'aujourd'hui ne dit plus cela : la base garde la phrase de sa première lecture.")}</small>
+                    ) : (
+                      <Juger seance={seance} code={x.code} texte={x.texte} jugement={vu && !vu.retireLe ? { id: vu.id, motif: vu.motif, portee: vu.portee, page: vu.page, note: vu.note, at: vu.at } : undefined} bornes={DEPUIS_QUE_LA_BOURSE_PUBLIE[x.code] ? { jusquau: DEPUIS_QUE_LA_BOURSE_PUBLIE[x.code] } : undefined} pageProposee={note?.page} />
+                    )}
                   </div>
                 </div>
               );

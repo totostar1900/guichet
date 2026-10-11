@@ -82,7 +82,7 @@ describe("la portée d'une période ferme une famille", () => {
        sans ouvrir un document. Les autres affirment quelque chose sur UN
        document, et personne ne lit 112 PDF. */
     expect(MOTIFS.filter(motifSurUnePeriode)).toEqual(["pas_encore_publie"]);
-    expect(MOTIFS.length, "liste fermée : un motif libre redeviendrait une phrase").toBe(5);
+    expect(MOTIFS.length, "liste fermée : un motif libre redeviendrait une phrase").toBe(6);
   });
 
   it("et elle annonce ce qu'elle fermerait avant d'être prise", () => {

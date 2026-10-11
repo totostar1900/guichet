@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { jugerAction, retirerJugementAction, type JugementResult } from "../actions";
-import { MOTIFS, MOTIFS_DE_JUGEMENT, motifSurUnePeriode, type MotifDeJugement } from "@/lib/domain/jugement-bulletin";
+import { MOTIFS, MOTIFS_DE_JUGEMENT, motifExigeLaPage, motifFerme, motifSurUnePeriode, type MotifDeJugement } from "@/lib/domain/jugement-bulletin";
 import { useT } from "@/i18n/client";
 import styles from "./page.module.css";
 
@@ -25,13 +25,16 @@ export function Juger({
   texte,
   jugement,
   bornes,
+  pageProposee,
 }: {
   seance: string;
   code: string;
   texte: string;
-  jugement?: { id: string; motif: MotifDeJugement; portee: string; note?: string; at: string };
+  jugement?: { id: string; motif: MotifDeJugement; portee: string; page?: number; note?: string; at: string };
   /** La date depuis laquelle la bourse publie ce que cette famille réclame, quand on la connaît. */
   bornes?: { jusquau: string };
+  /** La page que le lecteur a lui-même retrouvée : elle évite au desk de la chercher. */
+  pageProposee?: number;
 }) {
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
@@ -43,8 +46,9 @@ export function Juger({
   if (jugement) {
     return (
       <div className={styles.juge}>
-        <small>
-          {t("Jugé")} : {t(MOTIFS_DE_JUGEMENT[jugement.motif].libelle)}
+        <small className={motifFerme(jugement.motif) ? undefined : styles.moins}>
+          {motifFerme(jugement.motif) ? t("Jugé") : t("Indiqué au lecteur")} : {t(MOTIFS_DE_JUGEMENT[jugement.motif].libelle)}
+          {jugement.page != null ? ` · ${t("page {n}", { n: jugement.page })}` : ""}
           {jugement.portee === "periode" ? ` · ${t("sur une période")}` : ""}
           {jugement.note ? ` · ${jugement.note}` : ""}
         </small>
@@ -106,6 +110,16 @@ export function Juger({
           </label>
           {portee === "periode" && <input type="hidden" name="jusquau" value={bornes.jusquau} />}
         </div>
+      )}
+
+      {/* LA PAGE, EXIGÉE PAR LES MOTIFS QUI PARLENT D'UN ENDROIT. Le lecteur
+          propose la sienne quand il a su retrouver son texte dans le document :
+          le desk n'a alors rien à chercher, il confirme ou il corrige. */}
+      {motifExigeLaPage(motif) && (
+        <label>
+          <span>{t("La page du document où vous avez regardé")}</span>
+          <input name="page" type="number" min={1} max={999} defaultValue={pageProposee ?? ""} required />
+        </label>
       )}
 
       <label>

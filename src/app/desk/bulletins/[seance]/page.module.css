@@ -293,3 +293,11 @@
   border: 1px solid var(--line);
   padding: 0 6px;
 }
+
+/* Une remarque que le lecteur ne porte plus : elle reste lisible, parce
+   qu'elle est encore en base, et elle cesse d'appeler. */
+.perimee {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  opacity: 0.75;
+}

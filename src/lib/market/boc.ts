@@ -1,6 +1,6 @@
 import "server-only";
 import type { Country, Offer } from "@/lib/domain/types";
-import { fundKey, type BulletinNote, type FundNav, type MarketBulletin, type Quote, tradedSession } from "@/lib/domain/market";
+import { fundKey, valeurHorsLimites, type BulletinNote, type FundNav, type MarketBulletin, type Quote, tradedSession } from "@/lib/domain/market";
 import { repo } from "@/lib/data";
 import { fmt, fmtDate, localIso } from "@/lib/format";
 import { parseDate } from "@/lib/finance";
@@ -429,7 +429,31 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   }
 
   const [companies] = await Promise.all([loadCompanies(), loadRegistry()]); // exact bond schedules + issuer documents from the desk's reference data
-  const quotes = [...parsed.equities.map((e) => equityQuote(e, parsed)), ...parsed.bonds.map((o) => bondQuote(o, parsed))];
+  /**
+   * UNE VALEUR QUE LA BASE NE PEUT PAS CONTENIR N'EST PAS UNE VALEUR.
+   *
+   * Les colonnes de cotation sont des numeric(18,2) : seize chiffres devant
+   * la virgule. Le 22 décembre 2023, la ligne BANGE sort du lecteur avec une
+   * ouverture à vingt-et-un chiffres, parce que quatre montants à séparateurs
+   * d'espace se sont collés. L'écriture étant tout-ou-rien, cette seule ligne
+   * emportait les cinq autres, et la séance restait à zéro action pendant
+   * deux ans.
+   *
+   * Le lecteur l'écarte donc lui-même, et LE DIT : rendre la ligne à la base
+   * pour qu'elle la refuse coûtait toute la séance ; l'écarter en silence
+   * serait pire encore, puisque personne ne saurait qu'une ligne manque.
+   */
+  const quotes: Quote[] = [];
+  for (const q of [...parsed.equities.map((e) => equityQuote(e, parsed)), ...parsed.bonds.map((o) => bondQuote(o, parsed))]) {
+    const faute = valeurHorsLimites(q);
+    if (!faute) {
+      quotes.push(q);
+      continue;
+    }
+    const message = `Écriture refusée d'avance : ${q.isin} porte une valeur hors des limites de la base (${faute}). La ligne est écartée, les autres entrent.`;
+    parsed.warnings.push(message);
+    parsed.notes.push({ message, attendu: "un nombre tenant sur seize chiffres devant la virgule" });
+  }
   // A NAV dated years away from the session, or absurd, is a mis-read line: keep it out of the history.
   const plausible = (n: FundNav): boolean => {
     const d = parseDate(n.navDate).getTime();
@@ -451,8 +475,56 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   const anomalies = validate(parsed, quotes, navs, previous, avantHier?.counts?.funds ?? 0);
   const already = await r.getBulletin(sessionDate);
 
-  await r.upsertQuotes(quotes);
-  await r.upsertFundNavs(navs);
+  /* LIRE ET ENREGISTRER NE SONT PAS LE MÊME MOMENT.
+     Ces deux lignes levaient, et tout le reste de la fonction était emporté :
+     le bulletin n'était jamais réécrit, donc la séance gardait éternellement
+     le compte rendu de sa PREMIÈRE lecture. Le 22 décembre 2023, elle annonce
+     « Seulement 0 action(s) lue(s) » alors que le lecteur en lit cinq sur six
+     depuis des mois ; la base refuse une ligne dont l'ouverture sort à
+     vingt-et-un chiffres, et l'écriture tout-ou-rien emporte les quatre
+     bonnes. Le desk lisait une accusation contre la lecture, et n'avait
+     d'autre choix que de signer un motif faux sur le document.
+     ON N'ÉCRIT RIEN DE PLUS POUR AUTANT : si les cotations sont refusées, les
+     lignes cotées ne sont pas rafraîchies non plus, sinon on publierait un
+     prix dont la cotation n'existe pas. Seul le bulletin est écrit, et il dit
+     la vérité : ce que le lecteur a lu, et que la base l'a refusé. */
+  let refusDEcriture: string | undefined;
+  try {
+    await r.upsertQuotes(quotes);
+    await r.upsertFundNavs(navs);
+  } catch (e) {
+    refusDEcriture = e instanceof Error ? e.message : "cause inconnue";
+  }
+
+  if (refusDEcriture) {
+    const bulletin: MarketBulletin = {
+      id: sessionDate,
+      number: parsed.bulletinNo,
+      sessionDate,
+      sourceUrl,
+      fileKey,
+      ingestedAt: new Date().toISOString(),
+      ingestedBy: opts.by,
+      status: "echec",
+      indexValue: parsed.index?.value,
+      indexVariationPct: parsed.index?.variationPct,
+      /* Les comptes disent ce que le LECTEUR a lu, et c'est leur sens depuis
+         toujours. Y mettre zéro parce que la base a refusé ferait accuser la
+         lecture une seconde fois. */
+      counts: { equities: parsed.equities.length, bonds: parsed.bonds.length, funds: parsed.funds.length },
+      warnings: parsed.warnings,
+      /* Les anomalies DÉRIVÉES sont écartées : « vingt lignes absentes depuis
+         la veille » est la conséquence d'un seul refus, pas vingt faits, et
+         les présenter côte à côte fait répondre vingt fois à une question. */
+      anomalies: [`Écriture refusée par la base : ${refusDEcriture}. Le lecteur avait lu ${parsed.equities.length} action(s), ${parsed.bonds.length} obligation(s) et ${parsed.funds.length} OPCVM.`],
+      notices: parsed.notices,
+      notes: parsed.notes,
+      readerVersion: VERSION_DU_LECTEUR,
+    };
+    await r.upsertBulletin(bulletin);
+    await r.logEvent({ kind: "system", html: `<b>Bulletin BVMAC</b> du ${fmtDate(sessionDate)} : lecture réussie, écriture refusée (${refusDEcriture.replace(/</g, "&lt;")}). Les cours ne sont pas entrés.` });
+    return { found: true, bulletin, created: [], refreshed: [], error: refusDEcriture };
+  }
 
   // Listed lines: refresh the price of every line we know, create the ones we do not.
   const offers = await r.listOffers();

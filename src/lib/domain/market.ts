@@ -194,3 +194,21 @@ export const fundKey = (name: string): string =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+
+/**
+ * Seize chiffres devant la virgule : ce que les colonnes de cotation tiennent.
+ *
+ * UNE VALEUR QUE LA BASE NE PEUT PAS CONTENIR N'EST PAS UNE VALEUR. Le
+ * 22 décembre 2023, la ligne BANGE sort du lecteur avec une ouverture à
+ * vingt-et-un chiffres, parce que quatre montants à séparateurs d'espace se
+ * sont collés. L'écriture des cotations étant tout-ou-rien, cette seule ligne
+ * emportait les cinq autres, et la séance est restée à zéro action pendant
+ * deux ans.
+ */
+export const PLAFOND_NUMERIQUE = 10 ** 16;
+
+/** Le champ fautif et sa valeur, si la cotation en porte un ; rien sinon. */
+export function valeurHorsLimites(q: Quote): string | undefined {
+  const fautif = Object.entries(q).find(([, v]) => typeof v === "number" && Number.isFinite(v) && Math.abs(v) >= PLAFOND_NUMERIQUE);
+  return fautif ? `${fautif[0]} = ${fautif[1]}` : undefined;
+}

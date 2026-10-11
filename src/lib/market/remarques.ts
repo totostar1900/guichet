@@ -71,6 +71,15 @@ export const FAMILLES: Famille[] = [
      il faut le savoir : un recours qui renonce en silence ne vaut rien.
      Prévue par le lecteur, jamais vue en production. */
   { code: "U", genre: "anomalie", libelle: "Lecture géométrique impossible", quoiFaire: "Le document n'a pas pu être ouvert par la lecture de secours : la séance reste lue au texte seul.", motif: /^Lecture géométrique impossible/ },
+  /* LIRE ET ENREGISTRER NE SONT PAS LE MÊME MOMENT, et les confondre a fait
+     mentir un écran pendant des mois. Le 22 décembre 2023, le lecteur lit cinq
+     actions sur six ; la base refuse une ligne dont un cours d'ouverture sort
+     à vingt-et-un chiffres, l'écriture est tout-ou-rien, et les quatre bonnes
+     tombent avec elle. La séance gardait alors « Seulement 0 action(s) lue(s) »,
+     qui accuse la LECTURE, et le desk n'avait d'autre choix que de signer un
+     motif faux sur le document. Ce qui est refusé doit se dire comme un refus
+     d'écriture. */
+  { code: "V", genre: "anomalie", libelle: "Lu, mais refusé à l'enregistrement", quoiFaire: "Le lecteur a réussi : c'est la base qui refuse une valeur. Corriger la valeur ou la colonne, pas la lecture.", motif: /^Écriture refusée/ },
 ];
 
 const PAR_CODE = new Map(FAMILLES.map((f) => [f.code, f]));

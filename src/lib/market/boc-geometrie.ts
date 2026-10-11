@@ -1,4 +1,4 @@
-import type { BocBond, BocParsed } from "./boc-parse";
+import type { BocBond, BocEquity, BocParsed } from "./boc-parse";
 import { isoDate, num, type Carnet } from "./boc-parse";
 
 /**
@@ -277,6 +277,8 @@ export const rangeeSeparee = (r: Rangee, grille: number[]): Cellule[] => r.cellu
 /* ---------------- Les obligations ---------------- */
 
 const ISIN = /^[A-Z]{2}\d{10}$/;
+/** L'ISIN quelque part dans la cellule : la grille le colle parfois au mnémonique. */
+const ISIN_DANS = /[A-Z]{2}\d{10}/;
 const DATE = /^\d{2}\/\d{2}\/\d{4}$/;
 const STATUT = /^[A-Z]{1,3}[a-z]?$/;
 
@@ -555,6 +557,162 @@ export function situerLesNotes(notes: { brut?: string; page?: number }[], rangee
   return poses;
 }
 
+/* ---------------- Les actions, par la géométrie ---------------- */
+
+/**
+ * LA BANDE DES ACTIONS EST DE DIX POUR CENT, celle des obligations de six.
+ *
+ * Mesuré le 12 octobre 2026 sur les 4 968 cotations d'action de la base :
+ * 4 302 des 4 843 qui portent des seuils les ont exactement au franc près à
+ * ± 10 % du cours précédent, soit 88,8 %. Les 11 % restants ont tous le même
+ * visage, haut = bas = cours précédent, et ils sont concentrés sur
+ * l'automne 2023 : soit la bourse ne publiait pas encore la bande, soit le
+ * lecteur attribuait mal ces colonnes. Dans les deux cas la rangée est
+ * refusée, et dite, plutôt que lue de travers.
+ */
+const BANDE_ACTION = 0.1;
+
+/** La variation annoncée vaut (clôture − précédent) / précédent : 4 917 sur 4 968, soit 98,97 %. */
+const ECART_VARIATION = 0.02;
+
+export interface ValeursAction {
+  precedent: number;
+  ouverture: number;
+  cloture: number;
+  haut: number;
+  bas: number;
+  variation: number;
+  reference: number;
+}
+
+/**
+ * Les valeurs d'une rangée d'action, si une découpe les accorde.
+ *
+ * DEUX IDENTITÉS INDÉPENDANTES, comme pour les obligations, et c'est ce qui
+ * autorise à chercher la découpe au lieu de la deviner :
+ *
+ *   les seuils encadrent le cours précédent de DIX pour cent ;
+ *   la variation annoncée vaut celle que la clôture et le précédent donnent.
+ *
+ * La première épingle les deux seuils, donc les frontières autour d'eux ; la
+ * seconde épingle la CLÔTURE. Une découpe fausse dément presque toujours au
+ * moins l'une des deux, donc la recherche ne devine pas, elle vérifie.
+ *
+ * C'est la réponse à une question de Georges, le 12 octobre 2026 : confirmer
+ * la rangée suffit-il à savoir que l'ouverture et la clôture valent 42 500 ?
+ * Non, pas la rangée seule. La rangée PLUS cette arithmétique, oui.
+ */
+export function lireAction(avant: string[], apres: string[]): ValeursAction | undefined {
+  for (const p of lectures(avant)) {
+    /* Le cours précédent est la dernière valeur avant la date : ce qui le
+       précède est le mnémonique et le nom, que `lectures` a déjà écartés. */
+    const precedent = num(p.at(-1) ?? "");
+    if (!(precedent > 0)) continue;
+    for (const a of lectures(apres)) {
+      if (a.length < 6) continue;
+      const [ouverture, cloture, haut, bas, variation, reference] = a.slice(0, 6).map(num);
+      if (![ouverture, cloture, haut, bas, variation, reference].every((x) => Number.isFinite(x))) continue;
+      if (Math.abs(haut - precedent * (1 + BANDE_ACTION)) > 1 || Math.abs(bas - precedent * (1 - BANDE_ACTION)) > 1) continue;
+      if (!(ouverture > 0) || !(cloture > 0)) continue;
+      if (Math.abs(((cloture - precedent) / precedent) * 100 - variation) > ECART_VARIATION) continue;
+      return { precedent, ouverture, cloture, haut, bas, variation, reference };
+    }
+  }
+  return undefined;
+}
+
+/** Les remarques que la lecture géométrique des actions peut rendre caduques. */
+const ACTION_PERDUE = /^Action ([A-Z]{2}\d{10}) : ligne dense non reconnue/;
+
+/**
+ * Les actions d'une séance, lues sur la grille.
+ *
+ * UNE RANGÉE PORTE TOUT : ISIN, mnémonique, nom, cours précédent, puis la
+ * date, les volumes, le statut, et enfin les six valeurs du jour. Les ancres
+ * sont des formes et non des rangs : l'ISIN, la date, le statut.
+ */
+export function actionsGeometriques(rangees: Rangee[], carnet?: Carnet): BocEquity[] {
+  const titre = (r: Rangee, motif: RegExp) => r.cellules.some((c) => motif.test(c.texte));
+  const debut = rangees.findIndex((r) => titre(r, /^MARCHE DES ACTIONS/));
+  if (debut < 0) return [];
+  const fin = rangees.findIndex((r, i) => i > debut && titre(r, /^(MARCHE DES OBLIGATIONS|CAPITALISATION BOURSIERE|MARCHE DES OPCVM)/i));
+  const section = rangees.slice(debut, fin > debut ? fin : undefined);
+
+  /* La grille s'apprend page par page, pour la même raison que chez les
+     obligations : chaque tableau a ses propres colonnes. */
+  const parPage = new Map<number, number[]>();
+  for (const p of new Set(section.map((r) => r.page))) parPage.set(p, colonnes(section.filter((r) => r.page === p)));
+
+  const out: BocEquity[] = [];
+  const vus = new Set<string>();
+  for (const [rang, r] of section.entries()) {
+    const cells = rangeeSeparee(r, parPage.get(r.page) ?? []).map((c) => c.texte);
+    /* L'ISIN EST COLLÉ AU MNÉMONIQUE DANS LA MÊME CELLULE : la grille rend
+       « CM0000010009 SEMC » d'un bloc, et le chercher en cellule exacte, comme
+       le fait le lecteur des obligations, ne trouvait rien du tout. Zéro
+       action lue, et pas même un refus à montrer : la pire des deux façons
+       d'échouer. */
+    const iIsin = cells.findIndex((c) => ISIN_DANS.test(c));
+    if (iIsin < 0) continue;
+    const isin = cells[iIsin].match(ISIN_DANS)![0];
+    if (vus.has(isin)) continue;
+    const iDate = cells.findIndex((c, k) => k > iIsin && DATE.test(c));
+    if (iDate < 0) continue;
+    const refuser = (pourquoi: string) => carnet?.sur(`Action ${isin} : ${pourquoi}`, cells.join(" | "), "cours précédent, date, volumes, statut, puis ouverture, clôture, seuil haut, seuil bas, variation et référence");
+    const iStatut = cells.findIndex((c, k) => k > iDate && STATUT.test(c) && !ISIN.test(c));
+    if (iStatut < 0) {
+      refuser("aucun statut sur la rangée.");
+      continue;
+    }
+    const lu = lireAction(cells.slice(iIsin + 1, iDate), cells.slice(iStatut + 1));
+    if (!lu) {
+      refuser(`aucune découpe de la rangée n'accorde la bande de dix pour cent et la variation annoncée (${cells.length} cellules).`);
+      continue;
+    }
+    vus.add(isin);
+    /* LE NOM DE L'ÉMETTEUR VIT AU-DESSUS, sur une à trois rangées de texte
+       sans chiffre ni date : « SOCIETE DES EAUX MINERALES » puis « DU
+       CAMEROUN ». On remonte tant qu'on ne rencontre que du texte, et on
+       s'arrête à la première rangée chiffrée, comme le lecteur aplati. */
+    const haut: string[] = [];
+    for (let k = rang - 1; k >= 0 && haut.length < 3; k--) {
+      const t = section[k].cellules.map((c) => c.texte).join(" ").trim();
+      /* ET ON NE FRANCHIT PAS UN TITRE DE SECTION : « MARCHE DES ACTIONS »
+         ne porte aucun chiffre, donc la remontée l'avalait et le collait au
+         nom de l'émetteur. Un cas de test l'a attrapé. */
+      if (!t || ISIN_DANS.test(t) || /d/.test(t) || /^(MARCHE DES|CAPITALISATION|SYNTHESE|PHYSIONOMIE)/i.test(t)) break;
+      haut.unshift(t);
+    }
+    out.push({
+      isin,
+      /* Le mnémonique suit l'ISIN dans sa cellule, ou occupe la suivante. */
+      mnemo: (cells[iIsin].replace(ISIN_DANS, "").trim() || cells[iIsin + 1] || "").split(/s+/)[0] ?? "",
+      issuer: haut.join(" ").replace(/s+/g, " ").trim() || (cells[iIsin + 1] ?? ""),
+      previousClose: lu.precedent,
+      previousDate: isoDate(cells[iDate]),
+      /* Les volumes vivent entre la date et le statut. On ne les invente pas :
+         ce que la rangée ne donne pas reste à zéro, comme le fait la lecture
+         aplatie quand la colonne est vide. */
+      volumeBid: 0,
+      volumeAsk: 0,
+      volumeTraded: num(cells[iDate + 1] ?? "0") || 0,
+      valueTraded: num(cells[iDate + 2] ?? "0") || 0,
+      trades: num(cells[iDate + 3] ?? "0") || 0,
+      status: cells[iStatut],
+      open: lu.ouverture,
+      close: lu.cloture,
+      thresholdHigh: lu.haut,
+      thresholdLow: lu.bas,
+      variationPct: lu.variation,
+      referenceNext: lu.reference,
+      ytdHigh: 0,
+      ytdLow: 0,
+      ytdVariationPct: null,
+    });
+  }
+  return out;
+}
+
 /* ---------------- Le rattrapage ---------------- */
 
 /** Les remarques que la lecture géométrique peut rendre caduques. */
@@ -590,7 +748,8 @@ const PERDUE = /^Obligation ([A-Z]{2}\d{10}) : (ligne de cours non reconnue|prix
 export async function completerObligations(parsed: BocParsed, bytes: Uint8Array, nominauxDeReference?: Map<string, number>): Promise<string[]> {
   const manquantes = new Set(parsed.warnings.map((w) => w.match(PERDUE)?.[1]).filter((x): x is string => !!x));
   const aSituer = parsed.notes.some((n) => n.brut && n.page === undefined);
-  if (manquantes.size === 0 && !aSituer) return [];
+  const actionsAReprendre = parsed.warnings.some((w) => ACTION_PERDUE.test(w));
+  if (manquantes.size === 0 && !aSituer && !actionsAReprendre) return [];
 
   let rangees: Rangee[];
   try {
@@ -610,6 +769,28 @@ export async function completerObligations(parsed: BocParsed, bytes: Uint8Array,
      silence. Le piège est documenté plus haut dans ce fichier, il a déjà
      coûté un balayage entier rendu à zéro ligne. */
   situerLesNotes(parsed.notes, rangees);
+
+  /* LES ACTIONS AUSSI, et dans la MÊME passe : les rangées sont déjà lues, et
+     pdfjs détache le tampon, donc un second appel rendrait du vide en
+     silence. La règle est celle des obligations, mot pour mot : on prend
+     l'union, l'aplatie l'emporte en cas de doublon, et une séance ne peut
+     donc jamais régresser. */
+  const actionsPerdues = new Set(parsed.warnings.map((w) => w.match(ACTION_PERDUE)?.[1]).filter((x): x is string => !!x));
+  if (actionsPerdues.size > 0) {
+    const dejaLues = new Set(parsed.equities.map((e) => e.isin));
+    const reprises = actionsGeometriques(rangees).filter((e) => !dejaLues.has(e.isin) && actionsPerdues.has(e.isin));
+    if (reprises.length > 0) {
+      parsed.equities.push(...reprises);
+      const rendues = new Set(reprises.map((e) => e.isin));
+      const caduqueAction = (m: string) => {
+        const x = m.match(ACTION_PERDUE)?.[1];
+        return !!x && rendues.has(x);
+      };
+      parsed.warnings = parsed.warnings.filter((w) => !caduqueAction(w));
+      parsed.notes = parsed.notes.filter((n) => !caduqueAction(n.message));
+    }
+  }
+
   if (manquantes.size === 0) return [];
 
   const geo = obligationsGeometriques(rangees, undefined, nominauxDeReference);
