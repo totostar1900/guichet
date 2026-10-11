@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { splitPriceNominal } from "@/lib/market/boc-parse";
+import { lireValeurs } from "@/lib/market/boc-geometrie";
 
 /**
  * LE PRIX D'UNE LIGNE AMORTISSABLE N'EST PAS RAPPORTÉ AU NOMINAL DU JOUR.
@@ -59,5 +60,35 @@ describe("la seconde identité, et seulement quand la première renonce", () => 
   it("et la tolérance reste celle de la maison : un franc et demi", () => {
     expect(splitPriceNominal("9841,000,000", 98.4, 10000), "un franc d'écart passe").toEqual({ price: 9841, nominal: 0 });
     expect(splitPriceNominal("9842,000,000", 98.4, 10000), "deux francs, non").toBeUndefined();
+  });
+});
+
+describe("le lecteur géométrique porte la même seconde identité", () => {
+  it("il refusait les lignes amortissables pour la même raison", () => {
+    /* 81 des refus mesurés le 11 octobre 2026 sur les 48 séances de la
+       famille « ligne de cours non reconnue » étaient « aucune découpe
+       n'accorde le prix, le nominal et la bande de six pour cent ». La même
+       identité que le lecteur aplati, dans l'autre lecteur. */
+    const avant = ["98,40", "9 840,00", "0,000", "0,00"];
+    const apres = ["98,40", "98,40", "104,30", "92,50", "0,00%", "0,00"];
+    expect(lireValeurs(avant, apres), "sans référence, il renonce").toBeUndefined();
+    const lu = lireValeurs(avant, apres, false, 10000);
+    expect(lu?.prix).toBe(9840);
+    expect(lu?.nominal).toBe(0);
+    expect(lu?.pct).toBe(98.4);
+  });
+
+  it("et une référence fausse ne fabrique rien", () => {
+    const avant = ["98,40", "9 840,00", "0,000", "0,00"];
+    const apres = ["98,40", "98,40", "104,30", "92,50", "0,00%", "0,00"];
+    expect(lireValeurs(avant, apres, false, 777)).toBeUndefined();
+  });
+
+  it("la bande de six pour cent reste exigée, référence ou pas", () => {
+    /* Les deux vérifications sont indépendantes : la seconde identité ne
+       dispense pas de la première bande, sinon une rangée fausse passerait. */
+    const avant = ["98,40", "9 840,00", "0,000", "0,00"];
+    const faux = ["98,40", "98,40", "120,00", "80,00", "0,00%", "0,00"];
+    expect(lireValeurs(avant, faux, false, 10000)).toBeUndefined();
   });
 });

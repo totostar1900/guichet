@@ -433,7 +433,7 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
      sur neuf se perdaient ainsi. */
   const nominauxDeReference = await nominauxConnus(opts.sessionDate);
   const parsed = parseBoc(text, nominauxDeReference);
-  const rattrapees = await completerObligations(parsed, bytes);
+  const rattrapees = await completerObligations(parsed, bytes, nominauxDeReference);
   const sessionDate = parsed.sessionDate || opts.sessionDate;
   /* « NE PAS GARDER » N EST PAS « OUBLIER ». Cette ligne écrivait undefined
      dès que keepPdf était faux, donc une relecture effaçait le pointeur d'une

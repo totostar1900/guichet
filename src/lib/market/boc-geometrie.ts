@@ -328,13 +328,23 @@ function lectures(cellules: string[]): string[][] {
  * satisfait est la bonne, et quand aucune ne les satisfait la rangée est
  * refusée avec son texte plutôt que lue de travers.
  */
-export function lireValeurs(avant: string[], apres: string[], exigerIdentite = false): Valeurs | undefined {
+export function lireValeurs(avant: string[], apres: string[], exigerIdentite = false, nominalRef?: number): Valeurs | undefined {
   for (const a of lectures(avant)) {
     if (a.length < 4) continue;
     const pct = num(a[0]);
     const prix = num(a[1]);
     const nominal = num(a[2]);
-    if (!(nominal > 0) || !(pct > 0)) continue;
+    if (!(pct > 0) || !(nominal >= 0)) continue;
+    /* LA SECONDE IDENTITÉ, LA MÊME QUE CELLE DU LECTEUR APLATI.
+       Sur une ligne amortissable le prix reste rapporté au DERNIER NOMINAL
+       NON NUL, et le bulletin finit par imprimer zéro : les deux identités de
+       cette fonction refusaient alors la rangée, et c'était 81 des refus
+       mesurés le 11 octobre 2026 sur les 48 séances de la famille « ligne de
+       cours non reconnue ». Le nombre manquant dormait en base.
+       Sans référence, le comportement d'avant, mot pour mot : un nominal nul
+       est refusé, et l'identité du nominal imprimé commande seule. */
+    const parLaReference = nominalRef != null && nominalRef > 0 && Math.abs(prix - (pct * nominalRef) / 100) <= 1.5;
+    if (nominal === 0 && !parLaReference) continue;
     /* L'IDENTITÉ DÉPARTAGE UNE DÉCOUPE, ELLE N'AUTORISE PAS UNE LECTURE, et
        cette nuance a coûté vingt-et-une séances.
        Elle ne tient pas pour une ligne AMORTISSABLE : le 5 décembre 2024, la
@@ -351,7 +361,7 @@ export function lireValeurs(avant: string[], apres: string[], exigerIdentite = f
        colonne passait pour deux valeurs imprimées, et le 7 août 2024 un
        nominal de 2 500 devenait 500 : mesuré par la comparaison avec la
        lecture aplatie, jamais par un test écrit à la main. */
-    if ((exigerIdentite || a.length !== avant.length) && Math.abs(prix - (pct * nominal) / 100) > 1.5) continue;
+    if (!parLaReference && (exigerIdentite || a.length !== avant.length) && Math.abs(prix - (pct * nominal) / 100) > 1.5) continue;
     for (const b of lectures(apres)) {
       if (b.length < 6) continue;
       const [ouverture, cloture, haut, bas, variation, reference] = b.slice(-6).map(num);
@@ -377,7 +387,7 @@ export function lireValeurs(avant: string[], apres: string[], exigerIdentite = f
  * le prix doit valoir le pourcentage du nominal, les seuils doivent encadrer
  * le cours précédent de six pour cent, et l'ISIN doit être neuf.
  */
-export function obligationsGeometriques(rangees: Rangee[], carnet?: Carnet): BocBond[] {
+export function obligationsGeometriques(rangees: Rangee[], carnet?: Carnet, nominauxDeReference?: Map<string, number>): BocBond[] {
   const titre = (r: Rangee, motif: RegExp) => r.cellules.some((c) => motif.test(c.texte));
   const debut = rangees.findIndex((r) => titre(r, /^MARCHE DES OBLIGATIONS/));
   if (debut < 0) return [];
@@ -451,7 +461,7 @@ export function obligationsGeometriques(rangees: Rangee[], carnet?: Carnet): Boc
        rangée doit se justifier par l'identité : c'est là que vivent le prix
        et le nominal. */
     const coupe = cellules.slice(iDate + 1, iStatut).some((c) => c.coupee);
-    const lu = lireValeurs(cells.slice(iDate + 1, iStatut), cells.slice(iStatut + 1), coupe);
+    const lu = lireValeurs(cells.slice(iDate + 1, iStatut), cells.slice(iStatut + 1), coupe, nominauxDeReference?.get(isin));
     if (!lu) {
       refuser(`aucune découpe de la rangée n'accorde le prix, le nominal et la bande de six pour cent (${cells.length} cellules).`);
       continue;
@@ -577,7 +587,7 @@ const PERDUE = /^Obligation ([A-Z]{2}\d{10}) : (ligne de cours non reconnue|prix
  *
  * @returns les ISIN rattrapés, pour que l'appelant puisse le dire.
  */
-export async function completerObligations(parsed: BocParsed, bytes: Uint8Array): Promise<string[]> {
+export async function completerObligations(parsed: BocParsed, bytes: Uint8Array, nominauxDeReference?: Map<string, number>): Promise<string[]> {
   const manquantes = new Set(parsed.warnings.map((w) => w.match(PERDUE)?.[1]).filter((x): x is string => !!x));
   const aSituer = parsed.notes.some((n) => n.brut && n.page === undefined);
   if (manquantes.size === 0 && !aSituer) return [];
@@ -602,7 +612,7 @@ export async function completerObligations(parsed: BocParsed, bytes: Uint8Array)
   situerLesNotes(parsed.notes, rangees);
   if (manquantes.size === 0) return [];
 
-  const geo = obligationsGeometriques(rangees);
+  const geo = obligationsGeometriques(rangees, undefined, nominauxDeReference);
   const deja = new Set(parsed.bonds.map((b) => b.isin));
   const rattrapees = geo.filter((b) => !deja.has(b.isin) && manquantes.has(b.isin));
   if (rattrapees.length === 0) return [];

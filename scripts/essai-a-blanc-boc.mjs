@@ -103,7 +103,7 @@ for (const b of lot) {
        eux l'essai jugerait un autre lecteur que celui qui tourne, et c'est
        la seule façon de rendre un essai à blanc menteur. */
     const parsed = parseBoc(await pdfText(bytes), await nominauxDeReference(b.sessionDate));
-    const rattrapees = await completerObligations(parsed, bytes);
+    const rattrapees = await completerObligations(parsed, bytes, await nominauxDeReference(b.sessionDate));
     bilan.lu += 1;
     const av = { a: b.counts?.equities ?? 0, o: b.counts?.bonds ?? 0, f: b.counts?.funds ?? 0 };
     const ap = { a: parsed.equities.length, o: parsed.bonds.length, f: parsed.funds.length };

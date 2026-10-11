@@ -37,8 +37,13 @@
  *                             bulletin imprime parfois à zéro. 78 remarques
  *                             sur 66 séances tenaient à ce seul nombre, qui
  *                             dormait en base depuis le premier jour.
+ *   5  (2026-10-11)           la même seconde identité donnée au lecteur
+ *                             GÉOMÉTRIQUE, qui refusait les lignes
+ *                             amortissables pour la même raison : 81 des
+ *                             refus mesurés sur les 48 séances de la famille
+ *                             « ligne de cours non reconnue ».
  */
-export const VERSION_DU_LECTEUR = 4;
+export const VERSION_DU_LECTEUR = 5;
 
 /** Les fichiers qui FONT la lecture : eux seuls commandent le numéro. */
 export const FICHIERS_DU_LECTEUR = ["src/lib/market/boc-parse.ts", "src/lib/market/boc-geometrie.ts"];
