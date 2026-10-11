@@ -1281,6 +1281,14 @@ export const supabaseRepository: Repository = {
     if (error) fail("getContact", error);
     return data ? toContact(data as ProfileRow) : undefined;
   },
+  async tailleDuStockage() {
+    /* storage.objects n est pas exposé par PostgREST : une fonction en
+       security definer rend les agrégats, et rien d autre. */
+    const { data, error } = await db().rpc("taille_du_stockage");
+    if (error || !data || !data[0]) return undefined;
+    const r = data[0] as { octets: number; fichiers: number; octets_par_jour: number };
+    return { octets: Number(r.octets), fichiers: Number(r.fichiers), octetsParJour: Number(r.octets_par_jour) };
+  },
   async setMesure(userId, m) {
     const { error } = await db()
       .from("profiles")

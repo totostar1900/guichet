@@ -638,6 +638,11 @@ export const memoryRepository: Repository = {
     const c = store().contacts.find((x) => x.id === id);
     if (c) c.emailOptIn = optIn;
   },
+  async tailleDuStockage() {
+    /* Le jeu d essai n a pas de stockage : rendre zéro ferait croire à un
+       plafond lointain, rendre rien fait taire le point. */
+    return undefined;
+  },
   async setMesure(userId, mes) {
     const c = store().contacts.find((x) => x.id === userId);
     if (c) c.mesure = structuredClone(mes);

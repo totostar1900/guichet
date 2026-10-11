@@ -15,6 +15,7 @@ import { comptesDemo, ordreDeDemo } from "@/lib/domain/demo";
 import { tenuesDeTous } from "@/lib/desk/tenue-data";
 import { baremeCourant, baremeEnBrouillon } from "@/lib/desk/activite-data";
 import { mesureVivante } from "@/lib/domain/mesure";
+import { enGo, enMo, lireLeStockage, niveauDuStockage, PLAFOND_STOCKAGE } from "@/lib/domain/stockage";
 import { registreEnBrouillon, registrePublie, personnesDuDossier } from "@/lib/desk/registre-data";
 import { correspondances, ecartVivant } from "@/lib/domain/registre-ecartes";
 import { indexCheck } from "@/lib/market/index";
@@ -664,6 +665,27 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     value: `${orphelins.length}`,
     detail: orphelins.length ? `${orphelins.join(" · ")} : se connecte(nt) encore sur un compte dont le dossier ne le(s) connaît plus` : "chaque accès vivant a sa personne au dossier",
   });
+
+  /* LE PLAFOND DU STOCKAGE, ANNONCÉ AVANT QU'IL NE TOMBE.
+     La maison reste au plan gratuit de Supabase, décidé le 11 octobre 2026
+     en connaissance de cause. Une décision prise pour plus tard n'est
+     dangereuse que si « plus tard » arrive sans prévenir : ce point compte
+     les JOURS qui restent au rythme des trente derniers, parce qu'un
+     pourcentage ne dit pas s'il faut agir cette semaine ou dans six mois. */
+  const taille = await r.tailleDuStockage().catch(() => undefined);
+  if (taille) {
+    const lu = lireLeStockage(taille);
+    out.push({
+      key: "stockage",
+      label: "Stockage et plafond du plan",
+      level: niveauDuStockage(lu),
+      value: `${enMo(taille.octets)} sur ${enGo(PLAFOND_STOCKAGE)}`,
+      detail:
+        lu.jours == null
+          ? `${taille.fichiers} fichiers, rien ajouté depuis trente jours`
+          : `${taille.fichiers} fichiers, ${enMo(lu.parJour)} par jour : le plafond du plan dans ${lu.jours} jour(s)`,
+    });
+  }
 
   return out;
 }

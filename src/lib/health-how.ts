@@ -151,6 +151,12 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "Quelqu'un peut se connecter sur un compte dont le dossier ne le connaît plus : un ancien administrateur qui passe encore des ordres. Ce point devrait toujours valoir zéro, puisque retirer un signataire ferme son accès dans le même geste ; s'il monte, c'est que la règle a été contournée, ou qu'une reprise de données a laissé un accès derrière elle. Ouvrir le dossier du compte, fermer l'accès, puis chercher dans l'audit comment il a survécu.",
     docs: { href: "/desk/docs/comptes-a-plusieurs-mains#personnes", label: "Un seul donneur d'ordres, et les comptes à plusieurs mains" },
   },
+  stockage: {
+    label: "Stockage et plafond du plan",
+    href: "/desk/docs/plateformes",
+    how: "La maison est restée au plan gratuit de Supabase, décidé le 11 octobre 2026 : la base ne pèse rien, et la vraie échéance est le gigaoctet de stockage. Ce point compte les jours qui restent au rythme des trente derniers, et non un pourcentage, parce qu'un pourcentage ne dit pas s'il faut agir cette semaine. Orange à soixante jours : c'est le moment de décider. Rouge à vingt et un : prendre Pro, qui porte le plafond à huit gigaoctets, et changer PLAFOND_STOCKAGE dans le code, sinon le point continuera d'alerter sur l'ancien plafond. L'autre voie est de sortir les PDF sources vers un stockage moins cher, ce qui coupe en deux l'histoire du stockage.",
+    docs: { href: "/desk/docs/plateformes", label: "Plateformes, services et coûts" },
+  },
   "quatre-yeux": {
     label: "Gestes passés sans second regard",
     href: "/desk/approbations",

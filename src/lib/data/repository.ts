@@ -2,6 +2,7 @@ import type { FinancialProfile } from "@/data/profile";
 import type { ActionClient, Genre, NouvelleActionClient } from "@/lib/domain/journal-client";
 import type { MesurePosee } from "@/lib/domain/mesure";
 import type { AccesCompte, CauseDeRetrait } from "@/lib/domain/acces-nomme";
+import type { Stockage } from "@/lib/domain/stockage";
 import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage, DeskThread, DeskExchange } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
@@ -111,6 +112,8 @@ export interface Repository {
   listContacts(): Promise<Contact[]>;
   getContact(id: string): Promise<Contact | undefined>;
   setContactOptIn(id: string, optIn: boolean): Promise<void>;
+  /** Ce que pèse le stockage et ce qui s y ajoute : sert au point de Santé qui annonce le plafond du plan. */
+  tailleDuStockage(): Promise<Stockage | undefined>;
   /** Pose ou lève la mesure qui pèse sur un compte ; l histoire vit dans l audit. */
   setMesure(userId: string, m: MesurePosee): Promise<void>;
 

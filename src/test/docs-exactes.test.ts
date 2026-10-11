@@ -36,6 +36,8 @@ const EN_LETTRES: Record<number, string> = {
   24: "vingt-quatre",
   40: "quarante",
   88: "quatre-vingt-huit",
+  89: "quatre-vingt-neuf",
+  90: "quatre-vingt-dix",
 };
 
 describe("les chiffres que la documentation annonce", () => {
