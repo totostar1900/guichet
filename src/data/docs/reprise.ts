@@ -17,7 +17,7 @@ export const REPRISE: DocPage = {
   visibility: "desk",
   audience: ["admin", "tech"],
   order: 4,
-  checkedOn: "2026-10-10",
+  checkedOn: "2026-10-11",
   owner: "Georges",
   chapters: [
     {
@@ -27,8 +27,8 @@ export const REPRISE: DocPage = {
         {
           type: "lead",
           text: l(
-            "Au 10 octobre 2026, les huit services externes sont au nom personnel de Georges. Si Georges est indisponible, personne ne peut déployer un correctif, lancer une migration, ni renouveler le domaine. Ce n'est pas une question de confiance : c'est une question de continuité, et toute maison finit par y passer.",
-            "As of 10 October 2026, the eight external services are in Georges's personal name. If Georges is unavailable, nobody can deploy a fix, run a migration, or renew the domain. This is not about trust: it is about continuity, and every firm goes through it.",
+            "Au 11 octobre 2026, les huit services externes sont au nom personnel de Georges, et aucun transfert n'a commencé. Si Georges est indisponible, personne ne peut déployer un correctif, lancer une migration, ni renouveler le domaine. Ce n'est pas une question de confiance : c'est une question de continuité, et toute maison finit par y passer.",
+            "As of 11 October 2026, no transfer has started and the eight external services are in Georges's personal name. If Georges is unavailable, nobody can deploy a fix, run a migration, or renew the domain. This is not about trust: it is about continuity, and every firm goes through it.",
           ),
         },
         {
@@ -140,8 +140,8 @@ export const REPRISE: DocPage = {
               l("1", "1"),
               l("Microsoft 365", "Microsoft 365"),
               l(
-                "Créer techguichet@purposecapital.africa comme COMPTE licencié (pas comme boîte partagée, qui ne peut porter aucun second facteur), poser son second facteur en TOTP, ranger mot de passe, graine et codes de secours dans le coffre partagé en articles séparés, déléguer la boîte aux deux responsables.",
-                "Create techguichet@purposecapital.africa as a licensed ACCOUNT (not as a shared mailbox, which can carry no second factor), set its second factor as TOTP, store password, seed and recovery codes in the shared vault as separate items, delegate the mailbox to the two responsables.",
+                "L'adresse techguichet@purposecapital.africa EXISTE depuis le 10 octobre 2026. Reste à vérifier qu'elle est bien un COMPTE licencié et non un objet « boîte partagée », qui ne peut porter aucun second facteur ; à poser son second facteur en TOTP ; à ranger mot de passe, graine et codes de secours dans le coffre partagé, en trois articles séparés ; et à déléguer la boîte aux deux responsables.",
+                "The address techguichet@purposecapital.africa EXISTS since 10 October 2026. What remains: checking it is a licensed ACCOUNT and not a « shared mailbox » object, which can carry no second factor; setting its second factor as TOTP; storing password, seed and recovery codes in the shared vault, in three separate items; and delegating the mailbox to the two responsables.",
               ),
               l("Rien ne peut commencer : les sept transferts suivants visent cette adresse.", "Nothing can start: the next seven transfers all point at this address."),
             ],

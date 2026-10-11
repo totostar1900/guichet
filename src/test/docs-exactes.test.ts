@@ -84,6 +84,30 @@ describe("les chiffres que la documentation annonce", () => {
   });
 });
 
+describe("la date « vérifié le »", () => {
+  it("ne précède jamais le dernier mot écrit dans la page", () => {
+    /* ELLE DIT « QUELQU'UN A RELU CETTE PAGE », et c'est la seule promesse
+       que le lecteur ne peut pas vérifier lui-même. Une page modifiée après
+       sa date de relecture annonce donc une vérification qui n'a pas porté
+       sur ce qu'elle contient. On ne peut pas prouver la relecture ; on peut
+       prouver qu'une main est passée après elle, et c'est déjà beaucoup. */
+    const { execSync } = require("node:child_process") as typeof import("node:child_process");
+    const retard: string[] = [];
+    for (const f of pages) {
+      const vu = texte(f).match(/checkedOn: "(\d{4}-\d{2}-\d{2})"/)?.[1];
+      if (!vu) continue;
+      let dernier = "";
+      try {
+        dernier = execSync(`git log -1 --format=%cs -- "${DOCS_DIR}/${f}"`, { encoding: "utf8" }).trim();
+      } catch {
+        continue; // hors d'un dépôt : le cas ne juge rien
+      }
+      if (dernier && dernier > vu) retard.push(`${f} : relue le ${vu}, modifiée le ${dernier}`);
+    }
+    expect(retard, `ces pages ont changé après leur relecture :\n  ${retard.join("\n  ")}`).toEqual([]);
+  });
+});
+
 describe("les liens de la documentation", () => {
   it("mènent tous quelque part", () => {
     const slugs = new Set(pages.map((f) => texte(f).match(/slug: "([^"]+)"/)?.[1]).filter(Boolean));
