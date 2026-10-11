@@ -493,9 +493,25 @@ function segmentOf(designation: string): BocBond["segment"] {
 }
 
 // date · prev % · price+nominal · accrued · volumes (may hold spaces when the line traded) · status · open · close · high · low · var · ref
-const DENSE = /^(\d{2}\/\d{2}\/\d{4})(\d{1,3},\d{2})(.+?,\d{3})(\d{1,4},\d{2})([\d ]*?)([A-Z]{1,3}[a-z]?)(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(-?\d+,\d{2}%)([\d ]+,\d{2})$/;
+/**
+ * LES DÉCIMALES SONT FACULTATIVES SUR LES POURCENTAGES, et c'est mesuré.
+ *
+ * Les bulletins anciens impriment « 100 » là où les récents impriment
+ * « 100,00 », sur le pourcentage comme sur les quatre seuils :
+ *
+ *   27/10/2023  100  10000 10000 504,77 … NC  100 100 100 100  0,00%  10 000,00
+ *
+ * Les deux expressions exigeaient « ,dd » partout et refusaient donc la
+ * rangée entière. Le groupe facultatif est GOURMAND, donc une rangée bien
+ * formée se lit exactement comme avant : « 100,00 » prend ses décimales en
+ * priorité, et rien ne change là où rien n'allait mal. C'est la raison pour
+ * laquelle cet assouplissement se mesure sur les 812 séances et pas sur les
+ * seules 212 : il pourrait toucher ce qui va bien.
+ */
+const PCT = String.raw`(\d{1,3}(?:,\d{2})?)`;
+const DENSE = new RegExp(`^(\\d{2}/\\d{2}/\\d{4})${PCT}(.+?,\\d{3})(\\d{1,4},\\d{2})([\\d ]*?)([A-Z]{1,3}[a-z]?)${PCT}${PCT}${PCT}${PCT}(-?\\d+,\\d{2}%)([\\d ]+,\\d{2})$`);
 // Older bulletins print the nominal without decimals ("5910" + "6000" + "28,54"): the accrued coupon is then the first ",dd" amount.
-const DENSE_OLD = /^(\d{2}\/\d{2}\/\d{4})(\d{1,3},\d{2})(\d{6,16}),(\d{2})([\d ]*?)([A-Z]{1,3}[a-z]?)(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(\d{1,3},\d{2})(-?\d+,\d{2}%)([\d ]+,\d{2})$/;
+const DENSE_OLD = new RegExp(`^(\\d{2}/\\d{2}/\\d{4})${PCT}(\\d{6,16}),(\\d{2})([\\d ]*?)([A-Z]{1,3}[a-z]?)${PCT}${PCT}${PCT}${PCT}(-?\\d+,\\d{2}%)([\\d ]+,\\d{2})$`);
 
 /** Old layout: "<price><nominal><accrued-int>" glued, then ",dd" : pick the accrued length that makes price ≈ pct × nominal. */
 function splitOld(digits: string, dec: string, pct: number, nominalRef?: number): { price: number; nominal: number; accrued: number } | undefined {
@@ -517,9 +533,23 @@ function parseBonds(lines: string[], warnings: Carnet, nominauxDeReference?: Map
     return out;
   }
   const seen = new Set<string>();
-  // When a line traded, pdf-parse may glue the next bond's head to the end of the data row
-  // ("…0,00%9 700,00ETAT DU GABON…"): split after a ",dd" amount that is followed by capitals.
-  const section = lines.slice(start, end > start ? end : undefined).flatMap((l) => l.split(/(?<=,\d{2})(?=[A-Z]{2,})/));
+  /* DÉCOLLER LA TÊTE DE L'OBLIGATION SUIVANTE, et pas seulement après un
+     montant à décimales.
+     La règle d'origine coupait après « ,dd » suivi de majuscules, ce qui
+     traite « …0,00%9 700,00ETAT DU GABON… ». Mais quand le DERNIER champ
+     manque, le pourcentage touche directement le nom : « …0,00%BDEACBDEAC
+     5,6% NET… », et il n'y avait plus rien à couper. Mesuré le 11 octobre
+     2026 sur les 48 séances de la famille « ligne de cours non reconnue » :
+     47 des 139 lignes refusées finissent sur la tête suivante ou sur le titre
+     de la section d'après.
+     ON NE COUPE QUE DEVANT UN NOM CONNU, jamais devant « deux majuscules » :
+     un statut (« NC », « PEq ») est fait de majuscules lui aussi, et couper
+     devant lui briserait la rangée en son milieu. */
+  const NOM_SUIVANT = new RegExp(`(?<=[%\\d])(?=(?:${ISSUERS.join("|")}|OBLIGATIONS REGIONALES|OBLIGATIONS PRIVEES)[A-Z ])`);
+  const section = lines
+    .slice(start, end > start ? end : undefined)
+    .flatMap((l) => l.split(/(?<=,\d{2})(?=[A-Z]{2,})/))
+    .flatMap((l) => l.split(NOM_SUIVANT));
   for (let i = 0; i < section.length; i++) {
     const l = section[i].replace(/\s+/g, " ");
     // Layout A: dense head "ISSUER TITLE ISIN MNEMO" + dense data line(s)
@@ -532,7 +562,15 @@ function parseBonds(lines: string[], warnings: Carnet, nominauxDeReference?: Map
       let cand = (h[4] ?? "").trim();
       let old: RegExpMatchArray | null = null;
       for (let k = 0; k <= 4 && !r && !old; k++) {
-        if (k > 0) cand += (section[i + k] ?? "").replace(/\s{2,}/g, " ");
+        /* NE JAMAIS AVALER LA TÊTE D'UNE AUTRE OBLIGATION. La boucle
+           accumulait les lignes suivantes jusqu'à ce qu'une expression tombe ;
+           quand aucune ne tombait, elle collait la tête de l'obligation
+           d'après, et le candidat devenait illisible de toute façon. C'est ce
+           qu'on lit dans le texte brut de presque toutes les lignes refusées :
+           un défaut en devenait deux, et le second masquait le premier. */
+        const suite = (section[i + k] ?? "").replace(/\s{2,}/g, " ");
+        if (k > 0 && /[A-Z]{2}\d{10}/.test(suite.replace(/\s/g, ""))) break;
+        if (k > 0) cand += suite;
         r = cand.match(DENSE);
         if (!r) old = cand.match(DENSE_OLD);
       }

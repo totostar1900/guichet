@@ -42,8 +42,17 @@
  *                             amortissables pour la même raison : 81 des
  *                             refus mesurés sur les 48 séances de la famille
  *                             « ligne de cours non reconnue ».
+ *   6  (2026-10-11)           la DÉLIMITATION de la rangée, qui était le
+ *                             vrai goulot : on décolle la tête de
+ *                             l'obligation suivante même sans montant à
+ *                             décimales devant, on refuse d'avaler une tête
+ *                             pendant l'accumulation, et les pourcentages
+ *                             s'acceptent sans décimales comme les bulletins
+ *                             anciens les impriment. Sur le gabarit du
+ *                             25 avril 2024 : six obligations lues contre
+ *                             douze, et aucun autre gabarit ne bouge.
  */
-export const VERSION_DU_LECTEUR = 5;
+export const VERSION_DU_LECTEUR = 6;
 
 /** Les fichiers qui FONT la lecture : eux seuls commandent le numéro. */
 export const FICHIERS_DU_LECTEUR = ["src/lib/market/boc-parse.ts", "src/lib/market/boc-geometrie.ts"];

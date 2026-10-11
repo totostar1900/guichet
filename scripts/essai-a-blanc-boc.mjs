@@ -55,8 +55,14 @@ const depuis = process.argv.includes("--depuis") ? process.argv[process.argv.ind
 
 const r = repo();
 const tous = await r.listBulletins(2000);
+/* « --toutes » reprend les 812 séances et non les seules en attente.
+   C'EST LA SEULE MESURE QUI JUGE UN ASSOUPLISSEMENT. Une identité ajoutée en
+   recours ne peut rien casser, donc les 212 suffisent ; une expression
+   régulière plus permissive peut casser une ligne qui marchait, et celles-là
+   sont justement dans les 600 séances qui vont bien. */
+const toutes = process.argv.includes("--toutes");
 const attente = tous
-  .filter((b) => b.status !== "ok" || !b.counts?.equities)
+  .filter((b) => toutes || b.status !== "ok" || !b.counts?.equities)
   .filter((b) => !depuis || b.sessionDate >= depuis)
   .sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
 

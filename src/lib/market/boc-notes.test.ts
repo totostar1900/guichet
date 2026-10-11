@@ -110,6 +110,13 @@ describe("le carnet, sur tous les gabarits du dépôt", () => {
 
   it("le balayage regarde bien plusieurs bulletins", () => {
     expect(TOUS.length).toBeGreaterThanOrEqual(6);
-    expect(notes.length).toBeGreaterThan(8);
+    /* LE COMPTE BAISSE QUAND LE LECTEUR PROGRESSE, et c'est le bon sens de
+       la marche : le 11 octobre 2026, décoller la tête de l'obligation
+       suivante a fait passer BOC-20240425 de six obligations à douze, et ses
+       textes bruts de dix à quatre. Le seuil suit, parce qu'un cliquet qui
+       exige un nombre de DÉFAUTS finirait par interdire de les corriger.
+       La couverture, elle, ne se négocie pas : le cas d'au-dessus exige les
+       trois familles H, I et J, et c'est lui qui tient contre le sabotage. */
+    expect(notes.length).toBeGreaterThan(3);
   });
 });
