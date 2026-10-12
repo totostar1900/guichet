@@ -367,7 +367,41 @@ export function lireValeurs(avant: string[], apres: string[], exigerIdentite = f
     for (const b of lectures(apres)) {
       if (b.length < 6) continue;
       const [ouverture, cloture, haut, bas, variation, reference] = b.slice(-6).map(num);
-      if (Math.abs(haut - pct * 1.06) > 0.05 || Math.abs(bas - pct * 0.94) > 0.05) continue;
+      /* LES SEUILS TIENNENT DANS LA BANDE, ILS NE SONT PLUS TENUS DE L'ÊTRE.
+         C'est le même contrôle, rendu vrai des deux millésimes.
+
+         CE QUE L'ÉGALITÉ SUPPOSAIT, ET QUI N'EST VRAI QUE D'UNE ÉPOQUE. En
+         2023 le bulletin imprime, après le statut, le plus haut et le plus bas
+         DE LA SÉANCE, et non la bande de réservation à six pour cent. Sur une
+         ligne qui n'a pas traité, les quatre valeurs valent donc le cours
+         précédent : « 100 | 100 | 100 | 100 » et non « 100 | 100 | 106 | 94 ».
+         Vérifié le 12 octobre 2026 sur la page 3 du 25 septembre 2023, où la
+         rangée TD0000020331, LUE par le lecteur aplati, porte exactement
+         « 100 | 100 | 100 | 100 | 0,00% | 10 000,00 » : l'égalité n'y tient
+         pas non plus. Exiger une forme d'époque, c'est refuser les autres
+         époques, et c'était vingt lignes sur les soixante-cinq séances du
+         second semestre 2023, toutes entières, toutes découpées proprement.
+
+         CE QUI EST VRAI DU MARCHÉ, ET NON D'UN MILLÉSIME : un cours de séance
+         ne sort jamais de la bande de réservation, puisque c'est la définition
+         même de cette bande. Les seuils imprimés y tiennent donc toujours,
+         qu'ils SOIENT la bande ou qu'ils soient les extrêmes de la séance. Et
+         ils encadrent toujours l'ouverture et la clôture, par construction.
+
+         CES DEUX CONTRÔLES REFUSENT CE QUE L'ÉGALITÉ REFUSAIT, et un peu plus :
+         ils attrapent aussi une queue mal ALIGNÉE, où les six dernières
+         cellules ne sont pas les six colonnes attendues. L'égalité ne voyait
+         que les découpes fausses ; l'encadrement voit aussi les décalages.
+         Mesuré par les deux versions du lecteur sur le même texte :
+         +18 obligations, aucune perdue, aucune valeur changée.
+
+         UNE BORNE À ZÉRO NE BORNE RIEN : un bulletin qui n'imprime pas
+         l'ouverture d'une ligne non traitée y pose un zéro, et l'exiger
+         inférieur au seuil bas refuserait la rangée pour un champ absent. */
+      const T = 0.05;
+      if (haut > pct * 1.06 + T || bas < pct * 0.94 - T) continue;
+      const bornes = [ouverture, cloture].filter((v) => v > 0);
+      if (bornes.length > 0 && (haut < Math.max(...bornes) - T || bas > Math.min(...bornes) + T)) continue;
       if (!Number.isFinite(variation) || !Number.isFinite(reference)) continue;
       return { pct, prix, nominal, couru: num(a[3]), ouverture, cloture, haut, bas, variation, reference };
     }

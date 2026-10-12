@@ -58,8 +58,31 @@
  *                             donne (4 917 sur 4 968). Le 22 décembre 2023,
  *                             LA REGIONALE est rendue à 42 500 sans que
  *                             personne ne tape un chiffre.
+ *   8  (2026-10-12)           la QUEUE DU MILLÉSIME. Deux conditions de la
+ *                             lecture géométrique supposaient la mise en page
+ *                             récente : six valeurs après le statut, et des
+ *                             seuils à ± 6 % du cours précédent. En 2023 la
+ *                             queue en compte parfois quatre, et ces colonnes
+ *                             portent le plus haut et le plus bas DE LA
+ *                             SÉANCE, donc le cours précédent quand rien n'a
+ *                             traité. Les deux conditions deviennent ce
+ *                             qu'elles auraient toujours dû être : des
+ *                             un encadrement : les seuils tiennent DANS la
+ *                             bande de réservation, qu'ils la soient ou qu'ils
+ *                             soient les extrêmes de la séance, et ils
+ *                             encadrent l'ouverture et la clôture. Vrai des
+ *                             deux millésimes, et plus sévère que l'égalité
+ *                             sur un point : une queue mal ALIGNÉE se voit.
+ *                             Mesuré en faisant tourner les deux versions du
+ *                             lecteur sur le même texte, dans le même
+ *                             processus, sur les 808 séances de la base :
+ *                             +68 obligations en 2023 (123 séances), et zéro
+ *                             perdue, zéro valeur changée sur 2023, 2024,
+ *                             2025 et 2026. Les deux lignes les plus trouées
+ *                             de la base, CG0000020261 et CG0000020329,
+ *                             regagnent 27 séances chacune.
  */
-export const VERSION_DU_LECTEUR = 7;
+export const VERSION_DU_LECTEUR = 8;
 
 /** Les fichiers qui FONT la lecture : eux seuls commandent le numéro. */
 export const FICHIERS_DU_LECTEUR = ["src/lib/market/boc-parse.ts", "src/lib/market/boc-geometrie.ts"];
