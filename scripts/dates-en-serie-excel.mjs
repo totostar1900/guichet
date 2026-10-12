@@ -126,7 +126,21 @@ for (const [i, b] of bulletins.entries()) {
       if (!touche) inexpliques.push(`${b.sessionDate} · ${jete.slice(0, 140)}`);
     }
   } else {
-    const re = /(\d{2}[\s ]?\d{3})(?:,\d{2})?\s+(\d{2}\/\d{2}\/\d{4})|(\d{2}\/\d{2}\/\d{4})\s+(\d{2}[\s ]?\d{3})(?:,\d{2})?/g;
+    /* LE DÉTECTEUR DE LA PREMIÈRE VERSION ÉTAIT FAUX, et il a coûté 53 minutes
+       pour 2 612 fausses prises, toutes de la même espèce. Sans ancrage,
+       « 43 868 » se détachait du MILIEU de « 1 043 868,10 », une valeur
+       liquidative à sept chiffres, et tombait dans la fenêtre des séries.
+       L'échantillon de contextes l'a montré d'un coup d'œil : les vingt
+       formes les plus fréquentes étaient toutes un fragment de VL suivi de sa
+       date, c'est-à-dire une rangée parfaitement normale.
+       Un nombre nu est un nombre ENTIER : rien de numérique avant lui, ni
+       chiffre, ni chiffre suivi d'une espace de milliers ; et rien après lui
+       qui le prolonge. */
+    const AVANT = String.raw`(?<![\d])(?<!\d )`;
+    const NOMBRE = String.raw`\d{2}[  ]?\d{3}(?:,\d{1,2})?`;
+    const APRES = String.raw`(?![  ]?\d)`;
+    const DATEJ = String.raw`\d{2}\/\d{2}\/\d{4}`;
+    const re = new RegExp(String.raw`${AVANT}(${NOMBRE})${APRES}\s+(${DATEJ})|(${DATEJ})\s+${AVANT}(${NOMBRE})${APRES}`, "g");
     let m;
     while ((m = re.exec(texte)) != null) {
       const n = nombre(m[1] ?? m[4]);
