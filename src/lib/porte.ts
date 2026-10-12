@@ -27,7 +27,7 @@
  */
 
 /** Les adresses exactes qui répondent à tout le monde. */
-const EXACTES = new Set(["/", "/connexion", "/ouvrir-un-compte", "/ne-plus-recevoir", "/robots.txt", "/manifest.webmanifest", "/sitemap.xml", "/favicon.ico"]);
+const EXACTES = new Set(["/", "/placements", "/a-propos", "/connexion", "/ouvrir-un-compte", "/ne-plus-recevoir", "/robots.txt", "/manifest.webmanifest", "/sitemap.xml", "/favicon.ico"]);
 
 /**
  * Les branches entières qui répondent à tout le monde.

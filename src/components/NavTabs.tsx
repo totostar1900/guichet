@@ -72,6 +72,13 @@ const TABS = [
   // sociétés, les analyses. La bande « Sur le même sujet » dit la même famille
   // au pied de chaque article, et les deux se lisent dans MARKET_PAGES.
   { href: "/marche", label: "Marché", connecte: true, match: isMarcheSection, pages: MARKET_PAGES },
+  /* LES DEUX PAGES DE LA VITRINE, ET ELLES PASSENT DEVANT LE GUIDE : un
+     visiteur vient savoir ce qu'on fait et à qui il a affaire, pas apprendre
+     le vocabulaire. La maquette en portait quatre ; « Comment ça marche » et
+     « Ce que vous pouvez faire » répondaient à une seule question posée en
+     deux temps, et « Nous joindre » doublait le pied de page. */
+  { href: "/placements", label: "Nos placements", match: (p: string) => p.startsWith("/placements"), visiteur: true },
+  { href: "/a-propos", label: "À propos", match: (p: string) => p.startsWith("/a-propos"), visiteur: true },
   { href: "/info", label: "Guide", match: (p: string) => (p.startsWith("/info") && !p.startsWith("/info/risques")) || p.startsWith("/comparer"), visiteur: true },
   /* Les deux adresses qu'un visiteur peut lire en plus du guide. Elles ne
      paraissent qu'à lui : connecté, les publications vivent dans le menu

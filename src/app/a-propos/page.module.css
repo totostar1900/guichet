@@ -1,0 +1,242 @@
+/* « À propos » : qui nous sommes, ce que l'agrément oblige, et pour qui ce
+   n'est pas le bon moment.
+
+   Échelles obligatoires : espacements en --s-*, tailles en --t-1 à --t-7.
+   Les filets se font en bordure, jamais en « gap: 1px ». */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-9);
+}
+
+.tete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.tete h1 {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+  line-height: 1.12;
+  color: var(--navy-text);
+  max-width: 18em;
+}
+.tete p {
+  margin: 0;
+  max-width: 46em;
+  font-size: var(--t-5);
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+.deux {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--s-9);
+  align-items: start;
+}
+.prose {
+  padding: var(--s-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.prose p {
+  margin: 0;
+  font-size: var(--t-4);
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+.agrement {
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  padding: var(--s-9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.etiquette {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.agrement b {
+  font-size: var(--t-5);
+  line-height: 1.4;
+  color: var(--navy-text);
+}
+.agrement p {
+  margin: 0;
+  font-size: var(--t-3);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.adresse {
+  color: var(--ink-3) !important;
+}
+
+/* ---------- Les quatre règles : la seule surface pleine ---------- */
+.regles {
+  background: var(--navy);
+  color: var(--on-navy);
+  padding: var(--s-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-10);
+}
+.reglesTete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.reglesTete h2 {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-weight: 400;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  line-height: 1.15;
+  color: var(--on-navy);
+}
+.reglesTete p {
+  margin: 0;
+  max-width: 46em;
+  font-size: var(--t-4);
+  line-height: 1.6;
+  color: var(--on-navy-2);
+}
+.reglesListe {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.reglesListe > div {
+  min-width: 0;
+  padding: var(--s-8);
+  border-top: 1px solid var(--navy-2);
+  border-left: 1px solid var(--navy-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.reglesListe > div:nth-child(odd) {
+  border-left: 0;
+  padding-left: 0;
+}
+.reglesListe b {
+  font-size: var(--t-5);
+  color: var(--on-navy);
+}
+.reglesListe p {
+  margin: 0;
+  font-size: var(--t-3);
+  line-height: 1.65;
+  color: var(--on-navy-2);
+}
+
+/* ---------- Pour qui, et pour qui pas ---------- */
+.pourQui {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.pourQui > div {
+  min-width: 0;
+  padding: var(--s-8);
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.pourQui > div:first-child {
+  border-left: 0;
+}
+.pourQui b {
+  font-size: var(--t-5);
+  color: var(--navy-text);
+  padding-top: var(--s-6);
+}
+.oui b {
+  border-top: 2px solid var(--good);
+}
+.nonPas b {
+  border-top: 2px solid var(--crit);
+}
+.pourQui ul {
+  margin: 0;
+  padding-left: var(--s-9);
+  font-size: var(--t-4);
+  line-height: 1.8;
+  color: var(--ink-2);
+}
+.pourQui small {
+  font-size: var(--t-3);
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+
+/* ---------- L'appel final ---------- */
+.final {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  padding: var(--s-9);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-9);
+}
+.final > div:first-child {
+  flex: 999 1 420px;
+  min-width: 0;
+}
+.final h2 {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-weight: 400;
+  font-size: var(--t-7);
+  line-height: 1.15;
+  color: var(--navy-text);
+}
+.final p {
+  margin: var(--s-5) 0 0;
+  font-size: var(--t-4);
+  color: var(--ink-2);
+}
+.boutons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-7);
+}
+
+.avertissement {
+  margin: 0;
+  max-width: 60em;
+  font-size: var(--t-3);
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+
+@media (max-width: 860px) {
+  .deux,
+  .reglesListe,
+  .pourQui {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .reglesListe > div {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .pourQui > div {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .pourQui > div:first-child {
+    border-top: 0;
+  }
+  .regles {
+    padding: var(--s-9);
+  }
+}

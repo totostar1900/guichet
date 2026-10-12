@@ -26,6 +26,7 @@ import { EN_PROVISION } from "./en-provision";
 import { EN_DOCUMENTS } from "./en-documents";
 import { EN_DOSSIER } from "./en-dossier";
 import { EN_VITRINE } from "./en-vitrine";
+import { EN_PAGES } from "./en-pages";
 
 const EN: Record<string, string> = {
   ...EN_BASE,
@@ -56,6 +57,7 @@ const EN: Record<string, string> = {
   ...EN_DOCUMENTS,
   ...EN_DOSSIER,
   ...EN_VITRINE,
+  ...EN_PAGES,
 };
 
 /**
