@@ -619,7 +619,32 @@ function parseBonds(lines: string[], warnings: Carnet, nominauxDeReference?: Map
 }
 
 /* ---------------- OPCVM ---------------- */
-const FUND_TAIL = /\b([MODA0])\s+([\d ]+?)\s+(-|\d{1,3}(?: \d{3})*,\d{2})\s+(\d{2}\/\d{2,3}\/\d{4})\s+(\d{1,3}(?: \d{3})*,\d{2})\s+(\d{2}\/\d{2,3}\/\d{4})\s+(\d{2}\/\d{2,3}\/\d{4})\s+(-?[\d ]+(?:,\d{1,2})?%)\s+(-|-?[\d ]+(?:,\d{1,2})?%)\s*$/;
+/**
+ * UN MONTANT DE LA TABLE DES OPCVM.
+ *
+ * LES GROUPES DE MILLIERS ONT ÉTÉ RENDUS FACULTATIFS, PUIS REMIS. Le 9 août
+ * 2023 la bourse écrit « 9765,78 » là où les autres rangées écrivent
+ * « 9 765,78 », et cette forme figure bien dans les débris : la rendre
+ * facultative semblait devoir rendre la rangée, comme l'étape 2b l'avait fait
+ * pour les obligations. Les deux lecteurs sur le même texte ont dit non :
+ * ZÉRO fonds gagné sur les 46 séances concernées. La rangée échoue donc pour
+ * une AUTRE raison, qui reste à trouver, et une tolérance que rien n'exerce
+ * est une surface non éprouvée dans une expression déjà difficile à tenir.
+ */
+const MONTANT_VL = String.raw`\d{1,3}(?: \d{3})*,\d{2}`;
+/**
+ * UNE DATE DE LA TABLE. LA BARRE EN TROP A ÉTÉ TOLÉRÉE UNE HEURE, PUIS RETIRÉE.
+ *
+ * « 20/07//2023 » paraît sur les débris, et l'accepter semblait gratuit. La
+ * comparaison des deux lecteurs sur le même texte a dit le contraire : zéro
+ * fonds gagné, et DOUZE rangées changées de valeur. Avec la barre en trop, la
+ * tête de l'expression trouve un autre alignement et prend la VL de la ligne
+ * voisine ; isoDate ne reconnaît plus la date et la laisse brute. Une
+ * tolérance qui ne gagne rien et qui déplace une valeur n'est pas une
+ * tolérance, c'est une corruption silencieuse.
+ */
+const DATE_VL = String.raw`\d{2}\/\d{2,3}\/\d{4}`;
+const FUND_TAIL = new RegExp(String.raw`\b([MODA0])\s+([\d ]+?)\s+(-|${MONTANT_VL})\s+(${DATE_VL})\s+(${MONTANT_VL})\s+(${DATE_VL})\s+(${DATE_VL})\s+(-?[\d ]+(?:,\d{1,2})?%)\s+(-|-?[\d ]+(?:,\d{1,2})?%)\s*$`);
 const MANAGER_RE = /^(.*?(ASSET MANAGEMENT(?: S\.A\.?| CEMAC| CENTRAL AFRICA)?|CAPITAL CENTRAL AFRICA))\s+(.*)$/;
 const FUND_SKIP = /^(BULLETIN OFFICIEL|Société de gestion|Valeur liquidative|Origine|Précédente|Variation|Valeur Date|CAPITAL VARIABLE|\d{1,2}$)/;
 const SECTION: Record<string, BocFund["frequency"]> = { quotidiennes: "quotidienne", hebdomadaires: "hebdomadaire", mensuelles: "mensuelle", trimestrielles: "trimestrielle" };
@@ -668,7 +693,17 @@ function parseFunds(lines: string[], warnings: Carnet): BocFund[] {
          précis où il les coupe. Les montrer change la question posée au desk :
          « laquelle manque ? » devient « est-ce bien celle-là ? ». */
       const jete = prefix.slice(0, junk.index + junk[0].length).trim();
-      warnings.push(`OPCVM : ligne ignorée (format inattendu), jeté « ${jete.slice(0, 120)} » avant « ${prefix.slice(junk.index + junk[0].length).trim().slice(0, 40)} »`);
+      /* ON NE SE PLAINT QUE SI UNE RANGÉE EST VRAIMENT PERDUE.
+         Mesuré le 12 octobre 2026 sur les 60 débris de la base : 17 ne sont
+         qu'un pourcentage seul, « 0,31% ». Aucun nom, aucune date : c'est la
+         dernière colonne de la rangée précédente restée derrière sa propre
+         queue, et rien n'a été perdu. Un tiers de cette famille annonçait donc
+         une perte qui n'avait pas eu lieu, ce qui est la pire espèce de
+         remarque : elle use le desk pour rien. Un fonds porte toujours un nom,
+         donc des lettres. */
+      if (/[A-Za-zÀ-ÿ]{3,}/.test(jete)) {
+        warnings.push(`OPCVM : ligne ignorée (format inattendu), jeté « ${jete.slice(0, 200)} » avant « ${prefix.slice(junk.index + junk[0].length).trim().slice(0, 40)} »`);
+      }
       prefix = prefix.slice(junk.index + junk[0].length).trim();
     }
     const names = [...prefix.matchAll(/\b(FCPE|FCP|SICAV)/g)];
