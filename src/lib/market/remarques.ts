@@ -86,6 +86,11 @@ export const FAMILLES: Famille[] = [
      s'affiche en « famille inconnue », ce qui ferait croire à un défaut là où
      le robot vient de se corriger tout seul. */
   { code: "W", genre: "avertissement", libelle: "OPCVM : année de la VL corrigée", quoiFaire: "Rien à faire : la VL précédait la création du fonds, et l'année suivante résout tout. Un fonds qui revient souvent mérite un mot à la bourse.", motif: /^OPCVM .*: année de la VL corrigée/ },
+  /* Comme la W : le robot s'est corrigé tout seul et le dit. La rangée portait
+     un numéro de série Excel là où le bulletin imprime une date, et la
+     variation imprimée sur la rangée a validé la conversion. Rien n'est perdu,
+     mais rien n'est caché non plus. */
+  { code: "X", genre: "avertissement", libelle: "OPCVM : date au format Excel convertie", quoiFaire: "Rien à faire sur la séance : la variation imprimée a validé la date déduite. En revanche un fonds qui revient tous les mois mérite un mot à la bourse, car la cellule est mal typée à la source.", motif: /^OPCVM .*: date au format Excel convertie/ },
 ];
 
 const PAR_CODE = new Map(FAMILLES.map((f) => [f.code, f]));

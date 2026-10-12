@@ -690,6 +690,80 @@ const FUND_TAIL_SOUPLE = new RegExp(
  * tolérance qui ne gagne rien et qui déplace une valeur n'est pas une
  * tolérance, c'est une corruption silencieuse.
  */
+/**
+ * LA QUATRIÈME TOLÉRANCE : UNE DATE RESTÉE EN NUMÉRO DE SÉRIE EXCEL.
+ *
+ * TROUVÉE PAR GEORGES LE 12 OCTOBRE 2026, et elle m'avait échappé trois fois.
+ * La rangée de FCP ECOBANK OBLIGATAIRE CEMAC imprime, là où les quarante
+ * autres fonds impriment une date :
+ *
+ *   M 10 000  14 434,00  46 120,00  14 454,00  15/04/2026  21/07/2020  44,54%  0,14%
+ *
+ * 46120 n'est pas un montant, c'est le 8 avril 2026 : le PDF sort d'un
+ * tableur et cette cellule-là n'a jamais reçu son format de date. Elle
+ * traverse la chaîne en nombre nu.
+ *
+ * TROIS FOIS LA MAUVAISE DIMENSION. J'avais élargi les séparateurs de
+ * milliers, puis les barres de date : des tolérances sur la FORME. La veille,
+ * la seconde passe avait appris que le défaut était la POSITION. Ici il n'est
+ * ni l'une ni l'autre, c'est le TYPE de la cellule, et aucune souplesse sur
+ * l'écriture d'une date ne pouvait attraper un nombre.
+ *
+ * MESURÉ SUR LES 805 SÉANCES DE LA BASE : 65 des 68 débris restants, un seul
+ * fonds, une seule colonne, celle de la date précédente. Zéro série dans la
+ * colonne de la VL courante, zéro dans celle de la création : ce n'est donc
+ * pas l'export qui est cassé, c'est une cellule mal typée à la source.
+ *
+ * CE QUI REND LA RÉPARATION SÛRE, c'est le troisième garde et lui seul. Une
+ * VL de 46 120 francs est parfaitement plausible : la fenêtre des dates ne
+ * suffit pas à distinguer une date d'un montant. Mais la rangée imprime sa
+ * propre variation, et cette variation ne s'accorde avec les deux VL que si
+ * la lecture est la bonne. C'est le bulletin qui valide sa réparation, et non
+ * moi. Sans ce contrôle, je n'aurais pas posé la tolérance.
+ */
+const SERIE_MIN = 42005; // 1ᵉʳ janvier 2015
+const SERIE_MAX = 47484; // 1ᵉʳ janvier 2030
+const SERIE_EXCEL = String.raw`\d{2}(?: )?\d{3}(?:,\d{1,2})?`;
+
+/** Le jour qu'un numéro de série désigne, au format du bulletin. */
+const jourDeSerie = (n: number): string => {
+  const d = new Date(Date.UTC(1899, 11, 30) + n * 86400000);
+  const p = (x: number) => String(x).padStart(2, "0");
+  return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
+};
+
+/**
+ * La cellule est-elle une date en série, et laquelle ? Les trois gardes sont
+ * cumulatifs, et le dernier est celui qui compte.
+ */
+export function dateDeSerieExcel(cellule: string, dateCourante: string, vlPrecedente: number, vl: number, variation: string | undefined): string | undefined {
+  const n = Number(cellule.replace(/ /g, "").replace(",", "."));
+  // 1 · dans la fenêtre des dates plausibles, et entier (une date n'a pas de centimes)
+  if (!Number.isFinite(n) || Math.abs(n - Math.round(n)) > 1e-9) return undefined;
+  const serie = Math.round(n);
+  if (serie < SERIE_MIN || serie > SERIE_MAX) return undefined;
+  const jour = jourDeSerie(serie);
+  // 2 · elle précède la date courante de la rangée, et de moins de 400 jours
+  const a = Date.parse(isoDate(jour));
+  const b = Date.parse(isoDate(dateCourante));
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return undefined;
+  const ecart = (b - a) / 86400000;
+  if (ecart <= 0 || ecart > 400) return undefined;
+  // 3 · LA VARIATION IMPRIMÉE S'ACCORDE AVEC LES DEUX VALEURS LIQUIDATIVES
+  if (!variation || variation === "-") return undefined;
+  if (!Number.isFinite(vlPrecedente) || !Number.isFinite(vl) || vlPrecedente === 0) return undefined;
+  const attendue = num(variation.replace("%", ""));
+  if (!Number.isFinite(attendue)) return undefined;
+  const calculee = ((vl - vlPrecedente) / vlPrecedente) * 100;
+  // Le pourcentage est imprimé à deux décimales : l'écart d'arrondi vaut 0,005.
+  if (Math.abs(calculee - attendue) > 0.0055) return undefined;
+  return jour;
+}
+
+const FUND_TAIL_SERIE = new RegExp(
+  String.raw`\b([MODA0])\s+([\d ]+?)\s+(-|${MONTANT_SOUPLE})\s+(${SERIE_EXCEL})\s+(${MONTANT_SOUPLE})\s+(${DATE_SOUPLE})\s+(${DATE_SOUPLE})\s+(${POURCENT_VL})(?:\s+(-|${POURCENT_VL}))?\s*$`,
+);
+
 const DATE_VL = String.raw`\d{2}\/\d{2,3}\/\d{4}`;
 const FUND_TAIL = new RegExp(String.raw`\b([MODA0])\s+([\d ]+?)\s+(-|${MONTANT_VL})\s+(${DATE_VL})\s+(${MONTANT_VL})\s+(${DATE_VL})\s+(${DATE_VL})\s+(-?[\d ]+(?:,\d{1,2})?%)\s+(-|-?[\d ]+(?:,\d{1,2})?%)\s*$`);
 const MANAGER_RE = /^(.*?(ASSET MANAGEMENT(?: S\.A\.?| CEMAC| CENTRAL AFRICA)?|CAPITAL CENTRAL AFRICA))\s+(.*)$/;
@@ -800,8 +874,23 @@ function parseFunds(lines: string[], warnings: Carnet): BocFund[] {
          tolérés, et pour la raison qui les rend sans risque ici et dangereux
          ailleurs. */
       const repris = jete.match(FUND_TAIL_SOUPLE);
+      /* LA DATE RESTÉE EN NUMÉRO DE SÉRIE EXCEL : voir FUND_TAIL_SERIE. On
+         n'essaie qu'après l'échec de la queue souple, et la réparation ne
+         s'applique que si la variation imprimée sur la rangée s'accorde avec
+         ses deux valeurs liquidatives. */
+      const serie = repris ? null : jete.match(FUND_TAIL_SERIE);
       if (repris && repris.index != null) {
         poser(jete.slice(0, repris.index).trim(), repris);
+      } else if (serie && serie.index != null && dateDeSerieExcel(serie[4], serie[6], num(serie[3]), num(serie[5]), serie[9]) != null) {
+        const jour = dateDeSerieExcel(serie[4], serie[6], num(serie[3]), num(serie[5]), serie[9]) as string;
+        const nomme = jete.slice(0, serie.index).trim();
+        const corrige = [...serie] as unknown as RegExpMatchArray;
+        corrige[4] = jour;
+        poser(nomme, corrige);
+        /* ON NE RÉPARE PAS EN SILENCE. Le desk doit voir ce qui a été déduit,
+           et de quoi : une date qu'aucun œil ne lit dans le PDF vaut mieux
+           annoncée que devinée. */
+        warnings.push(`OPCVM ${nomme.slice(-44).trim()} : date au format Excel convertie, « ${serie[4].trim()} » lu ${jour} (variation imprimée ${serie[9]} vérifiée).`);
       } else if (/[A-Za-zÀ-ÿ]{3,}/.test(jete)) {
         warnings.push(`OPCVM : ligne ignorée (format inattendu), jeté « ${jete.slice(0, 200)} » avant « ${prefix.slice(junk.index + junk[0].length).trim().slice(0, 40)} »`);
       }

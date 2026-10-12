@@ -109,8 +109,33 @@
  *                             rend cette ligne telle quelle et la
  *                             variation imprimée la vérifie, l'ancienne
  *                             rendait une précédente qui n'y est pas.
+ *  10  (2026-10-13)           LA DATE RESTÉE EN NUMÉRO DE SÉRIE EXCEL, et
+ *                             c'est Georges qui l'a vue. Là où les quarante
+ *                             autres fonds impriment une date, la rangée de
+ *                             FCP ECOBANK OBLIGATAIRE CEMAC imprime
+ *                             « 46 120,00 » : le bulletin sort d'un tableur
+ *                             et cette cellule n'a jamais reçu son format.
+ *                             46120 est le 8 avril 2026.
+ *                             TROIS FOIS LA MAUVAISE DIMENSION : j'avais
+ *                             élargi les séparateurs puis les barres, des
+ *                             tolérances sur la FORME ; la veille, la
+ *                             seconde passe avait appris que le défaut était
+ *                             la POSITION. Ici ce n'est ni l'une ni l'autre,
+ *                             c'est le TYPE de la cellule.
+ *                             Mesuré sur les 805 séances : 65 des 68 débris
+ *                             restants, un seul fonds, une seule colonne,
+ *                             celle de la date précédente. Zéro série
+ *                             ailleurs, donc ce n'est pas l'export qui est
+ *                             cassé, c'est une cellule mal typée à la
+ *                             source.
+ *                             CE QUI REND LA RÉPARATION SÛRE est le
+ *                             troisième garde et lui seul : une VL de
+ *                             46 120 francs est plausible, mais la variation
+ *                             imprimée sur la rangée ne s'accorde avec les
+ *                             deux VL que si la lecture est la bonne. C'est
+ *                             le bulletin qui valide sa réparation.
  */
-export const VERSION_DU_LECTEUR = 9;
+export const VERSION_DU_LECTEUR = 10;
 
 /** Les fichiers qui FONT la lecture : eux seuls commandent le numéro. */
 export const FICHIERS_DU_LECTEUR = ["src/lib/market/boc-parse.ts", "src/lib/market/boc-geometrie.ts"];

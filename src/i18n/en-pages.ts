@@ -192,6 +192,9 @@ export const EN_PAGES: Record<string, string> = {
   "OPCVM : année de la VL corrigée": "Fund: the year of the net asset value was corrected",
   "Rien à faire : la VL précédait la création du fonds, et l'année suivante résout tout. Un fonds qui revient souvent mérite un mot à la bourse.":
     "Nothing to do: the value predated the fund’s creation, and the following year resolves everything. A fund that keeps coming back deserves a word to the exchange.",
+  "OPCVM : date au format Excel convertie": "Fund: a date left as an Excel serial number was converted",
+  "Rien à faire sur la séance : la variation imprimée a validé la date déduite. En revanche un fonds qui revient tous les mois mérite un mot à la bourse, car la cellule est mal typée à la source.":
+    "Nothing to do for this session: the printed change confirmed the inferred date. A fund that comes back every month does deserve a word to the exchange, because the cell is mistyped at source.",
 
   /* ---------- bien commencer, en conditions et non en exclusions ---------- */
   "Bien commencer": "Starting well",
