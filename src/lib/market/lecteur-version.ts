@@ -81,8 +81,36 @@
  *                             2025 et 2026. Les deux lignes les plus trouées
  *                             de la base, CG0000020261 et CG0000020329,
  *                             regagnent 27 séances chacune.
+ *   9  (2026-10-12)           LA SECONDE PASSE SUR LE DÉBRIS, pour la table
+ *                             des OPCVM. L'expression de la queue exige
+ *                             celle-ci en FIN de tampon, et l'aplatissement
+ *                             du PDF colle parfois le nom de la rangée
+ *                             suivante derrière : la rangée, pourtant
+ *                             conforme, n'est jamais testée à cette position.
+ *                             Le défaut n'était pas la forme, c'était la
+ *                             POSITION, et deux tolérances posées sur la
+ *                             forme n'avaient rien rendu. On réessaie donc la
+ *                             queue sur le texte qu'on allait jeter, qui se
+ *                             termine exactement là où il faut, et c'est là
+ *                             seulement que trois défauts d'impression se
+ *                             tolèrent sans risque : la barre manquante
+ *                             (« 1312/2024 »), la barre en trop
+ *                             (« 06/12//2024 ») et la variation unique.
+ *                             Mesuré par les deux lecteurs sur le même
+ *                             texte, sur les 797 séances de la base :
+ *                             +13 fonds, ZÉRO perdu, et les remarques
+ *                             « ligne ignorée » de 92 à 68. Trois valeurs
+ *                             changent, toutes sur FCP HARVEST ACTIONS
+ *                             CEMAC les 30 et 31 décembre 2024 et le
+ *                             2 janvier 2025, et ce sont trois
+ *                             CORRECTIONS : le bulletin imprime
+ *                             « 118 544,77 06/12//2024 118 317,84
+ *                             20/12/2024 … -0,19% », la nouvelle lecture
+ *                             rend cette ligne telle quelle et la
+ *                             variation imprimée la vérifie, l'ancienne
+ *                             rendait une précédente qui n'y est pas.
  */
-export const VERSION_DU_LECTEUR = 8;
+export const VERSION_DU_LECTEUR = 9;
 
 /** Les fichiers qui FONT la lecture : eux seuls commandent le numéro. */
 export const FICHIERS_DU_LECTEUR = ["src/lib/market/boc-parse.ts", "src/lib/market/boc-geometrie.ts"];

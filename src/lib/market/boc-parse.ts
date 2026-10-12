@@ -109,8 +109,19 @@ export const num = (s: string): number => {
   return Number.isFinite(n) ? n : NaN;
 };
 /** "26/12/2025" → "2025-12-26"; the BVMAC sometimes prints "05/012/2025" : the month keeps its last two digits. */
+/**
+ * Une date du bulletin en date ISO, séparateurs abîmés compris.
+ *
+ * ELLE REND LA CHAÎNE BRUTE QUAND ELLE NE RECONNAÎT PAS, et ce silence a déjà
+ * coûté : le 12 octobre 2026, une tolérance posée en amont a laissé passer
+ * « 22/11//2024 », que cette fonction a rendu tel quel, et douze rangées ont
+ * porté une date illisible sans que rien ne proteste. Les trois défauts
+ * d'impression relevés sur les débris de la table des OPCVM sont donc
+ * reconnus ici aussi : la barre en trop (« 06/12//2024 »), la barre manquante
+ * (« 1312/2024 ») et le mois à trois chiffres, qui l'était déjà.
+ */
 export const isoDate = (d: string): string => {
-  const m = d.match(/^(\d{2})\/(\d{2,3})\/(\d{4})$/);
+  const m = d.match(/^(\d{2})\/{0,2}(\d{2,3})\/{1,2}(\d{4})$/);
   return m ? `${m[3]}-${m[2].slice(-2)}-${m[1]}` : d;
 };
 
@@ -632,6 +643,42 @@ function parseBonds(lines: string[], warnings: Carnet, nominauxDeReference?: Map
  * est une surface non éprouvée dans une expression déjà difficile à tenir.
  */
 const MONTANT_VL = String.raw`\d{1,3}(?: \d{3})*,\d{2}`;
+
+/**
+ * LA SECONDE PASSE, ET POURQUOI ELLE EST SÛRE LÀ OÙ LA PREMIÈRE NE L'EST PAS.
+ *
+ * CE QUI A ÉTÉ COMPRIS LE 12 OCTOBRE 2026. En relevant un débris entier par
+ * forme, un cas a tout expliqué : une rangée PARFAITEMENT CONFORME, lettre,
+ * origine, valeur, date, valeur précédente, date, création, deux
+ * pourcentages. Elle aurait dû passer. Elle n'est pas passée parce que
+ * FUND_TAIL exige la queue en FIN de tampon, et que l'aplatissement du PDF
+ * colle parfois le nom de la rangée suivante derrière cette queue : elle
+ * n'est alors jamais testée à cette position. Le défaut n'était pas la forme,
+ * c'était la POSITION. Deux tolérances posées la veille sur la forme n'ont
+ * donc rien rendu, et l'une a corrompu douze rangées.
+ *
+ * LE DÉBRIS, LUI, SE TERMINE EXACTEMENT À LA FIN DE LA QUEUE PERDUE. Le
+ * réessayer ne demande aucune tolérance : c'est la même preuve, appliquée à
+ * un texte qu'on allait jeter.
+ *
+ * ET C'EST SEULEMENT ICI QUE LES TOLÉRANCES DEVIENNENT LÉGITIMES. Dans la
+ * boucle, le tampon grandit et une expression plus souple trouve d'autres
+ * alignements : c'est ainsi que la barre en trop avait fait prendre la valeur
+ * de la ligne voisine. Sur un débris, il n'y a qu'une rangée et aucun
+ * alignement concurrent possible. Ce qui était dangereux en général devient
+ * sans risque une fois le périmètre réduit à une seule ligne.
+ *
+ * Les trois défauts relevés sur les soixante débris de la base :
+ *   la barre manquante   « 1312/2024 » pour 13/12/2024        17 fois
+ *   la barre en trop     « 06/12//2024 »                       3 fois
+ *   la variation unique  une seule au lieu de deux             5 fois
+ */
+const DATE_SOUPLE = String.raw`\d{2}\/{0,2}\d{2,3}\/{1,2}\d{4}`;
+const MONTANT_SOUPLE = String.raw`(?:\d{1,3}(?: \d{3})+|\d+),\d{2}`;
+const POURCENT_VL = String.raw`-?[\d ]+(?:,\d{1,2})?%`;
+const FUND_TAIL_SOUPLE = new RegExp(
+  String.raw`\b([MODA0])\s+([\d ]+?)\s+(-|${MONTANT_SOUPLE})\s+(${DATE_SOUPLE})\s+(${MONTANT_SOUPLE})\s+(${DATE_SOUPLE})\s+(${DATE_SOUPLE})\s+(${POURCENT_VL})(?:\s+(-|${POURCENT_VL}))?\s*$`,
+);
 /**
  * UNE DATE DE LA TABLE. LA BARRE EN TROP A ÉTÉ TOLÉRÉE UNE HEURE, PUIS RETIRÉE.
  *
@@ -662,6 +709,51 @@ function parseFunds(lines: string[], warnings: Carnet): BocFund[] {
   let frequency: BocFund["frequency"] = "?";
   let buffer = "";
   const byName = new Map<string, BocFund>();
+
+  /**
+   * D UNE QUEUE RECONNUE ET DU TEXTE QUI LA PRÉCÈDE, UNE RANGÉE.
+   *
+   * Extrait de la boucle pour que la seconde passe puisse le rejouer sur un
+   * débris : deux copies auraient divergé au premier changement, et c est
+   * toujours celle qu on relit le moins qui se serait périmée.
+   */
+  const poser = (prefixe: string, q: RegExpMatchArray): void => {
+      const names = [...prefixe.matchAll(/\b(FCPE|FCP|SICAV)/g)];
+      const nameAt = names.length ? (names[names.length - 1].index ?? -1) : prefixe.search(/\b(FCPE|FCP|SICAV)/);
+      const name = nameAt >= 0 ? prefixe.slice(nameAt).replace(/^FCP(?=[A-DF-Z]|E[A-Z])/, "FCP ").replace(/\s+/g, " ").trim() : prefixe;
+      const prior = byName.get(name);
+      if (prior) {
+        /* LA SECONDE VARIATION PEUT MANQUER : cinq rangées sur soixante n en
+           portent qu une. Absente, elle n est pas nulle, elle n est pas. */
+        const v = q[9] == null || q[9] === "-" ? undefined : num(q[9]);
+        if (frequency === "mensuelle") prior.variationMonthlyPct = v;
+        if (frequency === "trimestrielle") prior.variationQuarterlyPct = v;
+        return;
+      }
+      const before = nameAt >= 0 ? prefixe.slice(0, nameAt).trim() : "";
+      const mm = before.match(MANAGER_RE);
+      const manager = mm ? mm[1].trim() : before;
+      const depositary = mm ? mm[3].trim() : "";
+      const cat = q[1] === "0" ? "O" : (q[1] as BocFund["category"]);
+      const fund: BocFund = {
+        manager,
+        depositary,
+        name,
+        category: (["M", "O", "D", "A"] as const).includes(cat as "M") ? (cat as BocFund["category"]) : "?",
+        frequency,
+        navOrigin: num(q[2]),
+        previousNav: q[3] === "-" ? NaN : num(q[3]),
+        previousDate: isoDate(q[4]),
+        nav: num(q[5]),
+        navDate: isoDate(q[6]),
+        inceptionDate: isoDate(q[7]),
+        perfSinceInceptionPct: num(q[8]),
+        variationPct: q[9] == null || q[9] === "-" ? NaN : num(q[9]),
+      };
+      byName.set(name, fund);
+      out.push(fund);
+  };
+
   for (let i = start; i < lines.length; i++) {
     const l = lines[i];
     if (!l) continue;
@@ -701,43 +793,21 @@ function parseFunds(lines: string[], warnings: Carnet): BocFund[] {
          une perte qui n'avait pas eu lieu, ce qui est la pire espèce de
          remarque : elle use le desk pour rien. Un fonds porte toujours un nom,
          donc des lettres. */
-      if (/[A-Za-zÀ-ÿ]{3,}/.test(jete)) {
+      /* LA SECONDE PASSE. On réessaie la queue SUR LE DÉBRIS, qui se termine
+         exactement là où celle de la rangée perdue se terminait : ce que la
+         boucle n'a jamais pu tester, faute d'avoir cette fin-là au bout du
+         tampon. Voir FUND_TAIL_SOUPLE pour les trois défauts d'impression
+         tolérés, et pour la raison qui les rend sans risque ici et dangereux
+         ailleurs. */
+      const repris = jete.match(FUND_TAIL_SOUPLE);
+      if (repris && repris.index != null) {
+        poser(jete.slice(0, repris.index).trim(), repris);
+      } else if (/[A-Za-zÀ-ÿ]{3,}/.test(jete)) {
         warnings.push(`OPCVM : ligne ignorée (format inattendu), jeté « ${jete.slice(0, 200)} » avant « ${prefix.slice(junk.index + junk[0].length).trim().slice(0, 40)} »`);
       }
       prefix = prefix.slice(junk.index + junk[0].length).trim();
     }
-    const names = [...prefix.matchAll(/\b(FCPE|FCP|SICAV)/g)];
-    const nameAt = names.length ? (names[names.length - 1].index ?? -1) : prefix.search(/\b(FCPE|FCP|SICAV)/);
-    const name = nameAt >= 0 ? prefix.slice(nameAt).replace(/^FCP(?=[A-DF-Z]|E[A-Z])/, "FCP ").replace(/\s+/g, " ").trim() : prefix;
-    const prior = byName.get(name);
-    if (prior) {
-      const v = m[9] === "-" ? undefined : num(m[9]);
-      if (frequency === "mensuelle") prior.variationMonthlyPct = v;
-      if (frequency === "trimestrielle") prior.variationQuarterlyPct = v;
-      continue;
-    }
-    const before = nameAt >= 0 ? prefix.slice(0, nameAt).trim() : "";
-    const mm = before.match(MANAGER_RE);
-    const manager = mm ? mm[1].trim() : before;
-    const depositary = mm ? mm[3].trim() : "";
-    const cat = m[1] === "0" ? "O" : (m[1] as BocFund["category"]);
-    const fund: BocFund = {
-      manager,
-      depositary,
-      name,
-      category: (["M", "O", "D", "A"] as const).includes(cat as "M") ? (cat as BocFund["category"]) : "?",
-      frequency,
-      navOrigin: num(m[2]),
-      previousNav: m[3] === "-" ? NaN : num(m[3]),
-      previousDate: isoDate(m[4]),
-      nav: num(m[5]),
-      navDate: isoDate(m[6]),
-      inceptionDate: isoDate(m[7]),
-      perfSinceInceptionPct: num(m[8]),
-      variationPct: m[9] === "-" ? NaN : num(m[9]),
-    };
-    byName.set(name, fund);
-    out.push(fund);
+    poser(prefix, m);
   }
   if (out.length === 0) warnings.push("Aucun OPCVM lu.");
   return out;
