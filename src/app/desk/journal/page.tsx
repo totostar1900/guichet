@@ -4,12 +4,12 @@ import { diffRecords, FIELD_FR } from "@/lib/audit";
 import { chainState, type ChainState } from "@/lib/audit-chain";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { fmtDateTime } from "@/lib/format";
+import { fmtDateTime, localIso } from "@/lib/format";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { Gestes } from "./Gestes";
 import { comptesDemo } from "@/lib/domain/demo";
-import { GENRES, type Genre } from "@/lib/domain/journal-client";
+import { GENRES, GESTES, type Genre } from "@/lib/domain/journal-client";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Journal d'audit" };
@@ -43,21 +43,36 @@ const ENTITIES: [string, string][] = [
 const short = (v: unknown): string => (v == null ? "—" : typeof v === "object" ? JSON.stringify(v).slice(0, 60) : String(v));
 
 /** The structured audit trail: every business action with who / what / before → after / why / from where. */
-export default async function JournalPage({ searchParams }: { searchParams: Promise<{ entite?: string; registre?: string; genre?: string; client?: string }> }) {
+export default async function JournalPage({ searchParams }: { searchParams: Promise<{ entite?: string; registre?: string; genre?: string; client?: string; du?: string; au?: string; q?: string }> }) {
   const t = await getT();
   await requireDesk("/desk/journal");
-  const { entite = "", registre = "", genre = "", client } = await searchParams;
+  const { entite = "", registre = "", genre = "", client, du, au, q } = await searchParams;
 
   /* DEUX REGISTRES SOUS UNE SEULE ADRESSE. « Le journal » est un sujet : lui
      donner deux pages ferait chercher laquelle ouvrir. Les décisions du desk
      sont chaînées et prouvent ; les gestes des clients racontent. */
   if (registre === "gestes") {
-    const [gestes, contacts] = await Promise.all([
-      repo().listClientActions({ userId: client, genre: (GENRES as readonly string[]).includes(genre) ? (genre as Genre) : undefined, limit: 300 }),
+    const aujourdHui = localIso(new Date());
+    const il30 = localIso(new Date(Date.now() - 30 * 86_400_000));
+    const [bruts, contacts, trente] = await Promise.all([
+      repo().listClientActions({ userId: client, genre: (GENRES as readonly string[]).includes(genre) ? (genre as Genre) : undefined, from: du, to: au, limit: 300 }),
       repo()
         .listContacts()
         .catch(() => []),
+      /* Ce que le registre pèse se compte sur trente jours, pas sur la page
+         affichée : une page filtrée dirait le poids du filtre. */
+      repo()
+        .listClientActions({ from: il30, limit: 20000 })
+        .catch(() => []),
     ]);
+    const noms = new Map(contacts.map((c) => [c.id, c.name]));
+    /* « QUI » CHERCHE PARTOUT CE QUE LA LIGNE MONTRE : le nom du client,
+       l'objet, le détail et la phrase du geste. Chercher dans la seule
+       colonne du nom ferait manquer une référence tapée de mémoire. */
+    const mots = (q ?? "").trim().toLowerCase();
+    const gestes = mots
+      ? bruts.filter((a) => [noms.get(a.userId), a.objet, a.detail, GESTES[a.geste]?.auDesk].some((x) => x?.toLowerCase().includes(mots)))
+      : bruts;
     return (
       <>
         <DeskNav current="/desk/journal" />
@@ -77,7 +92,19 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
             {t("Gestes des clients")}
           </Link>
         </nav>
-        <Gestes rows={gestes} noms={new Map(contacts.map((c) => [c.id, c.name]))} demo={comptesDemo(contacts)} genre={genre} client={client} t={t} />
+        <Gestes
+          rows={gestes}
+          noms={noms}
+          demo={comptesDemo(contacts)}
+          genre={genre}
+          client={client}
+          du={du}
+          au={au}
+          q={q}
+          aujourdHui={aujourdHui}
+          combien={{ lignes30j: trente.length, clients30j: new Set(trente.map((a) => a.userId)).size, total: bruts.length }}
+          t={t}
+        />
       </>
     );
   }

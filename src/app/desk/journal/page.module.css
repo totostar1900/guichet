@@ -73,3 +73,76 @@
     flex-direction: column;
   }
 }
+
+/* ── Le registre des gestes : la barre de filtres et les deux panneaux ── */
+
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s-4);
+  margin-bottom: var(--s-6);
+}
+.filtres label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  font-size: var(--t-3);
+}
+.filtres label > span {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+}
+.qui {
+  flex-grow: 1;
+  min-width: 180px;
+}
+.qui input {
+  width: 100%;
+}
+.vider {
+  font-size: var(--t-3);
+}
+
+.deuxPanneaux {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--s-8);
+  margin-top: var(--s-8);
+}
+.mesures {
+  margin: 0;
+  padding: 0 var(--panel-inset);
+}
+.mesures > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-6);
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-4);
+}
+.mesures > div:last-child {
+  border-bottom: 0;
+}
+.mesures dt,
+.mesures dd {
+  margin: 0;
+}
+.mesures dd {
+  font-variant-numeric: tabular-nums;
+}
+.oblige {
+  margin: 0;
+  padding: var(--s-4) var(--panel-inset) 0 calc(var(--panel-inset) + var(--s-7));
+  font-size: var(--t-4);
+  line-height: 1.7;
+}
+.note {
+  margin: 0;
+  padding: var(--s-4) var(--panel-inset);
+  font-size: var(--t-3);
+  line-height: 1.6;
+  color: var(--ink-3);
+}
