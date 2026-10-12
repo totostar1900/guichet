@@ -132,11 +132,25 @@ export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
   const coach = Boolean(firstTime) && !coachGone && !desk;
   const contactBlock = <MenuContact close={close} surFiche={onFiche} />;
 
-  /* CONNECTÉ, LE « ⋮ » N'EXISTE PLUS : tout est derrière l'initiale depuis
-     le 5 octobre 2026, et deux portes vers la même feuille étaient la cause du
-     doublon. Il reste pour le visiteur, qui n'a pas d'initiale, et pour le
-     desk, qui a ses deux onglets. */
-  if (signedIn && !desk) return null;
+  /**
+   * LE « ⋮ » N'EXISTE PLUS QUE POUR LE DESK.
+   *
+   * Il a disparu pour le client connecté le 5 octobre 2026 : tout vit derrière
+   * l'initiale, et deux portes vers la même feuille faisaient le doublon.
+   *
+   * IL DISPARAÎT POUR LE VISITEUR LE 12 OCTOBRE 2026, et c'est l'inverse qu'il
+   * aurait fallu faire depuis le début. Un visiteur ne cherche pas un menu
+   * d'outils : il cherche la langue, de l'aide, et un moyen de nous joindre.
+   * Les lui cacher derrière trois points était le plus sûr moyen qu'il ne les
+   * trouve pas, et le menu lui offrait par-dessus le marché un guide écrit
+   * pour des gens qui ont déjà un compte.
+   *
+   * LES DEUX CHOSES QU'IL PORTAIT VRAIMENT SONT RESSORTIES, NOMMÉES, au pied
+   * de page : « Aide et contact » et le sélecteur de langue. Une par audience
+   * et une seule : le visiteur au pied, le client derrière son initiale, le
+   * desk ici.
+   */
+  if (!desk) return null;
 
   return (
     <>

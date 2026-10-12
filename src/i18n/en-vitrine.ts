@@ -8,6 +8,10 @@
  * une part est précisément ce que la page apprend à son lecteur.
  */
 export const EN_VITRINE: Record<string, string> = {
+  /* ---------- le pied, pour qui n'est pas entré ---------- */
+  "Le guide": "The guide",
+  "Aide et contact": "Help and contact",
+
   /* ---------- l'ouverture ---------- */
   "La porte d'entrée des marchés financiers d'Afrique centrale.": "The way into Central Africa's financial markets.",
   "Prêtez aux États et aux institutions de la zone, prenez part au capital des sociétés cotées, placez dans des fonds agréés par la COSUMAF. Votre compte se crée en quelques instants, et un conseiller reste joignable.":

@@ -74,6 +74,28 @@
   color: var(--ink-3);
   line-height: 1.5;
 }
+
+/* Ce que le « ⋮ » portait pour un visiteur, ressorti au pied : trois liens
+   nommés et la langue. Une rangée qui passe à la ligne plutôt qu une colonne,
+   pour ne pas allonger le pied d une page déjà longue. */
+.porteVisiteur {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-8);
+  margin-bottom: var(--s-7) !important;
+  padding-bottom: var(--s-6);
+  border-bottom: 1px solid var(--line);
+}
+.porteVisiteur a {
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line-2);
+}
+.porteVisiteur a:hover {
+  color: var(--navy-text);
+  border-bottom-color: var(--navy-text);
+}
 .footer p {
   max-width: 110ch;
   margin: 4px 0;

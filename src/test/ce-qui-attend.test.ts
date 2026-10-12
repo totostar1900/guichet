@@ -140,7 +140,7 @@ describe("où la liste se lit", () => {
    * LE COMPTEUR DOIT ÊTRE RENDU PAR UN COMPOSANT QUE LE CLIENT VOIT.
    *
    * Il a vécu trois jours sur le « ⋮ » APRÈS que ce bouton eut cessé
-   * d'exister pour les clients connectés (AppMenu : `if (signedIn && !desk)
+   * d'exister pour les clients connectés (AppMenu : `if (!desk)
    * return null`). La couche entière restait en place : le layout appelait
    * compterAttentes à chaque page, passait le nombre de main en main, et la
    * pastille se rendait dans une branche morte. Rien n'échouait, rien ne se
@@ -150,7 +150,7 @@ describe("où la liste se lit", () => {
   it("la pastille est rendue là où le client connecté regarde, et elle mène quelque part", () => {
     const menu = lire("src/components/AppMenu.tsx");
     // Le « ⋮ » n'existe pas pour un client connecté : il ne doit donc plus rien compter.
-    expect(menu).toContain("if (signedIn && !desk) return null");
+    expect(menu).toContain("if (!desk) return null");
     expect(menu).not.toContain("aDecider");
     const compte = lire("src/components/mobile/AccountMenu.tsx");
     // Un lien, pas un ornement : une attente y va tout droit, plusieurs ouvrent la bande.

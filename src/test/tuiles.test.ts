@@ -111,14 +111,18 @@ describe("la feuille unique du compte", () => {
   });
 
   /**
-   * UNE SEULE PORTE QUAND ON EST CONNECTÉ. Le « ⋮ » et l'initiale ouvraient
-   * deux feuilles qui disaient la même chose : 2 433 px pour neuf pages, cinq
-   * destinations écrites deux fois. Le jour où le « ⋮ » revient pour un client
-   * connecté, le doublon revient avec lui.
+   * UNE SEULE PORTE PAR AUDIENCE. Le « ⋮ » et l'initiale ouvraient deux
+   * feuilles qui disaient la même chose : 2 433 px pour neuf pages, cinq
+   * destinations écrites deux fois. Le bouton a donc disparu pour le client
+   * connecté le 5 octobre 2026, puis POUR LE VISITEUR le 12 octobre : il y
+   * cachait la langue et le contact, c est-à-dire exactement ce qu un
+   * visiteur cherche, et ces deux-là sont ressortis nommés au pied de page.
+   * Il ne reste qu au desk, qui a ses deux onglets. Le jour où il revient
+   * pour quelqu un d autre, le doublon revient avec lui.
    */
-  it("ne laisse qu'une porte au client connecté", () => {
+  it("ne laisse qu'une porte par audience", () => {
     const menu = readFileSync(join(process.cwd(), "src/components/AppMenu.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(menu, "le « ⋮ » s'ouvre de nouveau à côté de l'initiale").toMatch(/if \(signedIn && !desk\) return null;/);
+    expect(menu, "le « ⋮ » reparaît ailleurs que chez le desk").toMatch(/if \(!desk\) return null;/);
   });
 
   /**

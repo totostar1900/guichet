@@ -24,6 +24,7 @@ import { LangProvider } from "@/i18n/client";
 import { getLang, getT } from "@/i18n/server";
 import { AuthHashRedirect } from "@/components/AuthHashRedirect";
 import { AppMenu } from "@/components/AppMenu";
+import { LangSwitch } from "@/components/LangSwitch";
 import { ConsentGate } from "@/components/ConsentGate";
 import { TermSheetHost } from "@/components/TermSheet";
 import { PALETTE_BOOT, P_COOKIE, T_COOKIE, paletteAttrs } from "@/lib/palette";
@@ -184,6 +185,24 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </main>
         </RegistryProvider>
         <footer className={styles.footer}>
+          {/* CE QUE LE « ⋮ » PORTAIT POUR UN VISITEUR, RESSORTI ET NOMMÉ.
+              Le menu à trois points a disparu de la page publique le
+              12 octobre 2026 : il cachait précisément ce qu'un visiteur
+              cherche. Les deux choses qui comptaient reparaissent ici, en
+              toutes lettres.
+
+              SEULEMENT POUR QUI N'EST PAS ENTRÉ, et c'est la même règle qui a
+              fait retirer le « ⋮ » au client : une porte par audience, pas
+              deux. Le client règle sa langue derrière son initiale, où vit
+              déjà tout son compte. */}
+          {!session && (
+            <p className={styles.porteVisiteur}>
+              <Link href="/info">{t("Le guide")}</Link>
+              <Link href="/info/aide">{t("Aide et contact")}</Link>
+              <Link href="/info/risques">{t("Risques et limites")}</Link>
+              <LangSwitch compact />
+            </p>
+          )}
           <p>
             <b>{COMPANY.legalName}</b>, {t(COMPANY.licence)}. {COMPANY.address} · {COMPANY.phone} · {COMPANY.email}
           </p>
