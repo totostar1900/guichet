@@ -93,12 +93,17 @@ export default async function AProposPage() {
         </div>
       </section>
 
-      {/* POUR QUI, ET POUR QUI PAS. La seconde colonne est la raison d'être de
-          cette page : elle fait gagner dix minutes à qui n'aurait pas dû
-          ouvrir un compte, et elle dit ce que le questionnaire dira. */}
+      {/* BIEN COMMENCER, ET NON « POUR QUI CE N'EST PAS ».
+          Cette section portait deux colonnes, dont une qui énumérait les gens
+          à qui le produit ne convient pas. L'information était utile et le
+          cadrage était faux : une vitrine dit ce que la maison fait, jamais ce
+          qu'elle ne fait pas, et une liste d'exclusions se lit comme un
+          reproche adressé d'avance au lecteur. La fonction protectrice est
+          gardée tout entière, retournée en conditions à réunir : c'est la même
+          information, et elle prépare au lieu d'écarter. */}
       <section className="panel">
         <div className="panel-h">
-          <h2>{t("Pour qui, et pour qui pas")}</h2>
+          <h2>{t("Bien commencer")}</h2>
         </div>
         <div className={styles.pourQui}>
           <div className={styles.oui}>
@@ -106,18 +111,17 @@ export default async function AProposPage() {
             <ul>
               <li>{t("Vous avez une épargne, même modeste, qui dort")}</li>
               <li>{t("Vous voulez la placer dans la région où vous vivez")}</li>
-              <li>{t("Vous acceptez de ne pas disposer de la somme avant une échéance")}</li>
               <li>{t("Vous préférez comprendre avant de signer")}</li>
             </ul>
           </div>
-          <div className={styles.nonPas}>
-            <b>{t("Ce n'est pas le bon moment si")}</b>
+          <div className={styles.aReunir}>
+            <b>{t("Trois choses à réunir avant d'ouvrir")}</b>
             <ul>
-              <li>{t("Vous pourriez avoir besoin de cette somme d'un jour à l'autre")}</li>
-              <li>{t("Vous cherchez un gain rapide et garanti : cela n'existe pas ici")}</li>
-              <li>{t("Vous placeriez de l'argent emprunté")}</li>
+              <li>{t("Une somme que vous pouvez laisser travailler jusqu'à son échéance")}</li>
+              <li>{t("Du temps devant vous : les placements d'ici se dénouent en mois, parfois en années")}</li>
+              <li>{t("De l'argent qui est le vôtre")}</li>
             </ul>
-            <small>{t("Nous le disons avant l'ouverture du compte, et le questionnaire de connaissance sert exactement à cela.")}</small>
+            <small>{t("Le questionnaire de connaissance, à l'ouverture, reprend ces trois points avec vous.")}</small>
           </div>
         </div>
       </section>

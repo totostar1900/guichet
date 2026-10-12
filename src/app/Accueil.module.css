@@ -37,6 +37,8 @@
   align-items: center;
   gap: var(--s-11);
   padding-top: var(--s-11);
+  padding-bottom: var(--s-11);
+  border-bottom: 1px solid var(--gold-line);
 }
 .dire {
   flex: 999 1 440px;
@@ -60,8 +62,8 @@
   margin: 0;
   font-family: var(--font-titre);
   font-weight: 400;
-  font-size: clamp(2.1rem, 5.2vw, 3.6rem);
-  line-height: 1.06;
+  font-size: clamp(2.3rem, 5.6vw, 4.2rem);
+  line-height: 1.02;
   letter-spacing: -0.01em;
   color: var(--navy-text);
   text-wrap: balance;
@@ -163,11 +165,22 @@
 }
 .geste {
   min-width: 0;
-  padding: var(--s-10) var(--s-9);
+  padding: var(--s-11) var(--s-10);
   display: flex;
   flex-direction: column;
   gap: var(--s-6);
   border-left: 1px solid var(--line);
+  transition: background 160ms ease;
+}
+.geste:hover {
+  background: var(--surface-2);
+}
+/* Le rang : il dit un ordre qui existe, du plus tranquille au plus engagé. */
+.rang {
+  font-family: var(--font-titre);
+  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+  line-height: 1;
+  color: var(--gold-line);
 }
 .geste:first-child {
   border-left: 0;
@@ -177,7 +190,7 @@
   margin: 0;
   font-family: var(--font-titre);
   font-weight: 400;
-  font-size: var(--t-7);
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
   line-height: 1.15;
   color: var(--navy-text);
 }
@@ -236,7 +249,7 @@
   border-top: 1px solid var(--line);
 }
 .publieListe li {
-  padding: var(--s-8) 0;
+  padding: var(--s-9) 0;
   border-bottom: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -446,7 +459,7 @@
 /* ---------- L'appel final ---------- */
 .final {
   background: var(--surface-2);
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--gold-line);
   padding: var(--respiration) var(--s-11);
   display: flex;
   flex-wrap: wrap;

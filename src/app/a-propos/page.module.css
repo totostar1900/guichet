@@ -162,8 +162,8 @@
 .oui b {
   border-top: 2px solid var(--good);
 }
-.nonPas b {
-  border-top: 2px solid var(--crit);
+.aReunir b {
+  border-top: 2px solid var(--gold);
 }
 .pourQui ul {
   margin: 0;

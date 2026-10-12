@@ -192,4 +192,14 @@ export const EN_PAGES: Record<string, string> = {
   "OPCVM : année de la VL corrigée": "Fund: the year of the net asset value was corrected",
   "Rien à faire : la VL précédait la création du fonds, et l'année suivante résout tout. Un fonds qui revient souvent mérite un mot à la bourse.":
     "Nothing to do: the value predated the fund’s creation, and the following year resolves everything. A fund that keeps coming back deserves a word to the exchange.",
+
+  /* ---------- bien commencer, en conditions et non en exclusions ---------- */
+  "Bien commencer": "Starting well",
+  "Trois choses à réunir avant d'ouvrir": "Three things to have ready before you open",
+  "Une somme que vous pouvez laisser travailler jusqu'à son échéance": "A sum you can leave working until its maturity",
+  "Du temps devant vous : les placements d'ici se dénouent en mois, parfois en années": "Time ahead of you: investments here play out over months, sometimes years",
+  "De l'argent qui est le vôtre": "Money that is your own",
+  "Le questionnaire de connaissance, à l'ouverture, reprend ces trois points avec vous.": "The knowledge questionnaire, when the account opens, goes through these three points with you.",
+  "Vous prenez part au capital des sociétés cotées de la région, ou vous placez dans des fonds agréés par la COSUMAF. Votre gain n'y est plafonné par aucun taux, et c'est la contrepartie du risque que vous acceptez.":
+    "You take a stake in the region’s listed companies, or you invest in funds approved by COSUMAF. No rate caps your gain here, and that is the other side of the risk you accept.",
 };

@@ -88,28 +88,35 @@ export async function Accueil() {
   /**
    * LES TROIS GESTES, du plus tranquille au plus engagé.
    *
-   * Chacun recouvre une part de l'offre sans empiéter sur les autres, et
-   * chacun porte une figure géométrique plutôt qu'un numéro, parce qu'une
-   * liste numérotée promet un ordre obligatoire qui n'existe pas.
+   * Chacun recouvre une part de l'offre sans empiéter sur les autres.
+   *
+   * ILS SONT NUMÉROTÉS, ET C'EST NOUVEAU. La version d'avant s'y refusait,
+   * à raison : une liste numérotée promet un ordre, et les cinq verbes
+   * d'alors n'en avaient aucun. Ces trois-là en ont un, écrit juste au-
+   * dessus : du plus tranquille au plus engagé. Le numéro dit donc quelque
+   * chose de vrai, et il donne à la rangée l'assise qui lui manquait.
    */
   const gestes = [
     {
       clef: "epargner",
+      n: "01",
       d: "M24 14a10 10 0 1 1-3.2-7.3 M24.5 3.5v6h-6",
       titre: t("Épargner"),
       dit: t("Vous arrêtez un montant et un jour du mois, et le prélèvement s'exécute de lui-même. Ce qui vous est remboursé repart vers la ligne que vous avez désignée d'avance."),
     },
     {
       clef: "financer",
+      n: "02",
       d: "M3 25h22 M6 25V11l8-6 8 6v14 M11 25v-7h6v7",
       titre: t("Financer"),
       dit: t("Vous prêtez aux six États de la zone, à la banque de développement de la région et aux grandes entreprises d'ici. Ils vous versent un intérêt et vous remboursent à une échéance connue d'avance."),
     },
     {
       clef: "investir",
+      n: "03",
       d: "M3 23l7-7 5 4 9.5-11 M25 5h-6 M25 5v6",
       titre: t("Investir"),
-      dit: t("Vous prenez part au capital des sociétés cotées de la région, ou vous placez dans des fonds agréés par la COSUMAF. Rien n'est promis, et c'est pourquoi le gain n'est pas plafonné."),
+      dit: t("Vous prenez part au capital des sociétés cotées de la région, ou vous placez dans des fonds agréés par la COSUMAF. Votre gain n'y est plafonné par aucun taux, et c'est la contrepartie du risque que vous acceptez."),
     },
   ];
 
@@ -194,6 +201,7 @@ export async function Accueil() {
         <div className={styles.gestesListe}>
           {gestes.map((g) => (
             <article className={`${styles.geste} ${styles[g.clef]}`} key={g.clef}>
+              <span className={styles.rang}>{g.n}</span>
               <span className={styles.figurine}>
                 <svg viewBox="0 0 28 28" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d={g.d} />
