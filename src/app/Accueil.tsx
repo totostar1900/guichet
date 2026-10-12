@@ -109,10 +109,19 @@ export async function Accueil() {
     { d: "M3 23l7-7 5 4 9.5-11 M25 5h-6 M25 5v6", titre: t("Suivre le marché."), dit: t("La courbe de la zone, l'indice de la BVMAC, les séances à venir et les publications du desk.") },
   ];
 
+  /**
+   * TROIS TEMPS, ET LE PREMIER NE DEMANDE RIEN.
+   *
+   * La page n'en montrait que deux et les confondait : « Ouvrir un compte »
+   * réclamait une pièce d'identité à quelqu'un qui venait d'arriver. Créer son
+   * compte et faire ouvrir son compte-titres sont deux gestes, séparés par le
+   * temps que le visiteur veut bien y mettre, et la plateforme le savait déjà
+   * faire sans jamais le dire.
+   */
   const etapes = [
-    { d: "M6 3h11l5 5v17H6z M17 3v6h5 M10 16h9 M10 20h6", titre: t("Vous ouvrez"), dit: t("Une pièce d'identité, un justificatif de domicile, et le questionnaire de connaissance. Dix minutes, depuis votre téléphone.") },
-    { d: "M14 4v13 M8.5 11.5L14 17l5.5-5.5 M3 21v4h22v-4", titre: t("Vous approvisionnez"), dit: t("Par virement, vers le compte espèces ouvert à votre nom. Le journal porte chaque mouvement, avec sa date de valeur.") },
-    { d: "M6 4l18 10-18 10z M6 14h11", titre: t("Vous déclarez votre première intention"), dit: t("Sur la séance annoncée de votre choix, ou sur une ligne de la cote. Le desk confirme, et vous suivez l'allocation.") },
+    { d: "M21 25a10 10 0 1 1 0-20 M25 9v6h-6 M25 15a10 10 0 0 1-4 8", titre: t("Vous créez votre compte"), dit: t("Une adresse ou un numéro, un code reçu dans l'instant. Vous voyez alors le marché et vous recevez les avis de séance. Aucun document, aucun engagement.") },
+    { d: "M6 3h11l5 5v17H6z M17 3v6h5 M10 16h9 M10 20h6", titre: t("Vous faites ouvrir votre compte-titres"), dit: t("Une pièce d'identité, un justificatif de domicile et le questionnaire de connaissance. Dix minutes, à votre rythme, et le desk vous rappelle si une pièce manque.") },
+    { d: "M14 4v13 M8.5 11.5L14 17l5.5-5.5 M3 21v4h22v-4", titre: t("Vous approvisionnez et vous placez"), dit: t("Par virement, vers le compte espèces ouvert à votre nom. Vous choisissez une séance annoncée ou une ligne de la cote, et vous suivez votre allocation.") },
   ];
 
   return (
@@ -123,8 +132,8 @@ export async function Accueil() {
           <span className={styles.agrement}>{t("Société de bourse agréée COSUMAF · n° COSUMAF-SDB-01/2026")}</span>
           <h1>{t("Le marché primaire et la cote, dans un seul compte.")}</h1>
           <div className={styles.gestes}>
-            <Link className={styles.principal} href="/ouvrir-un-compte">
-              {t("Ouvrir un compte-titres")}
+            <Link className={styles.principal} href="/connexion?creer=1">
+              {t("Créer mon compte")}
             </Link>
             <Link className={styles.second} href="/info/parcours">
               {t("Visite guidée · 30 secondes")}
@@ -181,8 +190,8 @@ export async function Accueil() {
           <h2>{t("Le marché, lu et commenté.")}</h2>
           <p>{t("Le desk suit le marché de la zone et publie ce qu'il en tire : la courbe des taux, des analyses, des points réguliers. L'ensemble se consulte depuis votre espace.")}</p>
           <div>
-            <Link className={styles.orBouton} href="/ouvrir-un-compte">
-              {t("Ouvrir un compte-titres")}
+            <Link className={styles.orBouton} href="/connexion?creer=1">
+              {t("Créer mon compte")}
             </Link>
           </div>
         </div>
@@ -289,15 +298,15 @@ export async function Accueil() {
         <h2>{t("Une séance s'annonce. Vous décidez le jour même.")}</h2>
         <div>
           <p>{t("L'avis d'annonce vous parvient dès sa publication, et votre intention part de la même page.")}</p>
-          <Link className={styles.principal} href="/ouvrir-un-compte">
-            {t("Ouvrir un compte-titres")}
+          <Link className={styles.principal} href="/connexion?creer=1">
+            {t("Créer mon compte")}
           </Link>
         </div>
       </section>
 
       <section className={styles.entrer}>
         <div className={styles.entrerTete}>
-          <h2>{t("Ouvrir un compte")}</h2>
+          <h2>{t("Créer votre compte, puis l'ouvrir")}</h2>
           <span>{t("En ligne, et le desk vous rappelle si un document manque.")}</span>
         </div>
         <div className={styles.etapes}>
@@ -341,8 +350,8 @@ export async function Accueil() {
               </svg>
               {t("Google")}
             </span>
-            <Link className={styles.principal} href="/ouvrir-un-compte">
-              {t("Ouvrir un compte-titres")}
+            <Link className={styles.principal} href="/connexion?creer=1">
+              {t("Créer mon compte")}
             </Link>
           </div>
         </div>

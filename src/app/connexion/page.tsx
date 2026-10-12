@@ -15,8 +15,8 @@ export async function generateMetadata() {
   return { title: t("Connexion") };
 }
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; erreur?: string }> }) {
-  const { next = "/", erreur } = await searchParams;
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; erreur?: string; creer?: string }> }) {
+  const { next = "/", erreur, creer } = await searchParams;
   if (await getSession()) redirect(next.startsWith("/") ? next : "/");
   const mode = authMode();
   const t = await getT();
@@ -30,20 +30,36 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
    * pas. Les mots changent, le chemin ne change pas.
    */
   const ouvrir = next.startsWith("/ouvrir-un-compte");
+  /**
+   * LA TROISIÈME PORTE, ENFIN NOMMÉE.
+   *
+   * Elle existait déjà et personne ne la voyait : la page publique n'offrait
+   * que « Se connecter » et « Ouvrir un compte-titres », et la seconde
+   * réclamait une pièce d'identité à quelqu'un qui venait de découvrir la
+   * maison. Entre les deux il y a le geste le moins cher et le plus utile :
+   * créer son compte, prouver un canal, et regarder le marché. Le dossier
+   * vient après, quand le visiteur l'a décidé.
+   *
+   * LE CHEMIN NE CHANGE PAS, les mots changent : le même code, la même
+   * session, le même dossier au cran « brouillon ». Ce qui change, c'est ce
+   * qu'on promet en échange du geste.
+   */
+  const creerUnCompte = creer === "1" && !ouvrir;
 
   return (
     <div className={styles.wrap}>
       <div className={styles.card}>
         <div className="eyebrow">{COMPANY.name}</div>
-        <h1 className="display">{ouvrir ? t("Ouvrir votre compte-titres") : t("Se connecter")}</h1>
+        <h1 className="display">{ouvrir ? t("Ouvrir votre compte-titres") : creerUnCompte ? t("Créer votre compte") : t("Se connecter")}</h1>
         {ouvrir && <p className={styles.lead}>{t("Première étape : recevez un code pour prouver votre adresse. Votre dossier s'ouvre juste après, et vous le remplissez à votre rythme.")}</p>}
+        {creerUnCompte && <p className={styles.lead}>{t("Un code, une minute, et vous voyez le marché : les taux, les séances annoncées et les publications. Aucun document n'est demandé à ce stade, et créer un compte ne vous engage à rien.")}</p>}
         {erreur === "lien" && <p className={styles.notice}>{t("Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau lien ci-dessous : il arrive en quelques secondes.")}</p>}
         {erreur === "google" && <p className={styles.notice}>{t("La connexion par Google n'a pas abouti. Le code par e-mail ci-dessous fonctionne toujours.")}</p>}
         <DeviceSignIn next={next} />
         {mode === "supabase" ? (
           <>
-            {/* La phrase de tête a déjà été dite à qui vient ouvrir un compte. */}
-            {!ouvrir && <p className={styles.lead}>{t(process.env.PHONE_OTP_ENABLED === "1" ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>}
+            {/* La phrase de tête a déjà été dite à qui vient ouvrir ou créer un compte. */}
+            {!ouvrir && !creerUnCompte && <p className={styles.lead}>{t(process.env.PHONE_OTP_ENABLED === "1" ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>}
             {/* La porte Google est proposée avant le code : elle est plus courte,
                 et l'adresse qu'elle rend est déjà vérifiée par Google. Elle ne
                 paraît que si le fournisseur est activé côté Supabase. */}

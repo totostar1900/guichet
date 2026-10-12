@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { emptyClientFile } from "@/lib/domain/kyc";
-import { conventionAReprendre, conventionSignable, KIND_LABEL, missingForSubmission, STATUS_LABEL } from "@/lib/kyc/checklist";
+import { conventionAReprendre, conventionSignable, etapesDuDossier, KIND_LABEL, missingForSubmission, STATUS_LABEL } from "@/lib/kyc/checklist";
 import { fmtDateTime } from "@/lib/format";
 import { setKindAction } from "./actions";
 import { ConsentSection, ConventionSection, DocsSection, FundsSection, IdentitySection, PersonsSection, SubmitSection } from "./Sections";
@@ -44,16 +44,9 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
      convention elle-même, son texte et sa signature vivent sur sa page. */
   const conventionBloc = <ConventionSection file={file} signable={signable} enTete={signable} />;
 
-  const steps: [string, boolean][] = [
-    [t("Type de client"), true],
-    [t("Identité"), Boolean(file.identity.name && (file.identity.phone || file.identity.email) && (file.kind !== "physique" || file.identity.idNumber))],
-    [t("Pièces"), file.documents.length > 0],
-    [t("Fonds & profil"), Boolean(file.funds.source && file.profile.objectives)],
-    [t("Consentements"), Boolean(file.consents.dataAt)],
-  ];
-  /* La convention n'est pas une étape du formulaire : elle vient après la
-     décision du desk. Elle n'apparaît au rail qu'une fois qu'elle est à portée. */
-  if (file.status === "approuve" || file.consents.conventionAt) steps.push([t("Convention"), Boolean(file.consents.conventionAt)]);
+  /* Les étapes viennent du domaine : le même compte sert à l'écran du dossier
+     en cours, et deux listes auraient divergé. */
+  const steps: [string, boolean][] = etapesDuDossier(file).map((e) => [t(e.clef), e.fait]);
   /* « Brouillon » est le mot de la base, et le desk a raison de le garder. Au
      client il ne dit rien de vrai : son dossier est en cours, pas à l'état
      d'ébauche ; et « approuvé » ne veut plus dire « compte actif » tant que la

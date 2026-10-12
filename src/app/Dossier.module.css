@@ -1,0 +1,167 @@
+/* L'écran du dossier en cours : trois panneaux, aucun chiffre de portefeuille,
+   et un seul bouton plein, celui du geste qui attend.
+
+   Les tailles sortent de l'échelle typographique (--t-1 à --t-7) et les
+   espacements de l'échelle d'espacement (--s-*) : deux cliquets veillent, et
+   ils ne remontent pas. Les filets d'un pixel se font en bordure et jamais en
+   « gap: 1px », qui n'est pas un pas de l'échelle. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-9);
+}
+
+.tete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.tete h1 {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-weight: 400;
+  font-size: var(--t-7);
+  line-height: 1.15;
+  color: var(--navy-text);
+}
+.tete p {
+  margin: 0;
+  max-width: 46em;
+  font-size: var(--t-5);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.gestes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-7);
+  margin-top: var(--s-3);
+}
+.murmure {
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+
+/* Les étapes, une par ligne : la lecture compte plus que la compacité, et
+   elles tiennent aussi bien sur un téléphone. */
+.etapes {
+  list-style: none;
+  margin: 0;
+  padding: var(--s-7) var(--s-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.etapes li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-7);
+  font-size: var(--t-4);
+  color: var(--ink-3);
+}
+.etapes li.faite {
+  color: var(--ink);
+}
+.marque {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--line-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fill-ink);
+}
+.faite .marque {
+  background: var(--fill);
+  border-color: var(--fill);
+}
+
+.manque {
+  border-top: 1px solid var(--line);
+  padding: var(--s-7) var(--s-8);
+}
+.manque b {
+  display: block;
+  font-size: var(--t-1);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.manque ul {
+  margin: var(--s-5) 0 0;
+  padding-left: var(--s-9);
+  font-size: var(--t-4);
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+/* Ce qui est ouvert : des liens entiers, pas des cartes à puce. Les filets
+   viennent des bordures, l'échelle d'espacement n'ayant pas de pas d'un pixel. */
+.portes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+}
+.porte {
+  background: var(--surface);
+  padding: var(--s-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  text-decoration: none;
+  min-width: 0;
+  border-left: 1px solid var(--line);
+}
+.porte:first-child {
+  border-left: 0;
+}
+.porte:hover {
+  background: var(--surface-2);
+}
+.porte b {
+  font-size: var(--t-5);
+  color: var(--navy-text);
+}
+.porte span {
+  font-size: var(--t-3);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+/* Ce qui s'ouvrira : une liste, jamais des boutons grisés. Un bouton grisé
+   fait croire à une panne ; une phrase dit une condition. */
+.plusTard {
+  margin: 0;
+  padding: var(--s-7) var(--s-8) var(--s-5) var(--s-11);
+  font-size: var(--t-4);
+  line-height: 1.8;
+  color: var(--ink-2);
+}
+.note {
+  margin: 0;
+  padding: 0 var(--s-8) var(--s-8);
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+
+.aide {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+
+@media (max-width: 760px) {
+  .portes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .porte {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .porte:first-child {
+    border-top: 0;
+  }
+}

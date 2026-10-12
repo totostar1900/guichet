@@ -92,5 +92,22 @@ export const peutOPCVM = (s: Session | null | undefined): boolean => !!s && s.ky
 export const peutTitres = (s: Session | null | undefined): boolean => peutOPCVM(s) && (s?.tier ?? 0) >= 2;
 
 export const isDesk = (s: Session | null): boolean => !!s && (s.role === "desk" || s.role === "responsable");
+
+/**
+ * LE COMPTE EST CRÉÉ, LE DOSSIER N'EST PAS PASSÉ : c'est un état, et il a
+ * désormais son écran.
+ *
+ * Il existait déjà, sans nom et sans surface. Quelqu'un qui venait de prouver
+ * son adresse arrivait sur la console du client : un portefeuille à zéro, des
+ * flux vides, un relevé de rien, et une pastille grise « Dossier à compléter »
+ * au milieu. L'écran lui montrait donc ce qu'il n'avait pas, ce qui est la
+ * pire des deux fautes possibles ici. L'autre serait de ne rien lui montrer
+ * du tout.
+ *
+ * LA RÈGLE : ce qu'il n'a pas encore, il ne le voit pas ; ce qui lui manque,
+ * il le lit en une ligne. Le desk est hors de cette règle, son dossier n'étant
+ * pas un dossier de client.
+ */
+export const surSonDossier = (s: Session | null | undefined): boolean => !!s && !isDesk(s) && !peutOPCVM(s);
 export const isResponsable = (s: Session | null): boolean => !!s && s.role === "responsable";
 export const ROLE_LABEL: Record<Role, string> = { client: "Client", desk: "Opérateur", responsable: "Responsable du desk" };

@@ -93,6 +93,29 @@ export function missingForSubmission(f: ClientFile): string[] {
 }
 
 /**
+ * LES ÉTAPES DU DOSSIER, ET CELLES QUI SONT FAITES.
+ *
+ * Deux écrans les affichent : le formulaire d'ouverture, et l'écran du
+ * dossier en cours. Les écrire deux fois aurait suffi à les faire diverger au
+ * premier changement, et c'est toujours l'écran qu'on ouvre le moins qui se
+ * serait périmé. Les libellés sont des clefs de traduction, pas du texte : la
+ * page traduit, le domaine compte.
+ */
+export function etapesDuDossier(f: ClientFile): { clef: string; fait: boolean }[] {
+  const etapes = [
+    { clef: "Type de client", fait: true },
+    { clef: "Identité", fait: Boolean(f.identity.name && (f.identity.phone || f.identity.email) && (f.kind !== "physique" || f.identity.idNumber)) },
+    { clef: "Pièces", fait: f.documents.length > 0 },
+    { clef: "Fonds & profil", fait: Boolean(f.funds.source && f.profile.objectives) },
+    { clef: "Consentements", fait: Boolean(f.consents.dataAt) },
+  ];
+  /* La convention n'est pas une étape du formulaire : elle vient après la
+     décision du desk. Elle n'apparaît qu'une fois qu'elle est à portée. */
+  if (f.status === "approuve" || f.consents.conventionAt) etapes.push({ clef: "Convention", fait: Boolean(f.consents.conventionAt) });
+  return etapes;
+}
+
+/**
  * QUAND LA CONVENTION SE SIGNE.
  *
  * Le code d'acceptation était exigé AVANT l'envoi du dossier : on faisait donc

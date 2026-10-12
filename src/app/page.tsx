@@ -1,6 +1,8 @@
 import { Accueil } from "./Accueil";
 import { Console } from "./Console";
+import { Dossier } from "./Dossier";
 import { getSession } from "@/lib/auth";
+import { surSonDossier } from "@/lib/auth/types";
 import { Vu } from "@/components/Vu";
 
 export const dynamic = "force-dynamic";
@@ -16,10 +18,17 @@ export const dynamic = "force-dynamic";
  *
  * Déconnecté : la présentation, qui mène par les services et par le marché.
  * Connecté : la console, qui mène par ce qui attend une décision.
+ *
+ * ET ENTRE LES DEUX, L'ÉTAT QU'ON AVAIT OUBLIÉ. Un compte créé dont le dossier
+ * n'est pas passé n'est ni un visiteur ni un client. Il recevait pourtant la
+ * console : un portefeuille à zéro, un relevé de rien, et une pastille grise
+ * au milieu. Il a maintenant son écran, qui dit où en est son dossier, ce qui
+ * est déjà ouvert, et ce qui ne l'est pas encore.
  */
 export default async function RacinePage() {
   const session = await getSession();
   if (!session) return <Accueil />;
+  if (surSonDossier(session)) return <Dossier session={session} />;
   return (
     <>
       {/* Le passage du client, une ligne par jour : c'est ce qui sépare un
