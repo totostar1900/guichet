@@ -53,7 +53,7 @@ import styles from "./Accueil.module.css";
  */
 
 /** Ce que la bande peut porter avant de devenir une liste qu'on ne lit plus. */
-const MAX_BANDE = 18;
+const MAX_BANDE = 12;
 
 export async function Accueil() {
   const t = await getT();
@@ -157,38 +157,25 @@ export async function Accueil() {
           <p className={styles.chapeau}>
             {t("Prêtez aux États et aux institutions de la zone, prenez part au capital des sociétés cotées, placez dans des fonds agréés par la COSUMAF. Votre compte se crée en quelques instants, et un conseiller reste joignable.")}
           </p>
+          {/* UN SEUL GESTE PROPOSÉ, ET RIEN À CÔTÉ.
+              L'ouverture portait un second bouton, « Visite guidée », et une
+              mention « gratuit, sans document, sans engagement ». Trois
+              propositions dans le même souffle en font zéro : le lecteur
+              arbitre au lieu d'agir, et la mention répondait d'avance à une
+              objection qu'il n'avait pas encore formée. Les trois temps, plus
+              bas, disent déjà qu'il n'y a ni document ni engagement, et ils le
+              disent au moment où la question se pose.
+
+              LA FIGURE FINANCIÈRE EST RETIRÉE AVEC EUX. Elle disait « ceci est
+              de la finance » à une page qui le dit déjà en toutes lettres, et
+              un dessin sans échelle à côté d'un titre reste un ornement. La
+              page tient sur sa phrase. */}
           <div className={styles.gestesBoutons}>
             <Link className={styles.principal} href="/connexion?creer=1">
               {t("Créer mon compte")}
             </Link>
-            <Link className={styles.second} href="/info/parcours">
-              {t("Visite guidée · 30 secondes")}
-            </Link>
-            <span className={styles.murmure}>{t("Gratuit, sans document, sans engagement.")}</span>
           </div>
         </div>
-
-        {/* LA FIGURE FINANCIÈRE, ET CE QU'ELLE NE DIT PAS.
-            Elle ne porte aucune échelle, aucun instrument, aucune date : ce
-            n'est pas une cotation, c'est le dessin d'un marché, et la page
-            serait fautive de le faire passer pour autre chose. Elle ne monte
-            pas non plus jusqu'au bout : une courbe qui finit à son sommet
-            promet un rendement, et la maison ne promet pas. La légende achève
-            de le dire. */}
-        <figure className={styles.figure}>
-          <svg viewBox="0 0 560 280" role="img" aria-label={t("Le dessin d'un marché : une courbe qui monte et qui descend, sans échelle ni valeur")} aria-hidden="false">
-            <line x1="20" y1="80" x2="540" y2="80" className={styles.grille} />
-            <line x1="20" y1="150" x2="540" y2="150" className={styles.grille} />
-            <line x1="20" y1="220" x2="540" y2="220" className={styles.grille} />
-            <path
-              className={styles.aire}
-              d="M20 196 L55 178 L90 202 L125 156 L160 174 L195 126 L230 148 L265 104 L300 132 L335 86 L370 112 L405 70 L440 98 L475 56 L510 44 L540 78 L540 240 L20 240 Z"
-            />
-            <path className={styles.trace} d="M20 196 L55 178 L90 202 L125 156 L160 174 L195 126 L230 148 L265 104 L300 132 L335 86 L370 112 L405 70 L440 98 L475 56 L510 44 L540 78" />
-            <circle className={styles.pointe} cx="540" cy="78" r="5" />
-          </svg>
-          <figcaption>{t("Les marchés montent et ils descendent. C'est pour cela qu'un conseiller vous explique avant que vous ne décidiez.")}</figcaption>
-        </figure>
       </section>
 
       {lignes.length > 0 && <BandeInstruments lignes={lignes} />}
@@ -256,33 +243,15 @@ export async function Accueil() {
             <b>{t("Entrez par où vous voulez.")}</b>
             <span>{t("Par e-mail, par WhatsApp ou avec Google : c'est le même compte, et personne n'a de mot de passe à retenir.")}</span>
           </div>
-          <div className={styles.portesListe}>
-            <span>
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-                <rect x="3" y="5" width="18" height="14" />
-                <path d="M3 7l9 6 9-6" />
-              </svg>
-              {t("E-mail")}
-            </span>
-            <span>
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--good)" strokeWidth="1.6" aria-hidden="true">
-                <path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1L4 20z" />
-              </svg>
-              {t("WhatsApp")}
-            </span>
-            <span>
-              <svg viewBox="0 0 48 48" width="15" height="15" aria-hidden="true">
-                <path fill="#4285F4" d="M45 24c0-1.6-.1-2.7-.4-4H24v7.5h12c-.2 2-1.5 5-4.4 7l6.7 5.2C42.2 36.2 45 30.7 45 24z" />
-                <path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.9 1.3-4.4 2.2-7.6 2.2-5.8 0-10.7-3.9-12.5-9.2l-7.1 5.5C8.1 41 15.4 46 24 46z" />
-                <path fill="#FBBC05" d="M11.5 28.3A13.4 13.4 0 0 1 10.8 24c0-1.5.3-3 .7-4.3l-7.1-5.6A22 22 0 0 0 2 24c0 3.6.9 6.9 2.4 9.9z" />
-                <path fill="#EA4335" d="M24 10.3c4.1 0 6.9 1.8 8.5 3.3l6.2-6C34.9 4.1 29.9 2 24 2 15.4 2 8.1 7 4.4 14.1l7.1 5.6C13.3 14.2 18.2 10.3 24 10.3z" />
-              </svg>
-              {t("Google")}
-            </span>
-            <Link className={styles.principal} href="/connexion?creer=1">
-              {t("Créer mon compte")}
-            </Link>
-          </div>
+          {/* LES TROIS PASTILLES SONT PARTIES. « E-mail · WhatsApp · Google »
+              ressemblaient à trois boutons et n'en étaient pas : elles ne
+              menaient nulle part, et un lecteur qui clique sans effet conclut
+              que le site est cassé. La phrase juste au-dessus dit déjà les
+              trois canaux, mieux qu'elles ne le faisaient, et le seul geste
+              qui compte reste seul. */}
+          <Link className={styles.principal} href="/connexion?creer=1">
+            {t("Créer mon compte")}
+          </Link>
         </div>
       </section>
 

@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import { authMode, getSession } from "@/lib/auth";
 import { COMPANY } from "@/lib/config";
 import { EmailOtpForm } from "./EmailOtpForm";
@@ -17,7 +17,13 @@ export async function generateMetadata() {
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; erreur?: string; creer?: string }> }) {
   const { next = "/", erreur, creer } = await searchParams;
-  if (await getSession()) redirect(next.startsWith("/") ? next : "/");
+  /* LA REDIRECTION REMPLACE L ENTRÉE D HISTORIQUE, ELLE NE S Y AJOUTE PAS.
+     Un visiteur déjà connecté qui passait par /connexion était renvoyé plus
+     loin, et le bouton « page précédente » le ramenait sur /connexion, qui le
+     renvoyait aussitôt : la flèche du navigateur paraissait cassée alors
+     qu elle marchait trop bien. Remplacer l entrée retire la page du chemin
+     de retour, qui est sa place : une redirection n est pas une étape. */
+  if (await getSession()) redirect(next.startsWith("/") ? next : "/", RedirectType.replace);
   const mode = authMode();
   const t = await getT();
   /**

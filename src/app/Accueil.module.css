@@ -30,7 +30,7 @@
   padding-right: 0;
 }
 
-/* ---------- Ouverture : le dire, et la figure ---------- */
+/* ---------- Ouverture : le dire, et rien d autre ---------- */
 .ouverture {
   display: flex;
   flex-wrap: wrap;
@@ -43,6 +43,9 @@
 .dire {
   flex: 999 1 440px;
   min-width: 0;
+  /* UNE SEULE COLONNE DEPUIS LE RETRAIT DE LA FIGURE : sans borne, le titre
+     courait sur toute la largeur d un grand écran et devenait illisible. */
+  max-width: 22em;
   display: flex;
   flex-direction: column;
   gap: var(--s-9);
@@ -81,50 +84,7 @@
   align-items: center;
   gap: var(--s-7);
 }
-.murmure {
-  font-size: var(--t-3);
-  color: var(--ink-3);
-}
 
-/* La figure financière : sans échelle, sans instrument, sans date. */
-.figure {
-  flex: 1 1 380px;
-  min-width: 0;
-  margin: 0;
-  border: 1px solid var(--line);
-  background: var(--surface-2);
-  padding: var(--s-9);
-}
-.figure svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-.figure figcaption {
-  margin-top: var(--s-7);
-  font-size: var(--t-3);
-  line-height: 1.55;
-  color: var(--ink-2);
-}
-.grille {
-  stroke: var(--line);
-  stroke-width: 1;
-}
-.aire {
-  fill: var(--gold-soft);
-}
-.trace {
-  fill: none;
-  stroke: var(--navy);
-  stroke-width: 2.4;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-.pointe {
-  fill: var(--gold);
-  stroke: var(--surface);
-  stroke-width: 2;
-}
 
 /* ---------- Les trois gestes ---------- */
 .troisGestes {
@@ -341,31 +301,15 @@
   font-size: var(--t-3);
   color: var(--ink-2);
 }
-.portesListe {
-  display: flex;
-  align-items: center;
-  gap: var(--s-6);
-  flex-wrap: wrap;
-}
-.portesListe > span {
-  display: flex;
-  align-items: center;
-  gap: var(--s-5);
-  border: 1px solid var(--line-2);
-  padding: var(--s-6) var(--s-7);
-  font-size: var(--t-3);
-  font-weight: 600;
-  color: var(--ink-2);
-}
-.portesListe svg {
-  flex: none;
-}
 
 /* ---------- L'accompagnement : la seule surface pleine ---------- */
 .accompagnement {
   background: var(--navy);
   color: var(--on-navy);
-  padding: var(--respiration) var(--s-11);
+  /* LE CONTENU TOUCHAIT LE BORD. Une surface pleine demande plus de marge
+     qu une section sur fond clair, parce que le bord y est une arête et non
+     une absence : à marge égale, elle paraît serrée. */
+  padding: var(--respiration);
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-11);
@@ -460,7 +404,7 @@
 .final {
   background: var(--surface-2);
   border-top: 1px solid var(--gold-line);
-  padding: var(--respiration) var(--s-11);
+  padding: var(--respiration);
   display: flex;
   flex-wrap: wrap;
   align-items: center;

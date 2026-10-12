@@ -19,68 +19,64 @@ export type LigneVitrine = {
 };
 
 /**
- * La bande d'instruments de l'accueil public.
+ * LA BANDE D'INSTRUMENTS DE L'ACCUEIL PUBLIC.
  *
  * ELLE VEND EXACTEMENT CE QU'ELLE RETIENT. Les lignes existent vraiment et
- * défilent à plat, sans carte ni ombre ; la colonne des prix dit « après
- * connexion » et ne porte qu'un signe. Un visiteur voit donc qu'il y a un
- * marché, et que le chiffre est de l'autre côté de la porte.
+ * défilent ; aucun prix ne paraît, et la phrase de tête dit où ils sont. Un
+ * visiteur voit donc qu'il y a un marché, et que le chiffre est de l'autre
+ * côté de la porte.
  *
- * Trois contraintes tiennent l'animation :
+ * ELLE DÉFILE À L'HORIZONTALE, ET À PLAT SUR LA PAGE. La version d'avant
+ * faisait monter sept lignes dans une fenêtre de trois cent vingt pixels,
+ * masquée en haut et en bas : un CADRE posé sur la page, et quatre colonnes
+ * étirées sur toute la largeur d'un grand écran, l'émetteur séparé de sa
+ * nature par un désert. Un ruban horizontal n'a ni cadre ni colonnes : il
+ * traverse, et chaque ligne reste d'un seul tenant sous l'œil.
+ *
+ * TROIS CONTRAINTES TIENNENT L'ANIMATION, et elles n'ont pas changé.
  *
  *   ELLE NE COÛTE RIEN. Une seule transformation CSS sur une liste doublée,
  *   aucun script par image. Le téléphone a déjà été ralenti une fois par des
  *   effets qui semblaient gratuits.
  *
  *   ELLE S'ARRÊTE. Au survol, et pour qui a demandé moins de mouvement dans
- *   son système.
+ *   son système : la bande est alors simplement immobile, et lisible.
  *
  *   ELLE NE PORTE AUCUNE INFORMATION SEULE. Ce qui défile est décoratif au
- *   sens strict : rien ici n'est nécessaire pour comprendre la page, et la
- *   liste entière reste lisible au clavier comme au lecteur d'écran, arrêtée.
+ *   sens strict : rien ici n'est nécessaire pour comprendre la page.
  */
 export async function BandeInstruments({ lignes }: { lignes: LigneVitrine[] }) {
   const t = await getT();
-  // Doublée, pour que la translation de la moitié de la hauteur reboucle sans saut.
-  const boucle = [...lignes, ...lignes];
+  /* Doublée, pour que la translation de la moitié de la LARGEUR reboucle sans
+     saut visible. La seconde moitié est cachée aux lecteurs d'écran : elle ne
+     dit rien de plus. */
   const pastille: Record<LigneVitrine["famille"], string> = { tresor: styles.tresor, cote: styles.cote, fonds: styles.fonds };
 
+  const suite = (clone: boolean) =>
+    lignes.map((l, i) => (
+      <span className={styles.item} key={`${clone ? "b" : "a"}-${l.emetteur}-${l.nature}-${l.duree}-${i}`}>
+        <i className={pastille[l.famille]} />
+        <b>{l.emetteur}</b>
+        <em>
+          {t(l.nature)}
+          {l.duree ? `, ${t(l.duree)}` : ""}
+        </em>
+        <small>{t(l.marche)}</small>
+      </span>
+    ));
+
   return (
-    <section className={styles.bande}>
+    <section className={styles.bande} aria-label={t("Sur le marché en ce moment")}>
       <div className={styles.tete}>
         <span className={styles.etiquette}>{t("Sur le marché en ce moment")}</span>
         <small>{t("Les prix, les rendements et le calendrier se lisent une fois connecté.")}</small>
       </div>
-      <div className={styles.colonnes}>
-        <span>{t("ÉMETTEUR")}</span>
-        <span>{t("LIGNE")}</span>
-        <span>{t("MARCHÉ")}</span>
-        <span className={styles.verrou}>
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-            <path d="M6 11V8a6 6 0 0 1 12 0v3" />
-            <rect x="4" y="11" width="16" height="9" />
-          </svg>
-          {t("APRÈS CONNEXION")}
-        </span>
-      </div>
-      <div className={styles.fenetre}>
-        <div className={styles.rouleau}>
-          {boucle.map((l, i) => (
-            <div className={styles.ligne} key={`${l.emetteur}-${l.nature}-${l.duree}-${i}`} aria-hidden={i >= lignes.length ? "true" : undefined}>
-              <span className={styles.qui}>
-                <i className={pastille[l.famille]} />
-                <b>{l.emetteur}</b>
-              </span>
-              <span className={styles.quoi}>
-                {t(l.nature)}
-                {l.duree ? `, ${t(l.duree)}` : ""}
-              </span>
-              <span className={styles.ou}>{t(l.marche)}</span>
-              <span className={styles.retenu} aria-label={t("Chiffre réservé aux titulaires d'un compte")}>
-                · · ·
-              </span>
-            </div>
-          ))}
+      <div className={styles.piste}>
+        <div className={styles.ruban}>
+          <span className={styles.serie}>{suite(false)}</span>
+          <span className={styles.serie} aria-hidden="true">
+            {suite(true)}
+          </span>
         </div>
       </div>
     </section>

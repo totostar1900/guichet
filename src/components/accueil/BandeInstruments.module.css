@@ -1,113 +1,114 @@
-/* La bande d'instruments : à plat sur une surface pleine largeur, jamais une
-   carte. Le mouvement tient en une transformation, et il s'arrête quand on
-   le regarde ou quand le système demande moins de mouvement. */
+/* La bande d'instruments : un ruban horizontal qui traverse la page, à plat,
+   sans cadre et sans colonnes.
+ *
+ * CE QU'ELLE ÉTAIT, ET POURQUOI ELLE A CHANGÉ le 12 octobre 2026. Sept lignes
+ * montaient dans une fenêtre de trois cent vingt pixels, masquée en haut et en
+ * bas : cela faisait un CADRE posé sur la page. Et ses quatre colonnes
+ * s'étiraient sur toute la largeur d'un grand écran, l'émetteur séparé de sa
+ * nature par un désert que l'œil ne franchit pas. Un ruban n'a ni l'un ni
+ * l'autre : il traverse, et chaque ligne reste d'un seul tenant.
+ *
+ * Les tailles sortent de l'échelle typographique, les espacements de l'échelle
+ * d'espacement : deux cliquets veillent, et ils ne remontent pas. */
+
 .bande {
   background: var(--surface);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  padding: var(--s-9) 0 var(--s-10);
+  padding: var(--s-8) 0;
   display: flex;
   flex-direction: column;
-  gap: var(--s-7);
+  gap: var(--s-6);
+  /* Le ruban sort de la gouttière, la tête la garde : c'est ce qui fait
+     « traverser » la bande sans qu'un mot touche le bord. */
+  overflow: hidden;
 }
+
 .tete {
   display: flex;
   align-items: baseline;
-  gap: var(--s-9);
+  gap: var(--s-8);
   flex-wrap: wrap;
 }
 .tete small {
   margin-left: auto;
-  font-size: 0.78rem;
+  font-size: var(--t-2);
   color: var(--ink-3);
 }
 .etiquette {
-  font-size: 0.66rem;
-  font-weight: 600;
+  font-size: var(--t-1);
+  font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--gold-ink);
 }
 
-.colonnes,
-.ligne {
-  display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 220px 170px;
-  column-gap: var(--s-9);
-  align-items: center;
-}
-.colonnes {
-  padding-bottom: var(--s-5);
-  border-bottom: 1px solid var(--navy);
-  font-size: 0.66rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  color: var(--ink-3);
-}
-.verrou {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--s-3);
-  color: var(--ink-3);
-}
-.verrou svg {
-  flex: none;
-}
+/* ---------- Le ruban ---------- */
 
-/* La fenêtre : sept lignes, et un fondu qui mange les bords pour que rien ne
-   paraisse coupé net. */
-.fenetre {
-  height: 322px;
+.piste {
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent);
 }
-.rouleau {
-  animation: monte 60s linear infinite;
+.ruban {
+  display: flex;
+  width: max-content;
+  animation: defile 64s linear infinite;
 }
-/* La liste est doublée : la moitié de la hauteur reboucle sans saut visible. */
-@keyframes monte {
+/* La liste est doublée : la translation de la moitié de la largeur reboucle
+   sans saut visible. */
+@keyframes defile {
   from {
     transform: translate3d(0, 0, 0);
   }
   to {
-    transform: translate3d(0, -50%, 0);
+    transform: translate3d(-50%, 0, 0);
   }
 }
-.bande:hover .rouleau {
+.bande:hover .ruban {
   animation-play-state: paused;
 }
 @media (prefers-reduced-motion: reduce) {
-  .rouleau {
+  .ruban {
     animation: none;
   }
 }
-
-.ligne {
-  height: 46px;
-  border-bottom: 1px solid var(--line);
-}
-.qui {
+.serie {
   display: flex;
-  align-items: center;
-  gap: var(--s-5);
-  min-width: 0;
 }
-.qui b {
-  font-size: 0.83rem;
-  font-weight: 600;
+
+.item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-6);
+  padding: 0 var(--s-10);
+  border-right: 1px solid var(--line);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-.qui i {
-  width: 5px;
-  height: 5px;
+.item b {
+  font-size: var(--t-4);
+  font-weight: 600;
+  color: var(--navy-text);
+}
+.item em {
+  font-style: normal;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.item small {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* La pastille de famille : trois couleurs, et elles ne portent jamais
+   l'information seules, le marché étant écrit en toutes lettres à côté. */
+.item i {
+  width: 6px;
+  height: 6px;
   flex: none;
-  display: inline-block;
+  align-self: center;
 }
-/* Trois familles, distinguées par la clarté autant que par la teinte. */
 .tresor {
   background: var(--navy);
 }
@@ -117,55 +118,13 @@
 .fonds {
   background: var(--good);
 }
-.quoi {
-  font-size: 0.83rem;
-  color: var(--ink-2);
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ou {
-  font-size: 0.83rem;
-  color: var(--ink-3);
-}
-.retenu {
-  text-align: right;
-  font-size: 0.95rem;
-  letter-spacing: 0.22em;
-  color: var(--ink-3);
-}
 
-@media (max-width: 900px) {
-  .colonnes {
-    display: none;
-  }
-  .ligne {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: "qui prix" "quoi prix";
-    height: 58px;
-    row-gap: 2px;
-    align-content: center;
-  }
-  .qui {
-    grid-area: qui;
-  }
-  .quoi {
-    grid-area: quoi;
-    font-size: 0.76rem;
-    color: var(--ink-3);
-  }
-  .ou {
-    display: none;
-  }
-  .retenu {
-    grid-area: prix;
-  }
-  .fenetre {
-    height: 290px;
-  }
+@media (max-width: 760px) {
   .tete small {
     margin-left: 0;
     flex-basis: 100%;
+  }
+  .item {
+    padding: 0 var(--s-8);
   }
 }
