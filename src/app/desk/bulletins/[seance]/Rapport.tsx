@@ -4,6 +4,7 @@ import { repo } from "@/lib/data";
 import { readSource } from "@/lib/intake/storage";
 import { bocUrl, bondQuote, equityQuote, fetchBoc, fundNav, pdfText, validate } from "@/lib/market/boc";
 import { parseBoc } from "@/lib/market/boc-parse";
+import { completerObligations } from "@/lib/market/boc-geometrie";
 import { classer, codes as codesDe, famille, remarques } from "@/lib/market/remarques";
 import { comparer, juger, verdict, type Ecart } from "@/lib/market/comparer";
 import { fmtDateTime } from "@/lib/format";
@@ -88,7 +89,19 @@ export async function Rapport({ seance }: { seance: string }) {
   let frais: { actions: number; obligations: number; opcvm: number; lignesOpcvm: number; indice?: number; anomalies: string[]; notes: ReturnType<typeof parseBoc>["notes"] } | undefined;
   if (bytes) {
     try {
-      const parsed = parseBoc(await pdfText(bytes));
+      /* LE RAPPORT DOIT PASSER LE PIPELINE ENTIER, et il ne le faisait pas.
+         Il lisait le texte aplati seul, sans les nominaux de référence et
+         sans la complétion géométrique, alors que l'ingestion appelle les
+         deux. Il promettait donc un essai à blanc et en rendait un autre :
+         sur les séances de septembre et octobre 2023, il affichait deux
+         obligations perdues que le pipeline réel sait lire.
+
+         pdfjs PREND LA PROPRIÉTÉ DU TAMPON ET LE DÉTACHE, donc chaque lecture
+         reçoit sa copie. Le piège a déjà coûté un balayage rendu à zéro
+         ligne, en silence. */
+      const refs = await r.nominauxDeReference(seance).catch(() => undefined);
+      const parsed = parseBoc(await pdfText(Uint8Array.from(bytes)), refs);
+      await completerObligations(parsed, Uint8Array.from(bytes), refs);
       const quotes = [...parsed.equities.map((e) => equityQuote(e, parsed)), ...parsed.bonds.map((o) => bondQuote(o, parsed))];
       const navs = parsed.funds.map((f) => fundNav(f, parsed));
       const avant = bulletins.filter((x) => x.sessionDate < seance).sort((x, y) => y.sessionDate.localeCompare(x.sessionDate))[0];
@@ -140,6 +153,8 @@ export async function Rapport({ seance }: { seance: string }) {
   const durables = ecart?.partis.filter((x) => !x.retour) ?? [];
 
   const enBase = remarques(b);
+  /* Préparé plus bas, une fois les jugements lus : ce qui appelle le desk et
+     ce qui ne l'appelle plus. */
   /* LES NOTES DE LA LECTURE ENREGISTRÉE D'ABORD, celles de l'essai à blanc
      ensuite. Les premières sont ce que la base garde depuis le 11 octobre
      2026 ; les secondes n'existent que le temps d'une ouverture de page, et
@@ -154,10 +169,56 @@ export async function Rapport({ seance }: { seance: string }) {
      périmée coûte deux fois, en travail et en confiance. */
   const fraiches = frais ? new Set([...frais.anomalies, ...frais.notes.map((n) => n.message)]) : undefined;
   const perimee = (texte: string) => fraiches != null && !fraiches.has(texte);
-  const combienPerimees = [...(b.anomalies ?? []), ...(b.warnings ?? [])].filter(perimee).length;
+  /* NE REPORTER QUE CE QUI MÉRITE L'ATTENTION DU DESK.
+     Une remarque barrée ne sert plus à rien : si le lecteur ne la dit plus,
+     ou si le desk a déjà tranché par un motif qui FERME, elle n'attend rien
+     de personne et elle occupe la place d'une question vivante. Elle ne
+     disparaît pas pour autant : elle se range, et le nombre rangé se dit,
+     parce que taire est la famille de défauts la plus coûteuse qu'on ait
+     mesurée ici.
+
+     UNE INDICATION AU LECTEUR NE RANGE PAS LA REMARQUE, et c'est voulu :
+     « il est en page 3 » aide le lecteur à mieux faire au prochain passage,
+     ça ne rend pas la ligne lue. Seuls les motifs qui ferment rangent. */
+  const annotees = enBase.map((x) => {
+    const note = notes.find((n) => n.message === x.texte);
+    const vu = jugements.find((j) => jugementVivant(j) && j.portee === "seance" && j.seance === seance && j.cible === x.texte) ?? jugements.find((j) => couvre(j, seance, x.texte, classer));
+    const fermee = jugements.some((j) => couvre(j, seance, x.texte, classer));
+    return { x, note, vu, fermee, vieille: perimee(x.texte) };
+  });
+  const vivantes = annotees.filter((a) => !a.vieille && !a.fermee);
+  const rangees = annotees.filter((a) => a.vieille || a.fermee);
   const statutFrais = frais ? (frais.anomalies.length || frais.notes.length ? "partiel" : "ok") : undefined;
   /* Le seul chiffre qui décide : le lecteur d'aujourd'hui ferait-il mieux ? */
   const gagnerait = frais ? frais.actions > (b.counts?.equities ?? 0) || frais.obligations > (b.counts?.bonds ?? 0) || frais.opcvm > (b.counts?.funds ?? 0) : false;
+
+  /* UNE SEULE FAÇON DE DESSINER UNE REMARQUE, pour les vivantes comme pour
+     les rangées : deux copies auraient divergé au premier changement, et
+     c'est toujours celle qu'on ouvre le moins qui se serait périmée. */
+  const remarqueVue = ({ x, note, vu, vieille }: (typeof annotees)[number], i: number) => {
+    const f = famille(x.code);
+    return (
+      <div key={i} className={`${styles.rem} ${x.genre === "anomalie" ? styles.remA : styles.remW} ${vu || vieille ? styles.remVu : ""}`}>
+        <span className={`${styles.code} ${x.genre === "anomalie" ? styles.codeA : styles.codeW}`}>{x.code}</span>
+        <div>
+          <small>
+            {f ? t(f.libelle) : t("famille inconnue")} · {t(x.genre)}
+            {note?.page != null ? ` · ${t("page {n} du document", { n: note.page })}` : ""}
+          </small>
+          <p>{x.texte}</p>
+          {f && <small className={styles.conseil}>{t(f.quoiFaire)}</small>}
+          {/* ON NE DEMANDE RIEN SUR UNE REMARQUE PÉRIMÉE : le lecteur ne la
+              porte plus, elle ne quittera la base qu'à la prochaine écriture
+              réussie, et y répondre serait répondre à un fantôme. */}
+          {vieille ? (
+            <small className={styles.conseil}>{t("Le lecteur d'aujourd'hui ne dit plus cela : la base garde la phrase de sa première lecture.")}</small>
+          ) : (
+            <Juger seance={seance} code={x.code} texte={x.texte} jugement={vu && !vu.retireLe ? { id: vu.id, motif: vu.motif, portee: vu.portee, page: vu.page, note: vu.note, at: vu.at } : undefined} bornes={DEPUIS_QUE_LA_BOURSE_PUBLIE[x.code] ? { jusquau: DEPUIS_QUE_LA_BOURSE_PUBLIE[x.code] } : undefined} pageProposee={note?.page} />
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const ligne = (nom: string, base: number, neuf?: number) => (
     <div className={styles.chiffre}>
@@ -224,47 +285,32 @@ export async function Rapport({ seance }: { seance: string }) {
 
       <section className="panel">
         <div className="panel-h">
-          <h2>{t("{n} remarques, telles que la base les garde", { n: enBase.length })}</h2>
-          {combienPerimees > 0 && <span className="muted">{t("{n} que le lecteur d'aujourd'hui ne dit plus", { n: combienPerimees })}</span>}
+          <h2>{vivantes.length === 0 ? t("Rien n'attend le desk sur cette séance") : t("{n} remarques qui attendent le desk", { n: vivantes.length })}</h2>
+          <span className="muted">{t("{n} en base au total", { n: enBase.length })}</span>
         </div>
-        {enBase.length === 0 ? (
-          <p className={styles.p}>{t("Aucune : la séance est entrée entière.")}</p>
+        {vivantes.length === 0 ? (
+          <p className={styles.p}>
+            {enBase.length === 0
+              ? t("La séance est entrée entière.")
+              : rangees.length === enBase.length
+                ? t("Les {n} remarques de la base sont rangées : tranchées par le desk, ou plus dites par le lecteur d'aujourd'hui.", { n: enBase.length })
+                : t("Aucune remarque vivante.")}
+          </p>
         ) : (
-          <div className={styles.remarques}>
-            {enBase.map((x, i) => {
-              const f = famille(x.code);
-              /* La note porte la page : « il est en page 3 » ne se dit pas
-                 sans elle, et c'est elle qui fait d'une plainte une question. */
-              const note = notes.find((n) => n.message === x.texte);
-              /* Un jugement qui ferme couvre la remarque ; une indication au
-                 lecteur ne la couvre pas, et c'est voulu. On cherche donc le
-                 geste par la cible, pas par la couverture. */
-              const vu = jugements.find((j) => jugementVivant(j) && j.portee === "seance" && j.seance === seance && j.cible === x.texte) ?? jugements.find((j) => couvre(j, seance, x.texte, classer));
-              const vieille = perimee(x.texte);
-              return (
-                <div key={i} className={`${styles.rem} ${x.genre === "anomalie" ? styles.remA : styles.remW} ${vu || vieille ? styles.remVu : ""}`}>
-                  <span className={`${styles.code} ${x.genre === "anomalie" ? styles.codeA : styles.codeW}`}>{x.code}</span>
-                  <div>
-                    <small>
-                      {f ? t(f.libelle) : t("famille inconnue")} · {t(x.genre)}
-                      {note?.page != null ? ` · ${t("page {n} du document", { n: note.page })}` : ""}
-                    </small>
-                    <p className={vieille ? styles.perimee : undefined}>{x.texte}</p>
-                    {f && <small className={styles.conseil}>{t(f.quoiFaire)}</small>}
-                    {/* ON NE DEMANDE RIEN SUR UNE REMARQUE PÉRIMÉE : le lecteur
-                        ne la porte plus, elle ne quittera la base qu'à la
-                        prochaine écriture réussie, et y répondre serait
-                        répondre à un fantôme. */}
-                    {vieille ? (
-                      <small className={styles.conseil}>{t("Le lecteur d'aujourd'hui ne dit plus cela : la base garde la phrase de sa première lecture.")}</small>
-                    ) : (
-                      <Juger seance={seance} code={x.code} texte={x.texte} jugement={vu && !vu.retireLe ? { id: vu.id, motif: vu.motif, portee: vu.portee, page: vu.page, note: vu.note, at: vu.at } : undefined} bornes={DEPUIS_QUE_LA_BOURSE_PUBLIE[x.code] ? { jusquau: DEPUIS_QUE_LA_BOURSE_PUBLIE[x.code] } : undefined} pageProposee={note?.page} />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <div className={styles.remarques}>{vivantes.map(remarqueVue)}</div>
+        )}
+
+        {/* CE QUI NE DEMANDE PLUS RIEN SE RANGE, ET SE COMPTE. Le replier
+            libère la place des questions vivantes ; le compter évite la
+            seconde faute, qui serait de laisser croire que la base est
+            vierge. */}
+        {rangees.length > 0 && (
+          <details className={styles.rangees}>
+            <summary>
+              {t("{n} rangées", { n: rangees.length })} · {t("{n} tranchées par le desk", { n: rangees.filter((a) => a.fermee).length })} · {t("{n} que le lecteur d'aujourd'hui ne dit plus", { n: rangees.filter((a) => a.vieille && !a.fermee).length })}
+            </summary>
+            <div className={styles.remarques}>{rangees.map(remarqueVue)}</div>
+          </details>
         )}
       </section>
 

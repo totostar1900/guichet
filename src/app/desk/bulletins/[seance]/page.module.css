@@ -294,10 +294,18 @@
   padding: 0 6px;
 }
 
-/* Une remarque que le lecteur ne porte plus : elle reste lisible, parce
-   qu'elle est encore en base, et elle cesse d'appeler. */
-.perimee {
-  text-decoration: line-through;
-  text-decoration-thickness: 1px;
-  opacity: 0.75;
+/* CE QUI NE DEMANDE PLUS RIEN : replié, compté, et rouvrable. Rayer une
+   remarque résolue la laissait occuper la place d'une question vivante. */
+.rangees {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.rangees summary {
+  cursor: pointer;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+.rangees > .remarques {
+  margin-top: 12px;
 }
