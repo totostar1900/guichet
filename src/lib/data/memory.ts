@@ -1083,6 +1083,16 @@ export const memoryRepository: Repository = {
   async listDevices(userId) {
     return structuredClone(store().devices.filter((d) => d.userId === userId));
   },
+  async credentialsPartages() {
+    const par = new Map<string, Set<string>>();
+    for (const d of store().devices) {
+      if (!d.credentialId) continue;
+      const vu = par.get(d.credentialId) ?? new Set<string>();
+      vu.add(d.userId);
+      par.set(d.credentialId, vu);
+    }
+    return [...par].filter(([, u]) => u.size > 1).map(([credentialId, u]) => ({ credentialId, userIds: [...u] }));
+  },
   async findDevice(by) {
     const d = store().devices.find((x) => (by.id && x.id === by.id) || (by.credentialId && x.credentialId === by.credentialId));
     return d ? structuredClone(d) : undefined;

@@ -1993,6 +1993,18 @@ export const supabaseRepository: Repository = {
     if (error) fail("listDevices", error);
     return (data as DeviceRow[]).map(toDevice);
   },
+  async credentialsPartages() {
+    /* Deux colonnes seulement : ni empreinte de code, ni clef publique. */
+    const { data, error } = await db().from("trusted_devices").select("credential_id,user_id").not("credential_id", "is", null);
+    if (error) return [];
+    const par = new Map<string, Set<string>>();
+    for (const r of (data ?? []) as { credential_id: string; user_id: string }[]) {
+      const vu = par.get(r.credential_id) ?? new Set<string>();
+      vu.add(r.user_id);
+      par.set(r.credential_id, vu);
+    }
+    return [...par].filter(([, u]) => u.size > 1).map(([credentialId, u]) => ({ credentialId, userIds: [...u] }));
+  },
   async findDevice(by) {
     let q = db().from("trusted_devices").select("*");
     q = by.id ? q.eq("id", by.id) : q.eq("credential_id", by.credentialId ?? "");

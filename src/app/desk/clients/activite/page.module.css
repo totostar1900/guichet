@@ -1,0 +1,168 @@
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-7);
+  margin-bottom: var(--s-8);
+}
+
+/* DES FILETS, PAS UN ÉCART D'UN PIXEL. Le fond qui transparaît par un
+   « gap: 1px » est l'idiome voisin, mais un pixel n'est pas un pas de
+   l'échelle : les bordures donnent le même trait sans sortir d'elle. */
+.tuiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  border: 1px solid var(--line);
+  border-width: 1px 0 0 1px;
+  margin-bottom: var(--s-8);
+}
+.tuile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-6) var(--s-7);
+  border: 1px solid var(--line);
+  border-width: 0 1px 1px 0;
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+}
+.tuile:hover {
+  background: var(--surface-2);
+}
+.tuileNom {
+  font-size: var(--t-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+}
+.tuile b {
+  font-size: var(--t-5);
+  font-weight: 600;
+}
+
+/* Le fil à gauche, les quatre sections à droite : à l'étroit, tout s'empile,
+   le fil d'abord parce que c'est lui qu'on vient lire. */
+.deux {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: var(--s-8);
+  align-items: start;
+}
+.colonne {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-8);
+}
+@media (max-width: 1100px) {
+  .deux {
+    grid-template-columns: 1fr;
+  }
+}
+
+.genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--panel-inset);
+  border-bottom: 1px solid var(--line);
+}
+
+.fil {
+  display: flex;
+  flex-direction: column;
+}
+.jour {
+  padding: var(--s-2) var(--panel-inset);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+.ligne {
+  display: grid;
+  grid-template-columns: 3.4rem minmax(0, 1fr) auto;
+  gap: var(--s-3);
+  align-items: baseline;
+  padding: var(--s-3) var(--panel-inset);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-4);
+}
+.heure {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+  font-size: var(--t-3);
+}
+.ligne small {
+  display: block;
+  margin-top: 2px;
+  line-height: 1.5;
+}
+
+.liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.liste > li {
+  padding: var(--s-3) var(--panel-inset);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-4);
+}
+.liste > li:last-child {
+  border-bottom: 0;
+}
+.alerte small {
+  display: block;
+  margin-top: var(--s-1);
+  line-height: 1.5;
+}
+
+/* Les cinq ingrédients : le nom, ce qu'on a mesuré, les points. */
+.parts {
+  margin: 0;
+  padding: 0 var(--panel-inset) var(--s-3);
+}
+.parts > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 3.2rem;
+  gap: var(--s-3);
+  align-items: baseline;
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-4);
+}
+.parts > div:last-child {
+  border-bottom: 0;
+}
+.parts dt,
+.parts dd {
+  margin: 0;
+}
+.parts dd:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.note,
+.rien,
+.plus {
+  margin: 0;
+  padding: var(--s-3) var(--panel-inset);
+  font-size: var(--t-3);
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+.rien {
+  font-size: var(--t-4);
+}
+
+.agir {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--panel-inset) 0;
+}

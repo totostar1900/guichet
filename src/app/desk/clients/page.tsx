@@ -202,9 +202,20 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                     plafondDuCompte={selected.identity.plafondParOrdre}
                   />
                 )}
-                <Link className="btn sm" style={{ marginTop: "var(--s-4)" }} href={`/desk/clients/quantitatif?file=${selected.id}`}>
-                  {t("Ce qu'il a traité avec nous")}
-                </Link>
+                {/* DEUX SECONDES PAGES, ET ELLES NE DISENT PAS LA MÊME CHOSE.
+                    Ce panneau garde le dossier : l'identité, les pièces, les
+                    signataires. La conduite et l'argent ont chacun leur page,
+                    parce qu'une planche qui dessine une page entière se
+                    construit en page entière plutôt que de se greffer ici en
+                    y perdant son dessin. */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--s-2)", marginTop: "var(--s-4)" }}>
+                  <Link className="btn sm" href={`/desk/clients/activite?file=${selected.id}`}>
+                    {t("Tout ce qu'il a fait")}
+                  </Link>
+                  <Link className="btn sm ghost" href={`/desk/clients/quantitatif?file=${selected.id}`}>
+                    {t("Ce qu'il a traité avec nous")}
+                  </Link>
+                </div>
               </div>
               <span className={`${styles.st} ${styles[`st_${selected.status}`]}`}>{t(STATUS_LABEL[selected.status])}</span>
             </div>

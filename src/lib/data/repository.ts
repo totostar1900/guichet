@@ -298,6 +298,16 @@ export interface Repository {
   /** Devices a client trusts for a fast return (passkeys, four-digit codes). */
   listDevices(userId: string): Promise<TrustedDevice[]>;
   findDevice(by: { credentialId?: string; id?: string }): Promise<TrustedDevice | undefined>;
+  /**
+   * Les clefs d'accès qu'au moins DEUX comptes partagent.
+   *
+   * « findDevice » ne rend qu'un appareil : il ne peut pas constater un
+   * partage. Et charger tous les appareils pour le voir sortirait des
+   * empreintes de code et des clefs publiques vers une page du desk, pour
+   * répondre à une question qui n'en a pas besoin. Cette lecture ne rend donc
+   * que des identifiants de clef et des comptes : rien de secret ne bouge.
+   */
+  credentialsPartages(): Promise<{ credentialId: string; userIds: string[] }[]>;
   addDevice(d: Omit<TrustedDevice, "id" | "createdAt" | "failures">): Promise<TrustedDevice>;
   updateDevice(id: string, patch: Partial<Pick<TrustedDevice, "counter" | "failures" | "lastUsedAt" | "name">>): Promise<void>;
   removeDevice(id: string, userId?: string): Promise<void>;
