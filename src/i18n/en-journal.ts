@@ -219,4 +219,10 @@ export const EN_JOURNAL: Record<string, string> = {
   "a suivi une ligne": "followed a line",
   "Vous ne suivez plus une ligne": "You no longer follow a line",
   "ne suit plus une ligne": "no longer follows a line",
+  "Le détail est gardé {n} mois, puis seuls des compteurs restent.": "The detail is kept for {n} months, then only counters remain.",
+  "Votre compte": "Your account",
+  "Recevoir toute mon activité en fichier": "Get all my activity as a file",
+  "Le fichier porte tout ce que cette page montre, depuis l'ouverture de votre compte, dans un format qu'un tableur ouvre.": "The file carries everything this page shows, since your account was opened, in a format a spreadsheet opens.",
+  "Mettre mon compte en sommeil, ou en demander la clôture": "Put my account to sleep, or ask to close it",
+  "Ces deux demandes passent aujourd'hui par votre conseiller, qui vous dira ce qui est gelé, ce qui reste, et ce que la réglementation nous oblige à conserver. Rien n'est effacé sans que vous ayez lu la liste.": "Both requests go through your adviser today, who will tell you what is frozen, what remains, and what the rules oblige us to keep. Nothing is erased before you have read the list.",
 };

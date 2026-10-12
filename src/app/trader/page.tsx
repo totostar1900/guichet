@@ -102,7 +102,7 @@ export default async function TraderPage() {
             <Link href="/info/aide">{t("Les leçons")}</Link>
           </div>
         </section>
-        <ConseillerCard advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: ctx.lignes, derniere }} />
+        <ConseillerCard anchor="conseiller" advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: ctx.lignes, derniere }} />
       </div>
 
 

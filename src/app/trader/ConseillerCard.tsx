@@ -23,7 +23,11 @@ import styles from "./page.module.css";
  * carte le dit sans s'excuser. Voir `domain/conseiller.ts` pour la règle du nom
  * sans numéro.
  */
-export async function ConseillerCard({ advisor, client }: { advisor: StaffMember | undefined; client: { nom: string; compte?: string; lignes: number; derniere?: string } }) {
+/* L'ANCRE PERMET QU'UN AUTRE ÉCRAN POINTE LA CARTE, et pas seulement la page.
+   « Voyez votre conseiller » sans dire où est une impasse, et la page des
+   tarifs porte déjà la trace de cette faute : un texte opposable renvoyait à
+   un document que personne n'avait écrit. */
+export async function ConseillerCard({ anchor, advisor, client }: { anchor?: string; advisor: StaffMember | undefined; client: { nom: string; compte?: string; lignes: number; derniere?: string } }) {
   const t = await getT();
   const c: Conseiller = conseillerDe(advisor);
 
@@ -37,7 +41,7 @@ export async function ConseillerCard({ advisor, client }: { advisor: StaffMember
   const emporte = [client.compte ? t("compte {compte}", { compte: client.compte }) : undefined, client.lignes ? t("{n} lignes au dépositaire", { n: client.lignes }) : undefined, client.derniere ? t("dernière intention {ref}", { ref: client.derniere }) : undefined].filter(Boolean);
 
   return (
-    <section className={styles.conseiller} aria-labelledby="conseiller-nom">
+    <section id={anchor} className={styles.conseiller} aria-labelledby="conseiller-nom">
       <div className={styles.cTete}>
         {c.initiales ? (
           <span className={styles.cAvatar} aria-hidden="true">

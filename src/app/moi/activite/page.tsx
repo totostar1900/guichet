@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { fmtDate, fmtDateTime } from "@/lib/format";
-import { GENRE_LABEL, GESTES, type ActionClient } from "@/lib/domain/journal-client";
+import { MOIS_DE_DETAIL, GENRE_LABEL, GESTES, type ActionClient } from "@/lib/domain/journal-client";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 
@@ -105,6 +105,31 @@ export default async function ActivitePage() {
         <p className="muted">
           {t(
             "Cela sert à tenir votre dossier, à prouver ce que vous avez signé, à repérer un accès qui ne serait pas le vôtre, et à ne pas vous redemander ce que vous avez déjà donné.",
+          )}
+        </p>
+        {/* COMBIEN DE TEMPS, et ce n'est pas un détail : une page qui dit ce
+            qu'elle note sans dire jusqu'à quand ne déclare qu'à moitié. */}
+        <p className="muted">{t("Le détail est gardé {n} mois, puis seuls des compteurs restent.", { n: String(MOIS_DE_DETAIL) })}</p>
+      </div>
+
+      {/* VOTRE COMPTE. Le panneau que la maquette pose à côté, et qui
+          manquait. Des trois liens qu'elle dessine, un seul ne demande
+          aucune décision : reprendre son activité en fichier. Le sommeil et
+          la clôture sont des parcours à définir, pas des boutons à poser :
+          ce qu'ils gèlent, qui les lève, et ce que la réglementation oblige à
+          garder sous scellé. En attendant, le chemin existe et il est dit. */}
+      <div className="panel">
+        <h2>{t("Votre compte")}</h2>
+        <p>
+          <a href="/moi/activite/mon-activite.csv">{t("Recevoir toute mon activité en fichier")}</a>
+        </p>
+        <p className="muted">{t("Le fichier porte tout ce que cette page montre, depuis l'ouverture de votre compte, dans un format qu'un tableur ouvre.")}</p>
+        <p>
+          <Link href="/trader#conseiller">{t("Mettre mon compte en sommeil, ou en demander la clôture")}</Link>
+        </p>
+        <p className="muted">
+          {t(
+            "Ces deux demandes passent aujourd'hui par votre conseiller, qui vous dira ce qui est gelé, ce qui reste, et ce que la réglementation nous oblige à conserver. Rien n'est effacé sans que vous ayez lu la liste.",
           )}
         </p>
       </div>
