@@ -10,6 +10,9 @@ import { COHORTES, COHORTE_LABEL, COHORTE_QUOI, estCohorte } from "@/lib/domain/
 import type { Activite } from "@/lib/domain/activite";
 import { CRAN_LABEL, type Tenue } from "@/lib/domain/tenue";
 import { cadencesDeTous } from "@/lib/desk/cadence-data";
+import { planDEnvoi } from "@/lib/domain/envoi-cohorte";
+import { comptesDemo } from "@/lib/domain/demo";
+import { EcrireCohorte } from "./EcrireCohorte";
 import { Cadence } from "@/components/Cadence";
 import type { Cadence as Chiffres } from "@/lib/domain/cadence";
 import { GESTES } from "@/lib/domain/journal-client";
@@ -72,6 +75,14 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
      plusieurs milliers de lignes par mois, et la vue « dossier » n'en a pas
      besoin. */
   const cadences = vue === "activite" ? await cadencesDeTous().catch(() => new Map()) : new Map();
+  /* Le plan d'envoi de la cohorte choisie : qui recevra, qui ne recevra rien,
+     et par quel canal. Compté avant d'ouvrir la feuille, pour que le bouton
+     porte le nombre juste. */
+  const demo = comptesDemo(contacts);
+  const planDuGroupe = (() => {
+    const p = planDEnvoi(contacts.filter((c) => cohortes.parClient.get(c.id) === sp.cohorte), demo);
+    return { dansLaCohorte: p.dansLaCohorte, joignables: p.joignables.length, sansCanal: p.sansCanal.length, parWhatsapp: p.parWhatsapp, parEmail: p.parEmail };
+  })();
   const withFile = new Set(files.map((f) => f.userId));
   const ordered = new Map<string, number>();
   for (const i of intents) if (i.clientId) ordered.set(i.clientId, (ordered.get(i.clientId) ?? 0) + 1);
@@ -175,12 +186,17 @@ export default async function RepertoirePage({ searchParams }: { searchParams: P
             {t(COHORTE_LABEL[co])} <span className="muted">{cohortes.comptes[co] ?? 0}</span>
           </Link>
         ))}
+        {/* LA FEUILLE S'OUVRE DU BORD DE SON DÉCLENCHEUR : elle ne paraît
+            qu'une cohorte choisie, parce qu'« écrire à un groupe » n'a pas de
+            sens tant que le groupe n'est pas désigné. */}
         {(sp.q || sp.palier || sp.canal || sp.cohorte) && (
           <Link className={styles.clear} href="/desk/repertoire">
             {t("Tout voir")}
           </Link>
         )}
       </form>
+
+      {estCohorte(sp.cohorte) && <EcrireCohorte cohorte={sp.cohorte} plan={planDuGroupe} />}
       {/* Ce que le champ sait faire, écrit une fois sous lui : un mot-clef
           qu'on ignore ne sert à personne, et un mot-clef mal écrit rendrait
           zéro ligne sans dire pourquoi. */}

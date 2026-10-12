@@ -79,3 +79,76 @@
   color: var(--warn);
   font-weight: 500;
 }
+
+/* ── D'une cohorte à un message ────────────────────────────────────────── */
+
+.ecrire {
+  display: grid;
+  gap: var(--s-6);
+  padding: var(--s-7);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  margin-bottom: var(--s-7);
+}
+.ecrireTete h2 {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-5);
+}
+.ecrire label {
+  display: grid;
+  gap: var(--s-2);
+  font-size: var(--t-3);
+}
+.ecrire label > span {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+}
+.ecrire input,
+.ecrire textarea {
+  width: 100%;
+  font-family: inherit;
+}
+.compteurs {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--s-3) var(--s-7);
+}
+.compteurs > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-4);
+  font-size: var(--t-4);
+}
+.compteurs dt,
+.compteurs dd {
+  margin: 0;
+}
+.compteurs dd {
+  font-variant-numeric: tabular-nums;
+}
+/* Les mentions : un filet accentué, parce qu'elles ne se retirent pas. */
+.mentions {
+  margin: 0;
+  padding-left: var(--s-4);
+  border-left: 2px solid var(--gold-line, var(--line-2));
+  font-size: var(--t-3);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.ecrireNote {
+  margin: 0;
+  font-size: var(--t-3);
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+.ecrirePied {
+  display: flex;
+  gap: var(--s-2);
+}
+.erreur {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--crit, var(--ink));
+}
