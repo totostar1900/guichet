@@ -660,7 +660,15 @@ function parseFunds(lines: string[], warnings: Carnet): BocFund[] {
     // prefix: keep only what follows the last date or percentage, and anchor the name on the last FCP.
     const junk = [...prefix.matchAll(/(\d{1,2}\/\d{2,3}\/\d{4}|-?[\d ]+,\d{1,2}%)/g)].pop();
     if (junk && junk.index != null) {
-      warnings.push(`OPCVM : ligne ignorée (format inattendu) avant « ${prefix.slice(junk.index + junk[0].length).trim().slice(0, 40)} »`);
+      /* MONTRER CE QU'ON JETTE, ET NON SEULEMENT CE QUI SUIT.
+         Le message nommait le fonds qui vient APRÈS les débris, c'est-à-dire
+         celui qui a été lu : il fallait ouvrir le PDF et compter les rangées
+         pour deviner lequel manquait. Or les débris portent le nom ET les
+         chiffres de la rangée perdue, et le lecteur les a en main au moment
+         précis où il les coupe. Les montrer change la question posée au desk :
+         « laquelle manque ? » devient « est-ce bien celle-là ? ». */
+      const jete = prefix.slice(0, junk.index + junk[0].length).trim();
+      warnings.push(`OPCVM : ligne ignorée (format inattendu), jeté « ${jete.slice(0, 120)} » avant « ${prefix.slice(junk.index + junk[0].length).trim().slice(0, 40)} »`);
       prefix = prefix.slice(junk.index + junk[0].length).trim();
     }
     const names = [...prefix.matchAll(/\b(FCPE|FCP|SICAV)/g)];
