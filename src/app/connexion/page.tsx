@@ -1,5 +1,7 @@
+import { headers } from "next/headers";
 import { redirect, RedirectType } from "next/navigation";
 import { authMode, getSession } from "@/lib/auth";
+import { isDeskHost } from "@/lib/hosts";
 import { COMPANY } from "@/lib/config";
 import { EmailOtpForm } from "./EmailOtpForm";
 import { devLogin, googleLogin } from "./actions";
@@ -51,6 +53,20 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
    * qu'on promet en échange du geste.
    */
   const creerUnCompte = creer === "1" && !ouvrir;
+  /**
+   * L'ADMINISTRATION N'EST PAS UNE VITRINE.
+   *
+   * Le desk vit sur son adresse, et cette page est la seule chose qu'un
+   * visiteur non connecté y atteint. Elle portait pourtant les mots de
+   * Guichet : « Vous découvrez Guichet ? Trente secondes pour comprendre »,
+   * et, en pied, le guide, l'aide et les risques. Rien de confidentiel, mais
+   * rien d'utile non plus : personne n'ouvre un compte-titres sur la console
+   * de la maison, et chaque phrase de plus est une surface de plus.
+   *
+   * Une page d'administration dit trois choses : chez qui on est, ce qu'il
+   * faut faire pour entrer, et la mention légale. Le reste s'en va.
+   */
+  const administration = isDeskHost((await headers()).get("host"));
 
   return (
     <div className={styles.wrap}>
@@ -89,9 +105,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               </>
             )}
             <EmailOtpForm next={next} phoneEnabled={process.env.PHONE_OTP_ENABLED === "1"} withCode={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY)} />
-            <p className={styles.discover}>
-              {t("Vous découvrez Guichet ?")} <ReplayPresentation className="btn sm ghost" label={t("Trente secondes pour comprendre")} />
-            </p>
+            {!administration && (
+              <p className={styles.discover}>
+                {t("Vous découvrez Guichet ?")} <ReplayPresentation className="btn sm ghost" label={t("Trente secondes pour comprendre")} />
+              </p>
+            )}
           </>
         ) : (
           <>

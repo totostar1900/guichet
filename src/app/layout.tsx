@@ -194,8 +194,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               SEULEMENT POUR QUI N'EST PAS ENTRÉ, et c'est la même règle qui a
               fait retirer le « ⋮ » au client : une porte par audience, pas
               deux. Le client règle sa langue derrière son initiale, où vit
-              déjà tout son compte. */}
-          {!session && (
+              déjà tout son compte.
+
+              ET SEULEMENT SUR LE SITE CLIENT. Sur l'adresse du desk, cette
+              rangée vendait Guichet à qui venait ouvrir la console : trois
+              liens de vitrine sous un formulaire d'administration. Une page
+              d'administration ne fait pas la publicité de la maison. */}
+          {!session && !onDeskHost && (
             <p className={styles.porteVisiteur}>
               <Link href="/info">{t("Le guide")}</Link>
               <Link href="/info/aide">{t("Aide et contact")}</Link>
