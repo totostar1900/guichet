@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isDesk, peutOPCVM, surSonDossier, type Session } from "@/lib/auth/types";
 import { etapesDuDossier } from "@/lib/kyc/checklist";
 import { emptyClientFile } from "@/lib/domain/kyc";
+import type { ClientFile } from "@/lib/domain/kyc";
 
 /**
  * LA TROISIÈME PORTE, ET L'ÉTAT QU'ELLE OUVRE.
@@ -55,7 +56,10 @@ describe("qui est sur son dossier", () => {
 });
 
 describe("les étapes du dossier, comptées une seule fois", () => {
-  const vide = emptyClientFile("u1", "physique", "Amina N.", { email: "a@x.cm" });
+  /* emptyClientFile rend une fiche SANS identifiant : la ligne naît à la
+     première sauvegarde, pas au premier regard. Les écrans lui en posent un
+     vide ; le test fait pareil. */
+  const vide: ClientFile = { id: "", ...emptyClientFile("u1", "physique", "Amina N.", { email: "a@x.cm" }) };
 
   it("un dossier neuf n'a que son type de fait", () => {
     const e = etapesDuDossier(vide);
