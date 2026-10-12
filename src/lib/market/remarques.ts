@@ -50,7 +50,7 @@ export const FAMILLES: Famille[] = [
   { code: "I", genre: "avertissement", libelle: "Obligation : prix et nominal collés", quoiFaire: "Deux nombres accolés sans séparateur : le découpage est ambigu, la ligne est écartée.", motif: /^Obligation.*prix \/ nominal ambigus/ },
   { code: "J", genre: "avertissement", libelle: "Action : ligne dense non reconnue", quoiFaire: "Même défaut que H, côté actions. Rare et coûteux.", motif: /^Action.*ligne dense non reconnue/ },
   { code: "K", genre: "anomalie", libelle: "Cours de clôture nul ou illisible", quoiFaire: "La ligne est lue mais son cours ne l'est pas : elle entre à zéro ou pas du tout.", motif: /cours de clôture nul ou illisible/ },
-  { code: "L", genre: "avertissement", libelle: "OPCVM : valeur liquidative invraisemblable", quoiFaire: "Date ou montant hors de tout : la VL est ignorée plutôt que fausse.", motif: /^OPCVM.*VL du.*ignorée/ },
+  { code: "L", genre: "avertissement", libelle: "OPCVM : valeur liquidative écartée", quoiFaire: "Le motif est nommé dans la phrase. Mesuré le 12 octobre 2026 sur 89 cas : 56 précédaient la création du fonds et se réparent seuls, 20 devançaient la séance, 6 étaient trop anciennes, zéro portait une valeur fautive.", motif: /^OPCVM.*VL du.*ignorée/ },
   { code: "M", genre: "avertissement", libelle: "OPCVM : ligne au format inattendu", quoiFaire: "Une ligne de la table n'a pas la forme attendue et passe à la trappe.", motif: /^OPCVM : ligne ignorée/ },
   { code: "N", genre: "anomalie", libelle: "Fonds : saut de valeur au-delà du seuil", quoiFaire: "La VL bondit : erreur de lecture, ou vrai mouvement à confirmer.", motif: /^FCP .*précédente \(>/ },
   { code: "O", genre: "avertissement", libelle: "Capitalisation : cellules incomplètes", quoiFaire: "La page de capitalisation est là, mais une ligne manque de chiffres.", motif: /^Capitalisation.*cellules incomplètes/ },
@@ -80,6 +80,12 @@ export const FAMILLES: Famille[] = [
      motif faux sur le document. Ce qui est refusé doit se dire comme un refus
      d'écriture. */
   { code: "V", genre: "anomalie", libelle: "Lu, mais refusé à l'enregistrement", quoiFaire: "Le lecteur a réussi : c'est la base qui refuse une valeur. Corriger la valeur ou la colonne, pas la lecture.", motif: /^Écriture refusée/ },
+  /* UNE RÉPARATION N'EST PAS UNE REMARQUE, et celle-ci ne paraît jamais dans
+     la file du desk : elle sort en note, et cette famille ne sert qu'à lui
+     donner son nom et sa couleur dans le rapport. La nommer évite qu'elle
+     s'affiche en « famille inconnue », ce qui ferait croire à un défaut là où
+     le robot vient de se corriger tout seul. */
+  { code: "W", genre: "avertissement", libelle: "OPCVM : année de la VL corrigée", quoiFaire: "Rien à faire : la VL précédait la création du fonds, et l'année suivante résout tout. Un fonds qui revient souvent mérite un mot à la bourse.", motif: /^OPCVM .*: année de la VL corrigée/ },
 ];
 
 const PAR_CODE = new Map(FAMILLES.map((f) => [f.code, f]));

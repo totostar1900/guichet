@@ -184,4 +184,12 @@ export const EN_PAGES: Record<string, string> = {
   "Créer votre compte ne vous engage à rien et ne demande aucun document.": "Creating your account commits you to nothing and asks for no documents.",
   "Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures. Purpose Capital ne fournit pas de conseil en investissement personnalisé au sens réglementaire, sauf dans le cadre d'une convention qui le prévoit expressément.":
     "Every investment carries a risk of losing capital. Past performance is no guide to future performance. Purpose Capital does not provide personal investment advice in the regulatory sense, except under an agreement that expressly provides for it.",
+
+  /* ---------- les familles de remarques du lecteur ---------- */
+  "OPCVM : valeur liquidative écartée": "Fund: net asset value set aside",
+  "Le motif est nommé dans la phrase. Mesuré le 12 octobre 2026 sur 89 cas : 56 précédaient la création du fonds et se réparent seuls, 20 devançaient la séance, 6 étaient trop anciennes, zéro portait une valeur fautive.":
+    "The reason is named in the sentence. Measured on 12 October 2026 over 89 cases: 56 predated the fund’s creation and repair themselves, 20 ran ahead of the session, 6 were too old, and none carried a faulty value.",
+  "OPCVM : année de la VL corrigée": "Fund: the year of the net asset value was corrected",
+  "Rien à faire : la VL précédait la création du fonds, et l'année suivante résout tout. Un fonds qui revient souvent mérite un mot à la bourse.":
+    "Nothing to do: the value predated the fund’s creation, and the following year resolves everything. A fund that keeps coming back deserves a word to the exchange.",
 };

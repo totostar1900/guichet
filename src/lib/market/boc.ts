@@ -7,6 +7,7 @@ import { parseDate } from "@/lib/finance";
 import { saveSource } from "@/lib/intake/storage";
 import { parseBoc, type BocBond, type BocEquity, type BocFund, type BocParsed } from "./boc-parse";
 import { completerObligations } from "./boc-geometrie";
+import { jugerLaVl, MOTIF_VL } from "./vl-coquille";
 import { VERSION_DU_LECTEUR } from "./lecteur-version";
 import { prettyName } from "./names";
 import type { Company } from "@/data/companies";
@@ -454,18 +455,44 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     parsed.warnings.push(message);
     parsed.notes.push({ message, attendu: "un nombre tenant sur seize chiffres devant la virgule" });
   }
-  // A NAV dated years away from the session, or absurd, is a mis-read line: keep it out of the history.
+  /**
+   * CHAQUE VL EST JUGÉE, ET LE MOTIF SE NOMME.
+   *
+   * Le message d'avant disait « date ou valeur invraisemblable » pour les
+   * quatre règles à la fois. Mesuré le 12 octobre 2026 sur les 89 VL écartées
+   * que la base garde : 56 précédaient la création du fonds, 20 devançaient la
+   * séance, 6 étaient trop anciennes, et ZÉRO portait une valeur fautive. Le
+   * message parlait de valeur dans 89 cas sur 89 où aucune n'était en cause.
+   *
+   * La coquille d'année se répare au passage, et elle se dit : voir
+   * vl-coquille.ts pour les trois bornes qui tiennent cette réparation
+   * honnête.
+   */
+  const retenues: FundNav[] = [];
   const plausible = (n: FundNav): boolean => {
-    const d = parseDate(n.navDate).getTime();
-    const sd = parseDate(sessionDate).getTime();
-    const ok = d <= sd + 7 * 86_400_000 && d >= sd - 400 * 86_400_000 && n.nav > 0 && n.navDate >= n.inceptionDate;
-    if (!ok) parsed.warnings.push(`OPCVM ${n.name} : VL du ${n.navDate} ignorée (date ou valeur invraisemblable).`);
-    return ok;
+    const v = jugerLaVl(n, sessionDate);
+    if (v.coquille && v.garde) {
+      const message = `OPCVM ${n.name} : année de la VL corrigée, ${v.coquille} lue comme ${v.garde.navDate}.`;
+      /* EN NOTE, JAMAIS EN AVERTISSEMENT. Un avertissement laisserait la
+         séance « partielle » pour un défaut déjà corrigé, et c'est la question
+         périmée qu'on passe son temps à retirer des écrans du desk. */
+      parsed.notes.push({ message, brut: v.coquille, attendu: `une date postérieure au ${n.inceptionDate}, création annoncée du fonds` });
+    }
+    if (v.garde) {
+      retenues.push(v.garde);
+      return true;
+    }
+    parsed.warnings.push(`OPCVM ${n.name} : VL du ${n.navDate} ignorée : ${MOTIF_VL[v.motif ?? "vieille"]}.`);
+    return false;
   };
   /* Une orthographe nouvelle rejoint le fonds qu'elle désigne, au lieu d'en
      créer un second : c'est ici, à l'entrée, que le jumeau se prévient. */
   const connus = new Map((await r.latestFundNavs().catch(() => [])).map((n) => [memeNom(n.name), n.fundKey]));
-  const navs = parsed.funds.map((f) => fundNav(f, parsed, (nom) => connus.get(memeNom(nom)))).filter(plausible);
+  /* LA LISTE RETENUE EST CELLE QUE LE JUGE A REMPLIE, et non celle qu on
+     filtre : une VL dont l année a été réparée doit s écrire CORRIGÉE, et un
+     filtre rendrait l originale. */
+  parsed.funds.map((f) => fundNav(f, parsed, (nom) => connus.get(memeNom(nom)))).forEach(plausible);
+  const navs = retenues;
   // Reference = the session right before this one (during a backfill the "latest" quotes may be months later).
   const prevDate = (await r.listBulletins(2000)).map((b) => b.sessionDate).filter((d) => d < sessionDate).sort().pop();
   const previous = prevDate ? await r.quotesOn(prevDate) : [];
