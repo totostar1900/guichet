@@ -18,6 +18,43 @@
  */
 
 .page {
+  /* LES DEUX MESURES DE LA PAGE, ET IL N'Y EN A PAS DE TROISIÈME.
+   *
+   * La page en déclarait SIX le 12 octobre 2026 : 22em, 36em, 38em, 38em,
+   * 42em, 60em, plus deux sections sans borne du tout. Aucune ne débordait,
+   * et c'est bien le problème : rien ne se voyait, sauf à l'œil, qui devait
+   * retrouver le bord droit à chaque section. Sur un écran de 1497 pixels le
+   * titre tenait dans 330 pendant que deux sections couraient sur 1340.
+   *
+   * TEXTE borne ce qui se LIT : un titre, un chapeau, un paragraphe.
+   * LARGE borne ce qui se PARCOURT : une grille, une liste, des cartes.
+   * La pleine laisse est réservée au FOND, jamais au contenu : le ruban
+   * d'instruments et la bande marine, dont la couleur va d'un bord à l'autre
+   * et dont le contenu, lui, reprend l'une des deux mesures.
+   *
+   * EN REM, ET C'EST LE POINT QUI A FAILLI ÊTRE MANQUÉ. La maquette les
+   * écrivait en « em », qui se résout sur la taille de police de l'ÉLÉMENT :
+   * 34em valent 510 pixels sur un paragraphe à 1rem et 408 sur
+   * l'avertissement à 0,8rem. Une mesure en em ne peut donc PAS donner un
+   * bord commun, qui est tout ce qu'on lui demande, et le défaut serait
+   * muet : chaque section aurait l'air bornée, et les bords ne
+   * s'aligneraient pas. Le rem est ancré à la racine et vaut partout la
+   * même chose.
+   *
+   * CE QUE CELA DONNE, mesuré sur la page servie à 1497 pixels, racine à
+   * 15 px : Texte vaut 510, Large vaut 1080, la coque 1340. Un bord gauche
+   * à 79 et DEUX bords droits, 589 et 1159, pour dix-neuf éléments bornés.
+   *
+   * CE QUE CELA COÛTE, dit plutôt que caché : l'avertissement réglementaire,
+   * en petit corps, porte environ 85 signes par ligne au lieu de 68. On
+   * accepte, parce que c'est une mention qu'on parcourt et non de la prose
+   * suivie, et parce que l'alignement vaut plus ici que la longueur idéale
+   * d'une ligne de bas de page.
+   *
+   * Un cliquet garde la règle : src/test/mesures-accueil.test.ts. */
+  --mesure-texte: 34rem;
+  --mesure-large: 72rem;
+
   display: flex;
   flex-direction: column;
   gap: var(--respiration);
@@ -41,11 +78,13 @@
   border-bottom: 1px solid var(--gold-line);
 }
 .dire {
-  flex: 999 1 440px;
+  /* UNE SEULE COLONNE DEPUIS LE RETRAIT DE LA FIGURE. La base de 440 px
+     survivait à la figure qu'elle accompagnait, sous un plafond de 352 : une
+     base plus large que son plafond, deux lignes qui se contredisaient au
+     même endroit, et aucune des deux ne produisait d'erreur. */
+  flex: 1 1 auto;
   min-width: 0;
-  /* UNE SEULE COLONNE DEPUIS LE RETRAIT DE LA FIGURE : sans borne, le titre
-     courait sur toute la largeur d un grand écran et devenait illisible. */
-  max-width: 22em;
+  max-width: var(--mesure-texte);
   display: flex;
   flex-direction: column;
   gap: var(--s-9);
@@ -73,7 +112,9 @@
 }
 .chapeau {
   margin: 0;
-  max-width: 36em;
+  /* Pas de borne ici : le chapeau en portait une de 36em DANS une colonne
+     bornée à 22em, donc une valeur écrite que personne ne lisait. Il hérite
+     de la mesure de « .dire », qui est la bonne et la seule. */
   font-size: var(--t-6);
   line-height: 1.6;
   color: var(--ink-2);
@@ -96,7 +137,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--s-6);
-  max-width: 42em;
+  max-width: var(--mesure-texte);
 }
 .tete h2,
 .publieDire h2,
@@ -105,6 +146,11 @@
 .confiance h2,
 .final h2 {
   margin: 0;
+  /* Un titre se lit : il prend la mesure Texte, comme tout ce qui se lit.
+     Ceux qui vivent deja dans un conteneur borne n y perdent rien ; ceux de
+     « Ce qui protege » et de l appel final, qui n en avaient aucun, cessent
+     de courir sur toute la coque. */
+  max-width: var(--mesure-texte);
   font-family: var(--font-titre);
   font-weight: 400;
   font-size: clamp(1.6rem, 3.4vw, 2.5rem);
@@ -120,6 +166,7 @@
 .gestesListe {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: var(--mesure-large);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -177,6 +224,7 @@
   flex-wrap: wrap;
   gap: var(--s-11);
   align-items: flex-start;
+  max-width: var(--mesure-large);
 }
 .publieDire {
   flex: 999 1 400px;
@@ -187,7 +235,7 @@
 }
 .publieDire p {
   margin: 0;
-  max-width: 38em;
+  max-width: var(--mesure-texte);
   font-size: var(--t-5);
   line-height: 1.6;
   color: var(--ink-2);
@@ -241,6 +289,7 @@
 .entrerTete {
   display: flex;
   flex-wrap: wrap;
+  max-width: var(--mesure-texte);
   align-items: baseline;
   gap: var(--s-7);
 }
@@ -251,6 +300,7 @@
 .etapes {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: var(--mesure-large);
   border-top: 1px solid var(--line);
 }
 .etape {
@@ -277,6 +327,7 @@
 }
 .portes {
   border: 1px solid var(--line);
+  max-width: var(--mesure-large);
   padding: var(--s-9);
   display: flex;
   align-items: center;
@@ -310,6 +361,21 @@
      qu une section sur fond clair, parce que le bord y est une arête et non
      une absence : à marge égale, elle paraît serrée. */
   padding: var(--respiration);
+}
+/* LA PLEINE LAISSE EST POUR LE FOND, JAMAIS POUR LE CONTENU.
+ *
+ * Les deux bandes de la page, la marine de l'accompagnement et celle de
+ * l'appel final, doivent aller d'un bord à l'autre : c'est leur couleur qui
+ * traverse, et une bande qui s'arrête avant le bord n'est plus une bande.
+ * Mais ce qui est ÉCRIT dedans n'a aucune raison d'aller plus loin que le
+ * reste de la page, et il y allait : 1340 pixels de large, contre 1152 pour
+ * les grilles juste au-dessus.
+ *
+ * Le fond garde donc la laisse, et une enveloppe à l'intérieur reprend la
+ * mesure Large. Le bord gauche ne bouge pas, le bord droit rentre dans le
+ * rang. */
+.dedans {
+  max-width: var(--mesure-large);
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-11);
@@ -326,7 +392,7 @@
 }
 .accDire p {
   margin: 0;
-  max-width: 38em;
+  max-width: var(--mesure-texte);
   font-size: var(--t-5);
   line-height: 1.65;
   color: var(--on-navy-2);
@@ -372,6 +438,7 @@
 .garanties {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: var(--mesure-large);
   gap: var(--s-10);
 }
 .garanties > div {
@@ -394,7 +461,7 @@
 }
 .avertissement {
   margin: 0;
-  max-width: 60em;
+  max-width: var(--mesure-texte);
   font-size: var(--t-3);
   line-height: 1.6;
   color: var(--ink-3);
@@ -405,12 +472,12 @@
   background: var(--surface-2);
   border-top: 1px solid var(--gold-line);
   padding: var(--respiration);
-  display: flex;
-  flex-wrap: wrap;
+}
+.final .dedans {
   align-items: center;
   gap: var(--s-10);
 }
-.final > div:first-child {
+.final .dedans > div:first-child {
   flex: 999 1 420px;
   min-width: 0;
   display: flex;

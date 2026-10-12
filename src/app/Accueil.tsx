@@ -258,6 +258,9 @@ export async function Accueil() {
       {/* La seule surface pleine de la page : l'accompagnement, qui est ce qui
           nous distingue d'une application. */}
       <section className={styles.accompagnement}>
+        {/* Le fond traverse, le contenu prend la mesure Large : voir
+            « LA PLEINE LAISSE EST POUR LE FOND » dans la feuille. */}
+        <div className={styles.dedans}>
         <div className={styles.accDire}>
           <span className={styles.etiquetteClaire}>{t("Vous n'êtes jamais seul devant l'écran")}</span>
           <h2>{t("Un conseiller vous répond.")}</h2>
@@ -278,6 +281,7 @@ export async function Accueil() {
             <small>{t("Son nom et son numéro figurent sur votre compte dès l'ouverture.")}</small>
           </li>
         </ul>
+        </div>
       </section>
 
       <section className={styles.confiance}>
@@ -297,6 +301,7 @@ export async function Accueil() {
       </section>
 
       <section className={styles.final}>
+        <div className={styles.dedans}>
         <div>
           <h2>{t("Le marché de la zone, à portée de main.")}</h2>
           <p>{t("Créez votre compte et regardez. Vous déciderez ensuite.")}</p>
@@ -308,6 +313,7 @@ export async function Accueil() {
           <Link className={styles.second} href="/info/aide">
             {t("Poser une question")}
           </Link>
+        </div>
         </div>
       </section>
     </div>
