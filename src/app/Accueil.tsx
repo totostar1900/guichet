@@ -1,8 +1,5 @@
 import Link from "next/link";
 import { repo } from "@/lib/data";
-import { buildCurve, horizon, MIN_POINTS } from "@/lib/market/curve";
-import { derniereParDuree } from "@/lib/market/lecture-b";
-import { abouti, ajuster, type Ajustement } from "@/lib/market/nelson-siegel";
 import { getT } from "@/i18n/server";
 import { BandeInstruments, type LigneVitrine } from "@/components/accueil/BandeInstruments";
 import { familleDe, identite } from "./offres/[id]/identite";
@@ -12,48 +9,57 @@ import styles from "./Accueil.module.css";
 /**
  * L'accueil d'un visiteur qui n'est pas connecté.
  *
- * LA VITRINE NE PLAIDE PAS SA PROPRE CAUSE. La version précédente présentait
- * les neuf services en nommant, sous chacun, la limite qu'il porte. C'était
- * neuf raisons d'hésiter sur la seule page dont le travail est de donner envie
- * d'ouvrir un compte : un document d'information déguisé en page d'accueil.
- * Les limites n'ont pas disparu, elles ont déménagé là où elles portent, sur
- * « /info/risques » et au moment de l'acte.
+ * REFONTE DU 12 OCTOBRE 2026, décidée sur maquette. La page d'avant parlait à
+ * quelqu'un qui savait déjà ce que veulent dire « marché primaire », « cote »,
+ * « valeur liquidative » et « allocation ». Dans la zone, cela fait quelques
+ * centaines de personnes. Celle-ci parle à qui a une épargne.
  *
- * Trois partis pris, et chacun se défend contre l'usage du métier.
+ * CE QUI A CHANGÉ, ET POURQUOI.
  *
- *   AUCUN SERVICE N'EST NOMMÉ NI DÉCRIT. Les neuf vivent derrière la porte.
- *   Ici la page parle en verbes, parce qu'un inventaire interne n'est pas une
- *   proposition : souscrire, négocier, placer, épargner, suivre. Chacun porte
- *   une figure géométrique plutôt qu'un numéro, parce qu'une liste numérotée
- *   promet un ordre qui n'existe pas.
+ *   LE TITRE NOMME LA MAISON. « Le marché primaire et la cote, dans un seul
+ *   compte » posait deux mots de métier dans la première phrase lue. « La
+ *   porte d'entrée des marchés financiers d'Afrique centrale » se comprend
+ *   sans cours, et le mot « porte » fait rimer la vitrine avec la doctrine du
+ *   produit : trois portes, celle qu'on crée, celle qu'on ouvre, celle par où
+ *   l'on revient.
  *
- *   AUCUN CHIFFRE, NULLE PART. La bande montre ce qui existe et retient les
- *   prix ; la courbe montre sa forme et laisse son échelle derrière la porte.
- *   Rien ici ne dit ce qui alimente nos analyses, ni sur quelle profondeur.
+ *   CINQ VERBES DEVIENNENT TROIS GESTES. Souscrire, négocier, placer, épargner
+ *   et suivre étaient un inventaire rangé par instrument. Épargner, financer,
+ *   investir est un ordre : du plus tranquille au plus engagé. « Fructifier »
+ *   n'est pas un geste, c'est le résultat, et il reste donc hors de la liste.
+ *
+ *   « VOTRE ÉCRAN S'OUVRE SUR CE QUI VOUS ATTEND » EST RETIRÉ. C'est un écran
+ *   qu'on apprécie une fois client ; il ne décide personne à le devenir. À sa
+ *   place, les trois temps de l'entrée.
+ *
+ *   L'ACCOMPAGNEMENT DEVIENT UNE SECTION. Suivre une courbe n'est pas une
+ *   raison d'ouvrir un compte ; qu'une personne réponde en est une, et c'est
+ *   ce qui nous distingue d'une application.
+ *
+ * CE QUI N'A PAS CHANGÉ, ET NE DOIT PAS.
+ *
+ *   AUCUN CHIFFRE, NULLE PART. Une bande de preuve chiffrée (six États, trente-
+ *   deux obligations…) a été dessinée puis retirée le 12 octobre : des comptes
+ *   d'instruments restent des chiffres. La bande qui défile dit que le marché
+ *   existe en le NOMMANT, et c'est la preuve la moins discutable des deux.
  *
  *   NI PROMESSE NI URGENCE. Pas de rendement en accroche, pas de compteur
- *   d'investisseurs, pas de compte à rebours.
+ *   d'investisseurs, pas de compte à rebours. La figure financière du haut est
+ *   une illustration sans échelle, et sa légende dit que les marchés
+ *   descendent aussi.
  *
- * Ce qui paraît est lu au dépôt, jamais écrit en dur. Quand le dépôt ne rend
- * rien, la figure concernée ne paraît pas : elle ne se remplit pas.
+ *   CE QUI PARAÎT EST LU AU DÉPÔT. Quand le dépôt ne rend rien, la bande ne
+ *   paraît pas : elle ne se remplit pas d'exemples.
  */
 
-const W = 1000;
-const H = 330;
-const P = { l: 40, r: 15, t: 20, b: 58 };
 /** Ce que la bande peut porter avant de devenir une liste qu'on ne lit plus. */
 const MAX_BANDE = 18;
 
 export async function Accueil() {
   const t = await getT();
-  const [offres, seances] = await Promise.all([
-    repo()
-      .listOffers()
-      .catch(() => [] as Offer[]),
-    repo()
-      .listAuctionResults({ limit: 1000 })
-      .catch(() => []),
-  ]);
+  const offres = await repo()
+    .listOffers()
+    .catch(() => [] as Offer[]);
 
   /**
    * La bande : ce qui existe, sans un chiffre. Les trois familles alternent au
@@ -65,10 +71,10 @@ export async function Accueil() {
     vivantes
       .filter((o) => familleDe(o) === f)
       .map((o) => {
-        const q = identite(o);
         // Une ligne d'État se nomme par son pays : « Trésor public de la
         // République centrafricaine » ne tient pas dans une colonne et se
         // répète à chaque ligne. Un émetteur privé, lui, garde son nom.
+        const q = identite(o);
         return { emetteur: (f === "tresor" ? o.countryName : q.emetteur) || q.emetteur, nature: q.nature, duree: q.duree, marche: q.marche, famille: f };
       });
   const paquets = [par("tresor"), par("cote"), par("fonds")];
@@ -80,33 +86,31 @@ export async function Accueil() {
   }
 
   /**
-   * La courbe du premier Trésor qui en porte une, réduite à sa forme. On ne
-   * choisit pas le pays d'avance : on prend celui qui s'ajuste, et s'il n'y en
-   * a aucun la figure ne paraît pas. Une vitrine ne montre pas une courbe vide
-   * en prétendant que le marché est là.
+   * LES TROIS GESTES, du plus tranquille au plus engagé.
+   *
+   * Chacun recouvre une part de l'offre sans empiéter sur les autres, et
+   * chacun porte une figure géométrique plutôt qu'un numéro, parce qu'une
+   * liste numérotée promet un ordre obligatoire qui n'existe pas.
    */
-  const courbe = buildCurve(seances, { windowDays: 365 });
-  const ajustee = courbe.countries
-    .filter((c) => c.points.length >= MIN_POINTS)
-    .map((c) => {
-      const obs = derniereParDuree(
-        c.points.map((p) => {
-          const h = horizon(p.years);
-          return { annees: p.years, pct: p.yield.pct, mot: `${h.n} ${h.unit}`, age: p.ageDays, mince: p.thin };
-        }),
-      );
-      const f = ajuster(obs.map((q) => ({ annees: q.annees, pct: q.pct })));
-      return abouti(f) ? { fit: f, durees: [...new Set(obs.map((q) => q.annees))].sort((a, b) => a - b) } : undefined;
-    })
-    .find((x): x is NonNullable<typeof x> => Boolean(x));
-  const trace = ajustee ? forme(ajustee.fit, ajustee.durees) : undefined;
-
-  const verbes = [
-    { d: "M3 25h22 M14 21V5 M8.5 11L14 5l5.5 6", titre: t("Souscrire au primaire."), dit: t("Votre demande part au Trésor sur la séance de votre choix, et l'allocation vous revient à votre nom, avec le prix servi.") },
-    { d: "M4 10h20 M19.5 5.5L24 10l-4.5 4.5 M24 19H4 M8.5 14.5L4 19l4.5 4.5", titre: t("Négocier sur la cote."), dit: t("Les obligations et les actions de la BVMAC, au dernier cours publié et à sa date, avec les états financiers de l'émetteur à côté.") },
-    { d: "M14 3l11 6-11 6-11-6z M3 15l11 6 11-6 M3 21l11 6 11-6", titre: t("Placer en fonds."), dit: t("Les fonds de la zone, leur valeur liquidative, leurs frais et leur date, comparés sur une même page.") },
-    { d: "M24 14a10 10 0 1 1-3.2-7.3 M24.5 3.5v6h-6", titre: t("Épargner sans y penser."), dit: t("Un montant, un jour du mois, une destination fixée à la signature. Ce qui revient repart sur la ligne choisie d'avance.") },
-    { d: "M3 23l7-7 5 4 9.5-11 M25 5h-6 M25 5v6", titre: t("Suivre le marché."), dit: t("La courbe de la zone, l'indice de la BVMAC, les séances à venir et les publications du desk.") },
+  const gestes = [
+    {
+      clef: "epargner",
+      d: "M24 14a10 10 0 1 1-3.2-7.3 M24.5 3.5v6h-6",
+      titre: t("Épargner"),
+      dit: t("Vous arrêtez un montant et un jour du mois, et le prélèvement s'exécute de lui-même. Ce qui vous est remboursé repart vers la ligne que vous avez désignée d'avance."),
+    },
+    {
+      clef: "financer",
+      d: "M3 25h22 M6 25V11l8-6 8 6v14 M11 25v-7h6v7",
+      titre: t("Financer"),
+      dit: t("Vous prêtez aux six États de la zone, à la banque de développement de la région et aux grandes entreprises d'ici. Ils vous versent un intérêt et vous remboursent à une échéance connue d'avance."),
+    },
+    {
+      clef: "investir",
+      d: "M3 23l7-7 5 4 9.5-11 M25 5h-6 M25 5v6",
+      titre: t("Investir"),
+      dit: t("Vous prenez part au capital des sociétés cotées de la région, ou vous placez dans des fonds agréés par la COSUMAF. Rien n'est promis, et c'est pourquoi le gain n'est pas plafonné."),
+    },
   ];
 
   /**
@@ -124,184 +128,101 @@ export async function Accueil() {
     { d: "M14 4v13 M8.5 11.5L14 17l5.5-5.5 M3 21v4h22v-4", titre: t("Vous approvisionnez et vous placez"), dit: t("Par virement, vers le compte espèces ouvert à votre nom. Vous choisissez une séance annoncée ou une ligne de la cote, et vous suivez votre allocation.") },
   ];
 
+  const publications = [
+    { quand: t("Chaque mois"), titre: t("Le point de marché"), dit: t("Les séances tenues, les emprunts servis, et ce que les taux ont fait.") },
+    { quand: t("Chaque trimestre"), titre: t("La note publiée"), dit: t("Un document daté et référencé, que vous pouvez citer et transmettre.") },
+    { quand: t("En continu"), titre: t("La courbe et l'indice"), dit: t("La courbe des taux de la zone et l'indice de la bourse régionale, tenus à jour séance après séance.") },
+  ];
+
+  const garanties = [
+    { titre: t("Une société agréée"), dit: t("Purpose Capital est agréée en qualité de société de bourse par la COSUMAF, régulateur du marché financier de l'Afrique centrale.") },
+    { titre: t("Vos titres à votre nom"), dit: t("Les titres acquis sont inscrits à votre nom, et le demeurent si vous nous quittez.") },
+    { titre: t("Vos espèces séparées"), dit: t("Votre compte espèces est ouvert à votre nom. Chaque mouvement porte sa date de valeur.") },
+    { titre: t("Vous seul donnez les ordres"), dit: t("Aucun ordre ne part sans vous. Le conseiller éclaire et propose ; la décision vous appartient.") },
+  ];
+
   return (
     <div className={styles.page}>
-
       <section className={styles.ouverture}>
         <div className={styles.dire}>
           <span className={styles.agrement}>{t("Société de bourse agréée COSUMAF · n° COSUMAF-SDB-01/2026")}</span>
-          <h1>{t("Le marché primaire et la cote, dans un seul compte.")}</h1>
-          <div className={styles.gestes}>
+          <h1>{t("La porte d'entrée des marchés financiers d'Afrique centrale.")}</h1>
+          <p className={styles.chapeau}>
+            {t("Prêtez aux États et aux institutions de la zone, prenez part au capital des sociétés cotées, placez dans des fonds agréés par la COSUMAF. Votre compte se crée en quelques instants, et un conseiller reste joignable.")}
+          </p>
+          <div className={styles.gestesBoutons}>
             <Link className={styles.principal} href="/connexion?creer=1">
               {t("Créer mon compte")}
             </Link>
             <Link className={styles.second} href="/info/parcours">
               {t("Visite guidée · 30 secondes")}
             </Link>
+            <span className={styles.murmure}>{t("Gratuit, sans document, sans engagement.")}</span>
           </div>
         </div>
-        <div className={styles.cote}>
-          <p className={styles.chapeau}>{t("Ouvert en quelques minutes. Les occasions du marché de la zone vous arrivent le jour même, et se traitent depuis votre téléphone.")}</p>
-          <div className={styles.acces}>
-            <span>
-              <b>{t("Les Trésors de la zone")}</b>
-              <small>{t("Cameroun, Congo, Gabon, Tchad, Guinée équatoriale, Centrafrique")}</small>
-            </span>
-            <span>
-              <b>{t("La cote BVMAC")}</b>
-              <small>{t("Les obligations et les actions des émetteurs cotés")}</small>
-            </span>
-            <span>
-              <b>{t("Les fonds de la zone")}</b>
-              <small>{t("Souscription et rachat, à la valeur liquidative et à sa date")}</small>
-            </span>
-          </div>
-        </div>
+
+        {/* LA FIGURE FINANCIÈRE, ET CE QU'ELLE NE DIT PAS.
+            Elle ne porte aucune échelle, aucun instrument, aucune date : ce
+            n'est pas une cotation, c'est le dessin d'un marché, et la page
+            serait fautive de le faire passer pour autre chose. Elle ne monte
+            pas non plus jusqu'au bout : une courbe qui finit à son sommet
+            promet un rendement, et la maison ne promet pas. La légende achève
+            de le dire. */}
+        <figure className={styles.figure}>
+          <svg viewBox="0 0 560 280" role="img" aria-label={t("Le dessin d'un marché : une courbe qui monte et qui descend, sans échelle ni valeur")} aria-hidden="false">
+            <line x1="20" y1="80" x2="540" y2="80" className={styles.grille} />
+            <line x1="20" y1="150" x2="540" y2="150" className={styles.grille} />
+            <line x1="20" y1="220" x2="540" y2="220" className={styles.grille} />
+            <path
+              className={styles.aire}
+              d="M20 196 L55 178 L90 202 L125 156 L160 174 L195 126 L230 148 L265 104 L300 132 L335 86 L370 112 L405 70 L440 98 L475 56 L510 44 L540 78 L540 240 L20 240 Z"
+            />
+            <path className={styles.trace} d="M20 196 L55 178 L90 202 L125 156 L160 174 L195 126 L230 148 L265 104 L300 132 L335 86 L370 112 L405 70 L440 98 L475 56 L510 44 L540 78" />
+            <circle className={styles.pointe} cx="540" cy="78" r="5" />
+          </svg>
+          <figcaption>{t("Les marchés montent et ils descendent. C'est pour cela qu'un conseiller vous explique avant que vous ne décidiez.")}</figcaption>
+        </figure>
       </section>
 
       {lignes.length > 0 && <BandeInstruments lignes={lignes} />}
 
-      <section className={styles.verbes}>
-        <div className={styles.verbesTete}>
-          <h2>{t("Un compte. Tous les marchés de la zone.")}</h2>
-          <p>{t("Le primaire, la cote, les fonds. Ce qui se présente vous arrive, et se traite sans quitter l'écran.")}</p>
+      <section className={styles.troisGestes}>
+        <div className={styles.tete}>
+          <h2>{t("Épargner, financer, investir.")}</h2>
+          <p>{t("Trois gestes, du plus tranquille au plus engagé. Ils se tiennent dans le même compte, et vous passez de l'un à l'autre sans rien rouvrir.")}</p>
         </div>
-        <div className={styles.verbesListe}>
-          {verbes.map((v) => (
-            <div className={styles.verbe} key={v.titre}>
-              <span className={styles.figure}>
-                <svg viewBox="0 0 28 28" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d={v.d} />
+        <div className={styles.gestesListe}>
+          {gestes.map((g) => (
+            <article className={`${styles.geste} ${styles[g.clef]}`} key={g.clef}>
+              <span className={styles.figurine}>
+                <svg viewBox="0 0 28 28" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d={g.d} />
                 </svg>
               </span>
-              <div>
-                <b>{v.titre}</b>
-                <p>{v.dit}</p>
-              </div>
-            </div>
+              <h3>{g.titre}</h3>
+              <p>{g.dit}</p>
+            </article>
           ))}
         </div>
       </section>
 
-      {/* La seule surface pleine de la page. */}
-      <section className={styles.analyses}>
-        <div className={styles.analysesDire}>
+      <section className={styles.publications}>
+        <div className={styles.publieDire}>
           <span className={styles.etiquetteOr}>{t("Analyses et publications")}</span>
-          <h2>{t("Le marché, lu et commenté.")}</h2>
-          <p>{t("Le desk suit le marché de la zone et publie ce qu'il en tire : la courbe des taux, des analyses, des points réguliers. L'ensemble se consulte depuis votre espace.")}</p>
-          <div>
-            <Link className={styles.orBouton} href="/connexion?creer=1">
-              {t("Créer mon compte")}
-            </Link>
-          </div>
+          <h2>{t("Le marché de la zone, lu et commenté.")}</h2>
+          <p>
+            {t("Le bureau suit les séances de la bourse régionale et les adjudications des Trésors, et publie ce qu'il en retient. Les chiffres et l'échelle s'ouvrent avec votre compte.")}
+          </p>
         </div>
-        {trace && (
-          <div className={styles.analysesFigure}>
-            <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("La forme de la courbe des taux de la zone, sans son échelle")}>
-              <line x1={P.l} y1={P.t} x2={P.l} y2={H - P.b} stroke="var(--navy-2)" strokeWidth="1" />
-              <line x1={P.l} y1={H - P.b} x2={W - P.r} y2={H - P.b} stroke="var(--navy-2)" strokeWidth="1" />
-              <path d={trace.chemin} fill="none" stroke="var(--gold)" strokeWidth="2.4" strokeLinecap="round" />
-              {trace.points.map((pt) => (
-                <circle key={`${pt.x}-${pt.y}`} cx={pt.x} cy={pt.y} r="4.5" fill="var(--navy)" stroke="#ffffff" strokeWidth="2" />
-              ))}
-              {trace.reperes.map((r) => (
-                <text key={r.mot} x={r.x} y={H - P.b + 24} textAnchor={r.fin ? "end" : "middle"} className={styles.repere}>
-                  {t(r.mot)}
-                </text>
-              ))}
-              <text x={P.l + 12} y={P.t + 14} className={styles.axeNom}>
-                {t("TAUX")}
-              </text>
-              <text x={P.l + 12} y={P.t + 32} className={styles.axeNote}>
-                {t("échelle après connexion")}
-              </text>
-            </svg>
-          </div>
-        )}
-      </section>
-
-      <section className={styles.coupDoeil}>
-        <div className={styles.coupDire}>
-          <span className={styles.etiquette}>{t("Un coup d'oeil dedans")}</span>
-          <h2>{t("Votre écran s'ouvre sur ce qui vous attend.")}</h2>
-          <div className={styles.coupListe}>
-            <span>
-              <b>{t("Votre console")}</b>
-              <small>{t("Ce qui attend une décision aujourd'hui, en trois lignes au plus, avec le geste à côté.")}</small>
-            </span>
-            <span>
-              <b>{t("Votre portefeuille")}</b>
-              <small>{t("Chaque ligne, son échéancier, et ce qui est réellement arrivé sur le compte.")}</small>
-            </span>
-            <span>
-              <b>{t("Le marché")}</b>
-              <small>{t("La courbe, l'indice de la BVMAC, et les séances à venir, dès leur annonce.")}</small>
-            </span>
-          </div>
-          <div>
-            <Link className={styles.second} href="/info/parcours">
-              {t("Visite guidée · 30 secondes")}
-            </Link>
-          </div>
-        </div>
-        <div className={styles.appareils}>
-          <div className={styles.appareilFond} aria-hidden="true" />
-          <div className={styles.appareil}>
-            <div className={styles.appTop}>
-              <span>
-                <b>PURPOSE CAPITAL</b>
-                <em>Guichet</em>
-              </span>
-              <i>G</i>
-            </div>
-            <div className={styles.appCorps}>
-              <div className={styles.appTete}>
-                <b>{t("Bonjour G.")}</b>
-                <span>{t("Dossier complet")}</span>
-              </div>
-              <span className={styles.appEtiquette}>{t("Ce qui vous attend")}</span>
-              <div className={styles.appAttente}>
-                <span>{t("Sur votre compte")}</span>
-                <b>
-                  148 500 <em>FCFA</em>
-                </b>
-                <small>{t("Reçus et disponibles. Votre réinvestissement les placera au prochain passage.")}</small>
-                <i>{t("Replacer")}</i>
-              </div>
-              <div className={styles.appSeance}>
-                <span>{t("Une séance annoncée")}</span>
-                <small>{t("Le Trésor a publié son avis d'annonce. Vous pouvez déclarer une intention jusqu'à la veille.")}</small>
-              </div>
-              <span className={styles.appEtiquette}>{t("Vos services")}</span>
-              <div className={styles.appService}>
-                <i className={styles.pastilleBon} />
-                <b>{t("Conservation et tenue de compte")}</b>
-                <em className={styles.motBon}>{t("en place")}</em>
-              </div>
-              <div className={styles.appService}>
-                <i className={styles.pastilleOr} />
-                <b>{t("Réinvestissement")}</b>
-                <em className={styles.motOr}>{t("à activer")}</em>
-              </div>
-              <div className={styles.appService}>
-                <i className={styles.pastilleOr} />
-                <b>{t("Épargne programmée")}</b>
-                <em className={styles.motOr}>{t("à activer")}</em>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Le moment typographique, une seule fois, sans chiffre. */}
-      <section className={styles.moment}>
-        <h2>{t("Une séance s'annonce. Vous décidez le jour même.")}</h2>
-        <div>
-          <p>{t("L'avis d'annonce vous parvient dès sa publication, et votre intention part de la même page.")}</p>
-          <Link className={styles.principal} href="/connexion?creer=1">
-            {t("Créer mon compte")}
-          </Link>
-        </div>
+        <ul className={styles.publieListe}>
+          {publications.map((p) => (
+            <li key={p.titre}>
+              <span>{p.quand}</span>
+              <b>{p.titre}</b>
+              <small>{p.dit}</small>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className={styles.entrer}>
@@ -312,7 +233,7 @@ export async function Accueil() {
         <div className={styles.etapes}>
           {etapes.map((e) => (
             <div className={styles.etape} key={e.titre}>
-              <span className={styles.figure}>
+              <span className={styles.figurine}>
                 <svg viewBox="0 0 28 28" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d={e.d} />
                 </svg>
@@ -357,34 +278,61 @@ export async function Accueil() {
         </div>
       </section>
 
+      {/* La seule surface pleine de la page : l'accompagnement, qui est ce qui
+          nous distingue d'une application. */}
+      <section className={styles.accompagnement}>
+        <div className={styles.accDire}>
+          <span className={styles.etiquetteClaire}>{t("Vous n'êtes jamais seul devant l'écran")}</span>
+          <h2>{t("Un conseiller vous répond.")}</h2>
+          <p>{t("Une question sur un emprunt d'État, sur un taux, sur la date d'un remboursement ? Vous écrivez par WhatsApp ou par courriel, et un membre du bureau vous répond, en français et sans jargon.")}</p>
+          <div>
+            <Link className={styles.orBouton} href="/info/aide">
+              {t("Nous joindre")}
+            </Link>
+          </div>
+        </div>
+        <ul className={styles.accListe}>
+          <li>
+            <b>{t("Des guides pour débuter")}</b>
+            <small>{t("Ce qu'est une obligation, un coupon, un fonds. Trois minutes de lecture, sans vocabulaire de métier.")}</small>
+          </li>
+          <li>
+            <b>{t("Un conseiller attitré")}</b>
+            <small>{t("Son nom et son numéro figurent sur votre compte dès l'ouverture.")}</small>
+          </li>
+        </ul>
+      </section>
+
+      <section className={styles.confiance}>
+        <h2>{t("Ce qui protège votre argent.")}</h2>
+        <div className={styles.garanties}>
+          {garanties.map((g) => (
+            <div key={g.titre}>
+              <b>{g.titre}</b>
+              <p>{g.dit}</p>
+            </div>
+          ))}
+        </div>
+        <p className={styles.avertissement}>
+          {t("Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures. Les conditions de chaque placement vous sont remises avant toute décision.")}{" "}
+          <Link href="/info/risques">{t("Ce qu'il faut savoir sur les risques")}</Link>
+        </p>
+      </section>
+
+      <section className={styles.final}>
+        <div>
+          <h2>{t("Le marché de la zone, à portée de main.")}</h2>
+          <p>{t("Créez votre compte et regardez. Vous déciderez ensuite.")}</p>
+        </div>
+        <div className={styles.gestesBoutons}>
+          <Link className={styles.principal} href="/connexion?creer=1">
+            {t("Créer mon compte")}
+          </Link>
+          <Link className={styles.second} href="/info/aide">
+            {t("Poser une question")}
+          </Link>
+        </div>
+      </section>
     </div>
   );
-}
-
-/**
- * La courbe réduite à sa forme.
- *
- * L'échelle verticale est normalisée sur ses propres bornes : la figure garde
- * la forme de la vraie courbe et ne laisse lire aucun taux. Les durées restent
- * nommées en abscisse, parce que c'est ce qui fait reconnaître une courbe des
- * taux, et il n'y a rien à en tirer sur les prix.
- */
-function forme(fit: Ajustement, durees: number[]) {
-  const min = durees[0];
-  const max = durees[durees.length - 1];
-  const etendue = Math.log(max) - Math.log(min) || 1;
-  const x = (an: number) => P.l + ((Math.log(an) - Math.log(min)) / etendue) * (W - P.l - P.r);
-  const pas = Array.from({ length: 61 }, (_, i) => min * Math.pow(max / min, i / 60));
-  const ys = pas.map((an) => fit.taux(an));
-  const lo = Math.min(...ys);
-  const haut = Math.max(...ys);
-  const y = (v: number) => H - P.b - ((v - lo) / (haut - lo || 1)) * (H - P.b - P.t - 12);
-  return {
-    chemin: pas.map((an, i) => `${i ? "L" : "M"}${x(an).toFixed(1)} ${y(ys[i]).toFixed(1)}`).join(" "),
-    points: durees.map((an) => ({ x: Number(x(an).toFixed(1)), y: Number(y(fit.taux(an)).toFixed(1)) })),
-    reperes: durees.map((an, i) => {
-      const h = horizon(an);
-      return { x: Number(x(an).toFixed(1)), mot: `${h.n} ${h.unit}`, fin: i === durees.length - 1 };
-    }),
-  };
 }
