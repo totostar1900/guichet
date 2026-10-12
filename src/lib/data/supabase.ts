@@ -2295,7 +2295,32 @@ export const supabaseRepository: Repository = {
   },
   async upsertFundNavs(navs) {
     if (!navs.length) return;
-    const { error } = await db().from("fund_navs").upsert(navs.map(fromNav), { onConflict: "fund_key,nav_date" });
+    /**
+     * UNE SEULE LIGNE PAR COUPLE (FONDS, DATE) DANS UN MÊME LOT.
+     *
+     * Postgres refuse qu'un « on conflict do update » touche deux fois la même
+     * ligne, et il a raison : rien ne dit laquelle des deux l'emporterait.
+     * Mais le refus emporte TOUT le lot, donc la séance entière était perdue
+     * pour un doublon, sans qu'aucune cotation ni aucune VL ne s'écrive.
+     *
+     * LE DOUBLON VIENT DU BULLETIN, ET IL EST ATTENDU. La table des OPCVM y
+     * paraît jusqu'à quatre fois, par période de variation, et un fonds
+     * hebdomadaire reparaît au mensuel avec la même valeur et la même date.
+     * La clef se fabrique du nom indépendamment des espaces, précisément pour
+     * que « FCP BGFI Bank ATLAS » et « FCP BGFIBank ATLAS » ne fassent qu'un
+     * fonds : le 7 août 2023 la bourse a écrit les deux DANS LE MÊME
+     * BULLETIN, les deux clefs se sont rejointes, et l'écriture est morte.
+     * Mesuré le 12 octobre 2026 à la relecture de 2023 : une séance sur 124.
+     *
+     * LA DERNIÈRE L'EMPORTE, et c'est le bon choix : le lecteur range les
+     * variations mensuelle et trimestrielle sur l'occurrence la plus tardive,
+     * qui porte donc le plus d'informations.
+     */
+    const parCouple = new Map<string, FundNav>();
+    for (const n of navs) parCouple.set(`${n.fundKey}\u0000${n.navDate}`, n);
+    const { error } = await db()
+      .from("fund_navs")
+      .upsert([...parCouple.values()].map(fromNav), { onConflict: "fund_key,nav_date" });
     if (error) fail("upsertFundNavs", error);
   },
   async listFundNavs(fundKey, limit = 60) {
