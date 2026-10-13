@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { encoursGeometriques, type Rangee } from "@/lib/market/boc-geometrie";
+import { validate } from "@/lib/market/boc";
+import { classer, famille } from "@/lib/market/remarques";
+import type { BocParsed } from "@/lib/market/boc-parse";
 
 /**
  * L'ENCOURS DES TITRES DE DETTE, LU PAR LES ABSCISSES.
@@ -199,5 +202,61 @@ describe("l'encours des titres de dette", () => {
 
   it("ne compte pas deux fois le même ISIN", () => {
     expect(encoursGeometriques([...entete(), rangee(6, 400, TCHAD), rangee(7, 390, TCHAD)])).toHaveLength(1);
+  });
+});
+
+describe("le garde de complétude de l'encours", () => {
+  /**
+   * UN STOCK NE PERD PAS UNE LIGNE DU JOUR AU LENDEMAIN.
+   *
+   * La cote avait ce garde depuis longtemps, la table d'encours n'en avait
+   * aucun. Mesuré le 14 octobre 2026 sur les 808 séances : 1 547 lignes
+   * manquent sur 18 493 attendues, huit pour cent, sur 547 séances, et
+   * AUCUNE ne le disait.
+   *
+   * POURQUOI C'EST PIRE QUE SUR LA COTE. Une cotation manquante laisse un
+   * blanc qui se voit. Un encours manquant fait BAISSER LE TOTAL, et la
+   * baisse se lit comme un remboursement : l'étude d'évolution, objet même
+   * de cette table, inventerait des amortissements.
+   */
+  const seance = (outstandings: { isin: string }[]): BocParsed =>
+    ({ sessionDate: "2026-10-13", bulletinNo: 1, equities: [], bonds: [], funds: [], capitalisation: [], outstandings, warnings: [], notes: [], index: undefined }) as unknown as BocParsed;
+
+  it("NOMME LES LIGNES QUI ONT DISPARU DEPUIS LA VEILLE", () => {
+    const { anomalies } = validate(
+      seance([{ isin: "CM0000020305" }]),
+      [],
+      [],
+      [],
+      0,
+      [{ isin: "CM0000020305" }, { isin: "GA0000020313" }, { isin: "CG0000020220" }],
+    );
+    const dit = anomalies.find((a) => a.startsWith("Encours : lignes présentes"));
+    expect(dit).toBeDefined();
+    expect(dit).toContain("GA0000020313");
+    expect(dit).toContain("CG0000020220");
+    /* Celle qui est là ne doit pas être dénoncée : un garde qui crie sur le
+       présent n'est plus lu. */
+    expect(dit).not.toContain("CM0000020305");
+  });
+
+  it("SE TAIT QUAND LA TABLE EST COMPLÈTE", () => {
+    const { anomalies } = validate(seance([{ isin: "A" }, { isin: "B" }]), [], [], [], 0, [{ isin: "A" }, { isin: "B" }]);
+    expect(anomalies.some((a) => a.startsWith("Encours : lignes présentes"))).toBe(false);
+  });
+
+  it("SE TAIT LA PREMIÈRE FOIS, FAUTE DE VEILLE", () => {
+    /* Sans séance précédente il n'y a rien à comparer : crier ici
+       dénoncerait chaque première lecture d'un historique. */
+    const { anomalies } = validate(seance([]), [], [], [], 0, []);
+    expect(anomalies.some((a) => a.startsWith("Encours : lignes présentes"))).toBe(false);
+  });
+
+  it("LA REMARQUE TROUVE SA FAMILLE, ET ELLE DIT QUE LA DONNÉE MANQUE", () => {
+    /* Sans famille, elle tomberait dans le fourre-tout « Z » et ne serait
+       comptée nulle part : c'est le défaut que le rapport a révélé hier. */
+    const phrase = "Encours : lignes présentes au bulletin précédent et absentes aujourd'hui : GA0000020313.";
+    expect(classer(phrase)).toBe("AA");
+    expect(famille("AA")?.sort).toBe("perdue");
   });
 });

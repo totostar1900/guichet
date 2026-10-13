@@ -202,6 +202,7 @@ export function diagnostic(message: string): string {
   if (code === "C" || code === "D") return "La table des OPCVM compte moins de lignes qu'attendu.";
   if (code === "E" || code === "F") return "La section compte moins de lignes que la séance précédente.";
   if (code === "G") return "Des lignes présentes au bulletin précédent ne figurent plus dans celui-ci.";
+  if (code === "AA") return "Des lignes présentes dans la table des encours du bulletin précédent n y figurent plus : le total publié baisse donc sans qu aucun remboursement ne soit intervenu.";
   if (code === "N") return "La valeur liquidative varie de plus de dix pour cent d'une valorisation à l'autre. Elle est retenue, et signalée.";
   if (code === "Q") return "Le cours s'écarte de plus de quinze pour cent du dernier cours connu. Il est retenu, et signalé.";
   if (code === "K") return "Le cours de clôture est nul ou illisible.";

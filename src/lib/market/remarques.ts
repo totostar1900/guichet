@@ -97,6 +97,29 @@ export const FAMILLES: Famille[] = [
   { code: "E", genre: "anomalie", sort: "sans_objet", libelle: "Section obligations incomplète", quoiFaire: "Presque toujours accompagné de H : des lignes n'ont pas été reconnues.", motif: /^Seulement .* obligation/ },
   { code: "F", genre: "anomalie", sort: "sans_objet", libelle: "Section actions incomplète", quoiFaire: "Grave : l'indice se calcule sur les actions.", motif: /^Seulement .* action/ },
   { code: "G", genre: "anomalie", sort: "sans_objet", libelle: "Lignes disparues depuis la veille", quoiFaire: "Comparer les deux cotes : une ligne qui revient plus tard n'est pas sortie.", motif: /^Lignes présentes au bulletin précédent/ },
+  /**
+   * LE MÊME DÉFAUT SUR L'AUTRE TABLE, ET IL ÉTAIT MUET.
+   *
+   * La cote avait son garde depuis longtemps (famille G) ; la table d'encours
+   * n'en avait aucun. Mesuré le 14 octobre 2026 sur les 808 séances :
+   * 1 547 lignes manquent sur 18 493 attendues, soit HUIT POUR CENT, réparties
+   * sur 547 séances, les deux tiers, et touchant 35 des 39 lignes cotées. Une
+   * séance tombe à quatre lignes là où elle en compte onze, à huit là où il y
+   * en a trente et une.
+   *
+   * ZÉRO DE CES 547 SÉANCES NE LE DISAIT. C'est la famille de défauts la plus
+   * coûteuse du projet, et elle se répétait sur la table la plus neuve.
+   *
+   * POURQUOI CELA COMPTE PLUS QUE SUR LA COTE : un encours est un STOCK. Une
+   * ligne absente ne laisse pas un trou visible, elle fait BAISSER le total,
+   * et la baisse se lit comme un remboursement. Toute étude d'évolution,
+   * qui est l'objet même de cette table, inventerait des amortissements.
+   *
+   * LE CODE A DEUX LETTRES parce que l'alphabet est épuisé : A à Y sont
+   * prises et Z est le fourre-tout. Mieux vaut un code laid qu'une remarque
+   * qui tombe dans le fourre-tout, où elle ne serait comptée nulle part.
+   */
+  { code: "AA", genre: "anomalie", sort: "perdue", libelle: "Encours : lignes disparues depuis la veille", quoiFaire: "Un stock ne perd pas une ligne du jour au lendemain : une ligne absente entre deux présences est un trou de lecture, et sa disparition fait baisser l'encours total comme le ferait un remboursement. Relire la séance, et vérifier sur la pièce que la table la porte bien.", motif: /^Encours : lignes présentes au bulletin précédent/ },
   { code: "H", genre: "avertissement", sort: "perdue", libelle: "Obligation : ligne de cours non reconnue", quoiFaire: "Le défaut le plus fréquent. La ligne dense du PDF ne correspond à aucun motif connu.", motif: /^Obligation.*ligne de cours non reconnue/ },
   { code: "I", genre: "avertissement", sort: "perdue", libelle: "Obligation : prix et nominal collés", quoiFaire: "Deux nombres accolés sans séparateur : le découpage est ambigu, la ligne est écartée.", motif: /^Obligation.*prix \/ nominal ambigus/ },
   { code: "J", genre: "avertissement", sort: "perdue", libelle: "Action : ligne dense non reconnue", quoiFaire: "Même défaut que H, côté actions. Rare et coûteux.", motif: /^Action.*ligne dense non reconnue/ },

@@ -14,7 +14,7 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 
 <!-- etat:debut -->
 
-*Mesuré le 2026-10-13 par `scripts/plan-etat.mjs`, lecteur v15. Ne pas modifier à la main.*
+*Mesuré le 2026-10-13 par `scripts/plan-etat.mjs`, lecteur v17. Ne pas modifier à la main.*
 
 | | lot | point | mesure | attendu |
 |---|---|---|---|---|
@@ -23,15 +23,16 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 | oui | 1 | Fraîcheur du balayage BEAC | vu il y a 0 jour(s), le 2026-10-13 | au plus 2 jours (cadence quotidienne, 9 h UTC) |
 | oui | 2 | Encours de la dette écrits | 16946 lignes | plus de 16 000 lignes |
 | oui | 2 | Encours relus par le lecteur courant | toutes à jour (plus ancienne : v14) | aucune ligne qu'une relecture de l'encours ferait gagner |
+| **non** | 2 | Complétude de la série d'encours | 1547 sur 18493 (8.4 %) · 547 séance(s) trouée(s) | aucune ligne attendue et absente |
 | **non** | 3 | Adjudications ramassées | 249 | au moins 950 (la liste BEAC en annonce environ 1 000) |
 | oui | 4 | Cliquet d'échelle sur les adjudications | écrit | le test existe |
 | **non** | 4 | Ligne tchadienne du 24 janvier 2024 | 1 ligne(s) à 30 000 Mds, non écartée(s) | corrigée ou écartée avec son motif |
 | oui | 4 | Point de Santé sur l'échéance manquante | posé | le point existe et dit où agir |
 | **non** | 3 | Date d'échéance des adjudications | 54 manquante(s) sur 249 | aucune manquante |
 | oui | 4 | Libellé du bloc Programme du desk | renommé | ne dit plus « Exécution » pour servi sur annoncé |
-| **non** | rapport | Relecture qui rendrait quelque chose | 811 vl | aucune séance dont les cotations ou les VL auraient à gagner |
+| **non** | rapport | Relecture qui rendrait quelque chose | 806 cotations, 803 vl | aucune séance dont les cotations ou les VL auraient à gagner |
 
-**8 contrôles tenus sur 12.**
+**8 contrôles tenus sur 13.**
 
 <!-- etat:fin -->
 

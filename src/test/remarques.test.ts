@@ -43,6 +43,8 @@ const RÉELS: [string, string][] = [
   /* Y est l'inverse de X, et elle doit passer AVANT L : le motif de L
      attrape toute VL ignorée, donc l'ordre de déclaration est le garde. */
   ["Y", "OPCVM FCP AB CASH : VL du 1936-01-10 ignorée : cette cellule n'est pas une date : c'est un montant rendu en date par un tableur. Numéro de série 13159, soit un montant de 13 159 francs dont les centimes sont perdus au rendu."],
+  /* Le garde de completude de l encours, ne le 14 octobre 2026. */
+  ["AA", "Encours : lignes présentes au bulletin précédent et absentes aujourd'hui : GA0000020313, CG0000020220."]
 ];
 
 describe("chaque phrase du lecteur trouve sa famille", () => {
@@ -59,7 +61,7 @@ describe("chaque phrase du lecteur trouve sa famille", () => {
     expect(perdues).toEqual([]);
   });
 
-  it("les vingt-cinq familles sont toutes exercées, et leurs lettres sont uniques", () => {
+  it("les vingt-six familles sont toutes exercées, et leurs lettres sont uniques", () => {
     // Non vacuité : une famille sans exemple ne serait vérifiée par personne.
     expect(RÉELS.length).toBe(FAMILLES.length);
     expect(new Set(FAMILLES.map((f) => f.code)).size).toBe(FAMILLES.length);
@@ -172,7 +174,7 @@ describe("les formes relevées en production", () => {
      pas encore paraître dans une base écrite avant elle. */
   /* Y est née le 13 octobre 2026 : le jeu de formes réelles date d avant, et
      il sera exercé à la prochaine capture. */
-  const JAMAIS_VUES = ["T", "U", "V", "W", "X", "Y"];
+  const JAMAIS_VUES = ["T", "U", "V", "W", "X", "Y", "AA"];
 
   it("et elles exercent toutes les familles, sauf celles déclarées jamais vues", () => {
     /* Non vacuité à l'envers : si le gabarit ne couvrait que trois familles,

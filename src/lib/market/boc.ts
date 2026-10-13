@@ -161,7 +161,7 @@ export function fundNav(f: BocFund, b: BocParsed, clefConnue?: (nom: string) => 
  * `sort` dans remarques.ts), et un cliquet refuse qu'une anomalie annonce une
  * donnée pourtant écrite.
  */
-export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], previous: Quote[], prevNavs = 0): { anomalies: string[]; avertissements: string[] } {
+export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], previous: Quote[], prevNavs = 0, encoursPrecedent: { isin: string }[] = []): { anomalies: string[]; avertissements: string[] } {
   const out: string[] = [];
   /** Ce qui est écrit en base et seulement signalé : familles N et Q. */
   const vu: string[] = [];
@@ -206,6 +206,19 @@ export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], pr
   const known = new Set(previous.map((q) => q.isin));
   const missing = [...known].filter((isin) => !quotes.some((q) => q.isin === isin));
   if (known.size && missing.length) out.push(`Lignes présentes au bulletin précédent et absentes aujourd'hui : ${missing.join(", ")}.`);
+
+  /* LE MÊME GARDE SUR LA TABLE D'ENCOURS, qui n'en avait aucun.
+     Mesuré sur les 808 séances : 1 547 lignes manquent sur 18 493 attendues,
+     huit pour cent, sur les deux tiers des séances, et AUCUNE ne le disait.
+     Un encours est un stock : une ligne absente ne laisse pas de trou
+     visible, elle fait baisser le total, et la baisse se lit comme un
+     remboursement. C'est l'étude d'évolution, objet même de cette table, qui
+     s'en trouve faussée. */
+  const encoursConnus = new Set(encoursPrecedent.map((e) => e.isin));
+  const encoursManquants = [...encoursConnus].filter((isin) => !parsed.outstandings.some((e) => e.isin === isin));
+  if (encoursConnus.size && encoursManquants.length) {
+    out.push(`Encours : lignes présentes au bulletin précédent et absentes aujourd'hui : ${encoursManquants.join(", ")}.`);
+  }
   for (const n of navs) {
     if (!(n.nav > 0)) out.push(`${n.name} : VL nulle ou illisible.`);
     if (n.navDate > parsed.sessionDate) out.push(`${n.name} : date de VL postérieure à la séance.`);
@@ -534,7 +547,9 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   const avantHier = prevDate ? await r.getBulletin(prevDate).catch(() => undefined) : undefined;
   /* Les deux listes : ce qui MANQUE va aux anomalies, ce qui est ÉCRIT et
      seulement signalé rejoint les avertissements du lecteur. */
-  const { anomalies, avertissements } = validate(parsed, quotes, navs, previous, avantHier?.counts?.funds ?? 0);
+  /* L encours de la veille : c est lui qui dit si une ligne a disparu. */
+  const encoursAvant = prevDate ? await r.encoursDette(prevDate).catch(() => []) : [];
+  const { anomalies, avertissements } = validate(parsed, quotes, navs, previous, avantHier?.counts?.funds ?? 0, encoursAvant);
   parsed.warnings.push(...avertissements);
   const already = await r.getBulletin(sessionDate);
 

@@ -43,7 +43,7 @@ describe("le sort de la donnée", () => {
        d'une famille changerait un chiffre qu'on envoie à un tiers. */
     const parSort: Record<string, number> = {};
     for (const f of FAMILLES) parSort[f.sort] = (parSort[f.sort] ?? 0) + 1;
-    expect(parSort).toEqual({ absente: 2, sans_objet: 6, perdue: 8, ecartee: 4, telle_quelle: 3, corrigee: 2 });
+    expect(parSort).toEqual({ absente: 2, sans_objet: 6, perdue: 9, ecartee: 4, telle_quelle: 3, corrigee: 2 });
   });
 
   it("une donnée corrigée porte toujours sa valeur d'origine", () => {

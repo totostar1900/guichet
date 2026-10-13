@@ -134,6 +134,64 @@ const CONTROLES = [
     },
   },
   {
+    lot: "2",
+    point: "Complétude de la série d'encours",
+    /**
+     * UNE LIGNE ABSENTE ENTRE DEUX PRÉSENCES EST UN TROU, PAS UN
+     * REMBOURSEMENT. Mesuré le 14 octobre 2026 : 1 547 lignes manquent sur
+     * 18 493 attendues, huit pour cent, sur 547 séances des 808, et aucune
+     * ne le disait. Un encours est un stock : la ligne absente fait baisser
+     * le total, et la baisse se lit comme un amortissement. Toute étude
+     * d'évolution, qui est l'objet de cette table, en serait faussée.
+     *
+     * Le garde est posé à l'ingestion depuis ce jour ; ce contrôle mesure
+     * l'ARRIÉRÉ, qui ne se referme que par relecture.
+     */
+    attendu: "aucune ligne attendue et absente",
+    async mesurer() {
+      /* LE CLIENT PLAFONNE À MILLE LIGNES, EN SILENCE. Sans pagination ce
+         contrôle lisait 1 934 lignes attendues au lieu de 18 493 et annonçait
+         48 % de trous : une mesure fausse sur un garde de complétude, ce qui
+         est à peu près le pire endroit. On pagine, et on vérifie le compte. */
+      const lignes = [];
+      for (let de = 0; ; de += 1000) {
+        const { data, error } = await sb.from("debt_outstandings").select("isin, session_date").order("session_date").order("isin").range(de, de + 999);
+        if (error) throw new Error(`debt_outstandings : ${error.message}`);
+        lignes.push(...(data ?? []));
+        if ((data ?? []).length < 1000) break;
+      }
+      const total = await compter("debt_outstandings");
+      if (lignes.length !== total) throw new Error(`pagination incomplète : ${lignes.length} lues pour ${total} en base`);
+      const seances = [...new Set(lignes.map((l) => l.session_date))].sort();
+      const presentes = new Set(lignes.map((l) => `${l.isin}|${l.session_date}`));
+      const bornes = new Map();
+      for (const l of lignes) {
+        const b = bornes.get(l.isin) ?? { d1: l.session_date, d2: l.session_date };
+        if (l.session_date < b.d1) b.d1 = l.session_date;
+        if (l.session_date > b.d2) b.d2 = l.session_date;
+        bornes.set(l.isin, b);
+      }
+      let manquantes = 0;
+      let attendues = 0;
+      const seancesTrouees = new Set();
+      for (const [isin, b] of bornes) {
+        for (const s of seances) {
+          if (s < b.d1 || s > b.d2) continue;
+          attendues++;
+          if (!presentes.has(`${isin}|${s}`)) {
+            manquantes++;
+            seancesTrouees.add(s);
+          }
+        }
+      }
+      const pct = attendues ? (manquantes / attendues) * 100 : 0;
+      return {
+        mesure: manquantes ? `${manquantes} sur ${attendues} (${pct.toFixed(1)} %) · ${seancesTrouees.size} séance(s) trouée(s)` : "série complète",
+        tient: manquantes === 0,
+      };
+    },
+  },
+  {
     lot: "3",
     point: "Adjudications ramassées",
     attendu: "au moins 950 (la liste BEAC en annonce environ 1 000)",
