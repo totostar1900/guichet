@@ -32,7 +32,7 @@ const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABA
 
 const dire = (s) => fs.writeSync(1, `${s}\n`);
 
-const { VERSION_DU_LECTEUR: VERSION, lecteursARelire } = await import("../src/lib/market/lecteur-version.ts");
+const { VERSION_DU_LECTEUR: VERSION, lecteursARelire, relectureUtile } = await import("../src/lib/market/lecteur-version.ts");
 
 /** Les versions des bulletins, qu'aucun compte filtré ne peut rendre. */
 async function lignes_market_bulletins() {
@@ -117,10 +117,20 @@ const CONTROLES = [
   {
     lot: "2",
     point: "Encours relus par le lecteur courant",
-    attendu: "aucune ligne en version antérieure",
+    /* LA MÊME FAUTE QUE CE MATIN, UN CRAN PLUS LOIN. Ce contrôle comparait
+       au numéro COURANT du lecteur, qui couvre trois lecteurs. La v15 ne
+       touche que les VL : les 16 867 lignes d'encours estampillées v14 sont
+       parfaitement à jour, et le point passait au rouge pour une montée qui
+       ne les concerne pas. On demande donc à `relectureUtile` si le lecteur
+       D'ENCOURS a bougé, et à lui seul. */
+    attendu: "aucune ligne qu'une relecture de l'encours ferait gagner",
     async mesurer() {
+      const { data, error } = await sb.from("debt_outstandings").select("reader_version").order("reader_version").limit(1);
+      if (error) throw new Error(`debt_outstandings : ${error.message}`);
+      const plusVieille = data?.[0]?.reader_version ?? undefined;
+      if (!relectureUtile(plusVieille, "encours")) return { mesure: `toutes à jour (plus ancienne : v${plusVieille ?? "?"})`, tient: true };
       const vieilles = await compter("debt_outstandings", (q) => q.lt("reader_version", VERSION));
-      return { mesure: `${vieilles} ligne(s) avant la v${VERSION}`, tient: vieilles === 0 };
+      return { mesure: `${vieilles} ligne(s) à relire pour l'encours`, tient: false };
     },
   },
   {
