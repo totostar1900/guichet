@@ -21,6 +21,7 @@ import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
 import type { ObservationBeac } from "@/lib/market/beac-journal";
+import type { EncoursDette } from "@/lib/market/encours-dette";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { BeacCurveRow } from "./repository";
@@ -268,6 +269,7 @@ interface Store {
   jugementsBulletin?: JugementBulletin[];
   /** Le journal des annonces BEAC : en ajout seul, la plus récente en tête. */
   observationsBeac?: (ObservationBeac & { vuLe: string })[];
+  encoursDette?: EncoursDette[];
   quotes: Quote[];
   fundNavs: FundNav[];
   issuerDocs: IssuerDocument[];
@@ -1289,6 +1291,24 @@ export const memoryRepository: Repository = {
       if (i >= 0) s.quotes[i] = structuredClone(q);
       else s.quotes.push(structuredClone(q));
     }
+  },
+  async upsertEncoursDette(lignes) {
+    const s = store();
+    s.encoursDette ??= [];
+    for (const l of lignes) {
+      const i = s.encoursDette.findIndex((x) => x.isin === l.isin && x.sessionDate === l.sessionDate);
+      if (i >= 0) s.encoursDette[i] = structuredClone(l);
+      else s.encoursDette.push(structuredClone(l));
+    }
+  },
+  async encoursDette(sessionDate) {
+    const lignes = store().encoursDette ?? [];
+    /* La dernière séance QUI EN PORTE UN, et non celle du jour : toutes les
+       séances n'ont pas cette table, et rendre vide ferait lire « l'encours
+       est tombé à zéro » là où il n'y a qu'un bulletin maigre. */
+    const jour = sessionDate ?? [...lignes.map((l) => l.sessionDate)].sort().at(-1);
+    if (!jour) return [];
+    return structuredClone(lignes.filter((l) => l.sessionDate === jour).sort((a, b) => b.outstanding - a.outstanding));
   },
   async listQuotes(isin, limit = 60) {
     return structuredClone(store().quotes.filter((q) => q.isin === isin).sort((a, b) => b.sessionDate.localeCompare(a.sessionDate)).slice(0, limit));

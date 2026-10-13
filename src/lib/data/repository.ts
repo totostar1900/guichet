@@ -18,6 +18,7 @@ import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, MouvementSeance, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
 import type { DernierEtat, ObservationBeac } from "@/lib/market/beac-journal";
+import type { EncoursDette } from "@/lib/market/encours-dette";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
@@ -378,6 +379,17 @@ export interface Repository {
   ajouterObservationsBeac(obs: ObservationBeac[]): Promise<number>;
   /** Idempotent on (isin, sessionDate). */
   upsertQuotes(quotes: Quote[]): Promise<void>;
+  /**
+   * L encours des titres de dette d une séance. Idempotent sur (sessionDate, isin).
+   *
+   * ON ÉCRIT LE RELEVÉ ENTIER À CHAQUE SÉANCE, et c est voulu : ici c est la
+   * SÉRIE qui est le produit, contrairement au journal des annonces BEAC, qui
+   * n écrit que ce qui bouge parce qu il garde la trace d une page sans
+   * mémoire. Le cours et l encours changent presque chaque séance.
+   */
+  upsertEncoursDette(lignes: EncoursDette[]): Promise<void>;
+  /** Le relevé d une séance, ou de la dernière séance qui en porte un. */
+  encoursDette(sessionDate?: string): Promise<EncoursDette[]>;
   /** History of one line, most recent first. */
   listQuotes(isin: string, limit?: number): Promise<Quote[]>;
   /**

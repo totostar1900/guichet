@@ -788,7 +788,13 @@ export async function completerObligations(parsed: BocParsed, bytes: Uint8Array,
      obligations vont bien mais dont la table de capitalisation est illisible
      ne serait jamais rattrapée. C est le cas le plus fréquent des 209. */
   const capiAReprendre = parsed.capitalisation.length === 0;
-  if (manquantes.size === 0 && !aSituer && !actionsAReprendre && !capiAReprendre) return [];
+  /* L ENCOURS OUVRE LA GARDE À LUI SEUL, et il le faut. Le lecteur aplati ne
+     lit JAMAIS cette table, donc une séance dont les obligations, les actions
+     et la capitalisation vont toutes bien n entrerait jamais ici, et son
+     encours ne serait jamais lu. C est exactement le piège que la
+     capitalisation avait tendu avant elle. */
+  const encoursAReprendre = parsed.outstandings.length === 0;
+  if (manquantes.size === 0 && !aSituer && !actionsAReprendre && !capiAReprendre && !encoursAReprendre) return [];
 
   let rangees: Rangee[];
   try {
@@ -843,6 +849,12 @@ export async function completerObligations(parsed: BocParsed, bytes: Uint8Array,
       parsed.notes = parsed.notes.filter((n) => !caduqueCapi(n.message));
     }
   }
+
+  /* L ENCOURS DE LA DETTE, DANS LA MÊME PASSE QUE TOUT LE RESTE. Les rangées
+     sont déjà lues, et pdfjs détache le tampon : un second appel rendrait du
+     vide en silence. C est la seule table de la section que l aplatie ne lit
+     pas du tout, donc il n y a rien à compléter ici, seulement à lire. */
+  if (parsed.outstandings.length === 0) parsed.outstandings.push(...encoursGeometriques(rangees));
 
   if (manquantes.size === 0) return [];
 

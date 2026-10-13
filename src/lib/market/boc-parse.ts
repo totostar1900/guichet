@@ -93,6 +93,15 @@ export interface BocParsed {
   bonds: BocBond[];
   funds: BocFund[];
   capitalisation: BocCapitalisation[];
+  /**
+   * L'encours des titres de dette, SECONDE table de la même section.
+   *
+   * Le lecteur aplati ne la lit pas du tout, et ne le peut pas : la couche
+   * texte colle ses dix-huit cellules. Elle est donc toujours remplie par la
+   * lecture géométrique, jamais ici, et une séance lue à plat la laisse vide
+   * sans que ce soit un défaut.
+   */
+  outstandings: BocEncours[];
   notices: string[]; // titles of the avis (amortissements, paiements d'intérêts…)
   warnings: string[];
   /* Les mêmes phrases, avec la ligne fautive quand il y en a une. Le rapport
@@ -196,7 +205,7 @@ export function parseBoc(text: string, nominauxDeReference?: Map<string, number>
   const capitalisation = parseCapitalisation(lines, warnings);
   const notices = lines.filter((l) => /^«.*»\s*$/.test(l)).map((l) => l.replace(/[«»]/g, "").trim());
 
-  return { bulletinNo, sessionDate, index, equities, bonds, funds, capitalisation, notices, warnings: warnings.messages, notes: warnings.notes };
+  return { bulletinNo, sessionDate, index, equities, bonds, funds, capitalisation, outstandings: [], notices, warnings: warnings.messages, notes: warnings.notes };
 }
 
 /* ---------------- Capitalisation boursière ---------------- */
@@ -973,7 +982,15 @@ export interface BocEncours {
   previousCouponOn: string;
   /** La prochaine échéance théorique, en ISO. */
   nextCouponOn: string;
-  /** L'encours, et il vaut units × nominalRemaining : c'est le contrôle. */
+  /**
+   * L'encours, colonne « Encours calculé à ce jour ».
+   *
+   * IL VAUT units × nominalRemaining × pricePct / 100, ET LE COURS N'EST PAS
+   * FACULTATIF. J'avais écrit ici « il vaut units × nominalRemaining », ce qui
+   * n'est vrai qu'au pair : treize lignes sur trente et une l'étaient, et les
+   * dix-huit autres étaient refusées en silence. C'est ce produit, et lui
+   * seul, qui autorise une rangée à entrer.
+   */
   outstanding: number;
   netYieldPct?: number;
   turnoverPct?: number;

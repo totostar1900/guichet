@@ -549,6 +549,19 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     refusDEcriture = e instanceof Error ? e.message : "cause inconnue";
   }
 
+  /* L ENCOURS A SON PROPRE GARDE, ET C EST DÉLIBÉRÉ. Une table posée
+     aujourd hui ne doit pas pouvoir faire échouer une ingestion qui marchait
+     hier : si son écriture est refusée, les cotations et les VL restent
+     écrites, et la séance le DIT au lieu de se taire. Acquitter n est pas se
+     taire, c est la leçon des pannes muettes. */
+  if (parsed.outstandings.length > 0) {
+    try {
+      await r.upsertEncoursDette(parsed.outstandings.map((e) => ({ ...e, sessionDate, readerVersion: VERSION_DU_LECTEUR })));
+    } catch (e) {
+      parsed.warnings.push(`Encours de la dette : écriture refusée par la base (${e instanceof Error ? e.message : "cause inconnue"}). Les ${parsed.outstandings.length} ligne(s) lues n'ont pas été gardées.`);
+    }
+  }
+
   if (refusDEcriture) {
     const bulletin: MarketBulletin = {
       id: sessionDate,

@@ -2269,6 +2269,74 @@ export const supabaseRepository: Repository = {
     const { error } = await db().from("quotes").upsert(quotes.map(fromQuote), { onConflict: "isin,session_date" });
     if (error) fail("upsertQuotes", error);
   },
+  async upsertEncoursDette(lignes) {
+    if (!lignes.length) return;
+    const { error } = await db()
+      .from("debt_outstandings")
+      .upsert(
+        lignes.map((l) => ({
+          session_date: l.sessionDate,
+          isin: l.isin,
+          mnemo: l.mnemo || null,
+          issuer: l.issuer,
+          designation: l.designation,
+          coupon_rate: Number.isFinite(l.couponRate) ? l.couponRate : null,
+          first_listed_on: l.firstListedOn || null,
+          amount_raised: Number.isFinite(l.amountRaised) ? l.amountRaised : null,
+          units: l.units,
+          nominal_remaining: l.nominalRemaining,
+          price_pct: l.pricePct,
+          outstanding: l.outstanding,
+          maturity_years: Number.isFinite(l.maturityYears) ? l.maturityYears : null,
+          amortisation: l.amortisation || null,
+          periodicity: l.periodicity || null,
+          previous_coupon_on: l.previousCouponOn || null,
+          next_coupon_on: l.nextCouponOn || null,
+          net_yield_pct: l.netYieldPct ?? null,
+          turnover_pct: l.turnoverPct ?? null,
+          reader_version: l.readerVersion ?? null,
+        })),
+        { onConflict: "session_date,isin" },
+      );
+    if (error) fail("upsertEncoursDette", error);
+  },
+  async encoursDette(sessionDate) {
+    /* SANS SÉANCE DEMANDÉE, ON REND LA DERNIÈRE QUI EN PORTE UN, et non celle
+       d'aujourd'hui : toutes les séances n'ont pas cette table, et rendre un
+       tableau vide un jour de bulletin maigre ferait dire au desk que
+       l'encours est tombé à zéro. */
+    let jour = sessionDate;
+    if (!jour) {
+      const { data, error } = await db().from("debt_outstandings").select("session_date").order("session_date", { ascending: false }).limit(1);
+      if (error) fail("encoursDette", error);
+      jour = (data as { session_date: string }[] | null)?.[0]?.session_date;
+      if (!jour) return [];
+    }
+    const { data, error } = await db().from("debt_outstandings").select("*").eq("session_date", jour).order("outstanding", { ascending: false });
+    if (error) fail("encoursDette", error);
+    return (data as Record<string, unknown>[]).map((r) => ({
+      sessionDate: r.session_date as string,
+      isin: r.isin as string,
+      mnemo: (r.mnemo as string) ?? "",
+      issuer: r.issuer as string,
+      designation: r.designation as string,
+      couponRate: Number(r.coupon_rate),
+      firstListedOn: (r.first_listed_on as string) ?? "",
+      amountRaised: Number(r.amount_raised),
+      units: Number(r.units),
+      nominalRemaining: Number(r.nominal_remaining),
+      pricePct: Number(r.price_pct),
+      outstanding: Number(r.outstanding),
+      maturityYears: Number(r.maturity_years),
+      amortisation: (r.amortisation as string) ?? "",
+      periodicity: (r.periodicity as string) ?? "",
+      previousCouponOn: (r.previous_coupon_on as string) ?? "",
+      nextCouponOn: (r.next_coupon_on as string) ?? "",
+      netYieldPct: r.net_yield_pct == null ? undefined : Number(r.net_yield_pct),
+      turnoverPct: r.turnover_pct == null ? undefined : Number(r.turnover_pct),
+      readerVersion: r.reader_version == null ? undefined : Number(r.reader_version),
+    }));
+  },
   async listQuotes(isin, limit = 60) {
     const { data, error } = await db().from("quotes").select("*").eq("isin", isin).order("session_date", { ascending: false }).limit(limit);
     if (error) fail("listQuotes", error);
