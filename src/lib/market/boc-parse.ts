@@ -209,7 +209,35 @@ function parseCapitalisation(lines: string[], warnings: Carnet): BocCapitalisati
     warnings.push("Section « Capitalisation boursière » introuvable.");
     return out;
   }
-  const end = lines.findIndex((l, i) => i > start && /^Total$/.test(l.trim()));
+  /**
+   * LA LIGNE QUI FERME LA TABLE, MÊME COLLÉE À SES CHIFFRES.
+   *
+   * Georges a signalé le 13 octobre 2026 que les rangées de la famille O
+   * « sont bien complètes ». Elles le sont, et ce n'était pas la bonne table.
+   *
+   * La section s'appelle « CAPITALISATION BOURSIERE ET ENCOURS DES TITRES DE
+   * DETTE » : elle en contient DEUX, celle des actions puis celle de la dette,
+   * qui n'ont pas les mêmes colonnes. La première se ferme sur un total, et
+   * c'est lui qui sépare. Or l'aplatissement du PDF colle ce total à ses
+   * propres chiffres :
+   *
+   *   Total63 664 048 000438 928 687 500
+   *
+   * « ^Total$ » ne le reconnaît donc pas, la borne n'est jamais trouvée, et le
+   * lecteur avale les deux cents lignes suivantes. Il lit alors les rangées
+   * BDEAC de la table de la DETTE avec la grammaire des ACTIONS, qui attend un
+   * flottant, un dividende et une capitalisation. D'où « cellules
+   * incomplètes » sur des rangées parfaitement formées.
+   *
+   * Mesuré sur les quatre séances de la famille : « ^Total$ » rend -1 sur les
+   * quatre, et la ligne collée est au bon endroit. Sur une séance saine, le
+   * total nu existe ET arrive AVANT le total collé de la table de dette, donc
+   * prendre la première occurrence de l'un ou l'autre reste juste.
+   *
+   * Le chiffre ou le tiret est exigé juste après : un émetteur dont le nom
+   * commence par « Total » ne fermerait pas la table par accident.
+   */
+  const end = lines.findIndex((l, i) => i > start && /^Total\s*$|^Total\s*[\d-]/.test(l.trim()));
   const section = lines.slice(start, end > start ? end : start + 200).map((l) => l.trim());
   const isNum = (c: string) => /^-?[\d ]+(?:,\d+)?$/.test(c) && c !== "-";
   for (let i = 0; i < section.length; i++) {

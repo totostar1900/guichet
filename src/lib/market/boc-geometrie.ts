@@ -1,4 +1,4 @@
-import type { BocBond, BocEquity, BocParsed } from "./boc-parse";
+import type { BocBond, BocCapitalisation, BocEquity, BocParsed } from "./boc-parse";
 import { isoDate, num, type Carnet } from "./boc-parse";
 
 /**
@@ -783,7 +783,12 @@ export async function completerObligations(parsed: BocParsed, bytes: Uint8Array,
   const manquantes = new Set(parsed.warnings.map((w) => w.match(PERDUE)?.[1]).filter((x): x is string => !!x));
   const aSituer = parsed.notes.some((n) => n.brut && n.page === undefined);
   const actionsAReprendre = parsed.warnings.some((w) => ACTION_PERDUE.test(w));
-  if (manquantes.size === 0 && !aSituer && !actionsAReprendre) return [];
+  /* LA CAPITALISATION ENTRE DANS LA CONDITION D OUVERTURE, sans quoi la
+     garde renverrait avant d avoir lu le PDF : une séance dont les
+     obligations vont bien mais dont la table de capitalisation est illisible
+     ne serait jamais rattrapée. C est le cas le plus fréquent des 209. */
+  const capiAReprendre = parsed.capitalisation.length === 0;
+  if (manquantes.size === 0 && !aSituer && !actionsAReprendre && !capiAReprendre) return [];
 
   let rangees: Rangee[];
   try {
@@ -825,6 +830,20 @@ export async function completerObligations(parsed: BocParsed, bytes: Uint8Array,
     }
   }
 
+  /* LA CAPITALISATION AUSSI, ET DANS LA MÊME PASSE. Les rangées sont déjà
+     lues, et pdfjs détache le tampon : un second appel rendrait du vide en
+     silence. Un quart des cotations d action n avait ni flottant ni
+     capitalisation, faute d une couche texte qui sépare les cellules. */
+  if (parsed.capitalisation.length === 0) {
+    const capi = capitalisationsGeometriques(rangees);
+    if (capi.length > 0) {
+      parsed.capitalisation.push(...capi);
+      const caduqueCapi = (m: string) => /^Section « Capitalisation|^Capitalisation [A-Z]{2}\d{10}/.test(m);
+      parsed.warnings = parsed.warnings.filter((w) => !caduqueCapi(w));
+      parsed.notes = parsed.notes.filter((n) => !caduqueCapi(n.message));
+    }
+  }
+
   if (manquantes.size === 0) return [];
 
   const geo = obligationsGeometriques(rangees, undefined, nominauxDeReference);
@@ -841,4 +860,111 @@ export async function completerObligations(parsed: BocParsed, bytes: Uint8Array,
   parsed.warnings = parsed.warnings.filter((w) => !caduque(w));
   parsed.notes = parsed.notes.filter((n) => !caduque(n.message));
   return [...rendues];
+}
+
+/* ---------------- Capitalisation boursière ---------------- */
+
+/**
+ * LA TABLE DE CAPITALISATION, LUE PAR LES ABSCISSES.
+ *
+ * CE QUE LA FAMILLE O CACHAIT, et Georges avait raison de douter : « les
+ * lignes sont bien complètes ». Elles le sont, et ce n'était pas la bonne
+ * table. La section s'appelle « CAPITALISATION BOURSIERE ET ENCOURS DES
+ * TITRES DE DETTE » : elle en contient DEUX, celle des actions puis celle de
+ * la dette, qui n'ont pas les mêmes colonnes. Le lecteur aplati, ne trouvant
+ * pas la borne entre les deux, lisait les rangées BDEAC avec la grammaire des
+ * actions et en tirait trois lignes de pur bruit :
+ *
+ *   CG0000020220 EBD01 · cours 5,45 · flottant 106 791 920 000 · capG 0
+ *
+ * « 5,45 » est le TAUX DU COUPON et « 106 791 920 000 » le MONTANT LEVÉ. Rien
+ * n'atteignait la base, l'appariement se faisant par ISIN avec les actions,
+ * mais ces fausses lignes empêchaient le lecteur de dire qu'il n'avait rien
+ * lu. Du faux inerte qui couvrait un vrai manque.
+ *
+ * LE VRAI MANQUE, MESURÉ : 1 253 cotations d'action sur 4 981, soit UN QUART,
+ * n'ont ni flottant, ni capitalisation, ni dividende, ni bénéfice par action,
+ * sur 209 séances. La couche texte du PDF y colle toutes les cellules :
+ *
+ *   BANGEGQ0000010050BANGEBANGE
+ *   207 300,0050 000558 9608 397,40202229/07/20230,00--10 365 000 000115 872 408 000
+ *
+ * LES ABSCISSES, ELLES, LES SÉPARENT PROPREMENT, quinze cellules par rangée.
+ *
+ * ET LA RANGÉE SE VÉRIFIE ELLE-MÊME, ce qui est tout ce qui rend la lecture
+ * défendable : la capitalisation flottante vaut le cours fois le flottant, la
+ * globale le cours fois le total. Deux produits qui tombent juste au franc
+ * près ne tombent pas juste par hasard. Une découpe qui les manque est
+ * refusée, et la séance garde sa remarque.
+ */
+const CAPI_DEBUT = /^CAPITALISATION BOURSIERE/i;
+const CAPI_FIN = /^(MARCHE DES|SYNTHESE|PHYSIONOMIE|BULLETIN OFFICIEL)/i;
+const NOMBRE_CAPI = /^-?[\d  ]+(?:,\d+)?$/;
+
+/** Le produit annoncé et le produit calculé s'accordent-ils au franc près ? */
+const produitTient = (attendu: number, a: number, b: number): boolean => Number.isFinite(attendu) && attendu > 0 && Math.abs(attendu - a * b) <= 1;
+
+export function capitalisationsGeometriques(rangees: Rangee[], carnet?: Carnet): BocCapitalisation[] {
+  const titre = (r: Rangee, motif: RegExp) => r.cellules.some((c) => motif.test(c.texte.trim()));
+  const debut = rangees.findIndex((r) => titre(r, CAPI_DEBUT));
+  if (debut < 0) return [];
+  /* On saute les trois rangées d'en-tête avant de chercher la fin : le titre
+     de section est lui-même suivi d'un « MARCHE DES ACTIONS : 6 EMETTEURS »
+     qui fermerait la section au premier pas. */
+  const fin = rangees.findIndex((r, i) => i > debut + 4 && titre(r, CAPI_FIN));
+  const section = rangees.slice(debut, fin > debut ? fin : debut + 40);
+
+  const parPage = new Map<number, number[]>();
+  for (const p of new Set(section.map((r) => r.page))) parPage.set(p, colonnes(section.filter((r) => r.page === p)));
+
+  const out: BocCapitalisation[] = [];
+  const vus = new Set<string>();
+  for (const r of section) {
+    const cells = rangeeSeparee(r, parPage.get(r.page) ?? [])
+      .map((c) => c.texte.trim())
+      .filter(Boolean);
+    const iIsin = cells.findIndex((c) => ISIN_DANS.test(c));
+    if (iIsin < 0) continue;
+    const isin = cells[iIsin].match(ISIN_DANS)![0];
+    if (vus.has(isin)) continue;
+
+    const apres = cells.slice(iIsin + 1);
+    const nums = apres.filter((c) => NOMBRE_CAPI.test(c)).map(num);
+    if (nums.length < 5) continue;
+
+    const [close, sharesFloat, sharesTotal] = nums;
+    const marketCapFloat = nums[nums.length - 2];
+    const marketCapTotal = nums[nums.length - 1];
+
+    /* LES DEUX PRODUITS, ET RIEN D'AUTRE NE DÉCIDE. Une rangée de la table de
+       dette ne les vérifiera jamais, puisque son « cours » est un taux et son
+       « flottant » un montant levé : le contrôle écarte donc les intruses
+       sans avoir à savoir dans quelle table on se trouve. */
+    if (!produitTient(marketCapFloat, close, sharesFloat) || !produitTient(marketCapTotal, close, sharesTotal)) {
+      carnet?.sur(`Capitalisation ${isin} : les capitalisations annoncées ne valent pas le cours multiplié par les volumes.`, cells.join(" | "), "cours × flottant = capitalisation flottante, cours × total = capitalisation globale");
+      continue;
+    }
+
+    const iDate = apres.findIndex((c) => DATE.test(c));
+    const dividende = iDate > 1 ? { lastDividend: num(apres[iDate - 2]), dividendYear: Number(apres[iDate - 1]), dividendDate: isoDate(apres[iDate]) } : {};
+    /* Entre la date et les deux capitalisations : la liquidité, puis le
+       bénéfice par action quand il est publié, puis le PER. Ce que la rangée
+       ne donne pas reste absent, on ne le fabrique pas. */
+    const queue = (iDate >= 0 ? apres.slice(iDate + 1) : []).filter((c) => NOMBRE_CAPI.test(c)).map(num).slice(0, -2);
+
+    vus.add(isin);
+    out.push({
+      isin,
+      mnemo: (cells[iIsin].replace(ISIN_DANS, "").trim() || apres[0] || "").split(/\s+/)[0] ?? "",
+      close,
+      sharesFloat,
+      sharesTotal,
+      ...dividende,
+      liquidity3mPct: queue[0],
+      eps: queue[1],
+      marketCapFloat,
+      marketCapTotal,
+    });
+  }
+  return out;
 }

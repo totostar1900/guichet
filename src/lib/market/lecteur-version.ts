@@ -165,8 +165,43 @@
  *                             fichier décide si une VL est écrite, réparée ou
  *                             écartée, donc il change ce que la base
  *                             contient.
+ *  12  (2026-10-13)           LA TABLE DE CAPITALISATION, LUE PAR LES
+ *                             ABSCISSES, et la borne qui sépare deux tables.
+ *                             Georges a dit des rangées refusées qu elles
+ *                             « sont bien complètes ». Elles l étaient, et ce
+ *                             n était pas la bonne table : la section
+ *                             s appelle « CAPITALISATION BOURSIERE ET ENCOURS
+ *                             DES TITRES DE DETTE » et en contient DEUX. La
+ *                             première se ferme sur un total que l
+ *                             aplatissement colle à ses chiffres
+ *                             (« Total63 664 048 000438 928 687 500 »), que
+ *                             « ^Total$ » ne reconnaissait pas : le lecteur
+ *                             avalait alors deux cents lignes et lisait les
+ *                             rangées BDEAC avec la grammaire des ACTIONS,
+ *                             rendant « cours 5,45 » pour un taux de coupon
+ *                             et « flottant 106 791 920 000 » pour un montant
+ *                             levé. Rien n atteignait la base, l appariement
+ *                             se faisant par ISIN, mais ces fausses lignes
+ *                             empêchaient le lecteur de dire qu il n avait
+ *                             rien lu.
+ *                             LE VRAI MANQUE, lui, pesait un quart des
+ *                             cotations d action : 1 253 sur 4 981, sans
+ *                             flottant ni capitalisation ni dividende, sur
+ *                             208 séances. Les abscisses rendent la table
+ *                             proprement, et LA RANGÉE SE VÉRIFIE ELLE-MÊME :
+ *                             cours × flottant = capitalisation flottante,
+ *                             cours × total = capitalisation globale. C est
+ *                             ce contrôle, et lui seul, qui écarte les
+ *                             rangées de dette sans avoir à connaître la
+ *                             frontière entre les deux tables.
+ *                             Mesuré sur 812 séances : 208 où l aplatie ne
+ *                             rend rien, 208 rendues, +1 002 lignes, ZÉRO
+ *                             produit faux. Et 122 séances où la géométrie
+ *                             lirait MOINS bien : on ne la consulte donc que
+ *                             lorsque l aplatie ne rend rien, jamais en
+ *                             remplacement.
  */
-export const VERSION_DU_LECTEUR = 11;
+export const VERSION_DU_LECTEUR = 12;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
