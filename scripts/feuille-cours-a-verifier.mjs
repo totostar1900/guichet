@@ -73,6 +73,40 @@ const COLONNES = [
 const NAVY = "FF0B2545";
 const OR = "FFB8860B";
 const MANQUE = "FFFFF4CE";
+const SAISIE = "FFE8F3EC";
+
+/**
+ * LES SIX RANGÉES DU 7 AOÛT 2024, RELEVÉES À LA MAIN PAR GEORGES.
+ *
+ * La grille n'en rendait que dix-huit cellules sur vingt-et-une, collées et
+ * privées de leur dernière colonne : aucun alignement ne se démontrait, donc
+ * la feuille les laissait vides plutôt que de les remplir de travers.
+ *
+ * LA SAISIE SE VÉRIFIE, ET ELLE TIENT. Sur les deux rangées qui ont traité,
+ * la valeur transigée imprimée se reconstitue exactement :
+ *
+ *   EBD05  275 × (10 000 + 233,11) = 2 814 105
+ *   EBD06  250 × (10 000 + 184,14) = 2 546 035
+ *
+ * Au franc près toutes les deux. Et ce contrôle apprend une convention que
+ * nous ignorions : LA VALEUR TRANSIGÉE EST COUPON COURU COMPRIS. Une saisie
+ * fausse ne tomberait pas juste sur deux lignes indépendantes.
+ *
+ * LA DERNIÈRE COLONNE EST ABSENTE DE LA PIÈCE, et c'est une lecture, pas un
+ * oubli : la grille s'arrête après la variation, la copie de Georges aussi.
+ * Deux lectures indépendantes qui s'arrêtent au même endroit disent que le
+ * bulletin ne l'imprime pas ce jour-là. On écrit donc « absente de la pièce »
+ * plutôt que de laisser une case vide, qui se lirait comme un travail inachevé.
+ */
+const ABSENTE = "absente de la pièce";
+const SAISIE_DU_7_AOUT_2024 = {
+  CG0000020220: ["BDEAC", "BDEAC 5,45% NET 2020 - 2027", "CG0000020220", "EBD01", "06/08/2024", "100,00", "8000", "8000", "268,03", "0", "795000", "0", "0", "0", "NC", "100,00", "100,00", "106,00", "94,00", "0,00%", ABSENTE],
+  CG0000020261: ["BDEAC", "BDEAC 5,6% NET 2021-2028", "CG0000020261", "EBD02", "06/08/2024", "100,00", "10000", "10000", "379,45", "0", "500000", "0", "0", "0", "NC", "100,00", "100,00", "106,00", "94,00", "0,00%", ABSENTE],
+  CG0000020329: ["BDEAC", "BDEAC 6% NET 2022-2029", "CG0000020329", "EBD03", "06/08/2024", "99,95", "9995", "10000", "370,49", "0", "500000", "0", "0", "0", "NC", "99,95", "99,95", "105,95", "93,95", "0,00%", ABSENTE],
+  CG0000020469: ["BDEAC", "BDEAC 6,20% NET 2024-2031", "CG0000020469", "EBD04", "07/08/2024", "100,00", "10000", "10000", "242,9", "0", "0", "0", "0", "0", "NC", "100,00", "100,00", "106,00", "94,00", "0,00%", ABSENTE],
+  CG0000020436: ["BDEAC", "BDEAC 5,95% NET 2024-2029", "CG0000020436", "EBD05", "07/08/2024", "100,00", "10000", "10000", "233,11", "275", "275", "275", "2 814 105", "1", "PEq", "100,00", "100,00", "106,00", "94,00", "0,00%", ABSENTE],
+  CG0000020444: ["BDEAC", "BDEAC 4,70% NET 2024-2027", "CG0000020444", "EBD06", "07/08/2024", "100,00", "10000", "10000", "184,14", "250", "250", "250", "2 546 035", "1", "PEq", "100,00", "100,00", "106,00", "94,00", "0,00%", ABSENTE],
+};
 
 /** Les cellules d'une rangée refusée, identité et nombres réunis. */
 function rangeeComplete(rangees, isin) {
@@ -117,7 +151,7 @@ dire(`   ${lignes.length - complètes} rangée(s) incomplètes, à compléter à
 const wb = new ExcelJS.Workbook();
 const f = wb.addWorksheet("Cours à vérifier", { properties: { tabColor: { argb: OR } } });
 
-const enTete = ["Séance", "BOC n°", "Cellules lues", "Juste ?", "Correction éventuelle", ...COLONNES, "Cellules lues telles quelles (aide à la saisie)"];
+const enTete = ["Séance", "BOC n°", "Provenance", "Juste ?", "Correction éventuelle", ...COLONNES, "Contrôle arithmétique", "Cellules lues telles quelles"];
 f.mergeCells(1, 1, 1, enTete.length);
 const t = f.getCell(1, 1);
 t.value = "Les 50 rangées de cours que le lecteur refuse, telles que la grille les voit";
@@ -141,7 +175,7 @@ enTete.forEach((h, i) => {
   c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEEF1F6" } };
   c.alignment = { vertical: "middle", wrapText: true };
   c.border = { bottom: { style: "thin", color: { argb: OR } } };
-  f.getColumn(i + 1).width = i < 5 ? 14 : i === enTete.length - 1 ? 70 : Math.min(26, Math.max(11, h.length / 2 + 6));
+  f.getColumn(i + 1).width = i < 5 ? 15 : i >= enTete.length - 2 ? 56 : Math.min(26, Math.max(11, h.length / 2 + 6));
 });
 r4.height = 40;
 f.views = [{ state: "frozen", xSplit: 5, ySplit: 4 }];
@@ -151,7 +185,7 @@ lignes.forEach((l, i) => {
   const row = f.getRow(5 + i);
   row.getCell(1).value = l.seance;
   row.getCell(2).value = l.numero;
-  row.getCell(3).value = l.cellules.length;
+  row.getCell(3).value = "";
   row.getCell(4).value = "";
   row.getCell(5).value = "";
   /* ON NE PLACE QUE CE QU'ON SAIT PLACER. Le placement par position suppose
@@ -162,9 +196,13 @@ lignes.forEach((l, i) => {
      une date. Sous le compte attendu, la rangée est donc entièrement à
      remplir, et son texte brut est donné à côté pour que ce soit rapide. */
   const alignable = l.cellules.length === COLONNES.length;
+  const saisie = !alignable ? SAISIE_DU_7_AOUT_2024[l.isin] : undefined;
   COLONNES.forEach((_, j) => {
     const cell = row.getCell(6 + j);
-    const v = alignable ? l.cellules[j] : undefined;
+    const v = alignable ? l.cellules[j] : saisie?.[j];
+    /* La saisie à la main se distingue de la lecture machine, sans quoi la
+       feuille mélangerait deux provenances sous la même apparence. */
+    if (saisie) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: SAISIE } };
     if (v == null) {
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: MANQUE } };
       cell.border = { bottom: { style: "thin", color: { argb: OR } }, top: { style: "thin", color: { argb: OR } } };
@@ -174,10 +212,44 @@ lignes.forEach((l, i) => {
     cell.font = { size: 9 };
     cell.alignment = { vertical: "top" };
   });
+  row.getCell(3).value = saisie ? "saisie à la main" : alignable ? "lue par la grille" : "non alignable";
+  row.getCell(3).font = { size: 8, color: { argb: saisie ? "FF2B6A4B" : "FF6B7280" } };
+
+  /**
+   * LE CONTRÔLE ARITHMÉTIQUE, QUAND LA RANGÉE A TRAITÉ.
+   *
+   * Trouvé sur la saisie de Georges, et c'est elle qui l'a enseigné : la
+   * valeur transigée imprimée vaut le volume multiplié par le nominal PLUS
+   * LE COUPON COURU. Deux rangées indépendantes tombent au franc près, ce
+   * qu'une saisie fausse ne ferait pas.
+   *
+   * Une rangée qui n'a pas traité n'a rien à vérifier ici : on le dit plutôt
+   * que de laisser un blanc, qui se lirait comme un contrôle oublié.
+   */
+  const nb = (s) => Number(String(s ?? "").replace(/[  ]/g, "").replace(",", "."));
+  const valeurs = alignable ? l.cellules : saisie;
+  const ctrl = row.getCell(6 + COLONNES.length);
+  if (valeurs) {
+    const volume = nb(valeurs[11]);
+    const valeurTransigee = nb(valeurs[12]);
+    const nominal = nb(valeurs[7]);
+    const couru = nb(valeurs[8]);
+    if (volume > 0 && valeurTransigee > 0) {
+      const attendu = volume * (nominal + couru);
+      const ecart = valeurTransigee - attendu;
+      ctrl.value = `volume × (nominal + couru) = ${Math.round(attendu).toLocaleString("fr-FR")} · imprimé ${Math.round(valeurTransigee).toLocaleString("fr-FR")} · écart ${Math.round(ecart)}`;
+      ctrl.font = { size: 8, bold: Math.abs(ecart) > 1, color: { argb: Math.abs(ecart) <= 1 ? "FF2B6A4B" : "FFA63D26" } };
+    } else {
+      ctrl.value = "rien n'a traité : rien à vérifier ici";
+      ctrl.font = { size: 8, italic: true, color: { argb: "FF9CA3AF" } };
+    }
+    ctrl.alignment = { vertical: "top", wrapText: true };
+  }
+
   /* Le texte brut en bout de ligne : il ne sert qu aux rangées non alignables,
      et il evite de rouvrir le PDF pour les remplir. */
   if (!alignable) {
-    const aide = row.getCell(6 + COLONNES.length);
+    const aide = row.getCell(7 + COLONNES.length);
     aide.value = l.cellules.join("  |  ");
     aide.font = { size: 8, name: "Consolas", color: { argb: "FF4B5563" } };
     aide.alignment = { vertical: "top", wrapText: true };
