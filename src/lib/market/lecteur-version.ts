@@ -319,8 +319,52 @@
  *                             deja : l ecrire remplacerait une valeur juste
  *                             par une valeur tronquee. La reconstruction sert
  *                             de PREUVE au fournisseur, pas de valeur en base.
+ *
+ *  16  (2026-10-14)           LA RANGÉE COUPÉE EN DEUX HAUTEURS, et le
+ *                             seuil qu on n a PAS touche. Du 14 avril au
+ *                             2 juin 2023, quatre lignes par seance sont
+ *                             imprimees sur deux hauteurs separees de TROIS
+ *                             points la ou le regroupement en tolere deux et
+ *                             demi : l identite du titre reste en haut, les
+ *                             dix-sept nombres tombent juste en dessous, et
+ *                             aucune des deux moities n est lisible seule.
+ *
+ *                             PASSER LA TOLERANCE A TROIS ETAIT L EVIDENCE,
+ *                             et Georges a dit non. Il avait raison : les
+ *                             lignes d en-tete de ces memes bulletins ne sont
+ *                             separees que de 4,4 points, donc une tolerance
+ *                             a trois les fusionnerait deux a deux. Un seuil
+ *                             deplace pour un cas agit sur tous les autres,
+ *                             et personne ne les mesure.
+ *
+ *                             LA FORME NE DISCUTE AVEC PERSONNE. Une rangee
+ *                             qui porte un ISIN et AUCUNE date n est pas une
+ *                             ligne de cours : c est une moitie. Une rangee
+ *                             voisine qui porte une date et AUCUN ISIN est l
+ *                             autre. Les deux conditions ensemble ne
+ *                             decrivent rien d autre, quelle que soit la
+ *                             distance. C est la meme methode que la queue
+ *                             qui deborde, etendue au cas ou c est la tete
+ *                             qui reste seule.
+ *
+ *                             MESURE EN REGRESSION, les deux versions du
+ *                             lecteur sur le MEME texte dans le meme
+ *                             processus, 150 seances reparties sur tout le
+ *                             corpus, une sur cinq : 16 GAGNEES, ZERO
+ *                             PERDUE, ZERO CHANGEE. Le zero du milieu est
+ *                             celui qui compte, la regle ne touche jamais
+ *                             une rangee deja lue. La premiere mesure
+ *                             comparait le lecteur a la BASE et rendait 120
+ *                             ecarts : c etaient des fautes preexistantes du
+ *                             lecteur aplati, et la question posee s y
+ *                             noyait. Relecture contre regression, une fois
+ *                             de plus.
+ *
+ *                             Les valeurs gagnees ont ete confrontees a une
+ *                             feuille relue par Georges sur la piece : elles
+ *                             correspondent cellule pour cellule.
  */
-export const VERSION_DU_LECTEUR = 15;
+export const VERSION_DU_LECTEUR = 16;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
@@ -393,6 +437,7 @@ export const TOUCHE_PAR_VERSION: Record<number, Lecteur[]> = {
   13: ["encours"], // la seconde table, l'encours des titres de dette
   14: ["encours"], // trois défauts de la table d'encours
   15: ["vl"], // le montant rendu en date, inverse du défaut de la 10
+  16: ["cotations"], // la rangée coupée en deux hauteurs, jointe par sa forme
 };
 
 /**

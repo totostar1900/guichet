@@ -47,3 +47,13 @@ for (const n of notes) {
   if (n.brut) dire(`         brut    ${String(n.brut).slice(0, 260)}`);
   if (n.attendu) dire(`         attendu ${n.attendu}`);
 }
+
+/* LES VALEURS CONSTRUITES, pour les confronter à la feuille validée : une
+   rangée qui sort n'est pas une rangée juste. */
+const cibles = process.argv.slice(3).filter((a) => /^[A-Z]{2}\d{10}$/.test(a));
+for (const o of lues.filter((x) => !cibles.length || cibles.includes(x.isin))) {
+  dire(`\n   ${o.isin}  ${o.mnemo}  ${o.issuer} · ${o.designation}`);
+  dire(`      précédent ${o.previousDate} · ${o.previousPct}% · ${o.previousFcfa} FCFA`);
+  dire(`      nominal ${o.nominalRemaining} · couru ${o.accruedCoupon} · statut ${o.status}`);
+  dire(`      ouv ${o.open} · clôt ${o.close} · haut ${o.thresholdHigh} · bas ${o.thresholdLow} · var ${o.variationPct}% · réf ${o.referenceNextFcfa}`);
+}

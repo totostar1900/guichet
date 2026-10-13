@@ -465,10 +465,44 @@ export function obligationsGeometriques(rangees: Rangee[], carnet?: Carnet, nomi
         cellules.push(...qc);
       }
     }
+    /**
+     * LA RANGÉE COUPÉE EN DEUX HAUTEURS, RECONNUE À SA FORME.
+     *
+     * Du 14 avril au 2 juin 2023, quatre lignes par séance sont imprimées
+     * sur deux hauteurs séparées de TROIS points, là où le regroupement en
+     * tolère deux et demi : l'identité du titre reste en haut, les dix-sept
+     * nombres tombent juste en dessous, et aucune des deux moitiés n'est
+     * lisible seule. Trente-deux rangées sur les cinquante refusées.
+     *
+     * ON NE TOUCHE PAS À LA TOLÉRANCE, et c'est le point. L'élargir à trois
+     * paraît évident et casserait ailleurs : les lignes d'en-tête de ces
+     * mêmes bulletins ne sont séparées que de 4,4 points, donc une tolérance
+     * à trois les ferait fusionner deux à deux. Un seuil déplacé pour un cas
+     * agit sur tous les autres, et personne ne les mesure.
+     *
+     * LA FORME, ELLE, NE DISCUTE AVEC PERSONNE. Une rangée qui porte un ISIN
+     * et AUCUNE date n'est pas une ligne de cours : c'est une moitié. Et une
+     * rangée voisine qui porte une date et AUCUN ISIN est l'autre moitié. Les
+     * deux conditions ensemble ne décrivent rien d'autre, quelle que soit la
+     * distance. C'est la même méthode que la queue qui déborde, juste
+     * au-dessus, étendue au cas où c'est la tête qui reste seule.
+     */
     const iIsin = cells.findIndex((c) => ISIN.test(c));
     if (iIsin < 0) continue;
     const isin = cells[iIsin];
     if (vus.has(isin)) continue;
+
+    if (!cells.some((c, k) => k > iIsin && DATE.test(c))) {
+      const bas = section[i + 1];
+      if (bas && bas.page === r.page && r.y - bas.y > 0 && r.y - bas.y < 6) {
+        const nc = rangeeSeparee(bas, grille);
+        const n = nc.map((c) => c.texte);
+        if (n.length >= 6 && n.some((c) => DATE.test(c)) && !n.some((c) => ISIN.test(c))) {
+          cells.push(...n);
+          cellules.push(...nc);
+        }
+      }
+    }
 
     /* UNE RANGÉE QUI PORTE UN ISIN ET UNE DATE EST UNE LIGNE DE COURS : si
        elle ne se lit pas, elle se dit. C'est la leçon des pannes muettes,

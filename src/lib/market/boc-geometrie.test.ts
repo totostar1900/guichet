@@ -218,3 +218,72 @@ describe("la queue qui a débordé sur la rangée d'en dessous", () => {
     expect(obligationsGeometriques([titre(), ligne(135.4, corps), ligne(120, ["0,00%", "8 000,00"])], carnet)).toHaveLength(0);
   });
 });
+
+describe("la rangée coupée en deux hauteurs", () => {
+  /**
+   * DU 14 AVRIL AU 2 JUIN 2023, quatre lignes par séance sont imprimées sur
+   * deux hauteurs séparées de TROIS points, là où le regroupement en tolère
+   * deux et demi : l'identité du titre reste en haut, les dix-sept nombres
+   * tombent juste en dessous. Trente-deux rangées sur les cinquante que le
+   * lecteur refusait.
+   *
+   * ON NE TOUCHE PAS À LA TOLÉRANCE, et c'est ce que ces tests gardent : les
+   * lignes d'en-tête de ces mêmes bulletins ne sont séparées que de 4,4
+   * points, donc une tolérance à trois les fusionnerait deux à deux. C'est la
+   * FORME qui décide, et elle ne discute avec personne : une rangée qui porte
+   * un ISIN sans date est une moitié, une rangée qui porte une date sans ISIN
+   * est l'autre.
+   *
+   * Les valeurs attendues sont celles de la pièce du 14 avril 2023, relues
+   * par Georges sur le bulletin.
+   */
+  const cel2 = (texte: string, x: number): Cellule => ({ texte, x, largeur: 20 });
+  const titre = (): Rangee => ({ page: 3, y: 500, cellules: [cel2("MARCHE DES OBLIGATIONS", 36)] });
+  const identite = (y: number): Rangee => ({
+    page: 3,
+    y,
+    cellules: [cel2("ETAT DU CAMEROUN", 38), cel2("ECMR 5,6% NET 2018-2023", 114), cel2("CM0000020107", 199), cel2("ECMR5", 251)],
+  });
+  const nombres = (y: number): Rangee => ({
+    page: 3,
+    y,
+    cellules: ["13/04/2023", "99,2", "2 480,00", "2 500,000", "59,45", "0", "0", "0", "0", "0", "NC", "99,2", "99,2", "99,2", "99,2", "0,00%", "2 480,00"].map((t, i) =>
+      cel2(t, 274 + i * 30),
+    ),
+  });
+
+  it("JOINT L'IDENTITÉ ET LES NOMBRES, ET REND LES VALEURS DE LA PIÈCE", () => {
+    const b = obligationsGeometriques([titre(), identite(405), nombres(402)]);
+    expect(b).toHaveLength(1);
+    expect(b[0].isin).toBe("CM0000020107");
+    expect(b[0].mnemo).toBe("ECMR5");
+    expect(b[0].issuer).toBe("ETAT DU CAMEROUN");
+    expect(b[0].previousDate).toBe("2023-04-13");
+    expect(b[0].previousPct).toBe(99.2);
+    expect(b[0].previousFcfa).toBe(2480);
+    expect(b[0].nominalRemaining).toBe(2500);
+    expect(b[0].accruedCoupon).toBe(59.45);
+    expect(b[0].referenceNextFcfa).toBe(2480);
+  });
+
+  it("NE JOINT PAS DEUX RANGÉES QUI PORTENT CHACUNE UN ISIN", () => {
+    /* Deux titres l'un sous l'autre ne sont pas une rangée coupée, si proches
+       soient-ils : c'est le garde qui empêche d'avaler la ligne suivante. */
+    const autre: Rangee = { page: 3, y: 402, cellules: [cel2("ETAT DU GABON", 38), cel2("EOG 6% NET 2021-2026", 114), cel2("GA0000020248", 199), cel2("EGA06", 251)] };
+    expect(obligationsGeometriques([titre(), identite(405), autre])).toHaveLength(0);
+  });
+
+  it("NE JOINT PAS UNE RANGÉE QUI A DÉJÀ SA DATE", () => {
+    /* Une ligne complète n'a aucune moitié à chercher : sans ce garde, elle
+       avalerait la rangée du dessous et lirait deux titres en un. */
+    const complete: Rangee = { page: 3, y: 405, cellules: [...identite(405).cellules, ...nombres(405).cellules] };
+    const b = obligationsGeometriques([titre(), complete, nombres(402)]);
+    expect(b).toHaveLength(1);
+    expect(b[0].referenceNextFcfa).toBe(2480);
+  });
+
+  it("NE JOINT PAS À TRAVERS UNE PAGE NI PAR-DESSUS UN ÉCART", () => {
+    expect(obligationsGeometriques([titre(), identite(405), { ...nombres(402), page: 4 }])).toHaveLength(0);
+    expect(obligationsGeometriques([titre(), identite(405), nombres(396)])).toHaveLength(0);
+  });
+});

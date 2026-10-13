@@ -23,7 +23,7 @@ const empreinte = (): string => {
 };
 
 /** L'empreinte des fichiers du lecteur au moment où VERSION_DU_LECTEUR a été posé. */
-const EMPREINTE_ATTENDUE = "3bb330e0e8c288be";
+const EMPREINTE_ATTENDUE = "2e40b9be3c31625a";
 
 describe("la version du lecteur", () => {
   it("bouge quand le lecteur bouge", () => {
@@ -103,15 +103,19 @@ describe("la version du lecteur", () => {
          l'encours, et une relecture complète des 813 bulletins a été lancée
          pour un numéro. La forme générale : s'il existe un lecteur
          qu'aucune montée postérieure n'a touché, il ne doit rien réclamer. */
-      const touchesDepuis12 = new Set<string>();
-      for (let n = 13; n <= VERSION_DU_LECTEUR; n++) for (const l of TOUCHE_PAR_VERSION[n] ?? LECTEURS) touchesDepuis12.add(l);
-      for (const l of LECTEURS) {
-        if (!touchesDepuis12.has(l)) expect(relectureUtile(12, l), `${l} n'a pas bougé depuis la v12`).toBe(false);
+      /* L'ANCRE EST LA DERNIÈRE MONTÉE, et non une version gravée : ancré sur
+         la v12, ce test est devenu vide en trois montées, parce que les 13,
+         14, 15 et 16 ont fini par toucher les trois lecteurs. Un test qui
+         s'épuise en quelques jours se réécrit au lieu de se lire. */
+      const derniere = TOUCHE_PAR_VERSION[VERSION_DU_LECTEUR] ?? LECTEURS;
+      const epargnes = LECTEURS.filter((l) => !derniere.includes(l));
+      for (const l of epargnes) {
+        expect(relectureUtile(VERSION_DU_LECTEUR - 1, l), `${l} n'a pas bougé à la v${VERSION_DU_LECTEUR}`).toBe(false);
       }
       /* Et au moins un lecteur doit être épargné, sans quoi le test ne
-         vérifie rien : trois montées qui touchent tout ne se distinguent pas
-         d'un numéro unique, et c'est le défaut qu'on répare. */
-      expect(touchesDepuis12.size).toBeLessThan(LECTEURS.length);
+         vérifie rien : une montée qui touche tout ne se distingue pas d'un
+         numéro unique, et c'est le défaut qu'on répare. */
+      expect(epargnes.length).toBeGreaterThan(0);
     });
 
     it("RELIT TOUT QUAND ON NE SAIT PAS", () => {
