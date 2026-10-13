@@ -186,6 +186,9 @@ export const EN_PAGES: Record<string, string> = {
     "Every investment carries a risk of losing capital. Past performance is no guide to future performance. Purpose Capital does not provide personal investment advice in the regulatory sense, except under an agreement that expressly provides for it.",
 
   /* ---------- les familles de remarques du lecteur ---------- */
+  "Encours : rangée décalée sur sa voisine": "Outstandings: row shifted onto its neighbour",
+  "La rangée porte les titres d une autre ligne de la même séance : ses chiffres sont ceux du voisin, pas les siens. Elle est écrite telle quelle, donc la corriger demande de relire la séance une fois le lecteur réparé. Vérifier sur la pièce quelle ligne porte quoi avant de toucher à quoi que ce soit.":
+    "The row carries another line's unit count from the same session: its figures are the neighbour's, not its own. It is written as read, so correcting it means re-reading the session once the reader is fixed. Check on the document which line carries what before touching anything.",
   "Encours : lignes disparues depuis la veille": "Outstandings: lines gone since the previous session",
   "Un stock ne perd pas une ligne du jour au lendemain : une ligne absente entre deux présences est un trou de lecture, et sa disparition fait baisser l'encours total comme le ferait un remboursement. Relire la séance, et vérifier sur la pièce que la table la porte bien.":
     "A stock does not lose a line overnight: a line missing between two appearances is a reading gap, and its disappearance lowers the total outstanding exactly as a redemption would. Re-read the session, and check on the document that the table does carry it.",

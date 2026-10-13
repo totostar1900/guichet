@@ -120,6 +120,14 @@ export const FAMILLES: Famille[] = [
    * qui tombe dans le fourre-tout, où elle ne serait comptée nulle part.
    */
   { code: "AA", genre: "anomalie", sort: "perdue", libelle: "Encours : lignes disparues depuis la veille", quoiFaire: "Un stock ne perd pas une ligne du jour au lendemain : une ligne absente entre deux présences est un trou de lecture, et sa disparition fait baisser l'encours total comme le ferait un remboursement. Relire la séance, et vérifier sur la pièce que la table la porte bien.", motif: /^Encours : lignes présentes au bulletin précédent/ },
+  /**
+   * LA RANGÉE QUI PORTE LA DONNÉE DE SA VOISINE, et qu aucun contrôle interne
+   * ne peut voir : elle reste cohérente avec elle-même, montant levé sur
+   * titres y vaut toujours 10 000 rond. Elle n est fausse que par rapport à
+   * SA PROPRE HISTOIRE. Mesuré : quatre rangées sur 16 946, trois ISIN, et le
+   * motif est un décalage d une rangée.
+   */
+  { code: "AB", genre: "avertissement", sort: "telle_quelle", libelle: "Encours : rangée décalée sur sa voisine", quoiFaire: "La rangée porte les titres d une autre ligne de la même séance : ses chiffres sont ceux du voisin, pas les siens. Elle est écrite telle quelle, donc la corriger demande de relire la séance une fois le lecteur réparé. Vérifier sur la pièce quelle ligne porte quoi avant de toucher à quoi que ce soit.", motif: /^Encours : rangée décalée/ },
   { code: "H", genre: "avertissement", sort: "perdue", libelle: "Obligation : ligne de cours non reconnue", quoiFaire: "Le défaut le plus fréquent. La ligne dense du PDF ne correspond à aucun motif connu.", motif: /^Obligation.*ligne de cours non reconnue/ },
   { code: "I", genre: "avertissement", sort: "perdue", libelle: "Obligation : prix et nominal collés", quoiFaire: "Deux nombres accolés sans séparateur : le découpage est ambigu, la ligne est écartée.", motif: /^Obligation.*prix \/ nominal ambigus/ },
   { code: "J", genre: "avertissement", sort: "perdue", libelle: "Action : ligne dense non reconnue", quoiFaire: "Même défaut que H, côté actions. Rare et coûteux.", motif: /^Action.*ligne dense non reconnue/ },

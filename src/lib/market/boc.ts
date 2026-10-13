@@ -161,7 +161,7 @@ export function fundNav(f: BocFund, b: BocParsed, clefConnue?: (nom: string) => 
  * `sort` dans remarques.ts), et un cliquet refuse qu'une anomalie annonce une
  * donnée pourtant écrite.
  */
-export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], previous: Quote[], prevNavs = 0, encoursPrecedent: { isin: string }[] = []): { anomalies: string[]; avertissements: string[] } {
+export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], previous: Quote[], prevNavs = 0, encoursPrecedent: { isin: string; units?: number }[] = []): { anomalies: string[]; avertissements: string[] } {
   const out: string[] = [];
   /** Ce qui est écrit en base et seulement signalé : familles N et Q. */
   const vu: string[] = [];
@@ -219,6 +219,38 @@ export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], pr
   if (encoursConnus.size && encoursManquants.length) {
     out.push(`Encours : lignes présentes au bulletin précédent et absentes aujourd'hui : ${encoursManquants.join(", ")}.`);
   }
+
+  /**
+   * LA RANGÉE QUI PORTE LA DONNÉE DE SA VOISINE.
+   *
+   * Mesuré sur les 16 946 relevés : QUATRE rangées, trois ISIN, et le motif
+   * est un décalage d'UNE rangée. Le 15 avril 2026, la donnée d'ACEP1 atterrit
+   * sur l'ISIN d'ALIOS-05 et celle de SNPC sur celui d'ALIOS-06 : 3 208 600
+   * titres pour une ligne qui en compte 612 955.
+   *
+   * AUCUN CONTRÔLE INTERNE NE PEUT LA VOIR. La rangée reste cohérente avec
+   * elle-même : montant levé ÷ titres y vaut toujours 10 000 rond, et le
+   * produit titres × nominal × cours retombe sur l'encours. Elle n'est fausse
+   * que par rapport à SA PROPRE HISTOIRE, et c'est le seul angle d'attaque.
+   *
+   * DEUX CONDITIONS, ET LA SECONDE ÉVITE D'ACCUSER UN ABONDEMENT. Un
+   * abondement fait monter les titres et le montant levé ensemble, ce qui est
+   * légitime et fréquent. Un décalage, lui, RECOPIE les valeurs d'une autre
+   * ligne de la même séance. On exige donc les deux : le nombre de titres a
+   * changé depuis la veille, ET il est exactement celui d'une voisine.
+   */
+  const titresDeLaVeille = new Map(encoursPrecedent.filter((e) => e.units).map((e) => [e.isin, e.units as number]));
+  const decales: string[] = [];
+  for (const e of parsed.outstandings) {
+    const hier = titresDeLaVeille.get(e.isin);
+    if (!hier || !e.units || e.units === hier) continue;
+    const voisine = parsed.outstandings.find((a) => a.isin !== e.isin && a.units === e.units);
+    if (voisine) decales.push(`${e.isin} porte les ${e.units.toLocaleString("fr-FR")} titres de ${voisine.isin} au lieu de ses ${hier.toLocaleString("fr-FR")}`);
+  }
+  /* AU JOURNAL ET NON AUX MANQUES : la rangée EST écrite, seulement fausse.
+     Une anomalie annonce une seance privee de matiere ; ici la matiere est la,
+     et c est son contenu qui ment. Le cliquet du sort le verifie. */
+  if (decales.length) vu.push(`Encours : rangée décalée, ${decales.join(" ; ")}.`);
   for (const n of navs) {
     if (!(n.nav > 0)) out.push(`${n.name} : VL nulle ou illisible.`);
     if (n.navDate > parsed.sessionDate) out.push(`${n.name} : date de VL postérieure à la séance.`);

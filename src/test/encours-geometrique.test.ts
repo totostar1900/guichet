@@ -260,3 +260,55 @@ describe("le garde de complétude de l'encours", () => {
     expect(famille("AA")?.sort).toBe("perdue");
   });
 });
+
+describe("le garde de la rangée décalée", () => {
+  /**
+   * AUCUN CONTRÔLE INTERNE NE PEUT LA VOIR. Le 15 avril 2026, la donnée
+   * d'ACEP1 atterrit sur l'ISIN d'ALIOS-05 et celle de SNPC sur celui
+   * d'ALIOS-06 : 3 208 600 titres pour une ligne qui en compte 612 955. La
+   * rangée reste pourtant cohérente avec elle-même, montant levé sur titres
+   * y vaut toujours 10 000 rond. Elle n'est fausse que par rapport à SA
+   * PROPRE HISTOIRE. Quatre rangées sur 16 946, trois ISIN.
+   */
+  const seance = (outstandings: { isin: string; units: number }[]): BocParsed =>
+    ({ sessionDate: "2026-04-15", bulletinNo: 1, equities: [], bonds: [], funds: [], capitalisation: [], outstandings, warnings: [], notes: [] }) as unknown as BocParsed;
+
+  it("ATTRAPE LA RANGÉE QUI A PRIS LES TITRES DE SA VOISINE", () => {
+    const { avertissements } = validate(
+      seance([{ isin: "CM0000020628", units: 3_208_600 }, { isin: "CG0000020584", units: 3_208_600 }]),
+      [], [], [], 0,
+      [{ isin: "CM0000020628", units: 612_955 }, { isin: "CG0000020584", units: 3_208_600 }],
+    );
+    const dit = avertissements.find((a) => a.startsWith("Encours : rangée décalée"));
+    expect(dit).toContain("CM0000020628");
+    expect(dit).toContain("CG0000020584");
+    /* La même mise en forme que le message : toLocaleString pose une fine
+       insécable, invisible à l œil et différente d une espace ordinaire. */
+    expect(dit).toContain((612_955).toLocaleString("fr-FR"));
+  });
+
+  it("N'ACCUSE PAS UN ABONDEMENT", () => {
+    /* LA SECONDE CONDITION EST TOUT LE GARDE. Un abondement fait monter les
+       titres, ce qui est légitime et fréquent ; un décalage RECOPIE ceux
+       d'une voisine. Sans cette distinction, chaque tap serait dénoncé. */
+    const { avertissements } = validate(
+      seance([{ isin: "A", units: 900_000 }, { isin: "B", units: 500_000 }]),
+      [], [], [], 0,
+      [{ isin: "A", units: 600_000 }, { isin: "B", units: 500_000 }],
+    );
+    expect(avertissements.some((a) => a.startsWith("Encours : rangée décalée"))).toBe(false);
+  });
+
+  it("SE TAIT QUAND RIEN NE BOUGE", () => {
+    const { avertissements } = validate(
+      seance([{ isin: "A", units: 500_000 }, { isin: "B", units: 500_000 }]),
+      [], [], [], 0,
+      [{ isin: "A", units: 500_000 }, { isin: "B", units: 500_000 }],
+    );
+    expect(avertissements.some((a) => a.startsWith("Encours : rangée décalée"))).toBe(false);
+  });
+
+  it("LA REMARQUE TROUVE SA FAMILLE", () => {
+    expect(classer("Encours : rangée décalée, CM0000020628 porte les 3 208 600 titres de CG0000020584 au lieu de ses 612 955.")).toBe("AB");
+  });
+});
