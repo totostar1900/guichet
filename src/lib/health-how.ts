@@ -163,6 +163,12 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "Un geste sensible attend une seconde personne : celle qui propose ne peut pas approuver, quel que soit son rôle. Quand la maison n'a qu'un seul responsable, le contrôle est impossible et le geste passe en le disant : c'est ce qui se compte ici. Un chiffre qui monte appelle une décision d'effectif, pas un réglage : nommer un second responsable dans Référentiel › Personnel, ou accepter que ces gestes-là restent à une paire d'yeux.",
     docs: { href: "/desk/docs/administration#approbations", label: "Les approbations : qui propose, qui écrit" },
   },
+  "echeance-adjudications": {
+    label: "Adjudications sans date d'échéance",
+    href: "/desk/adjudications",
+    how: "L'échéance est imprimée sur le communiqué, à côté du code d'émission : une séance sans elle a été lue à moitié. Ce n'est pas un détail de confort, c'est ce qui rend la séance utilisable : sans échéance, ni le mur des échéances, ni le taux de rollover, ni le besoin de financement net ne se calculent, et un ratio bâti sur un corpus troué est faussement précis. Ouvrir les séances concernées, relire la pièce, compléter le champ.",
+    docs: { href: "/desk/docs/sources#sources", label: "D'où vient chaque donnée" },
+  },
   /* LES CINQ SÉRIES. Un robot dit « j'ai tourné », une série dit « j'ai reçu »,
      et la réparation n'est pas la même : relancer un robot ne répare pas une
      écriture cassée, et rien ne répare une source qui ne publie pas. */

@@ -147,7 +147,21 @@ const CONTROLES = [
   },
   {
     lot: "4",
+    point: "Point de Santé sur l'échéance manquante",
+    /* LE LOT 4 DEMANDE LE POINT, PAS LA COMPLÉTUDE. Les confondre rendait ce
+       contrôle rouge pour une raison qui appartient au lot 3, et un lot ne se
+       juge pas sur le critère d'un autre. */
+    attendu: "le point existe et dit où agir",
+    async mesurer() {
+      const pose = fichierPorte("src/lib/health.ts", '"echeance-adjudications"') && fichierPorte("src/lib/health-how.ts", '"echeance-adjudications"');
+      return { mesure: pose ? "posé" : "absent", tient: pose };
+    },
+  },
+  {
+    lot: "3",
     point: "Date d'échéance des adjudications",
+    /* Critère d'acceptation du lot 3, et non un détail : sans échéance, ni le
+       mur des échéances ni le taux de rollover ne se calculent. */
     attendu: "aucune manquante",
     async mesurer() {
       const sans = await compter("auction_results", (q) => q.is("maturity_on", null));

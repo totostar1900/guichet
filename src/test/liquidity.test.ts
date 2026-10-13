@@ -141,7 +141,7 @@ describe("l'exécution du programme", () => {
     ]);
     const congo = p.find((x) => x.country === "Congo")!;
     expect(congo.sessions).toBe(2);
-    expect(congo.execution).toBeCloseTo(82.55, 2);
-    expect(p.find((x) => x.country === "Cameroun")!.execution).toBeCloseTo(75, 6);
+    expect(congo.serviSurAnnonce).toBeCloseTo(82.55, 2);
+    expect(p.find((x) => x.country === "Cameroun")!.serviSurAnnonce).toBeCloseTo(75, 6);
   });
 });

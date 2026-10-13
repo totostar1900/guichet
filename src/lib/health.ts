@@ -250,6 +250,7 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     r.derniereEcritureDesSeries().catch(() => ({}) as Record<string, string | undefined>),
     r.listTours(200).catch(() => []),
   ]);
+  const adjudications = await r.listAuctionResults({ limit: 2000 }).catch(() => []);
   const out: HealthCheck[] = [];
 
   /* Le rythme réellement observé de chaque fonds, par sa série. */
@@ -310,6 +311,23 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
         .join(" · "),
     });
   }
+
+  /* 2 ter. L'ÉCHÉANCE D'UNE ADJUDICATION EST UN CRITÈRE, PAS UNE TOLÉRANCE.
+     Sans elle, aucune tombée ne se calcule : ni le mur des échéances, ni le
+     taux de rollover, ni le besoin de financement net. Une séance lue sans
+     son échéance n'est donc pas « presque lue », elle est inutilisable pour
+     tout ce que ces lectures servent à produire. */
+  const sansEcheance = adjudications.filter((a) => !a.maturityOn);
+  const partSansEcheance = adjudications.length ? (sansEcheance.length / adjudications.length) * 100 : 0;
+  out.push({
+    key: "echeance-adjudications",
+    label: "Adjudications sans date d'échéance",
+    level: !sansEcheance.length ? "ok" : partSansEcheance > 10 ? "crit" : "warn",
+    value: `${sansEcheance.length} sur ${adjudications.length}`,
+    detail: sansEcheance.length
+      ? `${partSansEcheance.toFixed(0)} % du corpus · la plus ancienne ${sansEcheance.map((a) => a.sessionOn).sort()[0]} · aucune tombée ne se calcule sans elle`
+      : "toutes portent leur échéance",
+  });
 
   // 2 bis. The whole backlog, not just the last 30: incomplete readings distort the index.
   /* TROIS CHIFFRES, ET LES CONFONDRE A COÛTÉ LA CRÉDIBILITÉ DU POINT.

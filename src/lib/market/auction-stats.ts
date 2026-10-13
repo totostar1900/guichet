@@ -69,7 +69,7 @@ export interface ProgramYear {
   announced: number;
   served: number;
   /** Servi sur annoncé, en %. */
-  execution: number;
+  serviSurAnnonce: number;
   sessions: number;
 }
 
@@ -78,13 +78,13 @@ export function programByYear(rows: AuctionResult[]): ProgramYear[] {
   for (const r of rows) {
     if (!r.announced) continue;
     const k = `${r.country}|${r.sessionOn.slice(0, 4)}`;
-    const a = cle.get(k) ?? { country: r.country, year: r.sessionOn.slice(0, 4), announced: 0, served: 0, execution: 0, sessions: 0 };
+    const a = cle.get(k) ?? { country: r.country, year: r.sessionOn.slice(0, 4), announced: 0, served: 0, serviSurAnnonce: 0, sessions: 0 };
     a.announced += r.announced;
     a.served += r.served ?? 0;
     a.sessions += 1;
     cle.set(k, a);
   }
   return [...cle.values()]
-    .map((a) => ({ ...a, execution: (a.served / a.announced) * 100 }))
+    .map((a) => ({ ...a, serviSurAnnonce: (a.served / a.announced) * 100 }))
     .sort((a, b) => a.country.localeCompare(b.country) || a.year.localeCompare(b.year));
 }

@@ -757,8 +757,8 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
           }
         >
           <div className="panel-h">
-            <h2>{t("L'exécution du programme d'émission")}</h2>
-            <span className="muted">{sortie(false, "Calculée sur les séances relevées, qui ne sont pas le programme annuel d'un Trésor.")}</span>
+            <h2>{t("Ce qui a été levé, rapporté à ce qui était annoncé")}</h2>
+            <span className="muted">{sortie(false, "Sur les seules séances tenues et relevées. Une séance annulée n'entre ni au numérateur ni au dénominateur, donc ce n'est pas un taux d'exécution de programme.")}</span>
           </div>
           <div className="scroll-x">
             <table className="tbl">
@@ -769,7 +769,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                   <th className="r">{t("Séances")}</th>
                   <th className="r">{t("Annoncé")}</th>
                   <th className="r">{t("Servi")}</th>
-                  <th className="r">{t("Exécution")}</th>
+                  <th className="r">{t("Servi / annoncé")}</th>
                   <th style={{ width: "28%" }}></th>
                 </tr>
               </thead>
@@ -782,11 +782,11 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                     <td className="r">{md(p.announced)}</td>
                     <td className="r">{md(p.served)}</td>
                     <td className="r">
-                      <b>{pct(p.execution, 0)}</b>
+                      <b>{pct(p.serviSurAnnonce, 0)}</b>
                     </td>
                     <td>
                       <div className={styles.bar}>
-                        <i style={{ width: `${Math.min(100, p.execution).toFixed(0)}%`, background: COUNTRY_COLOR[p.country] }} />
+                        <i style={{ width: `${Math.min(100, p.serviSurAnnonce).toFixed(0)}%`, background: COUNTRY_COLOR[p.country] }} />
                       </div>
                     </td>
                   </tr>

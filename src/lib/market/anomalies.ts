@@ -226,8 +226,45 @@ export interface Crible {
   vues: number;
 }
 
+/**
+ * L'ÉCHELLE D'UN PAYS, MESURÉE SUR SES PROPRES SÉANCES.
+ *
+ * Un plafond absolu existe déjà plus bas, à 500 milliards. Il attrape
+ * l'absurde et rien d'autre : une erreur de facteur dix sur un Trésor dont
+ * les séances pèsent cinq milliards donne cinquante milliards, un chiffre
+ * parfaitement ordinaire pour le Cameroun et parfaitement faux pour la RCA.
+ * Le plafond ne peut pas le voir, parce qu'il ne sait pas de qui il parle.
+ *
+ * LA MÉDIANE PLUTÔT QUE LA MOYENNE, et c'est tout l'intérêt : c'est
+ * précisément l'aberration qu'on cherche qui tirerait une moyenne vers elle
+ * et se blanchirait toute seule. Une médiane ne bouge pas d'un pouce pour une
+ * valeur, si grande soit-elle.
+ *
+ * CINQ SÉANCES AU MOINS. Une médiane sur deux séances ne décrit rien, et
+ * crierait sur la troisième émission d'un Trésor qui commence.
+ */
+export const FOIS_LA_MEDIANE = 15;
+const SEANCES_POUR_UNE_MEDIANE = 5;
+
+export function medianeParPays(rows: Pick<AuctionResult, "country" | "announced">[]): Map<string, number> {
+  const par = new Map<string, number[]>();
+  for (const r of rows) {
+    const v = n(r.announced);
+    if (v != null && v > 0) par.set(r.country, [...(par.get(r.country) ?? []), v]);
+  }
+  const out = new Map<string, number>();
+  for (const [pays, xs] of par) {
+    if (xs.length < SEANCES_POUR_UNE_MEDIANE) continue;
+    const tri = xs.slice().sort((a, b) => a - b);
+    const m = tri.length % 2 ? tri[Math.floor(tri.length / 2)]! : (tri[tri.length / 2 - 1]! + tri[tri.length / 2]!) / 2;
+    out.set(pays, m);
+  }
+  return out;
+}
+
 export function anomalies(rows: AuctionResult[]): Anomalie[] {
   const out: Anomalie[] = [...montantsRepetes(rows), ...doublons(rows), ...dureeContreCode(rows)];
+  const medianes = medianeParPays(rows);
 
   for (const r of rows) {
     const base = { id: r.id, quand: r.sessionOn, pays: r.country, instrument: r.instrument, tenor: r.tenor, code: r.codeEmission, gravite: (r.confirmedBy ? "confirmee" : "attente") as GraviteAnomalie };
@@ -334,6 +371,27 @@ export function anomalies(rows: AuctionResult[]): Anomalie[] {
           quoi: { key: "{champ} de {v} Md : hors de toute échelle pour la zone", params: { champ, v: Math.round(v / 1e9).toLocaleString("fr-FR") } },
           verifier: "l unité annoncée en tête du tableau : millions, milliers ou francs",
         });
+      }
+    }
+
+    /* L'échelle du pays, qui voit ce que le plafond absolu ne peut pas voir.
+       Mesuré le 13 octobre 2026 : une seule séance sort, la tchadienne du
+       24 janvier 2024 à deux mille fois sa médiane, et le second plus grand
+       écart de tout le corpus est à six fois. Aucun cas limite, donc un
+       seuil à quinze ne discute avec personne. */
+    const mediane = medianes.get(r.country);
+    if (mediane) {
+      for (const [champ, v] of [["montant annoncé", n(r.announced)], ["total des soumissions", n(r.bid)], ["total servi", n(r.served)]] as const) {
+        if (v != null && v > mediane * FOIS_LA_MEDIANE) {
+          out.push({
+            ...base,
+            quoi: {
+              key: "{champ} à {fois} fois la médiane de {pays} ({mediane} Md)",
+              params: { champ, fois: Math.round(v / mediane).toLocaleString("fr-FR"), pays: r.country, mediane: Math.round(mediane / 1e9).toLocaleString("fr-FR") },
+            },
+            verifier: "l unité du tableau : un facteur mille se lit en comparant au montant d une autre séance du même Trésor",
+          });
+        }
       }
     }
 

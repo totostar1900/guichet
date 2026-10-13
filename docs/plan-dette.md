@@ -24,13 +24,14 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 | oui | 2 | Encours de la dette écrits | 16915 lignes | plus de 16 000 lignes |
 | oui | 2 | Encours relus par le lecteur courant | 0 ligne(s) avant la v14 | aucune ligne en version antérieure |
 | **non** | 3 | Adjudications ramassées | 249 | au moins 950 (la liste BEAC en annonce environ 1 000) |
-| **non** | 4 | Cliquet d'échelle sur les adjudications | absent | le test existe |
+| oui | 4 | Cliquet d'échelle sur les adjudications | écrit | le test existe |
 | **non** | 4 | Ligne tchadienne du 24 janvier 2024 | 1 ligne(s) à 30 000 Mds, non écartée(s) | corrigée ou écartée avec son motif |
-| **non** | 4 | Date d'échéance des adjudications | 54 manquante(s) sur 249 | aucune manquante |
-| **non** | 4 | Libellé du bloc Programme du desk | dit encore « Exécution » | ne dit plus « Exécution » pour servi sur annoncé |
+| oui | 4 | Point de Santé sur l'échéance manquante | posé | le point existe et dit où agir |
+| **non** | 3 | Date d'échéance des adjudications | 54 manquante(s) sur 249 | aucune manquante |
+| oui | 4 | Libellé du bloc Programme du desk | renommé | ne dit plus « Exécution » pour servi sur annoncé |
 | **non** | rapport | Bulletins relus par le lecteur courant | 813 sur 813 avant la v14 | aucun en version antérieure, avant tout envoi au fournisseur |
 
-**5 contrôles tenus sur 11.**
+**8 contrôles tenus sur 12.**
 
 <!-- etat:fin -->
 
