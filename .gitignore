@@ -53,3 +53,4 @@ public/maquette/
 # Les sorties de mesure : elles se refont, elles ne se versionnent pas.
 .mesure/
 .tmp-*
+cours-a-verifier.xlsx
