@@ -102,3 +102,74 @@ describe("chaque motif se nomme", () => {
     expect(jugerLaVl(vl({ navDate: "2024-01-05", inceptionDate: "2023-09-21", nav: 0 }), "2024-01-05").motif).toBe("valeur");
   });
 });
+
+/**
+ * LA MÊME COQUILLE, DANS L'AUTRE SENS, signalée par Georges le 13 octobre 2026.
+ *
+ * Le bulletin de mai 2024 imprime « 03/05/2025 » pour deux fonds : l'année a
+ * été tapée une de trop. La date corrigée, le 3 mai 2024, est un vendredi, et
+ * ces deux fonds sont valorisés chaque vendredi : leur série porte 04-12,
+ * 04-19, un trou de deux vendredis, puis 05-10. La correction tombe dans le
+ * trou, et les valeurs voisines l'encadrent.
+ *
+ * CE QUI SE TESTE ICI EST LA FENÊTRE, pas le décalage d'année, qui est de
+ * l'arithmétique. Retirer un an « résout toutes les fautes » bien trop
+ * facilement, puisque la borne générale tolère quatre cents jours de retard :
+ * ce critère large acceptait seize des vingt cas de la base, dont DOUZE
+ * fausses. Trente et un jours séparent le vrai du faux, et la mesure dit que
+ * la séparation est franche : les quatre séances justes tombent à 5, 7, 10 et
+ * 11 jours, les douze autres à 276 jours au moins.
+ */
+describe("la coquille d'année dans l'autre sens", () => {
+  const futur = (p: Partial<FundNav>) => vl({ navDate: "2025-05-03", inceptionDate: "2022-01-01", ...p });
+
+  it("répare les quatre séances de mai 2024, mesurées en base", () => {
+    for (const [seance, recul] of [
+      ["2024-05-08", 5],
+      ["2024-05-10", 7],
+      ["2024-05-13", 10],
+      ["2024-05-14", 11],
+    ] as const) {
+      const v = jugerLaVl(futur({ sessionDate: seance }), seance);
+      expect(v.garde?.navDate, `${seance} (${recul} jours)`).toBe("2024-05-03");
+      expect(v.coquille).toBe("2025-05-03");
+    }
+  });
+
+  it("refuse les douze autres, qui reculent de 276 jours ou plus", () => {
+    /* Ecobank en février 2025, et Kori deux fois en 2026 : retirer un an rend
+       une date plausible au sens large, et fausse au sens de la rangée. */
+    for (const [seance, date] of [
+      ["2025-02-07", "2025-05-05"],
+      ["2025-02-14", "2025-05-05"],
+      ["2026-05-18", "2026-08-15"],
+      ["2026-05-22", "2026-08-15"],
+    ] as const) {
+      const v = jugerLaVl(futur({ navDate: date, sessionDate: seance }), seance);
+      expect(v.garde, `${seance} · ${date}`).toBeUndefined();
+      expect(v.motif).toBe("future");
+    }
+  });
+
+  it("refuse quand retirer un an laisse la date dans le futur", () => {
+    /* Kori, séance de mars 2026, VL annoncée en mars 2029 : moins un an
+       donne 2028, toujours devant. Deux ans seraient une invention. */
+    const v = jugerLaVl(futur({ navDate: "2029-03-13", sessionDate: "2026-03-16" }), "2026-03-16");
+    expect(v.garde).toBeUndefined();
+    expect(v.motif).toBe("future");
+  });
+
+  it("tient la borne exactement là où elle est posée", () => {
+    /* Trente et un jours passent, trente-deux ne passent pas. Un seuil dont
+       personne n'a vérifié les deux côtés est un seuil approximatif. */
+    expect(jugerLaVl(futur({ navDate: "2025-04-10", sessionDate: "2024-05-11" }), "2024-05-11").garde?.navDate).toBe("2024-04-10");
+    expect(jugerLaVl(futur({ navDate: "2025-04-10", sessionDate: "2024-05-12" }), "2024-05-12").garde).toBeUndefined();
+  });
+
+  it("ne touche pas au 29 février", () => {
+    /* La même règle que pour le sens inverse : 2024-02-29 moins un an
+       n'existe pas, et glisser au 1er mars déplacerait la date d'un jour à
+       l'insu de tout le monde. */
+    expect(jugerLaVl(futur({ navDate: "2028-02-29", sessionDate: "2027-02-20" }), "2027-02-20").garde).toBeUndefined();
+  });
+});

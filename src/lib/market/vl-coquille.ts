@@ -97,12 +97,39 @@ function fautes(navDate: string, nav: number, inception: string | undefined, ses
  * date d'un jour à l'insu de tout le monde.
  */
 function anneeSuivante(iso: string): string | undefined {
+  return decalerAnnee(iso, 1);
+}
+
+/** La même date, un an plus tôt, avec le même refus du 29 février. */
+function anneePrecedente(iso: string): string | undefined {
+  return decalerAnnee(iso, -1);
+}
+
+function decalerAnnee(iso: string, pas: number): string | undefined {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   if (!m) return undefined;
-  const essai = `${Number(m[1]) + 1}-${m[2]}-${m[3]}`;
+  const essai = `${Number(m[1]) + pas}-${m[2]}-${m[3]}`;
   const d = new Date(`${essai}T12:00:00Z`);
   return Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== essai ? undefined : essai;
 }
+
+/**
+ * LA FENÊTRE SERRÉE DE LA COQUILLE INVERSE, et c'est elle qui fait tout.
+ *
+ * Retirer une année à une date future « résout toutes les fautes » bien trop
+ * facilement : la borne générale tolère jusqu'à quatre cents jours de retard,
+ * donc n'importe quelle date de l'année écoulée passerait. Mesuré sur les
+ * vingt cas de la base, ce critère large en acceptait seize, dont douze
+ * fausses.
+ *
+ * Une VALEUR PRÉCÉDENTE vieille de plus d'un mois n'est pas une valeur
+ * précédente : c'est une autre faute. Trente et un jours séparent donc le
+ * vrai du faux, et la mesure dit que la séparation est franche : les quatre
+ * séances retenues tombent à 5, 7, 10 et 11 jours, les douze refusées à 276
+ * jours au moins. Aucun cas limite, ce qui est exactement ce qu'on demande à
+ * un seuil.
+ */
+const RETARD_COQUILLE = 31;
 
 /** Garder, réparer, ou écarter en disant pourquoi. */
 export function jugerLaVl(n: FundNav, sessionDate: string): VerdictVl {
@@ -114,6 +141,30 @@ export function jugerLaVl(n: FundNav, sessionDate: string): VerdictVl {
     const suivante = anneeSuivante(n.navDate);
     if (suivante && fautes(suivante, n.nav, n.inceptionDate, sessionDate).length === 0) {
       return { garde: { ...n, navDate: suivante }, coquille: n.navDate };
+    }
+  }
+
+  /**
+   * LA MÊME COQUILLE, DANS L'AUTRE SENS, et c'est Georges qui l'a signalée.
+   *
+   * Le bulletin de mai 2024 imprime « 03/05/2025 » pour FCP ELITE CAPITAL
+   * RECORD et FCP CCA PERFORMANCE : l'année a été tapée une de trop. La date
+   * corrigée, le 3 mai 2024, est un VENDREDI, et ces deux fonds sont valorisés
+   * chaque vendredi. Leur série porte 04-12, 04-19, puis un trou de deux
+   * vendredis, puis 05-10 : la date réparée tombe exactement dedans, et les
+   * valeurs voisines l'encadrent. La cadence du fonds confirme donc la
+   * correction, indépendamment de la règle.
+   *
+   * ON NE SE SERT PAS DE CETTE CADENCE COMME GARDE, et c'est délibéré :
+   * elle demanderait de charger la série du fonds au moment de l'ingestion,
+   * pour un gain de deux points. La fenêtre serrée sépare déjà le vrai du
+   * faux sans aucune donnée extérieure.
+   */
+  if (faute.includes("future")) {
+    const precedente = anneePrecedente(n.navDate);
+    const recule = precedente ? -jours(precedente, sessionDate) : Infinity;
+    if (precedente && recule <= RETARD_COQUILLE && fautes(precedente, n.nav, n.inceptionDate, sessionDate).length === 0) {
+      return { garde: { ...n, navDate: precedente }, coquille: n.navDate };
     }
   }
   return { motif: faute[0] };

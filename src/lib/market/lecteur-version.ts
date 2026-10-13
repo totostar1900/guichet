@@ -134,11 +134,51 @@
  *                             imprimée sur la rangée ne s'accorde avec les
  *                             deux VL que si la lecture est la bonne. C'est
  *                             le bulletin qui valide sa réparation.
+ *  11  (2026-10-13)           LA COQUILLE D ANNÉE DANS L AUTRE SENS, signalée
+ *                             par Georges. Le bulletin de mai 2024 imprime
+ *                             « 03/05/2025 » pour FCP ELITE CAPITAL RECORD et
+ *                             FCP CCA PERFORMANCE : l année a été tapée une
+ *                             de trop. La date corrigée, le 3 mai 2024, est
+ *                             un VENDREDI, et ces deux fonds sont valorisés
+ *                             chaque vendredi : leur série porte 04-12,
+ *                             04-19, un trou de deux vendredis, puis 05-10.
+ *                             La correction tombe dans le trou et les valeurs
+ *                             voisines l encadrent.
+ *                             CE QUI TIENT LA RÉPARATION EST UNE FENÊTRE DE
+ *                             31 JOURS, et rien d autre. Retirer un an résout
+ *                             toutes les fautes bien trop facilement, la
+ *                             borne générale tolérant quatre cents jours de
+ *                             retard : ce critère large acceptait seize des
+ *                             vingt cas de la base, dont DOUZE fausses. Une
+ *                             valeur précédente vieille de plus d un mois
+ *                             n est pas une valeur précédente. La séparation
+ *                             est franche : 5, 7, 10 et 11 jours d un côté,
+ *                             276 jours au moins de l autre.
+ *                             Trois témoins ont été essayés et écartés avant
+ *                             celui-là : la date dominante de la séance (4
+ *                             cas sur 20), la présence de la date chez un
+ *                             autre fonds du jour, et la série propre du
+ *                             fonds, qui ne peut rien témoigner puisque c est
+ *                             le refus lui-même qui y creuse le trou.
+ *                             VL-COQUILLE ENTRE AUSSI DANS L EMPREINTE du
+ *                             lecteur, où son absence était un trou : ce
+ *                             fichier décide si une VL est écrite, réparée ou
+ *                             écartée, donc il change ce que la base
+ *                             contient.
  */
-export const VERSION_DU_LECTEUR = 10;
+export const VERSION_DU_LECTEUR = 11;
 
-/** Les fichiers qui FONT la lecture : eux seuls commandent le numéro. */
-export const FICHIERS_DU_LECTEUR = ["src/lib/market/boc-parse.ts", "src/lib/market/boc-geometrie.ts"];
+/**
+ * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
+ *
+ * VL-COQUILLE Y EST ENTRÉ LE 13 OCTOBRE 2026, et son absence était un trou.
+ * Ce fichier décide si une valeur liquidative est écrite, réparée ou écartée :
+ * il change donc ce que la base contient, exactement comme les deux autres.
+ * Le cliquet ne le gardait pas, de sorte qu une modification de la règle de
+ * reparation pouvait passer sans lever le numero, et des seances auraient
+ * paru a jour alors qu une relecture leur aurait rendu quelque chose.
+ */
+export const FICHIERS_DU_LECTEUR = ["src/lib/market/boc-parse.ts", "src/lib/market/boc-geometrie.ts", "src/lib/market/vl-coquille.ts"];
 
 /**
  * Une lecture d'un lecteur plus ancien a peut-être quelque chose à gagner ;
