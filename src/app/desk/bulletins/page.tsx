@@ -278,9 +278,9 @@ export default async function BulletinsPage({ searchParams }: { searchParams: Pr
           ))}
         </div>
 
-        <div className={styles.avecMatrice}>
+        <div className={styles.avecMatrice} data-rangee-appariee>
           <div>
-            <TallTable total={liste.length}>
+            <TallTable total={liste.length} apparier>
               <table className="tbl">
                 <thead>
                   <tr>
@@ -322,7 +322,7 @@ export default async function BulletinsPage({ searchParams }: { searchParams: Pr
 
           {/* LA MATRICE EST LA LÉGENDE ET LE FILTRE. Deux objets séparés auraient
               demandé de retenir la lettre en passant de l'un à l'autre. */}
-          <aside className={styles.matrice}>
+          <aside className={styles.matrice} data-hauteur-de-reference>
             <div className={styles.titreFiltre}>{t("Matrice des codes")}</div>
             {FAMILLES.map((f) => (
               <Link key={f.code} href={bascule(f.code)} className={retenus.includes(f.code) ? styles.mrowOn : styles.mrow} title={f.quoiFaire}>
