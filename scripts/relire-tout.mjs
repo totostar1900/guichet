@@ -32,7 +32,7 @@ for (const l of env.split(/\r?\n/)) {
 }
 
 const { ingestBoc } = await import("../src/lib/market/boc.ts");
-const { VERSION_DU_LECTEUR, lectureAncienne } = await import("../src/lib/market/lecteur-version.ts");
+const { VERSION_DU_LECTEUR, lecteursARelire, LECTEURS, NOM_DU_LECTEUR } = await import("../src/lib/market/lecteur-version.ts");
 const { repo } = await import("../src/lib/data/index.ts");
 
 const vraiment = process.argv.includes("--vraiment");
@@ -42,15 +42,51 @@ const somme = (bs, k) => bs.reduce((a, b) => a + (b.counts?.[k] ?? 0), 0);
 const remarques = (bs) => bs.reduce((a, b) => a + (b.warnings?.length ?? 0), 0);
 
 const toutes = await r.listBulletins(2000);
-const avant = toutes.filter((b) => lectureAncienne(b.readerVersion)).sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
+/* CE QU'UNE RELECTURE RENDRAIT, ET NON CE QUE LE NUMÉRO DIT.
+   Un seul numéro couvre trois lecteurs. Le 13 octobre 2026 ce script a été
+   lancé sur les 813 séances parce qu'aucune n'était « au lecteur courant » ;
+   les deux montées en cause ne touchaient que l'encours, qui a son propre
+   écrivain et était déjà à jour. Douze séances relues, zéro changement. */
+const avant = toutes.filter((b) => lecteursARelire(b.readerVersion).length > 0).sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
 
 console.log(`=== AVANT ===\n`);
-console.log(`   ${toutes.length} séances en base, ${avant.length} pas au lecteur v${VERSION_DU_LECTEUR}`);
+console.log(`   ${toutes.length} séances en base, ${avant.length} auxquelles une relecture rendrait quelque chose (lecteur v${VERSION_DU_LECTEUR})`);
+for (const l of LECTEURS) {
+  const n = toutes.filter((b) => lecteursARelire(b.readerVersion).includes(l)).length;
+  console.log(`      ${NOM_DU_LECTEUR[l].padEnd(26)} ${n} séance(s)`);
+}
 console.log(`   obligations ${somme(avant, "bonds")} · actions ${somme(avant, "equities")} · OPCVM ${somme(avant, "funds")}`);
 console.log(`   remarques ${remarques(avant)}`);
 const parVersion = avant.reduce((a, x) => ({ ...a, [x.readerVersion ?? "aucune"]: (a[x.readerVersion ?? "aucune"] ?? 0) + 1 }), {});
 console.log(`   versions ${JSON.stringify(parVersion)}`);
 console.log(`   plage ${avant[0]?.sessionDate} → ${avant[avant.length - 1]?.sessionDate}\n`);
+
+if (!avant.length) {
+  console.log("Aucune relecture ne rendrait quoi que ce soit : les trois lecteurs sont à jour sur toute la base.");
+  process.exit(0);
+}
+
+/* L'ENCOURS A SON PROPRE ÉCRIVAIN, ET SON PROPRE TAMPON DE VERSION.
+   Il ne reprend que sa table au lieu de rejouer tout le pipeline, donc il
+   coûte vingt fois moins. Et surtout, le tampon du BULLETIN ne sait rien de
+   ce qu'il a écrit : une séance peut rester marquée v12 alors que son encours
+   est à jour depuis des heures. Poser la question à la bonne table est la
+   différence entre « deux heures et demie » et « rien à faire ». */
+const seulementEncours = avant.every((b) => lecteursARelire(b.readerVersion).join() === "encours");
+if (seulementEncours) {
+  const { createClient } = await import("@supabase/supabase-js");
+  const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+  const { count } = await sb.from("debt_outstandings").select("*", { count: "exact", head: true }).lt("reader_version", VERSION_DU_LECTEUR);
+  console.log(`Seul l'encours aurait à gagner, et il porte son propre tampon : ${count ?? "?"} ligne(s) avant la v${VERSION_DU_LECTEUR}.`);
+  if (count === 0) {
+    console.log("Il est donc DÉJÀ à jour, et le tampon du bulletin ne le dit simplement pas. Rien à faire.");
+  } else {
+    console.log("Son propre script le reprend, bien moins cher que le pipeline entier :");
+    console.log("   npx tsx --conditions=react-server scripts/encours-ingerer.mjs --tout");
+  }
+  if (vraiment) console.log("\nRelecture complète refusée. Retirer ce garde sciemment si elle est vraiment voulue.");
+  process.exit(0);
+}
 
 if (!vraiment) {
   console.log("Rien n'a été écrit. Relancer avec --vraiment pour écrire en base.");

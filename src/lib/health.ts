@@ -20,7 +20,7 @@ import { etatDesRobots } from "@/lib/domain/robots";
 import { enGo, enMo, lireLeStockage, niveauDuStockage, PLAFOND_STOCKAGE } from "@/lib/domain/stockage";
 import { attendEncore, remarquesNonJugees } from "@/lib/domain/jugement-bulletin";
 import { classer } from "@/lib/market/remarques";
-import { lectureAncienne } from "@/lib/market/lecteur-version";
+import { lecteursARelire, NOM_DU_LECTEUR, type Lecteur } from "@/lib/market/lecteur-version";
 import { registreEnBrouillon, registrePublie, personnesDuDossier } from "@/lib/desk/registre-data";
 import { correspondances, ecartVivant } from "@/lib/domain/registre-ecartes";
 import { indexCheck } from "@/lib/market/index";
@@ -341,7 +341,15 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
   const sansCours = arriere.filter((b) => !b.counts?.equities).length;
   const juges = sansJugement.length - arriere.length;
   const vus = jugements.filter((j) => !j.retireLe).length;
-  const aRelire = arriere.filter((b) => lectureAncienne(b.readerVersion)).length;
+  /* PAR LECTEUR, ET NON PAR NUMÉRO. Un seul numéro couvre trois lecteurs :
+     une correction de l'encours marquait toute la base périmée, y compris
+     pour les cotations et les VL qui n'avaient pas bougé. Le 13 octobre 2026
+     cela m'a fait lancer deux heures et demie de relecture qui n'ont rien
+     changé. On annonce donc ce qui serait gagné, et pour qui. */
+  const gainPar = new Map<Lecteur, number>();
+  for (const b of arriere) for (const l of lecteursARelire(b.readerVersion)) gainPar.set(l, (gainPar.get(l) ?? 0) + 1);
+  const aRelire = arriere.filter((b) => lecteursARelire(b.readerVersion).length > 0).length;
+  const pourQui = [...gainPar].map(([l, n]) => `${n} pour les ${NOM_DU_LECTEUR[l]}`).join(", ");
   out.push({
     key: "relire",
     label: "Bulletins à regarder",
@@ -354,7 +362,7 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
           /* « Relire » ne sert que là où le LECTEUR a changé depuis : mesuré
              le 11 octobre 2026, une relecture des 212 séances ne rendait rien
              du tout, et le bouton passait pourtant pour la conduite à tenir. */
-          aRelire ? `${aRelire} lue(s) par un lecteur plus ancien, donc à relire` : "aucune relecture à attendre : toutes lues par le lecteur courant",
+          aRelire ? `${aRelire} à relire, et seulement pour ce qui a bougé : ${pourQui}` : "aucune relecture à attendre : rien n'a changé dans les lecteurs depuis",
           juges > 0 ? `${juges} fermée(s) par un jugement du desk (${vus} jugement${vus > 1 ? "s" : ""})` : "",
         ]
           .filter(Boolean)

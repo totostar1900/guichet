@@ -29,9 +29,9 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 | oui | 4 | Point de Santé sur l'échéance manquante | posé | le point existe et dit où agir |
 | **non** | 3 | Date d'échéance des adjudications | 54 manquante(s) sur 249 | aucune manquante |
 | oui | 4 | Libellé du bloc Programme du desk | renommé | ne dit plus « Exécution » pour servi sur annoncé |
-| **non** | rapport | Bulletins relus par le lecteur courant | 813 sur 813 avant la v14 | aucun en version antérieure, avant tout envoi au fournisseur |
+| oui | rapport | Relecture qui rendrait quelque chose | rien à relire : cotations et VL à jour sur les 813 | aucune séance dont les cotations ou les VL auraient à gagner |
 
-**8 contrôles tenus sur 12.**
+**9 contrôles tenus sur 12.**
 
 <!-- etat:fin -->
 

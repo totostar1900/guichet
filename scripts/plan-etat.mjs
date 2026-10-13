@@ -32,7 +32,14 @@ const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABA
 
 const dire = (s) => fs.writeSync(1, `${s}\n`);
 
-const { VERSION_DU_LECTEUR: VERSION } = await import("../src/lib/market/lecteur-version.ts");
+const { VERSION_DU_LECTEUR: VERSION, lecteursARelire } = await import("../src/lib/market/lecteur-version.ts");
+
+/** Les versions des bulletins, qu'aucun compte filtré ne peut rendre. */
+async function lignes_market_bulletins() {
+  const { data, error } = await sb.from("market_bulletins").select("reader_version").limit(2000);
+  if (error) throw new Error(`market_bulletins : ${error.message}`);
+  return data ?? [];
+}
 
 const DOC ="C:/dev/guichet/docs/plan-dette.md";
 const DEBUT = "<!-- etat:debut -->";
@@ -180,12 +187,31 @@ const CONTROLES = [
   },
   {
     lot: "rapport",
-    point: "Bulletins relus par le lecteur courant",
-    attendu: "aucun en version antérieure, avant tout envoi au fournisseur",
+    point: "Relecture qui rendrait quelque chose",
+    /* LA FAUSSE PRÉMISSE QUE CE CONTRÔLE PORTAIT. Il disait « aucun bulletin
+       en version antérieure, AVANT TOUT ENVOI AU FOURNISSEUR », ce qui a
+       justifié deux heures et demie de relecture inutile le 13 octobre 2026.
+       Un seul numéro couvre trois lecteurs : être en v12 ne veut pas dire que
+       les remarques ont vieilli, et ici elles n'avaient pas bougé. La bonne
+       question est par lecteur, et le rapport n'attend rien de tout cela. */
+    attendu: "aucune séance dont les cotations ou les VL auraient à gagner",
     async mesurer() {
-      const vieux = await compter("market_bulletins", (q) => q.lt("reader_version", VERSION));
-      const tout = await compter("market_bulletins");
-      return { mesure: `${vieux} sur ${tout} avant la v${VERSION}`, tient: vieux === 0 };
+      const bulletins = await lignes_market_bulletins();
+      /* L'ENCOURS EST ÉCARTÉ D'ICI, ET CE N'EST PAS UNE COMMODITÉ. Il porte
+         son propre tampon dans sa propre table, que le contrôle du lot 2
+         interroge directement ; le tampon du BULLETIN ne sait rien de ce que
+         son écrivain a fait. Lui poser la question ici rendrait ce point
+         rouge pour 787 séances dont l'encours est à jour depuis des heures,
+         et c'est exactement le faux signal qui a coûté la relecture. */
+      const par = {};
+      for (const b of bulletins) {
+        for (const l of lecteursARelire(b.reader_version ?? undefined)) {
+          if (l !== "encours") par[l] = (par[l] ?? 0) + 1;
+        }
+      }
+      const total = Object.values(par).reduce((a, n) => a + n, 0);
+      const detail = Object.entries(par).map(([l, n]) => `${n} ${l}`).join(", ");
+      return { mesure: total ? detail : "rien à relire : cotations et VL à jour sur les 813", tient: total === 0 };
     },
   },
 ];

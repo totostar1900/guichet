@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { FICHIERS_DU_LECTEUR, lectureAncienne, VERSION_DU_LECTEUR } from "@/lib/market/lecteur-version";
+import { FICHIERS_DU_LECTEUR, lecteursARelire, LECTEURS, lectureAncienne, PREMIERE_VERSION_DECLAREE, relectureUtile, TOUCHE_PAR_VERSION, VERSION_DU_LECTEUR } from "@/lib/market/lecteur-version";
 
 /**
  * LE LECTEUR A CHANGÉ : SON NUMÉRO DOIT CHANGER AUSSI.
@@ -57,5 +57,60 @@ describe("la version du lecteur", () => {
     /* Plus récente que le code : on ne la relit pas. Le cas arrive une
        journée, entre un déploiement et le suivant. */
     expect(lectureAncienne(VERSION_DU_LECTEUR + 1)).toBe(false);
+  });
+
+  /**
+   * TROIS LECTEURS SOUS UN SEUL NUMÉRO.
+   *
+   * Le 13 octobre 2026 j'ai lancé une relecture des 813 bulletins parce que
+   * leur numéro n'était pas le dernier. Les montées 13 et 14 ne touchent que
+   * l'encours, qui a son propre écrivain et était déjà à jour : les douze
+   * séances relues avant l'arrêt n'ont rien changé. Deux heures et demie pour
+   * un numéro.
+   */
+  describe("ce que chaque montée a touché", () => {
+    it("EXIGE QUE CHAQUE VERSION DÉCLARE SON PÉRIMÈTRE", () => {
+      /* Sans ce cliquet, le tableau prendrait exactement le retard que le
+         module cherche à supprimer, et le silence se lirait « tout touché ». */
+      const manquantes = [];
+      for (let v = PREMIERE_VERSION_DECLAREE; v <= VERSION_DU_LECTEUR; v++) {
+        if (!TOUCHE_PAR_VERSION[v]?.length) manquantes.push(v);
+      }
+      expect(manquantes, `versions sans périmètre déclaré : ${manquantes.join(", ")}`).toEqual([]);
+    });
+
+    it("NE DÉCLARE QUE DES LECTEURS QUI EXISTENT", () => {
+      for (const [v, l] of Object.entries(TOUCHE_PAR_VERSION)) {
+        for (const x of l) expect(LECTEURS, `version ${v}`).toContain(x);
+      }
+    });
+
+    it("NE RÉCLAME PAS DE RELECTURE POUR UN LECTEUR QUI N'A PAS BOUGÉ", () => {
+      /* Le cas qui a coûté : une séance en v12 est à jour pour les cotations
+         et pour les VL, et seul son encours aurait quelque chose à gagner. */
+      expect(relectureUtile(12, "cotations")).toBe(false);
+      expect(relectureUtile(12, "vl")).toBe(false);
+      expect(relectureUtile(12, "encours")).toBe(true);
+      expect(lecteursARelire(12)).toEqual(["encours"]);
+    });
+
+    it("RÉCLAME CE QUI A VRAIMENT BOUGÉ", () => {
+      /* Une séance en v8 a manqué les montées VL 9, 10 et 11, et la table de
+         capitalisation de la 12. */
+      expect(lecteursARelire(8).sort()).toEqual(["cotations", "encours", "vl"]);
+      expect(relectureUtile(11, "vl")).toBe(false);
+      expect(relectureUtile(11, "cotations")).toBe(true);
+    });
+
+    it("RELIT TOUT QUAND ON NE SAIT PAS", () => {
+      /* Une version antérieure au tableau, ou absente : l'oubli coûte une
+         relecture inutile, jamais une lecture périmée tenue pour fraîche. */
+      expect(lecteursARelire(undefined)).toEqual(LECTEURS);
+      expect(lecteursARelire(PREMIERE_VERSION_DECLAREE - 1)).toEqual(LECTEURS);
+    });
+
+    it("NE RÉCLAME RIEN AU LECTEUR COURANT", () => {
+      expect(lecteursARelire(VERSION_DU_LECTEUR)).toEqual([]);
+    });
   });
 });

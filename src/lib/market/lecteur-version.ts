@@ -298,3 +298,72 @@ export const FICHIERS_DU_LECTEUR = ["src/lib/market/boc-parse.ts", "src/lib/mark
  * seule façon de rendre cette colonne menteuse dès sa naissance.
  */
 export const lectureAncienne = (version?: number): boolean => (version ?? 0) < VERSION_DU_LECTEUR;
+
+/**
+ * TROIS LECTEURS SOUS UN SEUL NUMÉRO, ET CE QUE ÇA COÛTE.
+ *
+ * `FICHIERS_DU_LECTEUR` en garde trois, qui lisent trois choses différentes :
+ * les cotations, les valeurs liquidatives et l'encours de la dette. Le numéro,
+ * lui, est unique. Une correction qui ne touche que l'encours marque donc
+ * TOUTES les séances comme périmées, y compris pour deux lecteurs qui n'ont
+ * pas bougé d'une ligne.
+ *
+ * Mesuré le 13 octobre 2026, et cher : j'ai lancé une relecture des 813
+ * bulletins « avant d'envoyer le rapport au fournisseur », en croyant que les
+ * remarques dataient d'un lecteur corrigé depuis. Les montées 13 et 14 ne
+ * touchent que l'encours, qui a son propre écrivain et était déjà à jour. Les
+ * douze séances relues avant l'arrêt n'ont rien changé : 18 576 cotations
+ * d'obligation, 16 915 encours, 439 remarques, à l'identique. Deux heures et
+ * demie et huit cents PDF pour un numéro.
+ *
+ * LE CLIQUET SE TROMPAIT DANS LE BON SENS, et c'est le bon réglage : mieux
+ * vaut relire pour rien que croire à jour ce qui ne l'est pas. Mais un cliquet
+ * qui réclame pour rien finit par ne plus être écouté, ce qui est la panne
+ * suivante. D'où ce tableau : chaque montée déclare CE QU'ELLE A TOUCHÉ, et
+ * la question « faut-il relire ? » se pose enfin par lecteur.
+ *
+ * UNE VERSION NON DÉCLARÉE EST RÉPUTÉE AVOIR TOUT TOUCHÉ. L'oubli coûte alors
+ * une relecture inutile, jamais une lecture périmée tenue pour fraîche. Et un
+ * cliquet exige la déclaration, sans quoi le tableau prendrait exactement le
+ * retard que ce module cherche à supprimer.
+ */
+export type Lecteur = "cotations" | "vl" | "encours";
+export const LECTEURS: Lecteur[] = ["cotations", "vl", "encours"];
+
+export const NOM_DU_LECTEUR: Record<Lecteur, string> = {
+  cotations: "cotations et capitalisation",
+  vl: "valeurs liquidatives",
+  encours: "encours de la dette",
+};
+
+/** La plus ancienne montée déclarée : en deçà, on ne sait pas, donc on relit tout. */
+export const PREMIERE_VERSION_DECLAREE = 8;
+
+export const TOUCHE_PAR_VERSION: Record<number, Lecteur[]> = {
+  8: ["cotations"], // la queue du millésime, sur les obligations
+  9: ["vl"], // la seconde passe sur le débris, table des OPCVM
+  10: ["vl"], // la date restée en numéro de série Excel
+  11: ["vl"], // la coquille d'année dans l'autre sens
+  12: ["cotations"], // la table de capitalisation, lue par les abscisses
+  13: ["encours"], // la seconde table, l'encours des titres de dette
+  14: ["encours"], // trois défauts de la table d'encours
+};
+
+/**
+ * Une relecture rendrait-elle quelque chose À CE LECTEUR ?
+ *
+ * C'est la seule question qui justifie du temps machine. « La version n'est
+ * pas la dernière » n'en est pas une.
+ */
+export function relectureUtile(version: number | undefined, pour: Lecteur): boolean {
+  const v = version ?? 0;
+  if (v < PREMIERE_VERSION_DECLAREE) return true;
+  for (let n = v + 1; n <= VERSION_DU_LECTEUR; n++) {
+    const touche = TOUCHE_PAR_VERSION[n];
+    if (!touche || touche.includes(pour)) return true;
+  }
+  return false;
+}
+
+/** Les lecteurs pour lesquels une relecture de cette séance rendrait quelque chose. */
+export const lecteursARelire = (version?: number): Lecteur[] => LECTEURS.filter((l) => relectureUtile(version, l));
