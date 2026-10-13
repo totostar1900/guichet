@@ -18,9 +18,11 @@ describe("validate", () => {
   it("accepts a clean bulletin and flags a jump against the previous session", () => {
     const quotes = [...parsed.equities.map((e) => equityQuote(e, parsed)), ...parsed.bonds.map((b) => bondQuote(b, parsed))];
     const navs = parsed.funds.map((f) => fundNav(f, parsed));
-    expect(validate(parsed, quotes, navs, [])).toEqual([]);
+    expect(validate(parsed, quotes, navs, [])).toEqual({ anomalies: [], avertissements: [] });
     const prev = { ...quotes[0], sessionDate: "2026-08-03", close: quotes[0].close * 2 };
-    const out = validate(parsed, quotes, navs, [prev]);
+    /* L écart de cours est désormais un AVERTISSEMENT : le cours est écrit
+       en base, il est seulement signalé. Voir le sort de la donnée. */
+    const out = validate(parsed, quotes, navs, [prev]).avertissements;
     expect(out.some((a) => a.includes(quotes[0].mnemo) && a.includes("écart"))).toBe(true);
   });
 });
@@ -122,7 +124,7 @@ describe("les sections incomplètes, mesurées contre la séance précédente", 
 
   it("se tait quand la séance rend autant que la précédente", () => {
     const hier = veille(quotes.filter((q) => q.instrument === "action").length, quotes.filter((q) => q.instrument === "obligation").length);
-    expect(incompletes(validate(parsed, quotes, navs, hier, navs.length))).toEqual([]);
+    expect(incompletes(validate(parsed, quotes, navs, hier, navs.length).anomalies)).toEqual([]);
   });
 
   it("se tait sur une cote plus petite qu'aujourd'hui, si elle ne rétrécit pas", () => {
@@ -131,7 +133,7 @@ describe("les sections incomplètes, mesurées contre la séance précédente", 
     const cotes = [...petite.equities.map((e) => equityQuote(e, petite)), ...petite.bonds.map((b) => bondQuote(b, petite))];
     const vl = petite.funds.map((f) => fundNav(f, petite));
     const hier = cotes.map((q) => ({ ...q, sessionDate: "2026-08-03" }));
-    expect(incompletes(validate(petite, cotes, vl, hier, vl.length))).toEqual([]);
+    expect(incompletes(validate(petite, cotes, vl, hier, vl.length).anomalies)).toEqual([]);
   });
 
   /** Une ligne de plus hier qu aujourd hui : on en fabrique une, avec son propre ISIN. */
@@ -140,7 +142,7 @@ describe("les sections incomplètes, mesurées contre la séance précédente", 
   it("crie quand une action disparaît, même une seule", () => {
     const action = quotes.find((q) => q.instrument === "action")!;
     const hier = [...veille(quotes.filter((q) => q.instrument === "action").length, quotes.filter((q) => q.instrument === "obligation").length), ...enPlus(action, 1)];
-    const out = incompletes(validate(parsed, quotes, navs, hier, navs.length));
+    const out = incompletes(validate(parsed, quotes, navs, hier, navs.length).anomalies);
     expect(out.join(" ")).toMatch(/action\(s\) lue\(s\) contre/);
   });
 
@@ -149,8 +151,8 @@ describe("les sections incomplètes, mesurées contre la séance précédente", 
     const obl = quotes.find((q) => q.instrument === "obligation")!;
     const tout = veille(quotes.filter((q) => q.instrument === "action").length, base);
     const une = [...tout, ...enPlus(obl, 1)];
-    expect(incompletes(validate(parsed, quotes, navs, une, navs.length))).toEqual([]);
+    expect(incompletes(validate(parsed, quotes, navs, une, navs.length).anomalies)).toEqual([]);
     const trois = [...tout, ...enPlus(obl, 3)];
-    expect(incompletes(validate(parsed, quotes, navs, trois, navs.length)).join(" ")).toMatch(/obligation\(s\) lue\(s\) contre/);
+    expect(incompletes(validate(parsed, quotes, navs, trois, navs.length).anomalies).join(" ")).toMatch(/obligation\(s\) lue\(s\) contre/);
   });
 });

@@ -121,7 +121,10 @@ export async function Rapport({ seance }: { seance: string }) {
            à croire à une perte. */
         lignesOpcvm: parsed.funds.length + parsed.funds.filter((f) => f.variationMonthlyPct !== undefined).length + parsed.funds.filter((f) => f.variationQuarterlyPct !== undefined).length,
         indice: parsed.index?.value,
-        anomalies: validate(parsed, quotes, navs, precedentes, avant?.counts?.funds ?? 0),
+        ...(() => {
+          const v = validate(parsed, quotes, navs, precedentes, avant?.counts?.funds ?? 0);
+          return { anomalies: [...v.anomalies, ...v.avertissements] };
+        })(),
         notes: parsed.notes,
       };
     } catch (e) {

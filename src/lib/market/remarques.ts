@@ -22,11 +22,62 @@ import type { MarketBulletin } from "@/lib/domain/market";
  * Module pur : il se lit du serveur comme du navigateur, et un test l'atteint
  * sans monter de base.
  */
+/**
+ * LE SORT DE LA DONNÉE : LE SECOND AXE, ET IL MANQUAIT.
+ *
+ * Une famille ne portait qu'un axe, la GRAVITÉ, « anomalie » ou
+ * « avertissement ». Il en manquait un, perpendiculaire : CE QU'EST DEVENUE
+ * LA DONNÉE. Les deux se confondaient, et cela coûtait deux fois.
+ *
+ * D'abord au desk. La famille N, « saut de valeur au-delà du seuil », était
+ * rangée en anomalie, le cran qui dit « cette séance manque de matière ».
+ * Or la valeur est lue, écrite en base, et simplement signalée : rien ne
+ * manque. Le desk rouvrait une séance entière pour un fonds qui avait
+ * bougé de 12 %.
+ *
+ * Ensuite au suivi. « Combien de notre base avons-nous retouché, et
+ * combien la bourse ne nous a jamais donné » n'avait aucune réponse, parce
+ * qu'aucun champ ne distinguait une valeur réparée d'une valeur refusée ni
+ * d'une valeur jamais publiée. C'est pourtant la question qu'un régulateur,
+ * un client ou le fournisseur de données posent en premier.
+ *
+ * SIX SORTS, ET ILS SE LISENT COMME UNE PHRASE :
+ *
+ *   corrigee     lue, réparée, ÉCRITE. Le message porte la valeur d'origine,
+ *                et c'est la règle : toute retouche se défait.
+ *   telle_quelle lue, écrite SANS retouche, mais signalée.
+ *   ecartee      lue, jugée invraisemblable, NON écrite. Elle manque chez
+ *                nous, et c'est notre décision.
+ *   perdue       présente dans le document, le lecteur n'a pas su la lire.
+ *                Elle manque chez nous, et c'est notre limite.
+ *   absente      le document ne la contient pas. Elle manque partout, et
+ *                ce n'est la faute de personne.
+ *   sans_objet   rien ne manque : la remarque porte sur la forme ou sur le
+ *                volume, pas sur une valeur.
+ *
+ * « Ignorée », « manquante » et « introuvable » se disaient pêle-mêle : elles
+ * deviennent écartée, absente et perdue, et chacune répond à une question
+ * différente. Nous avons refusé · la bourse n'a pas publié · nous n'avons pas
+ * su lire.
+ */
+export type SortDeLaDonnee = "corrigee" | "telle_quelle" | "ecartee" | "perdue" | "absente" | "sans_objet";
+
+export const SORT: Record<SortDeLaDonnee, { libelle: string; dit: string; ecrite: boolean }> = {
+  corrigee: { libelle: "Corrigée et intégrée", dit: "Le lecteur a réparé la cellule et l'a écrite. La valeur d'origine figure dans le message.", ecrite: true },
+  telle_quelle: { libelle: "Intégrée telle quelle", dit: "La valeur est écrite sans retouche. La remarque la signale, elle ne la retire pas.", ecrite: true },
+  ecartee: { libelle: "Écartée", dit: "La valeur a été lue puis refusée : elle manque dans notre base, par notre décision.", ecrite: false },
+  perdue: { libelle: "Non lue", dit: "La donnée est dans le document et le lecteur n'a pas su la lire : elle manque, par notre limite.", ecrite: false },
+  absente: { libelle: "Absente du document", dit: "La bourse ne l'a pas publiée ce jour-là. Elle ne manque à personne en particulier.", ecrite: false },
+  sans_objet: { libelle: "Sans objet", dit: "Aucune valeur en cause : la remarque porte sur la forme ou sur le volume.", ecrite: false },
+};
+
 export interface Famille {
   /** La lettre portée par la pastille. */
   code: string;
   /** Une anomalie compte double : elle dit que la séance manque de matière. */
   genre: "anomalie" | "avertissement";
+  /** Ce qu'est devenue la donnée. Voir SortDeLaDonnee. */
+  sort: SortDeLaDonnee;
   /** Ce que la famille désigne, en une ligne. */
   libelle: string;
   /** Ce qu'il faut en faire, quand il y a quelque chose à en faire. */
@@ -39,38 +90,38 @@ export interface Famille {
  * ce qui manque en entier, puis les sections courtes, puis les lignes.
  */
 export const FAMILLES: Famille[] = [
-  { code: "A", genre: "avertissement", libelle: "Indice BVMAC introuvable", quoiFaire: "Rien avant le 12/12/2023 : l'indice n'était pas publié.", motif: /^Indice BVMAC/ },
-  { code: "B", genre: "avertissement", libelle: "Section OPCVM introuvable", quoiFaire: "Rien avant le 04/08/2023 : la table n'existait pas.", motif: /^Section OPCVM introuvable/ },
-  { code: "C", genre: "anomalie", libelle: "Table OPCVM sous le plancher", quoiFaire: "Rien avant le 04/08/2023 ; après, la table est vraiment courte.", motif: /^Seulement .* OPCVM(?!.*contre)/ },
-  { code: "D", genre: "anomalie", libelle: "Table OPCVM plus courte que la veille", quoiFaire: "Comparer à la séance précédente : un fonds a disparu ou la table est coupée.", motif: /^Seulement .* OPCVM.*contre/ },
-  { code: "E", genre: "anomalie", libelle: "Section obligations incomplète", quoiFaire: "Presque toujours accompagné de H : des lignes n'ont pas été reconnues.", motif: /^Seulement .* obligation/ },
-  { code: "F", genre: "anomalie", libelle: "Section actions incomplète", quoiFaire: "Grave : l'indice se calcule sur les actions.", motif: /^Seulement .* action/ },
-  { code: "G", genre: "anomalie", libelle: "Lignes disparues depuis la veille", quoiFaire: "Comparer les deux cotes : une ligne qui revient plus tard n'est pas sortie.", motif: /^Lignes présentes au bulletin précédent/ },
-  { code: "H", genre: "avertissement", libelle: "Obligation : ligne de cours non reconnue", quoiFaire: "Le défaut le plus fréquent. La ligne dense du PDF ne correspond à aucun motif connu.", motif: /^Obligation.*ligne de cours non reconnue/ },
-  { code: "I", genre: "avertissement", libelle: "Obligation : prix et nominal collés", quoiFaire: "Deux nombres accolés sans séparateur : le découpage est ambigu, la ligne est écartée.", motif: /^Obligation.*prix \/ nominal ambigus/ },
-  { code: "J", genre: "avertissement", libelle: "Action : ligne dense non reconnue", quoiFaire: "Même défaut que H, côté actions. Rare et coûteux.", motif: /^Action.*ligne dense non reconnue/ },
-  { code: "K", genre: "anomalie", libelle: "Cours de clôture nul ou illisible", quoiFaire: "La ligne est lue mais son cours ne l'est pas : elle entre à zéro ou pas du tout.", motif: /cours de clôture nul ou illisible/ },
-  { code: "L", genre: "avertissement", libelle: "OPCVM : valeur liquidative écartée", quoiFaire: "Le motif est nommé dans la phrase. Mesuré le 12 octobre 2026 sur 89 cas : 56 précédaient la création du fonds et se réparent seuls, 20 devançaient la séance, 6 étaient trop anciennes, zéro portait une valeur fautive.", motif: /^OPCVM.*VL du.*ignorée/ },
-  { code: "M", genre: "avertissement", libelle: "OPCVM : ligne au format inattendu", quoiFaire: "Une ligne de la table n'a pas la forme attendue et passe à la trappe.", motif: /^OPCVM : ligne ignorée/ },
-  { code: "N", genre: "anomalie", libelle: "Fonds : saut de valeur au-delà du seuil", quoiFaire: "La VL bondit : erreur de lecture, ou vrai mouvement à confirmer.", motif: /^FCP .*précédente \(>/ },
-  { code: "O", genre: "avertissement", libelle: "Capitalisation : cellules incomplètes", quoiFaire: "La page de capitalisation est là, mais une ligne manque de chiffres.", motif: /^Capitalisation.*cellules incomplètes/ },
-  { code: "P", genre: "avertissement", libelle: "Capitalisation présente mais illisible", quoiFaire: "La section existe et ne rend aucune ligne.", motif: /^Section « Capitalisation/ },
-  { code: "Q", genre: "anomalie", libelle: "Écart brutal avec le dernier cours", quoiFaire: "Plus de 15 % d'écart : défaut de lecture, ou vrai mouvement.", motif: /écart avec le dernier cours/ },
+  { code: "A", genre: "avertissement", sort: "absente", libelle: "Indice BVMAC introuvable", quoiFaire: "Rien avant le 12/12/2023 : l'indice n'était pas publié.", motif: /^Indice BVMAC/ },
+  { code: "B", genre: "avertissement", sort: "absente", libelle: "Section OPCVM introuvable", quoiFaire: "Rien avant le 04/08/2023 : la table n'existait pas.", motif: /^Section OPCVM introuvable/ },
+  { code: "C", genre: "anomalie", sort: "sans_objet", libelle: "Table OPCVM sous le plancher", quoiFaire: "Rien avant le 04/08/2023 ; après, la table est vraiment courte.", motif: /^Seulement .* OPCVM(?!.*contre)/ },
+  { code: "D", genre: "anomalie", sort: "sans_objet", libelle: "Table OPCVM plus courte que la veille", quoiFaire: "Comparer à la séance précédente : un fonds a disparu ou la table est coupée.", motif: /^Seulement .* OPCVM.*contre/ },
+  { code: "E", genre: "anomalie", sort: "sans_objet", libelle: "Section obligations incomplète", quoiFaire: "Presque toujours accompagné de H : des lignes n'ont pas été reconnues.", motif: /^Seulement .* obligation/ },
+  { code: "F", genre: "anomalie", sort: "sans_objet", libelle: "Section actions incomplète", quoiFaire: "Grave : l'indice se calcule sur les actions.", motif: /^Seulement .* action/ },
+  { code: "G", genre: "anomalie", sort: "sans_objet", libelle: "Lignes disparues depuis la veille", quoiFaire: "Comparer les deux cotes : une ligne qui revient plus tard n'est pas sortie.", motif: /^Lignes présentes au bulletin précédent/ },
+  { code: "H", genre: "avertissement", sort: "perdue", libelle: "Obligation : ligne de cours non reconnue", quoiFaire: "Le défaut le plus fréquent. La ligne dense du PDF ne correspond à aucun motif connu.", motif: /^Obligation.*ligne de cours non reconnue/ },
+  { code: "I", genre: "avertissement", sort: "perdue", libelle: "Obligation : prix et nominal collés", quoiFaire: "Deux nombres accolés sans séparateur : le découpage est ambigu, la ligne est écartée.", motif: /^Obligation.*prix \/ nominal ambigus/ },
+  { code: "J", genre: "avertissement", sort: "perdue", libelle: "Action : ligne dense non reconnue", quoiFaire: "Même défaut que H, côté actions. Rare et coûteux.", motif: /^Action.*ligne dense non reconnue/ },
+  { code: "K", genre: "anomalie", sort: "ecartee", libelle: "Cours de clôture nul ou illisible", quoiFaire: "La ligne est lue mais son cours ne l'est pas : elle entre à zéro ou pas du tout.", motif: /cours de clôture nul ou illisible/ },
+  { code: "L", genre: "avertissement", sort: "ecartee", libelle: "OPCVM : valeur liquidative écartée", quoiFaire: "Le motif est nommé dans la phrase. Mesuré le 12 octobre 2026 sur 89 cas : 56 précédaient la création du fonds et se réparent seuls, 20 devançaient la séance, 6 étaient trop anciennes, zéro portait une valeur fautive.", motif: /^OPCVM.*VL du.*ignorée/ },
+  { code: "M", genre: "avertissement", sort: "perdue", libelle: "OPCVM : ligne au format inattendu", quoiFaire: "Une ligne de la table n'a pas la forme attendue et passe à la trappe.", motif: /^OPCVM : ligne ignorée/ },
+  { code: "N", genre: "avertissement", sort: "telle_quelle", libelle: "Fonds : saut de valeur au-delà du seuil", quoiFaire: "La VL bondit : erreur de lecture, ou vrai mouvement à confirmer.", motif: /^FCP .*précédente \(>/ },
+  { code: "O", genre: "avertissement", sort: "perdue", libelle: "Capitalisation : cellules incomplètes", quoiFaire: "La page de capitalisation est là, mais une ligne manque de chiffres.", motif: /^Capitalisation.*cellules incomplètes/ },
+  { code: "P", genre: "avertissement", sort: "perdue", libelle: "Capitalisation présente mais illisible", quoiFaire: "La section existe et ne rend aucune ligne.", motif: /^Section « Capitalisation/ },
+  { code: "Q", genre: "avertissement", sort: "telle_quelle", libelle: "Écart brutal avec le dernier cours", quoiFaire: "Plus de 15 % d'écart : défaut de lecture, ou vrai mouvement.", motif: /écart avec le dernier cours/ },
   /* DEUX ÉVÉNEMENTS, ET NON UN. Le lecteur signale un en-tête illisible et
      continue ; l'ingestion, elle, abandonne la séance entière. Les confondre
      sous une seule lettre mettait la même pastille sur « j'ai perdu le numéro »
      et sur « rien n'est entré ». Le cliquet contre la production l'a vu : la
      famille paraissait des deux côtés à la fois. */
-  { code: "R", genre: "anomalie", libelle: "En-tête non reconnu : rien n'est entré", quoiFaire: "La séance entière est perdue. À reprendre en premier.", motif: /^En-tête du bulletin non reconnu : / },
-  { code: "S", genre: "avertissement", libelle: "En-tête illisible : numéro ou date", quoiFaire: "Le lecteur a continué sans le numéro ou la date du bulletin.", motif: /^En-tête du bulletin non reconnu \(/ },
+  { code: "R", genre: "anomalie", sort: "perdue", libelle: "En-tête non reconnu : rien n'est entré", quoiFaire: "La séance entière est perdue. À reprendre en premier.", motif: /^En-tête du bulletin non reconnu : / },
+  { code: "S", genre: "avertissement", sort: "telle_quelle", libelle: "En-tête illisible : numéro ou date", quoiFaire: "Le lecteur a continué sans le numéro ou la date du bulletin.", motif: /^En-tête du bulletin non reconnu \(/ },
   /* Prévue par le lecteur, jamais vue en production : sans elle, le jour où
      elle paraît, elle tombe au fourre-tout et fausse les comptes en silence. */
-  { code: "T", genre: "avertissement", libelle: "Obligation : cellules incomplètes", quoiFaire: "La ligne est trouvée mais une de ses colonnes manque.", motif: /^Obligation.*cellules incomplètes/ },
+  { code: "T", genre: "avertissement", sort: "perdue", libelle: "Obligation : cellules incomplètes", quoiFaire: "La ligne est trouvée mais une de ses colonnes manque.", motif: /^Obligation.*cellules incomplètes/ },
   /* La lecture géométrique est le dernier recours du lecteur. Quand elle non
      plus ne sait pas ouvrir le document, la séance reste au texte aplati et
      il faut le savoir : un recours qui renonce en silence ne vaut rien.
      Prévue par le lecteur, jamais vue en production. */
-  { code: "U", genre: "anomalie", libelle: "Lecture géométrique impossible", quoiFaire: "Le document n'a pas pu être ouvert par la lecture de secours : la séance reste lue au texte seul.", motif: /^Lecture géométrique impossible/ },
+  { code: "U", genre: "anomalie", sort: "sans_objet", libelle: "Lecture géométrique impossible", quoiFaire: "Le document n'a pas pu être ouvert par la lecture de secours : la séance reste lue au texte seul.", motif: /^Lecture géométrique impossible/ },
   /* LIRE ET ENREGISTRER NE SONT PAS LE MÊME MOMENT, et les confondre a fait
      mentir un écran pendant des mois. Le 22 décembre 2023, le lecteur lit cinq
      actions sur six ; la base refuse une ligne dont un cours d'ouverture sort
@@ -79,18 +130,18 @@ export const FAMILLES: Famille[] = [
      qui accuse la LECTURE, et le desk n'avait d'autre choix que de signer un
      motif faux sur le document. Ce qui est refusé doit se dire comme un refus
      d'écriture. */
-  { code: "V", genre: "anomalie", libelle: "Lu, mais refusé à l'enregistrement", quoiFaire: "Le lecteur a réussi : c'est la base qui refuse une valeur. Corriger la valeur ou la colonne, pas la lecture.", motif: /^Écriture refusée/ },
+  { code: "V", genre: "anomalie", sort: "ecartee", libelle: "Lu, mais refusé à l'enregistrement", quoiFaire: "Le lecteur a réussi : c'est la base qui refuse une valeur. Corriger la valeur ou la colonne, pas la lecture.", motif: /^Écriture refusée/ },
   /* UNE RÉPARATION N'EST PAS UNE REMARQUE, et celle-ci ne paraît jamais dans
      la file du desk : elle sort en note, et cette famille ne sert qu'à lui
      donner son nom et sa couleur dans le rapport. La nommer évite qu'elle
      s'affiche en « famille inconnue », ce qui ferait croire à un défaut là où
      le robot vient de se corriger tout seul. */
-  { code: "W", genre: "avertissement", libelle: "OPCVM : année de la VL corrigée", quoiFaire: "Rien à faire : la VL précédait la création du fonds, et l'année suivante résout tout. Un fonds qui revient souvent mérite un mot à la bourse.", motif: /^OPCVM .*: année de la VL corrigée/ },
+  { code: "W", genre: "avertissement", sort: "corrigee", libelle: "OPCVM : année de la VL corrigée", quoiFaire: "Rien à faire : la VL précédait la création du fonds, et l'année suivante résout tout. Un fonds qui revient souvent mérite un mot à la bourse.", motif: /^OPCVM .*: année de la VL corrigée/ },
   /* Comme la W : le robot s'est corrigé tout seul et le dit. La rangée portait
      un numéro de série Excel là où le bulletin imprime une date, et la
      variation imprimée sur la rangée a validé la conversion. Rien n'est perdu,
      mais rien n'est caché non plus. */
-  { code: "X", genre: "avertissement", libelle: "OPCVM : date au format Excel convertie", quoiFaire: "Rien à faire sur la séance : la variation imprimée a validé la date déduite. En revanche un fonds qui revient tous les mois mérite un mot à la bourse, car la cellule est mal typée à la source.", motif: /^OPCVM .*: date au format Excel convertie/ },
+  { code: "X", genre: "avertissement", sort: "corrigee", libelle: "OPCVM : date au format Excel convertie", quoiFaire: "Rien à faire sur la séance : la variation imprimée a validé la date déduite. En revanche un fonds qui revient tous les mois mérite un mot à la bourse, car la cellule est mal typée à la source.", motif: /^OPCVM .*: date au format Excel convertie/ },
 ];
 
 const PAR_CODE = new Map(FAMILLES.map((f) => [f.code, f]));

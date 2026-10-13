@@ -143,8 +143,28 @@ export function fundNav(f: BocFund, b: BocParsed, clefConnue?: (nom: string) => 
 /* ---------------- validation ---------------- */
 
 /** What was read but looks wrong : the desk sees these before trusting the day's prices. */
-export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], previous: Quote[], prevNavs = 0): string[] {
+/**
+ * DEUX LISTES, PARCE QUE DEUX CHOSES DIFFÉRENTES SE DISENT ICI.
+ *
+ * `anomalies` annonce qu'une séance MANQUE DE MATIÈRE : une section courte,
+ * des lignes disparues, une écriture refusée. Le desk doit la rouvrir.
+ *
+ * `avertissements` signale une valeur qui est BIEN EN BASE et qui mérite un
+ * œil : un fonds qui bondit de plus de dix pour cent, un cours qui s'écarte
+ * du précédent. Rien ne manque, rien n'est à rouvrir.
+ *
+ * LES DEUX SE CONFONDAIENT, et cela envoyait le desk rouvrir une séance
+ * entière parce qu'un fonds avait bougé de douze pour cent, alors que sa
+ * valeur liquidative était écrite, juste, et signalée. Georges l'a demandé le
+ * 13 octobre 2026 : accepter ces valeurs et les porter au journal, pas au
+ * tableau des manques. Le barème des familles le déclare désormais (voir
+ * `sort` dans remarques.ts), et un cliquet refuse qu'une anomalie annonce une
+ * donnée pourtant écrite.
+ */
+export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], previous: Quote[], prevNavs = 0): { anomalies: string[]; avertissements: string[] } {
   const out: string[] = [];
+  /** Ce qui est écrit en base et seulement signalé : familles N et Q. */
+  const vu: string[] = [];
   const prevBy = new Map(previous.map((q) => [q.isin, q]));
   if (!/^\d{4}-\d{2}-\d{2}$/.test(parsed.sessionDate)) out.push("Date de séance illisible.");
   /**
@@ -180,7 +200,7 @@ export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], pr
     const p = prevBy.get(q.isin);
     if (p && p.sessionDate < q.sessionDate && p.close > 0) {
       const move = Math.abs(q.close / p.close - 1) * 100;
-      if (move > 15) out.push(`${label} : ${move.toFixed(1)} % d'écart avec le dernier cours ingéré (${p.close} le ${fmtDate(p.sessionDate)}).`);
+      if (move > 15) vu.push(`${label} : ${move.toFixed(1)} % d'écart avec le dernier cours ingéré (${p.close} le ${fmtDate(p.sessionDate)}).`);
     }
   }
   const known = new Set(previous.map((q) => q.isin));
@@ -189,9 +209,12 @@ export function validate(parsed: BocParsed, quotes: Quote[], navs: FundNav[], pr
   for (const n of navs) {
     if (!(n.nav > 0)) out.push(`${n.name} : VL nulle ou illisible.`);
     if (n.navDate > parsed.sessionDate) out.push(`${n.name} : date de VL postérieure à la séance.`);
-    if (n.previousNav && Math.abs(n.nav / n.previousNav - 1) > 0.1) out.push(`${n.name} : VL ${fmt(n.nav)} vs ${fmt(n.previousNav)} précédente (> 10 %).`);
+    /* LA VL BONDIT, ET ON LA GARDE. Elle est écrite en base, elle l'a
+       toujours été : seule l'étiquette changeait de côté. Au journal, donc,
+       et non au tableau des manques. */
+    if (n.previousNav && Math.abs(n.nav / n.previousNav - 1) > 0.1) vu.push(`${n.name} : VL ${fmt(n.nav)} vs ${fmt(n.previousNav)} précédente (> 10 %).`);
   }
-  return out;
+  return { anomalies: out, avertissements: vu };
 }
 
 /* ---------------- listed lines of the Guichet ---------------- */
@@ -499,7 +522,10 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   /* Le compte des VL de la veille vient du bulletin précédent : les cotations
      ne portent pas les OPCVM. */
   const avantHier = prevDate ? await r.getBulletin(prevDate).catch(() => undefined) : undefined;
-  const anomalies = validate(parsed, quotes, navs, previous, avantHier?.counts?.funds ?? 0);
+  /* Les deux listes : ce qui MANQUE va aux anomalies, ce qui est ÉCRIT et
+     seulement signalé rejoint les avertissements du lecteur. */
+  const { anomalies, avertissements } = validate(parsed, quotes, navs, previous, avantHier?.counts?.funds ?? 0);
+  parsed.warnings.push(...avertissements);
   const already = await r.getBulletin(sessionDate);
 
   /* LIRE ET ENREGISTRER NE SONT PAS LE MÊME MOMENT.
