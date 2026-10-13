@@ -492,12 +492,20 @@ export function obligationsGeometriques(rangees: Rangee[], carnet?: Carnet, nomi
     const isin = cells[iIsin];
     if (vus.has(isin)) continue;
 
-    if (!cells.some((c, k) => k > iIsin && DATE.test(c))) {
+    /* LE PIVOT EST LE STATUT, PAS LA DATE, et c'est la mesure qui l'a dit.
+       En avril la moitié haute ne porte que l'identité ; en MAI elle porte
+       l'identité ET la date, les nombres seuls tombant en dessous. Une
+       condition posée sur la date voyait donc avril et manquait mai, et les
+       cinq séances de mai sont revenues inchangées après relecture. Le
+       statut, lui, est ce que le constructeur exige de toute façon : une
+       rangée qui porte un ISIN sans statut n'est jamais une ligne de cours
+       complète, quelle que soit la façon dont la coupure est tombée. */
+    if (!cells.some((c, k) => k > iIsin && STATUT.test(c) && !ISIN.test(c))) {
       const bas = section[i + 1];
       if (bas && bas.page === r.page && r.y - bas.y > 0 && r.y - bas.y < 6) {
         const nc = rangeeSeparee(bas, grille);
         const n = nc.map((c) => c.texte);
-        if (n.length >= 6 && n.some((c) => DATE.test(c)) && !n.some((c) => ISIN.test(c))) {
+        if (n.length >= 6 && n.some((c) => STATUT.test(c)) && !n.some((c) => ISIN.test(c))) {
           cells.push(...n);
           cellules.push(...nc);
         }

@@ -363,8 +363,40 @@
  *                             Les valeurs gagnees ont ete confrontees a une
  *                             feuille relue par Georges sur la piece : elles
  *                             correspondent cellule pour cellule.
+ *
+ *  17  (2026-10-14)           LE PIVOT DE LA JONCTION EST LE STATUT, ET NON
+ *                             LA DATE. La 16 posait la condition sur la
+ *                             date absente : elle voyait AVRIL, ou la moitie
+ *                             haute ne porte que l identite, et manquait MAI,
+ *                             ou elle porte l identite ET la date, les
+ *                             nombres seuls tombant en dessous. Mesure apres
+ *                             relecture : les deux seances d avril entrees,
+ *                             refus a zero ; les cinq de mai revenues
+ *                             inchangees, quatre refus chacune.
+ *
+ *                             LE STATUT EST CE QUE LE CONSTRUCTEUR EXIGE DE
+ *                             TOUTE FACON. Une rangee qui porte un ISIN sans
+ *                             statut n est jamais une ligne de cours
+ *                             complete, quelle que soit la facon dont la
+ *                             coupure est tombee : la condition cesse de
+ *                             decrire une mise en page pour decrire un
+ *                             manque, et elle couvre les deux.
+ *
+ *                             Regression sur 200 seances : 109 GAGNEES, ZERO
+ *                             PERDUE, ZERO CHANGEE, soit sept fois le gain
+ *                             de la 16. La coupure en deux hauteurs touche
+ *                             donc bien plus de seances que les quinze qui
+ *                             portaient une remarque, parce que le lecteur
+ *                             aplati y reussissait et que personne ne
+ *                             demandait rien a la geometrie.
+ *
+ *                             LA 16 N A VECU QU UNE HEURE, et c est le
+ *                             mecanisme qui fonctionne : sept seances
+ *                             portaient deja son estampille, dont les cinq
+ *                             de mai qui n avaient rien gagne. Les laisser
+ *                             en 16 les ferait passer pour a jour.
  */
-export const VERSION_DU_LECTEUR = 16;
+export const VERSION_DU_LECTEUR = 17;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
@@ -438,6 +470,7 @@ export const TOUCHE_PAR_VERSION: Record<number, Lecteur[]> = {
   14: ["encours"], // trois défauts de la table d'encours
   15: ["vl"], // le montant rendu en date, inverse du défaut de la 10
   16: ["cotations"], // la rangée coupée en deux hauteurs, jointe par sa forme
+  17: ["cotations"], // le pivot de la jonction : le statut, et non la date
 };
 
 /**
