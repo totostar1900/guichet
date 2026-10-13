@@ -20,6 +20,7 @@ import { CONVENTION_VERSION } from "@/data/legal";
 import { emptyClientFile, type ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
+import type { ObservationBeac } from "@/lib/market/beac-journal";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { BeacCurveRow } from "./repository";
@@ -265,6 +266,8 @@ interface Store {
   bulletins: MarketBulletin[];
   /** Les réponses du desk aux remarques du lecteur. Absentes du jeu d'essai : rien à juger tant que rien n'a été lu de travers. */
   jugementsBulletin?: JugementBulletin[];
+  /** Le journal des annonces BEAC : en ajout seul, la plus récente en tête. */
+  observationsBeac?: (ObservationBeac & { vuLe: string })[];
   quotes: Quote[];
   fundNavs: FundNav[];
   issuerDocs: IssuerDocument[];
@@ -1248,6 +1251,19 @@ export const memoryRepository: Repository = {
     if (i >= 0) s.bulletins[i] = structuredClone(b);
     else s.bulletins.push(structuredClone(b));
     return structuredClone(b);
+  },
+  async dernieresObservationsBeac() {
+    /* Le journal est en ajout seul : le dernier état d'un document est la
+       première observation rencontrée en remontant le temps. */
+    const vus = new Map<string, { url: string; present: boolean; empreinte: string }>();
+    for (const o of store().observationsBeac ?? []) if (!vus.has(o.url)) vus.set(o.url, { url: o.url, present: o.present, empreinte: o.empreinte });
+    return [...vus.values()];
+  },
+  async ajouterObservationsBeac(obs) {
+    const s = store();
+    s.observationsBeac ??= [];
+    s.observationsBeac.unshift(...structuredClone(obs).map((o) => ({ ...o, vuLe: new Date().toISOString() })));
+    return obs.length;
   },
   async listJugementsBulletin() {
     return structuredClone(store().jugementsBulletin ?? []);

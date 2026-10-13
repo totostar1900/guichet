@@ -15,6 +15,7 @@ import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { BulletinNote, FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
+import type { DernierEtat } from "@/lib/market/beac-journal";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
@@ -2226,6 +2227,35 @@ export const supabaseRepository: Repository = {
       .single();
     if (error) fail("ajouterJugementBulletin", error);
     return toJugement(data as JugementRow);
+  },
+  async dernieresObservationsBeac() {
+    /* LE DERNIER ÉTAT DE CHAQUE DOCUMENT, en une requête et sans fenêtre
+       analytique : l'index est sur (url, vu_le desc), on prend tout dans cet
+       ordre et on garde le premier de chaque adresse. Le journal ne compte
+       que quelques milliers de lignes, il grandit de ce qui change et non de
+       ce qui est lu, donc la lecture entière reste bon marché longtemps. */
+    const { data, error } = await db().from("beac_observations").select("url, present, empreinte, vu_le").order("vu_le", { ascending: false });
+    if (error) {
+      // Migration 0095 pas encore appliquée : un journal vide vaut mieux qu'un robot en erreur.
+      if (/beac_observations/.test(error.message)) return [];
+      fail("dernieresObservationsBeac", error);
+    }
+    const vus = new Map<string, DernierEtat>();
+    for (const r of (data ?? []) as { url: string; present: boolean; empreinte: string }[]) {
+      if (!vus.has(r.url)) vus.set(r.url, { url: r.url, present: r.present, empreinte: r.empreinte });
+    }
+    return [...vus.values()];
+  },
+  async ajouterObservationsBeac(obs) {
+    if (obs.length === 0) return 0;
+    const { error } = await db()
+      .from("beac_observations")
+      .insert(obs.map((o) => ({ url: o.url, present: o.present, titre: o.titre, genre: o.genre ?? null, pays: o.pays ?? null, instrument: o.instrument ?? null, tenor: o.tenor ?? null, seance: o.seance ?? null, abondement: o.abondement, empreinte: o.empreinte })));
+    if (error) {
+      if (/beac_observations/.test(error.message)) return 0;
+      fail("ajouterObservationsBeac", error);
+    }
+    return obs.length;
   },
   async retirerJugementBulletin(id, par) {
     /* Retiré, jamais supprimé : un jugement faux doit laisser sa trace, et

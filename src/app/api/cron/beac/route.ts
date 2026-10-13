@@ -13,6 +13,7 @@ import {
   readBeacDoc,
 } from "@/lib/market/beac";
 import type { NewAuctionResult } from "@/lib/market/auction-results";
+import { journaliser } from "@/lib/market/beac-journal";
 
 /**
  * Les adjudications de la zone, prises à la source qui les publie toutes.
@@ -95,7 +96,34 @@ export async function GET(req: NextRequest) {
         { status: 502 },
       );
     }
-  
+
+    /**
+     * LE JOURNAL, ÉCRIT AVANT TOUT LE RESTE.
+     *
+     * La page de la BEAC ne montre que l'état courant : une séance programmée
+     * puis annulée ne laisse aucune trace ailleurs, et chaque jour sans ce
+     * journal est un jour d'histoire définitivement absent. C'est la seule
+     * matière de ce chantier qui se perd en temps réel, donc elle s'écrit
+     * d'abord, avant les dépôts qui peuvent échouer.
+     *
+     * Les deux refus plus haut sont ce qui rend l'écriture sûre : une page
+     * injoignable ou de forme inconnue sort de la fonction sans arriver ici.
+     * Sans eux, une lecture ratée prise pour une page vide écrirait une
+     * annulation sur CHAQUE adjudication du calendrier, d'un seul coup.
+     */
+    const verdict = journaliser(rows.map(readBeacDoc), await r.dernieresObservationsBeac(), true);
+    if (verdict.aEcrire.length > 0) {
+      await r.ajouterObservationsBeac(verdict.aEcrire);
+      /* On ne note au journal du desk que ce qui bouge. « Rien n'a changé »
+         tous les jours ferait du bruit, et le compteur de fraîcheur dit déjà
+         que le robot est passé. */
+      await r.logEvent({
+        kind: "system",
+        html: `BEAC : calendrier, ${verdict.ajouts} ajout(s), ${verdict.revisions} révision(s), ${verdict.disparitions} disparition(s) sur ${rows.length} documents`,
+      });
+    }
+
+
     // « depuis » rattrape : au premier passage il n'y a rien derrière, et un jour
     // manqué laisserait passer une séance annoncée la veille pour la semaine
     // suivante. Sans le paramètre, le robot ne regarde que devant lui.

@@ -17,6 +17,7 @@ import type { NewTirage, RemiseDePrelevement, Tirage } from "@/lib/domain/prelev
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { FundNav, IssuerDocument, MarketBulletin, MouvementSeance, Quote, QuoteActivity } from "@/lib/domain/market";
 import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
+import type { DernierEtat, ObservationBeac } from "@/lib/market/beac-journal";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
@@ -361,6 +362,20 @@ export interface Repository {
   listJugementsBulletin(): Promise<JugementBulletin[]>;
   ajouterJugementBulletin(j: Omit<JugementBulletin, "id" | "at">): Promise<JugementBulletin>;
   retirerJugementBulletin(id: string, par: string): Promise<void>;
+  /**
+   * LE JOURNAL DES ANNONCES DE LA BEAC, EN AJOUT SEUL.
+   *
+   * Deux méthodes, et pas de mise à jour : c'est la forme qui fait l'outil.
+   * Une séance programmée puis annulée ne laisse aucune trace ailleurs, la
+   * page de la BEAC ne montrant que l'état courant. Une table qu'on
+   * mettrait à jour écraserait précisément ce qu'on veut étudier.
+   *
+   * `dernieresObservationsBeac` rend le dernier état connu de chaque
+   * document, ce qui est la seule question posée à chaque tour du robot :
+   * ce que la BEAC affiche a-t-il changé depuis la dernière fois.
+   */
+  dernieresObservationsBeac(): Promise<DernierEtat[]>;
+  ajouterObservationsBeac(obs: ObservationBeac[]): Promise<number>;
   /** Idempotent on (isin, sessionDate). */
   upsertQuotes(quotes: Quote[]): Promise<void>;
   /** History of one line, most recent first. */
