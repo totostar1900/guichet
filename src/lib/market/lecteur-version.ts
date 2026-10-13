@@ -274,8 +274,53 @@
  *                             CG0000020220 », et la ligne EBD01 est restee
  *                             SANS DESIGNATION pendant 767 seances, toute sa
  *                             vie cotee, sans que rien proteste.
+ *
+ *  15  (2026-10-13)           LE MONTANT RENDU EN DATE, qui est l inverse du
+ *                             defaut de la version 10 et que Georges a vu
+ *                             dans le classeur. Un numero de serie imprime la
+ *                             ou une date est attendue se corrigeait depuis
+ *                             la 10 ; une date imprimee la ou un MONTANT est
+ *                             attendu passait pour une VL trop ancienne.
+ *
+ *                             LE MOTIF MENTAIT, comme celui que ce module
+ *                             avait deja corrige une fois : « anterieure a la
+ *                             seance de plus de quatre cents jours » decrit
+ *                             une date, or il n y a aucune date dans cette
+ *                             cellule. Le desk lisait une donnee perimee la
+ *                             ou la bourse publie une donnee corrompue, et ce
+ *                             n est pas le meme interlocuteur.
+ *
+ *                             LA PREUVE EST ARITHMETIQUE. Les fonds de la
+ *                             zone naissent a 10 000 francs, donc leurs
+ *                             valeurs lues comme numeros de serie tombent
+ *                             entre 1924 et 1954 : une VL anterieure a l an
+ *                             2000 n a jamais ete une date. Mesure sur les
+ *                             sept rangees de la base en reconvertissant
+ *                             chacune et en la confrontant a la serie du
+ *                             fonds : 1927-07-17 vaut 10 060 contre une VL
+ *                             reelle de 10 060,33 ; 1936-01-10 vaut 13 159
+ *                             contre 13 159,79 ; 1934-07-25 vaut 12 625
+ *                             contre 12 625,52 ; 1932-06-16 vaut 11 856
+ *                             contre 11 856,64 ; 1934-07-22 vaut 12 622
+ *                             contre 12 622,81 ; 1930-11-19 vaut 11 281
+ *                             contre 11 281,15. SEPT SUR SEPT, et l ecart est
+ *                             toujours negatif et inferieur au franc : le
+ *                             rendu en date TRONQUE les centimes.
+ *
+ *                             LA VARIATION IMPRIMEE NE PEUT PAS SERVIR DE
+ *                             GARDE ICI, contrairement a la version 10 : la
+ *                             bourse la calcule sur la cellule corrompue, 362
+ *                             pour cent chez AB CASH. Le second invariant est
+ *                             la serie du fonds, qui ne lui doit rien.
+ *
+ *                             ON NE REECRIT RIEN POUR AUTANT. Le montant
+ *                             reconstruit est une partie entiere, donc moins
+ *                             bon que la VL au centime que la serie porte
+ *                             deja : l ecrire remplacerait une valeur juste
+ *                             par une valeur tronquee. La reconstruction sert
+ *                             de PREUVE au fournisseur, pas de valeur en base.
  */
-export const VERSION_DU_LECTEUR = 14;
+export const VERSION_DU_LECTEUR = 15;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
@@ -347,6 +392,7 @@ export const TOUCHE_PAR_VERSION: Record<number, Lecteur[]> = {
   12: ["cotations"], // la table de capitalisation, lue par les abscisses
   13: ["encours"], // la seconde table, l'encours des titres de dette
   14: ["encours"], // trois défauts de la table d'encours
+  15: ["vl"], // le montant rendu en date, inverse du défaut de la 10
 };
 
 /**

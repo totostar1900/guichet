@@ -23,7 +23,9 @@ export function Fournisseur({ premiere, derniere }: { premiere: string; derniere
   const [au, setAu] = useState(derniere);
 
   const invalide = !du || !au || du > au;
-  const adresse = (format: "xlsx" | "pdf") => `/desk/bulletins/fournisseur?du=${du}&au=${au}&format=${format}`;
+  /* Un seul format depuis le 13 octobre 2026 : le PDF essayait d'être un
+     courrier et un relevé à la fois, et c'est le relevé qui en souffrait. */
+  const adresse = () => `/desk/bulletins/fournisseur?du=${du}&au=${au}`;
 
   /** Le premier jour du mois ou du trimestre écoulé, et son dernier. */
   const poser = (mois: number) => {
@@ -72,11 +74,8 @@ export function Fournisseur({ premiere, derniere }: { premiere: string; derniere
           <span className={styles.erreur}>{t("Choisissez une plage : la date de début doit précéder la date de fin.")}</span>
         ) : (
           <>
-            <a className="btn" href={adresse("xlsx")} download>
+            <a className="btn" href={adresse()} download>
               {t("Classeur Excel")}
-            </a>
-            <a className="btn ghost" href={adresse("pdf")} target="_blank" rel="noreferrer">
-              {t("Lettre PDF")}
             </a>
           </>
         )}

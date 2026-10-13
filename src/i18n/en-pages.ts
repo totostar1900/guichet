@@ -186,6 +186,11 @@ export const EN_PAGES: Record<string, string> = {
     "Every investment carries a risk of losing capital. Past performance is no guide to future performance. Purpose Capital does not provide personal investment advice in the regulatory sense, except under an agreement that expressly provides for it.",
 
   /* ---------- les familles de remarques du lecteur ---------- */
+  "OPCVM : montant imprimé en date": "Fund: an amount printed as a date",
+  "Rien à reprendre chez nous : la cellule ne contient pas de date, elle contient un montant qu'un tableur a rendu en date. Le numéro de série est dans la phrase, et c'est lui qu'il faut montrer au fournisseur : « 10/01/1936 » ne désigne rien dans son fichier, « 13 159 » si. Mesuré sur les sept rangées de la base, le montant déduit tombe à moins d'un franc de la VL que la série du fonds porte par ailleurs, toujours en dessous : le rendu en date tronque les centimes.":
+    "Nothing to redo on our side: the cell holds no date, it holds an amount that a spreadsheet rendered as a date. The serial number is in the sentence, and that is what to show the supplier: « 10/01/1936 » points to nothing in their file, « 13 159 » does. Measured across the seven rows in the base, the deduced amount falls within one franc of the NAV the fund's own series carries, always below: rendering as a date truncates the centimes.",
+  "La séance entière est perdue. À reprendre en premier : au 4 janvier 2023, six actions et neuf obligations avaient été correctement lues avant d'être jetées pour ce seul motif.":
+    "The whole session is lost. To be redone first: on 4 January 2023, six equities and nine bonds had been read correctly before being discarded for this reason alone.",
   "OPCVM : valeur liquidative écartée": "Fund: net asset value set aside",
   "Le motif est nommé dans la phrase. Mesuré le 12 octobre 2026 sur 89 cas : 56 précédaient la création du fonds et se réparent seuls, 20 devançaient la séance, 6 étaient trop anciennes, zéro portait une valeur fautive.":
     "The reason is named in the sentence. Measured on 12 October 2026 over 89 cases: 56 predated the fund’s creation and repair themselves, 20 ran ahead of the session, 6 were too old, and none carried a faulty value.",

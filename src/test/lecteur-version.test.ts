@@ -23,7 +23,7 @@ const empreinte = (): string => {
 };
 
 /** L'empreinte des fichiers du lecteur au moment où VERSION_DU_LECTEUR a été posé. */
-const EMPREINTE_ATTENDUE = "1b4e4895cc502e28";
+const EMPREINTE_ATTENDUE = "3bb330e0e8c288be";
 
 describe("la version du lecteur", () => {
   it("bouge quand le lecteur bouge", () => {
@@ -85,21 +85,33 @@ describe("la version du lecteur", () => {
       }
     });
 
-    it("NE RÉCLAME PAS DE RELECTURE POUR UN LECTEUR QUI N'A PAS BOUGÉ", () => {
-      /* Le cas qui a coûté : une séance en v12 est à jour pour les cotations
-         et pour les VL, et seul son encours aurait quelque chose à gagner. */
-      expect(relectureUtile(12, "cotations")).toBe(false);
-      expect(relectureUtile(12, "vl")).toBe(false);
-      expect(relectureUtile(12, "encours")).toBe(true);
-      expect(lecteursARelire(12)).toEqual(["encours"]);
+    it("NE RÉCLAME QUE L'UNION DE CE QUI A BOUGÉ DEPUIS", () => {
+      /* LA RÈGLE PLUTÔT QU'UN CAS, parce qu'un cas chiffré devrait se
+         réécrire à chaque montée et finirait par être ajusté sans être lu.
+         Pour toute version déclarée, ce qu'on réclame est exactement l'union
+         des périmètres des montées postérieures, ni plus ni moins. */
+      for (let v = PREMIERE_VERSION_DECLAREE; v <= VERSION_DU_LECTEUR; v++) {
+        const attendu = new Set<string>();
+        for (let n = v + 1; n <= VERSION_DU_LECTEUR; n++) for (const l of TOUCHE_PAR_VERSION[n] ?? LECTEURS) attendu.add(l);
+        expect(lecteursARelire(v).sort(), `depuis la v${v}`).toEqual([...attendu].sort());
+      }
     });
 
-    it("RÉCLAME CE QUI A VRAIMENT BOUGÉ", () => {
-      /* Une séance en v8 a manqué les montées VL 9, 10 et 11, et la table de
-         capitalisation de la 12. */
-      expect(lecteursARelire(8).sort()).toEqual(["cotations", "encours", "vl"]);
-      expect(relectureUtile(11, "vl")).toBe(false);
-      expect(relectureUtile(11, "cotations")).toBe(true);
+    it("LAISSE TRANQUILLE LE LECTEUR QU'AUCUNE MONTÉE N'A TOUCHÉ", () => {
+      /* Le cas qui a coûté deux heures et demie le 13 octobre 2026 : la
+         séance était en v12, les montées 13 et 14 ne touchaient que
+         l'encours, et une relecture complète des 813 bulletins a été lancée
+         pour un numéro. La forme générale : s'il existe un lecteur
+         qu'aucune montée postérieure n'a touché, il ne doit rien réclamer. */
+      const touchesDepuis12 = new Set<string>();
+      for (let n = 13; n <= VERSION_DU_LECTEUR; n++) for (const l of TOUCHE_PAR_VERSION[n] ?? LECTEURS) touchesDepuis12.add(l);
+      for (const l of LECTEURS) {
+        if (!touchesDepuis12.has(l)) expect(relectureUtile(12, l), `${l} n'a pas bougé depuis la v12`).toBe(false);
+      }
+      /* Et au moins un lecteur doit être épargné, sans quoi le test ne
+         vérifie rien : trois montées qui touchent tout ne se distinguent pas
+         d'un numéro unique, et c'est le défaut qu'on répare. */
+      expect(touchesDepuis12.size).toBeLessThan(LECTEURS.length);
     });
 
     it("RELIT TOUT QUAND ON NE SAIT PAS", () => {

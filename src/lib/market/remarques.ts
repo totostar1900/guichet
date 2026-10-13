@@ -101,6 +101,18 @@ export const FAMILLES: Famille[] = [
   { code: "I", genre: "avertissement", sort: "perdue", libelle: "Obligation : prix et nominal collés", quoiFaire: "Deux nombres accolés sans séparateur : le découpage est ambigu, la ligne est écartée.", motif: /^Obligation.*prix \/ nominal ambigus/ },
   { code: "J", genre: "avertissement", sort: "perdue", libelle: "Action : ligne dense non reconnue", quoiFaire: "Même défaut que H, côté actions. Rare et coûteux.", motif: /^Action.*ligne dense non reconnue/ },
   { code: "K", genre: "anomalie", sort: "ecartee", libelle: "Cours de clôture nul ou illisible", quoiFaire: "La ligne est lue mais son cours ne l'est pas : elle entre à zéro ou pas du tout.", motif: /cours de clôture nul ou illisible/ },
+  /* Y PASSE AVANT L, et l'ordre est le garde : le classement retient la
+     PREMIÈRE famille qui reconnaît la phrase, et le motif de L attrape toute
+     VL ignorée. Placée après, cette famille ne verrait jamais rien. */
+  {
+    code: "Y",
+    genre: "avertissement",
+    sort: "ecartee",
+    libelle: "OPCVM : montant imprimé en date",
+    quoiFaire:
+      "Rien à reprendre chez nous : la cellule ne contient pas de date, elle contient un montant qu'un tableur a rendu en date. Le numéro de série est dans la phrase, et c'est lui qu'il faut montrer au fournisseur : « 10/01/1936 » ne désigne rien dans son fichier, « 13 159 » si. Mesuré sur les sept rangées de la base, le montant déduit tombe à moins d'un franc de la VL que la série du fonds porte par ailleurs, toujours en dessous : le rendu en date tronque les centimes.",
+    motif: /^OPCVM .*: VL du \d{4}-\d{2}-\d{2} ignorée : cette cellule n'est pas une date/,
+  },
   { code: "L", genre: "avertissement", sort: "ecartee", libelle: "OPCVM : valeur liquidative écartée", quoiFaire: "Le motif est nommé dans la phrase. Mesuré le 12 octobre 2026 sur 89 cas : 56 précédaient la création du fonds et se réparent seuls, 20 devançaient la séance, 6 étaient trop anciennes, zéro portait une valeur fautive.", motif: /^OPCVM.*VL du.*ignorée/ },
   { code: "M", genre: "avertissement", sort: "perdue", libelle: "OPCVM : ligne au format inattendu", quoiFaire: "Une ligne de la table n'a pas la forme attendue et passe à la trappe.", motif: /^OPCVM : ligne ignorée/ },
   { code: "N", genre: "avertissement", sort: "telle_quelle", libelle: "Fonds : saut de valeur au-delà du seuil", quoiFaire: "La VL bondit : erreur de lecture, ou vrai mouvement à confirmer.", motif: /^FCP .*précédente \(>/ },
@@ -112,7 +124,12 @@ export const FAMILLES: Famille[] = [
      sous une seule lettre mettait la même pastille sur « j'ai perdu le numéro »
      et sur « rien n'est entré ». Le cliquet contre la production l'a vu : la
      famille paraissait des deux côtés à la fois. */
-  { code: "R", genre: "anomalie", sort: "perdue", libelle: "En-tête non reconnu : rien n'est entré", quoiFaire: "La séance entière est perdue. À reprendre en premier.", motif: /^En-tête du bulletin non reconnu : / },
+  /* DEUX PHRASES POUR UN SEUL DÉFAUT, et la seconde tombait dans le
+     fourre-tout. « Lecture écartée faute d'en-tête » dit exactement la même
+     chose que « En-tête du bulletin non reconnu », et elle est PIRE à lire :
+     elle annonce que six actions et neuf obligations avaient pourtant été
+     lues avant d'être jetées. Une séance entière perdue pour un en-tête. */
+  { code: "R", genre: "anomalie", sort: "perdue", libelle: "En-tête non reconnu : rien n'est entré", quoiFaire: "La séance entière est perdue. À reprendre en premier : au 4 janvier 2023, six actions et neuf obligations avaient été correctement lues avant d'être jetées pour ce seul motif.", motif: /^(?:En-tête du bulletin non reconnu : |Lecture écartée faute d'en-tête)/ },
   { code: "S", genre: "avertissement", sort: "telle_quelle", libelle: "En-tête illisible : numéro ou date", quoiFaire: "Le lecteur a continué sans le numéro ou la date du bulletin.", motif: /^En-tête du bulletin non reconnu \(/ },
   /* Prévue par le lecteur, jamais vue en production : sans elle, le jour où
      elle paraît, elle tombe au fourre-tout et fausse les comptes en silence. */

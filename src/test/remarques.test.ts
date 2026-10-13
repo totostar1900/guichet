@@ -40,6 +40,9 @@ const RÉELS: [string, string][] = [
   ["V", "Écriture refusée par la base : upsertQuotes: numeric field overflow. Le lecteur avait lu 6 action(s), 0 obligation(s) et 31 OPCVM."],
   ["W", "OPCVM FCP AB AVENIR : année de la VL corrigée, 2023-01-05 lue comme 2024-01-05."],
   ["X", "OPCVM FCP ECOBANK OBLIGATAIRE CEMAC : date au format Excel convertie, « 46 120,00 » lu 08/04/2026 (variation imprimée 0,14% vérifiée)."],
+  /* Y est l'inverse de X, et elle doit passer AVANT L : le motif de L
+     attrape toute VL ignorée, donc l'ordre de déclaration est le garde. */
+  ["Y", "OPCVM FCP AB CASH : VL du 1936-01-10 ignorée : cette cellule n'est pas une date : c'est un montant rendu en date par un tableur. Numéro de série 13159, soit un montant de 13 159 francs dont les centimes sont perdus au rendu."],
 ];
 
 describe("chaque phrase du lecteur trouve sa famille", () => {
@@ -56,7 +59,7 @@ describe("chaque phrase du lecteur trouve sa famille", () => {
     expect(perdues).toEqual([]);
   });
 
-  it("les vingt-quatre familles sont toutes exercées, et leurs lettres sont uniques", () => {
+  it("les vingt-cinq familles sont toutes exercées, et leurs lettres sont uniques", () => {
     // Non vacuité : une famille sans exemple ne serait vérifiée par personne.
     expect(RÉELS.length).toBe(FAMILLES.length);
     expect(new Set(FAMILLES.map((f) => f.code)).size).toBe(FAMILLES.length);
@@ -167,7 +170,9 @@ describe("les formes relevées en production", () => {
      que la base refuse. */
   /* W naît le 12 octobre 2026 : la réparation de la coquille d année ne peut
      pas encore paraître dans une base écrite avant elle. */
-  const JAMAIS_VUES = ["T", "U", "V", "W", "X"];
+  /* Y est née le 13 octobre 2026 : le jeu de formes réelles date d avant, et
+     il sera exercé à la prochaine capture. */
+  const JAMAIS_VUES = ["T", "U", "V", "W", "X", "Y"];
 
   it("et elles exercent toutes les familles, sauf celles déclarées jamais vues", () => {
     /* Non vacuité à l'envers : si le gabarit ne couvrait que trois familles,

@@ -505,6 +505,16 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
       retenues.push(v.garde);
       return true;
     }
+    /* LA CELLULE QUI N'EST PAS UNE DATE PORTE SA PREUVE AVEC ELLE. Rendre au
+       fournisseur son propre nombre est la seule façon qu'il retrouve sa
+       cellule : « 10/01/1936 » ne désigne rien dans son fichier, « 13 159 »
+       si. La reconstruction ne s'écrit pas en base, elle argumente. */
+    if (v.motif === "montant_en_date" && v.montantDeduit != null) {
+      parsed.warnings.push(
+        `OPCVM ${n.name} : VL du ${n.navDate} ignorée : ${MOTIF_VL.montant_en_date}. Numéro de série ${v.montantDeduit}, soit un montant de ${v.montantDeduit.toLocaleString("fr-FR")} francs dont les centimes sont perdus au rendu.`,
+      );
+      return false;
+    }
     parsed.warnings.push(`OPCVM ${n.name} : VL du ${n.navDate} ignorée : ${MOTIF_VL[v.motif ?? "vieille"]}.`);
     return false;
   };

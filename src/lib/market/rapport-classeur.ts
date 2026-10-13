@@ -21,6 +21,16 @@ const PAPIER = "FFF6F7F9";
 
 type Colonne = { en: string; clef: keyof LigneRapport | string; l: number };
 
+/**
+ * LA COLONNE D'AUDIT VIENT AVANT LA PREUVE, ET APRÈS LE DIAGNOSTIC.
+ *
+ * Demandé par Georges le 13 octobre 2026 : toute correction doit se marquer
+ * comme telle et détailler ce qui a été fait. « Corrigée et intégrée » dit
+ * qu'on a touché à la donnée, pas ce qu'on a fait ni ce qui autorisait à le
+ * faire. L'ordre des colonnes raconte donc la ligne dans l'ordre où on la
+ * lit : quoi, qu'est-ce qui lui est arrivé, qu'avons-nous fait et pourquoi
+ * c'était permis, puis la preuve brute.
+ */
 const COLONNES_LIGNES: Colonne[] = [
   { en: "Séance", clef: "seance", l: 12 },
   { en: "Instrument", clef: "objet", l: 32 },
@@ -28,6 +38,8 @@ const COLONNES_LIGNES: Colonne[] = [
   { en: "Cellule imprimée", clef: "imprime", l: 16 },
   { en: "Valeur retenue", clef: "retenu", l: 16 },
   { en: "Diagnostic", clef: "diagnostic", l: 62 },
+  { en: "Correction appliquée ?", clef: "correctionAppliquee", l: 12 },
+  { en: "Ce qui a été fait, et ce qui l'a validé", clef: "correction", l: 90 },
   { en: "Message du lecteur (preuve)", clef: "message", l: 90 },
   { en: "Code interne", clef: "code", l: 7 },
 ];
@@ -78,13 +90,19 @@ const feuilleDeLignes = (wb: ExcelJS.Workbook, nom: string, titreTexte: string, 
   lignes.forEach((l, i) => {
     const r = f.getRow(5 + i);
     COLONNES_LIGNES.forEach((c, j) => {
-      const v = (l as unknown as Record<string, string>)[c.clef as string] ?? "";
+      const brut = (l as unknown as Record<string, unknown>)[c.clef as string];
+      /* « Oui » et « Non » plutôt que VRAI/FAUX : la colonne se lit, elle ne
+         se calcule pas, et un booléen d'Excel change de langue avec le
+         tableur de celui qui l'ouvre. */
+      const v = c.clef === "correctionAppliquee" ? (brut ? "Oui" : "Non") : ((brut as string) ?? "");
       const cell = r.getCell(j + 1);
       cell.value = v;
       cell.alignment = { vertical: "top", wrapText: c.l > 40 };
       cell.font = { size: 9 };
       if (c.clef === "imprime" && v) cell.font = { size: 9, bold: true, color: { argb: "FFA63D26" } };
       if (c.clef === "retenu" && v) cell.font = { size: 9, bold: true, color: { argb: "FF2B6A4B" } };
+      if (c.clef === "correctionAppliquee") cell.font = { size: 9, bold: true, color: { argb: brut ? "FF2B6A4B" : "FF6B7280" } };
+      if (c.clef === "correction") cell.font = { size: 8, color: { argb: "FF374151" } };
       if (c.clef === "message") cell.font = { size: 8, name: "Consolas", color: { argb: "FF4B5563" } };
     });
   });
@@ -96,19 +114,43 @@ export async function classeurFournisseur(r: RapportFournisseur): Promise<Uint8A
   wb.created = new Date(r.genere);
   const plage = `Du ${r.du} au ${r.au} · ${r.seances} séances · établi le ${r.genere.slice(0, 10)}`;
 
-  /* ---- 1 · ce qui est faux dans le document ---- */
+  /**
+   * ---- 1 · ce qui est faux dans le document ----
+   *
+   * DEUX AXES, ET LES CONFONDRE A FAIT QUATRE DÉFAUTS. Cette feuille répond
+   * à « À QUI LA CAUSE REVIENT » ; les feuilles 3 à 5 répondent à « CE QU'EST
+   * DEVENUE LA DONNÉE ». Le second est une partition, le premier la coupe en
+   * diagonale : une même ligne figure donc dans deux feuilles, et c'est
+   * normal pourvu qu'on le DISE.
+   *
+   * Le sous-titre d'avant affirmait que ces lignes « ne peuvent pas être
+   * corrigées », alors que la colonne voisine en déclarait soixante-cinq
+   * « Corrigée et intégrée ». Un document qui se contredit sur deux colonnes
+   * voisines ne se défend pas devant un tiers.
+   */
+  const dejaAilleurs = r.publication.filter((l) => l.sort === "corrigee" || l.sort === "ecartee" || l.sort === "perdue").length;
   feuilleDeLignes(
     wb,
     "1. Erreurs de publication",
     "Ce que le bulletin publie d'inexact",
-    `${plage}. Ces lignes ne relèvent pas d une difficulté de lecture : le bulletin porte lui-même une valeur ou un format qui ne peut pas être juste, et sa propre arithmétique le démontre. Ce sont les seules qui ne peuvent pas être corrigées, parce que les pourcentages imprimés sont calculés sur les cellules en cause.`,
+    `${plage}. ${r.publication.length} ligne(s). Cette feuille classe par CAUSE, pas par devenir : elle réunit ce dont la responsabilité revient à la publication, que nous ayons pu le réparer ou non. Le bulletin porte lui-même une valeur ou un format qui ne peut pas être juste, et sa propre arithmétique le démontre. ${dejaAilleurs} de ces lignes reparaissent dans les feuilles 3 à 5, qui classent les MÊMES remarques selon ce qu'est devenue la donnée : les deux classements ne s'additionnent pas.`,
     r.publication,
   );
 
   /* ---- 2 · la synthèse ---- */
   const syn = wb.addWorksheet("2. Synthèse", { properties: { tabColor: { argb: NAVY } } });
-  titre(syn, "Synthèse par devenir de la donnée", `${plage}. ${r.remarques} remarques, ${r.seancesSansRemarque} séances sans aucune remarque.`, 5);
-  enTetes(syn, [{ en: "Devenir de la donnée", l: 24 }, { en: "La donnée est-elle dans notre base ?", l: 30 }, { en: "Remarques", l: 11 }, { en: "Séances", l: 10 }, { en: "Ce que cela signifie", l: 80 }], 4);
+  /* UN TABLEAU DE SYNTHÈSE SE VÉRIFIE, SINON IL NE SERT À RIEN. La colonne
+     « Remarques » s'additionne et fait le total annoncé : on le dit, parce
+     qu'un lecteur qui a trouvé une fois un total faux ne vérifie plus rien.
+     La colonne « Séances » ne s'additionne PAS, une séance portant plusieurs
+     familles : on le dit aussi, et on donne le vrai nombre. */
+  titre(
+    syn,
+    "Synthèse par devenir de la donnée",
+    `${plage}. ${r.remarques} remarques, sur ${r.seances - r.seancesSansRemarque} séances concernées et ${r.seancesSansRemarque} séances sans aucune remarque. La colonne « Remarques » s'additionne et doit faire ${r.remarques} dans chacun des deux tableaux ci-dessous. La colonne « Séances » ne s'additionne pas : une même séance porte souvent plusieurs familles.`,
+    5,
+  );
+  enTetes(syn, [{ en: "Devenir de la donnée", l: 24 }, { en: "La donnée est-elle dans notre base ?", l: 30 }, { en: "Remarques", l: 11 }, { en: "Séances (non additionnable)", l: 14 }, { en: "Ce que cela signifie", l: 80 }], 4);
   r.parSort.forEach((s, i) => {
     const row = syn.getRow(5 + i);
     row.getCell(1).value = s.libelle;
@@ -122,10 +164,23 @@ export async function classeurFournisseur(r: RapportFournisseur): Promise<Uint8A
     row.getCell(5).font = { size: 9 };
   });
 
-  const d = 5 + r.parSort.length + 2;
+  /* LA LIGNE DE TOTAL EST LE CONTRÔLE, pas un ornement : elle permet de
+     vérifier le tableau sans le recopier ailleurs. */
+  const tSort = 5 + r.parSort.length;
+  syn.getCell(tSort, 1).value = "Total";
+  syn.getCell(tSort, 1).font = { bold: true, size: 9, color: { argb: NAVY } };
+  syn.getCell(tSort, 3).value = r.parSort.reduce((a, s) => a + s.remarques, 0);
+  syn.getCell(tSort, 3).font = { bold: true, size: 9 };
+  syn.getCell(tSort, 4).value = r.seances - r.seancesSansRemarque;
+  syn.getCell(tSort, 5).value = "Séances distinctes concernées, et non la somme de la colonne.";
+  syn.getCell(tSort, 5).font = { size: 8, italic: true, color: { argb: "FF6B7280" } };
+
+  const d = tSort + 2;
   syn.getCell(d, 1).value = "Détail par famille de remarque";
   syn.getCell(d, 1).font = { bold: true, size: 10, color: { argb: NAVY } };
-  enTetes(syn, [{ en: "Code", l: 24 }, { en: "Libellé", l: 30 }, { en: "Devenir", l: 11 }, { en: "Remarques", l: 10 }, { en: "Séances", l: 80 }], d + 1);
+  /* Les largeurs étaient recopiées du tableau du dessus, ce qui donnait une
+     colonne « Séances » de quatre-vingts caractères. */
+  enTetes(syn, [{ en: "Code", l: 8 }, { en: "Libellé", l: 44 }, { en: "Devenir", l: 24 }, { en: "Remarques", l: 11 }, { en: "Séances (non additionnable)", l: 14 }], d + 1);
   syn.views = [{ state: "frozen", ySplit: 4 }];
   syn.autoFilter = { from: { row: 4, column: 1 }, to: { row: 4, column: 5 } };
   r.parFamille.forEach((f, i) => {
@@ -138,26 +193,46 @@ export async function classeurFournisseur(r: RapportFournisseur): Promise<Uint8A
     for (let c = 1; c <= 5; c++) row.getCell(c).font = { size: 9 };
   });
 
+  /* LE MÊME TOTAL, SUR LE SECOND TABLEAU, et c'est celui qui manquait : la
+     somme des familles valait 504 pour 507 annoncées, parce que trois
+     phrases tombaient dans un fourre-tout absent de la liste. Un tableau
+     dont les lignes ne font pas le total apprend à ne plus additionner. */
+  const tFam = d + 2 + r.parFamille.length;
+  syn.getCell(tFam, 1).value = "Total";
+  syn.getCell(tFam, 1).font = { bold: true, size: 9, color: { argb: NAVY } };
+  syn.getCell(tFam, 4).value = r.parFamille.reduce((a, f) => a + f.remarques, 0);
+  syn.getCell(tFam, 4).font = { bold: true, size: 9 };
+  syn.getCell(tFam, 5).value = r.seances - r.seancesSansRemarque;
+  syn.getCell(tFam, 3).value = "séances distinctes :";
+  syn.getCell(tFam, 3).font = { size: 8, italic: true, color: { argb: "FF6B7280" } };
+
   /* ---- 3, 4, 5 ---- */
+  /* LE TITRE DE LA FEUILLE RÉPÈTE LE MOT DE LA COLONNE, à la lettre. Trois
+     feuilles sur trois disaient autrement ce que leur colonne « Devenir de
+     la donnée » disait déjà : « Corrigé par nos soins » contre « Corrigée et
+     intégrée ». Deux mots pour une chose font croire à deux choses. */
+  const aussiEnF1 = (xs: LigneRapport[]) => xs.filter((l) => r.publication.includes(l)).length;
+  const horsPublication = (xs: LigneRapport[]) =>
+    `${xs.length} ligne(s), classée(s) ici par DEVENIR de la donnée. ${aussiEnF1(xs)} d'entre elles reparaissent en feuille 1, qui classe par cause : les deux feuilles ne s'additionnent pas.`;
   feuilleDeLignes(
     wb,
-    "3. Corrigé par nos soins",
+    "3. Corrigée et intégrée",
     "Ce qui a été réparé pour pouvoir être intégré",
-    `${plage}. Chaque ligne porte la cellule telle que le bulletin l imprime et la valeur retenue. Une cellule n est réparée que lorsque le document valide lui-même la correction, par exemple quand la variation imprimée s accorde avec les deux valeurs liquidatives. Cette feuille est l écart exact entre la base et la publication.`,
+    `${plage}. ${horsPublication(r.corrections)} Chaque ligne porte la cellule telle que le bulletin l imprime, la valeur retenue, et ce qui a autorisé la correction. Une cellule n est réparée que lorsque le document valide lui-même la correction, par exemple quand la variation imprimée s accorde avec les deux valeurs liquidatives. Cette feuille est l écart exact entre la base et la publication.`,
     r.corrections,
   );
   feuilleDeLignes(
     wb,
-    "4. Écarté",
+    "4. Écartée",
     "Ce qui a été refusé à l intégration",
-    `${plage}. La valeur a été lue puis refusée parce qu'elle ne pouvait pas être vraie. Elle manque donc dans notre base, et c'est notre décision, prise faute de pouvoir la vérifier.`,
+    `${plage}. ${horsPublication(r.ecartees)} La valeur a été lue puis refusée parce qu'elle ne pouvait pas être vraie. Elle manque donc dans notre base, et c'est notre décision : la colonne « Ce qui a été fait » dit pourquoi aucune lecture de remplacement ne se démontre sur la pièce.`,
     r.ecartees,
   );
   feuilleDeLignes(
     wb,
-    "5. Non lu",
+    "5. Non lue",
     "Ce que le lecteur n a pas su lire",
-    `${plage}. La donnée est dans le bulletin et le lecteur ne l a pas extraite. La cause est le plus souvent la couche texte du PDF, où les cellules se touchent sans séparateur. Le message porte le texte brut tel qu il arrive : il permet de retrouver la rangée.`,
+    `${plage}. ${horsPublication(r.perdues)} La donnée est dans le bulletin et le lecteur ne l a pas extraite : il n y a rien à corriger, il y a quelque chose à lire. La cause est le plus souvent la couche texte du PDF, où les cellules se touchent sans séparateur. Le message porte le texte brut tel qu il arrive.`,
     r.perdues,
   );
 

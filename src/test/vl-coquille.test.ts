@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { jugerLaVl, MOTIF_VL } from "@/lib/market/vl-coquille";
+import { estUnMontantEnDate, jugerLaVl, montantDerriereLaDate, MOTIF_VL } from "@/lib/market/vl-coquille";
 import type { FundNav } from "@/lib/domain/market";
 
 /**
@@ -171,5 +171,69 @@ describe("la coquille d'année dans l'autre sens", () => {
        n'existe pas, et glisser au 1er mars déplacerait la date d'un jour à
        l'insu de tout le monde. */
     expect(jugerLaVl(futur({ navDate: "2028-02-29", sessionDate: "2027-02-20" }), "2027-02-20").garde).toBeUndefined();
+  });
+});
+
+describe("le montant rendu en date", () => {
+  /**
+   * L'INVERSE DU DÉFAUT DE LA VERSION 10, et Georges l'a vu dans le classeur.
+   * Un numéro de série imprimé là où une date est attendue se corrigeait
+   * depuis des jours ; une date imprimée là où un MONTANT est attendu passait
+   * pour une valeur liquidative trop ancienne, ce qui est un diagnostic faux
+   * et qui désigne le mauvais responsable.
+   */
+  const LES_SEPT: [string, number, number][] = [
+    // date lue, montant déduit, VL réelle portée par la série du fonds
+    ["1927-07-17", 10_060, 10_060.33],
+    ["1936-01-10", 13_159, 13_159.79],
+    ["1934-07-25", 12_625, 12_625.52],
+    ["1932-06-16", 11_856, 11_856.64],
+    ["1934-07-22", 12_622, 12_622.81],
+    ["1930-11-19", 11_281, 11_281.15],
+  ];
+
+  it("REND LE MONTANT QUE LA SÉRIE DU FONDS CONFIRME, À MOINS D'UN FRANC", () => {
+    /* La preuve ne vient pas de la variation imprimée, qui est calculée par
+       la bourse SUR LA CELLULE CORROMPUE et donc empoisonnée, mais de la
+       série du fonds, qui ne lui doit rien. */
+    for (const [date, attendu, vlReelle] of LES_SEPT) {
+      expect(montantDerriereLaDate(date), date).toBe(attendu);
+      const ecart = attendu - vlReelle;
+      expect(ecart, `${date} : l'écart doit être négatif`).toBeLessThan(0);
+      expect(Math.abs(ecart), `${date} : l'écart doit rester sous le franc`).toBeLessThan(1);
+    }
+  });
+
+  it("TRONQUE, IL N'ARRONDIT PAS, et c'est ce qui dit ce qu'on perd", () => {
+    /* Sept sur sept l'écart est négatif : le rendu en date prend la partie
+       entière. On sait donc exactement ce que la reconstruction coûte, ce
+       qui est la condition pour oser l'écrire dans un rapport. */
+    for (const [date, attendu, vlReelle] of LES_SEPT) {
+      expect(montantDerriereLaDate(date), date).toBe(Math.floor(vlReelle));
+      expect(attendu).toBe(Math.floor(vlReelle));
+    }
+  });
+
+  it("RECONNAÎT UNE CELLULE QUI N'EST PAS UNE DATE, ET SEULEMENT CELLE-LÀ", () => {
+    expect(estUnMontantEnDate("1936-01-10")).toBe(true);
+    expect(estUnMontantEnDate("1999-12-31")).toBe(true);
+    /* Aucune VL de ce marché n'existe avant 2000 : la borne ne discute avec
+       personne. Une date de 2023 reste une date, si vieille soit-elle. */
+    expect(estUnMontantEnDate("2000-01-01")).toBe(false);
+    expect(estUnMontantEnDate("2023-04-14")).toBe(false);
+  });
+
+  it("NE RÉPARE PAS L'ANNÉE D'UNE CELLULE QUI N'EST PAS UNE DATE", () => {
+    /* LE GARDE QUI COMPTE. Ajouter une année à un montant produirait une
+       date plausible à partir de rien, ce qui est exactement la valeur
+       inventée que la maison refuse. Le motif passe donc AVANT les deux
+       réparations de coquille. */
+    const v = jugerLaVl(
+      { fundKey: "f", name: "FCP AB CASH", navDate: "1936-01-10", nav: 13_159, inceptionDate: "2020-01-01" } as never,
+      "2026-07-10",
+    );
+    expect(v.garde).toBeUndefined();
+    expect(v.motif).toBe("montant_en_date");
+    expect(v.montantDeduit).toBe(13_159);
   });
 });

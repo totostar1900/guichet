@@ -13,7 +13,10 @@ const seance = (sessionDate: string, p: Partial<MarketBulletin>): MarketBulletin
   ({ id: sessionDate, number: 0, sessionDate, ingestedAt: "", ingestedBy: "desk", status: "ok", counts: { equities: 0, bonds: 0, funds: 0 }, warnings: [], anomalies: [], notices: [], notes: [], ...p }) as MarketBulletin;
 
 const X = "OPCVM FCP ECOBANK OBLIGATAIRE CEMAC : date au format Excel convertie, « 46 120,00 » lu 08/04/2026 (variation imprimée 0,14% vérifiée).";
-const L1935 = "OPCVM FCP AB CASH : VL du 1936-01-10 ignorée : elle est antérieure à la séance de plus de quatre cents jours.";
+/* Le message tel que le lecteur l écrit depuis la v15 : il nomme le défaut
+   au lieu de le décrire comme une date ancienne, et il porte sa preuve. */
+const L1935 =
+  "OPCVM FCP AB CASH : VL du 1936-01-10 ignorée : cette cellule n'est pas une date : c'est un montant rendu en date par un tableur. Numéro de série 13159, soit un montant de 13 159 francs dont les centimes sont perdus au rendu.";
 
 describe("le relevé au fournisseur", () => {
   it("compte une phrase une seule fois, même rangée deux fois", () => {
@@ -50,9 +53,9 @@ describe("le relevé au fournisseur", () => {
     const illisible = "OPCVM : ligne ignorée (format inattendu), jeté « … » avant « … »";
     const dateFuture = "OPCVM FCP KORI SERENITE : VL du 2029-03-13 ignorée : elle est postérieure à la séance de plus de sept jours.";
     const r = construireRapport([seance("2026-03-16", { warnings: [illisible, dateFuture, L1935, X] })], "2026-01-01", "2026-12-31");
-    expect(r.publication.map((l) => l.code).sort()).toEqual(["L", "X"]);
+    expect(r.publication.map((l) => l.code).sort()).toEqual(["X", "Y"]);
     expect(r.perdues.map((l) => l.code)).toEqual(["M"]);
-    expect(r.ecartees.map((l) => l.code).sort()).toEqual(["L", "L"]);
+    expect(r.ecartees.map((l) => l.code).sort()).toEqual(["L", "Y"]);
   });
 
   it("sépare ce qui est en base de ce qui manque", () => {

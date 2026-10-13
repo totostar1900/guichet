@@ -1,5 +1,5 @@
 import type { MarketBulletin } from "@/lib/domain/market";
-import { classer, famille, FAMILLES, SORT, type SortDeLaDonnee } from "./remarques";
+import { classer, famille, FAMILLES, INCONNU, SORT, type SortDeLaDonnee } from "./remarques";
 
 /**
  * LE RAPPORT AU FOURNISSEUR DE DONNÉES.
@@ -50,6 +50,14 @@ export interface LigneRapport {
   retenu: string;
   /** Le message du lecteur, intégral : la preuve. */
   message: string;
+  /** Vrai quand nous avons touché à la donnée. La colonne se lit d'un coup d'œil. */
+  correctionAppliquee: boolean;
+  /**
+   * La piste d'audit, en toutes lettres : ce qui est imprimé, ce qui a été
+   * retenu, CE QUI L'A VALIDÉ, et ce qui est perdu. « Aucune correction » s'y
+   * écrit aussi, parce qu'une colonne vide se lit comme un oubli.
+   */
+  correction: string;
 }
 
 export interface CompteParSort {
@@ -172,9 +180,15 @@ export function diagnostic(message: string): string {
   const code = classer(message);
   if (code === "X") return "Une cellule de date est restée au format numérique (numéro de série du tableur) au lieu d'être formatée en date.";
   if (code === "W") return "L'année de la date de valorisation précède la création du fonds : coquille d'année.";
+  /* Y A SA FAMILLE DEPUIS LA v15 : le cas ne se devine plus au millésime de
+     la date, il est nommé à la lecture. La phrase reste adressée au
+     destinataire et porte la preuve, parce que c'est elle qui le mène à sa
+     cellule : « 10/01/1936 » ne désigne rien dans son fichier. */
+  if (code === "Y") {
+    const serie = /Numéro de série (\d+)/.exec(message)?.[1];
+    return `Une VALEUR LIQUIDATIVE est imprimée au format DATE. La cellule porte le nombre ${serie ?? "(non lu)"}, que le tableur rend comme une date au lieu d'un montant : les colonnes de la rangée ont échangé leurs formats, et le rendu en date fait perdre les centimes.`;
+  }
   if (code === "L") {
-    const d = dateEcartee(message);
-    if (d && d < "2000-01-01") return "Une VALEUR LIQUIDATIVE est imprimée au format DATE (numéro de série du tableur lu comme une date). Les colonnes de la rangée ont échangé leurs formats.";
     if (message.includes("postérieure")) return "La date de valorisation est postérieure à la séance : elle ne peut pas être connue ce jour-là.";
     if (message.includes("antérieure")) return "La date de valorisation est très antérieure à la séance : la rangée semble répéter une valorisation périmée.";
     return "Valeur liquidative refusée : la date ou la valeur ne tient pas.";
@@ -213,12 +227,11 @@ export function diagnostic(message: string): string {
  */
 const estErreurDePublication = (message: string): boolean => {
   const code = classer(message);
-  if (code === "X") return true;
-  if (code === "L") {
-    const d = dateEcartee(message);
-    return Boolean(d) && d < "2000-01-01";
-  }
-  return false;
+  /* Y A SA PROPRE FAMILLE DEPUIS LE 13 OCTOBRE 2026, et c'est pourquoi le
+     détour par la date disparaît : une cellule qui porte un montant à la
+     place d'une date EST une erreur de publication, démontrée par son propre
+     numéro de série. On n'a plus à deviner le cas à partir du millésime. */
+  return code === "X" || code === "Y";
 };
 
 /* ---------------- assemblage ---------------- */
@@ -226,12 +239,51 @@ const estErreurDePublication = (message: string): boolean => {
 /** Toutes les phrases d'un bulletin, anomalies et avertissements confondus. */
 const phrases = (b: MarketBulletin): string[] => [...(b.anomalies ?? []), ...(b.warnings ?? [])];
 
+/**
+ * LA PISTE D'AUDIT D'UNE RETOUCHE, EN TOUTES LETTRES.
+ *
+ * Demandé par Georges le 13 octobre 2026 : toute correction doit se marquer
+ * comme telle et DÉTAILLER ce qui a été fait. Le besoin est réel et il tient
+ * en une phrase : « Corrigée et intégrée » dit qu'on a touché à la donnée,
+ * pas ce qu'on a fait ni ce qui autorisait à le faire. Un auditeur doit
+ * pouvoir refaire le geste sans nous demander, et un fournisseur doit pouvoir
+ * le contester sur la pièce.
+ *
+ * CHAQUE TEXTE DIT QUATRE CHOSES : ce que le bulletin imprime, ce que nous
+ * avons retenu, CE QUI L'A VALIDÉ, et ce qui est perdu s'il y a perte. Le
+ * troisième est le seul qui compte vraiment, parce que c'est lui qui
+ * distingue une lecture d'une invention.
+ *
+ * ET « AUCUNE CORRECTION » SE DIT AUSSI. Une colonne vide se lit comme un
+ * oubli ; une ligne qui dit pourquoi elle n'a PAS été réparée est une
+ * décision, et c'est elle qu'on défend devant un tiers.
+ */
+const AUDIT: Record<string, (l: Omit<LigneRapport, "correctionAppliquee" | "correction">) => string> = {
+  X: (l) =>
+    `CORRECTION APPLIQUÉE. Cellule imprimée « ${l.imprime} », reconnue comme un numéro de série de tableur et convertie en date : ${l.retenu}. Époque du système 1900, jour zéro au 30 décembre 1899. VALIDÉE PAR LE DOCUMENT LUI-MÊME : la variation imprimée sur la rangée ne s'accorde avec les deux valeurs liquidatives que sous cette lecture, à 0,0055 point près. Rien n'est perdu, et la cellule d'origine reste en colonne « Cellule imprimée ».`,
+  W: (l) =>
+    `CORRECTION APPLIQUÉE. Date lue « ${l.imprime} », écrite ${l.retenu} : l'année a été reprise. VALIDÉE PAR L'IMPOSSIBLE : la date d'origine précède la création annoncée du fonds, ce qui ne peut pas être, et le décalage d'une année résout toutes les règles sans en laisser une seule en faute. Une date simplement ancienne n'est jamais reprise de cette façon. Rien n'est perdu.`,
+  Y: (l) =>
+    `AUCUNE CORRECTION, ET C'EST UNE DÉCISION. La cellule ne contient pas de date : elle contient un montant qu'un tableur a rendu en date. Le numéro de série est dans le message. NON RÉÉCRITE parce que le rendu en date tronque les centimes, et que la série du fonds porte la même valeur au centime par ailleurs : écrire la partie entière dégraderait une donnée juste. La rangée est de surcroît décalée dans son entier, de sorte que la rebâtir serait un pari sur la disposition et non une lecture.${l.seance ? "" : ""}`,
+};
+
+const AUDIT_PAR_SORT: Record<SortDeLaDonnee, string> = {
+  corrigee: "CORRECTION APPLIQUÉE. Le détail figure dans le message du lecteur, qui conserve la valeur d'origine.",
+  telle_quelle: "AUCUNE CORRECTION. La valeur est écrite telle que le bulletin l'imprime ; la remarque la signale sans la modifier.",
+  ecartee: "AUCUNE CORRECTION. La valeur a été lue puis refusée parce qu'elle ne pouvait pas être vraie, et aucune lecture de remplacement ne se démontre sur la pièce. Elle manque donc dans notre base, par notre décision.",
+  perdue: "AUCUNE CORRECTION POSSIBLE. La donnée est dans le document et le lecteur ne l'a pas extraite : il n'y a rien à corriger, il y a quelque chose à lire.",
+  absente: "SANS OBJET. La bourse ne l'a pas publiée ce jour-là ; il n'y a aucune donnée à corriger.",
+  sans_objet: "SANS OBJET. La remarque porte sur la forme ou sur le volume, aucune valeur n'est en cause.",
+};
+
 const ligne = (seance: string, message: string): LigneRapport => {
   const code = classer(message);
   const f = famille(code);
   const sort: SortDeLaDonnee = f?.sort ?? "sans_objet";
   const { imprime, retenu } = reparationDe(message);
-  return { seance, code, sort, devenu: SORT[sort].libelle, objet: objetDe(message), diagnostic: diagnostic(message), imprime, retenu, message };
+  const base = { seance, code, sort, devenu: SORT[sort].libelle, objet: objetDe(message), diagnostic: diagnostic(message), imprime, retenu, message };
+  const correction = AUDIT[code]?.(base) ?? AUDIT_PAR_SORT[sort];
+  return { ...base, correction, correctionAppliquee: correction.startsWith("CORRECTION APPLIQUÉE") };
 };
 
 /**
@@ -304,6 +356,31 @@ export function construireRapport(bulletins: MarketBulletin[], du: string, au: s
     remarques: parCode.get(f.code)?.remarques ?? 0,
     seances: parCode.get(f.code)?.seances.size ?? 0,
   })).filter((f) => f.remarques > 0);
+
+  /**
+   * LE RÉSIDU, NOMMÉ PLUTÔT QUE TU.
+   *
+   * Georges, en ouvrant le classeur : « les totaux de la feuille 2 ne
+   * réconcilient pas ». Mesuré, l'écart valait trois sur 507 : trois phrases
+   * que le classement range dans le fourre-tout « Z », absent de la liste
+   * des familles. Le total les comptait, le détail les perdait.
+   *
+   * Un tableau de synthèse dont les lignes ne font pas le total apprend au
+   * lecteur à ne pas additionner, et à partir de là il ne vérifie plus rien.
+   * Le résidu paraît donc, avec son compte, jusqu'à ce qu'il tombe à zéro.
+   */
+  const residu = parCode.get(INCONNU);
+  if (residu?.remarques) {
+    parFamille.push({
+      code: INCONNU,
+      libelle: "Non classée : aucune famille ne reconnaît la phrase",
+      genre: "avertissement",
+      sort: "sans_objet",
+      devenu: SORT.sans_objet.libelle,
+      remarques: residu.remarques,
+      seances: residu.seances.size,
+    });
+  }
 
   const avec = new Set(lignes.map((l) => l.seance));
 

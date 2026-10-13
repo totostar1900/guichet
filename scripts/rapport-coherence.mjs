@@ -119,3 +119,9 @@ for (const [c, n] of Object.entries(parCode).sort()) {
   if (!connus.has(c)) dire(`      ${String(n).padStart(4)}  code « ${c} » ABSENT de FAMILLES`);
 }
 dire(`      familles déclarées : ${FAMILLES.length}`);
+
+dire(`\n   LES TROIS PHRASES CLASSÉES « Z »`);
+for (const p of vuesPhrases) {
+  const msg = p.slice(p.indexOf("|") + 1);
+  if (classer(msg) === "Z") dire(`      ${p.slice(0, 10)}  ${msg.slice(0, 200)}`);
+}

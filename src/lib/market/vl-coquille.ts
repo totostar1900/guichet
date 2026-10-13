@@ -51,14 +51,72 @@ import type { FundNav } from "@/lib/domain/market";
  */
 
 /** Ce qui peut écarter une VL, nommé. */
-export type MotifVl = "future" | "vieille" | "valeur" | "avant_creation";
+export type MotifVl = "future" | "vieille" | "valeur" | "avant_creation" | "montant_en_date";
 
 export const MOTIF_VL: Record<MotifVl, string> = {
   future: "elle est postérieure à la séance de plus de sept jours",
   vieille: "elle est antérieure à la séance de plus de quatre cents jours",
   valeur: "la valeur lue n'est pas un montant positif",
   avant_creation: "elle précède la création annoncée du fonds",
+  montant_en_date: "cette cellule n'est pas une date : c'est un montant rendu en date par un tableur",
 };
+
+/**
+ * LA CELLULE QUI N'EST PAS UNE DATE, ET QU'ON APPELAIT « TROP VIEILLE ».
+ *
+ * Le défaut connu allait dans un sens : un numéro de série imprimé là où une
+ * date est attendue, « 46 206,00 » pour le 3 juillet 2026. Georges a vu
+ * l'autre sens, et il est plus traître : un MONTANT rendu en date. Une VL de
+ * 13 159 francs devient « 10/01/1936 ».
+ *
+ * LE MOTIF D'AVANT MENTAIT, exactement comme celui que ce module avait déjà
+ * corrigé une fois. « Antérieure à la séance de plus de quatre cents jours »
+ * décrit une VL ancienne, c'est-à-dire une date ; or il n'y a pas de date du
+ * tout dans cette cellule. Le desk lisait une donnée périmée là où la bourse
+ * publie une donnée corrompue, et ce n'est pas le même interlocuteur.
+ *
+ * LA SIGNATURE EST ARITHMÉTIQUE, pas statistique. Les fonds de la zone
+ * naissent à 10 000 francs ; interprétées comme numéros de série, leurs
+ * valeurs tombent toutes entre 1924 et 1954. Une date de VL antérieure à
+ * l'an 2000 n'a donc jamais été une date.
+ *
+ * MESURÉ SUR LES SEPT RANGÉES DE LA BASE, le 13 octobre 2026, en
+ * reconvertissant chaque date en numéro de série et en la confrontant à la
+ * série du fonds :
+ *
+ *   1927-07-17  → 10 060   VL réelle 10 060,33   écart -0,33
+ *   1936-01-10  → 13 159   VL réelle 13 159,79   écart -0,79
+ *   1934-07-25  → 12 625   VL réelle 12 625,52   écart -0,52
+ *   1932-06-16  → 11 856   VL réelle 11 856,64   écart -0,64
+ *   1934-07-22  → 12 622   VL réelle 12 622,81   écart -0,81
+ *   1930-11-19  → 11 281   VL réelle 11 281,15   écart -0,15
+ *
+ * Sept sur sept, l'écart est NÉGATIF et inférieur au franc : le rendu en date
+ * TRONQUE les centimes. On récupère donc la partie entière, et on sait
+ * précisément ce qu'on perd.
+ *
+ * ON NE RÉÉCRIT RIEN POUR AUTANT, et c'est la borne qui tient tout le reste.
+ * Le montant reconstruit est une partie entière, donc moins bon que la VL au
+ * centime que la série porte déjà par ailleurs : l'écrire remplacerait une
+ * valeur juste par une valeur tronquée. Et la rangée entière est décalée, pas
+ * seulement cette cellule : rebâtir la rangée serait un pari sur la
+ * disposition, pas une lecture. La reconstruction sert donc de PREUVE dans le
+ * relevé au fournisseur, pas de valeur dans la base.
+ */
+const EPOQUE_EXCEL = Date.UTC(1899, 11, 30);
+/** Avant l'an 2000, aucune VL de ce marché n'existe : la cellule est un nombre. */
+const ANNEE_IMPOSSIBLE = 2000;
+
+/** Le numéro de série que cette date encode, c'est-à-dire le montant imprimé. */
+export function montantDerriereLaDate(iso: string): number | undefined {
+  const t = Date.parse(`${iso}T00:00:00Z`);
+  if (!Number.isFinite(t)) return undefined;
+  const n = Math.round((t - EPOQUE_EXCEL) / 86_400_000);
+  return n > 0 ? n : undefined;
+}
+
+/** Cette date est-elle en réalité un montant ? */
+export const estUnMontantEnDate = (iso: string): boolean => Number(iso.slice(0, 4)) < ANNEE_IMPOSSIBLE;
 
 export interface VerdictVl {
   /** La VL à écrire, corrigée s'il y avait lieu. Absente : elle est écartée. */
@@ -67,6 +125,13 @@ export interface VerdictVl {
   coquille?: string;
   /** Pourquoi elle est écartée, quand elle l'est. */
   motif?: MotifVl;
+  /**
+   * Le montant que la cellule porte réellement, quand la date en est un.
+   *
+   * Il ne sert pas à écrire : il sert à PROUVER au fournisseur que la cellule
+   * est mal typée, en lui rendant son propre nombre.
+   */
+  montantDeduit?: number;
 }
 
 const JOUR = 86_400_000;
@@ -135,6 +200,14 @@ const RETARD_COQUILLE = 31;
 export function jugerLaVl(n: FundNav, sessionDate: string): VerdictVl {
   const faute = fautes(n.navDate, n.nav, n.inceptionDate, sessionDate);
   if (faute.length === 0) return { garde: n };
+
+  /* AVANT TOUTE RÉPARATION : s'il n'y a pas de date dans la cellule, aucune
+     correction de date n'a de sens. Ajouter une année à un montant produirait
+     une date plausible à partir de rien, ce qui est exactement la valeur
+     inventée que la maison refuse. */
+  if (estUnMontantEnDate(n.navDate)) {
+    return { motif: "montant_en_date", montantDeduit: montantDerriereLaDate(n.navDate) };
+  }
 
   /* On ne répare que l'impossible, et seulement si la correction résout tout. */
   if (faute.includes("avant_creation")) {
