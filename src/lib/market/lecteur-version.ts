@@ -395,8 +395,40 @@
  *                             portaient deja son estampille, dont les cinq
  *                             de mai qui n avaient rien gagne. Les laisser
  *                             en 16 les ferait passer pour a jour.
+ *
+ *  18  (2026-10-14)           LA GRILLE APPARTIENT AU TABLEAU, PAS A LA
+ *                             PAGE. La section des encours porte TROIS
+ *                             sous-tableaux, Etats, regionales, privees, et
+ *                             deux tiennent souvent sur la meme page. Leurs
+ *                             colonnes sont decalees d une vingtaine de
+ *                             points. Une grille calculee sur la page
+ *                             epousait le sous-tableau le plus fourni et
+ *                             coupait l autre de travers : ses rangees ne
+ *                             verifiaient plus leur produit, elles etaient
+ *                             refusees, et la seance perdait jusqu a dix
+ *                             lignes sans un mot.
+ *
+ *                             CE QUI A COUTE DEUX JOURS, ET C EST LA LECON :
+ *                             l essai a blanc du 14 octobre avait conclu que
+ *                             les 1 547 trous etaient dans le document, zero
+ *                             ligne retrouvee sur 547 seances. LA MESURE
+ *                             ETAIT CIRCULAIRE. Elle comparait le
+ *                             constructeur a une base que ce meme
+ *                             constructeur avait ecrite : deux lectures d
+ *                             accord ne prouvent rien quand c est la meme
+ *                             lecture. Le controle honnete cherche la rangee
+ *                             dans le TEXTE, par un signe qui n appartient
+ *                             qu a elle, ici le vocabulaire ferme de la
+ *                             colonne amortissement. Verdict : 295 des 333
+ *                             lignes manquantes des quarante seances les
+ *                             plus trouees sont IMPRIMEES dans la piece.
+ *
+ *                             Regression, les deux decoupes sur le meme
+ *                             texte, une seance sur dix : 87 GAGNEES, ZERO
+ *                             PERDUE, ZERO CHANGEE, 18 seances touchees sur
+ *                             82.
  */
-export const VERSION_DU_LECTEUR = 17;
+export const VERSION_DU_LECTEUR = 18;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
@@ -471,6 +503,7 @@ export const TOUCHE_PAR_VERSION: Record<number, Lecteur[]> = {
   15: ["vl"], // le montant rendu en date, inverse du défaut de la 10
   16: ["cotations"], // la rangée coupée en deux hauteurs, jointe par sa forme
   17: ["cotations"], // le pivot de la jonction : le statut, et non la date
+  18: ["encours"], // une grille par sous-tableau, et non par page
 };
 
 /**

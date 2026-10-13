@@ -1,37 +1,38 @@
-/**
- * Ce que le lecteur fait d'une rangée dont la grille a coupé trois nombres.
- *
- * La rangée du Congo au 15 janvier 2025, telle que les abscisses la rendent :
- *   113 | 230 000 000 | 11 | 323 000 | 6 | 666,67 | 95,00
- * Trois nombres coupés en deux, et deux découpes qui satisfont l'identité.
- */
-import { encoursGeometriques } from "../src/lib/market/boc-geometrie.ts";
+/** La découpe réelle d'une rangée d'encours, perdue ou gardée, avec sa page.
+ *    npx tsx --conditions=react-server scripts/encours-decoupe.mjs 2024-09-09 */
+import fs from "node:fs";
+const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+for (const l of env.split(/\r?\n/)) { const m = l.match(/^([A-Z0-9_]+)=(.*)$/); if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, ""); }
+const g = await import("../src/lib/market/boc-geometrie.ts");
+const { readSource } = await import("../src/lib/intake/storage.ts");
+const { repo } = await import("../src/lib/data/index.ts");
+const dire = (s) => fs.writeSync(1, `${s}\n`);
+const ENTETE = /Montant lev/i, FIN = /^(MARCHE DES|SYNTHESE|PHYSIONOMIE|CAPITALISATION)/i;
+const AMORTI = /\b(CONSTANT|IN\s*-?\s*FINE|DIFFERE|DIFFÉRÉ)\b/i, ISIN = /\b([A-Z]{2}\d{10})\b/;
 
-const rangee = (page, y, textes) => ({ page, y, cellules: textes.map((texte, i) => ({ texte, x: 100 + i * 50, largeur: 45 })) });
+const seance = process.argv[2];
+const b = (await repo().listBulletins(3000)).find((x) => x.sessionDate === seance);
+const rangees = await g.rangeesDuPdf(await readSource(b.fileKey));
+const dit = (r, m) => r.cellules.some((c) => m.test(c.texte.trim()));
+const debut = rangees.findIndex((r) => dit(r, ENTETE));
+const fin = rangees.findIndex((r, i) => i > debut + 2 && dit(r, FIN));
+const section = rangees.slice(debut, fin > debut ? fin : debut + 60);
+const lus = new Set(g.encoursGeometriques(rangees).map((e) => e.isin));
 
-const entete = [
-  rangee(6, 500, ["Désignation du titre", "Code ISIN", "Mnemo", "Montant levé", "Nominal", "Mat", "Amortiss", "Périod"]),
-  rangee(6, 490, ["l'émetteur", "facial", "cotation", "titres cotés", "en %", "précédente", "jour", "net"]),
-  rangee(6, 480, ["l'échéance", "(Liquidité)"]),
-];
+/* Combien d en-têtes « Montant levé » la pièce porte-t-elle, et sur quelles pages ? */
+dire(`en-têtes « Montant levé » :`);
+rangees.forEach((r, i) => { if (dit(r, ENTETE)) dire(`   rangée ${i} page ${r.page}`); });
 
-const congo = ["ETAT DU CONGO", "EOCG 6,25% NET 2021-2026", "CG0000020238", "ECG02", "6,25", "30/07/2021", "113", "230 000 000", "11", "323 000", "6", "666,67", "95,00", "5", "CONSTANT", "AN", "22/03/2024", "22/03/2025", "71 712 295 590", "6,2", "0"];
+dire(`\nla grille, par page de la section :`);
+for (const p of new Set(section.map((r) => r.page))) {
+  const col = g.colonnes ? g.colonnes(section.filter((r) => r.page === p)) : null;
+  dire(`   page ${p} : ${section.filter((r) => r.page === p).length} rangée(s)${col ? `, ${col.length} colonne(s)` : ""}`);
+}
 
-const carnet = { sur: (m) => console.log("REFUS :", m) };
-const out = encoursGeometriques([...entete, rangee(6, 400, congo)], carnet);
-console.log(JSON.stringify(out, null, 1));
-
-/* Et le contrôle à la main, pour savoir ce que chaque découpe donne. */
-const essai = (titres, nominal, cours, encours, leve) => {
-  const p = (titres * nominal * cours) / 100;
-  const dec = String(nominal).split(".")[1]?.length ?? 0;
-  const tol = 1 + (dec > 0 ? (titres * Math.pow(10, -dec) * cours) / 100 : 0);
-  console.log(
-    `titres ${String(titres).padStart(11)} × nominal ${String(nominal).padStart(9)} × ${cours} % = ${p.toFixed(0).padStart(14)} ` +
-      `| encours ${encours} | écart ${(p - encours).toFixed(2).padStart(12)} | tolérance ${tol.toFixed(0).padStart(9)} | ${Math.abs(p - encours) <= tol ? "IDENTITÉ OK" : "refusée"} ` +
-      `| levé/titres = ${(leve / titres).toFixed(6)}`,
-  );
-};
-console.log();
-essai(11_323_000, 6666.67, 95, 71_712_295_590, 113_230_000_000);
-essai(113_230_006, 666.67, 95, 71_712_295_590, 113_230_000_000);
+dire(`\nla découpe, rangée par rangée :`);
+for (const r of section) {
+  const t = r.cellules.map((c) => c.texte).join(" ");
+  if (!AMORTI.test(t) || !ISIN.test(t)) continue;
+  const isin = t.match(ISIN)[1];
+  dire(`   ${lus.has(isin) ? "gardée" : "PERDUE"}  p${r.page}  ${isin}  ${r.cellules.length} cellule(s) brute(s) : ${r.cellules.map((c) => `${Math.round(c.x)}:${c.texte}`).join(" ¦ ").slice(0, 230)}`);
+}

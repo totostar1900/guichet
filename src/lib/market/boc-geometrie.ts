@@ -1213,7 +1213,38 @@ function decoupeDeLaRangee(m: Morceau[], encours: number): Decoupe | undefined {
   return candidats.sort((a, b) => a.titres.de - b.titres.de || a.nominal.de - b.nominal.de)[0];
 }
 
-export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet): BocEncours[] {
+/**
+ * LA GRILLE APPARTIENT AU TABLEAU, PAS À LA PAGE.
+ *
+ * CE QUE CETTE SECTION CACHAIT, et c'est la plus grosse perte mesurée sur la
+ * série : la section des encours porte TROIS sous-tableaux, les États, les
+ * régionales et les privées, et deux d'entre eux tiennent souvent sur la même
+ * page. Leurs colonnes ne sont pas au même endroit, à une vingtaine de points
+ * près (séance du 9 septembre 2024, page 5) :
+ *
+ *   États       38  105  199  254  286  311  357  455  490  522  535
+ *   régionales  47   80  178  236  264  288  338  400  446  474  505
+ *
+ * Une grille calculée sur la page entière épouse le sous-tableau le plus
+ * fourni et coupe l'autre de travers. Ses rangées ne vérifient plus leur
+ * produit, elles sont refusées, et la séance perd dix lignes en silence.
+ *
+ * MESURE DU 14 OCTOBRE 2026 : 295 des 333 lignes manquantes des quarante
+ * séances les plus trouées sont IMPRIMÉES dans la pièce. L'essai à blanc qui
+ * avait conclu l'inverse comparait le constructeur à une base que ce même
+ * constructeur avait écrite, et deux lectures d'accord ne prouvent rien quand
+ * c'est la même lecture.
+ *
+ * CHAQUE EN-TÊTE « Montant levé » OUVRE DONC SON PROPRE TABLEAU, et chaque
+ * tableau sa propre grille, page par page. Un sous-tableau de trois lignes n'a
+ * pas de quoi fonder quatre bords : on abaisse le minimum au nombre de ses
+ * rangées, et une grille vide laisse la rangée telle que pdfjs la rend, ce qui
+ * est le bon défaut puisque la séparation est alors déjà correcte.
+ *
+ * `grilleParPage` ne sert qu'au contrôle de non-régression, qui fait tourner
+ * les deux découpes sur le même texte dans le même processus.
+ */
+export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet, grilleParPage = false): BocEncours[] {
   const dit = (r: Rangee, motif: RegExp) => r.cellules.some((c) => motif.test(c.texte.trim()));
   const debut = rangees.findIndex((r) => dit(r, ENCOURS_ENTETE));
   if (debut < 0) return [];
@@ -1223,10 +1254,28 @@ export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet): BocEnco
   const parPage = new Map<number, number[]>();
   for (const p of new Set(section.map((r) => r.page))) parPage.set(p, colonnes(section.filter((r) => r.page === p)));
 
+  const ouvertures = section.flatMap((r, i) => (dit(r, ENCOURS_ENTETE) ? [i] : []));
+  if (ouvertures[0] !== 0) ouvertures.unshift(0);
+  const grilles = new Map<string, number[]>();
+  ouvertures.forEach((de, k) => {
+    const bloc = section.slice(de, ouvertures[k + 1] ?? section.length);
+    for (const p of new Set(bloc.map((r) => r.page))) {
+      const sienne = bloc.filter((r) => r.page === p);
+      const lignes = sienne.filter((r) => r.cellules.some((c) => ISIN_DANS.test(c.texte))).length;
+      grilles.set(`${k}|${p}`, colonnes(sienne, Math.min(4, Math.max(2, lignes))));
+    }
+  });
+  const grilleDe = (i: number, page: number): number[] => {
+    if (grilleParPage) return parPage.get(page) ?? [];
+    let k = 0;
+    while (k + 1 < ouvertures.length && ouvertures[k + 1] <= i) k++;
+    return grilles.get(`${k}|${page}`) ?? [];
+  };
+
   const out: BocEncours[] = [];
   const vus = new Set<string>();
-  for (const r of section) {
-    const cells = rangeeSeparee(r, parPage.get(r.page) ?? [])
+  for (const [iRangee, r] of section.entries()) {
+    const cells = rangeeSeparee(r, grilleDe(iRangee, r.page))
       .map((c) => c.texte.trim())
       .filter(Boolean);
     const iIsin = cells.findIndex((c) => ISIN_DANS.test(c));
