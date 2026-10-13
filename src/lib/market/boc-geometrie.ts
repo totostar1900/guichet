@@ -1,4 +1,4 @@
-import type { BocBond, BocCapitalisation, BocEquity, BocParsed } from "./boc-parse";
+import type { BocBond, BocCapitalisation, BocEncours, BocEquity, BocParsed } from "./boc-parse";
 import { isoDate, num, type Carnet } from "./boc-parse";
 
 /**
@@ -964,6 +964,233 @@ export function capitalisationsGeometriques(rangees: Rangee[], carnet?: Carnet):
       eps: queue[1],
       marketCapFloat,
       marketCapTotal,
+    });
+  }
+  return out;
+}
+
+/* ---------------- Encours des titres de dette ---------------- */
+
+/**
+ * LE STOCK DE LA DETTE COTÉE, LU PAR LES ABSCISSES.
+ *
+ * POURQUOI CETTE TABLE VAUT LE RESTE DU CHANTIER. Les adjudications donnent
+ * des FLUX, et notre collecte n'en couvre qu'un quart : tout ratio bâti
+ * dessus est faussement précis. Cette table, elle, publie le STOCK, ligne par
+ * ligne, à chaque séance. Un stock publié est complet par construction, et
+ * c'est la seule route honnête vers le mur des échéances.
+ *
+ * ELLE VIT DANS LA MÊME SECTION QUE LA CAPITALISATION BOURSIÈRE, juste après,
+ * avec d'autres colonnes : c'est cette cohabitation qui a produit la famille
+ * O, le lecteur aplati lisant les rangées de dette avec la grammaire des
+ * actions. On la reconnaît à son en-tête propre, « Montant levé », qui
+ * n'existe nulle part ailleurs dans le bulletin.
+ *
+ * LA RANGÉE SE VÉRIFIE ELLE-MÊME, et c'est le seul garde :
+ *
+ *   nombre de titres × nominal résiduel = encours
+ *   23 500 000 × 6 000 = 141 000 000 000   (Cameroun ECMR6, 12 octobre 2026)
+ *
+ * Le nominal imprimé est le nominal RESTANT après amortissements, non celui
+ * d'origine : 23 500 000 × 10 000 rendrait le montant levé, pas l'encours. Une
+ * découpe qui confondrait les deux manquerait le produit, et serait refusée.
+ */
+const ENCOURS_ENTETE = /Montant lev/i;
+const ENCOURS_FIN = /^(MARCHE DES|SYNTHESE|PHYSIONOMIE|CAPITALISATION)/i;
+const AMORTISSEMENT = /^(CONSTANT|IN ?FINE|DIFFERE|LINEAIRE)/i;
+
+const EST_NOMBRE = /^-?[\d  ]+(?:,\d+)?$/;
+const nombresDe = (cells: string[]): number[] => cells.filter((c) => EST_NOMBRE.test(c) && c.trim() !== "-").map(num);
+
+/**
+ * LE NOMBRE QUE LA GRILLE A COUPÉ EN DEUX, ET COMMENT ON LE RETROUVE.
+ *
+ * « 23 500 000 » sort de la grille en « 23 » et « 500 000 », parce qu'un bord
+ * de colonne tombe au milieu d'une espace de milliers. La rangée porte alors
+ * sept nombres là où elle en a six, et toute lecture par position se décale.
+ * C'est le même piège que chez les obligations, où il avait déjà coûté un
+ * balayage entier.
+ *
+ * ON NE DEVINE PAS LA DÉCOUPE, ON LA CHERCHE. Chaque recollement de cellules
+ * voisines est un candidat, et c'est l'identité de la rangée qui tranche :
+ * nombre de titres × nominal résiduel = encours. Une seule combinaison la
+ * vérifie, et si aucune ne la vérifie, la rangée est refusée. Le document
+ * choisit, pas nous.
+ */
+interface Morceau {
+  valeur: number;
+  /** Le nombre de décimales IMPRIMÉES : il borne l erreur d arrondi. */
+  decimales: number;
+  /** Les indices de cellules recollés pour l obtenir. */
+  de: number;
+  a: number;
+}
+
+/**
+ * L ÉMETTEUR ET LA DÉSIGNATION, QUAND LA GRILLE LES A MIS DANS UNE SEULE CELLULE.
+ *
+ * « ETAT DU CAMEROUN | ECMR 6.25% NET 2022-2029 » tient en deux cellules, et
+ * la lecture est immédiate. Les corporates, eux, sortent parfois d un bloc :
+ * « ACEP CAMEROUN ACEP 7% BRUT 2024-2027 », et tout partait alors dans le nom
+ * de l émetteur, ce qui donnait un émetteur par ligne au lieu d un par maison.
+ *
+ * La désignation d une obligation porte toujours son TAUX. On coupe donc
+ * juste avant le mot qui précède le pourcentage : ce mot est le sigle de la
+ * ligne, jamais la fin du nom de l émetteur.
+ */
+const nommer = (avant: string[]): { issuer: string; designation: string } => {
+  if (avant.length > 1) return { issuer: avant[0].trim(), designation: avant.slice(1).join(" ").trim() };
+  const bloc = (avant[0] ?? "").trim();
+  const m = /\s(\S+\s+\d+(?:[.,]\d+)?\s?%)/.exec(bloc);
+  if (!m || m.index == null) return { issuer: bloc, designation: "" };
+  return { issuer: bloc.slice(0, m.index).trim(), designation: bloc.slice(m.index + 1).trim() };
+};
+
+/** Tous les nombres lisibles, y compris ceux obtenus en recollant des voisins. */
+function morceaux(cells: string[]): Morceau[] {
+  const out: Morceau[] = [];
+  for (let i = 0; i < cells.length; i++) {
+    if (!EST_NOMBRE.test(cells[i]) || cells[i].trim() === "-") continue;
+    out.push({ valeur: num(cells[i]), decimales: (cells[i].split(",")[1] ?? "").length, de: i, a: i });
+    /* Deux ou trois cellules recollées : au-delà, la grille ne coupe pas. */
+    let brut = cells[i].replace(/[  ]/g, "");
+    for (let j = i + 1; j < Math.min(i + 3, cells.length); j++) {
+      if (!EST_NOMBRE.test(cells[j]) || cells[j].includes(",")) break;
+      brut += cells[j].replace(/[  ]/g, "");
+      out.push({ valeur: Number(brut.replace(",", ".")), decimales: (brut.split(",")[1] ?? "").length, de: i, a: j });
+    }
+  }
+  return out;
+}
+
+/**
+ * La découpe de la rangée, trouvée par son identité.
+ *
+ * L'IDENTITÉ EXACTE, ET JE M'ÉTAIS TROMPÉ EN LA POSANT. J'avais écrit
+ * « titres × nominal = encours », ce qui est vrai des seules lignes cotées au
+ * pair, et treize sur vingt-six l'étaient. Le refus de CM0000020388 a donné
+ * la bonne :
+ *
+ *   11 032 250 000 × 0,99 = 10 921 927 500
+ *
+ * L'encours est calculé AU COURS, pas au nominal. La colonne s'appelle
+ * d'ailleurs « Encours calculé à ce jour », ce que j'aurais pu lire.
+ *
+ *   nombre de titres × nominal résiduel × cours / 100 = encours
+ *
+ * Trois inconnues, une équation, et des candidats en petit nombre : on essaie
+ * les découpes et on garde celle qui tombe juste. L'ordre des colonnes ne
+ * bouge pas, titres puis nominal puis cours, ce qui élague presque tout.
+ */
+interface Decoupe {
+  titres: Morceau;
+  nominal: Morceau;
+  cours: Morceau;
+}
+
+function decoupeDeLaRangee(m: Morceau[], encours: number): Decoupe | undefined {
+  const candidats: Decoupe[] = [];
+  for (const titres of m) {
+    if (!(titres.valeur > 0)) continue;
+    for (const nominal of m) {
+      if (nominal.de <= titres.a || !(nominal.valeur > 0)) continue;
+      for (const cours of m) {
+        if (cours.de <= nominal.a || cours.valeur < 50 || cours.valeur > 130) continue;
+        /* LA TOLÉRANCE SUIT L ARRONDI DU NOMINAL IMPRIMÉ, et c est ALIOS
+           FINANCE qui l a appris : son nominal résiduel vaut 8888,889, le
+           bulletin l arrondit au millième, et le produit dérive alors de
+           six cents francs. Un franc fixe refusait la rangée ; une
+           tolérance proportionnelle au nombre de titres et à la précision
+           imprimée l accepte sans rien relâcher ailleurs, un nominal entier
+           gardant le franc. */
+        /* UNE UNITÉ ENTIÈRE DU DERNIER DÉCIMAL, ET NON UNE DEMIE : le
+           bulletin arrondit le même nombre de deux façons dans la même
+           rangée. ALIOS-06 imprime un nominal de 8888,889 et calcule son
+           encours avec 8888,89, d'où 613 francs d'écart sur 612 955 titres,
+           soit exactement un millième par titre. La demi-unité refusait la
+           rangée. Le garde reste serré : un relatif de 10⁻⁴ n'accepte pas une
+           combinaison fausse, qui se trompe d'un ordre de grandeur. */
+        const arrondi = nominal.decimales > 0 ? (titres.valeur * Math.pow(10, -nominal.decimales) * cours.valeur) / 100 : 0;
+        if (Math.abs((titres.valeur * nominal.valeur * cours.valeur) / 100 - encours) <= 1 + arrondi) candidats.push({ titres, nominal, cours });
+      }
+    }
+  }
+  return candidats.sort((a, b) => a.titres.de - b.titres.de || a.nominal.de - b.nominal.de)[0];
+}
+
+export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet): BocEncours[] {
+  const dit = (r: Rangee, motif: RegExp) => r.cellules.some((c) => motif.test(c.texte.trim()));
+  const debut = rangees.findIndex((r) => dit(r, ENCOURS_ENTETE));
+  if (debut < 0) return [];
+  const fin = rangees.findIndex((r, i) => i > debut + 2 && dit(r, ENCOURS_FIN));
+  const section = rangees.slice(debut, fin > debut ? fin : debut + 60);
+
+  const parPage = new Map<number, number[]>();
+  for (const p of new Set(section.map((r) => r.page))) parPage.set(p, colonnes(section.filter((r) => r.page === p)));
+
+  const out: BocEncours[] = [];
+  const vus = new Set<string>();
+  for (const r of section) {
+    const cells = rangeeSeparee(r, parPage.get(r.page) ?? [])
+      .map((c) => c.texte.trim())
+      .filter(Boolean);
+    const iIsin = cells.findIndex((c) => ISIN_DANS.test(c));
+    if (iIsin < 1) continue;
+    const isin = cells[iIsin].match(ISIN_DANS)![0];
+    if (vus.has(isin)) continue;
+
+    /* L'amortissement est le pivot de la rangée : il sépare ce qui décrit le
+       titre de ce qui décrit son service, et il ne ressemble à rien d'autre. */
+    const iAmort = cells.findIndex((c, k) => k > iIsin && AMORTISSEMENT.test(c));
+    if (iAmort < 0) continue;
+
+    const dates = cells.map((c, k) => (k > iIsin && DATE.test(c) ? k : -1)).filter((k) => k >= 0);
+    const tete = cells.slice(iIsin + 1, iAmort);
+    const apres = nombresDe(cells.slice(iAmort + 1));
+    if (apres.length < 1) continue;
+
+    /* L'encours est le premier nombre après l'amortissement, et il sert de
+       clef : c'est lui qui permet de retrouver la découpe de la tête. */
+    const outstanding = apres[0];
+    const couple = decoupeDeLaRangee(morceaux(tete), outstanding);
+    if (!couple) {
+      carnet?.sur(`Encours ${isin} : aucune découpe de la rangée ne rend titres × nominal × cours égal à l encours.`, cells.join(" | "), "nombre de titres × nominal résiduel × cours / 100 = encours");
+      continue;
+    }
+    const units = couple.titres.valeur;
+    const nominalRemaining = couple.nominal.valeur;
+
+    /* Le reste se lit autour du couple, et chaque colonne a sa forme : le
+       taux facial porte une virgule et vaut moins de trente, le cours tombe
+       entre cinquante et cent trente, la maturité est un petit entier. Le
+       montant levé est ce qui reste de plus gros avant les titres. */
+    const libres = morceaux(tete).filter((x) => x.a < couple.titres.de);
+    const couponRate = libres.find((x) => x.de < couple.titres.de && x.valeur > 0 && x.valeur < 30)?.valeur ?? 0;
+    const amountRaised = libres.filter((x) => x.a < couple.titres.de).reduce((a, x) => Math.max(a, x.valeur), 0);
+    const pricePct = couple.cours.valeur;
+    const maturityYears = morceaux(tete).filter((x) => x.de > couple.cours.a && Number.isInteger(x.valeur) && x.valeur >= 1 && x.valeur <= 30).at(-1)?.valeur ?? 0;
+
+    vus.add(isin);
+    out.push({
+      isin,
+      mnemo: cells[iIsin + 1] ?? "",
+      ...nommer(cells.slice(0, iIsin)),
+      couponRate,
+      firstListedOn: dates[0] != null ? isoDate(cells[dates[0]]) : "",
+      amountRaised,
+      units,
+      nominalRemaining,
+      pricePct,
+      maturityYears,
+      amortisation: cells[iAmort].toUpperCase().replace(/\s+/g, " "),
+      periodicity: cells[iAmort + 1] ?? "",
+      /* Les deux dernières dates de la rangée sont les deux échéances de
+         coupon ; la première est celle de la cotation d'origine. */
+      previousCouponOn: dates.length >= 3 ? isoDate(cells[dates[dates.length - 2]]) : "",
+      nextCouponOn: dates.length >= 2 ? isoDate(cells[dates[dates.length - 1]]) : "",
+      outstanding,
+      netYieldPct: apres[1],
+      turnoverPct: apres[2],
     });
   }
   return out;

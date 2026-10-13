@@ -8,7 +8,7 @@ export const TECHNIQUE: DocPage = {
   visibility: "desk",
   audience: ["tech", "admin"],
   order: 7,
-  checkedOn: "2026-10-12",
+  checkedOn: "2026-10-13",
   owner: "Georges",
   chapters: [
     {
@@ -69,9 +69,9 @@ export const TECHNIQUE: DocPage = {
         {
           type: "steps",
           items: [
-            l("Avant de publier une modification : npx tsc --noEmit -p . (types), npx eslint src (qualité), npx vitest run (53 tests), npx next build (construction). Les quatre doivent passer.", "Before publishing a change: npx tsc --noEmit -p . (types), npx eslint src (quality), npx vitest run (53 tests), npx next build (build). All four must pass."),
+            l("Avant de publier une modification : npx eslint src (qualité), npx vitest run (la suite complète), npm run build (construction). Et c'est npm run build qui fait foi sur les types, pas npx tsc --noEmit : ce dernier ne regarde pas src/test, de sorte qu'un test mal typé passe en local et casse la production.", "Before publishing a change: npx eslint src (quality), npx vitest run (the full suite), npm run build (build). And npm run build is what settles types, not npx tsc --noEmit: the latter does not look at src/test, so a mistyped test passes locally and breaks production."),
             l("git push sur master : Vercel construit et met en production en deux à trois minutes ; l'adresse ne change pas.", "git push to master: Vercel builds and puts into production in two to three minutes; the address does not change."),
-            l("Si une migration SQL accompagne le changement (nouveau fichier dans supabase/migrations), l'appliquer d'abord sur la base ; le message de commit le signale. Une migration est écrite pour être additive : elle ajoute, elle ne retire pas, de sorte qu'un retour en arrière du code ne casse rien.", "If an SQL migration comes with the change (new file under supabase/migrations), apply it first in Supabase › SQL Editor; the commit message says so."),
+            l("Si une migration SQL accompagne le changement (nouveau fichier dans supabase/migrations), l'appliquer d'abord sur la base ; le message de commit le signale. Une migration est écrite pour être additive : elle ajoute, elle ne retire pas, de sorte qu'un retour en arrière du code ne casse rien.", "If an SQL migration comes with the change (new file under supabase/migrations), apply it to the database first; the commit message says so. A migration is written to be additive: it adds, it does not remove, so that rolling the code back breaks nothing."),
             l("Vérifier : /desk/sante, puis la page touchée.", "Check: /desk/sante, then the page concerned."),
             l("Revenir en arrière : Vercel › Deployments › version précédente › Promote to Production. Une migration ne se défait pas seule : elle est écrite pour être additive (ajout de colonne, jamais suppression).", "Rolling back: Vercel › Deployments › previous version › Promote to Production. A migration does not undo itself: it is written to be additive (adding a column, never dropping)."),
           ],
@@ -113,7 +113,11 @@ export const TECHNIQUE: DocPage = {
           type: "table",
           head: [l("Quoi", "What"), l("Comment", "How"), l("Pour revenir", "To restore")],
           rows: [
-            [l("Base de données", "Database"), l("Sauvegarde quotidienne automatique par Supabase (plan Pro : 7 jours, point-in-time en option).", "Daily automatic backup by Supabase (Pro plan: 7 days, point-in-time optional)."), l("Supabase › Database › Backups › Restore ; prévenir le desk (quelques minutes d'indisponibilité).", "Supabase › Database › Backups › Restore; tell the desk (a few minutes down).")],
+            [
+              l("Base de données", "Database"),
+              l("Le projet est au plan gratuit de Supabase, qui ne garde PAS de sauvegarde restaurable. C'est une décision du 2026-10-11, prise en connaissance de cause ; elle est le point ouvert le plus lourd de cette page.", "The project is on Supabase's free plan, which keeps NO restorable backup. This was a decision taken on 2026-10-11, with eyes open; it is the heaviest open point on this page."),
+              l("Rien à restaurer chez le fournisseur en l'état. Passer au plan Pro ouvre la restauration à sept jours ; tant que ce n'est pas fait, une perte de base est une perte.", "Nothing to restore at the vendor as things stand. Moving to the Pro plan opens seven-day restore; until that is done, losing the database means losing it."),
+            ],
             [l("Fichiers (PDF, photos)", "Files (PDFs, photos)"), l("Bucket privé Supabase, répliqué par le fournisseur.", "Private Supabase bucket, replicated by the vendor."), l("Un document généré se régénère depuis l'intention.", "A generated document can be regenerated from the intention.")],
             [l("Le code", "The code"), l("GitHub ; chaque version déployée reste sur Vercel.", "GitHub; every deployed version stays on Vercel."), l("Promote to Production sur une version antérieure.", "Promote to Production on an earlier version.")],
             [l("Les clés", "The keys"), l("Vercel › Environment Variables (copie de secours hors ligne, chez le titulaire).", "Vercel › Environment Variables (offline backup copy, with the holder)."), l("Régénérer chez le fournisseur si perdue.", "Regenerate at the vendor if lost.")],

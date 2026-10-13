@@ -929,3 +929,52 @@ function parseFunds(lines: string[], warnings: Carnet): BocFund[] {
   if (out.length === 0) warnings.push("Aucun OPCVM lu.");
   return out;
 }
+
+/**
+ * UNE LIGNE DE LA TABLE « ENCOURS DES TITRES DE DETTE ».
+ *
+ * Publiée à chaque séance, elle donne le STOCK de la dette cotée, ligne par
+ * ligne, là où les adjudications ne donnent que des flux. Un stock publié est
+ * complet par construction : il n'a pas besoin qu'on ait vu passer chaque
+ * émission, ce qui en fait la seule route honnête vers le mur des échéances
+ * tant que notre collecte d'adjudications reste partielle.
+ *
+ * ELLE PORTE AUSSI LE NOMINAL RÉSIDUEL, imprimé. Le lecteur d'obligations le
+ * déduit aujourd'hui par une seconde identité, faute de l'avoir ; il est ici,
+ * à chaque séance, pour chaque ligne.
+ *
+ * ET L'ÉCHÉANCIER DE SERVICE VIENT AVEC : type d'amortissement, périodicité,
+ * dernier coupon payé, prochain coupon théorique.
+ */
+export interface BocEncours {
+  isin: string;
+  mnemo: string;
+  /** « ETAT DU CAMEROUN », « BDEAC ». */
+  issuer: string;
+  /** « ECMR 6.25% NET 2022-2029 ». */
+  designation: string;
+  couponRate: number;
+  /** Première cotation, en ISO. */
+  firstListedOn: string;
+  /** Le montant levé à l'émission. */
+  amountRaised: number;
+  /** Le nombre de titres cotés. */
+  units: number;
+  /** Le nominal RESTANT d'un titre, après amortissements. */
+  nominalRemaining: number;
+  pricePct: number;
+  /** La maturité d'origine, en années. */
+  maturityYears: number;
+  /** « CONSTANT », « IN FINE ». */
+  amortisation: string;
+  /** « AN », « SEM », « TRIM ». */
+  periodicity: string;
+  /** La dernière échéance de coupon, en ISO. */
+  previousCouponOn: string;
+  /** La prochaine échéance théorique, en ISO. */
+  nextCouponOn: string;
+  /** L'encours, et il vaut units × nominalRemaining : c'est le contrôle. */
+  outstanding: number;
+  netYieldPct?: number;
+  turnoverPct?: number;
+}

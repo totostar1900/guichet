@@ -200,8 +200,41 @@
  *                             lirait MOINS bien : on ne la consulte donc que
  *                             lorsque l aplatie ne rend rien, jamais en
  *                             remplacement.
+ *  13  (2026-10-13)           LA SECONDE TABLE, L ENCOURS DES TITRES DE
+ *                             DETTE, lue elle aussi par les abscisses. La
+ *                             version 12 avait appris a s arreter devant
+ *                             elle ; celle-ci apprend a la lire.
+ *                             POURQUOI ELLE COMPTE PLUS QUE SON VOLUME. Les
+ *                             adjudications donnent des FLUX et notre
+ *                             collecte n en couvre qu un quart : tout ratio
+ *                             bati dessus est faussement precis. Cette table
+ *                             publie le STOCK, ligne par ligne, a chaque
+ *                             seance, et un stock publie est complet par
+ *                             construction. C est la seule route honnete vers
+ *                             le mur des echeances tant que la collecte reste
+ *                             partielle.
+ *                             L IDENTITE QUI GARDE LA LECTURE a ete posee
+ *                             FAUSSE DEUX FOIS avant d etre trouvee. « titres
+ *                             × nominal = encours » n est vrai qu au pair :
+ *                             treize lignes sur trente et une l etaient, les
+ *                             dix-huit autres etaient refusees. La colonne s
+ *                             appelle « Encours calcule a ce jour », ce qui
+ *                             se lisait. La bonne identite est
+ *                             titres × nominal × cours / 100 = encours, et c
+ *                             est elle qui choisit entre les recollements
+ *                             quand la grille coupe un nombre en deux
+ *                             (« 23 500 000 » en « 23 » et « 500 000 »).
+ *                             LA TOLERANCE EST D UNE UNITE DU DERNIER
+ *                             DECIMAL, pas d une demie : ALIOS-06 imprime un
+ *                             nominal de 8888,889 et calcule son encours avec
+ *                             8888,89, soit 613 francs d ecart sur 612 955
+ *                             titres. Le bulletin arrondit le meme nombre de
+ *                             deux facons dans une seule rangee.
+ *                             Mesure sur la seance du 12 octobre : 31 lignes,
+ *                             ZERO refus, et sept emetteurs dont le Gabon a
+ *                             677 Mds et la BDEAC a 253.
  */
-export const VERSION_DU_LECTEUR = 12;
+export const VERSION_DU_LECTEUR = 13;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
