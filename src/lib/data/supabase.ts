@@ -2300,6 +2300,32 @@ export const supabaseRepository: Repository = {
       );
     if (error) fail("upsertEncoursDette", error);
   },
+  async derniereEcritureDesSeries() {
+    /* Cinq lectures d'une rangée chacune, en parallèle : on ne demande que la
+       colonne de date, triée, limitée à un. Compter coûterait cher pour une
+       réponse qui ne sert à rien ici. */
+    const lire = async (cle: string, table: string, colonne: string): Promise<[string, string | undefined]> => {
+      const { data, error } = await db().from(table).select(colonne).order(colonne, { ascending: false }).limit(1);
+      /* UNE LECTURE QUI ÉCHOUE N'EST PAS UNE SÉRIE VIDE. On laisse la clef
+         absente, et la page dira « jamais rien reçu » : c'est faux et c'est
+         voulu, parce qu'un point rouge appelle quelqu'un alors qu'un point
+         vert sur une lecture cassée est exactement la panne muette qu'on
+         cherche à supprimer. */
+      if (error) return [cle, undefined];
+      /* La colonne est choisie à l'exécution, donc le client typé ne sait pas
+         ce qu'il rend : le détour par `unknown` est ici la forme honnête. */
+      const v = (data as unknown as Record<string, unknown>[] | null)?.[0]?.[colonne];
+      return [cle, typeof v === "string" ? v : undefined];
+    };
+    const paires = await Promise.all([
+      lire("serie-encours", "debt_outstandings", "created_at"),
+      lire("serie-cotations", "quotes", "session_date"),
+      lire("serie-calendrier-beac", "beac_observations", "vu_le"),
+      lire("serie-adjudications", "auction_results", "created_at"),
+      lire("serie-avis-emission", "emission_notices", "created_at"),
+    ]);
+    return Object.fromEntries(paires);
+  },
   async encoursDette(sessionDate) {
     /* SANS SÉANCE DEMANDÉE, ON REND LA DERNIÈRE QUI EN PORTE UN, et non celle
        d'aujourd'hui : toutes les séances n'ont pas cette table, et rendre un

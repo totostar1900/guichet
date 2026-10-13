@@ -15,6 +15,8 @@ import { comptesDemo, ordreDeDemo } from "@/lib/domain/demo";
 import { tenuesDeTous } from "@/lib/desk/tenue-data";
 import { baremeCourant, baremeEnBrouillon } from "@/lib/desk/activite-data";
 import { mesureVivante } from "@/lib/domain/mesure";
+import { etatDesSeries, niveauDeSerie } from "@/lib/domain/fraicheur";
+import { etatDesRobots } from "@/lib/domain/robots";
 import { enGo, enMo, lireLeStockage, niveauDuStockage, PLAFOND_STOCKAGE } from "@/lib/domain/stockage";
 import { attendEncore, remarquesNonJugees } from "@/lib/domain/jugement-bulletin";
 import { classer } from "@/lib/market/remarques";
@@ -239,12 +241,14 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
   /* Une année de dates de VL suffit à lire un rythme, et borne la lecture :
      au-delà on paierait des pages pour des fonds qui ne publient plus. */
   const depuisUnAn = localIso(new Date(now.getTime() - 365 * 86_400_000));
-  const [bulletins, offers, notifications, navs, datesVL] = await Promise.all([
+  const [bulletins, offers, notifications, navs, datesVL, derniersEcrits, tours] = await Promise.all([
     r.listBulletins(30),
     r.listOffers(),
     r.listNotifications(300),
     r.latestFundNavs(),
     r.fundNavDates(depuisUnAn).catch(() => [] as { fundKey: string; navDate: string }[]),
+    r.derniereEcritureDesSeries().catch(() => ({}) as Record<string, string | undefined>),
+    r.listTours(200).catch(() => []),
   ]);
   const out: HealthCheck[] = [];
 
@@ -274,6 +278,38 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     value: `${bad.length} partiel(s) ou échec(s)`,
     detail: bad.slice(0, 5).map((b) => `${b.sessionDate} ${b.status}${b.anomalies[0] ? ` : ${b.anomalies[0].slice(0, 80)}` : ""}`).join(" · ") || "tout est propre",
   });
+
+  /* 2 bis. CHAQUE SÉRIE DIT SI ELLE A REÇU, ce qu'aucun robot ne dit.
+     Un robot répond « ai-je tourné », une série répond « ai-je reçu », et les
+     deux se sont déjà séparés en silence pendant trois ans et demi. Une série
+     cadencée tarie est une panne ; une série événementielle tarie est un fait
+     sur la source, qui se dit sans accuser personne. */
+  const robotsMuets = new Set(etatDesRobots(tours, now).filter((x) => x.etat === "muet").map((x) => x.cle));
+  for (const v of etatDesSeries(derniersEcrits, robotsMuets, now)) {
+    out.push({
+      key: v.cle,
+      label: v.quoi,
+      level: niveauDeSerie(v),
+      value:
+        v.etat === "vide"
+          ? "aucune donnée"
+          : v.etat === "recoit"
+            ? `reçue il y a ${Math.floor((v.depuis ?? 0) / 24)} jour(s)`
+            : `rien depuis ${Math.floor((v.depuis ?? 0) / 24)} jour(s)`,
+      /* LE DIAGNOSTIC D'ABORD, LA NATURE ENSUITE, TOUJOURS LES DEUX. La
+         nature est ce qui permet de juger le silence : « rien depuis 28
+         jours » n'a pas le même sens pour une série attendue chaque soir et
+         pour une série qui ne reçoit que si la source publie. */
+      detail: [
+        v.diagnostic,
+        v.dernier ? `dernière écriture ${v.dernier.slice(0, 10)}` : undefined,
+        v.nature === "cadencee" ? "attendue à chaque tour" : `seulement quand ${v.source} publie`,
+        `robot « ${v.robot} »`,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+    });
+  }
 
   // 2 bis. The whole backlog, not just the last 30: incomplete readings distort the index.
   /* TROIS CHIFFRES, ET LES CONFONDRE A COÛTÉ LA CRÉDIBILITÉ DU POINT.

@@ -390,6 +390,18 @@ export interface Repository {
   upsertEncoursDette(lignes: EncoursDette[]): Promise<void>;
   /** Le relevé d une séance, ou de la dernière séance qui en porte un. */
   encoursDette(sessionDate?: string): Promise<EncoursDette[]>;
+  /**
+   * La dernière écriture de chaque série suivie, par clef de `SERIES`.
+   *
+   * UN ROBOT DIT « J AI TOURNÉ », PAS « LA DONNÉE EST ARRIVÉE ». Les deux se
+   * sont déjà séparés : le volume échangé des obligations valait zéro en dur
+   * sur 18 575 rangées pendant trois ans et demi, tous les robots au vert.
+   * Cette lecture est ce qui permet à Santé de poser la seconde question.
+   *
+   * Une clef absente du résultat vaut « jamais rien reçu », et c est le pire
+   * des cas, pas une donnée manquante.
+   */
+  derniereEcritureDesSeries(): Promise<Record<string, string | undefined>>;
   /** History of one line, most recent first. */
   listQuotes(isin: string, limit?: number): Promise<Quote[]>;
   /**

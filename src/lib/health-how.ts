@@ -163,4 +163,37 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "Un geste sensible attend une seconde personne : celle qui propose ne peut pas approuver, quel que soit son rôle. Quand la maison n'a qu'un seul responsable, le contrôle est impossible et le geste passe en le disant : c'est ce qui se compte ici. Un chiffre qui monte appelle une décision d'effectif, pas un réglage : nommer un second responsable dans Référentiel › Personnel, ou accepter que ces gestes-là restent à une paire d'yeux.",
     docs: { href: "/desk/docs/administration#approbations", label: "Les approbations : qui propose, qui écrit" },
   },
+  /* LES CINQ SÉRIES. Un robot dit « j'ai tourné », une série dit « j'ai reçu »,
+     et la réparation n'est pas la même : relancer un robot ne répare pas une
+     écriture cassée, et rien ne répare une source qui ne publie pas. */
+  "serie-encours": {
+    label: "Encours des titres de dette",
+    href: "/desk/bulletins#relire",
+    how: "L'encours est lu dans la table du bulletin, à chaque séance. S'il n'arrive plus alors que le bulletin est ingéré, ce n'est pas l'ordonnanceur qu'il faut relancer : c'est que la lecture géométrique de cette table refuse toutes ses rangées, et une relecture de la séance le montrera dans ses remarques. Vérifier d'abord que la section « ENCOURS DES TITRES DE DETTE » existe encore dans le PDF : la bourse change ses gabarits sans prévenir.",
+    docs: { href: "/desk/docs/sources#bulletin", label: "Le bulletin, de la BVMAC à la fiche" },
+  },
+  "serie-cotations": {
+    label: "Cotations de la cote",
+    href: "/desk#aujourdhui",
+    how: "Les cours arrivent avec le bulletin. Si la série se tait alors que le bulletin est ingéré, le lecteur ne reconnaît plus les rangées de cours : regarder les remarques de la dernière séance avant de toucher à quoi que ce soit.",
+    docs: { href: "/desk/docs/sources#bulletin", label: "Le bulletin, de la BVMAC à la fiche" },
+  },
+  "serie-calendrier-beac": {
+    label: "Journal du calendrier BEAC",
+    href: "/desk/adjudications",
+    how: "Ce journal n'écrit QUE ce qui change : une semaine calme n'écrit rien, et c'est normal. Un silence long veut donc dire que la page d'annonces de la BEAC ne bouge plus, ce qui est une information de marché avant d'être une panne. Ouvrir la page de la BEAC et comparer : si elle porte des documents que nous n'avons pas, la lecture est cassée ; si elle est identique, c'est la place qui s'est tue.",
+    docs: { href: "/desk/docs/sources#sources", label: "D'où vient chaque donnée" },
+  },
+  "serie-adjudications": {
+    label: "Résultats d'adjudication",
+    href: "/desk/adjudications",
+    how: "Six Trésors émettent sur ce marché, et les résultats suivent la séance de quelques jours. Trois semaines sans un seul résultat sur toute la zone n'est pas une accalmie : soit la BEAC a cessé de publier, soit elle a déplacé sa page. Vérifier à la source avant de conclure, et noter la date du dernier document : c'est elle qui date l'événement, pas la date de notre lecture.",
+    docs: { href: "/desk/docs/sources#sources", label: "D'où vient chaque donnée" },
+  },
+  "serie-avis-emission": {
+    label: "Avis d'émission",
+    href: "/desk/bulletins#relire",
+    how: "Un avis paraît avec chaque émission nouvelle, et c'est lui qui porte le coupon, le nominal et le mode de remboursement. Quelques-uns par trimestre : deux mois de silence restent plausibles. Au-delà, vérifier qu'un second document accompagne encore le bulletin de séance.",
+    docs: { href: "/desk/docs/sources#bulletin", label: "Le bulletin, de la BVMAC à la fiche" },
+  },
 };

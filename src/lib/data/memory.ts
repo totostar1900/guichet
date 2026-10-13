@@ -1301,6 +1301,20 @@ export const memoryRepository: Repository = {
       else s.encoursDette.push(structuredClone(l));
     }
   },
+  async derniereEcritureDesSeries() {
+    const s = store();
+    /* En mémoire, rien ne porte d'horodatage d'écriture : on rend la dernière
+       DATE connue de chaque série, ce qui suffit au rendu et aux tests. Une
+       série absente reste absente, comme en base. */
+    const dernier = (xs: string[]) => (xs.length ? xs.slice().sort().at(-1) : undefined);
+    return {
+      "serie-encours": dernier((s.encoursDette ?? []).map((l) => l.sessionDate)),
+      "serie-cotations": dernier((s.quotes ?? []).map((q) => q.sessionDate)),
+      "serie-calendrier-beac": dernier((s.observationsBeac ?? []).map((o) => o.vuLe)),
+      "serie-adjudications": dernier((s.auctionResults ?? []).map((a) => a.sessionOn)),
+      "serie-avis-emission": dernier((s.emissionNotices ?? []).map((n) => n.sessionOn)),
+    };
+  },
   async encoursDette(sessionDate) {
     const lignes = store().encoursDette ?? [];
     /* La dernière séance QUI EN PORTE UN, et non celle du jour : toutes les
