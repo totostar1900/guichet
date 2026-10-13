@@ -60,7 +60,15 @@ export const s = StyleSheet.create({
 export const LEGAL =
   "Purpose Capital S.A. intervient en qualité d'intermédiaire ; les titres sont inscrits au nom de l'investisseur. Les prix et volumes servis sont arrêtés par l'émetteur à l'issue de l'adjudication : une soumission n'emporte aucune garantie d'être servie. Rendements bruts, avant frais et fiscalité. Risque de perte en capital. Document généré depuis le registre des offres et le journal des ordres de Purpose Capital ; toute modification manuelle l'invalide.";
 
-export function Letter({ heading, children }: { heading: string; children: ReactNode }) {
+/**
+ * La lettre de la maison : en-tete, pied legal, numerotation.
+ *
+ * `legal` remplace la mention du bas quand le document ne parle ni d offres
+ * ni d ordres. Le rapport au fournisseur de donnees, par exemple, n a pas a
+ * porter un avertissement sur le risque de perte en capital : il ne s adresse
+ * pas a un investisseur.
+ */
+export function Letter({ heading, children, legal }: { heading: string; children: ReactNode; legal?: string }) {
   return (
     <Document author={COMPANY.legalName} title={heading}>
       <Page size="A4" style={s.page}>
@@ -79,7 +87,7 @@ export function Letter({ heading, children }: { heading: string; children: React
         </View>
         <View style={s.body}>{children}</View>
         <Text style={s.footer} fixed>
-          {LEGAL}
+          {legal ?? LEGAL}
         </Text>
         <Text style={s.pageNo} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} fixed />
       </Page>

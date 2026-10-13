@@ -3422,4 +3422,14 @@ export const EN_MORE: Record<string, string> = {
   "Préparer l'envoi aux {n}": "Prepare the send to {n}",
   "Une cohorte sert à choisir qui prévenir d'une ligne, jamais à moduler un prix ni une condition : deux clients devant la même offre lisent le même prix.": "A cohort chooses who to tell about a line, never how to adjust a price or a condition: two clients before the same offer read the same price.",
   "Texte": "Text",
+
+  /* ---------- le relevé de qualité des données du BOC ---------- */
+  "L'année": "The year",
+  "Classeur Excel": "Excel workbook",
+  "Lettre PDF": "PDF report",
+  "Rapport à la bourse régionale": "Report to the regional exchange",
+  "Ce que la lecture des bulletins relève, mis en forme pour être envoyé à celui qui les publie.": "What reading the bulletins turns up, laid out so it can be sent to whoever publishes them.",
+  "Choisissez une plage : la date de début doit précéder la date de fin.": "Pick a range: the start date must come before the end date.",
+  "Le classeur porte six feuilles : les erreurs de publication d'abord, puis la synthèse par devenir de la donnée, ce qui a été corrigé avec la valeur d'origine en regard, ce qui a été écarté, ce que le lecteur n'a pas su lire avec le texte brut, et la méthode. Le PDF en reprend l'essentiel. Les deux sont des documents de travail : ils ne portent pas l'en-tête de la maison tant que le desk n'a pas décidé de les adresser.":
+    "The workbook has six sheets: publication errors first, then the summary by what became of the data, what was corrected with the original value beside it, what was set aside, what the reader could not read with its raw text, and the method. The PDF carries the essentials. Both are working documents: they carry no letterhead until the desk decides to send them.",
 };

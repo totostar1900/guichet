@@ -9,6 +9,7 @@ import { codes as codesDe, FAMILLES, famille, parCode, VUES } from "@/lib/market
 import type { MarketBulletin } from "@/lib/domain/market";
 import { lancerArriereAction, rereadAction } from "./actions";
 import { Comparateur } from "./Comparateur";
+import { Fournisseur } from "./Fournisseur";
 import { fmtDateTime } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
@@ -339,6 +340,26 @@ export default async function BulletinsPage({ searchParams }: { searchParams: Pr
           </aside>
         </div>
       </section>
+
+      {/* LE RAPPORT AU FOURNISSEUR, ICI ET PAS AILLEURS. Il se demande au
+          moment où l'on vient de voir ce que le lecteur relève : la matrice
+          des codes est juste au-dessus, et la question « j'en fais quoi »
+          trouve sa réponse sans changer de page. */}
+      {tous.length > 0 && (
+        <section className="panel" id="fournisseur">
+          <div className="panel-h">
+            <h2>{t("Rapport à la bourse régionale")}</h2>
+            <span className="muted">{t("Ce que la lecture des bulletins relève, mis en forme pour être envoyé à celui qui les publie.")}</span>
+          </div>
+          {/* LES EXTRÊMES, PAS LES BOUTS DE LA LISTE. « tous » n est pas trié
+              par date ici, et prendre son premier et son dernier élément
+              donnait 2025-10-01 pour une base qui commence en 2023. */}
+          <Fournisseur premiere={tous.reduce((a, b) => (b.sessionDate < a ? b.sessionDate : a), tous[0].sessionDate)} derniere={tous.reduce((a, b) => (b.sessionDate > a ? b.sessionDate : a), tous[0].sessionDate)} />
+          <p className={styles.mode}>
+            {t("Le classeur porte six feuilles : les erreurs de publication d'abord, puis la synthèse par devenir de la donnée, ce qui a été corrigé avec la valeur d'origine en regard, ce qui a été écarté, ce que le lecteur n'a pas su lire avec le texte brut, et la méthode. Le PDF en reprend l'essentiel. Les deux sont des documents de travail : ils ne portent pas l'en-tête de la maison tant que le desk n'a pas décidé de les adresser.")}
+          </p>
+        </section>
+      )}
 
       {/* LE COMPARATEUR SOUS LE TABLEAU, et non sur une page à lui : on vient
           de lire qu'une séance porte dix-sept obligations au lieu de
