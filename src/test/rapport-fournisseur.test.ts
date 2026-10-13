@@ -77,3 +77,37 @@ describe("le relevé au fournisseur", () => {
     for (const m of [X, L1935]) expect(diagnostic(m)).not.toMatch(/famille|code/i);
   });
 });
+
+describe("le nom que le rapport donne au fonds", () => {
+  /**
+   * CE DOCUMENT SORT DE LA MAISON ET MET EN CAUSE LA PUBLICATION D'UN TIERS.
+   * Le 13 octobre 2026, l'aperçu du rapport nommait une société « OBANK
+   * CAMEROUN » : la rangée commence par le gestionnaire et le dépositaire,
+   * et la découpe en avait mangé deux lettres. Reprocher à la bourse ses
+   * cellules abîmées sous un nom abîmé est la façon la plus sûre de ne pas
+   * être lu.
+   */
+  it("COUPE DEVANT LA FORME JURIDIQUE, DONC JAMAIS AU MILIEU D'UN NOM", () => {
+    const r = construireRapport(
+      [seance("2026-04-01", { warnings: ["OPCVM OBANK CAMEROUN FCP ECOBANK OBLIGATAIRE CEMAC : date au format Excel convertie, « 46 099,00 » lu 18/03/2026 (variation imprimée 0,15% vérifiée)."] })],
+      "2026-04-01",
+      "2026-04-01",
+    );
+    const l = [...r.corrections, ...r.ecartees, ...r.perdues][0];
+    expect(l?.objet).toBe("FCP ECOBANK OBLIGATAIRE CEMAC");
+    expect(l?.objet).not.toContain("OBANK CAMEROUN FCP");
+    /* La preuve brute reste intacte : c'est elle qui permet au destinataire
+       de retrouver sa cellule, et nous n'avons pas à la nettoyer. */
+    expect(l?.message).toContain("OBANK CAMEROUN");
+  });
+
+  it("LAISSE INTACT UN NOM QUI COMMENCE DÉJÀ PAR SA FORME", () => {
+    const r = construireRapport(
+      [seance("2026-04-02", { warnings: ["OPCVM FCP AB CASH : date au format Excel convertie, « 46 206,00 » lu 03/07/2026 (variation imprimée 1,00% vérifiée)."] })],
+      "2026-04-02",
+      "2026-04-02",
+    );
+    const l = [...r.corrections, ...r.ecartees, ...r.perdues][0];
+    expect(l?.objet).toBe("FCP AB CASH");
+  });
+});

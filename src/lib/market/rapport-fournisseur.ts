@@ -102,10 +102,36 @@ const OBJET = [
   /^([A-Z]{2,6} \([A-Z]{2}\d{10}\))/,
 ];
 
+/**
+ * LE NOM DU FONDS, DÉGAGÉ DE CE QUI LE PRÉCÈDE.
+ *
+ * La remarque d'un OPCVM porte la rangée telle que le lecteur l'a vue, et
+ * cette rangée commence par le gestionnaire et le dépositaire. L'aplatissement
+ * du PDF les colle, et la découpe en mange parfois le début : le 1er avril
+ * 2026, « ECOBANK CAMEROUN FCP ECOBANK OBLIGATAIRE CEMAC » est devenu
+ * « OBANK CAMEROUN FCP ECOBANK OBLIGATAIRE CEMAC », deux lettres perdues.
+ *
+ * CE RAPPORT SORT DE LA MAISON ET MET EN CAUSE LA PUBLICATION D'UN TIERS.
+ * Un document qui reproche à la bourse ses cellules abîmées ne peut pas
+ * nommer une société « OBANK » : la première chose que le destinataire
+ * vérifierait est ce nom-là, et il ne trouverait rien. Le nom du FONDS, lui,
+ * commence toujours à sa forme juridique et se retrouve tel quel dans le
+ * fichier du destinataire. On coupe donc là.
+ *
+ * La réparation est ici, PAS dans le lecteur, et c'est voulu : le message du
+ * lecteur reste la preuve brute, intégralement reproduit dans la colonne
+ * « message ». Corriger à la source demanderait une relecture des 813
+ * séances, qui ne rendrait rien d'autre.
+ */
+const FORME = /\b(FCP[EC]?|SICAV|FCT)\b/;
+
 const objetDe = (m: string): string => {
   for (const re of OBJET) {
     const x = re.exec(m);
-    if (x) return x[1].trim();
+    if (!x) continue;
+    const brut = x[1].trim();
+    const forme = FORME.exec(brut);
+    return forme && forme.index > 0 ? brut.slice(forme.index) : brut;
   }
   return "";
 };
