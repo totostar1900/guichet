@@ -1065,11 +1065,20 @@ function morceaux(cells: string[]): Morceau[] {
     if (!EST_NOMBRE.test(cells[i]) || cells[i].trim() === "-") continue;
     out.push({ valeur: num(cells[i]), decimales: (cells[i].split(",")[1] ?? "").length, de: i, a: i });
     /* Deux ou trois cellules recollées : au-delà, la grille ne coupe pas. */
+    if (cells[i].includes(",")) continue; // déjà décimal : rien ne se recolle après
     let brut = cells[i].replace(/[  ]/g, "");
     for (let j = i + 1; j < Math.min(i + 3, cells.length); j++) {
-      if (!EST_NOMBRE.test(cells[j]) || cells[j].includes(",")) break;
+      if (!EST_NOMBRE.test(cells[j])) break;
       brut += cells[j].replace(/[  ]/g, "");
       out.push({ valeur: Number(brut.replace(",", ".")), decimales: (brut.split(",")[1] ?? "").length, de: i, a: j });
+      /* UNE DÉCIMALE FERME LE NOMBRE, ELLE NE L INTERDIT PAS, et la nuance a
+         coûté quatre-vingt-dix-huit séances. La condition refusait toute
+         cellule portant une virgule, de sorte que « 6 » et « 666,67 » ne
+         pouvaient jamais se recoller : le nominal 6 666,67 du Congo n existait
+         même pas parmi les candidats, et le lecteur n avait que la découpe
+         fausse à choisir, 113 230 006 titres à 666,67. Un nombre ne continue
+         pas après sa partie décimale ; il s y arrête. */
+      if (cells[j].includes(",")) break;
     }
   }
   return out;
@@ -1100,10 +1109,42 @@ interface Decoupe {
   cours: Morceau;
 }
 
+/**
+ * LE SECOND INVARIANT, ET IL ÉTAIT DANS LA RANGÉE DEPUIS LE DÉBUT.
+ *
+ * CE QUE L IDENTITÉ NE PEUT PAS VOIR. titres × nominal × cours = encours est
+ * conservé quand un CHIFFRE TRAVERSE la frontière entre les titres et le
+ * nominal : le Congo porte 11 323 000 titres à 6 666,670, et la grille les a
+ * rendus 113 230 006 titres à 666,670 sur quatre-vingt-dix-huit séances. Le
+ * produit tient à onze millionièmes près, et le garde a signé. Deux lignes
+ * BDEAC ont subi pire encore, le MONTANT LEVÉ pris pour le nombre de titres.
+ *
+ * LA MESURE QUI DONNE LA RÈGLE. Sur les 16 712 rangées saines de huit cent
+ * sept séances, montant levé ÷ titres vaut EXACTEMENT 10 000, minimum comme
+ * maximum : toute la cote a le même nominal d origine. Sur les 203 rangées
+ * suspectes, 199 donnent autre chose, et le Congo donne 999,99995.
+ *
+ * On n inscrit pas 10 000 en dur pour autant, une cote pouvant coter un jour
+ * un nominal différent. On demande seulement un nominal d origine ENTIER et
+ * d au moins cent francs, ce qu aucune mauvaise recombinaison ne produit : un
+ * chiffre déplacé donne toujours un quotient à virgule.
+ */
+const nominalDOrigineTient = (leve: number, titres: number): boolean => {
+  if (!(leve > 0) || !(titres > 0)) return true; // rien à opposer : on ne refuse pas sur une absence
+  const n = leve / titres;
+  return n >= 100 && Math.abs(n - Math.round(n)) < 1e-6;
+};
+
 function decoupeDeLaRangee(m: Morceau[], encours: number): Decoupe | undefined {
   const candidats: Decoupe[] = [];
   for (const titres of m) {
     if (!(titres.valeur > 0)) continue;
+    /* Le montant levé est le plus gros nombre qui précède les titres, et
+       c est ce que l appelant retiendra aussi : les deux doivent voir la
+       même chose, sinon le garde contrôlerait autre chose que ce qui sera
+       écrit. */
+    const leve = m.filter((x) => x.a < titres.de).reduce((a, x) => Math.max(a, x.valeur), 0);
+    if (!nominalDOrigineTient(leve, titres.valeur)) continue;
     for (const nominal of m) {
       if (nominal.de <= titres.a || !(nominal.valeur > 0)) continue;
       for (const cours of m) {
@@ -1148,8 +1189,32 @@ export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet): BocEnco
       .filter(Boolean);
     const iIsin = cells.findIndex((c) => ISIN_DANS.test(c));
     if (iIsin < 1) continue;
-    const isin = cells[iIsin].match(ISIN_DANS)![0];
+    const trouve = cells[iIsin].match(ISIN_DANS)!;
+    const isin = trouve[0];
     if (vus.has(isin)) continue;
+
+    /**
+     * LA CELLULE DE L ISIN PORTE DU TEXTE AVANT ET APRÈS LUI, et c est une
+     * seule cause pour trois défauts mesurés sur les 807 séances.
+     *
+     * APRÈS L ISIN vit le mnémonique quand la grille les colle :
+     * « CM0000020107 ECMR5 ». Le lecteur prenait alors la cellule SUIVANTE,
+     * qui est le taux facial, et 2 533 rangées sur 16 915, soit quinze pour
+     * cent, portaient « 6,25 » ou « 5,8 » en guise de mnémonique, sur 484
+     * séances.
+     *
+     * AVANT L ISIN vit la désignation quand la grille les colle :
+     * « BDEAC 5.45% NET 2020 - 2027 CG0000020220 ». Les cellules d avant ne
+     * contenaient plus que « BDEAC », et la ligne EBD01 est restée SANS
+     * DÉSIGNATION pendant 767 séances, c est-à-dire toute sa vie cotée.
+     *
+     * Un mnémonique porte une lettre ; un taux n en porte pas. C est tout ce
+     * qu il faut pour ne plus confondre les deux.
+     */
+    const avantLIsin = cells[iIsin].slice(0, trouve.index).trim();
+    const apresLIsin = cells[iIsin].slice((trouve.index ?? 0) + isin.length).trim();
+    const celluleSuivante = (cells[iIsin + 1] ?? "").trim();
+    const mnemo = /[A-Za-z]/.test(apresLIsin) ? apresLIsin : /[A-Za-z]/.test(celluleSuivante) ? celluleSuivante : "";
 
     /* L'amortissement est le pivot de la rangée : il sépare ce qui décrit le
        titre de ce qui décrit son service, et il ne ressemble à rien d'autre. */
@@ -1185,8 +1250,8 @@ export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet): BocEnco
     vus.add(isin);
     out.push({
       isin,
-      mnemo: cells[iIsin + 1] ?? "",
-      ...nommer(cells.slice(0, iIsin)),
+      mnemo,
+      ...nommer([...cells.slice(0, iIsin), avantLIsin].filter(Boolean)),
       couponRate,
       firstListedOn: dates[0] != null ? isoDate(cells[dates[0]]) : "",
       amountRaised,

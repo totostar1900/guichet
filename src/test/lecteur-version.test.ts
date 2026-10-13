@@ -23,7 +23,7 @@ const empreinte = (): string => {
 };
 
 /** L'empreinte des fichiers du lecteur au moment où VERSION_DU_LECTEUR a été posé. */
-const EMPREINTE_ATTENDUE = "2028ee1d73298dfa";
+const EMPREINTE_ATTENDUE = "1b4e4895cc502e28";
 
 describe("la version du lecteur", () => {
   it("bouge quand le lecteur bouge", () => {

@@ -101,6 +101,90 @@ describe("l'encours des titres de dette", () => {
     expect(e.designation).toBe("ACEP 7% BRUT 2024-2027");
   });
 
+  it("RECOLLE UN NOMBRE QUI SE TERMINE PAR SA DÉCIMALE", () => {
+    /* LE DÉFAUT QUI A COÛTÉ QUATRE-VINGT-DIX-HUIT SÉANCES, et seule
+       l'écriture des 807 l'a fait sortir. La grille coupe TROIS nombres dans
+       cette rangée du Congo :
+
+         113 | 230 000 000 | 11 | 323 000 | 6 | 666,67 | 95,00
+
+       Le recollement refusait toute cellule portant une virgule, donc
+       « 6 » + « 666,67 » n'était même pas un candidat : le nominal 6 666,67
+       n'existait pas, et la seule découpe possible était la fausse,
+       113 230 006 titres à 666,67. Elle satisfait l'identité à onze
+       millionièmes près, parce qu'un chiffre qui TRAVERSE la frontière
+       titres / nominal conserve le produit. Le garde a signé pendant huit
+       mois de séances.
+
+       Un nombre ne continue pas après sa partie décimale ; il s'y arrête. */
+    const congo = ["ETAT DU CONGO", "EOCG 6,25% NET 2021-2026", "CG0000020238", "ECG02", "6,25", "30/07/2021", "113", "230 000 000", "11", "323 000", "6", "666,67", "95,00", "5", "CONSTANT", "AN", "22/03/2024", "22/03/2025", "71 712 295 590", "6,2", "0"];
+    const e = encoursGeometriques([...entete(), rangee(6, 400, congo)])[0];
+    expect(e.units).toBe(11_323_000);
+    expect(e.nominalRemaining).toBe(6666.67);
+    expect(e.amountRaised).toBe(113_230_000_000);
+    expect(e.amountRaised / e.units).toBe(10_000);
+  });
+
+  it("CHOISIT LA DÉCOUPE DONT LE NOMINAL D'ORIGINE EST ENTIER", () => {
+    /* L ANGLE MORT DE L IDENTITÉ, trouvé en écrivant les 807 séances et pas
+       avant. Un chiffre qui TRAVERSE la frontière titres / nominal conserve
+       le produit : le Congo porte 11 323 000 titres à 6 666,67, et la grille
+       les rend aussi bien 113 230 006 titres à 666,67. Les deux découpes
+       satisfont titres × nominal × cours = encours, et le lecteur signait la
+       mauvaise sur quatre-vingt-dix-huit séances.
+
+       Le second invariant était dans la rangée depuis le début : montant levé
+       ÷ titres est le nominal d origine, et il vaut 10 000 sur les 16 712
+       rangées saines, minimum comme maximum. La découpe fautive donne
+       999,99995. On ne demande qu un entier, pas dix mille : une cote peut
+       changer de nominal, une recombinaison fausse ne peut pas tomber rond. */
+    /* Le recollement rétabli, les DEUX découpes existent et toutes deux
+       satisfont l'identité. C'est le second invariant qui tranche, et il
+       était dans la rangée depuis le début : montant levé ÷ titres est le
+       nominal d'origine. Sur les 16 712 rangées saines de 807 séances il vaut
+       EXACTEMENT 10 000, minimum comme maximum ; la découpe fautive donne
+       999,999947. On ne demande qu'un entier, pas dix mille : une cote peut
+       changer de nominal, une recombinaison fausse ne tombe jamais rond. */
+    const congo = ["ETAT DU CONGO", "EOCG 6,25% NET 2021-2026", "CG0000020238", "ECG02", "6,25", "30/07/2021", "113", "230 000 000", "11", "323 000", "6", "666,67", "95,00", "5", "CONSTANT", "AN", "22/03/2024", "22/03/2025", "71 712 295 590", "6,2", "0"];
+    const e = encoursGeometriques([...entete(), rangee(6, 400, congo)])[0];
+    expect(e.units).not.toBe(113_230_006);
+    expect(e.amountRaised / e.units).toBe(10_000);
+  });
+
+  it("LIT LE MNÉMONIQUE DANS LA CELLULE DE L'ISIN quand la grille les colle", () => {
+    /* QUINZE POUR CENT DES RANGÉES, 2 533 sur 16 915 et 484 séances, portaient
+       un TAUX en guise de mnémonique. La grille colle parfois l'ISIN et le
+       mnémonique dans une même cellule, « CM0000020107 ECMR5 », et le lecteur
+       prenait alors la cellule SUIVANTE, qui est le taux facial.
+       Un mnémonique porte une lettre ; un taux n'en porte pas. */
+    const colle = ["ETAT DU CAMEROUN", "ECMR 5,6% NET 2018-2023", "CM0000020107 ECMR5", "5,6", "15/11/2018", "200 000 000 000", "20 000 000", "2 480", "100,00", "5", "CONSTANT", "AN", "15/11/2022", "15/11/2023", "49 600 000 000", "5,59", "0"];
+    const e = encoursGeometriques([...entete(), rangee(6, 400, colle)])[0];
+    expect(e.mnemo).toBe("ECMR5");
+    expect(e.couponRate).toBe(5.6);
+  });
+
+  it("LIT LA DÉSIGNATION DEVANT L'ISIN dans la même cellule", () => {
+    /* L'AUTRE MOITIÉ DE LA MÊME CAUSE. Chez BDEAC la désignation précède
+       l'ISIN dans sa cellule : « BDEAC 5.45% NET 2020 - 2027 CG0000020220 ».
+       Les cellules d'avant ne portaient plus que « BDEAC », et la ligne EBD01
+       est restée SANS DÉSIGNATION pendant 767 séances, toute sa vie cotée.
+       Rien ne protestait : une désignation vide s'affiche comme un blanc. */
+    const bdeac = ["BDEAC", "BDEAC 5.45% NET 2020 - 2027 CG0000020220", "EBD01", "5,45", "03/02/2021", "106 791 920 000", "10 679 192", "4 000", "100,00", "7", "CONSTANT", "AN", "31/12/2025", "31/12/2026", "42 716 768 000", "5,45", "0"];
+    const e = encoursGeometriques([...entete(), rangee(6, 400, bdeac)])[0];
+    expect(e.issuer).toBe("BDEAC");
+    expect(e.designation).toBe("BDEAC 5.45% NET 2020 - 2027");
+    expect(e.mnemo).toBe("EBD01");
+  });
+
+  it("refuse de prendre le montant levé pour un nombre de titres", () => {
+    /* Deux lignes BDEAC l ont subi sur la moitié de leur vie : 1 538 685
+       titres lus 15 386 850 000, soit le montant levé lui-même. Le quotient
+       tombe alors sous l unité au lieu de rendre un nominal. */
+    const bdeac = ["BDEAC", "EBD 5,45% NET 2021-2028", "CG0000020436", "EBD02", "5,45", "29/10/2021", "15 386 850 000", "10 000", "100,00", "7", "CONSTANT", "AN", "29/10/2025", "29/10/2026", "15 386 850 000", "5,45", "0"];
+    const e = encoursGeometriques([...entete(), rangee(6, 400, bdeac)])[0];
+    expect(e?.units).not.toBe(15_386_850_000);
+  });
+
   it("REFUSE une rangée dont l'identité ne tombe pas", () => {
     /* Le seul garde. Un chiffre déplacé passerait tous les contrôles de
        forme ; il ne passe pas celui-ci. */

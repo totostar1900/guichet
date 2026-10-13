@@ -233,8 +233,49 @@
  *                             Mesure sur la seance du 12 octobre : 31 lignes,
  *                             ZERO refus, et sept emetteurs dont le Gabon a
  *                             677 Mds et la BDEAC a 253.
+ *  14  (2026-10-13)           TROIS DEFAUTS DE LA TABLE D ENCOURS, ET UNE
+ *                             SEULE LECON : un controle A L INTERIEUR d une
+ *                             rangee ne voit pas une erreur qui conserve son
+ *                             invariant, ni un champ qu il n utilise pas.
+ *                             Aucun des trois n etait visible sur la seance
+ *                             que j avais lue a la main ; il a fallu ecrire
+ *                             les 807 pour qu ils sortent.
+ *
+ *                             UN NOMBRE S ARRETE A SA DECIMALE, IL NE
+ *                             S INTERDIT PAS. Le recollement refusait toute
+ *                             cellule portant une virgule, donc « 6 » et
+ *                             « 666,67 » ne pouvaient jamais se rejoindre :
+ *                             le nominal 6 666,67 du Congo n existait meme
+ *                             pas parmi les candidats, et la seule decoupe
+ *                             possible etait la fausse, 113 230 006 titres a
+ *                             666,67. Elle satisfait l identite a onze
+ *                             millioniemes pres, PARCE QU UN CHIFFRE QUI
+ *                             TRAVERSE la frontiere titres / nominal
+ *                             conserve le produit. 98 seances signees.
+ *
+ *                             LE SECOND INVARIANT ETAIT DANS LA RANGEE
+ *                             DEPUIS LE DEBUT : montant leve / titres est le
+ *                             nominal d origine, et il vaut EXACTEMENT
+ *                             10 000 sur les 16 712 rangees saines, minimum
+ *                             comme maximum. La decoupe fautive donne
+ *                             999,999947. On ne demande qu un entier, une
+ *                             cote pouvant changer de nominal ; une
+ *                             recombinaison fausse, elle, ne tombe jamais
+ *                             rond.
+ *
+ *                             LA CELLULE DE L ISIN PORTE DU TEXTE AVANT ET
+ *                             APRES LUI, une seule cause pour deux defauts.
+ *                             Apres, le mnemonique : « CM0000020107 ECMR5 ».
+ *                             Le lecteur prenait la cellule SUIVANTE, qui est
+ *                             le taux, et 2 533 rangees sur 16 915, QUINZE
+ *                             POUR CENT, portaient « 6,25 » en guise de
+ *                             mnemonique sur 484 seances. Avant, la
+ *                             designation : « BDEAC 5.45% NET 2020 - 2027
+ *                             CG0000020220 », et la ligne EBD01 est restee
+ *                             SANS DESIGNATION pendant 767 seances, toute sa
+ *                             vie cotee, sans que rien proteste.
  */
-export const VERSION_DU_LECTEUR = 13;
+export const VERSION_DU_LECTEUR = 14;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
