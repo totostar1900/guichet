@@ -24,10 +24,15 @@ const { ingestBoc } = await import("../src/lib/market/boc.ts");
 const { VERSION_DU_LECTEUR } = await import("../src/lib/market/lecteur-version.ts");
 
 const dire = (s) => fs.writeSync(1, `${s}\n`);
-const seances = process.argv.slice(2).filter((a) => /^\d{4}-\d{2}-\d{2}$/.test(a));
+/* Cinq cents dates ne tiennent pas sur une ligne de commande Windows : on
+   accepte un fichier, une date par ligne, et c'est la seule différence. */
+const depuisFichier = process.argv.find((a) => a.startsWith("--fichier="))?.slice(10);
+const seances = (depuisFichier ? fs.readFileSync(depuisFichier, "utf8").split(/\r?\n/) : process.argv.slice(2))
+  .map((a) => a.trim())
+  .filter((a) => /^\d{4}-\d{2}-\d{2}$/.test(a));
 
 if (!seances.length) {
-  dire("usage : relire-seances.mjs AAAA-MM-JJ [AAAA-MM-JJ…]");
+  dire("usage : relire-seances.mjs AAAA-MM-JJ [AAAA-MM-JJ…]  |  --fichier=liste.txt");
   process.exit(1);
 }
 
