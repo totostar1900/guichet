@@ -176,7 +176,7 @@
   color: var(--ink-2);
 }
 .todo {
-  font-size: 0.64rem;
+  font-size: var(--t-1);
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -186,18 +186,23 @@
 /* Rien n'a encore été lu : ni doré comme ce qui attend une relecture, ni encre
    comme ce qui est acquis. */
 .vide {
-  font-size: 0.64rem;
+  font-size: var(--t-1);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 
-/* Une fourchette n'est pas un chiffre servi : elle se lit plus petite, en
-   encre secondaire, pour qu'on ne la compare pas d'un coup d'œil à la colonne
-   des taux. */
+/* TROIS TAILLES, TOUTES SUR L ECHELLE, ET CHACUNE A SON ROLE : le corps du
+   tableau en --t-3, le secondaire en --t-2, l etiquette en majuscules en
+   --t-1. Trois valeurs etaient ecrites en dur hors de l echelle, 0,64 et
+   0,72 rem, soit entre deux crans : l oeil le voit sans savoir le nommer.
+
+   Une fourchette n est pas un chiffre servi : elle se lit plus petite, en
+   encre secondaire, pour qu on ne la compare pas d un coup d oeil a la
+   colonne des taux. */
 .plage {
-  font-size: 0.72rem;
+  font-size: var(--t-2);
   color: var(--ink-3);
   white-space: nowrap;
 }

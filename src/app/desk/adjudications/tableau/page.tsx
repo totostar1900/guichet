@@ -168,8 +168,7 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                       « Taux / prix » que l on pouvait trier, ce qui rangeait un
                       escompte de 6,75 a cote d un prix de 90,00. */}
                   {th("chiffre", "Prix", true)}
-                  <th className={styles.r}>{t("Taux")}</th>
-                  <th className={styles.r}>{t("Coupon")}</th>
+                  <th className={styles.r}>{t("Coupon / taux")}</th>
                   {/* Le rendement est la seule colonne qui compare les deux
                       instruments : ni le prix ni le taux ne le font, un bon a
                       92,92 sur 52 semaines et un autre a 96,59 sur 26 ne se
@@ -253,21 +252,21 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                       )}
                       {mince && prix ? <em title={t("Séance mince : peu de soumissions")}> ·</em> : null}
                     </td>
-                    {/* L ESCOMPTE SERVI, QUE SEULS LES BONS PUBLIENT. « Sans
-                        objet » et non un tiret : un tiret dit « on ne sait
-                        pas », alors qu ici on sait, et on sait que la question
-                        ne se pose pas. */}
-                    <td className={`${styles.r} ${styles.gold}`}>
-                      {taux ? (estUnPoint(taux) ? pct(taux.lo) : `${pct(taux.lo)} – ${pct(taux.hi)}`) : <span className={styles.plage} title={t("Un bon s'adjuge à un taux, une obligation à un prix.")}>{t("sans objet")}</span>}
-                    </td>
-                    <td className={styles.r}>
-                      {x.couponRate != null ? (
-                        pct(x.couponRate)
-                      ) : x.instrument === "BTA" ? (
-                        <span className={styles.plage} title={t("Un bon précompté ne verse aucun coupon : mesuré sur 168 séances, aucune n'en porte.")}>{t("sans objet")}</span>
-                      ) : (
-                        "—"
-                      )}
+                    {/* UNE SEULE COLONNE POUR DEUX POURCENTAGES ANNUELS.
+                        L escompte d un bon et le coupon d une obligation sont
+                        de meme unite et rigoureusement disjoints : 168 bons
+                        portent un taux et aucun coupon, 74 obligations
+                        l inverse. Les separer laissait 244 cases « sans
+                        objet » pour aucune information.
+
+                        LE DORE DIT LEQUEL DES DEUX, parce qu ils ne sont pas
+                        le meme objet economique : l escompte d un bon EST
+                        a peu pres son rendement, le coupon d une obligation
+                        ne l est pas, une obligation a 90 rendant dix pour
+                        cent avec un coupon de six. La comparaison honnete
+                        reste donc dans la colonne Rendement. */}
+                    <td className={`${styles.r} ${taux ? styles.gold : ""}`} title={taux ? t("Taux d'escompte servi : un bon s'adjuge à un taux.") : x.couponRate != null ? t("Coupon facial : une obligation s'adjuge à un prix et porte un coupon.") : undefined}>
+                      {taux ? (estUnPoint(taux) ? pct(taux.lo) : `${pct(taux.lo)} – ${pct(taux.hi)}`) : x.couponRate != null ? pct(x.couponRate) : "—"}
                     </td>
                     <td className={styles.r} title={rendement ? t("Origine : {o}. Calculé sur {v} an(s) restants, d'après {d}.", { o: rendement.origine, v: rendement.vie ? rendement.vie.toFixed(2) : "?", d: rendement.vieDe ?? "?" }) : undefined}>
                       {rendement ? pct(rendement.pct) : "—"}

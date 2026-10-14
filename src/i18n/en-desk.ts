@@ -3498,4 +3498,7 @@ export const EN_MORE: Record<string, string> = {
   "Dont coté · adjugé": "Of which listed · auctioned",
   "Le mur le plus haut : {q}, {m} Mds. Part du capital dont le pas d'amortissement est mesuré et non supposé : {p} %.":
     "The tallest wall: {q}, {m} bn. Share of principal whose amortisation step is measured rather than assumed: {p} %.",
+  "Coupon / taux": "Coupon / rate",
+  "Taux d'escompte servi : un bon s'adjuge à un taux.": "Discount rate allotted: a bill is auctioned at a rate.",
+  "Coupon facial : une obligation s'adjuge à un prix et porte un coupon.": "Facial coupon: a bond is auctioned at a price and carries a coupon.",
 };
