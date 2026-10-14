@@ -29,7 +29,7 @@ for (const l of env.split(/\r?\n/)) {
 
 const { createClient } = await import("@supabase/supabase-js");
 const { lireTableauDeBord, horsEchelle } = await import("../src/lib/market/tableau-de-bord.ts");
-const { cheminBeac, DOSSIERS } = await import("../src/lib/intake/bibliotheque.ts");
+const { cheminBeac, nomDeFichier } = await import("../src/lib/intake/bibliotheque.ts");
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const dire = (s) => fs.writeSync(1, `${s}\n`);
 
@@ -64,14 +64,26 @@ function trouver(dossier) {
 const pieces = [...trouver(DEPUIS), ...(fs.existsSync(VERS) ? trouver(VERS) : [])].sort();
 dire(`${pieces.length} tableau(x) de bord sur le disque\n`);
 
-/* L'adresse d'une pièce, retrouvée par son titre amputé des accents. */
-const sansAccent = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-const parTitre = new Map([...adresses.entries()].map(([t, o]) => [sansAccent(t).slice(0, 100), o]));
-const journalDe = (p) => {
-  const nom = sansAccent(path.basename(p, ".pdf"));
-  for (const [t, o] of parTitre) if (t.startsWith(nom.slice(0, 80)) || nom.startsWith(t.slice(0, 80))) return o;
-  return undefined;
-};
+/**
+ * LA PIÈCE SE RATTACHE PAR LA RÈGLE DE NOMMAGE, PAS PAR UNE RESSEMBLANCE.
+ *
+ * Première version, et elle a coûté une campagne entière : elle comparait les
+ * quatre-vingts premiers caractères du titre. Or ces titres commencent TOUS
+ * par « Tableau de bord hebdomadaire des opérations du marché des valeurs du
+ * Trésor de la CEMAC », donc les quatre-vingt-une pièces se rattachaient aux
+ * quatre mêmes entrées du journal. Mille cent soixante lignes sont entrées en
+ * base sous quatre adresses, et une ligne qui ne désigne pas sa pièce ne se
+ * défend pas.
+ *
+ * Le fichier a été écrit par le ramasseur avec `nomDeFichier(titre)`, plus un
+ * suffixe quand deux titres se heurtaient. On refait donc exactement ce
+ * calcul : c'est une ÉGALITÉ, pas une ressemblance, et deux pièces ne peuvent
+ * plus se confondre.
+ */
+const MARQUE = /\s\[[0-9a-f]{6}\]$/;
+const parNom = new Map();
+for (const [titre, o] of adresses) parNom.set(nomDeFichier(titre), o);
+const journalDe = (p) => parNom.get(path.basename(p, ".pdf").replace(MARQUE, ""));
 
 const lot = uneSeule ? pieces.slice(-1) : pieces.slice(0, combien);
 let lues = 0, lignes = 0, rangees = 0, refus = 0;

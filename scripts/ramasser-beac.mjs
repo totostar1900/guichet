@@ -39,6 +39,8 @@ const INVENTAIRE = `${RACINE}/9. Index/inventaire.csv`;
 const essai = process.argv.includes("--essai");
 
 const { repo } = await import("../src/lib/data/index.ts");
+const { cheminBeac, marquesDeCollision } = await import("../src/lib/intake/bibliotheque.ts");
+const BIBLIO = "C:/Users/Nitch/PURPOSE CAPITAL/PurpCapSharedLib - Guichet";
 
 /* Les accents et les caractères interdits de Windows sortent du nom : un
    fichier qu'on ne peut pas ouvrir sur la machine d'un collègue n'archive
@@ -82,39 +84,24 @@ const PAYS = { Cameroun: "Cameroun", Gabon: "Gabon", Congo: "Congo", Tchad: "Tch
  * donc pas de l'ordre de passage du robot, et deux ramassages rendent les
  * mêmes noms.
  */
+/** La règle des collisions vit elle aussi dans `bibliotheque.ts`. */
 function nomsDistincts(lot) {
-  const parChemin = new Map();
-  for (const o of lot) {
-    const d = destination(o);
-    const c = `${d.dossier}/${d.nom}`;
-    parChemin.set(c, [...(parChemin.get(c) ?? []), o]);
-  }
-  const suffixe = new Map();
-  for (const [, xs] of parChemin) {
-    if (xs.length < 2) continue;
-    for (const o of [...xs].sort((a, b) => a.url.localeCompare(b.url)).slice(1)) {
-      suffixe.set(o.url, createHash("sha256").update(o.url).digest("hex").slice(0, 6));
-    }
-  }
-  return suffixe;
+  return marquesDeCollision(lot, cheminBeac);
 }
-
 /** Où va la pièce, et sous quel nom. */
+/**
+ * LA RÈGLE DE RANGEMENT VIT DANS `bibliotheque.ts`, PLUS ICI.
+ *
+ * Trois outils la calculaient chacun de son côté, et c'est ainsi qu'on range
+ * au même endroit par deux chemins différents : 22 communiqués jamais
+ * descendus, deux images écrasées, et 81 tableaux de bord qui seraient
+ * revenus dans « Autres communiqués » au prochain passage parce que le
+ * ramasseur ignorait le dossier que le lecteur leur avait donné.
+ */
 function destination(o) {
-  const an = (o.seance ?? "").slice(0, 4) || (o.titre.match(/\b(20\d{2})\b/) ?? [])[1] || "sans date";
-  const pays = PAYS[o.pays] ?? null;
-
-  if (o.genre === "calendrier") {
-    const dossier = `${BEAC}/Calendriers indicatifs/${pays ?? "Zone"}`;
-    return { dossier, nom: `${an} ${propre(o.titre)}.pdf` };
-  }
-  if (o.genre === "annonce" || o.genre === "resultats") {
-    const dossier = `${BEAC}/Adjudications - ${o.genre === "annonce" ? "annonces" : "resultats"}/${pays ?? "Zone"}/${an}`;
-    const quoi = [o.instrument, o.tenor].filter(Boolean).join(" ");
-    const tete = o.seance ?? an;
-    return { dossier, nom: `${tete} ${propre(quoi)} - ${o.genre}.pdf`.replace(/\s+/g, " ") };
-  }
-  return { dossier: `${BEAC}/Autres communiques/${an}`, nom: `${propre(o.titre)}.pdf` };
+  const chemin = cheminBeac(o);
+  const i = chemin.lastIndexOf("/");
+  return { dossier: `${BIBLIO}/${chemin.slice(0, i)}`, nom: chemin.slice(i + 1) };
 }
 
 const dors = (ms) => new Promise((r) => setTimeout(r, ms));

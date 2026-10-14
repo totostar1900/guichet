@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cheminBeac, cheminDuBulletin, cheminEmetteur, DOSSIERS, lienBibliotheque, nomDeFichier } from "@/lib/intake/bibliotheque";
+import { avecMarque, cheminBeac, cheminDuBulletin, cheminEmetteur, DOSSIERS, empreinteCourte, lienBibliotheque, marquesDeCollision, nomDeFichier } from "@/lib/intake/bibliotheque";
 
 /**
  * LE LIEN EST DEVENU LA PIÈCE : IL NE PEUT PLUS SE TROMPER EN SILENCE.
@@ -87,5 +87,36 @@ describe("le tableau de bord hebdomadaire", () => {
 
   it("laisse les autres communiqués où ils sont", () => {
     expect(cheminBeac({ genre: "autre", titre: "Communiqué de presse du 12 mars 2024" })).toContain(DOSSIERS.beacAutres);
+  });
+});
+
+describe("deux pièces qui réclament un seul chemin", () => {
+  const p = (url: string, c: string) => ({ url, c });
+  const lot = [p("https://b/z.pdf", "a/x.pdf"), p("https://b/a.pdf", "a/x.pdf"), p("https://b/seule.pdf", "a/y.pdf")];
+
+  it("LAISSE LE NOM NU AU PREMIER PAR ORDRE D'ADRESSE, pour ne pas bouger l'existant", () => {
+    const m = marquesDeCollision(lot, (x) => x.c);
+    expect(m.has("https://b/a.pdf")).toBe(false);
+    expect(m.get("https://b/z.pdf")).toMatch(/^[0-9a-f]{6}$/);
+    expect(m.has("https://b/seule.pdf")).toBe(false);
+  });
+
+  it("REND LES MÊMES CHEMINS À DEUX EXÉCUTIONS, quel que soit l'ordre d'entrée", () => {
+    /* Sinon une pièce change de nom à chaque passage du robot, et l'archive
+       accumule des copies sous des noms différents. */
+    const a = marquesDeCollision(lot, (x) => x.c);
+    const b = marquesDeCollision([...lot].reverse(), (x) => x.c);
+    expect([...a.entries()].sort()).toEqual([...b.entries()].sort());
+  });
+
+  it("insère la marque avant l'extension, jamais après", () => {
+    expect(avecMarque("a/x.pdf", "abc123")).toBe("a/x [abc123].pdf");
+    expect(avecMarque("a/x.jpg", "abc123")).toBe("a/x [abc123].jpg");
+    expect(avecMarque("a/x.pdf")).toBe("a/x.pdf");
+  });
+
+  it("l'empreinte est stable et distincte", () => {
+    expect(empreinteCourte("https://b/z.pdf")).toBe(empreinteCourte("https://b/z.pdf"));
+    expect(empreinteCourte("https://b/z.pdf")).not.toBe(empreinteCourte("https://b/a.pdf"));
   });
 });

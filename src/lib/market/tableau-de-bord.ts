@@ -143,5 +143,34 @@ export async function lireTableauDeBord(pdfBase64: string, modele?: string): Pro
     const h = horsEchelle(l);
     if (h) remarques.push(`${l.pays} ${l.codeEnchere} : ${h}`);
   }
-  return { ...out, remarques, modele: choisi };
+  return { ...recadrerLaSemaine(out, remarques), remarques, modele: choisi };
+}
+
+/**
+ * LA SEMAINE DÉCLARÉE DOIT CONTENIR LES OPÉRATIONS, SINON CE SONT LES
+ * OPÉRATIONS QUI FONT FOI.
+ *
+ * Mesuré le 14 octobre 2026 sur la campagne des 81 pièces : une lecture a
+ * rendu « semaine du 12 au 16 JANVIER 2024 » pour un tableau dont les
+ * vingt-deux opérations tombent toutes du 12 au 16 FÉVRIER, et dont le titre
+ * dit février. Le mois de l'en-tête a été mal lu, les jours étant les mêmes.
+ *
+ * L'erreur est bénigne en soi, la semaine n'étant qu'une étiquette, et c'est
+ * précisément pourquoi elle est dangereuse : elle a empêché de rattacher les
+ * lignes à leur pièce, et une ligne sans sa pièce ne se défend pas. Les dates
+ * d'opération, elles, sont la donnée même, lues cellule par cellule et
+ * recoupées par les dates de règlement.
+ */
+function recadrerLaSemaine(out: LectureDeBord, remarques: string[]): LectureDeBord {
+  const dates = out.lignes.map((l) => l.operationOn).filter((d): d is string => !!d && /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+  if (!dates.length || !out.semaineDu || !out.semaineAu) return out;
+  const [debut, fin] = [dates[0], dates[dates.length - 1]];
+  /* Un chevauchement suffit : une opération peut se régler la semaine suivante,
+     et une semaine peut porter un paiement de la veille. C'est l'absence totale
+     de recouvrement qui dénonce une étiquette fausse. */
+  if (debut <= out.semaineAu && fin >= out.semaineDu) return out;
+  remarques.push(
+    `Semaine déclarée « ${out.semaineDu} au ${out.semaineAu} » alors que les ${out.lignes.length} opérations tombent du ${debut} au ${fin} : l'étiquette a été recadrée sur les dates, qui sont la donnée.`,
+  );
+  return { ...out, semaineDu: debut, semaineAu: fin };
 }
