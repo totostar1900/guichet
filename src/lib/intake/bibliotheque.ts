@@ -72,6 +72,22 @@ export const DOSSIERS = {
   beacAnnonces: "1. Donnees de marche/1. BEAC - Marche des titres publics/Adjudications - annonces",
   beacCalendriers: "1. Donnees de marche/1. BEAC - Marche des titres publics/Calendriers indicatifs",
   beacTableaux: "1. Donnees de marche/1. BEAC - Marche des titres publics/Tableaux de bord hebdomadaires",
+  /**
+   * CE QUE LE ROBOT NE VOYAIT PAS, FAUTE DE REGARDER AILLEURS.
+   *
+   * Il ne lisait qu'une page, celle des annonces et communiqués. La BEAC en
+   * tient quatre autres, trouvées le 14 octobre 2026 : 47 statistiques
+   * mensuelles qui publient l'ENCOURS OFFICIEL avec une couche texte, 31
+   * bulletins trimestriels, 278 fichiers de statistiques dont des courbes de
+   * rendement par pays et par mois, et 34 programmes annuels d'émission.
+   *
+   * Rien de tout cela n'était archivé : un document qu'on lit sans le garder
+   * n'est pas une source, c'est un souvenir.
+   */
+  beacStatistiques: "1. Donnees de marche/1. BEAC - Marche des titres publics/Statistiques mensuelles",
+  beacBulletins: "1. Donnees de marche/1. BEAC - Marche des titres publics/Bulletins trimestriels",
+  beacCourbes: "1. Donnees de marche/1. BEAC - Marche des titres publics/Courbes de rendement BEAC",
+  beacProgrammes: "1. Donnees de marche/1. BEAC - Marche des titres publics/Programmes annuels",
   beacAutres: "1. Donnees de marche/1. BEAC - Marche des titres publics/Autres communiques",
   emetteurs: "1. Donnees de marche/3. Emetteurs - fiches et prospectus",
 } as const;
@@ -148,6 +164,12 @@ export function cheminBeac(o: PieceBeac): string {
   if (/tableau\s+(de\s+bord|hebdomadaire)/i.test(o.titre ?? "")) {
     return `${DOSSIERS.beacTableaux}/${an}/${nomDeFichier(o.titre)}.pdf`;
   }
+  /* Les quatre familles des pages de statistiques, rangées par année comme le
+     reste : la mensuelle se cherche par son mois, la courbe par le sien. */
+  if (o.genre === "statistiques") return `${DOSSIERS.beacStatistiques}/${an}/${nomDeFichier(o.titre)}.pdf`;
+  if (o.genre === "bulletin") return `${DOSSIERS.beacBulletins}/${an}/${nomDeFichier(o.titre)}.pdf`;
+  if (o.genre === "courbe") return `${DOSSIERS.beacCourbes}/${an}/${nomDeFichier(o.titre)}.pdf`;
+  if (o.genre === "programme") return `${DOSSIERS.beacProgrammes}/${(o.pays && PAYS_DOSSIER[o.pays]) || "Zone"}/${an} ${nomDeFichier(o.titre)}.pdf`;
   return `${DOSSIERS.beacAutres}/${an}/${nomDeFichier(o.titre)}.pdf`;
 }
 
