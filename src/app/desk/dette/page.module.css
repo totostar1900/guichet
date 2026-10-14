@@ -174,3 +174,42 @@
 .bAdj {
   background: var(--gold, #b8860b);
 }
+
+/* ---- Les trois alertes ---- */
+.alertes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: var(--s-4);
+}
+.alertes article {
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.alertes h3 {
+  margin: 0;
+  font-size: var(--t-4);
+}
+.alertes p {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--muted);
+}
+/* Le niveau se lit au filet ET au titre, jamais à la couleur seule : un
+   lecteur qui ne distingue pas le doré du rouge garde la phrase. */
+.grave {
+  border-left-color: #a63d26;
+}
+.attention {
+  border-left-color: var(--gold);
+}
+.info {
+  border-left-color: var(--line);
+}
+.faire {
+  color: var(--ink-2) !important;
+  font-style: italic;
+}

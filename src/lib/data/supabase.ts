@@ -2332,6 +2332,12 @@ export const supabaseRepository: Repository = {
     ]);
     return Object.fromEntries(paires);
   },
+  async trousDeLEncours() {
+    const { data, error } = await db().rpc("trous_encours");
+    if (error) fail("trousDeLEncours", error);
+    const r = (data as { manquants: number; attendus: number; seances_trouees: number }[] | null)?.[0];
+    return { manquants: Number(r?.manquants ?? 0), attendus: Number(r?.attendus ?? 0), seances: Number(r?.seances_trouees ?? 0) };
+  },
   async operationsDuTresor() {
     /* LA PAGINATION N EST PAS UN DETAIL : Supabase plafonne un select a mille
        lignes sans le dire, et la table en porte mille cent soixante. Sans

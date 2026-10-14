@@ -9,6 +9,9 @@ import { adjugeParEmetteur, coteParEmetteur, fiches, RESERVES, total, type Coupo
 import { echeancierDe } from "@/lib/market/amortissement";
 import { mur, partMesuree, plusLourd, type TombeeSituee } from "@/lib/market/mur-echeances";
 import { principalDuCoupon } from "@/lib/market/principal-par-le-coupon";
+import { alertes } from "@/lib/market/alertes-dette";
+import { etatDesSeries } from "@/lib/domain/fraicheur";
+import { etatDesRobots } from "@/lib/domain/robots";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -95,6 +98,27 @@ export default async function DettePage() {
   const pic = plusLourd(leMur);
   const hauteur = leMur.reduce((a, q) => Math.max(a, q.capital + q.coupon), 0);
 
+
+  /**
+   * LES TROIS ALERTES, EN TÊTE ET NON EN BAS : une mesure ne se regarde que si
+   * quelque chose va chercher le lecteur. Les trous sont comptés EN BASE, par
+   * `trous_encours()` : les compter ici demanderait de transférer les
+   * dix-sept mille relevés à chaque rendu pour n'en tirer trois nombres.
+   */
+  const [trous, derniers, tours] = await Promise.all([
+    r.trousDeLEncours().catch(() => ({ manquants: 0, attendus: 0, seances: 0 })),
+    r.derniereEcritureDesSeries().catch(() => ({}) as Record<string, string | undefined>),
+    r.listTours(200).catch(() => []),
+  ]);
+  const muets = new Set(etatDesRobots(tours, new Date()).filter((x) => x.etat === "muet").map((x) => x.cle));
+  const lesAlertes = alertes({
+    mur: leMur,
+    series: etatDesSeries(derniers, muets, new Date()),
+    manquants: trous.manquants,
+    attendus: trous.attendus,
+    seances: trous.seances,
+  });
+
   const mds = (n: number) => `${(n / 1e9).toLocaleString("fr-FR", { maximumFractionDigits: 1 })}`;
   const pct = (n: number) => `${n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`;
 
@@ -112,6 +136,22 @@ export default async function DettePage() {
             </p>
           </div>
         </header>
+
+
+        {/* LES ALERTES EN TÊTE : une mesure ne se regarde que si quelque chose
+            va chercher le lecteur. Aucune ne déclenche quoi que ce soit, parce
+            qu une alerte qui agit seule finit par agir a tort. */}
+        {lesAlertes.length > 0 && (
+          <section className={styles.alertes} aria-label={t("Ce que le desk doit regarder")}>
+            {lesAlertes.map((a) => (
+              <article key={a.clef} className={styles[a.niveau]}>
+                <h3>{a.titre}</h3>
+                <p>{a.dit}</p>
+                {a.faire ? <p className={styles.faire}>{a.faire}</p> : null}
+              </article>
+            ))}
+          </section>
+        )}
 
         <section className={styles.bandeau} aria-label={t("Les totaux de la zone")}>
           <div>

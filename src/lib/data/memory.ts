@@ -1317,6 +1317,9 @@ export const memoryRepository: Repository = {
       "serie-avis-emission": dernier((s.emissionNotices ?? []).map((n) => n.sessionOn)),
     };
   },
+  async trousDeLEncours() {
+    return { manquants: 0, attendus: 0, seances: 0 };
+  },
   async operationsDuTresor() {
     return structuredClone(store().operationsDuTresor ?? []);
   },

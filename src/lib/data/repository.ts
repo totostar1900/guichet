@@ -415,6 +415,8 @@ export interface Repository {
   encoursDette(sessionDate?: string): Promise<EncoursDette[]>;
   /** Le livre des mouvements du marché primaire, lu sur les tableaux de bord. */
   operationsDuTresor(): Promise<OperationDuTresor[]>;
+  /** Les relevés d encours attendus et manquants, comptés en base. */
+  trousDeLEncours(): Promise<{ manquants: number; attendus: number; seances: number }>;
   /**
    * La dernière écriture de chaque série suivie, par clef de `SERIES`.
    *

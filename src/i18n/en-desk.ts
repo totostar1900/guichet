@@ -3501,4 +3501,5 @@ export const EN_MORE: Record<string, string> = {
   "Coupon / taux": "Coupon / rate",
   "Taux d'escompte servi : un bon s'adjuge à un taux.": "Discount rate allotted: a bill is auctioned at a rate.",
   "Coupon facial : une obligation s'adjuge à un prix et porte un coupon.": "Facial coupon: a bond is auctioned at a price and carries a coupon.",
+  "Ce que le desk doit regarder": "What the desk should look at",
 };
