@@ -41,6 +41,49 @@ import { z } from "zod";
  * relues. C'est la même règle que pour les communiqués de résultats.
  */
 
+/**
+ * CE QUE CHAQUE MONTANT VEUT DIRE, ET POURQUOI ILS NE SE VALENT PAS.
+ *
+ * Le titre de la pièce le dit et il faut le prendre au mot : « opérations
+ * PRÉVUES pour la semaine du … ». C'est un programme, pas un relevé, et les
+ * cinq colonnes ne sont donc pas de même nature.
+ *
+ * MESURÉ LE 14 OCTOBRE 2026 CONTRE NOS 249 COMMUNIQUÉS DE RÉSULTATS, qui sont
+ * une source indépendante sur les mêmes séances :
+ *
+ *   ÉMISSION ET ABONDEMENT : sur 134 couples de même date, le montant du
+ *   tableau égale 80 fois le montant ANNONCÉ et 34 fois seulement le montant
+ *   SERVI. C'est donc une intention de lever, un majorant. L'employer dans un
+ *   encours le gonflerait de tout ce que les Trésors n'ont pas obtenu.
+ *
+ *   REMBOURSEMENT : sur 33 codes de bons vus des deux côtés, le remboursement
+ *   égale 24 fois au franc près ce que nos communiqués portent, le dépasse
+ *   9 fois, et NE LUI EST JAMAIS INFÉRIEUR. Zéro en dessous sur trente-trois
+ *   n'est pas du bruit : c'est la signature de l'abondement, la ligne ayant
+ *   été rouverte dans une séance que nous n'avons pas. Le remboursement est
+ *   donc EXACT, et il mesure le principal entier de la ligne, abondements
+ *   compris. Sur ces trente-trois codes, nos séances sous-estiment le
+ *   principal de 315 à 424 milliards, soit un tiers.
+ *
+ *   PAIEMENT D'INTÉRÊTS : un coupon est contractuel, connu d'avance au
+ *   centime. Rien ne le dément dans les 275 paiements lus.
+ *
+ * D'OÙ LA RÈGLE : ce qui est DÛ se lit sur le tableau de bord, ce qui a été
+ * OBTENU se lit sur le communiqué de résultats. Les confondre est la seule
+ * façon de se tromper avec deux sources justes.
+ */
+export const MONTANT_SELON_OPERATION = {
+  emission: "annonce",
+  abondement: "annonce",
+  remboursement: "exact",
+  paiement_interets: "exact",
+  rachat: "annonce",
+  autre: "inconnu",
+} as const;
+
+/** Ce montant peut-il entrer dans un total sans le fausser ? */
+export const montantFiable = (operation: keyof typeof MONTANT_SELON_OPERATION): boolean => MONTANT_SELON_OPERATION[operation] === "exact";
+
 const MODEL = process.env.AUCTION_READ_MODEL || "claude-opus-5";
 
 /** Les six Trésors, écrits comme le reste de la maison les écrit. */
