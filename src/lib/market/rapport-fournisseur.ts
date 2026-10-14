@@ -95,7 +95,46 @@ export interface RapportFournisseur {
   perdues: LigneRapport[];
   /** Les lignes où les chiffres publiés sont eux-mêmes faux. */
   publication: LigneRapport[];
+  /** Les bulletins que la suite des numéros réclame et que nul n'a pu ouvrir. */
+  introuvables: SeanceIntrouvable[];
   genere: string;
+}
+
+/**
+ * UN BULLETIN QUI MANQUE À L'APPEL, ET COMMENT ON LE SAIT SANS RIEN DEMANDER.
+ *
+ * Le BOC porte un NUMÉRO DE SÉRIE que la bourse incrémente d'une séance à la
+ * suivante. La suite est donc son propre inventaire : un trou dedans est un
+ * bulletin qui a paru et que personne ne peut plus ouvrir. C'est le constat le
+ * plus simple à opposer à un fournisseur, parce qu'il ne repose sur aucune
+ * lecture de notre part : il se vérifie en comptant.
+ *
+ * Mesuré le 14 octobre 2026 : vingt numéros manquants entre le 1786 et le
+ * 2615. Cinq d'entre eux ont été retrouvés en essayant les jours ouvrés entre
+ * les deux séances connues, et deux de ces cinq étaient rangés dans le DOSSIER
+ * DU MOIS SUIVANT leur séance, ce qu'aucune règle d'adresse ne laissait
+ * deviner. Les quinze autres ne répondent nulle part.
+ */
+export interface SeanceIntrouvable {
+  numero: number;
+  /** Les deux séances connues qui l'encadrent : c'est l'intervalle de sa date. */
+  entre: string;
+  et: string;
+}
+
+/** Les numéros que la suite réclame et qui ne sont pas là. */
+export function numerosIntrouvables(bulletins: { sessionDate: string; number?: number | null }[]): SeanceIntrouvable[] {
+  const numerotes = bulletins.filter((b) => b.number).sort((a, b) => (a.number as number) - (b.number as number));
+  if (numerotes.length < 2) return [];
+  const vus = new Set(numerotes.map((b) => b.number as number));
+  const out: SeanceIntrouvable[] = [];
+  for (let n = (numerotes[0].number as number) + 1; n < (numerotes[numerotes.length - 1].number as number); n++) {
+    if (vus.has(n)) continue;
+    const avant = numerotes.filter((x) => (x.number as number) < n).pop();
+    const apres = numerotes.find((x) => (x.number as number) > n);
+    if (avant && apres) out.push({ numero: n, entre: avant.sessionDate, et: apres.sessionDate });
+  }
+  return out;
 }
 
 /* ---------------- extraction ---------------- */
@@ -397,6 +436,7 @@ export function construireRapport(bulletins: MarketBulletin[], du: string, au: s
     ecartees: lignes.filter((l) => l.sort === "ecartee"),
     perdues: lignes.filter((l) => l.sort === "perdue"),
     publication: lignes.filter((l) => estErreurDePublication(l.message)),
+    introuvables: numerosIntrouvables(lot),
     genere: maintenant.toISOString(),
   };
 }

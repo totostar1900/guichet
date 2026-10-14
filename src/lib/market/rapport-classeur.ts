@@ -236,8 +236,49 @@ export async function classeurFournisseur(r: RapportFournisseur): Promise<Uint8A
     r.perdues,
   );
 
-  /* ---- 6 · la méthode ---- */
-  const m = wb.addWorksheet("6. Méthode", { properties: { tabColor: { argb: "FF9CA3AF" } } });
+  /**
+   * 6 · LES BULLETINS QUI MANQUENT À LEUR PROPRE SUITE.
+   *
+   * C'est le constat le plus simple à opposer, parce qu'il ne repose sur
+   * aucune lecture de notre part : le bulletin porte un numéro de série que
+   * la bourse incrémente, et un trou dans la suite se vérifie en comptant.
+   * Les cinq feuilles précédentes parlent de ce que nous avons lu ; celle-ci
+   * parle de ce que personne ne peut ouvrir.
+   *
+   * La feuille n'est créée que s'il y a quelque chose à dire : une feuille
+   * vide dans un classeur envoyé à un tiers laisse croire à un oubli.
+   */
+  if (r.introuvables.length) {
+    const i = wb.addWorksheet("6. Introuvables", { properties: { tabColor: { argb: OR } } });
+    titre(
+      i,
+      "Bulletins publiés et introuvables",
+      `${plage}. ${r.introuvables.length} numéro(s) manquant(s) dans la suite. Le bulletin porte un numéro de série incrémenté d'une séance à la suivante : un trou dans la suite est un bulletin qui a paru et qu'on ne peut plus ouvrir. Ce constat ne dépend d'aucune lecture, il se vérifie en comptant. Deux des bulletins retrouvés cette semaine étaient rangés dans le dossier du MOIS SUIVANT leur séance, ce qu'aucune règle d'adresse ne laisse deviner.`,
+      3,
+    );
+    const tete = i.getRow(5);
+    ["Numéro", "Séance connue avant", "Séance connue après", "Ce que nous demandons"].forEach((t, k) => {
+      const c = tete.getCell(k + 1);
+      c.value = t;
+      c.font = { bold: true, size: 9, color: { argb: "FFFFFFFF" } };
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: NAVY } };
+      c.alignment = { wrapText: true, vertical: "middle" };
+    });
+    tete.height = 22;
+    r.introuvables.forEach((x, k) => {
+      const row = i.getRow(6 + k);
+      row.getCell(1).value = x.numero;
+      row.getCell(2).value = x.entre;
+      row.getCell(3).value = x.et;
+      row.getCell(4).value = `L'adresse du bulletin n° ${x.numero}, ou sa date de séance.`;
+      [1, 2, 3, 4].forEach((c) => (row.getCell(c).font = { size: 9 }));
+      row.getCell(4).alignment = { wrapText: true, vertical: "top" };
+    });
+    [12, 22, 22, 70].forEach((w, k) => (i.getColumn(k + 1).width = w));
+  }
+
+  /* ---- 7 · la méthode ---- */
+  const m = wb.addWorksheet("7. Méthode", { properties: { tabColor: { argb: "FF9CA3AF" } } });
   titre(m, "Comment ce rapport est produit", plage, 2);
   const dire: [string, string][] = [
     ["Source", "Les bulletins officiels de la cote tels que publiés, lus automatiquement à leur parution puis relus à chaque amélioration du lecteur."],
