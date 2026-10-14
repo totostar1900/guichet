@@ -148,10 +148,30 @@ function joursRestants(r: Partial<Pick<AuctionResult, "sessionOn" | "maturityOn"
  * Deux conventions, et ce sont celles de la place : l'escompte se compte en
  * exact/360, le rendement se capitalise en exact/365.
  */
-export function actuarialFromDiscount(discountPct: number, days: number): number | undefined {
+/**
+ * LE PRIX D'UN BON, QUE LE TRÉSOR N'IMPRIME JAMAIS.
+ *
+ * Mesuré le 14 octobre 2026 sur les 244 séances retenues : AUCUN des 168 bons
+ * ne publie de prix, AUCUNE des 76 obligations ne publie de taux. Les deux
+ * colonnes sont rigoureusement disjointes, ce qui rendait tentant de les
+ * fondre en une seule et rend ce mélange intriable : six virgule soixante-
+ * quinze de taux s'y rangeait à côté de quatre-vingt-dix de prix.
+ *
+ * Le prix du bon se calcule donc, et il ne vaut jamais cent : c'est la
+ * définition même du précompte. Un 26 semaines à 6,75 % sort à 96,59, un
+ * 52 semaines à 7 % à 92,92. Écrire cent par défaut serait faux de trois à
+ * sept points, et faux en silence, tout rendement calculé dessus tombant à
+ * zéro.
+ */
+export function prixDuBon(discountPct: number, days: number): number | undefined {
   if (!Number.isFinite(discountPct) || !Number.isFinite(days) || days <= 0) return undefined;
   const price = 100 * (1 - (discountPct / 100) * (days / 360));
-  if (price <= 0) return undefined;
+  return price > 0 ? price : undefined;
+}
+
+export function actuarialFromDiscount(discountPct: number, days: number): number | undefined {
+  const price = prixDuBon(discountPct, days);
+  if (price === undefined) return undefined;
   return ((100 / price) ** (365 / days) - 1) * 100;
 }
 

@@ -76,10 +76,40 @@ describe("les filtres", () => {
     expect(row.plage).toEqual({ lo: 90, hi: 91, unit: "prix" });
   });
 
-  it("ne rendent pas de fourchette quand un chiffre servi existe", () => {
+  it("RENDENT TOUJOURS LA FOURCHETTE, MÊME AVEC UN CHIFFRE SERVI", () => {
+    /* Elle ne paraissait qu'à défaut de chiffre servi, c'est-à-dire presque
+       jamais, alors que c'est elle qui dit si la séance s'est jouée serré ou
+       large. Le commentaire de la page affirmait déjà que c'était une colonne
+       et non un repli : le code disait le contraire, en silence. */
     const [row] = [s({ id: "cg", instrument: "BTA", rateAvg: 7, rateMin: 6.5, rateMax: 7.5 })].map(toRow);
     expect(row.chiffre).toBe(7);
-    expect(row.plage).toBeNull();
+    expect(row.plage).toEqual({ lo: 6.5, hi: 7.5, unit: "taux" });
+  });
+
+  it("DONNENT UN PRIX AU BON, QUI N'EN PUBLIE JAMAIS, ET IL NE VAUT PAS CENT", () => {
+    /* Mesuré sur les 244 séances retenues : aucun des 168 bons ne publie de
+       prix, aucune des 76 obligations ne publie de taux. Le prix du bon se
+       calcule depuis son escompte, et c'est la définition du précompte qu'il
+       soit sous le pair. */
+    const [b] = [s({ id: "b", instrument: "BTA", tenor: "52 semaines", rateAvg: 7 })].map(toRow);
+    expect(b.prix?.calcule).toBe(true);
+    expect(b.prix?.lo).toBeCloseTo(92.92, 1);
+    expect(b.prix!.lo).toBeLessThan(100);
+    expect(b.taux).toEqual({ lo: 7, hi: 7 });
+
+    const [o] = [s({ id: "o", instrument: "OTA", tenor: "3 ans", priceAvg: 90, couponRate: 6 })].map(toRow);
+    expect(o.prix).toEqual({ lo: 90, hi: 90 });
+    expect(o.taux).toBeNull();
+  });
+
+  it("RENDENT UNE BANDE QUAND LE TRÉSOR N'A PUBLIÉ QU'UNE FOURCHETTE DE TAUX", () => {
+    /* Trente-sept bons sur cent soixante-huit sont dans ce cas, et prendre le
+       milieu inventerait un chiffre que personne n'a servi. Le taux haut
+       donne le prix bas : oublier l'inversion rendrait la bande à l'envers. */
+    const [b] = [s({ id: "b", instrument: "BTA", tenor: "26 semaines", rateMin: 6, rateMax: 6.75 })].map(toRow);
+    expect(b.prix!.lo).toBeLessThan(b.prix!.hi);
+    expect(b.prix!.hi).toBeCloseTo(96.97, 1);
+    expect(b.prix!.lo).toBeCloseTo(96.59, 1);
   });
 
   it("comptent une fourchette publiée comme une lecture", () => {
@@ -114,14 +144,21 @@ describe("le tri", () => {
   ].map(toRow);
 
   it("range les vides en dernier, dans les deux sens", () => {
-    // Trier par taux croissant remonterait sinon en tête toutes les séances pas
-    // encore relues, qui n'ont pas de taux : l'écran ferait mine de répondre.
-    expect(sortRows(rows, "chiffre", false).map((x) => x.r.id)).toEqual(["bas", "haut", "vide"]);
-    expect(sortRows(rows, "chiffre", true).map((x) => x.r.id)).toEqual(["haut", "bas", "vide"]);
+    // Trier par prix croissant remonterait sinon en tête toutes les séances
+    // pas encore relues, qui n'ont pas de prix : l'écran ferait mine de
+    // répondre. Le taux haut donnant le prix bas, « haut » est ici le moins
+    // cher à l'achat, et c'est bien ce que la colonne Prix doit classer.
+    expect(sortRows(rows, "chiffre", false).map((x) => x.r.id)).toEqual(["haut", "bas", "vide"]);
+    expect(sortRows(rows, "chiffre", true).map((x) => x.r.id)).toEqual(["bas", "haut", "vide"]);
   });
 
-  it("met le taux le plus élevé en tête quand on inverse : c'est ce qu'on cherche", () => {
-    expect(sortRows(rows, "chiffre", true)[0].r.id).toBe("haut");
+  it("MET LE RENDEMENT LE PLUS ÉLEVÉ EN TÊTE QUAND ON INVERSE : c'est ce qu'on cherche", () => {
+    /* Le besoin de l'ancien test survit, servi par la bonne colonne. Trier le
+       prix ne dit pas quelle séance a coûté cher, et pour un bon il le dit à
+       l'envers : l'escompte et le prix vont en sens inverse. Le rendement se
+       lit dans le même sens pour les deux instruments. */
+    expect(sortRows(rows, "rendement", true)[0].r.id).toBe("haut");
+    expect(sortRows(rows, "rendement", false).map((x) => x.r.id)).toEqual(["bas", "haut", "vide"]);
   });
 
   it("départage à égalité par la séance la plus récente", () => {

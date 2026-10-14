@@ -1,4 +1,5 @@
 import { coverageOf, etatSeance, fourchette, headline, thin, type AuctionResult } from "./auction-results";
+import { auctionYield, prixDuBon, tenorDays, vieRestante, YIELD_ORIGIN_LABEL } from "./yield";
 
 /**
  * La table des séances : ce qu'on y range, ce qu'on y trie, ce qu'on en sort.
@@ -15,7 +16,7 @@ import { coverageOf, etatSeance, fourchette, headline, thin, type AuctionResult 
  * resserrent ensuite sur un pays, un instrument ou une durée.
  */
 
-export type SortKey = "date" | "pays" | "instrument" | "duree" | "chiffre" | "couverture" | "soumis" | "servi" | "etat";
+export type SortKey = "date" | "pays" | "instrument" | "duree" | "chiffre" | "rendement" | "couverture" | "soumis" | "servi" | "etat";
 
 export interface TableFilter {
   pays?: string;
@@ -28,20 +29,111 @@ export interface TableFilter {
   au?: string;
 }
 
+/**
+ * UN INTERVALLE, MÊME QUAND C'EST UN POINT.
+ *
+ * Trente-sept bons sur cent soixante-huit ne publient qu'une fourchette, et
+ * prendre leur milieu inventerait un chiffre que personne n'a servi. La même
+ * forme porte donc les deux cas, `lo` valant `hi` quand le Trésor a tranché :
+ * l'affichage n'a plus à choisir entre deux chemins, et la fourchette cesse
+ * d'être un repli pour devenir une lecture de plein droit.
+ */
+export interface Bande {
+  lo: number;
+  hi: number;
+  /** Vrai quand le chiffre ne vient pas de la pièce mais d'un calcul déclaré. */
+  calcule?: boolean;
+}
+
+export const estUnPoint = (b: Bande | null): boolean => !!b && Math.abs(b.hi - b.lo) < 1e-9;
+
 /** Une ligne, telle que la table l'affiche et telle que le CSV l'exporte. */
 export interface TableRow {
   r: AuctionResult;
   chiffre: number | null;
   unite: "taux" | "prix" | null;
-  /** Ce que la séance publie quand elle ne publie pas de chiffre servi. */
+  /**
+   * LE PRIX, EN POUR CENT DU NOMINAL, ET C'EST LA SEULE COLONNE HOMOGÈNE.
+   *
+   * Imprimé pour une obligation, calculé pour un bon à partir de son escompte.
+   * Null quand ni l'un ni l'autre ne se tient.
+   */
+  prix: Bande | null;
+  /** L'escompte servi, que seuls les bons publient. Null pour une obligation. */
+  taux: Bande | null;
+  /** Ce que la séance publie, dans son unité d'origine. Toujours rendue. */
   plage: { lo: number; hi: number; unit: "taux" | "prix" } | null;
+  /**
+   * LE RENDEMENT, ET LA VIE SUR LAQUELLE IL EST CALCULE.
+   *
+   * Les deux vont ensemble ou aucun ne se lit. Mesure du 14 octobre 2026 :
+   * 28 obligations sur 76 portent une echeance PLUS PROCHE que leur duree
+   * annoncee, l etiquette « 6 ans » nommant la ligne d origine et non ce qui
+   * reste a courir. Un 6 % achete a 90,59 a dix-huit mois de l echeance rend
+   * quinze pour cent, et le chiffre est juste : c est son contexte qui
+   * manquait. Sans la vie restante a cote, il passe pour une aberration et
+   * quelqu un finit par le « corriger ».
+   */
+  rendement: { pct: number; origine: string; vie?: number; vieDe?: string } | null;
   couverture: number | null;
   mince: boolean;
 }
 
+/** L'escompte servi d'un bon, point ou fourchette. */
+function tauxDeLaLigne(r: AuctionResult): Bande | null {
+  if (r.instrument !== "BTA") return null;
+  const v = r.rateAvg ?? r.rateLimit;
+  if (v != null) return { lo: v, hi: v };
+  const f = fourchette(r);
+  return f?.unit === "taux" ? { lo: f.lo, hi: f.hi } : null;
+}
+
+/**
+ * Le prix de la ligne, ramené à la même unité pour les deux instruments.
+ *
+ * Pour une obligation il est imprimé ; pour un bon il se déduit de l'escompte
+ * et porte sa marque, parce qu'un chiffre calculé qui ne se dit pas calculé
+ * finit par être cité comme une publication.
+ */
+function prixDeLaLigne(r: AuctionResult): Bande | null {
+  if (r.instrument !== "BTA") {
+    const v = r.priceAvg ?? r.priceLimit;
+    if (v != null) return { lo: v, hi: v };
+    const f = fourchette(r);
+    return f?.unit === "prix" ? { lo: f.lo, hi: f.hi } : null;
+  }
+  const t = tauxDeLaLigne(r);
+  const j = tenorDays(r.tenor);
+  if (!t || !j) return null;
+  /* L'escompte et le prix vont en sens inverse : le taux haut donne le prix
+     bas, et oublier l'inversion rendrait une bande à l'envers. */
+  const a = prixDuBon(t.hi, j);
+  const b = prixDuBon(t.lo, j);
+  return a == null || b == null ? null : { lo: a, hi: b, calcule: true };
+}
+
 export const toRow = (r: AuctionResult): TableRow => {
   const h = headline(r);
-  return { r, chiffre: h?.value ?? null, unite: h?.unit ?? null, plage: h ? null : (fourchette(r) ?? null), couverture: coverageOf(r) ?? null, mince: thin(r) };
+  return {
+    r,
+    chiffre: h?.value ?? null,
+    unite: h?.unit ?? null,
+    prix: prixDeLaLigne(r),
+    taux: tauxDeLaLigne(r),
+    /* LA FOURCHETTE EST UNE COLONNE, PAS UN REPLI, et le commentaire de la
+       page le disait déjà alors que le code ne le faisait pas : elle ne
+       paraissait qu'à défaut de chiffre servi, c'est-à-dire presque jamais,
+       alors que c'est elle qui dit si la séance s'est jouée serré ou large. */
+    plage: fourchette(r) ?? null,
+    rendement: (() => {
+      const y = auctionYield(r);
+      if (!y) return null;
+      const v = vieRestante(r);
+      return { pct: y.pct, origine: YIELD_ORIGIN_LABEL[y.origin], vie: v?.years, vieDe: v?.from };
+    })(),
+    couverture: coverageOf(r) ?? null,
+    mince: thin(r),
+  };
 };
 
 const has = (v: string | undefined) => Boolean(v && v !== "tout");
@@ -87,8 +179,31 @@ export function sortRows(rows: TableRow[], key: SortKey, rev: boolean): TableRow
   };
   const num = (x: TableRow): number | null => {
     switch (key) {
+      /**
+       * ON TRIE SUR LE PRIX, QUI EST LA SEULE COLONNE COMPARABLE.
+       *
+       * Trier sur « chiffre » rangeait un escompte de 6,75 à côté d'un prix
+       * de 90,00 : les deux familles étant disjointes, le classement
+       * n'opposait jamais que des bons entre eux puis des obligations entre
+       * elles, séparés par un abîme de quatre-vingt-trois points. Le prix du
+       * bon étant maintenant calculé, les deux se rangent sur la même échelle.
+       *
+       * Sur une fourchette, c'est le BAS qui classe : c'est le prix qu'un
+       * acheteur a pu obtenir, et le seul des deux bouts qui soit certain
+       * d'avoir existé.
+       */
       case "chiffre":
-        return x.chiffre;
+        return x.prix ? x.prix.lo : null;
+      /**
+       * LE RENDEMENT EST LA COLONNE QUI REPOND A « QUELLE SEANCE A COUTE CHER ».
+       *
+       * Trier le prix ne le dit pas, et pour un bon il le dit a l envers :
+       * l escompte et le prix vont en sens inverse, donc le bon le plus cher
+       * pour l Etat est celui dont le prix est le plus BAS. Le rendement,
+       * lui, se lit dans le meme sens pour les deux instruments.
+       */
+      case "rendement":
+        return x.rendement?.pct ?? null;
       case "couverture":
         return x.couverture;
       case "soumis":

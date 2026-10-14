@@ -7,7 +7,7 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate } from "@/lib/format";
 import { compteDansLesResultats, etatSeance } from "@/lib/market/auction-results";
-import { applyFilter, distinct, sortRows, summarise, toRow, type SortKey, type TableFilter } from "@/lib/market/auction-table";
+import { applyFilter, distinct, estUnPoint, sortRows, summarise, toRow, type SortKey, type TableFilter } from "@/lib/market/auction-table";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
    cette page s'y annonçait par un tiret. */
 export const metadata = { title: "Résultats des adjudications" };
 
-const KEYS: SortKey[] = ["date", "pays", "instrument", "duree", "chiffre", "couverture", "soumis", "servi", "etat"];
+const KEYS: SortKey[] = ["date", "pays", "instrument", "duree", "chiffre", "rendement", "couverture", "soumis", "servi", "etat"];
 const isKey = (v: string): v is SortKey => (KEYS as string[]).includes(v);
 const pct = (v: number | null | undefined, d = 2) => (v == null ? "—" : `${v.toFixed(d).replace(".", ",")} %`);
 
@@ -161,15 +161,22 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                   {th("pays", "Trésor")}
                   {th("instrument", "Instr.")}
                   {th("duree", "Durée")}
-                  {th("chiffre", "Taux / prix", true)}
-                  {/* La fourchette publiée, en colonne et non en remplacement.
-                      Elle ne paraissait qu'à défaut de moyenne, c'est-à-dire
-                      presque jamais, alors que c'est elle qui dit si la séance
-                      s'est jouée serré ou large. Le coupon facial à côté :
-                      sans lui, un prix d'obligation ne donne aucun rendement,
-                      et le modèle le portait déjà sans que rien l'affiche. */}
-                  <th className={styles.r}>{t("Min / max")}</th>
+                  {/* QUATRE LECTURES, ET PLUS UNE COLONNE A DEUX UNITES.
+                      Mesure du 14 octobre 2026 : aucun des 168 bons ne publie
+                      de prix, aucune des 76 obligations ne publie de taux. Les
+                      deux familles etaient donc fondues dans une colonne
+                      « Taux / prix » que l on pouvait trier, ce qui rangeait un
+                      escompte de 6,75 a cote d un prix de 90,00. */}
+                  {th("chiffre", "Prix", true)}
+                  <th className={styles.r}>{t("Taux")}</th>
                   <th className={styles.r}>{t("Coupon")}</th>
+                  {/* Le rendement est la seule colonne qui compare les deux
+                      instruments : ni le prix ni le taux ne le font, un bon a
+                      92,92 sur 52 semaines et un autre a 96,59 sur 26 ne se
+                      classant pas par leur prix. */}
+                  {th("rendement", "Rendement", true)}
+                  {/* La fourchette publiee, dans son unite d origine. */}
+                  <th className={styles.r}>{t("Min / max")}</th>
                   {th("couverture", "Couverture", true)}
                   {th("soumis", "Soumis.", true)}
                   {th("servi", "Servi", true)}
@@ -217,7 +224,7 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                     </td>
                   </tr>
                 )}
-                {rows.map(({ r: x, chiffre, unite, plage, couverture, mince }) => (
+                {rows.map(({ r: x, prix, taux, plage, couverture, mince, rendement }) => (
                   <tr key={x.id} className={x.confirmedBy ? undefined : styles.draft}>
                     <td>
                       <Link href={`/desk/adjudications?s=${x.id}`}>{fmtDate(x.sessionOn)}</Link>
@@ -225,23 +232,47 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                     <td>{x.country}</td>
                     <td>{x.instrument}</td>
                     <td>{x.tenor}</td>
-                    <td className={`${styles.r} ${unite === "taux" ? styles.gold : ""}`}>
-                      {chiffre != null ? (
-                        pct(chiffre)
-                      ) : plage ? (
-                        // Le Trésor n'a publié qu'un intervalle : on le montre tel
-                        // quel plutôt que d'en prendre le milieu, qui serait un
-                        // chiffre que personne n'a servi.
-                        <span className={styles.plage} title={t("Fourchette publiée : le Trésor n'imprime ni limite ni moyenne pondérée.")}>
-                          {`${pct(plage.lo)} – ${pct(plage.hi)}`}
+                    {/* LE PRIX, MEME UNITE POUR LES DEUX INSTRUMENTS. Celui du
+                        bon est calcule depuis son escompte, et il le dit :
+                        un chiffre calcule qui ne se dit pas calcule finit par
+                        etre cite comme une publication. */}
+                    <td className={styles.r}>
+                      {prix ? (
+                        <span
+                          className={prix.calcule ? styles.plage : undefined}
+                          title={
+                            prix.calcule
+                              ? t("Prix calculé depuis l'escompte servi, en exact/360. Le Trésor ne publie jamais le prix d'un bon.")
+                              : t("Prix publié par le Trésor.")
+                          }
+                        >
+                          {estUnPoint(prix) ? pct(prix.lo) : `${pct(prix.lo)} – ${pct(prix.hi)}`}
                         </span>
                       ) : (
                         "—"
                       )}
-                      {mince && chiffre != null ? <em title={t("Séance mince : peu de soumissions")}> ·</em> : null}
+                      {mince && prix ? <em title={t("Séance mince : peu de soumissions")}> ·</em> : null}
+                    </td>
+                    {/* L ESCOMPTE SERVI, QUE SEULS LES BONS PUBLIENT. « Sans
+                        objet » et non un tiret : un tiret dit « on ne sait
+                        pas », alors qu ici on sait, et on sait que la question
+                        ne se pose pas. */}
+                    <td className={`${styles.r} ${styles.gold}`}>
+                      {taux ? (estUnPoint(taux) ? pct(taux.lo) : `${pct(taux.lo)} – ${pct(taux.hi)}`) : <span className={styles.plage} title={t("Un bon s'adjuge à un taux, une obligation à un prix.")}>{t("sans objet")}</span>}
+                    </td>
+                    <td className={styles.r}>
+                      {x.couponRate != null ? (
+                        pct(x.couponRate)
+                      ) : x.instrument === "BTA" ? (
+                        <span className={styles.plage} title={t("Un bon précompté ne verse aucun coupon : mesuré sur 168 séances, aucune n'en porte.")}>{t("sans objet")}</span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className={styles.r} title={rendement ? t("Origine : {o}. Calculé sur {v} an(s) restants, d'après {d}.", { o: rendement.origine, v: rendement.vie ? rendement.vie.toFixed(2) : "?", d: rendement.vieDe ?? "?" }) : undefined}>
+                      {rendement ? pct(rendement.pct) : "—"}
                     </td>
                     <td className={`${styles.r} ${styles.plage}`}>{plage ? `${pct(plage.lo)} – ${pct(plage.hi)}` : "—"}</td>
-                    <td className={styles.r}>{x.couponRate != null ? pct(x.couponRate) : "—"}</td>
                     <td className={styles.r}>{pct(couverture, 0)}</td>
                     <td className={styles.r}>{x.bidders ?? "—"}</td>
                     <td className={styles.r}>{x.served == null ? "—" : `${fmt(Math.round(x.served / 1_000_000))} M`}</td>

@@ -3454,4 +3454,12 @@ export const EN_MORE: Record<string, string> = {
   "Choisissez une plage : la date de début doit précéder la date de fin.": "Pick a range: the start date must come before the end date.",
   "Le classeur porte six feuilles : les erreurs de publication d'abord, puis la synthèse par devenir de la donnée, ce qui a été corrigé avec la valeur d'origine en regard, ce qui a été écarté, ce que le lecteur n'a pas su lire avec le texte brut, et la méthode. Le PDF en reprend l'essentiel. Les deux sont des documents de travail : ils ne portent pas l'en-tête de la maison tant que le desk n'a pas décidé de les adresser.":
     "The workbook has six sheets: publication errors first, then the summary by what became of the data, what was corrected with the original value beside it, what was set aside, what the reader could not read with its raw text, and the method. The PDF carries the essentials. Both are working documents: they carry no letterhead until the desk decides to send them.",
+  "Prix calculé depuis l'escompte servi, en exact/360. Le Trésor ne publie jamais le prix d'un bon.":
+    "Price computed from the allotted discount, actual/360. The Treasury never publishes a bill's price.",
+  "Prix publié par le Trésor.": "Price published by the Treasury.",
+  "Un bon s'adjuge à un taux, une obligation à un prix.": "A bill is auctioned at a rate, a bond at a price.",
+  "Un bon précompté ne verse aucun coupon : mesuré sur 168 séances, aucune n'en porte.":
+    "A discount bill pays no coupon: measured across 168 sessions, not one carries any.",
+  "Origine : {o}. Calculé sur {v} an(s) restants, d'après {d}.":
+    "Source: {o}. Computed over {v} year(s) remaining, from {d}.",
 };
