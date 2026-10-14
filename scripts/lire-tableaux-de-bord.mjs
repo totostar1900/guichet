@@ -29,12 +29,14 @@ for (const l of env.split(/\r?\n/)) {
 
 const { createClient } = await import("@supabase/supabase-js");
 const { lireTableauDeBord, horsEchelle } = await import("../src/lib/market/tableau-de-bord.ts");
+const { cheminBeac, DOSSIERS } = await import("../src/lib/intake/bibliotheque.ts");
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const dire = (s) => fs.writeSync(1, `${s}\n`);
 
 const RACINE = "C:/Users/Nitch/PURPOSE CAPITAL/PurpCapSharedLib - Guichet/1. Donnees de marche/1. BEAC - Marche des titres publics";
 const DEPUIS = `${RACINE}/Autres communiques`;
 const VERS = `${RACINE}/Tableaux de bord hebdomadaires`;
+const BIBLIO = "C:/Users/Nitch/PURPOSE CAPITAL/PurpCapSharedLib - Guichet";
 const uneSeule = process.argv.includes("--une");
 const ecrire = process.argv.includes("--ecrire");
 const combien = Number(process.argv.find((a) => /^\d+$/.test(a)) ?? 999);
@@ -47,7 +49,7 @@ for (let de = 0; ; de += 1000) {
   if ((data ?? []).length < 1000) break;
 }
 const adresses = new Map();
-for (const o of obs) if (/tableau/i.test(o.titre ?? "") && !adresses.has(o.titre)) adresses.set(o.titre, o.url);
+for (const o of obs) if (/tableau/i.test(o.titre ?? "") && !adresses.has(o.titre)) adresses.set(o.titre, o);
 
 /** Toutes les pièces du disque dont le titre dit « tableau ». */
 function trouver(dossier) {
@@ -64,10 +66,10 @@ dire(`${pieces.length} tableau(x) de bord sur le disque\n`);
 
 /* L'adresse d'une pièce, retrouvée par son titre amputé des accents. */
 const sansAccent = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-const parTitre = new Map([...adresses.entries()].map(([t, u]) => [sansAccent(t).slice(0, 100), u]));
-const adresseDe = (p) => {
+const parTitre = new Map([...adresses.entries()].map(([t, o]) => [sansAccent(t).slice(0, 100), o]));
+const journalDe = (p) => {
   const nom = sansAccent(path.basename(p, ".pdf"));
-  for (const [t, u] of parTitre) if (t.startsWith(nom.slice(0, 80)) || nom.startsWith(t.slice(0, 80))) return u;
+  for (const [t, o] of parTitre) if (t.startsWith(nom.slice(0, 80)) || nom.startsWith(t.slice(0, 80))) return o;
   return undefined;
 };
 
@@ -76,7 +78,8 @@ let lues = 0, lignes = 0, rangees = 0, refus = 0;
 const remarques = [];
 
 for (const p of lot) {
-  const url = adresseDe(p);
+  const journal = journalDe(p);
+  const url = journal?.url;
   if (!url) {
     dire(`   SANS ADRESSE  ${path.basename(p)}`);
     refus++;
@@ -128,7 +131,9 @@ for (const p of lot) {
       if (error) dire(`      écriture : ${error.message}`);
     }
     /* Et on range la pièce, puisqu'on vient de l'ouvrir. */
-    const cible = `${VERS}/${(r.semaineDu ?? "sans date").slice(0, 4)}/${path.basename(p)}`;
+    /* La destination vient de la REGLE PARTAGEE, pas d un calcul local : le
+       ramasseur cherchera la piece exactement la, et ne la reprendra pas. */
+    const cible = `${BIBLIO}/${cheminBeac(journal)}`;
     if (!p.startsWith(VERS) && !fs.existsSync(cible)) {
       fs.mkdirSync(path.dirname(cible), { recursive: true });
       fs.renameSync(p, cible);

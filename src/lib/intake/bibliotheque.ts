@@ -71,6 +71,7 @@ export const DOSSIERS = {
   beacResultats: "1. Donnees de marche/1. BEAC - Marche des titres publics/Adjudications - resultats",
   beacAnnonces: "1. Donnees de marche/1. BEAC - Marche des titres publics/Adjudications - annonces",
   beacCalendriers: "1. Donnees de marche/1. BEAC - Marche des titres publics/Calendriers indicatifs",
+  beacTableaux: "1. Donnees de marche/1. BEAC - Marche des titres publics/Tableaux de bord hebdomadaires",
   beacAutres: "1. Donnees de marche/1. BEAC - Marche des titres publics/Autres communiques",
   emetteurs: "1. Donnees de marche/3. Emetteurs - fiches et prospectus",
 } as const;
@@ -129,6 +130,23 @@ export function cheminBeac(o: PieceBeac): string {
     const racine = o.genre === "annonce" ? DOSSIERS.beacAnnonces : DOSSIERS.beacResultats;
     const quoi = [o.instrument, o.tenor].filter(Boolean).join(" ");
     return `${racine}/${pays}/${an}/${`${o.seance ?? an} ${nomDeFichier(quoi)} - ${o.genre}.pdf`.replace(/\s+/g, " ")}`;
+  }
+  /**
+   * LE TABLEAU DE BORD HEBDOMADAIRE A SON DOSSIER, ET CE N'EST PAS UN RANGEMENT
+   * DE CONFORT.
+   *
+   * Ces 81 pièces portent le livre des mouvements du marché des titres publics
+   * des six Trésors, et elles dormaient noyées parmi 355 « autres communiqués »
+   * parce que leur genre, dans le journal de la BEAC, n'est pas reconnu. Les
+   * sortir de là est ce qui les a rendues visibles.
+   *
+   * LA RÈGLE VIT ICI PARCE QUE LE RAMASSEUR ET LE LECTEUR DOIVENT S'ACCORDER.
+   * Si le lecteur déplaçait les pièces de son côté, le ramasseur ne les
+   * trouverait plus à l'endroit qu'il calcule, conclurait qu'elles manquent, et
+   * retéléchargerait quatre-vingt-une pièces à chacun de ses passages.
+   */
+  if (/tableau\s+(de\s+bord|hebdomadaire)/i.test(o.titre ?? "")) {
+    return `${DOSSIERS.beacTableaux}/${an}/${nomDeFichier(o.titre)}.pdf`;
   }
   return `${DOSSIERS.beacAutres}/${an}/${nomDeFichier(o.titre)}.pdf`;
 }

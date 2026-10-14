@@ -75,3 +75,17 @@ describe("le nom de fichier", () => {
     expect(nomDeFichier("x".repeat(200)).length).toBe(110);
   });
 });
+
+describe("le tableau de bord hebdomadaire", () => {
+  it("A SON PROPRE DOSSIER, pour que le ramasseur et le lecteur s'accordent", () => {
+    /* Si le lecteur les déplaçait de son côté, le ramasseur ne les trouverait
+       plus où il calcule et retéléchargerait 81 pièces à chaque passage. */
+    const c = cheminBeac({ genre: "autre", titre: "Tableau de bord hebdomadaire des opérations du marché des valeurs du Trésor de la CEMAC : semaine du 23 au 27 février 2026" });
+    expect(c).toContain(DOSSIERS.beacTableaux);
+    expect(c).toContain("/2026/");
+  });
+
+  it("laisse les autres communiqués où ils sont", () => {
+    expect(cheminBeac({ genre: "autre", titre: "Communiqué de presse du 12 mars 2024" })).toContain(DOSSIERS.beacAutres);
+  });
+});
