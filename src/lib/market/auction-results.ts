@@ -126,6 +126,21 @@ export interface AuctionResult {
   setAsideReason?: string;
   setAsideBy?: string;
   setAsideAt?: string;
+  /**
+   * CE QUI A ÉTÉ CORRIGÉ CONTRE LA PIÈCE, ET QUI L'A DÉCIDÉ.
+   *
+   * Le Trésor du Tchad a imprimé, le 24 janvier 2024, son OTA à 2 ans sous un
+   * en-tête « en millions de FCFA » avec des nombres qui sont en milliers : le
+   * BTA de la MÊME PAGE porte « 2703 » quand l'OTA porte « 16678630 ». Un
+   * Trésor n'adjuge pas 2,7 milliards et 16 678 milliards le même jour.
+   *
+   * Changer le nombre sans rien dire effacerait les deux choses qui comptent :
+   * ce que la pièce imprime, qui reste opposable, et qui a décidé de s'en
+   * écarter. Un robot ne corrige pas un Trésor ; la décision porte un nom.
+   */
+  correction?: string;
+  correctedBy?: string;
+  correctedAt?: string;
   offerId?: string;
   createdAt: string;
   updatedAt: string;

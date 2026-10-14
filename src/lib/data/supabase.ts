@@ -732,6 +732,7 @@ export type AuctionResultRow = {
   yield_avg: string | null; yield_limit: string | null; coupon_rate: string | null; maturity_on: string | null; read_at: string | null; read_model: string | null; anomalies_vues: string[] | null;
   coverage: string | null; source_url: string; source_title: string; file_key: string | null; confirmed_by: string | null; confirmed_at: string | null;
   set_aside_reason?: string | null; set_aside_by?: string | null; set_aside_at?: string | null;
+  correction?: string | null; corrected_by?: string | null; corrected_at?: string | null;
   offer_id: string | null; created_at: string; updated_at: string;
 };
 /**
@@ -751,6 +752,8 @@ export const toAuctionResult = (r: AuctionResultRow): AuctionResult => ({
   /* Les trois colonnes de la migration 0052 : absentes avant elle, et une
      séance sans elles est simplement une séance qui n'est pas écartée. */
   setAsideReason: u(r.set_aside_reason), setAsideBy: u(r.set_aside_by), setAsideAt: u(r.set_aside_at),
+  /* Migration 0097 : un chiffre qui s ecarte de la piece dit lequel, et qui l a decide. */
+  correction: u(r.correction), correctedBy: u(r.corrected_by), correctedAt: u(r.corrected_at),
   createdAt: r.created_at, updatedAt: r.updated_at,
 });
 type EmissionNoticeRow = {
@@ -880,6 +883,9 @@ const fromAuctionResult = (r: PatchAuctionResult): Record<string, unknown> => {
   put("set_aside_reason", "setAsideReason");
   put("set_aside_by", "setAsideBy");
   put("set_aside_at", "setAsideAt");
+  put("correction", "correction");
+  put("corrected_by", "correctedBy");
+  put("corrected_at", "correctedAt");
   put("offer_id", "offerId");
   return row;
 };
