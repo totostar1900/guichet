@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/auth";
 import { isDesk } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
-import { readSource } from "@/lib/intake/storage";
+import { lienSource, readSource } from "@/lib/intake/storage";
 
 /**
  * Sert le PDF archivé d'une séance : desk seulement.
@@ -27,6 +27,12 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ seance: str
 
   const bulletin = (await repo().listBulletins(2000)).find((b) => b.sessionDate === seance);
   if (!bulletin?.fileKey) return new NextResponse("Aucun PDF archivé pour cette séance", { status: 404 });
+
+  /* LA BIBLIOTHÈQUE D'ABORD : le document physique y vit, le desk n'en garde
+     que le lien. On ne recopie plus mille cent mégaoctets de bulletins pour
+     les servir une page à la fois. */
+  const lien = await lienSource(bulletin.fileKey);
+  if (lien) return NextResponse.redirect(lien);
 
   let bytes: Uint8Array;
   try {

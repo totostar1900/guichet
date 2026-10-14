@@ -52,10 +52,56 @@ export async function readSource(key: string): Promise<Uint8Array> {
     const { createClient } = await import("@supabase/supabase-js");
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
     const { data, error } = await sb.storage.from(BUCKET).download(storageKey(key));
-    if (error || !data) throw new Error(`Lecture source : ${error?.message ?? "introuvable"}`);
-    return new Uint8Array(await data.arrayBuffer());
+    if (data) return new Uint8Array(await data.arrayBuffer());
+    /**
+     * LES OCTETS ONT QUITTÉ LE DÉPÔT : ON LES CHERCHE DANS LA BIBLIOTHÈQUE.
+     *
+     * C'est ce repli qui rend le ménage possible sans perdre la relecture.
+     * Les cinquante-trois scripts de reprise tournent sur une machine de la
+     * maison, où la bibliothèque est synchronisée : ils continuent donc de
+     * lire les bulletins, et le lecteur peut encore se corriger sur
+     * l'historique. Sept cent soixante-sept lignes ont été retrouvées ainsi
+     * le 14 octobre 2026.
+     *
+     * En production, `BIBLIOTHEQUE_DISQUE` est vide et ce repli n'existe pas :
+     * Vercel n'a pas de disque, et le desk y renvoie par un lien.
+     */
+    const { BIBLIOTHEQUE_DISQUE } = await import("./bibliotheque");
+    if (BIBLIOTHEQUE_DISQUE) {
+      const { data: place } = await sb.from("library_items").select("library_path").eq("file_key", storageKey(key)).maybeSingle();
+      if (place?.library_path) {
+        return new Uint8Array(await readFile(path.join(BIBLIOTHEQUE_DISQUE, place.library_path)));
+      }
+    }
+    throw new Error(`Lecture source : ${error?.message ?? "introuvable"}`);
   }
   return new Uint8Array(await readFile(path.join(LOCAL_DIR, safe(storageKey(key)))));
 }
 
 const safe = (key: string) => key.replace(/[^a-zA-Z0-9._-]/g, "_");
+
+/**
+ * LE LIEN VERS LA BIBLIOTHÈQUE, QUAND LA PIÈCE Y EST RANGÉE.
+ *
+ * Règle de la maison, arrêtée le 14 octobre 2026 : les documents physiques
+ * sont conservés dans la bibliothèque partagée, et le desk n'en garde que le
+ * lien. Le dépôt cessait d'être une archive pour devenir une seconde copie
+ * que personne ne regardait, et il coûtait son plafond.
+ *
+ * Rend `undefined` quand la pièce n'est pas indexée, et l'appelant sert alors
+ * les octets comme avant. C'est ce qui permet au ménage d'avancer famille par
+ * famille sans jamais casser une page : une pièce non rangée reste servie.
+ *
+ * LES PIÈCES DES CLIENTS N'ONT PAS DE LIEN, ET C'EST VOULU. Un lien
+ * SharePoint s'ouvre pour qui a un compte Microsoft 365 de la maison : bon
+ * périmètre pour le desk, mauvais pour une pièce d'identité, qui reste au
+ * dépôt où l'accès se contrôle ligne par ligne.
+ */
+export async function lienSource(key: string): Promise<string | undefined> {
+  if (!onSupabase()) return undefined;
+  const { createClient } = await import("@supabase/supabase-js");
+  const { lienBibliotheque } = await import("./bibliotheque");
+  const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
+  const { data } = await sb.from("library_items").select("library_path").eq("file_key", storageKey(key)).maybeSingle();
+  return data?.library_path ? lienBibliotheque(data.library_path) : undefined;
+}

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/auth";
 import { isDesk } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
-import { readSource } from "@/lib/intake/storage";
+import { lienSource, readSource } from "@/lib/intake/storage";
 
 /** Le communiqué de résultats d'une séance, tel qu'il a été rapatrié : desk seulement. */
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
@@ -10,6 +10,9 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
   if (!s || !isDesk(s)) return new NextResponse("Accès desk requis", { status: 403 });
   const r = await repo().getAuctionResult((await ctx.params).id);
   if (!r?.fileKey) return new NextResponse("Aucun fichier", { status: 404 });
+  /* La bibliotheque d abord : le document physique y vit, le desk renvoie. */
+  const lien = await lienSource(r.fileKey);
+  if (lien) return NextResponse.redirect(lien);
   const bytes = await readSource(r.fileKey);
   return new NextResponse(new Uint8Array(bytes), {
     headers: {
