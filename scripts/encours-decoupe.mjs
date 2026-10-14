@@ -34,5 +34,5 @@ for (const r of section) {
   const t = r.cellules.map((c) => c.texte).join(" ");
   if (!AMORTI.test(t) || !ISIN.test(t)) continue;
   const isin = t.match(ISIN)[1];
-  dire(`   ${lus.has(isin) ? "gardée" : "PERDUE"}  p${r.page}  ${isin}  ${r.cellules.length} cellule(s) brute(s) : ${r.cellules.map((c) => `${Math.round(c.x)}:${c.texte}`).join(" ¦ ").slice(0, 230)}`);
+  dire(`   ${lus.has(isin) ? "gardée" : "PERDUE"}  p${r.page}  ${isin}  ${r.cellules.length} cellule(s) brute(s) : ${r.cellules.map((c) => `${Math.round(c.x)}:${c.texte}`).join(" ¦ ").slice(0, 700)}`);
 }
