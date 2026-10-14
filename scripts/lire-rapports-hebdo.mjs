@@ -67,7 +67,26 @@ function trouver(d) {
 const pieces = trouver(BEAC).sort();
 dire(`${pieces.length} rapport(s) sur le disque\n`);
 
-const lot = uneSeule ? pieces.slice(-1) : pieces.slice(0, combien);
+/**
+ * ON NE RELIT PAS CE QUI EST DEJA LU, ET C EST UNE PROPRIETE, PAS UN CONFORT.
+ *
+ * Chaque lecture est facturee. Une campagne interrompue - et celle-ci l a ete,
+ * un index pose sur des expressions ne se pretant pas a un upsert - doit
+ * pouvoir reprendre ou elle en etait sans repayer. La base dit elle-meme ce
+ * qu elle porte : un rapport dont l adresse figure deja n est pas rouvert.
+ */
+const dejaLus = new Set();
+for (let de = 0; ; de += 1000) {
+  const { data } = await sb.from("treasury_operations").select("source_rapport_url").not("source_rapport_url", "is", null).range(de, de + 999);
+  for (const x of data ?? []) dejaLus.add(x.source_rapport_url);
+  if ((data ?? []).length < 1000) break;
+}
+dire(`${dejaLus.size} rapport(s) deja lu(s), ils ne seront pas rouverts`);
+
+const restants = pieces.filter((p) => { const j = parNom.get(path.basename(p, ".pdf").replace(MARQUE, "")); return !j || !dejaLus.has(j.url); });
+dire(`${restants.length} rapport(s) a lire
+`);
+const lot = uneSeule ? restants.slice(-1) : restants.slice(0, combien);
 let lues = 0, lignes = 0, ecrites = 0, refus = 0;
 const remarques = [];
 
@@ -91,7 +110,11 @@ for (const p of lot) {
   dire(`   ${path.basename(p).slice(0, 58).padEnd(58)} ${String(r.lignes.length).padStart(3)} ligne(s)  ${r.semaineDu ?? "?"} → ${r.semaineAu ?? "?"}${r.remarques.length ? `  · ${r.remarques.length} remarque(s)` : ""}`);
   for (const x of r.remarques) remarques.push(`${path.basename(p).slice(0, 36)} : ${x}`);
 
-  if (uneSeule) {
+  /* `--une --ecrire` ensemble : on écrit CETTE pièce et on s'arrête. C'est le
+     seul moyen d'éprouver l'écriture avant d'en lancer quatre-vingt-sept, et
+     il a manqué : l'index posé sur des expressions ne se prêtait pas à un
+     upsert, trente-huit rapports ont été lus et rien écrit. */
+  if (uneSeule && !ecrire) {
     dire(`\n=== LES ${r.lignes.length} LIGNES ===`);
     const f = (n) => (n == null ? "—" : n.toLocaleString("fr-FR"));
     for (const l of r.lignes) {
@@ -131,6 +154,8 @@ for (const p of lot) {
       const { error } = await sb.from("treasury_operations").upsert(rows, { onConflict: "code_enchere,operation,operation_on,pays" });
       if (error) dire(`      écriture : ${error.message}`);
       else ecrites += rows.length;
+      if (uneSeule) { dire(`
+${rows.length} ligne(s) ecrite(s) pour cette piece.`); process.exit(0); }
     }
   }
 }

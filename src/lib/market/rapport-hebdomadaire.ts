@@ -114,7 +114,12 @@ export function invraisemblances(l: LigneDeRapport): string[] {
   return out;
 }
 
-export async function lireRapportHebdomadaire(pdfBase64: string, modele?: string): Promise<LectureDeRapport & { modele: string }> {
+/**
+ * ON REND AUSSI LES JETONS CONSOMMES, parce qu un coût se mesure et ne se
+ * suppose pas. Comparer deux modèles sur la même pièce sans compter ce que
+ * chacun consomme, c est comparer une qualité sans son prix.
+ */
+export async function lireRapportHebdomadaire(pdfBase64: string, modele?: string): Promise<LectureDeRapport & { modele: string; jetons: { entree: number; sortie: number } }> {
   const client = new Anthropic();
   const choisi = modele ?? MODEL;
   const requete = (reflechi: boolean) => ({
@@ -141,5 +146,5 @@ export async function lireRapportHebdomadaire(pdfBase64: string, modele?: string
 
   const remarques = [...out.remarques];
   for (const l of out.lignes) for (const x of invraisemblances(l)) remarques.push(`${l.pays} ${l.codeEnchere} : ${x}`);
-  return { ...out, remarques, modele: choisi };
+  return { ...out, remarques, modele: choisi, jetons: { entree: response.usage.input_tokens, sortie: response.usage.output_tokens } };
 }
