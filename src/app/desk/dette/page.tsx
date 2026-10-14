@@ -6,6 +6,9 @@ import { getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
 import { issuerKey } from "@/data/issuer-registry";
 import { adjugeParEmetteur, coteParEmetteur, fiches, RESERVES, total, type CouponAdjuge } from "@/lib/market/dette-souveraine";
+import { echeancierDe } from "@/lib/market/amortissement";
+import { mur, partMesuree, plusLourd, type TombeeSituee } from "@/lib/market/mur-echeances";
+import { principalDuCoupon } from "@/lib/market/principal-par-le-coupon";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +49,51 @@ export default async function DettePage() {
   const auj = new Date().toISOString().slice(0, 10);
   const liste = fiches(coteParEmetteur(cotees, nommer), adjugeParEmetteur(coupons, auj, nommer));
   const somme = total(liste);
+
+
+  /**
+   * LE MUR : l'échéancier de la cote vient d'`amortissement.ts`, qui dit si le
+   * pas est mesuré ou supposé ; celui de l'adjudication est posé in fine,
+   * faute de connaître les tranches, et la page avoue la proportion.
+   */
+  const tombees: TombeeSituee[] = [];
+  for (const l of cotees) {
+    const echeance =
+      l.maturityYears && l.firstListedOn
+        ? new Date(Date.parse(`${l.firstListedOn}T12:00:00Z`) + l.maturityYears * 365.25 * 86_400_000).toISOString().slice(0, 10)
+        : undefined;
+    if (!echeance) continue;
+    for (const x of echeancierDe({
+      isin: l.isin,
+      tauxPct: l.couponRate,
+      encours: l.outstanding,
+      amortissement: l.amortisation,
+      periodicite: l.periodicity,
+      prochainCoupon: l.nextCouponOn || auj,
+      echeance,
+    })) {
+      tombees.push({ ...x, porte: "cote", emetteur: nommer(l.issuer) });
+    }
+  }
+  const dernierCoupon = new Map<string, CouponAdjuge>();
+  for (const c of [...coupons].sort((a, b) => a.le.localeCompare(b.le))) dernierCoupon.set(c.code, c);
+  for (const c of dernierCoupon.values()) {
+    if (!c.echeance || c.echeance <= auj) continue;
+    const principal = principalDuCoupon(c);
+    if (principal === undefined) continue;
+    tombees.push({ isin: c.code, quand: c.echeance, capital: principal, coupon: 0, source: "suppose", porte: "adjuge", emetteur: nommer(c.pays) });
+    /* Un coupon par an jusqu'à l'échéance, au même jour que le dernier vu :
+       ces coupons-là sont annuels, mesuré zéro semestriel sur quatre-vingts. */
+    for (const d = new Date(`${c.le}T12:00:00Z`); ; ) {
+      d.setUTCFullYear(d.getUTCFullYear() + 1);
+      const quand = d.toISOString().slice(0, 10);
+      if (quand > c.echeance) break;
+      tombees.push({ isin: c.code, quand, capital: 0, coupon: c.montant, source: "mesure", porte: "adjuge", emetteur: nommer(c.pays) });
+    }
+  }
+  const leMur = mur(tombees, auj, 12);
+  const pic = plusLourd(leMur);
+  const hauteur = leMur.reduce((a, q) => Math.max(a, q.capital + q.coupon), 0);
 
   const mds = (n: number) => `${(n / 1e9).toLocaleString("fr-FR", { maximumFractionDigits: 1 })}`;
   const pct = (n: number) => `${n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`;
@@ -162,6 +210,62 @@ export default async function DettePage() {
             </tfoot>
           </table>
         </TallTable>
+
+
+        {/* LE MUR : un encours ne dit pas QUAND il faut payer. Deux mille
+            quatre cents milliards dus ne disent rien du risque ; quatre cent
+            soixante dus le meme trimestre le disent. */}
+        <section className={styles.mur} aria-label={t("Le mur des échéances")}>
+          <h2>{t("Quand la zone doit payer")}</h2>
+          <p className={styles.sous}>
+            {t(
+              "Capital et coupons dus par trimestre, les deux portes réunies. Le capital se refinance ou se rembourse, le coupon se paie sur la trésorerie : les additionner cacherait lequel des deux pèse.",
+            )}
+          </p>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>{t("Trimestre")}</th>
+                <th className={styles.r}>{t("Capital")}</th>
+                <th className={styles.r}>{t("Coupons")}</th>
+                <th className={styles.r}>{t("Total")}</th>
+                <th className={styles.barreTete}>{t("Dont coté · adjugé")}</th>
+                <th className={styles.r}>{t("Lignes")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leMur.map((q) => {
+                const t2 = q.capital + q.coupon;
+                return (
+                  <tr key={q.clef} className={q.clef === pic?.clef ? styles.pic : undefined}>
+                    <td>{q.clef}</td>
+                    <td className={styles.r}>{t2 ? mds(q.capital) : "—"}</td>
+                    <td className={styles.r}>{t2 ? mds(q.coupon) : "—"}</td>
+                    <td className={`${styles.r} ${styles.fort}`}>{t2 ? mds(t2) : "—"}</td>
+                    {/* La barre double la colonne Total, elle ne la remplace
+                        pas : une longueur ne se lit pas au milliard près, et
+                        un lecteur qui ne distingue pas les deux teintes garde
+                        les chiffres. */}
+                    <td>
+                      <span className={styles.barre} aria-hidden="true">
+                        <i className={styles.bCote} style={{ width: `${hauteur ? ((q.parPorte.cote.capital + q.parPorte.cote.coupon) / hauteur) * 100 : 0}%` }} />
+                        <i className={styles.bAdj} style={{ width: `${hauteur ? ((q.parPorte.adjuge.capital + q.parPorte.adjuge.coupon) / hauteur) * 100 : 0}%` }} />
+                      </span>
+                    </td>
+                    <td className={styles.r}>{q.lignes || "—"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <p className={styles.unites}>
+            {t("Le mur le plus haut : {q}, {m} Mds. Part du capital dont le pas d'amortissement est mesuré et non supposé : {p} %.", {
+              q: pic?.clef ?? "—",
+              m: pic ? mds(pic.capital + pic.coupon) : "—",
+              p: partMesuree(leMur).toFixed(0),
+            })}
+          </p>
+        </section>
 
         {/* LES RÉSERVES SONT SUR LA PAGE, PAS EN NOTE DE BAS DE PAGE. Un total
             dont on ignore ce qu'il laisse dehors ne vaut rien, et celui-ci

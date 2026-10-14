@@ -3487,7 +3487,15 @@ export const EN_MORE: Record<string, string> = {
     "The auctioned side counts only lines that paid a coupon during the weeks read from the dashboard. Treasury bills pay none: they are absent by nature.",
   "Un émetteur qui n'emprunte que par une porte garde l'autre colonne vide. La BDEAC et les émetteurs privés n'adjugent pas.":
     "An issuer that borrows through one door only keeps the other column empty. BDEAC and private issuers do not auction.",
-  "Zone": "Region",
   "Émetteur": "Issuer",
   "Dette des États": "Sovereign debt",
+  "Le mur des échéances": "The maturity wall",
+  "Quand la zone doit payer": "When the region has to pay",
+  "Capital et coupons dus par trimestre, les deux portes réunies. Le capital se refinance ou se rembourse, le coupon se paie sur la trésorerie : les additionner cacherait lequel des deux pèse.":
+    "Principal and coupons due per quarter, both doors together. Principal is refinanced or repaid, coupons are paid out of cash: adding them would hide which of the two weighs.",
+  "Capital": "Principal",
+  "Coupons": "Coupons",
+  "Dont coté · adjugé": "Of which listed · auctioned",
+  "Le mur le plus haut : {q}, {m} Mds. Part du capital dont le pas d'amortissement est mesuré et non supposé : {p} %.":
+    "The tallest wall: {q}, {m} bn. Share of principal whose amortisation step is measured rather than assumed: {p} %.",
 };

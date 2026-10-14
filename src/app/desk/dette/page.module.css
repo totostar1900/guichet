@@ -128,3 +128,49 @@
     overflow-x: auto;
   }
 }
+
+/* ---- Le mur des échéances ---- */
+.mur h2 {
+  margin: 0 0 var(--s-1);
+  font-size: var(--t-4);
+}
+.sous {
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-2);
+  color: var(--muted);
+  max-width: 76ch;
+}
+/* Le trimestre le plus lourd se repère sans qu'on le cherche, mais par un
+   filet et non par un fond : un fond ferait croire à une alerte. */
+.pic td {
+  border-bottom-color: var(--gold);
+}
+.pic td:first-child::before {
+  content: "▸ ";
+  color: var(--gold);
+}
+.barreTete {
+  width: 34%;
+  min-width: 10rem;
+}
+/* LA BARRE DOUBLE LA COLONNE TOTAL, ELLE NE LA REMPLACE PAS : une longueur
+   ne se lit pas au milliard près, et un lecteur qui ne distingue pas les
+   deux teintes garde les chiffres à gauche. */
+.barre {
+  display: flex;
+  height: 0.6rem;
+  width: 100%;
+  background: var(--surface-2);
+}
+.barre i {
+  display: block;
+  height: 100%;
+}
+.bCote {
+  background: var(--navy, #0b2545);
+  border: 1px solid var(--line);
+  border-right: none;
+}
+.bAdj {
+  background: var(--gold, #b8860b);
+}
