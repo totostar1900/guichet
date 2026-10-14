@@ -29,6 +29,29 @@ import type { FundCurve } from "@/lib/domain/fund-curve";
  * Two implementations: in-memory (seed, dev without backend) and Supabase.
  */
 /** Un relevé de la courbe de la BEAC, tel qu'il est rangé. */
+/**
+ * Une opération du marché des valeurs du Trésor, telle que le tableau de bord
+ * hebdomadaire de la BEAC l'imprime.
+ *
+ * Les montants sont EN FRANCS, à l'inverse des communiqués de résultats qui
+ * sont en millions, et ils ne se valent pas : l'émission est une intention
+ * (elle égale 80 fois sur 134 le montant annoncé), le remboursement et le
+ * coupon sont exacts. `MONTANT_SELON_OPERATION` porte la règle.
+ */
+export interface OperationDuTresor {
+  pays: string;
+  instrument?: string;
+  tenor?: string;
+  codeEmission?: string;
+  couponRate?: number;
+  maturityOn?: string;
+  operation: "emission" | "abondement" | "remboursement" | "paiement_interets" | "rachat" | "autre";
+  montant?: number;
+  operationOn?: string;
+  settleOn?: string;
+  sourceUrl: string;
+}
+
 export interface BeacCurveRow {
   numero: number;
   /** Le mois arrêté, en AAAA-MM : la date de la courbe, pas celle du relevé. */
@@ -390,6 +413,8 @@ export interface Repository {
   upsertEncoursDette(lignes: EncoursDette[]): Promise<void>;
   /** Le relevé d une séance, ou de la dernière séance qui en porte un. */
   encoursDette(sessionDate?: string): Promise<EncoursDette[]>;
+  /** Le livre des mouvements du marché primaire, lu sur les tableaux de bord. */
+  operationsDuTresor(): Promise<OperationDuTresor[]>;
   /**
    * La dernière écriture de chaque série suivie, par clef de `SERIES`.
    *

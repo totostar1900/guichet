@@ -3462,4 +3462,32 @@ export const EN_MORE: Record<string, string> = {
     "A discount bill pays no coupon: measured across 168 sessions, not one carries any.",
   "Origine : {o}. Calculé sur {v} an(s) restants, d'après {d}.":
     "Source: {o}. Computed over {v} year(s) remaining, from {d}.",
+  "La dette des États de la zone": "The region's sovereign debt",
+  "Ce qu'un Trésor doit par la cote, dont la bourse publie l'encours, et par l'adjudication, qui n'en publie aucun et dont le stock se déduit du coupon.":
+    "What a Treasury owes through the exchange, which publishes the outstanding, and through auction, which publishes none and whose stock is deduced from the coupon.",
+  "Les totaux de la zone": "Regional totals",
+  "Encours total": "Total outstanding",
+  "Mds": "bn",
+  "Dont coté": "Of which listed",
+  "Dont adjugé": "Of which auctioned",
+  "Part adjugée": "Auctioned share",
+  "Coupons dus par an": "Coupons due per year",
+  "À la cote": "On the exchange",
+  "Par adjudication": "By auction",
+  "Coupons / an": "Coupons / year",
+  "Encours": "Outstanding",
+  "Stock publié à la séance du {d}": "Stock published at the session of {d}",
+  "n'emprunte pas ainsi": "does not borrow this way",
+  "Déduit du dernier coupon vu, le {d}": "Deduced from the last coupon seen, on {d}",
+  "Ce qu'il faut lire avec ces chiffres": "What to read alongside these figures",
+  "Tous les montants sont en milliards de francs CFA.": "All amounts are in billions of CFA francs.",
+  "La colonne cotée est un stock publié à une séance ; la colonne adjugée est le dernier principal connu de chaque ligne, à la date de son dernier coupon. Les deux dates diffèrent, et la fiche les porte.":
+    "The listed column is a stock published at one session; the auctioned column is each line's last known principal, as at its last coupon. The two dates differ, and the sheet carries both.",
+  "L'adjugé ne compte que les lignes ayant payé un coupon pendant les semaines lues du tableau de bord. Les bons du Trésor n'en paient aucun : ils sont absents par nature.":
+    "The auctioned side counts only lines that paid a coupon during the weeks read from the dashboard. Treasury bills pay none: they are absent by nature.",
+  "Un émetteur qui n'emprunte que par une porte garde l'autre colonne vide. La BDEAC et les émetteurs privés n'adjugent pas.":
+    "An issuer that borrows through one door only keeps the other column empty. BDEAC and private issuers do not auction.",
+  "Zone": "Region",
+  "Émetteur": "Issuer",
+  "Dette des États": "Sovereign debt",
 };

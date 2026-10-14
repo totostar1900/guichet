@@ -21,7 +21,7 @@ import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/l
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
-import { makeMandatRef, makeOrderNo, makeRef, makeTirageRef, type Repository } from "./repository";
+import { makeMandatRef, makeOrderNo, makeRef, makeTirageRef, type OperationDuTresor, type Repository } from "./repository";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
 import type { VirementRecu } from "@/lib/domain/virement";
 import type { RemiseDePrelevement, Tirage } from "@/lib/domain/prelevement";
@@ -2331,6 +2331,35 @@ export const supabaseRepository: Repository = {
       lire("serie-avis-emission", "emission_notices", "created_at"),
     ]);
     return Object.fromEntries(paires);
+  },
+  async operationsDuTresor() {
+    /* LA PAGINATION N EST PAS UN DETAIL : Supabase plafonne un select a mille
+       lignes sans le dire, et la table en porte mille cent soixante. Sans
+       cette boucle, la dette adjugee aurait perdu un septieme de ses coupons
+       en silence. Le piege a deja coute une mesure a 48 % sur les encours. */
+    const out: OperationDuTresor[] = [];
+    for (let de = 0; ; de += 1000) {
+      const { data, error } = await db().from("treasury_operations").select("*").order("operation_on").range(de, de + 999);
+      if (error) fail("operationsDuTresor", error);
+      const lot = (data as Record<string, unknown>[]) ?? [];
+      out.push(
+        ...lot.map((r) => ({
+          pays: r.pays as string,
+          instrument: u(r.instrument as string | null),
+          tenor: u(r.tenor as string | null),
+          codeEmission: u(r.code_emission as string | null),
+          couponRate: nn(r.coupon_rate as string | null),
+          maturityOn: u(r.maturity_on as string | null),
+          operation: r.operation as OperationDuTresor["operation"],
+          montant: nn(r.montant as string | null),
+          operationOn: u(r.operation_on as string | null),
+          settleOn: u(r.settle_on as string | null),
+          sourceUrl: r.source_url as string,
+        })),
+      );
+      if (lot.length < 1000) break;
+    }
+    return out;
   },
   async encoursDette(sessionDate) {
     /* SANS SÉANCE DEMANDÉE, ON REND LA DERNIÈRE QUI EN PORTE UN, et non celle

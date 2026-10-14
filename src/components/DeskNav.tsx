@@ -71,6 +71,7 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/bulletins", "Bulletins"],
       ["/desk/adjudications", "Adjudications"],
       ["/desk/adjudications/tableau", "Résultats"],
+      ["/desk/dette", "Dette des États"],
       ["/desk/analyses", "Courbe des taux"],
       ["/desk/indice/apercu", "Indice"],
     ],

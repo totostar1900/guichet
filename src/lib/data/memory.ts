@@ -22,6 +22,7 @@ import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } fr
 import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
 import type { ObservationBeac } from "@/lib/market/beac-journal";
 import type { EncoursDette } from "@/lib/market/encours-dette";
+import type { OperationDuTresor } from "./repository";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { BeacCurveRow } from "./repository";
@@ -270,6 +271,7 @@ interface Store {
   /** Le journal des annonces BEAC : en ajout seul, la plus récente en tête. */
   observationsBeac?: (ObservationBeac & { vuLe: string })[];
   encoursDette?: EncoursDette[];
+  operationsDuTresor?: OperationDuTresor[];
   quotes: Quote[];
   fundNavs: FundNav[];
   issuerDocs: IssuerDocument[];
@@ -1314,6 +1316,9 @@ export const memoryRepository: Repository = {
       "serie-adjudications": dernier((s.auctionResults ?? []).map((a) => a.sessionOn)),
       "serie-avis-emission": dernier((s.emissionNotices ?? []).map((n) => n.sessionOn)),
     };
+  },
+  async operationsDuTresor() {
+    return structuredClone(store().operationsDuTresor ?? []);
   },
   async encoursDette(sessionDate) {
     const lignes = store().encoursDette ?? [];

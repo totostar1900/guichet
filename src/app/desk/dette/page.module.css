@@ -1,0 +1,130 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.head h1 {
+  margin: 0;
+  font-size: var(--t-6);
+}
+.head p {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-3);
+  max-width: 62ch;
+  color: var(--muted);
+}
+
+/* Le bandeau des totaux : les six chiffres que le desk cite de mémoire. */
+.bandeau {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--s-4) var(--s-6);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.bandeau > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.bandeau span {
+  font-size: var(--t-1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.bandeau b {
+  font-size: var(--t-5);
+  font-variant-numeric: tabular-nums;
+}
+/* L'unité reste petite à côté du nombre : c'est le nombre qu'on lit. */
+.bandeau small {
+  font-size: var(--t-2);
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-2);
+}
+.table th,
+.table td {
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  white-space: nowrap;
+}
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  font-size: var(--t-1);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  z-index: 1;
+}
+/* Les deux portes se voient comme deux blocs, sinon les six colonnes de
+   chiffres se lisent comme une seule suite. */
+.groupe {
+  text-align: center !important;
+  border-bottom: 2px solid var(--gold) !important;
+  color: var(--ink) !important;
+}
+.r {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.fort {
+  font-weight: 600;
+}
+/* « N'emprunte pas ainsi » n'est pas une donnée manquante : elle se lit, mais
+   elle ne doit pas peser autant qu'un chiffre. */
+.vide {
+  color: var(--muted);
+  font-style: italic;
+  font-size: var(--t-1);
+}
+.table tfoot td {
+  border-top: 2px solid var(--line);
+  border-bottom: none;
+  font-weight: 600;
+}
+
+.reserves {
+  border-left: 3px solid var(--gold);
+  padding: var(--s-2) 0 var(--s-2) var(--s-5);
+}
+.reserves h2 {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-3);
+}
+.reserves ul {
+  margin: 0;
+  padding-left: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.reserves li {
+  font-size: var(--t-2);
+  color: var(--muted);
+  max-width: 80ch;
+}
+.unites {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-1);
+  color: var(--muted);
+}
+
+/* Au téléphone, la table se fait défiler plutôt que de se casser : neuf
+   colonnes de chiffres ne se replient pas. */
+@media (max-width: 48rem) {
+  .table {
+    display: block;
+    overflow-x: auto;
+  }
+}
