@@ -86,6 +86,56 @@ dire(`${dejaLus.size} rapport(s) deja lu(s), ils ne seront pas rouverts`);
 const restants = pieces.filter((p) => { const j = parNom.get(path.basename(p, ".pdf").replace(MARQUE, "")); return !j || !dejaLus.has(j.url); });
 dire(`${restants.length} rapport(s) a lire
 `);
+/**
+ * DEUX LECTURES, ET ON N ECRIT QUE CE SUR QUOI ELLES S ACCORDENT.
+ *
+ * Mesure du 15 octobre 2026 sur les treize rapports deja lus par le grand
+ * modele : le petit rend 178 lignes sur 179 a l identique au premier passage,
+ * 177 au second, ET CE NE SONT PAS LES MEMES FAUTES. Une fois un « 070 »
+ * emprunte a une rangee deux rangs plus bas, une fois un remboursement laisse
+ * vide et une ligne manquee.
+ *
+ * Des fautes aleatoires et disjointes sont precisement ce qu une double
+ * lecture attrape : la probabilite que deux passages se trompent de la MEME
+ * facon sur la MEME cellule est negligeable, alors qu une faute unique ne
+ * porte aucune signature et passe tous les gardes. C est la meme doctrine que
+ * la regression du lecteur de bulletins, les deux lectures sur le meme texte.
+ *
+ * Ce qui diverge n est pas ecrit : il est nomme, et une troisieme lecture ou
+ * un oeil tranchera. Mieux vaut une ligne absente qu une ligne fausse, parce
+ * que l absente se cherche et la fausse ne se voit plus.
+ */
+const memeLigne = (a, b) => {
+  const p = (x, y) => (x == null && y == null ? true : x == null || y == null ? false : Math.abs(Number(x) - Number(y)) <= Math.max(1, Math.abs(Number(x)) * 1e-6));
+  return (
+    p(a.montantPrevu, b.montantPrevu) &&
+    p(a.montantRealise, b.montantRealise) &&
+    p(a.tauxParticipation, b.tauxParticipation) &&
+    p(a.tauxSouscription, b.tauxSouscription) &&
+    p(a.tauxPrixMoyen, b.tauxPrixMoyen) &&
+    p(a.tauxPrixMarginal, b.tauxPrixMarginal) &&
+    p(a.tauxPrixMin, b.tauxPrixMin) &&
+    p(a.tauxPrixMax, b.tauxPrixMax) &&
+    (a.couponRate ?? null) === (b.couponRate ?? null) &&
+    (a.maturityOn ?? null) === (b.maturityOn ?? null)
+  );
+};
+const clefLigne = (l) => `${l.pays}|${(l.codeEmission ?? l.codeEnchere ?? "").trim().toUpperCase()}|${l.operation}`;
+
+/** Les lignes que deux lectures rendent identiques, et celles qui divergent. */
+function accord(un, deux) {
+  const b = new Map(deux.lignes.map((l) => [clefLigne(l), l]));
+  const retenues = [];
+  const divergentes = [];
+  for (const l of un.lignes) {
+    const autre = b.get(clefLigne(l));
+    if (autre && memeLigne(l, autre)) retenues.push(l);
+    else divergentes.push({ clef: clefLigne(l), raison: autre ? "les deux lectures diffèrent" : "vue une seule fois" });
+  }
+  for (const l of deux.lignes) if (!un.lignes.some((x) => clefLigne(x) === clefLigne(l))) divergentes.push({ clef: clefLigne(l), raison: "vue une seule fois" });
+  return { retenues, divergentes };
+}
+
 const lot = uneSeule ? restants.slice(-1) : restants.slice(0, combien);
 let lues = 0, lignes = 0, ecrites = 0, refus = 0;
 const remarques = [];
@@ -97,9 +147,19 @@ for (const p of lot) {
     refus++;
     continue;
   }
+  const modele = process.argv.find((a) => a.startsWith("--modele="))?.slice(9);
+  const deuxPasses = process.argv.includes("--deux-passes");
   let r;
+  let divergentes = [];
   try {
-    r = await lireRapportHebdomadaire(fs.readFileSync(p).toString("base64"));
+    const octets = fs.readFileSync(p).toString("base64");
+    r = await lireRapportHebdomadaire(octets, modele);
+    if (deuxPasses) {
+      const r2 = await lireRapportHebdomadaire(octets, modele);
+      const a = accord(r, r2);
+      divergentes = a.divergentes;
+      r = { ...r, lignes: a.retenues, jetons: { entree: r.jetons.entree + r2.jetons.entree, sortie: r.jetons.sortie + r2.jetons.sortie } };
+    }
   } catch (e) {
     dire(`   ÉCHEC  ${path.basename(p).slice(0, 60)} : ${e.message}`);
     refus++;
@@ -109,6 +169,7 @@ for (const p of lot) {
   lignes += r.lignes.length;
   dire(`   ${path.basename(p).slice(0, 58).padEnd(58)} ${String(r.lignes.length).padStart(3)} ligne(s)  ${r.semaineDu ?? "?"} → ${r.semaineAu ?? "?"}${r.remarques.length ? `  · ${r.remarques.length} remarque(s)` : ""}`);
   for (const x of r.remarques) remarques.push(`${path.basename(p).slice(0, 36)} : ${x}`);
+  for (const d of divergentes) remarques.push(`${path.basename(p).slice(0, 36)} : ${d.clef} NON ECRITE, ${d.raison}.`);
 
   /* `--une --ecrire` ensemble : on écrit CETTE pièce et on s'arrête. C'est le
      seul moyen d'éprouver l'écriture avant d'en lancer quatre-vingt-sept, et
