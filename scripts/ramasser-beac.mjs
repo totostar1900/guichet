@@ -61,6 +61,44 @@ const propre = (s) =>
 
 const PAYS = { Cameroun: "Cameroun", Gabon: "Gabon", Congo: "Congo", Tchad: "Tchad", "Guinée éq.": "Guinee equatoriale", "Guinée équatoriale": "Guinee equatoriale", RCA: "RCA" };
 
+/**
+ * DEUX PIÈCES, UN SEUL NOM : CE QUE L'ARCHIVE CROYAIT AVOIR.
+ *
+ * Le nom d'une adjudication est bâti sur la date, l'instrument et la durée, et
+ * perd ce qui distingue deux pièces du même jour : l'échéance, le coupon, le
+ * code d'émission. Le Gabon a servi quatre BTA à 13 semaines le 22 juillet
+ * 2026 ; un seul fichier est descendu, et les trois autres ont vu le premier,
+ * conclu « déjà là » et ne sont jamais venus. Le compte-rendu annonçait alors
+ * 987 pièces sur 987 quand le disque en portait 965.
+ *
+ * UNE ARCHIVE QUI SE CROIT COMPLÈTE EST PIRE QU'UNE ARCHIVE TROUÉE : personne
+ * ne va chercher ce qu'elle affirme détenir. Mesuré le 14 octobre 2026 :
+ * 19 chemins réclamés par plusieurs documents, 22 pièces jamais prises.
+ *
+ * LA SEULE CLEF QUI DISTINGUE À COUP SÛR EST L'ADRESSE, parce que deux de ces
+ * pièces portent un titre rigoureusement identique. Le premier par ordre
+ * d'adresse garde le nom nu, pour que les 965 fichiers déjà rangés ne bougent
+ * pas ; les suivants prennent six signes de leur empreinte. Le choix ne dépend
+ * donc pas de l'ordre de passage du robot, et deux ramassages rendent les
+ * mêmes noms.
+ */
+function nomsDistincts(lot) {
+  const parChemin = new Map();
+  for (const o of lot) {
+    const d = destination(o);
+    const c = `${d.dossier}/${d.nom}`;
+    parChemin.set(c, [...(parChemin.get(c) ?? []), o]);
+  }
+  const suffixe = new Map();
+  for (const [, xs] of parChemin) {
+    if (xs.length < 2) continue;
+    for (const o of [...xs].sort((a, b) => a.url.localeCompare(b.url)).slice(1)) {
+      suffixe.set(o.url, createHash("sha256").update(o.url).digest("hex").slice(0, 6));
+    }
+  }
+  return suffixe;
+}
+
 /** Où va la pièce, et sous quel nom. */
 function destination(o) {
   const an = (o.seance ?? "").slice(0, 4) || (o.titre.match(/\b(20\d{2})\b/) ?? [])[1] || "sans date";
@@ -81,15 +119,30 @@ function destination(o) {
 
 const dors = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * UNE ADRESSE ACCENTUÉE N'EST PAS UNE ADRESSE.
+ *
+ * La BEAC publie « Communiqué-des-résultats-OTA2ANS-220726_GABON.pdf » : le
+ * chemin porte des « é » que le journal garde tels quels et que `fetch` envoie
+ * tels quels, ce que le serveur refuse. Onze pièces sur 987 ont échoué ainsi
+ * le 14 octobre 2026, et toutes les onze portaient un accent. On réessaie donc
+ * la forme encodée, qui est la même adresse écrite comme le protocole l'exige.
+ */
+const formes = (url) => (url === encodeURI(url) ? [url] : [url, encodeURI(url)]);
+
 async function prendre(url) {
   for (let essai = 0; essai < 3; essai++) {
+    for (const forme of formes(url)) {
     try {
-      const res = await fetch(url, { headers: { "user-agent": "Mozilla/5.0 (compatible; Guichet/1.0; +https://guichet.purposecapital.africa)" } });
-      if (res.ok) return Buffer.from(await res.arrayBuffer());
-      /* 404 : la pièce a été retirée du site. Inutile d'insister. */
-      if (res.status === 404) return null;
-    } catch {
-      /* réseau : on réessaie */
+      const res = await fetch(forme, { headers: { "user-agent": "Mozilla/5.0 (compatible; Guichet/1.0; +https://guichet.purposecapital.africa)" } });
+        if (res.ok) return Buffer.from(await res.arrayBuffer());
+        /* 404 sur la SEULE forme possible : la pièce a été retirée du site, et
+           insister ne la fera pas revenir. Quand il y a deux écritures de la
+           même adresse, un 404 sur la première ne prouve rien. */
+        if (res.status === 404 && formes(url).length === 1) return null;
+      } catch {
+        /* réseau : on réessaie */
+      }
     }
     await dors(1500 * (essai + 1));
   }
@@ -109,11 +162,13 @@ const lot = [...vus.values()].filter((o) => o.present);
 console.log(`${obs.length} documents au journal, ${lot.length} présents à ramasser\n`);
 
 if (essai) {
+  const vu = nomsDistincts(lot);
   for (const o of lot.slice(0, 12)) {
     const d = destination(o);
-    console.log(`${(o.genre ?? "?").padEnd(11)} ${d.dossier.replace(BEAC, "…")}/\n              ${d.nom}`);
+    console.log(`${(o.genre ?? "?").padEnd(11)} ${d.dossier.replace(BEAC, "…")}/\n              ${vu.get(o.url) ? d.nom.replace(/\.pdf$/i, ` [${vu.get(o.url)}].pdf`) : d.nom}`);
   }
-  console.log("\nEssai à blanc. Relancer sans --essai pour ramasser.");
+  console.log(`\n${vu.size} pièce(s) portent une marque, faute d'un nom qui les distingue.`);
+  console.log("Essai à blanc. Relancer sans --essai pour ramasser.");
   process.exit(0);
 }
 
@@ -124,9 +179,12 @@ let deja = 0;
 let rates = 0;
 const t0 = Date.now();
 
+const distinct = nomsDistincts(lot);
+
 for (const [i, o] of lot.entries()) {
   const d = destination(o);
-  const chemin = `${d.dossier}/${d.nom}`;
+  const marque = distinct.get(o.url);
+  const chemin = `${d.dossier}/${marque ? d.nom.replace(/\.pdf$/i, ` [${marque}].pdf`) : d.nom}`;
   if (fs.existsSync(chemin) && fs.statSync(chemin).size > 2048) {
     deja++;
     continue;
@@ -152,4 +210,14 @@ for (const [i, o] of lot.entries()) {
 const poids = fs.existsSync(INVENTAIRE) ? fs.readFileSync(INVENTAIRE, "utf8").split("\n").slice(1).filter(Boolean).reduce((a, l) => a + Number(l.split(";")[5] ?? 0), 0) : 0;
 console.log(`\n=== ${pris} pris, ${deja} déjà là, ${rates} ratés, ${Math.round((Date.now() - t0) / 1000)}s ===`);
 console.log(`archive : ${(poids / 1024 / 1024).toFixed(0)} Mo`);
+/* LE COMPTE SE VÉRIFIE SUR LE DISQUE, jamais sur l'addition des compteurs :
+   c'est précisément une addition de compteurs qui annonçait 987 sur 987 quand
+   le disque en portait 965. */
+let surDisque = 0;
+for (const o of lot) {
+  const d = destination(o);
+  const m = distinct.get(o.url);
+  if (fs.existsSync(`${d.dossier}/${m ? d.nom.replace(/\.pdf$/i, ` [${m}].pdf`) : d.nom}`)) surDisque++;
+}
+console.log(`${surDisque} des ${lot.length} pièces du journal sont sur le disque${surDisque < lot.length ? `  ← IL EN MANQUE ${lot.length - surDisque}` : ""}`);
 console.log(`→ ${RACINE}`);
