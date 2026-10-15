@@ -38,15 +38,33 @@ function compterUnions(noeud: unknown): number {
   return ici + Object.values(o).reduce((n: number, v) => n + compterUnions(v), 0);
 }
 
+/**
+ * ET POURQUOI UN SCHEMA A DROIT A DOUZE UNIONS QUAND LES AUTRES EN ONT ZERO.
+ *
+ * L API pose TROIS limites qui tirent en sens contraire : au plus seize
+ * parametres a type union, au plus vingt-quatre parametres facultatifs, et une
+ * complexite totale bornee. Le lecteur d adjudications porte vingt-six champs
+ * et ne peut en satisfaire que deux a la fois :
+ *
+ *   tout en « optional » : vingt-six facultatifs, refus en 400 ;
+ *   les bornes repliees en listes d objets : « Schema is too complex » ;
+ *   tout en « nullable » : douze unions, sous la limite de seize, et VINGT
+ *   lectures reussies le 15 octobre 2026, dont celle qui a tranche l unite
+ *   guineenne.
+ *
+ * Le plafond de ce schema est donc son compte mesure, pas zero. Les deux
+ * autres restent a zero : ils ont la place, et rien ne justifie qu ils
+ * s approchent du bord.
+ */
 const SCHEMAS = [
-  { nom: "intake (communiqué, photo, courriel)", schema: Extraction },
-  { nom: "adjudication (résultats BEAC)", schema: LectureAdjudication },
-  { nom: "avis d'émission", schema: LectureAvis },
+  { nom: "intake (communiqué, photo, courriel)", schema: Extraction, plafond: 0 },
+  { nom: "adjudication (résultats BEAC)", schema: LectureAdjudication, plafond: 12 },
+  { nom: "avis d'émission", schema: LectureAvis, plafond: 0 },
 ];
 
 describe("les schémas d'extraction tiennent sous la limite de l'API", () => {
-  for (const { nom, schema } of SCHEMAS) {
-    it(`${nom} : aucun paramètre à type union`, () => {
+  for (const { nom, schema, plafond } of SCHEMAS) {
+    it(`${nom} : au plus ${plafond} paramètre(s) à type union`, () => {
       const unions = compterUnions(zodOutputFormat(schema));
       /* DEUX ASSERTIONS, DEUX RAISONS. Seize est la règle de l'API, et la
          dépasser casse tout. Zéro est la marge que la maison se donne : les
@@ -56,7 +74,9 @@ describe("les schémas d'extraction tiennent sous la limite de l'API", () => {
          seulement « sous seize » laisserait un schéma remonter à quinze sans
          que personne ne s'en aperçoive. */
       expect(unions <= LIMITE ? "sous la limite" : `${nom} : ${unions} paramètres à type union, la limite de l'API est ${LIMITE}`).toBe("sous la limite");
-      expect(unions === 0 ? "aucune union" : `${nom} : ${unions} paramètre(s) à type union, la maison les tient à zéro (« optional » plutôt que « nullable »)`).toBe("aucune union");
+      /* Le plafond est le compte MESURE, jamais un arrondi vers le haut :
+         un schéma qui gagne une union doit le faire exprès. */
+      expect(unions <= plafond ? "au plafond ou dessous" : `${nom} : ${unions} paramètre(s) à type union, le plafond de ce schéma est ${plafond}`).toBe("au plafond ou dessous");
     });
   }
 

@@ -159,3 +159,41 @@ describe("des bornes nommées du côté de l'émetteur", () => {
     expect(remarques[0]).toMatch(/90/);
   });
 });
+
+/**
+ * LE SCHÉMA NE DOIT PAS DÉPASSER VINGT-QUATRE CHAMPS FACULTATIFS.
+ *
+ * L'API refuse au-delà, et elle refuse en 400, AVANT d'ouvrir la pièce : le
+ * 15 octobre 2026 le schéma en comptait vingt-six et toute lecture
+ * d'adjudication échouait, robot de nuit compris, sans que personne le sache.
+ * Un champ nullable est requis dans la grammaire et peut valoir null : il ne
+ * compte pas dans cette limite, et `nn()` ramène déjà null à une absence.
+ *
+ * Ce cas d'essai existe parce que la panne était muette et qu'elle reviendra
+ * au premier champ ajouté sans y penser.
+ */
+describe("le schéma de lecture tient dans ce que l'API accepte", () => {
+  it("compte au plus vingt-quatre champs facultatifs, et garde de la marge", async () => {
+    const { Lecture } = await import("@/lib/market/auction-extract");
+    const shape = (Lecture as unknown as { shape: Record<string, { safeParse: (v: unknown) => { success: boolean } }> }).shape;
+    /* Un champ facultatif accepte « undefined » : c'est ce que l'API compte. */
+    /* Avec « nullable », aucun champ n accepte undefined : le compte est zero,
+       et c est la limite d unions qui prend le relais (extract-unions). */
+    const facultatifs = Object.entries(shape)
+      .filter(([, s]) => s.safeParse(undefined).success)
+      .map(([k]) => k);
+    expect(facultatifs.length <= 24 ? "sous la limite" : `${facultatifs.length} champs facultatifs, la limite de l'API est 24 : ${facultatifs.join(", ")}`).toBe("sous la limite");
+    /* ET UNE MARGE, parce que la panne est muette : elle sort en 400 avant
+       d'ouvrir la pièce, donc elle ressemble à un lecteur médiocre plutôt
+       qu'à un lecteur jamais appelé. */
+    expect(facultatifs.length <= 20 ? "avec marge" : `${facultatifs.length} champs facultatifs : sous la limite, mais près du bord`).toBe("avec marge");
+  });
+
+  it("garde tous ses champs", async () => {
+    const { Lecture } = await import("@/lib/market/auction-extract");
+    const shape = (Lecture as unknown as { shape: Record<string, unknown> }).shape;
+    for (const champ of ["codeEmission", "country", "instrument", "tenor", "sessionOn", "announced", "bid", "served", "rateAvg", "rateLimit", "priceAvg", "coverage", "remarks"]) {
+      expect(Object.keys(shape), `${champ} a disparu du schéma`).toContain(champ);
+    }
+  });
+});

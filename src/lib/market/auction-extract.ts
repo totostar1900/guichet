@@ -62,8 +62,10 @@ const SYSTEM = `Tu lis des communiqués de résultats d'adjudication de titres p
 Ce sont des documents scannés. Tu recopies ce qui est imprimé, tu ne calcules rien et tu ne déduis rien.
 
 Règles :
-- Un champ qui n'est pas imprimé, tu l'omets. Ne remplis jamais un blanc par une déduction, une moyenne ou un ordre de grandeur.
+- Un champ qui n'est pas imprimé, tu le mets à null. Ne remplis jamais un blanc par une déduction, une moyenne ou un ordre de grandeur.
 - Les montants : donne le nombre tel qu'il est imprimé dans le tableau, et indique séparément l'unité annoncée par le document (« en millions de FCFA » en tête de tableau, le plus souvent). Ne convertis pas.
+- UN POINT SUIVI DE TROIS CHIFFRES EST UN SÉPARATEUR DE MILLIERS, PAS UNE DÉCIMALE. « 15.000 » dans un tableau en millions vaut quinze mille millions, soit quinze milliards, et non quinze. La décimale, dans ces pièces, s'écrit avec une virgule. Dix-sept séances de Guinée Équatoriale et une du Gabon ont été lues mille fois trop petites pour ce seul caractère. Rends le nombre sans séparateur : 15000.
+- Le taux de couverture imprimé vérifie les trois montants : il vaut le montant soumissionné divisé par le montant annoncé. S'il ne tombe pas avec ce que tu as lu, c'est que l'un des trois montants n'est pas dans le champ où tu l'as mis ; dis-le dans les remarques plutôt que de corriger.
 - BTA : des taux, en pourcentage, précomptés. OTA : des prix, en pourcentage du nominal. Un document ne porte que l'une des deux familles ; omets l'autre entièrement.
 - Le taux (ou prix) « limite » est celui auquel le Trésor a arrêté l'adjudication ; le « moyen pondéré » est la moyenne des soumissions servies. Ne confonds pas les deux, et ne recopie pas l'un dans l'autre s'il en manque un.
 - Certains Trésors nomment leurs bornes du côté de l'émetteur, en coût plutôt qu'en prix : « prix maximum proposé 90,00 % » au-dessus de « prix minimum proposé 93,00 % » est normal chez eux, la proposition la moins chère à l'achat étant la plus coûteuse pour le Trésor. Recopie chaque nombre dans le champ où il est imprimé, sans le corriger ni les échanger : la remise en ordre se fait ailleurs, et ta fidélité à la pièce est ce qui permet de la faire.
@@ -75,22 +77,22 @@ Règles :
 - Si le document couvre plusieurs lignes, lis celle que la consigne désigne, et signale les autres dans remarks.
 - Signale dans remarks tout ce qui gênerait une relecture : chiffre illisible, tampon, colonne absente, unité inhabituelle, incohérence entre deux chiffres du document.`;
 
-const Amount = z.number().optional();
-const Pct = z.number().optional();
+const Amount = z.number().nullable();
+const Pct = z.number().nullable();
 
 export const Lecture = z.object({
-  codeEmission: z.string().optional().describe("Code émission du Trésor, ex. CG1300001480"),
-  country: z.enum(["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."]).optional(),
-  instrument: z.enum(["BTA", "OTA"]).optional(),
-  tenor: z.string().optional().describe("Durée normalisée, ex. « 26 semaines » ou « 3 ans »"),
-  sessionOn: z.string().optional().describe("Date de la séance d'adjudication, ISO YYYY-MM-DD"),
-  abondement: z.boolean().optional().describe("true si le document dit qu'il s'agit d'un abondement (réouverture d'une ligne existante)"),
-  amountsUnit: z.enum(["millions", "milliers", "francs"]).optional().describe("Unité dans laquelle le tableau des montants est libellé, telle que le document l'annonce"),
+  codeEmission: z.string().nullable().describe("Code émission du Trésor, ex. CG1300001480"),
+  country: z.enum(["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."]).nullable(),
+  instrument: z.enum(["BTA", "OTA"]).nullable(),
+  tenor: z.string().nullable().describe("Durée normalisée, ex. « 26 semaines » ou « 3 ans »"),
+  sessionOn: z.string().nullable().describe("Date de la séance d'adjudication, ISO YYYY-MM-DD"),
+  abondement: z.boolean().nullable().describe("true si le document dit qu'il s'agit d'un abondement (réouverture d'une ligne existante)"),
+  amountsUnit: z.enum(["millions", "milliers", "francs"]).nullable().describe("Unité dans laquelle le tableau des montants est libellé, telle que le document l'annonce"),
   announced: Amount.describe("Montant annoncé par le Trésor, tel qu'imprimé"),
   bid: Amount.describe("Total des soumissions reçues, tel qu'imprimé"),
   served: Amount.describe("Total servi / retenu, tel qu'imprimé"),
-  networkSize: z.number().optional().describe("Nombre de SVT du réseau"),
-  bidders: z.number().optional().describe("Nombre de SVT ayant soumissionné"),
+  networkSize: z.number().nullable().describe("Nombre de SVT du réseau"),
+  bidders: z.number().nullable().describe("Nombre de SVT ayant soumissionné"),
   rateMin: Pct,
   rateMax: Pct,
   rateLimit: Pct.describe("Taux limite (BTA)"),
@@ -103,7 +105,7 @@ export const Lecture = z.object({
   yieldAvg: Pct.describe("« Taux de rendement moyen pondéré » en %, quand le document l'imprime à côté des prix (Trésor camerounais) ; omis sinon"),
   yieldLimit: Pct.describe("Taux de rendement au prix limite, en %, quand le document l'imprime ; omis sinon"),
   couponRate: Pct.describe("Taux d'intérêt facial de l'obligation en % annuel (« taux nominal », « coupon ») ; omis s'il n'est pas imprimé"),
-  maturityOn: z.string().optional().describe("Date d'échéance de la ligne, ISO YYYY-MM-DD, quand le document l'imprime ; null sinon"),
+  maturityOn: z.string().nullable().describe("Date d'échéance de la ligne, ISO YYYY-MM-DD, quand le document l'imprime ; null sinon"),
   coverage: Pct.describe("Taux de couverture en %, tel qu'imprimé ; omis s'il n'est pas imprimé"),
   remarks: z.array(z.string()).describe("Ce qui gênerait une relecture : chiffre illisible, colonne absente, unité inhabituelle, plusieurs lignes dans le document"),
 });
