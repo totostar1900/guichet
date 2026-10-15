@@ -397,3 +397,303 @@ export async function encoursDuPdf(bytes: Uint8Array, titre = ""): Promise<Encou
   const rangees = await rangeesDuPdf(bytes);
   return encoursDuBulletin(rangees, numeroDuBulletin(titre));
 }
+
+/* ======================= LES ÉMISSIONS DU TRIMESTRE ======================= */
+
+/**
+ * LE TABLEAU DES ÉMISSIONS EST TRANSPOSÉ, ET IMPRIMÉ EN PAYSAGE.
+ *
+ * Contrairement au registre de l'encours, chaque ADJUDICATION y est une
+ * COLONNE et chaque attribut une rangée : « Pays », « Code émission »,
+ * « Maturité », « Date d'adjudication », « Date de règlement », « Date de
+ * remboursement », « Montant mis en adjudication », « Montant levé », « Taux
+ * Moyen Pondéré », « Taux de Souscription », et la répartition des montants
+ * souscrits entre les SVT du pays et ceux du réseau.
+ *
+ * TROIS CONSÉQUENCES, TOUTES MESURÉES.
+ *
+ *   L'INTITULÉ D'UNE RANGÉE EST LUI-MÊME COUPÉ EN MORCEAUX, et pas toujours
+ *   sur la même ligne de base que ses valeurs : dans le numéro 9, « Montant »
+ *   est à une ordonnée, « levé » à une autre, et les valeurs à une troisième.
+ *   On rassemble donc tout ce qui se lit à gauche de la première valeur, dans
+ *   le voisinage immédiat, et ON RECONNAÎT L'INTITULÉ PAR SES MOTS-CLEFS, pas
+ *   par sa phrase exacte : l'ordre des morceaux dépend de la rotation de la
+ *   page et ne veut rien dire.
+ *
+ *   LES COLONNES SE RETROUVENT PAR LEUR ABSCISSE. Une adjudication qui n'a
+ *   pas de valeur pour un attribut laisse un trou, donc deux rangées n'ont
+ *   pas le même nombre de cellules : seule l'abscisse les apparie.
+ *
+ *   UNE COLONNE SUR DIX EST UN TOTAL. « Total des BTA émis par le trésor
+ *   public du Cameroun » occupe une colonne comme une adjudication, et elle
+ *   n'en est pas une : elle se reconnaît à son libellé de pays.
+ */
+
+export interface EmissionDuBulletin {
+  pays?: string;
+  isin?: string;
+  instrument: "BTA" | "OTA";
+  tenor?: string;
+  adjugeLe?: string;
+  regleLe?: string;
+  echeanceLe?: string;
+  emisLe?: string;
+  /** En FCFA, converti des millions que le tableau imprime. */
+  offert?: number;
+  leve?: number;
+  /** Le taux moyen pondéré, en pour cent. */
+  taux?: number;
+  couverture?: number;
+  svtLocaux?: number;
+  svtReseau?: number;
+}
+
+export interface EmissionsDuBulletin {
+  numero?: number;
+  emissions: EmissionDuBulletin[];
+  reserves: string[];
+}
+
+const PAYS_CELLULE = /^(cameroun|congo|gabon|tchad|rca|republique centrafricaine|centrafrique|guinee equatoriale|guinee eq\.?)$/;
+
+/** Une cellule qui porte une valeur, et non un bout d'intitulé. */
+function estValeur(t: string): boolean {
+  const s = t.trim();
+  if (s === "-" || s === "—") return true;
+  if (DATE.test(s)) return true;
+  if (ISIN.test(s)) return true;
+  if (montant(s) != null) return true;
+  if (/^\d+\s*(semaines?|mois|ans?)$/i.test(s)) return true;
+  if (PAYS_CELLULE.test(phrase(s))) return true;
+  return /^total d/.test(phrase(s));
+}
+
+/** Les abscisses des colonnes, apprises sur toutes les valeurs du tableau. */
+function grilleDesColonnes(xs: number[], tolerance = 6): number[] {
+  const tri = [...xs].sort((a, b) => a - b);
+  const out: number[] = [];
+  for (const x of tri) {
+    if (!out.length || x - out[out.length - 1] > tolerance) out.push(x);
+  }
+  return out;
+}
+
+/** Ce que l'intitulé d'une rangée désigne, reconnu par ses mots-clefs. */
+export function champDeLIntitule(libelle: string): keyof EmissionDuBulletin | "svtLocaux" | "svtReseau" | undefined {
+  /**
+   * LES MOTS SONT COUPÉS, ET ON TESTE DONC SANS LES ESPACES.
+   *
+   * La mise en page coupe « remboursement » en « rem boursement »,
+   * « adjudication » en « adju dication », « implantés » en « im plantés ».
+   * Un motif qui attend le mot entier manque la moitié des rangées, et le
+   * tableau sort sans dates.
+   */
+  const f = phrase(libelle).replace(/\s+/g, "");
+  /* LE TAUX DE SOUSCRIPTION PARLE DU MONTANT MIS EN ADJUDICATION, et se
+     faisait prendre pour lui : son intitulé entier est « Taux de
+     Souscription (en % du montant mis en adjudication) ». Il passe donc
+     AVANT, comme tout intitulé qui contient le nom d'un autre. */
+  if (/taux/.test(f) && /(souscription|couverture)/.test(f)) return "couverture";
+  if (/taux/.test(f) && /pondere/.test(f)) return "taux";
+  if (/souscrits/.test(f) && /autres/.test(f)) return "svtReseau";
+  if (/souscrits/.test(f) && /(implantes|dupaysemetteur)/.test(f)) return "svtLocaux";
+  if (/code/.test(f) && /(emission|identif)/.test(f)) return "isin";
+  if (/maturite/.test(f)) return "tenor";
+  if (/date/.test(f) && /adjudication/.test(f)) return "adjugeLe";
+  if (/date/.test(f) && /reglement/.test(f)) return "regleLe";
+  if (/date/.test(f) && /(remboursement|echeance)/.test(f)) return "echeanceLe";
+  if (/date/.test(f) && /emission/.test(f)) return "emisLe";
+  if (/montant/.test(f) && /leve/.test(f)) return "leve";
+  if (/montant/.test(f) && /(misen|adjudi)/.test(f)) return "offert";
+  if (/^pays$/.test(f)) return "pays";
+  return undefined;
+}
+
+export function emissionsDuBulletin(rangees: Rangee[], numero?: number): EmissionsDuBulletin {
+  const reserves: string[] = [];
+  const emissions: EmissionDuBulletin[] = [];
+
+  /* Les pages qui portent un tableau d'émissions, et l'instrument de chacune.
+     Un tableau tient sur une ou deux pages : la seconde n'a pas d'intitulé,
+     elle se reconnaît à ce qu'elle reprend les mêmes rangées d'attributs. */
+  const pages = new Map<number, "BTA" | "OTA">();
+  for (const r of rangees) {
+    if (estSommaire(r)) continue;
+    const m = phrase(texteDe(r)).match(/^tableau\s*n?.?\s*\d+\s*:?\s*emissions? d(?:es|e| )\s*(bta|ota)/);
+    if (m) pages.set(r.page, m[1].toUpperCase() as "BTA" | "OTA");
+  }
+  if (!pages.size) return { numero, emissions, reserves: ["aucun tableau d'émissions dans ce bulletin"] };
+
+  /* La page qui suit immédiatement un tableau et qui n'a pas d'intitulé à
+     elle appartient au même tableau quand elle porte les mêmes attributs. */
+  const attributsDe = (p: number) =>
+    new Set(
+      rangees
+        .filter((r) => r.page === p)
+        .map((r) => champDeLIntitule(texteDe(r)))
+        .filter(Boolean),
+    );
+  for (const [p, instr] of [...pages]) {
+    const suivante = p + 1;
+    if (pages.has(suivante)) continue;
+    if (attributsDe(suivante).size >= 4) pages.set(suivante, instr);
+  }
+
+  for (const [page, instrument] of [...pages].sort((a, b) => a[0] - b[0])) {
+    const sur = rangees.filter((r) => r.page === page);
+    /* Les rangées de valeurs, et pour chacune l'intitulé qui la nomme. */
+    interface Att {
+      champ: keyof EmissionDuBulletin;
+      cellules: { x: number; texte: string }[];
+    }
+    /**
+     * CHAQUE MORCEAU D'INTITULÉ VA À LA RANGÉE DE VALEURS LA PLUS PROCHE.
+     *
+     * Une fenêtre de hauteur fixe ne tient pas : dans le numéro 18 l'intitulé
+     * est sur la ligne de ses valeurs, dans le numéro 14 il est à vingt-quatre
+     * points de là, en quatre morceaux étagés. Mais un morceau appartient
+     * toujours à la rangée dont il est le plus proche, et cette règle-là ne
+     * dépend d'aucune mise en page.
+     */
+    const rangeesDeValeurs = sur
+      .map((r) => ({ r, valeurs: r.cellules.filter((c) => estValeur(c.texte)) }))
+      .filter((x) => x.valeurs.length >= 2);
+    const morceauxPar = new Map<number, string[]>();
+    for (const v of sur) {
+      /* L'INTITULÉ DU TABLEAU N'EST PAS CELUI D'UNE RANGÉE : il passe à
+         portée de la rangée des codes et s'y collait. */
+      if (/^tableau\s/.test(phrase(texteDe(v)))) continue;
+      for (const c of v.cellules) {
+        if (estValeur(c.texte)) continue;
+        let best: { r: Rangee; valeurs: typeof v.cellules } | undefined;
+        for (const cand of rangeesDeValeurs) if (!best || Math.abs(cand.r.y - v.y) < Math.abs(best.r.y - v.y)) best = cand;
+        if (!best) continue;
+        morceauxPar.set(best.r.y, [...(morceauxPar.get(best.r.y) ?? []), c.texte]);
+      }
+    }
+    const atts: Att[] = [];
+    for (const { r, valeurs } of rangeesDeValeurs) {
+      const champ = champDeLIntitule((morceauxPar.get(r.y) ?? []).join(" "));
+      if (!champ) continue;
+      atts.push({ champ: champ as keyof EmissionDuBulletin, cellules: valeurs.map((c) => ({ x: c.x, texte: c.texte.trim() })) });
+    }
+    if (atts.length < 4) continue;
+
+    const grille = grilleDesColonnes(atts.flatMap((a) => a.cellules.map((c) => c.x)));
+    const colonne = (x: number) => {
+      let best = 0;
+      for (let i = 1; i < grille.length; i++) if (Math.abs(grille[i] - x) < Math.abs(grille[best] - x)) best = i;
+      return Math.abs(grille[best] - x) <= 6 ? best : -1;
+    };
+
+    const parColonne = new Map<number, Record<string, string>>();
+    for (const a of atts) {
+      for (const c of a.cellules) {
+        const k = colonne(c.x);
+        if (k < 0) continue;
+        const d = parColonne.get(k) ?? {};
+        /* Deux valeurs pour une même case : la première imprimée fait foi, et
+           on ne silencieusement n'en écrase aucune. */
+        if (d[a.champ] == null) d[a.champ] = c.texte;
+        parColonne.set(k, d);
+      }
+    }
+
+    /* Le pays n'est pas toujours une rangée nommée « Pays » : il est alors la
+       seule cellule d'une colonne qui se lit comme un nom de pays. */
+    for (const r of sur) {
+      for (const c of r.cellules) {
+        if (!PAYS_CELLULE.test(phrase(c.texte))) continue;
+        const k = colonne(c.x);
+        if (k < 0) continue;
+        const d = parColonne.get(k) ?? {};
+        if (d.pays == null) d.pays = c.texte.trim();
+        parColonne.set(k, d);
+      }
+    }
+
+    const iso = (s?: string) => {
+      const m = s?.trim().match(DATE);
+      return m ? `${m[3]}-${m[2]}-${m[1]}` : undefined;
+    };
+    const mds = (s?: string) => {
+      const n = s == null ? undefined : montant(s);
+      /* LES MONTANTS SONT IMPRIMÉS EN MILLIONS, l'intitulé le dit. */
+      return n == null ? undefined : n * 1e6;
+    };
+    let totaux = 0;
+    for (const [, d] of [...parColonne].sort((a, b) => a[0] - b[0])) {
+      if (!d.isin && !d.leve && !d.taux) continue;
+      if (d.pays && /^total d/.test(phrase(d.pays))) {
+        totaux++;
+        continue;
+      }
+      emissions.push({
+        pays: d.pays ? paysDeLIntitule(d.pays) ?? d.pays : undefined,
+        isin: d.isin,
+        instrument,
+        tenor: d.tenor,
+        adjugeLe: iso(d.adjugeLe),
+        regleLe: iso(d.regleLe),
+        echeanceLe: iso(d.echeanceLe),
+        emisLe: iso(d.emisLe),
+        offert: mds(d.offert),
+        leve: mds(d.leve),
+        taux: d.taux == null ? undefined : montant(d.taux),
+        couverture: d.couverture == null ? undefined : montant(d.couverture),
+        svtLocaux: mds(d.svtLocaux),
+        svtReseau: mds(d.svtReseau),
+      });
+    }
+    if (totaux) reserves.push(`page ${page} : ${totaux} colonne(s) de total écartée(s)`);
+  }
+
+  /**
+   * ON NE GARDE QUE CE QUI SE TIENT, ET ON DIT CE QU'ON JETTE.
+   *
+   * Le lecteur transposé convient aux bulletins à partir du numéro 9 ; les
+   * premiers impriment le même tableau à plat, une adjudication par rangée,
+   * et forcés dans une grille de colonnes ils rendent des codes tronqués et
+   * des taux à 9 720 %. Plutôt que d'écrire un second lecteur pour six
+   * bulletins, on pose une barrière que la donnée doit franchir :
+   *
+   *   un pays, au moins une date, un montant levé, et un taux moyen pondéré
+   *   dans la plage où un Trésor de la zone s'est déjà financé.
+   *
+   * Ce qui ne la franchit pas est COMPTÉ, pas corrigé : un tableau qu'on ne
+   * sait pas lire doit se voir dans les remarques, pas se deviner dans les
+   * chiffres.
+   */
+  const tient = (e: EmissionDuBulletin) =>
+    Boolean(e.pays) &&
+    Boolean(e.adjugeLe ?? e.emisLe ?? e.regleLe) &&
+    e.leve != null &&
+    e.leve > 0 &&
+    e.taux != null &&
+    e.taux >= 1 &&
+    e.taux <= 20 &&
+    (e.couverture == null || (e.couverture > 0 && e.couverture <= 1000));
+  const retenues = emissions.filter(tient);
+  const jetees = emissions.length - retenues.length;
+  if (jetees) reserves.push(`${jetees} colonne(s) sur ${emissions.length} écartée(s) : pays, date, montant ou taux manquant ou invraisemblable`);
+
+  /**
+   * CE QUE LE TABLEAU VÉRIFIE DE LUI-MÊME : les montants souscrits par les
+   * SVT du pays et par ceux du réseau font le montant levé.
+   */
+  let faux = 0;
+  let verifies = 0;
+  for (const e of retenues) {
+    if (e.svtLocaux == null || e.svtReseau == null || e.leve == null) continue;
+    verifies++;
+    if (Math.abs(e.svtLocaux + e.svtReseau - e.leve) > 1e6) faux++;
+  }
+  if (verifies) reserves.push(`${verifies - faux}/${verifies} retenue(s) où la répartition par SVT fait bien le montant levé`);
+
+  return { numero, emissions: retenues, reserves };
+}
+
+export async function emissionsDuPdf(bytes: Uint8Array, titre = ""): Promise<EmissionsDuBulletin> {
+  const rangees = await rangeesDuPdf(bytes);
+  return emissionsDuBulletin(rangees, numeroDuBulletin(titre));
+}

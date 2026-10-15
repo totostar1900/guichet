@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dateDeLIntitule, encoursDuBulletin, instrumentDeLIsin, montant, numeroDuBulletin, paysDeLIntitule } from "@/lib/market/bulletin-trimestriel";
+import { champDeLIntitule, dateDeLIntitule, emissionsDuBulletin, encoursDuBulletin, instrumentDeLIsin, montant, numeroDuBulletin, paysDeLIntitule } from "@/lib/market/bulletin-trimestriel";
 import type { Rangee } from "@/lib/market/boc-geometrie";
 
 /**
@@ -190,5 +190,95 @@ describe("le registre de l'encours", () => {
     const e = encoursDuBulletin(rangees, 14);
     expect(e.lignes[0].encours).toBe(6642000000);
     expect(e.reserves.join(" ")).toContain("1 ligne(s) où le nombre de titres multiplié par la valeur faciale ne fait pas l'encours");
+  });
+});
+
+/**
+ * LE TABLEAU DES ÉMISSIONS, QUI EST TRANSPOSÉ.
+ *
+ * Chaque adjudication y est une colonne et chaque attribut une rangée. Les
+ * intitulés arrivent coupés par la mise en page, et c'est par leurs mots
+ * qu'on les reconnaît, jamais par leur phrase.
+ */
+describe("l'intitulé d'une rangée du tableau des émissions", () => {
+  it("RECONNAÎT UN MOT COUPÉ EN DEUX", () => {
+    /* « remboursement » arrive en « rem boursement », « adjudication » en
+       « adju dication », « implantés » en « im plantés ». */
+    expect(champDeLIntitule("Date de rem boursement")).toBe("echeanceLe");
+    expect(champDeLIntitule("Date d'adju dication")).toBe("adjugeLe");
+    expect(champDeLIntitule("Montants souscrits par les SVT im plantés dans le pays émetteur")).toBe("svtLocaux");
+  });
+
+  it("NE PREND PAS LE TAUX DE SOUSCRIPTION POUR LE MONTANT OFFERT", () => {
+    /* Son intitulé entier est « Taux de Souscription (en % du montant mis en
+       adjudication) » : il contient le nom de l'autre, et passe donc avant. */
+    expect(champDeLIntitule("Taux de Sous cription (en % du montant mis en adjudi cation)")).toBe("couverture");
+    expect(champDeLIntitule("Montant mis en adjudica tion (en millions de FCFA)")).toBe("offert");
+  });
+
+  it("distingue les deux rangées de montants souscrits", () => {
+    expect(champDeLIntitule("Montants souscrits par les autres SVT du réseau du pays émetteur")).toBe("svtReseau");
+    expect(champDeLIntitule("Montant levé (en millions de FCFA)")).toBe("leve");
+    expect(champDeLIntitule("Taux Moyen Pondéré (en %)")).toBe("taux");
+    expect(champDeLIntitule("Code émission")).toBe("isin");
+    expect(champDeLIntitule("Maturité")).toBe("tenor");
+    expect(champDeLIntitule("Pays")).toBe("pays");
+  });
+
+  it("ne nomme pas ce qu'il ne reconnaît pas", () => {
+    expect(champDeLIntitule("Source : CRCT/BEAC")).toBeUndefined();
+    expect(champDeLIntitule("")).toBeUndefined();
+  });
+});
+
+describe("les émissions retenues, et celles qu'on écarte", () => {
+  /* Deux colonnes au moins : une rangee a une seule valeur n est pas un
+     tableau, et le lecteur ne la prend pas pour tel. */
+  const deuxColonnes = (page: number, valeurs: [string, string, string][]): Rangee[] =>
+    valeurs.map(([libelle, a, b]) =>
+      r(page, [
+        [60, 150, libelle],
+        [172, 240, a],
+        [260, 330, b],
+      ]),
+    );
+
+  it("lit une colonne entière et convertit les millions en francs", () => {
+    y = 800;
+    const rangees: Rangee[] = [
+      titre(22, "Tableau 1 : Émissions des BTA réalisées par les Trésors publics de la CEMAC au cours du deuxième trimestre 2022"),
+      ...deuxColonnes(22, [
+        ["Pays", "Cameroun", "Congo"],
+        ["Code émission", "CM1200001152", "CG1200000632"],
+        ["Maturité", "26 semaines", "26 semaines"],
+        ["Date d'adju dication", "20/06/2022", "12/04/2022"],
+        ["Montant levé (en millions de FCFA)", "10 000", "7 795"],
+        ["Taux Moyen Pondéré (en %)", "2,54", "6,89"],
+      ]),
+    ];
+    const e = emissionsDuBulletin(rangees, 18);
+    expect(e.emissions).toHaveLength(2);
+    expect(e.emissions[0]).toMatchObject({ pays: "Cameroun", isin: "CM1200001152", instrument: "BTA", tenor: "26 semaines", adjugeLe: "2022-06-20", leve: 10_000_000_000, taux: 2.54 });
+  });
+
+  it("ÉCARTE UNE COLONNE QUE LA GRILLE A MAL DÉCOUPÉE, et la compte", () => {
+    /* Les six premiers bulletins impriment le même tableau à plat, une
+       adjudication par rangée : forcés dans une grille de colonnes, ils
+       rendent des codes tronqués et des taux à 9 720 %. On ne corrige pas,
+       on écarte et on dit combien. */
+    y = 800;
+    const rangees: Rangee[] = [
+      titre(22, "Tableau 1 : Émissions des BTA réalisées par les Trésors publics de la CEMAC"),
+      ...deuxColonnes(22, [
+        ["Pays", "Gabon", "Gabon"],
+        ["Code émission", "GA1200001210", "GA1200001228"],
+        ["Date d'adju dication", "20/06/2022", "21/06/2022"],
+        ["Montant levé (en millions de FCFA)", "10 000", "10 000"],
+        ["Taux Moyen Pondéré (en %)", "9 720", "8 410"],
+      ]),
+    ];
+    const e = emissionsDuBulletin(rangees, 18);
+    expect(e.emissions).toHaveLength(0);
+    expect(e.reserves.join(" ")).toContain("2 colonne(s) sur 2 écartée(s)");
   });
 });
