@@ -22,7 +22,7 @@ import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } fr
 import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
 import type { ObservationBeac } from "@/lib/market/beac-journal";
 import type { EncoursDette } from "@/lib/market/encours-dette";
-import type { CoutDesRessources, EncoursOfficiel, OperationDuTresor, PointCourbeBeac } from "./repository";
+import type { ComptesEmetteur, CoutDesRessources, EncoursOfficiel, OperationDuTresor, PointCourbeBeac } from "./repository";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { BeacCurveRow } from "./repository";
@@ -275,6 +275,7 @@ interface Store {
   courbesBeac?: PointCourbeBeac[];
   encoursOfficiel?: EncoursOfficiel[];
   coutDesRessources?: CoutDesRessources[];
+  comptesDesEmetteurs?: ComptesEmetteur[];
   quotes: Quote[];
   fundNavs: FundNav[];
   issuerDocs: IssuerDocument[];
@@ -1339,6 +1340,9 @@ export const memoryRepository: Repository = {
   },
   async coutDesRessources() {
     return structuredClone(store().coutDesRessources ?? []);
+  },
+  async comptesDesEmetteurs() {
+    return structuredClone(store().comptesDesEmetteurs ?? []);
   },
   async encoursDette(sessionDate) {
     const lignes = store().encoursDette ?? [];

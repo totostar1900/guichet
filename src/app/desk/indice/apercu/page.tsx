@@ -3,6 +3,7 @@ import { IndiceBody } from "@/app/indice/IndiceBody";
 import { SanteIndice } from "@/components/desk/SanteIndice";
 import { requireDesk } from "@/lib/auth";
 import { indexPageData } from "@/lib/market/index-data";
+import { repo } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "L'indice" };
@@ -21,7 +22,7 @@ export const metadata = { title: "L'indice" };
  */
 export default async function DeskIndicePage({ searchParams }: { searchParams: Promise<{ toutes?: string; societe?: string; page?: string }> }) {
   await requireDesk("/desk/indice/apercu");
-  const data = await indexPageData();
+  const [data, comptes] = await Promise.all([indexPageData(), repo().comptesDesEmetteurs()]);
   return (
     <>
       <DeskNav current="/desk/indice/apercu" />
@@ -33,6 +34,7 @@ export default async function DeskIndicePage({ searchParams }: { searchParams: P
           /* LE MNEMO VOYAGE AVEC L HISTORIQUE : sans lui, le betâ n a pas de nom
              et deux dividendes de societes differentes se confondent. */
           histoires={data.histories.map(({ w, quotes }) => ({ mnemo: w.mnemo, quotes }))}
+          comptes={comptes}
         />
       </div>
     </>

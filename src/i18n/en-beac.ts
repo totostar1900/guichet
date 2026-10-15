@@ -184,9 +184,6 @@ export const EN_BEAC: Record<string, string> = {
   "La bande ci-dessus montre la capitalisation totale. Sur le flottant coté, les trois premiers pèsent {f} au lieu de {p} : l'indice officiel décrit la taille des sociétés, pas ce qu'un investisseur peut acheter.":
     "The band above shows total capitalisation. On the listed float the top three weigh {f} instead of {p}: the official index describes company size, not what an investor can buy.",
   "Trois mesures manquent, et deux ne peuvent pas exister ici.": "Three measures are missing, and two cannot exist here.",
-  "Le ratio cours sur bénéfice attend la lecture des états financiers des émetteurs : la colonne du bénéfice par action est vide sur toutes les lignes du bulletin. Un indice de volatilité implicite est impossible faute de marché d'options dans la zone, et l'écart de réplication n'a pas d'objet tant qu'aucun fonds ne réplique l'indice.":
-    "The price-to-earnings ratio awaits the reading of issuers' financial statements: the earnings-per-share column is empty on every line of the bulletin. An implied volatility index is impossible without an options market in the zone, and tracking error has no object as long as no fund replicates the index.",
-  "Une mesure manque, et deux ne peuvent pas exister ici.": "One measure is missing, and two cannot exist here.",
   "rendu dividendes compris": "return with dividends",
   "Contre {p} pour le prix seul, sur {n} détachement(s) lus. L'indice officiel ignore ce que les sociétés versent.":
     "Against {p} for price alone, over {n} detachment(s) read. The official index ignores what companies pay out.",
@@ -199,4 +196,13 @@ export const EN_BEAC: Record<string, string> = {
   "Un bêta proche de zéro peut être de l'immobilité, pas de la stabilité.": "A beta near zero can be stillness, not stability.",
   "Il est calculé au pas mensuel, parce qu'au jour le jour une valeur qui ne s'échange pas rendrait zéro et dirait l'inverse de la vérité. La colonne des mois où le cours bouge dit si le chiffre veut dire quelque chose.":
     "It is computed monthly, because daily a share that does not trade would return zero and state the opposite of the truth. The column of months where the price moves says whether the figure means anything.",
+  "Deux mesures ne peuvent pas exister ici.": "Two measures cannot exist here.",
+  "Un indice de volatilité implicite est impossible faute de marché d'options dans la zone, et l'écart de réplication n'a pas d'objet tant qu'aucun fonds ne réplique l'indice. Le ratio cours sur bénéfice, lui, est désormais calculé : il sort de la lecture des quarante-huit états financiers des émetteurs, la colonne du bulletin étant vide sur toutes ses lignes.":
+    "An implied volatility index is impossible without an options market in the zone, and tracking error has no object as long as no fund replicates the index. The price-to-earnings ratio, on the other hand, is now computed: it comes from reading the forty-eight issuer financial statements, the bulletin column being empty on every one of its lines.",
+  "cours sur bénéfice de la cote": "price to earnings of the market",
+  "Capitalisations et résultats additionnés, sur {n} valeur(s) de {tous}. Exercice(s) {e}.": "Capitalisations and earnings added, on {n} share(s) of {tous}. Financial year(s) {e}.",
+  "Cours / bénéfice": "Price / earnings",
+  "Rentabilité des fonds propres": "Return on equity",
+  "Croissance du bénéfice": "Earnings growth",
+  "Exercice": "Financial year",
 };

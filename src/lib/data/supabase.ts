@@ -21,7 +21,7 @@ import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/l
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
-import { makeMandatRef, makeOrderNo, makeRef, makeTirageRef, type CoutDesRessources, type EncoursOfficiel, type OperationDuTresor, type PointCourbeBeac, type Repository } from "./repository";
+import { makeMandatRef, makeOrderNo, makeRef, makeTirageRef, type ComptesEmetteur, type CoutDesRessources, type EncoursOfficiel, type OperationDuTresor, type PointCourbeBeac, type Repository } from "./repository";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
 import type { VirementRecu } from "@/lib/domain/virement";
 import type { RemiseDePrelevement, Tirage } from "@/lib/domain/prelevement";
@@ -2418,6 +2418,31 @@ export const supabaseRepository: Repository = {
       if (lot.length < 1000) break;
     }
     return out;
+  },
+  async comptesDesEmetteurs() {
+    const { data, error } = await db()
+      .from("issuer_financials")
+      .select("document_id, mnemo, exercice, referentiel, periode, resultat_net, resultat_net_precedent, capitaux_propres, chiffre_affaires, nombre_actions, resultat_par_action, remarques, source_titre, file_key, confirme_par")
+      .order("mnemo")
+      .order("exercice", { ascending: false });
+    if (error) fail("comptesDesEmetteurs", error);
+    return (data as Record<string, unknown>[]).map((x) => ({
+      documentId: x.document_id as string,
+      mnemo: x.mnemo as string,
+      exercice: x.exercice == null ? undefined : Number(x.exercice),
+      referentiel: x.referentiel as string,
+      periode: u(x.periode as string | null),
+      resultatNet: nn(x.resultat_net as string | null),
+      resultatNetPrecedent: nn(x.resultat_net_precedent as string | null),
+      capitauxPropres: nn(x.capitaux_propres as string | null),
+      chiffreAffaires: nn(x.chiffre_affaires as string | null),
+      nombreActions: nn(x.nombre_actions as string | null),
+      resultatParAction: nn(x.resultat_par_action as string | null),
+      remarques: u(x.remarques as string | null),
+      sourceTitre: u(x.source_titre as string | null),
+      fileKey: u(x.file_key as string | null),
+      confirmePar: u(x.confirme_par as string | null),
+    }));
   },
   async encoursDette(sessionDate) {
     /* SANS SÉANCE DEMANDÉE, ON REND LA DERNIÈRE QUI EN PORTE UN, et non celle

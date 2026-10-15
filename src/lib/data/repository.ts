@@ -61,6 +61,33 @@ export interface OperationDuTresor {
   sourceUrl: string;
 }
 
+/**
+ * Les six chiffres lus dans les états financiers d'un émetteur coté.
+ *
+ * LES MONTANTS SONT EN FRANCS : l'unité imprimée par la pièce est gardée à
+ * part, mais les colonnes sont converties, sans quoi un millier et un million
+ * se compareraient.
+ */
+export interface ComptesEmetteur {
+  documentId: string;
+  mnemo: string;
+  exercice?: number;
+  referentiel: string;
+  /** « annuel » ou « semestriel ». Un résultat de six mois n'est pas un exercice. */
+  periode?: string;
+  resultatNet?: number;
+  resultatNetPrecedent?: number;
+  capitauxPropres?: number;
+  chiffreAffaires?: number;
+  nombreActions?: number;
+  /** Seulement s'il est imprimé : jamais calculé. */
+  resultatParAction?: number;
+  remarques?: string;
+  sourceTitre?: string;
+  fileKey?: string;
+  confirmePar?: string;
+}
+
 /** Un point de la courbe que la BEAC publie en dessin, relevé dans son PDF. */
 export interface PointCourbeBeac {
   /** Le premier du mois de la courbe. */
@@ -461,6 +488,8 @@ export interface Repository {
   courbesBeac(): Promise<PointCourbeBeac[]>;
   encoursOfficiel(): Promise<EncoursOfficiel[]>;
   coutDesRessources(): Promise<CoutDesRessources[]>;
+  /** Les comptes lus dans les états financiers des émetteurs cotés. */
+  comptesDesEmetteurs(): Promise<ComptesEmetteur[]>;
   /** Les relevés d encours attendus et manquants, comptés en base. */
   trousDeLEncours(): Promise<{ manquants: number; attendus: number; seances: number }>;
   /**

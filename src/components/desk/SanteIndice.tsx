@@ -1,6 +1,7 @@
 import { fmtDate, fmtPct } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import { santeIndice, type CotationLue, type PoidsValeur, type PointIndice, type Ponderation } from "@/lib/market/sante-indice";
+import { coursSurBenefice, peDEnsemble, type ComptesLus } from "@/lib/market/cours-sur-benefice";
 import styles from "./SanteIndice.module.css";
 
 /**
@@ -23,10 +24,12 @@ export async function SanteIndice({
   points,
   poids,
   histoires,
+  comptes = [],
 }: {
   points: PointIndice[];
   poids: PoidsValeur[];
-  histoires: { quotes: CotationLue[] }[];
+  histoires: { mnemo?: string; quotes: CotationLue[] }[];
+  comptes?: ComptesLus[];
 }) {
   const t = await getT();
   const vues: Ponderation[] = ["total", "flottant"];
@@ -35,7 +38,14 @@ export async function SanteIndice({
   if (!s.niveaux.points) return null;
 
   const pct = (v: number | undefined, d = 1) => (v == null ? "—" : fmtPct(v, d));
+  const nombre = (v: number | undefined, d = 1) => (v == null || !Number.isFinite(v) ? "—" : v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d }));
   const part = (n: number, sur: number) => (sur ? fmtPct((100 * n) / sur, 1) : "—");
+
+  /* LE RATIO COURS SUR BÉNÉFICE, débloqué le 15 octobre 2026 par la lecture
+     des quarante-huit états financiers : la colonne du bulletin est vide sur
+     les 4 995 lignes d'actions. */
+  const pes = coursSurBenefice(comptes, poids.map((x) => ({ mnemo: x.mnemo, close: x.close, capTotal: x.capTotal })));
+  const ens = peDEnsemble(pes);
 
   const cartes = [
     {
@@ -58,6 +68,15 @@ export async function SanteIndice({
       s: t("de niveaux distincts dans l'indice"),
       e: t("{d} valeurs différentes sur {p} séances : le reste reporte le niveau de la veille.", { d: s.niveaux.distincts, p: s.niveaux.points }),
       alerte: true,
+    },
+    {
+      b: ens.pe == null ? "—" : `× ${nombre(ens.pe, 1)}`,
+      s: t("cours sur bénéfice de la cote"),
+      e: t("Capitalisations et résultats additionnés, sur {n} valeur(s) de {tous}. Exercice(s) {e}.", {
+        n: ens.comptees,
+        tous: ens.total,
+        e: ens.exercices.join(", ") || "—",
+      }),
     },
     {
       b: pct(s.rendement.pct, 2),
@@ -125,6 +144,10 @@ export async function SanteIndice({
           <thead>
             <tr>
               <th>{t("Valeur")}</th>
+              <th className={styles.num}>{t("Cours / bénéfice")}</th>
+              <th className={styles.num}>{t("Rentabilité des fonds propres")}</th>
+              <th className={styles.num}>{t("Croissance du bénéfice")}</th>
+              <th className={styles.num}>{t("Exercice")}</th>
               <th className={styles.num}>{t("Bêta mensuel")}</th>
               <th className={styles.num}>{t("Mois comparés")}</th>
               <th className={styles.num}>{t("Mois où elle bouge")}</th>
@@ -133,10 +156,21 @@ export async function SanteIndice({
             </tr>
           </thead>
           <tbody>
-            {s.betas.map((b) => (
+            {s.betas.map((b) => {
+              const e = pes.find((x) => x.mnemo === b.mnemo);
+              return (
               <tr key={b.mnemo}>
                 <td>
                   <b>{b.mnemo}</b>
+                </td>
+                <td className={styles.num} title={e?.reserve}>
+                  {e?.pe == null ? "—" : `× ${nombre(e.pe, 1)}`}
+                </td>
+                <td className={styles.num}>{e?.rendementDesFondsPropres == null ? "—" : pct(e.rendementDesFondsPropres, 1)}</td>
+                <td className={styles.num}>{e?.croissance == null ? "—" : `${e.croissance > 0 ? "+" : ""}${pct(e.croissance, 0)}`}</td>
+                <td className={styles.num}>
+                  {e?.exercice ?? "—"}
+                  {e?.referentiel && e.referentiel !== "OHADA" ? ` · ${e.referentiel}` : ""}
                 </td>
                 <td className={styles.num}>{b.beta == null ? "—" : b.beta.toFixed(2).replace(".", ",")}</td>
                 <td className={styles.num}>{b.mois}</td>
@@ -144,7 +178,8 @@ export async function SanteIndice({
                 <td className={styles.num}>{b.hausses}</td>
                 <td className={styles.num}>{b.baisses}</td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -155,9 +190,9 @@ export async function SanteIndice({
         )}
       </p>
       <p className={styles.manque}>
-        <b>{t("Une mesure manque, et deux ne peuvent pas exister ici.")}</b>{" "}
+        <b>{t("Deux mesures ne peuvent pas exister ici.")}</b>{" "}
         {t(
-          "Le ratio cours sur bénéfice attend la lecture des états financiers des émetteurs : la colonne du bénéfice par action est vide sur toutes les lignes du bulletin. Un indice de volatilité implicite est impossible faute de marché d'options dans la zone, et l'écart de réplication n'a pas d'objet tant qu'aucun fonds ne réplique l'indice.",
+          "Un indice de volatilité implicite est impossible faute de marché d'options dans la zone, et l'écart de réplication n'a pas d'objet tant qu'aucun fonds ne réplique l'indice. Le ratio cours sur bénéfice, lui, est désormais calculé : il sort de la lecture des quarante-huit états financiers des émetteurs, la colonne du bulletin étant vide sur toutes ses lignes.",
         )}
       </p>
     </section>
