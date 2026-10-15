@@ -2654,7 +2654,23 @@ export const supabaseRepository: Repository = {
     //
     // Un champ vide ne remplace donc jamais un champ rempli : le robot ajoute ce
     // qu'il a, il ne retire pas ce qu'il n'a pas.
-    const { data: kept } = await db().from("auction_results").select("confirmed_by, confirmed_at, file_key").eq("source_url", r.sourceUrl).maybeSingle();
+    /**
+     * LA CLEF D UNE SEANCE N EST PAS L ADRESSE DE SA PIECE.
+     *
+     * La BEAC publie la meme seance deux fois, en francais et en traduction :
+     * se clore sur `source_url` en faisait deux lignes, et trente-huit
+     * seances ont compte double le 15 octobre 2026. Ce qui identifie une
+     * seance est le Tresor, le jour, et la ligne ouverte (migration 0108).
+     *
+     * SANS CODE, ON RETOMBE SUR L ADRESSE : six communiques n en impriment
+     * pas, et deux seances sans code le meme jour ne sont pas la meme, le
+     * Gabon ayant adjuge un BTA et un OTA le 12 juin 2019.
+     */
+    const parSeance = r.codeEmission ? { country: r.country, session_on: r.sessionOn, code_emission: r.codeEmission } : undefined;
+    const ancienne = parSeance
+      ? await db().from("auction_results").select("confirmed_by, confirmed_at, file_key").match(parSeance).maybeSingle()
+      : await db().from("auction_results").select("confirmed_by, confirmed_at, file_key").eq("source_url", r.sourceUrl).maybeSingle();
+    const kept = ancienne.data;
     const row = fromAuctionResult(r);
     if (kept?.confirmed_by) {
       row.confirmed_by = kept.confirmed_by;
@@ -2662,7 +2678,11 @@ export const supabaseRepository: Repository = {
     }
     if (kept?.file_key && !r.fileKey) row.file_key = kept.file_key;
     row.updated_at = new Date().toISOString();
-    const { data, error } = await db().from("auction_results").upsert(row, { onConflict: "source_url" }).select("*").single();
+    const { data, error } = await db()
+      .from("auction_results")
+      .upsert(row, { onConflict: parSeance ? "country,session_on,code_emission" : "source_url" })
+      .select("*")
+      .single();
     if (error) fail("upsertAuctionResult", error);
     return toAuctionResult(data as AuctionResultRow);
   },
