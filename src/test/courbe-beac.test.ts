@@ -56,3 +56,86 @@ describe("ce que le titre d'une courbe dit", () => {
     expect(anneesDuTenor("")).toBeUndefined();
   });
 });
+
+/**
+ * DIX « COURBES » SONT DES CLASSEURS EXCEL.
+ *
+ * De septembre 2016 à août 2017, la BEAC a publié dix feuilles sous un nom en
+ * « .pdf » dont les octets commencent par « PK ». pdfjs n'y voyait qu'une
+ * « Invalid PDF structure », et elles portent pourtant mieux que les autres :
+ * la donnée source, une feuille par pays, sans graphique à relire.
+ */
+describe("la courbe quand la pièce est un classeur", () => {
+  const classeur = async (lignes: [string, string, number][]): Promise<Uint8Array> => {
+    const ExcelJS = (await import("exceljs")).default;
+    const wb = new ExcelJS.Workbook();
+    for (const feuille of [...new Set(lignes.map((l) => l[0]))]) {
+      const ws = wb.addWorksheet(feuille);
+      ws.addRow(["Courbe des taux de rendement"]);
+      ws.addRow(["Source : BEAC"]);
+      ws.addRow(["échéance", new Date("2016-11-30")]);
+      for (const l of lignes.filter((x) => x[0] === feuille)) ws.addRow([l[1], l[2]]);
+    }
+    return new Uint8Array(await wb.xlsx.writeBuffer());
+  };
+
+  it("lit une feuille par pays, échéance par échéance", async () => {
+    const { courbesDuClasseur } = await import("@/lib/market/courbe-beac");
+    const bytes = await classeur([
+      ["Donnees Cameroun", "3 mois", 2.2020230458302597],
+      ["Donnees Cameroun", "5 ans", 7.027372658832301],
+      ["Donnees Gabon", "3 mois", 4.397268040846289],
+    ]);
+    const r = await courbesDuClasseur(bytes, "CBT Cameroun et Gabon novembre 2016");
+    expect(r.mois).toBe("2016-11");
+    expect(r.points).toHaveLength(3);
+    /* Deux décimales comme partout ailleurs : une colonne où cohabitent 2,20
+       et 2,2020230458302597 invite à des comparaisons sans objet. */
+    expect(r.points.find((p) => p.pays === "Cameroun" && p.tenor === "3 mois")?.taux).toBe(2.2);
+    expect(r.points.find((p) => p.pays === "Cameroun" && p.tenor === "5 ans")?.annees).toBe(5);
+    expect(r.points.find((p) => p.pays === "Gabon")?.taux).toBe(4.4);
+  });
+
+  it("ÉCARTE UN TAUX QU'AUCUN TRÉSOR DE LA ZONE N'A PAYÉ, et le dit", () => {
+    /* Une feuille scannée de juillet 2018 portait un axe reconnu « 31,00
+       26,00 21,00 » là où le Gabon se finançait autour de 6 % : le point
+       sorti valait 26,27 %. Un point indéfendable vaut moins qu'un trou. */
+    return (async () => {
+      const { courbesDuClasseur } = await import("@/lib/market/courbe-beac");
+      const bytes = await classeur([
+        ["Donnees Gabon", "3 mois", 4.39],
+        ["Donnees Gabon", "5 ans", 26.27],
+        ["Donnees Gabon", "10 ans", 0.47],
+      ]);
+      const r = await courbesDuClasseur(bytes, "CBT Gabon novembre 2016");
+      expect(r.points.map((p) => p.taux)).toEqual([4.39]);
+      expect(r.reserves.join(" ")).toContain("26.27 % écarté");
+      expect(r.reserves.join(" ")).toContain("0.47 % écarté");
+    })();
+  });
+
+  it("ignore une feuille qui ne nomme aucun pays, et le dit", async () => {
+    const { courbesDuClasseur } = await import("@/lib/market/courbe-beac");
+    const bytes = await classeur([["Feuil1", "3 mois", 4.39]]);
+    const r = await courbesDuClasseur(bytes, "CBT novembre 2016");
+    expect(r.points).toHaveLength(0);
+    expect(r.reserves.join(" ")).toContain("aucune feuille de pays");
+  });
+
+  it("reconnaît un classeur à ses octets, sous un nom en « .pdf »", async () => {
+    const { courbesDuPdf } = await import("@/lib/market/courbe-beac");
+    const bytes = await classeur([["Donnees Tchad", "2 ans", 5.01]]);
+    const r = await courbesDuPdf(bytes, "CBT Cameroun, Gabon et Tchad fevrier 2017");
+    expect(r.points).toEqual([{ pays: "Tchad", tenor: "2 ans", annees: 2, taux: 5.01 }]);
+  });
+});
+
+describe("le pays, et la coquille de « Centrafrique »", () => {
+  it("reconnaît la Centrafrique, que « centrafric » ne contient pas", () => {
+    /* Le mot s'arrête à « centrafri » : le motif d'avant ne prenait que
+       l'adjectif « centrafricaine ». Même coquille qu'au lecteur des
+       communiqués. */
+    expect(paysDuTitre("Courbe de rendements des titres publics de la Centrafrique - mai 2024")).toBe("RCA");
+    expect(paysDuTitre("Courbe de rendements des titres publics centrafricains - mai 2024")).toBe("RCA");
+  });
+});

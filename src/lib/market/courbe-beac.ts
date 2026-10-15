@@ -94,8 +94,61 @@ export function paysDuTitre(titre: string): string | undefined {
   if (/congo|congolais/.test(f)) return "Congo";
   if (/tchad|tchadien/.test(f)) return "Tchad";
   if (/guinee|equatoguineen/.test(f)) return "Guinée éq.";
-  if (/centrafric/.test(f)) return "RCA";
+  /* « centrafric » n'est PAS dans « Centrafrique » : le mot s'arrête à
+     « centrafri ». Même coquille qu'au lecteur des communiqués. */
+  if (/centrafri|\brca\b/.test(f)) return "RCA";
   return undefined;
+}
+
+/**
+ * DIX « COURBES » NE SONT PAS DES PDF, CE SONT DES CLASSEURS EXCEL.
+ *
+ * La BEAC a publié, de septembre 2016 à août 2017, dix feuilles sous un nom
+ * en « .pdf » dont les octets commencent par « PK » : ce sont des classeurs,
+ * et pdfjs n'y voyait qu'une « Invalid PDF structure ». Ils portent mieux que
+ * les autres : la DONNÉE SOURCE, une feuille par pays, échéance par échéance,
+ * sans graphique à relire.
+ *
+ * On arrondit à deux décimales comme partout ailleurs : la BEAC publie ses
+ * courbes à deux décimales, et une colonne où cohabitent 2,20 et
+ * 2,2020230458302597 invite à des comparaisons qui n'ont pas de sens.
+ */
+export async function courbesDuClasseur(bytes: Uint8Array, titre = ""): Promise<CourbeBeac> {
+  const mois = moisDuTitre(titre);
+  const points: PointDeCourbe[] = [];
+  const reserves: string[] = [];
+  let wb;
+  try {
+    const ExcelJS = (await import("exceljs")).default;
+    wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(Buffer.from(bytes) as unknown as ArrayBuffer);
+  } catch (e) {
+    return { mois, points: [], legende: [], controle: { compares: 0, ecartMax: 0 }, reserves: [`classeur illisible : ${e instanceof Error ? e.message : "erreur"}`] };
+  }
+  const legende: string[] = [];
+  for (const ws of wb.worksheets) {
+    const pays = paysDuTitre(ws.name);
+    if (!pays || pays === "CEMAC") continue;
+    legende.push(ws.name);
+    let lues = 0;
+    ws.eachRow({ includeEmpty: false }, (row) => {
+      const tenor = String(row.getCell(1).value ?? "").trim();
+      const annees = anneesDuTenor(tenor);
+      if (annees == null) return;
+      const brut = row.getCell(2).value;
+      const v = typeof brut === "number" ? brut : typeof brut === "object" && brut && "result" in brut ? Number((brut as { result: unknown }).result) : Number(brut);
+      if (!Number.isFinite(v)) return;
+      points.push({ pays, tenor, annees, taux: Math.round(v * 100) / 100 });
+      lues++;
+    });
+    if (!lues) reserves.push(`la feuille « ${ws.name} » ne porte aucune échéance lisible`);
+  }
+  if (!points.length) reserves.push("aucune feuille de pays dans ce classeur");
+  const tenus = points.filter((p) => p.taux >= 1 && p.taux <= 20);
+  for (const p of points) {
+    if (p.taux < 1 || p.taux > 20) reserves.push(`${p.pays} à ${p.tenor} : ${p.taux} % écarté, aucun Trésor de la zone ne s'est financé à ce prix`);
+  }
+  return { mois, points: tenus.sort((a, b) => a.pays.localeCompare(b.pays) || a.annees - b.annees), legende, controle: { compares: 0, ecartMax: 0 }, reserves };
 }
 
 /**
@@ -152,6 +205,12 @@ export async function courbesDuPdf(bytes: Uint8Array, titre = ""): Promise<Courb
   const reserves: string[] = [];
   const mois = moisDuTitre(titre);
 
+  /* UN NOM EN « .pdf » NE FAIT PAS UN PDF. Dix feuilles sont des classeurs,
+     et leurs octets le disent avant toute tentative de lecture. */
+  if (bytes.length > 4 && bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04) {
+    return courbesDuClasseur(bytes, titre);
+  }
+
   let doc;
   try {
     doc = await pdfjs.getDocument({ data: new Uint8Array(bytes), disableFontFace: true, useSystemFonts: false, isEvalSupported: false, verbosity: 0 }).promise;
@@ -171,7 +230,22 @@ export async function courbesDuPdf(bytes: Uint8Array, titre = ""): Promise<Courb
     controle.ecartMax = Math.max(controle.ecartMax, lue.controle.ecartMax);
     for (const r of lue.reserves) reserves.push(doc.numPages > 1 ? `page ${n} : ${r}` : r);
   }
-  return { mois, points, legende: legendeTotale, controle, reserves };
+  /**
+   * UN TRÉSOR DE LA ZONE NE SE FINANCE NI SOUS 1 % NI AU-DESSUS DE 20 %.
+   *
+   * Au-delà, ce n'est pas un marché, c'est une échelle mal posée. Une feuille
+   * scannée de juillet 2018 porte un axe reconnu « 31,00 26,00 21,00 6,00
+   * 1,00 » là où le Gabon se finançait autour de 6 % : la lecture de
+   * caractères a collé les chiffres, et le point sorti valait 26,27 %.
+   *
+   * ON ÉCARTE, ET ON LE DIT. Un point que personne ne peut défendre vaut
+   * moins qu'un trou, qui se voit.
+   */
+  const tenus = points.filter((p) => p.taux >= 1 && p.taux <= 20);
+  for (const p of points) {
+    if (p.taux < 1 || p.taux > 20) reserves.push(`${p.pays} à ${p.tenor} : ${p.taux} % écarté, aucun Trésor de la zone ne s'est financé à ce prix`);
+  }
+  return { mois, points: tenus, legende: legendeTotale, controle, reserves };
 }
 
 interface Mot {
@@ -232,7 +306,18 @@ async function courbesDUnePage(page: { getTextContent: () => Promise<unknown>; g
    * courbe ressemble trait pour trait à « 7,00 » sur l'axe. Les graduations,
    * elles, partagent leur abscisse ; les étiquettes de points, non.
    */
-  const nombres = mots.filter((m) => /^\d{1,2},\d{2}$/.test(m.s));
+  /**
+   * ET LA DÉCIMALE S'ÉCRIT AVEC UN POINT UNE FOIS SUR SEPT.
+   *
+   * Mesuré le 15 octobre 2026 : 37 feuilles sur 277 restaient muettes pour ce
+   * seul caractère. « 7.00 » sur l'axe n'entrait pas dans les nombres, donc
+   * l'axe n'existait pas ; le lecteur prenait alors pour échelle la colonne
+   * d'un TABLEAU ANNEXE imprimé à droite du graphique, dont les ordonnées
+   * sont des lignes de tableau et non des hauteurs, puis rejetait tous les
+   * chiffres de la courbe comme incohérents avec cette fausse échelle. Une
+   * feuille qui porte 33 nombres rendait zéro point.
+   */
+  const nombres = mots.filter((m) => /^\d{1,2}[.,]\d{2}$/.test(m.s));
   /* LA PILE TOLÈRE LA LARGEUR D'UN CHIFFRE. Les graduations sont alignées à
      DROITE : « 8,00 » commence six points plus loin que « 10,00 », et une
      tolérance trop serrée coupait l'axe en deux piles dont on ne gardait que
@@ -263,16 +348,86 @@ async function courbesDUnePage(page: { getTextContent: () => Promise<unknown>; g
   };
   const pile = [...piles].sort((a, b) => regularite(a) - regularite(b) || b.length - a.length)[0] ?? [];
   const graduations = pile.map((m) => ({ v: Number(m.s.replace(",", ".")), y: m.y })).sort((a, b) => a.v - b.v);
-  const durees = mots.filter((m) => anneesDuTenor(m.s) != null).sort((a, b) => a.x - b.x);
+  /**
+   * UNE ÉTIQUETTE DE DURÉE EST SOUVENT COUPÉE EN DEUX.
+   *
+   * « 3 mois » arrive comme « 3 » à l'abscisse 152 et « mois » à l'abscisse
+   * 161, sur la même ligne de base : testé morceau par morceau, aucun des
+   * deux n'est une durée, et la feuille entière est déclarée sans axe des
+   * durées. Mesuré le 15 octobre 2026 : dix feuilles tombaient ainsi, dont
+   * toutes les congolaises de 2021.
+   *
+   * ON NE RECOLLE QUE CE CAS-LÀ : un nombre nu, puis une unité, à moins de
+   * quarante points à sa droite et sur la même ligne. Recoller toute une
+   * ligne ferait disparaître les nombres eux-mêmes.
+   */
+  const UNITE = /^(mois|ans?|a)$/;
+  const parLigne = [...mots].sort((a, b) => b.y - a.y || a.x - b.x);
+  const recollees: Mot[] = [];
+  for (let i = 0; i < parLigne.length - 1; i++) {
+    const a = parLigne[i];
+    const b = parLigne[i + 1];
+    if (!/^\d{1,2}([,.]\d)?$/.test(a.s)) continue;
+    if (Math.abs(a.y - b.y) > 2 || b.x - a.x < 0 || b.x - a.x > 40) continue;
+    if (!UNITE.test(aplat(b.s))) continue;
+    recollees.push({ s: `${a.s} ${aplat(b.s)}`, x: a.x, y: a.y });
+  }
+  const durees = [...mots, ...recollees]
+    .filter((m) => anneesDuTenor(m.s) != null)
+    .sort((a, b) => a.x - b.x || a.y - b.y)
+    /* Une étiquette entière et sa version recollée au même endroit sont la
+       même étiquette : on n'en garde qu'une. L'ORDONNÉE COMPTE AUTANT QUE
+       L'ABSCISSE : dédupliquer sur la seule abscisse écrasait les quatorze
+       lignes d'une table annexe, qui sont par construction dans la même
+       colonne. */
+    .filter((m, i, t) => i === 0 || Math.abs(m.x - t[i - 1].x) > 2 || Math.abs(m.y - t[i - 1].y) > 2);
+
+  /**
+   * LA TABLE ANNEXE, QUI NE DOIT RIEN À LA GÉOMÉTRIE.
+   *
+   * À partir de 2022, la BEAC imprime à droite du graphique deux colonnes,
+   * « Maturités » et « Rendements » : la durée et son taux, côte à côte, sur
+   * la même ligne. C'est la donnée la plus sûre de la feuille, puisqu'elle ne
+   * demande ni échelle, ni tracé, ni appariement par la position verticale.
+   * Vingt-cinq feuilles ne portaient QUE cela, et rendaient zéro point : le
+   * lecteur cherchait des chiffres près de l'axe des durées du graphique, et
+   * la table est à six cents points de là.
+   *
+   * ON N'ACCEPTE UNE TABLE QUE SI ELLE EN EST UNE : au moins quatre lignes,
+   * chacune une durée et un nombre sur la même ligne de base, et toutes les
+   * durées dans la même colonne comme tous les nombres. Deux mots qui se
+   * croisent par hasard ne font pas quatre lignes alignées.
+   */
+  const lignesTable = [...durees]
+    .map((d) => {
+      const n = nombres.filter((m) => Math.abs(m.y - d.y) <= 2 && m.x > d.x && m.x - d.x < 220).sort((a, b) => a.x - b.x)[0];
+      return n ? { d, n } : undefined;
+    })
+    .filter((x): x is { d: Mot; n: Mot } => x != null);
+  const colonne = (v: number[]) => v.length >= 4 && Math.max(...v) - Math.min(...v) <= 24;
+  const table =
+    lignesTable.length >= 4 && colonne(lignesTable.map((l) => l.d.x)) && colonne(lignesTable.map((l) => l.n.x))
+      ? lignesTable.map((l) => ({ tenor: l.d.s, annees: anneesDuTenor(l.d.s) as number, taux: Number(l.n.s.replace(",", ".")) }))
+      : [];
+  const pointsDeTable = table.length && paysDuTitre ? table.map((t) => ({ pays: paysDuTitre, tenor: t.tenor, annees: t.annees, taux: t.taux })) : [];
+  const direLaTable = (): { points: PointDeCourbe[]; legende: string[]; controle: { compares: number; ecartMax: number }; reserves: string[] } => ({
+    points: [...pointsDeTable].sort((a, b) => a.annees - b.annees),
+    legende: [],
+    controle: { compares: 0, ecartMax: 0 },
+    reserves: [...reserves, `${table.length} valeur(s) lues dans la table « maturités / rendements » imprimée à côté du graphique`],
+  });
 
   /* DEUX CHOSES SUFFISENT, ET IL LES FAUT : une échelle verticale, et des
      durées en abscisse. La grille améliore la première, elle ne la remplace
      pas, et les traits verticaux ne servent à rien puisque les étiquettes
-     portent déjà leur abscisse. */
+     portent déjà leur abscisse.
+     SAUF QUAND LA TABLE EST LÀ : elle ne demande ni l'une ni l'autre. */
   if (graduations.length < 2) {
+    if (pointsDeTable.length) return direLaTable();
     return { points: [], legende: [], controle: { compares: 0, ecartMax: 0 }, reserves: ["pas d'échelle verticale : la pièce est un scan, ou ses graduations manquent"] };
   }
   if (durees.length < 2) {
+    if (pointsDeTable.length) return direLaTable();
     return { points: [], legende: [], controle: { compares: 0, ecartMax: 0 }, reserves: ["pas d'axe des durées : la pièce est un scan, ou ses étiquettes manquent"] };
   }
 
@@ -428,6 +583,31 @@ async function courbesDUnePage(page: { getTextContent: () => Promise<unknown>; g
    * faux et il faut le dire. Aucune autre source ne nous donne cela.
    */
   const controle: { compares: number; ecartMax: number } = { compares: 0, ecartMax: 0 };
+  /**
+   * ET LA TABLE ANNEXE EST UN TROISIÈME TÉMOIN.
+   *
+   * Quand elle est là, elle dit la même chose que le tracé par un chemin qui
+   * ne doit rien à la géométrie : on les compare, puis on garde la table, qui
+   * est écrite et dont l'appariement durée-valeur est imprimé, pas déduit.
+   * Rendre la table SANS comparer faisait perdre soixante-quinze points de
+   * vérification d'un coup.
+   */
+  if (pointsDeTable.length) {
+    for (const p of points) {
+      const t = pointsDeTable.find((x) => x.annees === p.annees);
+      if (!t) continue;
+      controle.compares++;
+      controle.ecartMax = Math.max(controle.ecartMax, Math.abs(t.taux - p.taux));
+    }
+    return {
+      ...direLaTable(),
+      controle,
+      reserves: [
+        ...direLaTable().reserves,
+        ...(controle.compares ? [`${controle.compares} de ces valeurs confirmées par le tracé, à ${controle.ecartMax.toFixed(2)} point près`] : []),
+      ],
+    };
+  }
   if (points.length && imprimes.length) {
     for (const p of points) {
       const i = imprimes.find((x) => x.annees === p.annees);
