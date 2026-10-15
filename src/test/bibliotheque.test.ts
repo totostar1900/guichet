@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { avecMarque, cheminBeac, cheminDuBulletin, cheminEmetteur, DOSSIERS, empreinteCourte, lienBibliotheque, marquesDeCollision, nomDeFichier } from "@/lib/intake/bibliotheque";
+import { avecMarque, cheminBeac, cheminDuBulletin, cheminEmetteur, DOSSIERS, empreinteCourte, familleDuTitre, lienBibliotheque, marquesDeCollision, nomDeFichier } from "@/lib/intake/bibliotheque";
 
 /**
  * LE LIEN EST DEVENU LA PIÈCE : IL NE PEUT PLUS SE TROMPER EN SILENCE.
@@ -118,5 +118,49 @@ describe("deux pièces qui réclament un seul chemin", () => {
   it("l'empreinte est stable et distincte", () => {
     expect(empreinteCourte("https://b/z.pdf")).toBe(empreinteCourte("https://b/z.pdf"));
     expect(empreinteCourte("https://b/z.pdf")).not.toBe(empreinteCourte("https://b/a.pdf"));
+  });
+});
+
+/**
+ * UNE PIÈCE APPARTIENT À CE QU'ELLE EST, PAS À LA PAGE QUI LA SERT.
+ *
+ * Mesuré le 15 octobre 2026 : la colonne de droite de la page des statistiques
+ * mensuelles sert quinze communiqués de 2019, annonces et résultats
+ * d'adjudication. Ils ont dormi sous « Statistiques mensuelles », où personne
+ * ne les aurait cherchés, parce que le ramasseur donnait à chaque pièce le
+ * genre de sa page.
+ */
+describe("la famille se lit dans le titre", () => {
+  it("reconnaît un résultat d'adjudication servi par une page de statistiques", () => {
+    const c = cheminBeac({ titre: "Communiqué des résultats d'ajudications de BTA du 5 juin 2019 - République du Gabon", genre: "statistiques", pays: "Gabon" });
+    expect(c.startsWith(DOSSIERS.beacResultats)).toBe(true);
+    expect(c).toContain("/Gabon/2019/");
+  });
+
+  it("reconnaît une annonce, en français comme en anglais", () => {
+    expect(familleDuTitre("Communiqué d'annonce d'émission de BTA du 24 juillet 2019")).toBe("annonce");
+    expect(familleDuTitre("Announcement issuance of Fungible Treasury Bills of the Republic of Cameroon")).toBe("annonce");
+    expect(familleDuTitre("Communiqué des résultats d’adjudications de BTA du 17 juillet 2019")).toBe("resultats");
+  });
+
+  it("LE MOT « RÉSULTATS » PASSE AVANT « ANNONCE », les deux figurant dans le même titre", () => {
+    /* « Communiqué des résultats de l'appel d'offres … annoncé le … » : classer
+       sur le premier mot rencontré rangerait un résultat chez les annonces. */
+    expect(familleDuTitre("Communiqué des résultats de l’annonce du 23 juillet 2019")).toBe("resultats");
+  });
+
+  it("ne réquisitionne pas ce qui n'est pas un communiqué", () => {
+    expect(familleDuTitre("Statistiques Mensuelles du Marché des valeurs du Trésor de la CEMAC - N° 60 juillet 2026")).toBe(null);
+    expect(familleDuTitre("Courbe des taux de rendement des titres publics du Gabon - juillet 2026")).toBe(null);
+    /* Un tableau de bord annonce des opérations à venir : le mot « annonce »
+       n'en fait pas un communiqué d'adjudication. */
+    expect(familleDuTitre("Tableau de bord hebdomadaire des opérations du marché des valeurs du trésor")).toBe(null);
+  });
+
+  it("garde le nom nommé quand la séance est connue, le titre entier sinon", () => {
+    const avec = cheminBeac({ titre: "Communiqué des résultats", genre: "resultats", pays: "Congo", seance: "2026-09-15", instrument: "BTA", tenor: "26 semaines" });
+    expect(avec).toContain("2026-09-15 BTA 26 semaines - resultats.pdf");
+    const sans = cheminBeac({ titre: "Communiqué des résultats d'ajudications de BTA du 5 juin 2019 - République du Congo", genre: "resultats", pays: "Congo" });
+    expect(sans).toContain("Communique des resultats d'ajudications de BTA du 5 juin 2019 - Republique du Congo.pdf");
   });
 });

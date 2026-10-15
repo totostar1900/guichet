@@ -61,9 +61,12 @@ export interface BeacAuction {
  * en capitales ; ce qui sort d'ici s'écrit d'une seule façon.
  */
 export function tenorOf(text: string): string | undefined {
-  const m = flat(text).match(/(\d+)\s*(semaines?|ans?|mois)/);
+  /* LE TRÉSOR DU CAMEROUN ÉCRIT AUSSI EN ANGLAIS, et « 13 weeks » désignait la
+     même durée que « 13 semaines » sans que le lecteur la reconnaisse. */
+  const m = flat(text).match(/(\d+)\s*(semaines?|weeks?|ans?|years?|mois|months?)/);
   if (!m) return undefined;
-  const unite = m[2].replace(/s$/, "");
+  const brute = m[2].replace(/s$/, "");
+  const unite = brute === "week" ? "semaine" : brute === "year" ? "an" : brute === "month" ? "mois" : brute;
   return `${m[1]} ${unite}${Number(m[1]) > 1 && unite !== "mois" ? "s" : ""}`;
 }
 
@@ -91,14 +94,21 @@ const mois = (m: string): string => {
   return `${m.slice(0, court)}(?:${reste.split("").map((_, i) => reste.slice(0, i + 1)).join("|")})?`;
 };
 
-/** Les pays de la zone, tels que la colonne les écrit, y compris ses coquilles. */
+/**
+ * Les pays de la zone, tels que la colonne les écrit, y compris ses coquilles.
+ *
+ * ET TELS QUE LE TITRE LES ÉCRIT EN ANGLAIS. « Republic of Cameroon » ne
+ * contenait aucune des formes attendues, et les pièces servies par la colonne
+ * de droite, qui n'ont pas de colonne « pays », se retrouvaient sans pays donc
+ * sans identité de séance.
+ */
 const COUNTRIES: [RegExp, Country][] = [
-  [/cam(e|er)oun/, "Cameroun"],
-  [/centrafric|rca/, "RCA"],
+  [/cam(e|er)oun|cameroon/, "Cameroun"],
+  [/centrafric|rca|central african/, "RCA"],
   [/congo/, "Congo"],
   [/gabon/, "Gabon"],
-  [/guinee/, "Guinée éq."],
-  [/tchad/, "Tchad"],
+  [/guinee|guinea/, "Guinée éq."],
+  [/tchad|\bchad\b/, "Tchad"],
 ];
 
 export function beacCountry(label: string): Country | undefined {
@@ -128,18 +138,107 @@ export function parseBeacRows(html: string): BeacDoc[] {
     if (!title) continue;
     out.push({ url: m[1], title, country: m[4].trim(), year: m[5].trim() });
   }
+
+  /**
+   * LA COLONNE DE DROITE N'EST PAS UN TABLEAU, ET QUINZE PIÈCES Y DORMAIENT.
+   *
+   * Sous le tableau paginé, la page sert une liste « DOCUMENTS » : quinze
+   * communiqués de 2019, dont cinq résultats d'adjudication du Gabon et du
+   * Congo. Ce ne sont pas des `<tr>`, donc le lecteur ne les voyait pas. La
+   * même liste paraît sur les quatre pages de statistiques, ce qui explique
+   * qu'on les ait ramassées sans jamais les lire.
+   *
+   * Ces liens n'ont ni colonne « pays » ni colonne « année » : les deux se
+   * lisent dans le titre, comme pour les séances dont la colonne est vide.
+   * ON LES AJOUTE SANS DOUBLER : une pièce déjà vue dans le tableau y reste.
+   *
+   * ET SEULEMENT SI LE TABLEAU A RENDU QUELQUE CHOSE. Le robot refuse de
+   * travailler quand il ne lit aucune ligne, parce qu'un gabarit changé vaut
+   * mieux muet qu'à moitié juste ; cette liste-ci, elle, ramasserait encore
+   * des liens et étoufferait l'alerte.
+   */
+  if (!out.length) return out;
+  const vues = new Set(out.map((d) => d.url));
+  for (const m of html.matchAll(/<a[^>]+href="([^"]+\.pdf)"[^>]*>([\s\S]{0,400}?)<\/a>/gi)) {
+    if (vues.has(m[1])) continue;
+    const title = m[2]
+      .replace(/<[^>]*>/g, "")
+      .replace(/&#8217;|&rsquo;/g, "'")
+      .replace(/&amp;/g, "&")
+      .replace(/&nbsp;/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!title) continue;
+    vues.add(m[1]);
+    out.push({ url: m[1], title, country: "", year: (title.match(/\b(20\d{2})\b/) ?? [])[1] ?? "" });
+  }
   return out;
+}
+
+const MOIS_EN = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+
+/**
+ * LA DATE QUAND LE TRÉSOR L'ÉCRIT EN ANGLAIS.
+ *
+ * Deux ordres, et le Cameroun emploie les deux dans la même année : « 19th of
+ * june 2019 session » et « September 5th 2022 ». L'ordinal colle au chiffre,
+ * « of » est facultatif, et le mois ne s'abrège jamais ici : on n'accepte donc
+ * que le nom entier, ce qui évite qu'un préfixe français attrape un mot anglais.
+ */
+function dateAnglaise(f: string): string | undefined {
+  const mois = MOIS_EN.join("|");
+  const ord = "(?:st|nd|rd|th)?";
+  const jourDabord = f.match(new RegExp(`\\b(\\d{1,2})${ord}\\s+(?:of\\s+)?(${mois})\\b\\s+(\\d{4})`));
+  const moisDabord = f.match(new RegExp(`\\b(${mois})\\b\\s+(\\d{1,2})${ord}\\,?\\s+(\\d{4})`));
+  const [jour, nom, an] = jourDabord ? [jourDabord[1], jourDabord[2], jourDabord[3]] : moisDabord ? [moisDabord[2], moisDabord[1], moisDabord[3]] : [];
+  if (!jour || !nom || !an) return undefined;
+  return `${an}-${String(MOIS_EN.indexOf(nom) + 1).padStart(2, "0")}-${jour.padStart(2, "0")}`;
+}
+
+/**
+ * LA DATE ÉCRITE EN CHIFFRES : « 14-08-2019 », « 01/07/2020 ».
+ *
+ * Le Gabon s'y met une poignée de fois. Le jour vient d'abord, comme partout
+ * dans la zone, et on ne l'interprète que lorsque le nombre de tête dépasse
+ * douze ou que le second ne peut pas être un jour : AU MOINDRE DOUTE ON NE
+ * REND RIEN, une séance datée du mauvais mois valant moins qu'une séance sans
+ * date, qui se voit.
+ */
+function dateChiffree(f: string): string | undefined {
+  const m = f.match(/\b(\d{2})[-/](\d{2})[-/](\d{4})\b/);
+  if (!m) return undefined;
+  const [, a, b, an] = m;
+  const jour = Number(a);
+  const mois = Number(b);
+  if (jour < 1 || jour > 31 || mois < 1 || mois > 12) return undefined;
+  return `${an}-${b}-${a}`;
 }
 
 /** Ce que le titre dit, et rien de ce qu'il ne dit pas. */
 export function readBeacDoc(doc: BeacDoc): BeacAuction {
   const f = flat(doc.title);
-  const kind: BeacKind = /resultat/.test(f) ? "resultats" : /annonce/.test(f) ? "annonce" : /calendrier/.test(f) ? "calendrier" : "autre";
+  /**
+   * LE CAMEROUN PUBLIE AUSSI EN ANGLAIS, ET QUARANTE-DEUX ANNONCES SONT RESTÉES
+   * DEHORS.
+   *
+   * « Announcement issuance of Fungible Treasury Bills of the Republic of
+   * Cameroon : 19th of june 2019 session » dit exactement ce que dit son
+   * équivalent français, et le lecteur le classait « autre » faute de
+   * reconnaître un seul de ses mots. Mesuré le 15 octobre 2026 : quarante-deux
+   * pièces vues et jamais déposées, presque toutes camerounaises.
+   */
+  const kind: BeacKind = /resultat|\bresults?\b/.test(f)
+    ? "resultats"
+    : /annonce|announcement/.test(f)
+      ? "annonce"
+      : /calendrier|calendar/.test(f)
+        ? "calendrier"
+        : "autre";
 
   // Les sigles, et les mêmes écrits en toutes lettres : trois Trésors sur six le
   // font au moins une fois, et une annonce sans instrument n'est pas classable.
-  const bta = /\bbta\b/.test(f) || /bons? du tresor assimilables?/.test(f);
-  const ota = /\bota\b/.test(f) || /obligations? du tresor assimilables?/.test(f);
+  const bta = /\bbta\b/.test(f) || /bons? du tresor assimilables?/.test(f) || /treasury bills?/.test(f);
+  const ota = /\bota\b/.test(f) || /obligations? du tresor assimilables?/.test(f) || /treasury bonds?/.test(f);
   const instrument: OfferKind | undefined = bta ? "BTA" : ota ? "OTA" : undefined;
 
   const tenor = tenorOf(doc.title);
@@ -154,7 +253,9 @@ export function readBeacDoc(doc: BeacDoc): BeacAuction {
   // lettres. Le préfixe suffit à désigner un mois sans ambiguïté, « juin » et
   // « juillet » se séparant dès la quatrième lettre.
   const dateMatch = f.match(new RegExp(`(\\d{1,2})\\s*(?:er|ere)?[\\s_]+(${MONTHS.map(mois).join("|")})\\.?[\\s_]+(\\d{4})`));
-  const on = dateMatch ? `${dateMatch[3]}-${String(MONTHS.findIndex((m) => m.startsWith(dateMatch[2])) + 1).padStart(2, "0")}-${dateMatch[1].padStart(2, "0")}` : undefined;
+  const on = dateMatch
+    ? `${dateMatch[3]}-${String(MONTHS.findIndex((m) => m.startsWith(dateMatch[2])) + 1).padStart(2, "0")}-${dateMatch[1].padStart(2, "0")}`
+    : dateAnglaise(f) ?? dateChiffree(f);
 
   return { doc, kind, instrument, tenor, on, abondement: /abondement/.test(f), country: beacCountry(doc.country) || beacCountry(doc.title) };
 }

@@ -34,9 +34,12 @@ for (const [table, col] of [["market_bulletins", "file_key"], ["auction_results"
 }
 
 /* 2 - les pieces du journal BEAC, par la regle de rangement */
-const obs = await tout("beac_observations", "url, titre, genre, pays, instrument, tenor, seance, present");
-const vus = new Map(); for (const o of obs) if (!vus.has(o.url)) vus.set(o.url, o);
-const lot = [...vus.values()].filter((o) => o.present);
+/* LE LOT DE REFERENCE EST PARTAGE. Une marque de collision calculee sur un
+   autre ensemble designe un autre fichier : l audit filtrait sur `present` et
+   le rangeur non, et seize pieces ont ete dites absentes alors qu elles y
+   etaient. */
+const { lotDuJournal } = await import("./_journal.mjs");
+const lot = await lotDuJournal(sb);
 const marques = marquesDeCollision(lot, cheminBeac);
 let ok = 0; const manquent = [];
 for (const o of lot) {

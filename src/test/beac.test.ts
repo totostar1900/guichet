@@ -235,3 +235,58 @@ describe("la date, quelle que soit la main qui l'écrit", () => {
     expect(lu("RESULTATS BTA 52 SEMAINES 1er NOVEMBRE 2025").on).toBe("2025-11-01");
   });
 });
+
+/**
+ * LE CAMEROUN PUBLIE AUSSI EN ANGLAIS, ET LA PAGE A UNE COLONNE DE DROITE.
+ *
+ * Mesuré le 15 octobre 2026, à la suite d'une remarque de Georges : sur les
+ * 1 002 documents de la page, quinze échappaient au lecteur parce qu'ils sont
+ * servis par une liste et non par le tableau, et quarante-deux autres étaient
+ * vus sans être compris, leur titre étant en anglais. Six résultats
+ * d'adjudication et quarante-six annonces ont été déposés le jour même.
+ */
+describe("les titres anglais et la colonne de droite", () => {
+  const doc = (title: string, country = "", year = ""): BeacDoc => ({ url: "https://www.beac.int/x.pdf", title, country, year });
+
+  it("lit une annonce anglaise entièrement : nature, instrument, date, pays", () => {
+    const a = readBeacDoc(doc("Announcement issuance of Fungible Treasury Bills of the Republic of Cameroon : 19th of june 2019 session"));
+    expect(a.kind).toBe("annonce");
+    expect(a.instrument).toBe("BTA");
+    expect(a.on).toBe("2019-06-19");
+    expect(a.country).toBe("Cameroun");
+  });
+
+  it("lit les deux ordres de date anglais, et l'ordinal collé au chiffre", () => {
+    expect(readBeacDoc(doc("Announcement issuance of Fungible Treasury Bonds 5 years of the Republic of Cameroon - September 5th 2022")).on).toBe("2022-09-05");
+    expect(readBeacDoc(doc("… of the Republic of Cameroon - 24th November 2021 session")).on).toBe("2021-11-24");
+    expect(readBeacDoc(doc("… of the Republic of Cameroon - 21st of March 2022 session")).on).toBe("2022-03-21");
+  });
+
+  it("rend « 13 weeks » et « 5 years » dans la langue de la table", () => {
+    expect(readBeacDoc(doc("Announcement issuance of 13 weeks Fungible Treasury Bills of the Republic of Cameroon - 30th of October 2023")).tenor).toBe("13 semaines");
+    expect(readBeacDoc(doc("Announcement issuance of Fungible Treasury Bonds 5 years of the Republic of Cameroon - September 5th 2022")).tenor).toBe("5 ans");
+  });
+
+  it("lit la date écrite en chiffres, et refuse un mois impossible", () => {
+    expect(readBeacDoc(doc("Communiqué des résultats d'adjudication des BTA du 14-08-2019 - République du Gabon")).on).toBe("2019-08-14");
+    expect(readBeacDoc(doc("Communiqué d'annonce OTA 4ans 01/07/2020 - République Gabonaise")).on).toBe("2020-07-01");
+    expect(readBeacDoc(doc("Communiqué d'annonce BTA 01-13-2020")).on).toBeUndefined();
+  });
+
+  it("PREND LES LIENS HORS DU TABLEAU, qui sont la colonne de droite", () => {
+    const html = `<table><tr><td><a href="/a.pdf">Communiqué d'annonce d'émission de BTA du 12 juin 2019</a></td><td>1 MB</td><td>Gabon</td><td>2019</td></tr></table>
+      <div class="documents"><ul><li><a href="/b.pdf">Communiqué des résultats d'ajudications de BTA du 5 juin 2019 - République du Congo</a></li></ul></div>`;
+    const rows = parseBeacRows(html);
+    expect(rows.map((r) => r.url)).toEqual(["/a.pdf", "/b.pdf"]);
+    /* Hors tableau il n'y a pas de colonne « pays » : l'année se lit au titre. */
+    expect(rows[1].country).toBe("");
+    expect(rows[1].year).toBe("2019");
+    expect(readBeacDoc(rows[1]).country).toBe("Congo");
+  });
+
+  it("SE TAIT ENCORE QUAND LE TABLEAU DISPARAÎT, et c'est le garde qui compte", () => {
+    /* La liste de droite ramasserait des liens même sans tableau, et le robot
+       croirait la page intacte alors que son gabarit a changé. */
+    expect(parseBeacRows(`<div><a href="/c.pdf">Communiqué d'annonce</a></div>`)).toEqual([]);
+  });
+});

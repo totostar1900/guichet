@@ -1,0 +1,380 @@
+[
+ {
+  "an": "2018",
+  "f": "Courbe des rendements des titres publics camerounais - novembre 2018.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 25
+ },
+ {
+  "an": "2018",
+  "f": "Courbe des rendements des titres publics camerounais - octobre 2018.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 13
+ },
+ {
+  "an": "2018",
+  "f": "Courbe des rendements des titres publics gabonais - novembre 2018.pdf",
+  "traces": 4,
+  "graduations": 9,
+  "durees": 26
+ },
+ {
+  "an": "2018",
+  "f": "Courbe des rendements des titres publics gabonais - octobre 2018.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 13
+ },
+ {
+  "an": "2018",
+  "f": "Courbe des taux de rendement des titres publics Camerounais - septembre 2018.pdf",
+  "traces": 2,
+  "graduations": 8,
+  "durees": 8
+ },
+ {
+  "an": "2018",
+  "f": "Courbe des taux de rendement des titres publics Gabonais - septembre 2018.pdf",
+  "traces": 2,
+  "graduations": 12,
+  "durees": 9
+ },
+ {
+  "an": "2019",
+  "f": "Courbe des rendements des titres publics camerounais - fevrier 2019.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 26
+ },
+ {
+  "an": "2019",
+  "f": "Courbe des rendements des titres publics camerounais - janvier 2019.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 26
+ },
+ {
+  "an": "2019",
+  "f": "Courbe des rendements des titres publics camerounais - juillet 2019.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 13
+ },
+ {
+  "an": "2019",
+  "f": "Courbe des rendements des titres publics camerounais - juin 2019.pdf",
+  "traces": 4,
+  "graduations": 7,
+  "durees": 13
+ },
+ {
+  "an": "2019",
+  "f": "Courbe des rendements des titres publics camerounais - mars 2019.pdf",
+  "traces": 5,
+  "graduations": 9,
+  "durees": 26
+ },
+ {
+  "an": "2019",
+  "f": "Courbe des rendements des titres publics gabonais - fevrier 2019.pdf",
+  "traces": 4,
+  "graduations": 11,
+  "durees": 26
+ },
+ {
+  "an": "2019",
+  "f": "Courbe des rendements des titres publics gabonais - janvier 2019.pdf",
+  "traces": 4,
+  "graduations": 7,
+  "durees": 26
+ },
+ {
+  "an": "2019",
+  "f": "Courbe des rendements des titres publics gabonais - juillet 2019.pdf",
+  "traces": 4,
+  "graduations": 10,
+  "durees": 13
+ },
+ {
+  "an": "2019",
+  "f": "Courbe des rendements des titres publics gabonais - juin 2019.pdf",
+  "traces": 4,
+  "graduations": 11,
+  "durees": 13
+ },
+ {
+  "an": "2019",
+  "f": "Courbe des rendements des titres publics gabonais - mars 2019.pdf",
+  "traces": 4,
+  "graduations": 10,
+  "durees": 26
+ },
+ {
+  "an": "2019",
+  "f": "courbes de rendement des titres publics camerounais - avril 2019.pdf",
+  "traces": 4,
+  "graduations": 9,
+  "durees": 26
+ },
+ {
+  "an": "2019",
+  "f": "courbes de rendement des titres publics camerounais - mai 2019.pdf",
+  "traces": 4,
+  "graduations": 7,
+  "durees": 26
+ },
+ {
+  "an": "2019",
+  "f": "courbes de rendement des titres publics gabonais - avril 2019.pdf",
+  "traces": 4,
+  "graduations": 9,
+  "durees": 24
+ },
+ {
+  "an": "2019",
+  "f": "courbes de rendement des titres publics gabonais - mai 2019.pdf",
+  "traces": 4,
+  "graduations": 11,
+  "durees": 26
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics camerounais - aout 2020.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 26
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics camerounais - avril 2020.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 27
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics camerounais - juillet 2020.pdf",
+  "traces": 4,
+  "graduations": 10,
+  "durees": 27
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics camerounais - juin 2020.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 27
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics camerounais - mai 2020.pdf",
+  "traces": 4,
+  "graduations": 10,
+  "durees": 27
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics camerounais - septembre 2020.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 26
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics congolais - aout 2020.pdf",
+  "traces": 4,
+  "graduations": 11,
+  "durees": 26
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics congolais - avril 2020.pdf",
+  "traces": 4,
+  "graduations": 7,
+  "durees": 27
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics congolais - juillet 2020.pdf",
+  "traces": 4,
+  "graduations": 7,
+  "durees": 27
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics congolais - juin 2020.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 27
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics congolais - mai 2020.pdf",
+  "traces": 4,
+  "graduations": 9,
+  "durees": 27
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics congolais - septembre 2020.pdf",
+  "traces": 4,
+  "graduations": 9,
+  "durees": 26
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics gabonais - aout 2020.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 26
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics gabonais - avril 2020.pdf",
+  "traces": 4,
+  "graduations": 10,
+  "durees": 27
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics gabonais - juillet 2020.pdf",
+  "traces": 4,
+  "graduations": 7,
+  "durees": 27
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics gabonais - juin 2020.pdf",
+  "traces": 4,
+  "graduations": 10,
+  "durees": 27
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics gabonais - mai 2020.pdf",
+  "traces": 4,
+  "graduations": 13,
+  "durees": 27
+ },
+ {
+  "an": "2020",
+  "f": "Courbe de rendements des titres publics gabonais - septembre 2020.pdf",
+  "traces": 4,
+  "graduations": 11,
+  "durees": 26
+ },
+ {
+  "an": "2026",
+  "f": "Courbe de rendements des titres publics de la CEMAC - fevrier 2026.pdf",
+  "traces": 6,
+  "graduations": 8,
+  "durees": 13
+ },
+ {
+  "an": "2026",
+  "f": "Courbe de rendements des titres publics de la CEMAC - mars 2026.pdf",
+  "traces": 6,
+  "graduations": 8,
+  "durees": 18
+ },
+ {
+  "an": "2026",
+  "f": "Courbe de rendements des titres publics du Cameroun - fevrier 2026.pdf",
+  "traces": 4,
+  "graduations": 10,
+  "durees": 27
+ },
+ {
+  "an": "2026",
+  "f": "Courbe de rendements des titres publics du Cameroun - mars 2026.pdf",
+  "traces": 4,
+  "graduations": 9,
+  "durees": 35
+ },
+ {
+  "an": "2026",
+  "f": "Courbe de rendements des titres publics du Congo - fevrier 2026.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 27
+ },
+ {
+  "an": "2026",
+  "f": "Courbe de rendements des titres publics du Congo - mars 2026.pdf",
+  "traces": 4,
+  "graduations": 8,
+  "durees": 26
+ },
+ {
+  "an": "2026",
+  "f": "Courbe de rendements des titres publics du Gabon - fevrier 2026.pdf",
+  "traces": 4,
+  "graduations": 11,
+  "durees": 27
+ },
+ {
+  "an": "2026",
+  "f": "Courbe de rendements des titres publics du Gabon - mai 2026.pdf",
+  "traces": 4,
+  "graduations": 11,
+  "durees": 27
+ },
+ {
+  "an": "2026",
+  "f": "Courbe de rendements des titres publics du Gabon - mars 2026.pdf",
+  "traces": 4,
+  "graduations": 10,
+  "durees": 27
+ },
+ {
+  "an": "2026",
+  "f": "Courbe des taux de rendement des titres publics de la CEMAC - juillet 2026.pdf",
+  "traces": 6,
+  "graduations": 9,
+  "durees": 18
+ },
+ {
+  "an": "2026",
+  "f": "Courbe des taux de rendement des titres publics de la CEMAC - juin 2026.pdf",
+  "traces": 6,
+  "graduations": 7,
+  "durees": 18
+ },
+ {
+  "an": "2026",
+  "f": "Courbe des taux de rendement des titres publics du Cameroun - juillet 2026.pdf",
+  "traces": 5,
+  "graduations": 7,
+  "durees": 33
+ },
+ {
+  "an": "2026",
+  "f": "Courbe des taux de rendement des titres publics du Cameroun - juin 2026.pdf",
+  "traces": 5,
+  "graduations": 11,
+  "durees": 35
+ },
+ {
+  "an": "2026",
+  "f": "Courbe des taux de rendement des titres publics du Congo - juillet 2026.pdf",
+  "traces": 4,
+  "graduations": 9,
+  "durees": 26
+ },
+ {
+  "an": "2026",
+  "f": "Courbe des taux de rendement des titres publics du Congo - juin 2026.pdf",
+  "traces": 4,
+  "graduations": 9,
+  "durees": 27
+ },
+ {
+  "an": "2026",
+  "f": "Courbe des taux de rendement des titres publics du Gabon - juillet 2026.pdf",
+  "traces": 4,
+  "graduations": 7,
+  "durees": 27
+ }
+]

@@ -161,8 +161,40 @@ for (const o of lot) {
   a.push({ file_key: o.cle, library_path: place.chemin, bytes: buf.length, sha256: createHash("sha256").update(buf).digest("hex"), au_depot: true });
 }
 
+/**
+ * LA SECONDE PASSE : CE QUI N EST QUE DANS LA BIBLIOTHEQUE.
+ *
+ * La passe du dessus part du DEPOT et ne voit donc que ce qui y est monte. Or
+ * depuis le 14 octobre les documents vont directement a la bibliotheque et le
+ * depot n en recoit plus : cinquante-deux seances deposees le 15 octobre
+ * avaient une clef que rien ne reliait a un fichier, et le desk aurait servi
+ * un lien mort.
+ *
+ * On part donc aussi du JOURNAL et de la regle de rangement, qui dit ou chaque
+ * piece doit etre. Le fichier y est ou il n y est pas : rien n est suppose.
+ */
+const { cheminBeac, marquesDeCollision, avecMarque } = await import("../src/lib/intake/bibliotheque.ts");
+const { lotDuJournal } = await import("./_journal.mjs");
+const journal = await lotDuJournal(sb);
+const marquesJ = marquesDeCollision(journal, cheminBeac);
+const dejaIndexees = new Set(a.map((x) => x.file_key));
+let parLaRegle = 0;
+for (const o of journal) {
+  const cle = storageKey(`beac/${decodeURIComponent(o.url.split("/").pop() ?? "")}`);
+  if (dejaIndexees.has(cle)) continue;
+  /* `cheminBeac` porte deja « 1. Donnees de marche » : le reprefixer
+     designerait un dossier qui n existe pas, et la passe ne rendrait rien. */
+  const chemin = avecMarque(cheminBeac(o), marquesJ.get(o.url));
+  if (!fs.existsSync(`${RACINE}/${chemin}`)) continue;
+  const buf = fs.readFileSync(`${RACINE}/${chemin}`);
+  dejaIndexees.add(cle);
+  a.push({ file_key: cle, library_path: chemin, bytes: buf.length, sha256: createHash("sha256").update(buf).digest("hex"), au_depot: false });
+  parLaRegle++;
+}
+
 dire(`\n=== L'INDEX ===`);
 dire(`   pièces reliées et relues sur le disque   ${a.length}`);
+dire(`   dont hors dépôt, par la règle de rangement  ${parLaRegle}`);
 dire(`   pièces gardées au dépôt par décision     ${gardees}   (clients, courrier, documents produits)`);
 dire(`   pièces du dépôt sans lien connu          ${sansLien}`);
 dire(`   pièces absentes du disque                ${absentes}`);

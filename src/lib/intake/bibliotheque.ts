@@ -137,15 +137,40 @@ export interface PieceBeac {
   seance?: string | null;
 }
 
+/**
+ * LA FAMILLE SE LIT DANS LE TITRE, PAS DANS LA PAGE QUI SERT LA PIÈCE.
+ *
+ * Mesuré le 2026-10-15 : la colonne de droite de la page des statistiques
+ * mensuelles sert quinze communiqués de 2019, annonces et résultats
+ * d'adjudication. Notre ramasseur donnait à chaque pièce le genre de SA PAGE,
+ * et ces quinze communiqués sont allés dormir dans « Statistiques mensuelles »,
+ * où personne ne les aurait cherchés.
+ *
+ * UNE PIÈCE APPARTIENT À CE QU'ELLE EST. Son titre le dit en toutes lettres, et
+ * c'est la seule chose que la BEAC écrive de la même façon partout. Le genre de
+ * la page ne sert plus qu'à défaut.
+ */
+export function familleDuTitre(titre?: string | null): "annonce" | "resultats" | null {
+  const t = titre ?? "";
+  if (!/communiqu|announcement/i.test(t)) return null;
+  if (/r[ée]sultats?/i.test(t)) return "resultats";
+  if (/annonce|announcement/i.test(t)) return "annonce";
+  return null;
+}
+
 /** Le chemin d'une pièce de la BEAC, telle que `ramasser-beac` la range. */
 export function cheminBeac(o: PieceBeac): string {
   const an = (o.seance ?? "").slice(0, 4) || (o.titre?.match(/\b(20\d{2})\b/) ?? [])[1] || "sans date";
   const pays = (o.pays && PAYS_DOSSIER[o.pays]) || "Zone";
   if (o.genre === "calendrier") return `${DOSSIERS.beacCalendriers}/${pays}/${an} ${nomDeFichier(o.titre)}.pdf`;
-  if (o.genre === "annonce" || o.genre === "resultats") {
-    const racine = o.genre === "annonce" ? DOSSIERS.beacAnnonces : DOSSIERS.beacResultats;
+  const famille = o.genre === "annonce" || o.genre === "resultats" ? o.genre : familleDuTitre(o.titre);
+  if (famille) {
+    const racine = famille === "annonce" ? DOSSIERS.beacAnnonces : DOSSIERS.beacResultats;
+    /* Sans séance, le titre entier est le seul nom qui distingue : quinze fois
+       « 2019 - resultats.pdf » serait un rangement pour rien. */
+    if (!o.seance) return `${racine}/${pays}/${an}/${nomDeFichier(o.titre)}.pdf`;
     const quoi = [o.instrument, o.tenor].filter(Boolean).join(" ");
-    return `${racine}/${pays}/${an}/${`${o.seance ?? an} ${nomDeFichier(quoi)} - ${o.genre}.pdf`.replace(/\s+/g, " ")}`;
+    return `${racine}/${pays}/${an}/${`${o.seance} ${nomDeFichier(quoi)} - ${famille}.pdf`.replace(/\s+/g, " ")}`;
   }
   /**
    * LE TABLEAU DE BORD HEBDOMADAIRE A SON DOSSIER, ET CE N'EST PAS UN RANGEMENT
