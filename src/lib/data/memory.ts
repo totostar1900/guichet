@@ -22,7 +22,7 @@ import type { FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } fr
 import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
 import type { ObservationBeac } from "@/lib/market/beac-journal";
 import type { EncoursDette } from "@/lib/market/encours-dette";
-import type { OperationDuTresor } from "./repository";
+import type { CoutDesRessources, EncoursOfficiel, OperationDuTresor, PointCourbeBeac } from "./repository";
 import type { AuctionResult, NewAuctionResult } from "@/lib/market/auction-results";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { BeacCurveRow } from "./repository";
@@ -272,6 +272,9 @@ interface Store {
   observationsBeac?: (ObservationBeac & { vuLe: string })[];
   encoursDette?: EncoursDette[];
   operationsDuTresor?: OperationDuTresor[];
+  courbesBeac?: PointCourbeBeac[];
+  encoursOfficiel?: EncoursOfficiel[];
+  coutDesRessources?: CoutDesRessources[];
   quotes: Quote[];
   fundNavs: FundNav[];
   issuerDocs: IssuerDocument[];
@@ -1322,6 +1325,20 @@ export const memoryRepository: Repository = {
   },
   async operationsDuTresor() {
     return structuredClone(store().operationsDuTresor ?? []);
+  },
+  /**
+   * LES SÉRIES BEAC N'EXISTENT PAS EN DÉMONSTRATION, et c'est voulu : elles
+   * sont le relevé d'une banque centrale réelle, pas un jeu d'essai. La page
+   * dit alors qu'elle n'a rien, ce qui est la vérité de ce mode.
+   */
+  async courbesBeac() {
+    return structuredClone(store().courbesBeac ?? []);
+  },
+  async encoursOfficiel() {
+    return structuredClone(store().encoursOfficiel ?? []);
+  },
+  async coutDesRessources() {
+    return structuredClone(store().coutDesRessources ?? []);
   },
   async encoursDette(sessionDate) {
     const lignes = store().encoursDette ?? [];

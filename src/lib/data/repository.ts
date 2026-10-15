@@ -47,9 +47,47 @@ export interface OperationDuTresor {
   maturityOn?: string;
   operation: "emission" | "abondement" | "remboursement" | "paiement_interets" | "rachat" | "autre";
   montant?: number;
+  /**
+   * Ce qui a EU LIEU, lu dans le rapport hebdomadaire publié après coup, là où
+   * `montant` est ce qui était prévu. L'écart entre les deux est la seule
+   * mesure directe de la tension du marché : un communiqué de résultats dit ce
+   * qui a été servi, il ne dit pas ce qui manquait.
+   */
+  montantRealise?: number;
+  /** Le rapport des soumissions au montant annoncé, en pour cent. */
+  tauxSouscription?: number;
   operationOn?: string;
   settleOn?: string;
   sourceUrl: string;
+}
+
+/** Un point de la courbe que la BEAC publie en dessin, relevé dans son PDF. */
+export interface PointCourbeBeac {
+  /** Le premier du mois de la courbe. */
+  mois: string;
+  pays: string;
+  tenor: string;
+  annees: number;
+  taux: number;
+  fileKey?: string;
+}
+
+/** L'encours officiel d'un Trésor à un mois, en millions de francs. */
+export interface EncoursOfficiel {
+  mois: string;
+  pays: string;
+  encours: number;
+  numero?: number;
+  fileKey?: string;
+}
+
+/** Le coût moyen des ressources levées, par Trésor et par instrument. */
+export interface CoutDesRessources {
+  mois: string;
+  pays: string;
+  instrument: string;
+  taux: number;
+  fileKey?: string;
 }
 
 export interface BeacCurveRow {
@@ -415,6 +453,14 @@ export interface Repository {
   encoursDette(sessionDate?: string): Promise<EncoursDette[]>;
   /** Le livre des mouvements du marché primaire, lu sur les tableaux de bord. */
   operationsDuTresor(): Promise<OperationDuTresor[]>;
+  /**
+   * LES TROIS SÉRIES QUE LA BEAC PUBLIE ELLE-MÊME, et qui sont les seules de
+   * la maison qu'on puisse montrer à un client sans engager notre lecture :
+   * ses courbes de rendement, son encours officiel et son coût des ressources.
+   */
+  courbesBeac(): Promise<PointCourbeBeac[]>;
+  encoursOfficiel(): Promise<EncoursOfficiel[]>;
+  coutDesRessources(): Promise<CoutDesRessources[]>;
   /** Les relevés d encours attendus et manquants, comptés en base. */
   trousDeLEncours(): Promise<{ manquants: number; attendus: number; seances: number }>;
   /**

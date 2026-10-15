@@ -72,6 +72,11 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/adjudications", "Adjudications"],
       ["/desk/adjudications/tableau", "Résultats"],
       ["/desk/dette", "Dette des États"],
+      /* La BEAC publie ce que la cote ne dit pas : l encours officiel des six
+         Tresors, ses courbes et le cout de leurs ressources. Page a part de
+         « Dette des Etats », qui part de la cote BVMAC : deux sources, deux
+         perimetres, et les melanger ferait un total sans date. */
+      ["/desk/beac", "BEAC"],
       ["/desk/analyses", "Courbe des taux"],
       ["/desk/indice/apercu", "Indice"],
     ],

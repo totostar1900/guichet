@@ -21,7 +21,7 @@ import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/l
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
-import { makeMandatRef, makeOrderNo, makeRef, makeTirageRef, type OperationDuTresor, type Repository } from "./repository";
+import { makeMandatRef, makeOrderNo, makeRef, makeTirageRef, type CoutDesRessources, type EncoursOfficiel, type OperationDuTresor, type PointCourbeBeac, type Repository } from "./repository";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
 import type { VirementRecu } from "@/lib/domain/virement";
 import type { RemiseDePrelevement, Tirage } from "@/lib/domain/prelevement";
@@ -2358,11 +2358,63 @@ export const supabaseRepository: Repository = {
           maturityOn: u(r.maturity_on as string | null),
           operation: r.operation as OperationDuTresor["operation"],
           montant: nn(r.montant as string | null),
+          montantRealise: nn(r.montant_realise as string | null),
+          tauxSouscription: nn(r.taux_souscription as string | null),
           operationOn: u(r.operation_on as string | null),
           settleOn: u(r.settle_on as string | null),
           sourceUrl: r.source_url as string,
         })),
       );
+      if (lot.length < 1000) break;
+    }
+    return out;
+  },
+  /**
+   * LES TROIS SÉRIES PUBLIÉES PAR LA BEAC.
+   *
+   * Paginées, toutes les trois, et ce n'est pas une précaution de style : la
+   * table des courbes porte 1 277 lignes et Supabase plafonne un select à
+   * mille sans le dire. Le piège a déjà coûté une mesure fausse sur les
+   * encours, et il ne laisse aucune trace.
+   */
+  async courbesBeac() {
+    const out: PointCourbeBeac[] = [];
+    for (let de = 0; ; de += 1000) {
+      const { data, error } = await db().from("beac_yield_curves").select("mois, pays, tenor, annees, taux, file_key").order("mois").range(de, de + 999);
+      if (error) fail("courbesBeac", error);
+      const lot = (data as Record<string, unknown>[]) ?? [];
+      out.push(
+        ...lot.map((r) => ({
+          mois: r.mois as string,
+          pays: r.pays as string,
+          tenor: r.tenor as string,
+          annees: Number(r.annees),
+          taux: Number(r.taux),
+          fileKey: u(r.file_key as string | null),
+        })),
+      );
+      if (lot.length < 1000) break;
+    }
+    return out;
+  },
+  async encoursOfficiel() {
+    const out: EncoursOfficiel[] = [];
+    for (let de = 0; ; de += 1000) {
+      const { data, error } = await db().from("beac_encours_officiel").select("mois, pays, encours, numero, file_key").order("mois").range(de, de + 999);
+      if (error) fail("encoursOfficiel", error);
+      const lot = (data as Record<string, unknown>[]) ?? [];
+      out.push(...lot.map((r) => ({ mois: r.mois as string, pays: r.pays as string, encours: Number(r.encours), numero: r.numero == null ? undefined : Number(r.numero), fileKey: u(r.file_key as string | null) })));
+      if (lot.length < 1000) break;
+    }
+    return out;
+  },
+  async coutDesRessources() {
+    const out: CoutDesRessources[] = [];
+    for (let de = 0; ; de += 1000) {
+      const { data, error } = await db().from("beac_cout_ressources").select("mois, pays, instrument, taux, file_key").order("mois").range(de, de + 999);
+      if (error) fail("coutDesRessources", error);
+      const lot = (data as Record<string, unknown>[]) ?? [];
+      out.push(...lot.map((r) => ({ mois: r.mois as string, pays: r.pays as string, instrument: r.instrument as string, taux: Number(r.taux), fileKey: u(r.file_key as string | null) })));
       if (lot.length < 1000) break;
     }
     return out;

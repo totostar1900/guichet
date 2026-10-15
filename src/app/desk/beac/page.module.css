@@ -1,0 +1,504 @@
+/* ============================================================
+   LA PAGE BEAC.
+
+   Angles vifs, pas de pastilles : c'est un écran de marché, pas
+   une carte de visite. Les réglages collent en haut parce qu'on
+   les change en lisant le bas de la page.
+   ============================================================ */
+.page {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--s-9) clamp(var(--s-7), 3vw, var(--s-10)) var(--s-11);
+}
+.tete h1 {
+  margin: 0 0 var(--s-2);
+}
+.sous {
+  color: var(--ink-2);
+  margin: 0 0 var(--s-8);
+  max-width: 56rem;
+  font-size: var(--t-4);
+}
+.muted {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+
+/* ---------- les réglages ---------- */
+.reglages {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  margin-bottom: var(--s-8);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.rang {
+  display: flex;
+  align-items: center;
+  gap: var(--s-7);
+  padding: var(--s-5) var(--s-7);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.rang:last-child {
+  border-bottom: none;
+}
+.etiq {
+  font-size: var(--t-1);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+  font-weight: 700;
+  flex: none;
+}
+.champ {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.champ > span {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.champ select {
+  font: inherit;
+  font-size: var(--t-3);
+  padding: var(--s-3) var(--s-5);
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 0;
+  min-width: 7rem;
+}
+.cases {
+  display: flex;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.case {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  cursor: pointer;
+  user-select: none;
+}
+.case input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--fill);
+  margin: 0;
+}
+.case i {
+  width: 10px;
+  height: 10px;
+  display: block;
+  flex: none;
+}
+.vues {
+  display: inline-flex;
+  border: 1px solid var(--fill);
+}
+.vues a {
+  font-size: var(--t-3);
+  font-weight: 600;
+  padding: var(--s-4) var(--s-7);
+  color: var(--fill);
+  text-decoration: none;
+}
+.vues a[aria-current="true"] {
+  background: var(--fill);
+  color: var(--fill-ink);
+}
+.raccourcis {
+  display: inline-flex;
+  border: 1px solid var(--line-2);
+}
+.raccourcis a {
+  font-size: var(--t-3);
+  padding: var(--s-3) var(--s-5);
+  color: var(--ink-2);
+  text-decoration: none;
+  border-left: 1px solid var(--line-2);
+}
+.raccourcis a:first-child {
+  border-left: none;
+}
+.raccourcis a:hover {
+  background: var(--surface-2);
+}
+.appliquer {
+  font: inherit;
+  font-size: var(--t-3);
+  padding: var(--s-3) var(--s-6);
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink-2);
+  border-radius: 0;
+  cursor: pointer;
+}
+.compte {
+  margin-left: auto;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- les panneaux ---------- */
+.panneau {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  margin-bottom: var(--s-8);
+}
+.panneauH {
+  padding: var(--s-6) var(--s-7);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+}
+.panneauH h2 {
+  font-size: var(--t-3);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-2);
+  margin: 0;
+  font-weight: 700;
+}
+.panneauC {
+  padding: var(--s-7);
+}
+.panneauC h3 {
+  font-size: var(--t-3);
+  margin: 0 0 var(--s-5);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.titreRang {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+  margin-bottom: var(--s-6);
+}
+.titreRang h2 {
+  font-size: var(--t-3);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-2);
+  margin: 0;
+  font-weight: 700;
+}
+.coin {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.note {
+  font-size: var(--t-3);
+  color: var(--ink-3);
+  margin: var(--s-6) 0 0;
+  line-height: 1.45;
+}
+.suite {
+  margin-top: var(--s-8);
+  padding-top: var(--s-7);
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- la provenance d'un chiffre ---------- */
+.provPublie,
+.provSomme,
+.provNous {
+  font-size: var(--t-1);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 700;
+  padding: var(--s-1) var(--s-4);
+  border: 1px solid;
+  white-space: nowrap;
+}
+.provPublie {
+  color: var(--good);
+  border-color: var(--good);
+  background: var(--good-soft);
+}
+.provSomme {
+  color: var(--info);
+  border-color: var(--info);
+  background: var(--info-soft);
+}
+.provNous {
+  color: var(--gold-ink);
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+}
+
+/* ---------- le choix d'affichage, posé sur son panneau ---------- */
+.formes {
+  display: inline-flex;
+  border: 1px solid var(--line-2);
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.formes a {
+  font-size: var(--t-2);
+  padding: var(--s-2) var(--s-5);
+  color: var(--ink-3);
+  text-decoration: none;
+  border-left: 1px solid var(--line-2);
+}
+.formes a:first-child {
+  border-left: none;
+}
+.formes a[aria-current="true"] {
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---------- les chiffres ---------- */
+.chiffres {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(176px, 1fr));
+  /* Un filet d un pas de l echelle : « 1px » est hors echelle, et un
+     cliquet compte les pixels nus pour que personne n en reintroduise. */
+  gap: var(--s-1);
+  background: var(--line);
+}
+.chiffre {
+  background: var(--surface);
+  padding: var(--s-6) var(--s-7);
+}
+.chiffre b {
+  display: block;
+  font-size: var(--t-7);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.chiffre b small {
+  font-size: var(--t-2);
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-left: var(--s-2);
+}
+.chiffre span {
+  display: block;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  margin-top: var(--s-1);
+}
+.chiffre em {
+  display: block;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  margin-top: var(--s-3);
+  line-height: 1.35;
+  font-style: normal;
+}
+
+/* ---------- les fiches ---------- */
+.fiches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: var(--s-6);
+  margin-bottom: var(--s-8);
+}
+.fiche {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 3px solid;
+  display: flex;
+  flex-direction: column;
+}
+.fiche header {
+  padding: var(--s-6) var(--s-7) var(--s-3);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-5);
+}
+.fiche header b {
+  font-size: var(--t-5);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.fiche header b i {
+  width: 9px;
+  height: 9px;
+  display: block;
+}
+.fiche header span {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.fiche table {
+  width: 100%;
+  border-collapse: collapse;
+  padding: 0 var(--s-7);
+}
+.fiche tbody {
+  display: table;
+  width: calc(100% - 2 * var(--s-7));
+  margin: 0 var(--s-7) var(--s-4);
+}
+.fiche td {
+  padding: var(--s-2) 0;
+  font-size: var(--t-3);
+  border-bottom: 1px solid var(--surface-2);
+  font-variant-numeric: tabular-nums;
+}
+.fiche td:last-child {
+  text-align: right;
+  font-weight: 600;
+}
+.fiche tr:last-child td {
+  border-bottom: none;
+}
+.mini {
+  padding: 0 var(--s-5) var(--s-5);
+}
+.hausse {
+  color: var(--crit);
+}
+.baisse {
+  color: var(--good);
+}
+
+/* ---------- les tables ---------- */
+.deroule {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  min-width: 34rem;
+  border-collapse: collapse;
+  font-size: var(--t-3);
+}
+.table th {
+  text-align: left;
+  font-weight: 700;
+  color: var(--ink-3);
+  font-size: var(--t-1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0 var(--s-6) var(--s-4) 0;
+  border-bottom: 1px solid var(--line-2);
+  white-space: nowrap;
+}
+.table td {
+  padding: var(--s-4) var(--s-6) var(--s-4) 0;
+  border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+.table td:first-child,
+.table th:first-child {
+  padding-left: 0;
+}
+.num {
+  text-align: right;
+}
+.total td {
+  font-weight: 700;
+  border-bottom: none;
+  border-top: 2px solid var(--line-2);
+}
+.pave {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: var(--s-4);
+  vertical-align: -1px;
+}
+
+/* ---------- les barres de coût ---------- */
+.barres {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-3);
+}
+.barres td {
+  padding: var(--s-3) var(--s-5) var(--s-3) 0;
+  border-bottom: 1px solid var(--surface-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.barres td:first-child {
+  width: 42%;
+}
+.barres td i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: var(--s-4);
+  vertical-align: -1px;
+}
+.barres tr:last-child td {
+  border-bottom: none;
+}
+.jauge {
+  display: block;
+  width: 100%;
+  height: 9px;
+  background: var(--surface-2);
+}
+.jauge i {
+  display: block;
+  height: 100%;
+  margin: 0;
+}
+.quand {
+  text-align: right;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+}
+
+.deux {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-8);
+}
+@media (max-width: 880px) {
+  .deux {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vide {
+  margin: 0;
+  padding: var(--s-8) var(--s-7);
+  text-align: center;
+  color: var(--ink-3);
+  font-size: var(--t-3);
+  background: var(--surface-2);
+  border: 1px dashed var(--line-2);
+}
+.reserve {
+  background: var(--gold-soft);
+  border-left: 3px solid var(--gold-line);
+  padding: var(--s-5) var(--s-6);
+  font-size: var(--t-3);
+  color: var(--gold-ink);
+  margin: var(--s-6) 0 0;
+  line-height: 1.5;
+}
+.source {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  margin-top: var(--s-7);
+  line-height: 1.5;
+}

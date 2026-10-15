@@ -1,0 +1,75 @@
+/* Le cadre coupe plutôt que de pousser la page : une étiquette qui dépasse
+   doit disparaître, pas faire défiler le corps de côté. */
+.cadre {
+  width: 100%;
+  overflow: hidden;
+}
+.cadre svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ligne {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+/* Le zéro est une frontière, pas un repère parmi d'autres. */
+.zero {
+  stroke: var(--ink-3);
+  stroke-width: 1;
+}
+.texte {
+  font-size: 9.5px;
+  fill: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.serie {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.point {
+  stroke: var(--surface);
+  stroke-width: 1.2;
+}
+.barre {
+  stroke-width: 0;
+}
+
+.vide {
+  margin: 0;
+  padding: var(--s-9) var(--s-7);
+  text-align: center;
+  color: var(--ink-3);
+  font-size: var(--t-3);
+  background: var(--surface-2);
+  border: 1px dashed var(--line-2);
+}
+
+.legende {
+  display: flex;
+  gap: var(--s-7);
+  flex-wrap: wrap;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  margin: var(--s-5) 0 0;
+}
+.legende span {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.pave {
+  width: 10px;
+  height: 10px;
+  display: block;
+  flex: none;
+}
+.trait {
+  width: 14px;
+  height: 3px;
+  display: block;
+  flex: none;
+}
