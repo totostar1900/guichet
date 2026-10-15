@@ -48,6 +48,13 @@ export interface ObservationBeac {
   seance?: string;
   abondement: boolean;
   empreinte: string;
+  /**
+   * LA PAGE OÙ CETTE PIÈCE A ÉTÉ VUE, et c'est ce qui borne les disparitions.
+   * Le journal porte maintenant quatre pages de statistiques en plus de celle
+   * des annonces : sans cette colonne, le robot des annonces déclare disparu
+   * tout ce qu'il ne voit pas, c'est-à-dire tout le reste.
+   */
+  page?: string;
 }
 
 /** Ce que la base sait du dernier état d'un document. */
@@ -55,6 +62,7 @@ export interface DernierEtat {
   url: string;
   present: boolean;
   empreinte: string;
+  page?: string;
 }
 
 /**
@@ -75,7 +83,8 @@ export const empreinteDe = (a: BeacAuction): string =>
     .digest("hex")
     .slice(0, 16);
 
-const observation = (a: BeacAuction, present: boolean): ObservationBeac => ({
+const observation = (a: BeacAuction, present: boolean, page?: string): ObservationBeac => ({
+  page,
   url: a.doc.url,
   present,
   titre: a.doc.title,
@@ -110,11 +119,14 @@ export interface Verdict {
  * CHAQUE adjudication du calendrier, en une seule fois. D'où ce booléen, et
  * le refus d'écrire quoi que ce soit sans lui.
  */
-export function journaliser(vues: BeacAuction[], connus: DernierEtat[], lectureReussie: boolean): Verdict {
+export function journaliser(vues: BeacAuction[], connus: DernierEtat[], lectureReussie: boolean, page = "annonces"): Verdict {
   const vide: Verdict = { aEcrire: [], ajouts: 0, revisions: 0, disparitions: 0, inchanges: 0 };
   if (!lectureReussie) return vide;
 
-  const parUrl = new Map(connus.map((c) => [c.url, c]));
+  /* ON NE COMPARE QU'AUX LIGNES DE SA PROPRE PAGE. Une pièce vue ailleurs
+     n'est pas absente d'ici : elle n'y a jamais été. */
+  const siennes = connus.filter((c) => (c.page ?? "annonces") === page);
+  const parUrl = new Map(siennes.map((c) => [c.url, c]));
   const aEcrire: ObservationBeac[] = [];
   let ajouts = 0;
   let revisions = 0;
@@ -125,7 +137,7 @@ export function journaliser(vues: BeacAuction[], connus: DernierEtat[], lectureR
 
   for (const [url, a] of vuesParUrl) {
     const connu = parUrl.get(url);
-    const o = observation(a, true);
+    const o = observation(a, true, page);
     if (!connu) {
       aEcrire.push(o);
       ajouts++;
@@ -144,9 +156,9 @@ export function journaliser(vues: BeacAuction[], connus: DernierEtat[], lectureR
      ligne de plus à chaque tour, et le journal dirait vingt fois la même
      annulation. */
   let disparitions = 0;
-  for (const c of connus) {
+  for (const c of siennes) {
     if (!c.present || vuesParUrl.has(c.url)) continue;
-    aEcrire.push({ url: c.url, present: false, titre: "", abondement: false, empreinte: c.empreinte });
+    aEcrire.push({ url: c.url, present: false, titre: "", abondement: false, empreinte: c.empreinte, page });
     disparitions++;
   }
 

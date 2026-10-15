@@ -41,13 +41,18 @@ for (const [table, col] of [["market_bulletins", "file_key"], ["auction_results"
 const { lotDuJournal } = await import("./_journal.mjs");
 const lot = await lotDuJournal(sb);
 const marques = marquesDeCollision(lot, cheminBeac);
-let ok = 0; const manquent = [];
+let ok = 0; let parLIndex = 0; const manquent = [];
 for (const o of lot) {
+  /* LA PLACE ENREGISTREE D ABORD. Un changement de regle de nommage ne doit
+     pas faire crier « absente » sur un fichier qui n a pas bouge : trois
+     changements en une journee ont produit 425 fausses absences. */
+  const inscrite = index.get(storageKey(`beac/${decodeURIComponent(o.url.split("/").pop() ?? "")}`));
+  if (inscrite && fs.existsSync(`${BIBLIO}/${inscrite}`)) { ok++; parLIndex++; continue; }
   const c = `${BIBLIO}/${avecMarque(cheminBeac(o), marques.get(o.url))}`;
   if (fs.existsSync(c)) ok++; else manquent.push(o);
 }
 dire(`\n=== LE JOURNAL BEAC ===`);
-dire(`   ${lot.length} piece(s) au journal · ${ok} sur le disque · ${manquent.length} ABSENTES`);
+dire(`   ${lot.length} piece(s) au journal · ${ok} sur le disque (${parLIndex} a leur place inscrite) · ${manquent.length} ABSENTES`);
 const parGenre = new Map();
 for (const o of manquent) parGenre.set(o.genre ?? "?", (parGenre.get(o.genre ?? "?") ?? 0) + 1);
 for (const [g, n] of [...parGenre.entries()].sort((a, b) => b[1] - a[1])) dire(`      ${String(g).padEnd(14)} ${n}`);

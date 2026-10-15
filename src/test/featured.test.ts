@@ -31,12 +31,47 @@ const form = (o: Record<string, string>) => {
 };
 
 
-const avantLaCloture = async (offerId: string) => {
+/**
+ * UNE LIGNE ENCORE OUVERTE, ET LA DATE QUI VA AVEC.
+ *
+ * Nommer une ligne du jeu d'essai fait dépendre le cas de l'horloge : celle
+ * qu'il nommait s'est close le 15 octobre 2026 à dix-sept heures, et quatre
+ * cas sont tombés à dix-sept heures treize. On prend donc celle qui ferme le
+ * plus tard, et la mise à la une s'arrête à sa clôture.
+ */
+const ligneClose = async () => {
   const { repo } = await import("@/lib/data");
-  const o = (await repo().getOffer(offerId))!;
-  const cloture = o.deadlineAt.slice(0, 10);
+  const closes = (await repo().listOffers()).filter((o) => Date.parse(o.deadlineAt) <= Date.now());
+  if (!closes.length) throw new Error("le jeu d'essai n'a plus une seule ligne close");
+  return closes[0].id;
+};
+
+/**
+ * UNE LIGNE OUVERTE, DATÉE, ET QUE LE CAS OUVRE LUI-MÊME.
+ *
+ * Elle doit avoir une vraie clôture : la règle ne borne pas la mise à la une
+ * d'une ligne de marché ni d'un fonds, qui n'en ont pas, et le cas du
+ * dépassement n'aurait alors rien à dépasser. On prend donc une ligne datée
+ * du jeu d'essai et on repousse SA clôture dans le dépôt en mémoire, qui est
+ * propre à ce test.
+ */
+const ligneOuverte = async () => {
+  const { repo } = await import("@/lib/data");
+  const r = repo();
+  const datees = (await r.listOffers()).filter((o) => o.kind !== "MARCHE" && o.kind !== "FONDS");
+  if (!datees.length) throw new Error("le jeu d'essai n'a plus une seule ligne datée");
+  const o = datees.find((x) => Date.parse(x.deadlineAt) > Date.now()) ?? datees[0];
+  const dans30 = new Date(Date.now() + 30 * 86_400_000);
+  const cloture = Date.parse(o.deadlineAt) > Date.now() ? o.deadlineAt : `${dans30.toISOString().slice(0, 10)}T17:00:00`;
+  if (cloture !== o.deadlineAt) await r.publishOffer(o.id, { deadlineAt: cloture });
+  const jour = cloture.slice(0, 10);
   const dans5 = new Date(Date.now() + 5 * 86_400_000).toISOString().slice(0, 10);
-  return dans5 < cloture ? dans5 : cloture;
+  return {
+    id: o.id,
+    until: dans5 < jour ? dans5 : jour,
+    /* « après » sert au cas qui doit dépasser la clôture. */
+    apres: new Date(Date.parse(cloture) + 2 * 86_400_000).toISOString().slice(0, 10),
+  };
 };
 
 describe("sélection du desk et diffusion", () => {
@@ -44,17 +79,14 @@ describe("sélection du desk et diffusion", () => {
     const { featureOfferAction } = await import("@/app/desk/featured/actions");
     const { repo } = await import("@/lib/data");
     const { summarize } = await import("@/lib/domain/summary");
-    /* UNE DATE À RETARDEMENT : ce cas prenait « aujourd hui + 5 jours »,
-       et la mise à la une ne peut pas dépasser la clôture de la ligne. Le
-       jeu d essai clôt bhc-ipo-t2 le 15 octobre 2026 : le cas a donc passé
-       jusqu au 10 octobre et a commencé à échouer le 11, sans que rien
-       n ait changé. La date se prend maintenant AVANT la clôture. */
-    const until = await avantLaCloture("bhc-ipo-t2");
-    const bad = await featureOfferAction(null, form({ offerId: "bhc-ipo-t2", reason: "Le meilleur placement du moment", until }));
+    /* NI LA LIGNE NI LA DATE NE SONT ÉCRITES EN DUR : l'une et l'autre
+       dépendaient de l'horloge, et le cas tombait le jour de la clôture. */
+    const { id: ligne, until } = await ligneOuverte();
+    const bad = await featureOfferAction(null, form({ offerId: ligne, reason: "Le meilleur placement du moment", until }));
     expect(bad.ok).toBe(false);
-    const ok = await featureOfferAction(null, form({ offerId: "bhc-ipo-t2", reason: "Clôture cette semaine", until }));
+    const ok = await featureOfferAction(null, form({ offerId: ligne, reason: "Clôture cette semaine", until }));
     expect(ok.ok).toBe(true);
-    const o = (await repo().getOffer("bhc-ipo-t2"))!;
+    const o = (await repo().getOffer(ligne))!;
     expect(o.featured?.reason).toBe("Clôture cette semaine");
     const s = summarize(o, new Date());
     expect(s.badges.some((b) => b.key === "selection" && b.note === "Clôture cette semaine")).toBe(true);
@@ -62,30 +94,24 @@ describe("sélection du desk et diffusion", () => {
 
   it("refuses a closed line and a date past the line's closing", async () => {
     const { featureOfferAction } = await import("@/app/desk/featured/actions");
-    /* UNE DATE À RETARDEMENT : ce cas prenait « aujourd hui + 5 jours »,
-       et la mise à la une ne peut pas dépasser la clôture de la ligne. Le
-       jeu d essai clôt bhc-ipo-t2 le 15 octobre 2026 : le cas a donc passé
-       jusqu au 10 octobre et a commencé à échouer le 11, sans que rien
-       n ait changé. La date se prend maintenant AVANT la clôture. */
-    const until = await avantLaCloture("bhc-ipo-t2");
-    const closed = await featureOfferAction(null, form({ offerId: "cg-bta-52-2027", reason: "Nouvelle ligne", until }));
+    /* NI LA LIGNE NI LA DATE NE SONT ÉCRITES EN DUR : l'une et l'autre
+       dépendaient de l'horloge, et le cas tombait le jour de la clôture. */
+    const { id: ligne, until, apres } = await ligneOuverte();
+    const closed = await featureOfferAction(null, form({ offerId: await ligneClose(), reason: "Nouvelle ligne", until }));
     expect(closed.ok).toBe(false);
     expect(said(closed)).toMatch(/clôturée/);
-    const late = await featureOfferAction(null, form({ offerId: "bhc-ipo-t2", reason: "Nouvelle ligne", until: "2026-12-31" }));
+    const late = await featureOfferAction(null, form({ offerId: ligne, reason: "Nouvelle ligne", until: apres }));
     expect(late.ok).toBe(false);
     expect(said(late)).toMatch(/clôture de la ligne/);
   });
 
   it("caps the selection at three", async () => {
     const { featureOfferAction } = await import("@/app/desk/featured/actions");
-    /* UNE DATE À RETARDEMENT : ce cas prenait « aujourd hui + 5 jours »,
-       et la mise à la une ne peut pas dépasser la clôture de la ligne. Le
-       jeu d essai clôt bhc-ipo-t2 le 15 octobre 2026 : le cas a donc passé
-       jusqu au 10 octobre et a commencé à échouer le 11, sans que rien
-       n ait changé. La date se prend maintenant AVANT la clôture. */
-    const until = await avantLaCloture("bhc-ipo-t2");
+    /* NI LA LIGNE NI LA DATE NE SONT ÉCRITES EN DUR : l'une et l'autre
+       dépendaient de l'horloge, et le cas tombait le jour de la clôture. */
+    const { id: ligne, until } = await ligneOuverte();
     for (const id of ["mkt-bhc", "mkt-ecmr-2031"]) expect((await featureOfferAction(null, form({ offerId: id, reason: "Nouvelle ligne", until }))).ok).toBe(true);
-    const fourth = await featureOfferAction(null, form({ offerId: "cg-bta-52-2027", reason: "Nouvelle ligne", until }));
+    const fourth = await featureOfferAction(null, form({ offerId: await ligneClose(), reason: "Nouvelle ligne", until }));
     expect(fourth.ok).toBe(false);
     expect(said(fourth)).toMatch(/Trois lignes/);
   });
@@ -95,18 +121,21 @@ describe("sélection du desk et diffusion", () => {
     const { repo } = await import("@/lib/data");
     const r = repo();
     const before = (await r.listNotifications(500)).length;
-    const preview = await broadcastOpportunityAction(null, form({ offerId: "bhc-ipo-t2", segment: "Tous les clients" }));
+    /* LA LIGNE N'EST PAS ÉCRITE EN DUR : celle qui était nommée s'est close
+       le 15 octobre 2026 à dix-sept heures, et le cas est tombé avec elle. */
+    const { id: ligne } = await ligneOuverte();
+    const preview = await broadcastOpportunityAction(null, form({ offerId: ligne, segment: "Tous les clients" }));
     expect(preview.ok).toBe(false);
     // Le plan se compte sans rien envoyer : c’est ce compte que l’écran fait recopier.
     expect(!preview.ok && "plan" in preview && preview.plan.recipients).toBeGreaterThan(0);
     expect((await r.listNotifications(500)).length).toBe(before); // nothing sent on preview
-    const sent = await broadcastOpportunityAction(null, form({ offerId: "bhc-ipo-t2", segment: "Tous les clients", confirm: "1" }));
+    const sent = await broadcastOpportunityAction(null, form({ offerId: ligne, segment: "Tous les clients", confirm: "1" }));
     expect(sent.ok).toBe(true);
     const rows = (await r.listNotifications(500)).filter((n) => n.kind === "opportunity");
     expect(rows.length).toBeGreaterThan(0);
     // Channels are not configured in tests: journalled as skipped or queued (quiet hours), never lost.
     expect(rows.every((n) => n.status === "skipped" || n.status === "queued")).toBe(true);
-    const again = await broadcastOpportunityAction(null, form({ offerId: "bhc-ipo-t2", segment: "Tous les clients", confirm: "1" }));
+    const again = await broadcastOpportunityAction(null, form({ offerId: ligne, segment: "Tous les clients", confirm: "1" }));
     expect(again.ok).toBe(false);
     expect(said(again)).toMatch(/Personne à prévenir|déjà alerté/);
     current = resp;

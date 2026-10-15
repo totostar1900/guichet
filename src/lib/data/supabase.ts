@@ -2240,15 +2240,15 @@ export const supabaseRepository: Repository = {
        ordre et on garde le premier de chaque adresse. Le journal ne compte
        que quelques milliers de lignes, il grandit de ce qui change et non de
        ce qui est lu, donc la lecture entière reste bon marché longtemps. */
-    const { data, error } = await db().from("beac_observations").select("url, present, empreinte, vu_le").order("vu_le", { ascending: false });
+    const { data, error } = await db().from("beac_observations").select("url, present, empreinte, page, vu_le").order("vu_le", { ascending: false });
     if (error) {
       // Migration 0095 pas encore appliquée : un journal vide vaut mieux qu'un robot en erreur.
       if (/beac_observations/.test(error.message)) return [];
       fail("dernieresObservationsBeac", error);
     }
     const vus = new Map<string, DernierEtat>();
-    for (const r of (data ?? []) as { url: string; present: boolean; empreinte: string }[]) {
-      if (!vus.has(r.url)) vus.set(r.url, { url: r.url, present: r.present, empreinte: r.empreinte });
+    for (const r of (data ?? []) as { url: string; present: boolean; empreinte: string; page: string | null }[]) {
+      if (!vus.has(r.url)) vus.set(r.url, { url: r.url, present: r.present, empreinte: r.empreinte, page: r.page ?? "annonces" });
     }
     return [...vus.values()];
   },
@@ -2256,7 +2256,7 @@ export const supabaseRepository: Repository = {
     if (obs.length === 0) return 0;
     const { error } = await db()
       .from("beac_observations")
-      .insert(obs.map((o) => ({ url: o.url, present: o.present, titre: o.titre, genre: o.genre ?? null, pays: o.pays ?? null, instrument: o.instrument ?? null, tenor: o.tenor ?? null, seance: o.seance ?? null, abondement: o.abondement, empreinte: o.empreinte })));
+      .insert(obs.map((o) => ({ url: o.url, present: o.present, titre: o.titre, genre: o.genre ?? null, pays: o.pays ?? null, instrument: o.instrument ?? null, tenor: o.tenor ?? null, seance: o.seance ?? null, abondement: o.abondement, empreinte: o.empreinte, page: o.page ?? "annonces" })));
     if (error) {
       if (/beac_observations/.test(error.message)) return 0;
       fail("ajouterObservationsBeac", error);

@@ -100,3 +100,56 @@ describe("le journal des annonces BEAC", () => {
     expect(journaliser([apres], [connu(avant)], true).revisions).toBe(1);
   });
 });
+
+/**
+ * UN ROBOT NE DÉCLARE DISPARU QUE CE QU'IL SURVEILLE.
+ *
+ * Mesuré le 15 octobre 2026. Le journal a été élargi aux quatre pages de
+ * statistiques de la BEAC sans que le robot, qui ne lit que la page des
+ * annonces, en sache rien. À son passage suivant il a trouvé 345 pièces
+ * « manquantes » de SA page et les a toutes déclarées disparues, titre vidé.
+ * Elles n'avaient jamais quitté le site.
+ */
+describe("le périmètre d'un robot", () => {
+  const doc = (url: string, title: string) => ({ url, title, country: "Cameroun", year: "2026" });
+  const vue = (url: string, title: string): BeacAuction => ({
+    doc: doc(url, title),
+    kind: "annonce",
+    instrument: "BTA",
+    tenor: "26 semaines",
+    on: "2026-10-20",
+    abondement: false,
+    country: "Cameroun",
+  });
+
+  it("NE TOUCHE PAS AUX PIÈCES D'UNE AUTRE PAGE", () => {
+    const connus = [
+      { url: "https://b/a.pdf", present: true, empreinte: "x", page: "annonces" },
+      { url: "https://b/courbe.pdf", present: true, empreinte: "y", page: "statistiques" },
+    ];
+    const v = journaliser([vue("https://b/a.pdf", "Communiqué d'annonce")], connus, true, "annonces");
+    expect(v.disparitions).toBe(0);
+    expect(v.aEcrire.some((o) => o.url.includes("courbe"))).toBe(false);
+  });
+
+  it("déclare bien disparue une pièce de SA page qui a quitté la liste", () => {
+    const connus = [
+      { url: "https://b/a.pdf", present: true, empreinte: "x", page: "annonces" },
+      { url: "https://b/partie.pdf", present: true, empreinte: "z", page: "annonces" },
+    ];
+    const v = journaliser([vue("https://b/a.pdf", "Communiqué d'annonce")], connus, true, "annonces");
+    expect(v.disparitions).toBe(1);
+    expect(v.aEcrire.find((o) => !o.present)?.url).toBe("https://b/partie.pdf");
+  });
+
+  it("marque chaque écriture de sa page", () => {
+    const v = journaliser([vue("https://b/n.pdf", "Communiqué d'annonce")], [], true, "statistiques");
+    expect(v.aEcrire[0].page).toBe("statistiques");
+  });
+
+  it("traite une ligne sans page comme venant des annonces, qui est l'historique", () => {
+    const connus = [{ url: "https://b/vieille.pdf", present: true, empreinte: "x" }];
+    const v = journaliser([], connus, true, "annonces");
+    expect(v.disparitions).toBe(1);
+  });
+});
