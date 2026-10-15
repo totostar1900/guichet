@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beacLabel, forthcoming, nearestComparable, parseBeacRows, readBeacDoc, resultsFor, type BeacDoc } from "@/lib/market/beac";
+import { beacCountry, beacLabel, forthcoming, nearestComparable, parseBeacRows, readBeacDoc, resultsFor, type BeacDoc } from "@/lib/market/beac";
 
 /**
  * Les six Trésors n'écrivent pas pareil, et c'est tout le problème.
@@ -288,5 +288,28 @@ describe("les titres anglais et la colonne de droite", () => {
     /* La liste de droite ramasserait des liens même sans tableau, et le robot
        croirait la page intacte alors que son gabarit a changé. */
     expect(parseBeacRows(`<div><a href="/c.pdf">Communiqué d'annonce</a></div>`)).toEqual([]);
+  });
+});
+
+/**
+ * « CENTRAFRIC » N'EST PAS DANS « CENTRAFRIQUE ».
+ *
+ * Le mot s'arrête à « centrafri », et la zone écrit les deux : le communiqué
+ * dit « République Centrafricaine », le rapport hebdomadaire dit
+ * « Centrafrique ». Mesuré le 15 octobre 2026 en rapprochant deux tables : la
+ * fiche de la RCA était vide d'un côté.
+ */
+describe("le nom d'un pays, sous ses deux formes", () => {
+  it("reconnaît la Centrafrique écrite en entier comme en adjectif", () => {
+    expect(beacCountry("Centrafrique")).toBe("RCA");
+    expect(beacCountry("République Centrafricaine")).toBe("RCA");
+    expect(beacCountry("RCA")).toBe("RCA");
+    expect(beacCountry("Republic of Central African")).toBe("RCA");
+  });
+
+  it("ne prend pas « rca » au milieu d'un mot", () => {
+    /* Sans la borne de mot, « marché » et « recherche » deviendraient la RCA. */
+    expect(beacCountry("marcap")).toBeUndefined();
+    expect(beacCountry("Gabon")).toBe("Gabon");
   });
 });

@@ -104,7 +104,10 @@ const mois = (m: string): string => {
  */
 const COUNTRIES: [RegExp, Country][] = [
   [/cam(e|er)oun|cameroon/, "Cameroun"],
-  [/centrafric|rca|central african/, "RCA"],
+  /* « centrafric » n'est PAS dans « Centrafrique » : le mot s'arrête à
+     « centrafri », et le rapport hebdomadaire écrit « Centrafrique » là où le
+     communiqué écrit « République Centrafricaine ». Mesuré le 2026-10-15. */
+  [/centrafri|\brca\b|central african/, "RCA"],
   [/congo/, "Congo"],
   [/gabon/, "Gabon"],
   [/guinee|guinea/, "Guinée éq."],
