@@ -35,48 +35,7 @@ const { tout } = await import("./_journal.mjs");
 const dire = (s) => fs.writeSync(1, `${s}\n`);
 const ecrire = process.argv.includes("--ecrire");
 
-/**
- * LA FORME D UN CODE DU CRCT, QUI SUFFIT A DESIGNER LA BONNE VARIANTE.
- *
- * Douze caracteres : deux lettres de pays, puis 1 pour le court terme suivi
- * de neuf chiffres, ou 2 pour le long terme suivi d UNE LETTRE de serie et de
- * huit chiffres. « CM2L00000028 » a la forme, « CM2100000028 » ne l a pas, et
- * c est ainsi qu on sait laquelle des deux lectures a invente son caractere.
- */
-const CANONIQUE = (c) => /^[A-Z]{2}1\d{9}$/.test(String(c ?? "")) || /^[A-Z]{2}2[A-Z]\d{8}$/.test(String(c ?? ""));
-
-/**
- * Le code debarrasse de ce que le champ a avale autour de lui : espaces,
- * ponctuation, et le reste de la boite imprimee (« GA110000292 BTA-13
- * 23-OCTO-2026 »). On s arrete des que les mots suivants ne tiennent plus
- * dans un code, et on ne complete ni ne tronque.
- */
-export function nettoyer(brut) {
-  const s = String(brut ?? "").toUpperCase();
-  const suffixe = s.match(/\/[A-Z0-9]{1,4}\b/)?.[0] ?? "";
-  const mots = s.replace(/[^A-Z0-9 ]/g, "").split(/\s+/).filter(Boolean);
-  let acc = "";
-  for (const t of mots) {
-    if ((acc + t).length > 12) break;
-    acc += t;
-  }
-  return acc.length >= 10 ? acc + suffixe : s.trim() || null;
-}
-
-/** Combien de caracteres separent deux chaines : insertion, suppression, echange. */
-export function distance(a, b) {
-  const m = a.length;
-  const n = b.length;
-  if (Math.abs(m - n) > 2) return 9;
-  const d = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
-  for (let j = 0; j <= n; j++) d[0][j] = j;
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-    }
-  }
-  return d[m][n];
-}
+const { CANONIQUE, distance, nettoyer } = await import("./_codes.mjs");
 
 const CHIFFRES = ["announced", "bid", "served", "rate_avg", "rate_limit", "price_avg", "price_limit", "coverage"];
 /** Deux lignes disent la meme chose quand au moins deux chiffres coincident. */
