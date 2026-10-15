@@ -163,4 +163,40 @@ export const EN_BEAC: Record<string, string> = {
   /* ---- la source ---- */
   "Sources : {feuilles} feuilles de courbes, les statistiques mensuelles du marché des valeurs du Trésor et les rapports hebdomadaires, BEAC. {points} points de courbe, {encours} encours officiels, {couts} coûts de ressources, {ops} opérations du Trésor. Chaque pièce est rangée dans la bibliothèque partagée.":
     "Sources: {feuilles} curve sheets, the monthly statistics of the government securities market and the weekly reports, BEAC. {points} curve points, {encours} official outstandings, {couts} resource costs, {ops} Treasury operations. Every document is filed in the shared library.",
+/* ---- la santé de l'indice, au desk ---- */
+  "Santé de l'indice": "Index health",
+  "ce qu'il faut savoir avant de lire une variation": "what to know before reading a change",
+  "{m} dans la capitalisation": "{m} in capitalisation",
+  "Les trois premiers en pèsent {p}. Sur le flottant coté, le premier tombe à {f}.": "The top three weigh {p}. On the listed float, the first falls to {f}.",
+  "des cotations portent un échange": "of quotations carry a trade",
+  "{n} cotation(s) négociée(s) sur {tous} lues, en {j} séance(s).": "{n} quotation(s) traded out of {tous} read, over {j} session(s).",
+  "de niveaux distincts dans l'indice": "of distinct index levels",
+  "{d} valeurs différentes sur {p} séances : le reste reporte le niveau de la veille.": "{d} different values over {p} sessions: the rest carries the previous day's level forward.",
+  "rendement du dividende": "dividend yield",
+  "Pondéré par la capitalisation, sur {n} valeur(s) sur {tous}. Sur le flottant : {f}.": "Weighted by capitalisation, on {n} share(s) of {tous}. On the float: {f}.",
+  "repli maximum": "maximum drawdown",
+  "Du sommet du {a} au creux du {b}.": "From the peak of {a} to the trough of {b}.",
+  "L'indice n'a pas reculé sur la période lue.": "The index did not fall over the period read.",
+  "volatilité mensuelle": "monthly volatility",
+  "Écart type des variations d'un mois à l'autre. Au jour le jour, ce chiffre mesurerait l'absence d'échange et non le risque.":
+    "Standard deviation of month-on-month changes. Daily, this figure would measure the absence of trading, not risk.",
+  "La pondération n'est pas un détail de calcul.": "The weighting is not a computation detail.",
+  "La bande ci-dessus montre la capitalisation totale. Sur le flottant coté, les trois premiers pèsent {f} au lieu de {p} : l'indice officiel décrit la taille des sociétés, pas ce qu'un investisseur peut acheter.":
+    "The band above shows total capitalisation. On the listed float the top three weigh {f} instead of {p}: the official index describes company size, not what an investor can buy.",
+  "Trois mesures manquent, et deux ne peuvent pas exister ici.": "Three measures are missing, and two cannot exist here.",
+  "Le ratio cours sur bénéfice attend la lecture des états financiers des émetteurs : la colonne du bénéfice par action est vide sur toutes les lignes du bulletin. Un indice de volatilité implicite est impossible faute de marché d'options dans la zone, et l'écart de réplication n'a pas d'objet tant qu'aucun fonds ne réplique l'indice.":
+    "The price-to-earnings ratio awaits the reading of issuers' financial statements: the earnings-per-share column is empty on every line of the bulletin. An implied volatility index is impossible without an options market in the zone, and tracking error has no object as long as no fund replicates the index.",
+  "Une mesure manque, et deux ne peuvent pas exister ici.": "One measure is missing, and two cannot exist here.",
+  "rendu dividendes compris": "return with dividends",
+  "Contre {p} pour le prix seul, sur {n} détachement(s) lus. L'indice officiel ignore ce que les sociétés versent.":
+    "Against {p} for price alone, over {n} detachment(s) read. The official index ignores what companies pay out.",
+  "Valeur": "Share",
+  "Bêta mensuel": "Monthly beta",
+  "Mois comparés": "Months compared",
+  "Mois où elle bouge": "Months it moves",
+  "Hausses": "Rises",
+  "Baisses": "Falls",
+  "Un bêta proche de zéro peut être de l'immobilité, pas de la stabilité.": "A beta near zero can be stillness, not stability.",
+  "Il est calculé au pas mensuel, parce qu'au jour le jour une valeur qui ne s'échange pas rendrait zéro et dirait l'inverse de la vérité. La colonne des mois où le cours bouge dit si le chiffre veut dire quelque chose.":
+    "It is computed monthly, because daily a share that does not trade would return zero and state the opposite of the truth. The column of months where the price moves says whether the figure means anything.",
 };

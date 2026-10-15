@@ -500,6 +500,10 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
               { id: "donnees", title: t("Données") },
               { id: "seances", title: t("Les séances") },
               { id: "composition", title: t("Composition") },
+              /* L'ancre « sante » est posée par la page du desk, qui rend le
+                 panneau après ce corps : un composant du desk ne s'importe pas
+                 depuis une page du Guichet. */
+              ...(desk ? [{ id: "sante", title: t("Santé de l'indice") }] : []),
               { id: "lecture", title: t("Comment le lire") },
             ]}
             meta={t("Lu dans le bulletin officiel de la cote, à chaque séance.")}

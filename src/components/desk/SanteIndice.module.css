@@ -1,0 +1,131 @@
+.cartes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--s-1);
+  background: var(--line);
+}
+.carte {
+  background: var(--surface);
+  padding: var(--s-6) var(--s-7);
+}
+/* Un chiffre qui doit arrêter l'œil porte le papier de l'avertissement, pas
+   une couleur d'encre : une encre rouge sur six cartes crierait. */
+.alerte {
+  background: var(--gold-soft);
+}
+.carte b {
+  display: block;
+  font-size: var(--t-7);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.carte span {
+  display: block;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  margin-top: var(--s-1);
+}
+.carte em {
+  display: block;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  margin-top: var(--s-3);
+  line-height: 1.35;
+  font-style: normal;
+}
+
+/* La concentration en une barre : sept parts, et celle qui écrase les autres
+   se voit avant d'être lue. */
+.bande {
+  display: flex;
+  width: 100%;
+  height: 32px;
+  border: 1px solid var(--line-2);
+  margin-top: var(--s-7);
+}
+.bande i {
+  display: block;
+  height: 100%;
+  position: relative;
+  background: var(--fill);
+  border-right: 1px solid var(--surface);
+}
+.bande i:nth-child(2) {
+  background: var(--gold);
+}
+.bande i:nth-child(3) {
+  background: var(--info);
+}
+.bande i:nth-child(4) {
+  background: var(--good);
+}
+.bande i:nth-child(5) {
+  background: var(--warn);
+}
+.bande i:nth-child(6) {
+  background: var(--ink-2);
+}
+.bande i:nth-child(7) {
+  background: var(--ink-3);
+}
+.bande i:last-child {
+  border-right: none;
+}
+.bande i span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--t-1);
+  color: var(--fill-ink);
+  font-weight: 700;
+  font-style: normal;
+}
+
+.note,
+.manque {
+  font-size: var(--t-3);
+  color: var(--ink-3);
+  line-height: 1.5;
+  margin: var(--s-6) 0 0;
+}
+.manque {
+  background: var(--surface-2);
+  border-left: 3px solid var(--line-2);
+  padding: var(--s-5) var(--s-6);
+}
+
+.deroule {
+  overflow-x: auto;
+  margin-top: var(--s-7);
+}
+.valeurs {
+  width: 100%;
+  min-width: 30rem;
+  border-collapse: collapse;
+  font-size: var(--t-3);
+}
+.valeurs th {
+  text-align: left;
+  font-weight: 700;
+  color: var(--ink-3);
+  font-size: var(--t-1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0 var(--s-6) var(--s-4) 0;
+  border-bottom: 1px solid var(--line-2);
+  white-space: nowrap;
+}
+.valeurs td {
+  padding: var(--s-4) var(--s-6) var(--s-4) 0;
+  border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+.valeurs tr:last-child td {
+  border-bottom: none;
+}
+.num {
+  text-align: right;
+}
