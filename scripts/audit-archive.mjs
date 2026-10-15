@@ -38,9 +38,9 @@ for (const [table, col] of [["market_bulletins", "file_key"], ["auction_results"
    autre ensemble designe un autre fichier : l audit filtrait sur `present` et
    le rangeur non, et seize pieces ont ete dites absentes alors qu elles y
    etaient. */
-const { lotDuJournal } = await import("./_journal.mjs");
+const { lotDuJournal, placesInscrites, anciennetePar, empreintesDeLInventaire } = await import("./_journal.mjs");
 const lot = await lotDuJournal(sb);
-const marques = marquesDeCollision(lot, cheminBeac);
+const marques = marquesDeCollision(lot, cheminBeac, anciennetePar(await placesInscrites(sb, lot), cheminBeac, BIBLIO, empreintesDeLInventaire(BIBLIO)));
 let ok = 0; let parLIndex = 0; const manquent = [];
 for (const o of lot) {
   /* LA PLACE ENREGISTREE D ABORD. Un changement de regle de nommage ne doit

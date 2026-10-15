@@ -86,7 +86,9 @@ const PAYS = { Cameroun: "Cameroun", Gabon: "Gabon", Congo: "Congo", Tchad: "Tch
  */
 /** La règle des collisions vit elle aussi dans `bibliotheque.ts`. */
 function nomsDistincts(lot) {
-  return marquesDeCollision(lot, cheminBeac);
+  /* SUR LE LOT COMPLET : une marque calculee sur un sous-ensemble designe un
+     autre fichier. */
+  return marquesDeCollision(lot, cheminBeac, age);
 }
 /** Où va la pièce, et sous quel nom. */
 /**
@@ -137,19 +139,28 @@ async function prendre(url) {
 }
 
 const obs = await repo().dernieresObservationsBeac();
-/* Le dernier état ne porte que l'url : on reprend les attributs du journal. */
+/* Le dernier état ne porte que l'url : on reprend les attributs du journal.
+ *
+ * ET PAR LE LOT PARTAGÉ, PAS PAR UNE REQUÊTE À SOI.
+ *
+ * Celle d'ici n'était pas paginée, donc plafonnée à mille lignes quand le
+ * journal en porte 1 347, et elle filtrait sur `present` avant de calculer
+ * les marques de collision : deux ensembles différents, donc deux noms pour
+ * le même fichier, c'est-à-dire la panne que `_journal.mjs` existe pour
+ * empêcher. On calcule les marques sur TOUT le lot, et on ne télécharge que
+ * ce qui est présent. */
 const { createClient } = await import("@supabase/supabase-js");
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-const { data: lignes } = await db.from("beac_observations").select("url, titre, genre, pays, instrument, tenor, seance, present").order("vu_le", { ascending: false });
-
-const vus = new Map();
-for (const l of lignes ?? []) if (!vus.has(l.url)) vus.set(l.url, l);
-const lot = [...vus.values()].filter((o) => o.present);
+const { lotDuJournal, placesInscrites, anciennetePar, empreintesDeLInventaire } = await import("./_journal.mjs");
+const complet = await lotDuJournal(db);
+/* LA PLACE ENREGISTREE DEPARTAGE DEUX PIECES DE MEME NOM : voir `_journal.mjs`. */
+const age = anciennetePar(await placesInscrites(db, complet), cheminBeac, BIBLIO, empreintesDeLInventaire(BIBLIO));
+const lot = complet.filter((o) => o.present);
 
 console.log(`${obs.length} documents au journal, ${lot.length} présents à ramasser\n`);
 
 if (essai) {
-  const vu = nomsDistincts(lot);
+  const vu = nomsDistincts(complet);
   for (const o of lot.slice(0, 12)) {
     const d = destination(o);
     console.log(`${(o.genre ?? "?").padEnd(11)} ${d.dossier.replace(BEAC, "…")}/\n              ${vu.get(o.url) ? d.nom.replace(/\.pdf$/i, ` [${vu.get(o.url)}].pdf`) : d.nom}`);
@@ -166,7 +177,7 @@ let deja = 0;
 let rates = 0;
 const t0 = Date.now();
 
-const distinct = nomsDistincts(lot);
+const distinct = nomsDistincts(complet);
 
 for (const [i, o] of lot.entries()) {
   const d = destination(o);

@@ -157,10 +157,66 @@ describe("la famille se lit dans le titre", () => {
     expect(familleDuTitre("Tableau de bord hebdomadaire des opérations du marché des valeurs du trésor")).toBe(null);
   });
 
+  it("RANGE AUSSI L'ESPAGNOL, ET LES COQUILLES DE LA SOURCE", () => {
+    /* Trente-sept pièces de Guinée Équatoriale et neuf annonces camerounaises
+       dormaient dans « autres communiqués » pour un m de trop ou un n qui
+       manque. Mesuré le 15 octobre 2026. */
+    expect(familleDuTitre("Aviso de comunicado de la emision de BTA del 28 de Octubre 2020 - Republica de Guinea Ecuatorial")).toBe("annonce");
+    expect(familleDuTitre("Comunicado de resultados de adjudicaciones - sesion del 25 de septiembre 2019")).toBe("resultats");
+    expect(familleDuTitre("Communicado de resultados de adjudicaciones -sesion del 8 de Enero 2020")).toBe("resultats");
+    expect(familleDuTitre("Comunicado de resultadaos de adjudicaciones de Bonos del Tesoro del 09 de Junio de 2021")).toBe("resultats");
+    expect(familleDuTitre("Comunicado de resultos de adjudicaciones-sesion del 08 enero 2020-Guinée Equatoriale")).toBe("resultats");
+    expect(familleDuTitre("Annoucement insuance of Treasury Bills january 08th 2020 - Republic of Cameroon")).toBe("annonce");
+  });
+
   it("garde le nom nommé quand la séance est connue, le titre entier sinon", () => {
     const avec = cheminBeac({ titre: "Communiqué des résultats", genre: "resultats", pays: "Congo", seance: "2026-09-15", instrument: "BTA", tenor: "26 semaines" });
     expect(avec).toContain("2026-09-15 BTA 26 semaines - resultats.pdf");
     const sans = cheminBeac({ titre: "Communiqué des résultats d'ajudications de BTA du 5 juin 2019 - République du Congo", genre: "resultats", pays: "Congo" });
     expect(sans).toContain("Communique des resultats d'ajudications de BTA du 5 juin 2019 - Republique du Congo.pdf");
+  });
+});
+
+/**
+ * LE NOM NU APPARTIENT À LA PLUS ANCIENNE.
+ *
+ * L'ordre alphabétique est déterministe, ce qui n'est pas la même chose que
+ * stable : il est stable à lot constant, et le lot grandit. Le 15 octobre
+ * 2026, vingt communiqués camerounais rangés depuis des mois ont été déclarés
+ * absents parce que leur traduction anglaise, entrée le jour même, triait
+ * avant eux et avait pris leur nom.
+ */
+describe("la marque de collision ne bouge pas quand le lot grandit", () => {
+  const chemin = () => "Adjudications - annonces/Cameroun/2020/2020-01-08 BTA - annonce.pdf";
+  const ancienne = { url: "https://www.beac.int/z-communique-fr.pdf", premierVu: "2026-09-01T00:00:00Z" };
+  const nouvelle = { url: "https://www.beac.int/a-announcement-en.pdf", premierVu: "2026-10-15T00:00:00Z" };
+  const age = (p: { premierVu: string }) => p.premierVu;
+
+  it("laisse le nom nu à celle qui était déjà là", () => {
+    const m = marquesDeCollision([ancienne, nouvelle], chemin, age);
+    expect(m.get(ancienne.url)).toBeUndefined();
+    expect(m.get(nouvelle.url)).toBe(empreinteCourte(nouvelle.url));
+  });
+
+  it("rend le même résultat quel que soit l'ordre du lot", () => {
+    const a = marquesDeCollision([ancienne, nouvelle], chemin, age);
+    const b = marquesDeCollision([nouvelle, ancienne], chemin, age);
+    expect([...a]).toEqual([...b]);
+  });
+
+  it("SANS ANCIENNETÉ, L'ADRESSE DÉPARTAGE ENCORE", () => {
+    /* Un appelant qui n'a pas de journal sous la main doit rendre quelque
+       chose de reproductible, même si ce quelque chose n'est pas stable. */
+    const m = marquesDeCollision([ancienne, nouvelle], chemin);
+    expect(m.get(nouvelle.url)).toBeUndefined();
+    expect(m.get(ancienne.url)).toBe(empreinteCourte(ancienne.url));
+  });
+
+  it("départage par l'adresse deux pièces vues le même jour", () => {
+    const x = { url: "https://www.beac.int/b.pdf", premierVu: "2026-10-15T00:00:00Z" };
+    const y = { url: "https://www.beac.int/a.pdf", premierVu: "2026-10-15T00:00:00Z" };
+    const m = marquesDeCollision([x, y], chemin, age);
+    expect(m.get(y.url)).toBeUndefined();
+    expect(m.get(x.url)).toBe(empreinteCourte(x.url));
   });
 });

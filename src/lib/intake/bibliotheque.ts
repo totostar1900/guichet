@@ -150,11 +150,20 @@ export interface PieceBeac {
  * c'est la seule chose que la BEAC écrive de la même façon partout. Le genre de
  * la page ne sert plus qu'à défaut.
  */
+/**
+ * ET DANS LES TROIS LANGUES DE LA ZONE, COQUILLES COMPRISES.
+ *
+ * La Guinée Équatoriale écrit « Aviso de comunicado de la emision » et
+ * « Comunicado de resultados de adjudicaciones » ; le Cameroun tape
+ * « Annoucement » ; la Guinée tape « Communicado », « resultadaos »,
+ * « resultos ». Quarante-six pièces restaient sans famille pour un m de trop
+ * ou un n qui manque, dont les trente-sept seules de Guinée Équatoriale.
+ */
 export function familleDuTitre(titre?: string | null): "annonce" | "resultats" | null {
   const t = titre ?? "";
-  if (!/communiqu|announcement/i.test(t)) return null;
-  if (/r[ée]sultats?/i.test(t)) return "resultats";
-  if (/annonce|announcement/i.test(t)) return "annonce";
+  if (!/communiqu|comm?unicado|annou?n?cement|aviso/i.test(t)) return null;
+  if (/r[ée]sultats?|result[ad]*os?/i.test(t)) return "resultats";
+  if (/annonce|annou?n?cement|aviso/i.test(t)) return "annonce";
   return null;
 }
 
@@ -207,22 +216,42 @@ export function cheminBeac(o: PieceBeac): string {
  * de la même année dont les titres se coupent identiquement.
  *
  * LA SEULE CLEF QUI DISTINGUE À COUP SÛR EST L'ADRESSE, parce que deux de ces
- * pièces portent un titre rigoureusement identique. Le premier par ordre
- * d'adresse garde le nom nu, pour que les fichiers déjà rangés ne bougent pas ;
- * les suivants prennent six signes de leur empreinte. Le choix ne dépend donc
- * pas de l'ordre de passage, et deux exécutions rendent les mêmes chemins.
+ * pièces portent un titre rigoureusement identique. Une seule garde le nom nu,
+ * les autres prennent six signes de leur empreinte.
+ *
+ * ET C'EST LA PLUS ANCIENNE QUI LE GARDE, PAS LA PREMIÈRE PAR ORDRE D'ADRESSE.
+ *
+ * L'ordre alphabétique est déterministe, ce qui ne veut pas dire stable : il
+ * est stable à lot constant, et le lot grandit. Le 15 octobre 2026, la
+ * grammaire espagnole a fait entrer la traduction anglaise de vingt
+ * communiqués camerounais déjà rangés ; son adresse triait avant, elle a pris
+ * le nom nu, et vingt pièces qui n'avaient pas bougé d'un octet ont été
+ * déclarées absentes. Le commentaire d'alors promettait pourtant « que les
+ * fichiers déjà rangés ne bougent pas ».
+ *
+ * L'ancienneté, elle, ne change pas quand le lot grandit : un nouveau venu
+ * n'a jamais été vu avant celui qui est là. Le lot qui la porte la passe par
+ * `anciennete` ; à défaut, on retombe sur l'adresse, qui vaut mieux que rien
+ * quand l'appelant n'a pas de journal sous la main.
  *
  * Elle vit ici parce que le ramasseur, le rangeur et l'index doivent répondre
  * la même chose : chacun avait sa copie, et c'est ainsi qu'on range au même
  * endroit par deux chemins différents.
  */
-export function marquesDeCollision<T extends { url: string }>(pieces: T[], chemin: (p: T) => string): Map<string, string> {
-  const parChemin = new Map<string, string[]>();
-  for (const p of pieces) parChemin.set(chemin(p), [...(parChemin.get(chemin(p)) ?? []), p.url]);
+export function marquesDeCollision<T extends { url: string }>(
+  pieces: T[],
+  chemin: (p: T) => string,
+  anciennete?: (p: T) => string,
+): Map<string, string> {
+  const parChemin = new Map<string, T[]>();
+  for (const p of pieces) parChemin.set(chemin(p), [...(parChemin.get(chemin(p)) ?? []), p]);
   const out = new Map<string, string>();
-  for (const [, urls] of parChemin) {
-    if (urls.length < 2) continue;
-    for (const u of [...urls].sort().slice(1)) out.set(u, empreinteCourte(u));
+  for (const [, lot] of parChemin) {
+    if (lot.length < 2) continue;
+    /* L'adresse départage deux pièces vues le même jour : sans ce second
+       critère, deux exécutions ne rendraient pas les mêmes chemins. */
+    const rang = [...lot].sort((a, b) => (anciennete ? anciennete(a).localeCompare(anciennete(b)) : 0) || a.url.localeCompare(b.url));
+    for (const p of rang.slice(1)) out.set(p.url, empreinteCourte(p.url));
   }
   return out;
 }

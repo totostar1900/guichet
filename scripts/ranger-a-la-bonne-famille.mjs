@@ -52,12 +52,13 @@ function cheminAncien(o) {
 
 /* LE MEME LOT DE REFERENCE QUE L AUDIT : une marque calculee sur un autre
    ensemble designe un autre fichier. */
-const { lotDuJournal } = await import("./_journal.mjs");
+const { lotDuJournal, placesInscrites, anciennetePar, empreintesDeLInventaire } = await import("./_journal.mjs");
 const pieces = await lotDuJournal(sb);
 dire(`${pieces.length} pièce(s) au journal`);
 
-const mA = marquesDeCollision(pieces, cheminAncien);
-const mN = marquesDeCollision(pieces, cheminBeac);
+const age = anciennetePar(await placesInscrites(sb, pieces), cheminBeac, BIBLIO, empreintesDeLInventaire(BIBLIO));
+const mA = marquesDeCollision(pieces, cheminAncien, age);
+const mN = marquesDeCollision(pieces, cheminBeac, age);
 const bouges = [];
 for (const p of pieces) {
   const a = avecMarque(cheminAncien(p), mA.get(p.url));

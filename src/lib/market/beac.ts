@@ -62,11 +62,14 @@ export interface BeacAuction {
  */
 export function tenorOf(text: string): string | undefined {
   /* LE TRÉSOR DU CAMEROUN ÉCRIT AUSSI EN ANGLAIS, et « 13 weeks » désignait la
-     même durée que « 13 semaines » sans que le lecteur la reconnaisse. */
-  const m = flat(text).match(/(\d+)\s*(semaines?|weeks?|ans?|years?|mois|months?)/);
+     même durée que « 13 semaines » sans que le lecteur la reconnaisse.
+     LA GUINÉE ÉQUATORIALE ÉCRIT EN ESPAGNOL, et « 52 semanas » de même : son
+     titre ne porte jamais la durée, mais la pièce, elle, l'écrit. */
+  const m = flat(text).match(/(\d+)\s*(semaines?|semanas?|weeks?|ans?|anos?|years?|mois|months?|mes(?:es)?)\b/);
   if (!m) return undefined;
   const brute = m[2].replace(/s$/, "");
-  const unite = brute === "week" ? "semaine" : brute === "year" ? "an" : brute === "month" ? "mois" : brute;
+  const unite =
+    brute === "week" || brute === "semana" ? "semaine" : brute === "year" || brute === "ano" ? "an" : brute === "month" || brute === "mes" || brute === "mese" ? "mois" : brute;
   return `${m[1]} ${unite}${Number(m[1]) > 1 && unite !== "mois" ? "s" : ""}`;
 }
 
@@ -180,6 +183,9 @@ export function parseBeacRows(html: string): BeacDoc[] {
 
 const MOIS_EN = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
 
+/** « Febuary » sans le r : le Trésor du Cameroun l'écrit deux fois en 2020. */
+const MOTIF_EN = MOIS_EN.map((m) => (m === "february" ? "febr?uary" : m));
+
 /**
  * LA DATE QUAND LE TRÉSOR L'ÉCRIT EN ANGLAIS.
  *
@@ -189,13 +195,15 @@ const MOIS_EN = ["january", "february", "march", "april", "may", "june", "july",
  * que le nom entier, ce qui évite qu'un préfixe français attrape un mot anglais.
  */
 function dateAnglaise(f: string): string | undefined {
-  const mois = MOIS_EN.join("|");
+  const mois = MOTIF_EN.join("|");
   const ord = "(?:st|nd|rd|th)?";
   const jourDabord = f.match(new RegExp(`\\b(\\d{1,2})${ord}\\s+(?:of\\s+)?(${mois})\\b\\s+(\\d{4})`));
   const moisDabord = f.match(new RegExp(`\\b(${mois})\\b\\s+(\\d{1,2})${ord}\\,?\\s+(\\d{4})`));
   const [jour, nom, an] = jourDabord ? [jourDabord[1], jourDabord[2], jourDabord[3]] : moisDabord ? [moisDabord[2], moisDabord[1], moisDabord[3]] : [];
   if (!jour || !nom || !an) return undefined;
-  return `${an}-${String(MOIS_EN.indexOf(nom) + 1).padStart(2, "0")}-${jour.padStart(2, "0")}`;
+  const rang = MOTIF_EN.findIndex((p) => new RegExp(`^${p}$`).test(nom));
+  if (rang < 0) return undefined;
+  return `${an}-${String(rang + 1).padStart(2, "0")}-${jour.padStart(2, "0")}`;
 }
 
 /**
@@ -217,6 +225,27 @@ function dateChiffree(f: string): string | undefined {
   return `${an}-${b}-${a}`;
 }
 
+const MOIS_ES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
+/**
+ * LA DATE QUAND LE TRÉSOR L'ÉCRIT EN ESPAGNOL.
+ *
+ * « del 28 de Octubre 2020 », « del 01 Abril 2020 », « el 28 de Agosto 2019 »,
+ * « del 09 de Junio de 2021 », « del 08 enero 2020 » : le « de » est facultatif
+ * devant le mois comme devant l'année, et la Guinée Équatoriale emploie les
+ * quatre formes dans la même année.
+ *
+ * AUCUN MOIS ESPAGNOL N'EST LE PRÉFIXE D'UN MOIS FRANÇAIS dans cette liste, et
+ * le lecteur français passe de toute façon avant : « 16 de octubre » ne peut
+ * pas tomber dans « octobre » puisque le motif français veut le mois collé au
+ * chiffre, sans « de » entre les deux.
+ */
+function dateEspagnole(f: string): string | undefined {
+  const m = f.match(new RegExp(`\\b(\\d{1,2})\\s+(?:de\\s+)?(${MOIS_ES.join("|")})\\s+(?:de\\s+)?(\\d{4})`));
+  if (!m) return undefined;
+  return `${m[3]}-${String(MOIS_ES.indexOf(m[2]) + 1).padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+}
+
 /** Ce que le titre dit, et rien de ce qu'il ne dit pas. */
 export function readBeacDoc(doc: BeacDoc): BeacAuction {
   const f = flat(doc.title);
@@ -230,9 +259,21 @@ export function readBeacDoc(doc: BeacDoc): BeacAuction {
    * reconnaître un seul de ses mots. Mesuré le 15 octobre 2026 : quarante-deux
    * pièces vues et jamais déposées, presque toutes camerounaises.
    */
-  const kind: BeacKind = /resultat|\bresults?\b/.test(f)
+  /**
+   * ET LA GUINÉE ÉQUATORIALE PUBLIE EN ESPAGNOL : trente-sept pièces, le seul
+   * État de la zone dont nos communiqués n'expliquaient RIEN de l'encours
+   * officiel. « Aviso de comunicado de la emision » est une annonce,
+   * « Comunicado de resultados de adjudicaciones » un résultat.
+   *
+   * ET LA BEAC SE TROMPE EN TAPANT. « Annoucement » sans le second n (neuf
+   * annonces camerounaises de 2020), « Communicado » avec deux m,
+   * « resultadaos », « resultos » : quatre coquilles, toutes du côté de la
+   * source, toutes mesurées le 15 octobre 2026. Un lecteur qui exige
+   * l'orthographe exacte perd une pièce sur vingt-trois.
+   */
+  const kind: BeacKind = /resultat|result[ad]*os?|\bresults?\b/.test(f)
     ? "resultats"
-    : /annonce|announcement/.test(f)
+    : /annonce|annou?n?cement|\baviso\b/.test(f)
       ? "annonce"
       : /calendrier|calendar/.test(f)
         ? "calendrier"
@@ -240,6 +281,16 @@ export function readBeacDoc(doc: BeacDoc): BeacAuction {
 
   // Les sigles, et les mêmes écrits en toutes lettres : trois Trésors sur six le
   // font au moins une fois, et une annonce sans instrument n'est pas classable.
+  /**
+   * « BONOS DEL TESORO » NE DIT PAS LEQUEL, ET ON NE DEVINE PAS.
+   *
+   * C'est le calque de « bons du Trésor », donc des BTA ; mais la Guinée écrit
+   * aussi « OTA » en toutes lettres la même année, ce qui prouve que le terme
+   * générique n'est pas réservé au court terme. Une seule pièce lisible le
+   * tranche dans un sens (« GQ1300000692 BTA 52 », séance du 25 septembre
+   * 2019) : un cas ne fait pas une règle. L'instrument reste donc silencieux
+   * sur ces titres-là, et c'est la lecture de la pièce qui le dira.
+   */
   const bta = /\bbta\b/.test(f) || /bons? du tresor assimilables?/.test(f) || /treasury bills?/.test(f);
   const ota = /\bota\b/.test(f) || /obligations? du tresor assimilables?/.test(f) || /treasury bonds?/.test(f);
   const instrument: OfferKind | undefined = bta ? "BTA" : ota ? "OTA" : undefined;
@@ -258,9 +309,23 @@ export function readBeacDoc(doc: BeacDoc): BeacAuction {
   const dateMatch = f.match(new RegExp(`(\\d{1,2})\\s*(?:er|ere)?[\\s_]+(${MONTHS.map(mois).join("|")})\\.?[\\s_]+(\\d{4})`));
   const on = dateMatch
     ? `${dateMatch[3]}-${String(MONTHS.findIndex((m) => m.startsWith(dateMatch[2])) + 1).padStart(2, "0")}-${dateMatch[1].padStart(2, "0")}`
-    : dateAnglaise(f) ?? dateChiffree(f);
+    : dateAnglaise(f) ?? dateEspagnole(f) ?? dateChiffree(f);
 
-  return { doc, kind, instrument, tenor, on, abondement: /abondement/.test(f), country: beacCountry(doc.country) || beacCountry(doc.title) };
+  /**
+   * LE TITRE NOMME LE PAYS, LA COLONNE LE COMPLÈTE : pas l'inverse.
+   *
+   * La colonne passait d'abord, parce que le titre écrit parfois
+   * « EQUTORIALE » et qu'un titre illisible ne vaut rien. Mais illisible
+   * n'est pas faux. Mesuré le 15 octobre 2026 sur les 1 347 pièces : 1 019
+   * fois les deux s'accordent, 308 fois le titre se tait, et 20 fois ils se
+   * contredisent. Sur ces vingt, le nom du fichier publié par la BEAC donne
+   * raison au titre 13 fois et à la colonne JAMAIS :
+   * « Résultats-BTA-Gabon-18-01-2023.pdf » porte « Tchad » en colonne.
+   *
+   * Une annonce gabonaise déposée comme tchadienne fausse deux pays à la
+   * fois, et le taux qu'elle porte entre dans la mauvaise courbe.
+   */
+  return { doc, kind, instrument, tenor, on, abondement: /abondement/.test(f), country: beacCountry(doc.title) || beacCountry(doc.country) };
 }
 
 /**

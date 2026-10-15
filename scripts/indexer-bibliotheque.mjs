@@ -174,17 +174,24 @@ for (const o of lot) {
  * piece doit etre. Le fichier y est ou il n y est pas : rien n est suppose.
  */
 const { cheminBeac, marquesDeCollision, avecMarque } = await import("../src/lib/intake/bibliotheque.ts");
-const { lotDuJournal } = await import("./_journal.mjs");
+const { lotDuJournal, placesInscrites, anciennetePar, empreintesDeLInventaire } = await import("./_journal.mjs");
 const journal = await lotDuJournal(sb);
-const marquesJ = marquesDeCollision(journal, cheminBeac);
+/* LA PLACE ENREGISTREE DEPARTAGE DEUX PIECES DE MEME NOM, et l index doit
+   repondre comme le rangeur : voir `_journal.mjs`. */
+const placesJ = await placesInscrites(sb, journal);
+const marquesJ = marquesDeCollision(journal, cheminBeac, anciennetePar(placesJ, cheminBeac, RACINE, empreintesDeLInventaire(RACINE)));
 const dejaIndexees = new Set(a.map((x) => x.file_key));
 let parLaRegle = 0;
 for (const o of journal) {
   const cle = storageKey(`beac/${decodeURIComponent(o.url.split("/").pop() ?? "")}`);
   if (dejaIndexees.has(cle)) continue;
   /* `cheminBeac` porte deja « 1. Donnees de marche » : le reprefixer
-     designerait un dossier qui n existe pas, et la passe ne rendrait rien. */
-  const chemin = avecMarque(cheminBeac(o), marquesJ.get(o.url));
+     designerait un dossier qui n existe pas, et la passe ne rendrait rien.
+     LA PLACE ENREGISTREE D ABORD : un fichier qui n a pas bouge se retrouve
+     la ou il est inscrit, meme quand la regle de nommage a change. */
+  const inscrite = placesJ.get(o.url);
+  const calcule = avecMarque(cheminBeac(o), marquesJ.get(o.url));
+  const chemin = inscrite && fs.existsSync(`${RACINE}/${inscrite}`) ? inscrite : calcule;
   if (!fs.existsSync(`${RACINE}/${chemin}`)) continue;
   const buf = fs.readFileSync(`${RACINE}/${chemin}`);
   dejaIndexees.add(cle);

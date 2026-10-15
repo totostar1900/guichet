@@ -313,3 +313,116 @@ describe("le nom d'un pays, sous ses deux formes", () => {
     expect(beacCountry("Gabon")).toBe("Gabon");
   });
 });
+
+/**
+ * LA TROISIÈME LANGUE DE LA ZONE, ET LES COQUILLES DE LA SOURCE.
+ *
+ * Les titres ci-dessous sont recopiés tels quels du journal de la BEAC, le
+ * 15 octobre 2026. La Guinée Équatoriale publie en espagnol : trente-sept
+ * pièces, et c'était le seul État dont nos communiqués n'expliquaient rien de
+ * l'encours officiel. Neuf annonces camerounaises de 2020 restaient dehors
+ * pour un « Annoucement » sans second n.
+ */
+describe("les titres espagnols, et ce que la BEAC tape de travers", () => {
+  const doc = (title: string, country = "", year = ""): BeacDoc => ({ url: "https://www.beac.int/x.pdf", title, country, year });
+
+  it("lit une annonce espagnole : nature, date, pays", () => {
+    const a = readBeacDoc(doc("Aviso de comunicado de la emision de BTA del 28 de Octubre 2020 - Republica de Guinea Ecuatorial"));
+    expect(a.kind).toBe("annonce");
+    expect(a.instrument).toBe("BTA");
+    expect(a.on).toBe("2020-10-28");
+    expect(a.country).toBe("Guinée éq.");
+  });
+
+  it("lit un communiqué de résultats espagnol", () => {
+    const a = readBeacDoc(doc("Comunicado de resultados de adjudicaciones - sesion del 25 de septiembre 2019 - Republica de Guinea Ecuatorial"));
+    expect(a.kind).toBe("resultats");
+    expect(a.on).toBe("2019-09-25");
+    expect(a.country).toBe("Guinée éq.");
+  });
+
+  it("accepte les quatre façons d'écrire la date espagnole", () => {
+    /* Le « de » est facultatif devant le mois comme devant l'année, et la
+       Guinée emploie les quatre formes la même année. */
+    expect(readBeacDoc(doc("Aviso de comunicado de la emision de BTA del 01 Abril 2020 - Republica de Guinea Ecuatorial")).on).toBe("2020-04-01");
+    expect(readBeacDoc(doc("Aviso de comunicado de la emision de BTA el 28 de Agosto 2019 - Republica de Guinea Ecuatorial")).on).toBe("2019-08-28");
+    expect(readBeacDoc(doc("Comunicado de resultadaos de adjudicaciones de Bonos del Tesoro del 09 de Junio de 2021")).on).toBe("2021-06-09");
+    expect(readBeacDoc(doc("Comunicado de resultos de adjudicaciones-sesion del 08 enero 2020-Guinée Equatoriale")).on).toBe("2020-01-08");
+  });
+
+  it("RECONNAÎT LES QUATRE COQUILLES DE LA SOURCE", () => {
+    /* Un lecteur qui exige l'orthographe exacte perd une pièce sur vingt-trois,
+       et toujours les mêmes : celles d'un Trésor qui tape vite. */
+    expect(readBeacDoc(doc("Annoucement insuance of Treasury Bills january 08th 2020 - Republic of Cameroon")).kind).toBe("annonce");
+    expect(readBeacDoc(doc("Communicado de resultados de adjudicaciones -sesion del 8 de Enero 2020 - Repùblica de Guinea Ecuatorial")).kind).toBe("resultats");
+    expect(readBeacDoc(doc("Comunicado de resultadaos de adjudicaciones de Bonos del Tesoro del 30 de Junio de 2021")).kind).toBe("resultats");
+    expect(readBeacDoc(doc("Comunicado de resultos de adjudicaciones-sesion del 08 enero 2020-Guinée Equatoriale")).kind).toBe("resultats");
+  });
+
+  it("lit l'annonce camerounaise mal tapée jusqu'au bout", () => {
+    const a = readBeacDoc(doc("Annoucement issuance of Fungible Treasury Bonds of the Republic of Cameroon- 27th of May 2020 session"));
+    expect(a.kind).toBe("annonce");
+    expect(a.instrument).toBe("OTA");
+    expect(a.on).toBe("2020-05-27");
+    expect(a.country).toBe("Cameroun");
+  });
+
+  it("NE DEVINE PAS L'INSTRUMENT SUR « BONOS DEL TESORO »", () => {
+    /* C'est le calque de « bons du Trésor », donc des BTA ; mais la Guinée
+       écrit aussi « OTA » en toutes lettres la même année. Une seule pièce
+       lisible tranche, et un cas ne fait pas une règle. */
+    const a = readBeacDoc(doc("Aviso de comunicado de la emision de Bonos del tesoro del 04 de septiembre 2019 - Republica de Guinea Ecuatorial"));
+    expect(a.kind).toBe("annonce");
+    expect(a.instrument).toBeUndefined();
+    expect(a.on).toBe("2019-09-04");
+  });
+
+  it("rend « 52 semanas » et « 3 años » dans la langue de la table", () => {
+    /* Le titre espagnol ne porte jamais la durée : c'est la pièce qui l'écrit,
+       et c'est le même lecteur qui la lira. */
+    expect(readBeacDoc(doc("Côdigo de Emisiôn: GQ1300000692 BTA 52 semanas")).tenor).toBe("52 semaines");
+    expect(readBeacDoc(doc("OTA 3 años")).tenor).toBe("3 ans");
+  });
+
+  it("lit « Febuary » sans le r, et février reste février", () => {
+    /* Deux annonces camerounaises de 2020 restaient sans date pour cette
+       lettre-là, et une annonce sans date ne rejoint aucune séance. */
+    expect(readBeacDoc(doc("Annoucement issuance of Fungible Treasury Bills of the Republic of Cameroon - 12th Febuary 2020 session")).on).toBe("2020-02-12");
+    expect(readBeacDoc(doc("Announcement issuance of Treasury Bills of the Republic of Cameroon - 19th February 2020 session")).on).toBe("2020-02-19");
+  });
+
+  it("UN MOIS ESPAGNOL NE SE PREND PAS POUR UN MOIS FRANÇAIS", () => {
+    /* « marzo » commence par « mar » et « octubre » par « oct » : le motif
+       français les laisse passer parce qu'il veut le mois collé au chiffre. */
+    expect(readBeacDoc(doc("Aviso de comunicado de la emision de BTA del 11 Marzo 2020")).on).toBe("2020-03-11");
+    expect(readBeacDoc(doc("Aviso de comunicado de la emision de Bonos del tesoro del 16 de octubre 2019")).on).toBe("2019-10-16");
+    expect(readBeacDoc(doc("Communiqué d'annonce des BTA 26 semaines du 16 octobre 2019 - République du Congo")).on).toBe("2019-10-16");
+  });
+});
+
+/**
+ * QUI DIT LE PAYS : LE TITRE, PUIS LA COLONNE.
+ *
+ * Mesuré le 15 octobre 2026 sur les 1 347 pièces du journal : 1 019 fois les
+ * deux s'accordent, 308 fois le titre se tait, et 20 fois ils se contredisent.
+ * Sur ces vingt, le nom du fichier publié par la BEAC donne raison au titre
+ * treize fois et à la colonne jamais.
+ */
+describe("le pays, quand la colonne et le titre ne disent pas la même chose", () => {
+  it("SUIT LE TITRE, qui est la parole du document", () => {
+    const a = readBeacDoc({ url: "https://www.beac.int/Résultats-BTA-Gabon-18-01-2023.pdf", title: "Communiqué des résultats d'adjudication des BTA du 18 janvier 2023 - République du Gabon", country: "Tchad", year: "2023" });
+    expect(a.country).toBe("Gabon");
+  });
+
+  it("se rabat sur la colonne quand le titre ne nomme personne", () => {
+    const a = readBeacDoc({ url: "https://www.beac.int/x.pdf", title: "Communiqué d'annonce d'émission des BTA du 18 mai 2022", country: "Tchad", year: "2022" });
+    expect(a.country).toBe("Tchad");
+  });
+
+  it("et la colonne rattrape « EQUTORIALE », que le titre écrit de travers", () => {
+    /* C'est la raison pour laquelle la colonne passait en premier : illisible
+       n'est pas faux, et c'est tout le point. */
+    const a = readBeacDoc({ url: "https://www.beac.int/x.pdf", title: "Communiqué d'annonce des BTA du 3 février 2021 - République de Guinée EQUTORIALE", country: "Guinée éq.", year: "2021" });
+    expect(a.country).toBe("Guinée éq.");
+  });
+});
