@@ -206,3 +206,18 @@
   color: var(--ink-3);
   white-space: nowrap;
 }
+
+/**
+ * LE RENDEMENT COMPTE A LA FACON DE LA BEAC, SOUS LE NOTRE.
+ *
+ * Un client qui ouvre le bulletin trimestriel y lit un autre chiffre : les
+ * deux sont justes, l ecart etant une convention de comptage des jours. Il
+ * se lit en second, dans l encre secondaire, pour qu on voie d un coup
+ * lequel est la mesure du Guichet.
+ */
+.beac {
+  display: block;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  white-space: nowrap;
+}

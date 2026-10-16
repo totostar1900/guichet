@@ -195,6 +195,9 @@ export async function confirmBatchAction(_prev: ResultOutcome | null, form: Form
       continue;
     }
     const after = await r.updateAuctionResult(avant.id, { confirmedBy: desk.name, confirmedAt: new Date().toISOString() });
+    /* Mesure de la maison, délibérément : « muette » veut dire que la séance
+       ne donnera aucun point, ce qui tient aux chiffres relevés et non au
+       barème que le desk a déroulé en haut de l'écran. */
     if (!auctionYield(after)) muettes += 1;
     signees += 1;
     /* Une entrée par séance : un lot ne doit pas laisser une trace plus pauvre

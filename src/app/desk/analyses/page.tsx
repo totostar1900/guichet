@@ -26,6 +26,8 @@ import { compteDansLesResultats } from "@/lib/market/auction-results";
 import { anomalieVueAction } from "./actions";
 import { bridge } from "@/lib/market/bridge";
 import { abonde, buildCurve, horizon, MIN_POINTS, serie, spreads, SPREAD_COMPARABLE_DAYS } from "@/lib/market/curve";
+import { ConventionDuRendement } from "@/components/desk/ConventionDuRendement";
+import { lireConvention } from "@/lib/market/convention";
 import { freshness, liquidity } from "@/lib/market/liquidity";
 import styles from "./page.module.css";
 
@@ -133,7 +135,10 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
     { cle: "a5", mot: t("il y a 5 ans"), le: recul(60) },
   ];
 
-  const courbe = buildCurve(seances, { windowDays: AN, on: leJour });
+  /* LA COURBE SUIT LA CONVENTION DU LECTEUR, sans quoi elle dirait autre
+     chose que le tableau des adjudications de la page d'à côté. */
+  const convention = await lireConvention();
+  const courbe = buildCurve(seances, { windowDays: AN, on: leJour, convention });
   const tracables = courbe.countries.filter((c) => c.points.length >= MIN_POINTS);
   const pression = pressureByYear(relues);
   const programme = programByYear(relues);
@@ -192,7 +197,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
    * information, ne pas la voir n'en est pas une.
    */
   const suivies: SerieDuree[] = [...new Map(relues.map((r) => [`${r.country}|${r.tenor}`, r])).values()]
-    .map((r) => ({ pays: r.country, tenor: r.tenor, points: serie(seances, r.country, r.tenor).map((x) => ({ on: x.on, v: x.pct, creux: x.thin })) }))
+    .map((r) => ({ pays: r.country, tenor: r.tenor, points: serie(seances, r.country, r.tenor, convention).map((x) => ({ on: x.on, v: x.pct, creux: x.thin })) }))
     .filter((x) => x.points.length >= 2)
     .sort((a, b) => b.points.length - a.points.length);
 
@@ -249,7 +254,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
     }));
   const pourLaCourbe = habiller(tracables);
   /** La courbe du jour, tracée en filigrane derrière une courbe passée. */
-  const courbeDuJour = demandee ? habiller(buildCurve(seances, { windowDays: 90 }).countries.filter((c) => c.points.length >= MIN_POINTS)) : undefined;
+  const courbeDuJour = demandee ? habiller(buildCurve(seances, { windowDays: 90, convention }).countries.filter((c) => c.points.length >= MIN_POINTS)) : undefined;
 
   /**
    * Quatre profondeurs, construites une fois.
@@ -272,7 +277,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
     { jours: 1825, mot: t("5 ans") },
   ].map((f) => ({
     ...f,
-    pays: habiller(buildCurve(seances, { windowDays: f.jours, on: leJour }).countries.filter((c) => c.points.length >= MIN_POINTS)),
+    pays: habiller(buildCurve(seances, { windowDays: f.jours, on: leJour, convention }).countries.filter((c) => c.points.length >= MIN_POINTS)),
   }));
   /** Un Trésor qui ne porte qu'un point : au tableau, pas sur le tracé. */
   const isoles = courbe.countries.filter((c) => c.points.length < MIN_POINTS);
@@ -352,6 +357,12 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
             </Link>
           </div>
         </header>
+
+        {/* LE COMMUTATEUR LÀ OÙ LE CHIFFRE SE LIT. Le même qu'au tableau des
+            adjudications, et le même témoin : passer à la convention de la
+            BEAC ici la passe aussi là-bas, sans quoi deux pages voisines
+            diraient deux rendements différents de la même séance. */}
+        <ConventionDuRendement />
 
         <div className={styles.band}>
           <div>

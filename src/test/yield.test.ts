@@ -576,3 +576,52 @@ describe("la série d'une durée", () => {
     expect(s26[0].pct).toBeLessThan(s26[1].pct);
   });
 });
+
+/**
+ * DEUX CONVENTIONS POUR UN MÊME RENDEMENT.
+ *
+ * Un bon est précompté : son rendement se déduit de l'escompte, et la façon
+ * de compter les jours change le résultat. Les deux sont justes ; celle de la
+ * BEAC existe pour qu'un lecteur qui a le bulletin trimestriel sous les yeux
+ * retrouve ses chiffres au lieu de croire à une erreur.
+ */
+describe("la convention de comptage des jours", () => {
+  it("REND CE QUE LA BEAC IMPRIME, au centième près", async () => {
+    const { rendementBeac } = await import("@/lib/market/yield");
+    /* Guinée Équatoriale, 19 avril 2022 : 6,556 % d'escompte sur 52 semaines,
+       et le bulletin n°18 imprime 7,02 %. */
+    expect(rendementBeac(6.556, 364)).toBeCloseTo(7.02, 2);
+    /* Et le 10 mai : 7,128 % donne les 7,68 % imprimés. */
+    expect(rendementBeac(7.128, 364)).toBeCloseTo(7.68, 2);
+    /* Gabon, 13 semaines à 5,691 % : 5,77 % au bulletin. */
+    expect(rendementBeac(5.691, 91)).toBeCloseTo(5.77, 2);
+  });
+
+  it("NE REMPLACE PAS LA NÔTRE, qui reste celle par défaut", async () => {
+    const { auctionYield } = await import("@/lib/market/yield");
+    const r = { instrument: "BTA" as const, tenor: "52 semaines", rateAvg: 6.556 };
+    const nous = auctionYield(r);
+    const eux = auctionYield(r, "beac");
+    expect(nous?.pct).toBeCloseTo(7.12, 1);
+    expect(eux?.pct).toBeCloseTo(7.02, 1);
+    /* Sans argument, c'est la mesure de la maison. */
+    expect(auctionYield(r)?.pct).toBe(nous?.pct);
+  });
+
+  it("DIT LAQUELLE ELLE A EMPLOYÉE", () => {
+    /* Un rendement dont l'origine ne se dit pas n'a pas sa place sur une
+       courbe qu'on publie, et deux conventions sont deux origines. */
+    return (async () => {
+      const { auctionYield } = await import("@/lib/market/yield");
+      const r = { instrument: "BTA" as const, tenor: "26 semaines", rateAvg: 6 };
+      expect(auctionYield(r, "beac")?.assumptions[0].key).toContain("convention BEAC");
+      expect(auctionYield(r)?.assumptions[0].key).toContain("exact/360");
+    })();
+  });
+
+  it("ne change rien à une obligation, qui n'a pas d'escompte à convertir", async () => {
+    const { auctionYield } = await import("@/lib/market/yield");
+    const r = { instrument: "OTA" as const, tenor: "5 ans", priceAvg: 95, couponRate: 6.25 };
+    expect(auctionYield(r, "beac")?.pct).toBe(auctionYield(r)?.pct);
+  });
+});

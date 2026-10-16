@@ -46,6 +46,32 @@ export const VN_OTA = 10_000;
 export type YieldOrigin = "imprimé" | "prix et coupon" | "taux précompté";
 
 /**
+ * DEUX FACONS DE COMPTER LES JOURS, ET LE LECTEUR CHOISIT LAQUELLE.
+ *
+ * Un bon est précompté : son rendement se déduit de l'escompte, et la
+ * convention de comptage change le résultat de 0,125 point en médiane sur nos
+ * 132 bons, de 0,039 à 0,295.
+ *
+ *   « guichet » compte l'escompte en exact/360 et capitalise en exact/365.
+ *   C'est la mesure de la maison et elle reste celle par défaut.
+ *
+ *   « beac » applique l'identité simple que la BEAC publie dans son bulletin
+ *   trimestriel : escompte divisé par un moins escompte fois la durée, la
+ *   durée en années valant les jours sur trois cent soixante-quatre.
+ *
+ * LES DEUX SONT JUSTES. Celle de la BEAC existe ici pour qu'un lecteur qui a
+ * le bulletin sous les yeux retrouve ses chiffres sans croire à une erreur.
+ * Elle ne concerne QUE les bons : une obligation n'a pas d'escompte à
+ * convertir, et les deux conventions y disent le même nombre.
+ */
+export type Convention = "guichet" | "beac";
+
+export const CONVENTION_LABEL: Record<Convention, string> = {
+  guichet: "escompte exact/360, capitalisation exact/365",
+  beac: "escompte / (1 − escompte × durée), convention BEAC",
+};
+
+/**
  * Une hypothèse, sous forme de clef et de paramètres.
  *
  * Elle s'affiche dans les deux langues, et ce module ne connaît pas le
@@ -173,6 +199,29 @@ export function actuarialFromDiscount(discountPct: number, days: number): number
   const price = prixDuBon(discountPct, days);
   if (price === undefined) return undefined;
   return ((100 / price) ** (365 / days) - 1) * 100;
+}
+
+/**
+ * LE MÊME RENDEMENT, COMPTÉ COMME LA BEAC LE COMPTE.
+ *
+ * Elle applique l'identité simple : escompte divisé par un moins escompte
+ * fois la durée, la durée en années valant les jours sur trois cent
+ * soixante-quatre. Pas d'exact/360 à l'escompte, pas de capitalisation.
+ *
+ * Vérifié au centième près sur huit séances du bulletin trimestriel : 6,556 %
+ * sur 52 semaines donne 7,02 % chez elle, et 7,12 % chez nous.
+ *
+ * LES DEUX SE DÉFENDENT, ET AUCUNE NE REMPLACE L'AUTRE. La nôtre est plus
+ * rigoureuse et reste celle du Guichet ; la sienne est celle qu'un client
+ * lira dans le bulletin, et un chiffre qui ne concorde pas avec la source
+ * publique sans qu'on dise pourquoi est un chiffre qu'on ne défend pas.
+ * L'écart médian est de 0,125 point sur nos 132 bons, de 0,039 à 0,295.
+ */
+export function rendementBeac(discountPct: number, days: number): number | undefined {
+  if (!Number.isFinite(discountPct) || !Number.isFinite(days) || days <= 0) return undefined;
+  const d = discountPct / 100;
+  const reste = 1 - d * (days / 364);
+  return reste > 0 ? (100 * d) / reste : undefined;
 }
 
 /**
@@ -304,7 +353,7 @@ type YieldInput = Partial<Pick<AuctionResult, "sessionOn" | "maturityOn">> & Pic
  * hypothèse passe avant un calcul qui en demande une. Le premier chemin qui
  * aboutit gagne, et il dit lequel il est.
  */
-export function auctionYield(r: YieldInput): AuctionYield | undefined {
+export function auctionYield(r: YieldInput, convention: Convention = "guichet"): AuctionYield | undefined {
   if (r.yieldAvg != null) return { pct: r.yieldAvg, origin: "imprimé", assumptions: [] };
   if (r.yieldLimit != null) return { pct: r.yieldLimit, origin: "imprimé", assumptions: [{ key: "rendement au prix limite, faute du moyen pondéré" }] };
 
@@ -317,9 +366,13 @@ export function auctionYield(r: YieldInput): AuctionYield | undefined {
     const restants = joursRestants(r);
     const jours = restants != null ? Math.round(restants) : tenorDays(r.tenor);
     if (d == null || jours == null) return undefined;
-    const y = actuarialFromDiscount(d, jours);
+    const y = convention === "beac" ? rendementBeac(d, jours) : actuarialFromDiscount(d, jours);
     if (y == null) return undefined;
-    const hyp: Assumption[] = [{ key: "escompte exact/360 sur {j} jours, capitalisation exact/365", params: { j: jours } }];
+    const hyp: Assumption[] = [
+      convention === "beac"
+        ? { key: "convention BEAC : escompte / (1 − escompte × {j}/364)", params: { j: jours } }
+        : { key: "escompte exact/360 sur {j} jours, capitalisation exact/365", params: { j: jours } },
+    ];
     if (restants == null) hyp.push({ key: "durée annoncée retenue faute d'échéance imprimée" });
     return { pct: y, origin: "taux précompté", assumptions: hyp };
   }
@@ -346,8 +399,8 @@ export function auctionYield(r: YieldInput): AuctionYield | undefined {
  * coupon de onze obligations est une consigne de travail, alors qu'un blanc
  * sans motif n'est qu'un blanc.
  */
-export function yieldMissing(r: YieldInput): string | undefined {
-  if (auctionYield(r)) return undefined;
+export function yieldMissing(r: YieldInput, convention: Convention = "guichet"): string | undefined {
+  if (auctionYield(r, convention)) return undefined;
   if (!vieRestante(r)) return "durée absente ou illisible";
   if (r.instrument === "BTA") return "ni taux moyen pondéré ni taux limite";
   if (!priceOf(r)) return "ni prix moyen pondéré ni prix limite";

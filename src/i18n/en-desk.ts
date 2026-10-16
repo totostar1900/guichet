@@ -3502,4 +3502,8 @@ export const EN_MORE: Record<string, string> = {
   "Taux d'escompte servi : un bon s'adjuge à un taux.": "Discount rate allotted: a bill is auctioned at a rate.",
   "Coupon facial : une obligation s'adjuge à un prix et porte un coupon.": "Facial coupon: a bond is auctioned at a price and carries a coupon.",
   "Ce que le desk doit regarder": "What the desk should look at",
+  "Rendement calculé": "Yield computed",
+  "à la façon du Guichet": "the Guichet way",
+  "à la façon de la BEAC": "the BEAC way",
+  "Les rendements de cette page sont calculés à la façon de la BEAC : escompte divisé par un moins escompte fois la durée. La mesure du Guichet, plus rigoureuse, compte l'escompte en exact/360 et capitalise en exact/365.": "The yields on this page are computed the BEAC way: discount divided by one minus discount times the term. The Guichet measure, more rigorous, counts the discount actual/360 and compounds actual/365.",
 };

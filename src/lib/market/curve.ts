@@ -1,7 +1,7 @@
 import type { Country } from "@/lib/domain/types";
 import { completerDepuisAvis, rembourseInFine, type EmissionLine } from "./emission-notices";
 import { aUnPrixDExecution, completedAfterConfirmation, compteDansLesResultats, fourchette, thin, type AuctionResult } from "./auction-results";
-import { auctionYield, tenorYears, vieRestante, yieldMissing, type AuctionYield } from "./yield";
+import { auctionYield, tenorYears, vieRestante, yieldMissing, type AuctionYield, type Convention } from "./yield";
 
 /**
  * La courbe des taux de la zone, construite sur ce qui est relu.
@@ -129,6 +129,16 @@ export const MIN_POINTS = 2;
 export interface CurveOptions {
   /** Le jour d'observation. Par défaut, aujourd'hui. */
   on?: string;
+  /**
+   * LA CONVENTION DE COMPTAGE DES JOURS, pour les bons précomptés.
+   *
+   * Par défaut celle du Guichet. Celle de la BEAC existe pour qu'un lecteur
+   * qui a le bulletin trimestriel sous les yeux retrouve ses chiffres : les
+   * deux sont justes et l'écart médian est de 0,125 point sur nos 132 bons.
+   * Une courbe tracée dans une convention et lue dans l'autre serait pire
+   * qu'une courbe absente.
+   */
+  convention?: Convention;
   /** Au-delà, une séance ne dit plus le marché du jour. */
   windowDays?: number;
   /** Restreindre à un Trésor. */
@@ -218,7 +228,7 @@ export function buildCurve(rows: AuctionResult[], opts: CurveOptions = {}): Curv
     const r = comble ? { ...brut, couponRate: comble.couponRate, maturityOn: comble.maturityOn } : brut;
     const vie = vieRestante(r);
     const annees = vie?.years;
-    const y = auctionYield(r);
+    const y = auctionYield(r, opts.convention);
     if (!y || annees == null) {
       const f = fourchette(r);
       gaps.push({
@@ -226,7 +236,7 @@ export function buildCurve(rows: AuctionResult[], opts: CurveOptions = {}): Curv
         instrument: r.instrument,
         tenor: r.tenor,
         on: r.sessionOn,
-        why: yieldMissing(r) ?? "rendement indisponible",
+        why: yieldMissing(r, opts.convention) ?? "rendement indisponible",
         // Ce que la séance publie tout de même : une fourchette n'est pas un
         // point, mais ce n'est pas rien, et le desk doit savoir qu'il ne
         // trouvera pas de chiffre servi sur la pièce.
@@ -337,11 +347,11 @@ export interface SeriePoint {
   id: string;
 }
 
-export function serie(rows: AuctionResult[], country: Country, tenor: string): SeriePoint[] {
+export function serie(rows: AuctionResult[], country: Country, tenor: string, convention: Convention = "guichet"): SeriePoint[] {
   return rows
     .filter((r) => r.confirmedBy && r.country === country && r.tenor === tenor)
     .map((r) => {
-      const y = auctionYield(r);
+      const y = auctionYield(r, convention);
       return y ? { on: r.sessionOn, pct: y.pct, origin: y.origin, thin: thin(r), id: r.id } : undefined;
     })
     .filter((p): p is SeriePoint => Boolean(p))

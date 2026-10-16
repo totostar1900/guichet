@@ -7,6 +7,8 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { confirmable, etatSeance, thin } from "@/lib/market/auction-results";
 import { auctionYield } from "@/lib/market/yield";
+import { lireConvention } from "@/lib/market/convention";
+import { ConventionDuRendement } from "@/components/desk/ConventionDuRendement";
 import { auctionReadingAvailable } from "@/lib/market/auction-extract";
 import { cribler } from "@/lib/market/anomalies";
 import { Anomalies, type LigneAnomalie } from "./Anomalies";
@@ -90,7 +92,14 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
     confirmee: a.gravite === "confirmee",
   }));
 
+  const convention = await lireConvention();
+
   const lotBta = aRelire.filter((x) => x.instrument === "BTA" && !confirmable(x) && x.codeEmission);
+  /* CES DEUX COMPTES NE SUIVENT PAS LE COMMUTATEUR, ET C'EST VOULU : ils
+     disent si une séance PEUT donner un point, ce qui est une propriété des
+     chiffres relevés, pas du barème choisi pour les lire. Un lot « prêt à
+     confirmer » qui changerait de taille parce qu'on a déroulé un menu serait
+     un compte que personne ne pourrait défendre. */
   const avecRdt = lotBta.filter((x) => auctionYield(x));
   const cle = (x: (typeof all)[number]) => `${x.country}|${x.maturityOn ?? x.tenor}`;
   const deja = new Set(relues.filter((x) => auctionYield(x)).map(cle));
@@ -115,7 +124,14 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
 
         <div className={styles.main}>
           {selected ? (
-            <ResultForm key={selected.id} r={selected} offerTitle={offer?.title} canRead={auctionReadingAvailable()} />
+            <ResultForm
+              key={selected.id}
+              r={selected}
+              offerTitle={offer?.title}
+              canRead={auctionReadingAvailable()}
+              convention={convention}
+              commutateur={<ConventionDuRendement />}
+            />
           ) : (
             <div className="empty">
               {t("Aucune séance. Le robot BEAC en dépose une dès qu'un Trésor publie ses résultats.")}

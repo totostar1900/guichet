@@ -4,6 +4,7 @@ import { isDesk } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import { toCsv } from "@/lib/reporting";
 import { applyFilter, sortRows, toRow, type SortKey, type TableFilter } from "@/lib/market/auction-table";
+import { lireConvention } from "@/lib/market/convention";
 
 /**
  * Les séances de la zone en CSV : desk seulement.
@@ -33,7 +34,10 @@ export async function GET(req: NextRequest) {
   const tri = p.get("tri") ?? "date";
   const rev = tri.endsWith("-");
   const all = await repo().listAuctionResults({ limit: 5000 });
-  const rows = sortRows(applyFilter(all, f).map(toRow), tri.replace(/-$/, "") as SortKey, rev);
+  /* L export porte la convention du lecteur : un fichier dont les chiffres
+     ne sont pas ceux de l ecran est un fichier qui trompe. */
+  const convention = await lireConvention();
+  const rows = sortRows(applyFilter(all, f).map((r) => toRow(r, convention)), tri.replace(/-$/, "") as SortKey, rev);
 
   const csv = toCsv(
     [

@@ -1,5 +1,5 @@
 import { coverageOf, etatSeance, fourchette, headline, thin, type AuctionResult } from "./auction-results";
-import { auctionYield, prixDuBon, tenorDays, vieRestante, YIELD_ORIGIN_LABEL } from "./yield";
+import { auctionYield, prixDuBon, tenorDays, vieRestante, YIELD_ORIGIN_LABEL, type Convention } from "./yield";
 
 /**
  * La table des séances : ce qu'on y range, ce qu'on y trie, ce qu'on en sort.
@@ -112,7 +112,7 @@ function prixDeLaLigne(r: AuctionResult): Bande | null {
   return a == null || b == null ? null : { lo: a, hi: b, calcule: true };
 }
 
-export const toRow = (r: AuctionResult): TableRow => {
+export const toRow = (r: AuctionResult, convention: Convention = "guichet"): TableRow => {
   const h = headline(r);
   return {
     r,
@@ -126,9 +126,21 @@ export const toRow = (r: AuctionResult): TableRow => {
        alors que c'est elle qui dit si la séance s'est jouée serré ou large. */
     plage: fourchette(r) ?? null,
     rendement: (() => {
-      const y = auctionYield(r);
+      const y = auctionYield(r, convention);
       if (!y) return null;
       const v = vieRestante(r);
+      /**
+       * ET LE MEME RENDEMENT COMPTE COMME LA BEAC LE COMPTE.
+       *
+       * Un client qui ouvre le bulletin trimestriel y lit 7,02 % la ou nous
+       * affichons 7,12 : les deux sont justes, et l ecart est une convention
+       * de comptage des jours, pas une erreur. Le taire laisserait croire a
+       * une faute de l un des deux. La notre reste la mesure du Guichet et
+       * passe la premiere ; celle de la BEAC l accompagne, nommee.
+       *
+       * Elle n a de sens que sur un bon precompte : une obligation n a pas
+       * d escompte a convertir, et la case reste vide.
+       */
       return { pct: y.pct, origine: YIELD_ORIGIN_LABEL[y.origin], vie: v?.years, vieDe: v?.from };
     })(),
     couverture: coverageOf(r) ?? null,

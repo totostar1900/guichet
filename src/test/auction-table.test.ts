@@ -71,7 +71,7 @@ describe("les filtres", () => {
    * ne pas publier.
    */
   it("rendent la fourchette sans en tirer un chiffre", () => {
-    const [row] = [s({ id: "td", country: "Tchad", instrument: "OTA", tenor: "2 ans", priceMin: 90, priceMax: 91 })].map(toRow);
+    const [row] = [s({ id: "td", country: "Tchad", instrument: "OTA", tenor: "2 ans", priceMin: 90, priceMax: 91 })].map((r) => toRow(r));
     expect(row.chiffre).toBeNull();
     expect(row.plage).toEqual({ lo: 90, hi: 91, unit: "prix" });
   });
@@ -81,7 +81,7 @@ describe("les filtres", () => {
        jamais, alors que c'est elle qui dit si la séance s'est jouée serré ou
        large. Le commentaire de la page affirmait déjà que c'était une colonne
        et non un repli : le code disait le contraire, en silence. */
-    const [row] = [s({ id: "cg", instrument: "BTA", rateAvg: 7, rateMin: 6.5, rateMax: 7.5 })].map(toRow);
+    const [row] = [s({ id: "cg", instrument: "BTA", rateAvg: 7, rateMin: 6.5, rateMax: 7.5 })].map((r) => toRow(r));
     expect(row.chiffre).toBe(7);
     expect(row.plage).toEqual({ lo: 6.5, hi: 7.5, unit: "taux" });
   });
@@ -91,13 +91,13 @@ describe("les filtres", () => {
        prix, aucune des 76 obligations ne publie de taux. Le prix du bon se
        calcule depuis son escompte, et c'est la définition du précompte qu'il
        soit sous le pair. */
-    const [b] = [s({ id: "b", instrument: "BTA", tenor: "52 semaines", rateAvg: 7 })].map(toRow);
+    const [b] = [s({ id: "b", instrument: "BTA", tenor: "52 semaines", rateAvg: 7 })].map((r) => toRow(r));
     expect(b.prix?.calcule).toBe(true);
     expect(b.prix?.lo).toBeCloseTo(92.92, 1);
     expect(b.prix!.lo).toBeLessThan(100);
     expect(b.taux).toEqual({ lo: 7, hi: 7 });
 
-    const [o] = [s({ id: "o", instrument: "OTA", tenor: "3 ans", priceAvg: 90, couponRate: 6 })].map(toRow);
+    const [o] = [s({ id: "o", instrument: "OTA", tenor: "3 ans", priceAvg: 90, couponRate: 6 })].map((r) => toRow(r));
     expect(o.prix).toEqual({ lo: 90, hi: 90 });
     expect(o.taux).toBeNull();
   });
@@ -106,7 +106,7 @@ describe("les filtres", () => {
     /* Trente-sept bons sur cent soixante-huit sont dans ce cas, et prendre le
        milieu inventerait un chiffre que personne n'a servi. Le taux haut
        donne le prix bas : oublier l'inversion rendrait la bande à l'envers. */
-    const [b] = [s({ id: "b", instrument: "BTA", tenor: "26 semaines", rateMin: 6, rateMax: 6.75 })].map(toRow);
+    const [b] = [s({ id: "b", instrument: "BTA", tenor: "26 semaines", rateMin: 6, rateMax: 6.75 })].map((r) => toRow(r));
     expect(b.prix!.lo).toBeLessThan(b.prix!.hi);
     expect(b.prix!.hi).toBeCloseTo(96.97, 1);
     expect(b.prix!.lo).toBeCloseTo(96.59, 1);
@@ -141,7 +141,7 @@ describe("le tri", () => {
     relue({ id: "haut", rateAvg: 9.4, sessionOn: "2026-05-01" }),
     relue({ id: "bas", rateAvg: 5.5, sessionOn: "2026-06-01" }),
     s({ id: "vide", sessionOn: "2026-07-01" }),
-  ].map(toRow);
+  ].map((r) => toRow(r));
 
   it("range les vides en dernier, dans les deux sens", () => {
     // Trier par prix croissant remonterait sinon en tête toutes les séances
@@ -162,14 +162,14 @@ describe("le tri", () => {
   });
 
   it("départage à égalité par la séance la plus récente", () => {
-    const ex = [relue({ id: "vieux", rateAvg: 7, sessionOn: "2026-01-01" }), relue({ id: "neuf", rateAvg: 7, sessionOn: "2026-08-01" })].map(toRow);
+    const ex = [relue({ id: "vieux", rateAvg: 7, sessionOn: "2026-01-01" }), relue({ id: "neuf", rateAvg: 7, sessionOn: "2026-08-01" })].map((r) => toRow(r));
     expect(sortRows(ex, "chiffre", false).map((x) => x.r.id)).toEqual(["neuf", "vieux"]);
   });
 });
 
 describe("le résumé de la tranche affichée", () => {
   it("compte les relues à part du total : trois sur deux cents ne fondent rien", () => {
-    const rows = [relue({ id: "a", rateAvg: 7 }), s({ id: "b" }), s({ id: "c" })].map(toRow);
+    const rows = [relue({ id: "a", rateAvg: 7 }), s({ id: "b" }), s({ id: "c" })].map((r) => toRow(r));
     const r = summarise(rows);
     expect(r.total).toBe(3);
     expect(r.relues).toBe(1);
@@ -177,26 +177,26 @@ describe("le résumé de la tranche affichée", () => {
 
   it("ne moyenne que ce qui a été relu", () => {
     // Une lecture que personne n'a arrêtée ne pèse pas dans une moyenne.
-    const rows = [relue({ id: "a", rateAvg: 7 }), s({ id: "b", rateAvg: 100 })].map(toRow);
+    const rows = [relue({ id: "a", rateAvg: 7 }), s({ id: "b", rateAvg: 100 })].map((r) => toRow(r));
     expect(summarise(rows).moyenneTaux).toBe(7);
   });
 
   it("ne mélange pas les taux et les prix dans une seule moyenne", () => {
-    const rows = [relue({ id: "a", rateAvg: 7 }), relue({ id: "o", instrument: "OTA", tenor: "3 ans", priceAvg: 90 })].map(toRow);
+    const rows = [relue({ id: "a", rateAvg: 7 }), relue({ id: "o", instrument: "OTA", tenor: "3 ans", priceAvg: 90 })].map((r) => toRow(r));
     const r = summarise(rows);
     expect(r.moyenneTaux).toBe(7);
     expect(r.moyennePrix).toBe(90);
   });
 
   it("donne les deux bornes de période et le nombre de Trésors", () => {
-    const rows = [s({ id: "a", sessionOn: "2026-01-10" }), s({ id: "b", country: "Tchad", sessionOn: "2026-09-15" })].map(toRow);
+    const rows = [s({ id: "a", sessionOn: "2026-01-10" }), s({ id: "b", country: "Tchad", sessionOn: "2026-09-15" })].map((r) => toRow(r));
     const r = summarise(rows);
     expect([r.du, r.au]).toEqual(["2026-01-10", "2026-09-15"]);
     expect(r.pays).toBe(2);
   });
 
   it("compte les minces parmi les relues : elles ne valent pas les autres", () => {
-    const rows = [relue({ id: "m", rateAvg: 6.97, bidders: 1 }), relue({ id: "p", rateAvg: 7, bidders: 8, coverage: 150 })].map(toRow);
+    const rows = [relue({ id: "m", rateAvg: 6.97, bidders: 1 }), relue({ id: "p", rateAvg: 7, bidders: 8, coverage: 150 })].map((r) => toRow(r));
     expect(summarise(rows).minces).toBe(1);
   });
 });

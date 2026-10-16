@@ -1,0 +1,37 @@
+/**
+ * Le commutateur se range avec les autres commandes de la page, sans se
+ * donner plus d'importance qu'un filtre : c'est un réglage de lecture, pas
+ * une décision.
+ */
+.boite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4);
+}
+
+.etiquette {
+  font-size: var(--t-1);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.choix {
+  min-width: 0;
+}
+
+/**
+ * LA NOTE NE PARAÎT QUE HORS DU DÉFAUT, et elle se voit : une page dont les
+ * chiffres sont calculés autrement sans le dire est une page qui ment par
+ * omission.
+ */
+.note {
+  margin: var(--s-6) 0 0;
+  padding: var(--s-6) var(--s-8);
+  background: var(--surface-2);
+  border-left: 2px solid var(--ink-3);
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}

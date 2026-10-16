@@ -470,3 +470,14 @@
 .ecarteForm p {
   margin: 0;
 }
+
+/**
+ * Le réglage de convention, posé au-dessus de la feuille d'une séance : il se
+ * lit comme une commande de la page et non comme un champ de plus à remplir.
+ */
+.convention {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 var(--s-8) var(--s-6);
+  border-bottom: 1px solid var(--line);
+}

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { FiltreAuto } from "./FiltreAuto";
+import { ConventionDuRendement } from "@/components/desk/ConventionDuRendement";
+import { lireConvention } from "@/lib/market/convention";
 import { TallTable } from "@/components/desk/TallTable";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -41,9 +43,13 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
 
   const f: TableFilter = { pays: sp.pays, instrument: sp.instrument, duree: sp.duree, etat: sp.etat, du: sp.du, au: sp.au };
   const tri = sp.tri ?? "date";
+  /* LA CONVENTION SUIT LE LECTEUR, elle ne vit pas dans l adresse : une
+     courbe lue a la BEAC et un tableau lu au Guichet compareraient deux
+     mesures differentes. Voir `convention-actions.ts`. */
+  const convention = await lireConvention();
   const rev = tri.endsWith("-");
   const key: SortKey = isKey(tri.replace(/-$/, "")) ? (tri.replace(/-$/, "") as SortKey) : "date";
-  const rows = sortRows(applyFilter(all, f).map(toRow), key, rev);
+  const rows = sortRows(applyFilter(all, f).map((r) => toRow(r, convention)), key, rev);
   const s = summarise(rows);
 
   const href = (patch: Record<string, string | undefined>) => {
@@ -145,6 +151,12 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
           </p>
         )}
 
+        {/* LE COMMUTATEUR LÀ OÙ LE CHIFFRE SE LIT. Il vit dans un témoin
+            partagé, donc il suit le lecteur sur la courbe et sur la fiche
+            d'une séance : ce n'est pas une copie du réglage, c'est le même,
+            à portée de main là où il sert. */}
+        <ConventionDuRendement />
+
         {/* LA TABLE RESTE MÊME VIDE, PARCE QU'ELLE PORTE SES PROPRES
             COMMANDES. Zéro ligne remplaçait tout le bloc par un « aucune
             séance » : les quatre filtres partaient avec, et le seul moyen de
@@ -173,7 +185,7 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                       instruments : ni le prix ni le taux ne le font, un bon a
                       92,92 sur 52 semaines et un autre a 96,59 sur 26 ne se
                       classant pas par leur prix. */}
-                  {th("rendement", "Rendement", true)}
+                  {th("rendement", convention === "beac" ? "Rendement BEAC" : "Rendement", true)}
                   {/* La fourchette publiee, dans son unite d origine. */}
                   <th className={styles.r}>{t("Min / max")}</th>
                   {th("couverture", "Couverture", true)}
@@ -198,13 +210,14 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                     <th>{filtre("pays", distinct(all, (x) => x.country), "tous")}</th>
                     <th>{filtre("instrument", distinct(all, (x) => x.instrument), "tous")}</th>
                     <th>{filtre("duree", distinct(all, (x) => x.tenor), "toutes")}</th>
-                    <th colSpan={6}>
+                    <th colSpan={2}>
                       <noscript>
                         <button className="btn sm" type="submit">
                           {t("Filtrer")}
                         </button>
                       </noscript>
                     </th>
+                    <th colSpan={4} />
                     <th>
                       {filtre("etat", [
                         ["a-lire", "À lire"],
@@ -268,10 +281,16 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                     <td className={`${styles.r} ${taux ? styles.gold : ""}`} title={taux ? t("Taux d'escompte servi : un bon s'adjuge à un taux.") : x.couponRate != null ? t("Coupon facial : une obligation s'adjuge à un prix et porte un coupon.") : undefined}>
                       {taux ? (estUnPoint(taux) ? pct(taux.lo) : `${pct(taux.lo)} – ${pct(taux.hi)}`) : x.couponRate != null ? pct(x.couponRate) : "—"}
                     </td>
-                    <td className={styles.r} title={rendement ? t("Origine : {o}. Calculé sur {v} an(s) restants, d'après {d}.", { o: rendement.origine, v: rendement.vie ? rendement.vie.toFixed(2) : "?", d: rendement.vieDe ?? "?" }) : undefined}>
+                    <td
+                      className={styles.r}
+                      title={
+                        rendement
+                          ? t("Origine : {o}. Calculé sur {v} an(s) restants, d'après {d}.", { o: rendement.origine, v: rendement.vie ? rendement.vie.toFixed(2) : "?", d: rendement.vieDe ?? "?" })
+                          : undefined
+                      }
+                    >
                       {rendement ? pct(rendement.pct) : "—"}
-                    </td>
-                    <td className={`${styles.r} ${styles.plage}`}>{plage ? `${pct(plage.lo)} – ${pct(plage.hi)}` : "—"}</td>
+                    </td>                <td className={`${styles.r} ${styles.plage}`}>{plage ? `${pct(plage.lo)} – ${pct(plage.hi)}` : "—"}</td>
                     <td className={styles.r}>{pct(couverture, 0)}</td>
                     <td className={styles.r}>{x.bidders ?? "—"}</td>
                     <td className={styles.r}>{x.served == null ? "—" : `${fmt(Math.round(x.served / 1_000_000))} M`}</td>

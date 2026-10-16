@@ -6,7 +6,7 @@ import { SourceViewer } from "@/components/SourceViewer";
 import { Poignee } from "@/components/desk/Poignee";
 import { useT } from "@/i18n/client";
 import { coverageOf, etatSeance, thin, type AuctionResult } from "@/lib/market/auction-results";
-import { auctionYield, YIELD_ORIGIN_LABEL } from "@/lib/market/yield";
+import { auctionYield, YIELD_ORIGIN_LABEL, type Convention } from "@/lib/market/yield";
 import { Ecarter } from "./Ecarter";
 import { confirmResultAction, proposeResultAction, reopenResultAction, saveResultAction, type ResultOutcome } from "./actions";
 import styles from "./page.module.css";
@@ -77,7 +77,24 @@ const proposedFields = (p: Partial<AuctionResult> | undefined): Champs => {
   return out;
 };
 
-export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offerTitle?: string; canRead: boolean }) {
+/**
+ * Le commutateur arrive en morceau déjà rendu : cette fiche est un composant
+ * client, elle ne peut pas lire le témoin elle-même. La page le lit une fois
+ * et descend les deux, la convention pour le calcul et le réglage pour la main.
+ */
+export function ResultForm({
+  r,
+  offerTitle,
+  canRead,
+  convention,
+  commutateur,
+}: {
+  r: AuctionResult;
+  offerTitle?: string;
+  canRead: boolean;
+  convention: Convention;
+  commutateur?: React.ReactNode;
+}) {
   const t = useT();
   // Ce que le desk a tapé, et rien d'autre : la valeur affichée se calcule.
   const [edits, setEdits] = useState<Champs>({});
@@ -92,7 +109,7 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
   const etat = etatSeance(r);
   // Le rendement se déduit des champs enregistrés : il dit tout de suite si la
   // séance servira de point sur la courbe, ou pourquoi elle n'en donnera pas.
-  const rdt = auctionYield(r);
+  const rdt = auctionYield(r, convention);
 
   // La valeur d'un champ, dans cet ordre : ce que le desk a tapé, sinon ce que
   // la base porte, sinon ce que la machine propose. Une proposition ne recouvre
@@ -141,6 +158,14 @@ export function ResultForm({ r, offerTitle, canRead }: { r: AuctionResult; offer
    */
   return (
     <>
+    {/* LE RÉGLAGE SE TIENT AU-DESSUS DE LA FEUILLE, ET HORS D'ELLE. Le desk
+        relève une séance ici, donc il doit pouvoir changer de convention sans
+        quitter la pièce ouverte à côté ; mais il porte son propre formulaire,
+        et un formulaire dans un formulaire ne part jamais : le menu changeait
+        d'aspect et le chiffre ne bougeait pas. Même règle que « Écarter »
+        plus bas. */}
+    {commutateur ? <div className={styles.convention}>{commutateur}</div> : null}
+
     <form className={styles.form}>
       <input type="hidden" name="id" value={r.id} />
 
