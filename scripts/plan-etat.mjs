@@ -279,14 +279,35 @@ const CONTROLES = [
         else grosses.add(jour);
       }
 
-      const manquantes = [...attendues].filter((c) => !deposeesFines.has(c));
-      const manquantesGrosses = [...grosses].filter((c) => !deposees.has(c));
-      const perdues = manquantes.length + manquantesGrosses.length;
+      /**
+       * UNE JOURNÉE SANS AUCUNE LIGNE EST CERTAINEMENT MANQUANTE. Un
+       * instrument annoncé sans ligne ne l'est PAS : le journal tire son
+       * instrument du titre, et le titre se trompe. Mesuré le 16 octobre
+       * 2026 sur les deux seules « lignes à déposer » que ce contrôle
+       * affichait, et les deux étaient des fantômes :
+       *
+       *   le « BTA 26 semaines » gabonais du 16 avril 2025 est un OTA 2 ans
+       *   servi à zéro, code GA2A00000209, deja en table ;
+       *   le « BTA » centrafricain du 5 mai 2021 est un OTA 3 ans,
+       *   code CF2J00000026, deja en table.
+       *
+       * Le rouge va donc a ce qui est certain, et les deux signaux faibles
+       * se DISENT sans tenir la barriere : un contrôle qui crie sur ce qu'il
+       * ne peut pas distinguer apprend a ne plus etre lu. La campagne, elle,
+       * continue de chercher au grain fin, parce qu'elle OUVRE la piece :
+       * c'est la seule autorite sur l'instrument.
+       */
+      const douteuses = [...attendues].filter((c) => !deposeesFines.has(c)).length;
+      const perdues = [...grosses].filter((c) => !deposees.has(c)).length
+        + [...attendues].filter((c) => !deposees.has(c.split("|").slice(0, 2).join("|"))).length;
       const annoncees = attendues.size + grosses.size;
-      const dit = `${annoncees - perdues} sur ${annoncees} annoncée(s)` +
-        (perdues ? ` · ${perdues} à déposer` : "") +
-        (muettes ? ` · ${muettes} pièce(s) sans pays ni date` : "");
-      return { mesure: dit, tient: perdues === 0 && muettes === 0 };
+      const reserves = [
+        perdues ? `${perdues} journée(s) sans aucune ligne` : "",
+        douteuses ? `${douteuses} instrument(s) annoncé(s) sans ligne, à ouvrir` : "",
+        muettes ? `${muettes} pièce(s) sans pays ni date` : "",
+      ].filter(Boolean);
+      const dit = `${annoncees} annoncée(s)` + (reserves.length ? ` · ${reserves.join(" · ")}` : " · rien en attente");
+      return { mesure: dit, tient: perdues === 0 };
     },
   },
   {

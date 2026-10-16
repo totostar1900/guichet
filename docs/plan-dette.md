@@ -24,7 +24,7 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 | oui | 2 | Encours de la dette écrits | 17775 lignes | plus de 16 000 lignes |
 | **non** | 2 | Encours relus par le lecteur courant | 6826 ligne(s) à relire pour l'encours | aucune ligne qu'une relecture de l'encours ferait gagner |
 | **non** | 2 | Complétude de la série d'encours | 784 sur 18559 (4.2 %) · 518 séance(s) trouée(s) | aucune ligne attendue et absente |
-| **non** | 3 | Séances de résultats déposées | 247 sur 249 annoncée(s) · 2 à déposer · 8 pièce(s) sans pays ni date | aucune séance annoncée par le journal qui ne soit déposée |
+| oui | 3 | Séances de résultats déposées | 249 annoncée(s) · 2 instrument(s) annoncé(s) sans ligne, à ouvrir · 4 pièce(s) sans pays ni date | aucune séance annoncée par le journal qui ne soit déposée |
 | oui | 4 | Cliquet d'échelle sur les adjudications | écrit | le test existe |
 | oui | 4 | Ligne tchadienne du 24 janvier 2024 | traitée | corrigée ou écartée avec son motif |
 | oui | 4 | Point de Santé sur l'échéance manquante | posé | le point existe et dit où agir |
@@ -32,7 +32,7 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 | oui | 4 | Libellé du bloc Programme du desk | renommé | ne dit plus « Exécution » pour servi sur annoncé |
 | **non** | rapport | Relecture qui rendrait quelque chose | 264 cotations, 264 vl | aucune séance dont les cotations ou les VL auraient à gagner |
 
-**9 contrôles tenus sur 13.**
+**10 contrôles tenus sur 13.**
 
 <!-- etat:fin -->
 

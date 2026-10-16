@@ -271,7 +271,23 @@ export function readBeacDoc(doc: BeacDoc): BeacAuction {
    * source, toutes mesurées le 15 octobre 2026. Un lecteur qui exige
    * l'orthographe exacte perd une pièce sur vingt-trois.
    */
-  const kind: BeacKind = /resultat|result[ad]*os?|\bresults?\b/.test(f)
+  /**
+   * ET TOUT « COMMUNIQUÉ DES RÉSULTATS » N'EST PAS UNE ADJUDICATION. La BEAC
+   * publie sur la même page ses propres marchés publics : « Communiqué des
+   * résultats de l'Appel d'offres AON/OPIL n°29/E7/2019-BEAC du 23 juillet
+   * 2019 » est l'attribution d'un marché de fournitures, pas une séance du
+   * marché des titres. Une pièce, trouvée le 16 octobre 2026 parce qu'elle
+   * tenait seule un contrôle au rouge : elle n'a ni Trésor ni ligne, donc
+   * elle ne pouvait jamais être rapprochée de rien.
+   *
+   * Le motif vise l'appel d'offres de la BAEC elle-même, et non le mot
+   * « adjudication » que les Trésors emploient justement pour leurs séances.
+   */
+  const marcheDeLaBeac = /appel d.?offres|\bAON\b|\bOPIL\b/i.test(f);
+
+  const kind: BeacKind = marcheDeLaBeac
+    ? "autre"
+    : /resultat|result[ad]*os?|\bresults?\b/.test(f)
     ? "resultats"
     : /annonce|annou?n?cement|\baviso\b/.test(f)
       ? "annonce"

@@ -426,3 +426,33 @@ describe("le pays, quand la colonne et le titre ne disent pas la même chose", (
     expect(a.country).toBe("Guinée éq.");
   });
 });
+
+/**
+ * LE MARCHÉ PUBLIC DE LA BEAC N'EST PAS UNE ADJUDICATION DU TRÉSOR.
+ *
+ * La même page publie les appels d'offres de la Banque pour ses propres
+ * fournitures. Leur communiqué de résultats porte les mêmes mots que celui
+ * d'une séance, sans Trésor ni ligne : il ne peut être rapproché de rien, et
+ * il tenait seul un contrôle du plan au rouge le 16 octobre 2026.
+ */
+describe("l'appel d'offres de la BEAC, qui ressemble à un résultat d'adjudication", () => {
+  it("n'est pas rangé dans les résultats", () => {
+    const a = readBeacDoc({
+      url: "https://www.beac.int/COMMUNIQUE-RESULTATS-AON-29_E7_DU_23_07_2019.pdf",
+      title: "Communiqué des résultats de l’Appel d’offres AON/OPIL n°29/E7/2019-BEAC du 23 juillet 2019",
+      country: "",
+      year: "2019",
+    });
+    expect(a.kind).toBe("autre");
+  });
+
+  it("mais « adjudication », que les Trésors emploient, reste un résultat", () => {
+    const a = readBeacDoc({
+      url: "https://www.beac.int/x.pdf",
+      title: "Communiqué des résultats d'adjudication des BTA du 05 février 2020 - République de Guinée Equatoriale",
+      country: "Guinée éq.",
+      year: "2020",
+    });
+    expect(a.kind).toBe("resultats");
+  });
+});

@@ -44,12 +44,39 @@ const clefDe = (url) => storageKey(`beac/${decodeURIComponent(String(url).split(
 
 const lot = await lotDuJournal(sb);
 const places = await placesInscrites(sb, lot);
-const deja = new Set((await tout(sb, "auction_results", "source_url")).map((x) => x.source_url));
+/**
+ * ON CHOISIT PAR LA SEANCE QUI MANQUE, PAS PAR L ADRESSE NON CITEE.
+ *
+ * Le critere precedent retenait « toute piece dont l adresse n est citee par
+ * aucune ligne ». Il s est trompe DANS LES DEUX SENS le 16 octobre 2026 :
+ *
+ *   il retenait quarante traductions de seances deja deposees, parce que
+ *   leur adresse n etait citee nulle part, et la campagne a cru deposer
+ *   quarante seances absentes ;
+ *
+ *   il ecartait le BTA gabonais du 16 avril 2025 et le BTA centrafricain du
+ *   5 mai 2021, bel et bien absents, parce que leur adresse etait citee par
+ *   la ligne OTA du MEME JOUR, qui l avait prise a tort.
+ *
+ * Une adresse dit quelle piece on a lue ; elle ne dit pas quelle ligne
+ * existe. La bonne question est celle de la table : ce couple pays-seance,
+ * pour cet instrument, a-t-il une ligne ? Faute d instrument au journal, on
+ * retombe sur la journee.
+ */
+const lignes = await tout(sb, "auction_results", "country, session_on, instrument");
+const parJour = new Set(lignes.map((l) => `${l.country}|${l.session_on}`));
+const parLigne = new Set(lignes.map((l) => `${l.country}|${l.session_on}|${l.instrument}`));
+const absente = (o) => {
+  if (!o.pays || !o.seance) return true;
+  const jour = `${o.pays}|${o.seance}`;
+  return o.instrument ? !parLigne.has(`${jour}|${o.instrument}`) : !parJour.has(jour);
+};
+
 const manquants = lot
-  .filter((o) => o.genre === "resultats" && !deja.has(absolue(o.url)))
+  .filter((o) => o.genre === "resultats" && absente(o))
   .sort((a, b) => String(a.seance ?? "").localeCompare(String(b.seance ?? "")));
 
-dire(`${manquants.length} communique(s) de resultats jamais deposes\n`);
+dire(`${manquants.length} ligne(s) annoncee(s) sans ligne en table\n`);
 
 const pct = (a, b) => (a != null && b != null && Number(b) > 0 ? (100 * Number(a)) / Number(b) : undefined);
 const mds = (v) => (v == null ? "—" : (Number(v) / 1e9).toFixed(2));
