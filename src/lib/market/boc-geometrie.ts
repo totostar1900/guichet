@@ -1249,8 +1249,36 @@ function decoupeDeLaRangee(m: Morceau[], encours: number): Decoupe | undefined {
            soit exactement un millième par titre. La demi-unité refusait la
            rangée. Le garde reste serré : un relatif de 10⁻⁴ n'accepte pas une
            combinaison fausse, qui se trompe d'un ordre de grandeur. */
-        const arrondi = nominal.decimales > 0 ? (titres.valeur * Math.pow(10, -nominal.decimales) * cours.valeur) / 100 : 0;
-        if (Math.abs((titres.valeur * nominal.valeur * cours.valeur) / 100 - encours) <= 1 + arrondi) candidats.push({ titres, nominal, cours });
+        /* ON TESTE LE NOMINAL IMPLIQUÉ, PAS LE PRODUIT, et c'est ce qui
+           réconcilie deux cas opposés mesurés le 16 octobre 2026.
+
+           ALIOS02 imprime un nominal de 5714,286 et calcule son encours avec
+           5714,29, arrondi au centime : le nominal IMPRIMÉ est plus fin que
+           celui UTILISÉ, et le produit dérive de 3 417 francs sur 854 250
+           titres. L'État du Congo fait l'inverse : il imprime 3 333 tout
+           rond et calcule avec 3333,337, soit 3,6 millions d'écart sur
+           35,8 milliards. Une tolérance en francs ne peut pas couvrir les
+           deux sans s'ouvrir démesurément.
+
+           Le nominal impliqué, lui, se compare au nominal imprimé dans son
+           unité propre : les deux doivent s'accorder à une demi-unité de la
+           dernière décimale IMPRIMÉE, ou au demi-centime, le plus large des
+           deux. C'est exactement ce que veut dire « le bulletin a imprimé un
+           arrondi du nombre dont il s'est servi ».
+
+           UNE UNITÉ ENTIÈRE DU DERNIER DÉCIMAL, ET NON UNE DEMIE : la règle
+           était déjà écrite ici, pour la tolérance en francs, et je l'ai
+           enfreinte en réécrivant le test. Une demi-unité perdait le Congo du
+           10 septembre 2025, qui imprime 3333,33 et calcule avec 3333,3368,
+           soit 0,0068 d'écart pour 0,005 de tolérance. Le bulletin TRONQUE
+           autant qu'il arrondit, et une demie suppose qu'il arrondit.
+
+           LE GARDE RESTE SERRÉ. Une découpe fausse se trompe d'un ordre de
+           grandeur sur les titres, donc d'autant sur le nominal impliqué :
+           elle ne passe pas à une unité près. */
+        const implique = (encours * 100) / (titres.valeur * cours.valeur);
+        const pas = Math.max(0.01, Math.pow(10, -nominal.decimales));
+        if (Math.abs(implique - nominal.valeur) <= pas) candidats.push({ titres, nominal, cours });
       }
     }
   }

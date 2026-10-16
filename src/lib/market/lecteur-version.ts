@@ -454,8 +454,39 @@
  *                            PERDUE, ZERO CHANGEE, 10 seances touchees. La
  *                            correction ferme une partie de l arriere de
  *                            784 lignes, pas sa totalite.
+ *
+ *  20  (2026-10-16)          LE NOMINAL IMPLIQUE, ET NON LE PRODUIT.
+ *                            Deux cas opposes, tous deux refuses, tous deux
+ *                            de la meme famille : le bulletin imprime un
+ *                            ARRONDI du nombre dont il s est servi.
+ *
+ *                            ALIOS02 imprime 5714,286 et calcule son encours
+ *                            avec 5714,29 : l imprime est plus FIN que l
+ *                            utilise, et le produit derive de 3 417 francs
+ *                            sur 854 250 titres. L Etat du Congo fait l
+ *                            inverse, il imprime 3 333 tout rond et calcule
+ *                            avec 3333,337 : l imprime est plus GROSSIER, et
+ *                            l ecart atteint 3,6 millions sur 35,8
+ *                            milliards. Une tolerance en francs ne couvre
+ *                            pas les deux sans s ouvrir demesurement.
+ *
+ *                            On compare donc le nominal IMPLIQUE par l
+ *                            encours au nominal imprime, dans son unite
+ *                            propre : une unite entiere de la derniere
+ *                            decimale imprimee, au moins un centime.
+ *
+ *                            ET LA DEMI-UNITE NE SUFFIT PAS, regle deja
+ *                            ecrite ici pour la tolerance en francs et que j
+ *                            ai enfreinte en reecrivant le test : une demie
+ *                            PERDAIT le Congo du 10 septembre 2025, qui
+ *                            imprime 3333,33 et calcule avec 3333,3368. Le
+ *                            bulletin tronque autant qu il arrondit.
+ *
+ *                            Relecture sur 12 seances : 7 GAGNEES, ZERO
+ *                            MODIFIEE, ZERO PERDUE. La demi-unite en perdait
+ *                            une, ce qui a servi de garde.
  */
-export const VERSION_DU_LECTEUR = 19;
+export const VERSION_DU_LECTEUR = 20;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
@@ -532,6 +563,7 @@ export const TOUCHE_PAR_VERSION: Record<number, Lecteur[]> = {
   17: ["cotations"], // le pivot de la jonction : le statut, et non la date
   18: ["encours"], // une grille par sous-tableau, et non par page
   19: ["encours"], // une cellule qui porte deux nombres, decoupee
+  20: ["encours"], // le nominal implique, et non le produit
 };
 
 /**

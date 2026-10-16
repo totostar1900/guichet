@@ -14,16 +14,16 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 
 <!-- etat:debut -->
 
-*Mesuré le 2026-10-16 par `scripts/plan-etat.mjs`, lecteur v18. Ne pas modifier à la main.*
+*Mesuré le 2026-10-16 par `scripts/plan-etat.mjs`, lecteur v19. Ne pas modifier à la main.*
 
 | | lot | point | mesure | attendu |
 |---|---|---|---|---|
 | oui | 0 | Cotations d'action sans capitalisation | 248 sur 5002 | au plus 300 |
 | oui | 1 | Observations du calendrier BEAC | 2311 lignes | la table est alimentée |
 | oui | 1 | Fraîcheur du balayage BEAC | vu il y a 0 jour(s), le 2026-10-16 | au plus 2 jours (cadence quotidienne, 9 h UTC) |
-| oui | 2 | Encours de la dette écrits | 17775 lignes | plus de 16 000 lignes |
-| oui | 2 | Encours relus par le lecteur courant | toutes à jour (plus ancienne : v18) | aucune ligne qu'une relecture de l'encours ferait gagner, mesuré et non supposé |
-| **non** | 2 | Complétude de la série d'encours | 784 sur 18559 (4.2 %) · 518 séance(s) trouée(s) | aucune ligne attendue et absente |
+| oui | 2 | Encours de la dette écrits | 18049 lignes | plus de 16 000 lignes |
+| oui | 2 | Encours relus par le lecteur courant | toutes à jour (plus ancienne : v19) | aucune ligne qu'une relecture de l'encours ferait gagner, mesuré et non supposé |
+| **non** | 2 | Complétude de la série d'encours | 510 sur 18559 (2.7 %) · 426 séance(s) trouée(s) | aucune ligne attendue et absente |
 | oui | 3 | Séances de résultats déposées | 249 annoncée(s) · 2 instrument(s) annoncé(s) sans ligne, à ouvrir · 4 pièce(s) sans pays ni date | aucune séance annoncée par le journal qui ne soit déposée |
 | oui | 4 | Cliquet d'échelle sur les adjudications | écrit | le test existe |
 | oui | 4 | Ligne tchadienne du 24 janvier 2024 | traitée | corrigée ou écartée avec son motif |
