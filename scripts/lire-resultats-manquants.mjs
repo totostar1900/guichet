@@ -153,7 +153,11 @@ for (const x of retenus) {
         : {}),
       updated_at: maintenant,
     },
-    { onConflict: "source_url" },
+    /* LA CLEF EST (pays, séance, code) DEPUIS LA MIGRATION 0108, qui a
+       retiré l'unicité de l'adresse : une traduction porte la même séance à
+       une autre adresse. Viser « source_url » ici échouerait, et le script
+       n'écrirait plus rien en annonçant un succès. */
+    { onConflict: "country,session_on,code_emission" },
   );
   if (error) dire(`   ERREUR ${x.seance} : ${error.message}`);
   else n++;
