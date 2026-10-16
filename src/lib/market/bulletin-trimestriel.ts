@@ -1,4 +1,4 @@
-import { rangeesDuPdf, type Rangee } from "./boc-geometrie";
+import { rangeesDuPdf, type Cellule, type Rangee } from "./boc-geometrie";
 
 /**
  * LE BULLETIN TRIMESTRIEL DE LA CEMAC, ET SON REGISTRE DE L'ENCOURS.
@@ -441,8 +441,17 @@ export interface EmissionDuBulletin {
   /** En FCFA, converti des millions que le tableau imprime. */
   offert?: number;
   leve?: number;
-  /** Le taux moyen pondéré, en pour cent. */
+  /** Le taux moyen pondéré, en pour cent. Les BTA seulement. */
   taux?: number;
+  /**
+   * LE PRIX MOYEN PONDÉRÉ, EN POUR CENT DU NOMINAL. Les OTA seulement.
+   *
+   * Un tableau d'OTA n'imprime pas de taux : il imprime un prix. Sans ce
+   * champ, « Prix Moyen Pondéré » ne tombait dans aucune case et toutes les
+   * colonnes d'OTA sortaient « sans taux ni prix », soit la moitié du
+   * tableau des émissions.
+   */
+  prix?: number;
   couverture?: number;
   svtLocaux?: number;
   svtReseau?: number;
@@ -455,6 +464,17 @@ export interface EmissionsDuBulletin {
 }
 
 const PAYS_CELLULE = /^(cameroun|congo|gabon|tchad|rca|republique centrafricaine|centrafrique|guinee equatoriale|guinee eq\.?)$/;
+
+/**
+ * LE CODE PORTE LE PAYS, ET C'EST EXACT.
+ *
+ * Le tableau n'imprime le nom du pays qu'une fois par bloc : cent dix
+ * colonnes sortaient « sans pays ». Hériter de la colonne de gauche serait
+ * une supposition ; les deux premières lettres du code du CRCT, elles, SONT
+ * le pays, et elles sont sur la ligne même.
+ */
+const PAYS_DU_CODE: Record<string, string> = { CM: "Cameroun", GA: "Gabon", CG: "Congo", TD: "Tchad", CF: "RCA", GQ: "Guinée éq." };
+const paysDuCode = (isin?: string): string | undefined => PAYS_DU_CODE[String(isin ?? "").slice(0, 2).toUpperCase()];
 
 /** Une cellule qui porte une valeur, et non un bout d'intitulé. */
 function estValeur(t: string): boolean {
@@ -495,6 +515,7 @@ export function champDeLIntitule(libelle: string): keyof EmissionDuBulletin | "s
      AVANT, comme tout intitulé qui contient le nom d'un autre. */
   if (/taux/.test(f) && /(souscription|couverture)/.test(f)) return "couverture";
   if (/taux/.test(f) && /pondere/.test(f)) return "taux";
+  if (/prix/.test(f) && /pondere/.test(f)) return "prix";
   if (/souscrits/.test(f) && /autres/.test(f)) return "svtReseau";
   if (/souscrits/.test(f) && /(implantes|dupaysemetteur)/.test(f)) return "svtLocaux";
   if (/code/.test(f) && /(emission|identif)/.test(f)) return "isin";
@@ -555,9 +576,30 @@ export function emissionsDuBulletin(rangees: Rangee[], numero?: number): Emissio
      * toujours à la rangée dont il est le plus proche, et cette règle-là ne
      * dépend d'aucune mise en page.
      */
-    const rangeesDeValeurs = sur
-      .map((r) => ({ r, valeurs: r.cellules.filter((c) => estValeur(c.texte)) }))
-      .filter((x) => x.valeurs.length >= 2);
+    /**
+     * UNE RANGEE D ATTRIBUT EST ETALEE SUR DEUX OU TROIS LIGNES DE BASE.
+     *
+     * Dans le numero 14, les montants leves d une meme rangee se repartissent
+     * sur trois ordonnees a sept points l une de l autre : la mise en page
+     * cale chaque valeur sur la hauteur de sa colonne. Les compter comme
+     * trois attributs distincts donnait a chacun le meme intitule, et la
+     * premiere valeur rencontree gagnait la case : quarante-cinq colonnes sur
+     * cinquante-six sortaient sans montant leve.
+     *
+     * On les recolle a dix points pres. Deux attributs VRAIMENT differents
+     * sont a quarante points au moins les uns des autres, mesure sur les dix
+     * bulletins : la borne ne les confond pas.
+     */
+    const brutes = sur.map((r) => ({ r, valeurs: r.cellules.filter((c) => estValeur(c.texte)) })).filter((x) => x.valeurs.length >= 1);
+    const rangeesDeValeurs: { r: Rangee; valeurs: Cellule[] }[] = [];
+    for (const x of [...brutes].sort((a, b) => b.r.y - a.r.y)) {
+      const voisine = rangeesDeValeurs.find((y) => Math.abs(y.r.y - x.r.y) <= 10);
+      if (voisine) voisine.valeurs.push(...x.valeurs);
+      else rangeesDeValeurs.push({ r: x.r, valeurs: [...x.valeurs] });
+    }
+    /* Une rangee a une seule valeur n est pas un tableau : elle le redevient
+       quand ses voisines l ont rejointe. */
+    rangeesDeValeurs.splice(0, rangeesDeValeurs.length, ...rangeesDeValeurs.filter((x) => x.valeurs.length >= 2));
     const morceauxPar = new Map<number, string[]>();
     for (const v of sur) {
       /* L'INTITULÉ DU TABLEAU N'EST PAS CELUI D'UNE RANGÉE : il passe à
@@ -629,7 +671,7 @@ export function emissionsDuBulletin(rangees: Rangee[], numero?: number): Emissio
         continue;
       }
       emissions.push({
-        pays: d.pays ? paysDeLIntitule(d.pays) ?? d.pays : undefined,
+        pays: (d.pays ? paysDeLIntitule(d.pays) ?? d.pays : undefined) ?? paysDuCode(d.isin),
         isin: d.isin,
         instrument,
         tenor: d.tenor,
@@ -640,6 +682,7 @@ export function emissionsDuBulletin(rangees: Rangee[], numero?: number): Emissio
         offert: mds(d.offert),
         leve: mds(d.leve),
         taux: d.taux == null ? undefined : montant(d.taux),
+        prix: d.prix == null ? undefined : montant(d.prix),
         couverture: d.couverture == null ? undefined : montant(d.couverture),
         svtLocaux: mds(d.svtLocaux),
         svtReseau: mds(d.svtReseau),
@@ -664,18 +707,39 @@ export function emissionsDuBulletin(rangees: Rangee[], numero?: number): Emissio
    * sait pas lire doit se voir dans les remarques, pas se deviner dans les
    * chiffres.
    */
-  const tient = (e: EmissionDuBulletin) =>
-    Boolean(e.pays) &&
-    Boolean(e.adjugeLe ?? e.emisLe ?? e.regleLe) &&
-    e.leve != null &&
-    e.leve > 0 &&
-    e.taux != null &&
-    e.taux >= 1 &&
-    e.taux <= 20 &&
-    (e.couverture == null || (e.couverture > 0 && e.couverture <= 1000));
-  const retenues = emissions.filter(tient);
+  /**
+   * ET LA BARRIERE DIT CE QUI MANQUE, PAS SEULEMENT COMBIEN.
+   *
+   * « Trente-deux colonnes ecartees » ne se repare pas : on ne sait pas si
+   * c est la date, le pays ou le taux, donc on ne sait pas quoi corriger
+   * dans le lecteur. Le motif se compte, et c est lui qui a montre que les
+   * dates manquaient dans trois bulletins sur dix.
+   */
+  const pourquoi = (e: EmissionDuBulletin): string | undefined => {
+    if (!e.pays) return "sans pays";
+    if (!(e.adjugeLe ?? e.emisLe ?? e.regleLe)) return "sans aucune date";
+    if (e.leve == null) return "sans montant levé";
+    if (e.leve <= 0) return "montant levé nul";
+    /* UN BTA SE PAIE EN TAUX, UN OTA EN PRIX DU NOMINAL : deux plages, et
+       la ligne doit porter l une des deux. */
+    if (e.taux == null && e.prix == null) return "sans taux ni prix";
+    if (e.taux != null && (e.taux < 1 || e.taux > 20)) return `taux hors de [1 %, 20 %] (${e.taux})`;
+    if (e.prix != null && (e.prix < 50 || e.prix > 130)) return `prix hors de [50 %, 130 %] du nominal (${e.prix})`;
+    if (e.couverture != null && (e.couverture <= 0 || e.couverture > 1000)) return `couverture invraisemblable (${e.couverture})`;
+    return undefined;
+  };
+  const retenues = emissions.filter((e) => !pourquoi(e));
+  const motifs = new Map<string, number>();
+  for (const e of emissions) {
+    const m = pourquoi(e);
+    if (m) motifs.set(m.split(" (")[0], (motifs.get(m.split(" (")[0]) ?? 0) + 1);
+  }
   const jetees = emissions.length - retenues.length;
-  if (jetees) reserves.push(`${jetees} colonne(s) sur ${emissions.length} écartée(s) : pays, date, montant ou taux manquant ou invraisemblable`);
+  if (jetees) {
+    reserves.push(
+      `${jetees} colonne(s) sur ${emissions.length} écartée(s) : ${[...motifs].sort((a, b) => b[1] - a[1]).map(([m, n]) => `${n} ${m}`).join(", ")}`,
+    );
+  }
 
   /**
    * CE QUE LE TABLEAU VÉRIFIE DE LUI-MÊME : les montants souscrits par les

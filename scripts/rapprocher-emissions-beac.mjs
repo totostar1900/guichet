@@ -60,8 +60,16 @@ for (const [p, m] of [...parPays].sort()) {
 }
 
 const nu = (s) => String(s ?? "").replace(/\/.*$/, "").replace(/\s/g, "").toUpperCase();
+/**
+ * UN CODE NE SUFFIT PAS A APPARIER : il est REABONDE.
+ *
+ * « GA2J00000150 » reparait le 20 janvier et le 3 fevrier 2021 : apparier
+ * sur le code seul comparait nos deux seances a la meme ligne du bulletin et
+ * fabriquait des desaccords qui n en sont pas. La clef est le code ET LA
+ * DATE, comme en base depuis la migration 0108.
+ */
 const parCode = new Map();
-for (const n of nos) if (n.code_emission) parCode.set(nu(n.code_emission), n);
+for (const n of nos) if (n.code_emission) parCode.set(nu(n.code_emission), [...(parCode.get(nu(n.code_emission)) ?? []), n]);
 const parDate = new Map();
 for (const n of nos) {
   if (!n.session_on || !n.country) continue;
@@ -74,7 +82,20 @@ let absents = 0;
 const desaccords = [];
 for (const e of leurs) {
   const d = e.adjugeLe ?? e.emisLe ?? e.regleLe;
-  const n = (e.isin ? parCode.get(nu(e.isin)) : undefined) ?? (parDate.get(`${e.pays}|${d}`) ?? [])[0];
+  /**
+   * LE CODE PUIS LA DATE LA PLUS PROCHE, A UNE SEMAINE PRES.
+   *
+   * Le bulletin ne donne pas toujours la date d adjudication : il donne
+   * parfois celle du reglement, deux jours plus tard. Exiger l egalite
+   * perdait soixante appariements ; ne pas la demander du tout comparait nos
+   * deux seances d un meme code reabonde a la meme colonne, et fabriquait
+   * des desaccords qui n en etaient pas.
+   */
+  const jours = (a, b) => Math.abs(Date.parse(a) - Date.parse(b)) / 86400000;
+  const siennes = e.isin ? (parCode.get(nu(e.isin)) ?? []) : [];
+  const n =
+    (d ? siennes.filter((x) => jours(x.session_on, d) <= 7).sort((x, y) => jours(x.session_on, d) - jours(y.session_on, d))[0] : siennes[0]) ??
+    (parDate.get(`${e.pays}|${d}`) ?? []).find((x) => !e.isin || nu(x.code_emission) === nu(e.isin));
   if (!n) {
     absents++;
     continue;

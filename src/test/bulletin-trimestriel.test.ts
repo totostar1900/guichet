@@ -282,3 +282,155 @@ describe("les émissions retenues, et celles qu'on écarte", () => {
     expect(e.reserves.join(" ")).toContain("2 colonne(s) sur 2 écartée(s)");
   });
 });
+
+/**
+ * CE QUI A FAIT PASSER LE LECTEUR DE 136 À 400 COLONNES.
+ *
+ * Quatre défauts, chacun mesuré sur les dix bulletins le 16 octobre 2026.
+ * Le compte des colonnes retenues est le seul juge : un lecteur qui écarte
+ * les trois quarts de son tableau ne vérifie rien.
+ */
+describe("les quatre défauts du lecteur des émissions", () => {
+  /* QUARANTE POINTS ENTRE DEUX ATTRIBUTS, mesuré sur les dix bulletins :
+     c'est ce qui permet d'en recoller un étalé sur trois lignes de base sans
+     confondre deux attributs différents. Le gabarit respecte cette distance,
+     sans quoi il testerait autre chose que la mise en page réelle. */
+  const rangee = (page: number, cellules: [number, number, string][], pas = 40): Rangee => ({
+    page,
+    y: (y -= pas),
+    cellules: cellules.map(([x, bord, texte]) => ({ x, largeur: bord - x, texte })),
+  });
+
+  it("RECOLLE UNE RANGÉE D'ATTRIBUT ÉTALÉE SUR TROIS LIGNES DE BASE", () => {
+    /* Dans le numéro 14, les montants levés d'une même rangée se
+       répartissent sur trois ordonnées à sept points l'une de l'autre : la
+       mise en page cale chaque valeur sur la hauteur de sa colonne.
+       Quarante-cinq colonnes sur cinquante-six sortaient sans montant. */
+    y = 800;
+    const rangees: Rangee[] = [
+      titre(22, "Tableau 1 : Émissions des BTA réalisées par les Trésors publics de la CEMAC"),
+      rangee(22, [
+        [60, 150, "Code émission"],
+        [172, 240, "CM1200001152"],
+        [260, 330, "CG1200000632"],
+      ]),
+      rangee(22, [
+        [60, 150, "Date d'adju dication"],
+        [172, 240, "20/06/2022"],
+        [260, 330, "12/04/2022"],
+      ]),
+      rangee(22, [
+        [60, 150, "Montant levé (en millions de FCFA)"],
+        [172, 240, "10 000"],
+      ]),
+      /* La seconde valeur du MÊME attribut, six points plus bas. */
+      rangee(22, [[260, 330, "7 795"]], 6),
+      rangee(22, [
+        [60, 150, "Taux Moyen Pondéré (en %)"],
+        [172, 240, "2,54"],
+        [260, 330, "6,89"],
+      ]),
+    ];
+    const e = emissionsDuBulletin(rangees, 14);
+    expect(e.emissions).toHaveLength(2);
+    expect(e.emissions.map((x) => x.leve)).toEqual([10_000_000_000, 7_795_000_000]);
+  });
+
+  it("LIT LE PRIX D'UN OTA, QUI N'A PAS DE TAUX", () => {
+    /* Un tableau d'OTA n'imprime pas de taux : il imprime un prix en
+       pourcentage du nominal. Sans ce champ, la moitié du tableau des
+       émissions sortait « sans taux ni prix ». */
+    expect(champDeLIntitule("Prix Moyen Pondéré (en % du nominal)")).toBe("prix");
+    y = 800;
+    const rangees: Rangee[] = [
+      titre(24, "Tableau 2 : Émissions d'OTA réalisées par les Trésors publics de la CEMAC"),
+      rangee(24, [
+        [60, 150, "Code émission"],
+        [172, 240, "CM2B00000095"],
+        [260, 330, "CM2K00000029"],
+      ]),
+      rangee(24, [
+        [60, 150, "Date d'adju dication"],
+        [172, 240, "09/03/2022"],
+        [260, 330, "16/03/2022"],
+      ]),
+      rangee(24, [
+        [60, 150, "Montant levé (en millions de FCFA)"],
+        [172, 240, "89 567"],
+        [260, 330, "25 000"],
+      ]),
+      rangee(24, [
+        [60, 150, "Prix Moyen Pondéré"],
+        [172, 240, "98,05"],
+        [260, 330, "97,20"],
+      ]),
+    ];
+    const e = emissionsDuBulletin(rangees, 18);
+    expect(e.emissions).toHaveLength(2);
+    expect(e.emissions[0]).toMatchObject({ pays: "Cameroun", prix: 98.05, taux: undefined });
+  });
+
+  it("PREND LE PAYS DANS LE CODE, le tableau ne le nommant qu'une fois par bloc", () => {
+    /* Hériter de la colonne de gauche serait une supposition ; les deux
+       premières lettres du code du CRCT SONT le pays. */
+    y = 800;
+    const rangees: Rangee[] = [
+      titre(22, "Tableau 1 : Émissions des BTA réalisées par les Trésors publics de la CEMAC"),
+      rangee(22, [
+        [60, 150, "Code émission"],
+        [172, 240, "TD1200000875"],
+        [260, 330, "CF1200000377"],
+      ]),
+      rangee(22, [
+        [60, 150, "Date d'adju dication"],
+        [172, 240, "20/06/2022"],
+        [260, 330, "12/04/2022"],
+      ]),
+      rangee(22, [
+        [60, 150, "Montant levé (en millions de FCFA)"],
+        [172, 240, "10 000"],
+        [260, 330, "7 795"],
+      ]),
+      rangee(22, [
+        [60, 150, "Taux Moyen Pondéré (en %)"],
+        [172, 240, "6,54"],
+        [260, 330, "5,89"],
+      ]),
+    ];
+    expect(emissionsDuBulletin(rangees, 18).emissions.map((x) => x.pays)).toEqual(["Tchad", "RCA"]);
+  });
+
+  it("DIT CE QUI MANQUE, PAS SEULEMENT COMBIEN", () => {
+    /* « Trente-deux colonnes écartées » ne se répare pas : on ne sait pas
+       quoi corriger. Le motif compté est ce qui a montré que les dates
+       manquaient dans trois bulletins sur dix. */
+    y = 800;
+    const rangees: Rangee[] = [
+      titre(22, "Tableau 1 : Émissions des BTA réalisées par les Trésors publics de la CEMAC"),
+      rangee(22, [
+        [60, 150, "Code émission"],
+        [172, 240, "CM1200001152"],
+        [260, 330, "CG1200000632"],
+      ]),
+      /* Quatre attributs au moins, sinon la page n'est pas un tableau. */
+      rangee(22, [
+        [60, 150, "Maturité"],
+        [172, 240, "26 semaines"],
+        [260, 330, "26 semaines"],
+      ]),
+      rangee(22, [
+        [60, 150, "Montant levé (en millions de FCFA)"],
+        [172, 240, "10 000"],
+        [260, 330, "7 795"],
+      ]),
+      rangee(22, [
+        [60, 150, "Taux Moyen Pondéré (en %)"],
+        [172, 240, "2,54"],
+        [260, 330, "6,89"],
+      ]),
+    ];
+    const e = emissionsDuBulletin(rangees, 18);
+    expect(e.emissions).toHaveLength(0);
+    expect(e.reserves.join(" ")).toContain("2 sans aucune date");
+  });
+});
