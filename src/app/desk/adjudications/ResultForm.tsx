@@ -193,6 +193,27 @@ export function ResultForm({
         </span>
       </header>
 
+      {/**
+       * CE QU'ON SAIT DE CETTE LIGNE AVANT DE LA SIGNER.
+       *
+       * La note de correction existait en base depuis des semaines et
+       * n'apparaissait sur aucun écran : dix-neuf lignes en portaient une,
+       * personne ne pouvait la lire. Le 16 octobre 2026 deux lignes sont
+       * reparties à relire parce que leur taux était contesté, et sans cette
+       * boîte le desk les aurait signées sans voir pourquoi. Signer, c'est
+       * répondre d'un chiffre : ce qu'on sait contre lui doit être sous les
+       * yeux au même moment.
+       */}
+      {r.correction ? (
+        <div className={styles.note}>
+          <b>{t("Ce qu'il faut savoir sur cette ligne")}</b>
+          <p>{r.correction}</p>
+          {r.correctedBy ? (
+            <small className="muted">{t("Corrigée par {n}", { n: r.correctedBy })}</small>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className={styles.split}>
         <div className={styles.doc}>
           {r.fileKey ? (

@@ -982,6 +982,8 @@ export const EN_REST: Record<string, string> = {
   "Séance du {d}": "Session of {d}",
   "le communiqué chez la BEAC": "the communiqué at the BEAC",
   "Relue par {n}": "Reviewed by {n}",
+  "Ce qu'il faut savoir sur cette ligne": "What you should know about this line",
+  "Corrigée par {n}": "Corrected by {n}",
   "Communiqué de résultats": "Results communiqué",
   "Le communiqué n'a pas pu être rapatrié.": "The communiqué could not be fetched.",
   "L'ouvrir chez la BEAC": "Open it at the BEAC",

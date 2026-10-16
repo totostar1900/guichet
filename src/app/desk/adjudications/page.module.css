@@ -481,3 +481,37 @@
   padding: 0 var(--s-8) var(--s-6);
   border-bottom: 1px solid var(--line);
 }
+
+/**
+ * La note d'une ligne, posée avant les champs et avant le document : elle
+ * dit ce qu'on sait CONTRE le chiffre, et ce savoir n'a de valeur qu'au
+ * moment de signer. D'où le filet franc plutôt qu'un gris discret.
+ */
+.note {
+  margin: 0 var(--s-8) var(--s-6);
+  padding: var(--s-6) var(--s-8);
+  background: var(--surface-2);
+  border-left: 3px solid var(--gold, var(--ink-2));
+}
+
+.note b {
+  display: block;
+  font-size: var(--t-1);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.note p {
+  margin: var(--s-4) 0 0;
+  font-size: var(--t-2);
+  line-height: 1.5;
+  color: var(--ink-1);
+}
+
+.note small {
+  display: block;
+  margin-top: var(--s-4);
+  font-size: var(--t-1);
+}
