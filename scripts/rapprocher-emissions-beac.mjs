@@ -22,6 +22,7 @@ const { createClient } = await import("@supabase/supabase-js");
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const { lotDuJournal, placesInscrites, tout } = await import("./_journal.mjs");
 const { emissionsDuPdf, numeroDuBulletin } = await import("../src/lib/market/bulletin-trimestriel.ts");
+const { actuarialFromDiscount, tenorDays } = await import("../src/lib/market/yield.ts");
 const dire = (s) => fs.writeSync(1, `${s}\n`);
 const BIBLIO = "C:/Users/Nitch/PURPOSE CAPITAL/PurpCapSharedLib - Guichet";
 
@@ -78,6 +79,7 @@ for (const n of nos) {
 }
 
 let apparies = 0;
+let convertis = 0;
 let absents = 0;
 const desaccords = [];
 for (const e of leurs) {
@@ -101,8 +103,46 @@ for (const e of leurs) {
     continue;
   }
   apparies++;
-  if (n.rate_avg != null && e.taux != null && Math.abs(Number(n.rate_avg) - e.taux) > 0.02) {
-    desaccords.push({ e, quoi: `taux ${e.taux} % au bulletin contre ${n.rate_avg} % chez nous` });
+  /**
+   * LE BULLETIN A CHANGE DE CONVENTION EN MARS 2021.
+   *
+   * Un BTA est precompte : le taux imprime sur le communique est un taux
+   * d ESCOMPTE, et le rendement actuariel vaut autre chose. Jusqu en fevrier
+   * 2021 le bulletin publiait l escompte, comme le communique ; depuis mars
+   * 2021 il publie le rendement. Mesure sur les treize seances ou les deux
+   * mesures different d assez pour trancher : aucune exception.
+   *
+   * Comparer sans le savoir inventait huit desaccords, dont les deux
+   * guineennes de 2022 qui tombent au centieme pres une fois converties. Ce
+   * n est donc pas un desaccord, c est deux facons de dire le meme prix, et
+   * on dit laquelle.
+   */
+  if (n.rate_avg != null && e.taux != null) {
+    const brut = Math.abs(Number(n.rate_avg) - e.taux);
+    /**
+     * ET ON CONVERTIT A LA FACON DE LA BEAC, PAS A LA NOTRE.
+     *
+     * `yield.ts` compte l escompte en exact/360 et capitalise en exact/365,
+     * ce qui est plus rigoureux et donne 7,120 % la ou le bulletin imprime
+     * 7,02 %. La BEAC, elle, applique l identite simple escompte / (1 -
+     * escompte x duree), la duree en annees valant les semaines sur
+     * cinquante-deux. Verifie au centieme pres sur huit seances.
+     *
+     * Ici on cherche a savoir si nous avons LU LE MEME NOMBRE, pas si nous
+     * sommes d accord sur la mathematique financiere : c est donc la
+     * convention de la source qui sert, et l ecart entre les deux
+     * conventions est une question a part.
+     */
+    const jours = tenorDays(n.tenor ?? e.tenor ?? undefined);
+    const t = jours == null ? undefined : jours / 364;
+    const d = Number(n.rate_avg) / 100;
+    const converti = t == null ? undefined : (100 * d) / (1 - d * t);
+    const ecartConverti = converti == null ? undefined : Math.abs(converti - e.taux);
+    if (brut > 0.02 && (ecartConverti == null || ecartConverti > 0.02)) {
+      desaccords.push({ e, quoi: `taux ${e.taux} % au bulletin contre ${n.rate_avg} % chez nous (rendement converti ${converti == null ? "—" : converti.toFixed(3)} %)` });
+    } else if (brut > 0.02) {
+      convertis++;
+    }
   }
   if (n.served != null && e.leve != null && Math.abs(Number(n.served) - e.leve) > 1e6) {
     const facteur = e.leve / Number(n.served);
@@ -112,3 +152,35 @@ for (const e of leurs) {
 dire(`\n=== ${apparies} seance(s) appariee(s) · ${absents} que nous n avons pas ===`);
 dire(`=== ${desaccords.length} DESACCORD(S) ===`);
 for (const d of desaccords) dire(`   ${String(d.e.pays).padEnd(11)} ${d.e.adjugeLe ?? d.e.emisLe ?? d.e.regleLe} ${d.e.instrument} ${String(d.e.isin ?? "").padEnd(17)} ${d.quoi}`);
+
+/**
+ * ET CE QUE LES DEUX CONVENTIONS SE COUTENT, SUR TOUTE NOTRE TABLE.
+ *
+ * La question n est plus « avons-nous lu le meme nombre » mais « comptons-
+ * nous les jours pareil ». La BEAC applique escompte / (1 - escompte x
+ * duree) ; `yield.ts` compte l escompte en exact/360 et capitalise en
+ * exact/365. Les deux se defendent, et l ecart se pose sur chaque point de
+ * BTA de la courbe.
+ */
+dire(`\n=== L ECART ENTRE NOTRE CONVENTION ET CELLE DE LA BEAC ===`);
+const ecarts = [];
+for (const n of nos) {
+  if (n.instrument !== "BTA" || n.rate_avg == null) continue;
+  const jours = tenorDays(n.tenor ?? undefined);
+  if (jours == null) continue;
+  const notre = actuarialFromDiscount(Number(n.rate_avg), jours);
+  const d = Number(n.rate_avg) / 100;
+  const sienne = (100 * d) / (1 - d * (jours / 364));
+  if (notre == null) continue;
+  ecarts.push({ n, notre, sienne, ecart: notre - sienne });
+}
+if (ecarts.length) {
+  const tri = [...ecarts].map((x) => x.ecart).sort((a, b) => a - b);
+  dire(`   ${ecarts.length} BTA · écart médian ${tri[Math.floor(tri.length / 2)].toFixed(3)} point, de ${tri[0].toFixed(3)} à ${tri[tri.length - 1].toFixed(3)}`);
+  const parDuree = new Map();
+  for (const x of ecarts) parDuree.set(x.n.tenor, [...(parDuree.get(x.n.tenor) ?? []), x.ecart]);
+  for (const [t, v] of [...parDuree].sort()) {
+    const m = [...v].sort((a, b) => a - b)[Math.floor(v.length / 2)];
+    dire(`      ${String(t).padEnd(14)} ${String(v.length).padStart(3)} point(s) · médiane ${m.toFixed(3)} point`);
+  }
+}
