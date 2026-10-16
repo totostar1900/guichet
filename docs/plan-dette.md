@@ -14,25 +14,25 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 
 <!-- etat:debut -->
 
-*Mesuré le 2026-10-13 par `scripts/plan-etat.mjs`, lecteur v17. Ne pas modifier à la main.*
+*Mesuré le 2026-10-16 par `scripts/plan-etat.mjs`, lecteur v18. Ne pas modifier à la main.*
 
 | | lot | point | mesure | attendu |
 |---|---|---|---|---|
-| oui | 0 | Cotations d'action sans capitalisation | 248 sur 4988 | au plus 300 |
-| oui | 1 | Observations du calendrier BEAC | 987 lignes | la table est alimentée |
-| oui | 1 | Fraîcheur du balayage BEAC | vu il y a 0 jour(s), le 2026-10-13 | au plus 2 jours (cadence quotidienne, 9 h UTC) |
-| oui | 2 | Encours de la dette écrits | 16946 lignes | plus de 16 000 lignes |
-| oui | 2 | Encours relus par le lecteur courant | toutes à jour (plus ancienne : v14) | aucune ligne qu'une relecture de l'encours ferait gagner |
-| **non** | 2 | Complétude de la série d'encours | 1547 sur 18493 (8.4 %) · 547 séance(s) trouée(s) | aucune ligne attendue et absente |
-| **non** | 3 | Adjudications ramassées | 249 | au moins 950 (la liste BEAC en annonce environ 1 000) |
+| oui | 0 | Cotations d'action sans capitalisation | 248 sur 5002 | au plus 300 |
+| oui | 1 | Observations du calendrier BEAC | 2311 lignes | la table est alimentée |
+| oui | 1 | Fraîcheur du balayage BEAC | vu il y a 0 jour(s), le 2026-10-16 | au plus 2 jours (cadence quotidienne, 9 h UTC) |
+| oui | 2 | Encours de la dette écrits | 17775 lignes | plus de 16 000 lignes |
+| **non** | 2 | Encours relus par le lecteur courant | 6826 ligne(s) à relire pour l'encours | aucune ligne qu'une relecture de l'encours ferait gagner |
+| **non** | 2 | Complétude de la série d'encours | 784 sur 18559 (4.2 %) · 518 séance(s) trouée(s) | aucune ligne attendue et absente |
+| **non** | 3 | Séances de résultats déposées | 182 sur 183 annoncée(s) · 1 à déposer · 8 pièce(s) sans pays ni date | aucune séance annoncée par le journal qui ne soit déposée |
 | oui | 4 | Cliquet d'échelle sur les adjudications | écrit | le test existe |
-| **non** | 4 | Ligne tchadienne du 24 janvier 2024 | 1 ligne(s) à 30 000 Mds, non écartée(s) | corrigée ou écartée avec son motif |
+| oui | 4 | Ligne tchadienne du 24 janvier 2024 | traitée | corrigée ou écartée avec son motif |
 | oui | 4 | Point de Santé sur l'échéance manquante | posé | le point existe et dit où agir |
-| **non** | 3 | Date d'échéance des adjudications | 54 manquante(s) sur 249 | aucune manquante |
+| oui | 3 | Échéance d'une adjudication, récupérable | 44 déduite(s) de la durée annoncée sur 259, aucune perdue | aucune ligne dont l'échéance ne puisse être ni lue ni déduite |
 | oui | 4 | Libellé du bloc Programme du desk | renommé | ne dit plus « Exécution » pour servi sur annoncé |
-| **non** | rapport | Relecture qui rendrait quelque chose | 806 cotations, 803 vl | aucune séance dont les cotations ou les VL auraient à gagner |
+| **non** | rapport | Relecture qui rendrait quelque chose | 264 cotations, 264 vl | aucune séance dont les cotations ou les VL auraient à gagner |
 
-**8 contrôles tenus sur 13.**
+**9 contrôles tenus sur 13.**
 
 <!-- etat:fin -->
 
@@ -45,12 +45,18 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 | 2 | Table d'encours du BOC | encours par pays et par maturité, maturité moyenne, profil d'amortissement, échéancier de service | l'encours reconstruit retrouve l'encours publié |
 | 4 | Cliquets de qualité | quatre gardes, à poser **avant** le lot 3 | les quatre points ci-dessous, aucun partiel |
 | 5 | Indicateurs sans collecte | écart marginal moins moyen pondéré, étendue des taux, prime de nouvelle émission | jointures sur l'existant, aucune collecte |
-| 3 | Les 750 adjudications | débloque tous les ratios de flux, aujourd'hui faussement précis | `maturity_on` présent, échelle sous 15 fois la médiane du pays |
+| 3 | Les adjudications que le journal annonce | débloque tous les ratios de flux, aujourd'hui faussement précis | toute séance portée par un communiqué de résultats est déposée, échelle sous 15 fois la médiane du pays |
 | 6 | Rapprochement BEAC | notre somme contre « encours des titres publics » de la BEAC, donc notre taux de collecte | chaque chiffre porte sa définition et son millésime |
 | 7 | Livrables visibles | fiche pays, mur des échéances régional, trois alertes desk, table de rapprochement | maquette avant code |
 | 8 | L'ancre visuelle | les 69 remarques des familles H, I, E, F et J | proposeur jamais écrivain : elle ne touche que les rangées refusées, passe le contrôle arithmétique, et c'est une personne qui signe |
 
-L'ordre est 0, 1, 2, 4, 5, 3, 6, 7, 8. Le lot 4 précède le lot 3 parce que le cliquet d'échelle doit exister avant qu'on ramasse 750 pièces de plus.
+L'ordre est 0, 1, 2, 4, 5, 3, 6, 7, 8. Le lot 4 précède le lot 3 parce que le cliquet d'échelle doit exister avant qu'on ramasse de nouvelles pièces.
+
+### Le lot 3 ne vaut plus 750 pièces, et il faut le dire
+
+Il a été écrit en croyant que la BEAC publiait environ mille communiqués de résultats. **Mille est le journal entier**, annonces, résultats, calendriers et tableaux de bord confondus. Mesuré le 16 octobre 2026 en faisant relire tous les titres par le lecteur courant : 579 pièces sont des communiqués de résultats, elles retombent sur **183 séances distinctes**, et **182 sont déposées**.
+
+**Ce que cela ne dit pas**, et la distinction est le cœur du sujet : 183 est ce que *le journal annonce*, pas ce que les six Trésors ont *tenu*. Six Trésors à cadence hebdomadaire donneraient beaucoup plus de séances sur 2019-2026. Soit la BEAC ne publie qu'une partie des communiqués, soit des pièces nous échappent encore. **Tant que cette question n'est pas tranchée, aucun taux de couverture calculé sur 183 ne vaut d'être publié.** C'est la leçon des portes de la source : un robot qui ramasse tout ce qu'il voit annonce toujours un succès.
 
 ### Le détail du lot 4
 

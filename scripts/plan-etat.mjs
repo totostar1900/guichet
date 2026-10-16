@@ -33,6 +33,7 @@ const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABA
 const dire = (s) => fs.writeSync(1, `${s}\n`);
 
 const { VERSION_DU_LECTEUR: VERSION, lecteursARelire, relectureUtile } = await import("../src/lib/market/lecteur-version.ts");
+const { readBeacDoc } = await import("../src/lib/market/beac.ts");
 
 /** Les versions des bulletins, qu'aucun compte filtré ne peut rendre. */
 async function lignes_market_bulletins() {
@@ -60,6 +61,23 @@ async function derniere(table, colonne) {
 }
 
 const jours = (iso) => (iso ? Math.floor((Date.now() - Date.parse(iso)) / 86400000) : undefined);
+
+/**
+ * Toutes les rangées d'une table, par tranches.
+ *
+ * Supabase rend mille lignes et se tait. Un contrôle qui lit une table de
+ * 2 311 observations sans pagination mesure les mille premières et annonce
+ * un résultat : c'est la panne muette appliquée à l'instrument de mesure.
+ */
+async function toutes(table, colonnes) {
+  const out = [];
+  for (let de = 0; ; de += 1000) {
+    const { data, error } = await sb.from(table).select(colonnes).range(de, de + 999);
+    if (error) throw new Error(`${table} : ${error.message}`);
+    out.push(...(data ?? []));
+    if ((data?.length ?? 0) < 1000) return out;
+  }
+}
 
 /** Un fichier existe-t-il, et porte-t-il ce texte ? */
 const fichierPorte = (chemin, texte) => {
@@ -193,11 +211,59 @@ const CONTROLES = [
   },
   {
     lot: "3",
-    point: "Adjudications ramassées",
-    attendu: "au moins 950 (la liste BEAC en annonce environ 1 000)",
+    point: "Séances de résultats déposées",
+    /**
+     * CE CONTRÔLE COMPTAIT 249 ET EN ATTENDAIT 950, un seuil que j'avais
+     * écrit en croyant que la BEAC publiait mille communiqués de résultats.
+     * Elle en publie environ cinq cents, et mille est le journal ENTIER :
+     * annonces, résultats, calendriers et tableaux de bord confondus. Le
+     * point serait resté rouge à jamais sur une collecte presque finie, et
+     * un rouge qui ne peut pas devenir vert apprend à ne plus regarder le
+     * panneau.
+     *
+     * LE DÉNOMINATEUR NE SE DEVINE PLUS, IL SE LIT. La source dit elle-même
+     * combien de séances elle annonce : on compte les couples (pays, séance)
+     * portés par ses communiqués de résultats, et on regarde lesquels
+     * n'ont pas de ligne chez nous. Une traduction et son original tombent
+     * sur le même couple, donc ne comptent qu'une fois.
+     *
+     * ET LE GENRE RANGÉ EN BASE NE FAIT PAS FOI. Le 16 octobre 2026, cent
+     * pièces espagnoles portaient encore le genre « autre » alors que le
+     * lecteur courant les appelle des résultats depuis c21e39e : la
+     * grammaire avait été écrite, les pièces jamais repassées. Un contrôle
+     * qui avait interrogé la colonne n'aurait rien vu. On fait donc relire
+     * chaque titre par le lecteur D'AUJOURD'HUI, ce qui rend ce point
+     * sensible au retard d'une relecture autant qu'à celui d'un dépôt.
+     */
+    attendu: "aucune séance annoncée par le journal qui ne soit déposée",
     async mesurer() {
-      const n = await compter("auction_results");
-      return { mesure: `${n}`, tient: n >= 950 };
+      const vues = await toutes("beac_observations", "url, titre, pays, seance");
+      const seances = await toutes("auction_results", "country, session_on");
+      const deposees = new Set(seances.map((s) => `${s.country}|${s.session_on}`));
+
+      const attendues = new Set();
+      let muettes = 0;
+      for (const v of vues) {
+        const lu = readBeacDoc({ url: v.url ?? "", title: v.titre ?? "", country: v.pays ?? "", year: "" });
+        if (lu.kind !== "resultats") continue;
+        /* LE TITRE FAIT FOI, PAS LA COLONNE. Règle posée en c21e39e, après onze
+           avis d'émission rangés sous le mauvais Trésor. La colonne garde
+           l'attribution d'avant la règle : la préférer ici fabriquait cinq
+           séances fantômes dans un pays qui ne les a pas tenues. */
+        const pays = lu.country ?? v.pays;
+        const le = v.seance ?? lu.on;
+        /* Une pièce dont on ne sait dire ni le pays ni la date ne peut pas
+           être rapprochée : elle se compte à part plutôt que de disparaître
+           dans un total qui aurait l'air propre. */
+        if (!pays || !le) { muettes += 1; continue; }
+        attendues.add(`${pays}|${String(le).slice(0, 10)}`);
+      }
+
+      const manquantes = [...attendues].filter((c) => !deposees.has(c));
+      const dit = `${attendues.size - manquantes.length} sur ${attendues.size} annoncée(s)` +
+        (manquantes.length ? ` · ${manquantes.length} à déposer` : "") +
+        (muettes ? ` · ${muettes} pièce(s) sans pays ni date` : "");
+      return { mesure: dit, tient: manquantes.length === 0 && muettes === 0 };
     },
   },
   {
@@ -234,14 +300,36 @@ const CONTROLES = [
   },
   {
     lot: "3",
-    point: "Date d'échéance des adjudications",
-    /* Critère d'acceptation du lot 3, et non un détail : sans échéance, ni le
-       mur des échéances ni le taux de rollover ne se calculent. */
-    attendu: "aucune manquante",
+    point: "Échéance d'une adjudication, récupérable",
+    /**
+     * CE CONTRÔLE EXIGEAIT UNE ÉCHÉANCE IMPRIMÉE et comptait 44 lignes
+     * « manquantes ». Elles ne manquent pas : la durée annoncée est présente
+     * sur les 259 lignes sans exception, et `vieRestante` en déduit la vie
+     * restante EN NOMMANT SON ORIGINE, « échéance » ou « durée annoncée ».
+     * Une donnée déduite qui dit qu'elle est déduite n'est pas une donnée
+     * absente, et la compter comme telle masquait le seul cas qui l'est
+     * vraiment.
+     *
+     * CE CAS EST L'ABONDEMENT. Le Trésor gabonais rouvre un bon à treize
+     * semaines : le 22 juillet 2026, deux de ses quatre lignes arrivaient à
+     * terme vingt-trois et trente-sept jours plus tard. L'étiquette nomme la
+     * ligne rouverte, elle ne dit pas la date. Pour un abondement, et pour
+     * lui seul, la durée annoncée ne remplace pas l'échéance imprimée.
+     *
+     * Le point reste donc dans le lot 3 et garde des dents, mais elles
+     * mordent là où quelque chose est réellement perdu.
+     */
+    attendu: "aucune ligne dont l'échéance ne puisse être ni lue ni déduite",
     async mesurer() {
-      const sans = await compter("auction_results", (q) => q.is("maturity_on", null));
       const tout = await compter("auction_results");
-      return { mesure: `${sans} manquante(s) sur ${tout}`, tient: sans === 0 };
+      const deduites = await compter("auction_results", (q) => q.is("maturity_on", null));
+      const sansDuree = await compter("auction_results", (q) => q.is("maturity_on", null).or("tenor.is.null,tenor.eq."));
+      const abondements = await compter("auction_results", (q) => q.is("maturity_on", null).eq("abondement", true));
+      const perdues = sansDuree + abondements;
+      const dit = perdues
+        ? `${perdues} irrécupérable(s) : ${abondements} abondement(s), ${sansDuree} sans durée`
+        : `${deduites} déduite(s) de la durée annoncée sur ${tout}, aucune perdue`;
+      return { mesure: dit, tient: perdues === 0 };
     },
   },
   {
