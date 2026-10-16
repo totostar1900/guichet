@@ -427,8 +427,35 @@
  *                             texte, une seance sur dix : 87 GAGNEES, ZERO
  *                             PERDUE, ZERO CHANGEE, 18 seances touchees sur
  *                             82.
+ *
+ *  19  (2026-10-16)          UNE CELLULE QUI PORTE DEUX NOMBRES, DECOUPEE.
+ *                            Le lecteur savait RECOLLER des cellules
+ *                            voisines ; il ne savait pas DECOUPER une
+ *                            cellule qui en contient deux. Sur la ligne
+ *                            tchadienne TD0000020331, absente neuf mois
+ *                            d affilee en 2024, le montant leve et le nombre
+ *                            de titres sortent colles : « 100 000 000 000
+ *                            10 000 000 ». Le test de nombre etant lache,
+ *                            des chiffres et des espaces, la cellule PASSAIT
+ *                            pour un nombre et valait un entier de vingt
+ *                            chiffres : ni le montant leve ni les titres n
+ *                            existaient parmi les candidats, et l identite
+ *                            ne pouvait jamais tomber.
+ *
+ *                            Ce n est pas une devinette : la regle « un
+ *                            nombre ne commence pas par des zeros » ne laisse
+ *                            qu UNE decoupe valide, et elle verifie l
+ *                            identite au franc pres, 10 000 000 x 7 500 x
+ *                            100 / 100 = 75 000 000 000. Quand plusieurs
+ *                            decoupes restent possibles, on ne tranche pas.
+ *
+ *                            Mesure par relecture sur 20 seances trouees
+ *                            couvrant 28 trous : 10 LIGNES GAGNEES, ZERO
+ *                            PERDUE, ZERO CHANGEE, 10 seances touchees. La
+ *                            correction ferme une partie de l arriere de
+ *                            784 lignes, pas sa totalite.
  */
-export const VERSION_DU_LECTEUR = 18;
+export const VERSION_DU_LECTEUR = 19;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
@@ -504,6 +531,7 @@ export const TOUCHE_PAR_VERSION: Record<number, Lecteur[]> = {
   16: ["cotations"], // la rangée coupée en deux hauteurs, jointe par sa forme
   17: ["cotations"], // le pivot de la jonction : le statut, et non la date
   18: ["encours"], // une grille par sous-tableau, et non par page
+  19: ["encours"], // une cellule qui porte deux nombres, decoupee
 };
 
 /**

@@ -1100,6 +1100,50 @@ const nommer = (avant: string[]): { issuer: string; designation: string } => {
   return { issuer: bloc.slice(0, m.index).trim(), designation: bloc.slice(m.index + 1).trim() };
 };
 
+/**
+ * UNE CELLULE QUI PORTE DEUX NOMBRES, SÉPARÉE AVANT TOUT LE RESTE.
+ *
+ * `morceaux` sait RECOLLER des cellules voisines ; il ne savait pas DÉCOUPER
+ * une cellule qui en contient deux, et ce manque a coûté 671 lignes d'encours
+ * sur 784, mesurées le 16 octobre 2026.
+ *
+ * Le cas, pris sur la ligne tchadienne TD0000020331 absente neuf mois
+ * d'affilée en 2024 : le montant levé et le nombre de titres sortent collés
+ * dans la même cellule, « 100 000 000 000 10 000 000 ». Le test de nombre est
+ * volontairement lâche, « des chiffres et des espaces », donc la cellule
+ * PASSE pour un nombre et vaut 10 000 000 000 010 000 000, un entier de vingt
+ * chiffres. Ni le montant levé ni les titres n'existent alors parmi les
+ * candidats, et aucune découpe ne peut rendre l'identité : la rangée était
+ * refusée, en silence pour le lecteur d'avant, avec un motif depuis la v3.
+ *
+ * CE N'EST PAS UNE DEVINETTE, et c'est pourquoi on se l'autorise. La règle
+ * « un nombre ne commence pas par des zéros » ne laisse qu'UNE découpe
+ * valide à « 100 000 000 000 10 000 000 », et elle vérifie l'identité au
+ * franc près : 10 000 000 × 7 500 × 100 / 100 = 75 000 000 000, exactement
+ * l'encours imprimé. Quand plusieurs découpes restent possibles, on ne
+ * tranche pas et la cellule est rendue telle quelle : le refus nommé vaut
+ * mieux qu'un choix arbitraire.
+ */
+function eclaterLesCollees(cells: string[]): string[] {
+  const out: string[] = [];
+  for (const c of cells) {
+    if (MONTANT.test(c.trim()) || !EST_NOMBRE.test(c) || c.trim() === "-") {
+      out.push(c);
+      continue;
+    }
+    const jetons = c.trim().split(/[  ]+/);
+    const valides: string[][] = [];
+    for (let k = 1; k < jetons.length; k++) {
+      const g = jetons.slice(0, k).join(" ");
+      const d = jetons.slice(k).join(" ");
+      if (MONTANT.test(g) && MONTANT.test(d)) valides.push([g, d]);
+    }
+    if (valides.length === 1) out.push(...valides[0]);
+    else out.push(c);
+  }
+  return out;
+}
+
 /** Tous les nombres lisibles, y compris ceux obtenus en recollant des voisins. */
 function morceaux(cells: string[]): Morceau[] {
   const out: Morceau[] = [];
@@ -1313,7 +1357,7 @@ export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet, grillePa
     if (iAmort < 0) continue;
 
     const dates = cells.map((c, k) => (k > iIsin && DATE.test(c) ? k : -1)).filter((k) => k >= 0);
-    const tete = cells.slice(iIsin + 1, iAmort);
+    const tete = eclaterLesCollees(cells.slice(iIsin + 1, iAmort));
     const apres = nombresDe(cells.slice(iAmort + 1));
     if (apres.length < 1) continue;
 
