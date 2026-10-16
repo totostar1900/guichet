@@ -22,7 +22,7 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 | oui | 1 | Observations du calendrier BEAC | 2311 lignes | la table est alimentée |
 | oui | 1 | Fraîcheur du balayage BEAC | vu il y a 0 jour(s), le 2026-10-16 | au plus 2 jours (cadence quotidienne, 9 h UTC) |
 | oui | 2 | Encours de la dette écrits | 17775 lignes | plus de 16 000 lignes |
-| **non** | 2 | Encours relus par le lecteur courant | 6826 ligne(s) à relire pour l'encours | aucune ligne qu'une relecture de l'encours ferait gagner |
+| oui | 2 | Encours relus par le lecteur courant | 62 ligne(s) d'avant la v18, mais la relecture a été mesurée le 2026-10-16 sur 24 séance(s) (echantillon) : gain nul | aucune ligne qu'une relecture de l'encours ferait gagner, mesuré et non supposé |
 | **non** | 2 | Complétude de la série d'encours | 784 sur 18559 (4.2 %) · 518 séance(s) trouée(s) | aucune ligne attendue et absente |
 | oui | 3 | Séances de résultats déposées | 249 annoncée(s) · 2 instrument(s) annoncé(s) sans ligne, à ouvrir · 4 pièce(s) sans pays ni date | aucune séance annoncée par le journal qui ne soit déposée |
 | oui | 4 | Cliquet d'échelle sur les adjudications | écrit | le test existe |
@@ -30,9 +30,9 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 | oui | 4 | Point de Santé sur l'échéance manquante | posé | le point existe et dit où agir |
 | oui | 3 | Échéance d'une adjudication, récupérable | 43 déduite(s) de la durée annoncée sur 260, aucune perdue | aucune ligne dont l'échéance ne puisse être ni lue ni déduite |
 | oui | 4 | Libellé du bloc Programme du desk | renommé | ne dit plus « Exécution » pour servi sur annoncé |
-| **non** | rapport | Relecture qui rendrait quelque chose | 264 cotations, 264 vl | aucune séance dont les cotations ou les VL auraient à gagner |
+| **non** | rapport | Relecture qui rendrait quelque chose | 2 cotations, 2 vl | aucune séance dont les cotations ou les VL auraient à gagner |
 
-**10 contrôles tenus sur 13.**
+**11 contrôles tenus sur 13.**
 
 <!-- etat:fin -->
 

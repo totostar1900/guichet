@@ -96,3 +96,36 @@ dire(`\n  par champ :`);
 for (const [c, n] of [...parChamp].sort((a, b) => b[1] - a[1])) dire(`    ${c.padEnd(20)} ${n}`);
 dire(`\n  échantillon :`);
 for (const e of exemples) dire(`    ${e}`);
+
+/**
+ * CONSIGNER LE VERDICT, pour qu'on ne redemande pas la passe.
+ *
+ * Sans cela, chaque montee de lecteur rallume le meme controle sur les memes
+ * seances, et il faut une heure d ecriture pour reapprendre ce qu on savait.
+ * Le 16 octobre 2026 : 188 seances relues, pas une ligne gagnee ni perdue.
+ *
+ * La portee est ecrite avec le chiffre : un echantillon ne conclut pas comme
+ * une passe complete, et une ligne qui tairait la difference se lirait comme
+ * une preuve alors qu elle n est qu un indice.
+ */
+if (process.argv.includes("--consigner")) {
+  const { createClient } = await import("@supabase/supabase-js");
+  const { VERSION_DU_LECTEUR } = await import("../src/lib/market/lecteur-version.ts");
+  const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+  const portee = process.argv.includes("--tout") ? "tout" : "echantillon";
+  const { error } = await sb.from("relectures_mesurees").upsert(
+    {
+      lecteur: "encours",
+      version: VERSION_DU_LECTEUR,
+      mesure_le: new Date().toISOString(),
+      portee,
+      seances_testees: compte.seances,
+      seances_changees: compte.touchees,
+      lignes_gagnees: compte.gagnees,
+      lignes_perdues: compte.perdues,
+      note: `${compte.modifiees} ligne(s) modifiee(s). Mesure par scripts/encours-relecture.mjs.`,
+    },
+    { onConflict: "lecteur,version" },
+  );
+  dire(error ? `\nERREUR en consignant : ${error.message}` : `\nVerdict consigne : lecteur encours, v${VERSION_DU_LECTEUR}, portee ${portee}.`);
+}

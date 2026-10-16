@@ -141,14 +141,53 @@ const CONTROLES = [
        parfaitement à jour, et le point passait au rouge pour une montée qui
        ne les concerne pas. On demande donc à `relectureUtile` si le lecteur
        D'ENCOURS a bougé, et à lui seul. */
-    attendu: "aucune ligne qu'une relecture de l'encours ferait gagner",
+    /**
+     * ET IL PROMETTAIT UNE MESURE EN RENDANT UNE DÉCLARATION, troisième du
+     * même genre le 16 octobre 2026.
+     *
+     * Son attendu dit « ferait GAGNER » ; son code disait « porte une
+     * estampille antérieure ». Ce n'est pas la même phrase.
+     * `TOUCHE_PAR_VERSION` dit quel LECTEUR une version a touché, jamais
+     * quelles SÉANCES : la v18 ne change que les bulletins à sous-tableaux.
+     * Le point a donc annoncé 6 826 lignes à relire, et la passe lancée pour
+     * lui obéir a relu 188 séances sans gagner ni perdre une seule ligne.
+     *
+     * Une estampille ancienne reste un signal, mais elle n'est plus une
+     * condamnation : si une relecture a été MESURÉE pour cette version et
+     * n'a rien rendu, le point tient et dit la date de la mesure. Reste
+     * rouge le cas où personne n'a mesuré, qui est le seul où l'on ne sait
+     * pas. Un échantillon ne vaut pas une passe complète, et le mot est
+     * écrit dans la mesure.
+     */
+    attendu: "aucune ligne qu'une relecture de l'encours ferait gagner, mesuré et non supposé",
     async mesurer() {
       const { data, error } = await sb.from("debt_outstandings").select("reader_version").order("reader_version").limit(1);
       if (error) throw new Error(`debt_outstandings : ${error.message}`);
       const plusVieille = data?.[0]?.reader_version ?? undefined;
       if (!relectureUtile(plusVieille, "encours")) return { mesure: `toutes à jour (plus ancienne : v${plusVieille ?? "?"})`, tient: true };
+
       const vieilles = await compter("debt_outstandings", (q) => q.lt("reader_version", VERSION));
-      return { mesure: `${vieilles} ligne(s) à relire pour l'encours`, tient: false };
+      const { data: m } = await sb
+        .from("relectures_mesurees")
+        .select("mesure_le, portee, seances_testees, seances_changees, lignes_gagnees, lignes_perdues")
+        .eq("lecteur", "encours")
+        .eq("version", VERSION)
+        .maybeSingle();
+
+      if (!m) return { mesure: `${vieilles} ligne(s) estampillée(s) d'avant la v${VERSION}, et personne n'a mesuré ce qu'une relecture rendrait`, tient: false };
+
+      const rendu = (m.lignes_gagnees ?? 0) + (m.lignes_perdues ?? 0) + (m.seances_changees ?? 0);
+      const quand = String(m.mesure_le).slice(0, 10);
+      if (rendu === 0) {
+        return {
+          mesure: `${vieilles} ligne(s) d'avant la v${VERSION}, mais la relecture a été mesurée le ${quand} sur ${m.seances_testees} séance(s) (${m.portee}) : gain nul`,
+          tient: true,
+        };
+      }
+      return {
+        mesure: `${m.seances_changees} séance(s) changeraient, +${m.lignes_gagnees} / -${m.lignes_perdues} ligne(s), mesuré le ${quand}`,
+        tient: false,
+      };
     },
   },
   {
