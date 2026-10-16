@@ -237,11 +237,28 @@ const CONTROLES = [
      */
     attendu: "aucune séance annoncée par le journal qui ne soit déposée",
     async mesurer() {
-      const vues = await toutes("beac_observations", "url, titre, pays, seance");
-      const seances = await toutes("auction_results", "country, session_on");
+      const vues = await toutes("beac_observations", "url, titre, pays, seance, instrument");
+      const seances = await toutes("auction_results", "country, session_on, instrument");
+      /**
+       * DEUX MAILLES, PARCE QU'UN JOUR PORTE PARFOIS DEUX LIGNES. Le
+       * 29 septembre 2021 le Cameroun a servi un OTA à 5 ans ET un BTA à
+       * 26 semaines : au grain (pays, séance) la seconde pièce se cache
+       * derrière la première, et le contrôle a annoncé « 182 sur 183 » le
+       * jour où quarante-trois communiqués n'avaient jamais rendu un
+       * chiffre. On descend donc d'un cran quand la pièce dit son
+       * instrument, et on retombe sur le couple quand elle se tait.
+       *
+       * CE N'EST PAS ENCORE LE BON GRAIN. Celui de la migration 0108 est
+       * (pays, séance, CODE), et le code ne se connaît qu'après lecture de
+       * la pièce. Tant qu'aucune table ne dit quelle pièce a produit quelle
+       * ligne, ce contrôle reste une borne basse : deux BTA le même jour se
+       * cachent encore l'un l'autre.
+       */
       const deposees = new Set(seances.map((s) => `${s.country}|${s.session_on}`));
+      const deposeesFines = new Set(seances.map((s) => `${s.country}|${s.session_on}|${s.instrument}`));
 
       const attendues = new Set();
+      const grosses = new Set();
       let muettes = 0;
       for (const v of vues) {
         const lu = readBeacDoc({ url: v.url ?? "", title: v.titre ?? "", country: v.pays ?? "", year: "" });
@@ -256,14 +273,20 @@ const CONTROLES = [
            être rapprochée : elle se compte à part plutôt que de disparaître
            dans un total qui aurait l'air propre. */
         if (!pays || !le) { muettes += 1; continue; }
-        attendues.add(`${pays}|${String(le).slice(0, 10)}`);
+        const jour = `${pays}|${String(le).slice(0, 10)}`;
+        const quoi = v.instrument ?? lu.instrument;
+        if (quoi) attendues.add(`${jour}|${quoi}`);
+        else grosses.add(jour);
       }
 
-      const manquantes = [...attendues].filter((c) => !deposees.has(c));
-      const dit = `${attendues.size - manquantes.length} sur ${attendues.size} annoncée(s)` +
-        (manquantes.length ? ` · ${manquantes.length} à déposer` : "") +
+      const manquantes = [...attendues].filter((c) => !deposeesFines.has(c));
+      const manquantesGrosses = [...grosses].filter((c) => !deposees.has(c));
+      const perdues = manquantes.length + manquantesGrosses.length;
+      const annoncees = attendues.size + grosses.size;
+      const dit = `${annoncees - perdues} sur ${annoncees} annoncée(s)` +
+        (perdues ? ` · ${perdues} à déposer` : "") +
         (muettes ? ` · ${muettes} pièce(s) sans pays ni date` : "");
-      return { mesure: dit, tient: manquantes.length === 0 && muettes === 0 };
+      return { mesure: dit, tient: perdues === 0 && muettes === 0 };
     },
   },
   {

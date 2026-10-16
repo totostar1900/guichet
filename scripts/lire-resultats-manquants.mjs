@@ -113,10 +113,51 @@ if (!ecrire) {
   process.exit(0);
 }
 const maintenant = new Date().toISOString();
+
+/**
+ * UNE LIGNE DEJA ECRITE NE SE REECRIT PAS, ET CE GARDE A COUTE CHER.
+ *
+ * Le 16 octobre 2026 ce script a « depose » quarante seances dont
+ * trente-neuf existaient deja : les pieces jamais citees n etaient pas des
+ * seances absentes mais les SECONDES PIECES de seances connues, le plus
+ * souvent une traduction. L upsert sur la clef (pays, seance, code) les a
+ * donc ecrasees. `confirmed_by` n etant pas dans la charge, dix-neuf
+ * signatures sont restees en place pendant que les chiffres changeaient
+ * dessous, et deux taux signes ont bel et bien bouge.
+ *
+ * UNE SECONDE PIECE EST UN TEMOIN, PAS UNE CORRECTION. Elle ne vaut pas
+ * plus que la premiere du seul fait d avoir ete lue plus tard. On insere
+ * donc ce qui manque, on COMPARE ce qui existe, et c est une personne qui
+ * tranche un desaccord.
+ */
+const dejaEcrites = new Map();
+for (const r of await tout(sb, "auction_results", "country, session_on, code_emission, rate_avg, price_avg, confirmed_by")) {
+  dejaEcrites.set(`${r.country}|${r.session_on}|${r.code_emission}`, r);
+}
+
+const temoins = [];
+const nombre = (v) => (v == null ? null : Number(v));
 let n = 0;
 for (const x of retenus) {
   const { p } = x;
-  const { error } = await sb.from("auction_results").upsert(
+
+  const clef = `${x.pays}|${x.seance}|${p.codeEmission ?? null}`;
+  const ancienne = dejaEcrites.get(clef);
+  if (ancienne) {
+    const dTaux = nombre(ancienne.rate_avg) !== nombre(p.rateAvg);
+    const dPrix = nombre(ancienne.price_avg) !== nombre(p.priceAvg);
+    temoins.push({ x, ancienne, dTaux, dPrix });
+    dire(
+      `   TEMOIN  ${x.seance} ${String(x.pays).padEnd(12)} ${p.codeEmission ?? "—"} ` +
+        (dTaux || dPrix
+          ? `DESACCORD taux ${ancienne.rate_avg ?? "—"} vs ${p.rateAvg ?? "—"}, prix ${ancienne.price_avg ?? "—"} vs ${p.priceAvg ?? "—"}` +
+            (ancienne.confirmed_by ? ` · LIGNE SIGNEE par ${ancienne.confirmed_by}` : "")
+          : "d accord avec la ligne en place"),
+    );
+    continue;
+  }
+
+  const { error } = await sb.from("auction_results").insert(
     {
       code_emission: p.codeEmission ?? null,
       country: x.pays,
@@ -153,13 +194,14 @@ for (const x of retenus) {
         : {}),
       updated_at: maintenant,
     },
-    /* LA CLEF EST (pays, séance, code) DEPUIS LA MIGRATION 0108, qui a
-       retiré l'unicité de l'adresse : une traduction porte la même séance à
-       une autre adresse. Viser « source_url » ici échouerait, et le script
-       n'écrirait plus rien en annonçant un succès. */
-    { onConflict: "country,session_on,code_emission" },
   );
   if (error) dire(`   ERREUR ${x.seance} : ${error.message}`);
   else n++;
 }
-dire(`\n=== ${n} seance(s) deposee(s) ===`);
+
+const desaccords = temoins.filter((t) => t.dTaux || t.dPrix);
+const signes = desaccords.filter((t) => t.ancienne.confirmed_by);
+dire(`\n=== ${n} seance(s) deposee(s) · ${temoins.length} seconde(s) piece(s) ===`);
+dire(`    ${temoins.length - desaccords.length} confirment la ligne en place`);
+dire(`    ${desaccords.length} en desaccord, dont ${signes.length} sur une ligne signee`);
+if (desaccords.length) dire(`    Aucune n a ete ecrite : un desaccord se tranche au desk, pas par l ordre de lecture.`);

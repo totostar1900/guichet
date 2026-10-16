@@ -68,9 +68,29 @@ if (!deposer) {
 }
 
 const maintenant = new Date().toISOString();
+
+/**
+ * CE SCRIPT NE POSE PAS DE CODE D'ÉMISSION, donc il ne peut pas se servir de
+ * la clef (pays, séance, code) de la migration 0108 : un index unique tient
+ * deux nuls pour distincts, et un « upsert » sur cette clef insérerait un
+ * doublon à chaque passage au lieu de s'arrêter. Il ne peut pas davantage
+ * viser l'adresse de la pièce, dont 0108 a retiré l'unicité.
+ *
+ * Il dépose une COQUILLE pour une séance qu'on ne connaissait pas. La bonne
+ * question est donc celle du jour : si la séance existe déjà, sous quelque
+ * code que ce soit, il n'y a rien à créer et surtout rien à réécrire. La
+ * campagne du 16 octobre a montré ce que coûte l'autre réponse : trente-neuf
+ * lignes écrasées, dix-neuf signatures laissées sur des chiffres changés.
+ */
+const dejaLa = new Set(
+  (await tout(sb, "auction_results", "country, session_on")).map((r) => `${r.country}|${r.session_on}`),
+);
+
 let nR = 0;
+let nDeja = 0;
 for (const a of resultats) {
-  const { error } = await sb.from("auction_results").upsert(
+  if (dejaLa.has(`${a.country}|${a.on}`)) { nDeja++; continue; }
+  const { error } = await sb.from("auction_results").insert(
     {
       country: a.country,
       instrument: a.instrument,
@@ -82,15 +102,11 @@ for (const a of resultats) {
       file_key: clefDe(a.doc.url),
       updated_at: maintenant,
     },
-    /* LA CLEF EST (pays, séance, code) DEPUIS LA MIGRATION 0108, qui a
-       retiré l'unicité de l'adresse : une traduction porte la même séance à
-       une autre adresse. Viser « source_url » ici échouerait, et le script
-       n'écrirait plus rien en annonçant un succès. */
-    { onConflict: "country,session_on,code_emission" },
   );
   if (error) dire(`   résultat ${a.on} : ${error.message}`);
   else nR++;
 }
+if (nDeja) dire(`   ${nDeja} séance(s) déjà en table, laissée(s) intactes`);
 let nA = 0;
 for (const a of annonces) {
   const { error } = await sb.from("emission_notices").upsert(
@@ -105,11 +121,12 @@ for (const a of annonces) {
       file_key: clefDe(a.doc.url),
       updated_at: maintenant,
     },
-    /* LA CLEF EST (pays, séance, code) DEPUIS LA MIGRATION 0108, qui a
-       retiré l'unicité de l'adresse : une traduction porte la même séance à
-       une autre adresse. Viser « source_url » ici échouerait, et le script
-       n'écrirait plus rien en annonçant un succès. */
-    { onConflict: "country,session_on,code_emission" },
+    /* ICI L'ADRESSE EST BIEN LA CLEF, et c'est propre à cette table :
+       `emission_notices_source_url_key` existe toujours. La migration 0108
+       n'a retiré l'unicité de l'adresse que sur `auction_results`, parce
+       qu'une séance y est décrite par plusieurs pièces. Appliquer la règle
+       d'une table à sa voisine est la faute qui a produit ce commentaire. */
+    { onConflict: "source_url" },
   );
   if (error) dire(`   annonce ${a.on} : ${error.message}`);
   else nA++;
