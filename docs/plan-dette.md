@@ -21,6 +21,7 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 | oui | 0 | Cotations d'action sans capitalisation | 248 sur 5009 | au plus 300 |
 | oui | 1 | Observations du calendrier BEAC | 2440 lignes | la table est alimentée |
 | oui | 1 | Fraîcheur du balayage BEAC | vu il y a 0 jour(s), le 2026-10-17 | au plus 2 jours (cadence quotidienne, 9 h UTC) |
+| **non** | 1 | Ce que la source publie de plus récent | la plus récente est du 2026-09-22, il y a 25 jour(s) · cadence habituelle : 5 jours en médiane, 20 au 9e décile | une séance nouvelle au moins tous les 20 jours (9e décile mesuré depuis 2024) |
 | oui | 2 | Encours de la dette écrits | 18688 lignes | plus de 16 000 lignes |
 | oui | 2 | Encours relus par le lecteur courant | toutes à jour (plus ancienne : v24) | aucune ligne qu'une relecture de l'encours ferait gagner, mesuré et non supposé |
 | **non** | 2 | Complétude de la série d'encours | 71 sur 18759 (0.4 %) · 31 séance(s) trouée(s) | aucune ligne attendue et absente |
@@ -32,7 +33,7 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 | oui | 4 | Libellé du bloc Programme du desk | renommé | ne dit plus « Exécution » pour servi sur annoncé |
 | oui | rapport | Relecture qui rendrait quelque chose | rien à relire : cotations et VL à jour sur les 813 | aucune séance dont les cotations ou les VL auraient à gagner |
 
-**12 contrôles tenus sur 13.**
+**12 contrôles tenus sur 14.**
 
 <!-- etat:fin -->
 

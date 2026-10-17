@@ -116,11 +116,65 @@ const CONTROLES = [
   {
     lot: "1",
     point: "Fraîcheur du balayage BEAC",
+    /* CE POINT DIT QUE LE ROBOT A TOURNÉ, PAS QU'IL A TROUVÉ, et les deux ne
+       sont pas la même nouvelle. Le point suivant mesure l'autre moitié. */
     attendu: "au plus 2 jours (cadence quotidienne, 9 h UTC)",
     async mesurer() {
       const vu = await derniere("beac_observations", "vu_le");
       const j = jours(vu);
       return { mesure: vu ? `vu il y a ${j} jour(s), le ${vu.slice(0, 10)}` : "jamais", tient: j !== undefined && j <= 2 };
+    },
+  },
+  {
+    lot: "1",
+    point: "Ce que la source publie de plus récent",
+    /**
+     * LE TROISIÈME ÉTAT, QUE PERSONNE NE SURVEILLAIT.
+     *
+     * `beac-feed.ts` nomme déjà deux cas et les sépare avec soin : « la BEAC
+     * n'annonce rien » est un fait sur le marché, « nous n'avons pas pu lire
+     * la BEAC » un fait sur nous. Il en manquait un troisième, celui du
+     * 17 octobre 2026 : le robot lit parfaitement, et la source se tait.
+     *
+     * Ce jour-là, vingt-cinq jours sans une séance nouvelle sur un marché
+     * hebdomadaire, et le tableau de bord était tout vert. Vérifié en allant
+     * chercher la page : elle porte 1 007 pièces, nous les avons toutes, et
+     * aucune ne concerne une séance postérieure au 22 septembre. Ce n'était
+     * donc pas une panne, mais personne ne pouvait le savoir sans ouvrir la
+     * page à la main.
+     *
+     * LE SEUIL EST MESURÉ, PAS DEVINÉ : depuis 2024, l'écart médian entre
+     * deux journées d'adjudication vaut 5 jours et le neuvième décile 20.
+     * Au-delà de 20, la page le dit ; en deçà, elle se tait.
+     *
+     * CE QUE CE POINT NE SAIT PAS ENCORE. Il mesure la date de SÉANCE, pas
+     * celle de publication : la BEAC peut déposer aujourd'hui le communiqué
+     * d'une séance d'il y a trois semaines. La bonne mesure serait la
+     * première vue d'une pièce, que le journal garde depuis le 13 octobre
+     * seulement. Dans quelques mois elle sera disponible et ce point devra
+     * basculer dessus.
+     */
+    attendu: "une séance nouvelle au moins tous les 20 jours (9e décile mesuré depuis 2024)",
+    async mesurer() {
+      const { data, error } = await sb
+        .from("beac_observations")
+        .select("seance")
+        .in("genre", ["annonce", "resultats"])
+        /* POSTGRES RANGE LES NULS EN TÊTE D'UN TRI DESCENDANT, et des pièces
+           sans date, il y en a. Sans ce filtre la mesure répondait « aucune
+           séance au journal » alors qu'il y en a 1 007 : un contrôle qui
+           crie au vide parce qu'il a lu une case vide. */
+        .not("seance", "is", null)
+        .order("seance", { ascending: false })
+        .limit(1);
+      if (error) throw new Error(`beac_observations : ${error.message}`);
+      const derniereSeance = data?.[0]?.seance;
+      if (!derniereSeance) return { mesure: "aucune séance au journal", tient: false };
+      const j = jours(derniereSeance);
+      return {
+        mesure: `la plus récente est du ${derniereSeance}, il y a ${j} jour(s) · cadence habituelle : 5 jours en médiane, 20 au 9e décile`,
+        tient: j != null && j <= 20,
+      };
     },
   },
   {
