@@ -1193,6 +1193,8 @@ interface Decoupe {
   titres: Morceau;
   nominal: Morceau;
   cours: Morceau;
+  /** Le nominal imprimé, quand il a fallu lui préférer celui que l'encours implique. */
+  imprime?: number;
 }
 
 /**
@@ -1279,6 +1281,48 @@ function decoupeDeLaRangee(m: Morceau[], encours: number): Decoupe | undefined {
         const implique = (encours * 100) / (titres.valeur * cours.valeur);
         const pas = Math.max(0.01, Math.pow(10, -nominal.decimales));
         if (Math.abs(implique - nominal.valeur) <= pas) candidats.push({ titres, nominal, cours });
+      }
+    }
+  }
+  if (candidats.length) return candidats.sort((a, b) => a.titres.de - b.titres.de || a.nominal.de - b.nominal.de)[0];
+
+  /**
+   * SECONDE CHANCE : LE BULLETIN A IMPRIMÉ LA PART AMORTIE AU LIEU DU RESTE.
+   *
+   * ALIOS AFC03 l'a montré, sur 109 séances. La rangée est entière et bien
+   * découpée, et elle se contredit : nominal imprimé 2500, encours imprimé
+   * 2 604 772 500 pour 347 303 titres à 100,00, ce qui implique 7500 au
+   * franc près. Le nominal d'origine vaut 10 000 et l'amortissement est
+   * constant : 7500 est le reste, 2500 est ce qui a déjà été remboursé. Ses
+   * voisines AFC04 et ACEP tombent juste, donc la colonne est bonne et c'est
+   * la ligne qui est fausse.
+   *
+   * ON NE DEVINE PAS, ON RECONNAÎT UNE SIGNATURE. Préférer le nominal
+   * impliqué dès qu'il diffère de l'imprimé reviendrait à supprimer le garde,
+   * puisque l'encours donne toujours UN nominal. La condition est donc
+   * exacte : imprimé plus impliqué doit valoir le nominal d'ORIGINE, lui-même
+   * lu ailleurs dans la rangée comme le montant levé divisé par les titres.
+   * C'est précisément ce que veut dire « la part amortie a été mise à la
+   * place du reste », et rien d'autre ne le satisfait par accident.
+   *
+   * Décision de Georges le 17 octobre 2026 : le bulletin se contredit, c'est
+   * son encours qui fait foi. Le nominal imprimé est conservé dans la
+   * découpe pour que la substitution se dise.
+   */
+  for (const titres of m) {
+    if (!(titres.valeur > 0)) continue;
+    const leve = m.filter((x) => x.a < titres.de).reduce((a, x) => Math.max(a, x.valeur), 0);
+    if (!nominalDOrigineTient(leve, titres.valeur)) continue;
+    const origine = leve / titres.valeur;
+    for (const nominal of m) {
+      if (nominal.de <= titres.a || !(nominal.valeur > 0) || nominal.valeur >= origine) continue;
+      for (const cours of m) {
+        if (cours.de <= nominal.a || cours.valeur < 50 || cours.valeur > 130) continue;
+        const implique = (encours * 100) / (titres.valeur * cours.valeur);
+        if (!(implique > 0) || implique > origine) continue;
+        const pas = Math.max(0.01, Math.pow(10, -nominal.decimales));
+        if (Math.abs(implique + nominal.valeur - origine) > pas) continue;
+        candidats.push({ titres, nominal: { ...nominal, valeur: implique }, cours, imprime: nominal.valeur });
       }
     }
   }
@@ -1397,6 +1441,18 @@ export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet, grillePa
       carnet?.sur(`Encours ${isin} : aucune découpe de la rangée ne rend titres × nominal × cours égal à l encours.`, cells.join(" | "), "nombre de titres × nominal résiduel × cours / 100 = encours");
       continue;
     }
+    /* UNE SUBSTITUTION QUI NE SE DIT PAS EST UNE DONNEE INVENTEE. La valeur
+       ecrite n est plus celle que le bulletin imprime : elle doit laisser une
+       trace la ou l on regarde quand un chiffre surprend, c est-a-dire dans
+       le carnet, avec la rangee brute pour pouvoir la contester. */
+    if (couple.imprime != null) {
+      carnet?.sur(
+        `Encours ${isin} : nominal imprime ${couple.imprime}, retenu ${couple.nominal.valeur} que l encours implique. Le bulletin a imprime la part AMORTIE au lieu du reste, les deux faisant le nominal d origine.`,
+        cells.join(" | "),
+        "nominal residuel ; le bulletin se contredit et son encours fait foi",
+      );
+    }
+
     const units = couple.titres.valeur;
     const nominalRemaining = couple.nominal.valeur;
 

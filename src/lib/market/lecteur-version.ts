@@ -485,8 +485,41 @@
  *                            Relecture sur 12 seances : 7 GAGNEES, ZERO
  *                            MODIFIEE, ZERO PERDUE. La demi-unite en perdait
  *                            une, ce qui a servi de garde.
+ *
+ *  21  (2026-10-17)          LA PART AMORTIE IMPRIMEE A LA PLACE DU RESTE.
+ *                            ALIOS AFC03, 109 seances. La rangee est
+ *                            entiere et bien decoupee, et elle se contredit :
+ *                            nominal imprime 2500, encours imprime
+ *                            2 604 772 500 pour 347 303 titres a 100,00, ce
+ *                            qui implique 7500 au franc pres. Le nominal d
+ *                            origine vaut 10 000 et l amortissement est
+ *                            constant : 7500 est le reste, 2500 est ce qui a
+ *                            deja ete rembourse. Ses voisines AFC04 et ACEP
+ *                            tombent juste, donc la colonne est bonne et c
+ *                            est la ligne qui est fausse.
+ *
+ *                            ON NE DEVINE PAS, ON RECONNAIT UNE SIGNATURE.
+ *                            Preferer le nominal implique des qu il differe
+ *                            de l imprime supprimerait le garde, puisque l
+ *                            encours donne TOUJOURS un nominal. La condition
+ *                            est exacte : imprime plus implique doit valoir
+ *                            le nominal d ORIGINE, lu ailleurs dans la
+ *                            rangee. Et la regle ne tourne QUE si la
+ *                            premiere passe n a rien trouve, donc elle ne
+ *                            peut pas changer une rangee deja lue.
+ *
+ *                            La substitution se DIT dans le carnet, avec la
+ *                            rangee brute : une valeur qui n est plus celle
+ *                            du bulletin et qui ne le dit pas est une donnee
+ *                            inventee.
+ *
+ *                            Decision de Georges : le bulletin se contredit,
+ *                            son encours fait foi.
+ *
+ *                            Relecture sur 10 seances : 2 gagnees, 0
+ *                            modifiee, 0 perdue.
  */
-export const VERSION_DU_LECTEUR = 20;
+export const VERSION_DU_LECTEUR = 21;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
@@ -564,6 +597,7 @@ export const TOUCHE_PAR_VERSION: Record<number, Lecteur[]> = {
   18: ["encours"], // une grille par sous-tableau, et non par page
   19: ["encours"], // une cellule qui porte deux nombres, decoupee
   20: ["encours"], // le nominal implique, et non le produit
+  21: ["encours"], // la part amortie imprimee a la place du reste
 };
 
 /**
