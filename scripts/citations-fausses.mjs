@@ -52,9 +52,24 @@ for (const r of otas) {
 }
 
 dire(`${otas.length} obligations · ${verifiables} dont la duree est verifiable dans le titre\n`);
-dire(`=== ${fausses.length} CITATION(S) DONT LA DUREE NE CORRESPOND PAS ===`);
-for (const { r, dTitre, dLigne } of fausses) {
-  dire(`   ${r.sessionOn} ${String(r.country).padEnd(10)} ${String(r.codeEmission ?? "—").padEnd(14)} ligne ${dLigne} ans, piece « ${String(r.sourceTitle).slice(0, 64)} »`);
+
+/* ACQUITTER N EST PAS SE TAIRE. Une piece mal nommee PAR LA BEAC reste une
+   discordance, et le controle doit continuer de la voir ; mais la ranger avec
+   les discordances non examinees ferait rougir ce panneau indefiniment sur une
+   faute qui n est pas la notre, et un rouge permanent ne se lit plus. Elles
+   passent donc dans une seconde liste, et la premiere doit rester vide. */
+const expliquees = fausses.filter(({ r }) => r.correction?.includes("mal nommée à la source"));
+const aExaminer = fausses.filter(({ r }) => !r.correction?.includes("mal nommée à la source"));
+
+dire(`=== ${aExaminer.length} CITATION(S) A EXAMINER ===`);
+for (const { r, dTitre, dLigne } of aExaminer) {
+  dire(`   ${r.sessionOn} ${String(r.country).padEnd(10)} ${String(r.codeEmission ?? "—").padEnd(14)} ligne ${dLigne} ans, piece « ${String(r.sourceTitle).slice(0, 64)} » annonce ${dTitre} ans`);
+}
+if (!aExaminer.length) dire(`   aucune.`);
+
+dire(`\n=== ${expliquees.length} DISCORDANCE(S) EXPLIQUEE(S) : LA BEAC A MAL NOMME SA PIECE ===`);
+for (const { r, dTitre, dLigne } of expliquees) {
+  dire(`   ${r.sessionOn} ${String(r.country).padEnd(10)} ${String(r.codeEmission ?? "—").padEnd(14)} ligne ${dLigne} ans, titre ${dTitre} ans · code et echeance confirment la ligne, aucune autre piece a l index`);
 }
 
 const multi = [...partagees.entries()].filter(([, rs]) => rs.length > 1);
