@@ -518,8 +518,48 @@
  *
  *                            Relecture sur 10 seances : 2 gagnees, 0
  *                            modifiee, 0 perdue.
+ *
+ *  22  (2026-10-17)          L ECHANGE : DEUX RANGEES VOISINES QUI PORTENT
+ *                            CHACUNE LE NOMINAL DE L AUTRE.
+ *
+ *                            Cameroun CM0000020305 et Gabon GA0000020248,
+ *                            absents ENSEMBLE de juin a aout 2023, 54 trous
+ *                            a eux deux. Chacun se contredit, en sens
+ *                            oppose : le Cameroun imprime 7 500 quand son
+ *                            encours implique 10 000, le Gabon imprime
+ *                            10 000 quand le sien implique 7 500.
+ *
+ *                            LES ABSCISSES ONT TRANCHE. Le rendu en image
+ *                            ne sert a rien, les polices de ce PDF ne s
+ *                            incorporent pas. La geometrie, elle, repond :
+ *                            les deux valeurs sont a x 470,3 et x 466,3,
+ *                            soit LA MEME COLONNE, chacune dans sa propre
+ *                            rangee. Notre grille est juste, le bulletin a
+ *                            imprime les deux valeurs echangees.
+ *
+ *                            LA DATE LE CONFIRME : le Gabon amortit le
+ *                            4 juin 2023, de 10 000 a 7 500, et la fenetre
+ *                            s ouvre le 5. Avant, les deux valaient 10 000
+ *                            et l echange ne se voyait pas.
+ *
+ *                            LA SIGNATURE EST MUTUELLE, et c est tout ce qui
+ *                            la rend sure : l autre rangee doit porter
+ *                            EXACTEMENT ce que celle-ci devrait porter, ET
+ *                            reciproquement. Trois verrous de plus : chacune
+ *                            ne doit admettre qu UNE lecture, le partenaire
+ *                            doit etre unique, et une rangee ne s echange
+ *                            pas avec elle-meme.
+ *
+ *                            ON PREND LES CHIFFRES DU BULLETIN, pas les
+ *                            notres : la valeur juste est celle que la
+ *                            voisine imprime, le meme nombre mis au mauvais
+ *                            endroit. La recalculer donnait
+ *                            7500,000000026612 la ou la source est exacte.
+ *
+ *                            Relecture sur 10 seances : 12 gagnees, 0
+ *                            modifiee, 0 perdue.
  */
-export const VERSION_DU_LECTEUR = 21;
+export const VERSION_DU_LECTEUR = 22;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
@@ -598,6 +638,7 @@ export const TOUCHE_PAR_VERSION: Record<number, Lecteur[]> = {
   19: ["encours"], // une cellule qui porte deux nombres, decoupee
   20: ["encours"], // le nominal implique, et non le produit
   21: ["encours"], // la part amortie imprimee a la place du reste
+  22: ["encours"], // deux rangees voisines qui portent chacune le nominal de l autre
 };
 
 /**

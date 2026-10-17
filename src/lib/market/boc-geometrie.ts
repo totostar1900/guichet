@@ -1195,7 +1195,104 @@ interface Decoupe {
   cours: Morceau;
   /** Le nominal imprimé, quand il a fallu lui préférer celui que l'encours implique. */
   imprime?: number;
+  /** Laquelle des deux contradictions connues a été reconnue. */
+  motif?: "amortie" | "echange";
 }
+
+/**
+ * CE QU'UNE RANGÉE REFUSÉE DIT D'ELLE-MÊME.
+ *
+ * Son encours, ses titres et son cours donnent un nominal, et c'est le seul
+ * nombre de la rangée qui ne soit pas lu mais déduit. On ne s'en sert JAMAIS
+ * seul : il ne sert qu'à reconnaître une contradiction dont la forme est
+ * connue, et il n'est rendu que si la rangée n'admet qu'une lecture. Deux
+ * lectures possibles, c'est une rangée qu'on ne comprend pas, et on ne
+ * conclut pas sur ce qu'on ne comprend pas.
+ */
+interface Impliquee {
+  titres: Morceau;
+  nominal: Morceau;
+  cours: Morceau;
+  implique: number;
+  origine: number;
+}
+
+function lectureImpliquee(m: Morceau[], encours: number): Impliquee | undefined {
+  const trouvees: Impliquee[] = [];
+  for (const titres of m) {
+    if (!(titres.valeur > 0)) continue;
+    const leve = m.filter((x) => x.a < titres.de).reduce((a, x) => Math.max(a, x.valeur), 0);
+    if (!nominalDOrigineTient(leve, titres.valeur)) continue;
+    const origine = leve / titres.valeur;
+    for (const nominal of m) {
+      if (nominal.de <= titres.a || !(nominal.valeur > 0)) continue;
+      for (const cours of m) {
+        if (cours.de <= nominal.a || cours.valeur < 50 || cours.valeur > 130) continue;
+        const implique = (encours * 100) / (titres.valeur * cours.valeur);
+        if (!(implique > 0) || implique > origine) continue;
+        trouvees.push({ titres, nominal, cours, implique, origine });
+      }
+    }
+  }
+  const premier = trouvees[0];
+  if (!premier) return undefined;
+  /* « Une seule lecture » se juge sur les deux nombres qui comptent, le
+     nominal imprimé et celui que l'encours implique. Deux découpes qui
+     tombent sur le même couple disent la même chose. */
+  const discordante = trouvees.some((t) => t.nominal.valeur !== premier.nominal.valeur || Math.abs(t.implique - premier.implique) > 1e-6);
+  return discordante ? undefined : premier;
+}
+
+/**
+ * L'ÉCHANGE : DEUX RANGÉES VOISINES QUI PORTENT CHACUNE LE NOMINAL DE
+ * L'AUTRE.
+ *
+ * Trouvé le 17 octobre 2026 sur le Cameroun CM0000020305 et le Gabon
+ * GA0000020248, absents ensemble de juin à août 2023, 54 trous à eux deux.
+ * Chacune se contredit, et en sens opposé :
+ *
+ *   Cameroun  nominal imprimé  7 500  son encours implique 10 000
+ *   Gabon     nominal imprimé 10 000  son encours implique  7 500
+ *
+ * LES ABSCISSES ONT TRANCHÉ : les deux valeurs sont à x 470,3 et x 466,3,
+ * soit la même colonne, chacune dans sa propre rangée. Notre grille est
+ * juste, et c'est le bulletin qui a imprimé les deux valeurs échangées. La
+ * date le confirme : le Gabon amortit le 4 juin 2023, passant de 10 000 à
+ * 7 500, et la fenêtre s'ouvre le 5. Avant, les deux valaient 10 000 et
+ * l'échange ne se voyait pas.
+ *
+ * LA SIGNATURE EST MUTUELLE, ET C'EST TOUT CE QUI LA REND SÛRE. Préférer le
+ * nominal impliqué dès qu'il contredit l'imprimé supprimerait le garde,
+ * puisque l'encours donne toujours un nominal. Ici on exige que l'autre
+ * rangée porte EXACTEMENT ce que celle-ci devrait porter, ET réciproquement.
+ * Deux rangées qui se répondent ainsi par hasard, cela ne s'invente pas.
+ *
+ * Trois verrous de plus : chacune des deux ne doit admettre QU'UNE lecture ;
+ * le partenaire doit être unique, sans quoi on ne saurait pas avec qui
+ * l'échange a eu lieu ; et une rangée ne s'échange pas avec elle-même.
+ */
+function decoupeParEchange(m: Morceau[], encours: number, isin: string, voisines: Map<string, Impliquee>): Decoupe | undefined {
+  const moi = lectureImpliquee(m, encours);
+  if (!moi) return undefined;
+
+  const partenaires = [...voisines].filter(
+    ([autreIsin, autre]) =>
+      autreIsin !== isin &&
+      memeNominal(autre.nominal.valeur, moi.implique, Math.max(autre.nominal.decimales, moi.nominal.decimales)) &&
+      memeNominal(autre.implique, moi.nominal.valeur, Math.max(autre.nominal.decimales, moi.nominal.decimales)),
+  );
+  if (partenaires.length !== 1) return undefined;
+
+  /* ON PREND LES CHIFFRES DU BULLETIN, PAS LES NOTRES. La valeur juste est
+     celle que la rangée voisine imprime : c'est le même nombre, mis au
+     mauvais endroit. Le recalculer donnerait 7500,000000026612 au lieu de
+     7 500, une poussière de virgule flottante là où la source est exacte. */
+  const [, partenaire] = partenaires[0];
+  return { titres: moi.titres, nominal: { ...moi.nominal, valeur: partenaire.nominal.valeur }, cours: moi.cours, imprime: moi.nominal.valeur, motif: "echange" };
+}
+
+/** Deux nominaux se valent à une unité entière de la décimale la plus grossière. */
+const memeNominal = (a: number, b: number, decimales: number) => Math.abs(a - b) <= Math.max(0.01, Math.pow(10, -decimales));
 
 /**
  * LE SECOND INVARIANT, ET IL ÉTAIT DANS LA RANGÉE DEPUIS LE DÉBUT.
@@ -1322,7 +1419,8 @@ function decoupeDeLaRangee(m: Morceau[], encours: number): Decoupe | undefined {
         if (!(implique > 0) || implique > origine) continue;
         const pas = Math.max(0.01, Math.pow(10, -nominal.decimales));
         if (Math.abs(implique + nominal.valeur - origine) > pas) continue;
-        candidats.push({ titres, nominal: { ...nominal, valeur: implique }, cours, imprime: nominal.valeur });
+        /* Trois décimales, le pas de la colonne : au-delà c'est du bruit de division. */
+        candidats.push({ titres, nominal: { ...nominal, valeur: Math.round(implique * 1000) / 1000 }, cours, imprime: nominal.valeur, motif: "amortie" });
       }
     }
   }
@@ -1388,6 +1486,26 @@ export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet, grillePa
     return grilles.get(`${k}|${page}`) ?? [];
   };
 
+  /* CE QUE CHAQUE RANGÉE DIT D'ELLE-MÊME, calculé avant d'en juger aucune.
+     La règle de l'échange a besoin des VOISINES : une rangée seule ne peut
+     pas savoir qu'elle porte le nominal d'une autre. On relit donc la
+     section une première fois, sans rien décider. */
+  const impliquees = new Map<string, Impliquee>();
+  for (const [iRangee, r] of section.entries()) {
+    const cells = rangeeSeparee(r, grilleDe(iRangee, r.page))
+      .map((c) => c.texte.trim())
+      .filter(Boolean);
+    const iIsin = cells.findIndex((c) => ISIN_DANS.test(c));
+    if (iIsin < 1) continue;
+    const isin = cells[iIsin].match(ISIN_DANS)![0];
+    const iAmort = cells.findIndex((c, k) => k > iIsin && AMORTISSEMENT.test(c));
+    if (iAmort < 0) continue;
+    const apres = nombresDe(cells.slice(iAmort + 1));
+    if (apres.length < 1) continue;
+    const lu = lectureImpliquee(morceaux(eclaterLesCollees(cells.slice(iIsin + 1, iAmort))), apres[0]);
+    if (lu) impliquees.set(isin, lu);
+  }
+
   const out: BocEncours[] = [];
   const vus = new Set<string>();
   for (const [iRangee, r] of section.entries()) {
@@ -1436,7 +1554,7 @@ export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet, grillePa
     /* L'encours est le premier nombre après l'amortissement, et il sert de
        clef : c'est lui qui permet de retrouver la découpe de la tête. */
     const outstanding = apres[0];
-    const couple = decoupeDeLaRangee(morceaux(tete), outstanding);
+    const couple = decoupeDeLaRangee(morceaux(tete), outstanding) ?? decoupeParEchange(morceaux(tete), outstanding, isin, impliquees);
     if (!couple) {
       carnet?.sur(`Encours ${isin} : aucune découpe de la rangée ne rend titres × nominal × cours égal à l encours.`, cells.join(" | "), "nombre de titres × nominal résiduel × cours / 100 = encours");
       continue;
@@ -1447,7 +1565,11 @@ export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet, grillePa
        le carnet, avec la rangee brute pour pouvoir la contester. */
     if (couple.imprime != null) {
       carnet?.sur(
-        `Encours ${isin} : nominal imprime ${couple.imprime}, retenu ${couple.nominal.valeur} que l encours implique. Le bulletin a imprime la part AMORTIE au lieu du reste, les deux faisant le nominal d origine.`,
+        `Encours ${isin} : nominal imprime ${couple.imprime}, retenu ${couple.nominal.valeur} que l encours implique. ${
+          couple.motif === "echange"
+            ? "Le bulletin a ECHANGE ce nominal avec celui d une rangee voisine, qui porte exactement celui-ci et reciproquement."
+            : "Le bulletin a imprime la part AMORTIE au lieu du reste, les deux faisant le nominal d origine."
+        }`,
         cells.join(" | "),
         "nominal residuel ; le bulletin se contredit et son encours fait foi",
       );
