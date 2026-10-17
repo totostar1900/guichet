@@ -314,7 +314,66 @@ export function ytm(pricePct: number, couponPct: number, years: number): number 
  * pas à dépendre d'un tri fait dans un autre fichier pour que onze rendements
  * gabonais restent justes.
  */
-export function priceOf(r: Pick<AuctionResult, "priceAvg" | "priceLimit" | "priceAvgFcfa" | "priceMin" | "priceMax">): { pct: number; assumed?: Assumption } | undefined {
+/**
+ * LE LIMITE QUE LA PIÈCE NE NOMME PAS, MAIS QUE SES NOMBRES IMPOSENT.
+ *
+ * Le Trésor du Tchad publie une forme à lui : montant annoncé, total des
+ * soumissions, total servi, taux de couverture, et les deux bornes du carnet,
+ * « taux maximum proposé » et « taux minimum proposé ». Ni taux limite, ni taux
+ * moyen pondéré. Quarante-cinq de ses quarante-huit séances ne donnaient donc
+ * aucun rendement, et le Tchad était simplement absent de la courbe, sans que
+ * rien ne le signale : un rendement manquant ne crie pas, il ne trace pas.
+ *
+ * Combler ce trou au jugé serait pire que le laisser. Mais deux configurations
+ * déterminent le limite par identité, sans estimer quoi que ce soit.
+ *
+ *   LE CARNET PLAT. Minimum et maximum proposés sont le même nombre : toutes
+ *   les offres sont au même prix. Le limite vaut ce prix, et le moyen pondéré
+ *   aussi, quelle que soit la part servie.
+ *
+ *   TOUT A ÉTÉ SERVI. Le montant servi égale le total des soumissions : le
+ *   Trésor a accepté chaque offre, donc la PIRE a été servie, et c'est elle le
+ *   limite. Le plus haut taux pour un bon, le plus bas prix pour une
+ *   obligation. Le moyen pondéré, lui, reste inconnu : il faudrait la
+ *   répartition des montants par offre, que la pièce ne donne pas.
+ *
+ * Rien n'en est écrit en base. Les champs lus restent ce que le Trésor imprime,
+ * parce qu'une valeur déduite rangée à côté d'une valeur lue se confond avec
+ * elle au premier coup d'œil suivant. La déduction vit ici, dans le calcul, et
+ * elle sort avec son hypothèse attachée.
+ */
+export function limiteDeduite(
+  r: Pick<AuctionResult, "instrument" | "rateMin" | "rateMax" | "priceMin" | "priceMax" | "bid" | "served">,
+): { pct: number; assumed: Assumption } | undefined {
+  const [bas, haut] = r.instrument === "BTA" ? [r.rateMin, r.rateMax] : [r.priceMin, r.priceMax];
+  if (bas == null || haut == null) return undefined;
+
+  if (Math.abs(bas - haut) < 0.0001) {
+    return {
+      pct: bas,
+      assumed: { key: "carnet plat : toutes les offres à {v} %, donc le limite et le moyen valent ce nombre", params: { v: bas.toLocaleString("fr-FR") } },
+    };
+  }
+
+  /* Les montants sont imprimés en millions : on ne compare pas au franc près. */
+  if (r.bid == null || r.served == null || Math.abs(r.bid - r.served) > 1e6) return undefined;
+
+  /* Le pire bout du carnet : le taux le plus HAUT pour un bon, le prix le plus
+     BAS pour une obligation, parce que le Trésor sert du meilleur au pire. */
+  const pire = r.instrument === "BTA" ? Math.max(bas, haut) : Math.min(bas, haut);
+  return {
+    pct: pire,
+    assumed: {
+      key: "limite déduit : tout a été servi, donc la pire offre du carnet l'a été, soit {v} %",
+      params: { v: pire.toLocaleString("fr-FR") },
+    },
+  };
+}
+
+export function priceOf(
+  r: Pick<AuctionResult, "priceAvg" | "priceLimit" | "priceAvgFcfa" | "priceMin" | "priceMax"> &
+    Partial<Pick<AuctionResult, "instrument" | "rateMin" | "rateMax" | "bid" | "served">>,
+): { pct: number; assumed?: Assumption } | undefined {
   const haut = r.priceMin != null && r.priceMax != null ? Math.max(r.priceMin, r.priceMax) : (r.priceMax ?? r.priceMin);
   const horsBornes = r.priceAvg != null && haut != null && r.priceAvg > haut + 0.01;
   if (horsBornes && r.priceLimit != null) {
@@ -340,10 +399,16 @@ export function priceOf(r: Pick<AuctionResult, "priceAvg" | "priceLimit" | "pric
     };
   }
   if (r.priceLimit != null) return { pct: r.priceLimit, assumed: { key: "prix limite retenu, faute de prix moyen pondéré" } };
+
+  /* Dernier recours, et il ne sert qu'aux Trésors qui ne publient ni moyen ni
+     limite : le carnet lui-même détermine le limite dans deux cas. */
+  const deduit = limiteDeduite({ ...r, instrument: "OTA" });
+  if (deduit) return { pct: deduit.pct, assumed: deduit.assumed };
   return undefined;
 }
 
-type YieldInput = Partial<Pick<AuctionResult, "sessionOn" | "maturityOn">> & Pick<AuctionResult, "instrument" | "tenor" | "yieldAvg" | "yieldLimit" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit" | "priceAvgFcfa" | "priceMin" | "priceMax" | "couponRate">;
+type YieldInput = Partial<Pick<AuctionResult, "sessionOn" | "maturityOn" | "rateMin" | "rateMax" | "bid" | "served">> &
+  Pick<AuctionResult, "instrument" | "tenor" | "yieldAvg" | "yieldLimit" | "rateAvg" | "rateLimit" | "priceAvg" | "priceLimit" | "priceAvgFcfa" | "priceMin" | "priceMax" | "couponRate">;
 
 /**
  * Le rendement d'une séance, par le meilleur chemin disponible.
@@ -358,7 +423,8 @@ export function auctionYield(r: YieldInput, convention: Convention = "guichet"):
   if (r.yieldLimit != null) return { pct: r.yieldLimit, origin: "imprimé", assumptions: [{ key: "rendement au prix limite, faute du moyen pondéré" }] };
 
   if (r.instrument === "BTA") {
-    const d = r.rateAvg ?? r.rateLimit;
+    const deduit = r.rateAvg == null && r.rateLimit == null ? limiteDeduite(r) : undefined;
+    const d = r.rateAvg ?? r.rateLimit ?? deduit?.pct;
     // Un bon s'abonde comme une obligation : le Trésor gabonais en a adjugé
     // quatre lignes de treize semaines le même jour, dont deux à vingt-trois et
     // trente-sept jours du terme. L'escompte se compte sur ces jours-là, sans
@@ -374,6 +440,7 @@ export function auctionYield(r: YieldInput, convention: Convention = "guichet"):
         : { key: "escompte exact/360 sur {j} jours, capitalisation exact/365", params: { j: jours } },
     ];
     if (restants == null) hyp.push({ key: "durée annoncée retenue faute d'échéance imprimée" });
+    if (deduit) hyp.unshift(deduit.assumed);
     return { pct: y, origin: "taux précompté", assumptions: hyp };
   }
 
@@ -402,8 +469,20 @@ export function auctionYield(r: YieldInput, convention: Convention = "guichet"):
 export function yieldMissing(r: YieldInput, convention: Convention = "guichet"): string | undefined {
   if (auctionYield(r, convention)) return undefined;
   if (!vieRestante(r)) return "durée absente ou illisible";
-  if (r.instrument === "BTA") return "ni taux moyen pondéré ni taux limite";
-  if (!priceOf(r)) return "ni prix moyen pondéré ni prix limite";
+  /* Le Tchad n'imprime ni moyen ni limite : dire « le Trésor ne les publie
+     pas » plutôt que « il manque », parce que le geste n'est pas le même.
+     Relire une pièce qui ne porte pas le chiffre ne le fera pas apparaître. */
+  const bornesSeules = (r.rateMin != null && r.rateMax != null) || (r.priceMin != null && r.priceMax != null);
+  if (r.instrument === "BTA") {
+    return bornesSeules
+      ? "le Trésor ne publie que les bornes du carnet, et ni le servi ni leur égalité n'en déduisent le limite"
+      : "ni taux moyen pondéré ni taux limite";
+  }
+  if (!priceOf(r)) {
+    return bornesSeules
+      ? "le Trésor ne publie que les bornes du carnet, et ni le servi ni leur égalité n'en déduisent le limite"
+      : "ni prix moyen pondéré ni prix limite";
+  }
   if (r.couponRate == null) return "coupon absent : le prix seul ne donne pas de rendement";
   return "calcul impossible sur ces valeurs";
 }
