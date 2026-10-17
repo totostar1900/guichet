@@ -1,9 +1,13 @@
 /**
- * LES DONNEES DE LA MAQUETTE « TENSION D UNE SEANCE ».
+ * LES DONNEES DE LA MAQUETTE « OU PLACER SA SOUMISSION ».
  *
- * Chiffres REELS, calcules par src/lib/market/tension-adjudication.ts sur
- * les 260 seances de la table. Aucune collecte, que des jointures sur l
- * existant : c est la contrainte d acceptation du lot 5.
+ * Deuxieme passage. Le premier mettait au centre un croisement etendue x
+ * marge, quatre cases bien remplies ; la mesure du 17 octobre l a
+ * disqualifie comme outil de placement, et on ne garde pas une planche
+ * parce qu elle est jolie. Au centre vient ce qu un desk consulte avant de
+ * conseiller : LA MARGE, par instrument et par duree.
+ *
+ * Chiffres REELS, calcules par src/lib/market/tension-adjudication.ts.
  *
  *   npx tsx --conditions=react-server scripts/maquette-donnees-tension.mjs
  */
@@ -19,107 +23,96 @@ const { ecartMarginal, etendue, primeDeNouvelleEmission, rendementAu } = await i
 const dire = (s) => fs.writeSync(1, `${s}\n`);
 
 const toutes = (await repo().listAuctionResults({ limit: 2000 })).sort((a, b) => a.sessionOn.localeCompare(b.sessionOn));
-dire(`${toutes.length} seances`);
 
-const lignes = toutes.map((r, i) => {
-  const p = primeDeNouvelleEmission(r, toutes.slice(0, i));
-  const rdt = rendementAu(r, "moyen");
-  return {
-    seance: r.sessionOn,
-    pays: r.country,
-    instrument: r.instrument,
-    tenor: r.tenor,
-    code: r.codeEmission ?? null,
-    rendement: rdt ? Math.round(rdt.pct * 100) / 100 : null,
-    marge: ecartMarginal(r) ?? null,
-    etendue: etendue(r) ?? null,
-    prime: p ? p.pb : null,
-    primeJours: p ? p.jours : null,
-    primeRef: p ? p.reference.sessionOn : null,
-    couverture: r.coverage != null ? Math.round(Number(r.coverage)) : null,
-    servi: r.served != null ? Number(r.served) : null,
-  };
-});
+const med = (xs) => { const t = xs.filter((v) => v != null).sort((a, b) => a - b); return t.length ? (t.length % 2 ? t[(t.length - 1) / 2] : Math.round((t[t.length / 2 - 1] + t[t.length / 2]) / 2)) : null; };
+const q = (xs, p) => { const t = xs.filter((v) => v != null).sort((a, b) => a - b); return t.length ? t[Math.min(t.length - 1, Math.floor(t.length * p))] : null; };
 
-/* La distribution : ce qui est NORMAL, sans quoi un chiffre seul ne se lit
-   pas. Les quartiles disent ou se place une seance. */
-const quartiles = (xs) => {
-  const t = xs.filter((v) => v != null).sort((a, b) => a - b);
-  if (!t.length) return null;
-  const q = (p) => t[Math.min(t.length - 1, Math.floor(t.length * p))];
-  return { n: t.length, min: t[0], q1: q(0.25), med: q(0.5), q3: q(0.75), q9: q(0.9), max: t[t.length - 1] };
+/**
+ * LA TABLE DE PLACEMENT, rangee comme une seance s annonce : un instrument
+ * et une duree. Le NOMBRE DE SEANCES est de la colonne, pas une note en
+ * bas : cinq seances et cinquante-six ne se lisent pas pareil, et c est la
+ * seule facon d empecher une fausse precision sur le cote OTA.
+ */
+const clefs = [...new Set(toutes.map((r) => `${r.instrument}|${r.tenor}`))];
+const placement = clefs
+  .map((c) => {
+    const [instrument, tenor] = c.split("|");
+    const d = toutes.filter((r) => r.instrument === instrument && r.tenor === tenor);
+    const marges = d.map((r) => ecartMarginal(r)).filter((v) => v != null);
+    const etendues = d.map((r) => etendue(r)).filter((v) => v != null);
+    return {
+      instrument, tenor,
+      seances: marges.length,
+      marge: med(marges),
+      marge9: q(marges, 0.9),
+      etendue: med(etendues),
+      /* L ordre des durees doit etre celui du temps, pas de l alphabet. */
+      rang: (tenor.match(/(\d+)/) ? Number(tenor.match(/(\d+)/)[1]) : 0) * (/semaine/i.test(tenor) ? 1 : 52),
+    };
+  })
+  .filter((x) => x.seances >= 3)
+  .sort((a, b) => a.instrument.localeCompare(b.instrument) || a.rang - b.rang);
+
+/**
+ * UNE SEANCE LUE A VOIX HAUTE. Un tableau de medianes ne se comprend qu une
+ * fois qu on a vu UNE ligne vraie se derouler : voici la plus recente des
+ * seances completes, avec ses trois nombres et la phrase qu ils font.
+ */
+/* ON CHOISIT UNE SEANCE TYPIQUE, PAS LA PLUS RECENTE. Le premier jet prenait
+   la derniere, qui se trouvait avoir une marge de ZERO : moyen et limite
+   confondus. Un exemple degenere n enseigne rien de la notion qu il illustre,
+   et pire, il laisse croire qu il n y a jamais de marge. On prend donc celle
+   dont la marge est la plus proche de la mediane des bons, et la plus recente
+   a egalite. */
+const candidats = toutes.filter(
+  (r) => r.instrument === "BTA" && ecartMarginal(r) > 0 && etendue(r) != null && rendementAu(r, "moyen") && rendementAu(r, "limite"),
+);
+const medianeBta = med(candidats.map((r) => ecartMarginal(r)));
+const lisible = [...candidats].sort(
+  (a, b) => Math.abs(ecartMarginal(a) - medianeBta) - Math.abs(ecartMarginal(b) - medianeBta) || b.sessionOn.localeCompare(a.sessionOn),
+)[0];
+const exemple = lisible
+  ? {
+      seance: lisible.sessionOn,
+      pays: lisible.country,
+      instrument: lisible.instrument,
+      tenor: lisible.tenor,
+      code: lisible.codeEmission ?? null,
+      moyen: Math.round(rendementAu(lisible, "moyen").pct * 100) / 100,
+      limite: Math.round(rendementAu(lisible, "limite").pct * 100) / 100,
+      marge: ecartMarginal(lisible),
+      etendue: etendue(lisible),
+      couverture: lisible.coverage != null ? Math.round(Number(lisible.coverage)) : null,
+      medianeBta,
+    }
+  : null;
+
+/* L ancre est-elle franche : la distribution de l etendue, toutes seances. */
+const toutesEtendues = toutes.map((r) => etendue(r)).filter((v) => v != null);
+const ancre = { n: toutesEtendues.length, q1: q(toutesEtendues, 0.25), med: med(toutesEtendues), q3: q(toutesEtendues, 0.75), max: q(toutesEtendues, 1) };
+
+/* La prime, retrogradee, avec sa reserve chiffree. */
+const primes = toutes.map((r, i) => primeDeNouvelleEmission(r, toutes.slice(0, i))).filter(Boolean);
+const prime = {
+  n: primes.length,
+  med: med(primes.map((p) => p.pb)),
+  q1: q(primes.map((p) => p.pb), 0.25),
+  q3: q(primes.map((p) => p.pb), 0.75),
+  anPlus: primes.filter((p) => p.jours > 365).length,
 };
-
-const mesures = {
-  marge: quartiles(lignes.map((l) => l.marge)),
-  etendue: quartiles(lignes.map((l) => l.etendue)),
-  prime: quartiles(lignes.map((l) => l.prime)),
-};
-
-/* Par pays : la mediane de chaque mesure, pour voir qui emprunte dans la
-   tension et qui emprunte au calme. */
-const pays = [...new Set(lignes.map((l) => l.pays))].sort();
-const parPays = pays.map((p) => {
-  const d = lignes.filter((l) => l.pays === p);
-  return {
-    pays: p,
-    seances: d.length,
-    marge: quartiles(d.map((x) => x.marge))?.med ?? null,
-    etendue: quartiles(d.map((x) => x.etendue))?.med ?? null,
-    prime: quartiles(d.map((x) => x.prime))?.med ?? null,
-  };
-});
-
-/* Par annee : la tension monte-t-elle ? */
-const annees = [...new Set(lignes.map((l) => l.seance.slice(0, 4)))].sort();
-const parAnnee = annees.map((a) => {
-  const d = lignes.filter((l) => l.seance.startsWith(a));
-  return {
-    annee: a,
-    seances: d.length,
-    marge: quartiles(d.map((x) => x.marge))?.med ?? null,
-    etendue: quartiles(d.map((x) => x.etendue))?.med ?? null,
-  };
-});
-
-/* LES QUATRE CAS DE LECTURE, croisant etendue et marge autour de leur
-   mediane. C est la seule facon de montrer que les deux mesures ensemble
-   disent autre chose que chacune seule. */
-const medE = mesures.etendue.med, medM = mesures.marge.med;
-const cas = [
-  { clef: "calme", titre: "Étendue serrée, marginal serré", dit: "le marché s'accorde sur le prix, et le Trésor n'a pas eu à descendre dans le carnet." },
-  { clef: "refus", titre: "Étendue large, marginal serré", dit: "le marché se divise, mais le Trésor a REFUSÉ la queue : il n'a servi que le haut du carnet." },
-  { clef: "subie", titre: "Étendue large, marginal large", dit: "le marché se divise et le Trésor a dû prendre la queue : la séance suivante partira de ce niveau." },
-  { clef: "etroite", titre: "Étendue serrée, marginal large", dit: "rare, et digne d'un regard : peu de désaccord affiché, mais la dernière soumission servie coûte cher." },
-].map((c) => {
-  const [largeE, largeM] = [c.clef === "refus" || c.clef === "subie", c.clef === "subie" || c.clef === "etroite"];
-  const d = lignes.filter((l) => l.etendue != null && l.marge != null && (l.etendue > medE) === largeE && (l.marge > medM) === largeM);
-  return { ...c, seances: d.length, exemple: d.sort((a, b) => b.servi - a.servi)[0] ?? null };
-});
-
-/* Un echantillon vrai pour la table : les seances les plus tendues. */
-const tendues = lignes
-  .filter((l) => l.marge != null && l.etendue != null)
-  .sort((a, b) => b.marge + b.etendue - (a.marge + a.etendue))
-  .slice(0, 12);
 
 const donnees = {
   mesureLe: new Date().toISOString().slice(0, 10),
-  total: lignes.length,
-  mesures,
-  parPays,
-  parAnnee,
-  cas,
-  tendues,
-  /* Les primes adossees a une reference lointaine : la mesure se defie d
-     elle-meme plutot que d attendre qu on la prenne en defaut. */
-  primesLoin: lignes.filter((l) => l.prime != null && l.primeJours > 180).length,
-  primesAnPlus: lignes.filter((l) => l.prime != null && l.primeJours > 365).length,
-  primesTotal: lignes.filter((l) => l.prime != null).length,
+  total: toutes.length,
+  placement,
+  exemple,
+  ancre,
+  prime,
+  /* CE QUE LE LOT 5 NE DONNE PAS, mesure le 17 octobre en marche avant sur
+     169 seances : le NIVEAU vient de la derniere seance comparable. */
+  niveau: { bta: 14, ota: 118, dispoBta: "93 sur 118", dispoOta: "17 sur 51" },
 };
 
 fs.writeFileSync("C:/dev/guichet/public/maquette/tension-donnees.js", `window.DONNEES = ${JSON.stringify(donnees, null, 1)};\n`, "utf8");
-dire(`ecrit · marge ${mesures.marge.n} mesurables, mediane ${mesures.marge.med} pb`);
-dire(`        etendue ${mesures.etendue.n}, mediane ${mesures.etendue.med} pb`);
-dire(`        prime ${mesures.prime.n}, mediane ${mesures.prime.med} pb, dont ${donnees.primesLoin} a plus de six mois`);
-dire(`cas : ${cas.map((c) => `${c.clef} ${c.seances}`).join(" · ")}`);
+dire(`ecrit · ${placement.length} lignes de placement · exemple ${exemple?.seance ?? "aucun"}`);
+for (const p of placement) dire(`   ${p.instrument} ${p.tenor.padEnd(13)} ${String(p.seances).padStart(3)} seances · marge ${String(p.marge).padStart(4)} pb · 9/10 ${String(p.marge9).padStart(4)} pb`);
