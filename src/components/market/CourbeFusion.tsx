@@ -820,7 +820,12 @@ export function CourbeFusion({
                           {hors && <em className={styles.extra}>{t("extrapolé")}</em>}
                         </span>
                         <b>
-                          {pc(f.taux(vise))} % <span className={styles.pm}>± {Math.round(f.bande(vise) * 100)} pb</span>
+                          {pc(f.taux(vise))} %{" "}
+                          {/* « de tracé » tient en deux mots et ferme la mauvaise lecture
+                              là où elle se fait : dans la bulle, pas dans une note en bas. */}
+                          <span className={styles.pm} title={t("L'incertitude du tracé à cette durée, et non celle d'une prochaine séance.")}>
+                            ± {Math.round(f.bande(vise) * 100)} pb {t("de tracé")}
+                          </span>
                         </b>
                       </div>
                     );
@@ -890,6 +895,31 @@ export function CourbeFusion({
           ? t("Chaque réglage ci-dessus change le sens du chiffre, et pas seulement son allure. La vision des données les ignore : elle n'a rien à pondérer, puisqu'elle ne déduit rien.")
           : t("Cette figure n'est pas une courbe des taux : c'est la donnée, posée. Un segment entre deux points affirme déjà une droite là où le prix du temps fait une courbe, et c'est pourquoi on peut les délier.")}
       </p>
+
+      {/**
+       * CE QUE LA BANDE DIT, ET CE QU'ELLE NE DIT PAS.
+       *
+       * Elle a toujours mesuré l'incertitude du TRACÉ : où passe la courbe à
+       * cette durée, vu les séances retenues. Mais un desk qui lit « 6,20 %
+       * ± 54 pb » la veille d'une adjudication y lit autre chose, où tombera
+       * la prochaine, et c'est une question différente : elle ajoute le
+       * mouvement du marché d'ici là.
+       *
+       * MESURÉ LE 17 OCTOBRE 2026, en marche avant sur 169 séances : à peine
+       * 47 % des séances suivantes tombent dans cette bande, pour une demi
+       * largeur médiane de 54 pb. La bande n'est pas fausse, c'est la lecture
+       * qui l'est, et une étiquette muette la laissait se faire.
+       *
+       * On ne corrige donc pas la mathématique : on dit la question à
+       * laquelle elle répond, et on donne le chiffre de l'autre question,
+       * puisqu'il est mesuré et qu'il est meilleur. Taire le second aurait
+       * laissé le desk estimer à vue.
+       */}
+      {modele && (
+        <p className={styles.note}>
+          {t("La bande dit où passe la courbe à cette durée, vu les séances retenues. Elle ne dit pas où tombera la prochaine adjudication : mesuré en marche avant sur 169 séances, 47 % seulement des séances suivantes y tombent. Pour anticiper une séance, la dernière séance comparable du même Trésor et de la même durée se trompe de 14 points de base en médiane sur un bon, et de 118 sur une obligation.")}
+        </p>
+      )}
 
       {beac.length > 0 && beacReleve && (
         <p className={`${styles.beacNote} ${jours(beacReleve.mois) > 100 ? styles.beacVieux : ""}`}>

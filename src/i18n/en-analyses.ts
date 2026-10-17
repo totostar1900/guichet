@@ -495,6 +495,12 @@ export const EN_ANALYSES: Record<string, string> = {
     "What the model deduces from it. One session per maturity, weighted by its age, with a Nelson-Siegel shape fitted through. It gives a rate at any maturity, including those nobody has auctioned.",
   "Trois coefficients demandent au moins quatre durées distinctes, et davantage pour tenir. Ce n'est pas une page manquante : les observations sont là, c'est le modèle qui refuse.":
     "Three coefficients require at least four distinct maturities, and more to hold. This is not a missing page: the observations are there, it is the model that declines.",
+  "L'incertitude du tracé à cette durée, et non celle d'une prochaine séance.":
+    "The uncertainty of the fitted line at this maturity, not that of a coming session.",
+  "de tracé":
+    "of fit",
+  "La bande dit où passe la courbe à cette durée, vu les séances retenues. Elle ne dit pas où tombera la prochaine adjudication : mesuré en marche avant sur 169 séances, 47 % seulement des séances suivantes y tombent. Pour anticiper une séance, la dernière séance comparable du même Trésor et de la même durée se trompe de 14 points de base en médiane sur un bon, et de 118 sur une obligation.":
+    "The band says where the curve runs at this maturity, given the sessions retained. It does not say where the next auction will land: measured walking forward over 169 sessions, only 47% of the following sessions fall inside it. To anticipate a session, the last comparable session of the same Treasury and the same maturity is off by 14 basis points at the median on a bill, and by 118 on a bond.",
   "Chaque réglage ci-dessus change le sens du chiffre, et pas seulement son allure. La vision des données les ignore : elle n'a rien à pondérer, puisqu'elle ne déduit rien.":
     "Every setting above changes what the figure means, not merely how it looks. The data view ignores them: it has nothing to weight, since it deduces nothing.",
   "Cette figure n'est pas une courbe des taux : c'est la donnée, posée. Un segment entre deux points affirme déjà une droite là où le prix du temps fait une courbe, et c'est pourquoi on peut les délier.":
