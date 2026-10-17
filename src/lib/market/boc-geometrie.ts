@@ -1196,7 +1196,7 @@ interface Decoupe {
   /** Le nominal imprimé, quand il a fallu lui préférer celui que l'encours implique. */
   imprime?: number;
   /** Laquelle des deux contradictions connues a été reconnue. */
-  motif?: "amortie" | "echange";
+  motif?: "amortie" | "echange" | "sansCours";
 }
 
 /**
@@ -1289,6 +1289,55 @@ function decoupeParEchange(m: Morceau[], encours: number, isin: string, voisines
      7 500, une poussière de virgule flottante là où la source est exacte. */
   const [, partenaire] = partenaires[0];
   return { titres: moi.titres, nominal: { ...moi.nominal, valeur: partenaire.nominal.valeur }, cours: moi.cours, imprime: moi.nominal.valeur, motif: "echange" };
+}
+
+/**
+ * LE COURS N'EST PAS IMPRIMÉ, ET L'ENCOURS LE DONNE.
+ *
+ * Trouvé le 17 octobre 2026 sur la séance du 9 août 2023 : le bulletin y
+ * porte douze rangées d'encours et nous n'en lisions que quatre. Les huit
+ * refusées n'avaient pas de colonne de cours, et les abscisses le
+ * confirment : entre le nominal à x 462 et la durée à x 519, il n'y a RIEN,
+ * là où le 10 juillet la même table imprime 97 à x 498. La cellule est vide
+ * dans la pièce.
+ *
+ * L'encours, lui, la contient : 49,6 milliards pour 20 000 000 titres de
+ * 2 500, c'est 99,2 % du nominal. De même 95,00 pour le Congo, 99,00 et
+ * 99,50 pour le Gabon, 96,00 pour le Cameroun.
+ *
+ * DEUX VERROUS, PARCE QUE CE CALCUL EST AUTREMENT TAUTOLOGIQUE. Déduire le
+ * cours de l'encours puis vérifier l'encours par le cours ne prouve rien :
+ * l'identité est vraie par construction. Ce qui la rend sûre ici :
+ *
+ *   la colonne doit être ABSENTE, et non en désaccord : aucune cellule de la
+ *   rangée ne doit tomber dans la bande des cours. Une rangée qui imprime un
+ *   cours et le contredit n'est pas de ce cas et reste refusée ;
+ *
+ *   le cours déduit doit tomber JUSTE AU CENTIME, et dans la bande. Une
+ *   découpe fausse des titres ou du nominal donne un nombre qui ne ressemble
+ *   à aucun prix, et sûrement pas à un prix rond.
+ *
+ * Et la lecture doit être unique, comme pour les deux autres secondes
+ * chances.
+ */
+function decoupeSansCours(m: Morceau[], encours: number): Decoupe | undefined {
+  if (m.some((x) => x.valeur >= 50 && x.valeur <= 130)) return undefined;
+
+  const candidats: Decoupe[] = [];
+  for (const titres of m) {
+    if (!(titres.valeur > 0)) continue;
+    const leve = m.filter((x) => x.a < titres.de).reduce((a, x) => Math.max(a, x.valeur), 0);
+    if (!nominalDOrigineTient(leve, titres.valeur)) continue;
+    for (const nominal of m) {
+      if (nominal.de <= titres.a || !(nominal.valeur > 0)) continue;
+      const p = (encours * 100) / (titres.valeur * nominal.valeur);
+      if (!(p >= 50 && p <= 130)) continue;
+      const centimes = p * 100;
+      if (Math.abs(centimes - Math.round(centimes)) > 1e-6) continue;
+      candidats.push({ titres, nominal, cours: { ...nominal, valeur: Math.round(centimes) / 100 }, motif: "sansCours" });
+    }
+  }
+  return candidats.length === 1 ? candidats[0] : undefined;
 }
 
 /** Deux nominaux se valent à une unité entière de la décimale la plus grossière. */
@@ -1554,7 +1603,10 @@ export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet, grillePa
     /* L'encours est le premier nombre après l'amortissement, et il sert de
        clef : c'est lui qui permet de retrouver la découpe de la tête. */
     const outstanding = apres[0];
-    const couple = decoupeDeLaRangee(morceaux(tete), outstanding) ?? decoupeParEchange(morceaux(tete), outstanding, isin, impliquees);
+    const couple =
+      decoupeDeLaRangee(morceaux(tete), outstanding) ??
+      decoupeParEchange(morceaux(tete), outstanding, isin, impliquees) ??
+      decoupeSansCours(morceaux(tete), outstanding);
     if (!couple) {
       carnet?.sur(`Encours ${isin} : aucune découpe de la rangée ne rend titres × nominal × cours égal à l encours.`, cells.join(" | "), "nombre de titres × nominal résiduel × cours / 100 = encours");
       continue;

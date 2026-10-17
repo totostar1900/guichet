@@ -558,8 +558,39 @@
  *
  *                            Relecture sur 10 seances : 12 gagnees, 0
  *                            modifiee, 0 perdue.
+ *
+ *  23  (2026-10-17)          LE COURS N EST PAS IMPRIME, ET L ENCOURS LE
+ *                            DONNE.
+ *
+ *                            La seance du 9 aout 2023 porte DOUZE rangees d
+ *                            encours et nous n en lisions que QUATRE. Les
+ *                            huit refusees n avaient pas de colonne de
+ *                            cours, et les abscisses le confirment : entre
+ *                            le nominal a x 462 et la duree a x 519 il n y
+ *                            a RIEN, la ou le 10 juillet la meme table
+ *                            imprime 97 a x 498. La cellule est vide dans
+ *                            la piece.
+ *
+ *                            L encours la contient : 49,6 milliards pour
+ *                            20 000 000 titres de 2 500, c est 99,2 %. De
+ *                            meme 95,00 au Congo, 99,00 et 99,50 au Gabon,
+ *                            96,00 au Cameroun.
+ *
+ *                            DEUX VERROUS, parce que ce calcul est
+ *                            autrement tautologique : deduire le cours de l
+ *                            encours puis verifier l encours par le cours
+ *                            ne prouve rien. La colonne doit etre ABSENTE
+ *                            et non en desaccord, donc aucune cellule de la
+ *                            rangee ne doit tomber dans la bande des cours ;
+ *                            et le cours deduit doit tomber JUSTE AU
+ *                            CENTIME. Une decoupe fausse donne un nombre
+ *                            qui ne ressemble a aucun prix.
+ *
+ *                            Relecture sur 10 seances : 7 gagnees, 0
+ *                            modifiee, 0 perdue. La seance passe de 4 a 11
+ *                            rangees lues, et les temoins ne bougent pas.
  */
-export const VERSION_DU_LECTEUR = 22;
+export const VERSION_DU_LECTEUR = 23;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
@@ -639,6 +670,7 @@ export const TOUCHE_PAR_VERSION: Record<number, Lecteur[]> = {
   20: ["encours"], // le nominal implique, et non le produit
   21: ["encours"], // la part amortie imprimee a la place du reste
   22: ["encours"], // deux rangees voisines qui portent chacune le nominal de l autre
+  23: ["encours"], // le cours absent de la rangee, donne par l encours
 };
 
 /**
