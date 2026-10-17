@@ -52,7 +52,11 @@ for (const [i, jour] of cibles.entries()) {
       echecs += 1;
       continue;
     }
-    const out = encoursGeometriques(await rangeesDuPdf(Uint8Array.from(bytes)));
+    /* LA SECONDE IDENTITE : le dernier nominal non nul connu de chaque
+       ligne AVANT cette seance. Elle ne sert que quand la rangee ne se
+       comprend pas seule, et c est une requete par seance. */
+    const refs = await r.nominauxDeReference(jour);
+    const out = encoursGeometriques(await rangeesDuPdf(Uint8Array.from(bytes)), undefined, false, refs);
     if (out.length === 0) vides += 1;
     else {
       await r.upsertEncoursDette(out.map((e) => ({ ...e, sessionDate: jour, readerVersion: VERSION_DU_LECTEUR })));

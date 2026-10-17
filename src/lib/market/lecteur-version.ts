@@ -589,8 +589,47 @@
  *                            Relecture sur 10 seances : 7 gagnees, 0
  *                            modifiee, 0 perdue. La seance passe de 4 a 11
  *                            rangees lues, et les temoins ne bougent pas.
+ *
+ *  24  (2026-10-17)          LA SECONDE IDENTITE, ETENDUE A L ENCOURS.
+ *
+ *                            ALIOS AFC03 portait 97 des 179 trous restants.
+ *                            Du 20 au 28 mars 2025 le bulletin imprime un
+ *                            nominal de 8 750 avec un encours de
+ *                            3 038 901 250 ; a partir du 1er avril il
+ *                            imprime 10 000 avec LE MEME ENCOURS INCHANGE.
+ *                            La colonne est revenue a la valeur faciale,
+ *                            l encours est reste juste. Sa voisine AFC04
+ *                            fait pareil le meme jour.
+ *
+ *                            Aucune des cinq signatures precedentes ne mord,
+ *                            et aucune regle interne a la rangee ne le
+ *                            pourrait : il faut savoir ce que cette ligne
+ *                            valait HIER.
+ *
+ *                            CE N EST PAS UNE DEDUCTION, C EST UNE
+ *                            CONTINUITE TEMOIGNEE. Le nominal de reference
+ *                            est le dernier non nul connu de cette ligne
+ *                            avant cette seance, rendu par la fonction de la
+ *                            migration 0093, et il vient de la table des
+ *                            COTATIONS. Deux choses independantes s accordent
+ *                            donc : un AUTRE lecteur, sur une AUTRE table, a
+ *                            une AUTRE seance, et l encours imprime
+ *                            aujourd hui.
+ *
+ *                            AUCUNE MIGRATION : les 39 lignes de la table
+ *                            des cotations sont exactement celles de l
+ *                            encours, et la fonction rend deja 8 750 pour
+ *                            AFC03 avant le 1er avril.
+ *
+ *                            Doctrine inchangee, celle que les obligations
+ *                            portent depuis la v4 : la seconde identite ne
+ *                            sert que quand la premiere renonce, et n a
+ *                            aucun effet tant qu elle suffit.
+ *
+ *                            Relecture sur 10 seances : 4 gagnees, 0
+ *                            modifiee, 0 perdue.
  */
-export const VERSION_DU_LECTEUR = 23;
+export const VERSION_DU_LECTEUR = 24;
 
 /**
  * Les fichiers qui FONT la lecture : eux seuls commandent le numéro.
@@ -671,6 +710,7 @@ export const TOUCHE_PAR_VERSION: Record<number, Lecteur[]> = {
   21: ["encours"], // la part amortie imprimee a la place du reste
   22: ["encours"], // deux rangees voisines qui portent chacune le nominal de l autre
   23: ["encours"], // le cours absent de la rangee, donne par l encours
+  24: ["encours"], // la seconde identite, etendue a l encours
 };
 
 /**

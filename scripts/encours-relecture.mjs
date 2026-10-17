@@ -44,7 +44,8 @@ for (const [i, jour] of cibles.entries()) {
   try {
     const bytes = b.fileKey ? await readSource(b.fileKey) : (await fetchBoc(jour))?.bytes;
     if (!bytes) continue;
-    neuf = encoursGeometriques(await rangeesDuPdf(Uint8Array.from(bytes)));
+    const refs = await r.nominauxDeReference(jour);
+    neuf = encoursGeometriques(await rangeesDuPdf(Uint8Array.from(bytes)), undefined, false, refs);
   } catch (e) {
     dire(`  ${jour} : ${e.message}`);
     continue;

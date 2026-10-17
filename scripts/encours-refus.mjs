@@ -11,6 +11,7 @@ const { Carnet } = await import("../src/lib/market/boc-parse.ts");
 const b = (await repo().listBulletins(2000)).find((x) => x.sessionDate === (process.argv[2] ?? "2026-10-12"));
 const bytes = b.fileKey ? await readSource(b.fileKey) : (await fetchBoc(b.sessionDate))?.bytes;
 const carnet = new Carnet();
-const out = encoursGeometriques(await rangeesDuPdf(Uint8Array.from(bytes)), carnet);
+const refs = await repo().nominauxDeReference(b.sessionDate);
+const out = encoursGeometriques(await rangeesDuPdf(Uint8Array.from(bytes)), carnet, false, refs);
 console.log(`${out.length} acceptées, ${carnet.notes?.length ?? carnet.warnings?.length ?? 0} refusées\n`);
 for (const n of carnet.notes ?? []) console.log(`REFUS ${n.message}\n   brut ${String(n.brut)}\n`);

@@ -1196,7 +1196,7 @@ interface Decoupe {
   /** Le nominal imprimé, quand il a fallu lui préférer celui que l'encours implique. */
   imprime?: number;
   /** Laquelle des deux contradictions connues a été reconnue. */
-  motif?: "amortie" | "echange" | "sansCours";
+  motif?: "amortie" | "echange" | "sansCours" | "reference";
 }
 
 /**
@@ -1338,6 +1338,42 @@ function decoupeSansCours(m: Morceau[], encours: number): Decoupe | undefined {
     }
   }
   return candidats.length === 1 ? candidats[0] : undefined;
+}
+
+/**
+ * LA SECONDE IDENTITÉ DU LECTEUR, ÉTENDUE À L'ENCOURS.
+ *
+ * ALIOS AFC03 portait 97 des 179 trous restants, et le bulletin dit lui-même
+ * ce qui ne va pas. Du 20 au 28 mars 2025 il imprime un nominal de 8 750 avec
+ * un encours de 3 038 901 250 ; à partir du 1er avril il imprime 10 000 avec
+ * LE MÊME ENCOURS INCHANGÉ. La colonne est revenue à la valeur faciale,
+ * l'encours est resté juste. Sa voisine AFC04 fait pareil le même jour, et
+ * aucune des cinq signatures précédentes ne mord.
+ *
+ * CE N'EST PAS UNE DÉDUCTION, C'EST UNE CONTINUITÉ TÉMOIGNÉE. Le nominal de
+ * référence est le dernier non nul connu de CETTE ligne AVANT cette séance,
+ * rendu par la fonction posée en migration 0093, et il vient de la table des
+ * COTATIONS. Deux choses indépendantes s'accordent donc : un autre lecteur,
+ * sur une autre table, à une autre séance, et l'encours imprimé aujourd'hui.
+ * C'est plus solide que n'importe quelle règle interne à la rangée.
+ *
+ * LA DOCTRINE EST CELLE DE LA SECONDE IDENTITÉ, déjà posée pour les
+ * obligations : elle ne sert que quand la première renonce, et n'a aucun
+ * effet tant qu'elle suffit. Elle ne peut donc pas changer une rangée déjà
+ * lue.
+ *
+ * Deux verrous : la référence doit exister, et le nominal impliqué doit la
+ * retrouver à une unité entière près. Un impliqué qui s'en écarte est une
+ * rangée qu'on ne comprend pas, et elle reste refusée.
+ */
+function decoupeParReference(m: Morceau[], encours: number, reference: number | undefined): Decoupe | undefined {
+  if (!(reference != null && reference > 0)) return undefined;
+  const moi = lectureImpliquee(m, encours);
+  if (!moi) return undefined;
+  if (!memeNominal(moi.implique, reference, moi.nominal.decimales)) return undefined;
+  /* On écrit la RÉFÉRENCE et non notre quotient : c'est un nombre lu
+     ailleurs, pas un résultat de division. */
+  return { titres: moi.titres, nominal: { ...moi.nominal, valeur: reference }, cours: moi.cours, imprime: moi.nominal.valeur, motif: "reference" };
 }
 
 /** Deux nominaux se valent à une unité entière de la décimale la plus grossière. */
@@ -1507,7 +1543,7 @@ function decoupeDeLaRangee(m: Morceau[], encours: number): Decoupe | undefined {
  * `grilleParPage` ne sert qu'au contrôle de non-régression, qui fait tourner
  * les deux découpes sur le même texte dans le même processus.
  */
-export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet, grilleParPage = false): BocEncours[] {
+export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet, grilleParPage = false, nominauxDeReference?: Map<string, number>): BocEncours[] {
   const dit = (r: Rangee, motif: RegExp) => r.cellules.some((c) => motif.test(c.texte.trim()));
   const debut = rangees.findIndex((r) => dit(r, ENCOURS_ENTETE));
   if (debut < 0) return [];
@@ -1606,7 +1642,8 @@ export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet, grillePa
     const couple =
       decoupeDeLaRangee(morceaux(tete), outstanding) ??
       decoupeParEchange(morceaux(tete), outstanding, isin, impliquees) ??
-      decoupeSansCours(morceaux(tete), outstanding);
+      decoupeSansCours(morceaux(tete), outstanding) ??
+      decoupeParReference(morceaux(tete), outstanding, nominauxDeReference?.get(isin));
     if (!couple) {
       carnet?.sur(`Encours ${isin} : aucune découpe de la rangée ne rend titres × nominal × cours égal à l encours.`, cells.join(" | "), "nombre de titres × nominal résiduel × cours / 100 = encours");
       continue;
@@ -1620,7 +1657,9 @@ export function encoursGeometriques(rangees: Rangee[], carnet?: Carnet, grillePa
         `Encours ${isin} : nominal imprime ${couple.imprime}, retenu ${couple.nominal.valeur} que l encours implique. ${
           couple.motif === "echange"
             ? "Le bulletin a ECHANGE ce nominal avec celui d une rangee voisine, qui porte exactement celui-ci et reciproquement."
-            : "Le bulletin a imprime la part AMORTIE au lieu du reste, les deux faisant le nominal d origine."
+            : couple.motif === "reference"
+              ? "Le bulletin est revenu a la VALEUR FACIALE ; le nominal retenu est le dernier connu de cette ligne avant cette seance, et l encours imprime le retrouve."
+              : "Le bulletin a imprime la part AMORTIE au lieu du reste, les deux faisant le nominal d origine."
         }`,
         cells.join(" | "),
         "nominal residuel ; le bulletin se contredit et son encours fait foi",
