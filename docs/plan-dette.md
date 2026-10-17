@@ -14,16 +14,16 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 
 <!-- etat:debut -->
 
-*Mesuré le 2026-10-17 par `scripts/plan-etat.mjs`, lecteur v22. Ne pas modifier à la main.*
+*Mesuré le 2026-10-17 par `scripts/plan-etat.mjs`, lecteur v23. Ne pas modifier à la main.*
 
 | | lot | point | mesure | attendu |
 |---|---|---|---|---|
 | oui | 0 | Cotations d'action sans capitalisation | 248 sur 5009 | au plus 300 |
 | oui | 1 | Observations du calendrier BEAC | 2311 lignes | la table est alimentée |
 | oui | 1 | Fraîcheur du balayage BEAC | vu il y a 0 jour(s), le 2026-10-16 | au plus 2 jours (cadence quotidienne, 9 h UTC) |
-| oui | 2 | Encours de la dette écrits | 18570 lignes | plus de 16 000 lignes |
-| **non** | 2 | Encours relus par le lecteur courant | 12006 ligne(s) estampillée(s) d'avant la v22, et personne n'a mesuré ce qu'une relecture rendrait | aucune ligne qu'une relecture de l'encours ferait gagner, mesuré et non supposé |
-| **non** | 2 | Complétude de la série d'encours | 186 sur 18756 (1.0 %) · 134 séance(s) trouée(s) | aucune ligne attendue et absente |
+| oui | 2 | Encours de la dette écrits | 18580 lignes | plus de 16 000 lignes |
+| oui | 2 | Encours relus par le lecteur courant | toutes à jour (plus ancienne : v23) | aucune ligne qu'une relecture de l'encours ferait gagner, mesuré et non supposé |
+| **non** | 2 | Complétude de la série d'encours | 179 sur 18759 (1.0 %) · 134 séance(s) trouée(s) | aucune ligne attendue et absente |
 | oui | 3 | Séances de résultats déposées | 249 annoncée(s) · 2 instrument(s) annoncé(s) sans ligne, à ouvrir · 4 pièce(s) sans pays ni date | aucune séance annoncée par le journal qui ne soit déposée |
 | oui | 4 | Cliquet d'échelle sur les adjudications | écrit | le test existe |
 | oui | 4 | Ligne tchadienne du 24 janvier 2024 | traitée | corrigée ou écartée avec son motif |
@@ -32,7 +32,7 @@ cd /c/dev/guichet && npx tsx --conditions=react-server scripts/plan-etat.mjs --e
 | oui | 4 | Libellé du bloc Programme du desk | renommé | ne dit plus « Exécution » pour servi sur annoncé |
 | oui | rapport | Relecture qui rendrait quelque chose | rien à relire : cotations et VL à jour sur les 813 | aucune séance dont les cotations ou les VL auraient à gagner |
 
-**11 contrôles tenus sur 13.**
+**12 contrôles tenus sur 13.**
 
 <!-- etat:fin -->
 
