@@ -103,7 +103,30 @@ const seancesBoc = [...new Set(boc.map((b) => b.session_date))].sort();
    pas a masquer. */
 const echues = lignes.filter((l) => l.echeance_le && l.echeance_le < l.arrete).length;
 
+/* POURQUOI LA SERIE COMMENCE ET FINIT LA OU ELLE FINIT, et c est la premiere
+   question qu on pose en la voyant. Le journal porte seize bulletins, n°1 a
+   n°18, deux manquants. Les six plus anciens, de mars 2018 a septembre 2019,
+   ne portent AUCUN tableau d encours : le registre n existait pas encore. Et
+   le n°18 de juin 2022 est le dernier que la BEAC ait publie. La serie est
+   donc fermee aux DEUX bouts par la source, pas par notre lecture. */
+const { data: pieces } = await sb
+  .from("beac_observations")
+  .select("titre")
+  .eq("genre", "bulletin")
+  .ilike("titre", "%trimestriel du marché des titres publics%");
+const numero = (t) => Number((String(t).match(/n°\s*(\d+)/) ?? [])[1] ?? 0);
+const numeros = [...new Set((pieces ?? []).map((p) => numero(p.titre)).filter(Boolean))].sort((a, b) => a - b);
+const avecTable = [...new Set(lignes.map((l) => numero(l.source_titre)))].sort((a, b) => a - b);
+const sansTable = numeros.filter((x) => !avecTable.includes(x));
+const absents = [];
+for (let i = 1; i <= Math.max(...numeros); i++) if (!numeros.includes(i)) absents.push(i);
+
 const donnees = {
+  bulletins: numeros.length,
+  bulletinsAvecTable: avecTable.length,
+  bulletinsSansTable: sansTable,
+  bulletinsAbsents: absents,
+  dernierNumero: Math.max(...numeros),
   mesureLe: new Date().toISOString().slice(0, 10),
   total: lignes.length,
   arretes,
@@ -125,5 +148,6 @@ const donnees = {
 
 fs.writeFileSync("C:/dev/guichet/public/maquette/encours-trimestriel-donnees.js", `window.DONNEES = ${JSON.stringify(donnees, null, 1)};\n`, "utf8");
 dire(`ecrit · ${arc.length} arretes · ${pays.length} pays · ${donnees.isins} isin, ${donnees.communs} en commun avec le BOC`);
+dire(`bulletins : ${numeros.length} au journal, ${avecTable.length} avec table, sans table ${sansTable.join(',')}, absents ${absents.join(',')}`);
 dire(`arc : ${arc.map((a) => Math.round(a.total / 1e9)).join(" → ")} Mds`);
 dire(`profil au ${dernier} : ${profil.map((p) => `${p.tranche} ${Math.round(p.capital / 1e9)}`).join(" · ")}`);
