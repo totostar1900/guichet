@@ -51,28 +51,45 @@ export async function readSource(key: string): Promise<Uint8Array> {
   if (onSupabase()) {
     const { createClient } = await import("@supabase/supabase-js");
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
-    const { data, error } = await sb.storage.from(BUCKET).download(storageKey(key));
-    if (data) return new Uint8Array(await data.arrayBuffer());
     /**
-     * LES OCTETS ONT QUITTÉ LE DÉPÔT : ON LES CHERCHE DANS LA BIBLIOTHÈQUE.
+     * LA BIBLIOTHÈQUE D'ABORD, LE DÉPÔT ENSUITE, et l'ordre a été retourné le
+     * 17 octobre 2026 sur une mesure.
      *
      * C'est ce repli qui rend le ménage possible sans perdre la relecture.
-     * Les cinquante-trois scripts de reprise tournent sur une machine de la
-     * maison, où la bibliothèque est synchronisée : ils continuent donc de
-     * lire les bulletins, et le lecteur peut encore se corriger sur
-     * l'historique. Sept cent soixante-sept lignes ont été retrouvées ainsi
-     * le 14 octobre 2026.
+     * Les scripts de reprise tournent sur une machine de la maison, où la
+     * bibliothèque est synchronisée : ils continuent donc de lire les
+     * bulletins, et le lecteur peut encore se corriger sur l'historique.
+     * Sept cent soixante-sept lignes ont été retrouvées ainsi le 14 octobre.
      *
-     * En production, `BIBLIOTHEQUE_DISQUE` est vide et ce repli n'existe pas :
-     * Vercel n'a pas de disque, et le desk y renvoie par un lien.
+     * POURQUOI CET ORDRE MAINTENANT. Le dépôt passait en premier, ce qui
+     * était juste quand il portait tout. Il ne porte plus que 13,8 Mo sur
+     * 1 Go depuis le ménage : pour chaque pièce déménagée, on payait donc un
+     * aller-retour réseau VOUÉ À ÉCHOUER, mesuré de 400 à 880 millisecondes,
+     * avant de lire un fichier local en moins d'une seconde. Et c'est par là
+     * que dix lectures sur vingt-deux sont tombées en « fetch failed » un
+     * jour de forte charge : la seule étape fragile de la chaîne était celle
+     * dont on n'avait plus besoin.
+     *
+     * L'index dit où vit la pièce, et il coûte une requête légère, pas un
+     * téléchargement. Une pièce non rangée tombe sur le dépôt comme avant.
+     *
+     * En production, `BIBLIOTHEQUE_DISQUE` est vide et cette branche n'existe
+     * pas : Vercel n'a pas de disque, et le desk y renvoie par un lien.
      */
     const { BIBLIOTHEQUE_DISQUE } = await import("./bibliotheque");
     if (BIBLIOTHEQUE_DISQUE) {
       const { data: place } = await sb.from("library_items").select("library_path").eq("file_key", storageKey(key)).maybeSingle();
       if (place?.library_path) {
-        return new Uint8Array(await readFile(path.join(BIBLIOTHEQUE_DISQUE, place.library_path)));
+        try {
+          return new Uint8Array(await readFile(path.join(BIBLIOTHEQUE_DISQUE, place.library_path)));
+        } catch {
+          /* Inscrite mais absente du disque : la synchronisation peut être en
+             retard, et le dépôt reste une chance. On ne jette pas ici. */
+        }
       }
     }
+    const { data, error } = await sb.storage.from(BUCKET).download(storageKey(key));
+    if (data) return new Uint8Array(await data.arrayBuffer());
     throw new Error(`Lecture source : ${error?.message ?? "introuvable"}`);
   }
   return new Uint8Array(await readFile(path.join(LOCAL_DIR, safe(storageKey(key)))));
