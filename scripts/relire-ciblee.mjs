@@ -1,10 +1,14 @@
 /**
- * RELIRE LES DIX-NEUF CONGOLAISES SANS ECHEANCE.
+ * RELECTURE CIBLEE : UN LOT NOMME, DES CHAMPS VIDES, RIEN D AUTRE.
  *
- * Ce sont des scans muets : aucune source gratuite ne reste, et c est le
- * seul lot de la base ou un appel au modele achete quelque chose de
- * precis. Ce qu il achete est nomme avant d etre paye : une echeance, qui
- * commande la place de la seance sur la courbe.
+ * Ecrit pour les dix-neuf congolaises sans echeance, generalise pour les
+ * cinq gabonaises de 2019 plutot que recopie : un sixieme script presque
+ * identique est un sixieme endroit ou la regle de non-ecrasement peut etre
+ * oubliee.
+ *
+ * On ne relit que des scans muets, c est-a-dire les seuls cas ou aucune
+ * source gratuite ne reste, et ce que l appel achete est nomme avant
+ * d etre paye.
  *
  * LA REGLE EST STRICTE ET ELLE EST LA RAISON D ETRE DE CE SCRIPT :
  *
@@ -22,7 +26,8 @@
  *   que le CODE annonce, qui est l arbitre etabli sur cent soixante-treize
  *   bons. Une echeance qui ne passe pas ce garde est rapportee, pas ecrite.
  *
- *   npx tsx --conditions=react-server scripts/relire-les-dix-neuf-congolaises.mjs [--ecrire] [--max N]
+ *   npx tsx --conditions=react-server scripts/relire-ciblee.mjs --pays Congo --sans echeance [--ecrire] [--max N]
+ *   npx tsx --conditions=react-server scripts/relire-ciblee.mjs --pays Gabon --sans duree    [--ecrire] [--max N]
  */
 import fs from "node:fs";
 
@@ -36,11 +41,22 @@ const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABA
 const { repo } = await import("../src/lib/data/index.ts");
 const { readSource } = await import("../src/lib/intake/storage.ts");
 const { readAuctionResult } = await import("../src/lib/market/auction-extract.ts");
+const { vieRestante } = await import("../src/lib/market/yield.ts");
 const dire = (s) => fs.writeSync(1, `${s}\n`);
 const ecrire = process.argv.includes("--ecrire");
 const max = Number(process.argv[process.argv.indexOf("--max") + 1]) || 99;
+const pays = process.argv[process.argv.indexOf("--pays") + 1];
+const sansQuoi = process.argv[process.argv.indexOf("--sans") + 1] ?? "echeance";
+if (!pays || !["echeance", "duree"].includes(sansQuoi)) {
+  fs.writeSync(1, `Usage : --pays <Pays> --sans <echeance|duree> [--ecrire] [--max N]\n`);
+  process.exit(1);
+}
 
 const DUREE = { "11": "13 semaines", "12": "26 semaines", "13": "52 semaines" };
+/* Douze caracteres : deux lettres de pays, un chiffre d instrument, un
+   caractere de duree, puis EXACTEMENT HUIT CHIFFRES. */
+const BIEN_FORME = /^[A-Z]{2}[0-9][0-9A-Z]\d{8}$/;
+const PREFIXE = { Cameroun: "CM", Congo: "CG", Gabon: "GA", Tchad: "TD", "Guinée équatoriale": "GQ", Centrafrique: "CF" };
 const SEMAINES = { "13 semaines": 13, "26 semaines": 26, "52 semaines": 52 };
 
 /* Les champs qu on accepte de remplir quand ils sont vides. On ne prend
@@ -54,18 +70,41 @@ const vide = (v) => v == null || String(v).trim() === "" || String(v).trim() ===
 const REMPLISSABLES = [
   ["tenor", "tenor"],
   ["maturityOn", "maturity_on"],
+  ["codeEmission", "code_emission"],
   ["couponRate", "coupon_rate"],
   ["bidders", "bidders"],
   ["networkSize", "network_size"],
   ["coverage", "coverage"],
+  /* LES CHIFFRES AUSSI, ET IL LE FAUT. Cinq gabonaises de 2019 sont des
+     coquilles entierement vides : leur donner une duree et une echeance
+     sans leurs taux les laisserait HORS DE LA COURBE, faute du moindre
+     rendement, et l exercice n aurait servi a rien. La regle « seulement
+     si le champ est vide » reste le garde, et elle suffit : il n y a rien
+     a contredire dans une case qui ne porte rien. */
+  ["announced", "announced"],
+  ["bid", "bid"],
+  ["served", "served"],
+  ["rateMin", "rate_min"],
+  ["rateMax", "rate_max"],
+  ["rateLimit", "rate_limit"],
+  ["rateAvg", "rate_avg"],
+  ["priceMin", "price_min"],
+  ["priceMax", "price_max"],
+  ["priceLimit", "price_limit"],
+  ["priceAvg", "price_avg"],
+  ["yieldAvg", "yield_avg"],
 ];
 /* Les champs qu on se contente de comparer, pour voir si la lecture
    d aujourd hui dit autre chose que celle d hier. */
 const COMPARES = ["rateMin", "rateMax", "rateLimit", "rateAvg", "priceMin", "priceMax", "priceLimit", "priceAvg", "announced", "bid", "served", "codeEmission"];
 
 const toutes = await repo().listAuctionResults({ limit: 2000 });
+/* « sans duree » vise les seances qui ne sont PAS DU TOUT sur la courbe,
+   faute du moindre rendement ; « sans echeance » celles qui y sont posees
+   par leur etiquette. Ce ne sont pas les memes manques ni les memes
+   enjeux, et les confondre ferait relire des pieces pour rien. */
 const vise = toutes
-  .filter((r) => r.country === "Congo" && !r.maturityOn && r.fileKey && !r.setAsideAt)
+  .filter((r) => r.country === pays && r.fileKey && !r.setAsideAt && (sansQuoi === "echeance" ? !r.maturityOn : vide(r.tenor)))
   .sort((a, b) => a.sessionOn.localeCompare(b.sessionOn))
   .slice(0, max);
 
@@ -78,7 +117,8 @@ for (const r of vise) {
   let lecture;
   try {
     const bytes = await readSource(r.fileKey);
-    const hint = `Séance du ${r.sessionOn}, ${r.instrument}${r.tenor ? ` ${r.tenor}` : ""}, Congo. Le code d'émission ${r.codeEmission ?? ""} est connu : relève surtout l'échéance.`;
+    const connu = r.codeEmission ? ` Le code d'émission ${r.codeEmission} est connu.` : "";
+    const hint = `Séance du ${r.sessionOn}, ${r.instrument}${vide(r.tenor) ? "" : ` ${r.tenor}`}, ${pays}.${connu} Relève surtout la durée et l'échéance. Si la pièce porte PLUSIEURS lignes, dis-le en remarque.`;
     lecture = await readAuctionResult(Buffer.from(bytes).toString("base64"), hint);
   } catch (e) {
     dire(`   ${r.sessionOn} ${r.codeEmission} : LECTURE IMPOSSIBLE · ${String(e.message).slice(0, 70)}`);
@@ -123,9 +163,28 @@ for (const r of vise) {
     }
   }
 
+  /* LE GARDE SUR LE CODE. Douze caracteres, et son caractere de duree doit
+     s accorder avec la duree qu on ecrit : un code mal lu ne proteste pas,
+     il rattache simplement la ligne a rien, et c est ce qui a coute le
+     « GAZ000000026 » du 17 octobre. */
+  let code = p.codeEmission ? String(p.codeEmission).trim() : undefined;
+  if (code) {
+    const dureeEcrite = duree ?? (vide(r.tenor) ? undefined : String(r.tenor));
+    if (!BIEN_FORME.test(code)) {
+      motif = (motif ? motif + " · " : "") + `code « ${code} » hors norme`;
+      code = undefined;
+    } else if (code.slice(0, 2) !== PREFIXE[pays]) {
+      motif = (motif ? motif + " · " : "") + `code « ${code} » n est pas du ${pays}`;
+      code = undefined;
+    } else if (r.instrument === "BTA" && DUREE[code.slice(2, 4)] && dureeEcrite && DUREE[code.slice(2, 4)] !== dureeEcrite) {
+      motif = (motif ? motif + " · " : "") + `code « ${code} » annonce ${DUREE[code.slice(2, 4)]}, la duree dit ${dureeEcrite}`;
+      code = undefined;
+    }
+  }
+
   const aRemplir = {};
   for (const [champ, colonne] of REMPLISSABLES) {
-    const valeur = champ === "maturityOn" ? echeance : champ === "tenor" ? duree : p[champ];
+    const valeur = champ === "maturityOn" ? echeance : champ === "tenor" ? duree : champ === "codeEmission" ? code : p[champ];
     if (valeur == null) continue;
     if (!vide(r[champ])) continue; /* JAMAIS par-dessus une vraie valeur */
     aRemplir[colonne] = valeur;
@@ -133,6 +192,8 @@ for (const r of vise) {
   const vus = COMPARES.filter((c) => p[c] != null && !vide(r[c]) && String(p[c]) !== String(r[c])).map((c) => `${c} : base « ${r[c]} » · lecture « ${p[c]} »`);
   if (vus.length) desaccords.push({ r, vus });
   if (motif && !echeance) refusees.push({ r, motif, propose: p.maturityOn });
+
+  for (const rem of lecture.remarks ?? []) dire(`      REMARQUE ${rem}`);
 
   const quoi = Object.keys(aRemplir).length ? Object.entries(aRemplir).map(([k, v]) => `${k}=${v}`).join(" · ") : "rien a remplir";
   dire(`   ${r.sessionOn} ${String(r.codeEmission ?? "—").padEnd(14)} ${lecture.seconds}s · ${quoi}${motif ? ` · ${motif}` : ""}`);
