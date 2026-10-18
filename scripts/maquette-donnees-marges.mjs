@@ -163,7 +163,48 @@ function tenorBta(a) {
   return `${sem <= 15 ? 13 : sem <= 32 ? 26 : 52} semaines`;
 }
 
-const sortie = { produitLe: AUJ, lignes: lignes.sort((a, b) => (a.panier ?? "").localeCompare(b.panier ?? "")), paniers: PANIERS.map((p) => p.nom) };
+/* ---- LE SECONDAIRE, ou il faut DEUX marges et non une ----
+   Une ligne du secondaire a deux cotes : on achete au client a un prix et
+   on lui vend a un autre. Une marge unique les forcerait a etre
+   symetriques autour du dernier cours, ce qu aucune maison ne fait : on
+   paie moins cher ce qu on prend en stock que ce qu on cede. */
+const secondaires = offres
+  .filter((o) => o.kind === "MARCHE" && o.status === "published" && !o.hidden)
+  .map((o) => ({
+    id: o.id,
+    instrument: o.instrument ?? null,
+    isin: o.isin ?? null,
+    titre: o.title,
+    dernier: o.lastPrice ?? null,
+    depuis: o.priceSince ?? null,
+    traiteLe: o.lastTradedOn ?? null,
+    bid: o.bid ?? null,
+    ask: o.ask ?? null,
+    source: o.priceSource ?? null,
+    ageCours: o.priceSince ? jours(o.priceSince, AUJ) : null,
+  }))
+  .sort((a, b) => (b.ageCours ?? 0) - (a.ageCours ?? 0));
+
+/* ---- LES COMPARABLES, pour le detail au clic ---- */
+const detail = {};
+for (const l of lignes) {
+  if (!l.panier) continue;
+  const cle = `${l.pays}|${l.panier}`;
+  if (detail[cle]) continue;
+  detail[cle] = marche
+    .filter((m) => m.pays === l.pays && m.panier === l.panier && m.neuve)
+    .sort((a, b) => b.seance.localeCompare(a.seance))
+    .slice(0, 12)
+    .map((m) => ({ seance: m.seance, tenor: m.tenor, instrument: m.instrument, rendement: Math.round(m.rendement * 100) / 100, rLimite: m.rLimite == null ? null : Math.round(m.rLimite * 100) / 100, rMoyen: m.rMoyen == null ? null : Math.round(m.rMoyen * 100) / 100 }));
+}
+
+const sortie = {
+  produitLe: AUJ,
+  lignes: lignes.sort((a, b) => (a.panier ?? "").localeCompare(b.panier ?? "")),
+  paniers: PANIERS.map((p) => p.nom),
+  secondaires,
+  detail,
+};
 fs.writeFileSync("C:/dev/guichet/public/maquette/marges-donnees.js", `window.MARGES = ${JSON.stringify(sortie)};\n`, "utf8");
 
 dire(`${ouvertes.length} ligne(s) primaire(s) ouverte(s)\n`);
