@@ -8,6 +8,7 @@ import { repo } from "@/lib/data";
 import { positionFor } from "@/lib/documents/position";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
+import { daysBetween } from "@/lib/finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, localIso } from "@/lib/format";
 import { bocUrl } from "@/lib/market/boc";
 import { ExecuteForm, FundBordereauButton, FundTermsForm, HideButton, IngestForm, QuoteForm, SettleButton, SignalForm, UploadForm } from "./Forms";
@@ -346,7 +347,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
                 <th className="r">{t("Acheteur")}</th>
                 <th className="r">{t("Vendeur")}</th>
                 <th>{t("Liquidité (12 mois)")}</th>
-                <th>{t("Mis à jour")}</th>
+                <th>{t("Âge du cours")}</th>
                 <th>{t("Secours (saisie)")}</th>
                 <th></th>
               </tr>
@@ -377,16 +378,43 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
                       )}
                     </td>
                     <td className="r num">{f(o.lastPrice)}</td>
-                    <td className="r num">{f(o.bid)}</td>
-                    <td className="r num">{f(o.ask)}</td>
+                    {/* DEUX CASES VIDES SE LISENT COMME UN OUBLI, pas comme un
+                        fait. Quarante-six lignes sur quarante-six n'ont ni
+                        acheteur ni vendeur : personne ne peut traiter, et le
+                        tiret laissait croire à une colonne pas encore remplie.
+                        « Non coté » le dit, une fois, en travers des deux. */}
+                    {o.bid == null && o.ask == null ? (
+                      <td className="r muted" colSpan={2}>
+                        {t("non coté")}
+                      </td>
+                    ) : (
+                      <>
+                        <td className="r num">{f(o.bid)}</td>
+                        <td className="r num">{f(o.ask)}</td>
+                      </>
+                    )}
                     <td>
                       <FillRate line={o.isin ? fills.get(o.isin) : undefined} desk={ours.get(o.id)} />
                     </td>
+                    {/* CETTE COLONNE ANNONÇAIT FRAIS UN COURS QUI NE L'ÉTAIT PAS.
+                        Elle portait « lastPriceOn », qui est la date de la
+                        SÉANCE : dès qu'une ligne paraît au bulletin, elle
+                        affichait « mis à jour il y a deux jours », pour un
+                        chiffre inchangé depuis quatre cent douze. Trente-deux
+                        lignes sur quarante-six étaient dans ce cas le 18
+                        octobre 2026, l'âge médian du cours étant de 412 jours
+                        et le plus vieux de 1 082.
+
+                        L'âge du CHIFFRE passe donc devant, la séance derrière.
+                        C'est « priceSince » qui le porte, et lui seul : il ne
+                        bouge qu'au changement de cours. */}
                     <td className="num">
-                      {o.lastPriceOn ? fmtDate(o.lastPriceOn) : "—"}
-                      {stale(o) && <small className={styles.staleTag}> {t("avant la dernière séance")}</small>}
+                      <AgeDuCours since={o.priceSince} now={now} t={t} />
                       <br />
-                      <small className="muted">{o.pricedAt ? fmtDateTime(o.pricedAt) : ""}</small>
+                      <small className="muted">
+                        {o.lastPriceOn ? t("vue le {d}", { d: fmtDate(o.lastPriceOn) }) : "—"}
+                        {stale(o) && <span className={styles.staleTag}> {t("avant la dernière séance")}</span>}
+                      </small>
                     </td>
                     <td>
                       <QuoteForm offerId={o.id} last={o.lastPrice} bid={o.bid} ask={o.ask} step={isBond ? "0.001" : "1"} version={o.version} />
@@ -563,5 +591,29 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * DEPUIS QUAND CE COURS N'A PAS BOUGÉ.
+ *
+ * Trois crans, et le seuil n'est pas choisi au goût : sur ce marché la
+ * médiane est à quatre cent douze jours, donc un mois sans mouvement est
+ * l'ordinaire et ne mérite aucune couleur. C'est au-delà d'un trimestre que
+ * le chiffre cesse d'être un cours pour devenir un souvenir, et au-delà d'un
+ * an qu'il ne dit plus rien du tout.
+ *
+ * On écrit les jours et non la date : « 412 j » se compare d'un coup d'œil
+ * d'une ligne à l'autre, « 2 septembre 2025 » demande un calcul à chaque
+ * ligne. La date entière reste dessous, sur la séance.
+ */
+function AgeDuCours({ since, now, t }: { since?: string; now: Date; t: (s: string, v?: Record<string, string | number>) => string }) {
+  if (!since) return <span className="muted">{t("âge inconnu")}</span>;
+  const j = daysBetween(since, now.toISOString().slice(0, 10));
+  const cls = j > 365 ? styles.ageMort : j > 90 ? styles.ageVieux : undefined;
+  return (
+    <b className={cls} title={t("Cours inchangé depuis le {d}", { d: fmtDate(since) })}>
+      {t("{n} jours", { n: j })}
+    </b>
   );
 }

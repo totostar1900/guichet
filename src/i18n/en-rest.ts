@@ -536,6 +536,7 @@ export const EN_REST: Record<string, string> = {
   "25 M FCFA": "25 M FCFA",
   "Oblig.": "Bond",
   "Origine": "Origin",
+  "Âge du cours": "Age of the price",
   "Mis à jour": "Updated",
 
   /* ---------- push / contact / mfa ---------- */
@@ -1036,6 +1037,12 @@ export const EN_REST: Record<string, string> = {
   "Écart au niveau mesuré : {v}": "Gap to the measured level: {v}",
   "Voir le détail": "See the detail",
   "Loin du marché": "Far from the market",
+
+  /* L age du cours au secondaire : /desk/marche. */
+  "non coté": "not quoted",
+  "vue le {d}": "seen on {d}",
+  "âge inconnu": "age unknown",
+  "Cours inchangé depuis le {d}": "Price unchanged since {d}",
   "Panier « {p} »": "Bucket « {p} »",
   "{n} séance(s) · la plus récente il y a {j} jour(s)": "{n} session(s) · the most recent {j} day(s) ago",
   "La courbe des taux · {p}": "The yield curve · {p}",

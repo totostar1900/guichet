@@ -238,3 +238,8 @@
   align-items: center;
   margin-bottom: 16px;
 }
+
+/* L'ÂGE DU COURS. Rien avant trois mois : la médiane de ce marché est à
+   quatre cent douze jours, et colorer l'ordinaire rendrait le reste invisible. */
+.ageVieux { color: var(--warn); }
+.ageMort { color: var(--crit); }

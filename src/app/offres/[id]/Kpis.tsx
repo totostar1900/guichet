@@ -2,7 +2,7 @@ import { KpiCard } from "@/components/KpiCard";
 import { explainKpis } from "@/lib/domain/explain";
 import { displayYield } from "@/lib/domain/status";
 import type { Offer } from "@/lib/domain/types";
-import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
+import { fmt, fmtDate, fmtPct, fmtPrice, localIso } from "@/lib/format";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { daysBetween } from "@/lib/finance";
 import { fundAnnualPct } from "@/lib/domain/fund-perf";
@@ -44,7 +44,19 @@ export function Kpis({ o, base = "" }: { o: Offer; base?: string }) {
         ? [
             [dy.atPar ? "Taux nominal · au pair" : o.instrument === "obligation" ? "Rendement actuariel annuel brut au cours" : "Rendement du dernier dividende", yTxt, true],
             [o.instrument === "obligation" ? "Coupon facial" : "Dernier dividende brut", o.instrument === "obligation" ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", false],
-            [o.instrument === "obligation" ? "Dernier cours (% nominal)" : "Dernier cours (FCFA)", o.lastPrice != null ? (o.instrument === "obligation" ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)) : "—", false],
+            /* L'ÂGE DU COURS FAIT PARTIE DU COURS. Sur ce marché un prix de
+               quatre cents jours et un prix d'hier ne valent pas la même
+               confiance, et l'âge médian y est de quatre cent douze jours. Le
+               dos de la fiche et la carte compacte le disaient déjà ; cette
+               bande, qui est ce qu'on lit en premier, ne le disait pas, et un
+               cours nu s'y lisait comme un cours du jour. */
+            [
+              o.instrument === "obligation" ? "Dernier cours (% nominal)" : "Dernier cours (FCFA)",
+              o.lastPrice == null
+                ? "—"
+                : `${o.instrument === "obligation" ? fmtPrice(o.lastPrice) : fmt(o.lastPrice)}${o.priceSince ? ` · ${daysBetween(o.priceSince, localIso(now))} j` : ""}`,
+              false,
+            ],
             ...(o.instrument === "obligation" && o.nominal ? ([["Nominal par titre (FCFA)", fmt(o.nominal), false]] as [string, string, boolean][]) : []),
           ]
       : o.kind === "BTA"
