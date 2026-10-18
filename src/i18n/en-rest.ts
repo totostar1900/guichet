@@ -540,6 +540,24 @@ export const EN_REST: Record<string, string> = {
 
   /* L attente d un ordre dans son etat : la file du carnet. */
   "En souffrance": "Overdue",
+
+  /* Le delai de souffrance et sa page de reglage. */
+  "au-delà de {n} jours sans mouvement": "beyond {n} days without movement",
+  "Sans mouvement : au-delà de combien de jours": "Without movement: beyond how many days",
+  "Clôture proche : à combien de jours de la limite": "Closing soon: how many days from the deadline",
+  "{n} ordre(s) ouvert(s) seraient marqués": "{n} open order(s) would be marked",
+  "sur {n} ouvert(s) au total": "out of {n} open in all",
+  "Délai de souffrance": "Overdue delay",
+  "Au-delà de ce délai sans mouvement, un ordre ouvert est marqué dans le carnet. Il ne déclenche aucun envoi et ne change aucun état : il colore une colonne et remplit une pastille.": "Beyond this delay without movement, an open order is marked in the book. It triggers no sending and changes no state: it colours a column and fills a chip.",
+  "Les deux horloges": "The two clocks",
+  "La clôture de la ligne prime, et même sur un ordre tout frais : ce qui presse n'est pas que nous ayons tardé, c'est que la porte se ferme. Le délai sans mouvement sert partout ailleurs, et notamment sur les fonds et le secondaire, qui se traitent en continu et n'ont pas de clôture.": "The line's deadline comes first, even for a brand-new order: what presses is not that we were slow, it is that the door is closing. The delay without movement serves everywhere else, and notably on funds and the secondary market, which trade continuously and have no deadline.",
+  "Pourquoi ce chiffre est posé et non mesuré": "Why this figure is set and not measured",
+  "Aucun seuil ne peut se tirer des données tant que la file n'a pas vécu : cinq ordres en base le 18 octobre 2026, tous sur des comptes d'essai. Le défaut de sept jours est donc une décision, pas une déduction, et c'est précisément pour cela qu'il vit ici plutôt que dans le code.": "No threshold can be drawn from the data until the queue has lived: five orders in the base on 18 October 2026, all on test accounts. The default of seven days is therefore a decision, not a deduction, and that is precisely why it lives here rather than in the code.",
+  "Le jour où la file comptera assez d'ordres, c'est la distribution des attentes qui dira s'il faut le bouger.": "The day the queue holds enough orders, it is the distribution of waits that will say whether to move it.",
+  "Voir le carnet": "See the book",
+  "Enregistrer le délai": "Save the delay",
+  "Délai enregistré. Le carnet le lit dès maintenant.": "Delay saved. The book reads it from now on.",
+  "Deux nombres entiers de jours : de 1 à 120, et de 0 à 30.": "Two whole numbers of days: from 1 to 120, and from 0 to 30.",
   "sans mouvement": "without movement",
   "Sans mouvement": "Without movement",
   "Cet ordre est clos : il n'attend plus rien.": "This order is closed: it is no longer waiting for anything.",

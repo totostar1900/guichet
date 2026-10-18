@@ -8,7 +8,8 @@ import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL, nextStates } from "@/lib/domain/intent";
 import { aUneCloture, countdown, displayStatus, headlineYield, isActionable, KIND_LABEL } from "@/lib/domain/status";
 import { etatDeLEcart, tariferLesLignes, type LigneTarifee } from "@/lib/market/tarification";
-import { ETATS_OUVERTS, souffranceDe, type Souffrance } from "@/lib/domain/souffrance";
+import { type Souffrance } from "@/lib/domain/souffrance";
+import { attentesDesOrdres } from "@/lib/desk/souffrance-data";
 import { loadSouffrance } from "@/lib/policy";
 import { TallTable } from "@/components/desk/TallTable";
 import type { Intent, Offer } from "@/lib/domain/types";
@@ -82,20 +83,11 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
    * dernière TRANSITION au journal, jamais depuis la réception : un ordre
    * reçu il y a trente jours mais confirmé hier en a attendu un.
    */
+  /* L'attente des ordres a un domicile : deux pages en ont besoin, et une
+     lecture partagée qui se multiplie finit par diverger. */
   const delaiSouffrance = await loadSouffrance();
-  const parLigne = new Map(offers.map((o) => [o.id, o]));
-  /* LE JOURNAL SE LIT PAR ORDRE, ET NON PAR PROFONDEUR. « listEvents(30) »
-     rendait les trente plus récents, tous ordres confondus : la transition
-     d'un ordre de septembre n'y était pas, et la mesure retombait sur la date
-     de réception en se faisant passer pour un temps d'attente. La première
-     version de cette page y est tombée, et la mesure qui l'a trouvée aussi. */
-  const ouverts = intents.filter((i) => ETATS_OUVERTS.includes(i.state));
-  const journalDesOrdres = ouverts.length ? await r.listEventsOfIntents(ouverts.map((i) => i.id)).catch(() => []) : [];
-  const souffrances = new Map<string, Souffrance>();
-  for (const i of ouverts) {
-    const s = souffranceDe(i, parLigne.get(i.offerId), journalDesOrdres, delaiSouffrance, now);
-    if (s) souffrances.set(i.id, s);
-  }
+  const attentes = await attentesDesOrdres(delaiSouffrance, now, { intents, offers });
+  const souffrances = new Map([...attentes].map(([id, a]) => [id, a.souffrance]));
 
   const aujourdhui = now.toISOString().slice(0, 10);
   const adjudications = await r.listAuctionResults({ limit: 800 }).catch(() => []);
@@ -289,6 +281,14 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
               {/* Le chiffre dit sa part de démonstration, parce qu'un total
                   qui mélange les deux sans le dire se cite ensuite ailleurs. */}
               {deDemo > 0 ? ` · ${t("dont {k} de démonstration, hors reporting et hors Santé", { k: deDemo })}` : ""}
+              {/* LE SEUIL SE LIT LÀ OÙ IL AGIT. Un réglage dont on voit la
+                  couleur sans savoir d'où elle vient se subit ; le lien le
+                  rend discutable, et il mène à la page qui montre ce que le
+                  seuil attrape avant de l'enregistrer. */}
+              {" · "}
+              <Link className="muted" href="/desk/referentiel/souffrance">
+                {t("au-delà de {n} jours sans mouvement", { n: delaiSouffrance.jours })}
+              </Link>
             </span>
           </div>
           <Toolbar

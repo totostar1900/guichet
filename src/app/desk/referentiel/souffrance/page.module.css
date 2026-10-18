@@ -1,0 +1,51 @@
+/* Une page de réglage : deux nombres et ce qu'ils attrapent. Elle emprunte
+   ses mesures au reste du desk plutôt que d'en inventer. */
+
+.page { max-width: 54rem; margin: 0 auto; padding: 20px clamp(12px, 3vw, 24px) 40px; }
+.tete { margin-bottom: 20px; }
+.tete h1 { font-size: 1.35rem; margin: 0 0 6px; }
+.tete p { margin: 0; max-width: 48rem; font-size: 0.88rem; }
+.corps { padding: 16px 20px; }
+.corps p { margin: 0 0 12px; font-size: 0.88rem; max-width: 48rem; }
+.corps p:last-child { margin-bottom: 0; }
+
+.form { margin-top: 16px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+.grid label { display: block; }
+.grid span {
+  display: block;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.grid input {
+  width: 100%;
+  font: inherit;
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  padding: 6px 10px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+/* CE QUE LE SEUIL ATTRAPE, à côté du seuil. « Sept jours » ne dit rien ;
+   « sept jours, soit deux ordres sur trois » dit tout. */
+.effet {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.effet b { display: block; font-size: 0.88rem; }
+.effet > span { font-size: 0.74rem; }
+.effet ul { margin: 8px 0 0; padding-left: 1.1rem; font-size: 0.8rem; }
+.effet li { margin-bottom: 2px; }
+
+.row { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.ok { color: var(--good); font-size: 0.8rem; }
+.ko { color: var(--crit); font-size: 0.8rem; }
