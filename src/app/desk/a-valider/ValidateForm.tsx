@@ -14,6 +14,8 @@ import { lireSourceAction, publishAction, rejectAction, requestReviewAction, sav
 import { CAUSES_DE_REJET } from "@/lib/desk/rejet";
 import { SourceViewer } from "@/components/SourceViewer";
 import { referenceLine, type RateReference } from "@/lib/market/auction-results";
+import type { NiveauMarche } from "@/lib/market/niveau-marche";
+import { NiveauEtPrix } from "./NiveauEtPrix";
 import styles from "./page.module.css";
 
 type Snap = Record<string, string>;
@@ -93,7 +95,7 @@ function Reference({ r, tr }: { r?: RateReference; tr: (s: string, v?: Record<st
 }
 const CAUSES = Object.entries(CAUSES_DE_REJET);
 
-export function ValidateForm({ item, offer, reference }: { item: IntakeItem; offer?: Offer; reference?: RateReference }) {
+export function ValidateForm({ item, offer, reference, niveau }: { item: IntakeItem; offer?: Offer; reference?: RateReference; niveau?: NiveauMarche }) {
   const tr = useT();
   const d = item.draft;
   const [snap, setSnap] = useState<Snap>({});
@@ -269,11 +271,13 @@ export function ValidateForm({ item, offer, reference }: { item: IntakeItem; off
           <h3>{tr("Décision du desk : les seuls champs que nous fixons")}</h3>
           <div className={styles.decGrid}>
             {kind === "BTA" ? (
-              <label className="field">
-                {tr("Taux précompté indicatif (%)")}
-                <input name="precountRate" type="number" step="0.05" defaultValue={offer?.precountRate ?? reference?.proposed ?? 5.5} />
-                <Reference r={reference} tr={tr} />
-              </label>
+              <NiveauEtPrix
+                kind="BTA"
+                niveau={niveau}
+                pays={d.country}
+                bta={d.maturityOn && d.settleOn ? { nominal: Number(d.nominal) || 10_000, settleOn: d.settleOn, maturityOn: d.maturityOn } : undefined}
+                valeurInitiale={offer?.precountRate ?? reference?.proposed}
+              />
             ) : kind === "ACTIONS" || kind === "RACHAT" ? (
               <label className="field">
                 {tr("Prix")}
@@ -289,11 +293,17 @@ export function ValidateForm({ item, offer, reference }: { item: IntakeItem; off
                 <input value={offer?.fund ? `${fmt(offer.fund.nav)} FCFA · ${offer.fund.navDate}` : tr("publiée par la société de gestion")} readOnly />
               </label>
             ) : (
-              <label className="field">
-                {tr("Prix Purpose (% du nominal)")}
-                <input name="pricePct" type="number" step="0.5" defaultValue={offer?.pricePct && !offer.priceNote ? offer.pricePct : 95} />
-                <Reference r={reference} tr={tr} />
-              </label>
+              <NiveauEtPrix
+                kind="OTA"
+                niveau={niveau}
+                pays={d.country}
+                bond={
+                  d.maturityOn && d.settleOn && d.couponRate != null
+                    ? { nominal: Number(d.nominal) || 10_000, couponRate: Number(d.couponRate), settleOn: d.settleOn, maturityOn: d.maturityOn, lastCouponOn: d.lastCouponOn }
+                    : undefined
+                }
+                valeurInitiale={offer?.pricePct && !offer.priceNote ? offer.pricePct : undefined}
+              />
             )}
             <input type="hidden" name="commissionPct" value="0" />
             {kind === "FONDS" ? (

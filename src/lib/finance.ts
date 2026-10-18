@@ -147,6 +147,73 @@ export function bondCalc(b: BondInput, nominalAmount: number, pricePct: number):
   };
 }
 
+/**
+ * LE CHEMIN INVERSE : QUEL PRIX DONNE CE RENDEMENT ?
+ *
+ * `bondCalc` va du prix au rendement. Le desk, lui, pense dans l'autre sens :
+ * il arrête « je sers à 7,28 % », et le prix client en découle. Il n'existe pas
+ * de formule fermée pour remonter, il faut chercher.
+ *
+ * ON BISSECTE SUR LE PRIX EN RÉEMPLOYANT `bondCalc`, plutôt que d'écrire une
+ * seconde formule d'actualisation. Les deux divergeraient : une maquette l'a
+ * montré le 18 octobre 2026, un modèle à coupon annuel donnant 98,36 là où la
+ * fiche affichait 96,50 pour le même rendement, presque deux points d'écart.
+ * Le prix rendu ici est donc, par construction, celui que la fiche affichera.
+ *
+ * LA FONCTION EST MONOTONE DÉCROISSANTE : un prix plus haut rend moins. La
+ * bissection s'appuie dessus, et c'est la seule chose qu'elle suppose.
+ *
+ * Elle rend `undefined` plutôt qu'un nombre approché quand la cible est hors
+ * d'atteinte dans l'intervalle fouillé : un prix de dernier recours entrerait
+ * dans un champ sans se distinguer d'un prix calculé.
+ */
+export function prixPourRendement(b: BondInput, rendementPct: number, nominalAmount = 10_000_000): number | undefined {
+  if (!Number.isFinite(rendementPct)) return undefined;
+  const y = (prix: number) => bondCalc(b, nominalAmount, prix).irr;
+
+  /* Les bornes couvrent tout ce qu'un Trésor de la zone a jamais servi, de la
+     décote profonde à la prime, sans prétendre couvrir l'impossible. */
+  let bas = 1;
+  let haut = 300;
+  const yBas = y(bas);
+  const yHaut = y(haut);
+  if (!Number.isFinite(yBas) || !Number.isFinite(yHaut)) return undefined;
+  if (rendementPct > yBas || rendementPct < yHaut) return undefined;
+
+  for (let i = 0; i < 100; i++) {
+    const m = (bas + haut) / 2;
+    if (y(m) > rendementPct) bas = m;
+    else haut = m;
+  }
+  const prix = (bas + haut) / 2;
+  return Number.isFinite(prix) ? prix : undefined;
+}
+
+/**
+ * Le taux précompté qui donne ce rendement, pour un bon.
+ *
+ * Un bon ne se cote pas en prix mais en taux précompté, et le lien entre les
+ * deux est fermé : rendement = (1/p − 1) × 365 / jours, avec p = 1 − r × d/360.
+ * On pourrait l'inverser à la main ; on bissecte quand même sur `btaCalc`, pour
+ * la même raison que ci-dessus : une seconde écriture de la même formule finit
+ * par diverger de la première, et c'est toujours le jour où personne ne regarde.
+ */
+export function tauxPrecompteForRendement(b: BtaInput, rendementPct: number, nominalAmount = 10_000_000): number | undefined {
+  if (!Number.isFinite(rendementPct)) return undefined;
+  const y = (taux: number) => btaCalc(b, nominalAmount, taux).yieldPct;
+  let bas = 0.001;
+  let haut = 60;
+  if (!Number.isFinite(y(bas)) || !Number.isFinite(y(haut))) return undefined;
+  if (rendementPct < y(bas) || rendementPct > y(haut)) return undefined;
+  for (let i = 0; i < 100; i++) {
+    const m = (bas + haut) / 2;
+    if (y(m) > rendementPct) haut = m;
+    else bas = m;
+  }
+  const taux = (bas + haut) / 2;
+  return Number.isFinite(taux) ? taux : undefined;
+}
+
 export interface BtaInput {
   nominal: number;
   settleOn: string;

@@ -34,7 +34,7 @@
 .inbox {
   margin: 0;
   padding: var(--s-4) 0;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: var(--ink-3);
   text-align: center;
 }
@@ -209,7 +209,7 @@
 .remarks {
   margin: 12px 0 0;
   padding-left: 18px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: var(--warn);
   display: flex;
   flex-direction: column;
@@ -438,7 +438,7 @@
   border: 1px solid var(--line-2);
   border-radius: 4px;
   padding: 5px 8px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   background: var(--surface);
   color: var(--ink);
 }
@@ -454,7 +454,7 @@
   border: 1px solid var(--line-2);
   border-radius: 4px;
   padding: 5px 8px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   background: var(--surface);
   color: var(--ink);
 }
@@ -493,4 +493,41 @@
 }
 .refThin em {
   color: var(--gold-ink);
+}
+
+/* LE NIVEAU ET LE PRIX, deux champs liés dans les deux sens.
+   Le rendement est une commodité de saisie, le prix est la donnée : ils se
+   touchent donc, sans que rien ne laisse croire qu'il y en a deux à remplir. */
+.niveauGrille {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 720px) {
+  .niveauGrille { grid-template-columns: 1fr; }
+}
+
+.refNiveau b {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.refNiveau b span {
+  font-weight: 400;
+  color: var(--ink-3);
+  font-size: 0.8rem;
+  margin-left: 6px;
+}
+.refLoin { color: var(--crit); font-weight: 600; }
+.refVoir {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 4px 0 0;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--gold-ink);
+  text-decoration: underline;
+  cursor: pointer;
 }

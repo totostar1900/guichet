@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
 import { referenceRate, type RateReference } from "@/lib/market/auction-results";
+import { niveauDuMarche, type NiveauMarche } from "@/lib/market/niveau-marche";
 import { tenorOf } from "@/lib/market/beac";
 import type { IntakeItem } from "@/lib/domain/types";
 import { extractionAvailable } from "@/lib/intake/extract";
@@ -85,6 +86,29 @@ export default async function IntakePage({
     const history = await r.listAuctionResults({ confirmed: true, instrument: draft.kind, tenor, limit: 60 });
     reference = referenceRate({ country: draft.country, instrument: draft.kind, tenor, on: draft.deadlineAt.slice(0, 10) }, history);
   }
+
+  /**
+   * LE NIVEAU DU MARCHÉ, apparié par la VIE RESTANTE et non par l'étiquette.
+   *
+   * L'ancienne référence ci-dessus demandait au dépôt les séances de MÊME
+   * ÉTIQUETTE de durée, ce qui faisait servir de modèle à une ligne neuve de
+   * quatre ans un abondement auquel il ne restait qu'un an et demi à courir.
+   * La nouvelle mesure a besoin de tout l'historique du pays et de
+   * l'instrument, et trie elle-même : le filtre ne peut donc plus vivre dans
+   * la requête. Soixante séances suffisaient à l'étiquette ; un panier
+   * d'échéance en demande davantage, d'où la fenêtre large.
+   *
+   * Les deux cohabitent le temps que la seconde fasse ses preuves à l'écran.
+   */
+  let niveau: NiveauMarche | undefined;
+  if (draft && draft.country && draft.deadlineAt && draft.maturityOn && (draft.kind === "BTA" || draft.kind === "OTA")) {
+    const on = draft.deadlineAt.slice(0, 10);
+    const annees = (Date.parse(draft.maturityOn) - Date.parse(on)) / 86_400_000 / 365;
+    if (annees > 0) {
+      const historique = await r.listAuctionResults({ instrument: draft.kind, limit: 600 });
+      niveau = niveauDuMarche({ country: draft.country, instrument: draft.kind, annees, on }, historique);
+    }
+  }
   const showNew = sp.nouveau === "1" || (!selected && queue.length === 0);
 
   return (
@@ -146,7 +170,7 @@ export default async function IntakePage({
           {showNew ? (
             <NewSourceForm extraction={extractionAvailable()} />
           ) : selected ? (
-            <ValidateForm key={selected.id} item={selected} offer={offer} reference={reference} />
+            <ValidateForm key={selected.id} item={selected} offer={offer} reference={reference} niveau={niveau} />
           ) : (
             <div className="empty">
               {t("Sélectionnez une source ou déposez-en une nouvelle.")}
