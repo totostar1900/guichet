@@ -131,3 +131,12 @@
   }
 }
 
+
+/* LA BARRE S'EFFACE QUAND LA COLONNE PARAÎT. Elle reste rendue, parce que
+   c'est elle qui CALCULE les pastilles de sa page et les publie à la colonne :
+   la supprimer demanderait de déplacer un comptage dans trente-huit pages. */
+@media (min-width: 1041px) {
+  .nav {
+    display: none;
+  }
+}

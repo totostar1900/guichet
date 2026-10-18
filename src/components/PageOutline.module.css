@@ -63,3 +63,15 @@
     margin-bottom: 14px;
   }
 }
+
+/* À GAUCHE, LE FILET PASSE DE L'AUTRE CÔTÉ. Un filet à gauche d'un rail déjà
+   collé contre la colonne ferait deux traits à trois pixels l'un de l'autre.
+   Le sommaire est désormais à droite de la colonne, donc son filet aussi. */
+@media (min-width: 1041px) {
+  .rail {
+    border-left: 0;
+    border-right: 1px solid var(--line);
+    padding-left: 0;
+    padding-right: var(--s-6);
+  }
+}

@@ -1,0 +1,237 @@
+/**
+ * LA COLONNE. Rayon zéro et filets, la direction arrêtée le 29 septembre.
+ * Le seul endroit coloré est le trait doré de la page ouverte.
+ */
+.colonne {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--line);
+  background: var(--paper);
+  /* Le contenu de la colonne est posé au rendu du serveur, et l'état retenu
+     n'arrive qu'après. Sans cette retenue, le lecteur verrait les six groupes
+     s'ouvrir puis se replier sous ses yeux à chaque page. */
+  overflow: hidden;
+}
+
+.enseigne {
+  padding: var(--s-6) var(--s-7) var(--s-5);
+  border-bottom: 1px solid var(--line);
+}
+
+.corps {
+  flex: 1;
+  overflow-y: auto;
+  /* Un panneau qui défile à l'intérieur d'une page qui défile doit retenir son
+     élan, sinon le doigt emporte la page derrière lui. */
+  overscroll-behavior: contain;
+  padding: var(--s-2) 0 var(--s-5);
+}
+
+/* ===== Ce qui attend, avant où aller ===== */
+.encours {
+  margin: var(--s-4) var(--s-5) var(--s-5);
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.el {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-3);
+  font-weight: 600;
+  margin-bottom: var(--s-3);
+}
+.encours a {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-1) 0;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.encours a:hover {
+  color: var(--ink);
+}
+.encours a b {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--crit);
+}
+
+/* ===== L'étiquette de groupe EST le bouton de pliage ===== */
+.gl {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  margin: var(--s-6) 0 var(--s-1);
+  padding: 0 var(--s-6) 0 var(--s-5);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-3);
+}
+.gl:hover:not(:disabled) {
+  color: var(--ink-2);
+}
+.gl:disabled {
+  cursor: default;
+}
+.gl:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: -2px;
+}
+.ch {
+  flex: none;
+  color: var(--ink-3);
+  transition: transform 0.15s ease;
+}
+.gl[aria-expanded="false"] .ch {
+  transform: rotate(-90deg);
+}
+/* Le groupe courant ne se replie pas : son chevron ne doit donc pas promettre
+   qu'il le ferait. */
+.gl:disabled .ch {
+  opacity: 0.35;
+}
+.nm {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* CE QUE LE PLI MONTRE QUAND MÊME : un pli ne cache jamais un chiffre. */
+.combien {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 0.74rem;
+}
+.alerte {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  font-size: 0.68rem;
+  color: var(--navy);
+  background: var(--gold);
+  padding: 0 var(--s-2);
+  line-height: 15px;
+  min-width: 15px;
+  text-align: center;
+}
+
+/* ===== Une page ===== */
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-6) var(--s-3) var(--s-5);
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+}
+.item:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+.item:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: -2px;
+}
+.item[aria-current] {
+  color: var(--ink);
+  background: var(--surface-2);
+  border-left-color: var(--gold-ink);
+  font-weight: 600;
+}
+.pt {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.68rem;
+  color: var(--navy);
+  background: var(--gold);
+  padding: 0 var(--s-2);
+  line-height: 16px;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* ===== Le pied : la personne, puis les deux réglages ===== */
+.pied {
+  border-top: 1px solid var(--line);
+  padding: var(--s-4) var(--s-5);
+}
+.reglages {
+  display: flex;
+  gap: var(--s-4);
+  margin-top: var(--s-3);
+}
+.reglages button {
+  font: inherit;
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 3px;
+}
+.reglages button:hover {
+  color: var(--ink-2);
+}
+.reglages button:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: 2px;
+}
+
+/* ===== Escamotée : une poignée au bord, et rien d'autre ===== */
+.poignee {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 25;
+  width: 15px;
+  height: 64px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  border: 1px solid var(--line-2);
+  border-left: 0;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.poignee:hover {
+  color: var(--ink);
+  border-color: var(--ink-3);
+}
+.poignee:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: 2px;
+}
+.chOuvrir {
+  transform: rotate(-90deg);
+}
+
+/* Dans la rangée souple de la mise en page, la colonne ne s'étire ni ne se
+   comprime : elle fait 248 pixels, et le reste est à la page. */
+.colonne {
+  flex: 0 0 var(--colonne-w);
+}

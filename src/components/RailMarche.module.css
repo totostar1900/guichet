@@ -59,3 +59,18 @@
     display: none;
   }
 }
+
+/* LE RAIL DU MARCHÉ DISPARAÎT DEVANT LA COLONNE, et c'est le seul des trois
+   rails qui disparaisse. Il listait LES PAGES DE LA FAMILLE marché, ce qui est
+   mot pour mot le groupe « Marché » de la colonne : le garder afficherait la
+   même liste deux fois, côte à côte, pour 200 pixels.
+   Les rails de SECTIONS, eux, restent : « où suis-je dans la maison » et « où
+   suis-je dans cette page » ne sont pas la même question. */
+@media (min-width: 1041px) {
+  .avecRail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rail {
+    display: none;
+  }
+}

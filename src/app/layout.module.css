@@ -138,3 +138,81 @@
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.7em;
 }
+
+/* ===========================================================================
+   LA NAVIGATION PASSE À GAUCHE AU-DELÀ DE 1040 PIXELS.
+
+   Trois mises en page, et la coupure du bas existait déjà :
+     jusqu'à 760 px   le dock du téléphone, « .top » est déjà masquée
+     761 à 1040 px    la barre du haut, telle quelle
+     au-delà          la colonne de gauche, et le haut rendu à la page
+
+   1040 px est la mesure que le rail du marché utilise déjà. Une seconde
+   coupure voisine ferait deux réglages pour une même question.
+   =========================================================================== */
+.avecColonne {
+  display: contents;
+}
+.marque {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  text-decoration: none;
+  color: inherit;
+}
+.marque b {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  font-size: 0.74rem;
+}
+.marque span {
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+
+@media (min-width: 1041px) {
+  /* UNE RANGÉE SOUPLE ET NON UNE GRILLE, et c'est la page de connexion qui l'a
+     dit. Un parcours fermé n'a pas de colonne : la grille gardait pourtant sa
+     piste de 248 pixels, et « main » s'y logeait, large de 248 au lieu de
+     1425. Une piste existe même quand personne ne l'occupe ; une rangée
+     souple, elle, se referme. */
+  .avecColonne {
+    display: flex;
+    align-items: flex-start;
+  }
+  /* LE HAUT EST RENDU À LA PAGE. L'enseigne, les onglets et le compte vivent
+     désormais dans la colonne ; la barre du haut n'a plus rien à porter. */
+  .top {
+    display: none;
+  }
+  .main {
+    /* UN ÉLÉMENT DE GRILLE NE RESPECTE PAS SA PISTE SANS CECI. Sa largeur
+       minimale vaut « auto », c'est-à-dire le contenu : le ruban des
+       instruments de la page d'accueil, qui défile dans son propre cadre,
+       poussait « main » à 11 021 pixels et la page débordait de 9 892.
+       La piste faisait pourtant bien 1 177 pixels. */
+    min-width: 0;
+    /* LA BORNE DE 1380 PIXELS TOMBE, parce qu'elle bornait la page NAVIGATION
+       COMPRISE. La colonne vit maintenant dehors : 248 et 1380 font 1628, et
+       la page débordait de 203 pixels sur un écran de 1440.
+       Ce qui borne la lecture, ce sont les deux mesures arrêtées le 12 octobre,
+       texte à 34 rem et large à 72 rem, déclarées par les sections
+       elles-mêmes. Une troisième borne ici les contredirait.
+
+       ET « min-width: 0 » EST CE QUI LE TIENT, pas « max-width ». Mesuré
+       avant lui : le ruban des instruments de la page d'accueil, qui défile
+       dans son propre cadre, poussait « main » à 11 069 pixels et la page
+       débordait de 9 892. La largeur minimale d'un élément souple vaut son
+       contenu tant qu'on ne la met pas à zéro. */
+    max-width: none;
+    flex: 1;
+    padding: var(--s-8) var(--s-9) var(--s-11);
+  }
+  .footer {
+    max-width: none;
+    padding-left: calc(var(--colonne-w) + var(--s-9));
+    padding-right: var(--s-9);
+  }
+}

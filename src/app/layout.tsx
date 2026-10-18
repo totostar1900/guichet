@@ -12,6 +12,8 @@ import { backendName } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { UserMenu } from "@/components/UserMenu";
 import { RailMarche } from "@/components/RailMarche";
+import { Colonne } from "@/components/Colonne";
+import { ColonneStore } from "@/components/ColonneStore";
 import { MobileShell } from "@/components/mobile/MobileShell";
 import { Onboarding } from "@/components/mobile/Onboarding";
 import { Presentation } from "@/components/mobile/Presentation";
@@ -144,6 +146,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AuthHashRedirect />
         <PaletteKeeper saved={account?.prefs} />
         <BarProbe />
+        <ColonneStore>
         <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={registry.lessons} issuers={issuersForClient(issuers)}>
         <TermSheetHost />
         <header className={styles.top}>
@@ -178,12 +181,36 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation />
         <Onboarding />
-        <main className={styles.main}>
-          {/* Le rail des pages du marche se pose ici, et il decide lui-meme s il
-              a lieu d etre : la mise en page d une famille vit a un endroit. */}
-          <RailMarche>{children}</RailMarche>
-        </main>
+        {/* LA NAVIGATION PASSE À GAUCHE AU-DELÀ DE 1040 PIXELS, et le haut est
+            rendu à la page : 224 pixels gelés au desk, 62 au guichet.
+            En dessous, rien ne change : la barre ci-dessus sert les écrans
+            intermédiaires et le dock sert le téléphone. */}
+        <div className={styles.avecColonne}>
+          <Colonne
+            mode={deskUi ? "desk" : "client"}
+            connecte={Boolean(session)}
+            enseigne={
+              <Link className={styles.marque} href="/">
+                <b>{COMPANY.name.toUpperCase()}</b>
+                <span>{deskUi ? t("Desk") : PRODUCT.name}</span>
+              </Link>
+            }
+            pied={
+              <UserMenu
+                session={session}
+                deskUi={deskUi}
+                account={session ? { name: session.name, segment: session.segment, tier: session.tier, desk: deskUi, email: account?.email ?? session.email, phone: account?.phone ?? session.phone, phoneOk: account?.phoneOk, emailOk: account?.emailOk, prefs: account?.prefs, kycStatus: session.kycStatus, vapidKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY, security, profile: profile?.kind, build: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7), attentes: deskUi ? [] : attentes } : undefined}
+              />
+            }
+          />
+          <main className={styles.main}>
+            {/* Le rail des pages du marche se pose ici, et il decide lui-meme s il
+                a lieu d etre : la mise en page d une famille vit a un endroit. */}
+            <RailMarche>{children}</RailMarche>
+          </main>
+        </div>
         </RegistryProvider>
+        </ColonneStore>
         <footer className={styles.footer}>
           {/* CE QUE LE « ⋮ » PORTAIT POUR UN VISITEUR, RESSORTI ET NOMMÉ.
               Le menu à trois points a disparu de la page publique le

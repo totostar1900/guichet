@@ -1362,4 +1362,7 @@ export const EN_REST: Record<string, string> = {
   "Rien ne marche ? Écrivez-nous depuis vos messages : un conseiller vous rappelle et nous vous l'envoyons autrement.":
     "Nothing works? Write to us from your messages: an adviser will call you back and we will send it another way.",
   "Numéro, pour entrer par un accès nommé": "Number, to enter through a named access",
+  "Ouvrir la navigation": "Open the navigation",
+  "Masquer la navigation": "Hide the navigation",
+  "Le groupe de la page ouverte reste déplié": "The group holding the open page stays unfolded",
 };

@@ -1052,3 +1052,22 @@ h3 {
     --barre-collante: calc(var(--mobile-bar) + env(safe-area-inset-top, 0px));
   }
 }
+
+/* LA COLONNE REND LE HAUT À LA PAGE, DONC LA BARRE COLLANTE NE MESURE PLUS RIEN.
+   « --bar-h » décale tout ce qui colle : les rails, les sommaires, les bandes
+   gelées. La barre du haut étant masquée au-delà de 1040 px, la laisser à
+   62 px ferait flotter chaque élément collant 62 pixels trop bas, sous un
+   vide. « --desk-bar-h » se règle seul : BarreGelee mesure une barre masquée
+   à zéro. */
+@media (min-width: 1041px) {
+  :root {
+    --bar-h: 0px;
+  }
+}
+
+/* LA LARGEUR DE LA COLONNE, NOMMÉE UNE FOIS. Le pied de page doit s'aligner
+   sur elle et la rangée souple la poser : deux endroits, donc une mesure
+   déclarée plutôt que deux fois « 248px » qui divergeraient. */
+:root {
+  --colonne-w: 248px;
+}
