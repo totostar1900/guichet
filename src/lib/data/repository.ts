@@ -169,6 +169,16 @@ export interface Repository {
   ): Promise<Intent>;
 
   listEvents(limit?: number): Promise<EventLog[]>;
+  /**
+   * Le journal de quelques ordres nommés, et d'eux seuls.
+   *
+   * « listEvents(n) » rend les n plus récents, tous ordres confondus : pour
+   * dater la transition d'un ordre de septembre il en faudrait des milliers,
+   * et le client du dépôt coupe à mille sans le dire. Une liste d'identités
+   * borne la lecture par ce qu'on cherche plutôt que par une profondeur
+   * devinée.
+   */
+  listEventsOfIntents(intentIds: string[]): Promise<EventLog[]>;
   logEvent(e: Omit<EventLog, "id" | "at">): Promise<EventLog>;
 
   /** Intake queue (desk « À valider »). */

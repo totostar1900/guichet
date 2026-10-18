@@ -247,3 +247,8 @@
    verte sur l'ordinaire rend les deux autres invisibles à force de couleur. */
 .ecartTiede { color: var(--warn); font-weight: 600; }
 .ecartLoin { color: var(--crit); font-weight: 600; }
+
+/* L'ATTENTE D'UN ORDRE. Deux crans, et aucun pour le calme : « en souffrance »
+   dit que nous avons tardé, « clôture proche » que la porte se ferme. */
+.presseVieux { color: var(--warn); }
+.presseCloture { color: var(--crit); }

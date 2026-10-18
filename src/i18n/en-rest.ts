@@ -537,6 +537,15 @@ export const EN_REST: Record<string, string> = {
   "Oblig.": "Bond",
   "Origine": "Origin",
   "Âge du cours": "Age of the price",
+
+  /* L attente d un ordre dans son etat : la file du carnet. */
+  "En souffrance": "Overdue",
+  "sans mouvement": "without movement",
+  "Sans mouvement": "Without movement",
+  "Cet ordre est clos : il n'attend plus rien.": "This order is closed: it is no longer waiting for anything.",
+  "Depuis la dernière transition au journal": "Since the last transition in the journal",
+  "Aucune transition au journal : âge depuis la réception": "No transition in the journal: age since receipt",
+  "clôture dans {n} jours": "closes in {n} days",
   "Mis à jour": "Updated",
 
   /* ---------- push / contact / mfa ---------- */

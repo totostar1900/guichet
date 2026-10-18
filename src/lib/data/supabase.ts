@@ -1103,6 +1103,18 @@ export const supabaseRepository: Repository = {
     if (error) fail("listEvents", error);
     return (data as EventRow[]).map(toEvent);
   },
+  async listEventsOfIntents(intentIds) {
+    if (!intentIds.length) return [];
+    /* Par paquets : une clause « in » trop longue se fait refuser, et la
+       file des ordres ouverts reste courte de toute façon. */
+    const out: EventRow[] = [];
+    for (let i = 0; i < intentIds.length; i += 50) {
+      const { data, error } = await db().from("events").select("*").in("intent_id", intentIds.slice(i, i + 50)).order("at", { ascending: false });
+      if (error) fail("listEventsOfIntents", error);
+      out.push(...((data as EventRow[]) ?? []));
+    }
+    return out.map(toEvent);
+  },
   async logEvent(e) {
     const { data, error } = await db()
       .from("events")

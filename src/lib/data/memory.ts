@@ -507,6 +507,10 @@ export const memoryRepository: Repository = {
   async listEvents(limit = 50) {
     return structuredClone(store().events.slice(0, limit));
   },
+  async listEventsOfIntents(intentIds: string[]) {
+    const vises = new Set(intentIds);
+    return structuredClone(store().events.filter((e) => e.intentId && vises.has(e.intentId)));
+  },
   async logEvent(e) {
     const ev: EventLog = { id: uid(), at: nowIso(), ...e };
     store().events.unshift(ev);

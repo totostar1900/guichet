@@ -8,6 +8,8 @@ import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL, nextStates } from "@/lib/domain/intent";
 import { aUneCloture, countdown, displayStatus, headlineYield, isActionable, KIND_LABEL } from "@/lib/domain/status";
 import { etatDeLEcart, tariferLesLignes, type LigneTarifee } from "@/lib/market/tarification";
+import { ETATS_OUVERTS, souffranceDe, type Souffrance } from "@/lib/domain/souffrance";
+import { loadSouffrance } from "@/lib/policy";
 import { TallTable } from "@/components/desk/TallTable";
 import type { Intent, Offer } from "@/lib/domain/types";
 import { parseDate } from "@/lib/finance";
@@ -71,6 +73,30 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
    * ligne rendrait cette page inutilisable pour gagner un filtre que le tri en
    * mémoire fait sans frais.
    */
+  /**
+   * DEPUIS QUAND CHAQUE ORDRE N'A-T-IL PAS BOUGÉ.
+   *
+   * La file rangeait par état sans jamais dire le temps passé dedans : un
+   * ordre « confirmée » depuis trente et un jours et un ordre confirmé le
+   * matin même se ressemblaient trait pour trait. L'âge se compte depuis la
+   * dernière TRANSITION au journal, jamais depuis la réception : un ordre
+   * reçu il y a trente jours mais confirmé hier en a attendu un.
+   */
+  const delaiSouffrance = await loadSouffrance();
+  const parLigne = new Map(offers.map((o) => [o.id, o]));
+  /* LE JOURNAL SE LIT PAR ORDRE, ET NON PAR PROFONDEUR. « listEvents(30) »
+     rendait les trente plus récents, tous ordres confondus : la transition
+     d'un ordre de septembre n'y était pas, et la mesure retombait sur la date
+     de réception en se faisant passer pour un temps d'attente. La première
+     version de cette page y est tombée, et la mesure qui l'a trouvée aussi. */
+  const ouverts = intents.filter((i) => ETATS_OUVERTS.includes(i.state));
+  const journalDesOrdres = ouverts.length ? await r.listEventsOfIntents(ouverts.map((i) => i.id)).catch(() => []) : [];
+  const souffrances = new Map<string, Souffrance>();
+  for (const i of ouverts) {
+    const s = souffranceDe(i, parLigne.get(i.offerId), journalDesOrdres, delaiSouffrance, now);
+    if (s) souffrances.set(i.id, s);
+  }
+
   const aujourdhui = now.toISOString().slice(0, 10);
   const adjudications = await r.listAuctionResults({ limit: 800 }).catch(() => []);
   const tarifs = tariferLesLignes(live, adjudications, aujourdhui);
@@ -167,9 +193,33 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
   const stateOf = (i: Intent) => (i.state === "recue" ? "recue" : i.state === "confirmee" ? "confirmee" : i.state === "transmise" ? "transmise" : i.state === "annulee" ? "annulee" : "finie");
   const counts = { recue: 0, confirmee: 0, transmise: 0, finie: 0, annulee: 0 } as Record<string, number>;
   for (const i of intents) counts[stateOf(i)]++;
+  /* « EN SOUFFRANCE » N'EST PAS UN ÉTAT, c'est une durée passée dans un
+     état. La pastille vit donc à côté des autres sans en être une, et un
+     ordre y figure quel que soit l'endroit où il dort. */
+  const enSouffrance = intents.filter((i) => {
+    const sf = souffrances.get(i.id);
+    return sf && sf.pression !== "calme";
+  });
   const shown = intents
-    .filter((i) => (!sp.etat || stateOf(i) === sp.etat) && (!sp.ligne || i.offerId === sp.ligne) && textMatch(sp.q, i.ref, i.clientName, i.clientSegment, byId.get(i.offerId)?.title, i.contactPhone, i.contactEmail, i.message))
-    .sort((a, b) => (sp.tri === "ancien" ? a.createdAt.localeCompare(b.createdAt) : sp.tri === "montant" ? (b.amount ?? 0) - (a.amount ?? 0) : sp.tri === "client" ? a.clientName.localeCompare(b.clientName, "fr") : b.createdAt.localeCompare(a.createdAt)));
+    .filter((i) =>
+      (!sp.etat || (sp.etat === "souffrance" ? (souffrances.get(i.id)?.pression ?? "calme") !== "calme" : stateOf(i) === sp.etat)) &&
+      (!sp.ligne || i.offerId === sp.ligne) &&
+      textMatch(sp.q, i.ref, i.clientName, i.clientSegment, byId.get(i.offerId)?.title, i.contactPhone, i.contactEmail, i.message),
+    )
+    .sort((a, b) =>
+      sp.tri === "ancien"
+        ? a.createdAt.localeCompare(b.createdAt)
+        : sp.tri === "montant"
+          ? (b.amount ?? 0) - (a.amount ?? 0)
+          : sp.tri === "client"
+            ? a.clientName.localeCompare(b.clientName, "fr")
+            : sp.tri === "attente"
+              ? /* Un ordre clos n'a pas d'attente : il part au fond plutôt que
+                   de se ranger avec les plus calmes, où on le lirait comme
+                   traité de ce matin. */
+                (souffrances.get(b.id)?.jours ?? -1) - (souffrances.get(a.id)?.jours ?? -1)
+              : b.createdAt.localeCompare(a.createdAt),
+    );
   const lines = [...new Set(intents.map((i) => i.offerId))].map((id) => ({ value: id, label: byId.get(id)?.title ?? id })).sort((a, b) => a.label.localeCompare(b.label, "fr"));
 
   // À la une: what is featured now, and which lines could be (open or quoted, not hidden).
@@ -252,9 +302,10 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
               { value: "transmise", label: t("Transmises"), count: counts.transmise },
               { value: "finie", label: t("Servies · réglées"), count: counts.finie },
               { value: "annulee", label: t("Annulées"), count: counts.annulee },
+              { value: "souffrance", label: t("En souffrance"), count: enSouffrance.length },
             ]}
             selects={[{ key: "ligne", label: t("Ligne"), all: t("toutes les lignes"), options: lines }]}
-            sort={{ key: "tri", label: t("Tri"), options: [{ value: "recent", label: t("plus récent") }, { value: "ancien", label: t("plus ancien") }, { value: "montant", label: t("montant") }, { value: "client", label: t("client") }] }}
+            sort={{ key: "tri", label: t("Tri"), options: [{ value: "recent", label: t("plus récent") }, { value: "ancien", label: t("plus ancien") }, { value: "montant", label: t("montant") }, { value: "client", label: t("client") }, { value: "attente", label: t("sans mouvement") }] }}
           />
           <div className="scroll-x">
             <table className="tbl">
@@ -267,6 +318,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                   <th className="r">{t("Montant")}</th>
                   <th>{t("Canal")}</th>
                   <th>{t("Reçue")}</th>
+                  <th>{t("Sans mouvement")}</th>
                   <th>{t("État")}</th>
                   <th></th>
                 </tr>
@@ -310,6 +362,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                         )}
                       </td>
                       <td className="num">{fmtTime(i.createdAt)}</td>
+                      <SansMouvement s={souffrances.get(i.id)} t={t} />
                       <td>
                         <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
                         {/* UN ORDRE SIGNÉ N'ATTEND PLUS QUE LE DESK, et le carnet
@@ -558,5 +611,53 @@ function CellulesDuMarche({ l, t }: { l?: LigneTarifee; t: (s: string, v?: Recor
         {l.ecartPb} pb
       </td>
     </>
+  );
+}
+
+/**
+ * DEPUIS QUAND CET ORDRE N'A PAS BOUGÉ, ET CE QUI LE BLOQUE.
+ *
+ * Deux crans de couleur et pas trois : « en souffrance » dit que nous avons
+ * tardé, « clôture proche » dit que la porte se ferme, et ce ne sont pas les
+ * mêmes urgences. Le calme ne reçoit rien : colorer l'ordinaire rendrait les
+ * deux autres invisibles.
+ *
+ * LE MOTIF DU BLOCAGE REMONTE DU JOURNAL. Il y était déjà écrit, « en attente
+ * d'ouverture de compte », et il n'arrivait pas jusqu'ici : le desk lisait
+ * « reçue, 18 jours » sans savoir que l'ordre attendait le client et non lui.
+ *
+ * Quand aucune transition n'est connue, l'âge est celui de la réception et la
+ * cellule le dit : un âge depuis la création présenté comme un temps d'attente
+ * est précisément l'erreur qui a faussé la première mesure de ce lot.
+ */
+function SansMouvement({ s, t }: { s?: Souffrance; t: (k: string, v?: Record<string, string | number>) => string }) {
+  if (!s)
+    return (
+      <td className="num muted" title={t("Cet ordre est clos : il n'attend plus rien.")}>
+        —
+      </td>
+    );
+  const cls = s.pression === "cloture-proche" ? styles.presseCloture : s.pression === "en-souffrance" ? styles.presseVieux : undefined;
+  return (
+    <td className="num">
+      <b className={cls} title={s.depuisUneTransition ? t("Depuis la dernière transition au journal") : t("Aucune transition au journal : âge depuis la réception")}>
+        {t("{n} jours", { n: s.jours })}
+        {!s.depuisUneTransition && <span className="muted"> *</span>}
+      </b>
+      {s.avantCloture != null && s.avantCloture <= 7 && (
+        <>
+          <br />
+          <small className={styles.presseCloture}>{t("clôture dans {n} jours", { n: s.avantCloture })}</small>
+        </>
+      )}
+      {s.dernierMot && (
+        <>
+          <br />
+          <small className="muted" title={s.dernierMot}>
+            {s.dernierMot.length > 42 ? `${s.dernierMot.slice(0, 42)}…` : s.dernierMot}
+          </small>
+        </>
+      )}
+    </td>
   );
 }

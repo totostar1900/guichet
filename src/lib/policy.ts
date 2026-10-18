@@ -7,6 +7,7 @@ import { CROSS_CLOSED, type CrossPolicy } from "@/lib/domain/crossing";
 import { PREAVIS_DEFAUT, type StandingPolicy } from "@/lib/domain/preavis";
 import { BAREME_FERME, type BaremeGarde } from "@/lib/domain/garde";
 import { TARIFS_FERMES, type Tarifs } from "@/lib/domain/tarifs";
+import { SOUFFRANCE_DEFAUT, SOUFFRANCE_KEY, type DelaiDeSouffrance } from "@/lib/domain/souffrance";
 import { REF } from "@/lib/reference";
 
 /**
@@ -165,3 +166,28 @@ export function approvalReason(next: Offer, prev: Offer | undefined, p: Approval
   if (next.kind === "FONDS" && next.fund && next.fund.entryFeePct > p.fundEntryFeeMax) return `Frais d'entrée ${next.fund.entryFeePct} % au-dessus du plafond délégué (${p.fundEntryFeeMax} %)`;
   return null;
 }
+
+/**
+ * LE DÉLAI AU-DELÀ DUQUEL UN ORDRE EST EN SOUFFRANCE.
+ *
+ * Rangé avec les autres règles de maison, et pour la même raison : il est
+ * arbitraire, et une maison doit pouvoir le discuter sans déployer. Il l'est
+ * doublement ici, parce qu'aucune mesure ne pouvait le fonder : cinq ordres en
+ * base le 18 octobre 2026, tous sur des comptes d'essai. Le poser au
+ * référentiel plutôt que dans le code était donc la seule honnêteté
+ * disponible, et le jour où la file aura vécu, c'est la distribution des
+ * attentes qui dira s'il faut le bouger.
+ *
+ * Il ne commande rien d'irréversible : il colore une colonne et remplit une
+ * pastille. Un délai trop court fait du bruit, un délai trop long rend la
+ * pastille inutile, et les deux se corrigent en une saisie.
+ */
+export const loadSouffrance = cache(async (): Promise<DelaiDeSouffrance> => {
+  try {
+    const rows = await repo().listReference(REF.policy);
+    const row = rows.find((r) => r.key === SOUFFRANCE_KEY);
+    return row ? { ...SOUFFRANCE_DEFAUT, ...(row.data as Partial<DelaiDeSouffrance>) } : SOUFFRANCE_DEFAUT;
+  } catch {
+    return SOUFFRANCE_DEFAUT;
+  }
+});
