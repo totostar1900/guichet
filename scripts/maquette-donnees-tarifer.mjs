@@ -1,28 +1,26 @@
 /**
  * LES LIGNES A TARIFER, CE QUE LE ROBOT EN DIT, ET CE QUE LE DESK A FAIT.
  *
- * La marge n est pas mal rangee dans le Guichet : elle est INVISIBLE. La
- * commission vaut zero sur les dix lignes primaires ouvertes, et le prix
- * client est un nombre tape a la main dans « pricePct ». Le niveau de
- * marche et ce que la maison prend sont donc fondus dans un seul nombre
- * que personne ne peut auditer : la question « quelle marge avons-nous
- * prise sur les BTA 26 semaines ce trimestre » n a pas de reponse.
+ * Le prix client est un nombre tape a la main dans « pricePct », et rien
+ * ne le rapproche jamais de ce que la place a paye. Ce script fait ce
+ * rapprochement pour la premiere fois. Pour chaque ligne ouverte, il met
+ * cote a cote :
  *
- * Ce script la rend visible pour la premiere fois. Pour chaque ligne
- * ouverte, il met cote a cote :
+ *   CE QUE LE MARCHE A PAYE, lu sur les adjudications comparables, lignes
+ *   NEUVES seulement, appariees par la VIE RESTANTE et non par
+ *   l etiquette de duree ;
  *
- *   CE QUE LE MARCHE A PAYE, lu par le robot sur les adjudications
- *   comparables, lignes NEUVES seulement, apparie par la VIE RESTANTE et
- *   non par l etiquette de duree ;
+ *   CE QUE LE CLIENT VOIT sur la fiche, par le meme calcul qu elle
+ *   emploie, converti en rendement pour etre comparable ;
  *
- *   CE QUE LE DESK A AFFICHE, converti en rendement pour etre comparable ;
+ *   L ECART entre les deux, en points de base.
  *
- *   L ECART, qui est la marge implicite, en points de base.
+ * L ecart est un CONSTAT et non une conclusion : il dit de combien nous
+ * nous eloignons de ce que la place a paye, pas a qui la difference
+ * profite. Rien de tout cela n est une critique du desk : personne n avait
+ * pose ce nombre, donc personne n a pu le choisir.
  *
- * Rien de tout cela n est une critique du desk : personne n a jamais pose
- * ce nombre, donc personne n a pu le choisir.
- *
- *   npx tsx --conditions=react-server scripts/maquette-donnees-marges.mjs
+ *   npx tsx --conditions=react-server scripts/maquette-donnees-tarifer.mjs
  */
 import fs from "node:fs";
 
@@ -154,7 +152,7 @@ for (const o of ouvertes) {
     nComparables: comparables.length,
     derniereSeance: recente?.seance ?? null,
     ageJours: recente ? jours(recente.seance, AUJ) : null,
-    margePb: yDesk && pointRobot != null ? Math.round((pointRobot - yDesk.pct) * 100) : null,
+    ecartPb: yDesk && pointRobot != null ? Math.round((pointRobot - yDesk.pct) * 100) : null,
   });
 }
 function tenorBta(a) {
@@ -163,11 +161,10 @@ function tenorBta(a) {
   return `${sem <= 15 ? 13 : sem <= 32 ? 26 : 52} semaines`;
 }
 
-/* ---- LE SECONDAIRE, ou il faut DEUX marges et non une ----
-   Une ligne du secondaire a deux cotes : on achete au client a un prix et
-   on lui vend a un autre. Une marge unique les forcerait a etre
-   symetriques autour du dernier cours, ce qu aucune maison ne fait : on
-   paie moins cher ce qu on prend en stock que ce qu on cede. */
+/* ---- LE SECONDAIRE, QUI N EST PAS COTE ----
+   On releve l age du cours, qui est le jumeau oublie du cours lui-meme :
+   « lastPriceOn » porte la date de la SEANCE, donc celle d aujourd hui, et
+   ne dit rien de l age du chiffre. Seul « priceSince » le dit. */
 const secondaires = offres
   .filter((o) => o.kind === "MARCHE" && o.status === "published" && !o.hidden)
   .map((o) => ({
@@ -205,18 +202,18 @@ const sortie = {
   secondaires,
   detail,
 };
-fs.writeFileSync("C:/dev/guichet/public/maquette/marges-donnees.js", `window.MARGES = ${JSON.stringify(sortie)};\n`, "utf8");
+fs.writeFileSync("C:/dev/guichet/public/maquette/tarifer-donnees.js", `window.TARIFER = ${JSON.stringify(sortie)};\n`, "utf8");
 
 dire(`${ouvertes.length} ligne(s) primaire(s) ouverte(s)\n`);
-dire(`   ${"instr".padEnd(5)} ${"pays".padEnd(11)} ${"echeance".padEnd(11)} ${"panier".padEnd(9)} ${"affiche".padStart(8)} ${"rdt desk".padStart(9)} ${"robot".padStart(8)} ${"corps".padStart(14)} ${"n".padStart(3)} ${"marge".padStart(9)}`);
+dire(`   ${"instr".padEnd(5)} ${"pays".padEnd(11)} ${"echeance".padEnd(11)} ${"panier".padEnd(9)} ${"affiche".padStart(8)} ${"rdt desk".padStart(9)} ${"robot".padStart(8)} ${"corps".padStart(14)} ${"n".padStart(3)} ${"ecart".padStart(9)}`);
 for (const l of lignes) {
   dire(
     `   ${l.kind.padEnd(5)} ${l.pays.padEnd(11)} ${String(l.echeance ?? "—").padEnd(11)} ${String(l.panier ?? "—").padEnd(9)} ` +
       `${(l.prixAffiche != null ? fr(l.prixAffiche) : fr(l.tauxAffiche)).padStart(8)} ${(fr(l.rendementDesk) + " %").padStart(9)} ` +
       `${(l.pointRobot == null ? "—" : fr(l.pointRobot) + " %").padStart(8)} ${(l.corpsBas == null ? "—" : `${fr(l.corpsBas)}-${fr(l.corpsHaut)}`).padStart(14)} ${String(l.nComparables).padStart(3)} ` +
-      `${(l.margePb == null ? "—" : (l.margePb > 0 ? "+" : "") + l.margePb + " pb").padStart(9)}`,
+      `${(l.ecartPb == null ? "—" : (l.ecartPb > 0 ? "+" : "") + l.ecartPb + " pb").padStart(9)}`,
   );
 }
-const avec = lignes.filter((l) => l.margePb != null);
-dire(`\n   ${avec.length} ligne(s) sur ${lignes.length} ont un comparable. La marge implicite est positive`);
-dire(`   quand le marche rend PLUS que ce que nous affichons : la maison garde l ecart.`);
+const avec = lignes.filter((l) => l.ecartPb != null);
+dire(`\n   ${avec.length} ligne(s) sur ${lignes.length} ont un comparable. L ecart au marche est positif`);
+dire(`   quand le marche rend PLUS que ce que nous affichons.`);
