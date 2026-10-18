@@ -241,3 +241,9 @@
   color: var(--good);
   font-weight: 700;
 }
+
+/* L'ÉCART AU MARCHÉ. Deux crans seulement, et aucun vert : un écart proche du
+   marché n'est pas une réussite à saluer, c'est l'ordinaire, et une pastille
+   verte sur l'ordinaire rend les deux autres invisibles à force de couleur. */
+.ecartTiede { color: var(--warn); font-weight: 600; }
+.ecartLoin { color: var(--crit); font-weight: 600; }

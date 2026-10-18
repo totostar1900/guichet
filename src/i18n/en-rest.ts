@@ -1035,6 +1035,7 @@ export const EN_REST: Record<string, string> = {
   "{n} séance(s) écartée(s) faute d'être relue(s).": "{n} session(s) set aside for want of a second reading.",
   "Écart au niveau mesuré : {v}": "Gap to the measured level: {v}",
   "Voir le détail": "See the detail",
+  "Loin du marché": "Far from the market",
   "Panier « {p} »": "Bucket « {p} »",
   "{n} séance(s) · la plus récente il y a {j} jour(s)": "{n} session(s) · the most recent {j} day(s) ago",
   "La courbe des taux · {p}": "The yield curve · {p}",

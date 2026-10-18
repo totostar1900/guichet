@@ -7,6 +7,7 @@ import { FromSante } from "@/components/desk/FromSante";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL, nextStates } from "@/lib/domain/intent";
 import { aUneCloture, countdown, displayStatus, headlineYield, isActionable, KIND_LABEL } from "@/lib/domain/status";
+import { etatDeLEcart, tariferLesLignes, type LigneTarifee } from "@/lib/market/tarification";
 import { TallTable } from "@/components/desk/TallTable";
 import type { Intent, Offer } from "@/lib/domain/types";
 import { parseDate } from "@/lib/finance";
@@ -56,11 +57,42 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
     return { o, nF: firm.length, sF: firm.reduce((s, i) => s + toFcfa(i), 0), nA: soft.length, sA: soft.reduce((s, i) => s + toFcfa(i), 0) };
   });
 
+  /**
+   * CE QUE LA PLACE A PAYÉ, posé à côté de ce que nous montrons.
+   *
+   * Les deux colonnes « Prix Purpose » et « Rendement publié » vivaient ici
+   * depuis toujours sans jamais se parler : rien ne disait si le chiffre que
+   * le client lit est proche de ce que le marché a payé sur la même échéance,
+   * chez le même Trésor. L'écart est un CONSTAT et non une conclusion, le prix
+   * d'une adjudication n'étant pas le nôtre : il dit de combien nous nous
+   * éloignons, pas à qui la différence profite.
+   *
+   * Une seule lecture de l'historique pour tout le carnet : une requête par
+   * ligne rendrait cette page inutilisable pour gagner un filtre que le tri en
+   * mémoire fait sans frais.
+   */
+  const aujourdhui = now.toISOString().slice(0, 10);
+  const adjudications = await r.listAuctionResults({ limit: 800 }).catch(() => []);
+  const tarifs = tariferLesLignes(live, adjudications, aujourdhui);
+
   // Le carnet se cherche et se trie, mais les quatre chiffres du haut, eux,
   // restent ceux du carnet entier : un filtre est une façon de regarder, pas
   // une façon de diminuer ce qui est engagé.
   type BookRow = (typeof rows)[number];
-  const chip = (v: string) => rows.filter((x) => (v === "sans-prix" ? noPrice(x.o) : v === "fermes" ? x.nF > 0 : v === "sans-suite" ? x.nF + x.nA === 0 : true));
+  /* « Loin du marché » ne range pas les lignes sans comparable avec les
+     autres : ne rien savoir n'est pas s'être écarté. */
+  const chip = (v: string) =>
+    rows.filter((x) =>
+      v === "sans-prix"
+        ? noPrice(x.o)
+        : v === "fermes"
+          ? x.nF > 0
+          : v === "sans-suite"
+            ? x.nF + x.nA === 0
+            : v === "loin"
+              ? ["a-regarder", "tres-loin"].includes(etatDeLEcart(tarifs.get(x.o.id)))
+              : true,
+    );
   const kinds = [...new Set(live.map((o) => o.kind))].map((k) => ({ value: k, label: t(KIND_LABEL[k] ?? k) })).sort((a, b) => a.label.localeCompare(b.label, "fr"));
   const bsort = (sp.btri ?? "cloture").replace(/-$/, "");
   const brev = (sp.btri ?? "").endsWith("-");
@@ -70,6 +102,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
     fermes: (a, b) => b.sF - a.sF || b.nF - a.nF,
     appetits: (a, b) => b.sA - a.sA || b.nA - a.nA,
     rendement: (a, b) => (headlineYield(b.o) ?? -Infinity) - (headlineYield(a.o) ?? -Infinity),
+    ecart: (a, b) => Math.abs(tarifs.get(b.o.id)?.ecartPb ?? -Infinity) - Math.abs(tarifs.get(a.o.id)?.ecartPb ?? -Infinity),
   };
   const book = chip(sp.filtre ?? "")
     .filter((x) => !sp.genre || x.o.kind === sp.genre)
@@ -341,6 +374,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
               { value: "fermes", label: t("Avec prises fermes"), count: chip("fermes").length },
               { value: "sans-suite", label: t("Sans intention"), count: chip("sans-suite").length },
               { value: "sans-prix", label: t("Sans prix"), count: chip("sans-prix").length },
+              { value: "loin", label: t("Loin du marché"), count: chip("loin").length },
             ]}
             selects={[{ key: "genre", label: t("Type"), all: t("tous les types"), options: kinds }]}
           />
@@ -356,6 +390,8 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                   {sortTh("appetits", t("Appétits"), true)}
                   <th>{t("Volume")}</th>
                   {sortTh("rendement", t("Rendement publié"), true)}
+                  <th className="r">{t("Marché")}</th>
+                  {sortTh("ecart", t("Écart"), true)}
                   {sortTh("cloture", t("Clôture"), true)}
                 </tr>
               </thead>
@@ -390,6 +426,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                       </div>
                     </td>
                     <td className="r num">{headlineYield(o) != null ? fmtPct(headlineYield(o) as number) : "—"}</td>
+                    <CellulesDuMarche l={tarifs.get(o.id)} t={t} />
                     <td className="r">
                       {/* La sentinelle ne se compte pas. Quarante-cinq OPCVM
                           affichaient « 26754 j 16 h » : ils se traitent en
@@ -485,6 +522,41 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         </div>
         </div>
       </div>
+    </>
+  );
+}
+
+/**
+ * LE MARCHÉ ET L'ÉCART, deux cellules du carnet.
+ *
+ * Elles sont tirées à part pour une raison de lecture et non de code : la
+ * distinction entre « nous n'avons pas de comparable » et « nous sommes loin
+ * du marché » est la seule chose qui compte ici, et elle se perd dès qu'on
+ * l'écrit en ligne au milieu de six autres colonnes. Un tiret vaut pour la
+ * première, un nombre pour la seconde, et jamais un zéro prudent pour les
+ * deux : un chiffre faute de mieux se lit comme une mesure.
+ */
+function CellulesDuMarche({ l, t }: { l?: LigneTarifee; t: (s: string, v?: Record<string, string | number>) => string }) {
+  const etat = etatDeLEcart(l);
+  if (!l?.niveau || l.ecartPb == null)
+    return (
+      <>
+        <td className="r num muted" title={t("Aucune séance comparable : même Trésor, même panier d'échéance, ligne neuve.")}>
+          —
+        </td>
+        <td className="r num muted">—</td>
+      </>
+    );
+  const signe = l.ecartPb > 0 ? "+" : "";
+  return (
+    <>
+      <td className="r num" title={t("{n} séance(s) · la plus récente il y a {j} jour(s)", { n: l.niveau.seances.length, j: l.niveau.ageJours })}>
+        {fmtPct(l.niveau.point, 2)}
+      </td>
+      <td className={`r num ${etat === "tres-loin" ? styles.ecartLoin : etat === "a-regarder" ? styles.ecartTiede : ""}`}>
+        {signe}
+        {l.ecartPb} pb
+      </td>
     </>
   );
 }
