@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 /**
  * LE DOMICILE DE CE QUE LA COLONNE AFFICHE.
@@ -41,20 +41,34 @@ export function ColonneStore({ children }: { children: React.ReactNode }) {
      retirer SES chiffres sans emporter ceux d'une autre. */
   const [parEmetteur, setParEmetteur] = useState<Record<string, Record<string, number>>>({});
 
+  /**
+   * LA FONCTION D'ÉCRITURE NE CHANGE JAMAIS D'IDENTITÉ, et c'est la seule
+   * chose qui tient cette boucle fermée.
+   *
+   * Posée dans le `useMemo` avec les badges, elle se recréait à chaque
+   * changement d'état. L'effet qui déclare les pastilles en dépend, donc il
+   * se rejouait ; son NETTOYAGE écrivait « rien », l'effet réécrivait les
+   * chiffres, et l'on repartait. Douze mille six cents « Maximum update depth
+   * exceeded » dans la console du desk, et une page qui ne répondait plus à
+   * aucun clic : le routeur n'arrivait jamais à poser la page suivante.
+   *
+   * Le symptôme s'est présenté comme « les liens du rail n'ouvrent pas les
+   * pages ». Il n'avait rien à voir avec les liens.
+   */
+  const poserBadges = useCallback<Magasin["poserBadges"]>((cle, b) => {
+    setParEmetteur((p) => {
+      /* UNE ÉCRITURE QUI NE CHANGE RIEN NE REDESSINE PAS : rendre le même
+         objet fait renoncer React au rendu. */
+      const avant = p[cle];
+      if (avant && JSON.stringify(avant) === JSON.stringify(b)) return p;
+      if (!avant && Object.keys(b).length === 0) return p;
+      return { ...p, [cle]: b };
+    });
+  }, []);
+
   const valeur = useMemo<Magasin>(
-    () => ({
-      badges: Object.assign({}, ...Object.values(parEmetteur)) as Record<string, number>,
-      poserBadges: (cle, b) =>
-        setParEmetteur((p) => {
-          /* UNE ÉCRITURE QUI NE CHANGE RIEN NE DOIT PAS REDESSINER. Sans cette
-             comparaison, chaque rendu de page reposerait le même objet et la
-             colonne se redessinerait en boucle. */
-          const avant = p[cle];
-          if (avant && JSON.stringify(avant) === JSON.stringify(b)) return p;
-          return { ...p, [cle]: b };
-        }),
-    }),
-    [parEmetteur],
+    () => ({ badges: Object.assign({}, ...Object.values(parEmetteur)) as Record<string, number>, poserBadges }),
+    [parEmetteur, poserBadges],
   );
 
   return <Ctx.Provider value={valeur}>{children}</Ctx.Provider>;

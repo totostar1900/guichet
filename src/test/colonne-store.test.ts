@@ -1,0 +1,67 @@
+import fs from "node:fs";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+
+/**
+ * LA BOUCLE DE RENDU QUI A FERMÉ LE DESK, ET CE QUI L'EMPÊCHE DE REVENIR.
+ *
+ * Le 19 octobre 2026, la console du desk portait douze mille six cents
+ * « Maximum update depth exceeded » et la page ne répondait plus à aucun clic.
+ * Le symptôme s'est présenté comme « les liens du rail n'ouvrent pas les
+ * pages ». Il n'avait rien à voir avec les liens : le routeur n'arrivait
+ * jamais à poser la page suivante, parce que React redessinait sans fin.
+ *
+ * LE MÉCANISME, EN QUATRE TEMPS. La fonction d'écriture des pastilles était
+ * créée dans le `useMemo` qui calcule les badges, donc elle changeait
+ * d'identité à chaque changement d'état. L'effet qui déclare les pastilles en
+ * dépend, donc il se rejouait. Son NETTOYAGE écrivait « rien », l'effet
+ * réécrivait les chiffres, et l'on repartait.
+ *
+ * DEUX INVARIANTS LE TIENNENT FERMÉ, et cet essai garde les deux.
+ *
+ *   LA FONCTION D'ÉCRITURE NE CHANGE JAMAIS D'IDENTITÉ. « useCallback » avec
+ *   une liste de dépendances VIDE : la forme fonctionnelle de `setState` lui
+ *   permet de ne rien capturer.
+ *
+ *   UNE ÉCRITURE QUI NE CHANGE RIEN REND LE MÊME OBJET. React renonce alors
+ *   au rendu, et une déclaration répétée ne coûte pas un tour.
+ *
+ * Un rendu statique ne joue pas les effets, donc la boucle elle-même ne se
+ * rejoue pas ici : ce sont ses deux conditions d'existence qu'on surveille,
+ * dans la source, là où elles se cassent.
+ */
+const ROOT = path.resolve(__dirname, "../..");
+const SRC = fs.readFileSync(path.join(ROOT, "src/components/ColonneStore.tsx"), "utf8");
+
+describe("le magasin de la colonne ne peut pas boucler", () => {
+  it("la fonction d'écriture est mémoïsée sans dépendance", () => {
+    /* « useCallback<…>((…) => {…}, []) » : on exige la liste vide, parce
+       qu'une seule dépendance suffit à rouvrir la boucle. */
+    expect(SRC, "« poserBadges » doit être créée par useCallback").toMatch(/const poserBadges = useCallback/);
+    const apres = SRC.slice(SRC.indexOf("const poserBadges = useCallback"));
+    const fin = apres.indexOf("}, []);");
+    expect(fin, "« poserBadges » doit se fermer sur une liste de dépendances VIDE : « }, []); »").toBeGreaterThan(0);
+  });
+
+  it("elle n'est pas recréée dans le useMemo des badges", () => {
+    /* C'est la faute d'origine : la fonction vivait dans le memo, donc elle
+       renaissait à chaque changement d'état. */
+    /* Le memo doit se contenter de la forme abrégée « poserBadges », qui LIT
+       la fonction. « poserBadges: (…) => » la définirait, et c'est la faute
+       d'origine. On lit la ligne du memo, pas une tranche de fichier : un
+       découpage approximatif se trompe de cible et croit avoir prouvé. */
+    const ligne = SRC.split("\n").find((l) => l.includes("badges:") && l.includes("poserBadges"));
+    expect(ligne, "la valeur du contexte doit tenir sur une ligne reconnaissable").toBeTruthy();
+    expect(ligne, "le useMemo ne doit que LIRE « poserBadges », jamais la définir").toMatch(/,\s*poserBadges\s*\}/);
+  });
+
+  it("une écriture identique rend le même objet, donc ne redessine pas", () => {
+    expect(SRC, "sans ce renoncement, chaque rendu de page coûterait un tour de colonne").toMatch(/return p;/);
+  });
+
+  it("l'effet qui déclare les pastilles nettoie en partant", () => {
+    /* Un compte qui survit à la page qui l'a produit ferait dire à la colonne
+       « sept à valider » sur une page qui n'en sait plus rien. */
+    expect(SRC).toMatch(/return \(\) => poserBadges\(cle, \{\}\);/);
+  });
+});
