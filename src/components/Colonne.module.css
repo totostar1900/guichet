@@ -235,3 +235,17 @@
 .colonne {
   flex: 0 0 var(--colonne-w);
 }
+
+/* ELLE N'EXISTE QU'AU-DELÀ DE 1040 PIXELS, ET IL FAUT L'ÉCRIRE ICI.
+   Mesuré : sans cette règle, la colonne était rendue quand même sur un écran
+   étroit. La mise en page y vaut « display: contents », donc la colonne
+   devenait un enfant direct du corps, large de toute la fenêtre, collante et
+   haute d'un écran entier : elle recouvrait la page et les liens ne
+   répondaient plus. Masquer est plus sûr que rétrécir, parce que c'est le
+   composant qui décide, pas la grille qui l'entoure. */
+@media (max-width: 1040px) {
+  .colonne,
+  .poignee {
+    display: none;
+  }
+}
