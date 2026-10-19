@@ -411,3 +411,52 @@
 .pied :global(button) {
   font-size: var(--t-3);
 }
+
+/* ===========================================================================
+   DEUX TAILLES DANS LE RAIL, ET PAS QUATRE.
+
+   Il en portait quatre, --t-1, --t-2, --t-3 et --t-4, et l oeil ne savait
+   plus ce qui commandait quoi. Une colonne de navigation n a que deux sortes
+   de lignes : ce qui NOMME un groupe, et ce qui MENE quelque part.
+
+     --t-1  ce qui nomme : l etiquette d un groupe, en petites capitales
+     --t-3  ce qui mene : une page, une section, une ligne d « En cours »
+
+   Une tete est donc plus PETITE que ce qu elle coiffe, et c est voulu : les
+   capitales et l interlettrage la distinguent deja, alors qu un corps plus
+   gros entrerait en concurrence avec les noms de pages, qui sont ce qu on
+   vient lire.
+   =========================================================================== */
+.item,
+.encours a,
+.sections a {
+  font-size: var(--t-3);
+}
+.gl,
+.el,
+.combien,
+.alerte,
+.pt {
+  font-size: var(--t-1);
+}
+
+/* LE NOM DE LA PERSONNE, ENCRE PRINCIPALE, SANS EXCEPTION. Le menu du compte
+   pose ses propres couleurs, pensees pour un fond fonce de barre ; au pied de
+   la colonne elles tombaient en gris sur gris. On reprend la main sur tout le
+   sous-arbre plutot que sur une balise, parce que le menu change de forme
+   selon l etat du compte. */
+.pied,
+.pied :global(*) {
+  color: var(--ink);
+}
+.pied :global(span) {
+  color: var(--ink-2);
+}
+
+/* LA COLONNE NE DOIT PAS SUIVRE LA PAGE. « align-items » sur le conteneur
+   suffisait, mais une regle future qui remettrait « stretch » etirerait la
+   colonne sur toute la hauteur du document, et « sticky » n aurait plus rien
+   a faire : elle defilerait. On le dit donc sur la colonne elle-meme. */
+.colonne {
+  align-self: flex-start;
+}

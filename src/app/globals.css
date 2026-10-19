@@ -190,9 +190,23 @@
      titres de l accueil et des pages qui presentent. Manrope tient tout le
      reste, chiffres compris, avec ses chiffres tabulaires. */
   --font-titre: "Instrument Serif", Georgia, "Times New Roman", serif;
-  /* Legacy aliases : hors des titres, tout est de la meme famille. */
+  /* Hors des titres, tout est de la meme famille. */
   --font-display: var(--font-ui);
-  --font-mono: var(--font-ui);
+  /**
+   * UNE VRAIE FAMILLE A CHASSE FIXE POUR LES CODES, posee le 19 octobre 2026.
+   *
+   * « --font-mono » valait Manrope, c est-a-dire la police d interface : rien
+   * n etait monospace alors que la variable portait le nom. Un code
+   * « CF2K00000056 », une reference « PF-0914-013 », un ISIN : leurs
+   * caracteres doivent s aligner en colonne d une ligne a l autre, sinon
+   * l oeil ne compare plus, il relit.
+   *
+   * AUCUNE POLICE N EST TELECHARGEE : la pile est celle du systeme, donc
+   * elle ne coute pas une requete et ne retarde aucun rendu. La decision
+   * « deux familles seulement » tient pour le TEXTE ; un code n est pas du
+   * texte, c est une suite de signes qu on epelle.
+   */
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dim"]) {
@@ -436,6 +450,9 @@ h3 {
   font-variant-numeric: tabular-nums;
 }
 .mono {
+  /* La classe s appelait « mono » et ne posait aucune famille : elle ne
+     reglait que la taille et les chiffres tabulaires. */
+  font-family: var(--font-mono);
   font-size: 0.82em;
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;

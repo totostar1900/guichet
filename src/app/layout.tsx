@@ -199,6 +199,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <UserMenu
                 session={session}
                 deskUi={deskUi}
+                /* Au pied de la colonne, la feuille du compte s'ouvre en bas à
+                   gauche. Ancrée en haut à droite, elle s'ouvrait à douze cents
+                   pixels de l'avatar qu'on venait de toucher. */
+                dock="bottom-left"
                 account={session ? { name: session.name, segment: session.segment, tier: session.tier, desk: deskUi, email: account?.email ?? session.email, phone: account?.phone ?? session.phone, phoneOk: account?.phoneOk, emailOk: account?.emailOk, prefs: account?.prefs, kycStatus: session.kycStatus, vapidKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY, security, profile: profile?.kind, build: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7), attentes: deskUi ? [] : attentes } : undefined}
               />
             }

@@ -218,7 +218,11 @@
     max-width: 1380px;
     margin-inline: auto;
     flex: 1;
-    padding: var(--s-8) var(--s-9) var(--s-11);
+    /* GOUTTIÈRES RÉDUITES : --s-9 (24 px) devient --s-8 (20 px), soit un
+       sixième de moins de chaque côté. Le cran d en dessous de l échelle
+       plutôt qu un calcul à 19,2 px, qui serait hors échelle pour gagner
+       huit dixièmes de pixel. */
+    padding: var(--s-8) var(--s-8) var(--s-11);
   }
   .footer {
     max-width: none;

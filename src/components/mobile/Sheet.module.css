@@ -277,3 +277,38 @@
   height: 20px;
   flex: none;
 }
+
+/**
+ * ANCRÉE EN BAS À GAUCHE, pour le menu du compte quand il vit dans la colonne.
+ *
+ * Mesuré sur le desk : l'avatar est au pied de la colonne, à (10, 908), et sa
+ * feuille s'ouvrait à (1211, 58). Douze cents pixels séparaient le geste de sa
+ * réponse, parce que l'ancrage « top-right » datait du temps où l'avatar vivait
+ * dans la barre du haut. Une feuille doit sortir de ce qu'on a touché.
+ */
+.dockBottomLeft {
+  left: var(--s-6);
+  right: auto;
+  top: auto;
+  bottom: var(--s-6);
+  transform: translateY(8px) scale(0.98);
+  transform-origin: bottom left;
+  border-radius: 12px;
+}
+.dockBottomLeft.sheetOpen {
+  transform: translateY(0) scale(1);
+}
+@media (max-width: 760px) {
+  /* Sur un téléphone, la feuille reste celle du bas, pleine largeur : la
+     colonne n'y existe pas. */
+  .dockBottomLeft {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 18px 18px 0 0;
+    transform: translateY(105%);
+  }
+  .dockBottomLeft.sheetOpen {
+    transform: translateY(0);
+  }
+}

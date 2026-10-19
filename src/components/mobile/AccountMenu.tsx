@@ -130,7 +130,7 @@ function IdentityForm({ name, city, onDone }: { name: string; city: string; onDo
   );
 }
 
-export function AccountMenu(p: AccountProps) {
+export function AccountMenu(p: AccountProps & { dock?: "top-right" | "bottom-left" }) {
   const t = useT();
   const lang = useLang();
   const path = usePathname();
@@ -238,7 +238,7 @@ export function AccountMenu(p: AccountProps) {
         open={open}
         onClose={close}
         navy
-        dock="top-right"
+        dock={p.dock ?? "top-right"}
         tall
         title={t("Bonjour {name}", { name: who.name.split(/\s+/)[0] })}
         /* LA LANGUE EN TÊTE, le 6 octobre 2026. Elle était la première ligne de
