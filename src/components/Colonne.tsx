@@ -58,6 +58,7 @@ export type EtatColonne = "repliee" | "deployee" | "escamotee";
 
 const CLEF_PLIS = "guichet:colonne:plis";
 const CLEF_ETAT = "guichet:colonne:etat";
+const CLEF_EPINGLES = "guichet:colonne:epingles";
 
 export function Colonne({
   mode,
@@ -166,6 +167,38 @@ export function Colonne({
    * liste, « Replier » y met tout sauf le groupe de la page ouverte, et un
    * chevron n'agit que sur son groupe.
    */
+  /**
+   * LES FAVORIS : LA COLONNE RANGE PAR SUJET, LE DESK TRAVAILLE PAR HABITUDE.
+   *
+   * Six groupes et quarante-trois pages disent où CHAQUE chose se trouve.
+   * Mais une personne du desk en ouvre cinq ou six dans sa journée, toujours
+   * les mêmes, et elles sont éparpillées dans quatre groupes : « À valider »,
+   * « Bulletins », « Santé », « Journal ». La carte est juste, le chemin est
+   * long.
+   *
+   * Une épingle met la page en tête, au-dessus des groupes. C'est un réglage
+   * de siège, pas une donnée de la maison : il vit dans ce navigateur et ne
+   * voyage pas, comme la largeur de la colonne.
+   */
+  const [epingles, setEpingles] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const e = localStorage.getItem(CLEF_EPINGLES);
+      if (e) setEpingles(JSON.parse(e) as string[]);
+    } catch {
+      /* sans stockage, la colonne se passe de favoris */
+    }
+  }, []);
+  const basculerEpingle = (href: string) => {
+    const suite = epingles.includes(href) ? epingles.filter((h) => h !== href) : [...epingles, href];
+    setEpingles(suite);
+    try {
+      localStorage.setItem(CLEF_EPINGLES, JSON.stringify(suite));
+    } catch {
+      /* le favori vaut pour cette visite */
+    }
+  };
+
   const ecrirePlis = (suite: Set<string>) => {
     setPlies(suite);
     try {
@@ -249,7 +282,9 @@ export function Colonne({
           </button>
         </div>
       </div>
+      <Chercher groupes={groupes} badges={badges} />
       <div className={`${styles.corps} rail-y`}>
+        <Epingles groupes={groupes} epingles={epingles} basculerEpingle={basculerEpingle} actifP={actifP} badges={badges} />
         <Encours badges={badges} />
         {groupes.map((g) => {
           const estOuvert = ouvert(g.label);
@@ -264,15 +299,31 @@ export function Colonne({
               >
                 <Chevron className={styles.ch} />
                 <span className={styles.nm}>{t(g.label)}</span>
-                {!estOuvert && <span className={styles.combien}>{g.items.length}</span>}
+                {/* LE COMPTE DES PAGES EST RETIRÉ : savoir qu'un groupe en
+                    porte onze n'aide personne à décider s'il faut l'ouvrir.
+                    LA SOMME DES PASTILLES RESTE, parce qu'elle, elle dit s'il
+                    y a quelque chose à y faire : un pli ne cache pas un
+                    chiffre qui appelle. */}
                 {!estOuvert && alertes > 0 && <span className={styles.alerte}>{alertes}</span>}
               </button>
               {estOuvert &&
                 g.items.map((it) => (
-                  <Link key={it.href} href={it.href} className={styles.item} aria-current={it.href === actifP ? "page" : undefined}>
-                    <span className={styles.nm}>{t(it.label)}</span>
-                    {badges[it.href] ? <span className={styles.pt}>{badges[it.href]}</span> : null}
-                  </Link>
+                  <span key={it.href} className={styles.rangee}>
+                    <Link href={it.href} className={styles.item} aria-current={it.href === actifP ? "page" : undefined}>
+                      <span className={styles.nm}>{t(it.label)}</span>
+                      {badges[it.href] ? <span className={styles.pt}>{badges[it.href]}</span> : null}
+                    </Link>
+                    <button
+                      type="button"
+                      className={styles.punaise}
+                      onClick={() => basculerEpingle(it.href)}
+                      aria-pressed={epingles.includes(it.href)}
+                      aria-label={epingles.includes(it.href) ? t("Retirer des favoris") : t("Mettre en favori")}
+                      title={epingles.includes(it.href) ? t("Retirer des favoris") : t("Mettre en favori")}
+                    >
+                      <Punaise pleine={epingles.includes(it.href)} />
+                    </button>
+                  </span>
                 ))}
             </div>
           );
@@ -323,6 +374,126 @@ function Encours({ badges }: { badges: Record<string, number> }) {
         </Link>
       ))}
     </div>
+  );
+}
+
+/**
+ * LA RECHERCHE, ET CE QU'ELLE APPORTE QU'UNE LISTE NE PEUT PAS.
+ *
+ * Quarante-trois pages rangées en six groupes répondent à « où se trouve
+ * X » quand on connaît le rangement. Elles ne répondent pas à « je veux
+ * aller à X », qui est la question qu'on se pose vraiment, et qui demande
+ * aujourd'hui de se rappeler SOUS QUEL GROUPE une page a été classée.
+ * « Barème » est-il dans « La maison » ou dans « Le marché » ? On ouvre
+ * deux groupes pour le savoir.
+ *
+ * TROIS CHOSES QU'ELLE SAIT FAIRE, ET AUCUNE N'INVENTE DE DONNÉE.
+ *
+ *   ELLE CHERCHE DANS LES NOMS, sans accent ni casse, par morceaux : « all
+ *   reg » trouve « Allocations et règlement ». Chaque mot doit toucher,
+ *   comme le chercheur de personnes du desk, parce que deux mots qui
+ *   touchent chacun à moitié ne désignent rien.
+ *
+ *   ELLE DIT LE GROUPE de chaque résultat. On apprend le rangement en
+ *   cherchant, au lieu de devoir le connaître avant.
+ *
+ *   ELLE RECONNAÎT CE QUI N'EST PAS UN NOM DE PAGE. Un code d'émission à
+ *   douze caractères, une date de séance : ce ne sont pas des pages, mais
+ *   ils désignent sans ambiguïté la page qui les porte. Taper
+ *   « GA2J00000085 » mène aux résultats d'adjudication, « 2026-10-15 » aux
+ *   bulletins de cette date. C'est là que « intelligente » a un sens : la
+ *   barre reconnaît la FORME de ce qu'on tape.
+ *
+ * Elle ne cherche PAS dans les données : une barre qui interroge la base à
+ * chaque frappe est une barre qui fait attendre, et le desk a déjà ses
+ * pages de recherche pour cela.
+ */
+const sansAccent = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+
+const CODE_CEMAC = /^[A-Za-z]{2}[0-9][0-9A-Za-z]\d{8}$/;
+const DATE_ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+function Chercher({ groupes, badges }: { groupes: GroupeColonne[]; badges: Record<string, number> }) {
+  const t = useT();
+  const [q, setQ] = useState("");
+  const mots = sansAccent(q.trim()).split(/\s+/).filter(Boolean);
+
+  const toutes = groupes.flatMap((g) => g.items.map((it) => ({ ...it, groupe: g.label })));
+  /* CHAQUE MOT DOIT TOUCHER : « all reg » trouve « Allocations et
+     règlement », « reg all » aussi, et « allreg » rien, ce qui est juste. */
+  const parLeNom = mots.length ? toutes.filter((it) => mots.every((m) => sansAccent(t(it.label)).includes(m) || sansAccent(it.label).includes(m))) : [];
+
+  /* CE QUI N EST PAS UN NOM DE PAGE mais désigne une page sans ambiguïté. */
+  const brut = q.trim();
+  const parLaForme: { href: string; label: string; groupe: string }[] = [];
+  if (CODE_CEMAC.test(brut)) parLaForme.push({ href: `/desk/adjudications/tableau?q=${encodeURIComponent(brut.toUpperCase())}`, label: t("Chercher le code {code}", { code: brut.toUpperCase() }), groupe: t("Résultats") });
+  if (DATE_ISO.test(brut)) parLaForme.push({ href: `/desk/bulletins?seance=${brut}`, label: t("Le bulletin du {date}", { date: brut }), groupe: t("Bulletins") });
+
+  const vus = new Set<string>();
+  const resultats = [...parLaForme, ...parLeNom].filter((r) => !vus.has(r.href) && vus.add(r.href)).slice(0, 8);
+
+  return (
+    <div className={styles.chercher}>
+      <input
+        type="search"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder={t("Chercher une page, un code")}
+        aria-label={t("Chercher une page, un code")}
+        className={styles.champ}
+      />
+      {mots.length > 0 && (
+        <div className={styles.trouves}>
+          {resultats.length === 0 ? (
+            <span className={styles.rien}>{t("Aucune page de ce nom")}</span>
+          ) : (
+            resultats.map((r) => (
+              <Link key={r.href} href={r.href} className={styles.trouve} onClick={() => setQ("")}>
+                <span className={styles.nm}>{t(r.label)}</span>
+                <em>{t(r.groupe)}</em>
+                {badges[r.href] ? <span className={styles.pt}>{badges[r.href]}</span> : null}
+              </Link>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Les pages que le desk a épinglées, au-dessus des groupes. */
+function Epingles({ groupes, epingles, basculerEpingle, actifP, badges }: { groupes: GroupeColonne[]; epingles: string[]; basculerEpingle: (h: string) => void; actifP?: string; badges: Record<string, number> }) {
+  const t = useT();
+  const toutes = groupes.flatMap((g) => g.items);
+  const choisies = epingles.map((h) => toutes.find((it) => it.href === h)).filter((it): it is { href: string; label: string } => Boolean(it));
+  if (!choisies.length) return null;
+  return (
+    <div className={styles.epingles}>
+      <span className={styles.el}>{t("Favoris")}</span>
+      {choisies.map((it) => (
+        <span key={it.href} className={styles.rangee}>
+          <Link href={it.href} className={styles.item} aria-current={it.href === actifP ? "page" : undefined}>
+            <span className={styles.nm}>{t(it.label)}</span>
+            {badges[it.href] ? <span className={styles.pt}>{badges[it.href]}</span> : null}
+          </Link>
+          <button type="button" className={styles.punaise} onClick={() => basculerEpingle(it.href)} aria-label={t("Retirer des favoris")} title={t("Retirer des favoris")}>
+            <Punaise pleine />
+          </button>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function Punaise({ pleine }: { pleine?: boolean }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill={pleine ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" aria-hidden="true">
+      <path d="M8 1.6 9.9 5.5l4.3.6-3.1 3 .7 4.3L8 11.4 4.2 13.4l.7-4.3-3.1-3 4.3-.6z" />
+    </svg>
   );
 }
 

@@ -230,3 +230,14 @@
     padding-right: var(--s-9);
   }
 }
+
+/* La colonne étant FIXE, elle ne prend plus de place dans la rangée : le
+   contenu et le pied de page se décalent eux-mêmes. */
+@media (min-width: 1041px) {
+  .avecColonne {
+    padding-left: var(--colonne-w);
+  }
+  .footer {
+    padding-left: calc(var(--colonne-w) + var(--s-8));
+  }
+}

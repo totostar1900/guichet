@@ -215,6 +215,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </div>
         </RegistryProvider>
         </ColonneStore>
+        {/* LE PIED RÉGLEMENTAIRE NE PARAÎT PAS DANS LA CONSOLE.
+            Il adresse un CLIENT : l'agrément COSUMAF, l'adresse du siège, la
+            mention « communication promotionnelle », la convention de
+            rendement, le risque de perte en capital. Le desk n'est pas le
+            destinataire de ces phrases, il en est l'auteur, et cent treize
+            pixels de texte qu'on ne lit jamais ferment chaque page.
+            Sur le guichet il reste entier : c'est là qu'il a un lecteur. */}
+        {!onDeskHost && (
         <footer className={styles.footer}>
           {/* CE QUE LE « ⋮ » PORTAIT POUR UN VISITEUR, RESSORTI ET NOMMÉ.
               Le menu à trois points a disparu de la page publique le
@@ -247,6 +255,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ? <span className={styles.build}> · v{process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.slice(0, 7)}</span> : null}
           </p>
         </footer>
+        )}
         </LangProvider>
       </body>
     </html>

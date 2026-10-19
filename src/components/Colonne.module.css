@@ -470,3 +470,145 @@
   font-size: var(--t-2);
   color: var(--ink-2);
 }
+
+/* ===========================================================================
+   LA COLONNE EST FIXE, ET NON PLUS SEULEMENT COLLANTE.
+
+   « sticky » colle A L INTERIEUR de son conteneur. Or le pied de page vit
+   DEHORS, apres la rangee : mesure sur la production, la rangee fait 4 396
+   pixels et le document 4 513. Dans les cent dix-sept derniers, la colonne
+   avait atteint le bas de son conteneur et remontait avec la page. C est
+   exactement « surtout en bas de page ».
+
+   Fixe, elle ne depend plus d aucun conteneur : la separation est totale.
+   Le contenu recupere la place par un retrait, et le pied de page aussi.
+   =========================================================================== */
+.colonne {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  width: var(--colonne-w);
+  flex: none;
+  z-index: 20;
+}
+
+/* LE NOM DE LA PERSONNE, ET LA RÈGLE QUI LE RENDAIT BLANC.
+   Le menu du compte pose « color: #fff » en dur : c était juste dans la barre
+   bleu nuit, d où il vient. Au pied d une colonne claire, un nom blanc sur
+   fond clair ne se lit pas. On passe devant avec un sélecteur plus précis,
+   et l encre suit le thème au lieu d être écrite en dur. */
+.pied :global(a) :global(b),
+.pied :global(a) :global(strong),
+.pied :global(div) :global(b),
+.pied :global(button) {
+  color: var(--ink);
+}
+
+/* ===== LA RECHERCHE, en tête de colonne sous l enseigne ===== */
+.chercher {
+  position: relative;
+  padding: var(--s-4) var(--s-5) 0;
+}
+.champ {
+  width: 100%;
+  font: inherit;
+  font-size: var(--t-3);
+  color: var(--ink);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 0;
+  padding: var(--s-3) var(--s-4);
+}
+.champ::placeholder {
+  color: var(--ink-3);
+}
+.champ:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: -2px;
+}
+.trouves {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--s-2);
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.trouve {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+}
+.trouve:last-child {
+  border-bottom: 0;
+}
+.trouve:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+/* LE GROUPE SE DIT À CÔTÉ DU RÉSULTAT : on apprend le rangement en
+   cherchant, au lieu de devoir le connaître avant de chercher. */
+.trouve em {
+  margin-left: auto;
+  font-style: normal;
+  font-size: var(--t-1);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.rien {
+  padding: var(--s-3) var(--s-4);
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+
+/* ===== LES FAVORIS, et la punaise qui ne paraît qu au survol ===== */
+.epingles {
+  margin: var(--s-4) 0 var(--s-5);
+  padding-bottom: var(--s-4);
+  border-bottom: 1px solid var(--line);
+}
+.rangee {
+  display: flex;
+  align-items: stretch;
+}
+.rangee .item {
+  flex: 1;
+  min-width: 0;
+}
+.punaise {
+  flex: none;
+  width: 24px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--ink-3);
+  cursor: pointer;
+  opacity: 0;
+}
+/* ELLE RESTE VISIBLE QUAND ELLE EST POSÉE : une épingle qu on ne voit qu au
+   survol ne se retire pas, parce qu on ne sait plus qu elle est là. */
+.rangee:hover .punaise,
+.punaise:focus-visible,
+.punaise[aria-pressed="true"] {
+  opacity: 1;
+}
+.punaise[aria-pressed="true"] {
+  color: var(--gold-ink);
+}
+.punaise:hover {
+  color: var(--ink);
+}
+.punaise:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: -2px;
+}

@@ -1368,4 +1368,13 @@ export const EN_REST: Record<string, string> = {
   "Régler la largeur de la navigation": "Adjust the navigation width",
   "Replier les groupes": "Fold the groups",
   "Déplier les groupes": "Unfold the groups",
+  "Mettre en favori": "Pin as a favourite",
+  "Retirer des favoris": "Remove from favourites",
+  "Chercher le code {code}": "Search for code {code}",
+  "Le bulletin du {date}": "The bulletin of {date}",
+  "Chercher une page, un code": "Search a page or a code",
+  "Aucune page de ce nom": "No page by that name",
+  "Favoris": "Favourites",
+  "Résultats": "Results",
+  "Bulletins": "Bulletins",
 };
