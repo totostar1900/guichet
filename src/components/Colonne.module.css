@@ -460,3 +460,13 @@
 .colonne {
   align-self: flex-start;
 }
+
+/* Le role sous le nom sortait a 10,5 pixels, hors echelle : la regle du menu
+   du compte vise « .who span » et battait la mienne a specificite egale,
+   l ordre du paquet tranchant. On passe devant avec un selecteur plus precis,
+   toujours limite au pied de la colonne. */
+.pied :global(a) :global(span),
+.pied :global(div) :global(span) {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}

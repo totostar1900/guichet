@@ -98,6 +98,10 @@ export function Colonne({
       : COLONNE_VISITEUR;
   const actifG = groupeDe(groupes, path);
   const actifP = pageDe(groupes, path);
+  /* Figés au premier rendu : l'effet de montage s'en sert pour poser le repli
+     de départ, et il ne doit pas se rejouer à chaque navigation. */
+  const [groupesInitiaux] = useState(() => groupes.map((g) => g.label));
+  const [groupeInitialActif] = useState(() => actifG ?? groupes[0]?.label);
 
   /* L'état est celui que la personne a laissé. À défaut, la route décide :
      une page large s'ouvre sans colonne, les autres repliées. */
@@ -106,15 +110,35 @@ export function Colonne({
   const [pret, setPret] = useState(false);
 
   useEffect(() => {
+    let deja = false;
     try {
       const e = sessionStorage.getItem(CLEF_ETAT);
       if (e === "repliee" || e === "deployee" || e === "escamotee") setEtat(e);
       const p = localStorage.getItem(CLEF_PLIS);
-      if (p) setPlies(new Set(JSON.parse(p) as string[]));
+      if (p) {
+        setPlies(new Set(JSON.parse(p) as string[]));
+        deja = true;
+      }
     } catch {
       /* Un navigateur qui refuse son stockage rend la colonne telle qu'elle naît. */
     }
+    /**
+     * À LA PREMIÈRE VISITE, ELLE S'OUVRE REPLIÉE, et j'avais défait cela sans
+     * le voir en unifiant l'état du pliage.
+     *
+     * Mesuré sur la production : rien n'était rangé, donc la liste des pliés
+     * était vide, donc les six groupes s'ouvraient et la colonne défilait de
+     * six cent soixante-huit pixels. C'est très exactement le défaut que
+     * l'essai du 19 octobre avait nommé : une carte qui cache votre position
+     * n'est pas une carte.
+     *
+     * Le repli de départ se pose donc ICI, une fois, et seulement quand le
+     * lecteur n'a encore rien choisi : son choix, lui, fait toujours foi.
+     */
+    if (!deja) setPlies(new Set(groupesInitiaux.filter((l) => l !== groupeInitialActif)));
     setPret(true);
+    // Au montage seulement : ce que le lecteur fera ensuite ne doit pas être écrasé.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const retenir = useCallback((e: EtatColonne) => {
