@@ -76,7 +76,26 @@ export function Colonne({
 }) {
   const path = usePathname();
   const t = useT();
-  const groupes: GroupeColonne[] = mode === "desk" ? COLONNE_DESK : connecte ? COLONNE_CLIENT : COLONNE_VISITEUR;
+  /**
+   * LA COLONNE SUIT L'ADRESSE, PAS SEULEMENT LE RÔLE.
+   *
+   * Elle choisissait ses groupes d'après la session : un compte du desk
+   * voyait donc les six groupes du desk JUSQUE SUR « /marche », où aucune
+   * page de la liste ne correspond. Résultat mesuré : rien n'était marqué
+   * actif, et la colonne ne répondait plus à « où suis-je ».
+   *
+   * Hors du desk, on sert donc les groupes du client, et l'on ajoute
+   * l'entrée « Desk » pour revenir : c'est ce que l'ancienne barre faisait,
+   * avec son onglet Desk à côté des sièges du client.
+   */
+  const auDesk = path === "/desk" || path.startsWith("/desk/");
+  const groupes: GroupeColonne[] = auDesk
+    ? COLONNE_DESK
+    : connecte
+      ? mode === "desk"
+        ? [...COLONNE_CLIENT, { label: "La console", items: [{ href: "/desk", label: "Desk" }] }]
+        : COLONNE_CLIENT
+      : COLONNE_VISITEUR;
   const actifG = groupeDe(groupes, path);
   const actifP = pageDe(groupes, path);
 
@@ -110,29 +129,33 @@ export function Colonne({
   const effectif: EtatColonne = etat ?? (estRouteLarge(path) ? "escamotee" : "repliee");
 
   /**
-   * TOUT GROUPE SE PLIE, SANS EXCEPTION, et c'est un essai qui m'a corrigé.
+   * UN SEUL ÉTAT DÉCIDE DE CE QUI EST OUVERT : la liste des groupes pliés.
    *
-   * J'avais verrouillé le groupe de la page ouverte, au motif qu'une colonne
-   * ne doit pas cacher où l'on est. Mais un chevron qui ne répond pas ne se
-   * lit pas comme une règle : il se lit comme une panne, et c'est ainsi qu'il
-   * a été rapporté. « Le marché ne se plie pas. »
+   * Il y en avait deux, et ils se contredisaient. « Replier » et « Tout
+   * déplier » écrivaient un mode global, le chevron d'un groupe écrivait sa
+   * propre liste, et le chevron forçait le mode à « déployée » : ouvrir UN
+   * groupe les ouvrait donc TOUS. Rapporté comme « plier et déplier ne se
+   * comportent pas bien », et c'était exactement cela.
    *
-   * Une règle qu'on ne peut pas distinguer d'un défaut n'est pas une règle.
-   * Le souci de départ est traité autrement, et mieux : à l'arrivée sur une
-   * page, son groupe s'ouvre tout seul. Le lecteur peut ensuite le replier,
-   * puisque c'est lui qui l'a voulu.
+   * Deux sources de vérité pour une même question finissent toujours par
+   * répondre deux choses. Il n'en reste qu'une : « Tout déplier » vide la
+   * liste, « Replier » y met tout sauf le groupe de la page ouverte, et un
+   * chevron n'agit que sur son groupe.
    */
-  const basculer = (label: string) => {
-    const suite = new Set(plies);
-    if (suite.has(label)) suite.delete(label);
-    else suite.add(label);
+  const ecrirePlis = (suite: Set<string>) => {
     setPlies(suite);
-    if (effectif !== "deployee") retenir("deployee");
     try {
       localStorage.setItem(CLEF_PLIS, JSON.stringify([...suite]));
     } catch {
       /* le pli vaut pour cette visite */
     }
+  };
+
+  const basculer = (label: string) => {
+    const suite = new Set(plies);
+    if (suite.has(label)) suite.delete(label);
+    else suite.add(label);
+    ecrirePlis(suite);
   };
 
   if (estParcoursFerme(path)) return null;
@@ -161,7 +184,8 @@ export function Colonne({
     });
   }, [aOuvrirDoffice]);
 
-  const ouvert = (label: string) => (effectif === "deployee" ? !plies.has(label) : label === aOuvrirDoffice && !plies.has(label));
+  const ouvert = (label: string) => !plies.has(label);
+  const toutDeplie = groupes.every((g) => ouvert(g.label));
 
   if (effectif === "escamotee")
     return (
@@ -172,7 +196,35 @@ export function Colonne({
 
   return (
     <nav className={styles.colonne} aria-label={t("Navigation")} data-pret={pret ? "oui" : undefined} data-coach="nav">
-      <div className={styles.enseigne}>{enseigne}</div>
+      {/* LES DEUX COMMANDES MONTENT EN HAUT À DROITE, au ras de l'enseigne.
+          Elles étaient au pied, sous le nom de la personne, c'est-à-dire à
+          l'endroit où l'on ne regarde pas et le plus loin des chevrons
+          qu'elles commandent. */}
+      <div className={styles.enseigne}>
+        {enseigne}
+        <div className={styles.commandes}>
+          <button
+            type="button"
+            className={styles.plier}
+            onClick={() => ecrirePlis(toutDeplie ? new Set(groupes.map((g) => g.label).filter((l) => l !== aOuvrirDoffice)) : new Set())}
+            aria-label={toutDeplie ? t("Replier les groupes") : t("Déplier les groupes")}
+            title={toutDeplie ? t("Replier les groupes") : t("Déplier les groupes")}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+              {toutDeplie ? <path d="M4 6.5 8 3l4 3.5M4 9.5 8 13l4-3.5" /> : <path d="M4 4 8 7.5 12 4M4 8.5 8 12l4-3.5" />}
+            </svg>
+          </button>
+          {/* L'ICÔNE PLUTÔT QUE LE MOT « MASQUER » : un panneau qui se referme
+              est un geste connu, et le mot prenait la place d'un nom de page. */}
+          <button type="button" className={styles.plier} onClick={() => retenir("escamotee")} aria-label={t("Masquer la navigation")} title={t("Masquer la navigation")}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="1.8" y="2.8" width="12.4" height="10.4" rx="0" />
+              <path d="M6.4 2.8v10.4" />
+              <path d="M11.4 6.2 9.6 8l1.8 1.8" />
+            </svg>
+          </button>
+        </div>
+      </div>
       <div className={`${styles.corps} rail-y`}>
         <Encours badges={badges} />
         {groupes.map((g) => {
@@ -207,17 +259,7 @@ export function Colonne({
           veut pas, et c'est le même écran. La poignée écrit « --colonne-w »
           sur la racine, donc la colonne ET le pied de page suivent d'un coup. */}
       <Poignee variable="--colonne-w" min={180} max={420} memoire="colonne" porte="html" libelle={t("Régler la largeur de la navigation")} className={styles.tirette} />
-      <div className={styles.pied}>
-        {pied}
-        <div className={styles.reglages}>
-          <button type="button" onClick={() => retenir(effectif === "deployee" ? "repliee" : "deployee")}>
-            {effectif === "deployee" ? t("Replier") : t("Tout déplier")}
-          </button>
-          <button type="button" onClick={() => retenir("escamotee")} aria-label={t("Masquer la navigation")}>
-            {t("Masquer")}
-          </button>
-        </div>
-      </div>
+      <div className={styles.pied}>{pied}</div>
     </nav>
   );
 }

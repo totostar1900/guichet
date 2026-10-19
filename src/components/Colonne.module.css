@@ -299,3 +299,115 @@
 .pied {
   padding: var(--s-5);
 }
+
+/* ===========================================================================
+   LES TAILLES DE LA COLONNE, SUR L ÉCHELLE ET PAS À CÔTÉ.
+
+   Elles étaient écrites en dur, 0.68 / 0.74 / 0.8 / 0.88 rem, ce qui tombe
+   juste par hasard : la maison a des crans nommés, et une valeur en dur
+   dérive au premier retouchage. Trois crans suffisent ici.
+
+     --t-1  l étiquette d un groupe, en petites capitales
+     --t-3  une section, un compte, le pied
+     --t-4  une page : c est le texte qu on lit vraiment
+   =========================================================================== */
+.gl {
+  font-size: var(--t-1);
+}
+.el,
+.combien,
+.alerte,
+.pt {
+  font-size: var(--t-1);
+}
+.encours a,
+.sections a {
+  font-size: var(--t-3);
+}
+.item {
+  font-size: var(--t-4);
+}
+
+/* ===== L EN-TÊTE PORTE L ENSEIGNE ET LES DEUX COMMANDES ===== */
+.enseigne {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+}
+.commandes {
+  margin-left: auto;
+  display: flex;
+  gap: var(--s-1);
+  flex: none;
+}
+.plier {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.plier:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+.plier:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: -2px;
+}
+
+/* ===========================================================================
+   LA PAGE OUVERTE SE VOIT DE LOIN.
+
+   Un filet doré de deux pixels et un fond à peine plus clair ne suffisaient
+   pas : sur quarante-trois rangées, l oeil cherchait encore. Trois marques
+   qui se renforcent, et aucune n est une couleur de texte.
+   =========================================================================== */
+.item[aria-current] {
+  border-left-width: 3px;
+  background: var(--gold-soft);
+  color: var(--ink);
+  font-weight: 700;
+}
+.item[aria-current] .nm {
+  /* Le nom ne se contente pas d être gras : il est aussi le seul de la
+     colonne à ne pas être tronqué par l ellipse, parce qu on doit pouvoir
+     lire en entier là où l on est. */
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* ===========================================================================
+   LE PIED : LA PERSONNE DOIT ÊTRE LISIBLE.
+
+   Son nom sortait en --t-3 et son rôle en --t-1, gris sur gris, sous une
+   rangée de réglages qui lui disputait la place. Les réglages sont montés en
+   haut ; le nom passe à l encre principale, et le rôle garde l encre
+   secondaire parce qu il se lit après.
+   =========================================================================== */
+.pied {
+  padding: var(--s-5) var(--s-5) var(--s-6);
+}
+.pied :global(b),
+.pied :global(strong) {
+  font-size: var(--t-4);
+  font-weight: 600;
+  color: var(--ink);
+}
+.pied :global(span) {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+
+/* Les deux dernières tailles hors échelle du pied, 12,3 et 11,7 pixels,
+   viennent du menu du compte que la colonne reçoit tel quel. On les aligne
+   ICI SEULEMENT : le même menu sert le téléphone et la barre du haut, où
+   ses mesures sont les bonnes. */
+.pied :global(a),
+.pied :global(button) {
+  font-size: var(--t-3);
+}

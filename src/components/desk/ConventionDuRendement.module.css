@@ -10,9 +10,12 @@
   gap: var(--s-4);
 }
 
+/* La graisse passe de 800 a 600, comme les autres micro-etiquettes en
+   capitales de la maison : a dix virgule deux pixels, le 800 empatait les
+   lettres au lieu de les poser. */
 .etiquette {
   font-size: var(--t-1);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-3);

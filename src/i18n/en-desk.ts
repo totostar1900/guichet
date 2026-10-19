@@ -3510,4 +3510,5 @@ export const EN_MORE: Record<string, string> = {
   "Vue quantitative": "Quantitative view",
   "Notes du lecteur": "Reader notes",
   "Délai de souffrance": "Ageing threshold",
+  "La console": "The console",
 };
