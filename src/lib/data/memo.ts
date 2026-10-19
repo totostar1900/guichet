@@ -1,5 +1,7 @@
 import "server-only";
 import { cache } from "react";
+import { revalidateTag, updateTag } from "next/cache";
+import { ETIQUETTE_REFERENTIEL } from "@/lib/reference";
 import type { Repository } from "./repository";
 
 /**
@@ -73,6 +75,12 @@ const READS = new Set([
   "getAuctionResult",
   "listNews",
   "listCash",
+  /* Une LECTURE que le classement par le nom avait laissee dehors : elle ne
+     touche pas la table du referentiel, elle rend les nominaux de reference
+     d une seance. Non classee, elle VIDAIT le memo a chaque appel, puisque
+     tout ce qui n est pas une lecture est traite comme une ecriture. Trouvee
+     par le cliquet du referentiel, qui cherchait autre chose. */
+  "nominauxDeReference",
 ]);
 
 /**
@@ -81,6 +89,51 @@ const READS = new Set([
  * seconde est gardée parce qu'une page la demande deux fois (la métadonnée
  * puis le corps) sans rien écrire entre.
  */
+/**
+ * LES ÉCRITURES DU RÉFÉRENTIEL, NOMMÉES UNE FOIS.
+ *
+ * Le référentiel est gardé entre les requêtes (voir « lib/reference.ts »), et
+ * la seule chose qui le vide est une écriture. Elles passent TOUTES par le
+ * dépôt, donc on purge ici plutôt qu à chaque appelant : six pages du desk
+ * écrivent aujourd hui, et la septième n aurait pas pensé à le faire.
+ *
+ * UN ESSAI REFUSE QU UNE MÉTHODE NOUVELLE ÉCHAPPE AU CLASSEMENT :
+ * « reference-purgee.test.ts » compare cette liste à l interface du dépôt, et
+ * tombe si une méthode portant « Reference » n est ni une lecture ni ici. Une
+ * liste tenue à la main sans garde finit toujours par en oublier une, et
+ * celle-ci servirait un barème périmé sans bruit.
+ */
+const ECRITURES_DU_REFERENTIEL = new Set(["upsertReference", "deleteReference", "saveReferenceDraft", "publishReference", "discardReference"]);
+
+/**
+ * La purge, et les deux raisons de sa forme.
+ *
+ * « updateTag » D ABORD, PARCE QU ON DOIT LIRE CE QU ON VIENT D ECRIRE. Il
+ * expire l étiquette TOUT DE SUITE et n existe que dans une action serveur,
+ * ce qui est exactement le cas de toutes les écritures du référentiel : le
+ * desk publie un barème depuis un formulaire, et la page qui suit doit
+ * montrer le nouveau. « revalidateTag », lui, programme une expiration : il
+ * servirait encore l ancien une fois, et une fois suffit pour tromper.
+ *
+ * LE REPLI, ET POURQUOI IL NE JETTE PAS. Hors d une action, « updateTag »
+ * refuse. Un cron, un script ou un essai qui écrivent le référentiel ne
+ * doivent pas échouer parce que le cache a mal pris : une écriture passe
+ * avant son cache. On tente alors l expiration immédiate, puis on renonce.
+ */
+function purgerLeReferentiel(): void {
+  try {
+    updateTag(ETIQUETTE_REFERENTIEL);
+    return;
+  } catch {
+    /* pas dans une action serveur : on tente l autre voie */
+  }
+  try {
+    revalidateTag(ETIQUETTE_REFERENTIEL, { expire: 0 });
+  } catch {
+    /* hors requête : il n y a aucun cache de page à vider */
+  }
+}
+
 export function memoRepo(r: Repository, bagOf: () => Map<string, Promise<unknown>> = bag): Repository {
   return new Proxy(r, {
     get(target, prop, receiver) {
@@ -112,6 +165,7 @@ export function memoRepo(r: Repository, bagOf: () => Map<string, Promise<unknown
         } catch {
           // hors requête : rien à vider
         }
+        if (ECRITURES_DU_REFERENTIEL.has(prop)) purgerLeReferentiel();
         return fn.apply(target, args);
       };
     },

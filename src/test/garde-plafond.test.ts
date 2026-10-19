@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { Session } from "@/lib/auth/types";
 
@@ -12,7 +13,7 @@ import type { Session } from "@/lib/auth/types";
 let session: Session;
 
 vi.mock("@/lib/auth", () => ({ getSession: async () => session, requireSession: async () => session, authMode: () => "dev" }));
-vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
+vi.mock("next/cache", () => FAUX_NEXT_CACHE);
 
 const base: Session = {
   userId: "c-tontine",

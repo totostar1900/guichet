@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { Session } from "@/lib/auth/types";
 
@@ -23,7 +24,7 @@ vi.mock("@/lib/auth", () => ({
   authMode: () => "dev",
   mfaRequired: () => false,
 }));
-vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
+vi.mock("next/cache", () => FAUX_NEXT_CACHE);
 vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-forwarded-for": "10.0.0.1", "user-agent": "vitest" }) }));
 
 beforeAll(() => {

@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { Session } from "@/lib/auth/types";
@@ -14,7 +15,7 @@ import type { Session } from "@/lib/auth/types";
 const desk: Session = { userId: "d1", role: "responsable", name: "Georges", segment: "Desk", tier: 2, provider: "dev", mfaEnrolled: true, mfaVerified: true };
 
 vi.mock("@/lib/auth", () => ({ getSession: async () => desk, requireSession: async () => desk, requireDesk: async () => desk, requireResponsable: async () => desk, authMode: () => "dev" }));
-vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
+vi.mock("next/cache", () => FAUX_NEXT_CACHE);
 
 const lire = (p: string) => readFileSync(p, "utf8");
 

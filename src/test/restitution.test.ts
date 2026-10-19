@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CLOSED, OUVERTE, cashPosition, toRestore, mayHold, type CashEntry } from "@/lib/domain/cash";
@@ -125,7 +126,7 @@ const sien = () => {
 
 vi.mock("@/lib/auth", () => ({ requireDesk: async () => ({ name: "Desk Test", role: "desk" }), requireSession: async () => ({ userId: qui.id, name: "Client Test", role: "client" }) }));
 vi.mock("@/lib/audit", () => ({ audit: async () => {} }));
-vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
+vi.mock("next/cache", () => FAUX_NEXT_CACHE);
 
 describe("les deux gestes, bout à bout", () => {
   beforeEach(() => {

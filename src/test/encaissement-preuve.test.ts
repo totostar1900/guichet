@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -26,7 +27,7 @@ const lire = (rel: string) => readFileSync(path.join(RACINE, rel), "utf8");
 
 vi.mock("@/lib/auth", () => ({ requireDesk: async () => ({ name: "Desk Test", role: "desk" }) }));
 vi.mock("@/lib/audit", () => ({ audit: async () => {} }));
-vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
+vi.mock("next/cache", () => FAUX_NEXT_CACHE);
 
 const champs = (o: Record<string, string>): FormData => {
   const f = new FormData();

@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { CAUSES_DE_REJET, estUneCauseDeRejet, phraseDuRejet } from "@/lib/desk/rejet";
@@ -75,7 +76,7 @@ describe("l'action, exercée", () => {
   const poser = () => {
     const faits: { patch?: Record<string, unknown>; audits: { reason?: string }[]; events: { html: string }[] } = { audits: [], events: [] };
     vi.resetModules();
-    vi.doMock("next/cache", () => ({ revalidatePath: () => undefined }));
+    vi.doMock("next/cache", () => FAUX_NEXT_CACHE);
     vi.doMock("@/lib/auth", () => ({ requireDesk: async () => ({ name: "Aline", role: "desk" }), requireSession: async () => ({ userId: "u" }) }));
     vi.doMock("@/lib/audit", () => ({ audit: async (_a: string, _e: string, _i: string, d: { reason?: string }) => void faits.audits.push({ reason: d.reason }) }));
     vi.doMock("@/lib/data", () => ({

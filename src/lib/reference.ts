@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { repo } from "@/lib/data";
 import { BOND_TERMS, type BondTerms } from "@/data/bond-terms";
 import { COMPANIES, type Company } from "@/data/companies";
@@ -34,7 +35,55 @@ export const REF = { types: "product_type", bondTerms: "bond_term", companies: "
 export const TOMBSTONE = { __supprime: true } as const;
 export const isTombstone = (d: unknown): boolean => typeof d === "object" && d !== null && (d as { __supprime?: unknown }).__supprime === true;
 
-const raw = cache(async (kind: string) => (await repo().listReference(kind)).filter((r) => r.data != null));
+/**
+ * LE RÉFÉRENTIEL SE GARDE ENTRE LES REQUÊTES, ET PAS SEULEMENT PENDANT UNE.
+ *
+ * Mesuré le 20 octobre 2026 : « loadRegistry » coûtait 669 ms, et c'était la
+ * plus grosse lecture de TOUTES les pages des DEUX hôtes. Elle était mémoïsée
+ * par requête, donc relue intégralement à chaque visiteur, alors que le
+ * référentiel ne change que lorsqu'une personne du desk publie.
+ *
+ * CE QUI REND LA CHOSE SÛRE N'EST PAS LA DURÉE MAIS L'ÉTIQUETTE. Un cache à
+ * minuterie servirait un barème périmé pendant sa minute, sans le dire. Ici
+ * la seule chose qui le vide est une écriture du référentiel, et toutes les
+ * écritures passent par le dépôt, qui les purge en UN endroit (voir
+ * « data/memo.ts »). Un sixième chemin d'écriture sera donc couvert le jour
+ * où il naîtra, sans que personne ait à y penser, et un essai refuse qu'une
+ * méthode nouvelle échappe au classement.
+ *
+ * La minuterie d'un jour n'est qu'un filet : si une purge se perdait, le pire
+ * durerait jusqu'au lendemain au lieu de toujours.
+ */
+export const ETIQUETTE_REFERENTIEL = "referentiel";
+
+const lu = unstable_cache(async (kind: string) => direct(kind), ["referentiel"], {
+  tags: [ETIQUETTE_REFERENTIEL],
+  revalidate: 86_400,
+});
+
+/** La lecture nue, sans rien garder. */
+const direct = async (kind: string) => (await repo().listReference(kind)).filter((r) => r.data != null);
+
+/**
+ * Deux étages : « unstable_cache » entre les requêtes, « cache » pendant
+ * l'une d'elles. Le second évite de redemander quatre fois la même sorte au
+ * premier cache pendant un même rendu.
+ *
+ * ET UN REPLI, QUI N EST PAS UNE PRÉCAUTION DE STYLE. Hors d une requête,
+ * « unstable_cache » jette : « Invariant: incrementalCache missing ». Or le
+ * référentiel se lit AUSSI depuis les crons, les scripts et le robot, qui ne
+ * rendent aucune page. Sans ce repli, la note de marché du matin et le
+ * ramassage de la BEAC seraient tombés, et l essai l a dit avant la
+ * production. On lit alors sans garder : il n y a de toute façon aucun cache
+ * de page à servir.
+ */
+const raw = cache(async (kind: string) => {
+  try {
+    return await lu(kind);
+  } catch {
+    return direct(kind);
+  }
+});
 
 const rows = cache(async <T,>(kind: string): Promise<Map<string, T>> => new Map((await raw(kind)).filter((r) => !isTombstone(r.data)).map((r) => [r.key, r.data as T])));
 

@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { Session } from "@/lib/auth/types";
 import type { FeatureResult } from "@/app/desk/featured/actions";
@@ -16,7 +17,7 @@ let current: Session = desk;
 const said = (r: FeatureResult): string => (r.ok ? r.message : "error" in r ? r.error : "");
 
 vi.mock("@/lib/auth", () => ({ getSession: async () => current, requireSession: async () => current, requireDesk: async () => current, requireResponsable: async () => current, authMode: () => "dev", mfaRequired: () => false }));
-vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
+vi.mock("next/cache", () => FAUX_NEXT_CACHE);
 vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
 
 beforeAll(() => {

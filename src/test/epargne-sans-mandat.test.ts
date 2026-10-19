@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { addBusinessDays } from "@/lib/finance";
@@ -99,7 +100,7 @@ describe("la question posée à la signature de l'instruction", () => {
 
   it("et « prélevez-moi » mène au mandat, l'instruction déjà choisie", async () => {
     vi.resetModules();
-    vi.doMock("next/cache", () => ({ revalidatePath: () => undefined }));
+    vi.doMock("next/cache", () => FAUX_NEXT_CACHE);
     vi.doMock("@/lib/audit", () => ({ audit: async () => ({}) }));
     vi.doMock("@/lib/auth", () => ({ getSession: async () => ({ userId: "u1", name: "Essai", segment: "Personne physique" }) }));
     vi.doMock("@/lib/data", () => ({
@@ -128,7 +129,7 @@ describe("la question posée à la signature de l'instruction", () => {
 
   it("et « je vire moi-même » dit ce qu'il faudra faire chaque mois", async () => {
     vi.resetModules();
-    vi.doMock("next/cache", () => ({ revalidatePath: () => undefined }));
+    vi.doMock("next/cache", () => FAUX_NEXT_CACHE);
     vi.doMock("@/lib/audit", () => ({ audit: async () => ({}) }));
     vi.doMock("@/lib/auth", () => ({ getSession: async () => ({ userId: "u1", name: "Essai", segment: "Personne physique" }) }));
     vi.doMock("@/lib/data", () => ({

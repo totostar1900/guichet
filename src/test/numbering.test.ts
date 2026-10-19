@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 /**
@@ -6,7 +7,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
  * sequence that never reuses a number, even after a document is removed.
  * In-memory repository.
  */
-vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
+vi.mock("next/cache", () => FAUX_NEXT_CACHE);
 
 beforeAll(() => {
   delete process.env.NEXT_PUBLIC_SUPABASE_URL;

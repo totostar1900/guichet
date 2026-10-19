@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { duAuxClients, ecart, pourquoiPasDeRapprochement, tenuParLaMaison, type CompteDeclare } from "@/lib/domain/rapprochement";
@@ -114,7 +115,7 @@ describe("ce qui empêche d'enregistrer un contrôle", () => {
 
 vi.mock("@/lib/auth", () => ({ requireDesk: async () => ({ name: "Desk Test", role: "desk" }) }));
 vi.mock("@/lib/audit", () => ({ audit: async () => {} }));
-vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
+vi.mock("next/cache", () => FAUX_NEXT_CACHE);
 
 const champs = (o: Record<string, string | string[]>): FormData => {
   const f = new FormData();

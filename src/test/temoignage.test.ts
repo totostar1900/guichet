@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { accuseDeReception, fileDesAttendus, parFlux, pourquoiPasDeTemoignage, prioriteDuFlux, type Temoignage } from "@/lib/domain/temoignage";
@@ -123,7 +124,7 @@ describe("ce que la maison répond", () => {
 
 vi.mock("@/lib/auth", () => ({ requireSession: async () => ({ userId: "u-temoin", name: "Client Témoin", role: "client" }) }));
 vi.mock("@/lib/audit", () => ({ audit: async () => {} }));
-vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
+vi.mock("next/cache", () => FAUX_NEXT_CACHE);
 
 const champs = (o: Record<string, string>): FormData => {
   const f = new FormData();

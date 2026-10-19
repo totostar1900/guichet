@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { Session } from "@/lib/auth/types";
 
@@ -19,7 +20,7 @@ vi.mock("@/lib/auth", () => ({
   authMode: () => "dev",
 }));
 // « unstable_cache » rend la fonction telle quelle : le test mesure la lecture, pas le cache.
-vi.mock("next/cache", () => ({ revalidatePath: () => undefined, unstable_cache: (fn: unknown) => fn }));
+vi.mock("next/cache", () => FAUX_NEXT_CACHE);
 
 beforeAll(() => {
   delete process.env.NEXT_PUBLIC_SUPABASE_URL; // memory repository, .uploads on disk

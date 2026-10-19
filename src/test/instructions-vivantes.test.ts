@@ -1,3 +1,4 @@
+import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -103,7 +104,7 @@ describe("la clé de répartition", () => {
 
 vi.mock("@/lib/auth", () => ({ getSession: async () => ({ userId: qui.id, name: "Client Modif", segment: "Personne physique", email: "c@exemple.com", role: "client" }) }));
 vi.mock("@/lib/audit", () => ({ audit: async () => {} }));
-vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
+vi.mock("next/cache", () => FAUX_NEXT_CACHE);
 
 const qui = vi.hoisted(() => ({ id: "u-modif-0" }));
 let rang = 0;
