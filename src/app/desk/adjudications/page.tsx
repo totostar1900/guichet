@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
-import { Poignee } from "@/components/desk/Poignee";
+import { Poignee } from "@/components/Poignee";
 import { compteDansLesResultats } from "@/lib/market/auction-results";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";

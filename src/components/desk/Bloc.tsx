@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Poignee } from "@/components/desk/Poignee";
+import { Poignee } from "@/components/Poignee";
 import styles from "@/app/desk/analyses/page.module.css";
 
 /**

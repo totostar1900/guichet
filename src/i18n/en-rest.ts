@@ -1365,4 +1365,5 @@ export const EN_REST: Record<string, string> = {
   "Ouvrir la navigation": "Open the navigation",
   "Masquer la navigation": "Hide the navigation",
   "Le groupe de la page ouverte reste déplié": "The group holding the open page stays unfolded",
+  "Régler la largeur de la navigation": "Adjust the navigation width",
 };

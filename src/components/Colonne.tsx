@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useT } from "@/i18n/client";
+import { Poignee } from "./Poignee";
 import { COLONNE_CLIENT, COLONNE_DESK, COLONNE_VISITEUR, estParcoursFerme, estRouteLarge, groupeDe, pageDe, type GroupeColonne } from "@/lib/nav-colonne";
 import styles from "./Colonne.module.css";
 
@@ -108,10 +109,20 @@ export function Colonne({
 
   const effectif: EtatColonne = etat ?? (estRouteLarge(path) ? "escamotee" : "repliee");
 
+  /**
+   * TOUT GROUPE SE PLIE, SANS EXCEPTION, et c'est un essai qui m'a corrigé.
+   *
+   * J'avais verrouillé le groupe de la page ouverte, au motif qu'une colonne
+   * ne doit pas cacher où l'on est. Mais un chevron qui ne répond pas ne se
+   * lit pas comme une règle : il se lit comme une panne, et c'est ainsi qu'il
+   * a été rapporté. « Le marché ne se plie pas. »
+   *
+   * Une règle qu'on ne peut pas distinguer d'un défaut n'est pas une règle.
+   * Le souci de départ est traité autrement, et mieux : à l'arrivée sur une
+   * page, son groupe s'ouvre tout seul. Le lecteur peut ensuite le replier,
+   * puisque c'est lui qui l'a voulu.
+   */
   const basculer = (label: string) => {
-    /* ON NE REPLIE PAS LÀ OÙ L'ON EST : le groupe courant reste ouvert, sans
-       quoi la colonne cacherait la seule chose qu'on y cherche toujours. */
-    if (label === actifG) return;
     const suite = new Set(plies);
     if (suite.has(label)) suite.delete(label);
     else suite.add(label);
@@ -136,7 +147,21 @@ export function Colonne({
    * colonne du tout.
    */
   const aOuvrirDoffice = actifG ?? groupes[0]?.label;
-  const ouvert = (label: string) => label === aOuvrirDoffice || (effectif === "deployee" ? !plies.has(label) : false);
+
+  /* À L'ARRIVÉE SUR UNE PAGE, SON GROUPE S'OUVRE. C'est ce qui remplace le
+     verrou : on ne perd jamais sa position en naviguant, et l'on garde le
+     droit de replier ensuite. */
+  useEffect(() => {
+    if (!aOuvrirDoffice) return;
+    setPlies((p) => {
+      if (!p.has(aOuvrirDoffice)) return p;
+      const suite = new Set(p);
+      suite.delete(aOuvrirDoffice);
+      return suite;
+    });
+  }, [aOuvrirDoffice]);
+
+  const ouvert = (label: string) => (effectif === "deployee" ? !plies.has(label) : label === aOuvrirDoffice && !plies.has(label));
 
   if (effectif === "escamotee")
     return (
@@ -154,16 +179,12 @@ export function Colonne({
           const estOuvert = ouvert(g.label);
           const alertes = g.items.reduce((a, it) => a + (badges[it.href] ?? 0), 0);
           return (
-            <div key={g.label}>
+            <div key={g.label} className={styles.groupe}>
               <button
                 type="button"
                 className={styles.gl}
                 aria-expanded={estOuvert}
                 onClick={() => basculer(g.label)}
-                /* Le groupe courant ne se replie pas : le dire plutôt que de
-                   laisser un bouton qui ne répond pas. */
-                disabled={g.label === actifG}
-                title={g.label === actifG ? t("Le groupe de la page ouverte reste déplié") : undefined}
               >
                 <Chevron className={styles.ch} />
                 <span className={styles.nm}>{t(g.label)}</span>
@@ -181,6 +202,11 @@ export function Colonne({
           );
         })}
       </div>
+      {/* LA LARGEUR SE RÈGLE, parce qu'elle ne se décide pas ici. « Allocations
+          et règlement » veut de la place, une table à treize colonnes n'en
+          veut pas, et c'est le même écran. La poignée écrit « --colonne-w »
+          sur la racine, donc la colonne ET le pied de page suivent d'un coup. */}
+      <Poignee variable="--colonne-w" min={180} max={420} memoire="colonne" porte="html" libelle={t("Régler la largeur de la navigation")} className={styles.tirette} />
       <div className={styles.pied}>
         {pied}
         <div className={styles.reglages}>

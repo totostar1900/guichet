@@ -3,7 +3,7 @@ import { DeskNav } from "@/components/DeskNav";
 import { TallTable } from "@/components/desk/TallTable";
 import { Bloc } from "@/components/desk/Bloc";
 import { Commentaire } from "@/components/desk/Commentaire";
-import { Poignee } from "@/components/desk/Poignee";
+import { Poignee } from "@/components/Poignee";
 import { RailSections, type SectionRail } from "@/components/RailSections";
 import { BEAC_COURBE } from "@/data/beac-courbe";
 import { CourbeFusion } from "@/components/market/CourbeFusion";

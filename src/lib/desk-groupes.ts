@@ -29,6 +29,12 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
     label: "Les clients",
     tabs: [
       ["/desk/clients", "Dossiers"],
+      /* LES PAGES QUE LA BARRE N AVAIT PAS LA PLACE DE PORTER. Une barre a un
+         budget de largeur, une colonne un budget de longueur : ces quatre-la
+         existaient sans qu aucun onglet n y mene, et l on n y arrivait qu en
+         tapant l adresse. Mesure le 19 octobre 2026. */
+      ["/desk/clients/activite", "Activité des clients"],
+      ["/desk/clients/quantitatif", "Vue quantitative"],
       ["/desk/repertoire", "Répertoire"],
       ["/desk/resultats", "Allocations et règlement"],
       ["/desk/encaissements", "Encaissements"],
@@ -96,6 +102,7 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/referentiel/modeles", "Modèles"],
       ["/desk/referentiel/bareme", "Barème"],
       ["/desk/referentiel/registre", "Registre"],
+      ["/desk/referentiel/souffrance", "Délai de souffrance"],
       ["/desk/equipe", "Équipe"],
       ["/desk/journal", "Journal"],
       ["/desk/reporting", "Reporting"],
@@ -103,6 +110,8 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/depot", "Dépôt"],
       ["/desk/robot", "Robot"],
       ["/desk/docs", "Documentation"],
+      ["/desk/docs/notes", "Notes du lecteur"],
+      ["/desk/guide", "Guide"],
     ],
   },
 ];

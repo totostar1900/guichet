@@ -249,3 +249,53 @@
     display: none;
   }
 }
+
+/* ===========================================================================
+   DISTINGUER LES GROUPES, parce qu'à l'essai on ne les voyait pas.
+
+   Sur un écran large, les six étiquettes et leurs trente-huit pages se
+   lisaient comme une seule liste : rien ne disait où un groupe finissait.
+   Trois gestes, et aucun n'ajoute de couleur.
+
+     UN FILET AU-DESSUS DE CHAQUE GROUPE, sauf le premier. C'est le trait qui
+     sépare, pas l'espace : l'espace seul se confond avec l'interligne.
+
+     LES PAGES SONT EN RETRAIT sous leur étiquette. Une page décalée appartient
+     visiblement à ce qui la surplombe ; alignée, elle flotte.
+
+     L'ÉTIQUETTE PREND DU POIDS, et le chevron s'écarte d'elle pour tomber
+     toujours à la même abscisse, celle du retrait des pages.
+   =========================================================================== */
+.groupe + .groupe {
+  border-top: 1px solid var(--line);
+  margin-top: var(--s-4);
+  padding-top: var(--s-2);
+}
+.item {
+  padding-left: var(--s-9);
+}
+.sections {
+  margin-left: var(--s-10);
+}
+
+/* LA TIRETTE : un bord que l'on tire, et rien d'autre. Elle occupe toute la
+   hauteur du bord droit de la colonne, parce qu'on saisit un bord là où la
+   main tombe, pas à une hauteur convenue. */
+.tirette {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 7px;
+  height: 100%;
+  z-index: 2;
+}
+.colonne {
+  position: sticky;
+  /* La tirette se place contre son bord : la colonne doit donc être un repère. */
+  flex: 0 0 var(--colonne-w);
+}
+
+/* Le pied respire : la personne, puis les deux réglages, sans se toucher. */
+.pied {
+  padding: var(--s-5);
+}

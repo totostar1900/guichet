@@ -205,8 +205,18 @@
        avant lui : le ruban des instruments de la page d'accueil, qui défile
        dans son propre cadre, poussait « main » à 11 069 pixels et la page
        débordait de 9 892. La largeur minimale d'un élément souple vaut son
-       contenu tant qu'on ne la met pas à zéro. */
-    max-width: none;
+       contenu tant qu'on ne la met pas à zéro.
+
+       MAIS LA PAGE A BESOIN D'UN CADRE, et l'avoir retiré était une faute.
+       Vu sur un écran de 1 909 pixels : le tableau de données du desk courait
+       d'un bord à l'autre, et l'œil devait retrouver le bord droit à chaque
+       rangée. C'est exactement ce que la mesure du 12 octobre avait réparé
+       sur l'accueil, et je l'ai défait en enlevant la borne de 1 380.
+       Elle revient, à la bonne place : elle borne LE CONTENU, et la colonne
+       vit dehors. Et elle se centre dans ce qui reste, plutôt que de laisser
+       toute la laisse d'un seul côté. */
+    max-width: 1380px;
+    margin-inline: auto;
     flex: 1;
     padding: var(--s-8) var(--s-9) var(--s-11);
   }

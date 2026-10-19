@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { SourceViewer } from "@/components/SourceViewer";
-import { Poignee } from "@/components/desk/Poignee";
+import { Poignee } from "@/components/Poignee";
 import { useT } from "@/i18n/client";
 import { coverageOf, etatSeance, thin, type AuctionResult } from "@/lib/market/auction-results";
 import { auctionYield, YIELD_ORIGIN_LABEL, type Convention } from "@/lib/market/yield";

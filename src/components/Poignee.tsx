@@ -7,6 +7,14 @@ import styles from "./Poignee.module.css";
 /**
  * Une poignée qui règle la largeur d'un volet.
  *
+ * ELLE A QUITTÉ « components/desk » le 19 octobre 2026, parce qu'elle sert
+ * aussi la colonne de navigation, que le client voit. Un cliquet interdit au
+ * Guichet de citer un composant du desk, et il a raison : ce qui est réservé
+ * au desk ne doit pas se retrouver sous les yeux d'un client par la porte d'un
+ * import. Cette poignée ne porte aucun savoir du desk, seulement une variable
+ * CSS et deux bornes, donc elle déménage plutôt que d'être recopiée. C'est le
+ * même chemin que « RailSections » avait pris le 2 octobre.
+ *
  * Trois volets tiennent l'écran de relecture : la liste des séances, le
  * communiqué, les champs. Leurs largeurs ne se décident pas ici : elles
  * dépendent du scan qu'on est en train de lire, et un scan tchadien de travers

@@ -1,0 +1,123 @@
+import fs from "node:fs";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+import { COLONNE_CLIENT, COLONNE_DESK, COLONNE_VISITEUR } from "@/lib/nav-colonne";
+
+/**
+ * AUCUNE PAGE NE NAÎT SANS CHEMIN.
+ *
+ * Mesuré le 19 octobre 2026 : vingt-quatre pages fixes n'étaient citées par
+ * aucune barre, dont cinq du desk. On n'y arrivait qu'en tapant l'adresse, et
+ * personne ne le savait, parce qu'une page inatteignable ne proteste pas. La
+ * barre avait un budget de LARGEUR : les trente-huit onglets l'avaient
+ * saturée, et les suivants sont restés dehors sans bruit.
+ *
+ * La colonne a un budget de LONGUEUR, donc la place existe. Restait à
+ * empêcher que le trou se reforme : c'est le travail de cet essai.
+ *
+ * TROIS FAÇONS LÉGITIMES D'ÊTRE ATTEIGNABLE, et il n'y en a pas d'autre.
+ *
+ *   LA COLONNE LA CITE. C'est le cas normal.
+ *
+ *   UNE AUTRE PAGE Y MÈNE PAR UN LIEN. Une étape de parcours, une fiche
+ *   ouverte depuis sa liste, un réglage ouvert depuis la page qu'il règle.
+ *
+ *   ELLE NE FAIT QUE REDIRIGER. « /agir », « /moi », « /moi/services » sont
+ *   d'anciennes adresses parties dans des messages : elles existent pour
+ *   rattraper un lien déjà donné, et leur donner une entrée de menu
+ *   afficherait deux fois la même destination.
+ *
+ * Une route dynamique n'est pas jugée : elle s'ouvre depuis sa liste, et
+ * c'est « ListNav » qui en répond.
+ */
+const ROOT = path.resolve(__dirname, "../..");
+const APP = path.join(ROOT, "src/app");
+
+/** Toutes les routes servies, telles que l'adresse les écrit. */
+function routes(): string[] {
+  const out: string[] = [];
+  const walk = (d: string) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name === "page.tsx") {
+        const r = p.replace(APP, "").replace(/[\\/]page\.tsx$/, "").replace(/\\/g, "/").replace(/\/\([^)]*\)/g, "");
+        out.push(r || "/");
+      }
+    }
+  };
+  walk(APP);
+  return [...new Set(out)].sort();
+}
+
+/** Les fichiers source où un lien peut vivre. */
+function sources(): string[] {
+  const out: string[] = [];
+  const walk = (d: string) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory() && e.name !== "test") walk(p);
+      else if (/\.tsx?$/.test(e.name) && !/\.test\.tsx?$/.test(e.name)) out.push(p);
+    }
+  };
+  walk(path.join(ROOT, "src"));
+  return out;
+}
+
+const citeesParLaColonne = new Set([...COLONNE_DESK, ...COLONNE_CLIENT, ...COLONNE_VISITEUR].flatMap((g) => g.items.map((i) => i.href)));
+
+describe("toute page est atteignable au clic", () => {
+  const toutes = routes();
+  const fixes = toutes.filter((r) => !r.includes("[") && !r.includes("(."));
+  const textes = new Map(sources().map((f) => [f, fs.readFileSync(f, "utf8")]));
+
+  /** Cette page ne fait-elle que rediriger ailleurs ? */
+  const redirige = (r: string) => {
+    const f = path.join(APP, r === "/" ? "" : r, "page.tsx");
+    const src = textes.get(f);
+    return Boolean(src && /\bredirect\(/.test(src) && !/export const dynamic|<[A-Z]/.test(src.replace(/import[^;]+;/g, "")));
+  };
+
+  /**
+   * Une autre page la cite-t-elle ? La page elle-même ne compte pas.
+   *
+   * UNE ADRESSE PORTE PARFOIS UNE REQUÊTE, et chercher la chaîne exacte la
+   * rate. « /connexion/mfa » s'atteint par un `redirect` vers
+   * « /connexion/mfa?enrol=1&next=… » : la deuxième étape de la connexion
+   * était comptée perdue alors qu'elle est le seul chemin servi.
+   */
+  const citeeAilleurs = (r: string) => {
+    const dossier = path.join(APP, r === "/" ? "" : r);
+    const motif = new RegExp(`["'\`]${r.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:[?#][^"'\`]*)?["'\`]`);
+    for (const [f, src] of textes) {
+      if (f.startsWith(dossier + path.sep) || f === path.join(dossier, "page.tsx")) continue;
+      if (motif.test(src)) return true;
+    }
+    return false;
+  };
+
+  it("la colonne cite chaque page fixe, ou quelqu'un d'autre y mène", () => {
+    const perdues = fixes.filter((r) => !citeesParLaColonne.has(r) && !redirige(r) && !citeeAilleurs(r));
+    expect(
+      perdues,
+      `ces pages existent et rien n'y mène : on n'y arrive qu'en tapant l'adresse.\n` +
+        `Les ranger dans un groupe de « lib/nav-colonne », ou dire d'où on y entre.\n  ${perdues.join("\n  ")}`,
+    ).toEqual([]);
+  });
+
+  it("chaque adresse citée par la colonne est une page qui existe", () => {
+    /* L'INVERSE COMPTE AUTANT. Un menu qui pointe sur une page retirée rend
+       une erreur, et c'est le lecteur qui la découvre. */
+    const servies = new Set(toutes);
+    const mortes = [...citeesParLaColonne].filter((h) => !servies.has(h) && !toutes.some((r) => r.includes("[") && new RegExp(`^${r.replace(/\[[^\]]+\]/g, "[^/]+")}$`).test(h)));
+    expect(mortes, `la colonne pointe sur des adresses que rien ne sert :\n  ${mortes.join("\n  ")}`).toEqual([]);
+  });
+
+  it("le desk porte toutes ses pages, et la colonne a la place", () => {
+    const pagesDesk = fixes.filter((r) => r.startsWith("/desk"));
+    const citees = pagesDesk.filter((r) => citeesParLaColonne.has(r));
+    /* Le compte monte quand une page du desk naît avec son entrée ; il ne
+       redescend pas. Au 19 octobre 2026 : 43 sur 44. */
+    expect(citees.length, `${pagesDesk.length - citees.length} page(s) du desk hors de la colonne : ${pagesDesk.filter((r) => !citeesParLaColonne.has(r)).join(", ")}`).toBeGreaterThanOrEqual(43);
+  });
+});

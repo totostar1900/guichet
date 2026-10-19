@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Poignee } from "@/components/desk/Poignee";
+import { Poignee } from "@/components/Poignee";
 import { useT } from "@/i18n/client";
 import { fmtDate } from "@/lib/format";
 import type { EtatSeance } from "@/lib/market/auction-results";

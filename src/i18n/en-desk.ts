@@ -3506,4 +3506,8 @@ export const EN_MORE: Record<string, string> = {
   "à la façon du Guichet": "the Guichet way",
   "à la façon de la BEAC": "the BEAC way",
   "Les rendements de cette page sont calculés à la façon de la BEAC : escompte divisé par un moins escompte fois la durée. La mesure du Guichet, plus rigoureuse, compte l'escompte en exact/360 et capitalise en exact/365.": "The yields on this page are computed the BEAC way: discount divided by one minus discount times the term. The Guichet measure, more rigorous, counts the discount actual/360 and compounds actual/365.",
+  "Activité des clients": "Client activity",
+  "Vue quantitative": "Quantitative view",
+  "Notes du lecteur": "Reader notes",
+  "Délai de souffrance": "Ageing threshold",
 };

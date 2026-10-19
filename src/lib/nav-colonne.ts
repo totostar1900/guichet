@@ -53,6 +53,11 @@ export const COLONNE_VISITEUR: GroupeColonne[] = [
       { href: "/comparer", label: "Comparer" },
       { href: "/indice/notes", label: "Publications" },
       { href: "/info/risques", label: "Risques et limites" },
+      /* Trois pages que la barre ne citait pas : on n'y arrivait que par un
+         lien du pied de page, c'est-à-dire après avoir descendu la page. */
+      { href: "/info/parcours", label: "Le parcours" },
+      { href: "/info/aide", label: "Aide" },
+      { href: "/info/mentions", label: "Mentions légales" },
     ],
   },
 ];
