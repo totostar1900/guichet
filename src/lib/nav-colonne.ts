@@ -72,6 +72,16 @@ export const COLONNE_VISITEUR: GroupeColonne[] = [
  * La poignée au bord ramène la colonne, et ce choix-là tient pour la session :
  * un réglage que la page impose à chaque visite est un réglage qui ment.
  */
+/*
+ * UNE PAGE QUI A DÉJÀ UN RAIL DE SECTIONS N'EST PAS DANS CETTE LISTE, et
+ * c'est l'essai qui m'a repris. J'y avais rangé « /desk/analyses » et
+ * « /desk/marche » : la colonne s'y escamotait d'office, donc précisément
+ * sur les deux pages où l'on voulait voir la colonne À CÔTÉ de leur rail.
+ * Le réglage annulait la décision qu'il devait servir.
+ *
+ * Ces pages restent larges, mais c'est le lecteur qui escamote s'il le veut,
+ * et son choix tient pour la session.
+ */
 export const ROUTES_LARGES: string[] = [
   "/desk/adjudications/tableau",
   "/desk/bulletins",
@@ -79,9 +89,7 @@ export const ROUTES_LARGES: string[] = [
   "/desk/dette",
   "/desk/beac",
   "/desk/courbe",
-  "/desk/analyses",
   "/desk/comparer",
-  "/desk/marche",
   "/comparer",
   "/titres",
   "/fonds",
