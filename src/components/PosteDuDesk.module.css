@@ -1,0 +1,257 @@
+/* Le bouton au pied de la colonne : l avatar et le nom, rien de plus. */
+.bouton {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+}
+.bouton:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: 2px;
+}
+.av {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  background: var(--gold);
+  color: var(--navy);
+  font-size: var(--t-2);
+  font-weight: 700;
+}
+.qui {
+  min-width: 0;
+}
+.qui b {
+  display: block;
+  font-size: var(--t-3);
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qui span {
+  display: block;
+  font-size: var(--t-1);
+  color: var(--ink-2);
+}
+
+/* ===== Le corps de la feuille ===== */
+.bloc {
+  padding: var(--s-6) 0;
+  border-bottom: 1px solid var(--line);
+}
+.bloc:last-child {
+  border-bottom: 0;
+}
+.gl {
+  font-size: var(--t-1);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-3);
+  font-weight: 600;
+  margin: 0 0 var(--s-4);
+}
+
+/* Ce que le rôle autorise : une colonne de faits, pas de boutons. */
+.droits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.droit {
+  display: flex;
+  gap: var(--s-4);
+  align-items: baseline;
+  font-size: var(--t-3);
+}
+.droit i {
+  font-style: normal;
+  flex: none;
+  width: 13px;
+  text-align: center;
+  font-weight: 700;
+}
+.peut i {
+  color: var(--good);
+}
+.pasPeut,
+.pasPeut i {
+  color: var(--ink-3);
+}
+.renvoi {
+  margin: var(--s-5) 0 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.renvoi a {
+  color: var(--ink-2);
+}
+
+/* La journée : trois chiffres, puis ce qui attend. */
+.chiffres {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  /* Le filet entre les trois chiffres est un TRAIT, pas un espacement : un
+     « gap » d un pixel sortirait de l echelle, et le bord le dit mieux. */
+  gap: 0;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.ch {
+  border-right: 1px solid var(--line);
+  background: var(--paper);
+  padding: var(--s-4) var(--s-5);
+}
+.ch b {
+  display: block;
+  font-size: var(--t-6);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.ch span {
+  display: block;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+.ch:last-child {
+  border-right: 0;
+}
+.ch:last-child {
+  border-right: 0;
+}
+.appelle b {
+  color: var(--crit);
+}
+.att {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--s-4);
+}
+.att a {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-3) 0;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+}
+.att a:last-child {
+  border-bottom: 0;
+}
+.att a:hover {
+  color: var(--ink);
+}
+.att em {
+  font-style: normal;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.nm {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bloque {
+  margin: var(--s-4) 0 0;
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--line-2);
+  background: var(--surface-2);
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.bloque b {
+  color: var(--ink);
+}
+
+/* Le siège : ce qui vit dans ce navigateur. */
+.reglages {
+  display: flex;
+  flex-direction: column;
+}
+.reglage {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  padding: var(--s-3) 0;
+  font-size: var(--t-3);
+  border-bottom: 1px solid var(--line);
+}
+.reglage:last-child {
+  border-bottom: 0;
+}
+.reglage .nm {
+  flex: 1;
+}
+.lien {
+  font: inherit;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 3px;
+}
+.lien:hover {
+  color: var(--ink);
+}
+
+/* La session. */
+.sess {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.sess > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-5);
+  padding: var(--s-2) 0;
+}
+.sess dt,
+.sess dd {
+  margin: 0;
+}
+.sess dd {
+  color: var(--ink);
+}
+.sortir {
+  display: flex;
+  gap: var(--s-4);
+  margin-top: var(--s-5);
+}
+.sortir button {
+  font: inherit;
+  font-size: var(--t-2);
+  padding: var(--s-3) var(--s-6);
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.sortir button:hover {
+  border-color: var(--ink-3);
+  color: var(--ink);
+}
+.fort {
+  border-color: var(--crit) !important;
+  color: var(--crit) !important;
+}

@@ -1210,6 +1210,8 @@ export const supabaseRepository: Repository = {
     let q = db().from("audit").select("*").order("id", { ascending: false }).limit(filter.limit ?? 100);
     if (filter.entity) q = q.eq("entity", filter.entity);
     if (filter.entityId) q = q.eq("entity_id", filter.entityId);
+    if (filter.actorId) q = q.eq("actor_id", filter.actorId);
+    if (filter.from) q = q.gte("at", filter.from);
     const { data, error } = await q;
     if (error) return [];
     return (data as AuditRow[]).map(toAudit);

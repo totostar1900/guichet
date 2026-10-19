@@ -13,6 +13,8 @@ import { getSession } from "@/lib/auth";
 import { UserMenu } from "@/components/UserMenu";
 import { RailMarche } from "@/components/RailMarche";
 import { Colonne } from "@/components/Colonne";
+import { PosteDuDesk } from "@/components/PosteDuDesk";
+import { chargerPoste } from "@/lib/desk/poste";
 import { ColonneStore } from "@/components/ColonneStore";
 import { MobileShell } from "@/components/mobile/MobileShell";
 import { Onboarding } from "@/components/mobile/Onboarding";
@@ -134,6 +136,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
      thème basculer en cours de navigation. */
   const surface = session ? "travail" : "vitrine";
 
+  /* Le poste n'est chargé que pour un opérateur : deux lectures de plus sur
+     chaque page du desk, et aucune sur le guichet. */
+  const poste = deskUi && session ? await chargerPoste(session.userId, session.role).catch(() => undefined) : undefined;
   const menu = <AppMenu signedIn={Boolean(session)} desk={deskUi} name={session?.name} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
     <html lang={lang} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value, surface)}>
@@ -196,6 +201,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </Link>
             }
             pied={
+              /* AU DESK, LA FEUILLE DU COMPTE N'EST PAS CELLE DU CLIENT.
+                 Celle du Guichet répond à « qui suis-je comme client » :
+                 canaux prouvés, notifications, palier, statut KYC. Un
+                 opérateur n'a rien de tout cela, et elle lui montrait des
+                 cases vides sous un « Bonjour ». */
+              deskUi && session && poste ? (
+                <PosteDuDesk nom={session.name} poste={poste} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} dock="bottom-left" />
+              ) : (
               <UserMenu
                 session={session}
                 deskUi={deskUi}
@@ -205,6 +218,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 dock="bottom-left"
                 account={session ? { name: session.name, segment: session.segment, tier: session.tier, desk: deskUi, email: account?.email ?? session.email, phone: account?.phone ?? session.phone, phoneOk: account?.phoneOk, emailOk: account?.emailOk, prefs: account?.prefs, kycStatus: session.kycStatus, vapidKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY, security, profile: profile?.kind, build: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7), attentes: deskUi ? [] : attentes } : undefined}
               />
+              )
             }
           />
           <main className={styles.main}>

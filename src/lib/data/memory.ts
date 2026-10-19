@@ -561,7 +561,13 @@ export const memoryRepository: Repository = {
     return structuredClone(row);
   },
   async listAudit(filter = {}) {
-    const rows = store().audit.filter((a) => (!filter.entity || a.entity === filter.entity) && (!filter.entityId || a.entityId === filter.entityId));
+    const rows = store().audit.filter(
+      (a) =>
+        (!filter.entity || a.entity === filter.entity) &&
+        (!filter.entityId || a.entityId === filter.entityId) &&
+        (!filter.actorId || a.actorId === filter.actorId) &&
+        (!filter.from || a.at >= filter.from),
+    );
     return structuredClone(rows.slice(-(filter.limit ?? 100)).reverse());
   },
   async logClientAction(e) {

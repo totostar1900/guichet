@@ -192,7 +192,16 @@ export interface Repository {
   listOfferVersions(offerId: string): Promise<OfferVersion[]>;
   /** Audit trail (append-only, hash-chained). */
   logAudit(e: NewAuditEntry): Promise<AuditEntry>;
-  listAudit(filter?: { entity?: string; entityId?: string; limit?: number }): Promise<AuditEntry[]>;
+  /**
+   * La chaine d audit, filtrée.
+   *
+   * « actorId » et « from » ont été ajoutés le 20 octobre 2026 pour le poste
+   * du desk, qui compte les gestes d UNE personne sur UN jour. Les filtrer en
+   * mémoire sur une page bornée aurait sous-compté EN SILENCE le jour où le
+   * desk travaille beaucoup : c est la famille de pannes la plus coûteuse de
+   * la maison, et un compteur faux vaut moins que pas de compteur.
+   */
+  listAudit(filter?: { entity?: string; entityId?: string; actorId?: string; from?: string; limit?: number }): Promise<AuditEntry[]>;
   /** Registre des gestes des clients : memes colonnes que l audit, sans la chaine. */
   logClientAction(e: NouvelleActionClient): Promise<void>;
   listClientActions(filter?: { userId?: string; genre?: Genre; from?: string; to?: string; limit?: number }): Promise<ActionClient[]>;
