@@ -36,7 +36,25 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
-  const [offers, intents, events, notifications, approvals, contacts] = await Promise.all([r.listOffers(), r.listIntents(), r.listEvents(30), r.listNotifications(20), r.listApprovals(true), r.listContacts().catch(() => [])]);
+  /**
+   * SEPT LECTURES EN UN SEUL ALLER-RETOUR, et la septieme y est entree le
+   * 20 octobre 2026.
+   *
+   * « listAuctionResults » attendait les six autres sans rien leur devoir :
+   * elle sert a tarifer les lignes, ce qui se fait plus bas. Mesure contre la
+   * base, une lecture coute son ALLER-RETOUR et non sa donnee : zero ligne en
+   * coute 216 ms, deux cent soixante en coutent 603. Mise en serie, celle-ci
+   * ajoutait donc six cents millisecondes a chaque ouverture du carnet.
+   */
+  const [offers, intents, events, notifications, approvals, contacts, adjudications] = await Promise.all([
+    r.listOffers(),
+    r.listIntents(),
+    r.listEvents(30),
+    r.listNotifications(20),
+    r.listApprovals(true),
+    r.listContacts().catch(() => []),
+    r.listAuctionResults({ limit: 800 }).catch(() => []),
+  ]);
   /* LE CARNET EST UNE FILE DE GESTES, PAS UN CHIFFRE : un ordre de
      démonstration y RESTE, sinon on ne pourrait plus montrer le desk en train
      de le traiter, ce qui est la seule raison de garder ces comptes. Il porte
@@ -90,7 +108,6 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
   const souffrances = new Map([...attentes].map(([id, a]) => [id, a.souffrance]));
 
   const aujourdhui = now.toISOString().slice(0, 10);
-  const adjudications = await r.listAuctionResults({ limit: 800 }).catch(() => []);
   const tarifs = tariferLesLignes(live, adjudications, aujourdhui);
 
   // Le carnet se cherche et se trie, mais les quatre chiffres du haut, eux,

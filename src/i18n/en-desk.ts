@@ -3537,5 +3537,4 @@ export const EN_MORE: Record<string, string> = {
   "Cette session": "This session",
   "Rôle": "Role",
   "Version servie": "Version served",
-  "Opérateur": "Operator",
 };

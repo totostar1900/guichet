@@ -120,12 +120,34 @@ export default async function RootLayout({ children }: { children: React.ReactNo
      bande, elle, ne regarde pas le rôle, et n'avait AUCUNE pastille. Deux
      lectures de la même chose, deux réponses. C'est la surface qui tranche :
      sur le site client, on est client, quel que soit son rôle ailleurs. */
-  const [account, profile, attentes] = session
-    ? await Promise.all([accountLine(session.userId), deskUi ? undefined : repo().getFinancialProfile(session.userId).catch(() => undefined), deskUi ? [] : attentesPourLaBarre(session.userId)])
-    : [undefined, undefined, []];
+  /**
+   * QUATRE ÉTAGES EN SÉRIE SONT DEVENUS DEUX, et c'est de la latence pure.
+   *
+   * Mesuré le 20 octobre 2026, lecture par lecture contre la base : AUCUNE
+   * n'est lente. La pire fait 669 ms, la plupart entre 200 et 600, et le
+   * temps ne suit pas le nombre de lignes : zéro ligne coûte 216 ms, deux
+   * cent soixante en coûtent 603. Ce qu'on paie est l'ALLER-RETOUR, pas la
+   * donnée.
+   *
+   * Leur somme faisait 4 583 ms, leur maximum 669. Toute lecture mise en
+   * série coûte donc son aller-retour entier, et la mise en page en
+   * enchaînait quatre : le compte, le consentement, le poste, chacun
+   * attendant le précédent alors qu'aucun n'a besoin de lui. Ils n'ont
+   * besoin que de la SESSION, qui vient de l'étage d'avant.
+   *
+   * Un seul « Promise.all » les porte maintenant tous.
+   */
+  const [account, profile, attentes, consent, poste] = session
+    ? await Promise.all([
+        accountLine(session.userId),
+        deskUi ? undefined : repo().getFinancialProfile(session.userId).catch(() => undefined),
+        deskUi ? [] : attentesPourLaBarre(session.userId),
+        // A client accepts the legal text once per version of it; the desk is bound by its contract, not by this box.
+        !desk ? repo().getConsent(session.userId).catch(() => ({}) as { version?: string }) : undefined,
+        deskUi ? chargerPoste(session.userId, session.role).catch(() => undefined) : undefined,
+      ])
+    : [undefined, undefined, [], undefined, undefined];
   const security = desk ? undefined : account?.security;
-  // A client accepts the legal text once per version of it; the desk is bound by its contract, not by this box.
-  const consent = session && !desk ? await repo().getConsent(session.userId).catch(() => ({}) as { version?: string }) : undefined;
   const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
   /* LA SURFACE, ET POURQUOI C'EST LA SESSION QUI LA DIT.
      Le système de design décrit la vitrine devant la porte et l'espace de
@@ -136,9 +158,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
      thème basculer en cours de navigation. */
   const surface = session ? "travail" : "vitrine";
 
-  /* Le poste n'est chargé que pour un opérateur : deux lectures de plus sur
-     chaque page du desk, et aucune sur le guichet. */
-  const poste = deskUi && session ? await chargerPoste(session.userId, session.role).catch(() => undefined) : undefined;
   const menu = <AppMenu signedIn={Boolean(session)} desk={deskUi} name={session?.name} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
     <html lang={lang} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value, surface)}>
