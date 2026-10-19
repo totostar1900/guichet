@@ -33,7 +33,6 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
          budget de largeur, une colonne un budget de longueur : ces quatre-la
          existaient sans qu aucun onglet n y mene, et l on n y arrivait qu en
          tapant l adresse. Mesure le 19 octobre 2026. */
-      ["/desk/clients/activite", "Activité des clients"],
       ["/desk/clients/quantitatif", "Vue quantitative"],
       ["/desk/repertoire", "Répertoire"],
       ["/desk/resultats", "Allocations et règlement"],

@@ -88,7 +88,6 @@ export const ROUTES_LARGES: string[] = [
   "/desk/clients/quantitatif",
   "/desk/dette",
   "/desk/beac",
-  "/desk/courbe",
   "/desk/comparer",
   "/comparer",
   "/titres",

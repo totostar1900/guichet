@@ -113,11 +113,46 @@ describe("toute page est atteignable au clic", () => {
     expect(mortes, `la colonne pointe sur des adresses que rien ne sert :\n  ${mortes.join("\n  ")}`).toEqual([]);
   });
 
+  it("la colonne ne cite aucune page qui exige un paramètre, ni aucune qui ne fait que rediriger", () => {
+    /**
+     * UNE ADRESSE QUI EXISTE N'EST PAS UNE DESTINATION.
+     *
+     * « /desk/clients/activite » rend un 404 sans son « ?file= » : c'est la
+     * fiche d'UN client, qu'on ouvre depuis son dossier. Je l'avais rangée
+     * dans la colonne parce qu'aucune barre ne la citait, et l'entrée menait
+     * droit à une page introuvable. L'essai précédent ne pouvait pas le voir :
+     * le fichier de route existe bel et bien.
+     *
+     * Même chose pour une page qui ne fait que rediriger, comme
+     * « /desk/courbe » vers les analyses : lui donner une entrée afficherait
+     * deux fois la même destination.
+     */
+    const fautives: string[] = [];
+    for (const h of citeesParLaColonne) {
+      const f = path.join(APP, h === "/" ? "" : h, "page.tsx");
+      const src = textes.get(f);
+      if (!src) continue;
+      const corps = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+      /* « notFound() » gardé par l'absence d'un paramètre de requête. */
+      if (/searchParams/.test(corps) && /if\s*\(!\s*sp?\.\w+\s*\)\s*notFound\(\)/.test(corps)) fautives.push(`${h} : exige un paramètre de requête`);
+      else if (/\breturn\s+redirect\(|^\s*redirect\(/m.test(corps) && !/<[A-Z]/.test(corps)) fautives.push(`${h} : ne fait que rediriger`);
+    }
+    expect(fautives, `la colonne mène à des pages qui ne s'ouvrent pas seules :\n  ${fautives.join("\n  ")}`).toEqual([]);
+  });
+
   it("le desk porte toutes ses pages, et la colonne a la place", () => {
     const pagesDesk = fixes.filter((r) => r.startsWith("/desk"));
     const citees = pagesDesk.filter((r) => citeesParLaColonne.has(r));
-    /* Le compte monte quand une page du desk naît avec son entrée ; il ne
-       redescend pas. Au 19 octobre 2026 : 43 sur 44. */
-    expect(citees.length, `${pagesDesk.length - citees.length} page(s) du desk hors de la colonne : ${pagesDesk.filter((r) => !citeesParLaColonne.has(r)).join(", ")}`).toBeGreaterThanOrEqual(43);
+    /**
+     * Le compte monte quand une page du desk naît avec son entrée ; il ne
+     * redescend pas. Au 19 octobre 2026 : 42 sur 44.
+     *
+     * LES DEUX QUI MANQUENT NE SONT PAS DES DESTINATIONS, et l'essai
+     * ci-dessus l'exige maintenant : « /desk/clients/activite » est la fiche
+     * d'UN client et veut son « ?file= », « /desk/courbe » ne fait que
+     * rediriger vers les analyses. Je les avais rangées dans la colonne parce
+     * qu'aucune barre ne les citait, et la première y menait droit à un 404.
+     */
+    expect(citees.length, `${pagesDesk.length - citees.length} page(s) du desk hors de la colonne : ${pagesDesk.filter((r) => !citeesParLaColonne.has(r)).join(", ")}`).toBeGreaterThanOrEqual(42);
   });
 });
