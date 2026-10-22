@@ -9,7 +9,7 @@
   margin-bottom: 16px;
 }
 .head h1 {
-  font-size: 1.3rem;
+  font-size: var(--titre-liste);
   margin: 0 0 4px;
 }
 .lead {
@@ -303,9 +303,11 @@
   background: var(--surface);
   color: var(--ink-2);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: var(--ctrl-t);
   font-weight: 600;
-  padding: var(--s-2) var(--s-5);
+  padding: 0 var(--s-5);
+  min-height: var(--ctrl-h);
+  box-sizing: border-box;
   cursor: pointer;
   white-space: nowrap;
   max-width: 100%;
@@ -357,12 +359,17 @@
   font-family: inherit;
   cursor: pointer;
 }
+/* DEUX BLOCS « .search input » DANS CETTE FEUILLE, et c'est celui-ci qui
+   gagne — même spécificité, écrit plus bas. Le premier ne pose que la
+   souplesse ; la taille se règle donc ici, et nulle part ailleurs. */
 .search input {
   width: 100%;
   border: 1px solid var(--line-2);
   border-radius: var(--radius);
-  padding: 7px 12px;
-  font-size: 0.84rem;
+  padding: 0 12px;
+  min-height: var(--ctrl-h);
+  box-sizing: border-box;
+  font-size: var(--ctrl-t);
   background: var(--surface);
   color: var(--ink);
 }
@@ -389,14 +396,18 @@
   background: none;
   color: var(--gold-ink);
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: var(--ctrl-t);
+  min-height: var(--ctrl-h);
   cursor: pointer;
   font-family: inherit;
 }
 .count {
-  font-size: 0.8rem;
+  font-size: var(--ctrl-t);
   color: var(--ink-3);
-  margin: 0 0 10px;
+  /* AU BOUT DE LA RANGÉE DES FILTRES, et non plus sur une ligne à lui : il
+     y est monté, et « auto » l'y pousse à droite comme sur les deux autres
+     listes. La marge basse s'en va avec la ligne qu'elle séparait. */
+  margin: 0 0 0 auto;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -496,6 +507,11 @@
 .seg {
   margin-left: auto;
   display: inline-flex;
+  align-items: center;
+  /* La même hauteur que les sélecteurs qui l'entourent : il se posait trois
+     pixels plus haut qu'eux sur la même rangée. */
+  min-height: var(--ctrl-h);
+  box-sizing: border-box;
   border: 1px solid var(--line-2);
   border-radius: var(--radius);
   padding: 3px;
@@ -506,7 +522,7 @@
   background: transparent;
   border-radius: 4px;
   padding: 5px var(--s-6);
-  font-size: 0.82rem;
+  font-size: var(--ctrl-t);
   font-weight: 700;
   color: var(--ink-2);
 }

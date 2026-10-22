@@ -80,7 +80,9 @@
   max-width: 420px;
   border: 1px solid var(--line-2);
   border-radius: var(--radius);
-  padding: 7px 14px;
+  padding: 0 14px;
+  min-height: var(--ctrl-h);
+  box-sizing: border-box;
   background: var(--surface);
   color: var(--ink-3);
 }
@@ -89,7 +91,8 @@
   background: transparent;
   outline: none;
   width: 100%;
-  font-size: 0.86rem;
+  /* Le champ se lit comme les sélecteurs de la même rangée. */
+  font-size: var(--ctrl-t);
   color: var(--ink);
 }
 .search input::placeholder {
@@ -119,6 +122,11 @@
 .seg {
   margin-left: auto;
   display: inline-flex;
+  align-items: center;
+  /* La même hauteur que les sélecteurs qui l'entourent : il se posait trois
+     pixels plus haut qu'eux sur la même rangée. */
+  min-height: var(--ctrl-h);
+  box-sizing: border-box;
   border: 1px solid var(--line-2);
   border-radius: var(--radius);
   padding: 3px;
@@ -129,7 +137,7 @@
   background: transparent;
   border-radius: 4px;
   padding: 5px 12px;
-  font-size: 0.82rem;
+  font-size: var(--ctrl-t);
   font-weight: 700;
   color: var(--ink-2);
 }
@@ -167,9 +175,9 @@
   border: 1px solid var(--line-2);
   background: var(--surface);
   border-radius: var(--radius);
-  width: 26px;
-  height: 26px;
-  font-size: 0.8rem;
+  width: var(--ctrl-h);
+  height: var(--ctrl-h);
+  font-size: var(--ctrl-t);
   color: var(--ink);
 }
 
@@ -954,9 +962,10 @@
   background: none;
   color: var(--gold-ink);
   font: inherit;
-  font-size: 0.8rem;
+  font-size: var(--ctrl-t);
   font-weight: 600;
-  padding: var(--s-2) var(--s-3);
+  padding: 0 var(--s-3);
+  min-height: var(--ctrl-h);
   cursor: pointer;
 }
 .clearAll:hover {

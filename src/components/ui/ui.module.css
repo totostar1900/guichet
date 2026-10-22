@@ -11,9 +11,11 @@
   max-width: 100%;
   border: 1px solid var(--line-2);
   border-radius: var(--radius);
-  padding: 7px 10px 7px 12px;
+  padding: 0 10px 0 12px;
+  min-height: var(--ctrl-h);
+  box-sizing: border-box;
   background: var(--surface);
-  font-size: 0.84rem;
+  font-size: var(--ctrl-t);
   font-weight: 600;
   color: var(--ink);
   font-family: inherit;
@@ -32,8 +34,10 @@
   cursor: default;
 }
 .selCompact .selBtn {
-  padding: 5px 8px 5px 10px;
-  font-size: 0.8rem;
+  padding: 0 8px 0 10px;
+  /* Même texte que les autres sélecteurs : « compact » resserre le retrait,
+     pas la lecture. */
+  font-size: var(--ctrl-t);
 }
 .selLabel {
   color: var(--ink-3);

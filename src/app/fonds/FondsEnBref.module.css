@@ -5,14 +5,15 @@
   align-items: center;
   gap: var(--s-2);
   margin-top: var(--s-2);
-  padding: var(--s-2) var(--s-4);
-  min-height: var(--s-10);
+  padding: 0 var(--s-4);
+  min-height: var(--ctrl-h);
+  box-sizing: border-box;
   border: 1px solid var(--line-2);
   border-radius: 0;
   background: var(--surface);
   color: var(--ink-2);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: var(--ctrl-t);
   font-weight: 600;
   cursor: pointer;
 }

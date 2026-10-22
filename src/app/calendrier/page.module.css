@@ -28,6 +28,14 @@
   gap: var(--s-8);
   flex-wrap: wrap;
 }
+/* LE TITRE NE DÉCLARAIT RIEN, et prenait donc les deux cadratins du
+   navigateur : trente pixels, contre 18,75 aux Titres et 19,5 aux Fonds, pour
+   trois pages qui montrent la même chose. « Adjudications » écrasait ses deux
+   sœurs sans qu'aucune règle ne l'ait voulu. */
+.head h1 {
+  font-size: var(--titre-liste);
+  margin: 0;
+}
 .page h2 {
   font-size: 1rem;
   margin-bottom: var(--s-5);

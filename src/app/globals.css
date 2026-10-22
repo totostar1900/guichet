@@ -105,6 +105,22 @@
      Mesure le 4 octobre 2026 : la rangee d onglets etait invisible, cachee
      par ces cinquante-deux pixels. Il n existe que sur telephone. */
   --barre-app: 0px;
+  /* LES TROIS LISTES SE RESSEMBLENT ENFIN, et ces trois mesures le tiennent.
+     Titres, Fonds et Adjudications montrent la même chose — une liste qu'on
+     filtre, qu'on trie et qu'on affiche en tableau, en liste ou en cartes —
+     et montraient leurs commandes de trois façons. Mesuré le 22 octobre
+     2026 à 1440 px : SIX tailles de police pour la même famille d'objets
+     (0,78 · 0,80 · 0,82 · 0,84 · 0,86 rem), SEPT hauteurs de contrôle (20 ·
+     21 · 26 · 28 · 30 · 32 · 35 px), et trois titres de page à 1,25 rem,
+     1,3 rem et 2 em — ce dernier parce qu'Adjudications n'en déclarait
+     aucun et prenait la valeur du navigateur. Rien de tout cela n'était un
+     choix : ce sont des valeurs posées une à une, par des mains et des
+     jours différents.
+     Comme pour l'échelle d'espacement, les nommer ne change pas le dessin,
+     elle rend visible le pas qu'on invente. */
+  --titre-liste: 1.3rem;
+  --ctrl-h: 34px;
+  --ctrl-t: 0.82rem;
   /* One hue per instrument family : badge text / soft background. Same in every view. */
   --fam-OTA: #0b2545;
   --fam-OTA-soft: #e3e9f3;
@@ -580,7 +596,7 @@ h3 {
 }
 .mtogglesHead h1 {
   margin: 2px 0 0;
-  font-size: 1.25rem;
+  font-size: var(--titre-liste);
 }
 .mtogglesFunds {
   white-space: nowrap;

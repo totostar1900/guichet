@@ -792,6 +792,43 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                 {asc ? "↑" : "↓"}
               </button>
             )}
+            {/* LE CHOIX DES VUES MONTE DANS CETTE RANGÉE, et la page perd
+                une ligne. Il vivait seul sur la sienne, poussé à droite :
+                quarante-six pixels de hauteur pour trois mots, sur une page
+                qui en comptait déjà quatre avant la liste. Les deux autres
+                listes le font rouler au bout de la rangée des filtres
+                depuis toujours ; celle-ci les rejoint. */}
+            {/* LE COMPTE EST PARTI. « 25 obligataires correspondant aux filtres »
+                répétait ce que la liste montre déjà, sur une ligne qui coûtait sa
+                hauteur à chaque écran, et dont personne ne tire une décision : on
+                ne compte pas des fonds, on en cherche un. Ce qui restait d'utile
+                sur cette ligne — effacer, trier — a rejoint les listes au-dessus. */}
+            <div className={styles.count}>
+              {/* « TOUT EFFACER » À GAUCHE DU CHOIX DES VUES : il défait ce que
+                  les commandes du dessus ont posé, et il se tient donc au bout de
+                  leur ligne plutôt qu'au milieu d'elles.
+                  IL RESTE LÀ MÊME SANS RIEN À EFFACER, éteint : un bouton qui
+                  n'apparaît qu'au moment où l'on en a besoin ne s'apprend
+                  jamais, et c'est à ce moment-là qu'on le cherche. */}
+              <button type="button" className={styles.clear} onClick={clearAll} disabled={!poseSurLaListe} title={poseSurLaListe ? undefined : t("Rien à effacer")}>
+                {t("Tout effacer")}
+              </button>
+              {!phone && (
+                <div className={styles.seg} role="group" aria-label={t("Affichage")}>
+                  {(["table", "list", "cards"] as Vue[]).map((v) => (
+                    <button key={v} type="button" aria-pressed={vue === v} onClick={() => update({ vue: v })}>
+                      {t(v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes")}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {/* LE RESSERREMENT DES CARTES SUIT LE CHOIX DES VUES, à sa droite :
+                  il ne règle que la vue cartes, et il se lisait mal posé avant
+                  elle, comme s'il commandait les trois. Il ne paraît d'ailleurs
+                  que sur cette vue, parce qu'un réglage sans effet visible se lit
+                  comme une panne. */}
+              {vue === "cards" && !desk && <DensitySwitch />}
+            </div>
           </div>
           {actifs.map((f) => (
             <div key={f.clef} className={styles.rangee}>
@@ -801,37 +838,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               </button>
             </div>
           ))}
-        </div>
-        {/* LE COMPTE EST PARTI. « 25 obligataires correspondant aux filtres »
-            répétait ce que la liste montre déjà, sur une ligne qui coûtait sa
-            hauteur à chaque écran, et dont personne ne tire une décision : on
-            ne compte pas des fonds, on en cherche un. Ce qui restait d'utile
-            sur cette ligne — effacer, trier — a rejoint les listes au-dessus. */}
-        <div className={styles.count}>
-          {/* « TOUT EFFACER » À GAUCHE DU CHOIX DES VUES : il défait ce que
-              les commandes du dessus ont posé, et il se tient donc au bout de
-              leur ligne plutôt qu'au milieu d'elles.
-              IL RESTE LÀ MÊME SANS RIEN À EFFACER, éteint : un bouton qui
-              n'apparaît qu'au moment où l'on en a besoin ne s'apprend
-              jamais, et c'est à ce moment-là qu'on le cherche. */}
-          <button type="button" className={styles.clear} onClick={clearAll} disabled={!poseSurLaListe} title={poseSurLaListe ? undefined : t("Rien à effacer")}>
-            {t("Tout effacer")}
-          </button>
-          {!phone && (
-            <div className={styles.seg} role="group" aria-label={t("Affichage")}>
-              {(["table", "list", "cards"] as Vue[]).map((v) => (
-                <button key={v} type="button" aria-pressed={vue === v} onClick={() => update({ vue: v })}>
-                  {t(v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes")}
-                </button>
-              ))}
-            </div>
-          )}
-          {/* LE RESSERREMENT DES CARTES SUIT LE CHOIX DES VUES, à sa droite :
-              il ne règle que la vue cartes, et il se lisait mal posé avant
-              elle, comme s'il commandait les trois. Il ne paraît d'ailleurs
-              que sur cette vue, parce qu'un réglage sans effet visible se lit
-              comme une panne. */}
-          {vue === "cards" && !desk && <DensitySwitch />}
         </div>
       </div>
 
