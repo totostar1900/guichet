@@ -13,7 +13,9 @@
     "seed:sql": "node scripts/seed-sql.ts",
     "extract:test": "node --conditions=react-server scripts/extract-test.ts",
     "dev:memory": "node scripts/dev-memory.mjs",
-    "guide:shots": "node scripts/guide-shots.mjs"
+    "guide:shots": "node scripts/guide-shots.mjs",
+    "poste": "node scripts/poste.mjs",
+    "clefs:env": "node scripts/clefs-d-environnement.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",
@@ -43,5 +45,8 @@
     "pdfjs-dist": "^4.10.38",
     "typescript": "^5",
     "vitest": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=20.9.0"
   }
 }

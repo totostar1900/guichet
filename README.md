@@ -14,6 +14,29 @@ npm run lint
 
 Sans configuration, l'app tourne sur le jeu de données de `src/data/seed.ts` (mention « démo · mémoire » dans l'en-tête). Les intentions créées sont visibles dans le desk jusqu'au redémarrage. La page **/connexion** propose alors une session de démonstration (client ou desk), signée dans un cookie.
 
+## Reprendre le développement sur un autre poste
+
+Le dépôt ne connaît pas le nom de la machine : aucun chemin absolu n'y est écrit, un cliquet le vérifie (`src/test/racine-portable.test.ts`). Quatre choses, en revanche, ne voyagent pas avec git, et chacune manque en silence. D'où la mesure plutôt que la promesse :
+
+```bash
+npm run poste     # ce poste peut-il continuer ? PRÊT / coupé / MANQUE, et quoi faire
+```
+
+1. **Node 20.9 au minimum** (`.nvmrc` dit 22, la version de référence). En dessous, Next refuse de construire.
+2. **`.env.local`** : il est gitignoré, exprès. Le copier depuis l'autre poste par un canal sûr, jamais par une conversation ni un dépôt. `.env.example` nomme chaque clef et dit ce qu'on perd sans elle ; un cliquet (`src/test/clefs-d-environnement.test.ts`) garantit que la liste est complète dans les deux sens.
+3. **La bibliothèque partagée** : `BIBLIOTHEQUE_DISQUE` pointe le dossier SharePoint synchronisé sur *cette* machine, donc le chemin change à chaque poste. Sans lui, le repli de lecture des bulletins est coupé et les scripts de reprise ne trouvent plus leurs pièces.
+4. **Les accès** : GitHub (pousser), Supabase et Vercel (les outils MCP se reconnectent depuis l'application Claude, ils ne sont pas dans le dépôt).
+
+Ce qui ne manque jamais, parce que c'est dans git : le code, les 110 migrations, les essais, les 357 scripts de mesure, la documentation. Les maquettes de travail (`public/maquette/`) sont gitignorées par choix ; les importantes sont publiées en Artifacts.
+
+```bash
+git clone https://github.com/totostar1900/guichet.git && cd guichet && npm install
+# déposer .env.local, corriger BIBLIOTHEQUE_DISQUE pour cette machine
+npm run poste && npm run dev:memory
+```
+
+`npm run clefs:env` compare à tout moment les clefs lues par le code et celles écrites dans `.env.example`.
+
 ## Brancher Supabase
 
 1. Créer un projet sur supabase.com (région EU-West ou la plus proche).
