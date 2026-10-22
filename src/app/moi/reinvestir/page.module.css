@@ -5,7 +5,18 @@
   padding: var(--s-8) var(--s-7) var(--s-10);
   display: flex;
   flex-direction: column;
+  /* L'ÉCART ENTRE CHAPITRES DOUBLE, de vingt à quarante. Quatre titres nus
+     séparés par vingt pixels se lisaient comme un seul long texte : rien ne
+     disait où l'un finissait. Les bandes le disent maintenant, et l'air le
+     confirme.
+     VINGT ICI, PAS QUARANTE : le rayon d'un pli porte déjà vingt pixels de
+     marge haute (Pli.module.css). Les écrire tous les deux donnait soixante,
+     mesuré à l'écran — le triple, pas le double. */
   gap: var(--s-8);
+}
+.tete {
+  display: grid;
+  gap: var(--s-3);
 }
 .fil {
   font-size: 0.8rem;
@@ -21,15 +32,8 @@
   color: var(--ink-2);
   max-width: 62ch;
 }
-.sec {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-5);
-}
-.sec h2 {
-  margin: 0;
-  font-size: 1.02rem;
-}
+/* « .sec » et son « h2 » sont partis avec les quatre titres nus : la bande
+   du pli porte le titre, son sous-titre et son compte. */
 
 /* Quatre chiffres, et deux d'entre eux ne doivent jamais s'additionner. */
 .band {
@@ -38,8 +42,11 @@
   gap: var(--s-1);
   margin: 0;
   background: var(--line);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  /* SANS CADRE : elle est posée dans un pli, qui en porte déjà un. « Une
+     seconde boîte dans la boîte ferait deux cadres imbriqués », dit la
+     grammaire des plis, et c'est ce qu'on évite. Les filets intérieurs
+     restent : ce sont eux qui séparent les quatre chiffres. */
+  border-block: 1px solid var(--line);
   overflow: hidden;
 }
 @media (max-width: 640px) {
@@ -78,10 +85,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--s-6);
-  padding: var(--s-6) var(--s-7);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
+  /* Dans un pli : ni cadre ni fond à lui, pour la même raison que la bande
+     des quatre chiffres. */
 }
 .champ {
   display: flex;
@@ -96,8 +101,15 @@
   font-size: 0.82rem;
   font-weight: 650;
 }
+/* « input[type="number"] » NE DÉSIGNAIT RIEN. Le champ du plancher est écrit
+   sans attribut « type » — c'est donc un champ texte, avec « inputMode:
+   numeric » pour le clavier du téléphone et un séparateur de milliers posé
+   pendant la frappe. La règle ne l'a jamais atteint : il portait l'habillage
+   par défaut du navigateur, invisible sur fond clair et bloc blanc sur le
+   thème sombre du travail. Vu à l'écran le 22 octobre 2026.
+   La radio est exclue, elle n'est pas une boîte de saisie. */
 .champ select,
-.champ input[type="number"] {
+.champ input:not([type="radio"]) {
   font: inherit;
   font-size: 0.88rem;
   padding: var(--s-4) var(--s-5);

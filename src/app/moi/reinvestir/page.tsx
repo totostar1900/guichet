@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ReinvestForm } from "./ReinvestForm";
+import { Pli } from "@/components/Pli";
 import { StandingList } from "@/components/Standing";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -69,7 +70,7 @@ export default async function ReinvestirPage() {
       <nav className={styles.fil}>
         <Link href="/">{t("Portefeuille")}</Link>
       </nav>
-      <header>
+      <header className={styles.tete}>
         <h1>{t("Réinvestir vos encaissements")}</h1>
         <p className={styles.chapeau}>
           {t(
@@ -78,8 +79,20 @@ export default async function ReinvestirPage() {
         </p>
       </header>
 
-      <section className={styles.sec}>
-        <h2>{t("Ce que vous avez aujourd'hui")}</h2>
+      {/* LES QUATRE CHAPITRES PRENNENT LA BANDE DE « MES DOCUMENTS ».
+          Ils étaient quatre titres nus posés dans la colonne, séparés par
+          vingt pixels : rien ne disait où l'un finissait, et la page se
+          lisait comme un seul long texte. La maison a déjà une grammaire
+          pour cela — la bande d'un rayon, son compte à droite, sa pastille
+          quand il attend un geste (components/Pli) — et le rayon se replie,
+          ce qui compte sur une page dont on relit rarement les quatre
+          parties. */}
+      <Pli
+        cle="reinv:solde"
+        titre={t("Ce que vous avez aujourd'hui")}
+        sous={t("Ce qui est arrivé, ce qui vous est dû, et ce qui viendra.")}
+        compte={t("{m} FCFA disponibles", { m: fmt(Math.round(poche.idle)) })}
+      >
         <dl className={styles.band}>
           <div>
             <dt>{t("Disponible")}</dt>
@@ -109,11 +122,15 @@ export default async function ReinvestirPage() {
             "« Disponible » est de l'argent réellement arrivé sur le compte de règlement et constaté par le desk. « Échu, pas encore reçu » est une créance sur l'émetteur : elle vous est due, elle n'est pas là, et rien ne se replace avec.",
           )}
         </p>
-      </section>
+      </Pli>
 
       {enPlace.length > 0 && (
-        <section className={styles.sec}>
-          <h2>{t("Votre instruction")}</h2>
+        <Pli
+          cle="reinv:instruction"
+          titre={t("Votre instruction")}
+          sous={t("Ce qui est en place, et que vous arrêtez quand vous voulez.")}
+          compte={t(enPlace.length > 1 ? "{n} instructions" : "1 instruction", { n: String(enPlace.length) })}
+        >
           <StandingList
             rows={enPlace.map((x) => {
               const o = offers.find((y) => y.id === x.offerId);
@@ -137,18 +154,33 @@ export default async function ReinvestirPage() {
             })}
             fonds={fonds}
           />
-        </section>
+        </Pli>
       )}
 
+      {/* LE SEUL GESTE DE LA PAGE PORTE SA PASTILLE, et il est déplié
+          d'office : « Mes documents » réserve le filet d'or à ce qui n'existe
+          pas encore quand on arrive, et c'est exactement le cas ici tant
+          qu'aucune instruction ne tourne. Un formulaire replié serait un
+          devoir caché, ce que le pli de la maison s'interdit. */}
       {!active && (
-        <section className={styles.sec}>
-          <h2>{t("Mettre le réinvestissement en place")}</h2>
+        <Pli
+          cle="reinv:mettre"
+          titre={t("Mettre le réinvestissement en place")}
+          sous={t("La ligne se choisit maintenant ; le montant sera celui du coupon.")}
+          attend={t("rien en place")}
+        >
           <ReinvestForm fonds={fonds} />
-        </section>
+        </Pli>
       )}
 
-      <section className={styles.sec}>
-        <h2>{t("Comment cela marche")}</h2>
+      {/* CELUI-CI ARRIVE REPLIÉ : on le lit une fois, et il occupait le bas de
+          chaque visite. */}
+      <Pli
+        cle="reinv:comment"
+        titre={t("Comment cela marche")}
+        sous={t("Quatre temps, de l'arrivée du coupon à l'avis d'opéré.")}
+        defaut={false}
+      >
         <ol className={styles.steps}>
           <li>{t("Un coupon ou un remboursement tombe. Le desk constate le crédit et le porte à votre journal : à ce moment seulement, la somme est « reçue ».")}</li>
           <li>{t("Le lendemain au plus tard, tout ce qui est disponible part sur la ligne que vous avez choisie, si le total atteint votre plancher.")}</li>
@@ -160,7 +192,7 @@ export default async function ReinvestirPage() {
             "Trois choses sont déjà écrites quand l'ordre part : la ligne, que vous avez choisie ; le moment, celui où l'argent arrive ; et le montant, celui que l'émetteur a versé.",
           )}
         </p>
-      </section>
+      </Pli>
     </div>
   );
 }

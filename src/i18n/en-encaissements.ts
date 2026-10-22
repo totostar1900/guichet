@@ -12,6 +12,13 @@
  * because the house has not set it yet: a closed schedule charges nothing.
  */
 export const EN_ENCAISSEMENTS: Record<string, string> = {
+  /* Les bandes des chapitres de « Réinvestir » (grammaire des plis). */
+  "Ce qui est arrivé, ce qui vous est dû, et ce qui viendra.": "What has arrived, what you are owed, and what is to come.",
+  "{m} FCFA disponibles": "{m} FCFA available",
+  "Ce qui est en place, et que vous arrêtez quand vous voulez.": "What is in place, and that you stop whenever you want.",
+  "La ligne se choisit maintenant ; le montant sera celui du coupon.": "The line is chosen now; the amount will be the coupon's.",
+  "rien en place": "nothing in place",
+  "Quatre temps, de l'arrivée du coupon à l'avis d'opéré.": "Four steps, from the coupon's arrival to the contract note.",
   /* ---------- la bande des coupons ---------- */
   "{m} FCFA reçus et disponibles": "{m} FCFA received and available",
   "{m} FCFA échus et pas encore reçus": "{m} FCFA due and not yet received",
