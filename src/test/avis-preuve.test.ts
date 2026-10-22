@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -19,7 +20,7 @@ import { describe, expect, it } from "vitest";
  * régression ici n'écrit pas un mauvais chiffre dans un écran, elle engage la
  * maison par écrit auprès de son client.
  */
-const RACINE = "C:/dev/guichet/src";
+const SRC = `${RACINE}/src`;
 
 function fichiers(dossier: string, out: string[] = []): string[] {
   for (const e of readdirSync(dossier)) {
@@ -30,7 +31,7 @@ function fichiers(dossier: string, out: string[] = []): string[] {
   return out;
 }
 
-const lire = (rel: string) => readFileSync(path.join(RACINE, rel), "utf8");
+const lire = (rel: string) => readFileSync(path.join(SRC, rel), "utf8");
 
 describe("l'avis de coupon et sa preuve", () => {
   it("refuse de s'émettre sans la date du règlement constaté", async () => {
@@ -49,10 +50,10 @@ describe("l'avis de coupon et sa preuve", () => {
   it("n'offre plus d'émission en lot", () => {
     // Le lot émettait ET envoyait, d'un clic, pour tout flux passé de tous les clients.
     // Ce fichier-ci nomme le lot pour expliquer pourquoi il n'existe plus.
-    const fautifs = fichiers(RACINE)
+    const fautifs = fichiers(SRC)
       .filter((f) => !f.endsWith("avis-preuve.test.ts"))
       .filter((f) => /couponBatch/i.test(readFileSync(f, "utf8")));
-    expect(fautifs.map((f) => path.relative(RACINE, f).replace(/\\/g, "/"))).toEqual([]);
+    expect(fautifs.map((f) => path.relative(SRC, f).replace(/\\/g, "/"))).toEqual([]);
   });
 
   it("le rappel d'échéance annonce une attente, pas un fait", () => {
@@ -73,7 +74,7 @@ describe("l'avis de coupon et sa preuve", () => {
 
   it("regarde bien quelque chose", () => {
     // Non vacuité : un parcours qui ne lirait plus rien passerait au vert.
-    expect(fichiers(RACINE).length).toBeGreaterThan(300);
+    expect(fichiers(SRC).length).toBeGreaterThan(300);
   });
 });
 
@@ -88,8 +89,8 @@ describe("une échéance passée n'est pas un règlement", () => {
 
   it("aucun lecteur ne lit plus une position « .paid »", () => {
     const fautifs: string[] = [];
-    for (const f of fichiers(RACINE)) {
-      const rel = path.relative(RACINE, f).replace(/\\/g, "/");
+    for (const f of fichiers(SRC)) {
+      const rel = path.relative(SRC, f).replace(/\\/g, "/");
       readFileSync(f, "utf8")
         .split("\n")
         .forEach((ligne, i) => {

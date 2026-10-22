@@ -1,6 +1,6 @@
 /** La clef repond-elle ? Un appel minuscule, aucune valeur affichee. */
 import fs from "node:fs";
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) { const m = l.match(/^([A-Z0-9_]+)=(.*)$/); if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, ""); }
 const dire = (s) => fs.writeSync(1, `${s}\n`);
 const { default: Anthropic } = await import("@anthropic-ai/sdk");

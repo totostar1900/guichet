@@ -16,7 +16,7 @@ import { depouiller } from "../src/lib/market/zero-coupon.ts";
 import { abouti, ajuster } from "../src/lib/market/nelson-siegel.ts";
 import { toAuctionResult } from "../src/lib/data/supabase.ts";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 const v = (k) => env.match(new RegExp("^" + k + "=(.*)$", "m"))[1].trim().replace(/^["']|["']$/g, "");
 const rows = (
   await fetch(`${v("NEXT_PUBLIC_SUPABASE_URL")}/rest/v1/auction_results?select=*&limit=2000`, {

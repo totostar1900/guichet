@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -230,14 +231,14 @@ describe("les deux gestes, bout à bout", () => {
 
 describe("la base porte les mêmes règles que le code", () => {
   it("une seule demande ouverte, un refus motivé, un paiement chiffré", () => {
-    const sql = readFileSync("C:/dev/guichet/supabase/migrations/0060_demande_de_restitution.sql", "utf8");
+    const sql = readFileSync(`${RACINE}/supabase/migrations/0060_demande_de_restitution.sql`, "utf8");
     expect(sql).toMatch(/create unique index[^;]*cash_payouts_une_ouverte[^;]*where state = 'demandee'/);
     expect(sql).toMatch(/cash_payouts_refus_motive/);
     expect(sql).toMatch(/cash_payouts_paiement_chiffre/);
   });
 
   it("la politique vit dans le référentiel, avec les trois autres", () => {
-    const policy = readFileSync("C:/dev/guichet/src/lib/policy.ts", "utf8");
+    const policy = readFileSync(`${RACINE}/src/lib/policy.ts`, "utf8");
     expect(policy).toMatch(/CASH_POLICY_KEY = "especes"/);
     // Son défaut est l'inverse des trois autres, et le fichier dit pourquoi.
     expect(policy).toMatch(/loadCashPolicy[\s\S]{0,320}return OUVERTE;/);

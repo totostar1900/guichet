@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -21,7 +22,7 @@ import { describe, expect, it } from "vitest";
  * expliquent le modèle et dont c'est le métier ; les commentaires du code,
  * qui s'adressent à nous.
  */
-const RACINE = "C:/dev/guichet/src";
+const SRC = `${RACINE}/src`;
 
 const TOURNURES = ["n'a pas l'agrément", "pas d'agrément", "ne conseille pas", "à votre place", "ne recommande", "la maison ne choisit", "n'est pas habilité", "ne sommes pas autorisés"];
 
@@ -49,8 +50,8 @@ const estCommentaire = (ligne: string): boolean => {
 describe("le ton des écrans du client", () => {
   it("ne justifie pas ce que la maison ne peut pas faire", () => {
     const fautifs: string[] = [];
-    for (const f of fichiers(RACINE)) {
-      const rel = path.relative(RACINE, f).replace(/\\/g, "/");
+    for (const f of fichiers(SRC)) {
+      const rel = path.relative(SRC, f).replace(/\\/g, "/");
       if (HORS_CHAMP.some((s) => rel.includes(s))) continue;
       readFileSync(f, "utf8")
         .split("\n")
@@ -64,7 +65,7 @@ describe("le ton des écrans du client", () => {
 
   it("regarde bien quelque chose", () => {
     // Non vacuité : un parcours qui ne lirait plus rien passerait au vert.
-    const vus = fichiers(RACINE).filter((f) => !HORS_CHAMP.some((s) => path.relative(RACINE, f).replace(/\\/g, "/").includes(s)));
+    const vus = fichiers(SRC).filter((f) => !HORS_CHAMP.some((s) => path.relative(SRC, f).replace(/\\/g, "/").includes(s)));
     expect(vus.length).toBeGreaterThan(100);
   });
 });

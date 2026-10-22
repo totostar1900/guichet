@@ -26,7 +26,7 @@ const BEAC = {
   Gabon: { 0.25: 6.16, 0.5: 7.71, 1: 9.52, 1.5: 10.25, 2: 10.41, 3: 10.03, 4: 9.42, 5: 8.86, 7: 8.08, 10: 7.41 },
 };
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 const v = (k) => env.match(new RegExp("^" + k + "=(.*)$", "m"))[1].trim().replace(/^["']|["']$/g, "");
 const rows = (
   await fetch(`${v("NEXT_PUBLIC_SUPABASE_URL")}/rest/v1/auction_results?select=*&limit=2000`, {

@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -18,7 +19,7 @@ import { describe, expect, it } from "vitest";
  * Le desk n'est pas tenu : il se travaille au clavier sur grand écran, et la
  * liste native y est plus rapide à parcourir.
  */
-const RACINE = "C:/dev/guichet/src";
+const SRC = `${RACINE}/src`;
 
 /** Les exceptions, nommées une par une, avec ce qui les justifie. */
 const TOLEREES: Record<string, string> = {
@@ -40,8 +41,8 @@ function fichiers(dossier: string, out: string[] = []): string[] {
 describe("les listes déroulantes du client", () => {
   it("passent toutes par celle de la maison", () => {
     const fautifs: string[] = [];
-    for (const f of fichiers(RACINE)) {
-      const rel = path.relative(RACINE, f).replace(/\\/g, "/");
+    for (const f of fichiers(SRC)) {
+      const rel = path.relative(SRC, f).replace(/\\/g, "/");
       if (rel.includes("/desk/") || rel.startsWith("app/desk") || TOLEREES[rel]) continue;
       if (/<select[\s>]/.test(readFileSync(f, "utf8"))) fautifs.push(rel);
     }
@@ -50,9 +51,9 @@ describe("les listes déroulantes du client", () => {
 
   it("n'oublie pas de vérifier quoi que ce soit", () => {
     // Non vacuité : un parcours qui ne lirait plus rien passerait au vert.
-    expect(fichiers(RACINE).length).toBeGreaterThan(100);
+    expect(fichiers(SRC).length).toBeGreaterThan(100);
     // Et les exceptions doivent exister : une exception qui ne désigne plus un
     // fichier est une permission oubliée.
-    for (const rel of Object.keys(TOLEREES)) expect(() => statSync(path.join(RACINE, rel)), rel).not.toThrow();
+    for (const rel of Object.keys(TOLEREES)) expect(() => statSync(path.join(SRC, rel)), rel).not.toThrow();
   });
 });

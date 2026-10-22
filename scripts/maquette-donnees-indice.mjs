@@ -14,7 +14,7 @@
  */
 import fs from "node:fs";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) {
   const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
@@ -144,11 +144,11 @@ const sortie = {
     avecDividende: actions.filter((x) => x.last_dividend != null).length,
   },
 };
-fs.mkdirSync("C:/dev/guichet/public/maquette", { recursive: true });
-fs.writeFileSync("C:/dev/guichet/public/maquette/indice-donnees.js", `window.INDICE = ${JSON.stringify(sortie)};\n`, "utf8");
+fs.mkdirSync(new URL("../public/maquette", import.meta.url), { recursive: true });
+fs.writeFileSync(new URL("../public/maquette/indice-donnees.js", import.meta.url), `window.INDICE = ${JSON.stringify(sortie)};\n`, "utf8");
 dire(`indice : ${serie.length} points, ${niveaux} niveaux distincts, repli max ${pire.pct.toFixed(2)} %`);
 dire(`volatilité mensuelle : ${volMensuelle?.toFixed(2)} %`);
 dire(`cote : ${cote.length} actions, ${totalCapi.toFixed(1)} Mds de capitalisation, ${totalFlottant.toFixed(1)} Mds de flottant`);
 dire(`   premier : ${cote[0]?.mnemo} ${((100 * (cote[0]?.capi ?? 0)) / totalCapi).toFixed(1)} % du total, ${((100 * (cote[0]?.capiFlottant ?? 0)) / totalFlottant).toFixed(1)} % du flottant`);
 dire(`BPA renseigné sur ${sortie.lu.avecBpa} lignes · dividende sur ${sortie.lu.avecDividende}`);
-dire(`écrit dans public/maquette/indice-donnees.js (${Math.round(fs.statSync("C:/dev/guichet/public/maquette/indice-donnees.js").size / 1024)} Ko)`);
+dire(`écrit dans public/maquette/indice-donnees.js (${Math.round(fs.statSync(new URL("../public/maquette/indice-donnees.js", import.meta.url)).size / 1024)} Ko)`);

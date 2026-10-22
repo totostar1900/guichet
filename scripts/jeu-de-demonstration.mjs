@@ -32,7 +32,7 @@ import { createClient } from "@supabase/supabase-js";
 import { positionsFrom } from "../src/lib/positions.ts";
 import { cleDuFlux } from "../src/lib/domain/encaissement.ts";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 const v = (k) => env.match(new RegExp("^" + k + "=(.*)$", "m"))[1].trim().replace(/^["']|["']$/g, "");
 const db = createClient(v("NEXT_PUBLIC_SUPABASE_URL"), v("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 

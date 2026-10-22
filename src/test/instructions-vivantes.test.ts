@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
@@ -317,14 +318,14 @@ describe("une instruction arrêtée ne se supprime pas", () => {
        besoin sans couper la piste. */
     const fautifs: string[] = [];
     for (const f of ["lib/data/repository.ts", "lib/data/supabase.ts", "lib/data/memory.ts"]) {
-      const s = readFileSync(path.join("C:/dev/guichet/src", f), "utf8");
+      const s = readFileSync(path.join(`${RACINE}/src`, f), "utf8");
       if (/deleteStandingOrder|removeStandingOrder|supprimerStanding/.test(s)) fautifs.push(f);
     }
     expect(fautifs).toEqual([]);
   });
 
   it("aucune action du client ne la détruit", () => {
-    const dossier = "C:/dev/guichet/src/app/moi";
+    const dossier = `${RACINE}/src/app/moi`;
     const fautifs = readdirSync(dossier)
       .filter((f) => f.endsWith(".ts"))
       .filter((f) => /\.delete\(\)|from\("standing_orders"\)\s*\.delete/.test(readFileSync(path.join(dossier, f), "utf8")));
@@ -334,7 +335,7 @@ describe("une instruction arrêtée ne se supprime pas", () => {
 
 describe("la base porte les mêmes règles", () => {
   it("la lignée, la clé, et l'état « remplacee »", () => {
-    const sql = readFileSync("C:/dev/guichet/supabase/migrations/0064_instructions_vivantes.sql", "utf8");
+    const sql = readFileSync(`${RACINE}/supabase/migrations/0064_instructions_vivantes.sql`, "utf8");
     expect(sql).toMatch(/add column if not exists supersedes uuid/);
     expect(sql).toMatch(/add column if not exists splits jsonb/);
     expect(sql).toMatch(/'remplacee'/);
@@ -345,10 +346,10 @@ describe("la base porte les mêmes règles", () => {
   it("les deux dépôts portent la clé et la lignée", () => {
     // C'est là que des champs se perdent en silence, et on l'a déjà payé.
     for (const f of ["lib/data/supabase.ts", "lib/data/memory.ts"]) {
-      const s = readFileSync(path.join("C:/dev/guichet/src", f), "utf8");
+      const s = readFileSync(path.join(`${RACINE}/src`, f), "utf8");
       expect(s, f).toMatch(/remplacerStandingOrder/);
     }
-    const sup = readFileSync("C:/dev/guichet/src/lib/data/supabase.ts", "utf8");
+    const sup = readFileSync(`${RACINE}/src/lib/data/supabase.ts`, "utf8");
     expect(sup).toMatch(/splits: r\.splits \?\? undefined/);
     expect(sup).toMatch(/supersedes: r\.supersedes \?\? undefined/);
     expect(sup).toMatch(/splits: input\.splits\?\.length \? input\.splits : null/);

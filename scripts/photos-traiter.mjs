@@ -18,7 +18,7 @@ import fs from "node:fs";
 import sharp from "sharp";
 
 const SRC = "C:/Users/Nitch/AppData/Local/Temp/claude/C--Users-Nitch-OneDrive---PURPOSE-CAPITAL-MyChamaProject/a342ef12-6ae7-41bd-8a4e-9fe5b5ebf7df/images";
-const OUT = "C:/dev/guichet/public/maquette/photos";
+const OUT = new URL("../public/maquette/photos", import.meta.url);
 fs.mkdirSync(OUT, { recursive: true });
 
 /** Le voile : --navy, posé en couche plate avec son alpha. */

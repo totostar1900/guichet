@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { inventaire } from "./couverture";
@@ -73,7 +74,7 @@ describe("l'accueil du desk traduit ce qu'il reprend de Santé", () => {
 
        Un cliquet sur le texte source, donc, et sur ce site-là seulement : il
        nomme la ligne qui a fauté plutôt que de deviner la famille. */
-    const source = readFileSync("C:/dev/guichet/src/app/desk/today/today.ts", "utf8");
+    const source = readFileSync(`${RACINE}/src/app/desk/today/today.ts`, "utf8");
     const ligne = source.split("\n").find((l) => l.includes("bad.map("));
     expect(ligne, "la tuile Santé ne reprend plus les étiquettes des contrôles").toBeDefined();
     expect(ligne).toContain("t(c.label)");

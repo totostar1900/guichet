@@ -11,7 +11,7 @@
 import fs from "node:fs";
 
 const [page, donnees] = process.argv.slice(2);
-const dossier = "C:/dev/guichet/public/maquette";
+const dossier = new URL("../public/maquette", import.meta.url);
 const html = fs.readFileSync(`${dossier}/${page}`, "utf8");
 const js = fs.readFileSync(`${dossier}/${donnees}`, "utf8");
 const balise = `<script src="${donnees}"></script>`;

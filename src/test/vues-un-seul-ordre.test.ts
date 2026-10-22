@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
@@ -19,7 +20,7 @@ import { describe, expect, it } from "vitest";
  * réécrit l'ordre chez elle, et deux pages qui ne s'accordent plus.
  */
 const SOURCES = ["src/components/OfferBrowser.tsx", "src/app/fonds/FundsBrowser.tsx"] as const;
-const lire = (f: string): string => readFileSync(`C:/dev/guichet/${f}`, "utf8");
+const lire = (f: string): string => readFileSync(`${RACINE}/${f}`, "utf8");
 
 /** Les tableaux littéraux qui énumèrent les trois vues, où qu'ils soient. */
 const ordres = (s: string): string[][] => [...s.matchAll(/\[\s*((?:"(?:table|list|cards)"\s*,\s*){2}"(?:table|list|cards)")\s*\]/g)].map((m) => m[1].split(",").map((x) => x.trim().replace(/"/g, "")));

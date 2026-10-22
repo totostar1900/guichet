@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { cadence, lirePlan, prochainTour, ROBOTS, etatDesRobots, robotsAVoir, type TourVu } from "@/lib/domain/robots";
@@ -87,7 +88,7 @@ describe("l'état des robots", () => {
 
 describe("le tableau des cadences et vercel.json se répondent", () => {
   const programmes = (): string[] => {
-    const j = JSON.parse(readFileSync("C:/dev/guichet/vercel.json", "utf8")) as { crons: { path: string }[] };
+    const j = JSON.parse(readFileSync(`${RACINE}/vercel.json`, "utf8")) as { crons: { path: string }[] };
     return j.crons.map((c) => c.path.split("/").pop()!);
   };
 
@@ -119,7 +120,7 @@ describe("chaque route de robot passe par l'enveloppe", () => {
        qu'un treizième les écrive de travers, ce qui est la façon dont un robot
        finit par tourner sans secret ; et c'est l'enveloppe qui inscrit le tour,
        donc une route qui s'en passe redevient muette. */
-    const R = "C:/dev/guichet/src/app/api/cron/";
+    const R = `${RACINE}/src/app/api/cron/`;
     const fautifs: string[] = [];
     for (const d of readdirSync(R)) {
       let s: string;
@@ -149,7 +150,7 @@ describe("chaque route de robot passe par l'enveloppe", () => {
  */
 describe("l'expression de chaque robot est celle de l'ordonnanceur", () => {
   const programme = (): Map<string, string> => {
-    const j = JSON.parse(readFileSync("C:/dev/guichet/vercel.json", "utf8")) as { crons: { path: string; schedule: string }[] };
+    const j = JSON.parse(readFileSync(`${RACINE}/vercel.json`, "utf8")) as { crons: { path: string; schedule: string }[] };
     return new Map(j.crons.map((c) => [c.path.split("/").pop()!, c.schedule]));
   };
 

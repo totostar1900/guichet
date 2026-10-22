@@ -25,7 +25,7 @@
  */
 import fs from "node:fs";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) {
   const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
@@ -257,6 +257,6 @@ lignes.forEach((l, i) => {
   for (const c of [1, 2, 3]) row.getCell(c).font = { size: 9, color: { argb: "FF6B7280" } };
 });
 
-const chemin = "C:/dev/guichet/cours-a-verifier.xlsx";
+const chemin = new URL("../cours-a-verifier.xlsx", import.meta.url);
 fs.writeFileSync(chemin, await wb.xlsx.writeBuffer());
 dire(`écrit : ${chemin}`);

@@ -9,7 +9,7 @@
  */
 import fs from "node:fs";
 
-const F = "C:/dev/guichet/src/i18n/en-desk.ts";
+const F = new URL("../src/i18n/en-desk.ts", import.meta.url);
 const CLEFS = {
   // L'écran du geste.
   "Répondre au lecteur": "Answer the reader",

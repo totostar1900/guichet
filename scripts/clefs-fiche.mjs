@@ -5,7 +5,7 @@
  */
 import fs from "node:fs";
 
-const F = "C:/dev/guichet/src/i18n/en-desk.ts";
+const F = new URL("../src/i18n/en-desk.ts", import.meta.url);
 const CLEFS = {
   "dossier {s}": "file {s}",
   "client depuis le {d}": "client since {d}",

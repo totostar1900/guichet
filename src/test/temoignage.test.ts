@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -184,7 +185,7 @@ describe("le geste, bout à bout", () => {
 
 describe("la base et l'écran portent la même règle", () => {
   it("une seule déclaration vivante par échéance, et « autre » porte son chiffre", () => {
-    const sql = readFileSync("C:/dev/guichet/supabase/migrations/0062_le_client_temoigne.sql", "utf8");
+    const sql = readFileSync(`${RACINE}/supabase/migrations/0062_le_client_temoigne.sql`, "utf8");
     expect(sql).toMatch(/create unique index[^;]*flow_reports_une_par_flux/);
     expect(sql).toMatch(/flow_reports_autre_chiffre/);
     // Elle se modifie, là où client_cash l'interdit, et le fichier dit pourquoi.
@@ -194,7 +195,7 @@ describe("la base et l'écran portent la même règle", () => {
   it("le rappel n'invite à témoigner que le jour même", () => {
     /* Trois jours avant, le crédit n'a pas encore pu arriver : inviter alors
        ferait répondre « rien reçu » à tout le monde et noierait le signal. */
-    const cron = readFileSync("C:/dev/guichet/src/app/api/cron/coupons/route.ts", "utf8");
+    const cron = readFileSync(`${RACINE}/src/app/api/cron/coupons/route.ts`, "utf8");
     expect(cron).toMatch(/u\.inDays === 0 \? " Si votre compte-titres est tenu ailleurs/);
   });
 });

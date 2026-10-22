@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { EN_ALL } from "@/i18n/core";
@@ -23,7 +24,7 @@ const SOURCES = ["src/app/offres/[id]/FicheReading.tsx", "src/app/offres/[id]/in
 
 describe("le tampon d'une fiche dit ce que la séance a fait", () => {
   for (const f of SOURCES) {
-    const src = readFileSync(`C:/dev/guichet/${f}`, "utf8");
+    const src = readFileSync(`${RACINE}/${f}`, "utf8");
 
     it(`${f} : lit le verdict, pas le prix`, () => {
       /* `servedPricePct` seul rate tous les bons. Le contrôle vise la ligne du

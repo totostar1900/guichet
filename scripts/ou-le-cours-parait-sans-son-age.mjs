@@ -19,7 +19,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const RACINE = "C:/dev/guichet/src";
+const RACINE = new URL("../src", import.meta.url);
 const dire = (s) => fs.writeSync(1, `${s}\n`);
 
 const fichiers = [];
@@ -41,7 +41,7 @@ for (const f of fichiers) {
   const affiche = /fmtPrice|fmt\(|<td|<span|<div|children/.test(s);
   if (!affiche) continue;
   avecCours.push({
-    f: f.replace("C:/dev/guichet/", ""),
+    f: f.replace(new URL("../", import.meta.url), ""),
     age: /priceSince/.test(s),
     nonCote: /sans cours|non cot|intraitable/i.test(s),
     bidAsk: /\bo\.bid\b|\bo\.ask\b/.test(s),

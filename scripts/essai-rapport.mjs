@@ -9,7 +9,7 @@
  */
 import fs from "node:fs";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) {
   const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
@@ -38,15 +38,15 @@ if (r.publication.length) {
   for (const l of r.publication.slice(0, 3)) console.log(`   ${l.seance}  ${l.objet.padEnd(32)} « ${l.imprime || "—"} »  ${l.diagnostic.slice(0, 80)}`);
 }
 
-fs.mkdirSync("C:/dev/guichet/.mesure", { recursive: true });
+fs.mkdirSync(new URL("../.mesure", import.meta.url), { recursive: true });
 const xlsx = await classeurFournisseur(r);
-fs.writeFileSync(`C:/dev/guichet/.mesure/rapport-${du}-${au}.xlsx`, xlsx);
+fs.writeFileSync(new URL(`../.mesure/rapport-${du}-${au}.xlsx`, import.meta.url), xlsx);
 console.log(`\nclasseur : ${Math.round(xlsx.length / 1024)} Ko`);
 
 const { renderToBuffer } = await import("@react-pdf/renderer");
 const { RapportFournisseurPdf } = await import("../src/lib/documents/pdf/fournisseur-templates.tsx");
 const React = (await import("react")).default;
 const pdf = await renderToBuffer(React.createElement(RapportFournisseurPdf, { r }));
-fs.writeFileSync(`C:/dev/guichet/.mesure/rapport-${du}-${au}.pdf`, pdf);
+fs.writeFileSync(new URL(`../.mesure/rapport-${du}-${au}.pdf`, import.meta.url), pdf);
 console.log(`PDF      : ${Math.round(pdf.length / 1024)} Ko`);
-console.log(`\n→ C:/dev/guichet/.mesure/`);
+console.log(`\n→ ${new URL("../.mesure/", import.meta.url).pathname}`);

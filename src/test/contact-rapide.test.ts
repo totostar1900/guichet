@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { CANAL_PROMESSE, CANAUX, canauxOuverts, contactRapidePossible, messageParDefaut } from "@/lib/domain/contact-rapide";
@@ -76,8 +77,8 @@ describe("le canal dit ce qui va se passer", () => {
 });
 
 describe("rien ne sort de la maison", () => {
-  const composant = readFileSync("C:/dev/guichet/src/components/ContactRapide.tsx", "utf8");
-  const action = readFileSync("C:/dev/guichet/src/app/offres/[id]/actions.ts", "utf8");
+  const composant = readFileSync(`${RACINE}/src/components/ContactRapide.tsx`, "utf8");
+  const action = readFileSync(`${RACINE}/src/app/offres/[id]/actions.ts`, "utf8");
 
   it("aucun lien wa.me, mailto ou tel:", () => {
     // C'est le choix de fond : le desk doit voir la demande et pouvoir y répondre.
@@ -96,7 +97,7 @@ describe("rien ne sort de la maison", () => {
   });
 
   it("« Contacter » mène au bloc de contact, plus au formulaire entier", () => {
-    const swipe = readFileSync("C:/dev/guichet/src/components/mobile/SwipeActions.tsx", "utf8");
+    const swipe = readFileSync(`${RACINE}/src/components/mobile/SwipeActions.tsx`, "utf8");
     const ligne = swipe.split("\n").find((l) => l.includes('t("Contacter")') || l.includes("#contact"));
     expect(ligne).toBeDefined();
     expect(swipe).toContain("#contact");

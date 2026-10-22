@@ -2,7 +2,7 @@
 import fs from "node:fs";
 const { rangeesDuPdf } = await import("../src/lib/market/boc-geometrie.ts");
 const dire = (s) => fs.writeSync(1, `${s}\n`);
-const buf = fs.readFileSync("C:/dev/guichet/.sorties/stat-mensuelle.pdf");
+const buf = fs.readFileSync(new URL("../.sorties/stat-mensuelle.pdf", import.meta.url));
 const r = await rangeesDuPdf(new Uint8Array(buf));
 const lignes = r.map((x) => ({ p: x.page, t: x.cellules.map((c) => c.texte).join(" | ") }));
 for (const p of [2, 3, 4]) {

@@ -9,7 +9,7 @@
  */
 import fs from "node:fs";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) {
   const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
@@ -28,7 +28,7 @@ const du = process.argv[2] ?? dates[0];
 const au = process.argv[3] ?? dates[dates.length - 1];
 
 const octets = await classeurFournisseur(construireRapport(bulletins, du, au));
-const chemin = `C:/dev/guichet/.tmp-qualite-donnees-boc-${du}-${au}.xlsx`;
+const chemin = new URL(`../.tmp-qualite-donnees-boc-${du}-${au}.xlsx`, import.meta.url);
 fs.writeFileSync(chemin, octets);
 dire(`${chemin}  ·  ${Math.round(octets.length / 1024)} Ko\n`);
 

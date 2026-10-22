@@ -9,7 +9,7 @@
  */
 import fs from "node:fs";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) {
   const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
@@ -94,7 +94,7 @@ const sortie = {
   resume: resume.sort((a, b) => (a.pays + a.instrument).localeCompare(b.pays + b.instrument)),
 };
 
-fs.writeFileSync("C:/dev/guichet/public/maquette/lecture-courbe-donnees.js", `window.DONNEES = ${JSON.stringify(sortie, null, 1)};\n`, "utf8");
+fs.writeFileSync(new URL("../public/maquette/lecture-courbe-donnees.js", import.meta.url), `window.DONNEES = ${JSON.stringify(sortie, null, 1)};\n`, "utf8");
 dire(`${sortie.points.length} points ecrits · ${sortie.avecRendement} avec rendement sur ${sortie.seances} seances`);
 dire(`${sortie.resume.length} groupes pays/instrument`);
 for (const g of sortie.resume) {

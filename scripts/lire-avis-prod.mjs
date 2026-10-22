@@ -12,7 +12,7 @@
  */
 import fs from "node:fs";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 const v = (k) => (env.match(new RegExp("^" + k + "=(.*)$", "m")) ?? [])[1]?.trim().replace(/^["']|["']$/g, "");
 const SECRET = v("CRON_SECRET");
 const U = v("NEXT_PUBLIC_SUPABASE_URL");

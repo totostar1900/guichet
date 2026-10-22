@@ -13,7 +13,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 
-const dossier = "C:/dev/guichet/public/maquette";
+const dossier = new URL("../public/maquette", import.meta.url);
 const port = Number(process.argv[2] ?? 4321);
 const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml" };
 

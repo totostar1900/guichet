@@ -6,7 +6,7 @@
  */
 import fs from "node:fs";
 
-const F = "C:/dev/guichet/src/i18n/en-desk.ts";
+const F = new URL("../src/i18n/en-desk.ts", import.meta.url);
 const CLEFS = {
   // La famille V, et le sixième motif : tous deux invisibles au scanner.
   "Lu, mais refusé à l'enregistrement": "Read, but refused on saving",

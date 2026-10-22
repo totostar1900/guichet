@@ -2,7 +2,7 @@
 import fs from "node:fs";
 const { rangeesDuPdf } = await import("../src/lib/market/boc-geometrie.ts");
 const dire = (s) => fs.writeSync(1, `${s}\n`);
-const r = await rangeesDuPdf(new Uint8Array(fs.readFileSync("C:/dev/guichet/.sorties/stat-mensuelle.pdf")));
+const r = await rangeesDuPdf(new Uint8Array(fs.readFileSync(new URL("../.sorties/stat-mensuelle.pdf", import.meta.url))));
 const lignes = r.map((x) => ({ p: x.page, t: x.cellules.map((c) => c.texte).join(" | ") }));
 dire(`${r.length} rangees, ${Math.max(...lignes.map((l) => l.p))} pages\n`);
 dire("=== LES TITRES DE SECTION ===");

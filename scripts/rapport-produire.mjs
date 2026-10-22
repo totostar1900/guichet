@@ -9,7 +9,7 @@
  *   npx tsx --conditions=react-server scripts/rapport-produire.mjs [du] [au]
  */
 import fs from "node:fs";
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) { const m = l.match(/^([A-Z0-9_]+)=(.*)$/); if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, ""); }
 const { repo } = await import("../src/lib/data/index.ts");
 const { construireRapport } = await import("../src/lib/market/rapport-fournisseur.ts");
@@ -41,7 +41,7 @@ if (r.introuvables.length) {
 }
 
 const xlsx = await classeurFournisseur(r);
-const sortie = `C:/dev/guichet/.sorties/Qualite des donnees BVMAC ${r.du} a ${r.au}.xlsx`;
-fs.mkdirSync("C:/dev/guichet/.sorties", { recursive: true });
+const sortie = new URL(`../.sorties/Qualite des donnees BVMAC ${r.du} a ${r.au}.xlsx`, import.meta.url);
+fs.mkdirSync(new URL("../.sorties", import.meta.url), { recursive: true });
 fs.writeFileSync(sortie, xlsx);
 dire(`\n${Math.round(xlsx.length / 1024)} Ko\n${sortie}`);

@@ -12,7 +12,7 @@
  */
 import fs from "node:fs";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) {
   const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
@@ -146,7 +146,7 @@ const donnees = {
   source: lignes[0]?.source_titre ?? "",
 };
 
-fs.writeFileSync("C:/dev/guichet/public/maquette/encours-trimestriel-donnees.js", `window.DONNEES = ${JSON.stringify(donnees, null, 1)};\n`, "utf8");
+fs.writeFileSync(new URL("../public/maquette/encours-trimestriel-donnees.js", import.meta.url), `window.DONNEES = ${JSON.stringify(donnees, null, 1)};\n`, "utf8");
 dire(`ecrit · ${arc.length} arretes · ${pays.length} pays · ${donnees.isins} isin, ${donnees.communs} en commun avec le BOC`);
 dire(`bulletins : ${numeros.length} au journal, ${avecTable.length} avec table, sans table ${sansTable.join(',')}, absents ${absents.join(',')}`);
 dire(`arc : ${arc.map((a) => Math.round(a.total / 1e9)).join(" → ")} Mds`);

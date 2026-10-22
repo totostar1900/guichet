@@ -71,6 +71,6 @@ dire(`\n=== PAR ANNÉE ===`);
 for (const [an, m] of [...parAn].sort()) {
   dire(`   ${an}  ${[...m].map(([e, n]) => `${n} ${e}`).join(" · ")}`);
 }
-fs.mkdirSync("C:/dev/guichet/.sorties", { recursive: true });
-fs.writeFileSync("C:/dev/guichet/.sorties/courbes-lisibles.json", JSON.stringify(lisibles, null, 1), "utf8");
+fs.mkdirSync(new URL("../.sorties", import.meta.url), { recursive: true });
+fs.writeFileSync(new URL("../.sorties/courbes-lisibles.json", import.meta.url), JSON.stringify(lisibles, null, 1), "utf8");
 dire(`\n${lisibles.length} pièce(s) lisibles, listées dans .sorties/courbes-lisibles.json`);

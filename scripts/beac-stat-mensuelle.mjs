@@ -12,8 +12,8 @@ const formes = p.url === encodeURI(p.url) ? [p.url] : [p.url, encodeURI(p.url)];
 let buf = null;
 for (const f of formes) { try { const r = await fetch(f, { headers: { "user-agent": "Mozilla/5.0 (compatible; Guichet/1.0)" } }); if (r.ok) { buf = Buffer.from(await r.arrayBuffer()); break; } } catch { /* on reessaie */ } }
 if (!buf) { dire("la piece ne repond pas"); process.exit(1); }
-fs.mkdirSync("C:/dev/guichet/.sorties", { recursive: true });
-fs.writeFileSync("C:/dev/guichet/.sorties/stat-mensuelle.pdf", buf);
+fs.mkdirSync(new URL("../.sorties", import.meta.url), { recursive: true });
+fs.writeFileSync(new URL("../.sorties/stat-mensuelle.pdf", import.meta.url), buf);
 dire(`${Math.round(buf.length / 1024)} Ko, garde dans .sorties/stat-mensuelle.pdf`);
 const r = await rangeesDuPdf(new Uint8Array(buf));
 const lignes = r.map((x) => `p${x.page} ` + x.cellules.map((c) => c.texte).join(" | "));

@@ -24,7 +24,7 @@
  */
 import fs from "node:fs";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) {
   const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
@@ -202,7 +202,7 @@ const sortie = {
   secondaires,
   detail,
 };
-fs.writeFileSync("C:/dev/guichet/public/maquette/tarifer-donnees.js", `window.TARIFER = ${JSON.stringify(sortie)};\n`, "utf8");
+fs.writeFileSync(new URL("../public/maquette/tarifer-donnees.js", import.meta.url), `window.TARIFER = ${JSON.stringify(sortie)};\n`, "utf8");
 
 dire(`${ouvertes.length} ligne(s) primaire(s) ouverte(s)\n`);
 dire(`   ${"instr".padEnd(5)} ${"pays".padEnd(11)} ${"echeance".padEnd(11)} ${"panier".padEnd(9)} ${"affiche".padStart(8)} ${"rdt desk".padStart(9)} ${"robot".padStart(8)} ${"corps".padStart(14)} ${"n".padStart(3)} ${"ecart".padStart(9)}`);

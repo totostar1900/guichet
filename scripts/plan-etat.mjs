@@ -19,7 +19,7 @@
  */
 import fs from "node:fs";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) {
   const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
@@ -42,7 +42,7 @@ async function lignes_market_bulletins() {
   return data ?? [];
 }
 
-const DOC ="C:/dev/guichet/docs/plan-dette.md";
+const DOC =new URL("../docs/plan-dette.md", import.meta.url);
 const DEBUT = "<!-- etat:debut -->";
 const FIN = "<!-- etat:fin -->";
 
@@ -82,7 +82,7 @@ async function toutes(table, colonnes) {
 /** Un fichier existe-t-il, et porte-t-il ce texte ? */
 const fichierPorte = (chemin, texte) => {
   try {
-    return fs.readFileSync(`C:/dev/guichet/${chemin}`, "utf8").includes(texte);
+    return fs.readFileSync(new URL(`../${chemin}`, import.meta.url), "utf8").includes(texte);
   } catch {
     return false;
   }
@@ -408,7 +408,7 @@ const CONTROLES = [
     point: "Cliquet d'échelle sur les adjudications",
     attendu: "le test existe",
     async mesurer() {
-      const existe = fs.existsSync("C:/dev/guichet/src/test/echelle-adjudication.test.ts");
+      const existe = fs.existsSync(new URL("../src/test/echelle-adjudication.test.ts", import.meta.url));
       return { mesure: existe ? "écrit" : "absent", tient: existe };
     },
   },

@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PREAVIS_DEFAUT, arretables, dueOnDuPreavis, montantAExecuter, pourquoiPasArreter, pourquoiPasExecuter, type Preavis } from "@/lib/domain/preavis";
@@ -328,14 +329,14 @@ describe("l'arrêt par le client", () => {
     /* L'action ne lit que les occurrences du client connecté : une clef devinée
        ne désigne alors rien, et la question de l'appartenance ne se pose pas
        deux fois. */
-    const source = readFileSync("C:/dev/guichet/src/app/arret-actions.ts", "utf8");
+    const source = readFileSync(`${RACINE}/src/app/arret-actions.ts`, "utf8");
     expect(source).toMatch(/listPreavis\(\{ userId: s\.userId \}\)/);
   });
 });
 
 describe("la base porte les mêmes règles", () => {
   it("une occurrence par instruction et par jour, et une exécution chiffrée", () => {
-    const sql = readFileSync("C:/dev/guichet/supabase/migrations/0063_preavis.sql", "utf8");
+    const sql = readFileSync(`${RACINE}/supabase/migrations/0063_preavis.sql`, "utf8");
     expect(sql).toMatch(/create unique index[^;]*standing_runs_une_par_occurrence/);
     expect(sql).toMatch(/standing_runs_execution_chiffree/);
     expect(sql).toMatch(/notice_sent\s+boolean not null default false/);
@@ -345,7 +346,7 @@ describe("la base porte les mêmes règles", () => {
     /* C'est lui qui cachait la panne : « un message qui ne part pas ne doit pas
        empêcher le versement suivant », avec un bloc vide. Le préavis, lui, est
        rendu et décide. */
-    const cron = readFileSync("C:/dev/guichet/src/app/api/cron/epargne/route.ts", "utf8");
+    const cron = readFileSync(`${RACINE}/src/app/api/cron/epargne/route.ts`, "utf8");
     expect(cron).not.toMatch(/un message qui ne part pas/i);
     expect(cron).toMatch(/pourquoiPasExecuter/);
     expect(cron).toMatch(/envoyerPreavis/);

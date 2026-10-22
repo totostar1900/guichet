@@ -1,6 +1,6 @@
 /** Ce que les nouvelles colonnes rendent, sur les 249 seances reelles. */
 import fs from "node:fs";
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) { const m = l.match(/^([A-Z0-9_]+)=(.*)$/); if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, ""); }
 const { repo } = await import("../src/lib/data/index.ts");
 const { toRow, estUnPoint } = await import("../src/lib/market/auction-table.ts");

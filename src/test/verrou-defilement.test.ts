@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync, readdirSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -108,17 +109,17 @@ describe("plus personne ne pose son propre verrou", () => {
         const p = `${d}/${e.name}`;
         if (e.isDirectory()) voir(p);
         else if (/\.tsx?$/.test(e.name) && !p.endsWith("verrou-defilement.ts")) {
-          if (/document\.body\.style\.overflow/.test(readFileSync(p, "utf8"))) fautifs.push(p.replace("C:/dev/guichet/", ""));
+          if (/document\.body\.style\.overflow/.test(readFileSync(p, "utf8"))) fautifs.push(p.replace(`${RACINE}/`, ""));
         }
       }
     };
-    voir("C:/dev/guichet/src");
+    voir(`${RACINE}/src`);
     expect(fautifs, `ces fichiers verrouillent le corps à leur façon :\n  ${fautifs.join("\n  ")}`).toEqual([]);
   });
 
   it("le panneau qui défile retient le geste en bout de course", () => {
     // Le verrou empêche la page de bouger, pas le geste de se propager au parent.
-    expect(readFileSync("C:/dev/guichet/src/components/mobile/Sheet.module.css", "utf8")).toMatch(/\.body \{[^}]*overscroll-behavior: contain/);
+    expect(readFileSync(`${RACINE}/src/components/mobile/Sheet.module.css`, "utf8")).toMatch(/\.body \{[^}]*overscroll-behavior: contain/);
   });
 
   it("la tête de la feuille prend le geste à son compte", () => {
@@ -128,14 +129,14 @@ describe("plus personne ne pose son propre verrou", () => {
        avant que la feuille n'ait bougé. « touch-action » se lit avant tout
        gestionnaire. Le corps garde « pan-y », sinon une feuille longue ne se
        lirait plus. */
-    const css = readFileSync("C:/dev/guichet/src/components/mobile/Sheet.module.css", "utf8");
+    const css = readFileSync(`${RACINE}/src/components/mobile/Sheet.module.css`, "utf8");
     expect(css, "la tête laisse le navigateur prendre le geste").toMatch(/\.head \{[^}]*touch-action: none/);
     expect(css, "le corps doit garder son défilement").toMatch(/\.body \{[^}]*touch-action: pan-y/);
   });
 });
 
 describe("le tiré ferme la feuille, pas la page", () => {
-  const src = readFileSync("C:/dev/guichet/src/components/mobile/Sheet.tsx", "utf8");
+  const src = readFileSync(`${RACINE}/src/components/mobile/Sheet.tsx`, "utf8");
 
   it("ferme aussi depuis le corps, quand le corps est déjà en haut", () => {
     /* La règle d'avant avait raison sur le fond et tort au bord : arrivé en
@@ -175,15 +176,15 @@ describe("tout calque modal verrouille la page, ou dit pourquoi non", () => {
       for (const e of readdirSync(d, { withFileTypes: true })) {
         const p = `${d}/${e.name}`;
         if (e.isDirectory()) voir(p);
-        else if (/\.tsx$/.test(e.name) && /aria-modal="true"/.test(readFileSync(p, "utf8"))) out.push(p.replace("C:/dev/guichet/", ""));
+        else if (/\.tsx$/.test(e.name) && /aria-modal="true"/.test(readFileSync(p, "utf8"))) out.push(p.replace(`${RACINE}/`, ""));
       }
     };
-    voir("C:/dev/guichet/src");
+    voir(`${RACINE}/src`);
     return out;
   };
 
   it("chaque calque modal tient la page, sauf ceux nommés", () => {
-    const muets = calques().filter((p) => !SANS_VERROU[p] && !/verrou-defilement/.test(readFileSync(`C:/dev/guichet/${p}`, "utf8")));
+    const muets = calques().filter((p) => !SANS_VERROU[p] && !/verrou-defilement/.test(readFileSync(`${RACINE}/${p}`, "utf8")));
     expect(muets, `ces calques couvrent l'écran et la page défile derrière :\n  ${muets.join("\n  ")}`).toEqual([]);
   });
 
@@ -191,7 +192,7 @@ describe("tout calque modal verrouille la page, ou dit pourquoi non", () => {
     // Un nom resté dans la liste après que le composant a disparu ou s'est mis
     // à verrouiller fait croire à une exception qui n'existe plus.
     const vus = calques();
-    const perimes = Object.keys(SANS_VERROU).filter((p) => !vus.includes(p) || /verrou-defilement/.test(readFileSync(`C:/dev/guichet/${p}`, "utf8")));
+    const perimes = Object.keys(SANS_VERROU).filter((p) => !vus.includes(p) || /verrou-defilement/.test(readFileSync(`${RACINE}/${p}`, "utf8")));
     expect(perimes, `ces exceptions ne décrivent plus rien :\n  ${perimes.join("\n  ")}`).toEqual([]);
   });
 
@@ -207,13 +208,13 @@ describe("tout calque modal verrouille la page, ou dit pourquoi non", () => {
         else if (/\.css$/.test(e.name)) {
           for (const bloc of readFileSync(p, "utf8").split("}")) {
             if (/position:\s*fixed/.test(bloc) && /overflow(-y)?:\s*(auto|scroll)/.test(bloc) && !/overscroll-behavior/.test(bloc)) {
-              fautifs.push(`${p.replace("C:/dev/guichet/", "")} ${(bloc.match(/\.[\w-]+\s*\{/) ?? ["?"])[0]}`);
+              fautifs.push(`${p.replace(`${RACINE}/`, "")} ${(bloc.match(/\.[\w-]+\s*\{/) ?? ["?"])[0]}`);
             }
           }
         }
       }
     };
-    voir("C:/dev/guichet/src");
+    voir(`${RACINE}/src`);
     expect(fautifs, `ces panneaux fixes défilent sans retenir le geste :\n  ${fautifs.join("\n  ")}`).toEqual([]);
   });
 });

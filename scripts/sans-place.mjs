@@ -1,6 +1,6 @@
 /** Les pieces citees par une table dont la bibliotheque ignore la place. */
 import fs from "node:fs";
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) { const m = l.match(/^([A-Z0-9_]+)=(.*)$/); if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, ""); }
 const { createClient } = await import("@supabase/supabase-js");
 const { storageKey } = await import("../src/lib/intake/cle.ts");

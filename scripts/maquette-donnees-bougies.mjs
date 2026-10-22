@@ -23,7 +23,7 @@
  */
 import fs from "node:fs";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) {
   const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
@@ -121,7 +121,7 @@ const sortie = {
   paniers: PANIERS.map((p) => ({ nom: p.nom, axe: p.axe })),
   seances: seances.sort((a, b) => a.seance.localeCompare(b.seance)),
 };
-fs.writeFileSync("C:/dev/guichet/public/maquette/bougies-donnees.js", `window.BOUGIES = ${JSON.stringify(sortie)};\n`, "utf8");
+fs.writeFileSync(new URL("../public/maquette/bougies-donnees.js", import.meta.url), `window.BOUGIES = ${JSON.stringify(sortie)};\n`, "utf8");
 
 dire(`${seances.length} seances retenues, ${sansRendement} sans rendement ou sans duree`);
 dire(`de ${seances[0].seance} a ${seances.at(-1).seance}\n`);

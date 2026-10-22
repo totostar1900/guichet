@@ -13,7 +13,7 @@
  */
 import fs from "node:fs";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) {
   const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
@@ -263,12 +263,12 @@ const sortie = {
   couverture,
   nos: nos.sort((a, b) => b.m.localeCompare(a.m)),
 };
-fs.mkdirSync("C:/dev/guichet/public/maquette", { recursive: true });
-fs.writeFileSync("C:/dev/guichet/public/maquette/beac-donnees.js", `window.BEAC = ${JSON.stringify(sortie)};\n`, "utf8");
+fs.mkdirSync(new URL("../public/maquette", import.meta.url), { recursive: true });
+fs.writeFileSync(new URL("../public/maquette/beac-donnees.js", import.meta.url), `window.BEAC = ${JSON.stringify(sortie)};\n`, "utf8");
 dire(`${courbes.length} points de courbe · ${encours.length} encours · ${couts.length} coûts · ${ops.length} opérations · ${nos.length} rapprochements`);
 dire(`mois couverts : ${moisTous.length}, de ${moisTous[0]} à ${moisTous[moisTous.length - 1]}`);
 dire(`pente : ${Object.entries(pente).map(([p, s]) => `${p} ${s.length}`).join(" · ")}`);
 dire(`prévu/réalisé : ${Object.entries(seriePrevuRealise).map(([p, s]) => `${p} ${s.length}`).join(" · ")}`);
 dire(`souscription : ${Object.entries(souscription).map(([p, s]) => `${p} ${s.length}`).join(" · ")}`);
 dire(`mur : ${Object.entries(serieMur).map(([p, s]) => `${p} ${s.length}`).join(" · ")}`);
-dire(`écrit dans public/maquette/beac-donnees.js (${Math.round(fs.statSync("C:/dev/guichet/public/maquette/beac-donnees.js").size / 1024)} Ko)`);
+dire(`écrit dans public/maquette/beac-donnees.js (${Math.round(fs.statSync(new URL("../public/maquette/beac-donnees.js", import.meta.url)).size / 1024)} Ko)`);

@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -22,8 +23,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * « attendu » pour toujours, et la garde contre le double clic ne mordait pas.
  * Une panne muette, mesurée ici.
  */
-const RACINE = "C:/dev/guichet/src";
-const lire = (rel: string) => readFileSync(path.join(RACINE, rel), "utf8");
+const SRC = `${RACINE}/src`;
+const lire = (rel: string) => readFileSync(path.join(SRC, rel), "utf8");
 
 vi.mock("@/lib/auth", () => ({ requireDesk: async () => ({ name: "Desk Test", role: "desk" }) }));
 vi.mock("@/lib/audit", () => ({ audit: async () => {} }));
@@ -125,7 +126,7 @@ describe("le constat d'encaissement", () => {
 
 describe("la base redemande la pièce", () => {
   it("la migration 0059 l'exige dès qu'un mouvement encaisse une échéance", () => {
-    const sql = readFileSync("C:/dev/guichet/supabase/migrations/0059_preuve_de_l_encaissement.sql", "utf8");
+    const sql = readFileSync(`${RACINE}/supabase/migrations/0059_preuve_de_l_encaissement.sql`, "utf8");
     expect(sql).toMatch(/evidence/);
     expect(sql).toMatch(/expected/);
     expect(sql).toMatch(/flow_key is null or \(evidence is not null/);

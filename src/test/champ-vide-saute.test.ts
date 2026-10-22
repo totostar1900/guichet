@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
@@ -21,8 +22,8 @@ import { describe, expect, it } from "vitest";
  * cette page posera la même question.
  */
 describe("une ligne sans dépouillement ne part pas au prix annoncé", () => {
-  const action = readFileSync("C:/dev/guichet/src/app/desk/resultats/actions.ts", "utf8");
-  const page = readFileSync("C:/dev/guichet/src/app/desk/resultats/page.tsx", "utf8");
+  const action = readFileSync(`${RACINE}/src/app/desk/resultats/actions.ts`, "utf8");
+  const page = readFileSync(`${RACINE}/src/app/desk/resultats/page.tsx`, "utf8");
 
   it("le bouton saute une ligne sans chiffre et sans ordre", () => {
     expect(action).toContain("if (vide(price) && vide(rate) && allocations.length === 0) continue;");
@@ -39,7 +40,7 @@ describe("une ligne sans dépouillement ne part pas au prix annoncé", () => {
   it("le champ reste vide quand rien n'est proposable", () => {
     // Un champ pré-rempli se valide sans se lire : c'est tout le danger.
     expect(page).toContain("(l.o.kind === \"BTA\" ? prop?.tauxPct : prop?.prixPct) ??");
-    const forms = readFileSync("C:/dev/guichet/src/app/desk/resultats/Forms.tsx", "utf8");
+    const forms = readFileSync(`${RACINE}/src/app/desk/resultats/Forms.tsx`, "utf8");
     expect(forms).toContain("defaultValue={l.proposed ?? \"\"}");
     expect(forms).toContain("en attente du communiqué");
   });

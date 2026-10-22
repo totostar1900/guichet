@@ -22,18 +22,18 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 
-const exiger = createRequire("C:/dev/guichet/package.json");
+const exiger = createRequire(new URL("../package.json", import.meta.url));
 const { createClient } = exiger("@supabase/supabase-js");
 
 /* La règle est importée, jamais recopiée : une copie divergerait du jour au
    lendemain, et c'est elle qui décide de ce qui se range ensemble. */
-const { cleDEchange } = await import(pathToFileURL("C:/dev/guichet/src/lib/domain/echange.ts").href).catch(async () => {
+const { cleDEchange } = await import(pathToFileURL(new URL("../src/lib/domain/echange.ts", import.meta.url)).href).catch(async () => {
   /* Node ne lit pas le TypeScript : on passe par la version compilée du test. */
   throw new Error("Lancez ce script avec un chargeur TypeScript : npx tsx scripts/remplir-echanges.mjs");
 });
 
 const env = {};
-for (const l of readFileSync("C:/dev/guichet/.env.local", "utf8").split(/\r?\n/)) {
+for (const l of readFileSync(new URL("../.env.local", import.meta.url), "utf8").split(/\r?\n/)) {
   const m = l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)$/);
   if (m) env[m[1]] = m[2].replace(/^["']|["']$/g, "").trim();
 }

@@ -14,7 +14,7 @@ import { derniereParDuree, poids } from "../src/lib/market/lecture-b.ts";
 import { abouti, ajuster, tauxCourt } from "../src/lib/market/nelson-siegel.ts";
 import { toAuctionResult } from "../src/lib/data/supabase.ts";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 const v = (k) => env.match(new RegExp("^" + k + "=(.*)$", "m"))[1].trim().replace(/^["']|["']$/g, "");
 const U = v("NEXT_PUBLIC_SUPABASE_URL");
 const K = v("SUPABASE_SERVICE_ROLE_KEY");

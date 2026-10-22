@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { CLEFS_CARTE, CODE_PAYS, codeCourt, codeLisible, ligneGrise, origineDuChiffre, titreCourt } from "@/lib/domain/carte-compacte";
@@ -124,7 +125,7 @@ describe("le chiffre de droite dit d'où il vient", () => {
 });
 
 describe("les clefs de la carte passent en anglais", () => {
-  const source = readFileSync("C:/dev/guichet/src/lib/domain/carte-compacte.ts", "utf8");
+  const source = readFileSync(`${RACINE}/src/lib/domain/carte-compacte.ts`, "utf8");
 
   it("chacune est au dictionnaire", () => {
     /* Premier angle mort du scanner : ces clefs traversent t() sous forme de
@@ -180,7 +181,7 @@ describe("le titre abrège son émetteur", () => {
     /* LA FICHE ET LA LIGNE DU DESK GARDENT LE NOM LÉGAL : ce sont les deux
        pages où l'on vérifie de quelle ligne on parle avant de passer un ordre
        en banque, et le dos de la carte est fait pour la même chose. */
-    const src = readFileSync("C:/dev/guichet/src/components/LineIdentity.tsx", "utf8");
+    const src = readFileSync(`${RACINE}/src/components/LineIdentity.tsx`, "utf8");
     expect(src, "l'en-tête de page doit garder s.title").toContain('Tag === "h1" ? s.title : titreCourt(o)');
   });
 });
@@ -229,7 +230,7 @@ describe("l'en-tête de la carte est réglé par son identité", () => {
    * pastille et les deux icônes côte à côte. Trente-quatre de haut contre
    * cinquante-huit, vingt-quatre de marge au lieu de deux.
    */
-  const css = readFileSync("C:/dev/guichet/src/components/OfferCard.module.css", "utf8");
+  const css = readFileSync(`${RACINE}/src/components/OfferCard.module.css`, "utf8");
   const coin = css.slice(css.indexOf(".corner {"), css.indexOf("}", css.indexOf(".corner {")));
 
   it("le coin ne donne pas sa hauteur à l'en-tête", () => {
@@ -281,7 +282,7 @@ describe("l'écart sous l'ISIN ne dépend pas de l'orientation", () => {
   it("la règle n'est enfermée dans aucune requête d'orientation", () => {
     /* Les commentaires CITENT la requete qui a ete retiree : on les enleve
        avant de chercher, sinon l epreuve se prend elle-meme au piege. */
-    const css = readFileSync("C:/dev/guichet/src/components/OfferCard.module.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    const css = readFileSync(`${RACINE}/src/components/OfferCard.module.css`, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     const apres = css.slice(css.indexOf("@media"));
     expect(apres, "l'écart est redéfini dans une requête média").not.toMatch(/\.big \{[^}]*margin-top/);
     expect(css, "aucune règle de cette carte ne dépend de l'orientation").not.toMatch(/@media \(orientation/);
@@ -313,9 +314,9 @@ describe("au dos, la glose du cours tient sur deux lignes", () => {
   });
 
   it("le dos rend les deux gloses, l'une sous l'autre", () => {
-    const src = readFileSync("C:/dev/guichet/src/components/mobile/CardBack.tsx", "utf8");
+    const src = readFileSync(`${RACINE}/src/components/mobile/CardBack.tsx`, "utf8");
     expect(src, "la seconde glose doit être rendue").toContain("{note2 && <em>{t(note2)}</em>}");
-    const css = readFileSync("C:/dev/guichet/src/components/mobile/CardBack.module.css", "utf8");
+    const css = readFileSync(`${RACINE}/src/components/mobile/CardBack.module.css`, "utf8");
     expect(css, "chaque glose occupe sa ligne").toMatch(/\.band em \{[^}]*display: block/);
   });
 });
@@ -330,7 +331,7 @@ describe("au dos, la glose du cours tient sur deux lignes", () => {
  * barres l'appellent. Les épreuves ci-dessous lisent donc les deux fichiers
  * ensemble : elles tiennent le comportement où qu'il soit écrit.
  */
-const BANDE = [readFileSync("C:/dev/guichet/src/components/SectionChips.tsx", "utf8"), readFileSync("C:/dev/guichet/src/lib/ui/sommaire.ts", "utf8")].join("\n");
+const BANDE = [readFileSync(`${RACINE}/src/components/SectionChips.tsx`, "utf8"), readFileSync(`${RACINE}/src/lib/ui/sommaire.ts`, "utf8")].join("\n");
 
 describe("les deux bandes collantes", () => {
   /**
@@ -348,7 +349,7 @@ describe("les deux bandes collantes", () => {
    *     à l'écran. Le bloc, lui, ne colle pas.
    */
   const chips = BANDE;
-  const browser = readFileSync("C:/dev/guichet/src/components/OfferBrowser.tsx", "utf8");
+  const browser = readFileSync(`${RACINE}/src/components/OfferBrowser.tsx`, "utf8");
 
   it("une seule rangée de lieux, celle qui existait", () => {
     expect(browser, "une seconde bande de lieux ferait doublon avec OngletsMarche").not.toMatch(/LieuBar/);
@@ -359,7 +360,7 @@ describe("les deux bandes collantes", () => {
     /* Elle ne tient plus sa liste en dur : elle lit celle du siège, dans
        « nav-onglets ». Ce qui est tenu ici reste qu'elle porte bien des lieux,
        donc qu'une seconde bande n'a pas à en porter. */
-    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.tsx", "utf8"), "c'est elle qui porte les pages du siège").toMatch(/pages = ongletsDuSiege\(path\)/);
+    expect(readFileSync(`${RACINE}/src/components/market/OngletsMarche.tsx`, "utf8"), "c'est elle qui porte les pages du siège").toMatch(/pages = ongletsDuSiege\(path\)/);
   });
 
   it("les pastilles ne vivent pas dans un bloc court", () => {
@@ -367,7 +368,7 @@ describe("les deux bandes collantes", () => {
        parent doit être « wrap », aussi haut que la liste. */
     const dansTop = /<div className=\{styles\.top\}[\s\S]{0,400}?<SectionChips/.test(browser);
     expect(dansTop, "les pastilles sont retombées dans « top » : elles ne colleront plus").toBe(false);
-    expect(readFileSync("C:/dev/guichet/src/components/SectionChips.module.css", "utf8")).toMatch(/\.bar \{[^}]*position: sticky/);
+    expect(readFileSync(`${RACINE}/src/components/SectionChips.module.css`, "utf8")).toMatch(/\.bar \{[^}]*position: sticky/);
   });
 
   it("le repère mesure la section, pas son titre collant", () => {
@@ -378,8 +379,8 @@ describe("les deux bandes collantes", () => {
   it("les deux bandes partagent une seule hauteur", () => {
     /* Mesurée à 44,5 et devinée à 40, la bande des sections chevauchait la
        rangée de quatre pixels et demi. Deux modules, un seul nombre. */
-    expect(readFileSync("C:/dev/guichet/src/app/globals.css", "utf8"), "la hauteur est posée une fois, dans globals").toMatch(/--lieux-h:/);
-    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8"), "la rangée doit VALOIR cette hauteur, pas la laisser au contenu").toMatch(/height: var\(--lieux-h\)/);
+    expect(readFileSync(`${RACINE}/src/app/globals.css`, "utf8"), "la hauteur est posée une fois, dans globals").toMatch(/--lieux-h:/);
+    expect(readFileSync(`${RACINE}/src/components/market/OngletsMarche.module.css`, "utf8"), "la rangée doit VALOIR cette hauteur, pas la laisser au contenu").toMatch(/height: var\(--lieux-h\)/);
   });
 });
 
@@ -414,7 +415,7 @@ describe("la bande des sections conduit, et le saut est instantané", () => {
 
   it("le saut est instantané, écrit noir sur blanc", () => {
     expect(chips, '« auto » suivrait « scroll-behavior: smooth » de la page').toContain('behavior: "instant"');
-    expect(readFileSync("C:/dev/guichet/src/app/globals.css", "utf8"), "si la page cessait d'être douce, ce commentaire deviendrait faux").toMatch(/scroll-behavior: smooth/);
+    expect(readFileSync(`${RACINE}/src/app/globals.css`, "utf8"), "si la page cessait d'être douce, ce commentaire deviendrait faux").toMatch(/scroll-behavior: smooth/);
   });
 
   it("la barre ne déplace jamais la page pour se recadrer", () => {
@@ -428,17 +429,17 @@ describe("la bande des sections conduit, et le saut est instantané", () => {
   it("les deux bandes couvrent toute la largeur", () => {
     /* Collantes et à la gouttière de la page, elles laissaient les cartes
        défiler VISIBLEMENT de part et d'autre. */
-    expect(readFileSync("C:/dev/guichet/src/components/SectionChips.module.css", "utf8")).toMatch(/\.bar \{[^}]*margin: 0 -20px/);
-    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8")).toMatch(/margin-left: calc\(-1 \* var\(--s-8\)\)/);
+    expect(readFileSync(`${RACINE}/src/components/SectionChips.module.css`, "utf8")).toMatch(/\.bar \{[^}]*margin: 0 -20px/);
+    expect(readFileSync(`${RACINE}/src/components/market/OngletsMarche.module.css`, "utf8")).toMatch(/margin-left: calc\(-1 \* var\(--s-8\)\)/);
   });
 
   it("la rangée d'onglets ne se replie plus", () => {
     /* Le repli rendait quarante pixels et faisait trembler : le seuil
        basculait pendant que la page bougeait, la hauteur s'animait, et la
        bande des sections changeait de « top » au même instant. */
-    const css = readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8");
+    const css = readFileSync(`${RACINE}/src/components/market/OngletsMarche.module.css`, "utf8");
     expect(css, "une hauteur qui s'anime sur une barre collante tremble").not.toMatch(/transition:[^;]*height/);
-    expect(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.tsx", "utf8"), "plus d'écoute du défilement sur cette rangée").not.toMatch(/addEventListener\("scroll"/);
+    expect(readFileSync(`${RACINE}/src/components/market/OngletsMarche.tsx`, "utf8"), "plus d'écoute du défilement sur cette rangée").not.toMatch(/addEventListener\("scroll"/);
   });
 });
 
@@ -460,13 +461,13 @@ describe("la pile collante commence sous l'en-tête de l'application", () => {
    * bandes flottent quarante pixels sous l'en-tête, devant du vide.
    */
   it("chaque étage ajoute la hauteur de celui du dessus", () => {
-    const g = readFileSync("C:/dev/guichet/src/app/globals.css", "utf8");
+    const g = readFileSync(`${RACINE}/src/app/globals.css`, "utf8");
     expect(g, "la hauteur de l'en-tête doit être nommée une fois").toMatch(/--barre-app:/);
     expect(g, "elle ne vaut que sur téléphone, où cet en-tête existe").toMatch(/@media \(max-width: 760px\)[\s\S]{0,200}--barre-app: calc\(var\(--mobile-bar\)/);
-    const onglets = readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8");
+    const onglets = readFileSync(`${RACINE}/src/components/market/OngletsMarche.module.css`, "utf8");
     expect(onglets, "la rangée des pages ne colle plus : elle n'a donc plus de « top »").not.toMatch(/\.onglets \{[^}]*position: sticky/);
-    expect(readFileSync("C:/dev/guichet/src/components/SectionChips.module.css", "utf8"), "les sections se posent directement sous l'en-tête").toMatch(/\.bar \{[^}]*top: var\(--barre-app, 0px\);/);
-    const o = readFileSync("C:/dev/guichet/src/components/OfferBrowser.module.css", "utf8");
+    expect(readFileSync(`${RACINE}/src/components/SectionChips.module.css`, "utf8"), "les sections se posent directement sous l'en-tête").toMatch(/\.bar \{[^}]*top: var\(--barre-app, 0px\);/);
+    const o = readFileSync(`${RACINE}/src/components/OfferBrowser.module.css`, "utf8");
     expect(o, "le titre de section se pose sous la bande des sections, et sous elle seule").toMatch(/top: calc\(var\(--barre-app[^)]*\) \+ var\(--sections-h\)\)/);
     expect(o, "et le saut réserve la même hauteur").toMatch(/scroll-margin-top: calc\(var\(--barre-app/);
   });
@@ -474,7 +475,7 @@ describe("la pile collante commence sous l'en-tête de l'application", () => {
   it("aucun étage ne passe devant l'en-tête de l'application", () => {
     // Il est à 40 : ce qui se glisse dessous doit rester en dessous.
     const z = (css: string, sel: RegExp) => Number((css.match(sel) ?? [])[1] ?? 0);
-    expect(z(readFileSync("C:/dev/guichet/src/components/market/OngletsMarche.module.css", "utf8"), /\.onglets \{[^}]*z-index: (\d+)/)).toBeLessThan(40);
-    expect(z(readFileSync("C:/dev/guichet/src/components/SectionChips.module.css", "utf8"), /\.bar \{[^}]*z-index: (\d+)/)).toBeLessThan(40);
+    expect(z(readFileSync(`${RACINE}/src/components/market/OngletsMarche.module.css`, "utf8"), /\.onglets \{[^}]*z-index: (\d+)/)).toBeLessThan(40);
+    expect(z(readFileSync(`${RACINE}/src/components/SectionChips.module.css`, "utf8"), /\.bar \{[^}]*z-index: (\d+)/)).toBeLessThan(40);
   });
 });

@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -193,7 +194,7 @@ describe("le contrôle, bout à bout", () => {
   it("un contrôle ne se modifie pas", () => {
     // La valeur d'un rapprochement tient entièrement à ce qu'il n'a pas été
     // réécrit après coup, et c'est la base qui le garantit.
-    const sql = readFileSync("C:/dev/guichet/supabase/migrations/0061_rapprochement.sql", "utf8");
+    const sql = readFileSync(`${RACINE}/supabase/migrations/0061_rapprochement.sql`, "utf8");
     expect(sql).toMatch(/cash_reconciliations_no_update/);
     expect(sql).toMatch(/before update or delete on cash_reconciliations/);
     // Les deux chiffres sont des colonnes, donc gelés : les recalculer ferait

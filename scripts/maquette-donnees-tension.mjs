@@ -13,7 +13,7 @@
  */
 import fs from "node:fs";
 
-const env = fs.readFileSync("C:/dev/guichet/.env.local", "utf8");
+const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
 for (const l of env.split(/\r?\n/)) {
   const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
   if (m) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
@@ -113,6 +113,6 @@ const donnees = {
   niveau: { bta: 14, ota: 118, dispoBta: "93 sur 118", dispoOta: "17 sur 51" },
 };
 
-fs.writeFileSync("C:/dev/guichet/public/maquette/tension-donnees.js", `window.DONNEES = ${JSON.stringify(donnees, null, 1)};\n`, "utf8");
+fs.writeFileSync(new URL("../public/maquette/tension-donnees.js", import.meta.url), `window.DONNEES = ${JSON.stringify(donnees, null, 1)};\n`, "utf8");
 dire(`ecrit · ${placement.length} lignes de placement · exemple ${exemple?.seance ?? "aucun"}`);
 for (const p of placement) dire(`   ${p.instrument} ${p.tenor.padEnd(13)} ${String(p.seances).padStart(3)} seances · marge ${String(p.marge).padStart(4)} pb · 9/10 ${String(p.marge9).padStart(4)} pb`);

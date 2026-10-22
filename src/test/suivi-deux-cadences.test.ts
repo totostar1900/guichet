@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import type { Offer } from "@/lib/domain/types";
@@ -122,10 +123,10 @@ describe("le suivi d'une ligne cotée", () => {
 });
 
 describe("le geste dit laquelle des deux cadences il arme", () => {
-  const src = readFileSync("C:/dev/guichet/src/components/mobile/SwipeActions.tsx", "utf8");
+  const src = readFileSync(`${RACINE}/src/components/mobile/SwipeActions.tsx`, "utf8");
 
   it("la carte passe la cadence de son lieu", () => {
-    const carte = readFileSync("C:/dev/guichet/src/components/OfferCard.tsx", "utf8");
+    const carte = readFileSync(`${RACINE}/src/components/OfferCard.tsx`, "utf8");
     expect(carte).toMatch(/cadence=\{lieuDe\(o\) === "adjudications" \? "quotidien" : "evenement"\}/);
   });
 

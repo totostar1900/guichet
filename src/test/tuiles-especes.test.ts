@@ -1,3 +1,4 @@
+import { RACINE } from "./racine";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
@@ -16,7 +17,7 @@ import { describe, expect, it } from "vitest";
  * l'uniformité, et ce cliquet tient ce choix : si quelqu'un les rend
  * conditionnelles plus tard, ce sera une décision, pas une dérive.
  */
-const source = readFileSync("C:/dev/guichet/src/app/desk/today/today.ts", "utf8");
+const source = readFileSync(`${RACINE}/src/app/desk/today/today.ts`, "utf8");
 
 describe("les quatre tuiles du lot des espèces", () => {
   it("sont sur l'accueil du desk", () => {
