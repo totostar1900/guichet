@@ -1,9 +1,20 @@
 .wrap {
   display: grid;
   gap: 12px;
-  /* la hauteur réelle de l’en-tête : la tête de table s’y colle, et deux pixels
-     d’erreur la font passer dessous */
-  --header-h: 62px;
+  /* CE SOUS QUOI TOUT SE FIGE N'EST PLUS UN NOMBRE ÉCRIT ICI.
+     « --header-h: 62px » ne connaissait qu'une des trois mises en page.
+     « --barre-collante » (globals.css) les connaît toutes : la barre du
+     téléphone sous 760 px, les 62 px de la barre du haut entre 761 et 1040,
+     et ZÉRO au-delà, où le haut est rendu à la page et où la barre n'existe
+     plus. Mesuré le 22 octobre 2026 sur « /calendrier » en 1440 px : la tête
+     de tableau se figeait à 62 px sous un vide, et les lignes défilaient à
+     découvert dans la bande laissée au-dessus d'elle.
+
+     LA HAUTEUR DE LA TÊTE EST DÉCLARÉE, pas devinée : la bande de section se
+     pose dessous, et c'est la leçon de la bande des fonds — sept pixels
+     d'écart laissaient voir les cartes défiler entre les deux. La tête VAUT
+     donc cette hauteur, elle ne la reçoit plus de son contenu. */
+  --entete-h: 34px;
   /* « --sections-h », la hauteur de la bande des sections, est passée dans
      « globals.css » : la page des fonds en a besoin pour la même bande, et
      une hauteur que deux modules doivent dire pareil n'appartient à aucun
@@ -228,9 +239,26 @@
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
   background: var(--surface);
+}
+/**
+ * DEUX RANGÉES SE FIGENT, ET ELLES NE SE FIGENT PAS AU MÊME ENDROIT.
+ *
+ * « .table th » les attrapait toutes les deux : la tête de colonnes, dans le
+ * « thead », ET le titre de section, qui est une rangée pleine largeur du
+ * corps (« .secRow th », un « th » lui aussi). Même « top », même z-index :
+ * elles se superposaient au pixel près, et le titre de section paraissait
+ * traversé par le tableau. Vu sur « /calendrier » et « /titres ».
+ *
+ * La tête de colonnes se fige en premier, le titre de section juste dessous,
+ * et le titre passe SOUS la tête quand il s'en va : c'est la tête qui nomme
+ * les colonnes qu'on lit, elle ne doit jamais disparaître.
+ */
+.table thead th {
   position: sticky;
-  top: var(--header-h);
-  z-index: 5;
+  top: var(--barre-collante);
+  z-index: 6;
+  height: var(--entete-h);
+  box-sizing: border-box;
 }
 .table th > button {
   border: none;
@@ -871,6 +899,12 @@
    toujours où l'on se trouve, et il emporte son compte. */
 .secHead {
   position: sticky;
+  /* « --barre-app », et non « --barre-collante » : cette bande-ci s'accorde
+     avec le titre de la page des fonds (« .teteBoite »), qui se cale sur la
+     même mesure. Les deux doivent dire la même chose au pixel près — c'est
+     l'objet de « fonds-barre.test.ts », né de sept pixels d'écart par
+     lesquels les cartes défilaient. La changer d'un seul côté rouvrirait
+     exactement ce défaut. */
   top: calc(var(--barre-app, 0px) + var(--sections-h));
   z-index: 3;
   display: grid;
@@ -1028,4 +1062,8 @@
   font-weight: 800;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
+  /* Sous la tête de colonnes, jamais à sa place : voir « .table thead th ». */
+  position: sticky;
+  top: calc(var(--barre-collante) + var(--entete-h));
+  z-index: 5;
 }

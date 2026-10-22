@@ -120,7 +120,12 @@
 }
 .barSticky {
   position: sticky;
-  top: var(--header-h, 56px);
+  /* Elle lisait « --header-h », que la liste des offres déclarait à 62 px et
+     que personne d'autre ne définissait : la barre d'outils se figeait donc à
+     62 px dans une liste et à 56 ailleurs, deux nombres dont aucun n'était
+     vrai au-delà de 1040 px, où la barre du haut n'existe plus.
+     « --barre-collante » connaît les trois mises en page. */
+  top: var(--barre-collante);
   z-index: 15;
 }
 .search {
