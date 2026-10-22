@@ -19,12 +19,13 @@ import { getT } from "@/i18n/server";
  */
 export async function UserMenu({ session, deskUi, account, dock }: { session: Session | null; deskUi?: boolean; account?: AccountProps; /** « bottom-left » quand le menu vit au pied de la colonne : une feuille doit sortir de ce qu on a touche. */ dock?: "top-right" | "bottom-left" }) {
   const t = await getT();
-  if (!session)
-    return (
-      <Link href="/connexion" className={styles.login}>
-        {t("Se connecter")}
-      </Link>
-    );
+  /* LE VISITEUR N'A PLUS SA PORTE ICI : elle est dans la bande du bas
+     (PorteVitrine), qui porte les DEUX portes et ne s'escamote jamais. Ce
+     lien-ci n'en montrait qu'une, et il en serait devenu le double — « Se
+     connecter » deux fois à l'écran, dans la barre et dans la bande, à six
+     cents pixels d'écart. Il oubliait de surcroît son « next » et renvoyait
+     tout le monde à l'accueil. */
+  if (!session) return null;
   const initials = session.name
     .split(/\s+/)
     .map((w) => w[0])

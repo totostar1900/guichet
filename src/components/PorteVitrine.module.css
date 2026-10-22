@@ -1,0 +1,101 @@
+/**
+ * LA BANDE DE LA VITRINE : voir PorteVitrine.tsx pour le pourquoi.
+ *
+ * Elle est au bas de la FENÊTRE, pas de la page : c'est ce que « à tout
+ * moment » veut dire. Son fond est opaque, parce qu'elle passe au-dessus du
+ * texte de la page, et son filet du haut la détache du pied réglementaire.
+ *
+ * Son z-index la met au-dessus de la barre du haut (30) et sous les feuilles
+ * qui s'ouvrent par-dessus tout (60 et plus) : une bande fixe ne doit jamais
+ * couvrir le menu qu'on vient d'ouvrir.
+ */
+.bande {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -2px 10px rgba(11, 37, 69, 0.08);
+  /* L'encoche du téléphone : la bande descend dessous, son contenu non. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.dedans {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: var(--s-5) var(--s-8);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-6);
+}
+/* La phrase pousse les deux portes à droite, où la main les attend. */
+.mot {
+  margin: 0 auto 0 0;
+  color: var(--ink-3);
+  font-size: 0.84rem;
+  line-height: 1.3;
+}
+.porte {
+  flex: none;
+}
+
+/**
+ * AU-DELÀ DE 1040 PX, LA COLONNE TIENT LA GAUCHE.
+ *
+ * La bande traverse toute la fenêtre — un filet qui s'arrêterait au bord de la
+ * colonne se briserait chaque fois qu'on la replie. Seul son CONTENU se
+ * décale, de la largeur de la colonne, pour que la phrase ne commence pas
+ * derrière la navigation.
+ */
+@media (min-width: 1041px) {
+  .dedans {
+    padding-left: calc(var(--colonne-w) + var(--s-8));
+  }
+}
+
+/**
+ * SOUS 760 PX : LA PLACE DU DOCK.
+ *
+ * Le dock ne paraît qu'à qui est entré, et la mise en page réservait ses 76 px
+ * à tout le monde (layout.module.css). La bande s'y installe donc sans rien
+ * décaler. La phrase s'en va : il reste les deux portes, à parts égales, assez
+ * larges pour le pouce.
+ *
+ * Le retrait est le pas de l'échelle, douze, là où « .main » porte encore le
+ * quatorze hérité : deux pixels, sur un bouton qui prend la demi-largeur, et
+ * c'est le garde-fou de l'échelle qui tranche (src/test/spacing.test.ts).
+ */
+@media (max-width: 760px) {
+  .dedans {
+    padding: var(--s-5) var(--s-6);
+    gap: var(--s-5);
+  }
+  .mot {
+    display: none;
+  }
+  .porte {
+    flex: 1 1 0;
+    justify-content: center;
+    padding-top: var(--s-5);
+    padding-bottom: var(--s-5);
+  }
+}
+
+/**
+ * L'ESPACEUR, et pourquoi il n'existe pas sur le téléphone.
+ *
+ * Il rend au document la hauteur que la bande lui prend, pour que le pied
+ * réglementaire reste entièrement lisible une fois la page descendue. Sous
+ * 760 px, « .main » et « .footer » réservent déjà 76 px pour le dock : un
+ * espaceur de plus y creuserait un trou.
+ */
+.place {
+  height: calc(var(--s-11) + var(--s-7) + env(safe-area-inset-bottom, 0px));
+}
+@media (max-width: 760px) {
+  .place {
+    display: none;
+  }
+}

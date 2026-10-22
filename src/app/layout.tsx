@@ -28,6 +28,7 @@ import { LangProvider } from "@/i18n/client";
 import { getLang, getT } from "@/i18n/server";
 import { AuthHashRedirect } from "@/components/AuthHashRedirect";
 import { AppMenu } from "@/components/AppMenu";
+import { PorteVitrine } from "@/components/PorteVitrine";
 import { LangSwitch } from "@/components/LangSwitch";
 import { ConsentGate } from "@/components/ConsentGate";
 import { TermSheetHost } from "@/components/TermSheet";
@@ -289,6 +290,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </p>
         </footer>
         )}
+        {/* LES DEUX PORTES, EN BAS ET FIXES, POUR QUI N'EST PAS ENTRÉ.
+            Elle vient APRÈS le pied : son espaceur est alors le dernier
+            élément de la page, et la bande ne couvre plus que lui. Elle décide
+            elle-même de paraître — la surface publique est une liste blanche,
+            et seule l'adresse courante la connaît (porte.ts). */}
+        <PorteVitrine signedIn={Boolean(session)} deskHost={onDeskHost} />
         </LangProvider>
       </body>
     </html>

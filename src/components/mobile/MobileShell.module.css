@@ -120,16 +120,8 @@
     place-items: center;
     text-decoration: none;
   }
-  .signin {
-    color: var(--on-navy);
-    font-size: 0.78rem;
-    font-weight: 600;
-    text-decoration: none;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 999px;
-    padding: 5px 10px;
-    white-space: nowrap;
-  }
+  /* « .signin » est parti avec le lien qu'il habillait : la porte du visiteur
+     vit dans la bande du bas (PorteVitrine). */
 
   .tabs {
     position: fixed;

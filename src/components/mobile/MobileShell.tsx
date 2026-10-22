@@ -211,14 +211,13 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
               {t("Desk")}
             </Link>
           )}
-          {signedIn ? (
+          {/* LE VISITEUR N'A PLUS SA PORTE DANS CETTE BARRE : les deux portes
+              vivent en bas, dans la bande de la vitrine (PorteVitrine), à la
+              place que ce dock laisse libre à qui n'est pas entré. Garder ce
+              lien, c'était afficher « Se connecter » deux fois sur le même
+              écran, et reprendre au titre la largeur que la barre n'a pas. */}
+          {signedIn && (
             <AccountMenu name={name ?? "?"} segment={segment ?? ""} tier={tier ?? 0} desk={desk} email={email} phone={phone} phoneOk={phoneOk} emailOk={emailOk} prefs={prefs} kycStatus={kycStatus} vapidKey={vapidKey} security={security} profile={profile} build={build} attentes={attentes} />
-          ) : (
-            !path.startsWith("/connexion") && (
-              <Link href={`/connexion?next=${encodeURIComponent(path)}`} className={styles.signin}>
-                {t("Se connecter")}
-              </Link>
-            )
           )}
           {menu}
         </div>

@@ -1,15 +1,5 @@
-.login {
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: var(--radius);
-  padding: 6px 12px;
-  font-size: 0.82rem;
-  text-decoration: none;
-}
-.login:hover {
-  border-color: #e0b65a;
-  color: #e0b65a;
-}
+/* « .login » est parti avec le lien qu'il habillait : la porte du visiteur vit
+   dans la bande du bas (PorteVitrine), qui en porte les deux. */
 .menu {
   display: flex;
   align-items: center;
