@@ -98,6 +98,36 @@ WhatsApp : dès que `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_ID` sont renseignés, un 
 - La file de construction du plan Hobby est lente les soirs de nombreux pushes (10 à 40 minutes entre le push et le début de la construction, un seul chantier à la fois ; Vercel peut annuler de lui-même un build dépassé par un push plus récent). Vérifier sans le tableau de bord : `https://api.github.com/repos/totostar1900/guichet/commits/<sha>/status` (state `pending` = pas encore construit, `success` = construit ; « Canceled from the Vercel Dashboard » = annulé) et un `curl` de la page pour y chercher un marqueur du nouveau code.
 - Tâches planifiées (`vercel.json`, jeton `CRON_SECRET`, UTC) : `boc` 18:30 lun–ven (bulletin BVMAC), `coupons` 07:00, `suivi` 07:15 (lignes suivies, point du matin), `point` 06:30 lun–ven (opportunités en file), `emetteurs` lundi 06:00 (documents des sociétés), `actualites` 04:00 (veille des flux, vérification des liens), `actualites-hebdo` vendredi 16:00 (résumé aux clients), `note-indice` le 3 du mois à 06:40 (note mensuelle, desk seul), `note-trimestre` le 5 janvier, avril, juillet et octobre à 07:00 (note trimestrielle publique). Sur Vercel, le plan Pro est nécessaire (neuf tâches, fonctions jusqu'à 5 min, usage commercial).
 
+### Signer ses commits
+
+GitHub affiche « Unverified » sur tout commit non signé. Ce n'est pas une alerte de sécurité : c'est l'absence d'une preuve, et le dépôt a vécu ainsi jusqu'au 22 octobre 2026, où `git log --format='%G?'` répondait `N` sur la totalité de l'historique. La signature ne protège pas le contenu, elle atteste que le commit vient bien de vous — utile le jour où un tiers pousse sous votre nom, qui ne coûte rien à écrire dans `user.email`.
+
+**Les clefs se fabriquent sur sa propre machine**, jamais dans un conteneur de session distante : il est éphémère, et une clef privée qui y transite est à considérer comme perdue. Les sessions Claude Code en nuage portent bien `commit.gpgsign true`, mais leur clef (`/home/claude/.ssh/commit_signing_key.pub`) fait 0 octet : les commits qui en viennent sortent non signés quoi qu'on fasse. C'est attendu, et sans conséquence pour la production.
+
+La voie SSH est la plus courte (git ≥ 2.34 ; vérifier par `git --version`) :
+
+```bash
+# 1. une clef dédiée à la signature
+ssh-keygen -t ed25519 -C "signature georges" -f ~/.ssh/github_signing
+
+# 2. git s'en sert
+git config --global gpg.format ssh
+git config --global user.signingkey ~/.ssh/github_signing.pub
+git config --global commit.gpgsign true
+git config --global tag.gpgsign true
+
+# 3. pouvoir vérifier localement, sinon « git log --show-signature »
+#    répond « allowedSignersFile needs to be configured »
+echo "georges.nitcheu@gmail.com $(cat ~/.ssh/github_signing.pub)" >> ~/.ssh/allowed_signers
+git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers
+```
+
+**L'étape qu'on rate** : déclarer la clef sur GitHub dans *Settings › SSH and GPG keys › New SSH key* en choisissant **Key type : Signing Key**. Une clef enregistrée en *Authentication Key* ne vérifie aucune signature. Qui réutilise sa clef d'authentification doit donc l'ajouter **une seconde fois**, en type Signing. Vérifier aussi que l'adresse de `user.email` figure parmi les adresses vérifiées du compte : sans cela GitHub n'affiche jamais « Verified ».
+
+Contrôle : `git commit --allow-empty -m "essai"` puis `git log --show-signature -1` doit dire « Good "git" signature », et `git log --format='%G?' -1` afficher `G`.
+
+Seuls les commits à venir sont signés ; l'historique existant reste « Unverified », et on ne le réécrit pas — réécrire une branche déjà déployée casse les SHA que les commentaires de code citent comme repères, et oblige à un `push --force` sur la production. Ne pas activer le *Vigilant mode* de GitHub sans y penser : il affiche « Unverified » en toutes lettres sur tout l'historique non signé.
+
 ### L'échelle d'espacement
 
 - Les espaces ont un nom depuis le 23 septembre 2026 : `--s-1` à `--s-11` dans `src/app/globals.css`, soit 2 · 4 · 6 · 8 · 10 · 12 · 16 · 20 · 24 · 32 · 40 px. Elle décrit ce qui était déjà posé : 76 % des espaces de l'application tenaient déjà sur six de ces pas.
