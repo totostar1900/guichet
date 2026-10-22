@@ -1,5 +1,5 @@
 import { RACINE } from "./racine";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { estPublic } from "@/lib/porte";
 
@@ -34,6 +34,26 @@ const autorisesParRobots = (): string[] => {
 const permisParRobots = (chemin: string, regles: string[]): boolean =>
   regles.some((r) => (r.endsWith("$") ? chemin === r.slice(0, -1) : chemin === r || chemin.startsWith(r) || `${chemin}/` === r));
 
+/**
+ * Le fichier de route qui sert cette adresse, segment dynamique compris.
+ *
+ * « /info/coupon-et-rendement » est servi par « info/[key]/page.tsx » : sans
+ * ce repli, le contrôle ne trouverait aucun fichier et se tairait sur les
+ * quarante leçons, c'est-à-dire sur presque tout le sitemap.
+ */
+const routeDe = (chemin: string): string | undefined => {
+  let dir = `${SRC}/app`;
+  for (const seg of chemin.split("/").filter(Boolean)) {
+    if (existsSync(`${dir}/${seg}`)) dir = `${dir}/${seg}`;
+    else {
+      const dyn = readdirSync(dir).find((e) => e.startsWith("[") && existsSync(`${dir}/${e}/page.tsx`));
+      if (!dyn) return undefined;
+      dir = `${dir}/${dyn}`;
+    }
+  }
+  return existsSync(`${dir}/page.tsx`) ? `${dir}/page.tsx` : undefined;
+};
+
 /** Le sitemap, rendu sur l'hôte du Guichet, sans toucher à la base. */
 const rendre = async (hote: string): Promise<string[]> => {
   vi.resetModules();
@@ -67,9 +87,28 @@ describe("le sitemap s'accorde avec la porte et avec robots.txt", () => {
 
   it("le socle et les pages tirées des données y sont", async () => {
     const chemins = await rendre("guichet.purposecapital.africa");
-    for (const p of ["/", "/info", "/info/aide", "/indice/notes", "/ouvrir-un-compte"]) expect(chemins).toContain(p);
+    for (const p of ["/", "/info", "/info/aide", "/info/mentions", "/indice/notes"]) expect(chemins).toContain(p);
+    expect(chemins, "« /ouvrir-un-compte » exige une connexion : elle n'a rien à faire ici").not.toContain("/ouvrir-un-compte");
     expect(chemins, "une leçon du référentiel doit paraître").toContain("/info/une-lecon");
     expect(chemins, "une note publiée doit paraître, en minuscules").toContain("/indice/note/2026-t1");
+  });
+
+  it("aucune adresse proposée ne demande une connexion", async () => {
+    /* LE DEFAUT QUI A COUTE CE CONTROLE. « /ouvrir-un-compte » est dans la
+       liste blanche de la porte ET dans les « allow » de robots.txt, et sa
+       page appelle pourtant `requireSession` : en production elle répond 307
+       vers la connexion. Les deux contrôles ci-dessus la laissaient passer,
+       parce qu'ils lisent des listes et non la page. Celui-ci lit la page. */
+    const chemins = await rendre("guichet.purposecapital.africa");
+    const introuvables: string[] = [];
+    const fermees: string[] = [];
+    for (const p of chemins) {
+      const f = routeDe(p);
+      if (!f) { introuvables.push(p); continue; }
+      if (/\brequireSession\s*\(/.test(readFileSync(f, "utf8"))) fermees.push(`${p}  (${f.slice(SRC.length + 1)})`);
+    }
+    expect(introuvables, `le sitemap propose des adresses qu'aucune route ne sert :\n  ${introuvables.join("\n  ")}`).toEqual([]);
+    expect(fermees, `ces pages exigent une connexion : les annoncer remplit un moteur de liens vers un mur :\n  ${fermees.join("\n  ")}`).toEqual([]);
   });
 
   it("aucune adresse n'est écrite deux fois", async () => {

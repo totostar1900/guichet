@@ -38,8 +38,17 @@ export const dynamic = "force-dynamic";
 /** Les pages du guide dont l'adresse est fixe, en plus des leçons du référentiel. */
 const GUIDE = ["/info", "/info/aide", "/info/mentions", "/info/parcours", "/info/risques"];
 
-/** Les adresses qui ne dépendent d'aucune lecture, donc qui répondent toujours. */
-const SOCLE = ["/", "/ouvrir-un-compte", "/indice/notes", ...GUIDE];
+/**
+ * Les adresses qui ne dépendent d'aucune lecture, donc qui répondent toujours.
+ *
+ * « /ouvrir-un-compte » N'Y EST PAS, et son absence est mesurée : la porte la
+ * dit publique et robots.txt y invite les moteurs, mais la page appelle
+ * `requireSession` et renvoie vers la connexion. L'annoncer remplirait un
+ * moteur de liens vers un mur, ce que le commentaire de robots.ts refuse déjà.
+ * Les trois listes se contredisent ; trancher laquelle a raison est une
+ * décision de la maison, pas du sitemap, qui se contente de ne pas mentir.
+ */
+const SOCLE = ["/", "/indice/notes", ...GUIDE];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const h = await headers();
