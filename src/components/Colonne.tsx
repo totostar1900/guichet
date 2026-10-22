@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
 import { Poignee } from "./Poignee";
 import { COLONNE_CLIENT, COLONNE_DESK, COLONNE_VISITEUR, estRouteLarge, groupeDe, pageDe, type GroupeColonne } from "@/lib/nav-colonne";
@@ -153,6 +153,25 @@ export function Colonne({
 
   const effectif: EtatColonne = etat ?? (estRouteLarge(path) ? "escamotee" : "repliee");
 
+  /* LE COUP D'ŒIL AU BORD : un état de la session, jamais du stockage. Il ne
+     survit ni à la page ni au rechargement, et c'est voulu — voir la note
+     « SURVOLER N'EST PAS CHOISIR », plus bas. */
+  const [lorgne, setLorgne] = useState(false);
+  const entreeRef = useRef<number | undefined>(undefined);
+  const sortieRef = useRef<number | undefined>(undefined);
+  /* On suit un lien : la colonne se referme avec la page qu'on quitte, et les
+     minuteries en cours s'éteignent avec elle. */
+  useEffect(() => {
+    setLorgne(false);
+  }, [path]);
+  useEffect(
+    () => () => {
+      window.clearTimeout(entreeRef.current);
+      window.clearTimeout(sortieRef.current);
+    },
+    [],
+  );
+
   /**
    * UN SEUL ÉTAT DÉCIDE DE CE QUI EST OUVERT : la liste des groupes pliés.
    *
@@ -250,15 +269,56 @@ export function Colonne({
   const ouvert = (label: string) => !plies.has(label);
   const toutDeplie = groupes.every((g) => ouvert(g.label));
 
-  if (effectif === "escamotee")
+  /* Les deux minuteries du coup d'œil. Une seule à la fois : entrer annule la
+     sortie en cours, et l'inverse. */
+  const entrerAuBord = useCallback(() => {
+    window.clearTimeout(sortieRef.current);
+    window.clearTimeout(entreeRef.current);
+    entreeRef.current = window.setTimeout(() => setLorgne(true), 200);
+  }, []);
+  const quitterLeBord = useCallback(() => {
+    window.clearTimeout(entreeRef.current);
+    window.clearTimeout(sortieRef.current);
+    sortieRef.current = window.setTimeout(() => setLorgne(false), 400);
+  }, []);
+
+  /**
+   * ESCAMOTÉE, ELLE SE MONTRE AU SURVOL DU BORD — ET TROIS RÈGLES LA TIENNENT.
+   *
+   * LA POIGNÉE RESTE. Le survol n'existe ni au doigt ni au clavier : en faire
+   * le seul chemin rendrait la navigation inatteignable sur un téléphone et
+   * pour qui tabule. Il s'ajoute, il ne remplace pas.
+   *
+   * UNE LISIÈRE ET UN DÉLAI, PAS UN BORD. Un bord de deux pixels déclenché à
+   * l'instant s'ouvre quand on vise la barre de défilement ou qu'on revient
+   * du bureau. Seize pixels, deux dixièmes de seconde pour entrer, quatre
+   * pour sortir : le temps de traverser un coin sans que tout se referme.
+   *
+   * SURVOLER N'EST PAS CHOISIR. Ce coup d'œil ne retient rien : « retenir »
+   * n'est pas appelé, et l'état escamoté reste celui que la personne a posé.
+   * Seule la poignée le change. Sans cela, un geste involontaire réécrirait
+   * une préférence — le défaut même que le 19 octobre avait corrigé sur le
+   * pliage des groupes.
+   */
+  if (effectif === "escamotee" && !lorgne)
     return (
-      <button type="button" className={styles.poignee} onClick={() => retenir("repliee")} aria-label={t("Ouvrir la navigation")} aria-expanded={false}>
-        <Chevron className={styles.chOuvrir} />
-      </button>
+      <>
+        <button type="button" className={styles.poignee} onClick={() => retenir("repliee")} aria-label={t("Ouvrir la navigation")} aria-expanded={false}>
+          <Chevron className={styles.chOuvrir} />
+        </button>
+        <div className={styles.lisiere} aria-hidden="true" onMouseEnter={entrerAuBord} onMouseLeave={quitterLeBord} />
+      </>
     );
 
   return (
-    <nav className={styles.colonne} aria-label={t("Navigation")} data-pret={pret ? "oui" : undefined} data-coach="nav">
+    <nav
+      className={`${styles.colonne} ${lorgne ? styles.lorgnee : ""}`}
+      aria-label={t("Navigation")}
+      data-pret={pret ? "oui" : undefined}
+      data-coach="nav"
+      onMouseEnter={lorgne ? entrerAuBord : undefined}
+      onMouseLeave={lorgne ? quitterLeBord : undefined}
+    >
       {/* LES DEUX COMMANDES MONTENT EN HAUT À DROITE, au ras de l'enseigne.
           Elles étaient au pied, sous le nom de la personne, c'est-à-dire à
           l'endroit où l'on ne regarde pas et le plus loin des chevrons

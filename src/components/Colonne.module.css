@@ -201,6 +201,62 @@
 }
 
 /* ===== Escamotée : une poignée au bord, et rien d'autre ===== */
+/**
+ * LA LISIÈRE : seize pixels au bord gauche, qui attendent le curseur.
+ *
+ * Deux pixels se déclenchent quand on vise la barre de défilement ou qu'on
+ * revient du bureau ; seize se visent exprès. Elle ne prend aucun clic
+ * (« pointer-events » la laisse sensible au survol seul n'existe pas : elle
+ * est donc transparente et sans contenu, et tout ce qu'elle couvre est le
+ * bord d'une page qui n'y a rien d'utile).
+ *
+ * ELLE N'EXISTE QUE LÀ OÙ LE SURVOL EXISTE. Au doigt, « hover » se simule au
+ * premier appui : la lisière avalerait le premier geste de chaque page. La
+ * requête de média l'en empêche, et la poignée reste le chemin de tous.
+ */
+.lisiere {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .lisiere {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--s-7);
+    z-index: 24;
+  }
+}
+
+/**
+ * LA COLONNE LORGNÉE passe PAR-DESSUS la page, elle ne la pousse pas : un
+ * coup d'œil qui décale tout le texte qu'on est en train de lire n'est pas un
+ * coup d'œil, c'est un déménagement.
+ */
+.lorgnee {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 26;
+  width: var(--colonne-w);
+  height: auto;
+  box-shadow: 0 0 0 1px var(--line), 12px 0 32px rgba(11, 37, 69, 0.28);
+  animation: entreeLorgne 0.16s ease-out;
+}
+@keyframes entreeLorgne {
+  from {
+    transform: translateX(-8px);
+    opacity: 0.6;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lorgnee {
+    animation: none;
+  }
+}
+
 .poignee {
   position: fixed;
   left: 0;
