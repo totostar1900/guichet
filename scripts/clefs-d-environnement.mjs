@@ -74,13 +74,17 @@ export function scanner(dossier) {
   return { lues, horsDeVue };
 }
 
-export const clefsDeLExemple = () =>
+export const clefsDeLExemple = () => {
+  if (!fs.existsSync(`${RACINE}/.env.example`))
+    throw new Error(".env.example est absent : c est lui qui nomme les clefs a poser sur un poste neuf. Il est suivi par git depuis le 22 octobre 2026 ; le recuperer par « git checkout .env.example ».");
+  return (
   new Set(
     fs.readFileSync(`${RACINE}/.env.example`, "utf8")
       .split(/\r?\n/)
       .map((l) => l.match(/^([A-Z0-9_]+)=/)?.[1])
       .filter(Boolean),
-  );
+  ));
+};
 
 if (process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1]))) {
   const app = scanner("src");

@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# SAUF le modele : il nomme chaque clef et dit ce qu on perd sans elle, donc il
+# doit arriver avec le clone. Mesure du 22 octobre 2026 : il etait avale par la
+# ligne ci-dessus, et un poste neuf n avait aucune liste des clefs a poser.
+!.env.example
 
 # vercel
 .vercel
