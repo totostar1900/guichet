@@ -67,6 +67,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
    * faut faire pour entrer, et la mention légale. Le reste s'en va.
    */
   const administration = isDeskHost((await headers()).get("host"));
+  /* Le canal téléphone existe pour le client, et seulement pour lui : voir la
+     note sur la phrase d'accueil, plus bas. */
+  const telephoneOuvert = process.env.PHONE_OTP_ENABLED === "1" && !administration;
 
   return (
     <div className={styles.wrap}>
@@ -81,7 +84,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         {mode === "supabase" ? (
           <>
             {/* La phrase de tête a déjà été dite à qui vient ouvrir ou créer un compte. */}
-            {!ouvrir && !creerUnCompte && <p className={styles.lead}>{t(process.env.PHONE_OTP_ENABLED === "1" ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>}
+            {/* LA CONSOLE N'A QU'UN CANAL, L'E-MAIL. WhatsApp et le SMS
+                servent un client qu'on joint là où il vit ; un opérateur a
+                une adresse professionnelle, et c'est elle qui porte son
+                habilitation. Deux canaux de plus, c'est deux surfaces de
+                plus sur la porte de l'administration, pour personne. */}
+            {!ouvrir && !creerUnCompte && <p className={styles.lead}>{t(telephoneOuvert ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>}
             {/* La porte Google est proposée avant le code : elle est plus courte,
                 et l'adresse qu'elle rend est déjà vérifiée par Google. Elle ne
                 paraît que si le fournisseur est activé côté Supabase. */}
@@ -104,7 +112,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 </div>
               </>
             )}
-            <EmailOtpForm next={next} phoneEnabled={process.env.PHONE_OTP_ENABLED === "1"} withCode={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY)} />
+            <EmailOtpForm next={next} phoneEnabled={telephoneOuvert} withCode={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY)} />
             {!administration && (
               <p className={styles.discover}>
                 {t("Vous découvrez Guichet ?")} <ReplayPresentation className="btn sm ghost" label={t("Trente secondes pour comprendre")} />
@@ -114,7 +122,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         ) : (
           <>
             <p className={styles.lead}>
-              <b>{t("Mode démonstration")}</b> : {t("aucun backend configuré. Choisissez un rôle pour parcourir Guichet comme un client ou comme le desk. En production, la connexion se fait par code e-mail ou WhatsApp.")}
+              <b>{t("Mode démonstration")}</b> : {t(administration ? "aucun backend configuré. Choisissez un rôle pour parcourir Guichet comme un client ou comme le desk. En production, la connexion se fait par code e-mail." : "aucun backend configuré. Choisissez un rôle pour parcourir Guichet comme un client ou comme le desk. En production, la connexion se fait par code e-mail ou WhatsApp.")}
             </p>
             <div className={styles.two}>
               <form action={devLogin} className={styles.devForm}>

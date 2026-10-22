@@ -186,6 +186,8 @@ export const EN_MORE: Record<string, string> = {
   "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir.": "Receive a one-time code by e-mail, WhatsApp or SMS. No password to remember.",
   "Mode démonstration": "Demonstration mode",
   "aucun backend configuré. Choisissez un rôle pour parcourir Guichet comme un client ou comme le desk. En production, la connexion se fait par code e-mail ou WhatsApp.": "no backend configured. Choose a role to browse Guichet as a client or as the desk. In production you sign in with an e-mail or WhatsApp code.",
+  /* Sur l'adresse du desk, un seul canal : voir connexion/page.tsx. */
+  "aucun backend configuré. Choisissez un rôle pour parcourir Guichet comme un client ou comme le desk. En production, la connexion se fait par code e-mail.": "no backend configured. Choose a role to browse Guichet as a client or as the desk. In production you sign in with an e-mail code.",
   "Client": "Client",
   "Nom affiché": "Display name",
   "Segment": "Segment",

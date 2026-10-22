@@ -211,6 +211,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             En dessous, rien ne change : la barre ci-dessus sert les écrans
             intermédiaires et le dock sert le téléphone. */}
         <div className={styles.avecColonne}>
+          {/* SUR L'ADRESSE DU DESK, UN VISITEUR N'A PAS DE COLONNE.
+              Faute de session, « deskUi » est faux et la colonne servait les
+              groupes du VISITEUR : « Nos placements », « À propos », « Le
+              guide ». C'est la vitrine de Guichet, dressée à gauche d'un
+              formulaire d'administration — la même faute que la rangée de
+              liens que le pied y affichait, et qui en est partie le
+              12 octobre 2026. La console ne fait pas la publicité de la
+              maison. Entré, l'opérateur retrouve la colonne du desk. */}
+          {!(onDeskHost && !session) && (
           <Colonne
             mode={deskUi ? "desk" : "client"}
             connecte={Boolean(session)}
@@ -241,6 +250,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               )
             }
           />
+          )}
           <main className={styles.main}>
             {/* Le rail des pages du marche se pose ici, et il decide lui-meme s il
                 a lieu d etre : la mise en page d une famille vit a un endroit. */}
