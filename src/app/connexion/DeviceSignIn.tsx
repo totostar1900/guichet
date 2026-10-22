@@ -55,7 +55,7 @@ export function DeviceSignIn({ next }: { next: string }) {
         arrive();
       } catch (e) {
         const name = (e as Error).name;
-        setError(name === "NotAllowedError" ? "Annulé, ou le téléphone n'a pas reconnu le doigt : réessayez, ou entrez le code par e-mail." : `Clé indisponible : ${(e as Error).message}`);
+        setError(name === "NotAllowedError" ? "Annulé, ou l'appareil ne vous a pas reconnu : réessayez, ou entrez le code par e-mail." : `Clé indisponible : ${(e as Error).message}`);
       }
     });
 
@@ -83,7 +83,13 @@ export function DeviceSignIn({ next }: { next: string }) {
       return (
         <p className={styles.passkeyHint}>
           <button type="button" className={styles.linkBtn} onClick={openWithPasskey} disabled={pending}>
-            {t(pending ? "Vérification…" : "Déjà une clé d'accès sur ce téléphone ? L'utiliser")}
+            {/* « CE TÉLÉPHONE » SE LISAIT SUR UN ORDINATEUR. WebAuthn répond
+                oui sur un portable comme sur un bureau — Windows Hello, Touch
+                ID, une clé physique — et cette ligne est la première chose
+                qu'un visiteur voit sur la porte. Le mot « appareil » couvre
+                les trois, et c'est celui que le pied de ce même bloc emploie
+                déjà (« Oublier cet appareil ici »). */}
+            {t(pending ? "Vérification…" : "Déjà une clé d'accès sur cet appareil ? L'utiliser")}
           </button>
           {error && <span className={styles.error}>{error}</span>}
         </p>
@@ -100,7 +106,7 @@ export function DeviceSignIn({ next }: { next: string }) {
       </div>
       {device.kind === "passkey" ? (
         <button type="button" className="btn primary" onClick={openWithPasskey} disabled={pending || done}>
-          {t(pending ? "Vérification…" : "Ouvrir avec Face ID, empreinte ou code du téléphone")}
+          {t(pending ? "Vérification…" : "Ouvrir avec Face ID, empreinte ou code de l'appareil")}
         </button>
       ) : (
         <label className={styles.pinField}>

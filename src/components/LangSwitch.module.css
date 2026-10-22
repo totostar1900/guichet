@@ -34,3 +34,20 @@
   padding: 4px 8px;
   font-size: 0.8rem;
 }
+
+/**
+ * SUR FOND CLAIR, et pourquoi il a fallu le dire.
+ *
+ * Le bouton naît blanc : « --on-navy » est sa couleur, parce qu'il a toujours
+ * vécu dans la barre bleue. Posé dans la pastille du coin, qui porte un fond
+ * de surface, il devenait blanc sur blanc — seul « FR », qui est en or parce
+ * qu'il est actif, restait lisible, et « EN » disparaissait tout à fait. La
+ * langue qu'on NE parle pas est précisément celle qu'on vient chercher.
+ */
+.clair .btn {
+  color: var(--ink-2);
+  border-color: var(--line-2);
+}
+.clair .btn:hover {
+  border-color: var(--ink-3);
+}

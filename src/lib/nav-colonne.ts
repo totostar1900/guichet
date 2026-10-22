@@ -104,7 +104,11 @@ export const estRouteLarge = (path: string) => ROUTES_LARGES.some((r) => path ==
  * même règle que « la porte et la vitrine » du 30 septembre : on ne met pas
  * l'escalier au milieu du guichet.
  */
-export const SANS_COLONNE: string[] = ["/connexion", "/ouvrir-un-compte", "/ne-plus-recevoir"];
+/* « /connexion » EN EST SORTIE : la porte gardait la colonne cachée au nom du
+   parcours fermé, et le visiteur qui s'y trompait n'avait plus aucune sortie
+   que le bouton « page précédente ». Le dossier d'ouverture et le
+   désabonnement restent fermés : on y est déjà entré, et on y signe. */
+export const SANS_COLONNE: string[] = ["/ouvrir-un-compte", "/ne-plus-recevoir"];
 export const estParcoursFerme = (path: string) =>
   SANS_COLONNE.some((r) => path === r || path.startsWith(`${r}/`)) || /^\/offres\/[^/]+\/intention$/.test(path);
 

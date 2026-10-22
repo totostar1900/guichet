@@ -23,6 +23,8 @@ export const EN: Record<string, string> = {
   "Compte en cours d'ouverture": "Account being opened",
   "Ouvrir un compte": "Open an account",
   "Ouvrir un compte ou se connecter": "Open an account or sign in",
+  /* Les deux abrégés de la pastille du coin, sous 760 px : voir PorteVitrine. */
+  "Entrer": "Sign in",
   "Société de bourse agréée COSUMAF · n° COSUMAF-SDB-01/2026": "Brokerage firm licensed by COSUMAF · no. COSUMAF-SDB-01/2026",
   "Communication à caractère promotionnel. Rendements actuariels bruts, convention Exact/Exact, hors commission et hors fiscalité, sous réserve du prix effectivement servi à l'adjudication. Une intention d'investissement n'est ni un ordre ni une garantie d'allocation. Risque de perte en capital.":
     "Promotional communication. Gross yields to maturity, Actual/Actual convention, before commission and tax, subject to the price actually served at the auction. An investment intention is neither an order nor a guarantee of allocation. Risk of capital loss.",

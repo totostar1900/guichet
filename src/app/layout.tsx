@@ -29,7 +29,7 @@ import { getLang, getT } from "@/i18n/server";
 import { AuthHashRedirect } from "@/components/AuthHashRedirect";
 import { AppMenu } from "@/components/AppMenu";
 import { PorteVitrine } from "@/components/PorteVitrine";
-import { LangSwitch } from "@/components/LangSwitch";
+import { SaufSurLaPorte } from "@/components/SaufSurLaPorte";
 import { ConsentGate } from "@/components/ConsentGate";
 import { TermSheetHost } from "@/components/TermSheet";
 import { PALETTE_BOOT, P_COOKIE, T_COOKIE, paletteAttrs } from "@/lib/palette";
@@ -257,6 +257,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             pixels de texte qu'on ne lit jamais ferment chaque page.
             Sur le guichet il reste entier : c'est là qu'il a un lecteur. */}
         {!onDeskHost && (
+        <SaufSurLaPorte>
         <footer className={styles.footer}>
           {/* CE QUE LE « ⋮ » PORTAIT POUR UN VISITEUR, RESSORTI ET NOMMÉ.
               Le menu à trois points a disparu de la page publique le
@@ -273,12 +274,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               rangée vendait Guichet à qui venait ouvrir la console : trois
               liens de vitrine sous un formulaire d'administration. Une page
               d'administration ne fait pas la publicité de la maison. */}
+          {/* LE SÉLECTEUR DE LANGUE N'EST PLUS ICI, et ce n'est pas qu'une
+              question de place : « LangSwitch » pose un « form », ce « p » le
+              contenait, et un « form » dans un « p » est du HTML invalide. Le
+              navigateur défaisait l'imbrication au parsing, l'arbre rendu ne
+              correspondait plus à celui du serveur, et chaque page publique
+              rendait une erreur d'hydratation au premier clic — il fallait
+              recharger pour la voir s'afficher. Il vit maintenant dans la
+              pastille du coin (PorteVitrine), où il est dans un « div ». */}
           {!session && !onDeskHost && (
             <p className={styles.porteVisiteur}>
               <Link href="/info">{t("Le guide")}</Link>
               <Link href="/info/aide">{t("Aide et contact")}</Link>
               <Link href="/info/risques">{t("Risques et limites")}</Link>
-              <LangSwitch compact />
             </p>
           )}
           <p>
@@ -289,12 +297,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ? <span className={styles.build}> · v{process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.slice(0, 7)}</span> : null}
           </p>
         </footer>
+        </SaufSurLaPorte>
         )}
-        {/* LES DEUX PORTES, EN BAS ET FIXES, POUR QUI N'EST PAS ENTRÉ.
-            Elle vient APRÈS le pied : son espaceur est alors le dernier
-            élément de la page, et la bande ne couvre plus que lui. Elle décide
-            elle-même de paraître — la surface publique est une liste blanche,
-            et seule l'adresse courante la connaît (porte.ts). */}
+        {/* LES DEUX PORTES ET LA LANGUE, EN HAUT À DROITE, POUR QUI N'EST PAS
+            ENTRÉ. La pastille est fixée à la fenêtre : elle ne dépend donc
+            d'aucune des trois barres, dont deux n'existent pas au-delà de
+            1040 px. Elle décide elle-même de paraître — la surface publique
+            est une liste blanche, et seule l'adresse courante la connaît
+            (porte.ts). */}
         <PorteVitrine signedIn={Boolean(session)} deskHost={onDeskHost} />
         </LangProvider>
       </body>

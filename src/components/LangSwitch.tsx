@@ -6,14 +6,14 @@ import { useLang } from "@/i18n/client";
 import styles from "./LangSwitch.module.css";
 
 /** FR · EN : one click, the whole app switches; the choice is kept for a year. */
-export function LangSwitch({ compact }: { compact?: boolean }) {
+export function LangSwitch({ compact, clair }: { compact?: boolean; /** Sur un fond de surface, et non sur la barre bleue : voir LangSwitch.module.css. */ clair?: boolean }) {
   const lang = useLang();
   const pathname = usePathname();
   const sp = useSearchParams();
   const back = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
   const other = lang === "fr" ? "en" : "fr";
   return (
-    <form action={setLangAction} className={`${styles.form} ${compact ? styles.compact : ""}`}>
+    <form action={setLangAction} className={`${styles.form} ${compact ? styles.compact : ""} ${clair ? styles.clair : ""}`}>
       <input type="hidden" name="back" value={back} />
       <input type="hidden" name="lang" value={other} />
       <button type="submit" className={styles.btn} aria-label={lang === "fr" ? "Switch to English" : "Passer en français"} title={lang === "fr" ? "Switch to English" : "Passer en français"}>

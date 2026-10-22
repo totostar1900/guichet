@@ -4,69 +4,73 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useT } from "@/i18n/client";
 import { estPublic } from "@/lib/porte";
+import { LangSwitch } from "./LangSwitch";
 import styles from "./PorteVitrine.module.css";
 
 /**
- * LES DEUX PORTES, TOUJOURS SOUS LES YEUX.
+ * LES DEUX PORTES, EN HAUT À DROITE, SUR CHAQUE PAGE.
  *
  * L'accueil appelait à ouvrir un compte trois fois, et chaque fois DANS le
- * flux de la page : l'appel partait avec le défilement, et le visiteur qui
- * avait lu jusqu'en bas n'avait plus rien sous la main. « Se connecter »
- * vivait de son côté dans la barre du haut, c'est-à-dire ailleurs : la paire
- * ne se lisait jamais ensemble.
+ * flux de la page : l'appel partait avec le défilement. « Se connecter »
+ * vivait de son côté dans la barre du haut : la paire ne se lisait jamais
+ * ensemble.
  *
- * ELLE EST EN BAS, ET FIXE, parce que c'est le seul endroit qui tienne aux
- * trois mises en page. La barre du haut n'existe plus au-delà de 1040 px, et
- * la colonne de gauche s'escamote — d'un geste du lecteur, et d'office sur
- * les routes larges : son pied ne peut donc rien garantir. Sous 760 px la
- * bande prend la place que le dock laisse libre, car le dock ne paraît qu'à
- * qui est entré et ses 76 px étaient réservés pour personne.
+ * ELLE A D'ABORD ÉTÉ UNE BANDE AU BAS DE LA FENÊTRE, et le coin haut-droit
+ * l'a remplacée le 22 octobre 2026 : c'est là qu'un lecteur cherche de quoi
+ * entrer, sur tous les sites qu'il connaît, et une bande en bas disputait la
+ * place au pied réglementaire.
  *
- * LES DEUX NE PÈSENT PAS PAREIL : ouvrir un compte est l'invitation, se
- * connecter la porte de service de qui a déjà un compte. Le libellé dit
- * « Ouvrir un compte » et mène à la porte la moins chère, celle qui ne
- * demande aucune pièce ; le dossier d'ouverture, lui, vit derrière la
- * connexion et ne s'adresse qu'à un client entré. Les deux mots ne paraissent
- * donc jamais au même lecteur.
+ * ELLE EST FIXE, ET PORTE SON PROPRE FOND. Le coin haut-droit n'a pas le même
+ * dessous selon la largeur : la barre bleue sous 1040 px, la page nue au-delà,
+ * puisque le haut y est rendu à la page et que la colonne de gauche
+ * s'escamote. Un texte qui hérite du fond serait lisible ici et invisible là ;
+ * la pastille tranche en portant le sien, une seule fois, pour les trois mises
+ * en page.
+ *
+ * LE SÉLECTEUR DE LANGUE L'ACCOMPAGNE. Il vivait au pied, dans un « p », où il
+ * posait un « form » — du HTML invalide que le navigateur défait au parsing,
+ * et donc une erreur d'hydratation à chaque page publique : l'écran montrait
+ * une erreur au premier clic, et il fallait recharger. Il est ici, dans un
+ * « div », et la faute disparaît avec le déplacement.
  *
  * Elle ne paraît que devant la porte : jamais à qui est entré, jamais sur
- * l'adresse du desk, et pas sur la page de connexion, qui EST la porte.
+ * l'adresse du desk, et pas sur « /connexion », qui EST la porte — le
+ * sélecteur de langue, lui, y reste, car on choisit sa langue avant d'entrer.
  */
 export function PorteVitrine({ signedIn, deskHost = false }: { signedIn: boolean; deskHost?: boolean }) {
   const t = useT();
   const path = usePathname() || "/";
   if (signedIn || deskHost) return null;
-  if (path.startsWith("/connexion") || path.startsWith("/auth")) return null;
-  /* La liste blanche de porte.ts tranche : hors d'elle, un visiteur est de
-     toute façon renvoyé à la connexion par le proxy, et la bande n'a pas de
-     lecteur. */
   if (!estPublic(path)) return null;
-  /* On revient où l'on était : la barre du téléphone le faisait déjà, la
-     barre du haut l'avait oublié et renvoyait tout le monde à l'accueil. */
+  /* Sur la porte elle-même, les deux boutons n'ont plus d'objet : le
+     formulaire est sous les yeux. La langue, si. */
+  const surLaPorte = path.startsWith("/connexion") || path.startsWith("/auth");
+  /* On revient où l'on était : la barre du haut l'oubliait et renvoyait tout
+     le monde à l'accueil. */
   const suite = path === "/" ? "" : `&next=${encodeURIComponent(path)}`;
   const entrer = path === "/" ? "/connexion" : `/connexion?next=${encodeURIComponent(path)}`;
   return (
-    <>
-      <aside className={styles.bande} aria-label={t("Ouvrir un compte ou se connecter")}>
-        <div className={styles.dedans}>
-          {/* La phrase ôte la peur du geste, et ne paraît qu'où il y a la
-              place : sous le pouce, les deux boutons prennent la largeur. */}
-          <p className={styles.mot}>{t("Créer votre compte ne vous engage à rien et ne demande aucun document.")}</p>
-          <Link className={`btn primary ${styles.porte}`} href={`/connexion?creer=1${suite}`}>
-            {t("Ouvrir un compte")}
+    <div className={styles.coin} role="group" aria-label={t("Ouvrir un compte ou se connecter")}>
+      <LangSwitch compact clair />
+      {!surLaPorte && (
+        <>
+          {/* DEUX LONGUEURS POUR LE MÊME MOT, et c'est la barre du téléphone
+              qui l'impose : à 390 px, « Ouvrir un compte » et « Se connecter »
+              font 255 px à eux deux, et la pastille recouvrait l'enseigne
+              jusqu'à la couper en « PURPOSE CAP ». Le nom de la maison n'est
+              pas une chose qu'on masque pour vendre un bouton. Le libellé
+              entier reste dans « aria-label » : ce que l'œil abrège, la voix
+              de synthèse le dit en entier. */}
+          <Link className={`btn primary ${styles.porte}`} href={`/connexion?creer=1${suite}`} aria-label={t("Ouvrir un compte")}>
+            <span className={styles.long}>{t("Ouvrir un compte")}</span>
+            <span className={styles.court}>{t("Ouvrir")}</span>
           </Link>
-          <Link className={`btn ghost ${styles.porte}`} href={entrer}>
-            {t("Se connecter")}
+          <Link className={`btn ${styles.porte} ${styles.second}`} href={entrer} aria-label={t("Se connecter")}>
+            <span className={styles.long}>{t("Se connecter")}</span>
+            <span className={styles.court}>{t("Entrer")}</span>
           </Link>
-        </div>
-      </aside>
-      {/* LA PLACE DE LA BANDE, RENDUE AU DOCUMENT. Fixée au bas de la fenêtre,
-          elle couvrirait les dernières lignes du pied réglementaire — l'agrément
-          et le risque de perte en capital, qui sont précisément ce qu'on ne
-          masque pas. Cet espaceur est le dernier élément de la page, donc la
-          bande ne couvre plus que lui. Sous 760 px il s'efface : les 76 px du
-          dock sont déjà réservés par la mise en page. */}
-      <div className={styles.place} aria-hidden="true" />
-    </>
+        </>
+      )}
+    </div>
   );
 }

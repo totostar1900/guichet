@@ -1,101 +1,88 @@
 /**
- * LA BANDE DE LA VITRINE : voir PorteVitrine.tsx pour le pourquoi.
+ * LA PASTILLE DU COIN HAUT-DROIT : voir PorteVitrine.tsx pour le pourquoi.
  *
- * Elle est au bas de la FENÊTRE, pas de la page : c'est ce que « à tout
- * moment » veut dire. Son fond est opaque, parce qu'elle passe au-dessus du
- * texte de la page, et son filet du haut la détache du pied réglementaire.
+ * Elle est fixée à la FENÊTRE, pas à la page : c'est ce que « sur chaque
+ * page » veut dire, et c'est aussi ce qui la rend indépendante des trois
+ * mises en page, dont deux n'ont pas de barre au-dessus de 1040 px.
  *
- * Son z-index la met au-dessus de la barre du haut (30) et sous les feuilles
- * qui s'ouvrent par-dessus tout (60 et plus) : une bande fixe ne doit jamais
- * couvrir le menu qu'on vient d'ouvrir.
+ * SON FOND EST À ELLE. Sous 1040 px elle se pose sur la barre bleue, au-delà
+ * sur la page nue : hériter du fond rendrait le texte lisible d'un côté et
+ * invisible de l'autre. Le fond de surface et le filet la tiennent lisible
+ * partout, et c'est la demande — que la police reste visible.
+ *
+ * Son z-index passe au-dessus de la barre du haut (30) et reste sous les
+ * feuilles qui s'ouvrent par-dessus tout (60 et plus) : une pastille fixe ne
+ * doit jamais couvrir le menu qu'on vient d'ouvrir.
  */
-.bande {
+.coin {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: calc(env(safe-area-inset-top, 0px) + var(--s-6));
+  right: var(--s-6);
   z-index: 40;
-  background: var(--surface);
-  border-top: 1px solid var(--line);
-  box-shadow: 0 -2px 10px rgba(11, 37, 69, 0.08);
-  /* L'encoche du téléphone : la bande descend dessous, son contenu non. */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-.dedans {
-  max-width: 1380px;
-  margin: 0 auto;
-  padding: var(--s-5) var(--s-8);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: var(--s-6);
-}
-/* La phrase pousse les deux portes à droite, où la main les attend. */
-.mot {
-  margin: 0 auto 0 0;
-  color: var(--ink-3);
-  font-size: 0.84rem;
-  line-height: 1.3;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
 }
 .porte {
   flex: none;
+  border-radius: 999px;
+}
+/* Le second n'est pas un fantôme ici : sur une pastille claire posée sur la
+   barre bleue, un bouton sans bord se lisait comme du texte en l'air. */
+.second {
+  background: transparent;
+  border-color: var(--line-2);
+}
+
+/* Le libellé entier au large, l'abrégé sous 760 px : voir PorteVitrine.tsx.
+   CES DEUX RÈGLES VIENNENT AVANT LA MEDIA QUERY, et pas après : à
+   spécificité égale c'est la dernière écrite qui gagne, media query ou non.
+   Placées plus bas, elles auraient rendu l'abrègement sans effet. */
+.long {
+  display: inline;
+}
+.court {
+  display: none;
 }
 
 /**
- * AU-DELÀ DE 1040 PX, LA COLONNE TIENT LA GAUCHE.
+ * SOUS 760 PX, L'ENSEIGNE TIENT À CÔTÉ.
  *
- * La bande traverse toute la fenêtre — un filet qui s'arrêterait au bord de la
- * colonne se briserait chaque fois qu'on la replie. Seul son CONTENU se
- * décale, de la largeur de la colonne, pour que la phrase ne commence pas
- * derrière la navigation.
- */
-@media (min-width: 1041px) {
-  .dedans {
-    padding-left: calc(var(--colonne-w) + var(--s-8));
-  }
-}
-
-/**
- * SOUS 760 PX : LA PLACE DU DOCK.
- *
- * Le dock ne paraît qu'à qui est entré, et la mise en page réservait ses 76 px
- * à tout le monde (layout.module.css). La bande s'y installe donc sans rien
- * décaler. La phrase s'en va : il reste les deux portes, à parts égales, assez
- * larges pour le pouce.
- *
- * Le retrait est le pas de l'échelle, douze, là où « .main » porte encore le
- * quatorze hérité : deux pixels, sur un bouton qui prend la demi-largeur, et
- * c'est le garde-fou de l'échelle qui tranche (src/test/spacing.test.ts).
+ * À 390 px, « Ouvrir un compte » et « Se connecter » font 255 px à eux deux :
+ * la pastille recouvrait le nom de la maison et le coupait en « PURPOSE CAP ».
+ * Les libellés s'abrègent donc ici, et seulement ici.
  */
 @media (max-width: 760px) {
-  .dedans {
-    padding: var(--s-5) var(--s-6);
-    gap: var(--s-5);
-  }
-  .mot {
-    display: none;
+  .coin {
+    top: calc(env(safe-area-inset-top, 0px) + var(--s-2));
+    right: var(--s-2);
+    gap: var(--s-1);
+    padding: var(--s-1);
   }
   .porte {
-    flex: 1 1 0;
-    justify-content: center;
-    padding-top: var(--s-5);
-    padding-bottom: var(--s-5);
+    padding: var(--s-2) var(--s-3);
+    font-size: 0.68rem;
+  }
+  .long {
+    display: none;
+  }
+  .court {
+    display: inline;
   }
 }
 
 /**
- * L'ESPACEUR, et pourquoi il n'existe pas sur le téléphone.
- *
- * Il rend au document la hauteur que la bande lui prend, pour que le pied
- * réglementaire reste entièrement lisible une fois la page descendue. Sous
- * 760 px, « .main » et « .footer » réservent déjà 76 px pour le dock : un
- * espaceur de plus y creuserait un trou.
+ * AU-DELÀ DE 1040 PX, le haut est rendu à la page et la pastille est seule
+ * dans ce coin : elle peut respirer.
  */
-.place {
-  height: calc(var(--s-11) + var(--s-7) + env(safe-area-inset-bottom, 0px));
-}
-@media (max-width: 760px) {
-  .place {
-    display: none;
+@media (min-width: 1041px) {
+  .coin {
+    top: var(--s-7);
+    right: var(--s-7);
   }
 }
