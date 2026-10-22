@@ -302,7 +302,7 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
                 </Link>
               </div>
               <Link href="/info/mentions" className={styles.legal} onClick={close}>
-                {t("Mentions et responsabilités")}
+                {t("Mentions légales")}
               </Link>
             </>
           )}

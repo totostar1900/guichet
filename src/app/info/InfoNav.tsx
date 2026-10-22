@@ -24,7 +24,7 @@ export function InfoNav({ sections }: { sections: { id: string; title: string }[
       <Link href="/societes">{t("Sociétés cotées et émetteurs")}</Link>
       <Link href="/actualites">{t("Actualités")}</Link>
       <Link href="/info/mentions" className={styles.navLegal}>
-        {t("Mentions et responsabilités")}
+        {t("Mentions légales")}
       </Link>
     </nav>
   );

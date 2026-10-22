@@ -98,19 +98,25 @@ export const ROUTES_LARGES: string[] = [
 export const estRouteLarge = (path: string) => ROUTES_LARGES.some((r) => path === r || path.startsWith(`${r}/`));
 
 /**
- * LES PARCOURS FERMÉS N'ONT PAS DE COLONNE.
+ * LES PARCOURS FERMÉS ONT VÉCU, et c'est la page de la convention qui les a
+ * jugés.
  *
- * Une page qui demande une signature ne propose pas douze sorties. C'est la
- * même règle que « la porte et la vitrine » du 30 septembre : on ne met pas
- * l'escalier au milieu du guichet.
+ * La règle disait : une page qui demande une signature ne propose pas douze
+ * sorties, on ne met pas l'escalier au milieu du guichet. Quatre adresses
+ * perdaient donc leur colonne — le dossier d'ouverture, sa convention, le
+ * désabonnement et la déclaration d'intention.
+ *
+ * Vu sur la production le 22 octobre 2026 : « /ouvrir-un-compte/convention »
+ * n'avait AUCUNE sortie, pas même la poignée qui ramène la colonne escamotée.
+ * Rien que la flèche du navigateur. Or c'est la page où l'on signe, et donc
+ * celle où l'on veut le plus pouvoir aller relire les risques ou les
+ * mentions avant de s'engager. Un tunnel qu'on ne peut pas quitter n'est pas
+ * un tunnel, c'est une porte fermée à clef — et la retenue qu'on croyait
+ * gagner, on la prend sur la confiance.
+ *
+ * La colonne est donc sur toutes les pages. Qui veut le calme la replie :
+ * c'est son geste, pas une décision prise pour lui.
  */
-/* « /connexion » EN EST SORTIE : la porte gardait la colonne cachée au nom du
-   parcours fermé, et le visiteur qui s'y trompait n'avait plus aucune sortie
-   que le bouton « page précédente ». Le dossier d'ouverture et le
-   désabonnement restent fermés : on y est déjà entré, et on y signe. */
-export const SANS_COLONNE: string[] = ["/ouvrir-un-compte", "/ne-plus-recevoir"];
-export const estParcoursFerme = (path: string) =>
-  SANS_COLONNE.some((r) => path === r || path.startsWith(`${r}/`)) || /^\/offres\/[^/]+\/intention$/.test(path);
 
 /** Le groupe qui contient cette adresse, pour l'ouvrir d'office : une carte qui cache votre position n'est pas une carte. */
 export function groupeDe(groupes: GroupeColonne[], path: string): string | undefined {

@@ -50,7 +50,7 @@ export default async function AidePage() {
         <Link href="/info">{t("Glossaire et éclairages")}</Link>
         <Link href="/info#simulateur">{t("Simulateur")}</Link>
         <Link href="/comparer">{t("Comparer deux lignes")}</Link>
-        <Link href="/info/mentions">{t("Mentions et responsabilités")}</Link>
+        <Link href="/info/mentions">{t("Mentions légales")}</Link>
         <span className={styles.navMeta}>
           {t("Mis à jour le")} {fmtDate(doc.checkedOn)}
         </span>

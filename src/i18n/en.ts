@@ -23,6 +23,7 @@ export const EN: Record<string, string> = {
   "Compte en cours d'ouverture": "Account being opened",
   "Ouvrir un compte": "Open an account",
   "Ouvrir un compte ou se connecter": "Open an account or sign in",
+  "Mentions légales": "Legal notices",
   /* Les deux abrégés de la pastille du coin, sous 760 px : voir PorteVitrine. */
   "Entrer": "Sign in",
   "Société de bourse agréée COSUMAF · n° COSUMAF-SDB-01/2026": "Brokerage firm licensed by COSUMAF · no. COSUMAF-SDB-01/2026",

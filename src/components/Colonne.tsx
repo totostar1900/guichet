@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useT } from "@/i18n/client";
 import { Poignee } from "./Poignee";
-import { COLONNE_CLIENT, COLONNE_DESK, COLONNE_VISITEUR, estParcoursFerme, estRouteLarge, groupeDe, pageDe, type GroupeColonne } from "@/lib/nav-colonne";
+import { COLONNE_CLIENT, COLONNE_DESK, COLONNE_VISITEUR, estRouteLarge, groupeDe, pageDe, type GroupeColonne } from "@/lib/nav-colonne";
 import styles from "./Colonne.module.css";
 
 /**
@@ -215,7 +215,13 @@ export function Colonne({
     ecrirePlis(suite);
   };
 
-  if (estParcoursFerme(path)) return null;
+  /* LES PARCOURS FERMÉS N'EXISTENT PLUS. La colonne disparaissait sur
+     « /ouvrir-un-compte », sa convention, le désabonnement et la déclaration
+     d'intention, au nom d'un tunnel qu'on ne quitte pas. Mesuré sur la
+     production : la page de la convention n'avait donc AUCUNE sortie que la
+     flèche du navigateur, et c'est une page où l'on signe — le moment où l'on
+     veut le plus pouvoir aller relire autre chose. Un tunnel qu'on ne peut
+     pas quitter n'est pas un tunnel, c'est une porte fermée à clef. */
 
   /**
    * QUAND AUCUN GROUPE N'EST ACTIF, LE PREMIER S'OUVRE.

@@ -7,7 +7,7 @@ import { GuideBar } from "../GuideBar";
 /** The tab and the phone header read this title: in the reader's language. */
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Mentions et responsabilités") };
+  return { title: t("Mentions légales") };
 }
 
 /** The legal text, public: the same one a client accepts at sign-in. */
@@ -15,7 +15,7 @@ export default async function MentionsPage() {
   const [t, lang] = await Promise.all([getT(), getLang()]);
   return (
     <div className={styles.wrap}>
-      <div className="eyebrow">{t("Mentions et responsabilités")}</div>
+      <div className="eyebrow">{t("Mentions légales")}</div>
       <h1 className="display">{t("Ce que vous acceptez en utilisant Guichet")}</h1>
       <p className={styles.version}>{t("Version du {date}", { date: fmtDate(LEGAL_VERSION) })}</p>
       {LEGAL.map((s) => (

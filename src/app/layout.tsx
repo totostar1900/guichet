@@ -266,7 +266,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             destinataire de ces phrases, il en est l'auteur, et cent treize
             pixels de texte qu'on ne lit jamais ferment chaque page.
             Sur le guichet il reste entier : c'est là qu'il a un lecteur. */}
-        {!onDeskHost && (
+        {/* LE PIED NE S'ADRESSE QU'À QUI N'EST PAS ENCORE ENTRÉ.
+            L'agrément, l'adresse, le téléphone et la convention de rendement
+            fermaient CHAQUE écran d'un client connecté : cent treize pixels
+            qu'on lit une fois, puis plus jamais, et qui repoussaient d'autant
+            ce qu'on était venu voir. Ils ne disparaissent pas pour autant —
+            ils vivent dans « Mentions légales » (/info/mentions), sous « Qui
+            vous parle », où on vient les chercher. Devant la porte, en
+            revanche, ils restent : un visiteur ne connaît pas encore la
+            maison, et l'agrément est précisément ce qui l'autorise à lui
+            confier de l'argent. */}
+        {!onDeskHost && !session && (
         <SaufSurLaPorte>
         <footer className={styles.footer}>
           {/* CE QUE LE « ⋮ » PORTAIT POUR UN VISITEUR, RESSORTI ET NOMMÉ.

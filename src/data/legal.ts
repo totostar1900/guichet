@@ -75,11 +75,18 @@ export const LEGAL: LegalSection[] = [
     body: {
       fr: [
         "Purpose Capital S.A. est une société de bourse agréée par la COSUMAF (agrément n° COSUMAF-SDB-01/2026), dont le siège est rue Joseph Essono Balla, Elig-Essono, Yaoundé, Cameroun. Le Guichet est son service en ligne : il présente les titres publics, les opérations de marché, les lignes cotées à la BVMAC et les fonds (OPCVM) accessibles par son intermédiaire.",
-        "Un conseiller de Purpose Capital reste joignable sur WhatsApp, par téléphone et par e-mail pour chaque intention que vous déclarez.",
+        /* LES COORDONNÉES ET L'AVERTISSEMENT VIENNENT DU PIED DE PAGE, qui les
+           répétait au bas de chaque écran d'un client connecté — cent treize
+           pixels lus une fois, puis jamais. Leur place est ici, où on vient
+           les chercher, et le pied ne les porte plus que devant la porte, pour
+           un visiteur qui ne connaît pas encore la maison. */
+        "Nous joindre : rue Joseph Essono Balla, Elig-Essono, Yaoundé, Cameroun · +237 6 87 67 67 67 · info@purposecapital.africa. Un conseiller de Purpose Capital reste joignable sur WhatsApp, par téléphone et par e-mail pour chaque intention que vous déclarez.",
+        "Communication à caractère promotionnel. Rendements actuariels bruts, convention Exact/Exact, hors commission et hors fiscalité, sous réserve du prix effectivement servi à l'adjudication. Une intention d'investissement n'est ni un ordre ni une garantie d'allocation. Risque de perte en capital.",
       ],
       en: [
         "Purpose Capital S.A. is a brokerage firm licensed by COSUMAF (licence no. COSUMAF-SDB-01/2026), with its registered office at rue Joseph Essono Balla, Elig-Essono, Yaoundé, Cameroon. The Guichet is its online service: it presents public securities, market operations, lines listed on the BVMAC and funds (UCITS) accessible through it.",
-        "A Purpose Capital adviser remains reachable on WhatsApp, by phone and by e-mail for every intention you declare.",
+        "Reaching us: rue Joseph Essono Balla, Elig-Essono, Yaoundé, Cameroon · +237 6 87 67 67 67 · info@purposecapital.africa. A Purpose Capital adviser remains reachable on WhatsApp, by phone and by e-mail for every intention you declare.",
+        "Promotional communication. Gross yields to maturity, Actual/Actual convention, before commission and tax, subject to the price actually served at the auction. An investment intention is neither an order nor a guarantee of allocation. Risk of capital loss.",
       ],
     },
   },

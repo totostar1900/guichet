@@ -42,15 +42,13 @@ describe("la porte du desk reste une porte d'administration", () => {
     expect(layout, "la colonne n'est plus retenue quand un visiteur arrive sur l'hôte du desk").toMatch(/!\(onDeskHost && !session\)/);
   });
 
-  it("garde la porte hors des parcours fermés pour le client", () => {
-    /* La contrepartie : sur le site client, la colonne EST sur la connexion,
-       parce qu'un visiteur qui s'y trompe doit pouvoir repartir ailleurs que
-       par la flèche du navigateur. Les deux autres parcours restent fermés :
-       on y est déjà entré, et on y signe. */
+  it("laisse la colonne sur toutes les pages du site client", () => {
+    /* La contrepartie du dépouillement de la console : côté client, aucune
+       page ne retire la colonne. La convention s'était retrouvée sans aucune
+       sortie que la flèche du navigateur, sur la page même où l'on signe. */
     const nav = lire("src/lib/nav-colonne.ts");
-    const ligne = nav.match(/export const SANS_COLONNE[^\n]*\n/)?.[0] ?? "";
-    expect(ligne, "« /connexion » est revenue dans les parcours sans colonne").not.toMatch(/"\/connexion"/);
-    expect(ligne).toMatch(/"\/ouvrir-un-compte"/);
-    expect(ligne).toMatch(/"\/ne-plus-recevoir"/);
+    expect(nav.includes("SANS_COLONNE"), "la liste des parcours fermés est revenue").toBe(false);
+    const colonne = lire("src/components/Colonne.tsx");
+    expect(colonne.includes("estParcoursFerme"), "la colonne se retire à nouveau sur certains chemins").toBe(false);
   });
 });
