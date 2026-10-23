@@ -15,11 +15,13 @@ import { isEspaceSection, isInstrumentsSection, isMarcheSection } from "@/lib/na
  *
  * « Titres, Fonds, Marché » range par INSTRUMENT : c est le bon axe pour
  * choisir. Apres son premier achat un client pense par INTENTION, et rien ne
- * portait cet axe. « Mon espace » est le seul onglet qui le porte, et il passe
- * donc en tete pour qui est connecte : on ne revient pas parcourir un
- * catalogue, on revient agir.
+ * portait cet axe. L onglet qui le porte passe donc en tete pour qui est
+ * connecte : on ne revient pas parcourir un catalogue, on revient agir.
  *
- * Il ne parait pas a qui ne l est pas : un visiteur n a pas d espace.
+ * Il s appelait « Mon espace » ; il s appelle « Portefeuille » depuis que les
+ * sieges ont remplace les sections, et le nom de l axe a suivi ce qu on y
+ * trouve. Il ne parait pas a qui n est pas entre : un visiteur n a pas
+ * d espace.
  */
 /**
  * Ce qui découle du portefeuille, et qui n'est pas le portefeuille.

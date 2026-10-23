@@ -119,8 +119,8 @@ export function intentUpdated(i: Intent, o: Offer, state: IntentState, advisor?:
     non_servie: `Résultats : votre ordre ${i.ref} n'a pas été servi. Les fonds sont restitués sous deux jours ouvrés, sans frais.`,
     reglee: o.kind === "FONDS" ? `${i.type === "rachat" ? "Rachat réglé : le produit est viré sur votre compte bancaire." : `Vos parts de ${o.title} sont inscrites à votre nom au registre du dépositaire.`} L'avis d'opération suit.` : `Règlement effectué le ${fmtDate(o.settleOn)} : vos titres ${o.isin} sont inscrits à votre nom. L'avis d'opéré suit.`,
     // Une contre-proposition se lit en entier dans le message : le client décide
-    // depuis Mon espace, et il doit savoir quoi avant d’ouvrir quoi que ce soit.
-    contre_proposee: i.counter ? counterText(i.counter, i, o) : "Nous vous proposons d’autres conditions sur cet ordre : retrouvez-les dans Mon espace.",
+    // depuis son tableau de bord, et il doit savoir quoi avant d’ouvrir quoi que ce soit.
+    contre_proposee: i.counter ? counterText(i.counter, i, o) : "Nous vous proposons d’autres conditions sur cet ordre : retrouvez-les au tableau de bord.",
     // Le motif d’abord : un client qui apprend que son ordre est clos veut savoir
     // pourquoi avant de savoir qui appeler.
     annulee: cancelText(i),

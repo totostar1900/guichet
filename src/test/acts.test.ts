@@ -40,7 +40,7 @@ describe("actes et avis", () => {
     const d2 = await generateCouponNotice("c-se", "CM0000TEST01", flow.date, { paidOn: flow.date });
     expect(d2.id).toBe(d1.id);
 
-    const c = await generateComplaint("c-se", { facts: "Le coupon est arrivé en retard.", ask: "Une explication.", receivedVia: "Mon espace", signedBy: "code sur WhatsApp" });
+    const c = await generateComplaint("c-se", { facts: "Le coupon est arrivé en retard.", ask: "Une explication.", receivedVia: "le site", signedBy: "code sur WhatsApp" });
     expect(c.number).toMatch(/^PC-REC-/);
     expect(c.ackBy > c.createdAt.slice(0, 10)).toBe(true);
     expect(c.answerBy > c.ackBy).toBe(true);

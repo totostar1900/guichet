@@ -74,7 +74,7 @@ const SLIDES = [
   },
   {
     title: "Une intention n'est pas un ordre",
-    text: "Vous dites ce que vous voulez ; le desk vous rappelle, confirme, puis transmet. Vous suivez chaque étape dans Mon espace. Rien n'est débité sans votre confirmation.",
+    text: "Vous dites ce que vous voulez ; le desk vous rappelle, confirme, puis transmet. Vous suivez chaque étape au tableau de bord. Rien n'est débité sans votre confirmation.",
     art: (
       <svg viewBox="0 0 200 170" aria-hidden="true">
         <g fontSize="9" fontWeight="700" fill="#0b2545">

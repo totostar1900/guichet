@@ -68,7 +68,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     body: [
       "Une société de bourse est l'intermédiaire agréé par la COSUMAF entre vous et le marché : elle reçoit vos intentions, les confirme avec vous, les transmet, à un SVT, à la bourse, à une société de gestion, puis vous adresse les avis et relevés.",
       "Elle ne débite jamais votre compte : un règlement se fait par virement, uniquement sur le compte indiqué dans l'appel de fonds. Vos titres sont inscrits à votre nom au dépositaire, vos parts au registre du fonds.",
-      "Elle ne conseille pas non plus : le Guichet explique chaque chiffre, jamais ne recommande. Ce qui est engagé l'est après votre confirmation, avec un conseiller, et se retrouve écrit dans Mon espace.",
+      "Elle ne conseille pas non plus : le Guichet explique chaque chiffre, jamais ne recommande. Ce qui est engagé l'est après votre confirmation, avec un conseiller, et se retrouve écrit au tableau de bord.",
     ],
     widget: "carte",
     focus: ["guichet", "client", "svt", "gestion"],
@@ -262,9 +262,9 @@ export const PARCOURS_LESSONS: Lesson[] = [
     minutes: 2,
     intro: "Le Guichet ne prend pas d'ordre en aveugle : vous dites ce que vous voulez, un conseiller confirme avec vous.",
     body: [
-      "Depuis une fiche, vous déclarez une intention : un appétit (« je serais intéressé pour environ tel montant ») ou une prise ferme (« je souscris ce montant »). Elle est reçue tout de suite, avec une référence, et visible dans Mon espace.",
+      "Depuis une fiche, vous déclarez une intention : un appétit (« je serais intéressé pour environ tel montant ») ou une prise ferme (« je souscris ce montant »). Elle est reçue tout de suite, avec une référence, et visible au tableau de bord.",
       "Un conseiller vous rappelle : montant, prix ou taux, date de règlement, ce qu'il faut préparer. La prise ferme confirmée devient un ordre ; vous recevez un bulletin d'ordre à signer.",
-      "Tant que l'ordre n'est pas transmis, vous pouvez le corriger en nous écrivant. Après, il suit le calendrier de la ligne, et son état, Reçue, Confirmée, Transmise, Servie, Réglée, se lit dans Mon espace.",
+      "Tant que l'ordre n'est pas transmis, vous pouvez le corriger en nous écrivant. Après, il suit le calendrier de la ligne, et son état, Reçue, Confirmée, Transmise, Servie, Réglée, se lit au tableau de bord.",
     ],
     widget: "chemin",
     quiz: { q: "Vous avez cliqué « Prise ferme » sur une OTA. À cet instant…", options: ["l'ordre est déjà chez le SVT", "rien n'est engagé : un conseiller vous confirme d'abord", "votre compte est débité"], answer: 1, why: "L'intention précède l'ordre ; la confirmation avec un conseiller est l'étape où l'on s'engage." },
@@ -295,11 +295,11 @@ export const PARCOURS_LESSONS: Lesson[] = [
     intro: "Une fois servi, tout passe par des papiers datés : appel de fonds, avis, relevé, puis les coupons aux dates prévues.",
     body: [
       "L'appel de fonds indique le montant exact, le compte à créditer et la date limite. Vous virez ; à réception, les titres sont inscrits à votre nom et un avis d'exécution vous est envoyé.",
-      "Chaque coupon, chaque remboursement fait l'objet d'un avis ; un relevé de position récapitule ce que vous détenez. Tout arrive dans Mon espace › Documents, et par e-mail ou WhatsApp si vous l'avez demandé.",
+      "Chaque coupon, chaque remboursement fait l'objet d'un avis ; un relevé de position récapitule ce que vous détenez. Tout arrive dans Portefeuille › Mes documents, et par e-mail ou WhatsApp si vous l'avez demandé.",
       "Pour un titre coté, l'ordre s'exécute en séance et se règle quelques jours après (T+3 en général) ; pour un fonds, à la prochaine VL. Les mêmes documents suivent, avec les mêmes noms.",
     ],
     widget: "chemin",
-    quiz: { q: "Où trouvez-vous l'avis de coupon d'une OTA que vous détenez ?", options: ["Sur le site du Trésor", "Dans Mon espace › Documents", "Il n'y a pas d'avis, seulement le virement"], answer: 1, why: "Chaque mouvement produit un document, rangé dans Mon espace et envoyé sur le canal choisi." },
+    quiz: { q: "Où trouvez-vous l'avis de coupon d'une OTA que vous détenez ?", options: ["Sur le site du Trésor", "Dans Portefeuille › Mes documents", "Il n'y a pas d'avis, seulement le virement"], answer: 1, why: "Chaque mouvement produit un document, rangé dans vos documents et envoyé sur le canal choisi." },
     terms: ["coupon", "lignes"],
   },
   // ---------- 5 · fiscalité, frais et documents
@@ -345,7 +345,7 @@ export const PARCOURS_LESSONS: Lesson[] = [
     body: [
       "Avant : la convention de compte que vous avez acceptée, et pour un APE ou une IPO la note d'information visée par la COSUMAF ; pour un fonds, son prospectus.",
       "Pendant : l'accusé de réception de votre intention, le bulletin d'ordre signé, l'appel de fonds, l'avis de résultat ou d'exécution.",
-      "Après : les avis de coupon et de remboursement, les relevés de position, l'attestation de détention si vous la demandez. Tous sont dans Mon espace › Documents, datés ; le desk peut vous les renvoyer sur demande.",
+      "Après : les avis de coupon et de remboursement, les relevés de position, l'attestation de détention si vous la demandez. Tous sont dans Portefeuille › Mes documents, datés ; le desk peut vous les renvoyer sur demande.",
     ],
     widget: "chemin",
     quiz: { q: "Quel document prouve que vous détenez des titres ?", options: ["Le message WhatsApp du desk", "Le relevé de position ou l'attestation de détention", "La fiche de la ligne"], answer: 1, why: "Le relevé et l'attestation viennent du registre ; le reste est de l'information." },

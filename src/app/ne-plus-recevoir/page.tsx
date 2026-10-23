@@ -47,12 +47,12 @@ export default async function OptOutPage({ searchParams }: { searchParams: Promi
             <h1>{t("C'est fait.")}</h1>
             <p>{t("Vous ne recevrez plus nos informations ni nos opportunités par {c}.", { c: channel })}</p>
             <p className="muted">{t("Les messages liés à vos ordres continuent d'arriver : accusés de réception, avis de résultat, avis d'opéré, relevés. Ils découlent de ce que vous avez demandé et ne se refusent pas depuis ce lien.")}</p>
-            <p className="muted">{t("Vous pouvez revenir sur ce choix à tout moment depuis Mon espace.")}</p>
+            <p className="muted">{t("Vous pouvez revenir sur ce choix à tout moment depuis Votre compte › Sécurité.")}</p>
           </>
         ) : (
           <>
             <h1>{t("Ce lien n'est plus valable.")}</h1>
-            <p>{t("Il a peut-être expiré, ou la page a été ouverte sans lui. Le réglage se trouve dans Mon espace, à la ligne « Informations et opportunités ».")}</p>
+            <p>{t("Il a peut-être expiré, ou la page a été ouverte sans lui. Le réglage se trouve dans Votre compte › Sécurité, à la ligne « Informations et opportunités ».")}</p>
           </>
         )}
         <div className={styles.foot}>

@@ -85,7 +85,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   // the phone must have been proven by code, and be the one typed here.
   const channels = await r.getChannelStatus(session.userId);
   const emailOk = Boolean(session.email && session.email.toLowerCase() === contactEmail) || (authMode() === "dev" && Boolean(contactEmail));
-  if (!emailOk) return { ok: false, error: "L'e-mail doit être celui de votre connexion : changez-le depuis Mon espace › Sécurité." };
+  if (!emailOk) return { ok: false, error: "L'e-mail doit être celui de votre connexion : changez-le depuis Votre compte › Sécurité." };
   if (!channels.emailVerifiedAt && session.email) await r.markChannelVerified(session.userId, "email", session.email.toLowerCase());
   let phoneOk = Boolean(channels.phoneVerifiedAt && channels.phone === contactPhone);
   if (!phoneOk) {
@@ -303,7 +303,7 @@ export async function contacterSurLigne(offerId: string, canal: Channel, message
   const channels = await r.getChannelStatus(session.userId);
   const emailProuve = Boolean(channels.emailVerifiedAt && channels.email) || Boolean(session.email);
   const telephoneProuve = Boolean(channels.phoneVerifiedAt && channels.phone);
-  if (!contactRapidePossible({ connecte: true, emailProuve, telephoneProuve })) return { ok: false, error: "Prouvez un canal depuis Mon espace › Sécurité pour écrire au desk d'ici." };
+  if (!contactRapidePossible({ connecte: true, emailProuve, telephoneProuve })) return { ok: false, error: "Prouvez un canal depuis Votre compte › Sécurité pour écrire au desk d'ici." };
   if (!canauxOuverts({ emailProuve, telephoneProuve }).includes(canal)) return { ok: false, error: "Ce canal n'est pas encore prouvé : choisissez-en un autre." };
 
   const texte = message.trim().slice(0, 1000) || messageParDefaut(offer);

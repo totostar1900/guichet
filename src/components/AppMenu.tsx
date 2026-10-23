@@ -32,7 +32,7 @@ export interface AppMenuProps {
   signedIn: boolean;
   desk: boolean;
   name?: string;
-  /** Kept for the layout's call; the alerts row lives on Mon espace now. */
+  /** Kept for the layout's call; the alerts row lives on « Votre compte › Cet appareil » now. */
   vapidKey?: string;
   build?: string;
 }

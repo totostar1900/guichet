@@ -221,7 +221,7 @@
   font-size: 0.84rem;
 }
 
-/* the folds of Mon espace */
+/* the folds of the dashboard */
 .foldBar {
   display: flex;
   justify-content: flex-end;

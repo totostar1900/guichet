@@ -244,7 +244,7 @@ async function notifyDeviceChange(userId: string, what: "added" | "removed" | "f
     const ch = await repo().getChannelStatus(userId);
     const kind = d.kind === "passkey" ? "Face ID / empreinte" : "code à 4 chiffres";
     const line = what === "added" ? `Appareil ajouté à votre Guichet : ${d.name} (${kind}).` : what === "removed" ? `Appareil retiré de votre Guichet : ${d.name}.` : `Appareil oublié après cinq codes faux : ${d.name}.`;
-    const tail = what === "added" ? " Si ce n'est pas vous, retirez-le depuis Mon espace › Sécurité." : "";
+    const tail = what === "added" ? " Si ce n'est pas vous, retirez-le depuis Votre compte › Sécurité." : "";
     const { whatsappConfigured, sendWhatsAppText, emailConfigured, sendEmail } = await import("@/lib/notify/providers");
     if (ch.phone && ch.phoneVerifiedAt && whatsappConfigured()) await sendWhatsAppText(ch.phone, `${line}${tail}\nPurpose Capital`);
     if (ch.email && emailConfigured()) await sendEmail(ch.email, "Guichet : vos appareils", `<p>${line}${tail}</p><p>Purpose Capital</p>`, `${line}${tail}\nPurpose Capital`);

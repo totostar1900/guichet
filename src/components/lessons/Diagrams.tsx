@@ -372,7 +372,7 @@ export function OrderPath() {
         </span>
       </div>
       <p className={styles.how}>
-        <b>{t("Comment lire")}</b> : {t("six étapes, trois couleurs : ce qui dépend de vous, ce qui dépend du marché, ce qui revient. Sur la fiche d'une ligne, la pastille d'état vous dit à quelle étape vous êtes ; dans Mon espace, chaque intention porte la sienne.")}
+        <b>{t("Comment lire")}</b> : {t("six étapes, trois couleurs : ce qui dépend de vous, ce qui dépend du marché, ce qui revient. Sur la fiche d'une ligne, la pastille d'état vous dit à quelle étape vous êtes ; au tableau de bord, chaque intention porte la sienne.")}
       </p>
     </div>
   );

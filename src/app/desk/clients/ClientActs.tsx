@@ -80,7 +80,7 @@ export function ClientActs({ fileId, clientId, status, closure, positions, opera
         </div>
         <div className={styles.act}>
           <b>{t("Réclamation")}</b>
-          <p>{t("Le client dépose la sienne depuis Mon espace ; ici, celles reçues par appel, WhatsApp, e-mail ou courrier.")}</p>
+          <p>{t("Le client dépose la sienne depuis Aide › Nous contacter ; ici, celles reçues par appel, WhatsApp, e-mail ou courrier.")}</p>
           <button type="button" className="btn sm ghost" onClick={() => toggle("recl")}>
             {t("Enregistrer une réclamation")}
           </button>

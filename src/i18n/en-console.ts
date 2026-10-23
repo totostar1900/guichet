@@ -17,8 +17,8 @@ export const EN_CONSOLE: Record<string, string> = {
     "Signing in with Google did not go through. The e-mail code below still works.",
 
   /* ---------- la bande et la console ----------
-     « Mon espace », « Dossier complet », « aucune échéance connue »,
-     « Analyses », « En savoir plus », « Suivre » et « Déclarer une intention »
+     « Dossier complet », « aucune échéance connue », « Analyses »,
+     « En savoir plus », « Suivre » et « Déclarer une intention »
      sont déjà traduits ailleurs : une clef répétée écraserait l'autre au
      spread, et celle-ci est la dernière étalée. */
   Services: "Services",
@@ -63,9 +63,6 @@ export const EN_CONSOLE: Record<string, string> = {
   /* ---------- où chaque service se trouve ----------
      « › » n'est pas un séparateur connu du traducteur : chaque chemin porte
      donc sa propre entrée, entière. */
-  "Mon espace › Espèces": "My space › Cash",
-  "Mon espace › Services": "My space › Services",
-  "Mon espace › Portefeuille": "My space › Portfolio",
   "Fonds › une part": "Funds › a unit",
   "Fonds › votre part": "Funds › your unit",
   "Titres › une séance annoncée": "Securities › an announced session",

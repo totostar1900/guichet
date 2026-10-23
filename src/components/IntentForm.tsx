@@ -683,7 +683,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             </label>
           </div>
           {!signedIn && !emailOk && <ProofBlock kind="email" target={who.email} onProven={setProvenEmail} />}
-          {signedIn && Boolean(accountEmail) && !emailOk && <em className={styles.proofError}>{t("L'e-mail est celui de votre compte ; pour en changer, passez par Mon espace › Sécurité.")}</em>}
+          {signedIn && Boolean(accountEmail) && !emailOk && <em className={styles.proofError}>{t("L'e-mail est celui de votre compte ; pour en changer, passez par Votre compte › Sécurité.")}</em>}
           {signedIn && emailOk && !phoneOk && who.phone.replace(/\D/g, "").length >= 8 && <ProofBlock kind="phone" target={who.phone} onProven={setProvenPhone} onUnavailable={() => setPhonePending(true)} />}
           {!signedIn && emailOk && <em className={styles.proofDemo}>{t("Connexion en cours…")}</em>}
           <div className={styles.channelLbl}>{t("Me joindre par")}</div>

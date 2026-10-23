@@ -71,14 +71,14 @@ export async function complaintDepositAction(_p: ComplaintStep | null, form: For
   const fallback = { id: s.userId, name: s.name, segment: s.segment ?? "", phone: s.phone, email: s.email, whatsappOptIn: true };
   let doc: Awaited<ReturnType<typeof generateComplaint>>;
   try {
-    doc = await generateComplaint(s.userId, { operation, facts, ask, receivedVia: "Mon espace", signedBy, contact: fallback });
+    doc = await generateComplaint(s.userId, { operation, facts, ask, receivedVia: "le site", signedBy, contact: fallback });
   } catch (e) {
     return { ok: false, error: `Dépôt impossible : ${(e as Error).message}` };
   }
   const contact = (await r.getContact(s.userId)) ?? fallback;
   await r.createInbound({ channel, from: (channel === "whatsapp" ? contact?.phone : contact?.email) ?? s.email ?? s.userId, name: s.name, subject: `Réclamation ${doc.number}`, body: `${operation ? `Opération : ${operation}\n\n` : ""}${facts}\n\nDemande : ${ask}\n\nAccusé de réception avant le ${doc.ackBy}, réponse avant le ${doc.answerBy}. Document : ${doc.number}.` });
   if (contact) await notifyClientDocument(doc, contact, channel).catch(() => undefined);
-  await r.logEvent({ kind: "desk", html: `<b>Réclamation</b> ${doc.number} déposée par ${s.name} depuis Mon espace · accusé de réception avant le ${doc.ackBy}` });
+  await r.logEvent({ kind: "desk", html: `<b>Réclamation</b> ${doc.number} déposée par ${s.name} depuis le site · accusé de réception avant le ${doc.ackBy}` });
   revalidatePath("/");
   revalidatePath("/desk/messages");
   await noter("reclamation.deposee", { objet: doc.number });

@@ -87,8 +87,8 @@ export const MESSAGES: MessageDef[] = [
     "Pièces manquantes",
     "le message le plus fréquent : il nomme ce qui manque",
     ["ref", "ligne", "precision"],
-    "Pour transmettre votre ordre {ref} sur {ligne}, il nous manque :\n\n{precision}\n\nVous pouvez les déposer depuis Mon espace, ou les envoyer en réponse à ce message.",
-    "To send your order {ref} on {ligne} we are missing:\n\n{precision}\n\nYou can file them from My space, or send them in reply to this message.",
+    "Pour transmettre votre ordre {ref} sur {ligne}, il nous manque :\n\n{precision}\n\nVous pouvez les déposer depuis votre compte, ou les envoyer en réponse à ce message.",
+    "To send your order {ref} on {ligne} we are missing:\n\n{precision}\n\nYou can file them from your account, or send them in reply to this message.",
     { when: ["recue", "confirmee"], askNote: "Les pièces qui manquent, nommées", required: ["precision"] },
   ),
   M(
@@ -96,8 +96,8 @@ export const MESSAGES: MessageDef[] = [
     "Compte-titres à ouvrir",
     "quand l'ordre attend l'ouverture du compte",
     ["ref", "ligne"],
-    "Votre ordre {ref} sur {ligne} attend l'ouverture de votre compte-titres.\nLe dossier se remplit depuis Mon espace ; nous transmettons dès qu'il est complet.",
-    "Your order {ref} on {ligne} is waiting for your securities account to be opened.\nThe file is filled in from My space; we send the order as soon as it is complete.",
+    "Votre ordre {ref} sur {ligne} attend l'ouverture de votre compte-titres.\nLe dossier se remplit depuis votre compte ; nous transmettons dès qu'il est complet.",
+    "Your order {ref} on {ligne} is waiting for your securities account to be opened.\nThe file is filled in from your account; we send the order as soon as it is complete.",
     { when: ["recue", "confirmee"] },
   ),
   M(

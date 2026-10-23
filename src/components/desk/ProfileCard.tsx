@@ -17,7 +17,7 @@ export function ProfileCard({ profile, lang, t, amount }: { profile: FinancialPr
     return (
       <p className={styles.none}>
         {t("Pas encore de profil financier : proposez-le au client, cinq minutes sur son téléphone.")}{" "}
-        <span className="muted">{t("Mon espace › Mon profil.")}</span>
+        <span className="muted">{t("Votre compte › Mon profil.")}</span>
       </p>
     );
   }

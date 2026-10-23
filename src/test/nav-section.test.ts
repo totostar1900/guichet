@@ -57,14 +57,14 @@ describe("la racine, depuis qu'elle est l'accueil", () => {
     expect(isFundsSection("/")).toBe(false);
   });
 
-  it("appartient à l'espace du client, avec Mon espace", () => {
+  it("appartient à l'espace du client, avec le siège Portefeuille", () => {
     expect(isEspaceSection("/")).toBe(true);
     expect(isEspaceSection("/moi")).toBe(true);
     expect(isEspaceSection("/moi/reinvestir")).toBe(true);
   });
 
   it("ne réclame ni la liste des titres ni celle des fonds", () => {
-    /* Y allumer « Mon espace » est juste ; y allumer « Titres » ferait croire
+    /* Y allumer « Portefeuille » est juste ; y allumer « Titres » ferait croire
        à un catalogue. */
     expect(isEspaceSection("/titres")).toBe(false);
     expect(isEspaceSection("/fonds")).toBe(false);

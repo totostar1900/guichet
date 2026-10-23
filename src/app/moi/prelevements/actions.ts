@@ -95,7 +95,7 @@ export async function envoyerCodeMandatAction(_p: MandatResult | null, form: For
   if (aucunCanalPossible(canal)) {
     return {
       ok: false,
-      error: "Il nous faut une adresse e-mail avant de signer : c'est là que part le code, puis l'annonce de chaque prélèvement. Ajoutez-la dans Mon espace, Sécurité, puis revenez ici.",
+      error: "Il nous faut une adresse e-mail avant de signer : c'est là que part le code, puis l'annonce de chaque prélèvement. Ajoutez-la dans Votre compte › Sécurité, puis revenez ici.",
     };
   }
   const code = nouveauCode();

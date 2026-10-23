@@ -44,7 +44,7 @@ export const FLOWS: Flow[] = [
     title: "Ouverture",
     intro: "Une fois par client. Rien ne se signe avant l'approbation du dossier ; la convention est acceptée par code à usage unique ; le compte-titres est ouvert chez le dépositaire.",
     steps: [
-      { actor: "client", who: "Client", title: "Ouvre son dossier dans Mon espace", state: "dossier : soumis", docs: [] },
+      { actor: "client", who: "Client", title: "Ouvre son dossier depuis son compte", state: "dossier : soumis", docs: [] },
       { actor: "desk", who: "Desk", title: "Revue KYC, sanctions / PPE, cotation du risque", state: "dossier : approuvé", docs: [{ type: "dossier_svt" }] },
       { actor: "client", who: "Client", title: "Accepte la convention par code", state: "convention : acceptée", docs: [{ type: "convention" }] },
       { actor: "tiers", who: "Dépositaire", title: "Ouvre le compte-titres, le desk saisit son numéro", state: "compte : ouvert", docs: [] },
