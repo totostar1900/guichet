@@ -70,10 +70,20 @@ bon modèle), mais « Vos intentions en cours », « Versements programmés »,
 
 ## Défauts nommés
 
-**10. « Ne faites pas ça » est très pauvre.** Il faut ramener le client où il
-s'est arrêté : un « Continuer » qui reprend la procédure là où elle s'est
-interrompue. Et une péremption : sans reprise au bout d'environ **10 jours**,
-la procédure s'efface d'elle-même.
+**10. ~~« Ne faites pas ça » est très pauvre.~~ FAIT le 24 octobre 2026.**
+C'étaient deux choses, et la mesure l'a montré : « Ne faites pas ça » est le
+bouton qui ARRÊTE un versement annoncé, pas une procédure qu'on reprend. Il
+s'appelle maintenant « Arrêter cet ordre », du nom de son geste et dans la
+langue des deux boutons qu'il ouvre.
+
+La reprise, elle, portait sur le dossier d'ouverture : « Reprendre mon
+dossier » ouvrait le haut du formulaire. Il ouvre maintenant la première
+étape non faite, et l'ancre vit dans la table des étapes pour qu'elle ne
+puisse pas désigner une section disparue.
+
+**Péremption : écartée, sur décision.** Un dossier au brouillon porte les
+photos de la pièce d'identité ; les détruire pour ranger un écran coûterait
+au client de tout refaire. Rien ne s'efface, et la réclame reste.
 
 **11. ~~« Vos ordres passés » annonce 1, et la page suivante est vide.~~
 FAIT le 24 octobre 2026.** Le compte n'était pas faux : il comptait *autre

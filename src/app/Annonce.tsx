@@ -52,8 +52,15 @@ export function Annonce({ preavis, titres }: { preavis: Preavis[]; titres: Recor
               </button>
             </form>
           ) : (
+            /* UN BOUTON DIT CE QU'IL FAIT. « Ne faites pas ça » était une
+               phrase adressée à la maison, pas le nom d'un geste : on ne
+               savait pas, avant d'appuyer, si l'on arrêtait l'ordre, si l'on
+               écrivait au desk, ou si l'on désactivait l'instruction
+               permanente. Les deux boutons qu'il ouvre disent « Laisser
+               partir » et « Confirmer l'arrêt » : le premier doit parler la
+               même langue. */
             <button type="button" className="btn sm" onClick={() => setMotif(p.id)}>
-              {t("Ne faites pas ça")}
+              {t("Arrêter cet ordre")}
             </button>
           )}
         </div>

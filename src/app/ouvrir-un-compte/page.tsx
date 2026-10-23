@@ -140,7 +140,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
           ))}
         </ol>
 
-        <section className={styles.sec}>
+        <section className={styles.sec} id="type">
           <h2 className="display">{t("1 · Type de client")}</h2>
           <form action={setKindAction} className={styles.kinds}>
             {KINDS.map((k) => (

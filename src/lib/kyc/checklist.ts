@@ -101,18 +101,35 @@ export function missingForSubmission(f: ClientFile): string[] {
  * serait périmé. Les libellés sont des clefs de traduction, pas du texte : la
  * page traduit, le domaine compte.
  */
-export function etapesDuDossier(f: ClientFile): { clef: string; fait: boolean }[] {
+export function etapesDuDossier(f: ClientFile): { clef: string; fait: boolean; ancre: string }[] {
   const etapes = [
-    { clef: "Type de client", fait: true },
-    { clef: "Identité", fait: Boolean(f.identity.name && (f.identity.phone || f.identity.email) && (f.kind !== "physique" || f.identity.idNumber)) },
-    { clef: "Pièces", fait: f.documents.length > 0 },
-    { clef: "Fonds & profil", fait: Boolean(f.funds.source && f.profile.objectives) },
-    { clef: "Consentements", fait: Boolean(f.consents.dataAt) },
+    { clef: "Type de client", fait: true, ancre: "type" },
+    { clef: "Identité", fait: Boolean(f.identity.name && (f.identity.phone || f.identity.email) && (f.kind !== "physique" || f.identity.idNumber)), ancre: "identite" },
+    { clef: "Pièces", fait: f.documents.length > 0, ancre: "pieces" },
+    { clef: "Fonds & profil", fait: Boolean(f.funds.source && f.profile.objectives), ancre: "fonds" },
+    { clef: "Consentements", fait: Boolean(f.consents.dataAt), ancre: "consentements" },
   ];
   /* La convention n'est pas une étape du formulaire : elle vient après la
      décision du desk. Elle n'apparaît qu'une fois qu'elle est à portée. */
-  if (f.status === "approuve" || f.consents.conventionAt) etapes.push({ clef: "Convention", fait: Boolean(f.consents.conventionAt) });
+  if (f.status === "approuve" || f.consents.conventionAt) etapes.push({ clef: "Convention", fait: Boolean(f.consents.conventionAt), ancre: "convention" });
   return etapes;
+}
+
+/**
+ * OÙ LE DOSSIER S'EST ARRÊTÉ.
+ *
+ * « Reprendre mon dossier » ramenait au HAUT du formulaire : un client qui
+ * avait rempli son identité et déposé ses pièces retombait sur « 1 · Type de
+ * client », et devait redescendre en cherchant lui-même ce qui manquait. Le
+ * compte des étapes existait pourtant déjà, et disait exactement laquelle.
+ *
+ * L'ANCRE VIT DANS LA TABLE DES ÉTAPES, à côté de ce qui décide qu'une étape
+ * est faite. Deux listes — les étapes d'un côté, les ancres de l'autre —
+ * auraient divergé au premier ajout, et la reprise aurait ramené au mauvais
+ * endroit sans que rien n'échoue.
+ */
+export function ancreDeReprise(f: ClientFile): string | undefined {
+  return etapesDuDossier(f).find((e) => !e.fait)?.ancre;
 }
 
 /**

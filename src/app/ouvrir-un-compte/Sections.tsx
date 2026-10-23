@@ -32,7 +32,7 @@ export function IdentitySection({ file, editable }: P) {
   const id = file.identity;
   const phys = file.kind === "physique";
   return (
-    <section className={styles.sec}>
+    <section className={styles.sec} id="identite">
       <h2 className="display">{t(phys ? "2 · Identité" : "2 · Identité de l'entité")}</h2>
       <form action={action} className={styles.form}>
         <fieldset disabled={!editable} className={styles.grid}>
@@ -274,7 +274,7 @@ export function DocsSection({ file, editable }: P) {
   const req = requiredDocs(file.kind, file.identity.residentAbroad);
   const extra = file.documents.filter((d) => !req.includes(d.kind));
   return (
-    <section className={styles.sec}>
+    <section className={styles.sec} id="pieces">
       <h2 className="display">{t("3 · Pièces justificatives")}</h2>
       <p className={styles.hint}>{t("Photographiez chaque pièce avec votre téléphone : une photo nette suffit, elle est réduite avant l'envoi. Une pièce vous manque ? Envoyez le dossier quand même : un conseiller vous la demandera. Les originaux sont conservés de façon chiffrée et ne servent qu'à la vérification de votre identité.")}</p>
       <div className={styles.docs}>
@@ -367,7 +367,7 @@ export function FundsSection({ file, editable }: P) {
   const f = file.funds;
   const p = file.profile;
   return (
-    <section className={styles.sec}>
+    <section className={styles.sec} id="fonds">
       <h2 className="display">{t("4 · Origine des fonds et profil investisseur")}</h2>
       <form action={action} className={styles.form}>
         <fieldset disabled={!editable} className={styles.grid}>
@@ -434,7 +434,7 @@ export function ConsentSection({ file, editable }: P) {
   const [state, action, pending] = useActionState<StepResult | null, FormData>(saveConsentsAction, null);
   const c = file.consents;
   return (
-    <section className={styles.sec}>
+    <section className={styles.sec} id="consentements">
       <h2 className="display">{t("5 · Consentements")}</h2>
       <p className={styles.hint}>{t("Le premier est nécessaire pour que nous puissions instruire votre dossier. Le second est libre, et se retire à tout moment. L'acceptation de la convention, elle, vient après l'approbation, et elle a sa propre page.")}</p>
       <form action={action} className={styles.form}>
@@ -483,7 +483,7 @@ export function ConventionSection({ file, signable, enTete = false }: { file: Cl
   const accepted = Boolean(c.conventionAt) && !signable;
   const reprise = Boolean(c.conventionAt) && signable;
   return (
-    <section className={`${styles.sec} ${enTete ? styles.secAction : ""}`}>
+    <section className={`${styles.sec} ${enTete ? styles.secAction : ""}`} id="convention">
       <h2 className="display">{t("Votre convention")}</h2>
       <p className={styles.hint}>
         {t(

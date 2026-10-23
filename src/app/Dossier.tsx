@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { repo } from "@/lib/data";
 import { emptyClientFile } from "@/lib/domain/kyc";
-import { etapesDuDossier, missingForSubmission } from "@/lib/kyc/checklist";
+import { ancreDeReprise, etapesDuDossier, missingForSubmission } from "@/lib/kyc/checklist";
 import type { Session } from "@/lib/auth/types";
 import { getT } from "@/i18n/server";
 import styles from "./Dossier.module.css";
@@ -68,7 +68,18 @@ export async function Dossier({ session }: { session: Session }) {
     file.status === "approuve"
       ? { href: "/ouvrir-un-compte/convention", mot: t("Accepter la convention") }
       : aLaMain
-        ? { href: "/ouvrir-un-compte", mot: enregistre ? t("Reprendre mon dossier") : t("Ouvrir mon compte-titres") }
+        ? {
+            /* ON REPREND OÙ L'ON S'EST ARRÊTÉ, et pas en haut de la page.
+               « Reprendre mon dossier » ouvrait « 1 · Type de client » : un
+               client qui avait rempli son identité et déposé ses pièces
+               redescendait en cherchant lui-même ce qui manquait, alors que
+               le compte des étapes savait exactement laquelle. L'ancre vient
+               de la table des étapes, donc elle ne peut pas désigner une
+               section qui n'existe plus. Un dossier complet n'a pas d'étape
+               à reprendre : le lien ouvre alors la page, simplement. */
+            href: enregistre ? `/ouvrir-un-compte${ancreDeReprise(file) ? `#${ancreDeReprise(file)}` : ""}` : "/ouvrir-un-compte",
+            mot: enregistre ? t("Reprendre mon dossier") : t("Ouvrir mon compte-titres"),
+          }
         : undefined;
 
   return (
