@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { Glissement } from "@/components/mobile/Glissement";
+import { Rubriques } from "@/components/mobile/Rubriques";
+import { MARKET_PAGES } from "@/lib/market/pages";
 import { IndexPulse } from "@/components/IndexPulse";
 import { MarketStrip } from "@/components/MarketStrip";
 import { COMPANY } from "@/lib/config";
@@ -54,7 +57,20 @@ export default async function MarchePage() {
   const bougeLe = (mnemo: string) => dernierMouvement(histories.find((h) => h.w.mnemo === mnemo)?.quotes ?? []);
 
   return (
-    <>
+    <Glissement>
+      {/* LE SOMMAIRE DU TÉLÉPHONE, et le reste de la page sur l'écran large.
+          « Le marché » est déjà la porte d'entrée de l'environnement BVMAC :
+          rien n'y est produit, chaque section montre ce qui existe et mène à
+          sa page. Sur un écran large cela se parcourt d'un coup d'œil ; sur
+          un téléphone, c'est un mur qu'il faut descendre pour atteindre la
+          troisième porte. Les rubriques la donnent en une liste, et le reste
+          se lit ensuite, à sa place.
+          Le choix se fait en CSS et non en JavaScript : mesurer la largeur au
+          montage ferait rendre au serveur un arrangement et au navigateur
+          l'autre. */}
+      <div className={styles.sommaire}>
+        <Rubriques items={MARKET_PAGES.filter((p) => p.href !== "/marche").map((p) => ({ href: p.href, nom: t(p.label), quoi: t(p.hint) }))} />
+      </div>
       <header className={styles.head}>
         <div className="eyebrow">BVMAC · {t("Bourse des Valeurs Mobilières de l'Afrique Centrale")}</div>
         <h1 className="display">{t("Le marché")}</h1>
@@ -198,6 +214,6 @@ export default async function MarchePage() {
       </p>
 
       <MarketStrip current="marche" />
-    </>
+    </Glissement>
   );
 }

@@ -6,11 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AccountMenu } from "./AccountMenu";
 import { MarketChips } from "./MarketChips";
-import { Sheet } from "./Sheet";
-import { currentMarketPage, isMarketPath } from "@/lib/market/pages";
-import { INSTRUMENTS_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "@/lib/nav-groups";
-import { ICONE_PAGE } from "@/components/nav/IconesPages";
-import { Tuiles } from "@/components/nav/Tuiles";
+import { isMarketPath } from "@/lib/market/pages";
+import {  } from "@/lib/nav-groups";
 import type { ClientPrefs } from "@/lib/domain/types";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
@@ -37,17 +34,11 @@ const ROOTS = ["/", "/titres", "/fonds", "/moi", "/info", "/desk", "/connexion",
  * pouce de viser, et le pouce vise mal. L'ancienne racine devient le premier
  * élément de la liste, nommée, plutôt que de disparaître.
  */
-type Groupe = "portefeuille" | "instruments" | "marche";
-type Tab = { href: string; label: string; icon: React.ReactNode; match: (p: string) => boolean; badge?: number; feuille?: Groupe };
+type Tab = { href: string; label: string; icon: React.ReactNode; match: (p: string) => boolean; badge?: number};
 
 /** Les trois listes, lues de la même table que la bande de l'écran large. */
 /* L'en-tête ne porte plus que le nom du siège : la phrase qui le suivait
    redisait ce que les tuiles montrent, et volait une ligne en tête de feuille. */
-const GROUPES: Record<Groupe, { titre: string; pages: NavPage[] }> = {
-  portefeuille: { titre: "Portefeuille", pages: PORTEFEUILLE_PAGES },
-  instruments: { titre: "Instruments", pages: INSTRUMENTS_PAGES },
-  marche: { titre: "Marché", pages: MARCHE_PAGES },
-};
 
 const I = {
   /* Un point d'interrogation dans un cercle : on demande, ou l'on cherche. */
@@ -125,10 +116,6 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");
-  // La feuille retient QUEL siège l'a ouverte et SUR QUELLE page : partir la
-  // referme, et deux sièges ne peuvent pas être ouverts ensemble.
-  const [feuille, setFeuille] = useState<{ groupe: Groupe; at: string } | null>(null);
-  const ouverte = feuille?.at === path ? feuille.groupe : null;
   const isRoot = ROOTS.includes(path) || path === "/societes";
 
   // The page title comes from <title>, which every page already sets.
@@ -176,15 +163,15 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
    * de section.
    */
   const tabs: Tab[] = [
-    { href: "/", label: t("Portefeuille"), icon: I.moi, match: isEspaceSection, feuille: "portefeuille" },
+    { href: "/portefeuille", label: t("Portefeuille"), icon: I.moi, match: isEspaceSection },
     /* INSTRUMENTS PREND LE SIÈGE LIBÉRÉ. Marché portait les deux à la fois, ce
        qui se lit et ce qui se traite ; trois mots règlent la question : Marché
        se lit, Instruments s'achète, Trader fait. */
-    { href: "/titres", label: t("Instruments"), icon: I.fonds, match: isInstrumentsSection, feuille: "instruments" },
+    { href: "/instruments", label: t("Instruments"), icon: I.fonds, match: isInstrumentsSection },
     // Trader entre au dock : sans lui, les neuf services n'ont pas de porte sur
     // téléphone, et c'est là que la plupart des clients lisent.
     { href: "/trader", label: t("Trade"), icon: I.trader, match: (p) => p.startsWith("/trader") },
-    { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection, feuille: "marche" },
+    { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection },
     /* LE CINQUIÈME SIÈGE : DEMANDER, ET TROUVER SOI-MÊME. Quatre onglets
        menaient à ce qu'on possède, ce qu'on achète, ce qu'on fait et ce
        qu'on lit du marché ; aucun à la maison elle-même. Le conseiller et
@@ -266,14 +253,10 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
               {t(tab.label)}
             </>
           );
-          if (tab.feuille) {
-            const g = tab.feuille;
-            return (
-              <button key={tab.href} type="button" aria-current={tab.match(path) ? "page" : undefined} aria-expanded={ouverte === g} aria-haspopup="dialog" onClick={() => setFeuille(ouverte === g ? null : { groupe: g, at: path })}>
-                {face}
-              </button>
-            );
-          }
+          /* LES CINQ SIÈGES SONT DES LIENS, et plus aucun n'ouvre de tiroir.
+             Trois d'entre eux ouvraient une feuille de tuiles par le bas ;
+             ils mènent à leur sommaire, qui a l'adresse, le retour système
+             et la place d'une phrase entière. */
           return (
             <Link key={tab.href} href={tab.href} aria-current={tab.match(path) ? "page" : undefined}>
               {face}
@@ -283,33 +266,14 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
       </nav>
       )}
 
-      {/* Une seule feuille pour les trois sièges : trois composants de la même
-          chose finiraient par se répondre différemment.
-
-          DES TUILES, ET NON DES RANGÉES. Trois ou quatre destinations lues en
-          une fois valent mieux que trois phrases lues l'une après l'autre : on
-          vient ici pour aller ailleurs, pas pour lire. Ce que la tuile perd,
-          c'est la phrase entière ; elle garde trois mots, jamais rien, parce
-          qu'une grille d'icônes nues ne dit pas ce qu'elle ouvre. La feuille
-          large, elle, garde la phrase : la place y est.
-
-          ET PAS DE CHIFFRE SOUS LE NOM, décision du 5 octobre 2026. « 45 »
-          sous Titres répondait avant le toucher, mais il ramenait sous l'icône
-          le troisième étage de texte qu'on venait d'enlever avec les trois
-          mots. Il reste dans le menu large, à côté du nom de SA page, là où il
-          ne coûte pas une ligne. */}
-      <Sheet open={Boolean(ouverte)} onClose={() => setFeuille(null)} title={t(ouverte ? GROUPES[ouverte].titre : "")}>
-        <Tuiles
-          items={(ouverte ? GROUPES[ouverte].pages : []).map((p) => ({
-            key: p.key,
-            href: p.href,
-            nom: t(p.short ?? p.label),
-            icone: ICONE_PAGE[p.key],
-            ici: p.href === path || p.key === currentMarketPage(path),
-          }))}
-          onPick={() => setFeuille(null)}
-        />
-      </Sheet>
+      {/* LE TIROIR DE TUILES A VÉCU, le 23 octobre 2026. Les trois sièges
+          ouvraient une feuille par le bas : une grille de trois mots posée
+          par-dessus la page qu'on regardait. Elle coûtait déjà deux gestes —
+          toucher le siège, choisir — sans rien offrir en échange : pas
+          d'adresse à partager, pas de retour système, et une phrase amputée à
+          trois mots parce qu'une tuile n'a pas la place.
+          Chacun a son sommaire : « /portefeuille », « /instruments », et
+          « /marche », qui était déjà la porte de son monde. */}
     </>
   );
 }

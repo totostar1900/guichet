@@ -129,3 +129,16 @@
 .baisse {
   color: var(--warn);
 }
+
+/* Le sommaire du téléphone : une liste de rubriques en tête, là où l'écran
+   large n'en a pas besoin — il voit les sections d'un coup d'œil, le
+   téléphone doit descendre un mur pour atteindre la troisième porte. */
+.sommaire {
+  display: block;
+  margin-bottom: var(--s-8);
+}
+@media (min-width: 761px) {
+  .sommaire {
+    display: none;
+  }
+}

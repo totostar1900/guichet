@@ -15,6 +15,17 @@ export const EN_TRADE: Record<string, string> = {
   "1 en place": "1 in place",
   "en place": "in place",
 
+  /* ---- les sommaires des sièges, sur téléphone ---- */
+  "Ce que vous avez, ce qui vous est dû, et ce que vos lignes ont rendu.": "What you hold, what you are owed, and what your lines have returned.",
+  "Les trois façons d'entrer sur une ligne : la cote, les fonds, et les séances des Trésors.":
+    "The three ways onto a line: the exchange, the funds, and the Treasuries' auctions.",
+  "1 ligne": "1 line",
+  "{n} lignes": "{n} lines",
+  "1 fonds": "1 fund",
+  "{n} fonds": "{n} funds",
+  "1 séance": "1 session",
+  "{n} séances": "{n} sessions",
+
   /* ---- le siège « Aide », cinquième onglet du téléphone ---- */
   "Poser une question à la personne qui suit votre compte, ou trouver la réponse vous-même.":
     "Ask the person who follows your account, or find the answer yourself.",
