@@ -22,6 +22,18 @@ export interface SectionItem {
   letter?: string; // "A" … "F" on the parcours
   color?: string;
   section?: string; // the section's key in the guide index: shows « n / m lues »
+  /**
+   * Les deux champs venus du rail des Analyses, le 24 octobre 2026, quand il
+   * a fondu dans celui-ci : la famille à laquelle la section appartient, et ce
+   * qui reste ouvert dedans.
+   *
+   * Douze sections d'affilée ne se lisent pas ; quatre familles de trois, oui.
+   * Et le compte se lit du HAUT de la page : savoir qu'il y a deux
+   * contradictions à regarder sans avoir descendu sept mille pixels est la
+   * seule chose qu'un sommaire puisse ajouter d'utile à une liste de titres.
+   */
+  groupe?: string;
+  alerte?: number;
 }
 
 export function SectionLine({ chapters, active, label, pageTitle, foot }: { chapters: SectionItem[]; active: string | null; label?: string; pageTitle?: string; /** une rangée que la page ajoute sous « Haut de page » et « Section suivante » */ foot?: React.ReactNode }) {
@@ -103,7 +115,9 @@ export function SectionLine({ chapters, active, label, pageTitle, foot }: { chap
                 <button type="button" className={`${styles.row} ${i === idx ? styles.rowHere : i < idx ? styles.rowPast : ""}`} onClick={() => go(c.id)} aria-current={i === idx ? "true" : undefined}>
                   <i style={c.color ? (i <= idx ? { background: c.color, borderColor: c.color, color: '#fff' } : { borderColor: c.color, color: c.color }) : undefined}>{c.letter ?? (i < idx ? "✓" : i + 1)}</i>
                   <span>{c.title.replace(/^[A-F] · /, "")}</span>
-                  <small>{i === idx ? t("ici") : p ? `${p[0]} / ${p[1]}` : i < idx ? t("passée") : ""}</small>
+                  {/* CE QUI RESTE OUVERT PASSE DEVANT « ici » et « passée » :
+                      la position se devine à la liste, pas le compte. */}
+                  <small>{c.alerte ? t("{n} à voir", { n: String(c.alerte) }) : i === idx ? t("ici") : p ? `${p[0]} / ${p[1]}` : i < idx ? t("passée") : ""}</small>
                 </button>
               </li>
             );

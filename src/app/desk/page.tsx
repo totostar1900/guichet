@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Toolbar } from "@/components/ui/Toolbar";
 import { textMatch } from "@/lib/text";
-import { PageOutline } from "@/components/PageOutline";
+import { Sommaire } from "@/components/Sommaire";
 import { DeskNav } from "@/components/DeskNav";
 import { FromSante } from "@/components/desk/FromSante";
 import { repo } from "@/lib/data";
@@ -257,24 +257,17 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
 
       {/* Le carnet et son sommaire. Le rail est le même objet que sur les pages
           publiques : le desk se parcourt aussi, et il n’avait rien pour cela. */}
-      <div className={styles.withRail}>
-        <div className={styles.colRail}>
-        {/* Nommé, parce que PageOutline rend lui aussi un nav : sans cela, la
-            règle étroite ne saurait pas lequel des deux effacer. */}
-        <div className={styles.sommaire}>
-        <PageOutline
-          label={t("Le carnet")}
-          sections={[
-            { id: "aujourdhui", title: t("Aujourd'hui") },
-            { id: "une", title: t("À la une") },
-            { id: "intentions", title: t("Intentions reçues") },
-            { id: "offres", title: t("Carnet d'appétits") },
-            { id: "diffusion", title: t("Diffusion") },
-            { id: "flux", title: t("Flux en direct") },
-          ]}
-        />
-        </div>
-        </div>
+      <Sommaire
+        label={t("Le carnet")}
+        sections={[
+          { id: "aujourdhui", title: t("Aujourd'hui") },
+          { id: "une", title: t("À la une") },
+          { id: "intentions", title: t("Intentions reçues") },
+          { id: "offres", title: t("Carnet d'appétits") },
+          { id: "diffusion", title: t("Diffusion") },
+          { id: "flux", title: t("Flux en direct") },
+        ]}
+      >
         <div className={styles.rail}>
         <div id="aujourdhui" />
         {/* UNE SEULE BANDE DE CHIFFRES, et il y en avait deux.
@@ -591,7 +584,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
           </div>
         </div>
         </div>
-      </div>
+      </Sommaire>
     </>
   );
 }

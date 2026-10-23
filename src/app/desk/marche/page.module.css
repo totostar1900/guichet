@@ -208,21 +208,7 @@
 
 /* Le rail a gauche, et la page a sa droite. Meme geometrie que le carnet :
    deux rails qui s arretent a des lignes differentes se remarquent. */
-.avecRail {
-  display: grid;
-  grid-template-columns: 196px minmax(0, 1fr);
-  gap: 0 var(--s-9);
-  align-items: start;
-}
-.avecRail > nav {
-  position: sticky;
-  top: calc(var(--gel-desk) + var(--s-5));
-}
-@media (max-width: 1100px) {
-  .avecRail {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
+/* La grille du sommaire vit dans « Sommaire » : une largeur, un seuil, un côté. */
 
 /* Venues de Santé avec les deux blocs de lignes, le 6 octobre 2026 : le même
    bloc doit avoir la même allure sur les deux pages. */

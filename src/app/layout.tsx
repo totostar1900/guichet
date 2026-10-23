@@ -11,7 +11,6 @@ import { repo } from "@/lib/data";
 import { backendName } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { UserMenu } from "@/components/UserMenu";
-import { RailMarche } from "@/components/RailMarche";
 import { Colonne } from "@/components/Colonne";
 import { PosteDuDesk } from "@/components/PosteDuDesk";
 import { chargerPoste } from "@/lib/desk/poste";
@@ -256,11 +255,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }
           />
           )}
-          <main className={styles.main}>
-            {/* Le rail des pages du marche se pose ici, et il decide lui-meme s il
-                a lieu d etre : la mise en page d une famille vit a un endroit. */}
-            <RailMarche>{children}</RailMarche>
-          </main>
+          {/* LE RAIL DES PAGES DU MARCHÉ A ÉTÉ RETIRÉ LE 24 OCTOBRE 2026, et il
+              ne manquera à personne : sa feuille de style l'effaçait sous
+              1041 px (« le téléphone a la feuille du siège ») ET au-dessus
+              (« il listait les pages de la famille marché, ce qui est mot pour
+              mot le groupe Marché de la colonne »). Les deux règles couvraient
+              toute la plage : le composant n'a été visible à AUCUNE largeur
+              depuis que la colonne existe, et chaque page du marché portait
+              quand même sa grille à deux colonnes pour un rail invisible. */}
+          <main className={styles.main}>{children}</main>
         </div>
         </RegistryProvider>
         </ColonneStore>

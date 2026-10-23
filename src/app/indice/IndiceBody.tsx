@@ -3,7 +3,7 @@ import { IndexChart, type ChartPoint, type OverlaySeries } from "@/components/In
 import { fmt, fmtDate, fmtDateTime, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters } from "@/lib/market/index-quarter";
-import { PageOutline } from "@/components/PageOutline";
+import { Sommaire } from "@/components/Sommaire";
 import { MarketStrip } from "@/components/MarketStrip";
 import { BackToTop } from "@/components/BackToTop";
 import { getT } from "@/i18n/server";
@@ -127,7 +127,23 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
       {!last ? (
         <div className="empty">{t("L'indice se lit dans le bulletin de la BVMAC : dès le premier bulletin lu, il s'affiche ici.")}</div>
       ) : (
-        <div className={styles.withRail}>
+        <Sommaire
+          label={t("Sur cette page")}
+          sections={[
+            { id: "niveau", title: t("Le niveau") },
+            { id: "courbe", title: t("Séance après séance") },
+            ...(notes.length > 0 ? [{ id: "notes", title: t("Les notes de marché") }] : []),
+            { id: "donnees", title: t("Données") },
+            { id: "seances", title: t("Les séances") },
+            { id: "composition", title: t("Composition") },
+            /* L'ancre « sante » est posée par la page du desk, qui rend le
+               panneau après ce corps : un composant du desk ne s'importe pas
+               depuis une page du Guichet. */
+            ...(desk ? [{ id: "sante", title: t("Santé de l'indice") }] : []),
+            { id: "lecture", title: t("Comment le lire") },
+          ]}
+          meta={t("Lu dans le bulletin officiel de la cote, à chaque séance.")}
+        >
           <div className={styles.sections}>
             <section className={styles.level} id="niveau">
             {/* La carte porte un nom : sans lui, le grand chiffre flottait en
@@ -491,24 +507,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
             <MarketStrip current="indice" mode={mode} />
             <BackToTop />
           </div>
-          <PageOutline
-            label={t("Sur cette page")}
-            sections={[
-              { id: "niveau", title: t("Le niveau") },
-              { id: "courbe", title: t("Séance après séance") },
-              ...(notes.length > 0 ? [{ id: "notes", title: t("Les notes de marché") }] : []),
-              { id: "donnees", title: t("Données") },
-              { id: "seances", title: t("Les séances") },
-              { id: "composition", title: t("Composition") },
-              /* L'ancre « sante » est posée par la page du desk, qui rend le
-                 panneau après ce corps : un composant du desk ne s'importe pas
-                 depuis une page du Guichet. */
-              ...(desk ? [{ id: "sante", title: t("Santé de l'indice") }] : []),
-              { id: "lecture", title: t("Comment le lire") },
-            ]}
-            meta={t("Lu dans le bulletin officiel de la cote, à chaque séance.")}
-          />
-        </div>
+        </Sommaire>
       )}
     </>
   );

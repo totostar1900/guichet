@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
-import { PageOutline } from "@/components/PageOutline";
+import { Sommaire } from "@/components/Sommaire";
 import { FromSante } from "@/components/desk/FromSante";
 import { Reread } from "@/components/desk/Reread";
 import type { Offer } from "@/lib/domain/types";
@@ -153,18 +153,17 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
           leur fenêtre et le rail dit ce qu'il y a, donc on y va sans défiler.
           Le pied du rail dit à quoi sert la page : elle ne l'avait écrit nulle
           part, et un desk qui l'ouvre pour la première fois le devinait. */}
-      <div className={styles.avecRail}>
-        <PageOutline
-          label={t("Cotes & VL")}
-          sections={[
-            { id: "bulletin", title: t("Le bulletin") },
-            { id: "cotations", title: t("Cotations") },
-            { id: "opcvm", title: t("OPCVM") },
-            { id: "appariements", title: t("Appariements") },
-            { id: "ordres", title: t("Ordres") },
-          ]}
-          foot={<span>{t("Le bulletin arrive seul chaque soir de bourse. Cette page sert à le relire, à corriger ce qu'il a mal dit, et à traiter les ordres qui en découlent.")}</span>}
-        />
+      <Sommaire
+        label={t("Cotes & VL")}
+        sections={[
+          { id: "bulletin", title: t("Le bulletin") },
+          { id: "cotations", title: t("Cotations") },
+          { id: "opcvm", title: t("OPCVM") },
+          { id: "appariements", title: t("Appariements") },
+          { id: "ordres", title: t("Ordres") },
+        ]}
+        foot={<span>{t("Le bulletin arrive seul chaque soir de bourse. Cette page sert à le relire, à corriger ce qu'il a mal dit, et à traiter les ordres qui en découlent.")}</span>}
+      >
         <div>
 
       <div className="panel" id="bulletin" data-coach="import">
@@ -589,7 +588,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
       </div>
 
         </div>
-      </div>
+      </Sommaire>
     </>
   );
 }

@@ -218,7 +218,9 @@
   display: grid;
   /* Trois colonnes réglables : le rail, ce qui reste, et le commentaire, dont
      la largeur est portée par « --note » que chaque section lit par héritage. */
-  grid-template-columns: var(--rail, 212px) auto minmax(0, 1fr);
+  /* La largeur de départ est celle de la maison ; la poignée la règle ensuite,
+     et c'est la raison pour laquelle cette page garde sa grille à elle. */
+  grid-template-columns: var(--rail, var(--sommaire-w)) auto minmax(0, 1fr);
   gap: var(--s-6);
   align-items: start;
 }

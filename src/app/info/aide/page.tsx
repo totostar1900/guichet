@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { DocBlockList } from "@/components/docs/DocBlocks";
-import { ChapterLinks } from "@/app/desk/docs/Outline";
+import { Sommaire } from "@/components/Sommaire";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { PUBLIC_DOCS } from "@/data/docs";
 import { getLang, getT } from "@/i18n/server";
@@ -36,25 +35,11 @@ export default async function AidePage() {
   }));
   const wa = `https://wa.me/${COMPANY.phone.replace(/\D/g, "")}?text=${encodeURIComponent(t("Bonjour, j'ai une question sur Guichet…"))}`;
   return (
-    <div className={`${styles.reader} ${styles.readerTwo}`}>
-      <nav className={styles.nav} aria-label={t("Aide")}>
-        <Link href="/info">← {t("Guide")}</Link>
-        <span className={styles.group}>{t("Aide")}</span>
-        <div>
-          <Link href="/info/aide" aria-current="page">
-            {doc.title[lang]}
-          </Link>
-          <ChapterLinks chapters={chapters.map((c) => ({ id: c.id, title: c.title }))} label={t("Sujet")} pageTitle={t("Aide : vos questions, nos réponses")} />
-        </div>
-        <span className={styles.group}>{t("Pour aller plus loin")}</span>
-        <Link href="/info">{t("Glossaire et éclairages")}</Link>
-        <Link href="/info#simulateur">{t("Simulateur")}</Link>
-        <Link href="/comparer">{t("Comparer deux lignes")}</Link>
-        <Link href="/info/mentions">{t("Mentions légales")}</Link>
-        <span className={styles.navMeta}>
-          {t("Mis à jour le")} {fmtDate(doc.checkedOn)}
-        </span>
-      </nav>
+    <Sommaire
+      label={t("Sujet")}
+      sections={chapters.map((c) => ({ id: c.id, title: c.title }))}
+      meta={`${t("Mis à jour le")} ${fmtDate(doc.checkedOn)}`}
+    >
       <article className={styles.doc}>
         <AideBrowser chapters={chapters} wa={wa} />
         <GuideBar pos={{ label: t("Le Guide · aide") }} />
@@ -69,6 +54,6 @@ export default async function AidePage() {
           ]}
         />
       </article>
-    </div>
+    </Sommaire>
   );
 }

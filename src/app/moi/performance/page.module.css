@@ -75,17 +75,20 @@
 }
 
 /* ── La page à sections ──────────────────────────────────────────────────────
-   Le rail à gauche, les sections à droite : la même disposition qu'Analyses au
-   desk, qui tient douze sections. */
-.corps {
-  display: grid;
-  grid-template-columns: 196px minmax(0, 1fr);
-  gap: var(--s-9);
-  align-items: start;
-}
+   La grille du sommaire n'est plus écrite ici : elle vit dans `Sommaire`, avec
+   sa largeur et son seuil, pour les sept pages qui en avaient chacune une. */
 .sections {
   display: grid;
   gap: var(--s-10);
+  min-width: 0;
+}
+/* CHAQUE SECTION SE RÉDUIT AVEC LA COLONNE, et il faut l'écrire : un élément
+   de grille a « min-width: auto », c'est-à-dire la largeur minimale de son
+   contenu. Mesuré à 390 px le 24 octobre 2026 : les sections faisaient 512 px
+   dans une colonne de 330, et la page ne défilant pas de côté, cent quatre-
+   vingts pixels de chiffres étaient simplement coupés — la part en FCFA, le
+   gain, la moitié du tableau. */
+.sections > * {
   min-width: 0;
 }
 .h2 {
@@ -153,8 +156,4 @@
   font-size: 0.8rem;
   line-height: 1.5;
 }
-@media (max-width: 900px) {
-  .corps {
-    grid-template-columns: 1fr;
-  }
-}
+

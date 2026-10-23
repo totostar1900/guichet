@@ -37,7 +37,7 @@ const feuilles = (): string[] => {
     }
   };
   walk(path.join(ROOT, "src/app/desk"));
-  for (const n of ["PageOutline", "RailMarche", "RailSections", "DeskNav"]) out.push(path.join(ROOT, `src/components/${n}.module.css`));
+  for (const n of ["PageOutline", "Sommaire", "DeskNav"]) out.push(path.join(ROOT, `src/components/${n}.module.css`));
   return out;
 };
 

@@ -1,8 +1,16 @@
-/* phone only: the line under the header and its rail */
+/* La ligne sous l'en-tête, et son rail d'un segment par section.
+
+   ELLE PARAÎT PARTOUT OÙ LE RAIL NE PARAÎT PAS, et le seuil est donc celui du
+   sommaire (1040 px), non plus celui du téléphone (760). Entre les deux, il
+   n'y avait RIEN : le rail s'effaçait pour laisser la place au contenu, la
+   ligne ne se montrait pas encore, et une fenêtre de 1000 px — un portable
+   ordinaire, une tablette en paysage — lisait douze sections sans aucun
+   repère. La ligne est une barre pleine largeur : elle ne coûte rien à cette
+   largeur-là, et elle est le seul repère qui reste. */
 .wrap {
   display: none;
 }
-@media (max-width: 760px) {
+@media (max-width: 1040px) {
   .wrap {
     display: block;
   }

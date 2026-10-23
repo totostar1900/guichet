@@ -13,6 +13,10 @@ export const EN_DOCS: Record<string, string> = {
   "Pages du desk": "Desk pages",
   "Guide, champ par champ": "Guide, field by field",
   "Sur cette page": "On this page",
+  /* Ce qui reste ouvert dans une section, lu depuis la feuille du téléphone :
+     le compte venu du rail des Analyses quand les trois sommaires ont fondu
+     en un seul. */
+  "{n} à voir": "{n} to look at",
   "Rechercher dans la documentation": "Search the documentation",
   "toutes": "all",
   "Aide": "Help",

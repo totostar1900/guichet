@@ -1,4 +1,13 @@
-/* Le rail « Sur cette page », à droite de l'article sur ordinateur. */
+/* ── « Sur cette page » ───────────────────────────────────────────────────────
+   Le sommaire des sections, à gauche du contenu au-delà de 1040 px, et une
+   ligne qui ouvre sa feuille en dessous.
+
+   UNE SEULE LARGEUR ET UN SEUL SEUIL, depuis le 24 octobre 2026. Les sept
+   mises en page qui le posaient avaient inventé cinq largeurs (196, 210, 212,
+   240, réglable) et quatre seuils d'effacement (900, 1040, 1100, jamais) ;
+   aucun de ces écarts n'était une décision. La largeur est un jeton du
+   globals, le seuil est celui de la colonne de la maison : au-delà, deux rails
+   voisins ; en deçà, la ligne du téléphone. */
 .rail {
   position: sticky;
   top: calc(var(--gel-desk) + var(--s-5));
@@ -6,23 +15,46 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  border-left: 1px solid var(--line);
-  padding-left: 14px;
+  /* Le filet est à DROITE : le sommaire est à gauche du contenu, et le trait
+     sépare les deux. Collé à gauche, il doublerait celui de la colonne. */
+  border-right: 1px solid var(--line);
+  padding-right: var(--s-6);
   font-size: 0.82rem;
 }
 .label {
-  font-size: 0.68rem;
+  font-size: var(--t-1);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-3);
   font-weight: 800;
   margin-bottom: 8px;
 }
+/* LES FAMILLES, venues du rail des Analyses : douze sections d'affilée ne se
+   lisent pas, quatre familles de trois, oui. La première ne porte ni filet ni
+   écart : elle suit le titre du rail. */
+.groupe {
+  margin: var(--s-6) 0 var(--s-2);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-1);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 800;
+}
+.rail > .groupe:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
 .rail a {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
   color: var(--ink-3);
   text-decoration: none;
   padding: 3px 0;
-  font-size: 0.8rem;
+  font-size: var(--t-3);
   line-height: 1.35;
 }
 .rail a:hover {
@@ -32,20 +64,33 @@
   color: var(--navy-text);
   font-weight: 700;
 }
+/* Ce qui reste ouvert dans une section : on l'apprend du haut de la page, sans
+   avoir descendu sept mille pixels pour le découvrir. */
+.compte {
+  margin-left: auto;
+  padding: 0 var(--s-4);
+  border-radius: 999px;
+  background: var(--crit-soft);
+  color: var(--crit);
+  font-size: var(--t-1);
+  font-style: normal;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
 .meta {
   margin-top: 14px;
   padding-top: 10px;
   border-top: 1px solid var(--line);
-  font-size: 0.74rem;
+  font-size: var(--t-2);
   color: var(--ink-3);
   line-height: 1.5;
 }
 
-/* Sur téléphone, la ligne « Sur cette page » remplace le rail. */
+/* Sous le seuil, la ligne « Sur cette page » remplace le rail. */
 .phone {
   display: none;
 }
-@media (max-width: 900px) {
+@media (max-width: 1040px) {
   .rail {
     display: none;
   }
@@ -53,25 +98,14 @@
     display: block;
     /* la ligne « Sur cette page » se lit avant l'article, pas après lui */
     order: -1;
-    /* et elle y reste : sans rail sous 900 px, c'est le seul repère de section.
-       Sous la barre du téléphone : à zéro elle se figeait derrière elle, gelée et
-       invisible, ce qui se lit comme une ligne qui ne gèle pas. */
+    /* et elle y reste : sans rail sous le seuil, c'est le seul repère de
+       section. Sous la barre du téléphone : à zéro elle se figeait derrière
+       elle, gelée et invisible, ce qui se lit comme une ligne qui ne gèle
+       pas. */
     position: sticky;
     top: var(--gel-desk);
     z-index: 6;
     background: var(--paper);
     margin-bottom: 14px;
-  }
-}
-
-/* À GAUCHE, LE FILET PASSE DE L'AUTRE CÔTÉ. Un filet à gauche d'un rail déjà
-   collé contre la colonne ferait deux traits à trois pixels l'un de l'autre.
-   Le sommaire est désormais à droite de la colonne, donc son filet aussi. */
-@media (min-width: 1041px) {
-  .rail {
-    border-left: 0;
-    border-right: 1px solid var(--line);
-    padding-left: 0;
-    padding-right: var(--s-6);
   }
 }

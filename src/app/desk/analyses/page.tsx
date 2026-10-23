@@ -4,7 +4,8 @@ import { TallTable } from "@/components/desk/TallTable";
 import { Bloc } from "@/components/desk/Bloc";
 import { Commentaire } from "@/components/desk/Commentaire";
 import { Poignee } from "@/components/Poignee";
-import { RailSections, type SectionRail } from "@/components/RailSections";
+import { PageOutline } from "@/components/PageOutline";
+import type { SectionItem } from "@/components/SectionLine";
 import { BEAC_COURBE } from "@/data/beac-courbe";
 import { CourbeFusion } from "@/components/market/CourbeFusion";
 import type { CourbePays, Fenetre } from "@/lib/market/courbe-vue";
@@ -307,19 +308,19 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
    * contradictions non rangées et les séances relues qui ne donnent pas de
    * point. Le reste est de la lecture, pas une file d'attente.
    */
-  const railSections: SectionRail[] = [
-    { id: "fusion", titre: "Courbe des taux & Données", groupe: "Le prix" },
-    { id: "points", titre: "Chaque point, et d'où il vient", groupe: "Le prix" },
-    { id: "ecarts", titre: "L'écart entre Trésors", groupe: "Le prix" },
-    { id: "trous", titre: "Ce qui manque à la courbe", groupe: "Le prix", alerte: courbe.gaps.length },
-    { id: "reprix", titre: "Ce que chaque durée a payé", groupe: "Les volumes" },
-    { id: "pression", titre: "La pression de la demande", groupe: "Les volumes" },
-    { id: "programme", titre: "L'exécution du programme", groupe: "Les volumes" },
-    { id: "liquidite", titre: "La liquidité du secondaire", groupe: "Le secondaire" },
-    { id: "fraicheur", titre: "La fraîcheur de l'indice", groupe: "Le secondaire" },
-    { id: "pont", titre: "Le pont primaire / secondaire", groupe: "Le secondaire" },
-    { id: "anomalies", titre: "Ce que la table a attrapé", groupe: "Avant de publier", alerte: trouvailles.length },
-    { id: "publier", titre: "Avant de publier", groupe: "Avant de publier" },
+  const railSections: SectionItem[] = [
+    { id: "fusion", title: "Courbe des taux & Données", groupe: "Le prix" },
+    { id: "points", title: "Chaque point, et d'où il vient", groupe: "Le prix" },
+    { id: "ecarts", title: "L'écart entre Trésors", groupe: "Le prix" },
+    { id: "trous", title: "Ce qui manque à la courbe", groupe: "Le prix", alerte: courbe.gaps.length },
+    { id: "reprix", title: "Ce que chaque durée a payé", groupe: "Les volumes" },
+    { id: "pression", title: "La pression de la demande", groupe: "Les volumes" },
+    { id: "programme", title: "L'exécution du programme", groupe: "Les volumes" },
+    { id: "liquidite", title: "La liquidité du secondaire", groupe: "Le secondaire" },
+    { id: "fraicheur", title: "La fraîcheur de l'indice", groupe: "Le secondaire" },
+    { id: "pont", title: "Le pont primaire / secondaire", groupe: "Le secondaire" },
+    { id: "anomalies", title: "Ce que la table a attrapé", groupe: "Avant de publier", alerte: trouvailles.length },
+    { id: "publier", title: "Avant de publier", groupe: "Avant de publier" },
   ];
 
   const dernierIndice = avecIndice.reduce<(typeof avecIndice)[number] | undefined>((m, b) => (!m || b.sessionDate > m.sessionDate ? b : m), undefined);
@@ -390,7 +391,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
         {/* Douze sections : le rail en donne la carte, et porte le compte de ce
             qui reste ouvert pour qu'on l'apprenne du haut de la page. */}
         <div className={`${styles.avecRail} grille-analyses`}>
-        <RailSections sections={railSections} />
+        <PageOutline label="Sur cette page" sections={railSections} />
         {/* Le rail se règle : une table à six colonnes et un commentaire qu'on
             rédige ne veulent pas de la place au même moment. */}
         <Poignee variable="--rail" min={150} max={340} memoire="ana.rail" libelle="Régler la largeur du rail" />

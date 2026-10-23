@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ChapterLinks } from "@/app/desk/docs/Outline";
+import { Sommaire } from "@/components/Sommaire";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { BackToTop } from "@/components/BackToTop";
 import { GuideBar } from "../GuideBar";
@@ -7,7 +6,6 @@ import { Actor, type ActorKind } from "@/components/Illustrations";
 import { SECTIONS } from "@/data/parcours";
 import { loadLessons } from "@/lib/reference";
 import { getT } from "@/i18n/server";
-import docs from "@/app/desk/docs/docs.module.css";
 import styles from "./page.module.css";
 import { Parcours } from "./Parcours";
 
@@ -26,21 +24,7 @@ export default async function ParcoursPage() {
   const lessons = (await loadLessons()).filter((l) => l.section).sort((a, b) => a.order - b.order);
   const chapters = SECTIONS.map((s) => ({ id: `section-${s.key}`, title: `${String.fromCharCode(64 + s.order)} · ${t(s.title)}`, letter: String.fromCharCode(64 + s.order), color: s.color, section: s.key }));
   return (
-    <div className={`${docs.reader} ${docs.readerTwo}`}>
-      <nav className={`${docs.nav} ${docs.navDeskOnly}`} aria-label={t("Guide")} data-coach="parcours-nav">
-        <Link href="/info">← {t("Guide")}</Link>
-        <span className={docs.group}>{t("Parcours")}</span>
-        <div>
-          <Link href="/info/parcours" aria-current="page">
-            {t("Comprendre le marché CEMAC")}
-          </Link>
-          <ChapterLinks chapters={chapters} line={false} />
-        </div>
-        <span className={docs.group}>{t("Pour aller plus loin")}</span>
-        <Link href="/info#lecons">{t("Lire une ligne en trente secondes")}</Link>
-        <Link href="/info/aide">{t("Aide : vos questions, nos réponses")}</Link>
-        <Link href="/info#glossaire">{t("Les mots de Guichet")}</Link>
-      </nav>
+    <Sommaire label={t("Sur cette page")} sections={chapters}>
       <div className={styles.wrap}>
         <div className={styles.head} data-coach="parcours-head">
           <span className="eyebrow">{t("Guide · parcours")}</span>
@@ -65,10 +49,9 @@ export default async function ParcoursPage() {
             { target: "parcours-head", title: t("{n} éclairages, {s} sections", { n: lessons.length, s: SECTIONS.length }), text: t("Chaque section se replie : vous voyez six idées et le temps qu'il reste. La section en cours s'ouvre seule quand vous revenez.") },
             { target: "parcours-progress", title: t("Où vous en êtes"), text: t("Un éclairage est lue quand vous avez répondu à sa question. La barre se remplit section par section, dans la couleur de chacune.") },
             { target: "parcours-section", title: t("Une section"), text: t("Ouvrez-la : ses éclairages, celle qu'il faut continuer, et ce qu'elle vous apprend. Chaque éclairage porte un schéma ou un bloc à manipuler, une question, et les mots du glossaire.") },
-            { target: "parcours-nav", title: t("Le sommaire"), text: t("À gauche, les cinq sections ; en dessous, les huit premiers éclairages, l'aide et le glossaire.") },
           ]}
         />
       </div>
-    </div>
+    </Sommaire>
   );
 }

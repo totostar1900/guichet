@@ -7,7 +7,7 @@ import { getT } from "@/i18n/server";
 import { positionsFrom } from "@/lib/positions";
 import { famillesDuPortefeuille } from "@/lib/domain/familles-actifs";
 import { echeancier } from "@/lib/domain/echeancier";
-import { RailSections } from "@/components/RailSections";
+import { Sommaire } from "@/components/Sommaire";
 import { Echeancier } from "./Echeancier";
 import { Repartition } from "./Repartition";
 import styles from "./page.module.css";
@@ -86,15 +86,15 @@ export default async function PerformancePage() {
       {/* LE RAIL, comme sur Analyses au desk. Quatre sections, c'est déjà plus
           qu'on ne parcourt de haut en bas, et chaque tuile du tableau de bord
           mène directement à la sienne. */}
-      <div className={styles.corps}>
-      <RailSections
+      <Sommaire
+        label={t("Sur cette page")}
         sections={[
-          { id: "detenu", titre: t("Ce que vous détenez"), groupe: t("Le portefeuille") },
-          { id: "rapporte", titre: t("Ce que ça a rapporté"), groupe: t("Le portefeuille") },
-          { id: "echeancier", titre: t("L'échéancier"), groupe: t("Ce qui vient") },
-          { id: "operations", titre: t("Vos opérations"), groupe: t("Ce qui vient") },
+          { id: "detenu", title: t("Ce que vous détenez"), groupe: t("Le portefeuille") },
+          { id: "rapporte", title: t("Ce que ça a rapporté"), groupe: t("Le portefeuille") },
+          { id: "echeancier", title: t("L'échéancier"), groupe: t("Ce qui vient") },
+          { id: "operations", title: t("Vos opérations"), groupe: t("Ce qui vient") },
         ]}
-      />
+      >
       <div className={styles.sections}>
 
       <section id="detenu">
@@ -237,7 +237,7 @@ export default async function PerformancePage() {
         <p className="muted">{t("Ce rapport mesure ce qui s'est passé, ligne par ligne. Les performances passées ne préjugent pas des performances futures.")}</p>
       </div>
       </div>
-      </div>
+      </Sommaire>
     </div>
   );
 }

@@ -1144,6 +1144,13 @@ h3 {
    déclarée plutôt que deux fois « 248px » qui divergeraient. */
 :root {
   --colonne-w: 248px;
+  /* LA LARGEUR DU SOMMAIRE D'UNE PAGE, nommée pour la même raison. Les sept
+     mises en page qui le posaient en avaient inventé cinq — 196, 210, 212, 240
+     et une réglable — sans qu'aucun écart ne soit une décision. 210 px est la
+     plus large des deux valeurs publiques : c'est sur les pages de texte que
+     les titres de section sont longs, et une colonne trop étroite les casse en
+     trois lignes. */
+  --sommaire-w: 210px;
 }
 
 /* ── La ligne épinglée qui en remplace une autre ──────────────────────────────

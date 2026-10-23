@@ -262,19 +262,11 @@ tfoot .when {
   font-size: 0.8rem;
 }
 
-/* l'article et son rail « Sur cette page » ; une seule colonne au téléphone */
-.withRail {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 210px;
-  gap: 0 32px;
-  align-items: start;
-}
-@media (max-width: 900px) {
-  .withRail {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-  }
-}
+/* La grille de l'article et de son sommaire vit dans « Sommaire » depuis le
+   24 octobre 2026 : sept pages la réécrivaient, avec cinq largeurs et quatre
+   seuils. C'est d'ici que la règle est partie — « le sommaire à gauche, contre
+   la colonne, parce que les deux questions se lisent du même geste » — et elle
+   s'applique maintenant aux sept. */
 
 /*
  * Le rythme des sections. La page en porte sept, de même nature et de même
@@ -368,26 +360,4 @@ tfoot .when {
   content: " –";
 }
 
-/* LE SOMMAIRE PASSE À GAUCHE, À CÔTÉ DE LA COLONNE, et il est le seul des
-   quatre à avoir eu besoin d'être retourné : le carnet, les cotes et la note
-   trimestrielle portaient déjà le leur de ce côté.
-   Pourquoi le retourner : les deux questions « où suis-je dans la maison » et
-   « où suis-je dans cette page » se lisent du même geste quand elles sont
-   voisines. Laissé à droite, le lecteur traversait la page pour passer de
-   l'une à l'autre.
-   On déplace par la grille et non par l'ordre du balisage : dans le flux du
-   document le sommaire SUIT l'article, ce qui est juste pour un lecteur
-   d'écran comme pour le téléphone, où il devient une feuille. */
-@media (min-width: 1041px) {
-  .withRail {
-    grid-template-columns: 210px minmax(0, 1fr);
-  }
-  .withRail > :first-child {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  .withRail > :nth-child(2) {
-    grid-column: 1;
-    grid-row: 1;
-  }
-}
+

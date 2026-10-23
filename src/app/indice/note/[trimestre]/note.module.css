@@ -292,9 +292,12 @@
 }
 
 /* l'article entre ses deux colonnes de service, comme un journal les pose */
+/* TROIS COLONNES, ET C'EST POURQUOI CETTE PAGE GARDE SA GRILLE : le sommaire,
+   la note, et la fiche technique qui l'accompagne. « Sommaire » en pose deux ;
+   la largeur du rail, elle, vient du même jeton que partout ailleurs. */
 .cols {
   display: grid;
-  grid-template-columns: 196px minmax(0, 1fr) 232px;
+  grid-template-columns: var(--sommaire-w) minmax(0, 1fr) 232px;
   gap: 0 36px;
   align-items: start;
   margin-top: 36px;

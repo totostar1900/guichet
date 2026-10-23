@@ -8,12 +8,11 @@ import { GuideBar } from "./GuideBar";
 import { Simulator } from "@/components/Simulator";
 import { InfoSearch, type SearchEntry } from "./InfoSearch";
 import { buildGuideIndex } from "@/lib/guide-index";
-import { InfoNav } from "./InfoNav";
+import { Sommaire } from "@/components/Sommaire";
 import { Actor } from "@/components/Illustrations";
 import { Glossary } from "./Glossary";
 import { FoldAll, FoldSection } from "@/components/Fold";
 import styles from "./page.module.css";
-import docs from "@/app/desk/docs/docs.module.css";
 import { getLang, getT } from "@/i18n/server";
 
 /** The tab and the phone header read this title: in the reader's language. */
@@ -43,8 +42,7 @@ export default async function InfoPage() {
     { id: "glossaire", title: t("Les mots de Guichet") },
   ];
   return (
-    <div className={`${docs.reader} ${docs.readerTwo}`}>
-      <InfoNav sections={sections} />
+    <Sommaire label={t("Sur cette page")} sections={sections}>
       <div className={styles.wrap}>
         <div className={styles.head}>
           <div className="eyebrow">Guide</div>
@@ -140,7 +138,6 @@ export default async function InfoPage() {
           replayLabel={t("Comment utiliser le Guide ?")}
           stops={[
             { target: "info-search", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, un éclairage, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service de Guichet.") },
-            { target: "info-nav", title: t("Le sommaire"), text: t("À gauche, les sections de cette page, la recherche, les éclairages, le simulateur, les outils, le glossaire, et, en dessous, l'aide, le comparateur, les sociétés et les actualités. Il reste sous la main pendant que vous lisez.") },
             { target: "info-aide", title: t("Vos questions, nos réponses"), text: t("La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.") },
             { target: "info-insights", title: t("Huit éclairages de deux minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque éclairage se lit en deux minutes et se coche une fois lue.") },
             { target: "info-glossaire", title: t("Les mots de Guichet"), text: t("Le glossaire a sa propre recherche, un tri A → Z ou par catégorie, et un regroupement par catégorie : titres de dette, actions et sociétés, fonds, vos ordres, les états d'une ligne.") },
@@ -148,6 +145,6 @@ export default async function InfoPage() {
           ]}
         />
       </div>
-    </div>
+    </Sommaire>
   );
 }
