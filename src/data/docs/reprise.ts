@@ -17,7 +17,7 @@ export const REPRISE: DocPage = {
   visibility: "desk",
   audience: ["admin", "tech"],
   order: 4,
-  checkedOn: "2026-10-11",
+  checkedOn: "2026-10-23",
   owner: "Georges",
   chapters: [
     {
@@ -139,8 +139,8 @@ export const REPRISE: DocPage = {
           type: "note",
           kind: "warn",
           text: l(
-            "VERCEL PRO EST PRIS, SUPABASE RESTE EN GRATUIT au 11 octobre 2026, et le transfert ne changera pas le second à votre place. Le plan gratuit met un projet en pause après une semaine sans trafic. C'est une décision à prendre à part, et de préférence AVANT les transferts : changer de plan sur un compte qu'on vient de déplacer mélange deux sources de panne. UN PLAN SE LIT SUR L'ÉQUIPE OU L'ORGANISATION QUI PORTE LE PROJET, jamais sur le compte personnel de la personne qui l'administre. Les deux coexistent : Pro sur l'équipe, Hobby sur le compte, et lire le second pour le premier fait conclure l'inverse de la vérité. Le signe qui aurait dû alerter était sous les yeux : les treize tâches planifiées tournent toutes, ce qu'un plan Hobby ne permet pas.",
-            "VERCEL PRO IS TAKEN, SUPABASE REMAINS ON FREE as of 11 October 2026, and the transfer will not change the second for you. The free plan pauses a project after a week without traffic. This is a separate decision, and preferably BEFORE the transfers: changing plan on an account you have just moved mixes two sources of failure. A PLAN IS READ ON THE TEAM OR ORGANISATION THAT HOLDS THE PROJECT, never on the personal account of whoever administers it. The two coexist: Pro on the team, Hobby on the account, and reading the second for the first leads to the opposite of the truth. The sign that should have warned was in plain view: all thirteen scheduled tasks run, which a Hobby plan does not allow.",
+            "VERCEL PRO EST PRIS, SUPABASE RESTE EN GRATUIT au 11 octobre 2026, et le transfert ne changera pas le second à votre place. Le plan gratuit met un projet en pause après une semaine sans trafic. C'est une décision à prendre à part, et de préférence AVANT les transferts : changer de plan sur un compte qu'on vient de déplacer mélange deux sources de panne. UN PLAN SE LIT SUR L'ÉQUIPE OU L'ORGANISATION QUI PORTE LE PROJET, jamais sur le compte personnel de la personne qui l'administre. Les deux coexistent : Pro sur l'équipe, Hobby sur le compte, et lire le second pour le premier fait conclure l'inverse de la vérité. Le signe qui aurait dû alerter était sous les yeux : les quatorze tâches planifiées tournent toutes, ce qu'un plan Hobby ne permet pas.",
+            "VERCEL PRO IS TAKEN, SUPABASE REMAINS ON FREE as of 11 October 2026, and the transfer will not change the second for you. The free plan pauses a project after a week without traffic. This is a separate decision, and preferably BEFORE the transfers: changing plan on an account you have just moved mixes two sources of failure. A PLAN IS READ ON THE TEAM OR ORGANISATION THAT HOLDS THE PROJECT, never on the personal account of whoever administers it. The two coexist: Pro on the team, Hobby on the account, and reading the second for the first leads to the opposite of the truth. The sign that should have warned was in plain view: all fourteen scheduled tasks run, which a Hobby plan does not allow.",
           ),
         },
         {

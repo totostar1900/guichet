@@ -15,7 +15,7 @@ export const ANALYSES: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 4,
-  checkedOn: "2026-10-11",
+  checkedOn: "2026-10-23",
   owner: "Georges",
   chapters: [
     {

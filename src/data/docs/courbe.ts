@@ -29,7 +29,7 @@ export const COURBE: DocPage = {
   visibility: "desk",
   audience: ["desk", "client", "admin", "tech"],
   order: 5,
-  checkedOn: "2026-10-11",
+  checkedOn: "2026-10-23",
   owner: "Georges",
   chapters: [
     {

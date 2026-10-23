@@ -15,7 +15,7 @@ export const COMPTES_A_PLUSIEURS_MAINS: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 2,
-  checkedOn: "2026-10-11",
+  checkedOn: "2026-10-23",
   owner: "Georges",
   chapters: [
     {
