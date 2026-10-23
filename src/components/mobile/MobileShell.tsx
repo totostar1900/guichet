@@ -50,6 +50,14 @@ const GROUPES: Record<Groupe, { titre: string; pages: NavPage[] }> = {
 };
 
 const I = {
+  /* Un point d'interrogation dans un cercle : on demande, ou l'on cherche. */
+  aide: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5" />
+      <path d="M12 17h.01" />
+    </svg>
+  ),
   guichet: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M4 7h16M4 12h16M4 17h10" />
@@ -159,7 +167,7 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
 
   const t = useT();
   /**
-   * Quatre destinations, et c'est la même règle que la bande de l'écran large.
+   * Cinq destinations, et c'est la même règle que la bande de l'écran large.
    *
    * Le dock portait cinq onglets rangés par instrument. Un client se connecte
    * pour voir ce qu'il a et pour traiter : le portefeuille et le marché
@@ -177,6 +185,18 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
     // téléphone, et c'est là que la plupart des clients lisent.
     { href: "/trader", label: t("Trade"), icon: I.trader, match: (p) => p.startsWith("/trader") },
     { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection, feuille: "marche" },
+    /* LE CINQUIÈME SIÈGE : DEMANDER, ET TROUVER SOI-MÊME. Quatre onglets
+       menaient à ce qu'on possède, ce qu'on achète, ce qu'on fait et ce
+       qu'on lit du marché ; aucun à la maison elle-même. Le conseiller et
+       le guide vivaient au bas de « Trade », où l'on ne tombait dessus
+       qu'en descendant une page venue pour autre chose.
+       « Aide » plutôt qu'« Apprendre » ou « Contact » : le siège couvre
+       deux gestes de nature différente — poser une question à quelqu'un, et
+       chercher la réponse tout seul — et c'est le mot le plus court qui les
+       couvre tous les deux. C'est déjà le nom du groupe au rail de l'écran
+       large, et deux surfaces qui nomment la même chose doivent la nommer
+       pareil. */
+    { href: "/aide", label: t("Aide"), icon: I.aide, match: (p) => p === "/aide" || p.startsWith("/info") || p.startsWith("/moi/contact") || p.startsWith("/moi/reclamation") },
     /* « À DÉCIDER » A QUITTÉ LE DOCK le 2 octobre 2026. Un onglet qui porte ce
        nom demande d'aller voir s'il y a quelque chose, et il est vide neuf jours
        sur dix : un onglet vide neuf jours sur dix est un onglet qu'on cesse
@@ -186,7 +206,11 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
 
   return (
     <>
-      <div className={styles.top}>
+      {/* LES DEUX BARRES NE GLISSENT PAS pendant une transition de page : il
+          faut un point fixe pour comprendre que c'est le CONTENU qui a bougé
+          et non l'écran entier. Le nom les désigne, la feuille globale leur
+          retire l'animation. */}
+      <div className={styles.top} style={{ viewTransitionName: "barre-haut" }}>
         {isRoot ? (
           <Link href="/" className={styles.brand}>
             <b>PURPOSE CAPITAL</b>
@@ -231,7 +255,7 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
           fermees sous le pouce. Devant la porte, la page se suffit, avec son
           menu « ⋮ » et ses propres appels a l action. */}
       {!deskHost && signedIn && (
-      <nav className={styles.tabs} aria-label="Navigation principale" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
+      <nav className={styles.tabs} aria-label="Navigation principale" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)`, viewTransitionName: "barre-bas" }}>
         {tabs.map((tab) => {
           const face = (
             <>

@@ -15,6 +15,16 @@ export const EN_TRADE: Record<string, string> = {
   "1 en place": "1 in place",
   "en place": "in place",
 
+  /* ---- le siège « Aide », cinquième onglet du téléphone ---- */
+  "Poser une question à la personne qui suit votre compte, ou trouver la réponse vous-même.":
+    "Ask the person who follows your account, or find the answer yourself.",
+  "Votre conseiller, le message déjà écrit, et le dépôt d'une réclamation.": "Your adviser, the message already written, and filing a complaint.",
+  "Les éclairages, le parcours du marché, le simulateur et le glossaire.": "The explainers, the market walkthrough, the simulator and the glossary.",
+  "Questions courantes": "Common questions",
+  "Ce qu'on nous demande le plus souvent, répondu une fois pour toutes.": "What we are asked most often, answered once and for all.",
+  "Ce que la maison ne promet pas, et ce qu'elle ne fait pas.": "What the firm does not promise, and what it does not do.",
+  "Qui est Purpose Capital, sous quel agrément, et qui le contrôle.": "Who Purpose Capital is, under which licence, and who supervises it.",
+
   /* ---- nous contacter ---- */
   "Nous contacter": "Contact us",
   "Une personne suit votre compte. Écrivez-lui : le message part avec ce qu'il faut pour qu'on n'ait pas à vous demander qui vous êtes.":

@@ -151,3 +151,17 @@
     flex-grow: 1;
     justify-content: center;
   }
+
+/* Le retour d'un cran, en tête : il remonte la hiérarchie et non
+   l'historique, et son glissement vers la droite le dit. */
+.fil a {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  text-decoration: none;
+}
+.fil a::before {
+  content: "‹ ";
+}
+.fil a:hover {
+  color: var(--ink);
+}

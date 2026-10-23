@@ -243,12 +243,30 @@
   }
 }
 
-/* a fixed height on the phone: the tabs change the content, never the sheet's edge */
+/* ── La feuille haute prend TOUT l'écran sur le téléphone ────────────────────
+   Elle s'arrêtait à 84 vh, et la hauteur était fixe pour que les onglets
+   changent le contenu sans faire bouger le bord de la feuille — l'intention
+   était juste. Mais ce qu'elle porte a grandi : le nom, les canaux, les
+   préférences, la recherche, le guide et dix-sept tuiles. À 84 vh, tout cela
+   défile dans une fenêtre pendant que le dernier sixième de l'écran montre une
+   page assombrie qu'on ne peut pas lire. On défile DANS un trou au lieu de
+   lire une page.
+   Elle prend donc l'écran entier : plus de coins arrondis ni de barrette, qui
+   promettent un tiroir qu'on tire, et la croix de la tête devient la seule
+   sortie — ce qu'elle était déjà. « dvh » et non « vh » : sur un téléphone,
+   la barre d'adresse se replie et « vh » garde la hauteur du départ, donc la
+   feuille dépasserait du bas de ce qu'elle a cessé d'occuper. */
 @media (max-width: 760px) {
   .tall,
   .tall.sheetOpen {
-    height: min(620px, 84vh);
-    max-height: 84vh;
+    top: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  /* La barrette dit « tirez-moi », et une page entière ne se tire pas. */
+  .tall .grab {
+    display: none;
   }
   .tall .body {
     flex: 1 1 auto;

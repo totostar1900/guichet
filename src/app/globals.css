@@ -1160,3 +1160,69 @@ h3 {
     animation: none;
   }
 }
+
+/* ── Glisser d'une page à l'autre : la direction dit la profondeur ────────────
+   La convention vient du cinéma et de la page imprimée : avancer va vers la
+   gauche, revenir vers la droite. Elle est si ancrée que l'enfreindre
+   désoriente.
+   Soixante pixels, et pas davantage : assez pour dire la direction, trop peu
+   pour qu'on ait à suivre des yeux un objet qui file. */
+::view-transition-old(.nav-avant) {
+  --glisse: -60px;
+  animation: 150ms ease-in both vt-fondu reverse, 400ms ease-in-out both vt-glisse reverse;
+}
+::view-transition-new(.nav-avant) {
+  --glisse: 60px;
+  animation: 210ms ease-out 150ms both vt-fondu, 400ms ease-in-out both vt-glisse;
+}
+::view-transition-old(.nav-retour) {
+  --glisse: 60px;
+  animation: 150ms ease-in both vt-fondu reverse, 400ms ease-in-out both vt-glisse reverse;
+}
+::view-transition-new(.nav-retour) {
+  --glisse: -60px;
+  animation: 210ms ease-out 150ms both vt-fondu, 400ms ease-in-out both vt-glisse;
+}
+@keyframes vt-glisse {
+  from {
+    translate: var(--glisse);
+  }
+  to {
+    translate: 0;
+  }
+}
+@keyframes vt-fondu {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* LES DEUX BARRES NE GLISSENT PAS, et c'est ce qui rend le reste lisible.
+   Il faut un point fixe pour comprendre que c'est le CONTENU qui a bougé et
+   non l'écran entier ; une barre qui glisse avec lui enlève ce repère. Le
+   vieux cliché est masqué pour éviter que les deux barres se croisent une
+   image durant. */
+::view-transition-group(barre-haut),
+::view-transition-group(barre-bas) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(barre-haut),
+::view-transition-old(barre-bas) {
+  display: none;
+}
+::view-transition-new(barre-haut),
+::view-transition-new(barre-bas) {
+  animation: none;
+}
+
+/* Un mouvement qu'on n'a pas demandé est une gêne. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

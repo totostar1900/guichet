@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Glissement, LienRetour } from "@/components/mobile/Glissement";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { contexteDuClient } from "@/lib/domain/contexte-client";
@@ -45,7 +46,15 @@ export default async function ContactPage() {
   const derniere = [...intents.filter((i) => i.clientId === s.userId)].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]?.ref;
 
   return (
-    <div className={styles.page}>
+    <Glissement>
+      <div className={styles.page}>
+        {/* LE RETOUR EST UN LIEN, ET IL DIT SA DIRECTION. Le bouton du
+            téléphone remonte l'historique sans jouer d'animation : celui-ci
+            remonte la HIÉRARCHIE, et le glissement vers la droite dit qu'on
+            sort d'un cran. */}
+        <nav className={styles.fil}>
+          <LienRetour href="/aide">{t("Aide")}</LienRetour>
+        </nav>
       <header className={styles.tete}>
         <h1>{t("Nous contacter")}</h1>
         <p>{t("Une personne suit votre compte. Écrivez-lui : le message part avec ce qu'il faut pour qu'on n'ait pas à vous demander qui vous êtes.")}</p>
@@ -66,6 +75,7 @@ export default async function ContactPage() {
           <Link href="/moi/reclamation">{t("Déposer une réclamation")}</Link>
         </p>
       </section>
-    </div>
+      </div>
+    </Glissement>
   );
 }

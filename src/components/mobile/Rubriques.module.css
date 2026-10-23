@@ -1,0 +1,54 @@
+/* Le sommaire d'un siège : une rubrique par ligne, pleine largeur et haute.
+   Les mesures viennent du parcours de « Trade », dont cette liste est le
+   premier niveau sorti de sa page. */
+
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+.liste li {
+  border-bottom: 1px solid var(--line);
+}
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  padding: var(--s-7) var(--s-3);
+  color: inherit;
+  text-decoration: none;
+}
+.ligne:active {
+  background: var(--surface-2);
+}
+.quoi {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.quoi b {
+  font-weight: 600;
+}
+.quoi small {
+  font-size: var(--t-1);
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.etiquette {
+  flex: none;
+  font-size: var(--t-1);
+  color: var(--gold-ink);
+}
+.chev {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
