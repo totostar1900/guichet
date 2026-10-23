@@ -106,3 +106,23 @@ export const AIDE_PAGES: NavPage[] = [
   { key: "questions", href: "/info/aide", label: "Questions courantes", tuile: "ce qu'on nous demande", hint: "ce qu'on nous demande le plus souvent, répondu une fois pour toutes" },
   { key: "risques", href: "/info/risques", label: "Risques et limites", tuile: "ce que ça engage", hint: "ce que la maison ne promet pas, et ce qu'elle ne fait pas" },
 ];
+
+/**
+ * LE COMPTE, EN CINQ RUBRIQUES.
+ *
+ * Elles étaient écrites dans la page du sommaire et nulle part ailleurs : la
+ * recherche ne les trouvait donc pas, et « sécurité » ne ramenait que des
+ * questions de l'aide. Une page qui n'est citée par aucune table n'existe que
+ * pour qui connaît déjà son adresse.
+ *
+ * LE SOMMAIRE Y AJOUTE L'ÉTAT, et c'est lui qui le calcule : « 1 canal
+ * prouvé », « approuvé », « 2 appareils » dépendent du client, et une table
+ * n'a pas de client sous les yeux.
+ */
+export const COMPTE_PAGES: NavPage[] = [
+  { key: "identite", href: "/moi/identite", label: "Qui vous êtes", tuile: "nom, ville, canaux", hint: "nom, ville, e-mail, WhatsApp" },
+  { key: "pieces", href: "/ouvrir-un-compte", label: "Mes pièces", tuile: "votre dossier", hint: "votre dossier d'ouverture et les pièces qui le composent" },
+  { key: "profil", href: "/moi/profil", label: "Mon profil", tuile: "horizon et tolérance", hint: "votre horizon, votre tolérance au risque, et ce que la maison en déduit" },
+  { key: "securite", href: "/moi/securite", label: "Sécurité", tuile: "clés et appareils", hint: "vos clés d'accès, les appareils reconnus, et comment les retirer" },
+  { key: "appareil", href: "/moi/appareil", label: "Cet appareil", tuile: "alertes et couleurs", hint: "alertes, couleurs, et par quel canal on vous joint d'abord" },
+];

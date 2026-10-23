@@ -14,7 +14,11 @@ import styles from "./InfoSearch.module.css";
  * first one, and a result inside this page scrolls to the spot and lights it up.
  */
 export interface SearchEntry {
-  kind: "terme" | "lecon" | "outil" | "page";
+  /* « service » et « instrument » sont entrés le 24 octobre 2026, avec la page
+     de recherche : un lecteur qui tape « prélèvement » ou « rachats du Trésor »
+     ne cherche ni une définition ni un éclairage, et l'étiquette du résultat
+     doit le lui dire avant qu'il clique. */
+  kind: "terme" | "lecon" | "outil" | "page" | "service" | "instrument";
   title: string;
   text: string;
   href: string;
@@ -133,13 +137,13 @@ export function rankEntries(entries: SearchEntry[], q: string, limit = 8): { res
   return { results, words: [...words, ...alts], asked };
 }
 
-export function InfoSearch({ entries }: { entries: SearchEntry[] }) {
+export function InfoSearch({ entries, auto, vide }: { entries: SearchEntry[]; /** La page de recherche n'a que ce champ : le curseur s'y pose. Dans le Guide, non : le champ y est un outil parmi d'autres, et voler le curseur ferait sauter la page au clavier. */ auto?: boolean; /** Ce qui se lit tant qu'on n'a rien tapé : sur la page dédiée, les questions les plus posées. */ vide?: React.ReactNode }) {
   const t = useT();
   const router = useRouter();
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
   const box = useRef<HTMLDivElement>(null);
-  const KIND: Record<SearchEntry["kind"], string> = { terme: t("Définition"), lecon: t("Éclairage"), outil: t("Outil"), page: t("Page") };
+  const KIND: Record<SearchEntry["kind"], string> = { terme: t("Définition"), lecon: t("Éclairage"), outil: t("Outil"), page: t("Page"), service: t("Service"), instrument: t("Instrument") };
 
   const { results, words, asked } = useMemo(() => rankEntries(entries, q), [q, entries]);
 
@@ -166,8 +170,9 @@ export function InfoSearch({ entries }: { entries: SearchEntry[] }) {
             setActive(0);
           }}
           placeholder={t("Un mot, une question… ex. coupon couru, c'est quoi une adjudication, VL, relevé")}
-          aria-label={t("Rechercher dans l'aide")}
+          aria-label={t("Rechercher")}
           autoComplete="off"
+          autoFocus={auto}
           onKeyDown={(e) => {
             if (e.key === "ArrowDown") {
               e.preventDefault();
@@ -187,6 +192,7 @@ export function InfoSearch({ entries }: { entries: SearchEntry[] }) {
           </button>
         )}
       </label>
+      {!shown && vide}
       {shown && (
         <div className={styles.results} role="listbox" aria-label={t("Résultats")}>
           <div className={styles.resultsHead}>

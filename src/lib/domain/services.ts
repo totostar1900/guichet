@@ -412,6 +412,31 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
 }
 
 /**
+ * LE CATALOGUE : UN SERVICE, SON NOM, SON RAYON, SA PORTE.
+ *
+ * `servicesDuClient` construit la liste VUE PAR UN CLIENT : elle dépend de ce
+ * qu'il a déjà, de son dossier, de ses lignes. Pour la chercher, il faut la
+ * liste de ce qui EXISTE, sans client sous les yeux — ce que la recherche
+ * indexe, et ce qu'un lecteur tape.
+ *
+ * C'est une seconde liste, donc elle divergera : une épreuve l'en empêche
+ * (`services-catalogue.test.ts`), en montant un client qui a tout et en
+ * comparant clef pour clef, nom pour nom, porte pour porte.
+ */
+export const CATALOGUE: { cle: string; nom: string; rayon: Rayon; href: string }[] = [
+  { cle: "primaire", nom: "Adjudications et émissions", rayon: "placer", href: "/calendrier" },
+  { cle: "sondage", nom: "Se dire preneur avant une adjudication", rayon: "placer", href: "/calendrier" },
+  { cle: "actions", nom: "Acheter et vendre en bourse", rayon: "placer", href: "/marche" },
+  { cle: "fonds", nom: "Investir dans un fonds", rayon: "placer", href: "/fonds" },
+  { cle: "passage", nom: "Passage d'un fonds à l'autre", rayon: "placer", href: "/fonds" },
+  { cle: "epargne", nom: "Épargne programmée", rayon: "programmer", href: "/moi/epargne" },
+  { cle: "reinvestissement", nom: "Réinvestissement", rayon: "programmer", href: "/moi/reinvestir" },
+  { cle: "prelevement", nom: "Prélèvement automatique", rayon: "programmer", href: "/moi/prelevements" },
+  { cle: "provision", nom: "Votre provision", rayon: "tenir", href: "/moi/provision" },
+  { cle: "garde", nom: "Conservation et tenue de compte", rayon: "tenir", href: "/moi" },
+];
+
+/**
  * Ce qu'il faut faire, dans l'ordre, pour prendre un service.
  *
  * L'état dit où l'on en est, la phrase dit ce que ça donne : ni l'un ni l'autre

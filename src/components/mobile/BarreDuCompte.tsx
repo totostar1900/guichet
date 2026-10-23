@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useT } from "@/i18n/client";
 import type { Attente } from "@/lib/domain/services";
@@ -25,12 +26,17 @@ import styles from "./BarreDuCompte.module.css";
  * système qui marche, un titre dans l'onglet, et la place d'écrire une phrase
  * entière là où une tuile tenait trois mots.
  *
- * LA RECHERCHE NE DÉMÉNAGE PAS, ET C'EST LA SEULE. Une recherche se fait là où
- * l'on est : lui donner une page serait demander de quitter la sienne pour y
- * revenir. Elle garde donc sa feuille, et prend le bouton qui la nomme — une
- * loupe, à côté de l'initiale. Sans ce bouton elle n'existerait plus nulle
- * part sur un téléphone, où la barre du haut tient un titre et trois objets :
- * c'est la seule raison pour laquelle la feuille survit.
+ * LA RECHERCHE GARDE SA FEUILLE, ET A MAINTENANT UNE PAGE. Une recherche se
+ * fait là où l'on est : c'est ce que la feuille sert, et six résultats
+ * suffisent à retrouver un mot sans quitter sa page. Ce qu'elle ne peut pas
+ * porter — tous les résultats, le type de chacun, la phrase où le mot
+ * apparaît, les flèches du clavier, les questions les plus posées — vit à
+ * `/recherche`, et un lien au pied de la feuille y mène.
+ *
+ * DEUX SURFACES POUR UNE RECHERCHE, C'EST UN DE TROP, et c'est assumé le temps
+ * de voir laquelle sert : la feuille répond vite, la page répond entièrement.
+ * Le jour où l'une des deux ne sert plus, c'est la feuille qui part — la page
+ * a une adresse, un retour, et le même champ que le Guide.
  *
  * TROIS CIBLES VOISINES, TROIS DESTINATIONS, AUCUN CHEVAUCHEMENT. La pastille
  * déroule ce qui attend, la loupe ouvre la recherche, l'initiale mène au
@@ -47,6 +53,7 @@ export interface BarreProps {
 export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-left" }) {
   const t = useT();
   const [cherche, setCherche] = useState(false);
+  const chemin = usePathname();
   const { index } = useGuideIndex(cherche);
   const initial = p.name.trim().charAt(0).toUpperCase() || "?";
   const attentes = p.attentes ?? [];
@@ -152,10 +159,13 @@ export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-lef
           pixels l'une de l'autre, pour deux corpus différents que rien ne
           distinguait à l'œil. Le pied de colonne n'a donc pas la sienne. En
           dessous, le rail n'existe pas et la loupe est le seul chemin.
-          LE DESK N'EN A PAS NON PLUS : sa console a sa propre recherche. */}
-      {!p.desk && p.dock !== "bottom-left" && (
+          LE DESK N'EN A PAS NON PLUS : sa console a sa propre recherche.
+          ET PAS SUR LA PAGE DE RECHERCHE : la feuille y recouvrirait le champ
+          qu'elle duplique, avec six résultats là où la page les montre tous.
+          La même règle, appliquée au cas où la page EST la loupe. */}
+      {!p.desk && p.dock !== "bottom-left" && chemin !== "/recherche" && (
         <>
-          <button type="button" className={styles.loupe} onClick={() => setCherche(true)} aria-haspopup="dialog" aria-expanded={cherche} aria-label={t("Rechercher dans l'aide")} title={t("Rechercher dans l'aide")}>
+          <button type="button" className={styles.loupe} onClick={() => setCherche(true)} aria-haspopup="dialog" aria-expanded={cherche} aria-label={t("Rechercher")} title={t("Rechercher")}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.5-3.5" />
@@ -163,6 +173,15 @@ export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-lef
           </button>
           <Sheet open={cherche} onClose={() => setCherche(false)} navy dock={p.dock ?? "top-right"} title={t("Rechercher")}>
             <MenuRecherche index={index} close={() => setCherche(false)} />
+            {/* LA FEUILLE RÉPOND VITE, LA PAGE RÉPOND ENTIÈREMENT.
+                Six résultats tiennent ici, et c'est ce qu'on veut quand on
+                cherche un mot sans quitter sa page. La page, elle, les donne
+                tous, avec le type de chacun, la phrase où le mot apparaît et
+                les flèches du clavier. Ce lien est le pont entre les deux :
+                tant que les deux existent, aucune des deux n'est une impasse. */}
+            <Link className={styles.tout} href="/recherche" onClick={() => setCherche(false)}>
+              {t("Ouvrir la recherche entière")} →
+            </Link>
           </Sheet>
         </>
       )}

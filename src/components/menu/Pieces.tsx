@@ -71,8 +71,12 @@ export function MenuRecherche({ index, close }: { index: GuideIndex | null; clos
           <circle cx="11" cy="11" r="7" />
           <path d="m20 20-3.5-3.5" />
         </svg>
-        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Une question, un mot… ex. coupon couru")} aria-label={t("Rechercher dans l'aide")} autoComplete="off" enterKeyHint="search" onKeyDown={(e) => e.key === "Enter" && hits[0] && ouvrir(hits[0])} />
-        <small>{t("aide · glossaire · éclairages")}</small>
+        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Une question, un mot… ex. coupon couru")} aria-label={t("Rechercher")} autoComplete="off" enterKeyHint="search" onKeyDown={(e) => e.key === "Enter" && hits[0] && ouvrir(hits[0])} />
+        {/* CE QUE LE CHAMP CHERCHE, et ce n'est plus seulement le Guide : un
+            client connecté reçoit aussi les pages, les services et les
+            instruments de l'application. Trois mots qui mentent sous un champ
+            font renoncer à chercher ce qu'il trouverait. */}
+        <small>{t("aide · glossaire · pages")}</small>
       </label>
       {q.trim().length >= 2 && (
         <div className={styles.hits} role="listbox">

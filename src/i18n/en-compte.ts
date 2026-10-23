@@ -25,6 +25,16 @@ export const EN_COMPTE: Record<string, string> = {
   "vos clés d'accès, les appareils reconnus, et comment les retirer": "your passkeys, the devices we recognise, and how to remove them",
   "Cet appareil": "This device",
   "alertes, couleurs, et par quel canal on vous joint d'abord": "alerts, colours, and which channel we reach you on first",
+  /* LES TROIS MOTS DE CHAQUE RUBRIQUE, qui vivent dans COMPTE_PAGES et
+     traversent t() en variable : aucun scanner ne les voit, et ils ressortent
+     en français dans l'interface anglaise sans que rien n'échoue. Le sommaire
+     n'en montre pas aujourd'hui — il lit le nom et la phrase — mais la table
+     les porte, et toute surface qui la lit les affichera. */
+  "nom, ville, canaux": "name, city, channels",
+  "votre dossier": "your file",
+  "horizon et tolérance": "horizon and tolerance",
+  "clés et appareils": "passkeys and devices",
+  "alertes et couleurs": "alerts and colours",
 
   /* ---------- la sortie ---------- */
   "Déconnecter tous vos appareils ? Il faudra se reconnecter sur chacun.": "Sign out of every device? You will have to sign in again on each one.",

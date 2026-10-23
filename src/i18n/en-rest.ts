@@ -1384,4 +1384,22 @@ export const EN_REST: Record<string, string> = {
   "Favoris": "Favourites",
   "Résultats": "Results",
   "Bulletins": "Bulletins",
+
+  // la recherche a sa page, et le siège « Aide » ses quatre mots (2026-10-24)
+  "L'aide, le glossaire, les éclairages et les pages de l'application, en un seul champ. Une question entière marche aussi bien qu'un mot.":
+    "The help, the glossary, the explainers and the pages of the application, in a single field. A whole question works as well as a single word.",
+  "On nous demande souvent": "We are often asked",
+  "aide · glossaire · pages": "help · glossary · pages",
+  "Ouvrir la recherche entière": "Open the full search",
+  /* Deux étiquettes de résultat de plus : un service se fait, un instrument
+     s'achète. « Instrument » se dit pareil dans les deux langues et était déjà
+     inscrit ; « Service » aussi, et c'est pourquoi il s'inscrit sur lui-même. */
+  Service: "Service",
+  /* Les mots du siège « Aide », qui vivent dans AIDE_PAGES et traversent t()
+     en variable. Les deux phrases sortaient en français dans l'interface
+     anglaise depuis que le rail et la page lisent la table. */
+  "la personne qui répond": "the person who answers",
+  "votre conseiller, le message déjà écrit, et le dépôt d'une réclamation": "your adviser, the message already drafted, and filing a complaint",
+  "comprendre avant de placer": "understand before you invest",
+  "les éclairages, le parcours du marché, le simulateur et le glossaire": "the explainers, the market walkthrough, the simulator and the glossary",
 };

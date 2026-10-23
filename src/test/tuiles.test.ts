@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { translatable } from "@/i18n/core";
-import { INSTRUMENTS_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "@/lib/nav-groups";
+import { AIDE_PAGES, COMPTE_PAGES, INSTRUMENTS_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "@/lib/nav-groups";
 
 /**
  * LES MOTS DES TABLES NE PASSENT PAS PAR UN LITTÉRAL.
@@ -17,11 +17,22 @@ import { INSTRUMENTS_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, type NavPage } fro
  * dictionnaire connaît-il cette clef » est un fait.
  */
 const TOUTES: NavPage[] = [...PORTEFEUILLE_PAGES, ...INSTRUMENTS_PAGES, ...MARCHE_PAGES];
+/**
+ * LES CINQ RUBRIQUES DU COMPTE ET LES QUATRE DE L'AIDE SONT DES TABLES AUSSI,
+ * et l'angle mort y est le même : les mots traversent t() en variable.
+ *
+ * Elles n'étaient pas couvertes, parce qu'elles sont nées après cette épreuve
+ * — et le jour où elles sont entrées, quatre phrases du siège « Aide »
+ * sortaient en français dans l'interface anglaise. Elles ne vont pas dans
+ * `TOUTES` : cette liste-là sert aussi à exiger une icône de tuile, et ces
+ * neuf pages ne sont pas dans la grille du dock.
+ */
+const TOUS_LES_MOTS: NavPage[] = [...TOUTES, ...COMPTE_PAGES, ...AIDE_PAGES];
 
 describe("les mots de la navigation, en anglais", () => {
   it("couvre le nom, le nom court, la tuile et la phrase de chaque page", () => {
     const manquants: string[] = [];
-    for (const p of TOUTES) {
+    for (const p of TOUS_LES_MOTS) {
       for (const [champ, texte] of [
         ["label", p.label],
         ["short", p.short],
@@ -43,7 +54,7 @@ describe("les mots de la navigation, en anglais", () => {
    * exigés, mais s'ils existent ils tiennent en trois ou quatre mots.
    */
   it("garde des mots courts, là où une table en porte", () => {
-    for (const p of TOUTES) {
+    for (const p of TOUS_LES_MOTS) {
       if (!p.tuile) continue;
       expect(p.tuile.length, `${p.key} : « ${p.tuile} » est une phrase`).toBeLessThanOrEqual(36);
     }
@@ -127,11 +138,21 @@ describe("le compte en pages", () => {
     expect(barre, "la recherche n'a plus de porte sur téléphone").toContain("MenuRecherche");
   });
 
+  /**
+   * LES CINQ ADRESSES ONT QUITTÉ LA PAGE POUR UNE TABLE, et c'est la bonne
+   * direction : écrites dans le sommaire et nulle part ailleurs, aucune table
+   * ne les citait, et la recherche ne trouvait donc pas « Sécurité ».
+   *
+   * L'épreuve suit le déménagement plutôt que de l'interdire. Elle demande
+   * deux choses : que les cinq adresses soient dans `COMPTE_PAGES`, et que le
+   * sommaire LISE cette table au lieu de recopier sa liste. Vérifier la seule
+   * table laisserait une page libre d'en afficher quatre.
+   */
   it("donne une adresse à chacune des cinq rubriques", () => {
     const sommaire = lire("src/app/moi/compte/page.tsx");
-    for (const href of ["/moi/identite", "/ouvrir-un-compte", "/moi/profil", "/moi/securite", "/moi/appareil"]) {
-      expect(sommaire, `${href} a quitté le sommaire du compte`).toContain(`href: "${href}"`);
-    }
+    expect(sommaire, "le sommaire du compte a réécrit sa propre liste").toContain("COMPTE_PAGES.map");
+    const portes = COMPTE_PAGES.map((p) => p.href);
+    expect(portes, "une rubrique a quitté la table du compte").toEqual(["/moi/identite", "/ouvrir-un-compte", "/moi/profil", "/moi/securite", "/moi/appareil"]);
   });
 
   /**

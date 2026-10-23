@@ -288,3 +288,19 @@
   right: auto;
   left: 0;
 }
+
+/* Le pont entre la feuille et la page : un lien nu sous les résultats, pas un
+   bouton. Ce n'est pas un geste de plus, c'est la même recherche en grand. */
+.tout {
+  display: block;
+  margin-top: var(--s-6);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-3);
+  font-weight: 600;
+  color: var(--gold-ink);
+  text-decoration: none;
+}
+.tout:hover {
+  color: var(--ink);
+}

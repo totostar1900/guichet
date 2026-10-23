@@ -3,6 +3,7 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { Glissement } from "@/components/mobile/Glissement";
 import { Rubriques } from "@/components/mobile/Rubriques";
+import { COMPTE_PAGES } from "@/lib/nav-groups";
 import { Deconnexion } from "./Deconnexion";
 import styles from "@/components/Feuillet.module.css";
 
@@ -51,6 +52,11 @@ export default async function ComptePage() {
   /* Chaque rubrique dit son état, et c'est ce qui épargne le détour : « 1
      canal · 0 appareil » répond avant qu'on ouvre la page. */
   const prouves = [canaux?.emailVerifiedAt, canaux?.phoneVerifiedAt].filter(Boolean).length;
+  const etat: Record<string, string | undefined> = {
+    identite: prouves ? t(prouves > 1 ? "{n} canaux prouvés" : "1 canal prouvé", { n: String(prouves) }) : t("aucun canal prouvé"),
+    pieces: fiche?.status === "approuve" ? t("approuvé") : undefined,
+    securite: appareils.length ? t(appareils.length > 1 ? "{n} appareils" : "1 appareil", { n: String(appareils.length) }) : undefined,
+  };
 
   return (
     <Glissement>
@@ -60,14 +66,18 @@ export default async function ComptePage() {
           <p>{t("Qui vous êtes, ce que la maison détient de vous, et ce que fait cet appareil-ci.")}</p>
         </header>
 
+        {/* LA TABLE DIT LES CINQ, LA PAGE DIT L'ÉTAT. Les noms et les phrases
+            vivent dans `COMPTE_PAGES`, que la recherche lit aussi : une page
+            qu'aucune table ne cite n'existe que pour qui connaît son adresse.
+            Ce qui dépend du client — « 1 canal prouvé », « approuvé », « 2
+            appareils » — se calcule ici, et nulle part ailleurs. */}
         <Rubriques
-          items={[
-            { href: "/moi/identite", nom: t("Qui vous êtes"), quoi: t("nom, ville, e-mail, WhatsApp"), etiquette: prouves ? t(prouves > 1 ? "{n} canaux prouvés" : "1 canal prouvé", { n: String(prouves) }) : t("aucun canal prouvé") },
-            { href: "/ouvrir-un-compte", nom: t("Mes pièces"), quoi: t("votre dossier d'ouverture et les pièces qui le composent"), etiquette: fiche?.status === "approuve" ? t("approuvé") : undefined },
-            { href: "/moi/profil", nom: t("Mon profil"), quoi: t("votre horizon, votre tolérance au risque, et ce que la maison en déduit") },
-            { href: "/moi/securite", nom: t("Sécurité"), quoi: t("vos clés d'accès, les appareils reconnus, et comment les retirer"), etiquette: appareils.length ? t(appareils.length > 1 ? "{n} appareils" : "1 appareil", { n: String(appareils.length) }) : undefined },
-            { href: "/moi/appareil", nom: t("Cet appareil"), quoi: t("alertes, couleurs, et par quel canal on vous joint d'abord") },
-          ]}
+          items={COMPTE_PAGES.map((p) => ({
+            href: p.href,
+            nom: t(p.label),
+            quoi: t(p.hint),
+            etiquette: etat[p.key],
+          }))}
         />
 
         <Deconnexion />

@@ -26,6 +26,14 @@
 .field input::placeholder {
   color: var(--ink-3);
 }
+/* DEUX CROIX POUR EFFACER, C'EST UNE DE TROP. Chromium dessine la sienne dans
+   tout « type=search » dès qu'il y a du texte, et elle se posait à côté de
+   celle de la maison : deux cibles voisines qui font la même chose, dont une
+   bleue qui n'est d'aucun thème. Celle qui reste est la nôtre, nommée pour
+   les lecteurs d'écran. */
+.field input::-webkit-search-cancel-button {
+  display: none;
+}
 /* Results sit in the flow, under the field: the sections below move down instead of being covered. */
 .results {
   margin-top: 8px;
@@ -100,6 +108,17 @@
 .outil {
   background: var(--good-soft);
   color: var(--good);
+}
+/* Deux étiquettes de plus depuis la page de recherche : un service se fait,
+   un instrument s'achète. Elles reprennent les encres de la maison plutôt que
+   d'en inventer deux. */
+.service {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.instrument {
+  background: var(--info-soft, #e1eaf8);
+  color: var(--navy-text);
 }
 .body {
   display: grid;
