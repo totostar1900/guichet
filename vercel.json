@@ -54,6 +54,10 @@
     {
       "path": "/api/cron/purge-gestes",
       "schedule": "0 3 2 * *"
+    },
+    {
+      "path": "/api/cron/relances",
+      "schedule": "20 9 * * *"
     }
   ]
 }

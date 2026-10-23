@@ -14,7 +14,7 @@ export const CLIENTELE: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 2,
-  checkedOn: "2026-10-11",
+  checkedOn: "2026-10-23",
   owner: "Georges",
   chapters: [
     {
@@ -32,8 +32,8 @@ export const CLIENTELE: DocPage = {
           type: "list",
           items: [
             l(
-              "Noté : les quarante gestes du catalogue, chacun avec sa date, son objet, son canal et l'appareil employé.",
-              "Recorded: the forty moves of the catalogue, each with its date, object, channel and device used.",
+              "Noté : les quarante et un gestes du catalogue, chacun avec sa date, son objet, son canal et l'appareil employé.",
+              "Recorded: the forty-one moves of the catalogue, each with its date, object, channel and device used.",
             ),
             l(
               "Noté aussi : la consultation d'un objet nommé, fiche, document, portefeuille ou séance, UNE FOIS par jour et par objet.",

@@ -8,6 +8,7 @@ import { PREAVIS_DEFAUT, type StandingPolicy } from "@/lib/domain/preavis";
 import { BAREME_FERME, type BaremeGarde } from "@/lib/domain/garde";
 import { TARIFS_FERMES, type Tarifs } from "@/lib/domain/tarifs";
 import { SOUFFRANCE_DEFAUT, SOUFFRANCE_KEY, type DelaiDeSouffrance } from "@/lib/domain/souffrance";
+import { RELANCE_DEFAUT, RELANCE_KEY, type PolitiqueDeRelance } from "@/lib/domain/relance";
 import { REF } from "@/lib/reference";
 
 /**
@@ -189,5 +190,33 @@ export const loadSouffrance = cache(async (): Promise<DelaiDeSouffrance> => {
     return row ? { ...SOUFFRANCE_DEFAUT, ...(row.data as Partial<DelaiDeSouffrance>) } : SOUFFRANCE_DEFAUT;
   } catch {
     return SOUFFRANCE_DEFAUT;
+  }
+});
+
+/**
+ * LE RÉGLAGE DES RAPPELS, TENU AU DESK.
+ *
+ * Il commande des ENVOIS, et c'est ce qui le distingue du délai de souffrance,
+ * qui ne colore qu'une colonne. Un sujet coché de trop, et cinq messages
+ * partent chez des gens qui n'ont rien demandé. La page qui l'écrit montre
+ * donc la file avant d'enregistrer, et l'écriture est auditée.
+ *
+ * Fermé en cas de panne de lecture ? Non : les défauts du code sont actifs,
+ * et c'est le bon sens de ce réglage-ci. Un référentiel injoignable ne doit
+ * pas faire taire une relance que le desk a voulue ; la panne se voit à la
+ * page Santé, pas en silence dans une file qui n'avance plus.
+ *
+ * Les deux sous-objets se fusionnent à la main : « ...row.data » écraserait
+ * « sujets » et « textes » en entier, donc un sujet ajouté au code
+ * disparaîtrait pour toute maison ayant déjà enregistré une fois.
+ */
+export const loadRelance = cache(async (): Promise<PolitiqueDeRelance> => {
+  try {
+    const rows = await repo().listReference(REF.policy);
+    const data = rows.find((r) => r.key === RELANCE_KEY)?.data as Partial<PolitiqueDeRelance> | undefined;
+    if (!data) return RELANCE_DEFAUT;
+    return { ...RELANCE_DEFAUT, ...data, sujets: { ...RELANCE_DEFAUT.sujets, ...(data.sujets ?? {}) }, textes: { ...RELANCE_DEFAUT.textes, ...(data.textes ?? {}) } };
+  } catch {
+    return RELANCE_DEFAUT;
   }
 });

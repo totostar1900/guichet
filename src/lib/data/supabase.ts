@@ -8,6 +8,7 @@ import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type C
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { CompteDeclare, Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
+import type { Relance } from "@/lib/domain/relance";
 import type { Part } from "@/lib/domain/repartition";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde, BaremeGarde, DroitLigne } from "@/lib/domain/garde";
@@ -518,6 +519,31 @@ const toPreavis = (r: PreavisRow): Preavis => ({
   intentId: u(r.intent_id),
   intents: r.intents ?? undefined,
   paidAmount: r.paid_amount == null ? undefined : Number(r.paid_amount),
+});
+
+type RelanceRow = {
+  id: string;
+  user_id: string;
+  sujet: Relance["sujet"];
+  cle: string;
+  state: Relance["state"];
+  envois: number;
+  dernier_on: string | null;
+  ouvert_le: string;
+  clos_le: string | null;
+  motif: string | null;
+};
+const toRelance = (r: RelanceRow): Relance => ({
+  id: r.id,
+  userId: r.user_id,
+  sujet: r.sujet,
+  cle: r.cle,
+  state: r.state,
+  envois: Number(r.envois),
+  dernierOn: u(r.dernier_on),
+  ouvertLe: r.ouvert_le,
+  closLe: u(r.clos_le),
+  motif: u(r.motif),
 });
 
 type TemoinRow = {
@@ -1744,6 +1770,45 @@ export const supabaseRepository: Repository = {
     if (error) fail("annoncerPreavis", error);
     return toPreavis(data);
   },
+  async listRelances(q) {
+    let sel = db().from("relances").select("*").order("ouvert_le", { ascending: true });
+    if (q?.userId) sel = sel.eq("user_id", q.userId);
+    if (q?.state) sel = sel.eq("state", q.state);
+    const { data, error } = await sel;
+    if (error) {
+      // Migration 0111 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
+      if (/relances/.test(error.message)) return [];
+      fail("listRelances", error);
+    }
+    return (data ?? []).map(toRelance);
+  },
+  async ouvrirRelance(r) {
+    /* UN SECOND CONSTAT NE REMET RIEN À ZÉRO, et c'est tout le point du
+       « ignoreDuplicates ». Le robot repasse tous les jours sur le même
+       bulletin non signé : une insertion qui écraserait la ligne ferait
+       repartir le compteur chaque matin, donc relancerait sans fin. */
+    const { error } = await db()
+      .from("relances")
+      .upsert({ user_id: r.userId, sujet: r.sujet, cle: r.cle, ouvert_le: r.ouvertLe }, { onConflict: "user_id,sujet,cle", ignoreDuplicates: true });
+    if (error) fail("ouvrirRelance", error);
+    const { data, error: e2 } = await db().from("relances").select("*").eq("user_id", r.userId).eq("sujet", r.sujet).eq("cle", r.cle).single();
+    if (e2) fail("ouvrirRelance", e2);
+    return toRelance(data);
+  },
+  async majRelance(id, p) {
+    const row: Record<string, unknown> = {};
+    if (p.state !== undefined) {
+      row.state = p.state;
+      if (p.state !== "en_cours") row.clos_le = new Date().toISOString();
+    }
+    if (p.envois !== undefined) row.envois = p.envois;
+    if (p.dernierOn !== undefined) row.dernier_on = p.dernierOn;
+    if (p.motif !== undefined) row.motif = p.motif ?? null;
+    const { data, error } = await db().from("relances").update(row).eq("id", id).select("*").single();
+    if (error) fail("majRelance", error);
+    return toRelance(data);
+  },
+
   async cloturerPreavis(id, p) {
     const row: Record<string, unknown> = {};
     if (p.state) {

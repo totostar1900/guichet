@@ -28,6 +28,8 @@
 
 export type EtatService = "en_place" | "a_activer";
 
+import type { Relance } from "./relance";
+
 /** Une phrase du dictionnaire, avec ses trous : les nombres voyagent à part. */
 export interface Dit {
   key: string;
@@ -142,8 +144,27 @@ export interface ContexteClient {
   reinvestissement?: { destination: string; plancher: number };
   /** L'épargne programmée en place, s'il y en a une. */
   epargne?: { montant: number; jour: number; destination: string };
+  /**
+   * LE MANDAT CRÉÉ ET JAMAIS SIGNÉ, qui n'était compté nulle part.
+   *
+   * « mandatVivant » demande l'état actif ET une signature : un mandat créé
+   * dont le code n'a pas été saisi ne prélève rien, ne bloque rien, et ne se
+   * voyait sur aucun écran hors sa propre page. C'est le cas le plus pur de
+   * la procédure laissée en route — on a rempli son RIB, on est allé
+   * chercher son téléphone, et on n'est pas revenu.
+   *
+   * Il tient le bas de la liste des devoirs, et c'est voulu : il ne bloque
+   * rien. Le versement programmé vit sans lui, et le dire autrement serait
+   * refaire la confusion que la page « Épargne programmée » a défaite.
+   */
+  mandatASigner?: { id: string; destination: string };
   /** La prochaine séance annoncée, si le calendrier en porte une. */
   prochaineSeance?: { pays: string; quoi: string; le: string };
+  /**
+   * Les rappels vivants de ce client : ce que la maison lui a déjà dit, et
+   * qu'il peut interrompre. Vide ou absent, le panneau n'offre pas le geste.
+   */
+  rappels?: Relance[];
   /** Les mois d'historique : sous douze, la performance ne dit pas grand-chose. */
   moisDHistorique: number;
   /**
@@ -494,6 +515,20 @@ export interface Attente {
   href: string;
   /** L'attente qui porte de l'argent arrivé : elle se distingue des autres. */
   ton: "arrive" | "annonce" | "retard";
+  /**
+   * LES RAPPELS QUE CETTE ATTENTE DÉCLENCHE, QUAND ELLE EN DÉCLENCHE.
+   *
+   * Présent, le panneau offre de les interrompre. Absent, il n'offre rien —
+   * et c'est juste : une séance annoncée ou un coupon disponible ne produit
+   * aucun message, donc un bouton « ne plus me le rappeler » y promettrait
+   * d'éteindre quelque chose qui n'existe pas.
+   *
+   * Plusieurs identifiants parce qu'une attente en groupe plusieurs : « 3
+   * ordres » porte trois rappels, et celui qui écarte les écarte tous les
+   * trois. Lui en éteindre un sur trois serait le contraire de ce qu'il
+   * demande.
+   */
+  rappel?: { ids: string[]; envois: number };
 }
 
 /**
@@ -507,6 +542,33 @@ export interface Attente {
  * LA FONCTION REND TOUT, et c'est l'écran qui coupe. Elle coupait à trois, et
  * le compteur comptait la liste coupée : cinq attentes s'affichaient « 3 ».
  */
+/**
+ * CE QUE LA MAISON RAPPELLE DERRIÈRE CETTE ATTENTE.
+ *
+ * La table est courte et c'est volontaire : les cinq DEVOIRS en sont, les
+ * occasions n'en sont pas. Un coupon disponible, une séance annoncée, une
+ * échéance en retard chez l'émetteur ne produisent aucun message — rien à
+ * éteindre, donc pas de bouton pour l'éteindre.
+ */
+const SUJET_DE_LATTENTE: Record<string, Relance["sujet"]> = {
+  convention: "convention",
+  complements: "complements",
+  signer: "signature",
+  repondre: "contre_proposition",
+  mandat: "mandat",
+};
+
+/** Les rappels vivants derrière une attente, s'il y en a. */
+function rappelDe(c: ContexteClient, cle: string): Attente["rappel"] {
+  const sujet = SUJET_DE_LATTENTE[cle];
+  if (!sujet) return undefined;
+  const siens = (c.rappels ?? []).filter((r) => r.sujet === sujet && r.state === "en_cours");
+  if (!siens.length) return undefined;
+  /* Le plus avancé donne le compte : « déjà rappelé 3 fois » se lit, une
+     moyenne de trois compteurs ne se lit pas. */
+  return { ids: siens.map((r) => r.id), envois: Math.max(...siens.map((r) => r.envois)) };
+}
+
 export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string): Attente[] {
   const out: Attente[] = [];
   /* LE DOSSIER PASSE DEVANT TOUT, PARCE QU'IL TIENT TOUT LE RESTE.
@@ -525,6 +587,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       geste: "Accepter ma convention",
       href: "/ouvrir-un-compte/convention",
       ton: "retard",
+      rappel: rappelDe(c, "convention"),
     });
   /* UNE REPRISE SE DIT AUTREMENT, parce que le compte, lui, n'attend rien.
      « Votre compte s'ouvre dès que la convention est acceptée » serait faux
@@ -538,6 +601,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       geste: "Reprendre ma convention",
       href: "/ouvrir-un-compte/convention",
       ton: "retard",
+      rappel: rappelDe(c, "convention"),
     });
   if (c.dossier === "complements")
     out.push({
@@ -548,6 +612,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       geste: "Compléter mon dossier",
       href: "/ouvrir-un-compte",
       ton: "retard",
+      rappel: rappelDe(c, "complements"),
     });
   if (c.aSigner > 0)
     out.push({
@@ -558,6 +623,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       geste: "Signer",
       href: c.ouSigner ? `/moi/ordres/${c.ouSigner}` : "/moi#ordres-en-cours",
       ton: "retard",
+      rappel: rappelDe(c, "signer"),
     });
   if (c.aRepondre > 0)
     out.push({
@@ -568,6 +634,22 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       geste: "Répondre",
       href: c.ouRepondre ? `/moi/ordres/${c.ouRepondre}` : "/moi#ordres-en-cours",
       ton: "retard",
+      rappel: rappelDe(c, "repondre"),
+    });
+  /* LE MANDAT FERME LA MARCHE DES DEVOIRS, et le ton le dit : « quand vous
+     voudrez », pas « il manque ». Rien n'est bloqué — le versement part, le
+     client vire lui-même — et un rappel qui dramatiserait une commodité
+     userait la crédibilité des quatre autres, qui, eux, bloquent. */
+  if (c.mandatASigner)
+    out.push({
+      cle: "mandat",
+      quand: { key: "Quand vous voudrez" },
+      chiffre: { key: "Mandat" },
+      quoi: { key: "Votre mandat de prélèvement pour {d} attend sa signature. Sans lui, rien ne s'arrête : vous virez vous-même à chaque échéance.", params: { d: c.mandatASigner.destination } },
+      geste: "Signer mon mandat",
+      href: "/moi/prelevements",
+      ton: "annonce",
+      rappel: rappelDe(c, "mandat"),
     });
   if (c.disponible > 0)
     out.push({

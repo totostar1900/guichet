@@ -12,6 +12,7 @@ import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { AccesCompte } from "@/lib/domain/acces-nomme";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
+import type { Relance } from "@/lib/domain/relance";
 import type { TourVu } from "@/lib/domain/robots";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { StandingOrder } from "@/lib/domain/standing";
@@ -248,6 +249,7 @@ interface Store {
   rapprochements: Rapprochement[];
   temoignages: Temoignage[];
   preavis: Preavis[];
+  relances: Relance[];
   tours: (TourVu & { id: string })[];
   standing: StandingOrder[];
   /** Les avis de droits de garde emis : ils ne se recalculent pas, ils se gardent. */
@@ -338,6 +340,7 @@ function store(): Store {
       rapprochements: [],
       temoignages: [],
       preavis: [],
+      relances: [],
       tours: [],
       reference: [],
       news: structuredClone(SEED_NEWS),
@@ -972,6 +975,30 @@ export const memoryRepository: Repository = {
     if (p.state && row.state !== "annoncee") throw new Error("standing_runs : cette occurrence est deja close");
     if (p.state) Object.assign(row, { state: p.state, closedAt: nowIso() });
     for (const k of ["noticeSent", "noticeError", "stopReason", "intentId", "intents", "paidAmount"] as const) if (p[k] !== undefined) Object.assign(row, { [k]: p[k] });
+    return structuredClone(row);
+  },
+
+  async listRelances(q) {
+    const rows = store().relances.filter((x) => (!q?.userId || x.userId === q.userId) && (!q?.state || x.state === q.state));
+    return structuredClone([...rows].sort((a, b) => a.ouvertLe.localeCompare(b.ouvertLe)));
+  },
+  async ouvrirRelance(r) {
+    /* La base porte l'unicité d'un rappel par devoir ; en mémoire on la tient à
+       la main, et on REND l'existant plutôt que de jeter : un second constat du
+       même devoir est le cas NORMAL — le robot repasse tous les jours — et
+       remettre le compteur à zéro relancerait éternellement. */
+    const s2 = store();
+    const deja = s2.relances.find((x) => x.userId === r.userId && x.sujet === r.sujet && x.cle === r.cle);
+    if (deja) return structuredClone(deja);
+    const row: Relance = { id: `relance-${s2.relances.length + 1}`, userId: r.userId, sujet: r.sujet, cle: r.cle, state: "en_cours", envois: 0, ouvertLe: r.ouvertLe };
+    s2.relances.push(row);
+    return structuredClone(row);
+  },
+  async majRelance(id, p) {
+    const row = store().relances.find((x) => x.id === id);
+    if (!row) throw new Error(`relances ${id} introuvable`);
+    if (p.state && p.state !== "en_cours") Object.assign(row, { closLe: nowIso() });
+    for (const k of ["state", "envois", "dernierOn", "motif"] as const) if (p[k] !== undefined) Object.assign(row, { [k]: p[k] });
     return structuredClone(row);
   },
 

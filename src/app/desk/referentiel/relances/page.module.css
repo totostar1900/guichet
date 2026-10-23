@@ -1,0 +1,128 @@
+/* La page qui règle les rappels. Elle emprunte ses mesures au délai de
+   souffrance, qui est son voisin de rayon et le même genre de page : un
+   réglage, ce qu'il déplace, et rien d'autre. */
+
+.page { max-width: 58rem; margin: 0 auto; padding: 20px clamp(12px, 3vw, 24px) 40px; }
+.tete { margin-bottom: 20px; }
+.tete h1 { font-size: 1.35rem; margin: 0 0 6px; }
+.tete p { margin: 0; max-width: 48rem; font-size: 0.88rem; }
+.corps { padding: 16px 20px; }
+.corps p { margin: 0 0 12px; font-size: 0.88rem; max-width: 48rem; }
+.corps p:last-child { margin-bottom: 0; }
+
+.form { margin-top: 4px; }
+.bloc { padding: 16px 0; border-top: 1px solid var(--line); }
+.bloc:first-child { border-top: 0; padding-top: 0; }
+.bloc h3 {
+  margin: 0 0 12px;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+.grid label, .message label { display: block; }
+.grid span, .message > label > span {
+  display: block;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.grid input {
+  width: 100%;
+  font: inherit;
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  padding: 6px 10px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
+}
+.message input, .message textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 0.86rem;
+  padding: 6px 10px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
+}
+.message textarea { resize: vertical; line-height: 1.5; }
+
+/* La phrase que le réglage produit, écrite en toutes lettres sous les trois
+   nombres : « 5 message(s), le premier le lendemain » se vérifie, trois
+   champs de saisie ne se vérifient pas. */
+.dit { margin: 10px 0 0; font-size: 0.82rem; color: var(--ink-2); }
+
+.inter { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; cursor: pointer; }
+.inter input { margin-top: 3px; flex: none; }
+.inter > span { display: flex; flex-direction: column; gap: 2px; }
+.inter b { font-size: 0.88rem; font-weight: 600; }
+.inter small { font-size: 0.78rem; color: var(--ink-2); line-height: 1.45; }
+
+.cases { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .cases { grid-template-columns: 1fr; } }
+
+.sujets { display: flex; flex-direction: column; gap: 10px; }
+.sujet { padding: 12px 14px; border: 1px solid var(--line); background: var(--surface-2); }
+/* Un sujet décoché s'efface sans disparaître : on doit voir qu'il existe et
+   qu'il est éteint, sinon on le croit absent du produit. */
+.sujet[data-off] { opacity: 0.6; }
+.sujet .inter { margin-top: 0; }
+.compte { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.compte b { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.compte span { font-size: 0.78rem; color: var(--ink-2); }
+.tag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  font-size: 0.72rem;
+}
+
+.plier {
+  margin-top: 8px;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.plier:hover { color: var(--ink); }
+
+.message { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
+.trous { margin: 0; font-size: 0.76rem; color: var(--ink-3); }
+
+/* Ce que le client lira, trous bouchés : personne ne relit un modèle. */
+.apercu { padding: 10px 12px; border-left: 3px solid var(--fill); background: var(--surface); }
+.apercu small { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-3); margin-bottom: 4px; }
+.apercu b { display: block; font-size: 0.86rem; margin-bottom: 4px; }
+.apercu p { margin: 0; font-size: 0.84rem; line-height: 1.55; }
+
+.effet {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.effet b { display: block; font-size: 1.05rem; }
+.effet > span { font-size: 0.78rem; }
+.alerte { margin: 8px 0 0; font-size: 0.8rem; color: var(--warn); }
+
+.file { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.file th, .file td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+.file th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-3); }
+.file td:last-child { text-align: right; }
+.vide { margin: 0; font-size: 0.84rem; color: var(--ink-2); }
+
+.row { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.ok { color: var(--good); font-size: 0.8rem; }
+.ko { color: var(--crit); font-size: 0.8rem; }

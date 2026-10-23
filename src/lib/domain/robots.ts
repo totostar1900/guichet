@@ -61,6 +61,11 @@ export const ROBOTS: Robot[] = [
      manqué se voit, et celui-ci tient une promesse écrite à l'article 8 de la
      convention, pas un simple réglage. */
   { cle: "purge-gestes", quoi: "Résumé puis purge du registre des gestes", heures: 24 * 62, cron: "0 3 2 * *" },
+  /* Quarante-huit heures comme les autres quotidiens. Son silence coûte peu
+     à l'unité — un rappel glissé d'un jour — mais il coûte en série : une
+     file muette une semaine, et cinq personnes ont perdu leurs cinq rappels
+     sans que personne ne l'ait vu. */
+  { cle: "relances", quoi: "Rappels des procédures laissées en route", heures: 48, cron: "20 9 * * *" },
 ];
 
 export interface TourVu {

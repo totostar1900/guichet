@@ -8,7 +8,7 @@ export const TECHNIQUE: DocPage = {
   visibility: "desk",
   audience: ["tech", "admin"],
   order: 7,
-  checkedOn: "2026-10-19",
+  checkedOn: "2026-10-23",
   owner: "Georges",
   chapters: [
     {
@@ -35,7 +35,7 @@ export const TECHNIQUE: DocPage = {
       id: "donnees",
       title: l("Les données et qui peut les voir", "The data and who can see it"),
       blocks: [
-        { type: "lead", text: l("Tout est dans une base Postgres chez Supabase, en Europe, chiffrée au repos. 110 migrations SQL versionnées dans le dépôt (supabase/migrations) décrivent chaque table ; on les applique à la main, dans l'ordre, avant le déploiement qui les utilise.", "Everything is in a Postgres database at Supabase, in Europe, encrypted at rest. 110 SQL migrations versioned in the repo (supabase/migrations) describe every table; they are applied by hand, in order, before the deployment that uses them.") },
+        { type: "lead", text: l("Tout est dans une base Postgres chez Supabase, en Europe, chiffrée au repos. 111 migrations SQL versionnées dans le dépôt (supabase/migrations) décrivent chaque table ; on les applique à la main, dans l'ordre, avant le déploiement qui les utilise.", "Everything is in a Postgres database at Supabase, in Europe, encrypted at rest. 111 SQL migrations versioned in the repo (supabase/migrations) describe every table; they are applied by hand, in order, before the deployment that uses them.") },
         {
           type: "table",
           head: [l("Table", "Table"), l("Contenu", "Content"), l("Qui lit / qui écrit", "Who reads / who writes")],
@@ -83,7 +83,7 @@ export const TECHNIQUE: DocPage = {
       id: "taches",
       title: l("Les tâches planifiées", "Scheduled tasks"),
       blocks: [
-        { type: "lead", text: l("Treize tâches, déclenchées par Vercel (vercel.json) avec le jeton CRON_SECRET ; chacune peut aussi être lancée à la main depuis Vercel › Cron Jobs › Run ou par une requête avec le jeton.", "Thirteen tasks, triggered by Vercel (vercel.json) with the CRON_SECRET token; each can also be run by hand from Vercel › Cron Jobs › Run or with a request carrying the token.") },
+        { type: "lead", text: l("Quatorze tâches, déclenchées par Vercel (vercel.json) avec le jeton CRON_SECRET ; chacune peut aussi être lancée à la main depuis Vercel › Cron Jobs › Run ou par une requête avec le jeton.", "Fourteen tasks, triggered by Vercel (vercel.json) with the CRON_SECRET token; each can also be run by hand from Vercel › Cron Jobs › Run or with a request carrying the token.") },
         {
           type: "table",
           head: [l("Adresse", "Address"), l("Quand (UTC)", "When (UTC)"), l("Fait", "Does")],
@@ -100,6 +100,7 @@ export const TECHNIQUE: DocPage = {
             [l("/api/cron/beac-courbe", "/api/cron/beac-courbe"), l("Le 3 du mois, 5 h", "3rd of the month, 5 am"), l("La courbe des taux publiée par la BEAC.", "The yield curve published by the BEAC.")],
             [l("/api/cron/note-indice", "/api/cron/note-indice"), l("Le 3 du mois, 6 h 40", "3rd of the month, 6:40 am"), l("La note mensuelle de l'indice, pour le desk.", "The monthly index note, for the desk.")],
             [l("/api/cron/note-trimestre", "/api/cron/note-trimestre"), l("Le 5 janvier, avril, juillet, octobre, 7 h", "5 January, April, July, October, 7 am"), l("La note trimestrielle, publique.", "The quarterly note, public.")],
+            [l("/api/cron/relances", "/api/cron/relances"), l("9 h 20", "9:20 am"), l("Rappelle les démarches laissées en route : convention, bulletin, mandat, pièces. Un message par client et par jour, cinq au plus, et le client peut les interrompre.", "Reminds clients of procedures left unfinished: agreement, order form, mandate, documents. One message per client per day, five at most, and the client can stop them.")],
             [l("/api/cron/purge-gestes", "/api/cron/purge-gestes"), l("Le 2 du mois, 3 h", "2nd of the month, 3 am"), l("Les gestes de plus de treize mois deviennent des compteurs : c'est l'article 8 de la convention qui le promet.", "Moves older than thirteen months become counters: article 8 of the agreement promises it.")],
           ],
         },

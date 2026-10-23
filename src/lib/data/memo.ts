@@ -75,6 +75,7 @@ const READS = new Set([
   "getAuctionResult",
   "listNews",
   "listCash",
+  "listRelances",
   /* Une LECTURE que le classement par le nom avait laissee dehors : elle ne
      touche pas la table du referentiel, elle rend les nominaux de reference
      d une seance. Non classee, elle VIDAIT le memo a chaque appel, puisque

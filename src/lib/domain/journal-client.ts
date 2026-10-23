@@ -92,6 +92,10 @@ export const GESTES: Record<string, Geste> = {
   "convention.acceptee": { genre: "canal", phrase: "Vous avez accepté la convention", auDesk: "a accepté la convention" },
   "profil.modifie": { genre: "canal", phrase: "Vous avez modifié vos coordonnées", auDesk: "a modifié ses coordonnées" },
   "preferences.posees": { genre: "canal", phrase: "Vous avez réglé vos préférences", auDesk: "a réglé ses préférences" },
+  /* ÉCARTER UN RAPPEL EST UN GESTE DE CANAL, pas d'ordre : le devoir ne bouge
+     pas, seuls les messages cessent. Le journal le dit ainsi, sans quoi un
+     lecteur du dossier croirait l'ordre abandonné. */
+  "rappel.ecarte": { genre: "canal", phrase: "Vous avez interrompu les rappels d'une démarche", auDesk: "a interrompu les rappels d'une démarche" },
 
   /* La sécurité du compte : ce que le client doit pouvoir relire en premier. */
   "securite.clef.enrolee": { genre: "securite", phrase: "Vous avez enrôlé une clef d'accès", auDesk: "a enrôlé une clef d'accès" },

@@ -7,6 +7,7 @@ import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Con
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
+import type { NouvelleRelance, Relance } from "@/lib/domain/relance";
 import type { TourVu } from "@/lib/domain/robots";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde } from "@/lib/domain/garde";
@@ -289,6 +290,13 @@ export interface Repository {
   annoncerPreavis(p: { standingId: string; userId: string; dueOn: string; amount: number }): Promise<Preavis>;
   /** Clore une occurrence : partie, arrêtée par le client, ou périmée. Et dire si le préavis est parti. */
   cloturerPreavis(id: string, p: { state?: Preavis["state"]; noticeSent?: boolean; noticeError?: string; stopReason?: string; intentId?: string; intents?: string[]; paidAmount?: number }): Promise<Preavis>;
+
+  /** Les rappels d'une procédure laissée en route : ceux d'un client, ou la file du robot. */
+  listRelances(q?: { userId?: string; state?: Relance["state"] }): Promise<Relance[]>;
+  /** Constater un devoir. Une seule ligne par devoir : la base le garantit, et un second constat ne remet pas le compteur à zéro. */
+  ouvrirRelance(r: NouvelleRelance): Promise<Relance>;
+  /** Noter un rappel parti, un écart du client, ou un devoir accompli. */
+  majRelance(id: string, p: { state?: Relance["state"]; envois?: number; dernierOn?: string; motif?: string }): Promise<Relance>;
 
   /** Ce que les clients disent de leurs échéances : ceux d'un client, ou la file du desk. */
   listTemoignages(q?: { userId?: string }): Promise<Temoignage[]>;

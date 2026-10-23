@@ -25,6 +25,7 @@ const FICHIERS = [
   "src/app/moi/standing-actions.ts",
   "src/app/moi/prelevements/actions.ts",
   "src/app/moi/profil/actions.ts",
+  "src/app/moi/rappels-actions.ts",
   "src/app/moi/reclamation/actions.ts",
   "src/app/moi/securite/actions.ts",
   "src/app/offres/[id]/actions.ts",
@@ -82,6 +83,7 @@ const DISPENSEES: Record<string, string> = {
   optionsDeClefAction: "demande le défi au navigateur ; rien n est signé",
   signerAvecLaClefAction: "passe par signerOrdreAction, qui note",
   signerAvecLeCodeDeLAppareilAction: "passe par signerOrdreAction, qui note",
+  ecarterRappelAction: "noté par « rappel.ecarte » dans la même fonction",
 };
 
 const lire = (f: string) => readFileSync(path.join(ROOT, f), "utf8");

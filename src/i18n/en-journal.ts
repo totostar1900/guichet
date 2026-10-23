@@ -195,6 +195,8 @@ export const EN_JOURNAL: Record<string, string> = {
   "a modifié ses coordonnées": "changed their contact details",
   "Vous avez réglé vos préférences": "You set your preferences",
   "a réglé ses préférences": "set their preferences",
+  "Vous avez interrompu les rappels d'une démarche": "You stopped the reminders for a procedure",
+  "a interrompu les rappels d'une démarche": "stopped the reminders for a procedure",
   "Vous avez enrôlé une clef d'accès": "You enrolled a passkey",
   "a enrôlé une clef d'accès": "enrolled a passkey",
   "Vous avez posé un code sur cet appareil": "You set a code on this device",

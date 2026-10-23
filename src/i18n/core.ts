@@ -24,6 +24,7 @@ import { EN_BANDEAU } from "./en-bandeau";
 import { EN_TRADER } from "./en-trader";
 import { EN_CONVENTION } from "./en-convention";
 import { EN_PROVISION } from "./en-provision";
+import { EN_RELANCES } from "./en-relances";
 import { EN_DOCUMENTS } from "./en-documents";
 import { EN_DOSSIER } from "./en-dossier";
 import { EN_VITRINE } from "./en-vitrine";
@@ -56,6 +57,7 @@ const EN: Record<string, string> = {
   ...EN_TRADER,
   ...EN_CONVENTION,
   ...EN_PROVISION,
+  ...EN_RELANCES,
   ...EN_DOCUMENTS,
   ...EN_DOSSIER,
   ...EN_VITRINE,

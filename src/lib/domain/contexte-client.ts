@@ -30,13 +30,15 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
   const r = repo();
   const aujourdHui = localIso(new Date());
 
-  const [intents, offers, cash, standing, feed, fiche] = await Promise.all([
+  const [intents, offers, cash, standing, feed, fiche, mandats, rappels] = await Promise.all([
     r.listIntents(),
     r.listOffers(),
     r.listCash(userId).catch(() => []),
     r.listStandingOrders(userId).catch(() => []),
     loadBeacAuctions().catch(() => ({ auctions: [] as BeacAuction[] })),
     r.getClientFileByUser(userId).catch(() => undefined),
+    r.listMandats(userId).catch(() => []),
+    r.listRelances({ userId, state: "en_cours" }).catch(() => []),
   ]);
 
   const mine = intents.filter((i) => i.clientId === userId);
@@ -50,6 +52,10 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
   const action = positions.find((p) => p.offer.kind === "ACTIONS");
   const reinv = standing.find((x) => x.state === "active" && x.source === "encaissements");
   const epargne = standing.find((x) => x.state === "active" && x.source === "virement");
+  /* Créé, pas révoqué, jamais signé : il ne prélève rien et ne se voyait que
+     sur sa propre page. Le plus ancien d'abord, parce que c'est celui qui
+     traîne. */
+  const mandatNu = mandats.filter((m) => m.state === "actif" && !m.signedAt).sort((a, b2) => a.createdAt.localeCompare(b2.createdAt))[0];
   const devant = feed.auctions
     .filter((a) => a.kind === "annonce" && a.on && a.on >= aujourdHui)
     .sort((a, b2) => a.on!.localeCompare(b2.on!))[0];
@@ -80,9 +86,22 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
     attendu: b.nbAttendus ? { montant: b.attendu, retardJours: b.retardMax } : undefined,
     reinvestissement: reinv ? { destination: offers.find((o) => o.id === reinv.offerId)?.title ?? reinv.offerId, plancher: reinv.minAmount } : undefined,
     epargne: epargne ? { montant: epargne.amount, jour: epargne.dayOfMonth, destination: offers.find((o) => o.id === epargne.offerId)?.title ?? epargne.offerId } : undefined,
+    /* Le mandat nomme CE QU'IL PAIERA, pas le compte qu'il débite : « votre
+       mandat pour FCP Obligations CEMAC » se reconnaît, « votre mandat
+       MND-2610-… » demande d'aller vérifier. Un mandat de provision n'a pas
+       d'instruction derrière lui, et nomme donc ce qu'il fait. */
+    mandatASigner: mandatNu
+      ? {
+          id: mandatNu.id,
+          destination:
+            (mandatNu.standingId ? offers.find((o) => o.id === standing.find((x) => x.id === mandatNu.standingId)?.offerId)?.title : undefined) ??
+            (mandatNu.objet === "provision" ? t("votre provision") : mandatNu.ref),
+        }
+      : undefined,
     prochaineSeance: devant
       ? { pays: devant.country ?? t("la zone"), quoi: [devant.instrument, devant.tenor].filter(Boolean).join(" ") || t("une séance"), le: fmtDate(devant.on!) }
       : undefined,
+    rappels,
     moisDHistorique: positions.length ? 12 : 0,
     /* Le champ existait, documenté, et personne ne le remplissait ici : la
        console et la bande supposaient donc le compte ouvert, y compris pour un
