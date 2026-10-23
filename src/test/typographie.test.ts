@@ -122,7 +122,7 @@ const horsEchelle = (): string[] => {
  * taille neuve a été inventée, et c'est précisément le moment où la question
  * « laquelle des sept ? » doit se poser.
  */
-const PLAFOND = 1122;
+const PLAFOND = 1091;
 
 describe("l'échelle typographique", () => {
   it("ne laisse pas les tailles hors échelle se multiplier", () => {

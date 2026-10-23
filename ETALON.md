@@ -274,3 +274,29 @@ que de le faire en douce.
 *Quand A et B sont tranchés, le reste s'applique page par page sans nouvelle
 décision — et les points 2, 7 et 12 de `CHANTIERS.md` sont réglés par
 construction.*
+
+---
+
+## C — la fonte du titre : relevée le 24 octobre 2026, **non tranchée**
+
+Le relevé des treize pages a mesuré la TAILLE d'un titre et rien d'autre. La
+FONTE n'a jamais été posée, et deux camps cohabitent :
+
+| camp | où | ce qui s'écrit |
+|---|---|---|
+| sans empattements | les onze fichiers passés à `EnTete`, soit quatorze pages | la classe `display`, qui hérite de la police du corps |
+| à empattements | six `h1` | `font-family: var(--font-titre)` écrit dans leur feuille |
+
+Les six se répartissent en deux : quatre sont la **vitrine publique**
+(`Accueil`, `a-propos`, `placements`, `ApercuPartage`), où une identité propre
+se défend ; deux sont **dans l'application** — `Console`, la page « Bonjour »,
+et `Dossier`, l'ouverture de compte.
+
+**La conversion de Trade a fait basculer un titre d'un camp à l'autre sans
+décision**, parce que `EnTete` ne pose pas de fonte. C'est signalé ici plutôt
+que fait en douce. La question appartient au point 2 de `CHANTIERS.md` :
+
+1. l'étalon reste sans empattements, et les trois pages clientes qui restent
+   y passent ;
+2. l'étalon prend la fonte à empattements, et douze pages changent ;
+3. la fonte dépend du genre de page — à définir, donc à écrire quelque part.

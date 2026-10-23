@@ -1,528 +1,23 @@
-/* Mes services : une ligne réglée par service, l'état à gauche, le geste à
-   droite. Jamais une carte : neuf cartes se valent toutes, neuf lignes se
-   parcourent. */
+/* ── Trade ───────────────────────────────────────────────────────────────────
+   NETTOYÉE LE 24 OCTOBRE 2026. Elle portait 617 lignes et 37 classes, dont 22
+   que plus aucun fichier ne nommait : les neuf cartes de services, la carte du
+   conseiller, le rayon « Comprendre », le tableau « quand », les trois formes
+   de bouton — tout ce que la page a perdu en route, et dont la feuille gardait
+   les mesures.
+
+   ELLE EN GARDAIT AUSSI DEUX JEUX VIVANTS. « .rayons », « .fiche », « .cta »,
+   « .etapes » et « .porte » étaient écrits DEUX FOIS, à quatre cents lignes
+   d'écart, et c'est la seconde écriture qui l'emportait en silence. Pour
+   « .rayons », cela coûtait l'écart de l'étalon : 32 déclaré en haut avec sa
+   justification, 20 appliqué en bas. Les deux autres piles de plis de la
+   maison — « Réinvestir » et « Épargne programmée » — sont à 32. */
+
 .page {
   display: flex;
   flex-direction: column;
   gap: var(--sections-gap);
   padding-bottom: var(--s-10);
 }
-.tete {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--s-9);
-  align-items: end;
-  padding-top: var(--s-9);
-}
-.tete h1 {
-  grid-column: span 6;
-  margin: 0;
-  font-family: var(--font-titre);
-  /* LA TAILLE VIENT DU JETON, et elle ne varie plus avec la largeur.
-     Ce « clamp » donnait 25,6 px au telephone et 37,8 px au grand ecran,
-     pendant que cinq pages voisines titraient a 30 partout : le lecteur
-     changeait de page et le titre changeait de taille. Voir ETALON.md. */
-  font-size: var(--t-8);
-  line-height: 1.08;
-  font-weight: 400;
-  letter-spacing: -0.015em;
-}
-.tete p {
-  grid-column: 8 / span 5;
-  margin: 0;
-  font-size: 0.85rem;
-  line-height: 1.7;
-  color: var(--ink-2);
-}
-
-/* Le compte des trois états : un service qu'on ne sait pas offert n'existe pas. */
-
-.liste {
-  border-top: 1px solid var(--navy);
-}
-/* UNE GRILLE, ET NON UNE RANGEE SOUPLE.
-   En flex, chaque service posait ses colonnes ou il pouvait : le nom d'un
-   service long poussait sa phrase, celle du voisin commençait ailleurs, et
-   l'oeil ne retrouvait aucune verticale. Trois colonnes nommees, les mêmes
-   pour tous, et les neuf services s'alignent. */
-.ligne {
-  display: grid;
-  grid-template-columns: minmax(170px, 1fr) minmax(0, 2.1fr) auto;
-  align-items: start;
-  gap: var(--s-6) var(--s-9);
-  padding: var(--s-8) 0;
-  border-bottom: 1px solid var(--line);
-}
-/* La seule marque qui apprend quelque chose : ce qui tourne deja. */
-.enPlace {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-3);
-  font-style: normal;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--good);
-  margin-bottom: var(--s-2);
-}
-.enPlace i {
-  width: 5px;
-  height: 5px;
-  background: var(--good);
-}
-/* Les etapes : a cote de la phrase sur grand ecran, derriere un bouton sur
-   telephone, ou neuf services fois quatre etapes faisaient un mur. */
-.pas {
-  display: contents;
-}
-.pasBtn {
-  display: none;
-}
-.enPlace i {
-  background: var(--good);
-}
-.enPlace span {
-  color: var(--good);
-}
-.quoi {
-  width: 232px;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-2);
-  min-width: 0;
-}
-.quoi b {
-  font-size: 0.92rem;
-  letter-spacing: -0.005em;
-}
-.quoi small {
-  font-size: 0.74rem;
-  color: var(--ink-3);
-}
-.dit {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-  padding-top: 1px;
-  min-width: 0;
-}
-.dit p {
-  margin: 0;
-  font-size: 0.83rem;
-  line-height: 1.6;
-}
-.dit small {
-  font-size: 0.77rem;
-  line-height: 1.55;
-  color: var(--ink-3);
-}
-/* Les étapes : la seule liste numérotée de la maison, parce que c'est la seule
-   vraie séquence. Ailleurs, un numéro promet un ordre qui n'existe pas. */
-.etapes {
-  margin: var(--s-3) 0 0;
-  padding: 0 0 0 var(--s-8);
-  display: grid;
-  gap: var(--s-2);
-  font-size: 0.78rem;
-  line-height: 1.55;
-  color: var(--ink-2);
-}
-.etapes li::marker {
-  color: var(--gold-ink);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-}
-
-.geste {
-  flex: none;
-  align-self: center;
-  display: grid;
-  gap: var(--s-1);
-  text-align: center;
-  font-size: 0.72rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-decoration: none;
-  padding: var(--s-5) var(--s-8);
-  white-space: nowrap;
-}
-/* La destination, nommée sous la commande : « Allons-y » seul ne dit pas où. */
-.gPrincipal {
-  background: var(--navy);
-  color: #fff;
-  border: 1px solid var(--navy);
-}
-.gSecond {
-  background: var(--surface);
-  color: var(--ink);
-  border: 1px solid var(--line-2);
-}
-.gDiscret {
-  background: var(--surface-2);
-  color: var(--ink-3);
-  border: 1px solid var(--line);
-}
-
-/* Là où le besoin naît : une page de services ne suffit jamais. */
-.contexte {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--s-9);
-}
-.contexte > div:first-child {
-  grid-column: span 4;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-5);
-}
-.contexte h2 {
-  margin: 0;
-  font-family: var(--font-titre);
-  font-size: 1.5rem;
-  font-weight: 400;
-  line-height: 1.15;
-}
-.contexte > div:first-child p {
-  margin: 0;
-  font-size: 0.82rem;
-  line-height: 1.7;
-  color: var(--ink-2);
-}
-.quand {
-  grid-column: 6 / span 7;
-  border-top: 1px solid var(--line);
-  min-width: 0;
-}
-.quandLigne {
-  display: flex;
-  align-items: center;
-  gap: var(--s-8);
-  padding: var(--s-6) 0;
-  border-bottom: 1px solid var(--line);
-  font-size: 0.82rem;
-}
-.quandLigne > span:first-child {
-  width: 210px;
-  flex: none;
-  color: var(--ink-3);
-}
-.quandLigne > span:nth-child(2) {
-  flex-grow: 1;
-  min-width: 0;
-}
-.quandLigne em {
-  flex: none;
-  font-style: normal;
-  font-size: 0.7rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  padding: var(--s-4) var(--s-7);
-  border: 1px solid var(--line-2);
-  color: var(--fill);
-}
-
-@media (max-width: 1040px) {
-  .ligne {
-    flex-wrap: wrap;
-    gap: var(--s-6) var(--s-7);
-  }
-  .quoi,
-  .dit {
-    width: auto;
-    flex: 1 1 260px;
-  }
-  .geste {
-    align-self: flex-start;
-  }
-}
-@media (max-width: 860px) {
-  .tete,
-  .contexte {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: var(--s-9);
-  }
-  .tete h1,
-  .tete p,
-  .contexte > div,
-  .quand {
-    grid-column: 1 / -1;
-  }
-  .quandLigne {
-    flex-wrap: wrap;
-    gap: var(--s-4);
-  }
-  .quandLigne > span:first-child {
-    width: auto;
-    flex: 1 1 100%;
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@media (max-width: 640px) {
-  
-}
-
-@media (max-width: 760px) {
-  .ligne {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--s-5);
-  }
-  .geste {
-    justify-self: start;
-  }
-  .pas {
-    display: block;
-    margin-top: var(--s-5);
-  }
-  .pasBtn {
-    display: inline-flex;
-    align-items: center;
-    font: inherit;
-    font-size: 0.72rem;
-    font-weight: 650;
-    letter-spacing: 0.04em;
-    color: var(--ink-2);
-    background: transparent;
-    border: 1px solid var(--line-2);
-    border-radius: var(--radius);
-    padding: var(--s-3) var(--s-6);
-    cursor: pointer;
-  }
-  .pas[data-ouvert="0"] .etapes {
-    display: none;
-  }
-  .pas[data-ouvert="1"] .etapes {
-    margin-top: var(--s-5);
-  }
-}
-
-/**
- * LA BANDE DES SERVICES : une surface, pas une pile.
- *
- * C'étaient neuf cartes de 228 px, toutes de la même forme et du même poids :
- * 2 009 px de mur sur un téléphone, mesurés le 5 octobre 2026, pour une page
- * qui doit faire agir. Une seule surface les porte, à peine plus claire que
- * la page, avec un filet entre les lignes : on lit une liste.
- */
-.bande {
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-}
-.svc {
-  display: flex;
-  align-items: center;
-  /* Deux fois l'écart d'origine entre le dessin et le nom : à dix pixels,
-     l'icône faisait partie du mot. */
-  gap: var(--s-8);
-  width: 100%;
-  padding: var(--s-5) var(--s-6);
-  border: 0;
-  border-top: 1px solid var(--line);
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  color: var(--ink);
-}
-.bande > div:first-child .svc {
-  border-top: 0;
-}
-.svc:hover {
-  background: var(--surface);
-}
-/* Le cadre de l'icône porte l'état : le trait du dessin, lui, ne change pas,
-   sinon neuf dessins dorés feraient neuf alertes. */
-.ico {
-  width: 50px;
-  height: 50px;
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--line-2);
-  background: var(--surface);
-}
-.ico svg {
-  width: 26px;
-  height: 26px;
-  fill: none;
-  stroke: var(--ink-2);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.svcEnPlace .ico {
-  border-color: var(--good);
-}
-.svcEnPlace .ico svg {
-  stroke: var(--good);
-}
-.svc .quoi {
-  flex: 1;
-  min-width: 0;
-}
-.svc .quoi b {
-  display: block;
-  /* 1,25 rem venait du « +50 % de contenu » et faisait du nom d un service le
-     plus gros texte de cette famille, un tiers au-dessus d un nom de tuile.
-     Moins 15 % le 5 octobre 2026. */
-  font-size: 1.06rem;
-  font-weight: 600;
-}
-.svc .quoi small {
-  display: block;
-  font-size: 1rem;
-  color: var(--ink-3);
-  line-height: 1.35;
-  margin-top: var(--s-1);
-}
-.chev {
-  flex: none;
-  color: var(--ink-3);
-  font-size: 1.1rem;
-  line-height: 1;
-}
-.bloc {
-  background: var(--surface);
-}
-/* La fiche s'ouvre DANS la bande : la liste ne se rompt pas. */
-.fiche {
-  padding: 0 var(--s-6) var(--s-6) calc(50px + var(--s-8) + var(--s-6));
-}
-.fiche p {
-  margin: 0 0 var(--s-5);
-  font-size: 0.88rem;
-  color: var(--ink-2);
-  line-height: 1.55;
-  max-width: 68ch;
-}
-.fiche .etapes {
-  margin: 0 0 var(--s-6);
-  padding-left: var(--s-7);
-  font-size: 0.82rem;
-  color: var(--ink-3);
-  line-height: 1.6;
-}
-.cta {
-  display: inline-block;
-  padding: var(--s-4) var(--s-7);
-  background: var(--gold);
-  color: var(--navy);
-  font-weight: 700;
-  font-size: 0.86rem;
-  text-decoration: none;
-}
-/**
- * DEUX COLONNES QUAND LA LARGEUR EXISTE. Les neuf cartes faisaient 1 225 px
- * de large, empilées : la largeur ne servait à rien. Le conseiller tient à
- * côté de la bande, et la page cesse d'être une seule colonne de 2 000 px.
- */
-/* Deux fois l'écart d'origine sous la bande : le desk se lisait comme la
-   dixième ligne de la liste. */
-.deuxColonnes {
-  display: grid;
-  gap: var(--s-10);
-}
-@media (min-width: 900px) {
-  .deuxColonnes {
-    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
-    align-items: start;
-  }
-}
-/* Le pli du bas : 644 px qui se lisent une fois. */
-.contexte > summary {
-  cursor: pointer;
-  list-style: none;
-}
-.contexte > summary::-webkit-details-marker {
-  display: none;
-}
-.contexte > summary h2::after {
-  content: " +";
-  color: var(--ink-3);
-}
-.contexte[open] > summary h2::after {
-  content: " –";
-}
-/* Ce qu'il faut avoir d'abord : une phrase de condition, pas une alerte. */
-.porte {
-  color: var(--gold-ink);
-}
-
-/* LES TROIS RAYONS. Une bande unique de dix lignes ne dit pas par où
-   commencer ; trois rayons nommés par l'intention répondent avant qu'on ait
-   lu une ligne. Le filet sous le nom sépare sans encadrer : ce sont des
-   rayons, pas des boîtes. */
-.rayons {
-  display: flex;
-  flex-direction: column;
-  /* L'ÉCART DE L'ÉTALON entre deux bandes : 32. Mesuré le 24 octobre 2026 sur
-     « Mes documents » — à quarante, des bandes de 81 px flottent et une de
-     moins tient au-dessus de la ligne de flottaison ; à vingt, quatre titres
-     nus se lisaient comme un seul texte (c'est ce que la page de réinvestissement
-     avait relevé). Voir ETALON.md. */
-  gap: var(--s-10);
-}
-.rayonTete {
-  display: flex;
-  align-items: baseline;
-  gap: var(--s-5);
-  flex-wrap: wrap;
-  margin-bottom: var(--s-4);
-  padding-bottom: var(--s-3);
-  border-bottom: 1px solid var(--line);
-}
-.rayonTete h3 {
-  margin: 0;
-  font-size: var(--t-5);
-  letter-spacing: -0.01em;
-}
-.rayonTete span {
-  color: var(--ink-3);
-  font-size: var(--t-2);
-}
-
-/* Ce qui se lit et ne se prend pas : à côté de la bande, jamais dedans. */
-.comprendre {
-  margin-top: var(--s-8);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--gold);
-  border-radius: 8px;
-  padding: var(--s-6) var(--s-7);
-}
-.comprendre h3 {
-  margin: 0 0 var(--s-3);
-  font-size: var(--t-4);
-}
-.comprendre p {
-  margin: 0 0 var(--s-5);
-  color: var(--ink-2);
-  font-size: var(--t-3);
-  max-width: 62ch;
-  line-height: 1.5;
-}
-.comprendreLiens {
-  display: flex;
-  gap: var(--s-7);
-  flex-wrap: wrap;
-  font-size: var(--t-3);
-}
-
 
 /* ── Un seul contenu, deux arrangements ──────────────────────────────────────
    Le choix se fait ici et non en JavaScript : mesurer la largeur au montage
@@ -544,12 +39,17 @@
   }
 }
 
-/* Les rayons, en plis de la maison : l'espace entre eux suit le réglage des
-   chapitres, comme « Mes documents » et « Réinvestir ». */
+/* LES TROIS RAYONS, en plis de la maison : une bande pleine pour un rayon, un
+   filet pour un groupe dedans, et le pli garde son état sur l'appareil. */
 .rayons {
   display: flex;
   flex-direction: column;
-  gap: var(--sections-gap);
+  /* L'ÉCART DE L'ÉTALON entre deux bandes : 32. Mesuré le 24 octobre 2026 sur
+     « Mes documents » — à quarante, des bandes de 81 px flottent et une de
+     moins tient au-dessus de la ligne de flottaison ; à vingt, quatre titres
+     nus se lisaient comme un seul texte (c'est ce que la page de réinvestissement
+     avait relevé). Voir ETALON.md. */
+  gap: var(--s-10);
 }
 .dedans {
   display: flex;
@@ -587,10 +87,27 @@
 .fiche > p + p {
   color: var(--ink-2);
 }
+/* Ce qu'il faut avoir d'abord : une phrase de condition, pas une alerte. */
 .porte {
   color: var(--ink-3) !important;
   font-size: var(--t-1) !important;
 }
+/* Le cadre de l'icône, en tête de fiche : le trait du dessin ne change pas
+   avec l'état, sinon neuf dessins dorés feraient neuf alertes. */
+.ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: var(--ink-2);
+}
+.ico svg {
+  width: 20px;
+  height: 20px;
+}
+/* Les étapes : la seule liste numérotée de la maison, parce que c'est la seule
+   vraie séquence. Ailleurs, un numéro promet un ordre qui n'existe pas. */
 .etapes {
   margin: 0;
   padding-left: 1.1rem;

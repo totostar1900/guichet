@@ -22,13 +22,24 @@ import styles from "./Rubriques.module.css";
  *
  * UNE CIBLE PLEINE LARGEUR ET HAUTE : sur un téléphone un doigt vise mal, et
  * la maison a déjà payé la leçon des cibles de huit pixels.
+ *
+ * DEUX MANIÈRES D'EN SORTIR, ET UNE SEULE FORME. Une rubrique mène ailleurs
+ * (« href ») ou change l'écran sur place (« aller ») : c'est le cas du
+ * parcours de Trade, dont les trois niveaux glissent dans une même page.
+ * L'union interdit les deux à la fois. Sans cette seconde manière, le
+ * parcours gardait sa propre liste — et c'est précisément ce qui était
+ * arrivé : la liste d'où ce composant est tiré est restée en filets quand
+ * tous les sommaires sont passés en bandes.
  */
-export function Rubriques({ items }: { items: { href: string; nom: string; quoi?: string; etiquette?: string }[] }) {
+type Rubrique = { nom: string; quoi?: string; etiquette?: string; marque?: React.ReactNode } & ({ href: string; aller?: never } | { href?: never; aller: () => void });
+
+export function Rubriques({ items }: { items: Rubrique[] }) {
   return (
     <ul className={styles.liste}>
-      {items.map((x) => (
-        <li key={x.href}>
-          <LienAvant href={x.href} className={styles.ligne}>
+      {items.map((x) => {
+        const dedans = (
+          <>
+            {x.marque && <span className={styles.marque}>{x.marque}</span>}
             <span className={styles.quoi}>
               <b>{x.nom}</b>
               {x.quoi && <small>{x.quoi}</small>}
@@ -37,9 +48,22 @@ export function Rubriques({ items }: { items: { href: string; nom: string; quoi?
             <svg className={styles.chev} viewBox="0 0 24 24" aria-hidden="true">
               <path d="M9 6l6 6-6 6" />
             </svg>
-          </LienAvant>
-        </li>
-      ))}
+          </>
+        );
+        return (
+          <li key={x.href ?? x.nom}>
+            {x.href ? (
+              <LienAvant href={x.href} className={styles.ligne}>
+                {dedans}
+              </LienAvant>
+            ) : (
+              <button type="button" className={styles.ligne} onClick={x.aller}>
+                {dedans}
+              </button>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

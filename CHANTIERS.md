@@ -55,9 +55,41 @@ finissent par diverger.
 `/portefeuille` une rubrique sur cinq passe sous la ligne de flottaison
 (4/5 → 3/5). Les trois autres sommaires n'en perdent aucune.*
 
-**12. La page Trade** montre trois points (trois pages à suivre) : à retirer,
-et à revoir comme le reste — en-tête, alignement, bande ou pas de bande sur
-les sections.
+**12. ~~La page Trade.~~ FAIT le 24 octobre 2026.** Les trois points comptaient
+la profondeur pendant que le chemin, à dix pixels de là, la NOMMAIT :
+« Trade › Placer ». Deux dispositifs pour un fait, et le plus pauvre était le
+plus voyant — une rangée de points à droite d'une barre se lit partout
+ailleurs comme un nombre de pages à suivre, et c'est ainsi qu'elle a été lue.
+
+Le reste tenait au même défaut : la page s'écrivait à elle seule ce que la
+maison écrivait déjà.
+
+- **En-tête** : celui de l'étalon. La phrase partait en colonne 8 d'une
+  grille de douze, soit 820 px à droite du titre qu'elle explique, sur une
+  page dont tout le reste tient en une colonne. Pas de sur-titre : racine.
+- **Chemin** : il ne paraît plus au premier écran, où son unique cran,
+  « Trade », était le titre de la page écrit une seconde fois.
+- **Bandes** : oui. Les deux listes du parcours sont les sommaires de la
+  maison (`Rubriques`) — lequel est né de cette liste-ci, et était resté en
+  filets quand les six autres sièges sont passés en bandes le matin même.
+  « En place » s'écrit maintenant, au lieu d'un filet dans la marge.
+- **Ménage** : la feuille portait 617 lignes et 37 classes, dont **22 que
+  plus aucun fichier ne nommait** et **cinq écrites deux fois**. Pour
+  `.rayons`, le doublon coûtait l'écart de l'étalon : 32 déclaré en haut avec
+  sa justification, 20 appliqué en bas. 130 lignes, 12 classes, 0 morte.
+  `Etapes.tsx` était mort aussi.
+
+→ *Deux relevés à verser aux chantiers ouverts, et laissés tels quels :*
+
+*(a) **Le titre perd sa fonte à empattements** en passant à l'étalon, qui n'a
+jamais tranché la question. Six h1 la portent encore, dont `Accueil` et
+`Console` côté client. C'est l'item 2, pas l'item 12 — à décider.*
+
+*(b) **441 px sur 844 ne bougent jamais** : au-dessus du ruban, le titre, la
+phrase et « Ce qui vous attend » se repeignent à l'identique aux trois
+niveaux. C'est 52 % de l'écran. Le remède n'est pas un réglage mais le
+redécoupage de l'item 9 — trois pages au lieu d'un ruban —, et il demande une
+maquette.*
 
 ---
 
@@ -132,6 +164,30 @@ information utile :
 - un aperçu des informations importantes, avec un lien vers le détail.
 
 **Maquette demandée.**
+
+### 13 bis — la barre du haut et le découpage du dock
+
+*Dicté le 24 octobre 2026, à ne toucher qu'après discussion.*
+
+- **Retirer la marque « Purpose Capital » du haut.** Elle occupe la barre sur
+  toutes les pages pour n'y rien dire : la place ainsi libérée devient
+  dynamique, et sert à ce que la page en cours a besoin de montrer.
+- **La pastille de notification** devient une **cloche portant un nombre**.
+- **Sur l'accueil**, la barre porte l'utilisateur, la recherche et les
+  notifications.
+- **Ailleurs**, elle porte le nom de la page, un retour, une croix quand il en
+  faut une — ou un mélange de ces éléments selon le cas. *À étendre : décider
+  ce que chaque page y met, et pourquoi.*
+- **Fondre Trade et Instruments** en une seule page Trade, plus large. Le
+  créneau ainsi libéré dans le dock accueille un bouton **Accueil**.
+
+→ *Lien avec l'arbitrage A de `ETALON.md` : la barre « cède » aujourd'hui le
+nom de la page au `h1`. Si la barre doit porter le nom, un retour et une
+croix, cet arbitrage est à rouvrir — c'est la même barre.*
+
+→ *Lien avec le point 1 : la règle d'appartenance du dock est écrite par
+section (`nav-section.ts`). Fondre Trade et Instruments y touche, et une
+épreuve vérifie déjà que chaque adresse du dock allume un onglet, et un seul.*
 
 ---
 

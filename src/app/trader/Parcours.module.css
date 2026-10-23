@@ -80,29 +80,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* TROIS POINTS POUR LA PROFONDEUR : « je suis au troisième de trois » se lit
-   sans compter. Les crans franchis restent marqués, le cran courant est
-   plein. */
-.points {
-  flex: none;
-  display: flex;
-  gap: var(--s-3);
-}
-.points i {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--line-2);
-  transition: background 180ms ease, transform 180ms ease;
-}
-.points i[data-passe] {
-  background: var(--ink-3);
-}
-.points i[data-ici] {
-  background: var(--fill);
-  transform: scale(1.35);
-}
-
 /* LE HUBLOT ne laisse voir qu'un panneau, et il ne défile pas de côté : le
    glissement est commandé, jamais traîné au doigt — un ruban qu'on peut
    faire glisser à mi-chemin laisse le lecteur entre deux écrans. */
@@ -139,75 +116,7 @@
   color: var(--ink-2);
 }
 
-.liste {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border-top: 1px solid var(--line);
-}
-.liste li {
-  border-bottom: 1px solid var(--line);
-}
-/* UNE LIGNE EST UNE CIBLE PLEINE LARGEUR, et haute : sur un téléphone, un
-   doigt vise mal, et une cible de huit pixels se rate. */
-.ligne {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: var(--s-6);
-  padding: var(--s-7) var(--s-3);
-  border: 0;
-  background: none;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.ligne:active {
-  background: var(--surface-2);
-}
-.ligneEnPlace {
-  box-shadow: inset 2px 0 0 var(--fill);
-}
-.ico {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  color: var(--ink-2);
-}
-.ico svg {
-  width: 20px;
-  height: 20px;
-}
-.quoi {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-2);
-}
-.quoi b {
-  font-weight: 600;
-}
-.quoi small {
-  font-size: var(--t-1);
-  line-height: 1.5;
-  color: var(--ink-3);
-}
-.enPlace {
-  flex: none;
-  font-size: var(--t-1);
-  color: var(--gold-ink);
-}
-.chev {
-  flex: none;
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: var(--ink-3);
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
+/* LES DEUX LISTES NE SONT PLUS ÉCRITES ICI. Elles étaient la copie, restée en
+   filets, du sommaire que « Rubriques » rend en bandes — et « Rubriques » est
+   né de cette liste-ci. Soixante lignes de mesures en double, qui avaient
+   déjà divergé : c'est le composant qui les porte maintenant. */

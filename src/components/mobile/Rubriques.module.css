@@ -21,6 +21,9 @@
   flex-direction: column;
   gap: var(--s-10);
 }
+/* La bande est la même qu'elle mène ailleurs ou qu'elle change l'écran sur
+   place : les quatre dernières déclarations ne servent qu'au bouton, dont le
+   navigateur remet sinon la police, la graisse et le centrage à son goût. */
 .ligne {
   display: flex;
   align-items: center;
@@ -31,12 +34,31 @@
   background: var(--surface-2);
   color: inherit;
   text-decoration: none;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 .ligne:hover {
   border-color: var(--line-2);
 }
 .ligne:active {
   background: var(--surface);
+}
+/* Le dessin, quand la rubrique en porte un : il précède le nom, de la taille
+   et de l'encre du texte secondaire — un dessin plus gros que le mot ferait
+   de la liste une grille d'icônes, ce qu'elle n'est pas. */
+.marque {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: var(--ink-2);
+}
+.marque svg {
+  width: 20px;
+  height: 20px;
 }
 .quoi {
   flex: 1 1 auto;

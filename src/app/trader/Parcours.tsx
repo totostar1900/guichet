@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useT } from "@/i18n/client";
 import { ICONE_SERVICE } from "@/components/nav/IconesServices";
+import { Rubriques } from "@/components/mobile/Rubriques";
 import { RAYONS, type ServiceVu } from "@/lib/domain/services";
 import { Fiche } from "./Fiche";
 import styles from "./Parcours.module.css";
@@ -31,8 +32,17 @@ import styles from "./Parcours.module.css";
  * montre, et la direction du mouvement dit s'il avance ou s'il revient.
  *
  * LE CHEMIN EST ÉCRIT EN HAUT, en entier, et chaque cran y ramène d'un
- * doigt. Trois points disent où l'on est dans la profondeur : « je suis au
- * troisième de trois » se lit sans compter.
+ * doigt. Il ne paraît qu'à partir du deuxième écran : au premier, il ne
+ * portait qu'un seul cran, « Trade », c'est-à-dire le titre de la page écrit
+ * une seconde fois cinq cents pixels plus bas et en plus petit.
+ *
+ * LES TROIS POINTS N'Y SONT PLUS (24 octobre 2026). Ils comptaient la
+ * profondeur — « je suis au deuxième de trois » — pendant que le chemin, à
+ * dix pixels de là, la NOMMAIT : « Trade › Placer ». Deux dispositifs pour un
+ * seul fait, et le plus pauvre des deux était aussi le plus voyant : une
+ * rangée de points à droite d'une barre se lit partout ailleurs comme un
+ * nombre de pages à suivre, et c'est ainsi qu'elle a été lue. Elle était
+ * « aria-hidden » : rien ne se perd pour qui écoute la page.
  *
  * L'ADRESSE SUIT, parce que le bouton « retour » du téléphone est le geste
  * le plus employé de tous. « ?r=placer&s=epargne » : le navigateur empile
@@ -74,89 +84,66 @@ export function Parcours({ services, etapes, raisons }: { services: ServiceVu[];
 
   return (
     <div className={styles.parcours}>
-      {/* LE CHEMIN, ET TROIS POINTS POUR LA PROFONDEUR. Le fil est fait de
-          boutons : chaque cran ramène au sien, et le dernier ne clique pas,
-          puisqu'on y est. */}
-      <nav className={styles.fil} aria-label={t("Où vous êtes")}>
-        {niveau > 0 && (
+      {/* LE CHEMIN. Il est fait de boutons : chaque cran ramène au sien, et le
+          dernier ne clique pas, puisqu'on y est. Au premier écran il n'y a
+          qu'un cran, et ce cran est le titre de la page : on ne l'écrit pas
+          deux fois. */}
+      {niveau > 0 && (
+        <nav className={styles.fil} aria-label={t("Où vous êtes")}>
           <button type="button" className={styles.retour} onClick={() => (niveau === 2 ? aller(rayon?.cle) : aller())} aria-label={t("Revenir")}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
-        )}
-        <span className={styles.chemin}>
-          {chemin.map((nom, i) =>
-            i === chemin.length - 1 ? (
-              <b key={nom} aria-current="page">
-                {nom}
-              </b>
-            ) : (
-              <button key={nom} type="button" onClick={() => (i === 0 ? aller() : aller(rayon?.cle))}>
-                {nom}
-                <i aria-hidden="true">›</i>
-              </button>
-            ),
-          )}
-        </span>
-        <span className={styles.points} aria-hidden="true">
-          {[0, 1, 2].map((n) => (
-            <i key={n} data-ici={n === niveau ? "oui" : undefined} data-passe={n < niveau ? "oui" : undefined} />
-          ))}
-        </span>
-      </nav>
+          <span className={styles.chemin}>
+            {chemin.map((nom, i) =>
+              i === chemin.length - 1 ? (
+                <b key={nom} aria-current="page">
+                  {nom}
+                </b>
+              ) : (
+                <button key={nom} type="button" onClick={() => (i === 0 ? aller() : aller(rayon?.cle))}>
+                  {nom}
+                  <i aria-hidden="true">›</i>
+                </button>
+              ),
+            )}
+          </span>
+        </nav>
+      )}
 
       {/* LE RUBAN. Trois panneaux côte à côte, et la seule chose qui bouge
           est le décalage : le navigateur n'a qu'une transformation à animer,
           ce qui tient les soixante images par seconde sur un téléphone. */}
       <div className={styles.hublot}>
         <div className={styles.ruban} style={{ ["--niveau" as string]: String(niveau) }}>
+          {/* LES DEUX NIVEAUX DE LISTE SONT DES SOMMAIRES, et le sommaire de
+              la maison est « Rubriques » — lequel est né ICI, de cette
+              liste-là. Les six autres sièges sont passés en bandes le
+              24 octobre ; celui dont la forme venait restait en filets, parce
+              qu'il en gardait une copie pour lui. La copie est partie. */}
           <section className={styles.volet} aria-hidden={niveau !== 0} inert={niveau !== 0}>
-            <ul className={styles.liste}>
-              {RAYONS.map((r) => {
+            <Rubriques
+              items={RAYONS.flatMap((r) => {
                 const n = services.filter((sv) => sv.rayon === r.cle);
-                if (!n.length) return null;
+                if (!n.length) return [];
+                /* Ce qui tourne déjà, et rien d'autre : un compte de services
+                   rendrait un inventaire là où le client cherche le sien. */
                 const enPlace = n.filter((sv) => sv.etat === "en_place").length;
-                return (
-                  <li key={r.cle}>
-                    <button type="button" className={styles.ligne} onClick={() => aller(r.cle)}>
-                      <span className={styles.quoi}>
-                        <b>{t(r.nom)}</b>
-                        <small>{t(r.quoi)}</small>
-                      </span>
-                      {/* Ce qui tourne déjà, et rien d'autre : un compte de
-                          services rendrait un inventaire là où le client
-                          cherche le sien. */}
-                      {enPlace > 0 && <span className={styles.enPlace}>{enPlace > 1 ? t("{n} en place", { n: String(enPlace) }) : t("1 en place")}</span>}
-                      <svg className={styles.chev} viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M9 6l6 6-6 6" />
-                      </svg>
-                    </button>
-                  </li>
-                );
+                return [{ nom: t(r.nom), quoi: t(r.quoi), etiquette: enPlace > 0 ? (enPlace > 1 ? t("{n} en place", { n: String(enPlace) }) : t("1 en place")) : undefined, aller: () => aller(r.cle) }];
               })}
-            </ul>
+            />
           </section>
 
           <section className={styles.volet} aria-hidden={niveau !== 1} inert={niveau !== 1}>
             {rayon && (
               <>
                 <p className={styles.intro}>{t(rayon.quoi)}</p>
-                <ul className={styles.liste}>
-                  {siens.map((sv) => (
-                    <li key={sv.cle}>
-                      <button type="button" className={`${styles.ligne} ${sv.etat === "en_place" ? styles.ligneEnPlace : ""}`} onClick={() => aller(rayon.cle, sv.cle)}>
-                        <span className={styles.ico}>{ICONE_SERVICE[sv.cle]}</span>
-                        <span className={styles.quoi}>
-                          <b>{t(sv.nom)}</b>
-                        </span>
-                        <svg className={styles.chev} viewBox="0 0 24 24" aria-hidden="true">
-                          <path d="M9 6l6 6-6 6" />
-                        </svg>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                {/* « EN PLACE » S'ÉCRIT, et ne se devine plus à un filet dans
+                    la marge : c'est le mot que le grand écran pose déjà sur le
+                    même service, et une même donnée ne se dit pas deux fois de
+                    deux façons. */}
+                <Rubriques items={siens.map((sv) => ({ nom: t(sv.nom), marque: ICONE_SERVICE[sv.cle], etiquette: sv.etat === "en_place" ? t("en place") : undefined, aller: () => aller(rayon.cle, sv.cle) }))} />
               </>
             )}
           </section>

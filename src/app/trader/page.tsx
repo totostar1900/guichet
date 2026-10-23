@@ -8,6 +8,7 @@ import { Parcours } from "./Parcours";
 import { Rayons } from "./Rayons";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Trade" };
@@ -62,10 +63,12 @@ export default async function TradePage() {
   return (
     <Glissement>
       <div className={styles.page}>
-        <header className={styles.tete}>
-          <h1>{t("Trade")}</h1>
-          <p>{t("Ce que Guichet peut faire pour vous, et par où chaque geste commence.")}</p>
-        </header>
+        {/* L'EN-TÊTE DE L'ÉTALON, et plus une grille de douze colonnes pour
+            lui seul : la phrase partait en colonne 8, soit huit cent vingt
+            pixels à droite du titre qu'elle explique, sur une page dont le
+            reste tient en une colonne. Pas de sur-titre : une racine n'est
+            contenue nulle part. */}
+        <EnTete titre={t("Trade")} phrase={t("Ce que Guichet peut faire pour vous, et par où chaque geste commence.")} />
 
         {/* CE QUI DEMANDE LA MAIN D'ABORD. Un bulletin à signer, un coupon qui
             dort, une séance qui se ferme : ce sont les seules lignes de cette
