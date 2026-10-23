@@ -2063,6 +2063,7 @@ export const EN_MORE: Record<string, string> = {
   "Comprendre": "Understanding",
   "L'éclairage : comment lire l'indice": "The insight: how to read the index",
   "Ce que publie le bulletin": "What the bulletin publishes",
+  "Ce que le bulletin publie, champ par champ": "What the bulletin publishes, field by field",
   "L'indice se lit dans le bulletin officiel de la cote, séance après séance. Guichet le montre tel qu'il est publié ; il n'en construit pas et ne mesure personne contre lui.": "The index is read from the official quotation bulletin, session after session. Guichet shows it as published; it builds none of its own and measures no one against it.",
   "Aucun avis publié pour l'instant. Les avis reçus de la Bourse sont relus par le desk avant de paraître ici.": "No notice published yet. Notices received from the exchange are read by the desk before appearing here.",
   "Source : bulletin officiel de la cote de la BVMAC, lu à chaque parution ; calculs {c}.": "Source: official quotation bulletin of the BVMAC, read at each issue; computations by {c}.",

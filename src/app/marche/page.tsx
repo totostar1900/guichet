@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { MARKET_PAGES } from "@/lib/market/pages";
 import { IndexPulse } from "@/components/IndexPulse";
-import { MarketStrip } from "@/components/MarketStrip";
 import { COMPANY } from "@/lib/config";
 import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
 import { dernierMouvement, echangesDeLaSeance } from "@/lib/market/echanges";
@@ -204,17 +203,35 @@ export default async function MarchePage() {
           </section>
         )}
 
-        {/* TROIS LIENS NE FONT PAS UN PANNEAU. « Comprendre » en occupait un
-            quart de page, pour trois destinations dont la pulsation portait déjà
-            l'une. Ils tiennent au pied, avec la source. */}
+        {/* LE RÉCAPITULATIF DU PIED EST PARTI, le 24 octobre 2026, et il ne
+            manque rien.
+
+            Il portait trois liens — « Comment lire l'indice », « Comparer deux
+            lignes », « Ce que publie le bulletin » — et le relevé du même jour
+            montre que la page menait DÉJÀ aux trois : au téléphone, les
+            pastilles du rail à y 60 et le sommaire à y 115-659 ; sur grand
+            écran, la colonne. Au mot près pour l'un d'eux, « Comparer deux
+            lignes », écrit deux fois sur la même page. La famille du marché s'y
+            lisait donc trois fois en 1 363 px.
+
+            C'est la leçon que « MarketStrip » avait déjà tirée pour le client,
+            et qui est restée à moitié appliquée : une bande de pied qui
+            répète la famille est du bruit une fois les pastilles posées. Son
+            autre moitié tient toujours, et c'est elle qu'on garde : UN LIEN
+            DANS UNE PHRASE PORTE SA RAISON. « Ce que publie le bulletin »
+            n'était cité nulle part ailleurs ; il reste donc, seul, contre la
+            phrase qui dit pourquoi on le suivrait, et non dans une rangée. Il
+            reste aussi une phrase entière, et non trois morceaux cousus autour
+            d'un lien : ici la chaîne française EST la clé, et un fragment qui
+            commence par une virgule se traduit faux.
+
+            « MarketStrip » est partie avec : elle rend « null » hors du desk
+            depuis le 5 octobre, et cette page ne la sert jamais autrement. */}
         <p className={styles.source}>
-          <Link href="/info/indice-bvmac">{t("Comment lire l'indice")}</Link> · <Link href="/comparer">{t("Comparer deux lignes")}</Link> · <Link href="/indice#donnees">{t("Ce que publie le bulletin")}</Link>
-          <br />
           {t("L'indice se lit dans le bulletin officiel de la cote, séance après séance. Guichet le montre tel qu'il est publié ; il n'en construit pas et ne mesure personne contre lui.")}{" "}
+          <Link href="/indice#donnees">{t("Ce que le bulletin publie, champ par champ")}</Link>.{" "}
           {t("Source : bulletin officiel de la cote de la BVMAC, lu à chaque parution ; calculs {c}.", { c: COMPANY.legalName })}
         </p>
-
-        <MarketStrip current="marche" />
       </>
     </Glissement>
   );

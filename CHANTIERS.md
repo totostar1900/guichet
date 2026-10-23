@@ -98,9 +98,36 @@ maquette.*
 Principe directeur : **ne pas offrir plusieurs actions sans rapport sur la
 même page.** Une page mène à une page, qui mène à une page.
 
-**3. Page Marché** : aujourd'hui c'est un mélange d'autres pages plus un
-récapitulatif en bas. Retirer le récapitulatif, qui est déjà accessible
-ailleurs.
+**3. ~~Page Marché : le récapitulatif du bas.~~ FAIT le 24 octobre 2026.**
+Tu avais raison sur « déjà accessible ailleurs », et le relevé dit à quel
+point : au téléphone, la famille du marché s'écrivait **trois fois** sur une
+page de 1 363 px —
+
+| | |
+|---|---|
+| y 60 | les pastilles du rail, sept entrées |
+| y 115 – 659 | le sommaire en bandes, les six autres |
+| y 1 175 | le récapitulatif du pied, trois de plus |
+
+« Comparer deux lignes » y figurait **deux fois au mot près**. Sur grand
+écran, la colonne tient la famille et le pied en reprenait trois.
+
+C'était la leçon que `MarketStrip` avait déjà tirée — une bande de pied qui
+répète la famille est du bruit une fois les pastilles posées —, restée à
+moitié appliquée. Son autre moitié tient, et c'est elle qu'on garde : **un
+lien dans une phrase porte sa raison**. « Ce que le bulletin publie » n'était
+cité nulle part ailleurs ; il reste donc seul, contre la phrase qui dit
+pourquoi on le suivrait.
+
+`MarketStrip` part avec : elle rend `null` hors du desk depuis le 5 octobre,
+et trois pages du client la montaient quand même, sans `mode`. Un composant
+monté là où il ne rend jamais rien est une description fausse de la page.
+
+→ *Reste à voir, et c'est l'item 2 : au téléphone, le sommaire en bandes
+redit le rail de pastilles — six destinations deux fois — et les deux
+occupent 720 px AVANT le titre de la page, qui tombe à y 798. La distinction
+est écrite (« un menu dit où aller, un sommaire dit ce qu'il y a ») et elle
+se défend ; sa place, non.*
 
 **5. « Votre provision »** : à réorganiser selon ce principe. **Maquette
 d'abord.**

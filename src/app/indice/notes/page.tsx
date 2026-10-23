@@ -4,7 +4,6 @@ import { getT } from "@/i18n/server";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters } from "@/lib/market/index-quarter";
 import { quarterGlance } from "@/lib/market/quarter-glance";
-import { MarketStrip } from "@/components/MarketStrip";
 import { BackToTop } from "@/components/BackToTop";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
@@ -76,7 +75,6 @@ export default async function NotesArchivePage() {
           ))
         )}
 
-        <MarketStrip current="notes" />
         <BackToTop />
       </div>
     </Glissement>
