@@ -66,6 +66,25 @@
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
+  }
+  /* LE NOM N'EST ÉCRIT QU'UNE FOIS À L'ÉCRAN.
+     La barre portait le nom de la page et la page le répétait trois cents
+     pixels plus bas : « Mes documents » deux fois, à la même seconde. La barre
+     cède donc la parole tant que le titre de la page est visible, et la
+     reprend dès qu'il passe sous elle — c'est-à-dire au moment précis où le
+     lecteur perd son repère. Elle garde sa place : rien ne bouge autour,
+     seule l'encre s'efface. Voir ETALON.md, arbitrage A. */
+  .titleCede {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .title {
+      transition: none;
+    }
   }
   .right {
     display: flex;

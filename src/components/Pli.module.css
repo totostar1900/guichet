@@ -1,7 +1,14 @@
 /* LES TROIS FILETS DE LA MAISON, du plus fort au plus discret : la bande d'un
    rayon, le filet d'or d'un groupe, le filet nu d'une ligne (voir Ligne). */
+/* LE RAYON NE PORTE PLUS SA PROPRE MARGE HAUTE.
+   Il en portait vingt, et le conteneur posait vingt de gap : l'écart entre
+   deux bandes valait quarante, composé en deux endroits. Deux pages l'avaient
+   remarqué et l'avaient écrit — « les deux font les quarante qu'on veut » —,
+   ce qui dit bien le problème : pour changer un écart il fallait lire deux
+   fichiers et faire une addition. Le nombre vit maintenant dans le gap du
+   conteneur, seul, lisible et modifiable d'un endroit. Voir ETALON.md. */
 .rayon {
-  margin-top: var(--s-8);
+  margin-top: 0;
 }
 .groupe {
   margin-top: var(--s-5);

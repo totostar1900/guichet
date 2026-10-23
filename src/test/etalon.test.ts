@@ -115,3 +115,48 @@ describe("l'étalon d'une page", () => {
     expect(fs.readFileSync(path.join(ROOT, "src/app/globals.css"), "utf8")).toMatch(/h1\s*\{\s*font-size:\s*var\(--t-8\)/);
   });
 });
+
+/**
+ * LES DEUX ARBITRAGES D'ETALON.MD, TRANCHÉS LE 24 OCTOBRE 2026.
+ *
+ * A — LE NOM N'EST ÉCRIT QU'UNE FOIS À L'ÉCRAN. La barre du téléphone portait
+ * le nom de la page et la page le répétait trois cents pixels plus bas. La
+ * barre cède tant que le `h1` est visible et le reprend dès qu'il passe SOUS
+ * elle : le repère réapparaît au moment exact où l'autre disparaît.
+ *
+ * B — UN ÉCART, ÉCRIT UNE FOIS. Les quarante pixels entre deux bandes étaient
+ * composés en deux endroits — vingt de `gap` au conteneur, vingt de
+ * `margin-top` au rayon. Deux pages l'avaient relevé et s'en accommodaient
+ * (« les deux font les quarante qu'on veut »), ce qui dit le défaut : changer
+ * un écart demandait de lire deux fichiers et de faire une addition. Le rayon
+ * ne porte plus de marge ; le nombre vit dans le `gap`, seul.
+ */
+describe("les deux arbitrages", () => {
+  const lire = (p: string) => fs.readFileSync(path.join(ROOT, p), "utf8");
+
+  it("fait céder la barre tant que la page porte son nom", () => {
+    const shell = lire("src/components/mobile/MobileShell.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(shell, "la barre ne regarde plus le titre de la page").toMatch(/IntersectionObserver/);
+    expect(shell, "elle ne regarde pas le titre, mais autre chose").toMatch(/querySelector\("main h1"\)/);
+    expect(shell, "la barre ne cède plus la place").toMatch(/styles\.titleCede/);
+    /* Sans la marge négative, le titre serait réputé visible alors qu'il est
+       déjà caché derrière la barre, qui recouvre le contenu. */
+    expect(shell, "la hauteur de la barre n'entre plus dans le calcul").toMatch(/--bar-h/);
+  });
+
+  it("n'écrit l'écart entre bandes qu'à un seul endroit", () => {
+    const pli = lire("src/components/Pli.module.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    const rayon = pli.match(/\.rayon\s*\{([^}]*)\}/);
+    expect(rayon, "le rayon a changé de nom").not.toBeNull();
+    expect(rayon?.[1].replace(/\s/g, ""), "le rayon reprend une marge haute : l'écart se compose de nouveau en deux endroits").toContain("margin-top:0");
+
+    const porteurs = [
+      "src/app/trader/page.module.css",
+      "src/app/moi/reinvestir/page.module.css",
+      "src/app/moi/epargne/page.module.css",
+      "src/app/moi/documents/page.module.css",
+    ];
+    const hors = porteurs.filter((p) => !lire(p).includes("gap: var(--s-10)"));
+    expect(hors, "ces pages n'écartent plus leurs bandes de l'écart de l'étalon").toEqual([]);
+  });
+});

@@ -212,7 +212,34 @@ Trois épreuves, sur le modèle du cliquet déjà employé pour la typographie :
 
 ---
 
-## 7. Les deux arbitrages qui te reviennent
+## 7. Les deux arbitrages — tranchés le 24 octobre 2026
+
+**A — le titre répété : la barre cède.** Elle se tait tant que le `h1` est à
+l'écran et reprend le nom dès qu'il passe **sous** elle : le repère réapparaît
+au moment exact où l'autre disparaît, jamais les deux ensemble. Une page sans
+`h1` garde son nom dans la barre. Mesuré après coup : opacité 0 / `aria-hidden`
+tant que le titre est visible, opacité 1 dès qu'il est sous la barre.
+
+*Le défaut du rendu est « la barre se tait », et non l'inverse : se taire une
+fois l'observateur installé faisait clignoter le titre à chaque navigation.*
+
+**B — l'écart entre bandes : 32, et écrit une seule fois.** En l'appliquant
+j'ai trouvé que les 40 px n'étaient pas un réglage mais une **addition** :
+20 px de `gap` au conteneur plus 20 px de `margin-top` au rayon. Deux pages
+l'avaient remarqué et s'en accommodaient — « les deux font les quarante qu'on
+veut » —, ce qui dit exactement le défaut : pour changer un écart il fallait
+lire deux fichiers et faire une addition.
+
+Leur raison de vouloir de l'air restait juste (« quatre titres nus séparés par
+vingt pixels se lisaient comme un seul long texte »), et 32 ne la contredit
+pas : ce n'est pas 20. Le rayon ne porte plus de marge, le nombre vit dans le
+`gap`, seul. Mesuré sur « Mes documents » : à 40 les bandes de 81 px flottent,
+à 32 elles se lisent comme une liste et une de plus tient au-dessus de la
+ligne de flottaison.
+
+---
+
+## Annexe — l'énoncé d'origine des deux arbitrages
 
 **A — Le titre répété.** La barre du téléphone affiche le nom de la page, et le
 `h1` le répète. Trois sorties possibles :

@@ -3,7 +3,7 @@
 import { useT } from "@/i18n/client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BarreDuCompte } from "./BarreDuCompte";
 import { MarketChips } from "./MarketChips";
 import type { Attente } from "@/lib/domain/services";
@@ -126,6 +126,60 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
     return () => mo.disconnect();
   }, [path]);
 
+  /**
+   * LA BARRE CÈDE LE NOM À LA PAGE, TANT QUE LA PAGE LE PORTE.
+   *
+   * Les deux l'écrivaient en même temps : « Mes documents » dans la barre, et
+   * « Mes documents » en trente pixels trois cents plus bas. Le doublon se
+   * voyait sur toute page qui a un titre, c'est-à-dire presque toutes.
+   *
+   * La barre s'efface donc tant que le `h1` est à l'écran, et revient dès
+   * qu'il passe SOUS elle — le repère réapparaît au moment exact où l'autre
+   * disparaît, et jamais les deux ensemble. La marge négative vaut la hauteur
+   * de la barre, qui recouvre le contenu : sans elle, le titre serait réputé
+   * visible alors qu'il est déjà caché derrière.
+   *
+   * ELLE CÈDE D'ABORD, ET REPREND SI ELLE DOIT. Le défaut du rendu est « la
+   * barre se tait », et l'effet ne fait que la rendre à la page sans `h1`.
+   * L'inverse — se taire une fois l'observateur installé — faisait clignoter
+   * le titre à chaque navigation : il paraissait le temps d'une image, puis
+   * s'effaçait en cent quatre-vingts millisecondes, bien visibles.
+   *
+   * L'ÉTAT N'EST PAS DANS REACT, ET C'EST VOULU : rien d'autre dans l'arbre ne
+   * dépend de ce que l'observateur voit, et le passer par un rendu coûtait un
+   * `setState` par défilement. Poser une classe est exactement ce qu'un effet
+   * est fait pour faire — synchroniser le DOM avec un système extérieur.
+   */
+  const titreRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = titreRef.current;
+    if (!el) return;
+    const rendreLeNom = () => {
+      el.classList.remove(styles.titleCede);
+      el.removeAttribute("aria-hidden");
+    };
+    const h1 = document.querySelector("main h1");
+    if (!h1) {
+      rendreLeNom();
+      return;
+    }
+    const barre = getComputedStyle(document.documentElement).getPropertyValue("--bar-h").trim() || "62px";
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          el.classList.add(styles.titleCede);
+          el.setAttribute("aria-hidden", "true");
+        } else rendreLeNom();
+      },
+      { rootMargin: `-${barre} 0px 0px 0px` },
+    );
+    io.observe(h1);
+    return () => io.disconnect();
+    /* « title » entre dans les dépendances pour une raison de calendrier : il
+       change quand la page suivante s'est rendue, ce qui donne à l'effet une
+       seconde chance de trouver un `h1` arrivé après lui. */
+  }, [path, title]);
+
   // Did this tab see another of our pages before this one? Then the browser history is ours.
   useEffect(() => {
     try {
@@ -207,7 +261,9 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
                 <path d="M15 5l-7 7 7 7" />
               </svg>
             </button>
-            <div className={styles.title}>{title ? t(title) : "…"}</div>
+            <div ref={titreRef} className={`${styles.title} ${styles.titleCede}`} aria-hidden="true">
+              {title ? t(title) : "…"}
+            </div>
           </>
         )}
         <div className={styles.right}>

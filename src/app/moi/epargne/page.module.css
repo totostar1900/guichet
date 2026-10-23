@@ -10,7 +10,12 @@
   flex-direction: column;
   /* Vingt : le rayon d'un pli porte déjà vingt de marge haute, et les deux
      font les quarante qu'on veut entre chapitres. */
-  gap: var(--sections-gap);
+  /* L'ÉCART DE L'ÉTALON entre deux bandes : 32. Mesuré le 24 octobre 2026 sur
+     « Mes documents » — à quarante, des bandes de 81 px flottent et une de
+     moins tient au-dessus de la ligne de flottaison ; à vingt, quatre titres
+     nus se lisaient comme un seul texte (c'est ce que la page de réinvestissement
+     avait relevé). Voir ETALON.md. */
+  gap: var(--s-10);
 }
 .tete {
   display: grid;
