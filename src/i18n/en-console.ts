@@ -301,6 +301,11 @@ export const EN_CONSOLE: Record<string, string> = {
   "Il se fabrique à la demande, à la date que vous choisissez.": "It is produced on request, at the date you choose.",
   "Vos intentions en cours": "Your orders under way",
   "Vos ordres passés": "Your past orders",
+  /* Les tuiles du relevé n'annoncent plus de nombre : elles disent ce qu'on
+     trouve de l'autre côté. Voir Releve.tsx, 24 octobre 2026. */
+  "la répartition, et ce que chaque ligne vaut": "the breakdown, and what each line is worth",
+  "relevés, avis d'opéré et bulletins": "statements, contract notes and order forms",
+  "ce que votre argent a fait, mouvement par mouvement": "what your money did, movement by movement",
   "Le reste de votre dossier": "The rest of your file",
   "Vos positions": "Your holdings",
   "{n} ligne(s) · {v}": "{n} line(s) · {v}",

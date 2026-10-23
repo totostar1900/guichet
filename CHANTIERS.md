@@ -75,10 +75,16 @@ s'est arrêté : un « Continuer » qui reprend la procédure là où elle s'est
 interrompue. Et une péremption : sans reprise au bout d'environ **10 jours**,
 la procédure s'efface d'elle-même.
 
-**11. « Vos ordres passés » annonce 1, et la page suivante est vide.**
-Principe à tenir partout : **ne pas annoncer un nombre** d'ordres, de
-documents, d'informations, d'instruments, de lignes, d'adjudications… sur la
-page qui précède celle qui les porte.
+**11. ~~« Vos ordres passés » annonce 1, et la page suivante est vide.~~
+FAIT le 24 octobre 2026.** Le compte n'était pas faux : il comptait *autre
+chose*. La tuile comptait les intentions closes (4) et ouvrait le journal des
+espèces, qui n'avait aucune écriture — deux sources pour une promesse. Les
+trois tuiles disent maintenant ce qu'on trouve de l'autre côté, et une
+épreuve interdit qu'un lien reprenne un compteur.
+
+→ *Reste à voir : il n'existe nulle part de liste des ordres passés. La tuile
+a été renommée d'après sa destination réelle plutôt que de promettre une page
+qui n'existe pas.*
 
 ---
 

@@ -39,7 +39,11 @@ import { getT } from "@/i18n/server";
  */
 export async function Releve({ session: s }: { session: Session }) {
   const r = repo();
-  const [intents, offers, docs] = await Promise.all([r.listIntents(), r.listOffers(), r.listDocuments()]);
+  /* LA LISTE DES DOCUMENTS NE SE LIT PLUS ICI, et c'est le compteur qui la
+     tirait : elle ne servait qu'à écrire « {n} relevé(s) » sur une tuile, un
+     nombre que la page d'en face recompte de toute façon. Une lecture de
+     moins à chaque affichage du tableau de bord. */
+  const [intents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
   const mine = intents.filter((i) => i.clientId === s.userId);
   const byOffer = new Map(offers.map((o) => [o.id, o]));
   // A line no longer listed (back to draft, withdrawn) still exists: the history keeps its name and its fiche.
@@ -47,8 +51,9 @@ export async function Releve({ session: s }: { session: Session }) {
   for (const o of await Promise.all(missing.map((id) => r.getOffer(id).catch(() => undefined)))) if (o) byOffer.set(o.id, o);
   /* Le journal des espèces part avec le reste : sans lui, la bande des coupons
      ne sait dire que « échu », et c'est la question qu'elle existe pour fermer. */
-  const [myFile, watches, cash, temoignages] = await Promise.all([
-    r.getClientFileByUser(s.userId),
+  /* Le dossier d'ouverture partait avec, pour la même raison et au même
+     endroit : il ne servait qu'à savoir quels documents étaient les vôtres. */
+  const [watches, cash, temoignages] = await Promise.all([
     r.listWatches(s.userId),
     r.listCash(s.userId).catch(() => []),
     /* Ce que le client a déjà dit : sans cela, la bande lui redemanderait ce
@@ -65,7 +70,6 @@ export async function Releve({ session: s }: { session: Session }) {
      verifie. */
   const avisGarde = await r.listCustodyNotices({ userId: s.userId }).catch(() => []);
   const positions = positionsFrom(mine, offers);
-  const myDocs = docs.filter((d) => d.type !== "dossier_svt" && ((d.intentId && mine.some((i) => i.id === d.intentId)) || (myFile && d.clientFileId === myFile.id) || d.clientId === s.userId));
 
   const NEXT: Record<string, string> = {
     recue: "Un conseiller vous rappelle avant la clôture.",
@@ -93,7 +97,6 @@ export async function Releve({ session: s }: { session: Session }) {
   // Une contre-proposition n’a pas recule : l’ordre est la, il attend une reponse.
   const stopIndex = (st: Intent["state"]) => (st === "non_servie" ? 3 : st === "annulee" ? -1 : st === "contre_proposee" ? 0 : STOPS.indexOf(st));
   const open = mine.filter((i) => i.state === "recue" || i.state === "confirmee" || i.state === "transmise").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const closed = mine.filter((i) => !open.includes(i)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const toSign = open.filter((i) => i.state === "confirmee").length;
   const valued = positions.reduce((t, p) => t + (p.marketValue ?? p.nominalAmount ?? 0), 0);
   const nextFlow = positions.map((p) => p.nextFlow).filter((x): x is NonNullable<typeof x> => Boolean(x)).sort((a, b) => a.date.localeCompare(b.date))[0];
@@ -198,7 +201,7 @@ export async function Releve({ session: s }: { session: Session }) {
         <div className={styles.secTete}>
           <h2>{t("Vos intentions en cours")}</h2>
           <span className="muted">{t("reçue → confirmée → transmise → servie → réglée")}</span>
-          <Link href="/moi/performance#operations">{t("Vos ordres passés")} →</Link>
+          <Link href="/moi/performance#operations">{t("Vos opérations")} →</Link>
         </div>
       <div className="panel">
         {open.length === 0 && <div className="empty">{t("Aucune intention en cours : choisissez une ligne dans Guichet.")}</div>}
@@ -284,17 +287,34 @@ export async function Releve({ session: s }: { session: Session }) {
           <h2>{t("Le reste de votre dossier")}</h2>
         </div>
         <div className={styles.tuiles}>
+          {/* AUCUNE TUILE N'ANNONCE UN NOMBRE, et la maison l'avait déjà écrit
+              vingt lignes plus haut pour les intentions : « le compteur est
+              parti, les cartes portent le nombre par leur présence ». Ces
+              trois-là l'avaient gardé, et le 24 octobre 2026 l'une d'elles
+              mentait de la pire façon — non parce que son compte était faux,
+              mais parce qu'il comptait AUTRE CHOSE que ce que la page ouvre.
+              « Vos ordres passés · 4 » ouvrait « Vos opérations », qui disait
+              « aucun mouvement encore porté au journal » : quatre intentions
+              closes d'un côté, zéro écriture au journal de l'autre, deux
+              sources pour une promesse.
+              Un nombre posé sur la page d'avant se calcule toujours ailleurs
+              que là où il sera vérifié. Une tuile dit donc ce qu'on y trouve ;
+              c'est la page qui compte. */}
           <Link href="/moi/performance#detenu" className={styles.tuile}>
             <b>{t("Vos positions")}</b>
-            <span>{positions.length ? t("{n} ligne(s) · {v}", { n: String(positions.length), v: fmtMillions(valued) }) : t("aucun titre inscrit encore")}</span>
+            <span>{positions.length ? t("la répartition, et ce que chaque ligne vaut") : t("aucun titre inscrit encore")}</span>
           </Link>
           <Link href="/moi/documents" className={styles.tuile}>
             <b>{t("Mes documents")}</b>
-            <span>{t("{n} relevé(s), avis et bulletins", { n: String(myDocs.length) })}</span>
+            <span>{t("relevés, avis d'opéré et bulletins")}</span>
           </Link>
+          {/* LE NOM SUIT LA DESTINATION. Elle s'appelait « Vos ordres passés »
+              et ouvrait le journal des mouvements d'argent : la page n'a aucune
+              section d'ordres passés, et il n'en existe nulle part. Promettre
+              une liste qui n'existe pas est pire que de ne rien promettre. */}
           <Link href="/moi/performance#operations" className={styles.tuile}>
-            <b>{t("Vos ordres passés")}</b>
-            <span>{t("{n} ordre(s) servis, réglés ou clos", { n: String(closed.length) })}</span>
+            <b>{t("Vos opérations")}</b>
+            <span>{t("ce que votre argent a fait, mouvement par mouvement")}</span>
           </Link>
           <Link href="/moi/performance#echeancier" className={styles.tuile}>
             <b>{t("L'échéancier")}</b>
