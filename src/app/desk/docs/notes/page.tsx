@@ -62,7 +62,7 @@ export default async function NotesPage() {
               <h2 id={n.slug}>{n.slug === "README" ? t("À propos de ces notes") : n.title}</h2>
               {n.description && <p className={article.lead}>{n.description}</p>}
               <Markdown text={n.body} />
-              <p className={styles.hint} style={{ fontSize: ".74rem", color: "var(--ink-3)" }}>
+              <p className={article.source}>
                 docs/notes/{n.slug}.md{n.modified ? ` · ${t("modifié le")} ${fmtDate(n.modified)}` : ""}
               </p>
             </section>

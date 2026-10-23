@@ -43,6 +43,50 @@ const feuilles = (): string[] => {
   return out;
 };
 
+/**
+ * L'ANGLE MORT DU CLIQUET : UNE TAILLE POSÉE DANS LE JSX.
+ *
+ * Il ne lisait que les feuilles de style. Une taille écrite en ligne —
+ * `style={{ fontSize: ".82rem" }}` — lui était donc invisible, et c'était la
+ * seule façon d'en inventer une hors échelle sans que rien ne le dise.
+ *
+ * Trouvé le 24 octobre 2026 en réparant une classe morte : la ligne de source
+ * des notes du desk portait « styles.hint », qui n'existe dans aucune feuille,
+ * et son allure tenait dans un style en ligne. En comptant les autres :
+ * QUATRE-VINGT-DOUZE tailles en ligne, onze valeurs distinctes, dont
+ * quarante-deux hors des sept degrés — 0,76, 0,78, 0,82, 0,84, 0,85, 0,86,
+ * 1,05. Personne ne distingue 0,82 rem de 0,80 ; ce ne sont pas des choix,
+ * ce sont des approximations recopiées, exactement ce que le cliquet des
+ * feuilles a déjà fait reculer de cent écarts.
+ *
+ * LES SVG SONT HORS DU COMPTE, et c'est voulu : le texte d'un dessin se mesure
+ * dans le repère du dessin, souvent calculé (`metrics.font`), jamais sur la
+ * racine du document. On ne compte que les valeurs littérales en rem.
+ */
+const enLigne = (): string[] => {
+  const out: string[] = [];
+  const walk = (d: string) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith(".tsx")) {
+        const court = path.relative(ROOT, p).replace(/\\/g, "/");
+        fs.readFileSync(p, "utf8")
+          .split(/\r?\n/)
+          .forEach((ligne, i) => {
+            for (const m of ligne.matchAll(/fontSize:\s*"(\.?[0-9.]+)rem"/g)) {
+              const v = Number(m[1].startsWith(".") ? `0${m[1]}` : m[1]);
+              if (ECHELLE.includes(v)) continue;
+              out.push(`${court}:${i + 1} · ${v}rem`);
+            }
+          });
+      }
+    }
+  };
+  walk(path.join(ROOT, "src"));
+  return out;
+};
+
 const horsEchelle = (): string[] => {
   const out: string[] = [];
   for (const f of feuilles()) {
@@ -105,5 +149,24 @@ describe("l'échelle typographique", () => {
   it("regarde bien quelque chose", () => {
     // Un chemin faux rendrait zéro écart, et le plafond serait vert pour rien.
     expect(feuilles().length).toBeGreaterThan(40);
+  });
+
+  /**
+   * LE SECOND PLAFOND, gravé le 24 octobre 2026 et mesuré : quarante-deux
+   * tailles en ligne hors échelle, sur quatre-vingt-douze. Même règle que le
+   * premier — il descend quand une page passe à l'échelle, il ne monte pas —
+   * et même raison de vivre : une taille qu'on invente doit avoir à répondre
+   * « laquelle des sept ? ».
+   */
+  it("ne laisse pas les tailles posées dans le JSX échapper à l'échelle", () => {
+    const PLAFOND_EN_LIGNE = 42;
+    const écarts = enLigne();
+    expect(
+      écarts.length,
+      `${écarts.length} tailles en ligne hors échelle (plafond ${PLAFOND_EN_LIGNE}). Les dernières :\n  ${écarts.slice(-10).join("\n  ")}`,
+    ).toBeLessThanOrEqual(PLAFOND_EN_LIGNE);
+    /* Le même garde-fou à l'envers que pour les feuilles : un plafond qui
+       prend du jeu ne freine plus rien. */
+    expect(PLAFOND_EN_LIGNE - écarts.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(8);
   });
 });

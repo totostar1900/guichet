@@ -51,6 +51,23 @@
   line-height: 1.6;
   margin: 0 0 12px;
 }
+/* LA LIGNE DE SOURCE SOUS UNE SECTION : le fichier d'où vient le texte, et le
+   jour où il a bougé.
+
+   ELLE S'ÉCRIT « .doc .source » ET NON « .source », pour une raison qui se
+   mesure : « .doc p » pose 0,9 rem, et une classe seule perd contre une classe
+   suivie d'un type. Posée seule, elle rendait la ligne à la taille du corps,
+   c'est-à-dire plus grosse qu'avant la correction.
+
+   ELLE REMPLACE UN STYLE EN LIGNE. La ligne portait « styles.hint », une
+   classe qui n'existe dans aucune feuille — donc aucun style — et son allure
+   tenait dans un `style={{ fontSize: ".74rem" }}`. Le cliquet typographique ne
+   lit que les feuilles : une taille posée en ligne lui est invisible. */
+.doc .source {
+  margin: var(--s-5) 0 var(--s-8);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
 .doc .lead {
   font-size: 0.98rem;
   color: var(--ink);
