@@ -51,12 +51,19 @@ export function StandingForm({ offerId, minimum, unit = "FCFA", fonds }: { offer
     return (
       <div className={styles.done}>
         <b>{state.message}</b>
+        {/* UNE SEULE SUITE QUAND LE MANDAT ATTEND. « Voir mes versements
+            programmés » se tenait à côté de « Signer le mandat » : deux
+            portes au moment où il n'y a qu'une chose à finir, et la plus
+            facile des deux ne finit rien. Le versement est posé mais ne
+            partira pas sans le mandat ; la page ne propose donc que lui.
+            Sans mandat à signer, le renvoi à la liste reprend sa place. */}
         {state.versLeMandat ? (
           <Link className="btn primary sm" href={state.versLeMandat}>
             {t("Signer le mandat de prélèvement")}
           </Link>
-        ) : null}
-        <Link href="/">{t("Voir mes versements programmés")} →</Link>
+        ) : (
+          <Link href="/moi/epargne">{t("Voir mes versements programmés")} →</Link>
+        )}
       </div>
     );
   }
@@ -173,6 +180,8 @@ export function StandingList({ rows, fonds = [] }: { rows: StandingRow[]; fonds?
   const [state, action, pending] = useActionState<StandingResult | null, FormData>(stopStandingAction, null);
   const [tout, setTout] = useState(false);
   const [modif, setModif] = useState<string | null>(null);
+  /* Le versement dont on vient de demander l'arrêt, et qui attend un oui. */
+  const [aArreter, setAArreter] = useState<string | null>(null);
   if (!rows.length) return null;
   const vivantes = rows.filter((x) => x.state === "active");
   const closes = rows.filter((x) => x.state !== "active");
@@ -215,12 +224,28 @@ export function StandingList({ rows, fonds = [] }: { rows: StandingRow[]; fonds?
                   {t("Modifier")}
                 </button>
               )}
-              <form action={action}>
-                <input type="hidden" name="id" value={s.id} />
-                <button className="btn sm ghost" type="submit" disabled={pending}>
+              {/* ARRÊTER SE CONFIRME. Le bouton partait au premier clic, à
+                  côté de « Modifier » et de la même taille : un doigt qui
+                  glisse arrêtait un versement mensuel, et rien ne le
+                  rattrapait — l'instruction arrêtée ne se reprend pas, elle
+                  se repose. La confirmation tient sur place, sans fenêtre :
+                  ce qu'on arrête reste sous les yeux pendant qu'on décide. */}
+              {aArreter === s.id ? (
+                <form action={action} className={styles.confirme}>
+                  <input type="hidden" name="id" value={s.id} />
+                  <span>{t("Arrêter ce versement ?")}</span>
+                  <button className="btn sm" type="submit" disabled={pending}>
+                    {t("Oui, arrêter")}
+                  </button>
+                  <button className="btn sm ghost" type="button" onClick={() => setAArreter(null)}>
+                    {t("Annuler")}
+                  </button>
+                </form>
+              ) : (
+                <button className="btn sm ghost" type="button" onClick={() => setAArreter(s.id)}>
                   {t("Arrêter")}
                 </button>
-              </form>
+              )}
             </div>
           ) : (
             <span className="muted">{t(s.stateLabel)}</span>

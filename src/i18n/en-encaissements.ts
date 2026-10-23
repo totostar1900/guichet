@@ -34,6 +34,10 @@ export const EN_ENCAISSEMENTS: Record<string, string> = {
   ", une autorisation distincte, que vous signez une fois et révoquez quand vous voulez.": ", a separate authorisation, which you sign once and revoke whenever you want.",
   "Vous arrêtez le versement d'un bouton, sans motif à donner. Arrêter le versement ne révoque pas le mandat, et révoquer le mandat n'arrête pas le versement : ce sont deux décisions.": "You stop the payment with one button, with no reason to give. Stopping the payment does not revoke the mandate, and revoking the mandate does not stop the payment: they are two decisions.",
   "Vers quel fonds": "Into which fund",
+  /* La confirmation d'un arrêt : le geste est irréversible côté client, et
+     « Arrêter » était seul à côté du nom du versement. */
+  "Arrêter ce versement ?": "Stop this payment?",
+  "Oui, arrêter": "Yes, stop it",
   /* Les bandes des chapitres de « Réinvestir » (grammaire des plis). */
   "Ce qui est arrivé, ce qui vous est dû, et ce qui viendra.": "What has arrived, what you are owed, and what is to come.",
   "{m} FCFA disponibles": "{m} FCFA available",

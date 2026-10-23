@@ -3,8 +3,9 @@ import { Pli } from "@/components/Pli";
 import { StandingForm, StandingList } from "@/components/Standing";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { recurringMinimum, STANDING_STATE_LABEL } from "@/lib/domain/standing";
+import { nextRun, recurringMinimum, STANDING_STATE_LABEL } from "@/lib/domain/standing";
 import { getT } from "@/i18n/server";
+import { localIso } from "@/lib/format";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +37,7 @@ export default async function EpargnePage() {
   const t = await getT();
   const r = repo();
   const [offers, standing] = await Promise.all([r.listOffers(), r.listStandingOrders(s.userId).catch(() => [])]);
+  const aujourdHui = localIso(new Date());
 
   /* Un versement mensuel va vers une PART, qui se divise. Un titre ne se
      divise pas, et une somme fixe n'y tomberait jamais juste. */
@@ -82,7 +84,11 @@ export default async function EpargnePage() {
               minAmount: x.minAmount,
               state: x.state,
               stateLabel: STANDING_STATE_LABEL[x.state],
-              next: null,
+              /* LA PROCHAINE ÉCHÉANCE, calculée plutôt que tue. La liste sait
+                 l'afficher depuis toujours ; les deux pages lui passaient
+                 « null », donc « prochain versement le … » ne paraissait
+                 jamais. Le domaine la donne (standing, « nextRun »). */
+              next: nextRun(x, aujourdHui),
               lastRunOn: x.lastRunOn,
               stopReason: x.stopReason,
             }))}

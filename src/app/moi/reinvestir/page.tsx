@@ -8,9 +8,9 @@ import { repo } from "@/lib/data";
 import { positionsFrom } from "@/lib/positions";
 import { cashPosition } from "@/lib/domain/cash";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
-import { recurringMinimum, STANDING_STATE_LABEL } from "@/lib/domain/standing";
+import { nextRun, recurringMinimum, STANDING_STATE_LABEL } from "@/lib/domain/standing";
 import { getT } from "@/i18n/server";
-import { fmt, fmtDate } from "@/lib/format";
+import { fmt, fmtDate, localIso } from "@/lib/format";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -54,6 +54,7 @@ export default async function ReinvestirPage() {
      coupon déjà replacé n'est plus disponible, et l'échéancier l'ignore. */
   const poche = cashPosition(cash, mine);
   const enPlace = standing.filter((s) => s.source === "encaissements");
+  const aujourdHui = localIso(new Date());
   const active = enPlace.find((s) => s.state === "active");
 
   /* Les fonds ouverts : un versement va vers une part, qui se divise. Un titre
@@ -147,7 +148,11 @@ export default async function ReinvestirPage() {
                 minAmount: x.minAmount,
                 state: x.state,
                 stateLabel: STANDING_STATE_LABEL[x.state],
-                next: null,
+                /* LA PROCHAINE ÉCHÉANCE, calculée plutôt que tue. La liste sait
+                 l'afficher depuis toujours ; les deux pages lui passaient
+                 « null », donc « prochain versement le … » ne paraissait
+                 jamais. Le domaine la donne (standing, « nextRun »). */
+                next: nextRun(x, aujourdHui),
                 lastRunOn: x.lastRunOn,
                 stopReason: x.stopReason,
               };

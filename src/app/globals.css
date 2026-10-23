@@ -128,11 +128,18 @@
   --fam-BTA-soft: #d8efec;
   --fam-APE: #6d3b8f;
   --fam-APE-soft: #ece2f4;
-  --fam-IPO: #b0426a;
+  /* TROIS ENCRES DE FAMILLE PASSAIENT SOUS LE SEUIL sur leur propre fond
+     clair : IPO à 4,41, ACTION_COTEE à 4,29, RACHAT à 4,21, pour un minimum
+     lisible de 4,5 (WCAG AA, texte courant). Mesuré le 23 octobre 2026 sur
+     « /titres » et « /calendrier », dans les deux thèmes — ces paires sont
+     écrites en dur, donc le défaut était le même partout.
+     Chacune est assombrie du strict nécessaire : la teinte ne change pas,
+     la famille se reconnaît toujours à la même couleur. */
+  --fam-IPO: #a83f65;
   --fam-IPO-soft: #f7e1ea;
-  --fam-RACHAT: #b84a1e;
+  --fam-RACHAT: #ac451c;
   --fam-RACHAT-soft: #f8e3da;
-  --fam-ACTION_COTEE: #2f7d4f;
+  --fam-ACTION_COTEE: #2c754a;
   --fam-ACTION_COTEE-soft: #dff1e6;
   --fam-OBLIGATION_COTEE: #2a5db0;
   --fam-OBLIGATION_COTEE-soft: #e1eaf8;

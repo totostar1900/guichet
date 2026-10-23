@@ -222,3 +222,16 @@
 .cleKo {
   color: var(--crit);
 }
+
+/* La confirmation d'arrêt, posée là où était le bouton : la ligne qu'on
+   arrête reste sous les yeux pendant qu'on décide. */
+.confirme {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.confirme span {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}

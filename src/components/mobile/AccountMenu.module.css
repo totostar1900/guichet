@@ -371,6 +371,37 @@
   line-height: 1;
   cursor: pointer;
 }
+/**
+ * DEUX ÉLÉMENTS PORTENT LEUR PROPRE FOND, ET DOIVENT DONC PORTER LEUR PROPRE
+ * ENCRE — le sélecteur est doublé pour passer devant.
+ *
+ * Le pied de la colonne reprend la main sur tout son sous-arbre
+ * (« .pied :global(*) { color: var(--ink) } », Colonne.module.css), et il a
+ * ses raisons : les couleurs de ce menu sont pensées pour le fond foncé
+ * d'une barre, et tombaient en gris sur gris au pied de la colonne. Mais la
+ * règle attrape aussi l'initiale, posée sur l'or, et la pastille, posée sur
+ * le rouge : là, l'encre de la maison est fausse par construction.
+ *
+ * Mesuré le 23 octobre 2026 : l'initiale sortait à 1,7:1 sur le thème
+ * sombre, la pastille à 2,7:1 sur le clair. Le minimum lisible est 4,5.
+ * « .avatar.avatar » vaut (0,2,0) et passe devant (0,1,1) sans toucher à la
+ * règle de la colonne, qui reste juste pour tout le reste.
+ *
+ * CHACUNE REDIT SON FOND, et ce n'est pas une redondance. Le navy est une
+ * encre fixe : posée seule, elle se mesure contre le papier, et tombe à
+ * 1,15:1 sur le thème sombre (contraste-sans-fond.test.ts, qui l'a bien
+ * signalée). Le fond écrit à côté de l'encre fait la paire, et la paire se
+ * mesure pour ce qu'elle est — de l'or sous du navy — par contrast.test.ts.
+ */
+.avatar.avatar {
+  background: var(--gold);
+  color: var(--navy);
+}
+.alerte.alerte {
+  background: #b3261e;
+  color: #fff;
+}
+
 /* Le voile ne noircit rien : il n'est là que pour prendre le premier clic
    posé ailleurs, et refermer. */
 .voile {
