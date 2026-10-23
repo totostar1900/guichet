@@ -21,12 +21,19 @@ export function TitresHead({ fundsCount }: { fundsCount: number }) {
   const t = useT();
   return (
     <div className="mtogglesHead">
-      {/* LE SURTITRE EST PARTI. « Titres » au-dessus de « Obligations, bons
-          du Trésor et actions de la zone CEMAC » ne disait rien de plus que
-          la phrase qu'il surmontait, et l'onglet de la page porte déjà ce
-          mot-là. */}
+      {/* LE NOM REVIENT EN TITRE, ET LA PHRASE REDEVIENT UNE PHRASE.
+          Il avait été retiré parce qu'il « ne disait rien de plus que la
+          phrase qu'il surmontait ». L'étalon donne la raison inverse : le
+          titre d'une page est son NOM, la phrase dit ce qu'on y trouve, et ce
+          sont deux créneaux, pas un choix. Sans nom, le titre de cette page
+          était une phrase de cinquante-quatre signes — et elle se composait à
+          16 px, plus petit que le corps de lecture, parce que trente l'aurait
+          étalée sur quatre lignes. Mesuré le 24 octobre 2026 : c'était le
+          seul titre de l'application sous la taille de son propre texte.
+          Voir ETALON.md. */}
       <div>
-        <h1 className="display">{t("Obligations, bons du Trésor et actions de la zone CEMAC")}</h1>
+        <h1>{t("Titres")}</h1>
+        <p className="mtogglesLead">{t("Obligations, bons du Trésor et actions de la zone CEMAC")}</p>
       </div>
     </div>
   );

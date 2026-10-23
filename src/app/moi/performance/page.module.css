@@ -8,7 +8,10 @@
      pages de listes — une troisième valeur que rien ne justifiait. */
   max-width: var(--page-large);
   margin-inline: auto;
-  padding: var(--s-7) var(--s-7) var(--s-11);
+  /* La marge latérale appartient au gabarit : cette page la posait une
+     seconde fois et commençait 16 px plus loin que ses voisines.
+     Voir ETALON.md. */
+  padding-block: var(--s-7) var(--s-11);
   display: flex;
   flex-direction: column;
   gap: var(--s-7);

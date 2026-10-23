@@ -18,7 +18,11 @@
   grid-column: span 6;
   margin: 0;
   font-family: var(--font-titre);
-  font-size: clamp(1.71rem, 3.6vw, 2.52rem);
+  /* LA TAILLE VIENT DU JETON, et elle ne varie plus avec la largeur.
+     Ce « clamp » donnait 25,6 px au telephone et 37,8 px au grand ecran,
+     pendant que cinq pages voisines titraient a 30 partout : le lecteur
+     changeait de page et le titre changeait de taille. Voir ETALON.md. */
+  font-size: var(--t-8);
   line-height: 1.08;
   font-weight: 400;
   letter-spacing: -0.015em;

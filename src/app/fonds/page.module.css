@@ -9,7 +9,10 @@
   margin-bottom: 16px;
 }
 .head h1 {
-  font-size: var(--titre-liste);
+  /* LE TITRE D'UNE PAGE DE LISTE EST UN TITRE DE PAGE. « --titre-liste »
+     valait 1,3 rem, et son propre commentaire avoue ce qu'il est : une valeur
+     posée un jour, nommée après coup. Voir ETALON.md. */
+  font-size: var(--t-8);
   margin: 0 0 4px;
 }
 .lead {

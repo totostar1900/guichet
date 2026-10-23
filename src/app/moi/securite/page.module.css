@@ -9,7 +9,9 @@
   align-items: flex-end;
 }
 .head h1 {
-  font-size: 1.6rem;
+  /* 1,6 rem posé a la main : le titre de cette page etait le seul a 24 px.
+     Voir ETALON.md. */
+  font-size: var(--t-8);
   margin: 4px 0 6px;
 }
 .lead {

@@ -3,7 +3,13 @@
 .page {
   max-width: 880px;
   margin: 0 auto;
-  padding: var(--s-9) var(--s-7) var(--s-11);
+  /* LA MARGE LATÉRALE APPARTIENT AU GABARIT, et à lui seul.
+     Cette boîte ajoutait « --s-7 » sur les côtés par-dessus la marge que le
+     gabarit pose déjà : mesuré le 24 octobre 2026, les pages à boîte
+     commençaient à 30 px du bord et les autres à 14, aux trois largeurs
+     (30/14, 36/20, 410/394). Une marge posée deux fois n'est pas une marge.
+     Voir ETALON.md. */
+  padding-block: var(--s-9) var(--s-11);
   display: flex;
   flex-direction: column;
   gap: var(--s-9);

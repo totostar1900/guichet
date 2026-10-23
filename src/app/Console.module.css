@@ -17,7 +17,10 @@
 .bonjour h1 {
   margin: 0;
   font-family: var(--font-titre);
-  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+  /* « Bonjour » enflait de 27 a 39 px selon l'ecran, seul de toute
+     l'application a le faire : on changeait de page et le titre changeait de
+     taille. Voir ETALON.md. */
+  font-size: var(--t-8);
   line-height: 1.08;
   font-weight: 400;
   letter-spacing: -0.015em;

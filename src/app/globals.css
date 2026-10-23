@@ -195,7 +195,16 @@
   --t-4: 0.88rem; /* 13,2 px : corps d'un panneau */
   --t-5: 1rem; /*    15,0 px : corps de lecture */
   --t-6: 1.15rem; /* 17,2 px : titre de panneau */
-  --t-7: 1.35rem; /* 20,2 px : titre de page */
+  --t-7: 1.35rem; /* 20,2 px : titre de section, de panneau large */
+  /* 30 px : LE TITRE D'UNE PAGE, et le jeton qui manquait.
+     « --t-7 » se disait « titre de page » et valait 20,2 : AUCUNE page ne
+     l'employait. Relevé du 24 octobre 2026 sur treize pages — sept tailles de
+     h1, de 16 à 30. Les cinq pages les plus abouties titraient à 30, et ce
+     n'était meme pas une décision : c'est le « 2em » du navigateur sur une
+     racine a 15 px, que personne n'avait ecrit. Le jeton rend explicite ce
+     que la maison faisait deja le mieux, sans deplacer un pixel sur ces
+     cinq-la. Voir ETALON.md. */
+  --t-8: 2rem; /*     30,0 px : titre de page */
   /* Le pas du site public, et le seul au-dessus de l'echelle. Une page qui
      vend respire plus large qu'une page qui travaille : c'est cet ecart qui
      distingue les deux, et il porte donc un nom plutot que de se reecrire a la
@@ -500,6 +509,13 @@ h3 {
   font-weight: 600;
   text-wrap: balance;
 }
+/* UN TITRE DE PAGE, UNE TAILLE. Elle tombait du navigateur (« 2em ») sur les
+   pages qui ne disaient rien, et sept valeurs cohabitaient sur treize pages.
+   Ecrite ici, elle se lit, se mesure et se corrige en un endroit. Une page qui
+   a besoin d'autre chose le dit — et doit pouvoir le justifier. */
+h1 {
+  font-size: var(--t-8);
+}
 .num {
   font-variant-numeric: tabular-nums;
 }
@@ -632,9 +648,16 @@ h3 {
   flex-wrap: wrap;
   margin-bottom: 6px;
 }
+/* Le titre de « /titres » suit le jeton comme les autres ; la phrase qui le
+   suivait est redevenue une phrase, sous lui. Voir ETALON.md. */
 .mtogglesHead h1 {
   margin: 2px 0 0;
-  font-size: var(--titre-liste);
+}
+.mtogglesLead {
+  margin: 4px 0 0;
+  font-size: var(--t-4);
+  color: var(--ink-2);
+  max-width: 64ch;
 }
 .mtogglesFunds {
   white-space: nowrap;
@@ -685,9 +708,6 @@ h3 {
 @media (max-width: 760px) {
   :root {
     --marge-page: var(--s-7);
-  }
-  .mtogglesHead h1 {
-    font-size: 1.05rem;
   }
   .mtogglesGroup {
     width: 100%;

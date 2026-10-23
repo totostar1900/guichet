@@ -28,7 +28,10 @@ const ROOT = path.resolve(__dirname, "../..");
    petite capitale se mesurent sur leur voisin, jamais sur la racine. */
 
 /** L'échelle, telle que globals.css la déclare, en rem. */
-const ECHELLE = [0.68, 0.74, 0.8, 0.88, 1, 1.15, 1.35];
+/* HUIT DEPUIS LE 24 OCTOBRE 2026 : « --t-8 », le titre d'une page. Le degré
+   manquait, et son absence se payait en sept tailles de h1 sur treize pages —
+   dont une a 16 px, plus petite que le corps de lecture. Voir ETALON.md. */
+const ECHELLE = [0.68, 0.74, 0.8, 0.88, 1, 1.15, 1.35, 2];
 
 const feuilles = (): string[] => {
   const out: string[] = [];
@@ -119,7 +122,7 @@ const horsEchelle = (): string[] => {
  * taille neuve a été inventée, et c'est précisément le moment où la question
  * « laquelle des sept ? » doit se poser.
  */
-const PLAFOND = 1148;
+const PLAFOND = 1122;
 
 describe("l'échelle typographique", () => {
   it("ne laisse pas les tailles hors échelle se multiplier", () => {
@@ -138,7 +141,7 @@ describe("l'échelle typographique", () => {
     expect(PLAFOND - écarts.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(30);
   });
 
-  it("les sept degrés sont bien ceux que globals.css déclare", () => {
+  it("les huit degrés sont bien ceux que globals.css déclare", () => {
     /* Sans cela, l'échelle du test et celle du CSS dériveraient, et le
        garde-fou mesurerait par rapport à une référence qui n'existe plus. */
     const css = fs.readFileSync(path.join(ROOT, "src/app/globals.css"), "utf8");
