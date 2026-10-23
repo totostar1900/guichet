@@ -50,7 +50,12 @@ export default async function InfoPage() {
           <p className="muted">{t("Ce qu'il faut savoir pour comprendre une offre de Guichet : les mots, les chiffres, les risques : expliqués une fois pour toutes, sans jargon inutile.")}</p>
         </div>
         <div data-coach="info-search" id="recherche" className={styles.anchor}>
-          <InfoSearch entries={entries} />
+          {/* HUIT, COMME AVANT : le champ du Guide est une section parmi six,
+              et les résultats poussent les suivantes vers le bas plutôt que de
+              les couvrir. Quarante-neuf lignes pour « fonds » enterreraient le
+              reste de la page. La page de recherche, elle, les montre toutes :
+              c'est à cela qu'elle sert. */}
+          <InfoSearch entries={entries} limit={8} />
         </div>
         <div className={styles.foldBar}>
           <FoldAll group="info" ids={["lecons", "parcours", "simulateur", "outils", "glossaire"]} />

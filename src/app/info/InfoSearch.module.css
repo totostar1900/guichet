@@ -143,6 +143,22 @@
   font-size: 0.84rem;
   color: var(--ink-2);
 }
+/* ── DANS UNE FEUILLE, LA MÊME LIGNE EN PLUS SERRÉ ───────────────────────────
+   Une feuille sert à SAUTER, une page à DÉPOUILLER : le titre et l'étiquette
+   portent le saut, la phrase sert à trancher entre deux résultats proches.
+   Mesuré le 24 octobre 2026 à 390 px : la ligne entière fait 113 px, six en
+   font 678, et le lien vers la page entière tombait 127 px sous la ligne de
+   flottaison — c'est-à-dire introuvable pour qui ne fait pas défiler.
+   Ce n'est PAS un second rendu : même composant, même DOM, même table des
+   genres. Seule la phrase se replie sur une ligne. */
+.dense .body small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dense .item {
+  padding: 6px 10px;
+}
 @media (max-width: 760px) {
   .item {
     grid-template-columns: minmax(0, 1fr);
@@ -157,5 +173,11 @@
   }
   .body small {
     white-space: normal;
+  }
+  /* La règle du téléphone déplie la phrase ; la feuille la replie, et doit
+     repasser devant — « .dense .dense » n'existe pas, le sélecteur double la
+     classe du parent pour peser (0,2,0) contre (0,1,1). */
+  .dense.dense .body small {
+    white-space: nowrap;
   }
 }

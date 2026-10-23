@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useT } from "@/i18n/client";
 import { COMPANY } from "@/lib/config";
-import { rankEntries, type SearchEntry } from "@/app/info/InfoSearch";
+import { InfoSearch } from "@/app/info/InfoSearch";
 import { TOP_QUESTIONS, type GuideIndex } from "@/lib/guide-index-shared";
 import { cachedGuideIndex, loadGuideIndex, readDoneLessons } from "@/lib/guide-index-client";
 import { Presentation } from "@/components/mobile/Presentation";
@@ -54,43 +53,21 @@ export function useGuideIndex(ouvert: boolean) {
   return { index, lues, resume, top };
 }
 
-/** La recherche de l'aide, du glossaire et des éclairages. */
+/**
+ * LA RECHERCHE DANS UNE FEUILLE : LE MÊME CHAMP, SIX LIGNES.
+ *
+ * Elle avait son propre rendu — un champ, six titres, et une étiquette tirée
+ * d'un ternaire à quatre branches pour six genres. Un service y sortait
+ * « Aide », un instrument aussi, et la page disait « Service » et
+ * « Instrument » pour les mêmes entrées. Le classement, lui, était déjà
+ * partagé ; c'est l'affichage qui divergeait, et c'est l'affichage que le
+ * lecteur lit.
+ *
+ * Il ne reste donc qu'un champ, posé ici avec sa limite : six lignes tiennent
+ * dans une feuille, et le lien du bas mène à la page qui les montre toutes.
+ */
 export function MenuRecherche({ index, close }: { index: GuideIndex | null; close: () => void }) {
-  const t = useT();
-  const router = useRouter();
-  const [q, setQ] = useState("");
-  const hits = useMemo(() => (index && q.trim().length >= 2 ? rankEntries(index.entries, q, 6).results.map((r) => r.e) : []), [index, q]);
-  const ouvrir = (e: SearchEntry) => {
-    close();
-    router.push(e.href);
-  };
-  return (
-    <>
-      <label className={styles.search}>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="11" cy="11" r="7" />
-          <path d="m20 20-3.5-3.5" />
-        </svg>
-        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Une question, un mot… ex. coupon couru")} aria-label={t("Rechercher")} autoComplete="off" enterKeyHint="search" onKeyDown={(e) => e.key === "Enter" && hits[0] && ouvrir(hits[0])} />
-        {/* CE QUE LE CHAMP CHERCHE, et ce n'est plus seulement le Guide : un
-            client connecté reçoit aussi les pages, les services et les
-            instruments de l'application. Trois mots qui mentent sous un champ
-            font renoncer à chercher ce qu'il trouverait. */}
-        <small>{t("aide · glossaire · pages")}</small>
-      </label>
-      {q.trim().length >= 2 && (
-        <div className={styles.hits} role="listbox">
-          {hits.length === 0 && <span className={styles.none}>{index ? t("Aucun résultat") : t("Un instant…")}</span>}
-          {hits.map((e) => (
-            <button key={e.href + e.title} type="button" role="option" aria-selected={false} className={styles.hit} onClick={() => ouvrir(e)}>
-              <em>{t(e.kind === "terme" ? "Définition" : e.kind === "lecon" ? "Éclairage" : e.kind === "outil" ? "Outil" : "Aide")}</em>
-              <b>{e.title}</b>
-            </button>
-          ))}
-        </div>
-      )}
-    </>
-  );
+  return <InfoSearch entries={index?.entries ?? []} limit={6} close={close} dense />;
 }
 
 /**

@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { rankEntries, type SearchEntry } from "./InfoSearch";
+import { InfoSearch } from "./InfoSearch";
 import { Sheet } from "@/components/mobile/Sheet";
 import { useT } from "@/i18n/client";
 import type { GuideIndex, LessonSummary } from "@/lib/guide-index-shared";
@@ -59,10 +58,8 @@ function Ring({ letter, color, done, total, place, size = 48 }: { letter: string
 
 export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePos; prev?: { href: string; title: string }; next?: { href: string; title: string }; chapter?: GuideChapter; lessonKey?: string }) {
   const t = useT();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>("guide");
-  const [q, setQ] = useState("");
   const [index, setIndex] = useState<GuideIndex | null>(cachedGuideIndex());
   const [done, setDone] = useState<string[]>([]);
   const [folded, setFolded] = useState(false);
@@ -104,7 +101,6 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
 
   const show = (on: Tab) => {
     setTab(on);
-    setQ("");
     setOpen(true);
     loadGuideIndex().then((i) => {
       setIndex(i);
@@ -112,11 +108,6 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
     });
   };
   const close = () => setOpen(false);
-  const goTo = (e: SearchEntry) => {
-    close();
-    router.push(e.href);
-  };
-  const hits = index && q.trim().length >= 2 ? rankEntries(index.entries, q, 6).results.map((r) => r.e) : [];
   const first = index?.lessons.filter((l) => !l.section) ?? [];
   const course = index?.lessons.filter((l) => l.section) ?? [];
   const count = (ls: LessonSummary[]) => ls.filter((l) => done.includes(l.key)).length;
@@ -233,24 +224,14 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
                   <b>{t(pos.label)}</b>
                 </div>
               )}
-              <label className={styles.search}>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m20 20-3.5-3.5" />
-                </svg>
-                <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Un mot, une question…")} aria-label={t("Rechercher dans le Guide")} autoComplete="off" enterKeyHint="search" onKeyDown={(e) => e.key === "Enter" && hits[0] && goTo(hits[0])} />
-              </label>
-              {q.trim().length >= 2 && (
-                <div className={styles.hits}>
-                  {hits.length === 0 && <span className={styles.none}>{index ? t("Aucun résultat") : t("Un instant…")}</span>}
-                  {hits.map((e) => (
-                    <button key={e.href + e.title} type="button" className={styles.hit} onClick={() => goTo(e)}>
-                      <em>{t(e.kind === "terme" ? "Définition" : e.kind === "lecon" ? "Éclairage" : e.kind === "outil" ? "Outil" : "Aide")}</em>
-                      <b>{e.title}</b>
-                    </button>
-                  ))}
-                </div>
-              )}
+              {/* LE MÊME CHAMP QUE LA PAGE ET QUE LA FEUILLE DU COMPTE.
+                  La barre du Guide avait le sien, avec le ternaire à quatre
+                  branches copié de la feuille : deux surfaces se trompaient
+                  d'étiquette exactement de la même façon, et un genre de plus
+                  les cassait toutes les deux. Six lignes ici, comme dans une
+                  feuille : la barre est étroite et sert à sauter, pas à
+                  dépouiller. */}
+              <InfoSearch entries={index?.entries ?? []} limit={6} close={close} dense />
 
               <Link href="/info#lecons" className={`${styles.row} ${chapter && !chapter.key ? styles.sectionHere : ""}`} onClick={close}>
                 <i className={styles.num}>8</i>

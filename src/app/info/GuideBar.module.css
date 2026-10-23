@@ -265,73 +265,14 @@
   gap: 2px;
   font-size: 0.9rem;
 }
-.search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid var(--line-2);
-  border-radius: 12px;
-  padding: 9px 12px;
-  background: var(--surface);
-  margin-bottom: 8px;
-}
-.search svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: var(--ink-3);
-  stroke-width: 2;
-  stroke-linecap: round;
-  flex: none;
-}
-.search input {
-  flex: 1 1 auto;
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  font: inherit;
-  color: var(--ink);
-}
-.hits {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-.hit {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  border: 0;
-  border-top: 1px solid var(--line);
-  background: var(--surface);
-  padding: 10px 12px;
-  font: inherit;
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
-  min-height: 44px;
-}
-.hit:first-child {
-  border-top: 0;
-}
-.hit em {
-  font-style: normal;
-  font-size: 0.66rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--gold-ink);
-  flex: none;
-  width: 62px;
-}
-.hit b {
-  font-size: 0.86rem;
-}
+/* MÊME HISTOIRE QU'AU « ⋮ » : la barre du Guide rendait son propre champ et
+   sa propre liste, avec l'étiquette de genre tirée d'un ternaire copié. Elle
+   rend le composant commun, qui porte son style. */
+
+/* « .none » reste : la liste des éclairages s'en sert pour dire l'attente de
+   l'index, et ce n'est pas la recherche. */
 .none {
-  padding: 8px 4px;
+  padding: 10px 12px;
   font-size: 0.82rem;
   color: var(--ink-3);
 }

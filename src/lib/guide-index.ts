@@ -104,7 +104,14 @@ export async function buildGuideIndex(t: (s: string) => string, lang: Lang, { ap
            leur titre depuis le 4 octobre 2026, et leur table dit que « le Guide
            est l'endroit où elle doit reparaître » : c'est ici. */
         ...(Object.keys(SECTIONS_DU_MARCHE) as Lieu[]).flatMap((lieu) =>
-          SECTIONS_DU_MARCHE[lieu].map((sec) => ({ kind: "page" as const, title: `${t(LIEU_LABEL[lieu])} · ${t(SECTION_LABEL[sec])}`, text: t(SECTION_NOTE[sec]), href: `${lieuHref[lieu]}#sec-${sec}`, extra: t(SECTION_LABEL[sec]) })),
+          /* « Fonds · Fonds » : une section porte parfois le nom de sa liste,
+             et le lieu répété se lit comme une panne. Le titre seul suffit —
+             c'est déjà le nom de la page. */
+          SECTIONS_DU_MARCHE[lieu].map((sec) => {
+            const lieuNom = t(LIEU_LABEL[lieu]);
+            const secNom = t(SECTION_LABEL[sec]);
+            return { kind: "page" as const, title: lieuNom === secNom ? lieuNom : `${lieuNom} · ${secNom}`, text: t(SECTION_NOTE[sec]), href: `${lieuHref[lieu]}#sec-${sec}`, extra: secNom };
+          }),
         ),
         /* Les instruments, par ce qu'ils engagent : les mises en garde d'un type
            sont la seule page où « à garder en tête » est écrit une fois pour

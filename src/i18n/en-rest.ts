@@ -1389,6 +1389,9 @@ export const EN_REST: Record<string, string> = {
   "L'aide, le glossaire, les éclairages et les pages de l'application, en un seul champ. Une question entière marche aussi bien qu'un mot.":
     "The help, the glossary, the explainers and the pages of the application, in a single field. A whole question works as well as a single word.",
   "On nous demande souvent": "We are often asked",
+  /* Le compte est celui du classement, le nombre montré celui du placement :
+     une feuille en pose six et le dit, la page les pose tous. */
+  "les {n} premiers": "the first {n}",
   "aide · glossaire · pages": "help · glossary · pages",
   "Ouvrir la recherche entière": "Open the full search",
   /* Deux étiquettes de résultat de plus : un service se fait, un instrument

@@ -103,8 +103,17 @@ export function revealAnchor(id: string) {
   return true;
 }
 
-/** The words of a query, the results ranked (title matches first), and whether it was a question. */
-export function rankEntries(entries: SearchEntry[], q: string, limit = 8): { results: { e: SearchEntry; score: number }[]; words: string[]; asked: boolean } {
+/**
+ * The words of a query, the results ranked (title matches first), and whether it was a question.
+ *
+ * ELLE NE COUPE PLUS, ET C'EST CE QUI REND LE COMPTE VRAI. Elle tranchait à
+ * huit, et l'en-tête annonçait « 8 résultats » : mesuré le 24 octobre 2026,
+ * « fonds » en a 49, « compte » 41, « ordre » 39. Le lecteur lisait un total
+ * qui était une limite d'affichage, et ne pouvait pas savoir qu'il manquait
+ * quarante et une réponses. Classer et montrer sont deux gestes : celui-ci
+ * classe, l'affichage décide de ce qu'il montre et le dit.
+ */
+export function rankEntries(entries: SearchEntry[], q: string): { results: { e: SearchEntry; score: number }[]; words: string[]; asked: boolean } {
   const raw = fold(q)
     .split(/[^a-z0-9]+/)
     .filter((w) => w.length >= 2);
@@ -132,12 +141,52 @@ export function rankEntries(entries: SearchEntry[], q: string, limit = 8): { res
       return { e, score };
     })
     .filter((x) => x.score > 0)
-    .sort((a, b) => b.score - a.score || a.e.title.localeCompare(b.e.title, "fr"))
-    .slice(0, limit);
+    .sort((a, b) => b.score - a.score || a.e.title.localeCompare(b.e.title, "fr"));
   return { results, words: [...words, ...alts], asked };
 }
 
-export function InfoSearch({ entries, auto, vide }: { entries: SearchEntry[]; /** La page de recherche n'a que ce champ : le curseur s'y pose. Dans le Guide, non : le champ y est un outil parmi d'autres, et voler le curseur ferait sauter la page au clavier. */ auto?: boolean; /** Ce qui se lit tant qu'on n'a rien tapé : sur la page dédiée, les questions les plus posées. */ vide?: React.ReactNode }) {
+/**
+ * LE SEUL CHAMP DE RECHERCHE DE LA MAISON, ET SES QUATRE PLACEMENTS.
+ *
+ * Il y en avait TROIS, sur le même classement : celui-ci, celui de la feuille
+ * du compte (`MenuRecherche`) et celui de la barre du Guide (`GuideBar`). Les
+ * deux derniers portaient la MÊME ligne, copiée caractère pour caractère :
+ *
+ *   t(e.kind === "terme" ? "Définition" : e.kind === "lecon" ? "Éclairage"
+ *     : e.kind === "outil" ? "Outil" : "Aide")
+ *
+ * Quatre branches pour six genres. Mesuré le 24 octobre 2026 : « Prélèvement
+ * automatique », un SERVICE, s'étiquetait « Aide » dans la feuille et
+ * « Service » sur la page ; « Rachats par le Trésor », un INSTRUMENT, pareil.
+ * Un genre de plus retombait sur « Aide » dans deux surfaces sur trois, sans
+ * que rien n'échoue — et le ternaire dans t() est invisible au scanner de
+ * clefs, donc même la traduction ne le signalait pas.
+ *
+ * TROIS RENDUS POUR UN CLASSEMENT, C'ÉTAIT DEUX DE TROP. Il n'en reste qu'un,
+ * et les placements ne diffèrent plus que par deux choses : combien de lignes
+ * ils montrent, et ce qu'ils font après un clic. Tout le reste — l'étiquette,
+ * la phrase où le mot apparaît, les flèches, le compte — est écrit une fois.
+ */
+export function InfoSearch({
+  entries,
+  auto,
+  vide,
+  limit,
+  close,
+  dense,
+}: {
+  entries: SearchEntry[];
+  /** La page de recherche n'a que ce champ : le curseur s'y pose. Dans le Guide, non : le champ y est un outil parmi d'autres, et voler le curseur ferait sauter la page au clavier. */
+  auto?: boolean;
+  /** Ce qui se lit tant qu'on n'a rien tapé : sur la page dédiée, les questions les plus posées. */
+  vide?: React.ReactNode;
+  /** Combien de lignes ce placement montre. Sans limite — la page — il les montre toutes. */
+  limit?: number;
+  /** Dans une feuille, elle se referme sur un résultat ; sur une page, il n'y a rien à fermer. */
+  close?: () => void;
+  /** Dans une feuille : la phrase se replie sur une ligne, pour que six résultats et le lien du bas tiennent à l'écran. */
+  dense?: boolean;
+}) {
   const t = useT();
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -146,17 +195,26 @@ export function InfoSearch({ entries, auto, vide }: { entries: SearchEntry[]; /*
   const KIND: Record<SearchEntry["kind"], string> = { terme: t("Définition"), lecon: t("Éclairage"), outil: t("Outil"), page: t("Page"), service: t("Service"), instrument: t("Instrument") };
 
   const { results, words, asked } = useMemo(() => rankEntries(entries, q), [q, entries]);
+  /* Le classement donne tout, le placement montre ce qu'il peut : la page les
+     affiche tous, une feuille les six premiers. Le compte, lui, reste celui du
+     classement — c'est la seule façon qu'il ne mente pas. */
+  const montres = limit === undefined ? results : results.slice(0, limit);
+  const reste = results.length - montres.length;
 
   const go = (href: string) => {
     setQ("");
+    close?.();
     const hash = href.startsWith("/info#") ? href.slice("/info#".length) : href.startsWith("#") ? href.slice(1) : null;
     if (hash && revealAnchor(hash)) return;
     router.push(href);
   };
   const shown = q.trim().length >= 2;
+  /* L'index d'une feuille arrive après l'ouverture : sans lui, « aucun
+     résultat » accuserait la question au lieu d'annoncer l'attente. */
+  const attend = entries.length === 0;
 
   return (
-    <div className={styles.wrap} ref={box}>
+    <div className={`${styles.wrap} ${dense ? styles.dense : ""}`} ref={box}>
       <label className={styles.field}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <circle cx="11" cy="11" r="7" />
@@ -176,13 +234,13 @@ export function InfoSearch({ entries, auto, vide }: { entries: SearchEntry[]; /*
           onKeyDown={(e) => {
             if (e.key === "ArrowDown") {
               e.preventDefault();
-              setActive((a) => Math.min(results.length - 1, a + 1));
+              setActive((a) => Math.min(montres.length - 1, a + 1));
             } else if (e.key === "ArrowUp") {
               e.preventDefault();
               setActive((a) => Math.max(0, a - 1));
-            } else if (e.key === "Enter" && results[active]) {
+            } else if (e.key === "Enter" && montres[active]) {
               e.preventDefault();
-              go(results[active].e.href);
+              go(montres[active].e.href);
             } else if (e.key === "Escape") setQ("");
           }}
         />
@@ -198,13 +256,14 @@ export function InfoSearch({ entries, auto, vide }: { entries: SearchEntry[]; /*
           <div className={styles.resultsHead}>
             {results.length > 0 ? (
               <span>
-                <b>{results.length}</b> {t(results.length > 1 ? "résultats pour" : "résultat pour")} « {words.slice(0, 3).join(" ") || q.trim()} » : {t("Entrée ouvre le premier")}
+                <b>{results.length}</b> {t(results.length > 1 ? "résultats pour" : "résultat pour")} « {words.slice(0, 3).join(" ") || q.trim()} »
+                {reste > 0 ? ` · ${t("les {n} premiers", { n: String(montres.length) })}` : ` : ${t("Entrée ouvre le premier")}`}
               </span>
             ) : (
-              <span>{t("Aucun résultat")}</span>
+              <span>{attend ? t("Un instant…") : t("Aucun résultat")}</span>
             )}
           </div>
-          {results.map(({ e }, i) => (
+          {montres.map(({ e }, i) => (
             <button key={e.href + e.title} type="button" role="option" aria-selected={i === active} className={`${styles.item} ${i === active ? styles.on : ""}`} onMouseEnter={() => setActive(i)} onClick={() => go(e.href)}>
               <span className={`${styles.kind} ${styles[e.kind]}`}>{KIND[e.kind]}</span>
               <span className={styles.body}>
@@ -216,7 +275,7 @@ export function InfoSearch({ entries, auto, vide }: { entries: SearchEntry[]; /*
               </span>
             </button>
           ))}
-          {results.length === 0 && (
+          {results.length === 0 && !attend && (
             <div className={styles.empty}>
               {t("Rien trouvé pour")} « {q} ». {t("Posez la question au desk depuis n'importe quelle fiche (bouton « Question ») ou sur WhatsApp.")}
             </div>

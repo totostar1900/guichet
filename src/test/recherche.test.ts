@@ -77,11 +77,58 @@ describe("ce que la recherche connaît", () => {
     expect(fuites, `le guide public mène un visiteur sans compte vers :\n  ${fuites.join("\n  ")}`).toEqual([]);
   });
 
+  /**
+   * LE DESK N'EST PAS UN CLIENT, ET « IL Y A UNE SESSION » NE LE DIT PAS.
+   *
+   * La route qui sert l'index aux feuilles a lu `Boolean(s)` pendant une
+   * journée : un opérateur du desk recevait les 204 entrées du client — dix
+   * services, huit instruments, « Qui vous êtes », « Sécurité » — sur un hôte
+   * où aucune de ces adresses n'existe. L'épreuve lit la route, parce que la
+   * décision est là et nulle part ailleurs.
+   */
+  it("ne sert pas la navigation du client au desk", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const route = readFileSync(join(process.cwd(), "src/app/api/guide-index/route.ts"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(route, "la route sert l'application à toute session, desk compris").toMatch(/app:\s*Boolean\(s\)\s*&&\s*!isDesk\(s\)/);
+  });
+
   /* Le défaut sûr : une page qui oublie l'option montre moins, jamais plus. */
   it("tient le guide public pour le défaut", async () => {
     const sans = await buildGuideIndex(t, "fr");
     const avec = await buildGuideIndex(t, "fr", { app: true });
     expect(sans.entries.length, "le défaut s'est mis à tout montrer").toBeLessThan(avec.entries.length);
+  });
+
+  /**
+   * UN SEUL CHAMP, ET DONC UN SEUL CLASSEMENT AFFICHÉ.
+   *
+   * Il y avait trois rendus pour un classement : la page, la feuille du compte
+   * et la barre du Guide. Les deux feuilles portaient la MÊME ligne, copiée :
+   * un ternaire à quatre branches pour six genres, dont la dernière, « Aide »,
+   * ramassait tout le reste. « Prélèvement automatique » s'étiquetait donc
+   * « Aide » dans une feuille et « Service » sur la page.
+   *
+   * L'épreuve tient les deux bouts : personne ne rappelle `rankEntries` pour
+   * s'en faire un rendu, et aucun fichier ne refabrique l'étiquette d'un genre
+   * à coups de ternaire. La table des genres vit dans `InfoSearch`, une fois.
+   */
+  it("n'a qu'un rendu pour son classement", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const { globSync } = await import("node:fs");
+    const fichiers = globSync("src/**/*.{ts,tsx}", { cwd: process.cwd() }).filter((f) => !f.startsWith("src/test/"));
+    const appelants = fichiers.filter((f) => /rankEntries\s*\(/.test(readFileSync(join(process.cwd(), f), "utf8")));
+    expect(appelants, "un second rendu s'est remis à classer pour son compte").toEqual(["src/app/info/InfoSearch.tsx"]);
+
+    /* `InfoSearch` lui-même tient le droit de regarder un genre : il pose la
+       table des étiquettes, et traite la définition à part — une question
+       appelle « Qu'est-ce que … ? » et montre le début de la phrase. Ce qu'on
+       interdit, c'est de REFABRIQUER l'étiquette ailleurs. */
+    const ternaires = fichiers
+      .filter((f) => f !== "src/app/info/InfoSearch.tsx")
+      .filter((f) => /kind === "(terme|lecon|outil)"\s*\?/.test(readFileSync(join(process.cwd(), f), "utf8")));
+    expect(ternaires, "une étiquette de genre se refabrique à la main ; un genre de plus y retomberait sur « Aide »").toEqual([]);
   });
 
   /**
