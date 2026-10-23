@@ -57,3 +57,38 @@ describe("la colonne escamotée se montre au survol du bord", () => {
     expect(TSX.includes("setItem(CLEF_ETAT, lorgne") || TSX.includes("lorgne ? \"escamotee\""), "le coup d'œil se retrouve dans le stockage").toBe(false);
   });
 });
+
+/**
+ * L'ÉPINGLE QUI NE PARAÎT QU'AU SURVOL, ET CELLE QUI DOIT RESTER.
+ *
+ * La feuille de style pose la règle et sa raison : « une épingle qu'on ne
+ * voit qu'au survol ne se retire pas, parce qu'on ne sait plus qu'elle est
+ * là ». Elle s'accroche à `[aria-pressed="true"]`, c'est-à-dire à un attribut
+ * que le rendu doit penser à poser.
+ *
+ * LA LISTE DES FAVORIS NE LE POSAIT PAS. Mesuré le 24 octobre 2026 : sous
+ * « Favoris », opacité 0 au repos ; pour la MÊME page dans son groupe, 1. Les
+ * épingles toutes posées par définition étaient les seules invisibles, et le
+ * bloc entier se lisait comme deux liens nus. Rien n'échouait : la règle
+ * existait, elle ne trouvait simplement rien à quoi s'accrocher.
+ *
+ * C'est un défaut à deux faces — l'œil et le lecteur d'écran —, et une seule
+ * épreuve les tient, parce qu'un seul attribut les porte.
+ */
+describe("l'épingle posée se voit", () => {
+  it("accroche sa visibilité à l'état, et pas seulement au survol", () => {
+    expect(CSS, "la règle qui garde l'épingle posée visible a disparu").toMatch(/\.punaise\[aria-pressed="true"\][\s\S]{0,80}opacity: 1/);
+  });
+
+  it("pose l'état sur chaque épingle, dans les groupes comme dans les favoris", () => {
+    /* Du « <button » qui ouvre au « </button> » qui ferme : une fenêtre plus
+       courte s'arrêterait au premier « > », qui est celui de la flèche de
+       « onClick={() => » et non la fin de la balise. */
+    const punaises = [...TSX.matchAll(/<button\b[\s\S]*?<\/button>/g)].map((m) => m[0]).filter((b) => b.includes("styles.punaise"));
+    expect(punaises.length, "les épingles ont changé de forme").toBe(2);
+    expect(
+      punaises.filter((b) => !/aria-pressed/.test(b)),
+      "une épingle sans « aria-pressed » reste invisible au repos, et muette pour qui écoute la page",
+    ).toEqual([]);
+  });
+});

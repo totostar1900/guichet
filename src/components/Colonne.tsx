@@ -557,6 +557,17 @@ function Chercher({ groupes, badges, auDesk, connecte }: { groupes: GroupeColonn
 /** Les pages que le desk a épinglées, au-dessus des groupes. */
 function Epingles({ groupes, epingles, basculerEpingle, actifP, badges }: { groupes: GroupeColonne[]; epingles: string[]; basculerEpingle: (h: string) => void; actifP?: string; badges: Record<string, number> }) {
   const t = useT();
+  /**
+   * ON FILTRE L'AFFICHAGE, ON NE PURGE PAS LE STOCKAGE, et c'est voulu.
+   *
+   * Une adresse épinglée qui n'est pas dans le rail courant ne s'affiche pas,
+   * et reste enregistrée. Ça ressemble à une liste qui pourrit — j'ai
+   * commencé par le lire ainsi — mais c'est l'inverse : les deux publics
+   * partagent une seule clef, et le desk et le guichet n'ont pas les mêmes
+   * pages. Purger à l'affichage effacerait les favoris du desk dès qu'un
+   * opérateur ouvre le guichet, et réciproquement. Le silence est le prix de
+   * cette mémoire, et il est moins cher que l'oubli.
+   */
   const toutes = groupes.flatMap((g) => g.items);
   const choisies = epingles.map((h) => toutes.find((it) => it.href === h)).filter((it): it is { href: string; label: string } => Boolean(it));
   if (!choisies.length) return null;
@@ -569,7 +580,16 @@ function Epingles({ groupes, epingles, basculerEpingle, actifP, badges }: { grou
             <span className={styles.nm}>{t(it.label)}</span>
             {badges[it.href] ? <span className={styles.pt}>{badges[it.href]}</span> : null}
           </Link>
-          <button type="button" className={styles.punaise} onClick={() => basculerEpingle(it.href)} aria-label={t("Retirer des favoris")} title={t("Retirer des favoris")}>
+          {/* « aria-pressed » N'EST PAS DÉCORATIF ICI : la feuille de style
+              garde l'épingle visible au repos par « .punaise[aria-pressed=
+              "true"] », et sa raison est écrite à côté — « une épingle qu'on
+              ne voit qu'au survol ne se retire pas, parce qu'on ne sait plus
+              qu'elle est là ». Cette liste-ci ne posait pas l'attribut : ses
+              épingles, TOUTES posées par définition, étaient les seules
+              invisibles au repos. Mesuré le 24 octobre 2026 : opacité 0 sous
+              « Favoris », 1 pour la même page dans son groupe. L'attribut dit
+              aussi l'état à qui écoute la page. */}
+          <button type="button" className={styles.punaise} onClick={() => basculerEpingle(it.href)} aria-pressed aria-label={t("Retirer des favoris")} title={t("Retirer des favoris")}>
             <Punaise pleine />
           </button>
         </span>
