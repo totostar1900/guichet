@@ -1,4 +1,9 @@
 /* La bande des actions qui attendent le lecteur.
+   SANS MARGE À ELLE : ses trois pages d'accueil sont des colonnes à écart
+   déclaré (« gap »), et la marge s'ajoutait à l'écart — mesuré à 390 px, 64 px
+   de vide entre la bande et la première ligne du sommaire, contre 32 partout
+   ailleurs sur la même page. Une pièce qui pose sa propre marge dans une mise
+   en page à écart ne sait pas où elle vit.
    Elle est la seule teintée de la page : tout le reste est un constat, elle
    seule demande un geste. Vide, le composant ne rend rien et elle n'occupe
    aucune place. */
@@ -8,7 +13,6 @@
   border-left: 3px solid var(--gold);
   border-radius: var(--radius);
   padding: var(--s-6) var(--s-7);
-  margin-bottom: var(--s-8);
 }
 .titre {
   margin: 0 0 var(--s-5);
@@ -59,4 +63,18 @@
   .quoi {
     min-width: 100%;
   }
+}
+
+/* Ce que la bande ne montre pas, nommé et mené quelque part. Un lien nu : ce
+   n'est pas un geste de plus, c'est la suite de la même liste. */
+.reste {
+  display: inline-block;
+  margin-top: var(--s-5);
+  font-size: var(--t-2);
+  color: var(--gold-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.reste:hover {
+  color: var(--ink);
 }

@@ -189,7 +189,11 @@ export async function Console({ session }: { session: Session }) {
           en plan sans que personne, dans la maison, voie où cliquer. Un geste
           rangé au bon endroit reste invisible s'il faut déjà savoir qu'il
           existe pour aller le chercher. */}
-      <CeQuiVousAttend userId={session.userId} />
+      {/* LA LISTE ENTIÈRE, ET SEULEMENT ICI. Les deux sièges qui la portent
+          s'en tiennent aux deux plus bloquantes et renvoient au reste : un
+          sommaire n'a pas à porter la file d'attente complète, il a à ne rien
+          cacher. Cette page-ci, où l'on atterrit, l'a pour sujet. */}
+      <CeQuiVousAttend userId={session.userId} tout />
       <SelectionDuDesk />
 
       {/* 1. Ce que ça vaut, et ce que ça a rapporté. */}

@@ -26,6 +26,10 @@ export const EN_CONSOLE: Record<string, string> = {
   "Bonjour {p}": "Hello {p}",
   "Dossier à compléter": "File to complete",
   "Ce qui vous attend": "What is waiting for you",
+  /* La bande des sièges s'arrête à deux et nomme le reste. Le singulier passe
+     par un ternaire, que le scanner de clefs ne voit pas : il s'écrit donc
+     ici à la main, comme « Changer » et « Ajouter » avant lui. */
+  "et une autre": "and one more",
   "une décision possible aujourd'hui": "one decision open today",
   "{n} décisions possibles aujourd'hui": "{n} decisions open today",
   "Vos services": "Your services",
