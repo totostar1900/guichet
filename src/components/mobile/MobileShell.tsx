@@ -12,6 +12,7 @@ import { INSTRUMENTS_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, type NavPage } fro
 import { ICONE_PAGE } from "@/components/nav/IconesPages";
 import { Tuiles } from "@/components/nav/Tuiles";
 import type { ClientPrefs } from "@/lib/domain/types";
+import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
 import { isEspaceSection, isInstrumentsSection, isMarcheSection, listForFiche, TITRES } from "@/lib/nav-section";
 
@@ -112,7 +113,7 @@ function fallbackFor(path: string): string {
   return "/";
 }
 
-export function MobileShell({ signedIn, name, segment, tier, email, phone, phoneOk, emailOk, prefs, kycStatus, vapidKey, desk, deskHost = false, pendingCount = 0, security, profile, build, attentes = [], menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; phone?: string; phoneOk?: boolean; emailOk?: boolean; prefs?: ClientPrefs; kycStatus?: string; vapidKey?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; pendingCount?: number; /** ce que la feuille du compte dit sous « Sécurité », « Mon profil » et au pied */ security?: { channels: number; devices: number }; profile?: "prudent" | "equilibre" | "dynamique"; build?: string; /** Ce qui attend le client, pour la pastille de la barre : voir AccountProps. */ attentes?: { cle: string; href: string }[]; menu?: React.ReactNode }) {
+export function MobileShell({ signedIn, name, segment, tier, email, phone, phoneOk, emailOk, prefs, kycStatus, vapidKey, desk, deskHost = false, pendingCount = 0, security, profile, build, attentes = [], menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; phone?: string; phoneOk?: boolean; emailOk?: boolean; prefs?: ClientPrefs; kycStatus?: string; vapidKey?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; pendingCount?: number; /** ce que la feuille du compte dit sous « Sécurité », « Mon profil » et au pied */ security?: { channels: number; devices: number }; profile?: "prudent" | "equilibre" | "dynamique"; build?: string; /** Ce qui attend le client, pour la pastille de la barre : voir AccountProps. */ attentes?: Attente[]; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");

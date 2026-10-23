@@ -7,6 +7,7 @@ import { useLang, useT } from "@/i18n/client";
 import { logout, logoutEverywhere } from "@/app/connexion/actions";
 import { identityAction, prefsAction, type IdentityResult } from "@/app/moi/actions";
 import type { ClientPrefs } from "@/lib/domain/types";
+import type { Attente } from "@/lib/domain/services";
 import { LangSwitch } from "@/components/LangSwitch";
 import { PaletteSwitch } from "@/components/PaletteSwitch";
 import { PushToggle } from "@/components/PushToggle";
@@ -73,7 +74,8 @@ export interface AccountProps {
    * posé à côté de l'initiale : une attente, elle y va ; plusieurs, elle
    * ouvre la bande qui les porte toutes.
    */
-  attentes?: { cle: string; href: string }[];
+  /** Ce qui attend le client, en entier : le panneau de la pastille le déroule. */
+  attentes?: Attente[];
 }
 
 const D = {
@@ -146,6 +148,11 @@ export function AccountMenu(p: AccountProps & { dock?: "top-right" | "bottom-lef
   const { index, lues } = useGuideIndex(open);
   const lecon = leconDuClient(path);
   const attentes = p.attentes ?? [];
+  /* Le panneau de la pastille, et celle des décisions qui est dépliée. Deux
+     états de session : ils ne survivent pas à la page, et c'est bien — une
+     décision prise n'a pas à rouvrir son tiroir au retour. */
+  const [alertes, setAlertes] = useState(false);
+  const [choisie, setChoisie] = useState<string | null>(attentes[0]?.cle ?? null);
 
   const setPref = (patch: ClientPrefs) => {
     const before = prefs;
@@ -221,15 +228,63 @@ export function AccountMenu(p: AccountProps & { dock?: "top-right" | "bottom-lef
           Plusieurs : elle ouvre la bande qui les porte toutes.
           À zéro, rien ne paraît : une pastille qui annonce « rien » apprend à
           l'oeil à ne plus la regarder, y compris le jour où elle dit un. */}
+      {/* LA PASTILLE SE DÉROULE AU LIEU D'EMMENER AILLEURS.
+          Elle était un lien muet : une attente, elle y allait tout droit ;
+          plusieurs, elle ouvrait l'ancre de la bande, sur une autre page. Le
+          lecteur quittait donc sa page AVANT de savoir ce qui l'attendait, et
+          il ne choisissait rien — alors que c'est précisément quand il y en a
+          plusieurs qu'il faut choisir laquelle traiter.
+          Elle ouvre maintenant un panneau qui les nomme, chacune avec son
+          moment, son chiffre et son geste, et c'est le lecteur qui prend. */}
       {attentes.length > 0 && (
-        <Link
-          className={styles.alerte}
-          href={attentes.length === 1 ? attentes[0].href : "/#a-decider"}
-          aria-label={t("{n} décisions vous attendent", { n: String(attentes.length) })}
-          title={t("{n} décisions vous attendent", { n: String(attentes.length) })}
-        >
-          {attentes.length}
-        </Link>
+        <div className={styles.cloche}>
+          <button
+            type="button"
+            className={styles.alerte}
+            onClick={() => setAlertes(!alertes)}
+            aria-expanded={alertes}
+            aria-label={t("{n} décisions vous attendent", { n: String(attentes.length) })}
+            title={t("{n} décisions vous attendent", { n: String(attentes.length) })}
+          >
+            {attentes.length}
+          </button>
+          {alertes && (
+            <>
+              {/* Un voile transparent ferme le panneau au premier clic
+                  ailleurs, sans piéger le reste de la page. */}
+              <button type="button" className={styles.voile} aria-label={t("Fermer")} onClick={() => setAlertes(false)} />
+              <div className={`${styles.panneau} ${p.dock === "bottom-left" ? styles.panneauHaut : ""}`} role="group" aria-label={t("Ce qui vous attend")}>
+                <div className={styles.panneauTete}>
+                  <b>
+                    {t("Ce qui vous attend")} · {attentes.length}
+                  </b>
+                </div>
+                {attentes.map((a) => {
+                  const deploye = choisie === a.cle;
+                  return (
+                    <div key={a.cle} className={styles.att} data-ton={a.ton}>
+                      <button type="button" className={styles.attTete} aria-expanded={deploye} onClick={() => setChoisie(deploye ? null : a.cle)}>
+                        <span className={styles.attQuand}>{t(a.quand.key, a.quand.params)}</span>
+                        <span className={styles.attChiffre}>{typeof a.chiffre === "string" ? a.chiffre : t(a.chiffre.key, a.chiffre.params)}</span>
+                        <svg className={styles.attChev} viewBox="0 0 24 24" aria-hidden="true" data-ouvert={deploye ? "oui" : undefined}>
+                          <path d="M6 9l6 6 6-6" />
+                        </svg>
+                      </button>
+                      {deploye && (
+                        <div className={styles.attCorps}>
+                          <p>{t(a.quoi.key, a.quoi.params)}</p>
+                          <Link className={styles.attGeste} href={a.href} onClick={() => setAlertes(false)}>
+                            {t(a.geste)}
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
       )}
       <button type="button" className={styles.avatar} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-label={t("Mon compte")} title={who.name}>
         {initial}

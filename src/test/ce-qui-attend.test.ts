@@ -153,9 +153,20 @@ describe("où la liste se lit", () => {
     expect(menu).toContain("if (!desk) return null");
     expect(menu).not.toContain("aDecider");
     const compte = lire("src/components/mobile/AccountMenu.tsx");
-    // Un lien, pas un ornement : une attente y va tout droit, plusieurs ouvrent la bande.
     expect(compte).toContain("styles.alerte");
-    expect(compte).toContain('attentes.length === 1 ? attentes[0].href : "/#a-decider"');
+    /* ELLE NE MÈNE PLUS AILLEURS, ELLE SE DÉROULE. Jusqu'au 22 octobre 2026
+       c'était un lien : une attente y allait tout droit, plusieurs ouvraient
+       l'ancre « #a-decider » de la bande — sur une AUTRE page. Le lecteur
+       quittait donc sa page avant de savoir ce qui l'attendait, et il ne
+       choisissait rien, alors que c'est quand il y en a plusieurs qu'il faut
+       choisir laquelle traiter.
+       Le panneau les nomme sur place, chacune avec son moment, son chiffre,
+       sa phrase et son geste. Ces trois épreuves tiennent cela : un bouton
+       qui déplie, une ligne par attente, et le geste de chacune. */
+    expect(compte, "la pastille est redevenue un lien qui emmène ailleurs").not.toContain('"/#a-decider"');
+    expect(compte, "la pastille ne déplie plus son panneau").toMatch(/onClick=\{\(\) => setAlertes\(!alertes\)\}/);
+    expect(compte, "le panneau ne déroule plus une ligne par attente").toMatch(/attentes\.map\(\(a\) =>/);
+    expect(compte, "une attente du panneau ne porte plus son propre geste").toMatch(/href=\{a\.href\}/);
     const layout = lire("src/app/layout.tsx");
     expect(layout).toContain("attentes={deskUi ? [] : attentes}");
   });

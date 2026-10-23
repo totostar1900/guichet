@@ -8,7 +8,7 @@ import { attendUneSignature } from "@/lib/domain/intent";
 import { conventionAReprendre } from "@/lib/kyc/checklist";
 import { cashPosition } from "@/lib/domain/cash";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
-import { attentesDuClient, type ContexteClient } from "@/lib/domain/services";
+import { attentesDuClient, type Attente, type ContexteClient } from "@/lib/domain/services";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate, localIso } from "@/lib/format";
 
@@ -105,15 +105,24 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
  * barre a besoin du geste autant que du chiffre. Une seule attente, et la
  * pastille y va tout droit ; plusieurs, elle ouvre la bande qui les porte.
  */
-export interface AttenteDeBarre {
-  cle: string;
-  href: string;
-}
+/**
+ * LA PASTILLE PORTE DÉSORMAIS CE QU'ELLE COMPTE.
+ *
+ * Elle n'emportait que la clef et la destination : un chiffre muet, qui
+ * menait tout droit quand il y avait une attente et à l'ancre de la bande
+ * quand il y en avait plusieurs. Le lecteur quittait donc sa page AVANT de
+ * savoir ce qui l'attendait, et il ne choisissait rien — alors que c'est
+ * précisément quand il y en a plusieurs qu'il faut choisir.
+ *
+ * Le type n'est plus une réduction : c'est l'attente entière, celle que la
+ * bande affiche déjà. Deux formes de la même chose finissent toujours par
+ * diverger, et la seconde ne portait rien que la première n'ait.
+ */
+export type AttenteDeBarre = Attente;
 export const attentesPourLaBarre = cache(async (userId: string): Promise<AttenteDeBarre[]> => {
   try {
     const ctx = await contexteDuClient(userId);
-    // Le formateur ne sert qu'aux libellés, dont on ne garde ici que la destination.
-    return attentesDuClient(ctx, fmt).map((a) => ({ cle: a.cle, href: a.href }));
+    return attentesDuClient(ctx, fmt);
   } catch {
     // Le compteur ne fait jamais tomber une page : sans liste, pas de pastille.
     return [];

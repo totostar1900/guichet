@@ -40,5 +40,27 @@ export const INSTRUMENTS_PAGES: NavPage[] = [
   { key: "calendrier", href: "/calendrier", label: "Adjudications", tuile: "les séances des Trésors", hint: "les séances des six Trésors, annoncées environ une semaine avant" },
 ];
 
+/**
+ * CE QU'ON MET EN PLACE. « Agir » n'avait qu'un seul item, « Passer un
+ * ordre », écrit à la main dans la colonne — et le groupe entier se lisait
+ * donc comme une page déguisée en rayon.
+ *
+ * Les trois gestes que la maison nomme (domain/services : placer, programmer,
+ * tenir) existaient pourtant chacun avec sa page, et deux d'entre eux
+ * n'étaient listés NULLE PART : on n'arrivait sur le prélèvement automatique
+ * et sur la provision qu'en tapant leur adresse, ou par un lien croisé. Un
+ * service qu'on ne trouve pas n'est pas un service.
+ *
+ * « Réinvestir » n'y est pas, et ce n'est pas un oubli : il est déjà dans
+ * « Portefeuille », parce qu'un coupon qui tombe appartient d'abord à ce
+ * qu'on possède. Deux portes vers la même page dans la même vue, c'est
+ * exactement ce que la fusion des sièges a retiré.
+ */
+export const AGIR_PAGES: NavPage[] = [
+  { key: "trader", href: "/trader", label: "Passer un ordre", tuile: "acheter ou vendre", hint: "acheter, souscrire, vendre ou demander un rachat" },
+  { key: "prelevements", href: "/moi/prelevements", label: "Prélèvement automatique", tuile: "placer chaque mois", hint: "une somme prélevée à date fixe, sous un plafond que vous fixez" },
+  { key: "provision", href: "/moi/provision", label: "Ma provision", tuile: "régler sans virement", hint: "ce que vous laissez chez nous règle vos ordres sans attendre un virement" },
+];
+
 /** Ce qui se lit : l'indice, les sociétés, les notes, les actualités. */
 export const MARCHE_PAGES: NavPage[] = MARKET_PAGES;

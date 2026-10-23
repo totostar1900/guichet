@@ -1,5 +1,5 @@
 import { DESK_GROUPS } from "./desk-groupes";
-import { INSTRUMENTS_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "./nav-groups";
+import { AGIR_PAGES, INSTRUMENTS_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "./nav-groups";
 import { MARKET_PAGES } from "./market/pages";
 
 /**
@@ -39,7 +39,7 @@ const dePages = (pages: NavPage[]) => pages.map((p) => ({ href: p.href, label: p
 export const COLONNE_CLIENT: GroupeColonne[] = [
   { label: "Portefeuille", items: dePages(PORTEFEUILLE_PAGES) },
   { label: "Instruments", items: dePages(INSTRUMENTS_PAGES) },
-  { label: "Agir", items: [{ href: "/trader", label: "Passer un ordre" }] },
+  { label: "Agir", items: dePages(AGIR_PAGES) },
   { label: "Marché", items: dePages(MARKET_PAGES) },
 ];
 

@@ -467,6 +467,16 @@ export const SEED_INTENTS: Intent[] = [
   // the demo client (dev login « G. Nitcheu ») has a past: one line settled, one not served
   { id: "i-001", ref: "PF-0602-001", clientId: "dev-client-g-nitcheu", offerId: "rca-ota-c-2028", offerVersion: 1, clientName: "G. Nitcheu", clientSegment: "Personne physique · Yaoundé", type: "ferme", amount: 5_000_000, channel: "WhatsApp", state: "reglee", allocationPct: 100, createdAt: "2026-06-02T09:10:00", updatedAt: "2026-06-12T10:00:00" },
   { id: "i-002", ref: "PF-0715-002", clientId: "dev-client-g-nitcheu", offerId: "rca-ota-c-2028", offerVersion: 1, clientName: "G. Nitcheu", clientSegment: "Personne physique · Yaoundé", type: "appetit", amount: 2_000_000, channel: "E-mail", state: "non_servie", createdAt: "2026-07-15T14:20:00", updatedAt: "2026-07-20T09:00:00" },
+  /* DEUX DÉCISIONS QUI ATTENDENT, et c'est le seul moyen de VOIR la bande
+     « Ce qui vous attend » et la pastille qui la compte. Le client de
+     démonstration n'avait que des ordres réglés ou non servis : les deux
+     objets qui portent tout le dialogue avec le client ne paraissaient donc
+     jamais en démonstration, ni sous les yeux de qui travaille dessus.
+     Un ordre se signe quand il est reçu ou confirmé, non signé, et qu'il
+     porte son plafond (domain/intent, « ordreSignable ») ; une
+     contre-proposition attend une réponse. Un de chaque. */
+  { id: "i-003", ref: "PF-1018-003", clientId: "dev-client-g-nitcheu", offerId: "rca-ota-c-2028", offerVersion: 1, clientName: "G. Nitcheu", clientSegment: "Personne physique · Yaoundé", type: "ferme", amount: 3_000_000, maxAmount: 3_150_000, channel: "WhatsApp", state: "confirmee", createdAt: "2026-10-18T10:05:00", updatedAt: "2026-10-20T08:30:00" },
+  { id: "i-004", ref: "PF-1020-004", clientId: "dev-client-g-nitcheu", offerId: "rca-ota-c-2028", offerVersion: 1, clientName: "G. Nitcheu", clientSegment: "Personne physique · Yaoundé", type: "ferme", amount: 1_500_000, maxAmount: 1_600_000, channel: "E-mail", state: "contre_proposee", createdAt: "2026-10-20T15:40:00", updatedAt: "2026-10-21T09:15:00" },
   {
     id: "i-011",
     ref: "PF-0914-011",

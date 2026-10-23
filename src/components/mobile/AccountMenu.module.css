@@ -340,22 +340,170 @@
    sombre ; ici le fond est la pastille elle-même, et ce rouge clair sous du
    blanc donne 2,4, illisible. Le rouge profond tient le blanc (6,0) et se
    détache du navy. */
+/**
+ * LA PASTILLE ET SON PANNEAU.
+ *
+ * Elle était un lien ; elle est un bouton, parce qu'elle n'emmène plus nulle
+ * part : elle déroule ce qu'elle compte, sur place. Le panneau s'ancre sur
+ * elle, d'où ce bloc « position: relative » autour des deux.
+ */
+.cloche {
+  position: relative;
+  display: flex;
+  flex: none;
+}
 .alerte {
   width: 26px;
   height: 26px;
   flex: none;
   display: grid;
   place-items: center;
+  border: 0;
+  padding: 0;
   border-radius: 50%;
   background: #b3261e;
   color: #fff;
   text-decoration: none;
+  font: inherit;
   font-size: var(--t-2);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  cursor: pointer;
+}
+/* Le voile ne noircit rien : il n'est là que pour prendre le premier clic
+   posé ailleurs, et refermer. */
+.voile {
+  position: fixed;
+  inset: 0;
+  z-index: 59;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: default;
+}
+.panneau {
+  position: absolute;
+  top: calc(100% + var(--s-3));
+  right: 0;
+  z-index: 60;
+  width: min(23rem, calc(100vw - var(--s-9)));
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  text-align: left;
+}
+.panneauTete {
+  padding: var(--s-5) var(--s-6) var(--s-4);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-2);
+}
+/* Le ton d'une attente se lit au filet de gauche : ce qui est en retard, ce
+   qui vient d'arriver, ce qui s'annonce. Trois teintes qui diffèrent aussi
+   par la clarté, pas seulement par la teinte. */
+.att {
+  border-bottom: 1px solid var(--line);
+  border-left: 3px solid var(--ink-3);
+}
+.att[data-ton="retard"] {
+  border-left-color: #b4432c;
+}
+.att[data-ton="arrive"] {
+  border-left-color: #2f7d4f;
+}
+.att[data-ton="annonce"] {
+  border-left-color: #2a5db0;
+}
+.att:last-child {
+  border-bottom: 0;
+}
+.attTete {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 var(--s-4);
+  padding: var(--s-4) var(--s-6);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.attTete:hover {
+  background: var(--surface-2);
+}
+.attQuand {
+  grid-column: 1;
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.attChiffre {
+  grid-column: 1;
+  font-size: var(--t-3);
+  font-weight: 700;
+  color: var(--ink);
+}
+.attChev {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: var(--s-7);
+  height: var(--s-7);
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 2;
+  transition: transform 0.16s ease;
+}
+.attChev[data-ouvert] {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .attChev {
+    transition: none;
+  }
+}
+.attCorps {
+  padding: 0 var(--s-6) var(--s-5);
+  display: grid;
+  gap: var(--s-4);
+  justify-items: start;
+}
+.attCorps p {
+  margin: 0;
+  font-size: var(--t-2);
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.attGeste {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ctrl-h);
+  padding: 0 var(--s-6);
+  border-radius: 999px;
+  background: var(--fill);
+  color: var(--fill-ink);
+  font-size: var(--ctrl-t);
+  font-weight: 600;
+  text-decoration: none;
 }
 .alerte:hover,
 .alerte:focus-visible {
   background: #8f1d17;
+}
+
+/* AU PIED DE LA COLONNE, LE PANNEAU S'OUVRE VERS LE HAUT. Ancré au pied et
+   déroulé vers le bas, il sortait de l'écran par en dessous — mesuré à
+   1440 px, où la feuille du compte vit en bas à gauche de la colonne. Une
+   feuille doit sortir de ce qu'on vient de toucher, et rester dedans. */
+.panneauHaut {
+  top: auto;
+  bottom: calc(100% + var(--s-3));
+  right: auto;
+  left: 0;
 }
