@@ -1,5 +1,7 @@
-/* La page de la provision : un solde et ses états, puis les gestes qu'on peut
-   faire dessus. Filets et rien d'autre, comme le reste du constat. */
+/* La page de la provision : un solde et ses états, et c'est tout — les
+   gestes ont chacun leur page depuis le 24 octobre 2026. La même feuille les
+   habille : « alimenter » prend les chemins et les coordonnées, « placer » et
+   « reprendre » prennent le corps et l'encadré. */
 .wrap {
   display: grid;
   gap: var(--s-8);
@@ -8,17 +10,6 @@
      2026. Le gabarit porte les deux. */
   max-width: var(--page-texte);
   margin-inline: auto;
-}
-.head {
-  display: grid;
-  gap: var(--s-3);
-}
-.lead {
-  margin: 0;
-  max-width: 62ch;
-  color: var(--ink-2);
-  font-size: var(--t-4);
-  line-height: 1.5;
 }
 
 /* LE SOLDE : un total, une barre qui le partage, et chaque état porte SON
@@ -122,18 +113,6 @@
   line-height: 1.45;
   max-width: 40ch;
 }
-.gestesDeLEtat {
-  margin-top: var(--s-5);
-  display: flex;
-  gap: var(--s-4);
-  flex-wrap: wrap;
-  font-size: var(--t-2);
-}
-.gestesDeLEtat a + a::before {
-  content: "·";
-  color: var(--ink-3);
-  margin-right: var(--s-4);
-}
 
 /* Le placé vit SOUS le total, parce qu'il n'en fait plus partie : une somme en
    parts de fonds n'est plus un solde, et l'ajouter au total ferait devoir à la
@@ -197,69 +176,70 @@
   white-space: nowrap;
 }
 
-/* LES GESTES : trois sont les vôtres, le quatrième se fait sans vous. */
-.titreDesGestes {
-  display: grid;
-  gap: var(--s-2);
+/* ── LES PASTILLES : LES DEUX SENS DU ROBINET ────────────────────────────────
+   La pile des quatre encadrés numérotés est partie le 24 octobre 2026 — le
+   titre « ce que vous pouvez en faire », la grille à deux colonnes, les
+   cartes, les numéros et l'étiquette verte « sans vous », qui marquait le
+   seul encadré sur lequel il n'y avait rien à faire.
+
+   RESTE CECI : deux ronds au pied, un plein pour ce qui entre, un cerclé pour
+   ce qui sort. CHACUN PORTE SON MOT SOUS LE ROND, et ce n'est pas une
+   décoration : la règle de « Rubriques » dit qu'un menu dit où aller et qu'un
+   sommaire dit ce qu'il y a. Un dessin qu'il faut deviner coûte un essai, et
+   un essai sur un geste d'argent coûte la confiance. */
+.pastilles {
+  display: flex;
+  justify-content: center;
+  gap: var(--s-11);
+  border-top: 1px solid var(--line);
+  padding-top: var(--s-10);
 }
-.titreDesGestes h2 {
-  margin: 0;
-  font-size: var(--t-6);
-}
-.sous {
-  margin: 0;
-  color: var(--ink-3);
-  font-size: var(--t-3);
-  max-width: 64ch;
-}
-.gestes {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s-7);
-}
-.geste {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
+.pastille {
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  align-items: center;
+  gap: var(--s-4);
+  text-decoration: none;
+  color: inherit;
 }
-.large {
-  grid-column: 1 / -1;
+.pastille b {
+  font-size: var(--t-3);
+  font-weight: 600;
 }
-.gTete {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--s-5);
-  padding: var(--s-7) var(--s-7) var(--s-5);
-}
-.n {
-  width: 24px;
-  height: 24px;
-  flex: none;
+/* CINQUANTE-SIX PIXELS, et non quarante-quatre : c'est le plancher d'une
+   cible au doigt, pas une mesure à viser, et ces deux-là sont les deux
+   gestes pour lesquels on ouvre la page. */
+.rond {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  border: 1.5px solid var(--gold);
-  color: var(--gold-ink);
   display: grid;
   place-items: center;
-  font-size: var(--t-1);
-  font-style: normal;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
 }
-.auto .n {
-  border-color: var(--good);
-  color: var(--good);
+.pastille:hover .rond {
+  border-color: var(--ink-3);
 }
-.gTete b {
-  display: block;
-  font-size: var(--t-4);
+.rondPlein {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--fill-ink);
 }
-.gTete small {
-  display: block;
-  color: var(--ink-3);
-  font-size: var(--t-2);
-  margin-top: 2px;
+.pastille:hover .rondPlein {
+  border-color: var(--fill);
 }
+.rond svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .etiq {
   margin-left: auto;
   flex: none;
@@ -276,10 +256,6 @@
   border-color: var(--gold-line);
   color: var(--gold-ink);
   background: var(--gold-soft);
-}
-.etiqOk {
-  border-color: var(--good);
-  color: var(--good);
 }
 .gCorps {
   padding: 0 var(--s-7) var(--s-7);
@@ -300,11 +276,17 @@
 }
 
 /* Les deux chemins pour la garnir, côte à côte : un virement, un prélèvement. */
+/* LES DEUX CHEMINS SONT LA PAGE, et non deux cases d'un encadré : la marge
+   intérieure qui les décalait du bord de la carte est partie avec la carte. */
 .chemins {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--s-7);
-  padding: 0 var(--s-7) var(--s-7);
+  gap: var(--s-8);
+}
+@media (max-width: 760px) {
+  .chemins {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .chemin {
   border: 1px solid var(--line);
@@ -316,11 +298,15 @@
   align-content: start;
   min-width: 0;
 }
-.chemin h3 {
+/* LE TITRE D'UN CHEMIN EST UN « h2 » depuis que la page est à eux : il était
+   « h3 » sous le nom d'un geste, qui n'existe plus. Le sélecteur a suivi —
+   sans quoi ces deux titres se composaient à la taille d'un titre de page,
+   soit presque celle du « h1 » quatre lignes plus haut. */
+.chemin h2 {
   margin: 0;
   font-size: var(--t-3);
 }
-.chemin h3 span {
+.chemin h2 span {
   color: var(--ink-3);
   font-weight: 400;
   font-size: var(--t-2);
@@ -447,24 +433,6 @@
 }
 
 /* Le pied : d'où vient ce solde, et ce qu'il coûte. */
-.pied {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-6);
-  flex-wrap: wrap;
-  padding: var(--s-7);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  font-size: var(--t-3);
-}
-.pied small {
-  display: block;
-  color: var(--ink-3);
-  font-size: var(--t-2);
-  margin-top: 2px;
-}
 
 @media (max-width: 760px) {
   .gestes,

@@ -445,4 +445,26 @@ export const EN_CONSOLE: Record<string, string> = {
     "What you watch without holding it. A message warns you of every change of price, quote or status.",
   "Vous ne suivez aucune ligne pour l'instant.": "You are not following any line yet.",
   "Parcourir les titres": "Browse the securities",
+
+  /* La provision, le 24 octobre 2026 : un geste, une page. */
+  "Alimenter votre provision": "Add to your settlement balance",
+  "Placer votre provision": "Put your settlement balance to work",
+  "Reprendre votre provision": "Withdraw your settlement balance",
+  "Alimenter": "Add",
+  "Faire entrer ou sortir de l'argent": "Move money in or out",
+  "Deux chemins. Un virement quand vous voulez, ou une somme fixe chaque mois, sans y penser.":
+    "Two ways in. A transfer whenever you like, or a fixed sum every month, without thinking about it.",
+  "Par vos ordres signés. Vous n'avez rien à virer : le montant est retenu ici à la signature, et ce qui n'est pas consommé revient le jour où le résultat est connu.":
+    "By the orders you have signed. You have nothing to transfer: the amount is held here on signature, and whatever is not used comes back the day the outcome is known.",
+  "En parts d'un fonds monétaire, inscrites à votre nom": "In units of a money-market fund, registered in your name",
+  "En parts d'un fonds monétaire, inscrites à votre nom. Le rendement est celui du fonds ; nous n'en promettons aucun.":
+    "In units of a money-market fund, registered in your name. The return is the fund's; we promise none.",
+  "Chaque mouvement au journal, à sa date de valeur": "Every movement in the journal, at its value date",
+  "Rien : ni la tenue, ni le virement de retour": "Nothing: neither holding it, nor the transfer back",
+  "Versée sur le compte déclaré à l'ouverture, et sur lui seul, sous 72 heures ouvrables.":
+    "Paid to the account declared when you opened, and to it alone, within 72 working hours.",
+  "vers {c}, le compte déclaré à l'ouverture": "to {c}, the account declared when you opened",
+  "vers le compte bancaire déclaré à l'ouverture": "to the bank account declared when you opened",
+  "Aucun fonds monétaire n'est ouvert à la souscription pour l'instant.": "No money-market fund is open for subscription at the moment.",
+  "Rien à reprendre pour l'instant : votre disponible est à zéro.": "Nothing to withdraw for now: your available balance is zero.",
 };

@@ -33,24 +33,24 @@ import styles from "./page.module.css";
 export function PlacerLaProvision({ disponible, fonds }: { disponible: number; fonds: { id: string; titre: string; gestionnaire: string; droits?: number }[] }) {
   const t = useT();
   const [montant, setMontant] = useState(() => regroup(String(disponible)));
-  if (!fonds.length) return null;
   const valeur = parseAmount(montant);
   /* Un montant au-delà du disponible serait refusé à la signature : on le dit
      ici, où il se tape, plutôt qu'à la fin du parcours. */
   const trop = valeur > disponible;
   const utilisable = valeur > 0 && !trop;
   return (
-    <section className={styles.geste} id="placer">
-      <div className={styles.gTete}>
-        <i className={styles.n}>2</i>
-        <div>
-          <b>{t("La faire travailler")}</b>
-          <small>{t("En parts d'un fonds monétaire, à votre nom")}</small>
-        </div>
-      </div>
-      <div className={styles.gCorps}>
-        <p>{t("Pour qu'elle ne dorme pas, placez tout ou partie du disponible. Le rendement est celui du fonds ; nous n'en promettons aucun.")}</p>
-        {disponible > 0 ? (
+    /* LE NUMÉRO ET L'EN-TÊTE DE GESTE SONT PARTIS AVEC LA PILE. Ce bloc était
+       le deuxième de quatre encadrés numérotés ; il a sa page, et l'en-tête de
+       l'étalon dit déjà son nom et ce qu'on y trouve. Le redire ici le
+       dirait deux fois sur un écran de trois cents pixels. */
+    <div className={styles.gCorps} id="placer">
+      <p>{t("Pour qu'elle ne dorme pas, placez tout ou partie du disponible. Le rendement est celui du fonds ; nous n'en promettons aucun.")}</p>
+        {!fonds.length ? (
+          /* AUCUN FONDS OUVERT : on le dit, on ne fait pas disparaître la
+             porte. Le composant rendait « null » quand il vivait au milieu
+             d'une pile ; sur sa propre page, cela donnerait un écran vide. */
+          <p className={styles.avert}>{t("Aucun fonds monétaire n'est ouvert à la souscription pour l'instant.")}</p>
+        ) : disponible > 0 ? (
           <>
             <div className={styles.rangee}>
               <label className={`field ${styles.champ}`}>
@@ -95,10 +95,9 @@ export function PlacerLaProvision({ disponible, fonds }: { disponible: number; f
         {/* LE PRIX SE DIT AVANT, PAS AU RACHAT. Une part de fonds ne se reprend
             pas dans la seconde : tant qu'elle est placée, la somme ne règle
             plus un ordre. C'est le seul inconvénient du placement. */}
-        <p className={styles.avert}>
-          {t("Une fois placée, la somme ne règle plus un ordre : il faut d'abord racheter les parts, ce qui prend le délai de centralisation du fonds.")}
-        </p>
-      </div>
-    </section>
+      <p className={styles.avert}>
+        {t("Une fois placée, la somme ne règle plus un ordre : il faut d'abord racheter les parts, ce qui prend le délai de centralisation du fonds.")}
+      </p>
+    </div>
   );
 }

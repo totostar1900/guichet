@@ -129,8 +129,40 @@ occupent 720 px AVANT le titre de la page, qui tombe à y 798. La distinction
 est écrite (« un menu dit où aller, un sommaire dit ce qu'il y a ») et elle
 se défend ; sa place, non.*
 
-**5. « Votre provision »** : à réorganiser selon ce principe. **Maquette
-d'abord.**
+**5. ~~« Votre provision ».~~ FAIT le 24 octobre 2026**, maquette approuvée
+d'abord. La page portait **quatre gestes numérotés empilés**, et sur le même
+écran : le motif du virement, le bénéficiaire, la banque, le RIB, quatre
+boutons « copier », **un champ de montant pour placer, un second pour se
+faire virer**. Garnir un compte, souscrire un fonds et demander un virement
+n'ont en commun que le solde qu'ils déplacent. **2 518 px → 1 267.**
+
+| le geste | sa page |
+|---|---|
+| L'alimenter | `/moi/provision/alimenter`, **créée** |
+| La faire travailler | `/moi/provision/placer`, **créée** |
+| La reprendre | `/moi/provision/reprendre`, **créée** |
+
+La page d'arrivée ne porte plus **aucun formulaire** : le total, la barre, les
+deux états, ce qui est placé hors du total — la réponse, pas un
+développement. Puis trois bandes, puis **deux pastilles au pied**, un rond
+plein pour ce qui entre et un rond cerclé pour ce qui sort, chacun avec son
+mot dessous : un rond muet serait un menu, pas un sommaire.
+
+Le titre « Ce que vous pouvez en faire » est parti, et avec lui « L'alimenter »
+et « La reprendre » de la liste des bandes : les pastilles les disent déjà.
+« La faire travailler » y reste — ce n'est pas un mouvement d'argent, la
+somme ne sort pas, elle devient des parts.
+
+→ *Le quatrième encadré n'était pas un geste. « Régler un ordre » portait
+l'étiquette « sans vous » et ne proposait aucune action : c'était la seule
+chose de la page qu'on ne pouvait pas faire. Il EXPLIQUAIT le mis de côté, et
+il est remonté dans ce bloc, sous le chiffre qu'il explique.*
+
+→ *Deux défauts réparés en chemin : « Vos ordres en cours » pointait sur
+`/#ordres-en-cours`, une ancre morte depuis que l'accueil a cessé de déplier
+le relevé ; et la règle qui reconnaît un fonds monétaire, écrite une fois
+pour deux lectures de la même page, en servait trois une fois les pages
+séparées — elle vit maintenant dans `monetaire.ts`.*
 
 **6. ~~« Mes documents » : la liste s'ouvre dans un dépliant.~~ FAIT le
 24 octobre 2026**, maquette approuvée d'abord. Les quatre rayons étaient des
