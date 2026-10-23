@@ -674,7 +674,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       chiffre: c.aSigner > 1 ? { key: "{n} ordres", params: { n: c.aSigner } } : { key: "1 ordre" },
       quoi: { key: "Le bulletin est prêt. L'ordre part dès qu'il est signé et le virement fait." },
       geste: "Signer",
-      href: c.ouSigner ? `/moi/ordres/${c.ouSigner}` : "/moi#ordres-en-cours",
+      href: c.ouSigner ? `/moi/ordres/${c.ouSigner}` : "/moi/ordres",
       ton: "retard",
       sortie: c.ouSigner ? { geste: "Je ne veux plus de cet ordre", href: `/moi/ordres/${c.ouSigner}?retirer` } : undefined,
     });
@@ -685,7 +685,12 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       chiffre: c.aRepondre > 1 ? { key: "{n} propositions", params: { n: c.aRepondre } } : { key: "1 proposition" },
       quoi: { key: "D'autres conditions vous sont proposées : c'est votre réponse qui change l'ordre." },
       geste: "Répondre",
-      href: c.ouRepondre ? `/moi/ordres/${c.ouRepondre}` : "/moi#ordres-en-cours",
+      /* LE REPLI MENAIT NULLE PART : « /moi » redirige vers la racine, qui
+         perd le fragment, et « #ordres-en-cours » vivait de toute façon sur
+         la racine, pas sous /moi. Sans intention désignée, « Répondre »
+         déposait donc le client en haut de son portefeuille. La liste
+         existe depuis le 24 octobre 2026. */
+      href: c.ouRepondre ? `/moi/ordres/${c.ouRepondre}` : "/moi/ordres",
       ton: "retard",
       sortie: c.ouRepondre ? { geste: "Je ne veux plus de cet ordre", href: `/moi/ordres/${c.ouRepondre}?retirer` } : undefined,
     });

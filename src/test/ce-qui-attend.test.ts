@@ -200,9 +200,16 @@ describe("signer mène à l'ordre à signer", () => {
     expect(a.href).toBe("/moi/ordres/i-42");
   });
 
+  /* LA LISTE EXISTE DEPUIS LE 24 OCTOBRE 2026, et c'est ce qui change ici.
+     La question posée par cette épreuve n'a pas bougé — « il va à leur liste,
+     jamais à la page où l'on est » — mais sa réponse était fausse : « /moi »
+     redirige vers la racine, qui perd le fragment, et « #ordres-en-cours »
+     vivait de toute façon sur la racine. Le bouton déposait donc le client
+     en haut de la page qu'il avait déjà sous les yeux : précisément ce que
+     cette épreuve interdit. */
   it("plusieurs : il va à leur liste, jamais à la page où l'on est", () => {
     const a = attentesDuClient({ ...vide, aSigner: 3 }, fmt)[0];
-    expect(a.href).toBe("/moi#ordres-en-cours");
+    expect(a.href).toBe("/moi/ordres");
     expect(a.href).not.toBe("/");
   });
 

@@ -77,6 +77,10 @@ describe("aucune page n'annonce le contenu de la suivante", () => {
   it("regarde bien quelque chose", () => {
     const tous = fichiersDuGuichet();
     expect(tous.length).toBeGreaterThan(80);
-    expect(tous.some((p) => p.endsWith(`moi${path.sep}Releve.tsx`)), "le relevé, d'où la règle est tirée, n'est plus regardé").toBe(true);
+    /* Le relevé a été l'ancre de ce contrôle jusqu'au 24 octobre 2026 ; il
+       n'existe plus comme fichier — ses sections sont devenues des pages, et
+       ses trois tuiles à compteur, des bandes. L'ancre passe à la page qui
+       le portait, et d'où la règle est en réalité tirée. */
+    expect(tous.some((p) => p.endsWith(`app${path.sep}Console.tsx`)), "la page d'accueil, d'où la règle est tirée, n'est plus regardée").toBe(true);
   });
 });

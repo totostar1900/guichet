@@ -89,37 +89,11 @@
   }
 }
 
-/* ---------- summary tiles and intention cards ---------- */
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.kpis > div {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  min-width: 0;
-}
-.kpis span {
-  display: block;
-  font-size: 0.64rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-3);
-}
-.kpis b {
-  display: block;
-  font-size: 1.25rem;
-  font-variant-numeric: tabular-nums;
-  margin: 2px 0;
-}
-.kpis small {
-  color: var(--ink-3);
-  font-size: 0.74rem;
-}
+/* ---------- intention cards ---------- */
+/* LES TROIS COMPTEURS NE SONT PLUS NULLE PART. Ils redisaient trois chiffres
+   déjà posés sur la page d'accueil, et « Positions valorisées » était le seul
+   d'entre eux à compter la ligne SANS cours publié — l'étiquette disait
+   l'inverse de ce que le chiffre faisait. Retirés le 24 octobre 2026. */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
@@ -201,12 +175,6 @@
   }
   .head > a {
     margin-left: 0;
-  }
-  .kpis {
-    grid-template-columns: 1fr 1fr;
-  }
-  .kpis > div:first-child {
-    grid-column: 1 / -1;
   }
   .cards {
     padding: 10px 12px 12px;
@@ -390,10 +358,11 @@
   flex-wrap: wrap;
 }
 
-/* ── Le tableau de bord sans plis ────────────────────────────────────────────
-   Six sections repliées posaient six fois la même question : « y a-t-il quelque
-   chose là-dedans ». Une tuile y répond avec son chiffre, et mène à la page qui
-   montre mieux. */
+/* ── L'EN-TÊTE D'UNE SECTION ─────────────────────────────────────────────────
+   Six sections repliées posaient six fois la même question — « y a-t-il
+   quelque chose là-dedans » — au bas de la page d'accueil. Elles sont
+   devenues des pages le 24 octobre 2026 ; cet en-tête les suit, et sert
+   maintenant aux deux sections de « Vos intentions ». */
 .secTete {
   display: flex;
   align-items: baseline;
@@ -413,31 +382,55 @@
   margin-left: auto;
   font-size: 0.8rem;
 }
-.tuiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--s-6);
+/* LES QUATRE TUILES SONT DEVENUES DES BANDES, celles de « Rubriques », le
+   sommaire de la maison : une grille de tuiles et une liste de bandes pour la
+   même chose — un nom, une phrase, une destination — faisaient deux
+   grammaires sur une seule page.
+
+   LA LISTE DES ORDRES PASSÉS, elle, prend la forme d'une liste : ce qui est
+   clos n'attend rien, et une carte de cent pixels pour dire « réglée » ferait
+   de l'archive un mur. */
+.ordres {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-/* Une tuile porte son chiffre, parce que c'est ce qu'on venait lire. Sans lui,
-   elle redemanderait d'aller voir. */
-.tuile {
-  display: grid;
-  gap: var(--s-3);
-  padding: var(--s-7);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+.ordres li + li {
+  border-top: 1px solid var(--line);
+}
+.ordres a {
+  display: flex;
+  align-items: center;
+  gap: var(--s-7);
+  padding: var(--s-6) var(--s-7);
   text-decoration: none;
-  color: var(--ink);
+  color: inherit;
 }
-.tuile:hover {
-  border-color: var(--ink-3);
+.ordres a:hover {
+  background: var(--surface-2);
 }
-.tuile b {
-  font-size: 0.88rem;
+.quoiOrdre {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
 }
-.tuile span {
-  font-size: 0.78rem;
-  color: var(--ink-2);
+.quoiOrdre b {
+  font-size: var(--t-3);
+  font-weight: 600;
+}
+.quoiOrdre small {
+  font-size: var(--t-1);
   line-height: 1.45;
+  color: var(--ink-3);
+}
+/* La date se range à droite, en chiffres de même chasse : une colonne qui ne
+   danse pas d'une ligne à l'autre. */
+.quandOrdre {
+  flex: none;
+  font-size: var(--t-1);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+  white-space: nowrap;
 }

@@ -532,30 +532,16 @@
 }
 
 /* ---------- La bande des services ---------- */
-.bandeServices {
+/* VOTRE DOSSIER : LE SOMMAIRE DE LA MAISON, et plus une bande écrite ici.
+   « .bandeServices » était la septième forme de la même chose — un nom, une
+   phrase, un chevron — et elle portait en plus un compte, « 1 en place · 9 à
+   activer », calculé ici pour une page qui le recompte. La forme vient de
+   « Rubriques », l'écart entre deux bandes de l'étalon, et le titre ne tient
+   que le mot. */
+.dossier {
   display: flex;
-  align-items: center;
-  gap: var(--s-7);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  padding: var(--s-7) var(--s-9);
-  text-decoration: none;
-  color: inherit;
-}
-.bandeServices:hover {
-  border-color: var(--line-2);
-}
-.bandeServices b {
-  font-size: 0.88rem;
-}
-.bandeServices span {
-  flex-grow: 1;
-  font-size: 0.82rem;
-  color: var(--ink-3);
-}
-.bandeServices em {
-  font-style: normal;
-  color: var(--ink-3);
+  flex-direction: column;
+  gap: var(--s-6);
 }
 
 @media (max-width: 900px) {

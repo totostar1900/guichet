@@ -417,4 +417,32 @@ export const EN_CONSOLE: Record<string, string> = {
     "Sign the mandate once, with a code you receive.",
   "Chaque prélèvement est annoncé cinq jours avant, et le mandat se révoque à tout moment, sans motif.":
     "Every debit is announced five days ahead, and the mandate can be revoked at any time, without a reason.",
+
+  /* Le sommaire du dossier, et les trois pages qui en sortent — le 24 octobre
+     2026, quand les sections dépliées de l'accueil sont devenues des pages. */
+  "Votre dossier": "Your file",
+  "Vos intentions": "Your orders",
+  "Où en est chaque ordre, et ce qu'il attend de vous": "Where each order stands, and what it needs from you",
+  "Ce qui part chaque mois, et comment le changer": "What leaves each month, and how to change it",
+  "Ce que la conservation a coûté, avis par avis": "What custody has cost, notice by notice",
+  "Ce que vous surveillez sans le détenir": "What you watch without holding it",
+  "Vos opérations et l'échéancier": "Your operations and the schedule",
+  "Ce que votre argent a fait, et ce qui vient": "What your money has done, and what is coming",
+  "Relevés, avis d'opéré et bulletins": "Statements, contract notes and subscription forms",
+  "Ce que Guichet peut faire pour vous": "What Guichet can do for you",
+
+  "Chaque ordre que vous avez dit, et où il en est. Un ordre en cours dit ce qu'il attend ; un ordre clos garde sa date et sa référence.":
+    "Every order you have placed, and where it stands. An order under way says what it is waiting for; a closed order keeps its date and its reference.",
+  "Passées": "Closed",
+  "Rien de clos pour l'instant.": "Nothing closed yet.",
+
+  "Ce que la conservation de vos titres a coûté. Chaque avis s'ouvre ligne à ligne : c'est ce qui permet de le vérifier plutôt que de le subir.":
+    "What the custody of your securities has cost. Each notice opens line by line: that is what lets you check it rather than simply bear it.",
+  "Aucun avis de droits de garde pour l'instant.": "No custody fee notice yet.",
+  "Ce que la garde coûtera : l'annexe tarifaire": "What custody will cost: the fee schedule",
+
+  "Ce que vous surveillez sans le détenir. Un message vous prévient à chaque changement de cours, de prix ou de statut.":
+    "What you watch without holding it. A message warns you of every change of price, quote or status.",
+  "Vous ne suivez aucune ligne pour l'instant.": "You are not following any line yet.",
+  "Parcourir les titres": "Browse the securities",
 };

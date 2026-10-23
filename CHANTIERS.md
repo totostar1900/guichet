@@ -116,9 +116,56 @@ compteurs.
 (`<Rubriques bandes>`). Les autres sièges gardent les filets. Basculer le
 défaut harmoniserait tout d'un coup.*
 
-**9. La page « Bonjour »** : chaque section y est bien identifiée (c'est le
-bon modèle), mais « Vos intentions en cours », « Versements programmés »,
-« Instructions » s'y développent au lieu de mener à leur page.
+**9. ~~La page « Bonjour ».~~ FAIT le 24 octobre 2026**, maquette approuvée
+d'abord. Elle portait le relevé entier, six sections dépliées, et disait
+quatre fois la même chose. **2 954 px → 2 414 px** (3,5 → 2,9 écrans de
+téléphone).
+
+Le relevé, mesuré avant de toucher à quoi que ce soit :
+
+| la même chose | une fois | et une autre | écart |
+|---|---|---|---|
+| le lien de l'analyse | y 715 | y 1 684 | 969 px |
+| la fiche de l'OTA | y 1 257 | y 2 072 | 815 px |
+| la fiche du FCP | y 1 345 | y 2 215 | 870 px |
+| « Vos opérations » | y 2 019 | y 2 681 | 662 px |
+| la date du 14 février | y 660 | y 1 851 · y 2 812 | **trois noms** |
+| le nombre d'intentions | « En cours · 2 » y 1 851 | les deux cartes y 2 019 | 168 px |
+
+**Et un chiffre qui en contredisait un autre.** « Positions valorisées · 7 M »
+était le SEUL chiffre de la page à compter la ligne sans cours publié —
+1 980 276 + 4 890 548 — quand la page écrit quatre cents pixels plus haut
+« elle reste hors de ce total ». L'étiquette disait l'inverse de ce que le
+chiffre faisait. Les trois compteurs sont partis.
+
+Ce qui se dépliait a maintenant une adresse, et l'accueil n'en garde que la
+bande, dans le sommaire de la maison :
+
+- **Vos intentions** → `/moi/ordres`, **page créée**. En cours et passées.
+- **Vos versements programmés** → `/moi/epargne`, qui portait déjà la même
+  section avec le même composant. Rien à créer.
+- **Vos droits de garde** → `/moi/garde`, **page créée**.
+- **Lignes suivies** → `/moi/suivies`, **page créée** ; chaque ligne mène à sa
+  fiche, qui existe déjà.
+- Les quatre tuiles du « reste du dossier » sont devenues des bandes du même
+  sommaire : une grille et une liste pour la même chose faisaient deux
+  grammaires sur une page.
+
+→ *Trois défauts trouvés en chemin, et réparés :*
+
+*(a) **Une contre-proposition n'apparaissait dans aucune liste.** Le filtre
+retenait « reçue, confirmée, transmise » : l'état qui attend justement une
+réponse du client tombait entre les deux, et la carte capable de l'afficher
+ne pouvait donc jamais paraître.*
+
+*(b) **« Signer » et « Répondre » se repliaient sur `/moi#ordres-en-cours` »**,
+une adresse morte : `/moi` redirige vers la racine, qui perd le fragment, et
+l'ancre vivait de toute façon sur la racine. Sans ordre désigné, les deux
+boutons déposaient le client en haut de la page qu'il avait sous les yeux.*
+
+*(c) **Une contre-proposition sans termes rendait une carte muette** : le
+composant rend `null` faute de `counter`, et il ne restait rien entre le titre
+et la piste. La phrase de suite prend le relais.*
 
 ---
 

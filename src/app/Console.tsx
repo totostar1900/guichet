@@ -10,16 +10,16 @@ import { direLAcces, direLeRetrait } from "@/lib/domain/acces-nomme";
 import { direLePlafond } from "@/lib/domain/plafond-du-compte";
 import { DemanderVersement } from "./DemanderVersement";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
-import { compteDesEtats, servicesDuClient } from "@/lib/domain/services";
-import { contexteDuClient } from "@/lib/domain/contexte-client";
 import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
 import { SelectionDuDesk } from "@/components/SelectionDuDesk";
+import { Rubriques } from "@/components/mobile/Rubriques";
+import { TrustNudge } from "@/components/TrustNudge";
+import { Reinvest } from "@/components/Reinvest";
 import { buildPerformanceParts } from "@/lib/performance-report";
 import { courbeDuPortefeuille } from "@/lib/domain/courbe-portefeuille";
 import { famillesDuPortefeuille, NOM_FAMILLE, type Famille } from "@/lib/domain/familles-actifs";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate, localIso } from "@/lib/format";
-import { Releve } from "./moi/Releve";
 import styles from "./Console.module.css";
 
 /**
@@ -44,14 +44,30 @@ import styles from "./Console.module.css";
  *   PAR FAMILLE, puis LES LIGNES. Les services descendent à une bande : leurs
  *   gestes vivent sur l'objet qu'ils concernent, pas dans une grille de neuf
  *   tuiles qui concurrencerait le portefeuille.
+ *
+ *   PUIS VOTRE DOSSIER, EN BANDES, ET RIEN DE PLUS. Voir le sommaire plus
+ *   bas : cette page répond, elle ne développe pas.
+ *
+ * ─── Ce qui est descendu d'ici, le 24 octobre 2026 ─────────────────────────
+ *
+ * ELLE PORTAIT LE RELEVÉ ENTIER, six sections dépliées, et disait trois fois
+ * la même chose. Mesuré : 2 954 px, trois écrans et demi de téléphone. Le lien
+ * de l'analyse y figurait deux fois, à 969 px d'écart ; les fiches des deux
+ * lignes tenues, deux fois, à 815 et 870 px ; « Vos opérations », deux fois, à
+ * 662 px ; et la date du 14 février trois fois, sous trois noms — « Prochaine
+ * échéance », « Prochain flux », « prochain flux le ».
+ *
+ * TROIS COMPTEURS REDISAIENT LE RESTE DE LA PAGE, et l'un la contredisait.
+ * « Positions valorisées · 7 M » était le SEUL chiffre de la page à compter la
+ * ligne sans cours publié : 1 980 276 + 4 890 548, alors que la page écrit
+ * quatre cents pixels plus haut « elle reste hors de ce total ». L'étiquette
+ * disait l'inverse de ce que le chiffre faisait. Les trois sont partis.
  */
 export async function Console({ session }: { session: Session }) {
   const t = await getT();
   const r = repo();
   const aujourdHui = localIso(new Date());
 
-  /* Le contexte est déjà assemblé pour le compteur de la bande : le cache de
-     React fait que cette page le lit sans le repayer. */
   const moi = await r.getContact(session.userId).catch(() => undefined);
   const mesureDite = diteAuClient(moi?.mesure);
   /* SUR QUEL COMPTE J AGIS, et à quel titre. Un représentant légal qui se
@@ -66,14 +82,16 @@ export async function Console({ session }: { session: Session }) {
      moment de signer est une panne muette : le client a déjà réuni le
      groupe et rempli son ordre. */
   const plafondDit = session.plafondParOrdre != null ? direLePlafond({ montant: session.plafondParOrdre, source: session.plafondSource ?? "compte" }, (n) => n.toLocaleString("fr-FR")) : undefined;
-  const [ctx, intents, offers, cash, payouts, preavis, standing] = await Promise.all([
-    contexteDuClient(session.userId),
+  const [intents, offers, cash, payouts, preavis, standing, temoignages] = await Promise.all([
     r.listIntents(),
     r.listOffers(),
     r.listCash(session.userId).catch(() => []),
     r.listPayouts({ userId: session.userId }).catch(() => []),
     r.listPreavis({ userId: session.userId }).catch(() => []),
     r.listStandingOrders(session.userId).catch(() => []),
+    /* Ce que le client a déjà dit : sans cela, la bande du réinvestissement
+       lui redemanderait ce qu'il vient de répondre. */
+    r.listTemoignages({ userId: session.userId }).catch(() => []),
   ]);
 
   const mine = intents.filter((i) => i.clientId === session.userId);
@@ -85,9 +103,6 @@ export async function Console({ session }: { session: Session }) {
   const derniereDemande = payouts.find((p) => p.state === "demandee") ?? [...payouts].sort((x, y) => y.askedAt.localeCompare(x.askedAt))[0];
   const tenues: LigneTenue[] = positions.map((p) => ({ intentId: p.intent.id, titre: p.offer.title, echus: p.echus, aVenir: p.flows }));
   const b = bilan(suivre(tenues, cash));
-
-  const services = servicesDuClient(ctx);
-  const compte = compteDesEtats(services);
 
   const { perf, mouvements } = buildPerformanceParts(mine, offers, cash);
   const courbe = courbeDuPortefeuille(mouvements, perf.valued, aujourdHui);
@@ -194,6 +209,12 @@ export async function Console({ session }: { session: Session }) {
           sommaire n'a pas à porter la file d'attente complète, il a à ne rien
           cacher. Cette page-ci, où l'on atterrit, l'a pour sujet. */}
       <CeQuiVousAttend userId={session.userId} tout />
+      {/* CE QUI EST REVENU ET DORT : la seule décision entre l'achat et le
+          remboursement, et elle remonte ici. Elle vivait au bas du relevé, à
+          deux mille pixels du titre, pendant que cette page écrivait sa propre
+          règle trois cents lignes plus haut : « ce qui attend une décision,
+          avant les positions et jamais après ». */}
+      <Reinvest positions={positions} entries={cash} temoignages={temoignages} now={new Date()} />
       <SelectionDuDesk />
 
       {/* 1. Ce que ça vaut, et ce que ça a rapporté. */}
@@ -330,8 +351,6 @@ export async function Console({ session }: { session: Session }) {
         <section>
           <div className={styles.tete}>
             <b>{t("Vos lignes")}</b>
-            {/* Le relevé est plus bas sur cette page, il n'est plus ailleurs. */}
-            <a href="#releve">{t("Le relevé")} ↓</a>
           </div>
           <div className={styles.lignes}>
             {positions.map((p) => (
@@ -352,19 +371,40 @@ export async function Console({ session }: { session: Session }) {
         </section>
       )}
 
-      {/* 6. Les services, en bande : leurs gestes vivent sur l'objet concerné. */}
-      <Link className={styles.bandeServices} href="/trader">
-        <b>{t("Vos services")}</b>
-        <span>{t("{a} en place · {b} à activer", { a: compte.en_place, b: compte.a_activer })}</span>
-        <em>→</em>
-      </Link>
+      {/* 6. S'INSCRIRE SANS ATTENDRE UN CODE. Une proposition qui se referme
+          d'une croix, et ne revient pas. */}
+      <TrustNudge />
 
-      {/* 7. LE RELEVÉ, qui était une page à lui seul sous /moi. Il posait la
-          même question que tout ce qui précède, « qu'est-ce que je possède »,
-          et deux pages pour une question sont une de trop : on ne savait jamais
-          laquelle ouvrir. Ses six sections arrivent repliées : le portefeuille
-          garde au repos la longueur qu'il avait. */}
-      <Releve session={session} />
+      {/* 7. VOTRE DOSSIER : UN SOMMAIRE, ET PLUS SIX SECTIONS DÉPLIÉES.
+          Le relevé était le bas de cette page, et il y développait ce qui a
+          désormais une adresse : les intentions, les versements programmés et
+          leurs instructions — avec leur formulaire de modification —, les
+          droits de garde, les lignes suivies. Mesuré le 24 octobre 2026, cela
+          faisait 2 954 px, trois écrans et demi de téléphone, où la même
+          chose se lisait deux fois : le lien de l'analyse à 969 px de
+          lui-même, deux fiches de ligne à 815 et 870 px des leurs, « Vos
+          opérations » à 662 px de sa tuile, et la date du 14 février sous
+          trois noms différents.
+
+          LA RÈGLE QUI EN SORT : une page d'accueil RÉPOND, elle ne développe
+          pas. Ce qui vous attend, ce que ça vaut, puis où aller — et chaque
+          « où » est une bande, de la même forme que les six autres sommaires
+          de la maison. Aucune ne porte de compte : un nombre posé sur la page
+          d'avant se calcule toujours ailleurs que là où il sera vérifié. */}
+      <div className={styles.dossier}>
+        <span className="eyebrow">{t("Votre dossier")}</span>
+        <Rubriques
+          items={[
+            { href: "/moi/ordres", nom: t("Vos intentions"), quoi: t("Où en est chaque ordre, et ce qu'il attend de vous") },
+            { href: "/moi/epargne", nom: t("Vos versements programmés"), quoi: t("Ce qui part chaque mois, et comment le changer") },
+            { href: "/moi/garde", nom: t("Vos droits de garde"), quoi: t("Ce que la conservation a coûté, avis par avis") },
+            { href: "/moi/suivies", nom: t("Lignes suivies"), quoi: t("Ce que vous surveillez sans le détenir") },
+            { href: "/moi/performance#operations", nom: t("Vos opérations et l'échéancier"), quoi: t("Ce que votre argent a fait, et ce qui vient") },
+            { href: "/moi/documents", nom: t("Mes documents"), quoi: t("Relevés, avis d'opéré et bulletins") },
+            { href: "/trader", nom: t("Vos services"), quoi: t("Ce que Guichet peut faire pour vous") },
+          ]}
+        />
+      </div>
 
     </div>
   );
