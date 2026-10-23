@@ -12,6 +12,28 @@
  * because the house has not set it yet: a closed schedule charges nothing.
  */
 export const EN_ENCAISSEMENTS: Record<string, string> = {
+  /* La provision, et l'épargne programmée : deux pages, deux décisions. */
+  "ce que vous laissez chez nous règle vos ordres sans attendre un virement": "what you leave with us settles your orders without waiting for a transfer",
+  "votre argent chez nous": "your money with us",
+  "Épargne programmée": "Scheduled savings",
+  "placer chaque mois": "invest every month",
+  "une somme fixe, un jour du mois, vers le fonds que vous choisissez": "a fixed sum, one day a month, into the fund you choose",
+  "Une somme fixe, un jour du mois, une destination choisie maintenant : le versement part tout seul, et vous l'arrêtez quand vous voulez. C'est un placement qui se répète, pas une autorisation de débit.": "A fixed sum, one day a month, a destination chosen now: the payment goes out by itself, and you stop it whenever you want. It is an investment that repeats, not a debit authorisation.",
+  "Vos versements programmés": "Your scheduled payments",
+  "Ce qui part chaque mois, et que vous arrêtez quand vous voulez.": "What goes out every month, and that you stop whenever you want.",
+  "{n} actifs": "{n} active",
+  "1 actif": "1 active",
+  "aucun actif": "none active",
+  "Mettre une épargne en place": "Set up scheduled savings",
+  "Le fonds, la somme et le jour se choisissent ici.": "The fund, the sum and the day are chosen here.",
+  "Aucun fonds n'est ouvert à la souscription en ce moment : l'épargne se programmera dès qu'il y en aura un.": "No fund is open for subscription at the moment: scheduled savings can be set up as soon as there is one.",
+  "Ce qui part, comment c'est payé, et comment cela s'arrête.": "What goes out, how it is paid, and how it stops.",
+  "Vous choisissez le fonds, la somme et le jour du mois. Rien n'est prélevé à la signature.": "You choose the fund, the sum and the day of the month. Nothing is debited on signing.",
+  "Le jour venu, la somme est appelée. Vous la virez vous-même, ou vous nous autorisez à la prélever : c'est le": "On the day, the sum is called. You transfer it yourself, or you authorise us to debit it: that is the",
+  "mandat de prélèvement": "direct debit mandate",
+  ", une autorisation distincte, que vous signez une fois et révoquez quand vous voulez.": ", a separate authorisation, which you sign once and revoke whenever you want.",
+  "Vous arrêtez le versement d'un bouton, sans motif à donner. Arrêter le versement ne révoque pas le mandat, et révoquer le mandat n'arrête pas le versement : ce sont deux décisions.": "You stop the payment with one button, with no reason to give. Stopping the payment does not revoke the mandate, and revoking the mandate does not stop the payment: they are two decisions.",
+  "Vers quel fonds": "Into which fund",
   /* Les bandes des chapitres de « Réinvestir » (grammaire des plis). */
   "Ce qui est arrivé, ce qui vous est dû, et ce qui viendra.": "What has arrived, what you are owed, and what is to come.",
   "{m} FCFA disponibles": "{m} FCFA available",

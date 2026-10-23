@@ -27,6 +27,11 @@ export const PORTEFEUILLE_PAGES: NavPage[] = [
   { key: "performance", href: "/moi/performance", label: "Analyse", tuile: "répartition et rendement", hint: "la répartition, le rendement, l'échéancier et vos opérations" },
   { key: "reinvestir", href: "/moi/reinvestir", label: "Réinvestir", tuile: "un coupon qui tombe", hint: "où remettre un coupon ou un remboursement qui vient de tomber" },
   { key: "documents", href: "/moi/documents", label: "Mes documents", tuile: "relevés, avis, bulletins", hint: "vos relevés, vos avis d'opéré, vos bulletins et vos appels de fonds" },
+  /* LA PROVISION EST DE L'ARGENT QU'ON POSSÈDE, pas un geste qu'on pose : sa
+     place est ici, avec le reste de ce qu'on a. Elle avait été rangée dans
+     « Agir » la veille, par la même main qui écrit ceci, et c'était la
+     confondre avec les services qui la dépensent. */
+  { key: "provision", href: "/moi/provision", label: "Votre provision", tuile: "votre argent chez nous", hint: "ce que vous laissez chez nous règle vos ordres sans attendre un virement" },
 ];
 
 /**
@@ -59,7 +64,13 @@ export const INSTRUMENTS_PAGES: NavPage[] = [
 export const AGIR_PAGES: NavPage[] = [
   { key: "trader", href: "/trader", label: "Passer un ordre", tuile: "acheter ou vendre", hint: "acheter, souscrire, vendre ou demander un rachat" },
   { key: "prelevements", href: "/moi/prelevements", label: "Prélèvement automatique", tuile: "placer chaque mois", hint: "une somme prélevée à date fixe, sous un plafond que vous fixez" },
-  { key: "provision", href: "/moi/provision", label: "Ma provision", tuile: "régler sans virement", hint: "ce que vous laissez chez nous règle vos ordres sans attendre un virement" },
+  /* DEUX DÉCISIONS, ET NON UNE. « Épargne programmée » dit combien part,
+     quand, et vers quoi : c'est un placement qui se répète. Le mandat de
+     prélèvement dit seulement que la maison peut débiter un compte nommé,
+     sous un plafond : c'est une autorisation de paiement, qui sert aussi à
+     provisionner. On peut avoir l'une sans l'autre, et le mandat sert à plus
+     d'une chose. Deux lignes, donc, et deux pages. */
+  { key: "epargne", href: "/moi/epargne", label: "Épargne programmée", tuile: "placer chaque mois", hint: "une somme fixe, un jour du mois, vers le fonds que vous choisissez" },
 ];
 
 /** Ce qui se lit : l'indice, les sociétés, les notes, les actualités. */

@@ -30,9 +30,21 @@ function Msg({ state }: { state: StandingResult | null }) {
  * minimum relevé. Le client répond maintenant, sinon quelqu'un devra répondre à
  * sa place le jour venu.
  */
-export function StandingForm({ offerId, minimum, unit = "FCFA" }: { offerId: string; minimum: number; unit?: string }) {
+/**
+ * LE CHOIX DU FONDS ENTRE DANS LE FORMULAIRE, et c'est ce qui lui permet de
+ * vivre ailleurs que sur la page d'un fonds.
+ *
+ * Il n'existait que là : pour mettre une épargne en place, il fallait avoir
+ * déjà trouvé le fonds, ouvert sa fiche, puis sa page d'intention. Le service
+ * « Épargne programmée » renvoyait donc à la LISTE des fonds, à charge pour
+ * le client de deviner la suite. Avec « fonds », le formulaire porte sa
+ * propre première question, et la page dédiée devient possible.
+ */
+export function StandingForm({ offerId, minimum, unit = "FCFA", fonds }: { offerId?: string; minimum: number; unit?: string; fonds?: { id: string; title: string; min: number }[] }) {
   const t = useT();
   const [state, action, pending] = useActionState<StandingResult | null, FormData>(createStandingAction, null);
+  const [choisi, setChoisi] = useState(offerId ?? fonds?.[0]?.id ?? "");
+  const plancher = fonds ? (fonds.find((f) => f.id === choisi)?.min ?? 0) : minimum;
   /* Le montant est tenu en etat : il se regroupe pendant la frappe. */
   const [montant, setMontant] = useState(minimum ? String(minimum) : "");
   if (state?.ok) {
@@ -50,7 +62,14 @@ export function StandingForm({ offerId, minimum, unit = "FCFA" }: { offerId: str
   }
   return (
     <form action={action} className={styles.form}>
-      <input type="hidden" name="offerId" value={offerId} />
+      {fonds ? (
+        <label className="field">
+          {t("Vers quel fonds")}
+          <Select block name="offerId" value={choisi} onChange={setChoisi} options={fonds.map((f) => ({ value: f.id, label: f.title }))} />
+        </label>
+      ) : (
+        <input type="hidden" name="offerId" value={offerId} />
+      )}
       <div className={styles.row}>
         <label className="field">
           {t("Montant du versement")} : {unit}
@@ -58,7 +77,7 @@ export function StandingForm({ offerId, minimum, unit = "FCFA" }: { offerId: str
               type « number » : un champ numérique refuse les espaces, donc il
               refuserait son propre affichage. */}
           <input name="amount" value={montant} {...groupedInput(setMontant)} inputMode="numeric" autoComplete="off" required />
-          {minimum > 0 && <small className="muted">{t("minimum {n}", { n: fmt(minimum) })}</small>}
+          {plancher > 0 && <small className="muted">{t("minimum {n}", { n: fmt(plancher) })}</small>}
         </label>
         <label className="field">
           {t("Chaque mois, le")}

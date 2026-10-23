@@ -229,7 +229,9 @@ export const EN_CONSOLE: Record<string, string> = {
   "Votre solde disponible couvre cet ordre : à la signature, la somme sera mise de côté et vous n'aurez rien à virer.":
     "Your available balance covers this order: on signature the sum will be set aside and you will have nothing to transfer.",
   /* La page de la provision : son domicile, le 9 octobre 2026. */
-  "Votre provision": "Your provision",
+  /* « Your provision » se lit comme une clause de contrat en anglais ; ce
+     dont il s'agit est une réserve de liquidités chez le courtier. */
+  "Votre provision": "Your cash reserve",
   "Total": "Total",
   "Bénéficiaire": "Beneficiary",
   "Banque du bénéficiaire": "Beneficiary's bank",

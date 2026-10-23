@@ -46,6 +46,15 @@ export const ICONE_PAGE: Record<string, React.ReactNode> = {
       <path d="M9 12h6M9 16h4" />
     </>,
   ),
+  /* La provision : un coffre, c'est-à-dire de l'argent qui dort chez nous en
+     attendant de régler un ordre. */
+  provision: svg(
+    <>
+      <path d="M3 7h18v12H3z" />
+      <path d="M3 11h18" />
+      <path d="M10 15h4" />
+    </>,
+  ),
 
   /* Ce qui s'achète. */
   // Les titres : des lignes, dont une porte sa cotation.

@@ -205,17 +205,18 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           rayon: "programmer",
           cle: "epargne",
           nom: "Épargne programmée",
-          /* Jamais la page où l'on se trouve déjà : un geste qui ne déplace
-             rien se lit comme un bouton cassé, et c'est la seconde fois dans
-             la journée. Les versements programmés vivent au Portefeuille. */
-          href: "/#versements",
+          /* Elle a sa page depuis le 23 octobre 2026. Elle renvoyait à une
+             ancre du tableau de bord quand il y en avait une, et à la LISTE
+             des fonds quand il n'y en avait pas : deux destinations, aucune
+             qui soit la sienne. */
+          href: "/moi/epargne",
           phrase: { key: "{m} FCFA partent le {j} de chaque mois vers {d}.", params: { m: c.epargne.montant, j: c.epargne.jour, d: c.epargne.destination } },
         })
       : aActiver({
           rayon: "programmer",
           cle: "epargne",
           nom: "Épargne programmée",
-          href: "/fonds",
+          href: "/moi/epargne",
           phrase: { key: "Un montant, un jour du mois, une destination fixée à la signature." },
         }),
   );
