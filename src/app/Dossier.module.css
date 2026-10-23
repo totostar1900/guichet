@@ -21,7 +21,8 @@
   margin: 0;
   font-family: var(--font-titre);
   font-weight: 400;
-  font-size: var(--t-7);
+  /* Titre de page : le jeton. Voir ETALON.md. */
+  font-size: var(--t-8);
   line-height: 1.15;
   color: var(--navy-text);
 }

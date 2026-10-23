@@ -16,7 +16,13 @@ export default async function MentionsPage() {
   return (
     <div className={styles.wrap}>
       <div className="eyebrow">{t("Mentions légales")}</div>
-      <h1 className="display">{t("Ce que vous acceptez en utilisant Guichet")}</h1>
+      {/* LA PAGE CONTREDISAIT SON PROPRE INDEX. La recherche publie depuis
+          toujours cette page sous « Mentions légales », avec « Ce que vous
+          acceptez en utilisant Guichet » pour PHRASE (lib/guide-index) ; la
+          page, elle, prenait la phrase pour titre. Le nom revient en tête, la
+          phrase sous lui. Voir ETALON.md. */}
+      <h1 className="display">{t("Mentions légales")}</h1>
+      <p className={styles.chapo}>{t("Ce que vous acceptez en utilisant Guichet")}</p>
       <p className={styles.version}>{t("Version du {date}", { date: fmtDate(LEGAL_VERSION) })}</p>
       {LEGAL.map((s) => (
         <section key={s.id} id={s.id} className={styles.section}>

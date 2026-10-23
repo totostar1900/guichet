@@ -17,7 +17,8 @@
 }
 .head h1 {
   font-family: var(--font-display);
-  font-size: 1.7rem;
+  /* Titre de page : le jeton. Voir ETALON.md. */
+  font-size: var(--t-8);
   margin: 2px 0 6px;
   letter-spacing: -0.01em;
 }

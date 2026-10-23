@@ -4,8 +4,17 @@
   gap: 8px;
 }
 .wrap h1 {
-  font-size: 1.5rem;
+  /* Titre de page : le jeton. Voir ETALON.md. */
+  font-size: var(--t-8);
   margin: 4px 0 0;
+}
+/* La phrase de la page, sous son nom : le créneau que l'étalon place entre le
+   titre et le contenu. Elle portait le rôle de titre jusqu'au 24 octobre 2026. */
+.chapo {
+  margin: var(--s-3) 0 var(--s-4);
+  font-size: var(--t-4);
+  color: var(--ink-2);
+  max-width: 64ch;
 }
 .version {
   margin: 0 0 8px;

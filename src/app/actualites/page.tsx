@@ -64,7 +64,12 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
       <div className={styles.main}>
         <div className={styles.head}>
           <span className="eyebrow">{t("Actualités")}</span>
-          <h1>{t("Ce qui bouge sur le marché, en trois lignes")}</h1>
+          {/* LE NOM EN TITRE, PAS LA PHRASE. « Ce qui bouge sur le marché, en
+              trois lignes » est une phrase, et la page en portait déjà une
+              juste dessous : le titre disait donc deux fois la même chose, en
+              trente pixels et sur deux lignes. La table des pages du marché
+              nomme cette page « Actualités du marché ». Voir ETALON.md. */}
+          <h1>{t("Actualités du marché")}</h1>
           <p>{t("Chaque jour, le desk retient les publications qui comptent pour vos lignes, communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse économique, et dit pourquoi. Les articles restent chez leurs éditeurs : Guichet renvoie vers l'original.")}</p>
         </div>
         <IndexPulse />

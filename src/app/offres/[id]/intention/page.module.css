@@ -22,7 +22,8 @@
   text-underline-offset: 3px;
 }
 .line h1 {
-  font-size: 1.1rem;
+  /* Titre de page : le jeton. Voir ETALON.md. */
+  font-size: var(--t-8);
   line-height: 1.25;
   margin: 2px 0 6px;
 }

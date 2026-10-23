@@ -26,7 +26,8 @@
 }
 .page h1 {
   margin: 0;
-  font-size: 1.4rem;
+  /* Titre de page : le jeton. Voir ETALON.md. */
+  font-size: var(--t-8);
 }
 .chapeau {
   margin: 0;

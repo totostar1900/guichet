@@ -16,7 +16,8 @@
 }
 .card h1 {
   margin: var(--s-4) 0 var(--s-6);
-  font-size: 1.5rem;
+  /* Titre de page : le jeton. Voir ETALON.md. */
+  font-size: var(--t-8);
 }
 .card p {
   margin: 0 0 var(--s-5);

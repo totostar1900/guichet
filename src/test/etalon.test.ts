@@ -63,15 +63,43 @@ const feuillesDuGuichet = (): string[] => {
      travail. Les autres pages signées — sociétés, actualités, offres, dossier
      — ne sont PAS exclues : elles sont simplement en attente de conversion, et
      c'est ce que le cliquet compte. */
-  const vitrine = ["Accueil.module.css", `a-propos${path.sep}page.module.css`, `placements${path.sep}page.module.css`];
+  const vitrine = [
+    "Accueil.module.css",
+    `a-propos${path.sep}page.module.css`,
+    `placements${path.sep}page.module.css`,
+    /* L'aperçu d'une ligne partagée ne se rend QUE pour un visiteur sans
+       session (« if (!session) return <ApercuPartage …> ») : c'est la page
+       qu'on reçoit par WhatsApp, elle vend, elle respire plus large. */
+    "ApercuPartage.module.css",
+  ];
   return out.filter((p) => !p.includes(`${path.sep}desk${path.sep}`) && !vitrine.some((v) => p.endsWith(v)));
 };
 
-/** Les titres de page qui ne suivent pas encore le jeton. */
+/**
+ * Les titres de page qui ne suivent pas le jeton.
+ *
+ * CE QUE CETTE MESURE VOIT, ET CE QU'ELLE NE VOIT PAS. Elle lit des
+ * DÉCLARATIONS — « un bloc dont le sélecteur finit par h1 pose telle
+ * taille » —, pas des valeurs calculées : un vitest n'a pas de navigateur.
+ * Une taille posée par une CLASSE que le titre porte lui échappe donc.
+ *
+ * Un cas connu, relevé au navigateur le 24 octobre 2026 : la fiche d'une
+ * offre délègue son titre au composant `LineIdentity`, dont « .xl .title »
+ * vaut 1,3 rem et l'emporte par spécificité (0,2,0 contre 0,0,1). Ce n'est
+ * pas une page qui invente sa taille, c'est un composant d'identité réemployé
+ * à plusieurs échelles — le forcer au jeton le changerait partout où une ligne
+ * se présente. Il est donc laissé tel quel, et la limite de la mesure est
+ * écrite ici plutôt que découverte un jour comme un trou.
+ */
 const titresHorsJeton = (): string[] => {
   const hors: string[] = [];
   for (const p of feuillesDuGuichet()) {
     const css = fs.readFileSync(p, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    /* LA PEAU D'UN DOCUMENT N'EST PAS UNE COQUILLE DE PAGE. « .doc h1 » coiffe
+       le titre d'un document RENDU — une page d'aide, une note du desk — et
+       suit la grammaire d'un article, pas celle d'une page de l'application.
+       Elle est d'ailleurs partagée avec la documentation du desk. */
+    if (p.endsWith(`docs${path.sep}Document.module.css`)) continue;
     for (const m of css.matchAll(/([^{}]*\bh1)\s*\{([^}]*)\}/g)) {
       const taille = m[2].match(/font-size:\s*([^;]+);/);
       if (taille && taille[1].trim() !== "var(--t-8)") hors.push(`${path.relative(ROOT, p)} : « ${m[1].trim()} » pose ${taille[1].trim()}`);
@@ -95,17 +123,20 @@ describe("l'étalon d'une page", () => {
   });
 
   /**
-   * UN CLIQUET, comme pour la typographie, et pour la même raison : la
-   * conversion se fait page par page, et un plafond est la seule façon de ne
-   * pas la voir reculer entre deux lots. Treize pages sont passées le
-   * 24 octobre 2026 ; il en reste, et chacune fera descendre ce nombre.
-   * Il descend, il ne monte pas.
+   * LE CLIQUET A TOUCHÉ LE FOND, ET DEVIENT UNE RÈGLE.
+   *
+   * Il a été gravé à vingt le 24 octobre 2026, le temps d'une conversion page
+   * par page, puis à zéro le même jour : plus un seul titre de page du
+   * guichet n'invente sa taille. Ce qui était un plafond à faire descendre est
+   * maintenant une interdiction, et c'est ce qu'un cliquet sert à atteindre.
+   *
+   * Une page qui a vraiment besoin d'autre chose ne contourne pas la règle :
+   * elle s'écrit dans les exclusions, avec sa raison, comme la vitrine et la
+   * peau d'un document.
    */
-  it("ne laisse pas les titres hors jeton se multiplier", () => {
-    const PLAFOND = 20;
+  it("ne laisse aucun titre de page inventer sa taille", () => {
     const hors = titresHorsJeton();
-    expect(hors.length, `${hors.length} titres hors du jeton (plafond ${PLAFOND}) :\n  ${hors.join("\n  ")}`).toBeLessThanOrEqual(PLAFOND);
-    expect(PLAFOND - hors.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(2);
+    expect(hors, `un titre de page hors du jeton :\n  ${hors.join("\n  ")}`).toEqual([]);
   });
 
   it("tient le jeton, et regarde bien quelque chose", () => {

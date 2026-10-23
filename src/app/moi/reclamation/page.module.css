@@ -3,7 +3,8 @@
   gap: 18px;
 }
 .head h1 {
-  font-size: 1.6rem;
+  /* Titre de page : le jeton. Voir ETALON.md. */
+  font-size: var(--t-8);
   margin: 4px 0 6px;
 }
 .lead {
