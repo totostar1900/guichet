@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
 import { Poignee } from "./Poignee";
+import { useColonne } from "./ColonneStore";
 import { COLONNE_CLIENT, COLONNE_DESK, COLONNE_VISITEUR, estRouteLarge, groupeDe, pageDe, type GroupeColonne } from "@/lib/nav-colonne";
 import styles from "./Colonne.module.css";
 
@@ -63,18 +64,39 @@ const CLEF_EPINGLES = "guichet:colonne:epingles";
 export function Colonne({
   mode,
   connecte,
-  badges = {},
+  badges: badgesPasses,
   enseigne,
   pied,
 }: {
   /** « desk » sert la console, « client » le guichet. */
   mode: "desk" | "client";
   connecte: boolean;
-  /** Ce qui attend, par adresse. Les mêmes chiffres que portaient les onglets. */
+  /** Ce qui attend, par adresse. Omis, la colonne les lit au magasin, ce qui est le cas de l'application entière ; le passer sert à monter une colonne isolée. */
   badges?: Record<string, number>;
   enseigne: React.ReactNode;
   pied: React.ReactNode;
 }) {
+  /**
+   * LES PASTILLES SE LISENT AU MAGASIN, ET PERSONNE NE LES Y LISAIT.
+   *
+   * `DeskNav` compte ce qui attend, page par page, et le déclare au magasin —
+   * sa propre documentation dit « elle les déclare donc au magasin, et la
+   * colonne les lit ». La colonne ne les lisait pas : elle attendait une
+   * `prop`, que `layout.tsx` ne lui a jamais passée. `useColonne` n'avait donc
+   * qu'un seul appelant dans tout le dépôt, et c'était l'ÉCRIVAIN.
+   *
+   * CE QUE ÇA ÉTEIGNAIT, SANS QUE RIEN N'ÉCHOUE : le bloc « En cours » ne
+   * paraissait jamais (il se tait quand il n'a aucun chiffre, et il n'en avait
+   * aucun) ; aucune pastille ne s'allumait dans le rail, ni dans les favoris,
+   * ni dans les résultats de recherche ; et le compte d'alertes d'un groupe
+   * replié valait toujours zéro, donc un groupe fermé ne disait jamais ce
+   * qu'il cachait. Mesuré le 24 octobre 2026 : `/desk/a-valider` publiait 3,
+   * `/desk/messages` 2, `/desk/clients` 1 — tous dans une barre que la feuille
+   * de style masque au-delà de 1040 px, c'est-à-dire exactement là où la
+   * colonne règne.
+   */
+  const { badges: duMagasin } = useColonne();
+  const badges = badgesPasses ?? duMagasin;
   const path = usePathname();
   const t = useT();
   /**
@@ -415,6 +437,20 @@ export function Colonne({
  * IL NE PARAÎT QUE S'IL PORTE UN CHIFFRE. Un ordre du jour vide est une rangée
  * de plus à lire pour apprendre qu'il n'y a rien, et la maison a écrit la règle
  * ailleurs : un contrôle mesure ou se tait.
+ *
+ * CE QU'IL NE SAIT PAS FAIRE, ET IL FAUT LE DIRE. Sa promesse est d'apprendre
+ * « sept pièces à valider » SANS ouvrir le groupe qui les porte. Il ne la tient
+ * qu'à moitié, et pas par un défaut d'ici : les chiffres sont déclarés par la
+ * page OUVERTE, et retirés quand elle se ferme (`DeclarerBadges`, et c'est la
+ * bonne règle — un compte qui survit à la page qui l'a produit est une panne
+ * muette). Le bloc ne peut donc montrer que ce que la page courante publie :
+ * sur `/desk/a-valider`, « À valider 3 », c'est-à-dire l'endroit où l'on est
+ * déjà. Il n'est utile que lorsqu'une page compte POUR UNE AUTRE, comme le
+ * tableau de bord qui compte les approbations.
+ *
+ * Le tenir entièrement demande une autre source : un compte calculé pour
+ * toutes les pages à la fois, au rendu du gabarit, et non page par page. C'est
+ * une décision de données, pas d'affichage, et elle n'est pas prise ici.
  */
 function Encours({ badges }: { badges: Record<string, number> }) {
   const t = useT();

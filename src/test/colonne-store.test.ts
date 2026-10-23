@@ -65,3 +65,41 @@ describe("le magasin de la colonne ne peut pas boucler", () => {
     expect(SRC).toMatch(/return \(\) => poserBadges\(cle, \{\}\);/);
   });
 });
+
+/**
+ * UN MAGASIN SANS LECTEUR EST UN FIL COUPÉ, ET IL L'A ÉTÉ.
+ *
+ * `DeskNav` compte ce qui attend, page par page, et le déclare au magasin ; sa
+ * documentation dit « elle les déclare donc au magasin, et la colonne les
+ * lit ». La colonne ne les lisait pas : elle attendait une `prop` que
+ * `layout.tsx` ne lui a jamais passée, et `useColonne` n'avait donc qu'un seul
+ * appelant dans tout le dépôt — l'ÉCRIVAIN.
+ *
+ * TOUT S'ÉTEIGNAIT EN SILENCE : le bloc « En cours » ne paraissait jamais,
+ * puisqu'il se tait faute de chiffre ; aucune pastille ne s'allumait dans le
+ * rail, ni dans les favoris, ni dans les résultats de recherche ; et un groupe
+ * replié annonçait toujours zéro alerte, donc ne disait jamais ce qu'il
+ * cachait. Mesuré le 24 octobre 2026 : `/desk/a-valider` publiait 3,
+ * `/desk/messages` 2, `/desk/clients` 1, et le rail n'en montrait aucun.
+ *
+ * Aucun rendu ne casse quand ce fil se recoupe. L'épreuve le tient donc par
+ * les deux bouts : il existe un écrivain, et il existe un lecteur AILLEURS.
+ */
+describe("le magasin des pastilles a un lecteur", () => {
+  const ROOT2 = path.resolve(__dirname, "../..");
+  const lire = (p: string) => fs.readFileSync(path.join(ROOT2, p), "utf8");
+
+  it("fait lire les pastilles à la colonne", () => {
+    const colonne = lire("src/components/Colonne.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(colonne, "la colonne ne lit plus le magasin : le rail s'éteint sans que rien n'échoue").toMatch(/useColonne\(\)/);
+    expect(colonne, "la colonne lit le magasin mais n'en tire pas les pastilles").toMatch(/badges:\s*duMagasin/);
+  });
+
+  it("garde au magasin un appelant qui n'est pas son écrivain", () => {
+    const appelants = fs
+      .readdirSync(path.join(ROOT2, "src/components"))
+      .filter((f) => f.endsWith(".tsx") && f !== "ColonneStore.tsx")
+      .filter((f) => /useColonne\(\)/.test(lire(`src/components/${f}`)));
+    expect(appelants.length, "plus personne ne lit le magasin hors de l'écrivain").toBeGreaterThan(0);
+  });
+});
