@@ -7,7 +7,8 @@ import { conventionAJour } from "@/lib/kyc/checklist";
 import { fmtDate } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -92,16 +93,12 @@ export default async function TextesPage() {
   return (
     <Glissement>
       <div className={styles.page}>
-        <LienRetour href="/moi/documents" className={styles.back}>
-          ← {t("Mes documents")}
-        </LienRetour>
-        <div className={styles.tete}>
-          <div className="eyebrow">{t("La maison")}</div>
-          <h1 className="display">{t("Textes et conditions")}</h1>
-          <p className={styles.lead}>
-            {t("Les mêmes pour tout le monde. Ils n'ont pas de numéro : ils ont une version, et vous lisez toujours celle qui est en vigueur. Ceux que vous avez acceptés portent leur date, et se retrouvent aussi dans vos documents.")}
-          </p>
-        </div>
+        <EnTete
+          retour={{ href: "/moi/documents", mot: t("Mes documents") }}
+          surTitre={t("La maison")}
+          titre={t("Textes et conditions")}
+          phrase={t("Les mêmes pour tout le monde. Ils n'ont pas de numéro : ils ont une version, et vous lisez toujours celle qui est en vigueur. Ceux que vous avez acceptés portent leur date, et se retrouvent aussi dans vos documents.")}
+        />
 
         <ul className={styles.liste}>
           {textes.map((x) => (

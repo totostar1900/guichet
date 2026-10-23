@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
@@ -8,6 +7,7 @@ import { ConsentForm } from "../ConsentForm";
 import { PushToggle } from "@/components/PushToggle";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
@@ -25,15 +25,17 @@ export default async function SecurityPage() {
   return (
     <Glissement>
       <div className={styles.wrap}>
-        <div className={styles.head}>
-          <div>
-            <div className="eyebrow">
-              <Link href="/">{t("Portefeuille")}</Link> › {t("Sécurité")}
-            </div>
-            <h1 className="display">{t("Sécurité")}</h1>
-            <p className={styles.lead}>{t("Deux canaux prouvés, e-mail et téléphone, et les appareils qui vous ouvrent Guichet d'un doigt ou de quatre chiffres. Le code par e-mail reste toujours là.")}</p>
-          </div>
-        </div>
+        {/* LE FIL D'ARIANE PART, et c'était le seul de l'application : un
+            chemin cliquable dans le créneau du sur-titre disait en plus long
+            ce que le retour dit déjà, et il faisait de ce créneau une
+            troisième grammaire. Le retour remonte au compte, dont « Sécurité »
+            est une rubrique ; le sur-titre dit la famille. Voir ETALON.md. */}
+        <EnTete
+          retour={{ href: "/moi/compte", mot: t("Votre compte") }}
+          surTitre={t("Votre compte")}
+          titre={t("Sécurité")}
+          phrase={t("Deux canaux prouvés, e-mail et téléphone, et les appareils qui vous ouvrent Guichet d'un doigt ou de quatre chiffres. Le code par e-mail reste toujours là.")}
+        />
         <SecurityPanel who={s.name} channels={channels} devices={devices} sessionEmail={s.email} />
 
         {/* LES COORDONNÉES VIVENT ICI depuis le 2 octobre 2026, et non plus sur le

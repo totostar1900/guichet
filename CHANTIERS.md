@@ -29,11 +29,17 @@ l'ordre de ses propres pastilles.
 **2. Marges, tailles, affichage des pages à harmoniser**, toutes pages
 confondues. À discuter page par page.
 
-**7. L'en-tête de chaque page doit suivre une seule logique.** Exemple relevé :
-« Textes et conditions » affiche « Mes documents › La maison › Textes et
-conditions » + un sous-titre + le contenu, et la bande du haut porte en plus
-un bouton retour. Il faut une règle qui vaille partout — à proposer et à
-défendre, pas seulement à appliquer.
+**7. L'en-tête de chaque page : la règle est posée, la conversion est en
+cours.** `EnTete` pose les quatre créneaux dans l'ordre — retour, sur-titre,
+titre, phrase — et un seul genre par créneau. Dix pages y sont passées le
+24 octobre 2026, dont les deux qui sortaient du rang : le fil d'Ariane de
+« Sécurité » (le seul de l'application) et le lien de retour que « Analyse »
+rangeait dans le créneau du sur-titre.
+
+→ *Un cliquet compte les en-têtes encore écrits à la main (49 ce jour-là) :
+il descend, il ne monte pas. Les cinq pages restantes du relevé sont des
+racines de siège et des listes — elles demandent chacune un sur-titre à
+décider.*
 
 **8. ~~Bandes et écarts.~~ FAIT le 24 octobre 2026.** La bande de « Mes
 documents » est devenue la seule forme des rubriques : les sept sommaires du

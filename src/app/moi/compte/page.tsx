@@ -6,6 +6,7 @@ import { COMPTE_PAGES } from "@/lib/nav-groups";
 import { Deconnexion } from "./Deconnexion";
 import styles from "@/components/Feuillet.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Votre compte" };
@@ -61,10 +62,7 @@ export default async function ComptePage() {
   return (
     <Glissement>
         <div className={styles.page}>
-          <header className={styles.tete}>
-            <h1>{t("Votre compte")}</h1>
-            <p>{t("Qui vous êtes, ce que la maison détient de vous, et ce que fait cet appareil-ci.")}</p>
-          </header>
+          <EnTete surTitre={t("Vous")} titre={t("Votre compte")} phrase={t("Qui vous êtes, ce que la maison détient de vous, et ce que fait cet appareil-ci.")} />
 
           {/* LA TABLE DIT LES CINQ, LA PAGE DIT L'ÉTAT. Les noms et les phrases
               vivent dans `COMPTE_PAGES`, que la recherche lit aussi : une page

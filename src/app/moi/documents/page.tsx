@@ -7,7 +7,8 @@ import { StatementButtons } from "../StatementButtons";
 import { chargerLesRayons } from "./rayons";
 import { RAYONS_DES_PAPIERS } from "./nav";
 import styles from "./page.module.css";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -47,14 +48,12 @@ export default async function DocumentsPage() {
   return (
     <Glissement>
       <div className={styles.page}>
-        <LienRetour href="/" className={styles.back}>
-          ← {t("Portefeuille")}
-        </LienRetour>
-        <div className={styles.tete}>
-          <div className="eyebrow">{t("Vos papiers")}</div>
-          <h1 className="display">{t("Mes documents")}</h1>
-          <p className={styles.lead}>{t("Tout ce qui porte votre nom et un numéro : ce que vous avez signé, ce que vos opérations ont produit, et les mouvements de votre argent.")}</p>
-        </div>
+        <EnTete
+          retour={{ href: "/", mot: t("Portefeuille") }}
+          surTitre={t("Vos papiers")}
+          titre={t("Mes documents")}
+          phrase={t("Tout ce qui porte votre nom et un numéro : ce que vous avez signé, ce que vos opérations ont produit, et les mouvements de votre argent.")}
+        />
 
         {/* CE QUI SE FABRIQUE OUVRE LA PAGE : c'est le seul papier qui n'existe
             pas encore quand on arrive. SANS POSITION IL N'Y A RIEN À ÉDITER :

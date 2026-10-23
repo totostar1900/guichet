@@ -11,7 +11,8 @@ import { Sommaire } from "@/components/Sommaire";
 import { Echeancier } from "./Echeancier";
 import { Repartition } from "./Repartition";
 import styles from "./page.module.css";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -62,11 +63,12 @@ export default async function PerformancePage() {
   if (!p.lines.length) {
     return (
       <div className={styles.page}>
-        <LienRetour href="/" className={styles.back}>
-          ← {t("Portefeuille")}
-        </LienRetour>
-        <h1 className="display">{t("Ce que votre épargne a rapporté")}</h1>
-        <p className="muted">{t("Ce rapport paraît dès votre première opération réglée : il se calcule sur ce que vous avez versé et sur ce que vous détenez.")}</p>
+        <EnTete
+          retour={{ href: "/", mot: t("Portefeuille") }}
+          surTitre={t("Votre portefeuille")}
+          titre={t("Ce que votre épargne a rapporté")}
+          phrase={t("Ce rapport paraît dès votre première opération réglée : il se calcule sur ce que vous avez versé et sur ce que vous détenez.")}
+        />
       </div>
     );
   }
@@ -77,13 +79,15 @@ export default async function PerformancePage() {
   return (
     <Glissement>
       <div className={styles.page}>
-        <LienRetour href="/" className={styles.back}>
-          ← {t("Portefeuille")}
-        </LienRetour>
-        <h1 className="display">{t("Analyse de votre portefeuille")}</h1>
-        <p className={styles.lead}>
-          {t("Depuis le {d}, sur ce que vous avez réellement versé et pour le temps où chaque versement a couru.", { d: fmtDate(p.since ?? "") })}
-        </p>
+        {/* LE RETOUR SORT DU CRÉNEAU DU SUR-TITRE. Il y tenait la place de
+            « où je suis », et disait « d'où je viens » : deux questions
+            différentes au même endroit. Voir ETALON.md. */}
+        <EnTete
+          retour={{ href: "/", mot: t("Portefeuille") }}
+          surTitre={t("Votre portefeuille")}
+          titre={t("Analyse de votre portefeuille")}
+          phrase={t("Depuis le {d}, sur ce que vous avez réellement versé et pour le temps où chaque versement a couru.", { d: fmtDate(p.since ?? "") })}
+        />
 
         {/* LE RAIL, comme sur Analyses au desk. Quatre sections, c'est déjà plus
             qu'on ne parcourt de haut en bas, et chaque tuile du tableau de bord

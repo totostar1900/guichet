@@ -1,5 +1,6 @@
 import { getT } from "@/i18n/server";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 import { RAYONS_DES_PAPIERS, type CleDeRayon } from "./nav";
 import styles from "./page.module.css";
 
@@ -23,14 +24,7 @@ export async function Rayon({ cle, children }: { cle: CleDeRayon; children: Reac
   return (
     <Glissement>
       <div className={styles.page}>
-        <LienRetour href="/moi/documents" className={styles.back}>
-          ← {t("Mes documents")}
-        </LienRetour>
-        <div className={styles.tete}>
-          <div className="eyebrow">{t("Vos papiers")}</div>
-          <h1 className="display">{t(rayon.nom)}</h1>
-          <p className={styles.lead}>{t(rayon.quoi)}</p>
-        </div>
+        <EnTete retour={{ href: "/moi/documents", mot: t("Mes documents") }} surTitre={t("Vos papiers")} titre={t(rayon.nom)} phrase={t(rayon.quoi)} />
         {children}
       </div>
     </Glissement>

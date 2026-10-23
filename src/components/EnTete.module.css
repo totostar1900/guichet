@@ -1,0 +1,38 @@
+/* ── L'EN-TÊTE D'UNE PAGE ─────────────────────────────────────────────────────
+   Les mesures de l'étalon, tirées de « Mes documents » et relevées sur treize
+   pages le 24 octobre 2026 (ETALON.md). Elles vivent ici, une fois : écrites
+   page par page, elles avaient donné sept tailles de titre et six de
+   sous-titre.
+
+   LA MARGE LATÉRALE N'EST PAS ICI, et ne doit pas y revenir : le gabarit la
+   pose, une fois, et une coquille qui en ajoute une seconde est l'accident que
+   la gouttière à deux valeurs — 14 d'un côté, 30 de l'autre — a coûté. */
+
+.retour {
+  display: inline-block;
+  margin-bottom: var(--s-8);
+  font-size: var(--t-3);
+  color: var(--ink-3);
+  text-decoration: none;
+}
+.retour:hover {
+  color: var(--ink);
+}
+
+.tete {
+  display: grid;
+  gap: var(--s-3);
+  margin-bottom: var(--s-9);
+}
+
+/* Le titre prend sa taille du jeton, par la règle commune des « h1 » ; rien à
+   redire ici. La phrase, elle, porte sa mesure : corps d'un panneau, une
+   largeur de lecture, et l'encre secondaire — elle accompagne le nom, elle ne
+   le concurrence pas. */
+.phrase {
+  margin: 0;
+  font-size: var(--t-4);
+  line-height: 1.5;
+  color: var(--ink-2);
+  max-width: 64ch;
+}

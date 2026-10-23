@@ -12,6 +12,7 @@ import { PlacerLaProvision } from "./PlacerLaProvision";
 import { Copier } from "./Copier";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -93,15 +94,14 @@ export default async function ProvisionPage() {
   return (
     <Glissement>
       <div className={styles.wrap}>
-        <div className={styles.head}>
-          <div className="eyebrow">{t("Votre argent chez nous")}</div>
-          <h1 className="display">{t("Votre provision")}</h1>
-          <p className={styles.lead}>
-            {t(
-              "Ce que vous laissez ici règle vos ordres sans attendre un virement. Elle n'est jamais obligatoire : vous pouvez payer chaque ordre au coup par coup. Elle reste votre argent, sur un compte séparé de celui de la maison.",
-            )}
-          </p>
-        </div>
+        <EnTete
+          retour={{ href: "/", mot: t("Portefeuille") }}
+          surTitre={t("Votre argent chez nous")}
+          titre={t("Votre provision")}
+          phrase={t(
+            "Ce que vous laissez ici règle vos ordres sans attendre un virement. Elle n'est jamais obligatoire : vous pouvez payer chaque ordre au coup par coup. Elle reste votre argent, sur un compte séparé de celui de la maison.",
+          )}
+        />
 
         <section className={styles.solde}>
           <div className={styles.soldeTete}>

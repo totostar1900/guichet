@@ -191,3 +191,58 @@ describe("les deux arbitrages", () => {
     expect(hors, "ces pages n'écartent plus leurs bandes de l'écart de l'étalon").toEqual([]);
   });
 });
+
+/**
+ * L'EN-TÊTE D'UNE PAGE VIENT D'UN SEUL ENDROIT.
+ *
+ * Relevé du 24 octobre 2026 : le créneau qui précède le titre portait TROIS
+ * choses différentes — un sur-titre de catégorie, un fil d'Ariane, un lien de
+ * retour — et il était vide sur six pages sur treize. Trois grammaires pour un
+ * seul emplacement : le lecteur ne peut rien y apprendre, puisque ce qu'il y
+ * trouve change de nature d'une page à l'autre.
+ *
+ * « EnTete » pose les quatre créneaux dans l'ordre, et un seul genre par
+ * créneau. La conversion se fait page par page ; le cliquet est là pour
+ * qu'elle ne recule pas entre deux lots, comme celui des titres l'a été
+ * jusqu'à toucher le fond.
+ */
+const entetesALaMain = (): string[] => {
+  const out: string[] = [];
+  const walk = (d: string) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) {
+        if (e.name === "desk") continue;
+        walk(p);
+      } else if (e.name.endsWith(".tsx")) {
+        const s = fs.readFileSync(p, "utf8");
+        /* Une page qui monte « EnTete » a converti son en-tête ; celle qui
+           écrit encore « <h1 » elle-même ne l'a pas fait. */
+        if (/<h1\b/.test(s) && !s.includes("<EnTete")) out.push(path.relative(ROOT, p));
+      }
+    }
+  };
+  walk(path.join(ROOT, "src/app"));
+  walk(path.join(ROOT, "src/components"));
+  return out.sort();
+};
+
+describe("l'en-tête d'une page", () => {
+  it("ne laisse pas les en-têtes écrits à la main se multiplier", () => {
+    const PLAFOND = 49;
+    const mains = entetesALaMain();
+    expect(mains.length, `${mains.length} en-têtes encore écrits à la main (plafond ${PLAFOND}) :\n  ${mains.join("\n  ")}`).toBeLessThanOrEqual(PLAFOND);
+    expect(PLAFOND - mains.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(2);
+  });
+
+  it("pose les quatre créneaux dans l'ordre, et un seul genre par créneau", () => {
+    const s = fs.readFileSync(path.join(ROOT, "src/components/EnTete.tsx"), "utf8");
+    const ordre = ["retour", "surTitre", "titre", "phrase"];
+    const places = ordre.map((c) => s.indexOf(`${c}?`) >= 0 || s.indexOf(`${c}:`) >= 0 ? s.search(new RegExp(`\\n  ${c}[?:]`)) : -1);
+    expect(places.every((i) => i > 0), "un créneau a disparu de la coquille").toBe(true);
+    expect([...places].sort((a, b) => a - b), "les créneaux ont changé d'ordre").toEqual(places);
+    /* Le retour est un lien, le sur-titre n'en est pas un : c'est toute la
+       distinction que le fil d'Ariane de « Sécurité » effaçait. */
+    expect(s, "le sur-titre est redevenu un lien").not.toMatch(/surTitre[^}]*href/);
+  });
+});
