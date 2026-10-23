@@ -5,6 +5,7 @@ import { MenuRejouables } from "@/components/menu/Pieces";
 import { AIDE_PAGES } from "@/lib/nav-groups";
 import styles from "@/components/Feuillet.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Aide" };
@@ -51,10 +52,7 @@ export default async function AidePage() {
   return (
     <Glissement>
         <div className={styles.page}>
-          <header className={styles.tete}>
-            <h1>{t("Aide")}</h1>
-            <p>{t("Poser une question à la personne qui suit votre compte, ou trouver la réponse vous-même.")}</p>
-          </header>
+          <EnTete titre={t("Aide")} phrase={t("Poser une question à la personne qui suit votre compte, ou trouver la réponse vous-même.")} />
 
           <Rubriques
             items={[

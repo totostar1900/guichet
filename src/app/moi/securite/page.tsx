@@ -32,7 +32,13 @@ export default async function SecurityPage() {
             est une rubrique ; le sur-titre dit la famille. Voir ETALON.md. */}
         <EnTete
           retour={{ href: "/moi/compte", mot: t("Votre compte") }}
-          surTitre={t("Votre compte")}
+          /* LE RETOUR NOMME LA PAGE D'AU-DESSUS, LE SUR-TITRE NOMME LA
+             FAMILLE, et ce n'est pas le même mot : « ← Votre compte » suivi
+             de « VOTRE COMPTE » écrivait la même chose deux fois, à deux
+             lignes d'écart, dans les deux créneaux que l'étalon distingue.
+             La famille de cette page est celle que porte « /moi/compte »
+             lui-même. */
+          surTitre={t("Vous")}
           titre={t("Sécurité")}
           phrase={t("Deux canaux prouvés, e-mail et téléphone, et les appareils qui vous ouvrent Guichet d'un doigt ou de quatre chiffres. Le code par e-mail reste toujours là.")}
         />

@@ -40,7 +40,7 @@ export default async function GardePage() {
     <Glissement>
       <main className="wrap">
         <EnTete
-          retour={{ href: "/", mot: t("Votre portefeuille") }}
+          retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Votre dossier")}
           titre={t("Vos droits de garde")}
           phrase={t("Ce que la conservation de vos titres a coûté. Chaque avis s'ouvre ligne à ligne : c'est ce qui permet de le vérifier plutôt que de le subir.")}

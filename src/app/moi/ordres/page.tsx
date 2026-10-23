@@ -97,7 +97,7 @@ export default async function OrdresPage() {
     <Glissement>
       <main className="wrap">
         <EnTete
-          retour={{ href: "/", mot: t("Votre portefeuille") }}
+          retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Votre dossier")}
           titre={t("Vos intentions")}
           phrase={t("Chaque ordre que vous avez dit, et où il en est. Un ordre en cours dit ce qu'il attend ; un ordre clos garde sa date et sa référence.")}

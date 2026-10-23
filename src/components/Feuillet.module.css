@@ -32,58 +32,16 @@
   gap: var(--sections-gap);
 }
 
-/* LE RETOUR EST UN LIEN, ET IL DIT SA DIRECTION. Le bouton du téléphone
-   remonte l'historique ; celui-ci remonte la HIÉRARCHIE, et le glissement vers
-   la droite dit qu'on sort d'un cran. On peut arriver ici par un lien, et
-   l'historique mènerait alors ailleurs. */
-.fil {
-  font-size: var(--t-2);
-  color: var(--ink-3);
-}
-.fil a {
-  color: var(--ink-3);
-  text-decoration: none;
-}
-/* Le chevron tient lieu de mot : « ‹ Votre compte » dit à la fois où l'on
-   remonte et qu'on remonte. « Retour vers Votre compte » le dirait deux fois. */
-.fil a::before {
-  content: "‹ ";
-}
-.fil a:hover {
-  color: var(--ink);
-}
+/* L'EN-TÊTE ET LE RETOUR SONT PARTIS LE 24 OCTOBRE 2026, et avec eux les
+   sept pages qui les écrivaient à la main. « EnTete » pose les quatre
+   créneaux dans l'ordre — retour, sur-titre, titre, phrase — et c'est ce
+   qu'il fallait : cette coquille-ci posait un titre et une phrase, sans
+   créneau pour dire OÙ l'on est, et un fil de retour à part.
 
-.tete {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-}
-  /* SANS EMPATTEMENTS, DÉCIDÉ LE 24 OCTOBRE 2026 (ETALON.md, point C).
-     Relevé à l'écran sur trente-six pages : huit titraient en Instrument
-     Serif et vingt-huit en Manrope, toutes à 30 px. Ce qui décidait n'était
-     pas ce qu'est la page mais QUELLE COQUILLE elle avait importée —
-     « /portefeuille » et « /aide » en serif, « /marche » et « /trader » en
-     sans, tous les quatre sommaires de siège. La ligne est celle que ce
-     dépôt écrivait déjà : le site public respire, l'application travaille.
-     La vitrine garde donc son serif et son échelle fluide. */
-.tete h1 {
-  margin: 0;
-  /* LA TAILLE VIENT DU JETON, et elle ne varie plus avec la largeur.
-     Ce « clamp » donnait 25,6 px au telephone et 37,8 px au grand ecran,
-     pendant que cinq pages voisines titraient a 30 partout : le lecteur
-     changeait de page et le titre changeait de taille. Voir ETALON.md. */
-  font-size: var(--t-8);
-  line-height: 1.08;
-  font-weight: 400;
-  letter-spacing: -0.015em;
-}
-.tete p {
-  margin: 0;
-  max-width: 44rem;
-  font-size: var(--t-2);
-  line-height: 1.7;
-  color: var(--ink-2);
-}
+   Ce qu'on y a vu en convertissant : les sept pages titraient à empattements
+   quand les vingt-huit autres étaient en sans, et le sur-titre manquait aux
+   sept. Trois sont des racines de siège et n'en prennent pas ; les autres
+   nomment leur famille, qui n'est jamais le mot du retour. */
 
 /* Une section du feuillet : un titre, et ce qu'il porte. */
 .bloc {

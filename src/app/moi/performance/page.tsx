@@ -64,7 +64,7 @@ export default async function PerformancePage() {
     return (
       <div className={styles.page}>
         <EnTete
-          retour={{ href: "/", mot: t("Portefeuille") }}
+          retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Votre portefeuille")}
           titre={t("Ce que votre épargne a rapporté")}
           phrase={t("Ce rapport paraît dès votre première opération réglée : il se calcule sur ce que vous avez versé et sur ce que vous détenez.")}
@@ -83,7 +83,7 @@ export default async function PerformancePage() {
             « où je suis », et disait « d'où je viens » : deux questions
             différentes au même endroit. Voir ETALON.md. */}
         <EnTete
-          retour={{ href: "/", mot: t("Portefeuille") }}
+          retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Votre portefeuille")}
           titre={t("Analyse de votre portefeuille")}
           phrase={t("Depuis le {d}, sur ce que vous avez réellement versé et pour le temps où chaque versement a couru.", { d: fmtDate(p.since ?? "") })}

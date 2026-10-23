@@ -229,7 +229,7 @@ const entetesALaMain = (): string[] => {
 
 describe("l'en-tête d'une page", () => {
   it("ne laisse pas les en-têtes écrits à la main se multiplier", () => {
-    const PLAFOND = 46;
+    const PLAFOND = 38;
     const mains = entetesALaMain();
     expect(mains.length, `${mains.length} en-têtes encore écrits à la main (plafond ${PLAFOND}) :\n  ${mains.join("\n  ")}`).toBeLessThanOrEqual(PLAFOND);
     expect(PLAFOND - mains.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(2);
@@ -320,5 +320,66 @@ describe("la fonte d'un titre", () => {
   it("est bien encore posée quelque part", () => {
     expect(fs.readFileSync(path.join(ROOT, "src/app/Accueil.module.css"), "utf8")).toMatch(/font-family:\s*var\(--font-titre\)/);
     expect(fs.readFileSync(path.join(ROOT, "src/app/globals.css"), "utf8")).toMatch(/--font-titre:/);
+  });
+});
+
+/**
+ * LES DEUX CRÉNEAUX D'AVANT-TITRE NE DISENT PAS LA MÊME CHOSE.
+ *
+ * L'étalon les sépare : LE RETOUR nomme la page d'au-dessus, LE SUR-TITRE
+ * nomme la famille. Relevé le 24 octobre 2026, après la conversion des sept
+ * pages de « Feuillet » : quatre pages écrivaient le même mot dans les deux —
+ * « ← Votre compte » puis « VOTRE COMPTE », à deux lignes d'écart. Deux
+ * créneaux distincts qui répètent un mot ne valent pas mieux qu'un seul.
+ *
+ * ET LE MOT D'UN RETOUR EST LE NOM DE SA DESTINATION, celui que la maison lui
+ * donne dans « nav-groups.ts ». Sept retours menaient à « / » en l'appelant
+ * « Portefeuille » ou « Votre portefeuille » : or la table l'appelle « Tableau
+ * de bord », et « Portefeuille » est le nom d'une AUTRE page, qui existe. Un
+ * lien dont le mot nomme une page et dont la flèche en ouvre une autre est
+ * pire qu'un lien muet.
+ */
+const retoursEcrits = (): { ou: string; href: string; mot: string; surTitre?: string }[] => {
+  const out: { ou: string; href: string; mot: string; surTitre?: string }[] = [];
+  const walk = (d: string) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith(".tsx")) {
+        const s = fs.readFileSync(p, "utf8");
+        for (const m of s.matchAll(/retour=\{\{ href: "([^"]+)", mot: t\("([^"]+)"\) \}\}/g)) {
+          /* Le sur-titre du même en-tête : il suit le retour, avant le titre. */
+          const apres = s.slice(m.index ?? 0, (m.index ?? 0) + 600);
+          const st = apres.match(/surTitre=\{t\("([^"]+)"\)\}/);
+          out.push({ ou: path.relative(ROOT, p), href: m[1], mot: m[2], surTitre: st?.[1] });
+        }
+      }
+    }
+  };
+  walk(path.join(ROOT, "src"));
+  return out;
+};
+
+describe("le créneau d'avant-titre", () => {
+  it("ne dit pas le même mot dans le retour et dans le sur-titre", () => {
+    const fautifs = retoursEcrits().filter((r) => r.surTitre && r.surTitre === r.mot);
+    expect(fautifs.map((r) => `${r.ou} · « ${r.mot} » deux fois`), "le retour et le sur-titre redisent le même mot").toEqual([]);
+  });
+
+  it("nomme la destination d'un retour du nom que la maison lui donne", () => {
+    const table = new Map<string, string>();
+    for (const m of fs.readFileSync(path.join(ROOT, "src/lib/nav-groups.ts"), "utf8").matchAll(/href: "([^"]+)", label: "([^"]+)"/g)) table.set(m[1], m[2]);
+    expect(table.size, "la table des pages ne se lit plus").toBeGreaterThan(15);
+    /* Une destination hors de la table — un siège, nommé par le dock — n'est
+       pas jugée ici : on ne compare qu'à ce que la maison a écrit. */
+    const fautifs = retoursEcrits()
+      .filter((r) => table.has(r.href) && table.get(r.href) !== r.mot)
+      .map((r) => `${r.ou} · « ${r.mot} » mène à ${r.href}, que la maison appelle « ${table.get(r.href)} »`);
+    expect(fautifs, `ces retours nomment autre chose que leur destination :\n  ${fautifs.join("\n  ")}`).toEqual([]);
+  });
+
+  /* Non vacuité : il y a bien des retours à juger. */
+  it("regarde bien quelque chose", () => {
+    expect(retoursEcrits().length).toBeGreaterThan(10);
   });
 });

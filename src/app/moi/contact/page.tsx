@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { contexteDuClient } from "@/lib/domain/contexte-client";
@@ -53,13 +54,11 @@ export default async function ContactPage() {
               téléphone remonte l'historique sans jouer d'animation : celui-ci
               remonte la HIÉRARCHIE, et le glissement vers la droite dit qu'on
               sort d'un cran. */}
-          <nav className={feuillet.fil}>
-            <LienRetour href="/aide">{t("Aide")}</LienRetour>
-          </nav>
-        <header className={feuillet.tete}>
-          <h1>{t("Nous contacter")}</h1>
-          <p>{t("Une personne suit votre compte. Écrivez-lui : le message part avec ce qu'il faut pour qu'on n'ait pas à vous demander qui vous êtes.")}</p>
-        </header>
+        <EnTete
+          retour={{ href: "/aide", mot: t("Aide") }}
+          titre={t("Nous contacter")}
+          phrase={t("Une personne suit votre compte. Écrivez-lui : le message part avec ce qu'il faut pour qu'on n'ait pas à vous demander qui vous êtes.")}
+        />
 
         <ConseillerCard anchor="conseiller" advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: ctx.lignes, derniere }} />
 

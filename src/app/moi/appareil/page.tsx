@@ -2,6 +2,7 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 import { Appareil } from "./Appareil";
 import styles from "@/components/Feuillet.module.css";
 
@@ -37,14 +38,12 @@ export default async function AppareilPage() {
   return (
     <Glissement>
         <div className={styles.page}>
-          <nav className={styles.fil}>
-            <LienRetour href="/moi/compte">{t("Votre compte")}</LienRetour>
-          </nav>
-
-          <header className={styles.tete}>
-            <h1>{t("Cet appareil")}</h1>
-            <p>{t("Ce que cet appareil-ci fait de lui-même, et ce que la maison fait partout : les alertes et les couleurs d'un côté, la façon de vous joindre de l'autre.")}</p>
-          </header>
+          <EnTete
+            retour={{ href: "/moi/compte", mot: t("Votre compte") }}
+            surTitre={t("Vous")}
+            titre={t("Cet appareil")}
+            phrase={t("Ce que cet appareil-ci fait de lui-même, et ce que la maison fait partout : les alertes et les couleurs d'un côté, la façon de vous joindre de l'autre.")}
+          />
 
           <Appareil prefs={prefs} phoneOk={Boolean(canaux?.phoneVerifiedAt)} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} />
         </div>

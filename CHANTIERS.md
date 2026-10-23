@@ -39,6 +39,18 @@ pas ce qu'EST la page mais **quelle coquille elle avait importée** —
 quatre étant des sommaires de siège. Voir `ETALON.md`, point C, et l'épreuve :
 une **liste blanche**, pas un cliquet.
 
+**Les deux créneaux d'avant-titre ne disent pas la même chose**, et quatre
+pages l'avaient oublié : « ← Votre compte » suivi de « VOTRE COMPTE », à deux
+lignes d'écart, dans les deux créneaux que l'étalon distingue. La règle : le
+retour nomme la page d'au-dessus, le sur-titre nomme la FAMILLE.
+
+**Et le mot d'un retour est le nom de sa destination.** Sept retours menaient
+à `/` en l'appelant « Portefeuille » ou « Votre portefeuille » — or la table
+de la maison (`nav-groups.ts`) l'appelle **« Tableau de bord »**, et
+« Portefeuille » est le nom d'une AUTRE page, qui existe. Un lien dont le mot
+nomme une page et dont la flèche en ouvre une autre est pire qu'un lien muet.
+Deux épreuves le tiennent, la seconde comparant chaque retour à la table.
+
 Ce qui reste au point 2 :
 
 - *Le sommaire du Marché* : au téléphone il redit le rail de pastilles — six
@@ -47,11 +59,14 @@ Ce qui reste au point 2 :
 - *`/moi/profil`* titre à **19,5 px**, seule page hors de l'échelle : son `h1`
   n'est pas le nom de la page mais la QUESTION courante du questionnaire. Un
   `h1` qui change à chaque réponse, et un nom de page nulle part.
-- *Les sept pages de `Feuillet`* écrivent encore leur en-tête à la main
-  (`/portefeuille`, `/instruments`, `/aide`, `/recherche`, `/moi/identite`,
-  `/moi/appareil`, `/moi/contact`). Leur titre a maintenant la fonte et la
-  taille de l'étalon : les passer à `EnTete` ne coûterait plus qu'un sur-titre
-  à décider par page, et ferait tomber le cliquet du point 7 de sept crans.
+- ~~*Les sept pages de `Feuillet`.*~~ **FAIT le 24 octobre 2026.** Elles
+  écrivaient leur en-tête à la main et sont passées à `EnTete`. Trois sont
+  des racines de siège (`/portefeuille`, `/instruments`, `/aide`) et ne
+  prennent pas de sur-titre ; `/recherche` non plus — on y entre par la
+  loupe, de partout, elle n'appartient à aucun siège. `/moi/identite` et
+  `/moi/appareil` prennent « Vous », la famille de `/moi/compte` ;
+  `/moi/contact` n'en prend pas, son retour disant déjà « Aide ».
+  **Le cliquet des en-têtes écrits à la main tombe de 46 à 38.**
 - *La fonte du guide* (`info/risques`), servi sur les deux domaines : dispensé
   dans l'épreuve, à décider.
 

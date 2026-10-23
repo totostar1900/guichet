@@ -7,6 +7,7 @@ import { Rubriques } from "@/components/mobile/Rubriques";
 import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
 import styles from "@/components/Feuillet.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Instruments" };
@@ -56,10 +57,7 @@ export default async function InstrumentsSommaire() {
   return (
     <Glissement>
         <div className={styles.page}>
-          <header className={styles.tete}>
-            <h1>{t("Instruments")}</h1>
-            <p>{t("Les trois façons d'entrer sur une ligne : la cote, les fonds, et les séances des Trésors.")}</p>
-          </header>
+          <EnTete titre={t("Instruments")} phrase={t("Les trois façons d'entrer sur une ligne : la cote, les fonds, et les séances des Trésors.")} />
 
           <Rubriques
             items={INSTRUMENTS_PAGES.map((p) => ({

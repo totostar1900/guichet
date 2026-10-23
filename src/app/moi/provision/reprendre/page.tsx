@@ -52,7 +52,9 @@ export default async function ReprendrePage() {
       <div className={styles.wrap}>
         <EnTete
           retour={{ href: "/moi/provision", mot: t("Votre provision") }}
-          surTitre={t("Votre provision")}
+          /* Le retour dit « Votre provision » : le sur-titre dit la famille,
+             pas le même mot — c'est celui que porte la page du solde. */
+          surTitre={t("Votre argent chez nous")}
           titre={t("La reprendre")}
           phrase={t("Versée sur le compte déclaré à l'ouverture, et sur lui seul, sous 72 heures ouvrables.")}
         />

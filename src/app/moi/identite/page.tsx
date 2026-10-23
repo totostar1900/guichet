@@ -2,6 +2,7 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 import { Identite } from "./Identite";
 import styles from "@/components/Feuillet.module.css";
 
@@ -49,17 +50,12 @@ export default async function IdentitePage() {
   return (
     <Glissement>
         <div className={styles.page}>
-          {/* LE RETOUR REMONTE LA HIÉRARCHIE, et le glissement vers la droite le
-              dit. Le bouton du téléphone remonte l'historique, ce qui n'est pas
-              la même chose : on peut arriver ici par un lien. */}
-          <nav className={styles.fil}>
-            <LienRetour href="/moi/compte">{t("Votre compte")}</LienRetour>
-          </nav>
-
-          <header className={styles.tete}>
-            <h1>{t("Qui vous êtes")}</h1>
-            <p>{t("Le nom qui s'imprime sur vos bulletins, et les deux canaux par lesquels la maison vous joint et vous fait signer.")}</p>
-          </header>
+          <EnTete
+            retour={{ href: "/moi/compte", mot: t("Votre compte") }}
+            surTitre={t("Vous")}
+            titre={t("Qui vous êtes")}
+            phrase={t("Le nom qui s'imprime sur vos bulletins, et les deux canaux par lesquels la maison vous joint et vous fait signer.")}
+          />
 
           <Identite
             nom={s.name}

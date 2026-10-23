@@ -52,7 +52,9 @@ export default async function AlimenterPage() {
       <div className={styles.wrap}>
         <EnTete
           retour={{ href: "/moi/provision", mot: t("Votre provision") }}
-          surTitre={t("Votre provision")}
+          /* Le retour dit « Votre provision » : le sur-titre dit la famille,
+             pas le même mot — c'est celui que porte la page du solde. */
+          surTitre={t("Votre argent chez nous")}
           titre={t("L'alimenter")}
           phrase={t("Deux chemins. Un virement quand vous voulez, ou une somme fixe chaque mois, sans y penser.")}
           aCote={mandat ? <span className={`${styles.etiq} ${styles.etiqOn}`}>{t("Prélèvement actif")}</span> : undefined}

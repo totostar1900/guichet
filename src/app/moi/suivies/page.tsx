@@ -44,7 +44,7 @@ export default async function SuiviesPage() {
     <Glissement>
       <main className="wrap">
         <EnTete
-          retour={{ href: "/", mot: t("Votre portefeuille") }}
+          retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Votre dossier")}
           titre={t("Lignes suivies")}
           phrase={t("Ce que vous surveillez sans le détenir. Un message vous prévient à chaque changement de cours, de prix ou de statut.")}

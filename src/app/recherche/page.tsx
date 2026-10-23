@@ -6,6 +6,7 @@ import { InfoSearch } from "@/app/info/InfoSearch";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import styles from "@/components/Feuillet.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
@@ -56,10 +57,7 @@ export default async function RecherchePage({ searchParams }: { searchParams: Pr
   return (
     <Glissement>
         <div className={styles.page}>
-          <header className={styles.tete}>
-            <h1>{t("Rechercher")}</h1>
-            <p>{t("L'aide, le glossaire, les éclairages et les pages de l'application, en un seul champ. Une question entière marche aussi bien qu'un mot.")}</p>
-          </header>
+          <EnTete titre={t("Rechercher")} phrase={t("L'aide, le glossaire, les éclairages et les pages de l'application, en un seul champ. Une question entière marche aussi bien qu'un mot.")} />
 
           <InfoSearch
             entries={entries}

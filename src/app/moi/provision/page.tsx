@@ -75,7 +75,7 @@ export default async function ProvisionPage() {
     <Glissement>
       <div className={styles.wrap}>
         <EnTete
-          retour={{ href: "/", mot: t("Portefeuille") }}
+          retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Votre argent chez nous")}
           titre={t("Votre provision")}
           phrase={t(
