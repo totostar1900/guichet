@@ -229,7 +229,7 @@ const entetesALaMain = (): string[] => {
 
 describe("l'en-tête d'une page", () => {
   it("ne laisse pas les en-têtes écrits à la main se multiplier", () => {
-    const PLAFOND = 49;
+    const PLAFOND = 46;
     const mains = entetesALaMain();
     expect(mains.length, `${mains.length} en-têtes encore écrits à la main (plafond ${PLAFOND}) :\n  ${mains.join("\n  ")}`).toBeLessThanOrEqual(PLAFOND);
     expect(PLAFOND - mains.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(2);
@@ -244,5 +244,21 @@ describe("l'en-tête d'une page", () => {
     /* Le retour est un lien, le sur-titre n'en est pas un : c'est toute la
        distinction que le fil d'Ariane de « Sécurité » effaçait. */
     expect(s, "le sur-titre est redevenu un lien").not.toMatch(/surTitre[^}]*href/);
+  });
+
+  /* CE QUI SE POSE À CÔTÉ reste à côté. Les trois listes d'instruments
+     portent un « en bref » ; sous le titre, il repousse d'un cran le début de
+     la liste, qui est ce pour quoi on vient. La coquille le sort donc du bloc
+     des mots — si on l'y remettait, il redeviendrait un cinquième créneau
+     empilé, et la raison écrite par la page des fonds serait perdue. */
+  it("pose à côté du titre ce qui n'est pas un mot du titre", () => {
+    const s = fs.readFileSync(path.join(ROOT, "src/components/EnTete.tsx"), "utf8");
+    /* Posé en frère de « .mots », pas en enfant : entre lui et la fermeture
+       de l'en-tête il ne reste donc aucune balise à fermer. */
+    const pose = s.indexOf("{aCote}");
+    expect(pose, "le créneau « à côté » a disparu de la coquille").toBeGreaterThan(0);
+    expect(s.slice(pose, s.indexOf("</header>")), "le « à côté » est repassé sous le titre, dans le bloc des mots").not.toContain("</div>");
+    const css = fs.readFileSync(path.join(ROOT, "src/components/EnTete.module.css"), "utf8");
+    expect(css, "le « à côté » ne sait plus passer à la ligne quand la place manque").toMatch(/\.avecCote\s*{[^}]*flex-wrap:\s*wrap/);
   });
 });

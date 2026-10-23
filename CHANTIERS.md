@@ -36,10 +36,14 @@ titre, phrase — et un seul genre par créneau. Dix pages y sont passées le
 « Sécurité » (le seul de l'application) et le lien de retour que « Analyse »
 rangeait dans le créneau du sur-titre.
 
-→ *Un cliquet compte les en-têtes encore écrits à la main (49 ce jour-là) :
-il descend, il ne monte pas. Les cinq pages restantes du relevé sont des
-racines de siège et des listes — elles demandent chacune un sur-titre à
-décider.*
+Les trois listes d'instruments ont suivi : `/titres`, `/fonds` et
+`/calendrier` portent le sur-titre « Investissez », et les deux racines —
+`/trader` et `/` — n'en portent aucun, sur décision. Leur « en bref » se pose
+désormais EN FACE du titre (créneau `aCote`) plutôt que dessous, où il
+repoussait d'un cran le début de la liste.
+
+→ *Un cliquet compte les en-têtes encore écrits à la main : 49 le 24 octobre
+au matin, 46 le soir. Il descend, il ne monte pas.*
 
 **8. ~~Bandes et écarts.~~ FAIT le 24 octobre 2026.** La bande de « Mes
 documents » est devenue la seule forme des rubriques : les sept sommaires du

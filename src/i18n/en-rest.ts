@@ -1395,6 +1395,9 @@ export const EN_REST: Record<string, string> = {
   /* L'issue de la colonne : elle cherche des noms de page, la recherche
      entière cherche tout le reste, et la question tapée la suit. */
   "Chercher « {q} » partout": "Search for “{q}” everywhere",
+  /* Le sur-titre des trois listes d'instruments : où l'on est, et ce qu'on y
+     fait. Voir ETALON.md, le créneau du sur-titre. */
+  Investissez: "Invest",
   "aide · glossaire · pages": "help · glossary · pages",
   "Ouvrir la recherche entière": "Open the full search",
   /* Deux étiquettes de résultat de plus : un service se fait, un instrument

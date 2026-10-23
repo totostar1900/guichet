@@ -140,6 +140,14 @@ Dans cet ordre, chacun facultatif, **jamais interverti** :
 Le fil d'Ariane de `/moi/securite` disparaît : il dit la même chose que le
 sur-titre, en plus long, et il est le seul de l'application.
 
+**Et ce qui se pose à côté.** Les trois listes d'instruments portent un objet
+de plus — un « en bref », un chiffre de tête, un bouton. Il va **en face du
+titre** (`aCote`), jamais dessous : sous le titre il repousse d'un cran le
+début de la liste, qui est ce pour quoi on vient ; en face il ne coûte aucune
+hauteur. C'est la raison qu'avait écrite la page des fonds, et elle vaut pour
+les trois. Quand la place manque — un titre de deux lignes sur un téléphone —
+il passe à la ligne de lui-même.
+
 ### 4.3 Une section : la bande
 
 ```css

@@ -33,6 +33,7 @@ export function EnTete({
   surTitre,
   titre,
   phrase,
+  aCote,
 }: {
   /** Un cran en arrière. Omis sur une racine de siège, où il n'y a rien au-dessus. */
   retour?: { href: string; mot: string };
@@ -42,6 +43,14 @@ export function EnTete({
   titre: string;
   /** Ce qu'on y trouve, en une phrase. */
   phrase?: React.ReactNode;
+  /**
+   * CE QUI SE POSE EN FACE DU TITRE, et jamais dessous : un chiffre de tête,
+   * un bouton d'édition, un « en bref ». Sous le titre, il repousse d'un cran
+   * le début de la liste, qui est ce pour quoi on vient ; en face, il ne coûte
+   * aucune hauteur. C'est la raison qu'avait écrite la page des fonds, et elle
+   * vaut pour les trois listes.
+   */
+  aCote?: React.ReactNode;
 }) {
   return (
     <>
@@ -50,10 +59,13 @@ export function EnTete({
           ← {retour.mot}
         </LienRetour>
       )}
-      <header className={styles.tete}>
-        {surTitre && <div className="eyebrow">{surTitre}</div>}
-        <h1 className="display">{titre}</h1>
-        {phrase && <p className={styles.phrase}>{phrase}</p>}
+      <header className={`${styles.tete} ${aCote ? styles.avecCote : ""}`}>
+        <div className={styles.mots}>
+          {surTitre && <div className="eyebrow">{surTitre}</div>}
+          <h1 className="display">{titre}</h1>
+          {phrase && <p className={styles.phrase}>{phrase}</p>}
+        </div>
+        {aCote}
       </header>
     </>
   );

@@ -20,9 +20,24 @@
 }
 
 .tete {
+  margin-bottom: var(--s-9);
+}
+.mots {
   display: grid;
   gap: var(--s-3);
-  margin-bottom: var(--s-9);
+}
+/* EN FACE DU TITRE, pas dessous, et il passe à la ligne quand la place manque.
+   « min-width: 0 » sur les mots : sans lui, un titre long pousse l'objet hors
+   de la boîte au lieu de se replier. */
+.avecCote {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-8);
+  flex-wrap: wrap;
+}
+.avecCote .mots {
+  min-width: 0;
 }
 
 /* Le titre prend sa taille du jeton, par la règle commune des « h1 » ; rien à

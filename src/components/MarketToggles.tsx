@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { type MarketSegment, SEGMENT_HINT, SEGMENT_LABEL } from "@/lib/domain/status";
 import { useT } from "@/i18n/client";
+import { EnTete } from "./EnTete";
 
 /**
  * The head of the Titres page (what it holds, the bridge to the funds) and,
@@ -20,22 +21,7 @@ type Seg = "primaire" | "secondaire";
 export function TitresHead({ fundsCount }: { fundsCount: number }) {
   const t = useT();
   return (
-    <div className="mtogglesHead">
-      {/* LE NOM REVIENT EN TITRE, ET LA PHRASE REDEVIENT UNE PHRASE.
-          Il avait été retiré parce qu'il « ne disait rien de plus que la
-          phrase qu'il surmontait ». L'étalon donne la raison inverse : le
-          titre d'une page est son NOM, la phrase dit ce qu'on y trouve, et ce
-          sont deux créneaux, pas un choix. Sans nom, le titre de cette page
-          était une phrase de cinquante-quatre signes — et elle se composait à
-          16 px, plus petit que le corps de lecture, parce que trente l'aurait
-          étalée sur quatre lignes. Mesuré le 24 octobre 2026 : c'était le
-          seul titre de l'application sous la taille de son propre texte.
-          Voir ETALON.md. */}
-      <div>
-        <h1>{t("Titres")}</h1>
-        <p className="mtogglesLead">{t("Obligations, bons du Trésor et actions de la zone CEMAC")}</p>
-      </div>
-    </div>
+    <EnTete surTitre={t("Investissez")} titre={t("Titres")} phrase={t("Obligations, bons du Trésor et actions de la zone CEMAC")} />
   );
 }
 

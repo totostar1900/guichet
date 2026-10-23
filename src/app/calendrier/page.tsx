@@ -8,6 +8,7 @@ import { OfferBrowser } from "@/components/OfferBrowser";
 import { AdjudicationsEnBref } from "./EnBref";
 import { seancesAnnoncees } from "@/lib/domain/listes";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -62,10 +63,7 @@ export default async function CalendrierPage() {
             tenue regardera, et il n'existe que si on le note. */}
         {session && <Vu geste="vu.seance" objet="adjudications" />}
         <OngletsMarche />
-        <div className={styles.head}>
-          <h1 className="display">{t("Adjudications")}</h1>
-          <AdjudicationsEnBref />
-        </div>
+        <EnTete surTitre={t("Investissez")} titre={t("Adjudications")} aCote={<AdjudicationsEnBref />} />
         {seances.length > 0 ? (
           <OfferBrowser offers={seances} nowIso={new Date().toISOString()} fundsCount={0} lieu="adjudications" suivis={suivis} />
         ) : (
