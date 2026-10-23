@@ -7,6 +7,7 @@ import { OngletsMarche } from "@/components/market/OngletsMarche";
 import { OfferBrowser } from "@/components/OfferBrowser";
 import { AdjudicationsEnBref } from "./EnBref";
 import { seancesAnnoncees } from "@/lib/domain/listes";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -55,24 +56,26 @@ export default async function CalendrierPage() {
   const suivis = veilles.map((w) => w.offerId);
 
   return (
-    <div className={styles.page}>
-      {/* Qui suit les séances sans jamais y déposer : c'est le signal que la
-          tenue regardera, et il n'existe que si on le note. */}
-      {session && <Vu geste="vu.seance" objet="adjudications" />}
-      <OngletsMarche />
-      <div className={styles.head}>
-        <h1 className="display">{t("Adjudications")}</h1>
-        <AdjudicationsEnBref />
-      </div>
-      {seances.length > 0 ? (
-        <OfferBrowser offers={seances} nowIso={new Date().toISOString()} fundsCount={0} lieu="adjudications" suivis={suivis} />
-      ) : (
-        <p className="muted">{t("Aucune séance ouverte à Guichet pour l'instant. Les Trésors publient leurs communiqués par vagues, souvent une semaine avant la séance.")}</p>
-      )}
+    <Glissement>
+      <div className={styles.page}>
+        {/* Qui suit les séances sans jamais y déposer : c'est le signal que la
+            tenue regardera, et il n'existe que si on le note. */}
+        {session && <Vu geste="vu.seance" objet="adjudications" />}
+        <OngletsMarche />
+        <div className={styles.head}>
+          <h1 className="display">{t("Adjudications")}</h1>
+          <AdjudicationsEnBref />
+        </div>
+        {seances.length > 0 ? (
+          <OfferBrowser offers={seances} nowIso={new Date().toISOString()} fundsCount={0} lieu="adjudications" suivis={suivis} />
+        ) : (
+          <p className="muted">{t("Aucune séance ouverte à Guichet pour l'instant. Les Trésors publient leurs communiqués par vagues, souvent une semaine avant la séance.")}</p>
+        )}
 
-      <p className={styles.note}>
-        {t("Chaque ligne cite le communiqué du Trésor concerné, publié par la BEAC : c'est la source, et elle fait foi. Le montant, le taux et le nominal sont dans le communiqué. Pour prendre part à une séance, dites-le au desk avant la clôture, qui précède la séance.")}
-      </p>
-    </div>
+        <p className={styles.note}>
+          {t("Chaque ligne cite le communiqué du Trésor concerné, publié par la BEAC : c'est la source, et elle fait foi. Le montant, le taux et le nominal sont dans le communiqué. Pour prendre part à une séance, dites-le au desk avant la clôture, qui précède la séance.")}
+        </p>
+      </div>
+    </Glissement>
   );
 }

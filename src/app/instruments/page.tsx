@@ -3,10 +3,10 @@ import { repo } from "@/lib/data";
 import { loadRegistry } from "@/lib/reference";
 import { typeOf } from "@/lib/registry";
 import { getT } from "@/i18n/server";
-import { Glissement } from "@/components/mobile/Glissement";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
 import styles from "@/components/Feuillet.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Instruments" };
@@ -55,27 +55,27 @@ export default async function InstrumentsSommaire() {
 
   return (
     <Glissement>
-      <div className={styles.page}>
-        <header className={styles.tete}>
-          <h1>{t("Instruments")}</h1>
-          <p>{t("Les trois façons d'entrer sur une ligne : la cote, les fonds, et les séances des Trésors.")}</p>
-        </header>
+        <div className={styles.page}>
+          <header className={styles.tete}>
+            <h1>{t("Instruments")}</h1>
+            <p>{t("Les trois façons d'entrer sur une ligne : la cote, les fonds, et les séances des Trésors.")}</p>
+          </header>
 
-        <Rubriques
-          items={INSTRUMENTS_PAGES.map((p) => ({
-            href: p.href,
-            nom: t(p.label),
-            quoi: t(p.hint),
-            /* CHAQUE RUBRIQUE COMPTE DANS SON UNITÉ. « 2 ouvertes » convient
-               à une séance, qui ouvre et se ferme ; une ligne de la cote ne
-               s'ouvre pas, et un fonds encore moins. Un mot juste coûte un
-               tableau de trois entrées, un mot faux coûte la confiance dans
-               les deux autres. Zéro ne s'écrit pas : une rubrique vide se
-               visite quand même, et annoncer son vide l'éteindrait. */
-            etiquette: compte[p.key] ? t(UNITE[p.key][compte[p.key] > 1 ? 1 : 0], { n: String(compte[p.key]) }) : undefined,
-          }))}
-        />
-      </div>
+          <Rubriques
+            items={INSTRUMENTS_PAGES.map((p) => ({
+              href: p.href,
+              nom: t(p.label),
+              quoi: t(p.hint),
+              /* CHAQUE RUBRIQUE COMPTE DANS SON UNITÉ. « 2 ouvertes » convient
+                 à une séance, qui ouvre et se ferme ; une ligne de la cote ne
+                 s'ouvre pas, et un fonds encore moins. Un mot juste coûte un
+                 tableau de trois entrées, un mot faux coûte la confiance dans
+                 les deux autres. Zéro ne s'écrit pas : une rubrique vide se
+                 visite quand même, et annoncer son vide l'éteindrait. */
+              etiquette: compte[p.key] ? t(UNITE[p.key][compte[p.key] > 1 ? 1 : 0], { n: String(compte[p.key]) }) : undefined,
+            }))}
+          />
+        </div>
     </Glissement>
   );
 }

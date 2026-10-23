@@ -11,6 +11,7 @@ import { Sommaire } from "@/components/Sommaire";
 import { Echeancier } from "./Echeancier";
 import { Repartition } from "./Repartition";
 import styles from "./page.module.css";
+import { Glissement, LienRetour } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -61,9 +62,9 @@ export default async function PerformancePage() {
   if (!p.lines.length) {
     return (
       <div className={styles.page}>
-        <Link href="/" className={styles.back}>
+        <LienRetour href="/" className={styles.back}>
           ← {t("Portefeuille")}
-        </Link>
+        </LienRetour>
         <h1 className="display">{t("Ce que votre épargne a rapporté")}</h1>
         <p className="muted">{t("Ce rapport paraît dès votre première opération réglée : il se calcule sur ce que vous avez versé et sur ce que vous détenez.")}</p>
       </div>
@@ -74,170 +75,172 @@ export default async function PerformancePage() {
   const tone = (v: number) => (v > 0 ? styles.up : v < 0 ? styles.down : "");
 
   return (
-    <div className={styles.page}>
-      <Link href="/" className={styles.back}>
-        ← {t("Portefeuille")}
-      </Link>
-      <h1 className="display">{t("Analyse de votre portefeuille")}</h1>
-      <p className={styles.lead}>
-        {t("Depuis le {d}, sur ce que vous avez réellement versé et pour le temps où chaque versement a couru.", { d: fmtDate(p.since ?? "") })}
-      </p>
-
-      {/* LE RAIL, comme sur Analyses au desk. Quatre sections, c'est déjà plus
-          qu'on ne parcourt de haut en bas, et chaque tuile du tableau de bord
-          mène directement à la sienne. */}
-      <Sommaire
-        label={t("Sur cette page")}
-        sections={[
-          { id: "detenu", title: t("Ce que vous détenez"), groupe: t("Le portefeuille") },
-          { id: "rapporte", title: t("Ce que ça a rapporté"), groupe: t("Le portefeuille") },
-          { id: "echeancier", title: t("L'échéancier"), groupe: t("Ce qui vient") },
-          { id: "operations", title: t("Vos opérations"), groupe: t("Ce qui vient") },
-        ]}
-      >
-      <div className={styles.sections}>
-
-      <section id="detenu">
-        <h2 className={styles.h2}>{t("Ce que vous détenez")}</h2>
-        <Repartition parts={familles} />
-        {p.unvalued > 0 && (
-          <p className={styles.horsDessin}>
-            {t("{n} ligne(s) sont hors du dessin, faute de cours publié. Elles ne valent pas zéro : les compter à zéro ferait baisser votre répartition sans raison.", { n: String(p.unvalued) })}
-          </p>
-        )}
-      </section>
-
-      <section id="rapporte">
-      <h2 className={styles.h2}>{t("Ce que ça a rapporté")}</h2>
-
-      {totalsMakeSense && (
-      <div className={styles.head}>
-        <div>
-          <span>{t("Rendement, pondéré par vos montants")}</span>
-          <b className={tone(p.rate ?? 0)}>{p.rate != null ? `${sign(p.rate)}${fmtPct(p.rate, 2)}` : "—"}</b>
-          <small>{p.rate != null ? t("par an") : t("pas encore calculable")}</small>
-        </div>
-        <div>
-          <span>{t("Gain")}</span>
-          <b className={tone(p.gain)}>
-            {sign(p.gain)}
-            {fmt(Math.round(p.gain))}
-          </b>
-          <small>FCFA</small>
-        </div>
-        <div>
-          <span>{t("Versé")}</span>
-          <b>{fmt(Math.round(p.invested))}</b>
-          <small>FCFA</small>
-        </div>
-        <div>
-          <span>{t("Détenu aujourd'hui")}</span>
-          <b>{fmt(Math.round(p.valued))}</b>
-          <small>{t("plus {n} FCFA déjà revenus", { n: fmt(Math.round(p.returned)) })}</small>
-        </div>
-      </div>
-      )}
-
-      <div className="scroll-x">
-        <table className="tbl">
-          <thead>
-            <tr>
-              <th>{t("Ligne")}</th>
-              <th className="r">{t("Versé")}</th>
-              <th className="r">{t("Revenu")}</th>
-              <th className="r">{t("Détenu")}</th>
-              <th className="r">{t("Gain")}</th>
-              <th className="r">{t("Par an")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {p.lines.map((l) => (
-              <tr key={l.offerId}>
-                <td>
-                  <Link href={`/offres/${l.offerId}`}>{l.title}</Link>
-                  <small className="muted mono"> {l.isin}</small>
-                  {l.sold ? <small className="muted"> · {t("des parts sont sorties")}</small> : null}
-                </td>
-                <td className="r num">{fmt(Math.round(l.invested))}</td>
-                <td className="r num">{fmt(Math.round(l.returned))}</td>
-                {/* Sans cours, on ne remplit rien : un zéro se lirait comme une valeur
-                    nulle, c'est-à-dire comme une perte totale. */}
-                <td className="r num">{l.valuable ? fmt(Math.round(l.valued)) : <span className="muted">{t("pas de cours")}</span>}</td>
-                <td className={`r num ${l.valuable ? tone(l.gain) : ""}`}>
-                  {l.valuable ? `${sign(l.gain)}${fmt(Math.round(l.gain))}` : <span className="muted">—</span>}
-                </td>
-                <td className={`r num ${tone(l.rate ?? 0)}`}>
-                  {l.rate != null ? `${sign(l.rate)}${fmtPct(l.rate, 2)}` : <span className="muted">—</span>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      </section>
-
-      <section id="echeancier">
-        <h2 className={styles.h2}>{t("L'échéancier")}</h2>
-        <p className={styles.sousTitre}>{t("Ce que vos lignes doivent vous verser, mois par mois.")}</p>
-        <Echeancier mois={aVenir} />
-      </section>
-
-      <section id="operations">
-        <h2 className={styles.h2}>{t("Vos opérations")}</h2>
-        {operations.length === 0 ? (
-          <p className="muted">{t("Aucun mouvement encore porté au journal.")}</p>
-        ) : (
-          <div className="scroll-x">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>{t("Date")}</th>
-                  <th>{t("Opération")}</th>
-                  <th className="r">{t("Montant")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {operations.map((o) => (
-                  <tr key={o.id}>
-                    <td>{fmtDate(o.at)}</td>
-                    <td>{o.label}</td>
-                    <td className="r num">{fmt(Math.round(o.amount))}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      <div className={styles.notes}>
-        <p>
-          {t(
-            "Le rendement est pondéré par les montants : cent mille francs placés onze mois n'y pèsent pas comme cent mille francs placés trois semaines. C'est le vôtre, et il diffère de la performance publiée par un fonds, qui est celle d'un porteur entré le premier jour.",
-          )}
+    <Glissement>
+      <div className={styles.page}>
+        <LienRetour href="/" className={styles.back}>
+          ← {t("Portefeuille")}
+        </LienRetour>
+        <h1 className="display">{t("Analyse de votre portefeuille")}</h1>
+        <p className={styles.lead}>
+          {t("Depuis le {d}, sur ce que vous avez réellement versé et pour le temps où chaque versement a couru.", { d: fmtDate(p.since ?? "") })}
         </p>
-        {p.attendus > 0 && (
+
+        {/* LE RAIL, comme sur Analyses au desk. Quatre sections, c'est déjà plus
+            qu'on ne parcourt de haut en bas, et chaque tuile du tableau de bord
+            mène directement à la sienne. */}
+        <Sommaire
+          label={t("Sur cette page")}
+          sections={[
+            { id: "detenu", title: t("Ce que vous détenez"), groupe: t("Le portefeuille") },
+            { id: "rapporte", title: t("Ce que ça a rapporté"), groupe: t("Le portefeuille") },
+            { id: "echeancier", title: t("L'échéancier"), groupe: t("Ce qui vient") },
+            { id: "operations", title: t("Vos opérations"), groupe: t("Ce qui vient") },
+          ]}
+        >
+        <div className={styles.sections}>
+
+        <section id="detenu">
+          <h2 className={styles.h2}>{t("Ce que vous détenez")}</h2>
+          <Repartition parts={familles} />
+          {p.unvalued > 0 && (
+            <p className={styles.horsDessin}>
+              {t("{n} ligne(s) sont hors du dessin, faute de cours publié. Elles ne valent pas zéro : les compter à zéro ferait baisser votre répartition sans raison.", { n: String(p.unvalued) })}
+            </p>
+          )}
+        </section>
+
+        <section id="rapporte">
+        <h2 className={styles.h2}>{t("Ce que ça a rapporté")}</h2>
+
+        {totalsMakeSense && (
+        <div className={styles.head}>
+          <div>
+            <span>{t("Rendement, pondéré par vos montants")}</span>
+            <b className={tone(p.rate ?? 0)}>{p.rate != null ? `${sign(p.rate)}${fmtPct(p.rate, 2)}` : "—"}</b>
+            <small>{p.rate != null ? t("par an") : t("pas encore calculable")}</small>
+          </div>
+          <div>
+            <span>{t("Gain")}</span>
+            <b className={tone(p.gain)}>
+              {sign(p.gain)}
+              {fmt(Math.round(p.gain))}
+            </b>
+            <small>FCFA</small>
+          </div>
+          <div>
+            <span>{t("Versé")}</span>
+            <b>{fmt(Math.round(p.invested))}</b>
+            <small>FCFA</small>
+          </div>
+          <div>
+            <span>{t("Détenu aujourd'hui")}</span>
+            <b>{fmt(Math.round(p.valued))}</b>
+            <small>{t("plus {n} FCFA déjà revenus", { n: fmt(Math.round(p.returned)) })}</small>
+          </div>
+        </div>
+        )}
+
+        <div className="scroll-x">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>{t("Ligne")}</th>
+                <th className="r">{t("Versé")}</th>
+                <th className="r">{t("Revenu")}</th>
+                <th className="r">{t("Détenu")}</th>
+                <th className="r">{t("Gain")}</th>
+                <th className="r">{t("Par an")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {p.lines.map((l) => (
+                <tr key={l.offerId}>
+                  <td>
+                    <Link href={`/offres/${l.offerId}`}>{l.title}</Link>
+                    <small className="muted mono"> {l.isin}</small>
+                    {l.sold ? <small className="muted"> · {t("des parts sont sorties")}</small> : null}
+                  </td>
+                  <td className="r num">{fmt(Math.round(l.invested))}</td>
+                  <td className="r num">{fmt(Math.round(l.returned))}</td>
+                  {/* Sans cours, on ne remplit rien : un zéro se lirait comme une valeur
+                      nulle, c'est-à-dire comme une perte totale. */}
+                  <td className="r num">{l.valuable ? fmt(Math.round(l.valued)) : <span className="muted">{t("pas de cours")}</span>}</td>
+                  <td className={`r num ${l.valuable ? tone(l.gain) : ""}`}>
+                    {l.valuable ? `${sign(l.gain)}${fmt(Math.round(l.gain))}` : <span className="muted">—</span>}
+                  </td>
+                  <td className={`r num ${tone(l.rate ?? 0)}`}>
+                    {l.rate != null ? `${sign(l.rate)}${fmtPct(l.rate, 2)}` : <span className="muted">—</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        </section>
+
+        <section id="echeancier">
+          <h2 className={styles.h2}>{t("L'échéancier")}</h2>
+          <p className={styles.sousTitre}>{t("Ce que vos lignes doivent vous verser, mois par mois.")}</p>
+          <Echeancier mois={aVenir} />
+        </section>
+
+        <section id="operations">
+          <h2 className={styles.h2}>{t("Vos opérations")}</h2>
+          {operations.length === 0 ? (
+            <p className="muted">{t("Aucun mouvement encore porté au journal.")}</p>
+          ) : (
+            <div className="scroll-x">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>{t("Date")}</th>
+                    <th>{t("Opération")}</th>
+                    <th className="r">{t("Montant")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {operations.map((o) => (
+                    <tr key={o.id}>
+                      <td>{fmtDate(o.at)}</td>
+                      <td>{o.label}</td>
+                      <td className="r num">{fmt(Math.round(o.amount))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        <div className={styles.notes}>
           <p>
             {t(
-              "{n} échéance(s) passée(s) ne sont pas comptées ici : leur encaissement n'a pas encore été constaté. Elles le seront au jour et au montant où l'argent est arrivé, et ce rendement se mettra à jour de lui-même.",
-              { n: String(p.attendus) },
+              "Le rendement est pondéré par les montants : cent mille francs placés onze mois n'y pèsent pas comme cent mille francs placés trois semaines. C'est le vôtre, et il diffère de la performance publiée par un fonds, qui est celle d'un porteur entré le premier jour.",
             )}
           </p>
-        )}
-        {p.unvalued > 0 && (
-          <p>
-            {t(
-              "{n} ligne(s) ne sont pas comptées ici, faute de cours publié : {m} FCFA y sont versés. Une obligation du primaire gardée jusqu'à son terme ne se cote pas, et l'application préfère ne rien dire plutôt que de lui donner une valeur qu'elle n'a pas.",
-              { n: String(p.unvalued), m: fmt(Math.round(p.unvaluedInvested)) },
-            )}
-          </p>
-        )}
-        {p.sold && <p>{t("Sur les lignes dont des parts sont sorties, les coupons encaissés avant la vente ne sont pas comptés : le gain affiché y est prudent.")}</p>}
-        <p className="muted">{t("Ce rapport mesure ce qui s'est passé, ligne par ligne. Les performances passées ne préjugent pas des performances futures.")}</p>
+          {p.attendus > 0 && (
+            <p>
+              {t(
+                "{n} échéance(s) passée(s) ne sont pas comptées ici : leur encaissement n'a pas encore été constaté. Elles le seront au jour et au montant où l'argent est arrivé, et ce rendement se mettra à jour de lui-même.",
+                { n: String(p.attendus) },
+              )}
+            </p>
+          )}
+          {p.unvalued > 0 && (
+            <p>
+              {t(
+                "{n} ligne(s) ne sont pas comptées ici, faute de cours publié : {m} FCFA y sont versés. Une obligation du primaire gardée jusqu'à son terme ne se cote pas, et l'application préfère ne rien dire plutôt que de lui donner une valeur qu'elle n'a pas.",
+                { n: String(p.unvalued), m: fmt(Math.round(p.unvaluedInvested)) },
+              )}
+            </p>
+          )}
+          {p.sold && <p>{t("Sur les lignes dont des parts sont sorties, les coupons encaissés avant la vente ne sont pas comptés : le gain affiché y est prudent.")}</p>}
+          <p className="muted">{t("Ce rapport mesure ce qui s'est passé, ligne par ligne. Les performances passées ne préjugent pas des performances futures.")}</p>
+        </div>
+        </div>
+        </Sommaire>
       </div>
-      </div>
-      </Sommaire>
-    </div>
+    </Glissement>
   );
 }

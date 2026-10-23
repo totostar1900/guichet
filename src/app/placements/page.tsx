@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 /** The tab and the phone header read this title: in the reader's language. */
 export async function generateMetadata() {
@@ -116,224 +117,226 @@ export default async function PlacementsPage() {
   ];
 
   return (
-    <div className={styles.page}>
-      <header className={styles.tete}>
-        <span className="eyebrow">{t("Nos placements")}</span>
-        <h1>{t("Quatre emplois pour votre épargne, et trois temps pour commencer.")}</h1>
-        <p>{t("Chacun se tient dans le même compte. Vous passez de l'un à l'autre sans rien rouvrir, et votre conseiller vous aide à choisir si vous le souhaitez.")}</p>
-      </header>
+    <Glissement>
+      <div className={styles.page}>
+        <header className={styles.tete}>
+          <span className="eyebrow">{t("Nos placements")}</span>
+          <h1>{t("Quatre emplois pour votre épargne, et trois temps pour commencer.")}</h1>
+          <p>{t("Chacun se tient dans le même compte. Vous passez de l'un à l'autre sans rien rouvrir, et votre conseiller vous aide à choisir si vous le souhaitez.")}</p>
+        </header>
 
-      {/* LES QUATRE FAMILLES. Chacune porte ce qu'elle rapporte ET ce qu'elle
-          risque, dans le même encadré : séparer les deux ferait de la seconde
-          une petite ligne qu'on saute. */}
-      <div className={styles.familles}>
-        {familles.map((f) => (
-          <section className="panel" key={f.clef} id={f.clef}>
-            <div className={styles.familleTete}>
-              <span className={styles.figurine}>
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d={f.d} />
-                </svg>
-              </span>
-              <h2>{f.titre}</h2>
-            </div>
-            <div className={styles.familleCorps}>
-              <div className={styles.prose}>
-                {f.corps.map((p) => (
-                  <p key={p.slice(0, 24)}>{p}</p>
-                ))}
+        {/* LES QUATRE FAMILLES. Chacune porte ce qu'elle rapporte ET ce qu'elle
+            risque, dans le même encadré : séparer les deux ferait de la seconde
+            une petite ligne qu'on saute. */}
+        <div className={styles.familles}>
+          {familles.map((f) => (
+            <section className="panel" key={f.clef} id={f.clef}>
+              <div className={styles.familleTete}>
+                <span className={styles.figurine}>
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d={f.d} />
+                  </svg>
+                </span>
+                <h2>{f.titre}</h2>
               </div>
-              <dl className={styles.enBref}>
-                <div>
-                  <dt>{t("Qui emprunte, qui est surveillé")}</dt>
-                  <dd>{f.qui}</dd>
-                </div>
-                <div>
-                  <dt>{t("Ce que vous percevez")}</dt>
-                  <dd>{f.touchez}</dd>
-                </div>
-                <div>
-                  <dt>{t("Le risque")}</dt>
-                  <dd className={styles.risque}>{f.risque}</dd>
-                </div>
-              </dl>
-            </div>
-          </section>
-        ))}
-      </div>
-
-      <section className="panel">
-        <div className="panel-h">
-          <h2>{t("Les quatre, côte à côte")}</h2>
-          <span className="muted">{t("aucun n'est meilleur que l'autre : ils ne répondent pas à la même question")}</span>
-        </div>
-        <div className={styles.tableBoite}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th scope="col"></th>
-                <th scope="col">{t("Emprunts d'État")}</th>
-                <th scope="col">{t("Obligations")}</th>
-                <th scope="col">{t("Actions")}</th>
-                <th scope="col">{t("Fonds agréés")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">{t("Ce que vous percevez")}</th>
-                <td>{t("Un intérêt convenu d'avance")}</td>
-                <td>{t("Un coupon convenu d'avance")}</td>
-                <td>{t("Un dividende, s'il est voté")}</td>
-                <td>{t("La valeur de la part au rachat")}</td>
-              </tr>
-              <tr>
-                <th scope="row">{t("Quand vous récupérez")}</th>
-                <td>{t("À l'échéance annoncée")}</td>
-                <td>{t("À l'échéance, ou par tranches")}</td>
-                <td>{t("Quand vous vendez")}</td>
-                <td>{t("Quand vous demandez le rachat")}</td>
-              </tr>
-              <tr>
-                <th scope="row">{t("Le capital est-il promis")}</th>
-                <td>{t("Oui, par l'émetteur")}</td>
-                <td>{t("Oui, par l'émetteur")}</td>
-                <td className={styles.non}>{t("Non")}</td>
-                <td className={styles.non}>{t("Non")}</td>
-              </tr>
-              <tr>
-                <th scope="row">{t("Qui choisit les lignes")}</th>
-                <td>{t("Vous")}</td>
-                <td>{t("Vous")}</td>
-                <td>{t("Vous")}</td>
-                <td>{t("Le gérant du fonds")}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p className={styles.note}>
-          {t("« Le capital est promis par l'émetteur » signifie qu'il s'y engage, non qu'un tiers le garantit.")}
-        </p>
-      </section>
-
-      {/* L'ÉPARGNE RÉGULIÈRE : le cinquième emploi, qui automatise les quatre
-          autres plutôt que de s'y ajouter. */}
-      <section className={styles.epargne}>
-        <div>
-          <h2>{t("Et le cinquième : l'épargne régulière.")}</h2>
-          <p>{t("Vous arrêtez un montant et un jour du mois ; le prélèvement s'exécute de lui-même. Vous désignez d'avance où va cette somme, et où repart ce qui vous est remboursé. Vous pouvez modifier ou arrêter à tout moment, et ce qui a déjà été placé reste à vous.")}</p>
-        </div>
-        <Link className="btn primary" href="/connexion?creer=1">
-          {t("Créer mon compte")}
-        </Link>
-      </section>
-
-      <section className="panel">
-        <div className="panel-h">
-          <h2>{t("Commencer tient en trois temps")}</h2>
-          <span className="muted">{t("le premier prend une minute et ne demande aucun document")}</span>
-        </div>
-        <ol className={styles.temps}>
-          {temps.map((x) => (
-            <li key={x.n}>
-              <span className={styles.chiffre}>{x.n}</span>
-              <div>
-                <b>{x.titre}</b>
-                <p>{x.dit}</p>
-                <ul>
-                  {x.points.map((p) => (
-                    <li key={p}>{p}</li>
+              <div className={styles.familleCorps}>
+                <div className={styles.prose}>
+                  {f.corps.map((p) => (
+                    <p key={p.slice(0, 24)}>{p}</p>
                   ))}
-                </ul>
-                <small>{x.cout}</small>
+                </div>
+                <dl className={styles.enBref}>
+                  <div>
+                    <dt>{t("Qui emprunte, qui est surveillé")}</dt>
+                    <dd>{f.qui}</dd>
+                  </div>
+                  <div>
+                    <dt>{t("Ce que vous percevez")}</dt>
+                    <dd>{f.touchez}</dd>
+                  </div>
+                  <div>
+                    <dt>{t("Le risque")}</dt>
+                    <dd className={styles.risque}>{f.risque}</dd>
+                  </div>
+                </dl>
               </div>
-            </li>
+            </section>
           ))}
-        </ol>
-        <p className={styles.note}>
-          {t("Tant que votre dossier n'est pas approuvé et la convention signée, aucun versement ni aucun ordre n'est possible. Votre écran vous dit alors exactement ce qui manque.")}
-        </p>
-      </section>
-
-      <section className="panel">
-        <div className="panel-h">
-          <h2>{t("La vie d'un placement")}</h2>
-          <span className="muted">{t("chaque étape porte sa date et sa pièce")}</span>
         </div>
-        <ol className={styles.vie}>
-          {vie.map((v) => (
-            <li key={v.quand}>
-              <b>{v.quand}</b>
-              <p>{v.dit}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <div className={styles.deux}>
-        <section className="panel">
-          <div className="panel-h">
-            <h2>{t("Qui décide quoi")}</h2>
-          </div>
-          <dl className={styles.reglages}>
-            <div>
-              <dt>{t("Vous décidez")}</dt>
-              <dd>{t("Où placer, combien, et quand. Aucun ordre ne part sans vous, et personne d'autre que vous ne peut en donner.")}</dd>
-            </div>
-            <div>
-              <dt>{t("Le conseiller éclaire")}</dt>
-              <dd>{t("Il explique une ligne, vérifie qu'elle convient à votre situation, et vous dit ce qu'il en pense si vous le lui demandez.")}</dd>
-            </div>
-            <div>
-              <dt>{t("Le bureau exécute et conserve")}</dt>
-              <dd>{t("Il porte votre ordre sur le marché, tient vos titres, encaisse ce qui vous revient, et vous en rend compte.")}</dd>
-            </div>
-          </dl>
-        </section>
 
         <section className="panel">
           <div className="panel-h">
-            <h2>{t("Ce que coûte le service")}</h2>
+            <h2>{t("Les quatre, côte à côte")}</h2>
+            <span className="muted">{t("aucun n'est meilleur que l'autre : ils ne répondent pas à la même question")}</span>
           </div>
-          <dl className={styles.reglages}>
-            <div>
-              <dt>{t("Créer son compte")}</dt>
-              <dd>{t("Gratuit, et sans engagement.")}</dd>
-            </div>
-            <div>
-              <dt>{t("Passer un ordre")}</dt>
-              <dd>{t("Une commission, connue avant que vous ne validiez, et rappelée sur votre avis d'opéré.")}</dd>
-            </div>
-            <div>
-              <dt>{t("Conserver vos titres")}</dt>
-              <dd>{t("Des droits de garde, selon un barème publié.")}</dd>
-            </div>
-            <div>
-              <dt>{t("Aucun frais caché")}</dt>
-              <dd>{t("Ce qui vous est prélevé figure au journal de votre compte, avec sa date et son motif.")}</dd>
-            </div>
-          </dl>
+          <div className={styles.tableBoite}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th scope="col"></th>
+                  <th scope="col">{t("Emprunts d'État")}</th>
+                  <th scope="col">{t("Obligations")}</th>
+                  <th scope="col">{t("Actions")}</th>
+                  <th scope="col">{t("Fonds agréés")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">{t("Ce que vous percevez")}</th>
+                  <td>{t("Un intérêt convenu d'avance")}</td>
+                  <td>{t("Un coupon convenu d'avance")}</td>
+                  <td>{t("Un dividende, s'il est voté")}</td>
+                  <td>{t("La valeur de la part au rachat")}</td>
+                </tr>
+                <tr>
+                  <th scope="row">{t("Quand vous récupérez")}</th>
+                  <td>{t("À l'échéance annoncée")}</td>
+                  <td>{t("À l'échéance, ou par tranches")}</td>
+                  <td>{t("Quand vous vendez")}</td>
+                  <td>{t("Quand vous demandez le rachat")}</td>
+                </tr>
+                <tr>
+                  <th scope="row">{t("Le capital est-il promis")}</th>
+                  <td>{t("Oui, par l'émetteur")}</td>
+                  <td>{t("Oui, par l'émetteur")}</td>
+                  <td className={styles.non}>{t("Non")}</td>
+                  <td className={styles.non}>{t("Non")}</td>
+                </tr>
+                <tr>
+                  <th scope="row">{t("Qui choisit les lignes")}</th>
+                  <td>{t("Vous")}</td>
+                  <td>{t("Vous")}</td>
+                  <td>{t("Vous")}</td>
+                  <td>{t("Le gérant du fonds")}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className={styles.note}>
+            {t("« Le capital est promis par l'émetteur » signifie qu'il s'y engage, non qu'un tiers le garantit.")}
+          </p>
         </section>
-      </div>
 
-      <section className={styles.final}>
-        <div>
-          <h2>{t("Créez votre compte pour voir les lignes et leurs prix.")}</h2>
-          <p>{t("Une minute, aucun document, et vous déciderez ensuite.")}</p>
-        </div>
-        <div className={styles.boutons}>
+        {/* L'ÉPARGNE RÉGULIÈRE : le cinquième emploi, qui automatise les quatre
+            autres plutôt que de s'y ajouter. */}
+        <section className={styles.epargne}>
+          <div>
+            <h2>{t("Et le cinquième : l'épargne régulière.")}</h2>
+            <p>{t("Vous arrêtez un montant et un jour du mois ; le prélèvement s'exécute de lui-même. Vous désignez d'avance où va cette somme, et où repart ce qui vous est remboursé. Vous pouvez modifier ou arrêter à tout moment, et ce qui a déjà été placé reste à vous.")}</p>
+          </div>
           <Link className="btn primary" href="/connexion?creer=1">
             {t("Créer mon compte")}
           </Link>
-          <Link className="btn" href="/info/aide">
-            {t("Poser une question")}
-          </Link>
-        </div>
-      </section>
+        </section>
 
-      <p className={styles.avertissement}>
-        {t("Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures. Les conditions de chaque placement vous sont remises avant toute décision.")}{" "}
-        <Link href="/info/risques">{t("Ce qu'il faut savoir sur les risques")}</Link>
-      </p>
-    </div>
+        <section className="panel">
+          <div className="panel-h">
+            <h2>{t("Commencer tient en trois temps")}</h2>
+            <span className="muted">{t("le premier prend une minute et ne demande aucun document")}</span>
+          </div>
+          <ol className={styles.temps}>
+            {temps.map((x) => (
+              <li key={x.n}>
+                <span className={styles.chiffre}>{x.n}</span>
+                <div>
+                  <b>{x.titre}</b>
+                  <p>{x.dit}</p>
+                  <ul>
+                    {x.points.map((p) => (
+                      <li key={p}>{p}</li>
+                    ))}
+                  </ul>
+                  <small>{x.cout}</small>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p className={styles.note}>
+            {t("Tant que votre dossier n'est pas approuvé et la convention signée, aucun versement ni aucun ordre n'est possible. Votre écran vous dit alors exactement ce qui manque.")}
+          </p>
+        </section>
+
+        <section className="panel">
+          <div className="panel-h">
+            <h2>{t("La vie d'un placement")}</h2>
+            <span className="muted">{t("chaque étape porte sa date et sa pièce")}</span>
+          </div>
+          <ol className={styles.vie}>
+            {vie.map((v) => (
+              <li key={v.quand}>
+                <b>{v.quand}</b>
+                <p>{v.dit}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <div className={styles.deux}>
+          <section className="panel">
+            <div className="panel-h">
+              <h2>{t("Qui décide quoi")}</h2>
+            </div>
+            <dl className={styles.reglages}>
+              <div>
+                <dt>{t("Vous décidez")}</dt>
+                <dd>{t("Où placer, combien, et quand. Aucun ordre ne part sans vous, et personne d'autre que vous ne peut en donner.")}</dd>
+              </div>
+              <div>
+                <dt>{t("Le conseiller éclaire")}</dt>
+                <dd>{t("Il explique une ligne, vérifie qu'elle convient à votre situation, et vous dit ce qu'il en pense si vous le lui demandez.")}</dd>
+              </div>
+              <div>
+                <dt>{t("Le bureau exécute et conserve")}</dt>
+                <dd>{t("Il porte votre ordre sur le marché, tient vos titres, encaisse ce qui vous revient, et vous en rend compte.")}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section className="panel">
+            <div className="panel-h">
+              <h2>{t("Ce que coûte le service")}</h2>
+            </div>
+            <dl className={styles.reglages}>
+              <div>
+                <dt>{t("Créer son compte")}</dt>
+                <dd>{t("Gratuit, et sans engagement.")}</dd>
+              </div>
+              <div>
+                <dt>{t("Passer un ordre")}</dt>
+                <dd>{t("Une commission, connue avant que vous ne validiez, et rappelée sur votre avis d'opéré.")}</dd>
+              </div>
+              <div>
+                <dt>{t("Conserver vos titres")}</dt>
+                <dd>{t("Des droits de garde, selon un barème publié.")}</dd>
+              </div>
+              <div>
+                <dt>{t("Aucun frais caché")}</dt>
+                <dd>{t("Ce qui vous est prélevé figure au journal de votre compte, avec sa date et son motif.")}</dd>
+              </div>
+            </dl>
+          </section>
+        </div>
+
+        <section className={styles.final}>
+          <div>
+            <h2>{t("Créez votre compte pour voir les lignes et leurs prix.")}</h2>
+            <p>{t("Une minute, aucun document, et vous déciderez ensuite.")}</p>
+          </div>
+          <div className={styles.boutons}>
+            <Link className="btn primary" href="/connexion?creer=1">
+              {t("Créer mon compte")}
+            </Link>
+            <Link className="btn" href="/info/aide">
+              {t("Poser une question")}
+            </Link>
+          </div>
+        </section>
+
+        <p className={styles.avertissement}>
+          {t("Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures. Les conditions de chaque placement vous sont remises avant toute décision.")}{" "}
+          <Link href="/info/risques">{t("Ce qu'il faut savoir sur les risques")}</Link>
+        </p>
+      </div>
+    </Glissement>
   );
 }

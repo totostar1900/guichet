@@ -1,5 +1,6 @@
 import { SocieteBody } from "./SocieteBody";
 import { companyByMnemo } from "@/lib/reference";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -11,5 +12,9 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function SocietePage({ params, searchParams }: Props) {
-  return <SocieteBody params={params} searchParams={searchParams} />;
+  return (
+    <Glissement>
+      <SocieteBody params={params} searchParams={searchParams} />
+    </Glissement>
+  );
 }

@@ -14,6 +14,7 @@ import { tenorText } from "@/lib/finance";
 import { getLang, getT } from "@/i18n/server";
 import { loadIntentContext } from "../intent-context";
 import styles from "./page.module.css";
+import { Glissement, LienRetour } from "@/components/mobile/Glissement";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ intent?: string; qty?: string; de?: string }> };
 
@@ -42,72 +43,74 @@ export default async function IntentionPage({ params, searchParams }: Props) {
   const servie = Boolean(o.servedPricePct || o.resultLine);
   const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)} publiée par ${o.fund.manager}` : o.kind === "MARCHE" ? `Dernier cours BVMAC${o.pricedAt ? ` · ${fmtDateTime(o.pricedAt)}` : ""}` : servie ? (o.kind === "BTA" ? "Taux servi à l'adjudication" : "Prix servi à l'adjudication") : stampPending ? "Indicatif : prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`;
   return (
-    <div className={styles.page}>
-      <div className={styles.head}>
-        <Link href={`/offres/${o.id}`} className={styles.back}>
-          ← {t("La fiche")}
-        </Link>
-        <div className={styles.line}>
-          <span className="eyebrow">{t(summary.subtitle)}</span>
-          <h1>{o.title}</h1>
-          <div className={styles.meta}>
-            <span className={`pill ${c.st}`}>{t(statusLabel(o, c.st))}</span>
-            <span className="mono">{o.isin}</span>
+    <Glissement>
+      <div className={styles.page}>
+        <div className={styles.head}>
+          <LienRetour href={`/offres/${o.id}`} className={styles.back}>
+            ← {t("La fiche")}
+          </LienRetour>
+          <div className={styles.line}>
+            <span className="eyebrow">{t(summary.subtitle)}</span>
+            <h1>{o.title}</h1>
+            <div className={styles.meta}>
+              <span className={`pill ${c.st}`}>{t(statusLabel(o, c.st))}</span>
+              <span className="mono">{o.isin}</span>
+            </div>
           </div>
+          <Kpis o={o} />
+          <span className={`stamp ${stampPending ? "pending" : ""}`}>{t(stamp)}</span>
         </div>
-        <Kpis o={o} />
-        <span className={`stamp ${stampPending ? "pending" : ""}`}>{t(stamp)}</span>
-      </div>
 
-      <div className={styles.form} id="intention" data-coach="action">
-        {/* L'ÉPARGNE PROGRAMMÉE ENTRE DANS LE FORMULAIRE, et ce n'est pas un
-            rangement : elle était un frère de celui-ci dans la page, donc la
-            règle qui cache les étapes sur téléphone ne l'atteignait pas, et le
-            client la voyait proposer autre chose pendant qu'il tapait ses
-            coordonnées. Passée en propriété, elle devient l'autre branche d'un
-            choix, et le même état la gouverne.
+        <div className={styles.form} id="intention" data-coach="action">
+          {/* L'ÉPARGNE PROGRAMMÉE ENTRE DANS LE FORMULAIRE, et ce n'est pas un
+              rangement : elle était un frère de celui-ci dans la page, donc la
+              règle qui cache les étapes sur téléphone ne l'atteignait pas, et le
+              client la voyait proposer autre chose pendant qu'il tapait ses
+              coordonnées. Passée en propriété, elle devient l'autre branche d'un
+              choix, et le même état la gouverne.
 
-            Elle ne vit que sur un fonds ouvert : ailleurs, un montant fixe ne
-            tombe jamais juste sur un titre indivisible, et la destination d'une
-            adjudication n'existe pas encore au moment où on la programmerait. */}
-        <IntentForm
-          offer={o}
-          types={c.types}
-          initialType={c.initial}
-          initialAmount={c.qty}
-          held={c.held}
-          switchTargets={c.switchTargets}
-          past={c.past}
-          signedIn={Boolean(session)}
-          tier={o.kind === "FONDS" && peutOPCVM(session) ? 2 : (session?.tier ?? 0)}
-          phone={session?.phone ?? ""}
-          phoneProven={Boolean(session?.phoneVerified)}
-          email={session?.email ?? ""}
-          name={session?.name ?? ""}
-          channels={c.channels}
-          bridge={c.bridge}
-          profileFlag={c.mark?.level === "warn" ? c.mark[lang] : undefined}
-          investable={c.fin?.investable}
-          monthly={
-            o.kind === "FONDS" && o.fund?.distributed && !c.past && session ? (
-              <div className={styles.note}>
-                <h2 style={{ fontSize: "1rem", marginBottom: 10 }}>{t("Ou programmer un versement chaque mois")}</h2>
-                <p className="muted" style={{ fontSize: ".85rem", marginBottom: 12 }}>
-                  {t(
-                    "Vous donnez l'ordre une fois : le montant, le jour, la ligne. Chaque mois, le desk passe pour vous un ordre de souscription réel sur cette ligne, à votre nom. Rien n'est mis en commun, et vous l'arrêtez quand vous voulez.",
-                  )}
-                </p>
-                <StandingForm offerId={o.id} minimum={recurringMinimum(o)} />
-              </div>
-            ) : undefined
-          }
-        />
-        {o.maturityOn && !c.past && (
-          <div className={styles.note}>
-            {t("Durée réelle")} <b>{t(tenorText(o.settleOn, o.maturityOn))}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}
-          </div>
-        )}
+              Elle ne vit que sur un fonds ouvert : ailleurs, un montant fixe ne
+              tombe jamais juste sur un titre indivisible, et la destination d'une
+              adjudication n'existe pas encore au moment où on la programmerait. */}
+          <IntentForm
+            offer={o}
+            types={c.types}
+            initialType={c.initial}
+            initialAmount={c.qty}
+            held={c.held}
+            switchTargets={c.switchTargets}
+            past={c.past}
+            signedIn={Boolean(session)}
+            tier={o.kind === "FONDS" && peutOPCVM(session) ? 2 : (session?.tier ?? 0)}
+            phone={session?.phone ?? ""}
+            phoneProven={Boolean(session?.phoneVerified)}
+            email={session?.email ?? ""}
+            name={session?.name ?? ""}
+            channels={c.channels}
+            bridge={c.bridge}
+            profileFlag={c.mark?.level === "warn" ? c.mark[lang] : undefined}
+            investable={c.fin?.investable}
+            monthly={
+              o.kind === "FONDS" && o.fund?.distributed && !c.past && session ? (
+                <div className={styles.note}>
+                  <h2 style={{ fontSize: "1rem", marginBottom: 10 }}>{t("Ou programmer un versement chaque mois")}</h2>
+                  <p className="muted" style={{ fontSize: ".85rem", marginBottom: 12 }}>
+                    {t(
+                      "Vous donnez l'ordre une fois : le montant, le jour, la ligne. Chaque mois, le desk passe pour vous un ordre de souscription réel sur cette ligne, à votre nom. Rien n'est mis en commun, et vous l'arrêtez quand vous voulez.",
+                    )}
+                  </p>
+                  <StandingForm offerId={o.id} minimum={recurringMinimum(o)} />
+                </div>
+              ) : undefined
+            }
+          />
+          {o.maturityOn && !c.past && (
+            <div className={styles.note}>
+              {t("Durée réelle")} <b>{t(tenorText(o.settleOn, o.maturityOn))}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </Glissement>
   );
 }

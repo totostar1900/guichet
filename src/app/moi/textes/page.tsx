@@ -7,6 +7,7 @@ import { conventionAJour } from "@/lib/kyc/checklist";
 import { fmtDate } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
+import { Glissement, LienRetour } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -89,37 +90,39 @@ export default async function TextesPage() {
   ];
 
   return (
-    <div className={styles.page}>
-      <Link href="/moi/documents" className={styles.back}>
-        ← {t("Mes documents")}
-      </Link>
-      <div className={styles.tete}>
-        <div className="eyebrow">{t("La maison")}</div>
-        <h1 className="display">{t("Textes et conditions")}</h1>
-        <p className={styles.lead}>
-          {t("Les mêmes pour tout le monde. Ils n'ont pas de numéro : ils ont une version, et vous lisez toujours celle qui est en vigueur. Ceux que vous avez acceptés portent leur date, et se retrouvent aussi dans vos documents.")}
-        </p>
+    <Glissement>
+      <div className={styles.page}>
+        <LienRetour href="/moi/documents" className={styles.back}>
+          ← {t("Mes documents")}
+        </LienRetour>
+        <div className={styles.tete}>
+          <div className="eyebrow">{t("La maison")}</div>
+          <h1 className="display">{t("Textes et conditions")}</h1>
+          <p className={styles.lead}>
+            {t("Les mêmes pour tout le monde. Ils n'ont pas de numéro : ils ont une version, et vous lisez toujours celle qui est en vigueur. Ceux que vous avez acceptés portent leur date, et se retrouvent aussi dans vos documents.")}
+          </p>
+        </div>
+
+        <ul className={styles.liste}>
+          {textes.map((x) => (
+            <li key={x.cle}>
+              <Link href={x.href}>
+                <span className={styles.quoi}>
+                  <b>{x.titre}</b>
+                  <small>{x.quoi}</small>
+                </span>
+                <span className={styles.etat}>
+                  <span className={x.ok ? styles.ok : undefined}>{x.etat}</span>
+                  {x.version && <small className="mono">{t("version {v}", { v: x.version })}</small>}
+                </span>
+                <span className="btn sm">{x.geste}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        <p className={styles.pied}>{t("Un texte qui change vous est présenté à votre connexion suivante, et la version acceptée reste lisible dans vos documents.")}</p>
       </div>
-
-      <ul className={styles.liste}>
-        {textes.map((x) => (
-          <li key={x.cle}>
-            <Link href={x.href}>
-              <span className={styles.quoi}>
-                <b>{x.titre}</b>
-                <small>{x.quoi}</small>
-              </span>
-              <span className={styles.etat}>
-                <span className={x.ok ? styles.ok : undefined}>{x.etat}</span>
-                {x.version && <small className="mono">{t("version {v}", { v: x.version })}</small>}
-              </span>
-              <span className="btn sm">{x.geste}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      <p className={styles.pied}>{t("Un texte qui change vous est présenté à votre connexion suivante, et la version acceptée reste lisible dans vos documents.")}</p>
-    </div>
+    </Glissement>
   );
 }

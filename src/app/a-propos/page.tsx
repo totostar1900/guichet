@@ -2,6 +2,7 @@ import Link from "next/link";
 import { COMPANY } from "@/lib/config";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 /** The tab and the phone header read this title: in the reader's language. */
 export async function generateMetadata() {
@@ -40,111 +41,113 @@ export default async function AProposPage() {
   ];
 
   return (
-    <div className={styles.page}>
-      <header className={styles.tete}>
-        <span className="eyebrow">{t("À propos")}</span>
-        <h1>{t("Le marché de l'Afrique centrale existe. Il manquait une porte d'entrée.")}</h1>
-        <p>
-          {t("Six États y empruntent chaque mois, une bourse régionale y cote des sociétés et des obligations, des fonds agréés y sont gérés. Jusqu'ici, il fallait connaître quelqu'un pour y accéder. Purpose Capital ouvre ce marché à toute personne qui a une épargne et l'envie de la faire travailler près de chez elle.")}
-        </p>
-      </header>
+    <Glissement>
+      <div className={styles.page}>
+        <header className={styles.tete}>
+          <span className="eyebrow">{t("À propos")}</span>
+          <h1>{t("Le marché de l'Afrique centrale existe. Il manquait une porte d'entrée.")}</h1>
+          <p>
+            {t("Six États y empruntent chaque mois, une bourse régionale y cote des sociétés et des obligations, des fonds agréés y sont gérés. Jusqu'ici, il fallait connaître quelqu'un pour y accéder. Purpose Capital ouvre ce marché à toute personne qui a une épargne et l'envie de la faire travailler près de chez elle.")}
+          </p>
+        </header>
 
-      <div className={styles.deux}>
+        <div className={styles.deux}>
+          <section className="panel">
+            <div className="panel-h">
+              <h2>{t("Ce que nous sommes")}</h2>
+            </div>
+            <div className={styles.prose}>
+              <p>
+                {t("Purpose Capital est une société de bourse agréée par la COSUMAF, le régulateur du marché financier de l'Afrique centrale. Cet agrément nous autorise à recevoir vos ordres, à les porter sur le marché et à conserver vos titres. Il nous impose aussi des règles : connaître nos clients, séparer leur argent du nôtre, rendre compte, et nous laisser contrôler.")}
+              </p>
+              <p>
+                {t("Guichet est le nom de la plateforme par laquelle vous nous parlez. Elle a été construite pour que tout ce que fait le bureau soit visible du client : l'ordre, son exécution, ce qui a été attribué, et la date de valeur de chaque somme.")}
+              </p>
+            </div>
+          </section>
+
+          <section className={styles.agrement}>
+            <span className={styles.etiquette}>{t("L'agrément")}</span>
+            <b>{t(COMPANY.licence)}</b>
+            <p>{t("La COSUMAF publie la liste des sociétés agréées. Vous pouvez y vérifier la nôtre : c'est le premier réflexe à avoir avant de confier son argent à qui que ce soit.")}</p>
+            <p className={styles.adresse}>
+              {COMPANY.legalName}
+              <br />
+              {COMPANY.address}
+              <br />
+              {COMPANY.phone} · {COMPANY.email}
+            </p>
+          </section>
+        </div>
+
+        <section className={styles.regles}>
+          <div className={styles.reglesTete}>
+            <h2>{t("Quatre règles que nous nous imposons.")}</h2>
+            <p>{t("Elles ne sont pas une promesse commerciale : elles sont écrites dans la plateforme, et elles s'appliquent à nous avant de s'appliquer à vous.")}</p>
+          </div>
+          <div className={styles.reglesListe}>
+            {regles.map((r) => (
+              <div key={r.titre}>
+                <b>{r.titre}</b>
+                <p>{r.dit}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* BIEN COMMENCER, ET NON « POUR QUI CE N'EST PAS ».
+            Cette section portait deux colonnes, dont une qui énumérait les gens
+            à qui le produit ne convient pas. L'information était utile et le
+            cadrage était faux : une vitrine dit ce que la maison fait, jamais ce
+            qu'elle ne fait pas, et une liste d'exclusions se lit comme un
+            reproche adressé d'avance au lecteur. La fonction protectrice est
+            gardée tout entière, retournée en conditions à réunir : c'est la même
+            information, et elle prépare au lieu d'écarter. */}
         <section className="panel">
           <div className="panel-h">
-            <h2>{t("Ce que nous sommes")}</h2>
+            <h2>{t("Bien commencer")}</h2>
           </div>
-          <div className={styles.prose}>
-            <p>
-              {t("Purpose Capital est une société de bourse agréée par la COSUMAF, le régulateur du marché financier de l'Afrique centrale. Cet agrément nous autorise à recevoir vos ordres, à les porter sur le marché et à conserver vos titres. Il nous impose aussi des règles : connaître nos clients, séparer leur argent du nôtre, rendre compte, et nous laisser contrôler.")}
-            </p>
-            <p>
-              {t("Guichet est le nom de la plateforme par laquelle vous nous parlez. Elle a été construite pour que tout ce que fait le bureau soit visible du client : l'ordre, son exécution, ce qui a été attribué, et la date de valeur de chaque somme.")}
-            </p>
-          </div>
-        </section>
-
-        <section className={styles.agrement}>
-          <span className={styles.etiquette}>{t("L'agrément")}</span>
-          <b>{t(COMPANY.licence)}</b>
-          <p>{t("La COSUMAF publie la liste des sociétés agréées. Vous pouvez y vérifier la nôtre : c'est le premier réflexe à avoir avant de confier son argent à qui que ce soit.")}</p>
-          <p className={styles.adresse}>
-            {COMPANY.legalName}
-            <br />
-            {COMPANY.address}
-            <br />
-            {COMPANY.phone} · {COMPANY.email}
-          </p>
-        </section>
-      </div>
-
-      <section className={styles.regles}>
-        <div className={styles.reglesTete}>
-          <h2>{t("Quatre règles que nous nous imposons.")}</h2>
-          <p>{t("Elles ne sont pas une promesse commerciale : elles sont écrites dans la plateforme, et elles s'appliquent à nous avant de s'appliquer à vous.")}</p>
-        </div>
-        <div className={styles.reglesListe}>
-          {regles.map((r) => (
-            <div key={r.titre}>
-              <b>{r.titre}</b>
-              <p>{r.dit}</p>
+          <div className={styles.pourQui}>
+            <div className={styles.oui}>
+              <b>{t("Guichet est fait pour vous si")}</b>
+              <ul>
+                <li>{t("Vous avez une épargne, même modeste, qui dort")}</li>
+                <li>{t("Vous voulez la placer dans la région où vous vivez")}</li>
+                <li>{t("Vous préférez comprendre avant de signer")}</li>
+              </ul>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* BIEN COMMENCER, ET NON « POUR QUI CE N'EST PAS ».
-          Cette section portait deux colonnes, dont une qui énumérait les gens
-          à qui le produit ne convient pas. L'information était utile et le
-          cadrage était faux : une vitrine dit ce que la maison fait, jamais ce
-          qu'elle ne fait pas, et une liste d'exclusions se lit comme un
-          reproche adressé d'avance au lecteur. La fonction protectrice est
-          gardée tout entière, retournée en conditions à réunir : c'est la même
-          information, et elle prépare au lieu d'écarter. */}
-      <section className="panel">
-        <div className="panel-h">
-          <h2>{t("Bien commencer")}</h2>
-        </div>
-        <div className={styles.pourQui}>
-          <div className={styles.oui}>
-            <b>{t("Guichet est fait pour vous si")}</b>
-            <ul>
-              <li>{t("Vous avez une épargne, même modeste, qui dort")}</li>
-              <li>{t("Vous voulez la placer dans la région où vous vivez")}</li>
-              <li>{t("Vous préférez comprendre avant de signer")}</li>
-            </ul>
+            <div className={styles.aReunir}>
+              <b>{t("Trois choses à réunir avant d'ouvrir")}</b>
+              <ul>
+                <li>{t("Une somme que vous pouvez laisser travailler jusqu'à son échéance")}</li>
+                <li>{t("Du temps devant vous : les placements d'ici se dénouent en mois, parfois en années")}</li>
+                <li>{t("De l'argent qui est le vôtre")}</li>
+              </ul>
+              <small>{t("Le questionnaire de connaissance, à l'ouverture, reprend ces trois points avec vous.")}</small>
+            </div>
           </div>
-          <div className={styles.aReunir}>
-            <b>{t("Trois choses à réunir avant d'ouvrir")}</b>
-            <ul>
-              <li>{t("Une somme que vous pouvez laisser travailler jusqu'à son échéance")}</li>
-              <li>{t("Du temps devant vous : les placements d'ici se dénouent en mois, parfois en années")}</li>
-              <li>{t("De l'argent qui est le vôtre")}</li>
-            </ul>
-            <small>{t("Le questionnaire de connaissance, à l'ouverture, reprend ces trois points avec vous.")}</small>
+        </section>
+
+        <section className={styles.final}>
+          <div>
+            <h2>{t("Regardez d'abord, décidez ensuite.")}</h2>
+            <p>{t("Créer votre compte ne vous engage à rien et ne demande aucun document.")}</p>
           </div>
-        </div>
-      </section>
+          <div className={styles.boutons}>
+            <Link className="btn primary" href="/connexion?creer=1">
+              {t("Créer mon compte")}
+            </Link>
+            <Link className="btn" href="/placements">
+              {t("Nos placements")}
+            </Link>
+          </div>
+        </section>
 
-      <section className={styles.final}>
-        <div>
-          <h2>{t("Regardez d'abord, décidez ensuite.")}</h2>
-          <p>{t("Créer votre compte ne vous engage à rien et ne demande aucun document.")}</p>
-        </div>
-        <div className={styles.boutons}>
-          <Link className="btn primary" href="/connexion?creer=1">
-            {t("Créer mon compte")}
-          </Link>
-          <Link className="btn" href="/placements">
-            {t("Nos placements")}
-          </Link>
-        </div>
-      </section>
-
-      <p className={styles.avertissement}>
-        {t("Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures. Purpose Capital ne fournit pas de conseil en investissement personnalisé au sens réglementaire, sauf dans le cadre d'une convention qui le prévoit expressément.")}{" "}
-        <Link href="/info/risques">{t("Ce qu'il faut savoir sur les risques")}</Link>
-      </p>
-    </div>
+        <p className={styles.avertissement}>
+          {t("Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures. Purpose Capital ne fournit pas de conseil en investissement personnalisé au sens réglementaire, sauf dans le cadre d'une convention qui le prévoit expressément.")}{" "}
+          <Link href="/info/risques">{t("Ce qu'il faut savoir sur les risques")}</Link>
+        </p>
+      </div>
+    </Glissement>
   );
 }

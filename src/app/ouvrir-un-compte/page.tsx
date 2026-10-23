@@ -8,6 +8,7 @@ import { setKindAction } from "./actions";
 import { ConsentSection, ConventionSection, DocsSection, FundsSection, IdentitySection, PersonsSection, SubmitSection } from "./Sections";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
@@ -66,105 +67,107 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
         : STATUS_LABEL[file.status];
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.head}>
-        <div>
-          <div className="eyebrow">{t("Ouverture de compte-titres")}</div>
-          <h1 className="display">{t(file.status === "approuve" ? (signable ? (reprise ? "Votre convention a changé" : "Dossier approuvé : acceptez votre convention") : file.review.custodianAccount ? "Votre compte est actif" : "Dossier approuvé : compte en cours d'ouverture") : "Ouvrir mon compte")}</h1>
-          <p className={styles.lead}>
-            {/* Une fois le dossier approuvé, l'accroche ne reprend pas
-                l'argumentaire du début : elle dit où en est le compte. */}
-            {t(
-              signable
-                ? reprise
-                  ? "La convention a changé sur un point qui vous engage : vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres, et vous ne signerez plus rien pour cela. Sa page dit ce qui a changé, puis vous la reprenez par un code à usage unique. Vos positions et votre compte ne changent pas."
-                  : "Votre dossier est approuvé. Dernière étape : la convention, qui se lit et se signe sur sa page, par un code à usage unique. Nous ouvrons ensuite le sous-compte à votre nom chez le teneur de compte."
-                : file.status === "approuve"
-                  ? file.review.custodianAccount
-                    ? "Votre convention est acceptée et votre sous-compte est ouvert à votre nom : vous pouvez passer des prises fermes. Votre exemplaire de la convention est dans vos documents."
-                    : /* CE QUE LE DOSSIER OUVRE, ET QUAND : deux chaînes de
-                         conservation, deux moments. Les parts d'OPCVM
-                         s'inscrivent au registre du fonds et sont donc déjà
-                         accessibles ; les titres attendent le sous-compte. Le
-                         dire évite de laisser croire que tout est bloqué. */
-                      "Votre convention est acceptée : vous pouvez dès maintenant souscrire des parts de fonds, qui s'inscrivent à votre nom au registre du fonds. Pour les titres du Trésor et les lignes cotées, le sous-compte à votre nom s'ouvre chez le teneur de compte, en général sous 24 à 48 h ; nous vous confirmons son numéro dès réception."
-                  : "Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l'origine des fonds et votre profil. Un seul dossier ouvre les deux : les parts de fonds, inscrites au registre du fonds, et les titres, qui demandent en plus un compte-titres à votre nom. Un conseiller examine votre dossier et vous écrit dès la décision ; depuis l'étranger, un appel vidéo s'ajoute. Vous n'acceptez la convention qu'une fois le dossier approuvé.",
+    <Glissement>
+      <div className={styles.wrap}>
+        <div className={styles.head}>
+          <div>
+            <div className="eyebrow">{t("Ouverture de compte-titres")}</div>
+            <h1 className="display">{t(file.status === "approuve" ? (signable ? (reprise ? "Votre convention a changé" : "Dossier approuvé : acceptez votre convention") : file.review.custodianAccount ? "Votre compte est actif" : "Dossier approuvé : compte en cours d'ouverture") : "Ouvrir mon compte")}</h1>
+            <p className={styles.lead}>
+              {/* Une fois le dossier approuvé, l'accroche ne reprend pas
+                  l'argumentaire du début : elle dit où en est le compte. */}
+              {t(
+                signable
+                  ? reprise
+                    ? "La convention a changé sur un point qui vous engage : vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres, et vous ne signerez plus rien pour cela. Sa page dit ce qui a changé, puis vous la reprenez par un code à usage unique. Vos positions et votre compte ne changent pas."
+                    : "Votre dossier est approuvé. Dernière étape : la convention, qui se lit et se signe sur sa page, par un code à usage unique. Nous ouvrons ensuite le sous-compte à votre nom chez le teneur de compte."
+                  : file.status === "approuve"
+                    ? file.review.custodianAccount
+                      ? "Votre convention est acceptée et votre sous-compte est ouvert à votre nom : vous pouvez passer des prises fermes. Votre exemplaire de la convention est dans vos documents."
+                      : /* CE QUE LE DOSSIER OUVRE, ET QUAND : deux chaînes de
+                           conservation, deux moments. Les parts d'OPCVM
+                           s'inscrivent au registre du fonds et sont donc déjà
+                           accessibles ; les titres attendent le sous-compte. Le
+                           dire évite de laisser croire que tout est bloqué. */
+                        "Votre convention est acceptée : vous pouvez dès maintenant souscrire des parts de fonds, qui s'inscrivent à votre nom au registre du fonds. Pour les titres du Trésor et les lignes cotées, le sous-compte à votre nom s'ouvre chez le teneur de compte, en général sous 24 à 48 h ; nous vous confirmons son numéro dès réception."
+                    : "Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l'origine des fonds et votre profil. Un seul dossier ouvre les deux : les parts de fonds, inscrites au registre du fonds, et les titres, qui demandent en plus un compte-titres à votre nom. Un conseiller examine votre dossier et vous écrit dès la décision ; depuis l'étranger, un appel vidéo s'ajoute. Vous n'acceptez la convention qu'une fois le dossier approuvé.",
+              )}
+            </p>
+          </div>
+          <div className={styles.status}>
+            {/* Rien à annoncer tant que rien n'est enregistré : une pastille d'état
+                au-dessus d'un formulaire vierge ne décrit aucun état. */}
+            {enregistre && <span className={`${styles.pill} ${styles[`st_${file.status}`]}`}>{t(etat)}</span>}
+            {file.submittedAt && <small className="muted">{t("soumis le")} {fmtDateTime(file.submittedAt)}</small>}
+            {file.status === "complements" && file.review.requestedItems && <div className={styles.request}>{t("Compléments demandés")} : {file.review.requestedItems}</div>}
+            {file.status === "approuve" && file.review.custodianAccount && <small className="muted">{t(`sous-compte n° ${file.review.custodianAccount}`)}</small>}
+            {/* Pas d'invitation à partir tant qu'il reste la signature à donner. */}
+            {file.status === "approuve" && !signable && (
+              <Link href={sp.next && sp.next.startsWith("/") ? sp.next : "/"} className="btn primary sm">
+                {t("Aller à Guichet")}
+              </Link>
             )}
-          </p>
+          </div>
         </div>
-        <div className={styles.status}>
-          {/* Rien à annoncer tant que rien n'est enregistré : une pastille d'état
-              au-dessus d'un formulaire vierge ne décrit aucun état. */}
-          {enregistre && <span className={`${styles.pill} ${styles[`st_${file.status}`]}`}>{t(etat)}</span>}
-          {file.submittedAt && <small className="muted">{t("soumis le")} {fmtDateTime(file.submittedAt)}</small>}
-          {file.status === "complements" && file.review.requestedItems && <div className={styles.request}>{t("Compléments demandés")} : {file.review.requestedItems}</div>}
-          {file.status === "approuve" && file.review.custodianAccount && <small className="muted">{t(`sous-compte n° ${file.review.custodianAccount}`)}</small>}
-          {/* Pas d'invitation à partir tant qu'il reste la signature à donner. */}
-          {file.status === "approuve" && !signable && (
-            <Link href={sp.next && sp.next.startsWith("/") ? sp.next : "/"} className="btn primary sm">
-              {t("Aller à Guichet")}
-            </Link>
-          )}
-        </div>
-      </div>
 
-      {sp.soumis === "1" && file.status === "soumis" && (
-        <div className={styles.okBanner}>
-          {/* INFORMER SANS PROMETTRE. Le message annonçait « en général sous
-              24 h ouvrées » : un délai qu'on ne tient pas toujours, affiché au
-              moment précis où le client commence à compter. Il dit maintenant ce
-              qui se passe et ce qui suivra, sans engager une heure. */}
-          {t("Dossier reçu. Un conseiller l'examine et vous écrit")} {t(file.consents.whatsappAt ? "sur WhatsApp" : "par e-mail")} {t("dès que la décision est prise. La convention vient ensuite, sur sa page.")}
-        </div>
-      )}
+        {sp.soumis === "1" && file.status === "soumis" && (
+          <div className={styles.okBanner}>
+            {/* INFORMER SANS PROMETTRE. Le message annonçait « en général sous
+                24 h ouvrées » : un délai qu'on ne tient pas toujours, affiché au
+                moment précis où le client commence à compter. Il dit maintenant ce
+                qui se passe et ce qui suivra, sans engager une heure. */}
+            {t("Dossier reçu. Un conseiller l'examine et vous écrit")} {t(file.consents.whatsappAt ? "sur WhatsApp" : "par e-mail")} {t("dès que la décision est prise. La convention vient ensuite, sur sa page.")}
+          </div>
+        )}
 
-      {/* CE QUI RESTE À FAIRE PASSE DEVANT CE QUI EST DÉJÀ FAIT.
-          Quand le dossier est approuvé, la convention est la SEULE chose qui
-          attende le client : tout le reste de la page est son dossier, en
-          lecture seule. Elle vivait pourtant tout en bas, après six sections
-          verrouillées, à trois mille pixels du haut dans une fenêtre de neuf
-          cents : le 8 octobre 2026 le bouton n'a pas reçu trois clics de suite,
-          les miens compris, parce qu'il n'était jamais là où on le visait. Et
-          l'accroche promettait « ci-dessous », ce qui n'était vrai qu'au prix
-          d'un très long défilement. */}
-      {signable && conventionBloc}
+        {/* CE QUI RESTE À FAIRE PASSE DEVANT CE QUI EST DÉJÀ FAIT.
+            Quand le dossier est approuvé, la convention est la SEULE chose qui
+            attende le client : tout le reste de la page est son dossier, en
+            lecture seule. Elle vivait pourtant tout en bas, après six sections
+            verrouillées, à trois mille pixels du haut dans une fenêtre de neuf
+            cents : le 8 octobre 2026 le bouton n'a pas reçu trois clics de suite,
+            les miens compris, parce qu'il n'était jamais là où on le visait. Et
+            l'accroche promettait « ci-dessous », ce qui n'était vrai qu'au prix
+            d'un très long défilement. */}
+        {signable && conventionBloc}
 
-      <ol className={styles.rail}>
-        {steps.map(([label, done], i) => (
-          <li key={label} className={done ? styles.done : ""}>
-            <span>{i + 1}</span>
-            {label}
-          </li>
-        ))}
-      </ol>
-
-      <section className={styles.sec}>
-        <h2 className="display">{t("1 · Type de client")}</h2>
-        <form action={setKindAction} className={styles.kinds}>
-          {KINDS.map((k) => (
-            <button key={k} name="kind" value={k} type="submit" disabled={!editable} className={`${styles.kind} ${file.kind === k ? styles.kindOn : ""}`}>
-              <b>{t(KIND_LABEL[k])}</b>
-              <span>
-                {k === "physique" && t("CNI ou passeport, justificatif de domicile, RIB, NIU.")}
-                {k === "morale" && t("RCCM, statuts, pouvoirs, bénéficiaires effectifs (> 25 %).")}
-                {k === "groupement" && t("Association déclarée, ou indivision de mandataires jusqu'à 25 M FCFA ; PV désignant les mandataires et la règle de décision.")}
-                {k === "institutionnel" && t("Assureur, caisse, trésorerie d'entreprise : matrice des signataires et plafonds.")}
-              </span>
-            </button>
+        <ol className={styles.rail}>
+          {steps.map(([label, done], i) => (
+            <li key={label} className={done ? styles.done : ""}>
+              <span>{i + 1}</span>
+              {label}
+            </li>
           ))}
-        </form>
-      </section>
+        </ol>
 
-      <IdentitySection file={file} editable={editable} />
-      {file.kind !== "physique" && <PersonsSection file={file} editable={editable} />}
-      <DocsSection file={file} editable={editable} />
-      <FundsSection file={file} editable={editable} />
-      <ConsentSection file={file} editable={editable} />
-      <SubmitSection file={file} editable={editable} missing={missing} />
-      {/* Tant qu'elle n'est pas à portée, ou qu'elle est déjà signée, la
-          convention ferme la page : dans l'ordre du temps, elle vient après
-          l'envoi du dossier et après la décision du desk. */}
-      {!signable && conventionBloc}
-    </div>
+        <section className={styles.sec}>
+          <h2 className="display">{t("1 · Type de client")}</h2>
+          <form action={setKindAction} className={styles.kinds}>
+            {KINDS.map((k) => (
+              <button key={k} name="kind" value={k} type="submit" disabled={!editable} className={`${styles.kind} ${file.kind === k ? styles.kindOn : ""}`}>
+                <b>{t(KIND_LABEL[k])}</b>
+                <span>
+                  {k === "physique" && t("CNI ou passeport, justificatif de domicile, RIB, NIU.")}
+                  {k === "morale" && t("RCCM, statuts, pouvoirs, bénéficiaires effectifs (> 25 %).")}
+                  {k === "groupement" && t("Association déclarée, ou indivision de mandataires jusqu'à 25 M FCFA ; PV désignant les mandataires et la règle de décision.")}
+                  {k === "institutionnel" && t("Assureur, caisse, trésorerie d'entreprise : matrice des signataires et plafonds.")}
+                </span>
+              </button>
+            ))}
+          </form>
+        </section>
+
+        <IdentitySection file={file} editable={editable} />
+        {file.kind !== "physique" && <PersonsSection file={file} editable={editable} />}
+        <DocsSection file={file} editable={editable} />
+        <FundsSection file={file} editable={editable} />
+        <ConsentSection file={file} editable={editable} />
+        <SubmitSection file={file} editable={editable} missing={missing} />
+        {/* Tant qu'elle n'est pas à portée, ou qu'elle est déjà signée, la
+            convention ferme la page : dans l'ordre du temps, elle vient après
+            l'envoi du dossier et après la décision du desk. */}
+        {!signable && conventionBloc}
+      </div>
+    </Glissement>
   );
 }

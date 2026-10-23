@@ -14,6 +14,7 @@ import { Glossary } from "./Glossary";
 import { FoldAll, FoldSection } from "@/components/Fold";
 import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
+import { Glissement } from "@/components/mobile/Glissement";
 
 /** The tab and the phone header read this title: in the reader's language. */
 export async function generateMetadata() {
@@ -42,114 +43,116 @@ export default async function InfoPage() {
     { id: "glossaire", title: t("Les mots de Guichet") },
   ];
   return (
-    <Sommaire label={t("Sur cette page")} sections={sections}>
-      <div className={styles.wrap}>
-        <div className={styles.head}>
-          <div className="eyebrow">Guide</div>
-          <h1 className="display">{t("Lire une ligne en trente secondes")}</h1>
-          <p className="muted">{t("Ce qu'il faut savoir pour comprendre une offre de Guichet : les mots, les chiffres, les risques : expliqués une fois pour toutes, sans jargon inutile.")}</p>
-        </div>
-        <div data-coach="info-search" id="recherche" className={styles.anchor}>
-          {/* HUIT, COMME AVANT : le champ du Guide est une section parmi six,
-              et les résultats poussent les suivantes vers le bas plutôt que de
-              les couvrir. Quarante-neuf lignes pour « fonds » enterreraient le
-              reste de la page. La page de recherche, elle, les montre toutes :
-              c'est à cela qu'elle sert. */}
-          <InfoSearch entries={entries} limit={8} />
-        </div>
-        <div className={styles.foldBar}>
-          <FoldAll group="info" ids={["lecons", "parcours", "simulateur", "outils", "glossaire"]} />
-        </div>
+    <Glissement>
+      <Sommaire label={t("Sur cette page")} sections={sections}>
+        <div className={styles.wrap}>
+          <div className={styles.head}>
+            <div className="eyebrow">Guide</div>
+            <h1 className="display">{t("Lire une ligne en trente secondes")}</h1>
+            <p className="muted">{t("Ce qu'il faut savoir pour comprendre une offre de Guichet : les mots, les chiffres, les risques : expliqués une fois pour toutes, sans jargon inutile.")}</p>
+          </div>
+          <div data-coach="info-search" id="recherche" className={styles.anchor}>
+            {/* HUIT, COMME AVANT : le champ du Guide est une section parmi six,
+                et les résultats poussent les suivantes vers le bas plutôt que de
+                les couvrir. Quarante-neuf lignes pour « fonds » enterreraient le
+                reste de la page. La page de recherche, elle, les montre toutes :
+                c'est à cela qu'elle sert. */}
+            <InfoSearch entries={entries} limit={8} />
+          </div>
+          <div className={styles.foldBar}>
+            <FoldAll group="info" ids={["lecons", "parcours", "simulateur", "outils", "glossaire"]} />
+          </div>
 
-        <FoldSection
-          group="info"
-          id="lecons"
-          title={t("Huit éclairages courts")}
-          aside={
-            <Link className="btn sm" href="/info/aide" data-coach="info-aide">
-              {t("Aide : vos questions, nos réponses")} →
-            </Link>
-          }
-        >
-        <div className={styles.lessons} data-coach="info-insights">
-          {lessons.map((l) => (
-            <Link key={l.key} href={`/info/${l.key}`} className={styles.lesson}>
-              <i>{l.order}</i>
-              <span>
-                <b>{t(l.title)}</b>
-                <small>{t(l.intro)}</small>
-              </span>
-              <em>
-                <DoneMark lessonKey={l.key} /> {l.minutes} min
-              </em>
-            </Link>
-          ))}
-        </div>
-        </FoldSection>
-
-        <FoldSection group="info" id="parcours" title={t("Comprendre le marché CEMAC")}>
-        <Link href="/info/parcours" className={styles.parcours} data-coach="info-parcours">
-          <span className={styles.parcoursStrip} aria-hidden="true">
-            {(["beac", "tresor", "guichet", "client"] as const).map((k) => (
-              <span key={k} className={styles.actorPlate}>
-                <Actor kind={k} size={52} />
-              </span>
+          <FoldSection
+            group="info"
+            id="lecons"
+            title={t("Huit éclairages courts")}
+            aside={
+              <Link className="btn sm" href="/info/aide" data-coach="info-aide">
+                {t("Aide : vos questions, nos réponses")} →
+              </Link>
+            }
+          >
+          <div className={styles.lessons} data-coach="info-insights">
+            {lessons.map((l) => (
+              <Link key={l.key} href={`/info/${l.key}`} className={styles.lesson}>
+                <i>{l.order}</i>
+                <span>
+                  <b>{t(l.title)}</b>
+                  <small>{t(l.intro)}</small>
+                </span>
+                <em>
+                  <DoneMark lessonKey={l.key} /> {l.minutes} min
+                </em>
+              </Link>
             ))}
-          </span>
-          <span className={styles.parcoursText}>
-            <span className="eyebrow">{t("Parcours")}</span>
-            <b>{t("Six sections, du marché à la monnaie")}</b>
-            <small>{t("{n} éclairages en six sections : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie.", { n: parcoursCount })}</small>
-          </span>
-          <span className={styles.parcoursGo}>{t("Commencer")} →</span>
-        </Link>
-        </FoldSection>
+          </div>
+          </FoldSection>
 
-        <FoldSection group="info" id="simulateur" title={t("Simulateur d'obligation")}>
-        <div className={styles.sim} data-coach="info-sim">
-          <p className="muted">{t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours : les prix des offres sont fixés par le desk et se lisent dans Guichet.")}</p>
-          <div className={styles.warn}>{t("Outil pédagogique : résultats bruts, avant fiscalité, convention Exact/Exact. Ne constitue ni une offre ni un conseil.")}</div>
-          <Simulator />
+          <FoldSection group="info" id="parcours" title={t("Comprendre le marché CEMAC")}>
+          <Link href="/info/parcours" className={styles.parcours} data-coach="info-parcours">
+            <span className={styles.parcoursStrip} aria-hidden="true">
+              {(["beac", "tresor", "guichet", "client"] as const).map((k) => (
+                <span key={k} className={styles.actorPlate}>
+                  <Actor kind={k} size={52} />
+                </span>
+              ))}
+            </span>
+            <span className={styles.parcoursText}>
+              <span className="eyebrow">{t("Parcours")}</span>
+              <b>{t("Six sections, du marché à la monnaie")}</b>
+              <small>{t("{n} éclairages en six sections : le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie.", { n: parcoursCount })}</small>
+            </span>
+            <span className={styles.parcoursGo}>{t("Commencer")} →</span>
+          </Link>
+          </FoldSection>
+
+          <FoldSection group="info" id="simulateur" title={t("Simulateur d'obligation")}>
+          <div className={styles.sim} data-coach="info-sim">
+            <p className="muted">{t("Comment le prix, le coupon et la durée fabriquent le rendement : faites varier, regardez. L'outil ne porte sur aucune offre en cours : les prix des offres sont fixés par le desk et se lisent dans Guichet.")}</p>
+            <div className={styles.warn}>{t("Outil pédagogique : résultats bruts, avant fiscalité, convention Exact/Exact. Ne constitue ni une offre ni un conseil.")}</div>
+            <Simulator />
+          </div>
+          </FoldSection>
+
+          <FoldSection group="info" id="outils" title={t("Outils et repères")}>
+          <div className={styles.grid}>
+            <Link href="/comparer" className={styles.tile}>
+              <span className={styles.k}>{t("Outil")}</span>
+              <b>{t("Comparer deux lignes")}</b>
+              <span>{t("Deux offres côte à côte : rendement, durée, ticket, calendrier.")}</span>
+            </Link>
+            <Link href="/moi/profil" className={styles.tile}>
+              <span className={styles.k}>{t("Outil")}</span>
+              <b>{t("Votre profil financier en deux minutes")}</b>
+              <span>{t("Sept questions : horizon, tolérance, connaissance, capacité. Un profil à titre d'information, à garder dans votre dossier avec un compte.")}</span>
+            </Link>
+            <Link href="/societes" className={styles.tile}>
+              <span className={styles.k}>{t("Sociétés")}</span>
+              <b>{t("Sociétés cotées et émetteurs")}</b>
+              <span>{t("Comptes, dividendes, actionnariat, documents publiés à la BVMAC.")}</span>
+            </Link>
+          </div>
+          </FoldSection>
+
+          <BackToTop lift />
+          <GuideBar pos={{ label: t("Le Guide") }} />
+          <FoldSection group="info" id="glossaire" title={t("Les mots de Guichet")}>
+          <Glossary entries={keys.map((k) => ({ k, short: t(G[k].short), long: G[k].long ? t(G[k].long) : undefined, text: t(G[k].text) }))} />
+          </FoldSection>
+          <CoachMarks
+            id="info"
+            replayLabel={t("Comment utiliser le Guide ?")}
+            stops={[
+              { target: "info-search", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, un éclairage, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service de Guichet.") },
+              { target: "info-aide", title: t("Vos questions, nos réponses"), text: t("La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.") },
+              { target: "info-insights", title: t("Huit éclairages de deux minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque éclairage se lit en deux minutes et se coche une fois lue.") },
+              { target: "info-glossaire", title: t("Les mots de Guichet"), text: t("Le glossaire a sa propre recherche, un tri A → Z ou par catégorie, et un regroupement par catégorie : titres de dette, actions et sociétés, fonds, vos ordres, les états d'une ligne.") },
+              { target: "info-sim", title: t("Le simulateur"), text: t("Faites varier le prix, le coupon et la durée : vous voyez le rendement bouger. Un outil pour comprendre, qui ne porte sur aucune ligne réelle.") },
+            ]}
+          />
         </div>
-        </FoldSection>
-
-        <FoldSection group="info" id="outils" title={t("Outils et repères")}>
-        <div className={styles.grid}>
-          <Link href="/comparer" className={styles.tile}>
-            <span className={styles.k}>{t("Outil")}</span>
-            <b>{t("Comparer deux lignes")}</b>
-            <span>{t("Deux offres côte à côte : rendement, durée, ticket, calendrier.")}</span>
-          </Link>
-          <Link href="/moi/profil" className={styles.tile}>
-            <span className={styles.k}>{t("Outil")}</span>
-            <b>{t("Votre profil financier en deux minutes")}</b>
-            <span>{t("Sept questions : horizon, tolérance, connaissance, capacité. Un profil à titre d'information, à garder dans votre dossier avec un compte.")}</span>
-          </Link>
-          <Link href="/societes" className={styles.tile}>
-            <span className={styles.k}>{t("Sociétés")}</span>
-            <b>{t("Sociétés cotées et émetteurs")}</b>
-            <span>{t("Comptes, dividendes, actionnariat, documents publiés à la BVMAC.")}</span>
-          </Link>
-        </div>
-        </FoldSection>
-
-        <BackToTop lift />
-        <GuideBar pos={{ label: t("Le Guide") }} />
-        <FoldSection group="info" id="glossaire" title={t("Les mots de Guichet")}>
-        <Glossary entries={keys.map((k) => ({ k, short: t(G[k].short), long: G[k].long ? t(G[k].long) : undefined, text: t(G[k].text) }))} />
-        </FoldSection>
-        <CoachMarks
-          id="info"
-          replayLabel={t("Comment utiliser le Guide ?")}
-          stops={[
-            { target: "info-search", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, un éclairage, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service de Guichet.") },
-            { target: "info-aide", title: t("Vos questions, nos réponses"), text: t("La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.") },
-            { target: "info-insights", title: t("Huit éclairages de deux minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque éclairage se lit en deux minutes et se coche une fois lue.") },
-            { target: "info-glossaire", title: t("Les mots de Guichet"), text: t("Le glossaire a sa propre recherche, un tri A → Z ou par catégorie, et un regroupement par catégorie : titres de dette, actions et sociétés, fonds, vos ordres, les états d'une ligne.") },
-            { target: "info-sim", title: t("Le simulateur"), text: t("Faites varier le prix, le coupon et la durée : vous voyez le rendement bouger. Un outil pour comprendre, qui ne porte sur aucune ligne réelle.") },
-          ]}
-        />
-      </div>
-    </Sommaire>
+      </Sommaire>
+    </Glissement>
   );
 }

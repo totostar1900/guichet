@@ -4,6 +4,7 @@ import { getLang, getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
 import { GuideBar } from "../GuideBar";
 import styles from "./page.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -34,95 +35,97 @@ export default async function RisquesPage() {
   const [t, lang] = await Promise.all([getT(), getLang()]);
 
   return (
-    <div className={styles.page}>
+    <Glissement>
+      <div className={styles.page}>
 
-      <header className={styles.tete}>
-        <div>
-          <div className="eyebrow">{t("Information réglementaire")}</div>
-          <h1 className="display">{t("Risques et limites")}</h1>
-        </div>
-        <div className={styles.chapeau}>
-          <p>{t("Cette page dit ce que chaque opération engage, ce qu'elle laisse ouvert, et quels risques elle porte. Elle se lit avant d'ouvrir un compte, et elle reste accessible à tout moment.")}</p>
-          <span>{t("Version du {date}", { date: fmtDate(RISQUES_VERSION) })}</span>
-        </div>
-      </header>
+        <header className={styles.tete}>
+          <div>
+            <div className="eyebrow">{t("Information réglementaire")}</div>
+            <h1 className="display">{t("Risques et limites")}</h1>
+          </div>
+          <div className={styles.chapeau}>
+            <p>{t("Cette page dit ce que chaque opération engage, ce qu'elle laisse ouvert, et quels risques elle porte. Elle se lit avant d'ouvrir un compte, et elle reste accessible à tout moment.")}</p>
+            <span>{t("Version du {date}", { date: fmtDate(RISQUES_VERSION) })}</span>
+          </div>
+        </header>
 
-      <div className={styles.corps}>
-        {/* Le rail : il nomme les cinq étages, et rien d'autre. */}
-        <nav className={styles.rail} aria-label={t("Les sections de cette page")}>
-          {RISQUES.map((s) => (
-            <a key={s.id} href={`#${s.id}`}>
-              {s.titre[lang]}
-            </a>
-          ))}
-        </nav>
+        <div className={styles.corps}>
+          {/* Le rail : il nomme les cinq étages, et rien d'autre. */}
+          <nav className={styles.rail} aria-label={t("Les sections de cette page")}>
+            {RISQUES.map((s) => (
+              <a key={s.id} href={`#${s.id}`}>
+                {s.titre[lang]}
+              </a>
+            ))}
+          </nav>
 
-        <div className={styles.texte}>
-          {RISQUES.map((s) => (
-            <section key={s.id} id={s.id} className={styles.section}>
-              <h2>{s.titre[lang]}</h2>
-              {s.corps.map((p) => (
-                <p key={p.fr}>{p[lang]}</p>
-              ))}
+          <div className={styles.texte}>
+            {RISQUES.map((s) => (
+              <section key={s.id} id={s.id} className={styles.section}>
+                <h2>{s.titre[lang]}</h2>
+                {s.corps.map((p) => (
+                  <p key={p.fr}>{p[lang]}</p>
+                ))}
 
-              {s.retenir && (
-                <div className={styles.retenir}>
-                  <span>{t("Ce qu'il faut retenir")}</span>
-                  <p>{s.retenir[lang]}</p>
-                </div>
-              )}
+                {s.retenir && (
+                  <div className={styles.retenir}>
+                    <span>{t("Ce qu'il faut retenir")}</span>
+                    <p>{s.retenir[lang]}</p>
+                  </div>
+                )}
 
-              {s.lignes && (
-                <div className={styles.lignes}>
-                  {s.lignes.map((l) => (
-                    <div key={l.quoi.fr}>
-                      <b>{l.quoi[lang]}</b>
-                      <p>{l.dit[lang]}</p>
+                {s.lignes && (
+                  <div className={styles.lignes}>
+                    {s.lignes.map((l) => (
+                      <div key={l.quoi.fr}>
+                        <b>{l.quoi[lang]}</b>
+                        <p>{l.dit[lang]}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {s.partage && (
+                  <div className={styles.partage}>
+                    <div className={styles.vous}>
+                      <span>{t("Ce qui relève de vous")}</span>
+                      {s.partage.vous.map((x) => (
+                        <em key={x.fr}>{x[lang]}</em>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {s.partage && (
-                <div className={styles.partage}>
-                  <div className={styles.vous}>
-                    <span>{t("Ce qui relève de vous")}</span>
-                    {s.partage.vous.map((x) => (
-                      <em key={x.fr}>{x[lang]}</em>
-                    ))}
+                    <div className={styles.nous}>
+                      <span>{t("Ce qui relève de nous")}</span>
+                      {s.partage.nous.map((x) => (
+                        <em key={x.fr}>{x[lang]}</em>
+                      ))}
+                    </div>
                   </div>
-                  <div className={styles.nous}>
-                    <span>{t("Ce qui relève de nous")}</span>
-                    {s.partage.nous.map((x) => (
-                      <em key={x.fr}>{x[lang]}</em>
-                    ))}
+                )}
+
+                {s.fin?.map((p) => (
+                  <p key={p.fr} className={styles.apres}>
+                    {p[lang]}
+                  </p>
+                ))}
+
+                {s.id === "recours" && (
+                  <div className={styles.ecrire}>
+                    <span>{t("Pour nous écrire")}</span>
+                    <b>{COMPANY.legalName}</b>
+                    <small>
+                      {COMPANY.address}
+                      <br />
+                      {COMPANY.phone} · {COMPANY.email}
+                    </small>
                   </div>
-                </div>
-              )}
-
-              {s.fin?.map((p) => (
-                <p key={p.fr} className={styles.apres}>
-                  {p[lang]}
-                </p>
-              ))}
-
-              {s.id === "recours" && (
-                <div className={styles.ecrire}>
-                  <span>{t("Pour nous écrire")}</span>
-                  <b>{COMPANY.legalName}</b>
-                  <small>
-                    {COMPANY.address}
-                    <br />
-                    {COMPANY.phone} · {COMPANY.email}
-                  </small>
-                </div>
-              )}
-            </section>
-          ))}
+                )}
+              </section>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <GuideBar pos={{ label: t("Le Guide · risques et limites") }} />
-    </div>
+        <GuideBar pos={{ label: t("Le Guide · risques et limites") }} />
+      </div>
+    </Glissement>
   );
 }

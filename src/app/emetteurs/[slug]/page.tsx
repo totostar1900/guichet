@@ -12,6 +12,7 @@ import { COUNTRY_CODE, summarize } from "@/lib/domain/summary";
 import { fmt, fmtPct, fmtScaled, fmtUnits, pickScale } from "@/lib/format";
 import styles from "../../societes/[mnemo]/page.module.css";
 import { getT } from "@/i18n/server";
+import { Glissement, LienRetour } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -41,219 +42,221 @@ export default async function EmetteurPage({ params }: Props) {
   const alive = lines.filter((o) => displayYield(o).pct != null).length;
 
   return (
-    <>
-      <Link href="/societes" className={styles.back}>
-        {tr("← Sociétés cotées et émetteurs")}
-      </Link>
-      <div className={styles.head}>
-        <div>
-          <div className={`eyebrow ${styles.eyebrow}`}>
-            <span className="cc">{COUNTRY_CODE[i.country]}</span> {i.sector} · émetteur obligataire BVMAC · {i.mnemo}
-          </div>
-          <h1 className="display">{i.name}</h1>
-          <p className={styles.activity}>{tr(i.activity)}</p>
-        </div>
-      </div>
-
-      <div className={styles.kpis}>
-        <div className={`${styles.kpi} ${styles.gold}`}>
-          <span>{tr("Emprunts cotés")}</span>
-          <b>{lines.length}</b>
-          <small>{alive} en vie · détail ci-dessous</small>
-        </div>
-        <div className={styles.kpi}>
-          <span>
-            {latest.revenueLabel} {latest.year} <Info term={revenueTerm} />
-          </span>
-          <b>{fmtUnits(latest.revenue * i.unit)}</b>
-          <small>FCFA{growth != null ? ` · ${growth > 0 ? "+" : ""}${fmtPct(growth, 1)} vs ${latest.year - 1}` : ""}</small>
-        </div>
-        <div className={styles.kpi}>
-          <span>
-            Résultat net {latest.year} <Info term="resultat_net" />
-          </span>
-          <b>{fmtUnits(latest.netIncome * i.unit)}</b>
-          <small>FCFA{margin != null ? ` · marge ${fmtPct(margin, 1)}` : ""}</small>
-        </div>
-        <div className={styles.kpi}>
-          <span>
-            Total du bilan {latest.year} <Info term="total_bilan" />
-          </span>
-          <b>{fmtUnits(latest.totalAssets * i.unit)}</b>
-          <small>FCFA · capital social {fmtUnits(i.shareCapital)}</small>
-        </div>
-      </div>
-
-      <div className={styles.grid}>
-        <div>
-          <div className={styles.panel}>
-            <h2>{tr("Emprunts cotés à la BVMAC")}</h2>
-            {lines.length === 0 && <p className={styles.source}>{tr("Aucune ligne de cet émetteur n'est actuellement reprise du bulletin.")}</p>}
-            <div className={styles.docs}>
-              {lines.map((o) => {
-                const s = summarize(o, now);
-                const t = bondTerms(o.isin);
-                const dy = displayYield(o);
-                return (
-                  <Link key={o.id} href={`/offres/${o.id}`} className={styles.lineCard}>
-                    <LineIdentity o={o} s={s} />
-                    <div className={styles.lineFacts}>
-                      <div>
-                        <span>{tr(dy.atPar ? "Taux nominal" : "Rendement")}</span>
-                        <b className={dy.pct != null ? styles.goldTxt : undefined}>{s.hero}</b>
-                        <small>{s.heroUnit ?? s.heroSub}</small>
-                      </div>
-                      <div>
-                        <span>{tr("Échéance")}</span>
-                        <b>{s.maturity}</b>
-                        <small>{s.tenor}</small>
-                      </div>
-                      <div>
-                        <span>{tr("Remboursement")}</span>
-                        <b>{t ? (t.periodsPerYear === 1 ? "annuel" : t.periodsPerYear === 2 ? "semestriel" : "trimestriel") : "—"}</b>
-                        <small>{t ? tr("nominal restant {n} / titre", { n: fmt(o.nominal) }) : tr("échéancier à préciser")}</small>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+    <Glissement>
+      <>
+        <LienRetour href="/societes" className={styles.back}>
+          {tr("← Sociétés cotées et émetteurs")}
+        </LienRetour>
+        <div className={styles.head}>
+          <div>
+            <div className={`eyebrow ${styles.eyebrow}`}>
+              <span className="cc">{COUNTRY_CODE[i.country]}</span> {i.sector} · émetteur obligataire BVMAC · {i.mnemo}
             </div>
+            <h1 className="display">{i.name}</h1>
+            <p className={styles.activity}>{tr(i.activity)}</p>
           </div>
+        </div>
 
-          <div className={styles.panel}>
-            <h2>
-              {latest.revenueLabel} <Info term={revenueTerm} /> {tr("et résultat net")} <Info term="resultat_net" /> · {figs[0].year}–{latest.year}
-            </h2>
-            <div className={styles.unitNote}>{tr("en FCFA · survolez les barres pour les montants exacts")}</div>
-            <BarChart groups={figs.map((f) => String(f.year))} series={[{ name: latest.revenueLabel, values: scaled.map((f) => f.revenue) }, { name: "Résultat net", values: scaled.map((f) => f.netIncome), accent: true }]} ariaLabel={`${latest.revenueLabel} et résultat net par année`} />
-            <div className={styles.reading}>
-              <b>{tr("Comment lire.")}</b> {tr("Pour un prêteur, l'essentiel est que les revenus couvrent durablement les intérêts et les remboursements : un résultat positif et stable compte plus qu'une forte croissance.")}
-            </div>
+        <div className={styles.kpis}>
+          <div className={`${styles.kpi} ${styles.gold}`}>
+            <span>{tr("Emprunts cotés")}</span>
+            <b>{lines.length}</b>
+            <small>{alive} en vie · détail ci-dessous</small>
           </div>
+          <div className={styles.kpi}>
+            <span>
+              {latest.revenueLabel} {latest.year} <Info term={revenueTerm} />
+            </span>
+            <b>{fmtUnits(latest.revenue * i.unit)}</b>
+            <small>FCFA{growth != null ? ` · ${growth > 0 ? "+" : ""}${fmtPct(growth, 1)} vs ${latest.year - 1}` : ""}</small>
+          </div>
+          <div className={styles.kpi}>
+            <span>
+              Résultat net {latest.year} <Info term="resultat_net" />
+            </span>
+            <b>{fmtUnits(latest.netIncome * i.unit)}</b>
+            <small>FCFA{margin != null ? ` · marge ${fmtPct(margin, 1)}` : ""}</small>
+          </div>
+          <div className={styles.kpi}>
+            <span>
+              Total du bilan {latest.year} <Info term="total_bilan" />
+            </span>
+            <b>{fmtUnits(latest.totalAssets * i.unit)}</b>
+            <small>FCFA · capital social {fmtUnits(i.shareCapital)}</small>
+          </div>
+        </div>
 
-          <div className={styles.panel}>
-            <h2>{tr("Chiffres clés publiés")}</h2>
-            <div className={styles.unitNote}>
-              {tr("en")} {tr(scale.label)} · {tr(i.unitNote)}
+        <div className={styles.grid}>
+          <div>
+            <div className={styles.panel}>
+              <h2>{tr("Emprunts cotés à la BVMAC")}</h2>
+              {lines.length === 0 && <p className={styles.source}>{tr("Aucune ligne de cet émetteur n'est actuellement reprise du bulletin.")}</p>}
+              <div className={styles.docs}>
+                {lines.map((o) => {
+                  const s = summarize(o, now);
+                  const t = bondTerms(o.isin);
+                  const dy = displayYield(o);
+                  return (
+                    <Link key={o.id} href={`/offres/${o.id}`} className={styles.lineCard}>
+                      <LineIdentity o={o} s={s} />
+                      <div className={styles.lineFacts}>
+                        <div>
+                          <span>{tr(dy.atPar ? "Taux nominal" : "Rendement")}</span>
+                          <b className={dy.pct != null ? styles.goldTxt : undefined}>{s.hero}</b>
+                          <small>{s.heroUnit ?? s.heroSub}</small>
+                        </div>
+                        <div>
+                          <span>{tr("Échéance")}</span>
+                          <b>{s.maturity}</b>
+                          <small>{s.tenor}</small>
+                        </div>
+                        <div>
+                          <span>{tr("Remboursement")}</span>
+                          <b>{t ? (t.periodsPerYear === 1 ? "annuel" : t.periodsPerYear === 2 ? "semestriel" : "trimestriel") : "—"}</b>
+                          <small>{t ? tr("nominal restant {n} / titre", { n: fmt(o.nominal) }) : tr("échéancier à préciser")}</small>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-            <div className="scroll-x">
-              <table className={styles.tbl}>
-                <thead>
-                  <tr>
-                    <th>{scale.short}</th>
-                    {figs.map((f) => (
-                      <th key={f.year} className={styles.r}>
-                        {f.year}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {(
-                    [
-                      [latest.revenueLabel, (f) => fmtScaled(f.revenue, scale.div)],
-                      ["Résultat net", (f) => fmtScaled(f.netIncome, scale.div)],
-                      ["Total du bilan", (f) => fmtScaled(f.totalAssets, scale.div)],
-                    ] as [string, (f: (typeof scaled)[number]) => string][]
-                  ).map(([label, fn]) => (
-                    <tr key={label}>
-                      <td>{label}</td>
-                      {scaled.map((f) => (
-                        <td key={f.year} className={styles.r}>
-                          {fn(f)}
-                        </td>
+
+            <div className={styles.panel}>
+              <h2>
+                {latest.revenueLabel} <Info term={revenueTerm} /> {tr("et résultat net")} <Info term="resultat_net" /> · {figs[0].year}–{latest.year}
+              </h2>
+              <div className={styles.unitNote}>{tr("en FCFA · survolez les barres pour les montants exacts")}</div>
+              <BarChart groups={figs.map((f) => String(f.year))} series={[{ name: latest.revenueLabel, values: scaled.map((f) => f.revenue) }, { name: "Résultat net", values: scaled.map((f) => f.netIncome), accent: true }]} ariaLabel={`${latest.revenueLabel} et résultat net par année`} />
+              <div className={styles.reading}>
+                <b>{tr("Comment lire.")}</b> {tr("Pour un prêteur, l'essentiel est que les revenus couvrent durablement les intérêts et les remboursements : un résultat positif et stable compte plus qu'une forte croissance.")}
+              </div>
+            </div>
+
+            <div className={styles.panel}>
+              <h2>{tr("Chiffres clés publiés")}</h2>
+              <div className={styles.unitNote}>
+                {tr("en")} {tr(scale.label)} · {tr(i.unitNote)}
+              </div>
+              <div className="scroll-x">
+                <table className={styles.tbl}>
+                  <thead>
+                    <tr>
+                      <th>{scale.short}</th>
+                      {figs.map((f) => (
+                        <th key={f.year} className={styles.r}>
+                          {f.year}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {(
+                      [
+                        [latest.revenueLabel, (f) => fmtScaled(f.revenue, scale.div)],
+                        ["Résultat net", (f) => fmtScaled(f.netIncome, scale.div)],
+                        ["Total du bilan", (f) => fmtScaled(f.totalAssets, scale.div)],
+                      ] as [string, (f: (typeof scaled)[number]) => string][]
+                    ).map(([label, fn]) => (
+                      <tr key={label}>
+                        <td>{label}</td>
+                        {scaled.map((f) => (
+                          <td key={f.year} className={styles.r}>
+                            {fn(f)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className={styles.source}>{tr("Source")} : {i.documents.map((d) => tr(d.title)).join(" · ")}.</div>
             </div>
-            <div className={styles.source}>{tr("Source")} : {i.documents.map((d) => tr(d.title)).join(" · ")}.</div>
+          </div>
+
+          <div>
+            <div className={styles.panel}>
+              <h2>{tr("Ce que disent les chiffres")}</h2>
+              <ul className={styles.comments}>
+                {i.reading.map((r0, k) => (
+                  <li key={k}>{tr(r0)}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className={styles.panel}>
+              <h2>{tr("Actionnariat")}</h2>
+              <ShareBar parts={i.shareholders} />
+              <dl className={styles.facts} style={{ marginTop: 12 }}>
+                <dt>{tr("Capital social")}</dt>
+                <dd>{fmtUnits(i.shareCapital, true)}</dd>
+                {i.chair && (
+                  <>
+                    <dt>{tr("Présidence")}</dt>
+                    <dd>{tr(i.chair)}</dd>
+                  </>
+                )}
+                {i.ceo && (
+                  <>
+                    <dt>{tr("Direction générale")}</dt>
+                    <dd>{i.ceo}</dd>
+                  </>
+                )}
+                <dt>{tr("Siège")}</dt>
+                <dd>{i.city}</dd>
+                {i.website && (
+                  <>
+                    <dt>{tr("Site")}</dt>
+                    <dd>
+                      <a href={i.website} target="_blank" rel="noreferrer">
+                        {i.website.replace(/^https?:\/\/(www\.)?/, "")}
+                      </a>
+                    </dd>
+                  </>
+                )}
+                {i.contact && (
+                  <>
+                    <dt>{tr("Contact")}</dt>
+                    <dd>{i.contact}</dd>
+                  </>
+                )}
+              </dl>
+            </div>
+
+            <RelatedNews kind="issuer" keyOf={i.slug} heading="h2" className={styles.panel} />
+
+            <div className={styles.panel}>
+              <h2>{tr("Documents publiés")} ({i.documents.length})</h2>
+              <div className={styles.docs}>
+                {i.documents.map((d) => (
+                  <a key={d.url} href={d.url} target="_blank" rel="noreferrer">
+                    <span>{tr(d.title)}</span>
+                    <small>bvm-ac.org · {tr("image")} · {d.year}</small>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.panel}>
+              <h2>{tr("Autres émetteurs")}</h2>
+              <div className={styles.docs}>
+                {others.map((x) => (
+                  <Link key={x.slug} href={`/emetteurs/${x.slug}`}>
+                    <span>{x.shortName}</span>
+                    <small>{x.sector}</small>
+                  </Link>
+                ))}
+              </div>
+              {/* On arrive ici par le bas de la page des sociétés, et cette page
+                  ne proposait que d'aller vers un AUTRE émetteur : la famille se
+                  parcourait dans un seul sens. */}
+              <p className={styles.retour}>
+                <Link href="/societes">← {tr("Les sociétés cotées")}</Link>
+              </p>
+            </div>
           </div>
         </div>
-
-        <div>
-          <div className={styles.panel}>
-            <h2>{tr("Ce que disent les chiffres")}</h2>
-            <ul className={styles.comments}>
-              {i.reading.map((r0, k) => (
-                <li key={k}>{tr(r0)}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className={styles.panel}>
-            <h2>{tr("Actionnariat")}</h2>
-            <ShareBar parts={i.shareholders} />
-            <dl className={styles.facts} style={{ marginTop: 12 }}>
-              <dt>{tr("Capital social")}</dt>
-              <dd>{fmtUnits(i.shareCapital, true)}</dd>
-              {i.chair && (
-                <>
-                  <dt>{tr("Présidence")}</dt>
-                  <dd>{tr(i.chair)}</dd>
-                </>
-              )}
-              {i.ceo && (
-                <>
-                  <dt>{tr("Direction générale")}</dt>
-                  <dd>{i.ceo}</dd>
-                </>
-              )}
-              <dt>{tr("Siège")}</dt>
-              <dd>{i.city}</dd>
-              {i.website && (
-                <>
-                  <dt>{tr("Site")}</dt>
-                  <dd>
-                    <a href={i.website} target="_blank" rel="noreferrer">
-                      {i.website.replace(/^https?:\/\/(www\.)?/, "")}
-                    </a>
-                  </dd>
-                </>
-              )}
-              {i.contact && (
-                <>
-                  <dt>{tr("Contact")}</dt>
-                  <dd>{i.contact}</dd>
-                </>
-              )}
-            </dl>
-          </div>
-
-          <RelatedNews kind="issuer" keyOf={i.slug} heading="h2" className={styles.panel} />
-
-          <div className={styles.panel}>
-            <h2>{tr("Documents publiés")} ({i.documents.length})</h2>
-            <div className={styles.docs}>
-              {i.documents.map((d) => (
-                <a key={d.url} href={d.url} target="_blank" rel="noreferrer">
-                  <span>{tr(d.title)}</span>
-                  <small>bvm-ac.org · {tr("image")} · {d.year}</small>
-                </a>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.panel}>
-            <h2>{tr("Autres émetteurs")}</h2>
-            <div className={styles.docs}>
-              {others.map((x) => (
-                <Link key={x.slug} href={`/emetteurs/${x.slug}`}>
-                  <span>{x.shortName}</span>
-                  <small>{x.sector}</small>
-                </Link>
-              ))}
-            </div>
-            {/* On arrive ici par le bas de la page des sociétés, et cette page
-                ne proposait que d'aller vers un AUTRE émetteur : la famille se
-                parcourait dans un seul sens. */}
-            <p className={styles.retour}>
-              <Link href="/societes">← {tr("Les sociétés cotées")}</Link>
-            </p>
-          </div>
-        </div>
-      </div>
-    </>
+      </>
+    </Glissement>
   );
 }

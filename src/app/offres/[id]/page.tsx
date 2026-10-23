@@ -25,6 +25,7 @@ import { intentHref, loadIntentContext } from "./intent-context";
 import { COMPANY, PRODUCT } from "@/lib/config";
 import { ApercuPartage } from "./ApercuPartage";
 import { identite } from "./identite";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -99,40 +100,42 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const coachStops = ficheStops(o, summary, { hasNews: relatedNews > 0 });
 
   return (
-    <div className={styles.page}>
-      {/* Une fiche regardée se note, une fiche préchargée non : c'est le
-          navigateur qui le dit, une fois par jour et par ligne. */}
-      {session && <Vu geste="vu.fiche" objet={o.id} detail={o.title} />}
-      <SwipePager id={o.id} hintKey="fiche" hints={{ next: "Glissez vers la gauche : la ligne suivante", prev: "Glissez vers la droite : la ligne précédente" }}>
-      <FichePanes className={styles.main}>
-        <ListNav id={o.id} fallbackHref={o.kind === "FONDS" ? "/fonds" : "/"} fallbackLabel={o.kind === "FONDS" ? "Tous les fonds" : "Toutes les offres"} />
-        <FicheHead o={o} s={summary} st={st} coach horizon={{ level: mark?.level, text: mark?.[lang], hasProfile: Boolean(fin) }} watching={watching} signedIn={Boolean(session)} stops={coachStops.map((c) => ({ ...c, title: t(c.title), text: t(c.text) }))} />
+    <Glissement>
+      <div className={styles.page}>
+        {/* Une fiche regardée se note, une fiche préchargée non : c'est le
+            navigateur qui le dit, une fois par jour et par ligne. */}
+        {session && <Vu geste="vu.fiche" objet={o.id} detail={o.title} />}
+        <SwipePager id={o.id} hintKey="fiche" hints={{ next: "Glissez vers la gauche : la ligne suivante", prev: "Glissez vers la droite : la ligne précédente" }}>
+        <FichePanes className={styles.main}>
+          <ListNav id={o.id} fallbackHref={o.kind === "FONDS" ? "/fonds" : "/"} fallbackLabel={o.kind === "FONDS" ? "Tous les fonds" : "Toutes les offres"} />
+          <FicheHead o={o} s={summary} st={st} coach horizon={{ level: mark?.level, text: mark?.[lang], hasProfile: Boolean(fin) }} watching={watching} signedIn={Boolean(session)} stops={coachStops.map((c) => ({ ...c, title: t(c.title), text: t(c.text) }))} />
 
-        <FicheReading o={o} data={fiche} />
-      </FichePanes>
-      </SwipePager>
+          <FicheReading o={o} data={fiche} />
+        </FichePanes>
+        </SwipePager>
 
-      <aside className={styles.side} id="intention" data-coach="action">
-        {/* AU-DESSUS DU FORMULAIRE, parce qu'il répond à la question la plus
-            fréquente et la moins engageante. Un client dont un canal est
-            prouvé n'a rien à redéclarer pour demander un rappel : le
-            formulaire entier existe pour engager une opération. */}
-        <div id="contact">
-          <ContactRapide
-            offer={{ id: o.id, title: o.title }}
-            emailProuve={Boolean(channels?.emailVerifiedAt || session?.email)}
-            telephoneProuve={Boolean(channels?.phoneVerifiedAt && channels?.phone)}
-            canalInitial={canalDemande}
-          />
-        </div>
-        <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} switchTargets={switchTargets} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && peutOPCVM(session) ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} investable={fin?.investable} />
-        {o.maturityOn && !past && (
-          <div className={styles.sideNote}>
-            {t("Durée réelle")} <b>{t(tenorText(o.settleOn, o.maturityOn))}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}
+        <aside className={styles.side} id="intention" data-coach="action">
+          {/* AU-DESSUS DU FORMULAIRE, parce qu'il répond à la question la plus
+              fréquente et la moins engageante. Un client dont un canal est
+              prouvé n'a rien à redéclarer pour demander un rappel : le
+              formulaire entier existe pour engager une opération. */}
+          <div id="contact">
+            <ContactRapide
+              offer={{ id: o.id, title: o.title }}
+              emailProuve={Boolean(channels?.emailVerifiedAt || session?.email)}
+              telephoneProuve={Boolean(channels?.phoneVerifiedAt && channels?.phone)}
+              canalInitial={canalDemande}
+            />
           </div>
-        )}
-      </aside>
-      {!past && <StickyAction label={t(o.kind === "FONDS" ? "Souscrire ou racheter" : o.kind === "MARCHE" ? "Passer un ordre" : "Déclarer une intention")} href={intentHref(o.id, { intent: sp.intent, qty, de: sp.de })} secondaryHref={`/comparer?a=${o.id}`} secondaryLabel={t("Comparer")} />}
-    </div>
+          <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} switchTargets={switchTargets} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && peutOPCVM(session) ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} investable={fin?.investable} />
+          {o.maturityOn && !past && (
+            <div className={styles.sideNote}>
+              {t("Durée réelle")} <b>{t(tenorText(o.settleOn, o.maturityOn))}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}
+            </div>
+          )}
+        </aside>
+        {!past && <StickyAction label={t(o.kind === "FONDS" ? "Souscrire ou racheter" : o.kind === "MARCHE" ? "Passer un ordre" : "Déclarer une intention")} href={intentHref(o.id, { intent: sp.intent, qty, de: sp.de })} secondaryHref={`/comparer?a=${o.id}`} secondaryLabel={t("Comparer")} />}
+      </div>
+    </Glissement>
   );
 }

@@ -7,6 +7,7 @@ import { quarterGlance } from "@/lib/market/quarter-glance";
 import { MarketStrip } from "@/components/MarketStrip";
 import { BackToTop } from "@/components/BackToTop";
 import styles from "./page.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -33,49 +34,51 @@ export default async function NotesArchivePage() {
   const qlabel = (q: { q: number; year: number }) => t(q.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: q.q, y: q.year });
 
   return (
-    <div className={styles.page}>
-      <header className={styles.head}>
-        <h1>{t("Les notes de marché")}</h1>
-        <p className={styles.lead}>
-          {t("Une note par trimestre sur l'indice BVMAC All Share : ce que le trimestre a fait, les sociétés derrière le chiffre, ce qui s'est échangé. Chacune est calculée sur les seules séances de son trimestre, et se lit donc de la même façon un an plus tard.")}
-        </p>
-      </header>
+    <Glissement>
+      <div className={styles.page}>
+        <header className={styles.head}>
+          <h1>{t("Les notes de marché")}</h1>
+          <p className={styles.lead}>
+            {t("Une note par trimestre sur l'indice BVMAC All Share : ce que le trimestre a fait, les sociétés derrière le chiffre, ce qui s'est échangé. Chacune est calculée sur les seules séances de son trimestre, et se lit donc de la même façon un an plus tard.")}
+          </p>
+        </header>
 
-      {closed.length === 0 ? (
-        <p className={styles.empty}>{t("La première note paraîtra à la clôture du premier trimestre complet lu.")}</p>
-      ) : (
-        years.map((year) => (
-          <section key={year} className={styles.year}>
-            <h2>{year}</h2>
-            <div className={styles.list}>
-              {closed
-                .filter((q) => q.year === year)
-                .map((q) => {
-                  const g = quarterGlance(data, q);
-                  return (
-                    <Link key={q.key} href={`/indice/note/${q.key.toLowerCase()}`} className={styles.note}>
-                      <b>{qlabel(q)}</b>
-                      <span className={styles.dates}>
-                        {t("séances du {a} au {b}", { a: fmtDate(q.from, false), b: fmtDate(q.to, false) })}
-                      </span>
-                      {g && (
-                        <span className={styles.figs}>
-                          <em className={g.ret > 0 ? styles.up : g.ret < 0 ? styles.down : ""}>{signed(g.ret)}</em>
-                          <small>
-                            {t("{n} points d’indice", { n: fmt(g.level) })} · {g.moved} / {g.sessions} {t("séances avec mouvement")}
-                          </small>
+        {closed.length === 0 ? (
+          <p className={styles.empty}>{t("La première note paraîtra à la clôture du premier trimestre complet lu.")}</p>
+        ) : (
+          years.map((year) => (
+            <section key={year} className={styles.year}>
+              <h2>{year}</h2>
+              <div className={styles.list}>
+                {closed
+                  .filter((q) => q.year === year)
+                  .map((q) => {
+                    const g = quarterGlance(data, q);
+                    return (
+                      <Link key={q.key} href={`/indice/note/${q.key.toLowerCase()}`} className={styles.note}>
+                        <b>{qlabel(q)}</b>
+                        <span className={styles.dates}>
+                          {t("séances du {a} au {b}", { a: fmtDate(q.from, false), b: fmtDate(q.to, false) })}
                         </span>
-                      )}
-                    </Link>
-                  );
-                })}
-            </div>
-          </section>
-        ))
-      )}
+                        {g && (
+                          <span className={styles.figs}>
+                            <em className={g.ret > 0 ? styles.up : g.ret < 0 ? styles.down : ""}>{signed(g.ret)}</em>
+                            <small>
+                              {t("{n} points d’indice", { n: fmt(g.level) })} · {g.moved} / {g.sessions} {t("séances avec mouvement")}
+                            </small>
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+              </div>
+            </section>
+          ))
+        )}
 
-      <MarketStrip current="notes" />
-      <BackToTop />
-    </div>
+        <MarketStrip current="notes" />
+        <BackToTop />
+      </div>
+    </Glissement>
   );
 }

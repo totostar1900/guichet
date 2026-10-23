@@ -1,5 +1,6 @@
 import { TitresBody } from "../TitresBody";
 import { OngletsMarche } from "@/components/market/OngletsMarche";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Titres" };
@@ -15,9 +16,11 @@ export const metadata = { title: "Titres" };
  */
 export default async function TitresPage() {
   return (
-    <>
-      <OngletsMarche />
-      <TitresBody />
-    </>
+    <Glissement>
+      <>
+        <OngletsMarche />
+        <TitresBody />
+      </>
+    </Glissement>
   );
 }

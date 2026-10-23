@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LienAvant, LienRetour } from "./Glissement";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { useT } from "@/i18n/client";
@@ -36,15 +37,25 @@ export function MarketChips() {
     r.scrollTo({ left: Math.max(0, want), behavior: "auto" });
   }, [here]);
 
+  const ici = MARKET_PAGES.findIndex((p) => p.key === here);
   if (!here) return null;
   return (
     <nav className={styles.rail} ref={rail} aria-label={t("Les pages du marché")}>
-      {MARKET_PAGES.map((p) => {
+      {MARKET_PAGES.map((p, i) => {
         const isHere = p.key === here;
+        /* LA DIRECTION SE LIT DANS LE RAIL LUI-MÊME.
+           Entre deux pages d'une même section on ne descend ni ne remonte :
+           on se déplace de côté, et le seul ordre qui existe est celui des
+           pastilles qu'on a sous les yeux. Aller vers la droite du rail glisse
+           comme un « plus loin », aller vers la gauche comme un « retour ».
+           Sans cela ces liens ne portaient aucun type, « default: none »
+           s'appliquait, et passer d'une page du marché à l'autre ne montrait
+           rien — mesuré le 24 octobre 2026 sur « /societes → /indice ». */
+        const Glisse = i === ici ? Link : i > ici ? LienAvant : LienRetour;
         return (
-          <Link key={p.key} href={p.href} ref={isHere ? on : undefined} className={isHere ? styles.on : undefined} aria-current={isHere ? "page" : undefined}>
+          <Glisse key={p.key} href={p.href} ref={isHere ? on : undefined} className={isHere ? styles.on : undefined} aria-current={isHere ? "page" : undefined}>
             {t(p.short ?? p.label)}
-          </Link>
+          </Glisse>
         );
       })}
     </nav>

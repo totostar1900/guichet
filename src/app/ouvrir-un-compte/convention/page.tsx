@@ -11,6 +11,7 @@ import { PASSAGES, passage, resolvePassages } from "@/lib/documents/passages";
 import { CONVENTION_CHANGE } from "@/data/legal";
 import { Signer } from "./Signer";
 import styles from "./page.module.css";
+import { Glissement, LienRetour } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -111,123 +112,125 @@ export default async function ConventionPage() {
   const marque = reprise ? CONVENTION_CHANGE.cote : undefined;
 
   return (
-    <div className={styles.page}>
-      <Link href="/ouvrir-un-compte" className={styles.retour}>
-        ← {t("Mon dossier d'ouverture")}
-      </Link>
-      <div className={styles.tete}>
-        <div className="eyebrow">{t("Convention de compte-titres")}</div>
-        <h1 className="display">{t("Votre convention")}</h1>
-        <p className={styles.lead}>{t("C'est le contrat entre vous et Purpose Capital. Il dit ce que vous nous confiez, et ce que nous vous devons en retour. Rien d'autre ne se passe sur cette page.")}</p>
-      </div>
-
-      {reprise && (
-        <div className={styles.reprise}>
-          <b>{t("Ce qui a changé depuis votre signature")}</b>
-          <p>{t(CONVENTION_CHANGE.quoi)}</p>
-          <p className={styles.repriseFin}>{t("Vos positions et votre compte ne changent pas. Le reste du texte est celui que vous avez déjà lu.")}</p>
-        </div>
-      )}
-
-      <ol className={styles.temps}>
-        {temps.map((p) => (
-          <li key={p.titre} className={`${styles.pas} ${styles[p.etat]}`}>
-            <i className={styles.n} aria-hidden="true">
-              {p.n}
-            </i>
-            <div>
-              <b>{p.titre}</b>
-              <small>{p.sous}</small>
-            </div>
-          </li>
-        ))}
-      </ol>
-
-      <section className={styles.bloc}>
-        <h2 className="display">{t("L'essentiel, en deux colonnes")}</h2>
-        <p className={styles.sous}>{t("Une convention est un échange. Ces deux colonnes le disent dans l'ordre où il vous concerne.")}</p>
-        <div className={styles.balance}>
-          <div className={`${styles.cote} ${marque === "donne" ? styles.coteMarque : ""}`}>
-            <div className={styles.coteTete}>
-              <b>{t("Ce que vous nous donnez")}</b>
-              <small>{marque === "donne" ? t("une ligne a changé") : t("Trois choses, et rien de plus")}</small>
-            </div>
-            <ul>
-              {donne.map((l) => (
-                <li key={l.b}>
-                  <b>{l.b}</b>
-                  {l.p}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className={`${styles.cote} ${marque === "devons" ? styles.coteMarque : ""}`}>
-            <div className={styles.coteTete}>
-              <b>{t("Ce que nous vous devons")}</b>
-              <small>{marque === "devons" ? t("une ligne a changé") : t("Cinq engagements")}</small>
-            </div>
-            <ul>
-              {devons.map((l) => (
-                <li key={l.b}>
-                  <b>{l.b}</b>
-                  {l.p}
-                  {l.lien ? (
-                    <>
-                      {" "}
-                      <Link href={l.lien.href}>{l.lien.nom}</Link>
-                    </>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </div>
+    <Glissement>
+      <div className={styles.page}>
+        <LienRetour href="/ouvrir-un-compte" className={styles.retour}>
+          ← {t("Mon dossier d'ouverture")}
+        </LienRetour>
+        <div className={styles.tete}>
+          <div className="eyebrow">{t("Convention de compte-titres")}</div>
+          <h1 className="display">{t("Votre convention")}</h1>
+          <p className={styles.lead}>{t("C'est le contrat entre vous et Purpose Capital. Il dit ce que vous nous confiez, et ce que nous vous devons en retour. Rien d'autre ne se passe sur cette page.")}</p>
         </div>
 
-        {/* Le texte complet se lit ici : replié, parce qu'il vient après
-            l'essentiel, et dans la page, parce qu'un PDF ouvert à part emporte
-            l'app installée. */}
-        <details className={styles.texte}>
-          <summary>
-            <b>{t("Le texte complet, tel que vous le signez")}</b>
-            <span>{t("{n} articles", { n: String(articles.length) })}</span>
-          </summary>
-          <div className={styles.texteCorps}>
-            {articles.map((a) => (
-              <section key={a.key}>
-                <h3>{a.label}</h3>
-                {a.body.split("\n").map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </section>
-            ))}
+        {reprise && (
+          <div className={styles.reprise}>
+            <b>{t("Ce qui a changé depuis votre signature")}</b>
+            <p>{t(CONVENTION_CHANGE.quoi)}</p>
+            <p className={styles.repriseFin}>{t("Vos positions et votre compte ne changent pas. Le reste du texte est celui que vous avez déjà lu.")}</p>
           </div>
-        </details>
-      </section>
-
-      <section className={`${styles.signer} ${signable ? styles.signerOuvert : ""}`}>
-        {/* « Reprendre » seul existe déjà au desk, où il veut dire « reprendre
-            un travail en cours » : la clef courte aurait rendu « Resume ». */}
-        <h2 className="display">{t(reprise && signable ? "Reprendre ma convention" : "Signer")}</h2>
-        {acceptee ? (
-          <>
-            <p className={styles.ok}>{t("Convention acceptée le {d} par {m}.", { d: signeeLe ?? "", m: t(file.consents.conventionMethod ?? "code à usage unique") })}</p>
-            <p>{t("Votre exemplaire daté est dans vos documents : c'est lui qui fait foi.")}</p>
-            <div className={styles.rangee}>
-              <Link className="btn" href="/moi/documents">
-                {t("Voir mon exemplaire")}
-              </Link>
-            </div>
-          </>
-        ) : !signable ? (
-          <p>{t("Rien ne se signe avant l'approbation de votre dossier. Vous pouvez lire la convention autant de fois que vous le voulez : le bouton de signature apparaîtra ici dès que le desk aura statué.")}</p>
-        ) : (
-          <>
-            <p>{t("Un code à six chiffres, une fois. Votre exemplaire daté part aussitôt dans vos documents : c'est lui qui fait foi.")}</p>
-            <Signer canal={canal} pending={{ at: file.consents.pendingCodeAt, to: file.consents.pendingCodeTo }} reprise={reprise} />
-          </>
         )}
-        <p className={styles.apres}>{t("Une fois signée, vos ordres sur parts de fonds partent sans autre formalité, et le sous-compte titres s'ouvre de lui-même : c'est le mandat ci-dessus qui nous y autorise.")}</p>
-      </section>
-    </div>
+
+        <ol className={styles.temps}>
+          {temps.map((p) => (
+            <li key={p.titre} className={`${styles.pas} ${styles[p.etat]}`}>
+              <i className={styles.n} aria-hidden="true">
+                {p.n}
+              </i>
+              <div>
+                <b>{p.titre}</b>
+                <small>{p.sous}</small>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        <section className={styles.bloc}>
+          <h2 className="display">{t("L'essentiel, en deux colonnes")}</h2>
+          <p className={styles.sous}>{t("Une convention est un échange. Ces deux colonnes le disent dans l'ordre où il vous concerne.")}</p>
+          <div className={styles.balance}>
+            <div className={`${styles.cote} ${marque === "donne" ? styles.coteMarque : ""}`}>
+              <div className={styles.coteTete}>
+                <b>{t("Ce que vous nous donnez")}</b>
+                <small>{marque === "donne" ? t("une ligne a changé") : t("Trois choses, et rien de plus")}</small>
+              </div>
+              <ul>
+                {donne.map((l) => (
+                  <li key={l.b}>
+                    <b>{l.b}</b>
+                    {l.p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className={`${styles.cote} ${marque === "devons" ? styles.coteMarque : ""}`}>
+              <div className={styles.coteTete}>
+                <b>{t("Ce que nous vous devons")}</b>
+                <small>{marque === "devons" ? t("une ligne a changé") : t("Cinq engagements")}</small>
+              </div>
+              <ul>
+                {devons.map((l) => (
+                  <li key={l.b}>
+                    <b>{l.b}</b>
+                    {l.p}
+                    {l.lien ? (
+                      <>
+                        {" "}
+                        <Link href={l.lien.href}>{l.lien.nom}</Link>
+                      </>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Le texte complet se lit ici : replié, parce qu'il vient après
+              l'essentiel, et dans la page, parce qu'un PDF ouvert à part emporte
+              l'app installée. */}
+          <details className={styles.texte}>
+            <summary>
+              <b>{t("Le texte complet, tel que vous le signez")}</b>
+              <span>{t("{n} articles", { n: String(articles.length) })}</span>
+            </summary>
+            <div className={styles.texteCorps}>
+              {articles.map((a) => (
+                <section key={a.key}>
+                  <h3>{a.label}</h3>
+                  {a.body.split("\n").map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </section>
+              ))}
+            </div>
+          </details>
+        </section>
+
+        <section className={`${styles.signer} ${signable ? styles.signerOuvert : ""}`}>
+          {/* « Reprendre » seul existe déjà au desk, où il veut dire « reprendre
+              un travail en cours » : la clef courte aurait rendu « Resume ». */}
+          <h2 className="display">{t(reprise && signable ? "Reprendre ma convention" : "Signer")}</h2>
+          {acceptee ? (
+            <>
+              <p className={styles.ok}>{t("Convention acceptée le {d} par {m}.", { d: signeeLe ?? "", m: t(file.consents.conventionMethod ?? "code à usage unique") })}</p>
+              <p>{t("Votre exemplaire daté est dans vos documents : c'est lui qui fait foi.")}</p>
+              <div className={styles.rangee}>
+                <Link className="btn" href="/moi/documents">
+                  {t("Voir mon exemplaire")}
+                </Link>
+              </div>
+            </>
+          ) : !signable ? (
+            <p>{t("Rien ne se signe avant l'approbation de votre dossier. Vous pouvez lire la convention autant de fois que vous le voulez : le bouton de signature apparaîtra ici dès que le desk aura statué.")}</p>
+          ) : (
+            <>
+              <p>{t("Un code à six chiffres, une fois. Votre exemplaire daté part aussitôt dans vos documents : c'est lui qui fait foi.")}</p>
+              <Signer canal={canal} pending={{ at: file.consents.pendingCodeAt, to: file.consents.pendingCodeTo }} reprise={reprise} />
+            </>
+          )}
+          <p className={styles.apres}>{t("Une fois signée, vos ordres sur parts de fonds partent sans autre formalité, et le sous-compte titres s'ouvre de lui-même : c'est le mandat ci-dessus qui nous y autorise.")}</p>
+        </section>
+      </div>
+    </Glissement>
   );
 }

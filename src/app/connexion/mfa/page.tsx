@@ -5,6 +5,7 @@ import { COMPANY } from "@/lib/config";
 import { MfaForm } from "./MfaForm";
 import { startEnrol, type MfaState } from "./actions";
 import styles from "../page.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const metadata = { title: "Second facteur" };
 
@@ -20,17 +21,19 @@ export default async function MfaPage({ searchParams }: { searchParams: Promise<
   const initial: MfaState = wantsEnrol ? await startEnrol() : { step: "verify", factorId: "" };
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.card}>
-        <div className="eyebrow">{COMPANY.name} · desk</div>
-        <h1 className="display">{wantsEnrol ? "Activer le second facteur" : "Second facteur"}</h1>
-        <p className={styles.lead}>
-          {wantsEnrol
-            ? "L'accès desk (prix, publication, clients) exige une deuxième preuve d'identité : un code qui change toutes les 30 secondes sur votre téléphone. Un code e-mail seul ne suffit pas pour agir au nom de la société."
-            : `Bonjour ${s.name}. Pour entrer sur le desk, ajoutez le code de votre application d'authentification.`}
-        </p>
-        <MfaForm initial={initial} next={next} />
+    <Glissement>
+      <div className={styles.wrap}>
+        <div className={styles.card}>
+          <div className="eyebrow">{COMPANY.name} · desk</div>
+          <h1 className="display">{wantsEnrol ? "Activer le second facteur" : "Second facteur"}</h1>
+          <p className={styles.lead}>
+            {wantsEnrol
+              ? "L'accès desk (prix, publication, clients) exige une deuxième preuve d'identité : un code qui change toutes les 30 secondes sur votre téléphone. Un code e-mail seul ne suffit pas pour agir au nom de la société."
+              : `Bonjour ${s.name}. Pour entrer sur le desk, ajoutez le code de votre application d'authentification.`}
+          </p>
+          <MfaForm initial={initial} next={next} />
+        </div>
       </div>
-    </div>
+    </Glissement>
   );
 }

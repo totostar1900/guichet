@@ -6,6 +6,7 @@ import { fmtDate } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import { ComplaintForm } from "./ComplaintForm";
 import styles from "./page.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Réclamation" };
@@ -30,34 +31,36 @@ export default async function ComplaintPage() {
     .map((i) => ({ ref: i.ref, label: `${i.ref} · ${byOffer.get(i.offerId)?.title ?? ""} · ${t(INTENT_LABEL[i.type])} · ${fmtDate(i.createdAt)}` }));
   const mine = docs.filter((d) => d.type === "reclamation" && d.clientId === s.userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   return (
-    <div className={styles.wrap}>
-      <div className={styles.head}>
-        <div>
-          <div className="eyebrow">
-            <Link href="/">{t("Portefeuille")}</Link> › {t("Réclamation")}
+    <Glissement>
+      <div className={styles.wrap}>
+        <div className={styles.head}>
+          <div>
+            <div className="eyebrow">
+              <Link href="/">{t("Portefeuille")}</Link> › {t("Réclamation")}
+            </div>
+            <h1 className="display">{t("Déposer une réclamation")}</h1>
+            <p className={styles.lead}>{t("Dites ce qui s'est passé et ce que vous demandez, avec vos mots. Purpose Capital accuse réception sous deux jours ouvrés et répond sous trente jours ; sans réponse satisfaisante, la COSUMAF peut être saisie.")}</p>
           </div>
-          <h1 className="display">{t("Déposer une réclamation")}</h1>
-          <p className={styles.lead}>{t("Dites ce qui s'est passé et ce que vous demandez, avec vos mots. Purpose Capital accuse réception sous deux jours ouvrés et répond sous trente jours ; sans réponse satisfaisante, la COSUMAF peut être saisie.")}</p>
         </div>
+        <ComplaintForm ops={ops} phoneProven={Boolean(channels?.phoneVerifiedAt)} phone={channels?.phone ?? s.phone} email={s.email} />
+        {mine.length > 0 && (
+          <section className="panel">
+            <div className="panel-h">
+              <h2>{t("Vos réclamations")}</h2>
+            </div>
+            <ul className={styles.list}>
+              {mine.map((d) => (
+                <li key={d.id}>
+                  <span className="mono">{d.number}</span> · {fmtDate(d.createdAt)} ·{" "}
+                  <a href={`/moi/documents/${d.id}`}>
+                    PDF
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
-      <ComplaintForm ops={ops} phoneProven={Boolean(channels?.phoneVerifiedAt)} phone={channels?.phone ?? s.phone} email={s.email} />
-      {mine.length > 0 && (
-        <section className="panel">
-          <div className="panel-h">
-            <h2>{t("Vos réclamations")}</h2>
-          </div>
-          <ul className={styles.list}>
-            {mine.map((d) => (
-              <li key={d.id}>
-                <span className="mono">{d.number}</span> · {fmtDate(d.createdAt)} ·{" "}
-                <a href={`/moi/documents/${d.id}`}>
-                  PDF
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-    </div>
+    </Glissement>
   );
 }

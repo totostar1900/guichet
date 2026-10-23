@@ -7,6 +7,7 @@ import { nextRun, recurringMinimum, STANDING_STATE_LABEL } from "@/lib/domain/st
 import { getT } from "@/i18n/server";
 import { localIso } from "@/lib/format";
 import styles from "./page.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Épargne programmée" };
@@ -50,81 +51,83 @@ export default async function EpargnePage() {
   const actifs = versements.filter((x) => x.state === "active");
 
   return (
-    <div className={styles.page}>
-      <nav className={styles.fil}>
-        <Link href="/">{t("Portefeuille")}</Link>
-      </nav>
-      <header className={styles.tete}>
-        <h1 className="display">{t("Épargne programmée")}</h1>
-        <p className={styles.chapeau}>
-          {t(
-            "Une somme fixe, un jour du mois, une destination choisie maintenant : le versement part tout seul, et vous l'arrêtez quand vous voulez. C'est un placement qui se répète, pas une autorisation de débit.",
-          )}
-        </p>
-      </header>
+    <Glissement>
+      <div className={styles.page}>
+        <nav className={styles.fil}>
+          <Link href="/">{t("Portefeuille")}</Link>
+        </nav>
+        <header className={styles.tete}>
+          <h1 className="display">{t("Épargne programmée")}</h1>
+          <p className={styles.chapeau}>
+            {t(
+              "Une somme fixe, un jour du mois, une destination choisie maintenant : le versement part tout seul, et vous l'arrêtez quand vous voulez. C'est un placement qui se répète, pas une autorisation de débit.",
+            )}
+          </p>
+        </header>
 
-      {versements.length > 0 && (
-        <Pli
-          cle="epargne:en-place"
-          titre={t("Vos versements programmés")}
-          sous={t("Ce qui part chaque mois, et que vous arrêtez quand vous voulez.")}
-          compte={t(actifs.length > 1 ? "{n} actifs" : actifs.length === 1 ? "1 actif" : "aucun actif", { n: String(actifs.length) })}
-        >
-          <StandingList
-            rows={versements.map((x) => ({
-              id: x.id,
-              ref: x.ref,
-              offerId: x.offerId,
-              title: offers.find((y) => y.id === x.offerId)?.title ?? x.offerId,
-              splits: x.splits?.map((y) => ({ offerId: y.offerId, title: offers.find((z) => z.id === y.offerId)?.title ?? y.offerId, pct: y.pct })),
-              href: `/offres/${x.offerId}`,
-              amount: x.amount,
-              dayOfMonth: x.dayOfMonth,
-              source: x.source,
-              minAmount: x.minAmount,
-              state: x.state,
-              stateLabel: STANDING_STATE_LABEL[x.state],
-              /* LA PROCHAINE ÉCHÉANCE, calculée plutôt que tue. La liste sait
-                 l'afficher depuis toujours ; les deux pages lui passaient
-                 « null », donc « prochain versement le … » ne paraissait
-                 jamais. Le domaine la donne (standing, « nextRun »). */
-              next: nextRun(x, aujourdHui),
-              lastRunOn: x.lastRunOn,
-              stopReason: x.stopReason,
-            }))}
-            fonds={fonds}
-          />
-        </Pli>
-      )}
-
-      <Pli
-        cle="epargne:mettre"
-        titre={t("Mettre une épargne en place")}
-        sous={t("Le fonds, la somme et le jour se choisissent ici.")}
-        attend={actifs.length === 0 ? t("rien en place") : undefined}
-      >
-        {fonds.length ? (
-          <StandingForm fonds={fonds} minimum={fonds[0]?.min ?? 0} />
-        ) : (
-          <p className="muted">{t("Aucun fonds n'est ouvert à la souscription en ce moment : l'épargne se programmera dès qu'il y en aura un.")}</p>
+        {versements.length > 0 && (
+          <Pli
+            cle="epargne:en-place"
+            titre={t("Vos versements programmés")}
+            sous={t("Ce qui part chaque mois, et que vous arrêtez quand vous voulez.")}
+            compte={t(actifs.length > 1 ? "{n} actifs" : actifs.length === 1 ? "1 actif" : "aucun actif", { n: String(actifs.length) })}
+          >
+            <StandingList
+              rows={versements.map((x) => ({
+                id: x.id,
+                ref: x.ref,
+                offerId: x.offerId,
+                title: offers.find((y) => y.id === x.offerId)?.title ?? x.offerId,
+                splits: x.splits?.map((y) => ({ offerId: y.offerId, title: offers.find((z) => z.id === y.offerId)?.title ?? y.offerId, pct: y.pct })),
+                href: `/offres/${x.offerId}`,
+                amount: x.amount,
+                dayOfMonth: x.dayOfMonth,
+                source: x.source,
+                minAmount: x.minAmount,
+                state: x.state,
+                stateLabel: STANDING_STATE_LABEL[x.state],
+                /* LA PROCHAINE ÉCHÉANCE, calculée plutôt que tue. La liste sait
+                   l'afficher depuis toujours ; les deux pages lui passaient
+                   « null », donc « prochain versement le … » ne paraissait
+                   jamais. Le domaine la donne (standing, « nextRun »). */
+                next: nextRun(x, aujourdHui),
+                lastRunOn: x.lastRunOn,
+                stopReason: x.stopReason,
+              }))}
+              fonds={fonds}
+            />
+          </Pli>
         )}
-      </Pli>
 
-      {/* LE MANDAT EST NOMMÉ, PAS CONTENU. Les deux décisions se touchent — un
-          versement doit bien être payé — mais les mêler, c'est faire signer
-          une autorisation de débit à qui vient choisir un placement. */}
-      <Pli cle="epargne:comment" titre={t("Comment cela marche")} sous={t("Ce qui part, comment c'est payé, et comment cela s'arrête.")} defaut={false}>
-        <ol className={styles.steps}>
-          <li>{t("Vous choisissez le fonds, la somme et le jour du mois. Rien n'est prélevé à la signature.")}</li>
-          <li>
-            {t("Le jour venu, la somme est appelée. Vous la virez vous-même, ou vous nous autorisez à la prélever : c'est le")}{" "}
-            <Link href="/moi/prelevements">{t("mandat de prélèvement")}</Link>
-            {t(", une autorisation distincte, que vous signez une fois et révoquez quand vous voulez.")}
-          </li>
-          <li>{t("L'ordre produit est un ordre ordinaire : il porte une référence, vous en recevez l'avis, et il paraît dans votre espace comme les autres.")}</li>
-          <li>{t("Vous arrêtez le versement d'un bouton, sans motif à donner. Arrêter le versement ne révoque pas le mandat, et révoquer le mandat n'arrête pas le versement : ce sont deux décisions.")}</li>
-        </ol>
-      </Pli>
-    </div>
+        <Pli
+          cle="epargne:mettre"
+          titre={t("Mettre une épargne en place")}
+          sous={t("Le fonds, la somme et le jour se choisissent ici.")}
+          attend={actifs.length === 0 ? t("rien en place") : undefined}
+        >
+          {fonds.length ? (
+            <StandingForm fonds={fonds} minimum={fonds[0]?.min ?? 0} />
+          ) : (
+            <p className="muted">{t("Aucun fonds n'est ouvert à la souscription en ce moment : l'épargne se programmera dès qu'il y en aura un.")}</p>
+          )}
+        </Pli>
+
+        {/* LE MANDAT EST NOMMÉ, PAS CONTENU. Les deux décisions se touchent — un
+            versement doit bien être payé — mais les mêler, c'est faire signer
+            une autorisation de débit à qui vient choisir un placement. */}
+        <Pli cle="epargne:comment" titre={t("Comment cela marche")} sous={t("Ce qui part, comment c'est payé, et comment cela s'arrête.")} defaut={false}>
+          <ol className={styles.steps}>
+            <li>{t("Vous choisissez le fonds, la somme et le jour du mois. Rien n'est prélevé à la signature.")}</li>
+            <li>
+              {t("Le jour venu, la somme est appelée. Vous la virez vous-même, ou vous nous autorisez à la prélever : c'est le")}{" "}
+              <Link href="/moi/prelevements">{t("mandat de prélèvement")}</Link>
+              {t(", une autorisation distincte, que vous signez une fois et révoquez quand vous voulez.")}
+            </li>
+            <li>{t("L'ordre produit est un ordre ordinaire : il porte une référence, vous en recevez l'avis, et il paraît dans votre espace comme les autres.")}</li>
+            <li>{t("Vous arrêtez le versement d'un bouton, sans motif à donner. Arrêter le versement ne révoque pas le mandat, et révoquer le mandat n'arrête pas le versement : ce sont deux décisions.")}</li>
+          </ol>
+        </Pli>
+      </div>
+    </Glissement>
   );
 }

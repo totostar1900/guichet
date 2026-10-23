@@ -1,11 +1,11 @@
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
-import { Glissement } from "@/components/mobile/Glissement";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { COMPTE_PAGES } from "@/lib/nav-groups";
 import { Deconnexion } from "./Deconnexion";
 import styles from "@/components/Feuillet.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Votre compte" };
@@ -60,28 +60,28 @@ export default async function ComptePage() {
 
   return (
     <Glissement>
-      <div className={styles.page}>
-        <header className={styles.tete}>
-          <h1>{t("Votre compte")}</h1>
-          <p>{t("Qui vous êtes, ce que la maison détient de vous, et ce que fait cet appareil-ci.")}</p>
-        </header>
+        <div className={styles.page}>
+          <header className={styles.tete}>
+            <h1>{t("Votre compte")}</h1>
+            <p>{t("Qui vous êtes, ce que la maison détient de vous, et ce que fait cet appareil-ci.")}</p>
+          </header>
 
-        {/* LA TABLE DIT LES CINQ, LA PAGE DIT L'ÉTAT. Les noms et les phrases
-            vivent dans `COMPTE_PAGES`, que la recherche lit aussi : une page
-            qu'aucune table ne cite n'existe que pour qui connaît son adresse.
-            Ce qui dépend du client — « 1 canal prouvé », « approuvé », « 2
-            appareils » — se calcule ici, et nulle part ailleurs. */}
-        <Rubriques
-          items={COMPTE_PAGES.map((p) => ({
-            href: p.href,
-            nom: t(p.label),
-            quoi: t(p.hint),
-            etiquette: etat[p.key],
-          }))}
-        />
+          {/* LA TABLE DIT LES CINQ, LA PAGE DIT L'ÉTAT. Les noms et les phrases
+              vivent dans `COMPTE_PAGES`, que la recherche lit aussi : une page
+              qu'aucune table ne cite n'existe que pour qui connaît son adresse.
+              Ce qui dépend du client — « 1 canal prouvé », « approuvé », « 2
+              appareils » — se calcule ici, et nulle part ailleurs. */}
+          <Rubriques
+            items={COMPTE_PAGES.map((p) => ({
+              href: p.href,
+              nom: t(p.label),
+              quoi: t(p.hint),
+              etiquette: etat[p.key],
+            }))}
+          />
 
-        <Deconnexion />
-      </div>
+          <Deconnexion />
+        </div>
     </Glissement>
   );
 }

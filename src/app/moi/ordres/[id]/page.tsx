@@ -16,6 +16,7 @@ import { canalDuCode } from "@/lib/kyc/canal";
 import { AuDoigt } from "./AuDoigt";
 import { SignatureOrdre } from "./Signature";
 import styles from "./page.module.css";
+import { Glissement, LienRetour } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -94,196 +95,198 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
   const canal = signable && dossier ? await canalDuCode(s.userId, dossier) : undefined;
 
   return (
-    <div className={styles.wrap}>
-      <Link href="/moi/documents" className={styles.back}>
-        ← {t("Mes documents")}
-      </Link>
-      <div className={styles.head}>
-        <div className="eyebrow">
-          {t(INTENT_LABEL[intent.type])} · {intent.signedAt ? t("signé") : signable ? t("étape 2 sur 2") : t(INTENT_STATE_LABEL[intent.state])}
+    <Glissement>
+      <div className={styles.wrap}>
+        <LienRetour href="/moi/documents" className={styles.back}>
+          ← {t("Mes documents")}
+        </LienRetour>
+        <div className={styles.head}>
+          <div className="eyebrow">
+            {t(INTENT_LABEL[intent.type])} · {intent.signedAt ? t("signé") : signable ? t("étape 2 sur 2") : t(INTENT_STATE_LABEL[intent.state])}
+          </div>
+          <h1 className="display">{intent.signedAt ? t("Votre ordre") : t("Signer mon ordre")}</h1>
+          <p className={styles.lead}>
+            {offer.title}
+            {f ? ` · ${f.manager}` : ""}
+          </p>
         </div>
-        <h1 className="display">{intent.signedAt ? t("Votre ordre") : t("Signer mon ordre")}</h1>
-        <p className={styles.lead}>
-          {offer.title}
-          {f ? ` · ${f.manager}` : ""}
-        </p>
-      </div>
 
-      <section className={styles.recap}>
-        <div className={styles.recapH}>{t("Ce que vous signez")}</div>
-        <dl className={styles.lignes}>
-          {titre ? (
-            /* UN TITRE SE LIT À L'ENVERS D'UNE PART : la quantité est ferme,
-               c'est la dépense qui flotte. Le plafond vient donc en dernier
-               et en gras, parce que c'est LUI qu'on signe ; le reste l'explique. */
-            <>
-              <div>
-                <dt>{t("Quantité demandée")}</dt>
-                <dd>{positionFor(intent, offer).label}</dd>
-              </div>
-              {intent.limitPrice != null && (
+        <section className={styles.recap}>
+          <div className={styles.recapH}>{t("Ce que vous signez")}</div>
+          <dl className={styles.lignes}>
+            {titre ? (
+              /* UN TITRE SE LIT À L'ENVERS D'UNE PART : la quantité est ferme,
+                 c'est la dépense qui flotte. Le plafond vient donc en dernier
+                 et en gras, parce que c'est LUI qu'on signe ; le reste l'explique. */
+              <>
                 <div>
-                  <dt>{t("Au prix maximum de")}</dt>
-                  <dd>{intent.limitPrice.toLocaleString("fr-FR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} %</dd>
+                  <dt>{t("Quantité demandée")}</dt>
+                  <dd>{positionFor(intent, offer).label}</dd>
                 </div>
-              )}
-              {offer.commissionPct > 0 && (
+                {intent.limitPrice != null && (
+                  <div>
+                    <dt>{t("Au prix maximum de")}</dt>
+                    <dd>{intent.limitPrice.toLocaleString("fr-FR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} %</dd>
+                  </div>
+                )}
+                {offer.commissionPct > 0 && (
+                  <div>
+                    <dt>{t("dont commission {p} %", { p: offer.commissionPct.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) })}</dt>
+                    <dd className={styles.second}>{fmt(Math.round(positionFor(intent, offer, prixDuPlafond(intent, offer) != null ? { pricePct: prixDuPlafond(intent, offer) } : {}).commission))} FCFA</dd>
+                  </div>
+                )}
                 <div>
-                  <dt>{t("dont commission {p} %", { p: offer.commissionPct.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) })}</dt>
-                  <dd className={styles.second}>{fmt(Math.round(positionFor(intent, offer, prixDuPlafond(intent, offer) != null ? { pricePct: prixDuPlafond(intent, offer) } : {}).commission))} FCFA</dd>
+                  <dt>{t("Vous engagez au plus")}</dt>
+                  <dd>{fmt(plafondEnVigueur(intent, offer))} FCFA</dd>
                 </div>
-              )}
-              <div>
-                <dt>{t("Vous engagez au plus")}</dt>
-                <dd>{fmt(plafondEnVigueur(intent, offer))} FCFA</dd>
-              </div>
-            </>
-          ) : rachat ? (
-            <>
-              <div>
-                <dt>{t("Parts rachetées")}</dt>
-                <dd>{montant.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</dd>
-              </div>
-              {f && (
+              </>
+            ) : rachat ? (
+              <>
                 <div>
-                  <dt>{t("Produit, à la VL du {d}", { d: fmtDate(f.navDate, false) })}</dt>
-                  <dd className={styles.approx}>≈ {fmt(produit)} FCFA</dd>
+                  <dt>{t("Parts rachetées")}</dt>
+                  <dd>{montant.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</dd>
                 </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div>
-                <dt>{t("Montant versé")}</dt>
-                <dd>{fmt(montant)} FCFA</dd>
-              </div>
-              {droitsPct > 0 && (
+                {f && (
+                  <div>
+                    <dt>{t("Produit, à la VL du {d}", { d: fmtDate(f.navDate, false) })}</dt>
+                    <dd className={styles.approx}>≈ {fmt(produit)} FCFA</dd>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
                 <div>
-                  <dt>{t("dont droits d'entrée {p} %", { p: droitsPct.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) })}</dt>
-                  <dd className={styles.second}>{fmt(droits)} FCFA</dd>
+                  <dt>{t("Montant versé")}</dt>
+                  <dd>{fmt(montant)} FCFA</dd>
                 </div>
-              )}
-              <div>
-                <dt>{t("Investi")}</dt>
-                <dd>{fmt(investi)} FCFA</dd>
-              </div>
-              {f && (
+                {droitsPct > 0 && (
+                  <div>
+                    <dt>{t("dont droits d'entrée {p} %", { p: droitsPct.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) })}</dt>
+                    <dd className={styles.second}>{fmt(droits)} FCFA</dd>
+                  </div>
+                )}
                 <div>
-                  <dt>{t("Parts, à la VL du {d}", { d: fmtDate(f.navDate, false) })}</dt>
-                  <dd className={styles.approx}>≈ {parts.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</dd>
+                  <dt>{t("Investi")}</dt>
+                  <dd>{fmt(investi)} FCFA</dd>
                 </div>
-              )}
-            </>
-          )}
-        </dl>
-        {/* DIRE OÙ EST L'INCERTITUDE, ET OÙ ELLE N'EST PAS. Sur un OPCVM le
-            montant est ferme et seule la quantité flotte : un client qui l'a lu
-            ici ne sera pas surpris par son avis d'opéré. */}
-        <p className={styles.ferme}>
-          {titre
-            ? t("C'est ce plafond que vous signez, et rien au-delà. Si le prix servi est meilleur, vous payez moins ; s'il dépasse, l'ordre n'est pas exécuté pour vous. Vous pouvez aussi n'être servi qu'en partie : vous ne payez alors que ce qui vous revient.")
-            : rachat
-              ? t("Le nombre de parts est ferme. Le montant sera celui de la VL de rachat retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })
-              : t("Le montant est ferme. Le nombre de parts sera celui de la VL retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })}
-        </p>
-        <p className={styles.fin}>
-          {f ? t("Dépositaire {d} · parts inscrites à votre nom au registre du fonds", { d: f.depositary }) : ""}
-          {f?.settlementDays ? ` · ${t("règlement J+{n}", { n: String(f.settlementDays) })}` : ""}
-        </p>
-        <p className={styles.lire}>
-          <Link href={`/moi/ordres/${intent.id}/lire`}>{intent.signedAt ? t("Lire l'ordre signé") : t("Lire l'ordre complet")}</Link>
-        </p>
-      </section>
+                {f && (
+                  <div>
+                    <dt>{t("Parts, à la VL du {d}", { d: fmtDate(f.navDate, false) })}</dt>
+                    <dd className={styles.approx}>≈ {parts.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</dd>
+                  </div>
+                )}
+              </>
+            )}
+          </dl>
+          {/* DIRE OÙ EST L'INCERTITUDE, ET OÙ ELLE N'EST PAS. Sur un OPCVM le
+              montant est ferme et seule la quantité flotte : un client qui l'a lu
+              ici ne sera pas surpris par son avis d'opéré. */}
+          <p className={styles.ferme}>
+            {titre
+              ? t("C'est ce plafond que vous signez, et rien au-delà. Si le prix servi est meilleur, vous payez moins ; s'il dépasse, l'ordre n'est pas exécuté pour vous. Vous pouvez aussi n'être servi qu'en partie : vous ne payez alors que ce qui vous revient.")
+              : rachat
+                ? t("Le nombre de parts est ferme. Le montant sera celui de la VL de rachat retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })
+                : t("Le montant est ferme. Le nombre de parts sera celui de la VL retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })}
+          </p>
+          <p className={styles.fin}>
+            {f ? t("Dépositaire {d} · parts inscrites à votre nom au registre du fonds", { d: f.depositary }) : ""}
+            {f?.settlementDays ? ` · ${t("règlement J+{n}", { n: String(f.settlementDays) })}` : ""}
+          </p>
+          <p className={styles.lire}>
+            <Link href={`/moi/ordres/${intent.id}/lire`}>{intent.signedAt ? t("Lire l'ordre signé") : t("Lire l'ordre complet")}</Link>
+          </p>
+        </section>
 
-      {intent.signedAt ? (
-        <div className={styles.signe}>
-          {t("Ordre signé le {d} par {m}.", { d: fmtDateTime(intent.signedAt), m: t(intent.signedMethod ?? "code à usage unique") })} {t("Référence")} <b className="mono">{intent.ref}</b>
-        </div>
-      ) : signable ? (
-        <>
-          {/* L'APPAREIL D'ABORD, LE CODE ENSUITE. Un ordre couvert par la
-              provision n'attend plus rien : l'argent est là, le plafond est
-              signé, et il restait un code à aller chercher dans une boîte aux
-              lettres. Le bloc ne paraît que si le navigateur connaît un
-              appareil, ce que le serveur ignore : il se peint après. */}
-          <AuDoigt id={intent.id} couvert={couvrirait} />
-          <SignatureOrdre id={intent.id} canal={canal ? { to: canal.to, channel: canal.channel } : undefined} codeEnvoyeLe={intent.pendingCodeAt} />
-          {/* LES DEUX ISSUES, SUR LA PAGE OÙ LE RAPPEL RENVOIE. Signer est
-              au-dessus et pèse son poids ; renoncer est un lien de texte en
-              dessous. Mais il existe, et c'est tout le point : un panier
-              qu'on ne peut pas vider se garde plein. */}
-          <RetirerOrdre intentId={intent.id} ref_={intent.ref} ouvertDoffice={"retirer" in ((await searchParams) ?? {})} />
-        </>
-      ) : ordreSignable(intent) && !habilite ? (
-        <p className={styles.hint}>
-          {t("Votre ordre est enregistré. Il se signera dès que votre dossier sera approuvé et votre convention acceptée.")}{" "}
-          <Link href="/ouvrir-un-compte">{t("Mon dossier d'ouverture")}</Link>
-        </p>
-      ) : (
-        <p className={styles.hint}>{t("Cet ordre n'est plus à signer ici : le desk l'a pris en main. Vous le suivez dans vos documents.")}</p>
-      )}
-
-      <section className={styles.suite}>
-        <div className={styles.recapH}>{t("Ensuite")}</div>
-        <ol className={styles.etapes}>
-          <li className={intent.signedAt ? styles.fait : styles.encours}>
-            <b>{t("Vous signez")}</b>
-            <small>{intent.signedAt ? fmtDateTime(intent.signedAt) : t("maintenant")}</small>
-          </li>
-          {/* L'ORDRE DES DEUX ÉTAPES SUIVANTES N'EST PAS LE MÊME SELON CE
-              QU'ON ACHÈTE, et s'y tromper ferait attendre le client pour rien
-              ou le ferait payer trop tôt. Sur une part, le desk centralise
-              puis appelle les fonds. Sur un titre, on ne transmet au marché
-              qu'un ordre COUVERT (convention, article 4) : le règlement
-              précède donc la transmission, à hauteur du plafond signé. */}
-          {couvert || couvrirait ? (
-            /* COUVERT, IL N'Y A PLUS DE SECOND GESTE. Garder « vous virez »
-               sur un ordre déjà payé par la provision enverrait le client à
-               sa banque pour rien, ce qui est la friction qu'on retire. */
-            <>
-              <li className={couvert ? styles.fait : undefined}>
-                <b>{t("Réglé sur votre provision")}</b>
-                <small>{t("{m} FCFA réservés, rien à virer", { m: fmt(couvert ? (intent.coveredAmount ?? 0) : aRegler) })}</small>
-              </li>
-              <li>
-                <b>{titre ? t("Le desk transmet") : t("Le desk donne le go")}</b>
-                <small>{titre ? t("au marché, puis le résultat") : t("puis la centralisation")}</small>
-              </li>
-            </>
-          ) : titre ? (
-            <>
-              <li>
-                <b>{t("Vous réglez")}</b>
-                <small>{t("au plus le plafond, avec la référence de l'ordre")}</small>
-              </li>
-              <li>
-                <b>{t("Le desk transmet")}</b>
-                <small>{t("au marché, puis le résultat")}</small>
-              </li>
-            </>
-          ) : (
-            <>
-              <li>
-                <b>{t("Le desk donne le go")}</b>
-                <small>{t("un numéro d'opération")}</small>
-              </li>
-              <li>
-                <b>{rachat ? t("Vous êtes payé") : t("Vous virez")}</b>
-                <small>{rachat ? t("sur votre compte de règlement") : t("avec ce numéro")}</small>
-              </li>
-            </>
-          )}
-        </ol>
-        {couvert ? (
-          <p className={styles.fin}>{t("Cette somme est mise de côté sur votre solde : elle n'en sort qu'au règlement de l'opération. Ce qui n'est pas consommé y revient.")}</p>
-        ) : couvrirait ? (
-          <p className={styles.fin}>{t("Votre solde disponible couvre cet ordre : à la signature, la somme sera mise de côté et vous n'aurez rien à virer.")}</p>
-        ) : titre ? (
-          <p className={styles.fin}>{t("Vous ne payez jamais plus que le plafond. Servi en partie, vous ne payez que votre part ; non servi, tout vous revient, et le solde part sous 72 heures ouvrables si vous le demandez.")}</p>
+        {intent.signedAt ? (
+          <div className={styles.signe}>
+            {t("Ordre signé le {d} par {m}.", { d: fmtDateTime(intent.signedAt), m: t(intent.signedMethod ?? "code à usage unique") })} {t("Référence")} <b className="mono">{intent.ref}</b>
+          </div>
+        ) : signable ? (
+          <>
+            {/* L'APPAREIL D'ABORD, LE CODE ENSUITE. Un ordre couvert par la
+                provision n'attend plus rien : l'argent est là, le plafond est
+                signé, et il restait un code à aller chercher dans une boîte aux
+                lettres. Le bloc ne paraît que si le navigateur connaît un
+                appareil, ce que le serveur ignore : il se peint après. */}
+            <AuDoigt id={intent.id} couvert={couvrirait} />
+            <SignatureOrdre id={intent.id} canal={canal ? { to: canal.to, channel: canal.channel } : undefined} codeEnvoyeLe={intent.pendingCodeAt} />
+            {/* LES DEUX ISSUES, SUR LA PAGE OÙ LE RAPPEL RENVOIE. Signer est
+                au-dessus et pèse son poids ; renoncer est un lien de texte en
+                dessous. Mais il existe, et c'est tout le point : un panier
+                qu'on ne peut pas vider se garde plein. */}
+            <RetirerOrdre intentId={intent.id} ref_={intent.ref} ouvertDoffice={"retirer" in ((await searchParams) ?? {})} />
+          </>
+        ) : ordreSignable(intent) && !habilite ? (
+          <p className={styles.hint}>
+            {t("Votre ordre est enregistré. Il se signera dès que votre dossier sera approuvé et votre convention acceptée.")}{" "}
+            <Link href="/ouvrir-un-compte">{t("Mon dossier d'ouverture")}</Link>
+          </p>
         ) : (
-          !rachat && <p className={styles.fin}>{t("Signer n'est pas payer : rien n'est à verser avant le go.")}</p>
+          <p className={styles.hint}>{t("Cet ordre n'est plus à signer ici : le desk l'a pris en main. Vous le suivez dans vos documents.")}</p>
         )}
-      </section>
-    </div>
+
+        <section className={styles.suite}>
+          <div className={styles.recapH}>{t("Ensuite")}</div>
+          <ol className={styles.etapes}>
+            <li className={intent.signedAt ? styles.fait : styles.encours}>
+              <b>{t("Vous signez")}</b>
+              <small>{intent.signedAt ? fmtDateTime(intent.signedAt) : t("maintenant")}</small>
+            </li>
+            {/* L'ORDRE DES DEUX ÉTAPES SUIVANTES N'EST PAS LE MÊME SELON CE
+                QU'ON ACHÈTE, et s'y tromper ferait attendre le client pour rien
+                ou le ferait payer trop tôt. Sur une part, le desk centralise
+                puis appelle les fonds. Sur un titre, on ne transmet au marché
+                qu'un ordre COUVERT (convention, article 4) : le règlement
+                précède donc la transmission, à hauteur du plafond signé. */}
+            {couvert || couvrirait ? (
+              /* COUVERT, IL N'Y A PLUS DE SECOND GESTE. Garder « vous virez »
+                 sur un ordre déjà payé par la provision enverrait le client à
+                 sa banque pour rien, ce qui est la friction qu'on retire. */
+              <>
+                <li className={couvert ? styles.fait : undefined}>
+                  <b>{t("Réglé sur votre provision")}</b>
+                  <small>{t("{m} FCFA réservés, rien à virer", { m: fmt(couvert ? (intent.coveredAmount ?? 0) : aRegler) })}</small>
+                </li>
+                <li>
+                  <b>{titre ? t("Le desk transmet") : t("Le desk donne le go")}</b>
+                  <small>{titre ? t("au marché, puis le résultat") : t("puis la centralisation")}</small>
+                </li>
+              </>
+            ) : titre ? (
+              <>
+                <li>
+                  <b>{t("Vous réglez")}</b>
+                  <small>{t("au plus le plafond, avec la référence de l'ordre")}</small>
+                </li>
+                <li>
+                  <b>{t("Le desk transmet")}</b>
+                  <small>{t("au marché, puis le résultat")}</small>
+                </li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <b>{t("Le desk donne le go")}</b>
+                  <small>{t("un numéro d'opération")}</small>
+                </li>
+                <li>
+                  <b>{rachat ? t("Vous êtes payé") : t("Vous virez")}</b>
+                  <small>{rachat ? t("sur votre compte de règlement") : t("avec ce numéro")}</small>
+                </li>
+              </>
+            )}
+          </ol>
+          {couvert ? (
+            <p className={styles.fin}>{t("Cette somme est mise de côté sur votre solde : elle n'en sort qu'au règlement de l'opération. Ce qui n'est pas consommé y revient.")}</p>
+          ) : couvrirait ? (
+            <p className={styles.fin}>{t("Votre solde disponible couvre cet ordre : à la signature, la somme sera mise de côté et vous n'aurez rien à virer.")}</p>
+          ) : titre ? (
+            <p className={styles.fin}>{t("Vous ne payez jamais plus que le plafond. Servi en partie, vous ne payez que votre part ; non servi, tout vous revient, et le solde part sous 72 heures ouvrables si vous le demandez.")}</p>
+          ) : (
+            !rachat && <p className={styles.fin}>{t("Signer n'est pas payer : rien n'est à verser avant le go.")}</p>
+          )}
+        </section>
+      </div>
+    </Glissement>
   );
 }

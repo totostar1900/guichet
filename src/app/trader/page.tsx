@@ -7,6 +7,7 @@ import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
 import { Parcours } from "./Parcours";
 import { Rayons } from "./Rayons";
 import styles from "./page.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Trade" };
@@ -59,27 +60,29 @@ export default async function TradePage() {
   const services = servicesDuClient(ctx);
 
   return (
-    <div className={styles.page}>
-      <header className={styles.tete}>
-        <h1>{t("Trade")}</h1>
-        <p>{t("Ce que Guichet peut faire pour vous, et par où chaque geste commence.")}</p>
-      </header>
+    <Glissement>
+      <div className={styles.page}>
+        <header className={styles.tete}>
+          <h1>{t("Trade")}</h1>
+          <p>{t("Ce que Guichet peut faire pour vous, et par où chaque geste commence.")}</p>
+        </header>
 
-      {/* CE QUI DEMANDE LA MAIN D'ABORD. Un bulletin à signer, un coupon qui
-          dort, une séance qui se ferme : ce sont les seules lignes de cette
-          page qui ont une échéance, et elles étaient au bas d'un mur. */}
-      <CeQuiVousAttend userId={s.userId} />
+        {/* CE QUI DEMANDE LA MAIN D'ABORD. Un bulletin à signer, un coupon qui
+            dort, une séance qui se ferme : ce sont les seules lignes de cette
+            page qui ont une échéance, et elles étaient au bas d'un mur. */}
+        <CeQuiVousAttend userId={s.userId} />
 
-      <div className={styles.large}>
-        <Rayons services={services} etapes={ETAPES} raisons={RAISON} />
+        <div className={styles.large}>
+          <Rayons services={services} etapes={ETAPES} raisons={RAISON} />
+        </div>
+        <div className={styles.petit}>
+          {/* « useSearchParams » veut une frontière : le parcours lit l'adresse,
+              et le reste de la page se rend sans l'attendre. */}
+          <Suspense fallback={null}>
+            <Parcours services={services} etapes={ETAPES} raisons={RAISON} />
+          </Suspense>
+        </div>
       </div>
-      <div className={styles.petit}>
-        {/* « useSearchParams » veut une frontière : le parcours lit l'adresse,
-            et le reste de la page se rend sans l'attendre. */}
-        <Suspense fallback={null}>
-          <Parcours services={services} etapes={ETAPES} raisons={RAISON} />
-        </Suspense>
-      </div>
-    </div>
+    </Glissement>
   );
 }

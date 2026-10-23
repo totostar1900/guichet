@@ -4,6 +4,7 @@ import { Dossier } from "./Dossier";
 import { getSession } from "@/lib/auth";
 import { surSonDossier } from "@/lib/auth/types";
 import { Vu } from "@/components/Vu";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -27,14 +28,28 @@ export const dynamic = "force-dynamic";
  */
 export default async function RacinePage() {
   const session = await getSession();
-  if (!session) return <Accueil />;
-  if (surSonDossier(session)) return <Dossier session={session} />;
+  /* LES TROIS VISAGES DE LA RACINE GLISSENT TOUS LES TROIS. La vitrine, le
+     dossier en cours et la console sont trois écrans d'une même adresse ; en
+     enveloppant la seule console, on aurait laissé deux pages sur trois se
+     remplacer d'un coup. */
+  if (!session)
+    return (
+      <Glissement>
+        <Accueil />
+      </Glissement>
+    );
+  if (surSonDossier(session))
+    return (
+      <Glissement>
+        <Dossier session={session} />
+      </Glissement>
+    );
   return (
-    <>
+    <Glissement>
       {/* Le passage du client, une ligne par jour : c'est ce qui sépare un
           compte actif d'un compte dormant, et rien d'autre ne le dit. */}
       <Vu geste="vu.portefeuille" objet="portefeuille" />
       <Console session={session} />
-    </>
+    </Glissement>
   );
 }

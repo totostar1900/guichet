@@ -1,5 +1,6 @@
 import { ComparerBody } from "./ComparerBody";
 import { getT } from "@/i18n/server";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -10,8 +11,10 @@ export async function generateMetadata() {
 
 export default async function ComparerPage({ searchParams }: { searchParams: Promise<{ a?: string; b?: string }> }) {
   return (
-    <>
-      <ComparerBody searchParams={searchParams} />
-    </>
+    <Glissement>
+      <>
+        <ComparerBody searchParams={searchParams} />
+      </>
+    </Glissement>
   );
 }

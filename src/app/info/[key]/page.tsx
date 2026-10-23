@@ -14,6 +14,7 @@ import { LessonWidget, type Live } from "./LessonWidget";
 import { Quiz } from "./Quiz";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
+import { Glissement, LienRetour } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -83,38 +84,40 @@ export default async function LessonPage({ params }: Props) {
   const nextL = next ?? after;
   const pos = (n: number) => `${section ? String.fromCharCode(64 + section.order) + " · " : ""}${n} / ${lessons.length}`;
   return (
-    <SwipePager
-      hintKey="lecon"
-      prev={prevL ? { href: `/info/${prevL.key}`, title: t(prevL.title), pos: i > 0 ? pos(i) : t("Section précédente") } : undefined}
-      next={nextL ? { href: `/info/${nextL.key}`, title: t(nextL.title), pos: next ? pos(i + 2) : t("Section suivante") } : undefined}
-      hints={{ next: "Glissez vers la gauche : l'éclairage suivante", prev: "Glissez vers la droite : l'éclairage précédente" }}
-    >
-    <div className={styles.wrap}>
-      <Link href={section ? "/info/parcours" : "/info"} className={styles.back}>
-        ← {section ? t("Comprendre le marché CEMAC") : t("Guide")}
-      </Link>
-      <div className={styles.head}>
-        <div className={`eyebrow ${styles.eyebrow}`}>
-          {section && <SectionShape shape={section.shape} color={section.color} size={16} />}
-          {section ? `${String.fromCharCode(64 + section.order)} · ${t(section.title)} · ` : ""}
-          {t("Éclairage {n} sur {total}", { n: i + 1, total: lessons.length })} · {l.minutes} min
+    <Glissement>
+      <SwipePager
+        hintKey="lecon"
+        prev={prevL ? { href: `/info/${prevL.key}`, title: t(prevL.title), pos: i > 0 ? pos(i) : t("Section précédente") } : undefined}
+        next={nextL ? { href: `/info/${nextL.key}`, title: t(nextL.title), pos: next ? pos(i + 2) : t("Section suivante") } : undefined}
+        hints={{ next: "Glissez vers la gauche : l'éclairage suivante", prev: "Glissez vers la droite : l'éclairage précédente" }}
+      >
+      <div className={styles.wrap}>
+        <LienRetour href={section ? "/info/parcours" : "/info"} className={styles.back}>
+          ← {section ? t("Comprendre le marché CEMAC") : t("Guide")}
+        </LienRetour>
+        <div className={styles.head}>
+          <div className={`eyebrow ${styles.eyebrow}`}>
+            {section && <SectionShape shape={section.shape} color={section.color} size={16} />}
+            {section ? `${String.fromCharCode(64 + section.order)} · ${t(section.title)} · ` : ""}
+            {t("Éclairage {n} sur {total}", { n: i + 1, total: lessons.length })} · {l.minutes} min
+          </div>
+          <h1 className="display">{t(l.title)}</h1>
+          <p className={styles.intro}>{t(l.intro)}</p>
         </div>
-        <h1 className="display">{t(l.title)}</h1>
-        <p className={styles.intro}>{t(l.intro)}</p>
+        <div className={styles.body}>
+          <LinkedParagraphs paragraphs={l.body.map((p) => t(p))} />
+        </div>
+        <div className={styles.widget}>
+          <LessonWidget kind={l.widget} live={live} focus={l.focus} />
+        </div>
+        <Quiz lessonKey={l.key} q={t(l.quiz.q)} options={l.quiz.options.map((o) => t(o))} answer={l.quiz.answer} why={t(l.quiz.why)} nextHref={next ? `/info/${next.key}` : after ? `/info/${after.key}` : section ? "/info/parcours" : undefined} nextTitle={next ? t(next.title) : after ? `${t("Section suivante")} : ${t(after.title)}` : section ? t("Retour au parcours") : undefined} />
+        <GuideBar pos={{ label: pos(i + 1), index: i + 1, total: lessons.length }} prev={prevL ? { href: `/info/${prevL.key}`, title: t(prevL.title) } : undefined} next={nextL ? { href: `/info/${nextL.key}`, title: t(nextL.title) } : undefined} chapter={section ? { key: section.key, letter: String.fromCharCode(64 + section.order), color: section.color, title: t(section.title) } : { letter: String(i + 1), color: "var(--gold-ink)", title: t("Lire une ligne en trente secondes") }} lessonKey={l.key} />
+        <nav className={styles.pager}>
+          {i > 0 ? <Link href={`/info/${lessons[i - 1].key}`}>← {t(lessons[i - 1].title)}</Link> : <span />}
+          {next ? <Link href={`/info/${next.key}`}>{t(next.title)} →</Link> : after ? <Link href={`/info/${after.key}`}>{t(after.title)} →</Link> : null}
+        </nav>
       </div>
-      <div className={styles.body}>
-        <LinkedParagraphs paragraphs={l.body.map((p) => t(p))} />
-      </div>
-      <div className={styles.widget}>
-        <LessonWidget kind={l.widget} live={live} focus={l.focus} />
-      </div>
-      <Quiz lessonKey={l.key} q={t(l.quiz.q)} options={l.quiz.options.map((o) => t(o))} answer={l.quiz.answer} why={t(l.quiz.why)} nextHref={next ? `/info/${next.key}` : after ? `/info/${after.key}` : section ? "/info/parcours" : undefined} nextTitle={next ? t(next.title) : after ? `${t("Section suivante")} : ${t(after.title)}` : section ? t("Retour au parcours") : undefined} />
-      <GuideBar pos={{ label: pos(i + 1), index: i + 1, total: lessons.length }} prev={prevL ? { href: `/info/${prevL.key}`, title: t(prevL.title) } : undefined} next={nextL ? { href: `/info/${nextL.key}`, title: t(nextL.title) } : undefined} chapter={section ? { key: section.key, letter: String.fromCharCode(64 + section.order), color: section.color, title: t(section.title) } : { letter: String(i + 1), color: "var(--gold-ink)", title: t("Lire une ligne en trente secondes") }} lessonKey={l.key} />
-      <nav className={styles.pager}>
-        {i > 0 ? <Link href={`/info/${lessons[i - 1].key}`}>← {t(lessons[i - 1].title)}</Link> : <span />}
-        {next ? <Link href={`/info/${next.key}`}>{t(next.title)} →</Link> : after ? <Link href={`/info/${after.key}`}>{t(after.title)} →</Link> : null}
-      </nav>
-    </div>
-    </SwipePager>
+      </SwipePager>
+    </Glissement>
   );
 }

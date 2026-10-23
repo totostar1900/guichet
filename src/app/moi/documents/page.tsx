@@ -15,6 +15,7 @@ import { Operations, type DocLigne } from "./Operations";
 import { ToutReplier } from "./ToutReplier";
 import { StatementButtons } from "../StatementButtons";
 import styles from "./page.module.css";
+import { Glissement, LienRetour } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -223,117 +224,119 @@ export default async function DocumentsPage() {
   const opsAvecDocs = ops.filter((o) => desOperations.some((d) => d.intentId === o.id)).length;
 
   return (
-    <div className={styles.page}>
-      <Link href="/" className={styles.back}>
-        ← {t("Portefeuille")}
-      </Link>
-      <div className={styles.tete}>
-        <div className="eyebrow">{t("Vos papiers")}</div>
-        <h1 className="display">{t("Mes documents")}</h1>
-        <p className={styles.lead}>{t("Tout ce qui porte votre nom et un numéro : ce que vous avez signé, ce que vos opérations ont produit, et les mouvements de votre argent.")}</p>
-      </div>
-
-      <div className={styles.barre}>
-        <span className="muted">{compteDe(total, "{n} document", "{n} documents") ?? t("Aucun document pour l'instant")}</span>
-        <ToutReplier cles={["docs:signes", "docs:operations", "docs:argent", "docs:demarches"]} />
-      </div>
-
-      {/* CE QUI SE FABRIQUE OUVRE LA PAGE : c'est le seul papier qui n'existe
-          pas encore quand on arrive. SANS POSITION IL N'Y A RIEN À ÉDITER :
-          l'attestation sortait avec un tableau vide et une place pour le
-          cachet, soit un papier signé qui ne déclare rien. */}
-      <section className={styles.editer}>
-        <div>
-          <b>{t("Éditer un relevé")}</b>
-          <small>{tientQuelqueChose ? t("Le relevé de position et l'attestation de détention se fabriquent à la date que vous choisissez.") : t("Dès votre première opération réglée, le relevé de position et l'attestation de détention s'éditent ici.")}</small>
+    <Glissement>
+      <div className={styles.page}>
+        <LienRetour href="/" className={styles.back}>
+          ← {t("Portefeuille")}
+        </LienRetour>
+        <div className={styles.tete}>
+          <div className="eyebrow">{t("Vos papiers")}</div>
+          <h1 className="display">{t("Mes documents")}</h1>
+          <p className={styles.lead}>{t("Tout ce qui porte votre nom et un numéro : ce que vous avez signé, ce que vos opérations ont produit, et les mouvements de votre argent.")}</p>
         </div>
-        {tientQuelqueChose && <StatementButtons />}
-      </section>
 
-      <Pli
-        cle="docs:signes"
-        titre={t("Ce que vous avez signé")}
-        sous={t("Vos engagements : ils ne changent que si vous les reprenez.")}
-        compte={compteDe(signes.length + (consent.version ? 1 : 0), "{n} document", "{n} documents")}
-        attend={aSigner ? t(aSigner > 1 ? "{n} à signer" : "1 à signer", { n: String(aSigner) }) : undefined}
-      >
-        {signes.map((d) => (
-          <Ligne key={d.id} titre={d.titre} sous={d.sous} etat={d.etat} ton={d.ton} geste={d.geste} />
-        ))}
-        {/* LE PONT : un texte de la maison devient VOTRE document le jour où
-            vous l'acceptez. Il prend alors une date et une version, et il se
-            lit dans la version acceptée. */}
-        {consent.version && (
+        <div className={styles.barre}>
+          <span className="muted">{compteDe(total, "{n} document", "{n} documents") ?? t("Aucun document pour l'instant")}</span>
+          <ToutReplier cles={["docs:signes", "docs:operations", "docs:argent", "docs:demarches"]} />
+        </div>
+
+        {/* CE QUI SE FABRIQUE OUVRE LA PAGE : c'est le seul papier qui n'existe
+            pas encore quand on arrive. SANS POSITION IL N'Y A RIEN À ÉDITER :
+            l'attestation sortait avec un tableau vide et une place pour le
+            cachet, soit un papier signé qui ne déclare rien. */}
+        <section className={styles.editer}>
+          <div>
+            <b>{t("Éditer un relevé")}</b>
+            <small>{tientQuelqueChose ? t("Le relevé de position et l'attestation de détention se fabriquent à la date que vous choisissez.") : t("Dès votre première opération réglée, le relevé de position et l'attestation de détention s'éditent ici.")}</small>
+          </div>
+          {tientQuelqueChose && <StatementButtons />}
+        </section>
+
+        <Pli
+          cle="docs:signes"
+          titre={t("Ce que vous avez signé")}
+          sous={t("Vos engagements : ils ne changent que si vous les reprenez.")}
+          compte={compteDe(signes.length + (consent.version ? 1 : 0), "{n} document", "{n} documents")}
+          attend={aSigner ? t(aSigner > 1 ? "{n} à signer" : "1 à signer", { n: String(aSigner) }) : undefined}
+        >
+          {signes.map((d) => (
+            <Ligne key={d.id} titre={d.titre} sous={d.sous} etat={d.etat} ton={d.ton} geste={d.geste} />
+          ))}
+          {/* LE PONT : un texte de la maison devient VOTRE document le jour où
+              vous l'acceptez. Il prend alors une date et une version, et il se
+              lit dans la version acceptée. */}
+          {consent.version && (
+            <Ligne
+              titre={t("Mentions et responsabilités")}
+              sous={t("version {v} · le texte de la maison, dans la version que vous avez acceptée", { v: consent.version })}
+              etat={consent.at ? t("acceptées le {d}", { d: fmtDate(consent.at, false) }) : t("acceptées")}
+              ton="fait"
+              geste={{ label: t("Lire"), href: "/info/mentions" }}
+            />
+          )}
+          {!signes.length && !consent.version && <p className="muted">{t("Votre convention et vos ordres signés paraîtront ici.")}</p>}
+        </Pli>
+
+        <Pli
+          cle="docs:operations"
+          titre={t("Ce que vos opérations ont produit")}
+          sous={t("Appels de fonds, résultats, avis d'opéré, coupons : ils tombent d'un ordre.")}
+          compte={opsAvecDocs ? `${compteDe(opsAvecDocs, "{n} opération", "{n} opérations")} · ${desOperations.length}` : undefined}
+          attend={aRegler ? t(aRegler > 1 ? "{n} à régler" : "1 à régler", { n: String(aRegler) }) : undefined}
+        >
+          <Operations docs={desOperations} ops={ops} />
+        </Pli>
+
+        <Pli
+          cle="docs:argent"
+          titre={t("Les mouvements de votre argent")}
+          sous={t("Ce qui entre, ce qui sort, et ce que la conservation coûte.")}
+          compte={compteDe(argent.length, "{n} document", "{n} documents")}
+        >
+          {argent.length === 0 && <p className="muted">{t("Vos versements, prélèvements et avis de garde paraîtront ici.")}</p>}
+          {argent.map((x, i) => {
+            const an = x.at.slice(0, 4);
+            const avant = i > 0 ? argent[i - 1].at.slice(0, 4) : undefined;
+            return (
+              <div key={x.clef}>
+                {an !== avant && <Annee an={an} />}
+                <Ligne titre={x.titre} sous={x.sous} etat={x.etat} ton={x.ton} geste={x.geste} />
+              </div>
+            );
+          })}
+        </Pli>
+
+        <Pli
+          cle="docs:demarches"
+          titre={t("Vos démarches")}
+          sous={t("Ce qu'on ouvre quand quelque chose ne va pas, ou quand on s'en va.")}
+          compte={compteDe(demarches.length, "{n} document", "{n} documents")}
+          defaut={demarches.length > 0}
+        >
+          {demarches.map((d) => (
+            <Ligne key={d.id} titre={d.titre} sous={d.sous} geste={d.geste} />
+          ))}
           <Ligne
-            titre={t("Mentions et responsabilités")}
-            sous={t("version {v} · le texte de la maison, dans la version que vous avez acceptée", { v: consent.version })}
-            etat={consent.at ? t("acceptées le {d}", { d: fmtDate(consent.at, false) }) : t("acceptées")}
-            ton="fait"
-            geste={{ label: t("Lire"), href: "/info/mentions" }}
+            titre={t("Déposer une réclamation")}
+            sous={t("une réponse écrite, puis la médiation COSUMAF si rien ne va")}
+            geste={{ label: t("Ouvrir une démarche"), href: "/moi/reclamation" }}
           />
-        )}
-        {!signes.length && !consent.version && <p className="muted">{t("Votre convention et vos ordres signés paraîtront ici.")}</p>}
-      </Pli>
+        </Pli>
 
-      <Pli
-        cle="docs:operations"
-        titre={t("Ce que vos opérations ont produit")}
-        sous={t("Appels de fonds, résultats, avis d'opéré, coupons : ils tombent d'un ordre.")}
-        compte={opsAvecDocs ? `${compteDe(opsAvecDocs, "{n} opération", "{n} opérations")} · ${desOperations.length}` : undefined}
-        attend={aRegler ? t(aRegler > 1 ? "{n} à régler" : "1 à régler", { n: String(aRegler) }) : undefined}
-      >
-        <Operations docs={desOperations} ops={ops} />
-      </Pli>
-
-      <Pli
-        cle="docs:argent"
-        titre={t("Les mouvements de votre argent")}
-        sous={t("Ce qui entre, ce qui sort, et ce que la conservation coûte.")}
-        compte={compteDe(argent.length, "{n} document", "{n} documents")}
-      >
-        {argent.length === 0 && <p className="muted">{t("Vos versements, prélèvements et avis de garde paraîtront ici.")}</p>}
-        {argent.map((x, i) => {
-          const an = x.at.slice(0, 4);
-          const avant = i > 0 ? argent[i - 1].at.slice(0, 4) : undefined;
-          return (
-            <div key={x.clef}>
-              {an !== avant && <Annee an={an} />}
-              <Ligne titre={x.titre} sous={x.sous} etat={x.etat} ton={x.ton} geste={x.geste} />
-            </div>
-          );
-        })}
-      </Pli>
-
-      <Pli
-        cle="docs:demarches"
-        titre={t("Vos démarches")}
-        sous={t("Ce qu'on ouvre quand quelque chose ne va pas, ou quand on s'en va.")}
-        compte={compteDe(demarches.length, "{n} document", "{n} documents")}
-        defaut={demarches.length > 0}
-      >
-        {demarches.map((d) => (
-          <Ligne key={d.id} titre={d.titre} sous={d.sous} geste={d.geste} />
-        ))}
-        <Ligne
-          titre={t("Déposer une réclamation")}
-          sous={t("une réponse écrite, puis la médiation COSUMAF si rien ne va")}
-          geste={{ label: t("Ouvrir une démarche"), href: "/moi/reclamation" }}
-        />
-      </Pli>
-
-      {/* LES TEXTES DE LA MAISON ONT LEUR PORTE, et ne sont pas dans la liste :
-          ils n'ont pas de numéro, ils ont une version, et ils sont les mêmes
-          pour tout le monde. */}
-      <div className={styles.pied}>
-        <span>
-          <b>{t("Les textes de la maison")}</b>
-          <small>{t("Mentions, risques, annexe tarifaire, règles des services : les mêmes pour tous, version par version.")}</small>
-        </span>
-        <Link className="btn sm" href="/moi/textes">
-          {t("Textes et conditions")}
-        </Link>
+        {/* LES TEXTES DE LA MAISON ONT LEUR PORTE, et ne sont pas dans la liste :
+            ils n'ont pas de numéro, ils ont une version, et ils sont les mêmes
+            pour tout le monde. */}
+        <div className={styles.pied}>
+          <span>
+            <b>{t("Les textes de la maison")}</b>
+            <small>{t("Mentions, risques, annexe tarifaire, règles des services : les mêmes pour tous, version par version.")}</small>
+          </span>
+          <Link className="btn sm" href="/moi/textes">
+            {t("Textes et conditions")}
+          </Link>
+        </div>
+        <p className={styles.version}>{t("Mentions en vigueur : version {v}.", { v: LEGAL_VERSION })}</p>
       </div>
-      <p className={styles.version}>{t("Mentions en vigueur : version {v}.", { v: LEGAL_VERSION })}</p>
-    </div>
+    </Glissement>
   );
 }

@@ -1,10 +1,10 @@
 import { requireSession } from "@/lib/auth";
 import { getT } from "@/i18n/server";
-import { Glissement } from "@/components/mobile/Glissement";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
 import { PORTEFEUILLE_PAGES } from "@/lib/nav-groups";
 import styles from "@/components/Feuillet.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Portefeuille" };
@@ -37,16 +37,16 @@ export default async function PortefeuilleSommaire() {
 
   return (
     <Glissement>
-      <div className={styles.page}>
-        <header className={styles.tete}>
-          <h1>{t("Portefeuille")}</h1>
-          <p>{t("Ce que vous avez, ce qui vous est dû, et ce que vos lignes ont rendu.")}</p>
-        </header>
+        <div className={styles.page}>
+          <header className={styles.tete}>
+            <h1>{t("Portefeuille")}</h1>
+            <p>{t("Ce que vous avez, ce qui vous est dû, et ce que vos lignes ont rendu.")}</p>
+          </header>
 
-        <CeQuiVousAttend userId={s.userId} />
+          <CeQuiVousAttend userId={s.userId} />
 
-        <Rubriques items={PORTEFEUILLE_PAGES.map((p) => ({ href: p.href, nom: t(p.label), quoi: t(p.hint) }))} />
-      </div>
+          <Rubriques items={PORTEFEUILLE_PAGES.map((p) => ({ href: p.href, nom: t(p.label), quoi: t(p.hint) }))} />
+        </div>
     </Glissement>
   );
 }

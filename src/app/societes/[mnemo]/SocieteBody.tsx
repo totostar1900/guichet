@@ -14,6 +14,7 @@ import { fmt, fmtDate, fmtPct, fmtScaled, fmtUnits, pickScale } from "@/lib/form
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { MarketStrip } from "@/components/MarketStrip";
+import { LienRetour } from "@/components/mobile/Glissement";
 
 
 type Props = { params: Promise<{ mnemo: string }>; searchParams: Promise<{ p?: string; depuis?: string }> };
@@ -64,9 +65,9 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
             {t("← Retour à l'indice BVMAC")}
           </Link>
         )}
-        <Link href={`${base}/societes`} className={styles.back}>
+        <LienRetour href={`${base}/societes`} className={styles.back}>
           {t("← Toutes les sociétés cotées")}
-        </Link>
+        </LienRetour>
       </div>
       <div className={styles.head}>
         <div>

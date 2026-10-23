@@ -1,10 +1,10 @@
 import { requireSession } from "@/lib/auth";
 import { getT } from "@/i18n/server";
-import { Glissement } from "@/components/mobile/Glissement";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { MenuRejouables } from "@/components/menu/Pieces";
 import { AIDE_PAGES } from "@/lib/nav-groups";
 import styles from "@/components/Feuillet.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Aide" };
@@ -50,30 +50,30 @@ export default async function AidePage() {
 
   return (
     <Glissement>
-      <div className={styles.page}>
-        <header className={styles.tete}>
-          <h1>{t("Aide")}</h1>
-          <p>{t("Poser une question à la personne qui suit votre compte, ou trouver la réponse vous-même.")}</p>
-        </header>
+        <div className={styles.page}>
+          <header className={styles.tete}>
+            <h1>{t("Aide")}</h1>
+            <p>{t("Poser une question à la personne qui suit votre compte, ou trouver la réponse vous-même.")}</p>
+          </header>
 
-        <Rubriques
-          items={[
-            ...AIDE_PAGES.map((p) => ({ href: p.href, nom: t(p.label), quoi: t(p.hint) })),
-            /* LES MENTIONS NE SONT PAS DANS LA TABLE DU RAIL, et c'est voulu :
-               elles se lisent une fois, à l'ouverture du compte, et un rail
-               qu'on parcourt chaque jour n'a pas à les porter. Elles vivent au
-               pied de chaque page ; cette ligne-ci est pour qui les CHERCHE,
-               et le siège « Aide » est le premier endroit où l'on regarde. */
-            { href: "/info/mentions", nom: t("Mentions légales"), quoi: t("Qui est Purpose Capital, sous quel agrément, et qui le contrôle.") },
-          ]}
-        />
+          <Rubriques
+            items={[
+              ...AIDE_PAGES.map((p) => ({ href: p.href, nom: t(p.label), quoi: t(p.hint) })),
+              /* LES MENTIONS NE SONT PAS DANS LA TABLE DU RAIL, et c'est voulu :
+                 elles se lisent une fois, à l'ouverture du compte, et un rail
+                 qu'on parcourt chaque jour n'a pas à les porter. Elles vivent au
+                 pied de chaque page ; cette ligne-ci est pour qui les CHERCHE,
+                 et le siège « Aide » est le premier endroit où l'on regarde. */
+              { href: "/info/mentions", nom: t("Mentions légales"), quoi: t("Qui est Purpose Capital, sous quel agrément, et qui le contrôle.") },
+            ]}
+          />
 
-        <section className={styles.bloc}>
-          <h2>{t("Revoir")}</h2>
-          <p className={styles.note}>{t("Les deux présentations se rejouent par-dessus la page que vous regardez, et se ferment d'un geste.")}</p>
-          <MenuRejouables />
-        </section>
-      </div>
+          <section className={styles.bloc}>
+            <h2>{t("Revoir")}</h2>
+            <p className={styles.note}>{t("Les deux présentations se rejouent par-dessus la page que vous regardez, et se ferment d'un geste.")}</p>
+            <MenuRejouables />
+          </section>
+        </div>
     </Glissement>
   );
 }

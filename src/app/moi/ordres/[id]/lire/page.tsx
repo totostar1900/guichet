@@ -5,6 +5,7 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { SourceViewer } from "@/components/SourceViewer";
 import styles from "../../../documents/[id]/page.module.css";
+import { Glissement, LienRetour } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 
@@ -30,20 +31,22 @@ export default async function LireOrdrePage({ params }: { params: Promise<{ id: 
   const src = intent.orderDocId ? `/api/documents/${intent.orderDocId}` : `/api/documents/ordre/${intent.id}`;
 
   return (
-    <div className={styles.wrap}>
-      <Link href={`/moi/ordres/${intent.id}`} className={styles.back}>
-        ← {t("Mon ordre")}
-      </Link>
-      <div className={styles.head}>
-        <div>
-          <div className="eyebrow">{intent.signedAt ? t("Ordre signé") : t("Avant signature")}</div>
-          <h1 className="display mono">{intent.ref}</h1>
-          <p className={styles.lead}>{intent.signedAt ? t("Le document tel qu'il a été signé.") : t("Le texte complet, tel que vous le signerez. Rien n'est engagé tant que vous n'avez pas saisi le code.")}</p>
+    <Glissement>
+      <div className={styles.wrap}>
+        <LienRetour href={`/moi/ordres/${intent.id}`} className={styles.back}>
+          ← {t("Mon ordre")}
+        </LienRetour>
+        <div className={styles.head}>
+          <div>
+            <div className="eyebrow">{intent.signedAt ? t("Ordre signé") : t("Avant signature")}</div>
+            <h1 className="display mono">{intent.ref}</h1>
+            <p className={styles.lead}>{intent.signedAt ? t("Le document tel qu'il a été signé.") : t("Le texte complet, tel que vous le signerez. Rien n'est engagé tant que vous n'avez pas saisi le code.")}</p>
+          </div>
+        </div>
+        <div className={styles.visionneuse}>
+          <SourceViewer src={src} title={`${t("Ordre")} ${intent.ref}`} fill />
         </div>
       </div>
-      <div className={styles.visionneuse}>
-        <SourceViewer src={src} title={`${t("Ordre")} ${intent.ref}`} fill />
-      </div>
-    </div>
+    </Glissement>
   );
 }

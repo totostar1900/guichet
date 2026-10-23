@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Glissement } from "@/components/mobile/Glissement";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { MARKET_PAGES } from "@/lib/market/pages";
 import { IndexPulse } from "@/components/IndexPulse";
@@ -13,6 +12,7 @@ import { publishedNews } from "@/lib/news";
 import { loadCompanies } from "@/lib/reference";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
+import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Le marché" };
@@ -58,162 +58,164 @@ export default async function MarchePage() {
 
   return (
     <Glissement>
-      {/* LE SOMMAIRE DU TÉLÉPHONE, et le reste de la page sur l'écran large.
-          « Le marché » est déjà la porte d'entrée de l'environnement BVMAC :
-          rien n'y est produit, chaque section montre ce qui existe et mène à
-          sa page. Sur un écran large cela se parcourt d'un coup d'œil ; sur
-          un téléphone, c'est un mur qu'il faut descendre pour atteindre la
-          troisième porte. Les rubriques la donnent en une liste, et le reste
-          se lit ensuite, à sa place.
-          Le choix se fait en CSS et non en JavaScript : mesurer la largeur au
-          montage ferait rendre au serveur un arrangement et au navigateur
-          l'autre. */}
-      <div className={styles.sommaire}>
-        <Rubriques items={MARKET_PAGES.filter((p) => p.href !== "/marche").map((p) => ({ href: p.href, nom: t(p.label), quoi: t(p.hint) }))} />
-      </div>
-      <header className={styles.head}>
-        <div className="eyebrow">BVMAC · {t("Bourse des Valeurs Mobilières de l'Afrique Centrale")}</div>
-        <h1 className="display">{t("Le marché")}</h1>
-        <p className={styles.lead}>
-          {t("Ce que la Bourse publie à chaque séance, et ce que nous en lisons : l'indice, les sociétés cotées, et les notes que nous en tirons.")}
-          {lastBulletin ? ` ${t("Dernier bulletin lu : n° {n} du {d}.", { n: String(lastBulletin.number), d: fmtDate(lastBulletin.sessionDate) })}` : ""}
-        </p>
-      </header>
-
-      <IndexPulse />
-
-      {ech && lastBulletin && (
-        <section className="panel" id="echanges">
-          <div className="panel-h">
-            <h2>{t("Ce qui s'est échangé")}</h2>
-            <Link className="btn sm ghost" href="/indice">
-              {t("Séance par séance")} →
-            </Link>
-          </div>
-          <div className={styles.ech}>
-            <div>
-              <b>
-                {ech.lignes}
-                <small> / {ech.cotees}</small>
-              </b>
-              <span>{t("lignes servies le {d}", { d: fmtDate(lastBulletin.sessionDate, false) })}</span>
-            </div>
-            <div>
-              <b>{fmt(ech.transactions)}</b>
-              <span>{t("transactions")}</span>
-            </div>
-            <div>
-              <b>{money(ech.montant)}</b>
-              <span>{t("FCFA échangés")}</span>
-            </div>
-          </div>
-          <p className={styles.note}>
-            {ech.servies.length > 0 ? `${ech.servies.map((x) => `${x.mnemo} ${fmt(x.titres)}`).join(" · ")}. ` : `${t("Aucun titre n'a changé de mains ce jour-là.")} `}
-            {ech.part != null &&
-              t("Cette séance pèse {p} des trente derniers jours, qui ont vu {m} FCFA s'échanger en {n} séances.", {
-                p: fmtPct(ech.part, 0),
-                m: money(ech.fenetreMontant),
-                n: ech.fenetreSeances,
-              })}
+      <>
+        {/* LE SOMMAIRE DU TÉLÉPHONE, et le reste de la page sur l'écran large.
+            « Le marché » est déjà la porte d'entrée de l'environnement BVMAC :
+            rien n'y est produit, chaque section montre ce qui existe et mène à
+            sa page. Sur un écran large cela se parcourt d'un coup d'œil ; sur
+            un téléphone, c'est un mur qu'il faut descendre pour atteindre la
+            troisième porte. Les rubriques la donnent en une liste, et le reste
+            se lit ensuite, à sa place.
+            Le choix se fait en CSS et non en JavaScript : mesurer la largeur au
+            montage ferait rendre au serveur un arrangement et au navigateur
+            l'autre. */}
+        <div className={styles.sommaire}>
+          <Rubriques items={MARKET_PAGES.filter((p) => p.href !== "/marche").map((p) => ({ href: p.href, nom: t(p.label), quoi: t(p.hint) }))} />
+        </div>
+        <header className={styles.head}>
+          <div className="eyebrow">BVMAC · {t("Bourse des Valeurs Mobilières de l'Afrique Centrale")}</div>
+          <h1 className="display">{t("Le marché")}</h1>
+          <p className={styles.lead}>
+            {t("Ce que la Bourse publie à chaque séance, et ce que nous en lisons : l'indice, les sociétés cotées, et les notes que nous en tirons.")}
+            {lastBulletin ? ` ${t("Dernier bulletin lu : n° {n} du {d}.", { n: String(lastBulletin.number), d: fmtDate(lastBulletin.sessionDate) })}` : ""}
           </p>
-        </section>
-      )}
+        </header>
 
-      {/* TROIS LIGNES, ET NON SEPT. Les sept sociétés paraissaient sur quatre
-          pages avec quatre jeux de colonnes : l'indice donne le capital global
-          et la liquidité, les sociétés la séance et l'année, cette page-ci
-          l'activité et le dernier mouvement, et l'éclairage les redessine. Qui
-          cherche « le poids de BHC » avait trois réponses. La porte en montre
-          trois, celles qui pèsent, et la liste vit à un seul endroit. */}
-      {weights.length > 0 && (
-        <section className="panel" id="societes">
-          <div className="panel-h">
-            <h2>{t("Les sociétés")}</h2>
-            <Link className="btn sm ghost" href="/societes">
-              {t("Les {n} sociétés", { n: weights.length })} →
-            </Link>
-          </div>
-          <div className={styles.apercu}>
-            {tete.map((w) => {
-              const c = companies.find((x) => x.mnemo === w.mnemo);
-              const bouge = bougeLe(w.mnemo);
-              return (
-                <Link key={w.mnemo} href={`/societes/${w.mnemo.toLowerCase()}`}>
-                  <b>{w.mnemo}</b>
-                  <span>{c?.shortName ?? nameOf(w.mnemo)}</span>
-                  <i>
-                    {fmt(w.close)} · {fmtPct(w.weightTotal, 1)}
-                  </i>
-                  {/* La date du dernier mouvement, et non la variation du jour :
-                      sur cette cote, sept séances sur dix sont plates. */}
-                  <em>{bouge ? fmtDate(bouge, false) : "—"}</em>
-                </Link>
-              );
-            })}
-          </div>
-          <p className={styles.note}>
-            {t("Ces trois-là pèsent {p} de la capitalisation, {c} FCFA au total dont {f} de flottant coté.", { p: fmtPct(partDeTete, 1), c: money(capTotal), f: money(capFloat) })}{" "}
-            {t("Les {n} autres, et toutes les colonnes, sur leur page.", { n: weights.length - tete.length })}
-          </p>
-        </section>
-      )}
+        <IndexPulse />
 
-      <section className="panel" id="notes">
-          <div className="panel-h">
-            <h2>{t(derniere ? "La dernière note" : "Les notes de marché")}</h2>
-            <Link className="btn sm ghost" href="/indice/notes">
-              {t("Toutes les notes")} →
-            </Link>
-          </div>
-          {derniere ? (
-            <div className={styles.apercu}>
-              <Link href={`/indice/note/${derniere.quarter.key.toLowerCase()}`}>
-                <b>{t(derniere.quarter.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: derniere.quarter.q, y: derniere.quarter.year })}</b>
-                <span>
-                  {fmtDate(derniere.quarter.from, false)} {t("au")} {fmtDate(derniere.quarter.to, false)}
-                </span>
-                <i className={derniere.ret > 0 ? styles.hausse : derniere.ret < 0 ? styles.baisse : undefined}>{`${derniere.ret > 0 ? "+" : ""}${fmtPct(derniere.ret, 2)}`}</i>
+        {ech && lastBulletin && (
+          <section className="panel" id="echanges">
+            <div className="panel-h">
+              <h2>{t("Ce qui s'est échangé")}</h2>
+              <Link className="btn sm ghost" href="/indice">
+                {t("Séance par séance")} →
               </Link>
             </div>
-          ) : (
-            <div className="empty">{t("La première note paraîtra à la fin du premier trimestre entièrement lu.")}</div>
-          )}
-        {/* Une annonce, pas un sommaire : le sommaire est dans la note. */}
-        <p className={styles.note}>{t("Le pouls du trimestre, en une page.")}</p>
-      </section>
+            <div className={styles.ech}>
+              <div>
+                <b>
+                  {ech.lignes}
+                  <small> / {ech.cotees}</small>
+                </b>
+                <span>{t("lignes servies le {d}", { d: fmtDate(lastBulletin.sessionDate, false) })}</span>
+              </div>
+              <div>
+                <b>{fmt(ech.transactions)}</b>
+                <span>{t("transactions")}</span>
+              </div>
+              <div>
+                <b>{money(ech.montant)}</b>
+                <span>{t("FCFA échangés")}</span>
+              </div>
+            </div>
+            <p className={styles.note}>
+              {ech.servies.length > 0 ? `${ech.servies.map((x) => `${x.mnemo} ${fmt(x.titres)}`).join(" · ")}. ` : `${t("Aucun titre n'a changé de mains ce jour-là.")} `}
+              {ech.part != null &&
+                t("Cette séance pèse {p} des trente derniers jours, qui ont vu {m} FCFA s'échanger en {n} séances.", {
+                  p: fmtPct(ech.part, 0),
+                  m: money(ech.fenetreMontant),
+                  n: ech.fenetreSeances,
+                })}
+            </p>
+          </section>
+        )}
 
-      {/* LES ACTUALITÉS NE PARAISSENT QUE S'IL Y EN A. Une rubrique vide en
-          tête de siège apprend à ne plus l'ouvrir ; cinq dépêches reçues et
-          relues, non publiées, ne sont pas une actualité. */}
-      {aLaUne && (
-        <section className="panel" id="actualites">
-          <div className="panel-h">
-            <h2>{t("À la une")}</h2>
-            <Link className="btn sm ghost" href="/actualites">
-              {t("Toutes les actualités")} →
-            </Link>
-          </div>
-          <div className={styles.apercu}>
-            <Link href="/actualites">
-              <b>{aLaUne.source}</b>
-              <span>{aLaUne.title}</span>
-              <em>{aLaUne.publishedAt ? fmtDate(aLaUne.publishedAt.slice(0, 10), false) : ""}</em>
-            </Link>
-          </div>
+        {/* TROIS LIGNES, ET NON SEPT. Les sept sociétés paraissaient sur quatre
+            pages avec quatre jeux de colonnes : l'indice donne le capital global
+            et la liquidité, les sociétés la séance et l'année, cette page-ci
+            l'activité et le dernier mouvement, et l'éclairage les redessine. Qui
+            cherche « le poids de BHC » avait trois réponses. La porte en montre
+            trois, celles qui pèsent, et la liste vit à un seul endroit. */}
+        {weights.length > 0 && (
+          <section className="panel" id="societes">
+            <div className="panel-h">
+              <h2>{t("Les sociétés")}</h2>
+              <Link className="btn sm ghost" href="/societes">
+                {t("Les {n} sociétés", { n: weights.length })} →
+              </Link>
+            </div>
+            <div className={styles.apercu}>
+              {tete.map((w) => {
+                const c = companies.find((x) => x.mnemo === w.mnemo);
+                const bouge = bougeLe(w.mnemo);
+                return (
+                  <Link key={w.mnemo} href={`/societes/${w.mnemo.toLowerCase()}`}>
+                    <b>{w.mnemo}</b>
+                    <span>{c?.shortName ?? nameOf(w.mnemo)}</span>
+                    <i>
+                      {fmt(w.close)} · {fmtPct(w.weightTotal, 1)}
+                    </i>
+                    {/* La date du dernier mouvement, et non la variation du jour :
+                        sur cette cote, sept séances sur dix sont plates. */}
+                    <em>{bouge ? fmtDate(bouge, false) : "—"}</em>
+                  </Link>
+                );
+              })}
+            </div>
+            <p className={styles.note}>
+              {t("Ces trois-là pèsent {p} de la capitalisation, {c} FCFA au total dont {f} de flottant coté.", { p: fmtPct(partDeTete, 1), c: money(capTotal), f: money(capFloat) })}{" "}
+              {t("Les {n} autres, et toutes les colonnes, sur leur page.", { n: weights.length - tete.length })}
+            </p>
+          </section>
+        )}
+
+        <section className="panel" id="notes">
+            <div className="panel-h">
+              <h2>{t(derniere ? "La dernière note" : "Les notes de marché")}</h2>
+              <Link className="btn sm ghost" href="/indice/notes">
+                {t("Toutes les notes")} →
+              </Link>
+            </div>
+            {derniere ? (
+              <div className={styles.apercu}>
+                <Link href={`/indice/note/${derniere.quarter.key.toLowerCase()}`}>
+                  <b>{t(derniere.quarter.q === 1 ? "1er trimestre {y}" : "{n}e trimestre {y}", { n: derniere.quarter.q, y: derniere.quarter.year })}</b>
+                  <span>
+                    {fmtDate(derniere.quarter.from, false)} {t("au")} {fmtDate(derniere.quarter.to, false)}
+                  </span>
+                  <i className={derniere.ret > 0 ? styles.hausse : derniere.ret < 0 ? styles.baisse : undefined}>{`${derniere.ret > 0 ? "+" : ""}${fmtPct(derniere.ret, 2)}`}</i>
+                </Link>
+              </div>
+            ) : (
+              <div className="empty">{t("La première note paraîtra à la fin du premier trimestre entièrement lu.")}</div>
+            )}
+          {/* Une annonce, pas un sommaire : le sommaire est dans la note. */}
+          <p className={styles.note}>{t("Le pouls du trimestre, en une page.")}</p>
         </section>
-      )}
 
-      {/* TROIS LIENS NE FONT PAS UN PANNEAU. « Comprendre » en occupait un
-          quart de page, pour trois destinations dont la pulsation portait déjà
-          l'une. Ils tiennent au pied, avec la source. */}
-      <p className={styles.source}>
-        <Link href="/info/indice-bvmac">{t("Comment lire l'indice")}</Link> · <Link href="/comparer">{t("Comparer deux lignes")}</Link> · <Link href="/indice#donnees">{t("Ce que publie le bulletin")}</Link>
-        <br />
-        {t("L'indice se lit dans le bulletin officiel de la cote, séance après séance. Guichet le montre tel qu'il est publié ; il n'en construit pas et ne mesure personne contre lui.")}{" "}
-        {t("Source : bulletin officiel de la cote de la BVMAC, lu à chaque parution ; calculs {c}.", { c: COMPANY.legalName })}
-      </p>
+        {/* LES ACTUALITÉS NE PARAISSENT QUE S'IL Y EN A. Une rubrique vide en
+            tête de siège apprend à ne plus l'ouvrir ; cinq dépêches reçues et
+            relues, non publiées, ne sont pas une actualité. */}
+        {aLaUne && (
+          <section className="panel" id="actualites">
+            <div className="panel-h">
+              <h2>{t("À la une")}</h2>
+              <Link className="btn sm ghost" href="/actualites">
+                {t("Toutes les actualités")} →
+              </Link>
+            </div>
+            <div className={styles.apercu}>
+              <Link href="/actualites">
+                <b>{aLaUne.source}</b>
+                <span>{aLaUne.title}</span>
+                <em>{aLaUne.publishedAt ? fmtDate(aLaUne.publishedAt.slice(0, 10), false) : ""}</em>
+              </Link>
+            </div>
+          </section>
+        )}
 
-      <MarketStrip current="marche" />
+        {/* TROIS LIENS NE FONT PAS UN PANNEAU. « Comprendre » en occupait un
+            quart de page, pour trois destinations dont la pulsation portait déjà
+            l'une. Ils tiennent au pied, avec la source. */}
+        <p className={styles.source}>
+          <Link href="/info/indice-bvmac">{t("Comment lire l'indice")}</Link> · <Link href="/comparer">{t("Comparer deux lignes")}</Link> · <Link href="/indice#donnees">{t("Ce que publie le bulletin")}</Link>
+          <br />
+          {t("L'indice se lit dans le bulletin officiel de la cote, séance après séance. Guichet le montre tel qu'il est publié ; il n'en construit pas et ne mesure personne contre lui.")}{" "}
+          {t("Source : bulletin officiel de la cote de la BVMAC, lu à chaque parution ; calculs {c}.", { c: COMPANY.legalName })}
+        </p>
+
+        <MarketStrip current="marche" />
+      </>
     </Glissement>
   );
 }

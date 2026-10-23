@@ -48,28 +48,28 @@ export default async function IdentitePage() {
 
   return (
     <Glissement>
-      <div className={styles.page}>
-        {/* LE RETOUR REMONTE LA HIÉRARCHIE, et le glissement vers la droite le
-            dit. Le bouton du téléphone remonte l'historique, ce qui n'est pas
-            la même chose : on peut arriver ici par un lien. */}
-        <nav className={styles.fil}>
-          <LienRetour href="/moi/compte">{t("Votre compte")}</LienRetour>
-        </nav>
+        <div className={styles.page}>
+          {/* LE RETOUR REMONTE LA HIÉRARCHIE, et le glissement vers la droite le
+              dit. Le bouton du téléphone remonte l'historique, ce qui n'est pas
+              la même chose : on peut arriver ici par un lien. */}
+          <nav className={styles.fil}>
+            <LienRetour href="/moi/compte">{t("Votre compte")}</LienRetour>
+          </nav>
 
-        <header className={styles.tete}>
-          <h1>{t("Qui vous êtes")}</h1>
-          <p>{t("Le nom qui s'imprime sur vos bulletins, et les deux canaux par lesquels la maison vous joint et vous fait signer.")}</p>
-        </header>
+          <header className={styles.tete}>
+            <h1>{t("Qui vous êtes")}</h1>
+            <p>{t("Le nom qui s'imprime sur vos bulletins, et les deux canaux par lesquels la maison vous joint et vous fait signer.")}</p>
+          </header>
 
-        <Identite
-          nom={s.name}
-          segment={s.segment}
-          email={email}
-          emailOk={Boolean(canaux?.emailVerifiedAt)}
-          phone={phone}
-          phoneOk={Boolean(canaux?.phoneVerifiedAt)}
-        />
-      </div>
+          <Identite
+            nom={s.name}
+            segment={s.segment}
+            email={email}
+            emailOk={Boolean(canaux?.emailVerifiedAt)}
+            phone={phone}
+            phoneOk={Boolean(canaux?.phoneVerifiedAt)}
+          />
+        </div>
     </Glissement>
   );
 }

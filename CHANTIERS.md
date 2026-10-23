@@ -15,9 +15,12 @@ autres marchaient par chance, leur sommaire étant aussi la racine du préfixe
 que leur règle nomme. Une épreuve lit maintenant les adresses *dans* le dock
 et vérifie que chacune allume un onglet, et un seul.
 
-**4. Pas d'animation entre pages d'une même section.** Le glissement existe
-(`Glissement`, `LienAvant`, `LienRetour`) mais ne se déclenche pas quand on
-passe d'une page à l'autre à l'intérieur d'un siège.
+**4. ~~Pas d'animation entre pages d'une même section.~~ FAIT le 24 octobre
+2026.** Il manquait les deux conditions : neuf pages sur cinquante-cinq
+portaient l'enveloppe, et les liens de section ne déclaraient aucune
+direction. Les cinquante-trois pages du guichet l'ont maintenant, les liens
+de retour disent « retour », et le rail du marché lit sa direction dans
+l'ordre de ses propres pastilles.
 
 ---
 

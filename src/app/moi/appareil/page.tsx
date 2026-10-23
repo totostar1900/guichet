@@ -36,18 +36,18 @@ export default async function AppareilPage() {
 
   return (
     <Glissement>
-      <div className={styles.page}>
-        <nav className={styles.fil}>
-          <LienRetour href="/moi/compte">{t("Votre compte")}</LienRetour>
-        </nav>
+        <div className={styles.page}>
+          <nav className={styles.fil}>
+            <LienRetour href="/moi/compte">{t("Votre compte")}</LienRetour>
+          </nav>
 
-        <header className={styles.tete}>
-          <h1>{t("Cet appareil")}</h1>
-          <p>{t("Ce que cet appareil-ci fait de lui-même, et ce que la maison fait partout : les alertes et les couleurs d'un côté, la façon de vous joindre de l'autre.")}</p>
-        </header>
+          <header className={styles.tete}>
+            <h1>{t("Cet appareil")}</h1>
+            <p>{t("Ce que cet appareil-ci fait de lui-même, et ce que la maison fait partout : les alertes et les couleurs d'un côté, la façon de vous joindre de l'autre.")}</p>
+          </header>
 
-        <Appareil prefs={prefs} phoneOk={Boolean(canaux?.phoneVerifiedAt)} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} />
-      </div>
+          <Appareil prefs={prefs} phoneOk={Boolean(canaux?.phoneVerifiedAt)} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} />
+        </div>
     </Glissement>
   );
 }
