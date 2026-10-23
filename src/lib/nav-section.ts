@@ -26,6 +26,28 @@ const FUND_FICHE = "/offres/fund-";
  */
 export const TITRES = "/titres";
 
+/**
+ * LE SOMMAIRE D'UN SIÈGE APPARTIENT À SON SIÈGE, et il fallait l'écrire.
+ *
+ * Trois sièges sur cinq s'allumaient, deux jamais : « Portefeuille » et
+ * « Instruments ». Relevé le 24 octobre 2026 — sur « /portefeuille » comme sur
+ * « /instruments », AUCUN onglet du dock n'était marqué courant.
+ *
+ * La cause n'est pas dans le dock, elle est ici : chaque siège mène à son
+ * sommaire, et deux de ces sommaires ne figuraient dans aucune des règles
+ * d'appartenance. « /trader », « /marche » et « /aide » s'allumaient parce que
+ * leur règle nomme leur propre adresse — par chance, pas par principe : elles
+ * sont à la fois le sommaire et la racine d'un préfixe. Les deux autres ont un
+ * sommaire dont l'adresse ne ressemble à rien de ce que le siège contient
+ * (« /portefeuille » ne commence pas par « /moi », « /instruments » ne
+ * commence ni par « /titres » ni par « /fonds »), et personne ne l'avait dit.
+ *
+ * Le lecteur touchait donc un siège, arrivait à destination, et rien ne
+ * s'allumait : la seule chose qui lui dit où il est restait éteinte.
+ */
+export const SOMMAIRE_PORTEFEUILLE = "/portefeuille";
+export const SOMMAIRE_INSTRUMENTS = "/instruments";
+
 /** La liste des fonds, et la fiche d'un fonds. */
 export const isFundsSection = (path: string): boolean => path.startsWith("/fonds") || path.startsWith(FUND_FICHE);
 
@@ -45,7 +67,8 @@ export const isTitresSection = (path: string): boolean => path.startsWith(TITRES
  * préfixe de l'adresse.
  */
 const AU_COMPTE = ["/moi/profil", "/moi/securite", "/moi/reclamation"];
-export const isEspaceSection = (path: string): boolean => (path === "/" || path.startsWith("/moi")) && !AU_COMPTE.some((p) => path === p || path.startsWith(p + "/"));
+export const isEspaceSection = (path: string): boolean =>
+  (path === "/" || path === SOMMAIRE_PORTEFEUILLE || path.startsWith("/moi")) && !AU_COMPTE.some((p) => path === p || path.startsWith(p + "/"));
 
 /**
  * La section « Marché », qui a absorbé le catalogue.
@@ -72,7 +95,8 @@ export const isMarcheSection = (path: string): boolean =>
  * étaient rangées comme une publication : une séance annoncée est une occasion
  * d'acheter, pas un article.
  */
-export const isInstrumentsSection = (path: string): boolean => isTitresSection(path) || isFundsSection(path) || path.startsWith("/calendrier");
+export const isInstrumentsSection = (path: string): boolean =>
+  path === SOMMAIRE_INSTRUMENTS || isTitresSection(path) || isFundsSection(path) || path.startsWith("/calendrier");
 
 /** Vers quelle liste remonter depuis une fiche, faute de liste mémorisée. */
 export const listForFiche = (path: string): string => (path.startsWith(FUND_FICHE) ? "/fonds" : TITRES);

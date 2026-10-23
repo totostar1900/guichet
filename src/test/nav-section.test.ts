@@ -1,5 +1,7 @@
+import fs from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { isEspaceSection, isFundsSection, isTitresSection, listForFiche, TITRES } from "@/lib/nav-section";
+import { isEspaceSection, isFundsSection, isInstrumentsSection, isMarcheSection, isTitresSection, listForFiche, TITRES } from "@/lib/nav-section";
 
 /**
  * La fiche d'un fonds appartient aux Fonds, pas aux Titres.
@@ -68,5 +70,54 @@ describe("la racine, depuis qu'elle est l'accueil", () => {
        à un catalogue. */
     expect(isEspaceSection("/titres")).toBe(false);
     expect(isEspaceSection("/fonds")).toBe(false);
+  });
+});
+
+/**
+ * LE SOMMAIRE D'UN SIÈGE APPARTIENT À SON SIÈGE.
+ *
+ * Chaque siège du dock mène à son sommaire. Deux de ces sommaires ne
+ * figuraient dans aucune règle d'appartenance : relevé le 24 octobre 2026, sur
+ * « /portefeuille » comme sur « /instruments », AUCUN des cinq onglets n'était
+ * marqué courant. On touchait un siège, on arrivait à destination, et la seule
+ * chose qui dit où l'on est restait éteinte.
+ *
+ * TROIS SIÈGES MARCHAIENT PAR CHANCE, pas par principe : « /trader »,
+ * « /marche » et « /aide » sont à la fois le sommaire et la racine du préfixe
+ * que leur règle nomme. Les deux autres ont un sommaire dont l'adresse ne
+ * ressemble à rien de ce que le siège contient — « /portefeuille » ne commence
+ * pas par « /moi », « /instruments » ni par « /titres » ni par « /fonds ».
+ *
+ * L'épreuve lit les adresses DANS le dock plutôt que de les recopier : une
+ * liste recopiée passerait au vert le jour où le dock change d'adresse, ce qui
+ * est exactement le jour où elle devrait tomber.
+ */
+describe("chaque siège s'allume sur son propre sommaire", () => {
+  const dock = fs.readFileSync(path.join(process.cwd(), "src/components/mobile/MobileShell.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+
+  /* Les deux règles qui vivent en clair dans le dock : un préfixe chacune. */
+  const REGLES: { nom: string; prend: (p: string) => boolean }[] = [
+    { nom: "isEspaceSection", prend: isEspaceSection },
+    { nom: "isInstrumentsSection", prend: isInstrumentsSection },
+    { nom: "isMarcheSection", prend: isMarcheSection },
+    { nom: "trader", prend: (p) => p.startsWith("/trader") },
+    { nom: "aide", prend: (p) => p === "/aide" || p.startsWith("/info") },
+  ];
+
+  const sommaires = [...dock.matchAll(/\{\s*href:\s*"([^"]+)",\s*label:\s*t\(/g)].map((m) => m[1]);
+
+  it("lit bien les cinq sièges du dock", () => {
+    expect(sommaires.length, `sièges trouvés : ${sommaires.join(", ")}`).toBeGreaterThanOrEqual(5);
+    expect(sommaires, "les deux sommaires qui n'étaient réclamés par personne").toEqual(expect.arrayContaining(["/portefeuille", "/instruments"]));
+  });
+
+  it("ne laisse aucun sommaire sans siège", () => {
+    const orphelins = sommaires.filter((h) => !REGLES.some((r) => r.prend(h)));
+    expect(orphelins, `ces adresses n'allument aucun onglet :\n  ${orphelins.join("\n  ")}`).toEqual([]);
+  });
+
+  it("n'en fait pas réclamer un par deux sièges", () => {
+    const partages = sommaires.map((h) => ({ h, par: REGLES.filter((r) => r.prend(h)).map((r) => r.nom) })).filter((x) => x.par.length > 1);
+    expect(partages, `deux onglets s'allumeraient ensemble :\n  ${partages.map((x) => `${x.h} → ${x.par.join(" + ")}`).join("\n  ")}`).toEqual([]);
   });
 });

@@ -8,10 +8,12 @@ une proposition d'ordre est en bas.
 
 ## Téléphone
 
-**1. Le dock ne s'allume pas toujours.** « Portefeuille » et « Instruments »
-ne prennent pas l'état actif au clic. Les trois autres sièges, si.
-→ *À mesurer d'abord : quelle règle décide de l'état actif, et pourquoi elle
-rate sur ces deux-là (préfixe d'adresse ? `/` qui préfixe tout ?).*
+**1. ~~Le dock ne s'allume pas toujours.~~ FAIT le 24 octobre 2026.**
+La cause n'était pas dans le dock : deux sommaires de siège — `/portefeuille`
+et `/instruments` — ne figuraient dans aucune règle d'appartenance. Les trois
+autres marchaient par chance, leur sommaire étant aussi la racine du préfixe
+que leur règle nomme. Une épreuve lit maintenant les adresses *dans* le dock
+et vérifie que chacune allume un onglet, et un seul.
 
 **4. Pas d'animation entre pages d'une même section.** Le glissement existe
 (`Glissement`, `LienAvant`, `LienRetour`) mais ne se déclenche pas quand on
