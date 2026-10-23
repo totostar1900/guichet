@@ -7,9 +7,9 @@
   box-shadow: 0 1px 0 var(--bar-edge);
 }
 .topIn {
-  max-width: 1380px;
+  max-width: calc(var(--page-large) + 2 * var(--marge-page));
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 var(--marge-page);
   display: flex;
   align-items: center;
   gap: 28px;
@@ -60,16 +60,20 @@
   border-radius: 999px;
   padding: 2px 8px;
 }
+/* LA LARGEUR DE LA PAGE A UNE SEULE SOURCE, et c'est ici.
+   « --page-large » est la largeur du CONTENU ; la coque y ajoute ses deux
+   gouttières. Les trois bandes — barre du haut, page, pied — lisent le même
+   calcul, donc elles s'alignent au pixel quoi qu'il arrive au chiffre. */
 .main {
-  max-width: 1380px;
+  max-width: calc(var(--page-large) + 2 * var(--marge-page));
   margin: 0 auto;
-  padding: 18px 20px 60px;
+  padding: 18px var(--marge-page) 60px;
   overflow-x: clip; /* wide content is cut or scrolls in its own container, never the page */
 }
 .footer {
-  max-width: 1380px;
+  max-width: calc(var(--page-large) + 2 * var(--marge-page));
   margin: 0 auto;
-  padding: 0 20px 40px;
+  padding: 0 var(--marge-page) 40px;
   font-size: 0.72rem;
   color: var(--ink-3);
   line-height: 1.5;

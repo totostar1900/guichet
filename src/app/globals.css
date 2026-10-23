@@ -215,6 +215,30 @@
      pages harmonisées le lisent — le jour où la maison veut respirer plus
      large, un seul chiffre bouge. */
   --sections-gap: var(--s-8);
+  /* ── LES DEUX GABARITS DE PAGE, ET POURQUOI DEUX ───────────────────────────
+     Mesuré le 24 octobre 2026 : vingt-deux pages, SIX largeurs. Et le trajet
+     comptait plus que le tableau — dans le seul groupe « Portefeuille » :
+     900, puis 940, puis 820, puis 900, puis 880. Quatre largeurs en cinq
+     pages voisines. Un écart de vingt pixels ne se lit pas comme une
+     intention, seulement comme du laisser-aller, et c'est ce que l'œil
+     attrape en naviguant.
+
+     UNE SEULE LARGEUR SERAIT FAUSSE. Au-delà d'environ soixante-quinze
+     caractères une ligne de texte se relit mal ; en deçà de onze cents
+     pixels le tableau des titres se met à défiler. Harmoniser sur un chiffre
+     casserait l'un ou l'autre. Il en faut deux, déclarés, et pas un de plus :
+     le jour où une page en demande un troisième, c'est la page qu'il faut
+     revoir.
+
+     LARGE : ce qui se compare — listes, tableaux, tracés.
+     TEXTE : ce qui se lit et se décide — plis, formulaires, sommaires. */
+  /* 1340 est la largeur que la coque donnait déjà (1380 moins ses deux
+     gouttières) : le jeton ne la change pas, il la NOMME, pour que la page
+     et la coque cessent d'avoir chacune son chiffre. */
+  --page-large: 1340px;
+  --page-texte: 900px;
+  /* La gouttière, écrite une fois. Chaque feuille posait la sienne. */
+  --marge-page: var(--s-8);
   --font-ui: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
   /* La seconde famille, et la seule : un serif a fort contraste pour les
      titres de l accueil et des pages qui presentent. Manrope tient tout le
@@ -659,6 +683,9 @@ h3 {
   color: var(--ink-3);
 }
 @media (max-width: 760px) {
+  :root {
+    --marge-page: var(--s-7);
+  }
   .mtogglesHead h1 {
     font-size: 1.05rem;
   }

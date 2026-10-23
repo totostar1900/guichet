@@ -2,8 +2,10 @@
    suivent les pages harmonisées, par le réglage des chapitres. */
 
 .page {
-  max-width: 900px;
-  margin: 0 auto;
+  /* Gabarit TEXTE : ce qui se lit et se décide. Six largeurs cohabitaient
+     dans la maison ; il en reste deux, déclarées au globals. */
+  max-width: var(--page-texte);
+  margin-inline: auto;
   padding: var(--s-9) var(--s-7) var(--s-11);
   display: flex;
   flex-direction: column;

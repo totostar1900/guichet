@@ -20,6 +20,17 @@
  * « --lieux-h » n'entre plus dans leur calcul : il ne dit plus que la hauteur
  * de cette rangée-ci.
  */
+/* ── ON A CRU QU'ELLE FAISAIT DOUBLON SUR ÉCRAN LARGE. ELLE N'EN FAIT PAS ───
+   Le 24 octobre 2026, une mesure a montré que cette rangée répète le groupe
+   « Instruments » du rail de gauche, et elle a été masquée au-dessus de 1041.
+   La mesure était juste, sa lecture non : « /titres » et « /fonds » sont dans
+   ROUTES_LARGES, donc le rail s'y ouvre ESCAMOTÉ. Sur ces deux pages — les
+   deux qui portent le plus cette rangée — il n'y a rien à doubler, et la
+   masquer retirait au visiteur le seul chemin visible de Titres vers Fonds.
+   Le doublon n'existe que sur « /calendrier », qui n'est pas dans la liste.
+   Une page sur trois ne justifie pas de prendre le risque sur les deux
+   autres, et conditionner la rangée à l'état vivant du rail la ferait
+   apparaître et disparaître sous le doigt qui replie la colonne. */
 .onglets {
   height: var(--lieux-h);
   display: flex;
@@ -39,6 +50,8 @@
   margin-left: calc(-1 * var(--s-8));
   margin-right: calc(-1 * var(--s-8));
 }
+
+
 .onglets::-webkit-scrollbar {
   display: none;
 }

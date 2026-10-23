@@ -80,18 +80,39 @@ export interface PliProps {
    * un second bouton. Une icône qui qualifie un titre se met devant lui.
    */
   marque?: ReactNode;
+  /**
+   * Ouvert ou replié à la première visite. Non précisé, le pli suit la règle
+   * de la maison : replié, sauf s'il porte une pastille d'attente.
+   */
   defaut?: boolean;
   children: ReactNode;
 }
 
-export function Pli({ cle, niveau = "bande", titre, sous, compte, attend, etiquette, marque, defaut = true, children }: PliProps) {
+export function Pli({ cle, niveau = "bande", titre, sous, compte, attend, etiquette, marque, defaut, children }: PliProps) {
   const t = useT();
   const garde = useSyncExternalStore(
     subscribe,
     () => lire(cle),
     () => "",
   );
-  const ouvert = garde ? garde === "oui" : defaut;
+  /**
+   * UNE PAGE S'OUVRE REPLIÉE, SAUF LÀ OÙ ELLE DOIT UN GESTE.
+   *
+   * Le défaut était « ouvert », et chaque page empilait donc ses chapitres
+   * dépliés : on arrivait devant un mur qu'il fallait descendre pour savoir
+   * ce qu'il y avait. Repliés, les mêmes chapitres font un sommaire — la
+   * page dit ce qu'elle contient avant de le dire en entier, ce qui est
+   * exactement ce que les sièges du téléphone font depuis hier.
+   *
+   * MAIS UN PLI NE CACHE JAMAIS UN DEVOIR, et c'est la règle écrite en tête
+   * de ce fichier. Un pli qui porte sa pastille d'attente s'ouvre donc
+   * d'office : replier « 1 bulletin à signer » reviendrait à le faire
+   * disparaître, et aucune économie de hauteur ne vaut cela.
+   *
+   * « defaut » reste, pour les deux cas où l'auteur sait mieux : un pli
+   * qu'on veut fermé malgré sa pastille, ou ouvert sans en avoir une.
+   */
+  const ouvert = garde ? garde === "oui" : (defaut ?? Boolean(attend));
   return (
     <section className={niveau === "filet" ? styles.groupe : styles.rayon} data-ouvert={ouvert ? "oui" : "non"}>
       <button type="button" className={niveau === "filet" ? styles.tete : styles.bande} aria-expanded={ouvert} aria-label={`${titre} · ${t(ouvert ? "Replier" : "Déplier")}`} onClick={() => poserLePli(cle, !ouvert)}>

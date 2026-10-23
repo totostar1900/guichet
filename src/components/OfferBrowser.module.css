@@ -25,8 +25,11 @@
 /* The market tabs and the toolbar scroll with the page; once under the header, the floating filter button brings the controls back. */
 .top {
   background: var(--paper);
-  margin: 0 -20px 0;
-  padding: 10px 20px 10px;
+  /* LA BANDE ATTEINT LE BORD, et son débord suit la gouttière plutôt qu'un
+     chiffre. Écrit « -20px », il dépassait de quatre pixels sur téléphone,
+     où la gouttière vaut seize. */
+  margin-inline: calc(var(--marge-page) * -1);
+  padding: 10px var(--marge-page) 10px;
   border-bottom: 1px solid var(--line);
   min-width: 0;
 }

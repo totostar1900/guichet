@@ -3,8 +3,11 @@
    notes disent ce que le chiffre ne couvre pas. Rien n'y clignote : un
    rendement remis à un épargnant n'a pas à se vendre. */
 .page {
-  max-width: 940px;
-  margin: 0 auto;
+  /* Gabarit LARGE : des tracés et des tableaux, qui se comparent. Elle
+     tenait seule à 940, entre les 900 de ses voisines et les 1152 des
+     pages de listes — une troisième valeur que rien ne justifiait. */
+  max-width: var(--page-large);
+  margin-inline: auto;
   padding: var(--s-7) var(--s-7) var(--s-11);
   display: flex;
   flex-direction: column;

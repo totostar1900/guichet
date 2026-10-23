@@ -428,8 +428,17 @@ describe("la bande des sections conduit, et le saut est instantané", () => {
 
   it("les deux bandes couvrent toute la largeur", () => {
     /* Collantes et à la gouttière de la page, elles laissaient les cartes
-       défiler VISIBLEMENT de part et d'autre. */
-    expect(readFileSync(`${RACINE}/src/components/SectionChips.module.css`, "utf8")).toMatch(/\.bar \{[^}]*margin: 0 -20px/);
+       défiler VISIBLEMENT de part et d'autre.
+
+       LE CAS ÉPINGLAIT LA LETTRE, ET NON L'INTENTION : il exigeait
+       « margin: 0 -20px », c'est-à-dire un chiffre écrit en dur. Le jour où
+       la gouttière est devenue un jeton — vingt sur écran large, seize sur
+       téléphone — la bande écrite en dur a cessé de couvrir la largeur
+       qu'elle promet, de quatre pixels de chaque côté sur téléphone, et le
+       cas qui défendait cette promesse est tombé sur le correctif. Il
+       demande donc un débord ÉGAL À LA GOUTTIÈRE, quel que soit son
+       chiffre. */
+    expect(readFileSync(`${RACINE}/src/components/SectionChips.module.css`, "utf8")).toMatch(/\.bar \{[^}]*margin-inline: calc\(var\(--marge-page\) \* -1\)/);
     expect(readFileSync(`${RACINE}/src/components/market/OngletsMarche.module.css`, "utf8")).toMatch(/margin-left: calc\(-1 \* var\(--s-8\)\)/);
   });
 

@@ -3,7 +3,11 @@
 .wrap {
   display: grid;
   gap: var(--s-8);
-  max-width: 820px;
+  /* ELLE ÉTAIT COLLÉE AU BORD GAUCHE. Elle portait sa largeur mais pas son
+     centrage : trois cents pixels de vide à droite, mesurés le 24 octobre
+     2026. Le gabarit porte les deux. */
+  max-width: var(--page-texte);
+  margin-inline: auto;
 }
 .head {
   display: grid;

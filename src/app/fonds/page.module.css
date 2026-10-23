@@ -180,8 +180,11 @@
 /* The selector band scrolls with the page; once out of view, the floating « Filtrer · Trier » brings it back over the list. */
 .tools {
   background: var(--paper);
-  margin: 0 -20px;
-  padding: 10px 20px 0;
+  /* LA BANDE ATTEINT LE BORD, et son débord suit la gouttière plutôt qu'un
+     chiffre. Écrit « -20px », il dépassait de quatre pixels sur téléphone,
+     où la gouttière vaut seize. */
+  margin-inline: calc(var(--marge-page) * -1);
+  padding: 10px var(--marge-page) 0;
   border-bottom: 1px solid var(--line);
 }
 .search {
