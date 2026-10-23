@@ -120,9 +120,9 @@ export const AIDE_PAGES: NavPage[] = [
  * n'a pas de client sous les yeux.
  */
 export const COMPTE_PAGES: NavPage[] = [
-  { key: "identite", href: "/moi/identite", label: "Qui vous êtes", tuile: "nom, ville, canaux", hint: "nom, ville, e-mail, WhatsApp" },
+  { key: "identite", href: "/moi/identite", label: "Profil", tuile: "nom, ville, canaux", hint: "nom, ville, e-mail, WhatsApp" },
   { key: "pieces", href: "/ouvrir-un-compte", label: "Mes pièces", tuile: "votre dossier", hint: "votre dossier d'ouverture et les pièces qui le composent" },
-  { key: "profil", href: "/moi/profil", label: "Mon profil", tuile: "horizon et tolérance", hint: "votre horizon, votre tolérance au risque, et ce que la maison en déduit" },
+  { key: "profil", href: "/moi/profil", label: "Profil d'investisseur", tuile: "horizon et tolérance", hint: "votre horizon, votre tolérance au risque, et ce que la maison en déduit" },
   { key: "securite", href: "/moi/securite", label: "Sécurité", tuile: "clés et appareils", hint: "vos clés d'accès, les appareils reconnus, et comment les retirer" },
   { key: "appareil", href: "/moi/appareil", label: "Cet appareil", tuile: "alertes et couleurs", hint: "alertes, couleurs, et par quel canal on vous joint d'abord" },
 ];

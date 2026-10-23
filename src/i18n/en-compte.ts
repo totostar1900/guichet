@@ -17,7 +17,7 @@
 export const EN_COMPTE: Record<string, string> = {
   /* ---------- le sommaire ---------- */
   "Qui vous êtes, ce que la maison détient de vous, et ce que fait cet appareil-ci.": "Who you are, what the firm holds about you, and what this device does.",
-  "Qui vous êtes": "Who you are",
+  "Profil": "Profile",
   "nom, ville, e-mail, WhatsApp": "name, city, e-mail, WhatsApp",
   "aucun canal prouvé": "no verified channel",
   "votre dossier d'ouverture et les pièces qui le composent": "your account-opening file and the documents in it",

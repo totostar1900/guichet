@@ -138,7 +138,9 @@ Dans cet ordre, chacun facultatif, **jamais interverti** :
 | **phrase** | ce qu'on y trouve, en une phrase | `--t-4` | une seule |
 
 Le fil d'Ariane de `/moi/securite` disparaît : il dit la même chose que le
-sur-titre, en plus long, et il est le seul de l'application.
+sur-titre, en plus long. *Écrit « le seul de l'application » le 24 octobre au
+matin, et c'était faux : `/moi/profil` en portait un second, hors du relevé
+des treize. Il est parti le soir même.*
 
 **Et ce qui se pose à côté.** Les trois listes d'instruments portent un objet
 de plus — un « en bref », un chiffre de tête, un bouton. Il va **en face du
@@ -315,7 +317,11 @@ des deux côtés, sa fonte reste à décider avec le point 2.
 **L'épreuve est une liste blanche, pas un cliquet** : un compte dirait combien
 de fichiers posent la fonte, pas lesquels ont le droit.
 
-→ *Trouvé au passage, et laissé au point 2 : `/moi/profil` titre à 19,5 px,
-seule page hors de l'échelle. Son `h1` n'est pas le nom de la page mais la
-QUESTION courante du questionnaire — un `h1` qui change à chaque réponse, et
-un nom de page qui n'est nulle part.*
+→ *`/moi/profil`, relevé ici puis réglé le même jour : il titrait à 19,5 px,
+seule page hors de l'échelle, parce que son `h1` n'était pas le nom de la
+page mais la QUESTION courante du questionnaire. Il portait aussi **trois
+noms** — « Mon profil » dans la table, « Mon profil financier » dans
+l'onglet, la question à l'écran — et **un second fil d'Ariane** : celui de
+« Sécurité » n'était donc pas le dernier, il était le seul des treize pages
+relevées. La page a maintenant un nom, « Profil d'investisseur », l'en-tête
+de l'étalon, et la question en `h2`.*

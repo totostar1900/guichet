@@ -56,9 +56,13 @@ Ce qui reste au point 2 :
 - *Le sommaire du Marché* : au téléphone il redit le rail de pastilles — six
   destinations deux fois — et les deux occupent 720 px avant le titre de la
   page, qui tombe à y 798.
-- *`/moi/profil`* titre à **19,5 px**, seule page hors de l'échelle : son `h1`
-  n'est pas le nom de la page mais la QUESTION courante du questionnaire. Un
-  `h1` qui change à chaque réponse, et un nom de page nulle part.
+- ~~*`/moi/profil`.*~~ **FAIT le 24 octobre 2026.** Il titrait à **19,5 px**,
+  seule page hors de l'échelle, parce que son `h1` était la QUESTION courante
+  du questionnaire — un titre qui change à chaque réponse. Il portait aussi
+  **trois noms** (« Mon profil » dans la table, « Mon profil financier » dans
+  l'onglet, la question à l'écran) et **un second fil d'Ariane** : celui de
+  « Sécurité » n'était pas le dernier, il était le seul des treize pages
+  relevées. La page a un nom, l'en-tête de l'étalon, et la question en `h2`.
 - ~~*Les sept pages de `Feuillet`.*~~ **FAIT le 24 octobre 2026.** Elles
   écrivaient leur en-tête à la main et sont passées à `EnTete`. Trois sont
   des racines de siège (`/portefeuille`, `/instruments`, `/aide`) et ne

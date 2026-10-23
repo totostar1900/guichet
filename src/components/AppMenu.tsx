@@ -282,7 +282,7 @@ export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
                     </Link>
                     <Link className={styles.tile} href="/moi/profil" onClick={close}>
                       <Icon d={D.profile} />
-                      <b>{t("Mon profil")}</b>
+                      <b>{t("Profil d'investisseur")}</b>
                       <small>{t("deux minutes · à titre indicatif")}</small>
                     </Link>
                     {/* LES TEXTES DE LA MAISON ont leur porte ici, et non dans

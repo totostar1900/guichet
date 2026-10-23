@@ -350,7 +350,11 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
         </p>
       )}
       <span className={styles.eyebrow}>{q.eyebrow[lang]}</span>
-      <h1 className={styles.q}>{q.q[lang]}</h1>
+      {/* UN « h2 », ET NON UN « h1 ». Le titre de la page est son nom, et il
+          ne change pas ; celui-ci changeait à chaque réponse, et la page
+          n'avait donc aucun titre stable — ni pour le lecteur, ni pour qui
+          l'écoute. */}
+      <h2 className={styles.q}>{q.q[lang]}</h2>
       {q.options.map((o, i) => {
         const on = q.multi ? Boolean(((chosen ?? 0) >> i) & 1) : chosen === i;
         const pick = () => {

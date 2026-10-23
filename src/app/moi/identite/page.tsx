@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Qui vous êtes") };
+  return { title: t("Profil") };
 }
 
 /**
@@ -53,7 +53,7 @@ export default async function IdentitePage() {
           <EnTete
             retour={{ href: "/moi/compte", mot: t("Votre compte") }}
             surTitre={t("Vous")}
-            titre={t("Qui vous êtes")}
+            titre={t("Profil")}
             phrase={t("Le nom qui s'imprime sur vos bulletins, et les deux canaux par lesquels la maison vous joint et vous fait signer.")}
           />
 
