@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { EN_ALL } from "@/i18n/core";
 
@@ -10,7 +10,15 @@ import { EN_ALL } from "@/i18n/core";
  * tiennent ce qui a été décidé le 10 octobre 2026, et que rien à l'écran ne
  * rappellerait si cela se défaisait.
  */
-const PAGE = "src/app/moi/documents/page.tsx";
+/* LES QUATRE RAYONS SONT DEVENUS QUATRE PAGES le 24 octobre 2026, et le calcul
+   qui les taille a quitté la page du sommaire pour « rayons.ts », lu par les
+   cinq. Les questions de ces épreuves n'ont pas changé d'un mot — un papier,
+   un rayon ; un geste par ligne ; les textes de la maison dehors sauf ceux
+   qu'on a acceptés — seule leur adresse a bougé. C'est la raison pour laquelle
+   elles sont suivies plutôt que réécrites. */
+const PAGE = "src/app/moi/documents/rayons.ts";
+const SOMMAIRE = "src/app/moi/documents/page.tsx";
+const SIGNES_PAGE = "src/app/moi/documents/signes/page.tsx";
 const PLI = "src/components/Pli.tsx";
 const LIGNE = "src/app/moi/documents/Ligne.tsx";
 const OPS = "src/app/moi/documents/Operations.tsx";
@@ -75,7 +83,7 @@ describe("la grammaire des plis", () => {
        aussi la convention et les mandats, qui n'ont jamais appartenu à une
        opération. */
     expect(lire(OPS)).toMatch(/Par opération/);
-    expect(lire(PAGE)).not.toMatch(/Par date/);
+    expect(lire(SOMMAIRE)).not.toMatch(/Par date/);
   });
 });
 
@@ -111,9 +119,8 @@ describe("ce qui entre, et ce qui reste dehors", () => {
   it("les textes de la maison ne sont pas dans la liste, sauf ceux qu'on a acceptés", () => {
     /* Le pont : un texte général devient votre document le jour où vous
        l'acceptez. Ce qui n'a jamais été signé vit dans la feuille du compte. */
-    const src = lire(PAGE);
-    expect(src).toMatch(/consent\.version && \(/);
-    expect(src).toMatch(/href="\/moi\/textes"/);
+    expect(lire(SIGNES_PAGE)).toMatch(/consent\.version && \(/);
+    expect(lire(SOMMAIRE)).toMatch(/href="\/moi\/textes"/);
     const textes = lire("src/app/moi/textes/page.tsx");
     // Un sommaire, pas une copie : chaque texte renvoie là où il vit déjà.
     for (const ou of ["/info/mentions", "/info/risques", "/moi/tarifs", "/moi/services"]) expect(textes, ou).toContain(ou);
@@ -141,5 +148,53 @@ describe("ce que le scanner de clefs ne voit pas", () => {
        le scanner ne lit qu'un littéral, et elles resteraient en français. */
     const clefs = ["{n} documents", "{n} document", "{n} opérations", "{n} opération", "1 à signer", "{n} à signer", "1 à régler", "{n} à régler", "1 à faire", "{n} à faire"];
     for (const c of clefs) expect(EN_ALL[c], c).toBeTruthy();
+  });
+});
+
+/**
+ * UN RAYON EST UNE PAGE, depuis le 24 octobre 2026.
+ *
+ * Les quatre rayons étaient des PLIS : la bande portait un chevron — elle
+ * promettait d'ouvrir une page — et ne faisait que se déplier sur place. Le
+ * chevron ment ou il ne ment pas ; il ne ment plus.
+ *
+ * CE QUI SE PERD SANS BRUIT ICI : un rayon nommé dans la table mais sans
+ * fichier donne un 404 au bout d'une bande, et une bande écrite à la main dans
+ * le sommaire laisse une page sans porte. L'épreuve tient les deux sens.
+ */
+describe("un rayon, une page", () => {
+  const RAYONS = ["signes", "operations", "argent", "demarches"];
+
+  it("donne à chaque rayon de la table sa page", () => {
+    const nav = lire("src/app/moi/documents/nav.ts");
+    const nommes = [...nav.matchAll(/cle: "([a-z]+)"/g)].map((m) => m[1]);
+    expect(nommes, "la table des rayons a changé de forme").toEqual(RAYONS);
+    const sans = nommes.filter((c) => !existsSync(`src/app/moi/documents/${c}/page.tsx`));
+    expect(sans, "ces rayons mèneraient à un 404 au bout d'une bande").toEqual([]);
+  });
+
+  it("fait lire la table au sommaire plutôt qu'une liste écrite à la main", () => {
+    const sommaire = lire(SOMMAIRE);
+    expect(sommaire, "le sommaire a réécrit sa propre liste de rayons").toContain("RAYONS_DES_PAPIERS.map");
+    /* Et il les pose en BANDES : une rubrique qui ouvre une page est une
+       destination, et une destination se désigne (ETALON.md). */
+    expect(sommaire, "les rayons sont revenus à de simples filets").toMatch(/<Rubriques\s+bandes/);
+  });
+
+  it("ne replie plus rien, et ne compte plus rien", () => {
+    const sommaire = lire(SOMMAIRE);
+    expect(sommaire, "la barre « Tout replier » est revenue : il n'y a plus de pli à replier").not.toMatch(/ToutReplier/);
+    expect(sommaire, "le sommaire annonce de nouveau ce que porte la page suivante").not.toMatch(/\{n: String\(/);
+  });
+
+  it("fait porter l'en-tête des quatre pages par une seule coquille", () => {
+    /* Quatre en-têtes recopiés auraient dérivé à la première page retouchée :
+       c'est le défaut que le relevé des treize pages avait trouvé partout
+       ailleurs — trois grammaires pour un même créneau. */
+    for (const c of RAYONS) {
+      const page = lire(`src/app/moi/documents/${c}/page.tsx`);
+      expect(page, `${c} : l'en-tête n'est plus celui de la coquille`).toMatch(/<Rayon cle="/);
+      expect(page, `${c} : la page écrit son propre titre`).not.toMatch(/<h1/);
+    }
   });
 });

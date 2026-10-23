@@ -23,9 +23,16 @@ import styles from "./Rubriques.module.css";
  * UNE CIBLE PLEINE LARGEUR ET HAUTE : sur un téléphone un doigt vise mal, et
  * la maison a déjà payé la leçon des cibles de huit pixels.
  */
-export function Rubriques({ items }: { items: { href: string; nom: string; quoi?: string; etiquette?: string }[] }) {
+export function Rubriques({
+  items,
+  bandes,
+}: {
+  items: { href: string; nom: string; quoi?: string; etiquette?: string }[];
+  /** EN BANDES PLUTÔT QU'EN FILETS : la forme de « Mes documents », dont l'étalon est tiré. Un filet sépare, une bande désigne — et une rubrique qui ouvre une page est une destination. */
+  bandes?: boolean;
+}) {
   return (
-    <ul className={styles.liste}>
+    <ul className={`${styles.liste} ${bandes ? styles.bandes : ""}`}>
       {items.map((x) => (
         <li key={x.href}>
           <LienAvant href={x.href} className={styles.ligne}>

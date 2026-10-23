@@ -54,9 +54,22 @@ describe("le glissement entre pages", () => {
       /* Une page qui ne fait que rediriger n'a rien à animer : elle ne rend
          aucun écran, elle en désigne un autre. */
       if (!/return \(/.test(s) && /redirect\(/.test(s)) continue;
-      if (!s.includes("<Glissement>")) nues.push(path.relative(ROOT, p));
+      /* UNE COQUILLE PARTAGÉE COMPTE, à condition qu'elle enveloppe vraiment :
+         les quatre rayons des papiers rendent « <Rayon> », qui pose l'en-tête
+         commun ET l'enveloppe. Exiger le mot « Glissement » dans chaque page
+         pousserait à recopier l'en-tête quatre fois pour satisfaire une
+         épreuve — ce qui est l'inverse de ce qu'elle protège. La coquille est
+         donc admise, et vérifiée elle-même plus bas. */
+      if (!s.includes("<Glissement>") && !/<Rayon\b/.test(s)) nues.push(path.relative(ROOT, p));
     }
     expect(nues, `ces pages ne glisseront jamais, et rien ne le signalera :\n  ${nues.join("\n  ")}`).toEqual([]);
+  });
+
+  it("fait envelopper par la coquille des rayons", () => {
+    /* Sans cela l'exception ci-dessus deviendrait un trou : quatre pages
+       dispensées d'enveloppe par une coquille qui n'en pose plus. */
+    const coquille = fs.readFileSync(path.join(ROOT, "src/app/moi/documents/Rayon.tsx"), "utf8");
+    expect(coquille, "la coquille des rayons n'enveloppe plus rien").toContain("<Glissement>");
   });
 
   it("ne met jamais l'enveloppe dans une mise en page", () => {

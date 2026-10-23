@@ -59,8 +59,16 @@ ailleurs.
 **5. « Votre provision »** : à réorganiser selon ce principe. **Maquette
 d'abord.**
 
-**6. « Mes documents »** : la liste s'ouvre dans un dépliant. Ajouter un
-niveau et donner à chaque document sa page. **Maquette d'abord.**
+**6. ~~« Mes documents » : la liste s'ouvre dans un dépliant.~~ FAIT le
+24 octobre 2026**, maquette approuvée d'abord. Les quatre rayons étaient des
+plis : la bande portait un chevron — elle promettait une page — et ne faisait
+que se déplier. Chacun est maintenant une page, l'en-tête des quatre vient
+d'une seule coquille, et le sommaire a perdu sa barre « Tout replier » et ses
+compteurs.
+
+→ *Ouvre le point 8 : les rubriques du sommaire sont posées en BANDES ici
+(`<Rubriques bandes>`). Les autres sièges gardent les filets. Basculer le
+défaut harmoniserait tout d'un coup.*
 
 **9. La page « Bonjour »** : chaque section y est bien identifiée (c'est le
 bon modèle), mais « Vos intentions en cours », « Versements programmés »,
