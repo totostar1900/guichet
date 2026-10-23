@@ -96,11 +96,11 @@ export function MenuRecherche({ index, close }: { index: GuideIndex | null; clos
  * grammaire de trop : la feuille pose cinq bandes de tuiles, et deux rangées
  * au milieu cassaient la lecture pour deux choses qu'on ouvre une fois.
  */
-export function MenuRejouables({ close }: { close: () => void }) {
+export function MenuRejouables({ close }: { /** Dans une feuille, elle se referme d'abord ; sur une page, il n'y a rien à fermer. */ close?: () => void }) {
   const t = useT();
   const [joue, setJoue] = useState<"presentation" | "onboarding" | null>(null);
   const lancer = (quoi: "presentation" | "onboarding") => () => {
-    close();
+    close?.();
     setJoue(quoi);
   };
   return (

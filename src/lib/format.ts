@@ -167,6 +167,26 @@ export const normalizePhone = (s: string | undefined): string => {
   return d.length === 9 ? `+237${d}` : `+${d}`;
 };
 
+/**
+ * Un numéro E.164 rendu lisible : « +237687676767 » → « +237 6 87 67 67 67 ».
+ *
+ * LA BASE GARDE L'E.164 ET L'ÉCRAN MONTRE LES GROUPES. Un numéro se vérifie à
+ * l'œil, chiffre par chiffre, contre la carte SIM qu'on a en main : treize
+ * chiffres d'affilée se relisent mal, et c'est précisément sur la page où l'on
+ * vient corriger son numéro qu'il faut pouvoir le relire.
+ *
+ * LE DÉCOUPAGE DE LA ZONE, et pas un découpage universel : au Cameroun comme
+ * au Gabon, au Congo ou au Tchad, le numéro national fait neuf chiffres et se
+ * dit « 6 87 67 67 67 ». Tout autre format — un indicatif plus long, un numéro
+ * court — ressort tel quel plutôt que mal coupé : mieux vaut ne pas aider que
+ * tromper l'œil qui compare.
+ */
+export const telLisible = (s: string | undefined): string => {
+  const e164 = normalizePhone(s);
+  const m = /^(\+\d{3})(\d)(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(e164);
+  return m ? m.slice(1).join(" ") : e164;
+};
+
 /** FCFA in a short form : 1,2 Md · 340 M · 850 k. */
 export const money = (v: number): string => {
   const d = (x: number, n: number) => x.toLocaleString("fr-FR", { minimumFractionDigits: n, maximumFractionDigits: n });

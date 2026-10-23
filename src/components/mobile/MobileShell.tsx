@@ -4,14 +4,11 @@ import { useT } from "@/i18n/client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AccountMenu } from "./AccountMenu";
+import { BarreDuCompte } from "./BarreDuCompte";
 import { MarketChips } from "./MarketChips";
-import { isMarketPath } from "@/lib/market/pages";
-import {  } from "@/lib/nav-groups";
-import type { ClientPrefs } from "@/lib/domain/types";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
-import { isEspaceSection, isInstrumentsSection, isMarcheSection, listForFiche, TITRES } from "@/lib/nav-section";
+import { isEspaceSection, isInstrumentsSection, isMarcheSection, listForFiche } from "@/lib/nav-section";
 
 /**
  * The phone shell (≤ 760 px): a top bar with a real « back » and the page
@@ -112,7 +109,7 @@ function fallbackFor(path: string): string {
   return "/";
 }
 
-export function MobileShell({ signedIn, name, segment, tier, email, phone, phoneOk, emailOk, prefs, kycStatus, vapidKey, desk, deskHost = false, pendingCount = 0, security, profile, build, attentes = [], menu }: { signedIn: boolean; name?: string; segment?: string; tier?: number; email?: string; phone?: string; phoneOk?: boolean; emailOk?: boolean; prefs?: ClientPrefs; kycStatus?: string; vapidKey?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; pendingCount?: number; /** ce que la feuille du compte dit sous « Sécurité », « Mon profil » et au pied */ security?: { channels: number; devices: number }; profile?: "prudent" | "equilibre" | "dynamique"; build?: string; /** Ce qui attend le client, pour la pastille de la barre : voir AccountProps. */ attentes?: Attente[]; menu?: React.ReactNode }) {
+export function MobileShell({ signedIn, name, desk, deskHost = false, attentes = [], menu }: { signedIn: boolean; name?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; /** Ce qui attend le client, pour la pastille de la barre : voir BarreProps. */ attentes?: Attente[]; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -229,7 +226,7 @@ export function MobileShell({ signedIn, name, segment, tier, email, phone, phone
               lien, c'était afficher « Se connecter » deux fois sur le même
               écran, et reprendre au titre la largeur que la barre n'a pas. */}
           {signedIn && (
-            <AccountMenu name={name ?? "?"} segment={segment ?? ""} tier={tier ?? 0} desk={desk} email={email} phone={phone} phoneOk={phoneOk} emailOk={emailOk} prefs={prefs} kycStatus={kycStatus} vapidKey={vapidKey} security={security} profile={profile} build={build} attentes={attentes} />
+            <BarreDuCompte name={name ?? "?"} desk={desk} attentes={attentes} />
           )}
           {menu}
         </div>

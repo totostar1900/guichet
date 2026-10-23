@@ -1,0 +1,101 @@
+/* ── Cet appareil ─────────────────────────────────────────────────────────────
+   Les quatre réglages qui vivaient au fond de la feuille du compte, après dix-
+   sept tuiles et deux écrans de défilement. La coque vient du feuillet ; ne
+   restent ici que les commandes, parce qu'un interrupteur et un segment ne se
+   lisent pas comme une ligne de sommaire.
+
+   LES TAILLES SONT CELLES DE L'ÉCHELLE. Celles de la feuille étaient écrites
+   en littéral — 0,9 rem, 0,76 rem, 0,72 rem — et c'est exactement ce que le
+   cliquet typographique compte : trois approximations recopiées pour trois
+   tailles qui ont un nom. */
+
+.reglage {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  padding-block: var(--s-5);
+  border-top: 1px solid var(--line);
+}
+.reglage:first-of-type {
+  border-top: 0;
+}
+.reglage > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.reglage b {
+  font-size: var(--t-4);
+  font-weight: 600;
+}
+.reglage small {
+  font-size: var(--t-2);
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+/* Une commande large — un segment de trois, une paire de palettes — passe
+   sous sa phrase au lieu de se serrer à sa droite. */
+.colonne {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--s-5);
+}
+
+.seg {
+  display: inline-flex;
+  align-self: flex-start;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 2px;
+}
+.seg button {
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  font-weight: 600;
+  padding: 0 var(--s-6);
+  min-height: 32px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.seg .segOn {
+  background: var(--select);
+  color: var(--on-select);
+}
+
+/* L'interrupteur : la seule commande de la page qui dise oui ou non, et la
+   seule qui agisse sans qu'on la confirme. Elle n'en porte donc aucune : on la
+   rebascule du même doigt. */
+.switch {
+  flex: none;
+  width: 44px;
+  height: 26px;
+  border-radius: 13px;
+  border: 0;
+  background: var(--line-2);
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s;
+}
+.switch i {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: left 0.15s;
+}
+.switchOn {
+  background: var(--select);
+}
+.switchOn i {
+  left: 21px;
+}

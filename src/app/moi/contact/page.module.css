@@ -3,35 +3,15 @@
    services et le reste : on y tombait en descendant une page qu'on était venu
    lire pour agir. Elle a sa page, et le rail y mène.
    Les règles qui suivent viennent telles quelles de la feuille de Trade, d'où
-   elles ont été retirées le même jour : une classe copiée vit deux vies. */
+   elles ont été retirées le même jour : une classe copiée vit deux vies.
 
-.page {
-  /* Gabarit TEXTE : ce qui se lit et se décide. Six largeurs cohabitaient
-     dans la maison ; il en reste deux, déclarées au globals. */
-  max-width: var(--page-texte);
-  margin-inline: auto;
-  padding: var(--s-9) var(--s-7) var(--s-11);
-  display: flex;
-  flex-direction: column;
-  gap: var(--sections-gap);
-}
-.tete {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-}
-.tete h1 {
-  font-family: var(--font-titre);
-  font-size: var(--t-7, 1.9rem);
-  font-weight: 400;
-  margin: 0;
-}
-.tete p {
-  margin: 0;
-  max-width: 44rem;
-  color: var(--ink-2);
-  line-height: 1.6;
-}
+   LA COQUE N'EST PLUS ICI : gouttière, fil de retour, titre et phrase viennent
+   du feuillet (`src/components/Feuillet.module.css`), que les six pages du
+   défilement partagent. Elles étaient recopiées ici — avec le commentaire qui
+   l'avouait — et le titre avait déjà divergé : 1,35 rem fixe contre l'échelle
+   fluide des autres sièges. Ne restent ci-dessous que les pièces propres à
+   cette page. */
+
 .autres {
   display: flex;
   flex-direction: column;
@@ -153,17 +133,3 @@
     flex-grow: 1;
     justify-content: center;
   }
-
-/* Le retour d'un cran, en tête : il remonte la hiérarchie et non
-   l'historique, et son glissement vers la droite le dit. */
-.fil a {
-  font-size: var(--t-2);
-  color: var(--ink-3);
-  text-decoration: none;
-}
-.fil a::before {
-  content: "‹ ";
-}
-.fil a:hover {
-  color: var(--ink);
-}

@@ -4,7 +4,7 @@ import { Glissement } from "@/components/mobile/Glissement";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
 import { PORTEFEUILLE_PAGES } from "@/lib/nav-groups";
-import styles from "@/app/aide/page.module.css";
+import styles from "@/components/Feuillet.module.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Portefeuille" };

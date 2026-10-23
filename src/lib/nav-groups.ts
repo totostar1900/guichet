@@ -87,8 +87,22 @@ export const MARCHE_PAGES: NavPage[] = MARKET_PAGES;
  * Deux pages, donc, et le rail y mène. Le guide existait déjà sans qu'aucun
  * menu du client n'y conduise ; « Nous contacter » est né de ce
  * déménagement.
+ *
+ * ELLES SONT QUATRE DEPUIS LE 24 OCTOBRE 2026, et les deux qui entrent ne
+ * sont pas nouvelles : « Questions courantes » et « Risques et limites »
+ * étaient des tuiles de la feuille du compte, derrière l'initiale, avec le
+ * guide. La feuille est devenue le sommaire du compte, qui ne garde que ce qui
+ * parle de VOUS ; ces deux-là parlent de la maison, et le siège « Aide » est
+ * précisément fait pour elles.
+ *
+ * « NOUS CONTACTER » PASSE DEVANT, et c'est l'ordre du siège : on demande
+ * d'abord à quelqu'un, on cherche ensuite soi-même. Le rail et la page lisent
+ * la même table, donc le même ordre, et c'est la seule façon qu'ils ne
+ * divergent pas.
  */
 export const AIDE_PAGES: NavPage[] = [
-  { key: "guide", href: "/info", label: "Le guide", tuile: "comprendre avant de placer", hint: "les éclairages, le parcours du marché, le simulateur et le glossaire" },
   { key: "contact", href: "/moi/contact", label: "Nous contacter", tuile: "la personne qui répond", hint: "votre conseiller, le message déjà écrit, et le dépôt d'une réclamation" },
+  { key: "guide", href: "/info", label: "Le guide", tuile: "comprendre avant de placer", hint: "les éclairages, le parcours du marché, le simulateur et le glossaire" },
+  { key: "questions", href: "/info/aide", label: "Questions courantes", tuile: "ce qu'on nous demande", hint: "ce qu'on nous demande le plus souvent, répondu une fois pour toutes" },
+  { key: "risques", href: "/info/risques", label: "Risques et limites", tuile: "ce que ça engage", hint: "ce que la maison ne promet pas, et ce qu'elle ne fait pas" },
 ];

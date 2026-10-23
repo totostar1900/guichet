@@ -152,7 +152,7 @@ describe("où la liste se lit", () => {
     // Le « ⋮ » n'existe pas pour un client connecté : il ne doit donc plus rien compter.
     expect(menu).toContain("if (!desk) return null");
     expect(menu).not.toContain("aDecider");
-    const compte = lire("src/components/mobile/AccountMenu.tsx");
+    const compte = lire("src/components/mobile/BarreDuCompte.tsx");
     expect(compte).toContain("styles.alerte");
     /* ELLE NE MÈNE PLUS AILLEURS, ELLE SE DÉROULE. Jusqu'au 22 octobre 2026
        c'était un lien : une attente y allait tout droit, plusieurs ouvraient

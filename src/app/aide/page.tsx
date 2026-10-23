@@ -2,7 +2,9 @@ import { requireSession } from "@/lib/auth";
 import { getT } from "@/i18n/server";
 import { Glissement } from "@/components/mobile/Glissement";
 import { Rubriques } from "@/components/mobile/Rubriques";
-import styles from "./page.module.css";
+import { MenuRejouables } from "@/components/menu/Pieces";
+import { AIDE_PAGES } from "@/lib/nav-groups";
+import styles from "@/components/Feuillet.module.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Aide" };
@@ -28,6 +30,19 @@ export const metadata = { title: "Aide" };
  * ELLE NE REDIT RIEN. Chaque rubrique mène à la page qui existe, et le siège
  * ne fait que les rassembler : une page d'accueil qui résumerait ses enfants
  * ferait un troisième endroit où la même phrase se corrige.
+ *
+ * ET ELLE LIT LA TABLE, PLUS SA PROPRE LISTE. Les quatre rubriques étaient
+ * écrites ici à la main alors que le rail de l'écran large les lisait dans
+ * `AIDE_PAGES` : deux listes de la même chose, qui ont divergé le jour même —
+ * la page portait « Questions courantes » et « Risques », le rail non. Elles
+ * lisent maintenant la même table, dans le même ordre.
+ *
+ * « REVOIR » EST UNE SECTION ET NON UNE RUBRIQUE. Les deux rejouables — la
+ * présentation de trente secondes et les six écrans des premiers pas — vivaient
+ * au fond de la feuille du compte. Ils ne sont pas des destinations : il n'y a
+ * pas de page des présentations, il y a un bouton qui les rejoue par-dessus
+ * celle qu'on regarde. Une ligne de sommaire avec un chevron aurait promis une
+ * page qui n'existe pas.
  */
 export default async function AidePage() {
   await requireSession("/aide");
@@ -43,13 +58,21 @@ export default async function AidePage() {
 
         <Rubriques
           items={[
-            { href: "/moi/contact", nom: t("Nous contacter"), quoi: t("Votre conseiller, le message déjà écrit, et le dépôt d'une réclamation.") },
-            { href: "/info", nom: t("Le guide"), quoi: t("Les éclairages, le parcours du marché, le simulateur et le glossaire.") },
-            { href: "/info/aide", nom: t("Questions courantes"), quoi: t("Ce qu'on nous demande le plus souvent, répondu une fois pour toutes.") },
-            { href: "/info/risques", nom: t("Risques et limites"), quoi: t("Ce que la maison ne promet pas, et ce qu'elle ne fait pas.") },
+            ...AIDE_PAGES.map((p) => ({ href: p.href, nom: t(p.label), quoi: t(p.hint) })),
+            /* LES MENTIONS NE SONT PAS DANS LA TABLE DU RAIL, et c'est voulu :
+               elles se lisent une fois, à l'ouverture du compte, et un rail
+               qu'on parcourt chaque jour n'a pas à les porter. Elles vivent au
+               pied de chaque page ; cette ligne-ci est pour qui les CHERCHE,
+               et le siège « Aide » est le premier endroit où l'on regarde. */
             { href: "/info/mentions", nom: t("Mentions légales"), quoi: t("Qui est Purpose Capital, sous quel agrément, et qui le contrôle.") },
           ]}
         />
+
+        <section className={styles.bloc}>
+          <h2>{t("Revoir")}</h2>
+          <p className={styles.note}>{t("Les deux présentations se rejouent par-dessus la page que vous regardez, et se ferment d'un geste.")}</p>
+          <MenuRejouables />
+        </section>
       </div>
     </Glissement>
   );

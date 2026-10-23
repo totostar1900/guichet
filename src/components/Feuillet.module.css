@@ -1,0 +1,153 @@
+/* ── LE FEUILLET : LA COQUE DES PAGES DU DÉFILEMENT ───────────────────────────
+   Les sièges et leurs pages — Aide, Portefeuille, Instruments, le compte et
+   ses cinq rubriques — ont la même coque : une gouttière, un fil de retour, un
+   titre, une phrase, puis des sections espacées du même écart.
+
+   ELLE A FAILLI SE RECOPIER UNE SIXIÈME FOIS. Trois pages importaient déjà la
+   feuille de « Aide » pour cette coque, ce qui marchait mais ne se nommait
+   pas : un lecteur qui tombe sur `import styles from "@/app/aide/page.module.css"`
+   dans « Instruments » ne peut pas savoir si c'est un choix ou un accident, et
+   corriger la gouttière d'Aide aurait bougé trois autres pages sans qu'on le
+   sache. « Nous contacter », lui, avait recopié les trente lignes avec le
+   commentaire qui l'avoue.
+
+   LES MESURES NE SONT PAS CHOISIES ICI. Gabarit TEXTE, gouttière et écart des
+   sections viennent du réglage du globals : une page qui redéclarerait sa
+   largeur rouvrirait les six largeurs que la maison vient de refermer. */
+
+.page {
+  /* Gabarit TEXTE : ce qui se lit et se décide. L'autre, LARGE, est pour ce qui
+     se compare en colonnes. */
+  max-width: var(--page-texte);
+  margin-inline: auto;
+  padding: var(--s-9) var(--s-7) var(--s-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sections-gap);
+}
+
+/* LE RETOUR EST UN LIEN, ET IL DIT SA DIRECTION. Le bouton du téléphone
+   remonte l'historique ; celui-ci remonte la HIÉRARCHIE, et le glissement vers
+   la droite dit qu'on sort d'un cran. On peut arriver ici par un lien, et
+   l'historique mènerait alors ailleurs. */
+.fil {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.fil a {
+  color: var(--ink-3);
+  text-decoration: none;
+}
+/* Le chevron tient lieu de mot : « ‹ Votre compte » dit à la fois où l'on
+   remonte et qu'on remonte. « Retour vers Votre compte » le dirait deux fois. */
+.fil a::before {
+  content: "‹ ";
+}
+.fil a:hover {
+  color: var(--ink);
+}
+
+.tete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.tete h1 {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-size: clamp(1.71rem, 3.6vw, 2.52rem);
+  line-height: 1.08;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+.tete p {
+  margin: 0;
+  max-width: 44rem;
+  font-size: var(--t-2);
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+/* Une section du feuillet : un titre, et ce qu'il porte. */
+.bloc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.bloc h2 {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-size: var(--t-5);
+  font-weight: 400;
+}
+
+/* UNE LIGNE PAR CHOSE : ce qu'on détient à gauche, le geste à droite. Les
+   lignes d'un feuillet ont la même forme parce qu'elles se lisent d'un seul
+   balayage ; c'est la feuille du compte qui les empilait autrement. */
+.ligne {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-6);
+  padding-block: var(--s-5);
+  border-bottom: 1px solid var(--line);
+}
+.ligne > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ligne b {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.ligne small {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+/* « Changer » est un bouton quand il ouvre un champ, un lien quand il mène
+   ailleurs : même apparence, parce que c'est la même promesse. */
+.chg {
+  flex: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--t-3);
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: underline;
+  cursor: pointer;
+}
+/* Le survol prend l'encre navy DU THÈME, pas le navy fixe : celui-ci vaut
+   #0b2545 à toute surface et tombe à 1,15:1 sur le papier sombre, où le geste
+   disparaîtrait au moment où le doigt le vise. */
+.chg:hover {
+  color: var(--navy-text);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.gestes {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+}
+.note {
+  margin: 0;
+  font-size: var(--t-3);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.ok {
+  font-size: var(--t-2);
+  color: var(--good);
+}
+.err {
+  font-size: var(--t-2);
+  color: var(--crit);
+}

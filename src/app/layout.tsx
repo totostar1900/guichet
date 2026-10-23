@@ -137,18 +137,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
    * besoin que de la SESSION, qui vient de l'étage d'avant.
    *
    * Un seul « Promise.all » les porte maintenant tous.
+   *
+   * ET IL EN PORTE UN DE MOINS DEPUIS LE 24 OCTOBRE 2026. Le profil financier
+   * ne servait qu'à écrire « prudent » sous une tuile de la feuille du compte ;
+   * la feuille est devenue une page, qui lit elle-même ce qu'elle montre. Une
+   * lecture par page rendue, sur toutes les pages de l'application, pour un mot
+   * affiché derrière un clic : c'est le genre de ligne qui ne se retire que le
+   * jour où son seul lecteur disparaît.
    */
-  const [account, profile, attentes, consent, poste] = session
+  const [account, attentes, consent, poste] = session
     ? await Promise.all([
         accountLine(session.userId),
-        deskUi ? undefined : repo().getFinancialProfile(session.userId).catch(() => undefined),
         deskUi ? [] : attentesPourLaBarre(session.userId),
         // A client accepts the legal text once per version of it; the desk is bound by its contract, not by this box.
         !desk ? repo().getConsent(session.userId).catch(() => ({}) as { version?: string }) : undefined,
         deskUi ? chargerPoste(session.userId, session.role).catch(() => undefined) : undefined,
       ])
-    : [undefined, undefined, [], undefined, undefined];
-  const security = desk ? undefined : account?.security;
+    : [undefined, [], undefined, undefined];
   const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
   /* LA SURFACE, ET POURQUOI C'EST LA SESSION QUI LA DIT.
      Le système de design décrit la vitrine devant la porte et l'espace de
@@ -197,12 +202,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   {t("démo · mémoire")}
                 </span>
               )}
-              <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, segment: session.segment, tier: session.tier, desk: deskUi, email: account?.email ?? session.email, phone: account?.phone ?? session.phone, phoneOk: account?.phoneOk, emailOk: account?.emailOk, prefs: account?.prefs, kycStatus: session.kycStatus, vapidKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY, security, profile: profile?.kind, build: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7), attentes: deskUi ? [] : attentes } : undefined} />
+              <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, desk: deskUi, attentes: deskUi ? [] : attentes } : undefined} />
               {menu}
             </div>
           </div>
         </header>
-        <MobileShell signedIn={Boolean(session)} name={session?.name} segment={session?.segment} tier={session?.tier} email={account?.email ?? session?.email} phone={account?.phone ?? session?.phone} phoneOk={account?.phoneOk} emailOk={account?.emailOk} prefs={account?.prefs} kycStatus={session?.kycStatus} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} security={security} profile={profile?.kind} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} attentes={deskUi ? [] : attentes} desk={deskUi} deskHost={onDeskHost} menu={menu} />
+        <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} desk={deskUi} deskHost={onDeskHost} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation />
         <Onboarding />
@@ -245,7 +250,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                    gauche. Ancrée en haut à droite, elle s'ouvrait à douze cents
                    pixels de l'avatar qu'on venait de toucher. */
                 dock="bottom-left"
-                account={session ? { name: session.name, segment: session.segment, tier: session.tier, desk: deskUi, email: account?.email ?? session.email, phone: account?.phone ?? session.phone, phoneOk: account?.phoneOk, emailOk: account?.emailOk, prefs: account?.prefs, kycStatus: session.kycStatus, vapidKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY, security, profile: profile?.kind, build: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7), attentes: deskUi ? [] : attentes } : undefined}
+                account={session ? { name: session.name, desk: deskUi, attentes: deskUi ? [] : attentes } : undefined}
               />
               )
             }

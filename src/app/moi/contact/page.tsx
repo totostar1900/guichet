@@ -5,6 +5,7 @@ import { repo } from "@/lib/data";
 import { contexteDuClient } from "@/lib/domain/contexte-client";
 import { getT } from "@/i18n/server";
 import { ConseillerCard } from "./ConseillerCard";
+import feuillet from "@/components/Feuillet.module.css";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -47,15 +48,15 @@ export default async function ContactPage() {
 
   return (
     <Glissement>
-      <div className={styles.page}>
+      <div className={feuillet.page}>
         {/* LE RETOUR EST UN LIEN, ET IL DIT SA DIRECTION. Le bouton du
             téléphone remonte l'historique sans jouer d'animation : celui-ci
             remonte la HIÉRARCHIE, et le glissement vers la droite dit qu'on
             sort d'un cran. */}
-        <nav className={styles.fil}>
+        <nav className={feuillet.fil}>
           <LienRetour href="/aide">{t("Aide")}</LienRetour>
         </nav>
-      <header className={styles.tete}>
+      <header className={feuillet.tete}>
         <h1>{t("Nous contacter")}</h1>
         <p>{t("Une personne suit votre compte. Écrivez-lui : le message part avec ce qu'il faut pour qu'on n'ait pas à vous demander qui vous êtes.")}</p>
       </header>

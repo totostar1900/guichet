@@ -87,27 +87,78 @@ describe("les tuiles du dock", () => {
 });
 
 /**
- * LA FEUILLE UNIQUE, DEPUIS LE 5 OCTOBRE 2026.
+ * LA FEUILLE EST DEVENUE CINQ PAGES, LE 24 OCTOBRE 2026.
  *
- * Ses huit destinations sont écrites dans la feuille, pas dans une table
- * partagée. Trois choses s'y perdent en silence : un dessin absent, qui laisse
- * un cadre vide ; l'état du dossier, qui traverse t() sous forme de variable
- * et resterait en français dans une interface anglaise ; et, depuis la fusion,
- * un réglage oublié au passage d'une feuille à l'autre.
+ * Elle portait onze blocs derrière l'initiale : une recherche, le statut, le
+ * nom et la ville, les deux canaux, huit tuiles de destination, les
+ * rejouables, le contact, les couleurs, quatre réglages, deux sorties et un
+ * pied légal. Six de ces onze étaient de la navigation qui avait trouvé sa
+ * porte ailleurs dans la semaine ; le pied légal était la troisième copie de
+ * celui de la page.
+ *
+ * CE QUE CE DÉMÉNAGEMENT PEUT PERDRE, ET QUE RIEN NE SIGNALERAIT. Déplacer
+ * onze blocs vers cinq pages est exactement le geste qui en laisse tomber un :
+ * le composant reste importé quelque part, personne ne le rend, et le réglage
+ * n'existe plus sans qu'aucune épreuve ne tombe. Ces épreuves tiennent donc
+ * l'INVENTAIRE : chaque chose que la feuille portait est nommée avec l'adresse
+ * où elle vit maintenant.
+ *
+ * L'ANCIENNE ÉPREUVE EXIGEAIT L'INVERSE — que tout soit DANS la feuille — et
+ * c'est pour cela qu'elle est réécrite et non supprimée : la question qu'elle
+ * posait reste la bonne, c'est la réponse qui a changé d'adresse.
  */
-describe("la feuille unique du compte", () => {
-  const source = readFileSync(join(process.cwd(), "src/components/mobile/AccountMenu.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+describe("le compte en pages", () => {
+  const lire = (p: string) => readFileSync(join(process.cwd(), p), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  /* Le CORPS, pas les imports : un composant importé puis jamais rendu est
+     exactement la façon dont un réglage disparaît sans bruit. */
+  const corps = (p: string, apres: string) => {
+    const s = lire(p);
+    const i = s.indexOf(apres);
+    expect(i, `${p} : « ${apres} » a changé de nom`).toBeGreaterThan(-1);
+    return s.slice(i);
+  };
 
-  it("donne un dessin à chacune des huit", () => {
-    const dessins = [...source.matchAll(/\bd: D\.(\w+)/g)].map((m) => m[1]);
-    const table = /const D = \{([\s\S]*?)\n\};/.exec(source);
-    expect(table, "la table des dessins a changé de forme").toBeTruthy();
-    const connus = new Set([...table![1].matchAll(/^\s*(\w+):/gm)].map((m) => m[1]));
-    expect(dessins.length, "les deux grilles portent huit tuiles").toBe(8);
-    expect(
-      dessins.filter((k) => !connus.has(k)),
-      "ces tuiles afficheraient un cadre vide",
-    ).toEqual([]);
+  it("mène au sommaire du compte depuis la barre, et plus à un tiroir", () => {
+    const barre = lire("src/components/mobile/BarreDuCompte.tsx");
+    expect(barre, "l'initiale n'est plus un lien vers le sommaire").toMatch(/href="\/moi\/compte"/);
+    /* La loupe est la seule chose que la feuille garde : une recherche se fait
+       là où l'on est, et sur un téléphone la barre du haut n'a pas la largeur
+       d'un champ. */
+    expect(barre, "la recherche n'a plus de porte sur téléphone").toContain("MenuRecherche");
+  });
+
+  it("donne une adresse à chacune des cinq rubriques", () => {
+    const sommaire = lire("src/app/moi/compte/page.tsx");
+    for (const href of ["/moi/identite", "/ouvrir-un-compte", "/moi/profil", "/moi/securite", "/moi/appareil"]) {
+      expect(sommaire, `${href} a quitté le sommaire du compte`).toContain(`href: "${href}"`);
+    }
+  });
+
+  /**
+   * L'INVENTAIRE DU DÉMÉNAGEMENT : ce que la feuille portait, et où c'est.
+   *
+   * Trois choses n'ont pas d'adresse dans cette table, et c'est écrit plutôt
+   * que passé sous silence : le pied légal (`MenuPied`) vit au pied de chaque
+   * page, les deux canaux sont en lecture sur « Qui vous êtes » et se prouvent
+   * sur « Sécurité », et les huit tuiles sont devenues cinq rubriques et le
+   * siège « Aide ».
+   */
+  it("garde tout ce que la feuille portait, chacun à son adresse", () => {
+    const inventaire: [string, string, string][] = [
+      ["identityAction", "src/app/moi/identite/Identite.tsx", "export function Identite"],
+      ["securite#canaux", "src/app/moi/identite/Identite.tsx", "export function Identite"],
+      ["PushToggle", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
+      ["PaletteSwitch", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
+      ["LangSwitch", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
+      ["statementsByEmail", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
+      ["reach", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
+      ["logoutEverywhere", "src/app/moi/compte/Deconnexion.tsx", "export function Deconnexion"],
+      ["MenuRejouables", "src/app/aide/page.tsx", "export default"],
+      ["MenuRecherche", "src/components/mobile/BarreDuCompte.tsx", "export function BarreDuCompte"],
+    ];
+    for (const [quoi, fichier, depuis] of inventaire) {
+      expect(corps(fichier, depuis), `${quoi} a disparu du déménagement`).toContain(quoi);
+    }
   });
 
   /**
@@ -126,27 +177,30 @@ describe("la feuille unique du compte", () => {
   });
 
   /**
-   * CE QUE LA FUSION NE DOIT PAS PERDRE. Les quatre réglages, les couleurs, la
-   * recherche, le contact et les deux sorties vivaient dans l'une ou l'autre
-   * feuille ; en fondre deux en une est exactement le geste qui en laisse
-   * tomber un au passage.
+   * LE SIÈGE « AIDE » ET LE RAIL LISENT LA MÊME TABLE.
+   *
+   * La page écrivait ses quatre rubriques à la main pendant que le rail de
+   * l'écran large lisait `AIDE_PAGES` : deux listes de la même chose, qui ont
+   * divergé le jour même — la page portait « Questions courantes » et
+   * « Risques », le rail non. C'est mot pour mot la leçon que la table de la
+   * colonne porte en tête, et cette épreuve-ci la tient pour le siège.
    */
-  it("garde tout ce que les deux feuilles portaient", () => {
-    /* Le CORPS, pas les imports : un composant importé puis jamais rendu est
-       exactement la façon dont un réglage disparaît sans bruit. */
-    const corps = source.slice(source.indexOf("export function AccountMenu"));
-    for (const quoi of ["MenuRecherche", "MenuContact", "MenuRejouables", "MenuPied", "PaletteSwitch", "LangSwitch", "PushToggle", "statementsByEmail", "reach", "logoutEverywhere"]) {
-      expect(corps, `${quoi} a disparu de la feuille unique`).toContain(quoi);
-    }
+  it("fait lire la même table au siège et au rail", () => {
+    const page = lire("src/app/aide/page.tsx");
+    expect(page, "le siège « Aide » a réécrit sa propre liste").toContain("AIDE_PAGES.map");
+    /* Les mentions sont la seule ligne en dur, et pour une raison écrite dans
+       la page : elles se lisent une fois et vivent au pied. */
+    expect(page, "les mentions ont quitté le siège").toContain('/info/mentions"');
   });
 
-  /* L'état du dossier prend la place des trois mots : c'est la seule chose
-     vivante des deux grilles, et la seule qui ne passe pas par un littéral. */
-  it("couvre les cinq états du dossier d'ouverture", () => {
-    const table = /const KYC_HINT: Record<string, string> = \{([^}]*)\}/.exec(source);
-    expect(table, "la table des états du dossier a changé de forme").toBeTruthy();
-    const etats = [...table![1].matchAll(/: "([^"]+)"/g)].map((m) => m[1]);
-    expect(etats.length, "cinq états, de « commencé » à « à reprendre »").toBe(5);
+  /* L'état du dossier traverse t() en variable : le scanner de clefs ne le
+     voit pas, et une entrée manquante laisserait du français dans une
+     interface anglaise sans que rien n'échoue. Il vit maintenant au sommaire
+     du compte, sous « Mes pièces ». */
+  it("traduit l'état du dossier d'ouverture", () => {
+    const sommaire = lire("src/app/moi/compte/page.tsx");
+    const etats = [...sommaire.matchAll(/t\("(approuvé|dossier [^"]+)"\)/g)].map((m) => m[1]);
+    expect(etats.length, "le sommaire ne dit plus où en est le dossier").toBeGreaterThan(0);
     expect(
       etats.filter((e) => !translatable(e)),
       "à traduire dans src/i18n",

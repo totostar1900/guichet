@@ -1,3 +1,14 @@
+/* ── LA BARRE DU COMPTE ───────────────────────────────────────────────────────
+   Ce qui reste dans le coin : ce qui attend, la recherche, et l'initiale.
+   La feuille de onze blocs qui s'ouvrait derrière l'initiale est devenue cinq
+   pages (le sommaire du compte et ses rubriques), et ce fichier a perdu avec
+   elle le statut, le formulaire d'identité, les deux canaux, les huit tuiles,
+   les quatre réglages et les deux sorties : trois cents lignes de style pour
+   des choses qui vivent maintenant à leur adresse. */
+
+/* L'INITIALE EST UN LIEN, PLUS UN BOUTON, depuis que le compte est une page.
+   Elle garde sa forme au pixel : c'est la même cible, au même endroit, et le
+   lecteur n'a pas à réapprendre où il clique. */
 .avatar {
   width: 30px;
   height: 30px;
@@ -7,326 +18,47 @@
   color: var(--navy);
   font: inherit;
   font-weight: 800;
-  font-size: 0.82rem;
+  font-size: var(--t-3);
+  text-decoration: none;
   display: grid;
   place-items: center;
   cursor: pointer;
   padding: 0;
 }
-/* Le statut : ce que la carte disait, moins le nom et l'initiale, que le
-   titre de la feuille porte déjà. */
-.statut {
-  display: flex;
-  align-items: center;
-  gap: var(--s-6);
-  padding: var(--s-4) 0 var(--s-5);
-  border-bottom: 1px solid var(--line);
-}
-.statut > span {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-.statut b {
-  font-size: 0.86rem;
-  font-weight: 600;
-}
-.statut small {
-  font-size: 0.74rem;
-  color: var(--ink-3);
-}
-/* Le geste du canal : il a la même forme que « Nom et ville », parce qu'il
-   fait la même promesse, changer ce qui est écrit à côté. */
-.chg {
+
+/* LA LOUPE EST LA SEULE CHOSE QUE LA FEUILLE GARDE.
+   Elle était la première ligne du compte — le chemin le plus court vers
+   n'importe quelle réponse — et c'est la seule qui n'ait pas de page où
+   déménager : une recherche se fait là où l'on est, sans quitter sa page.
+   Elle sort donc de la feuille du compte et prend son propre bouton, nommé
+   par le signe que tout le monde connaît. Le desk ne l'a pas : sa console a
+   la sienne. */
+.loupe {
+  width: 30px;
+  height: 30px;
   flex: none;
-  border: 1px solid var(--line-2);
-  color: var(--ink-2);
-  font-size: 0.74rem;
-  font-weight: 700;
-  border-radius: 999px;
-  padding: var(--s-2) var(--s-5);
-}
-.rows {
-  display: flex;
-  flex-direction: column;
-}
-.row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 11px 4px;
-  min-height: 52px;
-  border-top: 1px solid var(--line);
-  color: var(--ink);
-  text-decoration: none;
-}
-.row:first-child {
-  border-top: 0;
-}
-.row > svg {
-  width: 22px;
-  height: 22px;
-  flex: none;
-  fill: none;
-  stroke: var(--navy-text);
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.row > span {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.row b {
-  font-size: 0.9rem;
-}
-.row small {
-  font-size: 0.74rem;
-  color: var(--ink-3);
-}
-.row i {
-  font-style: normal;
-  color: var(--ink-3);
-}
-.row em {
-  font-style: normal;
-  font-size: 0.66rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--gold-ink);
-  background: var(--gold-soft);
-  border-radius: 999px;
-  padding: 3px 8px;
-  font-weight: 800;
-}
-.soon {
-  opacity: 0.75;
-}
-.note {
-  margin: 12px 0 0;
-  font-size: 0.74rem;
-  color: var(--ink-3);
-  line-height: 1.45;
-}
-.editBtn {
-  flex: none;
-  align-self: flex-start;
-  border: 1px solid var(--line-2);
-  background: transparent;
-  color: var(--ink-2);
-  font: inherit;
-  font-size: 0.74rem;
-  font-weight: 700;
-  border-radius: 999px;
-  padding: 4px 10px;
-  cursor: pointer;
-}
-.edit {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 0 12px;
-  border-bottom: 1px solid var(--line);
-}
-.editFoot {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-.err {
-  font-size: 0.74rem;
-  color: var(--crit);
-}
-.channels {
-  display: flex;
-  flex-direction: column;
-}
-.channel {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 4px;
-  min-height: 44px;
-  border-bottom: 1px solid var(--line);
-  color: var(--ink);
-  text-decoration: none;
-}
-.channel > svg {
-  width: 20px;
-  height: 20px;
-  flex: none;
-  fill: none;
-  stroke: var(--ink-3);
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.channel > span {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-.channel b {
-  font-size: 0.84rem;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-.channel small {
-  font-size: 0.72rem;
-  color: var(--ink-3);
-}
-.channel i {
-  font-style: normal;
-  color: var(--ink-3);
-}
-.ok {
-  color: var(--good) !important;
-  font-weight: 700;
-}
-.group {
-  margin: 14px 0 2px;
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--gold-ink);
-  font-weight: 800;
-}
-.pref {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 4px;
-  min-height: 48px;
-  border-top: 1px solid var(--line);
-}
-.pref:first-child {
-  border-top: 0;
-}
-.pref > span {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.pref b {
-  font-size: 0.9rem;
-}
-.pref small {
-  font-size: 0.72rem;
-  color: var(--ink-3);
-  line-height: 1.35;
-}
-.prefCol {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
-.seg {
-  display: inline-flex;
-  align-self: flex-start;
-  border: 1px solid var(--line-2);
-  border-radius: 999px;
-  padding: 2px;
-}
-.seg button {
+  display: grid;
+  place-items: center;
   border: 0;
-  background: transparent;
-  color: var(--ink-2);
-  font: inherit;
-  font-size: 0.76rem;
-  font-weight: 700;
-  padding: 5px 12px;
-  border-radius: 999px;
-  cursor: pointer;
-  min-height: 30px;
-}
-.seg .segOn {
-  background: var(--select);
-  color: var(--on-select);
-}
-.switch {
-  flex: none;
-  width: 44px;
-  height: 26px;
-  border-radius: 13px;
-  border: 0;
-  background: var(--line-2);
   padding: 0;
-  cursor: pointer;
-  position: relative;
-  transition: background 0.15s;
-}
-.switch i {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 20px;
-  height: 20px;
   border-radius: 50%;
-  background: var(--surface);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  transition: left 0.15s;
-}
-.switchOn {
-  background: var(--select);
-}
-.switchOn i {
-  left: 21px;
-}
-.out {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-.out form {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-.outBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  justify-content: center;
-  min-height: 44px;
-  border: 1px solid var(--line-2);
-  border-radius: 12px;
   background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-weight: 700;
-  font-size: 0.9rem;
   cursor: pointer;
 }
-.outBtn svg {
-  width: 18px;
-  height: 18px;
+.loupe svg {
+  width: 19px;
+  height: 19px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 1.9;
   stroke-linecap: round;
-  stroke-linejoin: round;
 }
-.outAll {
-  border: 0;
-  background: transparent;
-  color: var(--ink-3);
-  font: inherit;
-  font-size: 0.76rem;
-  padding: 6px 8px;
-  cursor: pointer;
-  text-decoration: underline dotted 1px;
-  text-underline-offset: 3px;
+/* Le survol se teinte de l'encre courante : la barre est bleu nuit à encre
+   blanche, le pied de la colonne est pâle à encre sombre, et une valeur fixe
+   serait invisible sur l'un des deux. */
+.loupe:hover {
+  background: color-mix(in srgb, currentColor 14%, transparent);
 }
-
 /* LA PASTILLE, BOUTON À PART ENTIÈRE.
    Posée SUR l'initiale, elle était jolie et inutile : le doigt n'avait qu'une
    cible, et cette cible ouvrait la feuille du compte, où ce qui attend ne

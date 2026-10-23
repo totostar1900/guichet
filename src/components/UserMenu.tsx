@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Session } from "@/lib/auth/types";
-import type { AccountProps } from "./mobile/AccountMenu";
-import { AccountMenu } from "./mobile/AccountMenu";
+import type { BarreProps } from "./mobile/BarreDuCompte";
+import { BarreDuCompte } from "./mobile/BarreDuCompte";
 import styles from "./UserMenu.module.css";
 import { getT } from "@/i18n/server";
 
@@ -14,10 +14,15 @@ import { getT } from "@/i18n/server";
  * par deux surfaces n'est tenu par aucune, et c'est exactement ce qui rendait
  * les réglages du compte introuvables sur un écran de bureau.
  *
+ * DEPUIS LE 24 OCTOBRE 2026 ELLE MÈNE À UNE PAGE et n'ouvre plus de tiroir :
+ * `/moi/compte` est le sommaire, et ses cinq rubriques sont des pages. La
+ * pastille garde la même place et la même forme ; c'est la destination qui a
+ * changé, pas la cible.
+ *
  * Le nom reste un lien vers le portefeuille : il nomme la personne, et la
  * personne veut le plus souvent revoir ce qu'elle possède.
  */
-export async function UserMenu({ session, deskUi, account, dock }: { session: Session | null; deskUi?: boolean; account?: AccountProps; /** « bottom-left » quand le menu vit au pied de la colonne : une feuille doit sortir de ce qu on a touche. */ dock?: "top-right" | "bottom-left" }) {
+export async function UserMenu({ session, deskUi, account, dock }: { session: Session | null; deskUi?: boolean; account?: BarreProps; /** « bottom-left » quand le menu vit au pied de la colonne : une feuille doit sortir de ce qu on a touche. */ dock?: "top-right" | "bottom-left" }) {
   const t = await getT();
   /* LE VISITEUR N'A PLUS SA PORTE ICI : elle est dans la bande du bas
      (PorteVitrine), qui porte les DEUX portes et ne s'escamote jamais. Ce
@@ -36,7 +41,7 @@ export async function UserMenu({ session, deskUi, account, dock }: { session: Se
     <div className={styles.menu}>
       {account && (
         <span className={styles.compact}>
-          <AccountMenu {...account} dock={dock} />
+          <BarreDuCompte {...account} dock={dock} />
         </span>
       )}
       <Link href={deskUi ? "/desk" : "/"} className={styles.who}>

@@ -1,0 +1,62 @@
+/* La sortie du sommaire : un geste, et non une rubrique. Pas de chevron, pas
+   de phrase qui promet une suite. */
+/* PAS DE FILET AU-DESSUS : le sommaire se ferme déjà par le sien, et deux
+   traits à quarante pixels l'un de l'autre se lisent comme une erreur de
+   rendu. C'est l'écart des sections qui sépare la sortie des rubriques. */
+.sortie {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-5);
+}
+.sortieBtn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ctrl-h, 34px);
+  padding: 0 var(--s-7);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--ctrl-t, 0.82rem);
+  font-weight: 600;
+  cursor: pointer;
+}
+.sortieBtn:hover {
+  border-color: var(--ink-3);
+}
+/* « Partout » se demande et ne s'offre pas : il retire aussi la clé des
+   autres appareils. Texte nu, et une confirmation avant. */
+.sortieNon {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.sortieNon:hover {
+  color: var(--ink);
+}
+.sortieConfirme {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-5);
+  font-size: var(--t-1);
+  color: var(--ink-2);
+}
+.sortieOui {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--t-1);
+  font-weight: 600;
+  color: var(--crit);
+  text-decoration: underline;
+  cursor: pointer;
+}
