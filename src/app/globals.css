@@ -208,6 +208,13 @@
   --mobile-tabs: 56px;
   /* La marge interieure d'un panneau, celle que son en-tete pose deja. */
   --panel-inset: var(--s-7);
+  /* L'ESPACE ENTRE DEUX CHAPITRES D'UNE PAGE, ÉCRIT UNE FOIS.
+     Chaque page posait le sien : « Mes documents » respirait à 16 px,
+     « Réinvestir » à 20, « Trade » à 24, et trois pages bâties sur la même
+     grammaire de plis ne se ressemblaient pas. Le réglage vit ici, et les
+     pages harmonisées le lisent — le jour où la maison veut respirer plus
+     large, un seul chiffre bouge. */
+  --sections-gap: var(--s-8);
   --font-ui: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
   /* La seconde famille, et la seule : un serif a fort contraste pour les
      titres de l accueil et des pages qui presentent. Manrope tient tout le

@@ -8,7 +8,7 @@
   flex-direction: column;
   /* Vingt : le rayon d'un pli porte déjà vingt de marge haute, et les deux
      font les quarante qu'on veut entre chapitres. */
-  gap: var(--s-8);
+  gap: var(--sections-gap);
 }
 .tete {
   display: grid;

@@ -278,7 +278,14 @@ export const EN_REST: Record<string, string> = {
   "Flux de trésorerie": "Cash flows",
   "Rendement actuariel, convention Exact/Exact": "Yield to maturity, Actual/Actual convention",
   "Calcul de référence": "Reference calculation",
+  /* LE SIÈGE S'APPELLE « TRADE » DANS LES DEUX LANGUES, sur décision du
+     dirigeant le 23 octobre 2026. Le mot s'écrit donc sur lui-même : la
+     maison l'emploie tel quel en français, comme « desk » ou « trader »,
+     qu'elle écrit déjà sans les traduire.
+     « Agir » reste au dictionnaire : la page de fonctionnement et la vue
+     d'activité du desk le portent encore dans leurs propres phrases. */
   "Agir": "Act",
+  "Trade": "Trade",
   "choisir une ligne": "choose a line",
   "Choisissez deux lignes de Guichet : rendement, échéance, ticket et calcul de référence côte à côte. Rendements bruts, avant frais et fiscalité.": "Choose two lines of Guichet: yield, maturity, ticket and reference calculation side by side. Gross yields, before fees and tax.",
   "Choisissez une seconde ligne pour comparer.": "Choose a second line to compare.",

@@ -1,0 +1,213 @@
+/* ── Le parcours du téléphone : trois écrans qui glissent ────────────────────
+   Trois panneaux côte à côte sur un ruban, et la seule chose qui bouge est le
+   décalage du ruban. Le navigateur n'a donc qu'une transformation à animer,
+   ce qui tient les soixante images par seconde sur un téléphone — une
+   animation de hauteur ou de position en ferait recalculer la mise en page à
+   chaque image. */
+
+.parcours {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+
+/* LE CHEMIN EN HAUT, et il colle : on doit pouvoir revenir sans remonter la
+   page qu'on vient de descendre. */
+.fil {
+  position: sticky;
+  top: var(--barre-collante);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4) 0;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.retour {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--ctrl-h, 34px);
+  height: var(--ctrl-h, 34px);
+  margin-left: calc(var(--s-4) * -1);
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.retour svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.chemin {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  font-size: var(--t-2);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.chemin button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--ink-3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-3);
+}
+.chemin button:hover {
+  color: var(--ink);
+}
+.chemin i {
+  font-style: normal;
+  color: var(--ink-3);
+}
+/* Le dernier cran ne clique pas : on y est. Il se tronque plutôt que de
+   pousser les points hors de l'écran. */
+.chemin b {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* TROIS POINTS POUR LA PROFONDEUR : « je suis au troisième de trois » se lit
+   sans compter. Les crans franchis restent marqués, le cran courant est
+   plein. */
+.points {
+  flex: none;
+  display: flex;
+  gap: var(--s-3);
+}
+.points i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line-2);
+  transition: background 180ms ease, transform 180ms ease;
+}
+.points i[data-passe] {
+  background: var(--ink-3);
+}
+.points i[data-ici] {
+  background: var(--fill);
+  transform: scale(1.35);
+}
+
+/* LE HUBLOT ne laisse voir qu'un panneau, et il ne défile pas de côté : le
+   glissement est commandé, jamais traîné au doigt — un ruban qu'on peut
+   faire glisser à mi-chemin laisse le lecteur entre deux écrans. */
+.hublot {
+  overflow: hidden;
+}
+.ruban {
+  display: grid;
+  grid-template-columns: repeat(3, 100%);
+  transform: translateX(calc(var(--niveau) * -100%));
+  transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+/* Un mouvement qu'on n'a pas demandé est une gêne : sous « mouvement réduit »
+   le ruban saute d'un panneau à l'autre, et rien n'est perdu. */
+@media (prefers-reduced-motion: reduce) {
+  .ruban {
+    transition: none;
+  }
+}
+.volet {
+  min-width: 0;
+}
+/* Les panneaux hors champ ne doivent pas tendre la page à leur hauteur : le
+   plus long ferait respirer les deux autres dans le vide. */
+.volet[aria-hidden="true"] {
+  height: 0;
+  overflow: hidden;
+}
+
+.intro {
+  margin: 0 0 var(--s-6);
+  font-size: var(--t-2);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+.liste li {
+  border-bottom: 1px solid var(--line);
+}
+/* UNE LIGNE EST UNE CIBLE PLEINE LARGEUR, et haute : sur un téléphone, un
+   doigt vise mal, et une cible de huit pixels se rate. */
+.ligne {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  padding: var(--s-7) var(--s-3);
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ligne:active {
+  background: var(--surface-2);
+}
+.ligneEnPlace {
+  box-shadow: inset 2px 0 0 var(--fill);
+}
+.ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: var(--ink-2);
+}
+.ico svg {
+  width: 20px;
+  height: 20px;
+}
+.quoi {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.quoi b {
+  font-weight: 600;
+}
+.quoi small {
+  font-size: var(--t-1);
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.enPlace {
+  flex: none;
+  font-size: var(--t-1);
+  color: var(--gold-ink);
+}
+.chev {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

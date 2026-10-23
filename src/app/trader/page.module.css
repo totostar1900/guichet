@@ -4,7 +4,7 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--s-10);
+  gap: var(--sections-gap);
   padding-bottom: var(--s-10);
 }
 .tete {
@@ -256,114 +256,22 @@
   }
 }
 
-/* « Votre conseiller » : la seule surface pleine de la page, et une personne
-   plutôt qu'un geste. Elle suit les compteurs et précède les neuf services :
-   la page dit d'abord ce qu'on peut faire soi-même, puis qui répond quand ça
-   ne suffit pas. */
-.conseiller {
-  background: var(--surface);
-  border-top: 1px solid var(--navy);
-  padding: var(--s-8) var(--panel-inset);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-7);
-}
-.cTete {
-  display: flex;
-  gap: var(--s-8);
-  align-items: flex-start;
-}
-/* Un avatar est rond : c'est le seul rayon non nul de la maison. */
-.cAvatar,
-.cMarque {
-  flex-shrink: 0;
-  width: 52px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--gold-line);
-  background: var(--surface-2);
-  color: var(--fill);
-}
-.cAvatar {
-  border-radius: 999px;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-.cQui {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-2);
-  min-width: 0;
-}
-.cQui b {
-  font-family: var(--font-titre);
-  font-size: 1.5rem;
-  line-height: 1.15;
-  font-weight: 400;
-}
-.cEtiquette {
-  font-size: 0.65rem;
-  line-height: 1.3;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--gold-ink);
-}
-.cDispo {
-  font-size: 0.8rem;
-  line-height: 1.6;
-  color: var(--ink-3);
-}
-/* Ce que le lien emporte, montré avant qu'il parte. */
-.cEmporte {
-  margin: 0;
-  padding-top: var(--s-6);
-  border-top: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-2);
-  font-size: 0.8rem;
-  line-height: 1.6;
-  color: var(--ink-2);
-  font-variant-numeric: tabular-nums;
-}
-.cEmporte em {
-  font-style: normal;
-  font-size: 0.7rem;
-  color: var(--ink-3);
-}
-.cGestes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-5);
-  align-items: center;
-}
-.cWa {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-4);
-}
-.cMail {
-  font-size: 0.8rem;
-  color: var(--ink-2);
-  text-decoration: none;
-  border-bottom: 1px solid var(--line-2);
-  padding-bottom: 1px;
-}
-.cMail:hover {
-  color: var(--ink);
-  border-bottom-color: var(--ink-3);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @media (max-width: 640px) {
-  .cGestes .cWa,
-  .cGestes :global(.btn) {
-    flex-grow: 1;
-    justify-content: center;
-  }
+  
 }
 
 @media (max-width: 760px) {
@@ -604,4 +512,96 @@
   gap: var(--s-7);
   flex-wrap: wrap;
   font-size: var(--t-3);
+}
+
+
+/* ── Un seul contenu, deux arrangements ──────────────────────────────────────
+   Le choix se fait ici et non en JavaScript : mesurer la largeur au montage
+   ferait rendre au serveur un arrangement et au navigateur l'autre, c'est-à-
+   dire l'erreur d'hydratation qui faisait échouer une page sur deux au premier
+   clic. Les deux sont dans le HTML, un seul est à l'écran. */
+.large {
+  display: none;
+}
+.petit {
+  display: block;
+}
+@media (min-width: 761px) {
+  .large {
+    display: block;
+  }
+  .petit {
+    display: none;
+  }
+}
+
+/* Les rayons, en plis de la maison : l'espace entre eux suit le réglage des
+   chapitres, comme « Mes documents » et « Réinvestir ». */
+.rayons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sections-gap);
+}
+.dedans {
+  display: flex;
+  flex-direction: column;
+}
+
+/* La fiche d'un service, la même des deux côtés : raison, phrase, étapes,
+   geste. */
+.fiche {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding: var(--s-5) 0 var(--s-6);
+}
+.ficheTete {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+}
+.ficheTete b {
+  font-size: var(--t-4);
+  font-weight: 600;
+}
+.fiche p {
+  margin: 0;
+  font-size: var(--t-2);
+  line-height: 1.65;
+}
+/* LA RAISON D'ÊTRE VIENT EN TÊTE, et elle se distingue de la phrase du
+   client : celle-ci porte des chiffres, celle-là n'en porte aucun. Les
+   confondre ferait lire deux fois la même chose. */
+.raison {
+  color: var(--ink);
+}
+.fiche > p + p {
+  color: var(--ink-2);
+}
+.porte {
+  color: var(--ink-3) !important;
+  font-size: var(--t-1) !important;
+}
+.etapes {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  font-size: var(--t-2);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.cta {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ctrl-h, 34px);
+  padding: 0 var(--s-7);
+  border-radius: 999px;
+  background: var(--fill);
+  color: var(--fill-ink);
+  font-size: var(--ctrl-t, 0.82rem);
+  font-weight: 600;
+  text-decoration: none;
 }

@@ -72,11 +72,19 @@ export interface PliProps {
   attend?: string;
   /** L'état de l'opération, pour un groupe. */
   etiquette?: ReactNode;
+  /**
+   * UNE MARQUE AVANT LE NOM : une icône de service, et rien d'autre.
+   *
+   * Elle passait par « etiquette », qui se pose APRÈS le nom, donc à droite,
+   * contre le chevron : encadrée et collée au chevron, elle se lisait comme
+   * un second bouton. Une icône qui qualifie un titre se met devant lui.
+   */
+  marque?: ReactNode;
   defaut?: boolean;
   children: ReactNode;
 }
 
-export function Pli({ cle, niveau = "bande", titre, sous, compte, attend, etiquette, defaut = true, children }: PliProps) {
+export function Pli({ cle, niveau = "bande", titre, sous, compte, attend, etiquette, marque, defaut = true, children }: PliProps) {
   const t = useT();
   const garde = useSyncExternalStore(
     subscribe,
@@ -87,6 +95,7 @@ export function Pli({ cle, niveau = "bande", titre, sous, compte, attend, etique
   return (
     <section className={niveau === "filet" ? styles.groupe : styles.rayon} data-ouvert={ouvert ? "oui" : "non"}>
       <button type="button" className={niveau === "filet" ? styles.tete : styles.bande} aria-expanded={ouvert} aria-label={`${titre} · ${t(ouvert ? "Replier" : "Déplier")}`} onClick={() => poserLePli(cle, !ouvert)}>
+        {marque && <span className={styles.marque}>{marque}</span>}
         <span className={styles.nom}>
           <b>{titre}</b>
           {sous && <small>{sous}</small>}

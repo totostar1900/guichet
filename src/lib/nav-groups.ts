@@ -75,3 +75,20 @@ export const AGIR_PAGES: NavPage[] = [
 
 /** Ce qui se lit : l'indice, les sociétés, les notes, les actualités. */
 export const MARCHE_PAGES: NavPage[] = MARKET_PAGES;
+
+/**
+ * CE QUI SE LIT ET QUI SE DEMANDE, ET QUI N'AVAIT PAS DE PORTE.
+ *
+ * Les deux vivaient au bas de « Trade » : la carte du conseiller sous les
+ * neuf services, et un rayon « Avant de placer, comprendre » sous elle. On y
+ * tombait en descendant une page qu'on était venu lire pour AGIR, et personne
+ * ne descend une page de services pour chercher un numéro ou une leçon.
+ *
+ * Deux pages, donc, et le rail y mène. Le guide existait déjà sans qu'aucun
+ * menu du client n'y conduise ; « Nous contacter » est né de ce
+ * déménagement.
+ */
+export const AIDE_PAGES: NavPage[] = [
+  { key: "guide", href: "/info", label: "Le guide", tuile: "comprendre avant de placer", hint: "les éclairages, le parcours du marché, le simulateur et le glossaire" },
+  { key: "contact", href: "/moi/contact", label: "Nous contacter", tuile: "la personne qui répond", hint: "votre conseiller, le message déjà écrit, et le dépôt d'une réclamation" },
+];

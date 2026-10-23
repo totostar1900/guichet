@@ -1,5 +1,5 @@
 import { DESK_GROUPS } from "./desk-groupes";
-import { AGIR_PAGES, INSTRUMENTS_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "./nav-groups";
+import { AGIR_PAGES, AIDE_PAGES, INSTRUMENTS_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "./nav-groups";
 import { MARKET_PAGES } from "./market/pages";
 
 /**
@@ -39,8 +39,11 @@ const dePages = (pages: NavPage[]) => pages.map((p) => ({ href: p.href, label: p
 export const COLONNE_CLIENT: GroupeColonne[] = [
   { label: "Portefeuille", items: dePages(PORTEFEUILLE_PAGES) },
   { label: "Instruments", items: dePages(INSTRUMENTS_PAGES) },
-  { label: "Agir", items: dePages(AGIR_PAGES) },
+  { label: "Trade", items: dePages(AGIR_PAGES) },
   { label: "Marché", items: dePages(MARKET_PAGES) },
+  /* Ce qui se lit et ce qui se demande : deux pages sorties du bas de
+     « Trade », où l'on ne les trouvait que par accident. */
+  { label: "Aide", items: dePages(AIDE_PAGES) },
 ];
 
 /** Le visiteur : la vitrine, puis ce qu'il peut lire. */

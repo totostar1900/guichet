@@ -427,6 +427,38 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
  * adjudication, une ligne de la cote et un fonds, et nommer le Trésor la
  * rendrait fausse deux fois sur trois.
  */
+/**
+ * À QUOI CHAQUE SERVICE SERT, EN UNE PHRASE QUI NE DÉPEND DE PERSONNE.
+ *
+ * Un service se présentait par trois choses : son ÉTAT, une PHRASE avec les
+ * chiffres du client, et ses ÉTAPES. Il manquait la première de toutes —
+ * à quoi ça sert — et son absence ne se voyait pas sur l'écran large, où dix
+ * lignes se comparent d'un coup d'œil et où le nom suffit souvent.
+ *
+ * ELLE SE VOIT SUR LE TÉLÉPHONE. Quand un service occupe un écran entier,
+ * commencer par « 50 000 FCFA partent le 5 de chaque mois » parle à celui qui
+ * l'a déjà, et ne dit rien à celui qui ouvre la page pour savoir si ça le
+ * concerne. La raison vient donc en tête, la phrase du client ensuite, les
+ * étapes après, le geste en bas : du général au particulier.
+ *
+ * ELLE EST LA MÊME POUR TOUT LE MONDE, comme les étapes, et c'est ce qui la
+ * distingue de la phrase : aucun chiffre, aucun trou, rien à calculer. Un
+ * service dont la raison d'être changerait d'un client à l'autre serait un
+ * service mal découpé.
+ */
+export const RAISON: Record<string, string> = {
+  primaire: "Prêter à un État de la zone en achetant ses titres à l'émission, au prix de l'adjudication plutôt qu'à celui du marché.",
+  sondage: "Dire au desk ce que vous prendriez avant qu'une séance ouvre, sans vous engager, pour qu'il vous rappelle au bon moment.",
+  actions: "Devenir actionnaire d'une société cotée à la BVMAC, ou revendre ce que vous détenez, au cours du marché.",
+  fonds: "Confier une somme à un gérant agréé qui la répartit sur des dizaines de lignes : la diversification sans avoir à la faire soi-même.",
+  passage: "Changer de fonds sans sortir de votre argent, quand votre horizon ou votre besoin de liquidité a changé.",
+  epargne: "Placer une somme fixe chaque mois sans y penser : c'est la régularité qui fait le résultat, pas le moment choisi.",
+  reinvestissement: "Remettre au travail un coupon ou un remboursement dès son arrivée, au lieu de le laisser dormir sur un compte.",
+  prelevement: "Autoriser la maison à débiter votre compte bancaire à date fixe, sous un plafond que vous fixez, pour n'avoir plus de virement à faire.",
+  provision: "Laisser de l'argent chez nous pour que vos ordres se règlent sans attendre un virement, et le reprendre quand vous voulez.",
+  garde: "Vos titres sont inscrits à votre nom au dépositaire, jamais dans un compte collectif, et tout mouvement vous est prouvé.",
+};
+
 export const ETAPES: Record<string, string[]> = {
   primaire: [
     "Choisir la séance annoncée, sur le calendrier des adjudications.",

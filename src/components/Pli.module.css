@@ -127,3 +127,19 @@
     margin-left: 0;
   }
 }
+
+/* LA MARQUE D'UN PLI, devant son nom. Une icône de service posée après le
+   titre tombait contre le chevron, encadrée, et se lisait comme un second
+   bouton : une icône qui qualifie un titre se met devant lui. */
+.marque {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: var(--ink-3);
+}
+.marque svg {
+  width: 18px;
+  height: 18px;
+}

@@ -12,7 +12,7 @@
      VINGT ICI, PAS QUARANTE : le rayon d'un pli porte déjà vingt pixels de
      marge haute (Pli.module.css). Les écrire tous les deux donnait soixante,
      mesuré à l'écran — le triple, pas le double. */
-  gap: var(--s-8);
+  gap: var(--sections-gap);
 }
 .tete {
   display: grid;
