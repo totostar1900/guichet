@@ -15,15 +15,15 @@ export const EN_RELANCES: Record<string, string> = {
   "Ce qui déclenche un rappel": "What triggers a reminder",
   "Un devoir écrit, jamais une hésitation. Un bulletin émis, un mandat créé, une convention approuvée, des pièces demandées : ces quatre-là existent en base parce que le client a cliqué. Un formulaire rempli et non envoyé n'existe pas, et il ne doit pas exister — écrire « vous étiez sur le point de placer 250 000 FCFA » à quelqu'un qui a justement renoncé n'est pas un service.":
     "A written duty, never a hesitation. An issued order form, a created mandate, an approved agreement, requested documents: those four exist in the database because the client clicked. A form filled in and not sent does not exist, and must not exist — writing « you were about to place 250,000 FCFA » to someone who has just decided against it is not a service.",
-  "Deux règles ne se règlent pas ici. Un seul message par jour et par client, quel que soit le nombre de devoirs ouverts : le plus bloquant parle, les autres attendent leur tour. Et l'interruption demandée par le client, qui est immédiate, sans motif, et que le desk ne peut pas reprendre sans sa demande.":
-    "Two rules are not set here. One message per client per day, whatever the number of open duties: the most blocking one speaks, the others wait their turn. And the interruption requested by the client, which is immediate, needs no reason, and which the desk cannot undo without their asking.",
+  "Le client n'a que deux chemins, et tous deux mènent à sa décision : finir, ou vider son panier — retirer l'ordre, supprimer le mandat. L'un et l'autre éteignent le rappel d'eux-mêmes, parce que le devoir disparaît. Il n'a pas de bouton pour faire taire un rappel sans décider : ce serait garder le panier plein, et un ordre qui dort finit par peser sur sa tenue.":
+    "The client has only two paths, and both lead to their decision: finish, or empty the basket — withdraw the order, delete the mandate. Either one puts out the reminder by itself, because the duty is gone. They have no button to silence a reminder without deciding: that would keep the basket full, and an order left sleeping ends up weighing on their conduct record.",
   "Le réglage": "The setting",
   "Ce que le prochain tour fera": "What the next run will do",
   "tous les jours à 9 h 20": "every day at 9:20 am",
   "Aucune procédure en attente : personne n'a laissé de démarche en route.": "No procedure waiting: nobody has left one unfinished.",
   "Ceux qui ont demandé qu'on se taise": "Those who asked us to stop",
-  "Leur démarche reste ouverte et visible dans leur espace : écarter un rappel n'annule rien. Reprendre un rappel se fait à la demande du client, et le motif est gardé — rallumer des messages que quelqu'un a fait taire est le genre de geste qu'on doit pouvoir retrouver six mois plus tard.":
-    "Their procedure stays open and visible in their space: stopping a reminder cancels nothing. Restarting a reminder is done at the client's request, and the reason is kept — switching back on messages someone silenced is exactly the kind of move one must be able to find again six months later.",
+  "Interrompre et reprendre se font l'un comme l'autre à la demande du client, et le motif est gardé : ces deux gestes ne nous appartiennent pas, et ils se reliront dans six mois sans que personne se souvienne de l'appel. La démarche, elle, reste ouverte et visible dans leur espace — se taire n'annule rien.":
+    "Stopping and restarting are both done at the client's request, and the reason is kept: neither move is ours, and both will be read again in six months with nobody remembering the call. The procedure itself stays open and visible in their space — staying silent cancels nothing.",
   "Où cela se voit ailleurs": "Where this shows elsewhere",
   "Les messages partis figurent au journal des notifications, et les tours du robot à la page Santé.":
     "Sent messages appear in the notification log, and the robot's runs on the Health page.",
@@ -76,6 +76,13 @@ export const EN_RELANCES: Record<string, string> = {
   "Les rappels sont désactivés : rien ne partira.": "Reminders are switched off: nothing will go out.",
   "Enregistrer le réglage": "Save the setting",
   "Reprendre": "Restart",
+  /* Le desk interrompt à la demande du client : le bouton a changé de main
+     le 23 octobre 2026, et le motif dit qui l'a demandé. */
+  "Interrompre": "Stop",
+  "Le client l'a demandé par …": "The client asked by …",
+  "Dites pourquoi : ce geste n'appartient qu'au client, et le journal doit dire qu'il l'a demandé.":
+    "Say why: this move belongs to the client alone, and the log must say they asked for it.",
+  "Rappels interrompus. La démarche reste ouverte dans son espace.": "Reminders stopped. The procedure stays open in their space.",
   "Réglage enregistré. Le prochain tour du robot le lit.": "Setting saved. The robot's next run reads it.",
   "Rappels désactivés. Plus aucun message ne partira.": "Reminders switched off. No message will go out any more.",
   "Rappel repris. Le prochain tour l'enverra.": "Reminder restarted. The next run will send it.",
@@ -111,14 +118,16 @@ export const EN_RELANCES: Record<string, string> = {
     "Your direct debit mandate for {d} is waiting to be signed. Without it nothing stops: you transfer the money yourself at each due date.",
   "Signer mon mandat": "Sign my mandate",
   "votre provision": "your cash reserve",
-  "Ne plus me le rappeler": "Stop reminding me",
-  "Ne plus recevoir de rappel ? La démarche reste ici.": "Stop receiving reminders? The procedure stays here.",
-  "Oui, ne plus me le rappeler": "Yes, stop reminding me",
-  "déjà rappelé une fois": "reminded once already",
-  "déjà rappelé {n} fois": "reminded {n} times already",
-  "C'est noté : nous ne vous le rappellerons plus. La démarche reste ici quand vous voudrez la reprendre.":
-    "Noted: we will not remind you again. The procedure stays here for whenever you want to take it up.",
-  "Ce rappel n'existe pas, ou il ne vous appartient pas.": "This reminder does not exist, or it is not yours.",
+  /* LA SECONDE ISSUE : vider le panier. Elle mène à la page, jamais à une
+     action jouée dans la pastille. */
+  "Je ne veux plus de cet ordre": "I no longer want this order",
+  "Supprimer ce mandat": "Delete this mandate",
+  /* ON NE RÉVOQUE PAS CE QUI N'A JAMAIS EU COURS : un mandat préparé et
+     jamais signé n'autorisait rien, et « révoquer » y décrirait la reprise
+     d'un pouvoir qu'on n'a pas donné. */
+  "Mandat supprimé. Rien n'avait été autorisé.": "Mandate deleted. Nothing had been authorised.",
+  "Ce mandat est déjà supprimé.": "This mandate is already deleted.",
+  "Vous avez signé cet ordre : appelez-nous pour le retirer.": "You have signed this order: call us to withdraw it.",
   "Les rappels sont déjà interrompus pour cette démarche.": "Reminders are already stopped for this procedure.",
   "Cette démarche est terminée : plus rien ne vous est rappelé.": "This procedure is finished: nothing more is being reminded.",
 };

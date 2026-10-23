@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { useT } from "@/i18n/client";
 import { fmtDate } from "@/lib/format";
-import { reprendreRappelAction, type RelancePolitiqueResult } from "./actions";
+import { reprendreRappelAction, taireRappelAction, type RelancePolitiqueResult } from "./actions";
 import styles from "./page.module.css";
 
 export interface LigneEcartee {
@@ -71,6 +71,84 @@ export function Ecartes({ rows }: { rows: LigneEcartee[] }) {
                 ) : (
                   <button className="btn sm ghost" type="button" onClick={() => setOuvert(x.id)}>
                     {t("Reprendre")}
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {state && <p className={state.ok ? styles.ok : styles.ko}>{state.ok ? t(state.message) : t(state.error)}</p>}
+    </>
+  );
+}
+
+export interface LigneVivante {
+  id: string;
+  qui: string;
+  sujet: string;
+  envois: number;
+  refus: string | null;
+  prochain: string | null;
+  depuis: string;
+}
+
+/**
+ * LA FILE DU PROCHAIN TOUR, ET LE SEUL BOUTON QU'ELLE PORTE.
+ *
+ * « Interrompre » n'est pas un outil du desk : c'est la décision du client,
+ * relayée par la personne qui a décroché. Le motif est donc obligatoire et il
+ * dit QUI a demandé, parce que la ligne se relira dans six mois sans que
+ * personne se souvienne de l'appel.
+ *
+ * Le desk n'a aucun moyen de finir ni de vider le panier à la place du
+ * client, et c'est voulu : signer un ordre ou le retirer sont ses gestes.
+ */
+export function FileVivante({ rows, plafond, raisons }: { rows: LigneVivante[]; plafond: number; raisons: Record<string, string> }) {
+  const t = useT();
+  const [state, action, pending] = useActionState<RelancePolitiqueResult | null, FormData>(taireRappelAction, null);
+  const [ouvert, setOuvert] = useState<string | null>(null);
+
+  if (!rows.length) return <p className={styles.vide}>{t("Aucune procédure en attente : personne n'a laissé de démarche en route.")}</p>;
+
+  return (
+    <>
+      <table className={styles.file}>
+        <thead>
+          <tr>
+            <th>{t("Client")}</th>
+            <th>{t("Sujet")}</th>
+            <th>{t("Depuis")}</th>
+            <th>{t("Rappels")}</th>
+            <th>{t("Prochain")}</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((x) => (
+            <tr key={x.id}>
+              <td>{x.qui}</td>
+              <td>{t(x.sujet)}</td>
+              <td>{fmtDate(x.depuis)}</td>
+              <td>
+                {x.envois} / {plafond}
+              </td>
+              <td>{x.refus ? <span className="muted">{t(raisons[x.refus] ?? x.refus)}</span> : x.prochain ? fmtDate(x.prochain) : <span className="muted">{t("aujourd'hui")}</span>}</td>
+              <td>
+                {ouvert === x.id ? (
+                  <form action={action} className={styles.row}>
+                    <input type="hidden" name="id" value={x.id} />
+                    <input name="motif" placeholder={t("Le client l'a demandé par …")} required minLength={4} maxLength={200} />
+                    <button className="btn sm" type="submit" disabled={pending}>
+                      {t("Interrompre")}
+                    </button>
+                    <button className="btn sm ghost" type="button" onClick={() => setOuvert(null)}>
+                      {t("Annuler")}
+                    </button>
+                  </form>
+                ) : (
+                  <button className="btn sm ghost" type="button" onClick={() => setOuvert(x.id)}>
+                    {t("Interrompre")}
                   </button>
                 )}
               </td>

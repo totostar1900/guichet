@@ -5,7 +5,8 @@ import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { requireResponsable } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { NOM_DU_SUJET, RELANCE_DEFAUT, RELANCE_KEY, SUJETS, type PolitiqueDeRelance, type SujetDeRelance } from "@/lib/domain/relance";
+import { NOM_DU_SUJET, pourquoiPasEcarter, RELANCE_DEFAUT, RELANCE_KEY, SUJETS, type PolitiqueDeRelance, type SujetDeRelance } from "@/lib/domain/relance";
+import { noter } from "@/lib/journal";
 import { REF } from "@/lib/reference";
 
 export type RelancePolitiqueResult = { ok: true; message: string } | { ok: false; error: string };
@@ -101,7 +102,49 @@ export async function enregistrerRelancesAction(_p: RelancePolitiqueResult | nul
   return { ok: true, message: next.active ? "Réglage enregistré. Le prochain tour du robot le lit." : "Rappels désactivés. Plus aucun message ne partira." };
 }
 
-const reprise = z.object({ id: z.string().min(1) });
+const unRappel = z.object({ id: z.string().min(1) });
+
+/**
+ * INTERROMPRE LES RAPPELS D'UN CLIENT, SUR SA DEMANDE ET SUR ELLE SEULE.
+ *
+ * LE BOUTON A CHANGÉ DE MAIN, ET C'EST UNE DÉCISION DU 23 OCTOBRE 2026. Le
+ * client l'avait dans sa pastille : « ne plus me le rappeler ». C'était une
+ * troisième issue qui n'en est pas une — le panier restait plein, le desk
+ * gardait un ordre fantôme au carnet, et au bout de cinq jours ouvrés un
+ * ordre non réglé devient un manquement inscrit à la tenue du client. Faire
+ * taire le rappel, c'était le laisser glisser vers la sanction en silence.
+ *
+ * Il ne lui reste donc que deux chemins, et ils mènent tous deux à sa
+ * décision : finir, ou vider son panier. L'un et l'autre éteignent le rappel
+ * d'eux-mêmes, parce que le devoir disparaît de l'état.
+ *
+ * MAIS LE TÉLÉPHONE EXISTE. Quelqu'un appelle et dit « arrêtez de m'écrire »,
+ * sans vouloir ni signer ni retirer. Lui répondre « je ne peux pas » serait
+ * absurde, et le refuser tout court serait indéfendable. Le geste vit donc
+ * ici : il demande un motif, il laisse une ligne au journal du desk avec le
+ * nom de qui l'a pressé, et il paraît au registre du client — c'est sa
+ * décision, relayée, et il doit pouvoir la relire dans « Votre activité ».
+ */
+export async function taireRappelAction(_p: RelancePolitiqueResult | null, form: FormData): Promise<RelancePolitiqueResult> {
+  const me = await requireResponsable("/desk/referentiel/relances");
+  const p = unRappel.safeParse(Object.fromEntries(form));
+  if (!p.success) return { ok: false, error: "Rappel introuvable." };
+  const motif = String(form.get("motif") ?? "").trim();
+  if (motif.length < 4) return { ok: false, error: "Dites pourquoi : ce geste n'appartient qu'au client, et le journal doit dire qu'il l'a demandé." };
+
+  const r = repo();
+  const x = (await r.listRelances()).find((q) => q.id === p.data.id);
+  if (!x) return { ok: false, error: "Rappel introuvable." };
+  const pourquoi = pourquoiPasEcarter(x);
+  if (pourquoi) return { ok: false, error: pourquoi };
+
+  await r.majRelance(x.id, { state: "ecartee", motif: `à la demande du client, par ${me.name} : ${motif}` });
+  await audit("relance.ecartee", "relance", x.id, { before: { state: x.state }, after: { state: "ecartee" }, reason: motif });
+  await noter("rappel.ecarte", { objet: NOM_DU_SUJET[x.sujet], userId: x.userId });
+  await r.logEvent({ kind: "desk", html: `Rappels « ${NOM_DU_SUJET[x.sujet]} » interrompus par ${me.name} à la demande du client : ${motif}` });
+  revalidatePath("/desk/referentiel/relances");
+  return { ok: true, message: "Rappels interrompus. La démarche reste ouverte dans son espace." };
+}
 
 /**
  * REPRENDRE UN RAPPEL QUE LE CLIENT A ÉCARTÉ : sur sa demande, et sur elle
@@ -118,7 +161,7 @@ const reprise = z.object({ id: z.string().min(1) });
  */
 export async function reprendreRappelAction(_p: RelancePolitiqueResult | null, form: FormData): Promise<RelancePolitiqueResult> {
   const me = await requireResponsable("/desk/referentiel/relances");
-  const p = reprise.safeParse(Object.fromEntries(form));
+  const p = unRappel.safeParse(Object.fromEntries(form));
   if (!p.success) return { ok: false, error: "Rappel introuvable." };
   const motif = String(form.get("motif") ?? "").trim();
   if (motif.length < 4) return { ok: false, error: "Dites pourquoi : ce geste rallume des messages qu'un client a fait taire." };

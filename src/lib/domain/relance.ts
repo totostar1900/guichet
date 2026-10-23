@@ -28,11 +28,25 @@
  *   la pastille faire son travail. Un rappel qui ne s'arrête pas devient du
  *   bruit, et le bruit décrédibilise les quatre premiers.
  *
- *   LE CLIENT PEUT ÉCARTER, ET CELA SUFFIT. Pas de motif à donner, pas de
- *   confirmation à obtenir du desk : un bouton, et les rappels cessent pour
- *   CE devoir-là. Le devoir, lui, reste visible dans le Guichet : écarter un
- *   rappel n'annule pas un ordre, et laisser croire le contraire serait la
- *   faute grave de ce module.
+ *   DEUX ISSUES, ET LE RAPPEL S'ÉTEINT DE LUI-MÊME. Finir, ou vider son
+ *   panier : dans les deux cas le devoir disparaît de l'état, et le tour
+ *   suivant clôt la ligne sans que personne le lui dise.
+ *
+ * IL Y AVAIT UNE TROISIÈME ISSUE, ET ELLE N'EN ÉTAIT PAS UNE. Le client
+ * disposait d'un « ne plus me le rappeler » dans sa pastille. Elle a vécu une
+ * journée, le 23 octobre 2026 : faire taire le rappel laissait le panier
+ * plein, le desk gardait un ordre fantôme au carnet, et au bout de cinq jours
+ * ouvrés un ordre non réglé devient un manquement inscrit à la TENUE du
+ * client (clientele, article des manquements). La sourdine le laissait donc
+ * glisser vers la sanction en silence, ce qu'aucun rappel ne devrait faire.
+ *
+ * Le bouton a changé de main plutôt que de disparaître : le desk l'a, pour le
+ * client qui téléphone et demande qu'on se taise sans vouloir ni signer ni
+ * retirer. Il exige un motif, et il paraît au registre du client — c'est sa
+ * décision, relayée.
+ *
+ * ÉCARTER N'ANNULE TOUJOURS RIEN, et c'est resté la règle : le devoir demeure
+ * visible dans le Guichet, avec ses deux boutons. Seuls les messages cessent.
  *
  * LA CLEF EST PRÉCISE, ET C'EST CE QUI REND L'ÉCART SÛR. Si « signature »
  * était une clef unique par client, écarter le rappel d'un bulletin
@@ -116,6 +130,17 @@ export const ENJEU_DU_SUJET: Record<SujetDeRelance, string> = {
  * reste, puis la sortie — parce qu'un rappel dont on ne peut pas sortir n'est
  * plus un rappel.
  *
+ * DEUX ISSUES, ET NON UNE, PARTOUT OÙ IL Y A UN PANIER À VIDER. Un message
+ * qui ne sait dire que « signez » laisse sans réponse celui qui ne veut plus :
+ * il ne peut ni finir ni renoncer, donc il ne fait rien, et son ordre reste au
+ * carnet du desk jusqu'à devenir un manquement à sa tenue. Contre l'intuition,
+ * nommer la sortie fait RÉPONDRE davantage — un message dont on sait qu'il
+ * n'engage à rien s'ouvre sans crainte.
+ *
+ * La convention et les pièces n'en portent qu'une, et ce n'est pas un oubli :
+ * un dossier approuvé n'est pas un panier mais une offre que la maison a
+ * faite, et y renoncer est une décision d'un autre ordre.
+ *
  * Trois trous, et pas un de plus : « {prenom} », « {quoi} » qui nomme l'objet
  * précis, « {lien} » qui mène droit au geste. Le desk réécrit ces textes dans
  * sa page ; ces valeurs-ci sont ce que la maison dit tant que personne n'y a
@@ -140,17 +165,17 @@ export const TEXTE_PAR_DEFAUT: Record<SujetDeRelance, TexteDeRelance> = {
   signature: {
     objet: "Votre bulletin est prêt à signer",
     texte:
-      "Bonjour {prenom}, votre bulletin pour {quoi} est prêt. Il part dès que vous le signez, par un code à usage unique. Vous gardez la main jusqu'à la dernière seconde, et rien n'est débité avant. {lien}",
+      "Bonjour {prenom}, votre bulletin pour {quoi} est prêt : il part dès que vous le signez, par un code à usage unique, et rien n'est débité avant. Si vous avez changé d'avis, retirez-le d'un bouton sur la même page — c'est aussi simple. {lien}",
   },
   contre_proposition: {
     objet: "De nouvelles conditions vous attendent",
     texte:
-      "Bonjour {prenom}, le desk vous propose d'autres conditions sur {quoi}. C'est votre réponse qui décide : vous acceptez, vous refusez, ou vous nous dites ce que vous voulez. {lien}",
+      "Bonjour {prenom}, le desk vous propose d'autres conditions sur {quoi}. C'est votre réponse qui décide : vous acceptez, vous refusez, ou vous retirez l'ordre si vous préférez en rester là. {lien}",
   },
   mandat: {
     objet: "Votre épargne, sans y penser chaque mois",
     texte:
-      "Bonjour {prenom}, votre versement programmé sur {quoi} est en place. Si vous signez le mandat de prélèvement, la somme part toute seule le jour dit — plus de virement à faire, plus d'échéance oubliée. Vous le révoquez quand vous voulez. {lien}",
+      "Bonjour {prenom}, votre versement programmé sur {quoi} est en place. Signez le mandat et la somme part toute seule le jour dit : plus de virement à faire, plus d'échéance oubliée. Si vous préférez virer vous-même, supprimez-le — votre versement continue sans lui. {lien}",
   },
 };
 

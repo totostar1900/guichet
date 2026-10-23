@@ -49,6 +49,7 @@ export const EN_ACCUEIL2: Record<string, string> = {
   Portefeuille: "Portfolio",
   "À décider": "To decide",
   "{n} décisions vous attendent": "{n} decisions are waiting for you",
+  "Une décision vous attend": "One decision is waiting for you",
   "Vue d'ensemble": "Overview",
   "Indice et analyses": "Index and analysis",
 

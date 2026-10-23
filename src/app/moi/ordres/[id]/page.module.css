@@ -255,3 +255,49 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* ── Renoncer, sous la signature et jamais à côté ─────────────────────────────
+   Un ordre laissé en route n'a longtemps eu qu'une issue : le finir. Celui qui
+   ne voulait plus ne pouvait rien faire, donc il ne faisait rien, et son ordre
+   restait au carnet du desk jusqu'à devenir un manquement à sa tenue.
+   Le lien existe donc, mais il ne pèse pas le poids d'un bouton : on ne met
+   pas « signer » et « renoncer » au même rang, et deux cibles de même taille à
+   un doigt l'une de l'autre finissent par se confondre. */
+.renonce {
+  margin: var(--s-6) 0 0;
+  text-align: center;
+}
+.renonce button {
+  background: none;
+  border: 0;
+  padding: var(--s-3) var(--s-4);
+  font: inherit;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.renonce button:hover {
+  color: var(--ink);
+}
+/* La question pousse la page plutôt que de flotter : on lit ce qu'elle fait
+   avant de répondre, et elle emprunte la bande d'or du retrait au relevé. */
+.renonceForm {
+  display: grid;
+  gap: var(--s-5);
+  margin-top: var(--s-6);
+  padding: var(--s-6);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  font-size: var(--t-2);
+}
+.renonceForm p {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--gold-ink);
+}
+.renonceBtns {
+  display: flex;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}

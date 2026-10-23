@@ -184,3 +184,29 @@ export const ordreSignable = (i: Intent): boolean =>
  * reste au desk, qui l'envoie par son canal.
  */
 export const attendUneSignature = ordreSignable;
+
+/**
+ * L'ORDRE QUE SON CLIENT PEUT ENCORE REPRENDRE — LE PANIER QU'IL PEUT VIDER.
+ *
+ * La règle vit ici, et non dans l'action qui l'applique, parce que deux
+ * écrans et un serveur la lisent : la page de l'ordre, le menu du relevé, et
+ * `retirerMonOrdre`. Un bouton offert là où le serveur refuse serait une
+ * panne ; un bouton caché là où le serveur accepterait serait un appel
+ * téléphonique pour rien.
+ *
+ * TROIS ÉTATS, ET LA SIGNATURE QUI TRANCHE LE TROISIÈME.
+ *
+ *   REÇUE, et EN ATTENTE DE RÉPONSE : l'ordre est chez nous, il se reprend.
+ *
+ *   CONFIRMÉE SANS SIGNATURE : il se reprend aussi, et c'est le changement du
+ *   23 octobre 2026. Le bordereau est édité, mais rien n'est transmis et rien
+ *   n'est engagé au marché : c'est la signature qui engage, pas la
+ *   préparation du desk. C'était le panier abandonné le plus fréquent, et le
+ *   seul qu'on ne pouvait ni finir ni vider sans appeler.
+ *
+ *   TOUT LE RESTE, signature comprise : non. Un ordre signé engage son auteur,
+ *   un ordre transmis est parti avec ceux des autres, et aucun écran ne doit
+ *   laisser croire qu'on les rattrape d'un bouton.
+ */
+export const retirableParLeClient = (i: Intent): boolean =>
+  !i.signedAt && (i.state === "recue" || i.state === "contre_proposee" || i.state === "confirmee");

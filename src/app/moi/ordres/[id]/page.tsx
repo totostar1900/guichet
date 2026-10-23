@@ -4,6 +4,7 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { ordreSignable } from "@/lib/domain/intent";
+import { RetirerOrdre } from "./Retirer";
 import { aCouvrirPour, plafondEnVigueur, prixDuPlafond, seSigneAuPlafond } from "@/lib/domain/plafond";
 import { disponibleDe } from "@/lib/domain/provision";
 import { ordreAcceptable } from "@/lib/domain/ouverture";
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
  * cette raison exacte : un texte qu'on demandait d'accepter sans pouvoir
  * l'ouvrir. L'ordre se lit, autant de fois qu'on veut, avant de l'engager.
  */
-export default async function OrdrePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function OrdrePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams?: Promise<Record<string, string | string[] | undefined>> }) {
   const t = await getT();
   const { id } = await params;
   const s = await requireSession(`/moi/ordres/${id}`);
@@ -207,6 +208,11 @@ export default async function OrdrePage({ params }: { params: Promise<{ id: stri
               appareil, ce que le serveur ignore : il se peint après. */}
           <AuDoigt id={intent.id} couvert={couvrirait} />
           <SignatureOrdre id={intent.id} canal={canal ? { to: canal.to, channel: canal.channel } : undefined} codeEnvoyeLe={intent.pendingCodeAt} />
+          {/* LES DEUX ISSUES, SUR LA PAGE OÙ LE RAPPEL RENVOIE. Signer est
+              au-dessus et pèse son poids ; renoncer est un lien de texte en
+              dessous. Mais il existe, et c'est tout le point : un panier
+              qu'on ne peut pas vider se garde plein. */}
+          <RetirerOrdre intentId={intent.id} ref_={intent.ref} ouvertDoffice={"retirer" in ((await searchParams) ?? {})} />
         </>
       ) : ordreSignable(intent) && !habilite ? (
         <p className={styles.hint}>

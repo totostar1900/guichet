@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useT } from "@/i18n/client";
+import { retirableParLeClient } from "@/lib/domain/intent";
 import { retirerMonOrdre } from "./counter-actions";
 import styles from "./page.module.css";
 
@@ -23,15 +24,22 @@ import styles from "./page.module.css";
  * le savoir avant et non après. C'est la seule commande de cet écran dont on ne
  * se défait pas d'un bouton.
  *
- * Quand l'ordre est confirmé, le retrait n'est pas offert mais la raison l'est :
- * un bouton grisé sans explication se lit comme une panne, et une panne fait
- * appeler pour la mauvaise raison.
+ * Quand le retrait n'est plus possible, il n'est pas offert mais la raison
+ * l'est : un bouton grisé sans explication se lit comme une panne, et une
+ * panne fait appeler pour la mauvaise raison.
+ *
+ * LA RÈGLE DU RETRAIT VIENT DU DOMAINE, et plus de cet écran. Elle y était
+ * recopiée — « reçue ou contre-proposée » — à côté de la même règle écrite
+ * dans l'action serveur : deux copies d'une règle finissent toujours par ne
+ * plus dire pareil, et c'est arrivé le jour où la seconde s'est ouverte aux
+ * ordres confirmés non signés. Les deux lisent maintenant
+ * `retirableParLeClient`.
  */
-export function OrdreMenu({ intentId, offerId, etat, ref_ }: { intentId: string; offerId: string; etat: string; ref_: string }) {
+export function OrdreMenu({ intentId, offerId, etat, ref_, signe }: { intentId: string; offerId: string; etat: string; ref_: string; signe?: boolean }) {
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
   const [confirme, setConfirme] = useState(false);
-  const retirable = etat === "recue" || etat === "contre_proposee";
+  const retirable = retirableParLeClient({ state: etat, signedAt: signe ? "signe" : undefined } as Parameters<typeof retirableParLeClient>[0]);
   const partie = etat === "transmise" || etat === "servie" || etat === "non_servie" || etat === "reglee";
 
   if (confirme)
@@ -71,7 +79,7 @@ export function OrdreMenu({ intentId, offerId, etat, ref_ }: { intentId: string;
         </button>
       ) : (
         <span className={styles.ordreNon}>
-          {t(partie ? "L'ordre est parti au marché : il ne se retire plus, ni par vous ni par nous." : "L'ordre est confirmé et au carnet : appelez-nous pour le retirer.")}
+          {t(partie ? "L'ordre est parti au marché : il ne se retire plus, ni par vous ni par nous." : "Vous avez signé cet ordre : appelez-nous pour le retirer.")}
         </span>
       )}
       <button type="button" className={styles.ordreFerme} onClick={() => setOuvert(false)}>

@@ -93,7 +93,11 @@ export function MesMandats({
           <h2>{t("Vos autorisations")}</h2>
           <ul className={styles.liste}>
             {vivants.map((m) => (
-              <li key={m.id} className={styles.mandat}>
+              /* L'ANCRE DU RAPPEL : son second lien renvoie ici, sur le
+                 mandat qui attend sa signature. Sans elle, le client qui a
+                 cliqué « supprimer ce mandat » dans un message atterrissait
+                 en haut d'une page et devait le retrouver. */
+              <li key={m.id} className={styles.mandat} id={m.signeLe ? undefined : "mandat"}>
                 <div className={styles.mTete}>
                   <b>{m.objet === "provision" ? t("Alimenter ma provision") : t("Alimenter mon épargne programmée")}</b>
                   <span className={m.signeLe ? styles.actif : styles.attente}>{m.signeLe ? (m.etat === "suspendu" ? t("suspendu") : t("actif")) : t("à signer")}</span>
@@ -168,7 +172,13 @@ export function MesMandats({
                 )}
 
                 {/* LA RÉVOCATION EST UN DROIT, DONC ELLE EST VISIBLE. La cacher
-                    derrière un message au desk reviendrait à la supprimer. */}
+                    derrière un message au desk reviendrait à la supprimer.
+
+                    ON NE RÉVOQUE PAS CE QUI N'A JAMAIS EU COURS. Un mandat
+                    préparé et jamais signé n'autorise rien : « révoquer » y
+                    décrit l'annulation d'un pouvoir qu'on n'a pas donné, et
+                    le mot fait hésiter celui qui voudrait simplement effacer
+                    un brouillon. Il se supprime, et le reste se révoque. */}
                 {aRevoquer === m.id ? (
                   <form action={revocAct} className={styles.codeRow}>
                     <input type="hidden" name="id" value={m.id} />
@@ -180,12 +190,12 @@ export function MesMandats({
                       {t("Garder")}
                     </button>
                     <button className="btn sm primary" type="submit" disabled={revoquant}>
-                      {revoquant ? "…" : t("Révoquer")}
+                      {revoquant ? "…" : t(m.signeLe ? "Révoquer" : "Supprimer")}
                     </button>
                   </form>
                 ) : (
                   <button type="button" className="btn sm" onClick={() => setARevoquer(m.id)}>
-                    {t("Révoquer ce mandat")}
+                    {t(m.signeLe ? "Révoquer ce mandat" : "Supprimer ce mandat")}
                   </button>
                 )}
                 <Msg state={revoc} />

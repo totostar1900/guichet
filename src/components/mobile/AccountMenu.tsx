@@ -6,7 +6,6 @@ import { useActionState, useState, useTransition } from "react";
 import { useLang, useT } from "@/i18n/client";
 import { logout, logoutEverywhere } from "@/app/connexion/actions";
 import { identityAction, prefsAction, type IdentityResult } from "@/app/moi/actions";
-import { ecarterRappelAction, type RappelResult } from "@/app/moi/rappels-actions";
 import type { ClientPrefs } from "@/lib/domain/types";
 import type { Attente } from "@/lib/domain/services";
 import { LangSwitch } from "@/components/LangSwitch";
@@ -154,12 +153,6 @@ export function AccountMenu(p: AccountProps & { dock?: "top-right" | "bottom-lef
      décision prise n'a pas à rouvrir son tiroir au retour. */
   const [alertes, setAlertes] = useState(false);
   const [choisie, setChoisie] = useState<string | null>(attentes[0]?.cle ?? null);
-  /* L'interruption des rappels : une seule action pour tout le panneau, et
-     l'attente qui attend son oui. Comme l'arrêt d'un versement, la question
-     tient sur place : ce qu'on fait taire reste sous les yeux pendant qu'on
-     décide. */
-  const [rappelEtat, ecarter, ecartPending] = useActionState<RappelResult | null, FormData>(ecarterRappelAction, null);
-  const [aTaire, setATaire] = useState<string | null>(null);
 
   const setPref = (patch: ClientPrefs) => {
     const before = prefs;
@@ -250,8 +243,11 @@ export function AccountMenu(p: AccountProps & { dock?: "top-right" | "bottom-lef
             className={styles.alerte}
             onClick={() => setAlertes(!alertes)}
             aria-expanded={alertes}
-            aria-label={t("{n} décisions vous attendent", { n: String(attentes.length) })}
-            title={t("{n} décisions vous attendent", { n: String(attentes.length) })}
+            /* « 1 décisions vous attendent » : le pluriel était fixe, et il
+               se lit à voix haute par les lecteurs d'écran autant qu'il
+               s'affiche en infobulle. */
+            aria-label={attentes.length > 1 ? t("{n} décisions vous attendent", { n: String(attentes.length) }) : t("Une décision vous attend")}
+            title={attentes.length > 1 ? t("{n} décisions vous attendent", { n: String(attentes.length) }) : t("Une décision vous attend")}
           >
             {attentes.length}
           </button>
@@ -283,48 +279,25 @@ export function AccountMenu(p: AccountProps & { dock?: "top-right" | "bottom-lef
                           <Link className={styles.attGeste} href={a.href} onClick={() => setAlertes(false)}>
                             {t(a.geste)}
                           </Link>
-                          {/* LA SORTIE, et elle n'existe que là où il y a de quoi
-                              sortir. Une séance annoncée ne produit aucun message :
-                              y offrir « ne plus me le rappeler » promettrait
-                              d'éteindre quelque chose qui n'existe pas.
-                              Le mot compte : on interrompt un RAPPEL, pas une
-                              démarche. Celui qui lirait « annuler » croirait avoir
-                              retiré son ordre, et il le découvrirait au pire
-                              moment. */}
-                          {/* LE BLOC SURVIT À SON PROPRE SUCCÈS. Écarter fait
-                              disparaître « a.rappel », donc le bloc entier
-                              s'évanouissait en emportant la réponse : le
-                              bouton partait sans un mot, et une réussite
-                              muette se lit comme une panne. La seconde
-                              condition le garde en vie le temps de dire que
-                              c'est noté. */}
-                          {(a.rappel || (rappelEtat && aTaire === a.cle)) && (
-                            <div className={styles.attTaire}>
-                              {a.rappel && a.rappel.envois > 0 && (
-                                <small className={styles.attDeja}>
-                                  {a.rappel.envois > 1 ? t("déjà rappelé {n} fois", { n: String(a.rappel.envois) }) : t("déjà rappelé une fois")}
-                                </small>
-                              )}
-                              {a.rappel && aTaire === a.cle && !rappelEtat?.ok ? (
-                                <form action={ecarter} className={styles.attForm}>
-                                  <input type="hidden" name="ids" value={a.rappel.ids.join(",")} />
-                                  <span>{t("Ne plus recevoir de rappel ? La démarche reste ici.")}</span>
-                                  <span className={styles.attReponses}>
-                                    <button type="submit" className={styles.attOui} disabled={ecartPending}>
-                                      {t("Oui, ne plus me le rappeler")}
-                                    </button>
-                                    <button type="button" className={styles.attNon} onClick={() => setATaire(null)}>
-                                      {t("Annuler")}
-                                    </button>
-                                  </span>
-                                </form>
-                              ) : a.rappel ? (
-                                <button type="button" className={styles.attNon} onClick={() => setATaire(a.cle)}>
-                                  {t("Ne plus me le rappeler")}
-                                </button>
-                              ) : null}
-                              {rappelEtat && aTaire === a.cle && <small className={rappelEtat.ok ? styles.attOk : styles.attErr}>{rappelEtat.ok ? rappelEtat.message : rappelEtat.error}</small>}
-                            </div>
+                          {/* LES DEUX ISSUES, ET AUCUNE NE SE JOUE ICI.
+                              La pastille portait un « ne plus me le rappeler »,
+                              et c'était une troisième issue qui n'en est pas
+                              une : le panier restait plein, le desk gardait un
+                              ordre fantôme au carnet, et au bout de cinq jours
+                              ouvrés l'ordre non réglé devenait un manquement
+                              inscrit à la tenue du client. Faire taire le
+                              rappel, c'était le laisser glisser vers la
+                              sanction en silence.
+                              Le second lien renvoie donc à la page de l'ordre,
+                              à l'ancre où la question se pose, et non à une
+                              action qui se jouerait dans un panneau de trois
+                              cents pixels à un doigt de « Signer ». On y
+                              retourne pour finir, ou on y retourne pour
+                              renoncer. */}
+                          {a.sortie && (
+                            <Link className={styles.attSortie} href={a.sortie.href} onClick={() => setAlertes(false)}>
+                              {t(a.sortie.geste)}
+                            </Link>
                           )}
                         </div>
                       )}

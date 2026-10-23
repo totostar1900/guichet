@@ -523,72 +523,23 @@
   font-weight: 600;
   text-decoration: none;
 }
-/* LA SORTIE DU RAPPEL, sous le geste et jamais à côté de lui.
+/* LA SECONDE ISSUE, sous le geste et jamais à côté de lui.
    Côte à côte, deux boutons de même poids demandent de choisir entre faire et
-   ne pas faire ; l'un sous l'autre, le geste garde la première place et la
-   sortie reste trouvable. Elle est en texte nu, pas en bouton plein : on ne
-   met pas le même poids sur « signer » et sur « ne plus m'en parler ». */
-.attTaire {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
+   défaire ; l'un sous l'autre, le geste garde la première place et la sortie
+   reste trouvable. Elle est en texte nu, pas en bouton plein : on ne met pas
+   le même poids sur « signer » et sur « renoncer », et deux cibles de même
+   taille à un doigt l'une de l'autre finissent par se confondre. */
+.attSortie {
+  display: block;
   margin-top: var(--s-4);
   padding-top: var(--s-4);
   border-top: 1px solid var(--line);
-}
-.attDeja {
-  font-size: var(--t-1);
-  color: var(--ink-2);
-}
-/* LA QUESTION AU-DESSUS, LES DEUX RÉPONSES EN DESSOUS.
-   Posée sur une seule ligne, elle sortait du panneau : celui-ci fait 325 px
-   au pied de la colonne, et « Ne plus recevoir de rappel ? La démarche reste
-   ici. Oui Annuler » en demande le double. Mesuré le 23 octobre 2026 : la
-   question était coupée et « Oui » tombait hors de l'écran, donc on ne
-   pouvait répondre que « Annuler ». */
-.attForm {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--s-3);
-  font-size: var(--t-1);
-  color: var(--ink-2);
-}
-.attForm span {
-  line-height: 1.45;
-}
-.attReponses {
-  display: flex;
-  align-items: center;
-  gap: var(--s-6);
-}
-.attNon,
-.attOui {
-  border: 0;
-  background: none;
-  padding: 0;
-  font: inherit;
   font-size: var(--t-1);
   color: var(--ink-2);
   text-decoration: underline;
-  cursor: pointer;
-  align-self: flex-start;
 }
-.attOui {
+.attSortie:hover {
   color: var(--ink);
-  font-weight: 600;
-}
-.attNon:hover,
-.attOui:hover {
-  color: var(--ink);
-}
-.attOk {
-  font-size: var(--t-1);
-  color: var(--ink-2);
-}
-.attErr {
-  font-size: var(--t-1);
-  color: var(--crit);
 }
 .alerte:hover,
 .alerte:focus-visible {

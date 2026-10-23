@@ -8,6 +8,7 @@ import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { packReason } from "@/lib/domain/cancel-reasons";
 import { counterLapsed, counterTerms } from "@/lib/domain/counter";
+import { retirableParLeClient } from "@/lib/domain/intent";
 import { notifyIntentUpdated } from "@/lib/notify/dispatch";
 
 /**
@@ -81,11 +82,27 @@ export async function answerCounter(form: FormData): Promise<void> {
  * C'est son ordre ; tant qu'il n'a pas quitté la maison, il peut le reprendre.
  *
  * LA LIMITE EST CELLE DU DESK, ET ELLE EST LA MÊME POUR TOUT LE MONDE : reçue
- * ou en attente de réponse, l'ordre est encore chez nous et se retire. Confirmé,
- * le bordereau est édité et l'ordre est au carnet : il faut une personne, donc
- * un appel. Transmis, il est parti avec ceux des autres investisseurs, et il ne
- * se retire plus de nulle part, par personne. Un écran qui laisserait croire le
+ * ou en attente de réponse, l'ordre est encore chez nous et se retire.
+ * Transmis, il est parti avec ceux des autres investisseurs, et il ne se
+ * retire plus de nulle part, par personne. Un écran qui laisserait croire le
  * contraire mentirait sur ce qui est déjà engagé.
+ *
+ * CONFIRMÉ MAIS NON SIGNÉ SE RETIRE AUSSI, et c'est une décision du 23 octobre
+ * 2026. La règle s'arrêtait à « reçue », au motif que le bordereau est édité et
+ * l'ordre au carnet dès la confirmation ; elle était trop large. Un ordre
+ * confirmé que personne n'a signé N'EST PAS PARTI : rien n'est transmis, rien
+ * n'est engagé au marché, et c'est la signature qui engage, pas la préparation
+ * du desk.
+ *
+ * Or c'était exactement le panier abandonné le plus fréquent — le client ouvre
+ * son bulletin, va chercher son téléphone pour le code, et ne revient pas. Il
+ * ne pouvait alors ni finir ni renoncer sans appeler, donc il ne faisait ni
+ * l'un ni l'autre : l'ordre restait au carnet du desk, et au bout de cinq jours
+ * ouvrés il devenait un manquement inscrit à la tenue du client. Lui laisser
+ * vider son panier le protège autant qu'il assainit le carnet.
+ *
+ * SIGNÉ, EN REVANCHE, L'ORDRE NE SE RETIRE PLUS ICI : le client s'est engagé,
+ * et la suite est une annulation que le desk prononce.
  *
  * Le motif s'écrit « à votre demande » du côté du client, parce que c'est
  * exactement ce que c'est, et le desk le lit comme tel dans son journal.
@@ -101,7 +118,7 @@ export async function retirerMonOrdre(form: FormData): Promise<void> {
   const it = intents.find((x) => x.id === intentId);
   // L'ordre doit être le sien : un identifiant deviné ne retire rien.
   if (!it || it.clientId !== s.userId) return;
-  if (it.state !== "recue" && it.state !== "contre_proposee") return;
+  if (!retirableParLeClient(it)) return;
 
   const updated = await r.setIntentState(intentId, "annulee", packReason("client"));
   await noter("ordre.retire", { objet: it.ref });

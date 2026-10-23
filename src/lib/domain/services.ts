@@ -516,19 +516,23 @@ export interface Attente {
   /** L'attente qui porte de l'argent arrivé : elle se distingue des autres. */
   ton: "arrive" | "annonce" | "retard";
   /**
-   * LES RAPPELS QUE CETTE ATTENTE DÉCLENCHE, QUAND ELLE EN DÉCLENCHE.
+   * LA SECONDE ISSUE : VIDER LE PANIER.
    *
-   * Présent, le panneau offre de les interrompre. Absent, il n'offre rien —
-   * et c'est juste : une séance annoncée ou un coupon disponible ne produit
-   * aucun message, donc un bouton « ne plus me le rappeler » y promettrait
-   * d'éteindre quelque chose qui n'existe pas.
+   * Une attente n'offrait qu'un chemin, celui qui finit. Celui qui ne veut
+   * plus n'avait donc rien à faire, donc il ne faisait rien, et son ordre
+   * restait au carnet du desk jusqu'à devenir un manquement à sa tenue. Un
+   * panier qu'on ne peut pas vider se garde plein.
    *
-   * Plusieurs identifiants parce qu'une attente en groupe plusieurs : « 3
-   * ordres » porte trois rappels, et celui qui écarte les écarte tous les
-   * trois. Lui en éteindre un sur trois serait le contraire de ce qu'il
-   * demande.
+   * ELLE MÈNE À LA MÊME PAGE, et c'est voulu : on ne retire pas un ordre
+   * depuis une pastille de trois cents pixels, à un doigt de « Signer ».
+   * Les deux liens renvoient à l'endroit où la décision se prend, l'un en
+   * haut de la page, l'autre à son ancre.
+   *
+   * Absente là où il n'y a rien à vider : une convention approuvée n'est pas
+   * un panier mais une offre que la maison a faite, et un dossier
+   * s'abandonne autrement que d'un lien.
    */
-  rappel?: { ids: string[]; envois: number };
+  sortie?: { geste: string; href: string };
 }
 
 /**
@@ -550,24 +554,19 @@ export interface Attente {
  * échéance en retard chez l'émetteur ne produisent aucun message — rien à
  * éteindre, donc pas de bouton pour l'éteindre.
  */
-const SUJET_DE_LATTENTE: Record<string, Relance["sujet"]> = {
-  convention: "convention",
-  complements: "complements",
-  signer: "signature",
-  repondre: "contre_proposition",
-  mandat: "mandat",
-};
-
-/** Les rappels vivants derrière une attente, s'il y en a. */
-function rappelDe(c: ContexteClient, cle: string): Attente["rappel"] {
-  const sujet = SUJET_DE_LATTENTE[cle];
-  if (!sujet) return undefined;
-  const siens = (c.rappels ?? []).filter((r) => r.sujet === sujet && r.state === "en_cours");
-  if (!siens.length) return undefined;
-  /* Le plus avancé donne le compte : « déjà rappelé 3 fois » se lit, une
-     moyenne de trois compteurs ne se lit pas. */
-  return { ids: siens.map((r) => r.id), envois: Math.max(...siens.map((r) => r.envois)) };
-}
+/**
+ * CE QUE CHAQUE ATTENTE PERMET DE VIDER.
+ *
+ * Trois paniers sur cinq se vident, et les deux autres ne sont pas des
+ * paniers. Un ordre se retire, un mandat non signé se supprime : le client
+ * les a remplis, il peut les défaire. Une convention approuvée est une offre
+ * que la maison a faite, et un dossier à compléter est un examen en cours :
+ * y renoncer est une décision d'un autre ordre, qui ne tient pas dans un
+ * lien et qui viendra à son tour.
+ *
+ * Un ordre déjà signé n'y est pas non plus, mais pour l'autre raison : il
+ * engage son auteur, et ces attentes-là n'attendent plus rien de lui.
+ */
 
 export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string): Attente[] {
   const out: Attente[] = [];
@@ -587,7 +586,6 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       geste: "Accepter ma convention",
       href: "/ouvrir-un-compte/convention",
       ton: "retard",
-      rappel: rappelDe(c, "convention"),
     });
   /* UNE REPRISE SE DIT AUTREMENT, parce que le compte, lui, n'attend rien.
      « Votre compte s'ouvre dès que la convention est acceptée » serait faux
@@ -601,7 +599,6 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       geste: "Reprendre ma convention",
       href: "/ouvrir-un-compte/convention",
       ton: "retard",
-      rappel: rappelDe(c, "convention"),
     });
   if (c.dossier === "complements")
     out.push({
@@ -612,7 +609,6 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       geste: "Compléter mon dossier",
       href: "/ouvrir-un-compte",
       ton: "retard",
-      rappel: rappelDe(c, "complements"),
     });
   if (c.aSigner > 0)
     out.push({
@@ -623,7 +619,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       geste: "Signer",
       href: c.ouSigner ? `/moi/ordres/${c.ouSigner}` : "/moi#ordres-en-cours",
       ton: "retard",
-      rappel: rappelDe(c, "signer"),
+      sortie: c.ouSigner ? { geste: "Je ne veux plus de cet ordre", href: `/moi/ordres/${c.ouSigner}?retirer` } : undefined,
     });
   if (c.aRepondre > 0)
     out.push({
@@ -634,7 +630,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       geste: "Répondre",
       href: c.ouRepondre ? `/moi/ordres/${c.ouRepondre}` : "/moi#ordres-en-cours",
       ton: "retard",
-      rappel: rappelDe(c, "repondre"),
+      sortie: c.ouRepondre ? { geste: "Je ne veux plus de cet ordre", href: `/moi/ordres/${c.ouRepondre}?retirer` } : undefined,
     });
   /* LE MANDAT FERME LA MARCHE DES DEVOIRS, et le ton le dit : « quand vous
      voudrez », pas « il manque ». Rien n'est bloqué — le versement part, le
@@ -649,7 +645,7 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       geste: "Signer mon mandat",
       href: "/moi/prelevements",
       ton: "annonce",
-      rappel: rappelDe(c, "mandat"),
+      sortie: { geste: "Supprimer ce mandat", href: "/moi/prelevements#mandat" },
     });
   if (c.disponible > 0)
     out.push({

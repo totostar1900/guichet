@@ -5,9 +5,9 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { loadRelance } from "@/lib/policy";
 import { NOM_DU_SUJET, pourquoiPasRelancer, prochainRappel, SUJETS } from "@/lib/domain/relance";
-import { fmtDate, localIso } from "@/lib/format";
+import { localIso } from "@/lib/format";
 import { RelancesForm, type FileParSujet } from "./Form";
-import { Ecartes } from "./Ecartes";
+import { Ecartes, FileVivante } from "./Ecartes";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -119,7 +119,7 @@ export default async function RelancesPage() {
             </p>
             <p>
               {t(
-                "Deux règles ne se règlent pas ici. Un seul message par jour et par client, quel que soit le nombre de devoirs ouverts : le plus bloquant parle, les autres attendent leur tour. Et l'interruption demandée par le client, qui est immédiate, sans motif, et que le desk ne peut pas reprendre sans sa demande.",
+                "Le client n'a que deux chemins, et tous deux mènent à sa décision : finir, ou vider son panier — retirer l'ordre, supprimer le mandat. L'un et l'autre éteignent le rappel d'eux-mêmes, parce que le devoir disparaît. Il n'a pas de bouton pour faire taire un rappel sans décider : ce serait garder le panier plein, et un ordre qui dort finit par peser sur sa tenue.",
               )}
             </p>
           </div>
@@ -140,34 +140,7 @@ export default async function RelancesPage() {
             <span className="muted">{t("tous les jours à 9 h 20")}</span>
           </div>
           <div className={styles.corps}>
-            {vivantes.length === 0 ? (
-              <p className={styles.vide}>{t("Aucune procédure en attente : personne n'a laissé de démarche en route.")}</p>
-            ) : (
-              <table className={styles.file}>
-                <thead>
-                  <tr>
-                    <th>{t("Client")}</th>
-                    <th>{t("Sujet")}</th>
-                    <th>{t("Depuis")}</th>
-                    <th>{t("Rappels")}</th>
-                    <th>{t("Prochain")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {vivantes.map((x) => (
-                    <tr key={x.id}>
-                      <td>{x.qui}</td>
-                      <td>{t(x.sujet)}</td>
-                      <td>{fmtDate(x.depuis)}</td>
-                      <td>
-                        {x.envois} / {p.rappels}
-                      </td>
-                      <td>{x.refus ? <span className="muted">{t(RAISON[x.refus] ?? x.refus)}</span> : x.prochain ? fmtDate(x.prochain) : <span className="muted">{t("aujourd'hui")}</span>}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <FileVivante rows={vivantes} plafond={p.rappels} raisons={RAISON} />
           </div>
         </section>
 
@@ -178,7 +151,7 @@ export default async function RelancesPage() {
           <div className={styles.corps}>
             <p>
               {t(
-                "Leur démarche reste ouverte et visible dans leur espace : écarter un rappel n'annule rien. Reprendre un rappel se fait à la demande du client, et le motif est gardé — rallumer des messages que quelqu'un a fait taire est le genre de geste qu'on doit pouvoir retrouver six mois plus tard.",
+                "Interrompre et reprendre se font l'un comme l'autre à la demande du client, et le motif est gardé : ces deux gestes ne nous appartiennent pas, et ils se reliront dans six mois sans que personne se souvienne de l'appel. La démarche, elle, reste ouverte et visible dans leur espace — se taire n'annule rien.",
               )}
             </p>
             <Ecartes rows={ecartes} />

@@ -164,12 +164,15 @@ export async function revoquerMandatAction(_p: MandatResult | null, form: FormDa
   const mien = await monMandat(String(form.get("id") ?? ""));
   if (!mien) return { ok: false, error: "Mandat introuvable." };
   const { m } = mien;
-  if (m.state === "revoque") return { ok: true, message: "Ce mandat est déjà révoqué." };
+  if (m.state === "revoque") return { ok: true, message: m.signedAt ? "Ce mandat est déjà révoqué." : "Ce mandat est déjà supprimé." };
   const motif = String(form.get("motif") ?? "").trim();
   await repo().updateMandat(m.id, { state: "revoque", revokedAt: new Date().toISOString(), revokedReason: motif || undefined });
   await repo().logEvent({ kind: "system", html: `<b>Mandat de prélèvement révoqué</b> · ${m.ref}${motif ? ` · ${motif}` : ""}` });
   revalidatePath(PATH);
   revalidatePath("/desk");
   await noter("mandat.revoque", { objet: m.ref });
-  return { ok: true, message: mandatVivant(m) ? "Mandat révoqué. Plus aucun prélèvement ne partira." : "Mandat révoqué." };
+  /* ON NE RÉVOQUE PAS CE QUI N'A JAMAIS EU COURS : un mandat préparé et
+     jamais signé n'autorisait rien, et le dire « révoqué » laisserait croire
+     qu'un pouvoir donné vient d'être repris. */
+  return { ok: true, message: mandatVivant(m) ? "Mandat révoqué. Plus aucun prélèvement ne partira." : m.signedAt ? "Mandat révoqué." : "Mandat supprimé. Rien n'avait été autorisé." };
 }
