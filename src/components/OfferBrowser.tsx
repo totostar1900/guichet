@@ -16,6 +16,7 @@ import { DensitySwitch, useDistinction } from "./Density";
 import { BackToTop } from "./BackToTop";
 import { SectionChips } from "./SectionChips";
 import { DureeGauge, dureeRangeLabel, dureeRangeParam, parseDureeRange } from "./DureeRange";
+import { AireEpinglee } from "./market/AireEpinglee";
 import { NuageTitres } from "./market/NuageTitres";
 import { BandeauRepliable } from "./market/BandeauRepliable";
 import { fmtPct } from "@/lib/format";
@@ -1153,14 +1154,21 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
               {t("Tout détacher")}
             </button>
           </div>
-          {lignesEpinglees.map(({ o, s: som }) => (
-            <div key={o.id} className={styles.epingle}>
-              <OfferCard o={o} s={som} suivi={armees.has(o.id)} />
-              <button type="button" className={styles.detacher} onClick={() => basculerEpingle(o.id)} aria-label={`${t("Détacher")} ${o.title}`} title={t("Détacher")}>
-                ×
-              </button>
-            </div>
-          ))}
+          {/* LA CARTE S'AMÈNE SOUS LES YEUX, ET SON REMPLACEMENT SE VOIT.
+              Elle se pose au-dessus de la liste, donc souvent au-dessus du
+              point qu'on vient de toucher : qui avait descendu la page pour
+              atteindre le tracé ne voyait rien arriver, et repointait le même
+              point en croyant avoir manqué sa cible. */}
+          <AireEpinglee cle={lignesEpinglees.map(({ o }) => o.id).join(",")}>
+            {lignesEpinglees.map(({ o, s: som }) => (
+              <div key={o.id} className={styles.epingle}>
+                <OfferCard o={o} s={som} suivi={armees.has(o.id)} />
+                <button type="button" className={styles.detacher} onClick={() => basculerEpingle(o.id)} aria-label={`${t("Détacher")} ${o.title}`} title={t("Détacher")}>
+                  ×
+                </button>
+              </div>
+            ))}
+          </AireEpinglee>
         </section>
       )}
 

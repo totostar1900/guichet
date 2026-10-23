@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Info } from "@/components/Info";
+import { AireEpinglee } from "@/components/market/AireEpinglee";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "@/components/Density";
 import { usePhone } from "@/components/chart-utils";
@@ -885,14 +886,19 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
               {t("Tout détacher")}
             </button>
           </div>
-          {fondsEpingles.map((r) => (
-            <div key={r.id} className={styles.epingle}>
-              <FundCard r={r} />
-              <button type="button" className={styles.detacher} onClick={() => basculerEpingle(r.id)} aria-label={`${t("Détacher")} ${r.title}`} title={t("Détacher")}>
-                ×
-              </button>
-            </div>
-          ))}
+          {/* LA MÊME PIÈCE QUE LA COTE, et c'est le point : les deux pages
+              posent la carte au même endroit, et le geste doit répondre
+              pareil des deux côtés. */}
+          <AireEpinglee cle={fondsEpingles.map((r) => r.id).join(",")}>
+            {fondsEpingles.map((r) => (
+              <div key={r.id} className={styles.epingle}>
+                <FundCard r={r} />
+                <button type="button" className={styles.detacher} onClick={() => basculerEpingle(r.id)} aria-label={`${t("Détacher")} ${r.title}`} title={t("Détacher")}>
+                  ×
+                </button>
+              </div>
+            ))}
+          </AireEpinglee>
         </section>
       )}
 

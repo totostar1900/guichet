@@ -1118,3 +1118,45 @@ h3 {
 :root {
   --colonne-w: 248px;
 }
+
+/* ── La ligne épinglée qui en remplace une autre ──────────────────────────────
+   Pointer un second point du tracé remplaçait la carte SUR PLACE, au même
+   endroit et de la même taille : rien ne bougeait, et il fallait relire le nom
+   pour savoir qu'on regardait une autre ligne.
+   La sortante reste le temps du mouvement, posée par-dessus, et s'efface vers
+   le haut pendant que l'entrante monte depuis le bas. La direction dit qu'il
+   s'agit du même emplacement, et non d'une seconde carte qui s'ajoute.
+   Les règles vivent ici et non dans un module : la pièce est partagée par la
+   cote et les fonds, qui ont chacun leur feuille. */
+[data-epingle-sort] {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 1;
+  animation: epingle-sort 260ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  pointer-events: none;
+}
+[data-epingle-entre] {
+  position: relative;
+  z-index: 2;
+  animation: epingle-entre 260ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+@keyframes epingle-sort {
+  to {
+    opacity: 0;
+    transform: translateY(-28%);
+  }
+}
+@keyframes epingle-entre {
+  from {
+    opacity: 0;
+    transform: translateY(28%);
+  }
+}
+/* Un mouvement qu'on n'a pas demandé est une gêne : le remplacement reste
+   lisible par le seul changement de contenu. */
+@media (prefers-reduced-motion: reduce) {
+  [data-epingle-sort],
+  [data-epingle-entre] {
+    animation: none;
+  }
+}
