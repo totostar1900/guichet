@@ -58,9 +58,16 @@
   flex-direction: column;
   gap: var(--s-4);
 }
+  /* SANS EMPATTEMENTS, DÉCIDÉ LE 24 OCTOBRE 2026 (ETALON.md, point C).
+     Relevé à l'écran sur trente-six pages : huit titraient en Instrument
+     Serif et vingt-huit en Manrope, toutes à 30 px. Ce qui décidait n'était
+     pas ce qu'est la page mais QUELLE COQUILLE elle avait importée —
+     « /portefeuille » et « /aide » en serif, « /marche » et « /trader » en
+     sans, tous les quatre sommaires de siège. La ligne est celle que ce
+     dépôt écrivait déjà : le site public respire, l'application travaille.
+     La vitrine garde donc son serif et son échelle fluide. */
 .tete h1 {
   margin: 0;
-  font-family: var(--font-titre);
   /* LA TAILLE VIENT DU JETON, et elle ne varie plus avec la largeur.
      Ce « clamp » donnait 25,6 px au telephone et 37,8 px au grand ecran,
      pendant que cinq pages voisines titraient a 30 partout : le lecteur
@@ -86,7 +93,6 @@
 }
 .bloc h2 {
   margin: 0;
-  font-family: var(--font-titre);
   font-size: var(--t-5);
   font-weight: 400;
 }

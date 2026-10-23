@@ -262,3 +262,63 @@ describe("l'en-tête d'une page", () => {
     expect(css, "le « à côté » ne sait plus passer à la ligne quand la place manque").toMatch(/\.avecCote\s*{[^}]*flex-wrap:\s*wrap/);
   });
 });
+
+/**
+ * C — LA FONTE D'UN TITRE, TRANCHÉE LE 24 OCTOBRE 2026.
+ *
+ * Relevé à l'écran sur trente-six pages de l'application : huit titraient en
+ * Instrument Serif et vingt-huit en Manrope, toutes à 30 px. La taille de
+ * l'étalon tenait donc partout, et la fonte nulle part — et ce qui décidait
+ * n'était pas ce qu'EST la page, mais quelle coquille elle avait importée :
+ * « /portefeuille » et « /aide » en serif, « /marche » et « /trader » en
+ * sans, tous les quatre sommaires de siège.
+ *
+ * LA LIGNE ÉTAIT DÉJÀ ÉCRITE DANS CE DÉPÔT, en tête de la feuille de la
+ * console : « Le site public respire, la console travaille. » La vitrine
+ * garde son serif et son échelle fluide ; l'application titre en sans.
+ *
+ * L'ÉPREUVE EST UNE LISTE BLANCHE, et non un compte : un cliquet dirait
+ * combien de fichiers posent la fonte, pas lesquels ont le droit. Les
+ * dispensés sont la vitrine publique, les deux voiles montés sur les deux
+ * domaines, et le guide — qui se lit des deux côtés, et dont la fonte reste
+ * à décider.
+ */
+const DISPENSES = [
+  /* La vitrine publique : elle a sa voix, et son échelle fluide avec. */
+  "src/app/Accueil.module.css",
+  "src/app/a-propos/page.module.css",
+  "src/app/placements/page.module.css",
+  "src/app/offres/[id]/ApercuPartage.module.css",
+  /* Montés par le gabarit sur les deux domaines : ils ne sont ni l'un ni
+     l'autre, et les trancher demanderait de trancher pour les deux. */
+  "src/components/AppMenu.module.css",
+  "src/components/mobile/Onboarding.module.css",
+  "src/components/mobile/Presentation.module.css",
+  /* Le guide, servi des deux côtés. À décider avec le point 2. */
+  "src/app/info/risques/page.module.css",
+];
+
+describe("la fonte d'un titre", () => {
+  it("reste à la vitrine, et n'entre pas dans l'application", () => {
+    const fautifs: string[] = [];
+    const walk = (d: string) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) walk(p);
+        else if (e.name.endsWith(".module.css")) {
+          const rel = path.relative(ROOT, p).split(path.sep).join("/");
+          if (DISPENSES.includes(rel)) continue;
+          if (/font-family:\s*var\(--font-titre\)/.test(fs.readFileSync(p, "utf8"))) fautifs.push(rel);
+        }
+      }
+    };
+    walk(path.join(ROOT, "src"));
+    expect(fautifs, `ces feuilles de l'application posent la fonte de la vitrine :\n  ${fautifs.join("\n  ")}`).toEqual([]);
+  });
+
+  /* Non vacuité : la vitrine la porte toujours, et le jeton existe. */
+  it("est bien encore posée quelque part", () => {
+    expect(fs.readFileSync(path.join(ROOT, "src/app/Accueil.module.css"), "utf8")).toMatch(/font-family:\s*var\(--font-titre\)/);
+    expect(fs.readFileSync(path.join(ROOT, "src/app/globals.css"), "utf8")).toMatch(/--font-titre:/);
+  });
+});

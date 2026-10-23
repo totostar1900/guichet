@@ -29,6 +29,32 @@ l'ordre de ses propres pastilles.
 **2. Marges, tailles, affichage des pages à harmoniser**, toutes pages
 confondues. À discuter page par page.
 
+**La fonte d'un titre : tranchée le 24 octobre 2026.** *La vitrine respire,
+l'application travaille* — la vitrine publique garde son serif et son échelle
+fluide, l'application titre en sans à `--t-8`. Relevé à l'écran sur
+**36 pages** : 8 en Instrument Serif, 28 en Manrope, **36 sur 36 à 30 px**. La
+taille tenait donc partout et la fonte nulle part, et ce qui décidait n'était
+pas ce qu'EST la page mais **quelle coquille elle avait importée** —
+`/portefeuille` et `/aide` en serif, `/marche` et `/trader` en sans, les
+quatre étant des sommaires de siège. Voir `ETALON.md`, point C, et l'épreuve :
+une **liste blanche**, pas un cliquet.
+
+Ce qui reste au point 2 :
+
+- *Le sommaire du Marché* : au téléphone il redit le rail de pastilles — six
+  destinations deux fois — et les deux occupent 720 px avant le titre de la
+  page, qui tombe à y 798.
+- *`/moi/profil`* titre à **19,5 px**, seule page hors de l'échelle : son `h1`
+  n'est pas le nom de la page mais la QUESTION courante du questionnaire. Un
+  `h1` qui change à chaque réponse, et un nom de page nulle part.
+- *Les sept pages de `Feuillet`* écrivent encore leur en-tête à la main
+  (`/portefeuille`, `/instruments`, `/aide`, `/recherche`, `/moi/identite`,
+  `/moi/appareil`, `/moi/contact`). Leur titre a maintenant la fonte et la
+  taille de l'étalon : les passer à `EnTete` ne coûterait plus qu'un sur-titre
+  à décider par page, et ferait tomber le cliquet du point 7 de sept crans.
+- *La fonte du guide* (`info/risques`), servi sur les deux domaines : dispensé
+  dans l'épreuve, à décider.
+
 **7. L'en-tête de chaque page : la règle est posée, la conversion est en
 cours.** `EnTete` pose les quatre créneaux dans l'ordre — retour, sur-titre,
 titre, phrase — et un seul genre par créneau. Dix pages y sont passées le

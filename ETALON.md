@@ -277,26 +277,45 @@ construction.*
 
 ---
 
-## C — la fonte du titre : relevée le 24 octobre 2026, **non tranchée**
+## C — la fonte du titre : **tranchée le 24 octobre 2026**
 
-Le relevé des treize pages a mesuré la TAILLE d'un titre et rien d'autre. La
-FONTE n'a jamais été posée, et deux camps cohabitent :
+**La vitrine respire, l'application travaille.** La vitrine publique garde son
+serif et son échelle fluide ; dans l'application, un titre de page est sans
+empattements, à `--t-8`.
 
-| camp | où | ce qui s'écrit |
-|---|---|---|
-| sans empattements | les onze fichiers passés à `EnTete`, soit quatorze pages | la classe `display`, qui hérite de la police du corps |
-| à empattements | six `h1` | `font-family: var(--font-titre)` écrit dans leur feuille |
+Le relevé des treize pages avait mesuré la TAILLE d'un titre et rien d'autre.
+Mesuré à l'écran, cette fois sur **trente-six pages** de l'application :
 
-Les six se répartissent en deux : quatre sont la **vitrine publique**
-(`Accueil`, `a-propos`, `placements`, `ApercuPartage`), où une identité propre
-se défend ; deux sont **dans l'application** — `Console`, la page « Bonjour »,
-et `Dossier`, l'ouverture de compte.
+| | |
+|---|---|
+| à empattements | **8** — `/`, `/portefeuille`, `/instruments`, `/aide`, `/recherche`, `/moi/identite`, `/moi/appareil`, `/moi/contact` |
+| sans | **28** |
+| à 30 px | **36 sur 36** |
 
-**La conversion de Trade a fait basculer un titre d'un camp à l'autre sans
-décision**, parce que `EnTete` ne pose pas de fonte. C'est signalé ici plutôt
-que fait en douce. La question appartient au point 2 de `CHANTIERS.md` :
+La taille tenait donc partout, et la fonte nulle part. **Ce qui décidait
+n'était pas ce qu'EST la page, mais quelle coquille elle avait importée** :
+`Feuillet` pose le serif, `EnTete` ne pose rien. D'où `/portefeuille` et
+`/aide` en serif, `/marche` et `/trader` en sans — les quatre étant des
+sommaires de siège.
 
-1. l'étalon reste sans empattements, et les trois pages clientes qui restent
-   y passent ;
-2. l'étalon prend la fonte à empattements, et douze pages changent ;
-3. la fonte dépend du genre de page — à définir, donc à écrire quelque part.
+La ligne retenue était déjà écrite en tête de la feuille de la console : *« Le
+site public respire, la console travaille. »*
+
+**Ce qui a changé** : `.bonjour h1` et `.sansValeur` (console), `.tete h1`
+(ouverture de compte), `.tete h1` et `.bloc h2` (`Feuillet`, sept pages),
+`.cQui b` (nous contacter). Les `h2` de `Feuillet` suivent leur `h1` : les
+laisser aurait donné un titre sans sur des sous-titres serif.
+
+**Ce qui garde le serif** : `Accueil`, `a-propos`, `placements`,
+`ApercuPartage` — la vitrine. Et trois dispenses déclarées dans l'épreuve :
+les deux voiles montés par le gabarit sur les deux domaines (`Onboarding`,
+`Presentation`), la bulle de `AppMenu`, et `info/risques` — le guide se lit
+des deux côtés, sa fonte reste à décider avec le point 2.
+
+**L'épreuve est une liste blanche, pas un cliquet** : un compte dirait combien
+de fichiers posent la fonte, pas lesquels ont le droit.
+
+→ *Trouvé au passage, et laissé au point 2 : `/moi/profil` titre à 19,5 px,
+seule page hors de l'échelle. Son `h1` n'est pas le nom de la page mais la
+QUESTION courante du questionnaire — un `h1` qui change à chaque réponse, et
+un nom de page qui n'est nulle part.*
