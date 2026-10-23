@@ -68,7 +68,7 @@ export default async function DocumentsPage() {
           {tientQuelqueChose && <StatementButtons />}
         </section>
 
-        <Rubriques bandes items={RAYONS_DES_PAPIERS.map((r) => ({ href: r.href, nom: t(r.nom), quoi: t(r.quoi) }))} />
+        <Rubriques items={RAYONS_DES_PAPIERS.map((r) => ({ href: r.href, nom: t(r.nom), quoi: t(r.quoi) }))} />
 
         {/* LES TEXTES DE LA MAISON ONT LEUR PORTE, et ne sont pas dans la liste :
             ils n'ont pas de numéro, ils ont une version, et ils sont les mêmes

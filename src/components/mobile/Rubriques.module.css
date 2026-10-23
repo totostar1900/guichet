@@ -1,26 +1,42 @@
-/* Le sommaire d'un siège : une rubrique par ligne, pleine largeur et haute.
+/* Le sommaire d'un siège : une rubrique par bande, pleine largeur et haute.
    Les mesures viennent du parcours de « Trade », dont cette liste est le
-   premier niveau sorti de sa page. */
+   premier niveau sorti de sa page.
+
+   EN BANDES DEPUIS LE 24 OCTOBRE 2026, et plus en filets. La forme vient de
+   « Mes documents », d'où l'étalon est tiré ; elle valait pour ce sommaire-là
+   et pas pour les cinq autres, ce qui faisait deux grammaires pour une même
+   liste de destinations. UN FILET SÉPARE, UNE BANDE DÉSIGNE : quand chaque
+   rubrique ouvre une page, c'est désigner qu'il faut.
+
+   Les mesures sont celles de l'étalon : fond, bord d'un pixel, rayon, marge
+   intérieure 12/16, et l'écart entre deux bandes vaut « --s-10 », écrit ici
+   SEUL — jamais composé d'un gap et d'une marge, la faute que l'arbitrage B
+   a défaite (voir ETALON.md). */
 
 .liste {
   list-style: none;
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--line);
-}
-.liste li {
-  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-10);
 }
 .ligne {
   display: flex;
   align-items: center;
   gap: var(--s-6);
-  padding: var(--s-7) var(--s-3);
+  padding: var(--s-6) var(--s-7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
   color: inherit;
   text-decoration: none;
 }
+.ligne:hover {
+  border-color: var(--line-2);
+}
 .ligne:active {
-  background: var(--surface-2);
+  background: var(--surface);
 }
 .quoi {
   flex: 1 1 auto;
@@ -51,33 +67,4 @@
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-/* ── EN BANDES ────────────────────────────────────────────────────────────────
-   LA VARIANTE DE « MES DOCUMENTS », et c'est de là que l'étalon est tiré :
-   chaque rubrique dans sa bande, posée sur le fond de la maison, avec de l'air
-   entre elles. Un filet sépare ; une bande DÉSIGNE — et quand chaque rubrique
-   est une destination, c'est désigner qu'il faut.
-
-   Les mesures sont celles de l'étalon : fond, bord d'un pixel, rayon, marge
-   intérieure 12/16, et l'écart entre deux bandes vaut « --s-10 », écrit ici
-   seul, jamais composé d'un gap et d'une marge (voir ETALON.md, arbitrage B).
-   Les filets de la liste s'effacent : deux séparations valent moins qu'une. */
-.bandes {
-  border-top: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-10);
-}
-.bandes li {
-  border-bottom: 0;
-}
-.bandes .ligne {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface-2);
-  padding: var(--s-6) var(--s-7);
-}
-.bandes .ligne:hover {
-  border-color: var(--line-2);
 }

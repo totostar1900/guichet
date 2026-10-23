@@ -176,9 +176,14 @@ describe("un rayon, une page", () => {
   it("fait lire la table au sommaire plutôt qu'une liste écrite à la main", () => {
     const sommaire = lire(SOMMAIRE);
     expect(sommaire, "le sommaire a réécrit sa propre liste de rayons").toContain("RAYONS_DES_PAPIERS.map");
-    /* Et il les pose en BANDES : une rubrique qui ouvre une page est une
-       destination, et une destination se désigne (ETALON.md). */
-    expect(sommaire, "les rayons sont revenus à de simples filets").toMatch(/<Rubriques\s+bandes/);
+    /* Et les rubriques sont des BANDES — pour tous les sommaires depuis le
+       24 octobre 2026, pas seulement celui-ci : une rubrique qui ouvre une
+       page est une destination, et une destination se désigne. Le drapeau qui
+       servait à choisir a disparu avec le choix ; c'est la feuille de style
+       commune qui le tient. */
+    const css = lire("src/components/mobile/Rubriques.module.css");
+    expect(css, "les rubriques sont revenues à de simples filets").toMatch(/\.ligne \{[^}]*border-radius/);
+    expect(css, "l'écart entre deux bandes n'est plus celui de l'étalon").toMatch(/\.liste \{[^}]*gap: var\(--s-10\)/);
   });
 
   it("ne replie plus rien, et ne compte plus rien", () => {

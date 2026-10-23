@@ -35,11 +35,15 @@ conditions » + un sous-titre + le contenu, et la bande du haut porte en plus
 un bouton retour. Il faut une règle qui vaille partout — à proposer et à
 défendre, pas seulement à appliquer.
 
-**8. Bandes et écarts.** Dans « Mes documents », chaque élément vit dans une
-bande, avec un écart entre les bandes. Ailleurs la bande a disparu et l'écart
-a changé. Hypothèse de travail : **prendre « Mes documents » comme étalon**,
-écrire noir sur blanc ses principes et ses mesures, puis l'appliquer là où ça
-vaut.
+**8. ~~Bandes et écarts.~~ FAIT le 24 octobre 2026.** La bande de « Mes
+documents » est devenue la seule forme des rubriques : les sept sommaires du
+guichet la portent, avec l'écart de l'étalon (`--s-10`) écrit en un seul
+endroit. La variante en filets n'existe plus — deux formes qui coexistent
+finissent par diverger.
+
+→ *Coût mesuré et assumé : une liste gagne environ 120 px, et sur
+`/portefeuille` une rubrique sur cinq passe sous la ligne de flottaison
+(4/5 → 3/5). Les trois autres sommaires n'en perdent aucune.*
 
 **12. La page Trade** montre trois points (trois pages à suivre) : à retirer,
 et à revoir comme le reste — en-tête, alignement, bande ou pas de bande sur
