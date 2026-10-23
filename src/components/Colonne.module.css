@@ -624,6 +624,27 @@
   font-size: var(--t-3);
   color: var(--ink-3);
 }
+/* L'ISSUE VERS LA RECHERCHE ENTIÈRE, sous les noms de page trouvés ou sous
+   leur absence. Elle est en texte nu et dorée, comme le pont de la feuille du
+   compte : ce n'est pas un résultat de plus, c'est une autre question posée
+   ailleurs. Le filet du haut la sépare de ce qui précède ; la question tapée
+   s'y recopie, donc elle peut être longue et doit se couper proprement. */
+.partout {
+  display: block;
+  padding: var(--s-3) var(--s-4);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-2);
+  font-weight: 600;
+  color: var(--gold-ink);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.partout:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
 
 /* ===== LES FAVORIS, et la punaise qui ne paraît qu au survol ===== */
 .epingles {

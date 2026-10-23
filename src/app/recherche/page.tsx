@@ -39,8 +39,12 @@ export async function generateMetadata() {
  * visiteur n'a donc rien perdu. Celle-ci cherche aussi dans les pages de
  * l'application, et une liste de portes fermées n'est pas une réponse.
  */
-export default async function RecherchePage() {
+export default async function RecherchePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   await requireSession("/recherche");
+  /* LA QUESTION ARRIVE DÉJÀ TAPÉE depuis la colonne de l'écran large : on y
+     cherchait un nom de page, on n'a rien trouvé, et retaper le mot sur la
+     page suivante serait exactement le détour qu'un pont doit éviter. */
+  const { q: depart } = await searchParams;
   const [t, lang] = await Promise.all([getT(), getLang()]);
   const { entries } = await buildGuideIndex(t, lang, { app: true });
   /* Les trois questions les plus posées, dans l'ordre de la table qui les
@@ -60,6 +64,7 @@ export default async function RecherchePage() {
         <InfoSearch
           entries={entries}
           auto
+          depart={depart}
           vide={
             top.length > 0 ? (
               /* LA CLEF N'EST PAS DÉCORATIVE. Un élément fabriqué par une page

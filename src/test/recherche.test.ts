@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { buildGuideIndex } from "@/lib/guide-index";
 import { getRegistry } from "@/lib/registry";
@@ -87,8 +89,6 @@ describe("ce que la recherche connaît", () => {
    * décision est là et nulle part ailleurs.
    */
   it("ne sert pas la navigation du client au desk", async () => {
-    const { readFileSync } = await import("node:fs");
-    const { join } = await import("node:path");
     const route = readFileSync(join(process.cwd(), "src/app/api/guide-index/route.ts"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     expect(route, "la route sert l'application à toute session, desk compris").toMatch(/app:\s*Boolean\(s\)\s*&&\s*!isDesk\(s\)/);
   });
@@ -114,8 +114,6 @@ describe("ce que la recherche connaît", () => {
    * à coups de ternaire. La table des genres vit dans `InfoSearch`, une fois.
    */
   it("n'a qu'un rendu pour son classement", async () => {
-    const { readFileSync } = await import("node:fs");
-    const { join } = await import("node:path");
     const { globSync } = await import("node:fs");
     const fichiers = globSync("src/**/*.{ts,tsx}", { cwd: process.cwd() }).filter((f) => !f.startsWith("src/test/"));
     const appelants = fichiers.filter((f) => /rankEntries\s*\(/.test(readFileSync(join(process.cwd(), f), "utf8")));
@@ -138,11 +136,51 @@ describe("ce que la recherche connaît", () => {
    */
   it("nomme chaque genre qu'elle produit", async () => {
     const { entries } = await buildGuideIndex(t, "fr", { app: true });
-    const { readFileSync } = await import("node:fs");
-    const { join } = await import("node:path");
     const src = readFileSync(join(process.cwd(), "src/app/info/InfoSearch.tsx"), "utf8");
     const map = src.slice(src.indexOf("const KIND"), src.indexOf("\n", src.indexOf("const KIND")));
     const sans = [...new Set(entries.map((e) => e.kind))].filter((k) => !new RegExp(`\\b${k}:`).test(map));
     expect(sans, "ces genres sortiraient avec une pastille vide").toEqual([]);
+  });
+});
+
+/**
+ * LE QUATRIÈME CHAMP : CELUI DE LA COLONNE, QUI NE CHERCHE PAS LA MÊME CHOSE.
+ *
+ * Les trois autres rendent le même composant sur le même index. Celui-ci est
+ * d'une autre nature, et il le reste : il cherche des NOMS DE PAGE dans le
+ * rail qu'on a sous les yeux, sans aller au serveur, en disant le groupe de
+ * chaque résultat et en portant ses pastilles. Le fondre dans la recherche
+ * entière lui ferait perdre les quatre.
+ *
+ * MAIS IL ÉTAIT UN CUL-DE-SAC, et c'est ce que ces épreuves tiennent. Au-delà
+ * de 1040 px, la colonne l'emporte sur la loupe, qui disparaît : mesuré le
+ * 24 octobre 2026, il n'existait alors AUCUN chemin vers la recherche entière
+ * — zéro lien, zéro loupe visible — et « sécurité » répondait « aucune page de
+ * ce nom » alors que la maison a une page « Sécurité » et cinq réponses d'aide
+ * sur le sujet.
+ */
+describe("le champ de la colonne", () => {
+  const source = () => readFileSync(join(process.cwd(), "src/components/Colonne.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+
+  it("mène à la recherche entière, avec la question déjà tapée", () => {
+    expect(source(), "le bureau n'a plus aucun chemin vers la recherche entière").toMatch(/href=\{`\/recherche\?q=\$\{encodeURIComponent\(/);
+  });
+
+  /**
+   * LES DEUX FORMES RECONNUES MÈNENT AU DESK — un code d'émission vers le
+   * tableau des adjudications, une date vers les bulletins. La colonne du
+   * CLIENT les offrait aussi : une adresse qui n'existe pas sur son hôte, et
+   * qu'il n'aurait pas le droit d'ouvrir. Dans l'autre sens, le pont vers
+   * « /recherche » est une page du guichet, que le desk ne doit pas proposer.
+   */
+  it("ne propose à personne la maison d'en face", () => {
+    const src = source();
+    const formes = [...src.matchAll(/if \((.*?)(CODE_CEMAC|DATE_ISO)\.test/g)].map((m) => m[1]);
+    expect(formes.length, "les deux formes reconnues ont changé de nom").toBe(2);
+    expect(
+      formes.filter((garde) => !garde.includes("auDesk")),
+      "une forme du desk est proposée hors du desk",
+    ).toEqual([]);
+    expect(src, "le pont vers le guichet est proposé au desk").toMatch(/connecte && !auDesk/);
   });
 });

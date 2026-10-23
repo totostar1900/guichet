@@ -174,6 +174,7 @@ export function InfoSearch({
   limit,
   close,
   dense,
+  depart,
 }: {
   entries: SearchEntry[];
   /** La page de recherche n'a que ce champ : le curseur s'y pose. Dans le Guide, non : le champ y est un outil parmi d'autres, et voler le curseur ferait sauter la page au clavier. */
@@ -186,10 +187,12 @@ export function InfoSearch({
   close?: () => void;
   /** Dans une feuille : la phrase se replie sur une ligne, pour que six résultats et le lien du bas tiennent à l'écran. */
   dense?: boolean;
+  /** La question déjà tapée ailleurs : la colonne de l'écran large passe la sienne en arrivant. */
+  depart?: string;
 }) {
   const t = useT();
   const router = useRouter();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(depart ?? "");
   const [active, setActive] = useState(0);
   const box = useRef<HTMLDivElement>(null);
   const KIND: Record<SearchEntry["kind"], string> = { terme: t("Définition"), lecon: t("Éclairage"), outil: t("Outil"), page: t("Page"), service: t("Service"), instrument: t("Instrument") };

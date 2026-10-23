@@ -1392,6 +1392,9 @@ export const EN_REST: Record<string, string> = {
   /* Le compte est celui du classement, le nombre montré celui du placement :
      une feuille en pose six et le dit, la page les pose tous. */
   "les {n} premiers": "the first {n}",
+  /* L'issue de la colonne : elle cherche des noms de page, la recherche
+     entière cherche tout le reste, et la question tapée la suit. */
+  "Chercher « {q} » partout": "Search for “{q}” everywhere",
   "aide · glossaire · pages": "help · glossary · pages",
   "Ouvrir la recherche entière": "Open the full search",
   /* Deux étiquettes de résultat de plus : un service se fait, un instrument

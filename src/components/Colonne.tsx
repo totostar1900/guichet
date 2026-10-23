@@ -348,7 +348,7 @@ export function Colonne({
           </button>
         </div>
       </div>
-      <Chercher groupes={groupes} badges={badges} />
+      <Chercher groupes={groupes} badges={badges} auDesk={auDesk} connecte={connecte} />
       <div className={`${styles.corps} rail-y`}>
         <Epingles groupes={groupes} epingles={epingles} basculerEpingle={basculerEpingle} actifP={actifP} badges={badges} />
         <Encours badges={badges} />
@@ -483,7 +483,7 @@ const sansAccent = (s: string) =>
 const CODE_CEMAC = /^[A-Za-z]{2}[0-9][0-9A-Za-z]\d{8}$/;
 const DATE_ISO = /^\d{4}-\d{2}-\d{2}$/;
 
-function Chercher({ groupes, badges }: { groupes: GroupeColonne[]; badges: Record<string, number> }) {
+function Chercher({ groupes, badges, auDesk, connecte }: { groupes: GroupeColonne[]; badges: Record<string, number>; /** Les deux formes reconnues mènent à des pages du desk : hors du desk, elles n'ont rien à proposer. */ auDesk: boolean; /** La recherche entière est derrière la connexion ; un visiteur a le guide public. */ connecte: boolean }) {
   const t = useT();
   const [q, setQ] = useState("");
   const mots = sansAccent(q.trim()).split(/\s+/).filter(Boolean);
@@ -493,11 +493,17 @@ function Chercher({ groupes, badges }: { groupes: GroupeColonne[]; badges: Recor
      règlement », « reg all » aussi, et « allreg » rien, ce qui est juste. */
   const parLeNom = mots.length ? toutes.filter((it) => mots.every((m) => sansAccent(t(it.label)).includes(m) || sansAccent(it.label).includes(m))) : [];
 
-  /* CE QUI N EST PAS UN NOM DE PAGE mais désigne une page sans ambiguïté. */
+  /* CE QUI N EST PAS UN NOM DE PAGE mais désigne une page sans ambiguïté.
+     LES DEUX MÈNENT AU DESK, et la colonne du client les offrait quand même :
+     mesuré le 24 octobre 2026, taper un code à douze caractères dans le
+     guichet proposait « /desk/adjudications/tableau », une adresse qui
+     n'existe pas sur l'hôte du client et qu'il n'aurait pas le droit
+     d'ouvrir. Une barre qui reconnaît une forme doit aussi reconnaître à qui
+     elle parle. */
   const brut = q.trim();
   const parLaForme: { href: string; label: string; groupe: string }[] = [];
-  if (CODE_CEMAC.test(brut)) parLaForme.push({ href: `/desk/adjudications/tableau?q=${encodeURIComponent(brut.toUpperCase())}`, label: t("Chercher le code {code}", { code: brut.toUpperCase() }), groupe: t("Résultats") });
-  if (DATE_ISO.test(brut)) parLaForme.push({ href: `/desk/bulletins?seance=${brut}`, label: t("Le bulletin du {date}", { date: brut }), groupe: t("Bulletins") });
+  if (auDesk && CODE_CEMAC.test(brut)) parLaForme.push({ href: `/desk/adjudications/tableau?q=${encodeURIComponent(brut.toUpperCase())}`, label: t("Chercher le code {code}", { code: brut.toUpperCase() }), groupe: t("Résultats") });
+  if (auDesk && DATE_ISO.test(brut)) parLaForme.push({ href: `/desk/bulletins?seance=${brut}`, label: t("Le bulletin du {date}", { date: brut }), groupe: t("Bulletins") });
 
   const vus = new Set<string>();
   const resultats = [...parLaForme, ...parLeNom].filter((r) => !vus.has(r.href) && vus.add(r.href)).slice(0, 8);
@@ -524,6 +530,23 @@ function Chercher({ groupes, badges }: { groupes: GroupeColonne[]; badges: Recor
                 {badges[r.href] ? <span className={styles.pt}>{badges[r.href]}</span> : null}
               </Link>
             ))
+          )}
+          {/* L'ISSUE, ET C'EST LA SEULE DU BUREAU.
+              Cette barre cherche des NOMS DE PAGE, et c'est tout ce qu'elle
+              doit faire : elle est locale, instantanée, elle dit le groupe et
+              porte les pastilles. Mais « Aucune page de ce nom » était un
+              cul-de-sac — mesuré le 24 octobre 2026 : « sécurité » n'y
+              trouvait rien alors que la maison a une page « Sécurité » et cinq
+              réponses d'aide sur le sujet, et au-dessus de 1040 px il n'existait
+              AUCUN chemin vers la recherche entière : zéro lien, zéro loupe.
+              La colonne gagne contre la loupe sur ce format, et elle ne menait
+              nulle part. Elle y mène maintenant, avec la question déjà tapée. */}
+          {/* NI AU DESK, pour la raison qui vaut dans l'autre sens : « /recherche »
+              est une page du guichet, et la console a sa propre recherche. */}
+          {connecte && !auDesk && (
+            <Link className={styles.partout} href={`/recherche?q=${encodeURIComponent(q.trim())}`} onClick={() => setQ("")}>
+              {t("Chercher « {q} » partout", { q: q.trim() })} →
+            </Link>
           )}
         </div>
       )}
