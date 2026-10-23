@@ -1,6 +1,6 @@
 import type { DiagramKind } from "@/data/docs/types";
 import { DOCUMENT_CHAIN } from "@/data/docs/chain";
-import figure from "@/app/desk/docs/docs.module.css";
+import figure from "./Document.module.css";
 
 /**
  * The schemas of the documentation, drawn in SVG with the theme's tokens so

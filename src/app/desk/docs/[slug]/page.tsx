@@ -8,6 +8,9 @@ import { getLang, getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
 import { ChapterLinks, Outline } from "../Outline";
 import styles from "../docs.module.css";
+/* La coque du lecteur est au desk ; la peau de l'article est partagée avec le
+   Guichet, qui la lit sans citer un fichier du desk. */
+import article from "@/components/docs/Document.module.css";
 
 export function generateStaticParams() {
   return DOCS.map((d) => ({ slug: d.slug }));
@@ -52,10 +55,10 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
         <div className={styles.phoneOnly}>
           <ChapterLinks chapters={chapters} pageTitle={doc.title[lang]} />
         </div>
-        <article className={styles.doc} data-coach="docs-page">
+        <article className={article.doc} data-coach="docs-page">
           <h1>{doc.title[lang]}</h1>
-          <p className={styles.summary}>{doc.summary[lang]}</p>
-          <div className={styles.audiences}>
+          <p className={article.summary}>{doc.summary[lang]}</p>
+          <div className={article.audiences}>
             {doc.visibility === "public" && <span className={`${styles.chip} ${styles.client}`}>{t("visible par les clients")} · /info/aide</span>}
             {doc.audience.map((a) => (
               <span key={a} className={`${styles.chip} ${styles[a] ?? ""}`}>

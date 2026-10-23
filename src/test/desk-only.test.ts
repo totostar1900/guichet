@@ -35,6 +35,22 @@ const rel = (p: string) => p.slice(ROOT.length + 1).replace(/\\/g, "/");
 const DESK_ONLY = [
   { module: "@/lib/market/fill", why: "le taux de service : « jamais échangée » ne se montre pas au client" },
   { module: "@/components/desk/", why: "les composants du desk ne paraissent pas sur le Guichet" },
+  /**
+   * LA GARDE NE LISAIT QUE « components/desk », ET LA PORTE ÉTAIT À CÔTÉ.
+   *
+   * Trois fichiers du Guichet citaient « @/app/desk/docs » — la page d'aide du
+   * client, et les deux pièces qui rendent les blocs et les schémas d'un
+   * document : deux composants, une feuille de style, importés depuis les
+   * PAGES du desk. La lettre de la règle passait, son esprit non.
+   *
+   * Ce qui s'y jouait n'était pas une fuite de savoir : une peau d'article ne
+   * dit rien que le client ne puisse voir. C'était l'autre moitié du risque —
+   * une page du desk qu'on retouche pour le desk, et qui change l'aide du
+   * client sans que personne ne l'ait voulu ni vu. La peau est partie dans
+   * « components/docs », la coque du lecteur est restée, et cette ligne-ci
+   * ferme la porte.
+   */
+  { module: "@/app/desk/", why: "une page du desk ne se cite pas depuis le Guichet, fût-ce sa feuille de style" },
 ];
 
 /** Les fichiers qui appartiennent au desk : ses pages, ses composants, ses tests. */

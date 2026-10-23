@@ -7,6 +7,9 @@ import { fmtDate } from "@/lib/format";
 import { readNotes } from "@/lib/notes";
 import { Outline } from "../Outline";
 import styles from "../docs.module.css";
+/* La coque du lecteur est au desk ; la peau de l'article est partagée avec le
+   Guichet, qui la lit sans citer un fichier du desk. */
+import article from "@/components/docs/Document.module.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Notes de travail · Documentation" };
@@ -46,18 +49,18 @@ export default async function NotesPage() {
           <Link href="/desk/guide">{t("Guide, champ par champ")}</Link>
         </nav>
 
-        <article className={styles.doc} data-coach="notes-page">
+        <article className={article.doc} data-coach="notes-page">
           <h1>{t("Notes de travail de l'assistant")}</h1>
-          <p className={styles.summary}>{t("Ce que l'assistant garde entre ses sessions : état du projet, décisions, conventions, migrations appliquées, ce qui reste à faire. En anglais, écrites pour lui ; copiées dans le dépôt (docs/notes) pour que l'équipe les lise. Elles disent pourquoi les choses sont faites ainsi ; pour l'exploitation au quotidien, lisez les autres pages.")}</p>
-          <div className={styles.audiences}>
+          <p className={article.summary}>{t("Ce que l'assistant garde entre ses sessions : état du projet, décisions, conventions, migrations appliquées, ce qui reste à faire. En anglais, écrites pour lui ; copiées dans le dépôt (docs/notes) pour que l'équipe les lise. Elles disent pourquoi les choses sont faites ainsi ; pour l'exploitation au quotidien, lisez les autres pages.")}</p>
+          <div className={article.audiences}>
             <span className={`${styles.chip} ${styles.tech}`}>{t("Technique")}</span>
             <span className={`${styles.chip} ${styles.admin}`}>{t("Administration")}</span>
           </div>
-          {notes.length === 0 && <p className={styles.note}>{t("Aucune note dans docs/notes.")}</p>}
+          {notes.length === 0 && <p className={article.note}>{t("Aucune note dans docs/notes.")}</p>}
           {notes.map((n) => (
             <section key={n.slug}>
               <h2 id={n.slug}>{n.slug === "README" ? t("À propos de ces notes") : n.title}</h2>
-              {n.description && <p className={styles.lead}>{n.description}</p>}
+              {n.description && <p className={article.lead}>{n.description}</p>}
               <Markdown text={n.body} />
               <p className={styles.hint} style={{ fontSize: ".74rem", color: "var(--ink-3)" }}>
                 docs/notes/{n.slug}.md{n.modified ? ` · ${t("modifié le")} ${fmtDate(n.modified)}` : ""}

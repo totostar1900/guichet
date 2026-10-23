@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { DocBlock, DocChapter } from "@/data/docs/types";
-import styles from "@/app/desk/docs/docs.module.css";
+import styles from "./Document.module.css";
 import { DocFigure } from "./DocDiagrams";
 import { DocFlows, DocMap, type DocStats } from "./DocMap";
 

@@ -6,7 +6,7 @@ import { getLang, getT } from "@/i18n/server";
 import { COMPANY } from "@/lib/config";
 import { fmtDate } from "@/lib/format";
 import { aideRows } from "@/lib/guide-index";
-import styles from "@/app/desk/docs/docs.module.css";
+import styles from "@/components/docs/Document.module.css";
 import { AideBrowser } from "./AideBrowser";
 import { GuideBar } from "../GuideBar";
 
