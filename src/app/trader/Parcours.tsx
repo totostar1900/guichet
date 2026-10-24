@@ -6,6 +6,7 @@ import { ICONE_SERVICE } from "@/components/nav/IconesServices";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { RAYONS, type ServiceVu } from "@/lib/domain/services";
 import { Fiche } from "./Fiche";
+import { cheminDu, niveauDu, retourDe, SANS_LISTE } from "./niveaux";
 import styles from "./Parcours.module.css";
 
 /**
@@ -67,7 +68,8 @@ export function Parcours({ services, etapes, raisons }: { services: ServiceVu[];
   const serviceCle = params.get("s") ?? "";
   const rayon = RAYONS.find((r) => r.cle === rayonCle);
   const service = services.find((sv) => sv.cle === serviceCle && sv.rayon === rayon?.cle);
-  const niveau = service ? 2 : rayon ? 1 : 0;
+  /* Les trois crans, et celui que « Placer » n'a plus : voir « ./niveaux ». */
+  const niveau = niveauDu(rayon?.cle, service?.cle);
 
   const aller = (r?: string, s?: string) => {
     const q = new URLSearchParams();
@@ -80,7 +82,9 @@ export function Parcours({ services, etapes, raisons }: { services: ServiceVu[];
   };
 
   const siens = rayon ? services.filter((sv) => sv.rayon === rayon.cle) : [];
-  const chemin = [t("Trade"), rayon ? t(rayon.nom) : undefined, service ? t(service.nom) : undefined].filter(Boolean) as string[];
+  /* Les services du rayon sans liste : ils tiennent la racine. */
+  const aPlat = services.filter((sv) => sv.rayon === SANS_LISTE);
+  const chemin = cheminDu(t("Trade"), rayon ? { cle: rayon.cle, nom: t(rayon.nom) } : undefined, service ? t(service.nom) : undefined);
 
   return (
     <div className={styles.parcours}>
@@ -90,7 +94,7 @@ export function Parcours({ services, etapes, raisons }: { services: ServiceVu[];
           deux fois. */}
       {niveau > 0 && (
         <nav className={styles.fil} aria-label={t("Où vous êtes")}>
-          <button type="button" className={styles.retour} onClick={() => (niveau === 2 ? aller(rayon?.cle) : aller())} aria-label={t("Revenir")}>
+          <button type="button" className={styles.retour} onClick={() => aller(retourDe(niveau, rayon?.cle))} aria-label={t("Revenir")}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M15 18l-6-6 6-6" />
             </svg>
@@ -122,9 +126,34 @@ export function Parcours({ services, etapes, raisons }: { services: ServiceVu[];
               liste-là. Les six autres sièges sont passés en bandes le
               24 octobre ; celui dont la forme venait restait en filets, parce
               qu'il en gardait une copie pour lui. La copie est partie. */}
-          <section className={styles.volet} aria-hidden={niveau !== 0} inert={niveau !== 0}>
+          <section className={`${styles.volet} ${styles.racine}`} aria-hidden={niveau !== 0} inert={niveau !== 0}>
+            {/* LES FAÇONS D'ENTRER SUR UNE LIGNE, À PLAT ET EN TUILES.
+                Elles étaient derrière « Placer », un cran qui répétait la
+                question de la page. En tuiles plutôt qu'en bandes parce
+                qu'elles se COMPARENT : ce sont des variantes d'un même geste,
+                et l'œil doit les prendre d'un coup plutôt que les descendre.
+                Les rayons qui restent gardent la bande, qui se descend : eux
+                rangent des gestes de natures différentes.
+                La dernière s'étale sur la largeur quand elles sont en nombre
+                impair — règle de mise en page et non de contenu, pour qu'une
+                tuile ne reste jamais seule sur sa rangée. */}
+            {aPlat.length > 0 && (
+              <ul className={styles.tuiles}>
+                {aPlat.map((sv) => (
+                  <li key={sv.cle}>
+                    <button type="button" className={styles.tuile} onClick={() => aller(SANS_LISTE, sv.cle)}>
+                      <span className={styles.marque} aria-hidden="true">
+                        {ICONE_SERVICE[sv.cle]}
+                      </span>
+                      <b>{t(sv.nom)}</b>
+                      {sv.etat === "en_place" && <small>{t("en place")}</small>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
             <Rubriques
-              items={RAYONS.flatMap((r) => {
+              items={RAYONS.filter((r) => r.cle !== SANS_LISTE).flatMap((r) => {
                 const n = services.filter((sv) => sv.rayon === r.cle);
                 if (!n.length) return [];
                 /* Ce qui tourne déjà, et rien d'autre : un compte de services
