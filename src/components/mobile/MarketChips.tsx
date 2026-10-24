@@ -38,7 +38,20 @@ export function MarketChips() {
   }, [here]);
 
   const ici = MARKET_PAGES.findIndex((p) => p.key === here);
-  if (!here) return null;
+  /* PAS SUR LA PORTE DE LA FAMILLE, depuis le 24 octobre 2026.
+     Ce bandeau sert « celui qui LIT et veut savoir où il est » : sa propre
+     note le dit. Sur « /marche », on ne lit pas un article du marché, on est
+     devant la porte — et la page y pose déjà, au téléphone, la liste des
+     autres entrées avec la phrase de chacune. La famille se lisait donc deux
+     fois avant le titre : sept pastilles courtes dont la plus inutile marque
+     la page où l'on se tient, puis six rubriques nommées et expliquées.
+     C'est le même retrait que celui de la bande de pied, pour la même
+     raison, et c'est la page elle-même qui l'avait écrite : « une bande qui
+     répète la famille est du bruit une fois les pastilles posées. » Ici les
+     deux sont posées, et c'est la plus pauvre qui s'efface : le rail montre
+     deux ou trois pastilles à la fois sur un téléphone, le sommaire les
+     montre toutes, avec ce qu'elles contiennent. */
+  if (!here || here === "marche") return null;
   return (
     <nav className={styles.rail} ref={rail} aria-label={t("Les pages du marché")}>
       {MARKET_PAGES.map((p, i) => {

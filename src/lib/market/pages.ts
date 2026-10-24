@@ -65,9 +65,12 @@ export function currentMarketPage(path: string): string | undefined {
   if (path.startsWith("/indice")) return "indice";
   if (path.startsWith("/societes") || path.startsWith("/emetteurs")) return "societes";
   if (path.startsWith("/comparer")) return "comparer";
-  /* Les adjudications ne sont plus de la famille : elles ont leur siège,
-     Instruments. Les y laisser ici afficherait la bande du marché sur une page
-     d'achat, et une pastille qui ne correspond à aucune entrée. */
+  /* Les adjudications ne sont plus de la famille : elles s'achètent. Les y
+     laisser afficherait la bande du marché sur une page d'achat, et une
+     pastille qui ne correspond à aucune entrée.
+     (La note disait « elles ont leur siège, Instruments » : ce siège a fermé
+     le 24 octobre 2026, absorbé par Trade. Le calendrier y vit désormais, et
+     la raison du retrait n'a pas bougé.) */
   if (path.startsWith("/info/indice-bvmac")) return "lecon";
   if (path.startsWith("/actualites")) return "actualites";
   if (path.startsWith("/marche")) return "marche";

@@ -66,4 +66,34 @@ describe("la porte du marché", () => {
     /* Non vacuité : la bande est bien encore montée quelque part. */
     expect(lire("src/app/indice/IndiceBody.tsx"), "la bande du desk n'est plus montée nulle part").toContain("<MarketStrip");
   });
+  /* ET ELLE NE LA REDIT PLUS EN TÊTE NON PLUS.
+     Le même relevé comptait trois écritures de la famille ; le pied est parti
+     le premier, et les deux autres sont restées face à face : les pastilles
+     du rail à y 60, puis le sommaire à y 115-659. Sept pastilles courtes dont
+     la plus inutile marque la page où l'on se tient, puis six rubriques
+     nommées et expliquées — avant le titre, sur l'écran le plus étroit.
+
+     C'EST LA PLUS PAUVRE QUI S'EFFACE. Le rail sert « celui qui LIT et veut
+     savoir où il est », sa propre note le dit : sur la porte de la famille on
+     ne lit pas, on choisit. Et il montre deux ou trois pastilles à la fois
+     sur un téléphone, quand le sommaire les montre toutes avec ce qu'elles
+     contiennent.
+
+     LES DEUX MOITIÉS VOYAGENT ENSEMBLE : le rail se tait sur la porte PARCE
+     QUE le sommaire y est. Retirer le sommaire sans rendre le rail laisserait
+     le téléphone sans aucune entrée vers la famille. */
+  it("ne dit pas la famille deux fois avant le titre, au téléphone", () => {
+    const rail = code("src/components/mobile/MarketChips.tsx");
+    expect(rail, "le rail reparaît sur la porte de la famille, où le sommaire liste déjà les entrées").toMatch(/here === "marche"/);
+    const page = code("src/app/marche/page.tsx");
+    expect(page, "le sommaire du téléphone a disparu, et le rail s'y tait : la famille n'a plus d'entrée sur l'écran étroit").toContain("styles.sommaire");
+  });
+
+  /* La prémisse de l'épreuve au-dessus : « /marche » est bien ce que la
+     famille appelle sa porte. Si la clef changeait, le rail reparaîtrait. */
+  it("reconnaît la porte de la famille sous ce nom", async () => {
+    const { currentMarketPage } = await import("@/lib/market/pages");
+    expect(currentMarketPage("/marche")).toBe("marche");
+    expect(currentMarketPage("/societes"), "une page de lecture doit garder son rail").toBe("societes");
+  });
 });
