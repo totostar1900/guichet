@@ -495,6 +495,11 @@ export async function Console({ session }: { session: Session }) {
           IL SAIT SE TAIRE : sans bulletin portant l'indice, il rend null, et
           la section disparaît avec lui.
 
+          LE TITRE EST PASSÉ À LA PIÈCE, et ce n'est pas un détail de mise
+          en page : écrit ici, il restait à l'écran les jours où l'indice rend
+          « null », c'est-à-dire chaque jour en développement — le dépôt
+          mémoire n'a aucun bulletin. Un titre suivi de rien.
+
           UN SEUL LIEN, ET NON UNE RANGÉE DE PASTILLES. La maquette en posait
           trois — les sociétés, les notes, les actualités. « /marche » EST la
           porte de cette famille, son propre fichier le dit, et le bandeau du
@@ -508,13 +513,7 @@ export async function Console({ session }: { session: Session }) {
           qui lit deux mille bulletins, les derniers cours, les sociétés, puis
           deux mille cotations PAR LIGNE cotée : une dizaine de requêtes, sur
           la page la plus visitée de la maison. L'indice en coûte une. */}
-      <section>
-        <div className={styles.tete}>
-          <b>{t("Le marché")}</b>
-          <Link href="/marche">{t("La place")} →</Link>
-        </div>
-        <IndexPulse compact />
-      </section>
+      <IndexPulse compact entete={{ titre: t("Le marché"), lien: { href: "/marche", mot: t("La place") } }} />
 
       {/* 8. CE QUI PERFORME, juste après l'indice : le niveau de la place,
           puis les lignes qui l'ont fait bouger. Sa lecture lui est propre et

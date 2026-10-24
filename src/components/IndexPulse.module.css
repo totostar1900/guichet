@@ -114,3 +114,31 @@
   color: var(--ink-3);
   font-style: italic;
 }
+
+/* L'EN-TÊTE DE SECTION, QUAND LA PAGE EN DEMANDE UN. Il est rendu ici et non
+   chez l'appelant, parce que c'est ici qu'on sait s'il y a un indice à
+   montrer : écrit dehors, il restait seul à l'écran les jours sans bulletin.
+   Même forme que les autres en-têtes de l'accueil : un nom en petites
+   capitales, un lien à droite, un filet en dessous. */
+.entete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-7);
+  padding-bottom: var(--s-5);
+  border-bottom: 1px solid var(--navy);
+  margin-bottom: var(--s-7);
+}
+.entete h2 {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.entete a {
+  flex: none;
+  font-size: var(--t-2);
+  color: var(--gold-ink);
+}

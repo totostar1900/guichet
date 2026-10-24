@@ -14,7 +14,7 @@ const tone = (v?: number) => (v == null || Math.abs(v) < 0.005 ? styles.flat : v
  * months, sixty sessions in a line. A price index, and a link to the lesson
  * that says how to read it. Quiet when no bulletin carried the index yet.
  */
-export async function IndexPulse({ compact }: { compact?: boolean }) {
+export async function IndexPulse({ compact, entete }: { compact?: boolean; /** Le titre de section et son lien, quand la page en veut un : voir la note. */ entete?: { titre: string; lien: { href: string; mot: string } } }) {
   const t = await getT();
   const bulletins = await repo().listBulletins(400).catch(() => []);
   const stats = indexStats(indexSeries(bulletins));
@@ -36,7 +36,26 @@ export async function IndexPulse({ compact }: { compact?: boolean }) {
   const span = max - min || 1;
   const line = pts.map((p, i) => `${((i / Math.max(1, pts.length - 1)) * 416 + 2).toFixed(1)},${(56 - ((p.value - min) / span) * 50).toFixed(1)}`).join(" ");
   return (
-    <section className={`${styles.pulse} ${compact ? styles.compact : ""}`} aria-label="BVMAC All Share Index" data-coach="indice">
+    <>
+      {/* LE TITRE S'EN VA AVEC LA PIÈCE, OU IL NE VIENT PAS.
+          La page d'arrivée l'écrivait de son côté, dans une section à elle :
+          « LE MARCHÉ · La place → », puis l'indice en dessous. Or l'indice
+          rend « null » quand aucun bulletin ne le porte — c'est la règle qu'on
+          lui demande — et ce jour-là il ne restait qu'un titre suivi de rien.
+          Mesuré sur le dépôt mémoire, qui n'a aucun bulletin : la série du BOC
+          est ingérée, jamais semée, donc c'était l'état de TOUTE page
+          d'arrivée en développement.
+          Le titre se passe donc en propriété, et il est rendu ici, après le
+          seul endroit qui sait s'il y a quelque chose à montrer. Les deux
+          pages du marché n'en demandent pas : elles ont leur propre en-tête,
+          et elles n'arrivent jamais là par hasard. */}
+      {entete && (
+        <div className={styles.entete}>
+          <h2>{entete.titre}</h2>
+          <Link href={entete.lien.href}>{entete.lien.mot} →</Link>
+        </div>
+      )}
+      <section className={`${styles.pulse} ${compact ? styles.compact : ""}`} aria-label="BVMAC All Share Index" data-coach="indice">
       <div className={styles.level}>
         <small>BVMAC All Share</small>
         <b>{stats.last.value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
@@ -74,6 +93,7 @@ export async function IndexPulse({ compact }: { compact?: boolean }) {
       <span className={styles.tag} title={t("Les dividendes ne sont pas comptés dans l'indice")}>
         {t("indice de prix")}
       </span>
-    </section>
+      </section>
+    </>
   );
 }
