@@ -527,6 +527,15 @@ export const SEED_OFFERS: Offer[] = [
     status: "published",
     isExample: true,
     blurb: "Exemple de séance annoncée à moyen terme : notée, mais rien ne presse encore.",
+    /* RETENUE PAR LE DESK, et c'est la troisième section que le dépôt mémoire
+       ne montrait jamais. Le motif est NEUTRE — « la sélection du desk » n'est
+       pas une recommandation, et le type le dit en toutes lettres. La durée
+       d'affichage se calcule, pour la raison qui vaut partout ici : une date
+       fixe serait dépassée la semaine suivante.
+       C'est la séance à onze jours, et non celle à quatre : l'urgente est déjà
+       en tête de « Ce qui ferme bientôt », et la retenir une seconde fois sur
+       la même page la dirait deux fois. */
+    featured: { reason: "Retenue pour sa durée : cinq ans, entre les bons à treize semaines et les lignes longues de la cote.", until: cloture(11).slice(0, 10), by: "Exemple", at: `${leJour(-2)}T09:30:00` },
     documents: [],
     opensAt: `${leJour(-2)}T09:00:00`,
     deadlineAt: cloture(11),

@@ -1,7 +1,54 @@
 import type { NewsItem } from "@/lib/news/model";
 
+/**
+ * UNE DÉPÊCHE QUI RESTE VISIBLE, quel que soit le jour où l'on sème.
+ *
+ * LE MÊME TROU QUE LES SÉANCES, deux sections plus loin. Les sept dépêches
+ * ci-dessous couvrent la semaine que décrivent les offres de septembre 2026 —
+ * c'est ce qui en fait un relevé cohérent, et c'est pourquoi on n'y touche
+ * pas. Mais leur « visibleUntil » est dépassé depuis le 17 octobre : sur le
+ * dépôt mémoire, AUCUNE n'est visible, et « À la une » ne paraît donc jamais
+ * en développement.
+ *
+ * ET L'ÉPINGLE NE SUFFIT PAS À LA SAUVER : la première porte bien
+ * « featured: true », mais `aLaUne` lit la liste des dépêches VISIBLES. Une
+ * épinglée expirée n'est rien.
+ *
+ * Comme pour les séances : une seule dépêche illustrative, et c'est elle qui
+ * calcule sa fenêtre. Une date fixe serait périmée la semaine suivante.
+ */
+const jour = (dansNJours: number): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + dansNJours);
+  return d.toISOString().slice(0, 10);
+};
+
 /** Demo content for the in-memory mode: the week the seed offers describe, as the desk would have covered it. */
 export const SEED_NEWS: NewsItem[] = [
+  {
+    id: "ex-une-roulante",
+    url: "https://www.bvm-ac.org/",
+    domain: "bvm-ac.org",
+    title: "Exemple de dépêche à la une : le calendrier des séances de la semaine",
+    titleEn: "Example of a pinned dispatch: this week's auction calendar",
+    why: "Exemple d'épinglage : cette dépêche existe pour que « À la une » se lise en développement, où les dépêches datées de septembre ont toutes expiré. Elle calcule sa fenêtre de visibilité et reste donc devant.",
+    whyEn: "Pinned example: this dispatch exists so that « À la une » can be read in development, where the September items have all expired. It computes its own visibility window and therefore stays current.",
+    source: "BVMAC",
+    format: "Exemple",
+    publishedAt: `${jour(-1)}T09:00:00`,
+    rubric: "tresors",
+    links: [{ kind: "term", key: "adjudication", label: "Adjudication" }],
+    featured: true,
+    status: "publiee",
+    visibleUntil: jour(30),
+    receivedFrom: "Exemple",
+    createdAt: `${jour(-1)}T08:30:00`,
+    updatedAt: `${jour(-1)}T09:00:00`,
+    updatedBy: "Exemple",
+    publishedBy: "Exemple",
+    linkOk: true,
+    version: 1,
+  },
   {
     id: "n-20260917-une",
     url: "https://www.bvm-ac.org/",

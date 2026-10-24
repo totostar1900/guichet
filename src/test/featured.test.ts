@@ -106,15 +106,28 @@ describe("sélection du desk et diffusion", () => {
     expect(said(late)).toMatch(/clôture de la ligne/);
   });
 
+  /* NI LA LIGNE, NI LA DATE, NI LE NOMBRE DE PLACES LIBRES ne sont écrits en
+     dur. Les deux premiers l'étaient et le cas tombait le jour de la clôture ;
+     le troisième l'était encore, et le cas est tombé le jour où le jeu d'essai
+     a reçu sa première ligne retenue — semée pour que « La sélection du desk »
+     se lise en développement. On compte donc les places qui restent. */
   it("caps the selection at three", async () => {
     const { featureOfferAction } = await import("@/app/desk/featured/actions");
-    /* NI LA LIGNE NI LA DATE NE SONT ÉCRITES EN DUR : l'une et l'autre
-       dépendaient de l'horloge, et le cas tombait le jour de la clôture. */
+    const { repo } = await import("@/lib/data");
     const { id: ligne, until } = await ligneOuverte();
-    for (const id of ["mkt-bhc", "mkt-ecmr-2031"]) expect((await featureOfferAction(null, form({ offerId: id, reason: "Nouvelle ligne", until }))).ok).toBe(true);
-    const fourth = await featureOfferAction(null, form({ offerId: await ligneClose(), reason: "Nouvelle ligne", until }));
-    expect(fourth.ok).toBe(false);
-    expect(said(fourth)).toMatch(/Trois lignes/);
+    const deja = (await repo().listOffers()).filter((o) => !o.hidden && o.featured).length;
+    const libres = 3 - deja;
+    expect(libres, "le jeu d'essai retient déjà trois lignes ou plus : le cas n'a plus de place pour en ajouter une").toBeGreaterThan(0);
+    /* ET LA LIGNE DE TROP DOIT ÊTRE OUVERTE : une ligne close échoue sur le
+       contrôle qui la précède — « clôturée ou retirée » — et le cas ne
+       vérifierait plus le plafond mais un autre refus. */
+    const ouvertes = (await repo().listOffers()).filter((o) => !o.hidden && !o.featured && o.id !== ligne && (o.kind === "MARCHE" || o.kind === "FONDS" || Date.parse(o.deadlineAt) > Date.now())).map((o) => o.id);
+    expect(ouvertes.length, "le jeu d'essai n'a plus assez de lignes ouvertes pour remplir le plafond puis le dépasser").toBeGreaterThan(libres);
+    /* On remplit TOUTES les places, puis on en demande une de plus. */
+    for (const id of ouvertes.slice(0, libres)) expect((await featureOfferAction(null, form({ offerId: id, reason: "Nouvelle ligne", until }))).ok).toBe(true);
+    const detrop = await featureOfferAction(null, form({ offerId: ouvertes[libres], reason: "Nouvelle ligne", until }));
+    expect(detrop.ok).toBe(false);
+    expect(said(detrop)).toMatch(/Trois lignes/);
   });
 
   it("counts before sending, journals every send, and never alerts a client twice a day", async () => {

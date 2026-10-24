@@ -3,6 +3,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { SEED_OFFERS } from "@/data/seed";
 import { echeancesProches, presse, JOURS_URGENT, JOURS_FENETRE } from "@/lib/domain/echeances";
+import { SEED_NEWS } from "@/data/news-seed";
+import { aLaUne } from "@/lib/news";
+import { isVisible } from "@/lib/news/model";
 
 const ROOT = path.join(__dirname, "../..");
 
@@ -52,6 +55,33 @@ describe("le semis", () => {
     /* Les vraies gardent leur date : ce fichier est un relevé de communiqués
        datés, et les falsifier lui ôterait ce qui en fait un relevé. */
     expect((src.match(/deadlineAt: "20\d\d-/g) ?? []).length, "les séances de septembre ont perdu leurs dates : ce fichier est un relevé de communiqués, pas une fixture").toBeGreaterThan(5);
+  });
+
+  /**
+   * ET DEUX AUTRES SECTIONS AVAIENT LE MÊME TROU, deux crans plus loin.
+   *
+   * « À la une » ne paraissait jamais : les sept dépêches du dépôt expirent au
+   * 17 octobre, et `aLaUne` lit la liste des dépêches VISIBLES — une épinglée
+   * expirée n'est rien. « La sélection du desk » non plus : aucune offre ne
+   * portait de `featured`. Dans les deux cas, le silence est exactement ce que
+   * la règle de niveau 3 prescrit, donc rien ne distinguait le trou du
+   * fonctionnement normal.
+   */
+  it("porte une dépêche à la une, et elle est visible", () => {
+    const visibles = SEED_NEWS.filter((n) => n.status === "publiee" && isVisible(n));
+    expect(visibles.length, "aucune dépêche visible : « À la une » et la page des actualités sont vides en développement").toBeGreaterThan(0);
+    expect(aLaUne(visibles), "aucune dépêche ÉPINGLÉE parmi les visibles : « À la une » ne paraît pas, et il n'y a pas de repli sur la plus récente").toBeTruthy();
+  });
+
+  it("porte une offre retenue par le desk, et sa retenue court encore", () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const retenues = SEED_OFFERS.filter((o) => !o.hidden && o.featured && o.featured.until >= today);
+    expect(retenues.length, "aucune offre retenue dont la durée court encore : « La sélection du desk » ne paraît jamais").toBeGreaterThan(0);
+    /* ET LE MOTIF RESTE NEUTRE : le type le dit — « a neutral reason and an
+       expiry : never a recommendation ». Une sélection qui conseillerait
+       engagerait la maison bien au-delà de ce qu'elle a voulu dire. */
+    const conseils = retenues.filter((o) => /recommand|conseill|meilleur|opportunité à saisir/i.test(o.featured!.reason));
+    expect(conseils.map((o) => o.id), "un motif de sélection conseille : la bande n'est pas une recommandation").toEqual([]);
   });
 
   /* NON VACUITÉ, et elle compte ici plus qu'ailleurs : les trois épreuves
