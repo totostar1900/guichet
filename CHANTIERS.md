@@ -13,7 +13,7 @@ chantiers que les GARDES ont ouvertes d'elles-mêmes, en chaîne — un cliquet 
 classes mortes qui comptait mal a fait remonter six règles inertes, dont une
 qui cachait un contraste à 2,97 : 1 ; la garde écrite pour ce défaut a mis au
 jour le jeton qui en était la cause commune. **La dernière section, elle,
-est une nouvelle dictée** : les budgets des six États, livrés en six lots
+est une nouvelle dictée** : les budgets des six États, livrés en sept lots
 le 24 octobre.
 
 Chaque point barré porte ce qui a été MESURÉ avant d'y toucher, et ce qui a
@@ -952,7 +952,7 @@ une fois vu.*
 
 ## Les budgets des six États, et la note du desk
 
-**Dicté par Georges le 24 octobre 2026, livré en six lots le même jour.**
+**Dicté par Georges le 24 octobre 2026, livré en sept lots le même jour.**
 Il ne vient pas des gardes : c'est une demande, et elle a grossi en route —
 d'abord une page, puis l'écriture d'une note, puis le signal qui dit qu'il y
 aurait de quoi en écrire une, puis le rapprochement avec ce que le marché a
@@ -1123,9 +1123,50 @@ et non le registre, et la carte d'une offre retombe sur `undefined` faute de
 date du dernier commit qui l'a touchée. **C'est le commit lui-même qui la fait
 tomber.** La suite se relance donc APRÈS, désormais.*
 
-→ *Reste dehors, et c'est nommé plutôt que laissé vide : les **liens des
-pièces** — la politique réseau de l'atelier refuse `dgb.cm`, `beac.int` et
-`dgtcfm.cm`, et un lien mort vaut moins que pas de lien ; et un vrai
-pourcentage d'exécution, qui demande un relevé d'adjudications couvrant
-l'exercice, ou le périmètre de la ligne déclarée relevé sur les annexes
-officielles.*
+### Les pièces ouvertes, et ce qu'elles ont corrigé
+
+Georges a ouvert le réseau de l'atelier sur `dgb.cm`, `beac.int` et
+`dgtcfm.cm`. Les six pièces camerounaises ont été demandées et ont répondu.
+**Mais le lot ne vaut pas par les adresses : il vaut parce que l'exposé des
+motifs de la DGB a été LU.**
+
+| ce que le relevé disait | ce que le document dit |
+|---|---|
+| recettes fiscales et douanières **4 889,5** | **4 689,5** — impôts 3 446,2 + douanes 1 243,2, et le document donne lui-même ce total. **Deux cents milliards de trop**, un 8 lu pour un 6 dans une reprise de presse |
+| appuis budgétaires : « un programme avec le FMI qui tient » | **« Appuis budgétaires (BM) »**, et le tableau des opérations financières porte « Dont FMI : **0,0** » |
+| « loi n° 2025/012 du 17 décembre 2025 » | l'exposé est celui du **PROJET**, daté de novembre 2025 ; la colonne lue est « PLFI 2026 ». Ce que la loi promulguée a retenu reste à relever |
+
+La somme des recettes passe donc de 5 887,0 à **5 687,0**, et l'écart avec le
+solde déclaré de −323,5 à **−523,5**.
+
+**Un point laissé ouvert se tranche.** Le périmètre du solde −631,0, que le
+relevé demandait de nommer « sur les annexes officielles » : l'exposé le
+décompose — budget général **−607,5**, comptes d'affectation spéciale
+**−23,5**. La soustraction de nos deux agrégats ne pouvait pas y tomber, et on
+sait maintenant pourquoi.
+
+**Et une contradiction est trouvée, nommée, non résolue.** Le même document
+porte **deux plans de financement**. Le texte énumère six portes sommant à
+3 104,2 ; le tableau des opérations financières en donne d'autres sommant à
+**2 996,8** — extérieurs 650,0 contre 1 000, bancaire 505,7 contre 589,7,
+exceptionnels 144,4 contre 167,8. **Seule la ligne des titres publics, 400,0,
+est la même des deux côtés.** Lequel fait foi n'est pas à nous d'en décider :
+c'est rangé dans « ce qui n'a pas été relevé ».
+
+*Une adresse ne se consigne que si quelqu'un l'a ouverte, et le jour se range
+avec elle — un lien pourrit en silence, et sans date on ne sait pas s'il a été
+suivi cette année ou il y a trois ans. La loi promulguée reste sans adresse :
+elle n'a pas été trouvée, et l'écran l'écrit.*
+
+→ *Mis de côté sur décision de Georges, et noué pour qu'on le reprenne : **le
+pourcentage d'exécution du programme**. Le dénominateur existe et il est
+public — la BEAC publie un programme annuel d'émissions par État, celui du
+Cameroun 2026 est consigné dans les pièces avec son adresse —, mais c'est un
+**scan** (« Creator: HP Scan »), sans couche de texte, et aucun outil de
+reconnaissance de caractères n'est installé. Le blocage et sa raison sont
+rangés sur la fiche, sous « ce qui n'a pas été relevé » : au retour, il n'y a
+rien à retrouver.*
+
+→ *Ce qui reste en service et n'attendait pas ce pourcentage : **le taux de
+service** — ce que chaque État obtient de ce qu'il demande —, qui était la
+vraie question de la note.*
