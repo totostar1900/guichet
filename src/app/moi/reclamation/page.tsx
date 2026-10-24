@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL } from "@/lib/domain/intent";
@@ -7,6 +6,7 @@ import { getT } from "@/i18n/server";
 import { ComplaintForm } from "./ComplaintForm";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Réclamation" };
@@ -33,15 +33,26 @@ export default async function ComplaintPage() {
   return (
     <Glissement>
       <div className={styles.wrap}>
-        <div className={styles.head}>
-          <div>
-            <div className="eyebrow">
-              <Link href="/">{t("Portefeuille")}</Link> › {t("Réclamation")}
-            </div>
-            <h1 className="display">{t("Déposer une réclamation")}</h1>
-            <p className={styles.lead}>{t("Dites ce qui s'est passé et ce que vous demandez, avec vos mots. Purpose Capital accuse réception sous deux jours ouvrés et répond sous trente jours ; sans réponse satisfaisante, la COSUMAF peut être saisie.")}</p>
-          </div>
-        </div>
+        {/* LE SECOND FIL D'ARIANE DE L'APPLICATION, et il a survécu au premier.
+            « EnTete » a été écrit pour tuer celui de « Portefeuille ›
+            Sécurité », et sa propre note le disait « le seul de
+            l'application » — il y en avait deux. Celui-ci portait en plus le
+            nom de la page dans son dernier cran : « Portefeuille ›
+            Réclamation » au-dessus de « Déposer une réclamation ».
+            Un cran en arrière, et rien d'autre : c'est le premier créneau de
+            l'étalon, et il dit la même chose en moins long.
+
+            ET IL NOMMAIT MAL SA DESTINATION. « Portefeuille » menait à « / »,
+            que `nav-groups` appelle « Tableau de bord ». L'épreuve de l'étalon
+            vérifie justement cela, et elle ne pouvait pas le voir tant que le
+            lien était écrit à la main : convertir une page, c'est aussi la
+            faire entrer sous les épreuves auxquelles sa propre écriture
+            l'exemptait. */}
+        <EnTete
+          retour={{ href: "/", mot: t("Tableau de bord") }}
+          titre={t("Déposer une réclamation")}
+          phrase={t("Dites ce qui s'est passé et ce que vous demandez, avec vos mots. Purpose Capital accuse réception sous deux jours ouvrés et répond sous trente jours ; sans réponse satisfaisante, la COSUMAF peut être saisie.")}
+        />
         <ComplaintForm ops={ops} phoneProven={Boolean(channels?.phoneVerifiedAt)} phone={channels?.phone ?? s.phone} email={s.email} />
         {mine.length > 0 && (
           <section className="panel">

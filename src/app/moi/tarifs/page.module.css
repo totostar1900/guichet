@@ -14,17 +14,8 @@
   flex-direction: column;
   gap: var(--s-9);
 }
-.tete {
-  display: grid;
-  gap: var(--s-3);
-}
-.lead {
-  margin: 0;
-  max-width: 64ch;
-  color: var(--ink-2);
-  font-size: var(--t-4);
-  line-height: 1.55;
-}
+/* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
+   2026 : leurs mesures vivent dans sa feuille. */
 .bloc {
   display: grid;
   gap: var(--s-4);

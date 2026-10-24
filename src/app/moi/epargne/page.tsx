@@ -8,6 +8,7 @@ import { getT } from "@/i18n/server";
 import { localIso } from "@/lib/format";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Épargne programmée" };
@@ -53,17 +54,24 @@ export default async function EpargnePage() {
   return (
     <Glissement>
       <div className={styles.page}>
-        <nav className={styles.fil}>
-          <Link href="/">{t("Portefeuille")}</Link>
-        </nav>
-        <header className={styles.tete}>
-          <h1 className="display">{t("Épargne programmée")}</h1>
-          <p className={styles.chapeau}>
-            {t(
-              "Une somme fixe, un jour du mois, une destination choisie maintenant : le versement part tout seul, et vous l'arrêtez quand vous voulez. C'est un placement qui se répète, pas une autorisation de débit.",
-            )}
-          </p>
-        </header>
+        {/* UN FIL D'ARIANE D'UN SEUL CRAN EST UN RETOUR, et c'était le
+            troisième déguisement du même motif trouvé ce soir — après
+            « Portefeuille › Réclamation » et le fil de « Sécurité » que
+            « EnTete » a été écrit pour retirer. Un « nav » qui ne porte qu'un
+            lien vers le parent ne situe pas, il remonte : c'est le premier
+            créneau de l'étalon, et il le dit avec sa flèche.
+
+            ET LUI AUSSI NOMMAIT MAL SA DESTINATION : « Portefeuille » pour
+            « / », que la maison appelle « Tableau de bord ». Les deux pages
+            ont été reprises par l'épreuve de l'étalon le jour où elles sont
+            passées au composant, et pas un jour avant. */}
+        <EnTete
+          retour={{ href: "/", mot: t("Tableau de bord") }}
+          titre={t("Épargne programmée")}
+          phrase={t(
+            "Une somme fixe, un jour du mois, une destination choisie maintenant : le versement part tout seul, et vous l'arrêtez quand vous voulez. C'est un placement qui se répète, pas une autorisation de débit.",
+          )}
+        />
 
         {versements.length > 0 && (
           <Pli

@@ -4,16 +4,8 @@
   margin: 0 auto;
   padding-block: var(--s-4) var(--s-11);
 }
-.head h1 {
-  font-family: var(--font-display);
-  margin: var(--s-2) 0 var(--s-3);
-}
-.lead {
-  color: var(--ink-2);
-  max-width: 68ch;
-  margin: 0;
-  line-height: 1.6;
-}
+/* Titre, phrase et retour sont montés par « EnTete » depuis le 24 octobre
+   2026 : leurs mesures vivent dans sa feuille. */
 .year {
   margin-top: var(--s-10);
 }

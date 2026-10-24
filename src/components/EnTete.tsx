@@ -32,6 +32,7 @@ export function EnTete({
   retour,
   surTitre,
   titre,
+  reference,
   phrase,
   aCote,
 }: {
@@ -41,6 +42,20 @@ export function EnTete({
   surTitre?: string;
   /** Le nom de la page. */
   titre: string;
+  /**
+   * LE NOM DE LA PAGE EST UNE RÉFÉRENCE, et se lit donc à chasse fixe.
+   *
+   * Deux pages en avaient besoin le 24 octobre 2026 — un ordre (`INT-…`) et un
+   * document (son numéro) — et toutes deux écrivaient `display mono` sur leur
+   * propre `h1`. Un numéro à chasse variable se relit mal : c'est pourtant ce
+   * qu'on recopie au téléphone ou dans un virement, chiffre par chiffre.
+   *
+   * CE N'EST PAS UNE ÉCHAPPATOIRE À CLASSES. Rien d'autre que ce booléen ne
+   * passe : ouvrir le `h1` à une classe quelconque rendrait à chaque page le
+   * droit de redécider sa fonte et sa taille, c'est-à-dire exactement les sept
+   * tailles de titre que cet en-tête a réunies.
+   */
+  reference?: boolean;
   /** Ce qu'on y trouve, en une phrase. */
   phrase?: React.ReactNode;
   /**
@@ -62,7 +77,7 @@ export function EnTete({
       <header className={`${styles.tete} ${aCote ? styles.avecCote : ""}`}>
         <div className={styles.mots}>
           {surTitre && <div className="eyebrow">{surTitre}</div>}
-          <h1 className="display">{titre}</h1>
+          <h1 className={reference ? "display mono" : "display"}>{titre}</h1>
           {phrase && <p className={styles.phrase}>{phrase}</p>}
         </div>
         {aCote}

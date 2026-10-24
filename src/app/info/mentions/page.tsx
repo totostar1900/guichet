@@ -4,6 +4,7 @@ import { fmtDate } from "@/lib/format";
 import styles from "./page.module.css";
 import { GuideBar } from "../GuideBar";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 /** The tab and the phone header read this title: in the reader's language. */
 export async function generateMetadata() {
@@ -17,14 +18,17 @@ export default async function MentionsPage() {
   return (
     <Glissement>
       <div className={styles.wrap}>
-        <div className="eyebrow">{t("Mentions légales")}</div>
         {/* LA PAGE CONTREDISAIT SON PROPRE INDEX. La recherche publie depuis
             toujours cette page sous « Mentions légales », avec « Ce que vous
             acceptez en utilisant Guichet » pour PHRASE (lib/guide-index) ; la
             page, elle, prenait la phrase pour titre. Le nom revient en tête, la
-            phrase sous lui. Voir ETALON.md. */}
-        <h1 className="display">{t("Mentions légales")}</h1>
-        <p className={styles.chapo}>{t("Ce que vous acceptez en utilisant Guichet")}</p>
+            phrase sous lui. Voir ETALON.md.
+
+            ET LE SUR-TITRE RÉPÉTAIT LE TITRE, mot pour mot : « Mentions
+            légales » au-dessus de « Mentions légales ». Un créneau qui redit
+            celui d'en dessous n'apprend rien ; celui-ci dit OÙ l'on est, et
+            c'est le guide — le même mot que porte la barre au pied de page. */}
+        <EnTete surTitre={t("Le Guide")} titre={t("Mentions légales")} phrase={t("Ce que vous acceptez en utilisant Guichet")} />
         <p className={styles.version}>{t("Version du {date}", { date: fmtDate(LEGAL_VERSION) })}</p>
         {LEGAL.map((s) => (
           <section key={s.id} id={s.id} className={styles.section}>

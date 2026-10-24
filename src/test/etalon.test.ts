@@ -205,7 +205,50 @@ describe("les deux arbitrages", () => {
  * créneau. La conversion se fait page par page ; le cliquet est là pour
  * qu'elle ne recule pas entre deux lots, comme celui des titres l'a été
  * jusqu'à toucher le fond.
+ *
+ * ─── LE CLIQUET NE POUVAIT PAS TOUCHER LE FOND ────────────────────────────
+ *
+ * Relevé du 24 octobre 2026 au soir : il comptait 38, puis 27, et parmi ces
+ * 27 il y avait `EnTete.tsx` LUI-MÊME — le composant qui écrit le `h1` était
+ * compté comme une page qui ne l'avait pas converti. Il y avait aussi les
+ * quatre pages de la vitrine, qui ne convertiront jamais par décision (voir
+ * ETALON.md § C), le « Bonjour » de la console, qui n'est pas un nom de page,
+ * et trois écrans de seuil qui n'ont ni section au-dessus ni parent derrière.
+ *
+ * UN CLIQUET QUI MÉLANGE « pas encore fait » ET « ne sera jamais fait »
+ * N'ATTEINT JAMAIS ZÉRO, et un compte qui ne peut pas tomber à zéro n'apprend
+ * plus rien à celui qui le regarde : il ne dit pas s'il reste du travail.
+ *
+ * D'OÙ DEUX MESURES, ET NON UNE. Les dispenses sont NOMMÉES, chacune avec sa
+ * raison — c'est la forme qu'a prise la règle de la fonte, pour le motif que
+ * l'ETALON écrit en toutes lettres : *« un compte dirait combien de fichiers
+ * posent la fonte, pas lesquels ont le droit »*. Le cliquet, lui, ne porte
+ * plus que ce qui attend d'être converti, et celui-là peut finir.
+ *
+ * ET UNE DISPENSE SE VÉRIFIE AUSSI. Une page convertie, renommée ou
+ * supprimée laisserait derrière elle une dispense qui ne vise plus rien :
+ * elle passerait tous les jours sans que personne la relise.
  */
+const SANS_ENTETE: Record<string, string> = {
+  "src/components/EnTete.tsx": "l'en-tête lui-même : c'est lui qui écrit ce « h1 », et se compter revenait à ne jamais pouvoir finir",
+  /* La vitrine, nommée une par une dans ETALON.md § C : « la vitrine respire,
+     l'application travaille ». Elle garde son serif et son échelle, et ses
+     titres sont des phrases — « La porte d'entrée des marchés financiers
+     d'Afrique centrale » n'est pas le nom d'une page. */
+  "src/app/Accueil.tsx": "la vitrine (ETALON § C) : serif, échelle fluide, et un titre qui est une phrase",
+  "src/app/a-propos/page.tsx": "la vitrine (ETALON § C)",
+  "src/app/placements/page.tsx": "la vitrine (ETALON § C)",
+  "src/app/offres/[id]/ApercuPartage.tsx": "la vitrine (ETALON § C) : la page que voit celui à qui on partage une ligne",
+  /* Un nom de page, ou autre chose qui s'écrit gros. */
+  "src/app/Console.tsx": "« Bonjour {p} » est une salutation, pas le nom de la page : la racine est nommée par son siège au dock",
+  /* LES ÉCRANS DE SEUIL. Ni section au-dessus — on n'est pas encore dans
+     l'application —, ni parent derrière, et leur titre nomme l'ÉTAPE en
+     cours, pas la page : les trois sont une carte centrée, pas un en-tête de
+     page. */
+  "src/app/connexion/page.tsx": "un écran de seuil : carte centrée, pas de section ni de parent, et le titre nomme l'étape",
+  "src/app/connexion/mfa/page.tsx": "un écran de seuil : carte centrée, pas de section ni de parent",
+  "src/app/ne-plus-recevoir/page.tsx": "une carte de confirmation atteinte par un lien de courriel : « C'est fait. » est une réponse, pas un nom de page",
+};
 const entetesALaMain = (): string[] => {
   const out: string[] = [];
   const walk = (d: string) => {
@@ -228,11 +271,24 @@ const entetesALaMain = (): string[] => {
 };
 
 describe("l'en-tête d'une page", () => {
-  it("ne laisse pas les en-têtes écrits à la main se multiplier", () => {
-    const PLAFOND = 38;
-    const mains = entetesALaMain();
-    expect(mains.length, `${mains.length} en-têtes encore écrits à la main (plafond ${PLAFOND}) :\n  ${mains.join("\n  ")}`).toBeLessThanOrEqual(PLAFOND);
-    expect(PLAFOND - mains.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(2);
+  /* LA LISTE BLANCHE D'ABORD, parce qu'elle décide de ce que le cliquet
+     compte. Une dispense qui ne vise plus de fichier — page convertie,
+     renommée, supprimée — abaisserait le reste sans que personne le sache. */
+  it("ne garde que des dispenses qui visent encore une page, et chacune avec sa raison", () => {
+    const tous = entetesALaMain();
+    const fantomes = Object.keys(SANS_ENTETE).filter((f) => !tous.includes(f));
+    expect(fantomes, `ces dispenses ne visent plus rien : la page a été convertie, renommée ou supprimée, et la dispense doit partir avec elle\n  ${fantomes.join("\n  ")}`).toEqual([]);
+    const muettes = Object.entries(SANS_ENTETE).filter(([, r]) => r.trim().length < 20);
+    expect(muettes.map(([f]) => f), "une dispense sans raison lisible n'est pas une décision, c'est un oubli").toEqual([]);
+  });
+
+  it("ne laisse pas les en-têtes qui restent à convertir se multiplier", () => {
+    /* Le compte du 24 octobre 2026 au soir, après neuf conversions : il
+       descend, il ne monte pas, et celui-ci peut finir à zéro. */
+    const PLAFOND = 18;
+    const restants = entetesALaMain().filter((f) => !SANS_ENTETE[f]);
+    expect(restants.length, `${restants.length} en-têtes encore écrits à la main (plafond ${PLAFOND}) :\n  ${restants.join("\n  ")}`).toBeLessThanOrEqual(PLAFOND);
+    expect(PLAFOND - restants.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(2);
   });
 
   it("pose les quatre créneaux dans l'ordre, et un seul genre par créneau", () => {

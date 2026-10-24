@@ -11,7 +11,8 @@ import { getT } from "@/i18n/server";
 import { SourceViewer } from "@/components/SourceViewer";
 import { SortiesDuDocument } from "./Sorties";
 import styles from "./page.module.css";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -81,26 +82,29 @@ export default async function DocumentPage({ params, searchParams }: { params: P
         {/* Un document ouvert se note : c'est la preuve qu'il a été lu, et
             c'est la seule que la maison puisse avoir. */}
         <Vu geste="vu.document" objet={doc.number} detail={t(DOC_LABEL[doc.type])} />
-        <LienRetour href={retour} className={styles.back}>
-          ← {retour === "/moi/documents" ? t("Mes documents") : intent ? t("Votre ordre {r}", { r: intent.ref }) : t("Retour")}
-        </LienRetour>
-        <div className={styles.head}>
-          <div>
-            <div className="eyebrow">{t(DOC_LABEL[doc.type])}</div>
-            <h1 className="display mono">{doc.number}</h1>
-            <p className={styles.lead}>
-              {intent && offre ? (
-                <>
-                  {t("Il porte votre {op} de {m} sur", { op: t(INTENT_LABEL[intent.type]).toLowerCase(), m: quantite ?? "" })} <Link href={`/offres/${offre.id}`}>{offre.title}</Link>
-                  {t(", référence {r}. Établi le {d}.", { r: intent.ref, d: fmtDateTime(doc.createdAt) })}
-                </>
-              ) : (
-                t("Établi le {d}.", { d: fmtDateTime(doc.createdAt) })
-              )}
-            </p>
-          </div>
-          <SortiesDuDocument fichier={fichier} nom={doc.number} />
-        </div>
+        {/* LES CINQ CRÉNEAUX DE L'ÉTALON, et ils étaient tous les cinq écrits
+            à la main ici : le retour, le sur-titre, le numéro de la pièce, sa
+            phrase, et les sorties EN FACE du titre — « aCote », dont la
+            raison avait justement été écrite par la page des fonds : sous le
+            titre, un objet repousse d'un cran le début de ce pour quoi on
+            vient ; en face, il ne coûte aucune hauteur. */}
+        <EnTete
+          retour={{ href: retour, mot: retour === "/moi/documents" ? t("Mes documents") : intent ? t("Votre ordre {r}", { r: intent.ref }) : t("Retour") }}
+          surTitre={t(DOC_LABEL[doc.type])}
+          titre={doc.number}
+          reference
+          phrase={
+            intent && offre ? (
+              <>
+                {t("Il porte votre {op} de {m} sur", { op: t(INTENT_LABEL[intent.type]).toLowerCase(), m: quantite ?? "" })} <Link href={`/offres/${offre.id}`}>{offre.title}</Link>
+                {t(", référence {r}. Établi le {d}.", { r: intent.ref, d: fmtDateTime(doc.createdAt) })}
+              </>
+            ) : (
+              t("Établi le {d}.", { d: fmtDateTime(doc.createdAt) })
+            )
+          }
+          aCote={<SortiesDuDocument fichier={fichier} nom={doc.number} />}
+        />
 
         {/* LIRE DEUX PIÈCES DE SUITE : l'ensemble est nommé, pour qu'on sache
             dans quoi on avance. */}

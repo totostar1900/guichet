@@ -8,6 +8,7 @@ import { aucunCanalPossible, canalDuCode } from "@/lib/kyc/canal";
 import { MesMandats } from "./MesMandats";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -51,15 +52,13 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
   return (
     <Glissement>
       <div className={styles.wrap}>
-        <div className={styles.head}>
-          <div className="eyebrow">{t("Payer sans y penser")}</div>
-          <h1 className="display">{t("Vos prélèvements")}</h1>
-          <p className={styles.lead}>
-            {t(
-              "Vous pouvez nous autoriser à prélever une somme sur votre compte bancaire, à une date fixe du mois. C'est vous qui fixez le plafond, et nous ne le dépassons jamais. Chaque prélèvement est annoncé avant de partir, et vous pouvez révoquer votre autorisation à tout moment, sans motif.",
-            )}
-          </p>
-        </div>
+        <EnTete
+          surTitre={t("Payer sans y penser")}
+          titre={t("Vos prélèvements")}
+          phrase={t(
+            "Vous pouvez nous autoriser à prélever une somme sur votre compte bancaire, à une date fixe du mois. C'est vous qui fixez le plafond, et nous ne le dépassons jamais. Chaque prélèvement est annoncé avant de partir, et vous pouvez révoquer votre autorisation à tout moment, sans motif.",
+          )}
+        />
 
         {/* LE COMPTE DÉBITÉ EST CELUI DU CLIENT, et la page le redit là où il va
             le saisir : c'est la règle de la convention sur l'origine des fonds,

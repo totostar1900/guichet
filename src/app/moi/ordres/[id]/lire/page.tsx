@@ -5,7 +5,8 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { SourceViewer } from "@/components/SourceViewer";
 import styles from "../../../documents/[id]/page.module.css";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -33,16 +34,17 @@ export default async function LireOrdrePage({ params }: { params: Promise<{ id: 
   return (
     <Glissement>
       <div className={styles.wrap}>
-        <LienRetour href={`/moi/ordres/${intent.id}`} className={styles.back}>
-          ← {t("Mon ordre")}
-        </LienRetour>
-        <div className={styles.head}>
-          <div>
-            <div className="eyebrow">{intent.signedAt ? t("Ordre signé") : t("Avant signature")}</div>
-            <h1 className="display mono">{intent.ref}</h1>
-            <p className={styles.lead}>{intent.signedAt ? t("Le document tel qu'il a été signé.") : t("Le texte complet, tel que vous le signerez. Rien n'est engagé tant que vous n'avez pas saisi le code.")}</p>
-          </div>
-        </div>
+        {/* LES QUATRE CRÉNEAUX ÉTAIENT DÉJÀ LÀ, écrits à la main : le retour,
+            le sur-titre, le nom — la référence de l'ordre — et la phrase. Seul
+            l'ordre et les mesures étaient à la page. La référence garde sa
+            chasse fixe, qui est la raison du créneau « reference ». */}
+        <EnTete
+          retour={{ href: `/moi/ordres/${intent.id}`, mot: t("Mon ordre") }}
+          surTitre={intent.signedAt ? t("Ordre signé") : t("Avant signature")}
+          titre={intent.ref}
+          reference
+          phrase={intent.signedAt ? t("Le document tel qu'il a été signé.") : t("Le texte complet, tel que vous le signerez. Rien n'est engagé tant que vous n'avez pas saisi le code.")}
+        />
         <div className={styles.visionneuse}>
           <SourceViewer src={src} title={`${t("Ordre")} ${intent.ref}`} fill />
         </div>

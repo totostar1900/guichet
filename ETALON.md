@@ -220,6 +220,48 @@ Trois épreuves, sur le modèle du cliquet déjà employé pour la typographie :
 3. **Un genre par créneau.** Aucune page ne pose un lien ni un fil d'Ariane
    dans le créneau du sur-titre.
 
+### Le cliquet des en-têtes, refait le 24 octobre 2026 au soir
+
+Il comptait **49 au matin, 38, puis 27** — et parmi ces 27 il y avait
+`EnTete.tsx` **lui-même** : le composant qui écrit le `h1` était compté comme
+une page qui ne l'avait pas converti. Il y avait aussi les quatre pages de la
+vitrine, qui ne convertiront jamais par la décision du § C ; le « Bonjour » de
+la console, qui n'est pas un nom de page ; et trois écrans de seuil — la
+connexion, le second facteur, le désabonnement — qui n'ont ni section au-dessus
+ni parent derrière, et dont le titre nomme l'étape en cours.
+
+**Un cliquet qui mélange « pas encore fait » et « ne sera jamais fait »
+n'atteint jamais zéro**, et un compte qui ne peut pas tomber à zéro ne dit plus
+s'il reste du travail.
+
+D'où **deux mesures** : neuf dispenses **nommées**, chacune avec sa raison —
+la forme que le § C a déjà donnée à la règle de la fonte, *« un compte dirait
+combien de fichiers posent la fonte, pas lesquels ont le droit »* — et un
+cliquet qui ne porte plus que ce qui attend d'être converti. **Il est à 18, et
+celui-là peut finir.** Une dispense est vérifiée comme le reste : si sa page
+est convertie, renommée ou supprimée, la dispense ne vise plus rien et
+l'épreuve le dit.
+
+→ *Neuf conversions le même soir, et deux d'entre elles ont découvert ce que
+leur propre écriture cachait : `/moi/reclamation` et `/moi/epargne`
+nommaient* « Portefeuille » *un lien vers* `/`, *que `nav-groups` appelle*
+« Tableau de bord ». *L'épreuve des retours lit `retour={{ … }}` ; elle ne
+pouvait rien voir d'un `<Link>` écrit à la main. Convertir une page, c'est
+aussi la faire entrer sous les épreuves auxquelles son écriture l'exemptait.*
+
+→ *Trois fils d'Ariane, et non un. Ce document disait celui de « Sécurité »*
+« le seul de l'application » *: il y en avait trois. « Portefeuille ›
+Réclamation » redisait en plus le nom de la page dans son dernier cran, et
+`/moi/epargne` portait un `nav` d'un seul lien vers son parent — un fil d'un
+seul cran est un retour, et il se dit avec une flèche.*
+
+→ *Un créneau de plus, déclaré : `reference`. Deux pages — un ordre, un
+document — titrent une RÉFÉRENCE, et écrivaient toutes deux `display mono` sur
+leur propre `h1` ; un numéro à chasse variable se relit mal, et c'est
+justement ce qu'on recopie chiffre par chiffre. C'est un booléen, pas une
+ouverture à classes : rendre le `h1` libre rendrait à chaque page le droit de
+redécider sa fonte, c'est-à-dire les sept tailles que cet en-tête a réunies.*
+
 ---
 
 ## 7. Les deux arbitrages — tranchés le 24 octobre 2026

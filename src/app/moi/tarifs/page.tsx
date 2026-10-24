@@ -7,6 +7,7 @@ import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -61,13 +62,11 @@ export default async function TarifsPage() {
   return (
     <Glissement>
       <div className={styles.page}>
-        <header className={styles.tete}>
-          <div className="eyebrow">{t("Annexe tarifaire")}</div>
-          <h1 className="display">{t("Ce que vous payez")}</h1>
-          <p className={styles.lead}>
-            {t("Tout ce qui se facture est ici, et ce qui ne se facture pas y est aussi : un service absent d'une liste finit par être réclamé un jour. Les montants sont en francs CFA, hors fiscalité.")}
-          </p>
-        </header>
+        <EnTete
+          surTitre={t("Annexe tarifaire")}
+          titre={t("Ce que vous payez")}
+          phrase={t("Tout ce qui se facture est ici, et ce qui ne se facture pas y est aussi : un service absent d'une liste finit par être réclamé un jour. Les montants sont en francs CFA, hors fiscalité.")}
+        />
 
         <section className={styles.bloc}>
           <h2>{t("À l'opération")}</h2>

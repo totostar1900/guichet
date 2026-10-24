@@ -1,10 +1,7 @@
 /* Le fil de l'activité du client : une journée, puis ses gestes. */
 
-.chapo {
-  max-width: 68ch;
-  color: var(--ink-2);
-  line-height: 1.6;
-}
+/* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
+   2026 : leurs mesures vivent dans sa feuille. */
 
 .compteurs {
   display: flex;

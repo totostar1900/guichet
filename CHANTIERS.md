@@ -477,9 +477,42 @@ et la page d'accueil en dernier — elle était bien la vitrine de toutes les
 décisions d'avant, et aucune n'a eu à être refaite.
 
 **Le point 7 ne se clôt pas, et c'est voulu.** La règle est posée et l'en-tête
-commun existe ; ce qui reste est un CLIQUET — 49 en-têtes écrits à la main au
-matin, 38 au soir. Il descend à chaque page convertie et ne remonte jamais.
-Un cliquet ne se coche pas, il se regarde baisser.
+commun existe ; ce qui reste est un CLIQUET. Il descend à chaque page convertie
+et ne remonte jamais. Un cliquet ne se coche pas, il se regarde baisser.
+
+**Mais il ne pouvait pas toucher le fond, et c'est corrigé.** 49 au matin, 38,
+puis 27 — et parmi ces 27, `EnTete.tsx` **lui-même** : le composant qui écrit
+le `h1` était compté comme une page qui ne l'avait pas converti. Avec lui, les
+quatre pages de la vitrine, qui ne convertiront jamais par la décision de
+l'ETALON § C ; le « Bonjour » de la console, qui n'est pas un nom de page ; et
+trois écrans de seuil — connexion, second facteur, désabonnement — sans section
+au-dessus ni parent derrière, dont le titre nomme l'étape en cours.
+
+Un cliquet qui mélange « pas encore fait » et « ne sera jamais fait » n'atteint
+jamais zéro, et un compte qui ne peut pas tomber à zéro ne dit plus s'il reste
+du travail. D'où deux mesures : **neuf dispenses nommées, chacune avec sa
+raison** — la forme que l'ETALON donne déjà à la règle de la fonte, *« un compte
+dirait combien de fichiers posent la fonte, pas lesquels ont le droit »* — et un
+cliquet qui ne porte plus que ce qui attend. **Il est à 18, et celui-là peut
+finir.** Une dispense dont la page est convertie, renommée ou supprimée ne vise
+plus rien, et l'épreuve le dit.
+
+**Neuf pages converties le même soir** : les mentions légales, les notes de
+marché, la réclamation, le parcours du guide, l'annexe tarifaire, les
+prélèvements, l'épargne programmée, votre activité, et les deux pièces qui
+titrent une référence — un ordre et un document.
+
+→ *Ce que les conversions ont trouvé, et que l'écriture à la main cachait.*
+*Trois fils d'Ariane, alors que la note de `EnTete` disait celui de
+« Sécurité »* « le seul de l'application » *: « Portefeuille › Réclamation »
+redisait en plus le nom de la page dans son dernier cran, et `/moi/epargne`
+portait un `nav` d'un seul lien vers son parent — un fil d'un seul cran est un
+retour. Deux de ces pages nommaient en outre MAL leur destination,*
+« Portefeuille » *pour* `/`, *que la maison appelle* « Tableau de bord » *:
+l'épreuve des retours lit `retour={{ … }}` et ne pouvait rien voir d'un
+`<Link>` écrit à la main. Et le sur-titre des mentions répétait son titre mot
+pour mot. Convertir une page, c'est aussi la faire entrer sous les épreuves
+auxquelles son écriture l'exemptait.*
 
 Trois lignes restaient ici au moment d'écrire cette section ; **deux ont été
 faites dans la soirée même**, et aucune des trois n'était un défaut :

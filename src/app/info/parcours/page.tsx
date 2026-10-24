@@ -9,6 +9,7 @@ import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 import { Parcours } from "./Parcours";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
@@ -28,10 +29,19 @@ export default async function ParcoursPage() {
     <Glissement>
       <Sommaire label={t("Sur cette page")} sections={chapters}>
         <div className={styles.wrap}>
+          {/* LE BLOC GARDE SON ANCRE, et l'en-tête passe à l'étalon. Le
+              « data-coach » vise ce conteneur pour y poser une bulle
+              d'apprentissage : c'est pourquoi le div reste, alors que le
+              titre, le sur-titre et la phrase le quittent.
+              LA BANDE DES ACTEURS A PERDU SA MARGE HAUTE : l'écart sous un
+              en-tête est celui de l'étalon, et le composer en deux endroits
+              est l'accident que « EnTete » existe pour éviter. */}
           <div className={styles.head} data-coach="parcours-head">
-            <span className="eyebrow">{t("Guide · parcours")}</span>
-            <h1 className="display">{t("Comprendre le marché CEMAC")}</h1>
-            <p className="muted">{t("{s} sections, {n} éclairages de deux à trois minutes. Ouvrez une section, lisez un éclairage, répondez à sa question ; le parcours retient où vous en êtes. Les huit éclairages « Lire une ligne » restent le premier pas ; ici, on prend du recul.", { s: SECTIONS.length, n: lessons.length })}</p>
+            <EnTete
+              surTitre={t("Guide · parcours")}
+              titre={t("Comprendre le marché CEMAC")}
+              phrase={t("{s} sections, {n} éclairages de deux à trois minutes. Ouvrez une section, lisez un éclairage, répondez à sa question ; le parcours retient où vous en êtes. Les huit éclairages « Lire une ligne » restent le premier pas ; ici, on prend du recul.", { s: SECTIONS.length, n: lessons.length })}
+            />
             <div className={styles.strip} aria-hidden="true">
               {STRIP.map((k) => (
                 <span key={k} className={styles.actor}>

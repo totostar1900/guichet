@@ -6,6 +6,7 @@ import { MOIS_DE_DETAIL, GENRE_LABEL, GESTES, type ActionClient } from "@/lib/do
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Votre activité" };
@@ -41,13 +42,13 @@ export default async function ActivitePage() {
   return (
     <Glissement>
       <main className="wrap">
-        <div className="eyebrow">{t("Mon compte")}</div>
-        <h1 className="display">{t("Votre activité")}</h1>
-        <p className={styles.chapo}>
-          {t(
+        <EnTete
+          surTitre={t("Mon compte")}
+          titre={t("Votre activité")}
+          phrase={t(
             "Tout ce qui a été fait sur votre compte. Vous y voyez ce que nous voyons. Si une ligne vous surprend, dites-le nous : c'est le moyen le plus rapide de repérer un accès qui ne serait pas le vôtre.",
           )}
-        </p>
+        />
 
         <div className={styles.compteurs}>
           <div className={styles.compteur}>

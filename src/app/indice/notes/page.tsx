@@ -7,6 +7,7 @@ import { quarterGlance } from "@/lib/market/quarter-glance";
 import { BackToTop } from "@/components/BackToTop";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -35,12 +36,17 @@ export default async function NotesArchivePage() {
   return (
     <Glissement>
       <div className={styles.page}>
-        <header className={styles.head}>
-          <h1>{t("Les notes de marché")}</h1>
-          <p className={styles.lead}>
-            {t("Une note par trimestre sur l'indice BVMAC All Share : ce que le trimestre a fait, les sociétés derrière le chiffre, ce qui s'est échangé. Chacune est calculée sur les seules séances de son trimestre, et se lit donc de la même façon un an plus tard.")}
-          </p>
-        </header>
+        {/* L'EN-TÊTE DE L'ÉTALON, et le cran en arrière qui manquait : cette
+            archive est sous « L'indice », et on n'en revenait que par le
+            bouton du navigateur. Sa feuille posait aussi
+            « font-family: var(--font-display) » sur son titre, c'est-à-dire la
+            fonte de l'interface sous un autre nom — le jeton vaut
+            « var(--font-ui) » depuis le 24 octobre. */}
+        <EnTete
+          retour={{ href: "/indice", mot: t("L'indice") }}
+          titre={t("Les notes de marché")}
+          phrase={t("Une note par trimestre sur l'indice BVMAC All Share : ce que le trimestre a fait, les sociétés derrière le chiffre, ce qui s'est échangé. Chacune est calculée sur les seules séances de son trimestre, et se lit donc de la même façon un an plus tard.")}
+        />
 
         {closed.length === 0 ? (
           <p className={styles.empty}>{t("La première note paraîtra à la clôture du premier trimestre complet lu.")}</p>

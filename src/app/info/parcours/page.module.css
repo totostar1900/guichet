@@ -4,22 +4,16 @@
   min-width: 0;
   max-width: 860px;
 }
-.head h1 {
-  margin: 4px 0 8px;
-}
-.head p {
-  max-width: 68ch;
-  font-size: 0.92rem;
-  line-height: 1.55;
-  margin: 0;
-}
+/* Titre, sur-titre et phrase sont montés par « EnTete » depuis le 24 octobre
+   2026 : leurs mesures vivent dans sa feuille. Le bloc reste pour son ancre
+   « data-coach ». */
 /* the ten actors, each on its own ivory plate so the drawing reads on any ground */
 .strip {
   display: flex;
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
-  margin-top: 12px;
+  /* Pas de marge haute : l'écart sous l'en-tête est celui de « EnTete ». */
   padding: 12px 14px;
   background: var(--navy);
   border-radius: var(--radius);
