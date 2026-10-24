@@ -13,7 +13,7 @@ chantiers que les GARDES ont ouvertes d'elles-mêmes, en chaîne — un cliquet 
 classes mortes qui comptait mal a fait remonter six règles inertes, dont une
 qui cachait un contraste à 2,97 : 1 ; la garde écrite pour ce défaut a mis au
 jour le jeton qui en était la cause commune. **La dernière section, elle,
-est une nouvelle dictée** : les budgets des six États, livrés en quatre lots
+est une nouvelle dictée** : les budgets des six États, livrés en six lots
 le 24 octobre.
 
 Chaque point barré porte ce qui a été MESURÉ avant d'y toucher, et ce qui a
@@ -952,7 +952,7 @@ une fois vu.*
 
 ## Les budgets des six États, et la note du desk
 
-**Dicté par Georges le 24 octobre 2026, livré en quatre lots le même jour.**
+**Dicté par Georges le 24 octobre 2026, livré en six lots le même jour.**
 Il ne vient pas des gardes : c'est une demande, et elle a grossi en route —
 d'abord une page, puis l'écriture d'une note, puis le signal qui dit qu'il y
 aurait de quoi en écrire une, puis le rapprochement avec ce que le marché a
@@ -1069,6 +1069,54 @@ DEUX chiffres sont relevés.*
 | le carnet et l'état vide d'une fiche **se répétaient** coup sur coup | l'écran |
 | six épreuves du carnet recevaient `REF_AUCTIONS`, **vide sous vitest** — le semis dense est réservé à la branche d'essai : le signal qui dépend des adjudications n'était éprouvé par rien | la garde désarmée à l'envers |
 | la règle de formatage des dates portait sur le **nom** du trou, pas sur sa forme : les dates des motifs du refus sortaient en brut | l'écran, deux fois — d'où une règle de forme, et non un correctif par champ |
+
+### La porte qui n'existait pas
+
+Une question était restée ouverte sur le tableau des routes : **la fiche d'un
+État doit-elle aussi paraître sous « Émetteurs », où le Trésor a déjà la
+sienne ?** Deux portes vers le même objet, ce que la maison refuse ailleurs.
+Georges a tranché le 24 octobre — **pas de seconde porte**.
+
+**En posant le renvoi vers la première, elle s'est révélée inexistante.**
+`/emetteurs/[slug]` ne sert que **trois** émetteurs obligataires — `snpc`,
+`acep`, `alios`. Les six États n'ont qu'une entrée de REGISTRE, qui est une
+identité servant à rattacher une ligne à une entité, pas un écran.
+`/emetteurs/etat-cameroun` rend un **404**, et `/desk/dette` est une page
+unique, pas une par pays.
+
+**La fiche d'un budget est donc, à ce jour, la seule page par pays de
+l'application.** Le renvoi a été retiré avant d'être livré : un lien mort est
+exactement ce qu'on venait de refuser pour les pièces d'une note.
+
+*Et le cliquet des classes mortes a attrapé, dans la foulée, les deux règles
+CSS que le renvoi retiré laissait derrière lui. Il s'est exercé sur son
+auteur.*
+
+### Et aucun souverain n'aura de fiche — la décision, puis la garde
+
+Second verdict de Georges : **pas de fiche d'émetteur pour les Trésors ni pour
+les pays.** La décision était **déjà prise dans le produit sans être gardée** —
+la page « Sociétés » l'écrit à l'écran depuis longtemps : « les États
+(Cameroun, Gabon, Congo, Tchad) et la BDEAC ont leurs échéanciers directement
+sur chaque ligne ».
+
+Le pourquoi est maintenant écrit là où le prochain ajoutera une entrée : *une
+fiche d'émetteur dit ce qu'une société fait, ce qu'elle gagne et qui la
+détient ; ces trois questions n'ont pas d'objet pour un Trésor, et la page
+serait un cadre vide portant un nom d'État.*
+
+**Ce qui n'était gardé par rien.** Les huit entrées souveraines — six Trésors,
+la BDEAC, la BEAC — portent un `slug` qui **ressemble à une adresse**. Un
+`href` posé dessus ferait paraître un lien vers `/emetteurs/etat-cameroun`, et
+ce serait la **carte d'émetteur d'une offre du Trésor** qui l'afficherait —
+donc sur un **écran client**. L'épreuve refuse le `href` sur toute entrée
+souveraine, et vérifie en outre qu'aucune adresse `/emetteurs/` du registre ne
+vise un slug absent des émetteurs obligataires.
+
+*Relevé au passage, et sain : les deux seuls endroits qui fabriquent un lien
+d'émetteur ne peuvent pas atteindre un souverain — la liste parcourt `ISSUERS`
+et non le registre, et la carte d'une offre retombe sur `undefined` faute de
+`href`.*
 
 → *Et un défaut hérité, qu'aucune suite lancée avant un commit ne peut voir :
 `docs-exactes` compare la date « vérifié le » d'une page de documentation à la
