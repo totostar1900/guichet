@@ -4,6 +4,15 @@ import path from "node:path";
 
 const ROOT = path.join(__dirname, "../..");
 const lire = (p: string) => fs.readFileSync(path.join(ROOT, p), "utf8");
+/* Le code, sans ce qu'on en dit : ces deux fichiers citent justement dans
+   leurs commentaires les classes et les niveaux dont ils expliquent le
+   placement, et une épreuve qui compte des occurrences compterait les
+   explications avec elles. */
+const code = (p: string) =>
+  lire(p)
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
 
 /**
  * LE PARCOURS DE « TRADE », RELEVÉ LE 24 OCTOBRE 2026.
@@ -66,6 +75,34 @@ describe("le parcours de Trade", () => {
     const tsx = lire("src/app/trader/page.tsx");
     expect(tsx, "la bande du disponible a disparu, mais l'attente reste écartée : le chiffre n'est plus nulle part").toContain("styles.solde");
     expect(tsx, "l'attente « disponible » est revenue à côté de la bande : le même franc deux fois").toMatch(/<CeQuiVousAttend[^>]*sauf=\{\["disponible"\]\}/);
+  });
+
+  /* 441 PX SUR 844 QUI NE BOUGEAIENT JAMAIS.
+     Relevé le 24 octobre 2026 : au-dessus du ruban, le titre, la phrase et
+     « Ce qui vous attend » se repeignaient à l'identique aux trois niveaux —
+     52 % de l'écran. Le solde et les échéances s'y sont ajoutés depuis, ce
+     qui a aggravé la chose plutôt que de la réparer.
+
+     Ces trois états répondent à « qu'est-ce que je peux faire, et avec
+     quoi » : une fois le service choisi, ils sont du contexte déjà lu. Posés
+     DANS le premier panneau du ruban, ils glissent avec lui, et au deuxième
+     niveau il ne reste que le chemin et la fiche.
+
+     L'écran large, lui, n'a pas de niveaux : il les garde en tête de page.
+     D'où un seul assemblage rendu à deux endroits — « contexteDuClient » est
+     en cache par requête, et les offres sont lues une fois puis passées. */
+  it("ne laisse plus la tête de la racine se repeindre aux trois niveaux", () => {
+    const page = code("src/app/trader/page.tsx");
+    expect((page.match(/styles\.solde/g) ?? []).length, "la bande du disponible est écrite plus d'une fois : les deux copies divergeront").toBe(1);
+    expect(page, "la tête n'est plus passée au parcours : elle se repeindra aux trois niveaux").toMatch(/<Parcours[^>]*racine=\{tete\}/);
+
+    const parcours = code("src/app/trader/Parcours.tsx");
+    const i = parcours.indexOf("{racine}");
+    expect(i, "le parcours ne rend plus la tête qu'on lui confie").toBeGreaterThan(0);
+    /* Et dans le panneau de la RACINE, pas dans un autre : les trois
+       panneaux ne se distinguent que par le niveau qu'ils masquent. */
+    const ouvre = parcours.lastIndexOf("<section", i);
+    expect(parcours.slice(ouvre, i), "la tête est posée dans un autre panneau que celui de la racine").toContain("niveau !== 0");
   });
 
   /* UNE CLEF ÉCARTÉE QUI N'EXISTE PAS N'ÉCARTE RIEN, et ne le dit pas. Le

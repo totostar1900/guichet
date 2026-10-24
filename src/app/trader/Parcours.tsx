@@ -56,7 +56,31 @@ import styles from "./Parcours.module.css";
  * les deux panneaux hors champ sont « inert », donc ni tabulables ni lus.
  * Sans cela, le lecteur d'écran récite trente lignes invisibles.
  */
-export function Parcours({ services, etapes, raisons }: { services: ServiceVu[]; etapes: Record<string, string[]>; raisons: Record<string, string> }) {
+export function Parcours({
+  services,
+  etapes,
+  raisons,
+  racine,
+}: {
+  services: ServiceVu[];
+  etapes: Record<string, string[]>;
+  raisons: Record<string, string>;
+  /**
+   * CE QUI N'APPARTIENT QU'AU PREMIER PANNEAU.
+   *
+   * Le disponible, ce qui attend, ce qui ferme : trois états rendus par le
+   * serveur et passés ici en éléments. Ils vivaient au-dessus du ruban, donc
+   * ils se repeignaient à l'identique aux trois niveaux — relevé le
+   * 24 octobre 2026 : 441 px sur 844, soit 52 % de l'écran, pour le seul
+   * titre, la phrase et la bande des attentes ; le solde et les échéances
+   * s'y sont ajoutés depuis.
+   *
+   * Posés DANS le panneau de la racine, ils glissent avec lui. Au deuxième
+   * niveau il ne reste que le chemin et la fiche — c'est-à-dire ce qu'on est
+   * venu lire.
+   */
+  racine?: React.ReactNode;
+}) {
   const t = useT();
   const router = useRouter();
   const params = useSearchParams();
@@ -127,6 +151,7 @@ export function Parcours({ services, etapes, raisons }: { services: ServiceVu[];
               24 octobre ; celui dont la forme venait restait en filets, parce
               qu'il en gardait une copie pour lui. La copie est partie. */}
           <section className={`${styles.volet} ${styles.racine}`} aria-hidden={niveau !== 0} inert={niveau !== 0}>
+            {racine}
             {/* LES FAÇONS D'ENTRER SUR UNE LIGNE, À PLAT ET EN TUILES.
                 Elles étaient derrière « Placer », un cran qui répétait la
                 question de la page. En tuiles plutôt qu'en bandes parce

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { requireSession } from "@/lib/auth";
+import { repo } from "@/lib/data";
 import { ETAPES, RAISON, servicesDuClient } from "@/lib/domain/services";
 import { contexteDuClient } from "@/lib/domain/contexte-client";
 import { getT } from "@/i18n/server";
@@ -60,8 +61,63 @@ export default async function TradePage() {
      refaisait un deuxième, ligne pour ligne, pendant que la bande « Ce qui
      vous attend » lisait le premier : deux lectures du même client dans la
      même requête, donc deux occasions de diverger. */
-  const ctx = await contexteDuClient(s.userId);
+  const [ctx, offers] = await Promise.all([contexteDuClient(s.userId), repo().listOffers().catch(() => [])]);
   const services = servicesDuClient(ctx);
+
+  /* CE QUI TIENT LA TÊTE DE LA RACINE, et qui n'appartient qu'à elle.
+     Le disponible, ce qui attend, ce qui ferme : trois états qui répondent à
+     « qu'est-ce que je peux faire, et avec quoi ». Une fois le service
+     choisi, ils sont du contexte déjà lu.
+     ILS SE RENDENT DEUX FOIS, ET CELA NE COÛTE QU'UNE LECTURE. L'écran large
+     n'a pas de niveaux : il les garde en tête de page. Le téléphone les pose
+     DANS le premier panneau du ruban, pour qu'ils glissent avec lui.
+     « contexteDuClient » est en cache par requête, et les offres sont lues
+     ici puis passées aux deux bandes — c'est la règle que cette page s'est
+     déjà donnée : un seul assemblage, une seule lecture. */
+  const tete = (
+    <>
+      {/* LE DISPONIBLE PASSE DEVANT LES GESTES, parce qu'il les conditionne
+          tous. La page demande « qu'est-ce que je peux faire » ; la première
+          réponse est « avec quoi ». Ce franc n'est pas un reproche ici mais
+          un état, et c'est pourquoi l'attente qui le reproche est retirée
+          juste en dessous — voir le « sauf » de CeQuiVousAttend.
+          À zéro, le chiffre se nomme au lieu de s'afficher : « 0 FCFA » se
+          lit comme une panne, et c'est justement le jour où « Alimenter »
+          sert le plus. */}
+      <div className={styles.solde}>
+        <Link className={styles.combien} href="/moi/provision">
+          <span className={styles.etiquette}>{t("Disponible pour un ordre")}</span>
+          {ctx.disponible > 0 ? (
+            <b className={styles.montant}>
+              {fmt(Math.round(ctx.disponible))} <small>FCFA</small>
+            </b>
+          ) : (
+            <b className={styles.vide}>{t("Rien en provision")}</b>
+          )}
+        </Link>
+        <Link className={styles.geste} href="/moi/provision/alimenter">
+          <span className={styles.rond} aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </span>
+          <b>{t("Alimenter")}</b>
+        </Link>
+      </div>
+
+      {/* L'attente « disponible » n'y est pas : la bande ci-dessus dit le même
+          franc, et deux fois le même nombre sur un écran fait chercher lequel
+          est le vrai. */}
+      <CeQuiVousAttend userId={s.userId} sauf={["disponible"]} />
+
+      {/* LES SÉANCES QUI SE FERMENT, SUR LA PAGE OÙ L'ON VIENT AGIR. Une
+          adjudication s'annonce une semaine avant sa clôture, et le calendrier
+          est une page où l'on va : celle-ci est une bande qu'on croise. Vide —
+          l'état le plus fréquent, les Trésors publiant par vagues — elle ne
+          rend rien. */}
+      <CeQuiFermeBientot offres={offers} />
+    </>
+  );
 
   return (
     <Glissement>
@@ -73,58 +129,24 @@ export default async function TradePage() {
             contenue nulle part. */}
         <EnTete titre={t("Trade")} phrase={t("Ce que Guichet peut faire pour vous, et par où chaque geste commence.")} />
 
-        {/* CE QUI DEMANDE LA MAIN D'ABORD. Un bulletin à signer, un coupon qui
-            dort, une séance qui se ferme : ce sont les seules lignes de cette
-            page qui ont une échéance, et elles étaient au bas d'un mur. */}
-        {/* LE DISPONIBLE PASSE DEVANT LES GESTES, parce qu'il les conditionne
-            tous. La page demande « qu'est-ce que je peux faire » ; la
-            première réponse est « avec quoi ». Ce franc n'est pas un reproche
-            ici mais un état, et c'est pourquoi l'attente qui le reproche est
-            retirée juste en dessous — voir le « sauf » de CeQuiVousAttend.
-            À zéro, le chiffre se nomme au lieu de s'afficher : « 0 FCFA » se
-            lit comme une panne, et c'est justement le jour où « Alimenter »
-            sert le plus. */}
-        <div className={styles.solde}>
-          <Link className={styles.combien} href="/moi/provision">
-            <span className={styles.etiquette}>{t("Disponible pour un ordre")}</span>
-            {ctx.disponible > 0 ? (
-              <b className={styles.montant}>
-                {fmt(Math.round(ctx.disponible))} <small>FCFA</small>
-              </b>
-            ) : (
-              <b className={styles.vide}>{t("Rien en provision")}</b>
-            )}
-          </Link>
-          <Link className={styles.geste} href="/moi/provision/alimenter">
-            <span className={styles.rond} aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </span>
-            <b>{t("Alimenter")}</b>
-          </Link>
-        </div>
-
-        {/* L'attente « disponible » n'y est pas : la bande ci-dessus dit le
-            même franc, et deux fois le même nombre sur un écran fait chercher
-            lequel est le vrai. */}
-        <CeQuiVousAttend userId={s.userId} sauf={["disponible"]} />
-
-        {/* LES SÉANCES QUI SE FERMENT, SUR LA PAGE OÙ L'ON VIENT AGIR. Une
-            adjudication s'annonce une semaine avant sa clôture, et le
-            calendrier est une page où l'on va : celle-ci est une bande qu'on
-            croise. Vide — l'état le plus fréquent, les Trésors publiant par
-            vagues — elle ne rend rien. */}
-        <CeQuiFermeBientot />
-
+        {/* L'ÉCRAN LARGE N'A PAS DE NIVEAUX : les trois états restent en
+            tête de page, au-dessus des trois bandes. */}
         <div className={styles.large}>
+          {tete}
           <Rayons services={services} etapes={ETAPES} raisons={RAISON} />
         </div>
         <div className={styles.petit}>
           {/* « useSearchParams » veut une frontière : le parcours lit l'adresse,
               et le reste de la page se rend sans l'attendre. */}
           <Suspense fallback={null}>
-            <Parcours services={services} etapes={ETAPES} raisons={RAISON} />
+            {/* LA TÊTE ENTRE DANS LE RUBAN, au premier panneau. Relevé le
+                24 octobre 2026 : 441 px sur 844 ne bougeaient jamais — le
+                titre, la phrase et « Ce qui vous attend » se repeignaient à
+                l'identique aux trois niveaux, soit 52 % de l'écran. Depuis,
+                le solde et les échéances s'y étaient ajoutés. Posés DANS le
+                panneau de la racine, ils glissent avec lui : au deuxième
+                niveau il ne reste que le chemin et la fiche. */}
+            <Parcours services={services} etapes={ETAPES} raisons={RAISON} racine={tete} />
           </Suspense>
         </div>
       </div>
