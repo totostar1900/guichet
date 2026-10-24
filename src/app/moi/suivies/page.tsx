@@ -4,6 +4,7 @@ import { repo } from "@/lib/data";
 import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { summarize } from "@/lib/domain/summary";
+import { lignesSuivies } from "@/lib/domain/suivies";
 import { getT } from "@/i18n/server";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
@@ -36,8 +37,10 @@ export default async function SuiviesPage() {
   const s = await requireSession("/moi/suivies");
   const r = repo();
   const [watches, offers] = await Promise.all([r.listWatches(s.userId).catch(() => []), r.listOffers()]);
-  const byOffer = new Map(offers.map((o) => [o.id, o]));
-  const suivies = watches.map((w) => byOffer.get(w.offerId)).filter((o): o is NonNullable<typeof o> => Boolean(o));
+  /* Le tri vit dans le domaine : la page d'accueil compte les mêmes lignes
+     pour l'étiquette de sa rubrique, et deux comptes du même objet finissent
+     toujours par ne plus tomber sur le même nombre. */
+  const suivies = lignesSuivies(watches, offers);
   const now = new Date();
 
   return (

@@ -19,6 +19,7 @@ import { aLaUne, pourquoiLu, publishedNews, titreLu } from "@/lib/news";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
 import { comptesParLieu, type ComptesParLieu } from "@/lib/domain/listes";
+import { lignesSuivies } from "@/lib/domain/suivies";
 import { TrustNudge } from "@/components/TrustNudge";
 import { Reinvest } from "@/components/Reinvest";
 import { buildPerformanceParts } from "@/lib/performance-report";
@@ -103,7 +104,7 @@ export async function Console({ session }: { session: Session }) {
      moment de signer est une panne muette : le client a déjà réuni le
      groupe et rempli son ordre. */
   const plafondDit = session.plafondParOrdre != null ? direLePlafond({ montant: session.plafondParOrdre, source: session.plafondSource ?? "compte" }, (n) => n.toLocaleString("fr-FR")) : undefined;
-  const [intents, offers, cash, payouts, preavis, standing, temoignages] = await Promise.all([
+  const [intents, offers, cash, payouts, preavis, standing, temoignages, veilles] = await Promise.all([
     r.listIntents(),
     r.listOffers(),
     r.listCash(session.userId).catch(() => []),
@@ -113,6 +114,10 @@ export async function Console({ session }: { session: Session }) {
     /* Ce que le client a déjà dit : sans cela, la bande du réinvestissement
        lui redemanderait ce qu'il vient de répondre. */
     r.listTemoignages({ userId: session.userId }).catch(() => []),
+    /* Les veilles du client : elles ne servent qu'à compter la rubrique du
+       dossier, et elles partent avec les sept autres lectures plutôt qu'après
+       elles. */
+    r.listWatches(session.userId).catch(() => []),
   ]);
 
   const mine = intents.filter((i) => i.clientId === session.userId);
@@ -135,6 +140,8 @@ export async function Console({ session }: { session: Session }) {
   /* La dépêche du jour, s'il y en a une : « loadNews » est en cache pour la
      requête, donc cette lecture ne coûte rien à qui la demande déjà. */
   const une = aLaUne(await publishedNews().catch(() => []));
+  /* Les lignes suivies, comptées comme leur page les compte. */
+  const suivies = lignesSuivies(veilles, offers);
   /* UNE FAMILLE SANS COMPTE NE PORTE PAS D'ÉTIQUETTE, ET NE CASSE RIEN. Le
      jour où une quatrième page entre dans la liste sans que « comptesParLieu »
      la connaisse, elle paraît sans chiffre plutôt qu'avec « undefined » ou
@@ -540,8 +547,19 @@ export async function Console({ session }: { session: Session }) {
           LA RÈGLE QUI EN SORT : une page d'accueil RÉPOND, elle ne développe
           pas. Ce qui vous attend, ce que ça vaut, puis où aller — et chaque
           « où » est une bande, de la même forme que les six autres sommaires
-          de la maison. Aucune ne porte de compte : un nombre posé sur la page
-          d'avant se calcule toujours ailleurs que là où il sera vérifié. */}
+          de la maison.
+
+          LES COMPTES, EUX, ONT ÉTÉ PRÉCISÉS LE 24 OCTOBRE 2026. La règle
+          disait « aucune ne porte de compte : un nombre posé sur la page
+          d'avant se calcule toujours ailleurs que là où il sera vérifié ».
+          Ce qu'elle visait n'est pas le nombre, c'est le SECOND calcul. Une
+          rubrique peut donc porter le sien à une condition, et une seule :
+          qu'il vienne de la fonction même que sa page emploie pour dresser sa
+          liste. « Lignes suivies » compte par « lignesSuivies », que la page
+          des lignes suivies appelle aussi ; les trois familles d'« Investir »
+          comptent par « comptesParLieu », que leurs trois pages appellent
+          aussi. Les autres rubriques restent nues, faute d'une telle
+          fonction — et les écrire serait recréer le second calcul. */}
       <div className={styles.dossier}>
         <span className="eyebrow">{t("Votre dossier")}</span>
         <Rubriques
@@ -549,7 +567,18 @@ export async function Console({ session }: { session: Session }) {
             { href: "/moi/ordres", nom: t("Vos intentions"), quoi: t("Où en est chaque ordre, et ce qu'il attend de vous") },
             { href: "/moi/epargne", nom: t("Vos versements programmés"), quoi: t("Ce qui part chaque mois, et comment le changer") },
             { href: "/moi/garde", nom: t("Vos droits de garde"), quoi: t("Ce que la conservation a coûté, avis par avis") },
-            { href: "/moi/suivies", nom: t("Lignes suivies"), quoi: t("Ce que vous surveillez sans le détenir") },
+            /* LA SEULE RUBRIQUE DU DOSSIER QUI PORTE UN COMPTE, et pour la
+               raison que la section « Investir » a déjà servie : il vient de
+               « lignesSuivies », c'est-à-dire de la fonction même que sa page
+               emploie pour dresser sa liste. Le nombre et la liste ne peuvent
+               pas diverger.
+               ET CE N'EST QU'UN NOMBRE, pas une seconde liste de titres. La
+               page des lignes suivies dit pourquoi : sur l'accueil, elle se
+               lisait trois lignes après « Vos lignes », et les deux se
+               confondaient — ce qu'on a, ce qu'on regarde. Deux listes de
+               noms de titres sur un écran se confondent ; un compte ne se
+               confond avec rien. */
+            { href: "/moi/suivies", nom: t("Lignes suivies"), quoi: t("Ce que vous surveillez sans le détenir"), etiquette: suivies.length ? t(suivies.length > 1 ? "{n} lignes" : "1 ligne", { n: String(suivies.length) }) : undefined },
             { href: "/moi/performance#operations", nom: t("Vos opérations et l'échéancier"), quoi: t("Ce que votre argent a fait, et ce qui vient") },
             { href: "/moi/documents", nom: t("Mes documents"), quoi: t("Relevés, avis d'opéré et bulletins") },
             { href: "/trader", nom: t("Vos services"), quoi: t("Ce que Guichet peut faire pour vous") },
