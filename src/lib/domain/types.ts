@@ -809,6 +809,31 @@ export interface SourceChiffree {
   url?: string;
 }
 
+/**
+ * UNE PIÈCE SUR LAQUELLE LE DESK S'EST APPUYÉ.
+ *
+ * `source` dit d'où vient LE CHIFFRE ; ceci dit sur quoi s'appuie LA LECTURE,
+ * et ce n'est pas le même objet : une note cite une déclaration ministérielle,
+ * un communiqué d'adjudication, un collectif déposé — des pièces qui ne
+ * portent aucun montant du tableau mais sans lesquelles le raisonnement ne se
+ * vérifie pas.
+ *
+ * L'ADRESSE EST FACULTATIVE, ET SON ABSENCE SE DIT. Un lien mort vaut moins
+ * que pas de lien : le lecteur clique, n'obtient rien, et peut en conclure que
+ * la pièce n'existe pas. Une pièce sans adresse est donc NOMMÉE — éditeur et
+ * date —, et l'écran écrit « lien non relevé » plutôt que de laisser un blanc.
+ */
+export interface Reference {
+  /** Le titre de la pièce, tel qu'elle se nomme elle-même. */
+  titre: string;
+  /** Qui la publie : « DGB », « BEAC », « Assemblée nationale », « presse spécialisée ». */
+  editeur: string;
+  /** La date de la pièce, quand elle en porte une. */
+  date?: string;
+  /** L'adresse, UNIQUEMENT quand quelqu'un l'a ouverte. */
+  url?: string;
+}
+
 /** Un poste du budget, en millions de FCFA comme partout ailleurs dans la maison. */
 export interface PosteBudget {
   cle: string;
@@ -844,6 +869,8 @@ export interface BudgetEtat {
   besoinDeFinancement?: number;
   financement: PorteDeFinancement[];
   source: SourceChiffree;
+  /** Les pièces sur lesquelles le relevé s'appuie, nommées et liées quand on peut. */
+  references?: Reference[];
   /** Ce que le desk n'a pas encore relevé, nommé plutôt que laissé vide. */
   aRelever?: string[];
 }
@@ -889,4 +916,11 @@ export interface NoteBudget {
   malLu: string;
   /** Les chiffres que la note commente, pour que l'écart avec la suivante se calcule. */
   releve: { cle: string; libelle: string; valeur: string }[];
+  /**
+   * SUR QUOI ELLE S'APPUIE. Reprises de la fiche au moment de l'écriture, plus
+   * celles que le rédacteur ajoute — une déclaration, un communiqué. Figées
+   * avec la note : une note relue dans deux ans doit montrer les pièces qu'elle
+   * avait sous les yeux, et non celles que la fiche porte aujourd'hui.
+   */
+  references: Reference[];
 }

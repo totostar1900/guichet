@@ -5,6 +5,7 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
 import { MOT_DU_MILLESIME, enMilliards, estComplet, notesDe, parLisibilite, partDesTitres, porteDesTitres, slugDuPays } from "@/lib/market/budget";
+import { DIT, trousDe, carnet } from "@/lib/market/carnet";
 import type { BudgetEtat } from "@/lib/domain/types";
 import styles from "./page.module.css";
 
@@ -43,6 +44,9 @@ export default async function BudgetsPage() {
   const r = repo();
   const [budgets, notes] = await Promise.all([r.budgetsDesEtats(), r.notesBudget()]);
   const liste = parLisibilite(budgets);
+  /* LE JOUR EST PASSÉ, JAMAIS LU DANS LE DOMAINE : un signal qui dit « il y a
+     sept mois » se cite, donc il doit se tester. */
+  const signaux = carnet(budgets, notes, new Date().toISOString().slice(0, 10));
 
   return (
     <>
@@ -60,6 +64,30 @@ export default async function BudgetsPage() {
             {t("La dette déjà contractée se lit sur")} <Link href="/desk/dette">{t("Dette des États")}</Link> {t("— le stock, dont cette page est le flux.")}
           </p>
         </header>
+
+        {/* LE CARNET, AVANT LES CARTES.
+            Une note qui ne s'écrit que lorsqu'on la demande s'écrit quand
+            quelqu'un est déjà inquiet : la série penche vers les crises et se
+            tait dans le calme. Le carnet corrige ce défaut sans rétablir le
+            calendrier — il signale, il n'écrit pas. */}
+        {signaux.length ? (
+          <section className={styles.carnet}>
+            <h2>{t("Ce qui attend d'être écrit")}</h2>
+            <p className={styles.carnetDit}>
+              {t("L'outil signale qu'il y a de quoi écrire ; il n'écrit pas la note, ne la date pas, et ne la propose à aucun client. Le desk décide.")}
+            </p>
+            <ul className={styles.lignes}>
+              {signaux.map((s, i) => (
+                <li key={`${s.pays}-${s.genre}-${i}`}>
+                  <Link href={`/desk/budgets/${slugDuPays(s.pays)}`}>
+                    {s.pays} {s.exercice}
+                  </Link>
+                  <span className={styles.dit}>{t(DIT[s.genre], trousDe(s, fmtDate))}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <div className={styles.cartes}>
           {liste.map((b) => {

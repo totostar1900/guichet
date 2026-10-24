@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireDesk } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { repo } from "@/lib/data";
-import type { NoteBudget, ParagrapheNote } from "@/lib/domain/types";
+import type { NoteBudget, ParagrapheNote, Reference } from "@/lib/domain/types";
 import { notesDe, paysDuSlug, slugDuPays } from "@/lib/market/budget";
 import { numeroSuivant, releveDuBudget, verifierNote, type BrouillonNote, type Refus } from "@/lib/market/note-budget";
 
@@ -35,6 +35,25 @@ const lignes = (v: FormDataEntryValue | null): string[] =>
     .map((s) => s.trim())
     .filter(Boolean);
 
+/**
+ * LES PIÈCES AJOUTÉES À LA MAIN, une par ligne : « titre | éditeur | adresse ».
+ *
+ * L'ADRESSE EST FACULTATIVE ET NE S'INVENTE PAS. Une pièce nommée sans lien se
+ * retrouve ; un lien mort fait croire au lecteur que la pièce n'existe pas. On
+ * ne garde donc que ce qui ressemble à une adresse, et on jette le reste
+ * silencieusement plutôt que d'écrire « voir le site » dans un href.
+ */
+function referencesDuFormulaire(form: FormData): Reference[] {
+  return lignes(form.get("references")).map((l) => {
+    const [titre, editeur, url] = l.split("|").map((x) => x.trim());
+    return {
+      titre: titre || l,
+      editeur: editeur || "non nommé",
+      url: url && /^https?:\/\/\S+$/.test(url) ? url : undefined,
+    };
+  });
+}
+
 /** Les paragraphes arrivent en deux colonnes parallèles : un genre, un texte. */
 function corpsDuFormulaire(form: FormData): ParagrapheNote[] {
   const genres = form.getAll("corps_genre").map(String);
@@ -64,6 +83,7 @@ export async function ecrireNoteAction(_prev: EcritureNote | null, form: FormDat
     corps: corpsDuFormulaire(form),
     surveiller: lignes(form.get("surveiller")),
     malLu: String(form.get("malLu") ?? "").trim(),
+    references: [...(budget.references ?? []), ...referencesDuFormulaire(form)],
   };
 
   const refus = verifierNote(brouillon);
@@ -87,6 +107,10 @@ export async function ecrireNoteAction(_prev: EcritureNote | null, form: FormDat
     surveiller: brouillon.surveiller,
     malLu: brouillon.malLu,
     releve: releveDuBudget(budget),
+    /* LES PIÈCES QUE LA VÉRIFICATION A VUES : le brouillon les porte déjà,
+       et la note recopie les siennes. Les recomposer ici ferait écrire autre
+       chose que ce qui a été jugé. */
+    references: brouillon.references,
   };
 
   try {

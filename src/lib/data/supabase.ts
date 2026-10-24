@@ -2442,6 +2442,7 @@ export const supabaseRepository: Repository = {
       besoinDeFinancement: r.besoin_de_financement === null || r.besoin_de_financement === undefined ? undefined : Number(r.besoin_de_financement),
       financement: (r.financement ?? []) as BudgetEtat["financement"],
       source: r.source as BudgetEtat["source"],
+      references: (r.references_pieces ?? []) as BudgetEtat["references"],
       aRelever: (r.a_relever ?? []) as string[],
     }));
   },
@@ -2464,6 +2465,7 @@ export const supabaseRepository: Repository = {
       surveiller: (r.surveiller ?? []) as string[],
       malLu: r.mal_lu as string,
       releve: (r.releve ?? []) as NoteBudget["releve"],
+      references: (r.references_pieces ?? []) as NoteBudget["references"],
     }));
   },
   async createNoteBudget(n: NoteBudget) {
@@ -2488,6 +2490,7 @@ export const supabaseRepository: Repository = {
         surveiller: n.surveiller,
         mal_lu: n.malLu,
         releve: n.releve,
+        references_pieces: n.references,
       });
     if (error) fail("createNoteBudget", error);
     return n;

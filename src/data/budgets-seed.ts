@@ -67,6 +67,19 @@ const CAMEROUN: BudgetEtat = {
     texte: "Loi n° 2025/012 du 17 décembre 2025 · exposé des motifs (DGB) · reprise de presse spécialisée",
     releveLe: "2026-10-25",
   },
+  /* LES PIÈCES, NOMMÉES ; LES ADRESSES, SEULEMENT CELLES QU'ON A OUVERTES.
+     Aucune n'a pu l'être depuis l'atelier où ce relevé a été saisi : la
+     politique réseau y refuse dgb.cm, beac.int et dgtcfm.cm. Mettre les
+     adresses quand même aurait donné des liens morts, ce qui vaut moins que
+     pas de lien — le lecteur clique, n'obtient rien, et peut en conclure que
+     la pièce n'existe pas. Elles sont donc nommées par éditeur et date, et
+     l'écran écrit « lien non relevé ». */
+  references: [
+    { titre: "Loi n° 2025/012 portant loi de finances pour l'exercice 2026", editeur: "République du Cameroun", date: "2025-12-17" },
+    { titre: "Exposé des motifs de la loi de finances 2026", editeur: "Direction générale du Budget (DGB)", date: "2025-12" },
+    { titre: "Communiqués de résultats des adjudications de titres publics", editeur: "BEAC" },
+    { titre: "Calendrier trimestriel d'émission de titres publics", editeur: "Direction générale du Trésor (DGTCFM)" },
+  ],
   aRelever: [
     "Le solde de −631,0 ne se déduit pas des deux agrégats repris : nommer le périmètre exact sur les annexes officielles.",
     "Deux bases 2025 circulent — 7 735,9 et 7 801,5 — donc la comparaison annuelle reste à trancher.",
@@ -223,5 +236,12 @@ export const SEED_NOTES_BUDGET: NoteBudget[] = [
        « 62.38 USD » — et la première note écrite depuis l'écran aurait affiché
        cinq lignes « changées » qui n'avaient pas bougé. */
     releve: releveDuBudget(CAMEROUN),
+    /* LES PIÈCES DE LA FICHE, PLUS CELLE QUI EST PROPRE À LA NOTE. Figées avec
+       elle : relue dans deux ans, elle doit montrer ce qu'elle avait sous les
+       yeux, et non ce que la fiche portera alors. */
+    references: [
+      ...(CAMEROUN.references ?? []),
+      { titre: "Annonce d'une révision du budget par le ministre des Finances", editeur: "reprise de presse spécialisée", date: "2026-10" },
+    ],
   },
 ];

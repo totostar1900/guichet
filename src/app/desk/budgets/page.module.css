@@ -144,3 +144,50 @@
   max-width: 62rem;
   line-height: 1.6;
 }
+
+/* ---------- le carnet ----------
+   AVANT LES CARTES, et sobre : il signale, il ne réclame pas. Un panneau qui
+   crie se fait fermer ; un panneau qu'on ferme ne sert plus à rien. */
+.carnet {
+  margin: 0 0 var(--s-9);
+  padding: var(--s-6) var(--s-7);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--info);
+  background: var(--surface-2);
+}
+.carnet h2 {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-5);
+}
+.carnetDit {
+  margin: 0 0 var(--s-5);
+  max-width: 62rem;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  line-height: 1.6;
+}
+.lignes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.lignes li {
+  display: flex;
+  gap: var(--s-4);
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-size: var(--t-3);
+}
+.lignes a {
+  flex: none;
+  min-width: 9rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.dit {
+  color: var(--ink-2);
+  min-width: 0;
+}

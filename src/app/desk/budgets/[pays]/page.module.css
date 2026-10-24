@@ -404,3 +404,45 @@
   gap: var(--s-5);
   flex-wrap: wrap;
 }
+
+/* ---------- le carnet de cet État, et les pièces ---------- */
+.carnetFiche {
+  margin: 0 0 var(--s-6);
+  padding: var(--s-4) var(--s-5) var(--s-4) var(--s-8);
+  border-left: 3px solid var(--info);
+  background: var(--info-soft);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+.pieces {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  max-width: 62rem;
+}
+.pieces li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-3);
+}
+.pieces small {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.heritees {
+  margin: 0 0 var(--s-4);
+  padding-left: var(--s-7);
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+.heritees small {
+  color: var(--ink-3);
+}

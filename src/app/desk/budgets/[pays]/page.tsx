@@ -7,6 +7,7 @@ import { getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
 import { amortissementImplicite, ecartsEntre, enMilliards, financementBoucle, foisLeDeficit, notesDe, partDesTitres, paysDuSlug, sommeDes } from "@/lib/market/budget";
 import { LIBELLES_DU_RELEVE, numeroSuivant, releveDuBudget } from "@/lib/market/note-budget";
+import { DIT, trousDe, signauxDe } from "@/lib/market/carnet";
 import { RedigerNote } from "./RedigerNote";
 import styles from "./page.module.css";
 
@@ -49,6 +50,10 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
   const boucle = financementBoucle(b);
   const sommeRecettes = b.recettes.length ? sommeDes(b.recettes) : undefined;
   const sommeDepenses = b.depenses.length ? sommeDes(b.depenses) : undefined;
+  /* LE CARNET DE CET ÉTAT, MOINS « jamais écrite » : la fiche porte déjà son
+     état vide, qui le dit plus longuement et mieux. Les deux côte à côte
+     faisaient dire deux fois la même chose en deux phrases différentes. */
+  const signaux = signauxDe(b, toutesNotes, new Date().toISOString().slice(0, 10)).filter((s) => s.genre !== "jamais_ecrite");
 
   return (
     <>
@@ -230,14 +235,60 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
           </section>
         ) : null}
 
+        {/* LES PIÈCES, JUSTE AVANT LES NOTES : une lecture se juge sur ce
+            qu'elle avait sous les yeux. */}
+        <section className={styles.bloc}>
+          <h2>{t("Les pièces")}</h2>
+          <p className={styles.chapo}>{t("Ce sur quoi le relevé s'appuie. Une pièce sans adresse se retrouve par son éditeur et sa date ; un lien mort, lui, ferait croire qu'elle n'existe pas.")}</p>
+          {b.references?.length ? (
+            <ul className={styles.pieces}>
+              {b.references.map((p) => (
+                <li key={`${p.editeur}-${p.titre}`}>
+                  {p.url ? (
+                    <a href={p.url} target="_blank" rel="noreferrer noopener">
+                      {p.titre}
+                    </a>
+                  ) : (
+                    <span>{p.titre}</span>
+                  )}
+                  <small>
+                    {p.editeur}
+                    {p.date ? ` · ${p.date}` : ""}
+                    {p.url ? "" : ` · ${t("lien non relevé")}`}
+                  </small>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.vide}>{t("Aucune pièce nommée. Le relevé vient de reprises de presse que personne n'a encore identifiées une par une.")}</p>
+          )}
+        </section>
+
         {/* LES NOTES, APRÈS LES CHIFFRES : on ne lit pas une lecture avant de
             savoir de quel texte elle parle. */}
         <section className={styles.bloc}>
           <h2>{t("Les notes du desk")}</h2>
+
+          {/* LE CARNET DE CET ÉTAT, AU-DESSUS DU FORMULAIRE : ce qu'il y
+              aurait à écrire se lit avant de commencer à écrire. */}
+          {signaux.length ? (
+            <ul className={styles.carnetFiche}>
+              {signaux.map((s, i) => (
+                <li key={`${s.genre}-${i}`}>{t(DIT[s.genre], trousDe(s, fmtDate))}</li>
+              ))}
+            </ul>
+          ) : null}
           {/* LE FORMULAIRE AVANT LE FIL, parce que le fil se lit du plus récent
               au plus ancien : la note qu'on s'apprête à écrire prend la place
               qu'elle occupera. */}
-          <RedigerNote slug={slug} pays={b.pays} exercice={b.exercice} releve={releveDuBudget(b)} prochainNumero={numeroSuivant(notes)} />
+          <RedigerNote
+            slug={slug}
+            pays={b.pays}
+            exercice={b.exercice}
+            releve={releveDuBudget(b)}
+            references={b.references ?? []}
+            prochainNumero={numeroSuivant(notes)}
+          />
           {notes.length === 0 ? (
             <p className={styles.vide}>{t("Aucune note écrite sur cet État. Une note se demande ; elle ne se produit pas toute seule.")}</p>
           ) : (
@@ -319,6 +370,33 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
                       <p>{n.malLu}</p>
                     </div>
                   </div>
+
+                  {/* LES PIÈCES DE CETTE NOTE-LÀ, et non celles de la fiche
+                      aujourd'hui : relue dans deux ans, elle doit montrer ce
+                      qu'elle avait sous les yeux. */}
+                  {n.references?.length ? (
+                    <div>
+                      <span className={styles.el}>{t("Ce sur quoi elle s'appuie")}</span>
+                      <ul className={styles.pieces}>
+                        {n.references.map((p) => (
+                          <li key={`${p.editeur}-${p.titre}`}>
+                            {p.url ? (
+                              <a href={p.url} target="_blank" rel="noreferrer noopener">
+                                {p.titre}
+                              </a>
+                            ) : (
+                              <span>{p.titre}</span>
+                            )}
+                            <small>
+                              {p.editeur}
+                              {p.date ? ` · ${p.date}` : ""}
+                              {p.url ? "" : ` · ${t("lien non relevé")}`}
+                            </small>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
                 </article>
               );
             })

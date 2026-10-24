@@ -6,6 +6,7 @@ import { SEED_BUDGETS, SEED_NOTES_BUDGET } from "@/data/budgets-seed";
 import { memoryRepository } from "@/lib/data/memory";
 import { amortissementImplicite, ecartsEntre, estComplet, financementBoucle, foisLeDeficit, partDesTitres, paysDuSlug, porteDesTitres, slugDuPays, sommeDes, PAYS_CEMAC } from "@/lib/market/budget";
 import { LIBELLES_DU_RELEVE, MIN, REFUS, numeroSuivant, releveDuBudget, verifierNote, type BrouillonNote } from "@/lib/market/note-budget";
+import { DIT, MOIS_AVANT_DE_S_INQUIETER, carnet, moisEntre, signauxDe, trousDe } from "@/lib/market/carnet";
 
 const lire = (p: string) => fs.readFileSync(path.join(RACINE, p), "utf8");
 const code = (p: string) =>
@@ -216,6 +217,7 @@ const bonBrouillon = (): BrouillonNote => ({
   ],
   surveiller: ["Le vote du collectif, attendu avant la fin de la session."],
   malLu: "La note n° 1 tenait la révision pour incertaine dans son ampleur ; le dépôt la chiffre, et sa fourchette était trop large.",
+  references: [{ titre: "Projet de loi de finances rectificative pour 2026", editeur: "Assemblée nationale", date: "2026-11-12" }],
 });
 
 describe("écrire une note du desk", () => {
@@ -271,9 +273,9 @@ describe("écrire une note du desk", () => {
   /* ET TOUS LES REFUS D'UN COUP : un formulaire qui en rend un à la fois fait
      recommencer cinq fois, et au cinquième on écrit n'importe quoi. */
   it("rend tous les manquements ensemble", () => {
-    const vide: BrouillonNote = { titre: "", enUnePhrase: "", motif: "", demandeePar: "", corps: [], surveiller: [], malLu: "" };
+    const vide: BrouillonNote = { titre: "", enUnePhrase: "", motif: "", demandeePar: "", corps: [], surveiller: [], malLu: "", references: [] };
     expect(new Set(verifierNote(vide).map((r) => r.champ)), "le refus ne nomme pas tous les champs fautifs").toEqual(
-      new Set(["titre", "enUnePhrase", "motif", "demandeePar", "malLu", "corps"]),
+      new Set(["titre", "enUnePhrase", "motif", "demandeePar", "malLu", "corps", "references"]),
     );
   });
 
@@ -436,5 +438,158 @@ describe("la page des budgets", () => {
     const marche = groupes.slice(groupes.indexOf('label: "Le marché"'), groupes.indexOf('label: "Publier"'));
     expect(marche.includes("/desk/budgets"), "la page a quitté le groupe « Le marché »").toBe(true);
     expect(marche.indexOf("/desk/budgets") > marche.indexOf("/desk/dette"), "la page ne suit plus « Dette des États » : le stock se lit avant le flux").toBe(true);
+  });
+});
+
+/**
+ * CE QUI ATTEND D'ÊTRE ÉCRIT, ET LES TROIS INTERDITS DU CARNET.
+ *
+ * Le carnet corrige un défaut précis : une note qui ne s'écrit que sur demande
+ * s'écrit quand quelqu'un est déjà inquiet, donc la série penche vers les
+ * crises et se tait dans le calme. Le remède n'est PAS de produire la note —
+ * ce serait le calendrier qu'on a écarté. C'est de signaler, et de se taire
+ * une fois que le desk a écrit : un signal qui reste allumé après qu'on y a
+ * répondu devient du papier peint, et la maison a déjà payé ce défaut.
+ */
+describe("le carnet du desk", () => {
+  const JOUR = "2026-10-25";
+
+  it("signale les États sur lesquels rien n'a jamais été écrit", () => {
+    const s = carnet(SEED_BUDGETS, SEED_NOTES_BUDGET, JOUR);
+    const muets = s.filter((x) => x.genre === "jamais_ecrite").map((x) => x.pays);
+    expect(muets, "le Cameroun porte une note : il ne devrait pas être signalé comme muet").not.toContain("Cameroun");
+    expect(muets.length, "aucun État muet n'est signalé alors que cinq n'ont pas de note").toBe(5);
+  });
+
+  /**
+   * LE SIGNAL SE TAIT QUAND LA NOTE A ÉTÉ ÉCRITE, et c'est ce qui le distingue
+   * d'un panneau décoratif. La note semée porte déjà le baril constaté.
+   */
+  it("se tait sur une divergence dont la dernière note porte déjà le constat", () => {
+    const s = signauxDe(cameroun(), SEED_NOTES_BUDGET, JOUR);
+    expect(s.map((x) => x.genre), "le baril est signalé alors que la note n° 1 l'a déjà relevé").not.toContain("hypothese_diverge");
+    /* NON-VACUITÉ : sans cette note, il parle. */
+    const sansNote = signauxDe(cameroun(), [], JOUR);
+    expect(sansNote.map((x) => x.genre), "le carnet ne voit plus la divergence du baril quand rien n'a été écrit").toContain("hypothese_diverge");
+  });
+
+  /**
+   * ET IL PARLE DÈS QUE LE RELEVÉ BOUGE — mesuré avec la machine même qui
+   * produit le tableau des écarts d'une note : la question est la même.
+   */
+  it("compte les postes qui ont bougé depuis la dernière note", () => {
+    const b = cameroun();
+    const avant = signauxDe(b, SEED_NOTES_BUDGET, JOUR).filter((x) => x.genre === "releve_a_bouge");
+    expect(avant, "le relevé est annoncé comme ayant bougé alors que la note vient de le prendre").toEqual([]);
+    /* On déplace l'hypothèse : deux postes changent, le constaté et rien d'autre. */
+    const bouge = { ...b, millesime: "revise" as const };
+    const apres = signauxDe(bouge, SEED_NOTES_BUDGET, JOUR).filter((x) => x.genre === "releve_a_bouge");
+    expect(apres.length, "le millésime a changé et le carnet n'en dit rien").toBe(1);
+    expect(apres[0].params.postes, "le carnet ne compte pas les postes qui ont bougé").toBe("1");
+    expect(apres[0].params.numero, "le carnet ne dit pas depuis quelle note").toBe("1");
+  });
+
+  it("remarque une note qui vieillit, et pas avant le délai", () => {
+    const b = cameroun();
+    expect(signauxDe(b, SEED_NOTES_BUDGET, "2026-12-25").map((x) => x.genre), "deux mois suffisent à déclarer une note vieille").not.toContain("note_vieillit");
+    const vieux = signauxDe(b, SEED_NOTES_BUDGET, "2027-05-25").filter((x) => x.genre === "note_vieillit");
+    expect(vieux.length, `sept mois passés, le carnet ne remarque rien (seuil ${MOIS_AVANT_DE_S_INQUIETER} mois)`).toBe(1);
+    expect(vieux[0].params.mois, "le carnet ne dit pas depuis combien de temps").toBe("7");
+  });
+
+  it("compte les mois sans se tromper sur un jour qui n'est pas atteint", () => {
+    expect(moisEntre("2026-10-25", "2027-04-24"), "un jour avant six mois, le carnet en compte six").toBe(5);
+    expect(moisEntre("2026-10-25", "2027-04-25"), "six mois jour pour jour ne sont pas comptés").toBe(6);
+    expect(moisEntre("2027-04-25", "2026-10-25"), "un carnet qui remonte le temps compte des mois").toBe(0);
+  });
+
+  /**
+   * ET IL NE DIT PAS DEUX FOIS LA MÊME CHOSE. La fiche porte déjà son état
+   * vide — « Aucune note écrite sur cet État. Une note se demande… » —, qui
+   * le dit plus longuement et mieux. Les deux côte à côte se répétaient.
+   */
+  it("ne répète pas sur la fiche ce que l'état vide dit déjà", () => {
+    const p = code("src/app/desk/budgets/[pays]/page.tsx");
+    expect(p, "la fiche affiche « aucune note » deux fois de suite").toMatch(/filter\(\(s\) => s\.genre !== "jamais_ecrite"\)/);
+    /* NON-VACUITÉ : la liste, elle, le garde — c'est tout son propos. */
+    expect(code("src/app/desk/budgets/page.tsx").includes('jamais_ecrite'), "la liste filtre le signal qui fait son intérêt").toBe(false);
+  });
+
+  /**
+   * LES TROIS INTERDITS. Le carnet signale, il n'agit pas : c'est ce qui le
+   * sépare du calendrier écarté. Lus dans le code plutôt que promis en prose.
+   */
+  it("n'écrit rien, ne date rien, ne s'adresse à aucun client", () => {
+    const c = code("src/lib/market/carnet.ts");
+    expect(c.includes("createNoteBudget"), "le carnet écrit une note : il devient le calendrier qu'on a écarté").toBe(false);
+    expect(c.includes("audit("), "le carnet écrit au journal : il agit au lieu de signaler").toBe(false);
+    /* ET IL NE LIT PAS L'HEURE : un signal qui dépend de l'horloge du serveur
+       ne se teste pas, et celui-ci dit « il y a sept mois » à qui va le citer. */
+    expect(c.includes("Date.now()"), "le carnet lit l'horloge : ses signaux cessent d'être vérifiables").toBe(false);
+    expect(c, "le jour n'est plus passé au carnet").toMatch(/aujourdHui: string/);
+    /* AUCUN REFLET CLIENT : le carnet vit sur deux pages, toutes deux au desk. */
+    const groupes = code("src/lib/desk-groupes.ts");
+    expect(groupes.slice(groupes.indexOf("Vue client")).includes("/desk/budgets"), "le carnet se montre en vue client").toBe(false);
+  });
+
+  /**
+   * LA DATE SORT AU FORMAT DE LA MAISON. Le domaine range « 2026-10-25 »,
+   * parce qu'une date formatée n'est plus comparable ; l'écran la met en
+   * « 25 oct. 2026 », et le formateur lui est passé — le domaine ne connaît
+   * ni la langue ni le fuseau de qui lit. Vu à l'écran, pas autrement.
+   */
+  it("rend ses dates au format de la maison, pas en brut", () => {
+    const muet = carnet(SEED_BUDGETS, [], JOUR).find((x) => x.genre === "jamais_ecrite")!;
+    expect(muet.params.releve, "le domaine range une date déjà formatée : elle cesse d'être comparable").toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(trousDe(muet, () => "25 oct. 2026").releve, "l'écran ne met plus la date au format").toBe("25 oct. 2026");
+    for (const f of ["src/app/desk/budgets/page.tsx", "src/app/desk/budgets/[pays]/page.tsx"]) {
+      expect(code(f), `${f} affiche la date brute du carnet`).toMatch(/trousDe\(s, fmtDate\)/);
+    }
+  });
+
+  /* LES PHRASES SONT DES GABARITS, et le domaine ne compose pas : une phrase
+     fabriquée ici traverserait t() sous forme de variable. */
+  it("rend des gabarits dont tous les trous sont remplis", () => {
+    for (const s of carnet(SEED_BUDGETS, SEED_NOTES_BUDGET, "2027-05-25")) {
+      const trous = [...DIT[s.genre].matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
+      expect(trous.length, `le gabarit « ${s.genre} » n'a aucun trou : la phrase est figée`).toBeGreaterThan(0);
+      for (const trou of trous) expect(s.params[trou], `le signal « ${s.genre} » ne remplit pas le trou « ${trou} »`).toBeTruthy();
+    }
+  });
+});
+
+/**
+ * LES PIÈCES : CE SUR QUOI LA LECTURE S'APPUIE.
+ *
+ * Une note interne n'a plus de lecteur extérieur ; ce qui lui reste, c'est que
+ * ses pièces soient nommées et retrouvables. Un lien mort vaut moins que pas
+ * de lien : le lecteur clique, n'obtient rien, et peut en conclure que la
+ * pièce n'existe pas.
+ */
+describe("les pièces d'une note", () => {
+  it("sont exigées : une lecture que rien n'étaye n'apprend rien", () => {
+    expect(verifierNote({ ...bonBrouillon(), references: [] }).map((r) => r.message), "une note sans pièce passe").toContain(REFUS.sansPiece);
+    expect(verifierNote(bonBrouillon()).map((r) => r.message), "une note qui nomme sa pièce est refusée").not.toContain(REFUS.sansPiece);
+  });
+
+  it("se figent avec la note, reprises de la fiche", () => {
+    const a = code("src/app/desk/budgets/[pays]/actions.ts");
+    expect(a, "la note ne reprend plus les pièces de la fiche").toMatch(/budget\.references/);
+    expect(a, "les pièces écrites ne sont pas celles qui ont été vérifiées").toMatch(/references: brouillon\.references/);
+  });
+
+  /* ET AUCUNE ADRESSE INVENTÉE : seules les vraies passent. */
+  it("ne gardent qu'une adresse qui en est une", () => {
+    const a = code("src/app/desk/budgets/[pays]/actions.ts");
+    expect(a, "n'importe quel texte est accepté comme adresse").toMatch(/\^https\?:\\\/\\\/\\S\+\$/);
+    for (const b of SEED_BUDGETS) {
+      for (const p of b.references ?? []) {
+        expect(p.titre.trim().length, `une pièce de ${b.pays} n'a pas de titre`).toBeGreaterThan(5);
+        expect(p.editeur.trim().length, `une pièce de ${b.pays} n'a pas d'éditeur : elle ne se retrouve pas`).toBeGreaterThan(1);
+        if (p.url) expect(p.url, `l'adresse d'une pièce de ${b.pays} n'en est pas une`).toMatch(/^https?:\/\/\S+$/);
+      }
+    }
+    /* NON-VACUITÉ : au moins un État nomme ses pièces. */
+    expect(SEED_BUDGETS.some((b) => (b.references?.length ?? 0) > 0), "plus aucun État ne nomme ses pièces").toBe(true);
   });
 });

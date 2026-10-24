@@ -9,6 +9,7 @@ import { DESK_GROUPS } from "@/components/DeskNav";
 import { FAMILLES, VUES } from "@/lib/market/remarques";
 import { MOTIFS, MOTIFS_DE_JUGEMENT } from "@/lib/domain/jugement-bulletin";
 import { LIBELLES_DU_RELEVE, REFUS } from "@/lib/market/note-budget";
+import { DIT } from "@/lib/market/carnet";
 
 /**
  * LES DONNÉES LIVRÉES PASSENT EN ANGLAIS, ELLES AUSSI.
@@ -182,5 +183,17 @@ describe("les refus d'une note de budget passent en anglais", () => {
      c'est le mot de la loi, et le traduire serait le réécrire. */
   it("et nos libellés du relevé, figés dans la base", () => {
     vide("libellés du relevé", inventaire(Object.values(LIBELLES_DU_RELEVE)));
+  });
+
+  /* ET LES GABARITS DU CARNET. La page rend t(DIT[genre], params) : le
+     scanner de clefs ne voit rien, et un desk anglais lirait ses signaux en
+     français. La clef est le GABARIT, trous compris — une phrase déjà
+     composée n'aurait jamais d'entrée. */
+  it("et les gabarits du carnet, trous compris", () => {
+    vide("gabarits du carnet", inventaire(Object.values(DIT)));
+  });
+
+  it("et le carnet regarde bien quelque chose", () => {
+    expect(Object.keys(DIT).length).toBe(4);
   });
 });

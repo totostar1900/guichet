@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useT } from "@/i18n/client";
-import type { NoteBudget } from "@/lib/domain/types";
+import type { NoteBudget, Reference } from "@/lib/domain/types";
 import { LIBELLES_DU_RELEVE, MIN, REFUS, estConditionnelle, verifierNote, type BrouillonNote } from "@/lib/market/note-budget";
 import { ecrireNoteAction, type EcritureNote } from "./actions";
 import styles from "./page.module.css";
@@ -40,12 +40,14 @@ export function RedigerNote({
   pays,
   exercice,
   releve,
+  references,
   prochainNumero,
 }: {
   slug: string;
   pays: string;
   exercice: number;
   releve: NoteBudget["releve"];
+  references: Reference[];
   prochainNumero: number;
 }) {
   const t = useT();
@@ -57,10 +59,22 @@ export function RedigerNote({
   const [demandeePar, setDemandee] = useState("");
   const [malLu, setMalLu] = useState("");
   const [surveiller, setSurveiller] = useState("");
+  const [pieces, setPieces] = useState("");
   const [lignes, setLignes] = useState<Ligne[]>([
     { genre: "constat", texte: "" },
     { genre: "lecture", texte: "" },
   ]);
+
+  /* LES PIÈCES DE LA FICHE, PLUS CELLES QU'ON TAPE : le compte doit être le
+     même ici et au serveur, sinon le bouton s'ouvre sur un refus. */
+  const ajoutees: Reference[] = pieces
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((l) => {
+      const [titre, editeur, url] = l.split("|").map((x) => x.trim());
+      return { titre: titre || l, editeur: editeur || "non nommé", url: url && /^https?:\/\/\S+$/.test(url) ? url : undefined };
+    });
 
   const brouillon: BrouillonNote = {
     titre,
@@ -70,6 +84,7 @@ export function RedigerNote({
     malLu,
     surveiller: surveiller.split("\n").map((s) => s.trim()).filter(Boolean),
     corps: lignes.filter((l) => l.texte.trim()).map((l) => ({ genre: l.genre, texte: l.texte.trim() })),
+    references: [...references, ...ajoutees],
   };
   const refus = verifierNote(brouillon);
   const refusDe = (champ: string) => refus.filter((r) => r.champ === champ);
@@ -189,6 +204,34 @@ export function RedigerNote({
               </p>
             ))}
           </label>
+        </div>
+
+        {/* LES PIÈCES. Celles de la fiche sont déjà là et se montrent ; le
+            rédacteur ajoute celles qui sont propres à sa note — une
+            déclaration, un communiqué. L'adresse est facultative : une pièce
+            nommée se retrouve, un lien mort fait croire qu'elle n'existe pas. */}
+        <div>
+          <span className={styles.el}>{t("Les pièces")}</span>
+          <p className={styles.aide}>
+            {references.length
+              ? t("Celles de la fiche sont reprises d'office. Ajoutez ci-dessous ce qui est propre à cette note, une par ligne : titre | éditeur | adresse (l'adresse est facultative).")
+              : t("Cette fiche ne nomme aucune pièce. Nommez au moins le document sur lequel la note s'appuie, une par ligne : titre | éditeur | adresse (l'adresse est facultative).")}
+          </p>
+          {references.length ? (
+            <ul className={styles.heritees}>
+              {references.map((p) => (
+                <li key={`${p.editeur}-${p.titre}`}>
+                  {p.titre} <small>{p.editeur}</small>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <textarea name="references" rows={3} value={pieces} onChange={(e) => setPieces(e.target.value)} placeholder="Annonce de révision | presse spécialisée | https://…" />
+          {refusDe("references").map((r, i) => (
+            <p key={i} className={styles.refus}>
+              {t(r.message)}
+            </p>
+          ))}
         </div>
 
         {/* LE RELEVÉ SE MONTRE, IL NE SE SAISIT PAS. Le rédacteur doit voir ce

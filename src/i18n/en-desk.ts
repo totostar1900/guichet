@@ -3649,4 +3649,29 @@ export const EN_MORE: Record<string, string> = {
      document (« Transferts et subventions ») traversent t() tels quels. */
   "Millésime en vigueur": "Vintage in force",
   "Programme de titres publics": "Government securities programme",
+
+  /* ---------- Le carnet et les pièces ---------- */
+  "Ce qui attend d'être écrit": "What is waiting to be written",
+  "L'outil signale qu'il y a de quoi écrire ; il n'écrit pas la note, ne la date pas, et ne la propose à aucun client. Le desk décide.":
+    "The tool flags that there is something to write; it does not write the note, does not date it, and proposes it to no client. The desk decides.",
+  "Les pièces": "The documents",
+  "Ce sur quoi le relevé s'appuie. Une pièce sans adresse se retrouve par son éditeur et sa date ; un lien mort, lui, ferait croire qu'elle n'existe pas.":
+    "What the record rests on. A document with no address is found again through its publisher and date; a dead link would suggest it does not exist.",
+  "Ce sur quoi elle s'appuie": "What it rests on",
+  "lien non relevé": "address not recorded",
+  "Aucune pièce nommée. Le relevé vient de reprises de presse que personne n'a encore identifiées une par une.":
+    "No document named. The record comes from press reports no one has yet identified one by one.",
+  "Celles de la fiche sont reprises d'office. Ajoutez ci-dessous ce qui est propre à cette note, une par ligne : titre | éditeur | adresse (l'adresse est facultative).":
+    "Those on the sheet are carried over automatically. Add below whatever is specific to this note, one per line: title | publisher | address (the address is optional).",
+  "Cette fiche ne nomme aucune pièce. Nommez au moins le document sur lequel la note s'appuie, une par ligne : titre | éditeur | adresse (l'adresse est facultative).":
+    "This sheet names no document. Name at least the document the note rests on, one per line: title | publisher | address (the address is optional).",
+  "Une note sans pièce ne se vérifie pas. Nommez au moins le document sur lequel elle s'appuie.":
+    "A note with no document cannot be checked. Name at least the document it rests on.",
+
+  /* LES GABARITS DU CARNET. Les trous {…} sont remplis après la traduction :
+     la clef est le gabarit, pas la phrase composée. */
+  "Aucune note écrite. Le relevé date du {releve}.": "No note written. The record dates from {releve}.",
+  "Le relevé a changé sur {postes} poste(s) depuis la note n° {numero}.": "The record has changed on {postes} item(s) since note no. {numero}.",
+  "{libelle} : {constate} constaté, contre {valeur} retenu par la loi.": "{libelle}: {constate} observed, against {valeur} assumed by the law.",
+  "Dernière note il y a {mois} mois.": "Last note {mois} months ago.",
 };

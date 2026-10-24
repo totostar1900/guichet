@@ -1,4 +1,4 @@
-import type { BudgetEtat, NoteBudget, ParagrapheNote } from "@/lib/domain/types";
+import type { BudgetEtat, NoteBudget, ParagrapheNote, Reference } from "@/lib/domain/types";
 import { MOT_DU_MILLESIME, enMilliards, porteDesTitres } from "./budget";
 
 /**
@@ -41,6 +41,8 @@ export interface BrouillonNote {
   corps: ParagrapheNote[];
   surveiller: string[];
   malLu: string;
+  /** Les pièces sur lesquelles elle s'appuie : la fiche, plus ce qu'on ajoute. */
+  references: Reference[];
 }
 
 /**
@@ -70,6 +72,7 @@ export const REFUS = {
   paragrapheCourt: "Un paragraphe de deux mots ne dit rien.",
   lectureAffirmative: "Cette lecture est écrite comme un fait. Nommez ce qui la déclenche — « si… alors… » — ou rangez-la en constat.",
   conseil: "La note documente. Décrivez ce qui se passerait, pas ce qu'il faudrait faire.",
+  sansPiece: "Une note sans pièce ne se vérifie pas. Nommez au moins le document sur lequel elle s'appuie.",
 } as const;
 
 /**
@@ -108,6 +111,10 @@ export function verifierNote(d: BrouillonNote): Refus[] {
   if (d.motif.trim().length < MIN.motif) out.push({ champ: "motif", message: REFUS.motif });
   if (d.demandeePar.trim().length < 2) out.push({ champ: "demandeePar", message: REFUS.demandeePar });
   if (d.malLu.trim().length < MIN.malLu) out.push({ champ: "malLu", message: REFUS.malLu });
+  /* UNE LECTURE QUE RIEN N'ÉTAYE N'APPREND RIEN. La fiche fournit ses pièces
+     dès qu'un budget y est relevé ; là où elle n'en a aucune — quatre États
+     sur six —, c'est au rédacteur de nommer d'où il tient ce qu'il écrit. */
+  if (d.references.length === 0) out.push({ champ: "references", message: REFUS.sansPiece });
 
   if (!d.corps.some((p) => p.genre === "constat")) out.push({ champ: "corps", message: REFUS.sansConstat });
   if (!d.corps.some((p) => p.genre === "lecture")) out.push({ champ: "corps", message: REFUS.sansLecture });
