@@ -832,6 +832,12 @@ export interface Reference {
   date?: string;
   /** L'adresse, UNIQUEMENT quand quelqu'un l'a ouverte. */
   url?: string;
+  /**
+   * LE JOUR OÙ L'ADRESSE A ÉTÉ OUVERTE. Sans elle, « il y a un lien » ne dit
+   * pas si quelqu'un l'a suivi cette année ou il y a trois ans : un lien
+   * pourrit en silence, et c'est la date qui permet de le reprendre.
+   */
+  verifieLe?: string;
 }
 
 /** Un poste du budget, en millions de FCFA comme partout ailleurs dans la maison. */

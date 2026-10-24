@@ -8,7 +8,7 @@ import type { BudgetEtat, Country, EtatDuMillesime, NoteBudget, PorteDeFinanceme
  *
  *  1. LE SOLDE NE SE RECALCULE JAMAIS. Les documents donnent leur solde ; nos
  *     deux agrégats n'en ont pas le périmètre. Pour le Cameroun 2026, la
- *     soustraction donne −323,5 et le document dit −631,0. On montre le sien.
+ *     soustraction donne −523,5 et le document dit −631,0. On montre le sien.
  *  2. AUCUN TOTAL DE ZONE. Six millésimes différents, trois révisés, deux
  *     inconnus : les additionner donnerait un chiffre sans date. C'est le même
  *     refus que « Dette des États », qui montre deux colonnes et pas un total.

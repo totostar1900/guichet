@@ -44,6 +44,23 @@ describe("les budgets des États", () => {
    * porte a été inventée — dans les deux cas le tableau cesse d'être le
    * tableau de la loi pour devenir une reconstitution.
    */
+  /**
+   * LES AGRÉGATS SONT CEUX DE LA SOURCE, ET ILS SONT ÉPINGLÉS.
+   *
+   * Ils ont été relevés de la presse, puis CORRIGÉS le 24 octobre sur
+   * l'exposé des motifs de la DGB, qui donne 4 689,5 de recettes fiscales et
+   * douanières là où ce fichier portait 4 889,5 — deux cents milliards de
+   * trop, une main qui avait lu un 8 pour un 6. Les épingler ici fait tomber
+   * l'épreuve le jour où quelqu'un les reprendra sans ouvrir la pièce.
+   */
+  it("portent les agrégats de l'exposé des motifs, au dixième", () => {
+    const b = cameroun();
+    expect(sommeDes(b.recettes) / 1000, "les recettes ne sont plus celles de la colonne « PLFI 2026 »").toBe(5687);
+    expect(sommeDes(b.depenses) / 1000, "les dépenses ne sont plus celles du document").toBe(6210.5);
+    expect(b.soldeDeclare! / 1000, "le solde déclaré a bougé").toBe(-631);
+    expect(b.besoinDeFinancement! / 1000, "le besoin de financement a bougé").toBe(3104.2);
+  });
+
   it("bouclent exactement sur le besoin déclaré, là où le relevé est complet", () => {
     const b = cameroun();
     const boucle = financementBoucle(b)!;
@@ -53,7 +70,7 @@ describe("les budgets des États", () => {
 
   /**
    * LE SOLDE NE SE RECALCULE JAMAIS, et l'écart se montre plutôt que de se
-   * résorber. Les deux agrégats du Cameroun donnent −323,5 quand la loi écrit
+   * résorber. Les deux agrégats du Cameroun donnent −523,5 quand la loi écrit
    * −631,0 : les périmètres diffèrent. Une page qui afficherait la
    * soustraction aurait l'air juste et serait fausse.
    */
@@ -671,6 +688,25 @@ describe("les pièces d'une note", () => {
     const a = code("src/app/desk/budgets/[pays]/actions.ts");
     expect(a, "la note ne reprend plus les pièces de la fiche").toMatch(/budget\.references/);
     expect(a, "les pièces écrites ne sont pas celles qui ont été vérifiées").toMatch(/references: brouillon\.references/);
+  });
+
+  /**
+   * UNE ADRESSE SE CONSIGNE QUAND ON L'A OUVERTE, ET LE JOUR SE RANGE AVEC.
+   *
+   * Sans la date, « il y a un lien » ne dit pas si quelqu'un l'a suivi cette
+   * année ou il y a trois ans : un lien pourrit en silence. Les six pièces
+   * camerounaises ont été demandées le 24 octobre 2026 et ont répondu ; celle
+   * qui n'a pas d'adresse n'en a pas parce qu'on ne l'a pas trouvée, et elle
+   * le dit à l'écran.
+   */
+  it("date chaque adresse qu'elle consigne", () => {
+    const avecUrl = SEED_BUDGETS.flatMap((b) => b.references ?? []).filter((p) => p.url);
+    expect(avecUrl.length, "plus aucune pièce ne porte d'adresse : l'épreuve ne garde rien").toBeGreaterThanOrEqual(5);
+    expect(
+      avecUrl.filter((p) => !p.verifieLe).map((p) => p.titre),
+      "une adresse est consignée sans le jour où elle a été ouverte",
+    ).toEqual([]);
+    for (const p of avecUrl) expect(p.verifieLe, `la date de « ${p.titre} » est mal formée`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   /* ET AUCUNE ADRESSE INVENTÉE : seules les vraies passent. */

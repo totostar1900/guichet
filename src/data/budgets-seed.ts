@@ -15,8 +15,8 @@ import { releveDuBudget } from "@/lib/market/note-budget";
  * 8_816_400 ici. Le formateur de la page remet des milliards à l'écran.
  *
  * LE SOLDE N'EST JAMAIS RECALCULÉ. Pour le Cameroun, les deux agrégats repris
- * (5 887,0 de recettes internes, 6 210,5 de dépenses hors principal) donnent
- * −323,5, quand le document annonce −631,0 : les périmètres diffèrent, et
+ * (5 687,0 de recettes internes, 6 210,5 de dépenses hors principal) donnent
+ * −523,5, quand le document annonce −631,0 : les périmètres diffèrent, et
  * trancher demanderait les annexes officielles. On garde donc le chiffre ÉCRIT
  * et on laisse la question ouverte dans « à relever ». Un écart assumé vaut
  * mieux qu'une soustraction qui a l'air juste.
@@ -41,7 +41,7 @@ const CAMEROUN: BudgetEtat = {
   ],
   budgetTotal: 8_816_400,
   recettes: [
-    { cle: "fiscales", libelle: "Recettes fiscales et douanières", montant: 4_889_500 },
+    { cle: "fiscales", libelle: "Recettes fiscales et douanières", montant: 4_689_500 },
     { cle: "petrolieres", libelle: "Recettes pétrolières et gazières", montant: 523_700 },
     { cle: "non_fiscales", libelle: "Recettes non fiscales", montant: 400_000 },
     { cle: "dons", libelle: "Dons", montant: 73_800 },
@@ -61,29 +61,62 @@ const CAMEROUN: BudgetEtat = {
     { cle: "bancaires", libelle: "Emprunts bancaires", montant: 589_700, suppose: "des banques locales qui ont la place" },
     { cle: "titres", libelle: "Titres publics · marché monétaire", montant: 400_000, titres: true, suppose: "des séances servies au prix attendu" },
     { cle: "exceptionnels", libelle: "Financements exceptionnels", montant: 167_800, suppose: "non récurrents, par nature incertains" },
-    { cle: "appuis", libelle: "Appuis budgétaires", montant: 120_000, suppose: "un programme avec le FMI qui tient" },
+    { cle: "appuis", libelle: "Appuis budgétaires", montant: 120_000, suppose: "un décaissement de la Banque mondiale — le FMI est à zéro au tableau" },
   ],
   source: {
     texte: "Loi n° 2025/012 du 17 décembre 2025 · exposé des motifs (DGB) · reprise de presse spécialisée",
     releveLe: "2026-10-25",
   },
-  /* LES PIÈCES, NOMMÉES ; LES ADRESSES, SEULEMENT CELLES QU'ON A OUVERTES.
-     Aucune n'a pu l'être depuis l'atelier où ce relevé a été saisi : la
-     politique réseau y refuse dgb.cm, beac.int et dgtcfm.cm. Mettre les
-     adresses quand même aurait donné des liens morts, ce qui vaut moins que
-     pas de lien — le lecteur clique, n'obtient rien, et peut en conclure que
-     la pièce n'existe pas. Elles sont donc nommées par éditeur et date, et
-     l'écran écrit « lien non relevé ». */
+  /* LES PIÈCES, ET LEURS ADRESSES — OUVERTES, PAS RECOPIÉES.
+     Chacune a été demandée depuis l'atelier le 24 octobre 2026 et a répondu.
+     L'exposé des motifs a été LU : c'est lui qui a corrigé deux chiffres de
+     ce relevé et tranché un point laissé ouvert. Le programme annuel de la
+     BEAC, lui, est un SCAN — « Creator: HP Scan », aucune couche de texte —
+     donc son adresse est consignée et son contenu ne l'est pas. */
   references: [
     { titre: "Loi n° 2025/012 portant loi de finances pour l'exercice 2026", editeur: "République du Cameroun", date: "2025-12-17" },
-    { titre: "Exposé des motifs de la loi de finances 2026", editeur: "Direction générale du Budget (DGB)", date: "2025-12" },
-    { titre: "Communiqués de résultats des adjudications de titres publics", editeur: "BEAC" },
-    { titre: "Calendrier trimestriel d'émission de titres publics", editeur: "Direction générale du Trésor (DGTCFM)" },
+    {
+      titre: "Exposé des motifs du projet de loi de finances 2026",
+      editeur: "Direction générale du Budget (DGB)",
+      date: "2025-11",
+      url: "https://www.dgb.cm/wp-content/uploads/2025/12/Expose-des-Motifs_LF-2026_fr.pdf",
+      verifieLe: "2026-10-24",
+    },
+    {
+      titre: "Programme annuel des émissions de titres publics 2026 — Cameroun",
+      editeur: "BEAC",
+      date: "2026",
+      url: "https://www.beac.int/wp-content/uploads/2019/06/PROGRAMME-ANNUEL-DES-EMISSIONS-2026-CAMEROUN.pdf",
+      verifieLe: "2026-10-24",
+    },
+    {
+      titre: "Bulletins du marché des titres publics",
+      editeur: "BEAC",
+      url: "https://www.beac.int/m-des-titres-publics/bulletins-marche-titres-publics/",
+      verifieLe: "2026-10-24",
+    },
+    {
+      titre: "Calendrier trimestriel d'émission de titres publics des États de la CEMAC",
+      editeur: "BEAC",
+      url: "https://www.beac.int/m-des-titres-publics/calendrier-trimestriel-demission-titres-publics-etats-de-cemac/",
+      verifieLe: "2026-10-24",
+    },
+    {
+      titre: "Avis d'émission",
+      editeur: "Direction générale du Trésor (DGTCFM)",
+      url: "https://dgtcfm.cm/avis-demission/",
+      verifieLe: "2026-10-24",
+    },
   ],
   aRelever: [
-    "Le solde de −631,0 ne se déduit pas des deux agrégats repris : nommer le périmètre exact sur les annexes officielles.",
-    "Deux bases 2025 circulent — 7 735,9 et 7 801,5 — donc la comparaison annuelle reste à trancher.",
-    "Le collectif budgétaire annoncé n'était ni déposé ni voté au 25 octobre 2026.",
+    /* TRANCHÉ LE 24 OCTOBRE par l'exposé des motifs, qui décompose le solde :
+       le budget général fait −607,5 et les comptes d'affectation spéciale
+       −23,5, soit −631,0. La soustraction de nos deux agrégats, −523,5, ne
+       pouvait pas y tomber : elle ignore les CAS et le périmètre des dons. */
+    "Deux plans de financement coexistent DANS LE MÊME DOCUMENT : le texte énumère six portes sommant à 3 104,2, le tableau des opérations financières en donne d'autres sommant à 2 996,8 — emprunts extérieurs 650,0 contre 1 000, bancaire 505,7 contre 589,7, exceptionnels 144,4 contre 167,8. Seule la ligne des titres publics, 400,0, est la même des deux côtés. Lequel fait foi reste à trancher.",
+    "La base 2025 est donnée à 7 735,9 par l'exposé des motifs ; 7 801,5 circule ailleurs. Le chiffre de la loi promulguée reste à relever.",
+    "Les chiffres relevés sont ceux du PROJET de loi (colonne « PLFI 2026 » du tableau des opérations financières). Ce que la loi promulguée du 17 décembre a retenu n'est pas relevé.",
+    "Le programme annuel d'émissions 2026 publié par la BEAC est un scan sans couche de texte : son montant n'a pas été relevé, faute d'outil de reconnaissance de caractères.",
   ],
 };
 
@@ -202,7 +235,7 @@ export const SEED_NOTES_BUDGET: NoteBudget[] = [
       {
         genre: "constat",
         texte:
-          "Un budget se vote sur des hypothèses, et celle qui compte ici est le prix du pétrole : 523,7 milliards de recettes pétrolières et gazières sur 5 887 de recettes internes, environ un dixième.",
+          "Un budget se vote sur des hypothèses, et celle qui compte ici est le prix du pétrole : 523,7 milliards de recettes pétrolières et gazières sur 5 687 de recettes internes, environ un dixième.",
       },
       {
         genre: "constat",

@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
  * de savoir de quel texte elle parle.
  *
  * LE SOLDE N'EST JAMAIS RECALCULÉ. Pour le Cameroun 2026, les deux agrégats
- * donnent −323,5 quand la loi écrit −631,0 : les périmètres diffèrent. La page
+ * donnent −523,5 quand la loi écrit −631,0 : les périmètres diffèrent. La page
  * montre le chiffre ÉCRIT, affiche la somme de ses propres postes à côté, et
  * laisse l'écart visible plutôt que de le résorber.
  *
