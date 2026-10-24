@@ -11,6 +11,8 @@ import { direLePlafond } from "@/lib/domain/plafond-du-compte";
 import { DemanderVersement } from "./DemanderVersement";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
+import { CeQuiFermeBientot } from "@/components/CeQuiFermeBientot";
+import { echeancesProches, presse } from "@/lib/domain/echeances";
 import { SelectionDuDesk } from "@/components/SelectionDuDesk";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { TrustNudge } from "@/components/TrustNudge";
@@ -105,6 +107,9 @@ export async function Console({ session }: { session: Session }) {
   const b = bilan(suivre(tenues, cash));
 
   const { perf, mouvements } = buildPerformanceParts(mine, offers, cash);
+  /* Lues une fois, pour la bande ET pour savoir où la poser : le seuil de
+     sept jours décide de sa place, et il ne se calcule pas deux fois. */
+  const echeances = echeancesProches(offers);
   const courbe = courbeDuPortefeuille(mouvements, perf.valued, aujourdHui);
   const familles = famillesDuPortefeuille(perf.lines, new Map(offers.map((o) => [o.id, o])), poche.idle);
 
@@ -209,6 +214,14 @@ export async function Console({ session }: { session: Session }) {
           sommaire n'a pas à porter la file d'attente complète, il a à ne rien
           cacher. Cette page-ci, où l'on atterrit, l'a pour sujet. */}
       <CeQuiVousAttend userId={session.userId} tout />
+      {/* UNE CLÔTURE SOUS SEPT JOURS PASSE DEVANT LE RESTE, et c'est la seule
+          chose qui déplace une section de cette page. La raison n'est pas
+          l'esthétique : un virement interbancaire de la zone met deux à trois
+          jours, et l'argent doit être arrivé avant le dépôt. En deçà du
+          seuil, la séance n'est plus une annonce, c'est un délai. Au-delà,
+          elle attend son tour plus bas — voir `domain/echeances`, qui tient
+          le seuil pour les deux surfaces. */}
+      {presse(echeances) && <CeQuiFermeBientot offres={offers} />}
       {/* CE QUI EST REVENU ET DORT : la seule décision entre l'achat et le
           remboursement, et elle remonte ici. Elle vivait au bas du relevé, à
           deux mille pixels du titre, pendant que cette page écrivait sa propre
@@ -216,6 +229,8 @@ export async function Console({ session }: { session: Session }) {
           avant les positions et jamais après ». */}
       <Reinvest positions={positions} entries={cash} temoignages={temoignages} now={new Date()} />
       <SelectionDuDesk />
+      {/* Rien ne presse : la liste se lit après ce que le client possède. */}
+      {!presse(echeances) && <CeQuiFermeBientot offres={offers} />}
 
       {/* 1. Ce que ça vaut, et ce que ça a rapporté. */}
       {positions.length > 0 ? (

@@ -95,4 +95,25 @@ describe("la page d'accueil", () => {
        alors rien entre son titre et sa piste. */
     expect(src, "la carte peut de nouveau rester muette faute de termes").toContain("i.counter ?");
   });
+  /* LA SECTION QUI SE DÉPLACE, ET LES DEUX FAÇONS DE CASSER UN DÉPLACEMENT.
+     « Ce qui ferme bientôt » paraît en haut quand une séance ferme sous sept
+     jours, plus bas sinon. Le seuil lui-même est éprouvé dans
+     « echeances.test » ; ce qui ne peut l'être que d'ici est le branchement :
+     oublier une des deux branches fait disparaître la bande dans l'un des
+     deux cas, et oublier la négation la fait paraître deux fois sur le même
+     écran. Les deux se voient à l'œil une fois en production, et jamais
+     avant. */
+  it("pose « Ce qui ferme bientôt » à une place et une seule", () => {
+    const src = code("src/app/Console.tsx");
+    const poses = [...src.matchAll(/<CeQuiFermeBientot\b/g)];
+    expect(poses.length, "la bande n'est plus posée exactement deux fois : une branche a disparu, ou une troisième est née").toBe(2);
+    expect(src, "la branche du haut ne dépend plus du seuil").toMatch(/\{presse\(echeances\) && <CeQuiFermeBientot/);
+    expect(src, "la branche du bas ne dépend plus du seuil, ou sa négation a sauté : la bande paraîtrait deux fois").toMatch(/\{!presse\(echeances\) && <CeQuiFermeBientot/);
+  });
+
+  /* Deux lectures du même objet dans la même requête sont deux occasions de
+     diverger : la page tient déjà les offres pour ses positions. */
+  it("ne fait pas relire les offres à la bande des échéances", () => {
+    expect(code("src/app/Console.tsx"), "la bande relit les offres que la page tient déjà").toMatch(/<CeQuiFermeBientot offres=\{offers\}/);
+  });
 });

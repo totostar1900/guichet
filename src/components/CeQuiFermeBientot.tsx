@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { repo } from "@/lib/data";
 import { echeancesProches, type Urgence } from "@/lib/domain/echeances";
+import type { Offer } from "@/lib/domain/types";
 import styles from "./CeQuiFermeBientot.module.css";
 
 /**
@@ -35,9 +36,15 @@ import styles from "./CeQuiFermeBientot.module.css";
  * ELLE SE BORNE À TROIS, puis nomme le reste et mène au calendrier, dont
  * c'est le travail de les porter toutes.
  */
-export async function CeQuiFermeBientot({ max = 3 }: { max?: number }) {
+export async function CeQuiFermeBientot({ offres, max = 3 }: { /** Les offres déjà en main, pour ne pas les relire. */ offres?: Offer[]; max?: number }) {
   const t = await getT();
-  const offers = await repo().listOffers().catch(() => []);
+  /* LES OFFRES SE PASSENT QUAND ON LES A DÉJÀ. La page d'arrivée les lit pour
+     ses positions ; les relire ici serait deux lectures du même objet dans la
+     même requête, donc deux occasions de diverger — le défaut que la page
+     Trade s'est fait retirer en octobre. Là où personne ne les tient, la
+     bande les demande elle-même plutôt que d'obliger chaque page à savoir de
+     quoi elle a besoin. */
+  const offers = offres ?? (await repo().listOffers().catch(() => []));
   const toutes = echeancesProches(offers);
   if (!toutes.length) return null;
   const montrees = toutes.slice(0, max);
