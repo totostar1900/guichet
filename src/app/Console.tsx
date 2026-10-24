@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { peutOPCVM, type Session } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
-import { positionsFrom } from "@/lib/positions";
+import { positionsFrom, prochainFlux } from "@/lib/positions";
 import { cashPosition } from "@/lib/domain/cash";
 import { arretables } from "@/lib/domain/preavis";
 import { Annonce } from "./Annonce";
@@ -157,10 +157,10 @@ export async function Console({ session }: { session: Session }) {
 
   const total = perf.valued + poche.idle;
   const gain = perf.valued + perf.returned - perf.invested;
-  const prochaine = positions
-    .map((p) => p.nextFlow)
-    .filter(Boolean)
-    .sort((a, b2) => a!.date.localeCompare(b2!.date))[0];
+  /* LE PROCHAIN FLUX, ET CE QU'IL EST. La page le refaisait à la main et
+     n'en gardait que la date, alors que le flux porte aussi sa nature, son
+     montant et la ligne qui le verse — tout cela déjà calculé, et jeté. */
+  const prochain = prochainFlux(positions);
 
   const trace = dessin(courbe);
   const famille = (f: Famille) => t(NOM_FAMILLE[f]);
@@ -321,7 +321,7 @@ export async function Console({ session }: { session: Session }) {
             </span>
             <span>
               <small>{t("Prochaine échéance")}</small>
-              <b>{prochaine ? fmtDate(prochaine.date) : "—"}</b>
+              <b>{prochain ? fmtDate(prochain.flow.date) : "—"}</b>
             </span>
             {/* LE CHIFFRE MÈNE À SA PAGE DEPUIS LE 9 OCTOBRE 2026. Il se lisait
                 ici, dans Trader et sur le réinvestissement, et nulle part on ne
@@ -333,6 +333,24 @@ export async function Console({ session }: { session: Session }) {
               <b>{fmt(Math.round(poche.idle))}</b>
             </Link>
           </div>
+          {/* CE QUI TOMBE, ET NON SEULEMENT QUAND. La case ci-dessus donnait
+              une date nue : « 14 février », sans dire si c'est un coupon ou
+              un remboursement, de combien, ni sur quelle ligne. Les trois
+              étaient calculés et jetés. Une date seule ne décide de rien ; un
+              montant attendu décide de ce qu'on engage d'ici là.
+
+              UNE PHRASE, ET NON UNE SECTION. La maquette en faisait un
+              « agenda » à part. Cette page a retiré en octobre une date
+              écrite trois fois sous trois noms — « Prochaine échéance »,
+              « Prochain flux », « prochain flux le » — et une quatrième
+              surface pour la même date aurait rouvert exactement ce
+              défaut-là. La date reste où elle est ; la phrase dit ce qu'elle
+              vaut. */}
+          {prochain && (
+            <p className={styles.quoiVient}>
+              {t("{q} de {m} FCFA sur {l}.", { q: t(prochain.flow.label), m: fmt(Math.round(prochain.flow.amount)), l: prochain.position.offer.title })}
+            </p>
+          )}
           {/* Ce solde appartient au client : il le lit ici, donc il le réclame ici. */}
           <DemanderVersement montant={poche.idle} demande={derniereDemande} />
         </section>

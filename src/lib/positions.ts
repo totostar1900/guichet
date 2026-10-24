@@ -85,8 +85,39 @@ function valuation(o: Offer, units: number, offers: Offer[]): Pick<Position, "ma
   return { marketValue: units * price, valuedOn: listed.lastPriceOn, exit: { intent: "vente", offerId: listed.id } };
 }
 
-/** Flows falling within `days` of now (coupon notices). */
-export function upcomingFlows(positions: Position[], days: number, now = new Date()): { position: Position; flow: Position["flows"][number]; inDays: number }[] {
+export type FluxAVenir = { position: Position; flow: Position["flows"][number]; inDays: number };
+
+/**
+ * Tous les flux encore à venir, DU PLUS PROCHE AU PLUS LOINTAIN.
+ *
+ * L'ordre n'était pas garanti, et il ne l'était pas par accident : la liste
+ * se construit position par position, donc le deuxième coupon d'une ligne
+ * passait avant le premier d'une autre. Le desk affichait « les flux des
+ * trente jours » dans cet ordre-là, c'est-à-dire dans aucun — une liste de
+ * dates qui ne monte pas se lit comme une liste incomplète.
+ *
+ * Le tri vit ici plutôt que chez l'appelant pour la raison habituelle : trois
+ * surfaces veulent la même question, et la quatrième oubliera de trier.
+ */
+export function fluxAVenir(positions: Position[], now = new Date()): FluxAVenir[] {
   const t0 = parseDate(localIso(now)).getTime();
-  return positions.flatMap((p) => p.flows.map((flow) => ({ position: p, flow, inDays: Math.round((parseDate(flow.date).getTime() - t0) / 86400e3) }))).filter((x) => x.inDays >= 0 && x.inDays <= days);
+  return positions
+    .flatMap((p) => p.flows.map((flow) => ({ position: p, flow, inDays: Math.round((parseDate(flow.date).getTime() - t0) / 86400e3) })))
+    .filter((x) => x.inDays >= 0)
+    .sort((a, b) => a.flow.date.localeCompare(b.flow.date));
 }
+
+/** Flows falling within `days` of now (coupon notices). */
+export function upcomingFlows(positions: Position[], days: number, now = new Date()): FluxAVenir[] {
+  return fluxAVenir(positions, now).filter((x) => x.inDays <= days);
+}
+
+/**
+ * Le prochain flux du client, quel qu'en soit le terme.
+ *
+ * La page d'arrivée le refaisait à la main — « map(nextFlow), filter, sort,
+ * [0] » — et n'en gardait que la date, alors que le flux porte aussi ce qu'il
+ * est et combien il vaut. Deux calculs du même fait, dont l'un jetait les
+ * deux tiers de sa réponse.
+ */
+export const prochainFlux = (positions: Position[], now = new Date()): FluxAVenir | undefined => fluxAVenir(positions, now)[0];

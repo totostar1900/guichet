@@ -97,6 +97,12 @@ export const EN_CONSOLE: Record<string, string> = {
     "When an opposite intention exists in house, you are told before anything goes out to the market.",
   "La maison détecte une intention inverse et vous la signale.": "The firm detects an opposite intention and tells you.",
 
+  /* CE QUE LE PROCHAIN FLUX EST (24 octobre 2026). La case des faits donne
+     la date ; cette phrase dit ce qui tombe, de combien, et sur quelle ligne
+     — trois choses que la page calculait et jetait. « {q} » est le libellé du
+     flux, traduit de son côté : Coupon, Coupon + capital, Remboursement. */
+  "{q} de {m} FCFA sur {l}.": "{q} of {m} FCFA on {l}.",
+
   /* ---------- ce qui attend une décision ---------- */
   "Sur votre compte": "On your account",
   "Votre réinvestissement les placera.": "Your reinvestment will place them.",

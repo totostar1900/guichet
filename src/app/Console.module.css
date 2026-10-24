@@ -763,3 +763,13 @@
   font-weight: 700;
   color: var(--ink);
 }
+
+/* CE QUE LE PROCHAIN FLUX EST, sous la rangée des faits qui en donne la date.
+   Même poids que la note « hors total » juste au-dessus : une précision, pas
+   un chiffre de plus. */
+.quoiVient {
+  margin: var(--s-5) 0 0;
+  font-size: var(--t-2);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
