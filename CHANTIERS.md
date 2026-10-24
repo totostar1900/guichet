@@ -102,8 +102,10 @@ Ce qui reste au point 2 :
 cours.** `EnTete` pose les quatre créneaux dans l'ordre — retour, sur-titre,
 titre, phrase — et un seul genre par créneau. Dix pages y sont passées le
 24 octobre 2026, dont les deux qui sortaient du rang : le fil d'Ariane de
-« Sécurité » (le seul de l'application) et le lien de retour que « Analyse »
-rangeait dans le créneau du sur-titre.
+« Sécurité » et le lien de retour que « Analyse » rangeait dans le créneau du
+sur-titre. **Dix autres y sont passées le soir du même jour**, et elles ont
+démenti le mot écrit ici : ce fil d'Ariane était donné pour « le seul de
+l'application », il y en avait **trois** (voir le relevé du point 7, en bas).
 
 Les trois listes d'instruments ont suivi : `/titres`, `/fonds` et
 `/calendrier` portent le sur-titre « Investissez », et les deux racines —
@@ -497,7 +499,7 @@ cliquet qui ne porte plus que ce qui attend. **Il est à 18, et celui-là peut
 finir.** Une dispense dont la page est convertie, renommée ou supprimée ne vise
 plus rien, et l'épreuve le dit.
 
-**Neuf pages converties le même soir** : les mentions légales, les notes de
+**Dix pages converties le même soir** : les mentions légales, les notes de
 marché, la réclamation, le parcours du guide, l'annexe tarifaire, les
 prélèvements, l'épargne programmée, votre activité, et les deux pièces qui
 titrent une référence — un ordre et un document.

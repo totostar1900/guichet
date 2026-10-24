@@ -242,7 +242,7 @@ celui-là peut finir.** Une dispense est vérifiée comme le reste : si sa page
 est convertie, renommée ou supprimée, la dispense ne vise plus rien et
 l'épreuve le dit.
 
-→ *Neuf conversions le même soir, et deux d'entre elles ont découvert ce que
+→ *Dix conversions le même soir, et deux d'entre elles ont découvert ce que
 leur propre écriture cachait : `/moi/reclamation` et `/moi/epargne`
 nommaient* « Portefeuille » *un lien vers* `/`, *que `nav-groups` appelle*
 « Tableau de bord ». *L'épreuve des retours lit `retour={{ … }}` ; elle ne
@@ -261,6 +261,35 @@ leur propre `h1` ; un numéro à chasse variable se relit mal, et c'est
 justement ce qu'on recopie chiffre par chiffre. C'est un booléen, pas une
 ouverture à classes : rendre le `h1` libre rendrait à chaque page le droit de
 redécider sa fonte, c'est-à-dire les sept tailles que cet en-tête a réunies.*
+
+### Ce que seul le navigateur a dit
+
+Les dix pages ont été ouvertes dans un vrai navigateur, sur le semis mémoire.
+Neuf ont été vues ; la dixième, la fiche d'une pièce, n'a aucune instance dans
+ce semis — les quatre rayons de `/moi/documents` ne portent aucun lien de
+pièce — et elle reste donc **vérifiée par les épreuves, pas à l'écran**.
+
+**Un titre de page à 12,3 px, et aucune feuille ne le disait.** Le créneau
+`reference` posait d'abord la classe globale `mono`, qui règle *aussi*
+`font-size: 0.82em` : elle gagnait sur la règle commune des `h1`, et le titre
+d'un ordre tombait à 12,3 px au lieu de 30. Le défaut PRÉEXISTAIT — les deux
+pages écrivaient déjà `display mono` — mais le porter dans l'en-tête commun le
+rendait pire : c'est lui qui garantit « un titre de page, une taille ». Il pose
+désormais sa propre classe : la chasse fixe et les chiffres tabulaires, rien
+sur la taille.
+
+*Aucune épreuve de feuilles ne pouvait le voir : les deux règles vivent dans
+deux fichiers, et c'est leur croisement dans le navigateur qui décide. C'est la
+limite exacte des cliquets qui lisent du CSS, et elle vaut d'être écrite.*
+
+→ *Relevé sur les neuf pages vues : un seul `h1`, 30 px, sans empattements,
+dans un `header`, aucun débordement horizontal, aucune erreur de console,
+aucun chevron résiduel dans un sur-titre.*
+
+→ *Deux voiles couvraient toute page au premier passage — le consentement aux
+mentions, puis l'accueil d'embarquement. La première passe a donc mesuré le DOM
+correctement et photographié dix fois le même voile : une capture qu'on ne
+REGARDE pas ne prouve rien.*
 
 ---
 

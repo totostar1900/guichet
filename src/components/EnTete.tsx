@@ -50,6 +50,12 @@ export function EnTete({
    * propre `h1`. Un numéro à chasse variable se relit mal : c'est pourtant ce
    * qu'on recopie au téléphone ou dans un virement, chiffre par chiffre.
    *
+   * LA FAMILLE, ET NON LA TAILLE. La première écriture posait la classe
+   * globale « mono », qui règle aussi « font-size: 0.82em » : elle gagnait sur
+   * la règle commune des `h1` et le titre tombait à 12,3 px au lieu de 30.
+   * Mesuré dans le navigateur, pas dans les feuilles — les deux règles vivent
+   * dans deux fichiers, et aucune épreuve de CSS ne les voit se croiser.
+   *
    * CE N'EST PAS UNE ÉCHAPPATOIRE À CLASSES. Rien d'autre que ce booléen ne
    * passe : ouvrir le `h1` à une classe quelconque rendrait à chaque page le
    * droit de redécider sa fonte et sa taille, c'est-à-dire exactement les sept
@@ -77,7 +83,7 @@ export function EnTete({
       <header className={`${styles.tete} ${aCote ? styles.avecCote : ""}`}>
         <div className={styles.mots}>
           {surTitre && <div className="eyebrow">{surTitre}</div>}
-          <h1 className={reference ? "display mono" : "display"}>{titre}</h1>
+          <h1 className={`display ${reference ? styles.ref : ""}`}>{titre}</h1>
           {phrase && <p className={styles.phrase}>{phrase}</p>}
         </div>
         {aCote}

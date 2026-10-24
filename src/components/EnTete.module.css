@@ -40,6 +40,21 @@
   min-width: 0;
 }
 
+/* UN TITRE QUI EST UNE RÉFÉRENCE : la famille, pas la taille.
+   Les deux pages à référence écrivaient « display mono » sur leur `h1`, et la
+   classe globale « mono » pose « font-size: 0.82em » — elle gagnait donc sur
+   la règle commune des `h1`, et le titre tombait à 12,3 px au lieu de 30.
+   Mesuré dans le navigateur le 24 octobre 2026 : les feuilles ne le disaient
+   pas, puisque les deux règles vivent dans deux fichiers.
+   D'où une classe à nous : la chasse fixe et les chiffres tabulaires, qui sont
+   la raison du créneau, et rien sur la taille — « un titre de page, une
+   taille » est la règle que cet en-tête existe pour tenir. */
+.ref {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Le titre prend sa taille du jeton, par la règle commune des « h1 » ; rien à
    redire ici. La phrase, elle, porte sa mesure : corps d'un panneau, une
    largeur de lecture, et l'encre secondaire — elle accompagne le nom, elle ne
