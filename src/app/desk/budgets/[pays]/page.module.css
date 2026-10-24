@@ -1,0 +1,288 @@
+/* ============================================================
+   LA FICHE D'UN ÉTAT.
+
+   L'ordre des sections est l'argument de la page : le millésime
+   avant tout chiffre, puis l'enchaînement solde → besoin, puis
+   les six portes, et les notes en dernier. La feuille ne fait
+   que le rendre lisible ; elle ne le réordonne jamais.
+   ============================================================ */
+.page {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: var(--s-9) clamp(var(--s-7), 3vw, var(--s-10)) var(--s-11);
+}
+.retour {
+  margin-bottom: var(--s-4);
+  font-size: var(--t-3);
+}
+.retour a {
+  color: var(--ink-2);
+}
+.tete h1 {
+  margin: 0 0 var(--s-2);
+}
+.sous {
+  margin: 0 0 var(--s-8);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+
+/* ---------- le millésime : la donnée la plus périssable ---------- */
+.millesime {
+  padding: var(--s-6);
+  margin-bottom: var(--s-9);
+  border-left: 3px solid var(--warn);
+  background: var(--warn-soft);
+}
+.millesime h2 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-5);
+}
+.loi {
+  margin: 0;
+  font-size: var(--t-4);
+  color: var(--ink);
+}
+.hypotheses {
+  margin: var(--s-4) 0 0;
+  padding-left: var(--s-7);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+.ecart {
+  color: var(--warn);
+  font-weight: 600;
+}
+.source {
+  margin: var(--s-4) 0 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+
+.bloc {
+  margin-bottom: var(--s-10);
+}
+.bloc h2 {
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-6);
+}
+.bloc h3 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.chapo {
+  margin: 0 0 var(--s-5);
+  max-width: 62rem;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.deuxColonnes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: var(--s-8);
+}
+
+.postes,
+.tableau {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-3);
+}
+.postes td,
+.tableau td,
+.tableau th {
+  padding: var(--s-3) var(--s-4) var(--s-3) 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.tableau th {
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-align: left;
+  font-weight: 600;
+}
+.r {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.somme td {
+  font-weight: 600;
+  border-bottom: 0;
+}
+.suppose {
+  color: var(--ink-3);
+}
+.ligneTitres {
+  background: var(--gold-soft);
+}
+.ici {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+
+/* ---------- l'enchaînement ---------- */
+.chaine {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+}
+.etape {
+  flex: 1 1 14rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.etape small {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+.besoin {
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+}
+.besoin .gros {
+  color: var(--gold-ink);
+}
+.plus {
+  align-self: center;
+  flex: none;
+  color: var(--ink-3);
+  font-size: var(--t-6);
+}
+.el {
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.gros {
+  font-size: var(--t-7);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.aRelever {
+  margin: 0;
+  padding-left: var(--s-7);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.7;
+  max-width: 62rem;
+}
+
+/* ---------- les notes ---------- */
+.vide {
+  margin: 0;
+  padding: var(--s-7);
+  border: 1px dashed var(--line-2);
+  font-size: var(--t-3);
+  color: var(--ink-3);
+  text-align: center;
+}
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  padding: var(--s-7);
+  margin-bottom: var(--s-7);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.noteTete {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--s-8);
+  flex-wrap: wrap;
+  padding-bottom: var(--s-5);
+  border-bottom: 1px solid var(--line);
+}
+.noteTete h3 {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-6);
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+.qui {
+  margin: 0;
+  flex: none;
+  text-align: right;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+.phrase {
+  margin: 0;
+  font-size: var(--t-5);
+  line-height: 1.6;
+}
+.corps p {
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-4);
+  line-height: 1.65;
+}
+
+/* CONSTAT ET LECTURE NE SE MÉLANGENT JAMAIS : non pour le régulateur, mais
+   pour que le desk sache lesquelles de ses croyances portent. */
+.etiq {
+  display: inline-block;
+  padding: 2px var(--s-3);
+  border-radius: 3px;
+  font-size: var(--t-1);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: 2px;
+}
+.constat {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.lecture {
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+}
+
+.surveiller {
+  margin: var(--s-3) 0 0;
+  padding-left: var(--s-7);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+.malLu {
+  padding: var(--s-5);
+  background: var(--surface-2);
+}
+.malLu p {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.65;
+}
+.bouge {
+  background: var(--warn-soft);
+}

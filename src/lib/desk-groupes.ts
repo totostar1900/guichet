@@ -61,6 +61,10 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/adjudications", "Adjudications"],
       ["/desk/adjudications/tableau", "Résultats"],
       ["/desk/dette", "Dette des États"],
+      /* Le stock, puis le FLUX qui le fabrique : les deux pages se lisent
+         l'une après l'autre et se renvoient l'une à l'autre. Interne au
+         desk — aucune route publique, et « Vue client » n'en porte rien. */
+      ["/desk/budgets", "Budgets des États"],
       /* La BEAC publie ce que la cote ne dit pas : l encours officiel des six
          Tresors, ses courbes et le cout de leurs ressources. Page a part de
          « Dette des Etats », qui part de la cote BVMAC : deux sources, deux

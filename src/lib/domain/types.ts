@@ -781,3 +781,112 @@ export interface TemplateText {
   approvedBy?: string;
   approvedAt?: string;
 }
+
+/**
+ * LE BUDGET D'UN ÉTAT, ET CE QUI EN ARRIVE SUR GUICHET.
+ *
+ * La page « Dette des États » montre le STOCK. Celle-ci montre le FLUX qui le
+ * fabrique : ce qu'un Trésor encaisse, ce qu'il dépense, ce qui manque, et par
+ * quelles portes il va chercher ce qui manque. Une seule de ces portes — les
+ * titres publics adjugés à la BEAC — débouche ici.
+ *
+ * LE MILLÉSIME EST LA DONNÉE LA PLUS PÉRISSABLE DE L'ÉCRAN, et c'est pourquoi
+ * il est obligatoire. Un budget est voté, puis corrigé, puis exécuté : trois
+ * chiffres pour la même année. Le Gabon a voté 7 233,3 milliards pour 2026
+ * puis les a ramenés à 5 495,2 ; le Cameroun a bâti les siens sur un baril à
+ * 62,38 $ quand il s'en échangeait près de 100. Un montant sans sa loi, sa
+ * date et ses hypothèses ne veut rien dire six mois plus tard.
+ */
+export type EtatDuMillesime = "vote" | "revision_annoncee" | "revision_deposee" | "revise";
+
+/** D'où vient un chiffre : sans cela il ne paraît pas. */
+export interface SourceChiffree {
+  /** « Loi n° 2025/012 du 17 décembre 2025 », « Projet de loi de finances rectificative ». */
+  texte: string;
+  /** Le jour où le desk l'a relevé. */
+  releveLe: string;
+  /** L'adresse du document, quand il en a une. */
+  url?: string;
+}
+
+/** Un poste du budget, en millions de FCFA comme partout ailleurs dans la maison. */
+export interface PosteBudget {
+  cle: string;
+  libelle: string;
+  montant: number;
+}
+
+/** Une porte du plan de financement. `titres` est celle que Guichet voit. */
+export interface PorteDeFinancement extends PosteBudget {
+  /** Vrai pour les titres publics adjugés à la BEAC : la seule ligne mesurable ici. */
+  titres?: boolean;
+  /** Ce que cette porte suppose, en une ligne — un appui qui glisse déplace les autres. */
+  suppose?: string;
+}
+
+export interface BudgetEtat {
+  pays: Country;
+  /** L'exercice : 2026, et non la date du vote. */
+  exercice: number;
+  millesime: EtatDuMillesime;
+  /** Le texte en vigueur, et sa date de promulgation quand elle existe. */
+  loi: string;
+  promulgueeLe?: string;
+  /** Les hypothèses qui portent le budget : le baril d'abord, dans cette zone. */
+  hypotheses?: { cle: string; libelle: string; valeur: string; constate?: string }[];
+  /** Le total affiché par la loi, tous périmètres confondus. */
+  budgetTotal?: number;
+  recettes: PosteBudget[];
+  depenses: PosteBudget[];
+  /** Le solde ÉCRIT PAR LE DOCUMENT, jamais recalculé : les périmètres diffèrent. */
+  soldeDeclare?: number;
+  /** Le besoin total, principal de la dette compris. */
+  besoinDeFinancement?: number;
+  financement: PorteDeFinancement[];
+  source: SourceChiffree;
+  /** Ce que le desk n'a pas encore relevé, nommé plutôt que laissé vide. */
+  aRelever?: string[];
+}
+
+/**
+ * UNE NOTE DU DESK SUR UN ÉTAT. INTERNE, ET ELLE NE SORT PAS.
+ *
+ * Elle se demande, elle ne tombe pas à date fixe. Elle sépare le CONSTAT — ce
+ * que le document dit — de la LECTURE — ce que le desk en lit —, non pour le
+ * régulateur mais pour que le desk sache lesquelles de ses croyances portent.
+ * Et elle enregistre les chiffres qu'elle commente : l'écart avec la note
+ * précédente se CALCULE, il ne se rédige pas.
+ */
+export interface ParagrapheNote {
+  genre: "constat" | "lecture";
+  texte: string;
+}
+
+export interface NoteBudget {
+  id: string;
+  pays: Country;
+  exercice: number;
+  /** Son rang dans la série, qui fait le récit. */
+  numero: number;
+  titre: string;
+  /** La phrase que l'on lit si l'on ne lit qu'une chose. */
+  enUnePhrase: string;
+  /** Pourquoi elle a été demandée, et par qui. */
+  motif: string;
+  demandeePar: string;
+  redigeePar: string;
+  relueParms?: string;
+  closeLe: string;
+  corps: ParagrapheNote[];
+  /** À surveiller, daté quand ça l'est. */
+  surveiller: string[];
+  /**
+   * CE QUE LA NOTE PRÉCÉDENTE A MAL LU. Obligatoire, et vide elle doit
+   * l'écrire : « rien à corriger » est une affirmation, pas une absence. Une
+   * note interne n'a plus de lecteur extérieur pour la contredire — c'est la
+   * seule discipline qui lui reste.
+   */
+  malLu: string;
+  /** Les chiffres que la note commente, pour que l'écart avec la suivante se calcule. */
+  releve: { cle: string; libelle: string; valeur: string }[];
+}

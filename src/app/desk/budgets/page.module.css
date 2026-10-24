@@ -1,0 +1,146 @@
+/* ============================================================
+   LES BUDGETS DES SIX ÉTATS.
+
+   Six cartes et pas un tableau : les États ne portent pas les
+   mêmes colonnes, et quatre sur six sont incomplets. Un tableau
+   aurait aligné des tirets ; la carte dit ce qu'elle sait et
+   nomme ce qu'elle ignore.
+   ============================================================ */
+.page {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--s-9) clamp(var(--s-7), 3vw, var(--s-10)) var(--s-11);
+}
+.tete h1 {
+  margin: 0 0 var(--s-2);
+}
+.sous {
+  color: var(--ink-2);
+  margin: 0 0 var(--s-3);
+  max-width: 56rem;
+  font-size: var(--t-4);
+}
+.renvoi {
+  margin: 0 0 var(--s-8);
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+
+.cartes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: var(--s-6);
+}
+.carte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+  padding: var(--s-6);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.carteTete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+.nom {
+  font-size: var(--t-5);
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+}
+.nom:hover {
+  text-decoration: underline;
+}
+.loi {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+
+/* Le millésime, qui est la donnée la plus périssable de l'écran. */
+.jeton {
+  flex: none;
+  padding: 2px var(--s-3);
+  border-radius: 3px;
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.calme {
+  background: var(--neutral-soft);
+  color: var(--ink-2);
+}
+.attention {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.change {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.chiffres {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-4);
+  margin: var(--s-2) 0 0;
+}
+.chiffres div {
+  min-width: 0;
+}
+.chiffres dt {
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.chiffres dd {
+  margin: 2px 0 0;
+  font-size: var(--t-6);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1.15;
+}
+.chiffres dd small {
+  font-size: var(--t-2);
+  font-weight: 500;
+  color: var(--ink-3);
+}
+/* La seule porte que Guichet voit : elle se distingue sans crier. */
+.titres dd {
+  color: var(--gold-ink);
+}
+
+.manque {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  background: var(--warn-soft);
+  font-size: var(--t-2);
+  color: var(--warn);
+}
+.note {
+  margin: auto 0 0;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+
+.refus {
+  margin: var(--s-9) 0 0;
+  padding: var(--s-5) var(--s-6);
+  border-left: 3px solid var(--line-2);
+  background: var(--surface-2);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  max-width: 62rem;
+  line-height: 1.6;
+}

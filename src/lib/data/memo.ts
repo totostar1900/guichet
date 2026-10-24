@@ -58,6 +58,8 @@ const READS = new Set([
   "listNotifications",
   "listInbound",
   "listClientFiles",
+  "budgetsDesEtats",
+  "notesBudget",
   "getClientFile",
   "getClientFileByUser",
   "listBulletins",

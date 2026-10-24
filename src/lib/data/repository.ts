@@ -3,7 +3,7 @@ import type { ActionClient, Genre, NouvelleActionClient } from "@/lib/domain/jou
 import type { MesurePosee } from "@/lib/domain/mesure";
 import type { AccesCompte, CauseDeRetrait } from "@/lib/domain/acces-nomme";
 import type { Stockage } from "@/lib/domain/stockage";
-import type { Approval, AuditEntry, ChannelCode, ChannelStatus, ClientPrefs, Contact, DocumentType, TemplateText, TemplateTextStatus, DeviceKind, EventLog, GeneratedDocument, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TrustedDevice, Watch, InboundMessage, DeskThread, DeskExchange } from "@/lib/domain/types";
+import type { Approval, AuditEntry, BudgetEtat, ChannelCode, ChannelStatus, ClientPrefs, Contact, DeskExchange, DeskThread, DeviceKind, DocumentType, EventLog, GeneratedDocument, InboundMessage, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, NoteBudget, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TemplateText, TemplateTextStatus, TrustedDevice, Watch } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
@@ -507,6 +507,16 @@ export interface Repository {
   encoursDette(sessionDate?: string): Promise<EncoursDette[]>;
   /** Le livre des mouvements du marché primaire, lu sur les tableaux de bord. */
   operationsDuTresor(): Promise<OperationDuTresor[]>;
+  /**
+   * LE BUDGET DES SIX ÉTATS, ET LES NOTES DU DESK DESSUS. INTERNE.
+   *
+   * « Dette des États » lit le stock ; ceci lit le flux qui le fabrique. La
+   * lecture seule suffit pour l'instant : la saisie se fait au Référentiel,
+   * comme les types de produits, et l'écriture d'une note viendra avec son
+   * passage par `audit()`.
+   */
+  budgetsDesEtats(): Promise<BudgetEtat[]>;
+  notesBudget(): Promise<NoteBudget[]>;
   /**
    * LES TROIS SÉRIES QUE LA BEAC PUBLIE ELLE-MÊME, et qui sont les seules de
    * la maison qu'on puisse montrer à un client sans engager notre lecture :

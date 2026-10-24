@@ -4,10 +4,11 @@ import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/se
 import { REF_AUCTIONS, REF_OFFERS, semisDense } from "@/data/reference";
 import { SEED_GESTES } from "@/data/gestes-seed";
 import { SEED_NEWS } from "@/data/news-seed";
+import { SEED_BUDGETS, SEED_NOTES_BUDGET } from "@/data/budgets-seed";
 import { coteDEssai } from "@/data/cote-seed";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type DeskThread, type DeskExchange } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type DeskThread, type DeskExchange, type BudgetEtat, type NoteBudget } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { AccesCompte } from "@/lib/domain/acces-nomme";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
@@ -274,6 +275,8 @@ interface Store {
   observationsBeac?: (ObservationBeac & { vuLe: string })[];
   encoursDette?: EncoursDette[];
   operationsDuTresor?: OperationDuTresor[];
+  budgets?: BudgetEtat[];
+  notesBudget?: NoteBudget[];
   courbesBeac?: PointCourbeBeac[];
   encoursOfficiel?: EncoursOfficiel[];
   coutDesRessources?: CoutDesRessources[];
@@ -344,6 +347,8 @@ function store(): Store {
       tours: [],
       reference: [],
       news: structuredClone(SEED_NEWS),
+      budgets: structuredClone(SEED_BUDGETS),
+      notesBudget: structuredClone(SEED_NOTES_BUDGET),
       versions: [],
       audit: [],
       /* Des gestes de clients, pour que la cadence, les compteurs par genre et
@@ -402,6 +407,8 @@ function store(): Store {
   if (!g.__guichetStore.auctionResults) g.__guichetStore.auctionResults = [];
   if (!g.__guichetStore.emissionNotices) g.__guichetStore.emissionNotices = [];
   if (!g.__guichetStore.news) g.__guichetStore.news = structuredClone(SEED_NEWS);
+  if (!g.__guichetStore.budgets) g.__guichetStore.budgets = structuredClone(SEED_BUDGETS);
+  if (!g.__guichetStore.notesBudget) g.__guichetStore.notesBudget = structuredClone(SEED_NOTES_BUDGET);
   return g.__guichetStore;
 }
 
@@ -1363,6 +1370,17 @@ export const memoryRepository: Repository = {
   },
   async operationsDuTresor() {
     return structuredClone(store().operationsDuTresor ?? []);
+  },
+  /**
+   * LES BUDGETS DES SIX, ET LES NOTES DU DESK. Semés depuis un RELEVÉ daté :
+   * quatre États sur six y sont incomplets, et c'est l'état réel du dossier.
+   * Rendre des zéros à leur place donnerait l'illusion d'une couverture.
+   */
+  async budgetsDesEtats() {
+    return structuredClone(store().budgets ?? []);
+  },
+  async notesBudget() {
+    return structuredClone(store().notesBudget ?? []);
   },
   /**
    * LES SÉRIES BEAC N'EXISTENT PAS EN DÉMONSTRATION, et c'est voulu : elles

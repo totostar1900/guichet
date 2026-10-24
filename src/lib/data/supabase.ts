@@ -4,7 +4,7 @@ import type { AccesCompte } from "@/lib/domain/acces-nomme";
 import type { FinancialProfile } from "@/data/profile";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type BudgetEtat, type NoteBudget } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { CompteDeclare, Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
@@ -2416,6 +2416,55 @@ export const supabaseRepository: Repository = {
     if (error) fail("trousDeLEncours", error);
     const r = (data as { manquants: number; attendus: number; seances_trouees: number }[] | null)?.[0];
     return { manquants: Number(r?.manquants ?? 0), attendus: Number(r?.attendus ?? 0), seances: Number(r?.seances_trouees ?? 0) };
+  },
+  /**
+   * LES BUDGETS DES SIX, ET LES NOTES DU DESK.
+   *
+   * Les postes, le plan de financement et le corps d'une note sont stockés en
+   * JSON : les six États ne découpent pas leur budget pareil, et le découpage
+   * change d'une loi à l'autre. Une nomenclature commune imposerait un format
+   * que personne n'a voté.
+   */
+  async budgetsDesEtats() {
+    const { data, error } = await db().from("budgets_etats").select("*").order("pays");
+    if (error) fail("budgetsDesEtats", error);
+    return ((data as Record<string, unknown>[]) ?? []).map((r) => ({
+      pays: r.pays as BudgetEtat["pays"],
+      exercice: Number(r.exercice),
+      millesime: r.millesime as BudgetEtat["millesime"],
+      loi: r.loi as string,
+      promulgueeLe: u(r.promulguee_le as string | null),
+      hypotheses: (r.hypotheses ?? []) as BudgetEtat["hypotheses"],
+      budgetTotal: r.budget_total === null || r.budget_total === undefined ? undefined : Number(r.budget_total),
+      recettes: (r.recettes ?? []) as BudgetEtat["recettes"],
+      depenses: (r.depenses ?? []) as BudgetEtat["depenses"],
+      soldeDeclare: r.solde_declare === null || r.solde_declare === undefined ? undefined : Number(r.solde_declare),
+      besoinDeFinancement: r.besoin_de_financement === null || r.besoin_de_financement === undefined ? undefined : Number(r.besoin_de_financement),
+      financement: (r.financement ?? []) as BudgetEtat["financement"],
+      source: r.source as BudgetEtat["source"],
+      aRelever: (r.a_relever ?? []) as string[],
+    }));
+  },
+  async notesBudget() {
+    const { data, error } = await db().from("notes_budget").select("*").order("numero", { ascending: false });
+    if (error) fail("notesBudget", error);
+    return ((data as Record<string, unknown>[]) ?? []).map((r) => ({
+      id: r.id as string,
+      pays: r.pays as NoteBudget["pays"],
+      exercice: Number(r.exercice),
+      numero: Number(r.numero),
+      titre: r.titre as string,
+      enUnePhrase: r.en_une_phrase as string,
+      motif: r.motif as string,
+      demandeePar: r.demandee_par as string,
+      redigeePar: r.redigee_par as string,
+      relueParms: u(r.relue_par as string | null),
+      closeLe: (r.close_le as string | null) ?? "",
+      corps: (r.corps ?? []) as NoteBudget["corps"],
+      surveiller: (r.surveiller ?? []) as string[],
+      malLu: r.mal_lu as string,
+      releve: (r.releve ?? []) as NoteBudget["releve"],
+    }));
   },
   async operationsDuTresor() {
     /* LA PAGINATION N EST PAS UN DETAIL : Supabase plafonne un select a mille
