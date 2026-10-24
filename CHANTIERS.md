@@ -909,3 +909,39 @@ l'écran change, d'un écart moyen de 5,6/255 au clair et 1,5/255 au sombre, pir
 `*-soft`, sur chacun des quatre écrans. Elle ne porte aucune liste — le suffixe
 `-soft` est la convention de la maison pour un fond teinté, donc une famille
 d'instruments ajoutée demain sera mesurée le jour où elle est écrite.*
+
+---
+
+## Les quatre écrans qui ne se mesuraient pas
+
+Ils avaient été prouvés **en injectant le balisage réel** dans la page, faute
+de pouvoir les atteindre : le semis mémoire ne porte ni brouillon, ni écriture
+d'audit, ni pièce téléchargeable, ni appareil retenu. Je l'avais écrit comme
+tel. Maintenant que la page s'hydrate, ils se produisent par de **vrais
+gestes**, et les mesures se confrontent.
+
+| l'écran | le geste qui le fait naître | mesuré en situation |
+|---|---|---|
+| la barre des brouillons du Référentiel | modifier un type de produit, enregistrer | `muted` sur `--warn-soft` : **6,48 : 1** au clair, **7,42** au sombre |
+| la piste d'audit d'une ligne | retirer la ligne avec un motif | l'heure en **colonne 1** (x = 0), le reste en colonne 2 (x = 142) |
+| la puce d'une pièce | déposer un PDF depuis le desk | fond doux, rayon 3 px, cale 2/6 px, **11,01 : 1** |
+| la carte d'appareil connu | enrôler un code à quatre chiffres, puis une clé | `muted` à **12 px** ; le bouton à `justify-self: start`, **332 px** dans une carte de 662 |
+
+**Les quatre chiffres tombent sur ceux de la veille**, obtenus par injection.
+C'est la seule chose que cette passe prouve de neuf — mais c'en est une : une
+mesure prise sur un balisage qu'on a écrit soi-même ne vaut que si le vrai
+balisage lui ressemble, et rien ne le garantissait.
+
+*La variante « clé » de la carte demande un authentificateur virtuel
+(`WebAuthn.addVirtualAuthenticator` par CDP) : sans lui, le chemin du code à
+quatre chiffres ne rend pas le bouton que la règle vise.*
+
+→ *Deux choses apprises sur la conduite d'une passe, et qui ne se voyaient pas
+tant que rien ne s'hydratait. **Le thème ne se force plus de l'extérieur** :
+`PaletteSwitch` observe la racine et réapplique son réglage, donc un
+`data-theme` posé à la main est annulé en silence — il faut passer par le
+cookie `guichet_theme` et la clef `guichet:theme`, c'est-à-dire par le réglage
+de la maison. **Et les deux voiles se lèvent différemment** : celui des
+mentions par un vrai geste, puisque son acceptation s'écrit au serveur ; celui
+de la présentation par son drapeau `guichet:presented`, qu'il pose lui-même
+une fois vu.*
