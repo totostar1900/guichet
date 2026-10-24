@@ -146,6 +146,25 @@ export function Parcours({ services, etapes, raisons }: { services: ServiceVu[];
                         {ICONE_SERVICE[sv.cle]}
                       </span>
                       <b>{t(sv.nom)}</b>
+                      {/* CE QUI ATTEND DERRIÈRE, DANS LES MOTS DE LA MAISON.
+                          Le service porte déjà la phrase — « ce qu'il fait,
+                          ou ferait, avec les chiffres du client » — et elle
+                          était calculée pour les neuf puis montrée au seul
+                          niveau 2. L'écran large, lui, rend la fiche ENTIÈRE
+                          de chaque service dans sa bande : la phrase s'y lit
+                          sans ouvrir quoi que ce soit.
+                          Les tuiles rompaient donc l'invariant que ce fichier
+                          déclare en tête — « les deux écrans lisent la MÊME
+                          donnée et rendent le même texte dans le même ordre ».
+                          Elles le tiennent de nouveau.
+                          ET C'EST LA PHRASE, PAS DEUX LIGNES DE CATALOGUE.
+                          La maquette donnait sous chaque tuile deux lignes
+                          concrètes — la prochaine séance, son ticket. Pour les
+                          adjudications, ce sont exactement celles que « Ce qui
+                          ferme bientôt » pose déjà sur cette même page. La
+                          phrase, elle, porte les chiffres DU CLIENT et diffère
+                          d'un service à l'autre. */}
+                      <span className={styles.apercu}>{t(sv.phrase.key, sv.phrase.params)}</span>
                       {sv.etat === "en_place" && <small>{t("en place")}</small>}
                     </button>
                   </li>

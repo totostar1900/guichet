@@ -81,6 +81,27 @@ describe("le parcours de Trade", () => {
     expect(ecartees.filter((c) => !clefs.has(c)), "ces clefs n'existent dans aucune attente : le filtre ne retire rien et le doublon revient").toEqual([]);
   });
 
+  /* LES DEUX ÉCRANS RENDENT LE MÊME TEXTE, et ce fichier le déclare en tête :
+     « les deux écrans lisent la MÊME donnée et rendent le même texte dans le
+     même ordre ; ce qui change est la façon de s'y déplacer ».
+
+     L'écran large rend la fiche ENTIÈRE de chaque service dans sa bande : sa
+     phrase s'y lit sans rien ouvrir. Les tuiles du téléphone, elles, n'ont
+     porté que le nom pendant une journée — l'invariant était rompu par la
+     pièce qui l'annonce.
+
+     LA PHRASE, ET PAS LE RESTE. « porte » est exclu de la liste depuis le
+     début, et sa propre note dit pourquoi : « répété dans la liste, il
+     effaçait neuf sous-titres pour dire neuf fois la même chose ». Une
+     précondition est la même pour presque tous les services ; une phrase
+     porte les chiffres du client et diffère de l'un à l'autre. */
+  it("montre la phrase du service sur les deux écrans, et la précondition sur aucun des deux", () => {
+    const parcours = lire("src/app/trader/Parcours.tsx");
+    expect(lire("src/app/trader/Fiche.tsx"), "la fiche ne rend plus la phrase du service").toContain("sv.phrase.key");
+    expect(parcours, "les tuiles du téléphone ne rendent plus la phrase : l'écran large en dit plus que lui dans la même liste").toContain("sv.phrase.key");
+    expect(parcours, "la précondition est remontée dans la liste du téléphone : neuf sous-titres pour dire neuf fois la même chose").not.toContain("sv.porte");
+  });
+
   /* L'ÉCART DE L'ÉTALON, qu'une écriture en double effaçait : « .rayons »
      était défini deux fois à quatre cents lignes d'écart, 32 en haut avec sa
      justification, 20 en bas, et c'est le bas qui l'emportait. Les deux autres

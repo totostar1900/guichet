@@ -188,3 +188,11 @@
   width: 22px;
   height: 22px;
 }
+/* CE QUI ATTEND DERRIÈRE LA TUILE, dans les mots de la maison : la phrase du
+   service, celle que l'écran large rend déjà dans sa bande. Elle vient avant
+   « en place », qui reste collé au bas par sa marge automatique. */
+.apercu {
+  font-size: var(--t-1);
+  line-height: 1.45;
+  color: var(--ink-2);
+}
