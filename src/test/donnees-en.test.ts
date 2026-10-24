@@ -8,6 +8,7 @@ import { HEALTH_HOW } from "@/lib/health-how";
 import { DESK_GROUPS } from "@/components/DeskNav";
 import { FAMILLES, VUES } from "@/lib/market/remarques";
 import { MOTIFS, MOTIFS_DE_JUGEMENT } from "@/lib/domain/jugement-bulletin";
+import { LIBELLES_DU_RELEVE, REFUS } from "@/lib/market/note-budget";
 
 /**
  * LES DONNÉES LIVRÉES PASSENT EN ANGLAIS, ELLES AUSSI.
@@ -150,5 +151,36 @@ describe("les motifs d'un jugement de bulletin passent en anglais", () => {
 
   it("et la table regarde bien quelque chose", () => {
     expect(MOTIFS.length).toBe(6);
+  });
+});
+
+/**
+ * LES REFUS D'UNE NOTE DE BUDGET PASSENT EN ANGLAIS.
+ *
+ * Cinquième table, même angle mort : le formulaire rend `t(r.message)`, donc
+ * le scanner de clefs ne voit rien. Un desk anglais se verrait refuser sa note
+ * en français, sans comprendre laquelle des règles il vient de heurter — et
+ * c'est au moment du refus qu'un message incompréhensible coûte le plus cher.
+ *
+ * C'EST POUR CELA QUE LES MESSAGES SONT DES CONSTANTES et que l'extrait fautif
+ * vit à côté : interpolés ensemble, ils feraient une phrase différente à chaque
+ * faute, qu'aucun dictionnaire ne pourrait couvrir.
+ */
+describe("les refus d'une note de budget passent en anglais", () => {
+  it("chaque règle : sa phrase", () => {
+    vide("refus d'une note", inventaire(Object.values(REFUS)));
+  });
+
+  it("et la table regarde bien quelque chose", () => {
+    expect(Object.keys(REFUS).length).toBeGreaterThanOrEqual(10);
+  });
+
+  /* ET LES LIBELLÉS QUE LA NOTE FIGE DANS LA BASE. Écrits une fois pour
+     toutes au moment de l'écriture, la seule langue qui leur reste est celle
+     du rendu : `t(e.libelle)` sur la fiche, donc une clef ici. Ceux qui
+     viennent du document — « Transferts et subventions » — n'en sont pas :
+     c'est le mot de la loi, et le traduire serait le réécrire. */
+  it("et nos libellés du relevé, figés dans la base", () => {
+    vide("libellés du relevé", inventaire(Object.values(LIBELLES_DU_RELEVE)));
   });
 });

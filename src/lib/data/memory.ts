@@ -1382,6 +1382,18 @@ export const memoryRepository: Repository = {
   async notesBudget() {
     return structuredClone(store().notesBudget ?? []);
   },
+  async createNoteBudget(n: NoteBudget) {
+    const s = store();
+    s.notesBudget ??= [];
+    /* Le même rang deux fois casserait le récit — « depuis la n° 2 » ne
+       désignerait plus rien. La base le refuse par une contrainte d'unicité ;
+       en mémoire, c'est ici ou nulle part. */
+    if (s.notesBudget.some((x) => x.pays === n.pays && x.exercice === n.exercice && x.numero === n.numero)) {
+      throw new Error(`Une note n° ${n.numero} existe déjà sur ${n.pays} ${n.exercice}.`);
+    }
+    s.notesBudget.push(structuredClone(n));
+    return structuredClone(n);
+  },
   /**
    * LES SÉRIES BEAC N'EXISTENT PAS EN DÉMONSTRATION, et c'est voulu : elles
    * sont le relevé d'une banque centrale réelle, pas un jeu d'essai. La page

@@ -1,4 +1,4 @@
-import type { BudgetEtat, Country, NoteBudget, PorteDeFinancement } from "@/lib/domain/types";
+import type { BudgetEtat, Country, EtatDuMillesime, NoteBudget, PorteDeFinancement } from "@/lib/domain/types";
 
 /**
  * CE QUE LA PAGE DES BUDGETS CALCULE, ET CE QU'ELLE REFUSE DE CALCULER.
@@ -15,6 +15,24 @@ import type { BudgetEtat, Country, NoteBudget, PorteDeFinancement } from "@/lib/
  *  3. AUCUNE PRÉVISION D'ÉMISSION. Le programme est une déclaration, l'adjugé
  *     un fait. On montre les deux et on n'invente pas un troisième chiffre.
  */
+
+/**
+ * LE MOT DU MILLÉSIME, EN UN SEUL ENDROIT.
+ *
+ * La liste le peint, la fiche le nomme, et le relevé d'une note l'enregistre :
+ * trois lecteurs pour une même donnée. Le TON — la couleur du jeton — reste à
+ * la page, parce qu'il parle de l'écran et non du budget.
+ */
+export const MOT_DU_MILLESIME: Record<EtatDuMillesime, string> = {
+  vote: "voté",
+  revision_annoncee: "révision annoncée",
+  revision_deposee: "révision déposée",
+  revise: "révisé",
+};
+
+/** Les montants sont stockés en millions ; la loi et la presse parlent en milliards. */
+export const enMilliards = (millions: number | undefined): string =>
+  millions === undefined ? "—" : (millions / 1000).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 /** Le besoin de financement, moins le déficit : ce que l'État rend sur ses emprunts passés. */
 export const amortissementImplicite = (b: BudgetEtat): number | undefined =>

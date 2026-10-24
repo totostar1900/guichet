@@ -5,7 +5,9 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
-import { amortissementImplicite, ecartsEntre, financementBoucle, foisLeDeficit, notesDe, partDesTitres, paysDuSlug, sommeDes } from "@/lib/market/budget";
+import { amortissementImplicite, ecartsEntre, enMilliards, financementBoucle, foisLeDeficit, notesDe, partDesTitres, paysDuSlug, sommeDes } from "@/lib/market/budget";
+import { LIBELLES_DU_RELEVE, numeroSuivant, releveDuBudget } from "@/lib/market/note-budget";
+import { RedigerNote } from "./RedigerNote";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -28,9 +30,6 @@ export const dynamic = "force-dynamic";
  * raisonne « déficit donc émissions » se trompe de 80 %. La page l'écrit en
  * toutes lettres plutôt que de laisser le lecteur faire la division.
  */
-const enMd = (millions: number | undefined): string =>
-  millions === undefined ? "—" : (millions / 1000).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-
 export default async function FicheBudget({ params }: { params: Promise<{ pays: string }> }) {
   await requireDesk();
   const t = await getT();
@@ -107,13 +106,13 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
                     {b.recettes.map((p) => (
                       <tr key={p.cle}>
                         <td>{p.libelle}</td>
-                        <td className={styles.r}>{enMd(p.montant)}</td>
+                        <td className={styles.r}>{enMilliards(p.montant)}</td>
                       </tr>
                     ))}
                     {sommeRecettes !== undefined ? (
                       <tr className={styles.somme}>
                         <td>{t("Somme des postes ci-dessus")}</td>
-                        <td className={styles.r}>{enMd(sommeRecettes)}</td>
+                        <td className={styles.r}>{enMilliards(sommeRecettes)}</td>
                       </tr>
                     ) : null}
                   </tbody>
@@ -126,13 +125,13 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
                     {b.depenses.map((p) => (
                       <tr key={p.cle}>
                         <td>{p.libelle}</td>
-                        <td className={styles.r}>{enMd(p.montant)}</td>
+                        <td className={styles.r}>{enMilliards(p.montant)}</td>
                       </tr>
                     ))}
                     {sommeDepenses !== undefined ? (
                       <tr className={styles.somme}>
                         <td>{t("Somme des postes ci-dessus")}</td>
-                        <td className={styles.r}>{enMd(sommeDepenses)}</td>
+                        <td className={styles.r}>{enMilliards(sommeDepenses)}</td>
                       </tr>
                     ) : null}
                   </tbody>
@@ -149,19 +148,19 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
             <div className={styles.chaine}>
               <div className={styles.etape}>
                 <span className={styles.el}>{t("Solde déclaré")}</span>
-                <b className={styles.gros}>{enMd(b.soldeDeclare)}</b>
+                <b className={styles.gros}>{enMilliards(b.soldeDeclare)}</b>
                 <small>{t("écrit par le document, jamais recalculé ici")}</small>
               </div>
               <span className={styles.plus}>+</span>
               <div className={styles.etape}>
                 <span className={styles.el}>{t("Remboursement du principal")}</span>
-                <b className={styles.gros}>{enMd(amort)}</b>
+                <b className={styles.gros}>{enMilliards(amort)}</b>
                 <small>{t("par différence — ce que l'État rend sur ses emprunts passés")}</small>
               </div>
               <span className={styles.plus}>=</span>
               <div className={`${styles.etape} ${styles.besoin}`}>
                 <span className={styles.el}>{t("Besoin de financement")}</span>
-                <b className={styles.gros}>{enMd(b.besoinDeFinancement)}</b>
+                <b className={styles.gros}>{enMilliards(b.besoinDeFinancement)}</b>
                 {fois ? (
                   <small>
                     <b>
@@ -199,7 +198,7 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
                       {f.libelle}
                       {f.titres ? <span className={styles.ici}>{t("la seule que Guichet voit")}</span> : null}
                     </td>
-                    <td className={styles.r}>{enMd(f.montant)}</td>
+                    <td className={styles.r}>{enMilliards(f.montant)}</td>
                     <td className={styles.r}>{b.besoinDeFinancement ? `${Math.round((f.montant / b.besoinDeFinancement) * 100)} %` : "—"}</td>
                     <td className={styles.suppose}>{f.suppose ?? "—"}</td>
                   </tr>
@@ -207,10 +206,10 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
                 {boucle ? (
                   <tr className={styles.somme}>
                     <td>{t("Somme des portes")}</td>
-                    <td className={styles.r}>{enMd(boucle.somme)}</td>
+                    <td className={styles.r}>{enMilliards(boucle.somme)}</td>
                     <td className={styles.r}>{part !== undefined ? "" : ""}</td>
                     <td className={styles.suppose}>
-                      {boucle.ecart === 0 ? t("le tableau boucle exactement") : `${t("écart avec le besoin déclaré")} : ${enMd(boucle.ecart)}`}
+                      {boucle.ecart === 0 ? t("le tableau boucle exactement") : `${t("écart avec le besoin déclaré")} : ${enMilliards(boucle.ecart)}`}
                     </td>
                   </tr>
                 ) : null}
@@ -235,6 +234,10 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
             savoir de quel texte elle parle. */}
         <section className={styles.bloc}>
           <h2>{t("Les notes du desk")}</h2>
+          {/* LE FORMULAIRE AVANT LE FIL, parce que le fil se lit du plus récent
+              au plus ancien : la note qu'on s'apprête à écrire prend la place
+              qu'elle occupera. */}
+          <RedigerNote slug={slug} pays={b.pays} exercice={b.exercice} releve={releveDuBudget(b)} prochainNumero={numeroSuivant(notes)} />
           {notes.length === 0 ? (
             <p className={styles.vide}>{t("Aucune note écrite sur cet État. Une note se demande ; elle ne se produit pas toute seule.")}</p>
           ) : (
@@ -254,7 +257,7 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
                       {t("Demandée par")} {n.demandeePar} · {t("motif")} : {n.motif}
                       <br />
                       {t("Rédigée par")} {n.redigeePar}
-                      {n.relueParms ? ` · ${t("relue par")} ${n.relueParms}` : ""}
+                      {n.reluePar ? ` · ${t("relue par")} ${n.reluePar}` : ""}
                     </p>
                   </div>
 
@@ -276,7 +279,15 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
                         <tbody>
                           {ecarts.map((e) => (
                             <tr key={e.cle} className={precedente && e.change ? styles.bouge : undefined}>
-                              <td>{e.libelle}</td>
+                              {/* NOS QUATRE LIBELLÉS PASSENT AU DICTIONNAIRE,
+                                  LES AUTRES NON — et le tri se fait sur la
+                                  clef, pas sur la phrase. Faute d'entrée, t()
+                                  traduit mot à mot : l'intitulé de la loi
+                                  « Prix du baril retenu » revenait en « Price
+                                  du baril retenu », un hybride pire que le
+                                  français laissé tel quel. Vu à l'écran, en
+                                  anglais, et pas autrement. */}
+                              <td>{e.cle in LIBELLES_DU_RELEVE ? t(e.libelle) : e.libelle}</td>
                               {precedente ? <td className={styles.r}>{e.avant ?? "—"}</td> : null}
                               <td className={styles.r}>{e.apres ?? "—"}</td>
                             </tr>

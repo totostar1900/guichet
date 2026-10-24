@@ -286,3 +286,121 @@
 .bouge {
   background: var(--warn-soft);
 }
+
+/* ---------- écrire une note ----------
+   Replié par défaut : la fiche se lit bien plus souvent qu'elle ne s'écrit,
+   et un formulaire déployé entre le titre et le fil ferait de l'écriture le
+   sujet de la page. */
+.rediger {
+  margin-bottom: var(--s-8);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.rediger > summary {
+  padding: var(--s-5) var(--s-6);
+  font-size: var(--t-4);
+  font-weight: 600;
+  cursor: pointer;
+}
+.formulaire {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  padding: 0 var(--s-6) var(--s-7);
+}
+.formulaire label {
+  display: block;
+}
+.formulaire input,
+.formulaire textarea {
+  display: block;
+  width: 100%;
+  margin-top: var(--s-2);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-3);
+  line-height: 1.6;
+}
+.formulaire textarea {
+  resize: vertical;
+}
+.paire {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--s-5);
+}
+.aide {
+  margin: var(--s-2) 0 var(--s-4);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  line-height: 1.6;
+  max-width: 58rem;
+}
+.ligne {
+  margin-bottom: var(--s-5);
+}
+.genres {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+/* Le genre choisi porte sa couleur, l'autre s'efface : c'est l'étiquette que
+   la note affichera, montrée avant d'écrire et non après. */
+.choisi {
+  cursor: pointer;
+  border: 0;
+}
+.terne {
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+}
+.retirer {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.ajouts {
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.refus {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-2);
+  color: var(--warn);
+  line-height: 1.55;
+}
+.ok {
+  color: var(--ok);
+}
+.releve {
+  padding: var(--s-5);
+  border-left: 3px solid var(--gold-line);
+  background: var(--gold-soft);
+}
+.releve ul {
+  margin: 0;
+  padding-left: var(--s-7);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.8;
+}
+.releve b {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.envoi {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}

@@ -875,7 +875,7 @@ export interface NoteBudget {
   motif: string;
   demandeePar: string;
   redigeePar: string;
-  relueParms?: string;
+  reluePar?: string;
   closeLe: string;
   corps: ParagrapheNote[];
   /** À surveiller, daté quand ça l'est. */

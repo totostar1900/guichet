@@ -4,7 +4,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
-import { estComplet, notesDe, parLisibilite, partDesTitres, porteDesTitres, slugDuPays } from "@/lib/market/budget";
+import { MOT_DU_MILLESIME, enMilliards, estComplet, notesDe, parLisibilite, partDesTitres, porteDesTitres, slugDuPays } from "@/lib/market/budget";
 import type { BudgetEtat } from "@/lib/domain/types";
 import styles from "./page.module.css";
 
@@ -28,16 +28,14 @@ export const metadata = { title: "Budgets des États" };
  * 25 octobre 2026. Rendre des zéros à leur place donnerait l'illusion d'une
  * couverture qui n'existe pas ; la colonne le dit, et la fiche l'énumère.
  */
-const MILLESIME: Record<BudgetEtat["millesime"], { mot: string; ton: string }> = {
-  vote: { mot: "voté", ton: "calme" },
-  revision_annoncee: { mot: "révision annoncée", ton: "attention" },
-  revision_deposee: { mot: "révision déposée", ton: "attention" },
-  revise: { mot: "révisé", ton: "change" },
+/* LE MOT vient du domaine — la fiche et le relevé d'une note le lisent aussi.
+   LE TON reste ici : il parle de l'écran, pas du budget. */
+const TON: Record<BudgetEtat["millesime"], string> = {
+  vote: "calme",
+  revision_annoncee: "attention",
+  revision_deposee: "attention",
+  revise: "change",
 };
-
-/** Les montants sont stockés en millions ; la loi et la presse parlent en milliards. */
-const enMilliards = (millions: number | undefined): string =>
-  millions === undefined ? "—" : (millions / 1000).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 export default async function BudgetsPage() {
   await requireDesk();
@@ -67,7 +65,7 @@ export default async function BudgetsPage() {
           {liste.map((b) => {
             const titres = porteDesTitres(b);
             const part = partDesTitres(b);
-            const m = MILLESIME[b.millesime];
+            const mot = MOT_DU_MILLESIME[b.millesime];
             const n = notesDe(notes, b.pays, b.exercice);
             const derniere = n[0];
             return (
@@ -76,7 +74,7 @@ export default async function BudgetsPage() {
                   <Link href={`/desk/budgets/${slugDuPays(b.pays)}`} className={styles.nom}>
                     {b.pays}
                   </Link>
-                  <span className={`${styles.jeton} ${styles[m.ton]}`}>{t(m.mot)}</span>
+                  <span className={`${styles.jeton} ${styles[TON[b.millesime]]}`}>{t(mot)}</span>
                 </div>
                 <p className={styles.loi}>
                   {b.loi}

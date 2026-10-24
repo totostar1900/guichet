@@ -2458,13 +2458,39 @@ export const supabaseRepository: Repository = {
       motif: r.motif as string,
       demandeePar: r.demandee_par as string,
       redigeePar: r.redigee_par as string,
-      relueParms: u(r.relue_par as string | null),
+      reluePar: u(r.relue_par as string | null),
       closeLe: (r.close_le as string | null) ?? "",
       corps: (r.corps ?? []) as NoteBudget["corps"],
       surveiller: (r.surveiller ?? []) as string[],
       malLu: r.mal_lu as string,
       releve: (r.releve ?? []) as NoteBudget["releve"],
     }));
+  },
+  async createNoteBudget(n: NoteBudget) {
+    /* AUCUN « upsert » ICI, et c'est le point : une note s'ajoute et ne se
+       reprend pas. La contrainte d'unicité (pays, exercice, numero) refuse un
+       rang déjà pris plutôt que d'écraser ce que le desk croyait ce jour-là. */
+    const { error } = await db()
+      .from("notes_budget")
+      .insert({
+        id: n.id,
+        pays: n.pays,
+        exercice: n.exercice,
+        numero: n.numero,
+        titre: n.titre,
+        en_une_phrase: n.enUnePhrase,
+        motif: n.motif,
+        demandee_par: n.demandeePar,
+        redigee_par: n.redigeePar,
+        relue_par: n.reluePar ?? null,
+        close_le: n.closeLe,
+        corps: n.corps,
+        surveiller: n.surveiller,
+        mal_lu: n.malLu,
+        releve: n.releve,
+      });
+    if (error) fail("createNoteBudget", error);
+    return n;
   },
   async operationsDuTresor() {
     /* LA PAGINATION N EST PAS UN DETAIL : Supabase plafonne un select a mille

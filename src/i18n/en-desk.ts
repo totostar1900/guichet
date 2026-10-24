@@ -3605,4 +3605,48 @@ export const EN_MORE: Record<string, string> = {
   "révisé": "revised",
   "constat": "fact",
   "lecture": "reading",
+
+  /* ---------- Écrire une note (formulaire du desk) ---------- */
+  "Écrire la note": "Write note",
+  "Le nom de qui l'a demandée": "Who asked for it",
+  "Ce qui l'a déclenchée": "What triggered it",
+  "Ce que la note a trouvé, en une ligne": "What the note found, in one line",
+  "En une phrase": "In one sentence",
+  "Ce qu'on lit si l'on ne lit qu'une chose.": "What you read if you read one thing only.",
+  "Le corps de la note": "The body of the note",
+  "Le constat dit ce que le document dit. La lecture dit ce que le desk en lit, et elle s'écrit au conditionnel — « si… alors… ».":
+    "A fact states what the document states. A reading states what the desk reads into it, and it is written conditionally — “if… then…”.",
+  "Ajouter un constat": "Add a fact",
+  "Ajouter une lecture": "Add a reading",
+  "Une ligne par point.": "One line per point.",
+  "« Rien à corriger » est une réponse, et elle s'écrit.": "“Nothing to correct” is an answer, and it gets written.",
+  "Ce que cette note enregistrera": "What this note will record",
+  "Pris sur la fiche ci-dessus, jamais saisi : c'est ce qui rend calculable l'écart avec la note suivante.":
+    "Taken from the sheet above, never typed: that is what makes the gap with the next note computable.",
+  "point(s) à reprendre avant d'écrire.": "point(s) to fix before writing.",
+
+  /* LES REFUS D'UNE NOTE. Ils passent par t() SOUS FORME DE VARIABLE, donc le
+     scanner de clefs ne les voit pas : c'est « donnees-en.test.ts » qui exige
+     leur présence ici, en les énumérant depuis REFUS. */
+  "Le titre dit ce que la note a trouvé. En trois mots il ne dit rien.": "The title states what the note found. In three words it states nothing.",
+  "« En une phrase » est ce qu'on lit si l'on ne lit qu'une chose : elle doit tenir debout seule.":
+    "“In one sentence” is what you read if you read one thing only: it has to stand on its own.",
+  "Une note se demande, elle ne tombe pas à date fixe : dites ce qui l'a déclenchée.":
+    "A note is asked for; it does not fall due on a calendar. Say what triggered it.",
+  "Quelqu'un a demandé cette note. Son nom se range avec elle.": "Someone asked for this note. Their name is filed with it.",
+  "Ce que la note précédente a mal lu s'écrit toujours, même pour dire « rien à corriger » : c'est une affirmation, pas une absence.":
+    "What the previous note misread is always written, even to say “nothing to correct”: that is a statement, not an absence.",
+  "Une note sans constat n'a rien lu : le constat est ce que le document dit.": "A note with no fact has read nothing: the fact is what the document states.",
+  "Une note sans lecture n'engage personne. Si le desk n'en tire rien, il n'avait pas besoin d'une note.":
+    "A note with no reading commits no one. If the desk draws nothing from it, it did not need a note.",
+  "Un paragraphe de deux mots ne dit rien.": "A two-word paragraph states nothing.",
+  "Cette lecture est écrite comme un fait. Nommez ce qui la déclenche — « si… alors… » — ou rangez-la en constat.":
+    "This reading is written as a fact. Name what triggers it — “if… then…” — or file it as a fact.",
+  "La note documente. Décrivez ce qui se passerait, pas ce qu'il faudrait faire.": "The note documents. Describe what would happen, not what should be done.",
+
+  /* NOS LIBELLÉS DU RELEVÉ D'UNE NOTE. Figés dans la base à l'écriture : la
+     seule langue qui leur reste est celle du rendu. Les intitulés venus du
+     document (« Transferts et subventions ») traversent t() tels quels. */
+  "Millésime en vigueur": "Vintage in force",
+  "Programme de titres publics": "Government securities programme",
 };

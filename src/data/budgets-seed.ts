@@ -1,4 +1,5 @@
 import type { BudgetEtat, NoteBudget } from "@/lib/domain/types";
+import { releveDuBudget } from "@/lib/market/note-budget";
 
 /**
  * LES BUDGETS DES SIX, TELS QUE RELEVÉS LE 25 OCTOBRE 2026.
@@ -217,12 +218,10 @@ export const SEED_NOTES_BUDGET: NoteBudget[] = [
       "Le budget 2027, déposé en novembre : la première occasion de voir l'hypothèse de baril corrigée.",
     ],
     malLu: "Première note de la série : rien à corriger. Cette ligne n'est pas une formalité — à partir de la suivante, elle dira ce que celle-ci aura mal lu.",
-    releve: [
-      { cle: "baril_loi", libelle: "Baril retenu par la loi", valeur: "62,38 $" },
-      { cle: "baril_constate", libelle: "Baril constaté", valeur: "≈ 100 $" },
-      { cle: "millesime", libelle: "Millésime en vigueur", valeur: "LFI 2026, révision annoncée" },
-      { cle: "programme_titres", libelle: "Programme de titres publics", valeur: "400,0 Md" },
-      { cle: "besoin", libelle: "Besoin de financement", valeur: "3 104,2 Md" },
-    ],
+    /* LE RELEVÉ EST PRIS SUR LA FICHE, ICI COMME AU FORMULAIRE. Recopié à la
+       main, il aurait divergé de ce que le desk écrira — « 62,38 $ » contre
+       « 62.38 USD » — et la première note écrite depuis l'écran aurait affiché
+       cinq lignes « changées » qui n'avaient pas bougé. */
+    releve: releveDuBudget(CAMEROUN),
   },
 ];

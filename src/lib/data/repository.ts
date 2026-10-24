@@ -510,13 +510,19 @@ export interface Repository {
   /**
    * LE BUDGET DES SIX ÉTATS, ET LES NOTES DU DESK DESSUS. INTERNE.
    *
-   * « Dette des États » lit le stock ; ceci lit le flux qui le fabrique. La
-   * lecture seule suffit pour l'instant : la saisie se fait au Référentiel,
-   * comme les types de produits, et l'écriture d'une note viendra avec son
-   * passage par `audit()`.
+   * « Dette des États » lit le stock ; ceci lit le flux qui le fabrique. Les
+   * budgets se saisissent au Référentiel, comme les types de produits.
+   *
+   * UNE NOTE S'AJOUTE ET NE SE REPREND PAS. Elle porte un rang dans une série
+   * qui fait récit : la corriger après coup réécrirait ce que le desk croyait
+   * à une date, et c'est précisément ce que la série sert à montrer. Une
+   * lecture fausse se corrige dans la note SUIVANTE, au champ « ce que la
+   * note précédente a mal lu » — même discipline qu'un jugement de bulletin,
+   * qui se retire sans jamais s'effacer.
    */
   budgetsDesEtats(): Promise<BudgetEtat[]>;
   notesBudget(): Promise<NoteBudget[]>;
+  createNoteBudget(n: NoteBudget): Promise<NoteBudget>;
   /**
    * LES TROIS SÉRIES QUE LA BEAC PUBLIE ELLE-MÊME, et qui sont les seules de
    * la maison qu'on puisse montrer à un client sans engager notre lecture :
