@@ -1,12 +1,25 @@
 # Chantiers
 
 Relevé le 24 octobre 2026, dicté par Georges, et clos le même jour. L'ordre
-est celui de la dictée, pas celui des priorités — ce qui reste ouvert est
-nommé en bas, et tient en cinq lignes.
+est celui de la dictée, pas celui des priorités.
+
+**Les treize points sont clos, et rien n'attend plus ici.** Une seule ligne
+reste nommée en bas, et c'est une DÉCISION, pas un reste : « Ce qui ferme
+bientôt » paraît sur Trade et sur l'accueil, par choix, le même composant
+appelé deux fois.
+
+Les quatre dernières sections ne viennent pas de la dictée : ce sont les
+chantiers que les GARDES ont ouverts d'elles-mêmes, en chaîne — un cliquet de
+classes mortes qui comptait mal a fait remonter six règles inertes, dont une
+qui cachait un contraste à 2,97 : 1 ; la garde écrite pour ce défaut a mis au
+jour le jeton qui en était la cause commune.
 
 Chaque point barré porte ce qui a été MESURÉ avant d'y toucher, et ce qui a
 été trouvé en chemin. Les relevés comptent autant que les décisions : c'est
-eux qui disent pourquoi une maquette a été suivie, ou écartée.
+eux qui disent pourquoi une maquette a été suivie, ou écartée. **Et les
+chiffres de ce document ont été revérifiés contre le code le 25 octobre** :
+quatre phrases mentaient, toutes sur l'état du point 7, que la journée avait
+dépassé sans que son en-tête le dise.
 
 ---
 
@@ -98,12 +111,14 @@ Ce qui reste au point 2 :
   le poids vient de la règle globale des `h2`. L'échelle fluide part avec le
   serif : l'étalon les nomme ensemble comme les deux marques de la vitrine.*
 
-**7. L'en-tête de chaque page : la règle est posée, la conversion est en
-cours.** `EnTete` pose les quatre créneaux dans l'ordre — retour, sur-titre,
-titre, phrase — et un seul genre par créneau. Dix pages y sont passées le
-24 octobre 2026, dont les deux qui sortaient du rang : le fil d'Ariane de
-« Sécurité » et le lien de retour que « Analyse » rangeait dans le créneau du
-sur-titre. **Dix autres y sont passées le soir du même jour**, et elles ont
+**7. ~~L'en-tête de chaque page.~~ FAIT le 24 octobre 2026** — *cet en-tête a
+porté « la conversion est en cours » jusqu'au 25 octobre, alors que le cliquet
+avait touché zéro le soir même : voir « Ce qu'il reste », plus bas, qui le
+disait clos depuis le début.* `EnTete` pose les quatre créneaux dans l'ordre —
+retour, sur-titre, titre, phrase — et un seul genre par créneau. Dix pages y
+sont passées le 24 octobre 2026, dont les deux qui sortaient du rang : le fil
+d'Ariane de « Sécurité » et le lien de retour que « Analyse » rangeait dans le
+créneau du sur-titre. **Dix autres y sont passées le soir du même jour**, et elles ont
 démenti le mot écrit ici : ce fil d'Ariane était donné pour « le seul de
 l'application », il y en avait **trois** (voir le relevé du point 7, en bas).
 
@@ -114,8 +129,10 @@ désormais EN FACE du titre (créneau `aCote`) plutôt que dessous, où il
 repoussait d'un cran le début de la liste.
 
 → *Un cliquet compte les en-têtes encore écrits à la main : 49 le 24 octobre
-au matin, 46 à midi, **38 le soir**, après les sept pages de `Feuillet`. Il
-descend, il ne monte pas.*
+au matin, 46 à midi, 38 après les sept pages de `Feuillet`, 27, 18, puis
+**zéro** le soir même. Il descend, il ne monte pas — et à zéro il change de
+métier : il interdit la régression. Dix fichiers écrivent encore un `h1`,
+chacun dispensé par son nom et sa raison.*
 
 **8. ~~Bandes et écarts.~~ FAIT le 24 octobre 2026.** La bande de « Mes
 documents » est devenue la seule forme des rubriques : les sept sommaires du
@@ -149,7 +166,9 @@ maison écrivait déjà.
   plus aucun fichier ne nommait** et **cinq écrites deux fois**. Pour
   `.rayons`, le doublon coûtait l'écart de l'étalon : 32 déclaré en haut avec
   sa justification, 20 appliqué en bas. 130 lignes, 12 classes, 0 morte.
-  `Etapes.tsx` était mort aussi.
+  `Etapes.tsx` était mort aussi. *(La feuille est remontée depuis à 250 lignes
+  et 20 classes : les aperçus des tuiles, le même soir. Toujours 0 morte — le
+  cliquet des classes mortes l'interdit maintenant à toute la maison.)*
 
 → *Deux relevés à verser aux chantiers ouverts, et laissés tels quels :*
 
@@ -473,7 +492,8 @@ demandera une.*
 
 ## Ce qu'il reste, au soir du 24 octobre 2026
 
-**Douze points sur treize sont clos.** L'ordre proposé a été suivi : l'étalon
+**Les treize points sont clos** — douze l'étaient quand cette section a été
+écrite, le septième l'a été dans la soirée. L'ordre proposé a été suivi : l'étalon
 d'abord, l'en-tête commun ensuite, puis les défauts isolés, les redécoupages,
 et la page d'accueil en dernier — elle était bien la vitrine de toutes les
 décisions d'avant, et aucune n'a eu à être refaite.
