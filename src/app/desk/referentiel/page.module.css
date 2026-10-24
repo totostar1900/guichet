@@ -238,6 +238,14 @@
   background: var(--warn-soft);
   font-size: 0.84rem;
 }
+/* L'ENCRE TERTIAIRE NE TIENT PAS SUR UN FOND DOUX. « muted » est écrit pour le
+   papier, où il vaut 4,84 : 1 ; sur « --warn-soft » il tombe à 4,44 au thème
+   clair. La boîte relève donc l'encre d'un cran, pour les deux endroits où
+   elle paraît. */
+.draftBar :global(.muted),
+.missing :global(.muted) {
+  color: var(--ink-2);
+}
 .draftBar > div:first-child {
   display: flex;
   flex-direction: column;

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { bloc, contraste, feuillesCss, globals, jetons, resoudre, rgb } from "./couleurs";
 
 /**
  * Une encre qui ne bascule pas, posée sans fond, sur un papier qui bascule.
@@ -38,84 +39,10 @@ import { describe, expect, it } from "vitest";
  */
 const ROOT = path.resolve(__dirname, "../..");
 
-const cssFiles = (): string[] => {
-  const out: string[] = [];
-  const walk = (d: string) => {
-    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-      const p = path.join(d, e.name);
-      if (e.isDirectory()) walk(p);
-      else if (e.name.endsWith(".css")) out.push(p);
-    }
-  };
-  walk(path.join(ROOT, "src"));
-  return out.sort();
-};
-
-/** Les sources qui posent des variables en style inline : le JSX en pose beaucoup. */
-const sourceFiles = (): string[] => {
-  const out: string[] = [];
-  const walk = (d: string) => {
-    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-      const p = path.join(d, e.name);
-      if (e.isDirectory()) walk(p);
-      else if (e.name.endsWith(".tsx") || e.name.endsWith(".ts")) out.push(p);
-    }
-  };
-  walk(path.join(ROOT, "src"));
-  return out.sort();
-};
-
-const globals = () => fs.readFileSync(path.join(ROOT, "src/app/globals.css"), "utf8");
-
-const bloc = (g: string, depuis: string): string => {
-  const i = g.indexOf(depuis);
-  if (i < 0) return "";
-  const o = g.indexOf("{", i);
-  let d = 0;
-  for (let j = o; j < g.length; j++) {
-    if (g[j] === "{") d++;
-    else if (g[j] === "}") {
-      d--;
-      if (d === 0) return g.slice(o + 1, j);
-    }
-  }
-  return "";
-};
-
-const jetons = (t: string): Record<string, string> => Object.fromEntries([...t.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
-
-const rgb = (s: string): [number, number, number] | null => {
-  const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(s.trim());
-  if (!m) return null;
-  const h = m[1].length === 3 ? m[1].split("").map((c) => c + c).join("") : m[1];
-  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
-};
-
-const resoudre = (value: string, vars: Record<string, string>, depth = 0): [number, number, number] | null => {
-  if (depth > 5) return null;
-  const v = value.trim();
-  const direct = rgb(v);
-  if (direct) return direct;
-  if (v === "white") return [255, 255, 255];
-  if (v === "black") return [0, 0, 0];
-  const m = /^var\((--[\w-]+)(?:\s*,\s*([^)]+))?\)$/.exec(v);
-  if (!m) return null;
-  if (vars[m[1]]) return resoudre(vars[m[1]], vars, depth + 1);
-  return m[2] ? resoudre(m[2], vars, depth + 1) : null;
-};
-
-const luminance = ([r, g, b]: [number, number, number]): number => {
-  const f = (c: number) => {
-    const s = c / 255;
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-  };
-  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
-};
-
-const contraste = (a: [number, number, number], b: [number, number, number]): number => {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((p, q) => q - p);
-  return (hi + 0.05) / (lo + 0.05);
-};
+/* La mesure vit dans « couleurs.ts » : marcher les feuilles, lire les jetons
+   d'un thème, résoudre une valeur, mesurer un rapport. Elle était écrite ici
+   ET dans « contrast.test.ts », à la virgule près. */
+const cssFiles = feuillesCss;
 
 describe("une encre posée sans fond", () => {
   it("ne reste pas fixe quand le papier bascule", () => {

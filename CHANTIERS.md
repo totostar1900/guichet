@@ -767,3 +767,58 @@ celui qui en cachait 79.
 *Effet de bord mesuré : le cliquet de la typographie tombe de 1 091 à 1 032.
 Cinquante-neuf tailles hors échelle sont parties AVEC leurs règles — une taille
 hors échelle dans une règle morte n'était pas une dette de typographie.*
+
+---
+
+## La garde de contraste descendante
+
+Les deux gardes de contraste de la maison nomment elles-mêmes ce qu'elles ne
+voient pas. `contrast.test.ts` mesure les règles qui posent **à la fois** un
+fond et une encre, et écrit : « ce qu'il ne mesure pas : l'encre posée sans
+fond, dont le sol vient d'un parent ». `contraste-sans-fond.test.ts` prend
+l'autre moitié — une encre FIXE sur un papier qui bascule. Entre les deux, il
+restait le cas le plus courant : une encre à jeton sur le fond coloré d'une
+boîte parente. C'est celui de `/info`.
+
+**Le trou ne se referme pas avec du CSS seul**, et c'est la leçon. Le fond est
+sur `.parcours`, l'encre vient de `globals.css` : aucun fichier ne porte les
+deux. **Ce qui les réunit, c'est le balisage** — le JSX dit quelle boîte
+contient quel élément. La garde a donc deux mesures : l'une dans une même
+feuille, l'autre en croisant feuille et balisage.
+
+**La première mesure est prudente, et chacune de ses trois conditions a été
+posée sur un faux qu'elle écartait.** Le premier relevé donnait quatorze
+écarts, dont **quatorze étaient faux** :
+
+- `.band { background: var(--line) }` avec `.band span { color: … }` : la
+  feuille porte aussi `.band > div { background: var(--surface) }` — la bande
+  ne montre son trait que dans les gouttières, le texte est sur la surface. Un
+  sélecteur-préfixe ne dit pas ce qui s'intercale, donc **dès qu'un fond PEUT
+  s'intercaler, on se tait**.
+- `.gx { width: 1px; background: var(--line-2) }` avec `.gx b { position:
+  absolute; bottom: -18px }` : l'étiquette sort de sa ligne d'un pixel. **Une
+  encre en position absolue a un sol que le fichier ne connaît pas.**
+- `.mrow small, .mrowOn small { color: var(--ink-3) }` suivi, deux règles plus
+  bas, de `.mrowOn small { color: var(--on-navy-2) }` : la cascade avait déjà
+  corrigé. **On ne lit que la dernière déclaration d'un sélecteur.**
+
+Reste zéro écart en même feuille, et **deux par le balisage** : la barre des
+brouillons et l'avis des ISIN manquants du Référentiel posaient un
+`className="muted"` dans une boîte `--warn-soft`. Mesuré au rendu, avant
+**4,44 : 1** au thème clair, après **6,48**, et la mesure statique tombe au
+centième sur le rendu dans les trois thèmes.
+
+**Et la garde s'est fait prendre par sa propre vérification à l'envers.** Elle
+acceptait `.parcours .eyebrow` comme écrasement de l'encre de la maison — or
+c'est la forme INERTE, celle du défaut. Elle se serait tue exactement là où
+elle doit parler. Un écrasement ne compte plus que s'il est écrit `:global`.
+
+*Un fait mesuré, qui dépasse ces deux écarts et que la maison voudra trancher :
+**`--ink-3` ne tient pas sur un fond doux au thème clair.** Sur les dix jetons
+`*-soft`, il va de 4,18 à 4,62 — six sous 4,5. `--ink-2` tient partout, de 6,09
+à 6,73. La garde ne voit que les couples que le balisage lui donne ; le jeton,
+lui, est en cause partout.*
+
+*Au passage, la formule de contraste du W3C vivait en deux exemplaires et une
+troisième garde allait en faire une troisième : elle est maintenant dans
+`src/test/couleurs.ts`, et les trois gardes la lisent.*
