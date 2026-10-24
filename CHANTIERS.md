@@ -716,9 +716,32 @@ mentir**. Les sept ont été relues ; six mentaient.
 - **`Main` et `Court`** — non retouchées, et c'est délibéré : ce sont les
   dessins d'INTENTION dont le code s'est écarté décision par décision. Une
   huitième planche, **`Ecart`**, porte les dix-huit blocs en trois colonnes —
-  rendu, changé, jamais écrit — avec la raison de chacun. Relevé à l'appui :
-  l'écran fait 3 400 px, la maquette en dessine 4 004, et dix blocs sur
-  dix-huit paraissent sur le semis mémoire.
+  rendu, changé, jamais écrit — avec la raison de chacun.
+
+  **Tranché le 25 octobre : `Ecart` ne les remplace pas, elle les ouvre.** Les
+  deux dessins portent ce que le code a cessé de dire — pourquoi les quatre
+  gestes ont été refusés, pourquoi l'agenda a été écarté — et `Court` montre en
+  outre, côte à côte et en cadres pointillés, les SILENCES du niveau 3, qu'aucun
+  écran ne peut montrer ensemble puisqu'on n'en voit qu'un état à la fois. Les
+  jeter effacerait l'avant qui rend chaque décision lisible. Ce qui mentait
+  n'était pas le dessin, c'était l'absence d'étiquette : les deux cadres
+  s'appellent désormais **« dessin d'intention »**, et `Ecart` se nomme leur clé
+  de lecture.
+
+  **Et `Ecart` mentait à son tour, en un jour.** Son encadré annonçait « dix
+  blocs sur dix-huit » et donnait trois sections pour absentes — « Ce qui ferme
+  bientôt », « À la une », « La sélection du desk » — en les mettant au compte
+  de la règle de niveau 3. **C'était le SEMIS**, réparé le soir même : les trois
+  paraissent. Relevé du 25 octobre, dossier complet sans ligne : neuf blocs sur
+  dix-huit, et « Ce qui ferme bientôt » OUVRE la page, une séance à quatre jours
+  faisant enfin jouer le seuil des sept.
+
+  **Le compte lui-même a été retiré de l'en-tête**, parce qu'il ne mesure pas ce
+  qu'il prétend : 2 744 px et neuf blocs pour un dossier complet sans ligne,
+  1 332 px et cinq pour un dossier à l'examen, 1 759 px et cinq pour un compte
+  sans dossier. **C'est une propriété du COMPTE, pas de la page.** Ce qui reste
+  gravé dans `Ecart` est la table des DÉCISIONS, bloc par bloc : elle, ne bouge
+  pas avec le compte qu'on regarde.
 
 ---
 
