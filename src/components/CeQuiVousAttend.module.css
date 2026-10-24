@@ -59,9 +59,17 @@
   color: var(--crit);
   font-weight: 600;
 }
+/* DEUX LIGNES PAR ENTRÉE, ET PAS TROIS. Au téléphone la phrase prend sa
+   ligne, la date et le geste se partagent la suivante : la date pousse le
+   bouton au bord, et l'œil descend la bande sur un seul axe. C'est pour
+   tenir cette seconde ligne que les phrases du domaine sont courtes — voir
+   la garde sur « attentesDuClient ». */
 @media (max-width: 600px) {
   .quoi {
     min-width: 100%;
+  }
+  .quand {
+    flex: 1;
   }
 }
 

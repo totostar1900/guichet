@@ -206,7 +206,7 @@ describe("ce qui attend une décision aujourd'hui", () => {
 
   it("change de phrase selon qu'un réinvestissement veille ou non", () => {
     const seul = attentesDuClient({ ...garni, reinvestissement: undefined }, fmt)[0];
-    expect(seul.quoi.key).toMatch(/ils ne rapportent rien/);
-    expect(attentesDuClient(garni, fmt)[0].quoi.key).toMatch(/prochain passage/);
+    expect(seul.quoi.key).toMatch(/ne rapportent rien/);
+    expect(attentesDuClient(garni, fmt)[0].quoi.key).toMatch(/réinvestissement/);
   });
 });

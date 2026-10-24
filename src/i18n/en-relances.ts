@@ -114,8 +114,7 @@ export const EN_RELANCES: Record<string, string> = {
   /* ---- ce que le client voit ---- */
   "Quand vous voudrez": "Whenever you like",
   "Mandat": "Mandate",
-  "Votre mandat de prélèvement pour {d} attend sa signature. Sans lui, rien ne s'arrête : vous virez vous-même à chaque échéance.":
-    "Your direct debit mandate for {d} is waiting to be signed. Without it nothing stops: you transfer the money yourself at each due date.",
+  "Pour {d}. Sans lui, vous virez vous-même.": "For {d}. Without it, you transfer the money yourself.",
   "Signer mon mandat": "Sign my mandate",
   "votre provision": "your cash reserve",
   /* LA SECONDE ISSUE : vider le panier. Elle mène à la page, jamais à une

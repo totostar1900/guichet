@@ -99,15 +99,12 @@ export const EN_CONSOLE: Record<string, string> = {
 
   /* ---------- ce qui attend une décision ---------- */
   "Sur votre compte": "On your account",
-  "Reçus et n'attendant rien. Votre réinvestissement les placera au prochain passage.":
-    "Received and awaiting nothing. Your reinvestment will place them on the next run.",
-  "Reçus et n'attendant aucune opération. Tant qu'ils dorment, ils ne rapportent rien.":
-    "Received and awaiting no operation. While they sit idle, they earn nothing.",
+  "Votre réinvestissement les placera.": "Your reinvestment will place them.",
+  "Ils ne rapportent rien tant qu'ils dorment.": "They earn nothing while they sit idle.",
   Replacer: "Reinvest them",
-  "Le Trésor {p} a publié son avis d'annonce. Vous pouvez déclarer une intention jusqu'à la veille.":
-    "The {p} Treasury has published its announcement notice. You can declare an intention until the day before.",
+  "Trésor {p} : intention jusqu'à la veille.": "{p} Treasury: intention until the day before.",
   "Échu depuis {n} jours": "Due for {n} days",
-  "Un flux est échu et n'est pas arrivé. Le desk le réclame à l'émetteur.": "A payment is due and has not arrived. The desk is claiming it from the issuer.",
+  "Le desk le réclame à l'émetteur.": "The desk is claiming it from the issuer.",
 
   /* ---------- la page publique des services ---------- */
   "Les services": "The services",
@@ -197,12 +194,10 @@ export const EN_CONSOLE: Record<string, string> = {
      arrivent par `a.quoi.key`, donc le scanner des clefs ne les voit pas : il
      cherche des littéraux dans t(), et celles-ci passent par une variable. */
   "Dernière étape de l'ouverture": "Last step of the account opening",
-  "Votre dossier est approuvé. Votre compte s'ouvre dès que la convention est acceptée, par un code à usage unique.":
-    "Your file is approved. Your account opens as soon as the agreement is accepted, with a one-time code.",
+  "Dossier approuvé. Le compte s'ouvre ensuite.": "File approved. The account opens next.",
   "Accepter ma convention": "Accept my agreement",
   "Le desk attend vos pièces": "The desk is waiting for your documents",
-  "Des compléments ont été demandés : l'examen de votre dossier reprend dès qu'ils sont déposés.":
-    "Further documents have been requested: the review of your file resumes as soon as they are filed.",
+  "L'examen reprend dès vos pièces déposées.": "The review resumes once your documents are filed.",
   "La sélection du desk": "The desk's selection",
   /* Le gros caractère de chaque ligne de la bande. Il passait tel quel : trois
      rangées ont suffi à montrer « 1 ordre » en français au milieu d'une page
@@ -216,8 +211,7 @@ export const EN_CONSOLE: Record<string, string> = {
   "La convention a changé sur un point qui vous engage : vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres, et vous ne signerez plus rien pour cela. Relisez-la, puis reprenez-la par un code à usage unique, ci-dessous. Vos positions et votre compte ne changent pas.":
     "The agreement has changed on a point that binds you: you now give us a mandate to open, in your name, the accounts your orders need, and you will sign nothing else for that. Read it again, then confirm it with a one-time code below. Your positions and your account do not change.",
   "La convention a changé": "The agreement has changed",
-  "Un point qui vous engage a changé : le mandat d'ouverture. Relisez-la et reprenez-la par un code ; vos positions ne changent pas.":
-    "A point that binds you has changed: the opening mandate. Read it again and confirm it with a code; your positions do not change.",
+  "Le mandat d'ouverture a changé, pas vos lignes.": "The opening mandate has changed, your holdings have not.",
   "Reprendre ma convention": "Confirm my agreement again",
   /* Le récapitulatif d'un ordre sur titre : la quantité est ferme, c'est la
      dépense qui flotte, d'où la borne « au plus ». */
@@ -278,9 +272,9 @@ export const EN_CONSOLE: Record<string, string> = {
   "1 proposition": "1 proposal",
   "{n} propositions": "{n} proposals",
   "Votre signature": "Your signature",
-  "Le bulletin est prêt. L'ordre part dès qu'il est signé et le virement fait.": "The form is ready. The order goes out as soon as it is signed and the transfer made.",
+  "Il part une fois signé et le virement fait.": "It goes out once signed and the transfer made.",
   "Votre réponse": "Your answer",
-  "D'autres conditions vous sont proposées : c'est votre réponse qui change l'ordre.": "Other terms are proposed to you: it is your answer that changes the order.",
+  "D'autres conditions : votre réponse décide.": "Other terms: your answer decides.",
   "Signer": "Sign",
   "Aucun flux attendu sur les douze prochains mois.": "No flow expected over the next twelve months.",
   "Flux attendus mois par mois, {n} FCFA au total sur douze mois": "Flows expected month by month, {n} FCFA in all over twelve months",
