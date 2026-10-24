@@ -1,6 +1,28 @@
 import type { Contact, IntakeItem, Intent, Offer } from "@/lib/domain/types";
 
 /**
+ * UNE CLÔTURE QUI RESTE DEVANT, quel que soit le jour où l'on sème.
+ *
+ * LE TROU QUE CELA BOUCHE. Toutes les séances de ce fichier portent les dates
+ * VRAIES de communiqués de septembre 2026 — c'est ce qui en fait un relevé et
+ * non une fixture, et c'est pourquoi on n'y touche pas. Mais elles sont donc
+ * toutes passées : sur le dépôt mémoire, « Ce qui ferme bientôt » ne paraît
+ * JAMAIS, et le seuil des sept jours qui déplace la bande sur la page
+ * d'arrivée n'a jamais pu être vu travailler en développement.
+ *
+ * TROIS SÉANCES ILLUSTRATIVES LE RÉPARENT, et elles seules calculent leur
+ * date. Une date fixe serait périmée la semaine suivante, et l'on retomberait
+ * dans le même trou sans s'en apercevoir — c'est exactement ce qui est arrivé
+ * à celles d'en haut.
+ */
+const cloture = (dansNJours: number, heure = "12:00:00"): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + dansNJours);
+  return `${d.toISOString().slice(0, 10)}T${heure}`;
+};
+const leJour = (dansNJours: number): string => cloture(dansNJours).slice(0, 10);
+
+/**
  * Seed offers : the real September 2026 deal flow, from:
  *  - Communiqué n° 0762/MCFB (RCA, 9 sept. 2026): 3 OTA lines + 2 buybacks
  *  - Communiqués n° 000473 / 000474 MFBPP (Congo, 11 sept. 2026): OTA 6 ans, BTA 52 sem.
@@ -460,6 +482,91 @@ export const SEED_OFFERS: Offer[] = [
     commissionPct: 0,
     version: 1,
     resultLine: "Servie à 96,500 % · vos ordres servis à 100 % · premier coupon le 8 juil. 2027",
+  },
+
+  /* ─── TROIS SÉANCES QUI FERMENT DEVANT, pour que la bande existe ──────────
+     Une par ton de « urgenceDe » : sous sept jours, sous quatorze, sous
+     trente. La première fait basculer « presse() », donc la bande remonte sur
+     la page d'arrivée au-dessus du portefeuille — le déplacement que le seuil
+     commande, et que rien ne montrait. */
+  {
+    id: "ex-td-bta-13",
+    kind: "BTA",
+    operation: "nouvelle_ligne",
+    country: "Tchad",
+    countryName: "République du Tchad",
+    issuer: "Trésor public de la République du Tchad",
+    title: "BTA 13 semaines · Tchad",
+    isin: "TD0000000EX1",
+    status: "published",
+    isExample: true,
+    blurb: "Exemple de séance qui ferme sous sept jours : c'est le seuil au-delà duquel un virement de la zone n'est plus certain d'arriver avant le dépôt, et la page d'arrivée remonte la bande des échéances quand il est franchi.",
+    documents: [],
+    opensAt: `${leJour(-6)}T09:00:00`,
+    deadlineAt: cloture(4),
+    resultsAt: cloture(4, "15:00:00"),
+    settleOn: leJour(8),
+    maturityOn: leJour(4 + 91),
+    nominal: 1_000_000,
+    precountRate: 5.1,
+    rateNote: "taux indicatif : fixé à l'adjudication",
+    commissionPct: 0,
+    minTitles: 1,
+    sizeLabel: "10 Mds FCFA",
+    version: 0,
+  },
+  {
+    id: "ex-ga-ota-5",
+    kind: "OTA",
+    operation: "nouvelle_ligne",
+    country: "Gabon",
+    countryName: "République gabonaise",
+    issuer: "Trésor public de la République gabonaise",
+    title: "OTA 6,25 % · 5 ans · Gabon",
+    isin: "GA0000000EX2",
+    status: "published",
+    isExample: true,
+    blurb: "Exemple de séance annoncée à moyen terme : notée, mais rien ne presse encore.",
+    documents: [],
+    opensAt: `${leJour(-2)}T09:00:00`,
+    deadlineAt: cloture(11),
+    resultsAt: cloture(11, "15:00:00"),
+    settleOn: leJour(15),
+    maturityOn: leJour(11 + 5 * 365),
+    nominal: 10_000,
+    couponRate: 6.25,
+    pricePct: 97,
+    rateNote: "prix indicatif : fixé à l'adjudication",
+    commissionPct: 0,
+    minTitles: 50,
+    sizeLabel: "40 Mds FCFA",
+    version: 0,
+  },
+  {
+    id: "ex-cm-bta-26",
+    kind: "BTA",
+    operation: "nouvelle_ligne",
+    country: "Cameroun",
+    countryName: "République du Cameroun",
+    issuer: "Trésor public de la République du Cameroun",
+    title: "BTA 26 semaines · Cameroun",
+    isin: "CM0000000EX3",
+    status: "published",
+    isExample: true,
+    blurb: "Exemple de séance au bord de la fenêtre des trente jours : au-delà, ce n'est plus « bientôt », c'est le calendrier.",
+    documents: [],
+    opensAt: `${leJour(0)}T09:00:00`,
+    deadlineAt: cloture(24),
+    resultsAt: cloture(24, "15:00:00"),
+    settleOn: leJour(28),
+    maturityOn: leJour(24 + 182),
+    nominal: 1_000_000,
+    precountRate: 4.9,
+    rateNote: "taux indicatif : fixé à l'adjudication",
+    commissionPct: 0,
+    minTitles: 1,
+    sizeLabel: "20 Mds FCFA",
+    version: 0,
   },
 ];
 
