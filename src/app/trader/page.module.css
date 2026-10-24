@@ -223,22 +223,28 @@
   margin: var(--s-4) 0 0;
   padding: var(--s-4) 0 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-2);
   border-top: 1px solid var(--line);
 }
 .apercus li {
   display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--s-6);
   font-size: var(--t-3);
 }
 .apercus em {
+  flex: 1 1 auto;
   font-style: normal;
   color: var(--ink-2);
   min-width: 0;
+  overflow-wrap: break-word;
 }
 .apercus b {
+  flex: 0 0 auto;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }

@@ -203,27 +203,49 @@
    lui qu'on compare d'une tuile à l'autre, et un cours coupé ne compare rien. */
 .apercus {
   display: grid;
+  /* UNE COLONNE QUI PEUT SE RÉTRÉCIR. Sans « minmax(0, …) », un élément de
+     grille garde « min-width: auto » : la rangée refusait de descendre sous la
+     largeur de son contenu et sortait de la tuile — 205 px dans 175, mesuré au
+     navigateur. Ni le relevé du DOM ni la page ne le disaient : rien ne
+     défilait, un parent coupait. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-1);
   margin-top: var(--s-3);
   padding-top: var(--s-3);
   border-top: 1px solid var(--line);
 }
+/* LA VALEUR DESCEND D'UNE LIGNE PLUTÔT QUE DE COUPER LE NOM. Sur la bande
+   large elle tient à droite du nom ; sur une tuile de 175 px elle passe
+   dessous, et le nom garde ses mots. C'est la troisième forme essayée, et les
+   deux premières ont été vues au navigateur : tronqué, « FCP Trés… » et
+   « FCP Obli… » ne distinguaient plus deux fonds ; coupé n'importe où,
+   « Obligatio / ns CEMAC ». Un aperçu illisible n'apprend rien. */
 .apercuLigne {
   display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--s-4);
+  gap: 0 var(--s-4);
   font-size: var(--t-1);
 }
+/* LE NOM SE RÉTRÉCIT, LE CHIFFRE JAMAIS. Sans « flex » écrit, les deux
+   partageaient la place : le chiffre, en « nowrap », débordait de sa propre
+   boîte et un parent le coupait — « VL 10 8 », « 3,1 % de render ». Mesuré au
+   navigateur, et invisible au relevé : la page ne défilait pas pour autant. */
+/* LE NOM REVIENT À LA LIGNE, IL NE SE TRONQUE PAS. Coupé, il donnait
+   « FCP Trés… » et « FCP Obli… » sur la tuile étroite des fonds : deux noms
+   indistinguables, c'est-à-dire un aperçu qui n'apprend rien. Sur deux lignes
+   il coûte de la hauteur une fois, et seulement quand il en a besoin. */
 .apercuLigne em {
+  flex: 1 1 auto;
   font-style: normal;
   color: var(--ink-2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   min-width: 0;
+  overflow-wrap: break-word;
 }
 .apercuLigne b {
+  flex: 0 0 auto;
   color: var(--ink);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
