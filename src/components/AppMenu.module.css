@@ -251,16 +251,6 @@ button.item:hover,
   }
 }
 
-/* a control at the right of a row: never wider than the row's half, small words */
-.side {
-  flex: 0 1 46%;
-  min-width: 0;
-  display: flex;
-  justify-content: flex-end;
-  font-size: 0.72rem;
-  color: var(--ink-3);
-  text-align: right;
-}
 .footLinks {
   display: flex;
   gap: 10px;
@@ -277,33 +267,6 @@ button.item:hover,
   border-top: 0;
   padding-left: 10px;
   padding-right: 10px;
-}
-.q {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 4px;
-  border-top: 1px solid var(--line);
-  color: var(--ink);
-  text-decoration: none;
-  font-size: 0.86rem;
-  min-height: 44px;
-}
-.group + .q {
-  border-top: 0;
-}
-.q i {
-  font-style: normal;
-  color: var(--ink-3);
-}
-.more {
-  display: inline-block;
-  padding: 6px 4px 2px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--navy-text);
-  text-decoration: none;
 }
 
 /* the phone's tiles carry an icon */
@@ -462,10 +425,7 @@ button.item:hover,
     margin-top: auto;
     padding-top: 12px;
   }
-  .side small {
-    white-space: normal;
-    overflow: visible;
-  }
+
 }
 
 /* La pastille du « ⋮ » : le compte de ce qui attend une décision, posé sur le
@@ -474,20 +434,4 @@ button.item:hover,
 .dots {
   position: relative;
 }
-.pastille {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 var(--s-1);
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  background: var(--gold);
-  color: var(--navy);
-  font-size: var(--t-1);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
+

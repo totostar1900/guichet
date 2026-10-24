@@ -251,7 +251,4 @@
   border-color: var(--ink-3);
   color: var(--ink);
 }
-.fort {
-  border-color: var(--crit) !important;
-  color: var(--crit) !important;
-}
+

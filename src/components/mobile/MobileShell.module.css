@@ -95,39 +95,7 @@
     border-color: var(--gold);
     color: var(--navy);
   }
-  .news {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    color: #fff;
-    margin-right: 4px;
-  }
-  .news svg {
-    width: 20px;
-    height: 20px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  .news[aria-current="page"] {
-    color: var(--gold);
-  }
-  .avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: var(--gold);
-    color: var(--navy);
-    font-weight: 800;
-    font-size: 0.82rem;
-    display: grid;
-    place-items: center;
-    text-decoration: none;
-  }
+
   /* « .signin » est parti avec le lien qu'il habillait : la porte du visiteur
      vit dans la bande du bas (PorteVitrine). */
 
@@ -208,5 +176,4 @@
     line-height: 1.4;
   }
 }
-
 

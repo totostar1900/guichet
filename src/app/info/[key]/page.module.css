@@ -2,30 +2,14 @@
   max-width: 720px;
   margin: 0 auto;
 }
-.back {
-  display: inline-block;
-  font-size: 0.82rem;
-  color: var(--ink-2);
-  text-decoration: none;
-  margin-bottom: 10px;
-}
+
 .eyebrow {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
 }
-.head h1 {
-  margin: 4px 0 6px;
-  /* Titre de page : le jeton. Voir ETALON.md. */
-  font-size: var(--t-8);
-}
-.intro {
-  font-size: 0.98rem;
-  color: var(--ink-2);
-  margin: 0 0 14px;
-  line-height: 1.5;
-}
+
 .body p {
   font-size: 0.94rem;
   line-height: 1.6;

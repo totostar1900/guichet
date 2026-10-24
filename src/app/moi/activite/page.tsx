@@ -5,6 +5,8 @@ import { fmtDate, fmtDateTime } from "@/lib/format";
 import { MOIS_DE_DETAIL, GENRE_LABEL, GESTES, type ActionClient } from "@/lib/domain/journal-client";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
+/* La mesure du dossier, partagée avec les trois autres pages en liste. */
+import commun from "../page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 
@@ -41,7 +43,7 @@ export default async function ActivitePage() {
 
   return (
     <Glissement>
-      <main className="wrap">
+      <main className={commun.wrap}>
         <EnTete
           surTitre={t("Mon compte")}
           titre={t("Votre activité")}

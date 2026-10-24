@@ -184,36 +184,16 @@
   color: var(--ink);
 }
 
-/* ---------- shared bits ---------- */
-.segHint {
-  margin: -2px 0 10px;
-  font-size: 0.8rem;
-  color: var(--ink-2);
-}
 .hero {
   font-weight: 800;
   font-size: 0.98rem;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
-/**
- * LE CHIFFRE PRINCIPAL EST VERT, SUR LES TROIS LISTES.
- *
- * Les fonds disaient leur performance en vert, les titres et les
- * adjudications disaient leur rendement en or : le même rôle — le nombre
- * qu'on vient chercher — portait deux couleurs selon la page, et le lecteur
- * qui passe de l'une à l'autre apprend deux fois la même chose. Arrêté le
- * 5 octobre 2026 : c'est le vert, celui des fonds.
- *
- * « .gold » n'est pas renommé pour autant : il habille encore le simulateur,
- * le menu et les cartes de chiffres, où il ne désigne pas un taux.
- */
 .taux {
   color: var(--good);
 }
-.gold {
-  color: var(--gold-ink);
-}
+
 .past {
   opacity: 0.6;
 }
@@ -353,8 +333,7 @@
   transform: translateY(-1px);
   box-shadow: 0 6px 18px -10px rgba(10, 20, 40, 0.3);
 }
-.rowMain small,
-.rowHero small {
+.rowMain small {
   display: block;
   color: var(--ink-3);
   font-size: 0.74rem;
@@ -468,11 +447,6 @@
    pouvait pas coller. Le ticket minimum se lit sur la fiche. */
 @media (max-width: 900px) {
   .hideSm {
-    display: none;
-  }
-}
-@media (max-width: 1400px) {
-  .hideLg {
     display: none;
   }
 }
@@ -714,24 +688,6 @@
   margin-top: 0;
   width: auto;
 }
-.sheetSearch {
-  width: 100%;
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius);
-  padding: 8px 12px;
-  font: inherit;
-  font-size: 0.86rem;
-  background: var(--surface);
-  color: var(--ink);
-}
-.sheetSort {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.sheetSort > :first-child {
-  flex: 1;
-}
 
 /* the « Ombre » distinction wants more air between cards */
 .cards[data-sep="shadow"] {
@@ -799,20 +755,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.sheetGroup {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.86rem;
-  color: var(--ink);
-  cursor: pointer;
-  min-height: 36px;
-}
-.sheetGroup input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--navy);
-}
+
 /* the issuer's head above its cards, on the phone too */
 .cards .groupHead {
   grid-column: 1 / -1;
@@ -880,29 +823,6 @@
   top: 50%;
   transform: translateY(-50%);
 }
-.sheetViews {
-  display: inline-flex;
-  border: 1px solid var(--line-2);
-  border-radius: 999px;
-  padding: 2px;
-  margin-top: 8px;
-}
-.sheetViews button {
-  border: 0;
-  background: transparent;
-  color: var(--ink-2);
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 999px;
-  cursor: pointer;
-  min-height: 32px;
-}
-.sheetViews .on {
-  background: var(--select);
-  color: var(--on-select);
-}
 
 /* ---------- le titre d'une section, collant pendant le défilement ----------
    Il remplace la pastille qu'on aurait mise à gauche de chaque carte : une
@@ -939,13 +859,6 @@
   font-size: 0.72rem;
   color: var(--ink-3);
   font-variant-numeric: tabular-nums;
-}
-.secNote {
-  grid-column: 1 / -1;
-  font-size: 0.74rem;
-  line-height: 1.45;
-  color: var(--ink-3);
-  margin-top: 2px;
 }
 
 /* LA RÉSERVE DU SAUT : ce que la bande collante occupe, titre de section

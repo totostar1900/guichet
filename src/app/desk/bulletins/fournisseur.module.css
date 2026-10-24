@@ -13,10 +13,6 @@
   align-items: flex-end;
   gap: var(--s-9);
 }
-.plage .field {
-  flex: 0 0 auto;
-  min-width: 160px;
-}
 
 .bornes {
   display: flex;

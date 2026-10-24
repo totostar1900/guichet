@@ -113,22 +113,7 @@
   display: grid;
   gap: 8px;
 }
-.chapterHead {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 10px;
-  margin-top: 8px;
-}
-.chapterHead h2 {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  margin: 0;
-}
-.chapterHead small {
-  font-size: 0.74rem;
-  color: var(--ink-3);
-}
+
 .intro {
   font-size: 0.9rem;
   color: var(--ink-2);

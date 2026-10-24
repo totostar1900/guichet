@@ -9,7 +9,7 @@
   padding: 12px 16px;
   margin-bottom: 16px;
 }
-.period > .eyebrow {
+.period > :global(.eyebrow) {
   align-self: center;
 }
 .kpis {

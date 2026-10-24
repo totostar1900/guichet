@@ -707,3 +707,63 @@ bulletin** — la série du BOC est ingérée, jamais semée —, donc l'indice 
 classement ne paraissent pas sans `.env.local`, et c'est la règle de niveau 3
 qui joue, pas une panne. Et il n'a **aucun document ni aucune offre retirée** :
 ces états se posent par le desk, ils ne se sèment pas.*
+
+---
+
+## Le cliquet des classes mortes : il comptait mal, quatre fois
+
+Le cliquet portait **95**. Avant de le rabaisser, on l'a mesuré — et ce sont
+les angles morts du COMPTEUR qui faisaient le chiffre :
+
+1. **Il ne lisait que `styles.X`.** Une feuille importée sous un autre nom
+   voyait toutes ses classes comptées mortes, et les `styles.X` d'une AUTRE
+   feuille lue par le même fichier lui étaient attribués. `FundCard.tsx` fait
+   les deux à la fois : ses quatorze « mortes » étaient vivantes, dont quatre
+   qu'une épreuve voisine exige. **95 → 80.**
+2. **Il lisait les commentaires comme du CSS.** `.teteBoite` ne survivait que
+   dans une phrase qui parlait d'une autre feuille. **80 → 56.**
+3. **Il reconnaissait les feuilles par leur NOM DE FICHIER** — et
+   `page.module.css` existe **79 fois**, une par route. Les 79 se mélangeaient,
+   et il suffisait qu'un seul de leurs lecteurs compose ses noms de classe pour
+   que les 79 sortent du relevé d'un coup. Le relevé en lisait 112 sur 191.
+   Découvert en plantant une classe morte à la main dans la feuille de Trade :
+   **l'épreuve ne la voyait pas.** **56 → 137.**
+4. **Il comptait `:global(.x)` pour une classe du module.** Une classe échappée
+   est posée par une chaîne, jamais par `styles.x` : les compter mortes aurait
+   fait élaguer les rails de poignée du desk, qui travaillent. **137 → 128.**
+
+**Et sur les 128, six n'étaient pas mortes : elles étaient INERTES.** Une
+classe de la maison écrite sans `:global` est hachée par le module, et la règle
+ne mord sur rien. Les élaguer aurait effacé l'intention au lieu de la rendre
+vraie — c'est le piège où le relevé conduit tout seul, et le message de
+l'épreuve nomme désormais les deux remèdes. Ce que leur réparation a rendu :
+
+- **Le surtitre de la carte « Parcours » sur `/info` passait de 2,97 : 1 à
+  12,16 : 1** — il gardait l'encre claire de la maison, faite pour un fond
+  clair, sur du bleu de nuit. Dans les deux thèmes. Les gardes de contraste
+  existantes mesurent **dans une même règle** ; ici le fond est sur `.parcours`
+  et l'encre sur une règle descendante : la limite qu'elles annoncent.
+- **La piste d'audit du desk laissait ses 130 px de gauche vides** sur toute sa
+  hauteur : `:not(.mono)` n'excluait rien, donc l'heure passait en colonne 2
+  comme le reste. Mesuré : tous les enfants à `x = 142`, désormais l'heure à 0.
+- **La puce « PDF » d'une pièce** n'avait ni fond, ni rayon, ni cale.
+- **Le bouton de la carte d'appareil connu** s'étirait sur 956 px au lieu de
+  129, et le nom de l'appareil restait à 14,25 px au lieu de 12.
+
+**Et quatre pages nommaient une classe qui n'existe nulle part.** `/moi/ordres`,
+`/moi/activite`, `/moi/suivies` et `/moi/garde` écrivaient `className="wrap"` —
+`.wrap` n'est pas une classe de la maison, et leur feuille la porte en module.
+Elles s'étalaient sur 1 152 px quand leurs voisines s'arrêtent à 880–900. Le
+`.wrap` du dossier était le fossile de ce lien rompu : il disait 1 100 px, que
+personne n'appliquait. Les quatre y sont revenues, centrées.
+
+Reste **120 classes vraiment mortes**, élaguées — 1 750 lignes. Les 61 feuilles
+touchées ont été rechargées route par route : 750 à 1 300 règles analysées
+par page, aucune feuille vide, aucun débordement. Le cliquet ne porte plus de
+plafond : **zéro**, tenu par une non-vacuité qui exige 150 feuilles et 2 000
+classes lues — le seuil est choisi sur le plus gros des quatre angles morts,
+celui qui en cachait 79.
+
+*Effet de bord mesuré : le cliquet de la typographie tombe de 1 091 à 1 032.
+Cinquante-neuf tailles hors échelle sont parties AVEC leurs règles — une taille
+hors échelle dans une règle morte n'était pas une dette de typographie.*

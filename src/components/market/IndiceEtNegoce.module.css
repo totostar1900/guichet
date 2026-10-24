@@ -72,9 +72,7 @@
   stroke-width: 2;
   stroke-linejoin: round;
 }
-.point {
-  fill: var(--gold);
-}
+
 .curseur {
   stroke: var(--gold);
   stroke-width: 1;

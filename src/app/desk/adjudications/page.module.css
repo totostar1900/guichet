@@ -32,66 +32,17 @@
   text-transform: uppercase;
   color: var(--ink-3);
 }
-.list h3 span,
-.filed summary span {
+.list h3 span {
   color: var(--gold-ink);
   margin-left: var(--s-2);
 }
-.empty {
-  margin: 0;
-  font-size: 0.78rem;
-  color: var(--ink-3);
-}
-.row {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-1);
-  padding: var(--s-4);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
-  text-decoration: none;
-}
-.row[aria-current="true"] {
-  border-color: var(--gold-line);
-  background: var(--gold-soft);
-}
-.row b {
-  font-size: 0.86rem;
-  font-weight: 700;
-}
-.meta {
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-  font-size: 0.72rem;
-  color: var(--ink-3);
-}
-.when {
-  font-variant-numeric: tabular-nums;
-}
+
 .todo {
   font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--gold-ink);
-}
-.filed {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-}
-.filed summary {
-  cursor: pointer;
-  padding: var(--s-3) var(--s-2);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  border-top: 1px solid var(--line);
 }
 
 /* Le volet central ne défile pas lui-même : il tient la hauteur, et ce sont le

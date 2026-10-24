@@ -21,8 +21,7 @@
   color: var(--ink-3);
   margin-right: var(--s-2);
 }
-.fen,
-.fenVide {
+.fen {
   display: grid;
   gap: var(--s-1);
   justify-items: start;
@@ -36,8 +35,7 @@
   border-radius: 0;
   cursor: pointer;
 }
-.fen small,
-.fenVide small {
+.fen small {
   font-size: var(--t-1);
   font-weight: 400;
   color: var(--ink-3);
@@ -61,38 +59,11 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
-/* Cinq ans : présent, éteint, et pas un bouton. Rien à toucher, donc rien
-   qui promette une réponse. */
-.fenVide {
-  cursor: default;
-  opacity: 0.45;
-}
 
 .bloc {
   padding-block: var(--s-4) var(--s-5);
   border-bottom: 1px solid var(--line);
   margin-bottom: var(--s-5);
-}
-.tete {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-3);
-}
-.tete h2 {
-  margin: 0;
-  font-size: var(--t-2);
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-.tete p {
-  margin: 0;
-  font-size: var(--t-2);
-  color: var(--ink-3);
-  font-variant-numeric: tabular-nums;
 }
 
 /* LE BANDEAU DE SUIVI : hauteur fixe, trois zones, toujours présent. Une
@@ -166,16 +137,7 @@
   height: 1px;
   background: var(--line);
 }
-.borne {
-  position: absolute;
-  bottom: 0;
-  font-size: var(--t-1);
-  color: var(--ink-3);
-  font-variant-numeric: tabular-nums;
-}
-.borneD {
-  text-align: right;
-}
+
 /* La médiane se marque : sans elle, l'amas n'a pas de centre et les deux
    queues n'ont rien à quoi se rapporter. */
 .mediane {

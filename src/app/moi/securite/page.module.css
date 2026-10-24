@@ -2,24 +2,7 @@
   display: grid;
   gap: 18px;
 }
-.head {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-end;
-}
-.head h1 {
-  /* 1,6 rem posé a la main : le titre de cette page etait le seul a 24 px.
-     Voir ETALON.md. */
-  font-size: var(--t-8);
-  margin: 4px 0 6px;
-}
-.lead {
-  margin: 0;
-  color: var(--ink-2);
-  font-size: 0.9rem;
-  max-width: 62ch;
-}
+
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -21,59 +21,6 @@
      avait relevé). Voir ETALON.md. */
   gap: var(--s-10);
 }
-.back {
-  color: var(--ink-3);
-  font-size: var(--t-2);
-  text-decoration: none;
-}
-.back:hover {
-  color: var(--ink);
-}
-.tete {
-  display: grid;
-  gap: var(--s-3);
-}
-.lead {
-  margin: 0;
-  max-width: 64ch;
-  color: var(--ink-2);
-  font-size: var(--t-4);
-  line-height: 1.5;
-}
-
-.barre {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-6);
-  font-size: var(--t-2);
-}
-.tout {
-  display: flex;
-  align-items: center;
-  gap: var(--s-4);
-  background: none;
-  border: 0;
-  padding: 0;
-  color: var(--ink-3);
-  font: inherit;
-  font-size: var(--t-2);
-  cursor: pointer;
-}
-.tout:hover {
-  color: var(--ink-2);
-}
-.tout svg {
-  width: var(--s-6);
-  height: var(--s-6);
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.2;
-  transition: transform 0.18s ease;
-}
-.tout[data-plie="oui"] svg {
-  transform: rotate(-90deg);
-}
 
 /* CE QUI SE FABRIQUE : le seul papier qui n'existe pas encore quand on
    arrive, donc le seul qui mérite le filet d'or. */

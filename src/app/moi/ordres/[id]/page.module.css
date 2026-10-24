@@ -4,24 +4,7 @@
   gap: var(--s-6);
   max-width: 56ch;
 }
-.back {
-  font-size: var(--t-3);
-  color: var(--ink-3);
-  text-decoration: none;
-}
-.back:hover {
-  color: var(--ink);
-}
-.head h1 {
-  margin: var(--s-2) 0 0;
-  /* Titre de page : le jeton. Voir ETALON.md. */
-  font-size: var(--t-8);
-}
-.lead {
-  margin: var(--s-3) 0 0;
-  color: var(--ink-2);
-  font-size: var(--t-4);
-}
+
 .recap,
 .signer,
 .suite {

@@ -16,15 +16,7 @@
   flex-direction: column;
   gap: var(--s-7);
 }
-.back {
-  font-size: 0.85rem;
-  color: var(--ink-2);
-}
-.lead {
-  color: var(--ink-2);
-  max-width: 62ch;
-  margin-top: calc(-1 * var(--s-5));
-}
+
 .head {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

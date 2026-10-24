@@ -435,8 +435,7 @@
 /* Le pied : d'où vient ce solde, et ce qu'il coûte. */
 
 @media (max-width: 760px) {
-  .gestes,
-  .chemins {
+.chemins {
     grid-template-columns: 1fr;
   }
 }

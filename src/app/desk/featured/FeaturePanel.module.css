@@ -87,12 +87,7 @@
   background: var(--surface);
   color: var(--ink);
 }
-.confirm {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-  font-size: 0.76rem;
-}
+
 .bc small {
   flex-basis: 100%;
   text-align: right;

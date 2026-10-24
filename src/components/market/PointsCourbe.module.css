@@ -75,11 +75,7 @@
   opacity: 0.45;
   margin-left: var(--s-2);
 }
-.table td:global(.r),
-.table th:global(.r) {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
+
 .table tbody tr:hover td {
   background: var(--gold-soft);
 }

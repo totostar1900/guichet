@@ -114,14 +114,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* CE QUE LE PLI MONTRE QUAND MÊME : un pli ne cache jamais un chiffre. */
-.combien {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  font-size: 0.74rem;
-}
+
 .alerte {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
@@ -174,30 +167,6 @@
 .pied {
   border-top: 1px solid var(--line);
   padding: var(--s-4) var(--s-5);
-}
-.reglages {
-  display: flex;
-  gap: var(--s-4);
-  margin-top: var(--s-3);
-}
-.reglages button {
-  font: inherit;
-  font-size: 0.68rem;
-  color: var(--ink-3);
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  text-decoration: underline;
-  text-decoration-color: var(--line-2);
-  text-underline-offset: 3px;
-}
-.reglages button:hover {
-  color: var(--ink-2);
-}
-.reglages button:focus-visible {
-  outline: 2px solid var(--gold-ink);
-  outline-offset: 2px;
 }
 
 /* ===== Escamotée : une poignée au bord, et rien d'autre ===== */
@@ -330,9 +299,6 @@
 .item {
   padding-left: var(--s-9);
 }
-.sections {
-  margin-left: var(--s-10);
-}
 
 /* LA TIRETTE : un bord que l'on tire, et rien d'autre. Elle occupe toute la
    hauteur du bord droit de la colonne, parce qu'on saisit un bord là où la
@@ -370,14 +336,10 @@
 .gl {
   font-size: var(--t-1);
 }
-.el,
-.combien,
-.alerte,
-.pt {
+.el, .alerte, .pt {
   font-size: var(--t-1);
 }
-.encours a,
-.sections a {
+.encours a {
   font-size: var(--t-3);
 }
 .item {
@@ -467,32 +429,10 @@
 .pied :global(button) {
   font-size: var(--t-3);
 }
-
-/* ===========================================================================
-   DEUX TAILLES DANS LE RAIL, ET PAS QUATRE.
-
-   Il en portait quatre, --t-1, --t-2, --t-3 et --t-4, et l oeil ne savait
-   plus ce qui commandait quoi. Une colonne de navigation n a que deux sortes
-   de lignes : ce qui NOMME un groupe, et ce qui MENE quelque part.
-
-     --t-1  ce qui nomme : l etiquette d un groupe, en petites capitales
-     --t-3  ce qui mene : une page, une section, une ligne d « En cours »
-
-   Une tete est donc plus PETITE que ce qu elle coiffe, et c est voulu : les
-   capitales et l interlettrage la distinguent deja, alors qu un corps plus
-   gros entrerait en concurrence avec les noms de pages, qui sont ce qu on
-   vient lire.
-   =========================================================================== */
-.item,
-.encours a,
-.sections a {
+.item, .encours a {
   font-size: var(--t-3);
 }
-.gl,
-.el,
-.combien,
-.alerte,
-.pt {
+.gl, .el, .alerte, .pt {
   font-size: var(--t-1);
 }
 

@@ -14,13 +14,7 @@
   flex-direction: column;
   gap: 10px;
 }
-.back {
-  align-self: flex-start;
-  font-size: 0.8rem;
-  color: var(--ink-2);
-  text-decoration: underline dotted 1px;
-  text-underline-offset: 3px;
-}
+
 /* Sur-titre, titre et retour sont montés par « EnTete » depuis le 24 octobre
    2026 ; l'état et l'ISIN sont passés dans son créneau « aCote ». */
 .meta {
@@ -30,12 +24,7 @@
   font-size: 0.74rem;
   color: var(--ink-3);
 }
-/* trois cartes, ou quatre quand la ligne porte un nominal : la grille compte elle-même */
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
-  gap: 8px;
-}
+
 .form {
   background: var(--surface);
   border: 1px solid var(--line);

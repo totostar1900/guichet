@@ -41,9 +41,7 @@
   background: var(--gold-soft, #fbf1da);
   font-weight: 600;
 }
-.importForm {
-  margin-left: auto;
-}
+
 .inlineForm {
   display: inline;
 }

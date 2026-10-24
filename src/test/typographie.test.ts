@@ -118,11 +118,15 @@ const horsEchelle = (): string[] => {
  * Le 7 octobre, 1 183 : la page Analyse et la courbe fusionnée, trente-deux
  * déclarations, rangées en répondant à « on ne les veut pas trop grosses ».
  *
+ * Le 24 octobre, 1 032 : cinquante-neuf déclarations sont parties AVEC leurs
+ * règles, en élaguant 120 classes que plus aucun fichier ne nommait. Une taille
+ * hors échelle dans une règle morte n'était pas une dette de typographie.
+ *
  * Il descend quand une page passe à l'échelle. S'il remonte, c'est qu'une
  * taille neuve a été inventée, et c'est précisément le moment où la question
  * « laquelle des sept ? » doit se poser.
  */
-const PLAFOND = 1091;
+const PLAFOND = 1032;
 
 describe("l'échelle typographique", () => {
   it("ne laisse pas les tailles hors échelle se multiplier", () => {

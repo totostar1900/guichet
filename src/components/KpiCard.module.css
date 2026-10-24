@@ -176,7 +176,5 @@
     background: var(--line-2);
     margin: 0 auto 10px;
   }
-  .foot .btn {
-    flex: 1;
-  }
+
 }

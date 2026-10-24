@@ -1,22 +1,5 @@
-.sub {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--line);
-}
-.sub a {
-  padding: 10px 14px;
-  color: var(--ink-2);
-  font-weight: 500;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-.sub a[aria-current="page"] {
-  color: var(--ink);
-  border-bottom-color: var(--gold);
-}
+
+
 /* La bande de KPI a disparu : ses trois chiffres sont devenus des tuiles
    d'« Aujourd hui », qui portait deja le quatrieme en double. */
 .feed {
@@ -96,47 +79,6 @@
   align-items: center;
   justify-content: flex-end;
 }
-/* Ce qui attend derriere « Ouvrir » : le compte, pas les commandes. La rangee
-   dit qu il y a a decider, l ecran de l intention dit quoi. */
-.attend {
-  font-size: 0.7rem;
-  color: var(--ink-3);
-  white-space: nowrap;
-}
-.placeholder {
-  background: var(--surface);
-  border: 1px dashed var(--line-2);
-  border-radius: var(--radius);
-  padding: 28px;
-  color: var(--ink-2);
-  font-size: 0.9rem;
-  max-width: 70ch;
-}
-.placeholder h2 {
-  font-family: var(--font-display);
-  margin-bottom: 6px;
-}
-@media (max-width: 1000px) {
-  .kpis {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-.sub {
-  flex-wrap: wrap;
-}
-.navBadge {
-  display: inline-grid;
-  place-items: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  margin-left: 6px;
-  border-radius: 9px;
-  background: var(--gold);
-  color: var(--navy);
-  font-size: 0.72rem;
-  font-weight: 700;
-}
 
 .refLink {
   color: var(--ink);
@@ -150,11 +92,6 @@
   text-decoration-color: var(--gold);
 }
 
-.filterTag {
-  font-size: 0.78rem;
-  color: var(--warn);
-  font-weight: 700;
-}
 .noPrice {
   color: var(--warn);
   font-weight: 700;

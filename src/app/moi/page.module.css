@@ -2,20 +2,6 @@
   max-width: 1100px;
   margin: 0 auto;
 }
-.head {
-  display: flex;
-  align-items: flex-end;
-  gap: 16px;
-  margin-bottom: 18px;
-}
-.head h1 {
-  /* Titre de page : le jeton. Voir ETALON.md. */
-  font-size: var(--t-8);
-  margin: 4px 0 2px;
-}
-.head > a {
-  margin-left: auto;
-}
 
 .contact {
   display: grid;
@@ -154,69 +140,12 @@
 .track .done {
   background: var(--good);
 }
-.history summary {
-  cursor: pointer;
-  list-style: none;
-}
-.history summary::-webkit-details-marker {
-  display: none;
-}
-.history summary h2::after {
-  content: " ›";
-  color: var(--ink-3);
-}
-.history[open] summary h2::after {
-  content: " ⌄";
-}
+
 @media (max-width: 760px) {
-  .head {
-    flex-wrap: wrap;
-    align-items: flex-start;
-  }
-  .head > a {
-    margin-left: 0;
-  }
+
   .cards {
     padding: 10px 12px 12px;
   }
-}
-
-.push {
-  display: grid;
-  gap: 6px;
-  /* le retrait horizontal vient du panneau */
-  padding-block: 10px 14px;
-  border-top: 1px solid var(--line);
-  font-size: 0.84rem;
-}
-
-/* the folds of the dashboard */
-.foldBar {
-  display: flex;
-  justify-content: flex-end;
-  margin: 6px 0 0;
-}
-.docBar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 12px 16px 0;
-}
-.docBar .docToggle {
-  margin-left: 0;
-}
-@media (max-width: 760px) {
-  .docBar {
-    padding: 10px 12px 0;
-  }
-  .docGroupHead {
-    padding-left: 12px;
-  }
-}
-.noHead {
-  padding-top: 0;
 }
 
 /* La contre-proposition, telle que le client la décide. */

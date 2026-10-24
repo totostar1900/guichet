@@ -118,11 +118,7 @@
 .navChart .tick {
   font-size: 6.4px; /* axis labels 20 % smaller than the quote chart */
 }
-.cursor {
-  stroke: var(--ink-3);
-  stroke-width: 0.8;
-  stroke-dasharray: 2 2;
-}
+
 .navBlock .legend {
   margin-top: 8px;
 }
@@ -148,22 +144,7 @@
   z-index: 5;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
 }
-/* Near the top the bubble goes under the point; near an edge it hangs inwards. */
-.tipBelow {
-  transform: translate(-50%, 14px);
-}
-.tipLeft {
-  transform: translate(calc(-100% + 12px), calc(-100% - 12px));
-}
-.tipLeft.tipBelow {
-  transform: translate(calc(-100% + 12px), 14px);
-}
-.tipRight {
-  transform: translate(-12px, calc(-100% - 12px));
-}
-.tipRight.tipBelow {
-  transform: translate(-12px, 14px);
-}
+
 .tip b {
   color: var(--tip-ink);
   font-weight: 800;
@@ -379,9 +360,7 @@
   stroke-width: 1.4;
   stroke-dasharray: 5 3;
 }
-.benchLabel {
-  fill: var(--gold-ink);
-}
+
 .barUp {
   fill: var(--good);
 }

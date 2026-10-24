@@ -14,25 +14,6 @@
   flex-direction: column;
   gap: var(--s-7);
 }
-.back {
-  color: var(--ink-3);
-  font-size: var(--t-2);
-  text-decoration: none;
-}
-.back:hover {
-  color: var(--ink);
-}
-.tete {
-  display: grid;
-  gap: var(--s-3);
-}
-.lead {
-  margin: 0;
-  max-width: 64ch;
-  color: var(--ink-2);
-  font-size: var(--t-4);
-  line-height: 1.5;
-}
 
 .liste {
   list-style: none;

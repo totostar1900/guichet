@@ -38,16 +38,7 @@
 .desk {
   background: #fff;
 }
-.out {
-  background: none;
-  border: 0;
-  color: var(--on-navy-2);
-  font-size: 1rem;
-  padding: 4px;
-}
-.out:hover {
-  color: #fff;
-}
+
 @media (max-width: 900px) {
   .who {
     display: none;

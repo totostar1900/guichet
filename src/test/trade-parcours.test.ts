@@ -160,12 +160,18 @@ describe("le parcours de Trade", () => {
  * seulement du poids : elle se lit comme une description de la page, et celle
  * qu'elle décrivait n'existe plus.
  *
- * LE COMPTE EST UN CLIQUET : il descend, il ne monte pas. Les feuilles dont un
- * fichier compose le nom de classe (« styles[`st_${etat}`] ») sont hors du
- * relevé — on ne peut pas savoir, de l'extérieur, lesquelles de leurs classes
- * servent.
+ * LE COMPTE ÉTAIT UN CLIQUET, il est MAINTENANT À ZÉRO. Le 24 octobre 2026 il
+ * portait 95, et deux tiers de ce chiffre étaient l'angle mort du compteur
+ * lui-même (voir les deux notes dans le corps). Les 56 qui restaient ont été
+ * élaguées feuille par feuille : il n'y a plus de dette à étaler, donc plus de
+ * raison de garder un plafond. Zéro se défend mieux qu'un nombre — un nombre
+ * demande qu'on sache pourquoi il vaut celui-là.
+ *
+ * LES FEUILLES dont un fichier compose le nom de classe
+ * (« styles[`st_${etat}`] ») restent hors du relevé : on ne peut pas savoir, de
+ * l'extérieur, lesquelles de leurs classes servent.
  */
-const classesMortes = () => {
+const releveDesClasses = () => {
   const tsx: string[] = [];
   const marche = (d: string, dans: string[], suffixe: string) => {
     for (const e of fs.readdirSync(d, { withFileTypes: true })) {
@@ -175,40 +181,113 @@ const classesMortes = () => {
     }
   };
   marche(path.join(ROOT, "src"), tsx, ".tsx");
-  const sources = tsx.map((p) => ({ nom: path.basename(p), texte: fs.readFileSync(p, "utf8") }));
+
+  /* LE CHEMIN DE L'IMPORT, ET NON SON NOM DE FICHIER. Troisième angle mort du
+     même compteur, et le plus large : le relevé reconnaissait une feuille à son
+     basename. Or « page.module.css » existe SOIXANTE-DIX-NEUF fois dans ce
+     dépôt — une par route. Les soixante-dix-neuf se mélangeaient donc : une
+     classe de « app/trader/page.module.css » passait pour vivante dès qu'un
+     « page.module.css » quelconque la nommait, et il suffisait qu'UN SEUL de
+     leurs lecteurs compose ses noms de classe pour que les soixante-dix-neuf
+     sortent du relevé d'un coup. C'est ce qui s'est produit : une classe morte
+     ajoutée à la main dans la feuille de Trade n'était pas vue. On résout donc
+     chaque import — relatif ou sous l'alias « @/ » — jusqu'au fichier. */
+  const sources = tsx.map((p) => {
+    const texte = fs.readFileSync(p, "utf8");
+    const feuillesLues = [...texte.matchAll(/import\s+(\w+)\s+from\s+"([^"]+\.module\.css)"/g)].map(([, local, spec]) => ({
+      local,
+      chemin: spec.startsWith("@/") ? path.join(ROOT, "src", spec.slice(2)) : path.resolve(path.dirname(p), spec),
+    }));
+    return { texte, feuillesLues };
+  });
 
   const feuilles: string[] = [];
   marche(path.join(ROOT, "src"), feuilles, ".module.css");
 
+  /* Les classes de la maison, celles que « globals.css » pose au premier
+     niveau : « mono », « muted », « btn », « eyebrow », « empty »… */
+  const maison = new Set(
+    [...fs.readFileSync(path.join(ROOT, "src/app/globals.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/(?<![\w-])\.([A-Za-z][\w-]*)/g)].map((m) => m[1]),
+  );
+
   const out: string[] = [];
+  let lues = 0;
+  let classes = 0;
   for (const f of feuilles) {
-    const css = fs.readFileSync(f, "utf8");
-    const nom = path.basename(f);
+    /* LE CSS, ET NON CE QU'ON EN DIT. Les feuilles de cette maison
+       s'expliquent, et leurs commentaires citent des classes — parfois celles
+       d'une AUTRE feuille, comme « .teteBoite » cité par le sommaire des
+       offres pour dire qu'il s'aligne sur elle. Deux fois ce relevé a compté
+       une phrase pour une classe morte : « .mono » écrit dans la note d'un
+       en-tête, et celle-là. Un commentaire n'habille rien. */
+    const css = fs.readFileSync(f, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    /* ET « :global(.x) » N'EST PAS UNE CLASSE DE LA FEUILLE. Quatrième angle
+       mort : une classe échappée au module est posée par une CHAÎNE
+       (« className="poignee-rail" », ou le composant d'une autre maison qui
+       l'écrit), jamais par « styles.x ». Les compter mortes ferait élaguer les
+       rails de poignée du desk, qui travaillent. On les tient donc vivantes
+       dès qu'un fichier de « src » écrit leur nom quelque part — ce qui laisse
+       encore tomber celle que plus personne n'écrit. */
+    const globales = new Set([...css.matchAll(/:global\(\s*\.([A-Za-z][\w-]*)/g)].map((m) => m[1]));
     const definies = new Set([...css.matchAll(/(?<![\w-])\.([A-Za-z][\w-]*)/g)].map((m) => m[1]));
-    definies.delete("md"); // « ETALON.md » dans un commentaire
+    for (const g of globales) if (sources.some((s) => new RegExp(`["'\`\\s](${g})(?![\\w-])`).test(s.texte))) definies.delete(g);
     const nommees = new Set<string>();
     let compose = false;
     for (const s of sources) {
-      if (!s.texte.includes(nom)) continue;
-      for (const m of s.texte.matchAll(/styles\.([A-Za-z][\w]*)/g)) nommees.add(m[1]);
-      for (const m of s.texte.matchAll(/styles\["([^"]+)"\]/g)) nommees.add(m[1]);
-      if (/styles\[(?!")/.test(s.texte)) compose = true;
+      /* LE NOM LOCAL DE LA FEUILLE, ET NON « styles ». Le relevé ne cherchait
+         que « styles.X » : une feuille importée sous un autre nom voyait donc
+         TOUTES ses classes comptées mortes, et les « styles.X » d'une AUTRE
+         feuille lue par le même fichier lui étaient attribués. « FundCard.tsx »
+         fait les deux à la fois — « import styles from OfferCard.module.css »
+         et « import propres from ./FundCard.module.css » — et ses quatorze
+         classes « mortes » étaient toutes vivantes, dont quatre qu'une épreuve
+         voisine exige. Mesuré le 24 octobre 2026 : le compte portait surtout
+         l'angle mort du compteur. */
+      const nomsLocaux = s.feuillesLues.filter((l) => l.chemin === f).map((l) => l.local);
+      if (!nomsLocaux.length) continue;
+      for (const local of nomsLocaux) {
+        for (const m of s.texte.matchAll(new RegExp(`${local}\\.([A-Za-z][\\w]*)`, "g"))) nommees.add(m[1]);
+        for (const m of s.texte.matchAll(new RegExp(`${local}\\["([^"]+)"\\]`, "g"))) nommees.add(m[1]);
+        if (new RegExp(`${local}\\[(?!")`).test(s.texte)) compose = true;
+      }
     }
     if (compose) continue;
-    for (const c of definies) if (!nommees.has(c)) out.push(`${path.relative(ROOT, f)} › .${c}`);
+    lues += 1;
+    classes += definies.size;
+    /* DEUX REMÈDES, ET LE RELEVÉ DOIT DIRE LEQUEL. Une classe qu'aucun fichier
+       ne nomme est tantôt le fossile d'une page disparue — on l'élague —,
+       tantôt une classe de la maison écrite sans « :global » : le module l'a
+       hachée, la règle ne mord sur rien, et il faut la RÉPARER. Six fois sur
+       128 le 24 octobre 2026, dont le surtitre de la carte « Parcours » qui
+       restait à 2,97 : 1 sur son fond de nuit. Élaguer celles-là effacerait
+       l'intention au lieu de la rendre vraie, et c'est le piège où ce relevé
+       conduit tout seul. */
+    for (const c of definies) if (!nommees.has(c)) out.push(`${path.relative(ROOT, f)} › .${c}${maison.has(c) ? "   ← « " + c + " » est une classe de la maison : la règle visait le global. À RÉPARER en « :global(." + c + ") », pas à élaguer." : ""}`);
   }
-  return out.sort();
+  return { mortes: out.sort(), lues, classes };
 };
 
 describe("les feuilles de style", () => {
   it("ne gardent pas les mesures de ce qui n'est plus à l'écran", () => {
-    const PLAFOND = 95;
-    const mortes = classesMortes();
-    expect(mortes.length, `${mortes.length} classes qu'aucun fichier ne nomme (plafond ${PLAFOND}) :\n  ${mortes.join("\n  ")}`).toBeLessThanOrEqual(PLAFOND);
-    expect(PLAFOND - mortes.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(4);
+    const { mortes } = releveDesClasses();
+    expect(mortes, `${mortes.length} classes qu'aucun fichier ne nomme :\n  ${mortes.join("\n  ")}`).toEqual([]);
   });
 
-  it("n'en gardent aucune dans Trade, qui vient d'être vidée", () => {
-    expect(classesMortes().filter((m) => m.includes("app/trader/"))).toEqual([]);
+  /**
+   * NON VACUITÉ, et c'est elle qui tient l'épreuve ci-dessus. « Aucune classe
+   * morte » est aussi ce que répond un relevé qui ne lit rien : une feuille mal
+   * trouvée, un commentaire qui avale le fichier, un import mal reconnu — et
+   * l'épreuve passe au vert en ayant regardé le vide. QUATRE FOIS ce compteur
+   * s'est trompé en silence ; il ne doit plus pouvoir se taire.
+   *
+   * LES SEUILS SONT CHOISIS SUR LA PLUS GROSSE DE CES QUATRE FOIS. La
+   * reconnaissance par nom de fichier faisait tomber les 79 feuilles de routes
+   * d'un coup : le relevé en lisait 112 sur 191. Un seuil à 150 l'aurait vu.
+   * Mesuré le 24 octobre 2026 : 191 feuilles, 2821 classes.
+   */
+  it("et le relevé a bien regardé les feuilles de la maison", () => {
+    const { lues, classes } = releveDesClasses();
+    expect(lues, "le relevé a perdu de vue une famille entière de feuilles : son zéro ne prouve plus rien").toBeGreaterThan(150);
+    expect(classes, "le relevé ne voit presque plus de classes : son zéro ne prouve rien").toBeGreaterThan(2000);
   });
 });

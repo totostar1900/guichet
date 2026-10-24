@@ -95,7 +95,7 @@ export default async function OrdresPage() {
 
   return (
     <Glissement>
-      <main className="wrap">
+      <main className={styles.wrap}>
         <EnTete
           retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Votre dossier")}

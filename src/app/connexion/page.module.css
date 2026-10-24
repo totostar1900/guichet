@@ -107,10 +107,12 @@
   align-items: baseline;
   font-size: 0.95rem;
 }
-.deviceHead .muted {
+/* « muted » et « btn » viennent de la maison : écrits sans « :global », ils
+   étaient hachés par le module et ces deux règles ne touchaient rien. */
+.deviceHead :global(.muted) {
   font-size: 0.8rem;
 }
-.device > .btn {
+.device > :global(.btn) {
   justify-self: start;
 }
 .pinField {

@@ -105,9 +105,7 @@
   gap: 2px;
   margin: -4px -8px calc(-1 * var(--s-11) * 4) 0;
 }
-.corner > .pill {
-  flex: none;
-}
+
 /* LA CLOCHE ET LA PASTILLE SUR LA MÊME LIGNE. Le coin est une COLONNE : la
    cloche posée avant la pastille se serait rangée au-dessus d'elle, et
    « avant » veut dire à gauche. Elles forment donc une rangée à elles deux,
@@ -179,24 +177,10 @@
   font-weight: 500;
   color: var(--ink-3);
 }
-/**
- * LE CHIFFRE PRINCIPAL EST VERT, SUR LES TROIS LISTES.
- *
- * Les fonds disaient leur performance en vert, les titres et les
- * adjudications disaient leur rendement en or : le même rôle — le nombre
- * qu'on vient chercher — portait deux couleurs selon la page, et le lecteur
- * qui passe de l'une à l'autre apprend deux fois la même chose. Arrêté le
- * 5 octobre 2026 : c'est le vert, celui des fonds.
- *
- * « .gold » n'est pas renommé pour autant : il habille encore le simulateur,
- * le menu et les cartes de chiffres, où il ne désigne pas un taux.
- */
 .taux {
   color: var(--good);
 }
-.gold {
-  color: var(--gold-ink);
-}
+
 /* TOUS SUR LA MÊME BANDE, trois ou quatre selon ce que la ligne a à dire : une
    ligne cotée ajoute son cours entre le coupon et l'échéance.
 
@@ -243,15 +227,7 @@
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
-.link {
-  font-size: 0.78rem;
-  color: var(--ink-2);
-  text-decoration: none;
-  padding: 5px 6px;
-}
-.link:hover {
-  text-decoration: underline;
-}
+
 /* « VOIR LA FICHE » RESTE À DROITE, SEUL OU ACCOMPAGNÉ. Le pied répartissait
    ses deux enfants aux deux bords ; depuis que « cotation continue » en est
    parti, il n'en reste qu'un sur une ligne cotée, et « space-between » l'a
@@ -459,41 +435,6 @@
 [data-sep="shadow"] .card {
   border-color: transparent;
   box-shadow: 0 2px 4px rgba(11, 37, 69, 0.14), 0 12px 28px rgba(11, 37, 69, 0.22);
-}
-
-/* the back of a card: the figures the front keeps quiet, on light grey */
-.backGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 14px;
-  font-size: 0.82rem;
-}
-.backGrid > div {
-  min-width: 0;
-}
-.backGrid span {
-  display: block;
-  font-size: 0.62rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--gold-ink);
-  font-weight: 700;
-}
-.backGrid b {
-  display: block;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-  color: var(--ink);
-}
-.backGrid em {
-  display: block;
-  font-style: normal;
-  font-size: 0.72rem;
-  color: var(--ink-3);
-}
-.mono {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.78rem;
 }
 
 /* the flip icon: beside the « ··· », the same weight; phone only (the card turns there).

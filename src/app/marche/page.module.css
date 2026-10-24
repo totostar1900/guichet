@@ -1,11 +1,5 @@
-/* La porte d'entrée du marché BVMAC : un en-tête, le pouls, puis des panneaux. */
-/* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
-   2026 : leurs mesures vivent dans sa feuille. */
-.num {
-  text-align: right;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
+
+
 .note {
   font-size: 0.84rem;
   color: var(--ink-3);
@@ -13,11 +7,7 @@
   max-width: 74ch;
   line-height: 1.5;
 }
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+
 /**
  * CE QUI S'EST ÉCHANGÉ : trois nombres, et rien autour.
  *

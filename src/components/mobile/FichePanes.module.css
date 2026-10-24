@@ -49,11 +49,7 @@
     background: linear-gradient(to top, var(--paper) 72%, transparent);
     transition: transform 0.2s ease, opacity 0.2s ease;
   }
-  .ctaHidden {
-    transform: translateY(12px);
-    opacity: 0;
-    pointer-events: none;
-  }
+
   .ctaMain {
     flex: 1;
     padding: 12px 14px;

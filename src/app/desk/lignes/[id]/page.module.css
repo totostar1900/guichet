@@ -101,7 +101,11 @@
 .trail li b {
   grid-column: 2;
 }
-.trail li > span:not(.mono) {
+/* L'HEURE RESTE DANS LA PREMIÈRE COLONNE. Le « .mono » de cette négation est
+   celui de la maison ; haché par le module, il n'excluait rien, donc l'heure
+   passait en colonne 2 comme tout le reste et les 130 px de gauche restaient
+   vides sur toute la piste. */
+.trail li > span:not(:global(.mono)) {
   grid-column: 2;
   color: var(--ink-2);
 }

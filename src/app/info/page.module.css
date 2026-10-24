@@ -5,11 +5,7 @@
 .anchor {
   scroll-margin-top: 80px; /* under the sticky header */
 }
-.gloss .anchor {
-  padding-left: 8px;
-  margin-left: -8px;
-  border-radius: 6px;
-}
+
 /* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
    2026 : leurs mesures vivent dans sa feuille. */
 .grid {
@@ -48,40 +44,9 @@
   color: var(--gold-ink);
   font-weight: 700;
 }
-.soon {
-  opacity: 0.65;
-  border-style: dashed;
-  pointer-events: none;
-}
-.h2 {
-  font-size: 1.05rem;
-  margin: 0 0 10px;
-}
-/* twice the room between the page's sections (leçons · simulateur · outils · glossaire) */
-.h2.anchor {
-  margin-top: 52px;
-}
+
 .lessons {
   margin-bottom: 0;
-}
-.gloss {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
-  gap: 10px 18px;
-}
-.gloss > div {
-  padding: 10px 0;
-  border-top: 1px solid var(--line);
-  font-size: 0.84rem;
-  line-height: 1.5;
-}
-.gloss b {
-  display: block;
-  margin-bottom: 2px;
-}
-.gloss p {
-  margin: 0;
-  color: var(--ink-2);
 }
 
 .lessons {
@@ -94,16 +59,7 @@
     grid-template-columns: 1fr;
   }
 }
-.lessonsHead {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.lessonsHead h2 {
-  margin: 0;
-}
+
 .lesson {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr) auto;
@@ -184,7 +140,10 @@
   text-decoration: none;
   color: #fff;
 }
-.parcours .eyebrow,
+/* LE SURTITRE DE LA CARTE EST SUR DU NAVY, et son encre doit s'éclaircir. Écrit
+   « .eyebrow » sans « :global », il était haché : la carte gardait donc l'encre
+   claire de la maison, faite pour un fond clair, sur du bleu de nuit. */
+.parcours :global(.eyebrow),
 .parcours small {
   color: #dfe5ef;
 }

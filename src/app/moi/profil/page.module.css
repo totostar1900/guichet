@@ -16,11 +16,7 @@
 .meta b {
   color: var(--ink);
 }
-.steps {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
-}
+
 /* the three blocks of the quiz, the current one in gold */
 .blocks {
   display: grid;
@@ -94,14 +90,7 @@
   color: var(--navy-text);
   font-weight: 700;
 }
-.steps i {
-  height: 5px;
-  border-radius: 3px;
-  background: var(--line-2);
-}
-.steps .on {
-  background: var(--gold);
-}
+
 .eyebrow {
   font-size: 0.7rem;
   letter-spacing: 0.1em;

@@ -61,8 +61,7 @@
 .warn {
   color: var(--warn);
 }
-.crit,
-.alerte {
+.crit {
   color: var(--crit);
 }
 
@@ -81,41 +80,6 @@
 .vide {
   margin: 0;
   font-size: var(--t-3);
-  color: var(--ink-3);
-}
-
-.releve {
-  width: 100%;
-  font-family: var(--mono, ui-monospace, Consolas, monospace);
-  font-size: var(--t-2);
-  line-height: 1.7;
-  padding: var(--s-5) var(--s-6);
-  border: 1px solid var(--line-2, var(--line));
-  border-radius: 6px;
-  background: var(--surface-2, var(--surface));
-  color: inherit;
-  resize: vertical;
-}
-
-/* Les lignes non lues se montrent : une ligne tombée sans bruit est un
-   virement orphelin de plus. */
-.illisibles {
-  margin-top: var(--s-5);
-  padding: var(--s-5) var(--s-6);
-  border: 1px solid var(--warn);
-  border-left-width: 3px;
-  border-radius: 6px;
-  display: grid;
-  gap: var(--s-3);
-  font-size: var(--t-2);
-}
-.illisibles ul {
-  margin: 0;
-  padding-left: var(--s-7);
-  display: grid;
-  gap: var(--s-2);
-  font-family: var(--mono, ui-monospace, Consolas, monospace);
-  font-size: var(--t-2);
   color: var(--ink-3);
 }
 
@@ -150,46 +114,8 @@
   margin-top: 2px;
   line-height: 1.4;
 }
-/* Les fonds d'un tiers ne se lisent pas comme le reste : la convention les
-   refuse, et la ligne doit le dire avant qu'on lise le verdict. */
-.rowTiers {
-  background: var(--warn-soft, rgba(161, 98, 7, 0.06));
-  border-left: 3px solid var(--warn);
-}
-.deja {
-  opacity: 0.62;
-}
 
-.cellJour {
-  font-variant-numeric: tabular-nums;
-}
-.cellMontant {
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  text-align: right;
-}
-.cellQui,
-.cellClient,
-.cellVerdict {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.cellClient select {
-  width: 100%;
-  max-width: 100%;
-  font-size: var(--t-3);
-}
-.cellGeste {
-  display: flex;
-  gap: var(--s-4);
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.vOk,
-.vDoute,
-.vNon,
-.vDeja {
+.vOk, .vNon {
   display: inline-block;
   font-size: var(--t-2);
   font-weight: 700;
@@ -200,17 +126,10 @@
   color: var(--good, #1b4d3e);
   background: var(--good-soft, #e4efe9);
 }
-.vDoute {
-  color: var(--warn);
-  background: var(--warn-soft, rgba(161, 98, 7, 0.1));
-}
+
 .vNon {
   color: var(--crit);
   background: var(--crit-soft, rgba(179, 38, 30, 0.08));
-}
-.vDeja {
-  color: var(--ink-3);
-  background: var(--surface-2, transparent);
 }
 
 /* Le motif de restitution s'ouvre à la place des boutons : la question se pose
@@ -261,19 +180,6 @@
   .histo li {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
-}
-.hQuand,
-.hMontant {
-  font-variant-numeric: tabular-nums;
-}
-.hMontant {
-  text-align: right;
-  font-weight: 700;
-}
-.hMotif,
-.hPar {
-  color: var(--ink-3);
-  overflow-wrap: anywhere;
 }
 
 /* Les règles de la page, écrites une fois : elles ne sont pas une aide, elles
