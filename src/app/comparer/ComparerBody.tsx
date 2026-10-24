@@ -18,6 +18,7 @@ import { summarize } from "@/lib/domain/summary";
 import { offerReference } from "@/lib/domain/sheet";
 import type { Offer } from "@/lib/domain/types";
 import styles from "./page.module.css";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
@@ -92,10 +93,18 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
 
   return (
     <div className={styles.page}>
+      {/* LE RETOUR RESTE UN « BackButton », ET C'EST VOULU. Le créneau de
+          l'étalon mène à un parent NOMMÉ ; cette page n'en a pas un seul — on
+          y arrive de la fiche d'une ligne comme du marché — et son retour est
+          donc celui de l'historique, avec une destination de repli. Deux
+          dispositifs pour deux questions : « remonter d'un cran » et
+          « revenir d'où je viens ». */}
       <div className={styles.head}>
         <BackButton fallbackHref="/" fallbackLabel={t("Retour à Guichet")} />
-        <h1>{t("Comparer deux lignes")}</h1>
-        <p className="muted">{t("Choisissez deux lignes de Guichet : rendement, échéance, ticket et calcul de référence côte à côte. Rendements bruts, avant frais et fiscalité.")}</p>
+        <EnTete
+          titre={t("Comparer deux lignes")}
+          phrase={t("Choisissez deux lignes de Guichet : rendement, échéance, ticket et calcul de référence côte à côte. Rendements bruts, avant frais et fiscalité.")}
+        />
       </div>
 
       <form className={styles.pick} method="get">

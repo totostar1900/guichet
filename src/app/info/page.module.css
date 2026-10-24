@@ -10,17 +10,8 @@
   margin-left: -8px;
   border-radius: 6px;
 }
-.head {
-  margin-bottom: 18px;
-}
-.head h1 {
-  margin: 4px 0 8px;
-}
-.head p {
-  max-width: 68ch;
-  font-size: 0.92rem;
-  line-height: 1.55;
-}
+/* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
+   2026 : leurs mesures vivent dans sa feuille. */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));

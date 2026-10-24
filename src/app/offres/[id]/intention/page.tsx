@@ -14,7 +14,8 @@ import { tenorText } from "@/lib/finance";
 import { getLang, getT } from "@/i18n/server";
 import { loadIntentContext } from "../intent-context";
 import styles from "./page.module.css";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ intent?: string; qty?: string; de?: string }> };
 
@@ -46,17 +47,22 @@ export default async function IntentionPage({ params, searchParams }: Props) {
     <Glissement>
       <div className={styles.page}>
         <div className={styles.head}>
-          <LienRetour href={`/offres/${o.id}`} className={styles.back}>
-            ← {t("La fiche")}
-          </LienRetour>
-          <div className={styles.line}>
-            <span className="eyebrow">{t(summary.subtitle)}</span>
-            <h1>{o.title}</h1>
-            <div className={styles.meta}>
-              <span className={`pill ${c.st}`}>{t(statusLabel(o, c.st))}</span>
-              <span className="mono">{o.isin}</span>
-            </div>
-          </div>
+          {/* L'ÉTAT ET L'ISIN PASSENT EN FACE DU TITRE. Ils disent QUELLE
+              ligne on engage — une identité, pas une phrase — et sous le titre
+              ils repoussaient d'un cran les chiffres pour lesquels on vient.
+              C'est le créneau « aCote », et sa raison est celle qu'avait
+              écrite la page des fonds. */}
+          <EnTete
+            retour={{ href: `/offres/${o.id}`, mot: t("La fiche") }}
+            surTitre={t(summary.subtitle)}
+            titre={o.title}
+            aCote={
+              <span className={styles.meta}>
+                <span className={`pill ${c.st}`}>{t(statusLabel(o, c.st))}</span>
+                <span className="mono">{o.isin}</span>
+              </span>
+            }
+          />
           <Kpis o={o} />
           <span className={`stamp ${stampPending ? "pending" : ""}`}>{t(stamp)}</span>
         </div>

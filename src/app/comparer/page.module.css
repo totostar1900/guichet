@@ -3,16 +3,7 @@
   max-width: 1040px;
   margin: 0 auto;
 }
-.head h1 {
-  /* Titre de page : le jeton. Voir ETALON.md. */
-  font-size: var(--t-8);
-  margin: 0 0 4px;
-}
-.head p {
-  margin: 0 0 14px;
-  font-size: 0.86rem;
-  max-width: 70ch;
-}
+/* Titre et phrase sont montés par « EnTete » depuis le 24 octobre 2026. */
 .pick {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;

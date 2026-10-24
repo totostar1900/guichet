@@ -21,12 +21,8 @@
   text-decoration: underline dotted 1px;
   text-underline-offset: 3px;
 }
-.line h1 {
-  /* Titre de page : le jeton. Voir ETALON.md. */
-  font-size: var(--t-8);
-  line-height: 1.25;
-  margin: 2px 0 6px;
-}
+/* Sur-titre, titre et retour sont montés par « EnTete » depuis le 24 octobre
+   2026 ; l'état et l'ISIN sont passés dans son créneau « aCote ». */
 .meta {
   display: flex;
   align-items: center;

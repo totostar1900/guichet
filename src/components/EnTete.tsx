@@ -38,8 +38,20 @@ export function EnTete({
 }: {
   /** Un cran en arrière. Omis sur une racine de siège, où il n'y a rien au-dessus. */
   retour?: { href: string; mot: string };
-  /** Où l'on est : la section qui contient cette page. */
-  surTitre?: string;
+  /**
+   * OÙ L'ON EST : la section qui contient cette page.
+   *
+   * UN NŒUD, PAS UNE CHAÎNE, depuis le 24 octobre 2026 : une page du guide y
+   * pose la PASTILLE de sa section — une forme et une couleur — avant de la
+   * nommer. C'est toujours « où je suis », dit avec un glyphe en plus.
+   *
+   * LA RÈGLE N'A PAS BOUGÉ, ELLE A CHANGÉ DE GARDIEN. « Jamais un lien,
+   * jamais un chemin » était tenue par le TYPE ; un nœud ne peut plus la
+   * tenir, donc elle est vérifiée sur les APPELS — aucune page ne pose un
+   * « href » ni un chevron dans ce créneau. C'est là qu'elle compte : le fil
+   * d'Ariane de « Sécurité » était un appel, pas une signature.
+   */
+  surTitre?: React.ReactNode;
   /** Le nom de la page. */
   titre: string;
   /**

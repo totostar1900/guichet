@@ -15,20 +15,9 @@
   gap: 18px;
   min-width: 0;
 }
-.head h1 {
-  font-family: var(--font-display);
-  /* Titre de page : le jeton. Voir ETALON.md. */
-  font-size: var(--t-8);
-  margin: 2px 0 6px;
-  letter-spacing: -0.01em;
-}
-.head p {
-  margin: 0;
-  max-width: 640px;
-  font-size: 0.92rem;
-  line-height: 1.5;
-  color: var(--ink-2);
-}
+/* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
+   2026. Le titre posait « font-family: var(--font-display) », c'est-à-dire la
+   fonte de l'interface sous un autre nom — le jeton vaut « var(--font-ui) ». */
 .featured {
   display: grid;
   grid-template-columns: 96px minmax(0, 1fr);

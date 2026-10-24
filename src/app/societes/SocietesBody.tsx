@@ -9,6 +9,7 @@ import { fmtDate, fmtUnits } from "@/lib/format";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { MarketStrip } from "@/components/MarketStrip";
+import { EnTete } from "@/components/EnTete";
 
 
 
@@ -30,12 +31,17 @@ export async function SocietesBody({ mode = "client" }: { mode?: "client" | "des
 
   return (
     <>
+      {/* LE CACHET DU BULLETIN EST UN « aCote », et il l'était déjà sans le
+          nom : une boîte posée en face du titre, alignée en bas. C'est
+          exactement le créneau que la page des fonds avait justifié — sous le
+          titre, un objet repousse d'un cran le début de la liste ; en face, il
+          ne coûte aucune hauteur. */}
       <div className={styles.head}>
         <div>
-          <h1 className="display">{t("Les sociétés cotées")}</h1>
-          <p className={styles.lead}>
-            {t("Les {n} entreprises dont les actions s'échangent à la BVMAC, ensemble {cap} de capitalisation. Pour chacune : ce qu'elle fait, ses comptes certifiés des dernières années, ce que vaut l'action aujourd'hui et comment lire ces chiffres : puis un rapport PDF sur la période de votre choix.", { n: COMPANIES.length, cap: fmtUnits(totalCap, true) })}
-          </p>
+          <EnTete
+            titre={t("Les sociétés cotées")}
+            phrase={t("Les {n} entreprises dont les actions s'échangent à la BVMAC, ensemble {cap} de capitalisation. Pour chacune : ce qu'elle fait, ses comptes certifiés des dernières années, ce que vaut l'action aujourd'hui et comment lire ces chiffres : puis un rapport PDF sur la période de votre choix.", { n: COMPANIES.length, cap: fmtUnits(totalCap, true) })}
+          />
         </div>
         {bulletins[0] && (
           <div className={styles.stamp}>

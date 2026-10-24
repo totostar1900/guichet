@@ -12,7 +12,8 @@ import { COUNTRY_CODE, summarize } from "@/lib/domain/summary";
 import { fmt, fmtPct, fmtScaled, fmtUnits, pickScale } from "@/lib/format";
 import styles from "../../societes/[mnemo]/page.module.css";
 import { getT } from "@/i18n/server";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -44,18 +45,18 @@ export default async function EmetteurPage({ params }: Props) {
   return (
     <Glissement>
       <>
-        <LienRetour href="/societes" className={styles.back}>
-          {tr("← Sociétés cotées et émetteurs")}
-        </LienRetour>
-        <div className={styles.head}>
-          <div>
-            <div className={`eyebrow ${styles.eyebrow}`}>
+        {/* La flèche appartient au créneau, pas au texte : elle était écrite
+            DANS la chaîne traduite, donc répétée dans chaque dictionnaire. */}
+        <EnTete
+          retour={{ href: "/societes", mot: tr("Sociétés cotées et émetteurs") }}
+          surTitre={
+            <span className={styles.eyebrow}>
               <span className="cc">{COUNTRY_CODE[i.country]}</span> {i.sector} · émetteur obligataire BVMAC · {i.mnemo}
-            </div>
-            <h1 className="display">{i.name}</h1>
-            <p className={styles.activity}>{tr(i.activity)}</p>
-          </div>
-        </div>
+            </span>
+          }
+          titre={i.name}
+          phrase={tr(i.activity)}
+        />
 
         <div className={styles.kpis}>
           <div className={`${styles.kpi} ${styles.gold}`}>

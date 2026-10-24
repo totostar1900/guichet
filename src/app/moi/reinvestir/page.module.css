@@ -21,25 +21,8 @@
      avait relevé). Voir ETALON.md. */
   gap: var(--s-10);
 }
-.tete {
-  display: grid;
-  gap: var(--s-3);
-}
-.fil {
-  font-size: 0.8rem;
-}
-.page h1 {
-  margin: 0 0 var(--s-4);
-  /* Titre de page : le jeton. Voir ETALON.md. */
-  font-size: var(--t-8);
-}
-.chapeau {
-  margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.6;
-  color: var(--ink-2);
-  max-width: 62ch;
-}
+/* Titre, phrase et retour sont montés par « EnTete » depuis le 24 octobre
+   2026 : leurs mesures vivent dans sa feuille. */
 /* « .sec » et son « h2 » sont partis avec les quatre titres nus : la bande
    du pli porte le titre, son sous-titre et son compte. */
 

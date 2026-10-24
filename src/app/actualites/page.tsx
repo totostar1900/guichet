@@ -13,6 +13,7 @@ import { positionsFrom } from "@/lib/positions";
 import { summarize } from "@/lib/domain/summary";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
@@ -69,16 +70,16 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
     <Glissement>
       <div className={styles.page}>
         <div className={styles.main}>
-          <div className={styles.head}>
-            <span className="eyebrow">{t("Actualités")}</span>
-            {/* LE NOM EN TITRE, PAS LA PHRASE. « Ce qui bouge sur le marché, en
-                trois lignes » est une phrase, et la page en portait déjà une
-                juste dessous : le titre disait donc deux fois la même chose, en
-                trente pixels et sur deux lignes. La table des pages du marché
-                nomme cette page « Actualités du marché ». Voir ETALON.md. */}
-            <h1>{t("Actualités du marché")}</h1>
-            <p>{t("Chaque jour, le desk retient les publications qui comptent pour vos lignes, communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse économique, et dit pourquoi. Les articles restent chez leurs éditeurs : Guichet renvoie vers l'original.")}</p>
-          </div>
+          {/* LE NOM EN TITRE, PAS LA PHRASE. « Ce qui bouge sur le marché, en
+              trois lignes » est une phrase, et la page en portait déjà une
+              juste dessous : le titre disait donc deux fois la même chose, en
+              trente pixels et sur deux lignes. La table des pages du marché
+              nomme cette page « Actualités du marché ». Voir ETALON.md. */}
+          <EnTete
+            surTitre={t("Actualités")}
+            titre={t("Actualités du marché")}
+            phrase={t("Chaque jour, le desk retient les publications qui comptent pour vos lignes, communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse économique, et dit pourquoi. Les articles restent chez leurs éditeurs : Guichet renvoie vers l'original.")}
+          />
           <IndexPulse />
 
           <div data-coach="filters">

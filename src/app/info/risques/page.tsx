@@ -5,6 +5,7 @@ import { fmtDate } from "@/lib/format";
 import { GuideBar } from "../GuideBar";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -38,16 +39,18 @@ export default async function RisquesPage() {
     <Glissement>
       <div className={styles.page}>
 
-        <header className={styles.tete}>
-          <div>
-            <div className="eyebrow">{t("Information réglementaire")}</div>
-            <h1 className="display">{t("Risques et limites")}</h1>
-          </div>
-          <div className={styles.chapeau}>
-            <p>{t("Cette page dit ce que chaque opération engage, ce qu'elle laisse ouvert, et quels risques elle porte. Elle se lit avant d'ouvrir un compte, et elle reste accessible à tout moment.")}</p>
-            <span>{t("Version du {date}", { date: fmtDate(RISQUES_VERSION) })}</span>
-          </div>
-        </header>
+        {/* UNE GRILLE DE DOUZE COLONNES POUR LE SEUL EN-TÊTE, et la phrase
+            partait en colonne 9 : plusieurs centaines de pixels à droite du
+            titre qu'elle explique. C'est mot pour mot le défaut que « Trade »
+            s'est fait retirer le 24 octobre, et il vivait ici aussi.
+            La version reste, sous l'en-tête : c'est une mention datée, pas la
+            phrase de la page — même place que sur les mentions légales. */}
+        <EnTete
+          surTitre={t("Information réglementaire")}
+          titre={t("Risques et limites")}
+          phrase={t("Cette page dit ce que chaque opération engage, ce qu'elle laisse ouvert, et quels risques elle porte. Elle se lit avant d'ouvrir un compte, et elle reste accessible à tout moment.")}
+        />
+        <p className={styles.version}>{t("Version du {date}", { date: fmtDate(RISQUES_VERSION) })}</p>
 
         <div className={styles.corps}>
           {/* Le rail : il nomme les cinq étages, et rien d'autre. */}

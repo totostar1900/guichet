@@ -26,6 +26,7 @@ import { COMPANY, PRODUCT } from "@/lib/config";
 import { ApercuPartage } from "./ApercuPartage";
 import { identite } from "./identite";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -70,11 +71,12 @@ export default async function OfferPage({ params, searchParams }: Props) {
     return (
       <div className={styles.page}>
         <div className={styles.main}>
+          {/* « ListNav » reste au-dessus : ce n'est pas un cran en arrière mais
+              un déplacement dans la liste d'où l'on vient. L'en-tête, lui,
+              passe à l'étalon — et la marge écrite en style en ligne s'en va
+              avec, puisque l'écart sous un en-tête vit dans sa feuille. */}
           <ListNav id={o.id} fallbackHref="/" fallbackLabel="Toutes les offres" />
-          <h1 className="display" style={{ marginTop: 12 }}>
-            {o.title}
-          </h1>
-          <p className="muted">{t("Cette ligne a été retirée de Guichet. Pour toute question, contactez le desk.")}</p>
+          <EnTete titre={o.title} phrase={t("Cette ligne a été retirée de Guichet. Pour toute question, contactez le desk.")} />
         </div>
       </div>
     );

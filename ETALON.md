@@ -234,13 +234,58 @@ ni parent derrière, et dont le titre nomme l'étape en cours.
 n'atteint jamais zéro**, et un compte qui ne peut pas tomber à zéro ne dit plus
 s'il reste du travail.
 
-D'où **deux mesures** : neuf dispenses **nommées**, chacune avec sa raison —
+D'où **deux mesures** : des dispenses **nommées**, chacune avec sa raison —
 la forme que le § C a déjà donnée à la règle de la fonte, *« un compte dirait
 combien de fichiers posent la fonte, pas lesquels ont le droit »* — et un
-cliquet qui ne porte plus que ce qui attend d'être converti. **Il est à 18, et
-celui-là peut finir.** Une dispense est vérifiée comme le reste : si sa page
-est convertie, renommée ou supprimée, la dispense ne vise plus rien et
-l'épreuve le dit.
+cliquet qui ne porte plus que ce qui attend d'être converti. Une dispense est
+vérifiée comme le reste : si sa page est convertie, renommée ou supprimée, la
+dispense ne vise plus rien et l'épreuve le dit.
+
+### Le cliquet est à zéro
+
+**49 au matin, 38, 27, 18, puis plus rien.** Toute page de l'application monte
+`EnTete`. Les dix fichiers qui écrivent encore un `h1` sont nommés, chacun avec
+sa raison : la vitrine (§ C), l'en-tête lui-même, le « Bonjour » de la console,
+trois écrans de seuil, et **la note de marché trimestrielle** — un `article`
+avec son bandeau à filet navy, un titre sur une échelle *fluide* hors de
+`--t-8`, un chapô et une signature. C'est la grammaire d'une publication, celle
+que le § C range du côté qui respire ; lui imposer l'en-tête de l'application
+l'aplatirait en écran.
+
+Le cliquet reste à `0` : il interdit désormais la **régression**, qui est son
+autre moitié. Une page neuve qui écrirait son en-tête à la main le ferait
+tomber le jour même.
+
+→ *Le sur-titre accepte un NŒUD depuis ce soir-là : une page du guide y pose la
+pastille de sa section — une forme, une couleur — avant de la nommer. La règle
+« jamais un lien, jamais un chemin » était tenue par le TYPE ; elle est
+désormais vérifiée sur les **appels**, et c'est là qu'elle comptait depuis le
+début — le fil d'Ariane de « Sécurité » était un appel, pas une signature.*
+
+→ *Quatre chemins déguisés se sont fait prendre à la conversion. Trois `nav`
+d'un seul lien vers le parent — `/moi/epargne`, `/moi/reinvestir`, et le
+chevron de `/moi/reclamation` — et **un mot cliquable au milieu d'un
+sur-titre** : « BVMAC » menait à `/marche` depuis l'avant-titre de l'indice. Un
+chemin vers le parent a un créneau, et c'est le premier : l'indice y a gagné le
+retour qui lui manquait.*
+
+→ *Et trois retours nommaient mal leur destination, toujours en citant autre
+chose que le libellé de la maison :* « Portefeuille » *pour* `/` *(« Tableau de
+bord »), deux fois, et* « Mon dossier d'ouverture » *pour* `/ouvrir-un-compte`
+*— qui est l'INDICE de l'entrée dans `nav-groups`, pas son libellé* « Mes
+pièces ». *L'épreuve des retours lit `retour={{ … }}` : elle ne pouvait rien
+voir d'un `<Link>` écrit à la main.*
+
+→ *Deux grilles de douze colonnes montées pour un seul en-tête sont parties
+avec lui — celle de `/trader` en début de journée, celle d'`/info/risques` au
+soir, où la phrase partait en colonne 9, loin à droite du titre qu'elle
+explique.*
+
+→ *Trois pages gardent un dispositif de retour à elles, et c'est délibéré :*
+`/comparer` *a un retour d'historique, n'ayant pas un parent unique ;*
+`/societes/[mnemo]` *porte deux liens, dont un conditionnel vers l'indice — une
+bande de navigation, pas le créneau ;* `/offres/[id]` *garde son `ListNav`, qui
+déplace dans une liste au lieu de remonter d'un cran.*
 
 → *Dix conversions le même soir, et deux d'entre elles ont découvert ce que
 leur propre écriture cachait : `/moi/reclamation` et `/moi/epargne`

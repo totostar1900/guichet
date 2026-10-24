@@ -478,9 +478,16 @@ d'abord, l'en-tête commun ensuite, puis les défauts isolés, les redécoupages
 et la page d'accueil en dernier — elle était bien la vitrine de toutes les
 décisions d'avant, et aucune n'a eu à être refaite.
 
-**Le point 7 ne se clôt pas, et c'est voulu.** La règle est posée et l'en-tête
-commun existe ; ce qui reste est un CLIQUET. Il descend à chaque page convertie
-et ne remonte jamais. Un cliquet ne se coche pas, il se regarde baisser.
+**Le point 7 est clos : le cliquet est à zéro.** 49 en-têtes écrits à la main
+au matin, 38, 27, 18, puis plus rien — **toute page de l'application monte
+`EnTete`**. Les dix fichiers qui écrivent encore un `h1` sont nommés, chacun
+avec sa raison : la vitrine, l'en-tête lui-même, le « Bonjour » de la console,
+trois écrans de seuil, et la note de marché trimestrielle, qui est un document
+publié et non une page.
+
+Le cliquet reste, à `0` : il interdit maintenant la RÉGRESSION, qui est son
+autre moitié. Une page neuve qui écrirait son en-tête à la main le ferait
+tomber le jour même. Un cliquet ne se coche pas ; celui-ci a touché le fond.
 
 **Mais il ne pouvait pas toucher le fond, et c'est corrigé.** 49 au matin, 38,
 puis 27 — et parmi ces 27, `EnTete.tsx` **lui-même** : le composant qui écrit

@@ -15,6 +15,7 @@ import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { MarketStrip } from "@/components/MarketStrip";
 import { LienRetour } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 
 type Props = { params: Promise<{ mnemo: string }>; searchParams: Promise<{ p?: string; depuis?: string }> };
@@ -69,13 +70,26 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
           {t("← Toutes les sociétés cotées")}
         </LienRetour>
       </div>
+      {/* LA BANDE DE RETOUR RESTE AU-DESSUS, ET ELLE PORTE DEUX LIENS : « vers
+          l'indice », quand on en vient, et « toutes les sociétés ». Le créneau
+          de l'étalon ne porte QU'UN cran en arrière ; deux retours sont une
+          bande de navigation, pas ce créneau. Laissé tel quel plutôt que d'en
+          perdre un.
+          ET LA PHRASE EST UNE SEULE PHRASE : l'activité de la société. La
+          conclusion de l'analyse la suivait dans le même bloc — c'est une
+          lecture, pas la description de la page, et elle garde sa place sous
+          l'en-tête. */}
       <div className={styles.head}>
         <div>
-          <div className={`eyebrow ${styles.eyebrow}`}>
-            <span className="cc">{COUNTRY_CODE[c.country]}</span> {c.sector} · BVMAC · {c.mnemo} · {c.isin}
-          </div>
-          <h1 className="display">{c.name}</h1>
-          <p className={styles.activity}>{t(c.activity)}</p>
+          <EnTete
+            surTitre={
+              <span className={styles.eyebrow}>
+                <span className="cc">{COUNTRY_CODE[c.country]}</span> {c.sector} · BVMAC · {c.mnemo} · {c.isin}
+              </span>
+            }
+            titre={c.name}
+            phrase={t(c.activity)}
+          />
           <p className={styles.headline}>{t(a.headline)}</p>
         </div>
         <div className={styles.actions}>

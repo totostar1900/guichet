@@ -11,7 +11,8 @@ import { PASSAGES, passage, resolvePassages } from "@/lib/documents/passages";
 import { CONVENTION_CHANGE } from "@/data/legal";
 import { Signer } from "./Signer";
 import styles from "./page.module.css";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -114,14 +115,17 @@ export default async function ConventionPage() {
   return (
     <Glissement>
       <div className={styles.page}>
-        <LienRetour href="/ouvrir-un-compte" className={styles.retour}>
-          ← {t("Mon dossier d'ouverture")}
-        </LienRetour>
-        <div className={styles.tete}>
-          <div className="eyebrow">{t("Convention de compte-titres")}</div>
-          <h1 className="display">{t("Votre convention")}</h1>
-          <p className={styles.lead}>{t("C'est le contrat entre vous et Purpose Capital. Il dit ce que vous nous confiez, et ce que nous vous devons en retour. Rien d'autre ne se passe sur cette page.")}</p>
-        </div>
+        {/* « Mes pièces » et non « Mon dossier d'ouverture » : la page citait
+            l'INDICE de la destination dans « nav-groups », pas son libellé.
+            Troisième retour mal nommé trouvé par la même épreuve, et le
+            troisième qu'elle ne pouvait pas voir tant que le lien était écrit
+            à la main. */}
+        <EnTete
+          retour={{ href: "/ouvrir-un-compte", mot: t("Mes pièces") }}
+          surTitre={t("Convention de compte-titres")}
+          titre={t("Votre convention")}
+          phrase={t("C'est le contrat entre vous et Purpose Capital. Il dit ce que vous nous confiez, et ce que nous vous devons en retour. Rien d'autre ne se passe sur cette page.")}
+        />
 
         {reprise && (
           <div className={styles.reprise}>

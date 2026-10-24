@@ -22,17 +22,8 @@
 .retour:hover {
   color: var(--ink);
 }
-.tete {
-  display: grid;
-  gap: var(--s-3);
-}
-.lead {
-  margin: 0;
-  max-width: 62ch;
-  color: var(--ink-2);
-  font-size: var(--t-4);
-  line-height: 1.55;
-}
+/* Retour, sur-titre, titre et phrase sont montés par « EnTete » depuis le
+   24 octobre 2026 : leurs mesures vivent dans sa feuille. */
 
 /* CE QUI A CHANGÉ DEPUIS LA SIGNATURE : une reprise n'est pas une première
    signature, et la page s'ouvre sur la différence. */

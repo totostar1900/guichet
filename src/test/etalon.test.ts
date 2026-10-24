@@ -248,6 +248,14 @@ const SANS_ENTETE: Record<string, string> = {
   "src/app/connexion/page.tsx": "un écran de seuil : carte centrée, pas de section ni de parent, et le titre nomme l'étape",
   "src/app/connexion/mfa/page.tsx": "un écran de seuil : carte centrée, pas de section ni de parent",
   "src/app/ne-plus-recevoir/page.tsx": "une carte de confirmation atteinte par un lien de courriel : « C'est fait. » est une réponse, pas un nom de page",
+  /* UN DOCUMENT PUBLIÉ, ET NON UNE PAGE DE L'APPLICATION. La note
+     trimestrielle est un « article » avec son propre bandeau — filet navy de
+     trois pixels, maison et numéro de parution —, un titre sur une échelle
+     FLUIDE hors de « --t-8 », un chapô et une signature. C'est la grammaire
+     d'une publication qu'on lit et qu'on partage, celle que le § C de
+     l'ETALON range du côté qui respire. Lui imposer l'en-tête de
+     l'application l'aplatirait en écran. */
+  "src/app/indice/note/[trimestre]/page.tsx": "une note de marché publiée : bandeau, titre sur une échelle fluide, chapô et signature — un document, pas une page",
 };
 const entetesALaMain = (): string[] => {
   const out: string[] = [];
@@ -283,9 +291,13 @@ describe("l'en-tête d'une page", () => {
   });
 
   it("ne laisse pas les en-têtes qui restent à convertir se multiplier", () => {
-    /* Le compte du 24 octobre 2026 au soir, après neuf conversions : il
-       descend, il ne monte pas, et celui-ci peut finir à zéro. */
-    const PLAFOND = 18;
+    /* ZÉRO, ATTEINT LE 24 OCTOBRE 2026 AU SOIR. Quarante-neuf au matin, 38,
+       27, 18, puis plus rien : toute page de l'application monte « EnTete »,
+       et les dix fichiers qui écrivent encore un « h1 » sont nommés plus haut,
+       chacun avec sa raison. Le cliquet reste — il interdit désormais la
+       RÉGRESSION, ce qui est son autre moitié : une page neuve qui écrirait
+       son en-tête à la main le ferait tomber le jour même. */
+    const PLAFOND = 0;
     const restants = entetesALaMain().filter((f) => !SANS_ENTETE[f]);
     expect(restants.length, `${restants.length} en-têtes encore écrits à la main (plafond ${PLAFOND}) :\n  ${restants.join("\n  ")}`).toBeLessThanOrEqual(PLAFOND);
     expect(PLAFOND - restants.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(2);
@@ -300,6 +312,57 @@ describe("l'en-tête d'une page", () => {
     /* Le retour est un lien, le sur-titre n'en est pas un : c'est toute la
        distinction que le fil d'Ariane de « Sécurité » effaçait. */
     expect(s, "le sur-titre est redevenu un lien").not.toMatch(/surTitre[^}]*href/);
+  });
+
+  /* ET LA RÈGLE SE VÉRIFIE SUR LES APPELS, depuis que « surTitre » accepte un
+     nœud — une page du guide y pose la pastille de sa section. Le type ne peut
+     plus la tenir ; elle compte pourtant là plus qu'ailleurs, car le fil
+     d'Ariane de « Sécurité » était un APPEL, pas une signature.
+     QUATRE SE SONT FAIT PRENDRE CE SOIR-LÀ, tous déguisés : trois « nav » d'un
+     seul lien vers le parent, et un mot cliquable au milieu d'un sur-titre —
+     « BVMAC » menait à « /marche » depuis l'avant-titre de l'indice. Un chemin
+     vers le parent a un créneau, et c'est le premier. */
+  it("ne laisse personne poser un lien ni un chevron dans le créneau du sur-titre", () => {
+    const fautifs: string[] = [];
+    const marche = (d: string) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) marche(p);
+        else if (e.name.endsWith(".tsx")) {
+          const s = fs.readFileSync(p, "utf8");
+          for (const m of s.matchAll(/surTitre=\{/g)) {
+            /* La valeur du créneau : du « { » jusqu'à l'accolade qui le ferme. */
+            let i = (m.index ?? 0) + m[0].length - 1;
+            let n = 0;
+            const debut = i;
+            for (; i < s.length; i++) {
+              if (s[i] === "{") n++;
+              else if (s[i] === "}" && --n === 0) break;
+            }
+            const valeur = s.slice(debut, i);
+            if (/href=|href:/.test(valeur)) fautifs.push(`${path.relative(ROOT, p)} · un lien`);
+            if (/\u203a/.test(valeur)) fautifs.push(`${path.relative(ROOT, p)} · un chevron de fil d'Ariane`);
+          }
+        }
+      }
+    };
+    marche(path.join(ROOT, "src"));
+    expect(fautifs, `le créneau du sur-titre dit OÙ l'on est ; un lien ou un chevron y refait le fil d'Ariane que « EnTete » a été écrit pour retirer\n  ${fautifs.join("\n  ")}`).toEqual([]);
+  });
+
+  /* Non vacuité : la règle ne garde rien si plus personne n'emploie le
+     créneau. */
+  it("garde un créneau de sur-titre qui sert encore", () => {
+    let n = 0;
+    const marche = (d: string) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) marche(p);
+        else if (e.name.endsWith(".tsx")) n += (fs.readFileSync(p, "utf8").match(/surTitre=\{/g) ?? []).length;
+      }
+    };
+    marche(path.join(ROOT, "src"));
+    expect(n, "plus aucune page ne pose de sur-titre : la règle au-dessus ne garde plus rien").toBeGreaterThan(8);
   });
 
   /* CE QUI SE POSE À CÔTÉ reste à côté. Les trois listes d'instruments

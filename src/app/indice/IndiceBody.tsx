@@ -8,6 +8,7 @@ import { MarketStrip } from "@/components/MarketStrip";
 import { BackToTop } from "@/components/BackToTop";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
+import { EnTete } from "@/components/EnTete";
 
 /**
  * La page de l'indice, une seule fois.
@@ -106,13 +107,20 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
 
   return (
     <>
+      {/* LE LIEN DU SUR-TITRE DEVIENT LE RETOUR, et c'est la règle appliquée
+          plutôt que contournée. « BVMAC » menait à « /marche » depuis le
+          créneau d'avant-titre : un chemin vers le parent, déguisé en mot
+          d'une description — exactement ce que l'étalon interdit là, et
+          exactement ce que le premier créneau sert à dire. Le desk, qui n'a
+          pas cette page au-dessus de lui, n'a pas de retour. */}
       <div className={styles.head}>
         <div>
-          <div className="eyebrow">
-            {desk ? "BVMAC" : <Link href="/marche">BVMAC</Link>} · {t("indice de prix")} · {t("lu à chaque bulletin")}
-          </div>
-          <h1 className="display">{t("L'indice BVMAC All Share")}</h1>
-          <p className={styles.lead}>{t("Un seul nombre pour toutes les actions cotées à la BVMAC : la somme des capitalisations, ramenée à une base. Guichet le lit dans chaque bulletin officiel de la cote et le montre tel quel.")}</p>
+          <EnTete
+            retour={desk ? undefined : { href: "/marche", mot: t("Le marché") }}
+            surTitre={`BVMAC · ${t("indice de prix")} · ${t("lu à chaque bulletin")}`}
+            titre={t("L'indice BVMAC All Share")}
+            phrase={t("Un seul nombre pour toutes les actions cotées à la BVMAC : la somme des capitalisations, ramenée à une base. Guichet le lit dans chaque bulletin officiel de la cote et le montre tel quel.")}
+          />
         </div>
         <div className={styles.links}>
           <Link className="btn sm" href="/info/indice-bvmac">

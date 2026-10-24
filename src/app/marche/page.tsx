@@ -12,6 +12,7 @@ import { loadCompanies } from "@/lib/reference";
 import { getLang, getT } from "@/i18n/server";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Le marché" };
@@ -75,14 +76,11 @@ export default async function MarchePage() {
         <div className={styles.sommaire}>
           <Rubriques items={MARKET_PAGES.filter((p) => p.href !== "/marche").map((p) => ({ href: p.href, nom: t(p.label), quoi: t(p.hint) }))} />
         </div>
-        <header className={styles.head}>
-          <div className="eyebrow">BVMAC · {t("Bourse des Valeurs Mobilières de l'Afrique Centrale")}</div>
-          <h1 className="display">{t("Le marché")}</h1>
-          <p className={styles.lead}>
-            {t("Ce que la Bourse publie à chaque séance, et ce que nous en lisons : l'indice, les sociétés cotées, et les notes que nous en tirons.")}
-            {lastBulletin ? ` ${t("Dernier bulletin lu : n° {n} du {d}.", { n: String(lastBulletin.number), d: fmtDate(lastBulletin.sessionDate) })}` : ""}
-          </p>
-        </header>
+        <EnTete
+          surTitre={`BVMAC · ${t("Bourse des Valeurs Mobilières de l'Afrique Centrale")}`}
+          titre={t("Le marché")}
+          phrase={`${t("Ce que la Bourse publie à chaque séance, et ce que nous en lisons : l'indice, les sociétés cotées, et les notes que nous en tirons.")}${lastBulletin ? ` ${t("Dernier bulletin lu : n° {n} du {d}.", { n: String(lastBulletin.number), d: fmtDate(lastBulletin.sessionDate) })}` : ""}`}
+        />
 
         <IndexPulse />
 

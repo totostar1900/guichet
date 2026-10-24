@@ -9,6 +9,7 @@ import { ConsentSection, ConventionSection, DocsSection, FundsSection, IdentityS
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
@@ -71,12 +72,12 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
       <div className={styles.wrap}>
         <div className={styles.head}>
           <div>
-            <div className="eyebrow">{t("Ouverture de compte-titres")}</div>
-            <h1 className="display">{t(file.status === "approuve" ? (signable ? (reprise ? "Votre convention a changé" : "Dossier approuvé : acceptez votre convention") : file.review.custodianAccount ? "Votre compte est actif" : "Dossier approuvé : compte en cours d'ouverture") : "Ouvrir mon compte")}</h1>
-            <p className={styles.lead}>
-              {/* Une fois le dossier approuvé, l'accroche ne reprend pas
-                  l'argumentaire du début : elle dit où en est le compte. */}
-              {t(
+            {/* Une fois le dossier approuvé, l'accroche ne reprend pas
+                l'argumentaire du début : elle dit où en est le compte. */}
+            <EnTete
+              surTitre={t("Ouverture de compte-titres")}
+              titre={t(file.status === "approuve" ? (signable ? (reprise ? "Votre convention a changé" : "Dossier approuvé : acceptez votre convention") : file.review.custodianAccount ? "Votre compte est actif" : "Dossier approuvé : compte en cours d'ouverture") : "Ouvrir mon compte")}
+              phrase={t(
                 signable
                   ? reprise
                     ? "La convention a changé sur un point qui vous engage : vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres, et vous ne signerez plus rien pour cela. Sa page dit ce qui a changé, puis vous la reprenez par un code à usage unique. Vos positions et votre compte ne changent pas."
@@ -92,7 +93,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
                         "Votre convention est acceptée : vous pouvez dès maintenant souscrire des parts de fonds, qui s'inscrivent à votre nom au registre du fonds. Pour les titres du Trésor et les lignes cotées, le sous-compte à votre nom s'ouvre chez le teneur de compte, en général sous 24 à 48 h ; nous vous confirmons son numéro dès réception."
                     : "Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l'origine des fonds et votre profil. Un seul dossier ouvre les deux : les parts de fonds, inscrites au registre du fonds, et les titres, qui demandent en plus un compte-titres à votre nom. Un conseiller examine votre dossier et vous écrit dès la décision ; depuis l'étranger, un appel vidéo s'ajoute. Vous n'acceptez la convention qu'une fois le dossier approuvé.",
               )}
-            </p>
+            />
           </div>
           <div className={styles.status}>
             {/* Rien à annoncer tant que rien n'est enregistré : une pastille d'état

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ReinvestForm } from "./ReinvestForm";
 import { Pli } from "@/components/Pli";
@@ -13,6 +12,7 @@ import { getT } from "@/i18n/server";
 import { fmt, fmtDate, localIso } from "@/lib/format";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Réinvestir vos encaissements" };
@@ -70,17 +70,18 @@ export default async function ReinvestirPage() {
   return (
     <Glissement>
       <div className={styles.page}>
-        <nav className={styles.fil}>
-          <Link href="/">{t("Portefeuille")}</Link>
-        </nav>
-        <header className={styles.tete}>
-          <h1>{t("Réinvestir vos encaissements")}</h1>
-          <p className={styles.chapeau}>
-            {t(
-              "Un coupon qui dort sur un compte en banque cesse de rapporter pendant que la ligne qui l'a versé continue. Cette instruction replace ce qui vous revient, dès qu'il arrive, sur la ligne que vous choisissez maintenant.",
-            )}
-          </p>
-        </header>
+        {/* LE QUATRIÈME FIL D'UN SEUL CRAN, et le troisième à nommer sa
+            destination « Portefeuille » quand « nav-groups » l'appelle
+            « Tableau de bord ». Les quatre portaient le même défaut sous deux
+            formes — un « nav » d'un lien, ou un chevron — et aucune épreuve ne
+            pouvait les voir tant qu'ils étaient écrits à la main. */}
+        <EnTete
+          retour={{ href: "/", mot: t("Tableau de bord") }}
+          titre={t("Réinvestir vos encaissements")}
+          phrase={t(
+            "Un coupon qui dort sur un compte en banque cesse de rapporter pendant que la ligne qui l'a versé continue. Cette instruction replace ce qui vous revient, dès qu'il arrive, sur la ligne que vous choisissez maintenant.",
+          )}
+        />
 
         {/* LES QUATRE CHAPITRES PRENNENT LA BANDE DE « MES DOCUMENTS ».
             Ils étaient quatre titres nus posés dans la colonne, séparés par

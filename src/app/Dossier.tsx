@@ -5,6 +5,7 @@ import { ancreDeReprise, etapesDuDossier, missingForSubmission } from "@/lib/kyc
 import type { Session } from "@/lib/auth/types";
 import { getT } from "@/i18n/server";
 import styles from "./Dossier.module.css";
+import { EnTete } from "@/components/EnTete";
 
 /**
  * L'ÉCRAN DE QUELQU'UN DONT LE COMPTE EST CRÉÉ ET LE DOSSIER PAS ENCORE PASSÉ.
@@ -84,10 +85,18 @@ export async function Dossier({ session }: { session: Session }) {
 
   return (
     <div className={styles.page}>
+      {/* L'EN-TÊTE PASSE À L'ÉTALON, ET CET ÉCRAN GARDE SON ENCRE. Son titre
+          portait « font-weight: 400 » et « var(--navy-text) » — un bleu franc,
+          pas une nuance d'encre : c'est l'identité de l'écran du dossier, et
+          la décision du § C de l'ETALON porte sur la FONTE d'un titre, pas sur
+          son poids ni sa couleur. Placement, ordre et taille viennent du
+          composant ; ces deux propriétés restent écrites ici, et nulle part
+          ailleurs.
+          LE SUR-TITRE EST UNE SALUTATION, et non « où je suis » : c'est ce que
+          cette page disait déjà, et le changer serait une décision d'écriture,
+          pas une conversion. Noté plutôt que fait. */}
+      <EnTete surTitre={t("Bonjour {p}", { p: session.name.split(" ")[0] })} titre={dit.titre} phrase={dit.corps} />
       <header className={styles.tete}>
-        <span className="eyebrow">{t("Bonjour {p}", { p: session.name.split(" ")[0] })}</span>
-        <h1>{dit.titre}</h1>
-        <p>{dit.corps}</p>
         {geste && (
           <div className={styles.gestes}>
             <Link className="btn primary" href={geste.href}>

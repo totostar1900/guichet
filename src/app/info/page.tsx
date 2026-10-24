@@ -15,6 +15,7 @@ import { FoldAll, FoldSection } from "@/components/Fold";
 import styles from "./page.module.css";
 import { getLang, getT } from "@/i18n/server";
 import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 /** The tab and the phone header read this title: in the reader's language. */
 export async function generateMetadata() {
@@ -46,11 +47,11 @@ export default async function InfoPage() {
     <Glissement>
       <Sommaire label={t("Sur cette page")} sections={sections}>
         <div className={styles.wrap}>
-          <div className={styles.head}>
-            <div className="eyebrow">Guide</div>
-            <h1 className="display">{t("Lire une ligne en trente secondes")}</h1>
-            <p className="muted">{t("Ce qu'il faut savoir pour comprendre une offre de Guichet : les mots, les chiffres, les risques : expliqués une fois pour toutes, sans jargon inutile.")}</p>
-          </div>
+          <EnTete
+            surTitre={t("Le Guide")}
+            titre={t("Lire une ligne en trente secondes")}
+            phrase={t("Ce qu'il faut savoir pour comprendre une offre de Guichet : les mots, les chiffres, les risques : expliqués une fois pour toutes, sans jargon inutile.")}
+          />
           <div data-coach="info-search" id="recherche" className={styles.anchor}>
             {/* HUIT, COMME AVANT : le champ du Guide est une section parmi six,
                 et les résultats poussent les suivantes vers le bas plutôt que de

@@ -16,7 +16,8 @@ import { canalDuCode } from "@/lib/kyc/canal";
 import { AuDoigt } from "./AuDoigt";
 import { SignatureOrdre } from "./Signature";
 import styles from "./page.module.css";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -97,19 +98,12 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
   return (
     <Glissement>
       <div className={styles.wrap}>
-        <LienRetour href="/moi/documents" className={styles.back}>
-          ← {t("Mes documents")}
-        </LienRetour>
-        <div className={styles.head}>
-          <div className="eyebrow">
-            {t(INTENT_LABEL[intent.type])} · {intent.signedAt ? t("signé") : signable ? t("étape 2 sur 2") : t(INTENT_STATE_LABEL[intent.state])}
-          </div>
-          <h1 className="display">{intent.signedAt ? t("Votre ordre") : t("Signer mon ordre")}</h1>
-          <p className={styles.lead}>
-            {offer.title}
-            {f ? ` · ${f.manager}` : ""}
-          </p>
-        </div>
+        <EnTete
+          retour={{ href: "/moi/documents", mot: t("Mes documents") }}
+          surTitre={`${t(INTENT_LABEL[intent.type])} · ${intent.signedAt ? t("signé") : signable ? t("étape 2 sur 2") : t(INTENT_STATE_LABEL[intent.state])}`}
+          titre={intent.signedAt ? t("Votre ordre") : t("Signer mon ordre")}
+          phrase={`${offer.title}${f ? ` · ${f.manager}` : ""}`}
+        />
 
         <section className={styles.recap}>
           <div className={styles.recapH}>{t("Ce que vous signez")}</div>

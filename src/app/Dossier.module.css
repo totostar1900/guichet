@@ -25,20 +25,13 @@
      sans, tous les quatre sommaires de siège. La ligne est celle que ce
      dépôt écrivait déjà : le site public respire, l'application travaille.
      La vitrine garde donc son serif et son échelle fluide. */
-.tete h1 {
-  margin: 0;
+/* LE TITRE EST MONTÉ PAR « EnTete », et ne garde ici que ce qui fait
+   l'identité de cet écran : un bleu franc et un trait plus léger. La taille,
+   la place et l'ordre viennent du composant. */
+.page h1 {
   font-weight: 400;
-  /* Titre de page : le jeton. Voir ETALON.md. */
-  font-size: var(--t-8);
   line-height: 1.15;
   color: var(--navy-text);
-}
-.tete p {
-  margin: 0;
-  max-width: 46em;
-  font-size: var(--t-5);
-  line-height: 1.6;
-  color: var(--ink-2);
 }
 .gestes {
   display: flex;

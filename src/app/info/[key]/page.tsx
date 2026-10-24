@@ -14,7 +14,8 @@ import { LessonWidget, type Live } from "./LessonWidget";
 import { Quiz } from "./Quiz";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
+import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
 
@@ -92,18 +93,22 @@ export default async function LessonPage({ params }: Props) {
         hints={{ next: "Glissez vers la gauche : l'éclairage suivante", prev: "Glissez vers la droite : l'éclairage précédente" }}
       >
       <div className={styles.wrap}>
-        <LienRetour href={section ? "/info/parcours" : "/info"} className={styles.back}>
-          ← {section ? t("Comprendre le marché CEMAC") : t("Guide")}
-        </LienRetour>
-        <div className={styles.head}>
-          <div className={`eyebrow ${styles.eyebrow}`}>
-            {section && <SectionShape shape={section.shape} color={section.color} size={16} />}
-            {section ? `${String.fromCharCode(64 + section.order)} · ${t(section.title)} · ` : ""}
-            {t("Éclairage {n} sur {total}", { n: i + 1, total: lessons.length })} · {l.minutes} min
-          </div>
-          <h1 className="display">{t(l.title)}</h1>
-          <p className={styles.intro}>{t(l.intro)}</p>
-        </div>
+        {/* C'EST CETTE PAGE QUI A ÉLARGI LE SUR-TITRE À UN NŒUD. Elle y pose
+            la PASTILLE de sa section — une forme et une couleur — avant de la
+            nommer, puis le rang de l'éclairage et sa durée. Un glyphe de plus
+            pour dire où l'on est ; ni lien, ni chemin. */}
+        <EnTete
+          retour={{ href: section ? "/info/parcours" : "/info", mot: section ? t("Comprendre le marché CEMAC") : t("Guide") }}
+          surTitre={
+            <span className={styles.eyebrow}>
+              {section && <SectionShape shape={section.shape} color={section.color} size={16} />}
+              {section ? `${String.fromCharCode(64 + section.order)} · ${t(section.title)} · ` : ""}
+              {t("Éclairage {n} sur {total}", { n: i + 1, total: lessons.length })} · {l.minutes} min
+            </span>
+          }
+          titre={t(l.title)}
+          phrase={t(l.intro)}
+        />
         <div className={styles.body}>
           <LinkedParagraphs paragraphs={l.body.map((p) => t(p))} />
         </div>
