@@ -14,6 +14,8 @@ npm run lint
 
 Sans configuration, l'app tourne sur le jeu de données de `src/data/seed.ts` (mention « démo · mémoire » dans l'en-tête). Les intentions créées sont visibles dans le desk jusqu'au redémarrage. La page **/connexion** propose alors une session de démonstration (client ou desk), signée dans un cookie.
 
+> **Ouvrez le serveur de développement par `localhost`, jamais par `127.0.0.1`.** Next bloque les ressources `/_next/*` demandées depuis une origine qu'il n'autorise pas — et il n'autorise que `localhost` par défaut. Le seul `/_next/*` qui porte un en-tête `Origin` est le **websocket HMR** : il reçoit un `Unauthorized` écrit à cru sur la socket, le navigateur n'y voit pas une réponse HTTP valide, et **la page ne s'hydrate jamais**. Rien ne le dit à l'écran : le HTML du serveur s'affiche, le style est juste, les mesures de géométrie sont exactes — seuls les gestes ne répondent pas. Une seule ligne le signale, dans le journal du serveur : « Blocked cross-origin request to Next.js dev resource /\_next/hmr ». Mesuré le 25 octobre 2026 : 0 nœud hydraté par `127.0.0.1`, 135 par `localhost`. Pour travailler quand même par l'adresse IP, il faut l'ajouter à `allowedDevOrigins` dans `next.config.ts`.
+
 ## Reprendre le développement sur un autre poste
 
 Le dépôt ne connaît pas le nom de la machine : aucun chemin absolu n'y est écrit, un cliquet le vérifie (`src/test/racine-portable.test.ts`). Quatre choses, en revanche, ne voyagent pas avec git, et chacune manque en silence. D'où la mesure plutôt que la promesse :
