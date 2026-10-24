@@ -180,12 +180,32 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <TermSheetHost />
         <header className={styles.top}>
           <div className={styles.topIn}>
-            <Link className={styles.brand} href="/">
-              <b>{COMPANY.name.toUpperCase()}</b>
-              <span>
-                <em>{PRODUCT.name}</em> · {PRODUCT.tagline}
+            {/* L'ENSEIGNE NOMME LA MAISON ; ELLE NE NAVIGUE PLUS POUR UN
+                CLIENT (24 octobre 2026). Pour un visiteur elle est la seule
+                porte vers la racine — ses onglets sont « Nos placements », « À
+                propos », « Guide » — et elle reste un lien. Pour un client,
+                l'onglet « Accueil » est à quelques dizaines de pixels et mène
+                au même endroit : deux cibles pour une destination, c'est le
+                défaut que la barre du téléphone s'est fait retirer, où
+                l'enseigne menait à « / » depuis « / ».
+                ELLE NE DISPARAÎT PAS POUR AUTANT. Le pied réglementaire ne
+                paraît qu'au visiteur ; retirée ici, la maison ne se nommerait
+                plus nulle part sur l'écran large d'un client. */}
+            {session ? (
+              <span className={styles.brand}>
+                <b>{COMPANY.name.toUpperCase()}</b>
+                <span>
+                  <em>{PRODUCT.name}</em> · {PRODUCT.tagline}
+                </span>
               </span>
-            </Link>
+            ) : (
+              <Link className={styles.brand} href="/">
+                <b>{COMPANY.name.toUpperCase()}</b>
+                <span>
+                  <em>{PRODUCT.name}</em> · {PRODUCT.tagline}
+                </span>
+              </Link>
+            )}
             <NavTabs counts={navCounts} mode={navMode} connecte={Boolean(session)} />
             <div className={styles.right}>
               {/* CE QUI A QUITTÉ LA BARRE, ET POURQUOI.
@@ -228,10 +248,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             mode={deskUi ? "desk" : "client"}
             connecte={Boolean(session)}
             enseigne={
-              <Link className={styles.marque} href="/">
-                <b>{COMPANY.name.toUpperCase()}</b>
-                <span>{deskUi ? t("Desk") : PRODUCT.name}</span>
-              </Link>
+              /* Même règle qu'en haut de la barre : l'enseigne de la
+                 colonne nomme la maison, et le groupe « Accueil » juste en
+                 dessous porte déjà la racine dans sa première rubrique. */
+              session ? (
+                <span className={styles.marque}>
+                  <b>{COMPANY.name.toUpperCase()}</b>
+                  <span>{deskUi ? t("Desk") : PRODUCT.name}</span>
+                </span>
+              ) : (
+                <Link className={styles.marque} href="/">
+                  <b>{COMPANY.name.toUpperCase()}</b>
+                  <span>{deskUi ? t("Desk") : PRODUCT.name}</span>
+                </Link>
+              )
             }
             pied={
               /* AU DESK, LA FEUILLE DU COMPTE N'EST PAS CELLE DU CLIENT.

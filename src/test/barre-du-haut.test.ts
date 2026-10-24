@@ -34,12 +34,38 @@ describe("la barre du haut", () => {
 
   /* ET ELLE SE NOMME TOUJOURS, SINON C'EST UNE AUTRE FAUTE. Retirer un nom
      d'un endroit trop étroit est une chose ; le retirer de partout en est une
-     autre, et le pied de page est le seul endroit qui le porte sur toutes les
-     pages, avec l'agrément et l'adresse. */
-  it("laisse la maison se nommer au pied de chaque page", () => {
+     autre.
+     CETTE ÉPREUVE DISAIT « au pied de chaque page », ET C'ÉTAIT INEXACT :
+     le pied réglementaire ne paraît qu'à qui n'est PAS entré. Pour un
+     visiteur, c'est lui qui porte la raison sociale, l'agrément et
+     l'adresse ; pour un client, c'est l'enseigne de l'écran large, qui nomme
+     la maison sans plus y mener — la navigation a son siège « Accueil ».
+     Les deux publics sont donc vérifiés séparément. */
+  it("laisse la maison se nommer au visiteur, dans le pied réglementaire", () => {
     const layout = lire("src/app/layout.tsx");
     expect(layout, "le pied de page ne nomme plus la société").toContain("COMPANY.legalName");
     expect(layout, "l'agrément a quitté le pied de page").toContain("COMPANY.licence");
+  });
+
+  it("laisse la maison se nommer au client, dans l'enseigne de l'écran large", () => {
+    const layout = code("src/app/layout.tsx");
+    expect((layout.match(/COMPANY\.name\.toUpperCase\(\)/g) ?? []).length, "l'enseigne ne nomme plus la maison sur l'écran large : un client ne la lirait plus nulle part").toBeGreaterThanOrEqual(2);
+  });
+
+  /* ET ELLE N'Y MÈNE PLUS, POUR UN CLIENT. L'onglet « Accueil » de la barre
+     large et le groupe « Accueil » de la colonne portent déjà la racine :
+     une enseigne qui y mène aussi donne deux cibles pour une destination,
+     à quelques dizaines de pixels l'une de l'autre. C'est le défaut que la
+     barre du téléphone s'est fait retirer, où l'enseigne menait à « / »
+     depuis « / ». */
+  it("ne fait plus de l'enseigne une seconde porte vers la racine", () => {
+    const layout = code("src/app/layout.tsx");
+    for (const classe of ["styles.brand", "styles.marque"]) {
+      const i = layout.indexOf(`<span className={${classe}}>`);
+      expect(i, `l'enseigne « ${classe} » n'a plus de variante muette pour le client`).toBeGreaterThan(0);
+      /* La variante muette est bien choisie quand une session existe. */
+      expect(layout.slice(Math.max(0, i - 220), i), `l'enseigne « ${classe} » ne dépend plus de la session`).toMatch(/session \?/);
+    }
   });
 
   /* LE DÉCALAGE D'UNE COLONNE, qu'on ne voit que sur un siège du dock.
