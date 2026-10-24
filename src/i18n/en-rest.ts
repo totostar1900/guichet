@@ -1411,4 +1411,13 @@ export const EN_REST: Record<string, string> = {
   "votre conseiller, le message déjà écrit, et le dépôt d'une réclamation": "your adviser, the message already drafted, and filing a complaint",
   "comprendre avant de placer": "understand before you invest",
   "les éclairages, le parcours du marché, le simulateur et le glossaire": "the explainers, the market walkthrough, the simulator and the glossary",
+  /* LES SÉANCES QUI SE FERMENT (24 octobre 2026). Trois de ces clefs sont
+     invisibles au scanner : « Adjudication · {e} » passe par « a.quoi.key »,
+     les deux dernières par un ternaire dans t(). Seules « demain » et le
+     titre se voyaient. */
+  "Ce qui ferme bientôt": "Closing soon",
+  demain: "tomorrow",
+  "Adjudication · {e}": "Auction · {e}",
+  "et {n} autres séances": "and {n} more sessions",
+  "et une autre séance": "and one more session",
 };

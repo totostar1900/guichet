@@ -4,6 +4,7 @@ import { ETAPES, RAISON, servicesDuClient } from "@/lib/domain/services";
 import { contexteDuClient } from "@/lib/domain/contexte-client";
 import { getT } from "@/i18n/server";
 import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
+import { CeQuiFermeBientot } from "@/components/CeQuiFermeBientot";
 import { Parcours } from "./Parcours";
 import { Rayons } from "./Rayons";
 import styles from "./page.module.css";
@@ -74,6 +75,13 @@ export default async function TradePage() {
             dort, une séance qui se ferme : ce sont les seules lignes de cette
             page qui ont une échéance, et elles étaient au bas d'un mur. */}
         <CeQuiVousAttend userId={s.userId} />
+
+        {/* LES SÉANCES QUI SE FERMENT, SUR LA PAGE OÙ L'ON VIENT AGIR. Une
+            adjudication s'annonce une semaine avant sa clôture, et le
+            calendrier est une page où l'on va : celle-ci est une bande qu'on
+            croise. Vide — l'état le plus fréquent, les Trésors publiant par
+            vagues — elle ne rend rien. */}
+        <CeQuiFermeBientot />
 
         <div className={styles.large}>
           <Rayons services={services} etapes={ETAPES} raisons={RAISON} />

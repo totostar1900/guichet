@@ -1,0 +1,101 @@
+/* Les séances dont la clôture approche.
+   SANS MARGE À ELLE, comme « Ce qui vous attend » : les pages qui la portent
+   sont des colonnes à écart déclaré, et une marge s'ajouterait à l'écart. */
+.bloc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.tete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-6);
+}
+.titre {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.tout {
+  flex: none;
+  font-size: var(--t-2);
+  color: var(--gold-ink);
+}
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-6);
+}
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  padding: var(--s-6) var(--s-7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+}
+.ligne:hover {
+  border-color: var(--line-2);
+}
+.quoi {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.quoi b {
+  font-size: var(--t-2);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.quoi small {
+  font-size: var(--t-1);
+  color: var(--ink-3);
+}
+/* LE TEMPS QUI RESTE. Il est écrit, et la teinte ne fait que le redire : qui
+   ne distingue pas le rouge du doré lit « dans 3 jours » et sait tout. */
+.reste {
+  flex: none;
+  font-size: var(--t-1);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border-radius: 999px;
+  padding: var(--s-2) var(--s-5);
+  white-space: nowrap;
+}
+/* Sous sept jours un virement de la zone n'est plus certain d'arriver avant
+   le dépôt : c'est ce que ce ton dit, et le seuil vit dans le domaine. */
+.urgent {
+  background: var(--crit-soft);
+  color: var(--crit);
+}
+.bientot {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.calme {
+  background: var(--neutral-soft);
+  color: var(--ink-2);
+}
+/* Ce que la bande ne montre pas, nommé et mené au calendrier : un lien nu,
+   puisque c'est la suite de la même liste et non un geste de plus. */
+.autres {
+  align-self: flex-start;
+  font-size: var(--t-2);
+  color: var(--gold-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.autres:hover {
+  color: var(--ink);
+}

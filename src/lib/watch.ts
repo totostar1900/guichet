@@ -2,6 +2,7 @@ import "server-only";
 import { loadRegistry } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { displayStatus, statusLabel } from "@/lib/domain/status";
+import { joursAvant } from "./domain/echeances";
 import { summarize } from "@/lib/domain/summary";
 import type { Contact, Offer, Watch } from "@/lib/domain/types";
 import { COMPANY } from "@/lib/config";
@@ -42,9 +43,6 @@ export function rappelMessage(o: Offer, jours: number, firstName?: string): { su
     text: `${firstName ? `Bonjour ${firstName},\n\n` : ""}${COMPANY.name} · séance suivie\n${o.title}\nLe dépôt des soumissions ferme ${quand}.\n\nDéclarer une intention : ${url}?intent=ferme\nLa fiche : ${url}\nPour ne plus être rappelé : votre espace › Lignes suivies.`,
   };
 }
-
-/** Combien de jours entiers avant la clôture, au jour d'observation. */
-const joursAvant = (iso: string, now: Date): number => Math.ceil((new Date(iso).getTime() - now.getTime()) / 86_400_000);
 
 /** Daily pass: compare each watch with today's snapshot and message the client on change. */
 export async function runWatchAlerts(now = new Date()): Promise<{ watches: number; alerted: number; rappeles: number }> {
