@@ -1,6 +1,7 @@
 "use client";
 
 import { useT } from "@/i18n/client";
+import { COMPANY, PRODUCT } from "@/lib/config";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -21,6 +22,19 @@ export const LAST_LIST_KEY = "guichet:lastList";
 
 // Une racine ne porte pas de flèche de retour : c'est une destination du dock.
 // « /titres » en est une depuis que « / » est devenu la console.
+/**
+ * LE SUFFIXE QUE LE TITRE DE L'ONGLET PORTE, ET D'OÙ IL VIENT.
+ *
+ * « layout.tsx » compose le titre avec « %s · {PRODUCT.name} », et la racine
+ * avec « {PRODUCT.name} · {COMPANY.name} ». La barre n'en veut que le nom de
+ * la page, donc elle coupe le reste — et elle coupait sur deux noms écrits en
+ * dur, à côté d'un « config.ts » qui se présente comme le seul endroit où les
+ * changer. Renommer la société aurait laissé « Tableau de bord · Nouvelle
+ * Raison Sociale » dans la barre du téléphone, sans que rien ne tombe.
+ */
+const échappe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const SUFFIXE = new RegExp(`\\s*[·—-]\\s*(${[PRODUCT.name, COMPANY.name].map(échappe).join("|")}).*$`, "i");
+
 const ROOTS = ["/", "/titres", "/fonds", "/moi", "/info", "/desk", "/connexion", "/actualites", "/marche"];
 
 /**
@@ -117,7 +131,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
 
   // The page title comes from <title>, which every page already sets.
   useEffect(() => {
-    const read = () => setTitle(document.title.replace(/\s*[·—-]\s*(Guichet|Purpose Capital).*$/i, "").trim());
+    const read = () => setTitle(document.title.replace(SUFFIXE, "").trim());
     read();
     const t = document.querySelector("title");
     if (!t) return;
@@ -260,23 +274,36 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
           et non l'écran entier. Le nom les désigne, la feuille globale leur
           retire l'animation. */}
       <div className={styles.top} style={{ viewTransitionName: "barre-haut" }}>
-        {isRoot ? (
-          <Link href="/" className={styles.brand}>
-            <b>PURPOSE CAPITAL</b>
-            <span>Guichet</span>
-          </Link>
-        ) : (
-          <>
-            <button type="button" className={styles.back} onClick={back} aria-label={t("Retour")}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M15 5l-7 7 7 7" />
-              </svg>
-            </button>
-            <div ref={titreRef} className={`${styles.title} ${styles.titleCede}`} aria-hidden="true">
-              {title ? t(title) : "…"}
-            </div>
-          </>
+        {/* LA MARQUE A QUITTÉ LA BARRE, le 24 octobre 2026.
+            Elle tenait le tiers gauche de tous les sièges du dock, sur
+            l'écran le plus étroit de la maison, pour dire une chose que le
+            client sait déjà : chez qui il est. Il vient d'ouvrir son
+            application ; il ne cherche pas le nom de sa société de bourse, il
+            cherche où il en est.
+            ELLE MENAIT À « / » DEPUIS « / ». Sur la racine, c'est-à-dire
+            partout où elle paraissait en premier, le lien ramenait à la page
+            qu'on regardait.
+            ET ELLE ÉTAIT ÉCRITE EN DUR. « PURPOSE CAPITAL » en littéral, à
+            côté d'un « config.ts » qui se présente comme « the one place to
+            change names ». Le pied de page, lui, lit COMPANY : les deux
+            auraient fini par ne plus dire la même chose.
+            La maison se nomme toujours — au pied de chaque page, en tête de
+            la colonne des grands écrans, et sur l'écran de connexion. Elle ne
+            se nomme plus là où la place manque.
+            CE QUI PREND SA PLACE N'EST RIEN, et c'est le but : la barre porte
+            le nom de la PAGE, et le cède au `h1` tant qu'il est à l'écran.
+            Sur la racine, où il n'y a pas de parent, la flèche de retour ne
+            paraît pas : un siège du dock n'a nulle part où remonter. */}
+        {!isRoot && (
+          <button type="button" className={styles.back} onClick={back} aria-label={t("Retour")}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M15 5l-7 7 7 7" />
+            </svg>
+          </button>
         )}
+        <div ref={titreRef} className={`${styles.title} ${styles.titleCede}`} aria-hidden="true">
+          {title ? t(title) : "…"}
+        </div>
         <div className={styles.right}>
           {/* LA LANGUE N'EST PAS ICI. Elle y est passée une matinée, le temps de
               constater que la barre tient un titre de 116 px et trois objets à
