@@ -4,9 +4,19 @@ import { describe, expect, it } from "vitest";
 import { RACINE } from "./racine";
 import { SEED_BUDGETS, SEED_NOTES_BUDGET } from "@/data/budgets-seed";
 import { memoryRepository } from "@/lib/data/memory";
-import { amortissementImplicite, ecartsEntre, estComplet, financementBoucle, foisLeDeficit, partDesTitres, paysDuSlug, porteDesTitres, slugDuPays, sommeDes, PAYS_CEMAC } from "@/lib/market/budget";
+/* LE RELEVÉ BRUT, ET NON `SEANCES` : celui-ci est vide sous vitest, le
+   semis dense étant réservé à la branche d'essai et à `dev:memory` — six
+   épreuves prennent le dépôt mémoire pour fixture et comptent sur ses huit
+   lignes. Lire le JSON directement éprouve les VRAIES séances sans déplacer
+   le socle de personne. */
+import brut from "@/data/reference.json";
+import type { AuctionResult } from "@/lib/market/auction-results";
+
+const SEANCES = ((brut as { seances?: unknown[] }).seances ?? []) as AuctionResult[];
+import { amortissementImplicite, ecartsEntre, estComplet, financementBoucle, foisLeDeficit, partDesTitres, paysDuSlug, porteDesTitres, slugDuPays, sommeDes, PAYS_CEMAC , trousDe} from "@/lib/market/budget";
 import { LIBELLES_DU_RELEVE, MIN, REFUS, numeroSuivant, releveDuBudget, verifierNote, type BrouillonNote } from "@/lib/market/note-budget";
-import { DIT, MOIS_AVANT_DE_S_INQUIETER, carnet, moisEntre, signauxDe, trousDe } from "@/lib/market/carnet";
+import { DIT, MOIS_AVANT_DE_S_INQUIETER, carnet, moisEntre, signauxDe } from "@/lib/market/carnet";
+import { SEANCES_MINIMUM, SERVICE_FAIBLE, joursEntre, leveDe, pourquoiPasDeTaux } from "@/lib/market/leve";
 
 const lire = (p: string) => fs.readFileSync(path.join(RACINE, p), "utf8");
 const code = (p: string) =>
@@ -455,7 +465,7 @@ describe("le carnet du desk", () => {
   const JOUR = "2026-10-25";
 
   it("signale les États sur lesquels rien n'a jamais été écrit", () => {
-    const s = carnet(SEED_BUDGETS, SEED_NOTES_BUDGET, JOUR);
+    const s = carnet(SEED_BUDGETS, SEED_NOTES_BUDGET, SEANCES, JOUR);
     const muets = s.filter((x) => x.genre === "jamais_ecrite").map((x) => x.pays);
     expect(muets, "le Cameroun porte une note : il ne devrait pas être signalé comme muet").not.toContain("Cameroun");
     expect(muets.length, "aucun État muet n'est signalé alors que cinq n'ont pas de note").toBe(5);
@@ -466,10 +476,10 @@ describe("le carnet du desk", () => {
    * d'un panneau décoratif. La note semée porte déjà le baril constaté.
    */
   it("se tait sur une divergence dont la dernière note porte déjà le constat", () => {
-    const s = signauxDe(cameroun(), SEED_NOTES_BUDGET, JOUR);
+    const s = signauxDe(cameroun(), SEED_NOTES_BUDGET, SEANCES, JOUR);
     expect(s.map((x) => x.genre), "le baril est signalé alors que la note n° 1 l'a déjà relevé").not.toContain("hypothese_diverge");
     /* NON-VACUITÉ : sans cette note, il parle. */
-    const sansNote = signauxDe(cameroun(), [], JOUR);
+    const sansNote = signauxDe(cameroun(), [], SEANCES, JOUR);
     expect(sansNote.map((x) => x.genre), "le carnet ne voit plus la divergence du baril quand rien n'a été écrit").toContain("hypothese_diverge");
   });
 
@@ -479,11 +489,11 @@ describe("le carnet du desk", () => {
    */
   it("compte les postes qui ont bougé depuis la dernière note", () => {
     const b = cameroun();
-    const avant = signauxDe(b, SEED_NOTES_BUDGET, JOUR).filter((x) => x.genre === "releve_a_bouge");
+    const avant = signauxDe(b, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
     expect(avant, "le relevé est annoncé comme ayant bougé alors que la note vient de le prendre").toEqual([]);
     /* On déplace l'hypothèse : deux postes changent, le constaté et rien d'autre. */
     const bouge = { ...b, millesime: "revise" as const };
-    const apres = signauxDe(bouge, SEED_NOTES_BUDGET, JOUR).filter((x) => x.genre === "releve_a_bouge");
+    const apres = signauxDe(bouge, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
     expect(apres.length, "le millésime a changé et le carnet n'en dit rien").toBe(1);
     expect(apres[0].params.postes, "le carnet ne compte pas les postes qui ont bougé").toBe("1");
     expect(apres[0].params.numero, "le carnet ne dit pas depuis quelle note").toBe("1");
@@ -491,8 +501,8 @@ describe("le carnet du desk", () => {
 
   it("remarque une note qui vieillit, et pas avant le délai", () => {
     const b = cameroun();
-    expect(signauxDe(b, SEED_NOTES_BUDGET, "2026-12-25").map((x) => x.genre), "deux mois suffisent à déclarer une note vieille").not.toContain("note_vieillit");
-    const vieux = signauxDe(b, SEED_NOTES_BUDGET, "2027-05-25").filter((x) => x.genre === "note_vieillit");
+    expect(signauxDe(b, SEED_NOTES_BUDGET, SEANCES, "2026-12-25").map((x) => x.genre), "deux mois suffisent à déclarer une note vieille").not.toContain("note_vieillit");
+    const vieux = signauxDe(b, SEED_NOTES_BUDGET, SEANCES, "2027-05-25").filter((x) => x.genre === "note_vieillit");
     expect(vieux.length, `sept mois passés, le carnet ne remarque rien (seuil ${MOIS_AVANT_DE_S_INQUIETER} mois)`).toBe(1);
     expect(vieux[0].params.mois, "le carnet ne dit pas depuis combien de temps").toBe("7");
   });
@@ -539,18 +549,25 @@ describe("le carnet du desk", () => {
    * ni la langue ni le fuseau de qui lit. Vu à l'écran, pas autrement.
    */
   it("rend ses dates au format de la maison, pas en brut", () => {
-    const muet = carnet(SEED_BUDGETS, [], JOUR).find((x) => x.genre === "jamais_ecrite")!;
+    const muet = carnet(SEED_BUDGETS, [], SEANCES, JOUR).find((x) => x.genre === "jamais_ecrite")!;
     expect(muet.params.releve, "le domaine range une date déjà formatée : elle cesse d'être comparable").toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(trousDe(muet, () => "25 oct. 2026").releve, "l'écran ne met plus la date au format").toBe("25 oct. 2026");
+    expect(trousDe(muet.params, () => "25 oct. 2026").releve, "l'écran ne met plus la date au format").toBe("25 oct. 2026");
     for (const f of ["src/app/desk/budgets/page.tsx", "src/app/desk/budgets/[pays]/page.tsx"]) {
-      expect(code(f), `${f} affiche la date brute du carnet`).toMatch(/trousDe\(s, fmtDate\)/);
+      expect(code(f), `${f} affiche la date brute du carnet`).toMatch(/trousDe\(s\.params, fmtDate\)/);
     }
+    /* ET LA RÈGLE PORTE SUR LA FORME, PAS SUR LE NOM DU TROU. La première
+       version ne formatait que « releve » ; les motifs du refus ont ajouté
+       deux autres dates, et elles sont sorties en brut à l'écran. */
+    const refus = pourquoiPasDeTaux(cameroun(), leveDe(SEANCES, "Cameroun", 2026)!).find((x) => x.cle === "couverture")!;
+    expect(trousDe(refus.params, () => "3 août 2026").premiere, "un trou de date qui ne s'appelle pas « releve » sort en brut").toBe("3 août 2026");
+    expect(trousDe(refus.params, () => "X").jours, "un trou qui n'est pas une date est pris pour une date").toBe(refus.params.jours);
+    expect(code("src/app/desk/budgets/[pays]/page.tsx"), "les motifs du refus affichent des dates brutes").toMatch(/trousDe\(m\.params, fmtDate\)/);
   });
 
   /* LES PHRASES SONT DES GABARITS, et le domaine ne compose pas : une phrase
      fabriquée ici traverserait t() sous forme de variable. */
   it("rend des gabarits dont tous les trous sont remplis", () => {
-    for (const s of carnet(SEED_BUDGETS, SEED_NOTES_BUDGET, "2027-05-25")) {
+    for (const s of carnet(SEED_BUDGETS, SEED_NOTES_BUDGET, SEANCES, "2027-05-25")) {
       const trous = [...DIT[s.genre].matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
       expect(trous.length, `le gabarit « ${s.genre} » n'a aucun trou : la phrase est figée`).toBeGreaterThan(0);
       for (const trou of trous) expect(s.params[trou], `le signal « ${s.genre} » ne remplit pas le trou « ${trou} »`).toBeTruthy();
@@ -591,5 +608,103 @@ describe("les pièces d'une note", () => {
     }
     /* NON-VACUITÉ : au moins un État nomme ses pièces. */
     expect(SEED_BUDGETS.some((b) => (b.references?.length ?? 0) > 0), "plus aucun État ne nomme ses pièces").toBe(true);
+  });
+});
+
+/**
+ * L'ÉCART DÉCLARÉ / LEVÉ, ET LE POURCENTAGE QU'ON REFUSE.
+ *
+ * La planche demandait « Cameroun : 78 % du programme levé à mi-parcours ».
+ * Ce rapport ne se calcule pas sur ces données, et ces épreuves fixent
+ * POURQUOI, pour qu'on ne le rétablisse pas un jour sans s'en apercevoir :
+ * le relevé couvre des semaines et non un exercice, le périmètre de la ligne
+ * déclarée est inconnu, et les bons se renouvellent sans que leur échéance
+ * soit relevée.
+ */
+describe("ce qui a été levé", () => {
+  const cmr = () => leveDe(SEANCES, "Cameroun", 2026)!;
+
+  it("mesure le brut servi, par instrument, sur les séances relevées", () => {
+    /* NON-VACUITÉ : sans cette ligne, un relevé vide ferait passer tout ce
+       qui suit — c'est exactement ce qui est arrivé au premier jet. */
+    expect(SEANCES.length, "le relevé des séances est vide : les épreuves qui suivent ne jugent rien").toBeGreaterThan(200);
+    const l = cmr();
+    expect(l, "le Cameroun 2026 n'a plus de séance relevée").toBeDefined();
+    expect(l.seances, "le compte des séances camerounaises de 2026 a changé").toBe(8);
+    /* Cinq tranches d'obligations le 14 septembre, à 27,55 milliards chacune,
+       plus trois bons le 3 août : 137,8 et 24,2. */
+    expect(Math.round(l.parInstrument.OTA / 1e8) / 10, "le brut obligataire a changé").toBe(137.8);
+    expect(Math.round(l.parInstrument.BTA / 1e8) / 10, "le brut en bons a changé").toBe(24.2);
+    expect(l.sansMontant, "des séances sans montant sont comptées dans le brut").toBe(0);
+  });
+
+  /**
+   * LE SEUL RAPPORT RENDU. Il répond à la question que la note posait
+   * vraiment — « les 400 milliards tiennent-ils » — et il se mesure sans rien
+   * supposer : le Cameroun obtient 91 % de ce qu'il demande, le Gabon 49 %.
+   */
+  it("rend ce que l'État obtient de ce qu'il demande, et rien d'autre", () => {
+    expect(Math.round(cmr().tauxDeService! * 100), "le taux de service camerounais a changé").toBe(91);
+    expect(Math.round(leveDe(SEANCES, "Gabon", 2026)!.tauxDeService! * 100), "le taux de service gabonais a changé").toBe(49);
+    /* ET LE DÉNOMINATEUR EST HONNÊTE : seules les séances où les DEUX chiffres
+       existent. Les séances de 2026 les portent toutes, donc la règle ne se
+       vérifiait sur rien — trouvé en la désarmant : la suite restait verte.
+       On fabrique donc le cas que le relevé n'a pas. */
+    const l = cmr();
+    expect(l.serviApparie <= l.servi, "le servi apparié dépasse le servi total").toBe(true);
+    const muette = { ...SEANCES.find((x) => x.country === "Cameroun" && x.sessionOn.startsWith("2026"))!, id: "muette", codeEmission: "CM-MUETTE", served: undefined, announced: 100_000_000_000 };
+    const avec = leveDe([...SEANCES, muette], "Cameroun", 2026)!;
+    expect(avec.annonce, "une séance sans montant servi entre au dénominateur : le taux s'effondre en silence").toBe(l.annonce);
+    expect(avec.sansMontant, "une séance sans montant servi n'est plus comptée").toBe(1);
+    expect(Math.round(avec.tauxDeService! * 100), "le taux de service bouge alors que rien de servi n'a été relevé").toBe(91);
+  });
+
+  /* LE CODE D'ÉMISSION DISTINGUE UNE TRANCHE D'UN DOUBLE COMPTE. Le Cameroun
+     aligne cinq codes différents le 14 septembre : cinq tranches, pas cinq
+     lectures de la même. Deux séances de 2020 portent, elles, un code déjà vu. */
+  it("compte les codes d'émission vus deux fois, sans les retirer", () => {
+    expect(cmr().codesEnDouble, "les cinq tranches camerounaises sont prises pour des doublons").toBe(0);
+    const gq = leveDe(SEANCES, "Guinée éq.", 2020);
+    expect(gq?.codesEnDouble, "un code d'émission vu deux fois le même jour n'est plus signalé").toBe(1);
+    /* Sans les retirer : laquelle des deux est la bonne ne se devine pas. */
+    expect(code("src/lib/market/leve.ts").includes("codesEnDouble++"), "les doublons ne sont plus comptés").toBe(true);
+  });
+
+  /**
+   * LE REFUS DU POURCENTAGE, ET SES MOTIFS NOMMÉS. Un refus sans motif se lit
+   * comme une lacune de l'outil, et quelqu'un finit par faire la division à la
+   * main dans un coin.
+   */
+  it("refuse le « % du programme levé » en nommant ce qui manque", () => {
+    const motifs = pourquoiPasDeTaux(cameroun(), cmr()).map((m) => m.cle);
+    expect(motifs, "la couverture partielle du relevé n'est plus dite").toContain("couverture");
+    expect(motifs, "le périmètre inconnu de la ligne déclarée n'est plus dit").toContain("perimetre");
+    expect(motifs, "le roulement des bons n'est plus dit").toContain("rollBta");
+    /* Quarante-trois jours : du 3 août au 14 septembre, bornes comprises. */
+    const m = pourquoiPasDeTaux(cameroun(), cmr()).find((x) => x.cle === "couverture")!;
+    expect(m.params.jours, "la couverture du relevé n'est plus chiffrée en jours").toBe("43");
+    /* ET AUCUNE PAGE NE DIVISE LE LEVÉ PAR LE PROGRAMME. */
+    for (const f of ["src/app/desk/budgets/page.tsx", "src/app/desk/budgets/[pays]/page.tsx", "src/lib/market/leve.ts"]) {
+      expect(code(f), `${f} divise le levé par le programme déclaré`).not.toMatch(/servi\s*\/\s*(t\.montant|titres\.montant|programme)/);
+    }
+  });
+
+  it("compte les jours bornes comprises : une séance couvre un jour, pas zéro", () => {
+    expect(joursEntre("2026-07-22", "2026-07-22"), "une séance unique couvre zéro jour").toBe(1);
+    expect(joursEntre("2026-08-03", "2026-09-14"), "les jours couverts ont changé").toBe(43);
+  });
+
+  /**
+   * LE CARNET LE DIT, ET SEULEMENT QUAND C'EST UNE TENDANCE. Une adjudication
+   * ratée est un incident ; trois séances sous les trois quarts servis, non.
+   */
+  it("met au carnet l'État qui ne place pas ce qu'il annonce", () => {
+    const s = carnet(SEED_BUDGETS, SEED_NOTES_BUDGET, SEANCES, "2026-10-25").filter((x) => x.genre === "service_faible");
+    expect(s.map((x) => x.pays), "le Gabon place la moitié de ce qu'il annonce et le carnet se tait").toContain("Gabon");
+    expect(s.map((x) => x.pays), "le Cameroun sert 91 % et se retrouve au carnet").not.toContain("Cameroun");
+    /* ET PAS SUR UN INCIDENT : la RCA n'a qu'une séance relevée. */
+    expect(s.map((x) => x.pays), "une seule séance suffit à déclarer une tendance").not.toContain("RCA");
+    const rca = leveDe(SEANCES, "RCA", 2026)!;
+    expect(rca.seances < SEANCES_MINIMUM && rca.tauxDeService! < SERVICE_FAIBLE, "la RCA ne sert plus d'exemple d'incident").toBe(true);
   });
 });

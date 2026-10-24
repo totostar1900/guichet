@@ -3674,4 +3674,28 @@ export const EN_MORE: Record<string, string> = {
   "Le relevé a changé sur {postes} poste(s) depuis la note n° {numero}.": "The record has changed on {postes} item(s) since note no. {numero}.",
   "{libelle} : {constate} constaté, contre {valeur} retenu par la loi.": "{libelle}: {constate} observed, against {valeur} assumed by the law.",
   "Dernière note il y a {mois} mois.": "Last note {mois} months ago.",
+
+  /* ---------- Ce qui a été levé ---------- */
+  "Ce qui a été levé": "What was actually raised",
+  "Les adjudications relevées par la maison sur cet exercice. Ce n'est pas l'exercice entier : c'est ce que la maison a lu, et la période est écrite.":
+    "The auctions this house has recorded for this year. It is not the whole year: it is what the house has read, and the period is written out.",
+  "Servi, brut": "Served, gross",
+  "obligations": "bonds",
+  "Annoncé": "Announced",
+  "sur les séances où les deux chiffres sont relevés": "over the sessions where both figures are recorded",
+  "Ce qu'il obtient de ce qu'il demande": "What it gets of what it asks for",
+  "séance(s)": "session(s)",
+  "Pourquoi aucun « % du programme levé » n'est affiché": "Why no “% of the programme raised” is shown",
+
+  /* LES MOTIFS DU REFUS, en gabarit comme ceux du carnet. */
+  "Le relevé ne couvre que {jours} jour(s) de l'exercice, du {premiere} au {derniere} : le total vaut pour ces séances-là, pas pour l'année.":
+    "The record covers only {jours} day(s) of the year, from {premiere} to {derniere}: the total holds for those sessions, not for the year.",
+  "Le plan de financement ne dit pas si sa ligne de titres est du brut émis ou du net d'amortissement : les deux lectures existent dans la zone, et elles ne donnent pas le même dénominateur.":
+    "The financing plan does not say whether its securities line is gross issuance or net of repayments: both readings exist in the zone, and they do not give the same denominator.",
+  "Les bons se renouvellent dans l'année et leur échéance n'est pas relevée : un bon à treize semaines reconduit quatre fois lève quatre fois son montant pour un seul financement.":
+    "Bills roll over within the year and their maturity is not recorded: a thirteen-week bill rolled four times raises four times its amount for a single financing.",
+  "{n} séance(s) portent des chiffres que personne n'a relus.": "{n} session(s) carry figures no one has re-read.",
+  "{n} séance(s) portent un code d'émission déjà vu ce jour-là : le total peut les compter deux fois.":
+    "{n} session(s) carry an issue code already seen that day: the total may count them twice.",
+  "Ne place que {taux} % de ce qu'il annonce, sur {seances} séances relevées.": "Places only {taux}% of what it announces, over {seances} recorded sessions.",
 };

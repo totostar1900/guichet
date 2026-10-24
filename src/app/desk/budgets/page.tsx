@@ -4,8 +4,8 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
-import { MOT_DU_MILLESIME, enMilliards, estComplet, notesDe, parLisibilite, partDesTitres, porteDesTitres, slugDuPays } from "@/lib/market/budget";
-import { DIT, trousDe, carnet } from "@/lib/market/carnet";
+import { MOT_DU_MILLESIME, enMilliards, estComplet, notesDe, parLisibilite, partDesTitres, porteDesTitres, slugDuPays , trousDe} from "@/lib/market/budget";
+import { DIT, carnet } from "@/lib/market/carnet";
 import type { BudgetEtat } from "@/lib/domain/types";
 import styles from "./page.module.css";
 
@@ -42,11 +42,11 @@ export default async function BudgetsPage() {
   await requireDesk();
   const t = await getT();
   const r = repo();
-  const [budgets, notes] = await Promise.all([r.budgetsDesEtats(), r.notesBudget()]);
+  const [budgets, notes, seances] = await Promise.all([r.budgetsDesEtats(), r.notesBudget(), r.listAuctionResults({})]);
   const liste = parLisibilite(budgets);
   /* LE JOUR EST PASSÉ, JAMAIS LU DANS LE DOMAINE : un signal qui dit « il y a
      sept mois » se cite, donc il doit se tester. */
-  const signaux = carnet(budgets, notes, new Date().toISOString().slice(0, 10));
+  const signaux = carnet(budgets, notes, seances, new Date().toISOString().slice(0, 10));
 
   return (
     <>
@@ -82,7 +82,7 @@ export default async function BudgetsPage() {
                   <Link href={`/desk/budgets/${slugDuPays(s.pays)}`}>
                     {s.pays} {s.exercice}
                   </Link>
-                  <span className={styles.dit}>{t(DIT[s.genre], trousDe(s, fmtDate))}</span>
+                  <span className={styles.dit}>{t(DIT[s.genre], trousDe(s.params, fmtDate))}</span>
                 </li>
               ))}
             </ul>

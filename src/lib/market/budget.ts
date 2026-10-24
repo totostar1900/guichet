@@ -30,6 +30,24 @@ export const MOT_DU_MILLESIME: Record<EtatDuMillesime, string> = {
   revise: "révisé",
 };
 
+/**
+ * LES TROUS D'UN GABARIT, PRÊTS POUR L'ÉCRAN.
+ *
+ * Le domaine range une date telle qu'elle s'écrit — « 2026-08-03 » —, parce
+ * qu'une date formatée ne se compare plus et ne se trie plus. L'écran la met
+ * au format de la maison, et le formateur lui est passé : le domaine ne
+ * connaît ni la langue ni le fuseau de qui lit.
+ *
+ * LA RÈGLE PORTE SUR LA FORME ET NON SUR LE NOM DU TROU. Une première version
+ * ne formatait que le trou nommé « releve » ; les motifs du refus de
+ * « leve.ts » en ont ajouté deux autres, et ils sont sortis en brut à l'écran.
+ * Un correctif par nom de champ se refait à chaque nouveau champ.
+ */
+const UNE_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+export const trousDe = (params: Record<string, string>, fmtDate: (d: string) => string): Record<string, string> =>
+  Object.fromEntries(Object.entries(params).map(([k, v]) => [k, UNE_DATE.test(v) ? fmtDate(v) : v]));
+
 /** Les montants sont stockés en millions ; la loi et la presse parlent en milliards. */
 export const enMilliards = (millions: number | undefined): string =>
   millions === undefined ? "—" : (millions / 1000).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });

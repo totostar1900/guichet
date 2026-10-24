@@ -10,6 +10,7 @@ import { FAMILLES, VUES } from "@/lib/market/remarques";
 import { MOTIFS, MOTIFS_DE_JUGEMENT } from "@/lib/domain/jugement-bulletin";
 import { LIBELLES_DU_RELEVE, REFUS } from "@/lib/market/note-budget";
 import { DIT } from "@/lib/market/carnet";
+import { POURQUOI } from "@/lib/market/leve";
 
 /**
  * LES DONNÉES LIVRÉES PASSENT EN ANGLAIS, ELLES AUSSI.
@@ -194,6 +195,12 @@ describe("les refus d'une note de budget passent en anglais", () => {
   });
 
   it("et le carnet regarde bien quelque chose", () => {
-    expect(Object.keys(DIT).length).toBe(4);
+    expect(Object.keys(DIT).length).toBe(5);
+  });
+
+  /* ET LES MOTIFS DU REFUS DU POURCENTAGE. Un refus que le desk anglais lit en
+     français se prend pour une panne, et quelqu'un fait la division à la main. */
+  it("et les motifs du refus, trous compris", () => {
+    vide("motifs du refus", inventaire(Object.values(POURQUOI)));
   });
 });

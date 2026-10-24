@@ -1,4 +1,6 @@
 import type { BudgetEtat, Country, NoteBudget } from "@/lib/domain/types";
+import type { AuctionResult } from "./auction-results";
+import { leveDe, serviceFaible } from "./leve";
 import { ecartsEntre, notesDe } from "./budget";
 import { releveDuBudget } from "./note-budget";
 
@@ -29,7 +31,7 @@ import { releveDuBudget } from "./note-budget";
  * de bulletins signaler soixante lectures partielles pendant un an sans que
  * personne n'agisse, parce que rien ne changeait jamais.
  */
-export type GenreDeSignal = "jamais_ecrite" | "releve_a_bouge" | "hypothese_diverge" | "note_vieillit";
+export type GenreDeSignal = "jamais_ecrite" | "releve_a_bouge" | "hypothese_diverge" | "note_vieillit" | "service_faible";
 
 export interface Signal {
   pays: Country;
@@ -49,6 +51,10 @@ export const DIT: Record<GenreDeSignal, string> = {
   releve_a_bouge: "Le relevé a changé sur {postes} poste(s) depuis la note n° {numero}.",
   hypothese_diverge: "{libelle} : {constate} constaté, contre {valeur} retenu par la loi.",
   note_vieillit: "Dernière note il y a {mois} mois.",
+  /* PAS « x % du programme levé » : ce rapport ne se calcule pas (voir
+     « leve.ts »). Celui-ci se mesure sans rien supposer, et répond à la
+     question que la note posait vraiment — « les 400 milliards tiennent-ils ». */
+  service_faible: "Ne place que {taux} % de ce qu'il annonce, sur {seances} séances relevées.",
 };
 
 /**
@@ -72,7 +78,7 @@ export const moisEntre = (depuis: string, jusqua: string): number => {
  * signal qui dépend de l'heure du serveur ne se teste pas, et celui-ci dit
  * « il y a sept mois » à quelqu'un qui va le citer.
  */
-export function signauxDe(b: BudgetEtat, notes: NoteBudget[], aujourdHui: string): Signal[] {
+export function signauxDe(b: BudgetEtat, notes: NoteBudget[], resultats: AuctionResult[], aujourdHui: string): Signal[] {
   const out: Signal[] = [];
   const serie = notesDe(notes, b.pays, b.exercice);
   const derniere = serie[0];
@@ -91,6 +97,14 @@ export function signauxDe(b: BudgetEtat, notes: NoteBudget[], aujourdHui: string
     if (mois >= MOIS_AVANT_DE_S_INQUIETER) out.push({ ...cadre, genre: "note_vieillit", params: { mois: String(mois) } });
   }
 
+  /* CE QUE LE MARCHÉ RÉPOND, quand l'État s'y présente. Un État qui place la
+     moitié de ce qu'il annonce ne placera pas son programme, et c'est visible
+     bien avant que le programme ne soit en retard. */
+  const l = leveDe(resultats, b.pays, b.exercice);
+  if (l && serviceFaible(l)) {
+    out.push({ ...cadre, genre: "service_faible", params: { taux: String(Math.round(l.tauxDeService! * 100)), seances: String(l.seances) } });
+  }
+
   for (const h of b.hypotheses ?? []) {
     if (!h.constate || h.constate === h.valeur) continue;
     /* ET IL SE TAIT QUAND LA DERNIÈRE NOTE PORTE DÉJÀ CE CONSTAT : le desk a
@@ -103,20 +117,11 @@ export function signauxDe(b: BudgetEtat, notes: NoteBudget[], aujourdHui: string
   return out;
 }
 
-/**
- * LES TROUS, PRÊTS POUR L'ÉCRAN. Le domaine range une date telle qu'elle est
- * écrite — « 2026-10-25 » —, parce qu'une date formatée n'est plus comparable.
- * L'écran la met au format de la maison, et le formateur est passé : le
- * domaine ne connaît ni la langue, ni le fuseau de qui lit.
- */
-export const trousDe = (s: Signal, fmtDate: (d: string) => string): Record<string, string> =>
-  s.params.releve ? { ...s.params, releve: fmtDate(s.params.releve) } : s.params;
-
 /** L'ordre de lecture : le dossier muet d'abord, le dossier qui dort en dernier. */
-const RANG: Record<GenreDeSignal, number> = { jamais_ecrite: 0, releve_a_bouge: 1, hypothese_diverge: 2, note_vieillit: 3 };
+const RANG: Record<GenreDeSignal, number> = { jamais_ecrite: 0, service_faible: 1, releve_a_bouge: 2, hypothese_diverge: 3, note_vieillit: 4 };
 
-export function carnet(budgets: BudgetEtat[], notes: NoteBudget[], aujourdHui: string): Signal[] {
+export function carnet(budgets: BudgetEtat[], notes: NoteBudget[], resultats: AuctionResult[], aujourdHui: string): Signal[] {
   return budgets
-    .flatMap((b) => signauxDe(b, notes, aujourdHui))
+    .flatMap((b) => signauxDe(b, notes, resultats, aujourdHui))
     .sort((x, y) => RANG[x.genre] - RANG[y.genre] || x.pays.localeCompare(y.pays));
 }

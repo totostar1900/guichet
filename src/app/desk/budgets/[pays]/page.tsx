@@ -5,9 +5,10 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
-import { amortissementImplicite, ecartsEntre, enMilliards, financementBoucle, foisLeDeficit, notesDe, partDesTitres, paysDuSlug, sommeDes } from "@/lib/market/budget";
+import { amortissementImplicite, ecartsEntre, enMilliards, financementBoucle, foisLeDeficit, notesDe, partDesTitres, paysDuSlug, sommeDes , trousDe} from "@/lib/market/budget";
 import { LIBELLES_DU_RELEVE, numeroSuivant, releveDuBudget } from "@/lib/market/note-budget";
-import { DIT, trousDe, signauxDe } from "@/lib/market/carnet";
+import { DIT, signauxDe } from "@/lib/market/carnet";
+import { POURQUOI, SERVICE_FAIBLE, leveDe, pourquoiPasDeTaux } from "@/lib/market/leve";
 import { RedigerNote } from "./RedigerNote";
 import styles from "./page.module.css";
 
@@ -39,7 +40,7 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
   if (!pays) notFound();
 
   const r = repo();
-  const [budgets, toutesNotes] = await Promise.all([r.budgetsDesEtats(), r.notesBudget()]);
+  const [budgets, toutesNotes, seances] = await Promise.all([r.budgetsDesEtats(), r.notesBudget(), r.listAuctionResults({})]);
   const b = budgets.find((x) => x.pays === pays);
   if (!b) notFound();
 
@@ -53,7 +54,9 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
   /* LE CARNET DE CET ÉTAT, MOINS « jamais écrite » : la fiche porte déjà son
      état vide, qui le dit plus longuement et mieux. Les deux côte à côte
      faisaient dire deux fois la même chose en deux phrases différentes. */
-  const signaux = signauxDe(b, toutesNotes, new Date().toISOString().slice(0, 10)).filter((s) => s.genre !== "jamais_ecrite");
+  const signaux = signauxDe(b, toutesNotes, seances, new Date().toISOString().slice(0, 10)).filter((s) => s.genre !== "jamais_ecrite");
+  const leve = leveDe(seances, b.pays, b.exercice);
+  const motifs = leve ? pourquoiPasDeTaux(b, leve) : [];
 
   return (
     <>
@@ -235,6 +238,53 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
           </section>
         ) : null}
 
+        {/* CE QUI A ÉTÉ LEVÉ, JUSTE APRÈS LES PORTES : la porte des titres
+            vient d'être montrée, et voici ce qu'elle a effectivement rapporté
+            sur les séances que la maison détient. */}
+        {leve ? (
+          <section className={styles.bloc}>
+            <h2>{t("Ce qui a été levé")}</h2>
+            <p className={styles.chapo}>
+              {t("Les adjudications relevées par la maison sur cet exercice. Ce n'est pas l'exercice entier : c'est ce que la maison a lu, et la période est écrite.")}
+            </p>
+
+            <div className={styles.chaine}>
+              <div className={styles.etape}>
+                <span className={styles.el}>{t("Servi, brut")}</span>
+                <b className={styles.gros}>{enMilliards(leve.servi / 1_000_000)}</b>
+                <small>
+                  {t("bons")} {enMilliards(leve.parInstrument.BTA / 1_000_000)} · {t("obligations")} {enMilliards(leve.parInstrument.OTA / 1_000_000)}
+                </small>
+              </div>
+              <div className={styles.etape}>
+                <span className={styles.el}>{t("Annoncé")}</span>
+                <b className={styles.gros}>{enMilliards(leve.annonce / 1_000_000)}</b>
+                <small>{t("sur les séances où les deux chiffres sont relevés")}</small>
+              </div>
+              {/* LE SEUL RAPPORT RENDU : ce que l'État obtient de ce qu'il
+                  demande. Il se mesure sans rien supposer. */}
+              <div className={`${styles.etape} ${leve.tauxDeService !== undefined && leve.tauxDeService < SERVICE_FAIBLE ? styles.besoin : ""}`}>
+                <span className={styles.el}>{t("Ce qu'il obtient de ce qu'il demande")}</span>
+                <b className={styles.gros}>{leve.tauxDeService === undefined ? "—" : `${Math.round(leve.tauxDeService * 100)} %`}</b>
+                <small>
+                  {leve.seances} {t("séance(s)")} · {t("du")} {fmtDate(leve.premiere)} {t("au")} {fmtDate(leve.derniere)}
+                </small>
+              </div>
+            </div>
+
+            {/* LE REFUS, MOTIVÉ. Sans motif il se lirait comme une lacune de
+                l'outil, et quelqu'un ferait la division à la main dans un coin. */}
+            <div className={styles.refusDuTaux}>
+              <span className={styles.el}>{t("Pourquoi aucun « % du programme levé » n'est affiché")}</span>
+              <ul>
+                {motifs.map((m) => (
+                  <li key={m.cle}>{t(POURQUOI[m.cle], trousDe(m.params, fmtDate))}</li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        ) : null}
+
         {/* LES PIÈCES, JUSTE AVANT LES NOTES : une lecture se juge sur ce
             qu'elle avait sous les yeux. */}
         <section className={styles.bloc}>
@@ -274,7 +324,7 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
           {signaux.length ? (
             <ul className={styles.carnetFiche}>
               {signaux.map((s, i) => (
-                <li key={`${s.genre}-${i}`}>{t(DIT[s.genre], trousDe(s, fmtDate))}</li>
+                <li key={`${s.genre}-${i}`}>{t(DIT[s.genre], trousDe(s.params, fmtDate))}</li>
               ))}
             </ul>
           ) : null}

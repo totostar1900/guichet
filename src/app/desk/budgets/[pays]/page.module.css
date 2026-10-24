@@ -446,3 +446,20 @@
 .heritees small {
   color: var(--ink-3);
 }
+
+/* Le refus du pourcentage : visible, motivé, et sous le chiffre qu'il
+   explique — un refus relégué en bas de page se lit comme une lacune. */
+.refusDuTaux {
+  margin-top: var(--s-6);
+  padding: var(--s-5) var(--s-6);
+  border-left: 3px solid var(--line-2);
+  background: var(--surface-2);
+  max-width: 62rem;
+}
+.refusDuTaux ul {
+  margin: var(--s-3) 0 0;
+  padding-left: var(--s-7);
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  line-height: 1.7;
+}
