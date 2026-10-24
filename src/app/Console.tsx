@@ -15,6 +15,8 @@ import { CeQuiFermeBientot } from "@/components/CeQuiFermeBientot";
 import { echeancesProches, presse } from "@/lib/domain/echeances";
 import { SelectionDuDesk } from "@/components/SelectionDuDesk";
 import { Rubriques } from "@/components/mobile/Rubriques";
+import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
+import { comptesParLieu, type ComptesParLieu } from "@/lib/domain/listes";
 import { TrustNudge } from "@/components/TrustNudge";
 import { Reinvest } from "@/components/Reinvest";
 import { buildPerformanceParts } from "@/lib/performance-report";
@@ -23,6 +25,21 @@ import { famillesDuPortefeuille, NOM_FAMILLE, type Famille } from "@/lib/domain/
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate, localIso } from "@/lib/format";
 import styles from "./Console.module.css";
+
+/**
+ * LE SINGULIER ET LE PLURIEL DE CHAQUE FAMILLE, DANS SON UNITÉ À ELLE.
+ *
+ * Repris mot pour mot de « /instruments », fermée le 24 octobre 2026, avec sa
+ * raison : « 2 ouvertes » convient à une séance, qui ouvre et se ferme ; une
+ * ligne de la cote ne s'ouvre pas, et un fonds encore moins. Un mot juste
+ * coûte un tableau de trois entrées, un mot faux coûte la confiance dans les
+ * deux autres.
+ */
+const UNITE: Record<string, [string, string]> = {
+  titres: ["1 ligne", "{n} lignes"],
+  fonds: ["1 fonds", "{n} fonds"],
+  calendrier: ["1 séance", "{n} séances"],
+};
 
 /**
  * Le portefeuille d'un client connecté : la racine de son espace.
@@ -110,6 +127,19 @@ export async function Console({ session }: { session: Session }) {
   /* Lues une fois, pour la bande ET pour savoir où la poser : le seuil de
      sept jours décide de sa place, et il ne se calcule pas deux fois. */
   const echeances = echeancesProches(offers);
+  /* Les trois familles, comptées par les fonctions mêmes que leurs pages
+     emploient pour dresser leur liste : voir la section « Investir ». */
+  const comptes = comptesParLieu(offers);
+  /* UNE FAMILLE SANS COMPTE NE PORTE PAS D'ÉTIQUETTE, ET NE CASSE RIEN. Le
+     jour où une quatrième page entre dans la liste sans que « comptesParLieu »
+     la connaisse, elle paraît sans chiffre plutôt qu'avec « undefined » ou
+     avec celui de sa voisine. Zéro ne s'écrit pas non plus : une famille vide
+     se visite quand même. */
+  const etiquetteDe = (cle: string) => {
+    const n = cle in comptes ? comptes[cle as keyof ComptesParLieu] : 0;
+    const mots = UNITE[cle];
+    return n > 0 && mots ? t(mots[n > 1 ? 1 : 0], { n: String(n) }) : undefined;
+  };
   const courbe = courbeDuPortefeuille(mouvements, perf.valued, aujourdHui);
   const familles = famillesDuPortefeuille(perf.lines, new Map(offers.map((o) => [o.id, o])), poche.idle);
 
@@ -386,11 +416,49 @@ export async function Console({ session }: { session: Session }) {
         </section>
       )}
 
-      {/* 6. S'INSCRIRE SANS ATTENDRE UN CODE. Une proposition qui se referme
+      {/* 6. OÙ PLACER : LES TROIS FAMILLES, ET CE QU'ELLES CONTIENNENT.
+          Elles avaient une page à elles, « /instruments », fermée le
+          24 octobre quand Trade les a absorbées. Cette page portait un compte
+          par famille et le défendait : « Adjudications » ne dit pas s'il y a
+          une séance ouverte cette semaine, « Adjudications · 3 séances » le
+          dit, et épargne le détour. Le compte est mort avec elle ; il revient
+          ici, où le client décide.
+
+          ET LA PAGE DIT L'INVERSE TROIS CENTS LIGNES PLUS BAS : « aucune [des
+          rubriques du dossier] ne porte de compte, un nombre posé sur la page
+          d'avant se calcule toujours ailleurs que là où il sera vérifié. »
+          Les deux règles tiennent, et ce qui les sépare est l'origine du
+          nombre. Les rubriques du dossier mènent à des pages qui recomptent
+          CE QUE LE CLIENT A, chacune à sa façon. Ces trois-ci comptent le
+          CATALOGUE, par « comptesParLieu », c'est-à-dire par les mêmes trois
+          fonctions que leurs pages d'arrivée emploient pour dresser leur
+          liste. Un seul calcul, deux surfaces : il ne peut pas diverger.
+
+          ZÉRO NE S'ÉCRIT PAS, et c'est la règle de l'ancienne page qu'on
+          garde : une famille vide se visite quand même, et annoncer son vide
+          l'éteindrait.
+
+          PAS D'APERÇU DES LIGNES, en revanche. La maquette en donnait deux
+          par famille ; pour les adjudications, ces deux lignes sont
+          exactement celles que « Ce qui ferme bientôt » vient de poser plus
+          haut sur cette même page. */}
+      <div className={styles.dossier}>
+        <span className="eyebrow">{t("Investir")}</span>
+        <Rubriques
+          items={INSTRUMENTS_PAGES.map((p) => ({
+            href: p.href,
+            nom: t(p.label),
+            quoi: t(p.hint),
+            etiquette: etiquetteDe(p.key),
+          }))}
+        />
+      </div>
+
+      {/* 7. S'INSCRIRE SANS ATTENDRE UN CODE. Une proposition qui se referme
           d'une croix, et ne revient pas. */}
       <TrustNudge />
 
-      {/* 7. VOTRE DOSSIER : UN SOMMAIRE, ET PLUS SIX SECTIONS DÉPLIÉES.
+      {/* 8. VOTRE DOSSIER : UN SOMMAIRE, ET PLUS SIX SECTIONS DÉPLIÉES.
           Le relevé était le bas de cette page, et il y développait ce qui a
           désormais une adresse : les intentions, les versements programmés et
           leurs instructions — avec leur formulaire de modification —, les

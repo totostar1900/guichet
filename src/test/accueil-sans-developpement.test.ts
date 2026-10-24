@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
+import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
 import path from "node:path";
 
 const ROOT = path.join(__dirname, "../..");
@@ -115,5 +116,43 @@ describe("la page d'accueil", () => {
      diverger : la page tient déjà les offres pour ses positions. */
   it("ne fait pas relire les offres à la bande des échéances", () => {
     expect(code("src/app/Console.tsx"), "la bande relit les offres que la page tient déjà").toMatch(/<CeQuiFermeBientot offres=\{offers\}/);
+  });
+  /* LES TROIS FAMILLES ONT RETROUVÉ LEUR COMPTE, ET IL VIENT D'UN SEUL
+     ENDROIT. « /instruments » le portait et le défendait — « Adjudications »
+     ne dit pas s'il y a une séance ouverte cette semaine, « Adjudications ·
+     3 séances » le dit — puis la page a fermé le 24 octobre et le compte est
+     mort avec elle.
+
+     La page d'accueil écrit par ailleurs, pour les rubriques du dossier :
+     « aucune ne porte de compte, un nombre posé sur la page d'avant se
+     calcule toujours ailleurs que là où il sera vérifié. » Les deux règles
+     tiennent, et ce qui les sépare est l'origine du nombre : ces trois-ci
+     passent par « comptesParLieu », c'est-à-dire par les fonctions mêmes que
+     leurs pages d'arrivée emploient pour dresser leur liste. Recompter à la
+     main ici ferait exactement ce que la seconde règle redoute. */
+  it("compte les trois familles avec la fonction de leurs pages d'arrivée", () => {
+    const src = code("src/app/Console.tsx");
+    expect(src, "l'accueil ne passe plus par « comptesParLieu » : le compte peut diverger de la page qu'il annonce").toContain("comptesParLieu(offers)");
+    expect(src, "les familles ne viennent plus de la table de navigation : l'accueil peut en nommer une qui n'existe pas").toContain("INSTRUMENTS_PAGES.map");
+  });
+
+  /* ZÉRO NE S'ÉCRIT PAS : une famille vide se visite quand même, et annoncer
+     son vide l'éteindrait. C'est la règle de l'ancienne page, et elle tient à
+     une comparaison qu'un « ?? » suffirait à perdre. */
+  it("n'annonce pas qu'une famille est vide", () => {
+    expect(code("src/app/Console.tsx"), "l'étiquette ne teste plus que le compte est non nul").toMatch(/n > 0 && mots/);
+  });
+
+  /* UNE FAMILLE SANS MOTS PERD SON CHIFFRE EN SILENCE. La table du singulier
+     et du pluriel est écrite à la main, à côté d'une liste de navigation qui
+     peut grandir : si les deux cessent de se correspondre, la nouvelle
+     famille paraît sans compte et personne ne s'en aperçoit. */
+  it("donne à chaque famille de la navigation son singulier et son pluriel", () => {
+    const src = lire("src/app/Console.tsx");
+    const table = src.match(/const UNITE[^=]*=\s*\{([\s\S]*?)\n\};/)?.[1] ?? "";
+    expect(table, "la table des unités est introuvable : l'épreuve ne garde plus rien").not.toBe("");
+    const connues = new Set([...table.matchAll(/^\s*([A-Za-z_][\w]*)\s*:/gm)].map((m) => m[1]));
+    const manquantes = INSTRUMENTS_PAGES.map((p) => p.key).filter((k) => !connues.has(k));
+    expect(manquantes, "ces familles paraîtraient sans compte, sans que rien ne tombe").toEqual([]);
   });
 });
