@@ -440,6 +440,47 @@ describe("la page des budgets", () => {
     expect(routes.includes("budgets"), "une route publique « /budgets » double la page du desk").toBe(false);
   });
 
+  /**
+   * AUCUNE PAGE CLIENT NE RENVOIE ICI, ET AUCUN LIEN MORT NE SORT D'ICI.
+   *
+   * CE QUE CETTE ÉPREUVE A CORRIGÉ EN NAISSANT : on a cru que le Trésor avait
+   * déjà sa fiche sous « Émetteurs », et on a posé le renvoi. Il rendait un
+   * 404. `/emetteurs/[slug]` ne sert que TROIS émetteurs obligataires —
+   * `snpc`, `acep`, `alios` — et les six États n'ont qu'une entrée de
+   * REGISTRE, qui est une identité servant à rattacher les offres, pas un
+   * écran. La fiche d'un budget est à ce jour la SEULE page par pays de
+   * l'application.
+   *
+   * CE QUI RESTE GARDÉ, et qui vaut quoi qu'il arrive : la page de l'émetteur
+   * n'a AUCUNE garde d'accès — c'est un écran client. Un lien d'une page
+   * client vers les budgets ouvrirait au public une porte sur l'analyse
+   * interne, et c'est précisément le genre de symétrie qu'on ajoute un jour
+   * avec de bonnes intentions.
+   */
+  it("n'est atteinte depuis aucune page hors du desk", () => {
+    const fautifs: string[] = [];
+    const parcourir = (d: string) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) {
+          if (e.name === "desk") continue; // le desk a le droit de se renvoyer à lui-même
+          parcourir(p);
+        } else if (/\.(ts|tsx)$/.test(e.name) && fs.readFileSync(p, "utf8").includes("/desk/budgets")) {
+          fautifs.push(path.relative(RACINE, p));
+        }
+      }
+    };
+    parcourir(path.join(RACINE, "src/app"));
+    expect(fautifs, "une page hors du desk renvoie vers les budgets : l'analyse interne s'ouvre au public").toEqual([]);
+    /* NON-VACUITÉ : la promenade a bien vu la page de l'émetteur. */
+    expect(fs.existsSync(path.join(RACINE, "src/app/emetteurs/[slug]/page.tsx")), "la page d'émetteur a disparu : l'épreuve ne garde plus rien").toBe(true);
+
+    /* ET AUCUN LIEN MORT NE SORT DE LA FICHE : `/emetteurs/<slug>` ne répond
+       que pour les émetteurs obligataires, et aucun État n'en est un. */
+    const f = code("src/app/desk/budgets/[pays]/page.tsx");
+    expect(f.includes("/emetteurs/"), "la fiche renvoie vers une page d'émetteur : aucun État n'en a une, le lien rendra 404").toBe(false);
+  });
+
   /* ELLE EST AU RAIL, SINON PERSONNE NE LA TROUVE. Une page sans entrée est
      une page qui n'existe que pour celui qui connaît son adresse. */
   it("est rangée au rail du desk, dans « Le marché »", () => {
