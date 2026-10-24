@@ -12,7 +12,7 @@ import { DemanderVersement } from "./DemanderVersement";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
 import { CeQuiFermeBientot } from "@/components/CeQuiFermeBientot";
-import { echeancesProches, presse } from "@/lib/domain/echeances";
+import { echeancesProches, joursEnMots, presse } from "@/lib/domain/echeances";
 import { SelectionDuDesk } from "@/components/SelectionDuDesk";
 import { IndexPulse } from "@/components/IndexPulse";
 import { CeQuiPerforme } from "@/components/CeQuiPerforme";
@@ -162,6 +162,10 @@ export async function Console({ session }: { session: Session }) {
      n'en gardait que la date, alors que le flux porte aussi sa nature, son
      montant et la ligne qui le verse — tout cela déjà calculé, et jeté. */
   const prochain = prochainFlux(positions);
+  /* « inDays » est déjà porté par le flux, calculé une fois au tri : le
+     recompter ici donnerait un second arrondi, donc un jour d'écart un jour
+     sur deux. */
+  const quandProchain = prochain ? joursEnMots(prochain.inDays) : undefined;
 
   const trace = dessin(courbe);
   const famille = (f: Famille) => t(NOM_FAMILLE[f]);
@@ -346,10 +350,26 @@ export async function Console({ session }: { session: Session }) {
               « Prochain flux », « prochain flux le » — et une quatrième
               surface pour la même date aurait rouvert exactement ce
               défaut-là. La date reste où elle est ; la phrase dit ce qu'elle
-              vaut. */}
-          {prochain && (
+              vaut.
+
+              ET DEPUIS QUAND ELLE VAUT, car la case au-dessus ne donne que la
+              date. La maison a une règle là-dessus, posée dans `echeances.ts`
+              et tenue par le rappel quotidien comme par la bande des
+              séances : le temps QUI RESTE, et non la date seule — « la page
+              sait quel jour on est, lui doit s'en souvenir ». Cette carte
+              était la surface qui ne la tenait pas, et c'est celle où la
+              soustraction décide le plus : un coupon modifie la provision,
+              donc ce qu'on peut engager d'ici là. Les mêmes mots qu'ailleurs,
+              par `joursEnMots`, et pas un seuil de plus — voir la note du
+              relevé sur les cinq jours. */}
+          {prochain && quandProchain && (
             <p className={styles.quoiVient}>
-              {t("{q} de {m} FCFA sur {l}.", { q: t(prochain.flow.label), m: fmt(Math.round(prochain.flow.amount)), l: prochain.position.offer.title })}
+              {t("{q} de {m} FCFA sur {l}, {quand}.", {
+                q: t(prochain.flow.label),
+                m: fmt(Math.round(prochain.flow.amount)),
+                l: prochain.position.offer.title,
+                quand: t(quandProchain.key, quandProchain.params),
+              })}
             </p>
           )}
           {/* Ce solde appartient au client : il le lit ici, donc il le réclame ici. */}

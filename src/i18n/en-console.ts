@@ -101,7 +101,9 @@ export const EN_CONSOLE: Record<string, string> = {
      la date ; cette phrase dit ce qui tombe, de combien, et sur quelle ligne
      — trois choses que la page calculait et jetait. « {q} » est le libellé du
      flux, traduit de son côté : Coupon, Coupon + capital, Remboursement. */
-  "{q} de {m} FCFA sur {l}.": "{q} of {m} FCFA on {l}.",
+  /* « {quand} » arrive déjà traduit : c'est un « Dit » de joursEnMots, rendu
+     par l'appelant avant d'entrer dans ce trou. */
+  "{q} de {m} FCFA sur {l}, {quand}.": "{q} of {m} FCFA on {l}, {quand}.",
 
   /* ---------- ce qui attend une décision ---------- */
   "Sur votre compte": "On your account",

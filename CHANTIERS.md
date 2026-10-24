@@ -481,29 +481,77 @@ commun existe ; ce qui reste est un CLIQUET — 49 en-têtes écrits à la main 
 matin, 38 au soir. Il descend à chaque page convertie et ne remonte jamais.
 Un cliquet ne se coche pas, il se regarde baisser.
 
-Le reste tient en trois lignes, et aucune n'est un défaut :
+Trois lignes restaient ici au moment d'écrire cette section ; **deux ont été
+faites dans la soirée même**, et aucune des trois n'était un défaut :
 
-- **Les aperçus des tuiles de Trade.** La maquette donne deux lignes sous
-  chaque tuile — ce qui attend derrière. Les tuiles existent, les aperçus
-  non.
+- ~~**Les aperçus des tuiles de Trade.**~~ **FAIT.** La maquette donnait deux
+  lignes sous chaque tuile. C'était en réalité un invariant rompu, et le
+  fichier qui l'annonce le déclarait en tête : *« les deux écrans rendent le
+  même texte dans le même ordre ; ce qui change est la façon de s'y
+  déplacer »*. L'écran large rendait la phrase de chaque service dans sa
+  bande, les tuiles du téléphone n'en portaient que le nom. Elles portent la
+  phrase — et non la précondition, qui est la même pour presque tous les
+  services et effaçait neuf sous-titres pour dire neuf fois la même chose.
 - **« Ce qui ferme bientôt » vit sur Trade ET sur l'accueil**, par décision
   explicite. C'est le même composant appelé deux fois, pas deux listes à
-  tenir.
-- **Le lockup `COMPANY.name`** en tête de la colonne des grands écrans. Le
-  point 13 bis visait le bandeau du téléphone, où la place manque ; sur une
-  colonne de 260 px fixe, un nom de maison ne prend la place de personne. À
-  décider si on veut l'uniformité.
+  tenir — et depuis ce soir le même `joursEnMots` que le rappel quotidien.
+  **C'est la seule des trois qui reste, et c'est un choix, pas un reste.**
+- ~~**Le lockup `COMPANY.name`**~~ en tête de la colonne des grands écrans.
+  **TRANCHÉ.** Il reste — sur une colonne de 260 px fixe, un nom de maison ne
+  prend la place de personne, et un client ne le lirait plus nulle part
+  ailleurs : le pied réglementaire ne paraît qu'au visiteur. Mais il **n'y
+  mène plus** : la barre large a son onglet « Accueil » et la colonne son
+  groupe « Accueil », et une enseigne qui y mène aussi donnait deux cibles
+  pour une destination à quelques dizaines de pixels l'une de l'autre — le
+  défaut même que le bandeau du téléphone s'est fait retirer. Muet pour le
+  client, lien pour le visiteur.
 
 Et deux chantiers nommés par les relevés, qui n'ont jamais été des points de
-la dictée :
+la dictée. **Les deux sont clos.**
 
-- **Les 441 px fixes du parcours de Trade** (relevé 12-b). Le découpage a
-  progressé — « Placer » a perdu son cran — mais la bande d'en-tête se
-  repeint toujours à l'identique d'un niveau à l'autre.
-- **Les huit autres seuils de niveau 2.** Un seul est écrit, celui des sept
-  jours. Les autres n'existent que sur la planche `Regles.dc.html`, qui dit
-  désormais lesquels sont au code et lesquels ont été écartés, avec leurs
-  raisons.
+- ~~**Les 441 px fixes du parcours de Trade**~~ (relevé 12-b). **FAIT.** Le
+  solde, « Ce qui vous attend » et les échéances se repeignaient à l'identique
+  aux trois niveaux, au-dessus du ruban — et le solde comme les échéances
+  s'étaient AJOUTÉS depuis le relevé, ce qui avait aggravé la chose. La tête
+  entre maintenant dans le premier panneau du ruban et glisse avec lui ; au
+  deuxième niveau il ne reste que le chemin et la fiche. Un seul assemblage
+  rendu à deux endroits, et une seule lecture : `contexteDuClient` est en
+  cache par requête, les offres sont lues une fois dans la page.
+
+- ~~**Les « huit autres seuils de niveau 2 »**~~ — **ce compte était faux, et
+  je l'avais déjà corrigé ici même avant de le réécrire dans cette liste.**
+  Le relevé ligne par ligne du 24 octobre avait conclu que la plupart des
+  règles étaient déjà tenues par des composants qui rendent `null` ; cette
+  section a tout de même gardé le chiffre de l'estimation d'avant. Il n'y a
+  jamais eu huit seuils.
+
+  **Le relevé exact : la planche porte DEUX seuils, pas neuf.** Sept jours
+  pour une échéance — écrit, `JOURS_URGENT` et `presse()` dans
+  `domain/echeances` — et cinq jours pour un flux qui tombe, qui n'a jamais
+  été écrit. Ce dernier **est retiré de la planche**, avec sa raison : c'était
+  le seuil de l'agenda, la section qu'il devait faire remonter, et l'agenda a
+  été écarté faute de connaître les jours fériés de la zone. Un seuil dont la
+  section n'existe pas ne déplace rien.
+
+  **Sa raison, elle, tenait.** Un coupon modifie la provision, donc ce que le
+  client peut engager d'ici là — et la carte de la provision écrivait
+  « Prochaine échéance · 14 février », laissant la soustraction au lecteur.
+  C'est exactement ce que `echeances.ts` interdit en tête de fichier : *le
+  temps qui reste, et non la date seule ; la page sait quel jour on est, lui
+  doit s'en souvenir.* Trois surfaces posent cette question, et le relevé les
+  a trouvées toutes les trois en défaut d'une façon ou d'une autre : le rappel
+  quotidien et la bande des séances écrivaient **le même ternaire à trois
+  branches en double** — la seconde copie sous un commentaire qui disait
+  « les mêmes mots que le message de rappel » —, et la carte de la provision
+  ne le disait pas du tout. Une définition (`joursEnMots`), trois appels, et
+  une épreuve qui nomme les deux seuls fichiers ayant le droit de porter les
+  trois mots.
+
+  → *Deux choses vérifiées avant d'y toucher, dont une qui a évité une fausse
+  réparation : `« demain »` paraissait absent des dictionnaires, et il y est —
+  en clef non guillemetée, que mon motif de recherche ne voyait pas. Et le
+  décompte de jours vient de `inDays`, déjà porté par le flux : le recalculer
+  aurait donné un second arrondi, donc un jour d'écart un jour sur deux.*
 
 → *Deux faits à retenir pour qui reprendra : le dépôt mémoire n'a **aucun
 bulletin** — la série du BOC est ingérée, jamais semée —, donc l'indice et le

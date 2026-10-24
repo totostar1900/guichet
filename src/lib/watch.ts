@@ -2,7 +2,8 @@ import "server-only";
 import { loadRegistry } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { displayStatus, statusLabel } from "@/lib/domain/status";
-import { joursAvant } from "./domain/echeances";
+import { joursAvant, joursEnMots } from "./domain/echeances";
+import { translate } from "@/i18n/core";
 import { summarize } from "@/lib/domain/summary";
 import type { Contact, Offer, Watch } from "@/lib/domain/types";
 import { COMPANY } from "@/lib/config";
@@ -36,7 +37,14 @@ export function watchMessage(o: Offer, prev: Watch, next: { hero: string; status
  * clôture. Rien à désactiver : passé le dépôt, le suivi n'a plus d'objet.
  */
 export function rappelMessage(o: Offer, jours: number, firstName?: string): { subject: string; text: string } {
-  const quand = jours <= 0 ? "aujourd'hui" : jours === 1 ? "demain" : `dans ${jours} jours`;
+  /* LES MÊMES MOTS QUE LA BANDE DES ÉCHÉANCES, et c'est maintenant la même
+     fonction. Le courriel part en français quelle que soit la langue de
+     lecture — c'est l'état des messages de cette maison, non une décision
+     prise ici — d'où `translate("fr", …)` plutôt qu'un `t` de requête : dans
+     ce dépôt la clef EST la phrase française, donc la traduire en français la
+     rend telle quelle, trous remplis. */
+  const mots = joursEnMots(jours);
+  const quand = translate("fr", mots.key, mots.params);
   const url = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/offres/${o.id}`;
   return {
     subject: `${o.title} : dépôt ${quand}`,

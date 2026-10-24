@@ -61,6 +61,32 @@ export const joursAvant = (iso: string, now = new Date()): number => Math.ceil((
 export const urgenceDe = (jours: number): Urgence => (jours <= JOURS_URGENT ? "urgent" : jours <= JOURS_BIENTOT ? "bientot" : "calme");
 
 /**
+ * LE TEMPS QUI RESTE, EN MOTS, ET UNE SEULE FOIS.
+ *
+ * L'en-tête de ce fichier pose la règle — « la page sait quel jour on est, lui
+ * doit s'en souvenir » — et trois surfaces la tenaient : le rappel quotidien
+ * (`watch.rappelMessage`), la bande des échéances, et la carte de la
+ * provision, qui ne la tenait pas.
+ *
+ * LA RÈGLE ÉTAIT ÉCRITE DEUX FOIS, et la seconde le disait : la bande portait
+ * en commentaire « les mêmes mots que le message de rappel » au-dessus de sa
+ * propre copie du ternaire. Un commentaire qui déclare une copie ne l'empêche
+ * pas de diverger — il nomme seulement le jour où elle divergera.
+ *
+ * TROIS BRANCHES, ET PAS UN NOMBRE DE JOURS. « dans 0 jours » et « dans
+ * 1 jours » ne se disent pas ; « aujourd'hui » et « demain » sont les mots que
+ * le client emploierait. C'est aussi ce qui décide : un dépôt qui ferme
+ * aujourd'hui ne se prépare plus, il se signe.
+ *
+ * UN « Dit » ET NON UNE CHAÎNE, parce que le domaine ne traduit pas : il rend
+ * la clef et ses trous, et chaque surface les passe à son propre traducteur —
+ * `t()` dans les pièces, `translate("fr", …)` dans les courriels, qui partent
+ * en français quelle que soit la langue de lecture.
+ */
+export const joursEnMots = (jours: number): Dit =>
+  jours <= 0 ? { key: "aujourd'hui" } : jours === 1 ? { key: "demain" } : { key: "dans {n} jours", params: { n: String(jours) } };
+
+/**
  * Les séances qui se ferment dans le mois, de la plus proche à la plus
  * lointaine.
  *

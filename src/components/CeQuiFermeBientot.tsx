@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { repo } from "@/lib/data";
-import { echeancesProches, type Urgence } from "@/lib/domain/echeances";
+import { echeancesProches, joursEnMots, type Urgence } from "@/lib/domain/echeances";
 import type { Offer } from "@/lib/domain/types";
 import styles from "./CeQuiFermeBientot.module.css";
 
@@ -18,9 +18,11 @@ import styles from "./CeQuiFermeBientot.module.css";
  * LE TEMPS QUI RESTE, ET NON LA DATE. « Clôture le 29 octobre » oblige le
  * lecteur à faire la soustraction, et il la fait mal : la page sait quel jour
  * on est, lui doit s'en souvenir. C'est déjà la règle des rappels par
- * message (`watch.rappelMessage`), et les deux surfaces emploient les mêmes
+ * message (`watch.rappelMessage`), et les trois surfaces emploient les mêmes
  * mots — « aujourd'hui », « demain », « dans {n} jours » — pour que le client
- * ne lise pas deux vocabulaires du même fait.
+ * ne lise pas deux vocabulaires du même fait. Ces mots viennent désormais de
+ * `joursEnMots` : cette bande en gardait sa propre copie, sous un commentaire
+ * qui déclarait justement qu'elle en était une.
  *
  * TROIS TONS, QUI SONT DES PALIERS DE DÉCISION. Sous sept jours, un virement
  * interbancaire de la zone n'est plus certain d'arriver avant le dépôt : le
@@ -50,11 +52,6 @@ export async function CeQuiFermeBientot({ offres, max = 3 }: { /** Les offres d�
   const montrees = toutes.slice(0, max);
   const reste = toutes.length - montrees.length;
 
-  /* Les mêmes mots que le message de rappel, et l'unité se dit en entier :
-     une pastille a la place de « dans 12 jours », et « 12 j » est un
-     télégramme là où rien ne presse de l'être. */
-  const quand = (jours: number) => (jours <= 0 ? t("aujourd'hui") : jours === 1 ? t("demain") : t("dans {n} jours", { n: String(jours) }));
-
   return (
     <section className={styles.bloc} aria-labelledby="ferme-bientot">
       <div className={styles.tete}>
@@ -66,7 +63,9 @@ export async function CeQuiFermeBientot({ offres, max = 3 }: { /** Les offres d�
         </Link>
       </div>
       <ul className={styles.liste}>
-        {montrees.map((e) => (
+        {montrees.map((e) => {
+          const quand = joursEnMots(e.jours);
+          return (
           <li key={e.offerId}>
             <Link className={styles.ligne} href={e.href}>
               <span className={styles.quoi}>
@@ -75,11 +74,15 @@ export async function CeQuiFermeBientot({ offres, max = 3 }: { /** Les offres d�
               </span>
               {/* L'URGENCE EST ÉCRITE, pas seulement teintée : « dans 3 jours »
                   se lit en noir et blanc, et un lecteur qui ne distingue pas
-                  le rouge du doré garde l'information entière. */}
-              <span className={`${styles.reste} ${TON[e.urgence]}`}>{quand(e.jours)}</span>
+                  le rouge du doré garde l'information entière.
+                  LES MOTS VIENNENT DU DOMAINE, et l'unité s'y dit en entier :
+                  une pastille a la place de « dans 12 jours », et « 12 j » est
+                  un télégramme là où rien ne presse de l'être. */}
+              <span className={`${styles.reste} ${TON[e.urgence]}`}>{t(quand.key, quand.params)}</span>
             </Link>
           </li>
-        ))}
+          );
+        })}
       </ul>
       {reste > 0 && (
         <Link className={styles.autres} href="/calendrier">
