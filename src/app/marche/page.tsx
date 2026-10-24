@@ -7,9 +7,9 @@ import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
 import { dernierMouvement, echangesDeLaSeance } from "@/lib/market/echanges";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters, quarterNote } from "@/lib/market/index-quarter";
-import { publishedNews } from "@/lib/news";
+import { aLaUne, publishedNews, titreLu } from "@/lib/news";
 import { loadCompanies } from "@/lib/reference";
-import { getT } from "@/i18n/server";
+import { getLang, getT } from "@/i18n/server";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 
@@ -27,7 +27,7 @@ export const metadata = { title: "Le marché" };
  * n'était rattachée à aucun onglet ; c'est cette porte qui manquait.
  */
 export default async function MarchePage() {
-  const t = await getT();
+  const [t, lang] = await Promise.all([getT(), getLang()]);
   const [data, companies, actualites] = await Promise.all([indexPageData(), loadCompanies().catch(() => []), publishedNews().catch(() => [])]);
   const { weights, nameOf, lastBulletin, histories, trading } = data;
   const notes = quarters(data);
@@ -35,7 +35,11 @@ export default async function MarchePage() {
      plus. Les actualités, elles, vivent ailleurs, d'où la seule requête que
      cette page ajoute, et elle ne sert qu'à savoir s'il y a quelque chose. */
   const derniere = notes.length > 0 ? await quarterNote(undefined, data) : undefined;
-  const aLaUne = actualites[0];
+  /* LE MÊME ARTICLE QUE « /actualites », et c'était le défaut : cette page
+     prenait le plus récent pendant que la page des actualités montrait celui
+     que le desk a épinglé. « À la une » changeait d'article d'une page à
+     l'autre. */
+  const une = aLaUne(actualites);
   const capTotal = weights.reduce((s, w) => s + w.capTotal, 0);
   const capFloat = weights.reduce((s, w) => s + w.capFloat, 0);
   /**
@@ -185,7 +189,7 @@ export default async function MarchePage() {
         {/* LES ACTUALITÉS NE PARAISSENT QUE S'IL Y EN A. Une rubrique vide en
             tête de siège apprend à ne plus l'ouvrir ; cinq dépêches reçues et
             relues, non publiées, ne sont pas une actualité. */}
-        {aLaUne && (
+        {une && (
           <section className="panel" id="actualites">
             <div className="panel-h">
               <h2>{t("À la une")}</h2>
@@ -195,9 +199,9 @@ export default async function MarchePage() {
             </div>
             <div className={styles.apercu}>
               <Link href="/actualites">
-                <b>{aLaUne.source}</b>
-                <span>{aLaUne.title}</span>
-                <em>{aLaUne.publishedAt ? fmtDate(aLaUne.publishedAt.slice(0, 10), false) : ""}</em>
+                <b>{une.source}</b>
+                <span>{titreLu(une, lang, t)}</span>
+                <em>{une.publishedAt ? fmtDate(une.publishedAt.slice(0, 10), false) : ""}</em>
               </Link>
             </div>
           </section>

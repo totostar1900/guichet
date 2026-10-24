@@ -7,7 +7,7 @@ import { getLang, getT } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { fmtDate, fmtDay, fmtTime } from "@/lib/format";
-import { publishedNews } from "@/lib/news";
+import { aLaUne, pourquoiLu, publishedNews, titreLu } from "@/lib/news";
 import { linkHref, RUBRIC_LABEL, RUBRICS, type NewsItem } from "@/lib/news/model";
 import { positionsFrom } from "@/lib/positions";
 import { summarize } from "@/lib/domain/summary";
@@ -30,7 +30,10 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
   const q = fold(sp.q ?? "").trim();
   const rubric = (RUBRICS as string[]).includes(sp.rubrique ?? "") ? sp.rubrique : "";
   const shown = all.filter((n) => (!rubric || n.rubric === rubric) && (!q || fold(`${n.title} ${n.titleEn ?? ""} ${n.why} ${n.source} ${n.links.map((l) => l.label).join(" ")}`).includes(q)));
-  const featured = !q && !rubric && !archive ? shown.find((n) => n.featured) : undefined;
+  /* Le choix vit dans « lib/news », parce que trois surfaces le font. Les
+     trois conditions restent ici : chercher ou filtrer, c'est demander une
+     liste, et une liste n'a pas de une. */
+  const featured = !q && !rubric && !archive ? aLaUne(shown) : undefined;
   const rest = shown.filter((n) => n !== featured);
   const byDay = new Map<string, NewsItem[]>();
   const firstDay = rest[0]?.publishedAt.slice(0, 10);
@@ -38,8 +41,10 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
     const day = n.publishedAt.slice(0, 10);
     byDay.set(day, [...(byDay.get(day) ?? []), n]);
   }
-  const title = (n: NewsItem) => (lang === "en" && n.titleEn ? n.titleEn : t(n.title));
-  const why = (n: NewsItem) => (lang === "en" && n.whyEn ? n.whyEn : t(n.why));
+  /* Le choix de la langue vit dans « lib/news » : trois surfaces le font, et
+     « /marche » ne le faisait pas du tout. */
+  const title = (n: NewsItem) => titreLu(n, lang, t);
+  const why = (n: NewsItem) => pourquoiLu(n, lang, t);
   const weekAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString();
   const thisWeek = all.filter((n) => n.publishedAt >= weekAgo).length;
 

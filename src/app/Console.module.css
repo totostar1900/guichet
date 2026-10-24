@@ -725,3 +725,41 @@
 .annonceKo {
   color: var(--crit);
 }
+
+/* ── À LA UNE : UN ARTICLE, ET CE QU'IL CHANGE ──────────────────────────────
+   Trois lignes de trois poids : d'où ça vient et quand, ce que c'est, et ce
+   que la maison en dit. La troisième est la seule que le desk écrit, et c'est
+   elle qui justifie que la dépêche paraisse ici plutôt que dans un moteur de
+   recherche. */
+.une {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+}
+.une:hover {
+  border-color: var(--line-2);
+}
+.une > small {
+  font-size: var(--t-1);
+  color: var(--ink-3);
+}
+.une > b {
+  font-size: var(--t-3);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.une > span {
+  font-size: var(--t-2);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.une > span b {
+  font-weight: 700;
+  color: var(--ink);
+}

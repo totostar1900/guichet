@@ -15,6 +15,7 @@ import { CeQuiFermeBientot } from "@/components/CeQuiFermeBientot";
 import { echeancesProches, presse } from "@/lib/domain/echeances";
 import { SelectionDuDesk } from "@/components/SelectionDuDesk";
 import { IndexPulse } from "@/components/IndexPulse";
+import { aLaUne, pourquoiLu, publishedNews, titreLu } from "@/lib/news";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
 import { comptesParLieu, type ComptesParLieu } from "@/lib/domain/listes";
@@ -23,7 +24,7 @@ import { Reinvest } from "@/components/Reinvest";
 import { buildPerformanceParts } from "@/lib/performance-report";
 import { courbeDuPortefeuille } from "@/lib/domain/courbe-portefeuille";
 import { famillesDuPortefeuille, NOM_FAMILLE, type Famille } from "@/lib/domain/familles-actifs";
-import { getT } from "@/i18n/server";
+import { getLang, getT } from "@/i18n/server";
 import { fmt, fmtDate, localIso } from "@/lib/format";
 import styles from "./Console.module.css";
 
@@ -84,7 +85,7 @@ const UNITE: Record<string, [string, string]> = {
  * disait l'inverse de ce que le chiffre faisait. Les trois sont partis.
  */
 export async function Console({ session }: { session: Session }) {
-  const t = await getT();
+  const [t, lang] = await Promise.all([getT(), getLang()]);
   const r = repo();
   const aujourdHui = localIso(new Date());
 
@@ -131,6 +132,9 @@ export async function Console({ session }: { session: Session }) {
   /* Les trois familles, comptées par les fonctions mêmes que leurs pages
      emploient pour dresser leur liste : voir la section « Investir ». */
   const comptes = comptesParLieu(offers);
+  /* La dépêche du jour, s'il y en a une : « loadNews » est en cache pour la
+     requête, donc cette lecture ne coûte rien à qui la demande déjà. */
+  const une = aLaUne(await publishedNews().catch(() => []));
   /* UNE FAMILLE SANS COMPTE NE PORTE PAS D'ÉTIQUETTE, ET NE CASSE RIEN. Le
      jour où une quatrième page entre dans la liste sans que « comptesParLieu »
      la connaisse, elle paraît sans chiffre plutôt qu'avec « undefined » ou
@@ -486,11 +490,43 @@ export async function Console({ session }: { session: Session }) {
         <IndexPulse compact />
       </section>
 
-      {/* 8. S'INSCRIRE SANS ATTENDRE UN CODE. Une proposition qui se referme
+      {/* 8. À LA UNE : UN ARTICLE, ET CE QU'IL CHANGE.
+          Le même que la page des actualités met en tête, par « aLaUne » : ce
+          titre désignait deux articles différents selon la page, et la maison
+          n'en a qu'un.
+
+          LE « POURQUOI ÇA COMPTE » VIENT AVEC. C'est la seule chose que la
+          maison ajoute à un lien de presse — deux lignes, sans
+          recommandation, écrites par le desk. Un titre seul renverrait le
+          lecteur sur un communiqué qu'il devra interpréter lui-même ; c'est
+          ce travail-là qui justifie que la dépêche paraisse ici.
+
+          ELLE S'EFFACE QUAND IL N'Y A RIEN : cinq dépêches reçues et relues,
+          non publiées, ne sont pas une actualité, et une rubrique vide en
+          tête de page apprend à ne plus l'ouvrir. */}
+      {une && (
+        <section>
+          <div className={styles.tete}>
+            <b>{t("À la une")}</b>
+            <Link href="/actualites">{t("Toutes les actualités")} →</Link>
+          </div>
+          <Link href="/actualites" className={styles.une}>
+            <small>
+              {une.source} · {fmtDate(une.publishedAt.slice(0, 10), false)}
+            </small>
+            <b>{titreLu(une, lang, t)}</b>
+            <span>
+              <b>{t("Pourquoi ça compte.")}</b> {pourquoiLu(une, lang, t)}
+            </span>
+          </Link>
+        </section>
+      )}
+
+      {/* 9. S'INSCRIRE SANS ATTENDRE UN CODE. Une proposition qui se referme
           d'une croix, et ne revient pas. */}
       <TrustNudge />
 
-      {/* 9. VOTRE DOSSIER : UN SOMMAIRE, ET PLUS SIX SECTIONS DÉPLIÉES.
+      {/* 10. VOTRE DOSSIER : UN SOMMAIRE, ET PLUS SIX SECTIONS DÉPLIÉES.
           Le relevé était le bas de cette page, et il y développait ce qui a
           désormais une adresse : les intentions, les versements programmés et
           leurs instructions — avec leur formulaire de modification —, les
