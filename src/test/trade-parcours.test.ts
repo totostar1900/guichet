@@ -52,6 +52,35 @@ describe("le parcours de Trade", () => {
     expect(lire("src/app/trader/page.module.css"), "la grille de douze colonnes est revenue pour le seul en-tête").not.toMatch(/repeat\(12/);
   });
 
+  /* LE MÊME FRANC, UNE SEULE FOIS. Trade porte en tête le disponible de la
+     provision : c'est la condition de tout geste qu'on y pose. L'attente
+     « disponible » nomme le même nombre à cent pixels de là, avec un autre
+     verbe — « Replacer » contre « Alimenter » — et le lecteur cherche alors
+     lequel des deux est le vrai.
+
+     LES DEUX MOITIÉS VOYAGENT ENSEMBLE, et c'est tout l'objet de cette
+     épreuve. Retirer la bande en laissant le « sauf » prive le client du
+     chiffre ; retirer le « sauf » en laissant la bande le lui donne deux
+     fois. Ni l'un ni l'autre ne se voit en lisant le diff. */
+  it("ne dit le disponible qu'une fois sur la page qui sert à agir", () => {
+    const tsx = lire("src/app/trader/page.tsx");
+    expect(tsx, "la bande du disponible a disparu, mais l'attente reste écartée : le chiffre n'est plus nulle part").toContain("styles.solde");
+    expect(tsx, "l'attente « disponible » est revenue à côté de la bande : le même franc deux fois").toMatch(/<CeQuiVousAttend[^>]*sauf=\{\["disponible"\]\}/);
+  });
+
+  /* UNE CLEF ÉCARTÉE QUI N'EXISTE PAS N'ÉCARTE RIEN, et ne le dit pas. Le
+     filtre passerait, la liste serait entière, et la page afficherait de
+     nouveau le doublon qu'elle croit avoir retiré. Même défaut que viserait
+     un rayon renommé dans « trader/niveaux ». */
+  it("écarte une attente que le domaine sait produire", () => {
+    const corps = lire("src/lib/domain/services.ts");
+    const debut = corps.indexOf("export function attentesDuClient");
+    const clefs = new Set([...corps.slice(debut).matchAll(/cle:\s*"([^"]+)"/g)].map((m) => m[1]));
+    const ecartees = [...lire("src/app/trader/page.tsx").matchAll(/sauf=\{\[([^\]]*)\]\}/g)].flatMap((m) => [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]));
+    expect(ecartees.length, "la page n'écarte plus rien : l'épreuve au-dessus devrait déjà l'avoir dit").toBeGreaterThan(0);
+    expect(ecartees.filter((c) => !clefs.has(c)), "ces clefs n'existent dans aucune attente : le filtre ne retire rien et le doublon revient").toEqual([]);
+  });
+
   /* L'ÉCART DE L'ÉTALON, qu'une écriture en double effaçait : « .rayons »
      était défini deux fois à quatre cents lignes d'écart, 32 en haut avec sa
      justification, 20 en bas, et c'est le bas qui l'emportait. Les deux autres

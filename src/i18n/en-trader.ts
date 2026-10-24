@@ -215,4 +215,8 @@ export const EN_TRADER: Record<string, string> = {
   "Masquer les étapes": "Hide the steps",
   "Commencez par une séance annoncée : le calendrier les publie dès qu'un Trésor ouvre la sienne.": "Start with an announced session: the calendar publishes them as soon as a Treasury opens one.",
   "Commencez par souscrire à un fonds : le passage se déclare ensuite depuis la ligne que vous détenez.": "Start by subscribing to a fund: the switch is then declared from the line you hold.",
+  /* LE DISPONIBLE EN TÊTE DE TRADE (24 octobre 2026). La condition de tout
+     geste qu'on pose sur cette page, et donc sa première ligne. */
+  "Disponible pour un ordre": "Available for an order",
+  "Rien en provision": "Nothing in your cash reserve",
 };

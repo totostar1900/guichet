@@ -45,10 +45,39 @@ import styles from "./CeQuiVousAttend.module.css";
  * atterrit, celle que la barre de l'application pointe, et la seule dont la
  * liste des devoirs est le sujet plutôt qu'un préalable.
  */
-export async function CeQuiVousAttend({ userId, tout = false }: { userId: string; /** La page d'arrivée porte la liste entière : voir la note ci-dessus. */ tout?: boolean }) {
+export async function CeQuiVousAttend({
+  userId,
+  tout = false,
+  sauf,
+}: {
+  userId: string;
+  /** La page d'arrivée porte la liste entière : voir la note ci-dessus. */
+  tout?: boolean;
+  /**
+   * Les attentes qu'une page dit déjà autrement, par leur clef.
+   *
+   * UNE SEULE PAGE S'EN SERT, ET POUR UNE SEULE RAISON. Trade porte en tête
+   * le disponible de la provision, parce que c'est la condition de tout
+   * geste qu'on y pose. L'attente « disponible » nomme le même franc à cent
+   * pixels de là, avec un autre verbe : « Replacer » là où la bande dit
+   * « Alimenter ». Deux fois le même nombre sur un écran, et le lecteur
+   * cherche lequel des deux est le vrai.
+   *
+   * Ce n'est pas un réglage d'apparence : la bande dit un ÉTAT — voici ce
+   * que vous pouvez engager — et l'attente dit un REPROCHE — cet argent
+   * dort. Sur la page qui sert à agir, l'état suffit ; le reproche reste là
+   * où il porte, sur la page d'arrivée, qui a la liste entière.
+   *
+   * Il reste une liste de clefs et non un booléen : le jour où une autre
+   * page redira une autre attente, elle le dira de la même façon, au lieu
+   * d'inventer son propre drapeau.
+   */
+  sauf?: string[];
+}) {
   const t = await getT();
   const ctx = await contexteDuClient(userId);
-  const attentes = attentesDuClient(ctx, fmt);
+  const toutes = attentesDuClient(ctx, fmt);
+  const attentes = sauf?.length ? toutes.filter((a) => !sauf.includes(a.cle)) : toutes;
   if (!attentes.length) return null;
   /* L'ordre vient du domaine, et il va du plus bloquant au moins : couper à
      deux garde donc les deux qui bloquent le plus, et jamais deux au hasard. */

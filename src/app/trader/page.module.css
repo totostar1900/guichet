@@ -131,3 +131,86 @@
   font-weight: 600;
   text-decoration: none;
 }
+
+/* ── LE DISPONIBLE, EN TÊTE DES GESTES ──────────────────────────────────────
+   La page demande « qu'est-ce que je peux faire » ; la première réponse est
+   « avec quoi ». Sur surface relevée, parce que c'est une condition et non un
+   geste de plus : les gestes sont en dessous, elle les porte.
+   Deux cibles, et toutes deux larges : le chiffre mène à la provision, le
+   cercle à l'alimentation. Un nom qui ouvre une page à côté d'un chevron qui
+   en ouvre une autre fait viser, et l'on vise mal — ici chaque cible fait
+   plus de quarante pixels. */
+.solde {
+  display: flex;
+  align-items: center;
+  gap: var(--s-7);
+  padding: var(--s-7) var(--s-8);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.combien {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  color: inherit;
+  text-decoration: none;
+}
+.etiquette {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.montant {
+  font-size: var(--t-6);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.montant small {
+  font-size: var(--t-2);
+  font-weight: 400;
+  color: var(--ink-2);
+}
+/* « 0 FCFA » se lit comme une panne : à zéro le chiffre se nomme. C'est la
+   règle que la page d'arrivée applique déjà à une valorisation absente. */
+.vide {
+  font-size: var(--t-3);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.geste {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+  color: inherit;
+  text-decoration: none;
+}
+.geste b {
+  font-size: var(--t-1);
+  font-weight: 600;
+}
+.rond {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--gold);
+  background: var(--gold);
+  color: var(--navy);
+}
+.rond svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}

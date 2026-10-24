@@ -1,8 +1,10 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { ETAPES, RAISON, servicesDuClient } from "@/lib/domain/services";
 import { contexteDuClient } from "@/lib/domain/contexte-client";
 import { getT } from "@/i18n/server";
+import { fmt } from "@/lib/format";
 import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
 import { CeQuiFermeBientot } from "@/components/CeQuiFermeBientot";
 import { Parcours } from "./Parcours";
@@ -74,7 +76,39 @@ export default async function TradePage() {
         {/* CE QUI DEMANDE LA MAIN D'ABORD. Un bulletin à signer, un coupon qui
             dort, une séance qui se ferme : ce sont les seules lignes de cette
             page qui ont une échéance, et elles étaient au bas d'un mur. */}
-        <CeQuiVousAttend userId={s.userId} />
+        {/* LE DISPONIBLE PASSE DEVANT LES GESTES, parce qu'il les conditionne
+            tous. La page demande « qu'est-ce que je peux faire » ; la
+            première réponse est « avec quoi ». Ce franc n'est pas un reproche
+            ici mais un état, et c'est pourquoi l'attente qui le reproche est
+            retirée juste en dessous — voir le « sauf » de CeQuiVousAttend.
+            À zéro, le chiffre se nomme au lieu de s'afficher : « 0 FCFA » se
+            lit comme une panne, et c'est justement le jour où « Alimenter »
+            sert le plus. */}
+        <div className={styles.solde}>
+          <Link className={styles.combien} href="/moi/provision">
+            <span className={styles.etiquette}>{t("Disponible pour un ordre")}</span>
+            {ctx.disponible > 0 ? (
+              <b className={styles.montant}>
+                {fmt(Math.round(ctx.disponible))} <small>FCFA</small>
+              </b>
+            ) : (
+              <b className={styles.vide}>{t("Rien en provision")}</b>
+            )}
+          </Link>
+          <Link className={styles.geste} href="/moi/provision/alimenter">
+            <span className={styles.rond} aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+            <b>{t("Alimenter")}</b>
+          </Link>
+        </div>
+
+        {/* L'attente « disponible » n'y est pas : la bande ci-dessus dit le
+            même franc, et deux fois le même nombre sur un écran fait chercher
+            lequel est le vrai. */}
+        <CeQuiVousAttend userId={s.userId} sauf={["disponible"]} />
 
         {/* LES SÉANCES QUI SE FERMENT, SUR LA PAGE OÙ L'ON VIENT AGIR. Une
             adjudication s'annonce une semaine avant sa clôture, et le
