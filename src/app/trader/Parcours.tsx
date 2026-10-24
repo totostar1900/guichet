@@ -8,6 +8,7 @@ import { RAYONS, type ServiceVu } from "@/lib/domain/services";
 import { Fiche } from "./Fiche";
 import { cheminDu, niveauDu, retourDe, SANS_LISTE } from "./niveaux";
 import styles from "./Parcours.module.css";
+import type { Apercu } from "@/lib/domain/apercus";
 
 /**
  * LE PARCOURS DU TÉLÉPHONE : TROIS ÉCRANS QUI GLISSENT.
@@ -61,6 +62,7 @@ export function Parcours({
   etapes,
   raisons,
   racine,
+  apercus,
 }: {
   services: ServiceVu[];
   etapes: Record<string, string[]>;
@@ -80,6 +82,15 @@ export function Parcours({
    * venu lire.
    */
   racine?: React.ReactNode;
+  /**
+   * CE QUI ATTEND DERRIÈRE CHAQUE TUILE, par clef de service.
+   *
+   * Calculé une fois dans la page, à partir des offres qu'elle tient déjà, et
+   * passé aux DEUX arrangements : l'écran large le rend dans la fiche, le
+   * téléphone sous la tuile. C'est l'invariant que ce fichier déclare en
+   * tête — même donnée, même texte, seule la façon de s'y déplacer change.
+   */
+  apercus?: Record<string, Apercu[]>;
 }) {
   const t = useT();
   const router = useRouter();
@@ -182,14 +193,29 @@ export function Parcours({
                           déclare en tête — « les deux écrans lisent la MÊME
                           donnée et rendent le même texte dans le même ordre ».
                           Elles le tiennent de nouveau.
-                          ET C'EST LA PHRASE, PAS DEUX LIGNES DE CATALOGUE.
-                          La maquette donnait sous chaque tuile deux lignes
-                          concrètes — la prochaine séance, son ticket. Pour les
-                          adjudications, ce sont exactement celles que « Ce qui
-                          ferme bientôt » pose déjà sur cette même page. La
-                          phrase, elle, porte les chiffres DU CLIENT et diffère
-                          d'un service à l'autre. */}
+                          LA PHRASE RESTE, ET LES DEUX LIGNES DE LA MAQUETTE
+                          SONT VENUES AVEC. L'objection écrite ici le matin —
+                          « pour les adjudications, ce sont exactement celles
+                          que Ce qui ferme bientôt pose déjà sur cette même
+                          page » — était juste, et elle ne valait que pour
+                          CELLE-LÀ : « primaire » n'a toujours pas d'aperçu,
+                          par ce motif exact. Les trois autres montrent ce que
+                          rien d'autre ne montre ici — la cote, les fonds
+                          ouverts, la part qu'on détient — et elles ne coûtent
+                          aucune lecture, les offres étant déjà en main.
+                          La phrase porte les chiffres DU CLIENT, l'aperçu ceux
+                          du CATALOGUE : deux questions, deux lignes. */}
                       <span className={styles.apercu}>{t(sv.phrase.key, sv.phrase.params)}</span>
+                      {(apercus?.[sv.cle] ?? []).length > 0 && (
+                        <span className={styles.apercus}>
+                          {(apercus?.[sv.cle] ?? []).map((a) => (
+                            <span key={a.nom} className={styles.apercuLigne}>
+                              <em>{a.nom}</em>
+                              <b>{t(a.dit.key, a.dit.params)}</b>
+                            </span>
+                          ))}
+                        </span>
+                      )}
                       {sv.etat === "en_place" && <small>{t("en place")}</small>}
                     </button>
                   </li>
@@ -222,7 +248,7 @@ export function Parcours({
           </section>
 
           <section className={styles.volet} aria-hidden={niveau !== 2} inert={niveau !== 2}>
-            {service && <Fiche sv={service} raison={raisons[service.cle]} etapes={etapes[service.cle]} titre />}
+            {service && <Fiche sv={service} raison={raisons[service.cle]} etapes={etapes[service.cle]} apercus={apercus?.[service.cle]} titre />}
           </section>
         </div>
       </div>

@@ -41,6 +41,8 @@ export const EN_TEMPLATES: Record<string, string> = {
   "{n} actions de {v}": "{n} shares of {v}",
   "{n} actions à {v}": "{n} shares at {v}",
   "{n} parts": "{n} units",
+  /* L'aperçu d'une tuile de Trade : ce que rapporte la ligne, par an. */
+  "{r} de rendement": "{r} yield",
   "1 bon, intérêts précomptés": "1 bill, discounted interest",
   "Clôture {c}": "Closing {c}",
   "Auj. {h}": "Today {h}",

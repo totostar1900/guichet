@@ -6,6 +6,7 @@ import { ICONE_SERVICE } from "@/components/nav/IconesServices";
 import { RAYONS, type ServiceVu } from "@/lib/domain/services";
 import { Fiche } from "./Fiche";
 import styles from "./page.module.css";
+import type { Apercu } from "@/lib/domain/apercus";
 
 /**
  * LES TROIS RAYONS, DANS LA GRAMMAIRE DE PLIS DE LA MAISON.
@@ -28,7 +29,7 @@ import styles from "./page.module.css";
  * place, lui, est une information — c'est la seule chose que le pli replié
  * doit encore dire.
  */
-export function Rayons({ services, etapes, raisons }: { services: ServiceVu[]; etapes: Record<string, string[]>; raisons: Record<string, string> }) {
+export function Rayons({ services, etapes, raisons, apercus }: { services: ServiceVu[]; etapes: Record<string, string[]>; raisons: Record<string, string>; /** Ce qui attend derrière chaque service : le même aperçu que les tuiles du téléphone. */ apercus?: Record<string, Apercu[]> }) {
   const t = useT();
   return (
     <div className={styles.rayons}>
@@ -49,7 +50,7 @@ export function Rayons({ services, etapes, raisons }: { services: ServiceVu[]; e
                   marque={ICONE_SERVICE[sv.cle]}
                   compte={sv.etat === "en_place" ? t("en place") : undefined}
                 >
-                  <Fiche sv={sv} raison={raisons[sv.cle]} etapes={etapes[sv.cle]} />
+                  <Fiche sv={sv} raison={raisons[sv.cle]} etapes={etapes[sv.cle]} apercus={apercus?.[sv.cle]} />
                 </Pli>
               ))}
             </div>

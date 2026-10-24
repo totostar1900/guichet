@@ -13,6 +13,7 @@ import { Rayons } from "./Rayons";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
+import { apercusDuService } from "@/lib/domain/apercus";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Trade" };
@@ -63,6 +64,11 @@ export default async function TradePage() {
      même requête, donc deux occasions de diverger. */
   const [ctx, offers] = await Promise.all([contexteDuClient(s.userId), repo().listOffers().catch(() => [])]);
   const services = servicesDuClient(ctx);
+  /* CE QUI ATTEND DERRIÈRE CHAQUE TUILE, calculé UNE FOIS et passé aux deux
+     arrangements. Tout sort des offres déjà lues plus haut : un aperçu qui
+     aurait demandé une requête par service aurait été écarté comme le volet
+     « la séance » de la page d'arrivée. */
+  const apercus = Object.fromEntries(services.map((sv) => [sv.cle, apercusDuService(sv.cle, offers, ctx)]));
 
   /* CE QUI TIENT LA TÊTE DE LA RACINE, et qui n'appartient qu'à elle.
      Le disponible, ce qui attend, ce qui ferme : trois états qui répondent à
@@ -133,7 +139,7 @@ export default async function TradePage() {
             tête de page, au-dessus des trois bandes. */}
         <div className={styles.large}>
           {tete}
-          <Rayons services={services} etapes={ETAPES} raisons={RAISON} />
+          <Rayons services={services} etapes={ETAPES} raisons={RAISON} apercus={apercus} />
         </div>
         <div className={styles.petit}>
           {/* « useSearchParams » veut une frontière : le parcours lit l'adresse,
@@ -146,7 +152,7 @@ export default async function TradePage() {
                 le solde et les échéances s'y étaient ajoutés. Posés DANS le
                 panneau de la racine, ils glissent avec lui : au deuxième
                 niveau il ne reste que le chemin et la fiche. */}
-            <Parcours services={services} etapes={ETAPES} raisons={RAISON} racine={tete} />
+            <Parcours services={services} etapes={ETAPES} raisons={RAISON} racine={tete} apercus={apercus} />
           </Suspense>
         </div>
       </div>

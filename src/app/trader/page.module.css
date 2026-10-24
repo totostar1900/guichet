@@ -214,3 +214,31 @@
   stroke-width: 2.2;
   stroke-linecap: round;
 }
+
+/* ── CE QUI ATTEND DERRIÈRE UN SERVICE, dans sa fiche ────────────────────────
+   Le même aperçu que la tuile du téléphone, dans la grammaire de la fiche :
+   une liste, sous la précondition et avant les étapes. */
+.apercus {
+  list-style: none;
+  margin: var(--s-4) 0 0;
+  padding: var(--s-4) 0 0;
+  display: grid;
+  gap: var(--s-2);
+  border-top: 1px solid var(--line);
+}
+.apercus li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-6);
+  font-size: var(--t-3);
+}
+.apercus em {
+  font-style: normal;
+  color: var(--ink-2);
+  min-width: 0;
+}
+.apercus b {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}

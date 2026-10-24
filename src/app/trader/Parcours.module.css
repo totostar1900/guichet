@@ -196,3 +196,35 @@
   line-height: 1.45;
   color: var(--ink-2);
 }
+
+/* ── CE QUI ATTEND DERRIÈRE UNE TUILE ────────────────────────────────────────
+   Deux lignes au plus, sous la phrase du service : à gauche le nom de la
+   ligne, à droite son chiffre. Le nom se tronque, le chiffre jamais — c'est
+   lui qu'on compare d'une tuile à l'autre, et un cours coupé ne compare rien. */
+.apercus {
+  display: grid;
+  gap: var(--s-1);
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+.apercuLigne {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  font-size: var(--t-1);
+}
+.apercuLigne em {
+  font-style: normal;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.apercuLigne b {
+  color: var(--ink);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
