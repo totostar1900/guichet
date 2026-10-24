@@ -155,4 +155,29 @@ describe("la page d'accueil", () => {
     const manquantes = INSTRUMENTS_PAGES.map((p) => p.key).filter((k) => !connues.has(k));
     expect(manquantes, "ces familles paraîtraient sans compte, sans que rien ne tombe").toEqual([]);
   });
+  /* LA MARGE D'UNE PIÈCE POSÉE DANS UNE COLONNE À ÉCART DÉCLARÉ.
+     « IndexPulse » porte « margin: 0 0 12px » pour ses deux pages du marché.
+     Posé tel quel dans la colonne de l'accueil, ces douze pixels s'ajoutent à
+     l'écart des sections — le défaut exact que la bande des attentes s'est
+     fait retirer, et qu'elle documente : « une pièce qui pose sa propre marge
+     dans une mise en page à écart ne sait pas où elle vit ».
+     LES DEUX MOITIÉS VOYAGENT ENSEMBLE : la page demande la variante
+     compacte, et la variante compacte n'a pas de marge. Retirer l'une ou
+     l'autre suffit à rouvrir le trou, et un trou de douze pixels ne se voit
+     pas en lisant un diff. */
+  it("pose l'indice sans la marge qu'il garde pour ses deux autres pages", () => {
+    expect(code("src/app/Console.tsx"), "l'accueil pose l'indice en variante pleine : sa marge s'ajoute à l'écart de la colonne").toMatch(/<IndexPulse compact/);
+    const compact = lire("src/components/IndexPulse.module.css").match(/\.compact\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(compact, "la variante compacte est introuvable").not.toBe("");
+    expect(compact, "elle a repris une marge, qui s'ajoutera à l'écart déclaré de la page qui l'accueille").toMatch(/margin:\s*0/);
+  });
+
+  /* UNE SEULE PORTE VERS LA FAMILLE DU MARCHÉ. « /marche » est cette porte,
+     son propre fichier le dit, et le bandeau du téléphone donne la famille
+     entière dès qu'on y est. Une rangée de pastilles sur l'accueil serait une
+     seconde porte à soixante pixels de la première — la duplication que cette
+     page a passé octobre à retirer. */
+  it("n'ouvre qu'une porte vers la famille du marché", () => {
+    expect(code("src/app/Console.tsx"), "l'accueil redresse une liste des pages du marché à côté du lien qui y mène").not.toContain("MARKET_PAGES");
+  });
 });

@@ -10,8 +10,14 @@
   padding: 8px 14px;
   margin: 0 0 12px;
 }
+/* LA VARIANTE COMPACTE EST CELLE QU'ON POSE DANS LA COLONNE D'UNE AUTRE
+   PAGE, et une pièce posée dans une colonne à écart déclaré ne porte pas sa
+   propre marge : elle s'ajouterait à l'écart. C'est la leçon que la bande des
+   attentes a déjà tirée. Les deux pages du marché gardent la variante pleine
+   et sa marge. */
 .compact {
   padding: 6px 12px;
+  margin: 0;
 }
 .level {
   display: grid;

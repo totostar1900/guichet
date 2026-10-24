@@ -106,6 +106,11 @@ export const EN_CONSOLE: Record<string, string> = {
   "Échu depuis {n} jours": "Due for {n} days",
   "Le desk le réclame à l'émetteur.": "The desk is claiming it from the issuer.",
 
+  /* LE MARCHÉ SUR LA PAGE D'ARRIVÉE (24 octobre 2026). « La place » plutôt
+     que « Le marché » pour le lien : le titre de la section le dit déjà, et
+     deux fois le même mot à trente pixels se lit comme un bégaiement. */
+  "La place": "The exchange",
+
   /* ---------- la page publique des services ---------- */
   "Les services": "The services",
   "les neuf, avec leur état": "the nine, with their state",

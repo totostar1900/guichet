@@ -14,6 +14,7 @@ import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
 import { CeQuiFermeBientot } from "@/components/CeQuiFermeBientot";
 import { echeancesProches, presse } from "@/lib/domain/echeances";
 import { SelectionDuDesk } from "@/components/SelectionDuDesk";
+import { IndexPulse } from "@/components/IndexPulse";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
 import { comptesParLieu, type ComptesParLieu } from "@/lib/domain/listes";
@@ -454,11 +455,42 @@ export async function Console({ session }: { session: Session }) {
         />
       </div>
 
-      {/* 7. S'INSCRIRE SANS ATTENDRE UN CODE. Une proposition qui se referme
+      {/* 7. LE MARCHÉ, EN UN CHIFFRE ET SA DATE.
+          L'indice est la seule mesure de la place qui oriente sans qu'on
+          sache déjà ce qu'on cherche : un niveau, la séance qui l'a produit,
+          et les fenêtres où le mouvement existe. « IndexPulse » le rend
+          depuis mars, sur deux pages où l'on arrive en sachant déjà qu'on
+          vient lire le marché ; il manquait là où l'on arrive sans le savoir.
+
+          IL SAIT SE TAIRE : sans bulletin portant l'indice, il rend null, et
+          la section disparaît avec lui.
+
+          UN SEUL LIEN, ET NON UNE RANGÉE DE PASTILLES. La maquette en posait
+          trois — les sociétés, les notes, les actualités. « /marche » EST la
+          porte de cette famille, son propre fichier le dit, et le bandeau du
+          téléphone donne déjà la famille entière dès qu'on y est. Trois
+          pastilles ici seraient une seconde porte à soixante pixels de la
+          première.
+
+          CE QUI N'Y EST PAS, ET POURQUOI. La maquette portait un second
+          volet, l'activité de la dernière séance — lignes servies,
+          transactions, montant échangé. Il se calcule par « indexPageData »,
+          qui lit deux mille bulletins, les derniers cours, les sociétés, puis
+          deux mille cotations PAR LIGNE cotée : une dizaine de requêtes, sur
+          la page la plus visitée de la maison. L'indice en coûte une. */}
+      <section>
+        <div className={styles.tete}>
+          <b>{t("Le marché")}</b>
+          <Link href="/marche">{t("La place")} →</Link>
+        </div>
+        <IndexPulse compact />
+      </section>
+
+      {/* 8. S'INSCRIRE SANS ATTENDRE UN CODE. Une proposition qui se referme
           d'une croix, et ne revient pas. */}
       <TrustNudge />
 
-      {/* 8. VOTRE DOSSIER : UN SOMMAIRE, ET PLUS SIX SECTIONS DÉPLIÉES.
+      {/* 9. VOTRE DOSSIER : UN SOMMAIRE, ET PLUS SIX SECTIONS DÉPLIÉES.
           Le relevé était le bas de cette page, et il y développait ce qui a
           désormais une adresse : les intentions, les versements programmés et
           leurs instructions — avec leur formulaire de modification —, les
