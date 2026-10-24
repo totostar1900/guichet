@@ -43,7 +43,15 @@
   --line-2: #d1d5db;
   --ink: #111827;
   --ink-2: #4b5563;
-  --ink-3: #676d7b;
+  /* Mesurée contre les fonds TEINTÉS, et non contre le seul papier : à
+     #676d7b l'encre tertiaire tenait 4,84:1 sur le papier — sept pour cent
+     au-dessus du seuil — donc la moindre teinte la faisait tomber. Elle
+     passait à 4,03 sur « --crit-soft » et sous 4,5 sur onze des quatorze
+     fonds doux de la maison. Assombrie du strict nécessaire, comme les trois
+     encres de statut en septembre : même teinte, 4,61 sur le pire fond doux,
+     5,54 sur le papier. Le prix est écrit : l'écart de clarté avec --ink-2
+     passe de 10,2 à 6,5 en L*, et la hiérarchie des trois encres se resserre. */
+  --ink-3: #5e6471;
   --on-navy: #ffffff;
   --on-navy-2: #b9c6da;
   --fill: #0b2545;
@@ -280,7 +288,7 @@
     --line-2: #3a4e6e;
     --ink: #eaeff6;
     --ink-2: #b5c0d0;
-    --ink-3: #8c9bb2;
+    --ink-3: #8e9db3;
     --gold: #e0b65a;
     --gold-ink: #e0b65a;
     --gold-soft: #332c18;
@@ -362,7 +370,7 @@
   --line-2: #3a4e6e;
   --ink: #eaeff6;
   --ink-2: #b5c0d0;
-  --ink-3: #8c9bb2;
+  --ink-3: #8e9db3;
   --gold: #e0b65a;
   --gold-ink: #e0b65a;
   --gold-soft: #332c18;

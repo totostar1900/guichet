@@ -822,3 +822,47 @@ lui, est en cause partout.*
 *Au passage, la formule de contraste du W3C vivait en deux exemplaires et une
 troisième garde allait en faire une troisième : elle est maintenant dans
 `src/test/couleurs.ts`, et les trois gardes la lisent.*
+
+---
+
+## L'encre tertiaire sur les fonds teintés
+
+**Le défaut n'était pas dans les teintes, il était dans la marge.** `--ink-3`
+valait `#676d7b`, soit **4,84 : 1 sur le papier** — sept pour cent au-dessus du
+seuil. Une encre sans marge sur le papier tombe sur la moindre teinte : 4,03
+sur `--crit-soft`, et **sous 4,5 sur onze des quatorze fonds doux** de la
+maison. Au thème sombre elle passait à 4,51 sur `--neutral-soft`, c'est-à-dire
+d'un centième. Le dim, lui, tenait.
+
+**Deux issues ont été chiffrées avant de choisir.**
+
+*Éclaircir les quatorze teintes* : mesuré, puis **écarté**. Il fallait aller de
+`#fadcda` à `#fdeeee` pour `--crit-soft`, de `#ece2f4` à `#f5f0f9` pour
+`--fam-APE-soft` — c'est-à-dire laver les couleurs de **famille d'instruments**,
+qui portent du sens, pour réparer une encre qui n'en porte pas.
+
+*Assombrir l'encre* : retenu, et **ce n'est pas mon arbitrage, c'est celui de la
+maison**. Le commentaire posé en septembre juste au-dessus des trois encres de
+statut dit exactement quoi faire dans ce cas : « Mesurées contre leur fond
+pâle… **assombries du strict nécessaire pour tenir 4,5:1, la teinte reste la
+même à l'œil.** » Septembre avait visé 4,64 à 5,08 ; on vise pareil.
+
+| | avant | après | pire fond doux |
+|---|---|---|---|
+| clair | `#676d7b` | `#5e6471` | 4,03 → **4,61** |
+| sombre et `dark` | `#8c9bb2` | `#8e9db3` | 4,51 → **4,62** |
+| `dim` | `#4e5a6c` | inchangé | 5,22 |
+
+**Le prix est écrit, parce qu'il y en a un** : l'écart de clarté entre `--ink-2`
+et `--ink-3` passe de 10,2 à 6,5 en L\*, et la hiérarchie des trois encres se
+resserre. L'écart entre `--ink` et `--ink-2` reste à 27,5 : elle était déjà
+irrégulière.
+
+**Mesuré au rendu, avant et après, à la différence de pixels** : 2,5 à 3,1 % de
+l'écran change, d'un écart moyen de 5,6/255 au clair et 1,5/255 au sombre, pire
+écart 11. La phrase de septembre se vérifie au chiffre.
+
+*Et une garde le tient désormais : `--ink-3` doit se lire sur chaque jeton
+`*-soft`, sur chacun des quatre écrans. Elle ne porte aucune liste — le suffixe
+`-soft` est la convention de la maison pour un fond teinté, donc une famille
+d'instruments ajoutée demain sera mesurée le jour où elle est écrite.*

@@ -310,3 +310,42 @@ describe("une encre sur le fond d'un parent", () => {
     expect(pireContraste("var(--navy)", "var(--ink-3)", tous)!.rapport, "l'encre tertiaire sur le navy devrait rester le cas d'école de cette garde").toBeLessThan(SEUIL);
   });
 });
+
+/**
+ * L'ENCRE TERTIAIRE TIENT SUR LES FONDS TEINTÉS DE LA MAISON.
+ *
+ * CELLE-CI NE REGARDE PAS LE CODE, elle regarde les JETONS : quel que soit
+ * l'endroit où on les emploie, « --ink-3 » doit se lire sur chacun des fonds
+ * doux. Les deux mesures ci-dessus ne voient qu'un couple à la fois, là où le
+ * balisage le leur donne ; le jeton, lui, vaut partout.
+ *
+ * CE QU'ELLE A TROUVÉ, le 24 octobre 2026. « --ink-3 » valait #676d7b, soit
+ * 4,84:1 sur le papier — sept pour cent au-dessus du seuil. Une encre sans
+ * marge sur le papier TOMBE sur la moindre teinte : 4,03 sur « --crit-soft »,
+ * et sous 4,5 sur onze des quatorze fonds doux. Au sombre elle passait à 4,51
+ * sur « --neutral-soft », c'est-à-dire d'un centième.
+ *
+ * LE REMÈDE EST CELUI DE SEPTEMBRE, écrit dans globals.css au-dessus des trois
+ * encres de statut : « assombries du strict nécessaire pour tenir 4,5:1, la
+ * teinte reste la même à l'œil ». Le même geste, à l'envers au sombre, où
+ * l'encre s'éclaircit. L'autre issue — éclaircir les quatorze teintes — a été
+ * mesurée puis écartée : elle lavait les couleurs de FAMILLE d'instruments,
+ * qui portent du sens, pour réparer une encre qui n'en porte pas.
+ *
+ * LE SUFFIXE « -soft » EST LA CONVENTION DE LA MAISON pour un fond teinté, et
+ * c'est lui qui fait tenir cette garde sans liste à maintenir : une famille
+ * d'instruments ajoutée demain sera mesurée le jour où elle est écrite.
+ */
+describe("l'encre tertiaire", () => {
+  it("se lit sur chacun des fonds doux, sur chacun des écrans", () => {
+    const tous = ecrans();
+    const doux = [...new Set([...sansCommentaires(globals()).matchAll(/(--[\w-]*-soft)\s*:/g)].map((m) => m[1]))].sort();
+    const faibles = doux
+      .map((t) => ({ t, pire: pireContraste(`var(${t})`, "var(--ink-3)", tous) }))
+      .filter((x) => !x.pire || x.pire.rapport < SEUIL)
+      .map((x) => (x.pire ? `${x.t} · ${x.pire.rapport.toFixed(2)}:1 en ${x.pire.ecran}` : `${x.t} · ne se résout pas`));
+    expect(faibles, "l'encre tertiaire ne se lit plus sur ce fond teinté : l'assombrir du strict nécessaire, comme en septembre, plutôt que laver la teinte").toEqual([]);
+    /* Non vacuité : la convention de nommage est ce qui porte la mesure. */
+    expect(doux.length, "plus de jeton « -soft » : la garde ne mesure rien").toBeGreaterThan(10);
+  });
+});
