@@ -1,8 +1,12 @@
-# Chantiers ouverts
+# Chantiers
 
-Relevé le 24 octobre 2026, dicté par Georges. Rien n'est commencé sauf
-mention contraire. L'ordre est celui de la dictée, pas celui des priorités —
-une proposition d'ordre est en bas.
+Relevé le 24 octobre 2026, dicté par Georges, et clos le même jour. L'ordre
+est celui de la dictée, pas celui des priorités — ce qui reste ouvert est
+nommé en bas, et tient en cinq lignes.
+
+Chaque point barré porte ce qui a été MESURÉ avant d'y toucher, et ce qui a
+été trouvé en chemin. Les relevés comptent autant que les décisions : c'est
+eux qui disent pourquoi une maquette a été suivie, ou écartée.
 
 ---
 
@@ -26,8 +30,11 @@ l'ordre de ses propres pastilles.
 
 ## Harmonisation de l'affichage — le gros morceau
 
-**2. Marges, tailles, affichage des pages à harmoniser**, toutes pages
-confondues. À discuter page par page.
+**2. ~~Marges, tailles, affichage des pages à harmoniser.~~ FAIT le
+24 octobre 2026.** Les quatre décisions de grammaire sont prises et gardées —
+la fonte d'un titre, les deux créneaux d'avant-titre, le mot d'un retour,
+l'écart de l'étalon — et les deux derniers restes ont été réglés en fin de
+journée (voir la liste ci-dessous).
 
 **La fonte d'un titre : tranchée le 24 octobre 2026.** *La vitrine respire,
 l'application travaille* — la vitrine publique garde son serif et son échelle
@@ -53,9 +60,16 @@ Deux épreuves le tiennent, la seconde comparant chaque retour à la table.
 
 Ce qui reste au point 2 :
 
-- *Le sommaire du Marché* : au téléphone il redit le rail de pastilles — six
-  destinations deux fois — et les deux occupent 720 px avant le titre de la
-  page, qui tombe à y 798.
+- ~~*Le sommaire du Marché.*~~ **FAIT le 24 octobre 2026.** C'est le RAIL qui
+  s'efface, et sur la porte seulement. Il sert « celui qui LIT et veut savoir
+  où il est » — sa propre note le dit — or sur `/marche` on ne lit pas, on
+  choisit ; et il montre deux ou trois pastilles à la fois quand le sommaire
+  les montre toutes avec ce qu'elles contiennent. C'est la leçon que la page
+  avait elle-même écrite pour son pied : *une bande qui répète la famille est
+  du bruit une fois les pastilles posées.* Sur les autres pages de la famille
+  le rail garde tout son rôle, direction du glissement comprise. Deux
+  épreuves tiennent les deux moitiés : le rail se tait PARCE QUE le sommaire
+  est là.
 - ~~*`/moi/profil`.*~~ **FAIT le 24 octobre 2026.** Il titrait à **19,5 px**,
   seule page hors de l'échelle, parce que son `h1` était la QUESTION courante
   du questionnaire — un titre qui change à chaque réponse. Il portait aussi
@@ -71,8 +85,18 @@ Ce qui reste au point 2 :
   `/moi/appareil` prennent « Vous », la famille de `/moi/compte` ;
   `/moi/contact` n'en prend pas, son retour disant déjà « Aide ».
   **Le cliquet des en-têtes écrits à la main tombe de 46 à 38.**
-- *La fonte du guide* (`info/risques`), servi sur les deux domaines : dispensé
-  dans l'épreuve, à décider.
+- ~~*La fonte du guide* (`info/risques`).~~ **FAIT le 24 octobre 2026.** La
+  décision était prise sans que personne l'ait constaté : des cinq feuilles du
+  guide, les quatre autres — la racine, chaque leçon, les mentions, le
+  parcours — titraient en sans depuis le début. `risques` n'était pas une
+  exception de principe, c'était le reste. **La liste blanche passe de 8
+  entrées à 7, et ne porte plus aucun « à décider ».**
+
+  → *Et ses sections passaient devant son titre : `clamp(1.5rem, 2.8vw,
+  2.15rem)` monte à 32 px sur grand écran quand le `h1` de la page tient à 30.
+  L'échelle nommait pourtant la taille juste — `--t-7 : titre de section` — et
+  le poids vient de la règle globale des `h2`. L'échelle fluide part avec le
+  serif : l'étalon les nomme ensemble comme les deux marques de la vitrine.*
 
 **7. L'en-tête de chaque page : la règle est posée, la conversion est en
 cours.** `EnTete` pose les quatre créneaux dans l'ordre — retour, sur-titre,
@@ -88,7 +112,8 @@ désormais EN FACE du titre (créneau `aCote`) plutôt que dessous, où il
 repoussait d'un cran le début de la liste.
 
 → *Un cliquet compte les en-têtes encore écrits à la main : 49 le 24 octobre
-au matin, 46 le soir. Il descend, il ne monte pas.*
+au matin, 46 à midi, **38 le soir**, après les sept pages de `Feuillet`. Il
+descend, il ne monte pas.*
 
 **8. ~~Bandes et écarts.~~ FAIT le 24 octobre 2026.** La bande de « Mes
 documents » est devenue la seule forme des rubriques : les sept sommaires du
@@ -126,15 +151,27 @@ maison écrivait déjà.
 
 → *Deux relevés à verser aux chantiers ouverts, et laissés tels quels :*
 
-*(a) **Le titre perd sa fonte à empattements** en passant à l'étalon, qui n'a
-jamais tranché la question. Six h1 la portent encore, dont `Accueil` et
-`Console` côté client. C'est l'item 2, pas l'item 12 — à décider.*
+*(a)* ~~*Le titre perd sa fonte à empattements.*~~ **RÉGLÉ le 24 octobre
+2026** par l'item 2 : la vitrine garde le serif et son échelle fluide,
+l'application titre en sans. Une liste blanche, et non un cliquet — un
+cliquet dirait COMBIEN de feuilles posent la fonte, pas lesquelles en ont le
+droit. Elle est passée de 8 entrées à 7 le soir même, quand le guide a
+tranché.*
 
 *(b) **441 px sur 844 ne bougent jamais** : au-dessus du ruban, le titre, la
 phrase et « Ce qui vous attend » se repeignent à l'identique aux trois
-niveaux. C'est 52 % de l'écran. Le remède n'est pas un réglage mais le
-redécoupage de l'item 9 — trois pages au lieu d'un ruban —, et il demande une
-maquette.*
+niveaux. C'est 52 % de l'écran.*
+
+→ *Entamé le 24 octobre 2026, par l'autre bout. « Placer » a perdu son cran :
+ses services sont à plat sur la racine, en tuiles, parce qu'ils SE COMPARENT.
+Le rayon ne faisait que répéter la question de la page — on touchait
+« Placer » pour lire, un écran plus loin et en plus petit, « Où va mon
+argent, cette fois-ci ». Deux niveaux au lieu de trois pour le rayon qu'on
+ouvrait vraiment ; « Programmer » et « Tenir » gardent le leur, eux rangent
+des gestes de natures différentes. La règle vit hors du composant
+(`trader/niveaux.ts`) pour qu'un cliquet puisse la lire sans monter un rendu.
+Les 441 px fixes restent à traiter : c'est la bande d'en-tête, pas le
+découpage.*
 
 ---
 
@@ -168,11 +205,10 @@ pourquoi on le suivrait.
 et trois pages du client la montaient quand même, sans `mode`. Un composant
 monté là où il ne rend jamais rien est une description fausse de la page.
 
-→ *Reste à voir, et c'est l'item 2 : au téléphone, le sommaire en bandes
-redit le rail de pastilles — six destinations deux fois — et les deux
-occupent 720 px AVANT le titre de la page, qui tombe à y 798. La distinction
-est écrite (« un menu dit où aller, un sommaire dit ce qu'il y a ») et elle
-se défend ; sa place, non.*
+→ ~~*Reste à voir, et c'est l'item 2 : le sommaire en bandes redit le rail de
+pastilles.*~~ **RÉGLÉ le 24 octobre 2026** : c'est le rail qui se tait, et sur
+la porte seulement. La distinction entre un menu et un sommaire tenait ; ce
+qui ne tenait pas, c'est d'en poser deux avant le titre. Voir le point 2.*
 
 **5. ~~« Votre provision ».~~ FAIT le 24 octobre 2026**, maquette approuvée
 d'abord. La page portait **quatre gestes numérotés empilés**, et sur le même
@@ -297,65 +333,181 @@ espèces, qui n'avait aucune écriture — deux sources pour une promesse. Les
 trois tuiles disent maintenant ce qu'on trouve de l'autre côté, et une
 épreuve interdit qu'un lien reprenne un compteur.
 
-→ *Reste à voir : il n'existe nulle part de liste des ordres passés. La tuile
-a été renommée d'après sa destination réelle plutôt que de promettre une page
-qui n'existe pas.*
+→ ~~*Reste à voir : il n'existe nulle part de liste des ordres passés.*~~
+**RÉGLÉ le 24 octobre 2026** par le point 9 : `/moi/ordres` a été créée, et
+elle porte les deux — en cours et passées. La tuile avait été renommée
+d'après sa destination réelle plutôt que de promettre une page qui n'existait
+pas ; la page existe maintenant.*
 
 ---
 
-## 13. Une page d'accueil
+## 13. ~~Une page d'accueil.~~ FAIT le 24 octobre 2026
 
-À l'entrée dans l'application : un tableau de bord enrichi. Pas une liste de
-liens — **un ensemble de sections dessinées**, chacune portant une
-information utile :
+Maquette approuvée d'abord, puis codée section par section. Chaque section
+sait se taire quand elle n'a rien à dire — c'est la règle de niveau 3
+ci-dessous —, et une épreuve interdit qu'un titre survive à son contenu.
 
-- le rendement du portefeuille avec son graphique, et des boutons sous la
-  section ;
-- un accès direct aux pages majeures (Trade…) ;
-- un aperçu des informations importantes, avec un lien vers le détail.
+| la section | ce qu'elle porte | d'où vient la donnée |
+|---|---|---|
+| Ce qui ferme bientôt | les séances qui ferment, le temps qui reste en trois tons | `domain/echeances`, partagée avec Trade |
+| Investir | les trois familles et ce qu'elles contiennent | `comptesParLieu`, celle de leurs pages |
+| Le marché · l'indice | le niveau, sa séance, quatre fenêtres | `IndexPulse`, en variante compacte |
+| Ce qui performe | les actions qui ont bougé, sur une fenêtre écrite | `market/performe`, **trois requêtes** |
+| À la une | la dépêche épinglée et son « pourquoi ça compte » | `lib/news`, partagée avec `/marche` |
+| Lignes suivies | un compte, au dossier | `lignesSuivies`, celle de sa page |
 
-**Maquette demandée.**
+**Le prochain flux dit enfin ce qu'il est.** « Prochaine échéance · 14 février »
+ne disait ni ce qui tombe, ni combien, ni sur quelle ligne — alors que
+`nextFlow` porte `{ date, amount, label }` et que la page n'en gardait que le
+premier tiers.
 
-### 13 bis — la barre du haut et le découpage du dock
+→ *Quatre éléments de la maquette sont ÉCARTÉS, et leurs raisons sont dans le
+code :*
 
-*Dicté le 24 octobre 2026, à ne toucher qu'après discussion.*
+*— **L'agenda.** Son côté « la place » demandait les jours sans séance, que
+`finance.ts` dit ne pas connaître : « ils diffèrent d'un État de la zone à
+l'autre et demanderaient un calendrier tenu quelque part ». Les dessiner,
+c'était inventer un fait de marché pour six États. Son côté « vous » aurait
+été une QUATRIÈME surface pour une date que la page porte déjà deux fois à
+bon droit — et l'en-tête du fichier raconte précisément qu'on en a retiré une
+troisième le matin même.*
 
-- **Retirer la marque « Purpose Capital » du haut.** Elle occupe la barre sur
-  toutes les pages pour n'y rien dire : la place ainsi libérée devient
-  dynamique, et sert à ce que la page en cours a besoin de montrer.
-- **La pastille de notification** devient une **cloche portant un nombre**.
-- **Sur l'accueil**, la barre porte l'utilisateur, la recherche et les
-  notifications.
-- **Ailleurs**, elle porte le nom de la page, un retour, une croix quand il en
-  faut une — ou un mélange de ces éléments selon le cas. *À étendre : décider
-  ce que chaque page y met, et pourquoi.*
-- **Fondre Trade et Instruments** en une seule page Trade, plus large. Le
-  créneau ainsi libéré dans le dock accueille un bouton **Accueil**.
+*— **Le volet « la séance »** (lignes servies, transactions, montant échangé).
+Il se calcule par `indexPageData` : deux mille bulletins, les derniers cours,
+les sociétés, puis deux mille cotations PAR LIGNE cotée. Une dizaine de
+requêtes, dont sept non bornées, sur la page la plus visitée de la maison. Il
+reste sur `/marche`, où la donnée est déjà lue.*
 
-→ *Lien avec l'arbitrage A de `ETALON.md` : la barre « cède » aujourd'hui le
-nom de la page au `h1`. Si la barre doit porter le nom, un retour et une
-croix, cet arbitrage est à rouvrir — c'est la même barre.*
+*— **La liste de suivi relistée.** La page `/moi/suivies` dit pourquoi elle
+existe : « sur la page d'accueil, elle se lisait trois lignes après Vos
+lignes, et les deux se confondaient — ce qu'on a, ce qu'on regarde ». Deux
+listes de noms de titres se confondent ; un compte ne se confond avec rien.*
 
-→ *Lien avec le point 1 : la règle d'appartenance du dock est écrite par
-section (`nav-section.ts`). Fondre Trade et Instruments y touche, et une
-épreuve vérifie déjà que chaque adresse du dock allume un onglet, et un seul.*
+*— **Le pied de mentions.** `layout.tsx` l'a retiré aux clients, mesure à
+l'appui : « cent treize pixels qu'on lit une fois, puis plus jamais ». Les
+mentions vivent à `/info/mentions`, que le siège Aide nomme — et une épreuve
+lie désormais les deux faits, car la note qui justifiait cette ligne
+s'appuyait sur un pied qui n'existe plus.*
+
+### Les trois niveaux, et ce qu'ils décident
+
+Pas de widgets, pas de réglages : la page se range sur l'état réel du dossier
+et de la place. Le principe existait déjà — `IndexPulse` rend `null` sans
+bulletin, `/marche` écrit `{aLaUne && …}` — il est étendu à l'accueil.
+
+- **Niveau 1, le socle.** Toujours là, toujours à la même place : l'en-tête,
+  le portefeuille, les quatre gestes, la provision, le dossier. Ce dont le
+  client a besoin même quand il ne se passe rien, et ce que la maison doit
+  pouvoir prouver avoir affiché.
+- **Niveau 2, ce qui remonte.** Un seul seuil est écrit à ce jour : une
+  échéance **à moins de sept jours** fait passer « Ce qui ferme bientôt »
+  devant le reste. Ce n'est pas de l'esthétique — un virement interbancaire
+  de la zone met deux à trois jours, et l'argent doit être arrivé avant le
+  dépôt.
+- **Niveau 3, ce qui s'efface.** Absent quand il n'y a rien : pas de carte
+  vide, pas de « aucun élément ». Toutes les sections du tableau ci-dessus le
+  tiennent.
+
+→ *Et un défaut de cette règle, trouvé en la relisant : la section du marché
+écrivait son titre dans une `section` inconditionnelle, au-dessus d'un indice
+qui rend `null`. Il restait « LE MARCHÉ · La place → » suivi de rien —
+l'état de TOUTE page d'arrivée en développement, le dépôt mémoire n'ayant
+aucun bulletin. Le titre appartient désormais à la pièce qui sait s'il y a
+quelque chose à montrer.*
+
+### 13 bis — ~~la barre du haut et le découpage du dock.~~ FAIT le 24 octobre 2026
+
+*Dicté, discuté, puis codé.*
+
+- ~~**Retirer la marque du haut.**~~ Elle tenait le tiers gauche de tous les
+  sièges du dock, sur l'écran le plus étroit de la maison, pour dire au
+  client ce qu'il sait déjà. **Et elle menait à `/` depuis `/`** : sur une
+  racine, c'est-à-dire là où elle paraissait, le lien ramenait à la page
+  qu'on regardait. La barre porte maintenant le nom de la PAGE, et le cède au
+  `h1` tant qu'il est à l'écran — le mécanisme existait, il ne servait que
+  hors racine.
+
+  → *Deux écritures en dur sont parties avec elle.* `PURPOSE CAPITAL` *en
+  littéral, à côté d'un* `config.ts` *qui se présente comme « the one place
+  to change names ». Et le découpeur de titre, qui coupait sur*
+  `(Guichet|Purpose Capital)` *écrits à la main : renommer la société aurait
+  laissé « Tableau de bord · Nouvelle Raison Sociale » dans la barre, sans
+  que rien ne tombe.*
+
+  → *Et un décalage d'une colonne évité : la barre est une grille de trois
+  colonnes, la flèche tenait la première. Sans place écrite, le jour où elle
+  manque — c'est-à-dire sur toute racine — le titre serait passé en première
+  colonne et les icônes en deuxième.*
+
+- ~~**La cloche portant un nombre**, et **sur l'accueil** l'utilisateur, la
+  recherche et les notifications.~~ **Déjà acquis** : `BarreDuCompte` posait
+  la loupe, la cloche à compteur et l'initiale sur toutes les pages, racine
+  comprise. Rien à écrire.
+
+- ~~**Fondre Trade et Instruments.**~~ Les deux sièges nommaient deux fois le
+  même sujet — et c'étaient précisément les deux qui ne s'allumaient jamais
+  (point 1). `/instruments` rangeait par instrument, l'axe que
+  `domain/services` avait écarté en toutes lettres — *personne ne se réveille
+  en voulant un OPCVM* — et ses cinq services menaient DÉJÀ aux trois
+  familles. `/portefeuille`, lui, résumait la racine : sa première rubrique
+  ÉTAIT la racine. Les deux redirigent, en 307 et non en 308 : elles vivent
+  dans des signets et dans des liens envoyés par le desk.
+
+  **Le dock passe de cinq sièges à quatre : Accueil, Trade, Marché, Aide.** À
+  390 px, cinq sièges laissaient 78 px chacun et « Instruments » n'y tenait
+  qu'en coupant.
+
+  → *Un geste qui menait à une page de lecture, réparé au passage :
+  « Acheter et vendre en bourse » pointait* `/marche` *, à deux crans de*
+  `/titres` *— qui n'était la destination d'aucun service. Une épreuve lit
+  les deux tables et refuse qu'un service mène à une page qui se lit.*
+
+→ *L'arbitrage A de `ETALON.md` n'est pas rouvert : la barre cède toujours le
+nom au `h1`, et elle le cède désormais sur TOUTES les pages, racines
+comprises. La croix reste à décider, page par page, le jour où une page en
+demandera une.*
 
 ---
 
-## Ordre proposé
+## Ce qu'il reste, au soir du 24 octobre 2026
 
-Les items 2, 7, 8 et 12 sont une seule décision — *quelle est la grammaire
-d'une page ?* — et les items 3, 5, 6, 9 et 13 l'appliquent. Décider la
-grammaire d'abord évite de refaire cinq pages deux fois.
+**Douze points sur treize sont clos.** L'ordre proposé a été suivi : l'étalon
+d'abord, l'en-tête commun ensuite, puis les défauts isolés, les redécoupages,
+et la page d'accueil en dernier — elle était bien la vitrine de toutes les
+décisions d'avant, et aucune n'a eu à être refaite.
 
-1. **Écrire l'étalon** à partir de « Mes documents » (8), avec mesures : en
-   tête, bande, écart, largeur, échelles. C'est la pièce dont tout le reste
-   dépend.
-2. **L'en-tête commun** (7), qui en découle, puis (2) et (12).
-3. Les défauts isolés, qui ne dépendent de rien : **1**, **4**, **11**, **10**.
-4. Les redécoupages, maquette d'abord : **3**, **5**, **6**, **9**.
-5. **La page d'accueil** (13) en dernier : elle est la vitrine de toutes les
-   décisions ci-dessus.
+**Le point 7 ne se clôt pas, et c'est voulu.** La règle est posée et l'en-tête
+commun existe ; ce qui reste est un CLIQUET — 49 en-têtes écrits à la main au
+matin, 38 au soir. Il descend à chaque page convertie et ne remonte jamais.
+Un cliquet ne se coche pas, il se regarde baisser.
 
-*(1, 4 et 11 peuvent se faire à tout moment : ils ne touchent pas la
-grammaire.)*
+Le reste tient en trois lignes, et aucune n'est un défaut :
+
+- **Les aperçus des tuiles de Trade.** La maquette donne deux lignes sous
+  chaque tuile — ce qui attend derrière. Les tuiles existent, les aperçus
+  non.
+- **« Ce qui ferme bientôt » vit sur Trade ET sur l'accueil**, par décision
+  explicite. C'est le même composant appelé deux fois, pas deux listes à
+  tenir.
+- **Le lockup `COMPANY.name`** en tête de la colonne des grands écrans. Le
+  point 13 bis visait le bandeau du téléphone, où la place manque ; sur une
+  colonne de 260 px fixe, un nom de maison ne prend la place de personne. À
+  décider si on veut l'uniformité.
+
+Et deux chantiers nommés par les relevés, qui n'ont jamais été des points de
+la dictée :
+
+- **Les 441 px fixes du parcours de Trade** (relevé 12-b). Le découpage a
+  progressé — « Placer » a perdu son cran — mais la bande d'en-tête se
+  repeint toujours à l'identique d'un niveau à l'autre.
+- **Les huit autres seuils de niveau 2.** Un seul est écrit, celui des sept
+  jours. Les autres n'existent que sur la planche `Regles.dc.html`, qui dit
+  désormais lesquels sont au code et lesquels ont été écartés, avec leurs
+  raisons.
+
+→ *Deux faits à retenir pour qui reprendra : le dépôt mémoire n'a **aucun
+bulletin** — la série du BOC est ingérée, jamais semée —, donc l'indice et le
+classement ne paraissent pas sans `.env.local`, et c'est la règle de niveau 3
+qui joue, pas une panne. Et la planche `Regles.dc.html` est la seule trace
+des règles qui ne sont pas encore du code : la tenir à jour est ce qui
+l'empêche de mentir.*
