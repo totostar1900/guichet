@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CATALOGUE, ETAPES, RAISON, RAYONS, servicesDuClient, type ContexteClient } from "@/lib/domain/services";
+import { MARKET_PAGES } from "@/lib/market/pages";
 
 /**
  * LE CATALOGUE DIT CE QUI EXISTE, `servicesDuClient` DIT CE QU'UN CLIENT VOIT.
@@ -74,5 +75,24 @@ describe("le catalogue des services", () => {
   it("range chacun dans un rayon qui existe", () => {
     const rayons = new Set(RAYONS.map((r) => r.cle));
     expect(CATALOGUE.filter((c) => !rayons.has(c.rayon)).map((c) => c.cle), "un rayon inconnu range le service nulle part").toEqual([]);
+  });
+
+  /**
+   * AUCUN GESTE NE DÉPOSE LE CLIENT SUR UNE PAGE QUI SE LIT.
+   *
+   * La maison tient deux familles de pages et le dit partout : « /marche » et
+   * les siennes se LISENT — l'indice, les sociétés, les notes, les avis — et
+   * les services se FONT. « Acheter et vendre en bourse » menait pourtant à
+   * « /marche » : un verbe à l'impératif qui ouvre une page d'étude, à deux
+   * crans de « /titres », la liste où l'achat se passe.
+   *
+   * La garde se lit sur les deux tables plutôt que sur une liste d'adresses
+   * écrite à la main : ajouter une page de lecture au marché la protège
+   * aussitôt, sans que personne ait à y penser.
+   */
+  it("ne fait mener aucun service à une page du marché", () => {
+    const lecture = new Set(MARKET_PAGES.map((p) => p.href));
+    const égarés = CATALOGUE.filter((c) => lecture.has(c.href)).map((c) => `${c.cle} → ${c.href}`);
+    expect(égarés, "un service dont le verbe est un geste ne mène pas à une page qui se lit").toEqual([]);
   });
 });

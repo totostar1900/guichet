@@ -8,7 +8,7 @@ import { BarreDuCompte } from "./BarreDuCompte";
 import { MarketChips } from "./MarketChips";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
-import { isEspaceSection, isInstrumentsSection, isMarcheSection, listForFiche } from "@/lib/nav-section";
+import { isEspaceSection, isMarcheSection, isTradeSection, listForFiche } from "@/lib/nav-section";
 
 /**
  * The phone shell (≤ 760 px): a top bar with a real « back » and the page
@@ -205,23 +205,34 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
 
   const t = useT();
   /**
-   * Cinq destinations, et c'est la même règle que la bande de l'écran large.
+   * Quatre destinations, et c'est la même règle que la bande de l'écran large.
    *
-   * Le dock portait cinq onglets rangés par instrument. Un client se connecte
-   * pour voir ce qu'il a et pour traiter : le portefeuille et le marché
-   * suffisent à porter les deux, « À décider » porte les gestes, et le compte
-   * porte le reste. Titres et Fonds tiennent sous « Marché », en deux onglets
-   * de section.
+   * Le dock en portait cinq, rangés par instrument. Un client se connecte pour
+   * voir ce qu'il a et pour traiter : la racine porte le premier, Trade le
+   * second, Marché ce qui se lit, Aide ce qui se demande. Titres, Fonds et
+   * Adjudications tiennent sous Trade, en onglets de section, et gardent
+   * chacun leur page.
+   *
+   * QUATRE PLUTÔT QUE CINQ, parce que le cinquième nommait deux fois le même
+   * sujet. Un dock à quatre laisse aussi respirer les libellés : à 390 px,
+   * cinq sièges donnent 78 px chacun, et « Instruments » n'y tenait qu'en
+   * coupant.
    */
   const tabs: Tab[] = [
-    { href: "/portefeuille", label: t("Portefeuille"), icon: I.moi, match: isEspaceSection },
-    /* INSTRUMENTS PREND LE SIÈGE LIBÉRÉ. Marché portait les deux à la fois, ce
-       qui se lit et ce qui se traite ; trois mots règlent la question : Marché
-       se lit, Instruments s'achète, Trader fait. */
-    { href: "/instruments", label: t("Instruments"), icon: I.fonds, match: isInstrumentsSection },
-    // Trader entre au dock : sans lui, les neuf services n'ont pas de porte sur
-    // téléphone, et c'est là que la plupart des clients lisent.
-    { href: "/trader", label: t("Trade"), icon: I.trader, match: (p) => p.startsWith("/trader") },
+    /* ACCUEIL, ET NON PLUS PORTEFEUILLE. Le siège menait à « /portefeuille »,
+       un sommaire dont la première rubrique était la racine : un palier pour
+       arriver là d'où l'on venait. Le dock mène maintenant à la racine, qui
+       porte ce qui attend, la provision, les lignes et les chemins. Le mot
+       change avec la destination : « Accueil » dit une page d'arrivée,
+       « Portefeuille » disait un contenu — et le contenu n'est plus tout ce
+       qu'elle porte. */
+    { href: "/", label: t("Accueil"), icon: I.moi, match: isEspaceSection },
+    /* TRADE A ABSORBÉ INSTRUMENTS. Les deux sièges répondaient au même sujet
+       par deux axes : l'intention et l'objet. Les cinq services de « Placer »
+       menaient déjà aux trois familles, donc le second siège nommait une
+       seconde fois ce que le premier menait. Un siège de moins, et la
+       quatrième place du dock libérée. */
+    { href: "/trader", label: t("Trade"), icon: I.trader, match: isTradeSection },
     { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection },
     /* LE CINQUIÈME SIÈGE : DEMANDER, ET TROUVER SOI-MÊME. Quatre onglets
        menaient à ce qu'on possède, ce qu'on achète, ce qu'on fait et ce

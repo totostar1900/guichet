@@ -45,8 +45,12 @@ export const TITRES = "/titres";
  * Le lecteur touchait donc un siège, arrivait à destination, et rien ne
  * s'allumait : la seule chose qui lui dit où il est restait éteinte.
  */
-export const SOMMAIRE_PORTEFEUILLE = "/portefeuille";
-export const SOMMAIRE_INSTRUMENTS = "/instruments";
+/* LES DEUX SOMMAIRES ONT DISPARU, le 24 octobre 2026, et avec eux le défaut
+   qu'ils avaient créé. « /portefeuille » redirige vers la racine, qui porte
+   déjà le tableau de bord ; « /instruments » redirige vers « /trader », qui a
+   absorbé les trois familles. Un siège dont le sommaire a sa propre adresse
+   devait la déclarer ici pour s'allumer ; un siège dont le sommaire EST sa
+   racine n'a plus rien à déclarer. */
 
 /** La liste des fonds, et la fiche d'un fonds. */
 export const isFundsSection = (path: string): boolean => path.startsWith("/fonds") || path.startsWith(FUND_FICHE);
@@ -68,7 +72,7 @@ export const isTitresSection = (path: string): boolean => path.startsWith(TITRES
  */
 const AU_COMPTE = ["/moi/profil", "/moi/securite", "/moi/reclamation"];
 export const isEspaceSection = (path: string): boolean =>
-  (path === "/" || path === SOMMAIRE_PORTEFEUILLE || path.startsWith("/moi")) && !AU_COMPTE.some((p) => path === p || path.startsWith(p + "/"));
+  (path === "/" || path.startsWith("/moi")) && !AU_COMPTE.some((p) => path === p || path.startsWith(p + "/"));
 
 /**
  * La section « Marché », qui a absorbé le catalogue.
@@ -96,7 +100,18 @@ export const isMarcheSection = (path: string): boolean =>
  * d'acheter, pas un article.
  */
 export const isInstrumentsSection = (path: string): boolean =>
-  path === SOMMAIRE_INSTRUMENTS || isTitresSection(path) || isFundsSection(path) || path.startsWith("/calendrier");
+  isTitresSection(path) || isFundsSection(path) || path.startsWith("/calendrier");
+
+/**
+ * LE SIÈGE TRADE, QUI A ABSORBÉ LES INSTRUMENTS.
+ *
+ * Les trois familles gardent leurs pages et leurs onglets de section : un
+ * fonds ne se lit pas comme une ligne de la cote, et leurs colonnes ne sont
+ * pas les mêmes. Ce qui change est le siège qui les porte. « Instruments »
+ * nommait par l'instrument ; Trade nomme par l'intention, et c'est l'axe que
+ * le domaine avait déjà choisi.
+ */
+export const isTradeSection = (path: string): boolean => path.startsWith("/trader") || isInstrumentsSection(path);
 
 /** Vers quelle liste remonter depuis une fiche, faute de liste mémorisée. */
 export const listForFiche = (path: string): string => (path.startsWith(FUND_FICHE) ? "/fonds" : TITRES);

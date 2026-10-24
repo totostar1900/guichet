@@ -1,5 +1,5 @@
 import { DESK_GROUPS } from "./desk-groupes";
-import { AGIR_PAGES, AIDE_PAGES, INSTRUMENTS_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "./nav-groups";
+import { AIDE_PAGES, PORTEFEUILLE_PAGES, TRADE_PAGES, type NavPage } from "./nav-groups";
 import { MARKET_PAGES } from "./market/pages";
 
 /**
@@ -37,9 +37,12 @@ const dePages = (pages: NavPage[]) => pages.map((p) => ({ href: p.href, label: p
  * nom.
  */
 export const COLONNE_CLIENT: GroupeColonne[] = [
-  { label: "Portefeuille", items: dePages(PORTEFEUILLE_PAGES) },
-  { label: "Instruments", items: dePages(INSTRUMENTS_PAGES) },
-  { label: "Trade", items: dePages(AGIR_PAGES) },
+  { label: "Accueil", items: dePages(PORTEFEUILLE_PAGES) },
+  /* TRADE A ABSORBÉ « INSTRUMENTS ». Deux groupes se partageaient un sujet :
+     les gestes d'un côté, les familles de l'autre, alors que les cinq
+     services menaient déjà aux trois familles. Un seul groupe, et l'ordre dit
+     la lecture : ce qu'on fait, puis ce sur quoi on le fait. */
+  { label: "Trade", items: dePages(TRADE_PAGES) },
   { label: "Marché", items: dePages(MARKET_PAGES) },
   /* Ce qui se lit et ce qui se demande : deux pages sorties du bas de
      « Trade », où l'on ne les trouvait que par accident. */

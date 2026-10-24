@@ -73,6 +73,27 @@ export const AGIR_PAGES: NavPage[] = [
   { key: "epargne", href: "/moi/epargne", label: "Épargne programmée", tuile: "placer chaque mois", hint: "une somme fixe, un jour du mois, vers le fonds que vous choisissez" },
 ];
 
+/**
+ * LE SIÈGE TRADE, APRÈS LA FUSION DU 24 OCTOBRE 2026.
+ *
+ * « Instruments » nommait une seconde fois ce que « Placer » menait déjà :
+ * relevé dans `domain/services`, ses cinq services conduisaient tous aux trois
+ * familles — adjudications, cote, fonds. Le siège les rangeait par instrument,
+ * c'est-à-dire par l'axe que ce même fichier avait écarté : personne ne se
+ * réveille en voulant un OPCVM. Deux sièges pour un seul sujet, et le lecteur
+ * payait le tri.
+ *
+ * Les deux listes restent écrites chacune de son côté — les gestes d'un
+ * côté, les familles de l'autre — parce qu'elles ne répondent pas à la même
+ * question. Elles se rejoignent ici, et ici seulement : un seul siège, une
+ * seule liste à l'écran.
+ *
+ * LES GESTES D'ABORD. « Passer un ordre » est la racine du siège, comme le
+ * tableau de bord est celle du portefeuille ; les familles viennent ensuite,
+ * parce qu'on les ouvre en sachant déjà ce qu'on veut en faire.
+ */
+export const TRADE_PAGES: NavPage[] = [...AGIR_PAGES, ...INSTRUMENTS_PAGES];
+
 /** Ce qui se lit : l'indice, les sociétés, les notes, les actualités. */
 export const MARCHE_PAGES: NavPage[] = MARKET_PAGES;
 

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { isEspaceSection, isFundsSection, isInstrumentsSection, isMarcheSection, isTitresSection, listForFiche, TITRES } from "@/lib/nav-section";
+import { isEspaceSection, isFundsSection, isMarcheSection, isTitresSection, isTradeSection, listForFiche, TITRES } from "@/lib/nav-section";
 
 /**
  * La fiche d'un fonds appartient aux Fonds, pas aux Titres.
@@ -98,17 +98,22 @@ describe("chaque siège s'allume sur son propre sommaire", () => {
   /* Les deux règles qui vivent en clair dans le dock : un préfixe chacune. */
   const REGLES: { nom: string; prend: (p: string) => boolean }[] = [
     { nom: "isEspaceSection", prend: isEspaceSection },
-    { nom: "isInstrumentsSection", prend: isInstrumentsSection },
+    { nom: "isTradeSection", prend: isTradeSection },
     { nom: "isMarcheSection", prend: isMarcheSection },
-    { nom: "trader", prend: (p) => p.startsWith("/trader") },
     { nom: "aide", prend: (p) => p === "/aide" || p.startsWith("/info") },
   ];
 
   const sommaires = [...dock.matchAll(/\{\s*href:\s*"([^"]+)",\s*label:\s*t\(/g)].map((m) => m[1]);
 
-  it("lit bien les cinq sièges du dock", () => {
-    expect(sommaires.length, `sièges trouvés : ${sommaires.join(", ")}`).toBeGreaterThanOrEqual(5);
-    expect(sommaires, "les deux sommaires qui n'étaient réclamés par personne").toEqual(expect.arrayContaining(["/portefeuille", "/instruments"]));
+  /* QUATRE SIÈGES DEPUIS LA FUSION DU 24 OCTOBRE 2026. « Portefeuille » et
+     « Instruments » étaient justement les deux qui ne s'allumaient pas, faute
+     d'avoir déclaré leur sommaire ici ; ils ont fermé plutôt qu'été réparés,
+     parce que l'un résumait la racine et l'autre nommait deux fois ce que
+     Trade mène. Le compte est un plancher : un siège de plus devra, lui
+     aussi, dire à quelle règle il appartient. */
+  it("lit bien les quatre sièges du dock", () => {
+    expect(sommaires.length, `sièges trouvés : ${sommaires.join(", ")}`).toBeGreaterThanOrEqual(4);
+    expect(sommaires, "la racine porte désormais le premier siège").toEqual(expect.arrayContaining(["/", "/trader"]));
   });
 
   it("ne laisse aucun sommaire sans siège", () => {

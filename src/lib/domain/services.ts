@@ -349,7 +349,13 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
       rayon: "placer",
       cle: "actions",
       nom: "Acheter et vendre en bourse",
-      href: "/marche",
+      /* UN GESTE NE MÈNE PAS À LA PAGE QUI SE LIT. « /marche » est la porte de
+         l'environnement BVMAC : l'indice, les sociétés, les notes. Un service
+         dont le verbe est « acheter » y déposait le client sur une page de
+         lecture, à deux crans de la liste où l'on achète. « /titres » EST
+         cette liste — obligations, bons et actions — et elle n'était la
+         destination d'aucun service. */
+      href: "/titres",
       phrase: c.actions
         ? { key: "Vous détenez {n} actions {d}, vendables sur la BVMAC.", params: { n: c.actions.n, d: c.actions.titre } }
         : { key: "Achat et vente sur la BVMAC, au dernier cours publié et à sa date." },
@@ -426,7 +432,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
 export const CATALOGUE: { cle: string; nom: string; rayon: Rayon; href: string }[] = [
   { cle: "primaire", nom: "Adjudications et émissions", rayon: "placer", href: "/calendrier" },
   { cle: "sondage", nom: "Se dire preneur avant une adjudication", rayon: "placer", href: "/calendrier" },
-  { cle: "actions", nom: "Acheter et vendre en bourse", rayon: "placer", href: "/marche" },
+  { cle: "actions", nom: "Acheter et vendre en bourse", rayon: "placer", href: "/titres" },
   { cle: "fonds", nom: "Investir dans un fonds", rayon: "placer", href: "/fonds" },
   { cle: "passage", nom: "Passage d'un fonds à l'autre", rayon: "placer", href: "/fonds" },
   { cle: "epargne", nom: "Épargne programmée", rayon: "programmer", href: "/moi/epargne" },

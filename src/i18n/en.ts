@@ -39,6 +39,10 @@ export const EN: Record<string, string> = {
   "Institutionnel · Bangui": "Institutional · Bangui",
   "Desk Purpose Capital": "Purpose Capital desk",
 
+  /* Le premier siège du dock depuis la fusion du 24 octobre 2026 : il menait
+     à « /portefeuille », il mène à la racine, et son nom l'a suivi. */
+  "Accueil": "Home",
+
   /* ---------- market tabs / segments ---------- */
   "Tout": "All",
   "Marché": "Market",

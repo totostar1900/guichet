@@ -1,50 +1,27 @@
-import { requireSession } from "@/lib/auth";
-import { getT } from "@/i18n/server";
-import { Rubriques } from "@/components/mobile/Rubriques";
-import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
-import { PORTEFEUILLE_PAGES } from "@/lib/nav-groups";
-import styles from "@/components/Feuillet.module.css";
-import { Glissement } from "@/components/mobile/Glissement";
-import { EnTete } from "@/components/EnTete";
-
-export const dynamic = "force-dynamic";
-export const metadata = { title: "Portefeuille" };
+import { redirect } from "next/navigation";
 
 /**
- * LE SOMMAIRE DU PORTEFEUILLE, UNE PAGE ET NON UNE FEUILLE.
+ * LE SOMMAIRE DU PORTEFEUILLE A FERMÉ, le 24 octobre 2026.
  *
- * Le siège ouvrait un tiroir par le bas : une grille de tuiles, trois mots
- * chacune, posée par-dessus la page qu'on regardait. Elle coûtait déjà le
- * même nombre de gestes qu'une page — toucher le siège, choisir — mais elle
- * les coûtait sans rien offrir en échange : pas d'adresse à partager, pas de
- * retour système, et une phrase amputée à trois mots parce qu'une tuile n'a
- * pas la place.
+ * Il portait une bande d'attentes et cinq rubriques, dont la première était
+ * la racine elle-même : « Tableau de bord », déclarée dans `nav-groups` avec
+ * `href: "/"`. Le siège menait donc à une page dont le premier élément était
+ * la page d'où l'on venait, à un geste de plus.
  *
- * Une page a l'adresse, le retour, et la place d'une phrase entière. C'est
- * elle qui épargne le détour : sur un téléphone, ouvrir une destination pour
- * découvrir qu'on s'est trompé coûte deux gestes et une attente.
+ * La racine fait maintenant le travail entier : elle porte ce qui attend, la
+ * provision, les lignes, et les chemins vers l'analyse, le réinvestissement
+ * et les documents. Un sommaire qui résume la page d'accueil n'ajoute qu'un
+ * palier.
  *
- * ELLE PORTE CE QUI ATTEND. Un sommaire qui tairait un bulletin à signer
- * ferait exactement ce qu'un pli ne doit jamais faire : cacher un devoir
- * derrière un chemin. La bande vient donc avant les rubriques.
+ * UNE REDIRECTION TEMPORAIRE, ET C'EST VOULU. Un 308 se grave dans les
+ * navigateurs : si la maison revenait sur la fusion, les clients qui ont
+ * visité cette adresse resteraient renvoyés des mois durant. 307 coûte une
+ * requête et se défait.
  *
- * LE TABLEAU DE BORD EST LA PREMIÈRE RUBRIQUE, et c'est voulu : c'est
- * l'ancienne racine du siège, et la déplacer sans la nommer l'aurait rendue
- * introuvable.
+ * L'adresse reste servie plutôt que supprimée : elle est dans l'historique
+ * des téléphones, dans des signets, et dans les liens que le desk a pu
+ * envoyer.
  */
-export default async function PortefeuilleSommaire() {
-  const s = await requireSession("/portefeuille");
-  const t = await getT();
-
-  return (
-    <Glissement>
-        <div className={styles.page}>
-          <EnTete titre={t("Portefeuille")} phrase={t("Ce que vous avez, ce qui vous est dû, et ce que vos lignes ont rendu.")} />
-
-          <CeQuiVousAttend userId={s.userId} />
-
-          <Rubriques items={PORTEFEUILLE_PAGES.map((p) => ({ href: p.href, nom: t(p.label), quoi: t(p.hint) }))} />
-        </div>
-    </Glissement>
-  );
+export default function PortefeuilleDeplace() {
+  redirect("/");
 }

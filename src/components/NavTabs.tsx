@@ -6,9 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./NavTabs.module.css";
 import { useT } from "@/i18n/client";
 import { MARKET_PAGES } from "@/lib/market/pages";
-import { INSTRUMENTS_PAGES, PORTEFEUILLE_PAGES } from "@/lib/nav-groups";
+import { PORTEFEUILLE_PAGES, TRADE_PAGES } from "@/lib/nav-groups";
 import type { ComptesParLieu } from "@/lib/domain/listes";
-import { isEspaceSection, isInstrumentsSection, isMarcheSection } from "@/lib/nav-section";
+import { isEspaceSection, isMarcheSection, isTradeSection } from "@/lib/nav-section";
 
 /**
  * Deux axes, et le second manquait.
@@ -45,17 +45,11 @@ const TABS = [
    * Le Guide, les actualités et les services quittent la bande pour le menu du
    * compte : ce sont des destinations qu'on ouvre, pas des axes qu'on habite.
    */
-  { href: "/", label: "Portefeuille", match: isEspaceSection, connecte: true, pages: PORTEFEUILLE_PAGES },
-  /**
-   * INSTRUMENTS, et le siège libéré par « À décider ».
-   *
-   * Marché portait les deux à la fois, ce qui se lit et ce qui se traite, et il
-   * demandait donc au lecteur de faire lui-même le tri. Trois mots règlent la
-   * question : Marché se lit, Instruments s'achète, Trader fait. Les
-   * adjudications suivent les titres et les fonds, parce qu'une séance
-   * annoncée est une occasion d'acheter et non un article.
-   */
-  { href: "/titres", label: "Instruments", match: isInstrumentsSection, connecte: true, pages: INSTRUMENTS_PAGES },
+  /* « ACCUEIL » PLUTÔT QUE « PORTEFEUILLE ». L'onglet pointait déjà la
+     racine ; c'est son nom qui promettait moins qu'elle ne porte. Un
+     portefeuille est un contenu, une page d'arrivée est une destination — et
+     celle-ci porte aussi ce qui attend, la provision et les échéances. */
+  { href: "/", label: "Accueil", match: isEspaceSection, connecte: true, pages: PORTEFEUILLE_PAGES },
   /**
    * TRADER, et c'est le siège qui manquait.
    *
@@ -69,7 +63,13 @@ const TABS = [
    * déroulante ils se réduiraient à neuf noms, or un service nommé ne se lit
    * pas : c'est son état qui se lit.
    */
-  { href: "/trader", label: "Trade", match: (p: string) => p.startsWith("/trader"), connecte: true },
+  /* IL OUVRE UN MENU DEPUIS LA FUSION, et c'est le seul point où la note
+     ci-dessus a vieilli : les trois familles d'« Instruments » sont venues le
+     rejoindre, et un siège qui contient des pages doit les nommer, sinon
+     « /titres » vit sous un siège dont le menu l'ignore. Les neuf services
+     tiennent toujours sur sa page, avec leur état et leurs étapes ; le menu
+     ne porte que les destinations. */
+  { href: "/trader", label: "Trade", match: isTradeSection, connecte: true, pages: TRADE_PAGES },
   // Le catalogue : les titres, les fonds, les adjudications, l'indice, les
   // sociétés, les analyses. La bande « Sur le même sujet » dit la même famille
   // au pied de chaque article, et les deux se lisent dans MARKET_PAGES.
