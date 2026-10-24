@@ -8,11 +8,13 @@ reste nommée en bas, et c'est une DÉCISION, pas un reste : « Ce qui ferme
 bientôt » paraît sur Trade et sur l'accueil, par choix, le même composant
 appelé deux fois.
 
-Les quatre dernières sections ne viennent pas de la dictée : ce sont les
-chantiers que les GARDES ont ouverts d'elles-mêmes, en chaîne — un cliquet de
+Quatre sections plus bas ne viennent pas de la dictée : ce sont les
+chantiers que les GARDES ont ouvertes d'elles-mêmes, en chaîne — un cliquet de
 classes mortes qui comptait mal a fait remonter six règles inertes, dont une
 qui cachait un contraste à 2,97 : 1 ; la garde écrite pour ce défaut a mis au
-jour le jeton qui en était la cause commune.
+jour le jeton qui en était la cause commune. **La dernière section, elle,
+est une nouvelle dictée** : les budgets des six États, livrés en quatre lots
+le 24 octobre.
 
 Chaque point barré porte ce qui a été MESURÉ avant d'y toucher, et ce qui a
 été trouvé en chemin. Les relevés comptent autant que les décisions : c'est
@@ -945,3 +947,137 @@ de la maison. **Et les deux voiles se lèvent différemment** : celui des
 mentions par un vrai geste, puisque son acceptation s'écrit au serveur ; celui
 de la présentation par son drapeau `guichet:presented`, qu'il pose lui-même
 une fois vu.*
+
+---
+
+## Les budgets des six États, et la note du desk
+
+**Dicté par Georges le 24 octobre 2026, livré en quatre lots le même jour.**
+Il ne vient pas des gardes : c'est une demande, et elle a grossi en route —
+d'abord une page, puis l'écriture d'une note, puis le signal qui dit qu'il y
+aurait de quoi en écrire une, puis le rapprochement avec ce que le marché a
+réellement servi.
+
+### Ce que la page a trouvé, et qui vaut la page entière
+
+Le Cameroun 2026 déclare un déficit de **631,0 milliards** et un besoin de
+financement de **3 104,2** — **près de cinq fois plus**. L'écart n'est pas une
+erreur : c'est l'amortissement du principal, 2 473,2, qui tombe aux dates
+prévues quel que soit l'état des comptes. **Qui raisonne « déficit donc
+émissions » se trompe de 80 %**, et c'est pour ne pas laisser faire la division
+au lecteur que la fiche écrit le rapport en toutes lettres.
+
+Et la ligne des titres publics — 400,0 milliards, **13 %** du besoin — n'est
+pas une décision, c'est un **solde** : elle enfle quand une autre porte se
+ferme, en cours d'année, sans qu'aucune loi soit rouverte. D'où les six portes
+montrées ensemble, et jamais la seule qui nous concerne.
+
+### Trois refus, tenus par les tests
+
+| le refus | ce qu'il empêche |
+|---|---|
+| le solde déclaré n'est **jamais** recalculé | la soustraction donne −323,5, la loi écrit −631,0 : les périmètres diffèrent. L'écart reste **visible et nommé**, pas résorbé |
+| **aucun total « CEMAC »** | six lois, six nomenclatures, trois millésimes révisés : un total serait un chiffre sans date |
+| **aucune prévision d'émission** | le programme est une déclaration, l'adjugé un fait ; on montre les deux et on n'invente pas un troisième |
+
+Quatre États sur six sont **incomplets**, et la carte le dit en NOMMANT ce qui
+manque plutôt qu'en alignant des tirets — un tableau aurait fait croire à une
+couverture qui n'existe pas.
+
+### La règle a dû descendre d'un étage
+
+Les trois disciplines d'une note — constat *et* lecture, lecture au
+conditionnel, aucun conseil — vivaient dans un essai qui lisait le semis.
+Tenable tant que rien ne pouvait entrer sans passer par un fichier du dépôt.
+**Dès que le desk écrit depuis un écran, cette garde ne couvre plus rien de ce
+qui sera écrit** : elle garde une vitrine pendant que la porte est ouverte à
+côté, et elle resterait verte quoi qu'on écrive.
+
+Elle vit donc dans `verifierNote`, appelé **à trois étages** : le formulaire à
+chaque frappe (le bouton reste fermé tant qu'un refus tient), l'action serveur
+qui le rejoue — un formulaire se contourne —, et la base en `check`, parce
+qu'une règle qui n'existe qu'en TypeScript se contourne par un script. Le semis
+n'est plus qu'un de ses justiciables.
+
+*Le relevé des chiffres est **pris sur la fiche, jamais saisi**. « Ce qui a
+changé depuis la note précédente » ne vaut que si les deux relevés sortent du
+même endroit ; frappés à la main, ils compareraient de l'orthographe. Le semis
+le prend au même endroit, sinon la première note écrite depuis l'écran aurait
+affiché six lignes « changées » qui n'ont pas bougé.*
+
+### Le carnet, et le défaut qu'il corrige
+
+Une note qui ne s'écrit que **sur demande** s'écrit quand quelqu'un est déjà
+inquiet : la série penche vers les crises et se tait dans le calme — et le
+récit dans la durée, qui est tout l'objet, s'en trouve faussé. Le remède n'est
+pas de produire la note, ce serait le calendrier qu'on a écarté. C'est que
+l'outil **signale**, et laisse le desk décider.
+
+**Trois interdits, lus dans le code et non promis en prose** : le carnet
+n'écrit aucune note, n'en date aucune, n'en propose à aucun client. Il ne lit
+pas non plus l'horloge — le jour lui est passé, sans quoi « il y a sept mois »
+ne se testerait pas, et c'est une phrase qu'on cite.
+
+Et **il se tait quand le desk a écrit**. Le Cameroun n'y paraît pas : sa note
+est fraîche, son relevé n'a pas bougé, et le constat du baril est déjà
+consigné. Un signal qui reste allumé après qu'on y a répondu devient du papier
+peint — la maison a déjà vu un lecteur de bulletins signaler soixante lectures
+partielles pendant un an sans que personne n'agisse.
+
+### L'écart déclaré / levé : le pourcentage qu'on refuse
+
+La planche demandait « Cameroun : **78 % du programme levé** à mi-parcours ».
+**Ce rapport ne se calcule pas sur ces données**, et c'est le résultat du
+quatrième lot. Trois raisons, chacune mesurée :
+
+| | mesuré |
+|---|---|
+| le relevé couvre des **semaines**, pas un exercice | les 8 séances camerounaises de 2026 vont du 3 août au 14 septembre : **43 jours**. Le Gabon est pire — ses 8 séances tombent **le même jour** |
+| le **périmètre** de la ligne déclarée est inconnu | brut émis ou net d'amortissement : le plan ne le dit pas, et les deux lectures existent dans la zone |
+| les **bons se renouvellent** dans l'année | un bon à 13 semaines reconduit 4 fois lève 4 fois son montant pour un seul financement ; leur échéance est vide sur toutes les séances de bons du dépôt |
+
+Ce qui se mesure, lui, est exact et répond à la question que la note posait
+vraiment — « le calendrier d'adjudications dira si les 400 milliards
+tiennent » : non pas *combien du programme est fait*, inconnaissable ici, mais
+**ce que l'État obtient quand il se présente**.
+
+| | servi / annoncé | séances |
+|---|---|---|
+| Cameroun | **91 %** | 8 |
+| Tchad | 87 % | 4 |
+| Congo | **72 %** | 12 |
+| Gabon | **49 %** | 8 |
+
+Le Gabon a annoncé 135 milliards sur huit tranches le 22 juillet et en a placé
+66 : **cinq tranches entièrement non servies**. C'est le cinquième signal du
+carnet, et il remplace celui de la planche.
+
+*Trois pièges désamorcés dans les données : les cinq lignes camerounaises au
+même montant portent **cinq codes d'émission distincts** — cinq tranches, pas
+cinq lectures ; deux séances de 2020 portent en revanche un code déjà vu, elles
+sont **comptées et nommées**, jamais retirées, parce que laquelle des deux est
+la bonne ne se devine pas ; et le dénominateur n'accepte que les séances où les
+DEUX chiffres sont relevés.*
+
+### Ce que seules l'écran et `tsc` ont dit
+
+| le défaut | ce qui l'a trouvé |
+|---|---|
+| `"sur"` et `"retirer"` ajoutés au dictionnaire **existaient déjà** : la seconde définition l'emporte en silence, et `"sur"` serait passé de « of » à « on » **sur tout le desk** | `tsc`, pas la suite |
+| le tableau des écarts rendait **« Price du baril retenu »** : faute d'entrée, `t()` traduit mot à mot, donc un intitulé de loi en ressort hybride | la page lue **en anglais** |
+| le formulaire affichait **« cameroun »** — l'adresse au lieu du nom | l'écran |
+| le carnet et l'état vide d'une fiche **se répétaient** coup sur coup | l'écran |
+| six épreuves du carnet recevaient `REF_AUCTIONS`, **vide sous vitest** — le semis dense est réservé à la branche d'essai : le signal qui dépend des adjudications n'était éprouvé par rien | la garde désarmée à l'envers |
+| la règle de formatage des dates portait sur le **nom** du trou, pas sur sa forme : les dates des motifs du refus sortaient en brut | l'écran, deux fois — d'où une règle de forme, et non un correctif par champ |
+
+→ *Et un défaut hérité, qu'aucune suite lancée avant un commit ne peut voir :
+`docs-exactes` compare la date « vérifié le » d'une page de documentation à la
+date du dernier commit qui l'a touchée. **C'est le commit lui-même qui la fait
+tomber.** La suite se relance donc APRÈS, désormais.*
+
+→ *Reste dehors, et c'est nommé plutôt que laissé vide : les **liens des
+pièces** — la politique réseau de l'atelier refuse `dgb.cm`, `beac.int` et
+`dgtcfm.cm`, et un lien mort vaut moins que pas de lien ; et un vrai
+pourcentage d'exécution, qui demande un relevé d'adjudications couvrant
+l'exercice, ou le périmètre de la ligne déclarée relevé sur les annexes
+officielles.*
