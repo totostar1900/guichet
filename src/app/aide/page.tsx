@@ -57,11 +57,20 @@ export default async function AidePage() {
           <Rubriques
             items={[
               ...AIDE_PAGES.map((p) => ({ href: p.href, nom: t(p.label), quoi: t(p.hint) })),
-              /* LES MENTIONS NE SONT PAS DANS LA TABLE DU RAIL, et c'est voulu :
-                 elles se lisent une fois, à l'ouverture du compte, et un rail
-                 qu'on parcourt chaque jour n'a pas à les porter. Elles vivent au
-                 pied de chaque page ; cette ligne-ci est pour qui les CHERCHE,
-                 et le siège « Aide » est le premier endroit où l'on regarde. */
+              /* LES MENTIONS NE SONT PAS DANS LA TABLE DU RAIL, et c'est
+                 voulu : elles se lisent une fois, à l'ouverture du compte, et
+                 un rail qu'on parcourt chaque jour n'a pas à les porter.
+
+                 CETTE LIGNE N'EST PLUS UNE COMMODITÉ, C'EST UN CHEMIN.
+                 La note disait « elles vivent au pied de chaque page » — ce
+                 qui était vrai quand elle a été écrite, et ne l'est plus : le
+                 pied réglementaire ne paraît qu'à qui n'est PAS entré
+                 (« !onDeskHost && !session » dans layout.tsx), parce que
+                 cent treize pixels d'agrément fermaient chaque écran d'un
+                 client. Pour un client connecté, cette ligne-ci est donc l'un
+                 des rares endroits nommés où l'agrément COSUMAF, l'adresse du
+                 siège et le contrôleur se trouvent. La retirer au motif que
+                 le pied les porte reviendrait à les retirer tout court. */
               { href: "/info/mentions", nom: t("Mentions légales"), quoi: t("Qui est Purpose Capital, sous quel agrément, et qui le contrôle.") },
             ]}
           />
