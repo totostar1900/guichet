@@ -15,6 +15,7 @@ import { CeQuiFermeBientot } from "@/components/CeQuiFermeBientot";
 import { echeancesProches, presse } from "@/lib/domain/echeances";
 import { SelectionDuDesk } from "@/components/SelectionDuDesk";
 import { IndexPulse } from "@/components/IndexPulse";
+import { CeQuiPerforme } from "@/components/CeQuiPerforme";
 import { aLaUne, pourquoiLu, publishedNews, titreLu } from "@/lib/news";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
@@ -515,7 +516,14 @@ export async function Console({ session }: { session: Session }) {
         <IndexPulse compact />
       </section>
 
-      {/* 8. À LA UNE : UN ARTICLE, ET CE QU'IL CHANGE.
+      {/* 8. CE QUI PERFORME, juste après l'indice : le niveau de la place,
+          puis les lignes qui l'ont fait bouger. Sa lecture lui est propre et
+          tient en trois requêtes bornées — voir « market/performe » —, et
+          elle s'efface quand rien n'a bougé sur la fenêtre, ce qui arrive sur
+          cette cote. */}
+      <CeQuiPerforme />
+
+      {/* 9. À LA UNE : UN ARTICLE, ET CE QU'IL CHANGE.
           Le même que la page des actualités met en tête, par « aLaUne » : ce
           titre désignait deux articles différents selon la page, et la maison
           n'en a qu'un.
@@ -547,11 +555,11 @@ export async function Console({ session }: { session: Session }) {
         </section>
       )}
 
-      {/* 9. S'INSCRIRE SANS ATTENDRE UN CODE. Une proposition qui se referme
+      {/* 10. S'INSCRIRE SANS ATTENDRE UN CODE. Une proposition qui se referme
           d'une croix, et ne revient pas. */}
       <TrustNudge />
 
-      {/* 10. VOTRE DOSSIER : UN SOMMAIRE, ET PLUS SIX SECTIONS DÉPLIÉES.
+      {/* 11. VOTRE DOSSIER : UN SOMMAIRE, ET PLUS SIX SECTIONS DÉPLIÉES.
           Le relevé était le bas de cette page, et il y développait ce qui a
           désormais une adresse : les intentions, les versements programmés et
           leurs instructions — avec leur formulaire de modification —, les

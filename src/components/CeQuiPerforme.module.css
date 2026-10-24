@@ -1,0 +1,119 @@
+/* Ce qui performe : les actions qui ont bougé sur la fenêtre.
+   SANS MARGE À ELLE, comme les autres pièces posées dans la colonne d'une
+   page : l'écart est déclaré par la colonne, et une marge s'y ajouterait. */
+.bloc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+.tete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-6);
+}
+.titre {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.tout {
+  flex: none;
+  font-size: var(--t-2);
+  color: var(--gold-ink);
+}
+/* La fenêtre, écrite en toutes lettres : un pourcentage sans sa période se
+   lit comme celui du jour, et c'est le chiffre qui n'existe pas ici. */
+.fenetre {
+  margin: 0;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+}
+
+/* LE SEGMENTÉ. L'onglet non choisi garde sa bordure : un segmenté qui ne se
+   distingue que par un remplissage disparaît pour qui ne voit pas la teinte. */
+.sens {
+  display: flex;
+  gap: var(--s-4);
+}
+.onglet {
+  font: inherit;
+  font-size: var(--t-1);
+  padding: var(--s-3) var(--s-7);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.onglet:hover {
+  border-color: var(--line-2);
+}
+.actif {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--navy);
+  font-weight: 700;
+}
+.rien {
+  margin: 0;
+  font-size: var(--t-2);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-4);
+}
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  padding: var(--s-5) var(--s-7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: var(--t-2);
+}
+.mnemo {
+  flex: none;
+  width: 56px;
+  font-weight: 700;
+}
+.nom {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cours {
+  flex: none;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.pilule {
+  flex: none;
+  font-size: var(--t-1);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border-radius: 999px;
+  padding: var(--s-2) var(--s-5);
+  white-space: nowrap;
+}
+.hausse {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.baisse {
+  background: var(--crit-soft);
+  color: var(--crit);
+}

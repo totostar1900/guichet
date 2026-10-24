@@ -117,6 +117,18 @@ export const EN_CONSOLE: Record<string, string> = {
      deux fois le même mot à trente pixels se lit comme un bégaiement. */
   "La place": "The exchange",
 
+  /* CE QUI PERFORME, SUR LA PAGE D'ARRIVÉE (24 octobre 2026). La fenêtre est
+     dans la phrase et non en note : un pourcentage sans sa période se lit
+     comme celui du jour, et c'est le chiffre qui n'existe pas sur cette cote.
+     Les deux côtés vides se nomment : sur cette place, un mois entier sans
+     une seule baisse arrive, et un onglet qui s'ouvre sur rien se lit comme
+     une panne. */
+  "Ce qui performe": "What has moved",
+  "Du {a} au {b}, d'une séance à l'autre.": "From {a} to {b}, session to session.",
+  "Sens du classement": "Ranking direction",
+  "Aucune ligne n'a reculé sur la période.": "No line fell over the period.",
+  "Aucune ligne n'a monté sur la période.": "No line rose over the period.",
+
   /* ---------- la page publique des services ---------- */
   "Les services": "The services",
   "les neuf, avec leur état": "the nine, with their state",
