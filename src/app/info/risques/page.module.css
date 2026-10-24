@@ -82,14 +82,27 @@
   /* La barre du téléphone se fige en haut : une ancre doit s'arrêter dessous. */
   scroll-margin-top: 92px;
 }
+/* LE GUIDE TITRE EN SANS, COMME LE RESTE DE L'APPLICATION (24 octobre 2026).
+   Cette feuille était la dernière dispensée de la règle, « à décider » : le
+   guide se lit des deux côtés, donc on hésitait. Les quatre autres feuilles
+   du guide — la racine, chaque leçon, les mentions, le parcours — avaient
+   déjà tranché en sans. Elle n'était pas une exception de principe, elle
+   était le reste.
+
+   ET SES SECTIONS PASSAIENT DEVANT SON TITRE. « clamp(1.5rem, 2.8vw,
+   2.15rem) » monte à 32 px sur un écran large, quand le « h1 » de la page
+   tient à 30 : le titre de section était plus gros que le titre de page.
+   L'échelle nomme pourtant la taille — « --t-7 : titre de section » — et le
+   poids vient de la règle globale des « h2», qui est 600. Un 400 en serif
+   fait un titre ; un 400 en sans à cette taille fait du corps de texte.
+
+   L'échelle fluide part avec le serif : elle est l'autre marque de la
+   vitrine, et la note de l'étalon les nomme ensemble. */
 .section h2 {
   margin: 0;
   padding-bottom: var(--s-7);
   border-bottom: 1px solid var(--navy);
-  font-family: var(--font-titre);
-  font-size: clamp(1.5rem, 2.8vw, 2.15rem);
-  line-height: 1.12;
-  font-weight: 400;
+  font-size: var(--t-7);
   color: var(--ink);
 }
 .section p {

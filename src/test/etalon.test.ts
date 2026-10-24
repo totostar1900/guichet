@@ -279,9 +279,14 @@ describe("l'en-tête d'une page", () => {
  *
  * L'ÉPREUVE EST UNE LISTE BLANCHE, et non un compte : un cliquet dirait
  * combien de fichiers posent la fonte, pas lesquels ont le droit. Les
- * dispensés sont la vitrine publique, les deux voiles montés sur les deux
- * domaines, et le guide — qui se lit des deux côtés, et dont la fonte reste
- * à décider.
+ * dispensés sont la vitrine publique et les deux voiles montés sur les deux
+ * domaines.
+ *
+ * LE GUIDE A ÉTÉ TRANCHÉ LE 24 OCTOBRE 2026, et il l'était déjà. « Risques et
+ * limites » figurait ici « à décider », au motif qu'un guide se lit des deux
+ * côtés — mais les quatre autres feuilles du guide, la racine, chaque leçon,
+ * les mentions et le parcours, titraient toutes en sans depuis le début.
+ * Elle n'était pas une exception de principe, elle était le reste.
  */
 const DISPENSES = [
   /* La vitrine publique : elle a sa voix, et son échelle fluide avec. */
@@ -294,8 +299,6 @@ const DISPENSES = [
   "src/components/AppMenu.module.css",
   "src/components/mobile/Onboarding.module.css",
   "src/components/mobile/Presentation.module.css",
-  /* Le guide, servi des deux côtés. À décider avec le point 2. */
-  "src/app/info/risques/page.module.css",
 ];
 
 describe("la fonte d'un titre", () => {
