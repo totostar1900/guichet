@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import { RACINE } from "./racine";
 import { SEED_BUDGETS, SEED_NOTES_BUDGET } from "@/data/budgets-seed";
 import { memoryRepository } from "@/lib/data/memory";
+import { ISSUER_REGISTRY } from "@/data/issuer-registry";
+import { ISSUERS } from "@/data/issuers";
 /* LE RELEVÉ BRUT, ET NON `SEANCES` : celui-ci est vide sous vitest, le
    semis dense étant réservé à la branche d'essai et à `dev:memory` — six
    épreuves prennent le dépôt mémoire pour fixture et comptent sur ses huit
@@ -479,6 +481,41 @@ describe("la page des budgets", () => {
        que pour les émetteurs obligataires, et aucun État n'en est un. */
     const f = code("src/app/desk/budgets/[pays]/page.tsx");
     expect(f.includes("/emetteurs/"), "la fiche renvoie vers une page d'émetteur : aucun État n'en a une, le lien rendra 404").toBe(false);
+  });
+
+  /**
+   * UN SOUVERAIN N'A PAS DE FICHE D'ÉMETTEUR, ET C'EST UNE DÉCISION.
+   *
+   * Les six Trésors, la BDEAC et la BEAC ont une entrée au registre — une
+   * identité qui rattache une ligne à une entité — et aucune page. Une fiche
+   * d'émetteur dit ce qu'une société fait, ce qu'elle gagne et qui la
+   * détient : trois questions sans objet pour un Trésor, dont la page serait
+   * un cadre vide portant un nom d'État. La page « Sociétés » l'écrit déjà à
+   * l'écran — « les États et la BDEAC ont leurs échéanciers directement sur
+   * chaque ligne ».
+   *
+   * LA TENTATION EST RÉELLE : le slug ressemble à une adresse. Un `href` posé
+   * sur une entrée souveraine ferait paraître un lien vers
+   * « /emetteurs/etat-cameroun », qui rend 404 — et c'est la carte d'émetteur
+   * d'une offre du Trésor qui l'afficherait, sur un écran client.
+   */
+  it("ne donne d'adresse à aucun Trésor ni aucun État", () => {
+    const souverains = ISSUER_REGISTRY.filter((e) => e.family === "etat" || e.family === "supranational");
+    /* NON-VACUITÉ : six États, la BDEAC et la BEAC. */
+    expect(souverains.length, "le registre ne porte plus d'entrée souveraine : l'épreuve ne garde rien").toBeGreaterThanOrEqual(8);
+    expect(
+      souverains.filter((e) => e.href).map((e) => `${e.slug} → ${e.href}`),
+      "une entrée souveraine porte une adresse : la carte d'émetteur d'une offre du Trésor affichera un lien mort",
+    ).toEqual([]);
+    /* ET LES SEULES ADRESSES « /emetteurs/ » DU REGISTRE SONT CELLES DES
+       ÉMETTEURS OBLIGATAIRES, qui, eux, ont bien une page. */
+    for (const e of ISSUER_REGISTRY) {
+      if (!e.href?.startsWith("/emetteurs/")) continue;
+      expect(
+        ISSUERS.some((i) => i.slug === e.slug),
+        `« ${e.slug} » porte une adresse d'émetteur sans figurer parmi les émetteurs obligataires : la page rendra 404`,
+      ).toBe(true);
+    }
   });
 
   /* ELLE EST AU RAIL, SINON PERSONNE NE LA TROUVE. Une page sans entrée est

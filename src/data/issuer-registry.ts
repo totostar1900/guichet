@@ -13,6 +13,22 @@ import { ISSUERS, type BondIssuer } from "./issuers";
  *
  * Matching order: an ISIN listed on the issuer, then an alias (case and
  * accents ignored), then a prefix the bulletin uses for the line's label.
+ *
+ * UN SOUVERAIN N'A PAS DE FICHE, ET C'EST UNE DÉCISION.
+ *
+ * Les six Trésors, la BDEAC et la BEAC ont une entrée ICI — une identité qui
+ * rattache une ligne à une entité — et AUCUN `href`. C'est volontaire : la
+ * page « Sociétés » l'écrit déjà à l'écran, « les États et la BDEAC ont leurs
+ * échéanciers directement sur chaque ligne ». Une fiche d'émetteur dit ce
+ * qu'une société fait, ce qu'elle gagne et qui la détient ; ces trois
+ * questions n'ont pas de sens pour un Trésor, et la page serait un cadre vide
+ * portant un nom d'État.
+ *
+ * La tentation est pourtant réelle : le slug ressemble à une adresse. Lui
+ * donner un `href` ferait paraître un lien vers « /emetteurs/etat-cameroun »,
+ * qui rend 404 — `/emetteurs/[slug]` ne sert que les trois émetteurs
+ * obligataires. Une épreuve garde donc l'absence de `href` sur toute entrée
+ * souveraine (voir « budgets.test.ts »).
  */
 export type IssuerFamily = "etat" | "supranational" | "banque" | "societe" | "gestion";
 export type IssuerZone = Country | "CEMAC";
