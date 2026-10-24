@@ -489,27 +489,29 @@ Le cliquet reste, à `0` : il interdit maintenant la RÉGRESSION, qui est son
 autre moitié. Une page neuve qui écrirait son en-tête à la main le ferait
 tomber le jour même. Un cliquet ne se coche pas ; celui-ci a touché le fond.
 
-**Mais il ne pouvait pas toucher le fond, et c'est corrigé.** 49 au matin, 38,
-puis 27 — et parmi ces 27, `EnTete.tsx` **lui-même** : le composant qui écrit
-le `h1` était compté comme une page qui ne l'avait pas converti. Avec lui, les
-quatre pages de la vitrine, qui ne convertiront jamais par la décision de
-l'ETALON § C ; le « Bonjour » de la console, qui n'est pas un nom de page ; et
-trois écrans de seuil — connexion, second facteur, désabonnement — sans section
-au-dessus ni parent derrière, dont le titre nomme l'étape en cours.
-
-Un cliquet qui mélange « pas encore fait » et « ne sera jamais fait » n'atteint
+**Il ne POUVAIT pas toucher le fond, et c'est ce qu'il a fallu corriger
+d'abord.** Parmi les 27 d'alors, `EnTete.tsx` **lui-même** : le composant qui
+écrit le `h1` était compté comme une page qui ne l'avait pas converti. Un
+cliquet qui mélange « pas encore fait » et « ne sera jamais fait » n'atteint
 jamais zéro, et un compte qui ne peut pas tomber à zéro ne dit plus s'il reste
-du travail. D'où deux mesures : **neuf dispenses nommées, chacune avec sa
-raison** — la forme que l'ETALON donne déjà à la règle de la fonte, *« un compte
+du travail. D'où **deux mesures** : des dispenses NOMMÉES, chacune avec sa
+raison — la forme que l'ETALON donne déjà à la règle de la fonte, *« un compte
 dirait combien de fichiers posent la fonte, pas lesquels ont le droit »* — et un
-cliquet qui ne porte plus que ce qui attend. **Il est à 18, et celui-là peut
-finir.** Une dispense dont la page est convertie, renommée ou supprimée ne vise
-plus rien, et l'épreuve le dit.
+cliquet qui ne porte plus que ce qui attend. Une dispense dont la page est
+convertie, renommée ou supprimée ne vise plus rien, et l'épreuve le dit.
 
-**Dix pages converties le même soir** : les mentions légales, les notes de
-marché, la réclamation, le parcours du guide, l'annexe tarifaire, les
-prélèvements, l'épargne programmée, votre activité, et les deux pièces qui
-titrent une référence — un ordre et un document.
+**Vingt-sept pages converties, en deux lots** : dix d'abord — mentions légales,
+notes de marché, réclamation, parcours du guide, annexe tarifaire,
+prélèvements, épargne programmée, activité, et les deux pièces qui titrent une
+référence —, puis les dix-sept qui restaient, de `/marche` à `/ouvrir-un-compte`.
+
+→ *Trois pages gardent un dispositif de retour à elles, et c'est délibéré :*
+`/comparer` *a un retour d'historique, n'ayant pas un parent unique ;*
+`/societes/[mnemo]` *porte deux liens dont un conditionnel — une bande de
+navigation, pas le créneau ;* `/offres/[id]` *garde son `ListNav`, qui déplace
+dans une liste au lieu de remonter d'un cran. Et* `Dossier` *garde son encre :
+un bleu franc et un trait plus léger, l'identité de cet écran — le § C de
+l'ETALON porte sur la FONTE, pas sur le poids ni la couleur.*
 
 → *Ce que les conversions ont trouvé, et que l'écriture à la main cachait.*
 *Trois fils d'Ariane, alors que la note de `EnTete` disait celui de
@@ -523,17 +525,52 @@ l'épreuve des retours lit `retour={{ … }}` et ne pouvait rien voir d'un
 pour mot. Convertir une page, c'est aussi la faire entrer sous les épreuves
 auxquelles son écriture l'exemptait.*
 
-Trois lignes restaient ici au moment d'écrire cette section ; **deux ont été
-faites dans la soirée même**, et aucune des trois n'était un défaut :
+→ *Le second lot en a sorti autant.* **Quatre chemins déguisés** — trois `nav`
+d'un seul lien vers le parent, et **un mot cliquable au milieu d'un
+sur-titre** : « BVMAC » menait à `/marche` depuis l'avant-titre de l'indice,
+qui y a gagné le retour qui lui manquait. *Un troisième retour mal nommé —*
+« Mon dossier d'ouverture » *est l'INDICE de l'entrée dans `nav-groups`, pas
+son libellé* « Mes pièces ». *Une seconde grille de douze colonnes montée pour
+un seul en-tête, sur `/info/risques`, où la phrase partait en colonne 9. Deux*
+`font-family: var(--font-display)` *sur des titres, c'est-à-dire la fonte de
+l'interface sous un autre nom. Et une marge écrite en style en ligne sur un
+`h1`.*
 
-- ~~**Les aperçus des tuiles de Trade.**~~ **FAIT.** La maquette donnait deux
-  lignes sous chaque tuile. C'était en réalité un invariant rompu, et le
-  fichier qui l'annonce le déclarait en tête : *« les deux écrans rendent le
-  même texte dans le même ordre ; ce qui change est la façon de s'y
-  déplacer »*. L'écran large rendait la phrase de chaque service dans sa
-  bande, les tuiles du téléphone n'en portaient que le nom. Elles portent la
-  phrase — et non la précondition, qui est la même pour presque tous les
-  services et effaçait neuf sous-titres pour dire neuf fois la même chose.
+→ *Un créneau de plus, déclaré :* `reference`. *Deux pages titrent une
+RÉFÉRENCE et écrivaient toutes deux `display mono` sur leur `h1`. Et le
+sur-titre accepte désormais un NŒUD — une page du guide y pose la pastille de
+sa section ; la règle « jamais un lien, jamais un chemin » était tenue par le
+TYPE, elle est maintenant vérifiée sur les APPELS, et c'est là qu'elle
+comptait depuis le début.*
+
+Trois lignes restaient ici au moment d'écrire cette section. **Les trois sont
+réglées** — deux faites dans la soirée même, la troisième étant une décision et
+non un reste —, et aucune n'était un défaut :
+
+- ~~**Les aperçus des tuiles de Trade.**~~ **FAIT, EN DEUX TEMPS.** D'abord
+  l'invariant rompu : l'écran large rendait la phrase de chaque service, les
+  tuiles du téléphone n'en portaient que le nom, alors que le fichier déclare
+  en tête que *« les deux écrans rendent le même texte dans le même ordre »*.
+  Les tuiles portent la phrase — et non la précondition, la même pour presque
+  tous les services.
+
+  **Puis les deux lignes de la maquette, pour trois tuiles sur quatre.** Ce
+  qui a décidé : **aucune lecture de plus**. Les offres sont déjà en main sur
+  cette page, le contexte est en cache par requête, et les trois sélecteurs
+  existaient — `lignesDeLaCote`, `fondsListes`, les parts détenues du
+  contexte. Un aperçu à une requête par tuile aurait été écarté comme le volet
+  « la séance » de l'accueil ; une épreuve interdit d'ailleurs au domaine de
+  toucher au dépôt.
+
+  **Le refus, et c'est mon propre commentaire du matin qui l'impose.**
+  « Adjudications et émissions » n'en reçoit pas : ses deux lignes seraient les
+  deux prochaines séances, exactement celles que « Ce qui ferme bientôt » pose
+  en tête de la même racine. Deux listes de la même chose sur un écran
+  divergent toujours. L'objection était juste, et elle ne valait que pour
+  celle-là — les trois autres montrent ce que rien d'autre ne montre ici : la
+  cote, les fonds ouverts, la part qu'on détient. L'épreuve garde le refus
+  autant que les aperçus, faute de quoi quelqu'un « compléterait » la série de
+  bonne foi sans jamais savoir pourquoi c'est faux.
 - **« Ce qui ferme bientôt » vit sur Trade ET sur l'accueil**, par décision
   explicite. C'est le même composant appelé deux fois, pas deux listes à
   tenir — et depuis ce soir le même `joursEnMots` que le rappel quotidien.
@@ -595,9 +632,78 @@ la dictée. **Les deux sont clos.**
   décompte de jours vient de `inDays`, déjà porté par le flux : le recalculer
   aurait donné un second arrondi, donc un jour d'écart un jour sur deux.*
 
+---
+
+## Ce que seul le navigateur a dit
+
+**Les vingt-sept pages converties ont toutes été ouvertes à l'écran**, plus la
+fiche d'une pièce et la branche « ligne retirée » d'une offre. Ces deux-là
+n'ont aucune instance dans le semis : une pièce s'ÉMET et un retrait se POSE,
+tous deux par le desk. Le pilote les produit donc avant d'aller les lire avec
+les yeux du client, au lieu de les déclarer inatteignables.
+
+**Trois défauts qu'aucune épreuve ne pouvait voir** — et c'est la leçon de la
+journée :
+
+1. **Un titre de page à 12,3 px.** Le créneau `reference` posait la classe
+   globale `mono`, qui règle AUSSI `font-size: 0.82em` : elle gagnait sur la
+   règle commune des `h1`. Le défaut préexistait, mais le porter dans l'en-tête
+   commun le rendait pire — c'est lui qui garantit « un titre de page, une
+   taille ». Il pose désormais sa propre classe : la chasse fixe et les
+   chiffres tabulaires, rien sur la taille.
+2. **Les aperçus sortaient de leur tuile** — 205 px de rangée dans une tuile de
+   175. La cause n'était pas l'enfant mais la rangée : élément de grille, son
+   `min-width: auto` l'empêchait de se rétrécir. Le relevé du DOM donnait
+   pourtant `debordement = 0` et la console était muette : la page ne défilait
+   pas, un parent coupait. Deux formes ont été rejetées sur preuve avant la
+   bonne — tronqué, « FCP Trés… » et « FCP Obli… » ne distinguaient plus deux
+   fonds ; coupé n'importe où, « Obligatio / ns CEMAC ».
+3. **Une classe morte née d'un commentaire** : le détecteur lit aussi les
+   commentaires des feuilles, où j'avais écrit « .mono » avec son point.
+
+*Dans les deux premiers cas, les deux règles en cause vivent dans deux
+fichiers, et c'est leur croisement au RENDU qui décide. C'est la limite exacte
+des cliquets qui lisent du CSS, et elle vaut d'être écrite ici.*
+
+→ *Et deux voiles couvrent toute page au premier passage — le consentement aux
+mentions, puis l'accueil d'embarquement. La première passe a mesuré le DOM
+correctement et photographié dix fois le même voile : une capture qu'on ne
+REGARDE pas ne prouve rien.*
+
+---
+
+## Les planches, relues contre le code
+
+La planche n'est pas un dessin qu'on garde : c'est la seule trace des règles
+qui ne sont pas encore du code, et **la tenir à jour est ce qui l'empêche de
+mentir**. Les sept ont été relues ; six mentaient.
+
+- **`Regles`** — sa colonne « sa place » décrivait du code EXISTANT et se
+  trompait sur cinq lignes. Relevée dans `Console.tsx` et numérotée dans
+  l'ordre du rendu. Deux lignes décrivaient l'inexistant : « Les quatre
+  gestes », une grille REFUSÉE, et le pied réglementaire, qui ne paraît qu'au
+  VISITEUR — l'encadré du niveau 1 justifiait sa règle par un bloc absent de
+  l'écran qu'il décrit.
+- **`Dock`** — trois intentions devenues des faits, et une prédiction fausse :
+  « deux règles d'appartenance disparaissent » — ni l'une ni l'autre n'a
+  disparu, `isInstrumentsSection` est ABSORBÉE.
+- **`TradeRoutes`** — son encadré « les deux trous que la fusion oblige à
+  combler » les énonçait toujours au présent ; ils sont comblés.
+- **`Barre`** — elle montre quatre états, dont un qui N'EST PAS AU CODE : la
+  croix d'un parcours qu'on ferme. Marqué « pas écrit ».
+- **`Trade`** — ses pastilles abrégeaient « dans 5 j », que le composant
+  rejette en toutes lettres.
+- **`Main` et `Court`** — non retouchées, et c'est délibéré : ce sont les
+  dessins d'INTENTION dont le code s'est écarté décision par décision. Une
+  huitième planche, **`Ecart`**, porte les dix-huit blocs en trois colonnes —
+  rendu, changé, jamais écrit — avec la raison de chacun. Relevé à l'appui :
+  l'écran fait 3 400 px, la maquette en dessine 4 004, et dix blocs sur
+  dix-huit paraissent sur le semis mémoire.
+
+---
+
 → *Deux faits à retenir pour qui reprendra : le dépôt mémoire n'a **aucun
 bulletin** — la série du BOC est ingérée, jamais semée —, donc l'indice et le
 classement ne paraissent pas sans `.env.local`, et c'est la règle de niveau 3
-qui joue, pas une panne. Et la planche `Regles.dc.html` est la seule trace
-des règles qui ne sont pas encore du code : la tenir à jour est ce qui
-l'empêche de mentir.*
+qui joue, pas une panne. Et il n'a **aucun document ni aucune offre retirée** :
+ces états se posent par le desk, ils ne se sèment pas.*
