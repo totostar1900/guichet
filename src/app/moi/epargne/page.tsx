@@ -9,6 +9,7 @@ import { localIso } from "@/lib/format";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
+import { EnBref } from "@/components/EnBref";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Épargne programmée" };
@@ -71,6 +72,7 @@ export default async function EpargnePage() {
           phrase={t(
             "Une somme fixe, un jour du mois, une destination choisie maintenant : le versement part tout seul, et vous l'arrêtez quand vous voulez. C'est un placement qui se répète, pas une autorisation de débit.",
           )}
+          aCote={<EnBref cles={["epargne"]} titre="L'épargne programmée en bref" />}
         />
 
         {versements.length > 0 && (

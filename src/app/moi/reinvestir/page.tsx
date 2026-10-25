@@ -13,6 +13,7 @@ import { fmt, fmtDate, localIso } from "@/lib/format";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
+import { EnBref } from "@/components/EnBref";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Réinvestir vos encaissements" };
@@ -81,6 +82,7 @@ export default async function ReinvestirPage() {
           phrase={t(
             "Un coupon qui dort sur un compte en banque cesse de rapporter pendant que la ligne qui l'a versé continue. Cette instruction replace ce qui vous revient, dès qu'il arrive, sur la ligne que vous choisissez maintenant.",
           )}
+          aCote={<EnBref cles={["reinvestissement"]} titre="Le réinvestissement en bref" />}
         />
 
         {/* LES QUATRE CHAPITRES PRENNENT LA BANDE DE « MES DOCUMENTS ».

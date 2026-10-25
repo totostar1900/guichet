@@ -1,0 +1,125 @@
+/* LE BRIEF D'UNE PAGE DE SERVICE.
+
+   La feuille des fonds et celle des adjudications portaient chacune la même
+   trentaine de lignes — bouton, corps, titre de section — à deux endroits
+   différents. Elles sont ici, une fois, et les deux pages les lisent avec
+   toutes les autres. Ce qui leur reste en propre (les pastilles de catégorie
+   d'un fonds) reste chez elles. */
+
+/* Le bouton « En bref » : discret à côté du titre, assez grand pour le pouce.
+   Rayon zéro, comme le reste depuis le 29 septembre 2026. */
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+  padding: 0 var(--s-4);
+  min-height: var(--ctrl-h);
+  box-sizing: border-box;
+  border: 1px solid var(--line-2);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--ctrl-t);
+  font-weight: 600;
+  cursor: pointer;
+}
+.bouton:hover {
+  border-color: var(--gold);
+  color: var(--ink);
+}
+.bouton svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.corps {
+  display: grid;
+  gap: var(--s-6);
+  /* L'ÉCHELLE, ET NON UNE VALEUR : les deux feuilles d'origine écrivaient
+     0,86 / 0,74 / 0,82 rem, trois tailles inventées pour une seule feuille.
+     Elles tombent sur --t-4, --t-2 et --t-3, à deux centièmes de rem près. */
+  font-size: var(--t-4);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.corps p {
+  margin: 0;
+}
+/* UNE SECTION RESPIRE COMME UN SERVICE. Relevé à l'écran le 26 octobre 2026,
+   feuille des adjudications : « COMMENT UNE SÉANCE SE DÉROULE » touchait
+   « L'annonce », et les deux phrases du prix se collaient l'une à l'autre.
+   Le corps n'espace que ses enfants DIRECTS ; ce qu'une page range dans une
+   « section » tombait hors de cette règle et n'avait plus que les marges par
+   défaut, c'est-à-dire aucune. La règle vaut donc pour toute section de la
+   feuille, celles du catalogue comme celles d'une page. */
+.corps section {
+  display: grid;
+  gap: var(--s-5);
+}
+.titre {
+  margin: 0;
+  font-size: var(--t-2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+
+/* UN SERVICE PAR BLOC, et le trait n'arrive qu'entre deux. Une page qui ne
+   sert qu'un service ne doit pas montrer de séparation : il n'y a rien à
+   séparer. L'espacement interne vient de « .corps section », au-dessus. */
+.service + .service {
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+}
+
+/* LES ÉTAPES SONT NUMÉROTÉES, et c'est le seul endroit de la maison où une
+   liste l'est de droit : il y a une vraie séquence, chaque étape attend la
+   précédente. Ailleurs, un numéro promet un ordre qui n'existe pas. C'est la
+   règle que « services.ts » écrit au-dessus de cette même table, et la fiche
+   de Trade les numérote déjà de la même façon. */
+.etapes {
+  display: grid;
+  gap: var(--s-4);
+  margin: 0;
+  padding-left: var(--s-8);
+  font-size: var(--t-3);
+}
+.etapes li {
+  padding-left: var(--s-2);
+}
+.etapes li::marker {
+  color: var(--gold-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* UNE DÉFINITION PAR LIGNE : son nom, sa phrase. Pas de carte — ce sont des
+   définitions, pas des boutons. Les deux briefs qui en portaient une l'avaient
+   chacun chez eux ; elle est ici, et le reste de leur prose aussi. */
+.cats {
+  display: grid;
+  gap: var(--s-5);
+  margin: 0;
+}
+.cats dt {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  font-weight: 700;
+  color: var(--ink);
+}
+.cats dt em {
+  margin-left: auto;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+.cats dd {
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-3);
+}

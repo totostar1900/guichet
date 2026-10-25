@@ -764,7 +764,14 @@ export const ETAPES: Record<string, string[]> = {
   ],
   garde: [
     "Rien à activer : la conservation commence avec votre première ligne.",
-    "Les titres sont inscrits à votre nom au dépositaire, jamais dans un compte collectif.",
+    /* LA DEUXIÈME ÉTAPE REDISAIT LA RAISON, mot pour mot — « inscrits à votre
+       nom au dépositaire, jamais dans un compte collectif ». Personne ne l'a
+       vu tant que les deux vivaient sur deux écrans : la fiche de Trade ne
+       montre que les étapes, et la raison se lisait ailleurs. Le brief les a
+       mises l'une sous l'autre le 26 octobre 2026, et la répétition a sauté
+       aux yeux. L'étape dit maintenant QUAND et SOUS QUOI l'inscription se
+       fait, ce que la raison ne porte pas. */
+    "Chaque ligne servie est inscrite au dépositaire central, sous votre identifiant, à la date de règlement.",
     "Le relevé et les avis d'opéré suivent chaque mouvement ; les droits de garde sont appelés par période.",
   ],
   reinvestissement: [

@@ -525,12 +525,18 @@ export const EN_CONSOLE: Record<string, string> = {
     "It waits, and it stays yours: nothing obliges you to use it.",
   "Au prochain ordre couvert, rien n'est à virer ; le reste repart sur demande, sous 72 heures ouvrables.":
     "On the next covered order, there is nothing to transfer; the rest goes back on request, within 72 working hours.",
-  "Dire ce qu'il alimente, le montant, le jour du mois et le plafond que vous ne voulez pas dépasser.":
-    "Say what it funds, the amount, the day of the month and the ceiling you do not want to exceed.",
+  /* LE PLAFOND A QUITTÉ CES DEUX ÉTAPES LE 25 OCTOBRE 2026, et leur anglais
+     est resté sur l'ancien français jusqu'au 26 : les deux clefs ne
+     correspondaient plus à rien, donc le lecteur anglais lisait du français.
+     Personne ne l'a vu, parce qu'une clef absente REND le français sans
+     tomber — c'est le défaut muet de ce dictionnaire, et le brief l'a mis au
+     jour en servant les mêmes phrases une seconde fois. */
+  "Dire ce qu'il alimente, le montant et le jour du mois : c'est ce montant-là qui sera présenté à votre banque, ni plus ni moins.":
+    "Say what it funds, the amount and the day of the month: that is the amount that will be presented to your bank, no more and no less.",
   "Signer le mandat une fois, par un code reçu.":
     "Sign the mandate once, with a code you receive.",
-  "Chaque prélèvement est annoncé cinq jours avant, et le mandat se révoque à tout moment, sans motif.":
-    "Every debit is announced five days ahead, and the mandate can be revoked at any time, without a reason.",
+  "Chaque prélèvement est annoncé cinq jours avant, une seule fois par mois, et le mandat se révoque à tout moment, sans motif.":
+    "Every debit is announced five days ahead, once a month only, and the mandate can be revoked at any time, without a reason.",
 
   /* Le sommaire du dossier, et les trois pages qui en sortent — le 24 octobre
      2026, quand les sections dépliées de l'accueil sont devenues des pages. */

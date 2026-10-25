@@ -1,6 +1,19 @@
 /** English for the remaining screens: account opening, companies and issuers, reference data, desk forms, MFA. Keyed by the French text. */
 export const EN_REST: Record<string, string> = {
 
+  /* ---------- LES HUIT TITRES DE FEUILLE DU BRIEF, 26 octobre 2026 ----------
+
+     Un par page de destination. Ils passent par « t(titre) » — une variable —
+     donc le relevé qui cherche le français en clair dans le JSX ne les voit
+     pas : c'est l'épreuve du brief qui les exige, en les lisant au composant
+     même. « Les fonds en bref » vit dans « en.ts » depuis sa page. */
+  "La cote en bref": "The listed market in brief",
+  "L'épargne programmée en bref": "Scheduled saving in brief",
+  "Le réinvestissement en bref": "Reinvestment in brief",
+  "Le prélèvement en bref": "Direct debit in brief",
+  "La provision en bref": "Your float in brief",
+  "La conservation en bref": "Custody in brief",
+
   /* ---------- la page des adjudications, 5 octobre 2026 ---------- */
   "Les adjudications en bref": "Auctions in brief",
   "Les six Trésors de la CEMAC empruntent par adjudication : ils annoncent une séance, les investisseurs y proposent un prix ou un taux, et le Trésor sert les meilleures offres jusqu'au montant qu'il recherche. Les annonces viennent de la BEAC, et c'est elle qui fait foi.":

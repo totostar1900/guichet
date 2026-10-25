@@ -122,11 +122,18 @@ const horsEchelle = (): string[] => {
  * règles, en élaguant 120 classes que plus aucun fichier ne nommait. Une taille
  * hors échelle dans une règle morte n'était pas une dette de typographie.
  *
+ * Le 26 octobre, 1 030 : les deux feuilles de brief — celle des fonds et celle
+ * des adjudications, qui lisait la même — sont devenues une, et ses tailles
+ * inventées sont tombées sur l'échelle : 0,86 sur --t-4, 0,82 sur --t-3. Deux
+ * seulement au compte, parce que 0,74 ÉTAIT déjà --t-2 — écrit en clair, donc
+ * invisible au relevé comme à la lecture. C'est le gain d'une réunion : la
+ * question « laquelle des huit ? » ne se pose qu'une fois pour huit pages.
+ *
  * Il descend quand une page passe à l'échelle. S'il remonte, c'est qu'une
  * taille neuve a été inventée, et c'est précisément le moment où la question
  * « laquelle des sept ? » doit se poser.
  */
-const PLAFOND = 1032;
+const PLAFOND = 1030;
 
 describe("l'échelle typographique", () => {
   it("ne laisse pas les tailles hors échelle se multiplier", () => {

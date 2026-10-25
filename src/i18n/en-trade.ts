@@ -67,8 +67,10 @@ export const EN_TRADE: Record<string, string> = {
     "Invest a fixed sum every month without thinking about it: regularity makes the result, not the moment you pick.",
   "Remettre au travail un coupon ou un remboursement dès son arrivée, au lieu de le laisser dormir sur un compte.":
     "Put a coupon or a redemption back to work as soon as it arrives, instead of letting it sleep in an account.",
-  "Autoriser la maison à débiter votre compte bancaire à date fixe, sous un plafond que vous fixez, pour n'avoir plus de virement à faire.":
-    "Authorise the firm to debit your bank account on a fixed date, under a cap you set, so you no longer have transfers to make.",
+  /* Même correction que dans « en-console » : le plafond a quitté la phrase
+     française le 25 octobre 2026, et sa clef anglaise ne la rejoignait plus. */
+  "Autoriser la maison à débiter votre compte bancaire à date fixe, du montant exact que vous écrivez, pour n'avoir plus de virement à faire.":
+    "Authorise the firm to debit your bank account on a fixed date, for the exact amount you write, so you no longer have transfers to make.",
   "Laisser de l'argent chez nous pour que vos ordres se règlent sans attendre un virement, et le reprendre quand vous voulez.":
     "Leave money with us so your orders settle without waiting for a transfer, and take it back whenever you want.",
   "Vos titres sont inscrits à votre nom au dépositaire, jamais dans un compte collectif, et tout mouvement vous est prouvé.":

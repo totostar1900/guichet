@@ -10,6 +10,7 @@ import { estMonetaire } from "./monetaire";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
+import { EnBref } from "@/components/EnBref";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +82,7 @@ export default async function ProvisionPage() {
           phrase={t(
             "Ce que vous laissez ici règle vos ordres sans attendre un virement. Elle n'est jamais obligatoire : vous pouvez payer chaque ordre au coup par coup. Elle reste votre argent, sur un compte séparé de celui de la maison.",
           )}
+          aCote={<EnBref cles={["provision"]} titre="La provision en bref" />}
         />
 
         <section className={styles.solde}>

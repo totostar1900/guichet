@@ -194,8 +194,8 @@ export const EN_TRADER: Record<string, string> = {
 
   /* ---------- 04 · conservation et tenue de compte ---------- */
   "Rien à activer : la conservation commence avec votre première ligne.": "Nothing to switch on : custody begins with your first line.",
-  "Les titres sont inscrits à votre nom au dépositaire, jamais dans un compte collectif.":
-    "The securities are registered in your name at the depository, never in an omnibus account.",
+  "Chaque ligne servie est inscrite au dépositaire central, sous votre identifiant, à la date de règlement.":
+    "Every line served is registered at the central depository, under your identifier, on the settlement date.",
   "Le relevé et les avis d'opéré suivent chaque mouvement ; les droits de garde sont appelés par période.":
     "The statement and the confirmations follow every movement ; custody fees are charged by period.",
 

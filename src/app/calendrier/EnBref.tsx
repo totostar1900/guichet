@@ -1,73 +1,70 @@
 "use client";
 
-import { useState } from "react";
 import { useT } from "@/i18n/client";
-import { Sheet } from "@/components/mobile/Sheet";
-import { BEAC_ANNONCES } from "@/lib/market/beac";
-import styles from "@/app/fonds/FondsEnBref.module.css";
+import { DefinitionsDeBrief, EnBref, TitreDeBrief } from "@/components/EnBref";
 
 /**
  * CE QUE LA PAGE DISAIT EN HAUT, ET QU'ELLE DIT MAINTENANT SUR DEMANDE.
  *
  * Elle ouvrait sur deux phrases de chapô, relues à chaque visite par un
- * lecteur qui vient voir des séances. Même règle que sur les fonds : ce qui
- * est permanent passe derrière un bouton, à côté du titre, et la liste
- * commence tout de suite.
+ * lecteur qui vient voir des séances. Ce qui est permanent passe derrière un
+ * bouton, à côté du titre, et la liste commence tout de suite.
  *
- * Elle y gagne ce qu'elle n'avait pas : LE DÉROULÉ. Une adjudication est une
- * suite de dates, et personne n'avait écrit laquelle fait quoi. Et surtout,
- * CE QUE LE PRIX VEUT DIRE : à l'adjudication on ne paie pas un cours, on
- * propose un prix, et celui que nous affichons est une proposition du desk,
- * pas une condition. Un client qui l'ignore croit la ligne à prendre ou à
- * laisser ; il peut en dire un autre, et c'est le sien qui part.
+ * ELLE A GRANDI DES ÉTAPES, le 26 octobre 2026, sur demande du dirigeant :
+ * « la page des adjudications grandira des étapes décrites dans la page
+ * intermédiaire ». Ces étapes ne sont pas recopiées ici — elles viennent du
+ * catalogue des services, que la fiche de Trade rend déjà. Une page des
+ * adjudications qui expliquerait une adjudication autrement que la fiche du
+ * service serait la quatrième copie d'une même phrase dans cette
+ * application.
  *
- * LE LIEN VERS LES ANNONCES DE LA BEAC EST ICI, et c'est voulu. La page
- * citait le communiqué de chaque séance dans deux blocs qui ont été retirés ;
- * la source ne doit pas partir avec eux. « Rien n'y est de nous » reste vrai
- * tant que la porte du communiqué est ouverte quelque part.
+ * ET LA PAGE SERT TROIS SERVICES, pas un : les adjudications, le sondage et
+ * les rachats du Trésor y vivent ensemble — `lieuDe` range les trois dans
+ * « adjudications ». Le brief les nomme donc tous les trois. C'est le
+ * « regrouper le contenu textuel avec le brief » demandé le même jour.
+ *
+ * LE DÉROULÉ D'UNE SÉANCE RESTE ICI, en revanche, et c'est la bonne
+ * répartition : il parle du MARCHÉ — ce que publie un Trésor, quand la BEAC
+ * dépouille, à quelle date le dépositaire inscrit — et non du geste du
+ * client. Le catalogue, lui, ne porte que le geste. De même pour ce que le
+ * prix affiché veut dire : c'est une règle de la maison sur une donnée de la
+ * page, pas une étape.
+ *
+ * LE LIEN VERS LES ANNONCES DE LA BEAC EST PARTI le 26 octobre 2026, sur
+ * demande du dirigeant. Il vivait au pied de cette feuille depuis que les
+ * deux blocs qui citaient le communiqué de chaque séance ont été retirés.
+ * La source ne disparaît pas pour autant : chaque séance porte son
+ * communiqué sur sa propre fiche, qui est l'endroit où l'on en a besoin —
+ * au moment de déposer, et non au moment de lire la liste.
  */
 export function AdjudicationsEnBref() {
   const t = useT();
-  const [open, setOpen] = useState(false);
   return (
-    <>
-      <button type="button" className={styles.bouton} onClick={() => setOpen(true)} aria-haspopup="dialog" data-coach="adjudications-enbref">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 11v5" />
-          <path d="M12 7.6v.9" />
-        </svg>
-        {t("En bref")}
-      </button>
-      <Sheet open={open} onClose={() => setOpen(false)} title={t("Les adjudications en bref")} dock="top-right">
-        <div className={styles.corps}>
-          <p>
-            {t("Les six Trésors de la CEMAC empruntent par adjudication : ils annoncent une séance, les investisseurs y proposent un prix ou un taux, et le Trésor sert les meilleures offres jusqu'au montant qu'il recherche. Les annonces viennent de la BEAC, et c'est elle qui fait foi.")}
-          </p>
-          <h3 className={styles.titre}>{t("Comment une séance se déroule")}</h3>
-          <dl className={styles.cats}>
-            {ETAPES.map(([quand, quoi]) => (
-              <div key={quand}>
-                <dt>{t(quand)}</dt>
-                <dd>{t(quoi)}</dd>
-              </div>
-            ))}
-          </dl>
-          <h3 className={styles.titre}>{t("Le prix que vous voyez est une proposition")}</h3>
-          <p>
-            {t("Le prix, ou le taux, que porte une ligne est celui que Purpose Capital compte présenter à la séance : le desk l'établit au vu des séances précédentes du même Trésor. Ce n'est pas une condition.")}
-          </p>
-          <p>
-            {t("Vous pouvez proposer le vôtre. Dites-le au desk avant la clôture et c'est celui-là qui part à la séance ; un prix plus bas rapporte davantage s'il est servi, et risque de ne pas l'être.")}
-          </p>
-          <p className={styles.sortie}>
-            <a href={BEAC_ANNONCES} target="_blank" rel="noreferrer">
-              {t("Les annonces de la BEAC")} →
-            </a>
-          </p>
-        </div>
-      </Sheet>
-    </>
+    <EnBref cles={["primaire", "sondage", "rachat"]} titre="Les adjudications en bref">
+      <p>
+        {t("Les six Trésors de la CEMAC empruntent par adjudication : ils annoncent une séance, les investisseurs y proposent un prix ou un taux, et le Trésor sert les meilleures offres jusqu'au montant qu'il recherche. Les annonces viennent de la BEAC, et c'est elle qui fait foi.")}
+      </p>
+      <section>
+        <TitreDeBrief>{t("Comment une séance se déroule")}</TitreDeBrief>
+        <DefinitionsDeBrief>
+          {ETAPES.map(([quand, quoi]) => (
+            <div key={quand}>
+              <dt>{t(quand)}</dt>
+              <dd>{t(quoi)}</dd>
+            </div>
+          ))}
+        </DefinitionsDeBrief>
+      </section>
+      <section>
+        <TitreDeBrief>{t("Le prix que vous voyez est une proposition")}</TitreDeBrief>
+        <p>
+          {t("Le prix, ou le taux, que porte une ligne est celui que Purpose Capital compte présenter à la séance : le desk l'établit au vu des séances précédentes du même Trésor. Ce n'est pas une condition.")}
+        </p>
+        <p>
+          {t("Vous pouvez proposer le vôtre. Dites-le au desk avant la clôture et c'est celui-là qui part à la séance ; un prix plus bas rapporte davantage s'il est servi, et risque de ne pas l'être.")}
+        </p>
+      </section>
+    </EnBref>
   );
 }
 

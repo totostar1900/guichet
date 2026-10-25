@@ -4,6 +4,7 @@ import { AvisGardeList } from "@/components/AvisGardeList";
 import { getT } from "@/i18n/server";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
+import { EnBref } from "@/components/EnBref";
 import styles from "../page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +29,13 @@ export async function generateMetadata() {
  * LE TARIF N'EST PAS ICI, et c'est délibéré : l'annexe tarifaire dit ce que la
  * garde COÛTERA, cette page dit ce qu'elle a coûté. Le lien va donc dans ce
  * sens-là, et une seule fois.
+ *
+ * ET C'EST ICI QUE LE BRIEF DE LA CONSERVATION SE POSE, le 26 octobre 2026,
+ * avec les sept autres. La tuile du service mène à « /moi », qui renvoie à la
+ * racine : la racine est un tableau de bord qui ouvre sur « Bonjour », pas une
+ * page de service, et un « En bref » accroché à une salutation ne se
+ * rattacherait à rien. Cette page-ci porte le nom du service et son en-tête
+ * commun ; c'est la seule de l'application qui ne parle que de garde.
  */
 export default async function GardePage() {
   const t = await getT();
@@ -44,6 +52,7 @@ export default async function GardePage() {
           surTitre={t("Votre dossier")}
           titre={t("Vos droits de garde")}
           phrase={t("Ce que la conservation de vos titres a coûté. Chaque avis s'ouvre ligne à ligne : c'est ce qui permet de le vérifier plutôt que de le subir.")}
+          aCote={<EnBref cles={["garde"]} titre="La conservation en bref" />}
         />
 
         <div className="panel">

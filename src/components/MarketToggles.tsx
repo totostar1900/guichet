@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type MarketSegment, SEGMENT_HINT, SEGMENT_LABEL } from "@/lib/domain/status";
 import { useT } from "@/i18n/client";
 import { EnTete } from "./EnTete";
+import { EnBref } from "./EnBref";
 
 /**
  * The head of the Titres page (what it holds, the bridge to the funds) and,
@@ -18,10 +19,24 @@ type Seg = "primaire" | "secondaire";
    chemin vers la même page, à deux centimètres du premier, coûtait une ligne
    de titre sans rien ajouter. « fundsCount » reste reçu : la page le compte
    déjà et le tour de la page le nomme. */
+/**
+ * DEUX SERVICES VIVENT SUR CETTE PAGE, et le brief les nomme tous les deux :
+ * la cote — acheter au cours du jour ce qui est déjà au bulletin — et les
+ * souscriptions, dont le prix est fixé par l'émetteur et ne bouge pas pendant
+ * la fenêtre. C'est la distinction que la liste ne peut pas faire d'elle-même :
+ * les deux paraissent en lignes identiques, et seul le mot « souscription » de
+ * la section les sépare.
+ *
+ * ET LE BRIEF N'A PAS D'ENFANTS, ici : ce que cette page aurait eu à ajouter —
+ * la BVMAC est la bourse régionale, un ordre ne s'exécute que si une
+ * contrepartie se présente — est déjà écrit à « /marche », dans la leçon du
+ * parcours et dans les risques. Une quatrième copie est le défaut que ce
+ * composant existe pour fermer.
+ */
 export function TitresHead({ fundsCount }: { fundsCount: number }) {
   const t = useT();
   return (
-    <EnTete surTitre={t("Investissez")} titre={t("Titres")} phrase={t("Obligations, bons du Trésor et actions de la zone CEMAC")} />
+    <EnTete surTitre={t("Investissez")} titre={t("Titres")} phrase={t("Obligations, bons du Trésor et actions de la zone CEMAC")} aCote={<EnBref cles={["cote", "souscription"]} titre="La cote en bref" />} />
   );
 }
 

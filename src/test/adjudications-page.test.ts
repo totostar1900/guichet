@@ -43,10 +43,32 @@ describe("la page des adjudications", () => {
        qu'on ne pouvait que lire, autour de celle qui compte. */
     expect(PAGE, "une liste de communiqués est revenue").not.toMatch(/À venir|Dernières séances annoncées/);
     expect(PAGE, "la page ne montre plus les lignes des séances").toMatch(/<OfferBrowser[\s\S]*lieu="adjudications"/);
-    /* LA SOURCE NE DOIT PAS PARTIR AVEC LES BLOCS : chaque séance citait son
-       communiqué, et « rien n'y est de nous » ne reste vrai que si la porte
-       de la BEAC est ouverte quelque part. */
-    expect(BREF, "le lien vers les annonces de la BEAC a disparu avec les blocs retirés").toMatch(/BEAC_ANNONCES/);
+  });
+
+  /**
+   * LE PIED DU BRIEF NE RENVOIE PLUS AUX ANNONCES DE LA BEAC.
+   *
+   * Il y renvoyait depuis que les deux blocs qui citaient le communiqué de
+   * chaque séance ont été retirés : la feuille gardait la porte ouverte pour
+   * que « rien ici n'est de nous » reste vérifiable. Le dirigeant l'a fait
+   * retirer le 26 octobre 2026.
+   *
+   * CE QUI TIENT LA PROMESSE À SA PLACE : la fiche d'une séance DÉPOUILLÉE
+   * porte son communiqué, en lien sortant, juste sous le résultat. C'est
+   * l'endroit où l'on en a besoin — devant un taux sorti, et non devant une
+   * liste. Cette épreuve garde les deux moitiés ensemble, parce qu'elles ne
+   * valent qu'ensemble : le lien général part, le lien par séance reste.
+   *
+   * CE QUI N'EST PAS COUVERT, ET QUI EST SU : une séance ANNONCÉE n'a pas de
+   * communiqué sur sa fiche — l'avis d'émission est lu par le robot et ne
+   * sort qu'au desk. Avant ce retrait, le pied de cette feuille était le seul
+   * chemin du client vers l'annonce d'une séance à venir ; il n'y en a plus.
+   */
+  it("ne renvoie plus aux annonces de la BEAC, et laisse le communiqué sur la fiche de la séance", () => {
+    expect(BREF, "le lien vers les annonces de la BEAC est revenu au pied du brief").not.toMatch(/BEAC_ANNONCES|beac\.int/);
+    const FICHE = readFileSync("src/app/offres/[id]/FicheReading.tsx", "utf8");
+    expect(FICHE, "la fiche d'une séance dépouillée ne porte plus son communiqué : la source n'est plus atteignable nulle part").toMatch(/<a href=\{r\.sourceUrl\}/);
+    expect(FICHE, "le lien du communiqué a perdu son libellé").toMatch(/\{t\("Le communiqué"\)\}/);
   });
 
   it("dit dans « En bref » ce que le prix veut dire", () => {
