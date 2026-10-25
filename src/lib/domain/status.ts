@@ -275,6 +275,26 @@ function auPairJamaisSousLeCoupon(o: Offer, pct: number | null): number | null {
   return Math.max(pct, o.couponRate);
 }
 
+/**
+ * LE TAUX ACTUARIEL D'UNE LIGNE, QUAND ELLE EN A UN — et seules les créances
+ * en ont un.
+ *
+ * `headlineYield` rend UN chiffre par ligne, et ce chiffre n'est pas de même
+ * nature selon la famille : pour une obligation ou un bon, c'est le taux de
+ * rendement interne, calculé sur les flux réels ; pour une action, c'est le
+ * dividende rapporté au cours, qui n'actualise rien et ne promet rien. Les
+ * deux sortaient jusqu'au 25 octobre 2026 sous le même mot — « rendement » —
+ * sur la même tuile, l'un à 2,8 % et l'autre à 6,9 %, et rien ne disait que
+ * comparer les deux n'a pas de sens.
+ *
+ * Cette fonction ne fait donc qu'une chose : elle refuse de rendre un taux
+ * là où il n'y en a pas. L'écran décide ensuite quoi montrer à la place.
+ */
+export function tauxActuariel(o: Offer): number | null {
+  const creance = o.kind === "OTA" || o.kind === "BTA" || o.kind === "APE" || (o.kind === "MARCHE" && o.instrument === "obligation");
+  return creance ? displayYield(o).pct : null;
+}
+
 /** The single number on the card. Null when nothing sensible exists (buybacks). */
 export function headlineYield(o: Offer): number | null {
   switch (o.kind) {

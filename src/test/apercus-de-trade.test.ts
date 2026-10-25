@@ -4,7 +4,8 @@ import path from "node:path";
 import { apercusDuService, APERCUS_PAR_TUILE } from "@/lib/domain/apercus";
 import type { ContexteClient } from "@/lib/domain/services";
 import type { Offer } from "@/lib/domain/types";
-import { echeancesProches } from "@/lib/domain/echeances";
+import { SECTION_NOTE } from "@/lib/domain/sections";
+import { tauxActuariel } from "@/lib/domain/status";
 import { rendementDuFonds } from "@/lib/domain/fund-perf";
 
 const ROOT = path.join(__dirname, "../..");
@@ -16,6 +17,12 @@ const code = (p: string) =>
     .replace(/^\s*\/\/.*$/gm, "");
 
 /* Le strict nécessaire pour que les sélecteurs de la maison répondent. */
+/* UNE ACTION QUI VERSE UN DIVIDENDE. Sans lui, `headlineYield` rend null pour
+   une action, et l'épreuve ne peut pas distinguer « on refuse le dividende »
+   de « il n'y en avait pas » : vérifié à l'envers le 25 octobre 2026, le
+   cliquet restait muet quand on laissait repasser le rendement de dividende. */
+const actionAvecDividende = (id: string, title: string): Offer =>
+  ({ id, title, kind: "MARCHE", instrument: "action", status: "live", isin: `XX${id}`, version: 1, lastPrice: 90_000, dividendPerShare: 2_500, commissionPct: 0 }) as unknown as Offer;
 const cotee = (id: string, title: string, extra: Partial<Offer> = {}): Offer =>
   ({ id, title, kind: "MARCHE", instrument: "action", status: "live", isin: `XX${id}`, version: 1, lastPrice: 48_500, ...extra }) as Offer;
 /* LA PERFORMANCE PLUTÔT QUE LA VL : la tuile des fonds met en avant le
@@ -23,11 +30,16 @@ const cotee = (id: string, title: string, extra: Partial<Offer> = {}): Offer =>
    La date d'origine vient avec : sans elle, l'annualisé n'a pas de durée. */
 const fonds = (id: string, title: string, nav: number, perf1yPct: number | undefined = 4.2): Offer =>
   ({ id, title, kind: "FONDS", status: "live", version: 1, fund: { nav, navDate: "2026-10-23", manager: "CAM", distributed: true, inceptionDate: "2021-04-01", perfSinceInceptionPct: 18.4, perf1yPct } }) as unknown as Offer;
-/* « opensAt » n'est pas décoratif : `displayStatus` le parse sans le
-   vérifier, et une séance sans date d'ouverture faisait tomber le calcul
-   dès qu'un appelant le lisait. La vraie offre en porte toujours une. */
-const seance = (id: string, title: string, deadlineAt: string): Offer =>
-  ({ id, title, kind: "OTA", status: "published", version: 1, issuer: "Trésor", opensAt: "2026-10-01T09:00:00", deadlineAt, countryName: "Cameroun" }) as unknown as Offer;
+/* UNE SÉANCE QUI PORTE VRAIMENT UN TAUX. Les tuiles des séances montrent
+   depuis le 25 octobre 2026 le taux actuariel d'une OTA et d'une BTA ;
+   une coquille sans coupon ni échéance n'en a aucun, et retombe donc sur le
+   contenu de repli — ce qui est juste, mais ne prouve rien du cas nominal. */
+const ota = (id: string, deadlineAt: string): Offer =>
+  ({ id, title: "OTA 6,25 % · 5 ans · Gabon", kind: "OTA", status: "published", version: 1, issuer: "Trésor", opensAt: "2026-10-01T09:00:00", deadlineAt,
+     country: "Gabon", countryName: "République gabonaise", nominal: 10_000, couponRate: 6.25, maturityOn: "2031-11-04", settleOn: "2026-11-04", pricePct: 97.5 }) as unknown as Offer;
+const bta = (id: string, deadlineAt: string): Offer =>
+  ({ id, title: "BTA 13 semaines · Tchad", kind: "BTA", status: "published", version: 1, issuer: "Trésor", opensAt: "2026-10-01T09:00:00", deadlineAt,
+     country: "Tchad", countryName: "République du Tchad", nominal: 10_000, precountRate: 5.1, maturityOn: "2027-01-28", settleOn: "2026-10-29" }) as unknown as Offer;
 
 const CTX = { lignes: 0, fondsOuverts: 2, disponible: 0, aSigner: 0, aRepondre: 0, moisDHistorique: 0 } as ContexteClient;
 
@@ -48,6 +60,31 @@ describe("les aperçus des tuiles de Trade", () => {
     const offers = [cotee("a1", "SEMC · action"), cotee("a2", "BHC · action"), fonds("f1", "FCP Trésorerie", 10_412), fonds("f2", "FCP Obligataire", 12_980)];
     const cote = apercusDuService("cote", offers, CTX);
     expect(cote.map((a) => a.nom), "la cote ne remonte plus dans l'aperçu").toEqual(["SEMC · action", "BHC · action"]);
+
+    /**
+     * UNE ACTION NE MONTRE PAS UN TAUX, ET C'EST TOUT LE SUJET.
+     *
+     * `headlineYield` rend un chiffre pour les deux familles, mais pas le même
+     * genre de chiffre : pour une obligation, le taux de rendement interne
+     * calculé sur les flux réels ; pour une action, le dividende rapporté au
+     * cours. Les deux paraissaient sous le même mot — « rendement » — sur la
+     * même tuile, à 2,8 % et 6,9 %, et rien ne disait que les comparer n'a
+     * aucun sens. Le dirigeant a tranché : seulement les taux actuariels.
+     *
+     * CETTE ÉPREUVE A ÉTÉ ÉCRITE PARCE QU'ELLE MANQUAIT. Vérifiée à l'envers
+     * le jour même : en laissant `tauxActuariel` répondre pour tout le monde,
+     * AUCUN cliquet ne tombait — les actions des coquilles ne versaient pas de
+     * dividende, donc leur rendement était nul de toute façon. Il fallait une
+     * action qui en verse un pour que le défaut ait quelque chose à montrer.
+     */
+    const avecDividende = apercusDuService("cote", [actionAvecDividende("d1", "BGFI Holding")], CTX);
+    expect(avecDividende[0].dit.key, "le rendement de dividende est repassé pour un taux actuariel").toBe("{m} FCFA");
+    /* L'espace des milliers est une insécable fine (U+202F) et non une espace
+       ordinaire : on épingle le nombre, pas sa ponctuation. */
+    expect(String(avecDividende[0].dit.params?.m), "le cours n'est plus celui de la ligne").toMatch(/^90\s?000$/);
+    /* Non vacuité : une obligation, elle, montre bien son taux. */
+    expect(tauxActuariel(actionAvecDividende("d2", "BGFI")), "une action rend un taux actuariel : la règle ne garde plus rien").toBeNull();
+    expect(tauxActuariel(ota("o9", "2026-12-01T12:00:00")), "une obligation ne rend plus de taux : la comparaison est vide").not.toBeNull();
     /**
      * LE RENDEMENT, ET JAMAIS LA VALEUR LIQUIDATIVE — 25 octobre 2026.
      *
@@ -62,6 +99,18 @@ describe("les aperçus des tuiles de Trade", () => {
      * reparaît pas. Sans la seconde, on pourrait « enrichir » la ligne d'un
      * rappel de VL et défaire la décision sans que rien ne tombe.
      */
+    /**
+     * LES DEUX MEILLEURS, ET NON LES DEUX PREMIERS — 25 octobre 2026.
+     *
+     * Vérifiée à l'envers le jour même : en retirant le tri, cette épreuve
+     * restait MUETTE, parce que ses trois fonds portaient la même
+     * performance. Un classement ne se garde qu'avec des valeurs distinctes,
+     * et dans l'ordre inverse de celui du catalogue.
+     */
+    const classes = [fonds("f1", "FCP Modeste", 10_000, 2.1), fonds("f2", "FCP Milieu", 10_000, 6.3), fonds("f3", "FCP Tête", 10_000, 11.8)];
+    const rang = apercusDuService("fonds", classes, CTX);
+    expect(rang.map((a) => a.nom), "les fonds ne sont plus classés par performance").toEqual(["FCP Tête", "FCP Milieu"]);
+
     const perf = apercusDuService("fonds", offers, CTX);
     expect(perf.map((a) => a.dit.params?.r), "le rendement n'est plus mis en avant").toEqual(["+4,2 %", "+4,2 %"]);
     /* LA PÉRIODE EST DANS LA CLEF, PAS DANS UN PARAMÈTRE : un paramètre ne
@@ -102,7 +151,15 @@ describe("les aperçus des tuiles de Trade", () => {
   it("ne rend rien plutôt qu'une excuse, et rien du tout aux services qui n'en ont pas", () => {
     expect(apercusDuService("cote", [], CTX), "une cote vide invente une ligne").toEqual([]);
     expect(apercusDuService("passage", [], CTX), "sans part détenue, le passage annonce quelque chose").toEqual([]);
-    expect(apercusDuService("sondage", [cotee("a1", "SEMC")], CTX), "« se dire preneur » n'est pas un catalogue").toEqual([]);
+    /* LE SONDAGE N'EST PLUS MUET, et la règle n'a pas changé pour autant.
+       « Un aperçu vide ne se remplace pas par une phrase d'excuse » visait
+       « aucune séance en ce moment », qui prend la place sans rien apprendre.
+       Ces deux lignes-là apprennent, et à celui qui en a besoin : le client
+       qui ouvre la page un jour sans séance est celui qui ne sait pas encore
+       ce qu'est un sondage. Ce qu'elles ne font PAS : annoncer une séance. */
+    const muet = apercusDuService("sondage", [cotee("a1", "SEMC")], CTX);
+    expect(muet.map((a) => a.nom), "le repli du sondage a changé sans qu'on le dise").toEqual(["Vous dites votre taux", "Avant la clôture"]);
+    expect(JSON.stringify(muet), "le repli annonce une séance là où il n'y en a aucune").not.toMatch(/séance|taux de|%/);
     expect(apercusDuService("epargne", [cotee("a1", "SEMC")], CTX), "les rayons en bandes ont pris un aperçu").toEqual([]);
   });
 
@@ -126,15 +183,66 @@ describe("les aperçus des tuiles de Trade", () => {
    * « complèterait » la série de bonne foi avec les deux prochaines
    * échéances, et personne ne saurait pourquoi c'est faux.
    */
-  it("dit la composition des séances, et jamais leur délai", () => {
-    const offers = [seance("s1", "BTA Cameroun 26 semaines", new Date(Date.now() + 5 * 86_400_000).toISOString()), seance("s2", "OTA Gabon", new Date(Date.now() + 12 * 86_400_000).toISOString())];
-    const vus = apercusDuService("primaire", offers, CTX);
-    expect(vus.map((a) => a.nom), "la composition des séances n'est plus dite").toEqual(["Obligations du Trésor"]);
-    expect(vus.map((a) => a.dit.key)).toEqual(["{n} séances"]);
-    /* Non vacuité : les séances existent, et la bande, elle, les montre bien. */
-    expect(echeancesProches(offers).length, "ces séances ne sont pas dans la fenêtre : le cliquet ne garde plus rien").toBe(2);
-    /* ET AUCUN DÉLAI : ni le compte à rebours, ni « dans n jours », ni une date. */
-    expect(JSON.stringify(vus), "un délai est revenu sur la tuile des adjudications, à côté de la bande qui le dit déjà").not.toMatch(/jour|clôture|dans \{|demain/i);
+  /**
+   * UNE OTA ET UNE BTA, AVEC LEUR TAUX — ET JAMAIS UN DÉLAI.
+   *
+   * CETTE ÉPREUVE A DÉJÀ CHANGÉ DEUX FOIS DANS LA JOURNÉE, et les deux fois
+   * la moitié qui refuse est restée. Elle disait d'abord « aucun aperçu »,
+   * parce que les deux prochaines CLÔTURES sont déjà en tête de la même
+   * racine. Puis « la composition », qui répondait à « qu'est-ce que j'y
+   * trouve ». Elle dit maintenant le TAUX, sur demande du dirigeant : c'est
+   * la seule chose sur laquelle on décide d'ouvrir la page, et la
+   * composition ne la donnait pas.
+   *
+   * LA MOITIÉ QUI REFUSE NE BOUGE PAS : aucune de ces lignes ne redit un
+   * délai. Sans elle, quelqu'un « complèterait » la série avec les deux
+   * prochaines échéances, et personne ne saurait pourquoi c'est faux.
+   */
+  it("dit le taux d'une OTA et d'une BTA, et jamais leur délai", () => {
+    const demain = new Date(Date.now() + 5 * 86_400_000).toISOString();
+    const vus = apercusDuService("primaire", [bta("b1", demain), ota("o1", demain)], CTX);
+    /* LE NOM EST COMPACT — famille et pays — et le pays est celui d'usage,
+       non la forme officielle : « République du Tchad » reprenait à lui seul
+       toute la largeur que la compacité venait gagner. */
+    expect(vus.map((a) => a.nom), "les deux familles ne sont plus nommées, ou plus dans cet ordre").toEqual(["OTA · Gabon", "BTA · Tchad"]);
+    expect(vus.map((a) => a.dit.key)).toEqual(["taux {r}", "taux {r}"]);
+    expect(vus.map((a) => a.dit.params?.r), "le taux affiché n'est plus celui que le domaine calcule").toEqual(["6,86 %", "5,24 %"]);
+    expect(JSON.stringify(vus), "un délai est revenu sur la tuile, à côté de la bande qui le dit déjà").not.toMatch(/jour|clôture|dans \{|demain/i);
+  });
+
+  /**
+   * ET DU CONTENU QUAND IL N'Y A AUCUNE SÉANCE, plutôt qu'une tuile nue.
+   *
+   * Entre deux séances, la tuile sortait avec son en-tête et rien d'autre, à
+   * côté de tuiles pleines. Les deux lignes de repli ne sont pas une excuse :
+   * elles disent ce qu'est une OTA et ce qu'est une BTA, c'est-à-dire
+   * exactement ce que cherche celui qui ouvre la page un jour creux.
+   *
+   * ELLES SONT DES ABRÉGÉS DES NOTES DE SECTION, et cette épreuve le tient :
+   * une définition écrite deux fois finit par se contredire.
+   */
+  it("met du contenu quand aucune séance n'est ouverte", () => {
+    const close = new Date(Date.now() - 5 * 86_400_000).toISOString();
+    const vus = apercusDuService("primaire", [ota("o1", close), bta("b1", close)], CTX);
+    expect(vus.map((a) => a.nom)).toEqual(["Obligations du Trésor", "Bons du Trésor"]);
+    /* Non vacuité : les mêmes séances OUVERTES donnent bien des taux. */
+    const ouvert = new Date(Date.now() + 5 * 86_400_000).toISOString();
+    expect(apercusDuService("primaire", [ota("o2", ouvert)], CTX)[0].dit.key, "le cas nominal ne rend plus de taux : le repli ci-dessus ne prouve rien").toBe("taux {r}");
+    /* Et le repli ne contredit pas la note de section d'où il vient. */
+    expect(SECTION_NOTE.obligations_tresor, "la note des OTA ne parle plus de coupon ni de durée : le repli a dérivé").toMatch(/coupon.*durée/i);
+    expect(SECTION_NOTE.bons_tresor, "la note des BTA ne parle plus de précompte : le repli a dérivé").toMatch(/[Pp]récompt/);
+    expect(vus[0].dit.key).toMatch(/coupon.*durée/);
+    expect(vus[1].dit.key).toMatch(/précompt/);
+    /* ET ELLES SE DISENT COMME DES PHRASES, pas comme des montants. La case de
+       droite est celle d'un nombre — grasse, alignée à droite, au corps de
+       lecture — et « un coupon, une durée » y criait sur deux hauteurs. Le
+       drapeau est la seule chose qui tienne le contenu et sa forme ensemble. */
+    expect(vus.every((a) => a.prose), "le repli est revenu dans la case d'un chiffre").toBe(true);
+    const muet = apercusDuService("sondage", [], CTX);
+    expect(muet.every((a) => a.prose), "le repli du sondage est revenu dans la case d'un chiffre").toBe(true);
+    /* Non vacuité : une vraie ligne, elle, n'est PAS de la prose. */
+    const ouverte = apercusDuService("primaire", [ota("o3", new Date(Date.now() + 5 * 86_400_000).toISOString())], CTX);
+    expect(ouverte[0].prose, "un taux est devenu de la prose : les deux allures ne se distinguent plus").toBeUndefined();
   });
 
   /* LES DEUX ÉCRANS RENDENT LA MÊME DONNÉE, et c'est l'invariant que

@@ -300,7 +300,14 @@
   min-width: 0;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0 var(--s-4);
+  /* QUATRE PIXELS, ET LE CHIFFRE A ÉTÉ MESURÉ. À huit, « OTA · Gabon » et son
+     taux faisaient 157 px dans une colonne de 156 : le chiffre passait à la
+     ligne pour UN pixel, et la tuile y gagnait une hauteur entière. Le
+     dirigeant a demandé que chaque aperçu tienne sur une ligne ; c'est l'écart
+     entre les deux colonnes qui le décidait, et non la longueur des mots.
+     Ils ne peuvent pas se toucher pour autant : le nom est à gauche, le
+     chiffre à droite, et « space-between » les sépare de tout ce qui reste. */
+  gap: 0 var(--s-2);
   /* AU DEGRÉ DE LA LIGNE FIXE, ET NON UN CRAN EN DESSOUS — 25 octobre 2026.
      L'ancienne note disait « deux colonnes serrées, pas de la prose » et
      descendait à 11,1 px. Mais ces deux lignes portent la donnée la plus
@@ -356,4 +363,19 @@
      rétréciraient ensemble et l'on retomberait sur « FCP Trés… ». */
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+/* UNE LIGNE QUI EST UNE DÉFINITION, ET NON UN CHIFFRE.
+
+   Les tuiles des séances portent, entre deux adjudications, deux lignes qui
+   disent ce qu'est une OTA et ce qu'est une BTA. Elles tombaient dans la case
+   du nombre — gras, aligné à droite, au corps de lecture — et « un coupon,
+   une durée » y criait comme un montant, sur deux hauteurs. Le contenu était
+   juste, sa typographie non : ici elle revient au poids d'une phrase, au
+   degré de la ligne fixe, et les deux moitiés se lisent d'un trait. */
+.prose b {
+  font-size: var(--t-3);
+  font-weight: 400;
+  color: var(--ink-2);
+  text-align: left;
 }

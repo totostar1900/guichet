@@ -214,7 +214,7 @@ export function Parcours({
                       {(apercus?.[sv.cle] ?? []).length > 0 && (
                         <span className={styles.apercus}>
                           {(apercus?.[sv.cle] ?? []).map((a) => (
-                            <span key={a.nom} className={styles.apercuLigne}>
+                            <span key={a.nom} className={`${styles.apercuLigne}${a.prose ? ` ${styles.prose}` : ""}`}>
                               <em>{a.nom}</em>
                               <b>{t(a.dit.key, a.dit.params)}</b>
                             </span>
@@ -264,7 +264,7 @@ export function Parcours({
                         {(apercus?.[sv.cle] ?? []).length > 0 && (
                           <span className={styles.apercus}>
                             {(apercus?.[sv.cle] ?? []).map((a) => (
-                              <span key={a.nom} className={styles.apercuLigne}>
+                              <span key={a.nom} className={`${styles.apercuLigne}${a.prose ? ` ${styles.prose}` : ""}`}>
                                 <em>{a.nom}</em>
                                 <b>{t(a.dit.key, a.dit.params)}</b>
                               </span>

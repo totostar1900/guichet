@@ -193,6 +193,18 @@ export const EN_CONSOLE: Record<string, string> = {
   "{r} sur la période": "{r} over the period",
   "{r} sur la dernière période": "{r} over the latest period",
   "pas encore d'historique": "no track record yet",
+  /* LE TAUX ACTUARIEL EST NOMMÉ, et pas seulement montré : il voisine sur la
+     même tuile avec un cours en FCFA, et un nombre suivi d'un pour-cent sans
+     rien d'autre se lirait comme n'importe quel taux. */
+  "taux {r}": "yield {r}",
+  /* Le contenu des deux tuiles de séance quand il n'y en a aucune : des
+     abrégés des notes de section, et non des phrases d'excuse. */
+  "un coupon, une durée": "a coupon and a term",
+  "précomptés, moins d'un an": "discounted, under a year",
+  "Vous dites votre taux": "You state your rate",
+  "ce n'est pas un ordre": "this is not an order",
+  "Avant la clôture": "Before the cut-off",
+  "le desk vous rappelle": "the desk calls you back",
   "Prochain versement": "Next payment",
   "à chaque encaissement": "on every payment received",
   "En dessous, rien ne part": "Below that, nothing goes out",

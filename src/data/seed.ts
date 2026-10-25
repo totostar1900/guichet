@@ -227,6 +227,14 @@ export const SEED_OFFERS: Offer[] = [
       navOrigin: 10000,
       inceptionDate: "2021-04-01",
       perfSinceInceptionPct: 8.2,
+      /* LES DOUZE MOIS MANQUAIENT, ET LEUR ABSENCE SE VOYAIT À L'ÉCRAN :
+         un fonds né en 2021 sans performance sur un an n'existe pas en
+         vrai, et la tuile retombait donc sur l'annualisé depuis l'origine
+         — « +1,4 % par an », ce qui est juste pour cette série et faux
+         comme image du produit. Deux valeurs plausibles pour la zone :
+         un monétaire autour de cinq, un obligataire autour de sept. */
+      perf1yPct: 4.9,
+      perf1yFrom: "2025-09-19",
       distributed: true,
       agreementRef: "CONV-2026-001",
       entryFeePct: 1,
@@ -268,6 +276,8 @@ export const SEED_OFFERS: Offer[] = [
       navOrigin: 10000,
       inceptionDate: "2021-04-01",
       perfSinceInceptionPct: 24.3,
+      perf1yPct: 7.4,
+      perf1yFrom: "2025-09-19",
       distributed: true,
       agreementRef: "CONV-2026-001",
       entryFeePct: 1,

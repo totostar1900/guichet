@@ -2,10 +2,10 @@ import type { Dit } from "./services";
 import type { ContexteClient } from "./services";
 import type { Offer } from "./types";
 import { enSouscription, fondsListes, lignesDeLaCote, seancesAnnoncees } from "./listes";
-import { sectionDe } from "./sections";
+import { sectionDe, type Section } from "./sections";
 import { joursAvant, joursEnMots } from "./echeances";
 import { rendementDuFonds } from "./fund-perf";
-import { displayStatus, displayYield, isActionable } from "./status";
+import { displayStatus, familyShort, isActionable, offerFamily, tauxActuariel } from "./status";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 
 /**
@@ -37,10 +37,67 @@ export interface Apercu {
   nom: string;
   /** Ce qu'on en dit : un chiffre mis en forme, ou le temps qui reste. */
   dit: Dit;
+  /**
+   * CETTE LIGNE EST UNE DÉFINITION, ET NON UN CHIFFRE.
+   *
+   * La case de droite est celle d'un nombre : gras, aligné à droite, au degré
+   * du corps de lecture. Les lignes de repli des tuiles de séance y mettaient
+   * « un coupon, une durée » — vu à l'écran le 25 octobre 2026, ça criait
+   * comme un montant et se lisait sur deux hauteurs. Le contenu est bon, sa
+   * typographie ne l'était pas : ce drapeau le rend au poids d'une phrase.
+   */
+  prose?: true;
 }
 
 /** Deux lignes sous une tuile ; au-delà, c'est une liste. */
 export const APERCUS_PAR_TUILE = 2;
+
+/**
+ * LE NOM D'UNE LIGNE DANS UNE COLONNE DE 188 PIXELS.
+ *
+ * Le titre complet d'une ligne cotée fait quarante-six caractères — « OTA
+ * Cameroun 6,25 % · 8 juil. 2031 : secondaire » — et passait donc sur deux
+ * hauteurs, puis le chiffre sur une troisième. Le dirigeant a demandé que
+ * chaque aperçu tienne sur UNE ligne.
+ *
+ * CE QUI PART EST LE QUALIFICATIF, et lui seul : « : secondaire », « : action
+ * cotée ». Il dit le LIEU — la cote — et le lieu est déjà le nom de la tuile.
+ * Ce qui reste est ce qui distingue une ligne d'une autre : l'émetteur, le
+ * coupon, l'échéance. Aucune troncature, aucun point de suspension : la règle
+ * de la maison depuis « FCP Trés… » est qu'un nom coupé n'apprend rien.
+ */
+export const nomDeLigne = (o: Pick<Offer, "title">): string => o.title.split(" : ")[0];
+
+/**
+ * CE QUE LES DEUX TUILES DES SÉANCES DISENT QUAND IL N'Y EN A AUCUNE.
+ *
+ * ENTRE DEUX SÉANCES, ELLES SORTAIENT NUES — un en-tête, une ligne, et un
+ * grand vide à côté de tuiles pleines. Le dirigeant l'a demandé le soir du
+ * 25 octobre 2026 : « s'il n'y en a pas, mettre un peu de contenu ».
+ *
+ * CE N'EST PAS UNE EXCUSE, ET C'EST TOUTE LA DIFFÉRENCE. La règle de la
+ * maison — « un aperçu vide ne se remplace pas par une phrase d'excuse » —
+ * visait « aucune séance en ce moment », qui occupe la place sans rien
+ * apprendre. Ces quatre lignes-là apprennent quelque chose, et à celui
+ * précisément qui en a besoin : le client qui ouvre la page un jour où il n'y
+ * a rien est celui qui ne sait pas encore ce qu'est une OTA.
+ *
+ * RIEN N'EST INVENTÉ ICI. Les deux premières reprennent, en plus court, les
+ * notes de section du registre — « Adjugées à la BEAC, avec un coupon et une
+ * durée », « Précomptés : vous payez moins que le nominal et recevez le
+ * nominal à l'échéance ». Les deux autres reprennent les étapes du sondage.
+ * Une définition écrite deux fois finit par se contredire ; celles-ci sont
+ * des abrégés de la même source, et les épreuves le vérifient.
+ */
+const SANS_SEANCE: Apercu[] = [
+  { nom: "Obligations du Trésor", dit: { key: "un coupon, une durée" }, prose: true },
+  { nom: "Bons du Trésor", dit: { key: "précomptés, moins d'un an" }, prose: true },
+];
+
+const SANS_SONDAGE: Apercu[] = [
+  { nom: "Vous dites votre taux", dit: { key: "ce n'est pas un ordre" }, prose: true },
+  { nom: "Avant la clôture", dit: { key: "le desk vous rappelle" }, prose: true },
+];
 
 /**
  * UN SERVICE SANS APERÇU N'EN REÇOIT PAS DE FAUX.
@@ -84,12 +141,27 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
       .filter((o) => sectionDe(o) !== "souscription")
       .slice(0, APERCUS_PAR_TUILE)
       .map((o): Apercu => {
-        /* LE RENDEMENT QUAND IL EXISTE, LE COURS SINON. Une action n'a pas de
-           rendement à montrer ici — son dividende est passé, pas promis — et
-           une obligation cotée sans cours publié n'a que son coupon. */
-        const r = displayYield(o);
-        if (r.pct != null) return { nom: o.title, dit: { key: "{r} de rendement", params: { r: fmtPct(r.pct, 1) } } };
-        return { nom: o.title, dit: { key: "{m} FCFA", params: { m: fmt(Math.round(o.lastPrice ?? 0)) } } };
+        /**
+         * LE TAUX ACTUARIEL, ET RIEN QUI LUI RESSEMBLE — 25 octobre 2026.
+         *
+         * Cette ligne disait « {r} de rendement » pour les deux familles. Or
+         * `headlineYield` ne rend pas la même chose des deux côtés : pour une
+         * obligation, le taux de rendement interne calculé sur les flux
+         * réels ; pour une action, le dividende rapporté au cours. Les deux
+         * paraissaient sous le même mot, à 2,8 % et 6,9 %, et rien ne disait
+         * que les comparer n'a aucun sens. `tauxActuariel` refuse désormais
+         * de rendre un taux là où il n'y en a pas, et l'action montre ce
+         * qu'elle a vraiment : son cours.
+         *
+         * DEUX DÉCIMALES, ET LE MOT EN MOINS. Un taux actuariel se lit à la
+         * décimale près — c'est sur lui qu'on arbitre entre deux lignes — et
+         * « de rendement » coûtait la moitié de la largeur de la colonne,
+         * ce qui faisait passer la ligne sur deux hauteurs. La ligne fixe de
+         * la tuile dit déjà « à un cours ».
+         */
+        const taux = tauxActuariel(o);
+        if (taux != null) return { nom: nomDeLigne(o), dit: { key: "taux {r}", params: { r: fmtPct(taux, 2) } } };
+        return { nom: nomDeLigne(o), dit: { key: "{m} FCFA", params: { m: fmt(Math.round(o.lastPrice ?? 0)) } } };
       });
   }
 
@@ -125,10 +197,19 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
        à quel prix on entre.
        LE CHOIX DU CHIFFRE VIT DANS `fund-perf`, pas ici : cinq endroits le
        faisaient déjà à la main, et deux ne s'accordaient pas. */
+    /* LES DEUX MEILLEURS, ET NON LES DEUX PREMIERS DU CATALOGUE — demande du
+       dirigeant le soir du 25 octobre 2026. Deux lignes prises dans l'ordre
+       du dépôt ne disent rien ; les deux meilleures performances disent où
+       regarder. Le classement se fait sur le MÊME chiffre que celui qu'on
+       affiche, sans quoi la tuile montrerait un ordre qu'elle ne justifie
+       pas : un fonds à 7 % sur douze mois passerait derrière un fonds à 9 %
+       annualisé depuis 2019, et le lecteur verrait 7 au-dessus de 9.
+       Un fonds sans historique ferme la marche : il n'a pas de rang. */
     return fondsListes(offers)
+      .map((f) => ({ f, r: rendementDuFonds(f.fund, now) }))
+      .sort((a, b) => (b.r?.pct ?? -Infinity) - (a.r?.pct ?? -Infinity))
       .slice(0, APERCUS_PAR_TUILE)
-      .map((f): Apercu => {
-        const r = rendementDuFonds(f.fund, now);
+      .map(({ f, r }): Apercu => {
         /* Un fonds de trois mois n'a pas de rendement, et « 0,0 % » se lirait
            comme une contre-performance : on dit ce qui manque. */
         if (!r) return { nom: f.title, dit: { key: "pas encore d'historique" } };
@@ -143,16 +224,29 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
      « qu'est-ce que j'y trouve », qui est la question d'un client qui hésite
      à ouvrir la page. */
   if (cle === "primaire") {
-    const seances = seancesAnnoncees(offers).filter((o) => isActionable(displayStatus(o)));
-    const parSection = [
-      ["obligations_tresor", "Obligations du Trésor"],
-      ["bons_tresor", "Bons du Trésor"],
-    ] as const;
-    return parSection
-      .map(([section, nom]) => ({ nom, n: seances.filter((o) => sectionDe(o) === section).length }))
-      .filter((x) => x.n > 0)
-      .slice(0, APERCUS_PAR_TUILE)
-      .map(({ nom, n }): Apercu => ({ nom, dit: n === 1 ? { key: "1 séance" } : { key: "{n} séances", params: { n } } }));
+    /* UNE LIGNE PAR FAMILLE, AVEC SON TAUX — demande du dirigeant, le soir du
+       25 octobre 2026. La composition (« 1 séance · 2 séances ») disait
+       combien il y en a ; elle ne disait pas ce que ça rapporte, qui est la
+       seule chose sur laquelle on décide d'ouvrir la page. Une OTA et une
+       BTA : les deux familles d'une séance, chacune son taux actuariel. */
+    const ouvertes = seancesAnnoncees(offers).filter((o) => isActionable(displayStatus(o)));
+    const premiere = (section: Section) =>
+      ouvertes
+        .filter((o) => sectionDe(o) === section && tauxActuariel(o) != null)
+        .sort((a, b) => (a.deadlineAt ?? "").localeCompare(b.deadlineAt ?? ""))[0];
+    const lignes = (["obligations_tresor", "bons_tresor"] as const)
+      .map(premiere)
+      .filter((o): o is Offer => Boolean(o))
+      /* LE NOM EST COMPACT, et c'est la place qui l'impose : « OTA 6,25 % ·
+         5 ans · Gabon » et son taux font 181 px dans une colonne de 156,
+         donc deux hauteurs. La famille et le pays suffisent à choisir — le
+         coupon et le terme sont sur la page qui s'ouvre juste après.
+         « country » ET NON « countryName » : le second porte la forme
+         officielle — « République du Tchad » — qui reprend à elle seule
+         toute la largeur gagnée. Le premier est le nom d'usage, celui
+         que le calendrier et la bande emploient déjà. */
+      .map((o): Apercu => ({ nom: `${familyShort(offerFamily(o))} · ${o.country ?? o.countryName ?? o.issuer}`, dit: { key: "taux {r}", params: { r: fmtPct(tauxActuariel(o)!, 2) } } }));
+    return lignes.length ? lignes : SANS_SEANCE;
   }
 
   /* LE SONDAGE PORTE LA SÉANCE SUR LAQUELLE ON PEUT SE DIRE PRENEUR, et une
@@ -160,22 +254,24 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
      pas un catalogue mais une intention » — vrai, et c'est justement pourquoi
      la ligne nomme la séance et non le service. */
   if (cle === "sondage") {
-    /* DEUX SOURCES, ET LA PREMIÈRE EST CELLE DE LA BEAC. `prochaineSeance`
-       vient du communiqué, qui fait foi ; elle est pourtant vide dès que le
-       flux ne répond pas — c'est le cas de tout le dépôt mémoire, où la tuile
-       sortait donc nue à côté d'une tuile « Adjudications » bien remplie.
-       Le repli lit les séances que la page affiche de toute façon.
-
-       ET LA DATE EST CELLE DE LA CLÔTURE, dite comme une date et non comme un
-       délai : « Ce qui ferme bientôt » compte les jours, cette ligne dit
-       jusqu'à quand on peut encore se déclarer. Ce n'est pas la même phrase,
-       et ce n'est pas le même geste. */
-    const p = ctx.prochaineSeance;
-    if (p) return [{ nom: `${p.quoi} · ${p.pays}`, dit: { key: "avant le {d}", params: { d: p.le } } }];
-    const devant = seancesAnnoncees(offers)
-      .filter((o) => isActionable(displayStatus(o)) && o.deadlineAt)
-      .sort((a, b) => a.deadlineAt.localeCompare(b.deadlineAt))[0];
-    return devant ? [{ nom: devant.title, dit: { key: "avant le {d}", params: { d: fmtDate(devant.deadlineAt) } } }] : [];
+    /* LA MÊME DÉCOUPE, AVEC L'ÉCHÉANCE EN PLUS. On se dit preneur sur une
+       DURÉE autant que sur un taux : un bon à treize semaines et une
+       obligation à cinq ans ne se déclarent pas pour les mêmes raisons. Le
+       nom porte donc la famille et le terme, la valeur le taux. */
+    const ouvertes = seancesAnnoncees(offers).filter((o) => isActionable(displayStatus(o)));
+    const premiere = (section: Section) =>
+      ouvertes
+        .filter((o) => sectionDe(o) === section && tauxActuariel(o) != null && o.maturityOn)
+        .sort((a, b) => (a.deadlineAt ?? "").localeCompare(b.deadlineAt ?? ""))[0];
+    const lignes = (["obligations_tresor", "bons_tresor"] as const)
+      .map(premiere)
+      .filter((o): o is Offer => Boolean(o))
+      .map((o): Apercu => ({
+        nom: `${familyShort(offerFamily(o))} · ${fmtDate(o.maturityOn!, false)}`,
+        dit: { key: "taux {r}", params: { r: fmtPct(tauxActuariel(o)!, 2) } },
+      }));
+    if (lignes.length) return lignes;
+    return SANS_SONDAGE;
   }
 
   if (cle === "passage") {
