@@ -40,12 +40,28 @@
   border-color: var(--line-2);
 }
 /* LE FILET D'OR, et pas une seconde boîte : le niveau se dit par un trait
-   plus discret et par le retrait des lignes. */
+   plus discret et par le retrait des lignes.
+
+   ET LE SOL DE SA TEINTE, QUAND IL EN A UNE. La teinte seule ne tient pas sur
+   n'importe quel fond — mesuré le 25 octobre 2026, et c'est net : huit des
+   douze teintes de service tombent sous 4,5:1 sur « --surface-2 » du thème
+   « dim » de la palette ivoire, jusqu'à 3,57:1. La règle est donc UNE et non
+   deux : la couleur d'un service se lit toujours sur le sol de ce service. La
+   tuile du téléphone le faisait déjà en colorant la carte entière ; la bande
+   le fait en colorant sa tête. Sans teinte, « transparent » rend exactement
+   ce que « none » rendait, et tous les autres plis de l'application sont dans
+   ce cas. */
 .tete {
-  background: none;
+  background: var(--teinte-soft, transparent);
   border: 0;
   border-bottom: 1px solid var(--gold-line);
-  padding: var(--s-5) 0;
+  /* LA MARGE LATÉRALE N'ARRIVE QU'AVEC LA TEINTE, et c'est ce qui rend ce
+     changement sans effet ailleurs. Ce composant plie des dizaines de
+     chapitres dans toute l'application ; une marge écrite en dur ici les
+     aurait tous décalés pour l'habillage de cinq bandes de Trade. Le repli
+     vaut zéro, c'est-à-dire exactement ce qu'il y avait. */
+  padding: var(--s-5) var(--teinte-marge, 0);
+  border-radius: var(--radius) var(--radius) 0 0;
 }
 
 .nom {
@@ -57,12 +73,20 @@
   font-size: var(--t-4);
 }
 .tete .nom b {
-  font-size: var(--t-3);
+  /* Le titre d'un filet prend la teinte de son sujet, quand il en a une :
+     c'est ce qui fait qu'un service se reconnaît aussi vite sur l'écran large
+     que sur la tuile du téléphone, où elle colore la carte entière.
+     ET SON DEGRÉ AVEC : un titre à 12 px au-dessus d'une ligne à 11,1 n'a pas
+     de hiérarchie, et il était plus petit que la valeur d'un aperçu de la
+     tuile voisine. Les deux replis sont les degrés d'avant, pour les dizaines
+     d'autres plis de l'application qui ne portent pas de teinte. */
+  font-size: var(--teinte-titre, var(--t-3));
+  color: var(--teinte, inherit);
 }
 .nom small {
   display: block;
-  color: var(--ink-3);
-  font-size: var(--t-2);
+  color: var(--teinte-sous-encre, var(--ink-3));
+  font-size: var(--teinte-sous, var(--t-2));
   font-weight: 400;
   margin-top: var(--s-1);
 }
@@ -138,13 +162,18 @@
 /* LA MARQUE D'UN PLI, devant son nom. Une icône de service posée après le
    titre tombait contre le chevron, encadrée, et se lisait comme un second
    bouton : une icône qui qualifie un titre se met devant lui. */
+/* LA TEINTE DU SUJET, AVEC SON REPLI — et le repli est ce qu'il y avait
+   avant. Ce composant sert toute l'application ; aucun pli ne reçoit de
+   teinte sauf les services de Trade, et tous les autres gardent donc l'encre
+   atténuée qu'ils ont toujours eue. C'est la même mécanique que « --fam-c »
+   pour les familles de produits : la feuille lit, le composant dit. */
 .marque {
   flex: none;
   display: grid;
   place-items: center;
   width: 22px;
   height: 22px;
-  color: var(--ink-3);
+  color: var(--teinte, var(--ink-3));
 }
 .marque svg {
   width: 18px;

@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useT } from "@/i18n/client";
-import { ICONE_SERVICE } from "@/components/nav/IconesServices";
+import { ICONE_SERVICE, teinteDuService } from "@/components/nav/IconesServices";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { RAYONS, type ServiceVu } from "@/lib/domain/services";
 import { Fiche } from "./Fiche";
@@ -177,7 +177,7 @@ export function Parcours({
               <ul className={styles.tuiles}>
                 {aPlat.map((sv) => (
                   <li key={sv.cle}>
-                    <button type="button" className={styles.tuile} onClick={() => aller(SANS_LISTE, sv.cle)}>
+                    <button type="button" className={styles.tuile} style={teinteDuService(sv.cle)} onClick={() => aller(SANS_LISTE, sv.cle)}>
                       <span className={styles.marque} aria-hidden="true">
                         {ICONE_SERVICE[sv.cle]}
                       </span>
@@ -255,7 +255,7 @@ export function Parcours({
                 <ul className={styles.tuiles}>
                   {siens.map((sv) => (
                     <li key={sv.cle}>
-                      <button type="button" className={styles.tuile} onClick={() => aller(rayon.cle, sv.cle)}>
+                      <button type="button" className={styles.tuile} style={teinteDuService(sv.cle)} onClick={() => aller(rayon.cle, sv.cle)}>
                         <span className={styles.marque} aria-hidden="true">
                           {ICONE_SERVICE[sv.cle]}
                         </span>

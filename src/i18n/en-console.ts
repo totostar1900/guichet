@@ -183,6 +183,21 @@ export const EN_CONSOLE: Record<string, string> = {
     "The Treasury is taking a line back before its term: to be compared with the coupons that remain.",
   "Le Trésor reprend {n} lignes avant leur terme : à comparer avec les coupons qui restent.":
     "The Treasury is taking {n} lines back before their term: to be compared with the coupons that remain.",
+  /* LES DEUX LIGNES SOUS CHAQUE TUILE — décision du dirigeant, 25 octobre
+     2026 : « partout où c'est possible, et toujours le rendement plutôt que
+     la valeur liquidative ». La période voyage DANS la clef et non en
+     paramètre : un paramètre ne passe pas par le dictionnaire. */
+  "{r} sur 12 mois": "{r} over 12 months",
+  "{r} par an depuis l'origine": "{r} a year since inception",
+  "{r} par an": "{r} a year",
+  "{r} sur la période": "{r} over the period",
+  "{r} sur la dernière période": "{r} over the latest period",
+  "pas encore d'historique": "no track record yet",
+  "Prochain versement": "Next payment",
+  "à chaque encaissement": "on every payment received",
+  "En dessous, rien ne part": "Below that, nothing goes out",
+  "Inscrites à votre nom": "Registered in your name",
+  "avant le {d}": "before {d}",
   "Une somme fixe, chaque mois": "A fixed sum, every month",
   "Les coupons repartent tout seuls": "Coupons go back to work by themselves",
   "Nous prélevons, vous ne virez plus": "We debit, you stop transferring",

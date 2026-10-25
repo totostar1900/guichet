@@ -107,6 +107,78 @@ export function fundAnnualPct(f: Pick<Fund, "inceptionDate" | "perfSinceInceptio
   return (Math.pow(1 + f.perfSinceInceptionPct / 100, 1 / years) - 1) * 100;
 }
 
+/**
+ * LE RENDEMENT QU'ON MET EN AVANT, DÉCIDÉ UNE FOIS.
+ *
+ * LE DÉFAUT QUE CELA FERME. Cinq endroits faisaient déjà ce choix à la main,
+ * chacun avec sa propre cascade — relevé le 25 octobre 2026 :
+ * `offres/[id]/Kpis.tsx` (12 mois, sinon depuis l'origine), `ComparerBody`
+ * (12 mois, sinon l'annualisé, sinon « moins de six mois d'historique »),
+ * `domain/compare.ts` (12 mois, et rien d'autre), `domain/summary.ts`
+ * (12 mois, sinon l'annualisé, sinon la variation) et `data/cote-seed.ts`.
+ * Cinq copies d'une même décision : la question n'est pas si elles vont
+ * diverger, mais laquelle l'a déjà fait — `compare.ts` n'a pas de repli, donc
+ * un fonds né il y a huit mois n'a pas de rendement du tout dans le
+ * comparateur, alors que les quatre autres lui en donnent un.
+ *
+ * LA RÈGLE, et elle vient du dirigeant le 25 octobre 2026 : on met en avant
+ * LE RENDEMENT, jamais la valeur liquidative. Une VL ne se compare pas d'un
+ * fonds à l'autre — 10 820 contre 12 430 ne dit rien de qui a mieux travaillé
+ * — alors qu'une performance, si. La VL reste sur la fiche du fonds, où elle
+ * sert à autre chose : elle dit à quel prix on entre.
+ *
+ * L'ORDRE DES TROIS, du plus parlant au moins parlant. Les douze mois
+ * d'abord : c'est la période que tout le monde lit. L'annualisé depuis
+ * l'origine ensuite, qui est le seul chiffre comparable entre un fonds né
+ * l'an dernier et un fonds né en 2019. La variation de la dernière période
+ * en dernier, faute de mieux — et elle dit qu'elle n'est que cela.
+ *
+ * ET RIEN PLUTÔT QU'UN CHIFFRE SANS SENS : un fonds de trois mois n'a pas de
+ * rendement à montrer, et `null` se lit comme une absence là où « 0,0 % » se
+ * lirait comme une contre-performance.
+ */
+export interface RendementMisEnAvant {
+  pct: number;
+  /** Ce que le chiffre mesure, pour que la phrase qui l'accompagne soit vraie. */
+  nature: "douze_mois" | "annualise" | "variation";
+  /**
+   * LA PHRASE ENTIÈRE, AVEC SON TROU — et non la période toute seule.
+   *
+   * Premier jet : `periode` portait « sur 12 mois », et l'appelant composait
+   * `{ key: "{r} {p}", params: { r, p: periode } }`. Un paramètre ne passe
+   * PAS par le dictionnaire : la tuile serait sortie « +4,2 % sur 12 mois »
+   * au milieu d'une page anglaise, et le scanner des chaînes sans anglais ne
+   * l'aurait pas vu — « t(variable) » est l'un de ses quatre angles morts.
+   * La clef porte donc la phrase complète, et le nombre seul voyage à part.
+   */
+  cle: string;
+  /**
+   * LA MÊME CHOSE EN TROIS MOTS, pour la case d'un chiffre.
+   *
+   * Mesuré à l'écran le 25 octobre 2026 : « +1,4 % par an depuis l'origine »
+   * occupe DEUX lignes dans la colonne d'une tuile de 188 px, et la case où
+   * il se pose est celle d'un nombre — « 183 parts », « 2,8 % de rendement ».
+   * La forme longue reste celle des fiches et du comparateur, où la nuance
+   * entre une variation sur douze mois et un taux annualisé doit être écrite
+   * en toutes lettres ; « par an » la porte suffisamment sur une tuile.
+   */
+  cleCourte: string;
+}
+
+export function rendementDuFonds(f: Pick<Fund, "inceptionDate" | "perfSinceInceptionPct" | "perf1yPct" | "variationPct">, now: Date): RendementMisEnAvant | null {
+  if (f.perf1yPct != null) return { pct: f.perf1yPct, nature: "douze_mois", cle: "{r} sur 12 mois", cleCourte: "{r} sur 12 mois" };
+  /* SANS DATE D'ORIGINE, PAS D'ANNUALISÉ — et le dire ici plutôt que planter.
+     `fundYears` parse la date sans la vérifier, et un fonds dont la fiche
+     n'est pas complète la rend vide : le calcul tombait alors sur
+     « Cannot read properties of undefined », c'est-à-dire sur une page
+     blanche, pour un champ manquant. Un rendement absent est une absence,
+     pas une panne. */
+  const annuel = f.inceptionDate ? fundAnnualPct(f, now) : null;
+  if (annuel != null) return { pct: annuel, nature: "annualise", cle: "{r} par an depuis l'origine", cleCourte: "{r} par an" };
+  if (f.variationPct != null) return { pct: f.variationPct, nature: "variation", cle: "{r} sur la dernière période", cleCourte: "{r} sur la période" };
+  return null;
+}
+
 /** Ce qu'il faut d'une valeur liquidative pour mesurer une variation. */
 export interface PointDeVL {
   navDate: string;

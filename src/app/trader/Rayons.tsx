@@ -2,7 +2,7 @@
 
 import { useT } from "@/i18n/client";
 import { Pli } from "@/components/Pli";
-import { ICONE_SERVICE } from "@/components/nav/IconesServices";
+import { ICONE_SERVICE, teinteDuService } from "@/components/nav/IconesServices";
 import { RAYONS, type ServiceVu } from "@/lib/domain/services";
 import { Fiche } from "./Fiche";
 import styles from "./page.module.css";
@@ -53,6 +53,7 @@ export function Rayons({ services, etapes, raisons, apercus }: { services: Servi
                   sous={t(sv.sous)}
                   defaut={false}
                   marque={ICONE_SERVICE[sv.cle]}
+                  teinte={teinteDuService(sv.cle)}
                   compte={sv.etat === "en_place" ? t("en place") : undefined}
                 >
                   <Fiche sv={sv} raison={raisons[sv.cle]} etapes={etapes[sv.cle]} apercus={apercus?.[sv.cle]} />

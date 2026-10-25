@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useSyncExternalStore } from "react";
 import { useT } from "@/i18n/client";
 import styles from "./Pli.module.css";
@@ -81,6 +81,13 @@ export interface PliProps {
    */
   marque?: ReactNode;
   /**
+   * LA TEINTE DU SUJET, QUAND IL EN A UNE — facultative, et absente partout
+   * ailleurs. Les services de Trade en portent une depuis le 25 octobre 2026 ;
+   * un pli qui n'en reçoit pas garde exactement les couleurs d'avant, parce
+   * que la feuille ne lit « --teinte » qu'avec un repli.
+   */
+  teinte?: CSSProperties;
+  /**
    * Ouvert ou replié à la première visite. Non précisé, le pli suit la règle
    * de la maison : replié, sauf s'il porte une pastille d'attente.
    */
@@ -88,7 +95,7 @@ export interface PliProps {
   children: ReactNode;
 }
 
-export function Pli({ cle, niveau = "bande", titre, sous, compte, attend, etiquette, marque, defaut, children }: PliProps) {
+export function Pli({ cle, niveau = "bande", titre, sous, compte, attend, etiquette, marque, teinte, defaut, children }: PliProps) {
   const t = useT();
   const garde = useSyncExternalStore(
     subscribe,
@@ -114,7 +121,7 @@ export function Pli({ cle, niveau = "bande", titre, sous, compte, attend, etique
    */
   const ouvert = garde ? garde === "oui" : (defaut ?? Boolean(attend));
   return (
-    <section className={niveau === "filet" ? styles.groupe : styles.rayon} data-ouvert={ouvert ? "oui" : "non"}>
+    <section className={niveau === "filet" ? styles.groupe : styles.rayon} style={teinte} data-ouvert={ouvert ? "oui" : "non"}>
       <button type="button" className={niveau === "filet" ? styles.tete : styles.bande} aria-expanded={ouvert} aria-label={`${titre} · ${t(ouvert ? "Replier" : "Déplier")}`} onClick={() => poserLePli(cle, !ouvert)}>
         {marque && <span className={styles.marque}>{marque}</span>}
         <span className={styles.nom}>

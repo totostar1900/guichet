@@ -5,6 +5,7 @@ import { apercusDuService, APERCUS_PAR_TUILE } from "@/lib/domain/apercus";
 import type { ContexteClient } from "@/lib/domain/services";
 import type { Offer } from "@/lib/domain/types";
 import { echeancesProches } from "@/lib/domain/echeances";
+import { rendementDuFonds } from "@/lib/domain/fund-perf";
 
 const ROOT = path.join(__dirname, "../..");
 const lire = (p: string) => fs.readFileSync(path.join(ROOT, p), "utf8");
@@ -17,10 +18,16 @@ const code = (p: string) =>
 /* Le strict nécessaire pour que les sélecteurs de la maison répondent. */
 const cotee = (id: string, title: string, extra: Partial<Offer> = {}): Offer =>
   ({ id, title, kind: "MARCHE", instrument: "action", status: "live", isin: `XX${id}`, version: 1, lastPrice: 48_500, ...extra }) as Offer;
-const fonds = (id: string, title: string, nav: number): Offer =>
-  ({ id, title, kind: "FONDS", status: "live", version: 1, fund: { nav, navDate: "2026-10-23", manager: "CAM", distributed: true } }) as unknown as Offer;
+/* LA PERFORMANCE PLUTÔT QUE LA VL : la tuile des fonds met en avant le
+   rendement depuis le 25 octobre 2026, donc la coquille doit en porter un.
+   La date d'origine vient avec : sans elle, l'annualisé n'a pas de durée. */
+const fonds = (id: string, title: string, nav: number, perf1yPct: number | undefined = 4.2): Offer =>
+  ({ id, title, kind: "FONDS", status: "live", version: 1, fund: { nav, navDate: "2026-10-23", manager: "CAM", distributed: true, inceptionDate: "2021-04-01", perfSinceInceptionPct: 18.4, perf1yPct } }) as unknown as Offer;
+/* « opensAt » n'est pas décoratif : `displayStatus` le parse sans le
+   vérifier, et une séance sans date d'ouverture faisait tomber le calcul
+   dès qu'un appelant le lisait. La vraie offre en porte toujours une. */
 const seance = (id: string, title: string, deadlineAt: string): Offer =>
-  ({ id, title, kind: "OTA", status: "published", version: 1, issuer: "Trésor", deadlineAt, countryName: "Cameroun" }) as unknown as Offer;
+  ({ id, title, kind: "OTA", status: "published", version: 1, issuer: "Trésor", opensAt: "2026-10-01T09:00:00", deadlineAt, countryName: "Cameroun" }) as unknown as Offer;
 
 const CTX = { lignes: 0, fondsOuverts: 2, disponible: 0, aSigner: 0, aRepondre: 0, moisDHistorique: 0 } as ContexteClient;
 
@@ -41,8 +48,43 @@ describe("les aperçus des tuiles de Trade", () => {
     const offers = [cotee("a1", "SEMC · action"), cotee("a2", "BHC · action"), fonds("f1", "FCP Trésorerie", 10_412), fonds("f2", "FCP Obligataire", 12_980)];
     const cote = apercusDuService("cote", offers, CTX);
     expect(cote.map((a) => a.nom), "la cote ne remonte plus dans l'aperçu").toEqual(["SEMC · action", "BHC · action"]);
-    const vl = apercusDuService("fonds", offers, CTX);
-    expect(vl.map((a) => a.dit.key), "la valeur liquidative n'est plus dite").toEqual(["VL {n} FCFA", "VL {n} FCFA"]);
+    /**
+     * LE RENDEMENT, ET JAMAIS LA VALEUR LIQUIDATIVE — 25 octobre 2026.
+     *
+     * Cette épreuve pinait l'inverse jusqu'à ce matin : « VL {n} FCFA ».
+     * La décision du dirigeant l'a retournée, et elle se défend : entre
+     * « VL 10 820 » et « VL 12 430 », rien ne dit lequel des deux fonds a
+     * mieux travaillé, alors que c'est exactement la question qu'on se pose
+     * en comparant deux tuiles. La VL n'est pas supprimée, elle est à sa
+     * place — sur la fiche du fonds, où elle répond à « à quel prix j'entre ».
+     *
+     * LE CLIQUET TIENT LES DEUX MOITIÉS : un rendement paraît, et la VL ne
+     * reparaît pas. Sans la seconde, on pourrait « enrichir » la ligne d'un
+     * rappel de VL et défaire la décision sans que rien ne tombe.
+     */
+    const perf = apercusDuService("fonds", offers, CTX);
+    expect(perf.map((a) => a.dit.params?.r), "le rendement n'est plus mis en avant").toEqual(["+4,2 %", "+4,2 %"]);
+    /* LA PÉRIODE EST DANS LA CLEF, PAS DANS UN PARAMÈTRE : un paramètre ne
+       passe pas par le dictionnaire, et « sur 12 mois » serait sorti en
+       français au milieu d'une page anglaise sans que rien ne le dise. */
+    expect(perf.map((a) => a.dit.key)).toEqual(["{r} sur 12 mois", "{r} sur 12 mois"]);
+    expect(JSON.stringify(perf), "la valeur liquidative est revenue sur la tuile").not.toMatch(/VL|10 412|12 980/);
+    /* Et sans historique, une absence dite plutôt qu'un zéro : « 0,0 % » se
+       lirait comme une contre-performance. */
+    /* « undefined » en argument déclencherait la valeur par défaut : le fonds
+       sans douze mois d'historique se construit donc à la main. */
+    const sansDouzeMois = { ...(fonds("f3", "FCP Nouveau", 10_000) as unknown as { fund: Record<string, unknown> }).fund, perf1yPct: undefined };
+    const jeune = apercusDuService("fonds", [{ id: "f3", title: "FCP Nouveau", kind: "FONDS", status: "live", version: 1, fund: sansDouzeMois } as unknown as Offer], CTX, new Date("2026-10-25"));
+    expect(jeune[0].dit.key, "sans douze mois d'historique, l'annualisé ne prend pas le relais").toBe("{r} par an");
+    /* LA TUILE PREND LA FORME COURTE, et la longue reste pour les fiches.
+       Mesuré à l'écran : « +1,4 % par an depuis l'origine » occupe deux
+       lignes dans la colonne d'une tuile, là où cette case est celle d'un
+       nombre. Les deux formes doivent donc rester DEUX : les unifier, dans un
+       sens comme dans l'autre, casse l'un des deux écrans. */
+    expect(rendementDuFonds({ inceptionDate: "2021-04-01", perfSinceInceptionPct: 18.4 }, new Date("2026-10-25"))).toMatchObject({
+      cle: "{r} par an depuis l'origine",
+      cleCourte: "{r} par an",
+    });
     const part = apercusDuService("passage", offers, { ...CTX, partsDeFonds: { titre: "FCP Trésorerie", parts: 190 } });
     expect(part, "la part détenue ne paraît plus sous « Passage »").toEqual([{ nom: "FCP Trésorerie", dit: { key: "{n} parts", params: { n: "190" } } }]);
   });
@@ -65,22 +107,34 @@ describe("les aperçus des tuiles de Trade", () => {
   });
 
   /**
-   * LE REFUS, ET IL EST LE CŒUR DE CETTE ÉPREUVE.
+   * CE QU'ON TROUVE À UNE SÉANCE, ET NON QUAND ELLE FERME — ET C'EST LE CŒUR
+   * DE CETTE ÉPREUVE.
    *
-   * « Adjudications et émissions » n'a PAS d'aperçu, et ce n'est pas un oubli :
-   * ses deux lignes seraient les deux prochaines séances, exactement celles que
-   * « Ce qui ferme bientôt » pose en tête de la même racine. Deux listes de la
-   * même chose sur un écran divergent toujours.
+   * ELLE DISAIT « AUCUN APERÇU » JUSQU'AU 25 OCTOBRE 2026, et son
+   * raisonnement reste vrai à la lettre : les deux prochaines CLÔTURES sont
+   * déjà posées en tête de la même racine par « Ce qui ferme bientôt », et
+   * deux listes de la même chose divergent toujours.
    *
-   * Une épreuve qui ne garderait que ce qui EXISTE laisserait quelqu'un
-   * « compléter » la série de bonne foi, et personne ne saurait pourquoi c'est
-   * faux.
+   * CE QUI A CHANGÉ : le dirigeant veut deux lignes sous chaque service
+   * partout où c'est possible. Le refus portait sur UNE donnée — le délai —
+   * et non sur l'idée même d'un aperçu. La tuile porte donc ce que la bande
+   * ne dit pas et que rien d'autre n'écrit : sa COMPOSITION, qui répond à
+   * « qu'est-ce que j'y trouve » plutôt qu'à « quand est-ce que ça ferme ».
+   *
+   * LE CLIQUET A DONC DEUX MOITIÉS, et la seconde est l'ancienne : des
+   * lignes paraissent, et aucune ne redit un délai. Sans elle, quelqu'un
+   * « complèterait » la série de bonne foi avec les deux prochaines
+   * échéances, et personne ne saurait pourquoi c'est faux.
    */
-  it("refuse l'aperçu des adjudications, parce que la page le montre déjà", () => {
+  it("dit la composition des séances, et jamais leur délai", () => {
     const offers = [seance("s1", "BTA Cameroun 26 semaines", new Date(Date.now() + 5 * 86_400_000).toISOString()), seance("s2", "OTA Gabon", new Date(Date.now() + 12 * 86_400_000).toISOString())];
-    expect(apercusDuService("primaire", offers, CTX), "« primaire » a reçu un aperçu : il répète la bande « Ce qui ferme bientôt » de la même page").toEqual([]);
-    /* Non vacuité : les séances existent bien et la bande, elle, les montre. */
-    expect(echeancesProches(offers).length, "ces séances ne sont pas dans la fenêtre : le refus ci-dessus ne garde rien").toBe(2);
+    const vus = apercusDuService("primaire", offers, CTX);
+    expect(vus.map((a) => a.nom), "la composition des séances n'est plus dite").toEqual(["Obligations du Trésor"]);
+    expect(vus.map((a) => a.dit.key)).toEqual(["{n} séances"]);
+    /* Non vacuité : les séances existent, et la bande, elle, les montre bien. */
+    expect(echeancesProches(offers).length, "ces séances ne sont pas dans la fenêtre : le cliquet ne garde plus rien").toBe(2);
+    /* ET AUCUN DÉLAI : ni le compte à rebours, ni « dans n jours », ni une date. */
+    expect(JSON.stringify(vus), "un délai est revenu sur la tuile des adjudications, à côté de la bande qui le dit déjà").not.toMatch(/jour|clôture|dans \{|demain/i);
   });
 
   /* LES DEUX ÉCRANS RENDENT LA MÊME DONNÉE, et c'est l'invariant que

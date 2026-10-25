@@ -146,12 +146,30 @@
 .tuiles li:last-child:nth-child(odd) {
   grid-column: 1 / -1;
 }
-/* LA TUILE, REPRISE LE 25 OCTOBRE 2026 : elle était un cadre gris sur fond
-   gris, et six cadres identiques ne disent pas par où commencer. Ce qui la
-   réveille n'est pas une couleur de plus mais la mise en valeur de ce qui la
-   distingue déjà — son dessin. La silhouette prend un écusson doré, et c'est
-   lui qu'on voit avant de lire ; le reste de la tuile ne bouge pas, parce
-   qu'une tuile entièrement colorée redevient un bloc uniforme. */
+/* LA TUILE PORTE LA TEINTE DE SON SERVICE — 25 octobre 2026, seconde reprise.
+
+   CE QUI AVAIT ÉTÉ TENTÉ LE MATIN, et qui n'a pas suffi : un écusson doré sur
+   une tuile blanche. L'intention était juste — réveiller ce qui distingue
+   déjà, le dessin — mais DOUZE ÉCUSSONS DE LA MÊME COULEUR ne distinguent
+   rien, et la page restait ce que le dirigeant a nommé le soir même : du bleu
+   et du blanc ultra dominants. L'ancienne note disait « une tuile entièrement
+   colorée redevient un bloc uniforme » : c'est vrai d'une SEULE couleur posée
+   sur toutes, et faux de douze.
+
+   LA TEINTE VIENT DU SERVICE, PAS DE LA FEUILLE. « --teinte » et
+   « --teinte-soft » sont posées en ligne par `teinteDuService`, comme les
+   familles de produits le font depuis toujours avec « --fam-c ». Cette feuille
+   ne nomme donc aucun service, et le catalogue peut en gagner un sans qu'on y
+   revienne — c'est la même règle que la rangée impaire au-dessus.
+
+   LES REPLIS SONT UNE VRAIE PAIRE, et c'est voulu : surface et encre de la
+   maison, lisibles ensemble. Un service sans teinte sort en gris, jamais en
+   couleur sur couleur.
+
+   LA BORDURE SE MÉLANGE PLUTÔT QU'ELLE NE S'ÉCRIT : 30 % de la teinte sur le
+   trait de la maison suit automatiquement les deux thèmes et les quatre
+   palettes, là où un jeton de plus par service en aurait fait douze à
+   accorder deux fois. */
 .tuile {
   width: 100%;
   height: 100%;
@@ -160,17 +178,17 @@
   align-items: flex-start;
   gap: var(--s-5);
   padding: var(--s-7);
-  border: 1px solid var(--line);
+  border: 1px solid color-mix(in srgb, var(--teinte, var(--line)) 30%, var(--line));
   border-radius: var(--radius);
-  background: var(--surface);
-  color: inherit;
+  background: var(--teinte-soft, var(--surface));
+  color: var(--ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
 .tuile:hover,
 .tuile:focus-visible {
-  border-color: var(--gold-line);
+  border-color: var(--teinte, var(--gold-line));
 }
 /* L'EN-TÊTE DOUBLE DE TAILLE : 12 px à l'origine, 20,2 maintenant, soit le
    degré « titre de section » de l'échelle. Ce qui le rend possible, ce sont
@@ -178,7 +196,20 @@
    deux lignes dans une colonne de 175 px, « Se dire preneur avant une
    adjudication » en aurait pris quatre. Le degré au-dessus (30 px) est celui
    d'un titre de page : deux titres de page sur une même tuile. */
-.tuile b {
+/* LE TITRE PREND LA TEINTE, ET L'ENFANT DIRECT SEULEMENT.
+
+   « .tuile b » ATTEIGNAIT AUSSI LA VALEUR DES APERÇUS, qui est un « b » lui
+   aussi, deux niveaux plus bas : elle sortait donc à 20,2 px — le degré d'un
+   titre de section — alors que sa propre rangée se déclare « un degré de
+   moins que la phrase ». Personne ne l'avait écrit : c'était un héritage, et
+   c'est ce qui a fait sortir « 2,8 % de rendement » de sa tuile le 25 octobre.
+   Le chevron ferme l'héritage, et la valeur reçoit plus bas le degré qu'on
+   veut vraiment lui donner.
+
+   Et maintenant que le titre est coloré, un chiffre de même taille lui
+   disputerait la première lecture : le titre nomme, la valeur renseigne. */
+.tuile > b {
+  color: var(--teinte, var(--ink));
   font-size: var(--t-7);
   font-weight: 600;
   line-height: 1.2;
@@ -211,15 +242,20 @@
    dorée — et, jusqu'au 25 octobre 2026, en aplat plutôt qu'au trait, donc
    illisible. Au trait et sur un fond teinté, il redevient ce qui se voit en
    premier, qui est tout ce qu'une icône a à faire. */
+/* L'ÉCUSSON PASSE DE L'OR À LA TEINTE DU SERVICE. Doré, il était le même
+   douze fois : c'est précisément ce qui ne distinguait rien. Il se pose
+   maintenant sur la surface de la maison — et non sur le fond déjà teinté de
+   la tuile, où un carré de la même couleur disparaîtrait — et le dessin y
+   prend la teinte. L'or reste le repli, pour un service sans teinte. */
 .marque {
   display: grid;
   place-items: center;
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  background: var(--gold-soft);
-  border: 1px solid var(--gold-line);
-  color: var(--gold-ink);
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--teinte, var(--gold-line)) 35%, var(--line));
+  color: var(--teinte, var(--gold-ink));
 }
 .marque svg {
   width: 20px;
@@ -255,10 +291,15 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 0 var(--s-4);
-  /* Un degré de moins que la phrase : ce sont deux colonnes serrées, pas de
-     la prose, et elles se comparent d'une tuile à l'autre plutôt qu'elles ne
-     se lisent. */
-  font-size: var(--t-2);
+  /* AU DEGRÉ DE LA LIGNE FIXE, ET NON UN CRAN EN DESSOUS — 25 octobre 2026.
+     L'ancienne note disait « deux colonnes serrées, pas de la prose » et
+     descendait à 11,1 px. Mais ces deux lignes portent la donnée la plus
+     personnelle de la tuile — son rendement, son montant, sa prochaine date —
+     et la demande du dirigeant est qu'elles soient VISIBLES, seulement plus
+     petites que le titre. La hiérarchie de la tuile tient donc en trois
+     degrés et non quatre : 20,2 pour le titre, 15 pour la valeur, 12 pour la
+     ligne fixe et le nom de l'aperçu, qui se lisent au même poids. */
+  font-size: var(--t-3);
 }
 /* LE NOM SE RÉTRÉCIT, LE CHIFFRE JAMAIS. Sans « flex » écrit, les deux
    partageaient la place : le chiffre, en « nowrap », débordait de sa propre
@@ -294,6 +335,11 @@
    FCFA », jamais à « VL 10 8 / 20 FCFA ». Les mots cèdent, le nombre non. */
 .apercuLigne b {
   flex: 0 1 auto;
+  /* LE DEGRÉ EST ÉCRIT ICI, et il ne l'était nulle part : la valeur héritait
+     les 20,2 px du titre par « .tuile b », deux niveaux plus haut. Le corps de
+     lecture la laisse se lire d'un coup d'œil sans disputer la première
+     lecture au titre, qui porte maintenant la couleur. */
+  font-size: var(--t-5);
   color: var(--ink);
   overflow-wrap: normal;
   /* Le nom, lui, garde la priorité sur la place : sans quoi les deux se

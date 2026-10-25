@@ -22,6 +22,47 @@ const svg = (d: React.ReactNode) => (
   </svg>
 );
 
+/**
+ * LA TEINTE D'UN SERVICE, POSÉE EN LIGNE — comme celle des familles.
+ *
+ * Même mécanique que `famVars` dans le registre : la feuille ne nomme aucun
+ * service, elle lit deux variables ; c'est le composant qui dit lesquelles.
+ * Un service de plus au catalogue reçoit sa teinte sans qu'aucune feuille
+ * change, et une palette peut corriger « --serv-cote » si son fond l'exige,
+ * exactement comme « ardoise » corrige déjà « --fam-OTA ».
+ *
+ * LES REPLIS SONT UNE PAIRE LISIBLE, et non une couleur d'alerte : un service
+ * dont la teinte manquerait sort en gris de la maison, jamais en encre
+ * colorée sur un fond coloré.
+ */
+export const teinteDuService = (cle: string): React.CSSProperties =>
+  ({
+    "--teinte": `var(--serv-${cle}, var(--ink))`,
+    "--teinte-soft": `var(--serv-${cle}-soft, var(--surface))`,
+    /* La bande large pose son sol teinté sur toute sa largeur : sans cette
+       marge, le texte toucherait le bord de la couleur. Elle n'arrive qu'avec
+       la teinte, pour que les dizaines d'autres plis de l'application ne
+       bougent pas d'un pixel. */
+    "--teinte-marge": "var(--s-4)",
+    /**
+     * LE DEGRÉ D'UN SERVICE SUR L'ÉCRAN LARGE, aligné sur celui du téléphone.
+     *
+     * La règle du dirigeant, 25 octobre 2026 : le titre toujours plus grand
+     * que sa ligne fixe, et les deux lignes de l'aperçu visibles mais plus
+     * petites que le titre. Sur la tuile, c'était déjà 20,2 / 15 / 12. Sur la
+     * bande, un service sortait à 12 px avec une ligne à 11,1 — un degré
+     * d'écart, c'est-à-dire pas de hiérarchie du tout, et un titre plus petit
+     * que la VALEUR d'un aperçu de la tuile d'à côté.
+     *
+     * Ces trois-là ne valent que pour un pli qui porte une teinte, c'est-à-dire
+     * un service : les dizaines d'autres plis de l'application gardent leurs
+     * replis, qui sont leurs degrés d'aujourd'hui.
+     */
+    "--teinte-titre": "var(--t-5)",
+    "--teinte-sous": "var(--t-3)",
+    "--teinte-sous-encre": "var(--ink-2)",
+  }) as React.CSSProperties;
+
 export const ICONE_SERVICE: Record<string, React.ReactNode> = {
   // Le tour complet d'un coupon qui repart au marché.
   reinvestissement: svg(

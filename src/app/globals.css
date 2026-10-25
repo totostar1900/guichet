@@ -153,6 +153,56 @@
   --fam-OBLIGATION_COTEE-soft: #e1eaf8;
   --fam-OPCVM: #8a6408;
   --fam-OPCVM-soft: #fbf1da;
+
+  /* UNE TEINTE PAR SERVICE : l'encre de son titre, le fond de sa tuile.
+     Décidé le 25 octobre 2026, sur demande du dirigeant : « rendre les
+     services reconnaissables vite, et tuer le bleu/blanc ultra dominant ».
+
+     LES SEPT PREMIÈRES SONT CELLES DE LEUR FAMILLE DE PRODUIT, à la valeur
+     près. Une tuile « Rachats du Trésor » et la pastille d'une ligne de rachat
+     portent donc le même orange ; la cote et une action cotée le même vert.
+     C'est ce qui fait qu'on apprend une couleur une fois, et non deux fois.
+     Les cinq services de compte n'ont pas de famille — ils ne portent aucun
+     instrument — et prennent cinq teintes libres, choisies dans ce que les
+     sept premières laissent du cercle.
+
+     « --fam-OTA » N'EST PAS REPRISE, ET C'EST LE POINT DE DÉPART. C'est le
+     navy, c'est-à-dire la couleur de tout le reste de l'écran : une tuile
+     bleue sur un fond bleu est précisément ce qu'on vient défaire. Les
+     adjudications prennent donc le teal des BTA, qui vit dans la même page.
+
+     CE QUI REND LA PAIRE SÛRE SOUS TOUTE PALETTE : elle porte son propre sol.
+     Le titre se lit sur « -soft » et non sur « --surface », donc le rapport ne
+     dépend pas de la palette, seulement du thème — et il est mesuré sur les
+     seize écrans par « teintes-de-service.test.ts ». Le sous-titre, lui, reste
+     en « --ink-2 », qui bascule : c'est la seule paire qui dépend des deux, et
+     elle est mesurée aussi. Une palette qui voudrait corriger une teinte le
+     peut, comme « ardoise » le fait déjà pour « --fam-OTA ». */
+  --serv-primaire: #0f6e6a;
+  --serv-primaire-soft: #d2f0ef;
+  --serv-sondage: #6d3b8f;
+  --serv-sondage-soft: #ece2f4;
+  --serv-passage: #2a5db0;
+  --serv-passage-soft: #e1eaf8;
+  --serv-fonds: #8a6408;
+  --serv-fonds-soft: #fbf1da;
+  --serv-cote: #2c754a;
+  --serv-cote-soft: #e9f6e4;
+  --serv-souscription: #a83f65;
+  --serv-souscription-soft: #f9dde0;
+  --serv-rachat: #b03a1e;
+  --serv-rachat-soft: #fadfd6;
+  --serv-epargne: #5c6613;
+  --serv-epargne-soft: #eef0d9;
+  --serv-reinvestissement: #0e6a86;
+  --serv-reinvestissement-soft: #daeef5;
+  --serv-prelevement: #4a4cae;
+  --serv-prelevement-soft: #e4e4f7;
+  --serv-provision: #7a5230;
+  --serv-provision-soft: #f3e7dc;
+  --serv-garde: #6b3a5e;
+  --serv-garde-soft: #efe6ec;
+
   --shadow: 0 1px 2px rgba(17, 24, 39, 0.06), 0 8px 24px -12px rgba(17, 24, 39, 0.14);
   /* L'echelle d'espacement.
 
@@ -344,6 +394,32 @@
     --fam-OBLIGATION_COTEE-soft: #1b2e4f;
     --fam-OPCVM: #e0b65a;
     --fam-OPCVM-soft: #332c18;
+    /* Les mêmes teintes au sombre : l'encre s'éclaircit, le fond descend.
+       Mêmes valeurs que les familles pour les sept qui en ont une. */
+    --serv-primaire: #6fcdc6;
+    --serv-primaire-soft: #0d3236;
+    --serv-sondage: #c9a3e6;
+    --serv-sondage-soft: #32224a;
+    --serv-passage: #8fb4f2;
+    --serv-passage-soft: #1b2e4f;
+    --serv-fonds: #e0b65a;
+    --serv-fonds-soft: #332c18;
+    --serv-cote: #7fd3a1;
+    --serv-cote-soft: #16331f;
+    --serv-souscription: #ee9bbb;
+    --serv-souscription-soft: #45202f;
+    --serv-rachat: #f0907e;
+    --serv-rachat-soft: #45211a;
+    --serv-epargne: #c2cc72;
+    --serv-epargne-soft: #2a2d12;
+    --serv-reinvestissement: #74c6e0;
+    --serv-reinvestissement-soft: #13303b;
+    --serv-prelevement: #a9aaf0;
+    --serv-prelevement-soft: #242549;
+    --serv-provision: #d9a87c;
+    --serv-provision-soft: #3a2719;
+    --serv-garde: #d9a6c8;
+    --serv-garde-soft: #3a2435;
   }
 }
 :root[data-theme="dark"] {
@@ -363,6 +439,32 @@
   --fam-OBLIGATION_COTEE-soft: #1b2e4f;
   --fam-OPCVM: #e0b65a;
   --fam-OPCVM-soft: #332c18;
+  /* Les mêmes teintes au sombre : l'encre s'éclaircit, le fond descend.
+     Mêmes valeurs que les familles pour les sept qui en ont une. */
+  --serv-primaire: #6fcdc6;
+  --serv-primaire-soft: #0d3236;
+  --serv-sondage: #c9a3e6;
+  --serv-sondage-soft: #32224a;
+  --serv-passage: #8fb4f2;
+  --serv-passage-soft: #1b2e4f;
+  --serv-fonds: #e0b65a;
+  --serv-fonds-soft: #332c18;
+  --serv-cote: #7fd3a1;
+  --serv-cote-soft: #16331f;
+  --serv-souscription: #ee9bbb;
+  --serv-souscription-soft: #45202f;
+  --serv-rachat: #f0907e;
+  --serv-rachat-soft: #45211a;
+  --serv-epargne: #c2cc72;
+  --serv-epargne-soft: #2a2d12;
+  --serv-reinvestissement: #74c6e0;
+  --serv-reinvestissement-soft: #13303b;
+  --serv-prelevement: #a9aaf0;
+  --serv-prelevement-soft: #242549;
+  --serv-provision: #d9a87c;
+  --serv-provision-soft: #3a2719;
+  --serv-garde: #d9a6c8;
+  --serv-garde-soft: #3a2435;
   --paper: #0e1928;
   --surface: #16233a;
   --surface-2: #1d2d48;
@@ -428,8 +530,26 @@
   --zebra: #e1e6ee;
   --neutral-soft: #d9dfe8;
   /* Le vert plein porte l'encre du papier : à l'ombre d'un fond gris, il
-     faut qu'il reste assez sombre pour elle. */
-  --good: #1b7046;
+     faut qu'il reste assez sombre pour elle.
+
+     ET LE PAPIER DE « dim » N'EST PAS LE MÊME SOUS CHAQUE PALETTE — mesuré le
+     25 octobre 2026. Le vert avait été accordé sur le papier de « dim » seul,
+     #dbe1ea, où il tenait 4,63:1. Les trois palettes assombrissent ce papier
+     chacune à leur façon (#d8dce2 pour ardoise), et la pastille tombait alors
+     à 4,42:1 : sous le seuil, sur deux écrans que la garde de contraste ne
+     regardait pas — elle ne lisait pas « palettes.css ». Les deux valeurs
+     ci-dessous tiennent maintenant sur les QUATRE papiers de « dim ».
+
+     L'ORANGE EST CORRIGÉ SANS QU'AUCUNE RÈGLE NE LE DEMANDE, et c'est voulu :
+     à 3,94:1 il était le piège suivant, armé pour la première pastille pleine
+     qu'on lui aurait posée. Un jeton qui ne tient pas se répare quand on le
+     mesure, pas quand quelqu'un le subit. */
+  --good: #1a6a43;
+  --warn: #924d08;
+  /* Et le rouge, qui ne porte pas d'encre mais EN EST une : sur le second
+     fond d'ivoire en « dim », il tombait à 4,34:1. Mesuré sur les trois sols
+     des quatre « dim » — papier, surface, surface-2 — il tient 4,76:1. */
+  --crit: #a8241c;
   --gold: #b5820b;
   --gold-ink: #6f5005;
   --gold-soft: #eadfbd;

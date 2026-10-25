@@ -1,11 +1,12 @@
 import type { Dit } from "./services";
 import type { ContexteClient } from "./services";
 import type { Offer } from "./types";
-import { enSouscription, fondsListes, lignesDeLaCote } from "./listes";
+import { enSouscription, fondsListes, lignesDeLaCote, seancesAnnoncees } from "./listes";
 import { sectionDe } from "./sections";
 import { joursAvant, joursEnMots } from "./echeances";
-import { displayYield } from "./status";
-import { fmt, fmtPct } from "@/lib/format";
+import { rendementDuFonds } from "./fund-perf";
+import { displayStatus, displayYield, isActionable } from "./status";
+import { fmt, fmtDate, fmtPct } from "@/lib/format";
 
 /**
  * CE QUI ATTEND DERRIÈRE UNE TUILE DE TRADE.
@@ -53,7 +54,7 @@ export const APERCUS_PAR_TUILE = 2;
  * ouverte cette semaine, c'est une tuile sans ses deux lignes — la même règle
  * que le niveau 3 de la page d'arrivée, appliquée à l'intérieur d'une tuile.
  */
-export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClient): Apercu[] {
+export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClient, now: Date = new Date()): Apercu[] {
   /* « primaire » N'EN REÇOIT PAS, ET C'EST LE SEUL REFUS DE CETTE LISTE.
      Ses deux lignes seraient les deux prochaines séances — exactement celles
      que « Ce qui ferme bientôt » pose en tête de cette même racine, à quelques
@@ -116,9 +117,65 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
   }
 
   if (cle === "fonds") {
+    /* LE RENDEMENT, JAMAIS LA VALEUR LIQUIDATIVE — décision du dirigeant,
+       25 octobre 2026. Une VL ne se compare pas d'un fonds à l'autre : entre
+       « VL 10 820 » et « VL 12 430 », rien ne dit lequel a mieux travaillé, et
+       les deux chiffres occupaient pourtant la ligne la plus lue de la tuile.
+       La VL reste sur la fiche du fonds, où elle répond à une autre question :
+       à quel prix on entre.
+       LE CHOIX DU CHIFFRE VIT DANS `fund-perf`, pas ici : cinq endroits le
+       faisaient déjà à la main, et deux ne s'accordaient pas. */
     return fondsListes(offers)
       .slice(0, APERCUS_PAR_TUILE)
-      .map((f) => ({ nom: f.title, dit: { key: "VL {n} FCFA", params: { n: fmt(Math.round(f.fund.nav)) } } }));
+      .map((f): Apercu => {
+        const r = rendementDuFonds(f.fund, now);
+        /* Un fonds de trois mois n'a pas de rendement, et « 0,0 % » se lirait
+           comme une contre-performance : on dit ce qui manque. */
+        if (!r) return { nom: f.title, dit: { key: "pas encore d'historique" } };
+        return { nom: f.title, dit: { key: r.cleCourte, params: { r: `${r.pct > 0 ? "+" : ""}${fmtPct(r.pct, 1)}` } } };
+      });
+  }
+
+  /* CE QU'ON TROUVE À UNE SÉANCE, ET NON QUAND ELLE FERME. « Ce qui ferme
+     bientôt » porte déjà les deux prochaines clôtures en tête de cette même
+     racine ; redire le délai ici serait la seconde liste qui finit par
+     diverger. La composition, elle, n'est écrite nulle part : elle répond à
+     « qu'est-ce que j'y trouve », qui est la question d'un client qui hésite
+     à ouvrir la page. */
+  if (cle === "primaire") {
+    const seances = seancesAnnoncees(offers).filter((o) => isActionable(displayStatus(o)));
+    const parSection = [
+      ["obligations_tresor", "Obligations du Trésor"],
+      ["bons_tresor", "Bons du Trésor"],
+    ] as const;
+    return parSection
+      .map(([section, nom]) => ({ nom, n: seances.filter((o) => sectionDe(o) === section).length }))
+      .filter((x) => x.n > 0)
+      .slice(0, APERCUS_PAR_TUILE)
+      .map(({ nom, n }): Apercu => ({ nom, dit: n === 1 ? { key: "1 séance" } : { key: "{n} séances", params: { n } } }));
+  }
+
+  /* LE SONDAGE PORTE LA SÉANCE SUR LAQUELLE ON PEUT SE DIRE PRENEUR, et une
+     seule : c'est la prochaine qui décide. L'ancienne règle disait « ce n'est
+     pas un catalogue mais une intention » — vrai, et c'est justement pourquoi
+     la ligne nomme la séance et non le service. */
+  if (cle === "sondage") {
+    /* DEUX SOURCES, ET LA PREMIÈRE EST CELLE DE LA BEAC. `prochaineSeance`
+       vient du communiqué, qui fait foi ; elle est pourtant vide dès que le
+       flux ne répond pas — c'est le cas de tout le dépôt mémoire, où la tuile
+       sortait donc nue à côté d'une tuile « Adjudications » bien remplie.
+       Le repli lit les séances que la page affiche de toute façon.
+
+       ET LA DATE EST CELLE DE LA CLÔTURE, dite comme une date et non comme un
+       délai : « Ce qui ferme bientôt » compte les jours, cette ligne dit
+       jusqu'à quand on peut encore se déclarer. Ce n'est pas la même phrase,
+       et ce n'est pas le même geste. */
+    const p = ctx.prochaineSeance;
+    if (p) return [{ nom: `${p.quoi} · ${p.pays}`, dit: { key: "avant le {d}", params: { d: p.le } } }];
+    const devant = seancesAnnoncees(offers)
+      .filter((o) => isActionable(displayStatus(o)) && o.deadlineAt)
+      .sort((a, b) => a.deadlineAt.localeCompare(b.deadlineAt))[0];
+    return devant ? [{ nom: devant.title, dit: { key: "avant le {d}", params: { d: fmtDate(devant.deadlineAt) } } }] : [];
   }
 
   if (cle === "passage") {
@@ -127,6 +184,46 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
        lui-même est déjà « à activer » dans ce cas. */
     const p = ctx.partsDeFonds;
     return p ? [{ nom: p.titre, dit: { key: "{n} parts", params: { n: fmt(p.parts) } } }] : [];
+  }
+
+  /**
+   * LES SERVICES DE COMPTE PORTENT LEUR PROPRE ÉTAT, et c'est la donnée la
+   * plus personnelle de la page.
+   *
+   * Ils n'avaient rien : l'ancienne note disait « les rayons Programmer et
+   * Tenir restent des bandes, et leur état vit dans leur étiquette » — c'était
+   * vrai quand ils étaient des bandes, et faux depuis qu'ils sont des tuiles
+   * comme les autres. Un client qui a une épargne programmée doit lire son
+   * montant et son jour sans ouvrir quoi que ce soit ; c'est la règle que ce
+   * module applique déjà aux fonds et à la cote.
+   *
+   * RIEN N'EST INVENTÉ QUAND IL N'Y A RIEN : un service jamais pris rend une
+   * liste vide, et la tuile se referme sur son nom et sa ligne fixe. La phrase
+   * du service, elle, dit déjà ce qui SE PASSERAIT.
+   */
+  if (cle === "provision" && ctx.disponible > 0) {
+    return [{ nom: "Disponible pour un ordre", dit: { key: "{m} FCFA", params: { m: fmt(ctx.disponible) } } }];
+  }
+
+  if (cle === "epargne" && ctx.epargne) {
+    return [
+      { nom: ctx.epargne.destination, dit: { key: "{m} FCFA", params: { m: fmt(ctx.epargne.montant) } } },
+      /* « le {j} » SEUL A ÉTÉ REFUSÉ par le cliquet des clefs à trous, et à
+         raison : deux lettres fixes n'orientent aucun traducteur, et la même
+         clef attraperait un jour autre chose. Celle-ci existait déjà. */
+      { nom: "Prochain versement", dit: { key: "le {j} de chaque mois", params: { j: ctx.epargne.jour } } },
+    ];
+  }
+
+  if (cle === "reinvestissement" && ctx.reinvestissement) {
+    return [
+      { nom: ctx.reinvestissement.destination, dit: { key: "à chaque encaissement" } },
+      { nom: "En dessous, rien ne part", dit: { key: "{m} FCFA", params: { m: fmt(ctx.reinvestissement.plancher) } } },
+    ];
+  }
+
+  if (cle === "garde" && ctx.lignes > 0) {
+    return [{ nom: "Inscrites à votre nom", dit: ctx.lignes === 1 ? { key: "1 ligne" } : { key: "{n} lignes", params: { n: ctx.lignes } } }];
   }
 
   return [];

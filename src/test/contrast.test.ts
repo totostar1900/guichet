@@ -77,7 +77,19 @@ const contrast = contraste;
 describe("un fond et une encre dans la même règle", () => {
   it("mesure le contraste sur chaque écran, pas seulement le clair", () => {
     const screens = themes();
-    expect(Object.keys(screens).length, "un seul écran connu : la mesure ne vaut rien").toBeGreaterThan(2);
+    /**
+     * SEIZE, ET LE NOMBRE EST ÉCRIT — 25 octobre 2026.
+     *
+     * « plus de deux » laissait passer le trou qu'on vient de fermer :
+     * `ecrans()` ne lisait que « globals.css », donc quatre écrans sur seize,
+     * et les trois palettes n'étaient mesurées par personne. La garde passait
+     * au vert en regardant un quart de ce que l'application rend.
+     *
+     * Vérifié à l'envers le jour même : en neutralisant la lecture de
+     * « palettes.css », cette épreuve restait SILENCIEUSE avec son ancien
+     * plancher. Un nombre écrit est la seule chose qui le dise.
+     */
+    expect(Object.keys(screens).length, "la mesure a cessé de lire les palettes : elle ne couvre plus ce que l'application rend").toBe(16);
     const bad: string[] = [];
     for (const f of cssFiles()) {
       const css = fs.readFileSync(f, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");

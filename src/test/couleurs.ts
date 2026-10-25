@@ -56,7 +56,31 @@ export const bloc = (g: string, depuis: string): string => {
 export const jetons = (t: string): Record<string, string> =>
   Object.fromEntries([...t.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
 
-/** Tous les écrans que l'application peut rendre, jetons résolus pour chacun. */
+export const palettes = (): string => fs.readFileSync(path.join(RACINE, "src/app/palettes.css"), "utf8");
+
+/**
+ * Tous les écrans que l'application peut rendre, jetons résolus pour chacun.
+ *
+ * ELLE NE LISAIT QUE « globals.css », ET C'ÉTAIT UN TROU DE DOUZE ÉCRANS SUR
+ * SEIZE. Les trois palettes — ivoire, ardoise, encre — vivent dans
+ * « palettes.css », chacune en quatre états : clair, sombre du système,
+ * « dark » choisi, « dim » choisi. Aucune garde de couleur ne les a jamais
+ * mesurées. Le fichier des palettes dit pourtant en tête ce qui ne change pas
+ * d'une palette à l'autre — l'or, les états, les familles — ce qui est
+ * exactement la promesse qu'une mesure doit tenir.
+ *
+ * CE QUE L'ÉLARGISSEMENT A TROUVÉ LE 25 OCTOBRE 2026 : trente-deux règles sous
+ * 4,5:1, pour DEUX causes. Trente tenaient à « --gold » sur le navy d'ardoise,
+ * plus clair que celui de la maison, à 4,11:1 — un seul jeton, trente écrans
+ * fautifs. Les deux dernières à la pastille verte sur le papier de « dim »
+ * d'une palette. Les deux sont réparées dans les jetons ; cette fonction est
+ * ce qui les a rendues visibles.
+ *
+ * L'EMPILEMENT SUIT CELUI DU NAVIGATEUR, et c'est ce qui rend la mesure
+ * juste : une palette pose ses jetons PAR-DESSUS l'état de base qui lui
+ * correspond — « dark » sur le sombre, « dim » sur le dim, le bloc d'une
+ * requête média sombre sur le sombre, et le bloc nu sur le clair.
+ */
 export const ecrans = (): Record<string, Record<string, string>> => {
   const g = globals();
   const clair = jetons(bloc(g, ":root {"));
@@ -68,6 +92,20 @@ export const ecrans = (): Record<string, Record<string, string>> => {
     /* « dim » est un thème clair : la requête média sombre s'exclut elle-même. */
     const base = m[1] === "theme" && m[2] === "dark" ? out["sombre"] : clair;
     out[`${m[1]}=${m[2]}`] = { ...base, ...vars };
+  }
+
+  const p = palettes();
+  for (const m of p.matchAll(/:root\[data-palette="([\w-]+)"\](?:\[data-theme="([\w-]+)"\])?[^{]*\{/g)) {
+    const vars = jetons(bloc(p, m[0].slice(0, -1)));
+    if (Object.keys(vars).length === 0) continue;
+    const theme = m[2];
+    /* Un bloc sans « data-theme » est soit le clair, soit celui qui vit DANS la
+       requête média sombre : on le sait à la dernière accolade fermante de
+       premier niveau rencontrée avant lui. */
+    const avant = p.slice(0, m.index ?? 0);
+    const sousMedia = avant.lastIndexOf("@media (prefers-color-scheme: dark)") > avant.lastIndexOf("\n}\n");
+    const socle = theme ? (out[`theme=${theme}`] ?? clair) : sousMedia ? out["sombre"] : clair;
+    out[`palette=${m[1]}${theme ? `:${theme}` : sousMedia ? ":auto" : ""}`] = { ...socle, ...vars };
   }
   return out;
 };

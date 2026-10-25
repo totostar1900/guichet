@@ -24,21 +24,21 @@
 
 /* ---------- Ardoise : un neutre bleuté, l'or reste ---------- */
 :root[data-palette="ardoise"] {
-  --navy: #24303f;
+  --navy: #1d2632;
   --navy-2: #34435a;
-  --hero: #24303f;
-  --fill: #24303f;
-  --select: #24303f;
-  --navy-text: #24303f;
-  --box-you: #24303f;
-  --chart-out: #24303f;
+  --hero: #1d2632;
+  --fill: #1d2632;
+  --select: #1d2632;
+  --navy-text: #1d2632;
+  --box-you: #1d2632;
+  --chart-out: #1d2632;
   --paper: #f4f5f7;
   --surface: #ffffff;
   --surface-2: #eceef1;
   --line: #e2e5ea;
   --line-2: #cbd0d8;
   --zebra: #e8ebef;
-  --fam-OTA: #24303f;
+  --fam-OTA: #1d2632;
   --fam-OTA-soft: #e6e9ee;
 }
 
