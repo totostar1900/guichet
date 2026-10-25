@@ -154,9 +154,33 @@
   --fam-OPCVM: #8a6408;
   --fam-OPCVM-soft: #fbf1da;
 
-  /* UNE TEINTE PAR SERVICE : l'encre de son titre, le fond de sa tuile.
-     Décidé le 25 octobre 2026, sur demande du dirigeant : « rendre les
-     services reconnaissables vite, et tuer le bleu/blanc ultra dominant ».
+  /* UNE TEINTE PAR SERVICE, ET ELLE NE TEINT QUE SON DESSIN.
+
+     DEUX ESSAIS, ET LE SECOND EST CELUI-CI. Le premier colorait la tuile
+     entière — fond teinté, titre dans la teinte — et répondait bien à la
+     demande du matin (« reconnaissables vite, tuer le bleu/blanc ultra
+     dominant »). Verdict du dirigeant le soir, à l'écran : « c'est trop, et
+     ça ne ressemble plus au reste de l'application ». Les deux moitiés du
+     jugement comptent. Sept cartes pleines de couleur dans une application
+     qui est par ailleurs sobre ne font pas une page plus lisible : elles
+     font une page qui vient d'ailleurs.
+
+     CE QUI RESTE, ET POURQUOI ÇA SUFFIT. La reconnaissance tient au DESSIN,
+     qui est déjà propre à chaque service ; la teinte ne fait que le rendre
+     visible plus vite. Les titres passent à l'or de la maison, qui est
+     l'accent de tout le reste de l'application — ils cessent donc d'être
+     douze couleurs et redeviennent une famille. Le fond de la tuile redevient
+     la surface de la maison, et les trente-six jetons de fond teinté sont
+     partis avec : un jeton que plus rien ne lit est une ligne que personne ne
+     corrige.
+
+     LES NEUF TEINTES CLAIRES ONT ÉTÉ ASSOMBRIES EN CONSÉQUENCE. Elles étaient
+     accordées sur leur propre fond doux ; posées sur les sols de la maison,
+     huit tombaient sous 4,5:1, jusqu'à 3,57 sur « --surface-2 » du « dim »
+     d'ivoire. Un dessin est un graphique, et la norme lui demanderait 3:1 —
+     mais la maison tient 4,5 partout, et deux barèmes dans un même écran est
+     le genre d'écart que personne ne retrouve. Chacune est descendue du
+     strict nécessaire, l'angle inchangé.
 
      LES SEPT PREMIÈRES SONT CELLES DE LEUR FAMILLE DE PRODUIT, à la valeur
      près. Une tuile « Rachats du Trésor » et la pastille d'une ligne de rachat
@@ -178,30 +202,18 @@
      en « --ink-2 », qui bascule : c'est la seule paire qui dépend des deux, et
      elle est mesurée aussi. Une palette qui voudrait corriger une teinte le
      peut, comme « ardoise » le fait déjà pour « --fam-OTA ». */
-  --serv-primaire: #0f6e6a;
-  --serv-primaire-soft: #d2f0ef;
+  --serv-primaire: #0e6562;
   --serv-sondage: #6d3b8f;
-  --serv-sondage-soft: #ece2f4;
-  --serv-passage: #2a5db0;
-  --serv-passage-soft: #e1eaf8;
-  --serv-fonds: #8a6408;
-  --serv-fonds-soft: #fbf1da;
-  --serv-cote: #2c754a;
-  --serv-cote-soft: #e9f6e4;
-  --serv-souscription: #a83f65;
-  --serv-souscription-soft: #f9dde0;
-  --serv-rachat: #b03a1e;
-  --serv-rachat-soft: #fadfd6;
-  --serv-epargne: #5c6613;
-  --serv-epargne-soft: #eef0d9;
-  --serv-reinvestissement: #0e6a86;
-  --serv-reinvestissement-soft: #daeef5;
+  --serv-passage: #2757a5;
+  --serv-fonds: #745407;
+  --serv-cote: #266540;
+  --serv-souscription: #97395b;
+  --serv-rachat: #a2351c;
+  --serv-epargne: #555e11;
+  --serv-reinvestissement: #0d627b;
   --serv-prelevement: #4a4cae;
-  --serv-prelevement-soft: #e4e4f7;
-  --serv-provision: #7a5230;
-  --serv-provision-soft: #f3e7dc;
+  --serv-provision: #78502f;
   --serv-garde: #6b3a5e;
-  --serv-garde-soft: #efe6ec;
 
   --shadow: 0 1px 2px rgba(17, 24, 39, 0.06), 0 8px 24px -12px rgba(17, 24, 39, 0.14);
   /* L'echelle d'espacement.
@@ -394,32 +406,20 @@
     --fam-OBLIGATION_COTEE-soft: #1b2e4f;
     --fam-OPCVM: #e0b65a;
     --fam-OPCVM-soft: #332c18;
-    /* Les mêmes teintes au sombre : l'encre s'éclaircit, le fond descend.
-       Mêmes valeurs que les familles pour les sept qui en ont une. */
+    /* Les mêmes teintes au sombre, éclaircies : elles se posent sur les sols
+       sombres de la maison, où elles tiennent toutes sans retouche. */
     --serv-primaire: #6fcdc6;
-    --serv-primaire-soft: #0d3236;
     --serv-sondage: #c9a3e6;
-    --serv-sondage-soft: #32224a;
     --serv-passage: #8fb4f2;
-    --serv-passage-soft: #1b2e4f;
     --serv-fonds: #e0b65a;
-    --serv-fonds-soft: #332c18;
     --serv-cote: #7fd3a1;
-    --serv-cote-soft: #16331f;
     --serv-souscription: #ee9bbb;
-    --serv-souscription-soft: #45202f;
     --serv-rachat: #f0907e;
-    --serv-rachat-soft: #45211a;
     --serv-epargne: #c2cc72;
-    --serv-epargne-soft: #2a2d12;
     --serv-reinvestissement: #74c6e0;
-    --serv-reinvestissement-soft: #13303b;
     --serv-prelevement: #a9aaf0;
-    --serv-prelevement-soft: #242549;
     --serv-provision: #d9a87c;
-    --serv-provision-soft: #3a2719;
     --serv-garde: #d9a6c8;
-    --serv-garde-soft: #3a2435;
   }
 }
 :root[data-theme="dark"] {
@@ -439,32 +439,20 @@
   --fam-OBLIGATION_COTEE-soft: #1b2e4f;
   --fam-OPCVM: #e0b65a;
   --fam-OPCVM-soft: #332c18;
-  /* Les mêmes teintes au sombre : l'encre s'éclaircit, le fond descend.
-     Mêmes valeurs que les familles pour les sept qui en ont une. */
+  /* Les mêmes teintes au sombre, éclaircies : elles se posent sur les sols
+     sombres de la maison, où elles tiennent toutes sans retouche. */
   --serv-primaire: #6fcdc6;
-  --serv-primaire-soft: #0d3236;
   --serv-sondage: #c9a3e6;
-  --serv-sondage-soft: #32224a;
   --serv-passage: #8fb4f2;
-  --serv-passage-soft: #1b2e4f;
   --serv-fonds: #e0b65a;
-  --serv-fonds-soft: #332c18;
   --serv-cote: #7fd3a1;
-  --serv-cote-soft: #16331f;
   --serv-souscription: #ee9bbb;
-  --serv-souscription-soft: #45202f;
   --serv-rachat: #f0907e;
-  --serv-rachat-soft: #45211a;
   --serv-epargne: #c2cc72;
-  --serv-epargne-soft: #2a2d12;
   --serv-reinvestissement: #74c6e0;
-  --serv-reinvestissement-soft: #13303b;
   --serv-prelevement: #a9aaf0;
-  --serv-prelevement-soft: #242549;
   --serv-provision: #d9a87c;
-  --serv-provision-soft: #3a2719;
   --serv-garde: #d9a6c8;
-  --serv-garde-soft: #3a2435;
   --paper: #0e1928;
   --surface: #16233a;
   --surface-2: #1d2d48;

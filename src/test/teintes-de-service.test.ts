@@ -30,6 +30,9 @@ import { CATALOGUE } from "@/lib/domain/services";
  */
 const SERVICES = CATALOGUE.map((c) => c.cle);
 
+/** Les trois sols que la maison pose sous un dessin de service. */
+const SOLS = ["var(--surface)", "var(--surface-2)", "var(--paper)"];
+
 /** Les écrans qui rendent le thème sombre, où la seconde moitié des jetons vaut. */
 const estSombre = (nom: string): boolean => nom === "sombre" || nom.includes("dark") || nom.endsWith(":auto");
 
@@ -49,7 +52,6 @@ describe("les teintes de service", () => {
     for (const cle of SERVICES) {
       for (const [nom, t] of [["clair", clair], ["sombre (média)", sombre], ["sombre (choisi)", choisi]] as const) {
         if (!t[`--serv-${cle}`]) manquantes.push(`--serv-${cle} au ${nom}`);
-        if (!t[`--serv-${cle}-soft`]) manquantes.push(`--serv-${cle}-soft au ${nom}`);
       }
     }
     expect(manquantes, `ces services sortiront en gris, et rien ne le dira :\n  ${manquantes.join("\n  ")}`).toEqual([]);
@@ -67,14 +69,36 @@ describe("les teintes de service", () => {
   it("disent la même chose dans les deux écritures du sombre", () => {
     const { sombre, choisi } = teintes();
     const ecarts = SERVICES.flatMap((cle) =>
-      [`--serv-${cle}`, `--serv-${cle}-soft`]
+      [`--serv-${cle}`]
         .filter((j) => sombre[j] !== choisi[j])
         .map((j) => `${j} : ${sombre[j]} en média, ${choisi[j]} en thème choisi`),
     );
     expect(ecarts, `le sombre automatique et le sombre choisi ne s'accordent plus :\n  ${ecarts.join("\n  ")}`).toEqual([]);
   });
 
-  it("se lisent sur leur propre fond, sur chacun des seize écrans", () => {
+  /**
+   * LA TEINTE SE LIT SUR LES SOLS DE LA MAISON, et non sur un sol à elle.
+   *
+   * ELLE A PORTÉ SON PROPRE FOND PENDANT QUELQUES HEURES, le 25 octobre 2026,
+   * et cette épreuve mesurait alors le titre sur ce fond-là. Le dirigeant a
+   * tranché à l'écran — « trop de couleur, et ça ne ressemble plus au reste
+   * de l'application » — et c'est le bon verdict : sept aplats colorés dans
+   * une application sobre ne rendent pas la page plus lisible, ils la rendent
+   * étrangère. La teinte s'est retirée sur le dessin.
+   *
+   * CE QUE ÇA CHANGE POUR LA MESURE, et c'est tout le sujet. Tant que la
+   * tuile portait son propre fond, le rapport ne dépendait pas de la palette.
+   * Posée sur les sols de la maison, la teinte dépend des SEIZE écrans — et
+   * huit des douze tombaient alors sous le seuil, jusqu'à 3,57:1 sur
+   * « --surface-2 » du « dim » d'ivoire. Les neuf valeurs claires ont été
+   * descendues du strict nécessaire, l'angle inchangé.
+   *
+   * ET LES TROIS SOLS, PAS UN SEUL : l'écusson se pose sur « --surface-2 »,
+   * la tuile sur « --surface », et le téléphone laisse parfois voir le
+   * papier. Mesurer le sol choisi aujourd'hui, c'est reposer le piège pour le
+   * jour où l'écusson déménage d'un cran.
+   */
+  it("se lisent sur les trois sols de la maison, sur chacun des seize écrans", () => {
     const tous = ecrans();
     expect(Object.keys(tous).length, "les palettes ne sont plus lues : la contrainte du dirigeant n'est plus mesurée").toBe(16);
     const { clair, sombre } = teintes();
@@ -83,27 +107,43 @@ describe("les teintes de service", () => {
       for (const [nom, vars] of Object.entries(tous)) {
         const t = estSombre(nom) ? { ...clair, ...sombre } : clair;
         const encre = resoudre(`var(--serv-${cle})`, t);
-        const fond = resoudre(`var(--serv-${cle}-soft)`, t);
-        if (!encre || !fond) {
+        if (!encre) {
           faibles.push(`${cle} : teinte irrésoluble en ${nom}`);
           continue;
         }
-        const titre = contraste(encre, fond);
-        if (titre < SEUIL) faibles.push(`${cle} · titre ${titre.toFixed(2)}:1 en ${nom}`);
-        /* LES ENCRES DE LA MAISON POSÉES SUR CE SOL : elles basculent avec la
-           palette là où la teinte n'en dépend pas, donc ce sont les seules
-           paires qui dépendent des deux à la fois. « --ink-2 » porte la ligne
-           sous le nom d'une tuile, « --ink-3 » celle sous le nom d'une bande,
-           et c'est la plus pâle des deux : elle décide. */
-        for (const [quoi, jeton] of [["ligne de la tuile", "--ink-2"], ["ligne de la bande", "--ink-3"]] as const) {
-          const sous = resoudre(`var(${jeton})`, vars);
-          if (!sous) continue;
-          const r = contraste(sous, fond);
-          if (r < SEUIL) faibles.push(`${cle} · ${quoi} ${r.toFixed(2)}:1 en ${nom}`);
+        for (const sol of SOLS) {
+          const fond = resoudre(sol, vars);
+          if (!fond) continue;
+          const r = contraste(encre, fond);
+          if (r < SEUIL) faibles.push(`${cle} · ${sol} ${r.toFixed(2)}:1 en ${nom}`);
         }
       }
     }
-    expect(faibles, `sous ${SEUIL}:1 — la couleur du service rend son propre titre illisible :\n  ${faibles.join("\n  ")}`).toEqual([]);
+    expect(faibles, `sous ${SEUIL}:1 — le dessin d'un service ne se voit plus sur le fond de la page :\n  ${faibles.join("\n  ")}`).toEqual([]);
+  });
+
+  /**
+   * ET L'OR DES TITRES SE LIT AUSSI, sur les mêmes trois sols.
+   *
+   * C'est lui qui a remplacé les douze couleurs : douze titres de douze
+   * teintes faisaient douze familles, douze titres dorés n'en font qu'une,
+   * qui est celle de l'application entière. Un seul jeton porte donc douze
+   * titres sur deux écrans, et s'il cédait quelque part, il céderait partout
+   * à la fois — c'est exactement ce qu'une mesure doit couvrir.
+   */
+  it("laissent l'or des titres lisible partout", () => {
+    const faibles: string[] = [];
+    for (const [nom, vars] of Object.entries(ecrans())) {
+      const or = resoudre("var(--gold-ink)", vars);
+      expect(or, `l'or des titres ne se résout plus en ${nom}`).toBeTruthy();
+      for (const sol of SOLS) {
+        const fond = resoudre(sol, vars);
+        if (!fond || !or) continue;
+        const r = contraste(or, fond);
+        if (r < SEUIL) faibles.push(`${sol} ${r.toFixed(2)}:1 en ${nom}`);
+      }
+    }
+    expect(faibles, `l'or des titres passe sous ${SEUIL}:1 :\n  ${faibles.join("\n  ")}`).toEqual([]);
   });
 
   /**

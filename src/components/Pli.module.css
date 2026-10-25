@@ -42,26 +42,18 @@
 /* LE FILET D'OR, et pas une seconde boîte : le niveau se dit par un trait
    plus discret et par le retrait des lignes.
 
-   ET LE SOL DE SA TEINTE, QUAND IL EN A UNE. La teinte seule ne tient pas sur
-   n'importe quel fond — mesuré le 25 octobre 2026, et c'est net : huit des
-   douze teintes de service tombent sous 4,5:1 sur « --surface-2 » du thème
-   « dim » de la palette ivoire, jusqu'à 3,57:1. La règle est donc UNE et non
-   deux : la couleur d'un service se lit toujours sur le sol de ce service. La
-   tuile du téléphone le faisait déjà en colorant la carte entière ; la bande
-   le fait en colorant sa tête. Sans teinte, « transparent » rend exactement
-   ce que « none » rendait, et tous les autres plis de l'application sont dans
-   ce cas. */
+   SON FOND RESTE NU, et il l'est redevenu le soir du 25 octobre 2026. Il a
+   porté quelques heures le sol teinté du service, pour que la couleur du
+   titre se lise sur son propre sol ; le dirigeant a tranché à l'écran — « trop
+   de couleur, et ça ne ressemble plus au reste » — et le titre est passé à
+   l'or de la maison, qui se lit sur n'importe lequel des trois sols. La
+   question du sol teinté est donc tombée avec lui, et la marge latérale qui
+   l'accompagnait aussi. */
 .tete {
-  background: var(--teinte-soft, transparent);
+  background: none;
   border: 0;
   border-bottom: 1px solid var(--gold-line);
-  /* LA MARGE LATÉRALE N'ARRIVE QU'AVEC LA TEINTE, et c'est ce qui rend ce
-     changement sans effet ailleurs. Ce composant plie des dizaines de
-     chapitres dans toute l'application ; une marge écrite en dur ici les
-     aurait tous décalés pour l'habillage de cinq bandes de Trade. Le repli
-     vaut zéro, c'est-à-dire exactement ce qu'il y avait. */
-  padding: var(--s-5) var(--teinte-marge, 0);
-  border-radius: var(--radius) var(--radius) 0 0;
+  padding: var(--s-5) 0;
 }
 
 .nom {
@@ -73,15 +65,15 @@
   font-size: var(--t-4);
 }
 .tete .nom b {
-  /* Le titre d'un filet prend la teinte de son sujet, quand il en a une :
-     c'est ce qui fait qu'un service se reconnaît aussi vite sur l'écran large
-     que sur la tuile du téléphone, où elle colore la carte entière.
-     ET SON DEGRÉ AVEC : un titre à 12 px au-dessus d'une ligne à 11,1 n'a pas
-     de hiérarchie, et il était plus petit que la valeur d'un aperçu de la
-     tuile voisine. Les deux replis sont les degrés d'avant, pour les dizaines
-     d'autres plis de l'application qui ne portent pas de teinte. */
+  /* Le titre d'un service prend l'or de la maison et son degré, comme sur la
+     tuile du téléphone : les deux écrans nomment la même chose de la même
+     façon. Ce qui le DISTINGUE des onze autres est son dessin, à gauche.
+     Un titre à 12 px au-dessus d'une ligne à 11,1 n'avait aucune hiérarchie,
+     et il était plus petit que la valeur d'un aperçu de la tuile voisine.
+     Les trois replis sont ce qu'il y avait, pour les dizaines d'autres plis
+     de l'application, qui ne portent pas de teinte. */
   font-size: var(--teinte-titre, var(--t-3));
-  color: var(--teinte, inherit);
+  color: var(--teinte-titre-encre, inherit);
 }
 .nom small {
   display: block;

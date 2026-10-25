@@ -37,13 +37,15 @@ const svg = (d: React.ReactNode) => (
  */
 export const teinteDuService = (cle: string): React.CSSProperties =>
   ({
-    "--teinte": `var(--serv-${cle}, var(--ink))`,
-    "--teinte-soft": `var(--serv-${cle}-soft, var(--surface))`,
-    /* La bande large pose son sol teinté sur toute sa largeur : sans cette
-       marge, le texte toucherait le bord de la couleur. Elle n'arrive qu'avec
-       la teinte, pour que les dizaines d'autres plis de l'application ne
-       bougent pas d'un pixel. */
-    "--teinte-marge": "var(--s-4)",
+    /* LA TEINTE NE SERT PLUS QU'AU DESSIN. Elle a coloré la carte entière
+       pendant quelques heures le 25 octobre 2026 ; le dirigeant l'a tranché à
+       l'écran, et c'est le bon verdict : sept aplats de couleur dans une
+       application sobre ne rendent pas la page plus lisible, ils la rendent
+       étrangère. Le fond doux est parti avec, jetons compris. */
+    "--teinte": `var(--serv-${cle}, var(--gold-ink))`,
+    /* Le titre est doré, comme l'accent de toute l'application : douze
+       couleurs faisaient douze familles, l'or n'en fait qu'une. */
+    "--teinte-titre-encre": "var(--gold-ink)",
     /**
      * LE DEGRÉ D'UN SERVICE SUR L'ÉCRAN LARGE, aligné sur celui du téléphone.
      *

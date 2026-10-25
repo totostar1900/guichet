@@ -156,20 +156,22 @@
    colorée redevient un bloc uniforme » : c'est vrai d'une SEULE couleur posée
    sur toutes, et faux de douze.
 
-   LA TEINTE VIENT DU SERVICE, PAS DE LA FEUILLE. « --teinte » et
-   « --teinte-soft » sont posées en ligne par `teinteDuService`, comme les
-   familles de produits le font depuis toujours avec « --fam-c ». Cette feuille
-   ne nomme donc aucun service, et le catalogue peut en gagner un sans qu'on y
-   revienne — c'est la même règle que la rangée impaire au-dessus.
+   LA TEINTE VIENT DU SERVICE, PAS DE LA FEUILLE. « --teinte » est posée en
+   ligne par `teinteDuService`, comme les familles de produits le font depuis
+   toujours avec « --fam-c ». Cette feuille ne nomme donc aucun service, et le
+   catalogue peut en gagner un sans qu'on y revienne — c'est la même règle que
+   la rangée impaire au-dessus.
 
-   LES REPLIS SONT UNE VRAIE PAIRE, et c'est voulu : surface et encre de la
-   maison, lisibles ensemble. Un service sans teinte sort en gris, jamais en
-   couleur sur couleur.
+   SON REPLI EST L'OR DE LA MAISON : un service dont la teinte manquerait sort
+   doré, jamais invisible.
 
-   LA BORDURE SE MÉLANGE PLUTÔT QU'ELLE NE S'ÉCRIT : 30 % de la teinte sur le
-   trait de la maison suit automatiquement les deux thèmes et les quatre
-   palettes, là où un jeton de plus par service en aurait fait douze à
-   accorder deux fois. */
+   LE FOND REVIENT À LA SURFACE DE LA MAISON — second essai, le soir du même
+   jour. Le premier teintait la carte entière, et le dirigeant l'a tranché à
+   l'écran : « c'est trop, et ça ne ressemble plus au reste de l'application ».
+   Sept aplats de couleur dans une application sobre ne font pas une page plus
+   lisible, ils font une page qui vient d'ailleurs. La teinte se retire donc
+   sur le DESSIN, qui est de toute façon ce qui distingue un service, et le
+   titre prend l'or de la maison — l'accent de tout le reste. */
 .tuile {
   width: 100%;
   height: 100%;
@@ -178,9 +180,9 @@
   align-items: flex-start;
   gap: var(--s-5);
   padding: var(--s-7);
-  border: 1px solid color-mix(in srgb, var(--teinte, var(--line)) 30%, var(--line));
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--teinte-soft, var(--surface));
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   text-align: left;
@@ -188,7 +190,7 @@
 }
 .tuile:hover,
 .tuile:focus-visible {
-  border-color: var(--teinte, var(--gold-line));
+  border-color: var(--gold-line);
 }
 /* L'EN-TÊTE DOUBLE DE TAILLE : 12 px à l'origine, 20,2 maintenant, soit le
    degré « titre de section » de l'échelle. Ce qui le rend possible, ce sont
@@ -206,10 +208,14 @@
    Le chevron ferme l'héritage, et la valeur reçoit plus bas le degré qu'on
    veut vraiment lui donner.
 
-   Et maintenant que le titre est coloré, un chiffre de même taille lui
-   disputerait la première lecture : le titre nomme, la valeur renseigne. */
+   L'OR, ET NON LA TEINTE DU SERVICE. Douze titres de douze couleurs font
+   douze familles ; douze titres dorés en font une seule, qui est celle de
+   l'application entière. La distinction n'est pas perdue pour autant : elle
+   descend sur le dessin, à deux centimètres au-dessus.
+   Et un chiffre de même taille disputerait au titre la première lecture : le
+   titre nomme, la valeur renseigne. */
 .tuile > b {
-  color: var(--teinte, var(--ink));
+  color: var(--gold-ink);
   font-size: var(--t-7);
   font-weight: 600;
   line-height: 1.2;
@@ -242,19 +248,23 @@
    dorée — et, jusqu'au 25 octobre 2026, en aplat plutôt qu'au trait, donc
    illisible. Au trait et sur un fond teinté, il redevient ce qui se voit en
    premier, qui est tout ce qu'une icône a à faire. */
-/* L'ÉCUSSON PASSE DE L'OR À LA TEINTE DU SERVICE. Doré, il était le même
-   douze fois : c'est précisément ce qui ne distinguait rien. Il se pose
-   maintenant sur la surface de la maison — et non sur le fond déjà teinté de
-   la tuile, où un carré de la même couleur disparaîtrait — et le dessin y
-   prend la teinte. L'or reste le repli, pour un service sans teinte. */
+/* L'ÉCUSSON EST LE SEUL ENDROIT COLORÉ DE LA TUILE, et c'est tout le dessin
+   de la seconde version. Doré, il était le même douze fois et ne distinguait
+   rien ; teinté, il distingue — et il est assez petit pour que douze teintes
+   sur un écran restent un détail plutôt qu'un décor.
+
+   SON SOL EST LE SECOND FOND DE LA MAISON, choisi et non subi : la teinte s'y
+   lit à 4,5:1 sur les seize écrans, ce que les neuf valeurs claires ont dû
+   descendre un peu pour obtenir. L'or reste le repli, pour un service dont
+   la teinte manquerait. */
 .marque {
   display: grid;
   place-items: center;
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  background: var(--surface);
-  border: 1px solid color-mix(in srgb, var(--teinte, var(--gold-line)) 35%, var(--line));
+  background: var(--surface-2);
+  border: 1px solid var(--line);
   color: var(--teinte, var(--gold-ink));
 }
 .marque svg {
