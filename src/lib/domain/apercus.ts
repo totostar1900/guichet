@@ -69,6 +69,39 @@ export const APERCUS_PAR_TUILE = 2;
 export const nomDeLigne = (o: Pick<Offer, "title">): string => o.title.split(" : ")[0];
 
 /**
+ * LE NOM D'UN FONDS DANS UNE COLONNE DE 156 PIXELS.
+ *
+ * « FCP Harvest Actions CEMAC » fait cent cinquante pixels à lui seul : avec
+ * son chiffre à côté, la ligne passait sur deux hauteurs quoi qu'on fasse.
+ * Le dirigeant a demandé une ligne par aperçu, « quitte à abréger ».
+ *
+ * CE QUI PART EST CE QUI NE DISTINGUE RIEN. « FCP » et « SICAV » disent la
+ * forme juridique, que la tuile annonce déjà — elle s'appelle « Fonds » ;
+ * « CEMAC » et « zone CEMAC » disent la zone, qui est la seule qu'on
+ * distribue ; « parts A » dit une catégorie de parts qui n'apparaît qu'au
+ * moment de souscrire. Reste le nom propre, qui est ce qu'on cherche.
+ *
+ * AUCUNE TRONCATURE, ET C'EST LA RÈGLE DE LA MAISON depuis « FCP Trés… » :
+ * deux noms coupés au même endroit deviennent le même nom, et un aperçu qui
+ * ne distingue plus rien n'apprend rien. Ici on retire des mots entiers,
+ * connus, et le nom complet reste sur la fiche du fonds.
+ *
+ * CE QU'ON NE RETIRE PAS, ET C'EST LA LIMITE DE L'ABRÉGÉ : la CATÉGORIE.
+ * « Actions », « Obligataire », « Trésorerie » disent le risque, et une
+ * performance sans sa catégorie se compare à tort — seize pour cent sur un
+ * fonds d'actions et sept sur un fonds obligataire ne se lisent pas de la
+ * même façon. Mesuré le 25 octobre 2026 : garder la catégorie coûte sept
+ * pixels de trop dans une colonne de 156, donc une seconde hauteur pour les
+ * noms les plus longs. C'est le bon échange : une ligne de plus contre un
+ * chiffre qu'on ne peut pas mal lire.
+ */
+export function nomDeFonds(titre: string): string {
+  const sansForme = titre.replace(/^(FCP|SICAV|OPCVM)\s+/i, "");
+  const sansZone = sansForme.replace(/\s+(de la\s+)?(zone\s+)?CEMAC\b/i, "");
+  return sansZone.replace(/\s*[-·]?\s*parts?\s+[A-Z]\b/i, "").trim() || titre;
+}
+
+/**
  * CE QUE LES DEUX TUILES DES SÉANCES DISENT QUAND IL N'Y EN A AUCUNE.
  *
  * ENTRE DEUX SÉANCES, ELLES SORTAIENT NUES — un en-tête, une ligne, et un
@@ -91,11 +124,19 @@ export const nomDeLigne = (o: Pick<Offer, "title">): string => o.title.split(" :
  */
 const SANS_SEANCE: Apercu[] = [
   { nom: "Obligations du Trésor", dit: { key: "un coupon, une durée" }, prose: true },
-  { nom: "Bons du Trésor", dit: { key: "précomptés, moins d'un an" }, prose: true },
+  { nom: "Bons du Trésor", dit: { key: "précomptés, sous un an" }, prose: true },
 ];
 
+/**
+ * LE SONDAGE DIT CE QU'IL PERMET, et non ce qu'il n'est pas.
+ *
+ * Il disait « ce n'est pas un ordre » : vrai, et formulé à l'envers. Une
+ * tuile qu'on lit un jour creux est une invitation, pas un avertissement ;
+ * « sans engagement » dit la même chose et donne envie d'entrer. Demandé le
+ * soir du 25 octobre 2026, et la règle vaut pour les quatre lignes.
+ */
 const SANS_SONDAGE: Apercu[] = [
-  { nom: "Vous dites votre taux", dit: { key: "ce n'est pas un ordre" }, prose: true },
+  { nom: "Dites votre taux", dit: { key: "sans engagement" }, prose: true },
   { nom: "Avant la clôture", dit: { key: "le desk vous rappelle" }, prose: true },
 ];
 
@@ -160,7 +201,7 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
          * la tuile dit déjà « à un cours ».
          */
         const taux = tauxActuariel(o);
-        if (taux != null) return { nom: nomDeLigne(o), dit: { key: "taux {r}", params: { r: fmtPct(taux, 2) } } };
+        if (taux != null) return { nom: nomDeLigne(o), dit: { key: "{r} / an", params: { r: fmtPct(taux, 2) } } };
         return { nom: nomDeLigne(o), dit: { key: "{m} FCFA", params: { m: fmt(Math.round(o.lastPrice ?? 0)) } } };
       });
   }
@@ -211,9 +252,10 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
       .slice(0, APERCUS_PAR_TUILE)
       .map(({ f, r }): Apercu => {
         /* Un fonds de trois mois n'a pas de rendement, et « 0,0 % » se lirait
-           comme une contre-performance : on dit ce qui manque. */
-        if (!r) return { nom: f.title, dit: { key: "pas encore d'historique" } };
-        return { nom: f.title, dit: { key: r.cleCourte, params: { r: `${r.pct > 0 ? "+" : ""}${fmtPct(r.pct, 1)}` } } };
+           comme une contre-performance : on dit ce qui manque, et on le dit
+           au poids d'une phrase, puisque ce n'en est pas un chiffre. */
+        if (!r) return { nom: nomDeFonds(f.title), dit: { key: "première année en cours" }, prose: true };
+        return { nom: nomDeFonds(f.title), dit: { key: r.cleCourte, params: { r: `${r.pct > 0 ? "+" : ""}${fmtPct(r.pct, 1)}` } } };
       });
   }
 
@@ -245,7 +287,7 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
          officielle — « République du Tchad » — qui reprend à elle seule
          toute la largeur gagnée. Le premier est le nom d'usage, celui
          que le calendrier et la bande emploient déjà. */
-      .map((o): Apercu => ({ nom: `${familyShort(offerFamily(o))} · ${o.country ?? o.countryName ?? o.issuer}`, dit: { key: "taux {r}", params: { r: fmtPct(tauxActuariel(o)!, 2) } } }));
+      .map((o): Apercu => ({ nom: `${familyShort(offerFamily(o))} · ${o.country ?? o.countryName ?? o.issuer}`, dit: { key: "{r} / an", params: { r: fmtPct(tauxActuariel(o)!, 2) } } }));
     return lignes.length ? lignes : SANS_SEANCE;
   }
 
@@ -268,7 +310,7 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
       .filter((o): o is Offer => Boolean(o))
       .map((o): Apercu => ({
         nom: `${familyShort(offerFamily(o))} · ${fmtDate(o.maturityOn!, false)}`,
-        dit: { key: "taux {r}", params: { r: fmtPct(tauxActuariel(o)!, 2) } },
+        dit: { key: "{r} / an", params: { r: fmtPct(tauxActuariel(o)!, 2) } },
       }));
     if (lignes.length) return lignes;
     return SANS_SONDAGE;
@@ -279,7 +321,7 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
        part détenue. Sans part, la tuile n'a rien à annoncer — et le service
        lui-même est déjà « à activer » dans ce cas. */
     const p = ctx.partsDeFonds;
-    return p ? [{ nom: p.titre, dit: { key: "{n} parts", params: { n: fmt(p.parts) } } }] : [];
+    return p ? [{ nom: nomDeFonds(p.titre), dit: { key: "{n} parts", params: { n: fmt(p.parts) } } }] : [];
   }
 
   /**

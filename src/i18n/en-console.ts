@@ -168,7 +168,7 @@ export const EN_CONSOLE: Record<string, string> = {
   "Se dire preneur avant une séance": "Say you will be a taker ahead of an auction",
   "D'un fonds à l'autre, les deux jambes ensemble": "From one fund to another, both legs together",
   "Passer d'un fonds à l'autre": "Switching between funds",
-  "Les OPCVM de la zone, à la valeur liquidative": "The zone's funds, at net asset value",
+  "Les OPCVM de la zone, et ce qu'ils rendent": "The zone's funds, and what they return",
   "Actions et obligations cotées, à un cours": "Listed shares and bonds, at a price",
   "Un prix fixé, une fenêtre, puis la cotation": "A fixed price, a window, then listing",
   "Le Trésor reprend une ligne avant terme": "The Treasury takes a line back before term",
@@ -188,6 +188,8 @@ export const EN_CONSOLE: Record<string, string> = {
      la valeur liquidative ». La période voyage DANS la clef et non en
      paramètre : un paramètre ne passe pas par le dictionnaire. */
   "{r} sur 12 mois": "{r} over 12 months",
+  "{r} / an": "{r} / yr",
+  "première année en cours": "first year under way",
   "{r} par an depuis l'origine": "{r} a year since inception",
   "{r} par an": "{r} a year",
   "{r} sur la période": "{r} over the period",
@@ -196,13 +198,12 @@ export const EN_CONSOLE: Record<string, string> = {
   /* LE TAUX ACTUARIEL EST NOMMÉ, et pas seulement montré : il voisine sur la
      même tuile avec un cours en FCFA, et un nombre suivi d'un pour-cent sans
      rien d'autre se lirait comme n'importe quel taux. */
-  "taux {r}": "yield {r}",
   /* Le contenu des deux tuiles de séance quand il n'y en a aucune : des
      abrégés des notes de section, et non des phrases d'excuse. */
   "un coupon, une durée": "a coupon and a term",
-  "précomptés, moins d'un an": "discounted, under a year",
-  "Vous dites votre taux": "You state your rate",
-  "ce n'est pas un ordre": "this is not an order",
+  "précomptés, sous un an": "discounted, under a year",
+  "Dites votre taux": "State your rate",
+  "sans engagement": "no commitment",
   "Avant la clôture": "Before the cut-off",
   "le desk vous rappelle": "the desk calls you back",
   "Prochain versement": "Next payment",

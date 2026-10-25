@@ -315,8 +315,17 @@
      et la demande du dirigeant est qu'elles soient VISIBLES, seulement plus
      petites que le titre. La hiérarchie de la tuile tient donc en trois
      degrés et non quatre : 20,2 pour le titre, 15 pour la valeur, 12 pour la
-     ligne fixe et le nom de l'aperçu, qui se lisent au même poids. */
-  font-size: var(--t-3);
+     ligne fixe et le nom de l'aperçu, qui se lisent au même poids.
+
+     DEUX CRANS PLUS BAS DEPUIS LE SOIR DU 25 OCTOBRE 2026, et c'est la place
+     qui l'impose. Le dirigeant veut une ligne par aperçu, « quitte à
+     redimensionner ». Mesuré : à 12 px pour le nom et 15 pour la valeur, le
+     budget du nom tombe à 62 px dans une colonne de 156, soit onze
+     caractères — moins que n'importe quel nom de fonds. À 11,1 et 13,2, il
+     passe à 73. La hiérarchie, elle, ne bouge pas : le titre à 20,2, la
+     valeur au-dessus du nom, et la ligne fixe à 12 qui reste la prose de la
+     tuile. */
+  font-size: var(--t-2);
 }
 /* LE NOM SE RÉTRÉCIT, LE CHIFFRE JAMAIS. Sans « flex » écrit, les deux
    partageaient la place : le chiffre, en « nowrap », débordait de sa propre
@@ -355,8 +364,11 @@
   /* LE DEGRÉ EST ÉCRIT ICI, et il ne l'était nulle part : la valeur héritait
      les 20,2 px du titre par « .tuile b », deux niveaux plus haut. Le corps de
      lecture la laisse se lire d'un coup d'œil sans disputer la première
-     lecture au titre, qui porte maintenant la couleur. */
-  font-size: var(--t-5);
+     lecture au titre, qui porte maintenant la couleur.
+     UN CRAN PLUS BAS DEPUIS LE SOIR DU 25 OCTOBRE 2026, avec le nom : voir la
+     note du degré du nom. La valeur reste au-dessus de lui, et c'est la
+     hiérarchie qu'on protège, pas la valeur absolue. */
+  font-size: var(--t-4);
   color: var(--ink);
   overflow-wrap: normal;
   /* Le nom, lui, garde la priorité sur la place : sans quoi les deux se
@@ -376,6 +388,16 @@
 .prose b {
   font-size: var(--t-3);
   font-weight: 400;
-  color: var(--ink-2);
   text-align: left;
+}
+/* ET LA LIGNE ENTIÈRE S'EFFACE D'UN CRAN, demandé le soir du 25 octobre
+   2026 : « quand il n'y a pas de ligne active, rendre le contenu moins
+   visible, comme les sous-titres ». Un jour creux, cette ligne ne porte pas
+   une donnée du client mais une définition : elle doit se lire par celui qui
+   la cherche, et s'effacer pour celui qui balaie la page. « --ink-3 » est
+   l'encre que la maison emploie déjà pour ce rang-là, et la garde de
+   contraste descendante la mesure sur chaque fond. */
+.prose em,
+.prose b {
+  color: var(--ink-3);
 }

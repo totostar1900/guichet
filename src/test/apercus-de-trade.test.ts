@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { apercusDuService, APERCUS_PAR_TUILE } from "@/lib/domain/apercus";
+import { apercusDuService, APERCUS_PAR_TUILE, nomDeFonds } from "@/lib/domain/apercus";
 import type { ContexteClient } from "@/lib/domain/services";
 import type { Offer } from "@/lib/domain/types";
 import { SECTION_NOTE } from "@/lib/domain/sections";
@@ -107,16 +107,30 @@ describe("les aperçus des tuiles de Trade", () => {
      * performance. Un classement ne se garde qu'avec des valeurs distinctes,
      * et dans l'ordre inverse de celui du catalogue.
      */
+    /* Les noms sortent abrégés : « FCP » dit la forme juridique, que la tuile
+       annonce déjà en s'appelant « Fonds ». */
     const classes = [fonds("f1", "FCP Modeste", 10_000, 2.1), fonds("f2", "FCP Milieu", 10_000, 6.3), fonds("f3", "FCP Tête", 10_000, 11.8)];
     const rang = apercusDuService("fonds", classes, CTX);
-    expect(rang.map((a) => a.nom), "les fonds ne sont plus classés par performance").toEqual(["FCP Tête", "FCP Milieu"]);
+    expect(rang.map((a) => a.nom), "les fonds ne sont plus classés par performance").toEqual(["Tête", "Milieu"]);
 
     const perf = apercusDuService("fonds", offers, CTX);
     expect(perf.map((a) => a.dit.params?.r), "le rendement n'est plus mis en avant").toEqual(["+4,2 %", "+4,2 %"]);
     /* LA PÉRIODE EST DANS LA CLEF, PAS DANS UN PARAMÈTRE : un paramètre ne
        passe pas par le dictionnaire, et « sur 12 mois » serait sorti en
        français au milieu d'une page anglaise sans que rien ne le dise. */
-    expect(perf.map((a) => a.dit.key)).toEqual(["{r} sur 12 mois", "{r} sur 12 mois"]);
+    /* UNE SEULE UNITÉ SUR LA TUILE : « sur 12 mois » à côté de « par an » se
+       lisait comme deux périodes différentes alors que c'est la même. Les
+       trois mesures sont des taux ANNUELS ; ce qu'elles comparent diffère, et
+       cette nuance-là reste écrite en toutes lettres sur la fiche du fonds,
+       que la forme longue sert. Le cliquet tient les deux formes séparées. */
+    expect(perf.map((a) => a.dit.key)).toEqual(["{r} / an", "{r} / an"]);
+    const troisFormes = [
+      rendementDuFonds({ inceptionDate: "2021-04-01", perfSinceInceptionPct: 18.4, perf1yPct: 4.2 }, new Date("2026-10-25")),
+      rendementDuFonds({ inceptionDate: "2021-04-01", perfSinceInceptionPct: 18.4 }, new Date("2026-10-25")),
+      rendementDuFonds({ inceptionDate: "2026-09-01", perfSinceInceptionPct: 1, variationPct: 0.4 }, new Date("2026-10-25")),
+    ];
+    expect(troisFormes.map((x) => x?.cleCourte), "les trois mesures ne disent plus la même unité sur une tuile").toEqual(["{r} / an", "{r} / an", "{r} / an"]);
+    expect(new Set(troisFormes.map((x) => x?.cle)).size, "les formes longues se sont confondues : la nuance des fiches est perdue").toBe(3);
     expect(JSON.stringify(perf), "la valeur liquidative est revenue sur la tuile").not.toMatch(/VL|10 412|12 980/);
     /* Et sans historique, une absence dite plutôt qu'un zéro : « 0,0 % » se
        lirait comme une contre-performance. */
@@ -124,7 +138,11 @@ describe("les aperçus des tuiles de Trade", () => {
        sans douze mois d'historique se construit donc à la main. */
     const sansDouzeMois = { ...(fonds("f3", "FCP Nouveau", 10_000) as unknown as { fund: Record<string, unknown> }).fund, perf1yPct: undefined };
     const jeune = apercusDuService("fonds", [{ id: "f3", title: "FCP Nouveau", kind: "FONDS", status: "live", version: 1, fund: sansDouzeMois } as unknown as Offer], CTX, new Date("2026-10-25"));
-    expect(jeune[0].dit.key, "sans douze mois d'historique, l'annualisé ne prend pas le relais").toBe("{r} par an");
+    /* Sur la tuile les trois mesures disent « / an » ; c'est la forme LONGUE
+       qui garde la nuance, et c'est elle qu'on vérifie ici. */
+    expect(jeune[0].dit.key, "la tuile ne dit plus la même unité pour les trois mesures").toBe("{r} / an");
+    expect(rendementDuFonds({ inceptionDate: "2021-04-01", perfSinceInceptionPct: 18.4 }, new Date("2026-10-25"))?.cle,
+      "sans douze mois d'historique, l'annualisé ne prend plus le relais").toBe("{r} par an depuis l'origine");
     /* LA TUILE PREND LA FORME COURTE, et la longue reste pour les fiches.
        Mesuré à l'écran : « +1,4 % par an depuis l'origine » occupe deux
        lignes dans la colonne d'une tuile, là où cette case est celle d'un
@@ -132,10 +150,10 @@ describe("les aperçus des tuiles de Trade", () => {
        sens comme dans l'autre, casse l'un des deux écrans. */
     expect(rendementDuFonds({ inceptionDate: "2021-04-01", perfSinceInceptionPct: 18.4 }, new Date("2026-10-25"))).toMatchObject({
       cle: "{r} par an depuis l'origine",
-      cleCourte: "{r} par an",
+      cleCourte: "{r} / an",
     });
     const part = apercusDuService("passage", offers, { ...CTX, partsDeFonds: { titre: "FCP Trésorerie", parts: 190 } });
-    expect(part, "la part détenue ne paraît plus sous « Passage »").toEqual([{ nom: "FCP Trésorerie", dit: { key: "{n} parts", params: { n: "190" } } }]);
+    expect(part, "la part détenue ne paraît plus sous « Passage »").toEqual([{ nom: "Trésorerie", dit: { key: "{n} parts", params: { n: "190" } } }]);
   });
 
   /* DEUX AU PLUS : trois lignes sous une tuile en font une liste, et la racine
@@ -158,7 +176,7 @@ describe("les aperçus des tuiles de Trade", () => {
        qui ouvre la page un jour sans séance est celui qui ne sait pas encore
        ce qu'est un sondage. Ce qu'elles ne font PAS : annoncer une séance. */
     const muet = apercusDuService("sondage", [cotee("a1", "SEMC")], CTX);
-    expect(muet.map((a) => a.nom), "le repli du sondage a changé sans qu'on le dise").toEqual(["Vous dites votre taux", "Avant la clôture"]);
+    expect(muet.map((a) => a.nom), "le repli du sondage a changé sans qu'on le dise").toEqual(["Dites votre taux", "Avant la clôture"]);
     expect(JSON.stringify(muet), "le repli annonce une séance là où il n'y en a aucune").not.toMatch(/séance|taux de|%/);
     expect(apercusDuService("epargne", [cotee("a1", "SEMC")], CTX), "les rayons en bandes ont pris un aperçu").toEqual([]);
   });
@@ -205,7 +223,7 @@ describe("les aperçus des tuiles de Trade", () => {
        non la forme officielle : « République du Tchad » reprenait à lui seul
        toute la largeur que la compacité venait gagner. */
     expect(vus.map((a) => a.nom), "les deux familles ne sont plus nommées, ou plus dans cet ordre").toEqual(["OTA · Gabon", "BTA · Tchad"]);
-    expect(vus.map((a) => a.dit.key)).toEqual(["taux {r}", "taux {r}"]);
+    expect(vus.map((a) => a.dit.key)).toEqual(["{r} / an", "{r} / an"]);
     expect(vus.map((a) => a.dit.params?.r), "le taux affiché n'est plus celui que le domaine calcule").toEqual(["6,86 %", "5,24 %"]);
     expect(JSON.stringify(vus), "un délai est revenu sur la tuile, à côté de la bande qui le dit déjà").not.toMatch(/jour|clôture|dans \{|demain/i);
   });
@@ -227,7 +245,7 @@ describe("les aperçus des tuiles de Trade", () => {
     expect(vus.map((a) => a.nom)).toEqual(["Obligations du Trésor", "Bons du Trésor"]);
     /* Non vacuité : les mêmes séances OUVERTES donnent bien des taux. */
     const ouvert = new Date(Date.now() + 5 * 86_400_000).toISOString();
-    expect(apercusDuService("primaire", [ota("o2", ouvert)], CTX)[0].dit.key, "le cas nominal ne rend plus de taux : le repli ci-dessus ne prouve rien").toBe("taux {r}");
+    expect(apercusDuService("primaire", [ota("o2", ouvert)], CTX)[0].dit.key, "le cas nominal ne rend plus de taux : le repli ci-dessus ne prouve rien").toBe("{r} / an");
     /* Et le repli ne contredit pas la note de section d'où il vient. */
     expect(SECTION_NOTE.obligations_tresor, "la note des OTA ne parle plus de coupon ni de durée : le repli a dérivé").toMatch(/coupon.*durée/i);
     expect(SECTION_NOTE.bons_tresor, "la note des BTA ne parle plus de précompte : le repli a dérivé").toMatch(/[Pp]récompt/);
@@ -243,6 +261,61 @@ describe("les aperçus des tuiles de Trade", () => {
     /* Non vacuité : une vraie ligne, elle, n'est PAS de la prose. */
     const ouverte = apercusDuService("primaire", [ota("o3", new Date(Date.now() + 5 * 86_400_000).toISOString())], CTX);
     expect(ouverte[0].prose, "un taux est devenu de la prose : les deux allures ne se distinguent plus").toBeUndefined();
+  });
+
+  /**
+   * L'ABRÉGÉ D'UN NOM DE FONDS RETIRE DES MOTS, ET JAMAIS LA CATÉGORIE.
+   *
+   * « FCP Harvest Actions CEMAC » fait cent cinquante pixels : avec son
+   * chiffre, la ligne passait sur deux hauteurs quoi qu'on fasse. Partent la
+   * forme juridique — que la tuile annonce en s'appelant « Fonds » — et la
+   * zone, qui est la seule qu'on distribue.
+   *
+   * CE QUI NE PART PAS : « Actions », « Obligataire », « Trésorerie ». Ces
+   * mots disent le RISQUE, et une performance sans sa catégorie se compare à
+   * tort : seize pour cent sur un fonds d'actions et sept sur un obligataire
+   * ne se lisent pas de la même façon. Les retirer donnerait la ligne unique
+   * que le dirigeant demande ; le prix serait un chiffre qu'on peut mal lire,
+   * et ce n'est pas un bon échange.
+   *
+   * CETTE ÉPREUVE EXISTE PARCE QU'ELLE MANQUAIT : vérifié à l'envers le jour
+   * même, en coupant le nom à son premier mot, AUCUN cliquet ne tombait.
+   */
+  it("abrège les noms de fonds sans toucher à leur catégorie", () => {
+    expect(nomDeFonds("FCP Harvest Actions CEMAC"), "la forme juridique ou la zone ne partent plus").toBe("Harvest Actions");
+    expect(nomDeFonds("FCP Trésorerie Corridor")).toBe("Trésorerie Corridor");
+    expect(nomDeFonds("SICAV Contacturer Obligataire - parts A"), "la catégorie de parts ne part plus").toBe("Contacturer Obligataire");
+    /* Un nom qui ne porte aucun de ces mots sort entier. */
+    expect(nomDeFonds("Corridor Équilibre")).toBe("Corridor Équilibre");
+  });
+
+  /**
+   * LE REPLI PARLE AU POSITIF, ET IL S'EFFACE D'UN CRAN.
+   *
+   * DEUX DEMANDES DU MÊME SOIR, et la même raison derrière. Une tuile qu'on
+   * lit un jour creux est une invitation, pas un avertissement : « ce n'est
+   * pas un ordre » disait vrai à l'envers, « sans engagement » dit la même
+   * chose et donne envie d'entrer. Et le contenu doit se lire par celui qui
+   * le cherche sans arrêter celui qui balaie la page : il prend donc l'encre
+   * tertiaire, celle des sous-titres, et non celle d'une donnée.
+   *
+   * LA NÉGATION EST CE QUI SE MESURE, et c'est le plus grossier des deux
+   * signes — mais c'est celui qui s'est produit. Un cliquet qui demanderait
+   * « de l'enthousiasme » ne garderait rien.
+   */
+  it("parle au positif dans ses lignes de repli", () => {
+    const replis = [...apercusDuService("primaire", [], CTX), ...apercusDuService("sondage", [], CTX)];
+    expect(replis.length, "il n'y a plus de repli à mesurer").toBe(4);
+    const negatifs = replis.flatMap((a) => [a.nom, a.dit.key]).filter((x) => /\bn'|\bne |\bpas\b|aucun|jamais|rien/i.test(x));
+    expect(negatifs, `une ligne de repli dit ce qui N'EST PAS, là où elle doit dire ce qui est :\n  ${negatifs.join("\n  ")}`).toEqual([]);
+    /* Non vacuité : la mesure attrape bien une négation quand il y en a une. */
+    expect(/\bn'|\bne |\bpas\b/i.test("ce n'est pas un ordre"), "le filtre des négations ne détecte plus rien").toBe(true);
+
+    /* ET L'ENCRE S'EFFACE : la feuille pose « --ink-3 » sur les deux moitiés
+       de la ligne, comme les sous-titres de la maison. */
+    const css = lire("src/app/trader/Parcours.module.css");
+    const bloc = css.slice(css.indexOf(".prose em,"));
+    expect(bloc.slice(0, 120), "le repli ne s'efface plus : il se lit comme une donnée du client").toMatch(/color:\s*var\(--ink-3\)/);
   });
 
   /* LES DEUX ÉCRANS RENDENT LA MÊME DONNÉE, et c'est l'invariant que

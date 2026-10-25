@@ -153,20 +153,27 @@ export interface RendementMisEnAvant {
    */
   cle: string;
   /**
-   * LA MÊME CHOSE EN TROIS MOTS, pour la case d'un chiffre.
+   * LA MÊME CHOSE EN DEUX CARACTÈRES, pour la case d'un chiffre.
    *
    * Mesuré à l'écran le 25 octobre 2026 : « +1,4 % par an depuis l'origine »
    * occupe DEUX lignes dans la colonne d'une tuile de 188 px, et la case où
-   * il se pose est celle d'un nombre — « 183 parts », « 2,8 % de rendement ».
-   * La forme longue reste celle des fiches et du comparateur, où la nuance
-   * entre une variation sur douze mois et un taux annualisé doit être écrite
-   * en toutes lettres ; « par an » la porte suffisamment sur une tuile.
+   * il se pose est celle d'un nombre.
+   *
+   * ET LA MÊME UNITÉ POUR LES TROIS, demandée le soir même : « sur 12 mois »
+   * à côté de « par an » se lit comme deux périodes différentes alors que
+   * c'est la même — douze mois FONT un an. La nuance entre les trois mesures
+   * est réelle, mais elle porte sur ce qu'on compare, pas sur la durée : une
+   * variation sur les douze derniers mois, un taux annualisé depuis
+   * l'origine, une variation de période. Les trois sont des taux ANNUELS, et
+   * « / an » est vrai des trois. La distinction reste écrite en toutes
+   * lettres là où on la lit vraiment : la fiche du fonds et le comparateur,
+   * qui emploient la forme longue ci-dessus.
    */
   cleCourte: string;
 }
 
 export function rendementDuFonds(f: Pick<Fund, "inceptionDate" | "perfSinceInceptionPct" | "perf1yPct" | "variationPct">, now: Date): RendementMisEnAvant | null {
-  if (f.perf1yPct != null) return { pct: f.perf1yPct, nature: "douze_mois", cle: "{r} sur 12 mois", cleCourte: "{r} sur 12 mois" };
+  if (f.perf1yPct != null) return { pct: f.perf1yPct, nature: "douze_mois", cle: "{r} sur 12 mois", cleCourte: "{r} / an" };
   /* SANS DATE D'ORIGINE, PAS D'ANNUALISÉ — et le dire ici plutôt que planter.
      `fundYears` parse la date sans la vérifier, et un fonds dont la fiche
      n'est pas complète la rend vide : le calcul tombait alors sur
@@ -174,8 +181,8 @@ export function rendementDuFonds(f: Pick<Fund, "inceptionDate" | "perfSinceIncep
      blanche, pour un champ manquant. Un rendement absent est une absence,
      pas une panne. */
   const annuel = f.inceptionDate ? fundAnnualPct(f, now) : null;
-  if (annuel != null) return { pct: annuel, nature: "annualise", cle: "{r} par an depuis l'origine", cleCourte: "{r} par an" };
-  if (f.variationPct != null) return { pct: f.variationPct, nature: "variation", cle: "{r} sur la dernière période", cleCourte: "{r} sur la période" };
+  if (annuel != null) return { pct: annuel, nature: "annualise", cle: "{r} par an depuis l'origine", cleCourte: "{r} / an" };
+  if (f.variationPct != null) return { pct: f.variationPct, nature: "variation", cle: "{r} sur la dernière période", cleCourte: "{r} / an" };
   return null;
 }
 

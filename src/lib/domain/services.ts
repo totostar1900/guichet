@@ -664,7 +664,7 @@ export const SOUS: Record<string, string> = {
   primaire: "OTA et BTA : prêter aux six Trésors",
   sondage: "Se dire preneur avant une séance",
   passage: "D'un fonds à l'autre, les deux jambes ensemble",
-  fonds: "Les OPCVM de la zone, à la valeur liquidative",
+  fonds: "Les OPCVM de la zone, et ce qu'ils rendent",
   cote: "Actions et obligations cotées, à un cours",
   souscription: "Un prix fixé, une fenêtre, puis la cotation",
   rachat: "Le Trésor reprend une ligne avant terme",
