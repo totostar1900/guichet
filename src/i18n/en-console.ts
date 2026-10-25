@@ -265,7 +265,6 @@ export const EN_CONSOLE: Record<string, string> = {
   "Ce qui est mis de côté, et pour quoi": "What is set aside, and for what",
   "Cette somme reste sur votre solde : elle n'en sort qu'au règlement de l'opération, et ce qui n'est pas consommé y revient.":
     "This sum stays on your balance: it leaves only when the operation settles, and whatever is not used comes back to it.",
-  "L'alimenter": "Funding it",
   "Virez depuis un compte à votre nom, en portant ce motif. C'est lui qui rattache votre virement à votre compte : sans lui, il arrive sans nom.":
     "Transfer from an account in your name, quoting this reference. It is what attaches your transfer to your account: without it, the money arrives with no name.",
   "Motif du virement": "Transfer reference",
@@ -466,10 +465,12 @@ export const EN_CONSOLE: Record<string, string> = {
   "Parcourir les titres": "Browse the securities",
 
   /* La provision, le 24 octobre 2026 : un geste, une page. */
-  "Alimenter votre provision": "Add to your settlement balance",
+  /* Le nom de la page du 25 octobre 2026, et le mot des deux ronds qui y
+     mènent : le même verbe des deux côtés du lien. */
+  "Approvisionner votre compte": "Fund your account",
   "Placer votre provision": "Put your settlement balance to work",
   "Reprendre votre provision": "Withdraw your settlement balance",
-  "Alimenter": "Add",
+  "Approvisionner": "Fund",
   "Faire entrer ou sortir de l'argent": "Move money in or out",
   "Deux chemins. Un virement quand vous voulez, ou une somme fixe chaque mois, sans y penser.":
     "Two ways in. A transfer whenever you like, or a fixed sum every month, without thinking about it.",

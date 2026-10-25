@@ -28,6 +28,8 @@
  *      personne ne verrait passer. L'empreinte ci-dessous est ce qui l'empêche,
  *      et la base la tient unique.
  */
+import { controleDeReference, PREFIXE_REFERENCE } from "./cash";
+
 
 /** Ce que la maison fait d'un crédit reçu. */
 export type EtatDuVirement =
@@ -109,7 +111,18 @@ const motsDUnNom = (s: string): string[] =>
  * dépendre de celui qui les produit, et le cliquet vérifie que les deux
  * alphabets restent les mêmes.
  */
-export const ALPHABET_REFERENCE = "ACDEFGHJKLMNPQRTUVWXY349";
+/**
+ * L'ALPHABET RESTE DUPLIQUÉ, LE CONTRÔLE NON.
+ *
+ * Ce module reconnaissait sans rien importer : « cash.ts » fabrique, celui-ci
+ * reconnaît, et un essai garde que les deux alphabets ne divergent pas. Cette
+ * séparation tenait pour une chaîne de vingt-quatre caractères. Elle ne tient
+ * plus pour le CARACTÈRE DE CONTRÔLE : deux implémentations d'une somme
+ * pondérée qui dérivent d'un cheveu rejettent des références parfaitement
+ * valides, et aucun essai comparant deux chaînes ne l'aurait vu. Le contrôle
+ * s'importe donc, et l'alphabet reste gardé.
+ */
+export const ALPHABET_REFERENCE = "ACDEFGHJKLMNPQRTUVWXY34";
 const DANS_L_ALPHABET = (s: string) => [...s].every((c) => ALPHABET_REFERENCE.includes(c));
 
 /**
@@ -128,19 +141,52 @@ const DANS_L_ALPHABET = (s: string) => [...s].every((c) => ALPHABET_REFERENCE.in
 export function motifsCandidats(motif: string): string[] {
   const jetons = SANS_ACCENT(motif).split(/[^A-Z0-9]+/).filter(Boolean);
   const out: string[] = [];
+  /* ON POUSSE LE CORPS, ET LA FORME CANONIQUE SE REFABRIQUE. Un motif peut
+     porter l'ancienne écriture — « PR-QHDK4T », donnée à une banque avant le
+     25 octobre 2026 pour un virement permanent — ou la nouvelle. Les deux
+     désignent le même client, puisque seul le corps est dérivé de son
+     identifiant : on les ramène donc toutes deux à la forme d'aujourd'hui. */
+  /* L'ALPHABET N'EST PAS EXIGÉ ICI, et c'est délibéré : le cas « proche »
+     existe pour la référence qui en sort — un client qui écrit PR-OTLA9M a
+     voulu écrire PR-NTLA9M, et la maison le propose sans le trancher. Exiger
+     l'alphabet à la poussée tuait ce cas, qui est précisément celui où le
+     rattachement a besoin d'un humain. L'alphabet garde les jetons NUS, où il
+     sert à ne pas prendre un montant ou une date pour une référence. */
   const pousser = (six: string) => {
-    const ref = `PR-${six}`;
-    if (six.length === 6 && !out.includes(ref)) out.push(ref);
+    if (six.length !== 6) return;
+    const controle = controleDeReference(six);
+    const ref = controle ? `${PREFIXE_REFERENCE}${six}${controle}` : `${PREFIXE_REFERENCE}-${six}`;
+    if (!out.includes(ref)) out.push(ref);
   };
   jetons.forEach((jeton, i) => {
-    if (/^PR[A-Z0-9]{6}$/.test(jeton)) pousser(jeton.slice(2));
-    else if (jeton === "PR" && jetons[i + 1]) pousser(jetons[i + 1].slice(0, 6));
+    /* SEPT CARACTÈRES APRÈS « PR » : la forme d'aujourd'hui, contrôle compris.
+       On exige que le contrôle tombe juste — c'est tout son objet : une
+       référence mal recopiée se rejette ici plutôt que de partir chercher un
+       client qui n'existe pas. */
+    if (/^PR[A-Z0-9]{7}$/.test(jeton) && controleDeReference(jeton.slice(2, 8)) === jeton[8]) pousser(jeton.slice(2, 8));
+    else if (/^PR[A-Z0-9]{6}$/.test(jeton)) pousser(jeton.slice(2));
+    else if (jeton === "PR" && jetons[i + 1]) {
+      const suite = jetons[i + 1];
+      if (suite.length >= 7 && controleDeReference(suite.slice(0, 6)) === suite[6]) pousser(suite.slice(0, 6));
+      else pousser(suite.slice(0, 6));
+    }
   });
-  /* Les jetons nus viennent après : une référence préfixée dans la même ligne
-     doit gagner, puisque le client l'a écrite exprès. */
+  /* LES JETONS NUS : SIX CARACTÈRES, ET PAS SEPT.
+     Une référence préfixée dans la même ligne doit gagner, puisque le client
+     l'a écrite exprès — d'où le second passage. Mais SEULEMENT à six : un mot
+     français de sept lettres prises dans l'alphabet a une chance sur
+     vingt-quatre de passer le contrôle, et « EPARGNE » la saisit. Mesuré sur
+     le relevé d'essai : la ligne « VIR RECU ONDO JEAN PIERRE EPARGNE », qui ne
+     porte aucune référence, en sortait une. Un faux motif affiché, puis
+     proposé en quasi-correct, met l'argent d'un client au journal d'un autre,
+     et il n'existe pas de bouton pour défaire ça. La forme d'aujourd'hui porte
+     son préfixe ; sans lui, on s'en tient à l'habitude d'avant. */
   for (const jeton of jetons) if (jeton.length === 6 && DANS_L_ALPHABET(jeton)) pousser(jeton);
   return out;
 }
+
+/** Le corps d'une référence, quelle que soit son écriture : « PR-ABCDEF » comme « PRABCDEFK ». */
+export const corpsLu = (ref: string): string => ref.replace(/^PR-?/, "").slice(0, 6);
 
 /** Une substitution, une insertion ou une suppression, et pas deux. */
 function aUnCaractereDOffset(a: string, b: string): boolean {
@@ -179,9 +225,12 @@ export function resoudreLeMotif(motif: string | undefined, refs: Map<string, str
   }
   const proches: { ref: string; userId: string }[] = [];
   for (const c of candidats) {
-    const six = c.slice(3);
+    /* LE CORPS SE PREND PAR SA FORME, PLUS PAR SA POSITION. « slice(3) »
+       coupait « PR- » ; sans tiret il emportait le premier caractère du corps,
+       et le quasi-correct comparait des morceaux décalés. */
+    const six = corpsLu(c);
     for (const [ref, userId] of refs) {
-      if (aUnCaractereDOffset(six, ref.slice(3)) && !proches.some((p) => p.ref === ref)) proches.push({ ref, userId });
+      if (aUnCaractereDOffset(six, corpsLu(ref)) && !proches.some((p) => p.ref === ref)) proches.push({ ref, userId });
     }
   }
   return proches.length ? { kind: "proche", candidats: proches } : { kind: "aucune" };
@@ -353,7 +402,11 @@ export function lireLeReleve(texte: string): { lignes: LigneLue[]; illisibles: s
     const payer = ligne
       .replace(ISO, " ")
       .replace(MOIS_JOUR_AN, " ")
-      .replace(/\bPR[\s-]?[A-Z0-9]{6}\b/gi, " ")
+      /* SIX OU SEPT CARACTÈRES APRÈS « PR » : la forme d'aujourd'hui porte un
+         caractère de contrôle de plus que celle d'avant le 25 octobre 2026, et
+         les deux arrivent encore dans les relevés. Six seuls laissaient le
+         contrôle collé au nom du donneur d'ordre — « NITCHEU GEORGES P ». */
+      .replace(/\bPR[\s-]?[A-Z0-9]{6,7}\b/gi, " ")
       .replace(/\d[\d\s.,']*\d|\d/g, " ")
       .replace(/\b(VIR|VIREMENT|RE[CÇ]U|CREDIT|TRANSFERT|PROVISION|EPARGNE|POUR|DE|DU)\b/gi, " ")
       .replace(/[^A-Za-zÀ-ÿ' -]+/g, " ")

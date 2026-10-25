@@ -241,7 +241,12 @@ describe("la référence de provision", () => {
     const { referenceDeProvision } = await import("@/lib/domain/cash");
     expect(referenceDeProvision("u-1")).toBe(referenceDeProvision("u-1"));
     expect(referenceDeProvision("u-1")).not.toBe(referenceDeProvision("u-2"));
-    expect(referenceDeProvision("3553a84b-09c6-45d7-9835-28ceb365e585")).toMatch(/^PR-[A-Z0-9]{6}$/);
+    /* LETTRES ET CHIFFRES, RIEN D'AUTRE. Le tiret est parti le 25 octobre
+       2026 : un champ de motif bancaire n'accepte pas toujours la ponctuation,
+       et le lecteur de relevés notait déjà que la banque du client la mange.
+       La forme canonique est donc celle qui arrive vraiment. */
+    expect(referenceDeProvision("3553a84b-09c6-45d7-9835-28ceb365e585")).toMatch(/^PR[A-Z0-9]{7}$/);
+    for (let i = 0; i < 200; i += 1) expect(referenceDeProvision(`c-${i}`), "un séparateur est revenu dans la référence").toMatch(/^[A-Z0-9]+$/);
   });
 
   it("n'emploie aucun caractère qu'on confond en recopiant", async () => {
@@ -249,7 +254,55 @@ describe("la référence de provision", () => {
     /* Elle se recopie à la main dans un formulaire de banque, parfois lue au
        téléphone : un zéro pris pour un O revient en paiement orphelin. */
     const interdits = /[BIOSZ01258]/;
-    for (let i = 0; i < 400; i += 1) expect(referenceDeProvision(`client-${i}`).slice(3)).not.toMatch(interdits);
+    for (let i = 0; i < 400; i += 1) expect(referenceDeProvision(`client-${i}`).slice(2)).not.toMatch(interdits);
+  });
+
+  /**
+   * LE CARACTÈRE DE CONTRÔLE, ET CE QU'IL DOIT ATTRAPER.
+   *
+   * Sans lui, une référence mal recopiée avait l'air valide et finissait en
+   * paiement orphelin. La somme est PONDÉRÉE par la position, faute de quoi
+   * une transposition passerait : intervertir deux caractères est l'erreur de
+   * recopie la plus commune après la substitution.
+   */
+  it("attrape une substitution et une transposition", async () => {
+    const { referenceDeProvision, controleDeReference, corpsDeReference } = await import("@/lib/domain/cash");
+    const ref = referenceDeProvision("u-georges");
+    const corps = corpsDeReference("u-georges");
+    expect(controleDeReference(corps), "le contrôle de la référence n'est plus le sien").toBe(ref.slice(-1));
+
+    /* Une substitution, sur chaque position du corps. */
+    const alphabet = "ACDEFGHJKLMNPQRTUVWXY349";
+    let vues = 0;
+    for (let i = 0; i < corps.length; i += 1) {
+      for (const c of alphabet) {
+        if (c === corps[i]) continue;
+        const faux = corps.slice(0, i) + c + corps.slice(i + 1);
+        if (controleDeReference(faux) !== controleDeReference(corps)) vues += 1;
+      }
+    }
+    expect(vues, "une substitution passe le contrôle").toBe(corps.length * (alphabet.length - 1));
+
+    /* Une transposition de deux caractères voisins, là où ils diffèrent. */
+    const rates: string[] = [];
+    for (let i = 0; i + 1 < corps.length; i += 1) {
+      if (corps[i] === corps[i + 1]) continue;
+      const permute = corps.slice(0, i) + corps[i + 1] + corps[i] + corps.slice(i + 2);
+      if (controleDeReference(permute) === controleDeReference(corps)) rates.push(permute);
+    }
+    expect(rates, "une transposition passe le contrôle : la somme n'est plus pondérée").toEqual([]);
+  });
+
+  /* L'ANCIENNE ÉCRITURE SE RATTACHE ENCORE AU MÊME CLIENT. Un client qui l'a
+     donnée à sa banque pour un virement permanent continue de l'envoyer. */
+  it("reconnaît encore la forme d'avant, et au même client", async () => {
+    const { referenceDeProvision, referenceHeritee } = await import("@/lib/domain/cash");
+    const { resoudreLeMotif } = await import("@/lib/domain/virement");
+    const refs = new Map([[referenceDeProvision("u-georges"), "u-georges"]]);
+    for (const ecrite of [referenceDeProvision("u-georges"), referenceHeritee("u-georges"), referenceHeritee("u-georges").replace("-", "")]) {
+      const r = resoudreLeMotif(`VIR RECU PROVISION ${ecrite}`, refs);
+      expect(r.kind === "exacte" && r.userId, `« ${ecrite} » ne se rattache plus à son client`).toBe("u-georges");
+    }
   });
 
   it("ne dit ni le nom, ni le montant : un motif de virement voyage chez un tiers", async () => {

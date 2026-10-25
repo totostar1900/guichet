@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { referenceDeProvision } from "@/lib/domain/cash";
-import { ALPHABET_REFERENCE, anciennete, empreinte, intituleConcordant, lireLeReleve, motifsCandidats, peutRestituer, resoudreLeMotif, verdictDuVirement, type Resolution } from "@/lib/domain/virement";
+import { ALPHABET_REFERENCE, anciennete, corpsLu, empreinte, intituleConcordant, lireLeReleve, motifsCandidats, peutRestituer, resoudreLeMotif, verdictDuVirement, type Resolution } from "@/lib/domain/virement";
 
 /**
  * LE TRAITEMENT DES VIREMENTS ENTRANTS.
@@ -55,7 +55,12 @@ describe("du motif au client", () => {
   it("propose, sans trancher, quand un caractère diffère", () => {
     /* Le cas mesuré : nos références n'emploient ni O ni 0, donc un motif qui
        en porte un est une faute de recopie, pas une autre référence. */
-    const faute = `PR-O${MOI.slice(4)}`;
+    /* LA FAUTE SE FABRIQUE SUR LE CORPS, pas sur la chaîne rendue. Elle
+       s'écrivait « PR-O${MOI.slice(4)} », ce qui supposait la disposition
+       d'avant le 25 octobre 2026 : depuis que le rendu porte un caractère de
+       contrôle, cette chirurgie produisait un autre corps, et l'épreuve ne
+       jugeait plus ce qu'elle annonce. */
+    const faute = `PR-O${corpsLu(MOI).slice(1)}`;
     const r = resoudreLeMotif(faute, refs);
     expect(r.kind).toBe("proche");
     expect(r.kind === "proche" && r.candidats.map((c) => c.ref)).toEqual([MOI]);

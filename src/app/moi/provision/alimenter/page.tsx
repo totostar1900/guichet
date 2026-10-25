@@ -15,11 +15,11 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Alimenter votre provision") };
+  return { title: t("Approvisionner votre compte") };
 }
 
 /**
- * FAIRE ENTRER L'ARGENT : LES DEUX CHEMINS, ET RIEN D'AUTRE.
+ * APPROVISIONNER VOTRE COMPTE : LES DEUX CHEMINS, ET RIEN D'AUTRE.
  *
  * Ce bloc était le premier de quatre gestes empilés sur la page de la
  * provision : le motif, le bénéficiaire, la banque, le RIB, quatre boutons
@@ -28,9 +28,28 @@ export async function generateMetadata() {
  * compte, souscrire un fonds et demander un virement n'ont en commun que le
  * solde qu'ils déplacent : trois gestes sans rapport sur un écran.
  *
- * LE MOTIF EST LA SEULE CHOSE QUI COMPTE ICI, et c'est pour cela qu'il est en
- * tête, seul dans son encadré : un virement qui arrive sans lui arrive sans
- * nom, et il faut alors le retrouver à la main.
+ * LE NOM DE LA PAGE, LE 25 OCTOBRE 2026. « L'alimenter » est le mot de la
+ * maison pour ce qu'elle fait d'une provision ; « approvisionner son compte »
+ * est celui du client, et c'est le client qui cherche la page. Les deux ronds
+ * qui y mènent ont suivi le verbe : une pastille qui dit « Alimenter » et une
+ * page qui répond « Approvisionner » coûtent un essai, et un essai sur un
+ * geste d'argent coûte la confiance.
+ *
+ * CE QUI SÉPARE LES DEUX CHEMINS N'EST PAS LEUR RYTHME, C'EST QUI AGIT.
+ * « une fois » contre « chaque mois » laissait lire deux réglages du même
+ * geste. Un virement part de la banque DU CLIENT, à son initiative, et la
+ * maison ne fait que le reconnaître à son arrivée ; un prélèvement part de LA
+ * MAISON, sur une autorisation que le client a signée. C'est la seule chose
+ * qu'il faut avoir comprise avant de choisir, et elle est désormais écrite
+ * sous chaque titre.
+ *
+ * LE MOTIF EST DESCENDU DANS LA LISTE, EN DERNIER. Il était seul dans un
+ * encadré doré, au-dessus du bénéficiaire et du RIB : la place de ce qui
+ * compte le plus, mais pas celle où l'on s'en sert. Un formulaire de banque
+ * demande le bénéficiaire, puis la banque, puis le RIB, puis le motif ; les
+ * quatre lignes se recopient maintenant dans cet ordre. Il garde sa teinte et
+ * sa marque d'obligatoire sur sa ligne, parce qu'un virement qui arrive sans
+ * lui arrive sans nom, et qu'il faut alors le retrouver à la main.
  *
  * LE PRÉLÈVEMENT SE MONTRE MÊME SANS MANDAT : une porte qui n'apparaît qu'à
  * ceux qui l'ont déjà franchie n'ouvre sur personne. Il se CHANGE là où il
@@ -55,7 +74,7 @@ export default async function AlimenterPage() {
           /* Le retour dit « Votre provision » : le sur-titre dit la famille,
              pas le même mot — c'est celui que porte la page du solde. */
           surTitre={t("Votre argent chez nous")}
-          titre={t("L'alimenter")}
+          titre={t("Approvisionner votre compte")}
           phrase={t("Deux chemins. Un virement quand vous voulez, ou une somme fixe chaque mois, sans y penser.")}
           aCote={mandat ? <span className={`${styles.etiq} ${styles.etiqOn}`}>{t("Prélèvement actif")}</span> : undefined}
         />
@@ -65,13 +84,9 @@ export default async function AlimenterPage() {
             <h2>
               {t("Par virement")} <span>{t("une fois")}</span>
             </h2>
-            <div className={styles.motif}>
-              <span>
-                {t("Motif du virement")}
-                <b className="mono">{reference}</b>
-              </span>
-              <Copier valeur={reference} quoi={t("le motif du virement")} />
-            </div>
+            {/* QUI AGIT, et non à quel rythme : c'est la seule chose à avoir
+                comprise avant de choisir entre les deux chemins. */}
+            <p className={styles.qui}>{t("C'est vous qui l'envoyez, depuis votre banque, quand vous voulez. Nous le reconnaissons à son arrivée.")}</p>
             <dl className={styles.coord}>
               <div>
                 <dt>{t("Bénéficiaire")}</dt>
@@ -97,14 +112,29 @@ export default async function AlimenterPage() {
                   <Copier valeur={SETTLEMENT.iban} quoi={t("le RIB")} />
                 </dd>
               </div>
+              {/* LE MOTIF EN DERNIER : c'est son rang dans le formulaire de la
+                  banque. Et marqué, parce que c'est la seule des quatre lignes
+                  qu'on ne peut pas omettre. */}
+              <div className={styles.ligneMotif}>
+                <dt>
+                  {t("Motif du virement")} <span>{t("obligatoire")}</span>
+                </dt>
+                <dd>
+                  <b className="mono">{reference}</b>
+                  <Copier valeur={reference} quoi={t("le motif du virement")} />
+                </dd>
+              </div>
             </dl>
-            <p className={styles.avert}>{t("Le motif rattache votre virement à votre compte : sans lui, il arrive sans nom. Le compte émetteur doit être au vôtre.")}</p>
+            <p className={styles.avert}>
+              {t("Les quatre lignes se recopient dans cet ordre dans le formulaire de votre banque.")} {t("Le motif rattache votre virement à votre compte : sans lui, il arrive sans nom. Le compte émetteur doit être au vôtre.")}
+            </p>
           </div>
 
           <div className={styles.chemin}>
             <h2>
               {t("Par prélèvement")} <span>{t("chaque mois")}</span>
             </h2>
+            <p className={styles.qui}>{t("C'est nous qui le prenons, sur votre compte en banque, sur une autorisation que vous avez signée.")}</p>
             {mandat ? (
               <>
                 <div className={styles.encadre}>

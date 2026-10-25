@@ -89,6 +89,56 @@ describe("les gestes", () => {
     expect(src).toMatch(/\{mandat \? \(/);
   });
 
+  /* LE 25 OCTOBRE 2026 : CE QUI SÉPARE LES DEUX CHEMINS, ET LE RANG DU MOTIF.
+     « une fois » contre « chaque mois » ne disait qu'un rythme ; ce qui change
+     entre un virement et un prélèvement, c'est de quelle banque part l'ordre
+     et qui le donne. Et le motif, qui tenait un encadré doré au-dessus du
+     bénéficiaire, est descendu au rang qu'il occupe dans le formulaire de la
+     banque — dernier des quatre. */
+  it("dit qui agit sur chacun des deux chemins", () => {
+    const src = code(ALIMENTER);
+    expect(src, "le chemin du virement ne dit plus que c'est le client qui l'envoie").toContain("C'est vous qui l'envoyez");
+    expect(src, "le chemin du prélèvement ne dit plus que c'est la maison qui le prend").toContain("C'est nous qui le prenons");
+    /* Non vacuité : les deux chemins sont bien les deux cases de la page, et
+       c'est sous leur titre que ces deux phrases se posent. */
+    expect((src.match(/styles\.chemin\b/g) ?? []).length, "les deux chemins ne sont plus deux").toBe(2);
+    expect((src.match(/styles\.qui\b/g) ?? []).length, "une des deux phrases a perdu son créneau").toBe(2);
+  });
+
+  /* LE VERBE DE LA PAGE EST CELUI DES LIENS QUI Y MÈNENT. La page s'appelait
+     « L'alimenter », du nom que la maison donne au geste ; elle s'appelle
+     « Approvisionner votre compte », du nom que le client lui donne. Deux
+     ronds l'ouvrent, l'un sur la provision, l'autre en tête de Trade : un
+     rond qui annonce un verbe et une page qui en répond un autre coûtent un
+     essai, et l'essai porte sur un geste d'argent. */
+  it("nomme la page du verbe que portent les liens vers elle", () => {
+    expect(code(ALIMENTER), "le titre de la page n'est plus celui du 25 octobre 2026").toContain('titre={t("Approvisionner votre compte")}');
+    for (const f of [PAGE, "src/app/trader/page.tsx"]) {
+      const src = code(f);
+      expect(src, `${f} ne mène plus à la page : il n'y a plus de verbe à comparer`).toContain('href="/moi/provision/alimenter"');
+      expect(src, `${f} ouvre la page en l'annonçant d'un autre verbe`).toMatch(/<b>\{t\("Approvisionner"\)\}<\/b>/);
+    }
+  });
+
+  it("recopie les coordonnées dans l'ordre du formulaire, motif en dernier", () => {
+    const src = code(ALIMENTER);
+    /* L'aiguille se compose par JSON.stringify, et non en interpolant la
+       variable entre les guillemets de l'appel : écrite en clair, elle
+       ressemble trait pour trait à un appel au traducteur portant une clef
+       non traduite, et la garde des chaînes sans anglais la relève comme
+       telle — elle lit le texte du fichier, commentaires compris. */
+    const rangs = ["Bénéficiaire", "Banque du bénéficiaire", "RIB / IBAN", "Motif du virement"].map((d) => src.indexOf(`t(${JSON.stringify(d)})`));
+    expect(rangs.every((i) => i > 0), `une ligne des coordonnées a disparu : ${JSON.stringify(rangs)}`).toBe(true);
+    expect([...rangs].sort((a, b) => a - b), "l'ordre des quatre lignes n'est plus celui du formulaire de banque").toEqual(rangs);
+    /* L'ENCADRÉ DORÉ EN TÊTE NE REVIENT PAS : il mettait le motif avant le
+       bénéficiaire, c'est-à-dire avant le rang où l'on s'en sert. */
+    expect(src, "le motif a retrouvé un encadré à lui, hors de la liste").not.toContain("styles.motif");
+    expect(lire("src/app/moi/provision/page.module.css"), "la feuille garde la règle de l'encadré doré du motif").not.toMatch(/^\.motif\b/m);
+    /* La marque d'obligatoire reste : c'est la seule des quatre lignes qu'un
+       client ne peut pas omettre sans que son argent arrive sans nom. */
+    expect(src, "le motif a perdu sa marque d'obligatoire").toMatch(/styles\.ligneMotif[\s\S]{0,300}obligatoire/);
+  });
+
   it("le montant du placement se choisit, et ne dépasse pas le disponible", () => {
     /* « Tout ou rien » n'était pas un choix : on plaçait tout, ou on
        renonçait. Et un montant au-delà du disponible serait refusé à la
@@ -130,7 +180,10 @@ describe("les gestes", () => {
   it("écrit le mot sous chaque pastille", () => {
     const src = lire(PAGE);
     const nav = src.slice(src.indexOf("styles.pastilles"));
-    for (const mot of ["Alimenter", "Reprendre"]) {
+    /* « Approvisionner » depuis le 25 octobre 2026 : le mot du rond est celui
+       du titre de la page qu'il ouvre, sans quoi le lecteur cherche s'il est
+       au bon endroit. */
+    for (const mot of ["Approvisionner", "Reprendre"]) {
       expect(nav, `la pastille « ${mot} » a perdu son mot`).toMatch(new RegExp(`<b>\\{t\\("${mot}"\\)\\}</b>`));
     }
   });

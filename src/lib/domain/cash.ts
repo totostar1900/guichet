@@ -295,8 +295,66 @@ export function mayHold(entry: Pick<CashEntry, "kind" | "intentId">, policy: Cas
  * à la main dans un formulaire de banque, parfois lue au téléphone, et un zéro
  * pris pour un O revient en paiement orphelin, c'est-à-dire en rien.
  */
-const REF_PROVISION = "ACDEFGHJKLMNPQRTUVWXY349";
-export function referenceDeProvision(userId: string): string {
+/**
+ * VINGT-TROIS CARACTÈRES, ET PAS VINGT-QUATRE — le « 9 » est parti.
+ *
+ * Il écartait déjà B, I, O, S, Z, 0, 1, 2, 5, 8, qu'on confond en recopiant.
+ * Le vingt-quatrième est tombé le 25 octobre 2026 pour une raison arithmétique
+ * et non typographique : AVEC UN MODULO PAIR, UNE SOMME PONDÉRÉE NE PEUT PAS
+ * ATTRAPER À LA FOIS TOUTES LES SUBSTITUTIONS ET TOUTES LES TRANSPOSITIONS.
+ * Les poids doivent être premiers avec le modulo, donc impairs ; leurs
+ * différences sont alors paires, et une transposition passe. Mesuré : avec 24
+ * et les poids 2 à 7, onze substitutions sur cent trente-huit passaient.
+ *
+ * Vingt-trois est premier. Avec les poids 1 à 6, toute substitution et toute
+ * transposition changent le contrôle — vérifié exhaustivement par un essai.
+ */
+const REF_PROVISION = "ACDEFGHJKLMNPQRTUVWXY34";
+
+/**
+ * LE PRÉFIXE, ET L'ABSENCE DE SÉPARATEUR.
+ *
+ * La référence s'écrivait « PR-QHDK4T ». Le tiret est parti le 25 octobre
+ * 2026 : un champ de motif bancaire n'accepte pas toujours la ponctuation, et
+ * le lecteur de relevés de la maison notait déjà que « la banque du client
+ * mange la ponctuation, et c'est le cas le plus fréquent après le motif
+ * juste ». La forme canonique est donc devenue celle qui arrive vraiment —
+ * lettres et chiffres, rien d'autre.
+ */
+export const PREFIXE_REFERENCE = "PR";
+
+/**
+ * LE CARACTÈRE DE CONTRÔLE, ET POURQUOI IL EST PONDÉRÉ.
+ *
+ * Une référence se recopie à la main dans un formulaire de banque et se lit
+ * parfois au téléphone. L'alphabet écarte déjà les caractères qu'on confond,
+ * mais rien ne rattrapait une faute de frappe : une référence fautive avait
+ * l'air valide et finissait en paiement orphelin — c'est-à-dire en rien.
+ *
+ * LA SOMME EST PONDÉRÉE PAR LA POSITION, faute de quoi une transposition
+ * passerait : « ACDEF » et « CADEF » ont la même somme simple, et intervertir
+ * deux caractères est l'erreur de recopie la plus commune après la
+ * substitution. Le modulo est premier (vingt-trois) pour que les deux classes
+ * d'erreur soient attrapées ensemble — voir l'alphabet.
+ */
+export function controleDeReference(corps: string): string {
+  let somme = 0;
+  for (let i = 0; i < corps.length; i += 1) {
+    const v = REF_PROVISION.indexOf(corps[i]);
+    if (v < 0) return "";
+    somme += (i + 1) * v;
+  }
+  return REF_PROVISION[somme % REF_PROVISION.length];
+}
+
+/**
+ * LE CORPS DE SIX CARACTÈRES : l'identité, que le rendu n'a pas changée.
+ *
+ * C'est lui qui est dérivé de l'identifiant, et lui seul. Le préfixe et le
+ * contrôle sont de la mise en forme — d'où le fait qu'une référence écrite à
+ * l'ancienne se rattache encore au même client sans rien migrer.
+ */
+export function corpsDeReference(userId: string): string {
   let h = 2166136261;
   for (let i = 0; i < userId.length; i += 1) {
     h ^= userId.charCodeAt(i);
@@ -307,5 +365,22 @@ export function referenceDeProvision(userId: string): string {
     out += REF_PROVISION[h % REF_PROVISION.length];
     h = Math.floor(h / REF_PROVISION.length) + 7919 * (i + 1);
   }
-  return `PR-${out}`;
+  return out;
+}
+
+export function referenceDeProvision(userId: string): string {
+  const corps = corpsDeReference(userId);
+  return `${PREFIXE_REFERENCE}${corps}${controleDeReference(corps)}`;
+}
+
+/**
+ * LA FORME D'AVANT LE 25 OCTOBRE 2026, « PR-QHDK4T ».
+ *
+ * Elle n'est plus montrée à personne, et elle est gardée pour une raison :
+ * un client qui l'a déjà donnée à sa banque pour un virement permanent
+ * continue de l'envoyer. Le lecteur de relevés doit donc la reconnaître, et
+ * la rattacher au même client — le corps n'a pas bougé.
+ */
+export function referenceHeritee(userId: string): string {
+  return `${PREFIXE_REFERENCE}-${corpsDeReference(userId)}`;
 }

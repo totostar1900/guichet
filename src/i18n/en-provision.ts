@@ -28,10 +28,17 @@ export const EN_PROVISION: Record<string, string> = {
   "Prélèvement actif": "Direct debit active",
   "Par virement": "By transfer",
   "une fois": "once",
+  /* QUI AGIT : c'est ce qui sépare les deux chemins, et non leur rythme. */
+  "C'est vous qui l'envoyez, depuis votre banque, quand vous voulez. Nous le reconnaissons à son arrivée.":
+    "You send it yourself, from your bank, whenever you like. We recognise it on arrival.",
+  "Les quatre lignes se recopient dans cet ordre dans le formulaire de votre banque.":
+    "The four lines are copied in this order into your bank's form.",
   "Le motif rattache votre virement à votre compte : sans lui, il arrive sans nom. Le compte émetteur doit être au vôtre.":
     "The reference attaches your transfer to your account: without it, it arrives nameless. The sending account must be in your name.",
   "Par prélèvement": "By direct debit",
   "chaque mois": "every month",
+  "C'est nous qui le prenons, sur votre compte en banque, sur une autorisation que vous avez signée.":
+    "We take it ourselves, from your bank account, under an authorisation you have signed.",
   "{m} FCFA le {j} de chaque mois": "{m} FCFA on day {j} of each month",
   "Mandat signé": "Mandate signed",
   "prochain prélèvement le {d}, annoncé {n} jours avant": "next debit on {d}, announced {n} days ahead",

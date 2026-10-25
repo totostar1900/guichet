@@ -88,7 +88,7 @@ export default async function TradePage() {
           un état, et c'est pourquoi l'attente qui le reproche est retirée
           juste en dessous — voir le « sauf » de CeQuiVousAttend.
           À zéro, le chiffre se nomme au lieu de s'afficher : « 0 FCFA » se
-          lit comme une panne, et c'est justement le jour où « Alimenter »
+          lit comme une panne, et c'est justement le jour où « Approvisionner »
           sert le plus. */}
       <div className={styles.solde}>
         <Link className={styles.combien} href="/moi/provision">
@@ -107,7 +107,7 @@ export default async function TradePage() {
               <path d="M12 5v14M5 12h14" />
             </svg>
           </span>
-          <b>{t("Alimenter")}</b>
+          <b>{t("Approvisionner")}</b>
         </Link>
       </div>
 

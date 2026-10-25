@@ -312,32 +312,18 @@
   font-size: var(--t-2);
   margin-left: var(--s-4);
 }
-.motif {
-  background: var(--gold-soft);
-  border: 1px solid var(--gold-line);
-  border-radius: var(--radius);
-  padding: var(--s-5) var(--s-6);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-5);
-  flex-wrap: wrap;
-}
-.motif span {
-  display: block;
-  font-size: var(--t-1);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--gold-ink);
-}
-.motif b {
-  display: block;
-  font-size: var(--t-5);
-  letter-spacing: 0.06em;
-  margin-top: 2px;
+/* QUI AGIT, sous le titre du chemin. « une fois » contre « chaque mois » ne
+   disait qu'un rythme ; ce qui sépare un virement d'un prélèvement, c'est de
+   quelle banque part l'ordre et qui le donne. */
+.qui {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  line-height: 1.45;
 }
 
-/* Les coordonnées se recopient dans un formulaire de banque. */
+/* Les coordonnées se recopient dans un formulaire de banque, DANS CET ORDRE :
+   bénéficiaire, banque, RIB, motif. */
 .coord {
   display: grid;
   gap: 0;
@@ -371,6 +357,41 @@
 }
 .coord dd > span {
   overflow-wrap: anywhere;
+}
+
+/* LE MOTIF, DERNIÈRE LIGNE DE LA LISTE. Il avait un encadré doré à lui,
+   au-dessus du bénéficiaire et du RIB : la place de ce qui compte le plus,
+   mais pas celle où l'on s'en sert. Il garde sa teinte et sa marque sur sa
+   ligne — assez pour qu'on ne le saute pas, sans sortir de l'ordre dans
+   lequel les quatre se recopient.
+
+   Le sélecteur descend par « .coord > » : « .coord > div » pose la bordure et
+   la marge intérieure de chaque ligne, et une classe seule ne les emporte
+   pas. */
+.coord > .ligneMotif {
+  margin-top: var(--s-4);
+  padding: var(--s-5);
+  border: 1px solid var(--gold-line);
+  border-radius: var(--radius);
+  background: var(--gold-soft);
+}
+.ligneMotif dt {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  color: var(--gold-ink);
+}
+.ligneMotif dt span {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--gold-line);
+  border-radius: 999px;
+  padding: 0 var(--s-4);
+  white-space: nowrap;
+}
+.ligneMotif dd b {
+  font-size: var(--t-4);
+  letter-spacing: 0.06em;
 }
 
 /* L'état d'une chose déjà en place : un mandat signé, un versement reçu. */
@@ -434,11 +455,10 @@
 
 /* Le pied : d'où vient ce solde, et ce qu'il coûte. */
 
-@media (max-width: 760px) {
-.chemins {
-    grid-template-columns: 1fr;
-  }
-}
+/* UNE SECONDE RÈGLE POUR « .chemins » SOUS 760 PX est partie le 25 octobre
+   2026 : même seuil, même propriété, mais « 1fr » au lieu de « minmax(0,
+   1fr) », et c'est la dernière qui gagnait — donc la copie défaisait la
+   protection que la première posait. */
 @media (max-width: 680px) {
   .etats {
     grid-template-columns: 1fr;

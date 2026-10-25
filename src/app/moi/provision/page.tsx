@@ -179,7 +179,11 @@ export default async function ProvisionPage() {
                 <path d="M12 5v14M5 12h14" />
               </svg>
             </span>
-            <b>{t("Alimenter")}</b>
+            {/* LE VERBE DE LA PAGE D'ARRIVÉE, et non celui de la maison : elle
+                s'appelle « Approvisionner votre compte » depuis le 25 octobre
+                2026, et un rond qui annoncerait « Alimenter » coûterait un
+                essai pour savoir si l'on est au bon endroit. */}
+            <b>{t("Approvisionner")}</b>
           </Link>
           <Link href="/moi/provision/reprendre" className={styles.pastille}>
             <span className={styles.rond}>
