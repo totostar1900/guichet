@@ -132,6 +132,21 @@ export interface ContexteClient {
   partsDeFonds?: { titre: string; parts: number };
   /** Les fonds ouverts à la souscription, au catalogue. */
   fondsOuverts: number;
+  /**
+   * CE QUI N'EXISTE QUE PAR INTERMITTENCE, COMPTÉ POUR QUE LA TUILE PARAISSE.
+   *
+   * Une émission à prix fixé et un rachat du Trésor arrivent quelques fois par
+   * an. Une tuile permanente qui dirait « aucune en ce moment » onze mois sur
+   * douze apprend à ne plus regarder ; une tuile qui n'existe que le mois où
+   * il y en a une se remarque. Les deux comptes viennent de `listes.ts`, qui
+   * décide déjà ce que chaque page de catalogue montre.
+   *
+   * ILS SONT OBLIGATOIRES, et c'est voulu. En optionnels, un appelant qui les
+   * oublie fait disparaître deux services sans que rien ne tombe : le silence
+   * serait indiscernable d'un marché vide. Le compilateur désigne l'appelant.
+   */
+  souscriptionsOuvertes: number;
+  rachatsOuverts: number;
   /** Les actions cotées détenues. */
   actions?: { titre: string; n: number };
   /** L'argent reçu et n'attendant aucune opération. */
@@ -302,12 +317,18 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
      « Primaire » oppose au secondaire, et cette opposition n'existe que pour
      qui connaît déjà les deux. Le client, lui, voit une séance du Trésor ou
      une émission ouverte : ce sont ces deux mots-là qu'il faut dire, et ce
-     sont ceux que la barre de navigation emploie déjà. */
+     sont ceux que la barre de navigation emploie déjà.
+
+     « Adjudications » TOUT COURT depuis le 25 octobre 2026, et le Trésor
+     descend dans la ligne du dessous avec les deux sigles. Ce que le nom
+     perdait à porter « du Trésor » : rien, puisque les six Trésors sont les
+     seuls à adjuger dans la zone. Ce qu'il gagne : un mot, et la place
+     d'écrire OTA ET BTA, que l'ancien en-tête taisait. */
   out.push(
     aActiver({
       rayon: "placer",
       cle: "primaire",
-      nom: "Adjudications du Trésor",
+      nom: "Adjudications",
       href: "/calendrier",
       phrase: c.prochaineSeance
         ? { key: "Une séance {p} est annoncée le {d} : {q}.", params: { p: c.prochaineSeance.pays, d: c.prochaineSeance.le, q: c.prochaineSeance.quoi } }
@@ -317,39 +338,57 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
 
   /* SE DIRE PRENEUR, et non « sondage ». « Sondage » dit ce que la maison
      en fait ; le client, lui, se dit preneur à un taux, sans engagement, et
-     c'est le mot que la phrase du service emploie déjà. */
+     c'est le mot que la phrase du service emploie déjà.
+
+     L'EN-TÊTE GARDE POURTANT « Sondage », seul, et la ligne du dessous porte
+     le geste. « Sondage d'adjudication » nommait et expliquait du même souffle
+     — le défaut que les noms courts sont venus défaire — et « Se dire preneur
+     avant une séance » est une phrase, pas un titre : elle vit sous le nom,
+     où elle a toute la place. */
   out.push(
     c.prochaineSeance
       ? aActiver({
           rayon: "placer",
           cle: "sondage",
-          nom: "Sondage d'adjudication",
+          nom: "Sondage",
           href: "/calendrier",
           phrase: { key: "Vous pouvez dire à quel taux vous seriez preneur sur la séance du {d}, sans vous engager.", params: { d: c.prochaineSeance.le } },
         })
       : aActiver({
           rayon: "placer",
           cle: "sondage",
-          nom: "Sondage d'adjudication",
+          nom: "Sondage",
           href: "/calendrier",
           phrase: { key: "Commencez par une séance annoncée : le calendrier les publie dès qu'un Trésor ouvre la sienne." },
         }),
   );
 
-  /* 08 · Passage d'un fonds à l'autre : il faut une part à racheter. */
+  /* 08 · Passage d'un fonds à l'autre : il faut une part à racheter.
+
+     « ARBITRAGE » SEUL, ET LA LIGNE DU DESSOUS DIT « d'un fonds à l'autre ».
+     Le nom est celui qui restera : le service est destiné à couvrir d'autres
+     départs que les parts de fonds — vendre une ligne de la cote pour entrer
+     sur une autre — et un en-tête qui dirait « entre fonds » devrait alors
+     changer, ce qui déplace une tuile sous la main du client.
+     CE QU'IL NE FAUT PAS FAIRE EN ATTENDANT : écrire dans la ligne du dessous
+     une généralité que le code ne tient pas. Elle nomme donc les fonds, et
+     elle nomme la seule chose qui distingue vraiment ce service d'un rachat
+     suivi d'une souscription : LES DEUX JAMBES SE SIGNENT ENSEMBLE. Le jour
+     où un départ de la cote est possible, c'est la ligne qui s'élargit, pas
+     l'en-tête. */
   out.push(
     c.partsDeFonds
       ? aActiver({
           rayon: "placer",
           cle: "passage",
-          nom: "Arbitrage entre fonds",
+          nom: "Arbitrage",
           href: "/fonds",
           phrase: { key: "Vous détenez {n} parts de {d}, rachetables.", params: { n: c.partsDeFonds.parts, d: c.partsDeFonds.titre } },
         })
       : aActiver({
           rayon: "placer",
           cle: "passage",
-          nom: "Arbitrage entre fonds",
+          nom: "Arbitrage",
           href: "/fonds",
           phrase: { key: "Commencez par souscrire à un fonds : le passage se déclare ensuite depuis la ligne que vous détenez." },
         }),
@@ -365,7 +404,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
     aActiver({
       rayon: "placer",
       cle: "fonds",
-      nom: "Investir dans un fonds",
+      nom: "Fonds",
       href: "/fonds",
       phrase:
         c.fondsOuverts > 0
@@ -376,12 +415,30 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
 
   /* ACHETER ET VENDRE EN BOURSE, et non « courtage ». Le courtage est notre
      métier ; le client, lui, achète et vend. Nommer la fonction de la maison
-     à la place du geste est le défaut qui a touché trois noms sur dix. */
+     à la place du geste est le défaut qui a touché trois noms sur dix.
+
+     « LA COTE », ET NON « ACTIONS » : LE NOM MENTAIT SUR SA PROPRE PAGE.
+     Mesuré le 25 octobre 2026 : `/titres` rend `lignesDeLaCote`, c'est-à-dire
+     TOUT ce dont `lieuDe` dit « cote » — une action, une obligation cotée
+     d'État, deux émissions en souscription dans le dépôt de développement. Un
+     en-tête « Actions » envoyait donc l'acheteur d'obligation cotée chercher
+     ailleurs, et le seul ailleurs qui porte le mot obligation est la page des
+     adjudications, où il n'aurait trouvé que du primaire.
+     C'EST AUSSI CE QUI A FAIT ÉCARTER UNE DÉCOUPE PAR INSTRUMENT (BTA, OTA,
+     Stock, obligations cotées) le même jour : une obligation du Trésor vit
+     dans les DEUX canaux, en OTA à une séance et en ligne cotée au bulletin.
+     Deux tuiles la nommeraient toutes les deux sans qu'aucune ait tort, ce qui
+     est la signature d'une mauvaise découpe. Ce qui sépare les pages n'est pas
+     l'instrument mais la façon de l'acheter — soumettre à une séance, ou payer
+     un cours — et c'est la découpe que `sections.ts` tient depuis le 4 octobre
+     sous le titre « Trois lieux, pas trois rayons ». L'instrument reste ce
+     qu'il a toujours été ici : un filtre à l'intérieur de la page, et les
+     sections du Bulletin Officiel le portent déjà. */
   out.push(
     aActiver({
       rayon: "placer",
-      cle: "actions",
-      nom: "Actions",
+      cle: "cote",
+      nom: "La cote",
       /* UN GESTE NE MÈNE PAS À LA PAGE QUI SE LIT. « /marche » est la porte de
          l'environnement BVMAC : l'indice, les sociétés, les notes. Un service
          dont le verbe est « acheter » y déposait le client sur une page de
@@ -394,6 +451,64 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
         : { key: "Achat et vente sur la BVMAC, au dernier cours publié et à sa date." },
     }),
   );
+
+  /**
+   * DEUX SERVICES QUI NE PARAISSENT QUE LORSQU'IL Y A DE QUOI, et c'est la
+   * seule façon honnête de les offrir.
+   *
+   * CE QU'ILS ÉTAIENT. Une émission à prix fixé et un rachat du Trésor
+   * existaient déjà de bout en bout — `sectionDe` les range, `/titres` et
+   * `/calendrier` les affichent, le desk les publie depuis le Référentiel —
+   * mais AUCUNE TUILE NE LES NOMMAIT. Ils vivaient donc dans une section
+   * d'une page de catalogue qu'on n'ouvre pas pour vérifier si par hasard il y
+   * en a un. Décision du 25 octobre 2026, sur demande du dirigeant : ils
+   * deviennent des services, et ils apparaissent quand il y en a.
+   *
+   * POURQUOI PAS UNE TUILE PERMANENTE. Il y en a quelques-uns par an. Une
+   * tuile qui dirait « aucune émission en ce moment » onze mois sur douze
+   * apprend à ne plus regarder, et le douzième mois elle n'est plus lue. La
+   * rareté est l'information : une tuile qui n'est là que ce mois-là se
+   * remarque, et c'est l'inverse exact de la logique d'un écran grisé.
+   *
+   * LE RACHAT RESTE DANS « PLACER » MALGRÉ CE QU'IL EST. `SECTION_NOTE` le
+   * dit depuis le 4 octobre : « une sortie, pas un placement. » Il n'a
+   * pourtant pas sa place dans « Programmer et tenir », qui tient les
+   * instructions permanentes et la garde : un rachat est une décision de
+   * marché prise une fois, avec une date limite, annoncée sur le même canal
+   * que les séances. C'EST LA LIGNE DU DESSOUS QUI CORRIGE LE RAYON, en
+   * nommant la reprise avant terme ; sa raison d'être le redit. Sa vraie
+   * place sera la jambe de DÉPART de l'arbitrage, le jour où l'arbitrage
+   * accepte autre chose qu'une part de fonds.
+   */
+  if (c.souscriptionsOuvertes > 0) {
+    out.push(
+      aActiver({
+        rayon: "placer",
+        cle: "souscription",
+        nom: "En souscription",
+        href: "/titres",
+        phrase:
+          c.souscriptionsOuvertes === 1
+            ? { key: "Une émission est ouverte à prix fixé, avant sa cotation." }
+            : { key: "{n} émissions sont ouvertes à prix fixé, avant leur cotation.", params: { n: c.souscriptionsOuvertes } },
+      }),
+    );
+  }
+
+  if (c.rachatsOuverts > 0) {
+    out.push(
+      aActiver({
+        rayon: "placer",
+        cle: "rachat",
+        nom: "Rachats du Trésor",
+        href: "/calendrier",
+        phrase:
+          c.rachatsOuverts === 1
+            ? { key: "Le Trésor reprend une ligne avant son terme : à comparer avec les coupons qui restent." }
+            : { key: "Le Trésor reprend {n} lignes avant leur terme : à comparer avec les coupons qui restent.", params: { n: c.rachatsOuverts } },
+      }),
+    );
+  }
 
   /* L'APPARIEMENT N'EST PAS UN SERVICE, ET IL A QUITTÉ CETTE LISTE.
      La plateforme recueille les ordres et les transmet à la BVMAC, qui seule
@@ -467,11 +582,18 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
  * comparant clef pour clef, nom pour nom, porte pour porte.
  */
 export const CATALOGUE: { cle: string; nom: string; rayon: Rayon; href: string }[] = [
-  { cle: "primaire", nom: "Adjudications du Trésor", rayon: "placer", href: "/calendrier" },
-  { cle: "sondage", nom: "Sondage d'adjudication", rayon: "placer", href: "/calendrier" },
-  { cle: "actions", nom: "Actions", rayon: "placer", href: "/titres" },
-  { cle: "fonds", nom: "Investir dans un fonds", rayon: "placer", href: "/fonds" },
-  { cle: "passage", nom: "Arbitrage entre fonds", rayon: "placer", href: "/fonds" },
+  { cle: "primaire", nom: "Adjudications", rayon: "placer", href: "/calendrier" },
+  { cle: "sondage", nom: "Sondage", rayon: "placer", href: "/calendrier" },
+  { cle: "cote", nom: "La cote", rayon: "placer", href: "/titres" },
+  { cle: "fonds", nom: "Fonds", rayon: "placer", href: "/fonds" },
+  { cle: "passage", nom: "Arbitrage", rayon: "placer", href: "/fonds" },
+  /* LES DEUX INTERMITTENTS SONT AU CATALOGUE, ET C'EST LA DIFFÉRENCE ENTRE LES
+     DEUX LISTES. Le catalogue dit ce qui EXISTE — c'est ce que la recherche
+     indexe, et ce qu'un lecteur tape sans savoir si le marché en porte un
+     aujourd'hui ; `servicesDuClient` dit ce qu'on VOIT. Les taire ici rendrait
+     « rachat » introuvable au clavier onze mois sur douze. */
+  { cle: "souscription", nom: "En souscription", rayon: "placer", href: "/titres" },
+  { cle: "rachat", nom: "Rachats du Trésor", rayon: "placer", href: "/calendrier" },
   { cle: "epargne", nom: "Épargne programmée", rayon: "compte", href: "/moi/epargne" },
   { cle: "reinvestissement", nom: "Réinvestir", rayon: "compte", href: "/moi/reinvestir" },
   { cle: "prelevement", nom: "Prélèvement", rayon: "compte", href: "/moi/prelevements" },
@@ -527,12 +649,25 @@ export const CATALOGUE: { cle: string; nom: string; rayon: Rayon; href: string }
  * la raison répond à « pourquoi le prendrais-je », cette ligne à « de quoi
  * s'agit-il ». La première vit sur la fiche, la seconde sur la tuile.
  */
+/**
+ * LA LIGNE NOMME LA MARCHANDISE, ET PLUS LE MÉCANISME — 25 octobre 2026.
+ *
+ * Les cinq premières redisaient ce que l'en-tête disait déjà : « Toutes les
+ * séances annoncées » sous « Adjudications » n'apprend rien. Le client de la
+ * maison est un particulier ou une PME, pas une trésorerie de banque : il ne
+ * sait pas qu'une séance du Trésor sert des OTA et des BTA, et c'est
+ * précisément ce qu'il voulait savoir. Les sigles vont donc ICI, en
+ * reconnaissance — jamais dans l'en-tête, où ils deviendraient un examen que
+ * le lecteur peut rater avant même d'avoir cliqué.
+ */
 export const SOUS: Record<string, string> = {
-  primaire: "Toutes les séances annoncées",
+  primaire: "OTA et BTA : prêter aux six Trésors",
   sondage: "Se dire preneur avant une séance",
-  passage: "Passer d'un fonds à l'autre",
-  fonds: "Les fonds de la zone sont ouverts à la souscription",
-  actions: "Acheter et vendre sur la BVMAC",
+  passage: "D'un fonds à l'autre, les deux jambes ensemble",
+  fonds: "Les OPCVM de la zone, à la valeur liquidative",
+  cote: "Actions et obligations cotées, à un cours",
+  souscription: "Un prix fixé, une fenêtre, puis la cotation",
+  rachat: "Le Trésor reprend une ligne avant terme",
   epargne: "Une somme fixe, chaque mois",
   reinvestissement: "Les coupons repartent tout seuls",
   prelevement: "Nous prélevons, vous ne virez plus",
@@ -543,7 +678,9 @@ export const SOUS: Record<string, string> = {
 export const RAISON: Record<string, string> = {
   primaire: "Prêter à un État de la zone en achetant ses titres à l'émission, au prix de l'adjudication plutôt qu'à celui du marché.",
   sondage: "Dire au desk ce que vous prendriez avant qu'une séance ouvre, sans vous engager, pour qu'il vous rappelle au bon moment.",
-  actions: "Devenir actionnaire d'une société cotée à la BVMAC, ou revendre ce que vous détenez, au cours du marché.",
+  cote: "Acheter ou revendre au cours du marché ce qui est inscrit au bulletin de la BVMAC : les actions des sociétés, et les obligations des États, des institutions régionales et des entreprises.",
+  souscription: "Souscrire à une émission avant qu'elle soit cotée : le prix est fixé par l'émetteur et ne bouge pas pendant la fenêtre, contrairement à un cours.",
+  rachat: "Céder une ligne avant son terme quand le Trésor en offre le rachat. C'est une sortie, pas un placement : renoncer aux coupons restants se compare au rendement d'un réemploi.",
   fonds: "Confier une somme à un gérant agréé qui la répartit sur des dizaines de lignes : la diversification sans avoir à la faire soi-même.",
   passage: "Changer de fonds sans sortir de votre argent, quand votre horizon ou votre besoin de liquidité a changé.",
   epargne: "Placer une somme fixe chaque mois sans y penser : c'est la régularité qui fait le résultat, pas le moment choisi.",
@@ -560,11 +697,21 @@ export const ETAPES: Record<string, string[]> = {
     "Le desk confirme, édite le bordereau et transmet la demande avec celles des autres investisseurs.",
     "Le dépouillement dit le montant servi et le prix ; les titres sont ensuite inscrits à votre nom au dépositaire.",
   ],
-  actions: [
-    "Choisir la ligne à la cote de la BVMAC.",
+  cote: [
+    "Choisir la ligne au bulletin de la BVMAC : une action, ou une obligation d'État, d'institution régionale ou d'entreprise.",
     "Dire la quantité, et un prix limite si vous ne voulez pas acheter à n'importe quel cours.",
     "Le desk porte l'ordre au carnet.",
     "L'exécution revient avec son prix, et le règlement suit à la date du marché.",
+  ],
+  souscription: [
+    "Lire la note d'information ou le prospectus visé : c'est lui qui porte le prix, la fenêtre et ce que l'émetteur promet.",
+    "Dire le montant avant la clôture de la fenêtre.",
+    "L'allocation peut être réduite si la demande dépasse l'émission ; les titres sont inscrits à votre nom, puis la ligne est admise à la cote.",
+  ],
+  rachat: [
+    "Vous détenez la ligne que le Trésor propose de reprendre ; sans elle, il n'y a rien à présenter.",
+    "Comparer ce que le rachat rend aujourd'hui avec les coupons qui restent jusqu'au terme.",
+    "Présenter la quantité avant la date limite. Le Trésor peut n'en retenir qu'une partie, et vous gardez le reste.",
   ],
   fonds: [
     "Choisir le fonds, sa catégorie et la périodicité de sa valeur liquidative.",

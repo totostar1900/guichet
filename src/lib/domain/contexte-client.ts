@@ -7,6 +7,7 @@ import { positionsFrom } from "@/lib/positions";
 import { attendUneSignature } from "@/lib/domain/intent";
 import { conventionAReprendre } from "@/lib/kyc/checklist";
 import { cashPosition } from "@/lib/domain/cash";
+import { enSouscription, rachatsOuverts } from "@/lib/domain/listes";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { attentesDuClient, type Attente, type ContexteClient } from "@/lib/domain/services";
 import { getT } from "@/i18n/server";
@@ -64,6 +65,12 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
     lignes: positions.length,
     partsDeFonds: part ? { titre: part.offer.title, parts: part.units } : undefined,
     fondsOuverts: offers.filter((o) => o.kind === "FONDS" && o.fund?.distributed && !o.hidden).length,
+    /* LES DEUX INTERMITTENTS. Leurs tuiles ne paraissent que si ces comptes
+       sont non nuls, et les deux sélecteurs vivent dans `listes.ts` avec ceux
+       des pages qu'ils ouvrent : une tuile qui compterait autrement que sa
+       destination promettrait une ligne que la page ne montre pas. */
+    souscriptionsOuvertes: enSouscription(offers).length,
+    rachatsOuverts: rachatsOuverts(offers).length,
     actions: action ? { titre: action.offer.title, n: action.units } : undefined,
     disponible: poche.idle,
     /* Les deux devoirs : un bulletin à signer, une contre-proposition à

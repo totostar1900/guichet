@@ -23,6 +23,11 @@ const fmt = (n: number) => String(n);
 const vide: ContexteClient = {
   lignes: 0,
   fondsOuverts: 9,
+  /* À zéro, et c'est le bon réglage ici : les deux services intermittents ne
+     posent aucune attente, et un marché qui en porterait ajouterait deux
+     tuiles sans rien changer à cette liste de devoirs. */
+  souscriptionsOuvertes: 0,
+  rachatsOuverts: 0,
   disponible: 0,
   aSigner: 0,
   aRepondre: 0,

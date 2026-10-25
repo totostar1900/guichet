@@ -1,6 +1,8 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { ICONE_SERVICE } from "@/components/nav/IconesServices";
+import { CATALOGUE } from "@/lib/domain/services";
 
 /**
  * UNE ICÔNE DESSINE UN TRAIT, ET NON UN APLAT.
@@ -57,6 +59,34 @@ describe("les icônes de service se voient", () => {
       expect(marque, `${f} réécrit la peinture des icônes`).not.toMatch(/fill:|stroke:/);
       expect(marque, `${f} ne règle plus la taille de l'icône`).toMatch(/width:/);
     }
+  });
+
+  /**
+   * CHAQUE SERVICE A SON DESSIN, ET AUCUN DESSIN N'EST ORPHELIN.
+   *
+   * CE QUE CETTE ÉPREUVE AURAIT ARRÊTÉ. Le 25 octobre 2026, la clef du service
+   * de la cote est passée de « actions » à « cote » — la page montre aussi les
+   * obligations cotées, et l'ancien nom envoyait leur acheteur ailleurs. La
+   * table des icônes est restée sur « actions ». Les trois poseurs indexent par
+   * `sv.cle`, donc `ICONE_SERVICE["cote"]` a rendu `undefined` : la tuile a
+   * gardé son cadre doré, VIDE, et rien n'est tombé. Vu à l'écran, pas au
+   * relevé — un cadre vide est un dessin qui se charge mal, et on l'attend.
+   *
+   * ET L'AUTRE SENS COMPTE AUTANT : « appariement » traînait dans cette table
+   * depuis que le service a quitté la vitrine en septembre. Un dessin
+   * qu'aucun écran n'atteint ne se corrige jamais, et il fait croire que le
+   * service existe encore à qui lit le fichier.
+   */
+  it("donne un dessin à chaque service du catalogue, et à eux seuls", () => {
+    const sansDessin = CATALOGUE.filter((c) => !ICONE_SERVICE[c.cle]).map((c) => c.cle);
+    expect(sansDessin, "ces services sortiront avec un cadre vide, et rien ne le dira").toEqual([]);
+    const cles = new Set(CATALOGUE.map((c) => c.cle));
+    const orphelins = Object.keys(ICONE_SERVICE).filter((k) => !cles.has(k));
+    expect(orphelins, "ces dessins n'ont plus de service : aucun écran ne les atteint").toEqual([]);
+    /* Non vacuité : les deux listes sont bien peuplées. Sans cette ligne, un
+       catalogue vide et une table vide passeraient toutes les deux. */
+    expect(CATALOGUE.length).toBeGreaterThan(5);
+    expect(Object.keys(ICONE_SERVICE).length).toBe(CATALOGUE.length);
   });
 
   /* LES ICÔNES DE PAGE, ELLES, N'ONT QU'UN POSEUR et il déclare le trait :

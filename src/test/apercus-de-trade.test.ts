@@ -39,7 +39,7 @@ const CTX = { lignes: 0, fondsOuverts: 2, disponible: 0, aSigner: 0, aRepondre: 
 describe("les aperçus des tuiles de Trade", () => {
   it("dit la cote, les fonds et la part détenue", () => {
     const offers = [cotee("a1", "SEMC · action"), cotee("a2", "BHC · action"), fonds("f1", "FCP Trésorerie", 10_412), fonds("f2", "FCP Obligataire", 12_980)];
-    const cote = apercusDuService("actions", offers, CTX);
+    const cote = apercusDuService("cote", offers, CTX);
     expect(cote.map((a) => a.nom), "la cote ne remonte plus dans l'aperçu").toEqual(["SEMC · action", "BHC · action"]);
     const vl = apercusDuService("fonds", offers, CTX);
     expect(vl.map((a) => a.dit.key), "la valeur liquidative n'est plus dite").toEqual(["VL {n} FCFA", "VL {n} FCFA"]);
@@ -51,14 +51,14 @@ describe("les aperçus des tuiles de Trade", () => {
      redeviendrait la page de catalogue qu'elle sert à éviter. */
   it("s'arrête à deux lignes, quelle que soit la taille du catalogue", () => {
     const beaucoup = Array.from({ length: 9 }, (_, i) => cotee(`c${i}`, `Ligne ${i}`));
-    expect(apercusDuService("actions", beaucoup, CTX).length).toBe(APERCUS_PAR_TUILE);
+    expect(apercusDuService("cote", beaucoup, CTX).length).toBe(APERCUS_PAR_TUILE);
     expect(APERCUS_PAR_TUILE, "deux lignes, pas davantage").toBe(2);
   });
 
   /* UN APERÇU VIDE NE SE REMPLACE PAS PAR UNE PHRASE D'EXCUSE : la règle du
      niveau 3 de la page d'arrivée, appliquée à l'intérieur d'une tuile. */
   it("ne rend rien plutôt qu'une excuse, et rien du tout aux services qui n'en ont pas", () => {
-    expect(apercusDuService("actions", [], CTX), "une cote vide invente une ligne").toEqual([]);
+    expect(apercusDuService("cote", [], CTX), "une cote vide invente une ligne").toEqual([]);
     expect(apercusDuService("passage", [], CTX), "sans part détenue, le passage annonce quelque chose").toEqual([]);
     expect(apercusDuService("sondage", [cotee("a1", "SEMC")], CTX), "« se dire preneur » n'est pas un catalogue").toEqual([]);
     expect(apercusDuService("epargne", [cotee("a1", "SEMC")], CTX), "les rayons en bandes ont pris un aperçu").toEqual([]);

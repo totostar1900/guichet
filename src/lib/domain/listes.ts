@@ -1,5 +1,6 @@
 import type { Offer } from "./types";
-import { lieuDe } from "./sections";
+import { lieuDe, sectionDe } from "./sections";
+import { displayStatus, isActionable, offerFamily } from "./status";
 
 /**
  * CE QUE CHAQUE LISTE CONTIENT, DÉCIDÉ UNE FOIS.
@@ -31,6 +32,29 @@ export function lignesDeLaCote(all: Offer[]): Offer[] {
 
 /** Les séances annoncées par les six Trésors, à leur page. */
 export const seancesAnnoncees = (all: Offer[]): Offer[] => all.filter((o) => !o.hidden && lieuDe(o) === "adjudications");
+
+/**
+ * DEUX LISTES QUI SONT VIDES LA PLUPART DU TEMPS, ET C'EST TOUT LEUR INTÉRÊT.
+ *
+ * Une émission à prix fixé (APE, introduction) et un rachat du Trésor ne
+ * paraissent pas au calendrier de la maison : il y en a quelques-uns par an.
+ * Ils vivaient donc dans une section d'une page de catalogue — « En
+ * souscription » sur la cote, « Rachats du Trésor » aux adjudications — que
+ * personne n'ouvre pour voir si par hasard il y en a un. Décision du
+ * 25 octobre 2026 : ils deviennent des services À PART ENTIÈRE, qui ne
+ * paraissent que lorsque ces listes portent quelque chose.
+ *
+ * `isActionable` ET NON « pas encore clôturé » : une fenêtre de souscription
+ * fermée hier n'est pas une occasion, et un rachat dont la date limite est
+ * passée est une tuile qui mène à une page où l'on ne peut rien. Les quatre
+ * états que la maison tient pour ouverts sont écrits une fois, dans `status`,
+ * et c'est celui-là qu'il faut lire plutôt qu'une comparaison de dates
+ * refaite ici.
+ */
+export const enSouscription = (all: Offer[]): Offer[] => all.filter((o) => !o.hidden && sectionDe(o) === "souscription" && isActionable(displayStatus(o)));
+
+/** Les rachats du Trésor encore ouverts : une sortie offerte, pas un placement. */
+export const rachatsOuverts = (all: Offer[]): Offer[] => all.filter((o) => !o.hidden && offerFamily(o) === "RACHAT" && isActionable(displayStatus(o)));
 
 /**
  * Les fonds que la page montre : ceux qui portent leur fiche. Un OPCVM sans

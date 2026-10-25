@@ -138,24 +138,51 @@ export const EN_CONSOLE: Record<string, string> = {
     "Purpose Capital is a brokerage firm: it carries out what you decide, it does not decide for you. So each service states what it does, and the limit it carries.",
   /* LES NOMS COURTS DU 25 OCTOBRE 2026, avec la ligne fixe qui les
      accompagne. Les anciens noms faisaient deux métiers — nommer et expliquer
-     — ce qui donne un titre qu'on ne peut pas grossir. Ils restent traduits :
-     rien ne garantit qu'aucune page ancienne ne les cite. */
+     — ce qui donne un titre qu'on ne peut pas grossir.
+
+     LES EN-TÊTES SONT PASSÉS À UN MOT LE MÊME JOUR, APRÈS ARBITRAGE SUR LA
+     CLIENTÈLE : particuliers et PME, et non trésoreries de banques. Les sigles
+     descendent donc dans la ligne du dessous, où ils servent de repère sans
+     servir d'examen. Les trois anciens noms de service — « Adjudications du
+     Trésor », « Sondage d'adjudication », « Arbitrage entre fonds » — ont été
+     retirés d'ici avec les quatre anciennes lignes fixes : plus un seul
+     fichier de l'application ne les écrit, et une traduction sans source
+     devient une ligne que personne ne corrige quand le mot anglais vieillit.
+     « Actions » : "Stock" est parti aussi. L'entrée existait pour l'en-tête du
+     service, qui s'appelle maintenant « La cote » ; elle écrasait au passage
+     l'étiquette de la section actions du Bulletin, qui redevient "Equity".
+
+     « Adjudications », « La cote » et « Fonds » ne sont pas ici : les trois
+     étaient déjà traduits ailleurs, et un doublon se contredit un jour. */
   "Adjudications et émissions": "Auctions and new issues",
-  "Adjudications du Trésor": "Treasury Auctions",
-  "Sondage d'adjudication": "Auctions Survey",
-  "Arbitrage entre fonds": "Fund Arbitrage",
+  "Sondage": "Survey",
+  "Arbitrage": "Arbitrage",
   /* Deux noms raccourcis pour la même raison que les quatre autres : un
      en-tête doublé de taille veut un nom court, et « Réinvestissement » a
      déjà montré ce qu'un mot trop large fait à une tuile. */
   "Conservation": "Custody",
   "Prélèvement": "Direct debit",
-  "Actions": "Stock",
-  /* Les dix lignes fixes : ce dont il s'agit, en six mots. */
-  "Toutes les séances annoncées": "All the announced auction sessions",
+  /* Les lignes fixes : ce dont il s'agit, en six mots. Elles nomment
+     désormais la marchandise et non le mécanisme — l'en-tête le dit déjà. */
+  "OTA et BTA : prêter aux six Trésors": "OTA and BTA: lend to the six Treasuries",
   "Se dire preneur avant une séance": "Say you will be a taker ahead of an auction",
+  "D'un fonds à l'autre, les deux jambes ensemble": "From one fund to another, both legs together",
   "Passer d'un fonds à l'autre": "Switching between funds",
-  "Les fonds de la zone sont ouverts à la souscription": "The funds of the zone are open for subscription",
-  "Acheter et vendre sur la BVMAC": "Buy and sell on the BVMAC exchange",
+  "Les OPCVM de la zone, à la valeur liquidative": "The zone's funds, at net asset value",
+  "Actions et obligations cotées, à un cours": "Listed shares and bonds, at a price",
+  "Un prix fixé, une fenêtre, puis la cotation": "A fixed price, a window, then listing",
+  "Le Trésor reprend une ligne avant terme": "The Treasury takes a line back before term",
+  /* LES DEUX SERVICES INTERMITTENTS : leurs phrases disent COMBIEN il y en a,
+     puisque la tuile n'existe que lorsqu'il y en a. Le singulier est écrit à
+     part plutôt que calculé — l'anglais et le français ne coupent pas le
+     pluriel au même endroit, et un « 1 émissions » est le genre de détail qui
+     fait douter du reste de la page. */
+  "Une émission est ouverte à prix fixé, avant sa cotation.": "One issue is open at a fixed price, before it is listed.",
+  "{n} émissions sont ouvertes à prix fixé, avant leur cotation.": "{n} issues are open at a fixed price, before they are listed.",
+  "Le Trésor reprend une ligne avant son terme : à comparer avec les coupons qui restent.":
+    "The Treasury is taking a line back before its term: to be compared with the coupons that remain.",
+  "Le Trésor reprend {n} lignes avant leur terme : à comparer avec les coupons qui restent.":
+    "The Treasury is taking {n} lines back before their term: to be compared with the coupons that remain.",
   "Une somme fixe, chaque mois": "A fixed sum, every month",
   "Les coupons repartent tout seuls": "Coupons go back to work by themselves",
   "Nous prélevons, vous ne virez plus": "We debit, you stop transferring",

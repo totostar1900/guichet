@@ -22,22 +22,39 @@ import { MARKET_PAGES } from "@/lib/market/pages";
  * par service, sans quoi la page de « Trade » montre un service muet et la
  * recherche une entrée sans phrase.
  */
-const CLIENT_QUI_A_TOUT = {
-  dossier: "ok",
+/**
+ * ELLE EST TYPÉE, ET ELLE NE L'ÉTAIT PAS — 25 octobre 2026.
+ *
+ * Elle passait par `as unknown as ContexteClient`, et le détour n'était pas
+ * gratuit : il portait quatre champs qui n'existent pas dans le type
+ * (`fonds`, `peutOPCVM`, `prelevement`), un `dossier: "ok"` qui n'est pas une
+ * de ses trois valeurs, et un `mandatASigner: false` là où le type veut un
+ * objet. Le cast les acceptait tous en silence.
+ *
+ * CE QUE ÇA A COÛTÉ LE JOUR MÊME. Deux champs obligatoires sont entrés dans
+ * `ContexteClient` pour les deux services intermittents ; le compilateur a
+ * désigné les trois autres coquilles de la maison et s'est TU sur celle-ci,
+ * qui est pourtant la seule dont le métier est de voir tous les services. Le
+ * cliquet est alors tombé à l'exécution, ce qui est la bonne fin — mais il
+ * aurait pu ne pas tomber : il suffisait que les deux services nouveaux ne
+ * fussent pas conditionnels pour que la coquille mente sans conséquence
+ * visible, jusqu'au jour où un troisième champ compte vraiment.
+ *
+ * UN CLIENT QUI A TOUT SUPPOSE AUSSI UN MARCHÉ QUI OFFRE TOUT : les deux
+ * comptes sont donc à un, sans quoi cette liste ne verrait jamais les deux
+ * tuiles qui n'arrivent que quelques fois par an.
+ */
+const CLIENT_QUI_A_TOUT: ContexteClient = {
   compteOuvert: true,
-  peutOPCVM: true,
   lignes: 3,
-  fonds: 2,
+  fondsOuverts: 2,
+  souscriptionsOuvertes: 1,
+  rachatsOuverts: 1,
   disponible: 250_000,
   aSigner: 0,
   aRepondre: 0,
-  mandatASigner: false,
-  reinvestissement: undefined,
-  epargne: undefined,
-  prelevement: undefined,
-  prochaineSeance: undefined,
-  attendu: undefined,
-} as unknown as ContexteClient;
+  moisDHistorique: 14,
+};
 
 describe("le catalogue des services", () => {
   const vus = servicesDuClient(CLIENT_QUI_A_TOUT);

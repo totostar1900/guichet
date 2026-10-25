@@ -275,9 +275,29 @@
   min-width: 0;
   overflow-wrap: break-word;
 }
+/* ET QUAND LA VALEUR EST PLUS LARGE QUE LA COLONNE ENTIÈRE, elle revient à la
+   ligne au lieu de sortir de la tuile.
+
+   LA RÈGLE D'AVANT ÉTAIT JUSTE, ET SON BORD NE L'ÉTAIT PAS. « Le nom se
+   rétrécit, le chiffre jamais » a été écrit contre « VL 10 8 » et « 3,1 % de
+   render », et elle tient toujours : le chiffre ne se tronque pas. Mais
+   « flex: 0 0 auto » avec « nowrap » lui interdisait aussi de revenir à la
+   ligne SEUL, une fois descendu sous le nom — et il n'avait alors plus qu'une
+   issue, sortir par la droite. Mesuré au navigateur le 25 octobre 2026 sur la
+   tuile « La cote », colonne de 188 px : « 2,8 % de rendement » et « 6,9 % de
+   rendement » dépassaient la bordure de 17 px, et le défaut était là avant que
+   la tuile change de nom.
+
+   POURQUOI LE CHIFFRE NE SE COUPE PAS POUR AUTANT : « overflow-wrap: normal »
+   ne rompt qu'aux espaces, et `fmt` sépare les milliers par une espace
+   insécable (U+202F). « VL 10 820 FCFA » peut donc passer à « VL 10 820 /
+   FCFA », jamais à « VL 10 8 / 20 FCFA ». Les mots cèdent, le nombre non. */
 .apercuLigne b {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   color: var(--ink);
-  white-space: nowrap;
+  overflow-wrap: normal;
+  /* Le nom, lui, garde la priorité sur la place : sans quoi les deux se
+     rétréciraient ensemble et l'on retomberait sur « FCP Trés… ». */
+  text-align: right;
   font-variant-numeric: tabular-nums;
 }

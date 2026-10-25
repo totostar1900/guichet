@@ -61,10 +61,26 @@ export const ICONE_SERVICE: Record<string, React.ReactNode> = {
     </>,
   ),
   // Des lignes de cote, dont une porte sa cotation.
-  actions: svg(
+  cote: svg(
     <>
       <path d="M4 18h16M4 6h10M4 12h13" />
       <circle cx="19" cy="7" r="2" />
+    </>,
+  ),
+  // Une fenêtre qui se ferme : la souscription dure, puis elle n'est plus là.
+  souscription: svg(
+    <>
+      <path d="M7 3h10M7 21h10" />
+      <path d="M8 3v3.5l4 4 4-4V3" />
+      <path d="M8 21v-3.5l4-4 4 4V21" />
+    </>,
+  ),
+  // Le rachat : la ligne revient au Trésor, et sort de chez vous.
+  rachat: svg(
+    <>
+      <path d="M20 4v6a4 4 0 0 1-4 4H6" />
+      <path d="M9 11l-3 3 3 3" />
+      <path d="M4 20h16" />
     </>,
   ),
   // Passer d'une part à une autre : deux sens, sans sortir.
@@ -95,12 +111,9 @@ export const ICONE_SERVICE: Record<string, React.ReactNode> = {
       <path d="M4 16v3h16v-3" />
     </>,
   ),
-  // Deux intentions inverses qui se rencontrent.
-  appariement: svg(
-    <>
-      <path d="M3 9h11l-3-3M21 15H10l3 3" />
-      <circle cx="18" cy="9" r="2" />
-      <circle cx="6" cy="15" r="2" />
-    </>,
-  ),
+  /* « appariement » EST PARTI AVEC SON SERVICE. Les trois poseurs de cette
+     table indexent par clef de service, et l'appariement a quitté la vitrine
+     en septembre : la plateforme recueille les ordres et les transmet à la
+     BVMAC, qui seule exécute, donc le nommer promettait ce que la maison ne
+     peut pas donner. Son dessin restait là, et aucun écran ne l'atteignait. */
 };

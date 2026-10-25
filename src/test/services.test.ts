@@ -15,6 +15,12 @@ const vide: ContexteClient = {
   aSigner: 0,
   aRepondre: 0,
   fondsOuverts: 9,
+  /* UN MARCHÉ SANS ÉMISSION NI RACHAT, qui est l'état ordinaire : ces deux
+     services n'arrivent que quelques fois par an. C'est donc ce contexte-ci
+     qui tient les comptes de dix services ci-dessous, et une épreuve à part
+     montre les deux tuiles qui s'ajoutent le mois où il y en a. */
+  souscriptionsOuvertes: 0,
+  rachatsOuverts: 0,
   disponible: 0,
   moisDHistorique: 0,
 };
@@ -25,6 +31,8 @@ const garni: ContexteClient = {
   aRepondre: 0,
   partsDeFonds: { titre: "Fonds Obligataire CEMAC", parts: 84.312 },
   fondsOuverts: 9,
+  souscriptionsOuvertes: 0,
+  rachatsOuverts: 0,
   actions: { titre: "SEMC", n: 40 },
   disponible: 180_000,
   attendu: { montant: 90_000, retardJours: 28 },
@@ -147,7 +155,7 @@ describe("l'état suit la donnée du client", () => {
     expect(surLeCompte.every((x) => x.porte)).toBe(true);
     /* Les cinq autres gardent leur chemin : regarder ne demande rien. */
     const libres = sans.filter((x) => x.href !== "/ouvrir-un-compte");
-    expect(libres.map((x) => x.cle).sort()).toEqual(["actions", "fonds", "passage", "primaire", "sondage"]);
+    expect(libres.map((x) => x.cle).sort()).toEqual(["cote", "fonds", "passage", "primaire", "sondage"]);
     expect(libres.some((x) => x.porte)).toBe(false);
     /* Et les états restent lisibles : on ne perd pas ce qui tourne déjà. */
     expect(sans.filter((x) => x.etat === "en_place").length).toBe(4);

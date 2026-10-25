@@ -51,8 +51,14 @@ export const EN_TRADE: Record<string, string> = {
     "Lend to a state of the zone by buying its securities at issue, at the auction price rather than the market's.",
   "Dire au desk ce que vous prendriez avant qu'une séance ouvre, sans vous engager, pour qu'il vous rappelle au bon moment.":
     "Tell the desk what you would take before a session opens, without committing, so it calls you back at the right time.",
-  "Devenir actionnaire d'une société cotée à la BVMAC, ou revendre ce que vous détenez, au cours du marché.":
-    "Become a shareholder in a company listed on the BVMAC, or sell back what you hold, at the market price.",
+  /* LA RAISON D'ÊTRE DE LA COTE A CHANGÉ AVEC SON NOM : « devenir
+     actionnaire » ne couvrait que la moitié de ce que `/titres` montre. */
+  "Acheter ou revendre au cours du marché ce qui est inscrit au bulletin de la BVMAC : les actions des sociétés, et les obligations des États, des institutions régionales et des entreprises.":
+    "Buy or sell at the market price whatever is listed on the BVMAC bulletin: company shares, and the bonds of states, regional institutions and companies.",
+  "Souscrire à une émission avant qu'elle soit cotée : le prix est fixé par l'émetteur et ne bouge pas pendant la fenêtre, contrairement à un cours.":
+    "Subscribe to an issue before it is listed: the price is set by the issuer and does not move during the window, unlike a market price.",
+  "Céder une ligne avant son terme quand le Trésor en offre le rachat. C'est une sortie, pas un placement : renoncer aux coupons restants se compare au rendement d'un réemploi.":
+    "Sell a line before its term when the Treasury offers to buy it back. This is an exit, not an investment: giving up the remaining coupons is to be compared with the yield of reinvesting.",
   "Confier une somme à un gérant agréé qui la répartit sur des dizaines de lignes : la diversification sans avoir à la faire soi-même.":
     "Entrust a sum to an approved manager who spreads it across dozens of lines: diversification without having to do it yourself.",
   "Changer de fonds sans sortir de votre argent, quand votre horizon ou votre besoin de liquidité a changé.":

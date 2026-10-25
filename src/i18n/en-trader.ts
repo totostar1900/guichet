@@ -154,12 +154,37 @@ export const EN_TRADER: Record<string, string> = {
   "Le dépouillement dit le montant servi et le prix ; les titres sont ensuite inscrits à votre nom au dépositaire.":
     "The allotment states the amount filled and the price ; the securities are then registered in your name at the depository.",
 
-  /* ---------- 02 · courtage sur actions cotées ---------- */
-  "Choisir la ligne à la cote de la BVMAC.": "Pick the line on the BVMAC exchange.",
+  /* ---------- 02 · la cote : actions ET obligations cotées ---------- */
+  /* La première étape nommait la cote sans dire ce qu'on y trouve, et
+     l'en-tête du service disait « Actions ». Les deux ont changé le 25 octobre
+     2026 : la page montre aussi les obligations d'État, régionales et
+     d'entreprise, et c'est l'étape qui le dit maintenant. L'ancienne phrase
+     n'est plus écrite nulle part dans l'application — vérifié — et sa
+     traduction est partie avec elle : une entrée sans source est une ligne
+     que personne ne corrige quand le mot anglais vieillit. */
+  "Choisir la ligne au bulletin de la BVMAC : une action, ou une obligation d'État, d'institution régionale ou d'entreprise.":
+    "Pick the line on the BVMAC bulletin: a share, or a bond from a state, a regional institution or a company.",
   "Dire la quantité, et un prix limite si vous ne voulez pas acheter à n'importe quel cours.":
     "State the quantity, and a limit price if you do not want to buy at any price.",
   "Le desk porte l'ordre au carnet.": "The desk takes the order to the book.",
   "L'exécution revient avec son prix, et le règlement suit à la date du marché.": "The fill comes back with its price, and settlement follows on the market's date.",
+
+  /* ---------- 02 bis · les deux services intermittents ----------
+     Ils ne paraissent que lorsque le marché en porte un, et leurs étapes
+     sont traduites comme les autres : une tuile qui n'apparaît que trois
+     fois par an est exactement celle qu'un lecteur ouvre sans savoir de quoi
+     il s'agit. */
+  "Lire la note d'information ou le prospectus visé : c'est lui qui porte le prix, la fenêtre et ce que l'émetteur promet.":
+    "Read the approved information note or prospectus: it carries the price, the window and what the issuer promises.",
+  "Dire le montant avant la clôture de la fenêtre.": "State the amount before the window closes.",
+  "L'allocation peut être réduite si la demande dépasse l'émission ; les titres sont inscrits à votre nom, puis la ligne est admise à la cote.":
+    "The allotment may be scaled back if demand exceeds the issue ; the securities are registered in your name, then the line is admitted to the exchange.",
+  "Vous détenez la ligne que le Trésor propose de reprendre ; sans elle, il n'y a rien à présenter.":
+    "You hold the line the Treasury offers to take back ; without it, there is nothing to present.",
+  "Comparer ce que le rachat rend aujourd'hui avec les coupons qui restent jusqu'au terme.":
+    "Compare what the buyback pays today with the coupons that remain until term.",
+  "Présenter la quantité avant la date limite. Le Trésor peut n'en retenir qu'une partie, et vous gardez le reste.":
+    "Present the quantity before the deadline. The Treasury may take only part of it, and you keep the rest.",
 
   /* ---------- 03 · intermédiation sur les fonds ---------- */
   "Choisir le fonds, sa catégorie et la périodicité de sa valeur liquidative.": "Pick the fund, its category and how often its net asset value is struck.",
