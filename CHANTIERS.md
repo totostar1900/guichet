@@ -13,8 +13,8 @@ chantiers que les GARDES ont ouvertes d'elles-mêmes, en chaîne — un cliquet 
 classes mortes qui comptait mal a fait remonter six règles inertes, dont une
 qui cachait un contraste à 2,97 : 1 ; la garde écrite pour ce défaut a mis au
 jour le jeton qui en était la cause commune. **La dernière section, elle,
-est une nouvelle dictée** : les budgets des six États, livrés en sept lots
-le 24 octobre.
+est une nouvelle dictée** : les budgets des six États, livrés en huit lots
+les 24 et 25 octobre.
 
 Chaque point barré porte ce qui a été MESURÉ avant d'y toucher, et ce qui a
 été trouvé en chemin. Les relevés comptent autant que les décisions : c'est
@@ -952,7 +952,7 @@ une fois vu.*
 
 ## Les budgets des six États, et la note du desk
 
-**Dicté par Georges le 24 octobre 2026, livré en sept lots le même jour.**
+**Dicté par Georges le 24 octobre 2026, livré en huit lots — sept le 24, un le 25.**
 Il ne vient pas des gardes : c'est une demande, et elle a grossi en route —
 d'abord une page, puis l'écriture d'une note, puis le signal qui dit qu'il y
 aurait de quoi en écrire une, puis le rapprochement avec ce que le marché a
@@ -1157,6 +1157,70 @@ c'est rangé dans « ce qui n'a pas été relevé ».
 avec elle — un lien pourrit en silence, et sans date on ne sait pas s'il a été
 suivi cette année ou il y a trois ans. La loi promulguée reste sans adresse :
 elle n'a pas été trouvée, et l'écran l'écrit.*
+
+### Du projet à la loi promulguée
+
+Le relevé travaillait depuis le début sur le **projet** de loi. La DGB publie
+une présentation de lancement du budget 2026, datée de janvier 2026 — donc
+**après promulgation** —, qui imprime les deux colonnes du budget général. Le
+relevé camerounais passe dessus.
+
+| | le projet | la loi promulguée |
+|---|---|---|
+| investissement | 2 026,3 | **2 031,2** |
+| personnel | 1 625,4 | **1 626,2** |
+| biens et services | 1 206,0 | **1 192,7** |
+| transferts et subventions | 820,3 | **827,9** |
+| intérêts de la dette | 532,5 | 532,5 |
+| **total hors principal** | **6 210,5** | **6 210,5** |
+
+**Même total, autre répartition** : c'est exactement ce qu'un vote fait à un
+projet, et on ne l'aurait pas vu sans ouvrir la pièce.
+
+**Le principal de la dette est désormais PUBLIÉ : 2 473,4.** Il était *déduit*
+— besoin moins déficit — à 2 473,2. Les deux tombent à deux dixièmes, et c'est
+justement pourquoi l'écran dit maintenant lequel il montre : *un chiffre publié
+passe devant son calcul*, comme le rendement imprimé par un Trésor passe devant
+celui qu'on reconstitue. La leçon centrale de la page ne repose donc plus sur
+une soustraction.
+
+**Et deux points du relevé tombent.** Le total se décompose — 8 816,4 = budget
+général **8 683,9** + comptes d'affectation spéciale **132,5** —, ce qui
+explique enfin pourquoi le tableau des opérations financières du projet
+plafonnait à 8 683,9. Et la base 2025 se tranche : +1 014,9 sur le général,
++65,6 sur les CAS, soit 1 080,5, donc **7 735,9** et non 7 801,5.
+
+### Le relevé d'une note se recalculait sous elle
+
+Trouvé en chemin, et pire qu'il n'en avait l'air. Le relevé de la note semée
+s'écrivait `releveDuBudget(CAMEROUN)` — choisi exprès, pour que ses clefs ne
+divergent pas de celles de la fiche. **Mais il se RECALCULAIT à chaque
+chargement.** La note suivait donc en silence tout changement du budget — une
+note réécrite sous elle-même — et **le carnet ne pouvait jamais voir un poste
+bouger** : le signal le plus important de la série était mort-né.
+
+**Mesuré** : avec le relevé figé, déplacer le millésime fait parler le carnet ;
+avant, rien. Les valeurs sont maintenant celles du 25 octobre, en dur.
+
+*Et l'invariant des clefs a dû changer avec lui. Il exigeait l'ÉGALITÉ entre le
+relevé d'une note et celui de sa fiche — juste tant que le relevé se
+recalculait, faux depuis qu'il est figé : une note ignore légitimement un poste
+que la fiche a gagné depuis. Ce qui reste interdit, c'est l'inverse : un poste
+inventé, que rien ne produit, et dont la note suivante ne pourrait jamais
+montrer qu'il a bougé.*
+
+**Résultat à l'écran, et c'est la chaîne entière qui se vérifie :**
+
+> Cameroun 2026 · Le relevé a changé sur 1 poste(s) depuis la note n° 1.
+
+Une source lue, le relevé qui bouge, le carnet qui le dit, et le desk qui
+décide. La note, elle, reste à écrire par une personne : elle se demande.
+
+→ *Ce qui reste nommé sur la fiche, deux points ayant été réglés : les
+**107,4 milliards** entre les emprunts inscrits au budget voté (2 996,8) et le
+besoin chiffré par l'exposé (3 104,2), qu'aucune pièce relevée n'explique ; et
+les **comptes d'affectation spéciale** (132,5), dont les lignes ne sont pas
+relevées.*
 
 → *Mis de côté sur décision de Georges, et noué pour qu'on le reprenne : **le
 pourcentage d'exécution du programme**. Le dénominateur existe et il est
