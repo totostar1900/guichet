@@ -221,6 +221,26 @@ describe("les notes du desk", () => {
    * quoi qu'on écrive. Elle passe donc par `verifierNote`, celui-là même que
    * l'action serveur appelle.
    */
+  /**
+   * LES CHIFFRES CITÉS DANS UNE NOTE SE VÉRIFIENT.
+   *
+   * La note n° 2 avance deux parts du programme de titres, selon qu'on les
+   * rapporte aux emprunts votés ou au besoin de l'exposé. Écrites à la main,
+   * elles sont sorties à 13,4 % quand la division donne 13,3 — un dixième,
+   * mais c'est exactement la précision rassurante que cette page refuse
+   * ailleurs. Recalculées ici, et la prose doit les porter telles quelles.
+   */
+  it("avancent des parts que la division confirme", () => {
+    const b = cameroun();
+    const titres = porteDesTitres(b)!.montant;
+    const part = (d: number) => `${((titres / d) * 100).toFixed(1).replace(".", ",")} %`;
+    const n2 = SEED_NOTES_BUDGET.find((n) => n.numero === 2);
+    expect(n2, "la note n° 2 a disparu : l'épreuve ne juge plus rien").toBeDefined();
+    const texte = n2!.corps.map((p) => p.texte).join(" ");
+    expect(texte.includes(part(2_996_800)), `la part sur les emprunts votés devrait s'écrire ${part(2_996_800)}`).toBe(true);
+    expect(texte.includes(part(b.besoinDeFinancement!)), `la part sur le besoin devrait s'écrire ${part(b.besoinDeFinancement!)}`).toBe(true);
+  });
+
   it("passent la règle que le formulaire applique", () => {
     for (const n of SEED_NOTES_BUDGET) {
       const refus = verifierNote(n as BrouillonNote);
@@ -381,7 +401,7 @@ describe("écrire une note du desk", () => {
 
   it("donne à la note suivante le rang qui suit", () => {
     expect(numeroSuivant([]), "la première note d'un État ne part pas de 1").toBe(1);
-    expect(numeroSuivant(SEED_NOTES_BUDGET), "le rang suivant ne suit pas la série").toBe(2);
+    expect(numeroSuivant(SEED_NOTES_BUDGET), "le rang suivant ne suit pas la série").toBe(3);
   });
 
   /**
@@ -627,25 +647,31 @@ describe("le carnet du desk", () => {
    * produit le tableau des écarts d'une note : la question est la même.
    */
   /**
-   * ET IL COMPTE JUSTE. La note n° 1 date du 25 octobre et ne connaît pas le
-   * principal publié, entré avec la loi promulguée : UN poste l'a donc
-   * dépassée. Déplacer en plus le millésime en fait DEUX. Le compte doit
-   * suivre, sinon « le relevé a changé » ne dit pas de combien.
+   * ET IL SE TAIT UNE FOIS QUE LE DESK A ÉCRIT.
+   *
+   * Le carnet a réclamé une note le 24 octobre, quand la loi promulguée a
+   * apporté un principal publié que la note n° 1 ne connaissait pas. La note
+   * n° 2 l'a consigné, et le signal s'est éteint de lui-même — c'est ce qui
+   * sépare un carnet d'un panneau décoratif.
+   */
+  it("se tait quand la dernière note porte le relevé du jour", () => {
+    const b = cameroun();
+    expect(signauxDe(b, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge"), "le carnet réclame une note alors que la dernière est à jour").toEqual([]);
+  });
+
+  /**
+   * ET IL COMPTE JUSTE QUAND ÇA BOUGE. Sans le compte, « le relevé a changé »
+   * ne dit pas de combien, et le desk doit rouvrir la fiche pour le savoir.
    */
   it("compte les postes qui ont bougé depuis la dernière note", () => {
     const b = cameroun();
-    const avant = signauxDe(b, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
-    expect(avant.length, "le carnet ne voit pas que la fiche a gagné un poste depuis la note n° 1").toBe(1);
-    expect(avant[0].params.postes, "le carnet ne compte pas le principal publié").toBe("1");
-    expect(avant[0].params.numero, "le carnet ne dit pas depuis quelle note").toBe("1");
-    /* On déplace le millésime : un second poste bouge. */
-    const bouge = { ...b, millesime: "revise" as const };
-    const apres = signauxDe(bouge, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
-    expect(apres[0].params.postes, "le carnet ne compte pas les postes qui ont bougé").toBe("2");
-    /* ET IL SE TAIT QUAND RIEN N'A BOUGÉ : une note qui porte le relevé du
-       jour ne déclenche rien. */
-    const ajour = [{ ...SEED_NOTES_BUDGET[0], releve: releveDuBudget(b) }];
-    expect(signauxDe(b, ajour, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge"), "le carnet crie sur un relevé qui n'a pas bougé").toEqual([]);
+    const un = signauxDe({ ...b, millesime: "revise" as const }, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
+    expect(un.length, "le millésime a changé et le carnet n'en dit rien").toBe(1);
+    expect(un[0].params.postes, "le carnet ne compte pas les postes qui ont bougé").toBe("1");
+    expect(un[0].params.numero, "le carnet ne dit pas depuis quelle note").toBe("2");
+    /* Deux postes déplacés, deux comptés. */
+    const deux = signauxDe({ ...b, millesime: "revise" as const, amortissementPublie: 2_500_000 }, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
+    expect(deux[0].params.postes, "le carnet ne compte qu'un poste quand deux ont bougé").toBe("2");
   });
 
   it("remarque une note qui vieillit, et pas avant le délai", () => {
@@ -736,6 +762,25 @@ describe("les pièces d'une note", () => {
   it("sont exigées : une lecture que rien n'étaye n'apprend rien", () => {
     expect(verifierNote({ ...bonBrouillon(), references: [] }).map((r) => r.message), "une note sans pièce passe").toContain(REFUS.sansPiece);
     expect(verifierNote(bonBrouillon()).map((r) => r.message), "une note qui nomme sa pièce est refusée").not.toContain(REFUS.sansPiece);
+  });
+
+  /**
+   * ET AUCUNE NE S'Y RANGE DEUX FOIS.
+   *
+   * Trouvé par React, pas par une épreuve : la note n° 2 reprenait les pièces
+   * de la fiche ET ajoutait l'une d'elles à la main, d'où deux enfants de même
+   * clef. Deux fois la même ligne n'ajoute rien et la liste cesse d'être celle
+   * de ce sur quoi la note s'appuie. Le dédoublonnage vit à l'écriture — au
+   * serveur, qui décide, et au formulaire, pour que le compte soit le même.
+   */
+  it("ne range jamais deux fois la même pièce sous une note", () => {
+    for (const n of SEED_NOTES_BUDGET) {
+      const clefs = n.references.map((p) => `${p.editeur.trim().toLowerCase()}|${p.titre.trim().toLowerCase()}`);
+      expect(clefs.length - new Set(clefs).size, `la note n° ${n.numero} porte deux fois la même pièce`).toBe(0);
+      expect(n.references.length, `la note n° ${n.numero} ne porte aucune pièce`).toBeGreaterThan(0);
+    }
+    expect(code("src/app/desk/budgets/[pays]/actions.ts"), "le serveur accepte deux fois la même pièce").toMatch(/sansDoublon\(\[/);
+    expect(code("src/app/desk/budgets/[pays]/RedigerNote.tsx"), "l'écran compte les pièces autrement que le serveur").toMatch(/findIndex/);
   });
 
   it("se figent avec la note, reprises de la fiche", () => {

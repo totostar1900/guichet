@@ -84,7 +84,11 @@ export function RedigerNote({
     malLu,
     surveiller: surveiller.split("\n").map((s) => s.trim()).filter(Boolean),
     corps: lignes.filter((l) => l.texte.trim()).map((l) => ({ genre: l.genre, texte: l.texte.trim() })),
-    references: [...references, ...ajoutees],
+    /* Même dédoublonnage qu'au serveur, sinon le compte des pièces diffère
+       entre l'écran et ce qui sera écrit. */
+    references: [...references, ...ajoutees].filter(
+      (p, i, xs) => xs.findIndex((q) => q.editeur.trim().toLowerCase() === p.editeur.trim().toLowerCase() && q.titre.trim().toLowerCase() === p.titre.trim().toLowerCase()) === i,
+    ),
   };
   const refus = verifierNote(brouillon);
   const refusDe = (champ: string) => refus.filter((r) => r.champ === champ);

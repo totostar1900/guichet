@@ -304,4 +304,69 @@ export const SEED_NOTES_BUDGET: NoteBudget[] = [
       { titre: "Annonce d'une révision du budget par le ministre des Finances", editeur: "reprise de presse spécialisée", date: "2026-10" },
     ],
   },
+  {
+    /* ÉCRITE PAR CLAUDE, À LA DEMANDE DE GEORGES, ET SIGNÉE DE SON NOM.
+       Il l'a demandé explicitement après qu'on lui a dit qu'une note engage
+       une lecture et que son auteur en répond. La main qui a tenu le stylo
+       est donc écrite ici, là où un relecteur la cherchera : le champ
+       « rédigée par » dit le desk, cette ligne dit le reste. */
+    id: "nb-cmr-2026-2",
+    pays: "Cameroun",
+    exercice: 2026,
+    numero: 2,
+    titre: "La loi votée publie ce que nous déduisions",
+    enUnePhrase:
+      "La présentation de lancement du budget, publiée après promulgation, imprime les colonnes du budget général : le remboursement du principal y est écrit 2 473,4 là où nous le déduisions, et les dépenses votées sont redistribuées sans que le total bouge.",
+    motif: "Relevé de la loi promulguée du 17 décembre, après travail sur le projet",
+    demandeePar: "Georges Nitcheu",
+    redigeePar: "Desk Purpose Capital",
+    closeLe: "2026-10-25",
+    corps: [
+      {
+        genre: "constat",
+        texte:
+          "Le remboursement du principal est désormais PUBLIÉ : la loi écrit « dépenses de la dette 2 473,4 ». La note n° 1 raisonnait sur une déduction — besoin moins déficit — qui donnait 2 473,2. L'écart est de deux dixièmes, et la leçon ne tient plus à une soustraction.",
+      },
+      {
+        genre: "constat",
+        texte:
+          "Le vote a redistribué les dépenses sans toucher au total : 13,3 milliards ont quitté les biens et services pour les transferts et l'investissement. Le total hors principal reste 6 210,5, au centime, comme au projet.",
+      },
+      {
+        genre: "constat",
+        texte:
+          "Le budget voté inscrit 2 996,8 milliards d'emprunts dans ses recettes, quand l'exposé des motifs chiffre le besoin de financement à 3 104,2 et détaille six portes qui y tombent exactement. L'écart est de 107,4, et aucune pièce relevée ne le ventile.",
+      },
+      {
+        genre: "lecture",
+        texte:
+          "Si les 107,4 correspondent à des ressources de trésorerie ou aux comptes d'affectation spéciale, alors le besoin couvert par emprunt est 2 996,8 et la ligne des titres publics y pèse 13,3 % plutôt que 12,9 %. Nous ne savons pas laquelle des deux lectures est la bonne : les deux dénominateurs sont écrits dans des documents officiels, et aucun des deux ne dit l'autre faux.",
+      },
+      {
+        genre: "lecture",
+        texte:
+          "Si la révision annoncée est déposée, alors la redistribution des dépenses est le premier endroit à relire : le vote a déjà déplacé 13,3 milliards entre postes à total constant, sans que rien ne le signale, et une révision peut en déplacer bien davantage de la même manière.",
+      },
+    ],
+    surveiller: [
+      "La ventilation des 107,4 milliards : elle devrait figurer aux annexes de la loi, que nous n'avons pas relevées.",
+      "Les lignes des comptes d'affectation spéciale, 132,5 milliards, non relevées à ce jour.",
+      "Le dépôt du collectif budgétaire — la note n° 1 l'attendait en novembre, et il n'était ni déposé ni voté au 25 octobre.",
+      "Le programme annuel d'émissions publié par la BEAC : il est en ligne, mais c'est un scan sans texte.",
+    ],
+    malLu:
+      "La note n° 1 citait la loi n° 2025/012 du 17 décembre comme sa source alors que ses chiffres venaient de l'exposé des motifs du PROJET, daté de novembre. Les deux diffèrent sur la répartition des dépenses, et le principal y était déduit quand la loi le publie. Nous présentions comme voté ce qui n'était que proposé.",
+    releve: [
+      { cle: "millesime", libelle: "Millésime en vigueur", valeur: "LFI 2026, révision annoncée" },
+      { cle: "baril_loi", libelle: "Prix du baril retenu", valeur: "62,38 $" },
+      { cle: "baril_constate", libelle: "Prix du baril retenu \u00b7 constaté", valeur: "\u2248 100 $ au printemps 2026" },
+      { cle: "solde", libelle: "Solde déclaré", valeur: "-631,0 Md" },
+      { cle: "amortissement", libelle: "Remboursement du principal", valeur: "2\u202f473,4 Md" },
+      { cle: "besoin", libelle: "Besoin de financement", valeur: "3\u202f104,2 Md" },
+      { cle: "programme_titres", libelle: "Programme de titres publics", valeur: "400,0 Md" },
+    ],
+    /* Les pièces de la fiche, qui portent déjà la présentation de lancement :
+       la reprendre ici l'aurait mise deux fois sous la même note. */
+    references: [...(CAMEROUN.references ?? [])],
+  },
 ];

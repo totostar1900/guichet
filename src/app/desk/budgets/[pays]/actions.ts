@@ -54,6 +54,25 @@ function referencesDuFormulaire(form: FormData): Reference[] {
   });
 }
 
+/**
+ * UNE PIÈCE NE SE RANGE PAS DEUX FOIS SOUS UNE NOTE.
+ *
+ * Les pièces de la fiche sont reprises d'office, et le rédacteur peut taper
+ * celle qu'il vient d'y lire sans le savoir. Deux fois la même ligne n'ajoute
+ * rien, et la liste cesse d'être la liste de ce sur quoi la note s'appuie.
+ * Le titre et l'éditeur font l'identité : la même pièce chez deux éditeurs
+ * différents reste deux pièces.
+ */
+const sansDoublon = (pieces: Reference[]): Reference[] => {
+  const vues = new Set<string>();
+  return pieces.filter((p) => {
+    const k = `${p.editeur.trim().toLowerCase()}|${p.titre.trim().toLowerCase()}`;
+    if (vues.has(k)) return false;
+    vues.add(k);
+    return true;
+  });
+};
+
 /** Les paragraphes arrivent en deux colonnes parallèles : un genre, un texte. */
 function corpsDuFormulaire(form: FormData): ParagrapheNote[] {
   const genres = form.getAll("corps_genre").map(String);
@@ -83,7 +102,7 @@ export async function ecrireNoteAction(_prev: EcritureNote | null, form: FormDat
     corps: corpsDuFormulaire(form),
     surveiller: lignes(form.get("surveiller")),
     malLu: String(form.get("malLu") ?? "").trim(),
-    references: [...(budget.references ?? []), ...referencesDuFormulaire(form)],
+    references: sansDoublon([...(budget.references ?? []), ...referencesDuFormulaire(form)]),
   };
 
   const refus = verifierNote(brouillon);
