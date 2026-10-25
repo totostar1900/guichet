@@ -132,13 +132,40 @@
   flex-direction: column;
   gap: var(--s-10);
 }
+/* UNE COLONNE SOUS 430 PIXELS, ET C'EST LA MESURE QUI L'A DÉCIDÉ.
+
+   Deux colonnes donnaient 156 px de contenu sur un écran de 420, 141 sur un
+   iPhone de 390, 126 sur un petit Android de 360. Un aperçu y pose un nom à
+   gauche et un chiffre à droite : relevé au navigateur le 26 octobre 2026,
+   « BTA · 28 janv. » et son taux font 147 px — ils passent donc sur deux
+   hauteurs dès 390, et à 360 TOUTES les lignes y passent, « OTA · Gabon »
+   compris. Le dirigeant demande une ligne par aperçu ; à cette largeur, deux
+   colonnes ne le permettent pas, quelque degré qu'on choisisse.
+
+   CE QU'ON A ESSAYÉ AVANT, ET POURQUOI ÇA NE SUFFISAIT PAS. Abréger le nom
+   (« OTA · Gabon » au lieu du titre entier), raccourcir la valeur (« / an »
+   au lieu de « sur 12 mois »), descendre les deux degrés d'un cran, resserrer
+   l'écart des colonnes : chaque pas a gagné quelques pixels et déplacé le
+   problème d'une largeur à l'autre. Le budget du nom restait de neuf
+   caractères à 360 px. Ce n'était pas un problème de mots.
+
+   CE QUE ÇA COÛTE : la page est plus longue. Ce qu'elle gagne : chaque tuile
+   a la largeur d'une carte, le nom d'un fonds y tient entier avec sa
+   catégorie — qui dit son risque — et la règle vaut pour tout nom à venir
+   sans qu'on ait à y revenir. Au-dessus de 430, les deux colonnes
+   reviennent : l'écart y est de 190 px, et tout y tenait déjà. */
 .tuiles {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-6);
+}
+@media (min-width: 430px) {
+  .tuiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 /* Une tuile seule sur sa rangée se lit comme un oubli : en nombre impair, la
    dernière prend la largeur. Règle de mise en page, jamais de contenu — elle
@@ -276,6 +303,14 @@
    ligne, à droite son chiffre. Le nom se tronque, le chiffre jamais — c'est
    lui qu'on compare d'une tuile à l'autre, et un cours coupé ne compare rien. */
 .apercus {
+  /* LE BLOC S'ÉTEND SUR LA TUILE, et il ne le faisait pas. « .tuile » est un
+     flex en « align-items: flex-start » : ses enfants se rétrécissent à leur
+     contenu. Invisible tant que les tuiles faisaient 156 px — le contenu
+     remplissait la colonne de toute façon — et flagrant dès qu'elles ont pris
+     toute la largeur : le trait de séparation s'arrêtait au milieu, et le
+     « space-between » de chaque ligne ne séparait plus rien, nom et chiffre
+     restant collés à gauche. */
+  align-self: stretch;
   display: grid;
   /* UNE COLONNE QUI PEUT SE RÉTRÉCIR. Sans « minmax(0, …) », un élément de
      grille garde « min-width: auto » : la rangée refusait de descendre sous la

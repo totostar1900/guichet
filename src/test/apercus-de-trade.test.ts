@@ -152,8 +152,26 @@ describe("les aperçus des tuiles de Trade", () => {
       cle: "{r} par an depuis l'origine",
       cleCourte: "{r} / an",
     });
-    const part = apercusDuService("passage", offers, { ...CTX, partsDeFonds: { titre: "FCP Trésorerie", parts: 190 } });
-    expect(part, "la part détenue ne paraît plus sous « Passage »").toEqual([{ nom: "Trésorerie", dit: { key: "{n} parts", params: { n: "190" } } }]);
+    /**
+     * L'ARBITRAGE EXPLIQUE, IL NE COMPTE PLUS DES PARTS.
+     *
+     * Il affichait « Trésorerie Corridor · 183 parts » — ce qu'on peut
+     * déplacer. Décision du dirigeant le 26 octobre 2026, et elle tient au
+     * service : le nombre de parts ne décide de RIEN ici. Un client qui
+     * détient une ligne sait qu'il la détient ; ce qu'il ignore, c'est ce que
+     * l'arbitrage lui épargne — sortir d'un fonds sans savoir à quel prix il
+     * entrera dans l'autre. Les deux lignes disent donc la mécanique.
+     *
+     * LA MOITIÉ QUI REFUSE : plus aucun compte de parts, quel que soit ce que
+     * le client détient. Sans elle, on « enrichirait » la tuile d'un rappel
+     * de la position et on défer­ait la décision sans que rien ne tombe.
+     */
+    const avecPart = apercusDuService("passage", offers, { ...CTX, partsDeFonds: { titre: "FCP Trésorerie", parts: 190 } });
+    const sansPart = apercusDuService("passage", offers, CTX);
+    expect(avecPart, "l'arbitrage ne dit plus la même chose selon ce qu'on détient").toEqual(sansPart);
+    expect(avecPart.map((a) => a.nom)).toEqual(["Rachat et souscription", "Les deux valeurs"]);
+    expect(avecPart.every((a) => a.prose), "l'explication est revenue dans la case d'un chiffre").toBe(true);
+    expect(JSON.stringify(avecPart), "un compte de parts est revenu sur la tuile d'arbitrage").not.toMatch(/parts?\b|190/);
   });
 
   /* DEUX AU PLUS : trois lignes sous une tuile en font une liste, et la racine
@@ -168,7 +186,8 @@ describe("les aperçus des tuiles de Trade", () => {
      niveau 3 de la page d'arrivée, appliquée à l'intérieur d'une tuile. */
   it("ne rend rien plutôt qu'une excuse, et rien du tout aux services qui n'en ont pas", () => {
     expect(apercusDuService("cote", [], CTX), "une cote vide invente une ligne").toEqual([]);
-    expect(apercusDuService("passage", [], CTX), "sans part détenue, le passage annonce quelque chose").toEqual([]);
+    /* L'arbitrage, lui, dit toujours la même chose : ce n'est pas un état du
+       client mais la mécanique du service. Il est donc hors de cette règle. */
     /* LE SONDAGE N'EST PLUS MUET, et la règle n'a pas changé pour autant.
        « Un aperçu vide ne se remplace pas par une phrase d'excuse » visait
        « aucune séance en ce moment », qui prend la place sans rien apprendre.

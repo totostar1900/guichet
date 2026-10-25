@@ -135,6 +135,11 @@ const SANS_SEANCE: Apercu[] = [
  * « sans engagement » dit la même chose et donne envie d'entrer. Demandé le
  * soir du 25 octobre 2026, et la règle vaut pour les quatre lignes.
  */
+const ARBITRAGE: Apercu[] = [
+  { nom: "Rachat et souscription", dit: { key: "signés ensemble" }, prose: true },
+  { nom: "Les deux valeurs", dit: { key: "dites avant de signer" }, prose: true },
+];
+
 const SANS_SONDAGE: Apercu[] = [
   { nom: "Dites votre taux", dit: { key: "sans engagement" }, prose: true },
   { nom: "Avant la clôture", dit: { key: "le desk vous rappelle" }, prose: true },
@@ -317,11 +322,23 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
   }
 
   if (cle === "passage") {
-    /* CE QU'ON PEUT DÉPLACER, et non où le déplacer : le passage part d'une
-       part détenue. Sans part, la tuile n'a rien à annoncer — et le service
-       lui-même est déjà « à activer » dans ce cas. */
-    const p = ctx.partsDeFonds;
-    return p ? [{ nom: nomDeFonds(p.titre), dit: { key: "{n} parts", params: { n: fmt(p.parts) } } }] : [];
+    /**
+     * L'ARBITRAGE EXPLIQUE CE QU'IL FAIT, ET NE COMPTE PAS DES PARTS.
+     *
+     * Il affichait « Trésorerie Corridor · 183 parts », c'est-à-dire ce qu'on
+     * peut déplacer. Décision du dirigeant le 26 octobre 2026 : remplacer par
+     * du contenu d'explication. Et c'est juste, pour une raison qui tient au
+     * service : le nombre de parts ne décide de RIEN ici. Un client qui
+     * détient une ligne sait qu'il la détient ; ce qu'il ignore, c'est ce que
+     * l'arbitrage lui épargne — sortir d'un fonds sans savoir à quel prix il
+     * rentrera dans l'autre.
+     *
+     * Ces deux lignes disent donc la mécanique, qui est la seule chose propre
+     * à ce service : les deux jambes signées ensemble, et les deux valeurs
+     * liquidatives dites avant la signature. Elles reprennent, en plus court,
+     * les étapes que la fiche du service écrit déjà.
+     */
+    return ARBITRAGE;
   }
 
   /**

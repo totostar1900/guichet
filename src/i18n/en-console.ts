@@ -201,6 +201,10 @@ export const EN_CONSOLE: Record<string, string> = {
   /* Le contenu des deux tuiles de séance quand il n'y en a aucune : des
      abrégés des notes de section, et non des phrases d'excuse. */
   "un coupon, une durée": "a coupon and a term",
+  "Rachat et souscription": "Redemption and subscription",
+  "signés ensemble": "signed together",
+  "Les deux valeurs": "Both unit prices",
+  "dites avant de signer": "stated before you sign",
   "précomptés, sous un an": "discounted, under a year",
   "Dites votre taux": "State your rate",
   "sans engagement": "no commitment",
