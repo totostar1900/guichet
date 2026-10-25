@@ -4,6 +4,7 @@ import { localIso } from "@/lib/format";
 import type { AvisGarde } from "@/lib/domain/garde";
 import type { Tirage } from "@/lib/domain/prelevement";
 import { companyByMnemo, loadRegistry } from "@/lib/reference";
+import { loadReglement } from "@/lib/policy";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { createElement, type ReactElement } from "react";
 import { repo } from "@/lib/data";
@@ -79,6 +80,7 @@ export async function renderForIntent(type: IntentDocumentType, intentId: string
     account: file?.review.custodianAccount,
     payout: file ? { bank: file.funds.bankName, account: file.funds.bankAccount, holder: file.funds.bankHolder } : undefined,
     texts: wording.text,
+    reglement: await loadReglement(),
   };
   return renderToBuffer((offer.kind === "FONDS" ? FUND_TEMPLATES : CLIENT_TEMPLATES)[type](ctx));
 }
@@ -97,7 +99,7 @@ export async function generateForIntent(type: IntentDocumentType, intentId: stri
   const account = file?.review.custodianAccount;
   const payout = file ? { bank: file.funds.bankName, account: file.funds.bankAccount, holder: file.funds.bankHolder } : undefined;
   const wording = await resolvePassages(type);
-  const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: opts.advisor, allocation: opts.allocation ?? 1, account, payout, texts: wording.text };
+  const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: opts.advisor, allocation: opts.allocation ?? 1, account, payout, texts: wording.text, reglement: await loadReglement() };
   const pdf = await renderToBuffer((offer.kind === "FONDS" ? FUND_TEMPLATES : CLIENT_TEMPLATES)[type](ctx));
   return store({ type, number, registerNo, title: `${DOC_LABEL[type]} : ${intent.clientName} · ${offer.title}`, intentId: intent.id, offerId: offer.id, clientName: intent.clientName, createdBy: opts.advisor, templateVersions: wording.versions }, pdf, now);
 }
@@ -523,7 +525,7 @@ export async function renderPreview(type: DocumentType, override?: { passage: st
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
   };
-  const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: "Conseiller", allocation: 1, texts };
+  const ctx: ClientDocCtx = { number, intent, offer, position: positionFor(intent, offer), now, advisor: "Conseiller", allocation: 1, texts, reglement: await loadReglement() };
   const render = (offer.kind === "FONDS" ? FUND_TEMPLATES : CLIENT_TEMPLATES)[type as IntentDocumentType];
   return render ? renderToBuffer(render(ctx)) : undefined;
 }

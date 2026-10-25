@@ -28,11 +28,18 @@ const base: Intent = { id: "i1", ref: "PF-1008-AAAA", offerId: "fund-x", offerVe
 const signe: Intent = { ...base, signedAt: "2026-10-08T12:34:00Z", signedMethod: "code à usage unique", signedTo: "georges.nitcheu@gmail.com" };
 const position = { label: "parts", units: 376.366, unitWord: "parts", nominalAmount: 5_000_000, principal: 4_901_961, accrued: 0, accruedDays: 0, commission: 98_039, total: 5_000_000, schedule: [], flows: [] };
 
-async function texte(intent: Intent, quel: "bulletin" | "rachat"): Promise<string> {
+/* LES COORDONNÉES VIENNENT DU DESK depuis le 25 octobre 2026, et passent par
+   le contexte du document : l'épreuve en pose donc de siennes, et vérifie
+   qu'elles RESSORTENT sur la pièce. Un RIB passé au rendu et absent du PDF est
+   précisément la panne que ce fichier existe pour attraper. */
+const RIB_D_ESSAI = "10033 00001 12345678901 97";
+const reglement = { beneficiaire: "Purpose Essai S.A. : compte de règlement clients", banque: "Banque d'essai", rib: RIB_D_ESSAI, bic: "ESSACMCX" };
+
+async function texte(intent: Intent, quel: "bulletin" | "rachat", coord: Partial<typeof reglement> = {}): Promise<string> {
   const { Document, Page, renderToBuffer } = await import("@react-pdf/renderer");
   const mod = await import("@/lib/documents/pdf/fund-templates");
   const C = quel === "bulletin" ? mod.BulletinSouscriptionOpcvm : mod.DemandeRachatOpcvm;
-  const ctx = { number: "PC-BUL-2026-0009", intent, offer, position, now: new Date("2026-10-08T12:34:00Z"), allocation: 1, texts: {} } as never;
+  const ctx = { number: "PC-BUL-2026-0009", intent, offer, position, now: new Date("2026-10-08T12:34:00Z"), allocation: 1, texts: {}, reglement: { ...reglement, ...coord } } as never;
   const buf = await renderToBuffer(createElement(Document, null, createElement(Page, { size: "A4" }, createElement(C, ctx))) as never);
   // « pdf-parse » lit un fichier d essai a l import de son index : la maison passe par la lib.
   const parse = (await import("pdf-parse/lib/pdf-parse.js")).default;
@@ -46,8 +53,22 @@ describe("l'ordre signé porte sa signature et où virer", () => {
     expect(t).toContain("georges.nitcheu@gmail.com");
     expect(t).toContain("PF-1008-AAAA");
     expect(t).toMatch(/RIB . IBAN/);
+    /* LE RIB LUI-MÊME, et pas seulement son libellé : la ligne a longtemps
+       porté une valeur de la configuration, et le jour où elle est passée par
+       le contexte, un intitulé sans numéro serait resté vert. */
+    expect(t.replace(/\s+/g, " ")).toContain(RIB_D_ESSAI);
+    expect(t).toContain("Banque d'essai");
     // Et plus de ligne manuscrite vide sous un engagement déjà pris.
     expect(t).not.toMatch(/lu et approuvé/);
+  }, 30_000);
+
+  /* UNE LIGNE QUI MANQUE SE NOMME SUR LA PIÈCE. Tant que le desk n'a rien
+     publié, la case du RIB serait vide — et une case vide sur un appel de
+     fonds passe pour une erreur d'impression, pas pour une information. */
+  it("dit « à demander au desk » quand le desk n'a pas encore publié le RIB", async () => {
+    const t = await texte(signe, "bulletin", { rib: "", bic: undefined });
+    expect(t).toMatch(/RIB . à demander au desk/);
+    expect(t.replace(/\s+/g, " ")).not.toContain(RIB_D_ESSAI);
   }, 30_000);
 
   it("une souscription NON signée garde l'ancien chemin : ligne manuscrite, pas de coordonnées", async () => {
@@ -97,7 +118,7 @@ describe("l'ordre signé sur un titre", () => {
     const { Document, Page, renderToBuffer } = await import("@react-pdf/renderer");
     const { Bulletin } = await import("@/lib/documents/pdf/templates");
     const { positionFor } = await import("@/lib/documents/position");
-    const ctx = { number: "PC-BUL-2026-0010", intent, offer: ligne, position: positionFor(intent, ligne), now: new Date("2026-10-09T10:00:00Z"), texts: {} } as never;
+    const ctx = { number: "PC-BUL-2026-0010", intent, offer: ligne, position: positionFor(intent, ligne), now: new Date("2026-10-09T10:00:00Z"), texts: {}, reglement } as never;
     const buf = await renderToBuffer(createElement(Document, null, createElement(Page, { size: "A4" }, createElement(Bulletin, ctx))) as never);
     const parse = (await import("pdf-parse/lib/pdf-parse.js")).default;
     return (await parse(buf as Buffer)).text.replace(/\s+/g, " ");

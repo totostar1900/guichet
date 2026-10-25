@@ -9,6 +9,7 @@ import { BAREME_FERME, type BaremeGarde } from "@/lib/domain/garde";
 import { TARIFS_FERMES, type Tarifs } from "@/lib/domain/tarifs";
 import { SOUFFRANCE_DEFAUT, SOUFFRANCE_KEY, type DelaiDeSouffrance } from "@/lib/domain/souffrance";
 import { RELANCE_DEFAUT, RELANCE_KEY, type PolitiqueDeRelance } from "@/lib/domain/relance";
+import { REGLEMENT_DEFAUT, REGLEMENT_KEY, type CoordonneesDeReglement } from "@/lib/domain/reglement";
 import { REF } from "@/lib/reference";
 
 /**
@@ -190,6 +191,35 @@ export const loadSouffrance = cache(async (): Promise<DelaiDeSouffrance> => {
     return row ? { ...SOUFFRANCE_DEFAUT, ...(row.data as Partial<DelaiDeSouffrance>) } : SOUFFRANCE_DEFAUT;
   } catch {
     return SOUFFRANCE_DEFAUT;
+  }
+});
+
+/**
+ * LE COMPTE DE RÈGLEMENT : OÙ LE CLIENT ENVOIE SON ARGENT.
+ *
+ * Il se range avec les autres règles de maison, mais il ne leur ressemble pas :
+ * les autres commandent un comportement, celui-ci commande une DESTINATION.
+ * Un seuil mal réglé fait du bruit ; un RIB mal réglé envoie l'argent de toute
+ * la clientèle ailleurs, et c'est la forme même que prend la fraude au
+ * virement.
+ *
+ * LE DÉFAUT DU CODE S'APPLIQUE EN CAS DE PANNE DE LECTURE, et le défaut du
+ * code peut être vide. C'est voulu : servir des coordonnées périmées parce que
+ * la table est injoignable serait pire que n'en servir aucune. Un écran qui
+ * dit « pas encore renseigné » fait écrire au desk ; un écran qui dit un
+ * ancien RIB fait virer le client.
+ *
+ * Les champs se fusionnent un par un : « ...row.data » suffirait aujourd'hui,
+ * mais le jour où une ligne s'ajoute au code, elle disparaîtrait pour toute
+ * maison ayant déjà publié une fois.
+ */
+export const loadReglement = cache(async (): Promise<CoordonneesDeReglement> => {
+  try {
+    const rows = await repo().listReference(REF.policy);
+    const data = rows.find((r) => r.key === REGLEMENT_KEY)?.data as Partial<CoordonneesDeReglement> | undefined;
+    return data ? { ...REGLEMENT_DEFAUT, ...data } : REGLEMENT_DEFAUT;
+  } catch {
+    return REGLEMENT_DEFAUT;
   }
 });
 

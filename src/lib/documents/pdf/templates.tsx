@@ -1,6 +1,7 @@
 import { View } from "@react-pdf/renderer";
-import { COMPANY, SETTLEMENT, SVT_BY_COUNTRY } from "@/lib/config";
+import { COMPANY, SVT_BY_COUNTRY } from "@/lib/config";
 import type { Intent, Offer } from "@/lib/domain/types";
+import type { CoordonneesDeReglement } from "@/lib/domain/reglement";
 import { fmt, fmtDate, fmtDateTime, fmtPct, localIso } from "@/lib/format";
 import { positionFor, type Position } from "../position";
 import { Addr, KV, Letter, Sig, Signature, Table, Text, s } from "./primitives";
@@ -22,7 +23,33 @@ export interface ClientDocCtx {
   payout?: { bank?: string; account?: string; holder?: string };
   /** The desk's wording in force for this document type (passage key → text); the code's defaults otherwise. */
   texts?: Record<string, string>;
+  /**
+   * OÙ LE CLIENT VIRE, tel que le desk l'a publié (desk › Référentiel ›
+   * Compte de règlement).
+   *
+   * Passé par le contexte, et non importé de la configuration : c'est la
+   * DESTINATION DE L'ARGENT, et le compilateur doit refuser un document qui
+   * s'imprime sans elle. Un registre installé au chargement l'aurait laissé
+   * passer en silence sur le chemin qui aurait oublié de le charger, et
+   * l'appel de fonds serait parti avec le défaut du code — c'est-à-dire sans
+   * RIB du tout depuis le 25 octobre 2026.
+   */
+  reglement: CoordonneesDeReglement;
 }
+
+/**
+ * Une ligne de coordonnées qui manque se NOMME sur la pièce : « à demander au
+ * desk » se lit, alors qu'une case vide passe pour une erreur d'impression.
+ */
+const dit = (v: string | undefined, quoi: string) => v?.trim() || `${quoi} : à demander au desk`;
+
+/** Les lignes de règlement d'un appel de fonds, dans l'ordre du formulaire de banque. */
+export const lignesDeReglement = (c: CoordonneesDeReglement): [string, string][] => [
+  ["Bénéficiaire", dit(c.beneficiaire, "Bénéficiaire")],
+  ["Banque", dit(c.banque, "Banque")],
+  ["RIB / IBAN", dit(c.rib, "RIB")],
+  ...((c.bic ? [["BIC / SWIFT", c.bic]] : []) as [string, string][]),
+];
 export const payoutLine = (p?: ClientDocCtx["payout"]) => (p?.account ? `${p.bank ? `${p.bank} · ` : ""}${p.account}${p.holder ? ` (${p.holder})` : ""}` : "RIB à communiquer au desk");
 
 const isoDay = localIso;
@@ -109,7 +136,7 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
 }
 
 /* ---------------- Appel de fonds ---------------- */
-export function AppelDeFonds({ number, intent, offer, position: p, now, texts }: ClientDocCtx) {
+export function AppelDeFonds({ number, intent, offer, position: p, now, texts, reglement }: ClientDocCtx) {
   const dayBefore = new Date(`${offer.settleOn}T15:00:00`);
   dayBefore.setDate(dayBefore.getDate() - 1);
   return (
@@ -120,12 +147,7 @@ export function AppelDeFonds({ number, intent, offer, position: p, now, texts }:
       </Text>
       <Addr blocks={[["Client", [intent.clientName, intent.clientSegment]], ["Ordre", [intent.ref, lineTitle(offer), `${p.label} à ${p.priceLabel}`]]]} />
       <KV
-        rows={[
-          ["Bénéficiaire", SETTLEMENT.beneficiary],
-          ["Banque", SETTLEMENT.bank],
-          ["RIB / IBAN", SETTLEMENT.iban],
-          ["Motif du virement (obligatoire)", `${intent.ref} ${intent.clientName}`],
-        ]}
+        rows={[...lignesDeReglement(reglement), ["Motif du virement (obligatoire)", `${intent.ref} ${intent.clientName}`]]}
         total={["Montant à virer", `${fmt(p.total)} FCFA`]}
       />
       <Text style={s.p}>{passage("fonds", "provenance", texts)}</Text>

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { SETTLEMENT } from "@/lib/config";
+import { loadReglement } from "@/lib/policy";
+import { reglementUtilisable } from "@/lib/domain/reglement";
 import { referenceDeProvision } from "@/lib/domain/cash";
 import { prochaineEcheance, PREAVIS_JOURS } from "@/lib/domain/prelevement";
 import { getT } from "@/i18n/server";
@@ -63,6 +64,11 @@ export default async function AlimenterPage() {
     .listMandats(s.userId)
     .catch(() => []);
   const reference = referenceDeProvision(s.userId);
+  /* LES COORDONNÉES VIENNENT DU DESK, pas du code : voir
+     /desk/referentiel/reglement. Tant qu'elles ne sont pas publiées, le chemin
+     du virement le DIT au lieu d'afficher des points de suspension. */
+  const reglement = await loadReglement();
+  const virementPossible = reglementUtilisable(reglement);
   const mandat = mandats.find((m) => m.objet === "provision" && m.state !== "revoque" && m.signedAt);
   const prochainTirage = mandat?.dayOfMonth ? prochaineEcheance(mandat.dayOfMonth, localIso(new Date())) : undefined;
 
@@ -87,47 +93,87 @@ export default async function AlimenterPage() {
             {/* QUI AGIT, et non à quel rythme : c'est la seule chose à avoir
                 comprise avant de choisir entre les deux chemins. */}
             <p className={styles.qui}>{t("C'est vous qui l'envoyez, depuis votre banque, quand vous voulez. Nous le reconnaissons à son arrivée.")}</p>
-            <dl className={styles.coord}>
-              <div>
-                <dt>{t("Bénéficiaire")}</dt>
-                <dd>
-                  <span>{SETTLEMENT.beneficiary}</span>
-                  <Copier valeur={SETTLEMENT.beneficiary} quoi={t("le bénéficiaire")} />
-                </dd>
-              </div>
-              <div>
-                {/* PAS « Banque » TOUT COURT : cette clef est déjà le secteur
-                    d'une société cotée, traduit « Banking ». Un mot seul fait
-                    une clef fragile, et la maison s'est déjà fait prendre. */}
-                <dt>{t("Banque du bénéficiaire")}</dt>
-                <dd>
-                  <span>{SETTLEMENT.bank}</span>
-                  <Copier valeur={SETTLEMENT.bank} quoi={t("la banque")} />
-                </dd>
-              </div>
-              <div>
-                <dt>{t("RIB / IBAN")}</dt>
-                <dd>
-                  <span className="mono">{SETTLEMENT.iban}</span>
-                  <Copier valeur={SETTLEMENT.iban} quoi={t("le RIB")} />
-                </dd>
-              </div>
-              {/* LE MOTIF EN DERNIER : c'est son rang dans le formulaire de la
-                  banque. Et marqué, parce que c'est la seule des quatre lignes
-                  qu'on ne peut pas omettre. */}
-              <div className={styles.ligneMotif}>
-                <dt>
-                  {t("Motif du virement")} <span>{t("obligatoire")}</span>
-                </dt>
-                <dd>
-                  <b className="mono">{reference}</b>
-                  <Copier valeur={reference} quoi={t("le motif du virement")} />
-                </dd>
-              </div>
-            </dl>
-            <p className={styles.avert}>
-              {t("Les quatre lignes se recopient dans cet ordre dans le formulaire de votre banque.")} {t("Le motif rattache votre virement à votre compte : sans lui, il arrive sans nom. Le compte émetteur doit être au vôtre.")}
-            </p>
+            {virementPossible ? (
+              <>
+                <dl className={styles.coord}>
+                  <div>
+                    <dt>{t("Bénéficiaire")}</dt>
+                    <dd>
+                      <span>{reglement.beneficiaire}</span>
+                      <Copier valeur={reglement.beneficiaire} quoi={t("le bénéficiaire")} />
+                    </dd>
+                  </div>
+                  <div>
+                    {/* PAS « Banque » TOUT COURT : cette clef est déjà le secteur
+                        d'une société cotée, traduit « Banking ». Un mot seul fait
+                        une clef fragile, et la maison s'est déjà fait prendre. */}
+                    <dt>{t("Banque du bénéficiaire")}</dt>
+                    <dd>
+                      <span>{reglement.banque}</span>
+                      <Copier valeur={reglement.banque} quoi={t("la banque")} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t("RIB / IBAN")}</dt>
+                    <dd>
+                      <span className="mono">{reglement.rib}</span>
+                      <Copier valeur={reglement.rib} quoi={t("le RIB")} />
+                    </dd>
+                  </div>
+                  {/* LE BIC NE PARAÎT QUE S'IL EXISTE. Une ligne vide de plus ne
+                      vaut pas mieux qu'une ligne absente, et un virement de la
+                      zone n'en a pas besoin. */}
+                  {reglement.bic ? (
+                    <div>
+                      <dt>{t("BIC / SWIFT")}</dt>
+                      <dd>
+                        <span className="mono">{reglement.bic}</span>
+                        <Copier valeur={reglement.bic} quoi={t("le BIC")} />
+                      </dd>
+                    </div>
+                  ) : null}
+                  {/* LE MOTIF EN DERNIER : c'est son rang dans le formulaire de la
+                      banque. Et marqué, parce que c'est la seule des quatre lignes
+                      qu'on ne peut pas omettre. */}
+                  <div className={styles.ligneMotif}>
+                    <dt>
+                      {t("Motif du virement")} <span>{t("obligatoire")}</span>
+                    </dt>
+                    <dd>
+                      <b className="mono">{reference}</b>
+                      <Copier valeur={reference} quoi={t("le motif du virement")} />
+                    </dd>
+                  </div>
+                </dl>
+                <p className={styles.avert}>
+                  {t("Les quatre lignes se recopient dans cet ordre dans le formulaire de votre banque.")} {t("Le motif rattache votre virement à votre compte : sans lui, il arrive sans nom. Le compte émetteur doit être au vôtre.")}
+                </p>
+              </>
+            ) : (
+              /* CE QUI MANQUE SE NOMME. Des points de suspension à la place d'un
+                 RIB sont pires qu'une ligne absente : un client les recopie, et
+                 son virement n'arrive nulle part. Le motif reste affiché — il
+                 est à lui, il ne dépend d'aucune coordonnée, et il servira le
+                 jour où le desk aura publié le compte. */
+              <>
+                <div className={styles.manque}>
+                  <b>{t("Les coordonnées ne sont pas encore publiées")}</b>
+                  <p>{t("Demandez-les à votre conseiller avant de faire un virement : nous préférons vous le dire plutôt que vous laisser recopier un numéro incomplet.")}</p>
+                </div>
+                <dl className={styles.coord}>
+                  <div className={styles.ligneMotif}>
+                    <dt>
+                      {t("Motif du virement")} <span>{t("obligatoire")}</span>
+                    </dt>
+                    <dd>
+                      <b className="mono">{reference}</b>
+                      <Copier valeur={reference} quoi={t("le motif du virement")} />
+                    </dd>
+                  </div>
+                </dl>
+                <p className={styles.avert}>{t("Ce motif est le vôtre et ne changera pas : c'est lui qui rattachera votre virement à votre compte.")}</p>
+              </>
+            )}
           </div>
 
           <div className={styles.chemin}>

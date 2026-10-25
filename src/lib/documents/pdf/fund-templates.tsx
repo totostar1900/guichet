@@ -1,9 +1,10 @@
 import { View } from "@react-pdf/renderer";
-import { COMPANY, SETTLEMENT } from "@/lib/config";
+import { COMPANY } from "@/lib/config";
 import type { FundTerms, Intent, Offer } from "@/lib/domain/types";
+import type { CoordonneesDeReglement } from "@/lib/domain/reglement";
 import { fmt, fmtDate, fmtDateTime, fmtPct } from "@/lib/format";
 import type { Position } from "../position";
-import { payoutLine, type ClientDocCtx } from "./templates";
+import { lignesDeReglement, payoutLine, type ClientDocCtx } from "./templates";
 import { Addr, KV, Letter, Sig, Signature, Table, Text, s } from "./primitives";
 import { prettyName } from "@/lib/market/names";
 import { passage } from "../passages-catalog";
@@ -41,17 +42,12 @@ const clientBlock = (i: Intent): [string, string[]] => ["Souscripteur", [i.clien
  * l'opération. Elle ne paraît que sur un ordre signé, parce que c'est lui qui
  * vaut engagement.
  */
-function OuVirer({ intent, cutoff }: { intent: Intent; cutoff?: string }) {
+function OuVirer({ intent, cutoff, reglement }: { intent: Intent; cutoff?: string; reglement: CoordonneesDeReglement }) {
   return (
     <>
       <Text style={[s.p, s.b]}>Règlement{cutoff ? ` · à créditer avant la centralisation (${cutoff})` : ""}</Text>
       <KV
-        rows={[
-          ["Bénéficiaire", SETTLEMENT.beneficiary],
-          ["Banque", SETTLEMENT.bank],
-          ["RIB / IBAN", SETTLEMENT.iban],
-          ["Motif du virement (obligatoire)", `${intent.ref} ${intent.clientName}`],
-        ]}
+        rows={[...lignesDeReglement(reglement), ["Motif du virement (obligatoire)", `${intent.ref} ${intent.clientName}`]]}
         total={["Montant à virer", `${fmt(intent.amount ?? 0)} FCFA`]}
       />
       <Text style={s.small}>
@@ -62,7 +58,7 @@ function OuVirer({ intent, cutoff }: { intent: Intent; cutoff?: string }) {
 }
 
 /* ---------------- Bulletin de souscription ---------------- */
-export function BulletinSouscriptionOpcvm({ number, intent, offer, position: p, now, advisor }: ClientDocCtx) {
+export function BulletinSouscriptionOpcvm({ number, intent, offer, position: p, now, advisor, reglement }: ClientDocCtx) {
   const f = fundOf(offer);
   return (
     <Letter heading={`Bulletin de souscription · ${number}`}>
@@ -85,14 +81,14 @@ export function BulletinSouscriptionOpcvm({ number, intent, offer, position: p, 
         {f.cutoff ? ` (${f.cutoff})` : ""}. Le nombre de parts est arrêté par la société de gestion à cette VL et confirmé par avis ; il peut différer de l&apos;estimation ci-dessus. Les parts sont inscrites au nom du souscripteur au registre tenu par le dépositaire. Le souscripteur reconnaît avoir reçu le document d&apos;information clé du fonds et accepte le règlement du fonds ; il a été informé que la valeur liquidative peut baisser et que les performances passées ne préjugent pas des performances futures.
       </Text>
       {/* Signé, l'ordre porte aussi où virer : une pièce au lieu de deux. */}
-      {intent.signedAt && <OuVirer intent={intent} cutoff={f.cutoff} />}
+      {intent.signedAt && <OuVirer intent={intent} cutoff={f.cutoff} reglement={reglement} />}
       <Signature intent={intent} advisor={advisor} />
     </Letter>
   );
 }
 
 /* ---------------- Appel de fonds (souscription) ---------------- */
-export function AppelDeFondsOpcvm({ number, intent, offer, now }: ClientDocCtx) {
+export function AppelDeFondsOpcvm({ number, intent, offer, now, reglement }: ClientDocCtx) {
   const f = fundOf(offer);
   return (
     <Letter heading={`Appel de fonds · ${number}`}>
@@ -102,12 +98,7 @@ export function AppelDeFondsOpcvm({ number, intent, offer, now }: ClientDocCtx) 
       </Text>
       <Addr blocks={[["Client", [intent.clientName, intent.clientSegment]], ["Ordre", [intent.ref, offer.title, `Souscription de ${fmt(intent.amount ?? 0)} FCFA`]]]} />
       <KV
-        rows={[
-          ["Bénéficiaire", SETTLEMENT.beneficiary],
-          ["Banque", SETTLEMENT.bank],
-          ["RIB / IBAN", SETTLEMENT.iban],
-          ["Motif du virement (obligatoire)", `${intent.ref} ${intent.clientName}`],
-        ]}
+        rows={[...lignesDeReglement(reglement), ["Motif du virement (obligatoire)", `${intent.ref} ${intent.clientName}`]]}
         total={["Montant à virer", `${fmt(intent.amount ?? 0)} FCFA`]}
       />
       <Text style={s.p}>

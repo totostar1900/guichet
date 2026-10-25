@@ -394,6 +394,25 @@
   letter-spacing: 0.06em;
 }
 
+/* CE QUI MANQUE, NOMMÉ. Tant que le desk n'a pas publié le compte de
+   règlement, la page ne montre pas trois lignes de points avec un bouton de
+   recopie : elle dit qu'il n'y a rien à recopier. */
+.manque {
+  padding: var(--s-5) var(--s-6);
+  border: 1px solid var(--warn);
+  border-radius: var(--radius);
+  background: var(--warn-soft);
+}
+.manque b {
+  display: block;
+  font-size: var(--t-3);
+}
+.manque p {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-2);
+  line-height: 1.45;
+}
+
 /* L'état d'une chose déjà en place : un mandat signé, un versement reçu. */
 .encadre {
   padding: var(--s-6);

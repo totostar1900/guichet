@@ -18,11 +18,21 @@ export const COMPANY = {
 export const DISCLAIMER =
   "Communication à caractère promotionnel. Rendements actuariels bruts, convention Exact/Exact, hors commission et hors fiscalité, sous réserve du prix effectivement servi à l'adjudication. Une intention d'investissement n'est ni un ordre ni une garantie d'allocation. Risque de perte en capital.";
 
-/** Settlement instructions printed on appels de fonds : fill from env in production. */
+/**
+ * Settlement instructions: the CODE DEFAULT only. The desk writes the live
+ * values at desk › Référentiel › Compte de règlement, and everything reads
+ * them through `loadReglement` — see src/lib/domain/reglement.ts.
+ *
+ * LES POINTS DE SUSPENSION SONT PARTIS. « …………… (RIB à renseigner) » était un
+ * texte d'attente à l'endroit précis où un client tape un numéro de compte :
+ * ce qui manque se nomme, et ne s'imite pas. Un champ vide est donc vide, et
+ * l'écran dit lequel.
+ */
 export const SETTLEMENT = {
   beneficiary: "Purpose Capital S.A. : compte de règlement clients (ségrégué)",
-  bank: process.env.SETTLEMENT_BANK ?? "…………… (banque de règlement)",
-  iban: process.env.SETTLEMENT_IBAN ?? "…………… (RIB à renseigner)",
+  bank: process.env.SETTLEMENT_BANK ?? "",
+  iban: process.env.SETTLEMENT_IBAN ?? "",
+  bic: process.env.SETTLEMENT_BIC ?? "",
 };
 
 /** Specialist in Treasury Securities used per issuer country (bordereau addressee). */
