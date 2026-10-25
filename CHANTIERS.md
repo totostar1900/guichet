@@ -13,7 +13,7 @@ chantiers que les GARDES ont ouvertes d'elles-mêmes, en chaîne — un cliquet 
 classes mortes qui comptait mal a fait remonter six règles inertes, dont une
 qui cachait un contraste à 2,97 : 1 ; la garde écrite pour ce défaut a mis au
 jour le jeton qui en était la cause commune. **La dernière section, elle,
-est une nouvelle dictée** : les budgets des six États, livrés en dix lots
+est une nouvelle dictée** : les budgets des six États, livrés en douze lots
 les 24 et 25 octobre.
 
 Chaque point barré porte ce qui a été MESURÉ avant d'y toucher, et ce qui a
@@ -952,7 +952,7 @@ une fois vu.*
 
 ## Les budgets des six États, et la note du desk
 
-**Dicté par Georges le 24 octobre 2026, livré en dix lots — sept le 24, trois le 25.**
+**Dicté par Georges le 24 octobre 2026, livré en douze lots — sept le 24, cinq le 25.**
 Il ne vient pas des gardes : c'est une demande, et elle a grossi en route —
 d'abord une page, puis l'écriture d'une note, puis le signal qui dit qu'il y
 aurait de quoi en écrire une, puis le rapprochement avec ce que le marché a
@@ -1029,6 +1029,12 @@ partielles pendant un an sans que personne n'agisse.
 La planche demandait « Cameroun : **78 % du programme levé** à mi-parcours ».
 **Ce rapport ne se calcule pas sur ces données**, et c'est le résultat du
 quatrième lot. Trois raisons, chacune mesurée :
+
+*(Deux de ces trois raisons sont tombées le 25 octobre, quand les calendriers
+signés ont été lus : voir « Les six programmes déclarés ». La troisième — la
+couverture du relevé — tient toujours, et c'est elle qui fait de la part
+placée un plancher. Ce qui suit reste le raisonnement d'alors, et il explique
+pourquoi le refus a duré.)*
 
 | | mesuré |
 |---|---|
@@ -1293,20 +1299,81 @@ annuels de la BEAC sont des images. Ce qui bloque le pourcentage d'exécution
 bloque pour toute la zone, et un outil de reconnaissance de caractères le
 lèverait d'un coup pour les six.*
 
+### Les six programmes déclarés, et l'OCR qui n'y est pour rien
+
+« Vas-y avec l'OCR », dit Georges. **Tesseract a échoué, et c'est le premier
+résultat.** Installé avec le français, lancé à 600 dpi en niveaux de gris sur
+les grilles scannées des calendriers BEAC, il rend les intitulés et perd les
+chiffres : *« 040 MN 50 50 50 0 4 60 SW 4 M »*. Les six documents ont donc été
+**lus à l'œil**, page par page. *Un chiffre sorti d'un OCR n'est pas un chiffre
+lu*, et celui-là ne l'a jamais été.
+
+| déclaré pour 2026 | bons | obligations | total |
+|---|---|---|---|
+| Cameroun | 765,0 | 400,0 | **1 165,0** |
+| Gabon | 566,0 | 480,0 | **1 046,0** |
+| Congo | 285,0 | 405,0 | **690,0** |
+| Tchad | 120,0 | 400,0 | **520,0** |
+| Guinée éq. | 319,0 | 100,0 | **419,0** |
+| RCA | — | 66,5 | **66,5** |
+
+**LE PÉRIMÈTRE QUI BLOQUAIT TOUT SE TRANCHE.** La ligne « titres publics
+400,0 » du budget camerounais correspond **exactement** aux obligations du
+calendrier signé : les 765,0 de bons sont posés par-dessus et ne financent rien
+de neuf, ils roulent. Les deux motifs de refus principaux tombent donc — le
+calendrier porte du brut **par instrument**, comme les séances. La part placée
+devient calculable, et reste un **plancher** : le relevé couvre 43 jours
+camerounais, pas l'année. **34 % du programme d'obligations placés** sur les
+séances détenues.
+
+**Et il révèle un défaut de ces fiches :** le 400,0 camerounais était des
+obligations seules quand les 690,0 congolais et 520,0 tchadiens étaient des
+totaux. *On ne comparait pas la même chose d'un État à l'autre.* Ces deux-là
+quittent le plan de financement — où ils n'avaient rien à faire, n'étant pas
+des portes de la loi — pour le champ du calendrier, qui a la même forme pour
+les six.
+
+*Trois contrôles, parce qu'un chiffre lu sur un scan se vérifie : les
+sous-totaux font le total pour les six ; l'ordre de grandeur est celui du
+million de francs ; et les deux États dont le relevé portait déjà un programme
+y retombent au chiffre près. C'est ce qui donne le droit de s'en servir.*
+
+| le défaut | ce qui l'a trouvé |
+|---|---|
+| le servi est en **francs**, le déclaré en **millions** : divisés tels quels, le rapport sortait un million de fois trop grand | la division, refaite. Il aurait eu l'air d'un pourcentage plausible |
+| le bandeau s'intitulait **« pourquoi aucun % n'est affiché »** alors qu'un pourcentage l'était | l'écran. *Un titre qui survit à ce qu'il décrit est pire qu'un titre absent* |
+
+### Les pièces du dossier : conserver ne suffit pas
+
+Consigne permanente de Georges : conserver et mettre à disposition du desk les
+liens de **tous** les documents référencés, pour le suivi.
+
+**Ce qui manquait n'était pas la conservation mais le rassemblement.** Les
+adresses étaient gardées — chacune dans sa fiche, ou sous sa note. Donc
+introuvables ensemble : *un lien pourrit en silence, on ne s'en aperçoit qu'en
+le suivant, et encore faut-il savoir lesquels on détient.*
+
+La liste des budgets porte donc **« Les pièces du dossier »** : vingt-trois
+documents dédoublonnés, avec où chacun sert, le jour où son adresse a été
+ouverte, et un lien quand il y en a un — vingt et un en ont un. **Celles qu'il
+reste à trouver viennent en premier**, en ambre : la loi promulguée elle-même
+et l'annonce de révision. Les enterrer en bas de table reviendrait à les
+oublier, et ce sont précisément celles sur lesquelles le suivi porte.
+
+| le défaut | ce qui l'a trouvé |
+|---|---|
+| les six programmes annuels portaient **le même titre** pour six adresses. Le dossier dédoublonne sur éditeur + titre : **cinq documents s'écrasaient en un seul et disparaissaient sans bruit** | la liste, regardée tourner — exactement ce que ce dossier doit empêcher |
+| une pièce citée par une seule note s'affichait **« toute la zone »** | l'écran. L'écran repliait sur la zone dès que la liste des pays était vide ; la zone se **déclare** maintenant |
+
 → *Ce qui reste nommé sur la fiche, deux points ayant été réglés : les
 **107,4 milliards** entre les emprunts inscrits au budget voté (2 996,8) et le
 besoin chiffré par l'exposé (3 104,2), qu'aucune pièce relevée n'explique ; et
 les **comptes d'affectation spéciale** (132,5), dont les lignes ne sont pas
 relevées.*
 
-→ *Mis de côté sur décision de Georges, et noué pour qu'on le reprenne : **le
-pourcentage d'exécution du programme**. Le dénominateur existe et il est
-public — la BEAC publie un programme annuel d'émissions par État, celui du
-Cameroun 2026 est consigné dans les pièces avec son adresse —, mais c'est un
-**scan** (« Creator: HP Scan »), sans couche de texte, et aucun outil de
-reconnaissance de caractères n'est installé. Le blocage et sa raison sont
-rangés sur la fiche, sous « ce qui n'a pas été relevé » : au retour, il n'y a
-rien à retrouver.*
+→ *Mis de côté sur décision de Georges le 25 octobre, puis **repris le même
+jour sur sa demande** — voir « Les six programmes déclarés » ci-dessus. Le
+blocage tenait au dénominateur : il existait, public, mais en image.*
 
 → *Ce qui reste en service et n'attendait pas ce pourcentage : **le taux de
 service** — ce que chaque État obtient de ce qu'il demande —, qui était la
