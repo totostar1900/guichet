@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CATALOGUE, ETAPES, RAISON, RAYONS, servicesDuClient, type ContexteClient } from "@/lib/domain/services";
+import { CATALOGUE, ETAPES, RAISON, RAYONS, servicesDuClient, SOUS, type ContexteClient } from "@/lib/domain/services";
+import { EN_ALL } from "@/i18n/core";
 import { MARKET_PAGES } from "@/lib/market/pages";
 
 /**
@@ -70,6 +71,48 @@ describe("le catalogue des services", () => {
     const sansEtapes = CATALOGUE.filter((c) => !ETAPES[c.cle]?.length).map((c) => c.cle);
     expect(sansRaison, "ces services sortiraient muets dans la recherche").toEqual([]);
     expect(sansEtapes, "ces services n'auraient rien à montrer sur la page Trade").toEqual([]);
+  });
+
+  /**
+   * LA LIGNE FIXE EXISTE POUR TOUS, ET ELLE EST TRADUITE — comme le nom.
+   *
+   * Les deux voyagent par « t(variable) », et le scanner des chaînes sans
+   * anglais ne lit que les appels littéraux : son en-tête nomme ce trou comme
+   * l'un de ses quatre angles morts. Pour ces vingt chaînes-là, c'est donc ce
+   * cliquet qui tient — sans lui, un service renommé sortirait en français au
+   * milieu d'une page anglaise, et rien ne le dirait.
+   */
+  it("donne à chacun une ligne fixe, et les deux passent par le dictionnaire", () => {
+    const sansLigne = CATALOGUE.filter((c) => !SOUS[c.cle]?.trim()).map((c) => c.cle);
+    expect(sansLigne, "ces services n'ont rien à écrire sous leur en-tête").toEqual([]);
+    /* Six mots, pas une phrase : ce qui tient sous un titre doublé de taille.
+       La raison d'être, elle, explique et peut être longue. */
+    const tropLongues = CATALOGUE.filter((c) => SOUS[c.cle].length > 60).map((c) => `${c.cle} (${SOUS[c.cle].length})`);
+    expect(tropLongues, "une ligne fixe trop longue redevient une phrase, et l'en-tête ne peut plus grossir").toEqual([]);
+
+    const manquantes = CATALOGUE.flatMap((c) => [c.nom, SOUS[c.cle]]).filter((x) => !(x in EN_ALL));
+    expect(manquantes, `ces chaînes sortiraient en français dans la version anglaise :\n  ${manquantes.join("\n  ")}`).toEqual([]);
+  });
+
+  /**
+   * UN NOM DE SERVICE TIENT DANS UNE COLONNE DE TUILE.
+   *
+   * L'en-tête est passé à 20,2 px le 25 octobre 2026, et « Réinvestissement »
+   * faisait alors 188 px dans une colonne de 175 : le mot sortait par-dessus la
+   * bordure. Coupé par la CSS, il donnait « Réinvestissem / ent », qui se lit
+   * comme une faute de frappe. La seule réponse qui tienne est un nom court —
+   * c'est d'ailleurs ce qui a rendu l'en-tête doublé possible.
+   *
+   * La borne porte sur le PLUS LONG MOT, et non sur le nom entier : « Épargne
+   * programmée » tient sur deux lignes sans rien couper, « Réinvestissement »
+   * n'en a qu'une et ne peut pas. Quatorze caractères est la mesure prise à
+   * l'écran sur une colonne de 175 px ; quinze laisse un cheveu.
+   */
+  it("ne laisse aucun nom porter un mot plus large que sa colonne", () => {
+    const trop = CATALOGUE.map((c) => ({ cle: c.cle, mot: c.nom.split(/[\s'’]/).reduce((a, b) => (b.length > a.length ? b : a), "") }))
+      .filter((x) => x.mot.length > 15)
+      .map((x) => `${x.cle} : « ${x.mot} » (${x.mot.length})`);
+    expect(trop, "ce mot débordera de sa tuile, et la CSS le coupera sans césure").toEqual([]);
   });
 
   it("range chacun dans un rayon qui existe", () => {

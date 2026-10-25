@@ -39,18 +39,28 @@ describe("le parcours de Trade", () => {
     expect(lire("src/app/trader/Parcours.tsx"), "le fil reparaît au premier niveau").toMatch(/\{niveau > 0 && \(\s*<nav/);
   });
 
-  /* LES DEUX LISTES SONT DES SOMMAIRES, et « Rubriques » est né de celle-ci
-     même : son fichier le dit. Les six autres sièges sont passés en bandes le
-     24 octobre ; celui-là gardait sa copie, restée en filets — la divergence
-     que le composant devait empêcher, arrivée chez son propre ancêtre. */
-  it("rend ses deux listes avec le sommaire de la maison", () => {
+  /* LA LISTE DES RAYONS EST UN SOMMAIRE, et « Rubriques » est né d'elle : son
+     fichier le dit. Les six autres sièges sont passés en bandes le 24 octobre ;
+     celui-là gardait sa copie, restée en filets — la divergence que le
+     composant devait empêcher, arrivée chez son propre ancêtre.
+
+     LE SECOND NIVEAU, LUI, N'EN EST PLUS UN depuis le 25 octobre 2026. Il
+     rangeait deux rayons distincts ; depuis que « Programmer » et « Tenir »
+     n'en font qu'un, ce sont cinq services d'une même famille — ce qui s'écrit
+     sur le compte — et une famille se COMPARE au lieu de se descendre. C'est
+     l'argument exact qui avait mis « Placer » en tuiles à la racine. Ce qui
+     reste interdit est le même : recopier le sommaire dans cette feuille. */
+  it("garde le sommaire de la maison pour la liste des rayons, et n'en recopie aucun", () => {
     const tsx = lire("src/app/trader/Parcours.tsx");
     expect(tsx, "le parcours a repris une liste à lui").toContain("<Rubriques");
-    expect((tsx.match(/<Rubriques/g) ?? []).length, "les deux niveaux de liste ne passent pas tous les deux par le sommaire").toBe(2);
+    expect((tsx.match(/<Rubriques/g) ?? []).length, "un second sommaire est revenu : le niveau des services est fait de tuiles").toBe(1);
     const css = lire("src/app/trader/Parcours.module.css");
     for (const mort of [".liste", ".ligne", ".chev", ".quoi", ".enPlace"]) {
       expect(css, `« ${mort} » est réapparu dans la feuille du parcours : c'est la copie du sommaire qui revient`).not.toContain(mort);
     }
+    /* ET LES DEUX NIVEAUX DE TUILES PARTAGENT LEUR FORME : une seconde classe
+       de tuile serait la même divergence, d'un cran plus bas. */
+    expect((tsx.match(/className=\{styles\.tuile\}/g) ?? []).length, "les deux niveaux de tuiles ne partagent plus la même forme").toBe(2);
   });
 
   /* L'EN-TÊTE. La phrase partait en colonne 8 d'une grille de douze, soit huit
@@ -132,10 +142,18 @@ describe("le parcours de Trade", () => {
      effaçait neuf sous-titres pour dire neuf fois la même chose ». Une
      précondition est la même pour presque tous les services ; une phrase
      porte les chiffres du client et diffère de l'un à l'autre. */
-  it("montre la phrase du service sur les deux écrans, et la précondition sur aucun des deux", () => {
+  it("montre la même ligne sur les deux listes, et la précondition sur aucune des deux", () => {
     const parcours = lire("src/app/trader/Parcours.tsx");
+    /* LA PHRASE DU CLIENT A QUITTÉ LES LISTES LE 25 OCTOBRE 2026, et elle n'a
+       pas disparu : elle est le sujet de la fiche, à un doigt de là, où elle
+       porte les chiffres de CE client. Ce qui la remplace dans les deux listes
+       est la ligne fixe « sous » — six mots qui disent de quoi il s'agit, et
+       qui tiennent sous un en-tête doublé de taille.
+       L'INVARIANT N'A PAS CHANGÉ : les deux écrans rendent le même texte dans
+       le même ordre. Il est seulement tenu un cran plus bas. */
     expect(lire("src/app/trader/Fiche.tsx"), "la fiche ne rend plus la phrase du service").toContain("sv.phrase.key");
-    expect(parcours, "les tuiles du téléphone ne rendent plus la phrase : l'écran large en dit plus que lui dans la même liste").toContain("sv.phrase.key");
+    expect(parcours, "les tuiles du téléphone ne portent plus la ligne fixe").toContain("sv.sous");
+    expect(lire("src/app/trader/Rayons.tsx"), "l'écran large ne porte plus la ligne fixe : il en dira moins que le téléphone dans la même liste").toContain("sous={t(sv.sous)}");
     expect(parcours, "la précondition est remontée dans la liste du téléphone : neuf sous-titres pour dire neuf fois la même chose").not.toContain("sv.porte");
   });
 

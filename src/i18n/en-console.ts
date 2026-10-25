@@ -136,7 +136,31 @@ export const EN_CONSOLE: Record<string, string> = {
   "les neuf, avec leur état": "the nine, with their state",
   "Purpose Capital est société de bourse : elle exécute ce que vous décidez, elle ne décide pas à votre place. Chaque service dit donc ce qu'il fait, et la limite qu'il porte.":
     "Purpose Capital is a brokerage firm: it carries out what you decide, it does not decide for you. So each service states what it does, and the limit it carries.",
+  /* LES NOMS COURTS DU 25 OCTOBRE 2026, avec la ligne fixe qui les
+     accompagne. Les anciens noms faisaient deux métiers — nommer et expliquer
+     — ce qui donne un titre qu'on ne peut pas grossir. Ils restent traduits :
+     rien ne garantit qu'aucune page ancienne ne les cite. */
   "Adjudications et émissions": "Auctions and new issues",
+  "Adjudications du Trésor": "Treasury Auctions",
+  "Sondage d'adjudication": "Auctions Survey",
+  "Arbitrage entre fonds": "Fund Arbitrage",
+  /* Deux noms raccourcis pour la même raison que les quatre autres : un
+     en-tête doublé de taille veut un nom court, et « Réinvestissement » a
+     déjà montré ce qu'un mot trop large fait à une tuile. */
+  "Conservation": "Custody",
+  "Prélèvement": "Direct debit",
+  "Actions": "Stock",
+  /* Les dix lignes fixes : ce dont il s'agit, en six mots. */
+  "Toutes les séances annoncées": "All the announced auction sessions",
+  "Se dire preneur avant une séance": "Say you will be a taker ahead of an auction",
+  "Passer d'un fonds à l'autre": "Switching between funds",
+  "Les fonds de la zone sont ouverts à la souscription": "The funds of the zone are open for subscription",
+  "Acheter et vendre sur la BVMAC": "Buy and sell on the BVMAC exchange",
+  "Une somme fixe, chaque mois": "A fixed sum, every month",
+  "Les coupons repartent tout seuls": "Coupons go back to work by themselves",
+  "Nous prélevons, vous ne virez plus": "We debit, you stop transferring",
+  "Votre argent chez nous, prêt à régler": "Your money with us, ready to settle",
+  "Vos titres inscrits à votre nom": "Your securities registered in your name",
   "Votre demande part au Trésor avec celles des autres, puis l'allocation vous revient à votre nom. Vous voyez le prix servi et ce qu'il rapporte.":
     "Your order goes to the Treasury with everyone else's, then the allocation comes back in your own name. You see the price awarded and what it yields.",
   "Une intention n'est pas une garantie d'allocation : le Trésor sert qui il veut, au prix qu'il retient.":
@@ -148,6 +172,7 @@ export const EN_CONSOLE: Record<string, string> = {
   "Achat et vente sur la BVMAC, avec le dernier cours publié, sa date, et le fait qu'une ligne ait traité ou non.":
     "Buying and selling on the BVMAC, with the last published price, its date, and whether a line has traded at all.",
   Réinvestissement: "Reinvestment",
+  "Réinvestir": "Reinvest",
   "Dès qu'un coupon ou un remboursement arrive réellement sur le compte, il repart sur la ligne que vous avez choisie d'avance.":
     "As soon as a coupon or a redemption actually reaches the account, it goes back into the line you chose in advance.",
   "Épargne programmée": "Savings plan",

@@ -172,10 +172,33 @@
 .tuile:focus-visible {
   border-color: var(--gold-line);
 }
+/* L'EN-TÊTE DOUBLE DE TAILLE : 12 px à l'origine, 20,2 maintenant, soit le
+   degré « titre de section » de l'échelle. Ce qui le rend possible, ce sont
+   les noms courts du 25 octobre 2026 — « Sondage d'adjudication » tient sur
+   deux lignes dans une colonne de 175 px, « Se dire preneur avant une
+   adjudication » en aurait pris quatre. Le degré au-dessus (30 px) est celui
+   d'un titre de page : deux titres de page sur une même tuile. */
 .tuile b {
-  font-size: var(--t-4);
+  font-size: var(--t-7);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  /* UN MOT PLUS LARGE QUE SA COLONNE SORTAIT DE LA TUILE. « Réinvestissement »
+     à 20,2 px faisait 188 px dans une colonne de 175, et passait par-dessus la
+     bordure. « overflow-wrap: anywhere » l'a coupé — en « Réinvestissem /
+     ent », sans césure, ce qui se lit comme une faute de frappe. La vraie
+     réponse est un NOM PLUS COURT, et c'est la règle que les en-têtes doublés
+     imposent de toute façon : le service s'appelle « Réinvestir ». Un cliquet
+     borne la longueur du plus long mot d'un nom, pour que la question se pose
+     à l'écriture et non à l'écran. La césure reste, en courtoisie. */
+  hyphens: auto;
+}
+/* LA LIGNE FIXE SOUS LE NOM : ce dont il s'agit, en six mots. Elle prend la
+   place de la phrase du client, qui porte des chiffres et vit sur la fiche. */
+.sous {
+  font-size: var(--t-3);
+  line-height: 1.45;
+  color: var(--ink-2);
 }
 /* L'état se dit, et au même mot que sur l'écran large : une même donnée ne se
    nomme pas de deux façons. */
@@ -202,21 +225,6 @@
   width: 20px;
   height: 20px;
 }
-/* CE QUI ATTEND DERRIÈRE LA TUILE, dans les mots de la maison : la phrase du
-   service, celle que l'écran large rend déjà dans sa bande. Elle vient avant
-   « en place », qui reste collé au bas par sa marge automatique.
-
-   ELLE ÉTAIT À 10,2 PX, c'est-à-dire au degré que l'échelle réserve à « une
-   étiquette en majuscules, un exposant, une mention » — pas à une phrase. Or
-   c'est le CORPS de la tuile : ce qu'on lit pour décider si le service nous
-   concerne. « Prose secondaire » est le degré qui le nomme, et c'est celui
-   qu'elle prend le 25 octobre 2026. */
-.apercu {
-  font-size: var(--t-3);
-  line-height: 1.45;
-  color: var(--ink-2);
-}
-
 /* ── CE QUI ATTEND DERRIÈRE UNE TUILE ────────────────────────────────────────
    Deux lignes au plus, sous la phrase du service : à gauche le nom de la
    ligne, à droite son chiffre. Le nom se tronque, le chiffre jamais — c'est

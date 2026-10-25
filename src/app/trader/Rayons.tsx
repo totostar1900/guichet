@@ -41,11 +41,16 @@ export function Rayons({ services, etapes, raisons, apercus }: { services: Servi
           <Pli key={r.cle} cle={`trade:${r.cle}`} titre={t(r.nom)} sous={t(r.quoi)} compte={enPlace > 0 ? (enPlace > 1 ? t("{n} en place", { n: String(enPlace) }) : t("1 en place")) : undefined}>
             <div className={styles.dedans}>
               {siens.map((sv) => (
+                /* LA MÊME LIGNE FIXE QUE LA TUILE DU TÉLÉPHONE. Les deux
+                   écrans lisent la même donnée et rendent le même texte :
+                   replié, le filet disait le seul nom pendant que la tuile
+                   disait le nom ET ce dont il s'agit. */
                 <Pli
                   key={sv.cle}
                   cle={`trade:${r.cle}:${sv.cle}`}
                   niveau="filet"
                   titre={t(sv.nom)}
+                  sous={t(sv.sous)}
                   defaut={false}
                   marque={ICONE_SERVICE[sv.cle]}
                   compte={sv.etat === "en_place" ? t("en place") : undefined}

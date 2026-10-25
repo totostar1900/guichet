@@ -182,6 +182,12 @@ export function Parcours({
                         {ICONE_SERVICE[sv.cle]}
                       </span>
                       <b>{t(sv.nom)}</b>
+                      {/* LA LIGNE FIXE SOUS LE NOM, et non plus la phrase du
+                          client. Un en-tête doublé de taille veut un nom court
+                          et une ligne qui situe ; la phrase, elle, porte les
+                          chiffres de CE client et vit sur la fiche, à un doigt
+                          de là, où elle est le sujet plutôt qu'un sous-titre. */}
+                      <span className={styles.sous}>{t(sv.sous)}</span>
                       {/* CE QUI ATTEND DERRIÈRE, DANS LES MOTS DE LA MAISON.
                           Le service porte déjà la phrase — « ce qu'il fait,
                           ou ferait, avec les chiffres du client » — et elle
@@ -205,7 +211,6 @@ export function Parcours({
                           aucune lecture, les offres étant déjà en main.
                           La phrase porte les chiffres DU CLIENT, l'aperçu ceux
                           du CATALOGUE : deux questions, deux lignes. */}
-                      <span className={styles.apercu}>{t(sv.phrase.key, sv.phrase.params)}</span>
                       {(apercus?.[sv.cle] ?? []).length > 0 && (
                         <span className={styles.apercus}>
                           {(apercus?.[sv.cle] ?? []).map((a) => (
@@ -234,15 +239,43 @@ export function Parcours({
             />
           </section>
 
+          {/* LE SECOND ÉCRAN EST FAIT DES MÊMES TUILES QUE LE PREMIER.
+              Il portait une liste en bandes, héritée du temps où ce niveau
+              rangeait deux rayons distincts : depuis que « Programmer » et
+              « Tenir » n'en font qu'un, ce sont cinq services d'une même
+              famille — ce qui s'écrit sur le compte — et une famille se
+              COMPARE, elle ne se descend pas. C'est exactement l'argument qui
+              avait mis « Placer » en tuiles à la racine, et il vaut ici depuis
+              la fusion. Même composant, même écusson, même ligne fixe : deux
+              formes pour une même chose finissent toujours par diverger. */}
           <section className={styles.volet} aria-hidden={niveau !== 1} inert={niveau !== 1}>
             {rayon && (
               <>
                 <p className={styles.intro}>{t(rayon.quoi)}</p>
-                {/* « EN PLACE » S'ÉCRIT, et ne se devine plus à un filet dans
-                    la marge : c'est le mot que le grand écran pose déjà sur le
-                    même service, et une même donnée ne se dit pas deux fois de
-                    deux façons. */}
-                <Rubriques items={siens.map((sv) => ({ nom: t(sv.nom), marque: ICONE_SERVICE[sv.cle], etiquette: sv.etat === "en_place" ? t("en place") : undefined, aller: () => aller(rayon.cle, sv.cle) }))} />
+                <ul className={styles.tuiles}>
+                  {siens.map((sv) => (
+                    <li key={sv.cle}>
+                      <button type="button" className={styles.tuile} onClick={() => aller(rayon.cle, sv.cle)}>
+                        <span className={styles.marque} aria-hidden="true">
+                          {ICONE_SERVICE[sv.cle]}
+                        </span>
+                        <b>{t(sv.nom)}</b>
+                        <span className={styles.sous}>{t(sv.sous)}</span>
+                        {(apercus?.[sv.cle] ?? []).length > 0 && (
+                          <span className={styles.apercus}>
+                            {(apercus?.[sv.cle] ?? []).map((a) => (
+                              <span key={a.nom} className={styles.apercuLigne}>
+                                <em>{a.nom}</em>
+                                <b>{t(a.dit.key, a.dit.params)}</b>
+                              </span>
+                            ))}
+                          </span>
+                        )}
+                        {sv.etat === "en_place" && <small>{t("en place")}</small>}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </>
             )}
           </section>

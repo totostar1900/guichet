@@ -79,6 +79,20 @@ export interface ServiceVu {
   rayon: Rayon;
   cle: string;
   nom: string;
+  /**
+   * LA LIGNE SOUS LE NOM, FIXE ET COURTE.
+   *
+   * Elle est la jumelle de la raison d'être, en six mots : la raison explique,
+   * celle-ci situe. Un en-tête de service doublé de taille a besoin d'un nom
+   * COURT — « Se dire preneur avant une adjudication » en gros caractères tient
+   * quatre lignes sur une tuile de téléphone — et ce que le nom perd en
+   * précision, cette ligne le rend.
+   *
+   * Elle ne porte aucun chiffre du client, contrairement à « phrase » : c'est
+   * ce qui lui permet de vivre sur une tuile, où l'on compare des services
+   * plutôt qu'on ne lit le sien.
+   */
+  sous: string;
   href: string;
   etat: EtatService;
   /** Ce qu'il fait, ou ferait, avec les chiffres du client. */
@@ -195,8 +209,11 @@ export interface ContexteClient {
   compteOuvert?: boolean;
 }
 
-const enPlace = (s: Omit<ServiceVu, "etat" | "geste"> & { geste?: Dit }): ServiceVu => ({ ...s, etat: "en_place", geste: s.geste ?? { key: "Allons-y" } });
-const aActiver = (s: Omit<ServiceVu, "etat" | "geste"> & { geste?: Dit }): ServiceVu => ({ ...s, etat: "a_activer", geste: s.geste ?? { key: "Allons-y" } });
+/* « sous » se prend au catalogue plutôt qu'en argument : il est fixe par
+   service, et le réécrire aux deux branches d'un même service (en place / à
+   activer) ouvrait la porte à deux lignes divergentes pour un seul nom. */
+const enPlace = (s: Omit<ServiceVu, "etat" | "geste" | "sous"> & { geste?: Dit }): ServiceVu => ({ ...s, sous: SOUS[s.cle] ?? "", etat: "en_place", geste: s.geste ?? { key: "Allons-y" } });
+const aActiver = (s: Omit<ServiceVu, "etat" | "geste" | "sous"> & { geste?: Dit }): ServiceVu => ({ ...s, sous: SOUS[s.cle] ?? "", etat: "a_activer", geste: s.geste ?? { key: "Allons-y" } });
 
 /**
  * Les neuf, dans l'ordre des états : ce qui tourne, ce qui dort, ce qui est
@@ -216,7 +233,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
       ? enPlace({
           rayon: "compte",
           cle: "reinvestissement",
-          nom: "Réinvestissement",
+          nom: "Réinvestir",
           href: "/moi/reinvestir",
           phrase: {
             key: "Vos encaissements partent vers {d} dès qu'ils atteignent {m} FCFA.",
@@ -226,7 +243,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
       : aActiver({
           rayon: "compte",
           cle: "reinvestissement",
-          nom: "Réinvestissement",
+          nom: "Réinvestir",
           href: "/moi/reinvestir",
           phrase:
             c.disponible > 0
@@ -264,7 +281,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
       ? enPlace({
           rayon: "compte",
           cle: "garde",
-          nom: "Conservation et tenue de compte",
+          nom: "Conservation",
           href: "/moi",
           // « 1 lignes inscrites » se lisait sur la première page qu'un client
           // ouvre. Deux clefs plutôt qu'une règle de pluriel : le dictionnaire
@@ -275,7 +292,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
       : aActiver({
           rayon: "compte",
           cle: "garde",
-          nom: "Conservation et tenue de compte",
+          nom: "Conservation",
           href: "/titres",
           phrase: { key: "Dès votre première ligne, elle sera inscrite à votre nom au dépositaire." },
         }),
@@ -290,7 +307,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
     aActiver({
       rayon: "placer",
       cle: "primaire",
-      nom: "Adjudications et émissions",
+      nom: "Adjudications du Trésor",
       href: "/calendrier",
       phrase: c.prochaineSeance
         ? { key: "Une séance {p} est annoncée le {d} : {q}.", params: { p: c.prochaineSeance.pays, d: c.prochaineSeance.le, q: c.prochaineSeance.quoi } }
@@ -306,14 +323,14 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
       ? aActiver({
           rayon: "placer",
           cle: "sondage",
-          nom: "Se dire preneur avant une adjudication",
+          nom: "Sondage d'adjudication",
           href: "/calendrier",
           phrase: { key: "Vous pouvez dire à quel taux vous seriez preneur sur la séance du {d}, sans vous engager.", params: { d: c.prochaineSeance.le } },
         })
       : aActiver({
           rayon: "placer",
           cle: "sondage",
-          nom: "Se dire preneur avant une adjudication",
+          nom: "Sondage d'adjudication",
           href: "/calendrier",
           phrase: { key: "Commencez par une séance annoncée : le calendrier les publie dès qu'un Trésor ouvre la sienne." },
         }),
@@ -325,14 +342,14 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
       ? aActiver({
           rayon: "placer",
           cle: "passage",
-          nom: "Passage d'un fonds à l'autre",
+          nom: "Arbitrage entre fonds",
           href: "/fonds",
           phrase: { key: "Vous détenez {n} parts de {d}, rachetables.", params: { n: c.partsDeFonds.parts, d: c.partsDeFonds.titre } },
         })
       : aActiver({
           rayon: "placer",
           cle: "passage",
-          nom: "Passage d'un fonds à l'autre",
+          nom: "Arbitrage entre fonds",
           href: "/fonds",
           phrase: { key: "Commencez par souscrire à un fonds : le passage se déclare ensuite depuis la ligne que vous détenez." },
         }),
@@ -364,7 +381,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
     aActiver({
       rayon: "placer",
       cle: "actions",
-      nom: "Acheter et vendre en bourse",
+      nom: "Actions",
       /* UN GESTE NE MÈNE PAS À LA PAGE QUI SE LIT. « /marche » est la porte de
          l'environnement BVMAC : l'indice, les sociétés, les notes. Un service
          dont le verbe est « acheter » y déposait le client sur une page de
@@ -400,7 +417,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
       : aActiver({ rayon: "compte", cle: "provision", nom: "Votre provision", href: "/moi/provision", phrase: { key: "Ce que vous laissez chez nous règle vos ordres sans attendre un virement, et repart sur demande." } }),
   );
   out.push(
-    aActiver({ rayon: "compte", cle: "prelevement", nom: "Prélèvement automatique", href: "/moi/prelevements", phrase: { key: "Vous nous autorisez à prélever une somme sur votre compte, à une date fixe, sous un plafond que vous fixez." } }),
+    aActiver({ rayon: "compte", cle: "prelevement", nom: "Prélèvement", href: "/moi/prelevements", phrase: { key: "Vous nous autorisez à prélever une somme sur votre compte, à une date fixe. C'est le montant que vous écrivez qui est présenté, ni plus ni moins." } }),
   );
 
   const rang: Record<EtatService, number> = { en_place: 0, a_activer: 1 };
@@ -450,16 +467,16 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
  * comparant clef pour clef, nom pour nom, porte pour porte.
  */
 export const CATALOGUE: { cle: string; nom: string; rayon: Rayon; href: string }[] = [
-  { cle: "primaire", nom: "Adjudications et émissions", rayon: "placer", href: "/calendrier" },
-  { cle: "sondage", nom: "Se dire preneur avant une adjudication", rayon: "placer", href: "/calendrier" },
-  { cle: "actions", nom: "Acheter et vendre en bourse", rayon: "placer", href: "/titres" },
+  { cle: "primaire", nom: "Adjudications du Trésor", rayon: "placer", href: "/calendrier" },
+  { cle: "sondage", nom: "Sondage d'adjudication", rayon: "placer", href: "/calendrier" },
+  { cle: "actions", nom: "Actions", rayon: "placer", href: "/titres" },
   { cle: "fonds", nom: "Investir dans un fonds", rayon: "placer", href: "/fonds" },
-  { cle: "passage", nom: "Passage d'un fonds à l'autre", rayon: "placer", href: "/fonds" },
+  { cle: "passage", nom: "Arbitrage entre fonds", rayon: "placer", href: "/fonds" },
   { cle: "epargne", nom: "Épargne programmée", rayon: "compte", href: "/moi/epargne" },
-  { cle: "reinvestissement", nom: "Réinvestissement", rayon: "compte", href: "/moi/reinvestir" },
-  { cle: "prelevement", nom: "Prélèvement automatique", rayon: "compte", href: "/moi/prelevements" },
+  { cle: "reinvestissement", nom: "Réinvestir", rayon: "compte", href: "/moi/reinvestir" },
+  { cle: "prelevement", nom: "Prélèvement", rayon: "compte", href: "/moi/prelevements" },
   { cle: "provision", nom: "Votre provision", rayon: "compte", href: "/moi/provision" },
-  { cle: "garde", nom: "Conservation et tenue de compte", rayon: "compte", href: "/moi" },
+  { cle: "garde", nom: "Conservation", rayon: "compte", href: "/moi" },
 ];
 
 /**
@@ -497,6 +514,32 @@ export const CATALOGUE: { cle: string; nom: string; rayon: Rayon; href: string }
  * service dont la raison d'être changerait d'un client à l'autre serait un
  * service mal découpé.
  */
+/**
+ * LA LIGNE SOUS CHAQUE NOM, EN SIX MOTS.
+ *
+ * Décidée le 25 octobre 2026, avec les noms courts qui l'accompagnent. Les
+ * anciens noms faisaient deux métiers à la fois : « Se dire preneur avant une
+ * adjudication » NOMMAIT le service et l'EXPLIQUAIT dans le même souffle, ce
+ * qui donne un titre qu'on ne peut pas grossir. Le nom désigne maintenant, la
+ * ligne situe, et l'en-tête peut doubler de taille sans déborder.
+ *
+ * Elle est plus courte que la raison d'être, et ce n'est pas la même chose :
+ * la raison répond à « pourquoi le prendrais-je », cette ligne à « de quoi
+ * s'agit-il ». La première vit sur la fiche, la seconde sur la tuile.
+ */
+export const SOUS: Record<string, string> = {
+  primaire: "Toutes les séances annoncées",
+  sondage: "Se dire preneur avant une séance",
+  passage: "Passer d'un fonds à l'autre",
+  fonds: "Les fonds de la zone sont ouverts à la souscription",
+  actions: "Acheter et vendre sur la BVMAC",
+  epargne: "Une somme fixe, chaque mois",
+  reinvestissement: "Les coupons repartent tout seuls",
+  prelevement: "Nous prélevons, vous ne virez plus",
+  provision: "Votre argent chez nous, prêt à régler",
+  garde: "Vos titres inscrits à votre nom",
+};
+
 export const RAISON: Record<string, string> = {
   primaire: "Prêter à un État de la zone en achetant ses titres à l'émission, au prix de l'adjudication plutôt qu'à celui du marché.",
   sondage: "Dire au desk ce que vous prendriez avant qu'une séance ouvre, sans vous engager, pour qu'il vous rappelle au bon moment.",
@@ -505,7 +548,7 @@ export const RAISON: Record<string, string> = {
   passage: "Changer de fonds sans sortir de votre argent, quand votre horizon ou votre besoin de liquidité a changé.",
   epargne: "Placer une somme fixe chaque mois sans y penser : c'est la régularité qui fait le résultat, pas le moment choisi.",
   reinvestissement: "Remettre au travail un coupon ou un remboursement dès son arrivée, au lieu de le laisser dormir sur un compte.",
-  prelevement: "Autoriser la maison à débiter votre compte bancaire à date fixe, sous un plafond que vous fixez, pour n'avoir plus de virement à faire.",
+  prelevement: "Autoriser la maison à débiter votre compte bancaire à date fixe, du montant exact que vous écrivez, pour n'avoir plus de virement à faire.",
   provision: "Laisser de l'argent chez nous pour que vos ordres se règlent sans attendre un virement, et le reprendre quand vous voulez.",
   garde: "Vos titres sont inscrits à votre nom au dépositaire, jamais dans un compte collectif, et tout mouvement vous est prouvé.",
 };
@@ -559,9 +602,9 @@ export const ETAPES: Record<string, string[]> = {
     "Au prochain ordre couvert, rien n'est à virer ; le reste repart sur demande, sous 72 heures ouvrables.",
   ],
   prelevement: [
-    "Dire ce qu'il alimente, le montant, le jour du mois et le plafond que vous ne voulez pas dépasser.",
+    "Dire ce qu'il alimente, le montant et le jour du mois : c'est ce montant-là qui sera présenté à votre banque, ni plus ni moins.",
     "Signer le mandat une fois, par un code reçu.",
-    "Chaque prélèvement est annoncé cinq jours avant, et le mandat se révoque à tout moment, sans motif.",
+    "Chaque prélèvement est annoncé cinq jours avant, une seule fois par mois, et le mandat se révoque à tout moment, sans motif.",
   ],
 };
 
