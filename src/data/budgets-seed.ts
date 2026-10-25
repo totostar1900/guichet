@@ -1,4 +1,4 @@
-import type { BudgetEtat, NoteBudget } from "@/lib/domain/types";
+import type { BudgetEtat, NoteBudget, Reference } from "@/lib/domain/types";
 
 /**
  * LES BUDGETS DES SIX, TELS QUE RELEVÉS LE 25 OCTOBRE 2026.
@@ -21,6 +21,35 @@ import type { BudgetEtat, NoteBudget } from "@/lib/domain/types";
  * et on laisse la question ouverte dans « à relever ». Un écart assumé vaut
  * mieux qu'une soustraction qui a l'air juste.
  */
+
+/**
+ * LES DEUX PIÈCES QUE LA BEAC PUBLIE POUR CHAQUE ÉTAT.
+ *
+ * Elles existent pour les six, aux mêmes adresses à un nom près, et toutes
+ * dix ont répondu le 25 octobre 2026. Elles ne sont pas là pour nous : ce sont
+ * des SCANS — Xerox, Genius Scan, aucune couche de texte —, donc aucun chiffre
+ * n'en est tiré ici. Elles sont là pour que le desk les ouvre, les lise de ses
+ * yeux, et puisse écrire une note sur un État sans avoir à chercher d'abord où
+ * se trouve la pièce. C'était le frein nommé par le formulaire lui-même :
+ * « cette fiche ne nomme aucune pièce ».
+ */
+const BEAC = "https://www.beac.int/wp-content/uploads/2019/06";
+const piecesBeac = (nom: string): Reference[] => [
+  {
+    titre: "Programme annuel des émissions de titres publics 2026",
+    editeur: "BEAC",
+    date: "2026",
+    url: `${BEAC}/PROGRAMME-ANNUEL-DES-EMISSIONS-2026-${nom}.pdf`,
+    verifieLe: "2026-10-25",
+  },
+  {
+    titre: "Calendrier des émissions du premier trimestre 2026",
+    editeur: "BEAC",
+    date: "2026",
+    url: `${BEAC}/CALENDRIER-DES-EMISSIONS-DU-PREMIER-TRIMESTRE-2026-${nom}.pdf`,
+    verifieLe: "2026-10-25",
+  },
+];
 
 const CAMEROUN: BudgetEtat = {
   pays: "Cameroun",
@@ -112,10 +141,11 @@ const CAMEROUN: BudgetEtat = {
       verifieLe: "2026-10-24",
     },
     {
-      titre: "Calendrier trimestriel d'émission de titres publics des États de la CEMAC",
+      titre: "Calendrier des émissions du premier trimestre 2026",
       editeur: "BEAC",
-      url: "https://www.beac.int/m-des-titres-publics/calendrier-trimestriel-demission-titres-publics-etats-de-cemac/",
-      verifieLe: "2026-10-24",
+      date: "2026",
+      url: "https://www.beac.int/wp-content/uploads/2019/06/CALENDRIER-DES-EMISSIONS-DU-PREMIER-TRIMESTRE-2026-CAMEROUN.pdf",
+      verifieLe: "2026-10-25",
     },
     {
       titre: "Avis d'émission",
@@ -149,6 +179,7 @@ const GABON: BudgetEtat = {
   besoinDeFinancement: undefined,
   financement: [],
   source: { texte: "Reprise de presse spécialisée · budget initial annoncé à 7 233,3 milliards", releveLe: "2026-10-25" },
+  references: piecesBeac("GABON"),
   aRelever: [
     "Budget initial 7 233,3 ramené à 5 495,2 ; la coupe votée est donnée à −862,9, ce qui ne se déduit pas des deux chiffres — les périmètres diffèrent.",
     "Recettes et dépenses poste par poste : non relevées.",
@@ -167,6 +198,7 @@ const CONGO: BudgetEtat = {
   depenses: [],
   financement: [{ cle: "titres", libelle: "Programme d'émissions de titres publics", montant: 690_000, titres: true }],
   source: { texte: "Reprise de presse spécialisée", releveLe: "2026-10-25" },
+  references: piecesBeac("CONGO"),
   aRelever: [
     "Budget relevé de 9 % par collectif sur de meilleures perspectives pétrolières ; le montant n'a pas été relevé.",
     "Recettes, dépenses et plan de financement : non relevés.",
@@ -183,6 +215,7 @@ const TCHAD: BudgetEtat = {
   depenses: [],
   financement: [{ cle: "titres", libelle: "Programme d'émissions de titres publics", montant: 520_000, titres: true }],
   source: { texte: "Reprise de presse spécialisée", releveLe: "2026-10-25" },
+  references: piecesBeac("TCHAD"),
   aRelever: [
     "Le programme d'émissions est connu, le budget non : la page doit savoir le dire.",
     "Loi de finances, date de promulgation, recettes, dépenses, solde : non relevés.",
@@ -200,6 +233,7 @@ const RCA: BudgetEtat = {
   soldeDeclare: -27_900,
   financement: [],
   source: { texte: "Reprise de presse spécialisée", releveLe: "2026-10-25" },
+  references: piecesBeac("RCA"),
   aRelever: [
     "Le déficit vaut 1,2 % du PIB selon l'État et 3,5 à 4 % selon la Banque africaine de développement : la page doit nommer la mesure ET sa source.",
     "Collectif budgétaire en préparation après des prévisions de trésorerie dépassées à fin juin 2026.",
@@ -217,6 +251,7 @@ const GUINEE: BudgetEtat = {
   depenses: [],
   financement: [],
   source: { texte: "Reprise de presse spécialisée", releveLe: "2026-10-25" },
+  references: piecesBeac("GUINEE-EQUATORIALE"),
   aRelever: [
     "Excédent de 53 milliards annoncé au premier trimestre 2026 ; déficit 2026 estimé entre 2,1 et 3,3 % du PIB selon les sources.",
     "Loi de finances, montants et plan de financement : non relevés.",
@@ -358,6 +393,7 @@ export const SEED_NOTES_BUDGET: NoteBudget[] = [
       "La note n° 1 citait la loi n° 2025/012 du 17 décembre comme sa source alors que ses chiffres venaient de l'exposé des motifs du PROJET, daté de novembre. Les deux diffèrent sur la répartition des dépenses, et le principal y était déduit quand la loi le publie. Nous présentions comme voté ce qui n'était que proposé.",
     releve: [
       { cle: "millesime", libelle: "Millésime en vigueur", valeur: "LFI 2026, révision annoncée" },
+      { cle: "budget_total", libelle: "Total du budget", valeur: "8 816,4 Md" },
       { cle: "baril_loi", libelle: "Prix du baril retenu", valeur: "62,38 $" },
       { cle: "baril_constate", libelle: "Prix du baril retenu \u00b7 constaté", valeur: "\u2248 100 $ au printemps 2026" },
       { cle: "solde", libelle: "Solde déclaré", valeur: "-631,0 Md" },

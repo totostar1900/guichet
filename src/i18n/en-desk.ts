@@ -3648,6 +3648,7 @@ export const EN_MORE: Record<string, string> = {
      seule langue qui leur reste est celle du rendu. Les intitulés venus du
      document (« Transferts et subventions ») traversent t() tels quels. */
   "Millésime en vigueur": "Vintage in force",
+  "Total du budget": "Budget total",
   "Programme de titres publics": "Government securities programme",
 
   /* ---------- Le carnet et les pièces ---------- */

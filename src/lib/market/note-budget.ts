@@ -159,6 +159,7 @@ export function verifierNote(d: BrouillonNote): Refus[] {
  */
 export const LIBELLES_DU_RELEVE = {
   millesime: "Millésime en vigueur",
+  budget_total: "Total du budget",
   solde: "Solde déclaré",
   amortissement: "Remboursement du principal",
   besoin: "Besoin de financement",
@@ -167,6 +168,13 @@ export const LIBELLES_DU_RELEVE = {
 
 export function releveDuBudget(b: BudgetEtat): NoteBudget["releve"] {
   const out: NoteBudget["releve"] = [{ cle: "millesime", libelle: LIBELLES_DU_RELEVE.millesime, valeur: `LFI ${b.exercice}, ${MOT_DU_MILLESIME[b.millesime]}` }];
+
+  /* LE TOTAL DU BUDGET, QUAND IL EST RELEVÉ. Il bouge rarement et lourdement
+     — un collectif —, ce qui est exactement ce qu'une note suit. Sans lui, la
+     fiche gabonaise n'enregistrait que son millésime, et toute son histoire
+     tient pourtant dans ce chiffre : 7 233,3 ramenés à 5 495,2 en cours
+     d'année. */
+  if (b.budgetTotal !== undefined) out.push({ cle: "budget_total", libelle: LIBELLES_DU_RELEVE.budget_total, valeur: `${enMilliards(b.budgetTotal)} Md` });
 
   for (const h of b.hypotheses ?? []) {
     out.push({ cle: `${h.cle}_loi`, libelle: h.libelle, valeur: h.valeur });

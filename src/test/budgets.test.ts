@@ -360,7 +360,7 @@ describe("écrire une note du desk", () => {
    */
   it("prend son relevé sur le budget, valeurs comprises", () => {
     const r = releveDuBudget(cameroun());
-    expect(r.map((x) => x.cle), "le relevé a changé de postes").toEqual(["millesime", "baril_loi", "baril_constate", "solde", "amortissement", "besoin", "programme_titres"]);
+    expect(r.map((x) => x.cle), "le relevé a changé de postes").toEqual(["millesime", "budget_total", "baril_loi", "baril_constate", "solde", "amortissement", "besoin", "programme_titres"]);
     const par = Object.fromEntries(r.map((x) => [x.cle, x.valeur]));
     expect(par.millesime, "le millésime n'est plus relevé tel qu'il est en vigueur").toBe("LFI 2026, révision annoncée");
     expect(par.baril_loi, "l'hypothèse de baril de la loi n'est plus relevée").toBe("62,38 $");
@@ -465,7 +465,7 @@ describe("écrire une note du desk", () => {
     const b = cameroun();
     const nôtres = releveDuBudget(b).filter((x) => x.cle in LIBELLES_DU_RELEVE);
     expect(nôtres.map((x) => x.cle).sort(), "les libellés traduits ne sont plus ceux que la fiche produit").toEqual(
-      ["amortissement", "besoin", "millesime", "programme_titres", "solde"],
+      ["amortissement", "besoin", "budget_total", "millesime", "programme_titres", "solde"],
     );
     /* NON-VACUITÉ : il reste des libellés venus du document, sinon le tri ne
        trierait rien. */
@@ -798,6 +798,30 @@ describe("les pièces d'une note", () => {
    * qui n'a pas d'adresse n'en a pas parce qu'on ne l'a pas trouvée, et elle
    * le dit à l'écran.
    */
+  /**
+   * AUCUNE FICHE NE LAISSE LE DESK SANS PIÈCE.
+   *
+   * Le formulaire exige au moins un document — une lecture que rien n'étaye
+   * n'apprend rien. Tant que cinq fiches sur six n'en nommaient aucun, écrire
+   * une note sur ces États demandait d'aller chercher soi-même où se trouve la
+   * pièce, et l'écran le disait : « cette fiche ne nomme aucune pièce ».
+   *
+   * La BEAC en publie deux par État, aux mêmes adresses à un nom près. Elles
+   * sont des SCANS, donc elles ne servent pas à nous : elles servent à ce que
+   * le desk les ouvre. C'est la différence entre pouvoir écrire une note et
+   * pouvoir l'écrire sans chercher d'abord.
+   */
+  it("donne à chaque État de quoi étayer une note", () => {
+    for (const b of SEED_BUDGETS) {
+      expect(b.references?.length ?? 0, `${b.pays} ne nomme aucune pièce : une note sur cet État part de rien`).toBeGreaterThan(0);
+      /* Et chacune mène quelque part : une pièce sans adresse ni éditeur ne
+         se retrouve pas. */
+      for (const p of b.references ?? []) expect(p.url || p.editeur, `une pièce de ${b.pays} n'a ni adresse ni éditeur`).toBeTruthy();
+    }
+    /* NON-VACUITÉ : les six États sont bien passés en revue. */
+    expect(SEED_BUDGETS.length, "le semis ne porte plus six États").toBe(6);
+  });
+
   it("date chaque adresse qu'elle consigne", () => {
     const avecUrl = SEED_BUDGETS.flatMap((b) => b.references ?? []).filter((p) => p.url);
     expect(avecUrl.length, "plus aucune pièce ne porte d'adresse : l'épreuve ne garde rien").toBeGreaterThanOrEqual(5);
