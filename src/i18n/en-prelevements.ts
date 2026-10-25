@@ -9,8 +9,10 @@
 export const EN_PRELEVEMENTS: Record<string, string> = {
   "Vos prélèvements": "Your direct debits",
   "Payer sans y penser": "Paying without thinking about it",
-  "Vous pouvez nous autoriser à prélever une somme sur votre compte bancaire, à une date fixe du mois. C'est vous qui fixez le plafond, et nous ne le dépassons jamais. Chaque prélèvement est annoncé avant de partir, et vous pouvez révoquer votre autorisation à tout moment, sans motif.":
-    "You may authorise us to debit a sum from your bank account, on a fixed day of the month. You set the ceiling, and we never go beyond it. Every debit is announced before it leaves, and you may revoke your authorisation at any time, without giving a reason.",
+  /* Le plafond a quitté cette phrase le 25 octobre 2026 : il se disait trois
+     fois sur le même écran, et pour la provision il VAUT le montant écrit. */
+  "Vous pouvez nous autoriser à prélever une somme sur votre compte bancaire, à une date fixe du mois. Chaque prélèvement est annoncé avant de partir, et vous pouvez révoquer votre autorisation à tout moment, sans motif.":
+    "You may authorise us to debit a sum from your bank account, on a fixed day of the month. Every debit is announced before it leaves, and you may revoke your authorisation at any time, without giving a reason.",
   "Vos autorisations": "Your authorisations",
   "Alimenter ma provision": "Funding my provision",
   "Alimenter mon épargne programmée": "Funding my savings plan",
@@ -20,8 +22,8 @@ export const EN_PRELEVEMENTS: Record<string, string> = {
   "Plafond par échéance": "Ceiling per instalment",
   "Compte débité": "Account debited",
   "Référence du mandat": "Mandate reference",
-  "Signé le {d}. Votre exemplaire est dans vos documents : votre banque peut vous le demander.":
-    "Signed on {d}. Your copy is in your documents: your bank may ask you for it.",
+  "Signé le {d}. Votre banque peut vous demander cet exemplaire.": "Signed on {d}. Your bank may ask you for this copy.",
+  "Ouvrir mon exemplaire →": "Open my copy →",
   "Recevoir mon code": "Get my code",
   "Je signe ce mandat": "I sign this mandate",
   Garder: "Keep it",

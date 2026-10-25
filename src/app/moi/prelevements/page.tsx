@@ -55,8 +55,17 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
         <EnTete
           surTitre={t("Payer sans y penser")}
           titre={t("Vos prélèvements")}
+          /* LE PLAFOND EST PARTI DE LA PHRASE D'OUVERTURE, le 25 octobre 2026.
+             Il se disait trois fois sur un même écran — ici, sous le champ du
+             montant (« ce montant est aussi votre plafond »), et sur chaque
+             carte d'autorisation (« plafond par échéance »). Pour la provision,
+             le plafond VAUT le montant que le client écrit : l'annoncer comme
+             un réglage à part faisait chercher un second champ qui n'existe
+             pas. Ce qui reste en tête, ce sont les deux promesses qui ne se
+             lisent nulle part ailleurs : on annonce avant, et on s'arrête sur
+             demande. */
           phrase={t(
-            "Vous pouvez nous autoriser à prélever une somme sur votre compte bancaire, à une date fixe du mois. C'est vous qui fixez le plafond, et nous ne le dépassons jamais. Chaque prélèvement est annoncé avant de partir, et vous pouvez révoquer votre autorisation à tout moment, sans motif.",
+            "Vous pouvez nous autoriser à prélever une somme sur votre compte bancaire, à une date fixe du mois. Chaque prélèvement est annoncé avant de partir, et vous pouvez révoquer votre autorisation à tout moment, sans motif.",
           )}
         />
 
@@ -78,6 +87,11 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
             jour: m.dayOfMonth,
             etat: m.state,
             signeLe: m.signedAt,
+            /* L'EXEMPLAIRE, PAR SON ADRESSE. La carte promettait « votre
+               exemplaire est dans vos documents » sans y mener : le client
+               devait traverser trois écrans pour trouver la pièce que sa
+               banque lui demande. */
+            piece: m.docId,
             codeEnvoyeA: m.pendingCodeTo,
             codeEnvoyeLe: m.pendingCodeAt,
             revoqueLe: m.revokedAt,

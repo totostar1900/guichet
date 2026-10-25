@@ -102,7 +102,17 @@ describe("une ligne porte au plus un geste", () => {
        appel littéral au traducteur, y compris dans un test, et prendrait
        « ${geste} » pour une chaîne à traduire. */
     const appel = (k: string) => `label: ${"t"}(${JSON.stringify(k)})`;
-    for (const geste of ["Signer", "Régler", "Modifier", "Contester", "Ouvrir"]) expect(src, geste).toContain(appel(geste));
+    for (const geste of ["Signer", "Régler", "Contester", "Ouvrir"]) expect(src, geste).toContain(appel(geste));
+    /* « MODIFIER » EST PARTI LE 25 OCTOBRE 2026, et son absence est la règle.
+       C'était le geste du mandat de prélèvement, et il menait à la page des
+       prélèvements au lieu de la pièce : le seul papier qu'une agence bancaire
+       réclame était donc le seul de ce rayon qu'on ne pouvait pas ouvrir.
+       « Au plus un geste » veut dire que c'est celui DU PAPIER ; modifier un
+       mandat vit là où le mandat vit. */
+    expect(src, "« Modifier » est revenu : un papier signé s'ouvre, il ne se modifie pas depuis sa ligne").not.toContain(appel("Modifier"));
+    /* Non vacuité : le mandat est bien dans ce rayon, et c'est donc bien de
+       lui qu'on parle. */
+    expect(src, "le mandat a quitté le rayon des pièces signées").toMatch(/SIGNES[^=]*=[^;]*"prelevement"/);
   });
 });
 

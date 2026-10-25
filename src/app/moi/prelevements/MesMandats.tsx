@@ -21,6 +21,8 @@ interface Vu {
   jour?: number;
   etat: "actif" | "suspendu" | "revoque";
   signeLe?: string;
+  /** L'exemplaire produit à la signature, s'il existe : la pièce que la banque réclame. */
+  piece?: string;
   codeEnvoyeA?: string;
   codeEnvoyeLe?: string;
   revoqueLe?: string;
@@ -74,17 +76,24 @@ export function MesMandats({
   const [sign, signAct, signant] = useActionState<MandatResult | null, FormData>(signerMandatAction, null);
   const [revoc, revocAct, revoquant] = useActionState<MandatResult | null, FormData>(revoquerMandatAction, null);
   const connue = instructions.some((i) => i.id === instructionDemandee);
+  const vivants = mandats.filter((m) => m.etat !== "revoque");
+  const anciens = mandats.filter((m) => m.etat === "revoque");
   const [objet, setObjet] = useState<"provision" | "instruction">(connue ? "instruction" : "provision");
-  const [ouvert, setOuvert] = useState(connue);
+  /* LE FORMULAIRE EST OUVERT QUAND IL N'Y A RIEN D'AUTRE À LIRE.
+     Relevé le 25 octobre 2026 : un client arrivait de « Approvisionner votre
+     compte » en cliquant « Mettre en place un prélèvement », et tombait sur un
+     écran dont le seul contenu était un bouton « Préparer un mandat ». Deux
+     clics pour la même intention, et le second n'apprend rien — c'est la page
+     intermédiaire dans la page. Quand une autorisation existe déjà, le repli
+     garde son sens : la liste est alors ce qu'on vient lire, et en ajouter une
+     seconde est un geste délibéré. */
+  const [ouvert, setOuvert] = useState(connue || vivants.length === 0);
   const [aRevoquer, setARevoquer] = useState<string | null>(null);
   const [quelle, setQuelle] = useState((connue && instructionDemandee) || instructions[0]?.id || "");
   /* Contrôlés, parce que le regroupement replace le curseur après chaque
      touche : un champ non contrôlé renverrait le curseur au bout. */
   const [montant, setMontant] = useState("");
   const [plafond, setPlafond] = useState("");
-
-  const vivants = mandats.filter((m) => m.etat !== "revoque");
-  const anciens = mandats.filter((m) => m.etat === "revoque");
 
   return (
     <>
@@ -128,7 +137,25 @@ export function MesMandats({
                 </dl>
 
                 {m.signeLe ? (
-                  <p className={styles.note}>{t("Signé le {d}. Votre exemplaire est dans vos documents : votre banque peut vous le demander.", { d: fmtDateTime(m.signeLe) })}</p>
+                  <>
+                    {/* LA CONFIRMATION DE LA SIGNATURE SURVIT AU FORMULAIRE
+                        QU'ELLE CONFIRME. Relevé en jouant le parcours le
+                        25 octobre 2026 : le message « Mandat signé » vivait
+                        dans le bloc de signature, et signer fait disparaître ce
+                        bloc — donc le message. Le client voyait la carte
+                        changer d'état sans qu'une ligne le lui dise, ce qui
+                        est indiscernable d'un geste qui n'a pas abouti. C'est
+                        la même panne que sur le compte de règlement du desk,
+                        le même jour, pour la même raison. */}
+                    {sign?.ok && sign.message ? <p className={styles.ok}>{t(sign.message)}</p> : null}
+                    <p className={styles.note}>
+                      {t("Signé le {d}. Votre banque peut vous demander cet exemplaire.", { d: fmtDateTime(m.signeLe) })}{" "}
+                      {/* L'ADRESSE DE LA PIÈCE, et non sa description : « dans
+                          vos documents » faisait traverser trois écrans pour
+                          trouver le seul papier qu'une agence réclame. */}
+                      <Link href={m.piece ? `/moi/documents/${m.piece}?de=${encodeURIComponent("/moi/prelevements")}` : "/moi/documents/signes"}>{t("Ouvrir mon exemplaire →")}</Link>
+                    </p>
+                  </>
                 ) : (
                   <div className={styles.signer}>
                     {/* LA PAGE ET L'ACTION DOIVENT DIRE LA MÊME CHOSE. Sans

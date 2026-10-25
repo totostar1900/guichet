@@ -95,9 +95,88 @@ describe("les deux décisions de la maison, tenues par le code", () => {
     expect(src).not.toMatch(/deleteMandat|removeMandat/);
   });
 
-  it("l'exemplaire se produit à la signature, comme la convention et l'ordre", () => {
+  /* CETTE ÉPREUVE NE POUVAIT PAS ÉCHOUER, et elle a laissé passer la panne
+     qu'elle était censée tenir. Elle vérifiait que « generateMandat » apparaît
+     APRÈS le début de la fonction de signature : c'est vrai des deux ordres
+     possibles, puisque l'appel est dans la fonction. Or l'ordre comptait — la
+     pièce se produisait AVANT que la signature ne soit inscrite en base, et
+     « generateMandat » relit le mandat en base. Elle sortait donc avec « lu et
+     approuvé », la ligne d'un mandat non signé.
+     Ce qui se vérifie désormais, c'est l'ORDRE DES DEUX ÉCRITURES ; et ce qui
+     tient vraiment la chose est une épreuve qui ne lit plus le code du tout,
+     mais le PDF produit par l'action — voir
+     « mandat-signe-bout-a-bout.test.ts ». */
+  it("inscrit la signature avant de produire l'exemplaire qui doit la porter", () => {
     const src = readFileSync("src/app/moi/prelevements/actions.ts", "utf8");
     const sign = src.indexOf("export async function signerMandatAction");
-    expect(src.indexOf("generateMandat")).toBeGreaterThan(sign);
+    expect(sign, "la fonction de signature a changé de nom").toBeGreaterThan(0);
+    const corps = src.slice(sign);
+    const ecritLaSignature = corps.indexOf("signedAt: new Date().toISOString()");
+    const produitLaPiece = corps.indexOf("generateMandat(m.id)");
+    expect(ecritLaSignature, "la signature ne s'inscrit plus").toBeGreaterThan(0);
+    expect(produitLaPiece, "l'exemplaire ne se produit plus à la signature").toBeGreaterThan(0);
+    expect(produitLaPiece, "la pièce se produit avant que la signature ne soit en base : elle sortira « lu et approuvé »").toBeGreaterThan(ecritLaSignature);
+  });
+});
+
+/**
+ * LE PARCOURS, TEL QU'IL A ÉTÉ JOUÉ LE 25 OCTOBRE 2026.
+ *
+ * Le prélèvement « ne marchait pas ». Mesuré en pilotant l'application du
+ * premier clic au document : il marchait de bout en bout — mandat créé, code
+ * reçu, signature prise, exemplaire produit — et NE DISAIT RIEN. Un geste qui
+ * aboutit en silence est indiscernable d'un geste qui échoue, et c'est la
+ * seule chose que le client puisse en conclure.
+ *
+ * Trois trouvailles, et chacune a sa garde ici :
+ *
+ *   LA CONFIRMATION MOURAIT AVEC LE FORMULAIRE. « Mandat signé » vivait dans
+ *   le bloc de signature, que signer fait disparaître.
+ *
+ *   LA PIÈCE ÉTAIT INATTEIGNABLE. Son geste au rayon des papiers signés était
+ *   « Modifier », vers la page des prélèvements : le seul document qu'une
+ *   agence bancaire réclame était le seul qu'on ne pouvait pas ouvrir.
+ *
+ *   UN BOUTON POUR OUVRIR UN FORMULAIRE. On arrivait de « Approvisionner votre
+ *   compte » sur un écran dont tout le contenu était « Préparer un mandat ».
+ */
+describe("ce que le parcours du mandat doit dire", () => {
+  const vue = readFileSync("src/app/moi/prelevements/MesMandats.tsx", "utf8");
+
+  it("dit la signature après que le formulaire qui la portait a disparu", () => {
+    const signe = vue.slice(vue.indexOf("{m.signeLe ? ("), vue.indexOf(") : ("));
+    expect(signe, "la confirmation de signature n'est plus dans la branche qui survit").toMatch(/sign\?\.ok && sign\.message/);
+    /* Non vacuité : le message vient bien de l'action de signature, et la
+       branche examinée est bien celle du mandat signé. */
+    expect(vue, "l'action de signature ne rend plus d'état").toMatch(/useActionState<MandatResult \| null, FormData>\(signerMandatAction/);
+    expect(signe, "la branche lue n'est pas celle du mandat signé").toContain("Signé le {d}");
+  });
+
+  it("mène à l'exemplaire, au lieu de dire où il se trouve", () => {
+    expect(vue, "la carte ne mène plus à la pièce").toMatch(/m\.piece \? `\/moi\/documents\/\$\{m\.piece\}/);
+    /* Et la page passe bien l'adresse : sans elle, le lien retomberait pour
+       toujours sur le rayon, c'est-à-dire sur la phrase qu'il remplace. */
+    expect(readFileSync("src/app/moi/prelevements/page.tsx", "utf8"), "la page ne passe plus l'exemplaire").toMatch(/piece: m\.docId/);
+  });
+
+  it("ouvre le formulaire quand il n'y a rien d'autre à lire", () => {
+    expect(vue, "le formulaire se referme derrière un bouton même sans autorisation").toMatch(/useState\(connue \|\| vivants\.length === 0\)/);
+    /* Le repli garde son sens dès qu'une autorisation existe : on vient alors
+       lire la liste, et en ajouter une seconde est délibéré. */
+    expect(vue, "le bouton de repli a disparu : on ne peut plus refermer").toContain("Préparer un mandat");
+  });
+
+  /* LA SIGNATURE MANUSCRITE, POUR LA BANQUE ET POUR ELLE SEULE. Plusieurs
+     banques de la zone n'acceptent un prélèvement que sur un mandat signé à la
+     main. Le cadre ne paraît qu'une fois le mandat signé électroniquement, et
+     une phrase dit qu'il ne conditionne rien — sans quoi il démentirait la
+     signature qu'il suit, ce que la maison a déjà payé une fois avec
+     « lu et approuvé ». */
+  it("porte un cadre manuscrit pour la banque, et dit qu'il n'engage rien de plus", () => {
+    const doc = readFileSync("src/lib/documents/pdf/kyc-templates.tsx", "utf8");
+    const mandat = doc.slice(doc.indexOf("export function MandatPrelevementDoc"));
+    expect(mandat, "le cadre manuscrit pour la banque a disparu").toContain("Signature manuscrite du débiteur, pour sa banque");
+    expect(mandat, "le cadre manuscrit paraît même sur un mandat non signé : il démentirait la signature").toMatch(/\{mandat\.signedAt \? \(/);
+    expect(mandat, "rien ne dit au client que ce cadre ne conditionne aucun prélèvement").toMatch(/aucun prélèvement\s*\n?\s*n&apos;attend ce cadre/);
   });
 });

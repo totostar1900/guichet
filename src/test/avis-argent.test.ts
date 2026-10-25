@@ -175,3 +175,77 @@ describe("les trois avis sont au registre comme les autres", () => {
     for (const n of ["sourceId: payout.id", "sourceId: tirage.id", "sourceId: avis.id"]) expect(src, n).toContain(n);
   });
 });
+
+/**
+ * LE MANDAT DE PRÉLÈVEMENT, LU DANS LE PDF LUI-MÊME.
+ *
+ * C'est la pièce qu'une agence bancaire réclame, et la seule du Guichet dont
+ * l'effet se produit chez un tiers : si elle ne porte pas ce qu'il faut, le
+ * prélèvement n'est jamais accepté, et le client ne l'apprend qu'au premier
+ * mois manquant. Deux choses s'y vérifient, et aucune ne se voit dans le code.
+ *
+ * LE COMPTE CRÉANCIER VIENT DU DESK depuis le 25 octobre 2026, et ce fichier a
+ * failli le manquer : le mandat vit dans « kyc-templates », hors du balayage
+ * fait ce jour-là sur les deux autres gabarits, et il imprimait encore la
+ * banque lue de la configuration — devenue vide. La ligne serait sortie
+ * blanche.
+ *
+ * LE CADRE MANUSCRIT NE PARAÎT QU'APRÈS LA SIGNATURE, parce qu'un cadre vide
+ * sous un engagement pris fait douter de l'engagement : la maison l'a déjà
+ * payé une fois avec « lu et approuvé ».
+ */
+describe("le mandat de prélèvement", () => {
+  const reglement = { beneficiaire: "Purpose Essai S.A.", banque: "Banque de règlement d'essai", rib: "10033 00001 12345678901 97" };
+  const mandat = {
+    id: "m1",
+    ref: "MP-2610-ABCD",
+    userId: "c-am",
+    objet: "provision" as const,
+    accountHolder: "A. M.",
+    bankName: "SGC",
+    bankAccount: "CM21 10003 00002 98765432109 87",
+    maxAmount: 50_000,
+    amount: 50_000,
+    dayOfMonth: 5,
+    state: "actif" as const,
+    createdAt: "2026-10-25T08:00:00Z",
+  };
+
+  const pièce = async (signe: boolean) => {
+    const { MandatPrelevementDoc } = await import("@/lib/documents/pdf/kyc-templates");
+    return texte(MandatPrelevementDoc, {
+      number: "PC-PRE-261025-5T4Y",
+      now,
+      reglement,
+      mandat: signe ? { ...mandat, signedAt: "2026-10-25T08:56:00Z", signedMethod: "code à usage unique", signedTo: "a.m@example.com" } : mandat,
+    });
+  };
+
+  it("porte la banque de règlement que le desk a publiée", async () => {
+    const txt = await pièce(true);
+    expect(txt, "le bloc créancier a perdu la banque de règlement").toContain("Banque de règlement d'essai");
+    expect(txt).toContain("MP-2610-ABCD");
+    expect(txt).toContain("50 000");
+  }, 30_000);
+
+  it("ouvre un cadre manuscrit pour la banque une fois signé, et dit qu'il n'engage rien de plus", async () => {
+    const txt = await pièce(true);
+    expect(txt).toContain("Signature électronique");
+    /* « MANDAT », ET NON « ORDRE ». La pièce disait « Ordre signé le… » et
+       « citer la référence de l'ordre » : ce n'est pas un ordre de bourse,
+       c'est une autorisation de débit, et c'est un guichet de banque qui la
+       lit. */
+    expect(txt, "la signature nomme la pièce « ordre » : un guichet de banque ne sait pas suivre cette instruction").toMatch(/Mandat signé le/);
+    expect(txt).toMatch(/Référence du mandat : MP-2610-ABCD/);
+    expect(txt, "le cadre manuscrit pour la banque n'est pas sur la pièce").toMatch(/Signature manuscrite du débiteur, pour sa banque/);
+    expect(txt, "rien ne dit que ce cadre ne retient aucun prélèvement").toMatch(/aucun prélèvement n.attend ce cadre/);
+  }, 30_000);
+
+  it("et ne l'ouvre pas tant que rien n'est signé : il démentirait la signature qui manque", async () => {
+    const txt = await pièce(false);
+    expect(txt, "le cadre pour la banque paraît sur un mandat non signé").not.toMatch(/pour sa banque/);
+    /* Non vacuité : la pièce non signée porte bien, elle, la ligne manuscrite
+       ordinaire — ce n'est pas un document muet. */
+    expect(txt).toMatch(/lu et approuvé/);
+  }, 30_000);
+});

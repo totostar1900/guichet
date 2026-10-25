@@ -174,18 +174,28 @@ export function Sig({ left, right }: { left: string; right: string }) {
 /** Les méthodes qui désignent un appareil, et non une boîte aux lettres. */
 const surLAppareil = (m: string | undefined): boolean => m === "clé d'accès" || m === "code de l'appareil";
 
-export function Signature({ intent, advisor, qui = "souscripteur" }: { intent: { signedAt?: string; signedMethod?: string; signedTo?: string; ref: string }; advisor?: string; qui?: string }) {
+/**
+ * LE NOM DE LA PIÈCE SE DIT, parce que ce n'est pas toujours un ordre.
+ *
+ * Relevé le 25 octobre 2026 en lisant le PDF d'un mandat de prélèvement : il
+ * portait « Ordre signé le… » et « Référence de l'ordre », alors que c'est une
+ * autorisation de débit et non un ordre de bourse. Sur une pièce qu'une agence
+ * bancaire lit et oppose, nommer la chose autrement qu'elle n'est se paie en
+ * explications — et « citer la référence de l'ordre » n'est pas une
+ * instruction qu'un guichet de banque sait suivre.
+ */
+export function Signature({ intent, advisor, qui = "souscripteur", quoi = "Ordre" }: { intent: { signedAt?: string; signedMethod?: string; signedTo?: string; ref: string }; advisor?: string; qui?: string; /** Le nom de la pièce : « Ordre » par défaut, « Mandat » pour une autorisation de prélèvement. */ quoi?: string }) {
   if (!intent.signedAt) return <Sig left={`Le ${qui} : « lu et approuvé », date et signature`} right={`${COMPANY.legalName} : confirmation du conseiller${advisor ? ` · ${advisor}` : ""}`} />;
   const quand = new Date(intent.signedAt).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" });
   return (
     <View style={s.box}>
       <Text>
-        <Text style={s.b}>Signature électronique.</Text> Ordre signé le {quand} par {intent.signedMethod ?? "code à usage unique"}
+        <Text style={s.b}>Signature électronique.</Text> {quoi} signé le {quand} par {intent.signedMethod ?? "code à usage unique"}
         {/* « ENVOYÉ AU » NE VAUT QUE POUR UNE DESTINATION. Depuis que l'ordre
             se signe aussi avec l'appareil déjà reconnu, `signedTo` porte
             parfois le nom de cet appareil, et « envoyé au iPhone de Georges »
             aurait été faux dans une pièce opposable. */}
-        {intent.signedTo ? (surLAppareil(intent.signedMethod) ? ` sur l'appareil « ${intent.signedTo} »` : ` envoyé au ${intent.signedTo}`) : ""}. Référence de l&apos;ordre : {intent.ref}.
+        {intent.signedTo ? (surLAppareil(intent.signedMethod) ? ` sur l'appareil « ${intent.signedTo} »` : ` envoyé au ${intent.signedTo}`) : ""}. Référence {quoi === "Ordre" ? "de l'ordre" : `du ${quoi.toLowerCase()}`} : {intent.ref}.
       </Text>
     </View>
   );

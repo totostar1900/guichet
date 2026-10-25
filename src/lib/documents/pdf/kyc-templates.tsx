@@ -1,6 +1,7 @@
 import { View } from "@react-pdf/renderer";
 import { passage } from "../passages-catalog";
-import { COMPANY, SETTLEMENT } from "@/lib/config";
+import { COMPANY } from "@/lib/config";
+import type { CoordonneesDeReglement } from "@/lib/domain/reglement";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
 import { fmt, fmtDate, fmtDateTime, localIso } from "@/lib/format";
@@ -113,7 +114,7 @@ export function DossierOuverture({ number, file, now, texts }: { number: string;
  * Le plafond est écrit en gras et séparé du montant courant : c'est lui
  * l'engagement, et c'est la même règle que le plafond « au plus » d'un ordre.
  */
-export function MandatPrelevementDoc({ number, mandat, now }: { number: string; mandat: MandatPrelevement; now: Date }) {
+export function MandatPrelevementDoc({ number, mandat, now, reglement }: { number: string; mandat: MandatPrelevement; now: Date; /** Le compte créancier, tel que le desk l'a publié : passé par le contexte, jamais lu de la configuration. */ reglement: CoordonneesDeReglement }) {
   const mensuel = mandat.objet === "provision" && mandat.amount != null;
   return (
     <Letter heading={`Mandat de prélèvement · ${number}`}>
@@ -124,7 +125,7 @@ export function MandatPrelevementDoc({ number, mandat, now }: { number: string; 
       <Addr
         blocks={[
           ["Débiteur", [mandat.accountHolder, mandat.bankName, mandat.bankAccount]],
-          ["Créancier", [COMPANY.legalName, "Compte de règlement clients (ségrégué)", SETTLEMENT.bank]],
+          ["Créancier", [COMPANY.legalName, "Compte de règlement clients (ségrégué)", reglement.banque || "Banque de règlement : à demander au desk"]],
         ]}
       />
       <KV
@@ -147,7 +148,30 @@ export function MandatPrelevementDoc({ number, mandat, now }: { number: string; 
         En cas de rejet faute de provision, {COMPANY.legalName} ne représente le prélèvement qu&apos;une fois, après en avoir informé le débiteur. Au second rejet, le mandat est suspendu et un conseiller prend contact. Toute
         contestation d&apos;un prélèvement se fait auprès de sa banque dans les délais qu&apos;elle applique, en citant la référence {mandat.ref}.
       </Text>
-      <Signature intent={{ signedAt: mandat.signedAt, signedMethod: mandat.signedMethod, signedTo: mandat.signedTo, ref: mandat.ref }} qui="débiteur" />
+      <Signature intent={{ signedAt: mandat.signedAt, signedMethod: mandat.signedMethod, signedTo: mandat.signedTo, ref: mandat.ref }} qui="débiteur" quoi="Mandat" />
+      {/* LA SIGNATURE MANUSCRITE, POUR LA BANQUE — ET SEULEMENT POUR ELLE.
+          La signature électronique ci-dessus engage le débiteur envers la
+          maison : c'est elle qui fait foi entre eux, et c'est pourquoi elle
+          vient d'abord. Mais plusieurs banques de la zone n'acceptent un
+          prélèvement que sur un mandat signé à la main, cachet à l'appui, et
+          le client n'avait alors rien à leur présenter.
+
+          LE BLOC VIDE NE DÉMENT PAS LA SIGNATURE, et c'est toute la difficulté :
+          la maison a déjà appris qu'un « lu et approuvé » vide sous un
+          engagement pris fait douter de l'engagement. La phrase dit donc à
+          quoi ce cadre sert, à qui il s'adresse, et qu'il ne conditionne
+          rien. Il ne paraît qu'une fois le mandat signé : avant, c'est la
+          ligne manuscrite ordinaire que « Signature » pose déjà. */}
+      {mandat.signedAt ? (
+        <>
+          <Text style={s.p}>
+            <Text style={s.b}>Si votre banque réclame une signature manuscrite.</Text> Le mandat ci-dessus est déjà signé : la signature électronique vaut autorisation entre le débiteur et {COMPANY.legalName}, et aucun prélèvement
+            n&apos;attend ce cadre. Certaines banques de la zone exigent toutefois un exemplaire signé à la main pour leurs propres registres : imprimez cette page, signez le cadre de gauche, et remettez-la à votre agence en citant la
+            référence {mandat.ref}.
+          </Text>
+          <Sig left="Signature manuscrite du débiteur, pour sa banque" right="Cachet et visa de la banque du débiteur" />
+        </>
+      ) : null}
     </Letter>
   );
 }

@@ -556,7 +556,7 @@ export async function generateMandat(mandatId: string): Promise<GeneratedDocumen
   if (!mandat) throw new Error("Mandat introuvable");
   const now = new Date();
   const { number, registerNo } = await nextNumbers("prelevement", now);
-  const pdf = await renderToBuffer(el(createElement(MandatPrelevementDoc, { number, mandat, now })));
+  const pdf = await renderToBuffer(el(createElement(MandatPrelevementDoc, { number, mandat, now, reglement: await loadReglement() })));
   return store({ type: "prelevement", number, registerNo, title: `Mandat de prélèvement : ${mandat.accountHolder}`, clientId: mandat.userId, clientName: mandat.accountHolder }, pdf, now);
 }
 

@@ -124,26 +124,35 @@ export async function signerMandatAction(_p: MandatResult | null, form: FormData
     }
     return { ok: false, error: verdict.erreur };
   }
-  /* L'EXEMPLAIRE SE PRODUIT MAINTENANT, parce que c'est maintenant qu'il est
-     signé : il porte donc la signature, et non un bloc vide. Même leçon que
-     la convention et que l'ordre, et c'est la troisième fois qu'elle sert. */
-  let docId: string | undefined;
-  try {
-    const { generateMandat } = await import("@/lib/documents/generate");
-    docId = (await generateMandat(m.id)).id;
-  } catch (e) {
-    await r.logEvent({ kind: "system", html: `Exemplaire du mandat ${m.ref} non produit : ${e instanceof Error ? e.message : "erreur"}` });
-  }
+  /* LA SIGNATURE S'INSCRIT AVANT QUE LA PIÈCE NE LA LISE.
+     Ces deux écritures étaient dans l'autre sens, et le commentaire d'alors
+     affirmait exactement le contraire de ce que le code faisait : « il porte
+     donc la signature, et non un bloc vide ». Or « generateMandat » relit le
+     mandat EN BASE, où rien n'était encore signé — l'exemplaire sortait donc
+     avec « le débiteur : lu et approuvé, date et signature », c'est-à-dire la
+     branche d'un mandat non signé, sur la seule pièce que l'agence bancaire du
+     client réclame.
+     Relevé le 25 octobre 2026 en lisant le PDF produit par l'application, et
+     non le code qui le produit : la garde d'alors vérifiait que la pièce naît
+     DANS cette fonction, jamais qu'elle naît APRÈS la signature.
+     Deux écritures plutôt qu'une, donc, et dans cet ordre : si la pièce
+     échoue, le mandat reste signé — c'est la signature qui engage, et
+     l'exemplaire se refait. */
   await r.updateMandat(m.id, {
     signedAt: new Date().toISOString(),
     signedMethod: "code à usage unique",
     signedTo: m.pendingCodeTo,
-    docId,
     pendingCodeHash: undefined,
     pendingCodeAt: undefined,
     pendingCodeTries: 0,
     pendingCodeTo: undefined,
   });
+  try {
+    const { generateMandat } = await import("@/lib/documents/generate");
+    await r.updateMandat(m.id, { docId: (await generateMandat(m.id)).id });
+  } catch (e) {
+    await r.logEvent({ kind: "system", html: `Exemplaire du mandat ${m.ref} non produit : ${e instanceof Error ? e.message : "erreur"}` });
+  }
   await r.logEvent({ kind: "system", html: `<b>Mandat de prélèvement signé</b> · ${m.ref} · ${m.accountHolder} · plafond ${m.maxAmount} FCFA par échéance` });
   revalidatePath(PATH);
   revalidatePath("/desk");

@@ -72,11 +72,14 @@ export async function chargerLesRayons(userId: string, t: (s: string, v?: Record
         sous: [ligneDe(d.intentId), i?.amount ? montant(i, byOffer.get(i.offerId)?.kind) : undefined, d.number].filter(Boolean).join(" · "),
         etat: aSigner ? t("à signer") : d.status === "signe" ? t("signé par vous le {d}", { d: fmtDate(d.createdAt, false) }) : t("établi le {d}", { d: fmtDate(d.createdAt, false) }),
         ton: (aSigner ? "attend" : d.status === "signe" ? "fait" : undefined) as "attend" | "fait" | undefined,
-        geste: aSigner
-          ? { label: t("Signer"), href: `/moi/ordres/${d.intentId}`, primaire: true }
-          : d.type === "prelevement"
-            ? { label: t("Modifier"), href: "/moi/prelevements" }
-            : { label: t("Ouvrir"), href: versLaPiece(d.id) },
+        /* LE MANDAT S'OUVRE COMME TOUTE PIÈCE SIGNÉE, depuis le 25 octobre
+           2026. Son geste était « Modifier », vers la page des prélèvements :
+           le seul papier qu'une agence bancaire réclame était donc le seul de
+           ce rayon qu'on ne pouvait pas ouvrir. Et « au plus un geste » veut
+           dire que c'est CELUI DU PAPIER : modifier un mandat vit sur la page
+           des prélèvements, qui s'atteint du compte et de l'écran
+           d'approvisionnement. */
+        geste: aSigner ? { label: t("Signer"), href: `/moi/ordres/${d.intentId}`, primaire: true } : { label: t("Ouvrir"), href: versLaPiece(d.id) },
       };
     });
   const aSigner = signes.filter((x) => x.ton === "attend").length;

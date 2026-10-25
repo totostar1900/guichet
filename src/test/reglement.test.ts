@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { cequiManque, REGLEMENT_DEFAUT, reglementUtilisable, type CoordonneesDeReglement } from "@/lib/domain/reglement";
 
@@ -27,6 +28,7 @@ import { cequiManque, REGLEMENT_DEFAUT, reglementUtilisable, type CoordonneesDeR
  *   ET CE QUI MANQUE SE NOMME, des deux côtés — l'écran du client dit qu'il n'y
  *   a rien à recopier, la pièce dit « à demander au desk ».
  */
+const ROOT = resolve(__dirname, "../..");
 const lire = (f: string) => readFileSync(f, "utf8");
 const code = (f: string) =>
   lire(f)
@@ -94,6 +96,16 @@ describe("qui lit ces coordonnées", () => {
      décision elle-même : le jour où une pièce réimporte la configuration, le
      compilateur se tait de nouveau. */
   it("aucune pièce ne lit plus la configuration : tout passe par le contexte", () => {
+    /* TOUT LE DOSSIER, ET NON LES DEUX FICHIERS QU'ON AVAIT EN TÊTE. Le mandat
+       de prélèvement vit dans « kyc-templates » et imprimait encore
+       « SETTLEMENT.bank » au bloc créancier : le 25 octobre 2026, le défaut
+       étant devenu vide, cette ligne serait sortie blanche sur un document que
+       la banque du client peut réclamer. La garde balaie donc le dossier. */
+    const pieces = readdirSync(join(ROOT, "src/lib/documents/pdf")).filter((f) => f.endsWith(".tsx"));
+    expect(pieces.length, "le dossier des pièces ne se lit plus").toBeGreaterThan(3);
+    for (const f of pieces) {
+      expect(code(`src/lib/documents/pdf/${f}`), `${f} relit SETTLEMENT : une pièce peut repartir avec le défaut du code`).not.toContain("SETTLEMENT");
+    }
     for (const f of [TEMPLATES, FONDS]) {
       expect(code(f), `${f} relit SETTLEMENT : un appel de fonds peut repartir avec le défaut du code`).not.toContain("SETTLEMENT");
     }
