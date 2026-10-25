@@ -13,7 +13,7 @@ chantiers que les GARDES ont ouvertes d'elles-mêmes, en chaîne — un cliquet 
 classes mortes qui comptait mal a fait remonter six règles inertes, dont une
 qui cachait un contraste à 2,97 : 1 ; la garde écrite pour ce défaut a mis au
 jour le jeton qui en était la cause commune. **La dernière section, elle,
-est une nouvelle dictée** : les budgets des six États, livrés en neuf lots
+est une nouvelle dictée** : les budgets des six États, livrés en dix lots
 les 24 et 25 octobre.
 
 Chaque point barré porte ce qui a été MESURÉ avant d'y toucher, et ce qui a
@@ -952,7 +952,7 @@ une fois vu.*
 
 ## Les budgets des six États, et la note du desk
 
-**Dicté par Georges le 24 octobre 2026, livré en neuf lots — sept le 24, deux le 25.**
+**Dicté par Georges le 24 octobre 2026, livré en dix lots — sept le 24, trois le 25.**
 Il ne vient pas des gardes : c'est une demande, et elle a grossi en route —
 d'abord une page, puis l'écriture d'une note, puis le signal qui dit qu'il y
 aurait de quoi en écrire une, puis le rapprochement avec ce que le marché a
@@ -1248,6 +1248,50 @@ elle exige maintenant le silence.
 *Une note ne se réécrit pas. Si une phrase de la n° 2 ne convient pas, elle se
 corrige dans la n° 3, au champ « ce que la note précédente a mal lu » — la même
 discipline qui vaut pour les erreurs du desk vaut pour celles de sa machine.*
+
+### Pouvoir écrire une note, et pouvoir l'écrire sans chercher d'abord
+
+Georges demande que le desk crée lui-même les notes des cinq autres États. Le
+formulaire était déjà sur les six fiches : c'était donc **possible**, mais pas
+**faisable d'un trait**. Deux freins, trouvés en ESSAYANT d'écrire plutôt qu'en
+raisonnant sur le code.
+
+**Le premier était écrit à l'écran** — *« cette fiche ne nomme aucune pièce »*.
+Le formulaire exige au moins un document, puisqu'une lecture que rien n'étaye
+n'apprend rien ; chaque note sur ces cinq États commençait donc par aller
+chercher où la pièce se trouve.
+
+La BEAC en publie **deux par État** — programme annuel, calendrier trimestriel
+—, aux mêmes adresses à un nom près. Les dix ont été demandées et ont répondu.
+Ce sont des **scans** (Xerox PrimeLink, Genius Scan, aucune couche de texte),
+donc aucun chiffre n'en est tiré : *elles sont consignées pour que le desk les
+OUVRE*. C'est toute la différence entre pouvoir écrire une note et pouvoir
+l'écrire sans chercher d'abord.
+
+**Le second était plus sourd.** Le relevé du Gabon ne portait qu'une ligne, son
+millésime. Une note l'aurait enregistrée seule, et le tableau des écarts de la
+suivante n'aurait rien eu à montrer : **toute la machine du récit calculé était
+inerte pour cinq États sur six**, sans que rien ne le dise. Le total du budget
+entre donc au relevé — il bouge rarement et lourdement, ce qui est exactement
+ce qu'une note suit, et toute l'histoire gabonaise tient dedans : 7 233,3
+ramenés à 5 495,2 en cours d'année.
+
+**Une conséquence tranchée plutôt que subie.** Ajouter une colonne au relevé
+fait, mécaniquement, que les notes existantes « retardent » et que le carnet
+réclame une note alors que rien n'a bougé dans le monde. La n° 2 ayant été
+écrite le même jour, le total figurait sous ses yeux : son relevé le porte, et
+le carnet reste muet sur le Cameroun. **Fausse alerte évitée, pas masquée** —
+et la question reviendra à chaque extension du relevé.
+
+*Vérifié en écrivant vraiment : une note sur le Gabon, depuis l'écran, sans
+taper la moindre pièce. Le bouton s'ouvre, les deux documents sont hérités, le
+relevé porte deux lignes. Elle vivait en mémoire et n'a pas été livrée —
+c'était une mesure, pas une donnée.*
+
+→ *Et le scan n'était pas une particularité camerounaise : les six programmes
+annuels de la BEAC sont des images. Ce qui bloque le pourcentage d'exécution
+bloque pour toute la zone, et un outil de reconnaissance de caractères le
+lèverait d'un coup pour les six.*
 
 → *Ce qui reste nommé sur la fiche, deux points ayant été réglés : les
 **107,4 milliards** entre les emprunts inscrits au budget voté (2 996,8) et le
