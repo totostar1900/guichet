@@ -13,7 +13,7 @@ chantiers que les GARDES ont ouvertes d'elles-mêmes, en chaîne — un cliquet 
 classes mortes qui comptait mal a fait remonter six règles inertes, dont une
 qui cachait un contraste à 2,97 : 1 ; la garde écrite pour ce défaut a mis au
 jour le jeton qui en était la cause commune. **La dernière section, elle,
-est une nouvelle dictée** : les budgets des six États, livrés en huit lots
+est une nouvelle dictée** : les budgets des six États, livrés en neuf lots
 les 24 et 25 octobre.
 
 Chaque point barré porte ce qui a été MESURÉ avant d'y toucher, et ce qui a
@@ -952,7 +952,7 @@ une fois vu.*
 
 ## Les budgets des six États, et la note du desk
 
-**Dicté par Georges le 24 octobre 2026, livré en huit lots — sept le 24, un le 25.**
+**Dicté par Georges le 24 octobre 2026, livré en neuf lots — sept le 24, deux le 25.**
 Il ne vient pas des gardes : c'est une demande, et elle a grossi en route —
 d'abord une page, puis l'écriture d'une note, puis le signal qui dit qu'il y
 aurait de quoi en écrire une, puis le rapprochement avec ce que le marché a
@@ -1215,6 +1215,39 @@ montrer qu'il a bougé.*
 
 Une source lue, le relevé qui bouge, le carnet qui le dit, et le desk qui
 décide. La note, elle, reste à écrire par une personne : elle se demande.
+
+### La note n° 2, et la boucle qui se referme
+
+Georges l'a demandée explicitement, après qu'on lui a dit qu'une note engage
+une lecture et que son auteur en répond. **Elle est donc écrite par Claude,
+sous son nom** — et la main qui a tenu le stylo est consignée dans le semis, en
+commentaire au-dessus de la note, là où un relecteur la cherchera. Le champ
+« rédigée par » dit le desk ; cette ligne-là dit le reste.
+
+Elle est passée par la règle commune, sans exception : trois constats, deux
+lectures au conditionnel, auto-correction, six pièces.
+
+**Son auto-correction est la part la moins confortable**, et c'est tout son
+objet : *« La note n° 1 citait la loi du 17 décembre comme source alors que ses
+chiffres venaient de l'exposé des motifs du PROJET. Nous présentions comme voté
+ce qui n'était que proposé. »*
+
+**Et le carnet s'est tu.** Il réclamait une note depuis que la loi avait
+apporté un principal publié ; la n° 2 l'a consigné, le signal s'est éteint de
+lui-même. La boucle complète s'est vérifiée en une journée : une source
+ouverte, un relevé qui bouge, un carnet qui le dit, une note qui répond, un
+carnet qui se tait. **C'est ce qui sépare un carnet d'un panneau décoratif**, et
+l'épreuve qui le mesurait a changé de sens avec lui — elle exigeait un signal,
+elle exige maintenant le silence.
+
+| le défaut | ce qui l'a trouvé |
+|---|---|
+| la pièce de janvier était **en double** sous la note — reprise de la fiche ET ajoutée à la main | **React**, par une clef dupliquée. Aucune épreuve ne regardait. Le dédoublonnage vit désormais à l'écriture : au serveur qui décide, et au formulaire pour que le compte soit le même des deux côtés |
+| la note avançait **« 13,4 % »** là où 400 / 2 996,8 donne **13,3** | la division, refaite avant de livrer. Un dixième — et exactement la précision rassurante que cette page refuse ailleurs. Les deux parts qu'elle cite sont maintenant recalculées par une épreuve, qui dit le chiffre attendu quand elle tombe |
+
+*Une note ne se réécrit pas. Si une phrase de la n° 2 ne convient pas, elle se
+corrige dans la n° 3, au champ « ce que la note précédente a mal lu » — la même
+discipline qui vaut pour les erreurs du desk vaut pour celles de sa machine.*
 
 → *Ce qui reste nommé sur la fiche, deux points ayant été réglés : les
 **107,4 milliards** entre les emprunts inscrits au budget voté (2 996,8) et le
