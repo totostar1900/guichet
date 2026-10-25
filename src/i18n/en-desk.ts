@@ -3698,4 +3698,7 @@ export const EN_MORE: Record<string, string> = {
   "{n} séance(s) portent un code d'émission déjà vu ce jour-là : le total peut les compter deux fois.":
     "{n} session(s) carry an issue code already seen that day: the total may count them twice.",
   "Ne place que {taux} % de ce qu'il annonce, sur {seances} séances relevées.": "Places only {taux}% of what it announces, over {seances} recorded sessions.",
+
+  /* Le chiffre publié passe devant sa déduction, et l'écran dit lequel. */
+  "publié par le document — ce que l'État rend sur ses emprunts passés": "published by the document — what the State repays on its past borrowing",
 };

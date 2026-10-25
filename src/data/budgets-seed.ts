@@ -1,5 +1,4 @@
 import type { BudgetEtat, NoteBudget } from "@/lib/domain/types";
-import { releveDuBudget } from "@/lib/market/note-budget";
 
 /**
  * LES BUDGETS DES SIX, TELS QUE RELEVÉS LE 25 OCTOBRE 2026.
@@ -15,8 +14,9 @@ import { releveDuBudget } from "@/lib/market/note-budget";
  * 8_816_400 ici. Le formateur de la page remet des milliards à l'écran.
  *
  * LE SOLDE N'EST JAMAIS RECALCULÉ. Pour le Cameroun, les deux agrégats repris
- * (5 687,0 de recettes internes, 6 210,5 de dépenses hors principal) donnent
- * −523,5, quand le document annonce −631,0 : les périmètres diffèrent, et
+ * (5 686,9 de recettes propres, 6 210,5 de dépenses hors principal) donnent
+ * −523,6, quand le document annonce −631,0 : le solde porte aussi les comptes
+ * d'affectation spéciale (−23,5), et
  * trancher demanderait les annexes officielles. On garde donc le chiffre ÉCRIT
  * et on laisse la question ouverte dans « à relever ». Un écart assumé vaut
  * mieux qu'une soustraction qui a l'air juste.
@@ -40,21 +40,30 @@ const CAMEROUN: BudgetEtat = {
     },
   ],
   budgetTotal: 8_816_400,
+  /* LES POSTES DE LA LOI PROMULGUÉE, et non plus ceux du projet. Le
+     « lancement du budget 2026 » de la DGB, janvier 2026, publie les deux
+     colonnes du budget général : impôts et douanes y sont SÉPARÉS, comme ici.
+     Les emprunts figurent dans ses recettes — 2 996,8 — et n'y sont pas repris :
+     une ressource d'emprunt rangée en recette rendrait le solde muet. */
   recettes: [
-    { cle: "fiscales", libelle: "Recettes fiscales et douanières", montant: 4_689_500 },
+    { cle: "impots", libelle: "Recettes des impôts et taxes", montant: 3_446_200 },
+    { cle: "douanes", libelle: "Recettes douanières", montant: 1_243_200 },
     { cle: "petrolieres", libelle: "Recettes pétrolières et gazières", montant: 523_700 },
     { cle: "non_fiscales", libelle: "Recettes non fiscales", montant: 400_000 },
     { cle: "dons", libelle: "Dons", montant: 73_800 },
   ],
   depenses: [
-    { cle: "personnel", libelle: "Dépenses de personnel", montant: 1_625_400 },
-    { cle: "biens", libelle: "Biens et services", montant: 1_206_000 },
-    { cle: "transferts", libelle: "Transferts et subventions", montant: 820_300 },
+    { cle: "investissement", libelle: "Dépenses d'investissement", montant: 2_031_200 },
+    { cle: "personnel", libelle: "Dépenses de personnel", montant: 1_626_200 },
+    { cle: "biens", libelle: "Dépenses de biens et services", montant: 1_192_700 },
+    { cle: "transferts", libelle: "Transferts et subventions", montant: 827_900 },
     { cle: "interets", libelle: "Intérêts de la dette", montant: 532_500 },
-    { cle: "investissement", libelle: "Investissement", montant: 2_026_300 },
   ],
   soldeDeclare: -631_000,
   besoinDeFinancement: 3_104_200,
+  /* PUBLIÉ par la loi : « dépenses de la dette 2 473,4 ». La déduction
+     besoin − déficit donnait 2 473,2 ; on montre le chiffre lu. */
+  amortissementPublie: 2_473_400,
   financement: [
     { cle: "exterieurs", libelle: "Emprunts extérieurs", montant: 1_000_000, suppose: "marchés internationaux et bilatéraux ouverts" },
     { cle: "projets", libelle: "Tirages sur prêts projets", montant: 826_700, suppose: "des projets qui avancent au rythme prévu" },
@@ -80,6 +89,13 @@ const CAMEROUN: BudgetEtat = {
       editeur: "Direction générale du Budget (DGB)",
       date: "2025-11",
       url: "https://www.dgb.cm/wp-content/uploads/2025/12/Expose-des-Motifs_LF-2026_fr.pdf",
+      verifieLe: "2026-10-24",
+    },
+    {
+      titre: "Présentation du budget 2026 — lancement, après promulgation",
+      editeur: "Direction générale du Budget (DGB)",
+      date: "2026-01",
+      url: "https://dgtcfm.cm/wp-content/uploads/2026/01/expose-dgb-lancement-2026-version-finale1201202520h27-1.pdf",
       verifieLe: "2026-10-24",
     },
     {
@@ -109,13 +125,14 @@ const CAMEROUN: BudgetEtat = {
     },
   ],
   aRelever: [
-    /* TRANCHÉ LE 24 OCTOBRE par l'exposé des motifs, qui décompose le solde :
-       le budget général fait −607,5 et les comptes d'affectation spéciale
-       −23,5, soit −631,0. La soustraction de nos deux agrégats, −523,5, ne
-       pouvait pas y tomber : elle ignore les CAS et le périmètre des dons. */
-    "Deux plans de financement coexistent DANS LE MÊME DOCUMENT : le texte énumère six portes sommant à 3 104,2, le tableau des opérations financières en donne d'autres sommant à 2 996,8 — emprunts extérieurs 650,0 contre 1 000, bancaire 505,7 contre 589,7, exceptionnels 144,4 contre 167,8. Seule la ligne des titres publics, 400,0, est la même des deux côtés. Lequel fait foi reste à trancher.",
-    "La base 2025 est donnée à 7 735,9 par l'exposé des motifs ; 7 801,5 circule ailleurs. Le chiffre de la loi promulguée reste à relever.",
-    "Les chiffres relevés sont ceux du PROJET de loi (colonne « PLFI 2026 » du tableau des opérations financières). Ce que la loi promulguée du 17 décembre a retenu n'est pas relevé.",
+    /* TROIS POINTS SONT TOMBÉS LE 24 OCTOBRE, sur deux pièces de la DGB.
+       Le périmètre du solde : budget général −607,5 et comptes d'affectation
+       spéciale −23,5 font −631,0. La base 2025 : le budget général monte de
+       1 014,9 et les CAS de 65,6, soit 1 080,5 sur 8 816,4, donc 7 735,9 — et
+       non 7 801,5. Et les postes sont désormais ceux de la LOI, non du projet :
+       la présentation de lancement de janvier 2026 publie les deux colonnes. */
+    "Le budget promulgué inscrit 2 996,8 d'emprunts en recettes, quand l'exposé des motifs chiffre le besoin de financement à 3 104,2 et détaille six portes qui y sombrent exactement. L'écart, 107,4, n'est pas expliqué par les documents relevés : les six portes restent celles du projet, faute d'un détail publié avec la loi.",
+    "Le total du budget, 8 816,4, couvre le budget général (8 683,9) ET les comptes d'affectation spéciale (132,5). Les recettes et dépenses relevées ici sont celles du budget général seul : les CAS ont leurs propres lignes, non relevées.",
     "Le programme annuel d'émissions 2026 publié par la BEAC est un scan sans couche de texte : son montant n'a pas été relevé, faute d'outil de reconnaissance de caractères.",
   ],
 };
@@ -264,11 +281,21 @@ export const SEED_NOTES_BUDGET: NoteBudget[] = [
       "Le budget 2027, déposé en novembre : la première occasion de voir l'hypothèse de baril corrigée.",
     ],
     malLu: "Première note de la série : rien à corriger. Cette ligne n'est pas une formalité — à partir de la suivante, elle dira ce que celle-ci aura mal lu.",
-    /* LE RELEVÉ EST PRIS SUR LA FICHE, ICI COMME AU FORMULAIRE. Recopié à la
-       main, il aurait divergé de ce que le desk écrira — « 62,38 $ » contre
-       « 62.38 USD » — et la première note écrite depuis l'écran aurait affiché
-       cinq lignes « changées » qui n'avaient pas bougé. */
-    releve: releveDuBudget(CAMEROUN),
+    /* LE RELEVÉ D'UNE NOTE EST FIGÉ, et c'est tout son intérêt.
+       Il a d'abord été écrit « releveDuBudget(CAMEROUN) », pour que ses clefs
+       ne divergent pas de celles de la fiche. Mal : il se RECALCULAIT à chaque
+       chargement, donc la note suivait en silence tout changement du budget —
+       une note réécrite sous elle-même, et un carnet qui ne verrait jamais
+       rien bouger. Les valeurs sont donc celles du 25 octobre, en dur ; les
+       CLEFS, elles, restent gardées contre celles de la fiche par un essai. */
+    releve: [
+      { cle: "millesime", libelle: "Millésime en vigueur", valeur: "LFI 2026, révision annoncée" },
+      { cle: "baril_loi", libelle: "Prix du baril retenu", valeur: "62,38 $" },
+      { cle: "baril_constate", libelle: "Prix du baril retenu \u00b7 constaté", valeur: "\u2248 100 $ au printemps 2026" },
+      { cle: "solde", libelle: "Solde déclaré", valeur: "-631,0 Md" },
+      { cle: "besoin", libelle: "Besoin de financement", valeur: "3\u202f104,2 Md" },
+      { cle: "programme_titres", libelle: "Programme de titres publics", valeur: "400,0 Md" },
+    ],
     /* LES PIÈCES DE LA FICHE, PLUS CELLE QUI EST PROPRE À LA NOTE. Figées avec
        elle : relue dans deux ans, elle doit montrer ce qu'elle avait sous les
        yeux, et non ce que la fiche portera alors. */

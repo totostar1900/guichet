@@ -873,6 +873,16 @@ export interface BudgetEtat {
   soldeDeclare?: number;
   /** Le besoin total, principal de la dette compris. */
   besoinDeFinancement?: number;
+  /**
+   * LE PRINCIPAL DE LA DETTE, QUAND LE DOCUMENT L'IMPRIME LUI-MÊME.
+   *
+   * Il se déduit sinon — besoin moins déficit —, et la déduction est bonne :
+   * pour le Cameroun 2026 elle donne 2 473,2 là où la loi promulguée écrit
+   * 2 473,4. Mais un chiffre publié ne suppose rien, et la maison préfère
+   * partout la source à son calcul : c'est la règle du rendement imprimé par
+   * un Trésor, appliquée ici.
+   */
+  amortissementPublie?: number;
   financement: PorteDeFinancement[];
   source: SourceChiffree;
   /** Les pièces sur lesquelles le relevé s'appuie, nommées et liées quand on peut. */

@@ -5,7 +5,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
-import { amortissementImplicite, ecartsEntre, enMilliards, financementBoucle, foisLeDeficit, notesDe, partDesTitres, paysDuSlug, sommeDes , trousDe} from "@/lib/market/budget";
+import { amortissement, ecartsEntre, enMilliards, financementBoucle, foisLeDeficit, notesDe, partDesTitres, paysDuSlug, sommeDes , trousDe} from "@/lib/market/budget";
 import { LIBELLES_DU_RELEVE, numeroSuivant, releveDuBudget } from "@/lib/market/note-budget";
 import { DIT, signauxDe } from "@/lib/market/carnet";
 import { POURQUOI, SERVICE_FAIBLE, leveDe, pourquoiPasDeTaux } from "@/lib/market/leve";
@@ -45,7 +45,7 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
   if (!b) notFound();
 
   const notes = notesDe(toutesNotes, b.pays, b.exercice);
-  const amort = amortissementImplicite(b);
+  const amort = amortissement(b);
   const fois = foisLeDeficit(b);
   const part = partDesTitres(b);
   const boucle = financementBoucle(b);
@@ -162,8 +162,15 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
               <span className={styles.plus}>+</span>
               <div className={styles.etape}>
                 <span className={styles.el}>{t("Remboursement du principal")}</span>
-                <b className={styles.gros}>{enMilliards(amort)}</b>
-                <small>{t("par différence — ce que l'État rend sur ses emprunts passés")}</small>
+                <b className={styles.gros}>{enMilliards(amort?.montant)}</b>
+                {/* D'OÙ VIENT LE CHIFFRE, écrit sous lui. Un document qui
+                    l'imprime passe devant la soustraction, et le lecteur doit
+                    savoir lequel des deux il regarde. */}
+                <small>
+                  {amort?.publie
+                    ? t("publié par le document — ce que l'État rend sur ses emprunts passés")
+                    : t("par différence — ce que l'État rend sur ses emprunts passés")}
+                </small>
               </div>
               <span className={styles.plus}>=</span>
               <div className={`${styles.etape} ${styles.besoin}`}>

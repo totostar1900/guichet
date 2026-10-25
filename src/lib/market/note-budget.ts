@@ -160,6 +160,7 @@ export function verifierNote(d: BrouillonNote): Refus[] {
 export const LIBELLES_DU_RELEVE = {
   millesime: "Millésime en vigueur",
   solde: "Solde déclaré",
+  amortissement: "Remboursement du principal",
   besoin: "Besoin de financement",
   programme_titres: "Programme de titres publics",
 } as const;
@@ -175,6 +176,11 @@ export function releveDuBudget(b: BudgetEtat): NoteBudget["releve"] {
   }
 
   if (b.soldeDeclare !== undefined) out.push({ cle: "solde", libelle: LIBELLES_DU_RELEVE.solde, valeur: `${enMilliards(b.soldeDeclare)} Md` });
+  /* LE PRINCIPAL N'ENTRE QUE S'IL EST PUBLIÉ. Déduit, il ne peut pas bouger
+     seul — il suit le solde et le besoin, déjà suivis —, et une ligne qui ne
+     bouge jamais seule encombre le tableau des écarts sans rien y dire. */
+  if (b.amortissementPublie !== undefined)
+    out.push({ cle: "amortissement", libelle: LIBELLES_DU_RELEVE.amortissement, valeur: `${enMilliards(b.amortissementPublie)} Md` });
   if (b.besoinDeFinancement !== undefined) out.push({ cle: "besoin", libelle: LIBELLES_DU_RELEVE.besoin, valeur: `${enMilliards(b.besoinDeFinancement)} Md` });
   const titres = porteDesTitres(b);
   if (titres) out.push({ cle: "programme_titres", libelle: LIBELLES_DU_RELEVE.programme_titres, valeur: `${enMilliards(titres.montant)} Md` });

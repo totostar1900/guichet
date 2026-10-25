@@ -15,7 +15,7 @@ import brut from "@/data/reference.json";
 import type { AuctionResult } from "@/lib/market/auction-results";
 
 const SEANCES = ((brut as { seances?: unknown[] }).seances ?? []) as AuctionResult[];
-import { amortissementImplicite, ecartsEntre, estComplet, financementBoucle, foisLeDeficit, partDesTitres, paysDuSlug, porteDesTitres, slugDuPays, sommeDes, PAYS_CEMAC , trousDe} from "@/lib/market/budget";
+import { amortissement, amortissementImplicite, ecartsEntre, estComplet, financementBoucle, foisLeDeficit, partDesTitres, paysDuSlug, porteDesTitres, slugDuPays, sommeDes, PAYS_CEMAC , trousDe} from "@/lib/market/budget";
 import { LIBELLES_DU_RELEVE, MIN, REFUS, numeroSuivant, releveDuBudget, verifierNote, type BrouillonNote } from "@/lib/market/note-budget";
 import { DIT, MOIS_AVANT_DE_S_INQUIETER, carnet, moisEntre, signauxDe } from "@/lib/market/carnet";
 import { SEANCES_MINIMUM, SERVICE_FAIBLE, joursEntre, leveDe, pourquoiPasDeTaux } from "@/lib/market/leve";
@@ -45,20 +45,45 @@ describe("les budgets des États", () => {
    * tableau de la loi pour devenir une reconstitution.
    */
   /**
-   * LES AGRÉGATS SONT CEUX DE LA SOURCE, ET ILS SONT ÉPINGLÉS.
+   * LES AGRÉGATS SONT CEUX DE LA LOI PROMULGUÉE, ET ILS SONT ÉPINGLÉS.
    *
-   * Ils ont été relevés de la presse, puis CORRIGÉS le 24 octobre sur
-   * l'exposé des motifs de la DGB, qui donne 4 689,5 de recettes fiscales et
-   * douanières là où ce fichier portait 4 889,5 — deux cents milliards de
-   * trop, une main qui avait lu un 8 pour un 6. Les épingler ici fait tomber
-   * l'épreuve le jour où quelqu'un les reprendra sans ouvrir la pièce.
+   * Ils venaient d'une reprise de presse, puis de l'exposé des motifs du
+   * PROJET, puis — le 24 octobre — de la présentation de lancement publiée
+   * par la DGB après promulgation, qui imprime les deux colonnes du budget
+   * général. Les épingler ici fait tomber l'épreuve le jour où quelqu'un les
+   * reprendra sans ouvrir la pièce : c'est déjà arrivé deux fois, dont une
+   * pour deux cents milliards, un 8 lu pour un 6.
    */
-  it("portent les agrégats de l'exposé des motifs, au dixième", () => {
+  it("portent les postes de la loi promulguée, au dixième", () => {
     const b = cameroun();
-    expect(sommeDes(b.recettes) / 1000, "les recettes ne sont plus celles de la colonne « PLFI 2026 »").toBe(5687);
-    expect(sommeDes(b.depenses) / 1000, "les dépenses ne sont plus celles du document").toBe(6210.5);
+    expect(sommeDes(b.recettes) / 1000, "les recettes propres ne sont plus les cinq lignes de la loi").toBe(5686.9);
+    expect(sommeDes(b.depenses) / 1000, "les dépenses hors principal ne sont plus celles de la loi").toBe(6210.5);
     expect(b.soldeDeclare! / 1000, "le solde déclaré a bougé").toBe(-631);
     expect(b.besoinDeFinancement! / 1000, "le besoin de financement a bougé").toBe(3104.2);
+    /* LES EMPRUNTS NE SONT PAS UNE RECETTE. La loi les range dans sa colonne
+       des recettes — 2 996,8 —, et les y reprendre rendrait le solde muet. */
+    expect(b.recettes.some((r) => /emprunt/i.test(r.libelle)), "une ressource d'emprunt est rangée en recette : le solde ne veut plus rien dire").toBe(false);
+  });
+
+  /**
+   * UN CHIFFRE PUBLIÉ PASSE DEVANT SA DÉDUCTION, toujours. La loi imprime
+   * « dépenses de la dette 2 473,4 » ; la soustraction besoin − déficit donne
+   * 2 473,2. Les deux tombent à 0,2 près, et c'est justement pourquoi il faut
+   * dire lequel est montré : un écart qu'on ne s'explique pas vaut mieux
+   * qu'un chiffre dont on ne sait plus s'il a été lu ou calculé.
+   */
+  it("montre l'amortissement publié plutôt que déduit, et le dit", () => {
+    const b = cameroun();
+    const a = amortissement(b)!;
+    expect(a.publie, "l'amortissement affiché est redevenu une déduction").toBe(true);
+    expect(a.montant / 1000, "l'amortissement publié a bougé").toBe(2473.4);
+    /* La déduction reste bonne, et proche : c'est ce qui donne confiance aux
+       fiches où seul le calcul est possible. */
+    expect(Math.abs(amortissementImplicite(b)! - a.montant) / 1000, "la déduction s'écarte du publié de plus de deux dixièmes").toBeLessThanOrEqual(0.2);
+    /* NON-VACUITÉ : sans chiffre publié, c'est la déduction qui sort. */
+    const sans = amortissement({ ...b, amortissementPublie: undefined })!;
+    expect(sans.publie, "une fiche sans chiffre publié prétend en avoir un").toBe(false);
+    expect(sans.montant / 1000, "la déduction a changé").toBe(2473.2);
   });
 
   it("bouclent exactement sur le besoin déclaré, là où le relevé est complet", () => {
@@ -315,7 +340,7 @@ describe("écrire une note du desk", () => {
    */
   it("prend son relevé sur le budget, valeurs comprises", () => {
     const r = releveDuBudget(cameroun());
-    expect(r.map((x) => x.cle), "le relevé a changé de postes").toEqual(["millesime", "baril_loi", "baril_constate", "solde", "besoin", "programme_titres"]);
+    expect(r.map((x) => x.cle), "le relevé a changé de postes").toEqual(["millesime", "baril_loi", "baril_constate", "solde", "amortissement", "besoin", "programme_titres"]);
     const par = Object.fromEntries(r.map((x) => [x.cle, x.valeur]));
     expect(par.millesime, "le millésime n'est plus relevé tel qu'il est en vigueur").toBe("LFI 2026, révision annoncée");
     expect(par.baril_loi, "l'hypothèse de baril de la loi n'est plus relevée").toBe("62,38 $");
@@ -328,10 +353,29 @@ describe("écrire une note du desk", () => {
    * depuis l'écran afficherait six lignes « changées » qui n'ont pas bougé —
    * exactement le bruit que le tableau des écarts sert à éviter.
    */
-  it("aligne le relevé des notes semées sur celui du budget", () => {
+  it("fige le relevé d'une note, et ne le recalcule jamais", () => {
+    /* Écrit « releveDuBudget(CAMEROUN) », il se RECALCULAIT à chaque
+       chargement : la note suivait en silence tout changement du budget, et
+       le carnet ne pouvait plus voir un seul poste bouger. */
+    expect(code("src/data/budgets-seed.ts").includes("releve: releveDuBudget("), "le relevé d'une note semée se recalcule : elle se réécrit sous elle-même").toBe(false);
+  });
+
+  /**
+   * UNE NOTE NE RELÈVE AUCUN POSTE QUE LA FICHE NE PRODUIT PAS.
+   *
+   * L'épreuve exigeait d'abord l'ÉGALITÉ des clefs. C'était juste tant que le
+   * relevé d'une note se recalculait ; depuis qu'il est figé, c'est faux : une
+   * note ignore légitimement un poste que la fiche a gagné depuis — le
+   * principal publié, par exemple, entré le 24 octobre avec la loi. Ce qui
+   * reste interdit, c'est l'inverse : un poste inventé, que rien ne produit,
+   * et dont la note suivante ne pourrait jamais montrer qu'il a bougé.
+   */
+  it("ne relève aucun poste que la fiche ne produit pas", () => {
     for (const n of SEED_NOTES_BUDGET) {
       const b = SEED_BUDGETS.find((x) => x.pays === n.pays && x.exercice === n.exercice)!;
-      expect(n.releve.map((x) => x.cle), `la note n° ${n.numero} relève d'autres postes que sa fiche`).toEqual(releveDuBudget(b).map((x) => x.cle));
+      const connus = new Set(releveDuBudget(b).map((x) => x.cle));
+      expect(n.releve.filter((x) => !connus.has(x.cle)).map((x) => x.cle), `la note n° ${n.numero} relève un poste que sa fiche ne produit pas`).toEqual([]);
+      expect(n.releve.length, `la note n° ${n.numero} ne relève rien`).toBeGreaterThan(3);
     }
   });
 
@@ -401,7 +445,7 @@ describe("écrire une note du desk", () => {
     const b = cameroun();
     const nôtres = releveDuBudget(b).filter((x) => x.cle in LIBELLES_DU_RELEVE);
     expect(nôtres.map((x) => x.cle).sort(), "les libellés traduits ne sont plus ceux que la fiche produit").toEqual(
-      ["besoin", "millesime", "programme_titres", "solde"],
+      ["amortissement", "besoin", "millesime", "programme_titres", "solde"],
     );
     /* NON-VACUITÉ : il reste des libellés venus du document, sinon le tri ne
        trierait rien. */
@@ -582,16 +626,26 @@ describe("le carnet du desk", () => {
    * ET IL PARLE DÈS QUE LE RELEVÉ BOUGE — mesuré avec la machine même qui
    * produit le tableau des écarts d'une note : la question est la même.
    */
+  /**
+   * ET IL COMPTE JUSTE. La note n° 1 date du 25 octobre et ne connaît pas le
+   * principal publié, entré avec la loi promulguée : UN poste l'a donc
+   * dépassée. Déplacer en plus le millésime en fait DEUX. Le compte doit
+   * suivre, sinon « le relevé a changé » ne dit pas de combien.
+   */
   it("compte les postes qui ont bougé depuis la dernière note", () => {
     const b = cameroun();
     const avant = signauxDe(b, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
-    expect(avant, "le relevé est annoncé comme ayant bougé alors que la note vient de le prendre").toEqual([]);
-    /* On déplace l'hypothèse : deux postes changent, le constaté et rien d'autre. */
+    expect(avant.length, "le carnet ne voit pas que la fiche a gagné un poste depuis la note n° 1").toBe(1);
+    expect(avant[0].params.postes, "le carnet ne compte pas le principal publié").toBe("1");
+    expect(avant[0].params.numero, "le carnet ne dit pas depuis quelle note").toBe("1");
+    /* On déplace le millésime : un second poste bouge. */
     const bouge = { ...b, millesime: "revise" as const };
     const apres = signauxDe(bouge, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
-    expect(apres.length, "le millésime a changé et le carnet n'en dit rien").toBe(1);
-    expect(apres[0].params.postes, "le carnet ne compte pas les postes qui ont bougé").toBe("1");
-    expect(apres[0].params.numero, "le carnet ne dit pas depuis quelle note").toBe("1");
+    expect(apres[0].params.postes, "le carnet ne compte pas les postes qui ont bougé").toBe("2");
+    /* ET IL SE TAIT QUAND RIEN N'A BOUGÉ : une note qui porte le relevé du
+       jour ne déclenche rien. */
+    const ajour = [{ ...SEED_NOTES_BUDGET[0], releve: releveDuBudget(b) }];
+    expect(signauxDe(b, ajour, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge"), "le carnet crie sur un relevé qui n'a pas bougé").toEqual([]);
   });
 
   it("remarque une note qui vieillit, et pas avant le délai", () => {

@@ -57,6 +57,21 @@ export const amortissementImplicite = (b: BudgetEtat): number | undefined =>
   b.besoinDeFinancement === undefined || b.soldeDeclare === undefined ? undefined : b.besoinDeFinancement - Math.abs(b.soldeDeclare);
 
 /**
+ * CE QUE L'ÉTAT REND SUR SES EMPRUNTS PASSÉS, et d'où le chiffre vient.
+ *
+ * Le document d'abord, la soustraction ensuite — jamais l'inverse. Pour le
+ * Cameroun 2026 les deux tombent à 0,2 près (2 473,4 publié contre 2 473,2
+ * déduit), et c'est justement pourquoi il faut dire lequel est montré : un
+ * écart de deux dixièmes qu'on ne s'explique pas vaut mieux qu'un chiffre
+ * dont on ne sait plus s'il a été lu ou calculé.
+ */
+export const amortissement = (b: BudgetEtat): { montant: number; publie: boolean } | undefined => {
+  if (b.amortissementPublie !== undefined) return { montant: b.amortissementPublie, publie: true };
+  const deduit = amortissementImplicite(b);
+  return deduit === undefined ? undefined : { montant: deduit, publie: false };
+};
+
+/**
  * LE RAPPORT QUI PORTE LA PAGE : le besoin rapporté au déficit.
  *
  * Cameroun 2026 : 3 104,2 pour 631,0, soit près de cinq fois. Qui raisonne
