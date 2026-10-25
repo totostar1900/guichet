@@ -51,7 +51,7 @@ describe("le tour des procédures laissées en route", () => {
     const occupes = new Set((await r.listRelances({ state: "en_cours" })).map((x) => x.userId));
     const qui = (await r.listContacts()).find((c) => c.phone && c.email && c.whatsappOptIn && !occupes.has(c.id))!;
     expect(qui, "le jeu d'essai doit porter un contact joignable et sans devoir").toBeTruthy();
-    const m = await r.createMandat({ userId: qui.id, objet: "provision", bankName: "BGFI", bankAccount: "CM0000000001", accountHolder: qui.name, maxAmount: 500_000 });
+    const m = await r.createMandat({ userId: qui.id, objet: "provision", bankName: "BGFI", bankAccount: "CM0000000001", accountHolder: qui.name, amount: 500_000 });
 
     // Le jour du constat, rien ne part : le premier rappel est au lendemain.
     await tourDesRelances("2026-10-01");
@@ -93,7 +93,7 @@ describe("le tour des procédures laissées en route", () => {
     const occupes = new Set((await r.listRelances()).map((x) => x.userId));
     const qui = (await r.listContacts()).find((c) => c.phone && c.email && c.whatsappOptIn && !occupes.has(c.id))!;
     expect(qui, "le jeu d'essai doit porter un second contact joignable et libre").toBeTruthy();
-    await r.createMandat({ userId: qui.id, objet: "provision", bankName: "BGFI", bankAccount: "GA0000000002", accountHolder: qui.name, maxAmount: 300_000 });
+    await r.createMandat({ userId: qui.id, objet: "provision", bankName: "BGFI", bankAccount: "GA0000000002", accountHolder: qui.name, amount: 300_000 });
 
     await tourDesRelances("2026-11-01");
     const avant = (await r.listRelances({ userId: qui.id })).find((x) => x.sujet === "mandat")!;
@@ -124,7 +124,7 @@ describe("le tour des procédures laissées en route", () => {
 
     /* Deux devoirs le même jour : une convention approuvée et non acceptée,
        et un mandat créé sans signature. */
-    await r.createMandat({ userId: qui.id, objet: "provision", bankName: "BGFI", bankAccount: "TD0000000004", accountHolder: qui.name, maxAmount: 200_000 });
+    await r.createMandat({ userId: qui.id, objet: "provision", bankName: "BGFI", bankAccount: "TD0000000004", accountHolder: qui.name, amount: 200_000 });
     const quand = new Date().toISOString();
     await r.createClientFile({
       userId: qui.id,
@@ -163,7 +163,7 @@ describe("le tour des procédures laissées en route", () => {
        canal. Le cas réel est un contact sans coordonnées ; il se juge pareil,
        et celui-ci ne dépend pas du jeu d'essai. */
     const muet = "u-sans-canal";
-    await r.createMandat({ userId: muet, objet: "provision", bankName: "BGFI", bankAccount: "CF0000000003", accountHolder: "Sans Canal", maxAmount: 100_000 });
+    await r.createMandat({ userId: muet, objet: "provision", bankName: "BGFI", bankAccount: "CF0000000003", accountHolder: "Sans Canal", amount: 100_000 });
 
     await tourDesRelances("2026-12-01");
     await tourDesRelances("2026-12-02");

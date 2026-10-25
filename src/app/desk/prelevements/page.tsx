@@ -69,7 +69,7 @@ export default async function PrelevementsDeskPage({ searchParams }: { searchPar
   const duJour = tirages.filter((x) => x.dueOn === dueOn);
   const parMandat = new Map(duJour.map((x) => [x.mandatId, x]));
 
-  const lignes: LigneDEcheance[] = aTirer.map(({ mandat, amount }) => {
+  const lignes: LigneDEcheance[] = aTirer.map(({ mandat, amount, note }) => {
     const t2 = parMandat.get(mandat.id);
     const s = mandat.standingId ? parStanding.get(mandat.standingId) : undefined;
     return {
@@ -78,19 +78,20 @@ export default async function PrelevementsDeskPage({ searchParams }: { searchPar
       objet: mandat.objet,
       detail: s ? `${s.ref}` : undefined,
       amount,
-      plafond: mandat.maxAmount,
+      note,
       banque: mandat.bankName,
       compte: mandat.bankAccount,
       preavis: t2?.announcedAt ? { parti: t2.noticeSent, le: t2.announcedAt, erreur: t2.noticeError } : undefined,
     };
   });
-  /* UNE SECONDE PRÉSENTATION N'EST PAS UNE ÉCHÉANCE DU CALENDRIER.
-     Elle naît d'un rejet, quinze jours plus tard, un jour qui n'est celui
-     d'aucun mandat. La liste, bâtie des seuls mandats du jour, ne la montrait
-     pas : « Remettre à la banque » comptait zéro, le tirage restait
-     « préparé » pour toujours, et la promesse faite au client (« nous le
-     représenterons une fois ») ne pouvait pas être tenue. Mesuré à l'écran le
-     10 octobre 2026, en traversant la page pour la première fois. */
+  /* UN TIRAGE PRÉPARÉ D'AVANCE REVIENT DANS LA LISTE, pour être annoncé.
+     Ce bloc existait pour les secondes présentations, qui naissaient d'un rejet
+     quinze jours plus tard, un jour qui n'était celui d'aucun mandat : la
+     liste, bâtie des seuls mandats du jour, ne les montrait pas, « Remettre à
+     la banque » comptait zéro, et le tirage restait « préparé » pour toujours.
+     Elles n'existent plus — un mois refusé est sauté depuis le 25 octobre
+     2026 — mais le cas qu'il faut garder demeure : un tirage préparé dont le
+     préavis n'est pas parti, qu'un canal réparé fait partir le lendemain. */
   const repasses = duJour.filter((x) => x.state === "prepare" && !aTirer.some((a) => a.mandat.id === x.mandatId));
   for (const x of repasses) {
     const m = mandats.find((y) => y.id === x.mandatId);
@@ -99,9 +100,8 @@ export default async function PrelevementsDeskPage({ searchParams }: { searchPar
       mandatRef: m.ref,
       client: nomDe.get(m.userId) ?? m.accountHolder,
       objet: m.objet,
-      repasse: x.retryOf ? "rejet" : "prepare",
+      repasse: "prepare",
       amount: x.amount,
-      plafond: m.maxAmount,
       banque: m.bankName,
       compte: m.bankAccount,
       preavis: x.announcedAt ? { parti: x.noticeSent, le: x.announcedAt, erreur: x.noticeError } : undefined,
@@ -232,7 +232,7 @@ export default async function PrelevementsDeskPage({ searchParams }: { searchPar
               {(Object.keys(MOTIFS) as MotifDeRejet[]).map((k) => (
                 <li key={k}>
                   <b>{t(MOTIFS[k].libelle)}</b>
-                  <span>{MOTIFS[k].rejouable ? t("Une seconde présentation, quinze jours plus tard, annoncée comme la première. Au second rejet de cette cause, le mandat se suspend.") : t("Suspension immédiate. Représenter n'aboutirait pas, et insister fait casser le mandat par la banque du client.")}</span>
+                  <span>{MOTIFS[k].reprendLeMoisSuivant ? t("Le mois est sauté : rien n'est représenté, et le mandat reprend à l'échéance suivante. Si ce mois-là est refusé aussi, le prélèvement s'arrête.") : t("Arrêt immédiat. Le mois prochain n'y changerait rien, et insister fait casser le mandat par la banque du client.")}</span>
                   <em>{t(MOTIFS[k].auClient)}</em>
                 </li>
               ))}
@@ -244,7 +244,8 @@ export default async function PrelevementsDeskPage({ searchParams }: { searchPar
           <h2>{t("Les quatre règles que cette page tient")}</h2>
           <ol>
             <li>{t("Rien ne part sans préavis parti. C'est déjà la loi des instructions permanentes, et elle vaut davantage ici : un versement qu'on n'a pas annoncé ne fait que ne pas avoir lieu, un prélèvement qu'on n'a pas annoncé est un débit que le client découvre sur son relevé.")}</li>
-            <li>{t("Jamais au-delà du plafond signé. Une échéance qui dépasse n'est pas rognée en silence : elle est écartée, et quelqu'un appelle. Rogner reviendrait à décider du montant à la place du client.")}</li>
+            <li>{t("Le montant présenté est celui du mandat, ni plus ni moins. Il n'y a pas de plafond : le client a écrit une somme, c'est elle qui part. Un montant moindre ne serait pas une prudence, ce serait une épargne qui se remplit moins vite que ce qu'il a lu.")}</li>
+            <li>{t("Une seule présentation par mois. Un mois refusé est sauté, et rien n'est représenté avant l'échéance suivante : une seconde présentation dans le même mois est une seconde ponction d'incident, aux frais du client.")}</li>
             <li>{t("Un tirage remis a trois issues, et la troisième est l'absence des deux autres. « Sans nouvelle » se calcule et ne se range pas : au-delà de {n} jours, la page le dit et Santé le signale.", { n: String(JOURS_SANS_NOUVELLE) })}</li>
             <li>{t("La cause d'un rejet décide de la suite, pas le compte. Une provision insuffisante se représente une fois ; un compte clos ne se représente jamais. Compter sans lire la cause ferait harceler la banque d'un client dont le compte n'existe plus.")}</li>
           </ol>

@@ -27,9 +27,10 @@ const creation = z.object({
   bankName: z.string().trim().min(2).max(80),
   bankAccount: z.string().trim().min(6).max(60),
   accountHolder: z.string().trim().min(2).max(80),
-  maxAmount: z.string().transform(parseAmount).pipe(z.number().positive()).optional(),
   dayOfMonth: z.coerce.number().int().min(JOUR_MIN).max(JOUR_MAX).optional(),
-  amount: z.string().transform(parseAmount).pipe(z.number().positive()).optional(),
+  /* UN SEUL MONTANT, et il est requis des deux côtés depuis le 25 octobre
+     2026 : c'est lui qui sera présenté à la banque, ni plus ni moins. */
+  amount: z.string().transform(parseAmount).pipe(z.number().positive()),
 });
 
 /**
@@ -43,17 +44,15 @@ const creation = z.object({
 export async function creerMandatAction(_p: MandatResult | null, form: FormData): Promise<MandatResult> {
   const s = await requireSession(PATH);
   const parsed = creation.safeParse(Object.fromEntries(form));
-  if (!parsed.success) return { ok: false, error: "Vérifiez les champs : banque, compte, titulaire, plafond." };
-  /* UN SEUL MONTANT POUR LA PROVISION, décidé le 9 octobre 2026.
-     Le plafond protège le jour où le montant prélevé pourrait changer sans
-     le client : c'est le cas d'une épargne programmée, dont le montant vient
-     de l'instruction. Pour la provision, le montant est celui que le client
-     écrit lui-même, et demander deux chiffres pour un seul était une friction
-     sans contrepartie. Le plafond existe toujours, il vaut le montant : la
-     maison ne prélèvera jamais plus que ce qui est écrit. */
-  const d = { ...parsed.data, maxAmount: parsed.data.objet === "provision" ? parsed.data.amount : parsed.data.maxAmount };
-  if (!d.maxAmount) return { ok: false, error: d.objet === "provision" ? "Indiquez le montant à prélever chaque mois." : "Indiquez le plafond par échéance." };
-  const souci = verifierLeMandat({ ...d, maxAmount: d.maxAmount, userId: s.userId });
+  if (!parsed.success) return { ok: false, error: "Vérifiez les champs : banque, compte, titulaire, montant." };
+  /* UN SEUL MONTANT, ET PLUS DE PLAFOND — décidé le 25 octobre 2026.
+     Le plafond existait pour le jour où le montant prélevé pourrait changer
+     sans le client, ce qui était le cas d'une épargne programmée dont le
+     montant venait de l'instruction. Le mandat porte désormais son propre
+     nombre, signé : il n'y a plus rien à borner, puisque rien ne peut bouger
+     sans une nouvelle signature. */
+  const d = parsed.data;
+  const souci = verifierLeMandat({ ...d, userId: s.userId });
   if (souci) return { ok: false, error: souci };
   /* UN MANDAT PAR USAGE, et la règle se tient ici parce que c'est ici qu'un
      second se créerait. Deux mandats actifs sur le même objet, ce sont deux
@@ -61,8 +60,8 @@ export async function creerMandatAction(_p: MandatResult | null, form: FormData)
   const siens = await repo().listMandats(s.userId);
   const double = siens.find((m) => m.state !== "revoque" && m.objet === d.objet && (d.objet !== "instruction" || m.standingId === d.standingId));
   if (double) return { ok: false, error: `Vous avez déjà un mandat pour cela (${double.ref}). Révoquez-le avant d'en signer un autre : deux mandats pour un même usage prélèveraient deux fois.` };
-  const m = await repo().createMandat({ ...d, maxAmount: d.maxAmount, userId: s.userId });
-  await repo().logEvent({ kind: "system", html: `<b>Mandat de prélèvement créé</b> par ${s.name} · ${m.ref} · plafond ${m.maxAmount} FCFA · à signer` });
+  const m = await repo().createMandat({ ...d, userId: s.userId });
+  await repo().logEvent({ kind: "system", html: `<b>Mandat de prélèvement créé</b> par ${s.name} · ${m.ref} · ${m.amount} FCFA par mois · à signer` });
   revalidatePath(PATH);
   const passeM = await garde("mandat.creer");
   if (!passeM.ok) return { ok: false, error: passeM.raison! };
@@ -153,7 +152,7 @@ export async function signerMandatAction(_p: MandatResult | null, form: FormData
   } catch (e) {
     await r.logEvent({ kind: "system", html: `Exemplaire du mandat ${m.ref} non produit : ${e instanceof Error ? e.message : "erreur"}` });
   }
-  await r.logEvent({ kind: "system", html: `<b>Mandat de prélèvement signé</b> · ${m.ref} · ${m.accountHolder} · plafond ${m.maxAmount} FCFA par échéance` });
+  await r.logEvent({ kind: "system", html: `<b>Mandat de prélèvement signé</b> · ${m.ref} · ${m.accountHolder} · ${m.amount} FCFA à chaque échéance` });
   revalidatePath(PATH);
   revalidatePath("/desk");
   const passeS = await garde("mandat.signer");

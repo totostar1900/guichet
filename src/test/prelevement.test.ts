@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { REJETS_AVANT_SUSPENSION, type MandatPrelevement } from "@/lib/domain/mandat";
+import { MOIS_REFUSES_AVANT_ARRET, type MandatPrelevement } from "@/lib/domain/mandat";
 import type { StandingOrder } from "@/lib/domain/standing";
 import {
   AVANCE_SUR_LE_VERSEMENT,
   csvDeLaRemise,
   echeanceDuJour,
-  JOURS_AVANT_SECONDE_PRESENTATION,
   JOURS_SANS_NOUVELLE,
   jourDeTirage,
   jourDuPreavis,
@@ -36,7 +35,6 @@ const mandat = (p: Partial<MandatPrelevement> = {}): MandatPrelevement => ({
   bankName: "Afriland",
   bankAccount: "100 12 345678 90",
   accountHolder: "NITCHEU GEORGES",
-  maxAmount: 100_000,
   dayOfMonth: 15,
   amount: 50_000,
   state: "actif",
@@ -74,9 +72,11 @@ describe("le jour et le montant d'une échéance", () => {
   it("pour une épargne programmée, le tirage précède le versement", () => {
     /* Sans cette avance, le jour dit le solde est vide et on a prélevé pour
        rien : l'argent arrive le jour où l'instruction cherche à le placer. */
-    const m = mandat({ objet: "instruction", standingId: "s1", dayOfMonth: undefined, amount: undefined });
+    const m = mandat({ objet: "instruction", standingId: "s1", dayOfMonth: undefined });
     expect(jourDeTirage(m, instruction())).toBe(20 - AVANCE_SUR_LE_VERSEMENT);
-    expect(montantDuTirage(m, instruction())).toBe(200_000);
+    /* LE MONTANT EST CELUI DU MANDAT, et non celui de l'instruction : c'est le
+       seul chiffre que le client ait signé sur cette autorisation. */
+    expect(montantDuTirage(m)).toBe(50_000);
   });
 
   it("et une instruction du début du mois ne déborde pas sur le mois d'avant", () => {
@@ -108,18 +108,33 @@ describe("l'échéance du jour, et ce qu'elle écarte", () => {
     const { aTirer, ecartes } = echeanceDuJour([mandat({ state: "suspendu", rejects: 2 })], [], le15);
     expect(aTirer).toEqual([]);
     expect(ecartes).toHaveLength(1);
-    expect(ecartes[0].raison).toMatch(/Suspendu après 2 rejet/);
+    expect(ecartes[0].raison).toMatch(/Arrêté après 2 mois refusés/);
   });
 
-  it("écarte une échéance au-dessus du plafond, et dit d'appeler plutôt que de rogner", () => {
-    const { aTirer, ecartes } = echeanceDuJour([mandat({ amount: 150_000, maxAmount: 100_000 })], [], le15);
-    expect(aTirer).toEqual([]);
-    expect(ecartes[0].raison).toMatch(/appelez le client/);
-    expect(ecartes[0].montant).toBe(150_000);
+  /* LE PLAFOND N'EXISTE PLUS, et avec lui l'écarté qui le gardait. Ce qui le
+     remplace ne retient rien : un mandat d'épargne programmée dont
+     l'instruction a changé de montant se présente quand même, et l'écart se
+     lit à côté. Sauter le mois priverait le client de son épargne pour une
+     différence qu'il n'a peut-être pas voulue ; la taire laisserait
+     l'instruction échouer faute de fonds, un mois plus tard. */
+  it("présente le montant signé même si l'instruction a changé, en le disant", () => {
+    const m = mandat({ objet: "instruction", standingId: "s1", dayOfMonth: undefined, amount: 50_000 });
+    const s = instruction({ amount: 200_000, dayOfMonth: 20 });
+    const { aTirer, ecartes } = echeanceDuJour([m], [s], "2026-10-15");
+    expect(aTirer).toHaveLength(1);
+    expect(aTirer[0].amount, "le montant présenté n'est pas celui du mandat signé").toBe(50_000);
+    expect(aTirer[0].note, "l'écart avec l'instruction ne se dit pas").toMatch(/200000|200 000/);
+    expect(ecartes, "l'écart retient la ligne : le client perd son épargne du mois").toEqual([]);
+  });
+
+  it("et se tait quand le mandat et son instruction disent le même montant", () => {
+    const m = mandat({ objet: "instruction", standingId: "s1", dayOfMonth: undefined, amount: 200_000 });
+    const { aTirer } = echeanceDuJour([m], [instruction({ amount: 200_000, dayOfMonth: 20 })], "2026-10-15");
+    expect(aTirer[0].note).toBeUndefined();
   });
 
   it("écarte un mandat dont l'instruction n'est plus active", () => {
-    const m = mandat({ objet: "instruction", standingId: "s1", dayOfMonth: undefined, amount: undefined });
+    const m = mandat({ objet: "instruction", standingId: "s1", dayOfMonth: undefined });
     const s = instruction({ state: "terminee", dayOfMonth: 20 });
     const { aTirer, ecartes } = echeanceDuJour([m], [s], le15);
     expect(aTirer).toEqual([]);
@@ -177,22 +192,39 @@ describe("la troisième issue, celle qui n'en est pas une", () => {
   });
 });
 
-describe("la cause d'un rejet décide de la suite, pas le compte", () => {
-  it("représente une provision insuffisante, une fois, quinze jours plus tard", () => {
+/**
+ * UN MOIS REFUSÉ EST SAUTÉ — décidé le 25 octobre 2026.
+ *
+ * La maison représentait un rejet pour provision insuffisante quinze jours
+ * plus tard. C'est une seconde chance à l'intention du client, et une seconde
+ * ponction d'incident à ses frais s'il n'a toujours rien : il paie deux fois
+ * pour le même mois. Il n'y a donc plus qu'une présentation par mois, et un
+ * mois refusé est perdu.
+ */
+describe("ce qu'un rejet laisse derrière lui", () => {
+  it("saute le mois, et nomme la prochaine échéance plutôt qu'une seconde tentative", () => {
     const r = suiteDuRejet("provision_insuffisante", 1, "2026-10-15");
-    expect(r).toEqual({ suite: "represente", le: "2026-10-30" });
-    expect(JOURS_AVANT_SECONDE_PRESENTATION).toBe(15);
+    expect(r.suite).toBe("passe");
+    /* La prochaine échéance est celle du mois suivant, au même jour : rien
+       n'est représenté entre les deux. */
+    expect(r.suite === "passe" && r.prochaine).toBe("2026-11-15");
   });
 
-  it("suspend au second rejet consécutif de cette même cause", () => {
-    expect(suiteDuRejet("provision_insuffisante", REJETS_AVANT_SUSPENSION, "2026-10-15").suite).toBe("suspend");
+  it("ne représente plus rien dans le mois : la seconde présentation n'existe plus", () => {
+    const r = suiteDuRejet("provision_insuffisante", 1, "2026-10-15");
+    expect(r.suite === "passe" && r.prochaine.slice(0, 7), "une date du mois du rejet est une seconde présentation").not.toBe("2026-10");
   });
 
-  it("suspend DÈS LE PREMIER rejet pour toute cause qui ne se rejoue pas", () => {
-    /* Compter les rejets sans lire leur cause ferait représenter sur un compte
+  it("arrête au second mois refusé de suite", () => {
+    expect(suiteDuRejet("provision_insuffisante", MOIS_REFUSES_AVANT_ARRET, "2026-10-15").suite).toBe("arrete");
+    expect(MOIS_REFUSES_AVANT_ARRET).toBe(2);
+  });
+
+  it("arrête DÈS LE PREMIER rejet pour toute cause que le mois prochain ne réparera pas", () => {
+    /* Compter les rejets sans lire leur cause ferait présenter sur un compte
        clos : harceler la banque d'un client pour une faute qui est la nôtre. */
     for (const m of ["compte_clos", "opposition", "coordonnees_erronees", "mandat_inconnu", "autre"] as MotifDeRejet[]) {
-      expect(suiteDuRejet(m, 0, "2026-10-15").suite, m).toBe("suspend");
+      expect(suiteDuRejet(m, 0, "2026-10-15").suite, m).toBe("arrete");
     }
   });
 
@@ -201,7 +233,10 @@ describe("la cause d'un rejet décide de la suite, pas le compte", () => {
       expect(m.auClient.length, k).toBeGreaterThan(40);
       expect(m.libelle.length, k).toBeGreaterThan(3);
     }
-    expect(Object.values(MOTIFS).filter((m) => m.rejouable)).toHaveLength(1);
+    expect(Object.values(MOTIFS).filter((m) => m.reprendLeMoisSuivant)).toHaveLength(1);
+    /* Aucune cause ne promet plus une seconde présentation : la phrase du
+       client ne doit pas survivre à la règle qu'elle décrivait. */
+    for (const [k, m] of Object.entries(MOTIFS)) expect(m.auClient, k).not.toMatch(/représenterons/i);
   });
 });
 
@@ -263,10 +298,14 @@ describe("le dépôt refuse le double prélèvement", () => {
     const t1 = await r.creerTirage({ mandatId: "m-essai", userId: "u-essai", dueOn, amount: 50_000 });
     await expect(r.creerTirage({ mandatId: "m-essai", userId: "u-essai", dueOn, amount: 50_000 })).rejects.toThrow();
 
-    /* La seconde présentation d'un rejet porte une AUTRE date : elle passe, et
-       c'est ce qui distingue un rattrapage d'un doublon. */
-    const t2 = await r.creerTirage({ mandatId: "m-essai", userId: "u-essai", dueOn: "2027-03-30", amount: 50_000, retryOf: t1.id });
-    expect(t2.retryOf).toBe(t1.id);
+    /* UNE SEULE PRÉSENTATION PAR MOIS, et non par date : une AUTRE date du même
+       mois passait, et c'est exactement ce que faisait la seconde présentation
+       d'un rejet. Elle n'existe plus depuis le 25 octobre 2026, et le dépôt la
+       refuse désormais au lieu de compter sur le code appelant. */
+    await expect(r.creerTirage({ mandatId: "m-essai", userId: "u-essai", dueOn: "2027-03-30", amount: 50_000 })).rejects.toThrow(/une fois par mois/);
+
+    /* Le mois suivant, lui, passe : c'est la prochaine échéance. */
+    const t2 = await r.creerTirage({ mandatId: "m-essai", userId: "u-essai", dueOn: "2027-04-15", amount: 50_000 });
     expect(t2.ref).not.toBe(t1.ref);
     expect(t1.state).toBe("prepare");
     expect(t1.noticeSent).toBe(false);

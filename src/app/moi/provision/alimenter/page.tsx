@@ -189,7 +189,7 @@ export default async function AlimenterPage() {
                   {t("Mandat")} <span className="mono">{mandat.ref}</span>
                   {mandat.signedAt ? `, ${t("signé le {d}", { d: fmtDate(mandat.signedAt, false) })}` : ""}
                   {prochainTirage ? ` · ${t("prochain prélèvement le {d}, annoncé {n} jours avant", { d: fmtDate(prochainTirage, false), n: String(PREAVIS_JOURS) })}` : ""}
-                  {mandat.state === "suspendu" ? ` · ${t("suspendu après deux rejets : votre banque a refusé le prélèvement")}` : ""}
+                  {mandat.state === "suspendu" ? ` · ${t("arrêté après deux mois refusés de suite par votre banque")}` : ""}
                 </div>
                 <div className={styles.gestesDeLEtat}>
                   <Link href="/moi/prelevements">{t("Changer le montant")}</Link>

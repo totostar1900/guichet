@@ -68,7 +68,6 @@ function seedMandats(): MandatPrelevement[] {
       bankName: "Afriland First Bank",
       bankAccount: "CM21 10005 00001 12345678901 23",
       accountHolder: "Jean-Paul Onana",
-      maxAmount: 100_000,
       dayOfMonth: Math.min(28, now.getDate()),
       amount: 50_000,
       state: "actif",
@@ -918,7 +917,17 @@ export const memoryRepository: Repository = {
     return structuredClone(all.sort((a, b) => b.dueOn.localeCompare(a.dueOn) || a.createdAt.localeCompare(b.createdAt)));
   },
   async creerTirage(input) {
-    if (store().tirages.some((t) => t.mandatId === input.mandatId && t.dueOn === input.dueOn)) throw new Error(`debit_draws ${input.mandatId}/${input.dueOn} existe déjà`);
+    /* UNE PRÉSENTATION PAR MANDAT ET PAR MOIS, et non par date d'échéance.
+       Le garde portait sur la date, ce qui laissait passer deux présentations
+       du même mois — c'est-à-dire exactement ce que faisait une seconde
+       présentation après rejet, partie le 25 octobre 2026. La base le refuse
+       par un index (migration 0115) ; ici c'est écrit à la main, et un
+       test-double plus permissif que la production ferait apprendre la règle
+       en production. */
+    const mois = (d: string) => d.slice(0, 7);
+    if (store().tirages.some((t) => t.mandatId === input.mandatId && mois(t.dueOn) === mois(input.dueOn))) {
+      throw new Error(`debit_draws ${input.mandatId}/${mois(input.dueOn)} existe déjà : un mandat ne se présente qu'une fois par mois`);
+    }
     const row: Tirage = { id: `tp-${store().tirages.length + 1}`, ref: makeTirageRef(), state: "prepare", noticeSent: false, createdAt: nowIso(), ...input };
     store().tirages.push(row);
     return structuredClone(row);

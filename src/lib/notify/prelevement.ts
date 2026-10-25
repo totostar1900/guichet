@@ -17,6 +17,12 @@ import { notifyRaw } from "./dispatch";
  * a refusé une opération, et peut-être facturé un incident ; apprendre par
  * nous ce qui s'est passé et ce qui suit vaut mieux que de le deviner. Le
  * message dit donc la SUITE, pas la panne.
+ *
+ * ET APRÈS AUSSI QUAND TOUT VA BIEN, depuis le 25 octobre 2026. L'encaissement
+ * était muet : le client recevait l'annonce cinq jours avant, puis plus rien.
+ * Or « plus rien » ressemble trait pour trait à un prélèvement qui n'a pas
+ * abouti, le jour où il ouvre son relevé et voit un débit. Trois issues, trois
+ * messages : « vous êtes prévenu à chaque fois » ne se tient pas à moitié.
  */
 async function contactDe(userId: string, m: MandatPrelevement) {
   const c = await repo().getContact(userId);
@@ -59,8 +65,35 @@ export async function envoyerPreavisDePrelevement(m: MandatPrelevement, p: { due
   }
 }
 
-export async function direLeRejet(m: MandatPrelevement, p: { dueOn: string; amount: number; motif: MotifDeRejet; represente?: string }): Promise<{ sent: boolean; error?: string }> {
-  const suite = p.represente ? ` Nous le représenterons le ${fmtDate(p.represente)}, et nous vous préviendrons avant.` : " Votre mandat est en pause : nous ne présenterons plus rien tant que nous n'aurons pas repris les choses avec vous.";
+/**
+ * L'ENCAISSEMENT, DIT AU CLIENT.
+ *
+ * Il porte la somme, la date et le mandat — c'est-à-dire exactement ce qu'il
+ * faut pour reconnaître la ligne sur un relevé bancaire — et la prochaine
+ * échéance, qui est la seule question qu'on se pose ensuite.
+ */
+export async function direLEncaissement(m: MandatPrelevement, p: { dueOn: string; amount: number; prochaine?: number }): Promise<{ sent: boolean; error?: string }> {
+  const quoi = m.objet === "provision" ? "votre provision" : "votre épargne programmée";
+  const suite = p.prochaine ? ` La prochaine échéance est le ${p.prochaine} du mois prochain, annoncée cinq jours avant.` : "";
+  const text = `Purpose Capital : le prélèvement de ${fmt(p.amount)} FCFA du ${fmtDate(p.dueOn)} (mandat ${m.ref}) est encaissé, et porté à ${quoi}.${suite}`;
+  try {
+    const contact = await contactDe(m.userId, m);
+    if (!contact) return { sent: false, error: "Aucun canal joignable pour annoncer l'encaissement." };
+    const template = { name: tmpl("WA_TEMPLATE_UPDATE", "guichet_maj"), params: [m.accountHolder, text] };
+    const rows = await notifyRaw("intent_update", contact, { subject: `Prélèvement du ${fmtDate(p.dueOn)} encaissé`, text, template });
+    return rows.some((x) => x.status === "sent") ? { sent: true } : { sent: false, error: rows.map((x) => `${x.channel} : ${x.status}`).join(" · ") || "aucun canal joignable" };
+  } catch (e) {
+    return { sent: false, error: e instanceof Error ? e.message : "échec de l'envoi" };
+  }
+}
+
+export async function direLeRejet(m: MandatPrelevement, p: { dueOn: string; amount: number; motif: MotifDeRejet; prochaine?: string }): Promise<{ sent: boolean; error?: string }> {
+  /* « NOUS LE REPRÉSENTERONS » A DISPARU avec la seconde présentation : ce
+     mois-ci est sauté, et la phrase dit la date où l'on revient plutôt qu'une
+     seconde tentative que le client paierait une seconde fois. */
+  const suite = p.prochaine
+    ? ` Nous ne le représentons pas ce mois-ci : la prochaine échéance est le ${fmtDate(p.prochaine)}, annoncée cinq jours avant.`
+    : " Votre prélèvement est arrêté : nous ne présenterons plus rien tant que nous n'aurons pas repris les choses avec vous.";
   const text = `Purpose Capital : le prélèvement de ${fmt(p.amount)} FCFA du ${fmtDate(p.dueOn)} (mandat ${m.ref}) n'a pas abouti. ${MOTIFS[p.motif].auClient}${suite}`;
   try {
     const contact = await contactDe(m.userId, m);

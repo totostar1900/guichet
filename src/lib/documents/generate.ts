@@ -480,7 +480,7 @@ export async function renderPreview(type: DocumentType, override?: { passage: st
     }
     if (type === "tirage") {
       const tirage: Tirage = { id: "apercu", ref: "TR-000000-APER", mandatId: "apercu", userId: "apercu", dueOn: jour, amount: 50_000, state: "encaisse", announcedAt: jour, noticeSent: true, settledAt: jour, createdAt: now.toISOString() };
-      return renderToBuffer(el(createElement(AvisTiragePdf, { number, contact, tirage, mandat: { ref: "PM-0000-APER", maxAmount: 50_000, bankName: "Banque de démonstration", bankAccount: "00000 00000 00000000000 47" }, now, texts })));
+      return renderToBuffer(el(createElement(AvisTiragePdf, { number, contact, tirage, mandat: { ref: "PM-0000-APER", amount: 50_000, bankName: "Banque de démonstration", bankAccount: "00000 00000 00000000000 47" }, now, texts })));
     }
     const bareme = (await import("@/lib/domain/garde")).BAREME_FERME;
     const avis: AvisGarde = {
@@ -619,7 +619,7 @@ export async function generateAvisTirage(tirageId: string, advisor?: string): Pr
   const now = new Date();
   const { number, registerNo } = await nextNumbers("tirage", now);
   const wording = await resolvePassages("tirage");
-  const pdf = await renderToBuffer(el(createElement(AvisTiragePdf, { number, contact, tirage, mandat: { ref: mandat.ref, maxAmount: mandat.maxAmount, bankName: mandat.bankName, bankAccount: mandat.bankAccount }, now, texts: wording.text })));
+  const pdf = await renderToBuffer(el(createElement(AvisTiragePdf, { number, contact, tirage, mandat: { ref: mandat.ref, amount: mandat.amount, bankName: mandat.bankName, bankAccount: mandat.bankAccount }, now, texts: wording.text })));
   return store({ type: "tirage", number, registerNo, title: `${DOC_LABEL.tirage} : ${contact.name} · ${fmt(Math.round(tirage.amount))} FCFA · ${tirage.state === "rejete" ? "rejeté" : "encaissé"}`, clientId: tirage.userId, clientName: contact.name, sourceId: tirage.id, createdBy: advisor, templateVersions: wording.versions }, pdf, now);
 }
 

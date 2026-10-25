@@ -17,6 +17,24 @@ export const EN_PRELEVEMENTS: Record<string, string> = {
   "Alimenter ma provision": "Funding my provision",
   "Alimenter mon épargne programmée": "Funding my savings plan",
   suspendu: "suspended",
+  /* « Arrêté », et non « suspendu » : « suspendu » décrit ce que la maison peut
+     reprendre, et le client n'a pas à deviner s'il sera prélevé le mois
+     prochain. Les deux clefs cohabitent : le desk suspend, le client lit
+     arrêté. */
+  arrêté: "stopped",
+  "Présenté chaque mois": "Presented every month",
+  "Montant présenté": "Amount presented",
+  "le {j} de chaque mois": "on the {j} of each month",
+  "C'est ce montant exact qui sera présenté à votre banque, ni plus ni moins. Il n'y a pas de plafond à côté : pour le changer, vous signez un nouveau mandat.":
+    "This exact amount is what will be presented to your bank, no more and no less. There is no ceiling beside it: to change it, you sign a new mandate.",
+  "Le mois est sauté : rien n'est représenté, et le mandat reprend à l'échéance suivante. Si ce mois-là est refusé aussi, le prélèvement s'arrête.":
+    "The month is skipped: nothing is presented again, and the mandate resumes at the next due date. If that month is refused too, the direct debit stops.",
+  "Arrêt immédiat. Le mois prochain n'y changerait rien, et insister fait casser le mandat par la banque du client.":
+    "Immediate stop. Next month would change nothing, and insisting gets the mandate cancelled by the client's bank.",
+  "Le montant présenté est celui du mandat, ni plus ni moins. Il n'y a pas de plafond : le client a écrit une somme, c'est elle qui part. Un montant moindre ne serait pas une prudence, ce serait une épargne qui se remplit moins vite que ce qu'il a lu.":
+    "The amount presented is the mandate's, no more and no less. There is no ceiling: the client wrote a sum, and that is what goes out. A smaller amount would not be caution, it would be savings filling more slowly than what they read.",
+  "Une seule présentation par mois. Un mois refusé est sauté, et rien n'est représenté avant l'échéance suivante : une seconde présentation dans le même mois est une seconde ponction d'incident, aux frais du client.":
+    "One presentation a month. A refused month is skipped, and nothing is presented again before the next due date: a second presentation in the same month is a second incident fee, at the client's expense.",
   actif: "active",
   "{m} FCFA, le {j}": "{m} FCFA, on the {j}",
   "Plafond par échéance": "Ceiling per instalment",

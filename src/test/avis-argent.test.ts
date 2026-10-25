@@ -57,12 +57,15 @@ describe("l'avis de versement", () => {
 });
 
 describe("l'avis de prélèvement", () => {
-  const mandat = { ref: "PM-0930-R4T1", maxAmount: 50_000, bankName: "Afriland First Bank", bankAccount: "CM21 10005 00001 98765432109 87" };
+  const mandat = { ref: "PM-0930-R4T1", amount: 50_000, bankName: "Afriland First Bank", bankAccount: "CM21 10005 00001 98765432109 87" };
   const base: Tirage = { id: "t1", ref: "TR-261005-R4T1", mandatId: "m1", userId: "u1", dueOn: "2026-10-05", amount: 50_000, state: "encaisse", announcedAt: "2026-09-30", noticeSent: true, settledAt: "2026-10-07", createdAt: "2026-09-30T08:00:00Z" };
 
-  it("met le plafond du mandat à côté du montant prélevé", async () => {
-    /* La promesse du mandat est « jamais plus que ce que vous avez signé » :
-       elle se vérifie sur le papier, les deux chiffres côte à côte. */
+  it("met le montant du mandat à côté du montant prélevé", async () => {
+    /* La promesse du mandat est « exactement ce que vous avez signé, ni plus ni
+       moins » : elle se vérifie sur le papier, les deux chiffres côte à côte.
+       C'était « jamais plus que le plafond » jusqu'au 25 octobre 2026, date à
+       laquelle le second nombre a disparu — le présenté doit maintenant être
+       ÉGAL au signé, ce qui se lit sur la même ligne. */
     const { AvisTiragePdf } = await import("@/lib/documents/pdf/cash-templates");
     const txt = await texte(AvisTiragePdf, { number: "PC-TIR-261007-AAAA", contact, tirage: base, mandat, now, texts: {} });
     expect(txt).toContain("Avis de prélèvement");
@@ -87,8 +90,15 @@ describe("l'avis de prélèvement", () => {
     expect(txt).toContain("rejeté");
     expect(txt).toContain("Provision insuffisante");
     expect(txt).toContain("solde à 12 000");
-    // La cause décide de la suite, et la suite se dit au client.
-    expect(txt).toMatch(/représenterons une fois/);
+    /* LA CAUSE DÉCIDE DE LA SUITE, ET LA SUITE SE DIT AU CLIENT. Elle disait
+       « nous le représenterons une fois » ; depuis le 25 octobre 2026 le mois
+       est sauté, et la pièce ne doit pas promettre une seconde présentation
+       qui n'aura pas lieu. */
+    expect(txt).toMatch(/ce mois est sauté/i);
+    expect(txt, "la pièce promet encore une seconde présentation").not.toMatch(/représenterons/i);
+    /* Et la phrase de portée ne cite plus un plafond qui n'existe plus. */
+    expect(txt, "la phrase de portée parle encore d'un plafond").not.toMatch(/plafond/i);
+    expect(txt).toMatch(/exactement celui du mandat/);
   });
 });
 
@@ -204,7 +214,6 @@ describe("le mandat de prélèvement", () => {
     accountHolder: "A. M.",
     bankName: "SGC",
     bankAccount: "CM21 10003 00002 98765432109 87",
-    maxAmount: 50_000,
     amount: 50_000,
     dayOfMonth: 5,
     state: "actif" as const,
@@ -226,6 +235,32 @@ describe("le mandat de prélèvement", () => {
     expect(txt, "le bloc créancier a perdu la banque de règlement").toContain("Banque de règlement d'essai");
     expect(txt).toContain("MP-2610-ABCD");
     expect(txt).toContain("50 000");
+  }, 30_000);
+
+  /**
+   * UN SEUL NOMBRE, ET LES DEUX RÈGLES EN TOUTES LETTRES.
+   *
+   * Le plafond est parti le 25 octobre 2026, et la pièce doit dire ce qui le
+   * remplace : le montant exact, une présentation par mois, un mois refusé
+   * sauté. Deux phrases du document promettaient encore une seconde
+   * présentation — elles ont survécu à la règle qu'elles décrivaient, ce qui
+   * est la panne que ce fichier existe pour attraper.
+   *
+   * ET LA PHRASE N'EST PAS COUPÉE. Posée dans une ligne du tableau, elle
+   * sortait tronquée au milieu — « Une seule par mois. Un mois refusé est » —
+   * parce qu'une case de tableau ne va pas à la ligne. Sur une pièce
+   * opposable, une phrase coupée est pire qu'une phrase absente.
+   */
+  it("dit le montant exact, une présentation par mois, et le mois sauté — sans rien couper", async () => {
+    const txt = await pièce(true);
+    expect(txt, "le plafond est revenu sur la pièce").not.toMatch(/plafond/i);
+    expect(txt).toContain("Montant présenté à chaque échéance, ni plus ni moins");
+    expect(txt).toMatch(/UNE SEULE FOIS PAR MOIS/);
+    expect(txt, "la pièce promet encore de représenter").not.toMatch(/représente le prélèvement qu|représenterons/i);
+    expect(txt).toMatch(/ce mois est sauté/i);
+    /* La phrase entière, jusqu'à son dernier mot : c'est la coupe qu'on
+       vérifie, et elle ne se voit que dans le texte produit. */
+    expect(txt, "la règle des présentations sort tronquée").toMatch(/reprend à l.échéance suivante/);
   }, 30_000);
 
   it("ouvre un cadre manuscrit pour la banque une fois signé, et dit qu'il n'engage rien de plus", async () => {

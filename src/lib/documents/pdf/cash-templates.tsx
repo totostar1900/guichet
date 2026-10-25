@@ -73,8 +73,8 @@ export interface TirageCtx {
   number: string;
   contact: Contact;
   tirage: Tirage;
-  /** Le mandat qui l'autorise : sa référence et son plafond sont la mesure du tirage. */
-  mandat: { ref: string; maxAmount: number; bankName: string; bankAccount: string };
+  /** Le mandat qui l'autorise : sa référence et son montant signé sont la mesure du tirage. */
+  mandat: { ref: string; amount: number; bankName: string; bankAccount: string };
   now: Date;
   texts?: Record<string, string>;
 }
@@ -91,13 +91,17 @@ export function AvisTiragePdf({ number, contact, tirage, mandat, now, texts }: T
       </Text>
       <Addr blocks={[["Titulaire", titulaire(contact)], ["Compte débité", [mandat.bankName, `…${fin}`, `Mandat ${mandat.ref}`]]]} />
       <Table
-        cols={[{ label: "Annoncé le", flex: 1.2 }, { label: "Présenté le", flex: 1.2 }, { label: "Montant (FCFA)", flex: 1.3, right: true }, { label: "Plafond du mandat (FCFA)", flex: 1.6, right: true }, { label: "Sort", flex: 1.4 }]}
+        /* LE MONTANT SIGNÉ, ET NON UN PLAFOND : il n'y en a plus qu'un depuis
+           le 25 octobre 2026. La colonne reste, parce qu'elle sert à vérifier
+           que le présenté EST le signé — ni plus ni moins, ce qui est
+           précisément la règle. */
+        cols={[{ label: "Annoncé le", flex: 1.2 }, { label: "Présenté le", flex: 1.2 }, { label: "Montant (FCFA)", flex: 1.3, right: true }, { label: "Montant du mandat (FCFA)", flex: 1.6, right: true }, { label: "Sort", flex: 1.4 }]}
         rows={[
           [
             tirage.announcedAt ? fmtDate(tirage.announcedAt) : "—",
             fmtDate(tirage.dueOn),
             fmt(Math.round(tirage.amount)),
-            fmt(Math.round(mandat.maxAmount)),
+            fmt(Math.round(mandat.amount)),
             rejet ? "Rejeté" : `Encaissé le ${fmtDate(tirage.settledAt ?? tirage.dueOn)}`,
           ],
         ]}

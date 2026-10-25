@@ -16,8 +16,8 @@ interface Vu {
   titulaire: string;
   banque: string;
   compte: string;
-  plafond: number;
-  montant?: number;
+  /** Le montant signé : celui qui est présenté, et le seul qu'il y ait. */
+  montant: number;
   jour?: number;
   etat: "actif" | "suspendu" | "revoque";
   signeLe?: string;
@@ -93,7 +93,6 @@ export function MesMandats({
   /* Contrôlés, parce que le regroupement replace le curseur après chaque
      touche : un champ non contrôlé renverrait le curseur au bout. */
   const [montant, setMontant] = useState("");
-  const [plafond, setPlafond] = useState("");
 
   return (
     <>
@@ -109,19 +108,23 @@ export function MesMandats({
               <li key={m.id} className={styles.mandat} id={m.signeLe ? undefined : "mandat"}>
                 <div className={styles.mTete}>
                   <b>{m.objet === "provision" ? t("Alimenter ma provision") : t("Alimenter mon épargne programmée")}</b>
-                  <span className={m.signeLe ? styles.actif : styles.attente}>{m.signeLe ? (m.etat === "suspendu" ? t("suspendu") : t("actif")) : t("à signer")}</span>
+                  {/* « ARRÊTÉ », et non « suspendu » : « suspendu » décrit ce que la
+                      maison peut reprendre, et le client n'a pas à deviner s'il
+                      sera prélevé le mois prochain. */}
+                  <span className={m.signeLe ? styles.actif : styles.attente}>{m.signeLe ? (m.etat === "suspendu" ? t("arrêté") : t("actif")) : t("à signer")}</span>
                 </div>
+                {/* UN SEUL NOMBRE depuis le 25 octobre 2026. La carte en portait
+                    deux — « chaque mois 50 000 » puis « plafond par échéance
+                    50 000 », en gras — et deux chiffres identiques côte à côte
+                    font chercher ce qui les distingue. Il n'y a qu'un montant,
+                    c'est celui qui est présenté à la banque, et la ligne le
+                    dit. */}
                 <dl className={styles.mLignes}>
-                  {m.montant != null && m.jour != null && (
-                    <div>
-                      <dt>{t("Chaque mois")}</dt>
-                      <dd>{t("{m} FCFA, le {j}", { m: fmt(m.montant), j: String(m.jour) })}</dd>
-                    </div>
-                  )}
                   <div>
-                    <dt>{t("Plafond par échéance")}</dt>
+                    <dt>{m.jour != null ? t("Présenté chaque mois") : t("Montant présenté")}</dt>
                     <dd>
-                      <b>{fmt(m.plafond)} FCFA</b>
+                      <b>{fmt(m.montant)} FCFA</b>
+                      {m.jour != null ? <span className={styles.leJour}>{t("le {j} de chaque mois", { j: String(m.jour) })}</span> : null}
                     </dd>
                   </div>
                   <div>
@@ -278,33 +281,25 @@ export function MesMandats({
               />
             )}
 
-            {objet === "provision" && (
-              <div className={styles.deux}>
-                <label className="field">
-                  {t("Montant prélevé chaque mois")}
-                  <input name="amount" inputMode="numeric" placeholder="50 000" value={montant} {...groupedInput(setMontant)} />
-                </label>
+            {/* UN SEUL MONTANT, ET POUR LES DEUX USAGES. Le formulaire
+                demandait un montant pour la provision et un « plafond par
+                échéance » pour une épargne programmée, dont le montant venait
+                de l'instruction : le client signait alors une autorisation sans
+                y écrire de chiffre. Depuis le 25 octobre 2026 il écrit le sien
+                dans les deux cas, et c'est celui-là qui est présenté. */}
+            <div className={styles.deux}>
+              <label className="field">
+                {t("Montant prélevé chaque mois")}
+                <input name="amount" inputMode="numeric" placeholder="50 000" value={montant} {...groupedInput(setMontant)} />
+              </label>
+              {objet === "provision" && (
                 <label className="field">
                   {t("Jour du mois ({a} à {b})", { a: String(jourMin), b: String(jourMax) })}
                   <input name="dayOfMonth" inputMode="numeric" placeholder="5" />
                 </label>
-              </div>
-            )}
-
-            {/* UN SEUL MONTANT POUR LA PROVISION. Le plafond protège le jour
-                où le montant pourrait changer sans le client, ce qui est le cas
-                d'une épargne programmée dont le montant vient de l'instruction.
-                Ici le client écrit lui-même son montant : deux chiffres pour un
-                seul étaient une friction sans contrepartie. Le plafond existe
-                toujours, il vaut le montant, et la phrase le dit. */}
-            {objet === "provision" ? (
-              <p className={styles.note}>{t("Ce montant est aussi votre plafond : nous ne prélèverons jamais plus, et jamais autre chose.")}</p>
-            ) : (
-              <label className="field">
-                {t("Plafond par échéance : nous ne prélèverons jamais plus")}
-                <input name="maxAmount" inputMode="numeric" placeholder="100 000" value={plafond} {...groupedInput(setPlafond)} />
-              </label>
-            )}
+              )}
+            </div>
+            <p className={styles.note}>{t("C'est ce montant exact qui sera présenté à votre banque, ni plus ni moins. Il n'y a pas de plafond à côté : pour le changer, vous signez un nouveau mandat.")}</p>
 
             <div className={styles.deux}>
               <label className="field">

@@ -1573,9 +1573,8 @@ export const supabaseRepository: Repository = {
       bank_name: input.bankName,
       bank_account: input.bankAccount,
       account_holder: input.accountHolder,
-      max_amount: input.maxAmount,
       day_of_month: input.dayOfMonth ?? null,
-      amount: input.amount ?? null,
+      amount: input.amount,
     };
     const { data, error } = await db().from("direct_debit_mandates").insert(row).select("*").single();
     if (error) fail("createMandat", error);
@@ -1662,7 +1661,7 @@ export const supabaseRepository: Repository = {
     return (data as TirageRow[]).map(toTirage);
   },
   async creerTirage(input) {
-    const row = { ref: makeTirageRef(), mandate_id: input.mandatId, user_id: input.userId, due_on: input.dueOn, amount: input.amount, retry_of: input.retryOf ?? null };
+    const row = { ref: makeTirageRef(), mandate_id: input.mandatId, user_id: input.userId, due_on: input.dueOn, amount: input.amount };
     const { data, error } = await db().from("debit_draws").insert(row).select("*").single();
     if (error) fail("creerTirage", error);
     return toTirage(data as TirageRow);
@@ -3025,9 +3024,8 @@ type MandatRow = {
   bank_name: string;
   bank_account: string;
   account_holder: string;
-  max_amount: number | string;
   day_of_month?: number | null;
-  amount?: number | string | null;
+  amount: number | string;
   state: "actif" | "suspendu" | "revoque";
   signed_at?: string | null;
   signed_method?: string | null;
@@ -3053,9 +3051,8 @@ const toMandat = (r: MandatRow): MandatPrelevement => ({
   bankName: r.bank_name,
   bankAccount: r.bank_account,
   accountHolder: r.account_holder,
-  maxAmount: Number(r.max_amount),
   dayOfMonth: r.day_of_month ?? undefined,
-  amount: r.amount == null ? undefined : Number(r.amount),
+  amount: Number(r.amount),
   state: r.state,
   signedAt: u(r.signed_at),
   signedMethod: u(r.signed_method),
@@ -3125,7 +3122,6 @@ type TirageRow = {
   reject_code?: Tirage["rejectCode"] | null;
   reject_note?: string | null;
   cash_entry?: string | null;
-  retry_of?: string | null;
   created_at: string;
 };
 
@@ -3146,7 +3142,6 @@ const toTirage = (r: TirageRow): Tirage => ({
   rejectCode: r.reject_code ?? undefined,
   rejectNote: u(r.reject_note),
   cashEntry: u(r.cash_entry),
-  retryOf: u(r.retry_of),
   createdAt: r.created_at,
 });
 

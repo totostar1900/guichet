@@ -115,7 +115,6 @@ export function DossierOuverture({ number, file, now, texts }: { number: string;
  * l'engagement, et c'est la même règle que le plafond « au plus » d'un ordre.
  */
 export function MandatPrelevementDoc({ number, mandat, now, reglement }: { number: string; mandat: MandatPrelevement; now: Date; /** Le compte créancier, tel que le desk l'a publié : passé par le contexte, jamais lu de la configuration. */ reglement: CoordonneesDeReglement }) {
-  const mensuel = mandat.objet === "provision" && mandat.amount != null;
   return (
     <Letter heading={`Mandat de prélèvement · ${number}`}>
       <Text style={s.h1}>Autorisation de prélèvement sur compte bancaire</Text>
@@ -128,25 +127,35 @@ export function MandatPrelevementDoc({ number, mandat, now, reglement }: { numbe
           ["Créancier", [COMPANY.legalName, "Compte de règlement clients (ségrégué)", reglement.banque || "Banque de règlement : à demander au desk"]],
         ]}
       />
+      {/* UN SEUL NOMBRE, ET IL EST LE TOTAL. Le montant mensuel figurait dans
+          le corps et un « plafond par échéance » en bas, en gras : deux
+          chiffres sur une autorisation de débit font chercher lequel sera
+          débité. Depuis le 25 octobre 2026 il n'y en a qu'un, et il prend la
+          place de l'engagement. */}
       <KV
         rows={[
           ["Objet du mandat", mandat.objet === "provision" ? "Alimentation de la provision du client" : "Alimentation d'une instruction permanente"],
-          ...(mensuel ? ([["Montant prélevé chaque mois", `${fmt(mandat.amount ?? 0)} FCFA`]] as [string, string][]) : []),
           ...(mandat.dayOfMonth ? ([["Jour du prélèvement", `le ${mandat.dayOfMonth} de chaque mois`]] as [string, string][]) : []),
         ]}
-        total={["Plafond par échéance, que la maison ne dépasse jamais", `${fmt(mandat.maxAmount)} FCFA`]}
+        total={["Montant présenté à chaque échéance, ni plus ni moins", `${fmt(mandat.amount)} FCFA`]}
       />
       <Text style={s.p}>
-        Le débiteur autorise {COMPANY.legalName} à présenter des ordres de prélèvement sur le compte désigné ci-dessus, et sa banque à les régler, dans la limite du plafond par échéance. Le compte débité est ouvert au nom du
-        débiteur ; aucun prélèvement n&apos;est présenté sur le compte d&apos;un tiers.
+        Le débiteur autorise {COMPANY.legalName} à présenter des ordres de prélèvement sur le compte désigné ci-dessus, et sa banque à les régler, POUR LE MONTANT INDIQUÉ CI-DESSUS ET POUR LUI SEUL. Le compte débité est ouvert au
+        nom du débiteur ; aucun prélèvement n&apos;est présenté sur le compte d&apos;un tiers.
+      </Text>
+      {/* LA RÈGLE DES PRÉSENTATIONS VIT DANS UN PARAGRAPHE, et non dans une ligne
+          du tableau : une case de tableau ne va pas à la ligne, et la phrase y
+          sortait coupée au milieu — « Une seule par mois. Un mois refusé est »,
+          relevé en lisant le PDF produit le 25 octobre 2026. Une phrase tronquée
+          sur une pièce opposable est pire qu'une phrase absente. */}
+      <Text style={s.p}>
+        Chaque prélèvement est annoncé avant d&apos;être présenté, avec son montant et sa date, et le débiteur peut l&apos;arrêter jusqu&apos;à la veille. Il n&apos;est présenté QU&apos;UNE SEULE FOIS PAR MOIS, pour le montant
+        indiqué ci-dessus, ni plus ni moins. Le débiteur peut révoquer ce mandat à tout moment, sans motif et sans frais, depuis son espace ; la révocation prend effet avant l&apos;échéance suivante. Le présent mandat ne vaut que
+        pour l&apos;objet désigné : il n&apos;autorise aucun autre prélèvement.
       </Text>
       <Text style={s.p}>
-        Chaque prélèvement est annoncé avant d&apos;être présenté, avec son montant et sa date, et le débiteur peut l&apos;arrêter jusqu&apos;à la veille. Il peut révoquer ce mandat à tout moment, sans motif et sans frais, depuis son
-        espace ; la révocation prend effet avant l&apos;échéance suivante. Le présent mandat ne vaut que pour l&apos;objet désigné : il n&apos;autorise aucun autre prélèvement.
-      </Text>
-      <Text style={s.p}>
-        En cas de rejet faute de provision, {COMPANY.legalName} ne représente le prélèvement qu&apos;une fois, après en avoir informé le débiteur. Au second rejet, le mandat est suspendu et un conseiller prend contact. Toute
-        contestation d&apos;un prélèvement se fait auprès de sa banque dans les délais qu&apos;elle applique, en citant la référence {mandat.ref}.
+        En cas de rejet, {COMPANY.legalName} ne représente rien dans le mois : ce mois est sauté, le débiteur en est informé, et le prélèvement reprend à l&apos;échéance suivante. Si celle-ci est refusée à son tour, le prélèvement
+        est arrêté et un conseiller prend contact. Toute contestation d&apos;un prélèvement se fait auprès de sa banque dans les délais qu&apos;elle applique, en citant la référence {mandat.ref}.
       </Text>
       <Signature intent={{ signedAt: mandat.signedAt, signedMethod: mandat.signedMethod, signedTo: mandat.signedTo, ref: mandat.ref }} qui="débiteur" quoi="Mandat" />
       {/* LA SIGNATURE MANUSCRITE, POUR LA BANQUE — ET SEULEMENT POUR ELLE.

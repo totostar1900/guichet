@@ -32,6 +32,19 @@
  *   serait confortable à écrire et trompeur à l'usage : il porte un délai
  *   d'encaissement que le client ne voit pas et qui le fait attendre quand
  *   même. Pour le reste, le virement.
+ *
+ * UN SEUL NOMBRE, ET PAS DE PLAFOND — décidé le 25 octobre 2026.
+ *
+ * Le mandat portait deux montants : celui qu'on prélève et un plafond
+ * « au-delà duquel la maison ne va jamais ». Le second était emprunté au
+ * plafond « au plus » d'un ordre de bourse, où il protège d'un prix inconnu à
+ * la signature. ICI RIEN N'EST INCONNU : le client écrit la somme, et c'est
+ * cette somme-là qui est présentée à sa banque, ni plus ni moins. Un second
+ * nombre ne protégeait donc de rien ; il faisait chercher lequel des deux
+ * serait débité, et il ouvrait la seule question qu'un mandat ne doit jamais
+ * poser — « combien, exactement ? ».
+ *
+ * Le montant présenté n'est plus « au plus le signé » : il EST le signé.
  */
 
 /** Ce que le mandat alimente. Un mandat par usage : jamais les deux. */
@@ -42,9 +55,11 @@ export type ObjetDuMandat = "provision" | "instruction";
  *
  * « Révoqué » ne supprime rien, et c'est la règle des instructions vivantes :
  * une contestation porte sur un tirage passé, donc l'historique doit survivre
- * à la révocation. « Suspendu » est l'état où la maison s'arrête d'elle-même,
- * après deux rejets, pour ne pas faire casser le mandat par la banque du
- * client.
+ * à la révocation. « Suspendu » est l'état où la maison s'ARRÊTE d'elle-même,
+ * après deux mois refusés de suite, pour ne pas faire casser le mandat par la
+ * banque du client. Le mot que le CLIENT lit est « arrêté » : « suspendu »
+ * décrit ce que la maison peut reprendre, « arrêté » ce qui ne prélèvera plus
+ * tant que personne n'aura repris les choses avec lui.
  */
 export type EtatDuMandat = "actif" | "suspendu" | "revoque";
 
@@ -60,18 +75,15 @@ export interface MandatPrelevement {
   bankName: string;
   bankAccount: string;
   accountHolder: string;
-  /**
-   * Le plafond par échéance, en FCFA.
-   *
-   * C'est le même objet que le plafond « au plus » d'un ordre, et la même
-   * phrase de la convention : la maison ne vous engage jamais au-delà de ce
-   * que vous avez signé. Ici elle ne vous PRÉLÈVE jamais au-delà.
-   */
-  maxAmount: number;
   /** Le jour du mois, de 1 à 28, quand le mandat porte son propre calendrier. */
   dayOfMonth?: number;
-  /** Le montant à prélever, quand le mandat alimente la provision. */
-  amount?: number;
+  /**
+   * LE MONTANT, en FCFA : celui que le client a écrit, et le seul qu'il y ait.
+   *
+   * C'est lui qui est présenté à la banque, ni plus ni moins. Il n'y a pas de
+   * plafond à côté : voir l'en-tête de ce fichier.
+   */
+  amount: number;
   state: EtatDuMandat;
   signedAt?: string;
   signedMethod?: string;
@@ -85,13 +97,13 @@ export interface MandatPrelevement {
   pendingCodeTo?: string;
   revokedAt?: string;
   revokedReason?: string;
-  /** Combien de rejets consécutifs : au second, la maison suspend d'elle-même. */
+  /** Combien de mois refusés de suite : au second, la maison arrête d'elle-même. */
   rejects?: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export type NewMandat = Pick<MandatPrelevement, "userId" | "objet" | "standingId" | "bankName" | "bankAccount" | "accountHolder" | "maxAmount" | "dayOfMonth" | "amount">;
+export type NewMandat = Pick<MandatPrelevement, "userId" | "objet" | "standingId" | "bankName" | "bankAccount" | "accountHolder" | "dayOfMonth" | "amount">;
 
 /**
  * LE JOUR VA DE 1 À 28, comme pour les instructions permanentes.
@@ -103,19 +115,32 @@ export type NewMandat = Pick<MandatPrelevement, "userId" | "objet" | "standingId
 export const JOUR_MIN = 1;
 export const JOUR_MAX = 28;
 
-/** Au second rejet consécutif, la maison suspend : un mandat qui s'acharne se fait casser par la banque. */
-export const REJETS_AVANT_SUSPENSION = 2;
+/**
+ * DEUX MOIS REFUSÉS DE SUITE, ET LA MAISON ARRÊTE.
+ *
+ * Un mois refusé est sauté : on ne représente rien avant l'échéance suivante.
+ * Si celle-ci est refusée à son tour, le mandat s'arrête de lui-même — un
+ * prélèvement qui s'acharne se fait casser par la banque du client, et chaque
+ * rejet lui coûte souvent des frais.
+ *
+ * « Consécutifs » est le mot qui compte : le compteur repart de zéro au premier
+ * encaissement, parce que deux rejets séparés par six mois de prélèvements
+ * réussis ne sont pas un acharnement.
+ */
+export const MOIS_REFUSES_AVANT_ARRET = 2;
 
 /** Ce qui cloche dans un mandat proposé, ou rien. */
 export function verifierLeMandat(m: Partial<NewMandat>): string | undefined {
   if (!m.accountHolder?.trim()) return "Le titulaire du compte à débiter doit être nommé.";
   if (!m.bankAccount?.trim()) return "Le RIB ou l'IBAN du compte à débiter est requis.";
   if (!m.bankName?.trim()) return "La banque du compte à débiter est requise.";
-  if (!m.maxAmount || m.maxAmount <= 0) return "Un mandat sans plafond n'en est pas un : indiquez le montant maximum par échéance.";
-  if (m.objet === "provision") {
-    if (!m.amount || m.amount <= 0) return "Indiquez le montant à prélever chaque mois.";
-    if (m.amount > m.maxAmount) return "Le montant prélevé ne peut pas dépasser le plafond que vous signez.";
-    if (!m.dayOfMonth || m.dayOfMonth < JOUR_MIN || m.dayOfMonth > JOUR_MAX) return `Choisissez un jour du mois entre ${JOUR_MIN} et ${JOUR_MAX} : tous les mois ont ces jours-là.`;
+  /* UN SEUL MONTANT, ET IL EST OBLIGATOIRE DES DEUX CÔTÉS. Il l'était pour la
+     provision seulement ; une épargne programmée tenait le sien de
+     l'instruction, ce qui laissait un mandat sans chiffre signé. Or ce qui est
+     présenté à la banque est ce que le client a écrit. */
+  if (!m.amount || m.amount <= 0) return "Indiquez le montant à prélever chaque mois : c'est lui qui sera présenté à votre banque, ni plus ni moins.";
+  if (m.objet === "provision" && (!m.dayOfMonth || m.dayOfMonth < JOUR_MIN || m.dayOfMonth > JOUR_MAX)) {
+    return `Choisissez un jour du mois entre ${JOUR_MIN} et ${JOUR_MAX} : tous les mois ont ces jours-là.`;
   }
   if (m.objet === "instruction" && !m.standingId) return "Un mandat qui alimente une instruction doit dire laquelle.";
   return undefined;
@@ -124,5 +149,12 @@ export function verifierLeMandat(m: Partial<NewMandat>): string | undefined {
 /** Un mandat prélève-t-il encore ? Signé, actif, non révoqué. */
 export const mandatVivant = (m: MandatPrelevement): boolean => m.state === "actif" && Boolean(m.signedAt);
 
-/** Un tirage ne dépasse jamais le plafond signé, et c'est la seule règle qui compte au moment de tirer. */
-export const tirageAutorise = (m: MandatPrelevement, montant: number): boolean => mandatVivant(m) && montant > 0 && montant <= m.maxAmount;
+/**
+ * NI PLUS, NI MOINS : le montant présenté est CELUI du mandat.
+ *
+ * La règle était « au plus le plafond signé », ce qui autorisait tout montant
+ * inférieur — c'est-à-dire la maison décidant du chiffre. Un prélèvement plus
+ * petit que celui annoncé n'est pas une prudence : c'est une épargne qui se
+ * remplit moins vite que ce que le client a lu, sans qu'il l'apprenne.
+ */
+export const tirageAutorise = (m: MandatPrelevement, montant: number): boolean => mandatVivant(m) && montant === m.amount;

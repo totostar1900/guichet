@@ -138,8 +138,8 @@ export const PASSAGES: Partial<Record<TemplateScope, PassageDef[]>> = {
       "la phrase de fin",
       "reglementaire",
       [],
-      "Ce prélèvement a été annoncé avant d'être présenté, et son montant n'excède pas le plafond du mandat que vous avez signé. Toute contestation se fait auprès de nous, en citant la référence ci-dessus.",
-      "This debit was announced before being presented, and its amount does not exceed the ceiling of the mandate you signed. Any dispute is raised with us, quoting the reference above.",
+      "Ce prélèvement a été annoncé avant d'être présenté, et son montant est exactement celui du mandat que vous avez signé. Il n'est présenté qu'une fois par mois. Toute contestation se fait auprès de nous, en citant la référence ci-dessus.",
+      "This debit was announced before being presented, and its amount is exactly the one on the mandate you signed. It is presented once a month only. Any dispute is raised with us, quoting the reference above.",
     ),
   ],
   garde: [

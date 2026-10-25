@@ -11,12 +11,13 @@ export interface LigneDEcheance {
   client: string;
   objet: "provision" | "instruction";
   detail?: string;
-  /** Pourquoi cette ligne revient : un rejet, ou un tirage préparé d'avance.
-      Le serveur nomme le cas, le client écrit la phrase : une phrase bâtie
-      ici sortirait en français dans la version anglaise. */
-  repasse?: "rejet" | "prepare";
+  /** Un tirage déjà préparé, dont le préavis n'est pas parti : il revient pour
+      être annoncé. La seconde présentation après rejet n'existe plus — un mois
+      refusé est sauté depuis le 25 octobre 2026. */
+  repasse?: "prepare";
   amount: number;
-  plafond: number;
+  /** Ce que l'instruction alimentée porte, quand elle diffère du mandat signé. */
+  note?: string;
   banque: string;
   compte: string;
   /** L'état du préavis : absent tant que l'échéance n'est pas préparée. */
@@ -89,11 +90,15 @@ export function Echeance({
               <div className={styles.cObjet}>
                 {l.objet === "provision" ? t("Provision") : t("Épargne programmée")}
                 {l.detail && <small>{l.detail}</small>}
-                {l.repasse && <small>{l.repasse === "rejet" ? t("seconde présentation, après un rejet") : t("tirage déjà préparé")}</small>}
+                {l.repasse && <small>{t("tirage déjà préparé")}</small>}
               </div>
+              {/* UN SEUL NOMBRE depuis le 25 octobre 2026 : le montant signé
+                  est celui qui part, et il n'y a plus de plafond à côté. Ce
+                  qui prend sa place est l'écart avec l'instruction alimentée,
+                  quand il y en a un — il ne retient pas la ligne, il se lit. */}
               <div className={styles.cMontant}>
                 <b>{fmt(l.amount)}</b>
-                <small>{t("plafond {m}", { m: fmt(l.plafond) })}</small>
+                {l.note && <small className={styles.ecart}>{l.note}</small>}
               </div>
               <div className={styles.cCompte}>
                 {l.banque}

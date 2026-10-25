@@ -42,7 +42,7 @@ export const EN_PROVISION: Record<string, string> = {
   "{m} FCFA le {j} de chaque mois": "{m} FCFA on day {j} of each month",
   "Mandat signé": "Mandate signed",
   "prochain prélèvement le {d}, annoncé {n} jours avant": "next debit on {d}, announced {n} days ahead",
-  "suspendu après deux rejets : votre banque a refusé le prélèvement": "suspended after two rejections: your bank refused the debit",
+  "arrêté après deux mois refusés de suite par votre banque": "stopped after two months refused in a row by your bank",
   "Changer le montant": "Change the amount",
   "Révoquer le mandat": "Revoke the mandate",
   "Chaque prélèvement est annoncé avant de partir, et nous ne prélevons jamais plus que le montant que vous avez signé.":

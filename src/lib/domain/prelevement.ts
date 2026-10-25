@@ -1,4 +1,4 @@
-import { mandatVivant, REJETS_AVANT_SUSPENSION, type MandatPrelevement } from "./mandat";
+import { mandatVivant, MOIS_REFUSES_AVANT_ARRET, type MandatPrelevement } from "./mandat";
 import type { StandingOrder } from "./standing";
 
 /**
@@ -19,20 +19,33 @@ import type { StandingOrder } from "./standing";
  *      qu'on n'a pas annoncé est un débit que le client découvre sur son
  *      relevé.
  *
- *   2. JAMAIS AU-DELÀ DU PLAFOND SIGNÉ. Une échéance qui dépasse n'est pas
- *      rognée en silence : elle est écartée et quelqu'un appelle. Rogner
- *      reviendrait à décider du montant à la place du client, au motif qu'on
- *      a son autorisation pour moins.
+ *   2. LE MONTANT PRÉSENTÉ EST CELUI DU MANDAT, ni plus ni moins. La règle
+ *      était « au plus le plafond signé », ce qui autorisait aussi tout
+ *      montant inférieur, c'est-à-dire la maison décidant du chiffre. Le
+ *      plafond est parti le 25 octobre 2026 : il n'y a qu'un nombre, et c'est
+ *      celui que le client a écrit.
  *
- *   3. UN TIRAGE REMIS A TROIS ISSUES, et la troisième est l'absence des deux
+ *   3. UNE SEULE PRÉSENTATION PAR MOIS, ET UN MOIS REFUSÉ EST SAUTÉ. La maison
+ *      représentait un rejet pour provision insuffisante quinze jours plus
+ *      tard. C'est une seconde chance à l'intention du client, et une seconde
+ *      ponction d'incident à ses frais s'il n'a toujours rien : il paie deux
+ *      fois pour le même mois. Un mois refusé est donc perdu, et le mandat
+ *      reprend à l'échéance suivante.
+ *
+ *   4. UN TIRAGE REMIS A TROIS ISSUES, et la troisième est l'absence des deux
  *      autres. « Sans nouvelle » se CALCULE et ne se range pas : un état rangé
  *      le jour de la remise mentirait le lendemain.
  *
- *   4. LA CAUSE D'UN REJET DÉCIDE DE LA SUITE, PAS LE COMPTE. Une provision
- *      insuffisante se représente une fois ; un compte clos ne se représente
- *      jamais. Compter les rejets sans lire leur cause ferait représenter sur
- *      un compte qui n'existe plus, c'est-à-dire harceler la banque d'un
- *      client pour une faute qui est la nôtre.
+ *   5. LA CAUSE D'UN REJET DÉCIDE DE LA SUITE, PAS LE COMPTE. Une provision
+ *      insuffisante laisse le mandat en vie pour le mois suivant ; un compte
+ *      clos l'arrête sur-le-champ. Compter les rejets sans lire leur cause
+ *      ferait présenter sur un compte qui n'existe plus, c'est-à-dire harceler
+ *      la banque d'un client pour une faute qui est la nôtre.
+ *
+ *   6. CHAQUE ISSUE SE DIT AU CLIENT, et pas seulement les mauvaises. Un
+ *      prélèvement encaissé était muet : l'argent entrait, la page le montrait
+ *      à qui venait voir, et personne ne disait rien. La promesse « vous êtes
+ *      prévenu à chaque fois » ne se tient pas à moitié.
  */
 
 /** Ce qu'un tirage est devenu. « Sans nouvelle » n'y est pas : il se calcule. */
@@ -55,8 +68,15 @@ export type MotifDeRejet = "provision_insuffisante" | "compte_clos" | "oppositio
 
 export interface Motif {
   libelle: string;
-  /** Une seconde présentation a-t-elle un sens ? */
-  rejouable: boolean;
+  /**
+   * Le mandat garde-t-il un sens au mois suivant ?
+   *
+   * C'était « rejouable », c'est-à-dire « peut-on représenter ce mois-ci » :
+   * on ne représente plus rien dans le mois, le mois est sauté. La question
+   * devenue utile est celle de la SUITE — une provision insuffisante est
+   * passagère, un compte clos ne le sera jamais.
+   */
+  reprendLeMoisSuivant: boolean;
   /** Ce que le client lit, et qui dit la suite plutôt que la panne. */
   auClient: string;
 }
@@ -64,33 +84,33 @@ export interface Motif {
 export const MOTIFS: Record<MotifDeRejet, Motif> = {
   provision_insuffisante: {
     libelle: "Provision insuffisante",
-    rejouable: true,
-    auClient: "Votre banque n'a pas pu honorer le prélèvement. Nous le représenterons une fois, et nous vous préviendrons avant.",
+    reprendLeMoisSuivant: true,
+    auClient: "Votre banque n'a pas pu honorer le prélèvement. Nous ne le représentons pas ce mois-ci : ce mois est sauté, et la prochaine échéance est la suivante.",
   },
   compte_clos: {
     libelle: "Compte clos",
-    rejouable: false,
-    auClient: "Le compte à débiter est clos. Votre mandat est en pause : indiquez-nous le nouveau compte et nous le reprenons.",
+    reprendLeMoisSuivant: false,
+    auClient: "Le compte à débiter est clos. Votre prélèvement est arrêté : indiquez-nous le nouveau compte et nous le reprenons.",
   },
   opposition: {
     libelle: "Opposition du client",
-    rejouable: false,
+    reprendLeMoisSuivant: false,
     auClient: "Votre banque nous signale une opposition sur ce prélèvement. Nous ne présentons plus rien, et votre conseiller vous appelle.",
   },
   coordonnees_erronees: {
     libelle: "Coordonnées bancaires erronées",
-    rejouable: false,
-    auClient: "Le prélèvement n'a pas abouti : les coordonnées du compte ne correspondent pas. Votre mandat est en pause, nous le reprenons avec vous.",
+    reprendLeMoisSuivant: false,
+    auClient: "Le prélèvement n'a pas abouti : les coordonnées du compte ne correspondent pas. Il est arrêté, et nous le reprenons avec vous.",
   },
   mandat_inconnu: {
     libelle: "Mandat inconnu de la banque",
-    rejouable: false,
-    auClient: "Votre banque ne reconnaît pas ce mandat. Votre mandat est en pause ; votre conseiller vous appelle pour le régulariser.",
+    reprendLeMoisSuivant: false,
+    auClient: "Votre banque ne reconnaît pas ce mandat. Votre prélèvement est arrêté ; votre conseiller vous appelle pour le régulariser.",
   },
   autre: {
     libelle: "Autre motif",
-    rejouable: false,
-    auClient: "Le prélèvement n'a pas abouti. Votre mandat est en pause le temps que nous comprenions pourquoi.",
+    reprendLeMoisSuivant: false,
+    auClient: "Le prélèvement n'a pas abouti. Il est arrêté le temps que nous comprenions pourquoi.",
   },
 };
 
@@ -104,9 +124,6 @@ export const MOTIFS: Record<MotifDeRejet, Motif> = {
  * loin du débit pour qu'on s'en souvienne.
  */
 export const PREAVIS_JOURS = 5;
-
-/** Quinze jours entre un rejet pour provision insuffisante et sa seconde présentation : un mois de salaire a eu lieu entre les deux. */
-export const JOURS_AVANT_SECONDE_PRESENTATION = 15;
 
 /**
  * Dix jours sans nouvelle d'un tirage remis, et c'est la banque qu'on appelle.
@@ -151,12 +168,10 @@ export interface Tirage {
   rejectNote?: string;
   /** Le mouvement créé au journal du client, à l'encaissement. */
   cashEntry?: string;
-  /** Le tirage dont celui-ci est la seconde présentation. */
-  retryOf?: string;
   createdAt: string;
 }
 
-export type NewTirage = Pick<Tirage, "mandatId" | "userId" | "dueOn" | "amount" | "retryOf">;
+export type NewTirage = Pick<Tirage, "mandatId" | "userId" | "dueOn" | "amount">;
 
 export interface RemiseDePrelevement {
   id: string;
@@ -187,9 +202,18 @@ export function jourDeTirage(m: MandatPrelevement, s?: Pick<StandingOrder, "dayO
   return Math.max(1, s.dayOfMonth - AVANCE_SUR_LE_VERSEMENT);
 }
 
-/** Ce qu'un mandat prélève à une échéance : son montant, ou celui de l'instruction. */
-export function montantDuTirage(m: MandatPrelevement, s?: Pick<StandingOrder, "amount">): number | undefined {
-  return m.objet === "provision" ? m.amount : s?.amount;
+/**
+ * CE QU'UN MANDAT PRÉLÈVE : SON MONTANT, et celui-là seul.
+ *
+ * Un mandat d'épargne programmée prenait le montant de l'instruction, qui peut
+ * changer sans que le mandat soit resigné : la banque voyait alors un chiffre
+ * que le client n'avait jamais écrit sur cette autorisation. Depuis le
+ * 25 octobre 2026, le mandat porte son propre nombre, signé, et c'est lui
+ * qu'on présente. L'écart avec l'instruction, s'il existe, se DIT au desk —
+ * voir « echeanceDuJour » — au lieu de changer le montant en silence.
+ */
+export function montantDuTirage(m: MandatPrelevement): number {
+  return m.amount;
 }
 
 export interface Ecarte {
@@ -200,6 +224,23 @@ export interface Ecarte {
 }
 
 /**
+ * UNE LIGNE QUI SE PRÉSENTE, et ce qu'il faut savoir en la présentant.
+ *
+ * La « note » ne retient rien : elle se lit à côté du montant. C'est la place
+ * d'un écart qu'il faut voir sans qu'il empêche le prélèvement — le seul cas
+ * connu est le mandat d'épargne programmée dont l'instruction a changé de
+ * montant depuis la signature. Écarter la ligne priverait le client de son
+ * épargne du mois pour une différence qu'il n'a peut-être pas voulue ; la
+ * taire laisserait l'instruction échouer faute de fonds, un mois plus tard,
+ * sans que personne ait vu venir.
+ */
+export interface ATirer {
+  mandat: MandatPrelevement;
+  amount: number;
+  note?: string;
+}
+
+/**
  * L'ÉCHÉANCE D'UN JOUR : ce qui se prélève, et ce qui est écarté avec sa raison.
  *
  * Les écartés sortent AVEC la liste, et non d'une requête qu'il faudrait
@@ -207,14 +248,10 @@ export interface Ecarte {
  * client croit son épargne alimentée, le desk voit une liste plus courte sans
  * savoir qu'elle l'est, et le mois passe. C'est la panne muette de ce lot.
  */
-export function echeanceDuJour(
-  mandats: MandatPrelevement[],
-  standings: StandingOrder[],
-  dueOn: string,
-): { aTirer: { mandat: MandatPrelevement; amount: number }[]; ecartes: Ecarte[] } {
+export function echeanceDuJour(mandats: MandatPrelevement[], standings: StandingOrder[], dueOn: string): { aTirer: ATirer[]; ecartes: Ecarte[] } {
   const parId = new Map(standings.map((s) => [s.id, s]));
   const d = Number(jour(dueOn).slice(8, 10));
-  const aTirer: { mandat: MandatPrelevement; amount: number }[] = [];
+  const aTirer: ATirer[] = [];
   const ecartes: Ecarte[] = [];
 
   for (const m of mandats) {
@@ -229,25 +266,24 @@ export function echeanceDuJour(
       continue;
     }
     if (m.state === "suspendu") {
-      ecartes.push({ mandat: m, raison: `Suspendu après ${m.rejects ?? REJETS_AVANT_SUSPENSION} rejet(s). Il se réactive à la main, après un mot au client.` });
+      ecartes.push({ mandat: m, raison: `Arrêté après ${m.rejects ?? MOIS_REFUSES_AVANT_ARRET} mois refusés de suite. Il se reprend à la main, après un mot au client.` });
       continue;
     }
     if (m.objet === "instruction" && (!s || s.state !== "active")) {
       ecartes.push({ mandat: m, raison: "L'instruction permanente qu'il alimente n'est plus active." });
       continue;
     }
-    const montant = montantDuTirage(m, s);
+    const montant = montantDuTirage(m);
     if (!montant || montant <= 0) {
       ecartes.push({ mandat: m, raison: "Aucun montant à prélever." });
       continue;
     }
-    if (montant > m.maxAmount) {
-      /* LA RÈGLE 2, ET SA FORMULATION COMPTE. On n'écrit pas « montant
-         ramené au plafond » : la maison appelle. */
-      ecartes.push({ mandat: m, raison: "Le montant dépasse le plafond signé. On ne tire pas au-delà du signé, et on ne rogne pas sans le dire : appelez le client.", montant });
-      continue;
-    }
-    aTirer.push({ mandat: m, amount: montant });
+    /* L'ÉCART AVEC L'INSTRUCTION SE DIT, ET NE RETIENT RIEN. Le mandat présente
+       ce que le client a signé ; si l'instruction a changé de montant depuis,
+       le desk doit le voir — mais sauter le mois priverait le client de son
+       épargne pour un écart qu'il n'a peut-être pas voulu. */
+    const ecart = s && s.amount !== montant ? `L'instruction qu'il alimente porte ${s.amount} FCFA : le mandat signé en présente ${montant}. Appelez le client s'il faut le resigner.` : undefined;
+    aTirer.push({ mandat: m, amount: montant, note: ecart });
   }
   return { aTirer, ecartes };
 }
@@ -309,20 +345,40 @@ export const sansNouvelle = (t: Pick<Tirage, "state" | "handedAt">, now = new Da
 /** L'âge d'un tirage remis, en jours : c'est lui qui range la file. */
 export const ageDeLaRemise = (t: Pick<Tirage, "handedAt">, now = new Date()): number => (t.handedAt ? Math.max(0, joursEntre(t.handedAt, now.toISOString())) : 0);
 
-export type SuiteDuRejet = { suite: "represente"; le: string } | { suite: "suspend"; pourquoi: string };
+/**
+ * Ce qu'un rejet laisse derrière lui : un mois sauté, ou un prélèvement arrêté.
+ *
+ * Il n'y a plus de troisième issue. « Représenter » en était une, quinze jours
+ * plus tard, et elle est partie le 25 octobre 2026 : une seconde présentation
+ * dans le même mois est une seconde ponction d'incident à la charge du client
+ * s'il n'a toujours rien. Un mois refusé est perdu.
+ */
+export type SuiteDuRejet = { suite: "passe"; pourquoi: string; prochaine: string } | { suite: "arrete"; pourquoi: string };
 
 /**
- * CE QU'ON FAIT D'UN REJET, et c'est sa cause qui le dit.
+ * CE QU'ON FAIT D'UN REJET, et c'est d'abord sa cause qui le dit.
  *
- * Le compteur de rejets du mandat ne sert qu'à une seule cause, la provision
- * insuffisante : elle est la seule qui soit transitoire, donc la seule où
- * recommencer ait un sens. Pour toutes les autres, recommencer est une faute,
- * et le nombre d'essais n'y change rien.
+ * Une provision insuffisante est passagère : le mois est sauté, et le mandat
+ * reprend à l'échéance suivante. Toutes les autres causes décrivent un compte
+ * ou un mandat que le mois prochain ne réparera pas — y revenir serait
+ * harceler la banque d'un client pour une faute qui n'est pas la sienne.
+ *
+ * Et DEUX MOIS REFUSÉS DE SUITE ARRÊTENT, quelle que soit la cause du second :
+ * le compteur du mandat ne compte que des mois consécutifs, puisqu'il repart
+ * de zéro au premier encaissement.
  */
-export function suiteDuRejet(motif: MotifDeRejet, rejetsConsecutifs: number, dueOn: string): SuiteDuRejet {
-  if (!MOTIFS[motif].rejouable) return { suite: "suspend", pourquoi: `${MOTIFS[motif].libelle} : représenter n'aboutirait pas, et insister fait casser le mandat par la banque du client.` };
-  if (rejetsConsecutifs >= REJETS_AVANT_SUSPENSION) return { suite: "suspend", pourquoi: `${REJETS_AVANT_SUSPENSION} rejets consécutifs pour provision insuffisante : la maison s'arrête d'elle-même plutôt que de s'acharner.` };
-  return { suite: "represente", le: jourPlus(dueOn, JOURS_AVANT_SECONDE_PRESENTATION) };
+export function suiteDuRejet(motif: MotifDeRejet, moisRefusesDeSuite: number, dueOn: string, jourDuMois?: number): SuiteDuRejet {
+  if (!MOTIFS[motif].reprendLeMoisSuivant) {
+    return { suite: "arrete", pourquoi: `${MOTIFS[motif].libelle} : le mois prochain n'y changerait rien, et insister fait casser le mandat par la banque du client.` };
+  }
+  if (moisRefusesDeSuite >= MOIS_REFUSES_AVANT_ARRET) {
+    return { suite: "arrete", pourquoi: `${MOIS_REFUSES_AVANT_ARRET} mois refusés de suite pour provision insuffisante : la maison s'arrête d'elle-même plutôt que de s'acharner.` };
+  }
+  return {
+    suite: "passe",
+    pourquoi: "Provision insuffisante : ce mois est sauté, et rien n'est représenté avant l'échéance suivante.",
+    prochaine: prochaineEcheance(jourDuMois ?? Number(jour(dueOn).slice(8, 10)), jourPlus(dueOn, 1)),
+  };
 }
 
 /** La référence d'une remise : le mois et le jour de l'échéance, que la banque cite. */

@@ -232,6 +232,17 @@
 .cMontant b {
   font-weight: 700;
 }
+/* L'écart entre le mandat signé et l'instruction qu'il alimente : il se lit à
+   côté du montant, et il ne retient pas la ligne. Le plafond occupait cette
+   place jusqu'au 25 octobre 2026 ; il n'y a plus qu'un nombre. */
+.ecart {
+  display: block;
+  color: var(--warn);
+  text-align: right;
+  max-width: 28ch;
+  margin-left: auto;
+  line-height: 1.35;
+}
 .cGeste {
   display: flex;
   gap: var(--s-4);

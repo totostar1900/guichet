@@ -5,9 +5,9 @@ import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { REJETS_AVANT_SUSPENSION, type MandatPrelevement } from "@/lib/domain/mandat";
-import { echeanceDuJour, jourDuPreavis, MOTIFS, pourquoiPasRemettre, refDeLaRemise, suiteDuRejet, type MotifDeRejet } from "@/lib/domain/prelevement";
-import { direLeRejet, envoyerPreavisDePrelevement } from "@/lib/notify/prelevement";
+import { MOIS_REFUSES_AVANT_ARRET } from "@/lib/domain/mandat";
+import { echeanceDuJour, jourDeTirage, jourDuPreavis, MOTIFS, pourquoiPasRemettre, refDeLaRemise, suiteDuRejet, type MotifDeRejet } from "@/lib/domain/prelevement";
+import { direLEncaissement, direLeRejet, envoyerPreavisDePrelevement } from "@/lib/notify/prelevement";
 import { escapeHtml, fmt, fmtDate } from "@/lib/format";
 
 export type PrelevementResult = { ok: true; message: string } | { ok: false; error: string };
@@ -35,27 +35,21 @@ export async function preparerLEcheance(_p: PrelevementResult | null, form: Form
 
   const r = repo();
   const [mandats, standings, deja] = await Promise.all([r.listMandats(), r.listStandingOrders().catch(() => []), r.listTirages({ dueOn })]);
+  /* LES SECONDES PRÉSENTATIONS NE SONT PLUS DE LA PARTIE : il n'y en a plus.
+     Ce geste rattrapait les tirages nés d'un rejet, qui tombaient quinze jours
+     plus tard, un jour qui n'était celui d'aucun mandat. Depuis le 25 octobre
+     2026, un mois refusé est sauté : toute échéance est donc celle d'un
+     mandat, et un tirage déjà préparé se retrouve par son mandat. Ce qui
+     reste — et qui était le vrai service rendu — c'est de RENVOYER un préavis
+     qui n'est pas parti, le lendemain d'un canal réparé. */
   const { aTirer } = echeanceDuJour(mandats, standings, dueOn);
-  /* LES SECONDES PRÉSENTATIONS SONT DE LA PARTIE.
-     Un tirage né d'un rejet tombe quinze jours plus tard, un jour qui n'est
-     celui d'aucun mandat : « aTirer » est alors vide, l'action refusait tout,
-     et le tirage restait préparé sans jamais être annoncé ni remis. La
-     promesse « nous le représenterons une fois, et nous vous préviendrons
-     avant » ne pouvait pas être tenue. Mesuré à l'écran le 10 octobre 2026. */
   const parMandat = new Map(deja.map((t) => [t.mandatId, t]));
-  const aAnnoncer = [
-    ...aTirer,
-    ...deja
-      .filter((t) => t.state === "prepare" && !t.noticeSent && !aTirer.some((a) => a.mandat.id === t.mandatId))
-      .map((t) => ({ mandat: mandats.find((m) => m.id === t.mandatId), amount: t.amount }))
-      .filter((x): x is { mandat: MandatPrelevement; amount: number } => Boolean(x.mandat)),
-  ];
-  if (!aAnnoncer.length) return { ok: false, error: "Aucun mandat ne se présente à cette échéance." };
+  if (!aTirer.length) return { ok: false, error: "Aucun mandat ne se présente à cette échéance." };
   let crees = 0;
   let partis = 0;
   const muets: string[] = [];
 
-  for (const { mandat, amount } of aAnnoncer) {
+  for (const { mandat, amount } of aTirer) {
     let t = parMandat.get(mandat.id);
     if (!t) {
       try {
@@ -73,8 +67,8 @@ export async function preparerLEcheance(_p: PrelevementResult | null, form: Form
     else muets.push(`${mandat.ref} (${envoi.error ?? "canal muet"})`);
   }
 
-  await audit("prelevement.echeance", "echeance", dueOn, { after: { crees, partis, muets: muets.length }, reason: `Échéance du ${dueOn} : ${aAnnoncer.length} tirages, ${partis} préavis partis` });
-  await r.logEvent({ kind: "desk", html: `Échéance de prélèvement du ${dueOn} préparée : <b>${aAnnoncer.length} tirages</b>, ${partis} préavis partis${muets.length ? `, <b>${muets.length} sans canal</b>` : ""} · par ${desk.name}` });
+  await audit("prelevement.echeance", "echeance", dueOn, { after: { crees, partis, muets: muets.length }, reason: `Échéance du ${dueOn} : ${aTirer.length} tirages, ${partis} préavis partis` });
+  await r.logEvent({ kind: "desk", html: `Échéance de prélèvement du ${dueOn} préparée : <b>${aTirer.length} tirages</b>, ${partis} préavis partis${muets.length ? `, <b>${muets.length} sans canal</b>` : ""} · par ${desk.name}` });
   revalidatePath("/desk/prelevements");
   revalidatePath("/moi/prelevements");
   return {
@@ -139,11 +133,16 @@ const sortSchema = z.object({
  * affectation. C'est le même chemin qu'un virement reçu, et c'est voulu : il
  * n'y a qu'une façon pour l'argent d'entrer chez un client.
  *
- * Rejeté : la CAUSE décide. Rejouable, on remet une seconde présentation au
- * calendrier et on le dit au client ; sinon, le mandat se suspend sur-le-champ.
- * Le compteur de rejets du mandat ne sert qu'à la seule cause transitoire, et
- * il se remet à zéro au premier encaissement : deux rejets séparés de six mois
- * ne sont pas un acharnement.
+ * Rejeté : la CAUSE décide. Une provision insuffisante saute le mois, et le
+ * mandat reprend à l'échéance suivante ; toute autre cause l'arrête sur-le-champ,
+ * parce que le mois prochain n'y changerait rien. Et deux mois refusés de suite
+ * arrêtent aussi : le compteur se remet à zéro au premier encaissement, donc
+ * deux rejets séparés de six mois ne sont pas un acharnement.
+ *
+ * DANS LES DEUX CAS, ET DANS LE CAS HEUREUX, LE CLIENT EST PRÉVENU. L'issue
+ * réussie était muette : l'argent entrait, la page le montrait à qui venait
+ * voir, et personne ne disait rien. « Vous êtes prévenu à chaque fois » ne se
+ * tient pas à moitié.
  */
 export async function direLeSort(_p: PrelevementResult | null, form: FormData): Promise<PrelevementResult> {
   const desk = await requireDesk("/desk/prelevements");
@@ -159,7 +158,7 @@ export async function direLeSort(_p: PrelevementResult | null, form: FormData): 
   const t = (await r.listTirages()).find((x) => x.id === id);
   if (!t) return { ok: false, error: "Ce tirage n'existe plus." };
   if (t.state !== "remis") return { ok: false, error: `Ce tirage est déjà ${t.state === "encaisse" ? "encaissé" : t.state === "rejete" ? "rejeté" : "en préparation"} : rechargez la file.` };
-  const mandats = await r.listMandats();
+  const [mandats, standings] = await Promise.all([r.listMandats(), r.listStandingOrders().catch(() => [])]);
   const mandat = mandats.find((m) => m.id === t.mandatId);
   if (!mandat) return { ok: false, error: "Le mandat de ce tirage est introuvable." };
   const quand = new Date().toISOString();
@@ -185,52 +184,58 @@ export async function direLeSort(_p: PrelevementResult | null, form: FormData): 
       createdBy: desk.name,
     });
     await r.updateTirage(id, { state: "encaisse", settledAt: quand, cashEntry: entry.id });
-    /* Le compteur repart de zéro : deux rejets séparés par un encaissement ne
-       sont pas deux rejets consécutifs, et c'est « consécutifs » qui suspend. */
+    /* Le compteur repart de zéro : deux mois refusés séparés par un
+       encaissement ne sont pas deux mois consécutifs, et c'est « de suite »
+       qui arrête. */
     if (mandat.rejects) await r.updateMandat(mandat.id, { rejects: 0 });
     await avisDuTirage();
-    await audit("prelevement.encaisse", "client", t.userId, { after: { tirage: t.ref, amount: t.amount, entry: entry.id }, reason: `${fmt(t.amount)} FCFA prélevés et encaissés · mandat ${mandat.ref}` });
-    await r.logEvent({ kind: "desk", html: `<b>${fmt(t.amount)} FCFA</b> encaissés par prélèvement · mandat ${escapeHtml(mandat.ref)} · échéance du ${t.dueOn} · par ${desk.name}` });
+    /* LE CAS HEUREUX SE DIT AUSSI, depuis le 25 octobre 2026. Il ne se disait
+       pas : le client avait reçu l'annonce cinq jours plus tôt, puis plus
+       rien — et « rien » ressemble trait pour trait à un prélèvement qui n'a
+       pas abouti, le jour où il regarde son relevé. */
+    const prochaine = jourDeTirage(mandat, standings.find((x) => x.id === mandat.standingId));
+    const ditOk = await direLEncaissement(mandat, { dueOn: t.dueOn, amount: t.amount, prochaine });
+    await audit("prelevement.encaisse", "client", t.userId, { after: { tirage: t.ref, amount: t.amount, entry: entry.id, prevenu: ditOk.sent }, reason: `${fmt(t.amount)} FCFA prélevés et encaissés · mandat ${mandat.ref}` });
+    await r.logEvent({
+      kind: "desk",
+      html: `<b>${fmt(t.amount)} FCFA</b> encaissés par prélèvement · mandat ${escapeHtml(mandat.ref)} · échéance du ${t.dueOn}${ditOk.sent ? "" : " · <b>client non prévenu</b>"} · par ${desk.name}`,
+    });
     revalidatePath("/desk/prelevements");
     revalidatePath("/moi/prelevements");
     revalidatePath("/moi/provision");
-    return { ok: true, message: `${fmt(t.amount)} FCFA portés à la provision du client.` };
+    return { ok: true, message: `${fmt(t.amount)} FCFA portés à la provision du client.${ditOk.sent ? " Le client est prévenu." : " Le client n'a pas pu être prévenu : appelez-le."}` };
   }
 
   if (!motif) return { ok: false, error: "Dites pourquoi la banque a refusé : c'est la cause qui décide de la suite, pas le nombre de rejets." };
-  const consecutifs = (mandat.rejects ?? 0) + 1;
-  const suite = suiteDuRejet(motif, consecutifs, t.dueOn);
+  const deSuite = (mandat.rejects ?? 0) + 1;
+  const suite = suiteDuRejet(motif, deSuite, t.dueOn, jourDeTirage(mandat, standings.find((x) => x.id === mandat.standingId)));
   await r.updateTirage(id, { state: "rejete", settledAt: quand, rejectCode: motif, rejectNote: note });
   await avisDuTirage();
 
-  if (suite.suite === "suspend") {
-    await r.updateMandat(mandat.id, { state: "suspendu", rejects: consecutifs });
-  } else {
-    await r.updateMandat(mandat.id, { rejects: consecutifs });
-    /* La seconde présentation entre au calendrier TOUT DE SUITE, et non à la
-       main plus tard : « on le représentera » dit au client une chose que
-       personne n'aurait eu la charge de faire. */
-    try {
-      await r.creerTirage({ mandatId: mandat.id, userId: t.userId, dueOn: suite.le, amount: t.amount, retryOf: t.id });
-    } catch {
-      // Une présentation existe déjà à cette date : rien à ajouter.
-    }
-  }
+  /* RIEN N'ENTRE AU CALENDRIER ICI, et c'est tout le changement du 25 octobre
+     2026. Une seconde présentation s'y inscrivait quinze jours plus tard ; le
+     mois est maintenant sauté, et la prochaine échéance est celle du mois
+     suivant, que l'échéance du jour fabriquera comme toutes les autres. */
+  await r.updateMandat(mandat.id, suite.suite === "arrete" ? { state: "suspendu", rejects: deSuite } : { rejects: deSuite });
 
-  const dit = await direLeRejet(mandat, { dueOn: t.dueOn, amount: t.amount, motif, represente: suite.suite === "represente" ? suite.le : undefined });
-  await audit("prelevement.rejet", "client", t.userId, { after: { tirage: t.ref, motif, suite: suite.suite, prevenu: dit.sent }, reason: `${MOTIFS[motif].libelle} · mandat ${mandat.ref} · ${suite.suite === "suspend" ? "mandat suspendu" : `représenté le ${suite.le}`}` });
+  const dit = await direLeRejet(mandat, { dueOn: t.dueOn, amount: t.amount, motif, prochaine: suite.suite === "passe" ? suite.prochaine : undefined });
+  await audit("prelevement.rejet", "client", t.userId, {
+    after: { tirage: t.ref, motif, suite: suite.suite, prevenu: dit.sent },
+    reason: `${MOTIFS[motif].libelle} · mandat ${mandat.ref} · ${suite.suite === "arrete" ? "prélèvement arrêté" : `mois sauté, prochaine échéance le ${suite.prochaine}`}`,
+  });
   await r.logEvent({
     kind: "desk",
-    html: `Prélèvement <b>rejeté</b> : ${escapeHtml(MOTIFS[motif].libelle)} · ${fmt(t.amount)} FCFA · mandat ${escapeHtml(mandat.ref)} · ${suite.suite === "suspend" ? "<b>mandat suspendu</b>" : `seconde présentation le ${suite.le}`}${dit.sent ? "" : " · <b>client non prévenu</b>"} · par ${desk.name}`,
+    html: `Prélèvement <b>rejeté</b> : ${escapeHtml(MOTIFS[motif].libelle)} · ${fmt(t.amount)} FCFA · mandat ${escapeHtml(mandat.ref)} · ${suite.suite === "arrete" ? "<b>prélèvement arrêté</b>" : `mois sauté, prochaine échéance le ${suite.prochaine}`}${dit.sent ? "" : " · <b>client non prévenu</b>"} · par ${desk.name}`,
   });
   revalidatePath("/desk/prelevements");
   revalidatePath("/moi/prelevements");
   return {
     ok: true,
     message:
-      (suite.suite === "suspend"
-        ? `Mandat suspendu : ${suite.pourquoi}`
-        : `Seconde présentation inscrite au ${fmtDate(suite.le)}. Au prochain rejet de cette cause (${consecutifs + 1}ᵉ sur ${REJETS_AVANT_SUSPENSION}), le mandat se suspendra.`) + (dit.sent ? " Le client est prévenu." : " Le client n'a pas pu être prévenu : appelez-le."),
+      (suite.suite === "arrete"
+        ? `Prélèvement arrêté : ${suite.pourquoi}`
+        : `Ce mois est sauté : rien n'est représenté avant le ${fmtDate(suite.prochaine)}. Si ce mois-là est refusé aussi (${deSuite + 1}ᵉ sur ${MOIS_REFUSES_AVANT_ARRET}), le prélèvement s'arrêtera.`) +
+      (dit.sent ? " Le client est prévenu." : " Le client n'a pas pu être prévenu : appelez-le."),
   };
 }
 

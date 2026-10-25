@@ -82,7 +82,6 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
             titulaire: m.accountHolder,
             banque: m.bankName,
             compte: m.bankAccount,
-            plafond: m.maxAmount,
             montant: m.amount,
             jour: m.dayOfMonth,
             etat: m.state,

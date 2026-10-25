@@ -22,7 +22,6 @@ const base: MandatPrelevement = {
   bankName: "Afriland",
   bankAccount: "CM21 10005 00001 12345678901 23",
   accountHolder: "Georges Nitcheu",
-  maxAmount: 60_000,
   amount: 50_000,
   dayOfMonth: 5,
   state: "actif",
@@ -31,14 +30,22 @@ const base: MandatPrelevement = {
 };
 
 describe("ce qu'un mandat doit porter", () => {
-  it("un mandat sans plafond n'en est pas un", () => {
-    expect(verifierLeMandat({ ...base, maxAmount: 0 })).toContain("plafond");
+  /* UN SEUL NOMBRE depuis le 25 octobre 2026, et plus de plafond. Le mandat en
+     portait deux : le montant prélevé, et un plafond emprunté au « au plus »
+     d'un ordre de bourse, où il protège d'un prix inconnu à la signature. Ici
+     rien n'est inconnu — le client écrit la somme, et c'est elle qui est
+     présentée. Un second nombre faisait chercher lequel serait débité. */
+  it("un mandat sans montant n'en est pas un, pour les deux usages", () => {
+    expect(verifierLeMandat({ ...base, amount: 0 })).toContain("ni plus ni moins");
+    /* L'épargne programmée tenait son montant de l'instruction : le client
+       signait une autorisation sans y écrire de chiffre. */
+    expect(verifierLeMandat({ ...base, objet: "instruction", standingId: "s1", dayOfMonth: undefined, amount: undefined })).toContain("ni plus ni moins");
   });
 
-  it("le montant prélevé ne dépasse jamais le plafond signé", () => {
-    /* C'est le même objet que le plafond « au plus » d'un ordre, et la même
-       phrase de la convention : la maison ne vous engage jamais au-delà. */
-    expect(verifierLeMandat({ ...base, amount: 70_000 })).toContain("dépasser le plafond");
+  it("et le plafond ne revient pas, ni dans le domaine ni dans la base", () => {
+    const dom = readFileSync("src/lib/domain/mandat.ts", "utf8");
+    expect(dom, "un second montant est revenu sur le mandat").not.toMatch(/maxAmount/);
+    expect(readFileSync("supabase/migrations/0115_prelevement_un_seul_nombre.sql", "utf8")).toMatch(/drop column max_amount/);
   });
 
   it("le jour va de 1 à 28, parce que tous les mois les ont", () => {
@@ -66,10 +73,16 @@ describe("ce qu'un mandat autorise, et quand", () => {
     expect(tirageAutorise(base, 50_000)).toBe(false);
   });
 
-  it("jamais au-delà du plafond, et c'est la seule règle au moment de tirer", () => {
+  /* NI PLUS, NI MOINS — depuis le 25 octobre 2026. La règle était « au plus le
+     plafond signé », ce qui autorisait aussi tout montant INFÉRIEUR, c'est-à-dire
+     la maison décidant du chiffre. Un prélèvement plus petit que celui annoncé
+     n'est pas une prudence : c'est une épargne qui se remplit moins vite que ce
+     que le client a lu, sans qu'il l'apprenne. */
+  it("le montant présenté est celui du mandat, ni plus ni moins", () => {
     expect(tirageAutorise(signe, 50_000)).toBe(true);
-    expect(tirageAutorise(signe, 60_000)).toBe(true);
-    expect(tirageAutorise(signe, 60_001)).toBe(false);
+    expect(tirageAutorise(signe, 49_999), "un montant moindre passe : la maison décide du chiffre à la place du client").toBe(false);
+    expect(tirageAutorise(signe, 50_001)).toBe(false);
+    expect(tirageAutorise(signe, 0)).toBe(false);
   });
 
   it("ni suspendu, ni révoqué", () => {

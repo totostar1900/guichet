@@ -87,6 +87,14 @@
   margin: 0;
   font-size: var(--t-4);
 }
+/* Le jour, à côté du montant et non sur sa propre ligne : il n'y a plus qu'un
+   nombre depuis le 25 octobre 2026, et « 50 000 FCFA le 5 de chaque mois » est
+   une seule information. */
+.leJour {
+  margin-left: var(--s-4);
+  color: var(--ink-3);
+  font-size: var(--t-2);
+}
 
 .signer {
   display: grid;
