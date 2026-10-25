@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { attentesDuClient, compteDesEtats, servicesDuClient, type ContexteClient, RAYONS } from "@/lib/domain/services";
+import { fmt } from "@/lib/format";
 
 /**
  * Un service se présente par son état, jamais par sa description.
@@ -42,7 +43,7 @@ const garni: ContexteClient = {
   moisDHistorique: 14,
 };
 
-const parCle = (c: ContexteClient) => new Map(servicesDuClient(c).map((s) => [s.cle, s]));
+const parCle = (c: ContexteClient, f?: (n: number) => string) => new Map(servicesDuClient(c, f).map((s) => [s.cle, s]));
 
 describe("les services de la vitrine, quel que soit le client", () => {
   it("tiennent dans les trois rayons, chacun une seule fois", () => {
@@ -169,18 +170,74 @@ describe("l'état suit la donnée du client", () => {
 });
 
 describe("ce qu'une phrase dit, et ce qu'elle ne dit pas", () => {
-  it("parle des chiffres du client quand il en a", () => {
-    const m = parCle(garni);
-    expect(m.get("epargne")!.phrase.params).toMatchObject({ m: 50_000, j: 5 });
-    expect(m.get("passage")!.phrase.params).toMatchObject({ n: 84.312, d: "Fonds Obligataire CEMAC" });
+  /**
+   * LES CHIFFRES PASSENT PAR LE FORMATEUR, ET CES DEUX ÉPREUVES ÉPINGLAIENT
+   * LE CONTRAIRE.
+   *
+   * Elles vérifiaient `{ m: 50_000 }` — un NOMBRE —, c'est-à-dire exactement
+   * ce qui sortait de travers à l'écran : `translate` interpole par
+   * `String(v)`, donc « 50000 FCFA partent le 5 » sans séparateur de
+   * milliers, et « Vous détenez 183.02 parts » avec un point décimal au
+   * milieu d'une interface française. Vu le 26 octobre 2026 en conduisant la
+   * page ; aucune épreuve ne pouvait le voir, puisqu'elles comparaient des
+   * paramètres et jamais la chaîne rendue.
+   *
+   * Elles pinent maintenant la forme FORMATÉE, avec le vrai formateur de la
+   * maison — celui qui sépare les milliers par une insécable fine.
+   */
+  it("parle des chiffres du client quand il en a, et les formate", () => {
+    const m = parCle(garni, fmt);
+    expect(m.get("epargne")!.phrase.params).toMatchObject({ m: fmt(50_000), j: 5 });
+    expect(String(m.get("epargne")!.phrase.params!.m), "le montant sort sans ses séparateurs de milliers").toMatch(/50\s000/);
     expect(m.get("garde")!.phrase.params).toMatchObject({ n: 4 });
+  });
+
+  /**
+   * ET AUCUN PARAMÈTRE DE MONTANT NE RESTE UN NOMBRE BRUT.
+   *
+   * Le cliquet ci-dessus tient trois phrases ; celui-ci tient la famille.
+   * Les comptes entiers — quatre lignes, deux ordres, le jour du mois —
+   * restent des nombres, et c'est juste : ils n'ont ni décimale ni millier.
+   * Ce qui ne doit plus en être un, c'est tout ce qui se compte en FCFA ou
+   * en parts.
+   */
+  it("ne laisse aucun montant sortir sans passer par le formateur", () => {
+    const bruts: string[] = [];
+    for (const sv of servicesDuClient(garni, fmt)) {
+      for (const [k, v] of Object.entries(sv.phrase.params ?? {})) {
+        if (typeof v === "number" && (k === "m" || !Number.isInteger(v))) bruts.push(`${sv.cle} · ${k} = ${v}`);
+      }
+    }
+    expect(bruts, `ces chiffres sortiront tels quels, point décimal et milliers collés :\n  ${bruts.join("\n  ")}`).toEqual([]);
+    /* Non vacuité : ce client porte bien des montants à formater. */
+    expect(servicesDuClient(garni, fmt).some((sv) => typeof sv.phrase.params?.m === "string"), "aucun montant dans cette liste : l'épreuve ne garde rien").toBe(true);
+  });
+
+  /**
+   * L'ARBITRAGE DIT CE QU'IL ÉPARGNE, ET NE REND PAS SON RELEVÉ AU CLIENT.
+   *
+   * La phrase disait « Vous détenez 183.02 parts de FCP Trésorerie Corridor,
+   * rachetables ». Le nombre de parts ne décide de rien au moment où l'on
+   * découvre un service ; et il sortait brut, point décimal compris. Elle dit
+   * maintenant ce que le service évite — vendre, attendre le règlement,
+   * racheter à une valeur inconnue — ce qu'aucune de ses trois voisines sur
+   * la fiche ne dit : la raison d'être donne le pourquoi, les deux lignes de
+   * la tuile le comment, les étapes l'ordre.
+   */
+  it("fait dire à l'arbitrage ce qu'il épargne, et non ce qu'on détient", () => {
+    const sv = parCle(garni, fmt).get("passage")!;
+    expect(sv.phrase.key, "l'arbitrage recompte les parts du client").not.toMatch(/parts?\b/);
+    expect(sv.phrase.key, "il ne dit plus ce que le passage évite").toMatch(/attendre le règlement/);
+    /* Il nomme toujours le fonds de départ : la phrase reste celle de CE
+       client, c'est le chiffre inutile qui est parti, pas le contexte. */
+    expect(sv.phrase.params).toMatchObject({ d: "Fonds Obligataire CEMAC" });
   });
 
   it("dit ce qui SE PASSERAIT pour un service jamais pris", () => {
     /* C'est la moitié du service : sans elle, la ligne redevient une brochure. */
-    const dort = parCle({ ...garni, reinvestissement: undefined }).get("reinvestissement")!;
+    const dort = parCle({ ...garni, reinvestissement: undefined }, fmt).get("reinvestissement")!;
     expect(dort.etat).toBe("a_activer");
-    expect(dort.phrase.params).toMatchObject({ m: 180_000 });
+    expect(dort.phrase.params).toMatchObject({ m: fmt(180_000) });
     expect(dort.phrase.key).toMatch(/repartiraient/);
   });
 

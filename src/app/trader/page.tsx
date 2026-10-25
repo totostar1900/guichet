@@ -63,7 +63,7 @@ export default async function TradePage() {
      vous attend » lisait le premier : deux lectures du même client dans la
      même requête, donc deux occasions de diverger. */
   const [ctx, offers] = await Promise.all([contexteDuClient(s.userId), repo().listOffers().catch(() => [])]);
-  const services = servicesDuClient(ctx);
+  const services = servicesDuClient(ctx, fmt);
   /* CE QUI ATTEND DERRIÈRE CHAQUE TUILE, calculé UNE FOIS et passé aux deux
      arrangements. Tout sort des offres déjà lues plus haut : un aperçu qui
      aurait demandé une requête par service aurait été écarté comme le volet

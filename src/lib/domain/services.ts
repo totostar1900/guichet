@@ -238,7 +238,23 @@ const aActiver = (s: Omit<ServiceVu, "etat" | "geste" | "sous"> & { geste?: Dit 
  * ce qui rapporterait le plus à la maison serait une recommandation, et la
  * maison n'a pas l'agrément pour en faire.
  */
-export function servicesDuClient(c: ContexteClient): ServiceVu[] {
+/**
+ * LE FORMATEUR VIENT DE L'APPELANT, comme pour « attentesDuClient ».
+ *
+ * LE DÉFAUT QUE CELA FERME, vu à l'écran le 26 octobre 2026 : « Vous détenez
+ * 183.02 parts ». `translate` interpole par `String(v)`, sans rien formater —
+ * un nombre brut sort donc avec un POINT décimal au milieu d'une interface
+ * française, et un montant sort sans ses séparateurs de milliers :
+ * « 250000 FCFA vous attendent ». Les deux étaient là depuis que ces phrases
+ * existent, et aucune épreuve ne les regardait : les coquilles comparent des
+ * clefs et des paramètres, jamais la chaîne rendue.
+ *
+ * « attentesDuClient » recevait déjà son formateur pour cette raison exacte,
+ * juste en dessous dans ce fichier. Celui-ci ne l'avait pas. Le repli
+ * `String` garde les épreuves qui ne s'intéressent pas au format ; la page,
+ * elle, passe `fmt`, et un cliquet le vérifie.
+ */
+export function servicesDuClient(c: ContexteClient, fmt: (n: number) => string = String): ServiceVu[] {
   const out: ServiceVu[] = [];
 
   /* 06 · Réinvestissement. Le premier, parce que c'est celui qui travaille
@@ -252,7 +268,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           href: "/moi/reinvestir",
           phrase: {
             key: "Vos encaissements partent vers {d} dès qu'ils atteignent {m} FCFA.",
-            params: { d: c.reinvestissement.destination, m: c.reinvestissement.plancher },
+            params: { d: c.reinvestissement.destination, m: fmt(c.reinvestissement.plancher) },
           },
         })
       : aActiver({
@@ -262,7 +278,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           href: "/moi/reinvestir",
           phrase:
             c.disponible > 0
-              ? { key: "{m} FCFA sont disponibles et n'attendent rien : ils repartiraient sur la ligne que vous choisiriez.", params: { m: c.disponible } }
+              ? { key: "{m} FCFA sont disponibles et n'attendent rien : ils repartiraient sur la ligne que vous choisiriez.", params: { m: fmt(c.disponible) } }
               : { key: "Dès qu'un coupon arrivera, il repartirait sur la ligne que vous auriez choisie d'avance." },
         }),
   );
@@ -279,7 +295,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
              des fonds quand il n'y en avait pas : deux destinations, aucune
              qui soit la sienne. */
           href: "/moi/epargne",
-          phrase: { key: "{m} FCFA partent le {j} de chaque mois vers {d}.", params: { m: c.epargne.montant, j: c.epargne.jour, d: c.epargne.destination } },
+          phrase: { key: "{m} FCFA partent le {j} de chaque mois vers {d}.", params: { m: fmt(c.epargne.montant), j: c.epargne.jour, d: c.epargne.destination } },
         })
       : aActiver({
           rayon: "compte",
@@ -383,7 +399,35 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           cle: "passage",
           nom: "Arbitrage",
           href: "/fonds",
-          phrase: { key: "Vous détenez {n} parts de {d}, rachetables.", params: { n: c.partsDeFonds.parts, d: c.partsDeFonds.titre } },
+          /**
+           * CE QUE L'ARBITRAGE ÉPARGNE, et non ce que le client détient.
+           *
+           * La phrase disait « Vous détenez 183.02 parts de FCP Trésorerie
+           * Corridor, rachetables ». Deux reproches, et le second est le vrai.
+           * Le petit : le nombre sortait brut, point décimal compris. Le
+           * grand : le nombre de parts NE DÉCIDE DE RIEN ici. Un client qui
+           * détient une ligne sait qu'il la détient ; la phrase lui rendait
+           * son propre relevé au moment précis où il cherche à comprendre un
+           * service qu'il n'a jamais pris.
+           *
+           * CE QU'IL IGNORE, et que seule cette phrase peut lui dire : ce
+           * que le service lui ÉPARGNE. Sans arbitrage, il faut vendre,
+           * attendre le règlement, puis racheter à une valeur liquidative
+           * qu'on ne connaît pas encore — trois gestes et un trou.
+           *
+           * ET ELLE NE RÉPÈTE NI L'UNE NI L'AUTRE DE SES VOISINES. Sur la
+           * fiche, la raison d'être dit POURQUOI (« quand votre horizon a
+           * changé »), les deux lignes de la tuile disent COMMENT (« signés
+           * ensemble »), et les étapes disent DANS QUEL ORDRE. Un premier
+           * jet reprenait le « se signent ensemble » des trois autres : le
+           * lecteur lisait quatre fois la même phrase sous quatre titres.
+           *
+           * La règle du fichier — « on écrit ce que le service fait pour CE
+           * client-là » — reste la bonne partout ailleurs. Elle suppose que
+           * le chiffre du client décide de quelque chose ; ici il ne décide
+           * de rien, et c'est l'exception qui le dit.
+           */
+          phrase: { key: "Depuis {d}, le passage se fait en un seul geste. Sans lui, il faudrait vendre, attendre le règlement, puis racheter à une valeur qu'on ne connaît pas encore.", params: { d: c.partsDeFonds.titre } },
         })
       : aActiver({
           rayon: "placer",
@@ -447,7 +491,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
          destination d'aucun service. */
       href: "/titres",
       phrase: c.actions
-        ? { key: "Vous détenez {n} actions {d}, vendables sur la BVMAC.", params: { n: c.actions.n, d: c.actions.titre } }
+        ? { key: "Vous détenez {n} actions {d}, vendables sur la BVMAC.", params: { n: fmt(c.actions.n), d: c.actions.titre } }
         : { key: "Achat et vente sur la BVMAC, au dernier cours publié et à sa date." },
     }),
   );
@@ -528,7 +572,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
      la preuve qu'un rayon est mal nommé. */
   out.push(
     c.disponible > 0
-      ? enPlace({ rayon: "compte", cle: "provision", nom: "Votre provision", href: "/moi/provision", phrase: { key: "{m} FCFA vous attendent et règlent votre prochain ordre sans virement.", params: { m: c.disponible } } })
+      ? enPlace({ rayon: "compte", cle: "provision", nom: "Votre provision", href: "/moi/provision", phrase: { key: "{m} FCFA vous attendent et règlent votre prochain ordre sans virement.", params: { m: fmt(c.disponible) } } })
       : aActiver({ rayon: "compte", cle: "provision", nom: "Votre provision", href: "/moi/provision", phrase: { key: "Ce que vous laissez chez nous règle vos ordres sans attendre un virement, et repart sur demande." } }),
   );
   out.push(

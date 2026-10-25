@@ -86,7 +86,11 @@ export const EN_CONSOLE: Record<string, string> = {
     "You can say at what rate you would be a buyer in the session of {d}, without committing.",
   "Aucune séance n'est annoncée : un sondage se tient devant une date.": "No session is announced: a survey stands in front of a date.",
   "Il rouvrira dès qu'un Trésor publiera son avis d'annonce.": "It will reopen as soon as a Treasury publishes its announcement notice.",
-  "Vous détenez {n} parts de {d}, rachetables.": "You hold {n} units of {d}, redeemable.",
+  /* L'ARBITRAGE DIT CE QU'IL ÉPARGNE, et non ce que le client détient : le
+     nombre de parts ne décide de rien au moment où l'on découvre le service.
+     L'ancienne phrase part avec son chiffre — plus un seul fichier ne l'écrit. */
+  "Depuis {d}, le passage se fait en un seul geste. Sans lui, il faudrait vendre, attendre le règlement, puis racheter à une valeur qu'on ne connaît pas encore.":
+    "From {d}, the move takes a single step. Without it you would have to sell, wait for settlement, then buy back at a unit price nobody knows yet.",
   "Vous ne détenez aucune part de fonds : un passage part d'un rachat.": "You hold no fund units: a switch starts from a redemption.",
   "Il s'ouvrira dès votre première souscription.": "It will open from your first subscription.",
   "Les fonds de la zone sont ouverts à la souscription.": "The funds of the zone are open for subscription.",
