@@ -164,6 +164,7 @@ export const LIBELLES_DU_RELEVE = {
   amortissement: "Remboursement du principal",
   besoin: "Besoin de financement",
   programme_titres: "Programme de titres publics",
+  programme_beac: "Programme déclaré à la BEAC",
 } as const;
 
 export function releveDuBudget(b: BudgetEtat): NoteBudget["releve"] {
@@ -192,6 +193,10 @@ export function releveDuBudget(b: BudgetEtat): NoteBudget["releve"] {
   if (b.besoinDeFinancement !== undefined) out.push({ cle: "besoin", libelle: LIBELLES_DU_RELEVE.besoin, valeur: `${enMilliards(b.besoinDeFinancement)} Md` });
   const titres = porteDesTitres(b);
   if (titres) out.push({ cle: "programme_titres", libelle: LIBELLES_DU_RELEVE.programme_titres, valeur: `${enMilliards(titres.montant)} Md` });
+  /* LE CALENDRIER DÉCLARÉ, qui a la même forme pour les six États là où
+     chaque loi présente ses portes autrement. C'est lui qui les rend
+     comparables, et il bouge quand le Trésor révise son calendrier. */
+  if (b.programmeBeac) out.push({ cle: "programme_beac", libelle: LIBELLES_DU_RELEVE.programme_beac, valeur: `${enMilliards(b.programmeBeac.total)} Md` });
 
   return out;
 }

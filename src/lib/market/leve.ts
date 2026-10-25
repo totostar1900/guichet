@@ -128,6 +128,7 @@ export const POURQUOI = {
   couverture: "Le relevé ne couvre que {jours} jour(s) de l'exercice, du {premiere} au {derniere} : le total vaut pour ces séances-là, pas pour l'année.",
   perimetre: "Le plan de financement ne dit pas si sa ligne de titres est du brut émis ou du net d'amortissement : les deux lectures existent dans la zone, et elles ne donnent pas le même dénominateur.",
   rollBta: "Les bons se renouvellent dans l'année et leur échéance n'est pas relevée : un bon à treize semaines reconduit quatre fois lève quatre fois son montant pour un seul financement.",
+  planAnnuel: "Le calendrier déclaré, lui, porte du brut par instrument comme les séances : la part placée se calcule donc contre lui, et c'est un plancher — ce qui a été placé sur les séances relevées, pas sur l'année.",
   nonRelues: "{n} séance(s) portent des chiffres que personne n'a relus.",
   codesEnDouble: "{n} séance(s) portent un code d'émission déjà vu ce jour-là : le total peut les compter deux fois.",
 } as const;
@@ -138,9 +139,14 @@ export function pourquoiPasDeTaux(b: BudgetEtat, l: Leve): MotifDeRefus[] {
   const out: MotifDeRefus[] = [
     { cle: "couverture", params: { jours: String(l.joursCouverts), premiere: l.premiere, derniere: l.derniere } },
   ];
-  /* Le périmètre ne se pose que s'il y a une ligne déclarée à comparer. */
-  if (porteDesTitres(b)) out.push({ cle: "perimetre", params: {} });
-  if (l.parInstrument.BTA > 0) out.push({ cle: "rollBta", params: {} });
+  /* LE PÉRIMÈTRE S'EST TRANCHÉ LE 25 OCTOBRE, sur les calendriers signés : le
+     programme déclaré porte du brut par instrument, comme les séances. Le
+     motif ne vaut donc plus que là où ce calendrier manque. */
+  if (b.programmeBeac) out.push({ cle: "planAnnuel", params: {} });
+  else {
+    if (porteDesTitres(b)) out.push({ cle: "perimetre", params: {} });
+    if (l.parInstrument.BTA > 0) out.push({ cle: "rollBta", params: {} });
+  }
   if (l.nonRelues > 0) out.push({ cle: "nonRelues", params: { n: String(l.nonRelues) } });
   if (l.codesEnDouble > 0) out.push({ cle: "codesEnDouble", params: { n: String(l.codesEnDouble) } });
   return out;
@@ -154,6 +160,27 @@ export function pourquoiPasDeTaux(b: BudgetEtat, l: Leve): MotifDeRefus[] {
  * TROIS SÉANCES AU MOINS : une seule adjudication ratée est un incident, pas
  * une tendance, et le carnet ne doit pas crier sur un incident.
  */
+/**
+ * CE QUI A ÉTÉ PLACÉ SUR CE QUI ÉTAIT DÉCLARÉ, INSTRUMENT PAR INSTRUMENT.
+ *
+ * Le calendrier annuel déclare du BRUT par instrument, et les séances servent
+ * du BRUT par instrument : les deux se comparent enfin sans supposer un
+ * périmètre. C'est ce qui manquait, et qui faisait refuser le rapport.
+ *
+ * CE QUE CE RAPPORT N'EST PAS, et l'écran doit le dire avec lui : un taux
+ * d'exécution de l'exercice. Le relevé des séances ne couvre que quelques
+ * semaines, donc ce qu'il donne est un PLANCHER — ce qui a été placé sur les
+ * séances que la maison détient, pas sur l'année.
+ */
+export const placeSurDeclare = (l: Leve, p: BudgetEtat["programmeBeac"]): { bta?: number; ota?: number; total?: number } | undefined => {
+  if (!p) return undefined;
+  /* LE SERVI EST EN FRANCS, LE DÉCLARÉ EN MILLIONS. Les ramener avant de
+     diviser : sans cela le rapport sort un million de fois trop grand, et il
+     aurait l'air d'un pourcentage plausible. */
+  const r = (servi: number, declare?: number) => (declare && declare > 0 ? servi / 1_000_000 / declare : undefined);
+  return { bta: r(l.parInstrument.BTA, p.bta), ota: r(l.parInstrument.OTA, p.ota), total: r(l.servi, p.total) };
+};
+
 export const SERVICE_FAIBLE = 0.75;
 export const SEANCES_MINIMUM = 3;
 

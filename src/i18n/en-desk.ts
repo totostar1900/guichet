@@ -3702,4 +3702,12 @@ export const EN_MORE: Record<string, string> = {
 
   /* Le chiffre publié passe devant sa déduction, et l'écran dit lequel. */
   "publié par le document — ce que l'État rend sur ses emprunts passés": "published by the document — what the State repays on its past borrowing",
+
+  /* ---------- Le programme déclaré à la BEAC ---------- */
+  "Déclaré pour l'année": "Declared for the year",
+  "Ce que la part placée ne dit pas": "What the placed share does not tell you",
+  "placés à ce jour": "placed so far",
+  "Programme déclaré à la BEAC": "Programme declared to the BEAC",
+  "Le calendrier déclaré, lui, porte du brut par instrument comme les séances : la part placée se calcule donc contre lui, et c'est un plancher — ce qui a été placé sur les séances relevées, pas sur l'année.":
+    "The declared calendar, for its part, carries gross amounts per instrument just as the sessions do: the placed share is therefore computed against it, and it is a floor — what was placed over the recorded sessions, not over the year.",
 };

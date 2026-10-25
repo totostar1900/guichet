@@ -8,7 +8,7 @@ import { fmtDate } from "@/lib/format";
 import { amortissement, ecartsEntre, enMilliards, financementBoucle, foisLeDeficit, notesDe, partDesTitres, paysDuSlug, sommeDes , trousDe} from "@/lib/market/budget";
 import { LIBELLES_DU_RELEVE, numeroSuivant, releveDuBudget } from "@/lib/market/note-budget";
 import { DIT, signauxDe } from "@/lib/market/carnet";
-import { POURQUOI, SERVICE_FAIBLE, leveDe, pourquoiPasDeTaux } from "@/lib/market/leve";
+import { POURQUOI, SERVICE_FAIBLE, leveDe, placeSurDeclare, pourquoiPasDeTaux } from "@/lib/market/leve";
 import { RedigerNote } from "./RedigerNote";
 import styles from "./page.module.css";
 
@@ -57,6 +57,7 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
   const signaux = signauxDe(b, toutesNotes, seances, new Date().toISOString().slice(0, 10)).filter((s) => s.genre !== "jamais_ecrite");
   const leve = leveDe(seances, b.pays, b.exercice);
   const motifs = leve ? pourquoiPasDeTaux(b, leve) : [];
+  const place = leve ? placeSurDeclare(leve, b.programmeBeac) : undefined;
 
   return (
     <>
@@ -263,6 +264,16 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
                   {t("bons")} {enMilliards(leve.parInstrument.BTA / 1_000_000)} · {t("obligations")} {enMilliards(leve.parInstrument.OTA / 1_000_000)}
                 </small>
               </div>
+              {b.programmeBeac ? (
+                <div className={styles.etape}>
+                  <span className={styles.el}>{t("Déclaré pour l'année")}</span>
+                  <b className={styles.gros}>{enMilliards(b.programmeBeac.total)}</b>
+                  <small>
+                    {t("bons")} {enMilliards(b.programmeBeac.bta)} · {t("obligations")} {enMilliards(b.programmeBeac.ota)} ·{" "}
+                    {place?.total === undefined ? "—" : `${Math.round(place.total * 100)} %`} {t("placés à ce jour")}
+                  </small>
+                </div>
+              ) : null}
               <div className={styles.etape}>
                 <span className={styles.el}>{t("Annoncé")}</span>
                 <b className={styles.gros}>{enMilliards(leve.annonce / 1_000_000)}</b>
@@ -279,10 +290,13 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
               </div>
             </div>
 
-            {/* LE REFUS, MOTIVÉ. Sans motif il se lirait comme une lacune de
-                l'outil, et quelqu'un ferait la division à la main dans un coin. */}
+            {/* CE QUE LA PART PLACÉE NE DIT PAS, écrit sous elle. Le bandeau
+                s'intitulait « pourquoi aucun pourcentage n'est affiché » : il
+                s'est mis à mentir le jour où le calendrier déclaré a rendu la
+                division possible. Un titre qui survit à ce qu'il décrit est
+                pire qu'un titre absent. */}
             <div className={styles.refusDuTaux}>
-              <span className={styles.el}>{t("Pourquoi aucun « % du programme levé » n'est affiché")}</span>
+              <span className={styles.el}>{b.programmeBeac ? t("Ce que la part placée ne dit pas") : t("Pourquoi aucun « % du programme levé » n'est affiché")}</span>
               <ul>
                 {motifs.map((m) => (
                   <li key={m.cle}>{t(POURQUOI[m.cle], trousDe(m.params, fmtDate))}</li>

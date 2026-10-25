@@ -18,7 +18,7 @@ const SEANCES = ((brut as { seances?: unknown[] }).seances ?? []) as AuctionResu
 import { amortissement, amortissementImplicite, ecartsEntre, estComplet, financementBoucle, foisLeDeficit, partDesTitres, paysDuSlug, porteDesTitres, slugDuPays, sommeDes, PAYS_CEMAC , trousDe} from "@/lib/market/budget";
 import { LIBELLES_DU_RELEVE, MIN, REFUS, numeroSuivant, releveDuBudget, verifierNote, type BrouillonNote } from "@/lib/market/note-budget";
 import { DIT, MOIS_AVANT_DE_S_INQUIETER, carnet, moisEntre, signauxDe } from "@/lib/market/carnet";
-import { SEANCES_MINIMUM, SERVICE_FAIBLE, joursEntre, leveDe, pourquoiPasDeTaux } from "@/lib/market/leve";
+import { SEANCES_MINIMUM, SERVICE_FAIBLE, joursEntre, leveDe, placeSurDeclare, pourquoiPasDeTaux } from "@/lib/market/leve";
 
 const lire = (p: string) => fs.readFileSync(path.join(RACINE, p), "utf8");
 const code = (p: string) =>
@@ -360,7 +360,7 @@ describe("écrire une note du desk", () => {
    */
   it("prend son relevé sur le budget, valeurs comprises", () => {
     const r = releveDuBudget(cameroun());
-    expect(r.map((x) => x.cle), "le relevé a changé de postes").toEqual(["millesime", "budget_total", "baril_loi", "baril_constate", "solde", "amortissement", "besoin", "programme_titres"]);
+    expect(r.map((x) => x.cle), "le relevé a changé de postes").toEqual(["millesime", "budget_total", "baril_loi", "baril_constate", "solde", "amortissement", "besoin", "programme_titres", "programme_beac"]);
     const par = Object.fromEntries(r.map((x) => [x.cle, x.valeur]));
     expect(par.millesime, "le millésime n'est plus relevé tel qu'il est en vigueur").toBe("LFI 2026, révision annoncée");
     expect(par.baril_loi, "l'hypothèse de baril de la loi n'est plus relevée").toBe("62,38 $");
@@ -465,7 +465,7 @@ describe("écrire une note du desk", () => {
     const b = cameroun();
     const nôtres = releveDuBudget(b).filter((x) => x.cle in LIBELLES_DU_RELEVE);
     expect(nôtres.map((x) => x.cle).sort(), "les libellés traduits ne sont plus ceux que la fiche produit").toEqual(
-      ["amortissement", "besoin", "budget_total", "millesime", "programme_titres", "solde"],
+      ["amortissement", "besoin", "budget_total", "millesime", "programme_beac", "programme_titres", "solde"],
     );
     /* NON-VACUITÉ : il reste des libellés venus du document, sinon le tri ne
        trierait rien. */
@@ -647,16 +647,26 @@ describe("le carnet du desk", () => {
    * produit le tableau des écarts d'une note : la question est la même.
    */
   /**
-   * ET IL SE TAIT UNE FOIS QUE LE DESK A ÉCRIT.
+   * IL SE TAIT QUAND LE DESK A ÉCRIT, ET REPARLE QUAND LA FICHE AVANCE.
    *
-   * Le carnet a réclamé une note le 24 octobre, quand la loi promulguée a
-   * apporté un principal publié que la note n° 1 ne connaissait pas. La note
-   * n° 2 l'a consigné, et le signal s'est éteint de lui-même — c'est ce qui
-   * sépare un carnet d'un panneau décoratif.
+   * Deux fois dans la même journée. Le 24, la loi promulguée a apporté un
+   * principal publié que la note n° 1 ignorait : le carnet a réclamé, la
+   * note n° 2 a répondu, le signal s'est éteint. Le 25, le calendrier déclaré
+   * à la BEAC est entré au relevé — un chiffre que la note n° 2 n'avait PAS
+   * sous les yeux, puisqu'il a fallu lire six scans pour l'obtenir. Le carnet
+   * reparle, et c'est juste : il y a de nouveau de quoi écrire.
+   *
+   * La distinction tient : on rattrape une note quand le chiffre était devant
+   * elle, jamais quand il ne l'était pas.
    */
-  it("se tait quand la dernière note porte le relevé du jour", () => {
+  it("reparle quand la fiche gagne un chiffre que la dernière note n'avait pas", () => {
     const b = cameroun();
-    expect(signauxDe(b, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge"), "le carnet réclame une note alors que la dernière est à jour").toEqual([]);
+    const s = signauxDe(b, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
+    expect(s.length, "le carnet ne voit pas le calendrier déclaré entrer au relevé").toBe(1);
+    expect(s[0].params.postes, "le carnet ne compte pas le poste entré").toBe("1");
+    /* ET IL SE TAIT DÈS QU'UNE NOTE LE PORTE. */
+    const ajour = [{ ...SEED_NOTES_BUDGET[0], numero: 9, releve: releveDuBudget(b) }];
+    expect(signauxDe(b, ajour, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge"), "le carnet crie sur un relevé qui n'a pas bougé").toEqual([]);
   });
 
   /**
@@ -665,13 +675,14 @@ describe("le carnet du desk", () => {
    */
   it("compte les postes qui ont bougé depuis la dernière note", () => {
     const b = cameroun();
+    /* Un poste est déjà en avance sur la note n° 2 : le calendrier déclaré. */
+    const base = signauxDe(b, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
+    expect(base[0].params.numero, "le carnet ne dit pas depuis quelle note").toBe("2");
     const un = signauxDe({ ...b, millesime: "revise" as const }, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
-    expect(un.length, "le millésime a changé et le carnet n'en dit rien").toBe(1);
-    expect(un[0].params.postes, "le carnet ne compte pas les postes qui ont bougé").toBe("1");
-    expect(un[0].params.numero, "le carnet ne dit pas depuis quelle note").toBe("2");
-    /* Deux postes déplacés, deux comptés. */
-    const deux = signauxDe({ ...b, millesime: "revise" as const, amortissementPublie: 2_500_000 }, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
-    expect(deux[0].params.postes, "le carnet ne compte qu'un poste quand deux ont bougé").toBe("2");
+    expect(un[0].params.postes, "le millésime déplacé n'ajoute pas au compte").toBe("2");
+    /* Un troisième poste déplacé, trois comptés. */
+    const trois = signauxDe({ ...b, millesime: "revise" as const, amortissementPublie: 2_500_000 }, SEED_NOTES_BUDGET, SEANCES, JOUR).filter((x) => x.genre === "releve_a_bouge");
+    expect(trois[0].params.postes, "le carnet ne compte pas tous les postes qui ont bougé").toBe("3");
   });
 
   it("remarque une note qui vieillit, et pas avant le délai", () => {
@@ -915,8 +926,11 @@ describe("ce qui a été levé", () => {
   it("refuse le « % du programme levé » en nommant ce qui manque", () => {
     const motifs = pourquoiPasDeTaux(cameroun(), cmr()).map((m) => m.cle);
     expect(motifs, "la couverture partielle du relevé n'est plus dite").toContain("couverture");
-    expect(motifs, "le périmètre inconnu de la ligne déclarée n'est plus dit").toContain("perimetre");
-    expect(motifs, "le roulement des bons n'est plus dit").toContain("rollBta");
+    /* Le périmètre et le roulement ne valent plus que là où le calendrier
+       déclaré manque : il porte du brut par instrument, comme les séances. */
+    const sansCalendrier = pourquoiPasDeTaux({ ...cameroun(), programmeBeac: undefined }, cmr()).map((m) => m.cle);
+    expect(sansCalendrier, "sans calendrier, le périmètre n'est plus opposé").toContain("perimetre");
+    expect(sansCalendrier, "sans calendrier, le roulement des bons n'est plus opposé").toContain("rollBta");
     /* Quarante-trois jours : du 3 août au 14 septembre, bornes comprises. */
     const m = pourquoiPasDeTaux(cameroun(), cmr()).find((x) => x.cle === "couverture")!;
     expect(m.params.jours, "la couverture du relevé n'est plus chiffrée en jours").toBe("43");
@@ -924,6 +938,75 @@ describe("ce qui a été levé", () => {
     for (const f of ["src/app/desk/budgets/page.tsx", "src/app/desk/budgets/[pays]/page.tsx", "src/lib/market/leve.ts"]) {
       expect(code(f), `${f} divise le levé par le programme déclaré`).not.toMatch(/servi\s*\/\s*(t\.montant|titres\.montant|programme)/);
     }
+  });
+
+  /**
+   * LE PROGRAMME DÉCLARÉ, LU SUR LES CALENDRIERS SIGNÉS.
+   *
+   * Six documents, lus un par un le 25 octobre — l'OCR ayant rendu de la
+   * bouillie sur ces grilles scannées. Ils sont ce qui rend les six États
+   * comparables : chaque loi présente ses portes autrement, le calendrier
+   * BEAC a la même forme pour tous.
+   *
+   * TROIS CONTRÔLES, parce qu'un chiffre lu sur un scan se vérifie : les
+   * sous-totaux doivent faire le total, l'ordre de grandeur doit être celui
+   * de millions de francs, et les deux États dont le relevé portait déjà un
+   * programme doivent y retomber.
+   */
+  it("porte le programme déclaré des six États, et il boucle", () => {
+    const avec = SEED_BUDGETS.filter((b) => b.programmeBeac);
+    expect(avec.length, "les six calendriers ne sont plus relevés").toBe(6);
+    for (const b of avec) {
+      const p = b.programmeBeac!;
+      expect((p.bta ?? 0) + (p.ota ?? 0), `${b.pays} : bons et obligations ne font pas le total déclaré`).toBe(p.total);
+      /* EN MILLIONS comme tout le semis : un programme en francs serait mille
+         fois trop grand et sortirait un pourcentage plausible. */
+      expect(p.total, `${b.pays} : le programme n'est pas de l'ordre du million de francs`).toBeGreaterThan(10_000);
+      expect(p.total, `${b.pays} : le programme n'est pas de l'ordre du million de francs`).toBeLessThan(10_000_000);
+    }
+    /* Les deux chiffres que le relevé portait déjà, de source différente. */
+    expect(SEED_BUDGETS.find((b) => b.pays === "Congo")!.programmeBeac!.total, "le total congolais ne retombe plus sur le relevé antérieur").toBe(690_000);
+    expect(SEED_BUDGETS.find((b) => b.pays === "Tchad")!.programmeBeac!.total, "le total tchadien ne retombe plus sur le relevé antérieur").toBe(520_000);
+    /* ET LE CAMEROUN TRANCHE LE PÉRIMÈTRE : la ligne de titres de sa loi vaut
+       exactement ses OBLIGATIONS déclarées, pas son programme entier. */
+    const cmr = cameroun();
+    expect(cmr.programmeBeac!.ota, "la ligne de titres de la loi ne correspond plus aux obligations déclarées").toBe(porteDesTitres(cmr)!.montant);
+    expect(cmr.programmeBeac!.total > porteDesTitres(cmr)!.montant, "le programme entier ne dépasse plus la ligne de la loi : le périmètre cesse d'être tranché").toBe(true);
+  });
+
+  /**
+   * LA PART PLACÉE, ET L'UNITÉ QUI LA REND FAUSSE SI ON L'OUBLIE.
+   *
+   * Le servi est en FRANCS, le déclaré en MILLIONS. Divisés tels quels, le
+   * rapport sort un million de fois trop grand — et il aurait l'air d'un
+   * pourcentage plausible.
+   */
+  it("rapporte le placé au déclaré sans se tromper d'unité", () => {
+    const l = leveDe(SEANCES, "Cameroun", 2026)!;
+    const p = placeSurDeclare(l, cameroun().programmeBeac)!;
+    expect(Math.round(p.ota! * 100), "la part d'obligations placée a changé").toBe(34);
+    expect(p.ota! < 1, "la part placée dépasse 100 % : les unités ne sont pas ramenées").toBe(true);
+    /* NON-VACUITÉ : sans programme déclaré, aucun rapport. */
+    expect(placeSurDeclare(l, undefined), "un État sans calendrier rend quand même un rapport").toBeUndefined();
+  });
+
+  /* ET LE REFUS SE RÉDUIT À CE QUI RESTE VRAI : le périmètre était la raison
+     principale, elle tombe là où le calendrier existe. */
+  it("ne refuse plus le rapport pour un périmètre désormais connu", () => {
+    const motifs = pourquoiPasDeTaux(cameroun(), leveDe(SEANCES, "Cameroun", 2026)!).map((m) => m.cle);
+    expect(motifs, "le périmètre est encore donné pour inconnu alors que le calendrier le tranche").not.toContain("perimetre");
+    expect(motifs, "le roulement des bons est encore opposé alors que le calendrier porte du brut par instrument").not.toContain("rollBta");
+    expect(motifs, "la couverture partielle du relevé n'est plus dite").toContain("couverture");
+    expect(motifs, "le plancher n'est pas annoncé comme tel").toContain("planAnnuel");
+  });
+
+  /* UN TITRE QUI SURVIT À CE QU'IL DÉCRIT EST PIRE QU'UN TITRE ABSENT. Le
+     bandeau s'intitulait « pourquoi aucun pourcentage n'est affiché » ; il
+     s'est mis à mentir le jour où le calendrier déclaré a rendu la division
+     possible. Vu à l'écran, pas autrement. */
+  it("n'annonce plus un refus là où elle affiche une part", () => {
+    const p = code("src/app/desk/budgets/[pays]/page.tsx");
+    expect(p, "le bandeau annonce un refus alors que la part placée est affichée").toMatch(/b\.programmeBeac \? t\("Ce que la part placée ne dit pas"\)/);
   });
 
   it("compte les jours bornes comprises : une séance couvre un jour, pas zéro", () => {

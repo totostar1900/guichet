@@ -101,6 +101,7 @@ const CAMEROUN: BudgetEtat = {
     { cle: "exceptionnels", libelle: "Financements exceptionnels", montant: 167_800, suppose: "non récurrents, par nature incertains" },
     { cle: "appuis", libelle: "Appuis budgétaires", montant: 120_000, suppose: "un décaissement de la Banque mondiale — le FMI est à zéro au tableau" },
   ],
+  programmeBeac: { bta: 765_000, ota: 400_000, total: 1_165_000 },
   source: {
     texte: "Loi n° 2025/012 du 17 décembre 2025 · exposé des motifs (DGB) · reprise de presse spécialisée",
     releveLe: "2026-10-25",
@@ -178,6 +179,7 @@ const GABON: BudgetEtat = {
   depenses: [],
   besoinDeFinancement: undefined,
   financement: [],
+  programmeBeac: { bta: 566_000, ota: 480_000, total: 1_046_000 },
   source: { texte: "Reprise de presse spécialisée · budget initial annoncé à 7 233,3 milliards", releveLe: "2026-10-25" },
   references: piecesBeac("GABON"),
   aRelever: [
@@ -196,7 +198,8 @@ const CONGO: BudgetEtat = {
   hypotheses: [],
   recettes: [],
   depenses: [],
-  financement: [{ cle: "titres", libelle: "Programme d'émissions de titres publics", montant: 690_000, titres: true }],
+  financement: [],
+  programmeBeac: { bta: 285_000, ota: 405_000, total: 690_000 },
   source: { texte: "Reprise de presse spécialisée", releveLe: "2026-10-25" },
   references: piecesBeac("CONGO"),
   aRelever: [
@@ -213,7 +216,8 @@ const TCHAD: BudgetEtat = {
   hypotheses: [],
   recettes: [],
   depenses: [],
-  financement: [{ cle: "titres", libelle: "Programme d'émissions de titres publics", montant: 520_000, titres: true }],
+  financement: [],
+  programmeBeac: { bta: 120_000, ota: 400_000, total: 520_000 },
   source: { texte: "Reprise de presse spécialisée", releveLe: "2026-10-25" },
   references: piecesBeac("TCHAD"),
   aRelever: [
@@ -232,6 +236,7 @@ const RCA: BudgetEtat = {
   depenses: [{ cle: "globales", libelle: "Dépenses globales", montant: 396_300 }],
   soldeDeclare: -27_900,
   financement: [],
+  programmeBeac: { bta: 0, ota: 66_500, total: 66_500 },
   source: { texte: "Reprise de presse spécialisée", releveLe: "2026-10-25" },
   references: piecesBeac("RCA"),
   aRelever: [
@@ -250,6 +255,7 @@ const GUINEE: BudgetEtat = {
   recettes: [],
   depenses: [],
   financement: [],
+  programmeBeac: { bta: 319_000, ota: 100_000, total: 419_000 },
   source: { texte: "Reprise de presse spécialisée", releveLe: "2026-10-25" },
   references: piecesBeac("GUINEE-EQUATORIALE"),
   aRelever: [

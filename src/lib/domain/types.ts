@@ -884,6 +884,23 @@ export interface BudgetEtat {
    */
   amortissementPublie?: number;
   financement: PorteDeFinancement[];
+  /**
+   * LE PROGRAMME D'ÉMISSIONS DÉCLARÉ À LA BEAC, et pourquoi il ne se range
+   * pas dans `financement`.
+   *
+   * Le plan de financement est ce que la LOI prévoit d'emprunter, toutes
+   * portes confondues. Ceci est ce que le TRÉSOR déclare à la banque centrale
+   * pour l'année, instrument par instrument, dans un calendrier signé. Les
+   * deux se recoupent sans se confondre : pour le Cameroun 2026, la ligne de
+   * titres de la loi vaut 400,0 et correspond EXACTEMENT aux obligations du
+   * calendrier — les 765,0 de bons sont posés par-dessus, et ne financent rien
+   * de neuf puisqu'ils roulent.
+   *
+   * C'est ce champ qui rend les six États comparables : la loi de chacun
+   * présente ses portes autrement, le calendrier BEAC a la même forme pour
+   * tous.
+   */
+  programmeBeac?: { bta?: number; ota?: number; total: number };
   source: SourceChiffree;
   /** Les pièces sur lesquelles le relevé s'appuie, nommées et liées quand on peut. */
   references?: Reference[];
