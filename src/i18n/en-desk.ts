@@ -3710,4 +3710,18 @@ export const EN_MORE: Record<string, string> = {
   "Programme déclaré à la BEAC": "Programme declared to the BEAC",
   "Le calendrier déclaré, lui, porte du brut par instrument comme les séances : la part placée se calcule donc contre lui, et c'est un plancher — ce qui a été placé sur les séances relevées, pas sur l'année.":
     "The declared calendar, for its part, carries gross amounts per instrument just as the sessions do: the placed share is therefore computed against it, and it is a floor — what was placed over the recorded sessions, not over the year.",
+
+  /* ---------- Le dossier documentaire ---------- */
+  "Les pièces du dossier": "The documents on file",
+  "Tout ce sur quoi ces fiches et ces notes s'appuient, avec le jour où chaque adresse a été ouverte. Celles qui n'en ont pas encore viennent en premier : ce sont celles qu'il reste à trouver.":
+    "Everything these sheets and notes rest on, with the day each address was last opened. Those that have none yet come first: they are the ones still to be found.",
+  "sans adresse à ce jour.": "with no address to date.",
+  "La pièce": "The document",
+  "Où elle sert": "Where it serves",
+  "Ouverte le": "Opened on",
+  "toute la zone": "the whole zone",
+  "État non rattaché": "no State attached",
+  "les six États": "all six States",
+  "note(s) s'y appuient": "note(s) rest on it",
+  "jamais ouverte": "never opened",
 };

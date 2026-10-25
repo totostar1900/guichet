@@ -33,17 +33,35 @@ import type { BudgetEtat, NoteBudget, Reference } from "@/lib/domain/types";
  * se trouve la pièce. C'était le frein nommé par le formulaire lui-même :
  * « cette fiche ne nomme aucune pièce ».
  */
+/**
+ * LES PIÈCES DE LA ZONE, qui n'appartiennent à aucun État.
+ *
+ * Le marché des titres publics est tenu par la BEAC pour les six : ses
+ * bulletins, ses statistiques et son cadre réglementaire valent pour tous, et
+ * les ranger sous un seul pays les aurait rendus introuvables depuis les cinq
+ * autres. Elles ont toutes été ouvertes le 25 octobre 2026.
+ */
+const MTP = "https://www.beac.int/m-des-titres-publics";
+export const REFERENCES_ZONE: Reference[] = [
+  { titre: "Bulletins du marché des titres publics", editeur: "BEAC", url: `${MTP}/bulletins-marche-titres-publics/`, verifieLe: "2026-10-25" },
+  { titre: "Annonces et communiqués d'adjudication", editeur: "BEAC", url: `${MTP}/annonces-et-communiques/`, verifieLe: "2026-10-25" },
+  { titre: "Statistiques mensuelles du marché des valeurs du Trésor", editeur: "BEAC", url: `${MTP}/statistiques-mensuelles-marche-valeurs-tresor/`, verifieLe: "2026-10-25" },
+  { titre: "Présentation générale du marché des titres publics", editeur: "BEAC", url: `${MTP}/presentation-generale/`, verifieLe: "2026-10-25" },
+  { titre: "Cadre réglementaire du marché des titres publics", editeur: "BEAC", url: `${MTP}/cadre-reglementaire/`, verifieLe: "2026-10-25" },
+  { titre: "Statistiques des titres publics", editeur: "BEAC", url: "https://www.beac.int/economie-stats/statistiques-titres-publics/", verifieLe: "2026-10-25" },
+];
+
 const BEAC = "https://www.beac.int/wp-content/uploads/2019/06";
-const piecesBeac = (nom: string): Reference[] => [
+const piecesBeac = (nom: string, pays: string): Reference[] => [
   {
-    titre: "Programme annuel des émissions de titres publics 2026",
+    titre: `Programme annuel des émissions de titres publics 2026 — ${pays}`,
     editeur: "BEAC",
     date: "2026",
     url: `${BEAC}/PROGRAMME-ANNUEL-DES-EMISSIONS-2026-${nom}.pdf`,
     verifieLe: "2026-10-25",
   },
   {
-    titre: "Calendrier des émissions du premier trimestre 2026",
+    titre: `Calendrier des émissions du premier trimestre 2026 — ${pays}`,
     editeur: "BEAC",
     date: "2026",
     url: `${BEAC}/CALENDRIER-DES-EMISSIONS-DU-PREMIER-TRIMESTRE-2026-${nom}.pdf`,
@@ -128,26 +146,7 @@ const CAMEROUN: BudgetEtat = {
       url: "https://dgtcfm.cm/wp-content/uploads/2026/01/expose-dgb-lancement-2026-version-finale1201202520h27-1.pdf",
       verifieLe: "2026-10-24",
     },
-    {
-      titre: "Programme annuel des émissions de titres publics 2026 — Cameroun",
-      editeur: "BEAC",
-      date: "2026",
-      url: "https://www.beac.int/wp-content/uploads/2019/06/PROGRAMME-ANNUEL-DES-EMISSIONS-2026-CAMEROUN.pdf",
-      verifieLe: "2026-10-24",
-    },
-    {
-      titre: "Bulletins du marché des titres publics",
-      editeur: "BEAC",
-      url: "https://www.beac.int/m-des-titres-publics/bulletins-marche-titres-publics/",
-      verifieLe: "2026-10-24",
-    },
-    {
-      titre: "Calendrier des émissions du premier trimestre 2026",
-      editeur: "BEAC",
-      date: "2026",
-      url: "https://www.beac.int/wp-content/uploads/2019/06/CALENDRIER-DES-EMISSIONS-DU-PREMIER-TRIMESTRE-2026-CAMEROUN.pdf",
-      verifieLe: "2026-10-25",
-    },
+    ...piecesBeac("CAMEROUN", "Cameroun"),
     {
       titre: "Avis d'émission",
       editeur: "Direction générale du Trésor (DGTCFM)",
@@ -181,7 +180,7 @@ const GABON: BudgetEtat = {
   financement: [],
   programmeBeac: { bta: 566_000, ota: 480_000, total: 1_046_000 },
   source: { texte: "Reprise de presse spécialisée · budget initial annoncé à 7 233,3 milliards", releveLe: "2026-10-25" },
-  references: piecesBeac("GABON"),
+  references: piecesBeac("GABON", "Gabon"),
   aRelever: [
     "Budget initial 7 233,3 ramené à 5 495,2 ; la coupe votée est donnée à −862,9, ce qui ne se déduit pas des deux chiffres — les périmètres diffèrent.",
     "Recettes et dépenses poste par poste : non relevées.",
@@ -201,7 +200,7 @@ const CONGO: BudgetEtat = {
   financement: [],
   programmeBeac: { bta: 285_000, ota: 405_000, total: 690_000 },
   source: { texte: "Reprise de presse spécialisée", releveLe: "2026-10-25" },
-  references: piecesBeac("CONGO"),
+  references: piecesBeac("CONGO", "Congo"),
   aRelever: [
     "Budget relevé de 9 % par collectif sur de meilleures perspectives pétrolières ; le montant n'a pas été relevé.",
     "Recettes, dépenses et plan de financement : non relevés.",
@@ -219,7 +218,7 @@ const TCHAD: BudgetEtat = {
   financement: [],
   programmeBeac: { bta: 120_000, ota: 400_000, total: 520_000 },
   source: { texte: "Reprise de presse spécialisée", releveLe: "2026-10-25" },
-  references: piecesBeac("TCHAD"),
+  references: piecesBeac("TCHAD", "Tchad"),
   aRelever: [
     "Le programme d'émissions est connu, le budget non : la page doit savoir le dire.",
     "Loi de finances, date de promulgation, recettes, dépenses, solde : non relevés.",
@@ -238,7 +237,7 @@ const RCA: BudgetEtat = {
   financement: [],
   programmeBeac: { bta: 0, ota: 66_500, total: 66_500 },
   source: { texte: "Reprise de presse spécialisée", releveLe: "2026-10-25" },
-  references: piecesBeac("RCA"),
+  references: piecesBeac("RCA", "RCA"),
   aRelever: [
     "Le déficit vaut 1,2 % du PIB selon l'État et 3,5 à 4 % selon la Banque africaine de développement : la page doit nommer la mesure ET sa source.",
     "Collectif budgétaire en préparation après des prévisions de trésorerie dépassées à fin juin 2026.",
@@ -257,7 +256,7 @@ const GUINEE: BudgetEtat = {
   financement: [],
   programmeBeac: { bta: 319_000, ota: 100_000, total: 419_000 },
   source: { texte: "Reprise de presse spécialisée", releveLe: "2026-10-25" },
-  references: piecesBeac("GUINEE-EQUATORIALE"),
+  references: piecesBeac("GUINEE-EQUATORIALE", "Guinée éq."),
   aRelever: [
     "Excédent de 53 milliards annoncé au premier trimestre 2026 ; déficit 2026 estimé entre 2,1 et 3,3 % du PIB selon les sources.",
     "Loi de finances, montants et plan de financement : non relevés.",

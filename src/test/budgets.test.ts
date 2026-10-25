@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { RACINE } from "./racine";
-import { SEED_BUDGETS, SEED_NOTES_BUDGET } from "@/data/budgets-seed";
+import { REFERENCES_ZONE, SEED_BUDGETS, SEED_NOTES_BUDGET } from "@/data/budgets-seed";
 import { memoryRepository } from "@/lib/data/memory";
 import { ISSUER_REGISTRY } from "@/data/issuer-registry";
 import { ISSUERS } from "@/data/issuers";
@@ -15,7 +15,7 @@ import brut from "@/data/reference.json";
 import type { AuctionResult } from "@/lib/market/auction-results";
 
 const SEANCES = ((brut as { seances?: unknown[] }).seances ?? []) as AuctionResult[];
-import { amortissement, amortissementImplicite, ecartsEntre, estComplet, financementBoucle, foisLeDeficit, partDesTitres, paysDuSlug, porteDesTitres, slugDuPays, sommeDes, PAYS_CEMAC , trousDe} from "@/lib/market/budget";
+import { amortissement, amortissementImplicite, ecartsEntre, piecesSuivies, estComplet, financementBoucle, foisLeDeficit, partDesTitres, paysDuSlug, porteDesTitres, slugDuPays, sommeDes, PAYS_CEMAC , trousDe} from "@/lib/market/budget";
 import { LIBELLES_DU_RELEVE, MIN, REFUS, numeroSuivant, releveDuBudget, verifierNote, type BrouillonNote } from "@/lib/market/note-budget";
 import { DIT, MOIS_AVANT_DE_S_INQUIETER, carnet, moisEntre, signauxDe } from "@/lib/market/carnet";
 import { SEANCES_MINIMUM, SERVICE_FAIBLE, joursEntre, leveDe, placeSurDeclare, pourquoiPasDeTaux } from "@/lib/market/leve";
@@ -831,6 +831,86 @@ describe("les pièces d'une note", () => {
     }
     /* NON-VACUITÉ : les six États sont bien passés en revue. */
     expect(SEED_BUDGETS.length, "le semis ne porte plus six États").toBe(6);
+  });
+
+  /**
+   * TOUTES LES PIÈCES SE SUIVENT DEPUIS UN SEUL ENDROIT.
+   *
+   * Consigne permanente : conserver et mettre à disposition du desk les liens
+   * de TOUS les documents référencés. Elles vivaient chacune dans sa fiche ou
+   * sous sa note — donc gardées, mais introuvables ensemble. Un lien pourrit
+   * en silence, et on ne s'en aperçoit qu'en le suivant ; encore faut-il
+   * savoir lesquels on détient.
+   */
+  it("rassemble toutes les pièces en un seul endroit, celles sans adresse d'abord", () => {
+    const vues = piecesSuivies(SEED_BUDGETS, SEED_NOTES_BUDGET, REFERENCES_ZONE);
+
+    /* AUCUNE PIÈCE NE SE PERD : tout ce que portent les fiches, les notes et
+       la zone se retrouve dans la liste. */
+    const attendues = new Set(
+      [...REFERENCES_ZONE, ...SEED_BUDGETS.flatMap((b) => b.references ?? []), ...SEED_NOTES_BUDGET.flatMap((n) => n.references ?? [])].map(
+        (r) => `${r.editeur.trim().toLowerCase()}|${r.titre.trim().toLowerCase()}`,
+      ),
+    );
+    const rassemblees = new Set(vues.map((x) => `${x.piece.editeur.trim().toLowerCase()}|${x.piece.titre.trim().toLowerCase()}`));
+    expect([...attendues].filter((k) => !rassemblees.has(k)), "une pièce référencée ne paraît pas au dossier : elle cesse d'être suivie").toEqual([]);
+    expect(vues.length, "le dossier est vide : l'épreuve ne garde rien").toBeGreaterThan(8);
+
+    /* CELLES QU'IL RESTE À TROUVER VIENNENT EN PREMIER : les enterrer en bas
+       reviendrait à les oublier. */
+    const sansLien = vues.findIndex((x) => x.piece.url);
+    expect(vues.slice(0, sansLien).every((x) => !x.piece.url), "les pièces sans adresse ne sont plus groupées en tête").toBe(true);
+
+    /* ET CHACUNE DIT OÙ ELLE SERT : une pièce de zone ne nomme aucun État,
+       une pièce de fiche les nomme. */
+    const zone = vues.find((x) => x.piece.titre.startsWith("Bulletins du marché"));
+    expect(zone?.zone, "une pièce de la zone n'est plus marquée comme telle").toBe(true);
+    expect(zone?.pays, "une pièce de zone est rattachée à un État").toEqual([]);
+    /* ET UNE PIÈCE CITÉE PAR UNE SEULE NOTE APPARTIENT À SON ÉTAT, pas à la
+       zone : l'écran affichait « toute la zone » dès que la liste était vide. */
+    const dUneNote = vues.find((x) => x.piece.titre.startsWith("Annonce d'une révision"));
+    expect(dUneNote?.zone, "une pièce citée par une note passe pour une pièce de zone").toBe(false);
+    expect(dUneNote?.pays, "une pièce citée par une note n'est rattachée à aucun État").toEqual(["Cameroun"]);
+    /* CHAQUE ÉTAT A SON PROPRE PROGRAMME : six documents, six adresses. Les
+       titrer pareil les aurait écrasés en un seul au dédoublonnage — cinq
+       documents perdus en silence, ce qui est précisément ce que ce dossier
+       doit empêcher. */
+    const programmes = vues.filter((x) => x.piece.titre.startsWith("Programme annuel"));
+    expect(programmes.length, "les six programmes annuels ne font plus six pièces distinctes").toBe(6);
+    expect(new Set(programmes.map((x) => x.piece.url)).size, "deux programmes partagent une adresse").toBe(6);
+
+    /* ET L'ÉCRAN LA REND : une liste que personne ne voit ne suit rien. */
+    expect(code("src/app/desk/budgets/page.tsx"), "le dossier n'est plus affiché au desk").toMatch(/piecesSuivies\(budgets, notes, REFERENCES_ZONE\)/);
+  });
+
+  /**
+   * DEUX DOCUMENTS DIFFÉRENTS NE PORTENT JAMAIS LE MÊME NOM.
+   *
+   * Le dossier dédoublonne sur l'éditeur et le titre. Deux pièces d'adresses
+   * différentes titrées pareil s'écrasent donc l'une l'autre, et la seconde
+   * disparaît sans bruit. C'est arrivé : les six programmes annuels de la
+   * BEAC s'appelaient tous « Programme annuel des émissions 2026 ».
+   */
+  it("ne donne jamais le même nom à deux documents différents", () => {
+    const toutes = [...REFERENCES_ZONE, ...SEED_BUDGETS.flatMap((b) => b.references ?? []), ...SEED_NOTES_BUDGET.flatMap((n) => n.references ?? [])];
+    const par = new Map<string, Set<string>>();
+    for (const r of toutes) {
+      if (!r.url) continue;
+      const k = `${r.editeur.trim().toLowerCase()}|${r.titre.trim().toLowerCase()}`;
+      par.set(k, (par.get(k) ?? new Set()).add(r.url));
+    }
+    const collisions = [...par].filter(([, u]) => u.size > 1).map(([k, u]) => `${k} → ${u.size} adresses`);
+    expect(collisions, "deux documents différents portent le même nom : l'un disparaîtra du dossier").toEqual([]);
+    expect(par.size, "plus aucune pièce ne porte d'adresse : l'épreuve ne garde rien").toBeGreaterThan(10);
+  });
+
+  /* UNE PIÈCE OUVERTE QUELQUE PART VAUT OUVERTE PARTOUT : deux fiches citent
+     le même document, l'une avec son adresse, l'autre sans. */
+  it("relève l'adresse d'une pièce citée sans elle ailleurs", () => {
+    const sans = { titre: "Pièce d'essai", editeur: "Essai" };
+    const avec = { ...sans, url: "https://exemple.test/piece.pdf", verifieLe: "2026-10-25" };
+    const a = piecesSuivies([{ ...cameroun(), references: [sans] }, { ...cameroun(), pays: "Gabon" as const, references: [avec] }], []);
+    expect(a.find((x) => x.piece.titre === "Pièce d'essai")?.piece.url, "une pièce reste sans adresse alors qu'une autre fiche l'a ouverte").toBe(avec.url);
   });
 
   it("date chaque adresse qu'elle consigne", () => {

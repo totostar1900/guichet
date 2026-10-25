@@ -4,7 +4,8 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
-import { MOT_DU_MILLESIME, enMilliards, estComplet, notesDe, parLisibilite, partDesTitres, porteDesTitres, slugDuPays , trousDe} from "@/lib/market/budget";
+import { MOT_DU_MILLESIME, enMilliards, estComplet, notesDe, parLisibilite, partDesTitres, piecesSuivies, porteDesTitres, slugDuPays, trousDe } from "@/lib/market/budget";
+import { REFERENCES_ZONE } from "@/data/budgets-seed";
 import { DIT, carnet } from "@/lib/market/carnet";
 import type { BudgetEtat } from "@/lib/domain/types";
 import styles from "./page.module.css";
@@ -47,6 +48,8 @@ export default async function BudgetsPage() {
   /* LE JOUR EST PASSÉ, JAMAIS LU DANS LE DOMAINE : un signal qui dit « il y a
      sept mois » se cite, donc il doit se tester. */
   const signaux = carnet(budgets, notes, seances, new Date().toISOString().slice(0, 10));
+  const pieces = piecesSuivies(budgets, notes, REFERENCES_ZONE);
+  const sansLien = pieces.filter((x) => !x.piece.url).length;
 
   return (
     <>
@@ -146,6 +149,59 @@ export default async function BudgetsPage() {
             );
           })}
         </div>
+
+        {/* TOUTES LES PIÈCES, POUR QU'ON PUISSE LES SUIVRE. Elles vivaient
+            chacune dans sa fiche : consignées, donc, mais introuvables
+            ensemble. Un lien pourrit en silence, et on ne s'en aperçoit qu'en
+            le suivant — encore faut-il savoir lesquels on détient. */}
+        <section className={styles.dossier}>
+          <h2>{t("Les pièces du dossier")}</h2>
+          <p className={styles.carnetDit}>
+            {t("Tout ce sur quoi ces fiches et ces notes s'appuient, avec le jour où chaque adresse a été ouverte. Celles qui n'en ont pas encore viennent en premier : ce sont celles qu'il reste à trouver.")}{" "}
+            {sansLien > 0 ? (
+              <b>
+                {sansLien} {t("sans adresse à ce jour.")}
+              </b>
+            ) : null}
+          </p>
+          <table className={styles.tableauPieces}>
+            <thead>
+              <tr>
+                <th>{t("La pièce")}</th>
+                <th>{t("Où elle sert")}</th>
+                <th>{t("Ouverte le")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pieces.map((x) => (
+                <tr key={`${x.piece.editeur}-${x.piece.titre}`} className={x.piece.url ? undefined : styles.aTrouver}>
+                  <td>
+                    {x.piece.url ? (
+                      <a href={x.piece.url} target="_blank" rel="noreferrer noopener">
+                        {x.piece.titre}
+                      </a>
+                    ) : (
+                      <span>{x.piece.titre}</span>
+                    )}
+                    <small>
+                      {x.piece.editeur}
+                      {x.piece.date ? ` · ${x.piece.date}` : ""}
+                    </small>
+                  </td>
+                  <td>
+                    {x.zone ? t("toute la zone") : x.pays.length === budgets.length ? t("les six États") : x.pays.length ? x.pays.join(", ") : t("État non rattaché")}
+                    {x.notes.length ? (
+                      <small>
+                        {x.notes.length} {t("note(s) s'y appuient")}
+                      </small>
+                    ) : null}
+                  </td>
+                  <td className={styles.quand}>{x.piece.verifieLe ? fmtDate(x.piece.verifieLe) : t("jamais ouverte")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
 
         <p className={styles.refus}>
           <b>{t("Pas de ligne « CEMAC ».")}</b>{" "}

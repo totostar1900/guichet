@@ -191,3 +191,50 @@
   color: var(--ink-2);
   min-width: 0;
 }
+
+/* ---------- le dossier documentaire ----------
+   Une table et non des cartes : on y cherche une pièce par son nom, et on
+   compare des dates d'ouverture. C'est l'inverse des budgets, où la carte
+   s'imposait parce que quatre fiches sur six sont incomplètes. */
+.dossier {
+  margin: var(--s-10) 0 0;
+}
+.dossier h2 {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-5);
+}
+.tableauPieces {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-3);
+}
+.tableauPieces th {
+  padding: var(--s-2) var(--s-4) var(--s-2) 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-align: left;
+  font-weight: 600;
+}
+.tableauPieces td {
+  padding: var(--s-3) var(--s-4) var(--s-3) 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.tableauPieces small {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+/* Celles qu'il reste à trouver : nommées, jamais cachées. */
+.aTrouver td {
+  background: var(--warn-soft);
+}
+.quand {
+  white-space: nowrap;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}

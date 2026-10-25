@@ -1,4 +1,4 @@
-import type { BudgetEtat, Country, EtatDuMillesime, NoteBudget, PorteDeFinancement } from "@/lib/domain/types";
+import type { BudgetEtat, Country, EtatDuMillesime, NoteBudget, PorteDeFinancement, Reference } from "@/lib/domain/types";
 
 /**
  * CE QUE LA PAGE DES BUDGETS CALCULE, ET CE QU'ELLE REFUSE DE CALCULER.
@@ -152,3 +152,63 @@ export const slugDuPays = (p: Country): string =>
   ({ Cameroun: "cameroun", Gabon: "gabon", Congo: "congo", Tchad: "tchad", RCA: "rca", "Guinée éq.": "guinee-equatoriale" })[p];
 
 export const paysDuSlug = (s: string): Country | undefined => PAYS_CEMAC.find((p) => slugDuPays(p) === s);
+
+/**
+ * TOUTES LES PIÈCES, EN UN SEUL ENDROIT, POUR QU'ON PUISSE LES SUIVRE.
+ *
+ * Elles vivaient chacune dans sa fiche ou sous sa note : consignées, donc,
+ * mais introuvables ensemble. Un lien pourrit en silence, et on ne s'en
+ * aperçoit qu'en le suivant ; encore faut-il savoir lesquels on détient.
+ *
+ * LA LISTE DIT AUSSI OÙ CHAQUE PIÈCE SERT, parce qu'un document commun à six
+ * États ne se reprend pas six fois et qu'un document propre à un seul doit
+ * dire lequel. Et elle garde les pièces SANS adresse : ce sont celles qu'il
+ * reste à trouver, et les cacher reviendrait à les oublier.
+ */
+export interface PieceSuivie {
+  piece: Reference;
+  /**
+   * VRAI SEULEMENT POUR UNE PIÈCE DE LA ZONE, et pas pour une pièce dont on
+   * ignore l'État. L'écran disait « toute la zone » dès que la liste des pays
+   * était vide : une pièce citée par une seule note camerounaise s'affichait
+   * donc comme valant pour les six. Un drapeau, pas un repli.
+   */
+  zone: boolean;
+  /** Les États où elle sert : les fiches qui la portent, et celles de ses notes. */
+  pays: Country[];
+  /** Les notes qui s'appuient dessus, par leur rang. */
+  notes: { pays: Country; numero: number }[];
+}
+
+export function piecesSuivies(budgets: BudgetEtat[], notes: NoteBudget[], zone: Reference[] = []): PieceSuivie[] {
+  const clef = (r: Reference) => `${r.editeur.trim().toLowerCase()}|${r.titre.trim().toLowerCase()}`;
+  const par = new Map<string, PieceSuivie>();
+  const poser = (r: Reference) => {
+    const k = clef(r);
+    const vu = par.get(k);
+    if (vu) {
+      /* Une pièce déjà vue SANS adresse gagne celle de son homonyme : deux
+         fiches peuvent citer le même document, l'une l'ayant ouvert. */
+      if (!vu.piece.url && r.url) vu.piece = r;
+      return vu;
+    }
+    const neuf: PieceSuivie = { piece: r, zone: false, pays: [], notes: [] };
+    par.set(k, neuf);
+    return neuf;
+  };
+  for (const r of zone) poser(r).zone = true;
+  for (const b of budgets) for (const r of b.references ?? []) {
+    const e = poser(r);
+    if (!e.pays.includes(b.pays)) e.pays.push(b.pays);
+  }
+  for (const n of notes) for (const r of n.references ?? []) {
+    const e = poser(r);
+    e.notes.push({ pays: n.pays, numero: n.numero });
+    /* Une pièce que seule une note cite appartient à l'État de cette note :
+       sans cela elle n'apparaîtrait sous aucun pays. */
+    if (!e.zone && !e.pays.includes(n.pays)) e.pays.push(n.pays);
+  }
+  /* Celles qu'il reste à trouver d'abord : c'est le seul endroit où elles se
+     voient toutes, et une liste qui les enterre ne sert pas au suivi. */
+  return [...par.values()].sort((a, b) => Number(Boolean(a.piece.url)) - Number(Boolean(b.piece.url)) || a.piece.editeur.localeCompare(b.piece.editeur) || a.piece.titre.localeCompare(b.piece.titre));
+}
