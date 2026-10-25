@@ -89,6 +89,40 @@ describe("les icônes de service se voient", () => {
     expect(Object.keys(ICONE_SERVICE).length).toBe(CATALOGUE.length);
   });
 
+  /**
+   * L'ÉCUSSON TIENT LE COIN, ET LES DEUX SEUILS SONT LE MÊME NOMBRE.
+   *
+   * Il est passé en haut à droite le 26 octobre 2026, sur demande du
+   * dirigeant : calé à gauche, il ouvrait la lecture au-dessus du titre, à la
+   * place même où l'œil cherche le nom.
+   *
+   * CE QUE LA MESURE A IMPOSÉ. Posé dans le coin, hors du flux, il croise le
+   * titre dès que la tuile se rétrécit : à 520 px, deux colonnes donnent des
+   * tuiles de 240, « Adjudications » fait 195 px au degré du titre et la
+   * réserve de l'écusson en prend 48 — le mot passait SOUS le dessin. Il
+   * revient donc dans le flux au-dessus du seuil des deux colonnes.
+   *
+   * ET C'EST POURQUOI LES DEUX SEUILS DOIVENT RESTER ÉGAUX. Celui des
+   * colonnes et celui de l'écusson décrivent le même basculement ; les
+   * séparer, c'est rouvrir la fenêtre de largeurs où le titre se cache
+   * derrière son icône — une fenêtre que personne ne regarde, puisqu'elle ne
+   * s'ouvre ni sur un téléphone ni sur un écran de bureau.
+   */
+  it("pose l'écusson dans le coin, et bascule au même seuil que les colonnes", () => {
+    const css = lire("src/app/trader/Parcours.module.css");
+    expect(css, "l'écusson n'est plus dans le coin de la tuile").toMatch(/\.marque \{[\s\S]*?position: absolute/);
+    expect(css, "la tuile n'est plus le repère de ce coin : l'écusson se posera sur la page").toMatch(/\.tuile \{\n\s*position: relative/);
+
+    const seuils = [...css.matchAll(/@media \(min-width: (\d+)px\)/g)].map((m) => m[1]);
+    expect(seuils.length, "il n'y a plus deux bascules à accorder").toBeGreaterThanOrEqual(2);
+    expect(new Set(seuils).size, `les bascules ne sont plus au même seuil : ${seuils.join(", ")} — le titre se cachera derrière l'écusson entre les deux`).toBe(1);
+
+    /* Non vacuité : les deux blocs sont bien ceux qu'on croit. */
+    const deuxColonnes = css.slice(css.indexOf("@media (min-width:"));
+    expect(deuxColonnes, "la bascule des colonnes a disparu").toMatch(/grid-template-columns: repeat\(2/);
+    expect(css, "l'écusson ne revient plus dans le flux à deux colonnes").toMatch(/position: static/);
+  });
+
   /* LES ICÔNES DE PAGE, ELLES, N'ONT QU'UN POSEUR et il déclare le trait :
      c'est pourquoi elles se voyaient. La vérification est ici pour que la
      différence soit lisible — et pour que le jour où une seconde surface les

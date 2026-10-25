@@ -200,6 +200,7 @@
    sur le DESSIN, qui est de toute façon ce qui distingue un service, et le
    titre prend l'or de la maison — l'accent de tout le reste. */
 .tuile {
+  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
@@ -242,6 +243,9 @@
    Et un chiffre de même taille disputerait au titre la première lecture : le
    titre nomme, la valeur renseigne. */
 .tuile > b {
+  /* La réserve de l'écusson, qui est hors du flux : 38 px de dessin et la
+     marge de la tuile. Sans elle, un nom long passerait dessous. */
+  padding-right: calc(38px + var(--s-5));
   color: var(--gold-ink);
   font-size: var(--t-7);
   font-weight: 600;
@@ -285,7 +289,22 @@
    descendre un peu pour obtenir. L'or reste le repli, pour un service dont
    la teinte manquerait. */
 .marque {
+  /* DANS LE COIN, ET HORS DU FLUX — 26 octobre 2026, sur demande du
+     dirigeant. La tuile est une colonne calée à gauche : l'écusson y ouvrait
+     la lecture au-dessus du titre, à la place même où l'œil cherche le nom.
+     Posé à droite, il devient ce qu'il est — une marque qu'on retrouve d'une
+     tuile à l'autre sans qu'elle précède le mot.
+     « align-self: flex-end » SUFFISAIT À LE DÉPLACER ET NE SUFFISAIT PAS :
+     il gardait sa rangée, et laissait une bande vide à sa gauche sur toute
+     la largeur de la tuile. Hors du flux, le titre récupère le haut, et
+     l'écusson tient le coin. La réserve à droite du titre est ce qui les
+     empêche de se croiser quand le nom s'allonge. */
+  position: absolute;
+  top: var(--s-7);
+  right: var(--s-7);
   display: grid;
+  /* Voir la règle à deux colonnes, plus bas : le coin ne tient que sur une
+     tuile large. */
   place-items: center;
   width: 38px;
   height: 38px;
@@ -435,4 +454,27 @@
 .prose em,
 .prose b {
   color: var(--ink-3);
+}
+
+/* LE COIN NE TIENT QUE SUR UNE TUILE LARGE, et la mesure a tranché.
+
+   En une colonne, la tuile fait 330 px et plus : le titre commence en haut à
+   gauche et l'écusson tient le coin sans jamais le croiser, relevé de 330 à
+   420 px. À deux colonnes, elle retombe à 240 : « Adjudications » fait 195 px
+   au degré du titre, la réserve de l'écusson en prend 48, et le mot passait
+   SOUS le dessin — vu au navigateur à 520 px le 26 octobre 2026. Un mot de
+   treize lettres ne se coupe pas, et le descendre d'un degré ne suffisait pas
+   non plus.
+
+   L'écusson revient donc dans le flux au-dessus de 430 px : il garde sa
+   rangée, à droite, et le titre a toute la largeur. C'est le même seuil que
+   celui des colonnes, et c'est voulu — une seule largeur à retenir. */
+@media (min-width: 430px) {
+  .marque {
+    position: static;
+    align-self: flex-end;
+  }
+  .tuile > b {
+    padding-right: 0;
+  }
 }
