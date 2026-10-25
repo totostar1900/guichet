@@ -9,8 +9,9 @@ import { aCouvrirPour, plafondEnVigueur, prixDuPlafond, seSigneAuPlafond } from 
 import { disponibleDe } from "@/lib/domain/provision";
 import { ordreAcceptable } from "@/lib/domain/ouverture";
 import { positionFor } from "@/lib/documents/position";
+import { etatDArbitrage } from "@/lib/domain/arbitrage";
 import { peutOPCVM } from "@/lib/auth/types";
-import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
+import { fmt, fmtDate, fmtDateTime, localIso } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import { canalDuCode } from "@/lib/kyc/canal";
 import { AuDoigt } from "./AuDoigt";
@@ -88,6 +89,13 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
      décision qu'on est en train de prendre : l'apprendre après la signature,
      c'est l'apprendre trop tard. Le solde se lit donc ici, et la même règle
      décidera à la signature, sur le solde de cet instant-là. */
+  /* L'ARBITRAGE DE CET ORDRE, S'IL EN PORTE UN. La ligne d'arrivée est lue
+     ici et non dans le rendu : une ligne retirée du Guichet rendrait
+     « undefined », et la page doit alors dire « une ligne retirée » plutôt que
+     de taire l'arbitrage — c'est précisément le cas où le client doit nous
+     appeler. */
+  const arb = etatDArbitrage(intent, localIso(new Date()));
+  const arrivee = intent.switchToOfferId ? await repo().getOffer(intent.switchToOfferId) : undefined;
   const aRegler = aCouvrirPour(intent, offer);
   const dispo = intent.signedAt ? 0 : await disponibleDe(s.userId);
   const couvrirait = !intent.signedAt && aRegler > 0 && dispo >= aRegler;
@@ -190,6 +198,44 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
             <Link href={`/moi/ordres/${intent.id}/lire`}>{intent.signedAt ? t("Lire l'ordre signé") : t("Lire l'ordre complet")}</Link>
           </p>
         </section>
+
+        {/* L'ARBITRAGE PORTE SON ÉTAT EN CLAIR, ET C'EST LA MOITIÉ DU SERVICE.
+
+            Le fil entre les deux ordres existait depuis la migration 0042 et
+            n'était affiché NULLE PART côté client : il portait son arbitrage
+            sans jamais le voir. Tant que la paire est armée, rien ne bouge — et
+            « rien ne bouge » est exactement ce qu'un client ne peut pas
+            distinguer d'un oubli de la maison. Il rappelle, ou il repasse
+            l'ordre à la main, ce qui défait la protection.
+
+            ET L'EXPIRATION SE LIT COMME UN SUCCÈS. Un arbitrage qui s'annule
+            sans rien faire est la protection qui a joué ; écrit autrement, le
+            client lit « ça n'a pas marché » et n'en reposera jamais. Les mots
+            viennent du domaine, avec ceux du robot du soir, pour qu'ils ne
+            divergent pas. */}
+        {arb && (
+          <section className={styles.arbitrage}>
+            <div className={styles.arbH}>
+              <span className={styles.arbPastille} data-etat={arb.etat}>{t(arb.mot)}</span>
+              {t("Arbitrage vers {l}", { l: arrivee?.title ?? t("une ligne retirée") })}
+            </div>
+            <p className={styles.arbDit}>{t(arb.phrase)}</p>
+            <dl className={styles.lignes}>
+              {intent.switchFloor != null && (
+                <div>
+                  <dt>{t("Plancher signé")}</dt>
+                  <dd>{fmt(intent.switchFloor)} FCFA</dd>
+                </div>
+              )}
+              {intent.switchBy && (
+                <div>
+                  <dt>{t("Date limite")}</dt>
+                  <dd>{fmtDate(intent.switchBy, false)}</dd>
+                </div>
+              )}
+            </dl>
+          </section>
+        )}
 
         {intent.signedAt ? (
           <div className={styles.signe}>

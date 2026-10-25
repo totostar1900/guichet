@@ -285,3 +285,53 @@
   gap: var(--s-5);
   flex-wrap: wrap;
 }
+
+/* L'ARBITRAGE DE CET ORDRE.
+
+   Il est posé APRÈS « ce que vous signez » et non dedans, parce que ce n'est
+   pas une condition de cet ordre-ci : c'est un second ordre, armé, qui naîtra
+   de celui-là. Le mêler aux lignes du récapitulatif le ferait lire comme une
+   clause, et le client chercherait sa signature. */
+.arbitrage {
+  margin-top: var(--s-6);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.arbH {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+  color: var(--ink);
+  font-size: var(--t-4);
+  font-weight: 700;
+}
+/* LA PASTILLE PORTE LE SENS, ET PAS SEULEMENT LA COULEUR. Le mot est dedans —
+   « Armé », « Parti », « Expiré » — parce qu'un daltonien et un écran en plein
+   soleil lisent le mot et pas la teinte. L'expiré est NEUTRE, et c'est
+   délibéré : ce n'est pas une alerte, c'est la protection qui a joué. */
+.arbPastille {
+  padding: 2px var(--s-3);
+  border: 1px solid var(--line-2);
+  color: var(--ink-2);
+  font-size: var(--t-1);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.arbPastille[data-etat="arme"] {
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+}
+.arbPastille[data-etat="parti"] {
+  border-color: var(--good);
+  color: var(--good);
+}
+.arbDit {
+  margin: 0 0 var(--s-5);
+  color: var(--ink-2);
+  font-size: var(--t-3);
+  line-height: 1.5;
+}

@@ -153,6 +153,9 @@ export interface Repository {
         | "counter"
         | "switchToOfferId"
         | "switchFromIntentId"
+        // Les deux bornes de l'arbitrage : migration 0116.
+        | "switchFloor"
+        | "switchBy"
         // La signature de l'ordre et le code qui la donne : migration 0071.
         | "pendingCodeHash"
         | "pendingCodeAt"

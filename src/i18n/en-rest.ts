@@ -939,12 +939,68 @@ export const EN_REST: Record<string, string> = {
   "Replacer le produit dans (facultatif)": "Move the proceeds into (optional)",
   "non : virer le produit sur mon compte": "no : transfer the proceeds to my account",
   "Le desk enchaîne la souscription dès le rachat exécuté, pour le montant exact reçu.": "The desk chains the subscription as soon as the redemption is executed, for the exact amount received.",
-  "Le fonds de destination est introuvable.": "The destination fund cannot be found.",
-  "Un passage part d'un fonds.": "A switch starts from a fund.",
-  "Un passage arrive sur un fonds.": "A switch lands on a fund.",
-  "Le fonds de destination est le fonds de départ.": "The destination fund is the fund you are leaving.",
-  "Ce fonds n'est plus proposé.": "This fund is no longer offered.",
+
+  /* ---------- L'ARBITRAGE GÉNÉRALISÉ, 26 octobre 2026 ----------
+
+     Les six refus d'avant ne parlaient que de fonds — « un passage part d'un
+     fonds » — parce que le service n'allait que d'un fonds à un fonds. Ils
+     sont remplacés, et non complétés : laisser les anciennes clefs aurait
+     gardé en anglais des phrases que le français ne dit plus. */
+  "La ligne d'arrivée est introuvable.": "The destination line cannot be found.",
+  "La ligne d'arrivée est la ligne de départ.": "The destination line is the line you are leaving.",
+  "Un arbitrage part d'un fonds ou d'une ligne cotée : c'est ce qui se revend.": "An arbitrage starts from a fund or a listed line : those are what can be sold back.",
+  "Un rachat du Trésor est une sortie, pas un départ d'arbitrage : le Trésor peut n'en retenir qu'une partie, et ce qu'il retient n'est connu qu'après.":
+    "A Treasury buyback is an exit, not the start of an arbitrage : the Treasury may take only part of it, and what it takes is known only afterwards.",
+  "Un arbitrage n'arrive pas sur une adjudication ni sur une émission : l'allocation n'est pas décidée par la maison, et elle n'est connue que des jours plus tard.":
+    "An arbitrage does not land on an auction or on an issue : the allocation is not the firm's to decide, and it is known only days later.",
+  "Cette ligne n'est plus proposée.": "This line is no longer offered.",
   "Ce fonds n'est pas encore distribué par la maison.": "The firm does not distribute this fund yet.",
+  "Sans arrivée, le produit est viré sur votre compte et vous décidez ensuite.": "With no destination, the proceeds are transferred to your account and you decide afterwards.",
+  "Les deux jambes se signent ensemble": "Both legs are signed together",
+  "La paire est armée : rien ne part tant que les deux jambes ne tiennent pas le même jour": "The pair is armed : nothing leaves until both legs hold on the same day",
+  "Le rachat et la souscription se règlent sur une valeur liquidative, et les deux VL retenues vous sont dites avant la signature.":
+    "The redemption and the subscription both settle on a net asset value, and the two NAVs used are told to you before you sign.",
+  "Une des deux jambes passe par le carnet de la BVMAC, où un ordre peut rester plusieurs séances sans trouver preneur. Vous ne vous désinvestissez donc que si l'arrivée est tenue — au prix de pouvoir ne jamais partir.":
+    "One of the two legs goes through the BVMAC order book, where an order can sit for several sessions without finding a counterparty. So you only divest if the destination is secured — at the cost of possibly never leaving.",
+  "Plancher (FCFA)": "Floor (FCFA)",
+  "Sous ce produit de vente, rien ne part.": "Below these sale proceeds, nothing leaves.",
+  "Date limite": "Cut-off date",
+  "Au-delà, l'arbitrage s'annule et votre position reste telle quelle.": "Beyond it, the arbitrage is cancelled and your position stays as it is.",
+  "Si la date passe sans que les deux jambes tiennent, tout s'annule : votre position est intacte, et votre argent aussi.":
+    "If the date passes without both legs holding, everything is cancelled : your position is untouched, and so is your money.",
+  "Dites le plancher : le montant sous lequel vous ne voulez pas que la vente parte.": "State the floor : the amount below which you do not want the sale to leave.",
+  "Dites la date limite : au-delà, l'arbitrage s'annule et votre position reste telle quelle.": "State the cut-off date : beyond it, the arbitrage is cancelled and your position stays as it is.",
+  "La date limite est passée : un arbitrage armé sur une date échue ne partira jamais.": "The cut-off date has passed : an arbitrage armed on a lapsed date will never leave.",
+
+  /* L'ÉTAT DE L'ARBITRAGE SUR LA FICHE DE L'ORDRE. Mot et phrase passent par
+     « t(variable) », donc le relevé du français en clair ne les voit pas : si
+     l'un manque ici, le lecteur anglais lit du français et rien ne tombe.
+     C'est l'épreuve de l'arbitrage qui les exige, en les lisant au domaine. */
+  "Trois façons de déplacer votre argent": "Three ways to move your money",
+  "Arbitrage": "Arbitrage",
+  "Vendre d'abord": "Sell first",
+  "Acheter seulement": "Buy only",
+  "Vous ne vous désinvestissez que si l'arrivée est tenue.": "You only divest if the destination is secured.",
+  "L'opération peut ne jamais partir.": "The operation may never leave.",
+  "La vente part tout de suite.": "The sale leaves straight away.",
+  "Vous détenez du cash sans garantie de rachat.": "You hold cash with no guarantee of buying back.",
+  "L'achat part tout de suite.": "The purchase leaves straight away.",
+  "Il faut la provision.": "The float has to cover it.",
+  "Arbitrage vers {l}": "Arbitrage into {l}",
+  "une ligne retirée": "a withdrawn line",
+  "Plancher signé": "Signed floor",
+  "Armé": "Armed",
+  "Parti": "Gone",
+  "Expiré": "Lapsed",
+  "Sans suite": "Closed",
+  "Rien n'a bougé. La vente ne partira que le jour où la ligne d'arrivée tient au même moment, et au-dessus de votre plancher.":
+    "Nothing has moved. The sale will only leave on the day the destination line holds at the same moment, and above your floor.",
+  "Les deux jambes sont parties : le produit de la vente a rejoint la ligne d'arrivée.":
+    "Both legs have gone : the sale proceeds have reached the destination line.",
+  "La date limite est passée sans que les deux jambes tiennent le même jour. Rien n'a bougé : votre position est intacte, et votre argent aussi. C'est la protection qui a joué.":
+    "The cut-off date passed without both legs holding on the same day. Nothing moved : your position is untouched, and so is your money. That is the protection doing its work.",
+  "Cet arbitrage a été clos avant son terme. Rien n'a bougé : votre position est intacte.":
+    "This arbitrage was closed before its term. Nothing moved : your position is untouched.",
   "Ou programmer un versement chaque mois": "Or set up a monthly instalment",
   "Vous donnez l'ordre une fois : le montant, le jour, la ligne. Chaque mois, le desk passe pour vous un ordre de souscription réel sur cette ligne, à votre nom. Rien n'est mis en commun, et vous l'arrêtez quand vous voulez.": "You give the order once : the amount, the day, the line. Each month the desk places a real subscription order on that line, in your name. Nothing is pooled, and you stop it whenever you want.",
   "Montant du versement": "Instalment amount",

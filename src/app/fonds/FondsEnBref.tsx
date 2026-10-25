@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useT } from "@/i18n/client";
 import { DefinitionsDeBrief, EnBref, TitreDeBrief } from "@/components/EnBref";
+import { GESTES } from "@/lib/domain/arbitrage";
 import { FUND_CATEGORY_LABEL } from "@/lib/domain/market";
 import styles from "./FondsEnBref.module.css";
 
@@ -28,7 +29,34 @@ export function FondsEnBref() {
   const t = useT();
   const cats = ["M", "O", "D", "A"] as const;
   return (
-    <EnBref cles={["fonds", "passage"]} titre="Les fonds en bref" coach="fonds-enbref">
+    <EnBref
+      cles={["fonds", "passage"]}
+      titre="Les fonds en bref"
+      coach="fonds-enbref"
+      /* LES TROIS GESTES, CÔTE À CÔTE, ET APRÈS LES ÉTAPES.
+
+         La protection de l'arbitrage est un CHOIX par opération, pas un
+         régime. Deux des trois gestes existaient déjà et n'étaient pas
+         nommés — vendre seul, acheter seul — et un client qui prend la voie
+         non protégée doit savoir qu'il la prend : c'est la seule façon pour
+         que la voie protégée veuille dire quelque chose. La table vit dans le
+         domaine, avec le reste de la doctrine. */
+      apres={
+        <section>
+          <TitreDeBrief>{t("Trois façons de déplacer votre argent")}</TitreDeBrief>
+          <DefinitionsDeBrief>
+            {GESTES.map((g) => (
+              <div key={g.cle}>
+                <dt>{t(g.nom)}</dt>
+                <dd>
+                  {t(g.garanti)} <em className={styles.risque}>{t(g.risque)}</em>
+                </dd>
+              </div>
+            ))}
+          </DefinitionsDeBrief>
+        </section>
+      }
+    >
       <p>
         {t("Un OPCVM met en commun l'argent de plusieurs porteurs et le place selon une règle écrite. Ceux-ci sont agréés par la COSUMAF et leur valeur liquidative paraît au Bulletin Officiel de la Cote, avec leur société de gestion et leur dépositaire.")}
       </p>

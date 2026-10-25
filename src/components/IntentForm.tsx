@@ -65,13 +65,15 @@ function qtyForCash(o: Offer, type: IntentType, cash: number, limit: number | nu
   return Math.floor(cash / p / lot) * lot;
 }
 
-/** Un fonds que le client peut viser depuis celui-ci : la page les a déjà filtrés. */
+/** Une ligne que le client peut viser depuis celle-ci : la page les a déjà filtrées. */
 export interface SwitchTarget {
   id: string;
   title: string;
+  /** Un fonds : la paire est simultanée. Sinon elle passe par le carnet, et elle est armée. */
+  fonds: boolean;
 }
 
-export function IntentForm({ offer, types, initialType, initialAmount, held = 0, switchTargets = [], past, signedIn, tier = 0, phone = "", phoneProven = false, email = "", name = "", channels, bridge, profileFlag, investable, monthly }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; switchTargets?: SwitchTarget[];  past: boolean; signedIn: boolean; tier?: number; phone?: string; /** le numéro de la session a été confirmé par un code à la connexion */ phoneProven?: boolean; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number; /** Le versement programmé, quand la ligne en accepte un : l'autre branche du choix. */ monthly?: ReactNode }) {
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, switchTargets = [], fenetre, past, signedIn, tier = 0, phone = "", phoneProven = false, email = "", name = "", channels, bridge, profileFlag, investable, monthly }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; switchTargets?: SwitchTarget[]; /** Les deux bouts de la fenêtre d'un arbitrage, calculés au serveur : voir « intent-context ». */ fenetre?: { min: string; max: string }; past: boolean; signedIn: boolean; tier?: number; phone?: string; /** le numéro de la session a été confirmé par un code à la connexion */ phoneProven?: boolean; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number; /** Le versement programmé, quand la ligne en accepte un : l'autre branche du choix. */ monthly?: ReactNode }) {
   // The profile name is "Prénom Nom" when the client typed it, or an e-mail stub otherwise.
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
   const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
@@ -82,9 +84,15 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const [amount, setAmount] = useState(initialAmount ? fmtUnits(initialAmount) : "");
   const [type, setType] = useState<IntentType>(initialType);
   const [limit, setLimit] = useState("");
-  // Le fonds d arrivee d un passage : il faut un etat, la liste de la maison
+  // La ligne d arrivee d un arbitrage : il faut un etat, la liste de la maison
   // etant controlee, la native ne l etait pas.
   const [switchTo, setSwitchTo] = useState("");
+  /* LES DEUX BORNES, OBLIGATOIRES dès qu'une arrivée est choisie — tranché par
+     le dirigeant le 26 octobre 2026. Elles ne paraissent qu'avec l'arrivée :
+     posées d'avance, elles demanderaient deux chiffres à qui ne fait qu'un
+     ordre ordinaire, c'est-à-dire à presque tout le monde. */
+  const [floor, setFloor] = useState("");
+  const [by, setBy] = useState("");
   /**
    * ON ACHÈTE AVEC UNE SOMME, ON VEND CE QU'ON DÉTIENT.
    *
@@ -168,8 +176,17 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   // Le sondage ne vit que sur le primaire obligataire, et seulement quand le client
   // annonce une demande : une information ou un rappel ne porte pas de condition.
   const survey = (offer.kind === "OTA" || offer.kind === "APE" || offer.kind === "BTA") && (type === "appetit" || type === "ferme");
-  // Le passage : sortir d'un fonds pour entrer dans un autre, en une instruction.
-  const canSwitch = offer.kind === "FONDS" && type === "rachat" && switchTargets.length > 0;
+  /* L'ARBITRAGE : QUITTER CETTE LIGNE POUR UNE AUTRE, EN UNE INSTRUCTION.
+     Il ne s'offrait que depuis un rachat de fonds — un sixième des lignes
+     qu'on détient. Il s'offre maintenant depuis toute vente, et c'est la
+     généralisation demandée le 25 octobre 2026. */
+  const canSwitch = (type === "rachat" || type === "vente") && switchTargets.length > 0;
+  const arrivee = switchTargets.find((x) => x.id === switchTo);
+  /* LE CAS SE LIT SUR L'ARRIVÉE, et il décide de la phrase que le client lit
+     avant de signer : de fonds à fonds les deux jambes se règlent sur une VL,
+     partout ailleurs une jambe passe par le carnet et la paire est ARMÉE. Le
+     coût de la contrainte doit être visible, pas découvert. */
+  const simultane = Boolean(arrivee?.fonds && offer.kind === "FONDS");
   const limitNum = limit ? Number(limit.replace(",", ".")) : null;
   const lim = limitNum != null && !isNaN(limitNum) && limitNum > 0 ? limitNum : null;
   // Vendre ou racheter part d'un nombre de titres détenus : la somme n'y a pas
@@ -565,7 +582,40 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                 block
                 options={[{ value: "", label: t("non : virer le produit sur mon compte") }, ...switchTargets.map((x) => ({ value: x.id, label: x.title }))]}
               />
-              <small className="muted">{t("Le desk enchaîne la souscription dès le rachat exécuté, pour le montant exact reçu.")}</small>
+              {!switchTo && <small className="muted">{t("Sans arrivée, le produit est viré sur votre compte et vous décidez ensuite.")}</small>}
+            </div>
+          )}
+          {/* CE QUE L'ARBITRAGE COÛTE, ÉCRIT AVANT LA SIGNATURE.
+              La protection vient avec une contrainte, et une contrainte
+              découverte après coup n'est pas une protection : c'est une
+              panne. La phrase change avec le cas — simultané ou armé — parce
+              que le prix n'est pas le même. */}
+          {canSwitch && switchTo && (
+            <div className={styles.arbitrage}>
+              <p className={styles.arbTitre}>{t(simultane ? "Les deux jambes se signent ensemble" : "La paire est armée : rien ne part tant que les deux jambes ne tiennent pas le même jour")}</p>
+              <p className={styles.arbDit}>
+                {t(
+                  simultane
+                    ? "Le rachat et la souscription se règlent sur une valeur liquidative, et les deux VL retenues vous sont dites avant la signature."
+                    : "Une des deux jambes passe par le carnet de la BVMAC, où un ordre peut rester plusieurs séances sans trouver preneur. Vous ne vous désinvestissez donc que si l'arrivée est tenue — au prix de pouvoir ne jamais partir.",
+                )}
+              </p>
+              <div className={styles.arbBornes}>
+                <label className="field">
+                  {t("Plancher (FCFA)")}
+                  <input name="switchFloor" inputMode="numeric" value={floor} onChange={(e) => setFloor(e.target.value)} required />
+                  <small className="muted">{t("Sous ce produit de vente, rien ne part.")}</small>
+                </label>
+                <label className="field">
+                  {t("Date limite")}
+                  <input name="switchBy" type="date" min={fenetre?.min} max={fenetre?.max} value={by} onChange={(e) => setBy(e.target.value)} required />
+                  <small className="muted">{t("Au-delà, l'arbitrage s'annule et votre position reste telle quelle.")}</small>
+                </label>
+              </div>
+              {/* UN ARBITRAGE QUI EXPIRE N'EST PAS UNE PANNE : c'est la
+                  protection qui a joué. Dit ici, avant, parce qu'un client qui
+                  le découvre après lit « ça n'a pas marché ». */}
+              <p className={styles.arbDit}>{t("Si la date passe sans que les deux jambes tiennent, tout s'annule : votre position est intacte, et votre argent aussi.")}</p>
             </div>
           )}
           {/* La condition a rejoint les trois cases : elle y est sous le prix

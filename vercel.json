@@ -58,6 +58,10 @@
     {
       "path": "/api/cron/relances",
       "schedule": "20 9 * * *"
+    },
+    {
+      "path": "/api/cron/arbitrages",
+      "schedule": "0 19 * * 1-5"
     }
   ]
 }

@@ -5,8 +5,8 @@ import type { IntentType, Offer } from "@/lib/domain/types";
 import type { Session } from "@/lib/auth/types";
 import type { ChannelStatus } from "@/lib/domain/types";
 import { positionsFrom } from "@/lib/positions";
-import { switchTargets as switchTargets_ } from "@/lib/domain/switch";
-import { fmt, fmtPct, fmtPrice } from "@/lib/format";
+import { FENETRE_MAX_JOURS, arriveesPossibles } from "@/lib/domain/arbitrage";
+import { fmt, fmtPct, fmtPrice, localIso } from "@/lib/format";
 import type { FinancialProfile } from "@/data/profile";
 
 /**
@@ -29,8 +29,25 @@ export interface IntentContext {
   qty?: number;
   st: ReturnType<typeof displayStatus>;
   past: boolean;
-  /** Passage : les fonds atteignables depuis celui-ci, vides ailleurs que sur un fonds. */
-  switchTargets: { id: string; title: string }[];
+  /**
+   * ARBITRAGE : LES LIGNES ATTEIGNABLES DEPUIS CELLE-CI.
+   *
+   * Vides sur une ligne qu'on ne peut pas quitter — une adjudication, une
+   * émission : on n'y détient rien tant qu'elle n'a pas servi, et ce qu'elle a
+   * servi est devenu une ligne cotée ou un titre conservé.
+   */
+  switchTargets: { id: string; title: string; fonds: boolean }[];
+  /**
+   * LES DEUX BOUTS DE LA FENÊTRE D'UN ARBITRAGE, CALCULÉS AU SERVEUR.
+   *
+   * Le champ de date les porte en « min » et « max », pour que le client ne
+   * découvre pas le refus du serveur après avoir rempli le reste. Ils viennent
+   * d'ici et non du composant : `Date.now()` pendant un rendu donne une valeur
+   * au serveur et une autre au navigateur, ce qui est une discordance
+   * d'hydratation la nuit du passage à minuit — et un appel impur dans un
+   * rendu, que le linter refuse à juste titre.
+   */
+  fenetre: { min: string; max: string };
 }
 
 export type IntentSearch = { intent?: string; qty?: string; de?: string };
@@ -71,11 +88,17 @@ export async function loadIntentContext(o: Offer, sp: IntentSearch, session: Ses
   if (wantsHeld && session) {
     held = positionsFrom(allIntents.filter((i) => i.clientId === session.userId), allOffers).filter((p) => p.offer.isin === o.isin).reduce((s, p) => s + p.units, 0);
   }
-  // Les fonds que le client peut viser depuis celui-ci : la liste est courte et se
-  // calcule sur des offres deja lues, donc elle ne coute aucune lecture de plus.
-  const switchTargets = o.kind === "FONDS" ? switchTargets_(o, allOffers).map((x) => ({ id: x.id, title: x.title })) : [];
+  /* LES ARRIVÉES POSSIBLES, et elles ne sont plus réservées aux fonds.
+     « switchTargets_(o, …) » ne rendait quelque chose que depuis un fonds :
+     un client qui vendait une action n'avait aucune destination à choisir, et
+     l'arbitrage n'existait que pour un sixième des lignes qu'on détient. La
+     liste se calcule sur des offres déjà lues, donc elle ne coûte aucune
+     lecture de plus — et elle reste vide quand on ne lit pas les positions. */
+  const switchTargets = wantsHeld ? arriveesPossibles(o, allOffers).map((x) => ({ id: x.id, title: x.title, fonds: x.kind === "FONDS" })) : [];
   const qty = sp.qty && /^[\d.,]+$/.test(sp.qty) ? Number(sp.qty.replace(",", ".")) : undefined;
-  return { o, session, channels, bridge, fin, mark, types, initial, held, qty, st, past, switchTargets };
+  const jour = (n: number) => localIso(new Date(Date.now() + n * 86_400_000));
+  const fenetre = { min: jour(1), max: jour(FENETRE_MAX_JOURS) };
+  return { o, session, channels, bridge, fin, mark, types, initial, held, qty, st, past, switchTargets, fenetre };
 }
 
 /** The intention page for a line, with the type or quantity a caller pre-selects. */

@@ -379,21 +379,29 @@ export function servicesDuClient(c: ContexteClient, fmt: (n: number) => string =
         }),
   );
 
-  /* 08 · Passage d'un fonds à l'autre : il faut une part à racheter.
+  /* 08 · Arbitrage : il faut une ligne qui se revende.
 
-     « ARBITRAGE » SEUL, ET LA LIGNE DU DESSOUS DIT « d'un fonds à l'autre ».
-     Le nom est celui qui restera : le service est destiné à couvrir d'autres
-     départs que les parts de fonds — vendre une ligne de la cote pour entrer
-     sur une autre — et un en-tête qui dirait « entre fonds » devrait alors
-     changer, ce qui déplace une tuile sous la main du client.
-     CE QU'IL NE FAUT PAS FAIRE EN ATTENDANT : écrire dans la ligne du dessous
-     une généralité que le code ne tient pas. Elle nomme donc les fonds, et
-     elle nomme la seule chose qui distingue vraiment ce service d'un rachat
-     suivi d'une souscription : LES DEUX JAMBES SE SIGNENT ENSEMBLE. Le jour
-     où un départ de la cote est possible, c'est la ligne qui s'élargit, pas
-     l'en-tête. */
+     « LE JOUR OÙ UN DÉPART DE LA COTE EST POSSIBLE, C'EST LA LIGNE QUI
+     S'ÉLARGIT, PAS L'EN-TÊTE. » C'était écrit ici le 25 octobre 2026, en
+     attendant ; ce jour est le lendemain. L'en-tête n'a pas bougé — c'est
+     tout l'intérêt d'avoir nommé le service « Arbitrage » et non « Passage
+     entre fonds » — et la ligne du dessous dit maintenant « d'une ligne à
+     l'autre, sans sortir du marché ».
+
+     LA PORTE S'OUVRE DONC SUR DEUX DÉTENTIONS, et non plus sur une. Gardée
+     sur « partsDeFonds » seule, la tuile serait restée fermée à un client
+     qui ne détient que des actions, c'est-à-dire exactement celui à qui la
+     généralisation s'adresse. Le silence aurait ressemblé à « ce client n'a
+     rien », et personne ne l'aurait vu.
+
+     LA DESTINATION RESTE « /fonds », et c'est une approximation que je
+     signale plutôt que de la cacher : l'arbitrage se déclare depuis la
+     fiche de la ligne qu'on détient, pas depuis une page à lui. La page des
+     fonds est là où vit la majorité des détentions arbitrables, et la
+     phrase de la tuile dit d'où part le geste. */
+  const aArbitrer = c.partsDeFonds ?? c.actions;
   out.push(
-    c.partsDeFonds
+    aArbitrer
       ? aActiver({
           rayon: "placer",
           cle: "passage",
@@ -427,14 +435,14 @@ export function servicesDuClient(c: ContexteClient, fmt: (n: number) => string =
            * le chiffre du client décide de quelque chose ; ici il ne décide
            * de rien, et c'est l'exception qui le dit.
            */
-          phrase: { key: "Depuis {d}, le passage se fait en un seul geste. Sans lui, il faudrait vendre, attendre le règlement, puis racheter à une valeur qu'on ne connaît pas encore.", params: { d: c.partsDeFonds.titre } },
+          phrase: { key: "Depuis {d}, le passage se fait en un seul geste. Sans lui, il faudrait vendre, attendre le règlement, puis racheter à une valeur qu'on ne connaît pas encore.", params: { d: aArbitrer.titre } },
         })
       : aActiver({
           rayon: "placer",
           cle: "passage",
           nom: "Arbitrage",
           href: "/fonds",
-          phrase: { key: "Commencez par souscrire à un fonds : le passage se déclare ensuite depuis la ligne que vous détenez." },
+          phrase: { key: "Commencez par une première ligne : l'arbitrage se déclare ensuite depuis celle que vous détenez." },
         }),
   );
 
@@ -707,7 +715,7 @@ export const CATALOGUE: { cle: string; nom: string; rayon: Rayon; href: string }
 export const SOUS: Record<string, string> = {
   primaire: "OTA et BTA : prêter aux six Trésors",
   sondage: "Se dire preneur avant une séance",
-  passage: "D'un fonds à l'autre, les deux jambes ensemble",
+  passage: "D'une ligne à l'autre, sans sortir du marché",
   fonds: "Les OPCVM de la zone, et ce qu'ils rendent",
   cote: "Actions et obligations cotées, à un cours",
   souscription: "Un prix fixé, une fenêtre, puis la cotation",
@@ -726,7 +734,7 @@ export const RAISON: Record<string, string> = {
   souscription: "Souscrire à une émission avant qu'elle soit cotée : le prix est fixé par l'émetteur et ne bouge pas pendant la fenêtre, contrairement à un cours.",
   rachat: "Céder une ligne avant son terme quand le Trésor en offre le rachat. C'est une sortie, pas un placement : renoncer aux coupons restants se compare au rendement d'un réemploi.",
   fonds: "Confier une somme à un gérant agréé qui la répartit sur des dizaines de lignes : la diversification sans avoir à la faire soi-même.",
-  passage: "Changer de fonds sans sortir de votre argent, quand votre horizon ou votre besoin de liquidité a changé.",
+  passage: "Déplacer votre argent d'une ligne à une autre sans vous désinvestir entre les deux : rien ne part tant que l'arrivée n'est pas tenue.",
   epargne: "Placer une somme fixe chaque mois sans y penser : c'est la régularité qui fait le résultat, pas le moment choisi.",
   reinvestissement: "Remettre au travail un coupon ou un remboursement dès son arrivée, au lieu de le laisser dormir sur un compte.",
   prelevement: "Autoriser la maison à débiter votre compte bancaire à date fixe, du montant exact que vous écrivez, pour n'avoir plus de virement à faire.",
@@ -790,9 +798,10 @@ export const ETAPES: Record<string, string[]> = {
     "Le desk en tient compte quand l'ordre se forme, et revient vers vous avant la clôture.",
   ],
   passage: [
-    "Partir d'une part que vous détenez et qui est rachetable.",
-    "Choisir le fonds d'arrivée.",
-    "Le rachat et la souscription se signent ensemble, et les deux VL retenues sont dites avant la signature.",
+    "Partir d'une ligne que vous détenez et qui se revend : une part de fonds, une action ou une obligation cotée.",
+    "Choisir la ligne d'arrivée. Une adjudication ne peut pas en être une : son allocation n'est pas décidée par la maison.",
+    "Fixer les deux bornes : le montant sous lequel la vente ne part pas, et la date au-delà de laquelle tout s'annule.",
+    "D'un fonds à un fonds, les deux jambes se signent ensemble. Dès qu'une jambe passe par la BVMAC, la paire est armée et ne part que le jour où les deux tiennent.",
   ],
   provision: [
     "Virer la somme en citant la référence qui figure sur votre page : c'est elle qui l'attache à votre compte.",

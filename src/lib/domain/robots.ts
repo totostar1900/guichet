@@ -66,6 +66,13 @@ export const ROBOTS: Robot[] = [
      file muette une semaine, et cinq personnes ont perdu leurs cinq rappels
      sans que personne ne l'ait vu. */
   { cle: "relances", quoi: "Rappels des procédures laissées en route", heures: 48, cron: "20 9 * * *" },
+  /* QUARANTE-HUIT HEURES, COMME LES AUTRES QUOTIDIENS, et son silence est la
+     panne la plus confortable de toute cette table : un robot d'expiration qui
+     ne tourne pas ne casse rien de VISIBLE. Les paires restent armées, et le
+     client continue de lire « armé, rien n'a bougé » — mot pour mot ce qu'il
+     lirait si tout allait bien. La borne qu'il a signée serait alors un chiffre
+     sur un formulaire, et c'est tout. */
+  { cle: "arbitrages", quoi: "Expiration des arbitrages armés", heures: 48, cron: "0 19 * * 1-5" },
 ];
 
 export interface TourVu {

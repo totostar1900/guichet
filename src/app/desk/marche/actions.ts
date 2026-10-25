@@ -13,12 +13,12 @@ import type { RereadResult } from "@/lib/desk/reprise";
 export type { RereadResult } from "@/lib/desk/reprise";
 import { REF } from "@/lib/reference";
 import { CROSS_CLOSED, crossCheck, crossOrder, type CrossPolicy } from "@/lib/domain/crossing";
-import { switchBlock, switchProceeds } from "@/lib/domain/switch";
+import { arbitrageImpossible, peutPartir, produitDeLaVente, quantiteAchetable } from "@/lib/domain/arbitrage";
 import { loadCrossPolicy, CROSS_POLICY_KEY } from "@/lib/policy";
 import { repo } from "@/lib/data";
 import { generateForIntent, generateFundBordereau } from "@/lib/documents/generate";
 import { positionFor } from "@/lib/documents/position";
-import { fmt, fmtPrice } from "@/lib/format";
+import { fmt, fmtPrice, localIso } from "@/lib/format";
 import { bocUrl, ingestBoc } from "@/lib/market/boc";
 import { notifyIntentUpdated } from "@/lib/notify/dispatch";
 
@@ -114,36 +114,70 @@ export async function executeOrderAction(_p: MarketResult | null, form: FormData
   await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) : <b>exécuté</b> ${unitsText} · par ${desk.name}` });
   await notifyIntentUpdated(updated, o, "servie", desk.name);
 
-  // Le second temps d'un passage.
+  // LE SECOND TEMPS D'UN ARBITRAGE, ET SES DEUX BORNES.
   //
-  // Le client a demandé une seule chose : quitter ce fonds pour un autre. Le
-  // montant, lui, n'était pas connu au moment où il le demandait : il vaut les
-  // parts rachetées à la valeur liquidative retenue, nette des droits de sortie.
-  // Il l'est maintenant, donc la souscription se crée maintenant, et non quand
-  // quelqu'un y repensera : c'est le temps hors marché que le passage sert à
-  // supprimer.
+  // Le client a demandé une seule chose : quitter cette ligne pour une autre. Le
+  // montant, lui, n'était pas connu au moment où il le demandait : il vaut ce que
+  // la vente a rapporté, net. Il l'est maintenant, donc la seconde jambe se crée
+  // maintenant, et non quand quelqu'un y repensera : c'est le temps hors marché
+  // que l'arbitrage sert à supprimer.
   //
   // Elle naît confirmée parce que le client a déjà dit oui à l'aller-retour, et
   // que la faire attendre une seconde confirmation rouvrirait le trou qu'on vient
   // de fermer. Ce qu'il n'a pas choisi, le montant, est le sien : tout le produit.
+  //
+  // LES DEUX BORNES SE VÉRIFIENT ICI, au dernier moment où elles ont un sens.
+  // Le plancher d'abord : un carnet mince sert volontiers la moitié d'un ordre,
+  // et une moitié de produit ne doit pas partir acheter ce que le client
+  // n'aurait pas acheté pour cette somme-là. La date ensuite : une paire armée
+  // depuis six semaines ne se déclenche pas parce que la vente a fini par
+  // passer. Dans les deux cas le produit RESTE AU CLIENT, et la page le dit.
   let switched = "";
   if (updated.switchToOfferId) {
     const dest = await r.getOffer(updated.switchToOfferId);
-    const bad = switchBlock(o, dest);
+    const bad = arbitrageImpossible(o, dest);
     if (bad || !dest) {
       await r.logEvent({
         kind: "system",
         intentId: i.id,
         offerId: o.id,
-        html: `Passage impossible vers le fonds demandé : ${bad ?? "fonds introuvable"} · le produit reste à virer au client`,
+        html: `Arbitrage impossible vers la ligne demandée : ${bad ?? "ligne introuvable"} · le produit reste à virer au client`,
       });
     } else {
-      const proceeds = switchProceeds(positionFor(updated, o, { unitsOverride: units, pricePct: undefined }).total);
-      if (proceeds > 0) {
+      const proceeds = produitDeLaVente(positionFor(updated, o, { unitsOverride: units, pricePct: undefined }).total);
+      const bornes = peutPartir({ plancher: updated.switchFloor, dateLimite: updated.switchBy }, proceeds, localIso(new Date()));
+      if (!bornes.ok) {
+        await r.logEvent({
+          kind: "system",
+          intentId: i.id,
+          offerId: o.id,
+          html: `Arbitrage non déclenché vers ${dest.title} : ${bornes.raison} · le produit reste au client, position d'arrivée non prise`,
+        });
+        switched = ` L'arbitrage n'est PAS parti : ${bornes.raison}. Le produit reste au client ; prévenez-le.`;
+      } else if (proceeds > 0) {
+        /* LA SECONDE JAMBE PREND LE TYPE DE SON ARRIVÉE, ET SON UNITÉ AVEC.
+           Elle était « souscription » en dur, ce qui ne pouvait pas se voir
+           tant qu'un arbitrage n'allait que d'un fonds à un fonds. Vers une
+           ligne cotée, « amount » compte des TITRES : y inscrire des francs
+           aurait passé un ordre des millions de fois trop gros, et aucune
+           épreuve de type ne l'aurait dit — les deux sont des nombres. */
+        const versFonds = dest.kind === "FONDS";
+        const quantite = versFonds
+          ? proceeds
+          : quantiteAchetable(proceeds, (n) => positionFor({ ...updated, type: "achat", amount: n, executedPrice: undefined, limitPrice: null }, dest, { unitsOverride: n }).total);
+        if (!versFonds && quantite < 1) {
+          await r.logEvent({
+            kind: "system",
+            intentId: i.id,
+            offerId: o.id,
+            html: `Arbitrage non déclenché vers ${dest.title} : le produit de la vente (${fmt(proceeds)} FCFA) n'achète pas un titre entier · le produit reste au client`,
+          });
+          switched = ` L'arbitrage n'est PAS parti : ${fmt(proceeds)} FCFA n'achètent pas un titre de ${dest.title}. Le produit reste au client ; prévenez-le.`;
+        } else {
         const next = await r.createIntent({
           offerId: dest.id,
-          type: "souscription",
-          amount: proceeds,
+          type: versFonds ? "souscription" : "achat",
+          amount: quantite,
           channel: updated.channel,
           contactPhone: updated.contactPhone,
           contactEmail: updated.contactEmail,
@@ -152,7 +186,7 @@ export async function executeOrderAction(_p: MarketResult | null, form: FormData
           clientId: updated.clientId,
           phoneVerified: updated.phoneVerified,
           emailVerified: updated.emailVerified,
-          message: `Passage depuis ${o.title} (${updated.ref}).`,
+          message: `Arbitrage depuis ${o.title} (${updated.ref}), produit ${fmt(proceeds)} FCFA.`,
           switchFromIntentId: updated.id,
         });
         await r.updateIntent(next.id, { state: "confirmee" });
@@ -160,15 +194,16 @@ export async function executeOrderAction(_p: MarketResult | null, form: FormData
           kind: "desk",
           intentId: next.id,
           offerId: dest.id,
-          html: `${next.ref} (${next.clientName}) : <b>passage</b> depuis ${o.title} · ${fmt(proceeds)} FCFA · suite de ${updated.ref}`,
+          html: `${next.ref} (${next.clientName}) : <b>arbitrage</b> depuis ${o.title} · ${fmt(proceeds)} FCFA · suite de ${updated.ref}`,
         });
         await r.logEvent({
           kind: "desk",
           intentId: i.id,
           offerId: o.id,
-          html: `${updated.ref} : le produit part en souscription sur ${dest.title} (${next.ref})`,
+          html: `${updated.ref} : le produit part ${versFonds ? "en souscription" : "à l'achat"} sur ${dest.title} (${next.ref})`,
         });
-        switched = ` Le produit part en souscription sur ${dest.title} : ${next.ref}, ${fmt(proceeds)} FCFA.`;
+        switched = ` Le produit part ${versFonds ? "en souscription" : "à l'achat"} sur ${dest.title} : ${next.ref}, ${fmt(proceeds)} FCFA.`;
+        }
       }
     }
   }

@@ -70,6 +70,7 @@ export function EnBref({
   titre,
   coach,
   children,
+  apres,
 }: {
   cles: string[];
   titre: string;
@@ -86,6 +87,17 @@ export function EnBref({
    */
   coach?: string;
   children?: ReactNode;
+  /**
+   * CE QUI VIENT APRÈS LES SERVICES, et c'est un créneau à part.
+   *
+   * « children » passe AVANT : c'est le contexte — ce qu'est un OPCVM, comment
+   * une séance se déroule — et il doit précéder ce qu'on va faire. Mais une
+   * page a parfois quelque chose à dire QUI SUPPOSE les étapes lues : les
+   * trois gestes de l'arbitrage, par exemple, ne se comparent qu'une fois su
+   * ce qu'est un arbitrage. Les mettre en « children » les ferait lire avant
+   * la question à laquelle ils répondent.
+   */
+  apres?: ReactNode;
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -122,6 +134,7 @@ export function EnBref({
               )}
             </section>
           ))}
+          {apres}
         </div>
       </Sheet>
     </>

@@ -217,10 +217,24 @@ export interface Intent {
   closedReason?: string;
   /** D’autres conditions soumises au client : son acceptation les reporte sur l’ordre. */
   counter?: Counter;
-  /** Passage : sur un rachat, le fonds où le client veut replacer le produit. */
+  /** Arbitrage : sur une vente ou un rachat, la ligne où le client veut replacer le produit. */
   switchToOfferId?: string;
-  /** Passage : sur une souscription, le rachat dont elle emploie le produit. */
+  /** Arbitrage : sur un achat ou une souscription, la vente dont il emploie le produit. */
   switchFromIntentId?: string;
+  /**
+   * LES DEUX BORNES D'UN ARBITRAGE, OBLIGATOIRES DÈS QU'IL Y A UNE ARRIVÉE.
+   *
+   * Tranché par le dirigeant le 26 octobre 2026. Sans elles, une paire armée
+   * est une promesse sans fin : rien ne la déclenche, rien ne l'éteint, et le
+   * client n'a aucun moment où on lui rend la main. Voir « domain/arbitrage ».
+   *
+   * Elles restent optionnelles DANS LE TYPE parce qu'un ordre ordinaire — la
+   * très grande majorité — n'en porte aucune : c'est « switchToOfferId » qui
+   * les rend obligatoires, et c'est `bornesManquantes` qui le vérifie, du
+   * formulaire comme du serveur.
+   */
+  switchFloor?: number;
+  switchBy?: string;
   /** Épargne programmée : l'instruction permanente qui a produit cet ordre. */
   standingId?: string;
   /**
@@ -346,9 +360,12 @@ export interface NewIntentInput {
   phoneVerified?: boolean;
   emailVerified?: boolean;
   profileFlag?: string;
-  /** Passage : le fonds de destination (rachat), ou le rachat d'origine (souscription). */
+  /** Arbitrage : la ligne d'arrivée (vente), ou la vente d'origine (achat). */
   switchToOfferId?: string;
   switchFromIntentId?: string;
+  /** Arbitrage : le plancher en francs et la date limite, obligatoires dès qu'il y a une arrivée. */
+  switchFloor?: number;
+  switchBy?: string;
   /** Épargne programmée : l'instruction permanente d'où vient ce versement. */
   standingId?: string;
 }

@@ -61,8 +61,8 @@ export const EN_TRADE: Record<string, string> = {
     "Sell a line before its term when the Treasury offers to buy it back. This is an exit, not an investment: giving up the remaining coupons is to be compared with the yield of reinvesting.",
   "Confier une somme à un gérant agréé qui la répartit sur des dizaines de lignes : la diversification sans avoir à la faire soi-même.":
     "Entrust a sum to an approved manager who spreads it across dozens of lines: diversification without having to do it yourself.",
-  "Changer de fonds sans sortir de votre argent, quand votre horizon ou votre besoin de liquidité a changé.":
-    "Move between funds without taking your money out, when your horizon or your need for cash has changed.",
+  "Déplacer votre argent d'une ligne à une autre sans vous désinvestir entre les deux : rien ne part tant que l'arrivée n'est pas tenue.":
+    "Move your money from one line to another without divesting in between: nothing leaves until the destination is secured.",
   "Placer une somme fixe chaque mois sans y penser : c'est la régularité qui fait le résultat, pas le moment choisi.":
     "Invest a fixed sum every month without thinking about it: regularity makes the result, not the moment you pick.",
   "Remettre au travail un coupon ou un remboursement dès son arrivée, au lieu de le laisser dormir sur un compte.":

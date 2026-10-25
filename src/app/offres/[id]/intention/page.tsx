@@ -85,6 +85,7 @@ export default async function IntentionPage({ params, searchParams }: Props) {
             initialAmount={c.qty}
             held={c.held}
             switchTargets={c.switchTargets}
+            fenetre={c.fenetre}
             past={c.past}
             signedIn={Boolean(session)}
             tier={o.kind === "FONDS" && peutOPCVM(session) ? 2 : (session?.tier ?? 0)}

@@ -113,6 +113,8 @@ type IntentRow = {
   executed_price: number | null;
   switch_to_offer?: string | null;
   switch_from_intent?: string | null;
+  switch_floor?: number | null;
+  switch_by?: string | null;
   standing_id?: string | null;
   phone_verified?: boolean | null;
   profile_flag?: string | null;
@@ -217,6 +219,8 @@ function toIntent(r: IntentRow): Intent {
     limitPrice: r.limit_price === null ? null : Number(r.limit_price),
     switchToOfferId: r.switch_to_offer ?? undefined,
     switchFromIntentId: r.switch_from_intent ?? undefined,
+    switchFloor: r.switch_floor ?? undefined,
+    switchBy: r.switch_by ?? undefined,
     standingId: r.standing_id ?? undefined,
     executedPrice: r.executed_price === null ? null : Number(r.executed_price),
     closedReason: u(r.closed_reason),
@@ -1015,6 +1019,8 @@ export const supabaseRepository: Repository = {
       limit_price: input.limitPrice ?? null,
       switch_to_offer: input.switchToOfferId ?? null,
       switch_from_intent: input.switchFromIntentId ?? null,
+      switch_floor: input.switchFloor ?? null,
+      switch_by: input.switchBy ?? null,
       standing_id: input.standingId ?? null,
       channel: input.channel,
       contact_phone: input.contactPhone ?? null,
@@ -1047,6 +1053,17 @@ export const supabaseRepository: Repository = {
       // rattachement à l'instruction qui attend.
       console.warn("[intents] migration 0043_standing_orders.sql manquante : le versement part sans son instruction");
       delete row.standing_id;
+      ({ data, error } = await db().from("intents").insert(row).select("*").single());
+    }
+    /* LES DEUX BORNES TOMBENT AVANT LE FIL, et dans cet ordre-là. Sans la
+       0116, « switch_floor » n'existe pas et l'insertion échoue sur elle ;
+       retirer le fil d'abord aurait désarmé l'arbitrage alors que la seule
+       chose qui manque est sa borne. Le fil part donc avec ce que la base
+       accepte, et le desk voit l'arbitrage même si la contrainte attend. */
+    if (error && /switch_(floor|by)/.test(error.message)) {
+      console.warn("[intents] migration 0116_arbitrage_generalise.sql manquante : l'arbitrage part sans ses bornes");
+      delete row.switch_floor;
+      delete row.switch_by;
       ({ data, error } = await db().from("intents").insert(row).select("*").single());
     }
     if (error && /switch_(to_offer|from_intent)/.test(error.message)) {
@@ -1095,6 +1112,8 @@ export const supabaseRepository: Repository = {
     if (patch.limitPrice !== undefined) row.limit_price = patch.limitPrice;
     if (patch.switchToOfferId !== undefined) row.switch_to_offer = patch.switchToOfferId;
     if (patch.switchFromIntentId !== undefined) row.switch_from_intent = patch.switchFromIntentId;
+    if (patch.switchFloor !== undefined) row.switch_floor = patch.switchFloor;
+    if (patch.switchBy !== undefined) row.switch_by = patch.switchBy;
     if (patch.counter !== undefined) row.counter = patch.counter ?? null;
     // La signature de l'ordre : « null » efface, et c'est voulu à la signature,
     // où le code consommé doit disparaître plutôt que rester rejouable.

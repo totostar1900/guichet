@@ -37,6 +37,7 @@ insert into intents (ref, offer_id, offer_version, client_name, client_segment, 
 ('PF-0914-017', 'rca-ota-a-2028', 1, 'J.-P. O.', 'Personne physique · Yaoundé', 'ferme', 10000000, 'WhatsApp', null, 'recue', '2026-09-14T09:18:00', '2026-09-14T09:18:00'),
 ('PF-0520-021', 'fcp-monetaire', 1, 'G. Nitcheu', 'Personne physique · Yaoundé', 'souscription', 2000000, 'E-mail', null, 'reglee', '2026-05-20T10:00:00', '2026-05-26T09:00:00'),
 ('PF-0924-022', 'fcp-monetaire', 1, 'G. Nitcheu', 'Personne physique · Yaoundé', 'rachat', 50, 'E-mail', null, 'transmise', '2026-09-24T11:20:00', '2026-09-24T15:05:00'),
+('PF-1026-023', 'fcp-monetaire', 1, 'G. Nitcheu', 'Personne physique · Yaoundé', 'rachat', 40, 'WhatsApp', null, 'confirmee', '2026-10-26T09:15:00', '2026-10-26T09:40:00'),
 ('AP-0913-020', 'rca-ota-c-2028', 1, 'Tontine Espoir', 'Groupement · Bafoussam', 'appetit', 10000000, 'WhatsApp', null, 'recue', '2026-09-13T16:45:00', '2026-09-13T16:45:00'),
 ('PF-0915-018', 'mkt-ecmr-2031', 1, 'Assur-Vie Centrale', 'Personne morale · Douala', 'achat', 1500, 'E-mail', null, 'confirmee', '2026-09-15T10:05:00', '2026-09-15T10:40:00'),
 ('PF-0916-019', 'mkt-ecmr-2031', 1, 'Groupe Mbaïki SARL', 'Personne morale · Bangui', 'vente', 900, 'WhatsApp', null, 'recue', '2026-09-16T08:30:00', '2026-09-16T08:30:00')

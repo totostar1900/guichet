@@ -10,10 +10,10 @@ import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { noter } from "@/lib/journal";
 import { garde } from "@/lib/garde";
-import { switchBlock } from "@/lib/domain/switch";
+import { arbitrageImpossible, bornesManquantes } from "@/lib/domain/arbitrage";
 import { allowedIntents } from "@/lib/domain/intent";
 import { displayStatus } from "@/lib/domain/status";
-import { normalizePhone, parseAmount, parseUnits } from "@/lib/format";
+import { localIso, normalizePhone, parseAmount, parseUnits } from "@/lib/format";
 import { estimate } from "@/lib/domain/estimate";
 import { notifyIntentReceived } from "@/lib/notify/dispatch";
 import { INDIVISION_CEILING, isIndivision } from "@/lib/kyc/checklist";
@@ -29,6 +29,12 @@ const schema = z.object({
   type: z.enum(["appetit", "ferme", "info", "rappel", "cession", "achat", "vente", "souscription", "rachat"]),
   limitPrice: z.string().optional(),
   switchToOffer: z.string().optional(),
+  /* Les deux bornes d'un arbitrage. Facultatives DANS LE SCHÉMA et
+     obligatoires dans la règle : un ordre ordinaire n'en porte aucune, et
+     c'est « bornesManquantes » qui refuse celui qui vise une arrivée sans
+     elles. Les mettre « required » ici ferait échouer tous les autres. */
+  switchFloor: z.string().optional(),
+  switchBy: z.string().optional(),
   amount: z.string().optional(),
   channel: z.enum(["WhatsApp", "Appel", "E-mail"]),
   firstName: z.string().max(60).optional(),
@@ -67,7 +73,7 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   if (!session) return { ok: false, error: "Connectez-vous pour envoyer une intention." };
   const parsed = schema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { ok: false, error: "Formulaire incomplet : vérifiez le type et le canal." };
-  const { offerId, type, amount, channel, message, limitPrice, switchToOffer } = parsed.data;
+  const { offerId, type, amount, channel, message, limitPrice, switchToOffer, switchFloor, switchBy } = parsed.data;
   const firstName = (parsed.data.firstName ?? "").trim().replace(/\s+/g, " ");
   const lastName = (parsed.data.lastName ?? "").trim().replace(/\s+/g, " ");
   if (firstName.length < 2 || lastName.length < 2) return { ok: false, error: "Indiquez votre prénom et votre nom tels qu'ils figurent sur votre pièce d'identité." };
@@ -113,14 +119,27 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
   if ((type === "achat" || type === "vente" || type === "rachat") && !amt) return { ok: false, error: "Indiquez une quantité." };
   if (type === "souscription" && (!amt || (offer.fund && amt < offer.fund.minAmount))) return { ok: false, error: `Indiquez un montant (minimum ${fmt(offer.fund?.minAmount ?? 0)} FCFA).` };
   const limit = limitPrice ? Number(String(limitPrice).replace(",", ".")) : null;
-  // La destination d'un passage se contrôle ici, et pas seulement à l'écran : un
-  // fonds peut cesser d'être distribué entre le moment où la page s'affiche et
-  // celui où le client valide.
+  /* L'ARBITRAGE SE CONTRÔLE ICI, ET PAS SEULEMENT À L'ÉCRAN.
+     Une ligne peut cesser d'être distribuée, ou sortir de la cote, entre le
+     moment où la page s'affiche et celui où le client valide. Et le
+     formulaire est une commodité : cette action s'appelle sans lui.
+
+     IL PART DÉSORMAIS D'UNE VENTE COMME D'UN RACHAT. C'est la
+     généralisation demandée le 25 octobre 2026 : l'ancien contrôle ne
+     s'armait que sur « rachat », donc une destination posée sur une vente
+     de ligne cotée était SILENCIEUSEMENT IGNORÉE — l'ordre partait seul et
+     le client croyait son arbitrage en place. */
   let switchTo: string | undefined;
-  if (switchToOffer && type === "rachat") {
+  let plancher: number | undefined;
+  let limite: string | undefined;
+  if (switchToOffer && (type === "rachat" || type === "vente")) {
     const dest = await r.getOffer(switchToOffer);
-    const bad = switchBlock(offer, dest);
+    const bad = arbitrageImpossible(offer, dest);
     if (bad) return { ok: false, error: bad };
+    plancher = switchFloor ? parseAmount(switchFloor) ?? undefined : undefined;
+    limite = switchBy?.trim() || undefined;
+    const manque = bornesManquantes({ plancher, dateLimite: limite }, localIso(new Date()));
+    if (manque.length) return { ok: false, error: manque.join(" ") };
     switchTo = switchToOffer;
   }
   let held: number | undefined;
@@ -156,6 +175,8 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     amount: amt || null,
     limitPrice: limit && !isNaN(limit) ? limit : null,
     switchToOfferId: switchTo,
+    switchFloor: plancher,
+    switchBy: limite,
     channel,
     contactPhone: contactPhone || undefined,
     contactEmail: contactEmail || undefined,

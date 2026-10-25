@@ -217,11 +217,19 @@ export const EN_TRADER: Record<string, string> = {
   "Le desk en tient compte quand l'ordre se forme, et revient vers vous avant la clôture.":
     "The desk takes it into account as the order takes shape, and comes back to you before the cut-off.",
 
-  /* ---------- 08 · passage d'un fonds à l'autre ---------- */
-  "Partir d'une part que vous détenez et qui est rachetable.": "Start from a unit you hold that can be redeemed.",
-  "Choisir le fonds d'arrivée.": "Pick the fund to move into.",
-  "Le rachat et la souscription se signent ensemble, et les deux VL retenues sont dites avant la signature.":
-    "The redemption and the subscription are signed together, and both NAVs used are stated before signing.",
+  /* ---------- 08 · l'arbitrage, généralisé le 26 octobre 2026 ----------
+
+     Les trois anciennes étapes ne parlaient que de fonds et d'une VL. Elles
+     sont remplacées, et non complétées : une clef que le français ne dit plus
+     garde en anglais une version du service qui n'existe plus. */
+  "Partir d'une ligne que vous détenez et qui se revend : une part de fonds, une action ou une obligation cotée.":
+    "Start from a line you hold that can be sold back: a fund unit, a share or a listed bond.",
+  "Choisir la ligne d'arrivée. Une adjudication ne peut pas en être une : son allocation n'est pas décidée par la maison.":
+    "Pick the destination line. An auction cannot be one: its allocation is not the firm's to decide.",
+  "Fixer les deux bornes : le montant sous lequel la vente ne part pas, et la date au-delà de laquelle tout s'annule.":
+    "Set the two bounds: the amount below which the sale does not leave, and the date beyond which everything is cancelled.",
+  "D'un fonds à un fonds, les deux jambes se signent ensemble. Dès qu'une jambe passe par la BVMAC, la paire est armée et ne part que le jour où les deux tiennent.":
+    "From a fund to a fund, both legs are signed together. As soon as one leg goes through the BVMAC, the pair is armed and leaves only on the day both hold.",
 
   /* ---------- 09 · appariement des intentions ---------- */
   "Ouvrir le signal, fermé par défaut : sans lui, rien n'est rapproché.": "Open the signal, closed by default : without it, nothing is matched.",

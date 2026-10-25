@@ -32,3 +32,11 @@
   padding-top: var(--s-4);
   border-top: 1px solid var(--line);
 }
+
+/* CE QUE LE GESTE COÛTE, à côté de ce qu'il garantit et dans une autre encre.
+   Les deux moitiés sur la même ligne et dans la même encre se liraient comme
+   une seule promesse, alors que la seconde est le prix de la première. */
+.risque {
+  font-style: normal;
+  color: var(--ink-3);
+}

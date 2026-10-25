@@ -482,6 +482,8 @@ export const memoryRepository: Repository = {
       profileFlag: input.profileFlag,
       switchToOfferId: input.switchToOfferId,
       switchFromIntentId: input.switchFromIntentId,
+      switchFloor: input.switchFloor,
+      switchBy: input.switchBy,
       standingId: input.standingId,
       createdAt: at,
       updatedAt: at,

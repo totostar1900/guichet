@@ -723,12 +723,18 @@ export const SEED_INTENTS: Intent[] = [
     createdAt: "2026-05-20T10:00:00",
     updatedAt: "2026-05-26T09:00:00",
   },
-  /* Un passage en cours.
+  /* UN ARBITRAGE SIMULTANÉ, EN COURS.
 
      Le client a demandé une seule chose : quitter la trésorerie pour les
      obligations. Le rachat est placé ; la souscription naîtra de son exécution,
-     pour le montant exact reçu, que personne ne connaît encore. C'est le seul
-     ordre de la démonstration qui porte une destination. */
+     pour le montant exact reçu, que personne ne connaît encore.
+
+     IL PORTE SES DEUX BORNES depuis le 26 octobre 2026, comme tout arbitrage :
+     un plancher sous lequel rien ne part, une date au-delà de laquelle tout
+     s'annule. De fonds à fonds elles jouent rarement — les deux jambes se
+     règlent sur une VL — mais une VL peut tomber et des droits de sortie
+     mordent, et un service qui change de règles selon la ligne est un service
+     que personne n'explique. */
   {
     id: "i-022",
     ref: "PF-0924-022",
@@ -740,10 +746,41 @@ export const SEED_INTENTS: Intent[] = [
     type: "rachat",
     amount: 50,
     switchToOfferId: "fcp-obligataire",
+    switchFloor: 500_000,
+    switchBy: "2026-11-24",
     channel: "E-mail",
     state: "transmise",
     createdAt: "2026-09-24T11:20:00",
     updatedAt: "2026-09-24T15:05:00",
+  },
+  /* UN ARBITRAGE CONDITIONNEL, ARMÉ, ET C'EST LE CAS QUI COMPTE.
+
+     Il part du même fonds et vise une ACTION COTÉE : une des deux jambes passe
+     donc par le carnet de la BVMAC, où un ordre peut rester plusieurs séances
+     sans trouver preneur. Il n'y a pas de simultanéité possible, et c'est
+     précisément pour cela que la paire est armée : le client ne se désinvestit
+     que si l'arrivée est tenue, au prix de pouvoir ne jamais partir.
+
+     Sans cette ligne, la démonstration ne montrerait que le cas facile — celui
+     qui marche déjà — et l'écran « armé, rien n'a bougé » n'aurait rien à
+     afficher. C'est l'état que le client lit le plus longtemps. */
+  {
+    id: "i-023",
+    ref: "PF-1026-023",
+    clientId: "dev-client-g-nitcheu",
+    offerId: "fcp-monetaire",
+    offerVersion: 1,
+    clientName: "G. Nitcheu",
+    clientSegment: "Personne physique · Yaoundé",
+    type: "rachat",
+    amount: 40,
+    switchToOfferId: "mkt-bhc",
+    switchFloor: 400_000,
+    switchBy: "2026-12-15",
+    channel: "WhatsApp",
+    state: "confirmee",
+    createdAt: "2026-10-26T09:15:00",
+    updatedAt: "2026-10-26T09:40:00",
   },
   /* Un appétit qui ne tient qu'en dessous du prix annoncé.
 

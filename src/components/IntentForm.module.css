@@ -629,3 +629,45 @@
   font-size: 0.72rem;
   color: var(--ink-3);
 }
+
+/* L'ARBITRAGE, ET SES DEUX BORNES.
+
+   Il est encadré plutôt que posé à plat, et c'est délibéré : ce qui se décide
+   dans ce bloc n'est pas un réglage de l'ordre en cours, c'est un SECOND ordre
+   armé. Le lecteur doit voir qu'il entre dans autre chose. Même encre dorée que
+   les autres encarts de la maison — ce n'est pas une alerte, c'est une
+   promesse qui se borne. */
+.arbitrage {
+  display: grid;
+  gap: var(--s-5);
+  margin-top: var(--s-5);
+  padding: var(--s-5);
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+}
+.arbTitre {
+  margin: 0;
+  color: var(--gold-ink);
+  font-size: var(--t-3);
+  font-weight: 700;
+  line-height: 1.4;
+}
+.arbDit {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-3);
+  line-height: 1.5;
+}
+/* Les deux bornes côte à côte au-dessus de 380 px : elles se décident
+   ensemble — « au moins tant, et pas après telle date » est une seule
+   phrase — et les séparer en deux lignes les ferait lire comme deux
+   réglages sans rapport. */
+.arbBornes {
+  display: grid;
+  gap: var(--s-4);
+}
+@media (min-width: 380px) {
+  .arbBornes {
+    grid-template-columns: 1fr 1fr;
+  }
+}

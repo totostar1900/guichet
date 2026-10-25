@@ -170,7 +170,7 @@ export const EN_CONSOLE: Record<string, string> = {
      désormais la marchandise et non le mécanisme — l'en-tête le dit déjà. */
   "OTA et BTA : prêter aux six Trésors": "OTA and BTA: lend to the six Treasuries",
   "Se dire preneur avant une séance": "Say you will be a taker ahead of an auction",
-  "D'un fonds à l'autre, les deux jambes ensemble": "From one fund to another, both legs together",
+  "D'une ligne à l'autre, sans sortir du marché": "From one line to another, without leaving the market",
   "Passer d'un fonds à l'autre": "Switching between funds",
   "Les OPCVM de la zone, et ce qu'ils rendent": "The zone's funds, and what they return",
   "Actions et obligations cotées, à un cours": "Listed shares and bonds, at a price",
