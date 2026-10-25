@@ -7,8 +7,17 @@
  * quand le service tourne déjà. Le trait du dessin, lui, ne change pas : neuf
  * dessins dorés feraient neuf alertes.
  */
+import styles from "./IconesServices.module.css";
+/**
+ * LE TRAIT VIENT DE LA FEUILLE DES ICÔNES, et non de celle qui les pose.
+ *
+ * Ces dessins n'ont aucun attribut de peinture : le défaut de SVG est alors
+ * « fill: black, stroke: none », et chacun sortait en APLAT au lieu du trait
+ * qu'il dessine. Les trois feuilles qui les posent — tuile, bande, rubrique —
+ * ne le corrigeaient nulle part. La classe ci-dessous le fait une fois.
+ */
 const svg = (d: React.ReactNode) => (
-  <svg viewBox="0 0 24 24" aria-hidden="true">
+  <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.icone}>
     {d}
   </svg>
 );

@@ -60,7 +60,7 @@ export async function UserMenu({ session, deskUi, account, dock }: { session: Se
           feuille du compte et sur la page du dossier, à leur place. */}
       {session.role === "client" && session.tier < 2 && (!session.kycStatus || session.kycStatus === "complements" || (session.kycStatus === "approuve" && !session.conventionAccepted)) && (
         <Link href={session.kycStatus === "approuve" ? "/ouvrir-un-compte/convention" : "/ouvrir-un-compte"} className={styles.open} title={t("Ouvrir mon compte-titres")}>
-          {t(session.kycStatus === "complements" ? "Compléter mon dossier" : session.kycStatus === "approuve" ? "Accepter ma convention" : "Ouvrir un compte titres")}
+          {t(session.kycStatus === "complements" ? "Compléter mon dossier" : session.kycStatus === "approuve" ? "Relire ma convention" : "Ouvrir un compte titres")}
         </Link>
       )}
     </div>

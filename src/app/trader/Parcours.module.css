@@ -146,6 +146,12 @@
 .tuiles li:last-child:nth-child(odd) {
   grid-column: 1 / -1;
 }
+/* LA TUILE, REPRISE LE 25 OCTOBRE 2026 : elle était un cadre gris sur fond
+   gris, et six cadres identiques ne disent pas par où commencer. Ce qui la
+   réveille n'est pas une couleur de plus mais la mise en valeur de ce qui la
+   distingue déjà — son dessin. La silhouette prend un écusson doré, et c'est
+   lui qu'on voit avant de lire ; le reste de la tuile ne bouge pas, parce
+   qu'une tuile entièrement colorée redevient un bloc uniforme. */
 .tuile {
   width: 100%;
   height: 100%;
@@ -162,11 +168,12 @@
   text-align: left;
   cursor: pointer;
 }
-.tuile:hover {
-  border-color: var(--line-2);
+.tuile:hover,
+.tuile:focus-visible {
+  border-color: var(--gold-line);
 }
 .tuile b {
-  font-size: var(--t-3);
+  font-size: var(--t-4);
   font-weight: 600;
   line-height: 1.3;
 }
@@ -177,16 +184,23 @@
   font-size: var(--t-1);
   color: var(--gold-ink);
 }
+/* L'ÉCUSSON. Le dessin était posé nu, à vingt-quatre pixels, dans l'encre
+   dorée — et, jusqu'au 25 octobre 2026, en aplat plutôt qu'au trait, donc
+   illisible. Au trait et sur un fond teinté, il redevient ce qui se voit en
+   premier, qui est tout ce qu'une icône a à faire. */
 .marque {
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
-  color: var(--gold);
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold-ink);
 }
 .marque svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
 }
 /* CE QUI ATTEND DERRIÈRE LA TUILE, dans les mots de la maison : la phrase du
    service, celle que l'écran large rend déjà dans sa bande. Elle vient avant

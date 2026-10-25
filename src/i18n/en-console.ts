@@ -220,7 +220,7 @@ export const EN_CONSOLE: Record<string, string> = {
      cherche des littéraux dans t(), et celles-ci passent par une variable. */
   "Dernière étape de l'ouverture": "Last step of the account opening",
   "Dossier approuvé. Le compte s'ouvre ensuite.": "File approved. The account opens next.",
-  "Accepter ma convention": "Accept my agreement",
+  "Relire ma convention": "Review my agreement",
   "Le desk attend vos pièces": "The desk is waiting for your documents",
   "L'examen reprend dès vos pièces déposées.": "The review resumes once your documents are filed.",
   "La sélection du desk": "The desk's selection",
@@ -405,14 +405,22 @@ export const EN_CONSOLE: Record<string, string> = {
     "The lessons",
   "Placer":
     "Placing",
+  /* « Programmer » et « Tenir » ont fondu en un seul rayon le 25 octobre
+     2026 : c'était la même famille coupée en deux, celle des services qui
+     s'écrivent sur le compte. Leurs deux clefs restent traduites, parce que
+     rien ne garantit qu'aucune page ancienne ne les cite encore. */
   "Programmer":
     "Scheduling",
   "Tenir":
     "Holding",
+  "Programmer et tenir":
+    "Scheduling and holding",
   "Où va mon argent, cette fois-ci.":
     "Where my money goes, this time.",
   "Le faire sans y penser, chaque mois.":
     "Doing it without thinking, every month.",
+  "Le faire sans y penser, le garder, et pouvoir le prouver.":
+    "Doing it without thinking, keeping it, and being able to prove it.",
   "Garder, suivre, et pouvoir le prouver.":
     "Keeping, following, and being able to prove it.",
   "{m} FCFA vous attendent et règlent votre prochain ordre sans virement.":

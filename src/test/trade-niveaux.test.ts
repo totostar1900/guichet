@@ -34,7 +34,7 @@ describe("les niveaux du parcours de Trade", () => {
 
   it("ouvre la fiche dès qu'un service est désigné, rayon avec liste ou non", () => {
     expect(niveauDu(SANS_LISTE, "fonds")).toBe(2);
-    expect(niveauDu("programmer", "epargne")).toBe(2);
+    expect(niveauDu("compte", "epargne")).toBe(2);
   });
 
   it("ramène à la racine depuis une fiche du rayon sans liste", () => {
@@ -44,11 +44,11 @@ describe("les niveaux du parcours de Trade", () => {
   });
 
   it("ramène à sa liste depuis une fiche d'un rayon qui en a une", () => {
-    expect(retourDe(2, "tenir")).toBe("tenir");
+    expect(retourDe(2, "compte")).toBe("compte");
   });
 
   it("ramène à la racine depuis une liste", () => {
-    expect(retourDe(1, "programmer")).toBeUndefined();
+    expect(retourDe(1, "compte")).toBeUndefined();
   });
 
   it("n'écrit pas de cran pour le rayon sans liste", () => {
@@ -56,7 +56,7 @@ describe("les niveaux du parcours de Trade", () => {
   });
 
   it("écrit les trois crans pour les autres", () => {
-    expect(cheminDu("Trade", { cle: "tenir", nom: "Tenir" }, "Mes documents")).toEqual(["Trade", "Tenir", "Mes documents"]);
+    expect(cheminDu("Trade", { cle: "compte", nom: "Programmer et tenir" }, "Épargne programmée")).toEqual(["Trade", "Programmer et tenir", "Épargne programmée"]);
   });
 
   it("n'écrit que le titre à la racine", () => {

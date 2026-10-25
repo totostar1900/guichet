@@ -1351,7 +1351,7 @@ export const EN_REST: Record<string, string> = {
   "Votre convention est acceptée et votre sous-compte est ouvert à votre nom : vous pouvez passer des prises fermes. Votre exemplaire de la convention est dans vos documents.":
     "Your agreement is accepted and your sub-account is open in your name: you can place firm orders. Your copy of the agreement is in your documents.",
   "code à usage unique": "one-time code",
-  "Accepter ma convention": "Accept my agreement",
+  "Relire ma convention": "Review my agreement",
   "Le code part par e-mail, à": "The code goes by e-mail, to",
   "Le code part par WhatsApp, au": "The code goes by WhatsApp, to",
   "cette adresse vient de votre formulaire : vérifiez-la": "this address comes from your form: check it",

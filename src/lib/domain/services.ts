@@ -51,12 +51,28 @@ export interface Dit {
  * réponse, pas la question. Il reste donc un filtre à l'intérieur de
  * « Placer », là où il a toujours été.
  */
-export type Rayon = "placer" | "programmer" | "tenir";
+/**
+ * DEUX RAYONS DEPUIS LE 25 OCTOBRE 2026, et non trois.
+ *
+ * « Programmer » et « Tenir » étaient la même famille coupée en deux, et le
+ * code le savait déjà sans le dire : la liste « surLeCompte », plus bas, nomme
+ * exactement l'union des deux — provision, conservation, épargne programmée,
+ * réinvestissement, prélèvement. Ce sont les services qui S'ÉCRIVENT SUR LE
+ * COMPTE, par opposition à « Placer », qui est une décision de marché prise
+ * une fois.
+ *
+ * Deux tuiles pour une seule question faisaient donc choisir entre « le faire
+ * sans y penser » et « le garder », là où un client qui met en place un
+ * prélèvement pour alimenter sa provision fait les deux du même geste. La
+ * clef est « compte » et non l'un des deux anciens mots : une clef qui porte
+ * le nom de la moitié qu'elle a absorbée se relit de travers six mois plus
+ * tard.
+ */
+export type Rayon = "placer" | "compte";
 
 export const RAYONS: { cle: Rayon; nom: string; quoi: string }[] = [
   { cle: "placer", nom: "Placer", quoi: "Où va mon argent, cette fois-ci." },
-  { cle: "programmer", nom: "Programmer", quoi: "Le faire sans y penser, chaque mois." },
-  { cle: "tenir", nom: "Tenir", quoi: "Garder, suivre, et pouvoir le prouver." },
+  { cle: "compte", nom: "Programmer et tenir", quoi: "Le faire sans y penser, le garder, et pouvoir le prouver." },
 ];
 
 export interface ServiceVu {
@@ -198,7 +214,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
   out.push(
     c.reinvestissement
       ? enPlace({
-          rayon: "programmer",
+          rayon: "compte",
           cle: "reinvestissement",
           nom: "Réinvestissement",
           href: "/moi/reinvestir",
@@ -208,7 +224,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           },
         })
       : aActiver({
-          rayon: "programmer",
+          rayon: "compte",
           cle: "reinvestissement",
           nom: "Réinvestissement",
           href: "/moi/reinvestir",
@@ -223,7 +239,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
   out.push(
     c.epargne
       ? enPlace({
-          rayon: "programmer",
+          rayon: "compte",
           cle: "epargne",
           nom: "Épargne programmée",
           /* Elle a sa page depuis le 23 octobre 2026. Elle renvoyait à une
@@ -234,7 +250,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           phrase: { key: "{m} FCFA partent le {j} de chaque mois vers {d}.", params: { m: c.epargne.montant, j: c.epargne.jour, d: c.epargne.destination } },
         })
       : aActiver({
-          rayon: "programmer",
+          rayon: "compte",
           cle: "epargne",
           nom: "Épargne programmée",
           href: "/moi/epargne",
@@ -246,7 +262,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
   out.push(
     c.lignes > 0
       ? enPlace({
-          rayon: "tenir",
+          rayon: "compte",
           cle: "garde",
           nom: "Conservation et tenue de compte",
           href: "/moi",
@@ -257,7 +273,7 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
           phrase: c.lignes === 1 ? { key: "1 ligne inscrite à votre nom au dépositaire." } : { key: "{n} lignes inscrites à votre nom au dépositaire.", params: { n: c.lignes } },
         })
       : aActiver({
-          rayon: "tenir",
+          rayon: "compte",
           cle: "garde",
           nom: "Conservation et tenue de compte",
           href: "/titres",
@@ -380,11 +396,11 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
      la preuve qu'un rayon est mal nommé. */
   out.push(
     c.disponible > 0
-      ? enPlace({ rayon: "tenir", cle: "provision", nom: "Votre provision", href: "/moi/provision", phrase: { key: "{m} FCFA vous attendent et règlent votre prochain ordre sans virement.", params: { m: c.disponible } } })
-      : aActiver({ rayon: "tenir", cle: "provision", nom: "Votre provision", href: "/moi/provision", phrase: { key: "Ce que vous laissez chez nous règle vos ordres sans attendre un virement, et repart sur demande." } }),
+      ? enPlace({ rayon: "compte", cle: "provision", nom: "Votre provision", href: "/moi/provision", phrase: { key: "{m} FCFA vous attendent et règlent votre prochain ordre sans virement.", params: { m: c.disponible } } })
+      : aActiver({ rayon: "compte", cle: "provision", nom: "Votre provision", href: "/moi/provision", phrase: { key: "Ce que vous laissez chez nous règle vos ordres sans attendre un virement, et repart sur demande." } }),
   );
   out.push(
-    aActiver({ rayon: "programmer", cle: "prelevement", nom: "Prélèvement automatique", href: "/moi/prelevements", phrase: { key: "Vous nous autorisez à prélever une somme sur votre compte, à une date fixe, sous un plafond que vous fixez." } }),
+    aActiver({ rayon: "compte", cle: "prelevement", nom: "Prélèvement automatique", href: "/moi/prelevements", phrase: { key: "Vous nous autorisez à prélever une somme sur votre compte, à une date fixe, sous un plafond que vous fixez." } }),
   );
 
   const rang: Record<EtatService, number> = { en_place: 0, a_activer: 1 };
@@ -401,7 +417,11 @@ export function servicesDuClient(c: ContexteClient): ServiceVu[] {
    * de non-recevoir déguisée ; c'est l'ordre qui demandera le compte, et il le
    * demandera à son heure.
    */
-  const surLeCompte = new Set(["garde", "reinvestissement", "epargne", "prelevement", "provision"]);
+  /* C'est exactement le rayon « compte » : la porte et le rayon disent la même
+     chose, et c'est ce qui a fait fondre « Programmer » et « Tenir » en un. On
+     le dérive donc plutôt que de le recopier — une seconde liste des mêmes
+     cinq clefs finirait par en perdre une. */
+  const surLeCompte = new Set(out.filter((x) => x.rayon === "compte").map((x) => x.cle));
   const ouverts =
     c.compteOuvert === false
       ? out.map((x) => (!surLeCompte.has(x.cle) ? x : {
@@ -435,11 +455,11 @@ export const CATALOGUE: { cle: string; nom: string; rayon: Rayon; href: string }
   { cle: "actions", nom: "Acheter et vendre en bourse", rayon: "placer", href: "/titres" },
   { cle: "fonds", nom: "Investir dans un fonds", rayon: "placer", href: "/fonds" },
   { cle: "passage", nom: "Passage d'un fonds à l'autre", rayon: "placer", href: "/fonds" },
-  { cle: "epargne", nom: "Épargne programmée", rayon: "programmer", href: "/moi/epargne" },
-  { cle: "reinvestissement", nom: "Réinvestissement", rayon: "programmer", href: "/moi/reinvestir" },
-  { cle: "prelevement", nom: "Prélèvement automatique", rayon: "programmer", href: "/moi/prelevements" },
-  { cle: "provision", nom: "Votre provision", rayon: "tenir", href: "/moi/provision" },
-  { cle: "garde", nom: "Conservation et tenue de compte", rayon: "tenir", href: "/moi" },
+  { cle: "epargne", nom: "Épargne programmée", rayon: "compte", href: "/moi/epargne" },
+  { cle: "reinvestissement", nom: "Réinvestissement", rayon: "compte", href: "/moi/reinvestir" },
+  { cle: "prelevement", nom: "Prélèvement automatique", rayon: "compte", href: "/moi/prelevements" },
+  { cle: "provision", nom: "Votre provision", rayon: "compte", href: "/moi/provision" },
+  { cle: "garde", nom: "Conservation et tenue de compte", rayon: "compte", href: "/moi" },
 ];
 
 /**
@@ -646,7 +666,12 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       quand: { key: "Dernière étape de l'ouverture" },
       chiffre: { key: "Convention" },
       quoi: { key: "Dossier approuvé. Le compte s'ouvre ensuite." },
-      geste: "Accepter ma convention",
+      /* « RELIRE », ET NON « ACCEPTER ». Le bouton d'une attente dit ce qu'on
+         va FAIRE EN ARRIVANT, et l'on arrive sur un texte à lire : accepter
+         vient après, sur la page, et seulement si l'on veut. Un bouton qui
+         dit « accepter » demande un engagement avant d'avoir montré à quoi,
+         ce qui est exactement ce qu'une convention ne doit pas faire. */
+      geste: "Relire ma convention",
       href: "/ouvrir-un-compte/convention",
       ton: "retard",
     });

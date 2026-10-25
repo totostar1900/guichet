@@ -1,0 +1,22 @@
+/* LE TRAIT DES ICÔNES DE SERVICE, À UN SEUL ENDROIT.
+
+   Ces dessins sont faits de « path » et de « circle » sans attribut : le
+   défaut de SVG est alors « fill: black, stroke: none », et chaque icône
+   sortait en APLAT PLEIN de la couleur courante au lieu du trait qu'elle
+   dessine. Mesuré à l'écran le 25 octobre 2026 : sur les tuiles de Trade, le
+   marteau d'une adjudication était un losange sombre et l'action cotée un
+   point de deux pixels. Les dessins étaient justes ; personne ne les voyait.
+
+   LA RÈGLE VIT AVEC LES ICÔNES, et non dans les feuilles qui les posent. Il y
+   en a trois — la tuile du parcours, la bande du pli, la rubrique — et aucune
+   ne la portait : trois copies d'un trait divergent, une seule se corrige. Le
+   « currentColor » laisse la couleur à celle qui pose, comme avant. */
+.icone {
+  fill: none;
+  stroke: currentColor;
+  /* 1,7 et non 2 : ces dessins se posent à 18 px comme à 26 px, et un trait de
+     deux pixels à dix-huit referme les angles d'un marteau ou d'un calendrier. */
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

@@ -87,7 +87,7 @@ describe("le dossier d'ouverture", () => {
     const a = attentesDuClient({ ...vide, dossier: "convention" }, fmt)[0];
     expect(a.href).toBe("/ouvrir-un-compte/convention");
     expect(attentesDuClient({ ...vide, dossier: "convention_reprise" }, fmt)[0].href).toBe("/ouvrir-un-compte/convention");
-    expect(a.geste).toBe("Accepter ma convention");
+    expect(a.geste, "le bouton promet d’accepter avant d’avoir montré quoi").toBe("Relire ma convention");
     // Le ton du retard : ce qui bloque se dit comme ce qui bloque.
     expect(a.ton).toBe("retard");
   });
