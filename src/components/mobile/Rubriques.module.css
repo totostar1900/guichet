@@ -70,10 +70,16 @@
 .quoi b {
   font-weight: 600;
 }
+/* LA PHRASE D'UNE BANDE, RELEVÉE D'UN CRAN LE 25 OCTOBRE 2026.
+   Elle était à 10,2 px dans l'encre la plus pâle — le degré que l'échelle
+   réserve à une étiquette en majuscules, et la teinte qu'elle réserve à ce
+   qui s'efface. C'est pourtant la seule chose qui dise OÙ MÈNE la bande :
+   « Le faire sans y penser, le garder, et pouvoir le prouver » est une
+   phrase, pas une mention. Huit pages la posent ; elles y gagnent toutes. */
 .quoi small {
-  font-size: var(--t-1);
+  font-size: var(--t-3);
   line-height: 1.5;
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 .etiquette {
   flex: none;

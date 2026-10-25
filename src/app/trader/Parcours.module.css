@@ -204,9 +204,15 @@
 }
 /* CE QUI ATTEND DERRIÈRE LA TUILE, dans les mots de la maison : la phrase du
    service, celle que l'écran large rend déjà dans sa bande. Elle vient avant
-   « en place », qui reste collé au bas par sa marge automatique. */
+   « en place », qui reste collé au bas par sa marge automatique.
+
+   ELLE ÉTAIT À 10,2 PX, c'est-à-dire au degré que l'échelle réserve à « une
+   étiquette en majuscules, un exposant, une mention » — pas à une phrase. Or
+   c'est le CORPS de la tuile : ce qu'on lit pour décider si le service nous
+   concerne. « Prose secondaire » est le degré qui le nomme, et c'est celui
+   qu'elle prend le 25 octobre 2026. */
 .apercu {
-  font-size: var(--t-1);
+  font-size: var(--t-3);
   line-height: 1.45;
   color: var(--ink-2);
 }
@@ -241,7 +247,10 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 0 var(--s-4);
-  font-size: var(--t-1);
+  /* Un degré de moins que la phrase : ce sont deux colonnes serrées, pas de
+     la prose, et elles se comparent d'une tuile à l'autre plutôt qu'elles ne
+     se lisent. */
+  font-size: var(--t-2);
 }
 /* LE NOM SE RÉTRÉCIT, LE CHIFFRE JAMAIS. Sans « flex » écrit, les deux
    partageaient la place : le chiffre, en « nowrap », débordait de sa propre
