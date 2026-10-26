@@ -34,6 +34,8 @@ export const EN_SONDAGE: Record<string, string> = {
     "The six CEMAC Treasuries alone decide what they issue, and when. What they buy from a broker is intelligence : at what level demand still holds, and for how much. So a line surveyed here announces no session : it is the firm gathering appetites, before there is anything at all to announce.",
   "Votre réponse entre dans ce renseignement. Ce n'est pas un ordre : il n'y a rien à signer et rien à provisionner, et vous la retirez quand vous voulez. Si une séance s'ouvre sur une ligne que vous avez demandée, le desk vous rappelle avant la clôture.":
     "Your answer feeds that intelligence. It is not an order : there is nothing to sign and nothing to fund, and you withdraw it whenever you want. If a session opens on a line you asked for, the desk calls you before the cut-off.",
+  "Sur chaque ligne, « ~ » précède la date à partir de laquelle elle serait prête — ce n'est pas une séance, et ce n'est pas une promesse. « ind. » est le niveau que la maison indique ; « min. » celui que vous posez comme plancher.":
+    "On every line, « ~ » precedes the date from which it would be ready — it is not a session, and it is not a promise. « ind. » is the level the firm indicates ; « min. » the floor you set.",
   "Ce que la maison demande": "What the firm is asking",
   "Rien n'est sondé en ce moment. Proposez la vôtre plus bas : c'est de là que partent la plupart des séances que nous obtenons.":
     "Nothing is being surveyed right now. Propose your own below : that is where most of the sessions we obtain begin.",
@@ -42,19 +44,23 @@ export const EN_SONDAGE: Record<string, string> = {
      taux pour un bon. Le rôle ne change QUE le sens du niveau — la maison dit
      un niveau indicatif, le client dit un plancher — et l'anglais doit tenir
      cette différence, qui est la seule. */
-  "taux indicatif {r}": "indicative rate {r}",
-  "coupon indicatif {r}": "indicative coupon {r}",
-  "taux {r} au moins": "rate of at least {r}",
-  "coupon {r} au moins": "coupon of at least {r}",
+  /* ─── LA BANDE ABRÈGE, le 26 octobre 2026 ───────────────────────────────
+     « OTA • CMR • 5 ans • coupon ind. 5% • Rendement ind. 5.5% • ~ 30 oct »,
+     le gabarit du dirigeant. « ind. » quand la maison indique, « min. » quand
+     le client pose un plancher : deux abréviations de même longueur, au même
+     endroit de la phrase, pour que l'œil compare les chiffres et non les mots.
+     L'ANGLAIS RETOURNE L'ORDRE — l'épithète précède le nom — et c'est tout ce
+     qu'il change : l'abréviation, elle, se dit pareil dans les deux langues. */
+  "coupon {q}": "{q} coupon",
+  "taux {q}": "{q} rate",
+  "rendement {q}": "{q} yield",
   /* LE RENDEMENT PREND LA PLACE DU PRIX SUR LA TUILE, le 26 octobre 2026 : le
      prix en était l'ingrédient, et les deux côte à côte faisaient trois nombres
      pour deux faits. « Rendement » seul, parce que le qualificatif — indicatif,
      au moins — est déjà porté par le coupon dont il découle. */
-  "rendement {y}": "yield {y}",
   "Vous avez répondu {m}, à partir du {d}": "You answered {m}, from {d}",
   "Répondre à nouveau remplace cette réponse.": "Answering again replaces that answer.",
   "Rien encore. Répondre à une ligne ci-dessus prend deux chiffres.": "Nothing yet. Answering a line above takes two figures.",
-  "à partir du {d}": "from {d}",
   "Une attente reçue": "An expression of interest received",
   "Une attente portée au Trésor": "An expression of interest carried to the Treasury",
   "Une attente close": "A closed expression of interest",

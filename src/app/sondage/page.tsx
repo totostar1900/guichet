@@ -1,10 +1,11 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { etatDeLAttente, motDuNiveau, prete, rendementDeLaLigne } from "@/lib/domain/sondage";
 import type { LigneSondee } from "@/lib/domain/types";
 import { getT } from "@/i18n/server";
 import { fmtDate, fmtPct, fmtUnits } from "@/lib/format";
+import { codeDuPays } from "@/lib/market/budget";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { EnBref } from "@/components/EnBref";
@@ -78,6 +79,14 @@ export default async function SondagePage() {
                     "Votre réponse entre dans ce renseignement. Ce n'est pas un ordre : il n'y a rien à signer et rien à provisionner, et vous la retirez quand vous voulez. Si une séance s'ouvre sur une ligne que vous avez demandée, le desk vous rappelle avant la clôture.",
                   )}
                 </p>
+                {/* CE QUE LE TILDE VEUT DIRE, écrit une fois : il est sur
+                    chaque ligne, et il est vrai de toutes. « ind. » et « min. »
+                    suivent, pour la même raison. */}
+                <p>
+                  {t(
+                    "Sur chaque ligne, « ~ » précède la date à partir de laquelle elle serait prête — ce n'est pas une séance, et ce n'est pas une promesse. « ind. » est le niveau que la maison indique ; « min. » celui que vous posez comme plancher.",
+                  )}
+                </p>
               </Pourquoi>
             </>
           }
@@ -98,12 +107,6 @@ export default async function SondagePage() {
                 const d = mienne && prete(mienne);
                 return (
                   <li key={q.id} className={styles.question}>
-                    <div className={styles.entete}>
-                      <b className={styles.ligne}>
-                        {q.instrument} · {t(q.country)} · {q.tenor}
-                      </b>
-                      <span className={`mono ${styles.ref}`}>{q.ref}</span>
-                    </div>
                     <Faits l={q} role="question" t={t} />
                     {q.note && <p className={styles.note}>{q.note}</p>}
                     {mienne ? (
@@ -134,24 +137,26 @@ export default async function SondagePage() {
                 const e = etatDeLAttente(m);
                 return (
                   <li key={m.id} className={styles.attente} data-etat={e.etat}>
-                    <div className={styles.entete}>
-                      <span className={styles.pastille} data-etat={e.etat}>
-                        {t(e.mot)}
-                      </span>
-                      <b className={styles.ligne}>
-                        {m.instrument} · {t(m.country)} · {m.tenor}
-                      </b>
-                      {/* L'ÉTAT PASSE DERRIÈRE LE POINT : il est vrai en
-                          permanence et identique d'une attente à l'autre, donc
-                          il se replie. La page le répétait quatre fois, trois
-                          lignes chacune. Le MOTIF d'une clôture, lui, reste à
-                          l'écran : il change d'une ligne à l'autre. */}
-                      <Pourquoi titre={e.etat === "close" ? "Une attente close" : e.etat === "consolidee" ? "Une attente portée au Trésor" : "Une attente reçue"} petit>
-                        <p>{t(e.phrase)}</p>
-                      </Pourquoi>
-                      <span className={`mono ${styles.ref}`}>{m.ref}</span>
-                    </div>
-                    <Faits l={m} role="attente" t={t} />
+                    {/* L'ÉTAT OUVRE LA LIGNE, et il la quitte aussitôt : le mot
+                        dit où en est l'attente, et le point d'interrogation dit
+                        ce que le mot veut dire — vrai en permanence, donc
+                        replié. Le MOTIF d'une clôture, lui, reste à l'écran :
+                        il change d'une ligne à l'autre. */}
+                    <Faits
+                      l={m}
+                      role="attente"
+                      t={t}
+                      avant={
+                        <>
+                          <span className={styles.pastille} data-etat={e.etat}>
+                            {t(e.mot)}
+                          </span>
+                          <Pourquoi titre={e.etat === "close" ? "Une attente close" : e.etat === "consolidee" ? "Une attente portée au Trésor" : "Une attente reçue"} petit>
+                            <p>{t(e.phrase)}</p>
+                          </Pourquoi>{" "}
+                        </>
+                      }
+                    />
                     {m.closedReason && <p className={styles.motif}>{m.closedReason}</p>}
                     {m.state !== "close" && <Retirer id={m.id} ref_={m.ref} />}
                   </li>
@@ -211,6 +216,24 @@ export default async function SondagePage() {
  * quoi que ce soit à annoncer. « À partir du » dit la même date sans la
  * promesse, et c'est le même mot dans les deux rôles.
  *
+ * ─── UNE SEULE LIGNE, ET UNE SEULE POLICE, le 26 octobre 2026 ──────────────
+ *
+ * CE QUE LE DIRIGEANT A ÉCRIT, et c'est un gabarit, pas une description :
+ *
+ *     OTA • CMR • 5 ans • coupon ind. 5% • Rendement ind. 5.5% • ~ 30 oct
+ *     « Avec une police harmonisée et de taille raisonnable. »
+ *
+ * CE QUE CELA RETIRE : le nom de la ligne au-dessus, et le chiffre de tête.
+ * La tuile avait un titre, un sous-titre et une bande — trois degrés pour six
+ * faits qui sont tous du même rang. Aucun n'est le titre des autres : le
+ * compartiment ne coiffe pas la durée, le coupon ne coiffe pas la date. Une
+ * hiérarchie posée sur des faits de même rang ne hiérarchise rien, elle
+ * fatigue.
+ *
+ * L'ÉTAT ABRÈGE CE QUI EST LONG ET GARDE CE QUI EST FAUX AUTREMENT : « CMR »
+ * plutôt que « Cameroun », « ind. » plutôt que « indicatif », « ~ » plutôt que
+ * « à partir du ». Sur 412 px, « Cameroun » coûte la place de deux faits.
+ *
  * ─── LA QUESTION NE PORTE PLUS DE MONTANT, le 26 octobre 2026 ───────────────
  *
  * CE QUE LE DIRIGEANT A DIT : « retirer le montant de l'offre, puisque c'est
@@ -227,51 +250,56 @@ export default async function SondagePage() {
  * LE MONTANT CHERCHÉ RESTE DEMANDÉ AU DESK, et c'est voulu : c'est sa cible, et
  * la page du desk la met en regard de ce que la place donne. Il n'en sort pas.
  */
-function Faits({ l, role, t }: { l: LigneSondee; role: "question" | "attente"; t: (s: string, v?: Record<string, string>) => string }) {
+function Faits({ l, role, t, avant }: { l: LigneSondee; role: "question" | "attente"; t: (s: string, v?: Record<string, string>) => string; avant?: ReactNode }) {
   /* Le niveau est un taux sur les deux compartiments — coupon sur une OTA, taux
      précompté sur un bon : même sens, deux mots, voir « motDuNiveau ». */
   const mot = motDuNiveau(l.instrument);
   /* Toujours une date, jamais le délai tel qu'il a été écrit : « dans 21 jours »
      posé le 19 se relit « le 16 novembre » quand la ligne dit le 9. */
   const j = prete(l);
-  const niveau =
-    l.rate == null
-      ? null
-      : role === "question"
-        ? t(mot === "taux" ? "taux indicatif {r}" : "coupon indicatif {r}", { r: fmtPct(l.rate, 2) })
-        : t(mot === "taux" ? "taux {r} au moins" : "coupon {r} au moins", { r: fmtPct(l.rate, 2) });
-
-  /* LE CHIFFRE DE TÊTE EST CELUI QUE SON AUTEUR MET EN AVANT : le montant quand
-     le client s'engage sur une taille, le niveau quand la maison pose une
-     question — depuis qu'elle n'y écrit plus de montant, c'est le seul chiffre
-     qu'elle avance. */
-  const tete = role === "attente" ? fmtUnits(l.montant, true) : niveau;
-  /* LE RENDEMENT EST LE CHIFFRE QUI COMPARE : un coupon de 6,25 % acheté à 97 ne
-     rend pas 6,25 %, et deux lignes de coupons différents ne se comparent que
-     par là. Il PREND LA PLACE DU PRIX, qui en était l'ingrédient : les deux
-     côte à côte faisaient trois nombres pour deux faits. Un bon n'en a pas —
-     son taux EST son rendement. */
+  /* « IND. » POUR LA MAISON, « MIN. » POUR LE CLIENT, et c'est la seule chose
+     que le rôle change : la maison indique un niveau, le client pose un
+     plancher. Deux abréviations de même longueur, au même endroit de la
+     phrase — l'œil compare les chiffres, pas les mots. */
+  const q = role === "question" ? "ind." : "min.";
+  /* LE RENDEMENT EST LE CHIFFRE QUI COMPARE : un coupon de 6,25 % acheté à 97
+     ne rend pas 6,25 %. Un bon n'en a pas — son taux EST son rendement. */
   const r = rendementDeLaLigne(l);
-  const suite: (string | null)[] = [
-    role === "attente" ? niveau : null,
-    r != null ? t("rendement {y}", { y: fmtPct(r, 2) }) : null,
-    j ? t("à partir du {d}", { d: fmtDate(j, false) }) : null,
-  ];
-  const faits = suite.filter((x): x is string => x !== null);
+
+  const faits = [
+    l.instrument,
+    codeDuPays(l.country),
+    l.tenor,
+    role === "attente" ? fmtUnits(l.montant, true) : null,
+    l.rate != null ? `${t(mot === "taux" ? "taux {q}" : "coupon {q}", { q })} ${fmtPct(l.rate, 2)}` : null,
+    r != null ? `${t("rendement {q}", { q })} ${fmtPct(r, 2)}` : null,
+    /* LE TILDE PORTE L'APPROXIMATION, et il n'a pas besoin de traduction : la
+       date est déjà rendue dans la langue du lecteur. Ce qu'il veut dire — la
+       date à partir de laquelle la ligne serait prête, et non une séance — est
+       écrit une fois pour toutes derrière le point d'interrogation de la page,
+       parce que c'est vrai de toutes les lignes. */
+    j ? `~ ${fmtDate(j, false)}` : null,
+  ].filter((x): x is string => x !== null);
 
   return (
     <p className={styles.faits}>
-      {tete && <b>{tete}</b>}
+      {/* L'ÉTAT ET SON POINT SONT DANS LA PHRASE, et non à côté d'elle : posés
+          en voisins dans une rangée en flex, ils volaient quatre-vingt-dix
+          pixels à la bande, qui se repliait sur trois lignes dans sa colonne
+          étroite (relevé à 412 px). Dans la phrase, le texte reprend toute la
+          largeur dès la deuxième ligne. */}
+      {avant}
       {/* Chaque fait tient sur une ligne, séparateur compris, mais L'ESPACE QUI
           LES SÉPARE RESTE DEHORS : enfermé dans le morceau insécable, il ne
           donnait plus une seule occasion de passer à la ligne, et la bande
           sortait du cadre (relevé à 412 px). */}
       {faits.map((p, i) => (
         <Fragment key={p}>
-          {" "}
-          <span className={styles.fait}>{i === 0 && !tete ? p : `· ${p}`}</span>
+          {i > 0 ? " " : null}
+          <span className={styles.fait}>{i === 0 ? p : `· ${p}`}</span>
         </Fragment>
-      ))}
+      ))}{" "}
+      <span className={`mono ${styles.ref}`}>{l.ref}</span>
     </p>
   );
 }

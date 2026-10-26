@@ -154,6 +154,20 @@ export const slugDuPays = (p: Country): string =>
 export const paysDuSlug = (s: string): Country | undefined => PAYS_CEMAC.find((p) => slugDuPays(p) === s);
 
 /**
+ * L'ÉTAT EN TROIS LETTRES, POUR UNE LIGNE QUI DOIT TENIR SUR UN TÉLÉPHONE.
+ *
+ * « OTA · CMR · 5 ans · coupon ind. 6,25 % » : sur 412 px, « Cameroun » prend
+ * la place de deux faits, et « Guinée éq. » celle de trois. Le code est le même
+ * dans toutes les langues — c'est aussi ce qui le fait sortir du dictionnaire.
+ *
+ * CE SONT LES CODES ISO, SAUF UN. « CAF » pour la Centrafrique serait juste et
+ * illisible ici : en zone CEMAC, CAF est la Confédération africaine de
+ * football, et l'État se dit RCA — c'est d'ailleurs le nom que la maison lui
+ * donne en entier. On suit l'usage de la place, pas la norme contre elle.
+ */
+export const codeDuPays = (p: Country): string => ({ Cameroun: "CMR", Gabon: "GAB", Congo: "COG", Tchad: "TCD", RCA: "RCA", "Guinée éq.": "GNQ" })[p];
+
+/**
  * TOUTES LES PIÈCES, EN UN SEUL ENDROIT, POUR QU'ON PUISSE LES SUIVRE.
  *
  * Elles vivaient chacune dans sa fiche ou sous sa note : consignées, donc,

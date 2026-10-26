@@ -133,34 +133,29 @@
   color: var(--good);
 }
 
-.entete {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--s-3);
-  color: var(--ink);
-}
-.ligne {
-  font-size: var(--t-5);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
 /* LA RÉFÉRENCE EST UNE ADRESSE, pas une information : elle sert à la citer au
-   téléphone. Elle part donc au bout de la ligne, au plus petit degré. */
+   téléphone. Elle finit donc la bande, au plus petit degré — « margin-left:
+   auto » l'y poussait quand elle était l'enfant d'une rangée en flex ; dans une
+   phrase, il ne pousse rien. */
 .ref {
-  margin-left: auto;
   font-size: var(--t-1);
   color: var(--ink-3);
   letter-spacing: 0.04em;
+  white-space: nowrap;
+  margin-left: var(--s-2);
 }
 
 /* LES FAITS EN UNE PHRASE. Le montant porte le degré du chiffre — c'est lui
    qu'on cherche — et le reste suit en encre atténuée, dans la même phrase. */
+/* LA BANDE EST TOUT LE CONTENU DE LA TUILE, donc elle est au degré de la
+   LECTURE et non à celui d'une légende : elle vivait sous un nom de ligne en
+   gras, elle n'a plus rien au-dessus d'elle. Une seule taille, une seule encre,
+   et les six faits au même rang — c'est la « police harmonisée ». */
 .faits {
   margin: 0;
-  color: var(--ink-3);
-  font-size: var(--t-4);
-  line-height: 1.5;
+  color: var(--ink-2);
+  font-size: var(--t-5);
+  line-height: 1.55;
   /* SANS CETTE LIGNE, LA PAGE ENTIÈRE DÉBORDE. Une carte est une grille, et un
      enfant de grille vaut `min-width: auto` : sa piste ne descend pas sous la
      largeur de son plus long morceau INSÉCABLE. Depuis que chaque fait porte
@@ -168,23 +163,6 @@
      TOUT le document qui se met à défiler de côté — relevé à 412 px, la
      référence coupée au bord droit sur les deux listes. */
   min-width: 0;
-}
-/* LE CHIFFRE DE TÊTE, AU DEGRÉ DE LA LECTURE ET PAS À CELUI D'UN TITRE.
-
-   Il était au degré du titre de panneau — juste, quand la bande portait un
-   montant et deux faits ; trop, depuis qu'elle en porte quatre et que la tête
-   d'une question est une phrase (« coupon indicatif 6,25 % ») et non un nombre
-   court. À 17 px elle pesait autant que le nom de la ligne au-dessus et la
-   carte avait deux titres. Au degré de la lecture, elle fait corps avec lui.
-
-   ET LE CRÉNAGE NÉGATIF EST PARTI avec le franc exact : il servait neuf
-   chiffres — « 500 000 000 » gagne à se tasser ; « 500 M FCFA » y perdait ses
-   deux espaces et se lisait « 500MFCFA ». */
-.faits b {
-  color: var(--ink);
-  font-size: var(--t-5);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
 }
 /* UN FAIT NE SE COUPE PAS EN DEUX : il emporte son séparateur, et la bande
    passe à la ligne entre deux faits. */

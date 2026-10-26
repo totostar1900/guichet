@@ -147,12 +147,11 @@ describe("le modèle du sondage", () => {
   it("écrit la bande de faits une fois, et l'appelle deux fois", () => {
     const page = lire("src/app/sondage/page.tsx");
     expect([...page.matchAll(/className=\{styles\.faits\}/g)].length, "une tuile s'est remise à écrire sa propre bande de faits").toBe(1);
-    expect([...page.matchAll(/<Faits /g)].length, "les deux tuiles ne passent plus par la même bande").toBe(2);
+    expect([...page.matchAll(/<Faits\b/g)].length, "les deux tuiles ne passent plus par la même bande").toBe(2);
     /* LE RÔLE NE CHANGE QUE LE SENS DU NIVEAU : la maison dit un niveau
        INDICATIF, le client dit un PLANCHER. Les confondre porterait au Trésor
        un chiffre que personne n'a dit. */
-    expect(page, "le niveau indicatif de la maison a disparu de la bande").toMatch(/role === "question"/);
-    expect(page, "le plancher du client se lit de nouveau comme un indicatif").toMatch(/\{r\} au moins"/);
+    expect(page, "le niveau indicatif de la maison a disparu de la bande").toMatch(/role === "question" \? "ind\." : "min\."/);
   });
 
   /**
@@ -214,7 +213,7 @@ describe("le modèle du sondage", () => {
     const page = lire("src/app/sondage/page.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
     /* La bande ne connaît le montant que pour une attente : la branche est la
        garde, et elle est lisible en une ligne. */
-    expect(page, "la bande de faits écrit de nouveau un montant hors d'une attente").toMatch(/role === "attente" \? fmtUnits\(l\.montant, true\) : niveau/);
+    expect(page, "la bande de faits écrit de nouveau un montant hors d'une attente").toMatch(/role === "attente" \? fmtUnits\(l\.montant, true\) : null/);
     expect([...page.matchAll(/fmtUnits\(/g)].length, "un second montant a paru sur la page du client").toBe(2);
     /* NON VACUITÉ : la question est bien rendue par cette bande, et le montant
        existe toujours sur le modèle — la garde ne tient rien si la tuile a
