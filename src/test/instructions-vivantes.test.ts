@@ -252,7 +252,10 @@ describe("modifier, c'est remplacer", () => {
 });
 
 vi.mock("@/lib/notify/preavis", () => ({ envoyerPreavis: async () => ({ sent: true }) }));
-vi.mock("@/lib/notify/dispatch", () => ({ notifyIntentUpdated: async () => {} }));
+/* La porte qui annonce l'état d'un ordre, et qui inscrit son échec au fil :
+   le robot passe par elle depuis le 26 octobre 2026. Rendue « partie » ici,
+   parce que ces feuilles mesurent le versement et non l'avis. */
+vi.mock("@/lib/notify/dispatch", () => ({ direLEtatDeLOrdre: async () => ({ sent: true }) }));
 vi.mock("@/lib/reference", () => ({ loadRegistry: async () => {}, REF: { policy: "policy" } }));
 
 describe("le robot exécute la clé, tranche par tranche", () => {

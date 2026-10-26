@@ -5,7 +5,7 @@ import { positionFor } from "@/lib/documents/position";
 import { depasseLePlafond } from "@/lib/domain/plafond";
 import type { Intent, Offer } from "@/lib/domain/types";
 import { fmt, fmtPct, fmtPrice } from "@/lib/format";
-import { notifyIntentUpdated } from "@/lib/notify/dispatch";
+import { direLEtatDeLOrdre } from "@/lib/notify/dispatch";
 import { servedUnits } from "@/lib/positions";
 
 /**
@@ -81,7 +81,7 @@ export async function applyResults(lines: LineResult[], advisor: string): Promis
       } catch (e) {
         await r.logEvent({ kind: "system", intentId: i.id, html: `Avis non généré : ${e instanceof Error ? e.message : "erreur"}` });
       }
-      await notifyIntentUpdated(updated, priced, state, advisor);
+      await direLEtatDeLOrdre(updated, priced, state, advisor);
       if (horsBorne) horsPlafond += 1;
       if (state === "servie") served += 1;
       else notServed += 1;
@@ -107,7 +107,7 @@ export async function applySettlement(offerIds: string[], advisor: string): Prom
       } catch (e) {
         await r.logEvent({ kind: "system", intentId: i.id, html: `Avis d'opéré non généré : ${e instanceof Error ? e.message : "erreur"}` });
       }
-      await notifyIntentUpdated(updated, offer, "reglee", advisor);
+      await direLEtatDeLOrdre(updated, offer, "reglee", advisor);
       n += 1;
     }
   }

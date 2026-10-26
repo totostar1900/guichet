@@ -7,7 +7,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { nextStates } from "@/lib/domain/intent";
 import { counterTerms, type Counter } from "@/lib/domain/counter";
-import { notifyIntentUpdated } from "@/lib/notify/dispatch";
+import { direLEtatDeLOrdre } from "@/lib/notify/dispatch";
 
 const schema = z.object({
   intentId: z.string().min(1),
@@ -67,7 +67,7 @@ export async function proposeCounter(form: FormData): Promise<void> {
     offerId: it.offerId,
     html: `${it.ref} (${it.clientName}) : <b>contre-proposition</b>${offer ? ` · ${counterTerms(counter, it, offer)}` : ""} · par ${desk.name}`,
   });
-  if (offer) await notifyIntentUpdated(updated, offer, "contre_proposee", desk.name);
+  await direLEtatDeLOrdre(updated, offer, "contre_proposee", desk.name);
   revalidatePath("/desk");
   revalidatePath(`/desk/intentions/${intentId}`);
 }

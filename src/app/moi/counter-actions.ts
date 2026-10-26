@@ -9,7 +9,7 @@ import { repo } from "@/lib/data";
 import { packReason } from "@/lib/domain/cancel-reasons";
 import { counterLapsed, counterTerms } from "@/lib/domain/counter";
 import { retirableParLeClient } from "@/lib/domain/intent";
-import { notifyIntentUpdated } from "@/lib/notify/dispatch";
+import { direLEtatDeLOrdre } from "@/lib/notify/dispatch";
 
 /**
  * Le client répond à une contre-proposition.
@@ -48,7 +48,10 @@ export async function answerCounter(form: FormData): Promise<void> {
     await noter("ordre.contre.refusee", { objet: it.ref });
     await audit("intent.counter.refused", "intent", intentId, { before: it.counter, after: { state: "recue" }, reason: lapsed ? "échéance dépassée" : "refus du client" });
     await r.logEvent({ kind: "intent", intentId, offerId: it.offerId, html: `${it.ref} (${it.clientName}) : contre-proposition <b>${lapsed ? "caduque" : "refusée"}</b>${terms ? ` · ${terms}` : ""}` });
-    if (offer && !lapsed) await notifyIntentUpdated(updated, offer, "recue");
+    /* Une contre-proposition CADUQUE ne s'annonce pas : le client n'a rien
+       refusé, et « votre ordre est de nouveau reçu » sur un délai qu'il a
+       laissé passer ne lui apprend rien qu'il puisse employer. */
+    if (!lapsed) await direLEtatDeLOrdre(updated, offer, "recue");
     revalidatePath("/");
     revalidatePath("/desk");
     return;
@@ -69,7 +72,7 @@ export async function answerCounter(form: FormData): Promise<void> {
   await noter("ordre.contre.acceptee", { objet: it.ref, detail: terms });
   await audit("intent.counter.accepted", "intent", intentId, { before: { amount: it.amount, limitPrice: it.limitPrice }, after: { amount: updated.amount, limitPrice: updated.limitPrice }, reason: terms });
   await r.logEvent({ kind: "intent", intentId, offerId: it.offerId, html: `${it.ref} (${it.clientName}) : contre-proposition <b>acceptée</b>${terms ? ` · ${terms}` : ""}` });
-  if (offer) await notifyIntentUpdated(updated, offer, "confirmee");
+  await direLEtatDeLOrdre(updated, offer, "confirmee");
   revalidatePath("/");
   revalidatePath("/desk");
 }
@@ -134,7 +137,7 @@ export async function retirerMonOrdre(form: FormData): Promise<void> {
     offerId: it.offerId,
     html: `${updated.ref} (${updated.clientName}) : <b>retiré par le client</b>${offer ? ` · ${offer.title}` : ""}`,
   });
-  if (offer) await notifyIntentUpdated(updated, offer, "annulee");
+  await direLEtatDeLOrdre(updated, offer, "annulee");
   revalidatePath("/");
   revalidatePath("/desk");
 }

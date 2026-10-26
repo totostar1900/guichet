@@ -20,7 +20,7 @@ import { generateForIntent, generateFundBordereau } from "@/lib/documents/genera
 import { positionFor } from "@/lib/documents/position";
 import { fmt, fmtPrice, localIso } from "@/lib/format";
 import { bocUrl, ingestBoc } from "@/lib/market/boc";
-import { notifyIntentUpdated } from "@/lib/notify/dispatch";
+import { direLEtatDeLOrdre } from "@/lib/notify/dispatch";
 
 export type MarketResult = { ok: true; message: string } | { ok: false; error: string };
 
@@ -133,7 +133,7 @@ export async function executeOrderAction(_p: MarketResult | null, form: FormData
     reason: `${i.ref} · ${i.clientName} · ${unitsText}`,
   });
   await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) : <b>exécuté</b> ${unitsText} · par ${desk.name}` });
-  await notifyIntentUpdated(updated, o, "servie", desk.name);
+  await direLEtatDeLOrdre(updated, o, "servie", desk.name);
 
   // LE SECOND TEMPS D'UN ARBITRAGE, ET SES DEUX BORNES.
   //
@@ -260,7 +260,7 @@ export async function settleOrderAction(_p: MarketResult | null, form: FormData)
   } catch (e) {
     await r.logEvent({ kind: "system", intentId: i.id, html: `Avis d'opéré non généré : ${e instanceof Error ? e.message : "erreur"}` });
   }
-  await notifyIntentUpdated(updated, o, "reglee", desk.name);
+  await direLEtatDeLOrdre(updated, o, "reglee", desk.name);
   revalidatePath("/desk/marche");
   revalidatePath("/desk");
   revalidatePath("/");
@@ -380,7 +380,7 @@ export async function crossAction(_p: MarketResult | null, form: FormData): Prom
       offerId: o.id,
       html: `${i.ref} (${i.clientName}) : <b>apparié</b> avec ${other.ref} · ${fmt(p.data.qty)} / ${fmt(asked)} titres à ${priceText} · par ${desk.name}`,
     });
-    await notifyIntentUpdated(updated, o, "servie", desk.name);
+    await direLEtatDeLOrdre(updated, o, "servie", desk.name);
   }
   await audit("intent.cross", "intent", `${bi.id}+${si.id}`, {
     after: { offerId: o.id, buy: bi.ref, sell: si.ref, qty: p.data.qty, price: p.data.price },

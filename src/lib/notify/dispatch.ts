@@ -1,6 +1,7 @@
 import "server-only";
 import { repo } from "@/lib/data";
 import type { Contact, GeneratedDocument, Intent, IntentState, Notification, NotifyChannel, NotifyKind, Offer } from "@/lib/domain/types";
+import { INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { readSource } from "@/lib/intake/storage";
 import { positionsFrom } from "@/lib/positions";
 import { documentSent, emailHtml, intentReceived, intentUpdated, offerPublished, type Message } from "./compose";
@@ -173,6 +174,66 @@ export async function notifyIntentUpdated(i: Intent, o: Offer, state: IntentStat
   await pousser(c, kind, { title: pushTitre(state), body: m.text.slice(0, 140), url: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/offres/${o.id}`, tag: `intent-${i.id}` }, { intentId: i.id, offerId: o.id });
   if (rows.some((x) => x.status === "sent")) return { sent: true };
   return { sent: false, error: rows.map((x) => `${x.channel} : ${x.status}${x.error ? ` (${x.error})` : ""}`).join(" · ") || "aucun canal ouvert pour ce message" };
+}
+
+/**
+ * L'AVIS D'ÉTAT, ET LE FIL DU DESK QUAND IL NE PART PAS.
+ *
+ * RELEVÉ EN SUITE DE LA REVUE DES ROBOTS du 26 octobre 2026. Cinq portes
+ * écrivaient `if (offer) await notifyIntentUpdated(...)` et jetaient le
+ * résultat. Deux choses s'y cachaient : le garde sur l'offre, qui ne disait
+ * rien à personne, et le silence d'un envoi raté.
+ *
+ * ─── DEUX DES CINQ SONT DE VRAIS TROUS ─────────────────────────────────────
+ *
+ *   LA TRANSITION DU DESK, qui porte « servie », « non servie » et « réglée » :
+ *   ce sont précisément les mots qu'un client veut savoir dans la seconde, sur
+ *   un geste qu'il n'a pas fait et qu'aucun écran ne lui met devant les yeux.
+ *   Ses deux voisines immédiates dans le même code — un document non généré,
+ *   un mouvement d'espèces non inscrit — inscrivaient déjà leur échec au fil.
+ *   L'avis était la seule à ne rien dire.
+ *
+ *   LA CONTRE-PROPOSITION, et c'est la conséquence la plus nette des cinq :
+ *   elle porte une échéance. Un client qui n'en est pas averti laisse courir le
+ *   délai, et sa réponse devient caduque toute seule. Un message qui ne part
+ *   pas se transforme donc en refus par expiration, sans que personne n'ait
+ *   refusé quoi que ce soit.
+ *
+ * ─── LES TROIS AUTRES SONT DES REÇUS, ET LE RESTENT ────────────────────────
+ *
+ *   Le client qui accepte, refuse ou retire vient de cliquer : il est devant la
+ *   page, qui se rafraîchit sur le nouvel état. L'avis lui confirme son propre
+ *   geste. Le trou y est bien moindre — mais c'est le desk qui prend l'appel
+ *   « est-ce que c'est passé ? », et une ligne au fil est ce qui lui permet de
+ *   répondre. On ne distingue donc pas les cas à l'écriture : la porte est la
+ *   même, et une porte unique est ce qui empêche la sixième d'oublier.
+ *
+ * ELLE PREND UNE OFFRE OPTIONNELLE, à dessein : c'est ce qui retire le
+ * `if (offer)` des cinq appelants. Le garde devient structurel au lieu d'être
+ * une chose dont il faut se souvenir.
+ *
+ * LE ROBOT DES ARBITRAGES GARDE SA PROPRE PHRASE, et ce n'est pas un oubli :
+ * il annonce un ÉVÉNEMENT DE MÉTIER — une borne qui a joué — que le client ne
+ * peut distinguer d'aucun autre silence, et le desk qui lit son fil a besoin de
+ * ce mot-là, non de « avis d'état non remis ». Il range aussi ces échecs dans
+ * son compte rendu, ce qu'une porte générique ne saurait pas faire.
+ */
+export async function direLEtatDeLOrdre(i: Intent, o: Offer | undefined, state: IntentState, advisor?: string): Promise<Envoi> {
+  const envoi = o
+    ? await notifyIntentUpdated(i, o, state, advisor).catch((e) => ({ sent: false, error: e instanceof Error ? e.message : "échec de l'envoi" }))
+    : { sent: false, error: `la ligne (${i.offerId}) est introuvable : l'avis n'a pas pu être composé` };
+  if (!envoi.sent)
+    await repo()
+      .logEvent({
+        kind: "system",
+        intentId: i.id,
+        html: `${i.ref} (${i.clientName}) : <b>avis « ${INTENT_STATE_LABEL[state]} » non remis</b> · ${envoi.error ?? "canal injoignable"} · l'ordre a bien changé d'état, et c'est au client qu'il reste à le dire`,
+      })
+      /* LE FIL NE DOIT PAS FAIRE ÉCHOUER LE GESTE. L'ordre a changé d'état ;
+         refuser la transition parce qu'un journal est indisponible serait le
+         pire des deux maux, comme pour l'enveloppe des robots. */
+      .catch(() => {});
+  return envoi;
 }
 
 /** Le titre d'une notification : court, et il dit l'état plutôt que « Guichet ». */

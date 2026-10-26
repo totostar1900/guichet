@@ -9,7 +9,7 @@ import type { Offer } from "@/lib/domain/types";
 import { cashPosition } from "@/lib/domain/cash";
 import { aCouvrirPour } from "@/lib/domain/plafond";
 import { generateForIntent } from "@/lib/documents/generate";
-import { notifyIntentUpdated } from "@/lib/notify/dispatch";
+import { direLEtatDeLOrdre } from "@/lib/notify/dispatch";
 import { direLArretDeLInstruction, envoyerPreavis } from "@/lib/notify/preavis";
 import { arretables, dueOnDuPreavis, montantAExecuter, pourquoiPasExecuter, type Preavis } from "@/lib/domain/preavis";
 import { cleEnMots, repartition, tranches } from "@/lib/domain/repartition";
@@ -338,12 +338,14 @@ export async function GET(req: NextRequest) {
               offerId: lot.offerId,
               html: `${intent.ref} (${s.clientName}) : <b>${s.source === "encaissements" ? "réinvestissement" : "versement programmé"}</b> de ${fmt(lot.montant)} FCFA sur ${dest?.title ?? lot.offerId}${parts.length > 1 ? ` · clé ${cleEnMots(parts, (id) => byId.get(id)?.title ?? id)}` : ""} · annoncé le ${fmtDate(mur.announcedAt.slice(0, 10))} · ${s.ref}`,
             });
-            try {
-              await notifyIntentUpdated(confirmed, dest!, "confirmee");
-            } catch {
-              /* L'avis d'exécution peut échouer sans conséquence : le client a déjà
-                 été prévenu AVANT, et c'est ce préavis-là qui portait sa décision. */
-            }
+            /* L'avis d'exécution peut échouer sans RIEN DÉFAIRE : le client a
+               déjà été prévenu AVANT, et c'est ce préavis-là qui portait sa
+               décision. Le try/catch vide qui portait cette phrase en tirait
+               pourtant une conclusion de trop — « sans conséquence » n'est pas
+               « sans intérêt ». Le desk apprend maintenant que la confirmation
+               n'a pas atterri, ce qui est son affaire, et le versement reste
+               fait, ce qui était le point. */
+            await direLEtatDeLOrdre(confirmed, dest, "confirmee");
           }
           if (s.source === "encaissements") {
             disponibles.set(s.userId, poche - montant);
