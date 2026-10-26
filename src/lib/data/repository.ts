@@ -400,7 +400,25 @@ export interface Repository {
   listLignesSondees(filter?: { userId?: string; origine?: LigneSondee["origine"]; state?: LigneSondee["state"] }): Promise<LigneSondee[]>;
   createLigneSondee(input: NewLigneSondee): Promise<LigneSondee>;
   /** Le desk constate l'état ; le client ne peut que retirer la sienne, et « close » est ce retrait. */
-  updateLigneSondee(id: string, patch: Partial<Pick<LigneSondee, "state" | "closedReason" | "montant" | "rate" | "pricePct" | "seanceLe" | "dansJours" | "note">>): Promise<LigneSondee>;
+  /**
+   * CE QU'UNE LIGNE SONDÉE LAISSE MODIFIER.
+   *
+   * LES TROIS CARACTÉRISTIQUES SONT ENTRÉES LE 26 OCTOBRE 2026, avec le geste
+   * « modifier » du client : une ligne qu'il a poussée lui-même porte son
+   * compartiment, son Trésor et sa durée, et les corriger est la première chose
+   * qu'on fait quand on s'est trompé de pays. Elles manquaient à cette liste, et
+   * RIEN ne l'avait dit — le patch est passé en variable, pas en littéral, et le
+   * contrôle des propriétés en trop ne s'applique qu'aux littéraux. Le dépôt en
+   * mémoire les écrivait (`Object.assign`), celui de Supabase les ignorait : la
+   * correction marchait en développement et se perdait en production.
+   *
+   * UN « undefined » EXPLICITE EFFACE, et les deux dépôts doivent en convenir :
+   * un client qui retire sa condition de coupon la retire vraiment.
+   */
+  updateLigneSondee(
+    id: string,
+    patch: Partial<Pick<LigneSondee, "state" | "closedReason" | "instrument" | "country" | "tenor" | "montant" | "rate" | "pricePct" | "seanceLe" | "dansJours" | "note">>,
+  ): Promise<LigneSondee>;
 
   listWatches(userId?: string): Promise<Watch[]>;
   addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }, mode?: Watch["mode"]): Promise<Watch>;

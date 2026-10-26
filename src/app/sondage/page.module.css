@@ -57,6 +57,50 @@
   color: var(--ink);
 }
 
+/* LE TITRE ET LE GESTE SUR LA MÊME LIGNE.
+   Le « + » qui ajoute une intention est au titre de celles-ci, et non au bas de
+   la page sous un troisième titre : c'est le même endroit pour les lire et pour
+   en ajouter une. Il passe dessous quand la ligne est trop étroite. */
+.titreEtGeste {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+}
+/* LE « + » EST DISCRET : le geste fréquent de cette page est de répondre à ce
+   que la maison demande, pas d'inventer une ligne. Il se trouve, il n'appelle
+   pas. */
+.plus {
+  font-size: var(--t-3);
+  padding: var(--s-3) var(--s-5);
+}
+
+/* MODIFIER PUIS RETIRER, sur une ligne : le premier est le geste ordinaire, le
+   second est définitif et ne doit pas être le premier sous la main. */
+.gestes {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-5);
+}
+/* « Modifier » est un lien de texte comme « Retirer », et non un bouton : deux
+   boutons sous une intention en feraient un formulaire. */
+.lien {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: var(--t-3);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.lien:hover {
+  color: var(--gold-ink);
+}
+
 /* UN VIDE N'EST PAS UNE ERREUR. L'encart « empty » de la maison encadre et
    centre : ici, rien à sonder est l'état ordinaire d'un marché étroit, et un
    cadre le ferait lire comme une panne. Une phrase atténuée suffit. */
@@ -185,19 +229,6 @@
 .motif {
   margin: 0;
   color: var(--ink-3);
-  font-size: var(--t-3);
-  line-height: 1.55;
-}
-.second {
-  color: var(--ink-3);
-}
-/* CE QU'ON A DÉJÀ RÉPONDU : un rappel, et un CONSTAT. L'encart doré est parti,
-   et l'encre dorée avec : on ne demande rien ici, on redit ce que le client a
-   dit. Ce qui demande quelque chose sur cette carte est le bouton, et il est
-   le seul à le dire. */
-.deja {
-  margin: 0;
-  color: var(--ink-2);
   font-size: var(--t-3);
   line-height: 1.55;
 }

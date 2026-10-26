@@ -220,3 +220,152 @@ describe("ce que le desk en fait", () => {
     expect(res.ok).toBe(false);
   });
 });
+
+/**
+ * MODIFIER SON INTENTION : SUR PLACE, ET SOUS LA MÊME RÉFÉRENCE.
+ *
+ * « Ajouter “modifier” comme possibilité. » Ce que l'action doit faire n'est pas
+ * « retirer puis redéposer » : la référence est l'adresse à laquelle le client et
+ * le desk se parlent au téléphone — « votre SD-1022 » — et un client qui corrige
+ * un chiffre n'a pas changé d'intention. Lui faire perdre son adresse, c'est lui
+ * faire croire qu'il a fait deux fois quelque chose, et c'est faire compter deux
+ * lignes au desk là où il n'y en a qu'une.
+ */
+describe("la modification d'une intention", () => {
+  it("écrit sur place, garde la référence, et ne crée rien", async () => {
+    const { deposerLaLigne, modifierLaLigne } = await import("@/app/sondage/actions");
+    const { repo } = await import("@/lib/data");
+    courant = client;
+    const dep = await deposerLaLigne(null, form({ ...LIGNE, rate: "6,5" }));
+    expect(dep.ok, dep.ok ? "" : dep.error).toBe(true);
+    if (!dep.ok) return;
+    const avant = (await repo().listLignesSondees({ userId: client.userId })).find((x) => x.ref === dep.ref)!;
+    const combien = (await repo().listLignesSondees({ userId: client.userId })).length;
+
+    const mod = await modifierLaLigne(null, form({ ...LIGNE, id: avant.id, montant: "60 000 000", rate: "6,75" }));
+    expect(mod.ok, mod.ok ? "" : mod.error).toBe(true);
+    if (!mod.ok) return;
+    expect(mod.ref, "la modification a changé l'adresse de l'intention").toBe(avant.ref);
+
+    const apres = (await repo().listLignesSondees({ userId: client.userId })).find((x) => x.id === avant.id)!;
+    expect(apres.montant).toBe(60_000_000);
+    expect(apres.rate).toBe(6.75);
+    expect(apres.state, "une intention modifiée ne doit pas se clore").toBe("ouverte");
+    expect((await repo().listLignesSondees({ userId: client.userId })).length, "la modification a créé une seconde ligne : le desk en compterait deux").toBe(combien);
+  });
+
+  it("refuse l'intention d'un autre, et celle qui est close", async () => {
+    const { deposerLaLigne, modifierLaLigne, retirerLaLigne } = await import("@/app/sondage/actions");
+    courant = client;
+    const dep = await deposerLaLigne(null, form(LIGNE));
+    expect(dep.ok).toBe(true);
+    if (!dep.ok) return;
+    const { repo } = await import("@/lib/data");
+    const sienne = (await repo().listLignesSondees({ userId: client.userId })).find((x) => x.ref === dep.ref)!;
+
+    /* UN AUTRE CLIENT NE LA TOUCHE PAS. Le formulaire ne le propose pas ; cette
+       action s'appelle sans formulaire, par un POST reconstruit. */
+    courant = { ...client, userId: "u-autre", name: "Autre" };
+    const vol = await modifierLaLigne(null, form({ ...LIGNE, id: sienne.id, montant: "999 000 000" }));
+    expect(vol.ok, "un client a modifié l'intention d'un autre").toBe(false);
+    if (!vol.ok) expect(vol.error).toMatch(/n'est pas la vôtre/);
+
+    /* ET UNE INTENTION CLOSE NE SE ROUVRE PAS PAR UNE MODIFICATION : le desk a
+       déjà agi dessus ou cessé de la compter, et la rouvrir ferait rentrer dans
+       un consensus une demande que plus personne ne surveille. */
+    courant = client;
+    await retirerLaLigne(sienne.id);
+    const close = await modifierLaLigne(null, form({ ...LIGNE, id: sienne.id, montant: "60 000 000" }));
+    expect(close.ok, "une intention close s'est rouverte par une modification").toBe(false);
+    if (!close.ok) expect(close.error).toMatch(/close/);
+  });
+
+  it("refuse les mêmes manques qu'un dépôt, et ne touche à rien quand elle refuse", async () => {
+    const { deposerLaLigne, modifierLaLigne } = await import("@/app/sondage/actions");
+    const { repo } = await import("@/lib/data");
+    courant = client;
+    const dep = await deposerLaLigne(null, form({ ...LIGNE, rate: "6,5" }));
+    expect(dep.ok).toBe(true);
+    if (!dep.ok) return;
+    const avant = (await repo().listLignesSondees({ userId: client.userId })).find((x) => x.ref === dep.ref)!;
+
+    /* Un taux de 65 au lieu de 6,5 : le dépôt le refuse, la modification aussi,
+       sinon la table aurait deux portes et une seule serrure. */
+    const faux = await modifierLaLigne(null, form({ ...LIGNE, id: avant.id, rate: "65" }));
+    expect(faux.ok, "une modification a fait passer ce qu'un dépôt refuse").toBe(false);
+    const inchange = (await repo().listLignesSondees({ userId: client.userId })).find((x) => x.id === avant.id)!;
+    expect(inchange.rate, "le refus a quand même écrit").toBe(6.5);
+    expect(inchange.montant).toBe(50_000_000);
+  });
+
+  it("recompte le délai depuis la création, et pas depuis aujourd'hui", async () => {
+    /**
+     * L'ÉPREUVE QUI MANQUAIT, trouvée en vérifiant à l'envers le 26 octobre
+     * 2026 : celle du dessous déposait la ligne À L'INSTANT, et sur une ligne du
+     * jour la conversion ne déplace rien — elle restait donc verte avec la
+     * conversion RETIRÉE. Une intention se modifie des jours après sa naissance,
+     * et c'est là que le piège se referme.
+     *
+     * ON VIEILLIT DONC LA LIGNE avant de la rouvrir. Le client voit « il reste
+     * N jours », tape N, et la base doit garder N + l'âge — sinon la date recule
+     * de l'âge de la ligne, et sur une intention plus ancienne elle tombe dans
+     * le passé, où le robot la clôt le soir même.
+     */
+    const { deposerLaLigne, modifierLaLigne } = await import("@/app/sondage/actions");
+    const { repo } = await import("@/lib/data");
+    const { prete, joursRestants } = await import("@/lib/domain/sondage");
+    const { localIso } = await import("@/lib/format");
+    courant = client;
+    /* LA LIGNE NAÎT DOUZE JOURS PLUS TÔT : l'horloge recule le temps du dépôt,
+       et revient avant la modification. C'est la seule façon d'obtenir une
+       ligne âgée sans forcer une porte que le contrat ferme. */
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(Date.now() - 12 * 86_400_000));
+    const dep = await deposerLaLigne(null, form({ ...LIGNE, dansJours: "30" }));
+    vi.useRealTimers();
+    expect(dep.ok, dep.ok ? "" : dep.error).toBe(true);
+    if (!dep.ok) return;
+    const l = (await repo().listLignesSondees({ userId: client.userId })).find((x) => x.ref === dep.ref)!;
+
+    /* DOUZE JOURS DE PLUS AU COMPTEUR : « dans 30 jours » posé il y a douze
+       jours, c'est dans dix-huit. On ne vieillit pas la ligne après coup — le
+       dépôt en mémoire rend des copies, et le contrat ne laisse pas toucher une
+       date de naissance, ce qui est très bien ainsi : on avance l'horloge. */
+    const vieillie = l;
+    const aujourdHui = localIso(new Date());
+    expect(joursRestants(vieillie, aujourdHui), "l'âge supposé est faux : l'épreuve ne mesure rien").toBe(18);
+
+    /* Le client lit « 18 », garde 18, et sa date ne doit pas bouger d'un jour.
+       Écrit tel quel, le délai ramènerait la date douze jours en arrière. */
+    const mod = await modifierLaLigne(null, form({ ...LIGNE, id: l.id, dansJours: "18" }));
+    expect(mod.ok, mod.ok ? "" : mod.error).toBe(true);
+    const apres = (await repo().listLignesSondees({ userId: client.userId })).find((x) => x.id === l.id)!;
+    expect(apres.dansJours, "le délai n'a pas été recompté depuis la création : la date vient de reculer de douze jours").toBe(30);
+    expect(prete(apres), "la date de l'intention a bougé sans que personne la touche").toBe(prete(vieillie));
+  });
+
+  it("ne laisse pas la modification déplacer la date de l'intention", async () => {
+    /* LE PIÈGE SANS SYMPTÔME, et c'est pour lui que cette épreuve existe : le
+       délai est gardé DEPUIS LA CRÉATION, le client le pense depuis aujourd'hui.
+       Rouvrir et réenregistrer le nombre que le champ montre ne doit pas bouger
+       la date d'un jour. L'arithmétique est tenue par « sondage » ; ce qu'on
+       mesure ici est que l'action l'emploie vraiment. */
+    const { deposerLaLigne, modifierLaLigne } = await import("@/app/sondage/actions");
+    const { repo } = await import("@/lib/data");
+    const { prete, joursRestants } = await import("@/lib/domain/sondage");
+    const { localIso } = await import("@/lib/format");
+    courant = client;
+    const dep = await deposerLaLigne(null, form({ ...LIGNE, dansJours: "30" }));
+    expect(dep.ok).toBe(true);
+    if (!dep.ok) return;
+    const avant = (await repo().listLignesSondees({ userId: client.userId })).find((x) => x.ref === dep.ref)!;
+    const vise = prete(avant);
+
+    const aujourdHui = localIso(new Date());
+    const montre = joursRestants(avant, aujourdHui)!;
+    const mod = await modifierLaLigne(null, form({ ...LIGNE, id: avant.id, montant: "60 000 000", dansJours: String(montre) }));
+    expect(mod.ok, mod.ok ? "" : mod.error).toBe(true);
+    const apres = (await repo().listLignesSondees({ userId: client.userId })).find((x) => x.id === avant.id)!;
+    expect(prete(apres), "la modification a déplacé la date sans que personne la touche").toBe(vise);
+  });
+});

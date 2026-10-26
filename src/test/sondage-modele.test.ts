@@ -175,6 +175,39 @@ describe("le modèle du sondage", () => {
   });
 
   /**
+   * LES DEUX DÉPÔTS ÉCRIVENT LES MÊMES CHAMPS D'UNE INTENTION.
+   *
+   * TROUVÉ EN VÉRIFIANT À L'ENVERS le geste « modifier », le 26 octobre 2026, et
+   * invisible autrement. Le contrat ne laissait modifier que huit champs ; la
+   * modification d'une ligne poussée en passait onze — compartiment, Trésor et
+   * durée compris, qui sont justement ce qu'on corrige quand on s'est trompé de
+   * pays. Le typecheck n'a rien dit : le patch est passé en VARIABLE, et le
+   * contrôle des propriétés en trop ne s'applique qu'aux littéraux. Le dépôt en
+   * mémoire les écrivait par « Object.assign », celui de Supabase les ignorait
+   * champ par champ — la correction marchait en développement et se perdait en
+   * production, sans une ligne d'erreur.
+   *
+   * L'ÉPREUVE LIT DONC LA LISTE DU CONTRAT et exige que l'autre dépôt la
+   * connaisse. Elle est muette sur le comportement, qui est tenu par les
+   * épreuves du dépôt ; ce qu'elle tient est l'ACCORD entre les deux.
+   */
+  it("fait écrire les mêmes champs d'une intention aux deux dépôts", () => {
+    const contrat = lire("src/lib/data/repository.ts");
+    const bloc = contrat.slice(contrat.indexOf("updateLigneSondee("), contrat.indexOf("Promise<LigneSondee>;", contrat.indexOf("updateLigneSondee(")));
+    const cles = [...bloc.matchAll(/"(\w+)"/g)].map((m) => m[1]);
+    expect(cles.length, "la liste des champs modifiables n'a pas été relue : l'épreuve ne mesure rien").toBeGreaterThanOrEqual(11);
+    const sb = lire("src/lib/data/supabase.ts");
+    const corps = sb.slice(sb.indexOf("async updateLigneSondee"), sb.indexOf("async listWatches"));
+    for (const cle of cles) {
+      expect(corps, `le dépôt Supabase ignore « ${cle} » : la modification se perdra en silence`).toMatch(new RegExp(`\\b${cle}:`));
+    }
+    /* ET LA PRÉSENCE DE LA CLEF DÉCIDE, non sa valeur : sans cela, un client ne
+       peut pas EFFACER sa condition de coupon — elle disparaîtrait en mémoire et
+       resterait en base. */
+    expect(corps, "l'effacement d'un champ est de nouveau impossible en base").toMatch(/cle in patch/);
+  });
+
+  /**
    * LE QUATRIÈME FAIT EXISTE DE BOUT EN BOUT, OU IL N'EXISTE PAS DU TOUT.
    *
    * « Ajouter le rendement actuariel à l'OTA, et que les quatre informations
@@ -234,11 +267,16 @@ describe("le modèle du sondage", () => {
     /* La bande ne connaît le montant que pour une attente : la branche est la
        garde, et elle est lisible en une ligne. */
     expect(page, "la bande de faits écrit de nouveau un montant hors d'une attente").toMatch(/role === "attente" \? fmtUnits\(l\.montant, true\) : null/);
-    expect([...page.matchAll(/fmtUnits\(/g)].length, "un second montant a paru sur la page du client").toBe(2);
+    /* UN SEUL MONTANT SUR LA PAGE DU CLIENT, et c'est celui de la bande.
+       Il y en avait deux : la question répétait « Vous avez répondu 50 M FCFA »
+       sous la tuile, et l'intention le redisait plus bas — deux écritures du
+       même chiffre finissent par en dire deux. Le chiffre vit dans les
+       intentions, et dans le formulaire que « Modifier » rouvre. */
+    expect([...page.matchAll(/fmtUnits\(/g)].length, "un second montant a paru sur la page du client").toBe(1);
     /* NON VACUITÉ : la question est bien rendue par cette bande, et le montant
        existe toujours sur le modèle — la garde ne tient rien si la tuile a
        disparu ou si le champ a été supprimé. */
-    expect(page, "la question ne passe plus par la bande de faits").toMatch(/<Faits l=\{q\} role="question"/);
+    expect(page, "la question ne passe plus par la bande de faits").toMatch(/<Faits\s+l=\{q\}\s+role="question"/);
     expect(lire("src/lib/domain/types.ts"), "le montant a quitté le modèle : la garde ne mesure plus rien").toMatch(/montant: number/);
     /* ET IL RESTE AU DESK, qui en a besoin comme cible — le chiffre lui-même,
        et pas le mot : « cherchés » paraît deux fois sur cette page, et la garde

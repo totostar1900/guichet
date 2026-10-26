@@ -32,8 +32,8 @@ export const CLIENTELE: DocPage = {
           type: "list",
           items: [
             l(
-              "Noté : les quarante-trois gestes du catalogue, chacun avec sa date, son objet, son canal et l'appareil employé.",
-              "Recorded: the forty-three moves of the catalogue, each with its date, object, channel and device used.",
+              "Noté : les quarante-quatre gestes du catalogue, chacun avec sa date, son objet, son canal et l'appareil employé.",
+              "Recorded: the forty-four moves of the catalogue, each with its date, object, channel and device used.",
             ),
             l(
               "Noté aussi : la consultation d'un objet nommé, fiche, document, portefeuille ou séance, UNE FOIS par jour et par objet.",

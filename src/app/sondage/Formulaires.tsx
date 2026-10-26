@@ -6,7 +6,7 @@ import { Select } from "@/components/ui/Select";
 import { groupedInput } from "@/lib/ui/grouped";
 import { INSTRUMENTS_SONDES, gabarit, type InstrumentSonde } from "@/lib/domain/sondage";
 import { PAYS_CEMAC } from "@/lib/market/budget";
-import { deposerLaLigne, retirerLaLigne, type SondageResult } from "./actions";
+import { deposerLaLigne, modifierLaLigne, retirerLaLigne, type SondageResult } from "./actions";
 import styles from "./page.module.css";
 
 /**
@@ -34,23 +34,53 @@ import styles from "./page.module.css";
  * RÉPONDRE À UNE QUESTION DE LA MAISON
  * ------------------------------------------------------------------ */
 
-export function Repondre({ question }: { question: { id: string; instrument: InstrumentSonde; mot: "coupon" | "taux" } }) {
+/**
+ * CE QU'UNE INTENTION DÉJÀ DITE REND AU FORMULAIRE QUI LA ROUVRE.
+ *
+ * « Ajouter “modifier” comme possibilité. » Un formulaire de modification vide
+ * n'est pas une modification : c'est un second dépôt, et le client qui ne
+ * voulait changer qu'un chiffre doit retaper les autres — donc il se trompe, ou
+ * il renonce. Les champs reviennent remplis, et il ne touche que ce qu'il
+ * change.
+ */
+export interface Modifiable {
+  id: string;
+  montant: number;
+  rate?: number;
+  pricePct?: number;
+  dansJours?: number;
+  note?: string;
+  instrument: InstrumentSonde;
+  country: string;
+  tenor: string;
+}
+
+/* Le montant revient groupé comme le client l'a tapé — « 50 000 000 » et non
+   « 50000000 » : c'est la forme que le champ tient, et elle se relit. */
+const groupe = (n: number) => n.toLocaleString("fr-FR").replace(/[\u00a0\u202f]/g, " ");
+
+/* `discret` : le même geste, à l'endroit où il n'est pas le geste principal.
+   Dans la liste des intentions, « Modifier » est un lien comme « Retirer » ; sur
+   la tuile d'une question, c'est le bouton qu'on est venu chercher. Un libellé
+   long à côté d'un court ferait lire deux gestes différents. */
+export function Repondre({ question, existante, discret }: { question: { id: string; instrument: InstrumentSonde; mot: "coupon" | "taux" }; existante?: Modifiable; discret?: boolean }) {
   const t = useT();
-  const [state, action, pending] = useActionState<SondageResult | null, FormData>(deposerLaLigne, null);
-  const [montant, setMontant] = useState("");
+  const [state, action, pending] = useActionState<SondageResult | null, FormData>(existante ? modifierLaLigne : deposerLaLigne, null);
+  const [montant, setMontant] = useState(existante ? groupe(existante.montant) : "");
   const [ouvert, setOuvert] = useState(false);
 
   if (state?.ok) return <p className={styles.recu}>{t(state.message)}</p>;
 
   if (!ouvert)
     return (
-      <button type="button" className="btn primary" onClick={() => setOuvert(true)}>
-        {t("Je serais preneur")}
+      <button type="button" className={discret ? styles.lien : "btn primary"} onClick={() => setOuvert(true)}>
+        {t(discret ? "Modifier" : existante ? "Modifier ma réponse" : "Je serais preneur")}
       </button>
     );
 
   return (
     <form action={action} className={styles.form}>
+      {existante && <input type="hidden" name="id" value={existante.id} />}
       <input type="hidden" name="repondA" value={question.id} />
       <input type="hidden" name="instrument" value={question.instrument} />
       <div className={styles.deux}>
@@ -63,19 +93,19 @@ export function Repondre({ question }: { question: { id: string; instrument: Ins
             plus utile au Trésor — elle tient à n'importe quel niveau. */}
         <label className="field">
           {t(question.mot === "taux" ? "Au taux d'au moins (%)" : "Au coupon d'au moins (%)")}
-          <input name="rate" type="number" step="0.01" placeholder="6,25" />
+          <input name="rate" type="number" step="0.01" placeholder="6,25" defaultValue={existante?.rate ?? ""} />
           <small className="muted">{t("Facultatif : sans condition, votre réponse tient quel que soit le niveau.")}</small>
         </label>
       </div>
       <label className="field">
         {t("Prêt à partir de (jours)")}
-        <input name="dansJours" type="number" min="0" max="365" placeholder="21" required />
+        <input name="dansJours" type="number" min="0" max="365" placeholder="21" defaultValue={existante?.dansJours ?? ""} required />
         <small className="muted">{t("Une séance tenue avant ce délai vous trouverait sans fonds : c'est pour cela qu'on vous le demande.")}</small>
       </label>
       {!state?.ok && state?.error && <em className={styles.erreur}>{state.error}</em>}
       <div className={styles.boutons}>
         <button type="submit" className="btn primary" disabled={pending}>
-          {t(pending ? "Un instant…" : "Dire au desk")}
+          {t(pending ? "Un instant…" : existante ? "Enregistrer" : "Dire au desk")}
         </button>
         <button type="button" className="btn ghost" onClick={() => setOuvert(false)}>
           {t("Annuler")}
@@ -89,12 +119,12 @@ export function Repondre({ question }: { question: { id: string; instrument: Ins
  * LE GABARIT : PROPOSER SA PROPRE LIGNE
  * ------------------------------------------------------------------ */
 
-export function ProposerMaLigne() {
+export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) {
   const t = useT();
-  const [state, action, pending] = useActionState<SondageResult | null, FormData>(deposerLaLigne, null);
-  const [instrument, setInstrument] = useState<InstrumentSonde>("OTA");
-  const [country, setCountry] = useState("Cameroun");
-  const [montant, setMontant] = useState("");
+  const [state, action, pending] = useActionState<SondageResult | null, FormData>(existante ? modifierLaLigne : deposerLaLigne, null);
+  const [instrument, setInstrument] = useState<InstrumentSonde>(existante?.instrument ?? "OTA");
+  const [country, setCountry] = useState(existante?.country ?? "Cameroun");
+  const [montant, setMontant] = useState(existante ? groupe(existante.montant) : "");
   const [ouvert, setOuvert] = useState(false);
   const champs = gabarit(instrument);
   const aide = (cle: string) => champs.find((c) => c.cle === cle)?.aide ?? "";
@@ -107,14 +137,23 @@ export function ProposerMaLigne() {
     );
 
   if (!ouvert)
-    return (
-      <button type="button" className="btn primary" onClick={() => setOuvert(true)}>
-        {t("Remplir le gabarit")}
+    return existante ? (
+      <button type="button" className={styles.lien} onClick={() => setOuvert(true)}>
+        {t("Modifier")}
+      </button>
+    ) : (
+      /* LE « + » OUVRE LA LIGNE DU CLIENT, et il est là où elle ira : au titre
+         de ses intentions. Il vivait au bas de la page sous un troisième titre,
+         « Proposer votre ligne / Remplir le gabarit » — deux lignes pour dire
+         ce qu'un signe dit, et à l'endroit où l'on ne regarde plus. */
+      <button type="button" className={`btn ghost ${styles.plus}`} onClick={() => setOuvert(true)}>
+        <span aria-hidden="true">+</span> {t("Proposer une ligne")}
       </button>
     );
 
   return (
     <form action={action} className={styles.form}>
+      {existante && <input type="hidden" name="id" value={existante.id} />}
       {/* LE COMPARTIMENT D'ABORD, parce qu'il décide des champs qui suivent :
           une OTA porte un coupon ET un prix, un bon n'a ni l'un ni l'autre —
           il se vend précompté, et son taux EST son niveau. Demander un prix
@@ -149,20 +188,20 @@ export function ProposerMaLigne() {
         <Select name="country" label={t("Le Trésor")} value={country} onChange={setCountry} block cherchable={false} options={PAYS_CEMAC.map((p) => ({ value: p, label: t(p) }))} />
         <label className="field">
           {t("La durée")}
-          <input name="tenor" placeholder={instrument === "BTA" ? "52 semaines" : "5 ans"} required />
+          <input name="tenor" placeholder={instrument === "BTA" ? "52 semaines" : "5 ans"} defaultValue={existante?.tenor ?? ""} required />
           <small className="muted">{t(aide("tenor"))}</small>
         </label>
       </div>
       <div className={styles.deux}>
         <label className="field">
           {t(instrument === "BTA" ? "Le taux que vous accepteriez, au moins (%)" : "Le coupon que vous attendez, au moins (%)")}
-          <input name="rate" type="number" step="0.01" placeholder="6,50" />
+          <input name="rate" type="number" step="0.01" placeholder="6,50" defaultValue={existante?.rate ?? ""} />
           <small className="muted">{t(aide("rate"))}</small>
         </label>
         {instrument === "OTA" && (
           <label className="field">
             {t("Le prix que vous accepteriez, au plus (%)")}
-            <input name="pricePct" type="number" step="0.01" placeholder="100" />
+            <input name="pricePct" type="number" step="0.01" placeholder="100" defaultValue={existante?.pricePct ?? ""} />
             <small className="muted">{t(aide("pricePct"))}</small>
           </label>
         )}
@@ -175,18 +214,18 @@ export function ProposerMaLigne() {
         </label>
         <label className="field">
           {t("Prêt à partir de (jours)")}
-          <input name="dansJours" type="number" min="0" max="365" placeholder="60" required />
+          <input name="dansJours" type="number" min="0" max="365" placeholder="60" defaultValue={existante?.dansJours ?? ""} required />
           <small className="muted">{t(aide("quand"))}</small>
         </label>
       </div>
       <label className="field">
         {t("Ce que le desk doit savoir (facultatif)")}
-        <textarea name="note" rows={2} maxLength={600} placeholder={t("Pourquoi cette ligne, ou ce qui vous ferait changer d'avis.")} />
+        <textarea name="note" rows={2} maxLength={600} placeholder={t("Pourquoi cette ligne, ou ce qui vous ferait changer d'avis.")} defaultValue={existante?.note ?? ""} />
       </label>
       {!state?.ok && state?.error && <em className={styles.erreur}>{state.error}</em>}
       <div className={styles.boutons}>
         <button type="submit" className="btn primary" disabled={pending}>
-          {t(pending ? "Un instant…" : "Envoyer au desk")}
+          {t(pending ? "Un instant…" : existante ? "Enregistrer" : "Envoyer au desk")}
         </button>
         <button type="button" className="btn ghost" onClick={() => setOuvert(false)}>
           {t("Annuler")}

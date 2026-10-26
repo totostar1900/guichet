@@ -41,6 +41,7 @@ const EN_LETTRES: Record<number, string> = {
   41: "quarante et un",
   42: "quarante-deux",
   43: "quarante-trois",
+  44: "quarante-quatre",
   88: "quatre-vingt-huit",
   89: "quatre-vingt-neuf",
   90: "quatre-vingt-dix",

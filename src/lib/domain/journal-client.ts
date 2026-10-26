@@ -70,6 +70,7 @@ export const GESTES: Record<string, Geste> = {
      ordre, et il n'engage rien — ce que la phrase dit. Un genre à lui aurait
      ajouté un onglet au journal pour deux gestes. */
   "sondage.depose": { genre: "ordre", phrase: "Vous avez dit ce que vous prendriez", auDesk: "a dit ce qu'il prendrait" },
+  "sondage.modifie": { genre: "ordre", phrase: "Vous avez modifié votre intention", auDesk: "a modifié son intention" },
   "sondage.retire": { genre: "ordre", phrase: "Vous avez retiré votre attente", auDesk: "a retiré son attente" },
 
   /* L'argent, et ce qui le commande. */

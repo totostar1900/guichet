@@ -2016,15 +2016,28 @@ export const supabaseRepository: Repository = {
     return toLigneSondee(data as SurveyLineRow);
   },
   async updateLigneSondee(id, patch) {
+    /* LA PRÉSENCE DE LA CLEF DÉCIDE, ET NON SA VALEUR. « patch.rate !== undefined »
+       rendait l'effacement impossible : un client qui retire sa condition de
+       coupon la voyait disparaître en mémoire et rester en base. « in » dit ce
+       que l'appelant a voulu — la clef absente ne touche à rien, la clef posée à
+       undefined efface. */
     const row: Record<string, unknown> = { updated_at: new Date().toISOString() };
-    if (patch.state !== undefined) row.state = patch.state;
-    if (patch.closedReason !== undefined) row.closed_reason = patch.closedReason;
-    if (patch.montant !== undefined) row.montant = patch.montant;
-    if (patch.rate !== undefined) row.rate = patch.rate;
-    if (patch.pricePct !== undefined) row.price_pct = patch.pricePct;
-    if (patch.seanceLe !== undefined) row.seance_le = patch.seanceLe;
-    if (patch.dansJours !== undefined) row.dans_jours = patch.dansJours;
-    if (patch.note !== undefined) row.note = patch.note;
+    const colonnes: Record<string, string> = {
+      state: "state",
+      closedReason: "closed_reason",
+      instrument: "instrument",
+      country: "country",
+      tenor: "tenor",
+      montant: "montant",
+      rate: "rate",
+      pricePct: "price_pct",
+      seanceLe: "seance_le",
+      dansJours: "dans_jours",
+      note: "note",
+    };
+    for (const [cle, colonne] of Object.entries(colonnes)) {
+      if (cle in patch) row[colonne] = (patch as Record<string, unknown>)[cle] ?? null;
+    }
     const { data, error } = await db().from("survey_lines").update(row).eq("id", id).select("*").single();
     if (error) fail("updateLigneSondee", error);
     return toLigneSondee(data as SurveyLineRow);

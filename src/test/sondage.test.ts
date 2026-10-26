@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SEUIL_CLIENTS, SEUIL_MONTANT, UNITE_SONDEE, anneesDuTenor, cleDeGroupe, consensus, etatDeLAttente, gabarit, manquesDeLaLigne, motDuNiveau, mur, prete, rendementDeLaLigne } from "@/lib/domain/sondage";
+import { SEUIL_CLIENTS, SEUIL_MONTANT, UNITE_SONDEE, anneesDuTenor, cleDeGroupe, delaiDepuisLaCreation, joursRestants, consensus, etatDeLAttente, gabarit, manquesDeLaLigne, motDuNiveau, mur, prete, rendementDeLaLigne } from "@/lib/domain/sondage";
 import type { LigneSondee } from "@/lib/domain/types";
 
 /**
@@ -420,5 +420,58 @@ describe("la compilation des lignes poussées par les clients", () => {
        de trop qu'un rapprochement inventé. */
     expect(cleDeGroupe({ instrument: "OTA", country: "Gabon", tenor: "  moyen   terme " })).toBe(cleDeGroupe({ instrument: "OTA", country: "Gabon", tenor: "Moyen terme" }));
     expect(cleDeGroupe({ instrument: "OTA", country: "Gabon", tenor: "moyen terme" })).not.toBe(cleDeGroupe({ instrument: "OTA", country: "Gabon", tenor: "long terme" }));
+  });
+});
+
+/**
+ * MODIFIER UNE INTENTION SANS DÉPLACER SA DATE.
+ *
+ * « Ajouter “modifier” comme possibilité. » Le geste a l'air anodin, et il
+ * porte un piège sans symptôme : le délai est stocké DEPUIS LA CRÉATION — c'est
+ * ce qui le rend stable, voir `prete` — alors que le client le pense toujours
+ * depuis aujourd'hui. Il rouvre son intention une semaine plus tard, retape le
+ * même nombre, et la date RECULE d'une semaine. Sur une intention plus
+ * ancienne, elle tombe dans le passé, et le robot la clôt le soir même avec un
+ * motif que personne ne comprendra.
+ *
+ * Rien à l'écran ne l'aurait montré : le nombre est celui que le client a tapé,
+ * et la date qui en sort est plausible.
+ */
+describe("la modification d'une intention", () => {
+  const ligne = { createdAt: "2026-10-19T09:00:00", dansJours: 21, seanceLe: undefined };
+
+  it("rend au client ce qui reste à courir, et non ce qu'il avait tapé", () => {
+    /* Écrit « dans 21 jours » le 19, elle est prête le 9 novembre. Rouverte le
+       26, il reste quatorze jours — et c'est quatorze que le champ doit
+       montrer, sans quoi le client lirait « le 16 novembre ». */
+    expect(prete(ligne)).toBe("2026-11-09");
+    expect(joursRestants(ligne, "2026-10-26")).toBe(14);
+    /* Le jour même, c'est le nombre tapé : la conversion ne déplace rien quand
+       il n'y a rien à rattraper. */
+    expect(joursRestants(ligne, "2026-10-19")).toBe(21);
+    /* Une date déjà passée ne rend pas un nombre négatif, qui serait refusé par
+       le champ et par la base : elle rend zéro, « prêt tout de suite ». */
+    expect(joursRestants(ligne, "2026-12-01")).toBe(0);
+  });
+
+  it("réécrit le délai pour que la date soit celle que le client a voulue", () => {
+    /* Le 26 octobre, le client tape « 21 jours » : il veut le 16 novembre. La
+       base garde un délai depuis le 19, donc vingt-huit. */
+    const d = delaiDepuisLaCreation("2026-10-19T09:00:00", 21, "2026-10-26");
+    expect(d).toBe(28);
+    expect(prete({ ...ligne, dansJours: d }), "la date écrite n'est pas celle que le client a voulue").toBe("2026-11-16");
+    /* ET SANS LA CONVERSION, ce serait le 9 novembre — une semaine trop tôt. */
+    expect(prete({ ...ligne, dansJours: 21 })).toBe("2026-11-09");
+  });
+
+  it("rend l'aller-retour stable : ce qui revient au champ ressort identique", () => {
+    /* La propriété qui tient les deux fonctions ensemble : rouvrir une intention
+       et l'enregistrer SANS RIEN CHANGER ne doit pas bouger sa date d'un jour.
+       C'est le cas le plus fréquent — on rouvre pour changer le montant. */
+    for (const aujourdHui of ["2026-10-19", "2026-10-26", "2026-11-08", "2026-11-09"]) {
+      const revenu = joursRestants(ligne, aujourdHui)!;
+      const ressorti = delaiDepuisLaCreation(ligne.createdAt, revenu, aujourdHui);
+      expect(prete({ ...ligne, dansJours: ressorti }), `l'aller-retour du ${aujourdHui} a déplacé la date`).toBe(prete(ligne));
+    }
   });
 });

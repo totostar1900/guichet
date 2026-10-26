@@ -253,6 +253,44 @@ export function prete(l: Pick<LigneSondee, "seanceLe" | "dansJours" | "createdAt
 }
 
 /* ------------------------------------------------------------------ *
+ * MODIFIER UNE INTENTION SANS DÉPLACER SA DATE
+ * ------------------------------------------------------------------ */
+
+const JOUR = 86_400_000;
+const minuit = (iso: string) => Date.parse(`${iso.slice(0, 10)}T00:00:00Z`);
+
+/**
+ * CE QUI RESTE À COURIR, pour revenir dans le champ du client qui modifie.
+ *
+ * Il a écrit « dans 21 jours » le 19 octobre ; il rouvre son intention le 26.
+ * Lui remontrer 21 lui dirait que sa ligne est prête le 16 novembre, alors
+ * qu'elle l'est le 9. Ce qu'il doit lire est ce qui reste : quatorze.
+ */
+export function joursRestants(l: Pick<LigneSondee, "seanceLe" | "dansJours" | "createdAt">, aujourdHui: string): number | undefined {
+  const j = prete(l);
+  return j ? Math.max(0, Math.round((minuit(j) - minuit(aujourdHui)) / JOUR)) : undefined;
+}
+
+/**
+ * LE DÉLAI RÉÉCRIT, POUR QUE LA DATE SOIT CELLE QUE LE CLIENT A VOULUE.
+ *
+ * LE PIÈGE QUE CECI FERME, et il n'aurait eu aucun symptôme. Le délai est
+ * stocké DEPUIS LA CRÉATION — c'est ce qui le rend stable, voir `prete`. Le
+ * client, lui, pense toujours depuis aujourd'hui : il rouvre son intention le
+ * 26 octobre, tape « 21 jours », et attend le 16 novembre. Écrit tel quel sur
+ * une ligne née le 19, 21 devient le 9 novembre — une semaine TROP TÔT, et sur
+ * une ligne plus vieille, une date DÉJÀ PASSÉE que le robot clôt le soir même
+ * avec un motif que personne ne comprendra.
+ *
+ * On convertit donc : ce que le client dit en jours depuis aujourd'hui, la base
+ * le garde en jours depuis la création. C'est la même date, dans l'unité de
+ * chacun.
+ */
+export function delaiDepuisLaCreation(createdAt: string, joursDepuisAujourdHui: number, aujourdHui: string): number {
+  return Math.max(0, Math.round((minuit(aujourdHui) + joursDepuisAujourdHui * JOUR - minuit(createdAt)) / JOUR));
+}
+
+/* ------------------------------------------------------------------ *
  * LE RENDEMENT ACTUARIEL D'UNE OTA SONDÉE
  * ------------------------------------------------------------------ */
 

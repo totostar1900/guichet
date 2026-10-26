@@ -36,9 +36,21 @@ export const EN_SONDAGE: Record<string, string> = {
     "Your answer feeds that intelligence. It is not an order : there is nothing to sign and nothing to fund, and you withdraw it whenever you want. If a session opens on a line you asked for, the desk calls you before the cut-off.",
   "Sur chaque ligne, « ~ » précède la date à partir de laquelle elle serait prête — ce n'est pas une séance, et ce n'est pas une promesse. « ind. » est le niveau que la maison indique ; « min. » celui que vous posez comme plancher.":
     "On every line, « ~ » precedes the date from which it would be ready — it is not a session, and it is not a promise. « ind. » is the level the firm indicates ; « min. » the floor you set.",
-  "Ce que la maison demande": "What the firm is asking",
-  "Rien n'est sondé en ce moment. Proposez la vôtre plus bas : c'est de là que partent la plupart des séances que nous obtenons.":
-    "Nothing is being surveyed right now. Propose your own below : that is where most of the sessions we obtain begin.",
+  /* LES DEUX TITRES, le 26 octobre 2026. « Ce que la maison demande » décrivait
+     au client ce qu'il avait sous les yeux ; « Combien investiriez-vous ? » lui
+     demande quelque chose, et c'est ce que la page attend de lui. « Vos
+     intentions » remplace « Ce que vous avez dit » : ce qui est là engage le
+     desk à rappeler, ce n'est pas une conversation. */
+  "Combien investiriez-vous ?": "How much would you invest ?",
+  "Vos intentions": "Your expressions of interest",
+  Répondu: "Answered",
+  "Modifier ma réponse": "Change my answer",
+  Modifier: "Change",
+  Enregistrer: "Save",
+  "Proposer une ligne": "Propose a line",
+  "Votre intention est modifiée. Le desk lit la nouvelle, et elle garde la même référence.": "Your expression of interest is changed. The desk reads the new one, and it keeps the same reference.",
+  "Cette intention n'est pas la vôtre.": "This expression of interest is not yours.",
+  "Cette intention est close : elle ne se modifie plus. Dites-en une nouvelle.": "This expression of interest is closed : it can no longer be changed. State a new one.",
   /* ---------- LA BANDE DE FAITS, LA MÊME POUR LES DEUX TUILES ----------
      « Harmoniser les tuiles » : montant court, maturité, coupon pour une OTA,
      taux pour un bon. Le rôle ne change QUE le sens du niveau — la maison dit
@@ -58,13 +70,13 @@ export const EN_SONDAGE: Record<string, string> = {
      prix en était l'ingrédient, et les deux côte à côte faisaient trois nombres
      pour deux faits. « Rendement » seul, parce que le qualificatif — indicatif,
      au moins — est déjà porté par le coupon dont il découle. */
-  "Vous avez répondu {m}, à partir du {d}": "You answered {m}, from {d}",
-  "Répondre à nouveau remplace cette réponse.": "Answering again replaces that answer.",
-  "Rien encore. Répondre à une ligne ci-dessus prend deux chiffres.": "Nothing yet. Answering a line above takes two figures.",
   "Une attente reçue": "An expression of interest received",
   "Une attente portée au Trésor": "An expression of interest carried to the Treasury",
   "Une attente close": "A closed expression of interest",
-  "Proposer votre ligne": "Propose your line",
+  "Rien n'est sondé en ce moment. Proposez la vôtre ci-dessous : c'est de là que partent la plupart des séances que nous obtenons.":
+    "Nothing is being surveyed right now. Propose your own below : that is where most of the sessions we obtain begin.",
+  "Rien encore. Répondre à une ligne ci-dessus prend deux chiffres ; proposer la vôtre en prend six.":
+    "Nothing yet. Answering a line above takes two figures ; proposing your own takes six.",
   "Proposer sa propre ligne": "Proposing your own line",
   "Si ce que vous cherchez n'est pas sondé, dites-le : le desk réunit les demandes qui se ressemblent et les porte au Trésor concerné. Une ligne se porte quand plusieurs clients la demandent, donc votre réponse compte même seule.":
     "If what you are after is not being surveyed, say so : the desk gathers similar requests and carries them to the Treasury concerned. A line is carried when several clients ask for it, so your answer counts even on its own.",
@@ -81,7 +93,6 @@ export const EN_SONDAGE: Record<string, string> = {
      « Prêt à partir du ». La bande de faits ne porte plus d'étiquette — on lit
      « 500 M FCFA · 5 ans · coupon indicatif 6,25 % » d'un trait — et une clef
      que le français ne dit plus garde en anglais une page qui n'existe pas. */
-  "Ce que vous avez dit": "What you have said",
   "Ce que vous prendriez": "What you would take",
   "Au taux d'au moins": "At a rate of at least",
   "Au coupon d'au moins": "At a coupon of at least",
