@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { attentesDuClient, compteDesEtats, servicesDuClient, type ContexteClient, RAYONS } from "@/lib/domain/services";
+import { attentesDuClient, compteDesEtats, servicesDuClient, type ContexteClient, RAISON, RAYONS } from "@/lib/domain/services";
 import { fmt } from "@/lib/format";
 
 /**
@@ -121,8 +121,20 @@ describe("l'état suit la donnée du client", () => {
     expect(m.get("passage")!.etat).toBe("a_activer");
     expect(m.get("passage")!.phrase.key).toMatch(/^Commencez par/);
     expect(m.get("sondage")!.etat).toBe("a_activer");
-    expect(m.get("sondage")!.phrase.key, "le sondage redemande une séance annoncée : c'est l'inverse de ce qu'il sert à faire").not.toMatch(/séance annoncée|Commencez par/);
-    expect(m.get("sondage")!.phrase.key, "la phrase n'invite plus à dire ce qu'on prendrait").toMatch(/prendriez/);
+    expect(m.get("sondage")!.phrase.key, "le sondage redemande une séance annoncée : c'est l'inverse de ce qu'il sert à faire").not.toMatch(/séance annoncée|Aucune séance|Commencez par/);
+    /**
+     * ET L'INVITATION EST DANS LA RAISON, depuis que la tuile n'a plus qu'une
+     * phrase.
+     *
+     * La phrase disait « dites ce que vous prendriez », c'est-à-dire la raison
+     * mot pour mot — relevé à l'écran sur /agir, les deux lignes l'une sous
+     * l'autre. La phrase porte maintenant ce que personne ne devine, la
+     * doctrine : il n'y a RIEN À ATTENDRE. Mais la tuile doit toujours inviter
+     * au geste, et c'est cela qu'on tient — à l'endroit où il est désormais
+     * écrit, pas à celui où il l'était.
+     */
+    expect(RAISON.sondage, "la tuile du sondage n'invite plus à dire ce qu'on prendrait").toMatch(/prendriez/);
+    expect(m.get("sondage")!.phrase.key, "la phrase du sondage ne dit plus que rien n'a besoin d'être annoncé").toMatch(/annoncé/);
   });
 
   /* L'APPARIEMENT A QUITTÉ LA VITRINE le 9 octobre 2026, et ce cliquet le

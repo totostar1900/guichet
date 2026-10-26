@@ -161,13 +161,28 @@
   color: var(--ink-3);
   font-size: var(--t-4);
   line-height: 1.5;
+  /* SANS CETTE LIGNE, LA PAGE ENTIÈRE DÉBORDE. Une carte est une grille, et un
+     enfant de grille vaut `min-width: auto` : sa piste ne descend pas sous la
+     largeur de son plus long morceau INSÉCABLE. Depuis que chaque fait porte
+     « nowrap », ce morceau fait vingt-cinq signes, la piste s'élargit, et c'est
+     TOUT le document qui se met à défiler de côté — relevé à 412 px, la
+     référence coupée au bord droit sur les deux listes. */
+  min-width: 0;
 }
+/* LE MONTANT COURT NE SE RESSERRE PLUS. Le crénage négatif servait neuf
+   chiffres — « 500 000 000 » gagne à se tasser ; « 500 M FCFA » y perd ses deux
+   espaces, et se lit « 500MFCFA ». Relevé à l'écran à 412 px le 26 octobre
+   2026, après le passage aux millions. */
 .faits b {
   color: var(--ink);
   font-size: var(--t-6);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+}
+/* UN FAIT NE SE COUPE PAS EN DEUX : il emporte son séparateur, et la bande
+   passe à la ligne entre deux faits. */
+.fait {
+  white-space: nowrap;
 }
 
 /* LA NOTE DU DESK EST UNE VOIX, pas une donnée : un filet à gauche, du corps

@@ -62,9 +62,16 @@ export function PoserUneQuestion() {
         </label>
         {/* LA DATE OU LE DÉLAI, JAMAIS LES DEUX : la contrainte de la base le
             refuse, parce que deux réponses à « quand » obligeraient la
-            consolidation à choisir, et elle choisirait mal. */}
+            consolidation à choisir, et elle choisirait mal.
+
+            ET CE N'EST PAS UNE SÉANCE VISÉE. Le libellé le disait, et la tuile
+            du client le répétait : la maison n'adjuge pas, et le sondage ne
+            suit aucun calendrier annoncé. Ce que cette date borne est
+            l'HORIZON de la question — au-delà, le robot la clôt, parce qu'un
+            appétit de l'été ne se porte pas en décembre. C'est le même mot que
+            sur la tuile du client, « à partir du », pour la même date. */}
         <label className="field">
-          {t("Séance visée (date)")}
+          {t("À partir du (date)")}
           <input name="seanceLe" type="date" />
         </label>
         <label className="field">

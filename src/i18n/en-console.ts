@@ -82,8 +82,14 @@ export const EN_CONSOLE: Record<string, string> = {
   "Dès votre première ligne, elle sera inscrite à votre nom au dépositaire.": "From your first line, it will be registered in your name at the depositary.",
   "Une séance {p} est annoncée le {d} : {q}.": "A {p} session is announced for {d}: {q}.",
   "Le calendrier porte toutes les séances annoncées dès leur publication.": "The calendar carries all the announced sessions as soon as they are published.",
-  "Vous pouvez dire à quel taux vous seriez preneur sur la séance du {d}, sans vous engager.":
-    "You can say at what rate you would be a buyer in the session of {d}, without committing.",
+  /* LA TUILE DU SONDAGE N'A PLUS QU'UNE PHRASE, le 26 octobre 2026 : la
+     variante « sur la séance du {d} » décrivait le sondage d'une séance
+     ANNONCÉE, qui est l'autre service. Et la variante du cas sans séance
+     n'avait JAMAIS été traduite — une phrase du catalogue passe par
+     « phrase: { key } », que le relevé des chaînes sans anglais ne voit pas.
+     Une seule phrase, c'est une seule traduction, et elle existe. */
+  "Rien n'a besoin d'être annoncé : c'est même de là que partent les séances que nous obtenons.":
+    "Nothing needs to be announced : that is in fact where the sessions we obtain begin.",
   "Aucune séance n'est annoncée : un sondage se tient devant une date.": "No session is announced: a survey stands in front of a date.",
   "Il rouvrira dès qu'un Trésor publiera son avis d'annonce.": "It will reopen as soon as a Treasury publishes its announcement notice.",
   /* L'ARBITRAGE DIT CE QU'IL ÉPARGNE, et non ce que le client détient : le

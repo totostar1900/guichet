@@ -60,7 +60,7 @@ export async function tourDuSondage(now = new Date()): Promise<TourDuSondage> {
     try {
       const motif =
         l.origine === "desk"
-          ? `Séance visée passée le ${fmtDate(jour, false)} : la maison ne sonde plus cette ligne.`
+          ? `L'horizon du ${fmtDate(jour, false)} est passé : la maison ne sonde plus cette ligne.`
           : `Vous étiez prêt à partir du ${fmtDate(jour, false)}, et cette date est passée sans qu'une séance s'ouvre. Rien ne vous engageait, et rien ne vous engage : redites-le quand vous voudrez.`;
       await r.updateLigneSondee(l.id, { state: "close", closedReason: motif });
       await r.logEvent({ kind: "system", html: `Sondage <b>${l.ref}</b> : <b>clos</b>, la date du ${fmtDate(jour, false)} est passée · rien n'était engagé` });

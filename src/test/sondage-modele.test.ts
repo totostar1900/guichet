@@ -3,6 +3,7 @@ import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ROBOTS } from "@/lib/domain/robots";
 import { CATALOGUE } from "@/lib/domain/services";
+import { SEED_SONDAGES } from "@/data/seed";
 
 /**
  * LE SONDAGE TIENT À QUATRE CHOSES QUI NE SE VOIENT PAS L'UNE L'AUTRE.
@@ -96,13 +97,111 @@ describe("le modèle du sondage", () => {
     /* Et la page existe : un href vers le vide est une impasse qui ne se voit
        pas depuis le catalogue. */
     expect(() => lire("src/app/sondage/page.tsx")).not.toThrow();
-    /* LES DEUX VARIANTES DE LA TUILE mènent au même endroit : celle qui a une
-       séance devant elle, et celle qui n'en a pas. La seconde est justement
-       celle du client à qui le service sert le plus. */
-    const services = lire("src/lib/domain/services.ts");
-    const bloc = services.slice(services.indexOf('cle: "sondage"'), services.indexOf('/* 08 · Arbitrage'));
-    expect([...bloc.matchAll(/href: "\/sondage"/g)].length, "une des deux tuiles du sondage mène encore ailleurs").toBe(2);
+    /**
+     * UNE SEULE TUILE, ET ELLE NE DÉPEND PLUS D'UNE SÉANCE ANNONCÉE.
+     *
+     * CE QUE LE DIRIGEANT A DIT, le 26 octobre 2026 : « le sondage n'est pas
+     * nécessairement lié à une adjudication à venir, c'est le desk qui réunit
+     * l'appétit des clients ». La tuile avait deux phrases, et celle du cas
+     * « une séance est annoncée » promettait « dire à quel taux vous seriez
+     * preneur SUR LA SÉANCE DU 18 novembre » : le client arrivait sur une page
+     * dont les lignes sondées n'ont rien à voir avec cette séance-là. C'était
+     * l'autre service — le sondage d'une séance annoncée, qui vit au
+     * calendrier — et une tuile qui change de promesse selon qu'un Trésor a
+     * publié un avis ne décrit plus un service.
+     *
+     * LA CONDITION EST DONC LE DÉFAUT, et c'est elle qu'on tient ici : une
+     * tuile unique ne peut pas dire deux choses.
+     */
+    /* LES COMMENTAIRES SONT RETIRÉS D'ABORD : celui de la tuile RACONTE la
+       variante qu'on vient de retirer — « sur la séance du 18 novembre » — et
+       une épreuve qui lirait la prose trouverait le défaut dans son propre
+       récit. On ne relit que ce qui s'exécute. */
+    const services = lire("src/lib/domain/services.ts").replace(/\/\*[\s\S]*?\*\//g, "");
+    const i = services.indexOf('cle: "sondage"');
+    const bloc = services.slice(services.lastIndexOf("out.push(", i), services.indexOf("out.push(", i));
+    expect([...bloc.matchAll(/href: "\/sondage"/g)].length, "la tuile du sondage s'est dédoublée, ou elle mène ailleurs").toBe(1);
     expect(bloc, "la tuile sans séance renvoie de nouveau au calendrier").not.toMatch(/calendrier/);
+    /* NON VACUITÉ : le bloc est bien celui de la tuile, et il porte le code qui
+       la pousse — un découpage qui raterait sa cible passerait les trois
+       lignes ci-dessus sans rien dire. */
+    expect(bloc, "le bloc relu n'est plus celui de la tuile du sondage").toMatch(/out\.push\(\s*aActiver\(\{/);
+    expect(bloc, "la tuile du sondage dépend de nouveau d'une séance annoncée").not.toMatch(/prochaineSeance/);
+  });
+
+  /**
+   * LES DEUX TUILES DU CLIENT DISENT LA MÊME CHOSE, ET DE LA MÊME FAÇON.
+   *
+   * CE QUE LE DIRIGEANT A DEMANDÉ : « harmoniser les tuiles du sondage —
+   * montant court, maturité, coupon pour une OTA, taux pour un bon ». Les deux
+   * tuiles portaient la même information et l'écrivaient autrement : la durée
+   * en haut d'un côté et absente de l'autre, le montant au franc, et une date
+   * qui annonçait une séance que la maison n'adjuge pas.
+   *
+   * CE QUI LE TIENT, et c'est la seule forme qui tienne : la bande est UNE
+   * FONCTION, appelée deux fois. Deux gabarits qui décrivent la même chose
+   * divergent au premier changement — celui qu'on retouche, et celui qu'on
+   * oublie — et aucune épreuve ne voit cette divergence, parce que les deux
+   * pages restent justes séparément.
+   */
+  it("écrit la bande de faits une fois, et l'appelle deux fois", () => {
+    const page = lire("src/app/sondage/page.tsx");
+    expect([...page.matchAll(/className=\{styles\.faits\}/g)].length, "une tuile s'est remise à écrire sa propre bande de faits").toBe(1);
+    expect([...page.matchAll(/<Faits /g)].length, "les deux tuiles ne passent plus par la même bande").toBe(2);
+    /* LE RÔLE NE CHANGE QUE LE SENS DU NIVEAU : la maison dit un niveau
+       INDICATIF, le client dit un PLANCHER. Les confondre porterait au Trésor
+       un chiffre que personne n'a dit. */
+    expect(page, "le niveau indicatif de la maison a disparu de la bande").toMatch(/role === "question"/);
+    expect(page, "le plancher du client se lit de nouveau comme un indicatif").toMatch(/\{r\} au moins"/);
+  });
+
+  /**
+   * LE MONTANT EST COURT SUR UNE TUILE, ET AU FRANC AU DESK.
+   *
+   * « Le montant en millions ou en milliards. » Une tuile se compare d'un coup
+   * d'œil : neuf chiffres se comptent, un ordre de grandeur se voit. Le desk,
+   * lui, porte la demande à un Trésor et la dit au franc — ce n'est pas la même
+   * lecture, et c'est pour cela que la règle ne vaut que du côté client.
+   */
+  it("rend les montants du client en millions ou en milliards", () => {
+    const page = lire("src/app/sondage/page.tsx");
+    expect(page, "la tuile du client est revenue au franc exact").not.toMatch(/\bfmt\((?:[qml]|mienne)\.montant\)/);
+    expect(page, "le montant court a quitté la page du client").toMatch(/fmtUnits\(l\.montant, true\)/);
+    /* LA TUILE DU MATIN AUSSI, et elle a sa raison : « fmtMillions » rendait
+       un milliard « 1 200 M », ce qui se lit mal et se compare encore plus
+       mal — « 1,2 Md » est le même chiffre dans l'unité qu'on dit. */
+    const matin = lire("src/app/desk/today/today.ts");
+    expect(matin, "la tuile du matin rend de nouveau les milliards en millions").not.toMatch(/fmtMillions\(c\.montant\)/);
+  });
+
+  /**
+   * AUCUNE TUILE NE PROMET UNE SÉANCE, parce que la maison n'adjuge pas.
+   *
+   * « Le sondage n'est pas nécessairement lié à une adjudication à venir. » La
+   * page disait « séance visée le 9 nov. », le formulaire du desk demandait une
+   * « séance visée », le robot clôturait sur une « séance visée passée », et la
+   * note d'une ligne annonçait « le Trésor camerounais revient sur le 5 ans en
+   * novembre ». Quatre endroits pour une séance que personne n'a annoncée : un
+   * client qui lit cela attend un avis d'annonce, et c'est la maison qui
+   * paraît défaillir quand il ne vient pas.
+   *
+   * CE QUI RESTE DIT, parce que c'est vrai : une séance tenue AVANT la date du
+   * client le trouverait sans fonds. C'est une condition, pas une annonce.
+   */
+  it("ne promet de séance ni sur la tuile, ni au formulaire, ni dans un motif de clôture", () => {
+    for (const f of ["src/app/sondage/page.tsx", "src/app/desk/sondage/Formulaires.tsx", "src/lib/sondage/tour.ts"]) {
+      const vif = lire(f).replace(/\/\*[\s\S]*?\*\//g, "");
+      expect(vif, `${f} promet de nouveau une séance visée`).not.toMatch(/[Ss]éance visée/);
+    }
+    /* ET LA NOTE D'UNE LIGNE SONDÉE EST COURTE, parce qu'elle ne redit pas la
+       tuile : le pays, la durée, le montant et le niveau y sont déjà. Ce qui
+       reste à dire est POURQUOI la maison sonde celle-ci, en une phrase. */
+    const notes = SEED_SONDAGES.filter((l) => l.origine === "desk").map((l) => l.note ?? "");
+    expect(notes.length, "le jeu d'essai n'a plus de question du desk : les lignes ci-dessous ne mesurent rien").toBeGreaterThanOrEqual(2);
+    for (const n of notes) {
+      expect(n.length, `une note de ligne sondée fait ${n.length} signes : elle redit la tuile`).toBeLessThanOrEqual(90);
+      expect(n, "une note annonce une séance que personne n'a annoncée").not.toMatch(/annoncé|séance|revient sur/i);
+    }
   });
 
   it("donne au robot une cadence et une tâche planifiée, et il passe le matin", () => {

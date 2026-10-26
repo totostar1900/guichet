@@ -1,8 +1,10 @@
+import { Fragment } from "react";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { etatDeLAttente, motDuNiveau, prete } from "@/lib/domain/sondage";
+import type { LigneSondee } from "@/lib/domain/types";
 import { getT } from "@/i18n/server";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { fmtDate, fmtPct, fmtPrice, fmtUnits } from "@/lib/format";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { EnBref } from "@/components/EnBref";
@@ -56,26 +58,6 @@ export default async function SondagePage() {
   const vivantes = miennes.filter((m) => m.state !== "close");
   const closes = miennes.filter((m) => m.state === "close");
 
-  /* LE NIVEAU EST LE TAUX, sur les deux compartiments : un coupon sur une OTA,
-     un taux précompté sur un bon. Le prix d'une OTA ne paraît pas ici — il
-     n'entre ni dans l'échelle ni dans la moyenne, voir « domain/sondage ». */
-  const niveau = (l: { rate?: number }) => (l.rate != null ? fmtPct(l.rate, 2) : null);
-  /**
-   * QUAND : TOUJOURS UNE DATE, et jamais le délai tel qu'il a été écrit.
-   *
-   * RELEVÉ À L'ÉCRAN le 26 octobre 2026. La première écriture rendait
-   * « dans 21 jours » pour une question posée le 19 : lu le 26, cela se
-   * comprend « le 16 novembre », alors que la ligne dit le 9. Le délai est la
-   * façon dont son auteur l'a écrit ; la date est ce qu'il voulait dire, et
-   * c'est la seule chose qu'un lecteur puisse vérifier. C'est le même défaut
-   * que celui de `prete`, du côté de l'affichage, et c'est la même fonction
-   * qui le ferme.
-   */
-  const quand = (l: { seanceLe?: string; dansJours?: number; createdAt: string }) => {
-    const j = prete(l);
-    return j ? fmtDate(j, false) : null;
-  };
-
   return (
     <Glissement>
       <main className={styles.page}>
@@ -88,7 +70,7 @@ export default async function SondagePage() {
               <Pourquoi titre="À quoi sert un sondage" petit>
                 <p>
                   {t(
-                    "Les six Trésors de la CEMAC décident seuls de ce qu'ils émettent, et quand. Ce qu'ils achètent à une société de bourse, c'est le renseignement : à quel niveau la demande tient encore, et pour combien.",
+                    "Les six Trésors de la CEMAC décident seuls de ce qu'ils émettent, et quand. Ce qu'ils achètent à une société de bourse, c'est le renseignement : à quel niveau la demande tient encore, et pour combien. Une ligne sondée ici n'annonce donc aucune séance : c'est la maison qui réunit les appétits, avant qu'il y ait quoi que ce soit à annoncer.",
                   )}
                 </p>
                 <p>
@@ -112,30 +94,21 @@ export default async function SondagePage() {
           ) : (
             <ul className={styles.liste}>
               {ouvertes.map((q) => {
-                const n = niveau(q);
-                const d = quand(q);
                 const mienne = repondu.get(q.id);
+                const d = mienne && prete(mienne);
                 return (
                   <li key={q.id} className={styles.question}>
                     <div className={styles.entete}>
                       <b className={styles.ligne}>
-                        {q.instrument} · {t(q.country)} · {q.tenor}
+                        {q.instrument} · {t(q.country)}
                       </b>
                       <span className={`mono ${styles.ref}`}>{q.ref}</span>
                     </div>
-                    {/* LES FAITS EN UNE PHRASE, et non en trois colonnes
-                        d'étiquettes en capitales : on les lit d'un trait, et
-                        seul le montant est mis en avant — c'est lui qui dit si
-                        la ligne est à notre taille. */}
-                    <p className={styles.faits}>
-                      <b>{fmt(q.montant)} FCFA</b>
-                      {n ? ` · ${t("autour de {r}", { r: n })}` : ""}
-                      {d ? ` · ${t("séance visée le {d}", { d })}` : ""}
-                    </p>
+                    <Faits l={q} role="question" t={t} />
                     {q.note && <p className={styles.note}>{q.note}</p>}
                     {mienne ? (
                       <p className={styles.deja}>
-                        {t("Vous avez répondu {m} FCFA, à partir du {d}", { m: fmt(mienne.montant), d: quand(mienne) ?? "—" })}{" "}
+                        {t("Vous avez répondu {m}, à partir du {d}", { m: fmtUnits(mienne.montant, true), d: d ? fmtDate(d, false) : "—" })}{" "}
                         <span className={styles.second}>{t("Répondre à nouveau remplace cette réponse.")}</span>
                       </p>
                     ) : null}
@@ -159,8 +132,6 @@ export default async function SondagePage() {
             <ul className={styles.attentes}>
               {[...vivantes, ...closes].map((m) => {
                 const e = etatDeLAttente(m);
-                const n = niveau(m);
-                const d = quand(m);
                 return (
                   <li key={m.id} className={styles.attente} data-etat={e.etat}>
                     <div className={styles.entete}>
@@ -168,7 +139,7 @@ export default async function SondagePage() {
                         {t(e.mot)}
                       </span>
                       <b className={styles.ligne}>
-                        {m.instrument} · {t(m.country)} · {m.tenor}
+                        {m.instrument} · {t(m.country)}
                       </b>
                       {/* L'ÉTAT PASSE DERRIÈRE LE POINT : il est vrai en
                           permanence et identique d'une attente à l'autre, donc
@@ -180,11 +151,7 @@ export default async function SondagePage() {
                       </Pourquoi>
                       <span className={`mono ${styles.ref}`}>{m.ref}</span>
                     </div>
-                    <p className={styles.faits}>
-                      <b>{fmt(m.montant)} FCFA</b>
-                      {n ? ` · ${t(motDuNiveau(m.instrument) === "taux" ? "au taux d'au moins {r}" : "au coupon d'au moins {r}", { r: n })}` : ""}
-                      {d ? ` · ${t("à partir du {d}", { d })}` : ""}
-                    </p>
+                    <Faits l={m} role="attente" t={t} />
                     {m.closedReason && <p className={styles.motif}>{m.closedReason}</p>}
                     {m.state !== "close" && <Retirer id={m.id} ref_={m.ref} />}
                   </li>
@@ -213,5 +180,81 @@ export default async function SondagePage() {
         </section>
       </main>
     </Glissement>
+  );
+}
+
+/**
+ * LA BANDE DE FAITS, ÉCRITE UNE FOIS POUR LES DEUX TUILES.
+ *
+ * CE QUE LE DIRIGEANT A DEMANDÉ, le 26 octobre 2026 : « harmoniser les tuiles
+ * du sondage — montant court, maturité, coupon pour une OTA, taux pour un
+ * bon ». Les deux tuiles de cette page portent la même chose et la disaient
+ * autrement : la question de la maison annonçait « 500 000 000 FCFA · autour de
+ * 6,25 % · séance visée le 9 nov. », l'attente du client « 250 000 000 FCFA ·
+ * au coupon d'au moins 6,10 % · à partir du 3 nov. ». Trois écarts pour une
+ * seule information : la durée était en haut d'un côté et absente de l'autre,
+ * le montant était écrit au franc, et la date promettait une séance.
+ *
+ * ELLE EST DONC UNE FONCTION, ET NON DEUX GABARITS. Deux listes qui décrivent
+ * la même chose divergent au premier changement — celle qu'on retouche, et
+ * celle qu'on oublie. Le `role` ne change QUE le sens du niveau, qui n'est pas
+ * le même : la maison dit un niveau INDICATIF, le client dit un PLANCHER.
+ * Confondre les deux ferait porter au Trésor un chiffre que personne n'a dit.
+ *
+ * LE MONTANT EST COURT — « 500 M FCFA », « 1,2 Md FCFA » — parce qu'une tuile
+ * se compare d'un coup d'œil : neuf chiffres se comptent, un ordre de grandeur
+ * se voit. Le franc exact reste au desk, où l'on porte la demande.
+ *
+ * ET LA DATE NE PROMET PLUS DE SÉANCE. « Séance visée le 9 nov. » disait ce que
+ * la maison ne peut pas dire : elle n'adjuge pas, et le sondage ne suit aucun
+ * calendrier annoncé — c'est elle qui réunit les appétits, avant qu'il y ait
+ * quoi que ce soit à annoncer. « À partir du » dit la même date sans la
+ * promesse, et c'est le même mot dans les deux rôles.
+ */
+function Faits({ l, role, t }: { l: LigneSondee; role: "question" | "attente"; t: (s: string, v?: Record<string, string>) => string }) {
+  /* LE NIVEAU EST LE TAUX, sur les deux compartiments : un coupon sur une OTA,
+     un taux précompté sur un bon — même sens, deux mots, voir « motDuNiveau ».
+     Le prix d'une OTA suit quand le client en a donné un : il est hors de
+     l'échelle et hors de la moyenne, mais c'est un chiffre qu'il a écrit, et
+     une attente qu'on ne se relit pas est une attente qu'on redit. */
+  const mot = motDuNiveau(l.instrument);
+  /* TOUJOURS UNE DATE, et jamais le délai tel qu'il a été écrit : « dans
+     21 jours » posé le 19 se lit « le 16 novembre » quand la ligne dit le 9.
+     C'est `prete` qui compte depuis la création, pour les deux rôles. */
+  const j = prete(l);
+  const suite: string[] = [l.tenor];
+  if (l.rate != null) {
+    const r = fmtPct(l.rate, 2);
+    suite.push(
+      role === "question"
+        ? t(mot === "taux" ? "taux indicatif {r}" : "coupon indicatif {r}", { r })
+        : t(mot === "taux" ? "taux {r} au moins" : "coupon {r} au moins", { r }),
+    );
+  }
+  if (l.pricePct != null) suite.push(t("prix {p} au plus", { p: fmtPrice(l.pricePct) }));
+  if (j) suite.push(t("à partir du {d}", { d: fmtDate(j, false) }));
+  return (
+    <p className={styles.faits}>
+      {/* LE MONTANT PORTE LE DEGRÉ DU CHIFFRE — c'est lui qu'on cherche : la
+          ligne est-elle à notre taille ? — et le reste suit en encre atténuée,
+          dans la même phrase, parce qu'on le lit d'un trait. */}
+      <b>{fmtUnits(l.montant, true)}</b>
+      {/* CHAQUE FAIT TIENT SUR UNE LIGNE, séparateur compris, et L'ESPACE QUI
+          LES SÉPARE RESTE DEHORS.
+
+          Relevé à 412 px, deux fois de suite. D'abord la bande se cassait sur
+          « à / partir du 18 nov. » : un fait coupé en deux se relit deux fois.
+          Puis, l'espace mis DANS le morceau insécable, la bande n'avait plus
+          une seule occasion de passer à la ligne — quatre faits en un seul mot
+          de quatre-vingts signes, et la fin de la ligne du Congo disparaissait
+          hors du cadre. C'est l'espace qui porte la coupure : dedans, il n'y a
+          plus de coupure nulle part. */}
+      {suite.map((p) => (
+        <Fragment key={p}>
+          {" "}
+          <span className={styles.fait}>{`· ${p}`}</span>
+        </Fragment>
+      ))}
+    </p>
   );
 }

@@ -1030,7 +1030,12 @@ export const SEED_SONDAGES: LigneSondee[] = [
     rate: 6.25,
     montant: 500_000_000,
     dansJours: 21,
-    note: "Le Trésor camerounais revient sur le 5 ans en novembre. Nous cherchons à savoir ce que la place prendrait, et à quel coupon.",
+    /* LA NOTE DIT CE QUE LA TUILE NE DIT PAS, et rien de plus.
+       Elle disait « Le Trésor camerounais revient sur le 5 ans en novembre » :
+       deux lignes, et une séance annoncée que personne n'a annoncée. Le pays,
+       la durée, le montant et le niveau sont déjà sur la tuile ; ce qui reste à
+       dire est POURQUOI la maison sonde celle-ci, en une phrase. */
+    note: "C'est la durée qu'on nous demande le plus : nous voulons savoir à quel coupon.",
     state: "ouverte",
     createdAt: "2026-10-19T09:00:00",
     updatedAt: "2026-10-19T09:00:00",
@@ -1104,7 +1109,7 @@ export const SEED_SONDAGES: LigneSondee[] = [
     rate: 5.5,
     montant: 200_000_000,
     seanceLe: "2026-11-18",
-    note: "Séance gabonaise annoncée pour la mi-novembre. À quel taux précompté seriez-vous preneur ?",
+    note: "Du court, pour une trésorerie qui ne veut pas s'engager cinq ans.",
     state: "ouverte",
     createdAt: "2026-10-24T10:00:00",
     updatedAt: "2026-10-24T10:00:00",

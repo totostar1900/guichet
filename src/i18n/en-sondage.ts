@@ -30,20 +30,26 @@ export const EN_SONDAGE: Record<string, string> = {
      anglais une version de la page qui n'existe plus. */
   "Dire ce que vous prendriez avant qu'une séance ouvre. Rien ici ne vous engage.": "Say what you would take before a session opens. Nothing here commits you.",
   "À quoi sert un sondage": "What a survey is for",
-  "Les six Trésors de la CEMAC décident seuls de ce qu'ils émettent, et quand. Ce qu'ils achètent à une société de bourse, c'est le renseignement : à quel niveau la demande tient encore, et pour combien.":
-    "The six CEMAC Treasuries alone decide what they issue, and when. What they buy from a broker is intelligence : at what level demand still holds, and for how much.",
+  "Les six Trésors de la CEMAC décident seuls de ce qu'ils émettent, et quand. Ce qu'ils achètent à une société de bourse, c'est le renseignement : à quel niveau la demande tient encore, et pour combien. Une ligne sondée ici n'annonce donc aucune séance : c'est la maison qui réunit les appétits, avant qu'il y ait quoi que ce soit à annoncer.":
+    "The six CEMAC Treasuries alone decide what they issue, and when. What they buy from a broker is intelligence : at what level demand still holds, and for how much. So a line surveyed here announces no session : it is the firm gathering appetites, before there is anything at all to announce.",
   "Votre réponse entre dans ce renseignement. Ce n'est pas un ordre : il n'y a rien à signer et rien à provisionner, et vous la retirez quand vous voulez. Si une séance s'ouvre sur une ligne que vous avez demandée, le desk vous rappelle avant la clôture.":
     "Your answer feeds that intelligence. It is not an order : there is nothing to sign and nothing to fund, and you withdraw it whenever you want. If a session opens on a line you asked for, the desk calls you before the cut-off.",
   "Ce que la maison demande": "What the firm is asking",
   "Rien n'est sondé en ce moment. Proposez la vôtre plus bas : c'est de là que partent la plupart des séances que nous obtenons.":
     "Nothing is being surveyed right now. Propose your own below : that is where most of the sessions we obtain begin.",
-  "autour de {r}": "around {r}",
-  "séance visée le {d}": "session targeted for {d}",
-  "Vous avez répondu {m} FCFA, à partir du {d}": "You answered {m} FCFA, from {d}",
+  /* ---------- LA BANDE DE FAITS, LA MÊME POUR LES DEUX TUILES ----------
+     « Harmoniser les tuiles » : montant court, maturité, coupon pour une OTA,
+     taux pour un bon. Le rôle ne change QUE le sens du niveau — la maison dit
+     un niveau indicatif, le client dit un plancher — et l'anglais doit tenir
+     cette différence, qui est la seule. */
+  "taux indicatif {r}": "indicative rate {r}",
+  "coupon indicatif {r}": "indicative coupon {r}",
+  "taux {r} au moins": "rate of at least {r}",
+  "coupon {r} au moins": "coupon of at least {r}",
+  "prix {p} au plus": "price of at most {p}",
+  "Vous avez répondu {m}, à partir du {d}": "You answered {m}, from {d}",
   "Répondre à nouveau remplace cette réponse.": "Answering again replaces that answer.",
   "Rien encore. Répondre à une ligne ci-dessus prend deux chiffres.": "Nothing yet. Answering a line above takes two figures.",
-  "au taux d'au moins {r}": "at a rate of at least {r}",
-  "au coupon d'au moins {r}": "at a coupon of at least {r}",
   "à partir du {d}": "from {d}",
   "Une attente reçue": "An expression of interest received",
   "Une attente portée au Trésor": "An expression of interest carried to the Treasury",
@@ -60,16 +66,15 @@ export const EN_SONDAGE: Record<string, string> = {
   "Le sondage en bref": "The survey in brief",
   "Dire ce que vous prendriez avant qu'une séance ouvre. Rien ici ne vous engage : c'est un renseignement que la maison porte au Trésor, et c'est lui qui décide s'il emprunte.":
     "Say what you would take before a session opens. Nothing here commits you : it is intelligence the firm carries to the Treasury, and the Treasury decides whether it borrows.",
-  "Ce que la maison cherche": "What the firm is after",
-  "Taux indiqué": "Rate indicated",
-  "Coupon indiqué": "Coupon indicated",
-  "Séance visée": "Session targeted",
-  "à dire": "to be said",
+  /* LES ÉTIQUETTES DES TROIS COLONNES SONT PARTIES AVEC ELLES, le 26 octobre
+     2026 : « Ce que la maison cherche », « Taux indiqué », « Séance visée »,
+     « Prêt à partir du ». La bande de faits ne porte plus d'étiquette — on lit
+     « 500 M FCFA · 5 ans · coupon indicatif 6,25 % » d'un trait — et une clef
+     que le français ne dit plus garde en anglais une page qui n'existe pas. */
   "Ce que vous avez dit": "What you have said",
   "Ce que vous prendriez": "What you would take",
   "Au taux d'au moins": "At a rate of at least",
   "Au coupon d'au moins": "At a coupon of at least",
-  "Prêt à partir du": "Ready from",
 
   /* ---------- Les deux formulaires ---------- */
   "Je serais preneur": "I would be a taker",
@@ -168,7 +173,7 @@ export const EN_SONDAGE: Record<string, string> = {
   "Taux indicatif (%)": "Indicative rate (%)",
   "Coupon indicatif (%)": "Indicative coupon (%)",
   "Montant cherché (FCFA)": "Amount sought (FCFA)",
-  "Séance visée (date)": "Session targeted (date)",
+  "À partir du (date)": "From (date)",
   "…ou dans (jours)": "…or in (days)",
   "Ce que les clients doivent savoir": "What clients should know",
   "Pourquoi cette ligne est sondée, et ce qu'on attend d'eux.": "Why this line is being surveyed, and what is expected of them.",

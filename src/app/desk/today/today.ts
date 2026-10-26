@@ -2,7 +2,7 @@ import { repo } from "@/lib/data";
 import { healthChecks } from "@/lib/health";
 import { displayStatus, isActionable } from "@/lib/domain/status";
 import type { Offer } from "@/lib/domain/types";
-import { fmt, fmtDate, fmtMillions } from "@/lib/format";
+import { fmt, fmtDate, fmtUnits } from "@/lib/format";
 import { etatDesRobots, robotsAVoir } from "@/lib/domain/robots";
 import { positionsFrom } from "@/lib/positions";
 import type { Tile } from "./TodayPanel";
@@ -209,7 +209,7 @@ export async function todayTiles(t: (s: string, v?: Record<string, string>) => s
       label: t("Sondage à porter"),
       value: String(murs.length),
       detail: murs.length
-        ? murs.slice(0, 2).map((c) => `${c.instrument} ${c.country} ${c.tenor} · ${fmtMillions(c.montant)}`).join(" · ")
+        ? murs.slice(0, 2).map((c) => `${c.instrument} ${c.country} ${c.tenor} · ${fmtUnits(c.montant, true)}`).join(" · ")
         : attentes > 0
           ? t("{n} attente(s) en cours, sous le seuil", { n: String(attentes) })
           : t("aucune attente en cours"),

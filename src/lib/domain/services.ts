@@ -371,23 +371,30 @@ export function servicesDuClient(c: ContexteClient, fmt: (n: number) => string =
      ET LA PHRASE DU CAS SANS SÉANCE A CHANGÉ AVEC. Elle disait « commencez par
      une séance annoncée » : c'était l'inverse du service. Le sondage sert
      précisément quand rien n'est annoncé — le client dit ce qu'il prendrait,
-     et c'est de là que partent les séances que la maison obtient. */
+     et c'est de là que partent les séances que la maison obtient.
+
+     PUIS LA TUILE A CESSÉ D'AVOIR DEUX PHRASES, le 26 octobre 2026, sur
+     demande du dirigeant : « harmoniser les tuiles ; le sondage n'est pas
+     nécessairement lié à une adjudication à venir, c'est le desk qui réunit
+     l'appétit des clients ». La variante « sur la séance du 18 novembre »
+     envoyait le client sur une page où les lignes sondées n'ont rien à voir
+     avec cette séance-là — elle décrivait l'autre service, celui du sondage
+     d'une séance ANNONCÉE, qui vit dans le calendrier. Une tuile qui change de
+     promesse selon qu'un Trésor a publié un avis ne décrit plus un service :
+     elle décrit le calendrier. */
   out.push(
-    c.prochaineSeance
-      ? aActiver({
-          rayon: "placer",
-          cle: "sondage",
-          nom: "Sondage",
-          href: "/sondage",
-          phrase: { key: "Vous pouvez dire à quel taux vous seriez preneur sur la séance du {d}, sans vous engager.", params: { d: c.prochaineSeance.le } },
-        })
-      : aActiver({
-          rayon: "placer",
-          cle: "sondage",
-          nom: "Sondage",
-          href: "/sondage",
-          phrase: { key: "Rien n'est annoncé en ce moment, et c'est le moment d'en parler : dites ce que vous prendriez, et à quel taux." },
-        }),
+    aActiver({
+      rayon: "placer",
+      cle: "sondage",
+      nom: "Sondage",
+      href: "/sondage",
+      /* ET ELLE NE REDIT PAS LA RAISON, relevé à l'écran sur /agir : la tuile
+         porte déjà « dire au desk ce que vous prendriez, sans vous engager ».
+         Une phrase qui la répétait faisait lire deux fois la même promesse et
+         n'ajoutait rien. Ce qui manquait, et que personne ne devine, est la
+         doctrine : il n'y a RIEN À ATTENDRE pour se servir du service. */
+      phrase: { key: "Rien n'a besoin d'être annoncé : c'est même de là que partent les séances que nous obtenons." },
+    }),
   );
 
   /* 08 · Arbitrage : il faut une ligne qui se revende.
