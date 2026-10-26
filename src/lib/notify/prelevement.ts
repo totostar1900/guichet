@@ -1,9 +1,9 @@
 import "server-only";
-import { repo } from "@/lib/data";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
 import { MOTIFS, type MotifDeRejet } from "@/lib/domain/prelevement";
 import { fmt, fmtDate } from "@/lib/format";
 import { tmpl } from "./compose";
+import { contactDuClient } from "./destinataire";
 import { notifyRaw } from "./dispatch";
 
 /**
@@ -24,15 +24,22 @@ import { notifyRaw } from "./dispatch";
  * abouti, le jour où il ouvre son relevé et voit un débit. Trois issues, trois
  * messages : « vous êtes prévenu à chaque fois » ne se tient pas à moitié.
  */
-async function contactDe(userId: string, m: MandatPrelevement) {
-  const c = await repo().getContact(userId);
-  if (c) return c;
-  const f = await repo().getClientFileByUser(userId).catch(() => undefined);
-  const phone = f?.identity.phone;
-  const email = f?.identity.email;
-  if (!phone && !email) return undefined;
-  return { id: userId, name: m.accountHolder, segment: "particulier", phone, email, whatsappOptIn: Boolean(phone) };
-}
+/**
+ * LE DESTINATAIRE VIENT DU RÉSOLVEUR COMMUN, et ce module en portait sa propre
+ * copie — la quatrième, avec deux défauts que le résolveur existe pour ne pas
+ * répéter.
+ *
+ * Elle s'arrêtait sur une entrée de répertoire même vide de tout canal, donc le
+ * repli sur le dossier était mort ; et elle déduisait l'accord WhatSapp de la
+ * seule présence d'un numéro, ce qui est précisément ce que la maison interdit
+ * par écrit : le numéro est un fait, l'accord est un consentement. Relevé à la
+ * revue des robots du 26 octobre 2026, en balayant les modules d'envoi.
+ *
+ * Le nom du titulaire du mandat reste le nom de secours : c'est celui que la
+ * banque connaît, et le seul qu'on ait si ni répertoire ni dossier ne nomment
+ * le client.
+ */
+const contactDe = (userId: string, m: MandatPrelevement) => contactDuClient(userId, m.accountHolder);
 
 /**
  * LE MODÈLE DU PRÉAVIS, ET POURQUOI SES CINQ PARAMÈTRES SONT UN CONTRAT.

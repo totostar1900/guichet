@@ -142,7 +142,15 @@ describe("ce que le client peut encore arrêter", () => {
 /* ───────── Le robot, bout à bout ───────── */
 
 const envoi = vi.hoisted(() => ({ sent: true as boolean, error: undefined as string | undefined }));
-vi.mock("@/lib/notify/preavis", () => ({ envoyerPreavis: async () => ({ sent: envoi.sent, error: envoi.error }) }));
+/** Ce qui a été dit au client de l'arrêt de son instruction : le motif, et s'il est parti. */
+const arrets = vi.hoisted(() => ({ dits: [] as { ref: string; motif: string }[], sent: true as boolean, error: undefined as string | undefined }));
+vi.mock("@/lib/notify/preavis", () => ({
+  envoyerPreavis: async () => ({ sent: envoi.sent, error: envoi.error }),
+  direLArretDeLInstruction: async (s: { ref: string }, _o: unknown, p: { motif: string }) => {
+    arrets.dits.push({ ref: s.ref, motif: p.motif });
+    return { sent: arrets.sent, error: arrets.error };
+  },
+}));
 vi.mock("@/lib/notify/dispatch", () => ({ notifyIntentUpdated: async () => {} }));
 vi.mock("@/lib/reference", () => ({ loadRegistry: async () => {}, REF: { policy: "policy" } }));
 
@@ -185,6 +193,9 @@ describe("le robot, bout à bout", () => {
     vi.resetModules();
     envoi.sent = true;
     envoi.error = undefined;
+    arrets.dits = [];
+    arrets.sent = true;
+    arrets.error = undefined;
   });
 
   it("annonce et n'exécute rien au premier tour", async () => {
@@ -324,6 +335,190 @@ describe("le robot, bout à bout", () => {
   });
 });
 
+/**
+ * CE QUE LE ROBOT LAISSE DERRIÈRE LUI.
+ *
+ * RELEVÉ À LA REVUE DES ROBOTS du 26 octobre 2026 : aucun des dix-sept robots
+ * n'appelait `audit()`, et celui-ci est le plus cher — il crée un ordre, le
+ * confirme, débite la poche et arrête des instructions, sans qu'un humain ait
+ * rien signé ce jour-là.
+ *
+ * DEUX MANQUES, ET C'EST LE MÊME. Le registre du desk ne portait aucun de ces
+ * gestes, alors que la porte humaine y inscrit le MÊME événement : « mon plan
+ * s'est arrêté » et « je n'ai pas passé cet ordre » sont deux questions dont la
+ * réponse était connue au caractère et consignée nulle part. Et le client ne
+ * l'apprenait qu'en revenant regarder sa page — or il reçoit un préavis chaque
+ * mois, donc l'absence de message ressemble à un versement parti.
+ */
+describe("le robot au registre, et le client au courant", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    envoi.sent = true;
+    envoi.error = undefined;
+    arrets.dits = [];
+    arrets.sent = true;
+    arrets.error = undefined;
+  });
+
+  /** Un versement mensuel dont la destination est introuvable : le cas de la ligne retirée. */
+  async function bloquee(userId: string, onBlocked: "arreter" | "passer" = "arreter") {
+    const { repo } = await import("@/lib/data");
+    const r = repo();
+    const s = await r.createStandingOrder({
+      userId,
+      clientName: "Client Registre",
+      clientSegment: "Personne physique",
+      offerId: "offre-disparue",
+      amount: 100_000,
+      source: "virement",
+      minAmount: 0,
+      dayOfMonth: 1,
+      startsOn: "2026-01-01",
+      onBlocked,
+      channel: "WhatsApp",
+      contactEmail: "c@exemple.com",
+    } as never);
+    return { r, s };
+  }
+
+  it("l'arrêt d'une instruction s'inscrit au registre, avec son avant et son après", async () => {
+    const u = sien();
+    const { r, s } = await bloquee(u);
+
+    const { GET } = await import("@/app/api/cron/epargne/route");
+    await GET(appel());
+
+    expect((await r.listStandingOrders(u)).find((x) => x.id === s.id)!.state).toBe("annulee");
+    const lignes = await r.listAudit({ entity: "standing", entityId: s.id });
+    expect(lignes).toHaveLength(1);
+    const [a] = lignes;
+    expect(a.action).toBe("standing.stop");
+    /* L'AVANT ET L'APRÈS, et non le seul après : une ligne qui dit « annulée »
+       sans dire d'où elle vient ne répond pas à « était-elle encore active ». */
+    expect((a.before as { state: string }).state).toBe("active");
+    expect((a.after as { state: string; stopReason: string }).state).toBe("annulee");
+    expect((a.after as { stopReason: string }).stopReason).toMatch(/destination est introuvable/i);
+    /* LA MAIN EST NOMMÉE. « système » couvrirait aussi bien un webhook qu'un
+       script de reprise, et un desk qui relit veut savoir lequel des dix-sept
+       robots est passé. */
+    expect(a.actor).toMatch(/robot/i);
+    expect(a.actor).not.toBe("système");
+    expect(a.reason).toContain(s.ref);
+  });
+
+  it("et le client l'apprend, avec le motif", async () => {
+    const u = sien();
+    const { s } = await bloquee(u);
+
+    const { GET } = await import("@/app/api/cron/epargne/route");
+    await GET(appel());
+
+    expect(arrets.dits).toHaveLength(1);
+    expect(arrets.dits[0].ref).toBe(s.ref);
+    /* LE MOTIF PART TEL QUEL : un arrêt sans raison n'est pas une réponse, et
+       les phrases de `standingBlock` sont écrites pour être lues par la
+       personne concernée. */
+    expect(arrets.dits[0].motif).toMatch(/destination est introuvable/i);
+  });
+
+  it("un message qui ne part pas ne remet pas l'instruction en route, et se dit au desk", async () => {
+    /* La règle des avis d'espèces : l'écriture passe d'abord, et son annonce
+       ratée se voit nommément. Ne pas arrêter une instruction inexécutable
+       parce qu'un canal est cassé serait le pire des deux maux. */
+    arrets.sent = false;
+    arrets.error = "aucun canal joignable";
+    const u = sien();
+    const { r, s } = await bloquee(u);
+
+    const { GET } = await import("@/app/api/cron/epargne/route");
+    await GET(appel());
+
+    expect((await r.listStandingOrders(u)).find((x) => x.id === s.id)!.state).toBe("annulee");
+    expect(await r.listAudit({ entity: "standing", entityId: s.id })).toHaveLength(1);
+    const fil = (await r.listEvents(100)).map((e) => e.html).join("\n");
+    expect(fil).toMatch(/arrêt non annoncé au client/i);
+    expect(fil).toContain(s.ref);
+  });
+
+  it("une instruction que le robot n'arrête pas ne laisse ni ligne ni message", async () => {
+    /* NON VACUITÉ, et elle porte sur les deux épreuves à la fois : sans elle,
+       un robot qui arrêterait TOUT et préviendrait à chaque tour les ferait
+       passer au vert ensemble. « Passer » est l'autre choix du client, et il
+       veut dire : saute ce mois-ci, ne touche pas à mon plan. */
+    const u = sien();
+    const { r, s } = await bloquee(u, "passer");
+
+    const { GET } = await import("@/app/api/cron/epargne/route");
+    await GET(appel());
+
+    expect((await r.listStandingOrders(u)).find((x) => x.id === s.id)!.state).toBe("active");
+    expect(await r.listAudit({ entity: "standing", entityId: s.id })).toHaveLength(0);
+    expect(arrets.dits).toHaveLength(0);
+  });
+
+  it("l'ordre que le robot produit s'inscrit au registre, avec son montant", async () => {
+    /* C'est la trace qu'on produit quand un client dit « je n'ai pas passé cet
+       ordre ». Elle doit porter de quoi répondre entièrement : le montant, la
+       destination, l'instruction dont il découle, et le jour où il a été
+       annoncé. */
+    const u = sien();
+    const { r, s } = await instruction(u);
+    await r.addCash({ userId: u, amount: 272_500, kind: "coupon", label: "Coupon" });
+    const p = await r.annoncerPreavis({ standingId: s.id, userId: u, dueOn: aujourdHui(), amount: 272_500 });
+    await r.cloturerPreavis(p.id, { noticeSent: true });
+
+    const { GET } = await import("@/app/api/cron/epargne/route");
+    await GET(appel());
+
+    const [ordre] = (await r.listIntents()).filter((i) => i.standingId === s.id);
+    expect(ordre).toBeTruthy();
+    const lignes = await r.listAudit({ entity: "intent", entityId: ordre.id });
+    expect(lignes).toHaveLength(1);
+    const [a] = lignes;
+    expect(a.action).toBe("standing.execute");
+    const apres = a.after as { amount: number; state: string; standingId: string; cash: string | null };
+    expect(apres.amount).toBe(272_500);
+    expect(apres.state).toBe("confirmee");
+    expect(apres.standingId).toBe(s.id);
+    /* L'ÉCRITURE D'ESPÈCES EST NOMMÉE DANS L'APRÈS, et non auditée à part :
+       c'est la même décision. Mais elle doit être citable — un réinvestissement
+       vide la poche du client, et la ligne du journal des espèces est ce qu'il
+       verra sur sa position. */
+    expect(apres.cash).toBeTruthy();
+    expect((await r.listCash(u)).some((e) => e.id === apres.cash)).toBe(true);
+    expect(a.actor).toMatch(/robot/i);
+    expect(a.reason).toContain(s.ref);
+  });
+
+  it("un tour qui ne produit aucun ordre n'inscrit rien", async () => {
+    // Non vacuité de l'épreuve ci-dessus : le premier tour annonce et n'exécute rien.
+    const u = sien();
+    const { r, s } = await instruction(u);
+    await r.addCash({ userId: u, amount: 272_500, kind: "coupon", label: "Coupon" });
+
+    const { GET } = await import("@/app/api/cron/epargne/route");
+    await GET(appel());
+
+    expect((await r.listIntents()).filter((i) => i.standingId === s.id)).toHaveLength(0);
+    /* Le registre est commun au fichier : on cherche une ligne qui désigne
+       CETTE instruction, et non l'absence de toute ligne, qui dirait surtout
+       que les épreuves précédentes n'ont pas tourné. */
+    const siennes = (await r.listAudit({ entity: "intent", limit: 200 })).filter((a) => a.action === "standing.execute" && (a.after as { standingId?: string })?.standingId === s.id);
+    expect(siennes).toHaveLength(0);
+  });
+
+  it("une seule porte arrête une instruction dans ce robot", () => {
+    /* Le geste était écrit deux fois, à deux endroits du même tour, chaque fois
+       incomplet. Un troisième endroit le réécrirait de travers : c'est ainsi
+       qu'une des deux branches s'était retrouvée sans message. */
+    const cron = readFileSync(`${RACINE}/src/app/api/cron/epargne/route.ts`, "utf8");
+    /* L'ÉCRITURE, et non la valeur : « annulee » paraît aussi dans l'après de
+       la ligne d'audit, qui est précisément ce que la porte unique produit. */
+    expect(cron.match(/updateStandingOrder\([^)]*state: "annulee"/g) ?? []).toHaveLength(1);
+    expect(cron.match(/await arreter\(/g) ?? []).toHaveLength(2);
+  });
+});
+
 describe("l'arrêt par le client", () => {
   it("refuse une occurrence qui n'est pas la sienne", async () => {
     /* L'action ne lit que les occurrences du client connecté : une clef devinée
@@ -345,10 +540,18 @@ describe("la base porte les mêmes règles", () => {
   it("le try/catch vide a disparu du robot", () => {
     /* C'est lui qui cachait la panne : « un message qui ne part pas ne doit pas
        empêcher le versement suivant », avec un bloc vide. Le préavis, lui, est
-       rendu et décide. */
+       rendu et décide.
+
+       CE CLIQUET SURVEILLAIT LA PHRASE, et c'était un mauvais témoin : le jour
+       où le robot s'est mis à annoncer l'ARRÊT d'une instruction, il a fallu
+       écrire « un message qui ne part pas se dit au desk » — la doctrine
+       inverse, sur un autre message, après l'écriture — et le cliquet est passé
+       au rouge pour une prose. Il regarde maintenant ce qui compte : le
+       résultat de l'envoi est LIÉ, donc il peut décider. Un envoi avalé n'a
+       rien à lier. */
     const cron = readFileSync(`${RACINE}/src/app/api/cron/epargne/route.ts`, "utf8");
-    expect(cron).not.toMatch(/un message qui ne part pas/i);
+    expect(cron).not.toMatch(/ne doit pas empêcher le versement/i);
     expect(cron).toMatch(/pourquoiPasExecuter/);
-    expect(cron).toMatch(/envoyerPreavis/);
+    expect(cron).toMatch(/const envoi = await envoyerPreavis\(/);
   });
 });

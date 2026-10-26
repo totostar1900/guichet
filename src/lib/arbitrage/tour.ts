@@ -1,8 +1,12 @@
 import "server-only";
 import { repo } from "@/lib/data";
+import { audit } from "@/lib/audit";
 import { etatDArbitrage } from "@/lib/domain/arbitrage";
 import { fmt, fmtDate, localIso } from "@/lib/format";
 import { notifyIntentUpdated } from "@/lib/notify/dispatch";
+
+/** La main qui a agi, au registre : lequel des robots est passé. */
+const ROBOT = "robot arbitrages";
 
 /**
  * LE TOUR QUI REND LA MAIN AU CLIENT.
@@ -63,6 +67,18 @@ export async function tourDesArbitrages(now = new Date()): Promise<TourDArbitrag
          même chose, et l'épreuve les tient ensemble. */
       const motif = `Arbitrage expiré le ${fmtDate(i.switchBy, false)} : la ligne d'arrivée${dest ? ` (${dest.title})` : ""} n'a pas tenu en même temps que la vente, au-dessus de votre plancher${i.switchFloor ? ` de ${fmt(i.switchFloor)} FCFA` : ""}. Rien n'a bougé : votre position est intacte, et votre argent aussi. C'est la protection qui a joué.`;
       const clos = await r.setIntentState(i.id, "annulee", motif);
+      /* AU REGISTRE, comme une transition faite à la main. Le desk qui passe
+         une intention en « annulée » laisse « intent.transition » avec son
+         avant et son après ; ce robot clôt l'ordre d'un client et ne laissait
+         rien. Le même événement tracé par une porte et pas par l'autre est la
+         pire des deux situations, parce que le registre paraît complet — et
+         c'est ici l'ordre du client qui se ferme. */
+      await audit("intent.transition", "intent", i.id, {
+        before: { state: i.state },
+        after: { state: "annulee", closedReason: motif },
+        reason: `${i.ref} · ${i.clientName} · arbitrage expiré le ${fmtDate(i.switchBy, false)}`,
+        actor: ROBOT,
+      });
       await r.logEvent({
         kind: "system",
         intentId: i.id,

@@ -1,5 +1,5 @@
 import { RACINE } from "./racine";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { cadence, lirePlan, prochainTour, ROBOTS, etatDesRobots, robotsAVoir, type TourVu } from "@/lib/domain/robots";
 
@@ -111,6 +111,39 @@ describe("le tableau des cadences et vercel.json se répondent", () => {
     // Non vacuité : un vercel.json vidé passerait au vert sur les deux sens.
     expect(programmes().length).toBeGreaterThan(8);
     expect(ROBOTS.length).toBe(programmes().length);
+  });
+
+  /**
+   * ET LE DOSSIER DES ROUTES, QUE NI L'UN NI L'AUTRE NE REGARDAIT.
+   *
+   * RELEVÉ À LA REVUE DES ROBOTS du 26 octobre 2026. Les deux cliquets
+   * ci-dessus se vérifient MUTUELLEMENT : `vercel.json` contre `ROBOTS`, dans
+   * les deux sens, au caractère. Aucun des deux n'ouvre le dossier des routes.
+   * Une route de robot absente des DEUX listes passait donc inaperçue — elle
+   * n'est ni programmée ni surveillée, et rien ne dit laquelle des deux
+   * absences est un oubli.
+   *
+   * CAS CONSTATÉ : « lire-adjudications », qui n'est appelée de nulle part dans
+   * `src`. C'est délibéré — un outil qu'on lance à la main, par paquets, comme
+   * `boc?arriere=1` — mais cela ne se voyait qu'en lisant les trois listes côte
+   * à côte. L'exception se déclare donc ici, nommément : une route non
+   * programmée est un choix écrit, et non un silence.
+   */
+  it("chaque route de robot est programmée, ou déclarée lancée à la main", () => {
+    const R = `${RACINE}/src/app/api/cron/`;
+    /* Les outils qu'une personne lance, avec leur raison. Ils passent par
+       l'enveloppe comme les autres, donc leurs tours s'inscrivent ; ils
+       n'éteignent aucune alarme puisque la page Santé n'en attend aucun. */
+    const A_LA_MAIN: Record<string, string> = {
+      "lire-adjudications": "lecture assistée des communiqués, par paquets bornés, à la demande du desk",
+    };
+    const routes = readdirSync(R).filter((d) => existsSync(`${R}${d}/route.ts`));
+    const orphelines = routes.filter((d) => !ROBOTS.some((x) => x.cle === d) && !(d in A_LA_MAIN));
+    expect(orphelines, "une route de robot n'est ni programmée, ni surveillée, ni déclarée lancée à la main").toEqual([]);
+    // Et l'inverse : une exception qui ne désigne plus de route est une ligne morte.
+    expect(Object.keys(A_LA_MAIN).filter((d) => !routes.includes(d))).toEqual([]);
+    // Non vacuité : le dossier a bien été lu.
+    expect(routes.length).toBeGreaterThan(ROBOTS.length);
   });
 });
 

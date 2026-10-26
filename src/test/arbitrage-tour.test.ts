@@ -128,4 +128,80 @@ describe("le tour des arbitrages armés", () => {
     const second = await tourDesArbitrages(new Date("2026-10-27T19:00:00Z"));
     expect(second.eteints, "un ordre clos est reclos chaque soir : une ligne de journal par jour et par arbitrage passé").not.toContain(arme.ref);
   });
+
+  /**
+   * CE QUE LE ROBOT LAISSE AU REGISTRE.
+   *
+   * RELEVÉ À LA REVUE DES ROBOTS du 26 octobre 2026 : aucun des dix-sept robots
+   * n'appelait `audit()`. Ici, le robot FERME L'ORDRE D'UN CLIENT, et le desk
+   * qui fait la même chose à la main laisse « intent.transition » depuis
+   * toujours. Le même événement tracé par une porte et pas par l'autre est la
+   * pire des deux situations : le registre paraît complet, et la question
+   * « pourquoi mon ordre a-t-il été annulé » n'a pas de réponse consignée.
+   */
+  it("inscrit l'extinction au registre, sous le nom de la porte humaine et au nom du robot", async () => {
+    const { repo } = await import("@/lib/data");
+    const { tourDesArbitrages } = await import("@/lib/arbitrage/tour");
+    const r = repo();
+
+    const arme = await r.createIntent({
+      offerId: "fcp-monetaire",
+      type: "rachat",
+      amount: 10,
+      channel: "E-mail",
+      clientId: "u-essai-arbitrage-4",
+      clientName: "Essai Arbitrage",
+      clientSegment: "Personne physique",
+      switchToOfferId: "fcp-obligataire",
+      switchFloor: 400_000,
+      switchBy: "2026-10-20",
+    });
+
+    await tourDesArbitrages(new Date("2026-10-26T19:00:00Z"));
+
+    const lignes = await r.listAudit({ entity: "intent", entityId: arme.id });
+    expect(lignes, "l'extinction d'un ordre de client ne laisse rien au registre").toHaveLength(1);
+    const [a] = lignes;
+    /* LE MÊME NOM QUE LA PORTE HUMAINE : un desk qui cherche « qui a annulé cet
+       ordre » filtre une action, pas deux. */
+    expect(a.action).toBe("intent.transition");
+    expect((a.before as { state: string }).state).toBe("recue");
+    expect((a.after as { state: string }).state).toBe("annulee");
+    // Le motif que le client lit voyage avec la ligne.
+    expect((a.after as { closedReason: string }).closedReason).toMatch(/protection qui a joué/);
+    /* LA MAIN EST CELLE DU ROBOT, et c'est l'assertion qui compte le plus ici :
+       cette épreuve monte une session de desk, donc une ligne sans acteur
+       explicite porterait « desk@example.com ». Le registre accuserait une
+       personne d'un geste qu'elle n'a pas fait, ce qui est pire que l'absence
+       de ligne. */
+    expect(a.actor).toMatch(/robot/i);
+    expect(a.actor).not.toContain("@");
+    expect(a.reason).toContain(arme.ref);
+  });
+
+  it("n'inscrit rien quand rien n'expire", async () => {
+    // Non vacuité : un robot qui inscrirait à chaque tour passerait l'épreuve ci-dessus.
+    const { repo } = await import("@/lib/data");
+    const { tourDesArbitrages } = await import("@/lib/arbitrage/tour");
+    const r = repo();
+
+    const vivante = await r.createIntent({
+      offerId: "fcp-monetaire",
+      type: "rachat",
+      amount: 10,
+      channel: "E-mail",
+      clientId: "u-essai-arbitrage-5",
+      clientName: "Essai Arbitrage",
+      clientSegment: "Personne physique",
+      switchToOfferId: "fcp-obligataire",
+      switchFloor: 400_000,
+      switchBy: "2026-12-31",
+    });
+
+    const t = await tourDesArbitrages(new Date("2026-10-26T19:00:00Z"));
+
+    expect(await r.listAudit({ entity: "intent", entityId: vivante.id })).toHaveLength(0);
+    // Et le tour a bien regardé : sinon « rien inscrit » ne dit rien.
+    expect(t.vues).toBeGreaterThan(0);
+  });
 });

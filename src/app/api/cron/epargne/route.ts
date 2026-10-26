@@ -2,13 +2,15 @@ import type { NextRequest } from "next/server";
 import { routeDuRobot } from "@/lib/cron/tour";
 import { loadRegistry } from "@/lib/reference";
 import { repo } from "@/lib/data";
+import { audit } from "@/lib/audit";
 import { fmt, fmtDate, localIso } from "@/lib/format";
-import { instalmentLabel, isDue, reinvestLabel, reinvestissementDu, standingBlock } from "@/lib/domain/standing";
+import { instalmentLabel, isDue, reinvestLabel, reinvestissementDu, standingBlock, type StandingOrder } from "@/lib/domain/standing";
+import type { Offer } from "@/lib/domain/types";
 import { cashPosition } from "@/lib/domain/cash";
 import { aCouvrirPour } from "@/lib/domain/plafond";
 import { generateForIntent } from "@/lib/documents/generate";
 import { notifyIntentUpdated } from "@/lib/notify/dispatch";
-import { envoyerPreavis } from "@/lib/notify/preavis";
+import { direLArretDeLInstruction, envoyerPreavis } from "@/lib/notify/preavis";
 import { arretables, dueOnDuPreavis, montantAExecuter, pourquoiPasExecuter, type Preavis } from "@/lib/domain/preavis";
 import { cleEnMots, repartition, tranches } from "@/lib/domain/repartition";
 import { loadStandingPolicy } from "@/lib/policy";
@@ -71,8 +73,37 @@ import { loadStandingPolicy } from "@/lib/policy";
  * est qu'un client au canal cassé n'ait plus de versement ; c'est assumé, parce
  * que l'inverse est d'engager son argent en silence.
  *
+ * ─── CE QUE CE ROBOT LAISSE DERRIÈRE LUI ───────────────────────────────────
+ *
+ * RELEVÉ À LA REVUE DES ROBOTS du 26 octobre 2026 : aucun des dix-sept robots
+ * n'appelait `audit()`. Celui-ci est le plus cher de tous, parce qu'il est le
+ * seul à créer un ordre et à déplacer de l'argent sans qu'un humain ait rien
+ * signé ce jour-là.
+ *
+ * Le fil du desk portait chaque phrase, et c'était pris pour une trace. Ce
+ * n'en est pas une : le fil se purge, il ne se chaîne pas, et il ne dit ni
+ * l'avant ni l'après. Le registre qu'on ouvre quand un client demande « qui a
+ * arrêté mon plan » ou « d'où vient cet ordre que je n'ai pas passé » ne
+ * portait rien, alors que la réponse est connue au caractère.
+ *
+ * TROIS ÉCRITURES DU ROBOT SONT DÉSORMAIS AU REGISTRE, et ce sont exactement
+ * celles qu'une porte humaine y inscrit déjà : l'ordre produit (le desk
+ * laisse « intent.execute »), l'arrêt de l'instruction (le client laisse
+ * « standing.stop », même champ, même valeur) et son extinction au terme. Le
+ * même événement tracé par une porte et pas par l'autre était tout le défaut.
+ *
  * À appeler chaque jour, avec « Authorization: Bearer <CRON_SECRET> ».
  */
+
+/**
+ * La main qui a agi, au registre. « système » couvrirait aussi bien un webhook
+ * qu'un script de reprise lancé à la main ; un desk qui relit une ligne veut
+ * savoir lequel des dix-sept robots est passé.
+ */
+const ROBOT = "robot épargne";
+
+/** Le mot que le fil et les messages emploient pour cette instruction-là. */
+const quoiDe = (s: StandingOrder): string => (s.source === "encaissements" ? "Réinvestissement" : "Épargne programmée");
 export async function GET(req: NextRequest) {
   return routeDuRobot("epargne", req, async () => {
     await loadRegistry();
@@ -104,20 +135,64 @@ export async function GET(req: NextRequest) {
       }
       return disponibles.get(userId) ?? 0;
     };
-  
+
+    /**
+     * ARRÊTER UNE INSTRUCTION, ET QUE CELA SE SACHE DES DEUX CÔTÉS.
+     *
+     * Quatre choses vont ensemble, et elles étaient faites à deux endroits du
+     * même tour, chaque fois incomplètes : l'état, la trace, le fil du desk, et
+     * le client. Les deux dernières manquaient aux deux endroits.
+     *
+     * LE CLIENT A CHOISI « ARRÊTER SI C'EST IMPOSSIBLE » : il a demandé
+     * l'arrêt, pas l'arrêt muet. Et il reçoit un préavis chaque mois, ce qui
+     * aggrave le silence — habitué au message du 4, il ne reçoit plus rien le
+     * 4 et a toutes les raisons de croire que le versement est parti.
+     *
+     * L'ÉCRITURE PASSE D'ABORD ET L'ENVOI NE LA DÉFAIT PAS : une instruction
+     * qu'on ne peut plus exécuter doit s'arrêter, même si le canal du client
+     * est cassé. Un message qui ne part pas se dit au desk, nommément, et c'est
+     * au desk de décrocher son téléphone.
+     */
+    const arreter = async (s: StandingOrder, o: Offer | undefined, why: string): Promise<void> => {
+      await r.updateStandingOrder(s.id, { state: "annulee", stopReason: why });
+      await audit("standing.stop", "standing", s.id, {
+        before: { state: s.state, stopReason: s.stopReason ?? null },
+        after: { state: "annulee", stopReason: why },
+        reason: `${s.ref} · ${s.clientName} · arrêtée par le robot : ${why}`,
+        actor: ROBOT,
+      });
+      await r.logEvent({ kind: "system", html: `${quoiDe(s)} ${s.ref} (${s.clientName}) : <b>arrêté</b> · ${why}` });
+      const envoi = await direLArretDeLInstruction(s, o, { motif: why });
+      if (!envoi.sent)
+        await r.logEvent({
+          kind: "system",
+          html: `${quoiDe(s)} ${s.ref} (${s.clientName}) : <b>arrêt non annoncé au client</b> · ${envoi.error ?? "canal injoignable"} · à lui dire de la main`,
+        });
+    };
+
     for (const s of orders) {
       if (s.state !== "active") continue;
   
       // Une instruction dont le terme est passé s'éteint d'elle-même : elle a fait ce qu'on lui a demandé.
       if (s.endsOn && today > s.endsOn) {
         await r.updateStandingOrder(s.id, { state: "terminee" });
+        /* Une extinction au terme est attendue — c'est le client qui a écrit
+           cette date — mais c'est un changement d'état sur son instruction, et
+           « pourquoi mon plan s'est-il arrêté » se répond du registre, pas de
+           la mémoire de celui qui lit. */
+        await audit("standing.end", "standing", s.id, {
+          before: { state: s.state },
+          after: { state: "terminee" },
+          reason: `${s.ref} · ${s.clientName} · terme du ${fmtDate(s.endsOn)} passé`,
+          actor: ROBOT,
+        });
         await r.logEvent({ kind: "system", html: `Épargne programmée ${s.ref} (${s.clientName}) : <b>terminée</b>, le terme du ${fmtDate(s.endsOn)} est passé` });
         ended += 1;
         continue;
       }
-  
+
       const o = byId.get(s.offerId);
-      const quoi = s.source === "encaissements" ? "Réinvestissement" : "Épargne programmée";
+      const quoi = quoiDe(s);
   
       /* ───────── PREMIER TEMPS : exécuter ce qui a été annoncé ─────────
          Avant d'annoncer, parce qu'une occurrence du jour doit partir avant qu'on
@@ -150,8 +225,7 @@ export async function GET(req: NextRequest) {
             const why = wrong.length ? wrong.join(" ") : "le disponible annoncé n'est plus là";
             await r.cloturerPreavis(mur.id, { state: "perimee" });
             if (wrong.length && s.onBlocked === "arreter") {
-              await r.updateStandingOrder(s.id, { state: "annulee", stopReason: why });
-              await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : <b>arrêté</b> · ${why}` });
+              await arreter(s, o, why);
             } else {
               await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : occurrence du ${fmtDate(mur.dueOn)} <b>sans suite</b> · ${why}` });
             }
@@ -183,12 +257,18 @@ export async function GET(req: NextRequest) {
             // Le client a donné son ordre à la signature de l'instruction, et il a eu
             // le préavis : ce versement n'attend pas une confirmation, il attend le règlement.
             const confirmed = await r.updateIntent(intent.id, { state: "confirmee" });
+            /* L'écriture d'espèces, nommée au registre plus bas : c'est la même
+               décision que l'ordre, et l'auditer à part ferait répondre deux
+               fois à une seule question. */
+            let ecriture: string | undefined;
             if (s.source === "encaissements") {
               /* L'argent quitte la poche en s'inscrivant au journal en regard de
                  l'ordre : c'est cette écriture, et non une date, qui empêche un
                  second passage de replacer la même somme. */
-              await r.addCash({ userId: s.userId, amount: lot.montant, kind: "souscription", label: libelle, intentId: intent.id, createdBy: "robot" });
+              ecriture = (await r.addCash({ userId: s.userId, amount: lot.montant, kind: "souscription", label: libelle, intentId: intent.id, createdBy: "robot" })).id;
             }
+            /** Ce que la provision a couvert, s'il y a lieu : nommé au registre. */
+            let couvert: number | undefined;
             /* L'ARGENT EST-IL DÉJÀ LÀ, OU FAUT-IL LE DEMANDER ?
                La provision paie si elle peut, exactement comme à la signature
                d'un ordre : c'est le cas du client qui a donné un mandat, dont
@@ -206,6 +286,7 @@ export async function GET(req: NextRequest) {
               const poche2 = await disponible(s.userId);
               if (du > 0 && poche2 >= du) {
                 await r.updateIntent(intent.id, { coveredAt: new Date().toISOString(), coveredAmount: du });
+                couvert = du;
                 disponibles.set(s.userId, poche2 - du);
                 couverts += 1;
                 await r.logEvent({ kind: "intent", intentId: intent.id, html: `${intent.ref} (${s.clientName}) : <b>couvert sur sa provision</b> (${fmt(du)} FCFA réservés) · rien à virer` });
@@ -222,6 +303,35 @@ export async function GET(req: NextRequest) {
               }
             }
             sortis.push(intent.id);
+            /**
+             * LE GESTE AU REGISTRE, parce qu'un ordre naît ici sans qu'aucun
+             * humain ne l'ait signé ce jour-là.
+             *
+             * Le desk qui exécute une intention laisse « intent.execute » avec
+             * son avant et son après ; le robot qui en CRÉE une, la confirme et
+             * débite la poche n'en laissait aucun. C'est la trace la plus utile
+             * du lot : c'est celle qu'on produit quand un client dit « je n'ai
+             * pas passé cet ordre ». La réponse est entière ici — son
+             * instruction, son préavis, et la date où il a été annoncé.
+             *
+             * UNE LIGNE PAR ORDRE PRODUIT, et non une par occurrence : une clé
+             * de répartition engage plusieurs destinations, chacune pour un
+             * montant que le client peut contester séparément.
+             */
+            await audit("standing.execute", "intent", intent.id, {
+              before: null,
+              after: {
+                ref: intent.ref,
+                state: "confirmee",
+                offerId: lot.offerId,
+                amount: lot.montant,
+                standingId: s.id,
+                cash: ecriture ?? null,
+                coveredAmount: couvert ?? null,
+              },
+              reason: `${s.ref} · ${s.clientName} · ${libelle} · annoncé le ${fmtDate(mur.announcedAt.slice(0, 10))}`,
+              actor: ROBOT,
+            });
             await r.logEvent({
               kind: "intent",
               intentId: intent.id,
@@ -268,8 +378,7 @@ export async function GET(req: NextRequest) {
       if (wrong.length) {
         const why = wrong.join(" ");
         if (s.onBlocked === "arreter") {
-          await r.updateStandingOrder(s.id, { state: "annulee", stopReason: why });
-          await r.logEvent({ kind: "system", html: `${quoi} ${s.ref} (${s.clientName}) : <b>arrêté</b> · ${why}` });
+          await arreter(s, o, why);
         } else if (s.source !== "encaissements") {
           // Le mois est consommé même sans ordre : sinon le robot réessaierait chaque
           // jour jusqu'à la fin du mois et remplirait le journal de la même phrase.

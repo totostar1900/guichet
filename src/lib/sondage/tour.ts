@@ -1,7 +1,12 @@
 import "server-only";
 import { repo } from "@/lib/data";
+import { audit } from "@/lib/audit";
 import { SEUIL_CLIENTS, SEUIL_MONTANT, consensus, mur, prete } from "@/lib/domain/sondage";
 import { fmt, fmtDate, fmtPct, localIso } from "@/lib/format";
+import { direLaClotureDeLAttente } from "@/lib/notify/sondage";
+
+/** La main qui a agi, au registre et sur l'historique : lequel des robots est passé. */
+const ROBOT = "robot sondage";
 
 /**
  * LE TOUR DU SONDAGE : IL CLÔT CE QUI A EXPIRÉ, ET IL PRÉVIENT CE QUI EST MÛR.
@@ -63,7 +68,25 @@ export async function tourDuSondage(now = new Date()): Promise<TourDuSondage> {
           ? `L'horizon du ${fmtDate(jour, false)} est passé : la maison ne sonde plus cette ligne.`
           : `Vous étiez prêt à partir du ${fmtDate(jour, false)}, et cette date est passée sans qu'une séance s'ouvre. Rien ne vous engageait, et rien ne vous engage : redites-le quand vous voudrez.`;
       await r.updateLigneSondee(l.id, { state: "close", closedReason: motif });
+      /* AU REGISTRE, comme la clôture faite à la main. Le desk qui clôt une
+         attente laisse « sondage.statut » ; le robot ne laissait rien, et le
+         même événement tracé par une porte et pas par l'autre fait un registre
+         qui paraît complet. */
+      await audit("sondage.statut", "sondage", l.id, {
+        before: { state: l.state },
+        after: { state: "close", closedReason: motif },
+        reason: `${l.ref} · horizon du ${fmtDate(jour, false)} passé`,
+        actor: ROBOT,
+      });
       await r.logEvent({ kind: "system", html: `Sondage <b>${l.ref}</b> : <b>clos</b>, la date du ${fmtDate(jour, false)} est passée · rien n'était engagé` });
+      /* ET LE CLIENT L'APPREND. Le motif ci-dessus est écrit à la deuxième
+         personne — il l'a toujours été — et il attendait que le client revienne
+         le chercher. L'envoi vient APRÈS l'écriture et son échec ne la défait
+         pas : une attente dont la date est passée doit se fermer, sinon elle
+         compte dans un consensus que plus personne ne peut honorer. */
+      const envoi = await direLaClotureDeLAttente(l, motif);
+      if (l.userId && !envoi.sent)
+        await r.logEvent({ kind: "system", html: `Sondage <b>${l.ref}</b> : <b>clôture non annoncée au client</b> · ${envoi.error ?? "canal injoignable"} · à lui dire de la main` });
       closes.push(l.ref);
     } catch (e) {
       refus.push({ ref: l.ref, raison: e instanceof Error ? e.message : "échec" });

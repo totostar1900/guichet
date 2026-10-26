@@ -136,4 +136,132 @@ describe("le tour du sondage", () => {
     const second = await tourDuSondage(new Date("2026-10-27T06:40:00Z"));
     expect(second.closes, "une attente close est reclose chaque matin : une ligne de journal par jour et par attente passée").not.toContain(echue.ref);
   });
+
+  /**
+   * CE QUE LE ROBOT LAISSE, ET CE QUE LE CLIENT APPREND.
+   *
+   * RELEVÉ À LA REVUE DES ROBOTS du 26 octobre 2026. Deux manques, et ils ont
+   * la même forme.
+   *
+   * LE REGISTRE : le desk qui clôt une attente à la main laisse
+   * « sondage.statut » ; le robot ne laissait rien.
+   *
+   * LE CLIENT : le motif ÉTAIT DÉJÀ ÉCRIT POUR LUI — « Vous étiez prêt à partir
+   * du… » — rangé en base, à la deuxième personne, et personne ne le lui
+   * envoyait. Il attendait qu'il revienne le chercher. Rien n'était engagé,
+   * c'est vrai ; mais une attente qui se ferme en silence est une attente qui
+   * continue dans sa tête.
+   */
+  it("inscrit la clôture au registre, sous le nom de la porte humaine et au nom du robot", async () => {
+    const { repo } = await import("@/lib/data");
+    const { tourDuSondage } = await import("@/lib/sondage/tour");
+    const r = repo();
+
+    const echue = await r.createLigneSondee({
+      origine: "client",
+      userId: "u-tour-registre",
+      clientName: "Essai Registre",
+      instrument: "OTA",
+      country: "Cameroun",
+      tenor: "5 ans",
+      montant: 3_000_000,
+      seanceLe: "2026-09-15",
+    });
+
+    await tourDuSondage(new Date("2026-10-26T06:40:00Z"));
+
+    const lignes = await r.listAudit({ entity: "sondage", entityId: echue.id });
+    expect(lignes, "la clôture d'une attente de client ne laisse rien au registre").toHaveLength(1);
+    const [a] = lignes;
+    expect(a.action).toBe("sondage.statut");
+    expect((a.before as { state: string }).state).toBe("ouverte");
+    expect((a.after as { state: string }).state).toBe("close");
+    expect((a.after as { closedReason: string }).closedReason).toMatch(/Rien ne vous engageait/);
+    /* LA MAIN EST CELLE DU ROBOT. Cette épreuve monte une session de desk :
+       sans acteur explicite, le registre porterait « desk@example.com » et
+       accuserait une personne d'un geste qu'elle n'a pas fait — pire que
+       l'absence de ligne. */
+    expect(a.actor).toMatch(/robot/i);
+    expect(a.actor).not.toContain("@");
+    expect(a.reason).toContain(echue.ref);
+  });
+
+  it("n'inscrit rien quand rien n'expire", async () => {
+    // Non vacuité : un robot qui inscrirait à chaque tour passerait l'épreuve ci-dessus.
+    const { repo } = await import("@/lib/data");
+    const { tourDuSondage } = await import("@/lib/sondage/tour");
+    const r = repo();
+
+    const vivante = await r.createLigneSondee({
+      origine: "client",
+      userId: "u-tour-vivante",
+      clientName: "Essai",
+      instrument: "BTA",
+      country: "Gabon",
+      tenor: "13 semaines",
+      montant: 4_000_000,
+      seanceLe: "2099-01-01",
+    });
+
+    const t = await tourDuSondage(new Date("2026-10-26T06:40:00Z"));
+
+    expect(await r.listAudit({ entity: "sondage", entityId: vivante.id })).toHaveLength(0);
+    expect(t.vues).toBeGreaterThan(0);
+  });
+
+  it("dit la clôture au client, et se plaint au desk quand le message ne part pas", async () => {
+    const { repo } = await import("@/lib/data");
+    const { tourDuSondage } = await import("@/lib/sondage/tour");
+    const r = repo();
+
+    /* CE QUI FAIT ÉCHOUER L'ENVOI ICI N'EST PAS LE SUJET, et il faut le dire :
+       aucun fournisseur n'est posé en épreuve, donc TOUT envoi ressort
+       « skipped ». Le sujet est ce qui se passe ensuite — l'écriture tient, et
+       le desk l'apprend nommément. Qui est joignable et comment se juge au
+       niveau du résolveur, et c'est « destinataire.test.ts » qui le tient. */
+    const echue = await r.createLigneSondee({
+      origine: "client",
+      userId: "u-tour-injoignable",
+      clientName: "Sans Canal",
+      instrument: "OTA",
+      country: "Tchad",
+      tenor: "6 ans",
+      montant: 7_000_000,
+      seanceLe: "2026-09-20",
+    });
+
+    const t = await tourDuSondage(new Date("2026-10-26T06:40:00Z"));
+
+    // L'ÉCRITURE PASSE D'ABORD : une attente dont la date est passée se ferme, canal ou pas.
+    expect(t.closes).toContain(echue.ref);
+    expect((await r.listLignesSondees({ userId: "u-tour-injoignable" })).find((x) => x.id === echue.id)!.state).toBe("close");
+    const fil = (await r.listEvents(100)).map((e) => e.html).join("\n");
+    expect(fil, "la clôture non annoncée est passée sous silence").toMatch(/clôture non annoncée au client/i);
+    expect(fil).toContain(echue.ref);
+  });
+
+  it("ne cherche personne à prévenir pour une question de la maison", async () => {
+    /* NON VACUITÉ DE L'ÉPREUVE CI-DESSUS, et une règle à part entière : une
+       question posée par le desk n'a pas de destinataire, et se plaindre d'un
+       canal injoignable sur chacune ferait un fil que personne ne lit. */
+    const { repo } = await import("@/lib/data");
+    const { tourDuSondage } = await import("@/lib/sondage/tour");
+    const r = repo();
+
+    const sienne = await r.createLigneSondee({
+      origine: "desk",
+      clientName: undefined,
+      instrument: "OTA",
+      country: "Congo",
+      tenor: "9 ans",
+      montant: 50_000_000,
+      seanceLe: "2026-09-25",
+    } as never);
+
+    const t = await tourDuSondage(new Date("2026-10-26T06:40:00Z"));
+
+    expect(t.closes).toContain(sienne.ref);
+    const plaintes = (await r.listEvents(100)).filter((e) => /clôture non annoncée/i.test(e.html) && e.html.includes(sienne.ref));
+    expect(plaintes, "la maison se plaint de ne pas avoir pu se prévenir elle-même").toEqual([]);
+  });
 });

@@ -1,5 +1,6 @@
 import "server-only";
-import type { Country, Offer } from "@/lib/domain/types";
+import { ConflictError, type Country, type Offer } from "@/lib/domain/types";
+import { audit } from "@/lib/audit";
 import { fundKey, valeurHorsLimites, type BulletinNote, type FundNav, type MarketBulletin, type Quote, tradedSession } from "@/lib/domain/market";
 import { repo } from "@/lib/data";
 import { fmt, fmtDate, localIso } from "@/lib/format";
@@ -68,6 +69,80 @@ export interface IngestResult {
   refreshed: string[]; // offer ids refreshed
   sessionDate?: string;
   error?: string;
+  /**
+   * Les lignes qu'une main a touchées pendant le tour, et que le robot a donc
+   * laissées tranquilles. Nommées parce que leur cours du jour n'est pas entré :
+   * un refus silencieux ferait croire la cote à jour.
+   */
+  bouges?: string[];
+}
+
+/**
+ * La main du robot, sur l'historique de version des lignes qu'il écrit.
+ *
+ * `by` se lit sur la page d'une ligne, en regard de chaque version : « robot
+ * BOC » y dit que ce cours vient du bulletin officiel et non d'un opérateur.
+ */
+const ROBOT = "robot BOC";
+
+/**
+ * LA SEULE DÉCISION DU ROBOT : une ligne cesse d'être commandable.
+ *
+ * Une ligne qui a quitté la cote et dont l'échéance est passée se retire
+ * seule : la laisser publiée, c'est la laisser commandable. Les autres absences
+ * vont à Santé, où une personne tranche. « matured » et non « withdrawn » : la
+ * maison n'a rien retiré, la ligne a quitté la cote. La page reste consultable
+ * avec ses documents et son historique de cours.
+ *
+ * ELLE VA AU REGISTRE, depuis la revue des robots du 26 octobre 2026. Le desk
+ * qui fait le MÊME geste à la main laisse « offer.withdraw » avec le même
+ * `after: { status: "matured" }` ; le robot ne laissait rien. Le même
+ * événement tracé par une porte et pas par l'autre est la pire des deux
+ * situations, parce que le registre paraît complet.
+ *
+ * ÉCRITE À PART POUR ÊTRE ÉPROUVÉE. Elle vivait dans la boucle d'ingestion,
+ * derrière un PDF de huit cents kilo-octets qui n'est pas dans le dépôt : son
+ * épreuve se sautait en silence sur toute machine qui ne l'avait pas
+ * téléchargé, ce qui est la définition d'un cliquet qui ne tient rien.
+ *
+ * ELLE REÇOIT LES LIGNES QUE LE RAPPROCHEMENT A REGARDÉES, et ne les relit pas.
+ * Elle les relisait, une fois par sortie, juste avant d'écrire — et une version
+ * lue cent microsecondes avant l'écriture ne garde RIEN : elle est toujours à
+ * jour, donc elle est toujours acceptée. La fenêtre qui compte est l'autre,
+ * celle qui s'ouvre quand le rapprochement constate la sortie et se ferme
+ * quand on écrit : c'est là que le desk peut republier la ligne, et c'est cette
+ * version-là qu'il faut présenter. Trouvé en écrivant l'épreuve, qui ne
+ * parvenait pas à faire refuser une écriture.
+ *
+ * Rend les lignes qu'une main a bougées entre-temps, et qu'on a donc laissées
+ * tranquilles.
+ */
+export async function cloturerLesSorties(sorties: { offerId?: string; detail: string }[], vues: Offer[]): Promise<string[]> {
+  const r = repo();
+  const bouges: string[] = [];
+  for (const g of sorties) {
+    /* Un constat de rapprochement peut ne désigner aucune ligne du Guichet —
+       une absence vue dans le bulletin et nulle part chez nous. Il n'y a alors
+       rien à clôturer. */
+    if (!g.offerId) continue;
+    const o = vues.find((x) => x.id === g.offerId);
+    if (!o) continue;
+    try {
+      await r.upsertOffer({ ...o, status: "matured", version: o.version + 1 }, { expectedVersion: o.version, by: ROBOT, note: g.detail });
+    } catch (e) {
+      if (!(e instanceof ConflictError)) throw e;
+      bouges.push(o.title || o.id);
+      continue;
+    }
+    await audit("offer.withdraw", "offer", o.id, {
+      before: { status: o.status, version: o.version },
+      after: { status: "matured" },
+      reason: `${o.title} · sortie de la cote constatée par le robot : ${g.detail}`,
+      actor: ROBOT,
+    });
+    await r.logEvent({ kind: "desk", html: `<b>Ligne clôturée</b> : ${o.title} · ${g.detail}` });
+  }
+  return bouges;
 }
 
 /* ---------------- fetch & text ---------------- */
@@ -654,12 +729,50 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
   const byIsin = new Map(offers.filter((o) => o.kind === "MARCHE").map((o) => [o.isin.replace(/\s/g, "").toUpperCase(), o]));
   const created: string[] = [];
   const refreshed: string[] = [];
+  const bouges: string[] = [];
+
+  /**
+   * ÉCRIRE UNE LIGNE SANS ÉCRASER CELUI QUI VENAIT DE L'ÉCRIRE.
+   *
+   * RELEVÉ À LA REVUE DES ROBOTS du 26 octobre 2026 : ce robot était la seule
+   * porte de la maison à écrire une offre SANS `expectedVersion`. Toutes les
+   * portes du desk en passent une — c'est le mécanisme qui refuse une
+   * modification quand quelqu'un a bougé la ligne entre-temps.
+   *
+   * ET L'ASYMÉTRIE ÉTAIT LE DANGER. Si le robot écrivait pendant la saisie du
+   * desk, le desk se voyait refusé et le savait. Dans l'autre sens, le robot
+   * écrasait en silence le geste du desk, et comme il POSAIT lui-même
+   * `version + 1`, le numéro qu'il laissait pouvait être celui que le desk
+   * venait de poser : plus rien ne permettait ensuite de voir que deux
+   * écritures différentes portaient la même version. La ligne lue cent
+   * millisecondes trop tôt gagnait.
+   *
+   * CE QU'ON NE FAIT PAS ICI : un `audit()` par cours. Le robot ne décide
+   * rien, il recopie le bulletin officiel, et `offer_versions` garde déjà un
+   * instantané complet par version, avec son auteur et sa source. Cent lignes
+   * auditées chaque matin noieraient le registre des décisions, qui est ce
+   * qu'on ouvre quand un client conteste. La clôture d'une ligne, plus bas, est
+   * une décision : elle, elle est au registre.
+   */
+  const ecrire = async (next: Offer, existing: Offer | undefined, note: string): Promise<void> => {
+    try {
+      await r.upsertOffer(next, { expectedVersion: existing?.version, by: ROBOT, note });
+      (existing ? refreshed : created).push(next.id);
+    } catch (e) {
+      if (!(e instanceof ConflictError)) throw e;
+      /* UNE MAIN EST PASSÉE PENDANT LE TOUR, et c'est elle qui gagne : le desk
+         a vu la ligne, le robot l'avait lue avant. Le cours du jour n'entre pas
+         sur celle-là, se dit nommément, et le reste du bulletin continue — un
+         conflit sur une ligne ne doit pas coûter la cote entière. */
+      bouges.push(next.title || next.id);
+    }
+  };
+
   for (const q of quotes) {
     const existing = byIsin.get(q.isin);
     if (existing && existing.lastPriceOn && existing.lastPriceOn > q.sessionDate && existing.priceSource === "boc") continue; // newer bulletin already applied
     const next = offerFromQuote(q, parsed.bulletinNo, existing, companies);
-    await r.upsertOffer(next);
-    (existing ? refreshed : created).push(next.id);
+    await ecrire(next, existing, `BOC n° ${parsed.bulletinNo} du ${fmtDate(q.sessionDate)}`);
   }
 
   // OPCVM lines: NAV refreshed, terms kept; new funds arrive visible and open to subscription.
@@ -668,8 +781,7 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     const existing = byKey.get(n.fundKey);
     if (existing && existing.fund && existing.fund.navDate > n.navDate) continue;
     const next = offerFromNav(n, parsed.bulletinNo, existing, perf1y(await r.listFundNavs(n.fundKey, 400), n));
-    await r.upsertOffer(next);
-    (existing ? refreshed : created).push(next.id);
+    await ecrire(next, existing, `VL du ${fmtDate(n.navDate)} · BOC n° ${parsed.bulletinNo}`);
   }
 
   // Une ligne qui a quitté la cote et dont l'échéance est passée se retire seule :
@@ -680,16 +792,12 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     const recent = await r.listBulletins(ABSENCE_SESSIONS);
     const quotesByDate = new Map<string, typeof quotes>();
     for (const b of recent) quotesByDate.set(b.sessionDate, b.sessionDate === sessionDate ? quotes : await r.quotesOn(b.sessionDate));
-    const gone = reconcileLines({ offers: await r.listOffers(), bulletins: recent, quotesByDate }).filter((i) => i.kind === "sortie" && i.retirable);
-    for (const g of gone) {
-      const o = (await r.listOffers()).find((x) => x.id === g.offerId);
-      if (!o) continue;
-      // « matured », pas « withdrawn » : la maison n'a rien retiré, la ligne a
-      // quitté la cote. La page reste consultable avec ses documents et son
-      // historique de cours ; elle cesse seulement d'être commandable.
-      await r.upsertOffer({ ...o, status: "matured", version: o.version + 1 });
-      await r.logEvent({ kind: "desk", html: `<b>Ligne clôturée</b> : ${o.title} · ${g.detail}` });
-    }
+    /* LES MÊMES LIGNES POUR LE CONSTAT ET POUR L'ÉCRITURE : c'est l'instantané
+       sur lequel la décision a été prise, et c'est donc la version que
+       l'écriture doit présenter. */
+    const vues = await r.listOffers();
+    const gone = reconcileLines({ offers: vues, bulletins: recent, quotesByDate }).filter((i) => i.kind === "sortie" && i.retirable);
+    bouges.push(...(await cloturerLesSorties(gone, vues)));
   }
 
   const status: MarketBulletin["status"] = anomalies.length || parsed.warnings.length ? "partiel" : "ok";
@@ -724,10 +832,15 @@ export async function ingestBoc(opts: { sessionDate: string; bytes?: Uint8Array;
     const flag = anomalies.length ? ` : <b>${anomalies.length} anomalie${anomalies.length > 1 ? "s" : ""} à vérifier</b>` : "";
     const newLines = created.filter((id) => id.startsWith("boc-")).length;
     const newFunds = created.filter((id) => id.startsWith("fund-")).length;
+    /* UN REFUS SE DIT NOMMÉMENT. Sans cette ligne, la cote paraîtrait à jour et
+       deux ou trois lignes garderaient le cours de la veille : c'est la forme
+       de panne que cette maison traque, et un chiffre dans un compte rendu que
+       personne ne lit ne la ferme pas. */
+    if (bouges.length) await r.logEvent({ kind: "desk", html: `<b>Cours non entré</b> sur ${bouges.length} ligne(s) touchée(s) au même moment par le desk : ${bouges.map((x) => x.replace(/</g, "&lt;")).join(" · ")} · le bulletin n° ${parsed.bulletinNo} est à relire sur celles-là` });
     await r.logEvent({ kind: "desk", html: `<b>Bulletin BVMAC n° ${parsed.bulletinNo}</b> du ${fmtDate(sessionDate)} ingéré : ${parsed.equities.length} actions, ${parsed.bonds.length} obligations, ${parsed.funds.length} OPCVM${idx}${newLines ? ` · ${newLines} nouvelle(s) ligne(s) cotée(s)` : ""}${newFunds ? ` · ${newFunds} fonds ajouté(s) (sur demande)` : ""}${rattrapees.length ? ` · ${rattrapees.length} obligation(s) retrouvée(s) par la lecture géométrique` : ""}${flag}` });
     for (const n of parsed.notices) await r.logEvent({ kind: "desk", html: `<b>Avis BVMAC</b> (BOC n° ${parsed.bulletinNo}) : ${n.replace(/</g, "&lt;")}` });
   }
-  return { found: true, bulletin, created, refreshed };
+  return { found: true, bulletin, created, refreshed, ...(bouges.length ? { bouges } : {}) };
 }
 
 /** Sessions to try for a daily run: today, then the previous business days not yet ingested (holidays, late publication). */
