@@ -43,6 +43,14 @@ export const EN_SONDAGE: Record<string, string> = {
      desk à rappeler, ce n'est pas une conversation. */
   "Combien investiriez-vous ?": "How much would you invest ?",
   "Vos intentions": "Your expressions of interest",
+  /* LES DEUX RUBRIQUES DE L'ACCUEIL, le 26 octobre 2026. « Au sondage » n'est
+     pas de l'ornement : « Vos intentions » nomme déjà les ordres dans la même
+     liste, et deux rubriques du même nom se confondent. L'anglais tient la même
+     distinction. */
+  "Vos intentions au sondage": "Your survey expressions of interest",
+  "Ce que vous prendriez, avant qu'une séance ouvre": "What you would take, before a session opens",
+  "{n} au desk": "{n} with the desk",
+  "1 au desk": "1 with the desk",
   Répondu: "Answered",
   "Modifier ma réponse": "Change my answer",
   Modifier: "Change",

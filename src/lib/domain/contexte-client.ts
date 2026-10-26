@@ -78,6 +78,9 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
        ou sa date est passée, et la compter ferait dire à la tuile qu'il a
        quelque chose au desk alors qu'il n'y a plus rien. */
     attentesSondees: sondees.filter((x) => x.state !== "close").length,
+    /* Les révoqués ne comptent pas : ils ne prélèvent plus rien, et une porte
+       ouverte sur un mandat mort fait chercher ce qui n'existe plus. */
+    mandats: mandats.filter((m) => m.state === "actif").length,
     actions: action ? { titre: action.offer.title, n: action.units } : undefined,
     disponible: poche.idle,
     /* Les deux devoirs : un bulletin à signer, une contre-proposition à

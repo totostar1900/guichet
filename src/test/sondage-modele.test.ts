@@ -218,6 +218,38 @@ describe("le modèle du sondage", () => {
   });
 
   /**
+   * L'ACCUEIL OUVRE UNE PORTE SUR LE SONDAGE, ET SEULEMENT S'IL Y A DE QUOI.
+   *
+   * CE QUE LE DIRIGEANT A DEMANDÉ, le 26 octobre 2026 : « ajouter le résumé du
+   * mandat et le sondage à l'accueil, quand c'est nécessaire ».
+   *
+   * LES INTENTIONS DU SONDAGE N'AVAIENT AUCUNE PORTE depuis l'accueil : elles
+   * vivaient sur leur page et nulle part ailleurs. Elles n'ont pas leur place
+   * dans la bande des attentes — celle-ci porte les DEVOIRS, et une intention
+   * portée au desk n'attend rien du client — donc elles vont aux rubriques du
+   * dossier, où l'on vient voir ce qu'on a.
+   *
+   * « QUAND C'EST NÉCESSAIRE » EST LA MOITIÉ DE LA DEMANDE, et c'est la règle
+   * déjà écrite pour les services intermittents : une rubrique permanente qui
+   * dirait « aucune en ce moment » onze mois sur douze apprend à ne plus
+   * regarder la liste entière.
+   *
+   * ET LE COMPTE VIENT DU CONTEXTE, celui-là même que la tuile du service lit :
+   * deux comptes pour une seule liste mentent deux fois.
+   */
+  it("ouvre une rubrique du sondage à l'accueil, et seulement s'il y a une intention", () => {
+    const console_ = lire("src/app/Console.tsx");
+    const bloc = console_.slice(console_.indexOf('href: "/sondage"') - 400, console_.indexOf('href: "/sondage"') + 400);
+    expect(bloc, "la rubrique du sondage a quitté l'accueil").toContain('href: "/sondage"');
+    expect(bloc, "la rubrique du sondage paraît même quand le client n'a rien dit").toMatch(/ctx\.attentesSondees > 0/);
+    expect(bloc, "la rubrique ne dit plus combien d'intentions sont au desk").toMatch(/au desk/);
+    /* NON VACUITÉ : le compte est bien celui du contexte, et non un second
+       calcul fait sur place. */
+    expect(console_, "l'accueil recalcule les attentes au lieu de lire le contexte").not.toMatch(/listLignesSondees/);
+    expect(console_, "l'accueil ne lit plus le contexte").toMatch(/contexteDuClient\(session\.userId\)/);
+  });
+
+  /**
    * LE BOUTON DE LA LIGNE DU CLIENT A SA PROPRE BANDE, ENTRE LES DEUX LISTES.
    *
    * CE QUE LE DIRIGEANT A DEMANDÉ, le 26 octobre 2026 : « un bouton à lui,

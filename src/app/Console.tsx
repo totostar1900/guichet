@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { peutOPCVM, type Session } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
+import { contexteDuClient } from "@/lib/domain/contexte-client";
 import { positionsFrom, prochainFlux } from "@/lib/positions";
 import { cashPosition } from "@/lib/domain/cash";
 import { arretables } from "@/lib/domain/preavis";
@@ -105,7 +106,12 @@ export async function Console({ session }: { session: Session }) {
      moment de signer est une panne muette : le client a déjà réuni le
      groupe et rempli son ordre. */
   const plafondDit = session.plafondParOrdre != null ? direLePlafond({ montant: session.plafondParOrdre, source: session.plafondSource ?? "compte" }, (n) => n.toLocaleString("fr-FR")) : undefined;
-  const [intents, offers, cash, payouts, preavis, standing, temoignages, veilles] = await Promise.all([
+  /* LE CONTEXTE EST EN CACHE PAR REQUÊTE, et « CeQuiVousAttend » le lit déjà
+     plus bas : le relire ici ne coûte rien, et c'est ce qui garantit que la
+     rubrique et la tuile du service comptent le même nombre. */
+  const [ctx, [intents, offers, cash, payouts, preavis, standing, temoignages, veilles]] = await Promise.all([
+    contexteDuClient(session.userId),
+    Promise.all([
     r.listIntents(),
     r.listOffers(),
     r.listCash(session.userId).catch(() => []),
@@ -119,6 +125,7 @@ export async function Console({ session }: { session: Session }) {
        dossier, et elles partent avec les sept autres lectures plutôt qu'après
        elles. */
     r.listWatches(session.userId).catch(() => []),
+    ] as const),
   ]);
 
   const mine = intents.filter((i) => i.clientId === session.userId);
@@ -610,6 +617,56 @@ export async function Console({ session }: { session: Session }) {
         <Rubriques
           items={[
             { href: "/moi/ordres", nom: t("Vos intentions"), quoi: t("Où en est chaque ordre, et ce qu'il attend de vous") },
+            /**
+             * DEUX RUBRIQUES QUI NE PARAISSENT QUE S'IL Y A QUELQUE CHOSE À
+             * DIRE, le 26 octobre 2026, après la revue à 360° des treize
+             * services.
+             *
+             * LE SONDAGE N'AVAIT AUCUNE PORTE ICI : ses intentions vivaient sur
+             * leur page et nulle part ailleurs. Elles n'ont pas leur place dans
+             * la bande des attentes — celle-ci porte les DEVOIRS, ce que le
+             * client doit faire, et une intention portée au desk n'attend rien
+             * de lui. Elle a sa place ici, où l'on vient voir ce qu'on a.
+             *
+             * ET LE PRÉLÈVEMENT NON PLUS. La bande porte le mandat À SIGNER —
+             * c'est un devoir, elle a raison de le porter — mais un mandat
+             * SIGNÉ et vivant n'avait plus aucune porte depuis l'accueil : ni
+             * bande, puisqu'il n'attend rien, ni rubrique, puisqu'il n'y en
+             * avait pas. Le client le retrouvait par le catalogue des services,
+             * ou pas du tout.
+             *
+             * ELLES SONT CONDITIONNELLES, et c'est la règle déjà écrite pour
+             * les services intermittents : une rubrique permanente qui dirait
+             * « aucune en ce moment » onze mois sur douze apprend à ne plus
+             * regarder la liste entière.
+             *
+             * LES COMPTES VIENNENT DU CONTEXTE, qui est en cache par requête et
+             * que « CeQuiVousAttend » a déjà lu plus haut : la rubrique et la
+             * tuile du service comptent donc le MÊME nombre. Deux comptes pour
+             * une liste mentent deux fois.
+             */
+            ...(ctx.attentesSondees > 0
+              ? [
+                  {
+                    href: "/sondage",
+                    nom: t("Vos intentions au sondage"),
+                    quoi: t("Ce que vous prendriez, avant qu'une séance ouvre"),
+                    etiquette: t(ctx.attentesSondees > 1 ? "{n} au desk" : "1 au desk", { n: String(ctx.attentesSondees) }),
+                  },
+                ]
+              : []),
+            ...(ctx.mandats > 0
+              ? [
+                  {
+                    href: "/moi/prelevements",
+                    nom: t("Vos prélèvements"),
+                    quoi: t("Le mandat qui vous débite, et ce qu'il a payé"),
+                    /* « À SIGNER » PASSE DEVANT LE COMPTE : c'est la seule
+                       chose à faire, et un mandat non signé ne prélève rien. */
+                    etiquette: ctx.mandatASigner ? t("à signer") : undefined,
+                  },
+                ]
+              : []),
             { href: "/moi/epargne", nom: t("Vos versements programmés"), quoi: t("Ce qui part chaque mois, et comment le changer") },
             { href: "/moi/garde", nom: t("Vos droits de garde"), quoi: t("Ce que la conservation a coûté, avis par avis") },
             /* LA SEULE RUBRIQUE DU DOSSIER QUI PORTE UN COMPTE, et pour la

@@ -25,6 +25,7 @@ const vide: ContexteClient = {
   souscriptionsOuvertes: 0,
   rachatsOuverts: 0,
   attentesSondees: 0,
+  mandats: 0,
   disponible: 0,
   moisDHistorique: 0,
 };
@@ -38,6 +39,7 @@ const garni: ContexteClient = {
   souscriptionsOuvertes: 0,
   rachatsOuverts: 0,
   attentesSondees: 0,
+  mandats: 0,
   actions: { titre: "SEMC", n: 40 },
   disponible: 180_000,
   attendu: { montant: 90_000, retardJours: 28 },
@@ -333,5 +335,43 @@ describe("la tuile du sondage suit l'état du client", () => {
        « contexte-client », et c'est elle qu'on nomme ici pour qu'on la trouve. */
     const src = readFileSync(join(__dirname, "../lib/domain/contexte-client.ts"), "utf8");
     expect(src, "le contexte compte de nouveau les attentes closes").toMatch(/attentesSondees: sondees\.filter\(\(x\) => x\.state !== "close"\)\.length/);
+  });
+});
+
+/**
+ * LE MANDAT SIGNÉ N'AVAIT PLUS AUCUNE PORTE DEPUIS L'ACCUEIL.
+ *
+ * « Ajouter le résumé du mandat à l'accueil, quand c'est nécessaire. » La bande
+ * des attentes porte le mandat À SIGNER — c'est un devoir, elle a raison de le
+ * porter, et ma propre revue à 360° s'était trompée en disant le contraire. Mais
+ * une fois signé, il n'attend plus rien : il quitte la bande, et il n'y avait
+ * aucune rubrique pour le reprendre. Le client le retrouvait par le catalogue
+ * des services, ou pas du tout.
+ */
+describe("le mandat, entre la bande et les rubriques", () => {
+  it("reste un devoir dans la bande tant qu'il n'est pas signé", () => {
+    const c: ContexteClient = { ...vide, mandats: 1, mandatASigner: { id: "m1", destination: "FCP Obligations CEMAC" } };
+    const a = attentesDuClient(c, fmt).find((x) => x.cle === "mandat");
+    expect(a, "le mandat à signer a quitté la bande des attentes").toBeTruthy();
+    expect(a!.geste, "la bande ne dit plus quoi faire du mandat").toMatch(/Signer/);
+  });
+
+  it("ne se compte pas une fois révoqué", () => {
+    /* VÉRIFIÉ À L'ENVERS, et la garde manquait : un mandat révoqué ne prélève
+       plus rien, et une porte ouverte sur lui fait chercher ce qui n'existe
+       plus. La règle vit dans « contexte-client », et c'est là qu'on la lit —
+       le contexte est assemblé par une lecture de base, pas par une fonction
+       pure qu'on pourrait appeler ici. */
+    const src = readFileSync(join(__dirname, "../lib/domain/contexte-client.ts"), "utf8");
+    expect(src, "le contexte compte de nouveau les mandats révoqués").toMatch(/mandats: mandats\.filter\(\(m\) => m\.state === "actif"\)\.length/);
+  });
+
+  it("quitte la bande une fois signé, et c'est pour cela qu'il lui faut une rubrique", () => {
+    /* Signé : le contexte compte un mandat vivant et n'en signale aucun à
+       signer. La bande se tait — elle a raison — et c'est exactement le cas que
+       l'accueil ne couvrait pas. */
+    const c: ContexteClient = { ...vide, mandats: 1 };
+    expect(attentesDuClient(c, fmt).some((x) => x.cle === "mandat"), "un mandat signé réclame encore quelque chose dans la bande").toBe(false);
+    expect(c.mandats, "le contexte ne sait plus qu'un mandat vit : la rubrique n'aura pas de quoi paraître").toBe(1);
   });
 });

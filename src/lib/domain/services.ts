@@ -164,6 +164,20 @@ export interface ContexteClient {
    * dit.
    */
   attentesSondees: number;
+  /**
+   * LES MANDATS QUI VIVENT, signés ou non.
+   *
+   * `mandatASigner` dit CE QU'IL RESTE À FAIRE, et la bande des attentes le
+   * porte depuis longtemps. Ce compte-ci dit autre chose : que le client a un
+   * prélèvement, donc qu'il y a une page à lui ouvrir. Sans lui, un mandat
+   * signé et vivant n'avait AUCUNE porte depuis l'accueil — ni rubrique, ni
+   * bande, puisque la bande ne porte que les devoirs — et se retrouvait par le
+   * catalogue des services ou pas du tout.
+   *
+   * OBLIGATOIRE, pour la raison des deux intermittents : en optionnel, un
+   * appelant qui l'oublie ferme la porte sans que rien ne tombe.
+   */
+  mandats: number;
   /** Les actions cotées détenues. */
   actions?: { titre: string; n: number };
   /** L'argent reçu et n'attendant aucune opération. */

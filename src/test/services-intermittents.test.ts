@@ -37,6 +37,7 @@ const MARCHE_VIDE: ContexteClient = {
   souscriptionsOuvertes: 0,
   rachatsOuverts: 0,
   attentesSondees: 0,
+  mandats: 0,
   disponible: 0,
   aSigner: 0,
   aRepondre: 0,

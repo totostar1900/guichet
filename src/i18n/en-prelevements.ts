@@ -8,6 +8,10 @@
  */
 export const EN_PRELEVEMENTS: Record<string, string> = {
   "Vos prélèvements": "Your direct debits",
+  /* La rubrique de l'accueil : elle ne paraît que si un mandat vit, et elle dit
+     ce que le mandat FAIT — un mandat signé n'avait plus aucune porte depuis
+     l'accueil, la bande ne portant que les devoirs. */
+  "Le mandat qui vous débite, et ce qu'il a payé": "The mandate that debits you, and what it has paid",
   "Payer sans y penser": "Paying without thinking about it",
   /* Le plafond a quitté cette phrase le 25 octobre 2026 : il se disait trois
      fois sur le même écran, et pour la provision il VAUT le montant écrit. */
