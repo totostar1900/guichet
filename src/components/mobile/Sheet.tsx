@@ -40,7 +40,17 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, a
   const { shown, visible } = useSheetPresence(open);
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      /* UNE LISTE OUVERTE PREND L'ÉCHAP POUR ELLE. Les deux écoutent le
+         document, et la feuille gagnait : le client qui écartait une liste
+         déroulante perdait la feuille entière — et, dans un formulaire, tout ce
+         qu'il venait d'y taper. Relevé à l'écran le 26 octobre 2026 dans le
+         gabarit du sondage, le premier endroit de la maison où un Select vit
+         dans une feuille. */
+      if (document.querySelector("[data-liste-ouverte]")) return;
+      onClose();
+    };
     document.addEventListener("keydown", onKey);
     verrouiller();
     return () => {

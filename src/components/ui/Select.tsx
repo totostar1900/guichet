@@ -266,6 +266,13 @@ export function Select({ value, options, onChange, label, name, placeholder, com
         <div
           className={`${styles.selMenu} ${place.up ? styles.selUp : ""} ${place.right ? styles.selRight : ""}`}
           id={`${id}-list`}
+          /* ELLE SE SIGNALE TANT QU'ELLE EST OUVERTE, et une feuille lit ce
+             signe avant de se fermer sur « Échap » : sans lui, le client qui
+             écarte une liste perdait le formulaire entier et ce qu'il venait
+             d'y taper (relevé à l'écran le 26 octobre 2026). L'attribut vit sur
+             l'élément porté — il disparaît avec lui, donc il ne reste jamais
+             allumé par accident. */
+          data-liste-ouverte=""
           ref={listRef}
           style={{ maxHeight: place.maxH, left: place.x, top: place.y, bottom: place.yUp, minWidth: place.w ? Math.max(place.w, 200) : undefined }}
         >

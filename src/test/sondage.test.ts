@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SEUIL_CLIENTS, SEUIL_MONTANT, UNITE_SONDEE, anneesDuTenor, cleDeGroupe, delaiDepuisLaCreation, joursRestants, consensus, etatDeLAttente, gabarit, manquesDeLaLigne, motDuNiveau, mur, prete, rendementDeLaLigne } from "@/lib/domain/sondage";
+import { SEUIL_CLIENTS, SEUIL_MONTANT, UNITE_SONDEE, anneesDuTenor, cleDeGroupe, delaiDepuisLaCreation, dureesDe, joursRestants, consensus, etatDeLAttente, gabarit, manquesDeLaLigne, motDuNiveau, mur, prete, rendementDeLaLigne } from "@/lib/domain/sondage";
 import type { LigneSondee } from "@/lib/domain/types";
 
 /**
@@ -473,5 +473,45 @@ describe("la modification d'une intention", () => {
       const ressorti = delaiDepuisLaCreation(ligne.createdAt, revenu, aujourdHui);
       expect(prete({ ...ligne, dansJours: ressorti }), `l'aller-retour du ${aujourdHui} a déplacé la date`).toBe(prete(ligne));
     }
+  });
+});
+
+
+/**
+ * LES DURÉES PROPOSÉES SONT CELLES QUE LA CONSOLIDATION SAIT LIRE.
+ *
+ * « Plusieurs maturités à choisir (1, 2, 3, 4, 5…) » : la durée était un champ
+ * de texte libre, et c'est de là que venaient « 5ans », « 5 ANS », « cinq ans »
+ * — trois lignes différentes pour une seule demande. La liste ferme la faute à
+ * sa source, À CONDITION que ce qu'elle propose soit exactement ce que la clef
+ * de groupe et le rendement savent lire. Une liste qui offrirait « 5 années »
+ * serait une liste qui fabrique des orphelines.
+ */
+describe("les durées qu'on peut demander", () => {
+  it("sont toutes lisibles par la clef de groupe et par le rendement", () => {
+    for (const d of dureesDe("OTA")) {
+      expect(anneesDuTenor(d), `« ${d} » n'est pas lisible en années : son rendement ne se calculera pas`).toBeGreaterThan(0);
+      /* Et deux durées différentes ne se confondent jamais dans la clef. */
+      for (const autre of dureesDe("OTA")) {
+        const meme = cleDeGroupe({ instrument: "OTA", country: "Gabon", tenor: d }) === cleDeGroupe({ instrument: "OTA", country: "Gabon", tenor: autre });
+        expect(meme, `« ${d} » et « ${autre} » tombent dans le même groupe`).toBe(d === autre);
+      }
+    }
+    for (const d of dureesDe("BTA")) {
+      expect(anneesDuTenor(d), `« ${d} » passe pour une durée en années : un bon recevrait le rendement d'une obligation`).toBeUndefined();
+      expect(d, "un bon se dit en semaines").toMatch(/semaines$/);
+    }
+  });
+
+  it("commencent à deux ans pour une obligation, et s'arrêtent à l'année pour un bon", () => {
+    /* À UN AN, L'INSTRUMENT DE LA ZONE EST LE BON, précompté : proposer « OTA
+       1 an » ferait demander au Trésor une ligne qu'il n'émet pas sur ce
+       compartiment, et la demande serait portée pour rien. */
+    expect(dureesDe("OTA").map((d) => anneesDuTenor(d)!), "une obligation est proposée à moins de deux ans").not.toContain(1);
+    expect(Math.min(...dureesDe("OTA").map((d) => anneesDuTenor(d)!))).toBe(2);
+    expect(dureesDe("BTA"), "un bon est proposé au-delà de l'année").toEqual(["13 semaines", "26 semaines", "52 semaines"]);
+    /* ET IL Y EN A « PLUSIEURS », ce qui était la demande : une liste de deux
+       durées n'est pas une liste. */
+    expect(dureesDe("OTA").length).toBeGreaterThanOrEqual(5);
   });
 });

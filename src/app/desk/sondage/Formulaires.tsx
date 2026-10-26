@@ -52,7 +52,7 @@ export function PoserUneQuestion() {
         </label>
         <label className="field">
           {t(instrument === "BTA" ? "Taux indicatif (%)" : "Coupon indicatif (%)")}
-          <input name="rate" type="number" step="0.01" placeholder="6,25" />
+          <input name="rate" inputMode="decimal" placeholder="6,25" />
         </label>
       </div>
       <div className={styles.quatre}>
@@ -67,7 +67,7 @@ export function PoserUneQuestion() {
         {instrument === "OTA" && (
           <label className="field">
             {t("Prix indicatif (%)")}
-            <input name="pricePct" type="number" step="0.01" placeholder="97" />
+            <input name="pricePct" inputMode="decimal" placeholder="97" />
           </label>
         )}
         <label className="field">

@@ -87,6 +87,27 @@ export const UNITE_SONDEE: SurveyUnit = "taux";
 /** Le mot du niveau, qui change — pas son sens, qui ne change pas. */
 export const motDuNiveau = (i: InstrumentSonde): "coupon" | "taux" => (i === "BTA" ? "taux" : "coupon");
 
+/**
+ * LES DURÉES QU'ON PEUT DEMANDER, ET ELLES SE CHOISISSENT DANS UNE LISTE.
+ *
+ * CE QUE LE DIRIGEANT A DEMANDÉ, le 26 octobre 2026 : « plusieurs maturités à
+ * choisir (1, 2, 3, 4, 5…) ». C'était un champ de texte libre.
+ *
+ * ET CELA FERME LE DÉFAUT À SA SOURCE. « 5ans », « 5 ANS », « cinq ans », « 5 a »
+ * étaient quatre lignes différentes pour la consolidation : on a appris à les
+ * rapprocher après coup — voir `dureeCanonique` — mais un rapprochement reste
+ * une réparation, et il ne rattrapera jamais « cinq ans ». Une liste ne produit
+ * pas la faute.
+ *
+ * UN BON NE VA PAS AU-DELÀ DE L'ANNÉE : treize, vingt-six ou cinquante-deux
+ * semaines, ce sont les trois que les Trésors de la zone servent. UNE OBLIGATION
+ * COMMENCE À DEUX ANS, et non à un : à un an, l'instrument de la zone est le
+ * bon, précompté, et proposer « OTA 1 an » ferait demander au Trésor une ligne
+ * qu'il n'émet pas sur ce compartiment.
+ */
+export const dureesDe = (i: InstrumentSonde): string[] =>
+  i === "BTA" ? ["13 semaines", "26 semaines", "52 semaines"] : ["2 ans", "3 ans", "4 ans", "5 ans", "6 ans", "7 ans", "8 ans", "9 ans", "10 ans"];
+
 /* ------------------------------------------------------------------ *
  * LE GABARIT : CE QUE LE CLIENT REMPLIT
  * ------------------------------------------------------------------ */

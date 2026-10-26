@@ -63,7 +63,18 @@
    hors d atteinte de tout rogneur. */
 .selMenu {
   position: fixed;
-  z-index: 40;
+  /* AU-DESSUS DE LA FEUILLE, ET C'EST TOUTE L'HISTOIRE DE CE NOMBRE.
+     La liste est portee au body pour echapper aux rogneurs ; a 40, elle
+     echappait au rognage et passait SOUS la feuille, qui vit a 61. Relevé a
+     l'ecran le 26 octobre 2026, dans le gabarit du sondage : le client touche
+     « Le Tresor », rien ne parait, et il conclut que le formulaire est casse.
+     La liste existait, elle etait derriere.
+     63 : juste au-dessus de la feuille (61) et du menu d'une ligne (62), et
+     SOUS le menu de l'application (70), le voile de presentation (70) et la
+     porte de consentement (80) — un Select ne s'ouvre pas dans ceux-la, et il
+     ne doit pas passer par-dessus. La regle : la liste est la couche la plus
+     haute de la commande qui la porte, et rien de plus. */
+  z-index: 63;
   min-width: 200px;
   max-height: 300px;
   overflow: hidden;

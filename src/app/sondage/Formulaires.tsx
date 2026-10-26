@@ -3,8 +3,9 @@
 import { useActionState, useState, useTransition } from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
+import { Sheet } from "@/components/mobile/Sheet";
 import { groupedInput } from "@/lib/ui/grouped";
-import { INSTRUMENTS_SONDES, gabarit, type InstrumentSonde } from "@/lib/domain/sondage";
+import { INSTRUMENTS_SONDES, dureesDe, gabarit, type InstrumentSonde } from "@/lib/domain/sondage";
 import { PAYS_CEMAC } from "@/lib/market/budget";
 import { deposerLaLigne, modifierLaLigne, retirerLaLigne, type SondageResult } from "./actions";
 import styles from "./page.module.css";
@@ -90,10 +91,17 @@ export function Repondre({ question, existante, discret }: { question: { id: str
         </label>
         {/* LE NIVEAU EST FACULTATIF, et c'est voulu : « je prendrais cinquante
             millions quel que soit le taux » est une réponse, et c'est même la
-            plus utile au Trésor — elle tient à n'importe quel niveau. */}
+            plus utile au Trésor — elle tient à n'importe quel niveau.
+
+            ET LE CHAMP N'EST PLUS « type=number », qui REFUSAIT la virgule que
+            son propre repère invite — « 6,25 ». Relevé à l'écran le 26 octobre
+            2026 : un client qui tape « 6,5 » voit son champ se vider, envoie, et
+            sa réponse part SANS CONDITION. Le serveur, lui, lisait déjà les deux
+            écritures ; c'est le navigateur qui coupait. « decimal » donne le même
+            clavier au doigt et laisse passer la virgule. */}
         <label className="field">
           {t(question.mot === "taux" ? "Au taux d'au moins (%)" : "Au coupon d'au moins (%)")}
-          <input name="rate" type="number" step="0.01" placeholder="6,25" defaultValue={existante?.rate ?? ""} />
+          <input name="rate" inputMode="decimal" placeholder="6,25" defaultValue={existante?.rate ?? ""} />
           <small className="muted">{t("Facultatif : sans condition, votre réponse tient quel que soit le niveau.")}</small>
         </label>
       </div>
@@ -125,6 +133,12 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
   const [instrument, setInstrument] = useState<InstrumentSonde>(existante?.instrument ?? "OTA");
   const [country, setCountry] = useState(existante?.country ?? "Cameroun");
   const [montant, setMontant] = useState(existante ? groupe(existante.montant) : "");
+  /* La durée suit le compartiment : changer d'instrument change la liste, et une
+     valeur qui n'y est plus laisserait le champ sur « 5 ans » pour un bon. */
+  const durees = dureesDe(instrument);
+  const [tenor, setTenor] = useState(existante?.tenor ?? "");
+  const choisie = durees.includes(tenor) ? tenor : durees[instrument === "BTA" ? 2 : 2];
+  const setTenorSur = (v: string) => setTenor(v);
   const [ouvert, setOuvert] = useState(false);
   const champs = gabarit(instrument);
   const aide = (cle: string) => champs.find((c) => c.cle === cle)?.aide ?? "";
@@ -136,24 +150,32 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
       </p>
     );
 
-  if (!ouvert)
-    return existante ? (
-      <button type="button" className={styles.lien} onClick={() => setOuvert(true)}>
-        {t("Modifier")}
-      </button>
-    ) : (
-      /* LE « + » OUVRE LA LIGNE DU CLIENT, et il est là où elle ira : au titre
-         de ses intentions. Il vivait au bas de la page sous un troisième titre,
-         « Proposer votre ligne / Remplir le gabarit » — deux lignes pour dire
-         ce qu'un signe dit, et à l'endroit où l'on ne regarde plus. */
-      <button type="button" className={`btn ghost ${styles.plus}`} onClick={() => setOuvert(true)}>
-        <span aria-hidden="true">+</span> {t("Proposer une ligne")}
-      </button>
-    );
+  /* LE DÉCLENCHEUR RESTE EN PLACE, ET LE FORMULAIRE S'OUVRE PAR-DESSUS.
+     « Un bouton à lui, séparé, et de là un formulaire complet apparaît. » Déplié
+     SOUS son bouton, le gabarit poussait la moitié de la page vers le bas : le
+     client perdait de vue ce qu'il était venu lire, et sur un téléphone il ne
+     voyait plus ni le début du formulaire ni la fin. Une feuille garde la page
+     dessous, à sa place, et rend les six champs d'un seul tenant. */
+  const declencheur = existante ? (
+    <button type="button" className={styles.lien} onClick={() => setOuvert(true)}>
+      {t("Modifier")}
+    </button>
+  ) : (
+    <button type="button" className={`btn ghost ${styles.plus}`} onClick={() => setOuvert(true)}>
+      <span aria-hidden="true">+</span> {t("Proposer votre propre ligne")}
+    </button>
+  );
 
   return (
-    <form action={action} className={styles.form}>
-      {existante && <input type="hidden" name="id" value={existante.id} />}
+    <>
+      {declencheur}
+      {/* LA FEUILLE SE FERME D'ELLE-MÊME QUAND L'ENVOI PASSE — « ouvert && !ok »
+          plutôt qu'un effet qui la ferme : un effet qui appelle setState est
+          précisément ce que le lint de cette version refuse, et l'accusé de
+          réception prend la place du bouton en dessous. */}
+      <Sheet open={ouvert && !state?.ok} onClose={() => setOuvert(false)} title={t(existante ? "Modifier votre ligne" : "Proposer votre propre ligne")} wide>
+        <form action={action} className={styles.form}>
+          {existante && <input type="hidden" name="id" value={existante.id} />}
       {/* LE COMPARTIMENT D'ABORD, parce qu'il décide des champs qui suivent :
           une OTA porte un coupon ET un prix, un bon n'a ni l'un ni l'autre —
           il se vend précompté, et son taux EST son niveau. Demander un prix
@@ -186,22 +208,27 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
       </div>
       <div className={styles.deux}>
         <Select name="country" label={t("Le Trésor")} value={country} onChange={setCountry} block cherchable={false} options={PAYS_CEMAC.map((p) => ({ value: p, label: t(p) }))} />
-        <label className="field">
-          {t("La durée")}
-          <input name="tenor" placeholder={instrument === "BTA" ? "52 semaines" : "5 ans"} defaultValue={existante?.tenor ?? ""} required />
+        {/* LA DURÉE SE CHOISIT, ELLE NE S'ÉCRIT PLUS. C'est la demande du
+            dirigeant — « plusieurs maturités à choisir » — et cela ferme à la
+            source ce qu'on avait appris à réparer après coup : « 5ans », « 5 ANS »
+            et « cinq ans » faisaient trois lignes différentes pour la
+            consolidation. La liste vient du domaine, qui sait ce qu'un Trésor de
+            la zone sert sur chaque compartiment. */}
+        <div className="field">
+          <Select name="tenor" label={t("La durée")} value={choisie} onChange={setTenorSur} block cherchable={false} options={dureesDe(instrument).map((d) => ({ value: d, label: d }))} />
           <small className="muted">{t(aide("tenor"))}</small>
-        </label>
+        </div>
       </div>
       <div className={styles.deux}>
         <label className="field">
           {t(instrument === "BTA" ? "Le taux que vous accepteriez, au moins (%)" : "Le coupon que vous attendez, au moins (%)")}
-          <input name="rate" type="number" step="0.01" placeholder="6,50" defaultValue={existante?.rate ?? ""} />
+          <input name="rate" inputMode="decimal" placeholder="6,50" defaultValue={existante?.rate ?? ""} />
           <small className="muted">{t(aide("rate"))}</small>
         </label>
         {instrument === "OTA" && (
           <label className="field">
             {t("Le prix que vous accepteriez, au plus (%)")}
-            <input name="pricePct" type="number" step="0.01" placeholder="100" defaultValue={existante?.pricePct ?? ""} />
+            <input name="pricePct" inputMode="decimal" placeholder="100" defaultValue={existante?.pricePct ?? ""} />
             <small className="muted">{t(aide("pricePct"))}</small>
           </label>
         )}
@@ -222,16 +249,18 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
         {t("Ce que le desk doit savoir (facultatif)")}
         <textarea name="note" rows={2} maxLength={600} placeholder={t("Pourquoi cette ligne, ou ce qui vous ferait changer d'avis.")} defaultValue={existante?.note ?? ""} />
       </label>
-      {!state?.ok && state?.error && <em className={styles.erreur}>{state.error}</em>}
-      <div className={styles.boutons}>
-        <button type="submit" className="btn primary" disabled={pending}>
-          {t(pending ? "Un instant…" : existante ? "Enregistrer" : "Envoyer au desk")}
-        </button>
-        <button type="button" className="btn ghost" onClick={() => setOuvert(false)}>
-          {t("Annuler")}
-        </button>
-      </div>
-    </form>
+          {!state?.ok && state?.error && <em className={styles.erreur}>{state.error}</em>}
+          <div className={styles.boutons}>
+            <button type="submit" className="btn primary" disabled={pending}>
+              {t(pending ? "Un instant…" : existante ? "Enregistrer" : "Envoyer au desk")}
+            </button>
+            <button type="button" className="btn ghost" onClick={() => setOuvert(false)}>
+              {t("Annuler")}
+            </button>
+          </div>
+        </form>
+      </Sheet>
+    </>
   );
 }
 

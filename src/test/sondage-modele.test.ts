@@ -175,6 +175,58 @@ describe("le modèle du sondage", () => {
   });
 
   /**
+   * LE BOUTON DE LA LIGNE DU CLIENT A SA PROPRE BANDE, ENTRE LES DEUX LISTES.
+   *
+   * CE QUE LE DIRIGEANT A DEMANDÉ, le 26 octobre 2026 : « un bouton à lui,
+   * séparé, après “combien investiriez-vous ?” et avant “vos intentions” ».
+   *
+   * ET SA PLACE EST SON SENS. Posé au titre des intentions, il se lisait comme
+   * un réglage de cette liste ; au bas de la page sous un troisième titre, il
+   * était à l'endroit où l'on ne regarde plus. Entre les deux, il est la suite
+   * de la question qu'on vient de lire — « et si ce que je cherche n'y était
+   * pas ? » — et la porte de ce qu'on trouve en dessous. Un déplacement de dix
+   * lignes de code défait cela sans que rien ne tombe.
+   */
+  it("pose le bouton de la ligne du client entre les deux listes", () => {
+    const page = lire("src/app/sondage/page.tsx");
+    const question = page.indexOf('t("Combien investiriez-vous ?")');
+    const bouton = page.indexOf("<ProposerMaLigne />");
+    const intentions = page.indexOf('id="mes-attentes"');
+    for (const [nom, i] of [["le titre de la question", question], ["le bouton", bouton], ["la section des intentions", intentions]] as const) {
+      expect(i, `${nom} a disparu de la page : l'épreuve ne mesure plus rien`).toBeGreaterThan(-1);
+    }
+    expect(bouton, "le bouton est remonté avant la question de la maison").toBeGreaterThan(question);
+    expect(bouton, "le bouton est redescendu dans la section des intentions, où il se lit comme un réglage de la liste").toBeLessThan(intentions);
+  });
+
+  /**
+   * UN CHAMP NE REFUSE PAS CE QUE SON PROPRE REPÈRE INVITE.
+   *
+   * RELEVÉ À L'ÉCRAN le 26 octobre 2026, en remplissant le gabarit : le champ du
+   * coupon portait « 6,25 » en repère et « type=number » en attribut. Un
+   * navigateur refuse la virgule sur ce type — le champ SE VIDE, sans un mot — et
+   * le client envoie une réponse SANS CONDITION, ce qui est une réponse valable :
+   * ni le formulaire, ni le serveur, ni l'écran n'ont de quoi s'étonner. Le
+   * serveur lisait déjà les deux écritures ; c'est le navigateur qui coupait.
+   *
+   * ET LE CLAVIER DU TÉLÉPHONE FRANÇAIS PROPOSE LA VIRGULE : ce n'est pas une
+   * faute de frappe rare, c'est la touche qu'on y trouve.
+   */
+  it("ne met pas une virgule en repère dans un champ qui la refuse", () => {
+    for (const f of ["src/app/sondage/Formulaires.tsx", "src/app/desk/sondage/Formulaires.tsx"]) {
+      const vif = lire(f).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+      const champs = [...vif.matchAll(/<input[^>]*>/g)].map((m) => m[0]);
+      expect(champs.length, `aucun champ relu dans ${f} : l'épreuve ne mesure rien`).toBeGreaterThan(3);
+      for (const champ of champs) {
+        const repere = /placeholder="([^"]*)"/.exec(champ)?.[1] ?? "";
+        if (!/\d,\d/.test(repere)) continue;
+        expect(champ.includes('type="number"'), `${f} : un champ invite « ${repere} » et refuse la virgule — il se videra en silence`).toBe(false);
+        expect(champ, `${f} : le champ qui invite « ${repere} » n'offre plus le clavier décimal`).toMatch(/inputMode="decimal"/);
+      }
+    }
+  });
+
+  /**
    * LES DEUX DÉPÔTS ÉCRIVENT LES MÊMES CHAMPS D'UNE INTENTION.
    *
    * TROUVÉ EN VÉRIFIANT À L'ENVERS le geste « modifier », le 26 octobre 2026, et

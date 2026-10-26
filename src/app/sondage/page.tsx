@@ -173,11 +173,16 @@ export default async function SondagePage() {
 
             Et c'est « vos intentions » plutôt que « ce que vous avez dit » :
             ce qui est là engage le desk à rappeler, pas une conversation. */}
+        {/* LE BOUTON A SA PROPRE BANDE, ENTRE LES DEUX LISTES.
+            « Un bouton à lui, séparé, après “combien investiriez-vous ?” et avant
+            “vos intentions”. » Posé au titre des intentions, il se lisait comme
+            un réglage de cette liste-là ; posé ici, il est ce qu'il est : la
+            suite de la question qu'on vient de lire — « et si ce que je cherche
+            n'y était pas ? » — et la porte de ce qu'on va trouver en dessous. */}
+        <ProposerMaLigne />
+
         <section className={styles.bloc} id="mes-attentes">
-          <div className={styles.titreEtGeste}>
-            <h2 className={styles.titre}>{t("Vos intentions")}</h2>
-            <ProposerMaLigne />
-          </div>
+          <h2 className={styles.titre}>{t("Vos intentions")}</h2>
           {vivantes.length === 0 && closes.length === 0 ? (
             <p className={styles.vide}>{t("Rien encore. Répondre à une ligne ci-dessus prend deux chiffres ; proposer la vôtre en prend six.")}</p>
           ) : (
