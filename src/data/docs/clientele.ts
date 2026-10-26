@@ -14,7 +14,7 @@ export const CLIENTELE: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 2,
-  checkedOn: "2026-10-23",
+  checkedOn: "2026-10-26",
   owner: "Georges",
   chapters: [
     {

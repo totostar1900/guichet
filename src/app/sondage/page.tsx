@@ -6,6 +6,7 @@ import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { EnBref } from "@/components/EnBref";
+import { Pourquoi } from "@/components/Pourquoi";
 import { Repondre, ProposerMaLigne, Retirer } from "./Formulaires";
 import styles from "./page.module.css";
 
@@ -72,7 +73,7 @@ export default async function SondagePage() {
    */
   const quand = (l: { seanceLe?: string; dansJours?: number; createdAt: string }) => {
     const j = prete(l);
-    return j ? fmtDate(j, false) : "—";
+    return j ? fmtDate(j, false) : null;
   };
 
   return (
@@ -81,9 +82,23 @@ export default async function SondagePage() {
         <EnTete
           surTitre={t("Investissez")}
           titre={t("Sondage")}
-          phrase={t(
-            "Dire ce que vous prendriez avant qu'une séance ouvre. Rien ici ne vous engage : c'est un renseignement que la maison porte au Trésor, et c'est lui qui décide s'il emprunte.",
-          )}
+          phrase={
+            <>
+              {t("Dire ce que vous prendriez avant qu'une séance ouvre. Rien ici ne vous engage.")}
+              <Pourquoi titre="À quoi sert un sondage" petit>
+                <p>
+                  {t(
+                    "Les six Trésors de la CEMAC décident seuls de ce qu'ils émettent, et quand. Ce qu'ils achètent à une société de bourse, c'est le renseignement : à quel niveau la demande tient encore, et pour combien.",
+                  )}
+                </p>
+                <p>
+                  {t(
+                    "Votre réponse entre dans ce renseignement. Ce n'est pas un ordre : il n'y a rien à signer et rien à provisionner, et vous la retirez quand vous voulez. Si une séance s'ouvre sur une ligne que vous avez demandée, le desk vous rappelle avant la clôture.",
+                  )}
+                </p>
+              </Pourquoi>
+            </>
+          }
           aCote={<EnBref cles={["sondage"]} titre="Le sondage en bref" />}
         />
 
@@ -91,43 +106,37 @@ export default async function SondagePage() {
             n'attend plus de réponse, et la montrer barrée ferait chercher un
             bouton qui n'existe plus. */}
         <section className={styles.bloc}>
-          <h2 className={styles.titre}>{t("Ce que la maison demande en ce moment")}</h2>
+          <h2 className={styles.titre}>{t("Ce que la maison demande")}</h2>
           {ouvertes.length === 0 ? (
-            <div className="empty">
-              {t("Aucune ligne sondée en ce moment. Vous pouvez tout de même proposer la vôtre plus bas : c'est de là que partent la plupart des séances que nous obtenons.")}
-            </div>
+            <p className={styles.vide}>{t("Rien n'est sondé en ce moment. Proposez la vôtre plus bas : c'est de là que partent la plupart des séances que nous obtenons.")}</p>
           ) : (
             <ul className={styles.liste}>
               {ouvertes.map((q) => {
                 const n = niveau(q);
+                const d = quand(q);
                 const mienne = repondu.get(q.id);
                 return (
                   <li key={q.id} className={styles.question}>
                     <div className={styles.entete}>
-                      <b>
+                      <b className={styles.ligne}>
                         {q.instrument} · {t(q.country)} · {q.tenor}
                       </b>
-                      <span className="mono">{q.ref}</span>
+                      <span className={`mono ${styles.ref}`}>{q.ref}</span>
                     </div>
-                    <dl className={styles.faits}>
-                      <div>
-                        <dt>{t("Ce que la maison cherche")}</dt>
-                        <dd>{fmt(q.montant)} FCFA</dd>
-                      </div>
-                      <div>
-                        <dt>{t(motDuNiveau(q.instrument) === "taux" ? "Taux indiqué" : "Coupon indiqué")}</dt>
-                        <dd>{n ?? t("à dire")}</dd>
-                      </div>
-                      <div>
-                        <dt>{t("Séance visée")}</dt>
-                        <dd>{quand(q)}</dd>
-                      </div>
-                    </dl>
+                    {/* LES FAITS EN UNE PHRASE, et non en trois colonnes
+                        d'étiquettes en capitales : on les lit d'un trait, et
+                        seul le montant est mis en avant — c'est lui qui dit si
+                        la ligne est à notre taille. */}
+                    <p className={styles.faits}>
+                      <b>{fmt(q.montant)} FCFA</b>
+                      {n ? ` · ${t("autour de {r}", { r: n })}` : ""}
+                      {d ? ` · ${t("séance visée le {d}", { d })}` : ""}
+                    </p>
                     {q.note && <p className={styles.note}>{q.note}</p>}
                     {mienne ? (
                       <p className={styles.deja}>
-                        {t("Vous avez répondu : {m} FCFA, {d}.", { m: fmt(mienne.montant), d: quand(mienne) })}{" "}
-                        <span className={styles.second}>{t("Répondre de nouveau remplace cette réponse.")}</span>
+                        {t("Vous avez répondu {m} FCFA, à partir du {d}", { m: fmt(mienne.montant), d: quand(mienne) ?? "—" })}{" "}
+                        <span className={styles.second}>{t("Répondre à nouveau remplace cette réponse.")}</span>
                       </p>
                     ) : null}
                     <Repondre question={{ id: q.id, instrument: q.instrument, mot: motDuNiveau(q.instrument) }} />
@@ -145,39 +154,37 @@ export default async function SondagePage() {
         <section className={styles.bloc} id="mes-attentes">
           <h2 className={styles.titre}>{t("Ce que vous avez dit")}</h2>
           {vivantes.length === 0 && closes.length === 0 ? (
-            <div className="empty">{t("Vous n'avez encore rien dit. Répondre à une ligne ci-dessus prend deux chiffres.")}</div>
+            <p className={styles.vide}>{t("Rien encore. Répondre à une ligne ci-dessus prend deux chiffres.")}</p>
           ) : (
-            <ul className={styles.liste}>
+            <ul className={styles.attentes}>
               {[...vivantes, ...closes].map((m) => {
                 const e = etatDeLAttente(m);
+                const n = niveau(m);
+                const d = quand(m);
                 return (
-                  <li key={m.id} className={styles.attente}>
+                  <li key={m.id} className={styles.attente} data-etat={e.etat}>
                     <div className={styles.entete}>
                       <span className={styles.pastille} data-etat={e.etat}>
                         {t(e.mot)}
                       </span>
-                      <b>
+                      <b className={styles.ligne}>
                         {m.instrument} · {t(m.country)} · {m.tenor}
                       </b>
-                      <span className="mono">{m.ref}</span>
+                      {/* L'ÉTAT PASSE DERRIÈRE LE POINT : il est vrai en
+                          permanence et identique d'une attente à l'autre, donc
+                          il se replie. La page le répétait quatre fois, trois
+                          lignes chacune. Le MOTIF d'une clôture, lui, reste à
+                          l'écran : il change d'une ligne à l'autre. */}
+                      <Pourquoi titre={e.etat === "close" ? "Une attente close" : e.etat === "consolidee" ? "Une attente portée au Trésor" : "Une attente reçue"} petit>
+                        <p>{t(e.phrase)}</p>
+                      </Pourquoi>
+                      <span className={`mono ${styles.ref}`}>{m.ref}</span>
                     </div>
-                    <dl className={styles.faits}>
-                      <div>
-                        <dt>{t("Ce que vous prendriez")}</dt>
-                        <dd>{fmt(m.montant)} FCFA</dd>
-                      </div>
-                      {niveau(m) && (
-                        <div>
-                          <dt>{t(motDuNiveau(m.instrument) === "taux" ? "Au taux d'au moins" : "Au coupon d'au moins")}</dt>
-                          <dd>{niveau(m)}</dd>
-                        </div>
-                      )}
-                      <div>
-                        <dt>{t("Prêt à partir du")}</dt>
-                        <dd>{quand(m)}</dd>
-                      </div>
-                    </dl>
-                    <p className={styles.dit}>{t(e.phrase)}</p>
+                    <p className={styles.faits}>
+                      <b>{fmt(m.montant)} FCFA</b>
+                      {n ? ` · ${t(motDuNiveau(m.instrument) === "taux" ? "au taux d'au moins {r}" : "au coupon d'au moins {r}", { r: n })}` : ""}
+                      {d ? ` · ${t("à partir du {d}", { d })}` : ""}
+                    </p>
                     {m.closedReason && <p className={styles.motif}>{m.closedReason}</p>}
                     {m.state !== "close" && <Retirer id={m.id} ref_={m.ref} />}
                   </li>
@@ -187,13 +194,21 @@ export default async function SondagePage() {
           )}
         </section>
 
+        {/* LE CHAPÔ DE TROIS LIGNES PASSE DERRIÈRE LE POINT : il explique un
+            geste qu'on ne fait qu'une fois, et il séparait le titre du bouton
+            qui le suit. Ce qui reste est le titre, et le bouton. */}
         <section className={styles.bloc}>
-          <h2 className={styles.titre}>{t("Proposer votre propre ligne")}</h2>
-          <p className={styles.chapo}>
-            {t(
-              "Si ce que vous cherchez n'est pas sondé, dites-le : le desk réunit les demandes qui se ressemblent et les porte au Trésor concerné. Une ligne se porte quand plusieurs clients la demandent, donc votre réponse compte même seule.",
-            )}
-          </p>
+          <h2 className={styles.titre}>
+            {t("Proposer votre ligne")}
+            <Pourquoi titre="Proposer sa propre ligne" petit>
+              <p>
+                {t(
+                  "Si ce que vous cherchez n'est pas sondé, dites-le : le desk réunit les demandes qui se ressemblent et les porte au Trésor concerné. Une ligne se porte quand plusieurs clients la demandent, donc votre réponse compte même seule.",
+                )}
+              </p>
+              <p>{t("Six champs : le compartiment, le Trésor, la durée, le niveau, le montant, et la date à partir de laquelle vous seriez prêt.")}</p>
+            </Pourquoi>
+          </h2>
           <ProposerMaLigne />
         </section>
       </main>

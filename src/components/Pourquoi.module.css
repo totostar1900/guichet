@@ -1,0 +1,53 @@
+/* LE POINT D'INTERROGATION, ET IL NE DOIT PAS SE DISPUTER LA PLACE.
+
+   Il vit à côté d'un titre ou d'une pastille, dans le fil du texte : encre
+   atténuée au repos, encre pleine au survol. Un rond doré ici ferait un second
+   appel à l'action sur une ligne qui en porte déjà un. */
+.point {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* LA CIBLE DU POUCE FAIT 32 PX alors que le dessin en fait 16 : la règle de
+     la maison est qu'on doit pouvoir appuyer sans viser. Le rembourrage est
+     négatif à gauche pour que la cible déborde sans décaler le texte. */
+  width: 32px;
+  height: 32px;
+  margin: -8px -6px -8px -2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  cursor: pointer;
+  vertical-align: middle;
+}
+.point:hover,
+.point:focus-visible {
+  color: var(--gold-ink);
+}
+.point svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.petit svg {
+  width: 14px;
+  height: 14px;
+}
+
+.corps {
+  display: grid;
+  gap: var(--s-5);
+  font-size: var(--t-4);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.corps p {
+  margin: 0;
+}
+.corps b {
+  color: var(--ink);
+}

@@ -2,145 +2,215 @@
 
    Gabarit TEXTE, comme les autres pages qui se lisent et où l'on décide : ce
    n'est pas une liste de marché, c'est une conversation. Les deux largeurs de
-   la maison sont déclarées au globals. */
+   la maison sont déclarées au globals.
+
+   ─── CE QUE LA SECONDE ÉCRITURE A RETIRÉ, le 26 octobre 2026 ───────────────
+
+   « Moins chargé, plus aéré. » Trois choses sont parties, et chacune se
+   mesure :
+
+     LES TROIS COLONNES D'ÉTIQUETTES EN CAPITALES. « CE QUE LA MAISON CHERCHE /
+     TAUX INDIQUÉ / SÉANCE VISÉE » au-dessus de trois nombres, c'est un tableau
+     pour trois valeurs qu'on lit d'un trait. Elles sont devenues une phrase, et
+     la page a perdu huit lignes par carte.
+
+     LES CADRES. Six boîtes empilées font six fois le même bruit : une attente
+     est un CONSTAT, un filet suffit. Le cadre doré reste à ce qui appelle un
+     geste — les questions de la maison — et c'est ce qui lui rend son sens.
+
+     LA PROSE RÉPÉTÉE, passée derrière le point d'interrogation. Voir
+     « components/Pourquoi ».
+
+   CE QUI A AUGMENTÉ : l'écart entre deux chapitres, de 32 à 40 px — le dernier
+   degré de l'échelle, et pas un degré inventé pour cette page. Une page moins
+   chargée n'est pas une page plus courte, c'est une page qui respire. */
 .page {
   max-width: var(--page-texte);
   margin-inline: auto;
   padding: var(--s-8) var(--s-7) var(--s-10);
   display: flex;
   flex-direction: column;
-  gap: var(--s-10);
+  gap: var(--s-11);
 }
 .bloc {
   display: grid;
   gap: var(--s-6);
 }
+/* L'EN-TÊTE PORTE DÉJÀ SA MARGE BASSE — 24 px, posés par « EnTete » pour
+   toutes les pages — et l'écart de chapitre s'y ajoutait : mesuré à l'écran,
+   cent cinquante pixels de rien entre le bouton « En bref » et le premier
+   titre, ce qui se lit comme une page qui commence deux fois. On retire ici ce
+   que l'en-tête apporte, et nulle part ailleurs : la règle de la maison reste
+   la sienne. */
+.page > header {
+  margin-bottom: calc(var(--s-9) - var(--s-11));
+}
+
+/* LE TITRE DE CHAPITRE PORTE SON POINT, sur la même ligne de base : un point
+   posé dessous ferait un second niveau de titre pour une parenthèse. */
 .titre {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
   margin: 0;
   font-size: var(--t-6);
   color: var(--ink);
 }
-.chapo {
+
+/* UN VIDE N'EST PAS UNE ERREUR. L'encart « empty » de la maison encadre et
+   centre : ici, rien à sonder est l'état ordinaire d'un marché étroit, et un
+   cadre le ferait lire comme une panne. Une phrase atténuée suffit. */
+.vide {
   margin: 0;
-  color: var(--ink-2);
+  color: var(--ink-3);
   font-size: var(--t-4);
-  line-height: 1.55;
+  line-height: 1.6;
+  max-width: 58ch;
 }
-.liste {
+
+.liste,
+.attentes {
   display: grid;
-  gap: var(--s-6);
   margin: 0;
   padding: 0;
   list-style: none;
 }
+.liste {
+  gap: var(--s-6);
+}
 
-/* UNE QUESTION DE LA MAISON, ET UNE ATTENTE DU CLIENT : même cadre, encre
-   différente. La question appelle un geste — elle prend l'or de la maison ;
-   l'attente est un constat, et reste neutre. */
-.question,
-.attente {
+/* UNE QUESTION DE LA MAISON APPELLE UN GESTE : elle garde son cadre, et c'est
+   le seul de la page. Le fond doré a disparu — il faisait trois blocs dorés
+   dans la même vue avec l'accusé de réponse et le bouton. */
+.question {
   display: grid;
   gap: var(--s-5);
   padding: var(--s-6);
-  border: 1px solid var(--line);
+  border: 1px solid var(--gold-line);
   background: var(--surface);
 }
-.question {
-  border-color: var(--gold-line);
+
+/* UNE ATTENTE EST UN CONSTAT : un filet entre deux, et rien autour. */
+.attentes {
+  gap: 0;
 }
-.entete {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
+.attente {
+  display: grid;
   gap: var(--s-4);
-  color: var(--ink);
-  font-size: var(--t-5);
+  padding: var(--s-6) 0;
 }
-.entete b {
-  font-weight: 700;
+.attente + .attente {
+  border-top: 1px solid var(--line);
 }
-:global(.mono),
-.entete span:last-child {
-  margin-left: auto;
-  font-size: var(--t-2);
-  color: var(--ink-3);
+/* CE QUI EST CLOS S'EFFACE SANS DISPARAÎTRE : on doit pouvoir le retrouver —
+   « remplacée par votre nouvelle réponse » répond à une question qu'on se pose
+   — sans qu'il dispute la lecture à ce qui vit. */
+.attente[data-etat="close"] {
+  opacity: 0.62;
 }
 
-/* LES FAITS D'UNE LIGNE, en colonnes qui se cassent sous 380 px. Trois chiffres
-   côte à côte se comparent ; empilés, ils se lisent comme trois phrases. */
-.faits {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--s-5);
-  margin: 0;
-}
-.faits dt {
+/* LA PASTILLE D'ÉTAT : UN MOT, ET PAS UNE BOÎTE.
+
+   Elle était encadrée comme celles du reste de la maison. Sur une page qu'on
+   vient d'alléger, six cadres dans six listes font six fois le même bruit : le
+   mot en petites capitales suffit à le distinguer du nom de la ligne, et la
+   teinte dit l'état à qui la voit. Le MOT reste lisible sans la teinte, pour
+   qui ne la voit pas.
+
+   ET « REÇUE » N'EST PAS DORÉ : c'est l'état ORDINAIRE, celui que portent
+   presque toutes les lignes, et l'or de la maison veut dire « ceci vous
+   demande quelque chose ». Doré, il mettait en avant le fait qu'il ne se passe
+   rien. Seul « portée » prend une couleur, parce que c'est le seul état dont on
+   a quelque chose à tirer. */
+.pastille {
   font-size: var(--t-2);
-  letter-spacing: 0.04em;
+  font-weight: 800;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
-.faits dd {
-  margin: var(--s-2) 0 0;
+.pastille[data-etat="consolidee"] {
+  color: var(--good);
+}
+
+.entete {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  color: var(--ink);
+}
+.ligne {
   font-size: var(--t-5);
   font-weight: 700;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
-.note,
-.dit,
-.chapo,
-.deja,
+/* LA RÉFÉRENCE EST UNE ADRESSE, pas une information : elle sert à la citer au
+   téléphone. Elle part donc au bout de la ligne, au plus petit degré. */
+.ref {
+  margin-left: auto;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+
+/* LES FAITS EN UNE PHRASE. Le montant porte le degré du chiffre — c'est lui
+   qu'on cherche — et le reste suit en encre atténuée, dans la même phrase. */
+.faits {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: var(--t-4);
+  line-height: 1.5;
+}
+.faits b {
+  color: var(--ink);
+  font-size: var(--t-6);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* LA NOTE DU DESK EST UNE VOIX, pas une donnée : un filet à gauche, du corps
+   de texte, et pas de cadre. Le filet est NEUTRE : la carte porte déjà un
+   cadre doré et un bouton doré, et un troisième or dans le même bloc ne
+   distingue plus rien — il fait du bruit de la couleur qui devait appeler. */
+.note {
+  margin: 0;
+  padding-left: var(--s-5);
+  border-left: 2px solid var(--line-2);
+  color: var(--ink-2);
+  font-size: var(--t-3);
+  line-height: 1.6;
+}
 .motif {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: var(--t-3);
+  line-height: 1.55;
+}
+.second {
+  color: var(--ink-3);
+}
+/* CE QU'ON A DÉJÀ RÉPONDU : un rappel, et un CONSTAT. L'encart doré est parti,
+   et l'encre dorée avec : on ne demande rien ici, on redit ce que le client a
+   dit. Ce qui demande quelque chose sur cette carte est le bouton, et il est
+   le seul à le dire. */
+.deja {
   margin: 0;
   color: var(--ink-2);
   font-size: var(--t-3);
   line-height: 1.55;
 }
-.note {
-  padding-left: var(--s-5);
-  border-left: 2px solid var(--gold-line);
-}
-.motif {
-  color: var(--ink-3);
-}
-.second {
-  color: var(--ink-3);
-}
-.deja {
-  padding: var(--s-4) var(--s-5);
-  background: var(--gold-soft);
-  border: 1px solid var(--gold-line);
-  color: var(--gold-ink);
-}
-
-/* LA PASTILLE PORTE LE MOT, pas seulement la teinte : un écran en plein soleil
-   et un lecteur daltonien lisent le mot. « Close » reste neutre — ce n'est pas
-   un échec, c'est une attente qui a fini son temps. */
-.pastille {
-  padding: 2px var(--s-3);
-  border: 1px solid var(--line-2);
-  color: var(--ink-2);
-  font-size: var(--t-1);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.pastille[data-etat="ouverte"] {
-  border-color: var(--gold-line);
-  background: var(--gold-soft);
-  color: var(--gold-ink);
-}
-.pastille[data-etat="consolidee"] {
-  border-color: var(--good);
-  color: var(--good);
-}
 
 .form {
   display: grid;
-  gap: var(--s-5);
-  padding-top: var(--s-5);
+  gap: var(--s-6);
+  padding-top: var(--s-6);
   border-top: 1px solid var(--line);
+}
+.un {
+  display: grid;
+  gap: var(--s-5);
 }
 /* Deux champs par ligne au-dessus de 380 px : un montant et son niveau se
    décident ensemble, et les séparer les ferait lire comme deux réglages. */
@@ -153,22 +223,20 @@
     grid-template-columns: 1fr 1fr;
   }
 }
-.un {
-  display: grid;
-  gap: var(--s-5);
-}
 .boutons {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-4);
 }
+/* L'ACCUSÉ EST UNE PHRASE, pas un encart vert : l'opération a réussi, et une
+   bordure de couleur autour d'un succès fait chercher ce qui ne va pas. */
 .recu {
   margin: 0;
-  padding: var(--s-5);
-  border: 1px solid var(--good);
+  padding-left: var(--s-5);
+  border-left: 2px solid var(--good);
   color: var(--ink-2);
   font-size: var(--t-3);
-  line-height: 1.55;
+  line-height: 1.6;
 }
 .erreur {
   color: var(--crit);
@@ -186,6 +254,7 @@
   font: inherit;
   font-size: var(--t-3);
   text-decoration: underline;
+  text-underline-offset: 3px;
   cursor: pointer;
 }
 .retirer:hover {

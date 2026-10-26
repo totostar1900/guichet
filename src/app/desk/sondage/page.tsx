@@ -4,6 +4,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { SEUIL_CLIENTS, SEUIL_MONTANT, consensus, motDuNiveau, mur, prete } from "@/lib/domain/sondage";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { Pourquoi } from "@/components/Pourquoi";
 import { PoserUneQuestion, Statuer } from "./Formulaires";
 import styles from "./page.module.css";
 
@@ -61,10 +62,26 @@ export default async function SondageDeskPage() {
         <span className="eyebrow">{t("Marché primaire")}</span>
         <h1 className="display">{t("Sondage d'avant séance")}</h1>
         <p className={styles.phrase}>
-          {t(
-            "Ce que la place prendrait, avant qu'un Trésor annonce quoi que ce soit. Le consensus se recalcule à chaque lecture : il n'y a pas de chiffre d'hier ici. Une demande se porte à partir de {m} FCFA et de {n} clients.",
-            { m: fmt(SEUIL_MONTANT), n: String(SEUIL_CLIENTS) },
-          )}
+          {t("Ce que la place prendrait, avant qu'un Trésor annonce quoi que ce soit.")}
+          <Pourquoi titre="Comment ce consensus est calculé" petit>
+            <p>
+              {t(
+                "Il se recalcule à CHAQUE LECTURE de cette page : il n'y a pas de chiffre d'hier ici. Un consensus rangé chaque soir dans une table vieillirait entre deux lectures, et rien ne dirait l'écart.",
+              )}
+            </p>
+            <p>
+              {t("Le niveau est la moyenne des taux PONDÉRÉE PAR LES MONTANTS : dix clients à un million ne pèsent pas comme un à cent millions devant un Trésor. L'échelle, elle, dit où la demande s'arrête vraiment.")}
+            </p>
+            <p>
+              {t("La date est le PLUS TARD des « à partir de » : une séance tenue avant elle trouverait sans fonds un client compté dans la demande.")}
+            </p>
+            <p>
+              {t("Une demande se porte à partir de {m} FCFA ET de {n} clients. Cent millions d'un seul client ne sont pas une demande de la place, c'est un ordre, et il a sa propre porte.", {
+                m: fmt(SEUIL_MONTANT),
+                n: String(SEUIL_CLIENTS),
+              })}
+            </p>
+          </Pourquoi>
         </p>
       </header>
 
@@ -146,11 +163,16 @@ export default async function SondageDeskPage() {
               const reponses = lignes.filter((l) => l.repondA === q.id && l.state !== "close");
               return (
                 <li key={q.id}>
-                  <b>
-                    {q.instrument} · {t(q.country)} · {q.tenor}
-                  </b>{" "}
-                  <span className="mono">{q.ref}</span> · {fmt(q.montant)} FCFA {t("cherchés")} ·{" "}
-                  {reponses.length === 0 ? <em className={styles.muet}>{t("aucune réponse encore")}</em> : t("{n} réponse(s)", { n: String(reponses.length) })}
+                  <div className={styles.entete}>
+                    <b>
+                      {q.instrument} · {t(q.country)} · {q.tenor}
+                    </b>
+                    <span className={`mono ${styles.ref}`}>{q.ref}</span>
+                  </div>
+                  <p className={styles.faits}>
+                    <b>{fmt(q.montant)} FCFA</b> {t("cherchés")} ·{" "}
+                    {reponses.length === 0 ? <em className={styles.muet}>{t("aucune réponse encore")}</em> : t("{n} réponse(s)", { n: String(reponses.length) })}
+                  </p>
                   <Statuer id={q.id} ref_={q.ref} />
                 </li>
               );

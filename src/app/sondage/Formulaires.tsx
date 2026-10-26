@@ -214,10 +214,16 @@ export function Retirer({ id, ref_ }: { id: string; ref_: string }) {
   const [erreur, setErreur] = useState<string | null>(null);
   return (
     <>
+      {/* LA RÉFÉRENCE SORT DU LIBELLÉ et passe au nom accessible. Elle figure
+          déjà au bout de la ligne du dessus ; écrite ici une seconde fois, elle
+          faisait un lien de quarante signes pour un mot. Un lecteur d'écran, lui,
+          a besoin qu'elle y soit : « Retirer » annoncé trois fois de suite
+          n'annonce rien. */}
       <button
         type="button"
         className={styles.retirer}
         disabled={pending}
+        aria-label={t("Retirer l'attente {r}", { r: ref_ })}
         onClick={() =>
           start(async () => {
             const r = await retirerLaLigne(id);
@@ -225,7 +231,7 @@ export function Retirer({ id, ref_ }: { id: string; ref_: string }) {
           })
         }
       >
-        {t(pending ? "Un instant…" : "Retirer cette attente")} <span className="mono">{ref_}</span>
+        {t(pending ? "Un instant…" : "Retirer")}
       </button>
       {erreur && <em className={styles.erreur}>{erreur}</em>}
     </>
