@@ -7,7 +7,7 @@ import { noter } from "@/lib/journal";
 import { repo } from "@/lib/data";
 import { INSTRUMENTS_SONDES, delaiDepuisLaCreation, manquesDeLaLigne } from "@/lib/domain/sondage";
 import { PAYS_CEMAC } from "@/lib/market/budget";
-import { fmt, localIso, parseAmount } from "@/lib/format";
+import { fmt, fmtPct, localIso, parseAmount } from "@/lib/format";
 import type { Country, NewLigneSondee } from "@/lib/domain/types";
 
 export type SondageResult = { ok: true; ref: string; message: string } | { ok: false; error: string };
@@ -94,6 +94,22 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
 
   const creee = await r.createLigneSondee(ligne);
   await noter("sondage.depose", { objet: creee.ref, detail: `${creee.instrument} ${creee.country} ${creee.tenor} · ${fmt(creee.montant)} FCFA` });
+  /**
+   * ET LE DESK L'APPREND LÀ OÙ IL REGARDE.
+   *
+   * RELEVÉ À LA REVUE À 360° du 26 octobre 2026 : c'était le SEUL geste client
+   * de toute l'application qui n'écrivait rien au fil du desk. Un mandat signé,
+   * un versement demandé, un ordre retiré, une épargne arrêtée : tous y sont.
+   * Une attente poussée à onze heures, elle, n'apparaissait nulle part sur
+   * « /desk » — la tuile du matin ne compte que les groupes DÉJÀ MÛRS — et le
+   * desk ne l'apprenait qu'en ouvrant la page du sondage de son propre chef.
+   *
+   * « Reçue par le desk » était donc vrai de la base et faux de la maison.
+   */
+  await r.logEvent({
+    kind: "intent",
+    html: `Sondage <b>${creee.ref}</b> : ${s.name} ${question ? "répond" : "pousse"} ${creee.instrument} ${creee.country} ${creee.tenor} · <b>${fmt(creee.montant)} FCFA</b>${creee.rate != null ? ` · ${fmtPct(creee.rate, 2)}` : ""}`,
+  });
   revalidatePath(PATH);
   revalidatePath("/desk/sondage");
   return {
@@ -172,6 +188,13 @@ export async function modifierLaLigne(_p: SondageResult | null, form: FormData):
 
   await r.updateLigneSondee(id, apres);
   await noter("sondage.modifie", { objet: sienne.ref, detail: `${fmt(sienne.montant)} → ${fmt(apres.montant)} FCFA` });
+  /* LE FIL PORTE L'AVANT ET L'APRÈS : le desk a pu lire la première version et
+     la porter dans sa tête ; « modifiée » sans chiffres l'obligerait à rouvrir
+     la page pour savoir ce qui a bougé. */
+  await r.logEvent({
+    kind: "intent",
+    html: `Sondage <b>${sienne.ref}</b> : ${s.name} <b>modifie</b> son intention · ${fmt(sienne.montant)} → <b>${fmt(apres.montant)} FCFA</b>`,
+  });
   revalidatePath(PATH);
   revalidatePath("/desk/sondage");
   return { ok: true, ref: sienne.ref, message: "Votre intention est modifiée. Le desk lit la nouvelle, et elle garde la même référence." };
@@ -194,6 +217,13 @@ export async function retirerLaLigne(id: string): Promise<{ ok: boolean; error?:
   if (sienne.state === "close") return { ok: true };
   await r.updateLigneSondee(id, { state: "close", closedReason: "Retirée par vous." });
   await noter("sondage.retire", { objet: sienne.ref });
+  /* UN RETRAIT SE DIT PLUS FORT QU'UN DÉPÔT : il enlève des francs d'un
+     consensus que le desk s'apprête peut-être à porter, et c'est le seul geste
+     du client qui rende fausse une phrase déjà écrite. */
+  await r.logEvent({
+    kind: "intent",
+    html: `Sondage <b>${sienne.ref}</b> : ${s.name} <b>retire</b> son intention · ${sienne.instrument} ${sienne.country} ${sienne.tenor} · ${fmt(sienne.montant)} FCFA`,
+  });
   revalidatePath(PATH);
   revalidatePath("/desk/sondage");
   return { ok: true };

@@ -1081,13 +1081,25 @@ export const memoryRepository: Repository = {
     const at = nowIso();
     const l: LigneSondee = { id: uid(), ref: makeSondageRef(), state: "ouverte", createdAt: at, updatedAt: at, ...input };
     store().sondages.unshift(l);
-    /* LE JOURNAL VOIT PASSER L'ATTENTE, comme il voit passer un ordre : sans
-       cela, une ligne poussée un dimanche soir n'aurait aucune trace entre son
-       dépôt et le moment où le desk ouvre sa file. */
-    await memoryRepository.logEvent({
-      kind: "intent",
-      html: `<b>Sondage</b> : ${l.origine === "desk" ? "la maison sonde" : `${l.clientName ?? "un client"} propose`} ${l.instrument} ${l.country} ${l.tenor} · ${fmt(l.montant)} FCFA · réf. ${l.ref}`,
-    });
+    /**
+     * LE JOURNAL EST ÉCRIT PAR L'APPELANT, ET PLUS D'ICI.
+     *
+     * CE DÉPÔT-CI L'ÉCRIVAIT, CELUI DE SUPABASE NON — trouvé en vérifiant à
+     * l'envers la revue à 360° du 26 octobre 2026, et c'est le pire genre
+     * d'écart : une attente poussée apparaissait au fil du desk EN
+     * DÉVELOPPEMENT et nulle part en production. L'écran de celui qui code dit
+     * le contraire de l'écran de celui qui travaille.
+     *
+     * ET LE DÉPÔT NE VOYAIT QU'UN GESTE SUR TROIS. Une ligne se pousse, se
+     * modifie et se retire ; seule la poussée passe par « create ». Un journal
+     * tenu ici garantissait que les deux autres resteraient muets — c'est
+     * d'ailleurs ce qui s'est passé.
+     *
+     * LES TROIS SONT DONC ÉCRITS PAR « app/sondage/actions », ensemble, où l'on
+     * sait aussi QUI parle et s'il répond ou s'il propose. L'intention, elle,
+     * garde son journal au dépôt : les deux l'écrivent, de la même phrase, et
+     * c'est symétrique.
+     */
     return structuredClone(l);
   },
   async updateLigneSondee(id, patch) {

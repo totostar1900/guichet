@@ -125,7 +125,11 @@ describe("le modèle du sondage", () => {
     /* NON VACUITÉ : le bloc est bien celui de la tuile, et il porte le code qui
        la pousse — un découpage qui raterait sa cible passerait les trois
        lignes ci-dessus sans rien dire. */
-    expect(bloc, "le bloc relu n'est plus celui de la tuile du sondage").toMatch(/out\.push\(\s*aActiver\(\{/);
+    /* LA TUILE A DEUX ÉTATS DEPUIS LA REVUE À 360° — « en place » quand le
+       client a déjà dit quelque chose, « à activer » sinon — et la non-vacuité
+       accepte les deux fabriques. C'est cette ligne qui est tombée le jour du
+       changement, et c'était son travail. */
+    expect(bloc, "le bloc relu n'est plus celui de la tuile du sondage").toMatch(/out\.push\(\s*\(?[\s\S]*?(aActiver|enPlace)/);
     expect(bloc, "la tuile du sondage dépend de nouveau d'une séance annoncée").not.toMatch(/prochaineSeance/);
   });
 
@@ -262,6 +266,38 @@ describe("le modèle du sondage", () => {
         expect(champ.includes('type="number"'), `${f} : un champ invite « ${repere} » et refuse la virgule — il se videra en silence`).toBe(false);
         expect(champ, `${f} : le champ qui invite « ${repere} » n'offre plus le clavier décimal`).toMatch(/inputMode="decimal"/);
       }
+    }
+  });
+
+  /**
+   * LES DEUX DÉPÔTS TIENNENT LE MÊME JOURNAL, OU AUCUN DES DEUX.
+   *
+   * TROUVÉ EN VÉRIFIANT À L'ENVERS la revue à 360° du 26 octobre 2026, et c'est
+   * le pire genre d'écart : « createLigneSondee » écrivait au fil du desk dans
+   * le dépôt EN MÉMOIRE et pas dans celui de Supabase. Une attente poussée
+   * apparaissait donc au fil en développement et nulle part en production —
+   * l'écran de celui qui code disait le contraire de celui qui travaille, et
+   * c'est précisément ce qui a failli faire conclure « c'est corrigé ».
+   *
+   * LE JOURNAL D'UNE LIGNE SONDÉE EST À L'ACTION, qui tient les TROIS gestes
+   * ensemble : pousser, modifier, retirer. Un journal tenu au dépôt ne voit que
+   * le premier, et garantit l'oubli des deux autres.
+   *
+   * CELUI D'UNE INTENTION RESTE AU DÉPÔT, et les deux l'écrivent : c'est le
+   * patron existant, il est symétrique, et on ne le change pas ici.
+   */
+  it("ne laisse pas un seul des deux dépôts tenir le journal d'une ligne sondée", () => {
+    const corps = (f: string, methode: string) => {
+      const src = lire(f);
+      const i = src.indexOf(`async ${methode}(`);
+      expect(i, `« ${methode} » a quitté ${f}`).toBeGreaterThan(-1);
+      return src.slice(i, src.indexOf("\n  async ", i + 10)).replace(/\/\*[\s\S]*?\*\//g, "");
+    };
+    for (const f of ["src/lib/data/memory.ts", "src/lib/data/supabase.ts"]) {
+      expect(corps(f, "createLigneSondee"), `${f} tient de nouveau le journal d'une ligne sondée : l'autre dépôt ne le fera pas`).not.toMatch(/logEvent/);
+      /* NON VACUITÉ : le patron existe bel et bien, et c'est l'intention qui le
+         porte — dans LES DEUX dépôts. */
+      expect(corps(f, "createIntent"), `${f} n'écrit plus le journal d'une intention`).toMatch(/logEvent/);
     }
   });
 

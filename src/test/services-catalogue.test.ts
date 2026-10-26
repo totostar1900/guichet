@@ -50,6 +50,9 @@ const CLIENT_QUI_A_TOUT: ContexteClient = {
   fondsOuverts: 2,
   souscriptionsOuvertes: 1,
   rachatsOuverts: 1,
+  /* « Qui a tout » a aussi dit quelque chose au sondage : c'est le client dont
+     les treize tuiles doivent paraître dans leur état le plus plein. */
+  attentesSondees: 2,
   disponible: 250_000,
   aSigner: 0,
   aRepondre: 0,

@@ -147,6 +147,23 @@ export interface ContexteClient {
    */
   souscriptionsOuvertes: number;
   rachatsOuverts: number;
+  /**
+   * CE QUE LE CLIENT A DÉJÀ DIT AU SONDAGE, et pourquoi ce compte est
+   * OBLIGATOIRE comme les deux du dessus.
+   *
+   * RELEVÉ À LA REVUE À 360° du 26 octobre 2026 : la tuile du sondage était la
+   * seule des treize à être AVEUGLE à l'état du client. Trois attentes vivantes
+   * ou zéro, elle disait la même phrase — « rien n'a besoin d'être annoncé » —
+   * et le client qui venait de pousser sa ligne lisait une invitation à faire
+   * ce qu'il venait de faire. Les douze autres services savent où en est celui
+   * qui les regarde.
+   *
+   * EN OPTIONNEL, UN APPELANT QUI L'OUBLIE REND LE SERVICE MUET SANS QUE RIEN
+   * NE TOMBE — c'est la règle déjà écrite pour les deux intermittents, et c'est
+   * la même raison : le silence serait indiscernable d'un client qui n'a rien
+   * dit.
+   */
+  attentesSondees: number;
   /** Les actions cotées détenues. */
   actions?: { titre: string; n: number };
   /** L'argent reçu et n'attendant aucune opération. */
@@ -382,18 +399,26 @@ export function servicesDuClient(c: ContexteClient, fmt: (n: number) => string =
      d'une séance ANNONCÉE, qui vit dans le calendrier. Une tuile qui change de
      promesse selon qu'un Trésor a publié un avis ne décrit plus un service :
      elle décrit le calendrier. */
+  /* LA TUILE SAIT CE QUE LE CLIENT A DÉJÀ DIT, depuis la revue à 360° du
+     26 octobre 2026 : elle était la seule des treize à l'ignorer, et elle
+     invitait à faire ce qu'il venait de faire. « En place » dès qu'une attente
+     vit — le service tourne pour lui — et la phrase dit combien.
+
+     ET ELLE NE REDIT PAS LA RAISON, relevé à l'écran sur /agir : la tuile porte
+     déjà « dire au desk ce que vous prendriez, sans vous engager ». Une phrase
+     qui la répétait faisait lire deux fois la même promesse. Ce qui manquait,
+     et que personne ne devine, est la doctrine : il n'y a RIEN À ATTENDRE pour
+     se servir du service. */
   out.push(
-    aActiver({
+    (c.attentesSondees > 0 ? enPlace : aActiver)({
       rayon: "placer",
       cle: "sondage",
       nom: "Sondage",
       href: "/sondage",
-      /* ET ELLE NE REDIT PAS LA RAISON, relevé à l'écran sur /agir : la tuile
-         porte déjà « dire au desk ce que vous prendriez, sans vous engager ».
-         Une phrase qui la répétait faisait lire deux fois la même promesse et
-         n'ajoutait rien. Ce qui manquait, et que personne ne devine, est la
-         doctrine : il n'y a RIEN À ATTENDRE pour se servir du service. */
-      phrase: { key: "Rien n'a besoin d'être annoncé : c'est même de là que partent les séances que nous obtenons." },
+      phrase:
+        c.attentesSondees > 0
+          ? { key: "{n} intention(s) au desk. Il les réunit avec celles des autres clients et porte la ligne au Trésor quand elle pèse.", params: { n: String(c.attentesSondees) } }
+          : { key: "Rien n'a besoin d'être annoncé : c'est même de là que partent les séances que nous obtenons." },
     }),
   );
 

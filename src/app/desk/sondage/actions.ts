@@ -112,6 +112,32 @@ export async function statuerSurLaLigne(_p: DeskSondageResult | null, form: Form
     kind: "desk",
     html: `Sondage <b>${l.ref}</b> : <b>${etat === "consolidee" ? "portée au Trésor" : "close"}</b>${suites.length ? ` avec ${suites.length} réponse(s)` : ""} · par ${desk.name}`,
   });
+
+  /**
+   * ET CHAQUE CLIENT L'APPREND, un par un.
+   *
+   * La page du sondage lui promet, sur chaque attente portée, que « le desk
+   * vous rappellera avant la clôture » ; le code changeait l'état et se
+   * taisait. Relevé à la revue à 360° du 26 octobre 2026 : c'était le seul
+   * service muet de la maison.
+   *
+   * LES ENVOIS NE TIENNENT PAS LE GESTE. Un canal injoignable ne doit pas
+   * défaire une consolidation déjà écrite et déjà portée au fil : le sort de
+   * chaque envoi part au fil, nommément, et le desk voit qui n'a pas été
+   * joint — c'est à lui de décrocher son téléphone, pas à la base de reculer.
+   *
+   * SEULES LES RÉPONSES SONT PRÉVENUES, pas la question : elle n'a pas de
+   * destinataire, et la base le tient par sa contrainte.
+   */
+  if (etat === "consolidee") {
+    const { direLaConsolidation } = await import("@/lib/notify/sondage");
+    const aPrevenir = l.userId ? [l, ...suites] : suites;
+    for (const x of aPrevenir) {
+      const envoi = await direLaConsolidation(x).catch((e) => ({ sent: false, error: e instanceof Error ? e.message : "échec" }));
+      if (!envoi.sent) await r.logEvent({ kind: "system", html: `Sondage <b>${x.ref}</b> : <b>client non prévenu</b> de la consolidation · ${envoi.error ?? "canal injoignable"}` });
+    }
+  }
+
   revalidatePath(PATH);
   revalidatePath("/sondage");
   return { ok: true, message: etat === "consolidee" ? `${l.ref} est portée au Trésor, avec ${suites.length} réponse(s).` : `${l.ref} est close.` };

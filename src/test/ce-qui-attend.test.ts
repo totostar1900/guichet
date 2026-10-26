@@ -28,6 +28,7 @@ const vide: ContexteClient = {
      tuiles sans rien changer à cette liste de devoirs. */
   souscriptionsOuvertes: 0,
   rachatsOuverts: 0,
+  attentesSondees: 0,
   disponible: 0,
   aSigner: 0,
   aRepondre: 0,

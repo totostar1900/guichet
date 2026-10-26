@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { attentesDuClient, compteDesEtats, servicesDuClient, type ContexteClient, RAISON, RAYONS } from "@/lib/domain/services";
 import { fmt } from "@/lib/format";
@@ -22,6 +24,7 @@ const vide: ContexteClient = {
      montre les deux tuiles qui s'ajoutent le mois où il y en a. */
   souscriptionsOuvertes: 0,
   rachatsOuverts: 0,
+  attentesSondees: 0,
   disponible: 0,
   moisDHistorique: 0,
 };
@@ -34,6 +37,7 @@ const garni: ContexteClient = {
   fondsOuverts: 9,
   souscriptionsOuvertes: 0,
   rachatsOuverts: 0,
+  attentesSondees: 0,
   actions: { titre: "SEMC", n: 40 },
   disponible: 180_000,
   attendu: { montant: 90_000, retardJours: 28 },
@@ -293,5 +297,41 @@ describe("ce qui attend une décision aujourd'hui", () => {
     const seul = attentesDuClient({ ...garni, reinvestissement: undefined }, fmt)[0];
     expect(seul.quoi.key).toMatch(/ne rapportent rien/);
     expect(attentesDuClient(garni, fmt)[0].quoi.key).toMatch(/réinvestissement/);
+  });
+});
+
+
+/**
+ * LA TUILE DU SONDAGE SAIT CE QUE LE CLIENT A DÉJÀ DIT.
+ *
+ * RELEVÉ À LA REVUE À 360° du 26 octobre 2026 : elle était la seule des treize à
+ * être aveugle. Trois attentes vivantes ou zéro, elle disait la même phrase —
+ * « rien n'a besoin d'être annoncé » — et le client qui venait de pousser sa
+ * ligne lisait une invitation à faire ce qu'il venait de faire. Les douze
+ * autres services savent où en est celui qui les regarde.
+ */
+describe("la tuile du sondage suit l'état du client", () => {
+  const tuile = (c: ContexteClient) => servicesDuClient(c, fmt).find((s) => s.cle === "sondage")!;
+
+  it("invite quand il n'a rien dit, et rend compte quand il a dit", () => {
+    const rien = tuile({ ...vide, attentesSondees: 0 });
+    expect(rien.etat, "un client sans attente ne voit plus une tuile à activer").toBe("a_activer");
+    expect(rien.phrase.key, "la doctrine a quitté la tuile : rien n'a besoin d'être annoncé").toMatch(/annoncé/);
+
+    const deux = tuile({ ...vide, attentesSondees: 2 });
+    expect(deux.etat, "un client qui a deux attentes au desk voit encore un service à activer").toBe("en_place");
+    expect(deux.phrase.key, "la tuile ne dit pas combien d'intentions sont au desk").toMatch(/\{n\} intention/);
+    expect(deux.phrase.params?.n, "le compte n'est pas celui du client").toBe("2");
+    /* ET ELLE N'INVITE PLUS À FAIRE CE QU'IL VIENT DE FAIRE. */
+    expect(deux.phrase.key, "la tuile redit « rien n'a besoin d'être annoncé » à qui a déjà parlé").not.toMatch(/annoncé/);
+  });
+
+  it("ne compte pas ce qui est clos", () => {
+    /* Le contexte ne porte que les attentes VIVANTES — une attente close a été
+       portée ou sa date est passée, et la compter ferait dire à la tuile qu'il a
+       quelque chose au desk alors qu'il n'y a plus rien. La règle vit dans
+       « contexte-client », et c'est elle qu'on nomme ici pour qu'on la trouve. */
+    const src = readFileSync(join(__dirname, "../lib/domain/contexte-client.ts"), "utf8");
+    expect(src, "le contexte compte de nouveau les attentes closes").toMatch(/attentesSondees: sondees\.filter\(\(x\) => x\.state !== "close"\)\.length/);
   });
 });

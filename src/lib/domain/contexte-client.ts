@@ -31,7 +31,7 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
   const r = repo();
   const aujourdHui = localIso(new Date());
 
-  const [intents, offers, cash, standing, feed, fiche, mandats, rappels] = await Promise.all([
+  const [intents, offers, cash, standing, feed, fiche, mandats, rappels, sondees] = await Promise.all([
     r.listIntents(),
     r.listOffers(),
     r.listCash(userId).catch(() => []),
@@ -40,6 +40,9 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
     r.getClientFileByUser(userId).catch(() => undefined),
     r.listMandats(userId).catch(() => []),
     r.listRelances({ userId, state: "en_cours" }).catch(() => []),
+    /* Ce que le client a dit au sondage : sans cela, sa tuile l'invite à dire
+       ce qu'il vient de dire. Voir « attentesSondees ». */
+    r.listLignesSondees({ userId }).catch(() => []),
   ]);
 
   const mine = intents.filter((i) => i.clientId === userId);
@@ -71,6 +74,10 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
        destination promettrait une ligne que la page ne montre pas. */
     souscriptionsOuvertes: enSouscription(offers).length,
     rachatsOuverts: rachatsOuverts(offers).length,
+    /* LES ATTENTES VIVANTES, et elles seules : une attente close a été portée
+       ou sa date est passée, et la compter ferait dire à la tuile qu'il a
+       quelque chose au desk alors qu'il n'y a plus rien. */
+    attentesSondees: sondees.filter((x) => x.state !== "close").length,
     actions: action ? { titre: action.offer.title, n: action.units } : undefined,
     disponible: poche.idle,
     /* Les deux devoirs : un bulletin à signer, une contre-proposition à

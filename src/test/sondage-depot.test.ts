@@ -369,3 +369,90 @@ describe("la modification d'une intention", () => {
     expect(prete(apres), "la modification a déplacé la date sans que personne la touche").toBe(vise);
   });
 });
+
+/**
+ * CE QUE LE DESK APPREND, ET CE QUE LE CLIENT APPREND.
+ *
+ * LES DEUX TROUS DE LA REVUE À 360° du 26 octobre 2026, et ils se ressemblent :
+ * une écriture exacte en base, et personne de prévenu.
+ *
+ *   LE SONDAGE N'ÉCRIVAIT RIEN AU FIL DU DESK. C'était le SEUL geste client de
+ *   toute l'application dans ce cas — un mandat signé, un versement demandé, un
+ *   ordre retiré y sont tous. Une attente poussée à onze heures n'apparaissait
+ *   nulle part sur « /desk », et la tuile du matin ne compte que les groupes
+ *   déjà mûrs : « reçue par le desk » était vrai de la base et faux de la
+ *   maison.
+ *
+ *   ET LA CONSOLIDATION ÉTAIT MUETTE côté client, alors que sa page lui promet
+ *   « le desk vous rappellera avant la clôture ».
+ *
+ * CES ÉPREUVES LISENT CE QUI EST ÉCRIT, pas le code : un `logEvent` peut être
+ * appelé avec une phrase vide, et une notification peut partir sans nommer la
+ * ligne. Ce qu'on vérifie est ce qu'un humain lira.
+ */
+describe("ce que le sondage dit au desk et au client", () => {
+  it("porte au fil du desk le dépôt, la modification et le retrait", async () => {
+    const { deposerLaLigne, modifierLaLigne, retirerLaLigne } = await import("@/app/sondage/actions");
+    const { repo } = await import("@/lib/data");
+    courant = client;
+    const dep = await deposerLaLigne(null, form({ ...LIGNE, rate: "6,5" }));
+    expect(dep.ok, dep.ok ? "" : dep.error).toBe(true);
+    if (!dep.ok) return;
+    const ligne = (await repo().listLignesSondees({ userId: client.userId })).find((x) => x.ref === dep.ref)!;
+
+    const dit = async () => (await repo().listEvents(50)).filter((e) => e.html.includes(dep.ref)).map((e) => e.html);
+    const apresDepot = await dit();
+    expect(apresDepot.length, "le dépôt d'une attente n'arrive pas au fil du desk : il ne se verra que sur la page du sondage").toBeGreaterThan(0);
+    /* Le desk doit pouvoir décider sans ouvrir la page : qui, quoi, combien. */
+    expect(apresDepot[0], "le fil ne dit pas qui a poussé l'attente").toContain(client.name);
+    expect(apresDepot[0], "le fil ne dit pas le montant").toMatch(/50\s?000\s?000|50 000 000/);
+
+    await modifierLaLigne(null, form({ ...LIGNE, id: ligne.id, montant: "60 000 000", rate: "6,5" }));
+    const apresModif = await dit();
+    expect(apresModif.length, "la modification n'arrive pas au fil du desk").toBeGreaterThan(apresDepot.length);
+    /* L'AVANT ET L'APRÈS : le desk a pu porter la première version dans sa
+       tête, et « modifiée » sans chiffres l'obligerait à rouvrir la page. */
+    expect(apresModif[0], "le fil ne dit pas ce qui a changé").toMatch(/→/);
+
+    await retirerLaLigne(ligne.id);
+    const apresRetrait = await dit();
+    expect(apresRetrait.length, "le retrait n'arrive pas au fil du desk, alors qu'il enlève des francs d'un consensus").toBeGreaterThan(apresModif.length);
+    expect(apresRetrait[0], "le fil ne dit pas que l'attente est retirée").toMatch(/retire/i);
+  });
+
+  it("prévient chaque client quand le desk porte la ligne au Trésor", async () => {
+    const { deposerLaLigne } = await import("@/app/sondage/actions");
+    const { poserLaQuestion, statuerSurLaLigne } = await import("@/app/desk/sondage/actions");
+    const { repo } = await import("@/lib/data");
+
+    /* UN CLIENT JOIGNABLE : « getContact » décide seul si un message peut
+       partir, et un client sans canal ne mesurerait que le cas d'échec. */
+    const joignable = { ...client, userId: "c-avc", name: "Assur-Vie Centrale" };
+    courant = desk;
+    const q = await poserLaQuestion(null, form({ instrument: "OTA", country: "Cameroun", tenor: "7 ans", rate: "6,8", montant: "400 000 000", dansJours: "25" }));
+    expect(q.ok, q.ok ? "" : q.error).toBe(true);
+    const question = (await repo().listLignesSondees({ origine: "desk" })).find((x) => x.tenor === "7 ans")!;
+
+    courant = joignable;
+    const rep = await deposerLaLigne(null, form({ repondA: question.id, instrument: "OTA", montant: "100 000 000", dansJours: "20" }));
+    expect(rep.ok, rep.ok ? "" : rep.error).toBe(true);
+    if (!rep.ok) return;
+
+    const avant = (await repo().listNotifications(200)).length;
+    courant = desk;
+    const st = await statuerSurLaLigne(null, form({ id: question.id, etat: "consolidee" }));
+    expect(st.ok, st.ok ? "" : st.error).toBe(true);
+
+    const apres = await repo().listNotifications(200);
+    const siennes = apres.filter((n) => n.body.includes(rep.ref));
+    expect(apres.length, "la consolidation n'a prévenu personne : la page promet pourtant un rappel").toBeGreaterThan(avant);
+    expect(siennes.length, "le client dont la ligne est portée n'est pas nommément prévenu").toBeGreaterThan(0);
+    /* CE QUE LE MESSAGE NE DOIT PAS DIRE : aucune séance promise. La maison
+       n'adjuge pas, et un client qui lirait « vous recevrez des titres » la
+       tiendrait pour responsable du silence d'un État. */
+    const texte = siennes[0].body;
+    expect(texte, "le message ne dit pas que la ligne est portée").toMatch(/portée au Trésor/);
+    expect(texte, "le message ne redit pas que rien n'engage le client").toMatch(/Rien ne vous engage/);
+    expect(texte, "le message promet une séance que personne n'a annoncée").not.toMatch(/vous recevrez|sera émise|aura lieu/i);
+  });
+});
