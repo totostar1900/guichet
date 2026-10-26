@@ -15,6 +15,7 @@ import { EN_ENCAISSEMENTS } from "./en-encaissements";
 import { EN_ACCUEIL } from "./en-accueil";
 import { EN_CONSOLE } from "./en-console";
 import { EN_PRELEVEMENTS } from "./en-prelevements";
+import { EN_SONDAGE } from "./en-sondage";
 import { EN_QUANTITATIF } from "./en-quantitatif";
 import { EN_JOURNAL } from "./en-journal";
 import { EN_TARIFS } from "./en-tarifs";
@@ -51,6 +52,7 @@ const EN: Record<string, string> = {
   ...EN_ACCUEIL,
   ...EN_CONSOLE,
   ...EN_PRELEVEMENTS,
+  ...EN_SONDAGE,
   ...EN_QUANTITATIF,
   ...EN_JOURNAL,
   ...EN_VIREMENTS,

@@ -153,6 +153,12 @@ export const EN_JOURNAL: Record<string, string> = {
   "a refusé la contre-proposition": "declined the counter-offer",
   "Vous avez réinvesti un encaissement": "You reinvested a collection",
   "a réinvesti un encaissement": "reinvested a collection",
+  /* Le sondage d'avant séance, 26 octobre 2026 : dire ce qu'on prendrait
+     n'engage rien, et les deux phrases doivent le laisser entendre. */
+  "Vous avez dit ce que vous prendriez": "You said what you would take",
+  "a dit ce qu'il prendrait": "said what they would take",
+  "Vous avez retiré votre attente": "You withdrew your expression of interest",
+  "a retiré son attente": "withdrew their expression of interest",
   "Vous avez programmé une épargne": "You set up a savings plan",
   "a programmé une épargne": "set up a savings plan",
   "Vous avez modifié votre épargne programmée": "You changed your savings plan",

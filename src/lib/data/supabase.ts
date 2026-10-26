@@ -4,7 +4,7 @@ import type { AccesCompte } from "@/lib/domain/acces-nomme";
 import type { FinancialProfile } from "@/data/profile";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type BudgetEtat, type NoteBudget } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type LigneSondee, type InboundMessage, type BudgetEtat, type NoteBudget } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { CompteDeclare, Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
@@ -22,7 +22,7 @@ import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/l
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
-import { makeMandatRef, makeOrderNo, makeRef, makeTirageRef, type ComptesEmetteur, type CoutDesRessources, type EncoursOfficiel, type OperationDuTresor, type PointCourbeBeac, type Repository } from "./repository";
+import { makeMandatRef, makeOrderNo, makeRef, makeSondageRef, makeTirageRef, type ComptesEmetteur, type CoutDesRessources, type EncoursOfficiel, type OperationDuTresor, type PointCourbeBeac, type Repository } from "./repository";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
 import type { VirementRecu } from "@/lib/domain/virement";
 import type { RemiseDePrelevement, Tirage } from "@/lib/domain/prelevement";
@@ -623,6 +623,19 @@ const toPayout = (r: PayoutRow): CashPayout => ({
 
 type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string; mode?: string | null; last_daily?: string | null };
 const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId: r.offer_id, lastHero: u(r.last_hero), lastStatus: u(r.last_status), alertedAt: u(r.alerted_at), createdAt: r.created_at, mode: (u(r.mode) as Watch["mode"]) ?? "evenement", lastDaily: u(r.last_daily) });
+/* Le sondage d'avant séance : « montant » et « dans_jours » reviennent en
+   nombres, et la date en jour nu. Voir migration 0117. */
+type SurveyLineRow = {
+  id: string; ref: string; origine: LigneSondee["origine"]; reponse_a: string | null; user_id: string | null; client_name: string | null; client_segment: string | null;
+  instrument: LigneSondee["instrument"]; country: string; tenor: string; rate: number | null; price_pct: number | null; montant: number;
+  seance_le: string | null; dans_jours: number | null; note: string | null; state: LigneSondee["state"]; closed_reason: string | null; created_at: string; updated_at: string;
+};
+const toLigneSondee = (r: SurveyLineRow): LigneSondee => ({
+  id: r.id, ref: r.ref, origine: r.origine, repondA: u(r.reponse_a), userId: u(r.user_id), clientName: u(r.client_name), clientSegment: u(r.client_segment),
+  instrument: r.instrument, country: r.country as LigneSondee["country"], tenor: r.tenor, rate: r.rate ?? undefined, pricePct: r.price_pct ?? undefined,
+  montant: Number(r.montant), seanceLe: u(r.seance_le), dansJours: r.dans_jours ?? undefined, note: u(r.note), state: r.state, closedReason: u(r.closed_reason),
+  createdAt: r.created_at, updatedAt: r.updated_at,
+});
 type NotifRow = {
   id: string; kind: Notification["kind"]; channel: Notification["channel"]; to_address: string; contact_name: string | null; subject: string | null; body: string;
   document_id: string | null; intent_id: string | null; offer_id: string | null; status: Notification["status"]; provider_id: string | null; error: string | null; conv_key: string | null; created_at: string; sent_at: string | null;
@@ -1963,6 +1976,59 @@ export const supabaseRepository: Repository = {
     return toAvis(data);
   },
 
+  /* ---------- Le sondage d'avant séance (migration 0117) ---------- */
+  async listLignesSondees(filter) {
+    const f = filter ?? {};
+    let q = db().from("survey_lines").select("*").order("created_at", { ascending: false });
+    if (f.userId) q = q.eq("user_id", f.userId);
+    if (f.origine) q = q.eq("origine", f.origine);
+    if (f.state) q = q.eq("state", f.state);
+    const { data, error } = await q;
+    if (error) {
+      /* MIGRATION 0117 PAS ENCORE APPLIQUÉE : la page s'ouvre vide plutôt que
+         de tomber. Un sondage absent coûte une page sans contenu ; une page qui
+         casse coûte la confiance dans tout le reste de l'application. */
+      if (/survey_lines/.test(error.message)) return [];
+      fail("listLignesSondees", error);
+    }
+    return (data as SurveyLineRow[]).map(toLigneSondee);
+  },
+  async createLigneSondee(input) {
+    const row = {
+      ref: makeSondageRef(),
+      origine: input.origine,
+      reponse_a: input.repondA ?? null,
+      user_id: input.userId ?? null,
+      client_name: input.clientName ?? null,
+      client_segment: input.clientSegment ?? null,
+      instrument: input.instrument,
+      country: input.country,
+      tenor: input.tenor,
+      rate: input.rate ?? null,
+      price_pct: input.pricePct ?? null,
+      montant: input.montant,
+      seance_le: input.seanceLe ?? null,
+      dans_jours: input.dansJours ?? null,
+      note: input.note ?? null,
+    };
+    const { data, error } = await db().from("survey_lines").insert(row).select("*").single();
+    if (error) fail("createLigneSondee", error);
+    return toLigneSondee(data as SurveyLineRow);
+  },
+  async updateLigneSondee(id, patch) {
+    const row: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (patch.state !== undefined) row.state = patch.state;
+    if (patch.closedReason !== undefined) row.closed_reason = patch.closedReason;
+    if (patch.montant !== undefined) row.montant = patch.montant;
+    if (patch.rate !== undefined) row.rate = patch.rate;
+    if (patch.pricePct !== undefined) row.price_pct = patch.pricePct;
+    if (patch.seanceLe !== undefined) row.seance_le = patch.seanceLe;
+    if (patch.dansJours !== undefined) row.dans_jours = patch.dansJours;
+    if (patch.note !== undefined) row.note = patch.note;
+    const { data, error } = await db().from("survey_lines").update(row).eq("id", id).select("*").single();
+    if (error) fail("updateLigneSondee", error);
+    return toLigneSondee(data as SurveyLineRow);
+  },
   async listWatches(userId) {
     let q = db().from("watchlist").select("*").order("created_at", { ascending: false });
     if (userId) q = q.eq("user_id", userId);

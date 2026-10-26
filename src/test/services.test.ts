@@ -109,12 +109,20 @@ describe("l'état suit la donnée du client", () => {
      * ferme : il demande seulement qu'on ait commencé par autre chose, et
      * c'est cela qu'il dit. « Commencez » est donc la forme attendue, et
      * l'état reste « à activer » : il n'y a plus d'état fermé.
+     *
+     * LE SONDAGE EST SORTI DE CETTE RÈGLE le 26 octobre 2026, et le contraire
+     * serait le défaut. Il disait « Commencez par une séance annoncée », ce
+     * qui est l'INVERSE du service : le sondage sert précisément quand rien
+     * n'est annoncé. La règle vaut pour les services qui demandent une
+     * détention préalable — on n'arbitre pas sans ligne ; elle ne vaut pas
+     * pour celui qui n'attend rien du tout.
      */
     const m = parCle(vide);
     expect(m.get("passage")!.etat).toBe("a_activer");
     expect(m.get("passage")!.phrase.key).toMatch(/^Commencez par/);
     expect(m.get("sondage")!.etat).toBe("a_activer");
-    expect(m.get("sondage")!.phrase.key).toMatch(/^Commencez par/);
+    expect(m.get("sondage")!.phrase.key, "le sondage redemande une séance annoncée : c'est l'inverse de ce qu'il sert à faire").not.toMatch(/séance annoncée|Commencez par/);
+    expect(m.get("sondage")!.phrase.key, "la phrase n'invite plus à dire ce qu'on prendrait").toMatch(/prendriez/);
   });
 
   /* L'APPARIEMENT A QUITTÉ LA VITRINE le 9 octobre 2026, et ce cliquet le

@@ -73,6 +73,13 @@ export const ROBOTS: Robot[] = [
      lirait si tout allait bien. La borne qu'il a signée serait alors un chiffre
      sur un formulaire, et c'est tout. */
   { cle: "arbitrages", quoi: "Expiration des arbitrages armés", heures: 48, cron: "0 19 * * 1-5" },
+  /* LE MATIN, AVANT QUE LE DESK OUVRE SA FILE, et non le soir comme celui des
+     arbitrages : une attente dont la date est passée doit être close AVANT
+     qu'on lise le consensus du jour, sinon la première lecture du matin porte
+     une demande dont une part est déjà partie ailleurs. Son silence grossit
+     tout seul — un sondage qui n'expire plus ferait porter au Trésor des
+     demandes de l'été. */
+  { cle: "sondage", quoi: "Expiration des attentes et consensus mûrs", heures: 48, cron: "40 6 * * *" },
 ];
 
 export interface TourVu {

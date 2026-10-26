@@ -370,6 +370,81 @@ export interface NewIntentInput {
   standingId?: string;
 }
 
+/* ---------------- Le sondage d'avant séance ---------------- */
+
+/** Qui a posé cette ligne : la maison sonde, ou un client pousse la sienne. */
+export type OrigineDeSondage = "desk" | "client";
+/** « consolidee » : la ligne est entrée dans la demande que la maison porte au Trésor. */
+export type EtatDeSondage = "ouverte" | "consolidee" | "close";
+
+/**
+ * UNE LIGNE SONDÉE : CE QUE LA PLACE PRENDRAIT, AVANT QU'IL Y AIT QUOI QUE CE
+ * SOIT À PRENDRE.
+ *
+ * Elle n'est NI une offre NI une intention, et « domain/sondage » dit pourquoi
+ * en détail : une offre porte un ISIN, une version, un cours et entre dans
+ * quinze listes ; une intention engage, se signe et fabrique un bulletin. Une
+ * ligne sondée n'a ni l'un ni l'autre — c'est une question, ou la réponse à
+ * une question, et elle n'engage personne.
+ *
+ * TROIS RÔLES, UNE SEULE FORME :
+ *   origine « desk », sans `repondA`   → la question que la maison pose
+ *   origine « client », avec `repondA` → la réponse d'un client à cette question
+ *   origine « client », sans `repondA` → la ligne qu'un client pousse lui-même
+ */
+export interface LigneSondee {
+  id: string;
+  ref: string;
+  origine: OrigineDeSondage;
+  /** La ligne du desk à laquelle celle-ci répond, quand c'en est une réponse. */
+  repondA?: string;
+  /** Le client, sur une ligne poussée comme sur une réponse. Absent sur une question du desk. */
+  userId?: string;
+  clientName?: string;
+  clientSegment?: string;
+  /** OTA ou BTA : le reste du primaire ne se sonde pas d'avance. */
+  instrument: "OTA" | "BTA";
+  country: Country;
+  /** La durée telle que la place la nomme : « 5 ans », « 52 semaines ». */
+  tenor: string;
+  /** Le niveau : coupon attendu sur une OTA, taux précompté sur un BTA. */
+  rate?: number;
+  /** Le prix en pourcentage du nominal. Une OTA seulement : un bon se vend précompté. */
+  pricePct?: number;
+  /**
+   * LA TAILLE DE CETTE LIGNE TELLE QUE SON AUTEUR LA VOIT : ce que la maison
+   * cherche à placer, ou ce que le client prendrait. C'est le même sens dans
+   * les trois rôles, et c'est pour cela qu'une seule table les porte.
+   */
+  montant: number;
+  /** La date visée, ou le délai en jours quand la date n'est pas fixée. L'un des deux. */
+  seanceLe?: string;
+  dansJours?: number;
+  note?: string;
+  state: EtatDeSondage;
+  /** Le motif de clôture, que le client lit. */
+  closedReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NewLigneSondee {
+  origine: OrigineDeSondage;
+  repondA?: string;
+  userId?: string;
+  clientName?: string;
+  clientSegment?: string;
+  instrument: "OTA" | "BTA";
+  country: Country;
+  tenor: string;
+  rate?: number;
+  pricePct?: number;
+  montant: number;
+  seanceLe?: string;
+  dansJours?: number;
+  note?: string;
+}
+
 /* ---------------- Intake (À valider) ---------------- */
 
 export type IntakeSource = "mail" | "pdf" | "photo" | "texte";

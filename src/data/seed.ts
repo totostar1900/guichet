@@ -1,4 +1,4 @@
-import type { Contact, IntakeItem, Intent, Offer } from "@/lib/domain/types";
+import type { Contact, IntakeItem, Intent, LigneSondee, Offer } from "@/lib/domain/types";
 
 /**
  * UNE CLÔTURE QUI RESTE DEVANT, quel que soit le jour où l'on sème.
@@ -1003,4 +1003,133 @@ export const SEED_CONTACTS: Contact[] = [
      donc écarté du reporting et signalé sur le desk. C'est lui qui fait
      traverser ce chemin en local, sinon il ne se verrait qu'une fois posé. */
   { id: "dev-client-g-nitcheu", name: "G. Nitcheu", segment: "Personne physique · Yaoundé", phone: "+237687676767", email: "georges.nitcheu@gmail.com", whatsappOptIn: true, demo: true },
+];
+
+/**
+ * LE SONDAGE D'AVANT SÉANCE, DANS SES TROIS RÔLES.
+ *
+ * Sans ces lignes, la page du sondage s'ouvrirait vide et ne montrerait rien de
+ * ce qu'elle existe pour montrer : ni une question de la maison à laquelle on
+ * répond, ni une demande qui s'accumule, ni un consensus. Trois rôles sont donc
+ * représentés, et un consensus est VOLONTAIREMENT MÛR — cent millions et trois
+ * clients — pour que l'écran du desk ait quelque chose à proposer au Trésor dès
+ * la première visite, et que le seuil se voie franchi plutôt que décrit.
+ *
+ * LES IDENTIFIANTS SONT ÉCRITS EN CLAIR, comme ceux des intentions : le dépôt en
+ * mémoire les garde tels quels, et une réponse doit pouvoir nommer sa question.
+ */
+export const SEED_SONDAGES: LigneSondee[] = [
+  /* LA QUESTION DE LA MAISON, celle qui a reçu des réponses. */
+  {
+    id: "sd-001",
+    ref: "SD-1019-A4KM",
+    origine: "desk",
+    instrument: "OTA",
+    country: "Cameroun",
+    tenor: "5 ans",
+    rate: 6.25,
+    montant: 500_000_000,
+    dansJours: 21,
+    note: "Le Trésor camerounais revient sur le 5 ans en novembre. Nous cherchons à savoir ce que la place prendrait, et à quel coupon.",
+    state: "ouverte",
+    createdAt: "2026-10-19T09:00:00",
+    updatedAt: "2026-10-19T09:00:00",
+  },
+  /* TROIS RÉPONSES, ET ELLES FRANCHISSENT LE SEUIL : 420 millions, trois
+     clients. Les niveaux sont volontairement étagés — 6,10 / 6,40 / 6,75 — pour
+     que l'échelle montre ce qu'elle sert à montrer : où la demande s'arrête. */
+  {
+    id: "sd-002",
+    ref: "SD-1020-B8TR",
+    origine: "client",
+    repondA: "sd-001",
+    userId: "c-avc",
+    clientName: "Assur-Vie Centrale",
+    clientSegment: "Institutionnel · Bangui",
+    instrument: "OTA",
+    country: "Cameroun",
+    tenor: "5 ans",
+    rate: 6.1,
+    montant: 250_000_000,
+    dansJours: 14,
+    state: "ouverte",
+    createdAt: "2026-10-20T11:30:00",
+    updatedAt: "2026-10-20T11:30:00",
+  },
+  {
+    id: "sd-003",
+    ref: "SD-1021-C2WX",
+    origine: "client",
+    repondA: "sd-001",
+    userId: "c-mbaiki",
+    clientName: "Groupe Mbaïki SARL",
+    clientSegment: "Entreprise · Bangui",
+    instrument: "OTA",
+    country: "Cameroun",
+    tenor: "5 ans",
+    rate: 6.4,
+    montant: 120_000_000,
+    dansJours: 30,
+    state: "ouverte",
+    createdAt: "2026-10-21T08:15:00",
+    updatedAt: "2026-10-21T08:15:00",
+  },
+  {
+    id: "sd-004",
+    ref: "SD-1022-D6YN",
+    origine: "client",
+    repondA: "sd-001",
+    userId: "dev-client-g-nitcheu",
+    clientName: "G. Nitcheu",
+    clientSegment: "Personne physique · Yaoundé",
+    instrument: "OTA",
+    country: "Cameroun",
+    tenor: "5 ans",
+    rate: 6.75,
+    montant: 50_000_000,
+    dansJours: 21,
+    state: "ouverte",
+    createdAt: "2026-10-22T19:40:00",
+    updatedAt: "2026-10-22T19:40:00",
+  },
+  /* UNE SECONDE QUESTION, SANS RÉPONSE ENCORE : l'écran doit savoir dire
+     « personne n'a encore répondu » sans que cela ressemble à une panne. */
+  {
+    id: "sd-005",
+    ref: "SD-1024-E9JP",
+    origine: "desk",
+    instrument: "BTA",
+    country: "Gabon",
+    tenor: "52 semaines",
+    rate: 5.5,
+    montant: 200_000_000,
+    seanceLe: "2026-11-18",
+    note: "Séance gabonaise annoncée pour la mi-novembre. À quel taux précompté seriez-vous preneur ?",
+    state: "ouverte",
+    createdAt: "2026-10-24T10:00:00",
+    updatedAt: "2026-10-24T10:00:00",
+  },
+  /* UNE LIGNE POUSSÉE PAR UN CLIENT, qui ne répond à aucune question : c'est le
+     troisième rôle, et celui que le dirigeant a demandé en premier. Elle est
+     seule, donc sous le seuil, et c'est exactement ce que le desk doit voir —
+     une demande qui n'est pas encore une ligne. */
+  {
+    id: "sd-006",
+    ref: "SD-1025-F3QV",
+    origine: "client",
+    userId: "dev-client-g-nitcheu",
+    clientName: "G. Nitcheu",
+    clientSegment: "Personne physique · Yaoundé",
+    instrument: "OTA",
+    country: "Congo",
+    tenor: "3 ans",
+    rate: 7,
+    pricePct: 99,
+    montant: 30_000_000,
+    dansJours: 60,
+    note: "Je cherche du court congolais : rien d'annoncé depuis juin.",
+    state: "ouverte",
+    createdAt: "2026-10-25T16:20:00",
+    updatedAt: "2026-10-25T16:20:00",
+  },
 ];

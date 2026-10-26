@@ -65,6 +65,12 @@ export const GESTES: Record<string, Geste> = {
   "ordre.contre.acceptee": { genre: "ordre", phrase: "Vous avez accepté la contre-proposition", auDesk: "a accepté la contre-proposition" },
   "ordre.contre.refusee": { genre: "ordre", phrase: "Vous avez refusé la contre-proposition", auDesk: "a refusé la contre-proposition" },
   "ordre.reinvesti": { genre: "ordre", phrase: "Vous avez réinvesti un encaissement", auDesk: "a réinvesti un encaissement" },
+  /* LE SONDAGE EST DU GENRE « ORDRE » SANS EN ÊTRE UN, et c'est le rangement
+     le moins faux des quatre : il parle d'une ligne et d'un montant, comme un
+     ordre, et il n'engage rien — ce que la phrase dit. Un genre à lui aurait
+     ajouté un onglet au journal pour deux gestes. */
+  "sondage.depose": { genre: "ordre", phrase: "Vous avez dit ce que vous prendriez", auDesk: "a dit ce qu'il prendrait" },
+  "sondage.retire": { genre: "ordre", phrase: "Vous avez retiré votre attente", auDesk: "a retiré son attente" },
 
   /* L'argent, et ce qui le commande. */
   "epargne.creee": { genre: "especes", phrase: "Vous avez programmé une épargne", auDesk: "a programmé une épargne" },

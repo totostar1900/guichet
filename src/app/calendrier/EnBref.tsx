@@ -18,10 +18,15 @@ import { DefinitionsDeBrief, EnBref, TitreDeBrief } from "@/components/EnBref";
  * service serait la quatrième copie d'une même phrase dans cette
  * application.
  *
- * ET LA PAGE SERT TROIS SERVICES, pas un : les adjudications, le sondage et
- * les rachats du Trésor y vivent ensemble — `lieuDe` range les trois dans
- * « adjudications ». Le brief les nomme donc tous les trois. C'est le
- * « regrouper le contenu textuel avec le brief » demandé le même jour.
+ * ET LA PAGE SERT DEUX SERVICES, pas un : les adjudications et les rachats du
+ * Trésor y vivent ensemble — `lieuDe` range les deux dans « adjudications ».
+ * Le brief les nomme donc tous les deux. C'est le « regrouper le contenu
+ * textuel avec le brief » demandé le même jour.
+ *
+ * LE SONDAGE EN EST SORTI le 26 octobre 2026 : il a sa page, et son brief y
+ * est parti avec lui. Le garder ici l'aurait briefé deux fois, et deux briefs
+ * d'un même service divergent au premier changement — c'est précisément ce que
+ * l'épreuve « brief-par-page » refuse.
  *
  * LE DÉROULÉ D'UNE SÉANCE RESTE ICI, en revanche, et c'est la bonne
  * répartition : il parle du MARCHÉ — ce que publie un Trésor, quand la BEAC
@@ -40,7 +45,7 @@ import { DefinitionsDeBrief, EnBref, TitreDeBrief } from "@/components/EnBref";
 export function AdjudicationsEnBref() {
   const t = useT();
   return (
-    <EnBref cles={["primaire", "sondage", "rachat"]} titre="Les adjudications en bref">
+    <EnBref cles={["primaire", "rachat"]} titre="Les adjudications en bref">
       <p>
         {t("Les six Trésors de la CEMAC empruntent par adjudication : ils annoncent une séance, les investisseurs y proposent un prix ou un taux, et le Trésor sert les meilleures offres jusqu'au montant qu'il recherche. Les annonces viennent de la BEAC, et c'est elle qui fait foi.")}
       </p>

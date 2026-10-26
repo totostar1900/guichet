@@ -69,20 +69,31 @@ export interface SurveyLadder {
  * paliers ronds entre les deux donnerait à lire une demande que personne n'a
  * exprimée.
  */
-export function demandLadder(intents: Intent[], o: Offer): SurveyLadder {
-  const unit = surveyUnit(o);
-  const kept = intents.filter(
-    (i) =>
-      i.offerId === o.id &&
-      (i.type === "appetit" || i.type === "ferme") &&
-      (COUNTED as readonly string[]).includes(i.state) &&
-      (i.amount ?? 0) > 0,
-  );
-  const firmOf = (i: Intent) => (i.type === "ferme" ? (i.amount ?? 0) : 0);
-  const softOf = (i: Intent) => (i.type === "appetit" ? (i.amount ?? 0) : 0);
-  const limitOf = (i: Intent) => (i.limitPrice != null && i.limitPrice > 0 ? i.limitPrice : null);
+/**
+ * UNE DEMANDE, RÉDUITE À CE QUE L'ÉCHELLE A BESOIN DE SAVOIR.
+ *
+ * L'échelle ne connaissait que des intentions sur une offre. Le sondage d'avant
+ * séance — « domain/sondage » — a la même échelle à dresser sur des objets qui
+ * ne sont NI des intentions NI des offres : des lignes qu'aucun Trésor n'a
+ * encore annoncées. Deux échelles auraient divergé au premier palier, et c'est
+ * l'échelle qui est portée à l'émetteur.
+ */
+export interface Demande {
+  amount: number;
+  /** La condition posée, ou rien : « sans condition » prend ce qui sortira. */
+  limit: number | null;
+  /** Ferme, ou simple appétit : la colonne qui les sépare est la raison d'être de cette échelle. */
+  ferme: boolean;
+}
 
-  const unconditional = kept.filter((i) => limitOf(i) == null).reduce((t, i) => t + (i.amount ?? 0), 0);
+/** L'échelle elle-même, sur n'importe quelle demande : voir « Demande ». */
+export function ladderOf(demandes: Demande[], unit: SurveyUnit): SurveyLadder {
+  const kept = demandes.filter((d) => d.amount > 0);
+  const firmOf = (d: Demande) => (d.ferme ? d.amount : 0);
+  const softOf = (d: Demande) => (d.ferme ? 0 : d.amount);
+  const limitOf = (d: Demande) => (d.limit != null && d.limit > 0 ? d.limit : null);
+
+  const unconditional = kept.filter((d) => limitOf(d) == null).reduce((t, d) => t + d.amount, 0);
 
   // « Au moins aussi bon » n'a pas le même sens des deux côtés : un prix se
   // compare vers le haut, un taux vers le bas.
@@ -90,14 +101,14 @@ export function demandLadder(intents: Intent[], o: Offer): SurveyLadder {
   const levels = [...new Set(kept.map(limitOf).filter((v): v is number => v != null))].sort((a, b) => (unit === "prix" ? b - a : a - b));
 
   const rows: SurveyRow[] = levels.map((level) => {
-    const held = kept.filter((i) => {
-      const l = limitOf(i);
+    const held = kept.filter((d) => {
+      const l = limitOf(d);
       return l == null || atLeast(l, level);
     });
     return {
       limit: level,
-      firm: held.reduce((t, i) => t + firmOf(i), 0),
-      soft: held.reduce((t, i) => t + softOf(i), 0),
+      firm: held.reduce((t, d) => t + firmOf(d), 0),
+      soft: held.reduce((t, d) => t + softOf(d), 0),
       orders: held.length,
     };
   });
@@ -105,23 +116,37 @@ export function demandLadder(intents: Intent[], o: Offer): SurveyLadder {
   // Les demandes sans condition forment leur propre palier, en tête : elles
   // tiennent quoi qu'il arrive, et c'est le plancher de ce que la maison promet.
   if (unconditional > 0) {
-    const held = kept.filter((i) => limitOf(i) == null);
+    const held = kept.filter((d) => limitOf(d) == null);
     rows.unshift({
       limit: null,
-      firm: held.reduce((t, i) => t + firmOf(i), 0),
-      soft: held.reduce((t, i) => t + softOf(i), 0),
+      firm: held.reduce((t, d) => t + firmOf(d), 0),
+      soft: held.reduce((t, d) => t + softOf(d), 0),
       orders: held.length,
     });
   }
 
   return {
     rows,
-    firm: kept.reduce((t, i) => t + firmOf(i), 0),
-    soft: kept.reduce((t, i) => t + softOf(i), 0),
+    firm: kept.reduce((t, d) => t + firmOf(d), 0),
+    soft: kept.reduce((t, d) => t + softOf(d), 0),
     orders: kept.length,
     unconditional,
     unit,
   };
+}
+
+export function demandLadder(intents: Intent[], o: Offer): SurveyLadder {
+  const kept = intents.filter(
+    (i) =>
+      i.offerId === o.id &&
+      (i.type === "appetit" || i.type === "ferme") &&
+      (COUNTED as readonly string[]).includes(i.state) &&
+      (i.amount ?? 0) > 0,
+  );
+  return ladderOf(
+    kept.map((i) => ({ amount: i.amount ?? 0, limit: i.limitPrice ?? null, ferme: i.type === "ferme" })),
+    surveyUnit(o),
+  );
 }
 
 /**

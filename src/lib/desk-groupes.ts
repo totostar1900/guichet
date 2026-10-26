@@ -60,6 +60,11 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/bulletins", "Bulletins"],
       ["/desk/adjudications", "Adjudications"],
       ["/desk/adjudications/tableau", "Résultats"],
+      /* LE SONDAGE EST AVANT L'ADJUDICATION, et il est rangé après elle : la
+         barre suit l'ordre du TRAVAIL, pas celui du temps. On lit les séances
+         annoncées tous les jours ; on regarde ce que la place prendrait quand
+         on prépare la suivante. Voir « domain/sondage ». */
+      ["/desk/sondage", "Sondage"],
       ["/desk/dette", "Dette des États"],
       /* Le stock, puis le FLUX qui le fabrique : les deux pages se lisent
          l'une après l'autre et se renvoient l'une à l'autre. Interne au

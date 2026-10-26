@@ -3,7 +3,7 @@ import type { ActionClient, Genre, NouvelleActionClient } from "@/lib/domain/jou
 import type { MesurePosee } from "@/lib/domain/mesure";
 import type { AccesCompte, CauseDeRetrait } from "@/lib/domain/acces-nomme";
 import type { Stockage } from "@/lib/domain/stockage";
-import type { Approval, AuditEntry, BudgetEtat, ChannelCode, ChannelStatus, ClientPrefs, Contact, DeskExchange, DeskThread, DeviceKind, DocumentType, EventLog, GeneratedDocument, InboundMessage, IntakeItem, Intent, IntentState, NewAuditEntry, NewIntentInput, NoteBudget, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TemplateText, TemplateTextStatus, TrustedDevice, Watch } from "@/lib/domain/types";
+import type { Approval, AuditEntry, BudgetEtat, ChannelCode, ChannelStatus, ClientPrefs, Contact, DeskExchange, DeskThread, DeviceKind, DocumentType, EventLog, GeneratedDocument, InboundMessage, IntakeItem, Intent, IntentState, LigneSondee, NewLigneSondee, NewAuditEntry, NewIntentInput, NoteBudget, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TemplateText, TemplateTextStatus, TrustedDevice, Watch } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
@@ -390,6 +390,18 @@ export interface Repository {
     patch: Partial<Pick<Tirage, "state" | "remiseId" | "announcedAt" | "noticeSent" | "noticeError" | "handedAt" | "settledAt" | "rejectCode" | "rejectNote" | "cashEntry">>,
   ): Promise<Tirage>;
 
+  /* ---------- Le sondage d'avant séance (migration 0117) ----------
+
+     Trois lectures, parce que trois écrans posent trois questions : la page du
+     client veut les questions de la maison ET ses propres attentes, la file du
+     desk veut tout, et le robot du soir veut ce qui est ouvert. Une seule
+     lecture « tout » les servirait toutes les trois, et la page d'un client
+     balaierait la table entière à chaque visite. */
+  listLignesSondees(filter?: { userId?: string; origine?: LigneSondee["origine"]; state?: LigneSondee["state"] }): Promise<LigneSondee[]>;
+  createLigneSondee(input: NewLigneSondee): Promise<LigneSondee>;
+  /** Le desk constate l'état ; le client ne peut que retirer la sienne, et « close » est ce retrait. */
+  updateLigneSondee(id: string, patch: Partial<Pick<LigneSondee, "state" | "closedReason" | "montant" | "rate" | "pricePct" | "seanceLe" | "dansJours" | "note">>): Promise<LigneSondee>;
+
   listWatches(userId?: string): Promise<Watch[]>;
   addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }, mode?: Watch["mode"]): Promise<Watch>;
   removeWatch(userId: string, offerId: string): Promise<void>;
@@ -687,6 +699,23 @@ export function makeRef(type: NewIntentInput["type"], now = new Date()): string 
  * It is never printed on what a client receives.
  */
 export const makeOrderNo = (seq: number): string => `PC-ORD-${String(seq).padStart(6, "0")}`;
+
+/**
+ * La référence d'une ligne sondée : « SD-1026-K7PQ ».
+ *
+ * MÊME FORME QUE CELLE D'UN ORDRE, ET UN PRÉFIXE QUI NE SE CONFOND PAS. Le desk
+ * lit les deux dans la même journée, et un client cite sa référence au
+ * téléphone : si « SD » et « PF » se ressemblaient, la maison chercherait un
+ * ordre là où il n'y a qu'une attente — et répondrait « vous n'avez rien signé »
+ * à quelqu'un qui n'a effectivement rien signé, mais qui demandait autre chose.
+ */
+export function makeSondageRef(now = new Date()): string {
+  const mmdd = `${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  const tail = [...bytes].map((b) => REF_ALPHABET[b % REF_ALPHABET.length]).join("");
+  return `SD-${mmdd}-${tail}`;
+}
 
 /**
  * MP-K7Q4 : la référence d'un mandat de prélèvement.

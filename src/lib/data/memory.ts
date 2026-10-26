@@ -1,6 +1,6 @@
 import type { ActionClient } from "@/lib/domain/journal-client";
 import type { FinancialProfile } from "@/data/profile";
-import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS } from "@/data/seed";
+import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS, SEED_SONDAGES } from "@/data/seed";
 import { REF_AUCTIONS, REF_OFFERS, semisDense } from "@/data/reference";
 import { SEED_GESTES } from "@/data/gestes-seed";
 import { SEED_NEWS } from "@/data/news-seed";
@@ -8,7 +8,7 @@ import { SEED_BUDGETS, SEED_NOTES_BUDGET } from "@/data/budgets-seed";
 import { coteDEssai } from "@/data/cote-seed";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type InboundMessage, type DeskThread, type DeskExchange, type BudgetEtat, type NoteBudget } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type LigneSondee, type InboundMessage, type DeskThread, type DeskExchange, type BudgetEtat, type NoteBudget } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { AccesCompte } from "@/lib/domain/acces-nomme";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
@@ -30,7 +30,7 @@ import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/l
 import type { BeacCurveRow } from "./repository";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
-import { makeMandatRef, makeOrderNo, makeRef, makeTirageRef, type Repository } from "./repository";
+import { makeMandatRef, makeOrderNo, makeRef, makeSondageRef, makeTirageRef, type Repository } from "./repository";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
 import type { VirementRecu } from "@/lib/domain/virement";
 import type { RemiseDePrelevement, Tirage } from "@/lib/domain/prelevement";
@@ -240,6 +240,7 @@ interface Store {
   deskThreads: DeskThread[];
   deskExchanges: DeskExchange[];
   watches: Watch[];
+  sondages: LigneSondee[];
   cash: CashEntry[];
   mandats: MandatPrelevement[];
   virements: VirementRecu[];
@@ -332,6 +333,7 @@ function store(): Store {
       deskThreads: [],
       deskExchanges: [],
       watches: [],
+      sondages: structuredClone(SEED_SONDAGES),
       cash: [],
       mandats: seedMandats(),
       virements: [],
@@ -1064,6 +1066,34 @@ export const memoryRepository: Repository = {
     if (!row) throw new Error(`cash_payouts ${id} introuvable`);
     if (row.state !== "demandee") throw new Error("cash_payouts : cette demande est deja fermee");
     Object.assign(row, { state: p.state, closedAt: nowIso(), closedBy: p.closedBy, closedReason: p.closedReason, paidAmount: p.paidAmount, cashEntry: p.cashEntry });
+    return structuredClone(row);
+  },
+  /* ---------- Le sondage d'avant séance ---------- */
+  async listLignesSondees(filter) {
+    const f = filter ?? {};
+    return structuredClone(
+      store()
+        .sondages.filter((l) => (!f.userId || l.userId === f.userId) && (!f.origine || l.origine === f.origine) && (!f.state || l.state === f.state))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    );
+  },
+  async createLigneSondee(input) {
+    const at = nowIso();
+    const l: LigneSondee = { id: uid(), ref: makeSondageRef(), state: "ouverte", createdAt: at, updatedAt: at, ...input };
+    store().sondages.unshift(l);
+    /* LE JOURNAL VOIT PASSER L'ATTENTE, comme il voit passer un ordre : sans
+       cela, une ligne poussée un dimanche soir n'aurait aucune trace entre son
+       dépôt et le moment où le desk ouvre sa file. */
+    await memoryRepository.logEvent({
+      kind: "intent",
+      html: `<b>Sondage</b> : ${l.origine === "desk" ? "la maison sonde" : `${l.clientName ?? "un client"} propose`} ${l.instrument} ${l.country} ${l.tenor} · ${fmt(l.montant)} FCFA · réf. ${l.ref}`,
+    });
+    return structuredClone(l);
+  },
+  async updateLigneSondee(id, patch) {
+    const row = store().sondages.find((l) => l.id === id);
+    if (!row) throw new Error("Ligne sondée introuvable");
+    Object.assign(row, patch, { updatedAt: nowIso() });
     return structuredClone(row);
   },
   async listWatches(userId) {

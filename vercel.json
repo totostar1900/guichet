@@ -62,6 +62,10 @@
     {
       "path": "/api/cron/arbitrages",
       "schedule": "0 19 * * 1-5"
+    },
+    {
+      "path": "/api/cron/sondage",
+      "schedule": "40 6 * * *"
     }
   ]
 }

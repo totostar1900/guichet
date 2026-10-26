@@ -1,0 +1,180 @@
+/* LE SONDAGE AU DESK : une file, pas une page de lecture.
+
+   Gabarit LARGE, comme les autres écrans de travail : on y compare des
+   colonnes de chiffres, et le gabarit texte les tasserait. */
+.page {
+  max-width: var(--page-large);
+  margin-inline: auto;
+  padding: var(--s-7) var(--s-7) var(--s-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-9);
+}
+.tete {
+  display: grid;
+  gap: var(--s-3);
+}
+.phrase {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--ink-2);
+  font-size: var(--t-4);
+  line-height: 1.55;
+}
+.bloc {
+  display: grid;
+  gap: var(--s-5);
+}
+.titre {
+  margin: 0;
+  font-size: var(--t-6);
+  color: var(--ink);
+}
+
+/* CE QUI EST MÛR prend le cadre doré : c'est la seule chose de la page qui
+   demande un geste aujourd'hui, et elle doit se voir d'un bout du bureau. */
+.mur {
+  display: grid;
+  gap: var(--s-5);
+  padding: var(--s-6);
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+}
+.entete {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  font-size: var(--t-5);
+  color: var(--ink);
+}
+.entete :global(.mono) {
+  margin-left: auto;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+/* LA PHRASE QU'ON PORTE AU TRÉSOR : c'est le livrable de cette page, donc
+   c'est la seule chose qui prend un degré de plus. */
+.consensus {
+  margin: 0;
+  font-size: var(--t-6);
+  line-height: 1.45;
+  color: var(--gold-ink);
+  font-weight: 600;
+}
+
+.table,
+.echelle {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-3);
+}
+.table th,
+.echelle th {
+  text-align: left;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line-2);
+  font-size: var(--t-2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.table td,
+.echelle td {
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-2);
+}
+/* Les chiffres à chasse fixe et alignés à droite : c'est ce qui permet de les
+   comparer d'un coup d'œil colonne par colonne. */
+.n {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.echelle {
+  background: var(--surface);
+}
+.detail summary {
+  cursor: pointer;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+.detail[open] summary {
+  margin-bottom: var(--s-4);
+}
+
+.questions {
+  display: grid;
+  gap: var(--s-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-4);
+  color: var(--ink-2);
+}
+.questions li {
+  padding-bottom: var(--s-5);
+  border-bottom: 1px solid var(--line);
+}
+.muet {
+  font-style: normal;
+  color: var(--ink-3);
+}
+
+.form {
+  display: grid;
+  gap: var(--s-5);
+  padding: var(--s-6);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.quatre {
+  display: grid;
+  gap: var(--s-5);
+}
+@media (min-width: 560px) {
+  .quatre {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 900px) {
+  .quatre {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+/* Statuer tient sur une ligne, sous l'objet qu'il statue : deux liens et, à la
+   clôture seulement, le motif que le client lira. */
+.statuer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+}
+.lien {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: var(--t-3);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.lien:hover {
+  color: var(--ink);
+}
+.motif {
+  flex: 1 1 200px;
+}
+.ok {
+  color: var(--good);
+  font-size: var(--t-3);
+  font-style: normal;
+}
+.erreur {
+  color: var(--crit);
+  font-size: var(--t-3);
+  font-style: normal;
+}

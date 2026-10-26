@@ -360,22 +360,33 @@ export function servicesDuClient(c: ContexteClient, fmt: (n: number) => string =
      le geste. « Sondage d'adjudication » nommait et expliquait du même souffle
      — le défaut que les noms courts sont venus défaire — et « Se dire preneur
      avant une séance » est une phrase, pas un titre : elle vit sous le nom,
-     où elle a toute la place. */
+     où elle a toute la place.
+
+     LA TUILE MÈNE À SA PROPRE PAGE depuis le 26 octobre 2026, sur demande du
+     dirigeant : « le sondage demande une page à lui ; pour l'instant il mène
+     aux adjudications, où il n'a pas sa place ». Elle menait au calendrier,
+     c'est-à-dire à la liste des séances DÉJÀ ANNONCÉES — l'écran qui prouve
+     que le service ne sert à rien, puisqu'il n'y a plus rien à sonder.
+
+     ET LA PHRASE DU CAS SANS SÉANCE A CHANGÉ AVEC. Elle disait « commencez par
+     une séance annoncée » : c'était l'inverse du service. Le sondage sert
+     précisément quand rien n'est annoncé — le client dit ce qu'il prendrait,
+     et c'est de là que partent les séances que la maison obtient. */
   out.push(
     c.prochaineSeance
       ? aActiver({
           rayon: "placer",
           cle: "sondage",
           nom: "Sondage",
-          href: "/calendrier",
+          href: "/sondage",
           phrase: { key: "Vous pouvez dire à quel taux vous seriez preneur sur la séance du {d}, sans vous engager.", params: { d: c.prochaineSeance.le } },
         })
       : aActiver({
           rayon: "placer",
           cle: "sondage",
           nom: "Sondage",
-          href: "/calendrier",
-          phrase: { key: "Commencez par une séance annoncée : le calendrier les publie dès qu'un Trésor ouvre la sienne." },
+          href: "/sondage",
+          phrase: { key: "Rien n'est annoncé en ce moment, et c'est le moment d'en parler : dites ce que vous prendriez, et à quel taux." },
         }),
   );
 
@@ -635,7 +646,7 @@ export function servicesDuClient(c: ContexteClient, fmt: (n: number) => string =
  */
 export const CATALOGUE: { cle: string; nom: string; rayon: Rayon; href: string }[] = [
   { cle: "primaire", nom: "Adjudications", rayon: "placer", href: "/calendrier" },
-  { cle: "sondage", nom: "Sondage", rayon: "placer", href: "/calendrier" },
+  { cle: "sondage", nom: "Sondage", rayon: "placer", href: "/sondage" },
   { cle: "cote", nom: "La cote", rayon: "placer", href: "/titres" },
   { cle: "fonds", nom: "Fonds", rayon: "placer", href: "/fonds" },
   { cle: "passage", nom: "Arbitrage", rayon: "placer", href: "/fonds" },
@@ -792,10 +803,15 @@ export const ETAPES: Record<string, string[]> = {
     "Signer une fois : c'est cette signature qui vaut pour les prélèvements suivants.",
     "Le versement part chaque mois sans qu'on y revienne, et s'arrête au premier mot de votre part.",
   ],
+  /* LES ÉTAPES ONT CHANGÉ AVEC LA PAGE, le 26 octobre 2026. La première disait
+     « une séance est annoncée », ce qui était l'inverse du service : on sonde
+     précisément quand rien ne l'est. Le gabarit entre ici, parce que c'est le
+     geste que le dirigeant a demandé en premier et que personne ne devine. */
   sondage: [
-    "Une séance est annoncée, environ une semaine avant sa tenue.",
-    "Dire le taux auquel vous seriez preneur, sans engagement : ce n'est pas un ordre.",
-    "Le desk en tient compte quand l'ordre se forme, et revient vers vous avant la clôture.",
+    "Lire ce que la maison sonde : un compartiment, un Trésor, une durée, et le montant qu'elle cherche.",
+    "Dire ce que vous prendriez et à partir de quand. Un taux ou un prix si vous en avez un : sans condition, votre réponse tient quel que soit le niveau.",
+    "Si ce que vous cherchez n'est pas sondé, remplir le gabarit : OTA ou BTA, le Trésor, la durée, le niveau, le montant.",
+    "Le desk réunit les demandes qui se ressemblent et les porte au Trésor. Rien ne vous engage, et vous retirez votre attente quand vous voulez.",
   ],
   passage: [
     "Partir d'une ligne que vous détenez et qui se revend : une part de fonds, une action ou une obligation cotée.",

@@ -1,0 +1,193 @@
+/* LE SONDAGE : UNE PAGE QUI DEMANDE, PUIS QUI RAPPELLE CE QU'ON A DIT.
+
+   Gabarit TEXTE, comme les autres pages qui se lisent et où l'on décide : ce
+   n'est pas une liste de marché, c'est une conversation. Les deux largeurs de
+   la maison sont déclarées au globals. */
+.page {
+  max-width: var(--page-texte);
+  margin-inline: auto;
+  padding: var(--s-8) var(--s-7) var(--s-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-10);
+}
+.bloc {
+  display: grid;
+  gap: var(--s-6);
+}
+.titre {
+  margin: 0;
+  font-size: var(--t-6);
+  color: var(--ink);
+}
+.chapo {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-4);
+  line-height: 1.55;
+}
+.liste {
+  display: grid;
+  gap: var(--s-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* UNE QUESTION DE LA MAISON, ET UNE ATTENTE DU CLIENT : même cadre, encre
+   différente. La question appelle un geste — elle prend l'or de la maison ;
+   l'attente est un constat, et reste neutre. */
+.question,
+.attente {
+  display: grid;
+  gap: var(--s-5);
+  padding: var(--s-6);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.question {
+  border-color: var(--gold-line);
+}
+.entete {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  color: var(--ink);
+  font-size: var(--t-5);
+}
+.entete b {
+  font-weight: 700;
+}
+:global(.mono),
+.entete span:last-child {
+  margin-left: auto;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+
+/* LES FAITS D'UNE LIGNE, en colonnes qui se cassent sous 380 px. Trois chiffres
+   côte à côte se comparent ; empilés, ils se lisent comme trois phrases. */
+.faits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--s-5);
+  margin: 0;
+}
+.faits dt {
+  font-size: var(--t-2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.faits dd {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-5);
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.note,
+.dit,
+.chapo,
+.deja,
+.motif {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-3);
+  line-height: 1.55;
+}
+.note {
+  padding-left: var(--s-5);
+  border-left: 2px solid var(--gold-line);
+}
+.motif {
+  color: var(--ink-3);
+}
+.second {
+  color: var(--ink-3);
+}
+.deja {
+  padding: var(--s-4) var(--s-5);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold-ink);
+}
+
+/* LA PASTILLE PORTE LE MOT, pas seulement la teinte : un écran en plein soleil
+   et un lecteur daltonien lisent le mot. « Close » reste neutre — ce n'est pas
+   un échec, c'est une attente qui a fini son temps. */
+.pastille {
+  padding: 2px var(--s-3);
+  border: 1px solid var(--line-2);
+  color: var(--ink-2);
+  font-size: var(--t-1);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.pastille[data-etat="ouverte"] {
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+}
+.pastille[data-etat="consolidee"] {
+  border-color: var(--good);
+  color: var(--good);
+}
+
+.form {
+  display: grid;
+  gap: var(--s-5);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line);
+}
+/* Deux champs par ligne au-dessus de 380 px : un montant et son niveau se
+   décident ensemble, et les séparer les ferait lire comme deux réglages. */
+.deux {
+  display: grid;
+  gap: var(--s-5);
+}
+@media (min-width: 380px) {
+  .deux {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.un {
+  display: grid;
+  gap: var(--s-5);
+}
+.boutons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+}
+.recu {
+  margin: 0;
+  padding: var(--s-5);
+  border: 1px solid var(--good);
+  color: var(--ink-2);
+  font-size: var(--t-3);
+  line-height: 1.55;
+}
+.erreur {
+  color: var(--crit);
+  font-size: var(--t-3);
+  font-style: normal;
+}
+/* Retirer est un lien de texte, et non un bouton : il existe, il se trouve, et
+   il ne dispute pas la place au geste qu'on est venu faire. */
+.retirer {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: var(--t-3);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.retirer:hover {
+  color: var(--crit);
+}

@@ -2,7 +2,7 @@ import { repo } from "@/lib/data";
 import { healthChecks } from "@/lib/health";
 import { displayStatus, isActionable } from "@/lib/domain/status";
 import type { Offer } from "@/lib/domain/types";
-import { fmt, fmtDate } from "@/lib/format";
+import { fmt, fmtDate, fmtMillions } from "@/lib/format";
 import { etatDesRobots, robotsAVoir } from "@/lib/domain/robots";
 import { positionsFrom } from "@/lib/positions";
 import type { Tile } from "./TodayPanel";
@@ -183,6 +183,39 @@ export async function todayTiles(t: (s: string, v?: Record<string, string>) => s
       tone: charges.length ? "crit" : "ok",
       href: "/desk/encaissements",
       action: charges.length ? t("reprendre avec l'émetteur") : undefined,
+    });
+  } catch {
+    /* quiet */
+  }
+
+  /* 7 bis. LE SONDAGE D'AVANT SÉANCE : CE QU'ON PEUT PORTER AUJOURD'HUI.
+
+        Une demande franchit le seuil le jour où un troisième client répond, et
+        personne ne regarde la page de sondage à cet instant. Sans cette tuile,
+        le desk découvre une demande mûre quand la séance qu'elle appelait est
+        passée — c'est le même oubli que celui des robots muets, et il ne se
+        voit pas davantage.
+
+        ZÉRO N'EST PAS UNE ALERTE ici, et la tuile reste au vert : une place qui
+        n'a rien à porter aujourd'hui est une place ordinaire. Ce qui doit se
+        voir est le chiffre quand il paraît. */
+  try {
+    const { consensus, mur } = await import("@/lib/domain/sondage");
+    const lignes = await r.listLignesSondees();
+    const murs = consensus(lignes).filter(mur);
+    const attentes = lignes.filter((l) => l.state !== "close" && l.origine === "client").length;
+    tiles.push({
+      key: "sondage",
+      label: t("Sondage à porter"),
+      value: String(murs.length),
+      detail: murs.length
+        ? murs.slice(0, 2).map((c) => `${c.instrument} ${c.country} ${c.tenor} · ${fmtMillions(c.montant)}`).join(" · ")
+        : attentes > 0
+          ? t("{n} attente(s) en cours, sous le seuil", { n: String(attentes) })
+          : t("aucune attente en cours"),
+      tone: "ok",
+      href: "/desk/sondage",
+      action: murs.length ? t("porter au Trésor") : undefined,
     });
   } catch {
     /* quiet */
