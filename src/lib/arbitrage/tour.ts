@@ -142,7 +142,7 @@ export async function tourDesArbitrages(now = new Date()): Promise<TourDArbitrag
         const raison = envoi.error ?? "canal injoignable";
         muets.push({ ref: i.ref, raison });
         await r.logEvent({
-          kind: "system",
+          kind: "avis_manque",
           intentId: i.id,
           html: `${i.ref} (${i.clientName}) : <b>extinction non annoncée au client</b> · ${raison} · la position est intacte, et c'est à lui dire de la main`,
         });

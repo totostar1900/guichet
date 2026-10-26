@@ -2984,6 +2984,14 @@ export const EN_MORE: Record<string, string> = {
   "Confier {k} séances au robot": "Hand {k} sessions to the robot",
   // Le déplacement du 6 octobre 2026 : chaque sujet chez lui.
   "Envois en échec": "Failed sends",
+  "Ce que le client n'a pas appris": "What the client was not told",
+  "{n} avis que la maison devait et n'a pas remis.": "{n} notice(s) the house owed and did not deliver.",
+  "Un avis dû au client peut manquer de deux façons, et elles ne se réparent pas pareil : le fournisseur refuse, ou bien il n'y avait aucun canal à essayer. La première laisse une ligne d'envoi, la seconde n'en laisse aucune — elle ne vivait donc que dans le fil, et il fallait savoir regarder à deux endroits pour une seule question. Les deux sont ici. Les envois réussis se lisent dans Messages, auprès de leur correspondant, et se comptent dans Reporting.":
+    "A notice owed to a client can go missing in two ways, and they are not fixed the same way: the provider refuses, or there was no channel to try at all. The first leaves a send record, the second leaves none — so it only ever lived in the feed, and you had to know to look in two places for a single question. Both are here. Successful sends are read in Messages, next to their correspondent, and counted in Reporting.",
+  "Le fournisseur a refusé": "The provider refused",
+  "Aucun canal à essayer": "No channel to try",
+  "Le geste, lui, a bien eu lieu — l'ordre a changé d'état, l'instruction est arrêtée, l'attente est close. Il reste à le dire au client, de la main.":
+    "The action itself did happen — the order changed state, the instruction is stopped, the expression of interest is closed. What remains is telling the client, by hand.",
   "{n} message(s) que la maison n'a pas pu remettre.": "{n} message(s) the house could not deliver.",
   "Ce tableau montrait les quinze derniers envois, réussis compris : un échec en sortait dès que quinze messages partaient après lui, et c'est la page qui existe pour voir les pannes qui le cachait. Il ne montre plus que ce qui a échoué, avec le motif rendu par le fournisseur. Les envois réussis se lisent dans Messages, auprès de leur correspondant, et se comptent dans Reporting.":
     "This table used to show the last fifteen sends, successful ones included: a failure left it as soon as fifteen messages went out after it, and the page that exists to see breakdowns was the one hiding it. It now shows only what failed, with the reason the provider gave. Successful sends are read in Messages, beside their correspondent, and counted in Reporting.",

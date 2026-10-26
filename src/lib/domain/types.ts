@@ -338,7 +338,23 @@ export interface DeskExchange {
 export interface EventLog {
   id: string;
   at: string;
-  kind: "intent" | "desk" | "system" | "document";
+  /**
+   * « avis_manque » : un avis que le client était en droit de recevoir et qui
+   * ne lui est pas parvenu.
+   *
+   * C'EST UN FAIT, ET NON UNE MISE EN FORME. Les deux pannes d'un même
+   * événement se lisaient à deux endroits : un fournisseur qui refuse laisse
+   * une ligne « failed » au registre des notifications, que la page Santé
+   * montre ; mais quand RIEN n'a pu être tenté — aucun contact joignable,
+   * aucun canal ouvert — aucune ligne n'entre à ce registre, et le fait ne
+   * vivait que dans une phrase au fil. Le desk avait donc deux endroits à
+   * regarder pour une seule question : à qui dois-je téléphoner.
+   *
+   * Sans ce genre, la page devrait chercher des mots dans du HTML — ce qui
+   * marche jusqu'au jour où quelqu'un ajuste une phrase, et casse alors EN
+   * SILENCE une page de surveillance.
+   */
+  kind: "intent" | "desk" | "system" | "document" | "avis_manque";
   html: string; // pre-rendered short description (trusted, generated server-side)
   intentId?: string;
   offerId?: string;

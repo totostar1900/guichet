@@ -165,7 +165,7 @@ export async function GET(req: NextRequest) {
       const envoi = await direLArretDeLInstruction(s, o, { motif: why });
       if (!envoi.sent)
         await r.logEvent({
-          kind: "system",
+          kind: "avis_manque",
           html: `${quoiDe(s)} ${s.ref} (${s.clientName}) : <b>arrêt non annoncé au client</b> · ${envoi.error ?? "canal injoignable"} · à lui dire de la main`,
         });
     };
@@ -412,7 +412,7 @@ export async function GET(req: NextRequest) {
            suivra pas : c'est exactement la panne que le try/catch vide cachait. */
         muets += 1;
         await r.logEvent({
-          kind: "system",
+          kind: "avis_manque",
           html: `${quoi} ${s.ref} (${s.clientName}) : <b>préavis non envoyé</b> pour le ${fmtDate(dueOn)} · ${envoi.error ?? "canal injoignable"} · rien ne partira sans lui`,
         });
       }

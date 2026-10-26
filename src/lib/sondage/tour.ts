@@ -86,7 +86,7 @@ export async function tourDuSondage(now = new Date()): Promise<TourDuSondage> {
          compte dans un consensus que plus personne ne peut honorer. */
       const envoi = await direLaClotureDeLAttente(l, motif);
       if (l.userId && !envoi.sent)
-        await r.logEvent({ kind: "system", html: `Sondage <b>${l.ref}</b> : <b>clôture non annoncée au client</b> · ${envoi.error ?? "canal injoignable"} · à lui dire de la main` });
+        await r.logEvent({ kind: "avis_manque", html: `Sondage <b>${l.ref}</b> : <b>clôture non annoncée au client</b> · ${envoi.error ?? "canal injoignable"} · à lui dire de la main` });
       closes.push(l.ref);
     } catch (e) {
       refus.push({ ref: l.ref, raison: e instanceof Error ? e.message : "échec" });

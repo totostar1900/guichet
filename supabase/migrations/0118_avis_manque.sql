@@ -1,0 +1,25 @@
+-- UN AVIS QUE LE CLIENT N'A PAS REÇU EST UN FAIT, PAS UNE PHRASE.
+--
+-- Relevé le 26 octobre 2026, en suite de la revue des robots. Les deux pannes
+-- d'un même événement se lisaient à deux endroits différents :
+--
+--   LE FOURNISSEUR A REFUSÉ : une ligne entre au registre des notifications
+--   avec « failed », et le panneau « Envois en échec » de la page Santé la
+--   montre. C'est le cas qui se voyait.
+--
+--   RIEN N'A MÊME ÉTÉ TENTÉ — aucun contact joignable, aucun canal ouvert pour
+--   ce genre de message : AUCUNE ligne n'entre au registre, donc ce panneau ne
+--   montrait rien. Le fait ne vivait que dans une phrase au fil du desk, qui se
+--   lit en défilant, et le desk devait donc savoir qu'il y avait deux endroits
+--   à regarder pour une seule question : « à qui dois-je téléphoner ? »
+--
+-- CE GENRE EST LE FAIT, ET NON SA MISE EN FORME. Sans lui, la page ne pourrait
+-- retrouver ces lignes qu'en cherchant des mots dans du HTML — ce qui marche
+-- jusqu'au jour où quelqu'un ajuste une phrase, et casse alors en silence une
+-- page de surveillance, ce qui est la pire des régressions possibles ici.
+--
+-- Pourquoi un genre d'ÉVÉNEMENT et non un quatrième canal de notification :
+-- « aucun canal » n'est pas un canal. Une ligne de notification dit « un
+-- message a été posé sur une voie » ; ici il n'y a pas de voie, et il y a un
+-- devoir non tenu. C'est un fait du journal.
+alter type event_kind add value if not exists 'avis_manque';

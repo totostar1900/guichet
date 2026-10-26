@@ -93,7 +93,12 @@ describe("chaque panneau déplacé n'existe qu'à un endroit", () => {
     ["Bulletins de la BVMAC à relire", "/desk/bulletins"],
     ["Lignes et bulletin", "/desk/marche"],
     ["Dernier échange à retrouver", "/desk/marche"],
-    ["Envois en échec", "/desk/sante"],
+    /* RENOMMÉ LE 26 OCTOBRE 2026 : « Envois en échec » ne disait que la moitié
+       du sujet. Un fournisseur qui refuse laisse une ligne au registre des
+       envois ; un avis dû qu'AUCUN canal ne permettait de tenter n'en laisse
+       aucune, et ce panneau ne le montrait pas. Le titre dit maintenant la
+       question qu'on vient y poser : à qui dois-je téléphoner. */
+    ["Ce que le client n'a pas appris", "/desk/sante"],
   ] as const;
 
   for (const [titre, chez] of unique) {
@@ -124,8 +129,17 @@ describe("les lectures partagées ne se multiplient pas", () => {
   const PLAFOND: Record<string, number> = {
     // messages (domicile), le carnet du jour, les totaux, la fiche d'une intention, les échecs sur Santé
     listNotifications: 5,
-    // le carnet du jour, les totaux, la fiche d'une intention
-    listEvents: 3,
+    /* Le carnet du jour, les totaux, la fiche d'une intention, et Santé.
+
+       MONTÉ DE 3 À 4 LE 26 OCTOBRE 2026, délibérément. Santé est le domicile de
+       « ce que le client n'a pas appris », et la moitié de ce sujet ne vit QUE
+       dans le fil : un avis dû qu'aucun canal ne permettait de tenter ne laisse
+       aucune ligne au registre des envois. Lire le fil est donc la seule façon
+       de réunir les deux pannes sous la question qu'on vient poser là, et les
+       laisser séparées obligeait le desk à savoir qu'il y avait deux endroits à
+       regarder. La lecture est bornée par le genre « avis_manque », et non par
+       des mots cherchés dans du HTML. */
+    listEvents: 4,
     // le domicile (À valider) et le dépôt, qui en compte le poids
     listIntake: 2,
     /* Le domicile (Bulletins), son rapport de séance, le dépôt qui compte,

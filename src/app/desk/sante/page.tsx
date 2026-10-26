@@ -22,14 +22,21 @@ const KIND_LABEL: Record<string, string> = { sortie: "Sortie de cote", absente: 
 
 export default async function SantePage() {
   const t = await getT();
-  const [checks, notifications, tours] = await Promise.all([
+  const [checks, notifications, tours, evenements] = await Promise.all([
     healthChecks(),
     /* Tous les envois récents, pour n'en garder que les échecs : une page de
        santé montre ce qui ne va pas, le reste se lit chez son correspondant. */
     repo().listNotifications(400),
     repo().listTours(200).catch(() => []),
+    /* Le fil, pour les avis dus et NON TENTÉS : ceux-là ne laissent aucune
+       ligne au registre des envois, faute de canal à essayer. Sélectionnés par
+       leur genre et non par leurs mots — chercher une phrase dans du HTML
+       marche jusqu'au jour où quelqu'un l'ajuste, et casse alors en silence la
+       page qui existe pour voir les pannes. */
+    repo().listEvents(400).catch(() => []),
   ]);
   const echecs = notifications.filter((n) => n.status === "failed");
+  const manques = evenements.filter((e) => e.kind === "avis_manque");
   /* Un robot muet ressemble à un robot sans travail : c'est l'absence de tour
      qui se voit ici, jamais sa présence. */
   const robots = etatDesRobots(tours);
@@ -212,39 +219,74 @@ export default async function SantePage() {
       </section>
 
 
-      {echecs.length > 0 && (
+      {(echecs.length > 0 || manques.length > 0) && (
         <section className="panel" id="envois">
           <div className="panel-h">
-            <h2>{t("Envois en échec")}</h2>
-            <span className="muted">{t("{n} message(s) que la maison n'a pas pu remettre.", { n: echecs.length })}</span>
+            <h2>{t("Ce que le client n'a pas appris")}</h2>
+            <span className="muted">{t("{n} avis que la maison devait et n'a pas remis.", { n: echecs.length + manques.length })}</span>
           </div>
           <p className={styles.p}>
-            {t("Ce tableau montrait les quinze derniers envois, réussis compris : un échec en sortait dès que quinze messages partaient après lui, et c'est la page qui existe pour voir les pannes qui le cachait. Il ne montre plus que ce qui a échoué, avec le motif rendu par le fournisseur. Les envois réussis se lisent dans Messages, auprès de leur correspondant, et se comptent dans Reporting.")}
+            {t("Un avis dû au client peut manquer de deux façons, et elles ne se réparent pas pareil : le fournisseur refuse, ou bien il n'y avait aucun canal à essayer. La première laisse une ligne d'envoi, la seconde n'en laisse aucune — elle ne vivait donc que dans le fil, et il fallait savoir regarder à deux endroits pour une seule question. Les deux sont ici. Les envois réussis se lisent dans Messages, auprès de leur correspondant, et se comptent dans Reporting.")}
           </p>
-          <div className="scroll-x">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>{t("Quand")}</th>
-                  <th>{t("Canal")}</th>
-                  <th>À</th>
-                  <th>{t("Objet")}</th>
-                  <th>{t("Motif")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {echecs.map((n) => (
-                  <tr key={n.id}>
-                    <td className="muted">{fmtDateTime(n.createdAt)}</td>
-                    <td>{n.channel}</td>
-                    <td>{n.contactName ?? n.to}</td>
-                    <td className="muted">{n.subject ?? n.kind}</td>
-                    <td>{n.error ?? <span className="muted">—</span>}</td>
-                  </tr>
+
+          {/* DEUX FORMES, ET ON NE LES FORCE PAS DANS UN MÊME TABLEAU.
+              Un refus de fournisseur a un canal, une adresse, un objet et un
+              motif : ce sont les colonnes. Un avis que rien ne permettait de
+              tenter n'a aucun de ces quatre, et la phrase du fil le dit déjà
+              entière. Mises sur la même grille, les colonnes mentaient pour la
+              moitié des lignes — vu à l'écran, pas en épreuve. */}
+          {echecs.length > 0 && (
+            <>
+              <h3 className={styles.h3}>{t("Le fournisseur a refusé")}</h3>
+              <div className="scroll-x">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>{t("Quand")}</th>
+                      <th>{t("Canal")}</th>
+                      <th>À</th>
+                      <th>{t("Objet")}</th>
+                      <th>{t("Motif")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {echecs.map((n) => (
+                      <tr key={n.id}>
+                        <td className="muted">{fmtDateTime(n.createdAt)}</td>
+                        <td>{n.channel}</td>
+                        <td>{n.contactName ?? n.to}</td>
+                        <td className="muted">{n.subject ?? n.kind}</td>
+                        <td>{n.error ?? <span className="muted">—</span>}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {manques.length > 0 && (
+            <>
+              <h3 className={styles.h3}>{t("Aucun canal à essayer")}</h3>
+              <p className={styles.p}>
+                {t("Le geste, lui, a bien eu lieu — l'ordre a changé d'état, l'instruction est arrêtée, l'attente est close. Il reste à le dire au client, de la main.")}
+              </p>
+              <ul className={styles.manques}>
+                {manques.map((e) => (
+                  <li key={e.id}>
+                    {/* L'heure sur sa propre ligne : collée à la phrase,
+                        « 19 h 46 PF-1026-023 » se lisait comme une seule suite
+                        de chiffres — vu à l'écran, pas en épreuve. */}
+                    <span className="muted">{fmtDateTime(e.at)}</span>
+                    {/* La phrase du fil porte déjà la référence, le client, l'état
+                        et le motif : la découper en colonnes la réécrirait, et
+                        deux écritures de la même phrase finissent par diverger. */}
+                    <span dangerouslySetInnerHTML={{ __html: e.html }} />
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </ul>
+            </>
+          )}
           <div className={styles.actions}>
             <Link className="btn sm ghost" href="/desk/messages">
               {t("Messages")} →

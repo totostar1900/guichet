@@ -201,3 +201,106 @@ describe("une seule porte annonce l'état d'un ordre", () => {
     for (const x of PROPRES) expect(readFileSync(`${RACINE}/${x}`, "utf8").length).toBeGreaterThan(0);
   });
 });
+
+/**
+ * LE FAIT EST SÉLECTIONNABLE, ET LA PAGE N'A PAS À DEVINER.
+ *
+ * RELEVÉ LE 26 OCTOBRE 2026, au moment de réunir les deux pannes d'un même
+ * événement sur la page Santé. Un fournisseur qui refuse laisse une ligne
+ * « failed » au registre des envois, que la page montrait ; mais quand RIEN
+ * n'a pu être tenté — aucun contact joignable, aucun canal ouvert — aucune
+ * ligne n'entre à ce registre. Le fait ne vivait que dans une phrase au fil,
+ * qui se lit en défilant, et le desk avait donc deux endroits à regarder pour
+ * une seule question : à qui dois-je téléphoner.
+ *
+ * D'OÙ LE GENRE « AVIS_MANQUE ». L'autre voie était de chercher des mots dans
+ * du HTML, ce qui marche jusqu'au jour où quelqu'un ajuste une phrase — et
+ * casse alors EN SILENCE une page de surveillance, qui est la pire des
+ * régressions possibles à cet endroit.
+ */
+describe("un avis dû et non remis porte son genre", () => {
+  it("la porte l'inscrit au fil sous « avis_manque », et non sous « system »", async () => {
+    current = desk;
+    const { i } = await ordre("u-avis-genre");
+    const { transitionIntent } = await import("@/app/desk/actions");
+    const { repo } = await import("@/lib/data");
+
+    await transitionIntent(formulaire({ intentId: i.id, state: "confirmee" }));
+
+    const siennes = (await repo().listEvents(300)).filter((e) => e.html.includes(i.ref));
+    const manque = siennes.find((e) => /non remis/i.test(e.html))!;
+    expect(manque, "aucune plainte : l'épreuve ne mesure plus rien").toBeTruthy();
+    expect(manque.kind, "la plainte reste au genre « system » : la page Santé ne saura pas la retrouver").toBe("avis_manque");
+    /* ET ELLE PORTE L'ORDRE : sans « intentId », la ligne se lit mais ne se
+       relie à rien, et le desk ne peut pas ouvrir la fiche depuis la page. */
+    expect(manque.intentId).toBe(i.id);
+  });
+
+  it("aucun autre genre ne sert à dire un avis non remis", () => {
+    /* LE CLIQUET QUI COMPTE. Cinq endroits écrivaient cette plainte, chacun à
+       sa façon ; un sixième qui l'écrirait sous « system » redeviendrait
+       invisible sur la page Santé — et invisible exactement comme avant, c'est
+       à dire sans que rien ne le signale. */
+    const fautifs: string[] = [];
+    const parcourir = (dir: string) => {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        const p = `${dir}/${e.name}`;
+        if (e.isDirectory()) {
+          parcourir(p);
+          continue;
+        }
+        if (!e.name.endsWith(".ts") && !e.name.endsWith(".tsx")) continue;
+        const src = readFileSync(p, "utf8");
+        /* Chaque appel à logEvent, pris d'un bloc : on regarde ceux qui parlent
+           d'un avis que le client n'a pas eu, et l'on exige leur genre. */
+        for (const m of src.matchAll(/logEvent\(\{[^;]*?\}\)/g)) {
+          const bloc = m[0];
+          if (!/non remis|non annonc|non envoy/i.test(bloc)) continue;
+          if (!/kind: "avis_manque"/.test(bloc)) fautifs.push(`${p.slice(RACINE.length + 1)} · ${bloc.slice(0, 70).replace(/\s+/g, " ")}…`);
+        }
+      }
+    };
+    for (const d of ["src/app", "src/lib"]) parcourir(`${RACINE}/${d}`);
+    expect(fautifs, "un avis dû et non remis s'inscrit sous un genre que la page Santé ne regarde pas").toEqual([]);
+
+    // Non vacuité : le relevé doit voir les cinq plaintes qui existent.
+    let vues = 0;
+    const compter = (dir: string) => {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        const p = `${dir}/${e.name}`;
+        if (e.isDirectory()) compter(p);
+        else if (e.name.endsWith(".ts") || e.name.endsWith(".tsx")) vues += [...readFileSync(p, "utf8").matchAll(/kind: "avis_manque"/g)].length;
+      }
+    };
+    for (const d of ["src/app", "src/lib"]) compter(`${RACINE}/${d}`);
+    expect(vues, "le relevé ne voit plus les plaintes : il ne protège plus rien").toBeGreaterThanOrEqual(5);
+  });
+
+  it("la page Santé les choisit par leur genre, et non par leurs mots", () => {
+    /* Une page de surveillance qui reconnaît son sujet à une phrase se casse le
+       jour où la phrase bouge, et se casse en silence. */
+    const page = readFileSync(`${RACINE}/src/app/desk/sante/page.tsx`, "utf8");
+    expect(page).toMatch(/e\.kind === "avis_manque"/);
+    expect(page, "la page cherche des mots dans le fil : elle cassera à la première phrase ajustée").not.toMatch(/non remis.*test\(|includes\("non remis"\)/);
+    /* ET ELLE LIT LE FIL POUR DE BON. Trouvé en vérification à l'envers : en
+       remplaçant la lecture par un tableau vide, la page compilait, s'affichait,
+       montrait toujours les refus du fournisseur — et perdait l'autre moitié de
+       son sujet sans qu'aucune épreuve ne bronche. Un filtre juste sur une
+       lecture absente est la panne la plus confortable qu'on puisse écrire. */
+    expect(page, "la page ne lit plus le fil : le panneau a perdu la moitié de son sujet").toMatch(/repo\(\)\s*\.listEvents\(|repo\(\)\.listEvents\(/);
+  });
+
+  it("le genre existe des deux côtés du modèle", () => {
+    /* Le modèle vit dans « types.ts » ET dans les migrations : un genre déclaré
+       d'un seul côté lèverait à la première écriture en base, là où le dépôt en
+       mémoire l'accepterait sans broncher. C'est la divergence la plus coûteuse
+       de cette maison, et elle a déjà été payée une fois. */
+    const types = readFileSync(`${RACINE}/src/lib/domain/types.ts`, "utf8");
+    expect(types).toContain('"avis_manque"');
+    const sql = readdirSync(`${RACINE}/supabase/migrations`)
+      .filter((f) => f.endsWith(".sql"))
+      .map((f) => readFileSync(`${RACINE}/supabase/migrations/${f}`, "utf8"))
+      .join("\n");
+    expect(sql, "le genre manque aux migrations : la première écriture lèvera en base").toMatch(/add value if not exists 'avis_manque'/);
+  });
+});

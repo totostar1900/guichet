@@ -225,7 +225,7 @@ export async function direLEtatDeLOrdre(i: Intent, o: Offer | undefined, state: 
   if (!envoi.sent)
     await repo()
       .logEvent({
-        kind: "system",
+        kind: "avis_manque",
         intentId: i.id,
         html: `${i.ref} (${i.clientName}) : <b>avis « ${INTENT_STATE_LABEL[state]} » non remis</b> · ${envoi.error ?? "canal injoignable"} · l'ordre a bien changé d'état, et c'est au client qu'il reste à le dire`,
       })
