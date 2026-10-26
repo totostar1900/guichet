@@ -161,6 +161,11 @@ export default async function SondageDeskPage() {
           <ul className={styles.questions}>
             {questions.map((q) => {
               const reponses = lignes.filter((l) => l.repondA === q.id && l.state !== "close");
+              /* LA CIBLE EN REGARD DE CE QUI RÉPOND, et c'est la seule page qui
+                 a le droit de l'écrire : le montant cherché ne paraît plus sur
+                 la tuile du client, parce qu'il y donnait la réponse avant la
+                 question. Ici il est la mesure du chemin restant. */
+              const recu = reponses.reduce((s, l) => s + l.montant, 0);
               return (
                 <li key={q.id}>
                   <div className={styles.entete}>
@@ -170,8 +175,16 @@ export default async function SondageDeskPage() {
                     <span className={`mono ${styles.ref}`}>{q.ref}</span>
                   </div>
                   <p className={styles.faits}>
-                    <b>{fmt(q.montant)} FCFA</b> {t("cherchés")} ·{" "}
-                    {reponses.length === 0 ? <em className={styles.muet}>{t("aucune réponse encore")}</em> : t("{n} réponse(s)", { n: String(reponses.length) })}
+                    {reponses.length === 0 ? (
+                      <>
+                        <b>{fmt(q.montant)} FCFA</b> {t("cherchés")} · <em className={styles.muet}>{t("aucune réponse encore")}</em>
+                      </>
+                    ) : (
+                      <>
+                        <b>{fmt(recu)} FCFA</b>{" "}
+                        {t("reçus sur {m} cherchés, de {n} réponse(s)", { m: fmt(q.montant), n: String(reponses.length) })}
+                      </>
+                    )}
                   </p>
                   <Statuer id={q.id} ref_={q.ref} />
                 </li>

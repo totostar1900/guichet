@@ -815,7 +815,7 @@ export const ETAPES: Record<string, string[]> = {
      précisément quand rien ne l'est. Le gabarit entre ici, parce que c'est le
      geste que le dirigeant a demandé en premier et que personne ne devine. */
   sondage: [
-    "Lire ce que la maison sonde : un compartiment, un Trésor, une durée, et le montant qu'elle cherche.",
+    "Lire ce que la maison sonde : un compartiment, un Trésor, une durée, et le niveau qu'elle indique.",
     "Dire ce que vous prendriez et à partir de quand. Un taux ou un prix si vous en avez un : sans condition, votre réponse tient quel que soit le niveau.",
     "Si ce que vous cherchez n'est pas sondé, remplir le gabarit : OTA ou BTA, le Trésor, la durée, le niveau, le montant.",
     "Le desk réunit les demandes qui se ressemblent et les porte au Trésor. Rien ne vous engage, et vous retirez votre attente quand vous voulez.",

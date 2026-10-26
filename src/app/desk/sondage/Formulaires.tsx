@@ -56,6 +56,20 @@ export function PoserUneQuestion() {
         </label>
       </div>
       <div className={styles.quatre}>
+        {/* LE PRIX INDICATIF, ET IL N'EST PAS DÉCORATIF : c'est lui qui fait le
+            RENDEMENT de la tuile — un coupon de 6,25 % acheté à 97 ne rend pas
+            6,25 %. Sans prix, pas de rendement : au pair il serait le coupon.
+            Un bon n'en a pas, et la base refuse un prix sur ce compartiment.
+
+            IL OUVRE CETTE LIGNE-CI et non la sienne : seul sur une rangée de
+            quatre, il laissait trois colonnes vides (relevé à 1 200 px), et il
+            suit ainsi le coupon dont il fait le rendement. */}
+        {instrument === "OTA" && (
+          <label className="field">
+            {t("Prix indicatif (%)")}
+            <input name="pricePct" type="number" step="0.01" placeholder="97" />
+          </label>
+        )}
         <label className="field">
           {t("Montant cherché (FCFA)")}
           <input name="montant" inputMode="numeric" placeholder="500 000 000" value={montant} {...groupedInput(setMontant)} required />

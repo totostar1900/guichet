@@ -156,6 +156,39 @@ describe("le modèle du sondage", () => {
   });
 
   /**
+   * LE QUATRIÈME FAIT EXISTE DE BOUT EN BOUT, OU IL N'EXISTE PAS DU TOUT.
+   *
+   * « Ajouter le rendement actuariel à l'OTA, et que les quatre informations
+   * tiennent bien. » Le rendement n'est pas un champ : c'est une CHAÎNE de
+   * quatre maillons — le desk saisit un prix indicatif, l'action le porte
+   * jusqu'à la ligne, le domaine le transforme en rendement, la tuile l'écrit.
+   * Chaque maillon peut partir seul, et son départ est muet : la tuile
+   * afficherait trois faits sur quatre, ce qui ressemble exactement à une OTA
+   * sans prix. C'est pour cela que l'épreuve lit les quatre.
+   */
+  it("mène le prix indicatif du formulaire du desk jusqu'au rendement de la tuile", () => {
+    expect(lire("src/app/desk/sondage/Formulaires.tsx"), "le desk ne peut plus indiquer de prix : la tuile n'aura jamais de rendement").toMatch(/name="pricePct"/);
+    /* LES COMMENTAIRES SONT RETIRÉS AVANT DE CHERCHER. Vérifié à l'envers le
+       26 octobre 2026 : « // pricePct: … » contient encore le motif, et les
+       deux lignes ci-dessous restaient vertes sur une action désarmée. C'est le
+       même défaut que celui du SQL commenté, à un langage près. */
+    const actions = lire("src/app/desk/sondage/actions.ts")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    expect(actions, "le prix n'est plus accepté par l'action").toMatch(/pricePct: z\.string\(\)\.optional\(\)/);
+    expect(actions, "le prix est accepté puis jeté avant l'écriture").toMatch(/pricePct: nombre\(d\.pricePct\)/);
+    expect(lire("src/app/sondage/page.tsx"), "la tuile n'écrit plus le rendement").toMatch(/rendementDeLaLigne\(l\)/);
+    /* ET LE PRIX A QUITTÉ LA BANDE, parce qu'il en est l'INGRÉDIENT : prix,
+       coupon et rendement côte à côte, c'étaient trois nombres pour deux faits,
+       et le cinquième élément d'une bande qui en veut quatre. */
+    expect(lire("src/app/sondage/page.tsx"), "le prix est revenu sur la bande, à côté du rendement qu'il produit").not.toMatch(/prix \{p\} au plus/);
+    /* NON VACUITÉ : le calcul passe par la référence de la maison et non par une
+       seconde formule — c'est la règle, et elle a coûté deux points d'écart une
+       fois. Le comportement du rendement est tenu par « sondage ». */
+    expect(lire("src/lib/domain/sondage.ts"), "le rendement ne passe plus par finance : une seconde formule divergera").toMatch(/bondCalc\(\{/);
+  });
+
+  /**
    * LE MONTANT EST COURT SUR UNE TUILE, ET AU FRANC AU DESK.
    *
    * « Le montant en millions ou en milliards. » Une tuile se compare d'un coup
@@ -163,6 +196,38 @@ describe("le modèle du sondage", () => {
    * lui, porte la demande à un Trésor et la dit au franc — ce n'est pas la même
    * lecture, et c'est pour cela que la règle ne vaut que du côté client.
    */
+  /**
+   * LA QUESTION NE PORTE PLUS DE MONTANT, ET C'EST LE RENSEIGNEMENT LUI-MÊME
+   * QUI EN DÉPEND.
+   *
+   * « Retirer le montant de l'offre, puisque c'est justement ce que nous
+   * cherchons à savoir. » Écrit sur la question, « 500 M FCFA » donne la réponse
+   * avant de poser la question : le client qui aurait dit trente millions en dit
+   * cinquante, et la maison porte au Trésor son propre chiffre renvoyé par un
+   * miroir. Rien à l'écran ne le montrerait — les chiffres restent plausibles,
+   * et seul le renseignement est faux.
+   *
+   * LE MONTANT DE L'ATTENTE RESTE, lui : c'est le chiffre du client, et le
+   * cacher reviendrait à ne pas lui rendre ce qu'il a dit.
+   */
+  it("n'écrit nulle part au client le montant que la maison cherche", () => {
+    const page = lire("src/app/sondage/page.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
+    /* La bande ne connaît le montant que pour une attente : la branche est la
+       garde, et elle est lisible en une ligne. */
+    expect(page, "la bande de faits écrit de nouveau un montant hors d'une attente").toMatch(/role === "attente" \? fmtUnits\(l\.montant, true\) : niveau/);
+    expect([...page.matchAll(/fmtUnits\(/g)].length, "un second montant a paru sur la page du client").toBe(2);
+    /* NON VACUITÉ : la question est bien rendue par cette bande, et le montant
+       existe toujours sur le modèle — la garde ne tient rien si la tuile a
+       disparu ou si le champ a été supprimé. */
+    expect(page, "la question ne passe plus par la bande de faits").toMatch(/<Faits l=\{q\} role="question"/);
+    expect(lire("src/lib/domain/types.ts"), "le montant a quitté le modèle : la garde ne mesure plus rien").toMatch(/montant: number/);
+    /* ET IL RESTE AU DESK, qui en a besoin comme cible — le chiffre lui-même,
+       et pas le mot : « cherchés » paraît deux fois sur cette page, et la garde
+       restait verte quand l'une des deux branches le perdait (vérifié à
+       l'envers le 26 octobre 2026). */
+    expect(lire("src/app/desk/sondage/page.tsx"), "le desk ne voit plus la cible de sa propre question").toMatch(/fmt\(q\.montant\)/);
+  });
+
   it("rend les montants du client en millions ou en milliards", () => {
     const page = lire("src/app/sondage/page.tsx");
     expect(page, "la tuile du client est revenue au franc exact").not.toMatch(/\bfmt\((?:[qml]|mienne)\.montant\)/);

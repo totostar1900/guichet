@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SEUIL_CLIENTS, SEUIL_MONTANT, UNITE_SONDEE, cleDeGroupe, consensus, etatDeLAttente, gabarit, manquesDeLaLigne, motDuNiveau, mur, prete } from "@/lib/domain/sondage";
+import { SEUIL_CLIENTS, SEUIL_MONTANT, UNITE_SONDEE, anneesDuTenor, cleDeGroupe, consensus, etatDeLAttente, gabarit, manquesDeLaLigne, motDuNiveau, mur, prete, rendementDeLaLigne } from "@/lib/domain/sondage";
 import type { LigneSondee } from "@/lib/domain/types";
 
 /**
@@ -288,5 +288,72 @@ describe("l'état dit au client", () => {
     const v = etatDeLAttente({ state: "consolidee", origine: "client" });
     expect(v.phrase).toMatch(/porte au Trésor/);
     expect(v.phrase, "le client ne sait pas qu'on le rappellera").toMatch(/rappellera/);
+  });
+});
+
+/**
+ * LE RENDEMENT ACTUARIEL, ET LES QUATRE SILENCES QUI L'ENTOURENT.
+ *
+ * « Ajouter le rendement actuariel à l'OTA. » C'est le chiffre qui COMPARE : un
+ * coupon de 6,25 % acheté à 97 ne rend pas 6,25 %, et deux lignes de coupons
+ * différents ne se comparent que par là.
+ *
+ * CE QUI SE TIENT ICI N'EST PAS LA FORMULE — elle est à `finance.bondCalc`, et
+ * c'est la règle de la maison — mais TOUT CE QUI L'ENTOURE : l'absence de
+ * rendement là où il n'y en a pas. Un rendement faux est pire qu'un rendement
+ * absent, parce qu'il se compare quand même, et qu'il a l'air juste.
+ */
+describe("le rendement actuariel d'une ligne sondée", () => {
+  const ota = { instrument: "OTA" as const, tenor: "5 ans", createdAt: "2026-10-19T09:00:00", dansJours: 21 };
+
+  it("vaut exactement le coupon au pair, et le dépasse sous le pair", () => {
+    /* L'ANCRE : au pair, une ligne neuve rend exactement son coupon. C'est ce
+       qui prouve que l'échéancier construit ici est le bon — un stub mal posé,
+       une échéance décalée d'un an, et ce nombre ne tomberait pas rond. */
+    expect(rendementDeLaLigne({ ...ota, rate: 6.25, pricePct: 100 })).toBeCloseTo(6.25, 6);
+    /* Et sous le pair il monte : 6,25 % payé 97 sur cinq ans rend près de 7 %. */
+    expect(rendementDeLaLigne({ ...ota, rate: 6.25, pricePct: 97 })).toBeCloseTo(6.98, 2);
+    /* Au-dessus du pair il descend — la monotonie est la seule chose que le
+       lecteur vérifie d'instinct, et c'est celle qu'il faut tenir. */
+    expect(rendementDeLaLigne({ ...ota, rate: 6.25, pricePct: 103 })!).toBeLessThan(6.25);
+  });
+
+  it("n'en rend aucun quand il n'y en a pas", () => {
+    /**
+     * UN BON SE VEND PRÉCOMPTÉ : son taux EST son rendement, et un second
+     * chiffre ferait lire deux vérités pour une.
+     *
+     * LA DURÉE EST « 1 an », ET C'EST TOUT LE TEST. Vérifiée à l'envers le
+     * 26 octobre 2026 : écrite avec « 52 semaines », cette ligne restait verte
+     * même le compartiment retiré de la fonction — elle tombait sur la durée
+     * illisible, pas sur le compartiment, et ne tenait donc rien. Or un bon à
+     * un an se dit « 1 an » aussi souvent que « 52 semaines », et c'est
+     * exactement là que la règle porte : sans elle, ce bon recevrait le
+     * rendement actuariel d'une obligation à coupon, calculé sur un coupon
+     * qu'il ne verse pas.
+     */
+    expect(rendementDeLaLigne({ ...ota, instrument: "BTA" as never, tenor: "1 an", rate: 5.5, pricePct: 99 }), "un bon porte un rendement en plus de son taux").toBeUndefined();
+    expect(anneesDuTenor("1 an"), "« 1 an » doit être une durée lisible, sinon la ligne ci-dessus ne tient rien").toBe(1);
+    /* SANS PRIX, le rendement serait le coupon : du bruit. */
+    expect(rendementDeLaLigne({ ...ota, rate: 6.25 }), "un rendement paraît sans prix, donc égal au coupon").toBeUndefined();
+    /* SANS COUPON, il n'y a pas d'échéancier. */
+    expect(rendementDeLaLigne({ ...ota, pricePct: 97 }), "un rendement paraît sans coupon").toBeUndefined();
+    /* SANS DURÉE LISIBLE NI DATE DE DÉPART, non plus : la durée est un texte
+       libre, et on n'invente pas une échéance. */
+    expect(rendementDeLaLigne({ ...ota, tenor: "moyen terme", rate: 6.25, pricePct: 97 }), "une durée illisible donne quand même un rendement").toBeUndefined();
+    expect(rendementDeLaLigne({ instrument: "OTA", tenor: "5 ans", createdAt: "2026-10-19T09:00:00", rate: 6.25, pricePct: 97 }), "un rendement paraît sans date de départ").toBeUndefined();
+  });
+
+  it("lit la durée que son auteur a tapée, et refuse ce qu'il n'a pas écrit", () => {
+    expect(anneesDuTenor("5 ans")).toBe(5);
+    expect(anneesDuTenor("5ans"), "« 5ans » sans espace est la même durée").toBe(5);
+    expect(anneesDuTenor("2 ANS"), "les capitales sont la même durée").toBe(2);
+    expect(anneesDuTenor("10 ans")).toBe(10);
+    /* CE QUI N'EST PAS UNE DURÉE EN ANNÉES NE DOIT PAS EN DEVENIR UNE : un bon
+       se dit en semaines, et « 0 ans » ou « 40 ans » sont des fautes de frappe
+       qui donneraient un échéancier absurde — et un rendement avec. */
+    for (const faux of ["52 semaines", "13 semaines", "moyen terme", "0 ans", "40 ans", ""]) {
+      expect(anneesDuTenor(faux), `« ${faux} » passe pour une durée en années`).toBeUndefined();
+    }
   });
 });

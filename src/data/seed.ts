@@ -1028,6 +1028,10 @@ export const SEED_SONDAGES: LigneSondee[] = [
     country: "Cameroun",
     tenor: "5 ans",
     rate: 6.25,
+    /* LE PRIX INDICATIF FAIT LE RENDEMENT DE LA TUILE : 6,25 % de coupon acheté
+       à 97 rend près de 7 %. Sans lui, la tuile n'a que trois faits sur quatre,
+       et c'est le quatrième qui compare. */
+    pricePct: 97,
     montant: 500_000_000,
     dansJours: 21,
     /* LA NOTE DIT CE QUE LA TUILE NE DIT PAS, et rien de plus.

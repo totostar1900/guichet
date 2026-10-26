@@ -19,6 +19,9 @@ const question = z.object({
   country: z.string(),
   tenor: z.string().trim().min(1).max(40),
   rate: z.string().optional(),
+  /* Le prix fait le rendement de la tuile ; la base le refuse sur un bon, et
+     `manquesDeLaLigne` le dit avant elle. */
+  pricePct: z.string().optional(),
   montant: z.string(),
   seanceLe: z.string().optional(),
   dansJours: z.string().optional(),
@@ -56,6 +59,7 @@ export async function poserLaQuestion(_p: DeskSondageResult | null, form: FormDa
     country: d.country as Country,
     tenor: d.tenor,
     rate: nombre(d.rate),
+    pricePct: nombre(d.pricePct),
     montant: parseAmount(d.montant) ?? 0,
     seanceLe: d.seanceLe?.trim() || undefined,
     dansJours: d.seanceLe?.trim() ? undefined : nombre(d.dansJours),

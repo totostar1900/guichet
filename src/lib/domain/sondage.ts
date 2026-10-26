@@ -1,5 +1,6 @@
 import type { Country, LigneSondee } from "./types";
 import { ladderOf, type SurveyLadder, type SurveyUnit } from "./survey";
+import { bondCalc } from "@/lib/finance";
 
 /**
  * LE SONDAGE : CE QUE LA PLACE PRENDRAIT, AVANT QU'IL Y AIT QUOI QUE CE SOIT À
@@ -220,6 +221,63 @@ export function prete(l: Pick<LigneSondee, "seanceLe" | "dansJours" | "createdAt
   if (l.seanceLe) return l.seanceLe.slice(0, 10);
   if (l.dansJours == null) return undefined;
   return new Date(Date.parse(`${l.createdAt.slice(0, 10)}T00:00:00Z`) + l.dansJours * 86_400_000).toISOString().slice(0, 10);
+}
+
+/* ------------------------------------------------------------------ *
+ * LE RENDEMENT ACTUARIEL D'UNE OTA SONDÉE
+ * ------------------------------------------------------------------ */
+
+/**
+ * LA DURÉE EN ANNÉES, LUE DU TEXTE QUE SON AUTEUR A TAPÉ.
+ *
+ * La durée est libre — « 5 ans », « 52 semaines » — parce qu'un Trésor de la
+ * zone n'émet pas sur une grille fermée. Le rendement, lui, a besoin d'une
+ * échéance : sans année lisible, il n'y en a pas, et on n'en invente pas.
+ */
+export function anneesDuTenor(tenor: string): number | undefined {
+  const m = /^\s*(\d{1,2})\s*an/i.exec(tenor);
+  const n = m ? Number(m[1]) : NaN;
+  return Number.isInteger(n) && n >= 1 && n <= 30 ? n : undefined;
+}
+
+/**
+ * LE RENDEMENT ACTUARIEL BRUT D'UNE LIGNE SONDÉE, OU RIEN.
+ *
+ * CE QUE LE DIRIGEANT A DEMANDÉ, le 26 octobre 2026 : « ajouter le rendement
+ * actuariel à l'OTA ». C'est le chiffre qui compare : un coupon de 6,25 % acheté
+ * à 97 ne rend pas 6,25 %, et deux lignes de coupons différents ne se comparent
+ * que par là.
+ *
+ * IL PASSE PAR « finance.bondCalc », et pas par une seconde formule : c'est la
+ * règle de la maison, et elle a une raison vécue — une maquette à coupon annuel
+ * donnait 98,36 là où la fiche affichait 96,50 pour le même rendement. Le
+ * chiffre rendu ici est, par construction, celui de la fiche.
+ *
+ * IL N'EXISTE QUE SI TOUT EXISTE, et c'est la moitié de la fonction :
+ *
+ *   UN BON N'EN A PAS. Il se vend précompté : son taux EST son rendement, et en
+ *   afficher un second ferait lire deux chiffres pour une seule vérité.
+ *   SANS PRIX, IL N'Y A RIEN À AJOUTER. Au pair, le rendement d'une ligne neuve
+ *   est exactement son coupon — « 6,25 % · rendement 6,25 % » est du bruit.
+ *   SANS DURÉE LISIBLE NI DATE, IL N'Y A PAS D'ÉCHÉANCIER, donc pas de
+ *   rendement. On rend `undefined` plutôt qu'un chiffre approché : un rendement
+ *   faux est pire qu'un rendement absent, parce qu'il se compare.
+ *
+ * LE NOMINAL EST SANS EFFET sur le résultat — le rendement est invariant
+ * d'échelle, seuls comptent le coupon, le prix et les dates — et c'est pour cela
+ * qu'on peut en poser un sans rien savoir de la ligne.
+ */
+const NOMINAL_INDIFFERENT = 10_000;
+
+export function rendementDeLaLigne(l: Pick<LigneSondee, "instrument" | "tenor" | "rate" | "pricePct" | "seanceLe" | "dansJours" | "createdAt">): number | undefined {
+  if (l.instrument !== "OTA" || l.rate == null || l.pricePct == null) return undefined;
+  const annees = anneesDuTenor(l.tenor);
+  const depart = prete(l);
+  if (!annees || !depart) return undefined;
+  const fin = new Date(Date.parse(`${depart}T00:00:00Z`));
+  fin.setUTCFullYear(fin.getUTCFullYear() + annees);
+  const { irr } = bondCalc({ nominal: NOMINAL_INDIFFERENT, couponRate: l.rate, settleOn: depart, maturityOn: fin.toISOString().slice(0, 10) }, NOMINAL_INDIFFERENT, l.pricePct);
+  return Number.isFinite(irr) ? irr : undefined;
 }
 
 /**

@@ -169,13 +169,20 @@
      référence coupée au bord droit sur les deux listes. */
   min-width: 0;
 }
-/* LE MONTANT COURT NE SE RESSERRE PLUS. Le crénage négatif servait neuf
-   chiffres — « 500 000 000 » gagne à se tasser ; « 500 M FCFA » y perd ses deux
-   espaces, et se lit « 500MFCFA ». Relevé à l'écran à 412 px le 26 octobre
-   2026, après le passage aux millions. */
+/* LE CHIFFRE DE TÊTE, AU DEGRÉ DE LA LECTURE ET PAS À CELUI D'UN TITRE.
+
+   Il était au degré du titre de panneau — juste, quand la bande portait un
+   montant et deux faits ; trop, depuis qu'elle en porte quatre et que la tête
+   d'une question est une phrase (« coupon indicatif 6,25 % ») et non un nombre
+   court. À 17 px elle pesait autant que le nom de la ligne au-dessus et la
+   carte avait deux titres. Au degré de la lecture, elle fait corps avec lui.
+
+   ET LE CRÉNAGE NÉGATIF EST PARTI avec le franc exact : il servait neuf
+   chiffres — « 500 000 000 » gagne à se tasser ; « 500 M FCFA » y perdait ses
+   deux espaces et se lisait « 500MFCFA ». */
 .faits b {
   color: var(--ink);
-  font-size: var(--t-6);
+  font-size: var(--t-5);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }

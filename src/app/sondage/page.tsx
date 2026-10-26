@@ -1,10 +1,10 @@
 import { Fragment } from "react";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { etatDeLAttente, motDuNiveau, prete } from "@/lib/domain/sondage";
+import { etatDeLAttente, motDuNiveau, prete, rendementDeLaLigne } from "@/lib/domain/sondage";
 import type { LigneSondee } from "@/lib/domain/types";
 import { getT } from "@/i18n/server";
-import { fmtDate, fmtPct, fmtPrice, fmtUnits } from "@/lib/format";
+import { fmtDate, fmtPct, fmtUnits } from "@/lib/format";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { EnBref } from "@/components/EnBref";
@@ -100,7 +100,7 @@ export default async function SondagePage() {
                   <li key={q.id} className={styles.question}>
                     <div className={styles.entete}>
                       <b className={styles.ligne}>
-                        {q.instrument} · {t(q.country)}
+                        {q.instrument} · {t(q.country)} · {q.tenor}
                       </b>
                       <span className={`mono ${styles.ref}`}>{q.ref}</span>
                     </div>
@@ -139,7 +139,7 @@ export default async function SondagePage() {
                         {t(e.mot)}
                       </span>
                       <b className={styles.ligne}>
-                        {m.instrument} · {t(m.country)}
+                        {m.instrument} · {t(m.country)} · {m.tenor}
                       </b>
                       {/* L'ÉTAT PASSE DERRIÈRE LE POINT : il est vrai en
                           permanence et identique d'une attente à l'autre, donc
@@ -210,49 +210,66 @@ export default async function SondagePage() {
  * calendrier annoncé — c'est elle qui réunit les appétits, avant qu'il y ait
  * quoi que ce soit à annoncer. « À partir du » dit la même date sans la
  * promesse, et c'est le même mot dans les deux rôles.
+ *
+ * ─── LA QUESTION NE PORTE PLUS DE MONTANT, le 26 octobre 2026 ───────────────
+ *
+ * CE QUE LE DIRIGEANT A DIT : « retirer le montant de l'offre, puisque c'est
+ * justement ce que nous cherchons à savoir ».
+ *
+ * ET C'EST LE DÉFAUT LE PLUS COÛTEUX DE CETTE PAGE, parce qu'il ne se voit pas :
+ * « 500 M FCFA » écrit sur la question DONNE LA RÉPONSE AVANT DE POSER LA
+ * QUESTION. Le client qui aurait dit trente millions en dit cinquante, celui
+ * qui en aurait dit huit cents en dit cinq cents, et la maison porte au Trésor
+ * son propre chiffre, renvoyé par un miroir. Un sondage dont la question
+ * contient sa réponse ne mesure plus rien, et rien à l'écran ne le montre : les
+ * chiffres sont plausibles, la page est jolie, et le renseignement est faux.
+ *
+ * LE MONTANT CHERCHÉ RESTE DEMANDÉ AU DESK, et c'est voulu : c'est sa cible, et
+ * la page du desk la met en regard de ce que la place donne. Il n'en sort pas.
  */
 function Faits({ l, role, t }: { l: LigneSondee; role: "question" | "attente"; t: (s: string, v?: Record<string, string>) => string }) {
-  /* LE NIVEAU EST LE TAUX, sur les deux compartiments : un coupon sur une OTA,
-     un taux précompté sur un bon — même sens, deux mots, voir « motDuNiveau ».
-     Le prix d'une OTA suit quand le client en a donné un : il est hors de
-     l'échelle et hors de la moyenne, mais c'est un chiffre qu'il a écrit, et
-     une attente qu'on ne se relit pas est une attente qu'on redit. */
+  /* Le niveau est un taux sur les deux compartiments — coupon sur une OTA, taux
+     précompté sur un bon : même sens, deux mots, voir « motDuNiveau ». */
   const mot = motDuNiveau(l.instrument);
-  /* TOUJOURS UNE DATE, et jamais le délai tel qu'il a été écrit : « dans
-     21 jours » posé le 19 se lit « le 16 novembre » quand la ligne dit le 9.
-     C'est `prete` qui compte depuis la création, pour les deux rôles. */
+  /* Toujours une date, jamais le délai tel qu'il a été écrit : « dans 21 jours »
+     posé le 19 se relit « le 16 novembre » quand la ligne dit le 9. */
   const j = prete(l);
-  const suite: string[] = [l.tenor];
-  if (l.rate != null) {
-    const r = fmtPct(l.rate, 2);
-    suite.push(
-      role === "question"
-        ? t(mot === "taux" ? "taux indicatif {r}" : "coupon indicatif {r}", { r })
-        : t(mot === "taux" ? "taux {r} au moins" : "coupon {r} au moins", { r }),
-    );
-  }
-  if (l.pricePct != null) suite.push(t("prix {p} au plus", { p: fmtPrice(l.pricePct) }));
-  if (j) suite.push(t("à partir du {d}", { d: fmtDate(j, false) }));
+  const niveau =
+    l.rate == null
+      ? null
+      : role === "question"
+        ? t(mot === "taux" ? "taux indicatif {r}" : "coupon indicatif {r}", { r: fmtPct(l.rate, 2) })
+        : t(mot === "taux" ? "taux {r} au moins" : "coupon {r} au moins", { r: fmtPct(l.rate, 2) });
+
+  /* LE CHIFFRE DE TÊTE EST CELUI QUE SON AUTEUR MET EN AVANT : le montant quand
+     le client s'engage sur une taille, le niveau quand la maison pose une
+     question — depuis qu'elle n'y écrit plus de montant, c'est le seul chiffre
+     qu'elle avance. */
+  const tete = role === "attente" ? fmtUnits(l.montant, true) : niveau;
+  /* LE RENDEMENT EST LE CHIFFRE QUI COMPARE : un coupon de 6,25 % acheté à 97 ne
+     rend pas 6,25 %, et deux lignes de coupons différents ne se comparent que
+     par là. Il PREND LA PLACE DU PRIX, qui en était l'ingrédient : les deux
+     côte à côte faisaient trois nombres pour deux faits. Un bon n'en a pas —
+     son taux EST son rendement. */
+  const r = rendementDeLaLigne(l);
+  const suite: (string | null)[] = [
+    role === "attente" ? niveau : null,
+    r != null ? t("rendement {y}", { y: fmtPct(r, 2) }) : null,
+    j ? t("à partir du {d}", { d: fmtDate(j, false) }) : null,
+  ];
+  const faits = suite.filter((x): x is string => x !== null);
+
   return (
     <p className={styles.faits}>
-      {/* LE MONTANT PORTE LE DEGRÉ DU CHIFFRE — c'est lui qu'on cherche : la
-          ligne est-elle à notre taille ? — et le reste suit en encre atténuée,
-          dans la même phrase, parce qu'on le lit d'un trait. */}
-      <b>{fmtUnits(l.montant, true)}</b>
-      {/* CHAQUE FAIT TIENT SUR UNE LIGNE, séparateur compris, et L'ESPACE QUI
-          LES SÉPARE RESTE DEHORS.
-
-          Relevé à 412 px, deux fois de suite. D'abord la bande se cassait sur
-          « à / partir du 18 nov. » : un fait coupé en deux se relit deux fois.
-          Puis, l'espace mis DANS le morceau insécable, la bande n'avait plus
-          une seule occasion de passer à la ligne — quatre faits en un seul mot
-          de quatre-vingts signes, et la fin de la ligne du Congo disparaissait
-          hors du cadre. C'est l'espace qui porte la coupure : dedans, il n'y a
-          plus de coupure nulle part. */}
-      {suite.map((p) => (
+      {tete && <b>{tete}</b>}
+      {/* Chaque fait tient sur une ligne, séparateur compris, mais L'ESPACE QUI
+          LES SÉPARE RESTE DEHORS : enfermé dans le morceau insécable, il ne
+          donnait plus une seule occasion de passer à la ligne, et la bande
+          sortait du cadre (relevé à 412 px). */}
+      {faits.map((p, i) => (
         <Fragment key={p}>
           {" "}
-          <span className={styles.fait}>{`· ${p}`}</span>
+          <span className={styles.fait}>{i === 0 && !tete ? p : `· ${p}`}</span>
         </Fragment>
       ))}
     </p>

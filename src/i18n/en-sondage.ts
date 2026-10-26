@@ -13,8 +13,8 @@
  */
 export const EN_SONDAGE: Record<string, string> = {
   /* ---------- Les étapes du service, lues par le brief ---------- */
-  "Lire ce que la maison sonde : un compartiment, un Trésor, une durée, et le montant qu'elle cherche.":
-    "Read what the firm is surveying : a compartment, a Treasury, a term, and the amount it is after.",
+  "Lire ce que la maison sonde : un compartiment, un Trésor, une durée, et le niveau qu'elle indique.":
+    "Read what the firm is surveying : a compartment, a Treasury, a term, and the level it indicates.",
   "Dire ce que vous prendriez et à partir de quand. Un taux ou un prix si vous en avez un : sans condition, votre réponse tient quel que soit le niveau.":
     "Say what you would take and from when. A rate or a price if you have one : with no condition, your answer holds whatever the level.",
   "Si ce que vous cherchez n'est pas sondé, remplir le gabarit : OTA ou BTA, le Trésor, la durée, le niveau, le montant.":
@@ -46,7 +46,11 @@ export const EN_SONDAGE: Record<string, string> = {
   "coupon indicatif {r}": "indicative coupon {r}",
   "taux {r} au moins": "rate of at least {r}",
   "coupon {r} au moins": "coupon of at least {r}",
-  "prix {p} au plus": "price of at most {p}",
+  /* LE RENDEMENT PREND LA PLACE DU PRIX SUR LA TUILE, le 26 octobre 2026 : le
+     prix en était l'ingrédient, et les deux côte à côte faisaient trois nombres
+     pour deux faits. « Rendement » seul, parce que le qualificatif — indicatif,
+     au moins — est déjà porté par le coupon dont il découle. */
+  "rendement {y}": "yield {y}",
   "Vous avez répondu {m}, à partir du {d}": "You answered {m}, from {d}",
   "Répondre à nouveau remplace cette réponse.": "Answering again replaces that answer.",
   "Rien encore. Répondre à une ligne ci-dessus prend deux chiffres.": "Nothing yet. Answering a line above takes two figures.",
@@ -163,6 +167,10 @@ export const EN_SONDAGE: Record<string, string> = {
   cherchés: "sought",
   "aucune réponse encore": "no answer yet",
   "{n} réponse(s)": "{n} answer(s)",
+  /* LE MONTANT CHERCHÉ NE VIT PLUS QUE SUR CETTE PAGE : il a quitté la tuile du
+     client, où il donnait la réponse avant la question. Ici il est la cible,
+     mise en regard de ce que la place a répondu. */
+  "reçus sur {m} cherchés, de {n} réponse(s)": "received of {m} sought, from {n} answer(s)",
   "Poser une question à la place": "Ask the market a question",
   "Les {n} demandes, une par une": "The {n} requests, one by one",
   "Prêt le": "Ready on",
@@ -172,6 +180,7 @@ export const EN_SONDAGE: Record<string, string> = {
   Durée: "Term",
   "Taux indicatif (%)": "Indicative rate (%)",
   "Coupon indicatif (%)": "Indicative coupon (%)",
+  "Prix indicatif (%)": "Indicative price (%)",
   "Montant cherché (FCFA)": "Amount sought (FCFA)",
   "À partir du (date)": "From (date)",
   "…ou dans (jours)": "…or in (days)",
