@@ -357,3 +357,68 @@ describe("le rendement actuariel d'une ligne sondée", () => {
     }
   });
 });
+
+/**
+ * DEUX CLIENTS QUI DEMANDENT LA MÊME LIGNE DOIVENT SE RETROUVER.
+ *
+ * C'EST LE SERVICE LUI-MÊME, redit par le dirigeant le 26 octobre 2026 : « le
+ * client construit sa propre ligne, la propose au desk, QUI LA COMPILE AVEC
+ * CELLES DES AUTRES CLIENTS et en déduit un consensus pour la production ou
+ * pas ». Sans la compilation, il n'y a pas de service : il y a une boîte à
+ * lettres.
+ *
+ * ET LA DURÉE EST UN TEXTE LIBRE — c'est voulu, un Trésor de la zone n'émet pas
+ * sur une grille fermée. La clef la prenait telle quelle : « 5ans » et « 5 ans »
+ * faisaient deux groupes d'un client chacun, chacun sous le seuil, et RIEN à
+ * l'écran ne disait que c'était la même ligne. Le desk aurait vu « ce qui
+ * s'accumule » s'allonger sans jamais mûrir.
+ */
+describe("la compilation des lignes poussées par les clients", () => {
+  const pousse = (id: string, userId: string, tenor: string, montant: number): LigneSondee => ({
+    id,
+    ref: `SD-${id}`,
+    origine: "client",
+    userId,
+    instrument: "OTA",
+    country: "Cameroun",
+    tenor,
+    rate: 6.5,
+    montant,
+    dansJours: 30,
+    state: "ouverte",
+    createdAt: "2026-10-20T09:00:00",
+    updatedAt: "2026-10-20T09:00:00",
+  });
+
+  it("réunit la même durée écrite autrement", () => {
+    const groupes = consensus([pousse("a", "c1", "5 ans", 60_000_000), pousse("b", "c2", "5ans", 50_000_000), pousse("c", "c3", "5 ANS", 40_000_000)]);
+    expect(groupes.length, "la même ligne a fait plusieurs groupes : une espace la coupait en deux").toBe(1);
+    expect(groupes[0].clients).toBe(3);
+    expect(groupes[0].montant).toBe(150_000_000);
+    /* ET ELLE MÛRIT : c'est la conséquence qui compte, et c'est elle que le
+       défaut emportait — trois clients et cent cinquante millions franchissent
+       le seuil, là où trois groupes d'un client ne le franchissent jamais. */
+    expect(mur(groupes[0]), "la demande réunie ne franchit toujours pas le seuil").toBe(true);
+  });
+
+  it("ne rapproche pas deux durées différentes", () => {
+    /* « 5 ans » et « 6 ans » sont deux lignes pour un Trésor, et les réunir
+       proposerait une ligne que personne n'a demandée. */
+    const groupes = consensus([pousse("a", "c1", "5 ans", 60_000_000), pousse("b", "c2", "6 ans", 60_000_000)]);
+    expect(groupes.length, "deux durées différentes ont été réunies").toBe(2);
+    /* Ni un bon de 13 semaines avec un de 52. */
+    expect(cleDeGroupe({ instrument: "BTA", country: "Gabon", tenor: "13 semaines" })).not.toBe(cleDeGroupe({ instrument: "BTA", country: "Gabon", tenor: "52 semaines" }));
+    /* Ni deux Trésors, ni deux compartiments. */
+    expect(cleDeGroupe({ instrument: "OTA", country: "Gabon", tenor: "5 ans" })).not.toBe(cleDeGroupe({ instrument: "OTA", country: "Congo", tenor: "5 ans" }));
+    expect(cleDeGroupe({ instrument: "OTA", country: "Gabon", tenor: "5 ans" })).not.toBe(cleDeGroupe({ instrument: "BTA", country: "Gabon", tenor: "5 ans" }));
+  });
+
+  it("réunit aussi les semaines, et garde ce qu'elle ne sait pas lire", () => {
+    expect(cleDeGroupe({ instrument: "BTA", country: "Gabon", tenor: "52 semaines" })).toBe(cleDeGroupe({ instrument: "BTA", country: "Gabon", tenor: "52semaines" }));
+    expect(cleDeGroupe({ instrument: "BTA", country: "Gabon", tenor: "52 sem." })).toBe(cleDeGroupe({ instrument: "BTA", country: "Gabon", tenor: "52 semaines" }));
+    /* Ce qu'on ne sait pas lire garde sa forme, nettoyée : mieux vaut un groupe
+       de trop qu'un rapprochement inventé. */
+    expect(cleDeGroupe({ instrument: "OTA", country: "Gabon", tenor: "  moyen   terme " })).toBe(cleDeGroupe({ instrument: "OTA", country: "Gabon", tenor: "Moyen terme" }));
+    expect(cleDeGroupe({ instrument: "OTA", country: "Gabon", tenor: "moyen terme" })).not.toBe(cleDeGroupe({ instrument: "OTA", country: "Gabon", tenor: "long terme" }));
+  });
+});

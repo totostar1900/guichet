@@ -2,7 +2,7 @@ import { DeskNav } from "@/components/DeskNav";
 import { getT } from "@/i18n/server";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { SEUIL_CLIENTS, SEUIL_MONTANT, consensus, motDuNiveau, mur, prete } from "@/lib/domain/sondage";
+import { SEUIL_CLIENTS, SEUIL_MONTANT, cleDeGroupe, consensus, motDuNiveau, mur, prete } from "@/lib/domain/sondage";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { Pourquoi } from "@/components/Pourquoi";
 import { PoserUneQuestion, Statuer } from "./Formulaires";
@@ -52,7 +52,13 @@ export default async function SondageDeskPage() {
     lignes.filter((l) => {
       if (l.origine === "desk" || l.state === "close") return false;
       const sur = l.repondA ? parId.get(l.repondA) : undefined;
-      return sur ? `desk:${sur.id}` === cle : `${l.instrument}|${l.country}|${l.tenor.trim().toLowerCase()}` === cle;
+      /* LA CLEF VIENT DU DOMAINE, et elle y vient depuis le 26 octobre 2026 :
+         la formule était recopiée ici, et le jour où la durée a été réduite à
+         sa forme canonique là-bas, cette page aurait cessé de retrouver les
+         demandes de ses propres groupes — « les N demandes, une par une »
+         serait restée vide, sans rien dire. Une clef écrite deux fois est une
+         clef qui finit par valoir deux choses. */
+      return sur ? `desk:${sur.id}` === cle : cleDeGroupe(l) === cle;
     });
 
   return (

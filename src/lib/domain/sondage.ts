@@ -196,8 +196,37 @@ export interface Consensus {
   echelle: SurveyLadder;
 }
 
+/**
+ * LA DURÉE RÉDUITE À SA FORME CANONIQUE, POUR QUE DEUX CLIENTS SE RETROUVENT.
+ *
+ * LE DÉFAUT QUE CECI FERME, et il était au cœur du service. Le dirigeant l'a
+ * redit le 26 octobre 2026 : « le client construit sa propre ligne, la propose
+ * au desk, QUI LA COMPILE AVEC CELLES DES AUTRES CLIENTS et en déduit un
+ * consensus ». La durée est un texte libre — c'est voulu, un Trésor de la zone
+ * n'émet pas sur une grille fermée — et la clef la prenait telle quelle, à la
+ * casse et aux espaces près. « 5ans » et « 5 ans » faisaient donc DEUX groupes.
+ *
+ * ET C'EST LE PIRE GENRE DE SILENCE : deux groupes d'un client chacun, chacun
+ * sous le seuil, et rien à l'écran pour dire qu'ils sont la même ligne. Le desk
+ * voit « ce qui s'accumule » s'allonger sans jamais mûrir, et personne ne peut
+ * deviner que la demande existait — elle était coupée en deux par une espace.
+ *
+ * ON NE RAPPROCHE TOUJOURS PAS LES DURÉES VOISINES : « 5 ans » et « 6 ans »
+ * restent deux lignes, parce que ce sont deux lignes pour un Trésor. Ici on ne
+ * rapproche que ce qui est DÉJÀ la même durée, écrite autrement.
+ */
+const dureeCanonique = (tenor: string): string => {
+  const a = anneesDuTenor(tenor);
+  if (a) return `${a}a`;
+  const s = /^\s*(\d{1,3})\s*sem/i.exec(tenor);
+  if (s) return `${Number(s[1])}s`;
+  /* Ce qu'on ne sait pas lire garde sa forme, nettoyée : mieux vaut un groupe
+     de trop qu'un rapprochement inventé. */
+  return tenor.trim().toLowerCase().replace(/\s+/g, " ");
+};
+
 /** La clef de regroupement : même compartiment, même Trésor, même durée. */
-export const cleDeGroupe = (l: Pick<LigneSondee, "instrument" | "country" | "tenor">) => `${l.instrument}|${l.country}|${l.tenor.trim().toLowerCase()}`;
+export const cleDeGroupe = (l: Pick<LigneSondee, "instrument" | "country" | "tenor">) => `${l.instrument}|${l.country}|${dureeCanonique(l.tenor)}`;
 
 /**
  * LE JOUR OÙ CETTE LIGNE DEVIENT PRÊTE, et il se compte DEPUIS SA CRÉATION.

@@ -155,6 +155,26 @@ describe("le modèle du sondage", () => {
   });
 
   /**
+   * LA CLEF DE GROUPE N'EST ÉCRITE QU'UNE FOIS.
+   *
+   * Elle l'était deux : au domaine, et recopiée au desk pour retrouver les
+   * demandes d'un groupe. Le jour où la durée a été réduite à sa forme
+   * canonique — « 5ans » et « 5 ans » sont la même ligne — la page du desk
+   * aurait cessé de retrouver les demandes de ses propres groupes, et « les N
+   * demandes, une par une » serait restée vide sans rien dire. Une clef écrite
+   * deux fois est une clef qui finit par valoir deux choses.
+   */
+  it("ne laisse la clef de groupe s'écrire qu'au domaine", () => {
+    const desk = lire("src/app/desk/sondage/page.tsx");
+    expect(desk, "la clef de groupe est de nouveau recopiée au desk").not.toMatch(/\$\{l\.tenor/);
+    expect(desk, "le desk ne retrouve plus les demandes par la clef du domaine").toMatch(/cleDeGroupe\(l\) === cle/);
+    /* NON VACUITÉ : le domaine la normalise vraiment — sans quoi la ligne
+       ci-dessus ne garde qu'une recopie inoffensive. Son comportement est tenu
+       par « sondage ». */
+    expect(lire("src/lib/domain/sondage.ts"), "la durée n'est plus réduite à une forme canonique").toMatch(/dureeCanonique\(l\.tenor\)/);
+  });
+
+  /**
    * LE QUATRIÈME FAIT EXISTE DE BOUT EN BOUT, OU IL N'EXISTE PAS DU TOUT.
    *
    * « Ajouter le rendement actuariel à l'OTA, et que les quatre informations
