@@ -115,6 +115,20 @@ export async function closureStepAction(_p: ActResult | null, form: FormData): P
   if (step === "signe") {
     if (c.docId) await r.updateDocument(c.docId, { status: "signe", signedAt: now });
     await r.updateClientFile(f.id, { status: partial ? f.status : "en_cloture", acts: { ...f.acts, closure: { ...c, signedAt: now } } });
+    /**
+     * FERMER LE COMPTE D'UN CLIENT ENTRE AU REGISTRE, aux deux pas.
+     *
+     * C'est l'état le plus lourd qu'un dossier puisse prendre — « en clôture »
+     * refuse toute nouvelle intention, « clos » met fin à la relation — et il
+     * s'écrivait sans une ligne de registre. Le fil du desk le disait, mais un
+     * fil se purge et ne porte ni l'avant ni l'après. Relevé à la revue des
+     * pages du desk, le 26 octobre 2026.
+     */
+    await audit("client.cloture", "client", f.id, {
+      before: { status: f.status, signedAt: c.signedAt ?? null },
+      after: { status: partial ? f.status : "en_cloture", signedAt: now, scope: c.scope },
+      reason: `${f.identity.name} · ordre ${c.docNumber ?? "sans numéro"} signé${partial ? " (transfert partiel)" : " · plus de nouvelle intention"}`,
+    });
     await r.logEvent({ kind: "desk", html: `<b>Ordre ${c.docNumber ?? ""}</b> signé : ${f.identity.name}${partial ? "" : " · dossier en clôture, plus de nouvelle intention"} · par ${desk.name}` });
     revalidatePath("/desk/clients");
     return { ok: true, message: partial ? "Ordre signé : lancez le transfert chez le dépositaire." : "Ordre signé : le dossier est en clôture, les nouvelles intentions sont refusées jusqu'à la confirmation du dépositaire." };
@@ -122,6 +136,11 @@ export async function closureStepAction(_p: ActResult | null, form: FormData): P
   if (step === "confirme") {
     if (!c.signedAt) return { ok: false, error: "L'ordre doit d'abord être signé." };
     await r.updateClientFile(f.id, { status: partial ? f.status : "clos", acts: { ...f.acts, closure: { ...c, confirmedAt: now, confirmedBy: desk.name } } });
+    await audit("client.cloture", "client", f.id, {
+      before: { status: f.status, confirmedAt: c.confirmedAt ?? null },
+      after: { status: partial ? f.status : "clos", confirmedAt: now, confirmedBy: desk.name, scope: c.scope },
+      reason: `${f.identity.name} · transfert confirmé par le dépositaire${partial ? " (partiel)" : " · dossier clos"}`,
+    });
     let msg = "";
     if (!partial) {
       const releve = await generateStatement("releve", f.userId, desk.name).catch(() => undefined);

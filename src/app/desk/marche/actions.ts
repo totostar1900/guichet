@@ -111,6 +111,27 @@ export async function executeOrderAction(_p: MarketResult | null, form: FormData
   }
   const updated = await r.updateIntent(i.id, { state: "servie", executedPrice: p.data.executedPrice, servedUnits: units, allocationPct: Math.round((units / Math.max(asked, 1)) * 100) });
   const unitsText = o.kind === "FONDS" ? `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts à la VL ${fmt(p.data.executedPrice)} FCFA` : `${fmt(units)} / ${fmt(asked)} à ${o.instrument === "obligation" ? fmtPrice(p.data.executedPrice) : fmt(p.data.executedPrice) + " FCFA"}`;
+  /**
+   * LE PRIX SERVI ENTRE AU REGISTRE, et c'est le chiffre qui se conteste.
+   *
+   * RELEVÉ À LA REVUE DES PAGES DU DESK, le 26 octobre 2026 : le même
+   * événement — un ordre qui passe à « servie » — était tracé avec son avant et
+   * son après quand il passait par `transitionIntent`, et PAS TRACÉ quand il
+   * passait par cette page-ci. Deux portes pour un seul état, une seule gardée.
+   *
+   * ET C'EST CELLE-CI QUI PORTE LES CHIFFRES. La transition générique déplace
+   * un état ; l'exécution écrit le PRIX, la QUANTITÉ SERVIE et le taux de
+   * service. Le jour où un client conteste le prix qu'on lui a servi — et c'est
+   * le litige le plus banal d'une société de bourse — le registre doit dire qui
+   * l'a saisi et quand. Le fil du desk le disait déjà, mais un fil se purge et
+   * ne porte ni l'avant ni l'après : c'est la règle de la maison, écrite au
+   * CLAUDE.md, et elle vaut surtout là où il y a un montant.
+   */
+  await audit("intent.execute", "intent", i.id, {
+    before: { state: i.state, executedPrice: i.executedPrice, servedUnits: i.servedUnits, allocationPct: i.allocationPct },
+    after: { state: "servie", executedPrice: updated.executedPrice, servedUnits: updated.servedUnits, allocationPct: updated.allocationPct },
+    reason: `${i.ref} · ${i.clientName} · ${unitsText}`,
+  });
   await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) : <b>exécuté</b> ${unitsText} · par ${desk.name}` });
   await notifyIntentUpdated(updated, o, "servie", desk.name);
 
@@ -225,6 +246,14 @@ export async function settleOrderAction(_p: MarketResult | null, form: FormData)
   const o = await r.getOffer(i.offerId);
   if (!o) return { ok: false, error: "Ligne introuvable." };
   const updated = await r.updateIntent(i.id, { state: "reglee" });
+  /* LE RÈGLEMENT AUSSI : c'est lui qui fait entrer la ligne dans la position du
+     client et qui produit l'avis d'opéré. Même raison que l'exécution — la
+     transition générique le trace, celle-ci ne le traçait pas. */
+  await audit("intent.settle", "intent", i.id, {
+    before: { state: i.state },
+    after: { state: "reglee", executedPrice: updated.executedPrice, servedUnits: updated.servedUnits },
+    reason: `${i.ref} · ${i.clientName} · ${o.title}`,
+  });
   await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) : <b>réglé</b> · par ${desk.name}` });
   try {
     await generateForIntent("opere", i.id, { advisor: desk.name, allocation: (updated.allocationPct ?? 100) / 100 });
@@ -517,6 +546,9 @@ export async function backfillLastTradedAction(_prev: RereadResult | null): Prom
 
   let set = 0;
   let silent = 0;
+  /* Celles qu'un collègue a touchées pendant le parcours : leur écriture est
+     refusée, et le desk doit savoir lesquelles relancer. */
+  const bouges: string[] = [];
   for (const o of lines) {
     const quotes = await r.listQuotes(o.isin, 2000);
     const traded = quotes.filter(tradedSession).sort((a, b) => b.sessionDate.localeCompare(a.sessionDate))[0];
@@ -524,12 +556,31 @@ export async function backfillLastTradedAction(_prev: RereadResult | null): Prom
       silent++;
       continue;
     }
-    await r.upsertOffer({ ...o, lastTradedOn: traded.sessionDate });
-    set++;
+    /* MÊME GARDE : ce rattrapage réécrit l'offre entière avec la seule date du
+       dernier échange. Sans version attendue, il remet en place le prix tel
+       qu'il était à la lecture — et efface la cotation qu'un collègue vient de
+       saisir. */
+    /* UN CONFLIT N'EMPORTE PAS LE LOT. Le rattrapage parcourt toutes les lignes
+       cotées : si l'une d'elles bouge pendant le parcours, son écriture est
+       refusée — c'est ce qu'on veut — mais les trente autres doivent passer. La
+       ligne refusée est NOMMÉE, parce qu'un rattrapage qui dit « 29 datées »
+       sans dire laquelle manque se relance à l'aveugle. */
+    try {
+      await r.upsertOffer({ ...o, lastTradedOn: traded.sessionDate }, { expectedVersion: o.version, by: desk.name, note: "dernier échange retrouvé" });
+      /* UNE ENTRÉE PAR LIGNE, MÊME EN LOT, et c'est la règle que la maison
+         s'est déjà donnée sur la confirmation des séances : « un lot ne doit
+         pas laisser une trace plus pauvre qu'un geste unitaire, sans quoi la
+         relecture en lot serait un moyen de signer moins visiblement ». */
+      await audit("offer.lastTraded", "offer", o.id, { before: { lastTradedOn: o.lastTradedOn ?? null }, after: { lastTradedOn: traded.sessionDate }, reason: `${o.title} · dernier échange retrouvé dans les cotes` });
+      set++;
+    } catch {
+      bouges.push(o.title);
+    }
   }
 
   const parts = [`${set} ligne${set > 1 ? "s" : ""} datée${set > 1 ? "s" : ""}`];
   if (silent) parts.push(`${silent} sans aucun échange dans les séances lues`);
+  if (bouges.length) parts.push(`${bouges.length} modifiée(s) entre-temps, non datée(s) : ${bouges.join(", ")}`);
   await repo().logEvent({ kind: "desk", html: `<b>Dernier échange</b> : ${parts.join(" · ")} · retrouvé dans les cotes · par ${desk.name}` });
   revalidatePath("/desk/marche");
   revalidatePath("/desk/marche");
@@ -552,7 +603,23 @@ export async function withdrawLineAction(_prev: RereadResult | null, form: FormD
   const offer = (await repo().listOffers()).find((o) => o.id === id);
   if (!offer) return { error: "Ligne introuvable." };
   if (offer.kind !== "MARCHE") return { error: "Seule une ligne cotée se retire ainsi." };
-  await repo().upsertOffer({ ...offer, status: "matured", version: offer.version + 1 });
+  /**
+   * LA VERSION ATTENDUE, ET LA TRACE : deux manquements pour un seul geste.
+   *
+   * ON RÉÉCRIVAIT L'OFFRE ENTIÈRE lue plus haut, en incrémentant la version à la
+   * main — ce qui a l'air prudent et ne vérifie RIEN. Le garde existe
+   * précisément pour refuser l'écriture quand la version rangée a bougé : sans
+   * lui, un desk qui corrige le cours pendant que l'autre clôture la ligne voit
+   * sa correction écrasée, sans un mot. Douze autres écritures d'offre passent
+   * « expectedVersion » ; celle-ci et le rattrapage du dernier échange ne le
+   * passaient pas.
+   *
+   * ET CLÔTURER UNE LIGNE COTÉE EST UNE DÉCISION : elle quitte le marché, les
+   * positions qui la portent cessent de se valoriser au cours. Elle entre donc
+   * au registre, avec l'état d'avant.
+   */
+  await repo().upsertOffer({ ...offer, status: "matured" }, { expectedVersion: offer.version, by: desk.name, note: "ligne clôturée à la main" });
+  await audit("offer.withdraw", "offer", offer.id, { before: { status: offer.status, version: offer.version }, after: { status: "matured" }, reason: `${offer.title} · clôturée à la main` });
   await repo().logEvent({ kind: "desk", html: `<b>Ligne clôturée</b> : ${offer.title} · à la main · par ${desk.name}` });
   revalidatePath("/desk/marche");
   revalidatePath("/titres");

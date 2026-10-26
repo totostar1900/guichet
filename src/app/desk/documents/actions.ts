@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
+import { audit } from "@/lib/audit";
 import { generateBordereau, generateForIntent } from "@/lib/documents/generate";
 import { DOC_LABEL } from "@/lib/documents/registry";
 import { notifyDocument } from "@/lib/notify/dispatch";
@@ -43,7 +44,14 @@ export async function generateBordereauAction(_prev: DocResult | null, form: For
     const offers = await r.listOffers();
     const ids = new Set(offers.filter((o) => o.country === country && o.deadlineAt === deadlineAt).map((o) => o.id));
     for (const i of intents) {
-      if (ids.has(i.offerId) && (i.type === "ferme" || i.type === "cession") && i.state === "confirmee") await r.setIntentState(i.id, "transmise");
+      if (ids.has(i.offerId) && (i.type === "ferme" || i.type === "cession") && i.state === "confirmee") {
+        /* LA TRANSMISSION ENTRE AU REGISTRE, MÊME EN LOT. C'est le même état que
+           `transitionIntent` trace un par un : le bordereau en passe plusieurs
+           d'un coup, et c'est précisément quand on en passe vingt qu'il faut
+           pouvoir dire lesquels, et par quel bordereau. */
+        await r.setIntentState(i.id, "transmise");
+        await audit("intent.transition", "intent", i.id, { before: { state: "confirmee" }, after: { state: "transmise" }, reason: `${i.ref} · transmis par bordereau` });
+      }
     }
     revalidatePath("/desk/documents");
     revalidatePath("/desk");

@@ -121,6 +121,11 @@ export async function setCustodianAccountAction(_p: ReviewResult | null, form: F
   const f = await r.getClientFile(fileId);
   if (!f || f.status !== "approuve") return { ok: false, error: "Le dossier doit être approuvé." };
   const updated = await r.updateClientFile(fileId, { review: { ...f.review, custodianAccount } });
+  /* LE SOUS-COMPTE NOMINATIF ENTRE AU REGISTRE : c'est lui qui autorise la
+     transmission d'un ordre sur titre — « on ne transmet pas un titre sans le
+     compte qui le recevra » — et son numéro se cite au dépositaire. Ses
+     voisines de ce fichier traçaient déjà ; celle-ci ne traçait pas. */
+  await audit("client.souscompte", "client", f.id, { before: { custodianAccount: f.review.custodianAccount }, after: { custodianAccount }, reason: `${updated.identity.name} · n° ${custodianAccount}` });
   await r.logEvent({ kind: "desk", html: `<b>Sous-compte nominatif ouvert</b> : ${updated.identity.name} · n° ${custodianAccount} · par ${desk.name}` });
   await notifyKycDecision(updated, "approuve");
   revalidatePath("/desk/clients");
@@ -137,6 +142,15 @@ export async function autoScreenAction(_p: ReviewResult | null, form: FormData):
   if (!f) return { ok: false, error: "Dossier introuvable." };
   const auto = await screenFile(f);
   await r.updateClientFile(fileId, { screening: { ...f.screening, auto } });
+  /* LE PRÉ-CONTRÔLE AUSSI, et ce n'est pas une décision d'homme : c'est
+     l'ENTRÉE d'une décision. Le jour où l'on demandera sur quoi reposait
+     l'agrément d'un client, il faudra pouvoir dire quel fournisseur a répondu
+     quoi, et quand. */
+  await audit("client.screening", "client", f.id, {
+    before: { hits: f.screening?.auto?.hits?.length ?? null, provider: f.screening?.auto?.provider ?? null },
+    after: { hits: auto.hits.length, provider: auto.provider, error: auto.error ?? null },
+    reason: `${f.identity.name} · ${auto.provider === "none" ? "fournisseur non configuré" : `${auto.hits.length} correspondance(s)`}`,
+  });
   await r.logEvent({ kind: "desk", html: `Pré-contrôle sanctions / PPE : ${f.identity.name} : ${auto.provider === "none" ? "fournisseur non configuré" : `${auto.hits.length} correspondance(s)${auto.error ? ` (${auto.error})` : ""}`} · ${desk.name}` });
   revalidatePath("/desk/clients");
   return auto.provider === "none" ? { ok: false, error: "Le pré-contrôle automatique n'est pas activé sur cette plateforme : consultez les listes par les liens ci-dessous et attestez." } : { ok: true, message: `Pré-contrôle effectué : ${auto.hits.length} correspondance(s) à examiner.` };
