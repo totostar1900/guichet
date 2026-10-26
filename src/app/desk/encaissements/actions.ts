@@ -5,6 +5,7 @@ import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
+import { direLeCreditConstate } from "@/lib/notify/espece";
 import { natureDuFlux } from "@/lib/domain/encaissement";
 import { escapeHtml, fmt } from "@/lib/format";
 
@@ -107,6 +108,20 @@ export async function porterAuJournal(_p: EncaissementResult | null, form: FormD
       kind: "desk",
       html: `<b>${fmt(amount)} FCFA</b> encaissés le ${valueOn} : ${escapeHtml(label)} du ${date} sur ${escapeHtml(titre)}${ecart ? ` · <b>écart ${signe}${fmt(ecart)}</b> sur ${fmt(expected)} attendus` : ""} · pièce ${escapeHtml(evidence)} · par ${desk.name}`,
     });
+    /**
+     * ET LE CLIENT L'APPREND, parce qu'on le lui a promis.
+     *
+     * Le robot des coupons annonce l'échéance trois jours avant et le jour
+     * même, et sa phrase finit par « nous vous le confirmons par un avis dès
+     * qu'il est constaté ». C'est ici qu'il est constaté, et il ne partait
+     * rien : une promesse écrite démentie par le code, relevée à la revue des
+     * pages client du 26 octobre 2026.
+     *
+     * L'ÉCHEC NE RETIENT PAS L'ÉCRITURE : l'argent est au journal, et un
+     * message qui ne part pas se voit au fil, nommément.
+     */
+    const envoi = await direLeCreditConstate(userId, { montant: amount, attendu: expected, quoi: label, titre, valeurLe: valueOn }).catch((e) => ({ sent: false, error: e instanceof Error ? e.message : "échec" }));
+    if (!envoi.sent) await r.logEvent({ kind: "system", html: `Encaissement du ${valueOn} : <b>client non prévenu</b> · ${escapeHtml(envoi.error ?? "canal injoignable")}` });
   } catch {
     // L'index d'unicité a parlé : le coupon était déjà là, et c'est une bonne nouvelle.
     return { ok: false, error: "Cette échéance est déjà portée au journal." };

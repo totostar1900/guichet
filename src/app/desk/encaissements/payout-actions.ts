@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
+import { direLeRefusDuVersement, direLeVersement } from "@/lib/notify/espece";
 import { ecartDeDemande, reclamable } from "@/lib/domain/restitution";
 import { escapeHtml, fmt } from "@/lib/format";
 
@@ -59,6 +60,15 @@ export async function payerRestitution(_p: PayoutResult | null, form: FormData):
     kind: "desk",
     html: `<b>${fmt(montant)} FCFA</b> versés sur demande du client${ecart ? ` · <b>écart ${ecart > 0 ? "+" : ""}${fmt(ecart)}</b> sur ${fmt(demande.askedAmount)} demandés` : ""} · par ${escapeHtml(desk.name)}`,
   });
+  /**
+   * ET LE CLIENT L'APPREND. L'avis de versement était DÉJÀ fabriqué, trois
+   * lignes plus haut, et il dormait dans ses documents : la maison produisait
+   * la pièce et n'envoyait pas la nouvelle. Relevé à la revue des pages client
+   * du 26 octobre 2026 ; l'envoi est l'appel qui manquait.
+   */
+  const envoi = await direLeVersement(demande.userId, { montant, demande: demande.askedAmount }).catch((e) => ({ sent: false, error: e instanceof Error ? e.message : "échec" }));
+  if (!envoi.sent) await r.logEvent({ kind: "system", html: `Versement de ${fmt(montant)} FCFA : <b>client non prévenu</b> · ${escapeHtml(envoi.error ?? "canal injoignable")}` });
+
   revalidatePath("/desk/encaissements");
   revalidatePath("/");
   return {
@@ -89,8 +99,19 @@ export async function refuserRestitution(_p: PayoutResult | null, form: FormData
   await r.closePayout(id, { state: "refusee", closedBy: desk.name, closedReason: motif });
   await audit("cash.refus", "client", demande.userId, { after: { payout: id, motif }, reason: `refus de verser ${fmt(demande.askedAmount)} FCFA : ${motif}` });
   await r.logEvent({ kind: "desk", html: `Demande de versement refusée (${fmt(demande.askedAmount)} FCFA) : ${escapeHtml(motif)} · par ${escapeHtml(desk.name)}` });
+  /**
+   * ET LE MOTIF PART AVEC, parce qu'il n'avait de sens qu'adressé.
+   *
+   * Il est obligatoire dans le formulaire ET en base — « c'est l'argent du
+   * client que la maison garde, et il lira ce motif » — mais il ATTENDAIT
+   * qu'il revienne le lire. Un client dont le virement ne vient pas et à qui
+   * personne n'explique pourquoi n'a plus qu'à conclure au pire.
+   */
+  const envoi = await direLeRefusDuVersement(demande.userId, { demande: demande.askedAmount, motif }).catch((e) => ({ sent: false, error: e instanceof Error ? e.message : "échec" }));
+  if (!envoi.sent) await r.logEvent({ kind: "system", html: `Refus de versement : <b>client non prévenu</b> · ${escapeHtml(envoi.error ?? "canal injoignable")}` });
   revalidatePath("/desk/encaissements");
-  return { ok: true, message: "Refus enregistré, avec son motif." };
+  revalidatePath("/");
+  return { ok: true, message: "Refus enregistré, avec son motif. Le client est prévenu." };
 }
 
 /** La file du desk : les demandes ouvertes, avec le disponible d'aujourd'hui à côté. */

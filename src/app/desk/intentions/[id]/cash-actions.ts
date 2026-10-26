@@ -5,6 +5,7 @@ import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
+import { direLaProvisionRecue, direLeVersement } from "@/lib/notify/espece";
 import { cashPosition, mayHold, toRestore } from "@/lib/domain/cash";
 import { escapeHtml, fmt } from "@/lib/format";
 import { loadCashPolicy } from "@/lib/policy";
@@ -46,6 +47,11 @@ export async function recordProvision(_p: CashResult | null, form: FormData): Pr
   const entry = await r.addCash({ userId: it.clientId, amount: p.data.amount, kind: "provision", label: `Provision reçue pour ${it.ref}`, intentId: it.id, dueBy: p.data.dueBy, createdBy: desk.name });
   await audit("cash.provision", "intent", it.id, { after: { amount: p.data.amount, entry: entry.id }, reason: `provision ${fmt(p.data.amount)} FCFA · ${it.ref}` });
   await r.logEvent({ kind: "desk", intentId: it.id, html: `<b>${fmt(p.data.amount)} FCFA</b> reçus en provision de ${escapeHtml(it.clientName)} pour ${it.ref} · par ${desk.name}` });
+  /* « MON VIREMENT EST-IL BIEN ARRIVÉ ? » est la question la plus posée d'un
+     desk, et l'application ne la réparait pas : le client virait, et personne
+     ne lui disait que c'était reçu. */
+  const recu = await direLaProvisionRecue(it.clientId, { montant: p.data.amount, ref: it.ref, nom: it.clientName }).catch((e) => ({ sent: false, error: e instanceof Error ? e.message : "échec" }));
+  if (!recu.sent) await r.logEvent({ kind: "system", intentId: it.id, html: `${it.ref} : <b>client non prévenu</b> de la provision reçue · ${escapeHtml(recu.error ?? "canal injoignable")}` });
   revalidatePath(`/desk/intentions/${it.id}`);
   return { ok: true, message: `${fmt(p.data.amount)} FCFA inscrits, affectés à ${it.ref}.` };
 }
@@ -75,6 +81,11 @@ export async function recordRestitution(_p: CashResult | null, form: FormData): 
   const entry = await r.addCash({ userId: it.clientId, amount: due, kind: "restitution", label: "Restitution du solde inoccupé", createdBy: desk.name });
   await audit("cash.restitution", "client", it.clientId, { after: { amount: due, entry: entry.id }, reason: `restitution ${fmt(due)} FCFA` });
   await r.logEvent({ kind: "desk", intentId: it.id, html: `<b>${fmt(due)} FCFA</b> restitués à ${escapeHtml(it.clientName)} : solde sans destination · par ${desk.name}` });
+  /* Un solde qui repart sans un mot est un débit que le client découvre : il
+     n'a rien demandé ici, c'est la politique qui le rend, et c'est bien pour
+     cela qu'il faut le lui dire. */
+  const rendu = await direLeVersement(it.clientId, { montant: due, nom: it.clientName }).catch((e) => ({ sent: false, error: e instanceof Error ? e.message : "échec" }));
+  if (!rendu.sent) await r.logEvent({ kind: "system", intentId: it.id, html: `${it.ref} : <b>client non prévenu</b> de la restitution · ${escapeHtml(rendu.error ?? "canal injoignable")}` });
   revalidatePath(`/desk/intentions/${it.id}`);
   return { ok: true, message: `${fmt(due)} FCFA restitués.` };
 }
