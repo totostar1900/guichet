@@ -39,6 +39,22 @@ export interface TourDArbitrage {
   eteints: string[];
   /** Ce qui n'a pas pu être clos, avec sa raison : un échec silencieux rendrait ce tour menteur. */
   refus: { ref: string; raison: string }[];
+  /**
+   * Les paires éteintes dont le client n'a PAS été prévenu, avec la raison.
+   *
+   * RELEVÉ À LA REVUE DES ROBOTS du 26 octobre 2026. L'envoi vivait sous
+   * `if (offer)` et un `.catch(() => {})` : deux silences, et c'est le dernier
+   * endroit de ce tour où « rien ne s'est passé » pouvait vouloir dire « la
+   * protection a joué et personne ne vous l'a dit ».
+   *
+   * SÉPARÉ DE « REFUS » PARCE QUE CE N'EST PAS LA MÊME PANNE. Un refus est une
+   * paire qu'on n'a pas su clore — elle reste armée, et le tour suivant
+   * réessaie. Ici l'extinction a bien eu lieu : elle est faite, inscrite au
+   * registre, et il ne manque que le mot au client. Les confondre ferait
+   * chercher au desk une clôture à refaire là où il n'y a qu'un téléphone à
+   * décrocher.
+   */
+  muets: { ref: string; raison: string }[];
 }
 
 /** Les états qui n'attendent plus rien : une paire qui les porte est déjà jouée. */
@@ -54,6 +70,7 @@ export async function tourDesArbitrages(now = new Date()): Promise<TourDArbitrag
   const armes = tous.filter((i) => i.switchToOfferId && !CLOS.has(i.state));
   const eteints: string[] = [];
   const refus: { ref: string; raison: string }[] = [];
+  const muets: { ref: string; raison: string }[] = [];
 
   for (const i of armes) {
     if (!i.switchBy || i.switchBy >= aujourdHui) continue;
@@ -85,13 +102,56 @@ export async function tourDesArbitrages(now = new Date()): Promise<TourDArbitrag
         offerId: i.offerId,
         html: `${i.ref} : <b>arbitrage expiré</b> (date limite du ${fmtDate(i.switchBy, false)}) · position intacte, rien n'a bougé`,
       });
-      if (offer) await notifyIntentUpdated(clos, offer, "annulee").catch(() => {});
       eteints.push(i.ref);
+      /**
+       * ET LE CLIENT L'APPREND, OU LE DESK APPREND QU'IL NE L'A PAS APPRIS.
+       *
+       * C'EST LE MESSAGE QUI PORTE TOUT LE SENS DE CE TOUR. L'extinction n'est
+       * pas un fait visible : le client lisait « armé, rien n'a bougé » et
+       * lirait ensuite « clos, rien n'a bougé ». Sans le message, la seule
+       * différence entre la protection qui a joué et une maison qui a oublié
+       * son ordre est une ligne d'état qu'il faut aller chercher.
+       *
+       * LE SILENCE ÉTAIT « .catch(() => {}) » — le try/catch vide, exactement
+       * celui que le robot de l'épargne a coûté à cette maison — ET LE FAIT
+       * QUE `notifyIntentUpdated` RENDAIT `void`. Deux chemins y mènent, tous
+       * deux atteignables : aucun contact joignable sur l'ordre, et un canal
+       * que le fournisseur refuse ou saute. Dans le premier, AUCUNE ligne
+       * n'entre au registre des notifications, donc le panneau « Envois en
+       * échec » de la page Santé ne rattrapait rien : il n'y avait rien à voir
+       * nulle part.
+       *
+       * « if (offer) » GARDE UN CAS QUE L'APPLICATION NE PRODUIT PAS :
+       * `createIntent` refuse une offre inconnue et rien ne supprime jamais une
+       * offre. Le garde reste — `getOffer` rend un optionnel, et une ligne
+       * effacée à la main en base ne doit pas lever — mais sa raison est
+       * nommée ici pour ce qu'elle est, et non pour un trou qu'elle aurait
+       * bouché.
+       *
+       * L'ENVOI EST APRÈS L'EXTINCTION ET NE LA DÉFAIT PAS. Une borne que le
+       * client a signée doit jouer à la date dite, même si son canal est
+       * cassé ; le laisser armé serait lui retirer la protection pour laquelle
+       * il a écrit cette date. Le `try` ici est à lui : sans cela, un
+       * fournisseur en panne tomberait dans le `catch` du tour et rangerait en
+       * « refus » une clôture qui a eu lieu.
+       */
+      const envoi = offer
+        ? await notifyIntentUpdated(clos, offer, "annulee").catch((e) => ({ sent: false, error: e instanceof Error ? e.message : "échec de l'envoi" }))
+        : { sent: false, error: `la ligne de départ (${i.offerId}) est introuvable : le message n'a pas pu être composé` };
+      if (!envoi.sent) {
+        const raison = envoi.error ?? "canal injoignable";
+        muets.push({ ref: i.ref, raison });
+        await r.logEvent({
+          kind: "system",
+          intentId: i.id,
+          html: `${i.ref} (${i.clientName}) : <b>extinction non annoncée au client</b> · ${raison} · la position est intacte, et c'est à lui dire de la main`,
+        });
+      }
     } catch (e) {
       refus.push({ ref: i.ref, raison: e instanceof Error ? e.message : "échec" });
     }
   }
-  return { vues: armes.length, eteints, refus };
+  return { vues: armes.length, eteints, refus, muets };
 }
 
 /**

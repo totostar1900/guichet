@@ -179,6 +179,141 @@ describe("le tour des arbitrages armés", () => {
     expect(a.reason).toContain(arme.ref);
   });
 
+  /**
+   * CE QUE LE CLIENT APPREND, ET CE QUE LE DESK APPREND QU'IL N'A PAS APPRIS.
+   *
+   * RELEVÉ À LA REVUE DES ROBOTS du 26 octobre 2026. Le message portait tout le
+   * sens de ce tour et vivait sur une ligne à deux silences :
+   * `if (offer) await notifyIntentUpdated(...).catch(() => {})`.
+   *
+   * POURQUOI C'EST LE MESSAGE QUI COMPTE ICI. L'extinction n'est pas un fait
+   * visible : le client lisait « armé, rien n'a bougé » et lit ensuite « clos,
+   * rien n'a bougé ». Sans le mot, la seule différence entre la protection qui
+   * a joué et une maison qui a oublié son ordre est une ligne d'état qu'il faut
+   * aller chercher.
+   *
+   * ET LE PANNEAU « ENVOIS EN ÉCHEC » NE LE RATTRAPAIT PAS : il lit les lignes
+   * du registre des notifications, et dans les deux cas de ce silence — pas
+   * d'offre, pas de contact — AUCUNE ligne n'est créée. Il n'y avait rien à
+   * voir nulle part.
+   */
+  it("prévient le client de l'extinction", async () => {
+    const { repo } = await import("@/lib/data");
+    const { tourDesArbitrages } = await import("@/lib/arbitrage/tour");
+    const r = repo();
+
+    /* NOTIFY_DEMO est le mode que la maison a posé pour cela : sans
+       fournisseur, tout envoi ressort « skipped », et aucun chemin heureux ne
+       serait parcourable en épreuve. */
+    process.env.NOTIFY_DEMO = "1";
+    try {
+      const arme = await r.createIntent({
+        offerId: "fcp-monetaire",
+        type: "rachat",
+        amount: 10,
+        channel: "E-mail",
+        contactEmail: "client@exemple.com",
+        clientId: "u-essai-arbitrage-6",
+        clientName: "Essai Arbitrage",
+        clientSegment: "Personne physique",
+        switchToOfferId: "fcp-obligataire",
+        switchFloor: 400_000,
+        switchBy: "2026-10-20",
+      });
+
+      const t = await tourDesArbitrages(new Date("2026-10-26T19:00:00Z"));
+
+      expect(t.eteints).toContain(arme.ref);
+      expect(t.muets, "le client n'a pas été prévenu, et le tour le passe sous silence").toEqual([]);
+      const avis = (await r.listNotifications(200)).filter((n) => n.intentId === arme.id);
+      expect(avis.length, "aucun avis n'a été composé pour cette extinction").toBeGreaterThan(0);
+      expect(avis.some((n) => n.status === "sent")).toBe(true);
+    } finally {
+      delete process.env.NOTIFY_DEMO;
+    }
+  });
+
+  it("dit nommément l'extinction d'un client qu'aucun canal ne joint, et ne la défait pas", async () => {
+    /* LE PREMIER DES DEUX CHEMINS, et le plus grave : aucun contact sur
+       l'ordre. `notifyIntentUpdated` rendait `void` sur un `if (!c) return`,
+       donc AUCUNE ligne n'entre au registre des notifications — le panneau
+       « Envois en échec » de la page Santé, qui lit ces lignes, ne rattrapait
+       rien. Il n'y avait rien à voir nulle part. */
+    const { repo } = await import("@/lib/data");
+    const { tourDesArbitrages } = await import("@/lib/arbitrage/tour");
+    const r = repo();
+
+    const arme = await r.createIntent({
+      offerId: "fcp-monetaire",
+      type: "rachat",
+      amount: 10,
+      channel: "E-mail",
+      clientId: "u-essai-arbitrage-7-sans-canal",
+      clientName: "Essai Sans Canal",
+      clientSegment: "Personne physique",
+      switchToOfferId: "fcp-obligataire",
+      switchFloor: 400_000,
+      switchBy: "2026-10-20",
+    });
+
+    const t = await tourDesArbitrages(new Date("2026-10-26T19:00:00Z"));
+
+    /* L'EXTINCTION A LIEU, et elle est inscrite : il ne manque que le mot. Une
+       borne que le client a signée doit jouer à la date dite, même si son canal
+       est cassé — le laisser armé serait lui retirer la protection pour
+       laquelle il a écrit cette date. */
+    expect(t.eteints).toContain(arme.ref);
+    expect((await r.listIntents()).find((x) => x.id === arme.id)!.state).toBe("annulee");
+    expect(await r.listAudit({ entity: "intent", entityId: arme.id })).toHaveLength(1);
+    /* ET CE N'EST PAS UN « REFUS » : un refus est une paire qu'on n'a pas su
+       clore, que le tour suivant réessaie. Les confondre ferait chercher au
+       desk une clôture à refaire là où il n'y a qu'un téléphone à décrocher. */
+    expect(t.refus.map((x) => x.ref)).not.toContain(arme.ref);
+    expect(t.muets.map((x) => x.ref)).toContain(arme.ref);
+    expect(t.muets.find((x) => x.ref === arme.ref)!.raison).toMatch(/contact/i);
+    const fil = (await r.listEvents(100)).map((e) => e.html).join("\n");
+    expect(fil, "l'extinction non annoncée est passée sous silence").toMatch(/extinction non annoncée au client/i);
+    expect(fil).toContain(arme.ref);
+    // Et c'est bien le trou sans ligne d'envoi : sinon le panneau des échecs suffirait.
+    expect((await r.listNotifications(200)).filter((n) => n.intentId === arme.id), "une ligne d'envoi existe : l'épreuve ne mesure plus le trou qu'elle nomme").toEqual([]);
+  });
+
+  it("dit aussi l'extinction que le fournisseur a refusée, avec le canal et son motif", async () => {
+    /* LE SECOND CHEMIN : le contact est là, le message est composé, et le canal
+       n'aboutit pas. C'est l'état par défaut en épreuve — aucun fournisseur
+       n'est posé, donc tout ressort « skipped » — et c'est ce que
+       `.catch(() => {})` avalait avec le reste. Ici une ligne ENTRE au
+       registre des notifications, et la raison doit la nommer : « e-mail :
+       skipped » se répare autrement qu'un client sans coordonnées. */
+    const { repo } = await import("@/lib/data");
+    const { tourDesArbitrages } = await import("@/lib/arbitrage/tour");
+    const r = repo();
+
+    const arme = await r.createIntent({
+      offerId: "fcp-monetaire",
+      type: "rachat",
+      amount: 10,
+      channel: "E-mail",
+      contactEmail: "refuse@exemple.com",
+      clientId: "u-essai-arbitrage-8",
+      clientName: "Essai Refusé",
+      clientSegment: "Personne physique",
+      switchToOfferId: "fcp-obligataire",
+      switchFloor: 400_000,
+      switchBy: "2026-10-20",
+    });
+
+    const t = await tourDesArbitrages(new Date("2026-10-26T19:00:00Z"));
+
+    expect(t.eteints).toContain(arme.ref);
+    expect(t.muets.map((x) => x.ref)).toContain(arme.ref);
+    const raison = t.muets.find((x) => x.ref === arme.ref)!.raison;
+    expect(raison, "la raison ne nomme pas le canal : « non annoncé » sans canal ne se répare pas").toMatch(/email|e-mail/i);
+    expect(raison).not.toMatch(/aucun contact/i);
+    // La ligne existe bel et bien : les deux chemins sont distincts, et le relevé le voit.
+    expect((await r.listNotifications(200)).filter((n) => n.intentId === arme.id).length).toBeGreaterThan(0);
+  });
+
   it("n'inscrit rien quand rien n'expire", async () => {
     // Non vacuité : un robot qui inscrirait à chaque tour passerait l'épreuve ci-dessus.
     const { repo } = await import("@/lib/data");

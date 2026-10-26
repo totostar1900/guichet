@@ -129,13 +129,41 @@ export async function notifyIntentReceived(i: Intent, o: Offer, estimate?: strin
   return out;
 }
 
-/** Lifecycle update to the client (confirmée, transmise, servie…). */
-export async function notifyIntentUpdated(i: Intent, o: Offer, state: IntentState, advisor?: string): Promise<void> {
+/**
+ * LE RÉSULTAT D'UN ENVOI, pour que l'appelant puisse en faire quelque chose.
+ *
+ * Même forme que les avis d'espèces, le préavis et l'arrêt d'une instruction :
+ * un canal parti suffit, et l'échec porte sa raison.
+ */
+export interface Envoi {
+  sent: boolean;
+  error?: string;
+}
+
+/**
+ * Lifecycle update to the client (confirmée, transmise, servie…).
+ *
+ * IL REND CE QU'IL SAIT, depuis le 26 octobre 2026, et c'est la correction d'un
+ * silence en amont de tous ses appelants : il rendait `void`. Trois chemins
+ * mènent ici à « rien n'est parti » — aucun contact joignable, aucun canal
+ * ouvert pour ce genre de message, un fournisseur qui refuse — et AUCUN ne
+ * ressortait. Douze appelants ne pouvaient donc pas savoir si le client avait
+ * été prévenu, et le seul qui en avait besoin — le robot des arbitrages, qui
+ * ferme l'ordre d'un client sans personne pour le regarder — avait fini par
+ * écrire `.catch(() => {})`, c'est-à-dire le try/catch vide que cette maison a
+ * déjà payé une fois.
+ *
+ * LE PUSH NE COMPTE PAS DANS LE VERDICT. Il part en plus, vers un appareil que
+ * le client peut avoir désinstallé, et les deux canaux nommés sont ce que le
+ * registre des notifications tient pour la preuve d'un envoi.
+ */
+export async function notifyIntentUpdated(i: Intent, o: Offer, state: IntentState, advisor?: string): Promise<Envoi> {
   const c = await contactForIntent(i);
-  if (!c) return;
+  if (!c) return { sent: false, error: "aucun contact joignable" };
   const m = intentUpdated(i, o, state, advisor);
   const kind: NotifyKind = state === "servie" || state === "non_servie" ? "results" : "intent_update";
-  for (const t of targets(c, ["whatsapp", "email"], kind)) await deliver(kind, t, m, { intentId: i.id, offerId: o.id });
+  const rows: Notification[] = [];
+  for (const t of targets(c, ["whatsapp", "email"], kind)) rows.push(await deliver(kind, t, m, { intentId: i.id, offerId: o.id }));
   /* LE PUSH NE PORTAIT QUE LES OPPORTUNITÉS, et c'était l'inverse de ce qu'il
      faut. Un client qui installe le Guichet et accepte les alertes recevait
      « une nouvelle ligne est ouverte » et jamais « votre ordre est servi ». Or
@@ -143,6 +171,8 @@ export async function notifyIntentUpdated(i: Intent, o: Offer, state: IntentStat
      servi » et « réglé » sont précisément les mots qu'on veut savoir dans la
      seconde, sans ouvrir sa boîte mail. */
   await pousser(c, kind, { title: pushTitre(state), body: m.text.slice(0, 140), url: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/offres/${o.id}`, tag: `intent-${i.id}` }, { intentId: i.id, offerId: o.id });
+  if (rows.some((x) => x.status === "sent")) return { sent: true };
+  return { sent: false, error: rows.map((x) => `${x.channel} : ${x.status}${x.error ? ` (${x.error})` : ""}`).join(" · ") || "aucun canal ouvert pour ce message" };
 }
 
 /** Le titre d'une notification : court, et il dit l'état plutôt que « Guichet ». */
