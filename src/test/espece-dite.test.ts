@@ -128,6 +128,74 @@ describe("ce que le client apprend quand son argent bouge", () => {
     expect(envoyes[0], "le message ne dit pas sur quelle ligne").toMatch(/OTA RCA/);
   });
 
+  it("dit la reprise d'un prélèvement, parce que l'arrêt avait été annoncé", async () => {
+    /* L'ASYMÉTRIE QUI NE TENAIT PAS : le rejet dit « votre prélèvement est
+       ARRÊTÉ : nous ne présenterons plus rien tant que nous n'aurons pas repris
+       les choses avec vous ». Le desk le réactivait en silence, et le client —
+       qui avait lu l'arrêt noir sur blanc — découvrait un débit sur son relevé.
+       C'est le même principe que le préavis : reprendre sans le dire, c'est
+       reprendre sans préavis. */
+    const { repo } = await import("@/lib/data");
+    const r = repo();
+    const m = await r.createMandat({
+      userId: CLIENT,
+      objet: "provision",
+      amount: 50_000,
+      dayOfMonth: 5,
+      accountHolder: "G. Nitcheu",
+      bankName: "Afriland First Bank",
+      bankAccount: "10005 00001 12345678901 76",
+    });
+    await r.updateMandat(m.id, { state: "suspendu", signedAt: new Date().toISOString() });
+    const { reactiverLeMandat } = await import("@/app/desk/prelevements/actions");
+    const res = await reactiverLeMandat(null, form({ id: m.id }));
+    expect(res.ok, res.ok ? "" : res.error).toBe(true);
+    const envoyes = await dits(/est repris/);
+    expect(envoyes.length, "le prélèvement reprend en silence après un arrêt annoncé").toBeGreaterThan(0);
+    expect(envoyes[0], "le message ne nomme pas le mandat repris").toContain(m.ref);
+    expect(envoyes[0], "le message ne dit pas que chaque échéance sera annoncée").toMatch(/annoncée cinq jours avant/);
+  });
+
+  it("dit les droits de garde prélevés, et cite l'avis qui les détaille", async () => {
+    /**
+     * LE SEUL MESSAGE DE CE LOT QUI ANNONCE UN DÉBIT.
+     *
+     * « Un frais qu'on ne voit qu'en ligne est un frais qu'on subit ; celui
+     * qu'on peut citer dans une réclamation est un frais qu'on vérifie » — c'est
+     * écrit au-dessus de la fabrication de l'avis, et c'était vrai à moitié : le
+     * papier était fabriqué, numéroté, déposé dans les pièces du client, et
+     * personne ne lui disait qu'il existait.
+     *
+     * LE MESSAGE EST ÉPROUVÉ ICI, ET SON CÂBLAGE PAR LA SOURCE, plus bas : le
+     * geste est dormant — le barème est fermé à zéro par décision de la
+     * maison — et le conduire demanderait d'ouvrir le barème ET de bâtir un
+     * historique de positions sur un trimestre. Le jour où le barème s'ouvrira,
+     * cette épreuve-là vaudra d'être écrite.
+     */
+    const { direLesDroitsDeGarde } = await import("@/lib/notify/espece");
+    const envoi = await direLesDroitsDeGarde(CLIENT, { montant: 12_500, periode: "2026-T3", ref: "AG-2026T3-0007" });
+    expect(envoi.sent || envoi.error, "rien n'a été tenté").toBeTruthy();
+    const envoyes = await dits(/droits de garde/i);
+    expect(envoyes.length, "le client est prélevé et n'apprend rien").toBeGreaterThan(0);
+    expect(envoyes[0], "le message ne dit pas le montant prélevé").toMatch(/12\s?500/);
+    expect(envoyes[0], "le message ne dit pas la période : un frais sans période ne se vérifie pas").toContain("2026-T3");
+    expect(envoyes[0], "le message ne cite pas l'avis, que le client citera s'il conteste").toContain("AG-2026T3-0007");
+    expect(envoyes[0], "le message ne dit pas que le détail du calcul existe").toMatch(/ligne par ligne/);
+  });
+
+  it("ne prélève pas en silence, et ne dit rien quand rien n'est dû", async () => {
+    /* LE CÂBLAGE, PAR LA SOURCE. Deux choses, et la seconde compte autant : le
+       message part, et il NE PART PAS quand le barème fermé ne doit rien —
+       annoncer un prélèvement de zéro franc apprendrait à ne plus lire ces
+       messages-là. */
+    const { readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const src = readFileSync(join(__dirname, "../app/desk/garde/actions.ts"), "utf8");
+    expect(src, "l'émission d'un avis de garde ne prévient plus le client du prélèvement").toMatch(/direLesDroitsDeGarde\(c\.clientId/);
+    expect(src, "le message part même quand rien n'est dû").toMatch(/if \(d\.du > 0\) \{[\s\S]{0,400}direLesDroitsDeGarde/);
+    expect(src, "le desk ne saura pas que le client n'a pas été joint").toMatch(/client non prévenu<\/b> du prélèvement/);
+  });
+
   it("ne laisse pas un canal injoignable défaire une écriture d'espèces", async () => {
     /* LA RÈGLE DES CINQ : l'argent est parti, et un message qui ne part pas se
        voit au fil du desk, nommément. Faire reculer une écriture parce qu'un

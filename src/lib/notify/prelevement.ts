@@ -87,6 +87,34 @@ export async function direLEncaissement(m: MandatPrelevement, p: { dueOn: string
   }
 }
 
+/**
+ * LA REPRISE, APRÈS UN ARRÊT QUI AVAIT ÉTÉ ANNONCÉ.
+ *
+ * RELEVÉ À LA REVUE DES PAGES CLIENT du 26 octobre 2026, et c'est une
+ * asymétrie qui ne tient pas : le rejet dit « votre prélèvement est ARRÊTÉ :
+ * nous ne présenterons plus rien tant que nous n'aurons pas repris les choses
+ * avec vous ». Le desk le réactivait ensuite en silence — et le client, qui
+ * avait lu l'arrêt noir sur blanc, découvrait un débit sur son relevé.
+ *
+ * C'EST LE MÊME PRINCIPE QUE LE PRÉAVIS : un prélèvement non annoncé est un
+ * débit qu'on découvre. Reprendre sans le dire, c'est reprendre sans préavis
+ * pour le mois où la reprise se décide.
+ */
+export async function direLaReprise(m: MandatPrelevement, p: { prochaine?: string }): Promise<{ sent: boolean; error?: string }> {
+  const quoi = m.objet === "provision" ? "votre provision" : "votre épargne programmée";
+  const quand = p.prochaine ? ` La prochaine échéance est le ${fmtDate(p.prochaine)}, annoncée cinq jours avant comme les autres.` : " Chaque échéance vous sera annoncée cinq jours avant, comme les autres.";
+  const text = `Purpose Capital : votre prélèvement pour ${quoi} (mandat ${m.ref}) est repris. Il était arrêté ; il se présentera de nouveau.${quand}`;
+  try {
+    const contact = await contactDe(m.userId, m);
+    if (!contact) return { sent: false, error: "Aucun canal joignable pour annoncer la reprise." };
+    const template = { name: tmpl("WA_TEMPLATE_UPDATE", "guichet_maj"), params: [m.accountHolder, text] };
+    const rows = await notifyRaw("intent_update", contact, { subject: `Votre prélèvement ${m.ref} est repris`, text, template });
+    return rows.some((x) => x.status === "sent") ? { sent: true } : { sent: false, error: rows.map((x) => `${x.channel} : ${x.status}`).join(" · ") || "aucun canal joignable" };
+  } catch (e) {
+    return { sent: false, error: e instanceof Error ? e.message : "échec de l'envoi" };
+  }
+}
+
 export async function direLeRejet(m: MandatPrelevement, p: { dueOn: string; amount: number; motif: MotifDeRejet; prochaine?: string }): Promise<{ sent: boolean; error?: string }> {
   /* « NOUS LE REPRÉSENTERONS » A DISPARU avec la seconde présentation : ce
      mois-ci est sauté, et la phrase dit la date où l'on revient plutôt qu'une

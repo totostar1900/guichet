@@ -250,7 +250,13 @@ export async function reactiverLeMandat(_p: PrelevementResult | null, form: Form
   await r.updateMandat(id, { state: "actif", rejects: 0 });
   await audit("prelevement.reactive", "client", m.userId, { after: { mandat: m.ref }, reason: `Mandat ${m.ref} réactivé` });
   await r.logEvent({ kind: "desk", html: `Mandat ${escapeHtml(m.ref)} <b>réactivé</b> · par ${desk.name}` });
+  /* ET LE CLIENT L'APPREND, parce qu'on lui avait annoncé l'arrêt. Le rejet
+     dit « votre prélèvement est ARRÊTÉ, nous ne présenterons plus rien » :
+     reprendre en silence, c'est lui faire découvrir un débit sur son relevé. */
+  const { direLaReprise } = await import("@/lib/notify/prelevement");
+  const envoi = await direLaReprise(m, {}).catch((e) => ({ sent: false, error: e instanceof Error ? e.message : "échec" }));
+  if (!envoi.sent) await r.logEvent({ kind: "system", html: `Mandat ${escapeHtml(m.ref)} : <b>client non prévenu</b> de la reprise · ${escapeHtml(envoi.error ?? "canal injoignable")}` });
   revalidatePath("/desk/prelevements");
   revalidatePath("/moi/prelevements");
-  return { ok: true, message: `Mandat ${m.ref} réactivé. Il se présentera à sa prochaine échéance, annoncé comme les autres.` };
+  return { ok: true, message: `Mandat ${m.ref} réactivé, et le client est prévenu. Il se présentera à sa prochaine échéance, annoncé comme les autres.` };
 }

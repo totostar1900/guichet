@@ -5,6 +5,7 @@ import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { requireResponsable } from "@/lib/auth";
 import { repo } from "@/lib/data";
+import { direLesDroitsDeGarde } from "@/lib/notify/espece";
 import { baremeOuvert, periodeDeCle, type BaremeGarde } from "@/lib/domain/garde";
 import { apercuGarde } from "./apercu";
 import { GARDE_POLICY_KEY, loadBaremeGarde } from "@/lib/policy";
@@ -137,6 +138,15 @@ export async function emettreAvis(_p: GardeResult | null, form: FormData): Promi
       await r.logEvent({ kind: "system", html: `Avis de garde ${avis.ref} non produit en PDF : ${e instanceof Error ? e.message : "erreur"}` });
     }
     await audit("garde.avis", "client", c.clientId, { after: { ref: avis.ref, period: periode.cle, du: d.du }, reason: `avis de garde ${periode.cle} · ${fmt(Math.round(d.du))} FCFA` });
+    /* ET LE CLIENT L'APPREND, PARCE QU'ON LE PRÉLÈVE. C'est le seul geste de
+       la maison qui DÉBITE sans qu'il ait rien demandé : le papier était
+       fabriqué et numéroté, et personne ne lui disait qu'il existait. Rien ne
+       part quand rien n'est dû — le barème est fermé à zéro, et annoncer un
+       prélèvement de zéro franc apprendrait à ne plus lire ces messages. */
+    if (d.du > 0) {
+      const envoi = await direLesDroitsDeGarde(c.clientId, { montant: Math.round(d.du), periode: periode.cle, ref: avis.ref, nom: c.nom }).catch((e) => ({ sent: false, error: e instanceof Error ? e.message : "échec" }));
+      if (!envoi.sent) await r.logEvent({ kind: "system", html: `Avis de garde ${escapeHtml(avis.ref)} : <b>client non prévenu</b> du prélèvement · ${escapeHtml(envoi.error ?? "canal injoignable")}` });
+    }
     emis += 1;
   }
 

@@ -111,6 +111,33 @@ export async function direLeVersement(userId: string, p: { montant: number; dema
 }
 
 /**
+ * DES DROITS DE GARDE PRÉLEVÉS, et c'est le seul message de ce module qui
+ * annonce un DÉBIT.
+ *
+ * « Un frais qu'on ne voit qu'en ligne est un frais qu'on subit ; celui qu'on
+ * peut citer dans une réclamation est un frais qu'on vérifie » — c'est écrit
+ * au-dessus de la fabrication de l'avis, et c'était vrai à moitié : le papier
+ * était fabriqué, numéroté, déposé dans les pièces du client, et personne ne
+ * lui disait qu'il existait. Il découvrait le prélèvement sur sa position.
+ *
+ * LE MESSAGE PORTE LA RÉFÉRENCE DE L'AVIS, parce que c'est elle qu'il citera
+ * s'il conteste, et la période, parce qu'un frais sans période ne se vérifie
+ * pas.
+ *
+ * IL NE PART QUE SI QUELQUE CHOSE EST DÛ : le barème est fermé à zéro par
+ * défaut, et annoncer un prélèvement de zéro franc apprendrait à ne plus lire
+ * ces messages-là.
+ */
+export async function direLesDroitsDeGarde(userId: string, p: { montant: number; periode: string; ref: string; nom?: string }): Promise<Envoi> {
+  return envoyer(
+    userId,
+    p.nom,
+    `Droits de garde ${p.periode} : ${fmt(p.montant)} FCFA`,
+    `Purpose Capital : vos droits de garde pour ${p.periode} s'élèvent à ${fmt(p.montant)} FCFA, prélevés sur votre compte. L'avis ${p.ref} est dans vos documents : il détaille le calcul, ligne par ligne.`,
+  );
+}
+
+/**
  * UN REFUS, AVEC SON MOTIF, et c'est le message le plus important des cinq.
  *
  * C'est l'argent du client qu'on garde. Le motif est déjà obligatoire en base
