@@ -280,28 +280,68 @@ export function Retirer({ id, ref_ }: { id: string; ref_: string }) {
   const t = useT();
   const [pending, start] = useTransition();
   const [erreur, setErreur] = useState<string | null>(null);
+  const [demande, setDemande] = useState(false);
+
+  /**
+   * RETIRER SE CONFIRME, ET LA CONFIRMATION TIENT SUR PLACE.
+   *
+   * CE QUE LE DIRIGEANT A DEMANDÉ, le 26 octobre 2026 : « s'assurer que le
+   * bouton de suppression vienne avec une seconde confirmation ».
+   *
+   * ET IL PARTAIT AU PREMIER DOIGT, à côté de « Modifier », du même degré et de
+   * la même encre : les deux liens se touchent, et sur un téléphone un pouce
+   * qui glisse de six pixels retirait une intention au lieu de l'ouvrir. Ce
+   * qu'on retire ne se reprend pas — la ligne se clôt, elle quitte le consensus
+   * que le desk porte, et il faut la redire en entier.
+   *
+   * SANS FENÊTRE, parce que c'est la règle de la maison — déjà écrite sur
+   * l'arrêt d'un versement permanent : ce qu'on retire reste SOUS LES YEUX
+   * pendant qu'on décide. Une boîte modale cache précisément la ligne dont on
+   * se demande si c'est la bonne.
+   *
+   * LES DEUX BOUTONS NOMMENT LE GESTE : « Oui, retirer » et « Annuler ». Un
+   * « Confirmer » ne dit pas ce qu'il confirme, et c'est au moment où l'on
+   * hésite qu'on a besoin de le lire.
+   */
+  if (!demande)
+    return (
+      <>
+        {/* LA RÉFÉRENCE SORT DU LIBELLÉ et passe au nom accessible. Elle figure
+            déjà au bout de la ligne du dessus ; écrite ici une seconde fois,
+            elle faisait un lien de quarante signes pour un mot. Un lecteur
+            d'écran, lui, a besoin qu'elle y soit : « Retirer » annoncé trois
+            fois de suite n'annonce rien. */}
+        <button type="button" className={styles.retirer} aria-label={t("Retirer l'attente {r}", { r: ref_ })} onClick={() => setDemande(true)}>
+          {t("Retirer")}
+        </button>
+        {erreur && <em className={styles.erreur}>{erreur}</em>}
+      </>
+    );
+
   return (
-    <>
-      {/* LA RÉFÉRENCE SORT DU LIBELLÉ et passe au nom accessible. Elle figure
-          déjà au bout de la ligne du dessus ; écrite ici une seconde fois, elle
-          faisait un lien de quarante signes pour un mot. Un lecteur d'écran, lui,
-          a besoin qu'elle y soit : « Retirer » annoncé trois fois de suite
-          n'annonce rien. */}
+    <span className={styles.confirme}>
+      <span className={styles.quoi}>{t("Retirer cette intention ?")}</span>
       <button
         type="button"
         className={styles.retirer}
         disabled={pending}
-        aria-label={t("Retirer l'attente {r}", { r: ref_ })}
+        aria-label={t("Oui, retirer l'attente {r}", { r: ref_ })}
         onClick={() =>
           start(async () => {
             const r = await retirerLaLigne(id);
-            if (!r.ok) setErreur(r.error ?? t("Retrait impossible."));
+            if (!r.ok) {
+              setErreur(r.error ?? t("Retrait impossible."));
+              setDemande(false);
+            }
           })
         }
       >
-        {t(pending ? "Un instant…" : "Retirer")}
+        {t(pending ? "Un instant…" : "Oui, retirer")}
+      </button>
+      <button type="button" className={styles.lien} disabled={pending} onClick={() => setDemande(false)}>
+        {t("Annuler")}
       </button>
       {erreur && <em className={styles.erreur}>{erreur}</em>}
-    </>
+    </span>
   );
 }

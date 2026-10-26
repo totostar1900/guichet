@@ -120,6 +120,13 @@ export const EN_SONDAGE: Record<string, string> = {
   "Pourquoi cette ligne, ou ce qui vous ferait changer d'avis.": "Why this line, or what would change your mind.",
   Retirer: "Withdraw",
   "Retirer l'attente {r}": "Withdraw expression of interest {r}",
+  /* LA SECONDE CONFIRMATION, le 26 octobre 2026. Les deux boutons NOMMENT le
+     geste — « Oui, retirer » et « Annuler » : un « Confirmer » ne dit pas ce
+     qu'il confirme, et c'est au moment où l'on hésite qu'on a besoin de le
+     lire. L'anglais tient la même règle. */
+  "Retirer cette intention ?": "Withdraw this expression of interest ?",
+  "Oui, retirer": "Yes, withdraw",
+  "Oui, retirer l'attente {r}": "Yes, withdraw expression of interest {r}",
   "Retrait impossible.": "Cannot be withdrawn.",
 
   /* ---------- Le gabarit, lu au domaine ---------- */

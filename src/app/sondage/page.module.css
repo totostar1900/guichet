@@ -68,6 +68,22 @@
   padding: var(--s-5);
 }
 
+/* LA CONFIRMATION DU RETRAIT, SUR PLACE : elle prend la place des deux liens,
+   sur la même ligne de base, et ne pousse rien — ce qu'on retire doit rester
+   sous les yeux pendant qu'on décide. */
+.confirme {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+}
+/* LA QUESTION PORTE L'ENCRE PLEINE et les liens l'encre atténuée : c'est elle
+   qu'on doit lire avant de toucher l'un des deux. */
+.quoi {
+  color: var(--ink);
+  font-size: var(--t-3);
+}
+
 /* MODIFIER PUIS RETIRER, sur une ligne : le premier est le geste ordinaire, le
    second est définitif et ne doit pas être le premier sous la main. */
 .gestes {

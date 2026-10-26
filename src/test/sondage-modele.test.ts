@@ -175,6 +175,45 @@ describe("le modèle du sondage", () => {
   });
 
   /**
+   * RETIRER NE PART PAS AU PREMIER DOIGT.
+   *
+   * CE QUE LE DIRIGEANT A DEMANDÉ, le 26 octobre 2026 : « s'assurer que le
+   * bouton de suppression vienne avec une seconde confirmation ».
+   *
+   * ET LE RISQUE EST DANS LA GÉOMÉTRIE : « Modifier » et « Retirer » se touchent
+   * sur la même ligne, au même degré et dans la même encre. Sur un téléphone, un
+   * pouce qui glisse de six pixels retire une intention au lieu de l'ouvrir — et
+   * ce qu'on retire ne se reprend pas : la ligne se clôt, elle quitte le
+   * consensus que le desk porte, et il faut la redire en entier.
+   *
+   * CE QUE L'ÉPREUVE TIENT : que le PREMIER bouton n'appelle pas le retrait. Un
+   * jour quelqu'un simplifiera « ce clic en trop », et c'est ce jour-là que
+   * cette ligne doit tomber.
+   */
+  it("ne retire une intention qu'après une seconde confirmation", () => {
+    const f = lire("src/app/sondage/Formulaires.tsx");
+    const retirer = f.slice(f.indexOf("export function Retirer"));
+    const vif = retirer.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+    /* Le premier bouton ne fait qu'ouvrir la question. */
+    const premier = vif.slice(vif.indexOf('aria-label={t("Retirer l\'attente {r}"'), vif.indexOf("</button>"));
+    expect(premier, "le bouton « Retirer » appelle de nouveau le retrait au premier doigt").not.toMatch(/retirerLaLigne/);
+    expect(premier, "le bouton « Retirer » n'ouvre plus la question").toMatch(/setDemande\(true\)/);
+    /* Et le retrait est derrière un bouton qui nomme le geste. */
+    expect(vif, "la question du retrait a disparu").toMatch(/Retirer cette intention \?/);
+    expect(vif, "le bouton de confirmation ne nomme plus le geste").toMatch(/Oui, retirer/);
+    /* « ANNULER » PORTE LE RAVISEMENT, et l'épreuve lit CE bouton-là : vérifiée
+       à l'envers le 26 octobre 2026, elle restait verte le geste retiré du
+       bouton, parce que « setDemande(false) » paraît aussi dans la branche
+       d'échec du retrait. Une garde qui trouve son motif ailleurs ne garde
+       rien. */
+    const annuler = vif.slice(vif.indexOf("className={styles.lien}"));
+    expect(annuler.slice(0, annuler.indexOf("</button>")), "on ne peut plus se raviser : « Annuler » ne referme plus la question").toMatch(/setDemande\(false\)/);
+    /* NON VACUITÉ : le retrait existe toujours, et il est appelé quelque part —
+       une confirmation qui ne retire rien serait verte et inutile. */
+    expect([...vif.matchAll(/retirerLaLigne\(id\)/g)].length, "le retrait n'est plus appelé du tout, ou il l'est deux fois").toBe(1);
+  });
+
+  /**
    * LE BOUTON DE LA LIGNE DU CLIENT A SA PROPRE BANDE, ENTRE LES DEUX LISTES.
    *
    * CE QUE LE DIRIGEANT A DEMANDÉ, le 26 octobre 2026 : « un bouton à lui,
