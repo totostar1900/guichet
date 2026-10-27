@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { RACINE } from "./racine";
 import { describe, expect, it } from "vitest";
 import { JOUR_MAX, JOUR_MIN, mandatVivant, tirageAutorise, verifierLeMandat, type MandatPrelevement } from "@/lib/domain/mandat";
 
@@ -191,5 +192,112 @@ describe("ce que le parcours du mandat doit dire", () => {
     expect(mandat, "le cadre manuscrit pour la banque a disparu").toContain("Signature manuscrite du débiteur, pour sa banque");
     expect(mandat, "le cadre manuscrit paraît même sur un mandat non signé : il démentirait la signature").toMatch(/\{mandat\.signedAt \? \(/);
     expect(mandat, "rien ne dit au client que ce cadre ne conditionne aucun prélèvement").toMatch(/aucun prélèvement\s*\n?\s*n&apos;attend ce cadre/);
+  });
+});
+
+/**
+ * CE QUI CLOCHE SE DIT, ET IL DÉSIGNE LE CHAMP.
+ *
+ * RELEVÉ LE 27 OCTOBRE 2026, en conduisant l'application avec des données
+ * factices comme un client l'avait fait. Trois saisies différentes — un
+ * montant vide, un montant « abc », une banque d'une lettre — rendaient TOUTES
+ * la même phrase : « Vérifiez les champs : banque, compte, titulaire,
+ * montant. » Quatre champs nommés, aucun désigné, aucune raison.
+ *
+ * ET LE MANDAT MARCHAIT. Rempli correctement, il se prépare, se signe et
+ * produit sa pièce : ce qui échouait n'était pas le geste, c'était la capacité
+ * de l'application à dire quoi corriger — et un client qui ne sait pas quoi
+ * corriger conclut que ça ne marche pas.
+ *
+ * LES PHRASES EXISTAIENT, INATTEIGNABLES : le contrôle de forme passait en
+ * premier et rendait sa phrase générique pour tout ce qu'il rejetait. Du code
+ * mort pour précisément les cas où le client a besoin d'être guidé. C'est
+ * pourquoi le domaine porte maintenant TOUTES les règles, longueurs comprises :
+ * une règle et sa phrase au même endroit, sinon l'une bouge sans l'autre.
+ */
+describe("ce qui cloche dans un mandat se dit en toutes lettres", () => {
+  const sans = (quoi: Partial<MandatPrelevement>) => verifierLeMandat({ ...base, ...quoi });
+
+  it("nomme le champ, et jamais une liste de quatre", () => {
+    /* LA RÈGLE DE CETTE FEUILLE : une phrase qui nomme plusieurs champs
+       n'en désigne aucun. Un client lit « banque, compte, titulaire, montant »
+       et relit les quatre sans savoir lequel reprendre. */
+    const phrases = [
+      sans({ accountHolder: "" }),
+      sans({ accountHolder: "G" }),
+      sans({ bankAccount: "" }),
+      sans({ bankAccount: "123" }),
+      sans({ bankName: "" }),
+      sans({ bankName: "X" }),
+      sans({ amount: 0 }),
+      sans({ dayOfMonth: 31 }),
+    ];
+    /* ON COMPTE LES CHAMPS NOMMÉS, et non les virgules : une bonne phrase en
+       porte — « Indiquez le montant à prélever chaque mois, en chiffres : c'est
+       lui qui sera présenté à votre banque » en a trois et ne désigne qu'un
+       champ. Compter la ponctuation l'aurait condamnée, et c'est la phrase
+       qu'on veut. Mesuré en écrivant l'épreuve. */
+    const CHAMPS = [/banque/i, /\b(RIB|IBAN|compte)\b/i, /titulaire/i, /montant/i, /jour du mois/i];
+    for (const p of phrases) {
+      expect(p, "une saisie fautive ne dit rien").toBeTruthy();
+      const nommes = CHAMPS.filter((c) => c.test(p!)).length;
+      expect(nommes, `« ${p} » énumère ${nommes} champs au lieu d'en désigner un`).toBeLessThan(3);
+    }
+    // Et chacune est distincte : huit fautes, huit phrases.
+    expect(new Set(phrases).size, "deux fautes différentes rendent la même phrase").toBe(phrases.length);
+  });
+
+  it("dit la raison, et non seulement le champ", () => {
+    /* « Le RIB est invalide » envoie le client regarder son RIB sans savoir
+       quoi y chercher. « Votre banque vous le donne en entier, sur votre
+       relevé » lui dit où aller. */
+    expect(sans({ bankAccount: "123" })).toMatch(/trop court[\s\S]*relevé/);
+    expect(sans({ amount: 0 })).toMatch(/en chiffres/);
+    expect(sans({ dayOfMonth: 31 })).toMatch(/tous les mois ont ces jours-là/);
+  });
+
+  it("laisse passer un mandat correct", () => {
+    // Non vacuité : un contrôle qui refuserait tout passerait les deux épreuves ci-dessus.
+    expect(verifierLeMandat(base)).toBeUndefined();
+    expect(sans({ bankName: "BG" })).toBeUndefined();
+    expect(sans({ accountHolder: "Ng" })).toBeUndefined();
+    expect(sans({ bankAccount: "123456" })).toBeUndefined();
+  });
+
+  it("ne compte pas les espaces d'un RIB comme des chiffres", () => {
+    /* Un RIB se lit et se recopie par groupes. La longueur se mesure donc sur
+       les seuls caractères du numéro : « 1 2 3 4 » fait sept signes et quatre
+       chiffres, et c'est quatre chiffres qu'il faut juger.
+
+       L'EXEMPLE EST CHOISI POUR DISTINGUER, et le premier ne distinguait rien :
+       « 1 2 3 » est trop court des deux façons de compter, donc l'épreuve
+       passait au vert même en retirant la mesure. Trouvé en vérification à
+       l'envers, où le défaut réintroduit n'a fait tomber personne. Et le
+       commentaire d'alors disait l'inverse du code : retirer les espaces rend
+       la règle PLUS stricte, non plus permissive. */
+    expect(sans({ bankAccount: "1 2 3 4" }), "sept signes passent pour un numéro de compte").toMatch(/trop court/);
+    // Et un vrai numéro écrit par groupes passe, lui.
+    expect(sans({ bankAccount: "CM21 10005 00001 12345678901 23" })).toBeUndefined();
+  });
+});
+
+describe("l'action du mandat interroge le sens avant la forme", () => {
+  it("le domaine parle en premier, et le schéma ne rend plus de phrase générique", () => {
+    /* LE CLIQUET QUI MANQUAIT. Les bonnes phrases étaient derrière un refus
+       générique ; rien n'empêchait d'y revenir, et le défaut est invisible à
+       la lecture — un refus de formulaire ressemble trait pour trait à un
+       autre. */
+    const src = readFileSync(`${RACINE}/src/app/moi/prelevements/actions.ts`, "utf8");
+    /* ON REGARDE CE QUI EST RENDU, et non ce qui est écrit : le commentaire
+       au-dessus du correctif CITE la phrase d'avant pour expliquer le défaut,
+       et un cliquet qui chercherait les mots tomberait sur l'explication. */
+    expect(src, "la phrase générique est revenue").not.toMatch(/error: "Vérifiez les champs/);
+    /* L'ORDRE EST LE SUJET : le domaine est interrogé DANS la branche du refus
+       de forme, donc avant qu'elle ne rende sa main. */
+    const branche = /if \(!parsed\.success\) \{[\s\S]*?\n  \}/.exec(src)?.[0] ?? "";
+    expect(branche, "le refus de forme ne passe plus par le domaine").toMatch(/verifierLeMandat\(/);
+    expect(branche, "le refus de forme ne nomme pas le champ en dernier recours").toMatch(/CHAMPS\[/);
+    // Non vacuité : la branche a bien été trouvée.
+    expect(branche.length).toBeGreaterThan(200);
   });
 });

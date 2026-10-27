@@ -129,16 +129,48 @@ export const JOUR_MAX = 28;
  */
 export const MOIS_REFUSES_AVANT_ARRET = 2;
 
-/** Ce qui cloche dans un mandat proposé, ou rien. */
+/** Les bornes de saisie, tenues ici pour que la phrase et la règle ne divergent pas. */
+export const NOM_MIN = 2;
+export const COMPTE_MIN = 6;
+
+/**
+ * Ce qui cloche dans un mandat proposé, ou rien.
+ *
+ * ─── POURQUOI TOUTES LES RÈGLES SONT ICI ───────────────────────────────────
+ *
+ * RELEVÉ LE 27 OCTOBRE 2026, en conduisant l'application avec des données
+ * factices, comme un client l'avait fait. Trois saisies différentes — un
+ * montant vide, un montant « abc », une banque d'une lettre — rendaient TOUTES
+ * la même phrase : « Vérifiez les champs : banque, compte, titulaire,
+ * montant. » Quatre champs nommés, aucun désigné, et rien sur la raison.
+ *
+ * Les bonnes phrases existaient pourtant, juste en dessous — « Indiquez le
+ * montant à prélever chaque mois : c'est lui qui sera présenté à votre
+ * banque » — et elles étaient INATTEIGNABLES : le contrôle de forme passait en
+ * premier et rendait sa phrase générique pour tout ce qu'il rejetait. Du code
+ * mort, donc, pour précisément les cas où le client a besoin d'être guidé.
+ *
+ * Les longueurs minimales vivaient dans le schéma de l'action, où elles
+ * n'avaient pas de mots. Elles sont ici désormais : une règle et sa phrase se
+ * tiennent au même endroit, sinon l'une bouge sans l'autre. Le schéma reste la
+ * garde de TYPE ; celui-ci est la garde de SENS, et c'est lui qui parle au
+ * client.
+ *
+ * C'est la façon de faire du reste de la maison : l'ouverture de compte nomme
+ * chaque manque, et `missingForSubmission` en rend la liste en toutes lettres.
+ */
 export function verifierLeMandat(m: Partial<NewMandat>): string | undefined {
   if (!m.accountHolder?.trim()) return "Le titulaire du compte à débiter doit être nommé.";
+  if (m.accountHolder.trim().length < NOM_MIN) return `Le nom du titulaire est trop court : ${NOM_MIN} caractères au moins, tel qu'il est écrit sur le compte.`;
   if (!m.bankAccount?.trim()) return "Le RIB ou l'IBAN du compte à débiter est requis.";
+  if (m.bankAccount.replace(/\s/g, "").length < COMPTE_MIN) return `Ce RIB ou IBAN est trop court pour être un numéro de compte : votre banque vous le donne en entier, sur votre relevé.`;
   if (!m.bankName?.trim()) return "La banque du compte à débiter est requise.";
+  if (m.bankName.trim().length < NOM_MIN) return `Le nom de la banque est trop court : ${NOM_MIN} caractères au moins.`;
   /* UN SEUL MONTANT, ET IL EST OBLIGATOIRE DES DEUX CÔTÉS. Il l'était pour la
      provision seulement ; une épargne programmée tenait le sien de
      l'instruction, ce qui laissait un mandat sans chiffre signé. Or ce qui est
      présenté à la banque est ce que le client a écrit. */
-  if (!m.amount || m.amount <= 0) return "Indiquez le montant à prélever chaque mois : c'est lui qui sera présenté à votre banque, ni plus ni moins.";
+  if (!m.amount || m.amount <= 0) return "Indiquez le montant à prélever chaque mois, en chiffres : c'est lui qui sera présenté à votre banque, ni plus ni moins.";
   if (m.objet === "provision" && (!m.dayOfMonth || m.dayOfMonth < JOUR_MIN || m.dayOfMonth > JOUR_MAX)) {
     return `Choisissez un jour du mois entre ${JOUR_MIN} et ${JOUR_MAX} : tous les mois ont ces jours-là.`;
   }

@@ -21,6 +21,24 @@ async function monMandat(id: string): Promise<{ m: MandatPrelevement; userId: st
   return m ? { m, userId: s.userId } : null;
 }
 
+/**
+ * Le nom que le client lit sur l'écran, pour chaque champ du formulaire.
+ *
+ * Sert au seul cas que le domaine ne sait pas juger : une forme que le schéma
+ * refuse alors que le sens est bon. Dire « objet » ou « standingId » à un
+ * client ne l'aide pas ; dire « à quoi sert ce prélèvement » l'envoie au bon
+ * endroit de la page.
+ */
+const CHAMPS: Record<string, string> = {
+  objet: "à quoi sert ce prélèvement",
+  standingId: "l'épargne programmée à alimenter",
+  bankName: "la banque du compte à débiter",
+  bankAccount: "le RIB ou IBAN du compte à débiter",
+  accountHolder: "le titulaire du compte à débiter",
+  dayOfMonth: "le jour du mois",
+  amount: "le montant prélevé chaque mois",
+};
+
 const creation = z.object({
   objet: z.enum(["provision", "instruction"]),
   standingId: z.string().optional(),
@@ -43,8 +61,43 @@ const creation = z.object({
  */
 export async function creerMandatAction(_p: MandatResult | null, form: FormData): Promise<MandatResult> {
   const s = await requireSession(PATH);
-  const parsed = creation.safeParse(Object.fromEntries(form));
-  if (!parsed.success) return { ok: false, error: "Vérifiez les champs : banque, compte, titulaire, montant." };
+  const brut = Object.fromEntries(form) as Record<string, string>;
+  const parsed = creation.safeParse(brut);
+  /**
+   * CE QUI CLOCHE SE DIT, ET IL SE DIT AVANT LE CONTRÔLE DE FORME.
+   *
+   * RELEVÉ LE 27 OCTOBRE 2026, en conduisant l'application avec des données
+   * factices comme un client l'avait fait : un montant vide, un montant
+   * « abc » et une banque d'une lettre rendaient TOUS la même phrase —
+   * « Vérifiez les champs : banque, compte, titulaire, montant » — qui nomme
+   * quatre champs, n'en désigne aucun, et ne dit pas la raison. Le mandat
+   * marchait ; c'est l'application qui ne disait pas quoi corriger.
+   *
+   * `verifierLeMandat` porte la phrase de chaque règle, et elle était
+   * inatteignable : le schéma rejetait d'abord. On l'interroge donc EN PREMIER,
+   * sur les valeurs lues telles quelles — `parseAmount` rend zéro de
+   * « abc », ce qui est exactement ce que le domaine sait juger.
+   *
+   * LE SCHÉMA RESTE, ET IL GARDE SON RÔLE : c'est la garde de TYPE, celle qui
+   * refuse ce qui n'est pas un nombre ou pas une des deux valeurs de
+   * « objet ». S'il refuse quelque chose que le domaine a laissé passer, c'est
+   * une forme imprévue — et on nomme alors le champ plutôt que de rendre la
+   * main sans rien dire.
+   */
+  if (!parsed.success) {
+    const souci = verifierLeMandat({
+      objet: brut.objet as "provision" | "instruction" | undefined,
+      standingId: brut.standingId || undefined,
+      bankName: brut.bankName,
+      bankAccount: brut.bankAccount,
+      accountHolder: brut.accountHolder,
+      amount: parseAmount(brut.amount),
+      dayOfMonth: brut.dayOfMonth ? Number(brut.dayOfMonth.replace(/\D/g, "")) || undefined : undefined,
+    });
+    if (souci) return { ok: false, error: souci };
+    const quoi = parsed.error.issues[0];
+    return { ok: false, error: `Ce champ n'a pas été compris : ${CHAMPS[String(quoi?.path[0] ?? "")] ?? quoi?.path.join(".") ?? "un champ du formulaire"}. Reprenez-le, puis réessayez.` };
+  }
   /* UN SEUL MONTANT, ET PLUS DE PLAFOND — décidé le 25 octobre 2026.
      Le plafond existait pour le jour où le montant prélevé pourrait changer
      sans le client, ce qui était le cas d'une épargne programmée dont le
