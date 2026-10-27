@@ -157,6 +157,14 @@ export const HEALTH_HOW: Record<string, HealthHow> = {
     how: "La maison est restée au plan gratuit de Supabase, décidé le 11 octobre 2026 : la base ne pèse rien, et la vraie échéance est le gigaoctet de stockage. Ce point compte les jours qui restent au rythme des trente derniers, et non un pourcentage, parce qu'un pourcentage ne dit pas s'il faut agir cette semaine. Orange à soixante jours : c'est le moment de décider. Rouge à vingt et un : prendre Pro, qui porte le plafond à huit gigaoctets, et changer PLAFOND_STOCKAGE dans le code, sinon le point continuera d'alerter sur l'ancien plafond. L'autre voie a été prise le 16 octobre 2026 : les 483 Mo de communiqués de la BEAC et de documents d'émetteurs sont sortis vers la bibliothèque partagée, où ils étaient déjà, et le dépôt est retombé de 653 à 13,8 Mo. Une pièce ne sort que si elle est inscrite à une place, que le fichier y est, qu'il pèse le même poids à l'octet près, et qu'elle a déjà été lue, le cron de nuit lisant ses octets depuis le dépôt.",
     docs: { href: "/desk/docs/plateformes", label: "Plateformes, services et coûts" },
   },
+  schema: {
+    label: "Schéma de la base contre les migrations du dépôt",
+    /* Il n'y a pas de page pour réparer cela : la réparation est un geste
+       d'exploitation, pas un bouton. On envoie donc où c'est expliqué. */
+    href: "/desk/docs/technique",
+    how: "Une migration du dépôt n'est pas appliquée à la base. Les passer DANS L'ORDRE, à la main, depuis l'éditeur SQL de Supabase ou la ligne de commande, puis recharger cette page : le point redevient vert de lui-même. Le détail nomme ce qui manque — une table, une colonne, un index, une valeur d'énumération — ce qui suffit à retrouver le fichier dans supabase/migrations. Ce point est né le 27 octobre 2026, après quatre jours pendant lesquels sept migrations sont restées non appliquées sous du code déjà déployé : le robot des relances criait dans les journaux de Vercel, et ceux de l'arbitrage et du sondage ne criaient pas du tout — ils levaient au premier appel, et cette page les montrait en bonne santé puisqu'ils avaient bien tourné. Il se tait quand il n'a pas pu regarder, ce qui est le cas en développement, où le dépôt est en mémoire et n'a pas de schéma.",
+    docs: { href: "/desk/docs/technique", label: "La base, les migrations et le déploiement" },
+  },
   "quatre-yeux": {
     label: "Gestes passés sans second regard",
     href: "/desk/approbations",

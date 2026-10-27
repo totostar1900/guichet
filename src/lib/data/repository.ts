@@ -3,6 +3,7 @@ import type { ActionClient, Genre, NouvelleActionClient } from "@/lib/domain/jou
 import type { MesurePosee } from "@/lib/domain/mesure";
 import type { AccesCompte, CauseDeRetrait } from "@/lib/domain/acces-nomme";
 import type { Stockage } from "@/lib/domain/stockage";
+import type { SchemaVu } from "@/lib/domain/schema-declare";
 import type { Approval, AuditEntry, BudgetEtat, ChannelCode, ChannelStatus, ClientPrefs, Contact, DeskExchange, DeskThread, DeviceKind, DocumentType, EventLog, GeneratedDocument, InboundMessage, IntakeItem, Intent, IntentState, LigneSondee, NewLigneSondee, NewAuditEntry, NewIntentInput, NoteBudget, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TemplateText, TemplateTextStatus, TrustedDevice, Watch } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
@@ -228,6 +229,16 @@ export interface Repository {
   setContactOptIn(id: string, optIn: boolean): Promise<void>;
   /** Ce que pèse le stockage et ce qui s y ajoute : sert au point de Santé qui annonce le plafond du plan. */
   tailleDuStockage(): Promise<Stockage | undefined>;
+  /**
+   * Les noms des objets que la base porte : tables, colonnes, index, valeurs
+   * d énumération du schéma public.
+   *
+   * Sert au point « Schéma » de Santé, qui les compare à ce que les migrations
+   * du dépôt déclarent. Rend « undefined » là où la question n a pas de sens —
+   * le dépôt mémoire n a pas de schéma — et le point se tait alors plutôt que
+   * d annoncer cinquante huit tables manquantes.
+   */
+  objetsDuSchema(): Promise<SchemaVu | undefined>;
   /** Pose ou lève la mesure qui pèse sur un compte ; l histoire vit dans l audit. */
   setMesure(userId: string, m: MesurePosee): Promise<void>;
 

@@ -3,6 +3,8 @@ import { loadNews } from "@/lib/news";
 import { isVisible } from "@/lib/news/model";
 import { deskRecipients } from "@/lib/notify/recipients";
 import { repo } from "@/lib/data";
+import { SCHEMA_ATTENDU } from "@/lib/domain/schema-attendu";
+import { compteDeLEcart, ecartDeSchema } from "@/lib/domain/schema-declare";
 import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
 import { localIso } from "@/lib/format";
 import { bondTerms } from "@/lib/domain/status";
@@ -791,6 +793,59 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
         lu.jours == null
           ? `${taille.fichiers} fichiers, rien ajouté depuis trente jours`
           : `${taille.fichiers} fichiers, ${enMo(lu.parJour)} par jour : le plafond du plan dans ${lu.jours} jour(s)`,
+    });
+  }
+
+  /**
+   * LE SCHÉMA DE LA BASE CONTRE CE QUE LES MIGRATIONS DÉCLARENT.
+   *
+   * RELEVÉ LE 27 OCTOBRE 2026, et il a coûté quatre jours. Sept migrations
+   * étaient restées non appliquées pendant que le code qui en dépendait
+   * tournait en production, et les trois conséquences ne se lisaient pas au
+   * même endroit :
+   *
+   *   LES RELANCES criaient dans les journaux de Vercel, que personne n'ouvre
+   *   tous les matins, et leur robot échouait depuis le 23 octobre.
+   *
+   *   L'ARBITRAGE ET LE SONDAGE ne criaient PAS. Leurs robots levaient au
+   *   premier appel, l'enveloppe inscrivait l'échec, et cette page montrait des
+   *   robots EN BONNE SANTÉ puisqu'ils avaient bien tourné. La borne qu'un
+   *   client signe ne jouait pas, et rien nulle part ne disait pourquoi.
+   *
+   * Douze points veillaient sur la donnée de marché ; aucun ne regardait la
+   * base. La panne la plus confortable de la maison vivait dans l'outil qui
+   * sert à les traquer.
+   *
+   * ROUGE, ET NON ORANGE : le passage du soir envoie les rouges au desk par
+   * courriel, et c'est précisément ce qui aurait dû arriver le 23 octobre au
+   * lieu de quatre matins de silence.
+   *
+   * IL SE TAIT QUAND IL N'A PAS PU REGARDER, comme le point du stockage. Deux
+   * cas : le dépôt mémoire, qui n'a pas de schéma, et une base où la fonction
+   * « objets_du_schema » n'est pas encore posée. Annoncer « cinquante-huit
+   * tables manquantes » dans ces cas-là ferait un rouge permanent, et un rouge
+   * permanent ne se lit plus.
+   */
+  const vuEnBase = await r.objetsDuSchema().catch(() => undefined);
+  if (vuEnBase) {
+    const ecart = ecartDeSchema({ ...SCHEMA_ATTENDU, incompris: [] }, vuEnBase);
+    const n = compteDeLEcart(ecart);
+    const nomme = [
+      ecart.tables.length ? `tables : ${ecart.tables.join(", ")}` : "",
+      ecart.colonnes.length ? `colonnes : ${ecart.colonnes.join(", ")}` : "",
+      ecart.index.length ? `index : ${ecart.index.join(", ")}` : "",
+      ecart.valeurs.length ? `valeurs : ${ecart.valeurs.join(", ")}` : "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    out.push({
+      key: "schema",
+      label: "Schéma de la base contre les migrations du dépôt",
+      level: n ? "crit" : "ok",
+      value: n ? `${n} objet(s) manquant(s)` : `${SCHEMA_ATTENDU.tables.length} tables, ${SCHEMA_ATTENDU.colonnes.length} colonnes, ${SCHEMA_ATTENDU.index.length} index, ${SCHEMA_ATTENDU.valeurs.length} valeurs`,
+      /* L'ÉCART EST NOMMÉ, et c'est la moitié du service : « une migration
+         manque » envoie chercher laquelle, « survey_lines » dit quoi passer. */
+      detail: n ? `${nomme} — une migration du dépôt n'est pas appliquée : les passer dans l'ordre, puis recharger` : "tout ce que le dépôt déclare est en base",
     });
   }
 

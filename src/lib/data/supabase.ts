@@ -1385,6 +1385,22 @@ export const supabaseRepository: Repository = {
     const r = data[0] as { octets: number; fichiers: number; octets_par_jour: number };
     return { octets: Number(r.octets), fichiers: Number(r.fichiers), octetsParJour: Number(r.octets_par_jour) };
   },
+  async objetsDuSchema() {
+    /* Les catalogues ne sont pas exposés par PostgREST : même chemin que pour
+       le stockage, une fonction en security definer qui ne rend que des NOMS.
+
+       UNE ERREUR REND « undefined » ET NON DES TABLEAUX VIDES, et la nuance
+       porte tout le point : la fonction peut manquer — c'est le cas sur une
+       base où la migration 0119 n'est pas passée, ce qui est exactement la
+       situation que ce contrôle existe pour voir. Des tableaux vides diraient
+       « tout manque » ; « undefined » dit « je n'ai pas pu regarder », et la
+       page le distingue. */
+    const { data, error } = await db().rpc("objets_du_schema");
+    if (error || !Array.isArray(data)) return undefined;
+    const rows = data as { genre: string; nom: string }[];
+    const pris = (g: string) => rows.filter((r) => r.genre === g).map((r) => r.nom);
+    return { tables: pris("table"), colonnes: pris("colonne"), index: pris("index"), valeurs: pris("valeur") };
+  },
   async setMesure(userId, m) {
     const { error } = await db()
       .from("profiles")

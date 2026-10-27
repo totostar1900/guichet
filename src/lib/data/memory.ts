@@ -683,6 +683,13 @@ export const memoryRepository: Repository = {
        plafond lointain, rendre rien fait taire le point. */
     return undefined;
   },
+  async objetsDuSchema() {
+    /* UN DÉPÔT EN MÉMOIRE N A PAS DE SCHÉMA, et la question ne se pose donc
+       pas. Rendre des tableaux vides ferait annoncer cinquante-huit tables
+       manquantes sur chaque machine de développement, c est à dire un point
+       rouge permanent — et un point rouge permanent ne se lit plus. */
+    return undefined;
+  },
   async setMesure(userId, mes) {
     const c = store().contacts.find((x) => x.id === userId);
     if (c) c.mesure = structuredClone(mes);

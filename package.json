@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "seed:sql": "node scripts/seed-sql.ts",
+    "schema:attendu": "node scripts/schema-attendu.ts",
     "extract:test": "node --conditions=react-server scripts/extract-test.ts",
     "dev:memory": "node scripts/dev-memory.mjs",
     "guide:shots": "node scripts/guide-shots.mjs",
