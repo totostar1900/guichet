@@ -1389,17 +1389,28 @@ export const supabaseRepository: Repository = {
     /* Les catalogues ne sont pas exposés par PostgREST : même chemin que pour
        le stockage, une fonction en security definer qui ne rend que des NOMS.
 
+       UNE SEULE LIGNE, QUATRE TABLEAUX — et c'est une correction du 27 octobre
+       2026 au soir. La fonction rendait jusque-là UNE LIGNE PAR OBJET ; la base
+       en porte 1 307, PostgREST s'arrête à mille, et le point « Schéma » a
+       annoncé 228 objets manquants dont aucun ne manquait. Une lecture tronquée
+       ressemble à une lecture complète : la forme de la réponse est donc ce qui
+       nous protège, pas la vigilance de celui qui la lit.
+
        UNE ERREUR REND « undefined » ET NON DES TABLEAUX VIDES, et la nuance
        porte tout le point : la fonction peut manquer — c'est le cas sur une
-       base où la migration 0119 n'est pas passée, ce qui est exactement la
+       base où la migration 0120 n'est pas passée, ce qui est exactement la
        situation que ce contrôle existe pour voir. Des tableaux vides diraient
        « tout manque » ; « undefined » dit « je n'ai pas pu regarder », et la
-       page le distingue. */
-    const { data, error } = await db().rpc("objets_du_schema");
-    if (error || !Array.isArray(data)) return undefined;
-    const rows = data as { genre: string; nom: string }[];
-    const pris = (g: string) => rows.filter((r) => r.genre === g).map((r) => r.nom);
-    return { tables: pris("table"), colonnes: pris("colonne"), index: pris("index"), valeurs: pris("valeur") };
+       page le distingue.
+
+       UNE BASE SANS AUCUNE TABLE N'EST PAS UNE BASE, c'est une lecture qui a
+       échoué sans le dire — un droit retiré, une réponse vide. On se tait
+       plutôt que d'annoncer que tout manque. */
+    const { data, error } = await db().rpc("schema_vu");
+    if (error) return undefined;
+    const r = (Array.isArray(data) ? data[0] : data) as { tables?: string[]; colonnes?: string[]; index?: string[]; valeurs?: string[] } | undefined;
+    if (!r?.tables?.length) return undefined;
+    return { tables: r.tables, colonnes: r.colonnes ?? [], index: r.index ?? [], valeurs: r.valeurs ?? [] };
   },
   async setMesure(userId, m) {
     const { error } = await db()

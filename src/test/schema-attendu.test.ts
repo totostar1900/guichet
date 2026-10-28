@@ -183,22 +183,47 @@ describe("l'écart entre le dépôt et la base", () => {
 });
 
 describe("la fonction qui lit le schéma vit au dépôt", () => {
+  const sql = () =>
+    readdirSync(MIGRATIONS)
+      .filter((f) => f.endsWith(".sql"))
+      .map((f) => readFileSync(`${MIGRATIONS}/${f}`, "utf8"))
+      .join("\n");
+
   it("elle est déclarée par une migration, et ne rend que des noms", () => {
     /* Le modèle vit dans « types.ts » ET dans les migrations ; une fonction que
        le code appelle et que la base n'a pas rend « undefined », donc le point
        se tait — c'est juste, mais il faut que la migration existe pour qu'il
        parle un jour. */
-    const sql = readdirSync(MIGRATIONS)
-      .filter((f) => f.endsWith(".sql"))
-      .map((f) => readFileSync(`${MIGRATIONS}/${f}`, "utf8"))
-      .join("\n");
-    expect(sql).toMatch(/create or replace function objets_du_schema\(\)/);
-    expect(sql).toMatch(/returns table \(genre text, nom text\)/);
+    expect(sql()).toMatch(/create or replace function schema_vu\(\)/);
     /* ELLE NE SORT PAS DE « public » : les schémas de Supabase ne sont pas
        décrits par nos migrations, et les rendre ferait comparer ce que le dépôt
        ne déclare pas. */
-    expect(sql).toMatch(/grant execute on function objets_du_schema\(\) to service_role/);
-    expect(sql).toMatch(/revoke all on function objets_du_schema\(\) from public/);
+    expect(sql()).toMatch(/grant execute on function schema_vu\(\) to service_role/);
+    expect(sql()).toMatch(/revoke all on function schema_vu\(\) from public/);
+  });
+
+  it("elle rend UNE ligne, parce qu'une liste se fait couper", () => {
+    /* RELEVÉ LE 27 OCTOBRE 2026 AU SOIR, au premier vrai passage du contrôle.
+       Le point a annoncé 228 objets manquants et AUCUN ne manquait : la
+       fonction rendait une ligne par objet, la base en porte 1 307, PostgREST
+       s'arrête à mille. Le client recevait 58 tables, 938 colonnes, 4 index et
+       zéro valeur d'énumération ; les 230 index et valeurs non lus, moins les
+       deux index attendus qui avaient tenu dans les mille, font exactement les
+       228 annoncés.
+
+       UNE LECTURE TRONQUÉE RESSEMBLE À UNE LECTURE COMPLÈTE : c'est le défaut,
+       et il se répare par la FORME de la réponse, pas par la vigilance de
+       celui qui la lit. Une ligne unique portant quatre tableaux ne peut pas
+       être coupée en deux. Une pagination le pourrait, elle demanderait
+       d'avoir raison à chaque tour, et se tromperait un jour dans le même
+       silence. */
+    expect(sql(), "la réponse est redevenue une liste de lignes : elle se fera couper").toMatch(/returns table \(tables text\[\], colonnes text\[\], "index" text\[\], valeurs text\[\]\)/);
+    const client = readFileSync(`${RACINE}/src/lib/data/supabase.ts`, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(client, "le dépôt n'appelle plus la fonction d'une ligne").toMatch(/rpc\("schema_vu"\)/);
+    expect(client, "le dépôt rappelle la fonction qui rend une ligne par objet").not.toMatch(/rpc\("objets_du_schema"\)/);
+    /* UNE BASE SANS AUCUNE TABLE N'EST PAS UNE BASE : c'est une lecture qui a
+       échoué sans le dire. On se tait plutôt que d'annoncer que tout manque. */
+    expect(client, "une lecture vide serait prise pour une base vide, et tout serait déclaré manquant").toMatch(/if \(!r\?\.tables\?\.length\) return undefined;/);
   });
 });
 
