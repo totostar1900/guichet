@@ -81,6 +81,7 @@ const MAQUETTES: Record<string, string> = {
   "/maquette/ordre": "proposée le 28 octobre 2026 : la forme généreuse du passage d'ordre, en attente d'arbitrage",
   "/maquette/adjudication": "proposée le 28 octobre 2026 : la même forme sur deux saisies, un montant et un taux, en attente d'arbitrage",
   "/maquette/epargne": "proposée le 28 octobre 2026 : la même forme sur une DATE, la seule des quatre saisies qui ne se tape pas",
+  "/maquette/cession": "proposée le 28 octobre 2026 : la même forme sur une quantité DÉTENUE — un plafond qui n'est pas une règle mais un avoir",
 };
 
 const citeesParLaColonne = new Set([...COLONNE_DESK, ...COLONNE_CLIENT, ...COLONNE_VISITEUR].flatMap((g) => g.items.map((i) => i.href)));

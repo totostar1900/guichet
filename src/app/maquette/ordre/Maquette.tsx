@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import styles from "./maquette.module.css";
+import { Attente, Bandeau, Boite, chiffres, MILLIERS, Pied, Recap, Tete, Trop } from "../commun";
+import styles from "../commun.module.css";
 
 /**
  * LA FORME PROPOSÉE : UN SEUL GESTE PAR ÉCRAN, ET LE MONTANT EN GRAND.
@@ -36,8 +37,6 @@ import styles from "./maquette.module.css";
  *
  * RIEN N'EST ENVOYÉ : les boutons avancent dans la maquette et s'arrêtent là.
  */
-const MILLIERS = (n: number) => n.toLocaleString("fr-FR").replace(/ | /g, " ");
-const chiffres = (v: string) => v.replace(/\D/g, "");
 
 export function Maquette({ titre, isin, cours, quotite, detenu, marche }: { titre: string; isin: string; cours: number; quotite: number; detenu: number; marche: string }) {
   const [sens, setSens] = useState<"achat" | "vente">("achat");
@@ -63,15 +62,8 @@ export function Maquette({ titre, isin, cours, quotite, detenu, marche }: { titr
 
   return (
     <div className={styles.ecran}>
-      <p className={styles.bandeau}>
-        Maquette · rien n&apos;est envoyé · <span>proposition du 28 octobre</span>
-      </p>
-
-      <header className={styles.tete}>
-        <span className={styles.marche}>{marche}</span>
-        <h1 className={styles.titre}>{titre}</h1>
-        <span className={styles.isin}>{isin}</span>
-      </header>
+      <Bandeau essaie="proposition du 28 octobre" />
+      <Tete sur={marche} titre={titre} isin={isin} />
 
       {envoye ? (
         <section className={styles.carte}>
@@ -110,12 +102,7 @@ export function Maquette({ titre, isin, cours, quotite, detenu, marche }: { titr
               </div>
             </dl>
           </section>
-          <div className={styles.pied}>
-            <button type="button" className={styles.action} onClick={() => setEtape(2)}>
-              Revenir à mon ordre
-            </button>
-            <small>Il vous attend aussi dans vos notifications, tant qu&apos;il n&apos;est pas envoyé.</small>
-          </div>
+          <Pied mot="Revenir à mon ordre" sur={() => setEtape(2)} note="Il vous attend aussi dans vos notifications, tant qu'il n'est pas envoyé." />
         </>
       ) : etape === 1 ? (
         <>
@@ -137,111 +124,71 @@ export function Maquette({ titre, isin, cours, quotite, detenu, marche }: { titr
             ))}
           </fieldset>
 
-          <section className={styles.carte}>
-            <label className={styles.champLabel} htmlFor="montant">
-              {sens === "achat" ? "Combien voulez-vous placer ?" : "Combien voulez-vous retirer ?"}
-            </label>
-            <div className={styles.saisie}>
-              <input
-                id="montant"
-                inputMode="numeric"
-                autoComplete="off"
-                placeholder="0"
-                value={brut ? MILLIERS(montant) : ""}
-                onChange={(e) => setBrut(chiffres(e.target.value).slice(0, 12))}
-              />
-              <span className={styles.unite}>FCFA</span>
-            </div>
-
-            <p className={styles.equiv} aria-live="polite">
-              {montant === 0 ? (
-                <span className={styles.equivVide}>Le nombre de titres s&apos;affiche ici pendant que vous tapez.</span>
+          <Boite
+            id="montant"
+            question={sens === "achat" ? "Combien voulez-vous placer ?" : "Combien voulez-vous retirer ?"}
+            valeur={brut ? MILLIERS(montant) : ""}
+            onChange={(v) => setBrut(chiffres(v).slice(0, 12))}
+            unite="FCFA"
+            dessous={
+              montant === 0 ? (
+                <Attente>Le nombre de titres s&apos;affiche ici pendant que vous tapez.</Attente>
               ) : vu.titres === 0 ? (
-                <span className={styles.equivCourt}>Trop court pour un titre : il en faut {MILLIERS(cours * Math.max(1, quotite))} FCFA au minimum.</span>
+                <Trop>Trop court pour un titre : il en faut {MILLIERS(cours * Math.max(1, quotite))} FCFA au minimum.</Trop>
               ) : (
                 <>
-                  <b>≈ {MILLIERS(vu.titres)} {vu.titres > 1 ? "titres" : "titre"}</b>
+                  <b>
+                    ≈ {MILLIERS(vu.titres)} {vu.titres > 1 ? "titres" : "titre"}
+                  </b>
                   <span>
                     {" "}à {MILLIERS(cours)} FCFA
                     {vu.reste > 0 ? ` · ${MILLIERS(vu.reste)} FCFA resteront de côté` : ""}
                   </span>
                 </>
-              )}
-            </p>
+              )
+            }
+          />
 
-          </section>
-
-          <div className={styles.pied}>
-            <button type="button" className={styles.action} disabled={!pret} onClick={() => setEtape(2)}>
-              Continuer
-            </button>
-            <small>{sens === "achat" ? `Cours ${MILLIERS(cours)} FCFA · quotité ${MILLIERS(quotite)}` : `Vous détenez ${MILLIERS(detenu)} titres`}</small>
-          </div>
+          <Pied
+            mot="Continuer"
+            pret={pret}
+            sur={() => setEtape(2)}
+            note={sens === "achat" ? `Cours ${MILLIERS(cours)} FCFA · quotité ${MILLIERS(quotite)}` : `Vous détenez ${MILLIERS(detenu)} titres`}
+          />
         </>
       ) : (
         <>
-          <section className={styles.carte}>
-            <h2 className={styles.recapTitre}>Vérifiez, puis envoyez</h2>
-            {/* QUATRE LIGNES, PAS SIX. « Vous achetez » et le nom de la ligne
-                étaient déjà dits par l'en-tête deux centimètres plus haut, et
-                les répéter poussait l'action sous le pli — mesuré sur la
-                capture : le bouton d'envoi n'était pas à l'écran. */}
-            <dl className={styles.recap}>
-              <div className={styles.recapFort}>
-                <dt>{sens === "achat" ? "Vous achetez pour" : "Vous vendez pour"}</dt>
-                <dd>{MILLIERS(vu.exact)} FCFA</dd>
-              </div>
-              <div>
-                <dt>Soit</dt>
-                <dd>
-                  {MILLIERS(vu.titres)} {vu.titres > 1 ? "titres" : "titre"} à {MILLIERS(cours)} FCFA
-                </dd>
-              </div>
-              <div>
-                <dt>Règlement</dt>
-                <dd>T+3, sur votre provision</dd>
-              </div>
-              {/* LES COORDONNÉES SE LISENT, ELLES NE SE RETAPENT PAS. Elles
-                  sont là pour être VÉRIFIÉES — c'est par elles que l'accusé,
-                  la confirmation du conseiller et le bulletin à signer
-                  arrivent — et les trois tiennent en trois lignes. */}
-              <div>
-                <dt>On vous répond</dt>
-                <dd className={styles.coordonnees}>
-                  <span>Georges Nitcheu</span>
-                  <span>georges.nitcheu@gmail.com</span>
-                  <span>WhatsApp +237 6 87 67 67 67</span>
-                </dd>
-              </div>
-            </dl>
-            <p className={styles.recapMot}>
-              Un conseiller vous confirme avant la clôture ; l&apos;exécution dépend du marché.
-            </p>
-            {/* CORRIGER SES COORDONNÉES EST UN AUTRE GESTE, et il a son
-                endroit : la page qui les tient. Le dire ici en toutes lettres
-                vaut mieux qu'un champ de plus — mais il faut dire aussi ce
-                qu'on perd, sinon le lien est un piège. */}
-            {/* L'ORDRE N'EST PLUS PERDU EN CHEMIN. Arrêté le 28 octobre :
-                corriger ses coordonnées est un autre geste, qui a sa page —
-                mais le faire ne doit pas coûter le montant qu'on vient de
-                taper. On part avec un billet de retour, et on revient à
-                l'endroit exact qu'on avait quitté. */}
-            <p className={styles.recapMot}>
-              <button type="button" className={styles.lien} onClick={() => setEtape("coordonnees")}>
-                Modifier mes coordonnées
-              </button>{" "}
-              — votre ordre est gardé pendant ce temps.
-            </p>
-          </section>
+          {/* QUATRE LIGNES, PAS SIX. « Vous achetez » et le nom de la ligne
+              étaient déjà dits par l'en-tête deux centimètres plus haut, et
+              les répéter poussait l'action sous le pli — mesuré sur la
+              capture : le bouton d'envoi n'était pas à l'écran.
+              LES COORDONNÉES SE LISENT, ELLES NE SE RETAPENT PAS : elles sont
+              là pour être VÉRIFIÉES, c'est par elles que l'accusé, la
+              confirmation du conseiller et le bulletin à signer arrivent. */}
+          <Recap
+            titre="Vérifiez, puis envoyez"
+            lignes={[
+              { quoi: sens === "achat" ? "Vous achetez pour" : "Vous vendez pour", dit: `${MILLIERS(vu.exact)} FCFA`, fort: true },
+              { quoi: "Soit", dit: `${MILLIERS(vu.titres)} ${vu.titres > 1 ? "titres" : "titre"} à ${MILLIERS(cours)} FCFA` },
+              { quoi: "Règlement", dit: "T+3, sur votre provision" },
+            ]}
+            mot="Un conseiller vous confirme avant la clôture ; l'exécution dépend du marché."
+            apres={
+              /* L'ORDRE N'EST PLUS PERDU EN CHEMIN. Corriger ses coordonnées
+                 est un autre geste, qui a sa page — mais le faire ne doit pas
+                 coûter le montant qu'on vient de taper. On part avec un billet
+                 de retour, et il faut dire ce qu'on garde, sinon le lien est
+                 un piège. */
+              <p className={styles.recapMot}>
+                <button type="button" className={styles.lien} onClick={() => setEtape("coordonnees")}>
+                  Modifier mes coordonnées
+                </button>{" "}
+                — votre ordre est gardé pendant ce temps.
+              </p>
+            }
+          />
 
-          <div className={styles.pied}>
-            <button type="button" className={styles.action} onClick={() => setEnvoye(true)}>
-              Envoyer au desk
-            </button>
-            <button type="button" className={styles.second} onClick={() => setEtape(1)}>
-              Corriger le montant
-            </button>
-          </div>
+          <Pied mot="Envoyer au desk" sur={() => setEnvoye(true)} second="Corriger le montant" surSecond={() => setEtape(1)} />
         </>
       )}
     </div>
