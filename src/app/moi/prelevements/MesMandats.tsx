@@ -161,6 +161,20 @@ export function MesMandats({
                   </>
                 ) : (
                   <div className={styles.signer}>
+                    {/* LIRE LE PAPIER AVANT DE L'AUTORISER.
+                        Relevé à l'audit des pièces signées du 27 octobre 2026 :
+                        le client autorisait sa banque à être débitée sans avoir
+                        vu le document qui le dit — il relisait des chiffres sur
+                        ce formulaire, et la pièce naissait dans le geste de
+                        signer. Le lien vient AVANT le bouton du code, parce que
+                        c'est l'ordre dans lequel on fait les choses : on lit,
+                        puis on demande le code, puis on signe. */}
+                    <p className={styles.note}>
+                      <a href={`/api/documents/mandat-apercu/${m.id}`} target="_blank" rel="noopener noreferrer">
+                        {t("Lire le mandat avant de le signer")} ↗
+                      </a>{" "}
+                      {t("— c'est le document que votre banque vous demandera. Tant qu'il n'est pas signé, vous pouvez encore le corriger.")}
+                    </p>
                     {/* LA PAGE ET L'ACTION DOIVENT DIRE LA MÊME CHOSE. Sans
                         dossier, la page annonçait « le code s'affichera à
                         l'écran » et le bouton répondait « Dossier

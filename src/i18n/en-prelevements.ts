@@ -48,6 +48,8 @@ export const EN_PRELEVEMENTS: Record<string, string> = {
   "Ouvrir mon exemplaire →": "Open my copy →",
   "Recevoir mon code": "Get my code",
   "Je signe ce mandat": "I sign this mandate",
+  "Lire le mandat avant de le signer": "Read the mandate before signing it",
+  "— c'est le document que votre banque vous demandera. Tant qu'il n'est pas signé, vous pouvez encore le corriger.": "— this is the document your bank will ask you for. As long as it is unsigned, you can still correct it.",
   Garder: "Keep it",
   "Révoquer ce mandat": "Revoke this mandate",
   "En ajouter un": "Add another",

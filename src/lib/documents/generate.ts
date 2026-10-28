@@ -550,6 +550,46 @@ import { MandatPrelevementDoc } from "./pdf/kyc-templates";
  * une fois. Sa banque le demandera ; une autorisation qu'on ne peut pas
  * produire ne vaut rien.
  */
+/**
+ * LE MANDAT TEL QU'IL EST, AVANT QU'IL NE SOIT SIGNÉ.
+ *
+ * RELEVÉ À L'AUDIT DES PIÈCES SIGNÉES du 27 octobre 2026 : sur les six
+ * documents que le client signe, un seul — l'ordre de transfert — existait
+ * avant sa signature. Pour les autres, la pièce naît DANS le geste de signer :
+ * le client relisait des chiffres sur un formulaire, jamais le papier qu'il
+ * autorisait.
+ *
+ * LA MAISON AVAIT DÉJÀ TRANCHÉ CELA UNE FOIS, pour la convention : « on
+ * demandait une signature sur un texte inaccessible » (voir la route du modèle
+ * de convention). La différence ici est qu'un mandat ne se montre pas en
+ * modèle vierge — il porte le compte à débiter, le titulaire et le montant,
+ * c'est-à-dire précisément ce que le client doit relire avant d'autoriser son
+ * banquier à être débité.
+ *
+ * ─── CE QU'IL NE FAIT PAS, ET C'EST LE POINT ───────────────────────────────
+ *
+ *   IL NE CONSOMME AUCUN NUMÉRO DU REGISTRE. Un aperçu qui tirerait un numéro
+ *   en brûlerait un à chaque relecture, et le registre compterait des pièces
+ *   qui n'existent pas. Il porte donc la RÉFÉRENCE du mandat, que le client
+ *   voit déjà à l'écran, et le mot « aperçu » à la place du numéro.
+ *
+ *   IL N'ENREGISTRE RIEN. La pièce définitive se produit APRÈS la signature, et
+ *   cela ne change pas : c'est une correction du 25 octobre 2026, trouvée en
+ *   lisant le PDF produit plutôt que le code qui le produit — l'exemplaire
+ *   sortait avec « lu et approuvé, date et signature », c'est-à-dire la branche
+ *   d'un mandat non signé, sur la seule pièce que l'agence bancaire réclame.
+ *   Un aperçu qui s'enregistrerait ramènerait ce défaut par la porte d'à côté.
+ *
+ * LE GABARIT N'A BESOIN DE RIEN D'AUTRE : il branche déjà sur « signedAt » et
+ * imprime, pour un mandat non signé, le cadre « lu et approuvé » — ce qui est
+ * exactement le document en attente de signature.
+ */
+export async function apercuDuMandat(mandatId: string): Promise<Buffer | undefined> {
+  const mandat = (await repo().listMandats()).find((m) => m.id === mandatId);
+  if (!mandat) return undefined;
+  return renderToBuffer(el(createElement(MandatPrelevementDoc, { number: `aperçu · ${mandat.ref}`, mandat, now: new Date(), reglement: await loadReglement() })));
+}
+
 export async function generateMandat(mandatId: string): Promise<GeneratedDocument> {
   const r = repo();
   const mandat = (await r.listMandats()).find((m) => m.id === mandatId);
