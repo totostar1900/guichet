@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { EN_ALL } from "@/i18n/core";
 
@@ -36,6 +36,18 @@ const BREF = readFileSync("src/app/calendrier/EnBref.tsx", "utf8");
 const BROWSER = readFileSync("src/components/OfferBrowser.tsx", "utf8");
 const CARTE = readFileSync("src/components/OfferCard.tsx", "utf8");
 const CSS = readFileSync("src/app/calendrier/page.module.css", "utf8");
+
+/**
+ * Les sources de l'application, hors épreuves : un relevé qui doit voir TOUTES
+ * les pages ne peut pas se contenter de celle qu'il connaît. C'est la leçon du
+ * 28 octobre 2026 — la garde de la cloche ci-dessous ne regardait que cette
+ * page-ci, et la cote, qui porte presque toutes les lignes qu'on surveille,
+ * est passée par le trou.
+ */
+function sources(dir = "src"): string[] {
+  if (dir === "src/test") return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? sources(`${dir}/${e.name}`) : /\.tsx?$/.test(e.name) ? [`${dir}/${e.name}`] : []));
+}
 
 describe("la page des adjudications", () => {
   it("ne tient plus qu'une liste, celle sur laquelle on peut agir", () => {
@@ -210,6 +222,28 @@ describe("la page des adjudications", () => {
     expect(etats, "la cloche doit précéder la pastille, sur les deux faces de la carte").toBe(2);
     expect(BROWSER, "la carte ne sait plus si une alerte est armée").toMatch(/suivi=\{armees\.has\(o\.id\)\}/);
     expect(PAGE, "la page ne lit plus les alertes du lecteur").toMatch(/listWatches\(session\.userId\)/);
+  });
+
+  it("et toute page qui monte cette liste les lit, pas seulement celle-ci", () => {
+    /* RELEVÉ LE 28 OCTOBRE 2026, sur une remarque de lecteur : « la pastille
+       est là, pas la cloche ». L'épreuve ci-dessus tenait la carte, la liste et
+       CETTE page — et la cote est passée par le trou : `TitresBody` montait
+       `OfferBrowser` sans `suivis`, donc `armees` y était vide et la cloche ne
+       pouvait pas paraître sur la plus longue liste de la maison. Mesuré sur
+       l'application avant correction : six pastilles, zéro cloche aux titres,
+       alerte pourtant armée et visible dans « mes lignes suivies ».
+       L'OUBLI NE CASSE RIEN, il efface : voilà pourquoi il demande une garde
+       qui compte les pages au lieu de les nommer.
+
+       Les commentaires sont retirés avant la recherche — sans ça, cette
+       explication même suffirait à la garde. */
+    const montent = sources().filter((f) => sansNotes(readFileSync(f, "utf8")).includes("<OfferBrowser"));
+    expect(montent.length, "plus aucune page ne monte cette liste : le relevé ne mesure rien").toBeGreaterThanOrEqual(2);
+    const muettes = montent.filter((f) => {
+      const src = sansNotes(readFileSync(f, "utf8"));
+      return !/<OfferBrowser[^>]*suivis=\{/.test(src) || !/listWatches\(/.test(src);
+    });
+    expect(muettes, "ces pages montrent des cartes sans savoir quelles alertes sont armées : la cloche n'y paraîtra jamais").toEqual([]);
   });
 
   it("laisse ses cartes à la largeur des autres pages", () => {

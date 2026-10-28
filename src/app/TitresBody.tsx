@@ -1,5 +1,5 @@
 import { OfferBrowser } from "@/components/OfferBrowser";
-import { BackToTop } from "@/components/BackToTop";
+import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { fondsListes, lignesDeLaCote } from "@/lib/domain/listes";
 
@@ -12,26 +12,38 @@ import { fondsListes, lignesDeLaCote } from "@/lib/domain/listes";
  * qui dit où mènent les rangées et quelles commandes n'ont pas lieu d'être.
  */
 export async function TitresBody() {
-  const [all, lues] = await Promise.all([repo().listOffers(), repo().listAuctionResults({ limit: 2000 }).catch(() => [])]);
+  const session = await getSession();
+  /**
+   * LES ALERTES DE CE LECTEUR, LUES ICI.
+   *
+   * RELEVÉ LE 28 OCTOBRE 2026, sur une remarque de lecteur : « la pastille est
+   * là, pas la cloche ». La cloche qui dit qu'une alerte est armée existe
+   * depuis le 24 octobre et marche — aux adjudications, qui lisent les veilles
+   * et les passent à la liste. LA COTE NE LES LISAIT PAS : `suivis` manquait,
+   * `armees` était donc un ensemble vide, et la cloche ne pouvait pas paraître
+   * sur la plus longue liste de la maison, celle où vivent presque toutes les
+   * lignes qu'on surveille.
+   *
+   * CE N'ÉTAIT PAS UN DÉFAUT D'AFFICHAGE mais un argument oublié, et c'est la
+   * sorte de panne qui ne se voit pas : la carte était juste, la page la
+   * nourrissait mal. Conduit sur l'application avant et après — alerte armée
+   * sur la première ligne, `/moi/suivies` la voit, la cote montrait six
+   * pastilles et zéro cloche.
+   *
+   * ON RATTRAPE PLUTÔT QUE DE FAIRE TOMBER LA PAGE : la cote est la liste
+   * d'entrée, et une lecture de veilles qui échoue ne doit pas l'effacer. Le
+   * prix de ce rattrapage est que la cloche se taira si la table boude — c'est
+   * le même choix que « mes lignes suivies », pour la même raison.
+   */
+  const [all, veilles] = await Promise.all([
+    repo().listOffers(),
+    session ? repo().listWatches(session.userId).catch(() => []) : Promise.resolve([]),
+  ]);
   /* La cote et les fonds : le tri vit dans « domain/listes », avec ce qu'il
      écarte et pourquoi. Les séances ont leur page. */
   const offers = lignesDeLaCote(all);
   const fundsCount = fondsListes(all).length;
   const nowIso = new Date().toISOString();
-  /**
-   * Y a-t-il une séance primaire ouverte ?
-   *
-   * Un bon ou une obligation du Trésor dont la clôture est devant nous. Quand
-   * il n'y en a aucune, la page le dit : sans cette bande, elle affichait la
-   * cote et les fonds, et le lecteur qui venait chercher une adjudication
-   * concluait qu'on la lui cachait.
-   */
-  const primaireOuvert = offers.some((o) => (o.kind === "BTA" || o.kind === "OTA") && o.status !== "withdrawn" && o.deadlineAt > nowIso);
-  const derniere = lues
-    .filter((x) => !x.setAsideAt && x.confirmedBy)
-    .map((x) => x.sessionOn)
-    .sort()
-    .pop();
   return (
     /* LES DEUX BANDES DU HAUT SONT PARTIES. L'indice et le silence du marché
        primaire ouvraient la page des titres sur deux encarts qu'il fallait
@@ -40,7 +52,7 @@ export async function TitresBody() {
        a sa page, et le calendrier des adjudications est désormais à un
        toucher dans la bande des lieux. */
     <>
-      <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} />
+      <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} suivis={veilles.map((w) => w.offerId)} />
       {/* Le retour en haut est monté par la liste, avec son jumeau : les
           deux paraissent au même moment. */}
     </>
