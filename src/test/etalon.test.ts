@@ -231,6 +231,13 @@ describe("les deux arbitrages", () => {
  */
 const SANS_ENTETE: Record<string, string> = {
   "src/components/EnTete.tsx": "l'en-tête lui-même : c'est lui qui écrit ce « h1 », et se compter revenait à ne jamais pouvoir finir",
+  /* UNE MAQUETTE PROPOSE UN AUTRE EN-TÊTE : c'est l'objet de la demande du
+     28 octobre 2026 — « une forme plus généreuse, de grandes polices ». Lui
+     imposer l'en-tête commun reviendrait à lui interdire de montrer ce
+     qu'on lui demande de montrer. Elle vit à une adresse provisoire et
+     part avec la décision : retenue, ses choix passent dans l'en-tête
+     commun et cette dispense disparaît ; écartée, la page disparaît. */
+  "src/app/maquette/ordre/Maquette.tsx": "maquette provisoire : elle propose justement un autre en-tête, et part avec la décision",
   /* La vitrine, nommée une par une dans ETALON.md § C : « la vitrine respire,
      l'application travaille ». Elle garde son serif et son échelle, et ses
      titres sont des phrases — « La porte d'entrée des marchés financiers

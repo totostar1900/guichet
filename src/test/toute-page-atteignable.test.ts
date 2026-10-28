@@ -64,6 +64,23 @@ function sources(): string[] {
   return out;
 }
 
+/**
+ * LES MAQUETTES, QUI SONT DES PROPOSITIONS ET NON DES PAGES.
+ *
+ * Une maquette vit à une adresse provisoire, qu'on ouvre sur son téléphone
+ * pour décider d'une forme. Lui donner une entrée de menu la mettrait sous
+ * les yeux des clients, ce qui est exactement ce qu'on ne veut pas : elle
+ * n'envoie rien et ne tient aucune promesse.
+ *
+ * LA DISPENSE A UN PRIX, et c'est volontaire : chaque maquette est nommée
+ * ici, avec la décision qu'elle attend. Une maquette dont la décision est
+ * prise se démonte, et sa ligne part avec elle — l'épreuve d'à côté refuse
+ * les dispenses qui ne visent plus rien.
+ */
+const MAQUETTES: Record<string, string> = {
+  "/maquette/ordre": "proposée le 28 octobre 2026 : la forme généreuse du passage d'ordre, en attente d'arbitrage",
+};
+
 const citeesParLaColonne = new Set([...COLONNE_DESK, ...COLONNE_CLIENT, ...COLONNE_VISITEUR].flatMap((g) => g.items.map((i) => i.href)));
 
 describe("toute page est atteignable au clic", () => {
@@ -97,12 +114,21 @@ describe("toute page est atteignable au clic", () => {
   };
 
   it("la colonne cite chaque page fixe, ou quelqu'un d'autre y mène", () => {
-    const perdues = fixes.filter((r) => !citeesParLaColonne.has(r) && !redirige(r) && !citeeAilleurs(r));
+    const perdues = fixes.filter((r) => !citeesParLaColonne.has(r) && !redirige(r) && !citeeAilleurs(r) && !MAQUETTES[r]);
     expect(
       perdues,
       `ces pages existent et rien n'y mène : on n'y arrive qu'en tapant l'adresse.\n` +
         `Les ranger dans un groupe de « lib/nav-colonne », ou dire d'où on y entre.\n  ${perdues.join("\n  ")}`,
     ).toEqual([]);
+  });
+
+  it("ne garde aucune dispense de maquette qui ne vise plus de page", () => {
+    /* Une maquette démontée dont la ligne reste ici rouvrirait le trou en
+       silence pour la prochaine page qui prendrait son adresse. */
+    const fantomes = Object.keys(MAQUETTES).filter((r) => !fixes.includes(r));
+    expect(fantomes, `ces maquettes n'existent plus : leur dispense doit partir avec elles\n  ${fantomes.join("\n  ")}`).toEqual([]);
+    const muettes = Object.entries(MAQUETTES).filter(([, r]) => r.trim().length < 20);
+    expect(muettes.map(([r]) => r), "une dispense sans raison lisible n'est pas une décision").toEqual([]);
   });
 
   it("chaque adresse citée par la colonne est une page qui existe", () => {

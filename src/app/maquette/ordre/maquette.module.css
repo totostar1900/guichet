@@ -1,0 +1,313 @@
+/**
+ * LA FEUILLE DE LA MAQUETTE.
+ *
+ * TROIS CHOSES Y SONT PROPOSÉES À LA MAISON, et elles ne sont pas encore les
+ * siennes. Elles sont écrites ici, nommées, pour être discutées plutôt que
+ * découvertes :
+ *
+ *   UN DEGRÉ TYPOGRAPHIQUE DE PLUS. L'échelle s'arrête à 30 px, qui est le
+ *   titre d'une page. Le montant qu'un client écrit de sa main veut plus que
+ *   le titre de la page où il l'écrit : c'est le seul chiffre de l'écran qui
+ *   engage son argent. Si la maquette est retenue, ce degré entre dans
+ *   « globals.css » avec sa raison ; d'ici là il vit ici et nulle part
+ *   ailleurs.
+ *
+ *   UN RAYON DE 16 PX. La maison arrondit à 6 px, ce qui va aux tableaux et
+ *   aux panneaux de travail. Une boîte qu'on touche du pouce se dessine plus
+ *   ronde — c'est ce qui sépare un formulaire d'un guichet.
+ *
+ *   DES HAUTEURS DE 56 PX pour ce qui se touche. Le pouce ne vise pas comme
+ *   la souris, et les boutons de la forme actuelle sont dessinés pour elle.
+ *
+ * Les espaces, eux, restent ceux de l'échelle : la générosité demandée tient
+ * dans --s-9, --s-10 et --s-11, qui existent déjà et que personne n'osait.
+ */
+.ecran {
+  --chiffre-saisi: 2.6rem; /* proposé, pas encore un jeton de la maison */
+  --rond: 16px;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: var(--s-7) var(--s-7) var(--s-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-9);
+}
+
+.bandeau {
+  margin: 0;
+  padding: var(--s-4) var(--s-6);
+  border-radius: 999px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: var(--t-2);
+  text-align: center;
+}
+.bandeau span {
+  opacity: 0.7;
+}
+
+.tete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.marche {
+  font-size: var(--t-1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.titre {
+  margin: 0;
+  font-size: var(--t-7);
+  line-height: 1.2;
+}
+.isin {
+  font-family: var(--font-mono);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+
+/* LA BASCULE : une question, deux réponses, et une bosse qui glisse.
+   Deux cibles pleine largeur se lisaient comme deux destinations. */
+.bascule {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0;
+  padding: var(--s-2);
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.bascLegende {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.bosse {
+  position: absolute;
+  z-index: 0;
+  top: var(--s-2);
+  bottom: var(--s-2);
+  left: var(--s-2);
+  width: calc(50% - var(--s-2));
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 18%);
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.bosse[data-sens="vente"] {
+  transform: translateX(100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bosse {
+    transition: none;
+  }
+}
+.mot,
+.motOn {
+  position: relative;
+  z-index: 1;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: var(--t-5);
+  font-weight: 600;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.motOn {
+  color: var(--ink);
+}
+/* Le bouton radio porte le choix ; la bosse le montre. */
+.mot input,
+.motOn input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.carte {
+  padding: var(--s-10);
+  border: 1px solid var(--line);
+  border-radius: var(--rond);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+}
+
+.champLabel {
+  font-size: var(--t-4);
+  color: var(--ink-2);
+}
+
+/* LA BOÎTE DU MONTANT : le sujet de l'écran, et la seule chose qui y est grande. */
+.saisie {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-6);
+  padding-bottom: var(--s-6);
+  border-bottom: 2px solid var(--line-2);
+}
+.saisie input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--chiffre-saisi);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  outline: none;
+}
+.saisie input::placeholder {
+  color: var(--line-2);
+}
+.unite {
+  flex: none;
+  font-size: var(--t-5);
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.equiv {
+  margin: 0;
+  min-height: 2.4em;
+  font-size: var(--t-5);
+  color: var(--ink-2);
+}
+.equiv b {
+  color: var(--ink);
+}
+.equivVide {
+  color: var(--ink-3);
+  font-size: var(--t-4);
+}
+.equivCourt {
+  color: var(--warn);
+  font-size: var(--t-4);
+}
+
+/* Le pied : une seule action, pleine largeur, et ce qu'il faut savoir dessous. */
+.pied {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-6);
+}
+.pied small {
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+.action {
+  width: 100%;
+  height: 56px;
+  border: 0;
+  border-radius: var(--rond);
+  /* LE COUPLE « rempli » DE LA MAISON, et non le navy en dur : en palette
+     sombre « --fill » devient l'or, et un bouton navy sur fond navy ne se
+     voyait plus. Relevé sur la capture de la maquette elle-même. */
+  background: var(--fill);
+  color: var(--fill-ink);
+  font: inherit;
+  font-size: var(--t-5);
+  font-weight: 600;
+  cursor: pointer;
+}
+.action:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.second {
+  height: 48px;
+  padding: 0 var(--s-8);
+  border: 1px solid var(--line);
+  border-radius: var(--rond);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-4);
+  cursor: pointer;
+}
+
+/* Le récapitulatif : ce qu'on relit, pas ce qu'on remplit. */
+.recapTitre {
+  margin: 0;
+  font-size: var(--t-6);
+}
+.recap {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+}
+.recap > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.recap dt {
+  font-size: var(--t-1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.recap dd {
+  margin: 0;
+  font-size: var(--t-5);
+  color: var(--ink);
+}
+.recapFort dd {
+  font-size: var(--t-8);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.coordonnees {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.recapMot {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+.lien {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--gold-ink);
+  font: inherit;
+  font-size: var(--t-3);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Le reçu : la maquette va jusqu'au bout, sinon on ne juge que la moitié. */
+.recuRond {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--good-soft);
+  color: var(--good);
+  font-size: var(--t-7);
+}
+.recuTitre {
+  margin: 0;
+  font-size: var(--t-6);
+}
+.recuMot {
+  margin: 0;
+  font-size: var(--t-4);
+  color: var(--ink-2);
+}
