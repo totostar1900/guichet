@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
+import { lireLeBrouillon, poserLeBrouillon, reprendre, SIGNAL } from "@/lib/brouillon";
 import { useT } from "@/i18n/client";
 import type { Attente } from "@/lib/domain/services";
 import { MenuRecherche, useGuideIndex } from "@/components/menu/Pieces";
@@ -60,6 +61,37 @@ export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-lef
   /* Le panneau et celle des attentes qui est dépliée. Deux états de session :
      ils ne survivent pas à la page, et c'est bien — une décision prise n'a pas
      à rouvrir son tiroir au retour. */
+  /**
+   * L'ORDRE COMMENCÉ ET NON ENVOYÉ COMPTE PARMI CE QUI ATTEND.
+   *
+   * Demandé le 28 octobre 2026, « sans date limite ». Il vient de l'appareil
+   * et non du serveur — rien n'a été envoyé, le desk n'en sait rien — donc il
+   * se lit ici, à côté des attentes qui, elles, viennent du dossier.
+   *
+   * L'INSTANTANÉ EST LA CHAÎNE BRUTE, et non l'objet : « useSyncExternalStore »
+   * compare ce qu'on lui rend, et deux objets égaux ne sont jamais le même ;
+   * rendre l'objet ferait une boucle de rendu.
+   */
+  const brut = useSyncExternalStore(
+    (prevenir) => {
+      window.addEventListener(SIGNAL, prevenir);
+      window.addEventListener("storage", prevenir);
+      return () => {
+        window.removeEventListener(SIGNAL, prevenir);
+        window.removeEventListener("storage", prevenir);
+      };
+    },
+    () => {
+      try {
+        return localStorage.getItem("guichet:brouillon") ?? "";
+      } catch {
+        return "";
+      }
+    },
+    () => "",
+  );
+  const brouillon = useMemo(() => (brut ? lireLeBrouillon() : null), [brut]);
+  const combien = attentes.length + (brouillon ? 1 : 0);
   const [alertes, setAlertes] = useState(false);
   const [choisie, setChoisie] = useState<string | null>(attentes[0]?.cle ?? null);
 
@@ -78,7 +110,7 @@ export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-lef
           alors que c'est quand il y en a plusieurs qu'il faut choisir laquelle
           traiter. Le panneau les nomme, chacune avec son moment, son chiffre
           et son geste. */}
-      {attentes.length > 0 && (
+      {combien > 0 && (
         <div className={styles.cloche}>
           <button
             type="button"
@@ -88,8 +120,8 @@ export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-lef
             /* « 1 décisions vous attendent » : le pluriel était fixe, et il
                se lit à voix haute par les lecteurs d'écran autant qu'il
                s'affiche en infobulle. */
-            aria-label={attentes.length > 1 ? t("{n} décisions vous attendent", { n: String(attentes.length) }) : t("Une décision vous attend")}
-            title={attentes.length > 1 ? t("{n} décisions vous attendent", { n: String(attentes.length) }) : t("Une décision vous attend")}
+            aria-label={combien > 1 ? t("{n} décisions vous attendent", { n: String(combien) }) : t("Une décision vous attend")}
+            title={combien > 1 ? t("{n} décisions vous attendent", { n: String(combien) }) : t("Une décision vous attend")}
           >
             {/* LA CLOCHE ÉTAIT UN NOM SANS DESSIN.
                 Signalé deux fois à l'écran — « je ne vois pas la cloche des
@@ -106,7 +138,7 @@ export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-lef
               <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z" />
               <path d="M10 20h4" />
             </svg>
-            <span className={styles.compte}>{attentes.length}</span>
+            <span className={styles.compte}>{combien}</span>
           </button>
           {alertes && (
             <>
@@ -116,9 +148,38 @@ export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-lef
               <div className={`${styles.panneau} ${p.dock === "bottom-left" ? styles.panneauHaut : ""}`} role="group" aria-label={t("Ce qui vous attend")}>
                 <div className={styles.panneauTete}>
                   <b>
-                    {t("Ce qui vous attend")} · {attentes.length}
+                    {t("Ce qui vous attend")} · {combien}
                   </b>
                 </div>
+                {/* LE BROUILLON EN TÊTE, et avec SA propre issue.
+                    Les attentes du dossier renvoient leur seconde issue à la
+                    page où la décision se prend — on ne retire pas un ordre
+                    depuis un panneau de trois cents pixels, à un doigt de
+                    « Signer ». Un brouillon n'est pas cela : rien n'est parti,
+                    le desk ne tient rien, et le jeter ne coûte que la frappe
+                    qu'on recommencera. Il s'abandonne donc ici, d'un bouton. */}
+                {brouillon && (
+                  <div className={styles.att} data-ton="annonce">
+                    <button type="button" className={styles.attTete} aria-expanded={choisie === "brouillon"} onClick={() => setChoisie(choisie === "brouillon" ? null : "brouillon")}>
+                      <span className={styles.attQuand}>{t("Un ordre commencé")}</span>
+                      <span className={styles.attChiffre}>{brouillon.montant}</span>
+                      <svg className={styles.attChev} viewBox="0 0 24 24" aria-hidden="true" data-ouvert={choisie === "brouillon" ? "oui" : undefined}>
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </button>
+                    {choisie === "brouillon" && (
+                      <div className={styles.attCorps}>
+                        <p>{t("Sur {l}. Vous ne l'avez pas envoyé : il vous attend tant que vous ne le reprenez pas ou ne l'abandonnez pas.", { l: brouillon.titre })}</p>
+                        <Link className={styles.attGeste} href={reprendre(brouillon)} onClick={() => setAlertes(false)}>
+                          {t("Reprendre")}
+                        </Link>
+                        <button type="button" className={styles.attSortie} onClick={() => poserLeBrouillon(null)}>
+                          {t("Abandonner")}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
                 {attentes.map((a) => {
                   const deploye = choisie === a.cle;
                   return (

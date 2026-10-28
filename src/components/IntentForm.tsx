@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useRef, useState, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { poserLeBrouillon } from "@/lib/brouillon";
 import type { IntentResult } from "@/app/offres/[id]/actions";
 import { submitIntent } from "@/app/offres/[id]/actions";
 import type { ChannelStatus } from "@/lib/domain/types";
@@ -107,7 +108,18 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
    * donc que pour un achat, et il s'ouvre en francs.
    */
   const [unit, setUnit] = useState<"titres" | "francs">("francs");
-  const [cash, setCash] = useState("");
+  /**
+   * LA SOMME D'UN ORDRE DE BOURSE S'AMORÇAIT DEPUIS NULLE PART.
+   *
+   * Relevé le 28 octobre 2026 en reprenant un ordre commencé : l'adresse
+   * portait « qty=1 086 000 », la page le lisait, le formulaire le posait
+   * dans « amount »… et l'écran restait vide. Sur une ligne cotée en achat,
+   * le champ qui commande tout est « cash » — une somme — et « amount » n'y
+   * sert qu'en mode titres. Personne ne l'amorçait, donc AUCUN lien portant
+   * un montant ne pré-remplissait une ligne cotée : ni la reprise, ni une
+   * carte, ni un lien du desk.
+   */
+  const [cash, setCash] = useState(offer.kind === "MARCHE" && !["vente", "rachat", "cession"].includes(initialType) && initialAmount ? groupDigits(String(Math.round(initialAmount))) : "");
   const [channel, setChannel] = useState<"WhatsApp" | "Appel" | "E-mail">("WhatsApp");
   // L’e-mail du compte : celui de la session quand le fournisseur le donne, sinon
   // celui que le profil a prouvé. On lisait le premier seulement ; quand il
@@ -153,23 +165,51 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
    */
   const [mode, setMode] = useState<"" | "une" | "mois">(monthly ? "" : "une");
   const formRef = useRef<HTMLFormElement>(null);
+  /**
+   * CE QUI MANQUE POUR AVANCER, DIT SANS BOUGER L'ÉCRAN.
+   *
+   * Mesuré sur la fiche à 1280 px avant correction : « Continuer » avec un
+   * montant vide jetait la page de 650 à 158 — QUATRE CENT QUATRE-VINGT-DOUZE
+   * PIXELS vers le haut, sous le pouce de quelqu'un qui venait de viser un
+   * bouton. Ce n'était pas un caprice : le refus mettait le focus sur le champ
+   * fautif, et c'est le navigateur qui saute pour le montrer. « reportValidity »
+   * fait de même, en attachant sa bulle au champ.
+   *
+   * Un refus doit se faire COMPRENDRE, pas se faire chercher : la phrase se
+   * pose donc À CÔTÉ DU BOUTON qu'on vient de toucher, là où le regard est
+   * déjà, et le focus part sans emporter la page avec lui.
+   */
+  const [refus, setRefus] = useState("");
   const goTo = (n: number) => {
     if (n > step && formRef.current) {
       // Every field of the current step must be valid before moving on.
       const fields = formRef.current.querySelectorAll<HTMLInputElement>(`[data-step="${step}"] input, [data-step="${step}"] textarea`);
       for (const el of fields) {
         if (!el.checkValidity()) {
-          el.reportValidity();
+          setRefus(el.validationMessage || t("Ce champ n'est pas encore rempli."));
+          el.focus({ preventScroll: true });
           return;
         }
       }
       if (step === 1 && needsAmount && (!ordered || blocked)) {
-        formRef.current.querySelector<HTMLInputElement>("[data-order-field]")?.focus();
+        setRefus(t("Indiquez d'abord le montant de votre demande."));
+        formRef.current.querySelector<HTMLInputElement>("[data-order-field]")?.focus({ preventScroll: true });
         return;
       }
     }
+    setRefus("");
+    /* AUCUN BOUTON DE CE PARCOURS NE DÉPLACE L'ÉCRAN.
+       Demandé le 28 octobre 2026, et mesuré sur la fiche à 1280 px : un clic
+       sur « Continuer » jetait la page de 650 à 158 — QUATRE CENT QUATRE-VINGT-
+       DOUZE PIXELS vers le haut, sous le pouce de quelqu'un qui venait de
+       viser un bouton. La colonne du formulaire est COLLANTE au-dessus de
+       1000 px : elle suit déjà la page, et ce rappel à l'ordre ne servait
+       qu'à faire perdre sa place au lecteur.
+       Sous 1000 px la colonne est posée dans le flux, et il n'y a rien à
+       rattraper non plus : la rangée d'actions ne bouge pas d'une étape à
+       l'autre, c'est le contenu AU-DESSUS d'elle qui change. Le regard est
+       déjà là où il faut. */
     setStep(n);
-    formRef.current?.closest("aside")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   const parse = (s: string) => (offer.kind === "FONDS" && type === "rachat" ? parseUnits(s) : parseAmount(s));
   const market = offer.kind === "MARCHE";
@@ -209,6 +249,39 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const mktBond = market && offer.instrument === "obligation" && ordered > 0 ? marketBondCalc(offer, ordered * offer.nominal, lim ?? offer.ask ?? offer.lastPrice ?? 0) : null;
   const outlay = market ? (mktBond?.outlay ?? (ordered > 0 ? ordered * unitPrice(offer, type, lim) : 0)) : (est.outlay ?? 0);
   const sized = market ? ordered > 0 : est.ok;
+
+  /**
+   * L'ORDRE COMMENCÉ SURVIT À LA PAGE, ET SE RAPPELLE À LA CLOCHE.
+   *
+   * Demandé le 28 octobre 2026 : « sans date limite, s'assurer que l'ordre
+   * commencé apparaisse dans les notifications tant qu'il n'est pas confirmé
+   * ou annulé ». Un montant tapé puis abandonné — une page fermée, un appel
+   * reçu, un détour par ses coordonnées — n'était retrouvable nulle part : il
+   * fallait tout retaper, et le plus souvent on ne revenait pas.
+   *
+   * IL NE PART PAS AU DESK : il vit sur l'appareil, parce que rien n'a été
+   * envoyé et que la maison ne doit pas détenir un engagement que le client
+   * n'a pas pris. Voir « lib/brouillon ».
+   *
+   * IL S'EFFACE QUAND L'ORDRE PART — c'est le « confirmé » de la demande ; le
+   * « annulé » se joue depuis la cloche, où il se montre.
+   */
+  useEffect(() => {
+    if (state?.ok) return poserLeBrouillon(null);
+    /* CE QU'ON GARDE EST CE QUE L'ADRESSE DE REPRISE SAIT RELIRE, et les deux
+       ne sont pas toujours le même nombre. « amount » porte des titres ou des
+       francs selon le champ où l'on a tapé ; l'adresse, elle, n'a qu'un
+       paramètre, et la page le relit dans l'unité PAR DÉFAUT du formulaire —
+       les francs pour un achat en bourse. Mesuré avant correction : douze
+       titres tapés revenaient en « 12 FCFA », donc zéro titre, donc un champ
+       vide. On garde donc la somme pour ce cas-là, et la saisie telle quelle
+       partout ailleurs, où l'unité par défaut est déjà la bonne. */
+    const enTitres = market && !vend && unit === "titres" && outlay > 0;
+    /* Groupé comme le client l'aurait tapé : la cloche montre un nombre qui
+       se lit, pas une suite de chiffres. */
+    const montant = enTitres ? groupDigits(String(Math.round(outlay))) : amount;
+    poserLeBrouillon(montant.trim() ? { offerId: offer.id, titre: offer.title, type, montant } : null);
+  }, [amount, type, state?.ok, offer.id, offer.title, market, vend, unit, outlay]);
   const takes = type !== "vente" && type !== "cession" && type !== "rachat";
   // The outlay against the savings the client said they can invest this year: a word, and a confirmation past half of it.
   const amountMark = investable != null && outlay ? amountFlag({ investable, kind: "equilibre", horizonYears: [0, 1], measures: { horizon: 0, tolerance: 0, knowledge: 0, capacity: 0 }, answers: {}, updatedAt: "" }, outlay) : null;
@@ -826,6 +899,12 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             Le bouton d'envoi rejoint la barre, qui devient la seule rangée.
             Le pied garde sa phrase, et sur grand écran les deux restent côte à
             côte comme avant, par le cadre qui les entoure. */}
+        {/* La phrase du refus, à côté du bouton qu'on vient de toucher. */}
+        {refus && (
+          <p className={styles.refus} role="alert">
+            {refus}
+          </p>
+        )}
         <div className={styles.actions}>
           <div className={styles.foot} data-step="3">
             <small>{t(offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; la performance dépend du marché." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; l'allocation dépend de l'adjudication.")}</small>

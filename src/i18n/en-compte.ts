@@ -25,6 +25,10 @@ export const EN_COMPTE: Record<string, string> = {
   "vos clés d'accès, les appareils reconnus, et comment les retirer": "your passkeys, the devices we recognise, and how to remove them",
   "Cet appareil": "This device",
   "Paramétrages": "Settings",
+  "Un ordre commencé": "An order you started",
+  "Sur {l}. Vous ne l'avez pas envoyé : il vous attend tant que vous ne le reprenez pas ou ne l'abandonnez pas.":
+    "On {l}. You have not sent it: it waits for you until you pick it up again or drop it.",
+  "Abandonner": "Drop it",
   "langue, alertes et couleurs": "language, alerts and colours",
   "la langue, les alertes, les couleurs, et par quel canal on vous joint d'abord": "your language, alerts, colours, and which channel we reach you on first",
   /* Les mots qu'on TAPE pour trouver cette page : un lecteur anglais tape « language » et « settings ». */

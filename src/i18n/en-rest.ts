@@ -1315,6 +1315,8 @@ export const EN_REST: Record<string, string> = {
   "Comment vous répondre": "How to reply to you",
   "Votre message": "Your message",
   "Envoyer au desk": "Send to the desk",
+  "Ce champ n'est pas encore rempli.": "This field is not filled in yet.",
+  "Indiquez d'abord le montant de votre demande.": "Give the amount of your request first.",
   "Envoi…": "Sending…",
   "Message envoyé · {ref}": "Message sent · {ref}",
   "Vous le retrouvez dans vos messages, avec la réponse du desk.": "You will find it in your messages, with the desk's reply.",

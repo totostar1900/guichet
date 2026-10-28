@@ -188,6 +188,22 @@
   overflow: hidden;
   text-align: left;
 }
+/* SUR TÉLÉPHONE, LE PANNEAU TIENT À L'ÉCRAN, PAS À LA CLOCHE.
+   Mesuré le 28 octobre 2026 : accroché par la droite à une cloche posée à
+   286 px, large de 345, il commençait à MOINS VINGT-CINQ — son filet de
+   gauche, le ton de l'attente et la première lettre de chaque ligne étaient
+   dehors. Aucune largeur calculée depuis la cloche ne répare cela : c'est la
+   position de la cloche qui manque à la feuille. Il s'accroche donc aux deux
+   bords de l'écran, avec la gouttière de la maison de chaque côté. */
+@media (max-width: 760px) {
+  .panneau {
+    position: fixed;
+    top: calc(var(--mobile-bar) + var(--s-3));
+    left: var(--s-7);
+    right: var(--s-7);
+    width: auto;
+  }
+}
 .panneauTete {
   padding: var(--s-5) var(--s-6) var(--s-4);
   border-bottom: 1px solid var(--line);
@@ -291,8 +307,18 @@
    reste trouvable. Elle est en texte nu, pas en bouton plein : on ne met pas
    le même poids sur « signer » et sur « renoncer », et deux cibles de même
    taille à un doigt l'une de l'autre finissent par se confondre. */
+/* Elle sert à un lien (les attentes du dossier renvoient à leur page) ET à un
+   bouton (le brouillon s'abandonne sur place) : la remise à zéro du bouton est
+   donc ici, sinon il arrive avec le cadre du navigateur. */
 .attSortie {
   display: block;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   margin-top: var(--s-4);
   padding-top: var(--s-4);
   border-top: 1px solid var(--line);
@@ -303,9 +329,11 @@
 .attSortie:hover {
   color: var(--ink);
 }
-.alerte:hover,
+/* LE SURVOL SUIT L'ENCRE, lui aussi : ce rouge sombre était le fond de la
+   pastille du temps où le bouton ÉTAIT la pastille. Posé sur la cloche, qui
+   n'a plus de fond, il la repeignait en rouge au doigt posé. */
 .alerte:focus-visible {
-  background: #8f1d17;
+  background: color-mix(in srgb, currentColor 14%, transparent);
 }
 
 /* AU PIED DE LA COLONNE, LE PANNEAU S'OUVRE VERS LE HAUT. Ancré au pied et

@@ -52,3 +52,48 @@ describe("la barre flottante de la fiche", () => {
     expect(tel, "la cale ne se rallume pas avec la barre").toMatch(/\.cale \{\s*\n\s*display: block;/);
   });
 });
+
+/**
+ * AUCUN BOUTON DU PASSAGE D'ORDRE NE DÉPLACE L'ÉCRAN.
+ *
+ * SIGNALÉ LE 28 OCTOBRE 2026 : « s'assurer qu'aucun bouton de la procédure
+ * d'ordre ne déplace l'écran ; certains le font ». Mesuré sur la fiche à
+ * 1280 px : un clic sur « Continuer », montant vide, jetait la page de 650 à
+ * 158 — QUATRE CENT QUATRE-VINGT-DOUZE PIXELS vers le haut, sous le pouce de
+ * quelqu'un qui venait de viser un bouton.
+ *
+ * DEUX CAUSES, ET AUCUNE N'ÉTAIT UN CAPRICE. Le changement d'étape rappelait
+ * la colonne du formulaire à l'écran — alors qu'elle est COLLANTE au-dessus
+ * de 1000 px, donc déjà là. Et le refus mettait le focus sur le champ fautif,
+ * ce qui fait sauter le navigateur pour le montrer ; « reportValidity »
+ * faisait de même en attachant sa bulle au champ.
+ *
+ * LA RÈGLE QUI EN SORT : un refus doit se faire COMPRENDRE, pas se faire
+ * chercher. La phrase se pose à côté du bouton qu'on vient de toucher, là où
+ * le regard est déjà, et le focus part sans emporter la page.
+ *
+ * Mesuré après : refus 646 → 650 — la page grandit de la hauteur de la
+ * phrase, elle ne se déplace pas ; étape 1 → 2 et 2 → 1, 650 → 650.
+ */
+describe("le parcours d'ordre ne bouge pas sous le doigt", () => {
+  const src = () => readFileSync(`${RACINE}/src/components/IntentForm.tsx`, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  it("ne rappelle plus la page à l'ordre quand on change d'étape", () => {
+    expect(src(), "le formulaire déplace de nouveau l'écran").not.toMatch(/scrollIntoView|window\.scrollTo|scrollBy/);
+  });
+
+  it("refuse en parlant, et non en sautant", () => {
+    const s = src();
+    expect(s, "le refus ne dit plus rien").toMatch(/setRefus\(/);
+    expect(s, "la phrase du refus n'est plus montrée").toMatch(/role="alert"/);
+    /* Le focus reste — il faut bien que le champ fautif reçoive la frappe
+       suivante — mais il part sans emporter la page. */
+    const focus = [...s.matchAll(/\.focus\(([^)]*)\)/g)].map((m) => m[1]);
+    expect(focus.length, "plus aucun focus : le relevé ne mesure rien").toBeGreaterThan(0);
+    expect(
+      focus.filter((a) => !a.includes("preventScroll")),
+      "un focus sans « preventScroll » fait sauter le navigateur pour montrer le champ",
+    ).toEqual([]);
+    expect(s, "« reportValidity » attache sa bulle au champ, donc y saute").not.toMatch(/reportValidity/);
+  });
+});

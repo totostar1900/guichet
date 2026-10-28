@@ -268,7 +268,10 @@ describe("la cloche de la barre", () => {
     const bouton = /className=\{styles\.alerte\}[\s\S]*?<\/button>/.exec(vue())?.[0] ?? "";
     expect(bouton.length, "le bouton des attentes est introuvable : le relevé ne mesure rien").toBeGreaterThan(80);
     expect(bouton, "le bouton ne porte aucun dessin : la pastille revient seule").toMatch(/<svg/);
-    expect(bouton, "le compte a disparu : la cloche ne dit plus combien").toMatch(/\{attentes\.length\}/);
+    /* Le compte, quel que soit le nom de ce qui le porte : il a d'abord été
+       « attentes.length », puis « combien » le jour où l'ordre commencé s'est
+       ajouté à la liste. Ce que l'épreuve tient est qu'un NOMBRE se montre. */
+    expect(bouton, "le compte a disparu : la cloche ne dit plus combien").toMatch(/className=\{styles\.compte\}>\{\w+/);
   });
 
   it("prend l'encre de la barre, et laisse au chiffre son rouge", () => {

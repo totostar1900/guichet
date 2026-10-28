@@ -671,3 +671,15 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* LE REFUS SE LIT LÀ OÙ LE DOIGT VIENT DE SE POSER, et non au bout d'un saut
+   de page : « Continuer » avec un montant vide jetait l'écran de 492 px vers
+   le haut pour montrer le champ fautif. La phrase remplace le saut. */
+.refus {
+  margin: 0 0 var(--s-5);
+  padding: var(--s-5) var(--s-6);
+  border-radius: var(--radius);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: var(--t-3);
+}
