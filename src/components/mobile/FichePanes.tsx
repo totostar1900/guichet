@@ -46,9 +46,26 @@ export function FicheSegments() {
   );
 }
 
-/** Phone-only bar above the tab bar: the one action, always a thumb away. It opens the intention on its own page. */
+/**
+ * Phone-only bar above the tab bar: the one action, always a thumb away. It
+ * opens the intention on its own page.
+ *
+ * ELLE EST FLOTTANTE, DONC ELLE MANGE LA FIN DE LA PAGE — et c'est ce qui a
+ * été signalé le 28 octobre 2026 : « le bouton Passer un ordre cache la
+ * section Cotation et règlement ». Mesuré avant correction, page défilée à
+ * fond sur un écran de 844 px : la dernière section allait de 566 à 759, la
+ * barre de 724 à 788. TRENTE-CINQ PIXELS de la section étaient sous le bouton,
+ * et aucun geste ne pouvait les atteindre — la page ne défile pas plus loin.
+ *
+ * LA CALE EST DANS LE FLUX, elle, et elle naît avec la barre : la réserve
+ * existe donc exactement quand il y a quelque chose à réserver, et une ligne
+ * close — qui n'a pas de barre — ne gagne pas un trou blanc. Les deux lisent
+ * la même hauteur, écrite une fois.
+ */
 export function StickyAction({ label, href, secondaryHref, secondaryLabel }: { label: string; href: string; secondaryHref?: string; secondaryLabel?: string }) {
   return (
+    <>
+    <div className={styles.cale} aria-hidden="true" />
     <div className={styles.cta} data-coach="action">
       {/* Il n'était qu'un « ghost » de petite taille à côté d'une action pleine
           hauteur : il se lisait comme une note de bas de page. Même hauteur et un
@@ -62,5 +79,6 @@ export function StickyAction({ label, href, secondaryHref, secondaryLabel }: { l
         {label}
       </Link>
     </div>
+    </>
   );
 }

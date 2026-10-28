@@ -1,7 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { IntentForm } from "@/components/IntentForm";
-import { Kpis } from "../Kpis";
 import { StandingForm } from "@/components/Standing";
 import { recurringMinimum } from "@/lib/domain/standing";
 import { summarize } from "@/lib/domain/summary";
@@ -64,7 +62,14 @@ export default async function IntentionPage({ params, searchParams }: Props) {
               </span>
             }
           />
-          <Kpis o={o} />
+          {/* LES QUATRE CHIFFRES NE SONT PLUS EN TÊTE DE LA FEUILLE D'ORDRE.
+              Demandé le 28 octobre 2026. Ils y occupaient le tiers supérieur
+              de l'écran du téléphone, au-dessus du premier champ, alors que
+              le client vient de les lire sur la fiche — il en sort, le bouton
+              « La fiche » est à deux centimètres au-dessus, et le formulaire
+              porte déjà le cours dans son champ et le total qu'il calcule.
+              Le tampon reste : il dit de QUAND date le prix, et c'est la seule
+              chose qu'on ne peut pas retrouver ailleurs sans repartir. */}
           <span className={`stamp ${stampPending ? "pending" : ""}`}>{t(stamp)}</span>
         </div>
 

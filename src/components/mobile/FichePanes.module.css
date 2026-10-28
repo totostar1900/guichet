@@ -1,5 +1,6 @@
 .seg,
-.cta {
+.cta,
+.cale {
   display: none;
 }
 @media (max-width: 760px) {
@@ -36,6 +37,20 @@
   .panes[data-show="docs"] [data-pane]:not([data-pane="docs"]),
   .panes[data-show="emetteur"] [data-pane]:not([data-pane="emetteur"]) {
     display: none;
+  }
+  /* LA HAUTEUR DE LA BARRE, ÉCRITE UNE FOIS : la barre flotte, la cale la
+     réserve dans le flux, et les deux doivent s'accorder au pixel. Soixante-
+     quatre pixels est une mesure et non un choix — barre relevée de 724 à 788
+     sur l'écran de 844 px où le défaut a été constaté. */
+  .cta,
+  .cale {
+    --cta-h: 64px;
+  }
+  /* Elle vient APRÈS la barre dans le flux, et c'est tout ce qu'elle fait :
+     rendre à la page les pixels que la barre lui prend. */
+  .cale {
+    display: block;
+    height: calc(var(--cta-h) + 8px);
   }
   .cta {
     position: fixed;

@@ -1,4 +1,6 @@
+import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
+import { RACINE } from "./racine";
 import { allowedIntents, FIRM_TYPES } from "@/lib/domain/intent";
 import { summarize } from "@/lib/domain/summary";
 import { displayStatus } from "@/lib/domain/status";
@@ -112,5 +114,36 @@ describe("les onglets de la feuille d'ordre", () => {
        voie ici plutôt que dans six mois. */
     const ouverts = new Set(corpus().filter((o) => !PASSES.includes(displayStatus(o))).map((o) => o.kind));
     expect([...KINDS].filter((k) => !ouverts.has(k)), "ces genres ne sont vus qu'à l'état clos : le relevé des boutons ne les mesure pas").toEqual([]);
+  });
+});
+
+/**
+ * CE QUE LA FEUILLE D'ORDRE MONTRE AVANT LE PREMIER CHAMP.
+ *
+ * Les quatre chiffres de la ligne — rendement, dividende, cours, nominal —
+ * ouvraient la feuille, au-dessus de tout. Retirés le 28 octobre 2026 à la
+ * demande de l'écran.
+ *
+ * LA MESURE QUI TRANCHE, prise sur un téléphone de 844 px : avec eux, le
+ * PREMIER CHAMP À REMPLIR commençait à 700 px du haut — sous la barre
+ * d'onglets, donc hors de vue au chargement. Sans eux, à 519. Le client sort
+ * de la fiche, où il vient de les lire ; le bouton « La fiche » est à deux
+ * centimètres au-dessus de sa tête ; et le formulaire porte le cours dans son
+ * champ et le total qu'il calcule.
+ *
+ * LE TAMPON RESTE, et ce n'est pas un oubli : il dit de QUAND date le prix,
+ * et c'est la seule chose qu'on ne retrouve pas ailleurs sans repartir.
+ */
+describe("la tête de la feuille d'ordre", () => {
+  const page = () => readFileSync(`${RACINE}/src/app/offres/[id]/intention/page.tsx`, "utf8").replace(/\{\/\*[\s\S]*?\*\/\}/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
+
+  it("ne remet pas les quatre chiffres au-dessus du premier champ", () => {
+    expect(page(), "les quatre chiffres sont revenus en tête de la feuille d'ordre").not.toMatch(/<Kpis\b/);
+  });
+
+  it("garde le tampon, qui dit de quand date le prix", () => {
+    /* Non vacuité : sans cette ligne, une feuille vidée de tout passerait
+       l'épreuve ci-dessus. */
+    expect(page(), "le tampon a disparu avec les chiffres : plus rien ne date le prix").toMatch(/className=\{`stamp/);
   });
 });
