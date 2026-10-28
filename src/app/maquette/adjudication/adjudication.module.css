@@ -1,0 +1,46 @@
+/**
+ * CE QUE LA SECONDE MAQUETTE AJOUTE À LA PREMIÈRE, ET RIEN DE PLUS.
+ *
+ * Elle emprunte toute sa forme à « ../ordre/maquette.module.css » — l'écran,
+ * la carte, la boîte de saisie, le pied — parce qu'une seconde maquette qui
+ * réinventerait sa feuille ne prouverait rien : ce qu'on veut savoir, c'est
+ * justement si la MÊME forme tient sur un produit plus chargé.
+ *
+ * Reste ici le seul objet neuf : le repère du marché sous le taux.
+ */
+.repere {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+.repere b {
+  color: var(--ink-2);
+}
+
+/* LA JAUGE EST UN REPÈRE, PAS UNE MESURE : elle dit « vous êtes de ce
+   côté-ci du dernier taux servi », ce qui est la seule chose utile pendant
+   qu'on tape. Lui donner des graduations ferait croire à une précision que
+   l'adjudication n'a pas. */
+.jauge {
+  position: relative;
+  display: block;
+  height: 4px;
+  margin-bottom: var(--s-5);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--good-soft), var(--surface-2), var(--warn-soft));
+}
+.marque {
+  position: absolute;
+  top: -4px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: var(--fill);
+  transition: left 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .marque {
+    transition: none;
+  }
+}

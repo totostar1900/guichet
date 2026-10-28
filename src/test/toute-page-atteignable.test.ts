@@ -79,6 +79,7 @@ function sources(): string[] {
  */
 const MAQUETTES: Record<string, string> = {
   "/maquette/ordre": "proposée le 28 octobre 2026 : la forme généreuse du passage d'ordre, en attente d'arbitrage",
+  "/maquette/adjudication": "proposée le 28 octobre 2026 : la même forme sur deux saisies, un montant et un taux, en attente d'arbitrage",
 };
 
 const citeesParLaColonne = new Set([...COLONNE_DESK, ...COLONNE_CLIENT, ...COLONNE_VISITEUR].flatMap((g) => g.items.map((i) => i.href)));

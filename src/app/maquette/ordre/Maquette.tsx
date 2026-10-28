@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import styles from "./maquette.module.css";
 
@@ -43,7 +42,11 @@ const chiffres = (v: string) => v.replace(/\D/g, "");
 export function Maquette({ titre, isin, cours, quotite, detenu, marche }: { titre: string; isin: string; cours: number; quotite: number; detenu: number; marche: string }) {
   const [sens, setSens] = useState<"achat" | "vente">("achat");
   const [brut, setBrut] = useState("");
-  const [etape, setEtape] = useState<1 | 2>(1);
+  /* « coordonnees » est le DÉTOUR : dans l'application c'est une vraie page,
+     atteinte avec un billet de retour. Ici elle est jouée dans la maquette,
+     sans quoi on ne verrait pas ce qu'on vient juger — à savoir que l'ordre
+     est retrouvé intact. */
+  const [etape, setEtape] = useState<1 | 2 | "coordonnees">(1);
   const [envoye, setEnvoye] = useState(false);
 
   const montant = Number(chiffres(brut) || 0);
@@ -81,6 +84,39 @@ export function Maquette({ titre, isin, cours, quotite, detenu, marche }: { titr
             Rejouer la maquette
           </button>
         </section>
+      ) : etape === "coordonnees" ? (
+        <>
+          <p className={styles.garde}>
+            Votre ordre est gardé : <b>{MILLIERS(vu.exact)} FCFA</b> sur {titre}.
+          </p>
+          <section className={styles.carte}>
+            <h2 className={styles.recapTitre}>Vos coordonnées</h2>
+            <p className={styles.recapMot}>
+              Dans l&apos;application, ceci est la page « Profil », atteinte d&apos;ici avec un billet de retour. Elle est jouée dans la maquette pour qu&apos;on
+              voie l&apos;aller ET le retour.
+            </p>
+            <dl className={styles.recap}>
+              <div>
+                <dt>Nom</dt>
+                <dd>Georges Nitcheu</dd>
+              </div>
+              <div>
+                <dt>E-mail</dt>
+                <dd>georges.nitcheu@gmail.com</dd>
+              </div>
+              <div>
+                <dt>WhatsApp</dt>
+                <dd>+237 6 87 67 67 67</dd>
+              </div>
+            </dl>
+          </section>
+          <div className={styles.pied}>
+            <button type="button" className={styles.action} onClick={() => setEtape(2)}>
+              Revenir à mon ordre
+            </button>
+            <small>Il vous attend aussi dans vos notifications, tant qu&apos;il n&apos;est pas envoyé.</small>
+          </div>
+        </>
       ) : etape === 1 ? (
         <>
           {/* UNE BASCULE, ET NON DEUX ONGLETS. Demandé le 28 octobre : deux
@@ -185,11 +221,16 @@ export function Maquette({ titre, isin, cours, quotite, detenu, marche }: { titr
                 endroit : la page qui les tient. Le dire ici en toutes lettres
                 vaut mieux qu'un champ de plus — mais il faut dire aussi ce
                 qu'on perd, sinon le lien est un piège. */}
+            {/* L'ORDRE N'EST PLUS PERDU EN CHEMIN. Arrêté le 28 octobre :
+                corriger ses coordonnées est un autre geste, qui a sa page —
+                mais le faire ne doit pas coûter le montant qu'on vient de
+                taper. On part avec un billet de retour, et on revient à
+                l'endroit exact qu'on avait quitté. */}
             <p className={styles.recapMot}>
-              <Link href="/moi/identite" className={styles.lien}>
+              <button type="button" className={styles.lien} onClick={() => setEtape("coordonnees")}>
                 Modifier mes coordonnées
-              </Link>{" "}
-              — vous quitterez cet ordre, et rien ne sera envoyé.
+              </button>{" "}
+              — votre ordre est gardé pendant ce temps.
             </p>
           </section>
 
