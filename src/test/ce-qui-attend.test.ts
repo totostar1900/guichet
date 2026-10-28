@@ -242,3 +242,42 @@ describe("le compte ne se plafonne plus", () => {
     expect(attentesDuClient(c, fmt)).toHaveLength(5);
   });
 });
+
+/**
+ * ET CE QU'ON VOIT D'ELLE DANS LA BARRE : UNE CLOCHE, PAS UN CHIFFRE SEUL.
+ *
+ * SIGNALÉ DEUX FOIS À L'ÉCRAN — « je ne vois pas la cloche des notifications,
+ * la pastille est là sans cloche » — et c'était exact les deux fois. Le
+ * conteneur s'appelle « cloche » dans la feuille depuis le premier jour, mais
+ * rien n'en dessinait une : le bouton ne portait QUE le nombre, dans un rond
+ * rouge.
+ *
+ * UN ROND ROUGE MARQUÉ « 2 » À CÔTÉ DE SON INITIALE ne dit pas « deux
+ * décisions vous attendent » : il dit qu'il y a un problème, ou il ne dit
+ * rien. Le nom vivait dans le code, le dessin nulle part — et un nom qui
+ * promet un dessin absent ne lève aucune erreur.
+ *
+ * LA CLOCHE DIT QUOI, LE CHIFFRE DIT COMBIEN : il faut les deux, et c'est
+ * ce que ce relevé tient.
+ */
+describe("la cloche de la barre", () => {
+  const vue = () => readFileSync("src/components/mobile/BarreDuCompte.tsx", "utf8").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+  const css = () => readFileSync("src/components/mobile/BarreDuCompte.module.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+
+  it("dessine une cloche, et pas seulement un nombre", () => {
+    const bouton = /className=\{styles\.alerte\}[\s\S]*?<\/button>/.exec(vue())?.[0] ?? "";
+    expect(bouton.length, "le bouton des attentes est introuvable : le relevé ne mesure rien").toBeGreaterThan(80);
+    expect(bouton, "le bouton ne porte aucun dessin : la pastille revient seule").toMatch(/<svg/);
+    expect(bouton, "le compte a disparu : la cloche ne dit plus combien").toMatch(/\{attentes\.length\}/);
+  });
+
+  it("prend l'encre de la barre, et laisse au chiffre son rouge", () => {
+    /* La barre est bleu nuit à encre blanche, le pied de la colonne est pâle
+       à encre sombre : une couleur fixe serait fausse sur l'un des deux. La
+       loupe voisine fait déjà ainsi. Le chiffre, lui, porte une PAIRE —
+       fond rouge, encre blanche — et la redit pour passer devant la règle du
+       pied de colonne. */
+    expect(css(), "la cloche ne suit plus l'encre de la barre").toMatch(/\.alerte svg \{[^}]*stroke: currentColor;/);
+    expect(css(), "le compte a perdu sa paire fond + encre").toMatch(/\.compte\.compte \{\s*background: #b3261e;\s*color: #fff;/);
+  });
+});

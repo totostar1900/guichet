@@ -84,24 +84,52 @@
   display: flex;
   flex: none;
 }
+/* LA CLOCHE PREND L'ENCRE DE LA BARRE, comme la loupe : blanche sur le bleu
+   nuit, sombre au pied de la colonne. Une couleur fixe serait fausse sur
+   l'une des deux. Le chiffre, lui, garde son rouge et son blanc — c'est une
+   paire, et elle se mesure comme telle. */
 .alerte {
-  width: 26px;
-  height: 26px;
+  position: relative;
+  width: 34px;
+  height: 34px;
   flex: none;
   display: grid;
   place-items: center;
   border: 0;
   padding: 0;
   border-radius: 50%;
-  background: #b3261e;
-  color: #fff;
+  background: transparent;
   text-decoration: none;
   font: inherit;
-  font-size: var(--t-2);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
   line-height: 1;
   cursor: pointer;
+}
+.alerte svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.alerte:hover {
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+/* Le compte, posé sur la cloche : il dit combien, elle dit quoi. */
+.compte {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 var(--s-1);
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: var(--t-1);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 /**
  * DEUX ÉLÉMENTS PORTENT LEUR PROPRE FOND, ET DOIVENT DONC PORTER LEUR PROPRE
@@ -129,7 +157,9 @@
   background: var(--gold);
   color: var(--navy);
 }
-.alerte.alerte {
+/* Le chiffre porte son fond et son encre, et redit les deux : voir la note
+   ci-dessus. La cloche, elle, n'en a pas — elle hérite de la barre. */
+.compte.compte {
   background: #b3261e;
   color: #fff;
 }

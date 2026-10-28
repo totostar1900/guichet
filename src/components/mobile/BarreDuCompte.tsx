@@ -91,7 +91,22 @@ export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-lef
             aria-label={attentes.length > 1 ? t("{n} décisions vous attendent", { n: String(attentes.length) }) : t("Une décision vous attend")}
             title={attentes.length > 1 ? t("{n} décisions vous attendent", { n: String(attentes.length) }) : t("Une décision vous attend")}
           >
-            {attentes.length}
+            {/* LA CLOCHE ÉTAIT UN NOM SANS DESSIN.
+                Signalé deux fois à l'écran — « je ne vois pas la cloche des
+                notifications, la pastille est là sans cloche » — et c'était
+                exact : cet élément s'appelle « cloche » dans le code depuis le
+                premier jour, mais il ne montrait qu'un chiffre dans un rond
+                rouge. Un rond rouge marqué « 2 » à côté de son initiale ne dit
+                pas « deux décisions vous attendent » : il dit qu'il y a un
+                problème, ou il ne dit rien.
+                La cloche porte le sens, le chiffre porte la quantité, et la
+                cloche prend l'encre de la barre comme la loupe voisine —
+                blanche sur le bleu nuit, sombre au pied de la colonne. */}
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z" />
+              <path d="M10 20h4" />
+            </svg>
+            <span className={styles.compte}>{attentes.length}</span>
           </button>
           {alertes && (
             <>
