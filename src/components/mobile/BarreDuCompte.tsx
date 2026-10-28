@@ -171,7 +171,21 @@ export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-lef
               <path d="m20 20-3.5-3.5" />
             </svg>
           </button>
-          <Sheet open={cherche} onClose={() => setCherche(false)} navy dock={p.dock ?? "top-right"} title={t("Rechercher")}>
+          {/* PLEIN ÉCRAN, ET LE CHAMP CESSE DE BOUGER.
+              Relevé à l'écran le 28 octobre 2026 : « la barre de recherche
+              monte et descend avec la liste des résultats, et moins il y a de
+              résultats plus elle se cache derrière le clavier ». La feuille
+              est collée EN BAS sur téléphone et sa hauteur suit son contenu :
+              le champ étant en tête de feuille, deux résultats le posaient à
+              quelques centimètres du bord inférieur, c'est-à-dire sous le
+              clavier qu'on venait d'ouvrir pour taper dedans. Chaque lettre
+              tapée le déplaçait, puisque chaque lettre change le nombre de
+              réponses.
+              Une feuille de pleine hauteur a un haut fixe : le champ s'y pose
+              une fois pour toutes, loin du clavier, et seules les réponses
+              défilent. C'est le réglage que la maison avait déjà écrit pour la
+              feuille du compte, et pour la même raison. */}
+          <Sheet open={cherche} onClose={() => setCherche(false)} navy tall dock={p.dock ?? "top-right"} title={t("Rechercher")}>
             <MenuRecherche index={index} close={() => setCherche(false)} />
             {/* LA FEUILLE RÉPOND VITE, LA PAGE RÉPOND ENTIÈREMENT.
                 Six résultats tiennent ici, et c'est ce qu'on veut quand on

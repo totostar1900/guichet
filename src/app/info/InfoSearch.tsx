@@ -72,6 +72,29 @@ const SYN: Record<string, string[]> = {
   pay: ["regler", "paiement"],
   account: ["compte"],
   help: ["aide"],
+  /* CE QU'ON CHERCHE QUAND ON CHERCHE UN RÉGLAGE, dans les deux langues.
+     Relevé à l'écran le 28 octobre 2026 : « j'ai cherché la langue et je n'ai
+     pas trouvé le réglage ». La page existait et était indexée ; aucun des
+     mots qu'on tape pour la trouver n'y figurait. Les mots-clefs de la page
+     règlent le cas de « langue » ; ceux-ci règlent les mots voisins, que la
+     page ne dira jamais d'elle-même sans devenir une liste de synonymes. */
+  /* LES CLEFS SONT DES MOTS RÉDUITS : `stem` retire le « s » final avant de
+     consulter cette table, donc « réglages » y entre comme « reglage » et
+     « settings » comme « setting ». Une clef au pluriel ne serait jamais
+     consultée. */
+  reglage: ["parametrages"],
+  parametre: ["parametrages"],
+  preference: ["parametrages"],
+  setting: ["parametrages", "langue"],
+  language: ["langue", "parametrages"],
+  langue: ["parametrages"],
+  english: ["langue", "parametrages"],
+  french: ["langue", "parametrages"],
+  traduction: ["langue"],
+  theme: ["couleurs", "parametrages"],
+  couleur: ["parametrages"],
+  dark: ["couleurs", "theme"],
+  notification: ["alertes", "parametrages"],
 };
 const stem = (w: string) => (w.length > 3 ? w.replace(/(s|x)$/, "") : w);
 

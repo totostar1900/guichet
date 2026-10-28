@@ -15,7 +15,7 @@ import { MARKET_PAGES, type MarketPage } from "./market/pages";
 /* « guide » entre dans la part partagee : la rangee d onglets s en sert pour
    ecarter la lecon, qui vit sous « /info » et dont la pastille ne
    s allumerait jamais. */
-export type NavPage = Pick<MarketPage, "key" | "href" | "label" | "hint" | "short" | "tuile" | "guide">;
+export type NavPage = Pick<MarketPage, "key" | "href" | "label" | "hint" | "short" | "tuile" | "guide" | "mots">;
 
 /**
  * Ce que je possède, et ce qui en découle. Le tableau de bord ouvre la liste
@@ -145,5 +145,10 @@ export const COMPTE_PAGES: NavPage[] = [
   { key: "pieces", href: "/ouvrir-un-compte", label: "Mes pièces", tuile: "votre dossier", hint: "votre dossier d'ouverture et les pièces qui le composent" },
   { key: "profil", href: "/moi/profil", label: "Profil d'investisseur", tuile: "horizon et tolérance", hint: "votre horizon, votre tolérance au risque, et ce que la maison en déduit" },
   { key: "securite", href: "/moi/securite", label: "Sécurité", tuile: "clés et appareils", hint: "vos clés d'accès, les appareils reconnus, et comment les retirer" },
-  { key: "appareil", href: "/moi/appareil", label: "Cet appareil", tuile: "alertes et couleurs", hint: "alertes, couleurs, et par quel canal on vous joint d'abord" },
+  /* « PARAMÉTRAGES » ET NON « CET APPAREIL ». Le nom disait la PORTÉE de deux
+     de ses réglages, pas ce qu'on vient y faire ; on y cherche la langue, les
+     alertes ou les couleurs, et personne ne tape « cet appareil ». La page dit
+     elle-même, sous son titre, lesquels valent ici et lesquels valent partout.
+     Les mots-clefs portent la langue, que ni le nom ni la phrase ne nommaient. */
+  { key: "appareil", href: "/moi/appareil", label: "Paramétrages", tuile: "langue, alertes et couleurs", hint: "la langue, les alertes, les couleurs, et par quel canal on vous joint d'abord", mots: "réglages paramètres préférences langue français anglais thème notifications relevés" },
 ];

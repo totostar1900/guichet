@@ -94,7 +94,10 @@ export async function buildGuideIndex(t: (s: string) => string, lang: Lang, { ap
     ? []
     : [
         /* Les pages, par leur nom et la phrase qui dit ce qu'on y trouve. */
-        ...pages.map((p) => ({ kind: "page" as const, title: t(p.label), text: t(p.hint), href: p.href, extra: [p.short, p.tuile].filter(Boolean).map((x) => t(x as string)).join(" ") })),
+        /* `mots` porte ce qu'on tape et que la page ne dit pas d'elle-même —
+           « langue » pour les paramétrages, par exemple. Il est traduit comme
+           le reste : un lecteur anglais tape « language », pas « langue ». */
+        ...pages.map((p) => ({ kind: "page" as const, title: t(p.label), text: t(p.hint), href: p.href, extra: [p.short, p.tuile, p.mots].filter(Boolean).map((x) => t(x as string)).join(" ") })),
         /* Les trois rayons de Trade : ce qu'on vient y faire. */
         ...RAYONS.map((r) => ({ kind: "page" as const, title: `${t("Trade")} · ${t(r.nom)}`, text: t(r.quoi), href: `/trader?r=${r.cle}`, extra: "trade services" })),
         /* Les dix services, avec leur raison d'être : c'est elle qu'on cherche,

@@ -24,6 +24,12 @@ export const EN_COMPTE: Record<string, string> = {
   "votre horizon, votre tolérance au risque, et ce que la maison en déduit": "your horizon, your risk tolerance, and what the firm concludes from them",
   "vos clés d'accès, les appareils reconnus, et comment les retirer": "your passkeys, the devices we recognise, and how to remove them",
   "Cet appareil": "This device",
+  "Paramétrages": "Settings",
+  "langue, alertes et couleurs": "language, alerts and colours",
+  "la langue, les alertes, les couleurs, et par quel canal on vous joint d'abord": "your language, alerts, colours, and which channel we reach you on first",
+  /* Les mots qu'on TAPE pour trouver cette page : un lecteur anglais tape « language » et « settings ». */
+  "réglages paramètres préférences langue français anglais thème notifications relevés":
+    "settings preferences language french english theme notifications statements",
   "alertes, couleurs, et par quel canal on vous joint d'abord": "alerts, colours, and which channel we reach you on first",
   /* LES TROIS MOTS DE CHAQUE RUBRIQUE, qui vivent dans COMPTE_PAGES et
      traversent t() en variable : aucun scanner ne les voit, et ils ressortent

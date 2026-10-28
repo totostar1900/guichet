@@ -28,6 +28,20 @@ export interface MarketPage {
   /** Vrai quand la page appartient au Guide plutôt qu'au marché lui-même. */
   guide?: boolean;
   /**
+   * LES MOTS QU'ON TAPE POUR LA TROUVER, quand ils ne sont ni dans son nom ni
+   * dans sa phrase.
+   *
+   * Relevé le 28 octobre 2026, signalé à l'écran : « j'ai cherché la langue et
+   * je n'ai pas trouvé le réglage ». La page qui porte le choix de la langue
+   * s'appelait « Cet appareil » et se décrivait par « alertes, couleurs, et
+   * par quel canal on vous joint d'abord » : sur neuf mots qu'un lecteur tape
+   * pour ce réglage, deux trouvaient la page. Une page se cherche par ce
+   * qu'elle CONTIENT, pas par le nom qu'on lui a donné.
+   *
+   * Ils sont traduits comme le reste : un lecteur anglais tape « language ».
+   */
+  mots?: string;
+  /**
    * L'adresse de la même page au desk, quand elle y est servie. Les autres
    * ne paraissent pas dans la bande du desk : les y laisser enverrait le
    * lecteur chez le client, déconnecté, ce que toute la séparation évite.

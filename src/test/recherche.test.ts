@@ -88,6 +88,32 @@ describe("ce que la recherche connaît", () => {
    * où aucune de ces adresses n'existe. L'épreuve lit la route, parce que la
    * décision est là et nulle part ailleurs.
    */
+  it("mène à un réglage par ce qu'il contient, et non par le nom de sa page", async () => {
+    /* RELEVÉ À L'ÉCRAN LE 28 OCTOBRE 2026 : « j'ai cherché la langue et je n'ai
+       pas trouvé le réglage ». La page existait, elle était indexée, et elle
+       répondait à « appareil » — un mot que personne ne tape pour changer de
+       langue. Son nom disait la PORTÉE de deux de ses réglages ; son index
+       répétait son nom.
+       UNE RECHERCHE QUI NE TROUVE PAS NE LÈVE RIEN, et c'est pourquoi le trou
+       a tenu : rien ne distingue « cette page n'existe pas » de « elle existe
+       et ne porte pas vos mots ». */
+    const { entries } = await buildGuideIndex(t, "fr", { app: true });
+    const { rankEntries } = await import("@/app/info/InfoSearch");
+    /* CHAQUE MOT DE CETTE LISTE EST PORTÉ PAR UNE PIÈCE DIFFÉRENTE, et c'est
+       une mesure, pas une intention : « langue » vient de la phrase de la page,
+       « settings » et « language » des synonymes, « anglais » et « relevés » des
+       mots-clefs — eux seuls, puisque la page ne dit ni l'un ni l'autre d'elle
+       même. Avant le 28 octobre, sur les neuf, DEUX répondaient. */
+    for (const mot of ["langue", "language", "réglages", "settings", "thème", "notifications", "paramètres", "anglais", "relevés"]) {
+      const rang = rankEntries(entries, mot).results.findIndex((r) => r.e.href === "/moi/appareil");
+      expect(rang, `« ${mot} » ne mène pas aux paramétrages`).toBeGreaterThanOrEqual(0);
+      expect(rang, `« ${mot} » les relègue derrière trois autres réponses`).toBeLessThan(3);
+    }
+    /* Non vacuité : un mot qui n'a rien à y faire n'y mène pas. Sans cette
+       ligne, une page qui répondrait à TOUT passerait l'épreuve. */
+    expect(rankEntries(entries, "coupon").results.some((r) => r.e.href === "/moi/appareil"), "les paramétrages répondent à n'importe quoi").toBe(false);
+  });
+
   it("ne sert pas la navigation du client au desk", async () => {
     const route = readFileSync(join(process.cwd(), "src/app/api/guide-index/route.ts"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     expect(route, "la route sert l'application à toute session, desk compris").toMatch(/app:\s*Boolean\(s\)\s*&&\s*!isDesk\(s\)/);
@@ -182,5 +208,44 @@ describe("le champ de la colonne", () => {
       "une forme du desk est proposée hors du desk",
     ).toEqual([]);
     expect(src, "le pont vers le guichet est proposé au desk").toMatch(/connecte && !auDesk/);
+  });
+});
+
+/**
+ * LA BARRE DE RECHERCHE NE BOUGE PAS PENDANT QU'ON TAPE DEDANS.
+ *
+ * RELEVÉ À L'ÉCRAN LE 28 OCTOBRE 2026 : « la barre de recherche monte et
+ * descend avec la liste des résultats, et moins il y a de résultats plus elle
+ * se cache derrière le clavier ».
+ *
+ * LE MÉCANISME. Sur téléphone, une feuille est collée EN BAS et sa hauteur
+ * suit son contenu. Le champ étant en tête de feuille, deux résultats le
+ * posaient à quelques centimètres du bord inférieur — c'est-à-dire sous le
+ * clavier qu'on venait d'ouvrir pour taper dedans. Et comme chaque lettre
+ * change le nombre de réponses, chaque lettre déplaçait le champ.
+ *
+ * LE REMÈDE EST UNE HAUTEUR QUI NE DÉPEND PAS DU CONTENU : « tall » prend
+ * l'écran entier, le haut est fixe, le champ s'y pose une fois pour toutes et
+ * seules les réponses défilent. La maison avait déjà écrit ce réglage pour la
+ * feuille du compte, et pour une raison voisine.
+ */
+describe("la feuille de recherche, sur téléphone", () => {
+  const source = () => readFileSync(join(process.cwd(), "src/components/mobile/BarreDuCompte.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+
+  it("a une hauteur que la liste des résultats ne commande pas", () => {
+    /* On s'arrête à la feuille de recherche elle-même : « [^>]* » n'irait pas,
+       puisqu'un « => » de rappel porte un chevron, et « (?!<Sheet) » empêche
+       d'avaler la feuille voisine en chemin. */
+    const feuille = /<Sheet(?:(?!<Sheet)[\s\S])*?title=\{t\("Rechercher"\)\}/.exec(source())?.[0] ?? "";
+    expect(feuille.length, "la feuille de recherche est introuvable : le relevé ne mesure rien").toBeGreaterThan(40);
+    expect(feuille, "la feuille de recherche respire avec ses résultats : le champ redescendra sous le clavier").toMatch(/\btall\b/);
+  });
+
+  it("et « tall » est bien ce qui fixe le haut", () => {
+    /* Non vacuité : l'attribut ne vaut que par la règle qu'il appelle. Si la
+       feuille de style cessait de donner une hauteur pleine, « tall » ne serait
+       plus qu'un mot dans une balise. */
+    const css = readFileSync(join(process.cwd(), "src/components/mobile/Sheet.module.css"), "utf8");
+    expect(css).toMatch(/\.tall,\s*\n\s*\.tall\.sheetOpen \{[^}]*top: 0;[^}]*height: 100dvh;/);
   });
 });

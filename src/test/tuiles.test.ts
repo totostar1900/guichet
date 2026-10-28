@@ -38,6 +38,12 @@ describe("les mots de la navigation, en anglais", () => {
         ["short", p.short],
         ["tuile", p.tuile],
         ["hint", p.hint],
+        /* LES MOTS-CLEFS AUSSI, et pour la même raison qu'eux : ils traversent
+           t() en variable, donc le scanner de chaînes ne les voit pas, et un
+           oubli ne se verrait qu'en cherchant « language » dans l'interface
+           anglaise — c'est-à-dire jamais, puisque c'est précisément le geste
+           qui ne trouvait rien avant qu'ils existent. */
+        ["mots", p.mots],
       ] as const) {
         if (texte && !translatable(texte)) manquants.push(`${p.key}.${champ} : « ${texte} »`);
       }

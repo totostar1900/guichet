@@ -1,7 +1,7 @@
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { Appareil } from "./Appareil";
 import styles from "@/components/Feuillet.module.css";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Cet appareil") };
+  return { title: t("Paramétrages") };
 }
 
 /**
@@ -41,7 +41,7 @@ export default async function AppareilPage() {
           <EnTete
             retour={{ href: "/moi/compte", mot: t("Votre compte") }}
             surTitre={t("Vous")}
-            titre={t("Cet appareil")}
+            titre={t("Paramétrages")}
             phrase={t("Ce que cet appareil-ci fait de lui-même, et ce que la maison fait partout : les alertes et les couleurs d'un côté, la façon de vous joindre de l'autre.")}
           />
 
