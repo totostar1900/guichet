@@ -177,4 +177,3 @@ export function issuerLadder(rows: { o: Offer; s: OfferSummary }[], issuer: stri
  * bien un cours, et son rendement est pourtant son coupon : compter les cours
  * ferait annoncer cinq rendements de marché là où il y en a deux.
  */
-export const marketYields = (years: IssuerYear[]): number => years.reduce((n, y) => n + y.lines.filter((l) => l.basis === "rendement").length, 0);

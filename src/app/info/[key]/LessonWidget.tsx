@@ -303,7 +303,7 @@ function IndexWidget({ live }: { live: Live }) {
   // the scenario : one move per line, kept when another line is picked
   const [moves, setMoves] = useState<Record<string, number>>(() => (ix?.weights[0] ? { [ix.weights[0].mnemo]: 5 } : {}));
   const [mode, setMode] = useState<"total" | "float">("total");
-  if (!ix) return <div className="empty">{t("L'indice se lit dans le bulletin de la BVMAC : dès le premier bulletin lu, il s'affiche ici.")}</div>;
+  if (!ix) return <div className="empty">{t("L'indice s'affichera ici dès la première séance lue.")}</div>;
   const ws = ix.weights;
   const wOf = (x: { wTotal: number; wFloat: number }) => (mode === "total" ? x.wTotal : x.wFloat);
   const moveOf = (mnemo: string) => moves[mnemo] ?? 0;

@@ -5,7 +5,7 @@ import type { Company } from "@/data/companies";
 import type { Offer } from "@/lib/domain/types";
 import type { OfferSummary } from "@/lib/domain/summary";
 import { COUNTRY_CODE, summarize } from "@/lib/domain/summary";
-import { issuerLadder, marketYields } from "@/lib/domain/issuer-lines";
+import { issuerLadder } from "@/lib/domain/issuer-lines";
 import { fmt } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./IssuerCard.module.css";
@@ -36,25 +36,16 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
   if (company?.listedOn) facts.push(["Cotée depuis", company.listedOn.slice(0, 4)]);
   const website = profile?.website ?? company?.website ?? issuer?.website;
   const activity = profile?.activity ?? company?.activity ?? issuer?.activity;
-  const source = profile?.source;
   // La fiche qu'on lit garde sa place dans l'échelle : sans elle, la section se
   // lit comme une liste d'autres possibilités alors que c'est un rayon où le
   // client doit pouvoir se situer.
   const years = others.length > 0 ? issuerLadder([{ o, s: summarize(o, new Date()) }, ...others], name, o.id) : [];
-  const priced = marketYields(years);
-  const lead =
-    priced === 0
-      ? t("Rangées par échéance. Aucune de ces lignes n'a changé de mains : leur chiffre est calculé sur la cotation du bulletin, que personne n'a confirmée par une transaction.")
-      : priced === 1
-        ? t("Rangées par échéance. Une ligne affiche un rendement de marché : ce qu'un achat au cours du jour procure. Les autres n'ont pas changé de mains, et leur chiffre est calculé sur la cotation du bulletin.")
-        : t("Rangées par échéance. {n} lignes affichent un rendement de marché : ce qu'un achat au cours du jour procure. Les autres n'ont pas changé de mains, et leur chiffre est calculé sur la cotation du bulletin.", { n: String(priced) });
   return (
     <div className={styles.card}>
       <div className={styles.head}>
         <span className={`${styles.badge} ${zone === "CEMAC" ? styles.cemac : ""}`}>{zone === "CEMAC" ? "CEMAC" : initials || COUNTRY_CODE[o.country]}</span>
         <div className={styles.who}>
           <b>{name}</b>
-          {(profile?.aliases?.length ?? 0) > 1 && <small>{t("aussi écrit")} : {profile!.aliases.filter((a) => a !== name).slice(0, 3).join(" · ")}</small>}
         </div>
       </div>
       {facts.length > 0 && (
@@ -68,16 +59,10 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
         </div>
       )}
       {activity && <p className={styles.activity}>{t(activity)}</p>}
-      {(source || website || href) && (
+      {(website || href) && (
         <p className={styles.source}>
-          {source && (
-            <>
-              {t("Source")} : {source}
-            </>
-          )}
           {website && (
             <>
-              {source ? " · " : ""}
               <a href={website} target="_blank" rel="noreferrer">
                 {website.replace(/^https?:\/\//, "")}
               </a>
@@ -85,7 +70,7 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
           )}
           {href && (
             <>
-              {source || website ? " · " : ""}
+              {website ? " · " : ""}
               <Link href={href}>{t(company ? "Analyse complète : comptes certifiés, ratios, dividendes" : "Profil de l'émetteur : comptes publiés, actionnariat, autres emprunts")} →</Link>
             </>
           )}
@@ -97,7 +82,6 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
             <h4>
               {t("Ses autres lignes à Guichet")} <small>{others.length}</small>
             </h4>
-            <p className={styles.lead}>{lead}</p>
           </div>
           <div className={styles.headWrap}>
             <div />

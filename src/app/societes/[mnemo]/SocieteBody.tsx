@@ -118,7 +118,7 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
             {t("Depuis le 1er janvier")} <Info term="ytd" />
           </span>
           <b className={cls(quote?.ytdVariationPct)}>{quote?.ytdVariationPct != null ? signed(quote.ytdVariationPct) : "—"}</b>
-          <small>{quote?.ytdVariationPct == null && c.listedOn.startsWith(String(new Date().getFullYear())) ? t("introduite le {d}", { d: fmtDate(c.listedOn) }) : t("variation publiée par la BVMAC")}</small>
+          <small>{quote?.ytdVariationPct == null && c.listedOn.startsWith(String(new Date().getFullYear())) ? t("introduite le {d}", { d: fmtDate(c.listedOn) }) : t("variation depuis le 1er janvier")}</small>
         </div>
         <div className={styles.kpi}>
           <span>
@@ -322,7 +322,7 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
                   </a>
                 ))}
             </div>
-            <div className={styles.source}>{t("Documents déposés par la société auprès de la BVMAC ; le desk en garde copie et met ces chiffres à jour à chaque nouvelle publication.")}</div>
+            <div className={styles.source}>{t("Le desk met ces chiffres à jour à chaque nouvelle publication de la société.")}</div>
           </div>
         </div>
       </div>

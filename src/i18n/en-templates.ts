@@ -344,7 +344,7 @@ export const EN_TEMPLATES: Record<string, string> = {
   "1 an": "1 year",
   "Max": "Max",
   "introduite le {d}": "listed on {d}",
-  "variation publiée par la BVMAC": "change published by the BVMAC",
+  "variation depuis le 1er janvier": "change since 1 January",
   "brut": "gross",
   "payé le": "paid on",
   "pas de dividende récent": "no recent dividend",

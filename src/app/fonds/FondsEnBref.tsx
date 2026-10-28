@@ -58,7 +58,7 @@ export function FondsEnBref() {
       }
     >
       <p>
-        {t("Un OPCVM met en commun l'argent de plusieurs porteurs et le place selon une règle écrite. Ceux-ci sont agréés par la COSUMAF et leur valeur liquidative paraît au Bulletin Officiel de la Cote, avec leur société de gestion et leur dépositaire.")}
+        {t("Un OPCVM met en commun l'argent de plusieurs porteurs et le place selon une règle écrite. Ceux-ci sont agréés par la COSUMAF ; leur valeur liquidative est publiée régulièrement, avec leur société de gestion et leur dépositaire.")}
       </p>
       <p>
         {t("Certains sont ouverts à la souscription chez Purpose Capital ; pour les autres, dites-nous votre intérêt : nous organisons la relation avec la société de gestion.")}{" "}

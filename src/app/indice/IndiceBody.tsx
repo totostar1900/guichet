@@ -117,9 +117,9 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
         <div>
           <EnTete
             retour={desk ? undefined : { href: "/marche", mot: t("Le marché") }}
-            surTitre={`BVMAC · ${t("indice de prix")} · ${t("lu à chaque bulletin")}`}
+            surTitre={`BVMAC · ${t("indice de prix")} · ${t("à chaque séance")}`}
             titre={t("L'indice BVMAC All Share")}
-            phrase={t("Un seul nombre pour toutes les actions cotées à la BVMAC : la somme des capitalisations, ramenée à une base. Guichet le lit dans chaque bulletin officiel de la cote et le montre tel quel.")}
+            phrase={t("Un seul nombre pour toutes les actions cotées à la BVMAC : la somme des capitalisations, ramenée à une base. Guichet le montre tel qu'il est publié.")}
           />
         </div>
         <div className={styles.links}>
@@ -133,7 +133,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
       </div>
 
       {!last ? (
-        <div className="empty">{t("L'indice se lit dans le bulletin de la BVMAC : dès le premier bulletin lu, il s'affiche ici.")}</div>
+        <div className="empty">{t("L'indice s'affichera ici dès la première séance lue.")}</div>
       ) : (
         <Sommaire
           label={t("Sur cette page")}
@@ -150,7 +150,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
             ...(desk ? [{ id: "sante", title: t("Santé de l'indice") }] : []),
             { id: "lecture", title: t("Comment le lire") },
           ]}
-          meta={t("Lu dans le bulletin officiel de la cote, à chaque séance.")}
+          meta={t("À chaque séance.")}
         >
           <div className={styles.sections}>
             <section className={styles.level} id="niveau">
@@ -242,7 +242,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
               <div>
                 <dt>{t("Dernier bulletin")}</dt>
                 <dd>
-                  {lastBulletin ? `BOC n° ${lastBulletin.number}` : "—"} · {t("séance du {d}", { d: fmtDate(last.date) })}
+                  {t("séance du {d}", { d: fmtDate(last.date) })}
                   {lastBulletin && <small>{t("lu le {d}, {by}", { d: fmtDateTime(lastBulletin.ingestedAt), by: lastBulletin.ingestedBy === "cron" ? t("par le robot") : t("par le desk") })}</small>}
                 </dd>
               </div>
@@ -296,13 +296,6 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
                 <dt>{t("Méthode")}</dt>
                 <dd>
                   {t("indice de prix, pondéré par la capitalisation")}
-                </dd>
-              </div>
-              <div>
-                <dt>{t("Source")}</dt>
-                <dd>
-                  {t("Bulletin officiel de la cote, BVMAC")}
-                  <small>{t("chaque bulletin est gardé ; rien n'est recalculé, tout est relu")}</small>
                 </dd>
               </div>
             </dl>
@@ -495,7 +488,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
               <h2>{t("Données et méthode")}</h2>
             </summary>
             <p className={styles.method}>
-              {t("Indice de prix pondéré par la capitalisation, lu dans chaque bulletin officiel de la cote de la BVMAC et montré tel qu'il est publié. Les dividendes n'y entrent pas : la performance d'un porteur, c'est le cours et le dividende.")}{" "}
+              {t("Indice de prix pondéré par la capitalisation, montré tel qu'il est publié. Les dividendes n'y entrent pas : la performance d'un porteur, c'est le cours et le dividende.")}{" "}
               {t("L'historique commence au premier bulletin lu par Guichet, le {d}.", { d: fmtDate(stats.points[0].date) })}{" "}
               {t("Guichet le publie et l'explique : c'est un repère de marché, que chaque investisseur rapporte ensuite à ses propres objectifs.")}
             </p>

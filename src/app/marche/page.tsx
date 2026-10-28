@@ -230,9 +230,9 @@ export default async function MarchePage() {
             « MarketStrip » est partie avec : elle rend « null » hors du desk
             depuis le 5 octobre, et cette page ne la sert jamais autrement. */}
         <p className={styles.source}>
-          {t("L'indice se lit dans le bulletin officiel de la cote, séance après séance. Guichet le montre tel qu'il est publié ; il n'en construit pas et ne mesure personne contre lui.")}{" "}
-          <Link href="/indice#donnees">{t("Ce que le bulletin publie, champ par champ")}</Link>.{" "}
-          {t("Source : bulletin officiel de la cote de la BVMAC, lu à chaque parution ; calculs {c}.", { c: COMPANY.legalName })}
+          {t("Guichet montre l'indice tel qu'il est publié, séance après séance ; il n'en construit pas et ne mesure personne contre lui.")}{" "}
+          <Link href="/indice#donnees">{t("Ce que l'indice publie, champ par champ")}</Link>.{" "}
+          {t("Calculs {c}.", { c: COMPANY.legalName })}
         </p>
       </>
     </Glissement>

@@ -166,10 +166,10 @@ async function Reference({ o, mode = "client" }: { o: Offer; mode?: FicheMode })
           {terms ? (
             <p className={styles.note}>
               Échéancier : remboursement du capital en {terms.periodsPerYear === 1 ? "annuités" : terms.periodsPerYear === 2 ? "semestrialités" : "trimestrialités"} égales jusqu&apos;au {fmtDate(terms.maturityOn)}
-              {terms.graceUntil ? `, intérêts seuls jusqu'au ${fmtDate(terms.graceUntil)}` : ""}, sur le nominal restant de {fmt(o.nominal)} FCFA par titre. Source : {terms.source}.
+              {terms.graceUntil ? `, intérêts seuls jusqu'au ${fmtDate(terms.graceUntil)}` : ""}, sur le nominal restant de {fmt(o.nominal)} FCFA par titre.
             </p>
           ) : (
-            <p className={styles.note}>{t("Seule l'année de l'échéance figure au bulletin : rendement calculé sur un remboursement in fine au 31 décembre, à confirmer avec la note d'information.")}</p>
+            <p className={styles.note}>{t("Seule l'année de l'échéance est connue : rendement calculé sur un remboursement in fine au 31 décembre, à confirmer avec la note d'information.")}</p>
           )}
         </>
       );
@@ -310,7 +310,17 @@ export async function loadFiche(o: Offer) {
   /* Une séance a rendu son verdict : `resultLine` l'écrit dans les deux cas,
      là où `servedPricePct` reste vide pour un bon, qui se sert à un taux. */
   const servie = Boolean(o.servedPricePct || o.resultLine);
-  const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)} publiée par ${o.fund.manager} · Bulletin Officiel de la Cote${navs[0] ? ` n° ${navs[0].bulletinNo}` : ""}` : o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture BVMAC · Bulletin Officiel de la Cote n° ${quotes[0].bulletinNo} du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : servie ? (o.kind === "BTA" ? "Taux servi à l'adjudication" : "Prix servi à l'adjudication") : stampPending ? "Indicatif : prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
+  /* LE TAMPON DIT DE QUAND DATE LE CHIFFRE, ET PLUS D'OÙ IL VIENT.
+     Décision du 28 octobre 2026 : la maison cesse de justifier dans chaque
+     écran d'où vient sa donnée — le nom du publicateur et le numéro du
+     bulletin partent, et une note unique le dit une fois pour toutes dans
+     l'aide. LA DATE RESTE : ce n'est pas une provenance mais la fraîcheur du
+     chiffre, et sans elle le lecteur ne sait plus de quand date le cours qu'il
+     regarde.
+     « Saisi par le desk » reste aussi, et ce n'est pas une source : il dit que
+     ce cours N'EST PAS une clôture de marché. L'effacer ferait passer l'un
+     pour l'autre. */
+  const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)}` : o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : servie ? (o.kind === "BTA" ? "Taux servi à l'adjudication" : "Prix servi à l'adjudication") : stampPending ? "Indicatif : prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
 
   const firstCoupon = o.kind === "OTA" && o.maturityOn ? firstCouponDate(o.settleOn, o.maturityOn) : undefined;
   // Comment le capital revient : la question décide du risque autant que le taux.
@@ -430,14 +440,14 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
           <section className={styles.sec} data-pane="chiffres">
             <h3>{t("Valeurs liquidatives publiées")}</h3>
             <NavHistory navs={navs} benchmark={btaBenchmark} narrow={mode === "desk"} />
-            <p className={styles.note}>{t("VL communiquées par la société de gestion et reprises du Bulletin Officiel de la Cote de la BVMAC, sans retraitement.")} {o.fund?.distributed ? "" : t("Ce fonds est présenté à titre d'information : Purpose Capital ne le distribue pas encore : dites-nous si vous souhaitez y souscrire, nous organisons la relation avec la société de gestion.")}</p>
+            <p className={styles.note}>{o.fund?.distributed ? "" : t("Ce fonds est présenté à titre d'information : Purpose Capital ne le distribue pas encore : dites-nous si vous souhaitez y souscrire, nous organisons la relation avec la société de gestion.")}</p>
           </section>
         )}
         {quotes.length > 0 && (
           <section className={styles.sec} data-pane="chiffres">
-            <h3>{t("Au bulletin de la BVMAC")}</h3>
+            <h3>{t("Cours de clôture")}</h3>
             <QuoteHistory quotes={quotes} />
-            <p className={styles.note}>{t("Cours de clôture publiés par la Bourse des Valeurs Mobilières de l'Afrique Centrale, repris chaque jour de bourse sans retraitement. Ils ne préjugent pas du prix auquel votre ordre sera exécuté.")}</p>
+            <p className={styles.note}>{t("Ces cours ne préjugent pas du prix auquel votre ordre sera exécuté.")}</p>
           </section>
         )}
 

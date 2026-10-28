@@ -164,8 +164,6 @@ export function FundChart({ mode, series, benchmark, windowDays, onRange }: { mo
         <>
           {benchmark.label} {fmt(bench[hover ?? last])} FCFA
         </>
-      ) : mode === "variations" ? (
-        <>BOC n° {vu.bulletinNo}</>
       ) : null,
     ].filter((node): node is React.ReactElement => node !== null),
   };

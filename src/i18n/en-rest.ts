@@ -1,5 +1,6 @@
 /** English for the remaining screens: account opening, companies and issuers, reference data, desk forms, MFA. Keyed by the French text. */
 export const EN_REST: Record<string, string> = {
+  "Cours de clôture": "Closing prices",
 
   /* ---------- LES HUIT TITRES DE FEUILLE DU BRIEF, 26 octobre 2026 ----------
 
@@ -274,7 +275,7 @@ export const EN_REST: Record<string, string> = {
   "Emprunt obligataire": "Bond issue",
   "Fonds commun de placement": "Mutual fund",
   "Fonds communs de placement": "Mutual funds",
-  "Les fonds apparaissent dès que le premier Bulletin Officiel de la Cote est lu par le desk.": "Funds appear as soon as the desk reads the first Official Bulletin.",
+  "Les fonds apparaîtront ici dès que leurs valeurs liquidatives seront disponibles.": "Funds will appear here as soon as their net asset values are available.",
   "source : sociétés de gestion agréées COSUMAF": "source: COSUMAF-licensed managers",
   "Variation de la VL entre la première et la dernière date affichées": "Change in NAV between the first and last dates shown",
   "Var. · origine": "Chg. · inception",
@@ -314,7 +315,7 @@ export const EN_REST: Record<string, string> = {
   "Rien trouvé pour": "Nothing found for",
   "Posez la question au desk depuis n'importe quelle fiche (bouton « Question ») ou sur WhatsApp.": "Ask the desk from any page (“Question” button) or on WhatsApp.",
   "Les {n} entreprises dont les actions s'échangent à la BVMAC, ensemble {cap} de capitalisation. Pour chacune : ce qu'elle fait, ses comptes certifiés des dernières années, ce que vaut l'action aujourd'hui et comment lire ces chiffres : puis un rapport PDF sur la période de votre choix.": "The {n} companies whose shares trade on the BVMAC, {cap} of market capitalisation in all. For each: what it does, its audited accounts of recent years, what the share is worth today and how to read those figures : then a PDF report over the period of your choice.",
-  "Cours du BOC n°": "Prices from bulletin no.",
+  "Cours du": "Prices of",
   "du": "of",
   "emprunt coté": "listed bond",
   "emprunts cotés": "listed bonds",
@@ -811,7 +812,7 @@ export const EN_REST: Record<string, string> = {
   "VL en baisse": "Falling NAVs",
   "Plus forte baisse": "Worst drop",
   "{n} FCFA placés": "{n} FCFA invested",
-  "Chiffres bruts, calculés sur les VL publiées au bulletin, avant droits d'entrée et de sortie et fiscalité ; le montant placé suppose une souscription à la première VL de la période. Les performances passées ne préjugent pas des performances futures.": "Gross figures, computed on the NAVs published in the bulletin, before entry and exit fees and tax; the invested amount assumes a subscription at the first NAV of the period. Past performance is no guide to future performance.",
+  "Chiffres bruts, calculés sur les VL publiées, avant droits d'entrée et de sortie et fiscalité ; le montant placé suppose une souscription à la première VL de la période. Les performances passées ne préjugent pas des performances futures.": "Gross figures, computed on the published NAVs, before entry and exit fees and tax; the amount invested assumes a subscription at the period's first NAV. Past performance does not predict future performance.",
   "Depuis le début de la période": "Since the start of the period",
   // fund chart readings (2026-09-19)
   "Rendement annualisé": "Annualised return",
@@ -1238,7 +1239,7 @@ export const EN_REST: Record<string, string> = {
   "Échangé sur 12 mois": "Traded over 12 months",
   "Données et méthode": "Data and method",
   "Comment lire ce graphique ?": "How to read this chart?",
-  "Indice de prix pondéré par la capitalisation, lu dans chaque bulletin officiel de la cote de la BVMAC et montré tel qu'il est publié. Les dividendes n'y entrent pas : la performance d'un porteur, c'est le cours et le dividende.": "A price index weighted by capitalisation, read from every official quotation bulletin of the BVMAC and shown as published. Dividends are not in it: a holder's performance is the price and the dividend.",
+  "Indice de prix pondéré par la capitalisation, montré tel qu'il est publié. Les dividendes n'y entrent pas : la performance d'un porteur, c'est le cours et le dividende.": "A price index weighted by capitalisation, shown as published. Dividends are not in it: a holder's performance is the price and the dividend.",
   "La base, la date de base et la règle de pondération sont à confirmer auprès de la BVMAC. L'historique commence au premier bulletin lu par le Guichet, le {d}.": "The base, the base date and the weighting rule are to be confirmed with the BVMAC. The history starts at the first bulletin Guichet read, on {d}.",
   "Le Guichet le publie et l'explique : c'est un repère de lecture du marché, que chacun rapporte ensuite à ses propres objectifs.": "Guichet publishes it and explains it: it is a reading point for the market, which everyone then relates to their own goals.",
   "VL lues sur moins d'un an": "NAVs read over less than a year",

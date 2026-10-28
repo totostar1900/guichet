@@ -53,7 +53,6 @@ export async function NavHistory({ navs, benchmark, narrow }: { navs: FundNav[];
             <th>{t("Date de VL")}</th>
             <th className={styles.r}>{t("VL (FCFA)")}</th>
             <th className={styles.r}>{t("Var.")}</th>
-            <th>{t("Bulletin")}</th>
           </tr>
         </thead>
         <tbody>
@@ -62,7 +61,6 @@ export async function NavHistory({ navs, benchmark, narrow }: { navs: FundNav[];
               <td>{fmtDate(n.navDate)}</td>
               <td className={styles.r}>{fmt(n.nav)}</td>
               <td className={`${styles.r} ${(n.variationPct ?? 0) < 0 ? styles.down : (n.variationPct ?? 0) > 0 ? styles.up : ""}`}>{signed(n.variationPct)}</td>
-              <td className={styles.muted}>BOC n° {n.bulletinNo}</td>
             </tr>
           ))}
         </tbody>

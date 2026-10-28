@@ -45,7 +45,7 @@ export async function SocietesBody({ mode = "client" }: { mode?: "client" | "des
         </div>
         {bulletins[0] && (
           <div className={styles.stamp}>
-            {t("Cours du BOC n°")} {bulletins[0].number} {t("du")} {fmtDate(bulletins[0].sessionDate)}
+            {t("Cours du")} {fmtDate(bulletins[0].sessionDate)}
             <br />
             {t("comptes : fiches signalétiques et états financiers publiés sur bvm-ac.org")}
           </div>
@@ -121,7 +121,7 @@ export async function SocietesBody({ mode = "client" }: { mode?: "client" | "des
         })()}
       </div>
       <p className={styles.note}>
-        {t("Les cours viennent du Bulletin Officiel de la Cote de la BVMAC ; les comptes des états financiers certifiés et des fiches signalétiques déposés par les sociétés sur bvm-ac.org. Ce sont des informations, pas des conseils : les performances passées ne préjugent pas des performances futures.")}
+        {t("Ce sont des informations, pas des conseils : les performances passées ne préjugent pas des performances futures.")}
       </p>
       <MarketStrip current="societes" mode={mode} />
     </>

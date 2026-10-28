@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { designation, issuerLadder, marketYields, shorten } from "@/lib/domain/issuer-lines";
+import { designation, issuerLadder, shorten } from "@/lib/domain/issuer-lines";
 import { summarize } from "@/lib/domain/summary";
 import type { Offer } from "@/lib/domain/types";
 
@@ -133,7 +133,6 @@ describe("l'échelle des échéances", () => {
     const pair = y.flatMap((g) => g.lines).find((l) => l.id === "pair");
     expect(pair?.price, "une ligne échangée porte son cours, fût-il de 100").toBe("100 %");
     expect(pair?.basis).toBe("rendement");
-    expect(marketYields(y), "les deux lignes échangées, et elles seules").toBe(2);
   });
 
   it("met au bout ce qui n'a pas d'échéance, sous son propre libellé", () => {

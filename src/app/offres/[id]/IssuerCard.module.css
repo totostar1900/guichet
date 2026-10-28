@@ -100,13 +100,6 @@
   margin-left: 4px;
 }
 /* Dit une fois ce que la colonne des chiffres contient, plutôt qu'à chaque ligne. */
-.lead {
-  margin: var(--s-1) 0 0;
-  font-size: 0.72rem;
-  line-height: 1.4;
-  color: var(--ink-3);
-}
-
 /* Le rail des années : l'année une fois à gauche, un filet qui tient son groupe,
    et chaque ligne réduite à son jour et son mois. */
 .headWrap,

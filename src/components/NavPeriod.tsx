@@ -251,7 +251,7 @@ export function NavPeriod({ series, benchmark, narrow }: { series: NavPoint[]; b
                 <dd>{s.placed == null ? "—" : `${fmt(s.placed)} FCFA`}</dd>
               </div>
             </dl>
-            <p className={styles.periodNote}>{t("Chiffres bruts, calculés sur les VL publiées au bulletin, avant droits d'entrée et de sortie et fiscalité ; le montant placé suppose une souscription à la première VL de la période. Les performances passées ne préjugent pas des performances futures.")}</p>
+            <p className={styles.periodNote}>{t("Chiffres bruts, calculés sur les VL publiées, avant droits d'entrée et de sortie et fiscalité ; le montant placé suppose une souscription à la première VL de la période. Les performances passées ne préjugent pas des performances futures.")}</p>
           </div>
         )}
       </div>

@@ -118,7 +118,6 @@ export async function QuoteHistory({ quotes }: { quotes: Quote[] }) {
             <th className={styles.r}>{t("Clôture")}</th>
             <th className={styles.r}>{t("Var.")}</th>
             <th className={styles.r}>{t(isBond ? "Échangée" : "Volume")}</th>
-            <th>{t("Bulletin")}</th>
           </tr>
         </thead>
         <tbody>
@@ -128,7 +127,6 @@ export async function QuoteHistory({ quotes }: { quotes: Quote[] }) {
               <td className={styles.r}>{price(q.close)}</td>
               <td className={`${styles.r} ${q.variationPct < 0 ? styles.down : q.variationPct > 0 ? styles.up : ""}`}>{signed(q.variationPct)}</td>
               <td className={styles.r}>{isBond ? (tradedSession(q) ? t("oui") : "—") : fmt(q.volumeTraded)}</td>
-              <td className={styles.muted}>BOC n° {q.bulletinNo}</td>
             </tr>
           ))}
         </tbody>
