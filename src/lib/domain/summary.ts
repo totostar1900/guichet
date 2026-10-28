@@ -202,7 +202,11 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
       minimum: `${fmt((o.minShares ?? 1) * (o.pricePerShare ?? 0))} FCFA`,
       minimumSub: `${o.minShares ?? 1} action${(o.minShares ?? 1) > 1 ? "s" : ""} à ${fmt(o.pricePerShare ?? 0)}`,
       primary: past ? null : { label: "Souscrire", intent: "ferme" },
-      secondary: { label: "Question", intent: "info" },
+      /* « Question » ne paraît que là où l'on ne peut rien commander :
+         depuis le 28 octobre 2026, « Information » n'est plus une
+         intention proposée sur une ligne ouverte, et un bouton qui y
+         mènerait ouvrirait la feuille sur un autre onglet que le sien. */
+      secondary: past ? { label: "Question", intent: "info" } : undefined,
       facts: [
         ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—"],
         ["Ticket min.", `${fmt((o.minShares ?? 1) * (o.pricePerShare ?? 0))} FCFA`],
@@ -232,7 +236,8 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
       minimum: "—",
       minimumSub: "au pair, sans minimum",
       primary: past ? null : { label: "Céder", intent: "cession" },
-      secondary: { label: "Question", intent: "info" },
+      // Même règle que l'introduction en bourse ci-dessus.
+      secondary: past ? { label: "Question", intent: "info" } : undefined,
       facts: [
         ["Échéance initiale", o.maturityOn ? fmtDate(o.maturityOn) : "—"],
         ["Volume", o.sizeLabel ?? "—"],

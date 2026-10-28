@@ -32,17 +32,48 @@ export const INTENT_STATE_LABEL: Record<IntentState, string> = {
   annulee: "Annulée",
 };
 
-/** Which intents make sense for an offer in a given state. First = default. */
+/**
+ * Which intents make sense for an offer in a given state. First = default.
+ *
+ * « INFORMATION » N'EST PLUS UN ONGLET À CÔTÉ D'ACHETER ET DE VENDRE.
+ *
+ * Demandé le 28 octobre 2026 : « retirer l'onglet Information, le troisième, à
+ * côté d'achat et vente ». La feuille sert à passer un ordre ; une question
+ * n'en est pas un, et proposée là elle met sur le même rang deux gestes qui
+ * n'engagent pas la même chose — on choisit entre acheter, vendre, et
+ * demander, comme si c'était trois façons de faire la même course.
+ *
+ * LA RÈGLE QUI EN SORT, ET ELLE TIENT EN UNE LIGNE : « Information » paraît
+ * là où AUCUN ordre n'est possible, et nulle part ailleurs. Une ligne close,
+ * une ligne à venir, un fonds sur demande n'ont rien à offrir d'autre — et
+ * c'est là que la porte doit rester ouverte. C'est aussi ce que tient la note
+ * de `sensDeLIntention` plus bas : une question n'engage rien, donc une mesure
+ * posée sur un compte ne la referme pas.
+ *
+ * CE QUI EST PERDU, ET QU'IL FAUT DIRE : sur une ligne cotée, le client ne
+ * peut plus poser sa question DEPUIS la feuille d'ordre. Il lui reste le mot
+ * libre du formulaire, qui part au desk avec l'ordre, et les portes du
+ * contact. Un compte sous mesure, lui, est arrêté par `garde` avec sa raison :
+ * il n'est pas renvoyé en silence.
+ */
 export function allowedIntents(o: Offer, s: DisplayStatus): IntentType[] {
   // A desk-created type says what a client may do while the line is open; built-ins keep the rules below.
   const t = typeOf(o);
-  if (!t.builtin) return (o.kind === "MARCHE" || o.kind === "FONDS" ? s === "quoted" : !isPast(s) && s !== "upcoming") ? [...new Set([...t.intentsOpen, "info" as const])] : ["info"];
-  if (o.kind === "MARCHE") return s === "quoted" ? ["achat", "vente", "info"] : ["info"];
-  if (o.kind === "FONDS") return s === "quoted" ? ["souscription", "rachat", "info"] : s === "on_request" ? ["info", "rappel"] : ["info"];
-  if (o.kind === "RACHAT") return isPast(s) ? ["info"] : ["cession", "info"];
+  if (!t.builtin) {
+    const ouverte = o.kind === "MARCHE" || o.kind === "FONDS" ? s === "quoted" : !isPast(s) && s !== "upcoming";
+    if (!ouverte) return ["info"];
+    const ouverts = [...new Set(t.intentsOpen)];
+    /* Un type du référentiel qui n'ouvre aucun ORDRE n'ouvre qu'une question :
+       sans cette branche, une famille créée par le desk sans geste ferme
+       n'offrirait rien du tout. */
+    return ouverts.some((x) => FIRM_TYPES.includes(x)) ? ouverts : [...new Set([...ouverts, "info" as const])];
+  }
+  if (o.kind === "MARCHE") return s === "quoted" ? ["achat", "vente"] : ["info"];
+  if (o.kind === "FONDS") return s === "quoted" ? ["souscription", "rachat"] : s === "on_request" ? ["info", "rappel"] : ["info"];
+  if (o.kind === "RACHAT") return isPast(s) ? ["info"] : ["cession"];
   if (isPast(s)) return ["info", "rappel"];
   if (s === "upcoming") return ["appetit", "rappel", "info"];
-  return ["ferme", "appetit", "info", "rappel"];
+  return ["ferme", "appetit", "rappel"];
 }
 
 /** Intents that become an order the desk transmits (bulletin, appel de fonds, bordereau). */
