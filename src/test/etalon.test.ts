@@ -239,6 +239,7 @@ const SANS_ENTETE: Record<string, string> = {
      commun et cette dispense disparaît ; écartée, la page disparaît. */
   "src/app/maquette/ordre/Maquette.tsx": "maquette provisoire : elle propose justement un autre en-tête, et part avec la décision",
   "src/app/maquette/adjudication/MaquetteAdjudication.tsx": "maquette provisoire, même raison que celle du passage d'ordre : elle emprunte sa forme et part avec la décision",
+  "src/app/maquette/epargne/MaquetteEpargne.tsx": "maquette provisoire, même raison que les deux autres : elle emprunte leur forme et part avec la décision",
   /* La vitrine, nommée une par une dans ETALON.md § C : « la vitrine respire,
      l'application travaille ». Elle garde son serif et son échelle, et ses
      titres sont des phrases — « La porte d'entrée des marchés financiers
