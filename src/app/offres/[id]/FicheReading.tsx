@@ -328,7 +328,7 @@ export async function loadFiche(o: Offer) {
      « Saisi par le desk » reste aussi, et ce n'est pas une source : il dit que
      ce cours N'EST PAS une clôture de marché. L'effacer ferait passer l'un
      pour l'autre. */
-  const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)}` : o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : servie ? (o.kind === "BTA" ? "Taux servi à l'adjudication" : "Prix servi à l'adjudication") : stampPending ? "Indicatif : prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
+  const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)}` : o.kind === "MARCHE" ? (o.priceSource === "boc" && quotes[0] ? `Clôture du ${fmtDate(quotes[0].sessionDate)}` : `Cours saisi par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`) : servie ? (o.kind === "BTA" ? "Taux servi à l'adjudication" : "Prix servi à l'adjudication") : stampPending ? (o.kind === "BTA" ? "Indicatif : taux fixé à l'adjudication" : "Indicatif : prix à fixer par le desk") : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"} · v${o.version}`;
 
   const firstCoupon = o.kind === "OTA" && o.maturityOn ? firstCouponDate(o.settleOn, o.maturityOn) : undefined;
   // Comment le capital revient : la question décide du risque autant que le taux.

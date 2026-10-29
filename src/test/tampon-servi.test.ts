@@ -52,6 +52,11 @@ describe("le tampon d'une fiche dit ce que la séance a fait", () => {
     it(`${f} : un bon dit « taux », une obligation dit « prix »`, () => {
       // Dire « prix servi » sur un bon précompté nomme une chose qui n'existe pas.
       expect(src).toContain(`o.kind === "BTA" ? "Taux servi à l'adjudication" : "Prix servi à l'adjudication"`);
+      /* ET AVANT LA SÉANCE AUSSI. La branche « en attente » disait « prix à
+         fixer par le desk » sur les deux, donc elle nommait sur un bon une
+         chose qui n'existe pas ET prêtait à la maison une décision qui ne lui
+         appartient pas : le taux d'un bon sort de l'adjudication. */
+      expect(src, "le tampon en attente dit encore « prix » sur un bon").toContain(`o.kind === "BTA" ? "Indicatif : taux fixé à l'adjudication" : "Indicatif : prix à fixer par le desk"`);
     });
 
     it(`${f} : « servie » se décide sur resultLine`, () => {
@@ -62,5 +67,7 @@ describe("le tampon d'une fiche dit ce que la séance a fait", () => {
   it("le nouveau mot existe en anglais", () => {
     expect(EN_ALL["Taux servi à l'adjudication"]).toBeDefined();
     expect(EN_ALL["Prix servi à l'adjudication"]).toBeDefined();
+    expect(EN_ALL["Indicatif : taux fixé à l'adjudication"]).toBeDefined();
+    expect(EN_ALL["Indicatif : prix à fixer par le desk"]).toBeDefined();
   });
 });

@@ -74,6 +74,9 @@ export const EN_MORE: Record<string, string> = {
   "Montant, coordonnées, récapitulatif. Le desk vous rappelle avant de transmettre : rien n'est débité sans votre confirmation.": "Amount, contact details, summary. The desk calls you back before transmitting: nothing is debited without your confirmation.",
   "Prix servi à l'adjudication": "Price served at the auction",
   "Indicatif : prix à fixer par le desk": "Indicative : price to be set by the desk",
+  /* Un bon n'a pas de prix, et son taux n'est pas fixé par la maison : il sort
+     de l'adjudication. Le tampon le disait pourtant comme une obligation. */
+  "Indicatif : taux fixé à l'adjudication": "Indicative : rate set at the auction",
   "Repères": "Pointers",
   "Fermer": "Close",
   "Suivant": "Next",

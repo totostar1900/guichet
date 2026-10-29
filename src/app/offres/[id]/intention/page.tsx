@@ -49,7 +49,7 @@ export default async function IntentionPage({ params, searchParams }: Props) {
      là où `servedPricePct` reste vide pour un bon, qui se sert à un taux. */
   const servie = Boolean(o.servedPricePct || o.resultLine);
   /* Même règle que sur la fiche : la date du chiffre, pas qui le publie. */
-  const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)}` : o.kind === "MARCHE" ? `Dernier cours${o.pricedAt ? ` · ${fmtDateTime(o.pricedAt)}` : ""}` : servie ? (o.kind === "BTA" ? "Taux servi à l'adjudication" : "Prix servi à l'adjudication") : stampPending ? "Indicatif : prix à fixer par le desk" : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`;
+  const stamp = o.kind === "FONDS" && o.fund ? `VL du ${fmtDate(o.fund.navDate)}` : o.kind === "MARCHE" ? `Dernier cours${o.pricedAt ? ` · ${fmtDateTime(o.pricedAt)}` : ""}` : servie ? (o.kind === "BTA" ? "Taux servi à l'adjudication" : "Prix servi à l'adjudication") : stampPending ? (o.kind === "BTA" ? "Indicatif : taux fixé à l'adjudication" : "Indicatif : prix à fixer par le desk") : `Prix fixé par le desk · ${o.pricedAt ? fmtDateTime(o.pricedAt) : "—"}`;
   return (
     <Glissement>
       <div className={styles.page}>
