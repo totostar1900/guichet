@@ -46,7 +46,9 @@ export default async function EpargnePage() {
      divise pas, et une somme fixe n'y tomberait jamais juste. */
   const fonds = offers
     .filter((o) => o.kind === "FONDS" && !o.hidden && o.status !== "withdrawn")
-    .map((o) => ({ id: o.id, title: o.title, min: recurringMinimum(o) }))
+    // La VL part avec le fonds : sans elle, le formulaire ne peut pas dire ce
+    // qu'un versement achète.
+    .map((o) => ({ id: o.id, title: o.title, min: recurringMinimum(o), vl: o.fund?.nav }))
     .sort((a, b) => a.title.localeCompare(b.title, "fr"));
 
   const versements = standing.filter((x) => x.source === "virement");
@@ -116,7 +118,7 @@ export default async function EpargnePage() {
           attend={actifs.length === 0 ? t("rien en place") : undefined}
         >
           {fonds.length ? (
-            <StandingForm fonds={fonds} minimum={fonds[0]?.min ?? 0} />
+            <StandingForm fonds={fonds} minimum={fonds[0]?.min ?? 0} aujourdhui={aujourdHui} />
           ) : (
             <p className="muted">{t("Aucun fonds n'est ouvert à la souscription en ce moment : l'épargne se programmera dès qu'il y en aura un.")}</p>
           )}

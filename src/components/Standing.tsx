@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
-import { groupedInput } from "@/lib/ui/grouped";
-import { fmt, fmtDate } from "@/lib/format";
+import { groupDigits, groupedInput } from "@/lib/ui/grouped";
+import { fmt, fmtDate, parseAmount } from "@/lib/format";
+import { premierVersement } from "@/lib/domain/standing";
 import { createStandingAction, stopStandingAction, type StandingResult } from "@/app/moi/standing-actions";
 import { ModifierInstruction, type FondsChoix } from "./ModifierInstruction";
 import styles from "./Standing.module.css";
@@ -40,13 +41,46 @@ function Msg({ state }: { state: StandingResult | null }) {
  * le client de deviner la suite. Avec « fonds », le formulaire porte sa
  * propre première question, et la page dédiée devient possible.
  */
-export function StandingForm({ offerId, minimum, unit = "FCFA", fonds }: { offerId?: string; minimum: number; unit?: string; fonds?: { id: string; title: string; min: number }[] }) {
+export function StandingForm({
+  offerId,
+  minimum,
+  unit = "FCFA",
+  fonds,
+  vl,
+  aujourdhui,
+}: {
+  offerId?: string;
+  minimum: number;
+  unit?: string;
+  fonds?: { id: string; title: string; min: number; vl?: number }[];
+  /** La valeur liquidative de la ligne visée, pour dire ce qu'un versement achète. */
+  vl?: number;
+  /**
+   * Le jour d'aujourd'hui, posé par le serveur.
+   *
+   * « new Date() » pendant un rendu donne une valeur au serveur et une autre
+   * au navigateur : c'est une discordance d'hydratation la nuit du passage à
+   * minuit. La maison s'est déjà fait prendre là-dessus sur la fenêtre d'un
+   * arbitrage.
+   */
+  aujourdhui?: string;
+}) {
   const t = useT();
   const [state, action, pending] = useActionState<StandingResult | null, FormData>(createStandingAction, null);
   const [choisi, setChoisi] = useState(offerId ?? fonds?.[0]?.id ?? "");
   const plancher = fonds ? (fonds.find((f) => f.id === choisi)?.min ?? 0) : minimum;
-  /* Le montant est tenu en etat : il se regroupe pendant la frappe. */
-  const [montant, setMontant] = useState(minimum ? String(minimum) : "");
+  const valeur = fonds ? fonds.find((f) => f.id === choisi)?.vl : vl;
+  /* Le montant est tenu en etat : il se regroupe pendant la frappe — ET DÈS LE
+     DÉPART. Il s'ouvrait sur « 100000 », six chiffres collés dans une case de
+     douze pixels : c'est exactement le moment où l'on compte les zéros, et
+     c'est le défaut que « grouped.ts » explique sur vingt lignes avant de le
+     corriger partout ailleurs. */
+  const [montant, setMontant] = useState(minimum ? groupDigits(String(minimum)) : "");
+  /* LE JOUR DU MOIS, TENU EN ÉTAT parce qu'une grille n'a pas de valeur par
+     elle-même : c'est un champ caché qui part au serveur. */
+  const [jour, setJour] = useState(5);
+  const verse = parseAmount(montant);
+  const parts = valeur && valeur > 0 && verse > 0 ? verse / valeur : 0;
   if (state?.ok) {
     return (
       <div className={styles.done}>
@@ -77,21 +111,55 @@ export function StandingForm({ offerId, minimum, unit = "FCFA", fonds }: { offer
       ) : (
         <input type="hidden" name="offerId" value={offerId} />
       )}
-      <div className={styles.row}>
-        <label className="field">
-          {t("Montant du versement")} : {unit}
-          {/* Les milliers se séparent pendant la frappe. Le champ n'est plus de
-              type « number » : un champ numérique refuse les espaces, donc il
-              refuserait son propre affichage. */}
-          <input name="amount" value={montant} {...groupedInput(setMontant)} inputMode="numeric" autoComplete="off" required />
-          {plancher > 0 && <small className="muted">{t("minimum {n}", { n: fmt(plancher) })}</small>}
-        </label>
-        <label className="field">
-          {t("Chaque mois, le")}
-          <input name="dayOfMonth" type="number" min={1} max={28} step={1} defaultValue={5} required />
+      {/* LE CHIFFRE QU'ON ÉCRIT DE SA MAIN, ici aussi. Un versement mensuel est
+          l'engagement le plus long du guichet, et il se tapait dans une case de
+          douze pixels — plus petite que la phrase qui l'explique. */}
+      <label className={`field ${styles.carteDuChiffre} ${styles.chiffreTape}`}>
+        {t("Montant du versement")} : {unit}
+        {/* Les milliers se séparent pendant la frappe. Le champ n'est plus de
+            type « number » : un champ numérique refuse les espaces, donc il
+            refuserait son propre affichage. */}
+        <input name="amount" value={montant} {...groupedInput(setMontant)} inputMode="numeric" autoComplete="off" required />
+        {/* CE QUE ÇA FAIT, ET NON CE QUE LA RÈGLE INTERDIT. Le champ ne portait
+            que son minimum : une borne, pas une conséquence. Ce qu'un client
+            veut savoir en posant un versement mensuel, c'est ce qu'il aura mis
+            de côté dans un an. */}
+        {verse > 0 ? (
+          <small className={styles.suite}>
+            <b>{t("{n} FCFA sur douze mois", { n: fmt(verse * 12) })}</b>
+            {parts > 0 && <span> · {t("environ {n} parts par versement, à la valeur du jour", { n: parts.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) })}</span>}
+          </small>
+        ) : (
+          plancher > 0 && <small className="muted">{t("minimum {n}", { n: fmt(plancher) })}</small>
+        )}
+      </label>
+      {/* VINGT-HUIT CASES, ET LE POUCE CHOISIT.
+          C'était un « input type=number » : sur un téléphone, le clavier
+          numérique, ou deux flèches de huit pixels. Une liste déroulante
+          demanderait un geste pour l'ouvrir, un pour défiler, un pour choisir —
+          trois pour une décision qui en vaut un.
+          LES JOURS S'ARRÊTENT À 28 parce que le 31 n'existe pas sept mois sur
+          douze et le 29 deux années sur trois. La borne était déjà dans le
+          champ ; elle n'était écrite nulle part où l'œil la rencontre. */}
+      <fieldset className={`field ${styles.jours}`}>
+        <legend>{t("Chaque mois, le")}</legend>
+        <input type="hidden" name="dayOfMonth" value={jour} />
+        <div className={styles.grille}>
+          {Array.from({ length: 28 }, (_, i) => i + 1).map((j) => (
+            <button key={j} type="button" aria-pressed={jour === j} className={jour === j ? styles.jourOn : styles.jour} onClick={() => setJour(j)}>
+              {j}
+            </button>
+          ))}
+        </div>
+        {aujourdhui ? (
+          <small className={styles.suite}>
+            <b>{t("Premier versement le {d}", { d: fmtDate(premierVersement(jour, aujourdhui)) })}</b>
+            <span> · {t("puis le {j} de chaque mois", { j: String(jour) })}</span>
+          </small>
+        ) : (
           <small className="muted">{t("du 1 au 28 : tous les mois ont ces jours-là")}</small>
-        </label>
-      </div>
+        )}
+      </fieldset>
       <div className={styles.row}>
         <label className="field">
           {t("Jusqu'au (facultatif)")}

@@ -235,3 +235,91 @@
   font-size: var(--t-2);
   color: var(--ink-2);
 }
+
+/* ────────────────────────────────────────────────────────────────────────────
+   UN MONTANT, UN JOUR, ET CE QUE ÇA FAIT — RETENU AVEC LES MAQUETTES LE 29
+   OCTOBRE 2026.
+
+   Le formulaire posait quatre questions justes dans quatre cases de douze
+   pixels, et ne répondait à aucune : sous le montant, son minimum ; sous le
+   jour, la règle du calendrier. Des bornes, pas des conséquences. Un client
+   programmait l'engagement le plus long du guichet sans voir ce qu'il aurait
+   mis de côté dans un an, ni quand le premier versement tomberait.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* LE CHIFFRE QU'ON ÉCRIT DE SA MAIN, au même degré que dans le passage
+   d'ordre : c'est la même main et le même geste. */
+.carteDuChiffre {
+  padding: var(--panel-inset);
+  border: 1px solid var(--line);
+  border-radius: var(--rond);
+  background: var(--surface);
+}
+.chiffreTape input {
+  height: auto;
+  padding: var(--s-2) 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  font-size: var(--t-9);
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.chiffreTape input:focus {
+  outline: none;
+  border-bottom-color: var(--fill);
+}
+
+/* CE QUE ÇA FAIT, sous la main. À l'encre du texte, parce que ce n'est pas une
+   note de bas de champ mais la réponse à la question qu'on vient de poser. */
+.suite {
+  display: block;
+  margin-top: var(--s-2);
+  color: var(--ink-2);
+  font-size: var(--t-2);
+  line-height: 1.45;
+}
+.suite b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* VINGT-HUIT CASES, ET LE POUCE CHOISIT. Sept colonnes, comme un mois : l'œil
+   retrouve les semaines sans qu'on les nomme, et la grille reste carrée à
+   toutes les largeurs plutôt que de se casser en rangées bancales. */
+.jours {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.jours legend {
+  padding: 0;
+}
+.grille {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+}
+.jour,
+.jourOn {
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.jourOn {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--fill-ink);
+  font-weight: 700;
+}

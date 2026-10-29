@@ -217,6 +217,29 @@ export function isDue(s: StandingOrder, today: string): boolean {
  * promesse affichée, et une promesse qui dépendrait de l'état d'une machine ne
  * vaudrait rien.
  */
+/**
+ * LE PREMIER VERSEMENT D'UN JOUR QU'ON VIENT DE CHOISIR.
+ *
+ * Ce mois-ci si le jour est encore devant, le mois prochain sinon. C'est la
+ * seule chose que le client veut savoir en posant son doigt sur un numéro, et
+ * le formulaire ne la disait pas : il donnait la règle — « du 1 au 28 » — et
+ * pas la conséquence.
+ *
+ * Elle vit ici et non dans l'écran pour deux raisons. L'une est l'habitude de
+ * la maison : « nextRun » posait déjà le même calcul, et deux copies finissent
+ * par diverger un 31 décembre. L'autre tient au rendu : « new Date() » pendant
+ * un rendu donne une valeur au serveur et une autre au navigateur, donc le
+ * jour d'aujourd'hui se passe en argument.
+ */
+export function premierVersement(dayOfMonth: number, today: string): string {
+  const d = day(today);
+  const [y, m] = [Number(d.slice(0, 4)), Number(d.slice(5, 7))];
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const at = (yy: number, mm: number) => `${yy}-${pad(mm)}-${pad(dayOfMonth)}`;
+  const thisMonth = at(y, m);
+  return thisMonth >= d ? thisMonth : m === 12 ? at(y + 1, 1) : at(y, m + 1);
+}
+
 export function nextRun(s: StandingOrder, today: string): string | null {
   if (s.state !== "active") return null;
   const d = day(today > s.startsOn ? today : s.startsOn);
@@ -224,9 +247,8 @@ export function nextRun(s: StandingOrder, today: string): string | null {
   const pad = (n: number) => String(n).padStart(2, "0");
   const at = (yy: number, mm: number) => `${yy}-${pad(mm)}-${pad(s.dayOfMonth)}`;
   // Ce mois-ci s'il reste à venir et qu'aucun versement n'y a déjà eu lieu ; sinon le suivant.
-  const thisMonth = at(y, m);
   const done = s.lastRunOn && month(s.lastRunOn) >= `${y}-${pad(m)}`;
-  const candidate = !done && thisMonth >= d ? thisMonth : m === 12 ? at(y + 1, 1) : at(y, m + 1);
+  const candidate = done ? (m === 12 ? at(y + 1, 1) : at(y, m + 1)) : premierVersement(s.dayOfMonth, d);
   if (s.endsOn && candidate > day(s.endsOn)) return null;
   return candidate;
 }

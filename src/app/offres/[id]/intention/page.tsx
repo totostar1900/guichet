@@ -7,7 +7,7 @@ import { getSession } from "@/lib/auth";
 import { peutOPCVM, isDesk } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import { statusLabel } from "@/lib/domain/status";
-import { fmtDate, fmtDateTime } from "@/lib/format";
+import { fmtDate, fmtDateTime, localIso } from "@/lib/format";
 import { tenorText } from "@/lib/finance";
 import { getLang, getT } from "@/i18n/server";
 import { loadIntentContext } from "../intent-context";
@@ -113,7 +113,7 @@ export default async function IntentionPage({ params, searchParams }: Props) {
                       "Vous donnez l'ordre une fois : le montant, le jour, la ligne. Chaque mois, le desk passe pour vous un ordre de souscription réel sur cette ligne, à votre nom. Rien n'est mis en commun, et vous l'arrêtez quand vous voulez.",
                     )}
                   </p>
-                  <StandingForm offerId={o.id} minimum={recurringMinimum(o)} />
+                  <StandingForm offerId={o.id} minimum={recurringMinimum(o)} vl={o.fund?.nav} aujourdhui={localIso(new Date())} />
                 </div>
               ) : undefined
             }
