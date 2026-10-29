@@ -114,9 +114,15 @@ export function EnBref({
         </svg>
         {t("En bref")}
       </button>
-      {/* La feuille s'ouvre du bord de son déclencheur, règle de la maison :
-          le bouton est au coin haut droit, en face du titre. */}
-      <Sheet open={open} onClose={() => setOpen(false)} title={t(titre)} dock="top-right">
+      {/* UNE PAGE ENTIÈRE, ET NON UN PANNEAU AU COIN.
+          DEMANDÉ LE 29 OCTOBRE 2026 : « chaque en bref sera sur une page
+          complète avec sa croix pour refermer ». La feuille s'ouvrait du
+          bord de son déclencheur — règle de la maison pour un MENU, qui se
+          referme d'un regard. Un brief n'est pas un menu : c'est le seul
+          texte de la page qui explique à quoi sert ce qu'on regarde, et un
+          panneau au coin se lit en diagonale. La croix reste la sortie,
+          comme avant. */}
+      <Sheet open={open} onClose={() => setOpen(false)} title={t(titre)} plein>
         <div className={styles.corps}>
           {children}
           {cles.map((cle) => (

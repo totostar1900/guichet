@@ -218,8 +218,43 @@
 }
 /* UN FAIT NE SE COUPE PAS EN DEUX : il emporte son séparateur, et la bande
    passe à la ligne entre deux faits. */
-.fait {
+/* LES DEUX RANGÉES D'UNE LIGNE : son identité, puis ses chiffres.
+   Demandé le 29 octobre 2026 — « une présentation plus harmonieuse des
+   lignes proposées, facilitant la lecture rapide ». Voir « Faits » pour la
+   raison : dans une liste, l'œil compare la même grandeur d'une rangée à
+   l'autre, et une phrase la déplace à chaque fois. */
+.identite {
   white-space: nowrap;
+  color: var(--ink);
+  font-weight: 600;
+}
+.chiffres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--s-5);
+  margin-top: var(--s-3);
+  font-size: var(--t-4);
+}
+.chiffre,
+.chiffreFort {
+  white-space: nowrap;
+  /* MÊME CHASSE POUR TOUS LES CHIFFRES : sans cela, « 1 » est plus étroit
+     que « 8 », et deux montants de même ordre ne s'alignent pas d'une
+     rangée à l'autre — ce qui est exactement ce qu'on vient corriger. */
+  font-variant-numeric: tabular-nums;
+}
+.chiffreFort {
+  color: var(--ink);
+  font-weight: 700;
+}
+/* L'étiquette dit QUOI, et se retire devant le chiffre : c'est lui qu'on
+   compare. En petites capitales, elle se lit sans se disputer la ligne. */
+.etiquette {
+  font-style: normal;
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
 }
 
 /* LA NOTE DU DESK EST UNE VOIX, pas une donnée : un filet à gauche, du corps

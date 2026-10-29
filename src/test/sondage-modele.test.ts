@@ -427,9 +427,28 @@ describe("le modèle du sondage", () => {
    */
   it("n'écrit nulle part au client le montant que la maison cherche", () => {
     const page = lire("src/app/sondage/page.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
-    /* La bande ne connaît le montant que pour une attente : la branche est la
-       garde, et elle est lisible en une ligne. */
-    expect(page, "la bande de faits écrit de nouveau un montant hors d'une attente").toMatch(/role === "attente" \? fmtUnits\(l\.montant, true\) : null/);
+    /**
+     * LA RÈGLE, ET NON SA TOURNURE.
+     *
+     * Cette épreuve exigeait la ligne mot pour mot :
+     * « role === "attente" ? fmtUnits(l.montant, true) : null ». Elle est
+     * tombée le 29 octobre 2026 en refondant la bande de faits en deux
+     * rangées — alors que la garde était intacte, écrite autrement.
+     *
+     * UNE ÉPREUVE QUI TIENT UNE ORTHOGRAPHE coûte deux fois : elle crie quand
+     * rien n'est cassé, et on finit par la réécrire sous la pression du
+     * moment, en relâchant au passage ce qu'elle gardait vraiment. Celle-ci
+     * tient désormais la RÈGLE : partout où la page rend le montant d'une
+     * ligne, la garde « attente » est sur la même expression.
+     */
+    const rendus = [...page.matchAll(/fmtUnits\(\s*l\.montant/g)];
+    expect(rendus.length, "la bande de faits ne rend plus aucun montant : l'épreuve ne garde plus rien").toBeGreaterThan(0);
+    for (const m of rendus) {
+      /* Les cent signes qui précèdent l'appel : la garde y est, ou elle n'est
+         nulle part — une branche aussi courte ne s'écrit pas plus loin. */
+      const avant = page.slice(Math.max(0, (m.index ?? 0) - 100), m.index);
+      expect(avant, `la page rend un montant sans la garde « attente » juste avant :\n…${avant}`).toMatch(/role === "attente"/);
+    }
     /* UN SEUL MONTANT SUR LA PAGE DU CLIENT, et c'est celui de la bande.
        Il y en avait deux : la question répétait « Vous avez répondu 50 M FCFA »
        sous la tuile, et l'intention le redisait plus bas — deux écritures du

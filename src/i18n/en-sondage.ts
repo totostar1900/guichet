@@ -223,4 +223,11 @@ export const EN_SONDAGE: Record<string, string> = {
   "Portée au Trésor": "Carried to the Treasury",
   Clore: "Close",
   "Pourquoi ({r})": "Why ({r})",
+  /* LES DEUX RANGÉES D'UNE LIGNE, depuis le 29 octobre 2026 : « prête vers »
+     étiquette la date sous laquelle la ligne serait prête, et la phrase qui
+     suit est ce qui reste de l'accordéon replié dans le brief. */
+  "prête vers": "ready around",
+  "Votre réponse y entre sans rien engager : il n'y a rien à signer et rien à provisionner.":
+    "Your answer joins it without committing you to anything: there is nothing to sign and nothing to fund.",
+  "Lire une ligne": "Reading a line",
 };

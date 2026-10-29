@@ -8,7 +8,7 @@ import { fmtDate, fmtPct, fmtUnits, localIso } from "@/lib/format";
 import { codeDuPays } from "@/lib/market/budget";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
-import { EnBref } from "@/components/EnBref";
+import { EnBref, TitreDeBrief } from "@/components/EnBref";
 import { Pourquoi } from "@/components/Pourquoi";
 import { Repondre, ProposerMaLigne, Retirer } from "./Formulaires";
 import styles from "./page.module.css";
@@ -86,32 +86,56 @@ export default async function SondagePage() {
         <EnTete
           surTitre={t("Investissez")}
           titre={t("Sondage")}
-          phrase={
-            <>
-              {t("Dire ce que vous prendriez avant qu'une séance ouvre. Rien ici ne vous engage.")}
-              <Pourquoi titre="À quoi sert un sondage" petit>
-                <p>
-                  {t(
-                    "Les six Trésors de la CEMAC décident seuls de ce qu'ils émettent, et quand. Ce qu'ils achètent à une société de bourse, c'est le renseignement : à quel niveau la demande tient encore, et pour combien. Une ligne sondée ici n'annonce donc aucune séance : c'est la maison qui réunit les appétits, avant qu'il y ait quoi que ce soit à annoncer.",
-                  )}
-                </p>
-                <p>
-                  {t(
-                    "Votre réponse entre dans ce renseignement. Ce n'est pas un ordre : il n'y a rien à signer et rien à provisionner, et vous la retirez quand vous voulez. Si une séance s'ouvre sur une ligne que vous avez demandée, le desk vous rappelle avant la clôture.",
-                  )}
-                </p>
-                {/* CE QUE LE TILDE VEUT DIRE, écrit une fois : il est sur
-                    chaque ligne, et il est vrai de toutes. « ind. » et « min. »
-                    suivent, pour la même raison. */}
-                <p>
-                  {t(
-                    "Sur chaque ligne, « ~ » précède la date à partir de laquelle elle serait prête — ce n'est pas une séance, et ce n'est pas une promesse. « ind. » est le niveau que la maison indique ; « min. » celui que vous posez comme plancher.",
-                  )}
-                </p>
-              </Pourquoi>
-            </>
+          /**
+           * UNE SEULE PORTE D'EXPLICATION, ET C'EST LA BULLE.
+           *
+           * DEMANDÉ LE 29 OCTOBRE 2026 : « reporter le commentaire dans la
+           * bulle point d'interrogation en haut dans le en bref, en y
+           * éliminant les doublons ». La page en portait DEUX, à dix
+           * centimètres l'une de l'autre : un accordéon « À quoi sert un
+           * sondage » sous la phrase, et le brief au coin droit. Deux portes
+           * pour une même question apprennent à n'en ouvrir aucune — et
+           * elles divergent, puisque rien ne les tient ensemble.
+           *
+           * CE QUI ÉTAIT UN DOUBLON, ET QUI EST PARTI. Le deuxième
+           * paragraphe de l'accordéon — « ce n'est pas un ordre, vous la
+           * retirez quand vous voulez » — redisait « RAISON.sondage » (« sans
+           * vous engager ») et la quatrième étape (« rien ne vous engage, et
+           * vous retirez votre attente quand vous voulez »). Il ne reste de
+           * lui que ce que le brief ne disait pas : rien à signer, rien à
+           * provisionner.
+           *
+           * CE QUI N'EN ÉTAIT PAS, ET QUI A DÉMÉNAGÉ. Pourquoi un Trésor
+           * achète ce renseignement est un contexte que le catalogue des
+           * services ne porte pas et ne doit pas porter : il parle du MARCHÉ,
+           * pas du service. Il passe donc en « children », avant les étapes.
+           * Et la légende de « ~ », « ind. » et « min. » suppose la liste
+           * sous les yeux : elle passe en « apres », après les étapes.
+           */
+          phrase={t("Dire ce que vous prendriez avant qu'une séance ouvre. Rien ici ne vous engage.")}
+          aCote={
+            <EnBref
+              cles={["sondage"]}
+              titre="Le sondage en bref"
+              apres={
+                <section>
+                  <TitreDeBrief>{t("Lire une ligne")}</TitreDeBrief>
+                  <p>
+                    {t(
+                      "Sur chaque ligne, « ~ » précède la date à partir de laquelle elle serait prête — ce n'est pas une séance, et ce n'est pas une promesse. « ind. » est le niveau que la maison indique ; « min. » celui que vous posez comme plancher.",
+                    )}
+                  </p>
+                </section>
+              }
+            >
+              <p>
+                {t(
+                  "Les six Trésors de la CEMAC décident seuls de ce qu'ils émettent, et quand. Ce qu'ils achètent à une société de bourse, c'est le renseignement : à quel niveau la demande tient encore, et pour combien. Une ligne sondée ici n'annonce donc aucune séance : c'est la maison qui réunit les appétits, avant qu'il y ait quoi que ce soit à annoncer.",
+                )}
+              </p>
+              <p>{t("Votre réponse y entre sans rien engager : il n'y a rien à signer et rien à provisionner.")}</p>
+            </EnBref>
           }
-          aCote={<EnBref cles={["sondage"]} titre="Le sondage en bref" />}
         />
 
         {/* LE TITRE POSE LA QUESTION, et c'est la demande du dirigeant :
@@ -318,20 +342,38 @@ function Faits({ l, role, t, avant }: { l: LigneSondee; role: "question" | "atte
      ne rend pas 6,25 %. Un bon n'en a pas — son taux EST son rendement. */
   const r = rendementDeLaLigne(l);
 
-  const faits = [
-    l.instrument,
-    codeDuPays(l.country),
-    l.tenor,
-    role === "attente" ? fmtUnits(l.montant, true) : null,
-    l.rate != null ? `${t(mot === "taux" ? "taux {q}" : "coupon {q}", { q })} ${fmtPct(l.rate, 2)}` : null,
-    r != null ? `${t("rendement {q}", { q })} ${fmtPct(r, 2)}` : null,
-    /* LE TILDE PORTE L'APPROXIMATION, et il n'a pas besoin de traduction : la
-       date est déjà rendue dans la langue du lecteur. Ce qu'il veut dire — la
-       date à partir de laquelle la ligne serait prête, et non une séance — est
-       écrit une fois pour toutes derrière le point d'interrogation de la page,
-       parce que c'est vrai de toutes les lignes. */
-    j ? `~ ${fmtDate(j, false)}` : null,
-  ].filter((x): x is string => x !== null);
+  /**
+   * DEUX RANGÉES, ET NON UNE PHRASE : L'IDENTITÉ, PUIS LES CHIFFRES.
+   *
+   * DEMANDÉ LE 29 OCTOBRE 2026 : « une présentation plus harmonieuse des
+   * lignes proposées, facilitant la lecture rapide ». Les sept faits se
+   * suivaient dans une phrase, au même poids, séparés par des points
+   * médians : « OTA · CM · 5 ans · 50 M · coupon min. 6,25 % · rendement
+   * min. 6,40 % · ~ 9 nov. ».
+   *
+   * CE QUI EMPÊCHE DE LIRE VITE N'EST PAS LA LONGUEUR, C'EST LE DÉPLACEMENT.
+   * Dans une liste, l'œil ne lit pas chaque ligne : il compare la MÊME
+   * grandeur d'une ligne à l'autre. Une phrase met le montant après le nom
+   * du Trésor, donc à une abscisse différente à chaque rangée — « CM » fait
+   * deux signes, « GQ » aussi, mais « 5 ans » et « 52 semaines » non. Le
+   * regard doit relire pour retrouver ce qu'il cherchait.
+   *
+   * L'IDENTITÉ TIENT LA PREMIÈRE RANGÉE — ce qu'est la ligne —, les chiffres
+   * la seconde, chacun sous son étiquette et en chiffres de même chasse. Ce
+   * qui se compare se retrouve au même endroit, et ce qui ne se compare pas
+   * ne vole plus la place de ce qui se compare.
+   *
+   * LE MONTANT PASSE EN TÊTE DES CHIFFRES sur une intention : c'est celui
+   * qu'on vient vérifier. Sur une question de la maison il n'y en a pas, et
+   * le niveau prend la tête.
+   */
+  const identite = [l.instrument, codeDuPays(l.country), l.tenor].join(" · ");
+  const chiffres: { quoi: string; dit: string; fort?: boolean }[] = [
+    role === "attente" ? { quoi: t("montant"), dit: fmtUnits(l.montant, true), fort: true } : null,
+    l.rate != null ? { quoi: `${t(mot === "taux" ? "taux" : "coupon")} ${q}`, dit: fmtPct(l.rate, 2) } : null,
+    r != null ? { quoi: `${t("rendement")} ${q}`, dit: fmtPct(r, 2) } : null,
+    j ? { quoi: t("prête vers"), dit: fmtDate(j, false) } : null,
+  ].filter((x): x is { quoi: string; dit: string; fort?: boolean } => x !== null);
 
   return (
     <p className={styles.faits}>
@@ -340,18 +382,29 @@ function Faits({ l, role, t, avant }: { l: LigneSondee; role: "question" | "atte
           pixels à la bande, qui se repliait sur trois lignes dans sa colonne
           étroite (relevé à 412 px). Dans la phrase, le texte reprend toute la
           largeur dès la deuxième ligne. */}
+      {/* L'ÉTAT ET SON POINT RESTENT DANS LA PREMIÈRE RANGÉE, et non à côté
+          d'elle : posés en voisins dans une rangée en flex, ils volaient
+          quatre-vingt-dix pixels à la bande, qui se repliait sur trois
+          lignes dans sa colonne étroite (relevé à 412 px). */}
       {avant ? <>{avant} </> : null}
-      {/* Chaque fait tient sur une ligne, séparateur compris, mais L'ESPACE QUI
-          LES SÉPARE RESTE DEHORS : enfermé dans le morceau insécable, il ne
-          donnait plus une seule occasion de passer à la ligne, et la bande
-          sortait du cadre (relevé à 412 px). */}
-      {faits.map((p, i) => (
-        <Fragment key={p}>
-          {i > 0 ? " " : null}
-          <span className={styles.fait}>{i === 0 ? p : `· ${p}`}</span>
-        </Fragment>
-      ))}{" "}
+      <span className={styles.identite}>{identite}</span>{" "}
       <span className={`mono ${styles.ref}`}>{l.ref}</span>
+      {/* LES CHIFFRES SUR LEUR PROPRE RANGÉE, chacun sous son étiquette.
+          L'ESPACE QUI SÉPARE DEUX GROUPES RESTE DEHORS du morceau insécable :
+          enfermé dedans, il ne donnait plus une seule occasion de passer à la
+          ligne, et la bande sortait du cadre (relevé à 412 px). */}
+      {chiffres.length > 0 && (
+        <span className={styles.chiffres}>
+          {chiffres.map((c, i) => (
+            <Fragment key={c.quoi}>
+              {i > 0 ? " " : null}
+              <span className={c.fort ? styles.chiffreFort : styles.chiffre}>
+                <em className={styles.etiquette}>{c.quoi}</em> {c.dit}
+              </span>
+            </Fragment>
+          ))}
+        </span>
+      )}
     </p>
   );
 }

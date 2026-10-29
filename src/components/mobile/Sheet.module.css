@@ -330,3 +330,48 @@
     transform: translateY(0);
   }
 }
+
+/**
+ * LA PLEINE PAGE, À TOUTE LARGEUR, ET LA CROIX POUR SEULE SORTIE.
+ *
+ * DEMANDÉ LE 29 OCTOBRE 2026 pour les « en bref » : « chaque en bref sera sur
+ * une page complète avec sa croix pour refermer ». « .tall » faisait déjà
+ * cela, mais sous 760 px seulement : sur un écran large, le brief restait un
+ * panneau au coin, et un panneau se lit en diagonale. Un texte qu'on veut
+ * voir lu occupe l'écran.
+ *
+ * « dvh » ET NON « vh » : sur un téléphone la barre d'adresse se replie, et
+ * « vh » garde la hauteur du départ — la feuille dépasserait du bas de ce
+ * qu'elle a cessé d'occuper.
+ *
+ * LA BARRETTE DISPARAÎT : elle promet un tiroir qu'on tire, et une page
+ * entière ne se tire pas. La croix de la tête devient la seule sortie, ce
+ * qu'elle était déjà.
+ */
+.plein,
+.plein.sheetOpen,
+.plein.dockTopRight,
+.plein.dockTopRight.sheetOpen {
+  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: 100dvh;
+  border-radius: 0;
+  transform: none;
+}
+.plein .grab {
+  display: none;
+}
+.plein .body {
+  flex: 1 1 auto;
+}
+/* Le corps d'une page entière ne se lit pas d'un bord à l'autre d'un écran
+   large : la ligne de texte reste à la mesure de l'œil, centrée. */
+.plein .body > * {
+  max-width: 72ch;
+  margin-inline: auto;
+}
