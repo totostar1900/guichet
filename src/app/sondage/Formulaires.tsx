@@ -70,13 +70,31 @@ export function Repondre({ question, existante, discret }: { question: { id: str
   const [montant, setMontant] = useState(existante ? groupe(existante.montant) : "");
   const [ouvert, setOuvert] = useState(false);
 
-  if (state?.ok) return <p className={styles.recu}>{t(state.message)}</p>;
+  /* LE MÊME DÉFAUT QUE SUR « PROPOSER SA PROPRE LIGNE », et il a été trouvé
+     par l'épreuve écrite pour l'autre : répondre à une question du desk
+     effaçait le bouton pour de bon. Un client qui se ravise — il voulait dire
+     cinquante millions, il en veut dire cent — n'avait plus aucun geste, et
+     la page ne lui disait pas pourquoi. Même remède : l'accusé se lit
+     AU-DESSUS du bouton, et un accusé déjà vu ne bloque plus rien. */
+  const refRecue = state?.ok ? state.ref : undefined;
+  const [refLue, setRefLue] = useState<string | undefined>(undefined);
+  const accuseFrais = refRecue !== undefined && refRecue !== refLue;
 
-  if (!ouvert)
+  if (!ouvert || accuseFrais)
     return (
-      <button type="button" className={discret ? styles.lien : "btn primary"} onClick={() => setOuvert(true)}>
-        {t(discret ? "Modifier" : existante ? "Modifier ma réponse" : "Je serais preneur")}
-      </button>
+      <>
+        {accuseFrais && state?.ok && <p className={styles.recu}>{t(state.message)}</p>}
+        <button
+          type="button"
+          className={discret ? styles.lien : "btn primary"}
+          onClick={() => {
+            setRefLue(refRecue);
+            setOuvert(true);
+          }}
+        >
+          {t(discret ? "Modifier" : accuseFrais ? "Modifier ma réponse" : existante ? "Modifier ma réponse" : "Je serais preneur")}
+        </button>
+      </>
     );
 
   return (
@@ -143,12 +161,34 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
   const champs = gabarit(instrument);
   const aide = (cle: string) => champs.find((c) => c.cle === cle)?.aide ?? "";
 
-  if (state?.ok)
-    return (
-      <p className={styles.recu}>
-        {t(state.message)} <span className="mono">{state.ref}</span>
-      </p>
-    );
+  /**
+   * UNE LIGNE ENVOYÉE NE FERME PAS LA PORTE AUX SUIVANTES.
+   *
+   * SIGNALÉ LE 29 OCTOBRE 2026 : « le bouton proposer votre ligne disparaît
+   * une fois la ligne validée ». Il disparaissait pour de bon — le composant
+   * rendait l'accusé À LA PLACE du déclencheur, et un client qui voulait
+   * proposer une seconde ligne devait recharger la page pour retrouver le
+   * bouton. Or proposer plusieurs lignes est le cas NORMAL : on dit ce qu'on
+   * prendrait sur le 5 ans, puis sur le 7 ans.
+   *
+   * ET UN SECOND DÉFAUT SE CACHAIT DERRIÈRE, que garder le bouton n'aurait
+   * pas suffi à lever : la feuille s'ouvre sur « ouvert && !state.ok », et
+   * « state.ok » reste vrai pour toujours. Le bouton rendu, il aurait cliqué
+   * dans le vide — une panne muette, pire que celle qu'on corrigeait.
+   *
+   * CE QUI LES FERME TOUS LES DEUX : la feuille ne se ferme plus sur « il y a
+   * eu un succès » mais sur « il y a eu un succès QUE LE CLIENT N'A PAS
+   * ENCORE VU ». Rouvrir, c'est voir — donc le déclencheur marque l'accusé
+   * comme lu, et la feuille s'ouvre de nouveau. Pas d'effet, pas de
+   * « setState » dans un rendu : une comparaison de deux références.
+   */
+  const refRecue = state?.ok ? state.ref : undefined;
+  const [refLue, setRefLue] = useState<string | undefined>(undefined);
+  const accuseFrais = refRecue !== undefined && refRecue !== refLue;
+  const ouvrir = () => {
+    setRefLue(refRecue);
+    setOuvert(true);
+  };
 
   /* LE DÉCLENCHEUR RESTE EN PLACE, ET LE FORMULAIRE S'OUVRE PAR-DESSUS.
      « Un bouton à lui, séparé, et de là un formulaire complet apparaît. » Déplié
@@ -157,23 +197,30 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
      voyait plus ni le début du formulaire ni la fin. Une feuille garde la page
      dessous, à sa place, et rend les six champs d'un seul tenant. */
   const declencheur = existante ? (
-    <button type="button" className={styles.lien} onClick={() => setOuvert(true)}>
+    <button type="button" className={styles.lien} onClick={ouvrir}>
       {t("Modifier")}
     </button>
   ) : (
-    <button type="button" className={`btn ghost ${styles.plus}`} onClick={() => setOuvert(true)}>
-      <span aria-hidden="true">+</span> {t("Proposer votre propre ligne")}
+    <button type="button" className={`btn ghost ${styles.plus}`} onClick={ouvrir}>
+      <span aria-hidden="true">+</span> {t(accuseFrais ? "Proposer une autre ligne" : "Proposer votre propre ligne")}
     </button>
   );
 
   return (
     <>
+      {/* L'ACCUSÉ SE LIT AU-DESSUS DU BOUTON, ET NON À SA PLACE. Il dit que
+          c'est parti ; le bouton dit que ce n'est pas fini. */}
+      {accuseFrais && state?.ok && (
+        <p className={styles.recu}>
+          {t(state.message)} <span className="mono">{state.ref}</span>
+        </p>
+      )}
       {declencheur}
       {/* LA FEUILLE SE FERME D'ELLE-MÊME QUAND L'ENVOI PASSE — « ouvert && !ok »
           plutôt qu'un effet qui la ferme : un effet qui appelle setState est
           précisément ce que le lint de cette version refuse, et l'accusé de
           réception prend la place du bouton en dessous. */}
-      <Sheet open={ouvert && !state?.ok} onClose={() => setOuvert(false)} title={t(existante ? "Modifier votre ligne" : "Proposer votre propre ligne")} wide>
+      <Sheet open={ouvert && !accuseFrais} onClose={() => setOuvert(false)} title={t(existante ? "Modifier votre ligne" : "Proposer votre propre ligne")} wide>
         <form action={action} className={styles.form}>
           {existante && <input type="hidden" name="id" value={existante.id} />}
       {/* LE COMPARTIMENT D'ABORD, parce qu'il décide des champs qui suivent :
