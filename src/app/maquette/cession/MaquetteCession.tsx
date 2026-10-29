@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Attente, Bandeau, Boite, chiffres, MILLIERS, Pied, Recap, Tete, Trop } from "../commun";
+import { Attente, Bandeau, chiffres, MILLIERS, Paire, Pied, Recap, Tete, Trop } from "../commun";
 import styles from "../commun.module.css";
 
 /**
@@ -26,6 +26,7 @@ import styles from "../commun.module.css";
  */
 export function MaquetteCession({ titre, isin, cours, detenu }: { titre: string; isin: string; cours: number; detenu: number }) {
   const [brut, setBrut] = useState("");
+  const [brutFrancs, setBrutFrancs] = useState("");
   const [etape, setEtape] = useState<1 | 2>(1);
 
   const demande = Number(chiffres(brut) || 0);
@@ -34,6 +35,36 @@ export function MaquetteCession({ titre, isin, cours, detenu }: { titre: string;
   const reste = Math.max(0, detenu - demande);
   const pret = demande > 0 && !trop;
 
+  /**
+   * LES DEUX CHIFFRES SE RÉPONDENT, ET CELUI QU'ON TAPE NE BOUGE PAS.
+   *
+   * ARBITRÉ LE 29 OCTOBRE 2026 : « les titres s'appliquent sur les actions
+   * cotées, et permettre de renseigner de manière dynamique soit les titres
+   * soit les montants, l'un ajustant l'autre ».
+   *
+   * C'ÉTAIT LA SEULE MAQUETTE QUI NE PARLAIT QU'EN TITRES, et c'était une
+   * moitié de réponse : on vend tantôt une quantité — « je sors de la
+   * moitié de ma ligne » — et tantôt une somme — « il me faut deux
+   * millions ». Lui imposer les titres obligeait à faire la division soi-même
+   * et à se tromper sur le dernier titre.
+   *
+   * LE SENS DE LA CONVERSION N'EST PAS LE MÊME QUE SUR UN ACHAT : ici, la
+   * somme demandée s'arrondit vers le BAS en titres entiers, parce qu'on ne
+   * cède pas un tiers de titre — et le plafond reste ce qu'on détient.
+   */
+  const surLesTitres = (v: string) => {
+    const n = chiffres(v).slice(0, 9);
+    setBrut(n);
+    const t = Number(n || 0);
+    setBrutFrancs(t === 0 ? "" : String(t * cours));
+  };
+  const surLesFrancs = (v: string) => {
+    const n = chiffres(v).slice(0, 12);
+    setBrutFrancs(n);
+    const f = Number(n || 0);
+    setBrut(f === 0 ? "" : String(cours > 0 ? Math.floor(f / cours) : 0));
+  };
+
   return (
     <div className={styles.ecran}>
       <Bandeau essaie="on part de ce qu'on détient" />
@@ -41,15 +72,17 @@ export function MaquetteCession({ titre, isin, cours, detenu }: { titre: string;
 
       {etape === 1 ? (
         <>
-          <Boite
-            id="titres"
-            question="Combien de titres voulez-vous céder ?"
-            valeur={brut ? MILLIERS(demande) : ""}
-            onChange={(v) => setBrut(chiffres(v).slice(0, 9))}
-            unite={demande > 1 ? "titres" : "titre"}
+          {/* DEUX CHIFFRES, UNE SEULE QUESTION. On vend tantôt une quantité,
+              tantôt une somme ; les deux champs disent la même cession, et
+              celui qu'on ne tape pas suit. La pièce vient du kit : le
+              passage d'ordre pose la même. */}
+          <Paire
+            question="Combien voulez-vous céder ?"
+            premier={{ id: "titres", valeur: brut ? MILLIERS(demande) : "", onChange: surLesTitres, unite: demande > 1 ? "titres" : "titre" }}
+            second={{ id: "francs", valeur: brutFrancs ? MILLIERS(Number(brutFrancs)) : "", onChange: surLesFrancs, unite: "FCFA" }}
             dessous={
               demande === 0 ? (
-                <Attente>Ce que la cession vous rapporte s&apos;affiche ici pendant que vous tapez.</Attente>
+                <Attente>Écrivez l&apos;un des deux : l&apos;autre se met à jour pendant que vous tapez.</Attente>
               ) : trop ? (
                 <Trop>Vous en détenez {MILLIERS(detenu)} : on ne peut pas céder davantage.</Trop>
               ) : (

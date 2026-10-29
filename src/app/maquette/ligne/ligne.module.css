@@ -197,3 +197,15 @@
   font-size: var(--t-2);
   color: var(--ink-3);
 }
+
+/* CE QU'UN SIGLE VEUT DIRE. « OTA » et « BTA » ont remplacé « Obligation » et
+   « Bon » sur la bascule, à la demande du 29 octobre 2026 : c'est le
+   vocabulaire de toutes les autres pages, et traduire ici seulement obligeait
+   le lecteur à faire la correspondance au moment où il choisit. Le mot entier
+   se lit dessous, où il y a la place. */
+.glose {
+  margin: calc(-1 * var(--s-6)) 0 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  text-align: center;
+}

@@ -38,8 +38,12 @@ const TENUES_PAR_LE_KIT: Record<string, string> = {
   isin: "Tete",
   champLabel: "Champ",
   equiv: "Champ",
-  saisie: "Boite",
-  unite: "Boite",
+  /* « saisie » et « unite » sont désormais dessinées par DEUX pièces du kit —
+     « Boite » pour un chiffre seul, « Paire » pour deux qui se répondent. La
+     règle ne change pas : une maquette ne les dessine pas elle-même. */
+  saisie: "Boite ou Paire",
+  unite: "Boite ou Paire",
+  lienDePaire: "Paire",
   equivVide: "Attente",
   equivCourt: "Trop",
   pied: "Pied",

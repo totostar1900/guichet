@@ -60,13 +60,27 @@ export interface Catalogue {
 
 type Compartiment = "OTA" | "BTA";
 
-/** Le mois courant, et celui d'après : les deux bords par défaut de rien. */
-const moisISO = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
-const direLeMois = (v: string) => {
-  const [a, m] = v.split("-");
+/**
+ * LES DEUX BORDS SE DISENT AU JOUR, ET NON AU MOIS.
+ *
+ * ARBITRÉ LE 29 OCTOBRE 2026 : « les dates de au plus tôt / au plus tard
+ * devront afficher les jours également ». La première écriture s'arrêtait au
+ * mois, et l'argument était qu'un Trésor annonce sa séance une semaine avant
+ * — demander un jour trois mois d'avance réclamerait une précision que la
+ * place n'a pas.
+ *
+ * L'ARGUMENT VALAIT POUR LA SÉANCE, PAS POUR LE CLIENT, et c'est ce que
+ * l'arbitrage corrige. Ce qu'on demande ici n'est pas de deviner la date
+ * d'une émission : c'est de dire QUAND ON EST DISPONIBLE. « Je suis preneur
+ * jusqu'au 15, après j'ai ma trésorerie ailleurs » est une phrase exacte, et
+ * le mois l'arrondissait à quinze jours près dans le mauvais sens.
+ */
+const jourISO = (d: Date) => d.toISOString().slice(0, 10);
+const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+const direLeJour = (v: string) => {
+  const [a, m, j] = v.split("-");
   const i = Number(m) - 1;
-  return i >= 0 && i < 12 ? `${MOIS[i]} ${a}` : "";
+  return i >= 0 && i < 12 ? `${Number(j)} ${MOIS[i]} ${a}` : "";
 };
 
 export function MaquetteLigne({ catalogue }: { catalogue: Catalogue }) {
@@ -74,6 +88,7 @@ export function MaquetteLigne({ catalogue }: { catalogue: Catalogue }) {
   const [pays, setPays] = useState<string[]>([]);
   const [durees, setDurees] = useState<string[]>([]);
   const [niveau, setNiveau] = useState("");
+  const [prix, setPrix] = useState("");
   const [montantBrut, setMontantBrut] = useState("");
   const [tot, setTot] = useState("");
   const [tard, setTard] = useState("");
@@ -81,10 +96,37 @@ export function MaquetteLigne({ catalogue }: { catalogue: Catalogue }) {
   const [etape, setEtape] = useState<"saisie" | "apercu" | "confirmer">("saisie");
 
   const dureesDuCompartiment = compartiment === "OTA" ? catalogue.dureesOTA : catalogue.dureesBTA;
+  /* Le prix : son écart au pair est une soustraction qu'on rend au client
+     plutôt que de la lui demander. Positif = décote. */
+  const prixNum = Number(prix.replace(",", ".")) || 0;
+  const horsBornes = prix.trim() !== "" && (prixNum < 50 || prixNum > 150);
+  const ecartAuPair = 100 - prixNum;
+
+  /**
+   * LA TAILLE SE DIT EN FRANCS, ET EN FRANCS SEULEMENT.
+   *
+   * ARBITRÉ LE 29 OCTOBRE 2026 : « les OTA ne devraient pas avoir la quantité
+   * de titres mais uniquement les montants ; les titres s'appliquent sur les
+   * actions cotées. »
+   *
+   * J'AVAIS POSÉ UNE BASCULE francs / titres ICI, en m'appuyant sur le
+   * nominal unitaire de la zone — un million pour un bon, dix mille pour une
+   * obligation. Le calcul était juste et la pièce était fausse : ON NE SONDE
+   * PAS UN TITRE, ON SONDE UNE LIGNE QUI N'EXISTE PAS ENCORE. Il n'y a ni
+   * ISIN, ni coupure arrêtée, ni prix d'émission tant que le Trésor n'a rien
+   * annoncé ; compter des titres sur un objet qui n'en a pas encore, c'était
+   * donner au client une précision que la place ne peut pas tenir.
+   *
+   * Le domaine le disait déjà, et je ne l'avais pas écouté : « En francs.
+   * C'est ce chiffre qui est porté au Trésor. »
+   */
   const montant = Number(chiffres(montantBrut) || 0);
   const lignes = pays.length * durees.length;
   const fenetreALEnvers = Boolean(tot && tard && tard < tot);
-  const pret = lignes > 0 && montant > 0 && niveau.trim() !== "" && Boolean(tot) && Boolean(tard) && !fenetreALEnvers;
+  /* LE PRIX EST FACULTATIF, COMME DANS LE DOMAINE — mais un prix écrit hors
+     des bornes bloque, parce qu'il serait refusé au dépôt et que le client le
+     découvrirait après avoir tout relu. */
+  const pret = lignes > 0 && montant > 0 && niveau.trim() !== "" && Boolean(tot) && Boolean(tard) && !fenetreALEnvers && !horsBornes;
 
   /* Un jeton qui s'ajoute, et non qui remplace : c'est toute la différence
      avec les jetons de l'épargne et de l'arbitrage. */
@@ -110,18 +152,39 @@ export function MaquetteLigne({ catalogue }: { catalogue: Catalogue }) {
             legende="Ce que vous cherchez"
             nom="compartiment"
             choix={[
-              { valeur: "OTA", mot: "Obligation" },
-              { valeur: "BTA", mot: "Bon" },
+              /* LES SIGLES, ET NON LES MOTS. Demandé le 29 octobre 2026 :
+                 « au lieu de obligation/bon, écrire OTA/BTA ». C'est le
+                 vocabulaire de la place et celui de toutes les autres pages
+                 — la liste des séances, la bande de faits, le récapitulatif
+                 du desk. Traduire ici seulement obligeait le lecteur à faire
+                 la correspondance lui-même, à l'endroit précis où il choisit.
+                 Ce qu'un sigle veut dire se lit sous la bascule, où il y a la
+                 place de l'écrire en entier. */
+              { valeur: "OTA", mot: "OTA" },
+              { valeur: "BTA", mot: "BTA" },
             ]}
             valeur={compartiment}
             onChange={(v) => {
               setCompartiment(v);
+              /* Un bon n'a pas de prix : le garder d'un compartiment à
+                 l'autre enverrait au desk un chiffre que le domaine refuse. */
+              setPrix("");
               /* Les durées d'un bon ne sont pas celles d'une obligation :
                  les garder d'un compartiment à l'autre proposerait « 7 ans »
                  sur un bon, qui ne va pas au-delà de l'année. */
               setDurees([]);
             }}
           />
+
+          {/* CE QU'UN SIGLE VEUT DIRE, SOUS LA BASCULE. Les mots entiers ont
+              quitté les deux cibles le 29 octobre ; ils se lisent ici, où il
+              y a la place, et où ils n'obligent plus personne à traduire au
+              moment de choisir. */}
+          <p className={propres.glose}>
+            {compartiment === "OTA"
+              ? "OTA · obligation du Trésor : elle verse un coupon chaque année, sur plusieurs années."
+              : "BTA · bon du Trésor assimilable : il se vend précompté et se rembourse en une fois, sous un an."}
+          </p>
 
           <Champ
             question="Quels Trésors ?"
@@ -212,6 +275,62 @@ export function MaquetteLigne({ catalogue }: { catalogue: Catalogue }) {
             }
           />
 
+          {/**
+           * LE PRIX, SUR UNE OTA SEULEMENT — ET SANS LUI LA LIGNE N'A PAS DE
+           * RENDEMENT.
+           *
+           * DEMANDÉ LE 29 OCTOBRE 2026 : « rajouter les prix / décotes aux
+           * OTA ». La première écriture l'avait omis, et ce n'était pas une
+           * simplification : « rendementDeLaLigne » exige le coupon ET le
+           * prix pour rendre quelque chose. Une ligne proposée sans prix
+           * arrivait donc au desk SANS LE SEUL CHIFFRE QUI SE COMPARE d'une
+           * ligne à l'autre — un coupon de 6,25 % acheté à 97 ne rend pas
+           * 6,25 %. Rien à l'écran ne l'aurait montré : la ligne paraissait
+           * complète, et c'est le renseignement qui était creux.
+           *
+           * UN BON N'EN A PAS, et ce n'est pas un oubli : il se vend
+           * précompté, son taux EST son niveau, et le domaine refuse un prix
+           * sur un BTA.
+           *
+           * LA DÉCOTE SE LIT, ELLE NE SE TAPE PAS. Le client écrit un prix en
+           * pourcentage du nominal, parce que c'est ce que la place cote ;
+           * l'écart à 100 est une soustraction qu'on lui rend au lieu de la
+           * lui demander.
+           */}
+          {compartiment === "OTA" && (
+            <Boite
+              id="prix"
+              question="À quel prix, au plus ?"
+              valeur={prix}
+              onChange={(v) => setPrix(v.replace(/[^\d,.]/g, "").slice(0, 6))}
+              unite="% du nominal"
+              gabarit="100"
+              mode="decimal"
+              dessous={
+                prix.trim() === "" ? (
+                  <Attente>100 signifie « au pair ». En dessous, vous achetez avec une décote ; au-dessus, vous payez plus que ce qui sera remboursé.</Attente>
+                ) : horsBornes ? (
+                  <Trop>Un prix se dit entre 50 et 150 % du nominal.</Trop>
+                ) : ecartAuPair === 0 ? (
+                  <>
+                    <b>Au pair</b>
+                    <span> · vous payez exactement ce qui vous sera remboursé</span>
+                  </>
+                ) : ecartAuPair > 0 ? (
+                  <>
+                    <b>Décote de {ecartAuPair.toFixed(2).replace(".", ",")} points</b>
+                    <span> · vous payez moins que ce qui vous sera remboursé</span>
+                  </>
+                ) : (
+                  <>
+                    <b>Prime de {(-ecartAuPair).toFixed(2).replace(".", ",")} points</b>
+                    <span> · vous payez plus que ce qui vous sera remboursé</span>
+                  </>
+                )
+              }
+            />
+          )}
+
           <Boite
             id="montant"
             question="Combien prendriez-vous ?"
@@ -263,13 +382,13 @@ export function MaquetteLigne({ catalogue }: { catalogue: Catalogue }) {
             nomme="fenetreLabel"
             dessous={
               !tot || !tard ? (
-                <Attente>Le Trésor annonce une séance environ une semaine avant : on dit le mois, pas le jour.</Attente>
+                <Attente>Le Trésor annonce une séance environ une semaine avant : dites la fenêtre où vous êtes disponible.</Attente>
               ) : fenetreALEnvers ? (
                 <Trop>La fin de la fenêtre est avant son début.</Trop>
               ) : (
                 <>
                   <b>
-                    De {direLeMois(tot)} à {direLeMois(tard)}
+                    De {direLeJour(tot)} à {direLeJour(tard)}
                   </b>
                   <span> · au-delà, votre intention s&apos;éteint d&apos;elle-même</span>
                 </>
@@ -279,14 +398,14 @@ export function MaquetteLigne({ catalogue }: { catalogue: Catalogue }) {
             <div className={propres.fenetre} role="group" aria-labelledby="fenetreLabel">
               <span className={propres.borne}>
                 <span className={propres.borneMot}>Au plus tôt</span>
-                <input className={propres.borneChamp} type="month" min={moisISO(new Date())} value={tot} onChange={(e) => setTot(e.target.value)} aria-label="Au plus tôt" />
+                <input className={propres.borneChamp} type="date" min={jourISO(new Date())} value={tot} onChange={(e) => setTot(e.target.value)} aria-label="Au plus tôt" />
               </span>
               <span className={propres.tiret} aria-hidden="true">
                 →
               </span>
               <span className={propres.borne}>
                 <span className={propres.borneMot}>Au plus tard</span>
-                <input className={propres.borneChamp} type="month" min={tot || moisISO(new Date())} value={tard} onChange={(e) => setTard(e.target.value)} aria-label="Au plus tard" />
+                <input className={propres.borneChamp} type="date" min={tot || jourISO(new Date())} value={tard} onChange={(e) => setTard(e.target.value)} aria-label="Au plus tard" />
               </span>
             </div>
           </Champ>
@@ -326,7 +445,7 @@ export function MaquetteLigne({ catalogue }: { catalogue: Catalogue }) {
             </span>
           </Champ>
 
-          <Pied mot="Voir ce que le desk recevra" pret={pret} sur={() => setEtape("apercu")} note="Rien n'est envoyé : vous verrez d'abord vos lignes." />
+          <Pied mot="Continuer" pret={pret} sur={() => setEtape("apercu")} note="Rien n'est envoyé : vous verrez d'abord vos lignes." />
         </>
       ) : etape === "apercu" ? (
         <>
@@ -361,7 +480,9 @@ export function MaquetteLigne({ catalogue }: { catalogue: Catalogue }) {
                     {compartiment} {l.pays} · {l.duree}
                   </span>
                   <span className={propres.carteDit}>
-                    {compartiment === "BTA" ? "taux" : "coupon"} au moins {niveau.replace(".", ",")} % · {MILLIERS(montant)} FCFA · de {direLeMois(tot)} à {direLeMois(tard)}
+                    {compartiment === "BTA" ? "taux" : "coupon"} au moins {niveau.replace(".", ",")} %
+                    {compartiment === "OTA" && prix.trim() !== "" ? ` · prix au plus ${prix.replace(".", ",")} %` : ""} · {MILLIERS(montant)} FCFA · de {direLeJour(tot)} à{" "}
+                    {direLeJour(tard)}
                   </span>
                 </div>
               ))}
@@ -398,8 +519,13 @@ export function MaquetteLigne({ catalogue }: { catalogue: Catalogue }) {
             lignes={[
               { quoi: "Vous proposez", dit: `${lignes} ligne${lignes > 1 ? "s" : ""} · ${compartiment}`, fort: true },
               { quoi: "Au niveau de", dit: `${niveau.replace(".", ",")} % au moins` },
+              /* LE PRIX NE PARAÎT QUE S'IL A ÉTÉ DIT : une rangée « — » dans
+                 un récapitulatif fait chercher ce qu'on aurait oublié. */
+              ...(compartiment === "OTA" && prix.trim() !== ""
+                ? [{ quoi: "Au prix de", dit: `${prix.replace(".", ",")} % du nominal${ecartAuPair > 0 ? ` · décote de ${ecartAuPair.toFixed(2).replace(".", ",")} points` : ecartAuPair < 0 ? ` · prime de ${(-ecartAuPair).toFixed(2).replace(".", ",")} points` : " · au pair"}` }]
+                : []),
               { quoi: "Pour", dit: `${MILLIERS(montant)} FCFA sur celle qui sortira` },
-              { quoi: "Entre", dit: `${direLeMois(tot)} et ${direLeMois(tard)}` },
+              { quoi: "Entre", dit: `${direLeJour(tot)} et ${direLeJour(tard)}` },
             ]}
             mot="Une intention n'est pas un ordre : rien n'est engagé, rien n'est bloqué sur votre compte, et vous la retirez quand vous voulez. Elle dit au desk ce que vous prendriez si la ligne sortait — et c'est ce qui décide des séances qu'il demande aux Trésors."
           />

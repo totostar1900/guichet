@@ -195,6 +195,66 @@ export function Bascule<T extends string>({
   );
 }
 
+/**
+ * DEUX CHIFFRES QUI DISENT LA MÊME CHOSE, ET CHACUN AJUSTE L'AUTRE.
+ *
+ * DEMANDÉ LE 29 OCTOBRE 2026 : « permettre de renseigner de manière dynamique
+ * soit les titres soit les montants, l'un ajustant l'autre ». Sur une action
+ * cotée, « j'achète pour un million deux » et « j'achète treize titres » sont
+ * la même phrase dite dans deux unités, et le client pense tantôt dans l'une,
+ * tantôt dans l'autre — selon qu'il part de son argent ou de sa position.
+ *
+ * UNE BASCULE AURAIT ÉTÉ UNE RÉPONSE PLUS SIMPLE, ET FAUSSE : elle oblige à
+ * choisir son unité AVANT de savoir, puis à revenir pour voir l'autre. Deux
+ * champs ensemble répondent à la question qu'on se pose vraiment — « ça fait
+ * combien de l'autre côté ? » — sans geste supplémentaire.
+ *
+ * LE PIÈGE DE DEUX CHAMPS LIÉS, et c'est tout ce que cette pièce protège :
+ * CELUI QU'ON TAPE NE SE RÉÉCRIT JAMAIS SOUS LE CURSEUR. Le passage de
+ * l'argent aux titres est un arrondi vers le bas — treize titres à 90 000
+ * coûtent 1 170 000, pas 1 200 000. Si le champ des francs se recalculait à
+ * partir des titres pendant la frappe, il effacerait les chiffres qu'on est
+ * en train d'écrire : on tape « 1 2 0 0 0 0 0 » et l'écran répond
+ * « 1 170 000 » au sixième signe. Ce qu'on tape reste ; c'est l'AUTRE qui
+ * suit, et la ligne de conséquence dit ce qui tombe à côté.
+ */
+export interface CoteDeLaPaire {
+  id: string;
+  valeur: string;
+  onChange: (v: string) => void;
+  unite: string;
+  gabarit?: string;
+}
+
+export function Paire({
+  question,
+  premier,
+  second,
+  lien = "soit",
+  dessous,
+}: {
+  question: string;
+  premier: CoteDeLaPaire;
+  second: CoteDeLaPaire;
+  /** Le mot entre les deux. « soit », parce qu'il ne promet pas l'égalité. */
+  lien?: string;
+  dessous: React.ReactNode;
+}) {
+  const cote = (c: CoteDeLaPaire) => (
+    <div className={styles.saisie}>
+      <input id={c.id} inputMode="numeric" autoComplete="off" placeholder={c.gabarit ?? "0"} value={c.valeur} onChange={(e) => c.onChange(e.target.value)} />
+      <span className={styles.unite}>{c.unite}</span>
+    </div>
+  );
+  return (
+    <Champ question={question} pour={premier.id} dessous={dessous}>
+      {cote(premier)}
+      <span className={styles.lienDePaire}>{lien}</span>
+      {cote(second)}
+    </Champ>
+  );
+}
+
 /** Ce qu'on lit quand rien n'est encore tapé : gris, et jamais un reproche. */
 export const Attente = ({ children }: { children: React.ReactNode }) => <span className={styles.equivVide}>{children}</span>;
 /** Ce qui empêche d'avancer : dit, pas crié. */

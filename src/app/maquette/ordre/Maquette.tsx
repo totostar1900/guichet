@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Attente, Bandeau, Bascule, Boite, chiffres, MILLIERS, Pied, Recap, Tete, Trop } from "../commun";
+import { Attente, Bandeau, Bascule, chiffres, MILLIERS, Paire, Pied, Recap, Tete, Trop } from "../commun";
 import styles from "../commun.module.css";
 
 /**
@@ -41,6 +41,7 @@ import styles from "../commun.module.css";
 export function Maquette({ titre, isin, cours, quotite, detenu, marche }: { titre: string; isin: string; cours: number; quotite: number; detenu: number; marche: string }) {
   const [sens, setSens] = useState<"achat" | "vente">("achat");
   const [brut, setBrut] = useState("");
+  const [brutTitres, setBrutTitres] = useState("");
   /* « coordonnees » est le DÉTOUR : dans l'application c'est une vraie page,
      atteinte avec un billet de retour. Ici elle est jouée dans la maquette,
      sans quoi on ne verrait pas ce qu'on vient juger — à savoir que l'ordre
@@ -60,6 +61,35 @@ export function Maquette({ titre, isin, cours, quotite, detenu, marche }: { titr
 
   const pret = vu.titres > 0;
 
+  /**
+   * LES DEUX CHIFFRES SE RÉPONDENT, ET CELUI QU'ON TAPE NE BOUGE PAS.
+   *
+   * DEMANDÉ LE 29 OCTOBRE 2026 : « permettre de renseigner de manière
+   * dynamique soit les titres soit les montants, l'un ajustant l'autre ».
+   * C'est ici que cela a un sens — sur une action cotée, où un titre existe,
+   * porte un cours et se compte.
+   *
+   * « brutTitres » EST LE CHAMP, PAS LA VÉRITÉ. Quand on écrit des francs,
+   * il reçoit la quantité calculée ; quand on écrit des titres, il garde la
+   * frappe et ce sont les francs qui suivent. Sans cette séparation, le champ
+   * qu'on remplit se recalculerait sous le curseur : on tape « 1 2 0 0 0 0 0 »
+   * et l'écran répondrait « 1 170 000 » au sixième signe, parce que treize
+   * titres à 90 000 ne coûtent pas un million deux.
+   */
+  const surLesFrancs = (v: string) => {
+    const n = chiffres(v).slice(0, 12);
+    setBrut(n);
+    const f = Number(n || 0);
+    const t = cours > 0 ? Math.floor(Math.floor(f / cours) / Math.max(1, quotite)) * Math.max(1, quotite) : 0;
+    setBrutTitres(f === 0 ? "" : String(sens === "achat" ? t : Math.min(detenu, Math.floor(f / Math.max(1, cours)))));
+  };
+  const surLesTitres = (v: string) => {
+    const n = chiffres(v).slice(0, 9);
+    setBrutTitres(n);
+    const t = Number(n || 0);
+    setBrut(t === 0 ? "" : String(t * cours));
+  };
+
   return (
     <div className={styles.ecran}>
       <Bandeau essaie="proposition du 28 octobre" />
@@ -72,7 +102,7 @@ export function Maquette({ titre, isin, cours, quotite, detenu, marche }: { titr
           <p className={styles.recuMot}>
             Un conseiller vous confirme par WhatsApp avant la clôture, puis vous envoie le bulletin à signer.
           </p>
-          <button type="button" className={styles.second} onClick={() => { setEnvoye(false); setEtape(1); setBrut(""); }}>
+          <button type="button" className={styles.second} onClick={() => { setEnvoye(false); setEtape(1); setBrut(""); setBrutTitres(""); }}>
             Rejouer la maquette
           </button>
         </section>
@@ -121,27 +151,34 @@ export function Maquette({ titre, isin, cours, quotite, detenu, marche }: { titr
             onChange={(s) => {
               setSens(s);
               setBrut("");
+              setBrutTitres("");
             }}
           />
 
-          <Boite
-            id="montant"
+          {/* DEUX CHIFFRES, UNE SEULE QUESTION. Le client part tantôt de son
+              argent, tantôt de sa position ; les deux champs répondent à la
+              même question dans deux unités, et celui qu'on ne tape pas
+              suit. La pièce vient du kit : la cession pose la même. */}
+          <Paire
             question={sens === "achat" ? "Combien voulez-vous placer ?" : "Combien voulez-vous retirer ?"}
-            valeur={brut ? MILLIERS(montant) : ""}
-            onChange={(v) => setBrut(chiffres(v).slice(0, 12))}
-            unite="FCFA"
+            premier={{ id: "montant", valeur: brut ? MILLIERS(montant) : "", onChange: surLesFrancs, unite: "FCFA" }}
+            second={{ id: "titres", valeur: brutTitres ? MILLIERS(Number(brutTitres)) : "", onChange: surLesTitres, unite: Number(brutTitres) > 1 ? "titres" : "titre" }}
             dessous={
               montant === 0 ? (
-                <Attente>Le nombre de titres s&apos;affiche ici pendant que vous tapez.</Attente>
+                <Attente>Écrivez l&apos;un des deux : l&apos;autre se met à jour pendant que vous tapez.</Attente>
               ) : vu.titres === 0 ? (
                 <Trop>Trop court pour un titre : il en faut {MILLIERS(cours * Math.max(1, quotite))} FCFA au minimum.</Trop>
               ) : (
                 <>
                   <b>
-                    ≈ {MILLIERS(vu.titres)} {vu.titres > 1 ? "titres" : "titre"}
+                    {MILLIERS(vu.titres)} {vu.titres > 1 ? "titres" : "titre"} à {MILLIERS(cours)} FCFA
                   </b>
                   <span>
-                    {" "}à {MILLIERS(cours)} FCFA
+                    {" "}= {MILLIERS(vu.exact)} FCFA
+                    {/* CE QUI TOMBE À CÔTÉ SE DIT ICI, et c'est pour cela que
+                        le mot entre les deux champs est « soit » et non
+                        « = » : la quotité arrondit vers le bas, et le reste
+                        n'est pas une erreur de saisie. */}
                     {vu.reste > 0 ? ` · ${MILLIERS(vu.reste)} FCFA resteront de côté` : ""}
                   </span>
                 </>
