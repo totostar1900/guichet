@@ -14,7 +14,7 @@ import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde, BaremeGarde, DroitLigne } from "@/lib/domain/garde";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
-import type { BulletinNote, FundNav, IssuerDocument, MarketBulletin, Quote, QuoteActivity } from "@/lib/domain/market";
+import type { BulletinNote, FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
 import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
 import type { DernierEtat } from "@/lib/market/beac-journal";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
@@ -22,7 +22,7 @@ import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/l
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
-import { makeMandatRef, makeOrderNo, makeRef, makeSondageRef, makeTirageRef, type ComptesEmetteur, type CoutDesRessources, type EncoursOfficiel, type OperationDuTresor, type PointCourbeBeac, type Repository } from "./repository";
+import { makeMandatRef, makeOrderNo, makeRef, makeSondageRef, makeTirageRef, type OperationDuTresor, type Repository } from "./repository";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
 import type { VirementRecu } from "@/lib/domain/virement";
 import type { RemiseDePrelevement, Tirage } from "@/lib/domain/prelevement";
@@ -950,6 +950,78 @@ function fail(ctx: string, error: { message: string } | null): never {
   throw new Error(`${ctx}: ${error?.message ?? "unknown error"}`);
 }
 
+/** Le plafond que PostgREST applique sans le dire à toute lecture non bornée. */
+export const PLAFOND_POSTGREST = 1000;
+
+/**
+ * TOUTES LES LIGNES D'UNE LECTURE, PAR LOTS DE MILLE.
+ *
+ * SUPABASE PLAFONNE UN « select » À MILLE LIGNES ET NE LE DIT PAS. Pas
+ * d'erreur, pas d'avertissement : la réponse arrive, complète en apparence, et
+ * il manque tout ce qui venait après. La maison l'a déjà payé une fois — « la
+ * dette adjugée aurait perdu un septième de ses coupons en silence », et une
+ * mesure d'encours est sortie à 48 %.
+ *
+ * ELLE L'A REPAYÉ LE 29 OCTOBRE 2026, et plus cher, parce que le piège avait
+ * été refermé QUATRE FOIS À LA MAIN sans jamais être nommé : quatre boucles
+ * identiques recopiées, et les lectures écrites depuis ne les ont pas vues.
+ * Le journal des observations BEAC, 2 740 lignes, se lisait entier pour en
+ * tirer le dernier état de chaque adresse : tronqué à mille, il en perdait
+ * 353 sur 1 347, que le robot reprenait alors pour neuves à chaque tour.
+ * 1 199 réécritures sans le moindre changement mesurées en base, et chacune
+ * poussait une adresse de plus hors de la fenêtre.
+ *
+ * LE MOTIF EST DONC NOMMÉ ICI, UNE FOIS. Un lot plein veut dire qu'il y a
+ * peut-être une suite ; un lot incomplet dit qu'on tient la fin.
+ *
+ * ET LE LOT DEMANDE UN ORDRE TOTAL, SANS QUOI IL REMPLACE UN DÉFAUT MUET PAR
+ * UN AUTRE. Deux lots sont deux requêtes : entre les deux, Postgres est libre
+ * de départager comme il veut les lignes que le tri laisse à égalité. Un
+ * journal trié sur le seul horodatage, avec deux écritures à la même seconde
+ * de part et d'autre d'une frontière de lot, rend donc une ligne deux fois et
+ * en perd une autre — et ne le dit pas davantage que le plafond. Chaque
+ * lecture paginée finit par conséquent sur la clé primaire de sa table ;
+ * l'épreuve « mille lignes » le vérifie ligne par ligne, en lisant les clés
+ * dans les migrations.
+ */
+export async function parLots<T>(quoi: string, lot: (de: number, a: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>): Promise<T[]> {
+  const out: T[] = [];
+  for (let de = 0; ; de += PLAFOND_POSTGREST) {
+    const { data, error } = await lot(de, de + PLAFOND_POSTGREST - 1);
+    if (error) fail(quoi, error);
+    const page = data ?? [];
+    out.push(...page);
+    if (page.length < PLAFOND_POSTGREST) return out;
+  }
+}
+
+/**
+ * JUSQU'À N LIGNES, ET VRAIMENT N.
+ *
+ * Une liste qui accepte un « limit » promet un nombre. Au-dessus de mille,
+ * elle n'en tenait rien : douze appels de la maison en demandaient entre
+ * mille et vingt mille — dont les deux exports CSV du desk — et recevaient
+ * mille lignes sans un mot. Demander plus que le plafond n'était pas une
+ * erreur qu'on corrige, c'était une phrase que personne n'entendait.
+ *
+ * Sous le plafond, une seule requête ; au-dessus, les lots. Le dernier lot
+ * est rogné à ce qu'on a demandé, et c'est lui qui arrête la boucle.
+ *
+ * ZÉRO LIGNE SE DEMANDE SANS ALLER LE DEMANDER. Un « .limit(0) » rendait une
+ * liste vide ; une plage de zéro à moins un n'est pas une plage, et la
+ * remplacer par une erreur aurait fait payer la conversion à un appelant qui
+ * n'a rien changé.
+ */
+export async function jusqua<T>(quoi: string, voulu: number, lot: (de: number, a: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>): Promise<T[]> {
+  if (voulu <= 0) return [];
+  if (voulu <= PLAFOND_POSTGREST) {
+    const { data, error } = await lot(0, voulu - 1);
+    if (error) fail(quoi, error);
+    return data ?? [];
+  }
+  return parLots(quoi, (de, a) => lot(de, Math.min(a, voulu - 1)));
+}
+
 type RefRow = { kind: string; key: string; data: unknown; updated_at: string; updated_by: string | null; draft?: unknown; draft_by?: string | null; draft_at?: string | null };
 const toReferenceRow = (r: RefRow): ReferenceRow => ({ kind: r.kind, key: r.key, data: r.data ?? null, updatedAt: r.updated_at, updatedBy: u(r.updated_by), ...(r.draft ? { draft: r.draft as ReferenceDraft, draftBy: u(r.draft_by ?? null), draftAt: r.draft_at ?? undefined } : {}) });
 
@@ -977,8 +1049,7 @@ const acces = (r: unknown): AccesCompte => {
 
 export const supabaseRepository: Repository = {
   async listOffers() {
-    const { data, error } = await db().from("offers").select("*").neq("status", "draft").order("deadline_at");
-    if (error) fail("listOffers", error);
+    const data = await parLots<unknown>("listOffers", (de, a) => db().from("offers").select("*").neq("status", "draft").order("deadline_at").order("id").range(de, a));
     return (data as OfferRow[]).map(toOffer);
   },
   async getOffer(id) {
@@ -1008,8 +1079,7 @@ export const supabaseRepository: Repository = {
   },
 
   async listIntents() {
-    const { data, error } = await db().from("intents").select("*").order("created_at", { ascending: false });
-    if (error) fail("listIntents", error);
+    const data = await parLots<unknown>("listIntents", (de, a) => db().from("intents").select("*").order("created_at", { ascending: false }).order("id").range(de, a));
     return (data as IntentRow[]).map(toIntent);
   },
   async createIntent(input) {
@@ -1157,8 +1227,7 @@ export const supabaseRepository: Repository = {
   },
 
   async listEvents(limit = 50) {
-    const { data, error } = await db().from("events").select("*").order("at", { ascending: false }).limit(limit);
-    if (error) fail("listEvents", error);
+    const data = await jusqua<unknown>("listEvents", limit, (de, a) => db().from("events").select("*").order("at", { ascending: false }).order("id").range(de, a));
     return (data as EventRow[]).map(toEvent);
   },
   async listEventsOfIntents(intentIds) {
@@ -1167,9 +1236,8 @@ export const supabaseRepository: Repository = {
        file des ordres ouverts reste courte de toute façon. */
     const out: EventRow[] = [];
     for (let i = 0; i < intentIds.length; i += 50) {
-      const { data, error } = await db().from("events").select("*").in("intent_id", intentIds.slice(i, i + 50)).order("at", { ascending: false });
-      if (error) fail("listEventsOfIntents", error);
-      out.push(...((data as EventRow[]) ?? []));
+      const paquet = intentIds.slice(i, i + 50);
+      out.push(...(await parLots<EventRow>("listEventsOfIntents", (de, a) => db().from("events").select("*").in("intent_id", paquet).order("at", { ascending: false }).order("id").range(de, a))));
     }
     return out.map(toEvent);
   },
@@ -1184,8 +1252,7 @@ export const supabaseRepository: Repository = {
   },
 
   async listIntake() {
-    const { data, error } = await db().from("intake_items").select("*").order("received_at", { ascending: false });
-    if (error) fail("listIntake", error);
+    const data = await parLots<unknown>("listIntake", (de, a) => db().from("intake_items").select("*").order("received_at", { ascending: false }).order("id").range(de, a));
     return (data as IntakeRow[]).map(toIntake);
   },
   async getIntake(id) {
@@ -1228,8 +1295,13 @@ export const supabaseRepository: Repository = {
     return toOffer(row);
   },
   async listOfferVersions(offerId) {
-    const { data, error } = await db().from("offer_versions").select("offer_id, version, published_at, published_by_name, note, snapshot").eq("offer_id", offerId).order("version", { ascending: false });
-    if (error) return [];
+    let data: unknown[];
+    try {
+      data = await parLots<unknown>("listOfferVersions", (de, a) => db().from("offer_versions").select("offer_id, version, published_at, published_by_name, note, snapshot").eq("offer_id", offerId).order("version", { ascending: false }).order("id").range(de, a));
+    } catch {
+      // Avant la migration 0019 les colonnes d'instantané n'existent pas.
+      return [];
+    }
     return (data as { offer_id: string; version: number; published_at: string; published_by_name: string | null; note: string | null; snapshot: Offer | null }[]).map((r) => ({ offerId: r.offer_id, version: r.version, publishedAt: r.published_at, publishedBy: u(r.published_by_name), note: u(r.note), snapshot: u(r.snapshot) }));
   },
   /**
@@ -1265,13 +1337,14 @@ export const supabaseRepository: Repository = {
     }
   },
   async listAudit(filter = {}) {
-    let q = db().from("audit").select("*").order("id", { ascending: false }).limit(filter.limit ?? 100);
-    if (filter.entity) q = q.eq("entity", filter.entity);
-    if (filter.entityId) q = q.eq("entity_id", filter.entityId);
-    if (filter.actorId) q = q.eq("actor_id", filter.actorId);
-    if (filter.from) q = q.gte("at", filter.from);
-    const { data, error } = await q;
-    if (error) return [];
+    const data = await jusqua<unknown>("listAudit", filter.limit ?? 100, (de, a) => {
+      let q = db().from("audit").select("*").order("id", { ascending: false });
+      if (filter.entity) q = q.eq("entity", filter.entity);
+      if (filter.entityId) q = q.eq("entity_id", filter.entityId);
+      if (filter.actorId) q = q.eq("actor_id", filter.actorId);
+      if (filter.from) q = q.gte("at", filter.from);
+      return q.range(de, a);
+    }).catch(() => []);
     return (data as AuditRow[]).map(toAudit);
   },
   async logClientAction(e) {
@@ -1286,13 +1359,20 @@ export const supabaseRepository: Repository = {
     if (error && error.code !== "23505") console.error("logClientAction", error.message);
   },
   async listClientActions(filter = {}) {
-    let q = db().from("client_actions").select("*").order("at", { ascending: false }).limit(filter.limit ?? 200);
-    if (filter.userId) q = q.eq("user_id", filter.userId);
-    if (filter.genre) q = q.eq("genre", filter.genre);
-    if (filter.from) q = q.gte("at", `${filter.from}T00:00:00Z`);
-    if (filter.to) q = q.lte("at", `${filter.to}T23:59:59Z`);
-    const { data, error } = await q;
-    if (error) return [];
+    /* UNE DEMANDE AU-DESSUS DU PLAFOND DOIT ÊTRE HONORÉE, et c'est elle qu'on
+       faisait taire : le journal des gestes du desk et son export CSV
+       demandent vingt mille lignes, et PostgREST en rendait mille sans le
+       dire. Le registre d'activité d'un client — treize mois de détail — est
+       une pièce qu'on lui remet ; en perdre la queue en silence n'est pas
+       une approximation, c'est une pièce fausse. */
+    const data = await jusqua<unknown>("listClientActions", filter.limit ?? 200, (de, a) => {
+      let q = db().from("client_actions").select("*").order("at", { ascending: false });
+      if (filter.userId) q = q.eq("user_id", filter.userId);
+      if (filter.genre) q = q.eq("genre", filter.genre);
+      if (filter.from) q = q.gte("at", `${filter.from}T00:00:00Z`);
+      if (filter.to) q = q.lte("at", `${filter.to}T23:59:59Z`);
+      return q.order("id").range(de, a);
+    }).catch(() => []);
     return (data as ActionRow[]).map(toAction);
   },
   async purgerGestes(avant) {
@@ -1306,10 +1386,16 @@ export const supabaseRepository: Repository = {
     return Number(data ?? 0);
   },
   async listPushSubscriptions(userIds) {
-    let q = db().from("push_subscriptions").select("*");
-    if (userIds) q = q.in("user_id", userIds);
-    const { data, error } = await q;
-    if (error) return [];
+    let data: PushRow[];
+    try {
+      data = await parLots<PushRow>("listPushSubscriptions", (de, a) => {
+        let q = db().from("push_subscriptions").select("*").order("id");
+        if (userIds) q = q.in("user_id", userIds);
+        return q.range(de, a);
+      });
+    } catch {
+      return [];
+    }
     return (data as PushRow[]).map((r) => ({ id: r.id, userId: r.user_id, endpoint: r.endpoint, keys: r.keys, userAgent: u(r.user_agent), createdAt: r.created_at, failures: r.failures }));
   },
   async savePushSubscription(s) {
@@ -1330,9 +1416,19 @@ export const supabaseRepository: Repository = {
     else await db().from("push_subscriptions").update({ failures: n }).eq("endpoint", endpoint);
   },
   async listApprovals(open = true) {
-    const q = db().from("approvals").select("*").order("requested_at", { ascending: false });
-    const { data, error } = open ? await q.is("decided_at", null) : await q.not("decided_at", "is", null).limit(100);
-    if (error) return [];
+    let data: ApprovalRow[];
+    try {
+      const lot = (de: number, a: number) => {
+        const q = db().from("approvals").select("*").order("requested_at", { ascending: false });
+        return (open ? q.is("decided_at", null) : q.not("decided_at", "is", null)).range(de, a);
+      };
+      // Les demandes tranchées gardent leur plafond de cent : c'est un choix de
+      // liste, pas le plafond muet de PostgREST. Les ouvertes, elles, passent
+      // toutes, parce qu'une demande en attente invisible ne se tranche jamais.
+      data = open ? await parLots<ApprovalRow>("listApprovals", lot) : await jusqua<ApprovalRow>("listApprovals", 100, lot);
+    } catch {
+      return [];
+    }
     return (data as ApprovalRow[]).map(toApproval);
   },
   async createApproval(a) {
@@ -1347,8 +1443,7 @@ export const supabaseRepository: Repository = {
   },
 
   async listDocuments() {
-    const { data, error } = await db().from("documents").select("*").order("created_at", { ascending: false });
-    if (error) fail("listDocuments", error);
+    const data = await parLots<unknown>("listDocuments", (de, a) => db().from("documents").select("*").order("created_at", { ascending: false }).order("id").range(de, a));
     return (data as DocRow[]).map(toDoc);
   },
   async getDocument(id) {
@@ -1368,9 +1463,8 @@ export const supabaseRepository: Repository = {
   },
 
   async listContacts() {
-    const { data, error } = await db().from("profiles").select(PROFILE_COLS).eq("role", "client");
-    if (error) fail("listContacts", error);
-    return (data as ProfileRow[]).map(toContact);
+    const data = await parLots<ProfileRow>("listContacts", (de, a) => db().from("profiles").select(PROFILE_COLS).eq("role", "client").order("id").range(de, a));
+    return data.map(toContact);
   },
   async getContact(id) {
     const { data, error } = await db().from("profiles").select(PROFILE_COLS).eq("id", id).maybeSingle();
@@ -1421,8 +1515,7 @@ export const supabaseRepository: Repository = {
   },
   /* ---------------- Accès nommés ---------------- */
   async listAccesDuCompte(compteUserId) {
-    const { data, error } = await db().from("acces_compte").select("*").eq("compte_user_id", compteUserId).order("accorde_le", { ascending: false });
-    if (error) fail("listAccesDuCompte", error);
+    const data = await parLots<Record<string, unknown>>("listAccesDuCompte", (de, a) => db().from("acces_compte").select("*").eq("compte_user_id", compteUserId).order("accorde_le", { ascending: false }).order("id").range(de, a));
     return (data ?? []).map(acces);
   },
   async accesParCanal(canalValeur) {
@@ -1468,9 +1561,8 @@ export const supabaseRepository: Repository = {
     if (error) fail("setContactOptIn", error);
   },
   async listStaff() {
-    const { data, error } = await db().from("profiles").select(STAFF_COLS).in("role", ["desk", "responsable"]).order("display_name");
-    if (error) fail("listStaff", error);
-    return (data as StaffRow[]).map(toStaff);
+    const data = await parLots<StaffRow>("listStaff", (de, a) => db().from("profiles").select(STAFF_COLS).in("role", ["desk", "responsable"]).order("display_name").order("id").range(de, a));
+    return data.map(toStaff);
   },
   async findProfileByEmail(email) {
     const { data, error } = await db().from("profiles").select(STAFF_COLS).ilike("email", email).maybeSingle();
@@ -1510,12 +1602,14 @@ export const supabaseRepository: Repository = {
     if (error) fail("markMfaEnrolled", error);
   },
   async listReference(kind) {
-    const { data, error } = await db().from("reference").select("*").eq("kind", kind).order("key");
-    if (error) {
-      if (/reference/.test(error.message)) return []; // migration 0016 not applied yet
-      fail("listReference", error);
+    let data: RefRow[];
+    try {
+      data = await parLots<RefRow>("listReference", (de, a) => db().from("reference").select("*").eq("kind", kind).order("key").order("kind").range(de, a));
+    } catch (e) {
+      if (/reference/.test((e as Error).message)) return []; // migration 0016 not applied yet
+      throw e;
     }
-    return (data as RefRow[]).map(toReferenceRow);
+    return data.map(toReferenceRow);
   },
   async saveReferenceDraft(kind, key, draft, by) {
     const { data: existing } = await db().from("reference").select("key").eq("kind", kind).eq("key", key).maybeSingle();
@@ -1524,12 +1618,13 @@ export const supabaseRepository: Repository = {
     if (error) fail("saveReferenceDraft", error);
   },
   async publishReference(kind, keys) {
-    let q = db().from("reference").select("*").eq("kind", kind).not("draft", "is", null);
-    if (keys) q = q.in("key", keys);
-    const { data, error } = await q;
-    if (error) fail("publishReference", error);
+    const data = await parLots<RefRow>("publishReference", (de, a) => {
+      let q = db().from("reference").select("*").eq("kind", kind).not("draft", "is", null).order("key");
+      if (keys) q = q.in("key", keys);
+      return q.order("kind").range(de, a);
+    });
     const done: string[] = [];
-    for (const r of (data ?? []) as RefRow[]) {
+    for (const r of data) {
       const d = r.draft as ReferenceDraft;
       const res = d.op === "reset" ? await db().from("reference").delete().eq("kind", kind).eq("key", r.key) : await db().from("reference").update({ data: d.data, updated_at: new Date().toISOString(), updated_by: r.draft_by, draft: null, draft_by: null, draft_at: null }).eq("kind", kind).eq("key", r.key);
       if (res.error) fail("publishReference", res.error);
@@ -1538,12 +1633,13 @@ export const supabaseRepository: Repository = {
     return done;
   },
   async discardReference(kind, keys) {
-    let q = db().from("reference").select("*").eq("kind", kind).not("draft", "is", null);
-    if (keys) q = q.in("key", keys);
-    const { data, error } = await q;
-    if (error) fail("discardReference", error);
+    const data = await parLots<RefRow>("discardReference", (de, a) => {
+      let q = db().from("reference").select("*").eq("kind", kind).not("draft", "is", null).order("key");
+      if (keys) q = q.in("key", keys);
+      return q.order("kind").range(de, a);
+    });
     const done: string[] = [];
-    for (const r of (data ?? []) as RefRow[]) {
+    for (const r of data) {
       const res = r.data == null ? await db().from("reference").delete().eq("kind", kind).eq("key", r.key) : await db().from("reference").update({ draft: null, draft_by: null, draft_at: null }).eq("kind", kind).eq("key", r.key);
       if (res.error) fail("discardReference", res.error);
       done.push(r.key);
@@ -1560,15 +1656,19 @@ export const supabaseRepository: Repository = {
   },
   // Le journal des espèces : la table est immuable, il n'y a donc ni mise à jour ni suppression.
   async listStandingOrders(userId) {
-    let q = db().from("standing_orders").select("*").order("created_at", { ascending: false });
-    if (userId) q = q.eq("user_id", userId);
-    const { data, error } = await q;
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await parLots<unknown>("listStandingOrders", (de, fin) => {
+        let q = db().from("standing_orders").select("*").order("created_at", { ascending: false });
+        if (userId) q = q.eq("user_id", userId);
+        return q.order("id").range(de, fin);
+      });
+    } catch (e) {
       // Migration 0043 pas encore appliquée : aucune épargne programmée plutôt qu'une page en erreur.
-      if (/standing_orders/.test(error.message)) return [];
-      fail("listStandingOrders", error);
+      if (/standing_orders/.test((e as Error).message)) return [];
+      throw e;
     }
-    return (data ?? []).map(toStanding);
+    return (data as StandingRow[]).map(toStanding);
   },
   async createStandingOrder(input) {
     const row = {
@@ -1613,13 +1713,17 @@ export const supabaseRepository: Repository = {
     return this.createStandingOrder({ ...input, supersedes: id });
   },
   async listMandats(userId) {
-    let q = db().from("direct_debit_mandates").select("*").order("created_at", { ascending: false });
-    if (userId) q = q.eq("user_id", userId);
-    const { data, error } = await q;
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await parLots<unknown>("listMandats", (de, fin) => {
+        let q = db().from("direct_debit_mandates").select("*").order("created_at", { ascending: false });
+        if (userId) q = q.eq("user_id", userId);
+        return q.order("id").range(de, fin);
+      });
+    } catch (e) {
       // Migration 0074 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
-      if (/direct_debit_mandates/.test(error.message)) return [];
-      fail("listMandats", error);
+      if (/direct_debit_mandates/.test((e as Error).message)) return [];
+      throw e;
     }
     return (data as MandatRow[]).map(toMandat);
   },
@@ -1658,14 +1762,18 @@ export const supabaseRepository: Repository = {
     return toMandat(data as MandatRow);
   },
   async listVirements(q) {
-    let sel = db().from("incoming_transfers").select("*").order("at", { ascending: false }).order("created_at", { ascending: false });
-    if (q?.state) sel = sel.eq("state", q.state);
-    if (q?.userId) sel = sel.eq("user_id", q.userId);
-    const { data, error } = await sel;
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await parLots<unknown>("listVirements", (de, fin) => {
+        let sel = db().from("incoming_transfers").select("*").order("at", { ascending: false }).order("created_at", { ascending: false });
+        if (q?.state) sel = sel.eq("state", q.state);
+        if (q?.userId) sel = sel.eq("user_id", q.userId);
+        return sel.order("id").range(de, fin);
+      });
+    } catch (e) {
       // Migration 0075 pas encore appliquée : une file vide vaut mieux qu'une page en erreur.
-      if (/incoming_transfers/.test(error.message)) return [];
-      fail("listVirements", error);
+      if (/incoming_transfers/.test((e as Error).message)) return [];
+      throw e;
     }
     return (data as VirementRow[]).map(toVirement);
   },
@@ -1686,11 +1794,13 @@ export const supabaseRepository: Repository = {
     return toVirement(data as VirementRow);
   },
   async listRemises(limit = 60) {
-    const { data, error } = await db().from("debit_batches").select("*").order("due_on", { ascending: false }).limit(limit);
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await jusqua<unknown>("listRemises", limit, (de, a) => db().from("debit_batches").select("*").order("due_on", { ascending: false }).order("id").range(de, a));
+    } catch (e) {
       // Migration 0076 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
-      if (/debit_batches/.test(error.message)) return [];
-      fail("listRemises", error);
+      if (/debit_batches/.test((e as Error).message)) return [];
+      throw e;
     }
     return (data as RemiseRow[]).map(toRemise);
   },
@@ -1707,17 +1817,21 @@ export const supabaseRepository: Repository = {
     return toRemise(data as RemiseRow);
   },
   async listTirages(q) {
-    let sel = db().from("debit_draws").select("*").order("due_on", { ascending: false }).order("created_at", { ascending: true });
-    if (q?.dueOn) sel = sel.eq("due_on", q.dueOn);
-    if (q?.userId) sel = sel.eq("user_id", q.userId);
-    if (q?.state) sel = sel.eq("state", q.state);
-    if (q?.batchId) sel = sel.eq("batch_id", q.batchId);
-    const { data, error } = await sel;
-    if (error) {
-      if (/debit_draws/.test(error.message)) return [];
-      fail("listTirages", error);
+    let data: TirageRow[];
+    try {
+      data = await parLots<TirageRow>("listTirages", (de, a) => {
+        let sel = db().from("debit_draws").select("*").order("due_on", { ascending: false }).order("created_at", { ascending: true });
+        if (q?.dueOn) sel = sel.eq("due_on", q.dueOn);
+        if (q?.userId) sel = sel.eq("user_id", q.userId);
+        if (q?.state) sel = sel.eq("state", q.state);
+        if (q?.batchId) sel = sel.eq("batch_id", q.batchId);
+        return sel.order("id").range(de, a);
+      });
+    } catch (e) {
+      if (/debit_draws/.test((e as Error).message)) return [];
+      throw e;
     }
-    return (data as TirageRow[]).map(toTirage);
+    return data.map(toTirage);
   },
   async creerTirage(input) {
     const row = { ref: makeTirageRef(), mandate_id: input.mandatId, user_id: input.userId, due_on: input.dueOn, amount: input.amount };
@@ -1756,13 +1870,15 @@ export const supabaseRepository: Repository = {
     return toVirement(data as VirementRow);
   },
   async listCash(userId) {
-    const { data, error } = await db().from("client_cash").select("*").eq("user_id", userId).order("at", { ascending: true });
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await parLots<unknown>("listCash", (de, a) => db().from("client_cash").select("*").eq("user_id", userId).order("at", { ascending: true }).order("id").range(de, a));
+    } catch (e) {
       // Migration 0041 pas encore appliquée : un journal vide vaut mieux qu'une page en erreur.
-      if (/client_cash/.test(error.message)) return [];
-      fail("listCash", error);
+      if (/client_cash/.test((e as Error).message)) return [];
+      throw e;
     }
-    return (data ?? []).map(toCash);
+    return (data as CashRow[]).map(toCash);
   },
   async addCash(entry) {
     const row = {
@@ -1787,13 +1903,15 @@ export const supabaseRepository: Repository = {
   },
 
   async listTours(limit = 200) {
-    const { data, error } = await db().from("cron_runs").select("*").order("started_at", { ascending: false }).limit(limit);
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await jusqua<unknown>("listTours", limit, (de, a) => db().from("cron_runs").select("*").order("started_at", { ascending: false }).order("id").range(de, a));
+    } catch (e) {
       // Migration 0065 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
-      if (/cron_runs/.test(error.message)) return [];
-      fail("listTours", error);
+      if (/cron_runs/.test((e as Error).message)) return [];
+      throw e;
     }
-    return (data ?? []).map((r) => ({ robot: r.robot, par: r.par ?? undefined, startedAt: r.started_at, finishedAt: r.finished_at ?? undefined, ok: r.ok ?? undefined, detail: r.detail ?? undefined, error: r.error ?? undefined }));
+    return (data as { robot: Awaited<ReturnType<Repository["listTours"]>>[number]["robot"]; par: Awaited<ReturnType<Repository["listTours"]>>[number]["par"] | null; started_at: string; finished_at: string | null; ok: boolean | null; detail: string | null; error: string | null }[]).map((r) => ({ robot: r.robot, par: r.par ?? undefined, startedAt: r.started_at, finishedAt: r.finished_at ?? undefined, ok: r.ok ?? undefined, detail: r.detail ?? undefined, error: r.error ?? undefined }));
   },
   async ouvrirTour(robot, par) {
     const { data, error } = await db().from("cron_runs").insert({ robot, par: par ?? null }).select("id").single();
@@ -1811,17 +1929,21 @@ export const supabaseRepository: Repository = {
   },
 
   async listPreavis(q) {
-    let sel = db().from("standing_runs").select("*").order("due_on", { ascending: true });
-    if (q?.userId) sel = sel.eq("user_id", q.userId);
-    if (q?.standingId) sel = sel.eq("standing_id", q.standingId);
-    if (q?.state) sel = sel.eq("state", q.state);
-    const { data, error } = await sel;
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await parLots<unknown>("listPreavis", (de, fin) => {
+        let sel = db().from("standing_runs").select("*").order("due_on", { ascending: true });
+        if (q?.userId) sel = sel.eq("user_id", q.userId);
+        if (q?.standingId) sel = sel.eq("standing_id", q.standingId);
+        if (q?.state) sel = sel.eq("state", q.state);
+        return sel.order("id").range(de, fin);
+      });
+    } catch (e) {
       // Migration 0063 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
-      if (/standing_runs/.test(error.message)) return [];
-      fail("listPreavis", error);
+      if (/standing_runs/.test((e as Error).message)) return [];
+      throw e;
     }
-    return (data ?? []).map(toPreavis);
+    return (data as PreavisRow[]).map(toPreavis);
   },
   async annoncerPreavis(p) {
     const { data, error } = await db().from("standing_runs").insert({ standing_id: p.standingId, user_id: p.userId, due_on: p.dueOn, amount: p.amount }).select("*").single();
@@ -1829,16 +1951,20 @@ export const supabaseRepository: Repository = {
     return toPreavis(data);
   },
   async listRelances(q) {
-    let sel = db().from("relances").select("*").order("ouvert_le", { ascending: true });
-    if (q?.userId) sel = sel.eq("user_id", q.userId);
-    if (q?.state) sel = sel.eq("state", q.state);
-    const { data, error } = await sel;
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await parLots<unknown>("listRelances", (de, fin) => {
+        let sel = db().from("relances").select("*").order("ouvert_le", { ascending: true });
+        if (q?.userId) sel = sel.eq("user_id", q.userId);
+        if (q?.state) sel = sel.eq("state", q.state);
+        return sel.order("id").range(de, fin);
+      });
+    } catch (e) {
       // Migration 0111 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
-      if (/relances/.test(error.message)) return [];
-      fail("listRelances", error);
+      if (/relances/.test((e as Error).message)) return [];
+      throw e;
     }
-    return (data ?? []).map(toRelance);
+    return (data as RelanceRow[]).map(toRelance);
   },
   async ouvrirRelance(r) {
     /* UN SECOND CONSTAT NE REMET RIEN À ZÉRO, et c'est tout le point du
@@ -1891,15 +2017,19 @@ export const supabaseRepository: Repository = {
   },
 
   async listTemoignages(q) {
-    let sel = db().from("flow_reports").select("*").order("at", { ascending: false });
-    if (q?.userId) sel = sel.eq("user_id", q.userId);
-    const { data, error } = await sel;
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await parLots<unknown>("listTemoignages", (de, fin) => {
+        let sel = db().from("flow_reports").select("*").order("at", { ascending: false });
+        if (q?.userId) sel = sel.eq("user_id", q.userId);
+        return sel.order("id").range(de, fin);
+      });
+    } catch (e) {
       // Migration 0062 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
-      if (/flow_reports/.test(error.message)) return [];
-      fail("listTemoignages", error);
+      if (/flow_reports/.test((e as Error).message)) return [];
+      throw e;
     }
-    return (data ?? []).map(toTemoin);
+    return (data as TemoinRow[]).map(toTemoin);
   },
   async direLeFlux(t) {
     /* Une déclaration se remplace, là où un mouvement ne se corrige pas : c'est
@@ -1918,13 +2048,15 @@ export const supabaseRepository: Repository = {
   },
 
   async listRapprochements(limit = 40) {
-    const { data, error } = await db().from("cash_reconciliations").select("*").order("on_date", { ascending: false }).limit(limit);
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await jusqua<unknown>("listRapprochements", limit, (de, a) => db().from("cash_reconciliations").select("*").order("on_date", { ascending: false }).order("id").range(de, a));
+    } catch (e) {
       // Migration 0061 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
-      if (/cash_reconciliations/.test(error.message)) return [];
-      fail("listRapprochements", error);
+      if (/cash_reconciliations/.test((e as Error).message)) return [];
+      throw e;
     }
-    return (data ?? []).map(toRappro);
+    return (data as RapproRow[]).map(toRappro);
   },
   async addRapprochement(r) {
     const { data, error } = await db()
@@ -1937,16 +2069,20 @@ export const supabaseRepository: Repository = {
   },
 
   async listPayouts(q) {
-    let sel = db().from("cash_payouts").select("*").order("asked_at", { ascending: true });
-    if (q?.userId) sel = sel.eq("user_id", q.userId);
-    if (q?.state) sel = sel.eq("state", q.state);
-    const { data, error } = await sel;
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await parLots<unknown>("listPayouts", (de, fin) => {
+        let sel = db().from("cash_payouts").select("*").order("asked_at", { ascending: true });
+        if (q?.userId) sel = sel.eq("user_id", q.userId);
+        if (q?.state) sel = sel.eq("state", q.state);
+        return sel.order("id").range(de, fin);
+      });
+    } catch (e) {
       // Migration 0060 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
-      if (/cash_payouts/.test(error.message)) return [];
-      fail("listPayouts", error);
+      if (/cash_payouts/.test((e as Error).message)) return [];
+      throw e;
     }
-    return (data ?? []).map(toPayout);
+    return (data as PayoutRow[]).map(toPayout);
   },
   async askPayout(p) {
     const { data, error } = await db().from("cash_payouts").insert({ user_id: p.userId, asked_amount: p.askedAmount, note: p.note ?? null }).select("*").single();
@@ -1969,16 +2105,20 @@ export const supabaseRepository: Repository = {
   },
 
   async listCustodyNotices(q) {
-    let sel = db().from("custody_notices").select("*").order("period", { ascending: false });
-    if (q?.userId) sel = sel.eq("user_id", q.userId);
-    if (q?.period) sel = sel.eq("period", q.period);
-    const { data, error } = await sel;
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await parLots<unknown>("listCustodyNotices", (de, fin) => {
+        let sel = db().from("custody_notices").select("*").order("period", { ascending: false });
+        if (q?.userId) sel = sel.eq("user_id", q.userId);
+        if (q?.period) sel = sel.eq("period", q.period);
+        return sel.order("id").range(de, fin);
+      });
+    } catch (e) {
       // Migration 0051 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
-      if (/custody_notices/.test(error.message)) return [];
-      fail("listCustodyNotices", error);
+      if (/custody_notices/.test((e as Error).message)) return [];
+      throw e;
     }
-    return (data ?? []).map(toAvis);
+    return (data as AvisRow[]).map(toAvis);
   },
   async createCustodyNotice(input) {
     const row = {
@@ -2006,19 +2146,23 @@ export const supabaseRepository: Repository = {
   /* ---------- Le sondage d'avant séance (migration 0117) ---------- */
   async listLignesSondees(filter) {
     const f = filter ?? {};
-    let q = db().from("survey_lines").select("*").order("created_at", { ascending: false });
-    if (f.userId) q = q.eq("user_id", f.userId);
-    if (f.origine) q = q.eq("origine", f.origine);
-    if (f.state) q = q.eq("state", f.state);
-    const { data, error } = await q;
-    if (error) {
+    let data: SurveyLineRow[];
+    try {
+      data = await parLots<SurveyLineRow>("listLignesSondees", (de, a) => {
+        let q = db().from("survey_lines").select("*").order("created_at", { ascending: false }).order("id");
+        if (f.userId) q = q.eq("user_id", f.userId);
+        if (f.origine) q = q.eq("origine", f.origine);
+        if (f.state) q = q.eq("state", f.state);
+        return q.range(de, a);
+      });
+    } catch (e) {
       /* MIGRATION 0117 PAS ENCORE APPLIQUÉE : la page s'ouvre vide plutôt que
          de tomber. Un sondage absent coûte une page sans contenu ; une page qui
          casse coûte la confiance dans tout le reste de l'application. */
-      if (/survey_lines/.test(error.message)) return [];
-      fail("listLignesSondees", error);
+      if (/survey_lines/.test((e as Error).message)) return [];
+      throw e;
     }
-    return (data as SurveyLineRow[]).map(toLigneSondee);
+    return data.map(toLigneSondee);
   },
   async createLigneSondee(input) {
     const row = {
@@ -2071,14 +2215,18 @@ export const supabaseRepository: Repository = {
     return toLigneSondee(data as SurveyLineRow);
   },
   async listWatches(userId) {
-    let q = db().from("watchlist").select("*").order("created_at", { ascending: false });
-    if (userId) q = q.eq("user_id", userId);
-    const { data, error } = await q;
-    if (error) {
-      if (/watchlist/.test(error.message)) return []; // migration 0014 not applied yet
-      fail("listWatches", error);
+    let data: WatchRow[];
+    try {
+      data = await parLots<WatchRow>("listWatches", (de, a) => {
+        let q = db().from("watchlist").select("*").order("created_at", { ascending: false }).order("id");
+        if (userId) q = q.eq("user_id", userId);
+        return q.range(de, a);
+      });
+    } catch (e) {
+      if (/watchlist/.test((e as Error).message)) return []; // migration 0014 not applied yet
+      throw e;
     }
-    return (data as WatchRow[]).map(toWatch);
+    return data.map(toWatch);
   },
   async addWatch(userId, offerId, snapshot, mode) {
     const { data, error } = await db().from("watchlist").upsert({ user_id: userId, offer_id: offerId, last_hero: snapshot.hero, last_status: snapshot.status, mode: mode ?? "evenement" }, { onConflict: "user_id,offer_id" }).select("*").single();
@@ -2120,16 +2268,17 @@ export const supabaseRepository: Repository = {
     if (error) fail("setPrefs", error);
   },
   async listTemplateTexts(docType) {
-    let q = db().from("template_texts").select("*").order("doc_type").order("passage").order("version", { ascending: false });
-    if (docType) q = q.eq("doc_type", docType);
-    const { data, error } = await q;
-    if (error) fail("listTemplateTexts", error);
-    return (data as TemplateTextRow[]).map(toTemplateText);
+    const data = await parLots<TemplateTextRow>("listTemplateTexts", (de, a) => {
+      let q = db().from("template_texts").select("*").order("doc_type").order("passage").order("version", { ascending: false });
+      if (docType) q = q.eq("doc_type", docType);
+      return q.order("id").range(de, a);
+    });
+    return data.map(toTemplateText);
   },
   async addTemplateText(t) {
-    const { data: prev, error: e0 } = await db().from("template_texts").select("id, version, status").eq("doc_type", t.docType).eq("passage", t.passage);
-    if (e0) fail("addTemplateText", e0);
-    const rows = (prev ?? []) as { id: string; version: number; status: string }[];
+    const rows = await parLots<{ id: string; version: number; status: string }>("addTemplateText", (de, a) =>
+      db().from("template_texts").select("id, version, status").eq("doc_type", t.docType).eq("passage", t.passage).order("version").order("id").range(de, a),
+    );
     const version = Math.max(0, ...rows.map((x) => x.version)) + 1;
     if (t.status === "current") {
       const ids = rows.filter((x) => x.status === "current").map((x) => x.id);
@@ -2200,8 +2349,7 @@ export const supabaseRepository: Repository = {
     if (error) fail("updateChannelCode", error);
   },
   async listDevices(userId) {
-    const { data, error } = await db().from("trusted_devices").select("*").eq("user_id", userId).order("created_at");
-    if (error) fail("listDevices", error);
+    const data = await parLots<unknown>("listDevices", (de, a) => db().from("trusted_devices").select("*").eq("user_id", userId).order("created_at").order("id").range(de, a));
     return (data as DeviceRow[]).map(toDevice);
   },
   async credentialsPartages() {
@@ -2267,8 +2415,7 @@ export const supabaseRepository: Repository = {
     if (error) fail("updateContact", error);
   },
   async listNotifications(limit = 50) {
-    const { data, error } = await db().from("notifications").select("*").order("created_at", { ascending: false }).limit(limit);
-    if (error) fail("listNotifications", error);
+    const data = await jusqua<unknown>("listNotifications", limit, (de, a) => db().from("notifications").select("*").order("created_at", { ascending: false }).order("id").range(de, a));
     return (data as NotifRow[]).map(toNotif);
   },
   async createNotification(n) {
@@ -2277,8 +2424,7 @@ export const supabaseRepository: Repository = {
     return toNotif(data as NotifRow);
   },
   async listInbound(limit = 200) {
-    const { data, error } = await db().from("inbound_messages").select("*").order("received_at", { ascending: false }).limit(limit);
-    if (error) fail("listInbound", error);
+    const data = await jusqua<unknown>("listInbound", limit, (de, a) => db().from("inbound_messages").select("*").order("received_at", { ascending: false }).order("id").range(de, a));
     return (data as InboundRow[]).map(toInbound);
   },
   async createInbound(m) {
@@ -2317,8 +2463,7 @@ export const supabaseRepository: Repository = {
     if (error) fail("markInboundUnhandled", error);
   },
   async listDeskExchanges() {
-    const { data, error } = await db().from("desk_exchanges").select("*");
-    if (error) fail("listDeskExchanges", error);
+    const data = await parLots<Record<string, unknown>>("listDeskExchanges", (de, a) => db().from("desk_exchanges").select("*").order("conv_key").range(de, a));
     return (data ?? []).map((r: Record<string, unknown>) => ({
       convKey: r.conv_key as string,
       handledAt: u(r.handled_at as string | null),
@@ -2342,8 +2487,7 @@ export const supabaseRepository: Repository = {
     if (error) fail("setDeskExchange", error);
   },
   async listDeskThreads() {
-    const { data, error } = await db().from("desk_threads").select("*");
-    if (error) fail("listDeskThreads", error);
+    const data = await parLots<Record<string, unknown>>("listDeskThreads", (de, a) => db().from("desk_threads").select("*").order("channel").order("addr").range(de, a));
     return (data ?? []).map((r: Record<string, unknown>) => ({
       channel: r.channel as "whatsapp" | "email",
       addr: r.addr as string,
@@ -2374,8 +2518,7 @@ export const supabaseRepository: Repository = {
   },
 
   async listClientFiles() {
-    const { data, error } = await db().from("client_files").select("*").order("updated_at", { ascending: false });
-    if (error) fail("listClientFiles", error);
+    const data = await parLots<unknown>("listClientFiles", (de, a) => db().from("client_files").select("*").order("updated_at", { ascending: false }).order("id").range(de, a));
     return (data as KycRow[]).map(toKyc);
   },
   async getClientFile(id) {
@@ -2403,8 +2546,7 @@ export const supabaseRepository: Repository = {
   },
 
   async listBulletins(limit = 30) {
-    const { data, error } = await db().from("market_bulletins").select("*").order("session_date", { ascending: false }).limit(limit);
-    if (error) fail("listBulletins", error);
+    const data = await jusqua<unknown>("listBulletins", limit, (de, a) => db().from("market_bulletins").select("*").order("session_date", { ascending: false }).range(de, a));
     return (data as BulletinRow[]).map(toBulletin);
   },
   async getBulletin(sessionDate) {
@@ -2421,13 +2563,15 @@ export const supabaseRepository: Repository = {
     /* On ne rend que l'identifiant de l'auteur. Le nom se résout au-dessus,
        depuis listStaff() que la page du desk charge déjà : une jointure ici
        aurait recopié une règle de nommage qui vit ailleurs. */
-    const { data, error } = await db().from("bulletin_jugements").select("*").order("at", { ascending: false });
-    if (error) {
+    let data: unknown[];
+    try {
+      data = await parLots<unknown>("listJugementsBulletin", (de, a) => db().from("bulletin_jugements").select("*").order("at", { ascending: false }).order("id").range(de, a));
+    } catch (e) {
       // Migration 0092 pas encore appliquée : une liste vide vaut mieux qu'une page en erreur.
-      if (/bulletin_jugements/.test(error.message)) return [];
-      fail("listJugementsBulletin", error);
+      if (/bulletin_jugements/.test((e as Error).message)) return [];
+      throw e;
     }
-    return (data ?? []).map((r) => toJugement(r as JugementRow));
+    return data.map((r) => toJugement(r as JugementRow));
   },
   async ajouterJugementBulletin(j) {
     const { data, error } = await db()
@@ -2439,19 +2583,38 @@ export const supabaseRepository: Repository = {
     return toJugement(data as JugementRow);
   },
   async dernieresObservationsBeac() {
-    /* LE DERNIER ÉTAT DE CHAQUE DOCUMENT, en une requête et sans fenêtre
-       analytique : l'index est sur (url, vu_le desc), on prend tout dans cet
-       ordre et on garde le premier de chaque adresse. Le journal ne compte
-       que quelques milliers de lignes, il grandit de ce qui change et non de
-       ce qui est lu, donc la lecture entière reste bon marché longtemps. */
-    const { data, error } = await db().from("beac_observations").select("url, present, empreinte, page, vu_le").order("vu_le", { ascending: false });
-    if (error) {
+    /**
+     * LE DERNIER ÉTAT DE CHAQUE DOCUMENT, en une requête et sans fenêtre
+     * analytique : l'index est sur (url, vu_le desc), on prend tout dans cet
+     * ordre et on garde le premier de chaque adresse.
+     *
+     * CETTE LECTURE ÉTAIT TRONQUÉE, ET ELLE S'AUTO-AGGRAVAIT. Son commentaire
+     * disait « le journal ne compte que quelques milliers de lignes, donc la
+     * lecture entière reste bon marché longtemps » : vrai du COÛT, aveugle au
+     * PLAFOND. Supabase rendait les mille lignes les plus récentes et se
+     * taisait sur les 1 740 autres.
+     *
+     * CE QUE LA TRONCATURE FAISAIT, mesuré en base le 29 octobre 2026 : sur
+     * 1 347 adresses distinctes, 994 seulement tenaient dans la fenêtre. Les
+     * 353 autres étaient inconnues du robot, donc reprises pour NEUVES à
+     * chaque tour — réécrites, ce qui ajoutait une ligne, ce qui poussait une
+     * adresse de plus dehors. 1 199 réécritures sans le moindre changement
+     * ont été comptées, 44 % de la table. Et les disparitions ne se voyaient
+     * plus : un document retiré du site dont la dernière observation était
+     * sortie de la fenêtre ne pouvait plus être marqué absent.
+     */
+    let data: { url: string; present: boolean; empreinte: string; page: string | null }[];
+    try {
+      data = await parLots("dernieresObservationsBeac", (de, a) =>
+        db().from("beac_observations").select("url, present, empreinte, page, vu_le").order("vu_le", { ascending: false }).order("id", { ascending: false }).range(de, a),
+      );
+    } catch (e) {
       // Migration 0095 pas encore appliquée : un journal vide vaut mieux qu'un robot en erreur.
-      if (/beac_observations/.test(error.message)) return [];
-      fail("dernieresObservationsBeac", error);
+      if (/beac_observations/.test((e as Error).message)) return [];
+      throw e;
     }
     const vus = new Map<string, DernierEtat>();
-    for (const r of (data ?? []) as { url: string; present: boolean; empreinte: string; page: string | null }[]) {
+    for (const r of data) {
       if (!vus.has(r.url)) vus.set(r.url, { url: r.url, present: r.present, empreinte: r.empreinte, page: r.page ?? "annonces" });
     }
     return [...vus.values()];
@@ -2551,8 +2714,7 @@ export const supabaseRepository: Repository = {
    * que personne n'a voté.
    */
   async budgetsDesEtats() {
-    const { data, error } = await db().from("budgets_etats").select("*").order("pays");
-    if (error) fail("budgetsDesEtats", error);
+    const data = await parLots<Record<string, unknown>>("budgetsDesEtats", (de, a) => db().from("budgets_etats").select("*").order("pays").order("id").range(de, a));
     return ((data as Record<string, unknown>[]) ?? []).map((r) => ({
       pays: r.pays as BudgetEtat["pays"],
       exercice: Number(r.exercice),
@@ -2572,8 +2734,7 @@ export const supabaseRepository: Repository = {
     }));
   },
   async notesBudget() {
-    const { data, error } = await db().from("notes_budget").select("*").order("numero", { ascending: false });
-    if (error) fail("notesBudget", error);
+    const data = await parLots<Record<string, unknown>>("notesBudget", (de, a) => db().from("notes_budget").select("*").order("numero", { ascending: false }).order("id").range(de, a));
     return ((data as Record<string, unknown>[]) ?? []).map((r) => ({
       id: r.id as string,
       pays: r.pays as NoteBudget["pays"],
@@ -2621,35 +2782,27 @@ export const supabaseRepository: Repository = {
     return n;
   },
   async operationsDuTresor() {
-    /* LA PAGINATION N EST PAS UN DETAIL : Supabase plafonne un select a mille
-       lignes sans le dire, et la table en porte mille cent soixante. Sans
-       cette boucle, la dette adjugee aurait perdu un septieme de ses coupons
-       en silence. Le piege a deja coute une mesure a 48 % sur les encours. */
-    const out: OperationDuTresor[] = [];
-    for (let de = 0; ; de += 1000) {
-      const { data, error } = await db().from("treasury_operations").select("*").order("operation_on").range(de, de + 999);
-      if (error) fail("operationsDuTresor", error);
-      const lot = (data as Record<string, unknown>[]) ?? [];
-      out.push(
-        ...lot.map((r) => ({
-          pays: r.pays as string,
-          instrument: u(r.instrument as string | null),
-          tenor: u(r.tenor as string | null),
-          codeEmission: u(r.code_emission as string | null),
-          couponRate: nn(r.coupon_rate as string | null),
-          maturityOn: u(r.maturity_on as string | null),
-          operation: r.operation as OperationDuTresor["operation"],
-          montant: nn(r.montant as string | null),
-          montantRealise: nn(r.montant_realise as string | null),
-          tauxSouscription: nn(r.taux_souscription as string | null),
-          operationOn: u(r.operation_on as string | null),
-          settleOn: u(r.settle_on as string | null),
-          sourceUrl: r.source_url as string,
-        })),
-      );
-      if (lot.length < 1000) break;
-    }
-    return out;
+    /* LA PAGINATION N EST PAS UN DETAIL : sans elle, la dette adjugee aurait
+       perdu un septieme de ses coupons en silence, et le piege a deja coute
+       une mesure a 48 % sur les encours. Voir « parLots ». */
+    const lignes = await parLots<Record<string, unknown>>("operationsDuTresor", (de, a) =>
+      db().from("treasury_operations").select("*").order("operation_on").order("id").range(de, a),
+    );
+    return lignes.map((r) => ({
+      pays: r.pays as string,
+      instrument: u(r.instrument as string | null),
+      tenor: u(r.tenor as string | null),
+      codeEmission: u(r.code_emission as string | null),
+      couponRate: nn(r.coupon_rate as string | null),
+      maturityOn: u(r.maturity_on as string | null),
+      operation: r.operation as OperationDuTresor["operation"],
+      montant: nn(r.montant as string | null),
+      montantRealise: nn(r.montant_realise as string | null),
+      tauxSouscription: nn(r.taux_souscription as string | null),
+      operationOn: u(r.operation_on as string | null),
+      settleOn: u(r.settle_on as string | null),
+      sourceUrl: r.source_url as string,
+    }));
   },
   /**
    * LES TROIS SÉRIES PUBLIÉES PAR LA BEAC.
@@ -2660,55 +2813,41 @@ export const supabaseRepository: Repository = {
    * encours, et il ne laisse aucune trace.
    */
   async courbesBeac() {
-    const out: PointCourbeBeac[] = [];
-    for (let de = 0; ; de += 1000) {
-      const { data, error } = await db().from("beac_yield_curves").select("mois, pays, tenor, annees, taux, file_key").order("mois").range(de, de + 999);
-      if (error) fail("courbesBeac", error);
-      const lot = (data as Record<string, unknown>[]) ?? [];
-      out.push(
-        ...lot.map((r) => ({
-          mois: r.mois as string,
-          pays: r.pays as string,
-          tenor: r.tenor as string,
-          annees: Number(r.annees),
-          taux: Number(r.taux),
-          fileKey: u(r.file_key as string | null),
-        })),
-      );
-      if (lot.length < 1000) break;
-    }
-    return out;
+    const lignes = await parLots<Record<string, unknown>>("courbesBeac", (de, a) =>
+      db().from("beac_yield_curves").select("mois, pays, tenor, annees, taux, file_key").order("mois").order("id").range(de, a),
+    );
+    return lignes.map((r) => ({
+      mois: r.mois as string,
+      pays: r.pays as string,
+      tenor: r.tenor as string,
+      annees: Number(r.annees),
+      taux: Number(r.taux),
+      fileKey: u(r.file_key as string | null),
+    }));
   },
   async encoursOfficiel() {
-    const out: EncoursOfficiel[] = [];
-    for (let de = 0; ; de += 1000) {
-      const { data, error } = await db().from("beac_encours_officiel").select("mois, pays, encours, numero, file_key").order("mois").range(de, de + 999);
-      if (error) fail("encoursOfficiel", error);
-      const lot = (data as Record<string, unknown>[]) ?? [];
-      out.push(...lot.map((r) => ({ mois: r.mois as string, pays: r.pays as string, encours: Number(r.encours), numero: r.numero == null ? undefined : Number(r.numero), fileKey: u(r.file_key as string | null) })));
-      if (lot.length < 1000) break;
-    }
-    return out;
+    const lignes = await parLots<Record<string, unknown>>("encoursOfficiel", (de, a) =>
+      db().from("beac_encours_officiel").select("mois, pays, encours, numero, file_key").order("mois").order("id").range(de, a),
+    );
+    return lignes.map((r) => ({ mois: r.mois as string, pays: r.pays as string, encours: Number(r.encours), numero: r.numero == null ? undefined : Number(r.numero), fileKey: u(r.file_key as string | null) }));
   },
   async coutDesRessources() {
-    const out: CoutDesRessources[] = [];
-    for (let de = 0; ; de += 1000) {
-      const { data, error } = await db().from("beac_cout_ressources").select("mois, pays, instrument, taux, file_key").order("mois").range(de, de + 999);
-      if (error) fail("coutDesRessources", error);
-      const lot = (data as Record<string, unknown>[]) ?? [];
-      out.push(...lot.map((r) => ({ mois: r.mois as string, pays: r.pays as string, instrument: r.instrument as string, taux: Number(r.taux), fileKey: u(r.file_key as string | null) })));
-      if (lot.length < 1000) break;
-    }
-    return out;
+    const lignes = await parLots<Record<string, unknown>>("coutDesRessources", (de, a) =>
+      db().from("beac_cout_ressources").select("mois, pays, instrument, taux, file_key").order("mois").order("id").range(de, a),
+    );
+    return lignes.map((r) => ({ mois: r.mois as string, pays: r.pays as string, instrument: r.instrument as string, taux: Number(r.taux), fileKey: u(r.file_key as string | null) }));
   },
   async comptesDesEmetteurs() {
-    const { data, error } = await db()
-      .from("issuer_financials")
-      .select("document_id, mnemo, exercice, referentiel, periode, resultat_net, resultat_net_precedent, capitaux_propres, chiffre_affaires, nombre_actions, resultat_par_action, remarques, source_titre, file_key, confirme_par")
-      .order("mnemo")
-      .order("exercice", { ascending: false });
-    if (error) fail("comptesDesEmetteurs", error);
-    return (data as Record<string, unknown>[]).map((x) => ({
+    const data = await parLots<Record<string, unknown>>("comptesDesEmetteurs", (de, a) =>
+      db()
+        .from("issuer_financials")
+        .select("document_id, mnemo, exercice, referentiel, periode, resultat_net, resultat_net_precedent, capitaux_propres, chiffre_affaires, nombre_actions, resultat_par_action, remarques, source_titre, file_key, confirme_par")
+        .order("mnemo")
+        .order("exercice", { ascending: false })
+        .order("document_id")
+        .order("id").range(de, a),
+    );
+    return data.map((x) => ({
       documentId: x.document_id as string,
       mnemo: x.mnemo as string,
       exercice: x.exercice == null ? undefined : Number(x.exercice),
@@ -2738,8 +2877,7 @@ export const supabaseRepository: Repository = {
       jour = (data as { session_date: string }[] | null)?.[0]?.session_date;
       if (!jour) return [];
     }
-    const { data, error } = await db().from("debt_outstandings").select("*").eq("session_date", jour).order("outstanding", { ascending: false });
-    if (error) fail("encoursDette", error);
+    const data = await parLots<Record<string, unknown>>("encoursDette", (de, a) => db().from("debt_outstandings").select("*").eq("session_date", jour).order("outstanding", { ascending: false }).order("session_date").order("isin").range(de, a));
     return (data as Record<string, unknown>[]).map((r) => ({
       sessionDate: r.session_date as string,
       isin: r.isin as string,
@@ -2764,13 +2902,11 @@ export const supabaseRepository: Repository = {
     }));
   },
   async listQuotes(isin, limit = 60) {
-    const { data, error } = await db().from("quotes").select("*").eq("isin", isin).order("session_date", { ascending: false }).limit(limit);
-    if (error) fail("listQuotes", error);
+    const data = await jusqua<unknown>("listQuotes", limit, (de, a) => db().from("quotes").select("*").eq("isin", isin).order("session_date", { ascending: false }).order("isin").range(de, a));
     return (data as QuoteRow[]).map(toQuote);
   },
   async quotesOn(sessionDate) {
-    const { data, error } = await db().from("quotes").select("*").eq("session_date", sessionDate);
-    if (error) fail("quotesOn", error);
+    const data = await parLots<unknown>("quotesOn", (de, a) => db().from("quotes").select("*").eq("session_date", sessionDate).order("isin").order("session_date").range(de, a));
     return (data as QuoteRow[]).map(toQuote);
   },
   async marketMovements() {
@@ -2788,21 +2924,22 @@ export const supabaseRepository: Repository = {
     }));
   },
   async quoteActivity(since) {
-    // Supabase rend mille lignes par appel : une année de séances en compte dix
-    // fois plus, et s'arrêter à la première page donnerait un taux calculé sur
-    // un dixième du marché, sans que rien ne le signale.
-    const out: QuoteActivity[] = [];
-    for (let from = 0; ; from += 1000) {
-      const { data, error } = await db().from("quotes").select("isin, session_date, volume_traded, value_traded, trades").gte("session_date", since).range(from, from + 999);
-      if (error) fail("quoteActivity", error);
-      const page = (data ?? []) as { isin: string; session_date: string; volume_traded: number; value_traded: string | number; trades: number }[];
-      out.push(...page.map((r) => ({ isin: r.isin, sessionDate: r.session_date, volumeTraded: Number(r.volume_traded ?? 0), valueTraded: Number(r.value_traded ?? 0), trades: Number(r.trades ?? 0) })));
-      if (page.length < 1000) return out;
-    }
+    /* CETTE BOUCLE ÉTAIT ÉCRITE À LA MAIN, et elle a échappé à la première
+       clause de l'épreuve parce qu'elle disait « from » là où les quatre
+       autres disaient « de ». Une clause qui garde un nom de variable ne
+       garde rien : élargie, elle en a trouvé trois de plus, celle-ci
+       comprise. Elles paginaient sans ORDRE, ce qui n'a rien perdu sur le
+       relevé du 29 octobre 2026 — 9 542 lignes sur la fenêtre d'un an,
+       recollées sans perte — mais par la grâce de l'ordre physique du balayage
+       séquentiel, pas par une promesse : un plan parallèle, un VACUUM ou une
+       écriture concurrente suffisent à décaler deux pages. */
+    const lignes = await parLots<{ isin: string; session_date: string; volume_traded: number; value_traded: string | number; trades: number }>("quoteActivity", (de, a) =>
+      db().from("quotes").select("isin, session_date, volume_traded, value_traded, trades").gte("session_date", since).order("isin").order("session_date").range(de, a),
+    );
+    return lignes.map((r) => ({ isin: r.isin, sessionDate: r.session_date, volumeTraded: Number(r.volume_traded ?? 0), valueTraded: Number(r.value_traded ?? 0), trades: Number(r.trades ?? 0) }));
   },
   async latestQuotes() {
-    const { data, error } = await db().from("latest_quotes").select("*");
-    if (error) fail("latestQuotes", error);
+    const data = await parLots<unknown>("latestQuotes", (de, a) => db().from("latest_quotes").select("*").order("isin").range(de, a));
     return (data as QuoteRow[]).map(toQuote);
   },
   async nominauxDeReference(avant) {
@@ -2848,8 +2985,7 @@ export const supabaseRepository: Repository = {
     if (error) fail("upsertFundNavs", error);
   },
   async listFundNavs(fundKey, limit = 60) {
-    const { data, error } = await db().from("fund_navs").select("*").eq("fund_key", fundKey).order("nav_date", { ascending: false }).limit(limit);
-    if (error) fail("listFundNavs", error);
+    const data = await jusqua<unknown>("listFundNavs", limit, (de, a) => db().from("fund_navs").select("*").eq("fund_key", fundKey).order("nav_date", { ascending: false }).order("fund_key").range(de, a));
     return (data as NavRow[]).map(toNav);
   },
   /**
@@ -2862,14 +2998,9 @@ export const supabaseRepository: Repository = {
   async listFundCurves(keys, points = 60) {
     const out = new Map<string, FundCurve>();
     if (!keys.length) return out;
-    const rows: { fund_key: string; nav_date: string; nav: string }[] = [];
-    for (let from = 0; ; from += 1000) {
-      const { data, error } = await db().from("fund_navs").select("fund_key, nav_date, nav").in("fund_key", keys).order("nav_date", { ascending: true }).range(from, from + 999);
-      if (error) fail("listFundCurves", error);
-      const page = (data ?? []) as typeof rows;
-      rows.push(...page);
-      if (page.length < 1000) break;
-    }
+    const rows = await parLots<{ fund_key: string; nav_date: string; nav: string }>("listFundCurves", (de, a) =>
+      db().from("fund_navs").select("fund_key, nav_date, nav").in("fund_key", keys).order("nav_date", { ascending: true }).order("fund_key").range(de, a),
+    );
     const by = new Map<string, { navDate: string; nav: number }[]>();
     for (const r of rows) {
       const list = by.get(r.fund_key);
@@ -2884,36 +3015,32 @@ export const supabaseRepository: Repository = {
     return out;
   },
   async latestFundNavs() {
-    const { data, error } = await db().from("latest_fund_navs").select("*").order("name");
-    if (error) fail("latestFundNavs", error);
+    const data = await parLots<unknown>("latestFundNavs", (de, a) => db().from("latest_fund_navs").select("*").order("name").order("fund_key").range(de, a));
     return (data as NavRow[]).map(toNav);
   },
   async fundNavDates(since) {
-    // Mille lignes par page, comme partout : une fenêtre d'un an sur
-    // quarante-six fonds hebdomadaires en compte deux mille quatre cents, et
-    // s'arrêter à la première rendrait un rythme calculé sur la moitié des
-    // fonds sans que rien ne le signale.
-    const out: { fundKey: string; navDate: string }[] = [];
-    for (let from = 0; ; from += 1000) {
-      const { data, error } = await db().from("fund_navs").select("fund_key, nav_date").gte("nav_date", since).range(from, from + 999);
-      if (error) fail("fundNavDates", error);
-      const page = (data ?? []) as { fund_key: string; nav_date: string }[];
-      out.push(...page.map((r) => ({ fundKey: r.fund_key, navDate: r.nav_date })));
-      if (page.length < 1000) return out;
-    }
+    // Une fenêtre d'un an sur quarante-six fonds hebdomadaires compte deux
+    // mille quatre cents lignes : par lots, et dans un ordre total.
+    const lignes = await parLots<{ fund_key: string; nav_date: string }>("fundNavDates", (de, a) =>
+      db().from("fund_navs").select("fund_key, nav_date").gte("nav_date", since).order("fund_key").order("nav_date").range(de, a),
+    );
+    return lignes.map((r) => ({ fundKey: r.fund_key, navDate: r.nav_date }));
   },
 
   async listAuctionResults(filter) {
     const f = filter ?? {};
-    let q = db().from("auction_results").select("*").order("session_on", { ascending: false }).limit(f.limit ?? 200);
-    if (f.codeEmission) q = q.eq("code_emission", f.codeEmission);
-    if (f.instrument) q = q.eq("instrument", f.instrument);
-    if (f.tenor) q = q.eq("tenor", f.tenor);
-    if (f.country) q = q.eq("country", f.country);
-    if (f.confirmed === true) q = q.not("confirmed_by", "is", null);
-    if (f.confirmed === false) q = q.is("confirmed_by", null);
-    const { data, error } = await q;
-    if (error) fail("listAuctionResults", error);
+    /* Sept appels de la maison en demandent entre mille et cinq mille — dont
+       l'export CSV des adjudications. Voir « jusqua ». */
+    const data = await jusqua<unknown>("listAuctionResults", f.limit ?? 200, (de, a) => {
+      let q = db().from("auction_results").select("*").order("session_on", { ascending: false });
+      if (f.codeEmission) q = q.eq("code_emission", f.codeEmission);
+      if (f.instrument) q = q.eq("instrument", f.instrument);
+      if (f.tenor) q = q.eq("tenor", f.tenor);
+      if (f.country) q = q.eq("country", f.country);
+      if (f.confirmed === true) q = q.not("confirmed_by", "is", null);
+      if (f.confirmed === false) q = q.is("confirmed_by", null);
+      return q.order("id").range(de, a);
+    });
     return (data as AuctionResultRow[]).map(toAuctionResult);
   },
   async getAuctionResult(id) {
@@ -2983,14 +3110,16 @@ export const supabaseRepository: Repository = {
   },
 
   async listEmissionNotices(filter) {
-    let q = db().from("emission_notices").select("*").order("session_on", { ascending: false });
-    if (filter?.codeEmission) q = q.eq("code_emission", filter.codeEmission);
-    if (filter?.country) q = q.eq("country", filter.country);
-    if (filter?.confirmed === true) q = q.not("confirmed_by", "is", null);
-    if (filter?.confirmed === false) q = q.is("confirmed_by", null);
-    const { data, error } = await q.limit(filter?.limit ?? 500);
-    if (error) fail("listEmissionNotices", error);
-    return (data ?? []).map((x) => toEmissionNotice(x as EmissionNoticeRow));
+    /* Deux appels en demandent mille et deux mille. Voir « jusqua ». */
+    const data = await jusqua<unknown>("listEmissionNotices", filter?.limit ?? 500, (de, a) => {
+      let q = db().from("emission_notices").select("*").order("session_on", { ascending: false });
+      if (filter?.codeEmission) q = q.eq("code_emission", filter.codeEmission);
+      if (filter?.country) q = q.eq("country", filter.country);
+      if (filter?.confirmed === true) q = q.not("confirmed_by", "is", null);
+      if (filter?.confirmed === false) q = q.is("confirmed_by", null);
+      return q.order("id").range(de, a);
+    });
+    return data.map((x) => toEmissionNotice(x as EmissionNoticeRow));
   },
   async upsertEmissionNotice(n) {
     // Ce qu'un second passage du robot ne doit pas défaire : la relecture du
@@ -3028,11 +3157,12 @@ export const supabaseRepository: Repository = {
   },
 
   async listIssuerDocuments(mnemo) {
-    let q = db().from("issuer_documents").select("*").order("year", { ascending: false });
-    if (mnemo) q = q.eq("mnemo", mnemo);
-    const { data, error } = await q;
-    if (error) fail("listIssuerDocuments", error);
-    return (data as IssuerDocRow[]).map(toIssuerDoc);
+    const data = await parLots<IssuerDocRow>("listIssuerDocuments", (de, a) => {
+      let q = db().from("issuer_documents").select("*").order("year", { ascending: false }).order("id");
+      if (mnemo) q = q.eq("mnemo", mnemo);
+      return q.range(de, a);
+    });
+    return data.map(toIssuerDoc);
   },
   async upsertIssuerDocument(d) {
     const { data, error } = await db().from("issuer_documents").upsert({ mnemo: d.mnemo, kind: d.kind, year: d.year ?? null, title: d.title, source_url: d.sourceUrl, file_key: d.fileKey ?? null, bytes: d.bytes ?? null, has_text: d.hasText ?? null, collected_at: d.collectedAt }, { onConflict: "source_url" }).select("*").single();
@@ -3040,12 +3170,14 @@ export const supabaseRepository: Repository = {
     return toIssuerDoc(data as IssuerDocRow);
   },
   async listNews() {
-    const { data, error } = await db().from("news").select("*").order("published_at", { ascending: false });
-    if (error) {
-      if (/news/.test(error.message)) return []; // migration 0025 not applied yet
-      fail("listNews", error);
+    let data: NewsRow[];
+    try {
+      data = await parLots<NewsRow>("listNews", (de, a) => db().from("news").select("*").order("published_at", { ascending: false }).order("id").range(de, a));
+    } catch (e) {
+      if (/news/.test((e as Error).message)) return []; // migration 0025 not applied yet
+      throw e;
     }
-    return (data as NewsRow[]).map(toNews);
+    return data.map(toNews);
   },
   async upsertNews(n) {
     const { error } = await db().from("news").upsert(fromNews(n), { onConflict: "id" });

@@ -226,6 +226,7 @@ source reçue ──► à valider ──► (en revue) ──► publié ──
 
 - **Une offre se lit, ne se simule pas.** Le prix Purpose est fixé par le desk et versionné ; la fiche montre un bloc de référence au prix publié. Le simulateur est une page séparée, sans lien avec les offres en cours.
 - **Une intention est une ligne**, quel que soit le canal. Son cycle : `recue → confirmee → transmise → servie | non_servie → reglee`. Chaque transition est journalisée dans `events`.
+- **Aucune lecture n'est non bornée.** PostgREST rend mille lignes au plus et ne le dit pas : pas d'erreur, pas d'avertissement, une réponse complète en apparence. Toute lecture de liste passe donc par `parLots` (tout, par paquets de mille) ou `jusqua` (ce qu'on a demandé, paginé s'il le faut) dans `src/lib/data/supabase.ts`, et finit son tri sur la clé primaire de sa table, sans quoi deux paquets rendent deux fois la même ligne et en perdent une autre. L'épreuve `src/test/mille-lignes.test.ts` le vérifie lecture par lecture, en lisant les clés dans les migrations.
 - **Le desk ne saisit que trois choses** : prix / ticket minimum à la publication (aucune commission affichée au client pour l’instant), le montant confirmé, des notes. Tout le reste est dérivé : et ce qui décrit un produit (type, échéancier, glossaire, fiches) se maintient dans le Référentiel, pas dans le code.
 
 ## Prochaines étapes
