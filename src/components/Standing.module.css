@@ -323,3 +323,77 @@
   color: var(--fill-ink);
   font-weight: 700;
 }
+
+/* ────────────────────────────────────────────────────────────────────────────
+   DEUX ÉCRANS, ET LE SECOND NE DEMANDE RIEN.
+
+   Les conséquences sous la main suffisent à DÉCIDER ; elles ne suffisent pas à
+   SIGNER. Un versement programmé porte six décisions dont trois se prennent en
+   bas de l'écran — la date de fin, ce qu'on fait si un mois bloque, comment
+   l'argent arrive — et, au moment d'appuyer, les trois premières sont sorties
+   du champ de vision.
+
+   LES CHAMPS NE SONT PAS DÉMONTÉS, ILS SONT CACHÉS : le formulaire part entier,
+   et revenir en arrière ne perd rien de ce qu'on a tapé.
+   ──────────────────────────────────────────────────────────────────────────── */
+.form[data-at="1"] [data-step="2"],
+.form[data-at="2"] [data-step="1"] {
+  display: none;
+}
+.recap {
+  display: grid;
+  gap: 0;
+  padding: 4px var(--s-6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  font-size: var(--t-2);
+}
+/* LA RANGÉE PASSE À LA LIGNE QUAND LA RÉPONSE EST UNE PHRASE. Mesuré à
+   390 px : « passer ce versement et continuer » se pliait en trois lignes de
+   trois mots dans une colonne de cent pixels, et « sans date : jusqu'à ce que
+   vous l'arrêtiez » tenait toute la largeur en gras. Une question et sa
+   réponse se lisent côte à côte tant qu'elles tiennent ; au-delà, la réponse
+   prend sa ligne. */
+.recap > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px var(--s-5);
+  padding: var(--s-4) 0;
+  border-bottom: 1px solid var(--line);
+}
+.recap > div > b {
+  flex: 1 1 auto;
+}
+.recap > div:last-child {
+  border-bottom: 0;
+}
+.recap span {
+  color: var(--ink-3);
+  flex: none;
+}
+.recap b {
+  text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+/* Ce que la décision entraîne, sous elle : au corps d'une note, parce que
+   c'est une conséquence et non une septième décision. */
+.recap b small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-3);
+  font-weight: 400;
+  font-size: var(--t-1);
+}
+.pied {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+}
+.pied button[type="submit"],
+.pied button:only-child {
+  margin-left: auto;
+}

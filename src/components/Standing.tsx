@@ -79,6 +79,28 @@ export function StandingForm({
   /* LE JOUR DU MOIS, TENU EN ÉTAT parce qu'une grille n'a pas de valeur par
      elle-même : c'est un champ caché qui part au serveur. */
   const [jour, setJour] = useState(5);
+  /* LES TROIS DERNIÈRES DÉCISIONS, TENUES EN ÉTAT POUR QUE LE RÉCAPITULATIF
+     PUISSE LES REDIRE. Elles vivaient dans le navigateur, chacune pour soi :
+     lisibles à l'écran, invisibles au moment où l'on signe. */
+  const [jusquau, setJusquau] = useState("");
+  const [bloque, setBloque] = useState("passer");
+  const [reglement, setReglement] = useState("virement");
+  /**
+   * DEUX ÉCRANS, ET LE SECOND NE DEMANDE RIEN.
+   *
+   * ÉCARTÉ LE 29 OCTOBRE 2026 PUIS DEMANDÉ : j'avais mis les conséquences sous
+   * la main — ce que le versement fait sur douze mois, quand tombe le premier —
+   * et gardé un seul écran, en jugeant qu'elles suffisaient au moment de
+   * décider. Elles suffisent à DÉCIDER ; elles ne suffisent pas à SIGNER.
+   *
+   * Un versement programmé court jusqu'à ce qu'on l'arrête, et il porte six
+   * décisions dont trois se prennent en bas de l'écran — la date de fin, ce
+   * qu'on fait si un mois bloque, et comment l'argent arrive. Au moment
+   * d'appuyer, les trois premières sont sorties du champ de vision. Le
+   * récapitulatif les remet toutes les six côte à côte, et il ne demande rien
+   * de neuf : c'est sa valeur, on n'y relit que ce qu'on a déjà dit.
+   */
+  const [etape, setEtape] = useState<1 | 2>(1);
   const verse = parseAmount(montant);
   const parts = valeur && valeur > 0 && verse > 0 ? verse / valeur : 0;
   if (state?.ok) {
@@ -102,7 +124,8 @@ export function StandingForm({
     );
   }
   return (
-    <form action={action} className={styles.form}>
+    <form action={action} data-at={etape} className={styles.form}>
+      <div data-step="1">
       {fonds ? (
         <label className="field">
           {t("Vers quel fonds")}
@@ -163,7 +186,7 @@ export function StandingForm({
       <div className={styles.row}>
         <label className="field">
           {t("Jusqu'au (facultatif)")}
-          <input name="endsOn" type="date" />
+          <input name="endsOn" type="date" value={jusquau} onChange={(e) => setJusquau(e.target.value)} />
           <small className="muted">{t("sans date, le versement court jusqu'à ce que vous l'arrêtiez")}</small>
         </label>
         <label className="field">
@@ -172,7 +195,8 @@ export function StandingForm({
           <Select
             block
             name="onBlocked"
-            value="passer"
+            value={bloque}
+            onChange={setBloque}
             options={[
               { value: "passer", label: t("passer ce versement et continuer") },
               { value: "arreter", label: t("arrêter le versement programmé") },
@@ -187,23 +211,79 @@ export function StandingForm({
       <fieldset className={styles.reglement}>
         <legend>{t("Comment l'argent arrivera")}</legend>
         <label>
-          <input type="radio" name="reglement" value="virement" defaultChecked />
+          <input type="radio" name="reglement" value="virement" checked={reglement === "virement"} onChange={() => setReglement("virement")} />
           <span>
             <b>{t("Je vire moi-même, chaque mois")}</b>
             <small>{t("Vous recevez un appel de fonds avec les coordonnées et la référence à citer.")}</small>
           </span>
         </label>
         <label>
-          <input type="radio" name="reglement" value="prelevement" />
+          <input type="radio" name="reglement" value="prelevement" checked={reglement === "prelevement"} onChange={() => setReglement("prelevement")} />
           <span>
             <b>{t("Prélevez-moi sur mon compte bancaire")}</b>
             <small>{t("Un mandat à signer une fois, par code. Chaque prélèvement vous est annoncé cinq jours avant.")}</small>
           </span>
         </label>
       </fieldset>
-      <button className="btn" type="submit" disabled={pending}>
-        {t(pending ? "…" : "Programmer ce versement")}
-      </button>
+      </div>
+      {/* LE RÉCAPITULATIF NE DEMANDE RIEN : il redit les six décisions côte à
+          côte, au moment où l'on signe. Les champs restent dans la page,
+          cachés, pour que le formulaire parte entier. */}
+      <div data-step="2">
+        <div className={styles.recap}>
+          {fonds && (
+            <div>
+              <span>{t("Vers quel fonds")}</span>
+              <b>{fonds.find((f) => f.id === choisi)?.title ?? "—"}</b>
+            </div>
+          )}
+          <div>
+            <span>{t("Chaque mois")}</span>
+            <b>
+              {fmt(verse)} {unit}
+              <small>{t("{n} FCFA sur douze mois", { n: fmt(verse * 12) })}</small>
+            </b>
+          </div>
+          <div>
+            <span>{t("Le")}</span>
+            <b>
+              {t("{j} de chaque mois", { j: String(jour) })}
+              {aujourdhui && <small>{t("Premier versement le {d}", { d: fmtDate(premierVersement(jour, aujourdhui)) })}</small>}
+            </b>
+          </div>
+          <div>
+            <span>{t("Jusqu'au")}</span>
+            <b>{jusquau ? fmtDate(jusquau) : t("sans date : jusqu'à ce que vous l'arrêtiez")}</b>
+          </div>
+          <div>
+            <span>{t("Si un mois l'exécution est impossible")}</span>
+            <b>{t(bloque === "arreter" ? "arrêter le versement programmé" : "passer ce versement et continuer")}</b>
+          </div>
+          <div>
+            <span>{t("Comment l'argent arrivera")}</span>
+            <b>{t(reglement === "prelevement" ? "Prélevez-moi sur mon compte bancaire" : "Je vire moi-même, chaque mois")}</b>
+          </div>
+        </div>
+      </div>
+      <div className={styles.pied}>
+        {etape === 2 && (
+          <button className="btn ghost" type="button" onClick={() => setEtape(1)}>
+            {t("Corriger")}
+          </button>
+        )}
+        {etape === 1 ? (
+          /* LE PASSAGE NE SE FAIT PAS SUR UN FORMULAIRE INCOMPLET : sans
+             montant, le récapitulatif dirait « 0 FCFA sur douze mois », et un
+             récapitulatif qui ment est pire que pas de récapitulatif. */
+          <button className="btn" type="button" disabled={!(verse > 0) || verse < plancher} onClick={() => setEtape(2)}>
+            {t("Continuer")}
+          </button>
+        ) : (
+          <button className="btn primary" type="submit" disabled={pending}>
+            {t(pending ? "…" : "Programmer ce versement")}
+          </button>
+        )}
+      </div>
       <Msg state={state} />
     </form>
   );

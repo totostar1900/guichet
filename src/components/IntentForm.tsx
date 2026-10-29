@@ -11,6 +11,7 @@ import { ProofBlock } from "@/components/ProofBlock";
 import { TrustNudge } from "@/components/TrustNudge";
 import { equivalence, estimate, marketEstimate, montantPourUnites, produitAttendu, redemptionEstimate, surveyTrio } from "@/lib/domain/estimate";
 import { orderChecks, resteApres } from "@/lib/domain/checks";
+import { counterUnit } from "@/lib/domain/counter";
 import { sensDeLaCondition } from "@/lib/domain/survey";
 import { FENETRE_MAX_JOURS, plancherFaceAuProduit } from "@/lib/domain/arbitrage";
 import type { Repere } from "@/lib/market/repere";
@@ -607,7 +608,11 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                 )}
                 {held > 0 && type === "vente" && (
                   <small className={styles.held}>
-                    {t("Vous détenez")} {fmtUnits(held)} {t(offer.instrument === "obligation" ? "titres" : "actions")} ·{" "}
+                    {/* Le mot de l'unité vient du domaine, ici aussi : sur une
+                        ligne cotée les deux listes disaient la même chose,
+                        mais deux listes qui disent la même chose finissent par
+                        ne plus la dire. */}
+                    {t("Vous détenez")} {fmtUnits(held)} {t(counterUnit(offer))} ·{" "}
                     <button
                       type="button"
                       className={styles.linkBtn}
@@ -758,7 +763,16 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                   position : ni plafond, ni raccourci. */}
               {held > 0 && sortie && (
                 <small className={styles.held}>
-                  {t("Vous détenez")} {fmtUnits(held)} {t(offer.kind === "FONDS" ? "parts" : offer.instrument === "obligation" ? "titres" : "actions")} ·{" "}
+                  {/* LE MOT DE L'UNITÉ VIENT DU DOMAINE, et il a fallu qu'un
+                      rachat du Trésor devienne visible pour qu'on le voie :
+                      cette ligne écrivait sa propre liste, et « instrument »
+                      n'existe que sur une ligne cotée. Sur un rachat
+                      d'obligations elle disait donc « vous détenez 500
+                      ACTIONS », à deux lignes de « il vous restera 300
+                      TITRES » — deux mots pour une même chose, sur un même
+                      écran, dont un faux. « counterUnit » répond déjà pour
+                      les trois sorties, et « resteApres » le lit. */}
+                  {t("Vous détenez")} {fmtUnits(held)} {t(counterUnit(offer))} ·{" "}
                   <button type="button" className={styles.linkBtn} onClick={() => setAmount(fmtUnits(held))}>
                     {t(type === "rachat" ? "tout racheter" : type === "cession" ? "tout céder" : "tout vendre")}
                   </button>

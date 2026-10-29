@@ -109,6 +109,35 @@ describe("ce qu'on détient", () => {
     expect(resteApres(cotee, "vente", 120, 200), "au-delà du plafond, un reste négatif est annoncé").toBeUndefined();
   });
 
+  /**
+   * UN RACHAT DU TRÉSOR OUVERT, SUR UNE LIGNE QUE LE CLIENT DÉTIENT.
+   *
+   * Pendant toute la conversion du parcours de cession, cette branche s'est
+   * vérifiée par le domaine et PAS À L'ÉCRAN : le jeu d'essai portait deux
+   * rachats, tous deux clos depuis six semaines, dont les ISIN ne visaient
+   * aucune ligne détenue. La seule sortie dont la question s'appelle
+   * « cession » n'était donc visible nulle part, et c'est exactement ce qu'un
+   * jeu de démonstration est censé empêcher.
+   *
+   * CE QU'IL A RÉVÉLÉ LE JOUR OÙ IL EST DEVENU VISIBLE : « Vous détenez 500
+   * ACTIONS » sur un rachat d'obligations, à deux lignes de « il vous restera
+   * 300 TITRES ». L'épreuve du mot d'unité, plus haut, est née de là.
+   */
+  it("garde un rachat ouvert sur une ligne que le client de démonstration détient", async () => {
+    const { repo } = await import("@/lib/data");
+    const { positionsFrom } = await import("@/lib/positions");
+    const { displayStatus, isActionable } = await import("@/lib/domain/status");
+    const r = repo();
+    const [offers, intents] = await Promise.all([r.listOffers(), r.listIntents()]);
+    const rachats = offers.filter((o) => o.kind === "RACHAT" && !o.hidden && isActionable(displayStatus(o)));
+    expect(rachats.length, "plus aucun rachat du Trésor n'est ouvert : la branche « cession » redevient invisible").toBeGreaterThan(0);
+    // Et il faut qu'il vise une ligne DÉTENUE, sans quoi il ne montre rien de
+    // plus : ni plafond, ni « tout céder », ni ce qui resterait.
+    const tenues = new Set(positionsFrom(intents, offers).map((p) => p.offer.isin));
+    const utiles = rachats.filter((o) => tenues.has(o.isin));
+    expect(utiles.length, "aucun rachat ouvert ne vise une ligne détenue : le plafond et « tout céder » ne paraissent nulle part").toBeGreaterThan(0);
+  });
+
   /* LE CONTEXTE DE LA PAGE. Sans cette lecture, les deux règles ci-dessus
      n'ont rien à juger : le formulaire reçoit zéro et se tait poliment. */
   it("lit la position du client sur un rachat du Trésor", () => {
@@ -116,6 +145,31 @@ describe("ce qu'on détient", () => {
     const ligne = src.split("\n").find((l) => l.includes("const wantsHeld"));
     expect(ligne, "la ligne qui décide de lire la position a disparu").toBeTruthy();
     expect(ligne!, "le rachat du Trésor ne lit pas ce que le client détient").toMatch(/RACHAT/);
+  });
+
+  /**
+   * LE MOT DE L'UNITÉ VIENT DU DOMAINE, ET D'UN SEUL ENDROIT.
+   *
+   * Relevé le 29 octobre 2026, le jour où un rachat du Trésor est enfin
+   * devenu visible dans le jeu d'essai : la ligne « Vous détenez » écrivait
+   * sa propre liste — « parts, sinon titres si obligation, sinon actions » —
+   * et « instrument » n'existe que sur une ligne cotée. Sur un rachat
+   * d'obligations elle disait donc « vous détenez 500 ACTIONS », à deux
+   * lignes de « il vous restera 300 TITRES ». Deux mots pour une même chose,
+   * sur un même écran, dont un faux.
+   *
+   * « counterUnit » répond déjà pour les trois sorties, et « resteApres » le
+   * lit : c'était la seule des deux lignes à s'être écrit sa règle.
+   */
+  it("prend le mot de l'unité au domaine, et nulle part ailleurs", async () => {
+    const { counterUnit } = await import("@/lib/domain/counter");
+    const { repo } = await import("@/lib/data");
+    const offers = await repo().listOffers();
+    const ligne = offers.find((o) => o.kind === "OTA" && o.nominal > 0)!;
+    expect(counterUnit({ ...ligne, kind: "RACHAT" } as Offer), "un rachat du Trésor ne compte plus en titres").toBe("titres");
+    const src = code("src/components/IntentForm.tsx");
+    expect(src, "la ligne de détention s'est réécrit la liste des unités").not.toMatch(/"Vous détenez"\)\}[^}]*instrument === "obligation"/);
+    expect((src.match(/\{t\(counterUnit\(offer\)\)\}/g) ?? []).length, "une des deux lignes de détention a repris sa propre liste").toBe(2);
   });
 
   /* L'ÉCRAN : « tout céder » et le plafond ne servent que si le formulaire

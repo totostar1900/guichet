@@ -2930,6 +2930,8 @@ export const EN_MORE: Record<string, string> = {
      Ces libellés traversent t() sous forme de variable depuis health.ts et
      health-how.ts : seul src/test/donnees-en.test.ts les voit. */
   "Séances closes sans résultat": "Closed sessions without a result",
+  "Repère du marché sur les adjudications ouvertes": "Market benchmark on open auctions",
+  "Les séances relues, une par une : rouvrir celles dont le taux précompté ou le prix servi est vide et le saisir depuis le communiqué. Un silence qui ne tient à aucune séance incomplète est la place elle-même : aucune adjudication comparable sur ce Trésor et cette durée depuis deux ans, et le formulaire a raison de ne rien dire.": "The sessions already read, one by one: reopen those whose precounted rate or served price is empty and enter it from the communiqué. A silence that owes nothing to an incomplete session is the market itself: no comparable auction on that Treasury and that term for two years, and the form is right to say nothing.",
   "chaque séance close porte son résultat": "every closed session carries its result",
   "La page des résultats, groupée par séance : le prix servi est proposé quand le dépouillement est au dépôt, il reste à le relire et à appliquer. Une séance sans communiqué attend le sien, et c'est la BEAC qui le publie.":
     "The results page, grouped by session: the served price is proposed when the allotment notice is in store, and it remains to be read again and applied. A session without a notice is waiting for one, and the BEAC publishes it.",

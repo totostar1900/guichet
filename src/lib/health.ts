@@ -7,7 +7,8 @@ import { SCHEMA_ATTENDU } from "@/lib/domain/schema-attendu";
 import { compteDeLEcart, ecartDeSchema } from "@/lib/domain/schema-declare";
 import { emailConfigured, whatsappConfigured } from "@/lib/notify/providers";
 import { localIso } from "@/lib/format";
-import { bondTerms } from "@/lib/domain/status";
+import { bondTerms, displayStatus, isActionable } from "@/lib/domain/status";
+import { repereDuMarche } from "@/lib/market/repere";
 import { rythmeObserve } from "@/lib/domain/fund-perf";
 import { JOURS_AVANT_ALERTE } from "@/lib/domain/virement";
 import { JOURS_AVANT_RELANCE } from "@/lib/domain/standing";
@@ -517,6 +518,45 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     detail: closes.length
       ? `la plus ancienne attend depuis ${attente} jours · ${pretes.size} avec un dépouillement prêt à appliquer`
       : "chaque séance close porte son résultat",
+  });
+
+  /**
+   * LE REPÈRE DU MARCHÉ : SUR COMBIEN DE LIGNES OUVERTES PEUT-IL SE DIRE ?
+   *
+   * Depuis le 29 octobre 2026, le client qui pose une enchère lit ce qu'une
+   * séance comparable a réellement servi, dans l'unité où il tape. Quand rien
+   * de comparable n'existe, le formulaire se tait — c'est la bonne conduite :
+   * un repère faux est pire que pas de repère.
+   *
+   * MAIS UN SILENCE A DEUX CAUSES QUE PERSONNE NE DISTINGUE. Ou bien la place
+   * n'a rien servi de comparable, et il n'y a rien à dire ; ou bien une séance
+   * existe, relue et confirmée, dont le TAUX ou le PRIX n'a pas été saisi —
+   * et alors le repère se tait sur une donnée qu'on avait sous la main.
+   * Mesuré le 29 octobre : sur le Tchad, la seule séance de bons relue
+   * n'imprime aucun taux, et quatre des six séances d'obligations aucun prix.
+   *
+   * CE POINT REND LE SILENCE COMPTABLE. Il ne juge pas la rareté du marché —
+   * une case de panier vide est un fait, pas un défaut ; il compte les lignes
+   * ouvertes où le client ne verra rien, et dit combien de ces silences
+   * tiennent à un communiqué incomplet plutôt qu'à l'absence de séance.
+   */
+  const aSonderOuvertes = offers.filter((o) => (o.kind === "BTA" || o.kind === "OTA") && !o.hidden && isActionable(displayStatus(o, now)));
+  const muettes = aSonderOuvertes.filter((o) => !repereDuMarche(o, adjudications, now));
+  /* Les séances relues dont le chiffre manque dans l'unité du champ : c'est la
+     part du silence qu'une relecture refermerait. */
+  const sansChiffre = adjudications.filter(
+    (s) => s.confirmedBy && !s.setAsideAt && (s.instrument === "BTA" ? s.rateAvg == null && s.rateLimit == null : s.priceAvg == null && s.priceLimit == null),
+  ).length;
+  out.push({
+    key: "repere",
+    label: "Repère du marché sur les adjudications ouvertes",
+    // Un silence n'est pas une panne : il devient une remarque quand il porte
+    // sur plus de la moitié des lignes que le client peut voir.
+    level: aSonderOuvertes.length === 0 || muettes.length === 0 ? "ok" : muettes.length * 2 > aSonderOuvertes.length ? "warn" : "ok",
+    value: `${aSonderOuvertes.length - muettes.length}/${aSonderOuvertes.length}`,
+    detail: muettes.length
+      ? `${muettes.length} ligne(s) sans repère : ${muettes.map((o) => `${o.kind} ${o.country}`).join(", ")}${sansChiffre ? ` · ${sansChiffre} séance(s) relue(s) n'impriment ni taux ni prix : une relecture y rendrait un repère` : " · aucune séance relue ne manque de chiffre, la place est simplement muette sur ces durées"}`
+      : "chaque ligne ouverte porte ce qu'une séance comparable a servi",
   });
 
   // 9. The index against the share prices of the last two sessions read.

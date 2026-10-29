@@ -11,6 +11,16 @@ export interface HealthHow {
 }
 
 export const HEALTH_HOW: Record<string, HealthHow> = {
+  /* LE REPÈRE SE RÉPARE PAR UNE RELECTURE, PAS PAR UN RÉGLAGE. Son silence
+     tient soit à la place — aucune séance comparable, et il n'y a rien à
+     faire — soit à un communiqué relu dont le taux ou le prix n'a pas été
+     saisi, et c'est la page des adjudications qui rouvre celui-là. Le détail
+     du point dit laquelle des deux causes domine. */
+  repere: {
+    label: "Repère du marché sur les adjudications ouvertes",
+    href: "/desk/adjudications",
+    how: "Les séances relues, une par une : rouvrir celles dont le taux précompté ou le prix servi est vide et le saisir depuis le communiqué. Un silence qui ne tient à aucune séance incomplète est la place elle-même : aucune adjudication comparable sur ce Trésor et cette durée depuis deux ans, et le formulaire a raison de ne rien dire.",
+  },
   depouillement: {
     label: "Séances closes sans résultat",
     href: "/desk/resultats",

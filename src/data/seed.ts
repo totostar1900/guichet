@@ -587,6 +587,46 @@ export const SEED_OFFERS: Offer[] = [
     sizeLabel: "20 Mds FCFA",
     version: 0,
   },
+
+  /* ─── UN RACHAT DU TRÉSOR OUVERT, SUR UNE LIGNE QUE LE CLIENT DÉTIENT ─────
+     RELEVÉ LE 29 OCTOBRE 2026, en convertissant le parcours de cession : le
+     jeu d'essai portait deux rachats, tous deux clos depuis six semaines, et
+     dont les ISIN ne correspondaient à aucune ligne détenue par le client de
+     démonstration. La seule sortie qui porte le mot « cession » n'était donc
+     visible NULLE PART — ni son plafond, ni « tout céder », ni ce qui
+     resterait. Elle se vérifiait par le domaine et pas à l'écran, et c'est
+     exactement ce qu'un jeu de démonstration est censé empêcher.
+
+     SON ISIN EST CELUI DE « rca-ota-c-2028 », que le client détient depuis sa
+     prise ferme réglée du 2 juin : c'est par l'ISIN que les positions se
+     recoupent, et un rachat qui ne viserait aucune ligne détenue ne montrerait
+     rien de plus que les deux précédents. */
+  {
+    id: "ex-rca-rachat-ouvert",
+    kind: "RACHAT",
+    operation: "rachat",
+    country: "RCA",
+    countryName: "République centrafricaine",
+    issuer: "Trésor public de la République centrafricaine",
+    title: "Rachat OTA 6,50 % · éch. 14 févr. 2028",
+    isin: "CF2K00000056",
+    status: "published",
+    isExample: true,
+    blurb:
+      "Exemple de rachat ouvert sur une ligne détenue : le Trésor reprend ses titres à 100 % du nominal avant l'échéance. C'est la seule sortie dont la question s'appelle « cession », et elle part de ce qu'on détient — d'où son plafond et son « tout céder ».",
+    documents: [],
+    opensAt: `${leJour(-3)}T09:00:00`,
+    deadlineAt: cloture(18),
+    resultsAt: cloture(18, "15:00:00"),
+    settleOn: leJour(22),
+    maturityOn: "2028-02-14",
+    nominal: 10_000,
+    pricePct: 100,
+    commissionPct: 0,
+    sizeLabel: "5 Mds FCFA",
+    version: 1,
+    pricedAt: `${leJour(-3)}T09:00:00`,
+  },
 ];
 
 export const SEED_INTENTS: Intent[] = [

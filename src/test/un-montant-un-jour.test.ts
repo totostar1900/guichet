@@ -84,6 +84,47 @@ describe("un montant, un jour", () => {
     expect(src, "le minimum a repris la place de la conséquence").toMatch(/verse > 0 \?[\s\S]{0,600}plancher > 0 && <small className="muted">/);
   });
 
+  /**
+   * DEUX ÉCRANS, ET LE SECOND NE DEMANDE RIEN.
+   *
+   * ÉCARTÉ LE 29 OCTOBRE 2026 PUIS DEMANDÉ. J'avais mis les conséquences sous
+   * la main et gardé un seul écran, en jugeant qu'elles suffisaient au moment
+   * de décider. Elles suffisent à DÉCIDER ; elles ne suffisent pas à SIGNER :
+   * un versement programmé porte six décisions dont trois se prennent en bas
+   * de l'écran — la date de fin, ce qu'on fait si un mois bloque, comment
+   * l'argent arrive — et au moment d'appuyer les trois premières sont sorties
+   * du champ de vision.
+   */
+  it("redit les six décisions avant de signer, sans en demander une septième", () => {
+    const src = code(TSX);
+    expect(src, "le formulaire est redevenu d'un seul tenant").toMatch(/data-at=\{etape\}/);
+    const deb = src.indexOf('data-step="2"');
+    expect(deb, "le récapitulatif a disparu").toBeGreaterThan(0);
+    const recap = src.slice(deb, src.indexOf("styles.pied"));
+    for (const dit of ["Vers quel fonds", "Chaque mois", "Jusqu'au", "Si un mois l'exécution est impossible", "Comment l'argent arrivera", "Premier versement le \\{d\\}"]) {
+      expect(recap, `le récapitulatif ne redit plus « ${dit} »`).toMatch(new RegExp(dit));
+    }
+    /* IL NE DEMANDE RIEN DE NEUF : c'est sa valeur. Un écran de confirmation
+       qui pose une question de plus n'est pas une confirmation, c'est une
+       septième décision glissée au moment où l'on n'attend plus rien. */
+    expect(recap, "le récapitulatif pose une question de plus").not.toMatch(/<input|<textarea|<Select/);
+  });
+
+  /* LES CHAMPS SONT CACHÉS, PAS DÉMONTÉS : le formulaire part entier, et
+     « Corriger » ne perd rien de ce qu'on a tapé. */
+  it("cache les champs au lieu de les démonter", () => {
+    const css = fs.readFileSync(path.join(ROOT, "src/components/Standing.module.css"), "utf8");
+    expect(css, "les étapes ne se cachent plus par la feuille").toMatch(/\.form\[data-at="2"\] \[data-step="1"\] \{\s*\n?\s*display: none/);
+    expect(code(TSX), "le retour en arrière a disparu").toMatch(/onClick=\{\(\) => setEtape\(1\)\}/);
+  });
+
+  /* ON NE PASSE PAS AU RÉCAPITULATIF SUR UN FORMULAIRE INCOMPLET : sans
+     montant, il dirait « 0 FCFA sur douze mois », et un récapitulatif qui ment
+     est pire que pas de récapitulatif. */
+  it("ne laisse pas passer un montant sous le minimum", () => {
+    expect(code(TSX), "le passage au récapitulatif ne vérifie plus le montant").toMatch(/disabled=\{!\(verse > 0\) \|\| verse < plancher\}/);
+  });
+
   /* LE JOUR D'AUJOURD'HUI VIENT DU SERVEUR. « new Date() » pendant un rendu
      donne une valeur au serveur et une autre au navigateur : c'est une
      discordance d'hydratation la nuit du passage à minuit, et la maison s'est
