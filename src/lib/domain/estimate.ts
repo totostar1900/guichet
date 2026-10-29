@@ -147,7 +147,21 @@ export function redemptionEstimate(o: Offer, units: number): string {
 export interface SurveyTrio {
   /** Titres ou bons, à l'entier : on n'en achète pas des fractions. */
   count: number;
-  /** Ce que coûte une unité, en francs. */
+  /**
+   * Ce que coûte une unité, en francs — AVEC SES CENTIMES SUR UN BON.
+   *
+   * Il était arrondi au franc, et l'arrondi mentait deux fois. Au bas du
+   * formulaire, « Total à décaisser » calcule sur le prix réel : les deux
+   * nombres différaient de deux francs sur le même écran, sous deux
+   * étiquettes qui disent la même chose. Et la case « quantité », qui
+   * multipliait par cet arrondi, retombait un franc trop bas une fois sur
+   * deux — la quantité qu'on venait de taper revenait alors diminuée d'une
+   * unité, quand elle ne vidait pas la case.
+   *
+   * Un prix de bon s'écrit avec ses centimes partout ailleurs : le Trésor
+   * camerounais imprime « 9 899,45 ». L'arrondi n'était donc pas une
+   * convention de la place, seulement une commodité d'affichage.
+   */
   each: number;
   /** Le produit exact des deux. */
   total: number;
@@ -159,12 +173,28 @@ export interface SurveyTrio {
   rate: number;
 }
 
+/**
+ * LE MONTANT À POSER POUR N UNITÉS, ET POURQUOI IL EST ARRONDI PAR LE HAUT.
+ *
+ * Le formulaire ne porte qu'un nombre, en francs : c'est lui qui part au desk,
+ * et c'est lui que « surveyTrio » relit pour réafficher une quantité. La
+ * relecture divise et prend l'entier par le bas, donc le montant posé doit
+ * couvrir les n unités À LA FRANCHE SUPÉRIEURE — sans quoi la quantité qu'on
+ * vient de taper revient diminuée d'une unité dès que le prix porte des
+ * centimes, c'est-à-dire presque toujours sur un bon.
+ *
+ * Le calcul vit ici plutôt que dans le gestionnaire du champ pour la raison
+ * habituelle : une épreuve qui le refait à côté ne garde rien, et c'est
+ * exactement ce qu'on a constaté en essayant de la faire tomber.
+ */
+export const montantPourUnites = (t: SurveyTrio, unites: number): number => Math.ceil(Math.max(0, unites) * t.amountPerUnit);
+
 export function surveyTrio(o: Offer, amount: number, limit: number | null): SurveyTrio | null {
   if (o.kind === "BTA") {
     const rate = limit ?? o.precountRate;
     if (rate == null || !o.maturityOn) return null;
     const r = btaCalc({ nominal: o.nominal, settleOn: o.settleOn, maturityOn: o.maturityOn }, amount, rate);
-    const each = Math.round(r.pricePerBond);
+    const each = r.pricePerBond;
     if (each <= 0) return null;
     return { count: r.n, each, total: r.n * each, amountPerUnit: each, amountPerTotal: 1, rate };
   }

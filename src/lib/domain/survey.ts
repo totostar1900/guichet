@@ -161,3 +161,34 @@ export function surveyLimitBlock(o: Offer, limit: number): string | null {
   if (surveyUnit(o) === "taux") return limit > 30 ? "Un taux au-dessus de 30 % est probablement une faute de frappe." : null;
   return limit < 50 || limit > 150 ? "Un prix se dit en pourcentage du nominal, entre 50 et 150." : null;
 }
+
+/**
+ * DANS QUEL SENS ON SE DÉPLACE — ET LE SENS S'INVERSE D'UN COMPARTIMENT À
+ * L'AUTRE, CE QUI EST TOUTE LA DIFFICULTÉ.
+ *
+ * Le Trésor sert d'abord ce qui lui coûte le moins. Sur un bon, cela veut dire
+ * les TAUX LES PLUS BAS ; sur une obligation, les PRIX LES PLUS HAUTS. Un
+ * client qui a compris « plus bas = servi plus souvent » sur un bon applique la
+ * même règle à une obligation et se fait servir à coup sûr, au pire prix.
+ *
+ * Cette phrase n'était écrite nulle part sur le formulaire. Elle existait sur
+ * la page du calendrier, pour le prix seulement, à deux écrans de l'endroit où
+ * l'on tape le chiffre. Le client posait donc son enchère sans savoir dans
+ * quel sens pousser — c'est-à-dire en pariant.
+ *
+ * ELLE NE DIT PAS QUOI FAIRE. Le guichet ne conseille pas : il dit ce que le
+ * mouvement produit dans chaque sens, et le client choisit.
+ */
+export function sensDeLaCondition(o: Offer): { attente: string; dessous: string; dessus: string } {
+  return surveyUnit(o) === "taux"
+    ? {
+        attente: "Un taux plus bas est servi plus souvent et rapporte moins ; un taux plus haut rapporte davantage, s'il est servi.",
+        dessous: "Sous le taux annoncé : servi plus souvent, rapporte moins.",
+        dessus: "Au-dessus du taux annoncé : rapporte davantage, servi moins souvent.",
+      }
+    : {
+        attente: "Un prix plus haut est servi plus souvent et rapporte moins ; un prix plus bas rapporte davantage, s'il est servi.",
+        dessous: "Sous le prix annoncé : rapporte davantage, servi moins souvent.",
+        dessus: "Au-dessus du prix annoncé : servi plus souvent, rapporte moins.",
+      };
+}

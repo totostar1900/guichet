@@ -8,6 +8,7 @@ import { positionsFrom } from "@/lib/positions";
 import { FENETRE_MAX_JOURS, arriveesPossibles } from "@/lib/domain/arbitrage";
 import { fmt, fmtPct, fmtPrice, localIso } from "@/lib/format";
 import type { FinancialProfile } from "@/data/profile";
+import { repereDuMarche, type Repere } from "@/lib/market/repere";
 
 /**
  * What the intention form needs, loaded once for the fiche (desk-sized
@@ -48,6 +49,15 @@ export interface IntentContext {
    * rendu, que le linter refuse à juste titre.
    */
   fenetre: { min: string; max: string };
+  /**
+   * CE QUE LA PLACE A SERVI LA DERNIÈRE FOIS, sur une adjudication seulement.
+   *
+   * Le gabarit du champ porte le niveau ANNONCÉ, qui est le vœu du Trésor. Le
+   * repère dit ce qu'une séance comparable a réellement payé, dans l'unité où
+   * le client tape. Vide quand rien de comparable n'existe dans le pays : un
+   * repère faux est pire que pas de repère.
+   */
+  repere?: Repere;
 }
 
 export type IntentSearch = { intent?: string; qty?: string; de?: string };
@@ -70,13 +80,21 @@ export async function loadIntentContext(o: Offer, sp: IntentSearch, session: Ses
      formulaire n'avait ni plafond, ni « tout céder », ni ce qui resterait.
      Un lecteur anonyme ne lit toujours rien de tout cela. */
   const wantsHeld = Boolean(session) && (o.kind === "MARCHE" || o.kind === "FONDS" || o.kind === "RACHAT");
-  const [{ readLineLink }, { profileFlag }, channels, fin, allIntents, allOffers] = await Promise.all([
+  /* LE REPÈRE DU MARCHÉ NE SE LIT QUE SUR UNE ADJUDICATION, et la lecture est
+     étroite : le pays et le compartiment de CETTE ligne. Le reste du filtrage
+     — la vie restante, les abondements, la fenêtre — se fait en mémoire, parce
+     qu'il demande un calcul que la base ne sait pas faire. Un lecteur anonyme
+     la paie comme les autres : le repère est un fait public, pas une donnée
+     de compte. */
+  const wantsRepere = (o.kind === "BTA" || o.kind === "OTA") && Boolean(o.country) && !isPast(displayStatus(o));
+  const [{ readLineLink }, { profileFlag }, channels, fin, allIntents, allOffers, seances] = await Promise.all([
     import("@/lib/channels"),
     import("@/data/profile"),
     session ? repo().getChannelStatus(session.userId) : undefined,
     session ? repo().getFinancialProfile(session.userId).catch(() => undefined) : undefined,
     wantsHeld ? repo().listIntents() : [],
     wantsHeld ? repo().listOffers() : [],
+    wantsRepere ? repo().listAuctionResults({ country: o.country, instrument: o.kind as "BTA" | "OTA", limit: 400 }).catch(() => []) : [],
   ]);
   // Came through the desk's WhatsApp link: that number is vouched for, the form asks for the e-mail code only.
   const bridgedPhone = readLineLink(sp.de);
@@ -103,7 +121,9 @@ export async function loadIntentContext(o: Offer, sp: IntentSearch, session: Ses
   const qty = sp.qty && /^[\d.,]+$/.test(sp.qty) ? Number(sp.qty.replace(",", ".")) : undefined;
   const jour = (n: number) => localIso(new Date(Date.now() + n * 86_400_000));
   const fenetre = { min: jour(1), max: jour(FENETRE_MAX_JOURS) };
-  return { o, session, channels, bridge, fin, mark, types, initial, held, qty, st, past, switchTargets, fenetre };
+  // Le repère se tait de lui-même quand rien de comparable n'existe.
+  const repere = wantsRepere ? repereDuMarche(o, seances) : undefined;
+  return { o, session, channels, bridge, fin, mark, types, initial, held, qty, st, past, switchTargets, fenetre, repere };
 }
 
 /** The intention page for a line, with the type or quantity a caller pre-selects. */

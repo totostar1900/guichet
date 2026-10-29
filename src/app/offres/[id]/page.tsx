@@ -129,7 +129,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
               canalInitial={canalDemande}
             />
           </div>
-          <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} switchTargets={switchTargets} fenetre={ctx.fenetre} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && peutOPCVM(session) ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} investable={fin?.investable} />
+          <IntentForm offer={o} types={types} initialType={initial} initialAmount={qty} held={held} switchTargets={switchTargets} fenetre={ctx.fenetre} repere={ctx.repere} past={past} signedIn={Boolean(session)} tier={o.kind === "FONDS" && peutOPCVM(session) ? 2 : (session?.tier ?? 0)} phone={session?.phone ?? ""} phoneProven={Boolean(session?.phoneVerified)} email={session?.email ?? ""} name={session?.name ?? ""} channels={channels} bridge={bridge} profileFlag={mark?.level === "warn" ? mark[lang] : undefined} investable={fin?.investable} />
           {o.maturityOn && !past && (
             <div className={styles.sideNote}>
               {t("Durée réelle")} <b>{t(tenorText(o.settleOn, o.maturityOn))}</b> · {t("règlement le")} {fmtDate(o.settleOn)} · {o.sizeLabel ?? ""}

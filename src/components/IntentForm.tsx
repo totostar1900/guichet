@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { poserLeBrouillon } from "@/lib/brouillon";
 import type { IntentResult } from "@/app/offres/[id]/actions";
 import { submitIntent } from "@/app/offres/[id]/actions";
@@ -9,15 +9,17 @@ import type { ChannelStatus } from "@/lib/domain/types";
 import { normalizePhone, fmtPct } from "@/lib/format";
 import { ProofBlock } from "@/components/ProofBlock";
 import { TrustNudge } from "@/components/TrustNudge";
-import { equivalence, estimate, marketEstimate, redemptionEstimate, surveyTrio } from "@/lib/domain/estimate";
+import { equivalence, estimate, marketEstimate, montantPourUnites, redemptionEstimate, surveyTrio } from "@/lib/domain/estimate";
 import { orderChecks, resteApres } from "@/lib/domain/checks";
+import { sensDeLaCondition } from "@/lib/domain/survey";
+import type { Repere } from "@/lib/market/repere";
 import { marketBondCalc } from "@/lib/domain/status";
 import { OrderFlows } from "@/components/OrderFlows";
 import { Info } from "./Info";
 import { Select } from "@/components/ui/Select";
 import { INTENT_LABEL, sensDeLIntention } from "@/lib/domain/intent";
 import type { IntentType, Offer } from "@/lib/domain/types";
-import { fmt, parseAmount, parseUnits } from "@/lib/format";
+import { fmt, fmtDate, parseAmount, parseUnits } from "@/lib/format";
 import styles from "./IntentForm.module.css";
 import { useLang, useT } from "@/i18n/client";
 import { amountFlag } from "@/data/profile";
@@ -74,7 +76,7 @@ export interface SwitchTarget {
   fonds: boolean;
 }
 
-export function IntentForm({ offer, types, initialType, initialAmount, held = 0, switchTargets = [], fenetre, past, signedIn, tier = 0, phone = "", phoneProven = false, email = "", name = "", channels, bridge, profileFlag, investable, monthly }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; switchTargets?: SwitchTarget[]; /** Les deux bouts de la fenêtre d'un arbitrage, calculés au serveur : voir « intent-context ». */ fenetre?: { min: string; max: string }; past: boolean; signedIn: boolean; tier?: number; phone?: string; /** le numéro de la session a été confirmé par un code à la connexion */ phoneProven?: boolean; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number; /** Le versement programmé, quand la ligne en accepte un : l'autre branche du choix. */ monthly?: ReactNode }) {
+export function IntentForm({ offer, types, initialType, initialAmount, held = 0, switchTargets = [], fenetre, repere, past, signedIn, tier = 0, phone = "", phoneProven = false, email = "", name = "", channels, bridge, profileFlag, investable, monthly }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; switchTargets?: SwitchTarget[]; /** Les deux bouts de la fenêtre d'un arbitrage, calculés au serveur : voir « intent-context ». */ fenetre?: { min: string; max: string }; /** Ce qu'une séance comparable a réellement servi, dans l'unité du champ : voir « market/repere ». */ repere?: Repere; past: boolean; signedIn: boolean; tier?: number; phone?: string; /** le numéro de la session a été confirmé par un code à la connexion */ phoneProven?: boolean; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number; /** Le versement programmé, quand la ligne en accepte un : l'autre branche du choix. */ monthly?: ReactNode }) {
   // The profile name is "Prénom Nom" when the client typed it, or an e-mail stub otherwise.
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
   const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
@@ -229,6 +231,27 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const simultane = Boolean(arrivee?.fonds && offer.kind === "FONDS");
   const limitNum = limit ? Number(limit.replace(",", ".")) : null;
   const lim = limitNum != null && !isNaN(limitNum) && limitNum > 0 ? limitNum : null;
+  /* LE SENS DU LEVIER, ET IL S'INVERSE D'UN COMPARTIMENT À L'AUTRE : le Trésor
+     sert d'abord ce qui lui coûte le moins, donc les taux les plus bas sur un
+     bon et les prix les plus hauts sur une obligation. Le repère est le niveau
+     annoncé — celui qui sert déjà de gabarit au champ —, et la phrase change
+     avec le chiffre tapé plutôt que de rester une consigne figée. */
+  /* LE REPÈRE, RENDU UNE FOIS POUR LES DEUX CHAMPS QUI POSENT LA MÊME
+     QUESTION. Il dit ce qu'une séance comparable a servi, là où le gabarit du
+     champ ne dit que ce que le Trésor annonce. Quand il ne tient qu'à une
+     séance, il le dit : c'est la forme d'un seul carnet, pas celle du marché. */
+  const repereDit = repere ? (
+    <small className={styles.repere}>
+      {t("Dernière séance comparable")} : <b>{fmtPct(repere.niveau, 2)}</b> {t("le")} {fmtDate(repere.le)}
+      {repere.uneSeule && <> · {t("une seule séance, donc aucune dispersion mesurée")}</>}
+    </small>
+  ) : null;
+  const sens = useMemo(() => {
+    const d = sensDeLaCondition(offer);
+    const annonce = offer.kind === "BTA" ? offer.precountRate : offer.pricePct;
+    if (lim == null || annonce == null || lim === annonce) return { mot: d.attente, ecart: "aucun" as const };
+    return lim < annonce ? { mot: d.dessous, ecart: "dessous" as const } : { mot: d.dessus, ecart: "dessus" as const };
+  }, [offer, lim]);
   // Vendre ou racheter part d'un nombre de titres détenus : la somme n'y a pas
   // de sens, et « tout vendre » encore moins.
   const vend = type === "vente" || type === "rachat" || type === "cession";
@@ -299,10 +322,21 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const equiv = needsAmount && !trio ? equivalence(offer, ordered, type) : null;
   // Ce que la demande laisse de côté, par la même règle que sur la cote : une
   // unité est entière.
-  const trioRest = trio ? Math.max(0, ordered - trio.count * trio.amountPerUnit) : 0;
+  // Au franc entier : le prix d'un bon porte des centimes, et « 0 FCFA ne sont
+  // pas placés » arrondi vers le haut deviendrait « 1 FCFA » — une phrase
+  // alarmante sur une poussière.
+  const trioRest = trio ? Math.max(0, Math.floor(ordered - trio.count * trio.amountPerUnit)) : 0;
   // Sur une ligne cotée, ce que la somme demandée laisse de côté : un titre ne
   // se coupe pas, et le carnet n'en prend que des entiers, par quotité.
   const marketRest = byCash && ordered > 0 ? Math.max(0, parseAmount(cash) - Math.round(ordered * unitPrice(offer, type, lim))) : 0;
+  /* LE FRANC, ET SES CENTIMES QUAND IL EN A.
+     Un prix de bon en porte presque toujours ; un nominal d'obligation jamais.
+     Écrire « 9 700,00 » là où il n'y a rien à dire ajoute du bruit, et taire
+     « ,22 » là où il y a quelque chose fait deux totaux sur un écran. */
+  const franc = (n: number) => {
+    const [entier, deci] = n.toFixed(2).split(".");
+    return deci === "00" ? groupDigits(entier) : `${groupDigits(entier)},${deci}`;
+  };
   /* CE QUI SORT PART DE CE QU'ON DÉTIENT, et la maison a un nom pour « ce qui
      sort » : la liste écrite ici à la main oubliait la cession, comme deux
      autres endroits l'oubliaient. */
@@ -590,13 +624,19 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                   petite pendant que l'autre grandit. */}
               <label className={`field ${unit === "titres" ? styles.chiffreTape : styles.chiffreSuit}`}>
                 <span>{t(offer.kind === "BTA" ? "Quantité (bons)" : "Quantité (titres)")}</span>
+                {/* AU FRANC SUPÉRIEUR, et ce n'est pas une coquetterie : le
+                    montant qu'on pose ici sera relu par un calcul qui divise et
+                    prend l'entier par le bas. Arrondi au plus proche, la
+                    quantité qu'on venait de taper revenait diminuée d'une unité
+                    chaque fois que le prix d'un bon tombait sous la demie —
+                    c'est-à-dire une fois sur deux. */}
                 <input
                   inputMode="numeric"
                   placeholder="10"
                   value={trio.count ? groupDigits(String(trio.count)) : ""}
                   {...groupedInput((v) => {
                     setUnit("titres");
-                    setAmount(groupDigits(String(Math.round((Number(v.replace(/\D/g, "")) || 0) * trio.amountPerUnit))));
+                    setAmount(groupDigits(String(montantPourUnites(trio, Number(v.replace(/\D/g, "")) || 0))));
                   })}
                 />
                 <small className={styles.calc}>{t("à l'entier : une unité ne se coupe pas")}</small>
@@ -606,7 +646,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               </span>
               <label className="field">
                 <span>{t(offer.kind === "BTA" ? "Prix du bon (FCFA)" : "Prix du titre (FCFA)")}</span>
-                <input readOnly value={groupDigits(String(trio.each))} />
+                <input readOnly value={franc(trio.each)} />
                 <small className={styles.calc}>
                   {t(offer.kind === "BTA" ? "à {r} % précompté sur un nominal de {n} FCFA" : "à {r} % d'un nominal de {n} FCFA", { r: String(trio.rate).replace(".", ","), n: fmt(offer.nominal) })}
                 </small>
@@ -620,7 +660,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                   data-order-field
                   inputMode="numeric"
                   placeholder="10 000 000"
-                  value={trio.total ? groupDigits(String(trio.total)) : ""}
+                  value={trio.total ? franc(trio.total) : ""}
                   {...groupedInput((v) => {
                     setUnit("francs");
                     setAmount(groupDigits(String(Math.round((Number(v.replace(/\D/g, "")) || 0) * trio.amountPerTotal))));
@@ -649,6 +689,15 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                     {t(offer.kind === "BTA" ? "Taux minimum (facultatif)" : "Prix maximum (facultatif)")} : {t(offer.kind === "BTA" ? "% précompté" : "% du nominal")}
                   </span>
                   <input name="limitPrice" type="number" step={offer.kind === "BTA" ? "0.01" : "0.001"} placeholder={String((offer.kind === "BTA" ? offer.precountRate : offer.pricePct) ?? "")} value={limit} onChange={(e) => setLimit(e.target.value)} />
+                  {/* DEUX CHOSES QUE LE CHIFFRE SEUL NE DIT PAS : ce que la
+                      place a servi la dernière fois, et dans quel sens on se
+                      déplace. Le gabarit du champ ne porte que le niveau
+                      ANNONCÉ, qui est le vœu du Trésor ; et le sens s'inverse
+                      entre un bon et une obligation, ce qui est toute la
+                      difficulté. Les deux viennent du domaine, parce que ce
+                      sont des règles du marché et non des tournures d'écran. */}
+                  {repereDit}
+                  <small className={styles.sens}>{t(sens.mot)}</small>
                   <small className="muted">{t("Sans condition, votre demande tient quel que soit le résultat.")}</small>
                 </label>
               </div>
@@ -778,6 +827,11 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                 value={limit}
                 onChange={(e) => setLimit(e.target.value)}
               />
+              {/* LE MÊME REPÈRE ET LE MÊME SENS QU'AU-DESSUS. Deux champs
+                  posent la même question dans ce formulaire ; en instruire un
+                  seul, c'est laisser l'autre parier. */}
+              {repereDit}
+              <small className={styles.sens}>{t(sens.mot)}</small>
               <small className="muted">{t("Sans condition, votre demande tient quel que soit le résultat.")}</small>
             </label>
           )}
@@ -926,6 +980,24 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                     quatre lignes dans un tableau qui en tient une. */}
                 {t(equiv.line).replace("≈ ", "").split(" · ")[0]}
                 {equiv.restLine && <small>{t(equiv.restLine)}</small>}
+              </b>
+            </div>
+          )}
+          {/* LA CONDITION, AU MOMENT OÙ L'ON SIGNE.
+
+              Le récapitulatif disait la ligne, la nature de la demande, le
+              montant et le contact — et pas la condition. Sur une
+              adjudication, c'est pourtant le second des deux nombres qui
+              décident, et celui qui engage le plus : on signait un taux
+              minimum qu'on ne voyait plus depuis deux écrans. Elle paraît ici
+              avec le MOT DE SON COMPARTIMENT, et avec le « si » qui dit qu'une
+              adjudication ne se promet pas. */}
+          {survey && lim != null && (
+            <div>
+              <span>{t(offer.kind === "BTA" ? "Taux minimum" : "Prix maximum")}</span>
+              <b>
+                {fmtPct(lim, 2)}
+                <small>{t("Si l'adjudication sort au-delà, votre demande n'est pas servie.")}</small>
               </b>
             </div>
           )}

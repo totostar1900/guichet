@@ -378,6 +378,17 @@
     min-width: 0;
     overflow-wrap: anywhere;
   }
+  /* LE « SI » DU RÉCAPITULATIF. Une adjudication ne se promet pas, et la
+     condition qu'on signe doit porter sa conséquence à côté d'elle : sans
+     cette ligne, « 5,20 % » se lit comme un acquis. */
+  .recap b small {
+    display: block;
+    margin-top: 2px;
+    color: var(--ink-3);
+    font-weight: 400;
+    font-size: var(--t-1);
+    text-align: right;
+  }
   /* La phrase au-dessus, les boutons sur une rangée en dessous. */
   .actions {
     display: block;
@@ -528,6 +539,37 @@
   color: var(--ink);
   font-weight: 600;
 }
+/* CE QUE LA PLACE A SERVI LA DERNIÈRE FOIS.
+
+   Le chiffre porte, la phrase qui l'entoure non : c'est un repère, pas une
+   consigne, et le client doit pouvoir le comparer d'un coup d'œil à ce qu'il
+   s'apprête à taper. D'où la même chasse que les champs qu'il commente. */
+.repere {
+  display: block;
+  margin-top: var(--s-2);
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  line-height: 1.45;
+}
+.repere b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* DANS QUEL SENS ON SE DÉPLACE.
+
+   Ce n'est pas une note de bas de champ : c'est la seule chose que le client a
+   besoin de comprendre pour poser une enchère, et le sens s'inverse entre un
+   bon et une obligation. Elle se lit donc à l'encre du texte, au-dessus de la
+   note grise qui, elle, ne dit qu'une règle administrative. */
+.sens {
+  display: block;
+  margin-top: var(--s-2);
+  color: var(--ink-2);
+  font-size: var(--t-2);
+  line-height: 1.45;
+}
+
 /* CE QU'IL VOUS RESTERA. Ce n'est ni un avertissement ni une note de bas de
    champ : sur une sortie, c'est LA conséquence — on ne décide pas d'une somme,
    on décide de ce qu'on garde. Elle se lit donc au corps et à l'encre du
