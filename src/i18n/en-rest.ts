@@ -1486,7 +1486,7 @@ export const EN_REST: Record<string, string> = {
   "Chercher une page, une réponse": "Search a page or an answer",
   "Rien de ce nom": "Nothing by that name",
   "Glossaire": "Glossary",
-  "Éclairage": "Briefing",
+  "Éclairage": "Insight",
   /* Les pages nées du démontage du Guide. */
   "Le vocabulaire du marché, défini une fois : chaque terme tel qu'il est employé dans les fiches, les ordres et les documents de la maison.": "The market's vocabulary, defined once: every term as it is used on the line sheets, the orders and the firm's documents.",
   "Comment lire ce chapitre ?": "How to read this chapter?",
@@ -1530,7 +1530,7 @@ export const EN_REST: Record<string, string> = {
   "comprendre avant de placer": "understand before you invest",
   /* Les six entrées du menu « Aide », nées le 29 octobre 2026 des sections du
      Guide remontées : chacune a maintenant son adresse, donc son nom. */
-  "huit éclairages de deux minutes : rendement, coupon, adjudication, risques": "eight two-minute briefings: yield, coupon, auction, risks",
+  "huit éclairages de deux minutes : rendement, coupon, adjudication, risques": "eight two-minute insights: yield, coupon, auction, risks",
   "Le parcours CEMAC": "The CEMAC course",
   "le marché, de bout en bout": "the market, end to end",
   "le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie": "the market and its players, the instruments, the risks, placing an order, tax and fees, rates and currency",

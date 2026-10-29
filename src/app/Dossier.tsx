@@ -180,7 +180,9 @@ export async function Dossier({ session }: { session: Session }) {
       </section>
 
       <p className={styles.aide}>
-        {t("Une question avant d'aller plus loin ?")} <Link href="/info">{t("le guide")}</Link>
+        {/* Une question appelle les réponses, pas un sommaire : « le guide »
+            nommait une page démontée le 29 octobre 2026. */}
+        {t("Une question avant d'aller plus loin ?")} <Link href="/info/aide">{t("les questions courantes")}</Link>
         {" · "}
         <Link href="/info/risques">{t("les risques et les limites")}</Link>
       </p>

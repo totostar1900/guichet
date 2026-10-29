@@ -9,7 +9,8 @@
  */
 export const EN_VITRINE: Record<string, string> = {
   /* ---------- le pied, pour qui n'est pas entré ---------- */
-  "Le guide": "The guide",
+  /* « Le guide » est parti du pied le 29 octobre 2026 : il nommait une page
+     démontée. « Éclairages », qui le remplace, vit dans EN_CONTENT. */
   "Aide et contact": "Help and contact",
 
   /* ---------- l'ouverture ---------- */

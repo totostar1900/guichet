@@ -80,7 +80,10 @@ const TABS = [
      deux temps, et « Nous joindre » doublait le pied de page. */
   { href: "/placements", label: "Nos placements", match: (p: string) => p.startsWith("/placements"), visiteur: true },
   { href: "/a-propos", label: "À propos", match: (p: string) => p.startsWith("/a-propos"), visiteur: true },
-  { href: "/info", label: "Guide", match: (p: string) => (p.startsWith("/info") && !p.startsWith("/info/risques")) || p.startsWith("/comparer"), visiteur: true },
+  /* L'ONGLET NOMME UNE FAMILLE, pas une page : il la garde. Mais il ouvrait
+     « /info », qui ne fait plus que rediriger depuis le 29 octobre 2026 ; il
+     ouvre maintenant la page d'où la famille se lit. */
+  { href: "/info/eclairages", label: "Guide", match: (p: string) => (p.startsWith("/info") && !p.startsWith("/info/risques")) || p.startsWith("/comparer"), visiteur: true },
   /* Les deux adresses qu'un visiteur peut lire en plus du guide. Elles ne
      paraissent qu'à lui : connecté, les publications vivent dans le menu
      « Marché » et les risques au pied de page. */

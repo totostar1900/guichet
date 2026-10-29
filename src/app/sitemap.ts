@@ -35,8 +35,15 @@ export const dynamic = "force-dynamic";
  * dissuade à tort. On la posera le jour où une page saura la sienne.
  */
 
-/** Les pages du guide dont l'adresse est fixe, en plus des leçons du référentiel. */
-const GUIDE = ["/info", "/info/aide", "/info/mentions", "/info/parcours", "/info/risques"];
+/**
+ * Les pages du guide dont l'adresse est fixe, en plus des leçons du référentiel.
+ *
+ * « /info » N'Y EST PLUS : elle ne fait que rediriger depuis le 29 octobre
+ * 2026, et proposer une redirection à un moteur lui fait payer un aller pour
+ * rien. Les trois pages nées de son démontage sont nommées à sa place ; les
+ * huit chapitres de l'aide s'ajoutent plus bas, lus du document lui-même.
+ */
+const GUIDE = ["/info/eclairages", "/info/glossaire", "/info/simulateur", "/info/aide", "/info/mentions", "/info/parcours", "/info/risques"];
 
 /**
  * Les adresses qui ne dépendent d'aucune lecture, donc qui répondent toujours.
@@ -65,6 +72,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const l of await loadLessons()) chemins.push(`/info/${l.key}`);
   } catch {
     /* le socle suffit */
+  }
+
+  /* Les huit chapitres de l'aide : ils ont leur adresse depuis le 29 octobre
+     2026, et c'est là que vivent les quarante et une réponses. */
+  try {
+    const { PUBLIC_DOCS } = await import("@/data/docs");
+    for (const c of PUBLIC_DOCS[0]?.chapters ?? []) chemins.push(`/info/aide/${c.id}`);
+  } catch {
+    /* « /info/aide » reste, et mène aux huit */
   }
 
   /* Les notes de marché publiées, page seule : le PDF est une forme de la

@@ -64,8 +64,14 @@ export default async function ContactPage() {
 
         <section className={styles.autres}>
           <p>
-            {t("La réponse est souvent déjà écrite : le guide répond aux questions courantes, et les éclairages expliquent ce qui se passe derrière un ordre.")}{" "}
-            <Link href="/info">{t("Le guide")}</Link>
+            {/* LA PHRASE PROMETTAIT DEUX CHOSES ET N'EN OUVRAIT QU'UNE : les
+                questions courantes et les éclairages, derrière un seul lien
+                nommé « Le guide » — une page démontée le 29 octobre 2026.
+                Chacune a son adresse, donc son lien. */}
+            {t("La réponse est souvent déjà écrite : les questions courantes répondent à ce qu'on nous demande le plus, et les éclairages expliquent ce qui se passe derrière un ordre.")}{" "}
+            <Link href="/info/aide">{t("Questions courantes")}</Link>
+            {" · "}
+            <Link href="/info/eclairages">{t("Éclairages")}</Link>
           </p>
           {/* LA RÉCLAMATION SE NOMME. Une maison qui n'écrit pas le mot oblige
               son client à l'inventer, et c'est précisément quand il va mal

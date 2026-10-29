@@ -275,9 +275,9 @@ export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
                         Le Guide s'ouvrait à son sommaire, ou à l'éclairage laissée
                         en plan : deux destinations utiles, mais aucune ne
                         répond à « qu'est-ce que je regarde ». */}
-                    <Link className={styles.tile} href={guideClient?.href ?? (resume && lues > 0 ? `/info/${resume.key}` : "/info")} onClick={close}>
+                    <Link className={styles.tile} href={guideClient?.href ?? (resume && lues > 0 ? `/info/${resume.key}` : "/info/eclairages")} onClick={close}>
                       <Icon d={D.book} />
-                      <b>{t(guideClient ? "Cette page expliquée" : "Le Guide")}</b>
+                      <b>{t(guideClient ? "Cette page expliquée" : "Éclairages")}</b>
                       <small>{guideClient ? t(guideClient.titre) : index ? t("{d} / {n} lues", { d: lues, n: index.lessons.length }) : t("éclairages, outils, glossaire")}</small>
                     </Link>
                     <Link className={styles.tile} href="/moi/profil" onClick={close}>

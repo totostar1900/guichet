@@ -59,6 +59,6 @@ export const EN_DOSSIER: Record<string, string> = {
   "Un conseiller attitré, dont le nom et le numéro figureront ici": "A named adviser, whose name and number will appear here",
   "Rien ne part et rien n'est prélevé avant cela. Créer un compte ne vous engage à rien.": "Nothing goes out and nothing is debited before then. Creating an account commits you to nothing.",
   "Une question avant d'aller plus loin ?": "A question before going further?",
-  "le guide": "the guide",
+  "les questions courantes": "the common questions",
   "les risques et les limites": "risks and limits",
 };

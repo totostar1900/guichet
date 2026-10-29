@@ -624,6 +624,8 @@ export const EN_MORE: Record<string, string> = {
   "revoir la présentation": "watch the presentation again",
   "six écrans, deux minutes": "six screens, two minutes",
   "les questions qu'on nous pose": "the questions we are asked",
+  /* La barre du Guide garde son nom : elle nomme la famille, pas la page
+     démontée — son libellé et son « aria-label » le disent encore. */
   "Le Guide": "The Guide",
   "éclairages et glossaire": "insights and glossary",
   "Réglages": "Settings",

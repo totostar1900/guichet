@@ -40,8 +40,8 @@ export const EN_TRADE: Record<string, string> = {
   "Nous contacter": "Contact us",
   "Une personne suit votre compte. Écrivez-lui : le message part avec ce qu'il faut pour qu'on n'ait pas à vous demander qui vous êtes.":
     "A person follows your account. Write to them: the message leaves with what is needed, so nobody has to ask who you are.",
-  "La réponse est souvent déjà écrite : le guide répond aux questions courantes, et les éclairages expliquent ce qui se passe derrière un ordre.":
-    "The answer is often already written: the guide covers the common questions, and the explainers say what happens behind an order.",
+  "La réponse est souvent déjà écrite : les questions courantes répondent à ce qu'on nous demande le plus, et les éclairages expliquent ce qui se passe derrière un ordre.":
+    "The answer is often already written: the common questions cover what we are asked most, and the insights say what happens behind an order.",
   "Si quelque chose s'est mal passé et qu'un message ne suffit pas, déposez une réclamation : elle est enregistrée, datée, et vous en suivez le traitement.":
     "If something went wrong and a message is not enough, file a complaint: it is recorded, dated, and you follow how it is handled.",
   "Déposer une réclamation": "File a complaint",

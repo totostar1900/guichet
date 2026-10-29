@@ -42,8 +42,10 @@ export default async function ProfilPage() {
   return (
     <Glissement>
       <div className={styles.wrap}>
+        {/* Le visiteur arrive par la page des éclairages, qui cite ce
+            questionnaire : le retour nomme la page d'où il vient. */}
         <EnTete
-          retour={s ? { href: "/moi/compte", mot: t("Votre compte") } : { href: "/info", mot: t("Le guide") }}
+          retour={s ? { href: "/moi/compte", mot: t("Votre compte") } : { href: "/info/eclairages", mot: t("Éclairages") }}
           surTitre={s ? t("Vous") : undefined}
           titre={t("Profil d'investisseur")}
           phrase={t("Votre horizon, votre tolérance au risque, et ce que la maison en déduit.")}

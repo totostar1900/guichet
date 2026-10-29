@@ -336,7 +336,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               pastille du coin (PorteVitrine), où il est dans un « div ». */}
           {!session && !onDeskHost && (
             <p className={styles.porteVisiteur}>
-              <Link href="/info">{t("Le guide")}</Link>
+              {/* LE LIEN NOMME LA PAGE QU'IL OUVRE. « Le guide » nommait une
+                  page démontée le 29 octobre 2026 : elle n'est plus qu'une
+                  redirection, et le mot promettait un sommaire qu'on
+                  n'atteignait plus. */}
+              <Link href="/info/eclairages">{t("Éclairages")}</Link>
               <Link href="/info/aide">{t("Aide et contact")}</Link>
               <Link href="/info/risques">{t("Risques et limites")}</Link>
             </p>

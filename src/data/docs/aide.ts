@@ -12,7 +12,9 @@ export const AIDE: DocPage = {
   visibility: "public",
   audience: ["client"],
   order: 0,
-  checkedOn: "2026-10-28",
+  /* Relue le 29 octobre 2026 : les huit chapitres ont reçu leur ligne de
+     promesse, qui se lit sous leur titre. */
+  checkedOn: "2026-10-29",
   owner: "Desk",
   chapters: [
     {

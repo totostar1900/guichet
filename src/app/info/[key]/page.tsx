@@ -97,8 +97,11 @@ export default async function LessonPage({ params }: Props) {
             la PASTILLE de sa section — une forme et une couleur — avant de la
             nommer, puis le rang de l'éclairage et sa durée. Un glyphe de plus
             pour dire où l'on est ; ni lien, ni chemin. */}
+        {/* Le retour nomme la liste d'où l'on vient : les huit éclairages ont
+            leur page depuis le 29 octobre 2026, « /info » ne fait plus que
+            rediriger. */}
         <EnTete
-          retour={{ href: section ? "/info/parcours" : "/info", mot: section ? t("Comprendre le marché CEMAC") : t("Guide") }}
+          retour={{ href: section ? "/info/parcours" : "/info/eclairages", mot: section ? t("Comprendre le marché CEMAC") : t("Éclairages") }}
           surTitre={
             <span className={styles.eyebrow}>
               {section && <SectionShape shape={section.shape} color={section.color} size={16} />}
