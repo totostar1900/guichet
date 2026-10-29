@@ -341,7 +341,19 @@ export const SEED_OFFERS: Offer[] = [
     settleOn: "2026-09-17",
     maturityOn: "2027-09-16",
     nominal: 1_000_000,
-    precountRate: 5.5,
+    /* LE TAUX INDICATIF VIENT DU MARCHÉ, pas d'un nombre rond. Il portait 5,5 %
+       — la valeur par défaut que l'écran « À valider » a précisément été bâti
+       pour supprimer — soit 5,905 % de rendement quand les séances comparables
+       en disaient 7,615 : la démonstration publiait un bon cent soixante-dix
+       points de base sous le marché, et l'écran qui mesure le niveau affichait
+       l'écart juste à côté.
+
+       6,98 % est ce que « niveauDuMarche » propose pour cette ligne avec la
+       SEULE information antérieure à sa séance : quatre séances du panier
+       « 1 an », la plus récente à quarante-neuf jours, converties en taux
+       précompté pour ces dates-ci. L'adjudication réelle du 15 septembre 2026
+       sur ce même ISIN est sortie à 6,970 % : un point de base. */
+    precountRate: 6.98,
     rateNote: "taux indicatif : fixé à l'adjudication",
     commissionPct: 0,
     minTitles: 1,
