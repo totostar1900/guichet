@@ -18,7 +18,6 @@ function fromSante(href: string, key: string): string {
 }
 
 const LEVEL: Record<string, string> = { ok: "OK", warn: "À surveiller", crit: "Action requise" };
-const KIND_LABEL: Record<string, string> = { sortie: "Sortie de cote", absente: "Non publiée", prix: "Cours", date: "Date", instrument: "Instrument", doublon: "Doublon" };
 
 export default async function SantePage() {
   const t = await getT();

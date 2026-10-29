@@ -1,11 +1,9 @@
 "use client";
-
 import Link from "next/link";
 import { useState } from "react";
 import { Sheet } from "@/components/mobile/Sheet";
 import { LangSwitch } from "@/components/LangSwitch";
 import { useT } from "@/i18n/client";
-import { logout, logoutEverywhere } from "@/app/connexion/actions";
 import type { Poste } from "@/lib/desk/poste";
 import styles from "./PosteDuDesk.module.css";
 

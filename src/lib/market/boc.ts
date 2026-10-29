@@ -4,7 +4,6 @@ import { audit } from "@/lib/audit";
 import { fundKey, valeurHorsLimites, type BulletinNote, type FundNav, type MarketBulletin, type Quote, tradedSession } from "@/lib/domain/market";
 import { repo } from "@/lib/data";
 import { fmt, fmtDate, localIso } from "@/lib/format";
-import { parseDate } from "@/lib/finance";
 import { saveSource } from "@/lib/intake/storage";
 import { parseBoc, type BocBond, type BocEquity, type BocFund, type BocParsed } from "./boc-parse";
 import { completerObligations } from "./boc-geometrie";

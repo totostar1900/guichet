@@ -22,8 +22,16 @@ const empreinte = (): string => {
   return h.digest("hex").slice(0, 16);
 };
 
-/** L'empreinte des fichiers du lecteur au moment où VERSION_DU_LECTEUR a été posé. */
-const EMPREINTE_ATTENDUE = "a9cda05507d7fb61";
+/**
+ * L'empreinte des fichiers du lecteur au moment où VERSION_DU_LECTEUR a été posé.
+ *
+ * Recopiée SANS lever le numéro le 29 octobre 2026 : « boc-geometrie » portait
+ * un cumul, « fin », qu'on écrivait dans la boucle des coupures et qu'on ne
+ * relisait jamais. Le retirer ne change pas un seul caractère de ce que le
+ * lecteur lit — « ecart », qui décide seul de la meilleure découpe, est
+ * calculé terme pour terme comme avant.
+ */
+const EMPREINTE_ATTENDUE = "60e1cd0dcd93141c";
 
 describe("la version du lecteur", () => {
   it("bouge quand le lecteur bouge", () => {

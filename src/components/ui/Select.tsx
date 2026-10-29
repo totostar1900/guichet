@@ -130,7 +130,6 @@ export function Select({ value, options, onChange, label, name, placeholder, com
       window.removeEventListener("resize", measure);
       window.removeEventListener("scroll", measure, true);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
   useEffect(() => {
     if (!open) return;

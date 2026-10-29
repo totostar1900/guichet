@@ -19,15 +19,6 @@ fs.mkdirSync(out, { recursive: true });
 const res = await fetch(BEAC_ANNONCES, { headers: { "user-agent": "Mozilla/5.0 (compatible; Guichet/1.0; +https://guichet.purposecapital.africa)" } });
 const docs = parseBeacRows(await res.text()).map(readBeacDoc);
 
-/** Les quatre séances dont le rendement interroge, plus une de contrôle. */
-const CIBLES = [
-  { on: "2026-09-15", tenor: "6 ans", note: "abondement, 15,36 % sur 1,54 an" },
-  { on: "2026-07-21", tenor: "4 ans", note: "abondement, 16,85 % sur 1,48 an" },
-  { on: "2026-07-21", tenor: "3 ans", note: "abondement, 10,52 % sur 0,93 an" },
-  { on: "2026-07-28", tenor: "2 ans", note: "10,52 % sur 1,93 an" },
-  { on: "2026-09-15", tenor: "3 ans", note: "ligne neuve, 9,99 % sur 3,01 ans : le témoin" },
-];
-
 console.log("toutes les annonces OTA congolaises de 2026 :");
 for (const d of docs.filter(x=>x.country==="Congo"&&x.kind==="annonce"&&x.instrument==="OTA"&&(x.on??"").startsWith("2026")).sort((a,b)=>(a.on??"").localeCompare(b.on??""))) console.log(`   ${d.on} ${d.tenor} ${d.abondement?"abondement":""}`);
 console.log();

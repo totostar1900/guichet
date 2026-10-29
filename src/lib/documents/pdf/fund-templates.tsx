@@ -1,4 +1,3 @@
-import { View } from "@react-pdf/renderer";
 import { COMPANY } from "@/lib/config";
 import type { FundTerms, Intent, Offer } from "@/lib/domain/types";
 import type { CoordonneesDeReglement } from "@/lib/domain/reglement";

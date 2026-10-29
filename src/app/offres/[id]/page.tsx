@@ -1,11 +1,9 @@
-import Link from "next/link";
 import { ContactRapide } from "@/components/ContactRapide";
 import type { Channel } from "@/lib/domain/types";
 import { ListNav } from "@/components/ListNav";
 import { newsFor } from "@/lib/news";
 import { notFound } from "next/navigation";
 import { IntentForm } from "@/components/IntentForm";
-import { LineIdentity } from "@/components/LineIdentity";
 import { Vu } from "@/components/Vu";
 import { FichePanes, StickyAction } from "@/components/mobile/FichePanes";
 import { SwipePager } from "@/components/mobile/SwipePager";
@@ -15,7 +13,6 @@ import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { peutOPCVM, isDesk } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
-import { familySegment, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
 import { ficheStops } from "@/lib/domain/fiche-stops";
 import { tenorText } from "@/lib/finance";
 import { fmtDate } from "@/lib/format";
@@ -52,8 +49,6 @@ export async function generateMetadata({ params }: Props) {
   const description = `La fiche de cette ligne sur le Guichet : son émetteur, sa nature, son échéance. ${COMPANY.name}, ${COMPANY.licence.split(" · ")[0].replace(/^S/, "s")}.`;
   return { title, description, openGraph: { title, description, type: "article", siteName: `${PRODUCT.name} · ${COMPANY.name}` }, twitter: { card: "summary_large_image", title, description } };
 }
-
-
 
 export default async function OfferPage({ params, searchParams }: Props) {
     const [{ id }, sp] = await Promise.all([params, searchParams]);

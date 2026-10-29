@@ -1,7 +1,7 @@
 import type { Offer } from "./types";
 import { displayYield, marketAmortInput, marketBondCalc, marketBondInput } from "./status";
 import { typeOf } from "@/lib/registry";
-import { amortCalc, bondCalc, type BondResult, btaCalc, btaAmountForBonds } from "../finance";
+import { bondCalc, type BondResult, btaCalc, btaAmountForBonds } from "../finance";
 import { fmt, fmtDate, fmtPct, fmtPrice } from "../format";
 
 /**

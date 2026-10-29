@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import type { FundNav } from "@/lib/domain/market";
-import type { Offer } from "@/lib/domain/types";
 import { dateDeCreation, offerFromNav } from "./boc";
 
 /**

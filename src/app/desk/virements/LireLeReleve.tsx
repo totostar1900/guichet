@@ -27,7 +27,6 @@ interface Lecture {
 }
 
 function Msg({ state }: { state: VirementResult | null }) {
-  const t = useT();
   if (!state) return null;
   return <span className={state.ok ? styles.ok : styles.ko}>{state.ok ? state.message : state.error}</span>;
 }

@@ -21,7 +21,7 @@ import { mesureVivante } from "@/lib/domain/mesure";
 import { etatDesSeries, niveauDeSerie } from "@/lib/domain/fraicheur";
 import { etatDesRobots } from "@/lib/domain/robots";
 import { enGo, enMo, lireLeStockage, niveauDuStockage, PLAFOND_STOCKAGE } from "@/lib/domain/stockage";
-import { attendEncore, remarquesNonJugees } from "@/lib/domain/jugement-bulletin";
+import { attendEncore } from "@/lib/domain/jugement-bulletin";
 import { classer } from "@/lib/market/remarques";
 import { lecteursARelire, NOM_DU_LECTEUR, type Lecteur } from "@/lib/market/lecteur-version";
 import { registreEnBrouillon, registrePublie, personnesDuDossier } from "@/lib/desk/registre-data";

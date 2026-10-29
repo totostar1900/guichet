@@ -1,5 +1,5 @@
 import "server-only";
-import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
+import { fmt, fmtPct, money } from "@/lib/format";
 import { floatRotation, type IndexWeight } from "@/lib/market/index";
 import { indexPageData, type IndexPageData } from "@/lib/market/index-data";
 

@@ -237,11 +237,7 @@ export function separer(c: Cellule, grille: number[]): Cellule[] {
       if (!morceaux.every((m) => JETON.test(m))) return;
       /* Chaque coupure doit tomber sur le bord qu'elle est censée porter. */
       let ecart = 0;
-      let fin = 0;
-      for (let k = 0; k < coupures.length; k++) {
-        fin += morceaux[k].length + (k ? 1 : 0);
-        ecart += Math.abs(bordEstime(coupures[k]) - dedans[k]);
-      }
+      for (let k = 0; k < coupures.length; k++) ecart += Math.abs(bordEstime(coupures[k]) - dedans[k]);
       if (!meilleur || ecart < meilleur.ecart) meilleur = { coupures: [...coupures], ecart };
       return;
     }

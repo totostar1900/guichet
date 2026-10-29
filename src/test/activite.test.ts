@@ -11,7 +11,7 @@ import {
   type Bareme,
   type SourcesActivite,
 } from "@/lib/domain/activite";
-import type { Contact, Intent, Notification, Offer } from "@/lib/domain/types";
+import type { Contact, Intent, Offer } from "@/lib/domain/types";
 
 /**
  * L'ACTIVITÉ EST UN NOMBRE, DONC ELLE DOIT DIRE D'OÙ IL VIENT.

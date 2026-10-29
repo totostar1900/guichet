@@ -106,9 +106,23 @@ for (const r of gabon) {
   else verdict = "indecise";
 
   const etat = neuve ? "NEUVE" : "abondee";
-  if (verdict === "propre prouvee") neuve ? compte.neuveEtPropre++ : (compte.abondeeEtPropre++, contre.push(r));
-  if (verdict === "SALE prouvee") neuve ? (compte.neuveEtSale++, contre.push(r)) : compte.abondeeEtSale++;
-  if (verdict === "indecise") neuve ? compte.neuveIndecise++ : compte.abondeeIndecise++;
+  if (verdict === "propre prouvee") {
+    if (neuve) compte.neuveEtPropre++;
+    else {
+      compte.abondeeEtPropre++;
+      contre.push(r);
+    }
+  }
+  if (verdict === "SALE prouvee") {
+    if (neuve) {
+      compte.neuveEtSale++;
+      contre.push(r);
+    } else compte.abondeeEtSale++;
+  }
+  if (verdict === "indecise") {
+    if (neuve) compte.neuveIndecise++;
+    else compte.abondeeIndecise++;
+  }
 
   dire(
     `   ${r.sessionOn}  ${String(r.codeEmission).padEnd(14)} ${String(r.tenor).padEnd(7)} ${String(emission ?? "—").padEnd(11)} ${etat.padEnd(11)} ${String(j).padStart(4)} ${fr(couru, 2).padStart(6)} ${fr(imprime).padStart(8)} ${fr(propre).padStart(8)} ${fr(r.priceLimit, 2).padStart(7)} ${fr(r.priceMax, 2).padStart(7)}  ${verdict}${dejaCorrigee ? " (corrigee)" : ""}`,

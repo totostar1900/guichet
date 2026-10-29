@@ -47,10 +47,12 @@ const toutes = await repo().listAuctionResults({ limit: 2000 });
 let bonSens = 0, mauvaisSens = 0;
 for (const r of toutes) {
   if (r.instrument === "BTA" && r.rateAvg != null && r.rateLimit != null) {
-    r.rateLimit >= r.rateAvg ? bonSens++ : mauvaisSens++;
+    if (r.rateLimit >= r.rateAvg) bonSens++;
+    else mauvaisSens++;
   }
   if (r.instrument === "OTA" && r.priceAvg != null && r.priceLimit != null) {
-    r.priceLimit <= r.priceAvg ? bonSens++ : mauvaisSens++;
+    if (r.priceLimit <= r.priceAvg) bonSens++;
+    else mauvaisSens++;
   }
 }
 dire(`controle de la mecanique : ${bonSens} seances dans le bon sens, ${mauvaisSens} a contresens\n`);

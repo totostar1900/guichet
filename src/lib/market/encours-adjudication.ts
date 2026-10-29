@@ -95,7 +95,6 @@ export const AVERTISSEMENTS = [
   "Une séance servie à zéro est un résultat, pas une absence : elle n'ajoute rien au stock et ne l'enlève pas.",
 ] as const;
 
-const SEMAINE = 7 * 86_400_000;
 
 /**
  * La durée telle que le Trésor l'écrit, rendue en jours.

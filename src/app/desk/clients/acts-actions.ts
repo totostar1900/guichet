@@ -7,7 +7,6 @@ import { repo } from "@/lib/data";
 import type { Closure } from "@/lib/domain/kyc";
 import { clientPositions, generateComplaint, generateCouponNotice, generateStatement, generateTransferOrder } from "@/lib/documents/generate";
 import { notifyClientDocument } from "@/lib/notify/dispatch";
-import { positionsFrom } from "@/lib/positions";
 import { fmtDate } from "@/lib/format";
 
 /**

@@ -293,11 +293,6 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
   const isBond = o.instrument === "obligation";
   const lot = o.lotSize ?? 1;
   const priceTxt = o.lastPrice != null ? (isBond ? fmtPrice(o.lastPrice) : `${fmt(o.lastPrice)} FCFA`) : "—";
-  // Le bulletin cote la ligne à chaque séance, échangée ou non : dire seulement
-  // « cours du 9 sept. » laisse croire qu'elle a traité ce jour-là. Sur ce marché
-  // la date du dernier échange est souvent l'information la plus utile des deux,
-  // parce qu'elle dit si un ordre a une chance d'être servi.
-  const tradedTxt = o.lastTradedOn ? (o.lastTradedOn === o.lastPriceOn ? "échangée à cette séance" : `dernier échange le ${fmtDate(o.lastTradedOn, false)}`) : "aucun échange relevé";
   return {
     ...base,
     subtitle: `${o.market} · cotation continue`,

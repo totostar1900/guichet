@@ -79,7 +79,6 @@ for (const n of nos) {
 }
 
 let apparies = 0;
-let convertis = 0;
 let absents = 0;
 const desaccords = [];
 for (const e of leurs) {
@@ -141,7 +140,6 @@ for (const e of leurs) {
     if (brut > 0.02 && (ecartConverti == null || ecartConverti > 0.02)) {
       desaccords.push({ e, quoi: `taux ${e.taux} % au bulletin contre ${n.rate_avg} % chez nous (rendement converti ${converti == null ? "—" : converti.toFixed(3)} %)` });
     } else if (brut > 0.02) {
-      convertis++;
     }
   }
   if (n.served != null && e.leve != null && Math.abs(Number(n.served) - e.leve) > 1e6) {

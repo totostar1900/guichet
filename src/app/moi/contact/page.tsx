@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";

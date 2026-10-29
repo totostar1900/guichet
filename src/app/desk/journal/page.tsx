@@ -52,8 +52,12 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
      donner deux pages ferait chercher laquelle ouvrir. Les décisions du desk
      sont chaînées et prouvent ; les gestes des clients racontent. */
   if (registre === "gestes") {
-    const aujourdHui = localIso(new Date());
-    const il30 = localIso(new Date(Date.now() - 30 * 86_400_000));
+    /* UNE SEULE LECTURE DE L'HORLOGE POUR LES DEUX BORNES. Il y en avait deux
+       à une microseconde d'écart : à minuit pile, la fenêtre de trente jours
+       pouvait partir d'un jour et finir sur le suivant. */
+    const maintenant = new Date();
+    const aujourdHui = localIso(maintenant);
+    const il30 = localIso(new Date(maintenant.getTime() - 30 * 86_400_000));
     const [bruts, contacts, trente] = await Promise.all([
       repo().listClientActions({ userId: client, genre: (GENRES as readonly string[]).includes(genre) ? (genre as Genre) : undefined, from: du, to: au, limit: 300 }),
       repo()

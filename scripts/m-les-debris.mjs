@@ -35,7 +35,6 @@ const formes = new Map();
    séance en séance masquaient les formes rares. */
 const exemplaires = new Map();
 let total = 0;
-const echantillon = [];
 
 for (const b of lot) {
   let bytes;

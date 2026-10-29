@@ -41,7 +41,6 @@ const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABA
 const { repo } = await import("../src/lib/data/index.ts");
 const { readSource } = await import("../src/lib/intake/storage.ts");
 const { readAuctionResult } = await import("../src/lib/market/auction-extract.ts");
-const { vieRestante } = await import("../src/lib/market/yield.ts");
 const dire = (s) => fs.writeSync(1, `${s}\n`);
 const ecrire = process.argv.includes("--ecrire");
 const max = Number(process.argv[process.argv.indexOf("--max") + 1]) || 99;

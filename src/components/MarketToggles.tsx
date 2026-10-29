@@ -1,6 +1,4 @@
 "use client";
-
-import Link from "next/link";
 import { type MarketSegment, SEGMENT_HINT, SEGMENT_LABEL } from "@/lib/domain/status";
 import { useT } from "@/i18n/client";
 import { EnTete } from "./EnTete";
@@ -33,7 +31,7 @@ type Seg = "primaire" | "secondaire";
  * parcours et dans les risques. Une quatrième copie est le défaut que ce
  * composant existe pour fermer.
  */
-export function TitresHead({ fundsCount }: { fundsCount: number }) {
+export function TitresHead({}: { fundsCount: number }) {
   const t = useT();
   return (
     <EnTete surTitre={t("Investissez")} titre={t("Titres")} phrase={t("Obligations, bons du Trésor et actions de la zone CEMAC")} aCote={<EnBref cles={["cote", "souscription"]} titre="La cote en bref" />} />

@@ -41,7 +41,6 @@ export async function generateMetadata({ params }: { params: Promise<{ trimestre
 export default async function QuarterNotePage({ params }: { params: Promise<{ trimestre: string }> }) {
   const [{ trimestre }, t] = await Promise.all([params, getT()]);
   const data = await indexPageData();
-  const list = quarters(data, true);
   const note = await quarterNote(trimestre.toUpperCase(), data);
   if (!note) notFound();
   const n = note;

@@ -68,7 +68,7 @@ const dernier = arretes[arretes.length - 1];
 const ausDernier = lignes.filter((l) => l.arrete === dernier);
 const bornes = [0, 0.25, 0.5, 1, 2, 3, 5, 7, 99];
 const etiquettes = ["moins de 3 mois", "3 a 6 mois", "6 a 12 mois", "1 a 2 ans", "2 a 3 ans", "3 a 5 ans", "5 a 7 ans", "plus de 7 ans"];
-const profil = etiquettes.map((e, i) => ({ tranche: e, capital: 0, lignes: 0, apres: 0 }));
+const profil = etiquettes.map((e) => ({ tranche: e, capital: 0, lignes: 0, apres: 0 }));
 let sansEcheance = 0;
 for (const l of ausDernier) {
   if (!l.echeance_le) { sansEcheance += 1; continue; }

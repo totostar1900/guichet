@@ -26,6 +26,13 @@ function LinePicker({ candidates, value, onChange }: { candidates: FeatureRow[];
   const chosen = candidates.find((c) => c.id === value);
   const [text, setText] = useState(chosen?.title ?? "");
   const [open, setOpen] = useState(false);
+  /* LE CHAMP SE DÉCLARE COMBINÉ, sans quoi tout le reste ne dit rien.
+     « aria-autocomplete », « aria-expanded » et la liste « listbox » étaient
+     déjà là, mais le champ gardait son rôle implicite de zone de texte : un
+     lecteur d'écran annonçait donc un champ ordinaire, sans jamais dire qu'une
+     liste s'était ouverte ni combien de lignes elle propose. Le rôle et le
+     lien vers la liste manquaient, et eux seuls font tenir l'ensemble. */
+  const listeId = useId();
   const q = fold(text.trim());
   const hits = (q && text !== chosen?.title ? candidates.filter((c) => fold(c.title).includes(q) || fold(c.id).includes(q)) : candidates).slice(0, 8);
   return (
@@ -42,12 +49,14 @@ function LinePicker({ candidates, value, onChange }: { candidates: FeatureRow[];
         onFocus={() => setOpen(true)}
         onBlur={() => window.setTimeout(() => setOpen(false), 150)}
         onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+        role="combobox"
         aria-autocomplete="list"
         aria-expanded={open}
+        aria-controls={listeId}
       />
       <input type="hidden" name="offerId" value={value} />
       {open && hits.length > 0 && (
-        <ul className={styles.hits} role="listbox">
+        <ul id={listeId} className={styles.hits} role="listbox">
           {hits.map((c) => (
             <li key={c.id}>
               <button

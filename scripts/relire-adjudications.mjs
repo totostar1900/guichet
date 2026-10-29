@@ -43,7 +43,6 @@ const nos = (await tout(sb, "auction_results", "id, code_emission, country, inst
 
 dire(`${nos.length} seance(s) guinéennes a relire\n`);
 
-const pct = (a, b) => (a != null && b != null && Number(b) > 0 ? (100 * Number(a)) / Number(b) : undefined);
 const mds = (v) => (v == null ? "—" : `${(Number(v) / 1e9).toFixed(3)}`);
 
 let secondes = 0;

@@ -64,10 +64,6 @@ for (const b of bulletins) {
 }
 dire(`   ${duBulletin.size} seance(s) du bulletin trimestriel disponibles comme temoin\n`);
 
-const cheminDe = (n) => {
-  const c = n.file_key ? places.get([...places.keys()].find((u) => storageKey(`beac/${decodeURIComponent(String(u).split("/").pop() ?? "")}`) === storageKey(n.file_key)) ?? "") : undefined;
-  return c;
-};
 /* L index donne la place par clef de depot : plus direct que de remonter l url. */
 const index = new Map((await tout(sb, "library_items", "file_key, library_path")).map((x) => [x.file_key, x.library_path]));
 

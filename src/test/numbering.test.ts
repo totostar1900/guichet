@@ -26,7 +26,7 @@ const doc = (number: string, registerNo?: string) => ({
 describe("les références d'un document", () => {
   it("gives a client document an opaque reference and keeps the sequence in the register", async () => {
     const { repo } = await import("@/lib/data");
-    const { nextNumbers, registerOf } = await import("@/lib/documents/numbering");
+    const { nextNumbers } = await import("@/lib/documents/numbering");
     const now = new Date("2026-09-22T09:00:00.000Z");
 
     const first = await nextNumbers("fonds", now);

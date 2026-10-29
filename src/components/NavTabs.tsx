@@ -119,11 +119,14 @@ export function NavTabs({ mode = "all", connecte = false }: { mode?: "all" | "cl
 
   useEffect(() => {
     if (!open) return;
+    /* « setOpenAt » et non « setOpen » : le second est recréé à chaque rendu
+       et capture la page du rendu où l'écouteur a été posé. Fermer ne demande
+       pas de page, et le poseur d'état, lui, est stable. */
     const away = (e: MouseEvent) => {
-      if (box.current && !box.current.contains(e.target as Node)) setOpen(null);
+      if (box.current && !box.current.contains(e.target as Node)) setOpenAt(null);
     };
     const esc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(null);
+      if (e.key === "Escape") setOpenAt(null);
     };
     document.addEventListener("mousedown", away);
     document.addEventListener("keydown", esc);

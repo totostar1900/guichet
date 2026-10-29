@@ -4,14 +4,14 @@ import { loadRegistry } from "@/lib/reference";
 import { repo } from "@/lib/data";
 import { audit } from "@/lib/audit";
 import { fmt, fmtDate, localIso } from "@/lib/format";
-import { instalmentLabel, isDue, reinvestLabel, reinvestissementDu, standingBlock, type StandingOrder } from "@/lib/domain/standing";
+import { instalmentLabel, reinvestLabel, reinvestissementDu, standingBlock, type StandingOrder } from "@/lib/domain/standing";
 import type { Offer } from "@/lib/domain/types";
 import { cashPosition } from "@/lib/domain/cash";
 import { aCouvrirPour } from "@/lib/domain/plafond";
 import { generateForIntent } from "@/lib/documents/generate";
 import { direLEtatDeLOrdre } from "@/lib/notify/dispatch";
 import { direLArretDeLInstruction, envoyerPreavis } from "@/lib/notify/preavis";
-import { arretables, dueOnDuPreavis, montantAExecuter, pourquoiPasExecuter, type Preavis } from "@/lib/domain/preavis";
+import { dueOnDuPreavis, montantAExecuter, pourquoiPasExecuter, type Preavis } from "@/lib/domain/preavis";
 import { cleEnMots, repartition, tranches } from "@/lib/domain/repartition";
 import { loadStandingPolicy } from "@/lib/policy";
 

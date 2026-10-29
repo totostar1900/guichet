@@ -66,7 +66,7 @@ let pieces = 0, trouDocumentaire = 0, sommeManque = 0, lecteurPerd = 0;
 const mds = (n) => (n / 1e9).toLocaleString("fr-FR", { maximumFractionDigits: 1 });
 dire(`séance      imprimées  en base  ·  total annoncé      somme des sous-totaux      écart`);
 
-for (const [seance, manquantes] of trouees) {
+for (const [seance] of trouees) {
   const b = bulletins.get(seance);
   if (!b?.fileKey) continue;
   let rangees;

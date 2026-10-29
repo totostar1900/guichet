@@ -1,6 +1,6 @@
 import type { Offer } from "./types";
 import { bondTerms, marketAmortInput, marketBondCalc, marketBondInput, maturityIsGuess } from "./status";
-import { amortCalc, bondCalc, btaAmountForBonds, btaCalc, couponDates, daysBetween, firstCouponDate, parseDate, tenorCourt } from "../finance";
+import { bondCalc, btaAmountForBonds, btaCalc, couponDates, daysBetween, firstCouponDate, parseDate, tenorCourt } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, localIso } from "../format";
 
 /**

@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { GESTES } from "@/lib/domain/journal-client";
@@ -110,7 +111,6 @@ describe("la date « vérifié le »", () => {
        sa date de relecture annonce donc une vérification qui n'a pas porté
        sur ce qu'elle contient. On ne peut pas prouver la relecture ; on peut
        prouver qu'une main est passée après elle, et c'est déjà beaucoup. */
-    const { execSync } = require("node:child_process") as typeof import("node:child_process");
     const retard: string[] = [];
     for (const f of pages) {
       const vu = texte(f).match(/checkedOn: "(\d{4}-\d{2}-\d{2})"/)?.[1];

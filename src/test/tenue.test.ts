@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { CRANS, enDefaut, JOURS_POUR_REGLER, suiteDonnee, tenue, type SourcesTenue } from "@/lib/domain/tenue";
 import { addBusinessDays } from "@/lib/finance";
@@ -235,7 +236,7 @@ describe("tout ce que la tenue affiche est traduit", () => {
 
   it("et aucune phrase n'est composée dans le domaine", () => {
     // Une phrase bâtie avec un gabarit ne se traduit pas : clef à trous, et vars à côté.
-    const src = (require("node:fs") as typeof import("node:fs")).readFileSync("src/lib/domain/tenue.ts", "utf8");
+    const src = readFileSync("src/lib/domain/tenue.ts", "utf8");
     expect(src).not.toMatch(/phrase: `/);
   });
 });

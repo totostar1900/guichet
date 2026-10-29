@@ -136,6 +136,13 @@ export function Colonne({
     let deja = false;
     try {
       const e = sessionStorage.getItem(CLEF_ETAT);
+      /* LE STOCKAGE NE SE LIT QU'APRÈS L'HYDRATATION, donc dans un effet. Le
+         lire dans l'initialisateur d'un « useState » ferait rendre au serveur
+         une colonne et au navigateur une autre : une discordance
+         d'hydratation à chaque visiteur qui a déjà réglé son siège. Le rendu
+         coûte un passage de plus, et c'est le prix de l'accord des deux
+         côtés. */
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (e === "repliee" || e === "deployee" || e === "escamotee") setEtat(e);
       const p = localStorage.getItem(CLEF_PLIS);
       if (p) {
@@ -184,6 +191,11 @@ export function Colonne({
   /* On suit un lien : la colonne se referme avec la page qu'on quitte, et les
      minuteries en cours s'éteignent avec elle. */
   useEffect(() => {
+    /* La colonne ne se démonte pas en naviguant — la mise en page la garde —
+       donc rien d'autre ne referme le coup d'œil. La remonter sur une clef de
+       route le ferait, mais au prix de relire le stockage et de perdre le
+       défilement à chaque lien suivi. */
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLorgne(false);
   }, [path]);
   useEffect(
@@ -225,6 +237,8 @@ export function Colonne({
   useEffect(() => {
     try {
       const e = localStorage.getItem(CLEF_EPINGLES);
+      // Après l'hydratation, comme l'état de la colonne : voir la note plus haut.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (e) setEpingles(JSON.parse(e) as string[]);
     } catch {
       /* sans stockage, la colonne se passe de favoris */
@@ -280,6 +294,12 @@ export function Colonne({
      droit de replier ensuite. */
   useEffect(() => {
     if (!aOuvrirDoffice) return;
+    /* C'EST UNE ÉCRITURE, PAS UNE DÉRIVATION, et c'est voulu. Déduire
+       « le groupe actif est toujours ouvert » enlèverait au lecteur le droit
+       de le replier ensuite — exactement ce que la note ci-dessus garde. Le
+       groupe s'ouvre donc une fois, à l'arrivée, et le choix suivant fait
+       foi. */
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPlies((p) => {
       if (!p.has(aOuvrirDoffice)) return p;
       const suite = new Set(p);

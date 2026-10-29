@@ -55,7 +55,9 @@ export function LinePicker({ name, lines, value, label, segments }: { name: stri
     const close = (e: Event) => box.current && !box.current.contains(e.target as Node) && setOpen(false);
     document.addEventListener("pointerdown", close);
     return () => document.removeEventListener("pointerdown", close);
-  }, [open]);
+    // « input » vient d'un « useRef » : son identité ne change jamais, donc le
+    // déclarer ne rejoue pas l'effet.
+  }, [open, input]);
 
   const choose = (l: PickLine) => {
     commitSearch();

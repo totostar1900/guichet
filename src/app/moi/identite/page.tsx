@@ -1,7 +1,7 @@
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
-import { Glissement, LienRetour } from "@/components/mobile/Glissement";
+import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { Identite } from "./Identite";
 import styles from "@/components/Feuillet.module.css";

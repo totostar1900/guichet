@@ -12,7 +12,7 @@ import { tradedSession } from "@/lib/domain/market";
 import type { RereadResult } from "@/lib/desk/reprise";
 export type { RereadResult } from "@/lib/desk/reprise";
 import { REF } from "@/lib/reference";
-import { CROSS_CLOSED, crossCheck, crossOrder, type CrossPolicy } from "@/lib/domain/crossing";
+import { crossCheck, crossOrder, type CrossPolicy } from "@/lib/domain/crossing";
 import { arbitrageImpossible, peutPartir, produitDeLaVente, quantiteAchetable } from "@/lib/domain/arbitrage";
 import { loadCrossPolicy, CROSS_POLICY_KEY } from "@/lib/policy";
 import { repo } from "@/lib/data";
@@ -517,7 +517,6 @@ export async function toggleHiddenAction(form: FormData): Promise<void> {
   revalidatePath("/");
   revalidatePath("/desk/marche");
 }
-
 
 /* ──────────── Ce que Santé détectait, et que cette page répare ────────────
  *

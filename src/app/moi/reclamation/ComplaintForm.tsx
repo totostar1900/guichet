@@ -8,7 +8,7 @@ import { fmtDate } from "@/lib/format";
 import { complaintDepositAction, complaintPrepareAction, type ComplaintStep } from "./actions";
 import styles from "./page.module.css";
 
-export function ComplaintForm({ ops, phoneProven, phone, email }: { ops: { ref: string; label: string }[]; phoneProven: boolean; phone?: string; email?: string }) {
+export function ComplaintForm({ ops, phone, email }: { ops: { ref: string; label: string }[]; phoneProven: boolean; phone?: string; email?: string }) {
   const t = useT();
   const [facts, setFacts] = useState("");
   const [ask, setAsk] = useState("");

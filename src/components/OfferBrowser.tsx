@@ -10,7 +10,7 @@ import { displayStatus, FAMILIES, familyLabel, familySegment, familyShort, headl
 import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
 import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
-import { MarketToggles, TitresHead } from "./MarketToggles";
+import { TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "./Density";
 import { BackToTop } from "./BackToTop";
@@ -337,7 +337,6 @@ function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: bo
 
 /* ---------- list ---------- */
 function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; featured?: boolean }) {
-  const t = useT();
   const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", zone: "Cameroun" as const, countryName: "", rows }];
   return (
     <div className={styles.list}>
@@ -385,7 +384,6 @@ function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boo
     </div>
   );
 }
-
 
 /* ---------- the filters, the search and the sort in a sheet over the list (the page keeps its place) ---------- */
 type Group = { key: string; label: string; items: [string, string][]; selected: Set<string>; single?: boolean };
@@ -633,12 +631,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     }
     return c;
   }, [offers, lieu]);
-  const segCount = useMemo(() => {
-    const c: Record<MarketSegment, number> = { primaire: 0, secondaire: 0, fonds: 0 };
-    for (const o of offers) c[familySegment(offerFamily(o))]++;
-    return c;
-  }, [offers]);
-
   /**
    * LE CRIBLE, ÉCRIT UNE FOIS, ET SES DEUX PLAGES EN OPTION.
    *

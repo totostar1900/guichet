@@ -1,6 +1,5 @@
 import "server-only";
 import PostalMime from "postal-mime";
-import { audit } from "@/lib/audit";
 import { repo } from "@/lib/data";
 import type { PieceGardee } from "@/lib/domain/types";
 import { receiveLinks } from "@/lib/news/intake";
@@ -131,7 +130,6 @@ export async function ingererCourriel(mail: Courriel): Promise<Issue> {
   }
 
   const trusted = trustedSender(mail.from);
-  const fromLabel = `${mail.from} · e-mail`;
   // Tout courriel est aussi un message dans la boîte du desk : la question d'un
   // client n'est pas une source à ingérer. Le corps ENTIER, désormais : un
   // extrait coupé au milieu d'une phrase n'est pas un exemplaire.

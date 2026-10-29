@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { FromSante } from "@/components/desk/FromSante";
-import { TallTable } from "@/components/desk/TallTable";
 import { DocMap } from "@/components/docs/DocMap";
 import { docStats } from "@/lib/documents/stats";
 import { COMPANIES } from "@/data/companies";
 import { ISSUERS } from "@/data/issuers";
 import { BOND_TERMS } from "@/data/bond-terms";
 import { repo } from "@/lib/data";
-import { bocUrl } from "@/lib/market/boc";
-import { fmtDate, fmtDateTime } from "@/lib/format";
+import { fmtDateTime } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 

@@ -4,7 +4,7 @@ import type { MesurePosee } from "@/lib/domain/mesure";
 import type { AccesCompte, CauseDeRetrait } from "@/lib/domain/acces-nomme";
 import type { Stockage } from "@/lib/domain/stockage";
 import type { SchemaVu } from "@/lib/domain/schema-declare";
-import type { Approval, AuditEntry, BudgetEtat, ChannelCode, ChannelStatus, ClientPrefs, Contact, DeskExchange, DeskThread, DeviceKind, DocumentType, EventLog, GeneratedDocument, InboundMessage, IntakeItem, Intent, IntentState, LigneSondee, NewLigneSondee, NewAuditEntry, NewIntentInput, NoteBudget, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TemplateText, TemplateTextStatus, TrustedDevice, Watch } from "@/lib/domain/types";
+import type { Approval, AuditEntry, BudgetEtat, ChannelCode, ChannelStatus, ClientPrefs, Contact, DeskExchange, DeskThread, DeviceKind, EventLog, GeneratedDocument, InboundMessage, IntakeItem, Intent, IntentState, LigneSondee, NewLigneSondee, NewAuditEntry, NewIntentInput, NoteBudget, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TemplateText, TemplateTextStatus, TrustedDevice, Watch } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";

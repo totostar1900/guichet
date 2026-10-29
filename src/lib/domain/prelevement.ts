@@ -1,4 +1,4 @@
-import { mandatVivant, MOIS_REFUSES_AVANT_ARRET, type MandatPrelevement } from "./mandat";
+import { MOIS_REFUSES_AVANT_ARRET, type MandatPrelevement } from "./mandat";
 import type { StandingOrder } from "./standing";
 
 /**

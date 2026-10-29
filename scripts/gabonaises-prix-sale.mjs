@@ -64,7 +64,8 @@ for (const r of suspectes.sort((a, b) => b.sessionOn.localeCompare(a.sessionOn))
   const couru = (Number(r.couponRate) * j) / 365;
   const pied = Number(r.priceAvg) - couru;
   const ok = pied >= Number(r.priceMin) - 0.05 && pied <= Number(r.priceMax) + 0.05;
-  ok ? dedans++ : dehors++;
+  if (ok) dedans++;
+  else dehors++;
   dire(
     `   ${r.sessionOn}  ${String(r.codeEmission ?? "—").padEnd(14)} ${String(r.couponRate).padStart(6)} ${Number(r.priceAvg).toFixed(3).padStart(8)} ${couru.toFixed(3).padStart(7)} ${pied.toFixed(3).padStart(8)}  ${(r.priceMin + " a " + r.priceMax).padEnd(16)} ${ok ? "DANS" : "dehors"}`,
   );

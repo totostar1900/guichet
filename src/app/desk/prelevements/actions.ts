@@ -6,7 +6,7 @@ import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { MOIS_REFUSES_AVANT_ARRET } from "@/lib/domain/mandat";
-import { echeanceDuJour, jourDeTirage, jourDuPreavis, MOTIFS, pourquoiPasRemettre, refDeLaRemise, suiteDuRejet, type MotifDeRejet } from "@/lib/domain/prelevement";
+import { echeanceDuJour, jourDeTirage, MOTIFS, pourquoiPasRemettre, refDeLaRemise, suiteDuRejet } from "@/lib/domain/prelevement";
 import { direLEncaissement, direLeRejet, envoyerPreavisDePrelevement } from "@/lib/notify/prelevement";
 import { escapeHtml, fmt, fmtDate } from "@/lib/format";
 

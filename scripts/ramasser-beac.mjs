@@ -52,16 +52,6 @@ const BIBLIO = "C:/Users/Nitch/PURPOSE CAPITAL/PurpCapSharedLib - Guichet";
    quelqu'un va lire dans un explorateur : les espaces restent, seuls les
    caractères que Windows refuse partent, et la longueur se coupe à cent dix
    signes. Les deux partagent la chute des accents, rien de plus. */
-const propre = (s) =>
-  (s ?? "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 110);
-
-const PAYS = { Cameroun: "Cameroun", Gabon: "Gabon", Congo: "Congo", Tchad: "Tchad", "Guinée éq.": "Guinee equatoriale", "Guinée équatoriale": "Guinee equatoriale", RCA: "RCA" };
 
 /**
  * DEUX PIÈCES, UN SEUL NOM : CE QUE L'ARCHIVE CROYAIT AVOIR.

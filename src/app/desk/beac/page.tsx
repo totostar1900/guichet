@@ -4,7 +4,8 @@ import { ReglageAuto } from "@/components/desk/ReglageAuto";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
-import { couverture, nommerPays, PAYS_BEAC, rapprocher, vueBeac, ZONE, type VueBeac } from "@/lib/market/beac-vue";
+import type { T } from "@/i18n/core";
+import { couverture, PAYS_BEAC, rapprocher, vueBeac, ZONE } from "@/lib/market/beac-vue";
 import { anneesDe, auTemps, trimestreAuTemps, type Serie } from "@/lib/market/trace";
 import styles from "./page.module.css";
 
@@ -51,6 +52,21 @@ const duree = (a: number) => (a < 1 ? `${Math.round(a * 12)} mois` : `${a} ans`)
 
 type Params = Record<string, string | string[] | undefined>;
 const un = (p: Params, k: string) => (Array.isArray(p[k]) ? (p[k] as string[])[0] : (p[k] as string | undefined));
+
+/* Les boutons de forme d'un panneau. Déclarés ici, et non dans le rendu :
+   un composant créé pendant le rendu est un type neuf à chaque passage, donc
+   React démonte et remonte son sous-arbre au lieu de le mettre à jour. */
+function Formes({ clef, actuel, choix, lien, t }: { clef: string; actuel: string; choix: [string, string][]; lien: (ajout: Record<string, string>) => string; t: T }) {
+  return (
+    <span className={styles.formes}>
+      {choix.map(([v, l]) => (
+        <a key={v} href={lien({ [clef]: v })} aria-current={actuel === v ? "true" : undefined}>
+          {t(l)}
+        </a>
+      ))}
+    </span>
+  );
+}
 
 export default async function BeacPage({ searchParams }: { searchParams: Promise<Params> }) {
   await requireDesk();
@@ -146,16 +162,6 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
     for (const [k, v] of Object.entries(ajout)) q.set(k, v);
     return `?${q.toString()}`;
   };
-  const Formes = ({ clef, actuel, choix }: { clef: string; actuel: string; choix: [string, string][] }) => (
-    <span className={styles.formes}>
-      {choix.map(([v, l]) => (
-        <a key={v} href={lien({ [clef]: v })} aria-current={actuel === v ? "true" : undefined}>
-          {t(l)}
-        </a>
-      ))}
-    </span>
-  );
-
   /* ---------- les séries à dessiner ---------- */
   const serieEncours: Serie[] = (() => {
     if (fEncours === "part") {
@@ -538,7 +544,7 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
             <h2>{t("Encours des valeurs du Trésor")}</h2>
             <span className={styles.coin}>
               <span className={styles.provPublie}>{t("publié par la BEAC")}</span>
-              <Formes clef="fEncours" actuel={fEncours} choix={[["ligne", "Niveau"], ["barres", "Barres"], ["variation", "Variation"], ["part", "Part"]]} />
+              <Formes clef="fEncours" actuel={fEncours} choix={[["ligne", "Niveau"], ["barres", "Barres"], ["variation", "Variation"], ["part", "Part"]]} lien={lien} t={t} />
             </span>
           </div>
           <div className={styles.panneauC}>
@@ -570,7 +576,7 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
             <h2>{t("Courbes de rendement")}</h2>
             <span className={styles.coin}>
               <span className={desk && fCourbe === "niveau" ? styles.provNous : styles.provPublie}>{desk && fCourbe === "niveau" ? t("BEAC et nos relevés") : t("publié par la BEAC")}</span>
-              <Formes clef="fCourbe" actuel={fCourbe} choix={[["niveau", "Niveau"], ["variation", "Écart au mois précédent"]]} />
+              <Formes clef="fCourbe" actuel={fCourbe} choix={[["niveau", "Niveau"], ["variation", "Écart au mois précédent"]]} lien={lien} t={t} />
             </span>
           </div>
           <div className={styles.panneauC}>
@@ -648,7 +654,7 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
             <h2>{t("Demandé et obtenu")}</h2>
             <span className={styles.coin}>
               <span className={styles.provSomme}>{t("somme des rapports hebdomadaires BEAC")}</span>
-              <Formes clef="fOffre" actuel={fOffre} choix={[["barres", "Montants"], ["taux", "Taux de service"]]} />
+              <Formes clef="fOffre" actuel={fOffre} choix={[["barres", "Montants"], ["taux", "Taux de service"]]} lien={lien} t={t} />
             </span>
           </div>
           <div className={styles.panneauC}>
@@ -692,7 +698,7 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
             <h2>{t("Mur d'échéances")}</h2>
             <span className={styles.coin}>
               <span className={styles.provSomme}>{t("somme des rapports hebdomadaires BEAC")}</span>
-              <Formes clef="fMur" actuel={fMur} choix={[["barres", "Par trimestre"], ["cumul", "Cumulé"]]} />
+              <Formes clef="fMur" actuel={fMur} choix={[["barres", "Par trimestre"], ["cumul", "Cumulé"]]} lien={lien} t={t} />
             </span>
           </div>
           <div className={styles.panneauC}>

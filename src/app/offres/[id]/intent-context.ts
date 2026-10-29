@@ -6,7 +6,7 @@ import type { Session } from "@/lib/auth/types";
 import type { ChannelStatus } from "@/lib/domain/types";
 import { positionsFrom } from "@/lib/positions";
 import { FENETRE_MAX_JOURS, arriveesPossibles } from "@/lib/domain/arbitrage";
-import { fmt, fmtPct, fmtPrice, localIso } from "@/lib/format";
+import { localIso } from "@/lib/format";
 import type { FinancialProfile } from "@/data/profile";
 import { repereDuMarche, type Repere } from "@/lib/market/repere";
 
@@ -135,5 +135,4 @@ export function intentHref(id: string, opts?: { intent?: string; qty?: number | 
   const s = q.toString();
   return `/offres/${id}/intention${s ? `?${s}` : ""}`;
 }
-
 

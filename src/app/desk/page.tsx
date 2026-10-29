@@ -5,7 +5,7 @@ import { Sommaire } from "@/components/Sommaire";
 import { DeskNav } from "@/components/DeskNav";
 import { FromSante } from "@/components/desk/FromSante";
 import { repo } from "@/lib/data";
-import { INTENT_LABEL, INTENT_STATE_LABEL, nextStates } from "@/lib/domain/intent";
+import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { aUneCloture, countdown, displayStatus, headlineYield, isActionable, KIND_LABEL } from "@/lib/domain/status";
 import { etatDeLEcart, tariferLesLignes, type LigneTarifee } from "@/lib/market/tarification";
 import { type Souffrance } from "@/lib/domain/souffrance";
@@ -336,7 +336,6 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
               <tbody>
                 {shown.map((i) => {
                   const o = byId.get(i.offerId) as Offer | undefined;
-                  const next = nextStates(i.state, i.type);
                   return (
                     <tr key={i.id}>
                       <td className="mono">
