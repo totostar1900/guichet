@@ -2582,6 +2582,9 @@ export const EN_MORE: Record<string, string> = {
   "Cours (FCFA)": "Price (FCFA)",
   "Total (FCFA)": "Total (FCFA)",
   "Produit estimé (FCFA)": "Estimated proceeds (FCFA)",
+  /* La légende de la bascule du sens de l'ordre : lue par qui n'a pas
+     l'écran sous les yeux, puisque la bosse ne dit rien à voix haute. */
+  "Ce que vous voulez faire": "What you want to do",
   "calculé, à la quotité par le bas": "calculated, down to the lot size",
   "vous tapez ici": "you type here",
   "votre limite : le desk ne dépasse pas": "your limit: the desk does not go beyond it",

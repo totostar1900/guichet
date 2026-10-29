@@ -500,13 +500,18 @@
   font-variant-numeric: tabular-nums;
 }
 /* Le champ qu'on tape porte l'encre ; celui qui suit porte le gris et le mot. */
+/* CES DEUX NOTES ÉTAIENT À 0,7 REM, soit plus petit que « --t-1 », le plus
+   petit degré de la maison : deux valeurs hors échelle, que le cliquet
+   typographique comptait. Elles disent laquelle des cases fait foi, ce qui
+   n'est pas un détail — les reléguer sous le seuil de lisibilité revenait à
+   ne pas le dire. */
 .typed {
   color: var(--ink-2);
-  font-size: 0.7rem;
+  font-size: var(--t-2);
 }
 .calc {
   color: var(--ink-3);
-  font-size: 0.7rem;
+  font-size: var(--t-1);
 }
 @media (max-width: 760px) {
   .trio {
@@ -742,5 +747,93 @@
 .chiffreSuit input,
 .chiffreSuit input[type="number"] {
   font-size: var(--t-7);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── LA BASCULE : UNE QUESTION, DEUX RÉPONSES ──────────────────────────────
+   Retenue avec les maquettes le 29 octobre 2026. Les boutons radio posaient
+   deux cibles de 6 px de capiton et de 0,8 rem côte à côte : à l'œil, deux
+   DESTINATIONS, alors qu'il n'y a qu'UNE question qui a deux réponses.
+
+   ELLE NE PARAÎT QU'À DEUX, et c'est sa définition même : une bascule à
+   trois réponses est une liste, et la rangée de pastilles reste pour ces
+   cas-là. C'est pourquoi le formulaire garde les deux formes.
+
+   DEUX BOUTONS RADIO DESSOUS, pas un interrupteur : un « switch » dirait
+   « vente : activée » à qui l'écoute, et ce n'est pas un réglage mais un
+   choix entre deux. */
+.bascule {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0 0 10px;
+  padding: 3px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.basculeLegende {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.bosse {
+  position: absolute;
+  z-index: 0;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 18%);
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.bosse[data-second="oui"] {
+  transform: translateX(100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bosse {
+    transition: none;
+  }
+}
+.mot,
+.motOn {
+  position: relative;
+  z-index: 1;
+  /* QUARANTE-HUIT, comme la maquette retenue. Ce n'est pas « --touche », qui
+     vaut cinquante-six et qui est la hauteur d'un bouton ISOLÉ : ici les deux
+     moitiés se touchent et se visent l'une par rapport à l'autre, comme les
+     cases d'une grille. Quarante-quatre aurait été le minimum atteignable au
+     pouce ; quarante-huit est ce qui a été jugé. */
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: var(--t-5);
+  font-weight: 600;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.motOn {
+  color: var(--ink);
+}
+.mot input,
+.motOn input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── LA LIMITE SE LIT ──────────────────────────────────────────────────────
+   Elle était à 0,8 rem, soit PLUS PETIT QUE LE CORPS DE LECTURE : le reproche
+   d'origine en miniature, sur un champ que le client tape. Elle ne prend pas
+   le neuvième degré pour autant — ce n'est pas le chiffre qui engage son
+   argent, c'est la condition qu'il y met —, mais elle se lit au corps, et ses
+   chiffres ont la même chasse que ceux qu'elle commande. */
+.limite input {
+  font-size: var(--t-5);
   font-variant-numeric: tabular-nums;
 }

@@ -429,14 +429,35 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
         </div>
         <div className={styles.stepTitle}>{t(step === 1 ? "1 · Votre demande" : step === 2 ? "2 · Vos coordonnées" : "3 · Récapitulatif")}</div>
         <div data-step="1">
-        <div className={styles.radio}>
-          {types.map((it) => (
-            <label key={it}>
-              <input type="radio" name="type" value={it} checked={type === it} onChange={() => setType(it)} />
-              {t(INTENT_LABEL[it])}
-            </label>
-          ))}
-        </div>
+        {/* UNE BASCULE QUAND IL Y A DEUX RÉPONSES, LA RANGÉE QUAND IL Y EN A
+            PLUS. Les pastilles posaient deux cibles côte à côte, qui se
+            lisaient comme deux destinations alors qu'il n'y a qu'UNE
+            question. La bosse glisse de l'une à l'autre, et c'est elle qui
+            dit laquelle est choisie.
+            LA RANGÉE RESTE POUR TROIS ET PLUS : une bascule à trois réponses
+            est une liste, et la forcer ici reviendrait à inventer un objet
+            que personne ne sait lire. */}
+        {types.length === 2 ? (
+          <fieldset className={styles.bascule}>
+            <legend className={styles.basculeLegende}>{t("Ce que vous voulez faire")}</legend>
+            <span className={styles.bosse} data-second={type === types[1] ? "oui" : "non"} aria-hidden="true" />
+            {types.map((it) => (
+              <label key={it} className={type === it ? styles.motOn : styles.mot}>
+                <input type="radio" name="type" value={it} checked={type === it} onChange={() => setType(it)} />
+                {t(INTENT_LABEL[it])}
+              </label>
+            ))}
+          </fieldset>
+        ) : (
+          <div className={styles.radio}>
+            {types.map((it) => (
+              <label key={it}>
+                <input type="radio" name="type" value={it} checked={type === it} onChange={() => setType(it)} />
+                {t(INTENT_LABEL[it])}
+              </label>
+            ))}
+          </div>
+        )}
         <div className={styles.row}>
           {needsAmount && market ? (
             /* LES TROIS CASES LIÉES : quantité × cours = total.
@@ -478,7 +499,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <span className={styles.trioOp} aria-hidden="true">
                 ×
               </span>
-              <label className="field">
+              <label className={`field ${styles.limite}`}>
                 <span>{t(lim ? (offer.instrument === "obligation" ? "Votre limite (% du nominal)" : "Votre limite (FCFA)") : offer.instrument === "obligation" ? "Cours (% du nominal)" : "Cours (FCFA)")}</span>
                 <input name="limitPrice" type="number" step={offer.instrument === "obligation" ? "0.001" : "1"} placeholder={String((vend ? offer.bid : offer.ask) ?? offer.lastPrice ?? "")} value={limit} onChange={(e) => setLimit(e.target.value)} />
                 <small className={lim ? styles.typed : styles.calc}>{t(lim ? "votre limite : le desk ne dépasse pas" : "dernier cours publié · laissez vide pour au mieux")}</small>
@@ -604,7 +625,11 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                     question de l'émetteur, à quel niveau cette demande tient
                     encore. Le sens dépend du compartiment, et le mot avec : on
                     paie un prix, on reçoit un taux. */}
-                <label className="field">
+                {/* LA MÊME CONDITION, DONC LE MÊME CORPS. Le champ de la limite
+                    avait été relevé sur le marché et oublié ici, alors que
+                    c'est sur une adjudication qu'il décide le plus : il dit à
+                    quel niveau la demande tient encore. */}
+                <label className={`field ${styles.limite}`}>
                   <span>
                     {t(offer.kind === "BTA" ? "Taux minimum (facultatif)" : "Prix maximum (facultatif)")} : {t(offer.kind === "BTA" ? "% précompté" : "% du nominal")}
                   </span>
@@ -716,7 +741,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               qu'elle décide. Elle n'a plus de champ séparé ici, qui en ferait un
               second limitPrice dans le même formulaire. */}
           {survey && !trio && (
-            <label className="field">
+            <label className={`field ${styles.limite}`}>
               {t(offer.kind === "BTA" ? "Taux minimum (facultatif)" : "Prix maximum (facultatif)")} :{" "}
               {t(offer.kind === "BTA" ? "% précompté" : "% du nominal")}
               <input
