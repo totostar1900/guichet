@@ -1,0 +1,199 @@
+/**
+ * LES OBJETS NEUFS DE LA SIXIÈME MAQUETTE : LE CHOIX MULTIPLE, LA FENÊTRE,
+ * LES BULLES, ET L'APERÇU DE LA LIGNE.
+ *
+ * Tout le reste vient du kit. C'est la règle depuis la quatrième : une
+ * maquette n'écrit que ce que sa question a de neuf.
+ */
+
+/* ------------------------------------------------------------------ *
+ * PLUSIEURS RÉPONSES À UNE MÊME QUESTION
+ * ------------------------------------------------------------------ */
+
+/**
+ * CE QUI SÉPARE CES JETONS DE CEUX DE L'ÉPARGNE ET DE L'ARBITRAGE : on en
+ * prend PLUSIEURS. Un jeton qui s'ajoute et un jeton qui remplace se
+ * ressemblent trop pour qu'on les laisse identiques — le client qui croit
+ * remplacer et qui ajoute propose six lignes au lieu d'une.
+ *
+ * D'OÙ LA COCHE. Elle paraît quand le jeton est pris, et elle dit « celui-ci
+ * AUSSI » là où un fond plein dirait seulement « celui-ci ». C'est la seule
+ * marque qui distingue un choix cumulatif d'un choix exclusif sans ajouter
+ * une ligne d'explication que personne ne lit.
+ */
+.jetons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+}
+.jeton,
+.jetonOn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding: 0 var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  cursor: pointer;
+}
+.jetonOn {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--fill-ink);
+  font-weight: 700;
+}
+.coche {
+  font-size: var(--t-2);
+  line-height: 1;
+}
+
+/* ------------------------------------------------------------------ *
+ * LA FENÊTRE D'ÉMISSION
+ * ------------------------------------------------------------------ */
+
+/**
+ * DEUX BORNES CÔTE À CÔTE, parce qu'une fenêtre a deux bords et qu'on les
+ * compare. Empilées, « au plus tôt » et « au plus tard » se liraient comme
+ * deux questions séparées ; côte à côte, elles se lisent comme un intervalle.
+ */
+.fenetre {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--s-4);
+}
+.borne {
+  display: grid;
+  gap: var(--s-3);
+}
+.borneMot {
+  font-size: var(--t-1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.borneChamp {
+  height: 56px;
+  width: 100%;
+  padding: 0 var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-3);
+}
+.tiret {
+  color: var(--ink-3);
+}
+
+/* ------------------------------------------------------------------ *
+ * LES BULLES
+ * ------------------------------------------------------------------ */
+
+/**
+ * CE QUE LE DESK DOIT SAVOIR N'EST PAS UN CHAMP DE FORMULAIRE, C'EST UN MOT
+ * QU'ON ADRESSE À QUELQU'UN.
+ *
+ * Un « textarea » gris intitulé « Ce que le desk doit savoir (facultatif) »
+ * ressemble à une case de réclamation : on y écrit peu, et on n'attend pas
+ * de réponse. Or le desk RÉPOND — il clôt une ligne avec un motif que le
+ * client lit, et il pose des questions auxquelles le client répond. C'est
+ * une conversation, et elle était rendue comme un journal administratif.
+ *
+ * LES BULLES DISENT DEUX CHOSES QUE LE CHAMP NE DISAIT PAS : que quelqu'un
+ * lira, et que quelqu'un a répondu. Celle du client va à droite, celle du
+ * desk à gauche, comme partout où l'on écrit à quelqu'un depuis quinze ans.
+ */
+.fil {
+  display: grid;
+  gap: var(--s-4);
+}
+.bulleDesk,
+.bulleMoi {
+  max-width: 85%;
+  padding: var(--s-5) var(--s-6);
+  font-size: var(--t-3);
+  line-height: 1.45;
+}
+.bulleDesk {
+  justify-self: start;
+  border-radius: var(--rond) var(--rond) var(--rond) 4px;
+  background: var(--panel-inset);
+  color: var(--ink);
+}
+.bulleMoi {
+  justify-self: end;
+  border-radius: var(--rond) var(--rond) 4px var(--rond);
+  background: var(--fill);
+  color: var(--fill-ink);
+}
+.qui {
+  display: block;
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+/* La bulle qu'on écrit : même forme que celle qu'on enverra, pour qu'on voie
+   ce qu'on est en train de dire et non ce qu'on est en train de remplir. */
+.ecrire {
+  justify-self: end;
+  width: 100%;
+  min-height: 88px;
+  padding: var(--s-5) var(--s-6);
+  border: 1px dashed var(--line);
+  border-radius: var(--rond) var(--rond) 4px var(--rond);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-3);
+  resize: vertical;
+}
+
+/* ------------------------------------------------------------------ *
+ * L'APERÇU : LA LIGNE TELLE QUE LE DESK LA RECEVRA
+ * ------------------------------------------------------------------ */
+
+/**
+ * LA PREMIÈRE DES DEUX VALIDATIONS MONTRE L'OBJET, PAS SON RÉSUMÉ.
+ *
+ * Un récapitulatif dit « vous avez choisi OTA, Cameroun, 5 ans ». Un aperçu
+ * montre LA LIGNE, dans la forme où le desk la lira et où elle rejoindra le
+ * consensus. La différence compte ici plus qu'ailleurs : une proposition à
+ * plusieurs Trésors et plusieurs durées ne produit pas une ligne mais
+ * plusieurs, et c'est la seule façon de le faire voir au lieu de l'écrire.
+ */
+.apercu {
+  display: grid;
+  gap: var(--s-4);
+}
+.carteLigne {
+  display: grid;
+  gap: 2px;
+  padding: var(--s-5) var(--s-6);
+  border: 1px solid var(--line);
+  border-radius: var(--rond);
+  background: var(--panel-inset);
+}
+.carteTitre {
+  font-size: var(--t-4);
+  font-weight: 600;
+}
+.carteDit {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+/* Au-delà de six lignes on ne les dessine plus toutes : on dit combien il en
+   reste. Une liste de vingt cartes ne se vérifie pas, elle se subit. */
+.reste {
+  padding: var(--s-4) var(--s-6);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}

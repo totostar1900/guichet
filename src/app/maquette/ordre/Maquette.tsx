@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Attente, Bandeau, Boite, chiffres, MILLIERS, Pied, Recap, Tete, Trop } from "../commun";
+import { Attente, Bandeau, Bascule, Boite, chiffres, MILLIERS, Pied, Recap, Tete, Trop } from "../commun";
 import styles from "../commun.module.css";
 
 /**
@@ -106,23 +106,23 @@ export function Maquette({ titre, isin, cours, quotite, detenu, marche }: { titr
         </>
       ) : etape === 1 ? (
         <>
-          {/* UNE BASCULE, ET NON DEUX ONGLETS. Demandé le 28 octobre : deux
-              cibles pleine largeur se lisaient comme deux destinations, alors
-              qu'il n'y a qu'UNE question, qui a deux réponses. La bosse glisse
-              d'un mot à l'autre, et c'est elle qui dit lequel est choisi.
-              DEUX BOUTONS RADIO EN DESSOUS, parce qu'un « switch » dirait
-              « vente : activée » à qui l'écoute, et que ce n'est pas un
-              réglage mais un choix entre deux. */}
-          <fieldset className={styles.bascule}>
-            <legend className={styles.bascLegende}>Sens de l&apos;ordre</legend>
-            <span className={styles.bosse} data-sens={sens} aria-hidden="true" />
-            {(["achat", "vente"] as const).map((s) => (
-              <label key={s} className={sens === s ? styles.motOn : styles.mot}>
-                <input type="radio" name="sens" value={s} checked={sens === s} onChange={() => { setSens(s); setBrut(""); }} />
-                {s === "achat" ? "J'achète" : "Je vends"}
-              </label>
-            ))}
-          </fieldset>
+          {/* LA BASCULE EST MONTÉE DANS LE KIT le 29 octobre, quand la
+              sixième maquette a eu besoin de la même pièce pour « OTA ou
+              BTA ». Elle était écrite ici ; la recopier là-bas l'aurait fait
+              diverger à la première retouche. */}
+          <Bascule
+            legende="Sens de l'ordre"
+            nom="sens"
+            choix={[
+              { valeur: "achat", mot: "J'achète" },
+              { valeur: "vente", mot: "Je vends" },
+            ]}
+            valeur={sens}
+            onChange={(s) => {
+              setSens(s);
+              setBrut("");
+            }}
+          />
 
           <Boite
             id="montant"

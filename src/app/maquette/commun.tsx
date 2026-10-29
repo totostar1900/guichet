@@ -149,6 +149,52 @@ export function Boite({
   );
 }
 
+/**
+ * LA BASCULE : UNE QUESTION, DEUX RÉPONSES, ET UNE BOSSE QUI GLISSE.
+ *
+ * Deux cibles pleine largeur se lisent comme deux destinations, alors qu'il
+ * n'y a qu'UNE question qui a deux réponses. La bosse glisse de l'un à
+ * l'autre, et c'est elle qui dit lequel est choisi.
+ *
+ * DEUX BOUTONS RADIO EN DESSOUS, et non un « switch » : un interrupteur
+ * dirait « vente : activée » à qui l'écoute, et ce n'est pas un réglage mais
+ * un choix entre deux.
+ *
+ * MONTÉE DANS LE KIT LE 29 OCTOBRE 2026, quand une sixième maquette a eu
+ * besoin de la même pièce pour « OTA ou BTA ». Elle vivait dans la maquette
+ * du passage d'ordre et aurait été recopiée — c'est-à-dire qu'elle aurait
+ * divergé à la première retouche, ce que l'épreuve d'harmonisation existe
+ * pour empêcher. Une pièce demandée deux fois est une pièce commune.
+ */
+export function Bascule<T extends string>({
+  legende,
+  choix,
+  valeur,
+  onChange,
+  nom = "bascule",
+}: {
+  /** Ce que la bascule demande, lu par qui n'a pas l'écran sous les yeux. */
+  legende: string;
+  /** Exactement deux : une bascule à trois réponses est une liste. */
+  choix: readonly [{ valeur: T; mot: string }, { valeur: T; mot: string }];
+  valeur: T;
+  onChange: (v: T) => void;
+  nom?: string;
+}) {
+  return (
+    <fieldset className={styles.bascule}>
+      <legend className={styles.bascLegende}>{legende}</legend>
+      <span className={styles.bosse} data-second={valeur === choix[1].valeur ? "oui" : "non"} aria-hidden="true" />
+      {choix.map((c) => (
+        <label key={c.valeur} className={valeur === c.valeur ? styles.motOn : styles.mot}>
+          <input type="radio" name={nom} value={c.valeur} checked={valeur === c.valeur} onChange={() => onChange(c.valeur)} />
+          {c.mot}
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
 /** Ce qu'on lit quand rien n'est encore tapé : gris, et jamais un reproche. */
 export const Attente = ({ children }: { children: React.ReactNode }) => <span className={styles.equivVide}>{children}</span>;
 /** Ce qui empêche d'avancer : dit, pas crié. */

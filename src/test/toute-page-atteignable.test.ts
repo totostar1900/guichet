@@ -83,6 +83,7 @@ const MAQUETTES: Record<string, string> = {
   "/maquette/epargne": "proposée le 28 octobre 2026 : la même forme sur une DATE, la seule des quatre saisies qui ne se tape pas",
   "/maquette/cession": "proposée le 28 octobre 2026 : la même forme sur une quantité DÉTENUE — un plafond qui n'est pas une règle mais un avoir",
   "/maquette/arbitrage": "proposée le 29 octobre 2026 : la même forme sur DEUX lignes et un chiffre qui dit non — le mouvement, et non ses deux bouts",
+  "/maquette/ligne": "proposée le 29 octobre 2026 : « proposer votre propre ligne » revue — une page, plusieurs réponses à une même question, et deux validations",
 };
 
 const citeesParLaColonne = new Set([...COLONNE_DESK, ...COLONNE_CLIENT, ...COLONNE_VISITEUR].flatMap((g) => g.items.map((i) => i.href)));

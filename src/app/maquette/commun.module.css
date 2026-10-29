@@ -99,7 +99,12 @@
   box-shadow: 0 1px 3px rgb(0 0 0 / 18%);
   transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.bosse[data-sens="vente"] {
+/* LA BOSSE GLISSE SUR LE SECOND CHOIX, QUEL QU'IL SOIT. Elle était câblée
+   sur « data-sens="vente" » — le vocabulaire d'une seule maquette. Devenue
+   pièce du kit, elle ne peut plus connaître les mots de qui l'emploie :
+   « data-second » dit la POSITION, qui est la seule chose qu'une bosse ait à
+   savoir. */
+.bosse[data-second="oui"] {
   transform: translateX(100%);
 }
 @media (prefers-reduced-motion: reduce) {
