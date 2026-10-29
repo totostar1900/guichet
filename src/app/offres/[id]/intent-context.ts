@@ -64,7 +64,12 @@ export async function loadIntentContext(o: Offer, sp: IntentSearch, session: Ses
   //
   // Un lecteur anonyme ne lisait déjà rien de tout cela : pour lui, rien ne
   // change.
-  const wantsHeld = Boolean(session) && (o.kind === "MARCHE" || o.kind === "FONDS");
+  /* LE RACHAT DU TRÉSOR EST UNE SORTIE, DONC IL PART DE CE QU'ON DÉTIENT.
+     Il manquait à cette liste, et c'était la seule ligne dont la question
+     s'appelle « cession » : la page ne lisait pas la position, donc le
+     formulaire n'avait ni plafond, ni « tout céder », ni ce qui resterait.
+     Un lecteur anonyme ne lit toujours rien de tout cela. */
+  const wantsHeld = Boolean(session) && (o.kind === "MARCHE" || o.kind === "FONDS" || o.kind === "RACHAT");
   const [{ readLineLink }, { profileFlag }, channels, fin, allIntents, allOffers] = await Promise.all([
     import("@/lib/channels"),
     import("@/data/profile"),

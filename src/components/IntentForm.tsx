@@ -10,12 +10,12 @@ import { normalizePhone, fmtPct } from "@/lib/format";
 import { ProofBlock } from "@/components/ProofBlock";
 import { TrustNudge } from "@/components/TrustNudge";
 import { equivalence, estimate, marketEstimate, redemptionEstimate, surveyTrio } from "@/lib/domain/estimate";
-import { orderChecks } from "@/lib/domain/checks";
+import { orderChecks, resteApres } from "@/lib/domain/checks";
 import { marketBondCalc } from "@/lib/domain/status";
 import { OrderFlows } from "@/components/OrderFlows";
 import { Info } from "./Info";
 import { Select } from "@/components/ui/Select";
-import { INTENT_LABEL } from "@/lib/domain/intent";
+import { INTENT_LABEL, sensDeLIntention } from "@/lib/domain/intent";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { fmt, parseAmount, parseUnits } from "@/lib/format";
 import styles from "./IntentForm.module.css";
@@ -303,9 +303,16 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   // Sur une ligne cotée, ce que la somme demandée laisse de côté : un titre ne
   // se coupe pas, et le carnet n'en prend que des entiers, par quotité.
   const marketRest = byCash && ordered > 0 ? Math.max(0, parseAmount(cash) - Math.round(ordered * unitPrice(offer, type, lim))) : 0;
+  /* CE QUI SORT PART DE CE QU'ON DÉTIENT, et la maison a un nom pour « ce qui
+     sort » : la liste écrite ici à la main oubliait la cession, comme deux
+     autres endroits l'oubliaient. */
+  const sortie = sensDeLIntention(type) === "reduit";
   // Consistency of the order as typed: minimum, whole titles, quotité, limit price, position held.
-  const checks = needsAmount && ordered ? orderChecks(offer, type, ordered, lim, { held: (type === "vente" || type === "rachat") && held > 0 ? held : undefined, needsAccount: signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") }).filter((c) => c.level !== "ok") : [];
+  const checks = needsAmount && ordered ? orderChecks(offer, type, ordered, lim, { held: sortie && held > 0 ? held : undefined, needsAccount: signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") }).filter((c) => c.level !== "ok") : [];
   const blocked = checks.some((c) => c.level === "block");
+  /* LA PHRASE QU'ON SE DIT EN TAPANT. Elle se tait quand la position n'est pas
+     lue : « il vous restera 0 » serait un mensonge présenté comme un calcul. */
+  const reste = sortie && held > 0 ? resteApres(offer, type, held, ordered) : undefined;
 
   if (state?.ok) {
     return (
@@ -534,6 +541,14 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                     {t("{v} FCFA ne sont pas placés : un titre de plus coûterait {d} FCFA de trop.", { v: fmt(marketRest), d: fmt(Math.max(0, Math.round(unitPrice(offer, type, lim)) - marketRest)) })}
                   </span>
                 )}
+                {/* CE QU'IL VOUS RESTERA. Sur une sortie, la question n'est pas
+                    ce que la somme achète mais ce qu'on garde, et le guichet
+                    ne le disait nulle part. */}
+                {reste && (
+                  <span className={styles.reste}>
+                    {t("Il vous restera")} {reste.dit} {t(reste.mot)}
+                  </span>
+                )}
                 {held > 0 && type === "vente" && (
                   <small className={styles.held}>
                     {t("Vous détenez")} {fmtUnits(held)} {t(offer.instrument === "obligation" ? "titres" : "actions")} ·{" "}
@@ -659,11 +674,22 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                   {equiv.restLine && <span className={styles.rest}>{t(equiv.restLine)}</span>}
                 </small>
               )}
-              {held > 0 && (type === "vente" || type === "rachat") && (
+              {/* CE QU'IL VOUS RESTERA, ici aussi : c'est le champ du rachat
+                  du Trésor et du rachat de parts, les deux sorties qui ne
+                  passent pas par le trio. */}
+              {reste && (
+                <small className={styles.reste}>
+                  {t("Il vous restera")} {reste.dit} {t(reste.mot)}
+                </small>
+              )}
+              {/* « TOUT CÉDER » MANQUAIT AU TRÉSOR. La cession est la sortie
+                  qui porte le mot, et c'était la seule des trois sans sa
+                  position : ni plafond, ni raccourci. */}
+              {held > 0 && sortie && (
                 <small className={styles.held}>
                   {t("Vous détenez")} {fmtUnits(held)} {t(offer.kind === "FONDS" ? "parts" : offer.instrument === "obligation" ? "titres" : "actions")} ·{" "}
                   <button type="button" className={styles.linkBtn} onClick={() => setAmount(fmtUnits(held))}>
-                    {t(type === "rachat" ? "tout racheter" : "tout vendre")}
+                    {t(type === "rachat" ? "tout racheter" : type === "cession" ? "tout céder" : "tout vendre")}
                   </button>
                 </small>
               )}

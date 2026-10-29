@@ -1,4 +1,5 @@
 import type { Intent, Offer } from "@/lib/domain/types";
+import { sensDeLIntention } from "@/lib/domain/intent";
 import { positionFor } from "@/lib/documents/position";
 import { parseDate } from "@/lib/finance";
 import { localIso } from "@/lib/format";
@@ -42,10 +43,23 @@ export function servedUnits(i: Intent, o: Offer): number {
 export function positionsFrom(intents: Intent[], offers: Offer[], now = new Date()): Position[] {
   const byId = new Map(offers.map((o) => [o.id, o]));
   const today = localIso(now);
-  // Sales settled on the secondary market reduce the earliest holdings of the same line (FIFO).
+  /**
+   * CE QUI SORT RÉDUIT CE QU'ON DÉTIENT, ET LA MAISON SAIT DÉJÀ CE QUI SORT.
+   *
+   * Ces deux filtres portaient leur propre liste de types, et celle des
+   * sorties en oubliait une : la CESSION, c'est-à-dire le rachat d'un titre
+   * par le Trésor. Un client cédait trois cents titres, le rachat se réglait,
+   * l'argent arrivait — et son portefeuille continuait d'afficher les trois
+   * cents titres, avec les coupons à venir qui ne viendraient jamais. Rien ne
+   * l'aurait dit : un chiffre trop haut ne se plaint pas.
+   *
+   * « sensDeLIntention » est la règle de la maison, et son commentaire dit
+   * déjà que trois endroits se l'étaient réécrite. Celui-ci était le
+   * quatrième, et le seul à décider de ce que le client possède.
+   */
   const sold = new Map<string, number>();
   intents
-    .filter((i) => i.state === "reglee" && (i.type === "vente" || i.type === "rachat"))
+    .filter((i) => i.state === "reglee" && sensDeLIntention(i.type) === "reduit")
     .forEach((i) => {
       const o = byId.get(i.offerId);
       if (!o) return;
@@ -53,7 +67,7 @@ export function positionsFrom(intents: Intent[], offers: Offer[], now = new Date
       sold.set(key, (sold.get(key) ?? 0) + servedUnits(i, o));
     });
   return intents
-    .filter((i) => i.state === "reglee" && (i.type === "ferme" || i.type === "appetit" || i.type === "achat" || i.type === "souscription"))
+    .filter((i) => i.state === "reglee" && sensDeLIntention(i.type) === "augmente")
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     .flatMap((i) => {
       const o = byId.get(i.offerId);

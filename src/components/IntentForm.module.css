@@ -528,6 +528,18 @@
   color: var(--ink);
   font-weight: 600;
 }
+/* CE QU'IL VOUS RESTERA. Ce n'est ni un avertissement ni une note de bas de
+   champ : sur une sortie, c'est LA conséquence — on ne décide pas d'une somme,
+   on décide de ce qu'on garde. Elle se lit donc au corps et à l'encre du
+   texte, pas en gris clair comme les notes qui l'entourent, et le chiffre a la
+   même chasse que celui qu'elle commente. */
+.reste {
+  display: block;
+  margin-top: var(--s-2);
+  color: var(--ink);
+  font-size: var(--t-3);
+  font-variant-numeric: tabular-nums;
+}
 /* Ce qui ne part pas est la seule phrase du bloc qui demande une décision. */
 .rest {
   display: block;

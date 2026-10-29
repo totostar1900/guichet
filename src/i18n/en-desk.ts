@@ -104,6 +104,11 @@ export const EN_MORE: Record<string, string> = {
   "actions": "shares",
   "tout racheter": "redeem all",
   "tout vendre": "sell all",
+  "tout céder": "sell all",
+  "Il vous restera": "You will be left with",
+  /* Le singulier d'« actions » : « il vous restera 1 action ». Ceux de
+     « titre », « bon » et « part » sont plus bas, avec les autres unités. */
+  "action": "share",
   "Prix limite (facultatif)": "Limit price (optional)",
   "% du nominal": "% of par",
   "FCFA par action": "FCFA per share",

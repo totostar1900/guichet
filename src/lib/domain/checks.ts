@@ -1,5 +1,7 @@
 import type { IntentType, Offer } from "./types";
+import { counterUnit } from "./counter";
 import { estimate } from "./estimate";
+import { sensDeLIntention } from "./intent";
 import { surDesTitres } from "./ouverture";
 import { surveyLimitBlock, surveyUnit } from "./survey";
 import { fmt, fmtPct, fmtPrice } from "@/lib/format";
@@ -123,7 +125,7 @@ export function orderChecks(o: Offer, type: IntentType, amount: number | null | 
       else if (type === "achat" ? dev < -10 : dev > 10) out.push({ key: "limit-away", level: "warn", text: `Prix limite ${type === "achat" ? "inférieur" : "supérieur"} de ${fmtPct(Math.abs(dev), 1)} au dernier cours (${shown}) : l'ordre peut rester non exécuté.`, why: "L'ordre ne s'exécute que si une contrepartie accepte ce prix. Plus la limite s'éloigne du cours, plus l'exécution est incertaine." });
       else if (type === "achat" ? dev > 10 : dev < -10) out.push({ key: "limit-gen", level: "warn", text: `Prix limite ${type === "achat" ? "supérieur" : "inférieur"} de ${fmtPct(Math.abs(dev), 1)} au dernier cours : l'exécution se fera au cours du marché.`, why: "Une limite généreuse protège contre l'absence d'exécution, pas contre un mauvais prix : le desk transmet au mieux." });
     }
-    if (type === "vente" && ctx?.held != null && qty > ctx.held) out.push({ key: "held", level: "block", text: `Vous détenez ${fmt(ctx.held)} unité(s) de cette ligne chez nous : la vente ne peut pas dépasser ce nombre.`, why: "Un ordre de vente porte sur des titres inscrits en compte." });
+    if (type === "vente" && ctx?.held != null && qty > ctx.held) out.push({ key: "held", level: "block", text: `Vous en détenez ${fmt(ctx.held)} : la vente ne peut pas dépasser ce nombre.`, why: "Un ordre de vente porte sur des titres inscrits en compte." });
     const unit = isBond ? (o.nominal * ref) / 100 : ref;
     if (qty >= 1 && ref > 0) out.push({ key: "ok", level: "ok", text: `≈ ${fmt(qty * unit)} FCFA au cours de référence · règlement T+${o.settlementDays ?? 3}`, why: "Le montant final dépend du cours d'exécution et des frais de bourse." });
   }
@@ -147,6 +149,15 @@ export function orderChecks(o: Offer, type: IntentType, amount: number | null | 
 
   // Buybacks: whole titles.
   if (o.kind === "RACHAT" && amt !== Math.floor(amt)) out.push({ key: "whole", level: "warn", text: `Nombre de titres arrondi à ${fmt(Math.floor(amt))}.`, why: "Le Trésor rachète des titres entiers." });
+  /* ON NE CÈDE PAS CE QU'ON N'A PAS, ET CELA VALAIT POUR DEUX SORTIES SUR
+     TROIS. La vente de bourse et le rachat de parts avaient leur plafond ;
+     la cession au Trésor, qui est pourtant la sortie qui porte le mot, n'en
+     avait aucun — le contexte de la page ne lisait même pas ce que le client
+     détenait sur ce genre de ligne. Un client pouvait proposer au Trésor dix
+     mille titres pour trois cents inscrits en compte, et ne l'apprendre que
+     du desk, après coup. */
+  if (o.kind === "RACHAT" && type === "cession" && ctx?.held != null && Math.floor(amt) > ctx.held)
+    out.push({ key: "held", level: "block", text: `Vous en détenez ${fmt(ctx.held)} : la cession ne peut pas dépasser ce nombre.`, why: "Le Trésor rachète des titres inscrits à votre nom : la cession porte sur ce que vous détenez le jour du règlement." });
 
   /* CE QUI RESTE À OUVRIR DÉPEND DE CE QU'ON ACHÈTE, et le dire de travers
      est pire que se taire : annoncer un compte-titres à quelqu'un qui souscrit
@@ -162,3 +173,34 @@ export function orderChecks(o: Offer, type: IntentType, amount: number | null | 
 }
 
 export const blocking = (checks: OrderCheck[]) => checks.find((c) => c.level === "block");
+
+/**
+ * CE QU'IL VOUS RESTERA — LA PHRASE QUE LE CLIENT SE DIT PENDANT QU'IL TAPE.
+ *
+ * Partout ailleurs, le guichet montre ce que le montant ACHÈTE. Sur une
+ * sortie, la question est l'autre : on ne décide pas d'une somme, on décide de
+ * ce qu'on garde. « Il vous restera 108 titres » est la phrase qu'on se dit en
+ * tapant 12, et elle n'était écrite nulle part — ni sur une vente de bourse,
+ * ni sur un rachat de parts, ni sur une cession au Trésor.
+ *
+ * ELLE SE TAIT QUAND ELLE NE SAIT PAS. Sans position lue — un lecteur
+ * anonyme, une ligne dont on ne tient pas le compte —, annoncer « il vous
+ * restera 0 » serait un mensonge présenté comme un calcul.
+ *
+ * ELLE REND SES MORCEAUX, PAS SA PHRASE : le mot d'unité change selon la
+ * ligne, et le dictionnaire ne traduit que ce qu'il reconnaît en entier. Un
+ * mot glissé au milieu d'une phrase traduite laisse la moitié du message en
+ * français — la maison s'est déjà fait prendre là-dessus sur « au-dessous ».
+ */
+export function resteApres(o: Offer, type: IntentType, held: number | null | undefined, ordered: number | null | undefined): { reste: number; dit: string; mot: string } | undefined {
+  if (sensDeLIntention(type) !== "reduit") return undefined;
+  if (held == null || held <= 0) return undefined;
+  const sort = ordered ?? 0;
+  if (sort <= 0 || sort > held) return undefined;
+  const reste = held - sort;
+  const mot = counterUnit(o);
+  // Les parts se comptent au millième ; les titres et les actions sont entiers.
+  const dit = o.kind === "FONDS" ? reste.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(Math.round(reste));
+  const singulier = reste <= 1 && o.kind !== "FONDS";
+  return { reste, dit, mot: singulier ? mot.replace(/s$/, "") : mot };
+}
