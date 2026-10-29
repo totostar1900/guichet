@@ -458,6 +458,55 @@ export const SEUIL_MONTANT = 100_000_000;
 export const SEUIL_CLIENTS = 3;
 export const mur = (c: Consensus): boolean => c.montant >= SEUIL_MONTANT && c.clients >= SEUIL_CLIENTS;
 
+/**
+ * LE MONTANT D'UN CLIENT SE COMPTE UNE SEULE FOIS, QUEL QUE SOIT LE NOMBRE
+ * DE LIGNES QU'IL PROPOSE.
+ *
+ * ARBITRÉ PAR LE DIRIGEANT LE 29 OCTOBRE 2026, en réponse à une question que
+ * la maquette « proposer votre propre ligne » a posée : si l'on permet de
+ * choisir plusieurs Trésors et plusieurs durées d'un coup, que devient le
+ * montant ?
+ *
+ * CE QUI SE PASSERAIT SANS CETTE RÈGLE, MESURÉ ET NON SUPPOSÉ. Un client qui
+ * dit « cinquante millions, sur du camerounais ou du gabonais, à deux, cinq
+ * ou sept ans » produit SIX lignes, donc six groupes — « cleDeGroupe » les
+ * sépare par pays et par durée. Chacun porte 50 000 000 F et un client :
+ * la somme des groupes vaut 300 000 000 F pour 50 000 000 F réellement
+ * engagés.
+ *
+ * LE MUR N'EST PAS LE DANGER, et il faut le dire parce que c'est ce que j'ai
+ * cru d'abord : il exige cent millions ET trois clients, donc aucun des six
+ * groupes ne le franchit. Le danger est ailleurs, et il est pire parce qu'il
+ * ne déclenche rien — le desk peut porter cinquante millions au Cameroun ET
+ * cinquante millions au Gabon, et le client n'en honorera qu'un. La maison
+ * aurait promis deux fois le même argent à deux Trésors, ce qui est
+ * exactement le crédit qu'elle a mis des mois à prendre.
+ *
+ * CE QUE LA RÈGLE EXIGE DU MODÈLE, le jour où les lignes sœurs existeront :
+ *
+ *   · QUE LA LIGNE CONNAISSE SES SŒURS. Une proposition faite d'un geste est
+ *     une famille, et sans lien entre ses membres aucun calcul ne peut savoir
+ *     que les six sont des ALTERNATIVES et non des additions.
+ *
+ *   · QUE LE CONSENSUS DISE DEUX CHIFFRES ET NON UN. Le montant du groupe
+ *     reste ce qu'on prendrait SI CETTE LIGNE SORTAIT — c'est lui qui dit la
+ *     taille possible, et il vaut 50 000 000 F. À côté, la part FERME : ce
+ *     qui n'est partagé avec aucune sœur, et que le desk peut porter sans
+ *     risquer de le voir honoré ailleurs. Ici elle vaut zéro.
+ *
+ *   · QUE LE MUR SE JUGE SUR LA PART FERME, et non sur le montant possible.
+ *     Un consensus bâti sur des alternatives n'est pas une demande de la
+ *     place : c'est la même demande comptée plusieurs fois.
+ *
+ * RIEN DE TOUT CELA N'EST ÉCRIT AUJOURD'HUI, et c'est voulu : le geste qui
+ * crée des lignes sœurs n'existe pas encore. Une épreuve monte la garde —
+ * voir « src/test/sondage-une-seule-fois.test.ts » — et tombe le jour où le
+ * modèle gagnera le lien, pour que cette doctrine soit lue à ce moment-là
+ * plutôt qu'après.
+ */
+export const DOCTRINE_UNE_SEULE_FOIS =
+  "Le montant d'un client se compte une seule fois, quel que soit le nombre de lignes qu'il propose : des lignes sœurs sont des alternatives, pas des additions.";
+
 /* ------------------------------------------------------------------ *
  * CE QUE LE CLIENT LIT SUR SA PAGE
  * ------------------------------------------------------------------ */
