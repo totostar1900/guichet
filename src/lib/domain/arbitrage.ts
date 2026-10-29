@@ -212,6 +212,32 @@ export function bornesManquantes(b: Bornes, aujourdHui: string): string[] {
   return dits;
 }
 
+/**
+ * CE QUE LE PLANCHER DIT, COMPARÉ À CE QUE LA VENTE RAPPORTERAIT AUJOURD'HUI.
+ *
+ * Un plancher posé au-dessus du produit attendu arme un arbitrage MORT-NÉ :
+ * « peutPartir » le refusera chaque soir, en silence, jusqu'à l'expiration —
+ * et le client lira alors la phrase de la maison, « ce n'est pas une panne,
+ * c'est la protection qui a joué ». Elle sera vraie, et elle cachera que rien
+ * n'avait jamais eu la moindre chance de partir.
+ *
+ * ET POURTANT ON NE REFUSE RIEN. Le produit n'est qu'une ESTIMATION : une VL
+ * bouge, un cours encore plus. « Je ne pars qu'au-dessus de ce que ça vaut
+ * aujourd'hui » est un ordre parfaitement sensé — c'est même à cela qu'un
+ * plancher sert. Le défaut n'était pas la permission, c'était le silence.
+ * Cette fonction dit donc la relation ; elle ne ferme pas la porte.
+ *
+ * « sans_objet » tant qu'il n'y a rien à comparer : sans montant saisi, le
+ * produit vaut zéro, et annoncer « au-dessus » serait un verdict sur une
+ * question que le client n'a pas encore posée.
+ */
+export type PlancherFaceAuProduit = "sans_objet" | "tient" | "au_dessus";
+
+export function plancherFaceAuProduit(plancher: number | null | undefined, produitEstime: number): PlancherFaceAuProduit {
+  if (plancher == null || !(plancher > 0) || !(produitEstime > 0)) return "sans_objet";
+  return plancher > produitEstime ? "au_dessus" : "tient";
+}
+
 /** Jours pleins entre deux jours ISO, sans fuseau : les deux sont des dates, pas des instants. */
 export function joursEntre(du: string, au: string): number {
   return Math.round((Date.parse(`${au.slice(0, 10)}T00:00:00Z`) - Date.parse(`${du.slice(0, 10)}T00:00:00Z`)) / 86_400_000);

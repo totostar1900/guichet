@@ -717,18 +717,125 @@
   font-size: var(--t-3);
   line-height: 1.5;
 }
-/* Les deux bornes côte à côte au-dessus de 380 px : elles se décident
-   ensemble — « au moins tant, et pas après telle date » est une seule
-   phrase — et les séparer en deux lignes les ferait lire comme deux
-   réglages sans rapport. */
-.arbBornes {
+/* LES DEUX BORNES NE SE TIENNENT PLUS PAR LA MAIN. Elles étaient côte à côte,
+   deux cases de douze pixels — « au moins tant, et pas après telle date » se
+   lisait comme une seule phrase, et c'était juste tant qu'aucune des deux
+   n'avait de réponse à donner. Chacune porte maintenant sa question et sa
+   conséquence, et une grille de durées ne tient pas dans une demi-largeur. */
+
+/* ────────────────────────────────────────────────────────────────────────────
+   LE TRAJET : LE SEUL ENDROIT DU GUICHET QUI A DEUX SUJETS.
+
+   Les autres écrans parlent d'une ligne — on y place une somme, on y propose
+   un taux, on en cède une part. Un arbitrage n'est ni le départ ni l'arrivée,
+   c'est le MOUVEMENT entre les deux, et il ne se voyait nulle part : la ligne
+   qu'on quitte n'était pas nommée dans ce panneau, et celle qu'on rejoint ne
+   se lisait qu'au fond d'une liste repliée, tronquée à « FCP… ».
+
+   EMPILÉ, PAS CÔTE À CÔTE. À 390 px, deux colonnes feraient quinze caractères
+   chacune, et le nom d'un fonds en fait quarante. La flèche descend entre les
+   deux : c'est le seul endroit de la maison où la verticale veut dire quelque
+   chose.
+   ──────────────────────────────────────────────────────────────────────────── */
+.trajet {
   display: grid;
-  gap: var(--s-4);
+  gap: var(--s-3);
 }
-@media (min-width: 380px) {
-  .arbBornes {
-    grid-template-columns: 1fr 1fr;
-  }
+.jambe {
+  display: grid;
+  gap: 2px;
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--gold-line);
+  border-radius: var(--rond);
+  background: var(--surface);
+}
+.jambeRole {
+  font-size: var(--t-1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.jambeLigne {
+  font-size: var(--t-3);
+  font-weight: 600;
+  color: var(--ink);
+}
+.fleche {
+  justify-self: center;
+  color: var(--gold-ink);
+  font-size: var(--t-5);
+  line-height: 1;
+}
+
+/* LE PLANCHER : une question au négatif, donc une case qui ne ressemble pas à
+   celles où l'on écrit ce qu'on veut. Elle se lit au corps — c'est un chiffre
+   qu'on décide — sans prendre le neuvième degré, qui appartient à ce qu'on
+   VEUT et non à ce qu'on refuse. */
+.arbPlancher input {
+  font-size: var(--t-5);
+  font-variant-numeric: tabular-nums;
+}
+/* CE QUE LA BORNE PRODUIT, sous la main. Même rôle que « il vous restera »
+   sur une sortie : la réponse à la question qu'on vient de poser. */
+.suiteArb {
+  display: block;
+  margin-top: var(--s-2);
+  color: var(--ink-2);
+  font-size: var(--t-2);
+  line-height: 1.45;
+}
+.suiteArb b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+/* UN PLANCHER AU-DESSUS DU PRODUIT ATTENDU N'EST PAS UN REFUS : c'est un
+   arbitrage qui n'attend qu'une hausse. On le dit, on ne le barre pas. */
+.arbTrop {
+  display: block;
+  margin-top: var(--s-2);
+  color: var(--warn);
+  font-size: var(--t-2);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* DES DURÉES, ET NON UN CALENDRIER. Cinq colonnes d'un trait : en « auto-fit »
+   elles se cassaient en trois puis deux, et une échelle à rangée bancale ne se
+   lit plus comme une échelle — l'œil compare 15-30-45 d'un côté et 60-90 de
+   l'autre. */
+.arbFenetre {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.arbFenetre legend {
+  padding: 0;
+}
+.durees {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+}
+.duree,
+.dureeOn {
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.dureeOn {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--fill-ink);
+  font-weight: 700;
 }
 
 /* LE REFUS SE LIT LÀ OÙ LE DOIGT VIENT DE SE POSER, et non au bout d'un saut

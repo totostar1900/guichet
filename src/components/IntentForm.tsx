@@ -9,9 +9,10 @@ import type { ChannelStatus } from "@/lib/domain/types";
 import { normalizePhone, fmtPct } from "@/lib/format";
 import { ProofBlock } from "@/components/ProofBlock";
 import { TrustNudge } from "@/components/TrustNudge";
-import { equivalence, estimate, marketEstimate, montantPourUnites, redemptionEstimate, surveyTrio } from "@/lib/domain/estimate";
+import { equivalence, estimate, marketEstimate, montantPourUnites, produitAttendu, redemptionEstimate, surveyTrio } from "@/lib/domain/estimate";
 import { orderChecks, resteApres } from "@/lib/domain/checks";
 import { sensDeLaCondition } from "@/lib/domain/survey";
+import { FENETRE_MAX_JOURS, plancherFaceAuProduit } from "@/lib/domain/arbitrage";
 import type { Repere } from "@/lib/market/repere";
 import { marketBondCalc } from "@/lib/domain/status";
 import { OrderFlows } from "@/components/OrderFlows";
@@ -75,6 +76,10 @@ export interface SwitchTarget {
   /** Un fonds : la paire est simultanée. Sinon elle passe par le carnet, et elle est armée. */
   fonds: boolean;
 }
+
+/* Les durées proposées pour une fenêtre d'arbitrage : des durées, comme on les
+   pense, bornées par le domaine. */
+const DUREES = [15, 30, 45, 60, 90].filter((j) => j <= FENETRE_MAX_JOURS);
 
 export function IntentForm({ offer, types, initialType, initialAmount, held = 0, switchTargets = [], fenetre, repere, past, signedIn, tier = 0, phone = "", phoneProven = false, email = "", name = "", channels, bridge, profileFlag, investable, monthly }: { offer: Offer; types: IntentType[]; initialType: IntentType; initialAmount?: number; held?: number; switchTargets?: SwitchTarget[]; /** Les deux bouts de la fenêtre d'un arbitrage, calculés au serveur : voir « intent-context ». */ fenetre?: { min: string; max: string }; /** Ce qu'une séance comparable a réellement servi, dans l'unité du champ : voir « market/repere ». */ repere?: Repere; past: boolean; signedIn: boolean; tier?: number; phone?: string; /** le numéro de la session a été confirmé par un code à la connexion */ phoneProven?: boolean; email?: string; name?: string; channels?: ChannelStatus; bridge?: { phone: string; token: string }; profileFlag?: string; investable?: number; /** Le versement programmé, quand la ligne en accepte un : l'autre branche du choix. */ monthly?: ReactNode }) {
   // The profile name is "Prénom Nom" when the client typed it, or an e-mail stub otherwise.
@@ -229,6 +234,10 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
      partout ailleurs une jambe passe par le carnet et la paire est ARMÉE. Le
      coût de la contrainte doit être visible, pas découvert. */
   const simultane = Boolean(arrivee?.fonds && offer.kind === "FONDS");
+  /* CE QUE LE PLANCHER DIT, comparé à ce que la vente rapporterait
+     aujourd'hui. Posé au-dessus, il arme un arbitrage mort-né que le
+     robot refusera chaque soir en silence jusqu'à l'expiration. */
+
   const limitNum = limit ? Number(limit.replace(",", ".")) : null;
   const lim = limitNum != null && !isNaN(limitNum) && limitNum > 0 ? limitNum : null;
   /* LE SENS DU LEVIER, ET IL S'INVERSE D'UN COMPARTIMENT À L'AUTRE : le Trésor
@@ -236,6 +245,13 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
      bon et les prix les plus hauts sur une obligation. Le repère est le niveau
      annoncé — celui qui sert déjà de gabarit au champ —, et la phrase change
      avec le chiffre tapé plutôt que de rester une consigne figée. */
+  /* LES DURÉES D'UN ARBITRAGE, ET LA DATE QU'ELLES ÉCRIVENT.
+     La borne haute n'est pas décidée ici : « FENETRE_MAX_JOURS » vient du
+     domaine, et un écran qui la réinventerait finirait par s'en écarter. Le
+     jour de départ vient du serveur, par « fenetre.min » qui est déjà demain :
+     « new Date() » pendant un rendu donnerait une valeur au serveur et une
+     autre au navigateur. */
+  const dateApres = (jours: number) => (fenetre ? new Date(Date.parse(`${fenetre.min}T00:00:00Z`) + (jours - 1) * 86_400_000).toISOString().slice(0, 10) : "");
   /* LE REPÈRE, RENDU UNE FOIS POUR LES DEUX CHAMPS QUI POSENT LA MÊME
      QUESTION. Il dit ce qu'une séance comparable a servi, là où le gabarit du
      champ ne dit que ce que le Trésor annonce. Quand il ne tient qu'à une
@@ -272,6 +288,12 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const mktBond = market && offer.instrument === "obligation" && ordered > 0 ? marketBondCalc(offer, ordered * offer.nominal, lim ?? offer.ask ?? offer.lastPrice ?? 0) : null;
   const outlay = market ? (mktBond?.outlay ?? (ordered > 0 ? ordered * unitPrice(offer, type, lim) : 0)) : (est.outlay ?? 0);
   const sized = market ? ordered > 0 : est.ok;
+  /* CE QUE LA VENTE RAPPORTERAIT AUJOURD'HUI : le domaine le dit pour les
+     trois sorties, dont deux où « outlay » est aveugle — négatif sur un
+     rachat du Trésor, nul sur un fonds. */
+  const produit = produitAttendu(offer, type, ordered, outlay);
+  const plancherDit = plancherFaceAuProduit(parseAmount(floor), produit);
+
 
   /**
    * L'ORDRE COMMENCÉ SURVIT À LA PAGE, ET SE RAPPELLE À LA CLOCHE.
@@ -786,6 +808,26 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               que le prix n'est pas le même. */}
           {canSwitch && switchTo && (
             <div className={styles.arbitrage}>
+              {/* LE MOUVEMENT, MONTRÉ.
+                  Un arbitrage n'est ni le départ ni l'arrivée : c'est le
+                  trajet entre les deux, et c'est la seule chose que l'écran ne
+                  montrait pas. La ligne qu'on quitte n'était nommée nulle part
+                  dans ce panneau, et celle qu'on rejoint ne se lisait qu'à
+                  l'intérieur d'une liste repliée, tronquée à « FCP… ». Le
+                  geste le plus engageant du guichet était invisible. */}
+              <div className={styles.trajet}>
+                <span className={styles.jambe}>
+                  <span className={styles.jambeRole}>{t("Vous quittez")}</span>
+                  <span className={styles.jambeLigne}>{offer.title}</span>
+                </span>
+                <span className={styles.fleche} aria-hidden="true">
+                  ↓
+                </span>
+                <span className={styles.jambe}>
+                  <span className={styles.jambeRole}>{t("Vous rejoignez")}</span>
+                  <span className={styles.jambeLigne}>{arrivee?.title ?? "—"}</span>
+                </span>
+              </div>
               <p className={styles.arbTitre}>{t(simultane ? "Les deux jambes se signent ensemble" : "La paire est armée : rien ne part tant que les deux jambes ne tiennent pas le même jour")}</p>
               <p className={styles.arbDit}>
                 {t(
@@ -794,18 +836,56 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                     : "Une des deux jambes passe par le carnet de la BVMAC, où un ordre peut rester plusieurs séances sans trouver preneur. Vous ne vous désinvestissez donc que si l'arrivée est tenue — au prix de pouvoir ne jamais partir.",
                 )}
               </p>
-              <div className={styles.arbBornes}>
-                <label className="field">
-                  {t("Plancher (FCFA)")}
-                  <input name="switchFloor" inputMode="numeric" value={floor} onChange={(e) => setFloor(e.target.value)} required />
+              {/* LE SEUL CHIFFRE DE LA MAISON QUI EST UNE LIMITE.
+                  Partout ailleurs, le montant qu'écrit le client est ce qu'il
+                  VEUT : placer un million, céder quarante titres, verser
+                  cinquante mille. Celui-ci est l'inverse — le montant sous
+                  lequel il REFUSE que la vente parte. « Plancher (FCFA) » est
+                  le mot du desk et se lit comme une valeur à atteindre ; un
+                  client qui vise son plancher arme un arbitrage qui ne partira
+                  jamais. La question se pose donc au négatif. */}
+              <label className={`field ${styles.arbPlancher}`}>
+                {t("Sous quel montant refusez-vous que la vente parte ?")} : {t("FCFA")}
+                {/* Les milliers se séparent pendant la frappe, comme partout
+                    ailleurs : ce champ s'en était dispensé, et c'est le seul
+                    endroit du formulaire où l'on comptait encore ses zéros. */}
+                <input name="switchFloor" inputMode="numeric" value={floor} {...groupedInput(setFloor)} required />
+                {plancherDit === "au_dessus" ? (
+                  <small className={styles.arbTrop}>{t("Au-dessus de ce que la vente rapporterait aujourd'hui ({v} FCFA) : rien ne partira tant que le prix n'aura pas monté.", { v: fmt(produit) })}</small>
+                ) : plancherDit === "tient" ? (
+                  <small className={styles.suiteArb}>
+                    <b>{t("Rien ne part sous {v} FCFA", { v: fmt(parseAmount(floor)) })}</b>
+                    <span> · {t("la vente en rapporterait {v} aujourd'hui", { v: fmt(produit) })}</span>
+                  </small>
+                ) : (
                   <small className="muted">{t("Sous ce produit de vente, rien ne part.")}</small>
-                </label>
-                <label className="field">
-                  {t("Date limite")}
-                  <input name="switchBy" type="date" min={fenetre?.min} max={fenetre?.max} value={by} onChange={(e) => setBy(e.target.value)} required />
+                )}
+              </label>
+              {/* DES DURÉES, ET NON UN CALENDRIER. « Je laisse courir un mois »
+                  est la pensée du client ; lui demander de la traduire en un
+                  jour du calendrier ajoute une traduction et deux gestes — la
+                  roue du téléphone, et la visée. La date reste dans le champ,
+                  qui part au serveur et que le desk relira ; ce sont les
+                  boutons qui l'écrivent. */}
+              <fieldset className={`field ${styles.arbFenetre}`}>
+                <legend>{t("Jusqu'à quand laissez-vous courir ?")}</legend>
+                <input type="hidden" name="switchBy" value={by} />
+                <div className={styles.durees}>
+                  {DUREES.map((j) => (
+                    <button key={j} type="button" aria-pressed={by !== "" && by === dateApres(j)} className={by !== "" && by === dateApres(j) ? styles.dureeOn : styles.duree} onClick={() => setBy(dateApres(j))}>
+                      {j} j
+                    </button>
+                  ))}
+                </div>
+                {by ? (
+                  <small className={styles.suiteArb}>
+                    <b>{t("Jusqu'au {d}", { d: fmtDate(by) })}</b>
+                    <span> · {t("passé ce jour, rien n'a bougé : votre position est intacte, et votre argent aussi.")}</span>
+                  </small>
+                ) : (
                   <small className="muted">{t("Au-delà, l'arbitrage s'annule et votre position reste telle quelle.")}</small>
-                </label>
-              </div>
+                )}
+              </fieldset>
               {/* UN ARBITRAGE QUI EXPIRE N'EST PAS UNE PANNE : c'est la
                   protection qui a joué. Dit ici, avant, parce qu'un client qui
                   le découvre après lit « ça n'a pas marché ». */}

@@ -123,12 +123,48 @@ export function marketEstimate(o: Offer, qty: number, type: IntentType, limit: n
 }
 
 /** Le rachat d'un fonds : le champ porte des parts, et c'est un montant qui revient. */
+/**
+ * CE QU'UN RACHAT DE PARTS RAPPORTE, EN FRANCS.
+ *
+ * Le calcul existait, mais il ne SORTAIT que sous forme de phrase : la
+ * fonction d'à côté l'écrivait et jetait le nombre. Tout ce qui voulait le
+ * comparer — un plancher d'arbitrage, par exemple — devait donc soit le
+ * refaire, soit se taire ; il s'est tu.
+ */
+export function produitDuRachat(o: Offer, units: number): number {
+  if (!o.fund || !(units > 0)) return 0;
+  const gross = units * o.fund.nav;
+  return Math.round(gross - gross * (o.fund.exitFeePct / 100));
+}
+
 export function redemptionEstimate(o: Offer, units: number): string {
   if (!o.fund) return "";
   if (!units) return "Indiquez un nombre de parts pour voir l'estimation à la dernière VL.";
   const gross = units * o.fund.nav;
   const fee = gross * (o.fund.exitFeePct / 100);
-  return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · frais du fonds à la sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(gross - fee)} FCFA à la VL de rachat`;
+  return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · frais du fonds à la sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(produitDuRachat(o, units))} FCFA à la VL de rachat`;
+}
+
+/**
+ * CE QUE CETTE VENTE RAPPORTERAIT AUJOURD'HUI, QUELLE QUE SOIT LA SORTIE.
+ *
+ * Trois sorties, et trois conventions de signe qui se croisaient dans l'écran :
+ * sur une ligne cotée le décaissement calculé EST le produit et il est positif ;
+ * sur un rachat du Trésor « estimate » le rend NÉGATIF, par la convention des
+ * flux ; sur un fonds il vaut zéro, parce que « estimate » attend des francs
+ * là où le client compte des parts. Qui voulait comparer un plancher à ce que
+ * la vente rapporte tombait donc sur « sans objet » deux fois sur trois — et
+ * se taisait, ce qui ressemblait à un accord.
+ *
+ * Le produit du marché est passé en argument plutôt que recalculé : il porte
+ * déjà la limite saisie et le cas d'une obligation cotée, et le refaire ici
+ * serait un second calcul du même fait.
+ */
+export function produitAttendu(o: Offer, type: IntentType, quantite: number, produitDuMarche: number): number {
+  if (type !== "vente" && type !== "rachat" && type !== "cession") return 0;
+  if (o.kind === "FONDS") return produitDuRachat(o, quantite);
+  if (o.kind === "RACHAT") return Math.max(0, Math.round(quantite * o.nominal));
+  return Math.max(0, Math.round(produitDuMarche));
 }
 
 /**
