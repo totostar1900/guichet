@@ -190,9 +190,28 @@ export interface Consensus {
   tenor: string;
   /** La ligne du desk qui a suscité ces réponses, quand c'en est une. */
   surLigne?: string;
-  /** Combien de clients, et combien de francs en tout. */
+  /**
+   * COMBIEN DE CLIENTS, ET COMBIEN DE FRANCS EN TOUT — SI CETTE LIGNE SORTAIT.
+   *
+   * C'est la taille POSSIBLE du groupe : ce que la maison prendrait si le
+   * Trésor émettait celle-ci plutôt qu'une autre. Elle compte les alternatives
+   * avec le reste, et c'est voulu — on veut savoir ce que cette durée-là peut
+   * porter. Ce n'est pas ce qu'on promet.
+   */
   clients: number;
   montant: number;
+  /**
+   * CE QU'ON PEUT PROMETTRE : la part qui n'est partagée avec aucune sœur.
+   *
+   * Un client qui propose six alternatives pour cinquante millions apporte
+   * cinquante millions à CHACUN des six groupes possibles, et zéro franc ferme
+   * à tous. Le porter six fois à deux Trésors reviendrait à promettre deux
+   * fois le même argent — exactement le crédit que la maison a mis des mois à
+   * prendre. Voir « DOCTRINE_UNE_SEULE_FOIS ».
+   */
+  ferme: number;
+  /** Les clients de la part ferme : trois alternatives ne font pas trois clients. */
+  clientsFermes: number;
   /**
    * LE NIVEAU PONDÉRÉ PAR LES MONTANTS, et non la moyenne des niveaux.
    *
@@ -396,6 +415,22 @@ export function rendementDeLaLigne(l: Pick<LigneSondee, "instrument" | "tenor" |
 export function consensus(lignes: LigneSondee[]): Consensus[] {
   const vivantes = lignes.filter((l) => l.state !== "close");
   const parId = new Map(vivantes.map((l) => [l.id, l]));
+  /**
+   * LES SŒURS, COMPTÉES AVANT LES GROUPES.
+   *
+   * Une ligne est FERME quand son montant n'est engagé nulle part ailleurs :
+   * soit elle est née seule, soit toutes ses sœurs ont été closes et elle
+   * reste la dernière vivante de sa famille. Dans les deux cas le client
+   * n'honorera qu'elle, et le desk peut la porter.
+   *
+   * Une ligne qui a des sœurs vivantes n'apporte RIEN de ferme à son groupe —
+   * pas une fraction, pas une moyenne. Le client n'en prendra qu'une, et
+   * personne ne sait laquelle : répartir cinquante millions en six fois huit
+   * serait promettre six lignes dont aucune n'existera à cette taille.
+   */
+  const vivantesParFamille = new Map<string, number>();
+  for (const l of vivantes) if (l.familleId) vivantesParFamille.set(l.familleId, (vivantesParFamille.get(l.familleId) ?? 0) + 1);
+  const estFerme = (l: LigneSondee) => !l.familleId || (vivantesParFamille.get(l.familleId) ?? 0) <= 1;
   const groupes = new Map<string, { entete: LigneSondee; surLigne?: string; demandes: LigneSondee[] }>();
 
   for (const l of vivantes) {
@@ -429,6 +464,8 @@ export function consensus(lignes: LigneSondee[]): Consensus[] {
         surLigne: g.surLigne,
         clients: new Set(g.demandes.map((l) => l.userId ?? l.id)).size,
         montant,
+        ferme: g.demandes.filter(estFerme).reduce((t, l) => t + l.montant, 0),
+        clientsFermes: new Set(g.demandes.filter(estFerme).map((l) => l.userId ?? l.id)).size,
         niveau,
         unite: UNITE_SONDEE,
         auPlusTot: jours.length ? jours.reduce((a, b) => (a > b ? a : b)) : undefined,
@@ -456,7 +493,16 @@ export function consensus(lignes: LigneSondee[]): Consensus[] {
  */
 export const SEUIL_MONTANT = 100_000_000;
 export const SEUIL_CLIENTS = 3;
-export const mur = (c: Consensus): boolean => c.montant >= SEUIL_MONTANT && c.clients >= SEUIL_CLIENTS;
+/**
+ * LE MUR SE JUGE SUR LA PART FERME, ET NON SUR LE MONTANT POSSIBLE.
+ *
+ * Un consensus bâti sur des alternatives n'est pas une demande de la place :
+ * c'est la même demande comptée plusieurs fois. Le juger sur « montant »
+ * reviendrait à porter au Trésor des francs que le client a déjà promis
+ * ailleurs, et les clients avec : trois clients dont deux n'apportent que des
+ * alternatives ne sont pas trois clients.
+ */
+export const mur = (c: Consensus): boolean => c.ferme >= SEUIL_MONTANT && c.clientsFermes >= SEUIL_CLIENTS;
 
 /**
  * LE MONTANT D'UN CLIENT SE COMPTE UNE SEULE FOIS, QUEL QUE SOIT LE NOMBRE
@@ -482,27 +528,34 @@ export const mur = (c: Consensus): boolean => c.montant >= SEUIL_MONTANT && c.cl
  * aurait promis deux fois le même argent à deux Trésors, ce qui est
  * exactement le crédit qu'elle a mis des mois à prendre.
  *
- * CE QUE LA RÈGLE EXIGE DU MODÈLE, le jour où les lignes sœurs existeront :
+ * CE QUE LA RÈGLE EXIGE DU MODÈLE — ET QUI EST ÉCRIT DEPUIS LE 29 OCTOBRE 2026,
+ * le jour où le geste a été rendu au client :
  *
  *   · QUE LA LIGNE CONNAISSE SES SŒURS. Une proposition faite d'un geste est
  *     une famille, et sans lien entre ses membres aucun calcul ne peut savoir
  *     que les six sont des ALTERNATIVES et non des additions.
+ *     → « LigneSondee.familleId ».
  *
  *   · QUE LE CONSENSUS DISE DEUX CHIFFRES ET NON UN. Le montant du groupe
  *     reste ce qu'on prendrait SI CETTE LIGNE SORTAIT — c'est lui qui dit la
  *     taille possible, et il vaut 50 000 000 F. À côté, la part FERME : ce
  *     qui n'est partagé avec aucune sœur, et que le desk peut porter sans
  *     risquer de le voir honoré ailleurs. Ici elle vaut zéro.
+ *     → « Consensus.ferme » et « Consensus.clientsFermes ».
  *
  *   · QUE LE MUR SE JUGE SUR LA PART FERME, et non sur le montant possible.
  *     Un consensus bâti sur des alternatives n'est pas une demande de la
  *     place : c'est la même demande comptée plusieurs fois.
+ *     → « mur ».
  *
- * RIEN DE TOUT CELA N'EST ÉCRIT AUJOURD'HUI, et c'est voulu : le geste qui
- * crée des lignes sœurs n'existe pas encore. Une épreuve monte la garde —
- * voir « src/test/sondage-une-seule-fois.test.ts » — et tombe le jour où le
- * modèle gagnera le lien, pour que cette doctrine soit lue à ce moment-là
- * plutôt qu'après.
+ * UNE SŒUR CLOSE LIBÈRE SES SŒURS. Quand il ne reste qu'une vivante dans une
+ * famille, le client n'honorera qu'elle : son montant redevient ferme sans que
+ * personne ait à le déclarer. C'est la même règle lue à l'envers, et c'est
+ * pourquoi la fermeté se mesure sur les lignes VIVANTES et non à la création.
+ *
+ * ON NE RÉPARTIT PAS. Couper cinquante millions en six fois huit serait
+ * promettre six lignes dont aucune n'existera à cette taille : le client n'en
+ * prendra qu'une, et personne ne sait laquelle.
  */
 export const DOCTRINE_UNE_SEULE_FOIS =
   "Le montant d'un client se compte une seule fois, quel que soit le nombre de lignes qu'il propose : des lignes sœurs sont des alternatives, pas des additions.";

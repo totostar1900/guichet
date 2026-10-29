@@ -4,6 +4,7 @@ import { useActionState, useState, useTransition } from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { Sheet } from "@/components/mobile/Sheet";
+import { Info } from "@/components/Info";
 import { groupedInput } from "@/lib/ui/grouped";
 import { INSTRUMENTS_SONDES, dureesDe, gabarit, type InstrumentSonde } from "@/lib/domain/sondage";
 import { PAYS_CEMAC } from "@/lib/market/budget";
@@ -118,15 +119,19 @@ export function Repondre({ question, existante, discret }: { question: { id: str
             écritures ; c'est le navigateur qui coupait. « decimal » donne le même
             clavier au doigt et laisse passer la virgule. */}
         <label className="field">
-          {t(question.mot === "taux" ? "Au taux d'au moins (%)" : "Au coupon d'au moins (%)")}
+          <span className={styles.question}>
+            {t(question.mot === "taux" ? "Au taux d'au moins (%)" : "Au coupon d'au moins (%)")}
+            <Info text="Facultatif : sans condition, votre réponse tient quel que soit le niveau." label={t("Votre condition")} subtle />
+          </span>
           <input name="rate" inputMode="decimal" placeholder="6,25" defaultValue={existante?.rate ?? ""} />
-          <small className="muted">{t("Facultatif : sans condition, votre réponse tient quel que soit le niveau.")}</small>
         </label>
       </div>
       <label className="field">
-        {t("Prêt à partir de (jours)")}
+        <span className={styles.question}>
+          {t("Prêt à partir de (jours)")}
+          <Info text="Une séance tenue avant ce délai vous trouverait sans fonds : c'est pour cela qu'on vous le demande." label={t("Prêt à partir de")} subtle />
+        </span>
         <input name="dansJours" type="number" min="0" max="365" placeholder="21" defaultValue={existante?.dansJours ?? ""} required />
-        <small className="muted">{t("Une séance tenue avant ce délai vous trouverait sans fonds : c'est pour cela qu'on vous le demande.")}</small>
       </label>
       {!state?.ok && state?.error && <em className={styles.erreur}>{state.error}</em>}
       <div className={styles.boutons}>
@@ -145,6 +150,9 @@ export function Repondre({ question, existante, discret }: { question: { id: str
  * LE GABARIT : PROPOSER SA PROPRE LIGNE
  * ------------------------------------------------------------------ */
 
+/** Un jeton qu'on prend ou qu'on rend : le même geste pour les deux listes. */
+const bascule = (liste: string[], pose: (v: string[]) => void, v: string) => pose(liste.includes(v) ? liste.filter((x) => x !== v) : [...liste, v]);
+
 export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) {
   const t = useT();
   const [state, action, pending] = useActionState<SondageResult | null, FormData>(existante ? modifierLaLigne : deposerLaLigne, null);
@@ -158,6 +166,17 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
   const choisie = durees.includes(tenor) ? tenor : durees[instrument === "BTA" ? 2 : 2];
   const setTenorSur = (v: string) => setTenor(v);
   const [ouvert, setOuvert] = useState(false);
+  /* LES CHOIX MULTIPLES, ET LA LISTE QU'ILS PRODUISENT. Un seul Trésor et une
+     seule durée au départ : la proposition la plus courante reste d'un geste,
+     et l'on n'élargit que si l'on veut. */
+  const [pays, setPays] = useState<string[]>([existante?.country ?? "Cameroun"]);
+  const [tenors, setTenors] = useState<string[]>(existante?.tenor ? [existante.tenor] : [dureesDe("OTA")[2]]);
+  /* CHANGER DE COMPARTIMENT CHANGE LA LISTE DES DURÉES, et une durée d'OTA
+     retenue sur un bon ne paraîtrait plus cochée tout en partant quand même
+     dans le formulaire : un champ caché ne se voit pas. On ne garde donc que
+     ce que le compartiment du moment propose. */
+  const tenorsValides = tenors.filter((d) => dureesDe(instrument).includes(d));
+  const lignesProduites = pays.flatMap((p) => tenorsValides.map((d) => `${p} · ${d}`));
   const champs = gabarit(instrument);
   const aide = (cle: string) => champs.find((c) => c.cle === cle)?.aide ?? "";
 
@@ -220,7 +239,14 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
           plutôt qu'un effet qui la ferme : un effet qui appelle setState est
           précisément ce que le lint de cette version refuse, et l'accusé de
           réception prend la place du bouton en dessous. */}
-      <Sheet open={ouvert && !accuseFrais} onClose={() => setOuvert(false)} title={t(existante ? "Modifier votre ligne" : "Proposer votre propre ligne")} wide>
+      {/* PLEINE PAGE, ET LA CROIX POUR SEULE SORTIE.
+          SIGNALÉ LE 29 OCTOBRE 2026 : « la page ne s'ouvre pas complètement ».
+          C'était « wide » — une feuille qui monte et s'arrête à mi-écran, avec
+          la page dessous qui tire l'œil. Un gabarit de huit questions ne se
+          remplit pas dans une fenêtre : on y perd le haut en atteignant le bas.
+          La demande était déjà posée pour les « en bref », et la variante
+          existait ; ce formulaire-ci l'avait manquée. */}
+      <Sheet open={ouvert && !accuseFrais} onClose={() => setOuvert(false)} title={t(existante ? "Modifier votre ligne" : "Proposer votre propre ligne")} plein>
         <form action={action} className={styles.form}>
           {existante && <input type="hidden" name="id" value={existante.id} />}
       {/* LE COMPARTIMENT D'ABORD, parce qu'il décide des champs qui suivent :
@@ -233,14 +259,17 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
           relevé à 412 px, son libellé passait à la ligne et poussait la valeur
           choisie hors du cadre : la liste paraissait vide. */}
       <div className={styles.un}>
-        {/* LES DEUX SIGLES NUS, ET L'EXPLICATION DESSOUS. Relevé à l'écran le
-            26 octobre 2026 : « OTA · obligation du Trésor » dans la liste
-            donnait un bouton « Ce que vous cherchez · OTA · obligation du
-            Trésor » qui passait à la ligne et perdait sa valeur hors du cadre
-            — le client lisait une liste déroulante vide. La valeur choisie
-            doit tenir sur la ligne du libellé ; ce qu'un sigle veut dire tient
-            dessous, où il a la place. */}
-        <div className="field">
+        {/* LES DEUX SIGLES NUS, ET L'EXPLICATION DANS UNE BULLE. Relevé à
+            l'écran le 26 octobre 2026 : « OTA · obligation du Trésor » dans la
+            liste donnait un bouton qui passait à la ligne et perdait sa valeur
+            hors du cadre — le client lisait une liste déroulante vide. Ce
+            qu'un sigle veut dire s'est donc posé dessous, puis, le 29 octobre,
+            dans une bulle : huit explications permanentes faisaient du gabarit
+            un mode d'emploi, et on cherchait les champs entre les phrases. */}
+        <div className={`field ${styles.avecBulle}`}>
+          <span className={styles.coin}>
+            <Info text={instrument === "OTA" ? "Une obligation du Trésor : elle verse un coupon chaque année, sur plusieurs années." : "Un bon du Trésor : il se vend précompté et se rembourse en une fois, sous un an."} label={t("Ce que vous cherchez")} subtle />
+          </span>
           <Select
             name="instrument"
             label={t("Ce que vous cherchez")}
@@ -250,46 +279,118 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
             cherchable={false}
             options={INSTRUMENTS_SONDES.map((i) => ({ value: i, label: i }))}
           />
-          <small className="muted">{t(instrument === "OTA" ? "Une obligation du Trésor : elle verse un coupon chaque année, sur plusieurs années." : "Un bon du Trésor : il se vend précompté et se rembourse en une fois, sous un an.")}</small>
         </div>
       </div>
-      <div className={styles.deux}>
-        <Select name="country" label={t("Le Trésor")} value={country} onChange={setCountry} block cherchable={false} options={PAYS_CEMAC.map((p) => ({ value: p, label: t(p) }))} />
-        {/* LA DURÉE SE CHOISIT, ELLE NE S'ÉCRIT PLUS. C'est la demande du
-            dirigeant — « plusieurs maturités à choisir » — et cela ferme à la
-            source ce qu'on avait appris à réparer après coup : « 5ans », « 5 ANS »
-            et « cinq ans » faisaient trois lignes différentes pour la
-            consolidation. La liste vient du domaine, qui sait ce qu'un Trésor de
-            la zone sert sur chaque compartiment. */}
-        <div className="field">
-          <Select name="tenor" label={t("La durée")} value={choisie} onChange={setTenorSur} block cherchable={false} options={dureesDe(instrument).map((d) => ({ value: d, label: d }))} />
-          <small className="muted">{t(aide("tenor"))}</small>
+      {existante ? (
+        <div className={styles.deux}>
+          <Select name="country" label={t("Le Trésor")} value={country} onChange={setCountry} block cherchable={false} options={PAYS_CEMAC.map((p) => ({ value: p, label: t(p) }))} />
+          {/* LA DURÉE SE CHOISIT, ELLE NE S'ÉCRIT PLUS. C'est la demande du
+              dirigeant — « plusieurs maturités à choisir » — et cela ferme à la
+              source ce qu'on avait appris à réparer après coup : « 5ans », « 5 ANS »
+              et « cinq ans » faisaient trois lignes différentes pour la
+              consolidation. La liste vient du domaine, qui sait ce qu'un Trésor de
+              la zone sert sur chaque compartiment. */}
+          <div className={`field ${styles.avecBulle}`}>
+            <span className={styles.coin}>
+              <Info text={aide("tenor")} label={t("La durée")} subtle />
+            </span>
+            <Select name="tenor" label={t("La durée")} value={choisie} onChange={setTenorSur} block cherchable={false} options={dureesDe(instrument).map((d) => ({ value: d, label: d }))} />
+          </div>
         </div>
-      </div>
+      ) : (
+        /* PLUSIEURS TRÉSORS ET PLUSIEURS DURÉES, D'UN SEUL GESTE.
+           C'est la demande du 29 octobre 2026, et ce n'est pas un confort de
+           saisie : un client qui prendrait du camerounais OU du gabonais, à
+           deux, cinq OU sept ans, devait jusqu'ici remplir six fois le même
+           formulaire — ou n'en remplir qu'un et taire le reste. Le desk ne
+           voyait alors qu'un sixième de ce que la place accepterait.
+           CE QUI SÉPARE CES JETONS D'UNE LISTE : on en prend PLUSIEURS. Un
+           jeton qui s'ajoute et un jeton qui remplace se ressemblent trop pour
+           qu'on les laisse identiques — d'où la coche, qui dit « celui-ci
+           AUSSI » là où un fond plein dirait seulement « celui-ci ».
+           ET CE QU'ILS PRODUISENT SE LIT DESSOUS : six cases cochées ne font
+           pas une ligne mais six, et c'est la seule façon de le faire voir au
+           lieu de l'écrire. */
+        <>
+          <fieldset className={styles.jeux}>
+            <legend>{t("Le ou les Trésors")}</legend>
+            {pays.map((p) => (
+              <input key={p} type="hidden" name="country" value={p} />
+            ))}
+            <div className={styles.jetons}>
+              {PAYS_CEMAC.map((p) => (
+                <button key={p} type="button" aria-pressed={pays.includes(p)} className={pays.includes(p) ? styles.jetonOn : styles.jeton} onClick={() => bascule(pays, setPays, p)}>
+                  {pays.includes(p) && (
+                    <span className={styles.coche} aria-hidden="true">
+                      ✓
+                    </span>
+                  )}
+                  {t(p)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className={styles.jeux}>
+            <legend>
+              {t("La ou les durées")}
+              <Info text={aide("tenor")} label={t("La durée")} subtle />
+            </legend>
+            {tenorsValides.map((d) => (
+              <input key={d} type="hidden" name="tenor" value={d} />
+            ))}
+            <div className={styles.jetons}>
+              {dureesDe(instrument).map((d) => (
+                <button key={d} type="button" aria-pressed={tenorsValides.includes(d)} className={tenorsValides.includes(d) ? styles.jetonOn : styles.jeton} onClick={() => bascule(tenors, setTenors, d)}>
+                  {tenorsValides.includes(d) && (
+                    <span className={styles.coche} aria-hidden="true">
+                      ✓
+                    </span>
+                  )}
+                  {d}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          {lignesProduites.length > 1 && (
+            <p className={styles.apercu}>
+              <b>{t("{n} lignes, pour le même montant", { n: String(lignesProduites.length) })}</b>{" "}
+              {t("Ce sont des alternatives : le desk n'en portera qu'une, et votre montant n'est compté qu'une fois.")}
+            </p>
+          )}
+        </>
+      )}
       <div className={styles.deux}>
         <label className="field">
-          {t(instrument === "BTA" ? "Le taux que vous accepteriez, au moins (%)" : "Le coupon que vous attendez, au moins (%)")}
+          <span className={styles.question}>
+            {t(instrument === "BTA" ? "Le taux que vous accepteriez, au moins (%)" : "Le coupon que vous attendez, au moins (%)")}
+            <Info text={aide("rate")} label={t(instrument === "BTA" ? "Le taux que vous accepteriez" : "Le coupon que vous attendez")} subtle />
+          </span>
           <input name="rate" inputMode="decimal" placeholder="6,50" defaultValue={existante?.rate ?? ""} />
-          <small className="muted">{t(aide("rate"))}</small>
         </label>
         {instrument === "OTA" && (
           <label className="field">
-            {t("Le prix que vous accepteriez, au plus (%)")}
+            <span className={styles.question}>
+              {t("Le prix que vous accepteriez, au plus (%)")}
+              <Info text={aide("pricePct")} label={t("Le prix que vous accepteriez")} subtle />
+            </span>
             <input name="pricePct" inputMode="decimal" placeholder="100" defaultValue={existante?.pricePct ?? ""} />
-            <small className="muted">{t(aide("pricePct"))}</small>
           </label>
         )}
       </div>
       <div className={styles.deux}>
         <label className="field">
-          {t("Ce que vous prendriez (FCFA)")}
+          <span className={styles.question}>
+            {t("Ce que vous prendriez (FCFA)")}
+            <Info text={aide("montant")} label={t("Ce que vous prendriez")} subtle />
+          </span>
           <input name="montant" inputMode="numeric" placeholder="50 000 000" value={montant} {...groupedInput(setMontant)} required />
-          <small className="muted">{t(aide("montant"))}</small>
         </label>
         <label className="field">
-          {t("Prêt à partir de (jours)")}
+          <span className={styles.question}>
+            {t("Prêt à partir de (jours)")}
+            <Info text={aide("quand")} label={t("Prêt à partir de")} subtle />
+          </span>
           <input name="dansJours" type="number" min="0" max="365" placeholder="60" defaultValue={existante?.dansJours ?? ""} required />
-          <small className="muted">{t(aide("quand"))}</small>
         </label>
       </div>
       <label className="field">

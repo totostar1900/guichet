@@ -67,6 +67,15 @@
   color: var(--gold-ink);
   font-weight: 600;
 }
+/* CE QUI POURRAIT VENIR EN PLUS, et jamais au même corps que ce qu'on porte :
+   la phrase du dessus est un engagement, celle-ci une possibilité. Les mettre
+   au même degré ferait lire la somme des deux. */
+.possible {
+  margin: var(--s-3) 0 0;
+  font-size: var(--t-2);
+  line-height: 1.45;
+  color: var(--ink-3);
+}
 
 .table,
 .echelle {

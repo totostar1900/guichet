@@ -103,6 +103,11 @@ export const EN_SONDAGE: Record<string, string> = {
      « 500 M FCFA · 5 ans · coupon indicatif 6,25 % » d'un trait — et une clef
      que le français ne dit plus garde en anglais une page qui n'existe pas. */
   "Ce que vous prendriez": "What you would take",
+  "Votre condition": "Your condition",
+  "Prêt à partir de": "Ready from",
+  "Le prix que vous accepteriez": "The price you would accept",
+  "Le coupon que vous attendez": "The coupon you expect",
+  "Le taux que vous accepteriez": "The rate you would accept",
   "Au taux d'au moins": "At a rate of at least",
   "Au coupon d'au moins": "At a coupon of at least",
 

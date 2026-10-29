@@ -334,3 +334,108 @@
 .retirer:hover {
   color: var(--crit);
 }
+
+/* ────────────────────────────────────────────────────────────────────────────
+   PLUSIEURS TRÉSORS ET PLUSIEURS DURÉES, D'UN SEUL GESTE.
+
+   Un client qui prendrait du camerounais OU du gabonais, à deux, cinq OU sept
+   ans, devait remplir six fois le même formulaire — ou n'en remplir qu'un et
+   taire le reste. Le desk ne voyait alors qu'un sixième de ce que la place
+   accepterait.
+   ──────────────────────────────────────────────────────────────────────────── */
+.jeux {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.jeux legend {
+  padding: 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.jetons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  margin-top: var(--s-3);
+}
+
+/* CE QUI SÉPARE CES JETONS D'UNE LISTE : ON EN PREND PLUSIEURS.
+   Un jeton qui s'ajoute et un jeton qui remplace se ressemblent trop pour
+   qu'on les laisse identiques — le client qui croit remplacer et qui ajoute
+   propose six lignes au lieu d'une. D'où la coche : elle dit « celui-ci
+   AUSSI » là où un fond plein dirait seulement « celui-ci », et c'est la seule
+   marque qui distingue un choix cumulatif d'un choix exclusif sans ajouter une
+   explication que personne ne lit. */
+.jeton,
+.jetonOn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding: 0 var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  cursor: pointer;
+}
+.jetonOn {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--fill-ink);
+  font-weight: 700;
+}
+.coche {
+  font-size: var(--t-2);
+  line-height: 1;
+}
+
+/* CE QUE LES CASES COCHÉES PRODUISENT. Six cases ne font pas une ligne mais
+   six, et c'est la seule façon de le faire voir au lieu de l'écrire. La
+   phrase dit aussi ce qu'elles NE font pas : s'additionner. */
+.apercu {
+  margin: 0;
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--rond);
+  background: var(--panel-inset);
+  color: var(--ink-2);
+  font-size: var(--t-2);
+  line-height: 1.5;
+}
+.apercu b {
+  display: block;
+  color: var(--ink);
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   LES EXPLICATIONS PASSENT EN BULLES — SIGNALÉ LE 29 OCTOBRE 2026.
+
+   Huit explications permanentes sous huit champs faisaient du gabarit un mode
+   d'emploi : on cherchait les questions entre les phrases, et la plus longue
+   poussait l'envoi hors de l'écran. Elles ne sont pas supprimées — chacune dit
+   quelque chose qu'un client peut avoir besoin de lire une fois — mais elles
+   attendent qu'on les demande.
+   ──────────────────────────────────────────────────────────────────────────── */
+.question {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+/* UNE LISTE DÉROULANTE NE PORTE PAS SA BULLE : elle se pose au coin du champ.
+   LE SÉLECTEUR VISAIT D'ABORD « .avecBulle > button », ET IL EN ATTRAPAIT DEUX :
+   une liste de la maison est elle-même un bouton, et elle se retrouvait
+   collée au coin, sa valeur hors du cadre — exactement le défaut qu'on avait
+   réparé le 26 octobre. La bulle porte donc sa propre enveloppe. */
+.avecBulle {
+  position: relative;
+}
+.coin {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}

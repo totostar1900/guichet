@@ -414,6 +414,21 @@ export interface LigneSondee {
   origine: OrigineDeSondage;
   /** La ligne du desk à laquelle celle-ci répond, quand c'en est une réponse. */
   repondA?: string;
+  /**
+   * LES SŒURS D'UNE MÊME PROPOSITION : l'identifiant partagé par les lignes
+   * nées d'un seul geste.
+   *
+   * Un client qui dit « cinquante millions, sur du camerounais ou du gabonais,
+   * à deux, cinq ou sept ans » ne propose pas six lignes de cinquante
+   * millions : il en propose SIX ALTERNATIVES pour cinquante millions. Sans ce
+   * lien, aucun calcul ne peut le savoir, et le consensus promettrait six fois
+   * le même argent à deux Trésors.
+   *
+   * Vide sur une ligne proposée seule — qui n'a pas de sœurs, et dont le
+   * montant est donc ferme. Voir « DOCTRINE_UNE_SEULE_FOIS » dans
+   * « domain/sondage ».
+   */
+  familleId?: string;
   /** Le client, sur une ligne poussée comme sur une réponse. Absent sur une question du desk. */
   userId?: string;
   clientName?: string;
@@ -447,6 +462,8 @@ export interface LigneSondee {
 export interface NewLigneSondee {
   origine: OrigineDeSondage;
   repondA?: string;
+  /** Les sœurs d'une même proposition : voir « LigneSondee.familleId ». */
+  familleId?: string;
   userId?: string;
   clientName?: string;
   clientSegment?: string;

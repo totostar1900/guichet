@@ -1,57 +1,36 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { consensus, mur, DOCTRINE_UNE_SEULE_FOIS } from "@/lib/domain/sondage";
+import { consensus, mur, SEUIL_CLIENTS, SEUIL_MONTANT, DOCTRINE_UNE_SEULE_FOIS } from "@/lib/domain/sondage";
 import type { Country, LigneSondee } from "@/lib/domain/types";
 
 const ROOT = path.join(__dirname, "../..");
 const lire = (p: string) => fs.readFileSync(path.join(ROOT, p), "utf8");
-/**
- * LE CODE, PAS CE QU'ON EN DIT — ET CETTE ÉPREUVE L'A APPRIS À SES DÉPENS.
- *
- * Sa première écriture cherchait les mots de famille depuis le début de
- * « consensus » JUSQU'À LA FIN DU FICHIER, où vit la doctrine. Vérification
- * inverse faite : en posant « familleId » dans le modèle sans toucher au
- * calcul, elle restait verte — parce que le mot « sœurs », écrit dans le
- * commentaire de la doctrine, suffisait à la satisfaire. Elle se lisait
- * elle-même et se déclarait contente.
- */
-const code = (p: string) =>
-  lire(p)
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/^\s*\/\/.*$/gm, "");
-/** Le corps d'une fonction exportée, jusqu'à la déclaration suivante. */
-const corpsDe = (src: string, nom: string) => {
-  const deb = src.indexOf(`export function ${nom}`);
-  if (deb < 0) return "";
-  const suite = [...src.matchAll(/^export (?:function|const|interface|type) /gm)].map((m) => m.index ?? -1).filter((i) => i > deb);
-  return src.slice(deb, suite.length ? suite[0] : undefined);
-};
 
 /**
  * LE MONTANT D'UN CLIENT SE COMPTE UNE SEULE FOIS.
  *
- * ARBITRÉ LE 29 OCTOBRE 2026. La doctrine vit dans « domain/sondage », près
- * du consensus qu'elle lie ; cette épreuve monte la garde devant elle.
+ * ARBITRÉ LE 29 OCTOBRE 2026. La doctrine vit dans « domain/sondage », près du
+ * consensus qu'elle lie.
  *
- * CE QU'ELLE GARDE N'EST PAS ENCORE ÉCRIT, ET C'EST TOUT SON INTÉRÊT. Le
- * geste qui crée des lignes sœurs — choisir plusieurs Trésors et plusieurs
- * durées d'un coup — n'existe que dans une maquette. Le jour où il entrera
- * dans le modèle, celui-ci gagnera un lien entre les lignes d'une même
- * proposition, et c'est CE JOUR-LÀ qu'il faut relire la doctrine : après,
- * le consensus aura déjà compté six fois cinquante millions, et rien ne
- * l'aura dit.
+ * CETTE ÉPREUVE A CHANGÉ DE NATURE CE JOUR-LÀ, et il faut le dire parce que
+ * c'est tout son intérêt. Elle était un FIL TENDU EN TRAVERS D'UNE PORTE :
+ * elle affirmait un fait vrai — « LigneSondee » n'avait aucun champ de
+ * famille — et devait tomber à l'instant où ce fait cesserait de l'être, pour
+ * que la doctrine soit lue à ce moment-là plutôt qu'après. Elle est tombée, au
+ * mot près, dès que « familleId » est entré dans le modèle, et elle portait
+ * dans son message la marche à suivre.
  *
- * UNE ÉPREUVE QUI ATTEND N'EST PAS UNE ÉPREUVE VIDE : elle affirme un fait
- * vrai aujourd'hui — le modèle n'a aucun lien de famille — et elle tombe
- * exactement quand ce fait cesse d'être vrai. C'est un fil tendu en travers
- * d'une porte, pas un contrôle qui passerait au vert sans rien regarder.
+ * ELLE GARDE MAINTENANT CE QU'ELLE ATTENDAIT, et elle mesure plutôt qu'elle ne
+ * surveille : non plus la présence d'un mot dans un corps de fonction, mais
+ * les CHIFFRES que six lignes sœurs produisent.
  */
-const ligne = (id: string, country: string, tenor: string, montant: number, userId: string): LigneSondee => ({
+const ligne = (id: string, country: string, tenor: string, montant: number, userId: string, familleId?: string): LigneSondee => ({
   id,
   ref: id,
   origine: "client",
   userId,
+  familleId,
   instrument: "OTA",
   country: country as Country,
   tenor,
@@ -62,8 +41,9 @@ const ligne = (id: string, country: string, tenor: string, montant: number, user
   updatedAt: "2026-10-29T00:00:00Z",
 });
 
-/** Les mots par lesquels un lien de famille arriverait dans le modèle. */
-const MOTS_DE_FAMILLE = /famille|alternative|soeur|sœur|fratrie|propositionId|lotId/i;
+/** Les six alternatives de la doctrine, nées d'un geste. */
+const fratrie = (famille: string | undefined, userId = "client-1") =>
+  ["Cameroun", "Gabon"].flatMap((p, i) => ["2 ans", "5 ans", "7 ans"].map((d, j) => ligne(`${userId}-${i}${j}`, p, d, 50_000_000, userId, famille)));
 
 describe("le montant d'un client se compte une seule fois", () => {
   it("écrit sa doctrine là où le calcul se fait", () => {
@@ -74,55 +54,96 @@ describe("le montant d'un client se compte une seule fois", () => {
     expect(src, "la doctrine ne dit plus ce qu'elle exige du modèle").toMatch(/part FERME|sœurs/);
   });
 
-  it("mesure ce que six lignes sœurs produisent aujourd'hui", () => {
-    /* LE CHIFFRE QUI JUSTIFIE LA RÈGLE, recalculé à chaque passage plutôt
-       que recopié dans un commentaire : six groupes à cinquante millions
-       pour cinquante millions engagés. */
-    const soeurs = ["Cameroun", "Gabon"].flatMap((p, i) => ["2 ans", "5 ans", "7 ans"].map((d, j) => ligne(`s${i}${j}`, p, d, 50_000_000, "client-1")));
-    const g = consensus(soeurs);
+  /* LE CHIFFRE QUI JUSTIFIE LA RÈGLE, recalculé à chaque passage plutôt que
+     recopié dans un commentaire. */
+  it("garde le montant possible de chacune des six alternatives", () => {
+    const g = consensus(fratrie("f1"));
     expect(g.length, "le regroupement a changé : la doctrine parle de six groupes").toBe(6);
     expect(
       g.reduce((s, c) => s + c.montant, 0),
-      "la somme des groupes n'est plus six fois le montant : relire la doctrine, son chiffre a bougé",
+      "la somme des montants possibles n'est plus six fois cinquante millions",
     ).toBe(300_000_000);
-    /* ET LE MUR N'EST PAS LE DANGER : il exige cent millions ET trois
-       clients. Le dire ici empêche de « corriger » la doctrine en touchant
-       au seuil, qui n'y est pour rien. */
-    expect(g.some(mur), "un seul client franchit le mur : ce n'était pas le cas, et la doctrine repose là-dessus").toBe(false);
+    // Chacun dit bien « si cette ligne sortait, on prendrait cinquante millions ».
+    for (const c of g) expect(c.montant).toBe(50_000_000);
   });
 
-  it("tombe le jour où une ligne connaîtra ses sœurs", () => {
-    /**
-     * LE FIL TENDU EN TRAVERS DE LA PORTE.
-     *
-     * Tant que « LigneSondee » n'a aucun champ de famille, le consensus ne
-     * PEUT pas compter deux fois le même argent : il ne sait pas que deux
-     * lignes vont ensemble. Le jour où ce champ arrive, il le saura — et il
-     * devra alors rendre la part ferme, sans quoi il promettra six fois
-     * cinquante millions.
-     *
-     * CETTE ÉPREUVE TOMBE À CE MOMENT PRÉCIS, avec la marche à suivre. Elle
-     * ne cherche pas à deviner le nom du champ : elle surveille un champ de
-     * lemmes — famille, alternative, sœur — et c'est assez, parce qu'un lien
-     * entre des lignes d'une même proposition ne se nommera pas autrement.
-     */
-    const types = lire("src/lib/domain/types.ts");
-    const deb = types.indexOf("export interface LigneSondee");
-    const bloc = types.slice(deb, types.indexOf("}", deb));
-    expect(deb, "« LigneSondee » est introuvable : l'épreuve ne garde plus rien").toBeGreaterThan(0);
-
-    const lien = bloc.match(MOTS_DE_FAMILLE);
-    if (!lien) return; // Le geste n'existe pas encore : rien à vérifier.
-
-    /* Il existe. La doctrine devient exigible, ici et maintenant — et c'est
-       le CALCUL qui doit la connaître, pas le commentaire qui l'explique. */
-    const calcul = corpsDe(code("src/lib/domain/sondage.ts"), "consensus");
-    expect(calcul.length, "le corps de « consensus » est introuvable : l'épreuve ne garde plus rien").toBeGreaterThan(200);
+  /* ET NE PROMET RIEN. C'est la clause neuve, celle que le fil tendu
+     attendait : six groupes à cinquante millions possibles, zéro franc ferme. */
+  it("ne compte le montant ferme dans aucun des six groupes", () => {
+    const g = consensus(fratrie("f1"));
     expect(
-      MOTS_DE_FAMILLE.test(calcul),
-      `« LigneSondee » porte désormais « ${lien[0]} » : des lignes sœurs peuvent exister, et le consensus ne les connaît pas.\n` +
-        `Il compte donc le montant de chaque sœur dans son groupe, soit six fois cinquante millions pour cinquante millions engagés.\n` +
-        `Lire la doctrine « DOCTRINE_UNE_SEULE_FOIS » dans « domain/sondage » : le groupe garde son montant possible, et rend EN PLUS la part ferme, sur laquelle le mur se juge.`,
-    ).toBe(true);
+      g.reduce((s, c) => s + c.ferme, 0),
+      "l'argent d'alternatives est redevenu promettable : la maison promettrait six fois le même",
+    ).toBe(0);
+    for (const c of g) expect(c.clientsFermes, "un client d'alternatives compte comme un client ferme").toBe(0);
+  });
+
+  /* UNE LIGNE SEULE RESTE FERME : la règle ne doit pas rendre tout le monde
+     muet. Sans cette clause, « ferme = 0 » partout passerait pour un succès. */
+  it("laisse ferme ce qui n'a pas de sœurs", () => {
+    const seules = [ligne("a", "Cameroun", "5 ans", 50_000_000, "c1"), ligne("b", "Cameroun", "5 ans", 60_000_000, "c2")];
+    const [g] = consensus(seules);
+    expect(g.montant).toBe(110_000_000);
+    expect(g.ferme, "une ligne sans sœurs a cessé d'être ferme").toBe(110_000_000);
+    expect(g.clientsFermes).toBe(2);
+  });
+
+  /* UNE SŒUR CLOSE LIBÈRE LA DERNIÈRE VIVANTE : le client n'honorera qu'elle,
+     et son montant redevient promettable sans que personne le déclare. */
+  it("rend ferme la dernière vivante d'une famille", () => {
+    const six = fratrie("f1");
+    const cinqCloses = six.map((l, i) => (i === 0 ? l : { ...l, state: "close" as const }));
+    const g = consensus(cinqCloses);
+    expect(g.length, "les lignes closes comptent encore dans le consensus").toBe(1);
+    expect(g[0].ferme, "la dernière vivante d'une famille n'est pas redevenue ferme").toBe(50_000_000);
+    expect(g[0].clientsFermes).toBe(1);
+  });
+
+  /* LE MUR SE JUGE SUR LA PART FERME. C'est là que la doctrine mord : un
+     groupe mûr en apparence et vide en réalité ne doit pas partir au Trésor. */
+  it("ne laisse pas un mur de pure alternative franchir le seuil", () => {
+    // Trois clients, chacun six alternatives de quarante millions : un groupe
+    // porte 120 millions possibles et trois clients — le seuil, à la lettre.
+    const trois = ["c1", "c2", "c3"].flatMap((u) => fratrie(`f-${u}`, u).map((l) => ({ ...l, montant: 40_000_000 })));
+    const g = consensus(trois);
+    const vise = g.find((c) => c.montant >= SEUIL_MONTANT && c.clients >= SEUIL_CLIENTS);
+    expect(vise, "la fixture ne produit plus un groupe mûr en apparence : l'épreuve ne garde rien").toBeTruthy();
+    expect(vise!.ferme, "ce groupe n'est bâti que d'alternatives, il ne doit rien porter de ferme").toBe(0);
+    expect(mur(vise!), "un mur bâti sur des alternatives est franchi : la maison promettrait le même argent trois fois").toBe(false);
+  });
+
+  /* LA PHRASE QU'ON PORTE AU TRÉSOR DIT LA PART FERME.
+     C'est le dernier maillon, et il manquait : le mur se jugeait déjà sur le
+     ferme, mais l'écran du desk imprimait « montant » — le chiffre qui compte
+     les alternatives. La règle aurait été juste dans le calcul et fausse dans
+     la bouche de celui qui parle au Trésor. */
+  it("porte la part ferme dans la phrase du desk, et le possible à part", () => {
+    const src = lire("src/app/desk/sondage/page.tsx");
+    const deb = src.indexOf("styles.consensus");
+    expect(deb, "la phrase portée au Trésor est introuvable").toBeGreaterThan(0);
+    const phrase = src.slice(deb, deb + 400);
+    expect(phrase, "la phrase portée au Trésor dit de nouveau le montant possible").toMatch(/m: fmt\(c\.ferme\)/);
+    expect(phrase, "elle compte de nouveau les clients d'alternatives").toMatch(/n: String\(c\.clientsFermes\)/);
+    /* LA CLAUSE VISE LE PARAGRAPHE, ET NON LA COMPARAISON. Écrite sur
+       « c.montant > c.ferme » seule, elle ne tombait pas quand on retirait le
+       paragraphe : la même comparaison vit dans la cellule du tableau, et
+       suffisait à la satisfaire. Vérification inverse faite. */
+    expect(src, "ce qui pourrait venir en plus n'est plus dit au desk").toMatch(/styles\.possible/);
+    expect(src, "le possible n'est plus conditionné à l'écart entre les deux").toMatch(/c\.montant > c\.ferme && \(/);
+    /* ET « CE QUI S'ACCUMULE » DISTINGUE LES DEUX AUSSI. C'est la table où le
+       desk lit ce qui vient : une seule colonne l'obligerait à choisir entre
+       flatter et taire. */
+    expect(src, "la table de ce qui s'accumule a perdu la colonne ferme").toMatch(/<td className=\{styles\.n\}>\{fmt\(c\.ferme\)\}<\/td>/);
+    expect(src, "elle a perdu la colonne du possible").toMatch(/c\.montant > c\.ferme \? fmt\(c\.montant\) : "—"/);
+  });
+
+  /* ET IL SE FRANCHIT ENCORE QUAND LA DEMANDE EST RÉELLE. Sans cette clause,
+     un mur toujours faux passerait pour une correction. */
+  it("laisse passer un mur bâti sur des lignes fermes", () => {
+    const vraies = ["c1", "c2", "c3"].map((u, i) => ligne(`v${i}`, "Cameroun", "5 ans", 40_000_000, u));
+    const [g] = consensus(vraies);
+    expect(g.ferme).toBe(120_000_000);
+    expect(g.clientsFermes).toBe(3);
+    expect(mur(g), "une demande réelle de trois clients ne franchit plus le mur").toBe(true);
   });
 });

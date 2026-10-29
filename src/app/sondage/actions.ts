@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth";
 import { noter } from "@/lib/journal";
@@ -38,6 +39,10 @@ const champs = z.object({
   note: z.string().max(600).optional(),
 });
 
+/* LA BORNE DES SŒURS : six Trésors par huit durées feraient quarante-huit
+   lignes d'un clic, et le desk ne lirait plus une proposition mais une liste. */
+const MAX_SOEURS = 12;
+
 const nombre = (v?: string): number | undefined => {
   if (!v?.trim()) return undefined;
   const n = Number(v.replace(/\s/g, "").replace(",", "."));
@@ -62,15 +67,35 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
     if (question.state === "close") return { ok: false, error: "Cette ligne sondée est close : le desk ne la porte plus." };
   }
 
-  const ligne: NewLigneSondee = {
-    origine: "client",
+  /**
+   * UN GESTE, PLUSIEURS LIGNES — ET ELLES NE S'ADDITIONNENT PAS.
+   *
+   * Le client choisit désormais plusieurs Trésors et plusieurs durées d'un
+   * coup : « cinquante millions, sur du camerounais ou du gabonais, à deux,
+   * cinq ou sept ans ». Cela fait six lignes pour cinquante millions, pas
+   * trois cents — voir « DOCTRINE_UNE_SEULE_FOIS ». Elles partagent donc un
+   * identifiant de famille, et le consensus s'en sert pour ne compter ce
+   * montant ferme nulle part.
+   *
+   * UNE RÉPONSE À UNE QUESTION DU DESK N'EN A PAS : la question porte déjà le
+   * Trésor et la durée, il n'y a rien à multiplier.
+   */
+  const pays = question ? [question.country] : [...new Set(form.getAll("country").map(String).filter(Boolean))];
+  const durees = question ? [question.tenor] : [...new Set(form.getAll("tenor").map(String).map((x) => x.trim()).filter(Boolean))];
+  if (!pays.length) return { ok: false, error: "Choisissez au moins un Trésor." };
+  if (!durees.length) return { ok: false, error: "Choisissez au moins une durée." };
+  /* UNE BORNE, PARCE QUE SIX TRÉSORS PAR HUIT DURÉES FONT QUARANTE-HUIT LIGNES
+     D'UN CLIC. Le desk les lirait une par une, et la page du client aussi. */
+  if (pays.length * durees.length > MAX_SOEURS)
+    return { ok: false, error: `Cela ferait ${pays.length * durees.length} lignes : au-delà de ${MAX_SOEURS}, le desk ne lit plus une proposition mais une liste. Resserrez les Trésors ou les durées.` };
+
+  const commun = {
+    origine: "client" as const,
     repondA: question?.id,
     userId: s.userId,
     clientName: s.name,
     clientSegment: s.segment,
     instrument: question?.instrument ?? d.instrument,
-    country: (question?.country ?? (d.country as Country)) as Country,
-    tenor: (question?.tenor ?? d.tenor ?? "").trim(),
     rate: nombre(d.rate),
     pricePct: question?.instrument === "BTA" || d.instrument === "BTA" ? undefined : nombre(d.pricePct),
     montant: parseAmount(d.montant ?? "") ?? 0,
@@ -78,10 +103,17 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
     dansJours: d.seanceLe?.trim() ? undefined : nombre(d.dansJours),
     note: d.note?.trim() || undefined,
   };
+  /* LA FAMILLE N'EXISTE QUE S'IL Y A PLUSIEURS SŒURS. Une ligne seule porterait
+     un identifiant qui ne la lierait à personne, et le consensus la croirait
+     partagée : elle cesserait d'être ferme sans raison. */
+  const familleId = pays.length * durees.length > 1 ? randomUUID() : undefined;
+  const lignes: NewLigneSondee[] = pays.flatMap((c) => durees.map((tenor) => ({ ...commun, country: c as Country, tenor, familleId })));
 
-  if (!PAYS_CEMAC.includes(ligne.country)) return { ok: false, error: "Ce Trésor n'est pas de la zone : les six sont le Cameroun, le Gabon, le Congo, le Tchad, la RCA et la Guinée équatoriale." };
-  const manques = manquesDeLaLigne(ligne, localIso(new Date()));
-  if (manques.length) return { ok: false, error: manques.join(" ") };
+  for (const ligne of lignes) {
+    if (!PAYS_CEMAC.includes(ligne.country)) return { ok: false, error: "Ce Trésor n'est pas de la zone : les six sont le Cameroun, le Gabon, le Congo, le Tchad, la RCA et la Guinée équatoriale." };
+    const manques = manquesDeLaLigne(ligne, localIso(new Date()));
+    if (manques.length) return { ok: false, error: manques.join(" ") };
+  }
 
   /* UNE SEULE ATTENTE PAR CLIENT ET PAR QUESTION. Deux réponses à la même
      question compteraient deux fois dans le consensus porté au Trésor, et le
@@ -92,8 +124,12 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
     if (sienne) await r.updateLigneSondee(sienne.id, { state: "close", closedReason: "Remplacée par votre nouvelle réponse." });
   }
 
-  const creee = await r.createLigneSondee(ligne);
-  await noter("sondage.depose", { objet: creee.ref, detail: `${creee.instrument} ${creee.country} ${creee.tenor} · ${fmt(creee.montant)} FCFA` });
+  /* LES SŒURS SE CRÉENT ENSEMBLE, et chacune laisse sa trace : le journal est
+     la pièce, et une famille créée d'un geste reste six écritures. */
+  const creees = [];
+  for (const l of lignes) creees.push(await r.createLigneSondee(l));
+  const creee = creees[0];
+  for (const c of creees) await noter("sondage.depose", { objet: c.ref, detail: `${c.instrument} ${c.country} ${c.tenor} · ${fmt(c.montant)} FCFA${familleId ? ` · une de ${creees.length} alternatives` : ""}` });
   /**
    * ET LE DESK L'APPREND LÀ OÙ IL REGARDE.
    *
@@ -106,9 +142,14 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
    *
    * « Reçue par le desk » était donc vrai de la base et faux de la maison.
    */
+  /* LE FIL DU DESK DIT « ALTERNATIVES », et il doit le dire : une famille de
+     six lignes qui paraîtrait comme six demandes donnerait à lire trois cents
+     millions là où le client en engage cinquante. */
   await r.logEvent({
     kind: "intent",
-    html: `Sondage <b>${creee.ref}</b> : ${s.name} ${question ? "répond" : "pousse"} ${creee.instrument} ${creee.country} ${creee.tenor} · <b>${fmt(creee.montant)} FCFA</b>${creee.rate != null ? ` · ${fmtPct(creee.rate, 2)}` : ""}`,
+    html: familleId
+      ? `Sondage <b>${creee.ref}</b> : ${s.name} pousse ${creees.length} alternatives à <b>${fmt(creee.montant)} FCFA</b> — ${[...new Set(creees.map((c) => c.country))].join(", ")} · ${[...new Set(creees.map((c) => c.tenor))].join(", ")}. Le montant ne se compte qu'une fois.`
+      : `Sondage <b>${creee.ref}</b> : ${s.name} ${question ? "répond" : "pousse"} ${creee.instrument} ${creee.country} ${creee.tenor} · <b>${fmt(creee.montant)} FCFA</b>${creee.rate != null ? ` · ${fmtPct(creee.rate, 2)}` : ""}`,
   });
   revalidatePath(PATH);
   revalidatePath("/desk/sondage");
@@ -117,7 +158,9 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
     ref: creee.ref,
     message: question
       ? "Votre réponse est au desk. Elle ne vous engage à rien : c'est un renseignement, et il sert à dire au Trésor à quel niveau la demande tient encore."
-      : "Votre ligne est au desk. Elle ne vous engage à rien, et elle attend d'autres clients : une ligne se porte à un Trésor quand plusieurs la demandent.",
+      : familleId
+        ? `Vos ${creees.length} lignes sont au desk. Elles ne vous engagent à rien, et votre montant n'est compté qu'une fois : ce sont des alternatives, le desk n'en portera qu'une.`
+        : "Votre ligne est au desk. Elle ne vous engage à rien, et elle attend d'autres clients : une ligne se porte à un Trésor quand plusieurs la demandent.",
   };
 }
 

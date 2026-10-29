@@ -107,15 +107,35 @@ export default async function SondageDeskPage() {
                 {c.surLigne && <span className="mono">{parId.get(c.surLigne)?.ref}</span>}
               </div>
               {/* LA PHRASE QU'ON PORTE, et c'est elle le livrable : une liste de
-                  vingt lignes ne se porte pas à un Trésor, une phrase se porte. */}
+                  vingt lignes ne se porte pas à un Trésor, une phrase se porte.
+                  ELLE DIT LA PART FERME, ET NON LE MONTANT POSSIBLE. Elle
+                  disait « montant », qui compte les alternatives : un client
+                  qui propose six lignes pour cinquante millions en apportait
+                  cinquante à CHACUN des six groupes. Porter ce chiffre à un
+                  Trésor, c'est promettre un argent déjà promis ailleurs — et
+                  c'est le crédit que la maison a mis des mois à prendre. Voir
+                  « DOCTRINE_UNE_SEULE_FOIS ». */}
               <p className={styles.consensus}>
                 {t("{m} FCFA de {n} clients, autour de {r}, tous prêts à partir du {d}", {
-                  m: fmt(c.montant),
-                  n: String(c.clients),
+                  m: fmt(c.ferme),
+                  n: String(c.clientsFermes),
                   r: niveau(c),
                   d: c.auPlusTot ? fmtDate(c.auPlusTot, false) : "—",
                 })}
               </p>
+              {/* CE QUE LA LIGNE POURRAIT PORTER EN PLUS, dit à part et jamais
+                  dans la phrase : ce sont des alternatives d'autres groupes, et
+                  elles ne viendront que si le Trésor sert celle-ci plutôt
+                  qu'une autre. Le desk doit le savoir ; le Trésor ne doit pas
+                  l'entendre comme un engagement. */}
+              {c.montant > c.ferme && (
+                <p className={styles.possible}>
+                  {t("Et jusqu'à {m} FCFA de {n} clients si les alternatives se portent sur cette ligne : elles sont proposées ailleurs aussi, et ne se comptent pas deux fois.", {
+                    m: fmt(c.montant),
+                    n: String(c.clients),
+                  })}
+                </p>
+              )}
               <Echelle c={c} t={t} />
               <Detail lignes={demandesDe(c.cle)} t={t} />
               {c.surLigne && <Statuer id={c.surLigne} ref_={parId.get(c.surLigne)?.ref ?? ""} />}
@@ -137,7 +157,12 @@ export default async function SondageDeskPage() {
               <tr>
                 <th>{t("Ligne")}</th>
                 <th>{t("Clients")}</th>
-                <th>{t("Demande")}</th>
+                {/* DEUX COLONNES ET NON UNE : ce qu'on peut porter, et ce que
+                    la ligne porterait si les alternatives se posaient sur
+                    elle. Une seule colonne obligeait à choisir entre flatter
+                    et taire. */}
+                <th>{t("Ferme")}</th>
+                <th>{t("Possible")}</th>
                 <th>{t("Taux")}</th>
                 <th>{t("Au plus tôt")}</th>
               </tr>
@@ -148,8 +173,9 @@ export default async function SondageDeskPage() {
                   <td>
                     {c.instrument} · {t(c.country)} · {c.tenor}
                   </td>
-                  <td className={styles.n}>{c.clients}</td>
-                  <td className={styles.n}>{fmt(c.montant)}</td>
+                  <td className={styles.n}>{c.clientsFermes}</td>
+                  <td className={styles.n}>{fmt(c.ferme)}</td>
+                  <td className={styles.n}>{c.montant > c.ferme ? fmt(c.montant) : "—"}</td>
                   <td className={styles.n}>{niveau(c)}</td>
                   <td>{c.auPlusTot ? fmtDate(c.auPlusTot, false) : "—"}</td>
                 </tr>

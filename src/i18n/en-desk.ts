@@ -105,6 +105,8 @@ export const EN_MORE: Record<string, string> = {
   "tout racheter": "redeem all",
   "tout vendre": "sell all",
   "tout céder": "sell all",
+  "Possible": "Possible",
+  "Et jusqu'à {m} FCFA de {n} clients si les alternatives se portent sur cette ligne : elles sont proposées ailleurs aussi, et ne se comptent pas deux fois.": "And up to {m} FCFA from {n} clients if the alternatives land on this line: they are proposed elsewhere too, and are not counted twice.",
   "Il vous restera": "You will be left with",
   /* Le singulier d'« actions » : « il vous restera 1 action ». Ceux de
      « titre », « bon » et « part » sont plus bas, avec les autres unités. */

@@ -626,12 +626,12 @@ const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId:
 /* Le sondage d'avant séance : « montant » et « dans_jours » reviennent en
    nombres, et la date en jour nu. Voir migration 0117. */
 type SurveyLineRow = {
-  id: string; ref: string; origine: LigneSondee["origine"]; reponse_a: string | null; user_id: string | null; client_name: string | null; client_segment: string | null;
+  id: string; ref: string; origine: LigneSondee["origine"]; reponse_a: string | null; famille_id: string | null; user_id: string | null; client_name: string | null; client_segment: string | null;
   instrument: LigneSondee["instrument"]; country: string; tenor: string; rate: number | null; price_pct: number | null; montant: number;
   seance_le: string | null; dans_jours: number | null; note: string | null; state: LigneSondee["state"]; closed_reason: string | null; created_at: string; updated_at: string;
 };
 const toLigneSondee = (r: SurveyLineRow): LigneSondee => ({
-  id: r.id, ref: r.ref, origine: r.origine, repondA: u(r.reponse_a), userId: u(r.user_id), clientName: u(r.client_name), clientSegment: u(r.client_segment),
+  id: r.id, ref: r.ref, origine: r.origine, repondA: u(r.reponse_a), familleId: u(r.famille_id), userId: u(r.user_id), clientName: u(r.client_name), clientSegment: u(r.client_segment),
   instrument: r.instrument, country: r.country as LigneSondee["country"], tenor: r.tenor, rate: r.rate ?? undefined, pricePct: r.price_pct ?? undefined,
   montant: Number(r.montant), seanceLe: u(r.seance_le), dansJours: r.dans_jours ?? undefined, note: u(r.note), state: r.state, closedReason: u(r.closed_reason),
   createdAt: r.created_at, updatedAt: r.updated_at,
@@ -2025,6 +2025,7 @@ export const supabaseRepository: Repository = {
       ref: makeSondageRef(),
       origine: input.origine,
       reponse_a: input.repondA ?? null,
+      famille_id: input.familleId ?? null,
       user_id: input.userId ?? null,
       client_name: input.clientName ?? null,
       client_segment: input.clientSegment ?? null,
