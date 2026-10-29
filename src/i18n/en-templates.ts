@@ -653,6 +653,12 @@ export const EN_TEMPLATES: Record<string, string> = {
   "Rachat au pair · éch. {d}": "Buyback at par · mat. {d}",
   "Fonds · VL du {d}": "Fund · NAV of {d}",
   "si adjugé à {r} précompté": "if allotted at {r} discounted",
+  /* La forme avec la mention, que le sous-titre compose. Elle n'était pas au
+     dictionnaire : la branche qui la produit n'était jamais atteinte par le
+     jeu d'essai, puisque la condition tenait à une note qu'aucune offre ne
+     portait. Corriger la condition l'a fait paraître, et le contrôle de
+     couverture l'a vue tout de suite. */
+  "si adjugé à {r} précompté (indicatif)": "if allotted at {r} discounted (indicative)",
   "au prix de {n}": "at the price of {n}",
   "cours {n} FCFA": "price {n} FCFA",
   "{p} · {n} j": "{p} · {n} d",

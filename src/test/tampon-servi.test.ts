@@ -36,6 +36,19 @@ describe("le tampon d'une fiche dit ce que la séance a fait", () => {
       expect(ligne).not.toMatch(/o\.servedPricePct \?/);
     });
 
+    /* ET UN BON RESTE INDICATIF TANT QUE LA SÉANCE N'A PAS RENDU SON VERDICT.
+       Même racine que le défaut ci-dessus, trouvée le 29 octobre 2026 sur deux
+       bons congolais de production publiés sans note : le tampon ne tenait
+       qu'à « rateNote », un champ de texte libre, et annonçait donc « Prix
+       fixé par le desk » sur un taux que personne n'a fixé. Le taux d'un bon
+       sort de l'adjudication ; tant que « resultLine » manque, il est
+       indicatif, que quelqu'un ait pensé à écrire une note ou non. */
+    it(`${f} : un bon sans verdict reste indicatif, note ou pas`, () => {
+      const ligne = src.split("\n").find((l) => l.includes("const stampPending"));
+      expect(ligne, "le tampon a perdu son état « en attente »").toBeDefined();
+      expect(ligne, "le tampon d'un bon tient encore à une note").toMatch(/kind === "BTA" && !o\.resultLine/);
+    });
+
     it(`${f} : un bon dit « taux », une obligation dit « prix »`, () => {
       // Dire « prix servi » sur un bon précompté nomme une chose qui n'existe pas.
       expect(src).toContain(`o.kind === "BTA" ? "Taux servi à l'adjudication" : "Prix servi à l'adjudication"`);

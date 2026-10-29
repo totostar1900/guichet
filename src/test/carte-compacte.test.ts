@@ -107,7 +107,13 @@ describe("le chiffre de droite dit d'où il vient", () => {
   it("un taux imprimé par le Trésor se distingue d'un prix proposé", () => {
     const bta = { ...base, kind: "BTA", title: "BTA 52 semaines", isin: "CG1300001480", nominal: 1_000_000, maturityOn: "2027-09-23", precountRate: 5.5 } as unknown as Offer;
     expect(dit(origineDuChiffre(bta, NOW))).toBe("si adjugé à 5,50 % précompté");
-    expect(dit(origineDuChiffre({ ...bta, servedPricePct: 97 } as Offer, NOW))).toBe("adjugé à 5,50 % précompté");
+    /* UN BON N'A PAS DE PRIX SERVI. Ce cas se posait « servedPricePct: 97 »,
+       un état qu'un BTA ne connaît jamais : « results/service.ts » le laisse
+       VIDE sur un bon et inscrit « resultLine ». La carte testait donc une
+       chose qui n'arrive pas, et restait au conditionnel pour toujours, même
+       une fois la séance arrêtée. */
+    expect(dit(origineDuChiffre({ ...bta, servedPricePct: 97 } as Offer, NOW)), "la carte d'un bon lit un prix servi, qu'un bon n'a pas").toBe("si adjugé à 5,50 % précompté");
+    expect(dit(origineDuChiffre({ ...bta, resultLine: "Taux servi 5,50 % précompté" } as Offer, NOW))).toBe("adjugé à 5,50 % précompté");
   });
 
   it("un rachat n'a pas de rendement, et le dit", () => {

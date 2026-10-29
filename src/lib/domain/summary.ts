@@ -153,7 +153,20 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
     // laquelle il n'a pas encore participé. « Si adjugé à 5,50 % » dit la même
     // chose sans promettre ce que personne ne garantit, et c'est déjà la manière
     // dont l'obligation du primaire s'écrit deux blocs plus haut : « si servi à ».
-    const pending = o.precountRate == null || Boolean(o.rateNote);
+    /* LA CONDITION TIENT AU RÉSULTAT, PAS À UNE NOTE QU'ON A PENSÉ À ÉCRIRE.
+       Elle lisait « rateNote » : un champ de texte libre. Relevé en production
+       le 29 octobre 2026, les trois bons y étaient donc étiquetés à l'inverse
+       de leur état réel. Deux lignes congolaises closes sans la moindre séance
+       enregistrée — rien dans « auction_results » pour leurs ISIN ni pour le
+       22 septembre — annonçaient « ADJUGÉ à 5,50 % » et « adjugé à 10,00 % »,
+       parce que personne n'avait tapé de note ; et la seule qui ait vraiment
+       été adjugée, portant « Taux servi 6,97 % précompté », disait « SI adjugé
+       (indicatif) », parce que sa note était restée.
+       « resultLine » est ce que le desk inscrit en arrêtant la séance — voir
+       « results/service.ts », qui le pose sur un bon et y laisse
+       « servedPricePct » vide. C'est donc lui, et lui seul, qui dit qu'une
+       adjudication a eu lieu. La maison fait déjà ce test dans « statusLabel ». */
+    const pending = o.precountRate == null || !o.resultLine;
     const rateTxt = o.precountRate != null ? `${pending ? "si adjugé à" : "adjugé à"} ${fmtPct(o.precountRate, 2)} précompté` : "taux à fixer";
     return {
       ...base,

@@ -306,7 +306,15 @@ export async function loadFiche(o: Offer) {
   // et le dépôt se souvient de ses lectures pendant la requête.
   const facing = signalPolicy?.tell && session ? facingSignal(await r.listIntents(), o, signalPolicy, { exceptClientId: session.userId }) : [];
 
-  const stampPending = o.kind !== "MARCHE" && Boolean(o.priceNote || o.rateNote);
+  /* UN BON N'A PAS DE TAUX « FIXÉ PAR LE DESK » TANT QUE LA SÉANCE N'A PAS EU
+     LIEU. Le tampon ne tenait qu'à une note de texte libre : les deux bons
+     congolais de production, publiés sans note et sans résultat, portaient donc
+     « Prix fixé par le desk · v1 » sur un chiffre que personne n'a fixé — le
+     taux d'un bon sort de l'adjudication, l'émetteur ne l'impose pas et la
+     maison ne le décide pas davantage. « resultLine », que « servie » lit
+     juste en dessous, est le seul fait qui dise qu'une séance a rendu son
+     verdict ; tant qu'il manque, un bon est indicatif, note ou pas. */
+  const stampPending = o.kind !== "MARCHE" && (Boolean(o.priceNote || o.rateNote) || (o.kind === "BTA" && !o.resultLine));
   /* Une séance a rendu son verdict : `resultLine` l'écrit dans les deux cas,
      là où `servedPricePct` reste vide pour un bon, qui se sert à un taux. */
   const servie = Boolean(o.servedPricePct || o.resultLine);

@@ -146,7 +146,12 @@ export function ligneGrise(o: Offer): Phrase {
 export function origineDuChiffre(o: Offer, now: Date): Phrase {
   if (o.kind === "RACHAT") return { key: "du nominal, pas un rendement" };
   if (o.kind === "FONDS") return { key: "douze mois écoulés" };
-  if (o.kind === "BTA") return o.precountRate == null ? { key: "taux à fixer" } : { key: o.servedPricePct != null ? "adjugé à {r} précompté" : "si adjugé à {r} précompté", params: { r: fmtPct(o.precountRate, 2) } };
+  /* UN BON N'A PAS DE PRIX SERVI : « results/service.ts » laisse
+     « servedPricePct » vide sur un BTA et inscrit « resultLine ». La carte
+     testait pourtant le prix servi, si bien qu'elle restait au conditionnel
+     POUR TOUJOURS, même une fois la séance arrêtée. Le défaut miroir de celui
+     de la fiche, qui, lui, tombait le conditionnel trop tôt. */
+  if (o.kind === "BTA") return o.precountRate == null ? { key: "taux à fixer" } : { key: o.resultLine ? "adjugé à {r} précompté" : "si adjugé à {r} précompté", params: { r: fmtPct(o.precountRate, 2) } };
   if (o.kind === "ACTIONS") return o.pricePerShare ? { key: "au prix de {n}", params: { n: fmt(o.pricePerShare) } } : { key: "prix à fixer" };
   if (o.kind === "OTA" || o.kind === "APE") {
     const p = o.servedPricePct ?? o.pricePct;

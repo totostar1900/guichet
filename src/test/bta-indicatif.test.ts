@@ -55,14 +55,55 @@ describe("le taux d'un bon, avant l'adjudication", () => {
   });
 });
 
+/**
+ * CE QUI FAIT TOMBER LE CONDITIONNEL, ET CE QUI NE LE FAISAIT PAS.
+ *
+ * Cette épreuve supposait que « le desk efface la note en inscrivant le taux
+ * servi ». Il ne l'efface pas : « results/service.ts » inscrit « resultLine »
+ * et ne touche pas à « rateNote ». La condition lisait donc un champ de texte
+ * libre, et les trois bons de production se sont retrouvés étiquetés à
+ * l'inverse de leur état réel — relevé le 29 octobre 2026. Deux lignes
+ * congolaises closes sans la moindre séance enregistrée annonçaient
+ * « ADJUGÉ à 5,50 % » et « adjugé à 10,00 % », faute de note ; et la seule
+ * vraiment adjugée, portant « Taux servi 6,97 % précompté », disait
+ * « SI adjugé (indicatif) », sa note étant restée.
+ *
+ * Le fait est « resultLine », que le desk pose en arrêtant la séance.
+ */
 describe("le taux d'un bon, une fois l'adjudication passée", () => {
-  // Le desk efface la note en inscrivant le taux servi : le conditionnel tombe.
-  const apres = summarize(bta, new Date("2026-09-24T09:00:00"));
+  const apres = summarize({ ...bta, rateNote: "taux indicatif : fixé à l'adjudication", resultLine: "Taux servi 6,97 % précompté" }, new Date("2026-09-24T09:00:00"));
 
   it("dit « adjugé », sans condition ni mention d'indication", () => {
     expect(apres.heroUnit).toContain("adjugé à");
     expect(apres.heroUnit).not.toContain("si adjugé");
     expect(apres.heroSub).not.toContain("(indicatif)");
+  });
+
+  /* LA NOTE NE DÉCIDE PLUS DE RIEN, dans un sens comme dans l'autre : sans
+     résultat inscrit, le conditionnel tient même si personne n'a écrit de
+     note — c'est le cas exact des deux lignes congolaises. */
+  it("garde le conditionnel tant qu'aucun résultat n'est inscrit, note ou pas", () => {
+    for (const sans of [{ ...bta }, { ...bta, rateNote: undefined }]) {
+      const vu = summarize(sans as Offer, new Date("2026-09-24T09:00:00"));
+      expect(vu.heroUnit, "un bon sans résultat inscrit s'annonce adjugé").toContain("si adjugé à");
+      expect(vu.heroSub, "la mention « indicatif » a disparu").toContain("(indicatif)");
+    }
+  });
+
+  /* ET LA CARTE DIT LA MÊME CHOSE QUE LA FICHE. Elles se contredisaient sur
+     la même ligne : la carte testait « servedPricePct », que « results »
+     laisse VIDE sur un bon, donc elle restait au conditionnel pour toujours ;
+     la fiche, elle, le quittait trop tôt. */
+  it("s'accorde avec la carte, dans les deux états", async () => {
+    const { origineDuChiffre } = await import("@/lib/domain/carte-compacte");
+    const now = new Date("2026-09-24T09:00:00");
+    const sansResultat = origineDuChiffre({ ...bta } as Offer, now);
+    const avecResultat = origineDuChiffre({ ...bta, resultLine: "Taux servi 6,97 % précompté" } as Offer, now);
+    expect(sansResultat.key, "la carte annonce une adjudication qui n'a pas eu lieu").toBe("si adjugé à {r} précompté");
+    expect(avecResultat.key, "la carte reste au conditionnel après la séance").toBe("adjugé à {r} précompté");
+    // Et les deux surfaces s'accordent, sur la même ligne et au même instant.
+    expect(summarize({ ...bta } as Offer, now).heroUnit).toContain("si adjugé à");
+    expect(summarize({ ...bta, resultLine: "Taux servi 6,97 % précompté" } as Offer, now).heroUnit).not.toContain("si adjugé");
   });
 });
 
