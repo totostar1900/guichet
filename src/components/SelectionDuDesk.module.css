@@ -63,11 +63,24 @@
   margin-left: 4px;
 }
 /* Le motif du desk est la seule chose de cette bande qu'un calcul ne produit
-   pas : il est écrit par une personne, et il se lit comme une citation. */
+   pas : il est écrit par une personne, et il se lit comme une citation.
+
+   ET IL NE SE LISAIT PAS. « white-space: nowrap » le tenait sur une ligne :
+   mesuré à 390 px le 29 octobre 2026, il réclamait 551 px pour 390
+   disponibles, et le parent le coupait net — sans ellipse, sans signe qu'il
+   en manquait. « Retenue pour sa durée : cinq ans, entre les bons à treize
+   semaines ( » et plus rien. La seule phrase de la bande écrite par un être
+   humain était la seule qu'on ne pouvait pas finir.
+
+   LE « nowrap » AVAIT UN SENS POUR SES VOISINS, et c'est ainsi qu'il est
+   arrivé ici : un taux ou une échéance ne se coupent pas en deux, « 7,00 % »
+   sur deux lignes serait illisible. Mais ces valeurs tiennent en huit
+   caractères et celle-ci en quatre-vingts. La même règle appliquée à des
+   longueurs qui n'ont rien à voir : elle protégeait trois mots et en
+   tronquait quinze. */
 .motif {
   font-size: var(--t-2);
   color: var(--gold-ink);
-  white-space: nowrap;
 }
 .quand {
   font-size: var(--t-2);
