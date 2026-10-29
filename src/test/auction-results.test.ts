@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coverageOf, headline, millions, referenceLine, referenceRate, thin, type AuctionResult } from "@/lib/market/auction-results";
+import { coverageOf, headline, millions, thin, type AuctionResult } from "@/lib/market/auction-results";
 
 /**
  * Ce que la mémoire du marché primaire doit refuser de dire.
@@ -74,66 +74,5 @@ describe("une séance mince", () => {
   it("se reconnaît aussi à une couverture qui n'atteint pas le montant annoncé", () => {
     expect(thin(bta26)).toBe(true); // 53,40 %
     expect(thin(bta52plein)).toBe(false); // 145 %, huit soumissionnaires
-  });
-});
-
-describe("le taux de référence proposé au desk", () => {
-  const cible = { country: "Congo" as const, instrument: "BTA" as const, tenor: "52 semaines", on: "2026-09-28" };
-
-  it("passe la séance mince et retient la séance représentative, même plus ancienne", () => {
-    const ref = referenceRate(cible, [bta52mince, bta52plein]);
-    expect(ref?.from.id).toBe("bta52plein");
-    expect(ref?.proposed).toBe(6.75);
-    expect(ref?.thin).toBe(false);
-    // La séance mince n'est pas cachée, elle est reléguée : le desk la voit.
-    expect(ref?.also.map((r) => r.id)).toContain("bta52mince");
-  });
-
-  it("retient la séance mince quand il n'y a rien d'autre, et le dit", () => {
-    const ref = referenceRate(cible, [bta52mince]);
-    expect(ref?.proposed).toBe(6.97);
-    expect(ref?.thin).toBe(true);
-    expect(referenceLine(ref!)).toContain("séance mince");
-    expect(referenceLine(ref!)).toContain("1 soumissionnaire");
-  });
-
-  it("ne mélange pas deux durées : un 26 semaines ne fait pas référence pour un 52", () => {
-    expect(referenceRate(cible, [bta26])).toBeUndefined();
-  });
-
-  it("ne mélange pas deux signatures souveraines quand le pays a son historique", () => {
-    const gabon = seance({ id: "gabon", country: "Gabon", sessionOn: "2026-09-22", rateAvg: 5.5, bidders: 9, coverage: 200 });
-    const ref = referenceRate(cible, [gabon, bta52plein]);
-    expect(ref?.from.country).toBe("Congo");
-    expect(ref?.sameCountry).toBe(true);
-  });
-
-  it("sort du pays en dernier recours, et le signale", () => {
-    const gabon = seance({ id: "gabon", country: "Gabon", sessionOn: "2026-09-22", rateAvg: 5.5, bidders: 9, coverage: 200 });
-    const ref = referenceRate(cible, [gabon]);
-    expect(ref?.proposed).toBe(5.5);
-    expect(ref?.sameCountry).toBe(false);
-    expect(referenceLine(ref!)).toContain("Gabon");
-  });
-
-  it("ignore une lecture que personne n'a relue", () => {
-    const brute = seance({ id: "brute", confirmedBy: undefined, confirmedAt: undefined, rateAvg: 12, bidders: 9, coverage: 300 });
-    expect(referenceRate(cible, [brute])).toBeUndefined();
-    expect(referenceRate(cible, [brute, bta52plein])?.from.id).toBe("bta52plein");
-  });
-
-  it("ne regarde pas l'avenir, et oublie ce qui est trop vieux", () => {
-    const apres = seance({ id: "apres", sessionOn: "2026-10-06", rateAvg: 6, bidders: 9, coverage: 200 });
-    expect(referenceRate(cible, [apres])).toBeUndefined();
-    const vieux = seance({ id: "vieux", sessionOn: "2025-09-15", rateAvg: 4, bidders: 9, coverage: 200 });
-    expect(referenceRate(cible, [vieux])).toBeUndefined();
-    expect(referenceRate(cible, [vieux], 400)?.from.id).toBe("vieux");
-  });
-
-  it("rend le plus récent d'abord dans la liste de contexte", () => {
-    const juillet = seance({ id: "juillet", sessionOn: "2026-07-14", rateAvg: 6.9, bidders: 6, coverage: 130 });
-    const ref = referenceRate(cible, [bta52plein, juillet, bta52mince]);
-    expect(ref?.from.id).toBe("juillet");
-    expect(ref?.also.map((r) => r.id)).toEqual(["bta52mince", "bta52plein"]);
   });
 });

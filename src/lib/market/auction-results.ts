@@ -338,35 +338,6 @@ export const etatSeance = (
 export const completedAfterConfirmation = (r: Pick<AuctionResult, "confirmedAt" | "updatedAt">): boolean =>
   Boolean(r.confirmedAt) && Date.parse(r.updatedAt) > Date.parse(r.confirmedAt!) + 60_000;
 
-const days = (a: string, b: string): number => Math.round((Date.parse(a) - Date.parse(b)) / 86_400_000);
-
-export interface RateReference {
-  /** Le taux (BTA) ou le prix (OTA) proposé au desk. */
-  proposed: number;
-  unit: "taux" | "prix";
-  /** La séance retenue. */
-  from: AuctionResult;
-  /** Les autres séances comparables, la plus récente d'abord : de quoi lire la tendance. */
-  also: AuctionResult[];
-  /** Faux : aucune séance du pays, la référence vient du reste de la zone. */
-  sameCountry: boolean;
-  /** Vrai : la séance retenue est mince, faute de mieux dans la fenêtre. */
-  thin: boolean;
-}
-
-/**
- * Ce que la dernière séance comparable suggère.
- *
- * L'ordre est celui d'un opérateur : le pays d'abord, la séance la plus récente
- * ensuite, et une séance représentative avant une séance mince. Rien n'est
- * moyenné entre deux pays, ni entre deux durées : ce sont des produits
- * différents, et la moyenne effacerait l'écart qui fait tout l'intérêt du calcul.
- *
- * Seules les séances relues comptent (« confirmedBy »). Une lecture automatique
- * non confirmée peut porter un 7,00 % lu sur un scan de travers, et une faute de
- * lecture devenue référence se propagerait sans bruit à toutes les offres
- * suivantes.
- */
 /**
  * Ce qu'une séance doit porter pour cesser d'être une proposition.
  *
@@ -394,48 +365,6 @@ export const confirmable = (r: Pick<AuctionResult, "tenor" | "instrument" | "rat
   if (r.instrument === "OTA" && r.priceAvg == null && r.priceLimit == null && r.priceMin == null && r.priceMax == null) return "Le prix limite, le prix moyen pondéré, ou la fourchette publiée.";
   return null;
 };
-
-export function referenceRate(
-  target: { country: Country; instrument: AuctionResult["instrument"]; tenor: string; on: string },
-  history: AuctionResult[],
-  windowDays = 180,
-): RateReference | undefined {
-  const fit = history
-    .filter((r) => r.confirmedBy && r.instrument === target.instrument && r.tenor === target.tenor && headline(r))
-    .filter((r) => {
-      const d = days(target.on, r.sessionOn);
-      return d >= 0 && d <= windowDays;
-    })
-    .sort((a, b) => b.sessionOn.localeCompare(a.sessionOn));
-  if (!fit.length) return undefined;
-
-  const home = fit.filter((r) => r.country === target.country);
-  const pool = home.length ? home : fit;
-  // Une séance représentative passe devant une séance récente : le taux d'une
-  // séance à un soumissionnaire n'informe que sur ce soumissionnaire.
-  const pick = pool.find((r) => !thin(r)) ?? pool[0];
-  const h = headline(pick);
-  if (!h) return undefined;
-  return {
-    proposed: h.value,
-    unit: h.unit,
-    from: pick,
-    also: pool.filter((r) => r.id !== pick.id).slice(0, 4),
-    sameCountry: home.length > 0,
-    thin: thin(pick),
-  };
-}
-
-/** La ligne de contexte que le desk lit sous le taux proposé. */
-export function referenceLine(ref: RateReference): string {
-  const c = coverageOf(ref.from);
-  const bits = [`séance du ${ref.from.sessionOn}`];
-  if (!ref.sameCountry) bits.push(`relevée au ${ref.from.country}`);
-  if (ref.from.bidders != null) bits.push(`${ref.from.bidders} soumissionnaire${ref.from.bidders > 1 ? "s" : ""}`);
-  if (c != null) bits.push(`couverture ${c.toFixed(2).replace(".", ",")} %`);
-  if (ref.thin) bits.push("séance mince, à prendre avec réserve");
-  return bits.join(" · ");
-}
 
 /**
  * Les deux bornes rangées par leur valeur, quelle que soit la porte d'entrée.
