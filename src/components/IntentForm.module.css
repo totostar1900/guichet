@@ -683,3 +683,64 @@
   color: var(--warn);
   font-size: var(--t-3);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LE CHIFFRE QUE LE CLIENT ÉCRIT DEVIENT LE SUJET DE L'ÉCRAN.
+
+   RETENU LE 29 OCTOBRE 2026, avec les six maquettes. C'est la réponse au
+   reproche d'origine, et il vaut d'être redit en entier : la feuille posait
+   sur un même écran le sens de l'ordre, la quantité, le cours, un rappel de
+   quotité, les coordonnées et un pied de page — TOUT EN 0,8 REM, dans des
+   boîtes de la même taille. Rien n'y était premier, donc rien n'y était
+   grand, et le client tapait la somme qui engage son argent dans un champ de
+   la taille d'un champ de recherche.
+
+   CE QUI CHANGE N'EST QUE LE TRAITEMENT, et c'est volontaire : la logique de
+   ce formulaire est plus riche que celle des maquettes — il lie TROIS
+   nombres, quantité × cours = total, et celui du milieu porte la limite que
+   le client peut poser. Une conversion littérale de la maquette l'aurait
+   supprimée. On habille, on ne remplace pas.
+
+   LE GRAND DEGRÉ NE VA QU'AU CHAMP QU'ON TAPE. Trois nombres à 39 px ne
+   tiennent pas sur un téléphone, et surtout ils ne diraient plus lequel
+   décide : « --t-9 » est le degré de ce que le CLIENT écrit, pas de ce que
+   la page calcule. Le formulaire sait déjà lequel est touché — c'est l'état
+   qui pilote « calculé » et « vous tapez ici » — et le degré suit cette
+   même vérité. Un chiffre qui grandit quand on s'en saisit dit lequel fait
+   foi, ce qu'aucune note en gris n'obtenait.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* La carte : ce qu'on touche du pouce se dessine plus rond, et respire. */
+.carteDuChiffre {
+  padding: var(--panel-inset);
+  border: 1px solid var(--line);
+  border-radius: var(--rond);
+  background: var(--surface);
+}
+
+/* LE CHAMP TAPÉ, au neuvième degré. Les chiffres de même chasse, sans quoi
+   « 1 » est plus étroit que « 8 » et un montant danse pendant la frappe. */
+.chiffreTape input,
+.chiffreTape input[type="number"] {
+  height: auto;
+  padding: var(--s-2) 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  font-size: var(--t-9);
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.chiffreTape input:focus {
+  outline: none;
+  border-bottom-color: var(--fill);
+}
+/* CELUI QUI SUIT RESTE LISIBLE SANS PRENDRE LA PAROLE : un degré au-dessus
+   du corps, pas neuf. Il se lit, il ne se dispute pas la place. */
+.chiffreSuit input,
+.chiffreSuit input[type="number"] {
+  font-size: var(--t-7);
+  font-variant-numeric: tabular-nums;
+}

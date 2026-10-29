@@ -455,8 +455,12 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                parce qu'il ne décide plus rien : le champ où l'on tape dit déjà
                l'unité, et le mot « calculé » dit l'autre. L'état qu'il
                pilotait, lui, reste, et c'est le champ touché qui le pose. */
-            <div className={styles.trio}>
-              <label className="field">
+            <div className={`${styles.trio} ${styles.carteDuChiffre}`}>
+              {/* LE DEGRÉ SUIT LE CHAMP TOUCHÉ, et « byCash » le sait déjà :
+                  c'est lui qui décide de « calculé » et de « vous tapez
+                  ici ». Le chiffre qu'on écrit grandit ; celui qui se déduit
+                  reste lisible sans prendre la parole. */}
+              <label className={`field ${byCash ? styles.chiffreSuit : styles.chiffreTape}`}>
                 <span>{t(offer.instrument === "obligation" ? "Quantité (titres)" : "Quantité (actions)")}</span>
                 <input
                   data-order-field
@@ -482,7 +486,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <span className={styles.trioOp} aria-hidden="true">
                 =
               </span>
-              <label className="field">
+              <label className={`field ${byCash && !vend ? styles.chiffreTape : styles.chiffreSuit}`}>
                 <span>{t(vend ? "Produit estimé (FCFA)" : "Total (FCFA)")}</span>
                 <input
                   inputMode="numeric"
@@ -540,14 +544,24 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                qui multiplie, et un taux ne multiplie rien. Le taux reste
                saisissable juste en dessous, puisque c'est lui que le client
                décide et que l'adjudication retiendra. */
-            <div className={styles.trio}>
-              <label className="field">
+            <div className={`${styles.trio} ${styles.carteDuChiffre}`}>
+              {/* LE DEGRÉ SUIT LA CASE TOUCHÉE, ICI AUSSI — et « unit » le
+                  sait déjà faire. Il ne servait qu'au marché, sous garde
+                  « market » ; s'en servir ici ne change rien là-bas et évite
+                  un second état qui dirait la même chose. Les deux cases se
+                  tapent et écrivent le même « amount » : sans cela, rien ne
+                  dirait laquelle fait foi, et celle qu'on remplit resterait
+                  petite pendant que l'autre grandit. */}
+              <label className={`field ${unit === "titres" ? styles.chiffreTape : styles.chiffreSuit}`}>
                 <span>{t(offer.kind === "BTA" ? "Quantité (bons)" : "Quantité (titres)")}</span>
                 <input
                   inputMode="numeric"
                   placeholder="10"
                   value={trio.count ? groupDigits(String(trio.count)) : ""}
-                  {...groupedInput((v) => setAmount(groupDigits(String(Math.round((Number(v.replace(/\D/g, "")) || 0) * trio.amountPerUnit)))))}
+                  {...groupedInput((v) => {
+                    setUnit("titres");
+                    setAmount(groupDigits(String(Math.round((Number(v.replace(/\D/g, "")) || 0) * trio.amountPerUnit))));
+                  })}
                 />
                 <small className={styles.calc}>{t("à l'entier : une unité ne se coupe pas")}</small>
               </label>
@@ -564,14 +578,17 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <span className={styles.trioOp} aria-hidden="true">
                 =
               </span>
-              <label className="field">
+              <label className={`field ${unit === "titres" ? styles.chiffreSuit : styles.chiffreTape}`}>
                 <span>{t(offer.kind === "BTA" ? "À décaisser (FCFA)" : "Principal (FCFA)")}</span>
                 <input
                   data-order-field
                   inputMode="numeric"
                   placeholder="10 000 000"
                   value={trio.total ? groupDigits(String(trio.total)) : ""}
-                  {...groupedInput((v) => setAmount(groupDigits(String(Math.round((Number(v.replace(/\D/g, "")) || 0) * trio.amountPerTotal)))))}
+                  {...groupedInput((v) => {
+                    setUnit("francs");
+                    setAmount(groupDigits(String(Math.round((Number(v.replace(/\D/g, "")) || 0) * trio.amountPerTotal))));
+                  })}
                 />
                 <small className={styles.calc}>{t(offer.kind === "BTA" ? "ce que vous avancez · le nominal vous revient à l'échéance" : "hors coupon couru, qui s'achète avec le titre")}</small>
               </label>
@@ -597,7 +614,11 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               </div>
             </div>
           ) : needsAmount ? (
-            <label className="field">
+            /* LE CHIFFRE EST LE SUJET : carte, neuvième degré, conséquence
+               sous la main. Voir « LE CHIFFRE QUE LE CLIENT ÉCRIT » dans la
+               feuille. Ici il n'y a qu'un nombre tapé, donc il le porte
+               toujours. */
+            <label className={`field ${styles.carteDuChiffre} ${styles.chiffreTape}`}>
               {amtLabel}
               <input
                 data-order-field
