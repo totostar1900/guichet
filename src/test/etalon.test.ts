@@ -231,20 +231,6 @@ describe("les deux arbitrages", () => {
  */
 const SANS_ENTETE: Record<string, string> = {
   "src/components/EnTete.tsx": "l'en-tête lui-même : c'est lui qui écrit ce « h1 », et se compter revenait à ne jamais pouvoir finir",
-  /* LES MAQUETTES PROPOSENT UN AUTRE EN-TÊTE : c'est l'objet de la demande du
-     28 octobre 2026 — « une forme plus généreuse, de grandes polices ». Leur
-     imposer l'en-tête commun reviendrait à leur interdire de montrer ce
-     qu'on leur demande de montrer. Elles vivent à des adresses provisoires et
-     partent avec la décision : retenue, leurs choix passent dans l'en-tête
-     commun et cette dispense disparaît ; écartée, les pages disparaissent.
-
-     UNE SEULE LIGNE POUR QUATRE MAQUETTES, et c'est la mesure de
-     l'harmonisation demandée le 28 octobre. Elles en avaient une chacune
-     tant que chacune redessinait son en-tête ; depuis que « Tete » est
-     écrit une fois dans la pièce commune, il n'y a plus qu'un en-tête à la
-     main dans tout le dossier. L'épreuve d'à côté l'a dit avant moi : les
-     trois autres dispenses ne visaient plus rien. */
-  "src/app/maquette/commun.tsx": "les pièces communes des maquettes : l'en-tête proposé y est écrit une fois pour les quatre, et part avec la décision",
   /* La vitrine, nommée une par une dans ETALON.md § C : « la vitrine respire,
      l'application travaille ». Elle garde son serif et son échelle, et ses
      titres sont des phrases — « La porte d'entrée des marchés financiers

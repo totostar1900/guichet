@@ -64,28 +64,6 @@ function sources(): string[] {
   return out;
 }
 
-/**
- * LES MAQUETTES, QUI SONT DES PROPOSITIONS ET NON DES PAGES.
- *
- * Une maquette vit à une adresse provisoire, qu'on ouvre sur son téléphone
- * pour décider d'une forme. Lui donner une entrée de menu la mettrait sous
- * les yeux des clients, ce qui est exactement ce qu'on ne veut pas : elle
- * n'envoie rien et ne tient aucune promesse.
- *
- * LA DISPENSE A UN PRIX, et c'est volontaire : chaque maquette est nommée
- * ici, avec la décision qu'elle attend. Une maquette dont la décision est
- * prise se démonte, et sa ligne part avec elle — l'épreuve d'à côté refuse
- * les dispenses qui ne visent plus rien.
- */
-const MAQUETTES: Record<string, string> = {
-  "/maquette/ordre": "proposée le 28 octobre 2026 : la forme généreuse du passage d'ordre, en attente d'arbitrage",
-  "/maquette/adjudication": "proposée le 28 octobre 2026 : la même forme sur deux saisies, un montant et un taux, en attente d'arbitrage",
-  "/maquette/epargne": "proposée le 28 octobre 2026 : la même forme sur une DATE, la seule des quatre saisies qui ne se tape pas",
-  "/maquette/cession": "proposée le 28 octobre 2026 : la même forme sur une quantité DÉTENUE — un plafond qui n'est pas une règle mais un avoir",
-  "/maquette/arbitrage": "proposée le 29 octobre 2026 : la même forme sur DEUX lignes et un chiffre qui dit non — le mouvement, et non ses deux bouts",
-  "/maquette/ligne": "proposée le 29 octobre 2026 : « proposer votre propre ligne » revue — une page, plusieurs réponses à une même question, et deux validations",
-};
-
 const citeesParLaColonne = new Set([...COLONNE_DESK, ...COLONNE_CLIENT, ...COLONNE_VISITEUR].flatMap((g) => g.items.map((i) => i.href)));
 
 describe("toute page est atteignable au clic", () => {
@@ -118,22 +96,32 @@ describe("toute page est atteignable au clic", () => {
     return false;
   };
 
+  /**
+   * UNE PAGE PROVISOIRE — UNE MAQUETTE — NE SE RANGE PAS DANS LA COLONNE.
+   *
+   * Six maquettes ont vécu ici entre le 28 et le 29 octobre 2026, à des
+   * adresses qu'on ouvrait sur son téléphone pour décider d'une forme. Elles
+   * avaient leur dispense nommée, une ligne chacune avec la décision qu'elle
+   * attendait, et une épreuve voisine refusait les dispenses qui ne visaient
+   * plus rien. Les six décisions prises, les maquettes démontées, la dispense
+   * et son garde sont partis avec elles : une liste vide gardée par une
+   * épreuve qui ne peut plus échouer ne garde rien, elle encombre.
+   *
+   * LA PROCHAINE SE DISPENSERA DE LA MÊME FAÇON, et le dispositif tient en
+   * quatre lignes — un objet « adresse : décision attendue », une exception
+   * ici, et une épreuve qui refuse les entrées orphelines. L'historique le
+   * porte. CE QU'IL NE FAUT PAS FAIRE, en revanche, c'est lui donner une
+   * entrée de menu pour faire taire cette épreuve : une maquette n'envoie
+   * rien et ne tient aucune promesse, et elle serait alors sous les yeux des
+   * clients.
+   */
   it("la colonne cite chaque page fixe, ou quelqu'un d'autre y mène", () => {
-    const perdues = fixes.filter((r) => !citeesParLaColonne.has(r) && !redirige(r) && !citeeAilleurs(r) && !MAQUETTES[r]);
+    const perdues = fixes.filter((r) => !citeesParLaColonne.has(r) && !redirige(r) && !citeeAilleurs(r));
     expect(
       perdues,
       `ces pages existent et rien n'y mène : on n'y arrive qu'en tapant l'adresse.\n` +
         `Les ranger dans un groupe de « lib/nav-colonne », ou dire d'où on y entre.\n  ${perdues.join("\n  ")}`,
     ).toEqual([]);
-  });
-
-  it("ne garde aucune dispense de maquette qui ne vise plus de page", () => {
-    /* Une maquette démontée dont la ligne reste ici rouvrirait le trou en
-       silence pour la prochaine page qui prendrait son adresse. */
-    const fantomes = Object.keys(MAQUETTES).filter((r) => !fixes.includes(r));
-    expect(fantomes, `ces maquettes n'existent plus : leur dispense doit partir avec elles\n  ${fantomes.join("\n  ")}`).toEqual([]);
-    const muettes = Object.entries(MAQUETTES).filter(([, r]) => r.trim().length < 20);
-    expect(muettes.map(([r]) => r), "une dispense sans raison lisible n'est pas une décision").toEqual([]);
   });
 
   it("chaque adresse citée par la colonne est une page qui existe", () => {

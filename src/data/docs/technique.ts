@@ -8,7 +8,7 @@ export const TECHNIQUE: DocPage = {
   visibility: "desk",
   audience: ["tech", "admin"],
   order: 7,
-  checkedOn: "2026-10-28",
+  checkedOn: "2026-10-29",
   owner: "Georges",
   chapters: [
     {
