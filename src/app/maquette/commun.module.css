@@ -22,9 +22,15 @@
  * Les espaces, eux, restent ceux de l'échelle : la générosité demandée tient
  * dans --s-9, --s-10 et --s-11, qui existent déjà et que personne n'osait.
  */
+/* LES TROIS PROPOSITIONS SONT DEVENUES DES JETONS DE LA MAISON le 29 octobre
+   2026, quand les six maquettes ont été retenues. « --chiffre-saisi » et
+   « --rond » étaient déclarés ici, en tête, pour être essayés sans rien
+   imposer au reste ; ils vivent maintenant dans « globals.css » avec leur
+   raison, sous les noms « --t-9 », « --rond » et « --touche ».
+   Cette feuille ne les déclare donc plus : elle les LIT, comme toute autre.
+   Et c'est la vérification qui compte — les six écrans doivent rendre
+   exactement les mêmes pixels qu'avant le déménagement. */
 .ecran {
-  --chiffre-saisi: 2.6rem; /* proposé, pas encore un jeton de la maison */
-  --rond: 16px;
   max-width: 560px;
   margin: 0 auto;
   padding: var(--s-7) var(--s-7) var(--s-11);
@@ -168,7 +174,7 @@
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: var(--chiffre-saisi);
+  font-size: var(--t-9);
   font-weight: 700;
   letter-spacing: -0.02em;
   outline: none;
@@ -214,7 +220,7 @@
 }
 .action {
   width: 100%;
-  height: 56px;
+  height: var(--touche);
   border: 0;
   border-radius: var(--rond);
   /* LE COUPLE « rempli » DE LA MAISON, et non le navy en dur : en palette
@@ -307,8 +313,8 @@
 
 /* Le reçu : la maquette va jusqu'au bout, sinon on ne juge que la moitié. */
 .recuRond {
-  width: 56px;
-  height: 56px;
+  width: var(--touche);
+  height: var(--touche);
   display: grid;
   place-items: center;
   border-radius: 999px;

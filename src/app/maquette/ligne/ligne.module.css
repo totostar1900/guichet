@@ -78,7 +78,7 @@
   color: var(--ink-3);
 }
 .borneChamp {
-  height: 56px;
+  height: var(--touche);
   width: 100%;
   padding: 0 var(--s-4);
   border: 1px solid var(--line);

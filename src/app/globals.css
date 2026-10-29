@@ -90,6 +90,27 @@
   --tip-down: #ffb86b;
   --tip-shadow: 0 10px 28px rgba(11, 37, 69, 0.35), 0 2px 6px rgba(11, 37, 69, 0.25);
   --radius: 6px;
+  /* LE RAYON DE CE QU'ON TOUCHE, ET LA HAUTEUR DE CE QU'ON VISE AU POUCE.
+     RETENUS LE 29 OCTOBRE 2026 avec les six maquettes, où ils vivaient sous
+     les noms « --rond » et une hauteur écrite à la main dans chaque bouton.
+
+     « --radius » VAUT SIX, ET IL A RAISON POUR CE QU'IL SERT : un tableau,
+     un panneau de travail, une pastille. Ce sont des objets qu'on LIT, et un
+     angle serré y tient les colonnes alignées. Une boîte qu'on touche du
+     pouce se dessine plus ronde — c'est ce qui sépare un formulaire d'un
+     guichet, et c'est la seule raison du second rayon.
+
+     CINQUANTE-SIX PIXELS, parce que le pouce ne vise pas comme la souris.
+     Les hauteurs de la forme d'avant étaient dessinées pour elle. La grille
+     des jours de l'épargne descend à 44, et c'est assumé : une case de
+     calendrier se vise dans une grille, où l'œil a des voisins pour se
+     repérer ; un bouton isolé n'en a pas.
+
+     ILS NE SE SUBSTITUENT PAS À « --radius » : une page qui travaille garde
+     ses six pixels. Le jour où tout serait rond à seize, la distinction que
+     ces jetons portent aurait disparu. */
+  --rond: 16px;
+  --touche: 56px;
   /* LA HAUTEUR DE LA RANGEE D ONGLETS, partagee. Deux modules en dependent :
      celui qui la dessine et celui qui colle dessous. Mesuree a 44,5 px, elle
      est donc FIXEE a 44 pour que les deux disent le meme nombre : laisser le
@@ -275,6 +296,23 @@
      que la maison faisait deja le mieux, sans deplacer un pixel sur ces
      cinq-la. Voir ETALON.md. */
   --t-8: 2rem; /*     30,0 px : titre de page */
+  /* 39 px : LE CHIFFRE QUE LE CLIENT ÉCRIT DE SA MAIN.
+     RETENU LE 29 OCTOBRE 2026, avec les six maquettes qui le portaient. Il
+     vivait sous le nom « --chiffre-saisi » dans leur feuille, déclaré comme
+     une PROPOSITION et non comme un jeton — c'est ainsi qu'on essaie un
+     degré sans l'imposer au reste de la maison.
+
+     POURQUOI AU-DESSUS DU TITRE DE PAGE, et c'est la seule justification qui
+     tienne : l'échelle s'arrêtait à ce que la maison ÉCRIT, et ce degré-ci
+     est pour ce que le CLIENT écrit. Un montant tapé à la main est le seul
+     chiffre d'un écran qui engage son argent ; le relire avant de signer
+     demande plus que le titre de la page où on le relit. Le reproche fait à
+     la forme d'avant tenait à cela — « rien n'y est premier, donc rien n'y
+     est grand », et le client tapait la somme qui l'engage dans un champ de
+     la taille d'un champ de recherche.
+
+     IL NE SERT QU'À CELA. Un titre qui le prendrait se mettrait à crier. */
+  --t-9: 2.6rem; /*   39,0 px : le chiffre qu'on saisit, et rien d'autre */
   /* Le pas du site public, et le seul au-dessus de l'echelle. Une page qui
      vend respire plus large qu'une page qui travaille : c'est cet ecart qui
      distingue les deux, et il porte donc un nom plutot que de se reecrire a la

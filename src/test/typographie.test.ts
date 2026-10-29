@@ -30,8 +30,22 @@ const ROOT = path.resolve(__dirname, "../..");
 /** L'échelle, telle que globals.css la déclare, en rem. */
 /* HUIT DEPUIS LE 24 OCTOBRE 2026 : « --t-8 », le titre d'une page. Le degré
    manquait, et son absence se payait en sept tailles de h1 sur treize pages —
-   dont une a 16 px, plus petite que le corps de lecture. Voir ETALON.md. */
-const ECHELLE = [0.68, 0.74, 0.8, 0.88, 1, 1.15, 1.35, 2];
+   dont une a 16 px, plus petite que le corps de lecture. Voir ETALON.md.
+
+   NEUF DEPUIS LE 29 OCTOBRE 2026 : « --t-9 », le chiffre que le CLIENT écrit
+   de sa main. Retenu avec les six maquettes qui le portaient, où il vivait
+   sous le nom « --chiffre-saisi » dans leur feuille — déclaré comme une
+   proposition, pour être essayé sans rien imposer.
+
+   CE QUI LE SÉPARE DES HUIT AUTRES : l'échelle s'arrêtait à ce que la maison
+   écrit, et celui-ci est pour ce que le lecteur écrit. Un montant tapé à la
+   main est le seul chiffre d'un écran qui engage l'argent de celui qui le
+   tape ; le relire avant de signer demande plus que le titre de la page où
+   on le relit.
+
+   IL NE SERT QU'À CELA, et c'est pour cela qu'il reste un degré plutôt que
+   de devenir une habitude : un titre qui le prendrait se mettrait à crier. */
+const ECHELLE = [0.68, 0.74, 0.8, 0.88, 1, 1.15, 1.35, 2, 2.6];
 
 const feuilles = (): string[] => {
   const out: string[] = [];
@@ -152,7 +166,7 @@ describe("l'échelle typographique", () => {
     expect(PLAFOND - écarts.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(30);
   });
 
-  it("les huit degrés sont bien ceux que globals.css déclare", () => {
+  it("les neuf degrés sont bien ceux que globals.css déclare", () => {
     /* Sans cela, l'échelle du test et celle du CSS dériveraient, et le
        garde-fou mesurerait par rapport à une référence qui n'existe plus. */
     const css = fs.readFileSync(path.join(ROOT, "src/app/globals.css"), "utf8");
