@@ -215,3 +215,18 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* Les Trésors qu'un seul point écarte du tracé. Sous la table des points, et
+   non dans un commentaire replié : c'est une donnée relue, pas une remarque. */
+.isoles {
+  margin: var(--s-2) 0 0;
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-3);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.isoles b {
+  color: var(--ink);
+  font-weight: 600;
+}

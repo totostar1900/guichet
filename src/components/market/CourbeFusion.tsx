@@ -51,6 +51,10 @@ const P = { l: 56, r: 104, t: 18, b: 46 };
 
 /** Les durées auxquelles un desk demande un taux, qu'elles aient été adjugées ou non. */
 const USUELS = [0.25, 0.5, 1, 2, 3, 5, 7, 10];
+/* Une fenêtre sans pays rendait un tableau NEUF à chaque rendu, donc les deux
+   « useMemo » qui en dépendent recalculaient leurs ajustements à chaque fois.
+   Un vide partagé, et l'identité tient. */
+const SANS_PAYS: CourbePays[] = [];
 
 type Vision = "faits" | "modele";
 type Choix = "tous" | "cemac" | string;
@@ -101,6 +105,7 @@ export function CourbeFusion({
   ariaLabel,
   observeLe,
   choixDate,
+  courbeDuJour,
   beacReleve,
   visionParDefaut = "faits",
   tresorParDefaut = "tous",
@@ -109,6 +114,17 @@ export function CourbeFusion({
   ariaLabel: string;
   observeLe?: string;
   choixDate?: React.ReactNode;
+  /**
+   * LA COURBE DU JOUR, POSÉE DERRIÈRE UNE COURBE PASSÉE.
+   *
+   * Elle n'est passée que lorsqu'on regarde une date d'observation ANTÉRIEURE
+   * à aujourd'hui : sur aujourd'hui, elle serait la même courbe deux fois.
+   * Ce n'est pas le filigrane de la BEAC — celui-là est la mesure d'un autre,
+   * faite autrement, et porte donc le gris et les pointillés serrés. Celle-ci
+   * est la NÔTRE, même méthode, autre date : elle garde la couleur de son
+   * Trésor, en clair, et dit « aujourd'hui » au bout de son trait.
+   */
+  courbeDuJour?: CourbePays[];
   beacReleve?: ReleveBeacVu;
   /**
    * La vision à l'ouverture, et le Trésor affiché.
@@ -128,7 +144,7 @@ export function CourbeFusion({
   const premiereGarnie = Math.max(0, fenetres.findIndex((f) => f.pays.length > 0));
   const profondeur = choisie ?? premiereGarnie;
   const fenetre = fenetres[profondeur];
-  const pays = fenetre?.pays ?? [];
+  const pays = fenetre?.pays ?? SANS_PAYS;
 
   /* Un choix rangé dans un état survit aux données qu'il désigne : il se dérive
      plutôt qu'il ne se lit, et retombe sur la vue d'ensemble s'il ne vaut plus. */
@@ -222,6 +238,18 @@ export function CourbeFusion({
       });
   }, [choix, pays, preparer, zone, lambdaZone, modele, t]);
 
+  /* La courbe du jour, préparée comme la courbe affichée — même « preparer »,
+     donc mêmes règles de dépouillement et de dernière-par-durée — mais sans
+     ajustement : on compare des observations à des observations. */
+  const jour = useMemo((): { nom: string; couleur: string; obs: Pose[] }[] => {
+    if (!courbeDuJour?.length) return [];
+    if (choix === "cemac") {
+      const moyenne = consolide(courbeDuJour.map((p) => ({ pays: p.pays, points: preparer(p).map((q) => ({ annees: q.annees, mot: q.mot, pct: q.pct, age: q.age ?? 0 })) })));
+      return [{ nom: t("CEMAC"), couleur: CEMAC_COLOR, obs: moyenne.map((q) => ({ annees: q.annees, mot: q.mot, pct: q.pct, ytmPct: q.pct, ecartPb: 0, age: q.age, poids: 1 })) }];
+    }
+    return courbeDuJour.filter((p) => choix === "tous" || choix === p.pays).map((p) => ({ nom: p.pays, couleur: COUNTRY_COLOR[p.pays], obs: preparer(p) }));
+  }, [courbeDuJour, choix, preparer, t]);
+
   /** Le filigrane de la BEAC ne paraît que devant un seul Trésor. */
   const beac = useMemo(() => {
     if (!voirBeac) return [];
@@ -234,17 +262,26 @@ export function CourbeFusion({
     if (!tous.length) return null;
     /* C'est notre figure qui commande le cadre, puisque c'est la nôtre qu'on
        publie. La BEAC y est invitée et s'y coupe : elle va jusqu'à quinze ans
-       quand nous nous arrêtons à sept. */
-    const xs = tous.map((o) => Math.log(o.annees));
-    const borneHaute = Math.max(...tous.map((o) => o.annees));
+       quand nous nous arrêtons à sept.
+     *
+     * LA COURBE DU JOUR, ELLE, COMMANDE LE CADRE AVEC NOUS, parce qu'elle est
+     * nous : mêmes séances relues, mêmes règles, autre date. Mesuré à l'écran :
+     * coupée comme la BEAC, elle DISPARAISSAIT dès qu'on regardait un seul
+     * Trésor — ses durées d'aujourd'hui tombaient hors du cadre d'alors, il ne
+     * lui restait qu'un point, et le filigrane s'effaçait sans un mot. Un
+     * repère qu'on ne voit plus ne dit pas qu'il manque. */
+    const annees = [...tous.map((o) => o.annees), ...jour.flatMap((j) => j.obs.map((o) => o.annees))];
+    const xs = annees.map((a) => Math.log(a));
+    const borneHaute = Math.max(...annees);
     const ys = [
       ...tous.map((o) => o.pct),
       ...beac.flatMap((b) => coupeAu(b.pts, borneHaute).map((q) => q.pct)),
+      ...jour.flatMap((j) => j.obs.map((o) => o.pct)),
       ...(modele ? series.flatMap((s) => (s.fit ? USUELS.filter((u) => u >= s.fit!.borne.court && u <= s.fit!.borne.long).map((u) => s.fit!.taux(u)) : [])) : []),
     ];
     const marge = Math.max((Math.max(...ys) - Math.min(...ys)) * 0.16, 0.3);
     return { x0: Math.min(...xs), x1: Math.max(...xs), lo: Math.min(...ys) - marge, hi: Math.max(...ys) + marge };
-  }, [tous, series, beac, modele]);
+  }, [tous, series, beac, jour, modele]);
 
   const mot = (a: number) => (a < 1 ? t("{n} mois", { n: Math.round(a * 12) }) : a === 1 ? t("1 an") : t("{n} ans", { n: Math.round(a * 10) / 10 }));
   const pc = (v: number) => v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -677,6 +714,46 @@ export function CourbeFusion({
               </g>
             ))}
             <path d={`M${P.l} ${P.t}V${H - P.b}H${W - P.r}`} className={styles.axe} />
+
+            {/* LA COURBE DU JOUR, LA PREMIÈRE DESSINÉE DONC LA PLUS DERRIÈRE.
+                Elle garde la couleur de son Trésor, en clair : c'est notre
+                mesure, par notre méthode, à une autre date. La confondre avec
+                le gris de la BEAC laisserait croire à une autre méthode. */}
+            {(() => {
+              /* ELLE SE COUPE AU CADRE, comme la BEAC. Relevé à l'écran : sans
+                 coupe, la courbe du jour sortait de la figure par la droite et
+                 courait sur la légende — aujourd'hui porte des durées que la
+                 date regardée n'avait pas encore. Et le mot ne se dit QU'UNE
+                 FOIS, au bout du trait qui va le plus loin : trois Trésors
+                 faisaient trois « aujourd'hui » éparpillés au milieu du tracé,
+                 qui se lisaient comme trois choses différentes. */
+              const coupes = jour
+                .map((j) => ({ ...j, pts: coupeAu(j.obs, Math.exp(echelle.x1)) }))
+                .filter((j) => j.pts.length > 1);
+              if (!coupes.length) return null;
+              const dit = coupes.reduce((m, j) => (j.pts[j.pts.length - 1].annees > m.pts[m.pts.length - 1].annees ? j : m));
+              const bout = dit.pts[dit.pts.length - 1];
+              return (
+                <g>
+                  {coupes.map((j) => (
+                    <polyline
+                      key={`jour-${j.nom}`}
+                      points={j.pts.map((o) => `${X(o.annees).toFixed(1)},${Y(o.pct).toFixed(1)}`).join(" ")}
+                      fill="none"
+                      stroke={j.couleur}
+                      strokeWidth={1.6}
+                      strokeDasharray="6 4"
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                      opacity={0.38}
+                    />
+                  ))}
+                  <text x={X(bout.annees) + 6} y={Y(bout.pct)} className={styles.jourBout}>
+                    {t("aujourd'hui")}
+                  </text>
+                </g>
+              );
+            })()}
 
             {/* Le filigrane de la BEAC, derrière et au gris : une mesure d'un
                 autre ne se déguise pas en la nôtre. */}

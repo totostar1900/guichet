@@ -13,7 +13,7 @@ import { missingFields } from "@/lib/intake/publish";
 import { lireSourceAction, publishAction, rejectAction, requestReviewAction, saveDraftAction, sendBackAction, type IntakeResult } from "./actions";
 import { CAUSES_DE_REJET } from "@/lib/desk/rejet";
 import { SourceViewer } from "@/components/SourceViewer";
-import { referenceLine, type RateReference } from "@/lib/market/auction-results";
+import type { RateReference } from "@/lib/market/auction-results";
 import type { NiveauMarche } from "@/lib/market/niveau-marche";
 import { NiveauEtPrix } from "./NiveauEtPrix";
 import styles from "./page.module.css";
@@ -66,33 +66,22 @@ function Field({ k, draft, type = "text", options, snapShot, onSelect }: { k: ke
   );
 }
 
-/**
- * Ce que la dernière séance comparable a payé, sous le champ qu'on remplit.
- *
- * Un taux indicatif n'est pas une opinion de la maison : c'est une lecture du
- * marché avant que l'enchère ne tranche. Le champ partait pourtant d'une valeur
- * par défaut, et personne n'avait sous les yeux de quoi la discuter.
- *
- * La couverture et le nombre de soumissionnaires viennent avec le taux, et non
- * dans une note à côté. Une séance servie à 6,97 % où une seule banque a
- * soumissionné 2,50 % du montant annoncé n'est pas un prix de marché ; sans cette
- * phrase-là, le desk s'ancre sur un chiffre qu'une seule contrepartie a posé.
- */
-function Reference({ r, tr }: { r?: RateReference; tr: (s: string, v?: Record<string, string>) => string }) {
-  if (!r)
-    return (
-      <small className={styles.refNone}>{tr("Aucune séance comparable relue : le chiffre reste à apprécier, et à défendre.")}</small>
-    );
-  return (
-    <small className={`${styles.ref} ${r.thin ? styles.refThin : ""}`}>
-      {tr(r.unit === "taux" ? "Dernière séance comparable : {v} %" : "Dernier prix comparable : {v} %", { v: r.proposed.toFixed(2).replace(".", ",") })}
-      <em>{referenceLine(r)}</em>
-      {r.also.length > 0 && (
-        <em>{tr("Avant elle : {l}", { l: r.also.map((a) => `${a.sessionOn} ${(a.rateAvg ?? a.rateLimit ?? a.priceAvg ?? a.priceLimit ?? 0).toFixed(2).replace(".", ",")} %`).join(" · ") })}</em>
-      )}
-    </small>
-  );
-}
+/* LE REPÈRE DE SÉANCE COMPARABLE A ÉTÉ RETIRÉ D'ICI, et ce n'est pas un
+   oubli — je l'avais d'abord branché, puis l'écran a tranché contre moi.
+
+   Il appariait les séances par l'ÉTIQUETTE de durée : une ligne neuve à quatre
+   ans prenait pour modèle un abondement auquel il ne restait qu'un an et demi
+   à courir. « Niveau », dans NiveauEtPrix, mesure le même marché par la VIE
+   RESTANTE et le dit mieux — fourchette, nombre de séances comparables, panier
+   d'échéance, et « une seule séance : aucune dispersion mesurée, c'est la forme
+   d'un seul carnet », qui répond précisément à l'ancrage sur une contrepartie
+   unique. Voir la note de page.tsx au-dessus de « niveauDuMarche » : les deux
+   devaient cohabiter le temps que la seconde fasse ses preuves à l'écran, et
+   elle les a faites.
+
+   « referenceRate » reste : son chiffre pré-remplit encore le champ du BTA.
+   C'est la dernière chose que l'ancienne mesure décide, et savoir si « niveau »
+   doit la remplacer là aussi est une question ouverte. */
 const CAUSES = Object.entries(CAUSES_DE_REJET);
 
 export function ValidateForm({ item, offer, reference, niveau }: { item: IntakeItem; offer?: Offer; reference?: RateReference; niveau?: NiveauMarche }) {

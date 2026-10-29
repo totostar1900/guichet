@@ -254,7 +254,14 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
       }),
     }));
   const pourLaCourbe = habiller(tracables);
-  /** La courbe du jour, tracée en filigrane derrière une courbe passée. */
+  /**
+   * LA COURBE DU JOUR, TRACÉE EN FILIGRANE DERRIÈRE UNE COURBE PASSÉE.
+   *
+   * Elle ne se calcule que si l'on regarde une date antérieure : sur
+   * aujourd'hui, ce serait la même courbe dessinée deux fois. La fenêtre est
+   * celle de quatre-vingt-dix jours, la plus courte, parce que le filigrane
+   * répond à « et maintenant ? » — pas à « et sur deux ans ? ».
+   */
   const courbeDuJour = demandee ? habiller(buildCurve(seances, { windowDays: 90, convention }).countries.filter((c) => c.points.length >= MIN_POINTS)) : undefined;
 
   /**
@@ -280,8 +287,27 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
     ...f,
     pays: habiller(buildCurve(seances, { windowDays: f.jours, on: leJour, convention }).countries.filter((c) => c.points.length >= MIN_POINTS)),
   }));
-  /** Un Trésor qui ne porte qu'un point : au tableau, pas sur le tracé. */
-  const isoles = courbe.countries.filter((c) => c.points.length < MIN_POINTS);
+  /**
+   * UN TRÉSOR QUI NE PORTE QU'UN POINT : AU TABLEAU, PAS SUR LE TRACÉ.
+   *
+   * Un seul point ne fait pas une courbe — on ne peut rien ajuster dessus —
+   * mais c'est un rendement relu, et le taire le rend introuvable : il
+   * manquait au tracé, au tableau des points ET au compte des Trésors, donc
+   * rien sur la page ne disait que ce Trésor avait été adjugé.
+   */
+  const isoles = courbe.countries
+    .filter((c) => c.points.length < MIN_POINTS)
+    .map((c) => ({
+      pays: c.country,
+      /* L'étiquette ne se répète pas quand elle dit déjà l'horizon : relevé à
+         l'écran, « 9,65 % à 2 ans (2 ans, séance du 14 sept. 2026) ». Elle ne
+         vaut que lorsqu'elle DIFFÈRE — un abondement d'une ligne à six ans qui
+         n'a plus que deux ans devant lui. */
+      points: c.points.map((p) => {
+        const mot = motHorizon(horizon(p.years));
+        return { pct: p.yield.pct, mot, on: fmtDate(p.from.sessionOn), etiquette: p.tenor === mot ? undefined : p.tenor };
+      }),
+    }));
 /**
    * Toutes les paires, calculées une fois.
    *
@@ -538,6 +564,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                 fenetres={fenetres}
                 observeLe={demandee ? fmtDate(demandee) : undefined}
                 choixDate={<DateObservation ancres={ancres} courant={leJour} />}
+                courbeDuJour={courbeDuJour}
                 beacReleve={beacReleve}
                 ariaLabel={t("Les séances relues et la courbe qu'un modèle en déduit, par durée")}
               />
@@ -553,6 +580,24 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
             <span className="muted">{t("{n} points", { n: pourLaCourbe.reduce((n, c) => n + c.points.length, 0) })}</span>
           </div>
           <PointsCourbe pays={pourLaCourbe} />
+          {isoles.length > 0 && (
+            <p className={styles.isoles}>
+              {t("Écartés du tracé, faute d'un second point à ajuster :")}{" "}
+              {isoles.map((c, i) => (
+                <span key={c.pays}>
+                  {i > 0 ? " · " : ""}
+                  <b>{t(c.pays)}</b>{" "}
+                  {c.points
+                    .map((p) =>
+                      p.etiquette
+                        ? t("{v} % à {h} ({e}, séance du {d})", { v: p.pct.toFixed(2).replace(".", ","), h: p.mot, e: p.etiquette, d: p.on })
+                        : t("{v} % à {h}, séance du {d}", { v: p.pct.toFixed(2).replace(".", ","), h: p.mot, d: p.on }),
+                    )
+                    .join(" · ")}
+                </span>
+              ))}
+            </p>
+          )}
         </Bloc>
 
         {/* 3. Les écarts entre Trésors. */}

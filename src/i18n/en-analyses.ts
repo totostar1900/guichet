@@ -552,4 +552,7 @@ export const EN_ANALYSES: Record<string, string> = {
     "It interpolates, it does not create observations. A maturity nobody has auctioned remains a maturity nobody has auctioned: the value is greyed and the interval widens. It is the only place on the page where a figure is produced rather than read, and it carries its uncertainty with it.",
   "Un refus n'est pas une page blanche. Trois coefficients demandent au moins quatre durées distinctes, et davantage pour tenir : quand le modèle refuse, les observations sont là et la figure renvoie vers la vision qui les montre.":
     "A refusal is not a blank page. Three coefficients require at least four distinct maturities, and more to hold: when the model declines, the observations are there and the figure points to the view that shows them.",
+  "Écartés du tracé, faute d'un second point à ajuster :": "Left off the curve, for want of a second point to fit:",
+  "{v} % à {h} ({e}, séance du {d})": "{v}% at {h} ({e}, session of {d})",
+  "{v} % à {h}, séance du {d}": "{v}% at {h}, session of {d}",
 };
