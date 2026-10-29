@@ -231,10 +231,12 @@ export function Parcours({
               items={RAYONS.filter((r) => r.cle !== SANS_LISTE).flatMap((r) => {
                 const n = services.filter((sv) => sv.rayon === r.cle);
                 if (!n.length) return [];
-                /* Ce qui tourne déjà, et rien d'autre : un compte de services
-                   rendrait un inventaire là où le client cherche le sien. */
-                const enPlace = n.filter((sv) => sv.etat === "en_place").length;
-                return [{ nom: t(r.nom), quoi: t(r.quoi), etiquette: enPlace > 0 ? (enPlace > 1 ? t("{n} en place", { n: String(enPlace) }) : t("1 en place")) : undefined, aller: () => aller(r.cle) }];
+                /* AUCUN COMPTE DANS L'INTITULÉ, depuis le 29 octobre 2026.
+                   La tuile portait « 2 en place », la même étiquette que le
+                   rayon de l'écran large : deux surfaces, un seul texte, et
+                   il part des deux ensemble. Qui veut savoir lesquels ouvre
+                   le rayon, où chaque service le dit pour lui-même. */
+                return [{ nom: t(r.nom), quoi: t(r.quoi), aller: () => aller(r.cle) }];
               })}
             />
           </section>

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
-import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
 import path from "node:path";
 
 const ROOT = path.join(__dirname, "../..");
@@ -117,43 +116,92 @@ describe("la page d'accueil", () => {
   it("ne fait pas relire les offres à la bande des échéances", () => {
     expect(code("src/app/Console.tsx"), "la bande relit les offres que la page tient déjà").toMatch(/<CeQuiFermeBientot offres=\{offers\}/);
   });
-  /* LES TROIS FAMILLES ONT RETROUVÉ LEUR COMPTE, ET IL VIENT D'UN SEUL
-     ENDROIT. « /instruments » le portait et le défendait — « Adjudications »
-     ne dit pas s'il y a une séance ouverte cette semaine, « Adjudications ·
-     3 séances » le dit — puis la page a fermé le 24 octobre et le compte est
-     mort avec elle.
+  it("nomme les familles d'« Investir » par la table de navigation", () => {
+    expect(code("src/app/Console.tsx"), "les familles ne viennent plus de la table de navigation : l'accueil peut en nommer une qui n'existe pas").toContain("INSTRUMENTS_PAGES.map");
+  });
 
-     La page d'accueil écrit par ailleurs, pour les rubriques du dossier :
-     « aucune ne porte de compte, un nombre posé sur la page d'avant se
-     calcule toujours ailleurs que là où il sera vérifié. » Les deux règles
-     tiennent, et ce qui les sépare est l'origine du nombre : ces trois-ci
-     passent par « comptesParLieu », c'est-à-dire par les fonctions mêmes que
-     leurs pages d'arrivée emploient pour dresser leur liste. Recompter à la
-     main ici ferait exactement ce que la seconde règle redoute. */
-  it("compte les trois familles avec la fonction de leurs pages d'arrivée", () => {
+  /**
+   * AUCUN INTITULÉ N'ANNONCE SON INVENTAIRE.
+   *
+   * DEMANDÉ LE 29 OCTOBRE 2026 : « ne plus annoncer le nombre de lignes ou de
+   * services dans les intitulés ». Trois épreuves vivaient ici qui tenaient
+   * l'INVERSE — elles exigeaient le compte, sa table de pluriels et son
+   * garde-fou du zéro. Elles sont remplacées par celle-ci, et c'est le cœur
+   * de l'affaire : une règle renversée doit l'être DANS L'ÉPREUVE, sans quoi
+   * la suivante remet le chiffre en croyant réparer une régression.
+   *
+   * J'AVAIS GARDÉ UNE EXCEPTION, ET ELLE A ÉTÉ ÉCARTÉE LE JOUR MÊME.
+   * L'épreuve distinguait un compte de CATALOGUE (« 45 lignes ») d'un compte
+   * de GESTES (« 2 au desk », « 1 en place »), et n'interdisait que le
+   * premier, au motif que le second parle au lecteur de lui-même. La
+   * distinction est juste pour qui écrit le code et sans effet pour qui lit
+   * l'écran : le lecteur ne sait pas d'où vient le nombre, il voit un chiffre
+   * dans un intitulé. Une règle qui exige du lecteur qu'il connaisse
+   * l'origine du nombre pour l'accepter n'est pas une règle, c'est une
+   * préférence d'auteur.
+   *
+   * AUCUN COMPTE, DONC, DANS AUCUN INTITULÉ. Ce qui reste est ce qui n'est
+   * pas un nombre : « à signer » sur un mandat — un devoir, pas une
+   * quantité — et la PRÉSENCE MÊME de la rubrique, qui ne paraît que s'il y
+   * a quelque chose. Zéro ne s'écrit pas ; un ne se compte plus.
+   */
+  it("n'annonce le nombre ni des lignes, ni des fonds, ni des séances", () => {
+    const surfaces = ["src/app/Console.tsx", "src/components/NavTabs.tsx", "src/app/layout.tsx"];
+    /* LES LIBELLÉS ENTIERS, ET NON LES MOTS QU'ILS CONTIENNENT. Un intitulé
+       est une chaîne qui ne dit QUE le compte : « {n} lignes ». La page écrit
+       par ailleurs « {n} lignes sont tenues sans cours publié… », qui est une
+       phrase, qui explique pourquoi un total en exclut, et qui parle des
+       titres du lecteur — la viser aurait rendu l'épreuve bruyante et, le
+       jour où elle gêne, on l'aurait assouplie au lieu de la lire.
+       « comptesParLieu » est dans la liste parce que c'est la fonction qui
+       nourrissait ces libellés : rebrancher la lecture est le premier geste
+       de qui veut remettre le chiffre. */
+    const INTERDITS = [/"\{n\} lignes"/, /"\{n\} fonds"/, /"\{n\} séances"/, /"1 ligne"/, /"1 fonds"/, /"1 séance"/, /comptesParLieu/];
+    const fautes: string[] = [];
+    for (const f of surfaces) {
+      const src = code(f);
+      for (const motif of INTERDITS) if (motif.test(src)) fautes.push(`${f} : ${motif.source}`);
+    }
+    expect(fautes, "un intitulé annonce de nouveau combien il contient :\n  " + fautes.join("\n  ")).toEqual([]);
+  });
+
+  it("ne garde pas la lecture qui ne servait qu'à compter", () => {
+    /* LE CHIFFRE PART, LA REQUÊTE AUSSI. « countOffers » lisait toutes les
+       offres à chaque rendu de chaque page pour trois nombres dans un menu,
+       et « listWatches » était lu par l'accueil pour le seul compte des
+       lignes suivies. Une épreuve qui ne garderait que le texte laisserait
+       le coût en place, prêt à reservir au prochain qui veut un chiffre. */
+    expect(code("src/app/layout.tsx"), "le gabarit relit toutes les offres à chaque page : cette lecture ne servait qu'au compte du menu").not.toMatch(/countOffers/);
+    expect(code("src/app/Console.tsx"), "l'accueil relit les veilles : elles ne servaient qu'au compte des lignes suivies").not.toMatch(/listWatches/);
+  });
+
+  it("n'annonce plus le nombre des gestes du client non plus", () => {
+    /* LES DEUX ÉTIQUETTES QUE J'AVAIS PLAIDÉ DE GARDER, nommées pour qu'on
+       sache ce qui a été tranché et ne pas le rejouer : « 2 au desk » sur les
+       intentions du sondage, « 2 en place » sur les rayons des services. Les
+       rayons sont rendus par DEUX surfaces — l'écran large et la tuile du
+       téléphone — et un texte retiré d'une seule revient par l'autre. */
+    const fautes: string[] = [];
+    for (const [f, motifs] of [
+      ["src/app/Console.tsx", [/"\{n\} au desk"/, /"1 au desk"/]],
+      ["src/app/trader/Rayons.tsx", [/"\{n\} en place"/, /"1 en place"/]],
+      ["src/app/trader/Parcours.tsx", [/"\{n\} en place"/, /"1 en place"/]],
+    ] as const) {
+      const src = code(f);
+      for (const m of motifs) if (m.test(src)) fautes.push(`${f} : ${m.source}`);
+    }
+    expect(fautes, "un intitulé recompte les gestes du client :\n  " + fautes.join("\n  ")).toEqual([]);
+  });
+
+  it("garde ce qui n'est pas un nombre, et la condition qui fait paraître la rubrique", () => {
+    /* SANS CETTE LIGNE L'ÉPREUVE AU-DESSUS SE SATISFERAIT D'UN ÉCRAN MUET.
+       « à signer » est un DEVOIR, pas une quantité, et c'est la seule chose
+       que cette rubrique avait à dire. Et la rubrique du sondage ne paraît
+       que s'il y a quelque chose : c'est la condition, et non le chiffre, qui
+       porte l'information maintenant. */
     const src = code("src/app/Console.tsx");
-    expect(src, "l'accueil ne passe plus par « comptesParLieu » : le compte peut diverger de la page qu'il annonce").toContain("comptesParLieu(offers)");
-    expect(src, "les familles ne viennent plus de la table de navigation : l'accueil peut en nommer une qui n'existe pas").toContain("INSTRUMENTS_PAGES.map");
-  });
-
-  /* ZÉRO NE S'ÉCRIT PAS : une famille vide se visite quand même, et annoncer
-     son vide l'éteindrait. C'est la règle de l'ancienne page, et elle tient à
-     une comparaison qu'un « ?? » suffirait à perdre. */
-  it("n'annonce pas qu'une famille est vide", () => {
-    expect(code("src/app/Console.tsx"), "l'étiquette ne teste plus que le compte est non nul").toMatch(/n > 0 && mots/);
-  });
-
-  /* UNE FAMILLE SANS MOTS PERD SON CHIFFRE EN SILENCE. La table du singulier
-     et du pluriel est écrite à la main, à côté d'une liste de navigation qui
-     peut grandir : si les deux cessent de se correspondre, la nouvelle
-     famille paraît sans compte et personne ne s'en aperçoit. */
-  it("donne à chaque famille de la navigation son singulier et son pluriel", () => {
-    const src = lire("src/app/Console.tsx");
-    const table = src.match(/const UNITE[^=]*=\s*\{([\s\S]*?)\n\};/)?.[1] ?? "";
-    expect(table, "la table des unités est introuvable : l'épreuve ne garde plus rien").not.toBe("");
-    const connues = new Set([...table.matchAll(/^\s*([A-Za-z_][\w]*)\s*:/gm)].map((m) => m[1]));
-    const manquantes = INSTRUMENTS_PAGES.map((p) => p.key).filter((k) => !connues.has(k));
-    expect(manquantes, "ces familles paraîtraient sans compte, sans que rien ne tombe").toEqual([]);
+    expect(src, "« à signer » a disparu du mandat : le seul devoir que la rubrique portait").toContain('t("à signer")');
+    expect(src, "la rubrique du sondage paraît même sans intention : son compte parti, c'est sa condition qui informe").toMatch(/ctx\.attentesSondees > 0/);
   });
   /* LA MARGE D'UNE PIÈCE POSÉE DANS UNE COLONNE À ÉCART DÉCLARÉ.
      « IndexPulse » porte « margin: 0 0 12px » pour ses deux pages du marché.

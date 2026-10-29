@@ -23,11 +23,18 @@ import type { Apercu } from "@/lib/domain/apercus";
  * son état sur l'appareil, de sorte qu'on retrouve la page comme on l'a
  * laissée.
  *
- * LE RAYON PORTE SON COMPTE, ET C'EST CE QUI TOURNE DÉJÀ. Ni « trois
- * services » ni « 1 sur 3 » : un client cherche le sien, pas un inventaire,
- * et un nombre total devient faux le jour où la liste bouge. Ce qui est en
- * place, lui, est une information — c'est la seule chose que le pli replié
- * doit encore dire.
+ * LE RAYON NE PORTE PLUS DE COMPTE DU TOUT. Il refusait déjà « trois
+ * services » et « 1 sur 3 » — un client cherche le sien, pas un inventaire,
+ * et un total devient faux le jour où la liste bouge. Il gardait « 2 en
+ * place », au motif que ce qui est en place est une information et non un
+ * inventaire.
+ *
+ * LA DISTINCTION EST TOMBÉE LE 29 OCTOBRE 2026, et pour une raison qui vaut
+ * plus que celle qu'elle remplace : elle demandait au lecteur de savoir d'où
+ * vient le nombre pour décider s'il a le droit d'être là. Il ne le sait pas.
+ * Il voit un chiffre dans un intitulé. Le filet déplié dit encore « en
+ * place » sur CHAQUE service concerné, ce qui est plus précis qu'un total :
+ * on apprend lesquels, et non combien.
  */
 export function Rayons({ services, etapes, raisons, apercus }: { services: ServiceVu[]; etapes: Record<string, string[]>; raisons: Record<string, string>; /** Ce qui attend derrière chaque service : le même aperçu que les tuiles du téléphone. */ apercus?: Record<string, Apercu[]> }) {
   const t = useT();
@@ -36,9 +43,8 @@ export function Rayons({ services, etapes, raisons, apercus }: { services: Servi
       {RAYONS.map((r) => {
         const siens = services.filter((sv) => sv.rayon === r.cle);
         if (!siens.length) return null;
-        const enPlace = siens.filter((sv) => sv.etat === "en_place").length;
         return (
-          <Pli key={r.cle} cle={`trade:${r.cle}`} titre={t(r.nom)} sous={t(r.quoi)} compte={enPlace > 0 ? (enPlace > 1 ? t("{n} en place", { n: String(enPlace) }) : t("1 en place")) : undefined}>
+          <Pli key={r.cle} cle={`trade:${r.cle}`} titre={t(r.nom)} sous={t(r.quoi)}>
             <div className={styles.dedans}>
               {siens.map((sv) => (
                 /* LA MÊME LIGNE FIXE QUE LA TUILE DU TÉLÉPHONE. Les deux

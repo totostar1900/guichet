@@ -7,7 +7,6 @@ import styles from "./NavTabs.module.css";
 import { useT } from "@/i18n/client";
 import { MARKET_PAGES } from "@/lib/market/pages";
 import { PORTEFEUILLE_PAGES, TRADE_PAGES } from "@/lib/nav-groups";
-import type { ComptesParLieu } from "@/lib/domain/listes";
 import { isEspaceSection, isMarcheSection, isTradeSection } from "@/lib/nav-section";
 
 /**
@@ -90,15 +89,21 @@ const TABS = [
   { href: "/desk", label: "Desk", match: (p: string) => p.startsWith("/desk"), connecte: true },
 ];
 
-/** Ce que chaque page d'achat contient, pour le dire avant le toucher. */
-const COMPTES: Record<string, (c: ComptesParLieu) => number | undefined> = {
-  titres: (c) => c.titres,
-  fonds: (c) => c.fonds,
-  calendrier: (c) => c.calendrier,
-};
+/**
+ * LE MENU NE DIT PLUS COMBIEN CHAQUE PAGE CONTIENT.
+ *
+ * Il posait « 45 » à gauche de « Titres », par « comptesParLieu ». Parti le
+ * 29 octobre 2026 avec les comptes de la console : « ne plus annoncer le
+ * nombre de lignes ou de services dans les intitulés ». Le laisser ici
+ * aurait été le plus sûr moyen de le voir revenir là-bas — c'est la même
+ * phrase, sur les mêmes trois familles, à deux surfaces de distance.
+ *
+ * LA LECTURE QUI L'ALIMENTAIT EST PARTIE AVEC LUI : le gabarit appelait
+ * « listOffers » à chaque rendu de chaque page pour ce seul chiffre.
+ */
 
 /** `mode`: "client" hides the Desk tab (the desk has its own host), "desk" keeps only it, "all" is the one-host setup. */
-export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: ComptesParLieu; mode?: "all" | "client" | "desk"; connecte?: boolean }) {
+export function NavTabs({ mode = "all", connecte = false }: { mode?: "all" | "client" | "desk"; connecte?: boolean }) {
   const path = usePathname();
   const t = useT();
   // Le menu retient la page sur laquelle il s'est ouvert : changer de page le referme
@@ -170,18 +175,12 @@ export function NavTabs({ counts, mode = "all", connecte = false }: { counts?: C
             </button>
             {ouvert && (
               <div className={styles.menu}>
-                {tab.pages.map((p) => {
-                  /* Le chiffre à côté du nom de SA page : « Titres 45 » se lit,
-                     « Instruments 105 » demandait de quoi il s'agissait. */
-                  const n = counts ? COMPTES[p.key]?.(counts) : undefined;
-                  return (
-                    <Link key={p.key} href={p.href} className={styles.item}>
-                      {n != null && <em className={styles.nb}>{n}</em>}
-                      <b>{t(p.label)}</b>
-                      <small>{t(p.hint)}</small>
-                    </Link>
-                  );
-                })}
+                {tab.pages.map((p) => (
+                  <Link key={p.key} href={p.href} className={styles.item}>
+                    <b>{t(p.label)}</b>
+                    <small>{t(p.hint)}</small>
+                  </Link>
+                ))}
               </div>
             )}
           </div>

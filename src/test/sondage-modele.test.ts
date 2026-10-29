@@ -234,15 +234,19 @@ describe("le modèle du sondage", () => {
    * dirait « aucune en ce moment » onze mois sur douze apprend à ne plus
    * regarder la liste entière.
    *
-   * ET LE COMPTE VIENT DU CONTEXTE, celui-là même que la tuile du service lit :
-   * deux comptes pour une seule liste mentent deux fois.
+   * ET ELLE NE DIT PLUS COMBIEN, depuis le 29 octobre 2026 : « ne plus
+   * annoncer le nombre de lignes ou de services dans les intitulés ». Elle
+   * portait « 2 au desk », pris du contexte pour ne pas mentir deux fois.
+   * Le compte était juste et il part quand même — c'est sa PRÉSENCE qui
+   * informe maintenant, puisqu'elle est conditionnelle, et la condition est
+   * ce que cette épreuve garde.
    */
   it("ouvre une rubrique du sondage à l'accueil, et seulement s'il y a une intention", () => {
     const console_ = lire("src/app/Console.tsx");
     const bloc = console_.slice(console_.indexOf('href: "/sondage"') - 400, console_.indexOf('href: "/sondage"') + 400);
     expect(bloc, "la rubrique du sondage a quitté l'accueil").toContain('href: "/sondage"');
     expect(bloc, "la rubrique du sondage paraît même quand le client n'a rien dit").toMatch(/ctx\.attentesSondees > 0/);
-    expect(bloc, "la rubrique ne dit plus combien d'intentions sont au desk").toMatch(/au desk/);
+    expect(bloc, "la rubrique recompte les intentions au desk dans son intitulé").not.toMatch(/"\{n\} au desk"|"1 au desk"/);
     /* NON VACUITÉ : le compte est bien celui du contexte, et non un second
        calcul fait sur place. */
     expect(console_, "l'accueil recalcule les attentes au lieu de lire le contexte").not.toMatch(/listLignesSondees/);

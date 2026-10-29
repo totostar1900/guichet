@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { comptesParLieu, type ComptesParLieu } from "@/lib/domain/listes";
 import Link from "next/link";
 import { Instrument_Serif, Manrope } from "next/font/google";
 import "./globals.css";
@@ -78,20 +77,15 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-/**
- * Les trois chiffres des trois pages d'achat : la cote, les fonds, les séances.
- * La bande large en fait une somme, les tuiles du téléphone les montrent un par
- * un. Ils sont comptés comme chaque page les montre, par « domain/listes », et
- * ne tiennent qu'à la lecture que le layout faisait déjà. N'échoue jamais la
- * page : sans eux les tuiles portent leur nom, et c'est tout.
+/*
+ * « countOffers » VIVAIT ICI, et lisait TOUTES les offres à chaque rendu de
+ * CHAQUE page — le gabarit est sur toutes — pour poser trois chiffres à côté
+ * de trois noms dans le menu. Ces chiffres sont partis le 29 octobre 2026
+ * (« ne plus annoncer le nombre de lignes ou de services dans les
+ * intitulés ») et la lecture est partie avec eux. Une requête de moins
+ * partout, et c'est le genre de coût qu'on ne retrouve jamais en cherchant
+ * la lenteur : il était caché derrière un détail d'affichage.
  */
-async function countOffers(): Promise<ComptesParLieu | undefined> {
-  try {
-    return comptesParLieu(await repo().listOffers());
-  } catch {
-    return undefined;
-  }
-}
 
 /** What the menu says under « Sécurité » (proven channels, trusted devices) and what the account sheet shows (each channel, the preferences). Never fails the page. */
 async function accountLine(userId: string): Promise<{ security: { channels: number; devices: number }; phone?: string; email?: string; phoneOk: boolean; emailOk: boolean; prefs: ClientPrefs } | undefined> {
@@ -106,7 +100,7 @@ async function accountLine(userId: string): Promise<{ security: { channels: numb
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const backend = backendName();
-  const [session, registry, issuers, lang, t, navCounts, jar, hdrs] = await Promise.all([getSession(), loadRegistry(), loadIssuerRegistry(), getLang(), getT(), countOffers(), cookies(), headers()]);
+  const [session, registry, issuers, lang, t, jar, hdrs] = await Promise.all([getSession(), loadRegistry(), loadIssuerRegistry(), getLang(), getT(), cookies(), headers()]);
   const desk = isDesk(session);
   // With the desk on its own host, the client site shows no desk control, even to staff.
   const onDeskHost = isDeskHost(hdrs.get("host"));
@@ -206,7 +200,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </span>
               </Link>
             )}
-            <NavTabs counts={navCounts} mode={navMode} connecte={Boolean(session)} />
+            <NavTabs mode={navMode} connecte={Boolean(session)} />
             <div className={styles.right}>
               {/* CE QUI A QUITTÉ LA BARRE, ET POURQUOI.
                   « À décider » est passé dans le « ⋮ », qui en porte le

@@ -62,15 +62,18 @@ export const rachatsOuverts = (all: Offer[]): Offer[] => all.filter((o) => !o.hi
  */
 export const fondsListes = (all: Offer[]): (Offer & { fund: NonNullable<Offer["fund"]> })[] => all.filter((o): o is Offer & { fund: NonNullable<Offer["fund"]> } => o.kind === "FONDS" && Boolean(o.fund));
 
-/** Ce que chaque siège « Instruments » ouvre, compté comme sa page le montre. */
-export interface ComptesParLieu {
-  titres: number;
-  fonds: number;
-  calendrier: number;
-}
-
-export const comptesParLieu = (all: Offer[]): ComptesParLieu => ({
-  titres: lignesDeLaCote(all).length,
-  fonds: fondsListes(all).length,
-  calendrier: seancesAnnoncees(all).length,
-});
+/*
+ * « comptesParLieu » VIVAIT ICI, et comptait les trois familles comme leurs
+ * pages les montrent : la cote, les fonds, les séances. Elle n'avait qu'un
+ * emploi — poser « 45 lignes » dans un intitulé du menu et de l'accueil — et
+ * cet emploi est tombé le 29 octobre 2026 : « ne plus annoncer le nombre de
+ * lignes ou de services dans les intitulés ».
+ *
+ * ELLE PART AVEC EUX plutôt que d'attendre un second usage. Une fonction
+ * juste, éprouvée et sans appelant est ce qui se garde le plus facilement et
+ * se paie le plus tard : elle a l'air d'un service rendu, elle survit aux
+ * relectures, et elle finit par justifier le retour de ce qu'on vient de
+ * retirer. Les trois listes qu'elle appelait — « lignesDeLaCote »,
+ * « fondsListes », « seancesAnnoncees » — restent, elles, employées par les
+ * trois pages qu'elles servent.
+ */
