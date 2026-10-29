@@ -13,7 +13,6 @@ import { missingFields } from "@/lib/intake/publish";
 import { lireSourceAction, publishAction, rejectAction, requestReviewAction, saveDraftAction, sendBackAction, type IntakeResult } from "./actions";
 import { CAUSES_DE_REJET } from "@/lib/desk/rejet";
 import { SourceViewer } from "@/components/SourceViewer";
-import type { RateReference } from "@/lib/market/auction-results";
 import type { NiveauMarche } from "@/lib/market/niveau-marche";
 import { NiveauEtPrix } from "./NiveauEtPrix";
 import styles from "./page.module.css";
@@ -79,12 +78,23 @@ function Field({ k, draft, type = "text", options, snapShot, onSelect }: { k: ke
    devaient cohabiter le temps que la seconde fasse ses preuves à l'écran, et
    elle les a faites.
 
-   « referenceRate » reste : son chiffre pré-remplit encore le champ du BTA.
-   C'est la dernière chose que l'ancienne mesure décide, et savoir si « niveau »
-   doit la remplacer là aussi est une question ouverte. */
+   ELLE NE PRÉ-REMPLIT PLUS LE CHAMP DU BTA NON PLUS. C'était sa dernière
+   décision, et c'était la plus lourde : un chiffre dans une case se lit comme
+   une mesure, bien plus qu'une phrase à côté. Relevé sur l'historique réel le
+   29 octobre 2026, sur une cible congolaise à 52 semaines, l'ancien y posait
+   6,9700 % — le taux d'une séance à UN soumissionnaire couverte à 2,50 %,
+   c'est-à-dire l'exemple même que son propre commentaire donnait de ce qu'il
+   ne faut pas prendre pour un prix de marché. Le champ part maintenant du
+   niveau mesuré par la vie restante, converti en taux précompté POUR CE BON
+   par « tauxPrecompteForRendement », donc avec ses vraies dates.
+
+   ET QUAND IL N'Y A RIEN, LE CHAMP RESTE VIDE. Sur une cible gabonaise à 13
+   semaines, l'ancien proposait 6,0000 % tiré d'une séance dont le bon est
+   échu depuis ; le niveau, lui, ne trouve aucune séance comparable par la vie
+   restante et ne propose rien. L'écran le dit déjà en toutes lettres. */
 const CAUSES = Object.entries(CAUSES_DE_REJET);
 
-export function ValidateForm({ item, offer, reference, niveau }: { item: IntakeItem; offer?: Offer; reference?: RateReference; niveau?: NiveauMarche }) {
+export function ValidateForm({ item, offer, niveau }: { item: IntakeItem; offer?: Offer; niveau?: NiveauMarche }) {
   const tr = useT();
   const d = item.draft;
   const [snap, setSnap] = useState<Snap>({});
@@ -265,7 +275,7 @@ export function ValidateForm({ item, offer, reference, niveau }: { item: IntakeI
                 niveau={niveau}
                 pays={d.country}
                 bta={d.maturityOn && d.settleOn ? { nominal: Number(d.nominal) || 10_000, settleOn: d.settleOn, maturityOn: d.maturityOn } : undefined}
-                valeurInitiale={offer?.precountRate ?? reference?.proposed}
+                valeurInitiale={offer?.precountRate}
               />
             ) : kind === "ACTIONS" || kind === "RACHAT" ? (
               <label className="field">

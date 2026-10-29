@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { repo } from "@/lib/data";
-import { referenceRate, type RateReference } from "@/lib/market/auction-results";
 import { niveauDuMarche, type NiveauMarche } from "@/lib/market/niveau-marche";
-import { tenorOf } from "@/lib/market/beac";
 import type { IntakeItem } from "@/lib/domain/types";
 import { extractionAvailable } from "@/lib/intake/extract";
 import { fmtDateTime } from "@/lib/format";
@@ -74,18 +72,13 @@ export default async function IntakePage({
     ? await r.getOffer(selected.offerId)
     : undefined;
 
-  // Ce que le marché vient de payer sur le même produit. Le desk fixait un taux
-  // indicatif devant un champ pré-rempli à 5,5 %, sans rien pour s'y appuyer :
-  // le chiffre sortait d'une valeur par défaut, pas d'une adjudication. Seules
-  // les séances relues comptent, sans quoi une faute de lecture sur un scan
-  // deviendrait la référence de toutes les offres suivantes.
+  /* L'ANCIENNE RÉFÉRENCE A QUITTÉ CETTE PAGE, et avec elle sa dernière
+     décision : le chiffre qui partait dans le champ du BTA. Elle appariait par
+     l'ÉTIQUETTE de durée ; « niveauDuMarche », ci-dessous, apparie par la vie
+     restante, et NiveauEtPrix convertit ce niveau dans l'unité du champ —
+     taux précompté pour un bon, prix pour une obligation — avec les dates de
+     CETTE ligne. Voir la note de ValidateForm pour la mesure qui a tranché. */
   const draft = selected?.draft;
-  const tenor = draft?.title ? tenorOf(draft.title) : undefined;
-  let reference: RateReference | undefined;
-  if (draft && tenor && draft.country && draft.deadlineAt && (draft.kind === "BTA" || draft.kind === "OTA")) {
-    const history = await r.listAuctionResults({ confirmed: true, instrument: draft.kind, tenor, limit: 60 });
-    reference = referenceRate({ country: draft.country, instrument: draft.kind, tenor, on: draft.deadlineAt.slice(0, 10) }, history);
-  }
 
   /**
    * LE NIVEAU DU MARCHÉ, apparié par la VIE RESTANTE et non par l'étiquette.
@@ -170,7 +163,7 @@ export default async function IntakePage({
           {showNew ? (
             <NewSourceForm extraction={extractionAvailable()} />
           ) : selected ? (
-            <ValidateForm key={selected.id} item={selected} offer={offer} reference={reference} niveau={niveau} />
+            <ValidateForm key={selected.id} item={selected} offer={offer} niveau={niveau} />
           ) : (
             <div className="empty">
               {t("Sélectionnez une source ou déposez-en une nouvelle.")}

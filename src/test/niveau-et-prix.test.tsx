@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { NiveauEtPrix } from "@/app/desk/a-valider/NiveauEtPrix";
-import { bondCalc } from "@/lib/finance";
+import { bondCalc, btaCalc } from "@/lib/finance";
 import type { NiveauMarche } from "@/lib/market/niveau-marche";
 
 /**
@@ -95,5 +95,43 @@ describe("le bloc du niveau et du prix", () => {
     );
     expect(html).toContain('name="precountRate"');
     expect(html).not.toContain('name="pricePct"');
+  });
+
+  /**
+   * LE CHAMP DU BON PART DU NIVEAU MESURÉ, ET DE RIEN D'AUTRE.
+   *
+   * Jusqu'au 29 octobre 2026 il partait de l'ANCIENNE référence, appariée par
+   * l'étiquette de durée. Mesuré sur l'historique réel des BTA, sur une cible
+   * congolaise à 52 semaines, elle y posait 6,9700 % : le taux d'une séance à
+   * UN soumissionnaire couverte à 2,50 % — l'exemple même que son propre
+   * commentaire donnait de ce qui n'est pas un prix de marché. Une phrase de
+   * mise en garde à côté ne pèse rien contre un chiffre déjà dans la case.
+   *
+   * La vérification est la même que celle du prix d'une obligation, plus
+   * haut : le taux posé, relu par la fonction que la fiche emploiera, doit
+   * redonner le niveau mesuré. C'est la seule qui prouve que les deux écrans
+   * s'accordent, et elle passe par « lib/finance », jamais par un calcul
+   * refait ici.
+   */
+  it("pose dans le champ du bon le taux précompté que le niveau donnerait", () => {
+    const bta = { nominal: 10_000, settleOn: "2026-10-31", maturityOn: "2027-10-30" };
+    const html = renderToStaticMarkup(<NiveauEtPrix kind="BTA" niveau={niveau({ point: 7.605 })} bta={bta} pays="Congo" />);
+    const m = /name="precountRate"[^>]*value="([^"]+)"/.exec(html);
+    expect(m, "le champ posté doit être rendu avec sa valeur").not.toBeNull();
+    const taux = Number(m![1].replace(/\s/g, "").replace(",", "."));
+    expect(btaCalc(bta, 10_000_000, taux).yieldPct).toBeCloseTo(7.605, 2);
+    /* Non-vacuité : le taux précompté d'un bon à un an N'EST PAS son rendement.
+       Sans cette clause, un champ qui recopierait le niveau tel quel passerait. */
+    expect(Math.abs(taux - 7.605), "le taux posé est le rendement recopié, non converti").toBeGreaterThan(0.3);
+  });
+
+  /* ET SANS NIVEAU, LE CHAMP DU BON RESTE VIDE. Relevé le même jour : sur une
+     cible gabonaise à 13 semaines, l'ancienne référence proposait 6,0000 %
+     tirés d'une séance dont le bon est échu depuis. Ne rien proposer est une
+     réponse ; proposer le prix d'un titre mort n'en est pas une. */
+  it("sans niveau mesuré, laisse vide le champ du bon lui aussi", () => {
+    const html = renderToStaticMarkup(<NiveauEtPrix kind="BTA" bta={{ nominal: 10_000, settleOn: "2026-10-31", maturityOn: "2027-01-30" }} />);
+    expect(html).toMatch(/name="precountRate"[^>]*value=""/);
+    expect(html).toContain("Aucune séance comparable");
   });
 });
