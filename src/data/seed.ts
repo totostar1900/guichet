@@ -315,7 +315,10 @@ export const SEED_OFFERS: Offer[] = [
     settleOn: "2026-10-12",
     maturityOn: "2027-04-08",
     nominal: 1_000_000,
-    precountRate: 4.75,
+    /* 4,75 % donnait 4,932 % de rendement quand les sept séances camerounaises
+       du panier « ≤ 6 mois » en disaient 7,155, la plus récente à soixante-six
+       jours. 6,82 % est ce niveau converti pour ces dates-ci. */
+    precountRate: 6.82,
     rateNote: "taux indicatif : fixé à l'adjudication",
     commissionPct: 0,
     minTitles: 1,
@@ -530,7 +533,12 @@ export const SEED_OFFERS: Offer[] = [
     settleOn: leJour(8),
     maturityOn: leJour(4 + 91),
     nominal: 1_000_000,
-    precountRate: 5.1,
+    /* 5,1 % donnait 5,235 % de rendement contre un marché tchadien à 7,213 %.
+       Ce niveau ne tient QU'UNE séance, du 23 avril 2025 : c'est tout ce que
+       le marché primaire tchadien a laissé dans la fenêtre de vingt-quatre
+       mois, et l'écran du desk le dit en toutes lettres quand il la propose.
+       Une mesure maigre et datée reste une mesure ; 5,1 % n'était rien. */
+    precountRate: 6.99,
     rateNote: "taux indicatif : fixé à l'adjudication",
     commissionPct: 0,
     minTitles: 1,
@@ -592,7 +600,10 @@ export const SEED_OFFERS: Offer[] = [
     settleOn: leJour(28),
     maturityOn: leJour(24 + 182),
     nominal: 1_000_000,
-    precountRate: 4.9,
+    /* Même panier et mêmes sept séances que le BTA camerounais à 26 semaines
+       ci-dessus, vues de plus loin — cent onze jours : 7,155 % de rendement,
+       soit 6,82 % précompté sur ces dates. 4,9 % en donnait 5,091. */
+    precountRate: 6.82,
     rateNote: "taux indicatif : fixé à l'adjudication",
     commissionPct: 0,
     minTitles: 1,
