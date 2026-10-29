@@ -233,7 +233,7 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
                   dépouiller. */}
               <InfoSearch entries={index?.entries ?? []} limit={6} close={close} dense />
 
-              <Link href="/info#lecons" className={`${styles.row} ${chapter && !chapter.key ? styles.sectionHere : ""}`} onClick={close}>
+              <Link href="/info/eclairages" className={`${styles.row} ${chapter && !chapter.key ? styles.sectionHere : ""}`} onClick={close}>
                 <i className={styles.num}>8</i>
                 <b>{t("Lire une ligne en trente secondes")}</b>
                 <small className={index && firstDone === first.length && first.length > 0 ? styles.ok : chapter && !chapter.key ? styles.hereWord : undefined}>
@@ -269,13 +269,13 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
                 </Link>
               )}
               <div className={styles.tools}>
-                <Link href="/info#simulateur" onClick={close}>
+                <Link href="/info/simulateur" onClick={close}>
                   {t("Simulateur d'obligation")}
                 </Link>
                 <Link href="/comparer" onClick={close}>
                   {t("Comparer deux lignes")}
                 </Link>
-                <Link href="/info#glossaire" onClick={close}>
+                <Link href="/info/glossaire" onClick={close}>
                   {t("Les mots de Guichet")}
                 </Link>
                 <Link href="/info/aide" onClick={close}>

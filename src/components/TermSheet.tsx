@@ -135,7 +135,7 @@ export function TermSheetHost() {
           )}
           <p className={styles.text}>{t(term.text)}</p>
           <div className={styles.links}>
-            <Link href={`/info#terme-${key}`} onClick={close}>
+            <Link href={`/info/glossaire#terme-${key}`} onClick={close}>
               {t("Voir dans le glossaire")} →
             </Link>
             {lesson && (

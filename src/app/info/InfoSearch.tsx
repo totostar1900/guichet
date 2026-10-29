@@ -230,7 +230,13 @@ export function InfoSearch({
   const go = (href: string) => {
     setQ("");
     close?.();
-    const hash = href.startsWith("/info#") ? href.slice("/info#".length) : href.startsWith("#") ? href.slice(1) : null;
+    /* RÉVÉLER UNE ANCRE SANS NAVIGUER NE VAUT QUE SUR LA PAGE OÙ ELLE EST.
+       Le raccourci visait « /info#… » du temps où le guide tenait en une
+       page ; le glossaire et le simulateur ont la leur, et sauter à une ancre
+       d'une AUTRE page ne révélerait rien. On ne garde donc que l'ancre de la
+       page courante. */
+    const ici = typeof window === "undefined" ? "" : window.location.pathname;
+    const hash = href.startsWith(`${ici}#`) ? href.slice(ici.length + 1) : href.startsWith("#") ? href.slice(1) : null;
     if (hash && revealAnchor(hash)) return;
     router.push(href);
   };

@@ -3,29 +3,37 @@
 import { fold } from "@/lib/text";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/i18n/client";
 import { COMPANY } from "@/lib/config";
 import type { AideRow } from "@/lib/guide-index-shared";
 import { TOP_QUESTIONS } from "@/lib/guide-index-shared";
-import { helpFeedback } from "./actions";
 import styles from "./aide.module.css";
-import { FoldAll, FoldSection, openFold } from "@/components/Fold";
 
 /**
- * The help as a page that answers: the question first (a search over every
- * question of this page), the subjects as tiles, each answer opening in place
- * with what to do next, and a conseiller at the end. The desk learns which
- * answers helped.
+ * L'AIDE COMME INDEX, ET RIEN D'AUTRE.
+ *
+ * Elle portait les huit chapitres DEUX FOIS : en tuiles, puis en accordéons
+ * juste dessous. La tuile ne menait donc pas à son chapitre, elle sautait à
+ * une ancre deux écrans plus bas, qu'il fallait encore déplier. Et chaque
+ * tuile annonçait un compte — « 11 questions » — qui ne dit pas si la réponse
+ * cherchée s'y trouve, et qui mentait déjà sur « Ce que Guichet fait pour
+ * vous », lequel n'en porte aucune et affichait « en clair ».
+ *
+ * Chaque chapitre a désormais son adresse, « /info/aide/<chapitre> » : une
+ * réponse se partage, se met en favori, et la recherche y mène sans rien
+ * déplier. Cette page garde ce qu'un index doit garder — le champ qui cherche
+ * dans les quarante et une réponses, et les huit portes.
  */
 export interface AideChapter {
   id: string;
   title: string;
-  intro: React.ReactNode; // the chapter's lead, list or flow, rendered by the server
+  promesse?: string;
   rows: AideRow[];
 }
 
-const ICON: Record<string, string> = {
+export const ICON: Record<string, string> = {
   guichet: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v5M12 16h.01",
   connexion: "M5 10h14v10H5zM8 10V7a4 4 0 0 1 8 0v3",
   compte: "M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 21c0-4 4-7 8-7s8 3 8 7",
@@ -36,13 +44,36 @@ const ICON: Record<string, string> = {
   entretien: "M14 6a4 4 0 0 0-5.6 3.7L3 15l2 2 5.3-5.4A4 4 0 0 0 16 8l-2.5 2.5-1.5-1.5z",
 };
 
+/** L'adresse d'une réponse : sa page de chapitre, puis son ancre. */
+export const lienReponse = (r: AideRow): string => `/info/aide/${r.chapter}#q-${r.slug}`;
+
 export function AideBrowser({ chapters, wa }: { chapters: AideChapter[]; wa: string }) {
   const t = useT();
+  const router = useRouter();
   const [q, setQ] = useState("");
-  const [openSlug, setOpenSlug] = useState<string | null>(null);
-  const [voted, setVoted] = useState<Record<string, boolean>>({});
-  const [, start] = useTransition();
   const all = useMemo(() => chapters.flatMap((c) => c.rows), [chapters]);
+
+  /**
+   * « /info/aide#q-<question> » MÈNE ENCORE À SA RÉPONSE.
+   *
+   * C'était l'adresse de chacune des quarante et une réponses tant qu'elles
+   * vivaient toutes sur cette page : elle est partie dans des messages, et
+   * l'index de recherche la visait jusqu'à ce matin. Elle n'ouvre plus rien
+   * ici — la réponse est sur la page de son chapitre, et c'est là qu'on
+   * l'envoie, sans laisser d'étape dans l'historique.
+   */
+  useEffect(() => {
+    const go = () => {
+      const m = /^#q-(.+)$/.exec(window.location.hash);
+      if (!m) return;
+      const slug = decodeURIComponent(m[1]);
+      const r = all.find((x) => x.slug === slug);
+      if (r) router.replace(lienReponse(r));
+    };
+    go();
+    window.addEventListener("hashchange", go);
+    return () => window.removeEventListener("hashchange", go);
+  }, [all, router]);
   const top = TOP_QUESTIONS.map((s) => all.find((r) => r.slug === s)).filter((r): r is AideRow => Boolean(r));
   const words = fold(q)
     .split(/[^a-z0-9]+/)
@@ -50,80 +81,6 @@ export function AideBrowser({ chapters, wa }: { chapters: AideChapter[]; wa: str
   const match = (r: AideRow) => words.length === 0 || words.every((w) => fold(r.q + " " + r.a).includes(w));
   const searching = words.length > 0;
   const found = searching ? all.filter(match) : [];
-
-  // Arriving on #q-<slug> (from the search or the menu): open that answer and bring it into view.
-  useEffect(() => {
-    const go = () => {
-      const m = /^#q-(.+)$/.exec(window.location.hash);
-      if (!m) return;
-      setOpenSlug(decodeURIComponent(m[1]));
-      // The answer may sit in a folded chapter: open that chapter first.
-      const slug = decodeURIComponent(m[1]);
-      const ch = chapters.find((c) => c.rows.some((r) => r.slug === slug));
-      if (ch) openFold("aide", ch.id);
-      window.setTimeout(() => document.getElementById(`q-${decodeURIComponent(m[1])}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
-    };
-    go();
-    window.addEventListener("hashchange", go);
-    return () => window.removeEventListener("hashchange", go);
-  }, [chapters]);
-
-  const vote = (r: AideRow, useful: boolean) => {
-    setVoted((v) => ({ ...v, [r.slug]: useful }));
-    start(async () => {
-      await helpFeedback(r.slug, useful);
-    });
-  };
-
-  const answer = (r: AideRow) => {
-    const open = openSlug === r.slug;
-    return (
-      <div key={r.slug} id={`q-${r.slug}`} className={`${styles.qa} ${open ? styles.qaOpen : ""}`}>
-        <button type="button" className={styles.qaHead} aria-expanded={open} onClick={() => setOpenSlug(open ? null : r.slug)}>
-          <b>{r.q}</b>
-          <span aria-hidden="true">{open ? "−" : "+"}</span>
-        </button>
-        {open && (
-          <div className={styles.qaBody}>
-            <p>{r.a}</p>
-            <div className={styles.qaActions}>
-              {r.chapter === "connexion" && (
-                <Link className="btn sm primary" href="/connexion">
-                  {t("Aller à la connexion")}
-                </Link>
-              )}
-              {r.chapter === "compte" && (
-                <Link className="btn sm primary" href="/ouvrir-un-compte">
-                  {t("Ouvrir mon compte")}
-                </Link>
-              )}
-              {(r.chapter === "lignes" || r.chapter === "intentions") && (
-                <Link className="btn sm primary" href="/titres">
-                  {t("Voir les lignes")}
-                </Link>
-              )}
-              <a className="btn sm" href={wa} target="_blank" rel="noopener">
-                {t("Écrire sur WhatsApp")}
-              </a>
-            </div>
-            <div className={styles.vote}>
-              <span>{voted[r.slug] == null ? t("Cette réponse vous a aidé ?") : voted[r.slug] ? t("Merci.") : t("Merci : nous la réécrivons.")}</span>
-              {voted[r.slug] == null && (
-                <>
-                  <button type="button" onClick={() => vote(r, true)}>
-                    {t("Oui")}
-                  </button>
-                  <button type="button" onClick={() => vote(r, false)}>
-                    {t("Non")}
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
 
   return (
     <div className={styles.wrap}>
@@ -139,9 +96,9 @@ export function AideBrowser({ chapters, wa }: { chapters: AideChapter[]; wa: str
         <div className={styles.chips}>
           <small>{t("On nous demande souvent :")}</small>
           {top.map((r) => (
-            <a key={r.slug} href={`#q-${r.slug}`}>
+            <Link key={r.slug} href={lienReponse(r)}>
               {r.q}
-            </a>
+            </Link>
           ))}
         </div>
       </div>
@@ -149,7 +106,16 @@ export function AideBrowser({ chapters, wa }: { chapters: AideChapter[]; wa: str
       {searching ? (
         <section className={styles.found}>
           <h2>{found.length ? t("{n} réponses", { n: found.length }) : t("Aucune réponse ne contient ces mots")}</h2>
-          {found.map(answer)}
+          {/* LE RÉSULTAT MÈNE À SA PAGE, il ne s'ouvre plus ici : la réponse
+              vit à une adresse, et c'est cette adresse qu'on partage. */}
+          <div className={styles.resultats}>
+            {found.map((r) => (
+              <Link key={r.slug} href={lienReponse(r)} className={styles.resultat}>
+                <b>{r.q}</b>
+                <small>{r.chapterTitle}</small>
+              </Link>
+            ))}
+          </div>
           {found.length === 0 && (
             <a className="btn sm primary" href={wa} target="_blank" rel="noopener">
               {t("Poser la question sur WhatsApp")}
@@ -157,33 +123,23 @@ export function AideBrowser({ chapters, wa }: { chapters: AideChapter[]; wa: str
           )}
         </section>
       ) : (
-        <>
-          <div className={styles.foldBar}>
-            <FoldAll group="aide" ids={chapters.map((c) => c.id)} />
-          </div>
-          <div className={styles.tiles} data-coach="aide-nav">
-            {chapters.map((c) => (
-              <a key={c.id} href={`#${c.id}`} className={styles.tile}>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d={ICON[c.id] ?? ICON.guichet} />
-                </svg>
-                <b>{c.title}</b>
-                <small>{c.rows.length ? t("{n} questions", { n: c.rows.length }) : t("en clair")}</small>
-              </a>
-            ))}
-          </div>
+        <div className={styles.tiles} data-coach="aide-nav">
           {chapters.map((c) => (
-            <div key={c.id} className={styles.chapter} data-coach={c.id === "contact" ? "aide-contact" : c.id === "entretien" ? "aide-entretien" : undefined}>
-              <FoldSection group="aide" id={c.id} title={c.title} hint={c.rows.length > 0 ? `· ${t("{n} questions", { n: c.rows.length })}` : undefined}>
-                <div className={styles.intro}>{c.intro}</div>
-                {c.rows.map(answer)}
-              </FoldSection>
-            </div>
+            /* La tuile porte le repère que portait le chapitre déplié : la
+               visite guidée garde son arrêt, il vise la porte au lieu du
+               contenu. */
+            <Link key={c.id} href={`/info/aide/${c.id}`} className={styles.tile} data-coach={c.id === "entretien" ? "aide-entretien" : undefined}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d={ICON[c.id] ?? ICON.guichet} />
+              </svg>
+              <b>{c.title}</b>
+              {c.promesse ? <small>{c.promesse}</small> : null}
+            </Link>
           ))}
-        </>
+        </div>
       )}
 
-      <div className={styles.stuck}>
+      <div className={styles.stuck} data-coach="aide-contact">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1L4 20z" />
         </svg>

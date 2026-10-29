@@ -440,7 +440,7 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
           <Reference o={o} mode={mode} />
           <p className={styles.note}>
             {t("Chiffres de référence au prix publié. Pour votre montant, indiquez-le dans votre intention ; le desk vous confirme le décaissement exact. Pour explorer d'autres prix ou durées, utilisez le")}{" "}
-            <Link href="/info#simulateur">{t("simulateur")}</Link>.
+            <Link href="/info/simulateur">{t("simulateur")}</Link>.
           </p>
         </section>
 

@@ -254,7 +254,12 @@ const parLeBalisage = (): { ecarts: Trouvaille[]; paires: number; temoin: boolea
         const col = sol.couples.get(`${sol.nom} ${classe}`) ?? encreMaison.get(classe);
         if (!col) continue;
         paires += 1;
-        if (p.endsWith("info/page.tsx") && sol.nom === "parcours" && classe === "eyebrow") temoin = true;
+        /* LE TÉMOIN A DÉMÉNAGÉ, IL N'A PAS DISPARU. La carte « Parcours » et
+           son surtitre vivaient sur /info ; cette adresse ne fait plus que
+           rediriger depuis que les sections du Guide sont devenues des pages,
+           et la carte est partie avec les éclairages. Même couple, autre
+           fichier. */
+        if (p.endsWith("info/eclairages/page.tsx") && sol.nom === "parcours" && classe === "eyebrow") temoin = true;
         const pire = pireContraste(sol.fond, col, tous);
         if (!pire || pire.rapport >= SEUIL) continue;
         ecarts.push({

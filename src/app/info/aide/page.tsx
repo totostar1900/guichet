@@ -1,5 +1,3 @@
-import { DocBlockList } from "@/components/docs/DocBlocks";
-import { Sommaire } from "@/components/Sommaire";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { PUBLIC_DOCS } from "@/data/docs";
 import { getLang, getT } from "@/i18n/server";
@@ -7,6 +5,7 @@ import { COMPANY } from "@/lib/config";
 import { fmtDate } from "@/lib/format";
 import { aideRows } from "@/lib/guide-index";
 import styles from "@/components/docs/Document.module.css";
+import { EnTete } from "@/components/EnTete";
 import { AideBrowser } from "./AideBrowser";
 import { GuideBar } from "../GuideBar";
 import { Glissement } from "@/components/mobile/Glissement";
@@ -31,32 +30,37 @@ export default async function AidePage() {
   const chapters = doc.chapters.map((c) => ({
     id: c.id,
     title: c.title[lang],
-    intro: <DocBlockList blocks={c.blocks.filter((b) => b.type !== "table")} lang={lang} />,
+    promesse: c.promesse?.[lang],
     rows: rows.filter((r) => r.chapter === c.id),
   }));
   const wa = `https://wa.me/${COMPANY.phone.replace(/\D/g, "")}?text=${encodeURIComponent(t("Bonjour, j'ai une question sur Guichet…"))}`;
   return (
     <Glissement>
-      <Sommaire
-        label={t("Sujet")}
-        sections={chapters.map((c) => ({ id: c.id, title: c.title }))}
-        meta={`${t("Mis à jour le")} ${fmtDate(doc.checkedOn)}`}
-      >
-        <article className={styles.doc}>
-          <AideBrowser chapters={chapters} wa={wa} />
-          <GuideBar pos={{ label: t("Le Guide · aide") }} />
-          <CoachMarks
-            id="aide"
-            replayLabel={t("Comment utiliser cette aide ?")}
-            stops={[
-              { target: "aide-page", title: t("La question d'abord"), text: t("Tapez un mot ou une phrase : seules les réponses qui le contiennent restent. Les trois questions les plus posées sont sous le champ.") },
-              { target: "aide-nav", title: t("Ou un sujet"), text: t("Six sujets, chacun avec ses questions ; une réponse s'ouvre en place, avec le bouton qui va avec et une façon de nous dire si elle a aidé.") },
-              { target: "aide-contact", title: t("Quand ça ne suffit pas"), text: t("Le bouton « Information » de chaque fiche ouvre WhatsApp ; un robot répond aux questions simples, un conseiller prend le relais. Pour une réclamation, écrivez-nous avec la référence concernée.") },
-              { target: "aide-entretien", title: t("Comment Guichet est entretenu"), text: t("Qui écrit ce que vous lisez, d'où viennent les cours, ce qui se passe en cas de panne, où sont vos données : en clair, sans jargon. Un doute sur un chiffre ? Dites-le-nous, il est corrigé pour tout le monde.") },
-            ]}
-          />
-        </article>
-      </Sommaire>
+      {/* LE SOMMAIRE A PERDU SA RAISON D'ÊTRE : il listait huit ancres d'une
+          même page, et les huit sont devenues des pages. Les tuiles sont le
+          sommaire, et elles mènent où elles disent. */}
+      <article className={styles.doc}>
+        <EnTete
+          surTitre={t("Aide")}
+          titre={t("Vos questions, nos réponses")}
+          phrase={t("Se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.")}
+        />
+        <p className={styles.source}>{`${t("Mis à jour le")} ${fmtDate(doc.checkedOn)}`}</p>
+        <AideBrowser chapters={chapters} wa={wa} />
+        <GuideBar pos={{ label: t("Aide") }} />
+        <CoachMarks
+          id="aide"
+          replayLabel={t("Comment utiliser cette aide ?")}
+          stops={[
+            { target: "aide-page", title: t("La question d'abord"), text: t("Tapez un mot ou une phrase : seules les réponses qui le contiennent restent, et chacune mène à sa page. Les trois questions les plus posées sont sous le champ.") },
+            { target: "aide-nav", title: t("Ou un sujet"), text: t("Huit sujets, chacun sur sa page : une réponse s'y ouvre en place, avec le bouton qui va avec et une façon de nous dire si elle a aidé.") },
+            { target: "aide-contact", title: t("Quand ça ne suffit pas"), text: t("Le bouton « Information » de chaque fiche ouvre WhatsApp ; un robot répond aux questions simples, un conseiller prend le relais. Pour une réclamation, écrivez-nous avec la référence concernée.") },
+            /* L'ARRÊT SUR L'ENTRETIEN RESTE, et il vise maintenant la tuile :
+               il visait le chapitre déplié, qui est parti sur sa page. */
+            { target: "aide-entretien", title: t("Comment Guichet est entretenu"), text: t("Qui écrit ce que vous lisez, d'où viennent les cours, ce qui se passe en cas de panne, où sont vos données : en clair, sans jargon. Un doute sur un chiffre ? Dites-le-nous, il est corrigé pour tout le monde.") },
+          ]}
+        />
+      </article>
     </Glissement>
   );
 }

@@ -168,4 +168,4 @@ export function parsePageMeta(html: string): { title?: string; site?: string; de
 export const newsId = (now = new Date()): string => `n-${now.toISOString().slice(0, 10).replace(/-/g, "")}-${Math.random().toString(36).slice(2, 7)}`;
 
 /** Where a related-item chip sends the reader. */
-export const linkHref = (l: NewsLink): string => (l.kind === "offer" ? `/offres/${l.key}` : l.kind === "company" ? `/societes/${l.key.toLowerCase()}` : l.kind === "issuer" ? `/emetteurs/${l.key}` : `/info#terme-${l.key}`);
+export const linkHref = (l: NewsLink): string => (l.kind === "offer" ? `/offres/${l.key}` : l.kind === "company" ? `/societes/${l.key.toLowerCase()}` : l.kind === "issuer" ? `/emetteurs/${l.key}` : `/info/glossaire#terme-${l.key}`);

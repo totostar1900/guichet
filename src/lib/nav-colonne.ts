@@ -55,7 +55,10 @@ export const COLONNE_VISITEUR: GroupeColonne[] = [
   {
     label: "Comprendre",
     items: [
-      { href: "/info", label: "Guide" },
+      /* Le visiteur reçoit les deux destinations qui n'ont pas d'autre porte :
+         les éclairages et le glossaire. « Le parcours » est déjà plus bas. */
+      { href: "/info/eclairages", label: "Éclairages" },
+      { href: "/info/glossaire", label: "Glossaire" },
       { href: "/comparer", label: "Comparer" },
       { href: "/indice/notes", label: "Publications" },
       { href: "/info/risques", label: "Risques et limites" },

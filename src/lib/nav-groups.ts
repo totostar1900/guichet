@@ -121,11 +121,31 @@ export const MARCHE_PAGES: NavPage[] = MARKET_PAGES;
  * la même table, donc le même ordre, et c'est la seule façon qu'ils ne
  * divergent pas.
  */
+/**
+ * L'AIDE, SANS SA PORTE DE TROP.
+ *
+ * « Le guide » était une entrée qui n'ouvrait rien : une page portant six
+ * sections repliées, qu'il fallait descendre et déplier pour atteindre le
+ * glossaire — destination de soixante-six entrées de la recherche — ou le
+ * simulateur. Les sections sont remontées ici, chacune à son adresse : on
+ * arrive où l'on voulait aller, d'un clic, et une adresse se partage.
+ *
+ * « Outils et repères » N'EST PAS REMONTÉ, et c'est voulu. Ses trois liens —
+ * le comparateur, le profil financier, les sociétés — ont déjà leur entrée
+ * ailleurs dans la colonne. La page des éclairages les CITE en bas ; deux
+ * listes de la même chose divergent toujours.
+ *
+ * L'ordre est celui de la lecture : ce qu'on demande, ce qu'on apprend, ce
+ * avec quoi on calcule, les mots, ce que ça engage, et qui répond.
+ */
 export const AIDE_PAGES: NavPage[] = [
-  { key: "contact", href: "/moi/contact", label: "Nous contacter", tuile: "la personne qui répond", hint: "votre conseiller, le message déjà écrit, et le dépôt d'une réclamation" },
-  { key: "guide", href: "/info", label: "Le guide", tuile: "comprendre avant de placer", hint: "les éclairages, le parcours du marché, le simulateur et le glossaire" },
   { key: "questions", href: "/info/aide", label: "Questions courantes", tuile: "ce qu'on nous demande", hint: "ce qu'on nous demande le plus souvent, répondu une fois pour toutes" },
+  { key: "eclairages", href: "/info/eclairages", label: "Éclairages", tuile: "comprendre avant de placer", hint: "huit éclairages de deux minutes : rendement, coupon, adjudication, risques" },
+  { key: "parcours", href: "/info/parcours", label: "Le parcours CEMAC", tuile: "le marché, de bout en bout", hint: "le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie" },
+  { key: "simulateur", href: "/info/simulateur", label: "Simulateur", tuile: "voir le rendement bouger", hint: "comment le prix, le coupon et la durée fabriquent le rendement" },
+  { key: "glossaire", href: "/info/glossaire", label: "Glossaire", tuile: "les mots du marché", hint: "le vocabulaire du marché, défini une fois, tel qu'il est employé dans les fiches" },
   { key: "risques", href: "/info/risques", label: "Risques et limites", tuile: "ce que ça engage", hint: "ce que la maison ne promet pas, et ce qu'elle ne fait pas" },
+  { key: "contact", href: "/moi/contact", label: "Nous contacter", tuile: "la personne qui répond", hint: "votre conseiller, le message déjà écrit, et le dépôt d'une réclamation" },
 ];
 
 /**

@@ -38,6 +38,16 @@ export type DiagramKind = "sources" | "journee" | "relation" | "communication" |
 export interface DocChapter {
   id: string;
   title: L;
+  /**
+   * CE QU'ON TROUVE DANS LE CHAPITRE, EN UNE LIGNE, et non combien de
+   * questions il porte.
+   *
+   * La tuile de l'aide affichait un compte — « 11 questions » — et le compte
+   * était déjà bancal : « Ce que Guichet fait pour vous » n'en porte AUCUNE et
+   * affichait « en clair » pendant que les sept autres comptaient. Un nombre
+   * ne dit pas non plus si la réponse qu'on cherche est là. Cette ligne, si.
+   */
+  promesse?: L;
   blocks: DocBlock[];
 }
 

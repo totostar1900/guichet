@@ -102,16 +102,18 @@
   font-size: 0.82rem;
   line-height: 1.2;
 }
+/* La ligne de la tuile dit CE QU'ON Y TROUVE, là où elle comptait des
+   questions. Deux lignes au plus : au-delà, la tuile cesse d'être une porte. */
 .tile small {
-  font-size: 0.7rem;
+  font-size: var(--t-2);
   color: var(--ink-3);
+  line-height: 1.45;
 }
-.chapter {
-  scroll-margin-top: 110px;
-}
-.chapter section > div:last-child:not([hidden]) {
+/* Le chapitre, sur sa page : ses réponses à la file, rien autour. */
+.chapitre {
   display: grid;
-  gap: 8px;
+  gap: var(--s-4);
+  margin-top: var(--s-7);
 }
 
 .intro {
@@ -131,6 +133,32 @@
 }
 .found > a {
   justify-self: start;
+}
+.resultats {
+  display: grid;
+  gap: var(--s-3);
+}
+.resultat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-4) var(--s-6);
+  padding: var(--s-5) var(--s-6);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--ink);
+  font-size: var(--t-3);
+}
+.resultat:hover {
+  border-color: var(--gold-line);
+  background: var(--gold-soft);
+}
+.resultat small {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-size: var(--t-2);
 }
 .qa {
   border: 1px solid var(--line);
@@ -256,12 +284,4 @@
     margin: 0 -12px;
     border-radius: 0;
   }
-}
-.foldBar {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 4px;
-}
-.chapter :global(h2) {
-  font-size: 1.05rem;
 }

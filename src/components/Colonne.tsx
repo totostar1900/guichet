@@ -7,6 +7,8 @@ import { useT } from "@/i18n/client";
 import { Poignee } from "./Poignee";
 import { useColonne } from "./ColonneStore";
 import { COLONNE_CLIENT, COLONNE_DESK, COLONNE_VISITEUR, estRouteLarge, groupeDe, pageDe, type GroupeColonne } from "@/lib/nav-colonne";
+import { loadGuideIndex } from "@/lib/guide-index-client";
+import type { SearchEntry } from "@/app/info/InfoSearch";
 import styles from "./Colonne.module.css";
 
 /**
@@ -529,6 +531,19 @@ function Encours({ badges }: { badges: Record<string, number> }) {
  * Elle ne cherche PAS dans les données : une barre qui interroge la base à
  * chaque frappe est une barre qui fait attendre, et le desk a déjà ses
  * pages de recherche pour cela.
+ *
+ * ELLE CHERCHE EN REVANCHE DANS L'AIDE, depuis le 29 octobre 2026, et c'est
+ * la seule façon honnête d'avoir « la recherche au menu Aide ». La colonne
+ * portait DÉJÀ ce champ, qui ne trouvait que des noms de pages : en ajouter
+ * un second, scopé à l'aide, aurait mis deux promesses différentes à dix
+ * pixels l'une de l'autre, et appris au lecteur à ne se fier à aucune des
+ * deux. Un seul champ, donc, et il connaît les cent cinquante-cinq entrées du
+ * guide : les soixante-six termes du glossaire, les quarante et une réponses,
+ * les éclairages et les outils.
+ *
+ * L'INDEX ARRIVE APRÈS LA PREMIÈRE FRAPPE, pas au chargement de chaque page :
+ * la colonne est sur toutes les pages, et payer un index à chaque ouverture
+ * pour un champ qu'on ne touche pas serait le payer pour rien.
  */
 const sansAccent = (s: string) =>
   s
@@ -542,7 +557,25 @@ const DATE_ISO = /^\d{4}-\d{2}-\d{2}$/;
 function Chercher({ groupes, badges, auDesk, connecte }: { groupes: GroupeColonne[]; badges: Record<string, number>; /** Les deux formes reconnues mènent à des pages du desk : hors du desk, elles n'ont rien à proposer. */ auDesk: boolean; /** La recherche entière est derrière la connexion ; un visiteur a le guide public. */ connecte: boolean }) {
   const t = useT();
   const [q, setQ] = useState("");
+  const [guide, setGuide] = useState<SearchEntry[] | null>(null);
   const mots = sansAccent(q.trim()).split(/\s+/).filter(Boolean);
+
+  /* L'index du guide, demandé à la première frappe et gardé pour la vie de la
+     page. « loadGuideIndex » dédoublonne déjà l'appel avec la barre du Guide. */
+  useEffect(() => {
+    if (!q.trim() || guide) return;
+    let vivant = true;
+    loadGuideIndex()
+      .then((i) => {
+        if (vivant) setGuide(i.entries);
+      })
+      .catch(() => {
+        /* Sans index, le champ reste ce qu'il était : des noms de pages. */
+      });
+    return () => {
+      vivant = false;
+    };
+  }, [q, guide]);
 
   const toutes = groupes.flatMap((g) => g.items.map((it) => ({ ...it, groupe: g.label })));
   /* CHAQUE MOT DOIT TOUCHER : « all reg » trouve « Allocations et
@@ -561,23 +594,45 @@ function Chercher({ groupes, badges, auDesk, connecte }: { groupes: GroupeColonn
   if (auDesk && CODE_CEMAC.test(brut)) parLaForme.push({ href: `/desk/adjudications/tableau?q=${encodeURIComponent(brut.toUpperCase())}`, label: t("Chercher le code {code}", { code: brut.toUpperCase() }), groupe: t("Résultats") });
   if (auDesk && DATE_ISO.test(brut)) parLaForme.push({ href: `/desk/bulletins?seance=${brut}`, label: t("Le bulletin du {date}", { date: brut }), groupe: t("Bulletins") });
 
+  /* CE QUE LE GUIDE SAIT : un terme, une réponse, un éclairage. Il vient APRÈS
+     les noms de pages, qui sont instantanés et que le lecteur vise le plus
+     souvent, et son étiquette dit de quel genre il est — « Glossaire »,
+     « Aide » — pour qu'on sache ce qu'on ouvre avant de cliquer. */
+  const GENRE: Record<SearchEntry["kind"], string> = {
+    terme: "Glossaire",
+    lecon: "Éclairage",
+    outil: "Outil",
+    page: "Aide",
+    service: "Trade",
+    instrument: "Instrument",
+  };
+  const parLeGuide = mots.length && guide
+    ? guide
+        .filter((e) => mots.every((m) => sansAccent(e.title).includes(m) || sansAccent(e.text).includes(m) || sansAccent(e.extra ?? "").includes(m)))
+        .map((e) => ({ href: e.href, label: e.title, groupe: t(GENRE[e.kind]) }))
+    : [];
+
   const vus = new Set<string>();
-  const resultats = [...parLaForme, ...parLeNom].filter((r) => !vus.has(r.href) && vus.add(r.href)).slice(0, 8);
+  const resultats = [...parLaForme, ...parLeNom, ...parLeGuide].filter((r) => !vus.has(r.href) && vus.add(r.href)).slice(0, 8);
 
   return (
-    <div className={styles.chercher}>
+    /* Le repère du Guide qui montrait sa recherche vise ce champ : c'est ici
+       que la recherche du guide vit depuis le 29 octobre 2026. */
+    <div className={styles.chercher} data-coach="colonne-recherche">
       <input
         type="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder={t("Chercher une page, un code")}
-        aria-label={t("Chercher une page, un code")}
+        /* Le mot tient dans la colonne : « une page, un mot, une réponse » y
+           était coupé à « une rép ». Une promesse tronquée n'en est pas une. */
+        placeholder={t("Chercher une page, une réponse")}
+        aria-label={t("Chercher une page, une réponse")}
         className={styles.champ}
       />
       {mots.length > 0 && (
         <div className={styles.trouves}>
           {resultats.length === 0 ? (
-            <span className={styles.rien}>{t("Aucune page de ce nom")}</span>
+            <span className={styles.rien}>{guide ? t("Rien de ce nom") : t("Un instant…")}</span>
           ) : (
             resultats.map((r) => (
               <Link key={r.href} href={r.href} className={styles.trouve} onClick={() => setQ("")}>

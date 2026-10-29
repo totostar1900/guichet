@@ -1481,6 +1481,23 @@ export const EN_REST: Record<string, string> = {
   "Chercher le code {code}": "Search for code {code}",
   "Le bulletin du {date}": "The bulletin of {date}",
   "Chercher une page, un code": "Search a page or a code",
+  /* Le champ de la colonne connaît l'aide depuis le 29 octobre 2026 : sa
+     promesse a changé, donc son mot aussi. */
+  "Chercher une page, une réponse": "Search a page or an answer",
+  "Rien de ce nom": "Nothing by that name",
+  "Glossaire": "Glossary",
+  "Éclairage": "Briefing",
+  /* Les pages nées du démontage du Guide. */
+  "Le vocabulaire du marché, défini une fois : chaque terme tel qu'il est employé dans les fiches, les ordres et les documents de la maison.": "The market's vocabulary, defined once: every term as it is used on the line sheets, the orders and the firm's documents.",
+  "Comment lire ce chapitre ?": "How to read this chapter?",
+  "Une réponse, une adresse": "One answer, one address",
+  "Ouvrez une question : son adresse s'écrit dans la barre, elle se partage et se met en favori. La recherche y mène directement.": "Open a question: its address is written in the bar, it can be shared and bookmarked. The search leads straight to it.",
+  "Tapez un mot ou une phrase : seules les réponses qui le contiennent restent, et chacune mène à sa page. Les trois questions les plus posées sont sous le champ.": "Type a word or a phrase: only the answers containing it remain, and each leads to its page. The three most asked questions are under the field.",
+  "Huit sujets, chacun sur sa page : une réponse s'y ouvre en place, avec le bouton qui va avec et une façon de nous dire si elle a aidé.": "Eight subjects, each on its page: an answer opens there in place, with the button that goes with it and a way to tell us whether it helped.",
+  /* Les visites guidées du Guide ont suivi leurs cibles : le simulateur et le
+     glossaire ont la leur, donc leur bouton de rejeu. */
+  "À quoi sert le simulateur ?": "What is the simulator for?",
+  "Comment lire le glossaire ?": "How to read the glossary?",
   "Aucune page de ce nom": "No page by that name",
   "Favoris": "Favourites",
   "Résultats": "Results",
@@ -1511,6 +1528,16 @@ export const EN_REST: Record<string, string> = {
   "la personne qui répond": "the person who answers",
   "votre conseiller, le message déjà écrit, et le dépôt d'une réclamation": "your adviser, the message already drafted, and filing a complaint",
   "comprendre avant de placer": "understand before you invest",
+  /* Les six entrées du menu « Aide », nées le 29 octobre 2026 des sections du
+     Guide remontées : chacune a maintenant son adresse, donc son nom. */
+  "huit éclairages de deux minutes : rendement, coupon, adjudication, risques": "eight two-minute briefings: yield, coupon, auction, risks",
+  "Le parcours CEMAC": "The CEMAC course",
+  "le marché, de bout en bout": "the market, end to end",
+  "le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie": "the market and its players, the instruments, the risks, placing an order, tax and fees, rates and currency",
+  "voir le rendement bouger": "watch the yield move",
+  "comment le prix, le coupon et la durée fabriquent le rendement": "how price, coupon and maturity make the yield",
+  "les mots du marché": "the market's words",
+  "le vocabulaire du marché, défini une fois, tel qu'il est employé dans les fiches": "the market's vocabulary, defined once, as it is used on the line sheets",
   "les éclairages, le parcours du marché, le simulateur et le glossaire": "the explainers, the market walkthrough, the simulator and the glossary",
   /* LES SÉANCES QUI SE FERMENT (24 octobre 2026). Trois de ces clefs sont
      invisibles au scanner : « Adjudication · {e} » passe par « a.quoi.key »,

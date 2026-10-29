@@ -46,7 +46,7 @@ export const EN_DOCS: Record<string, string> = {
   "La page Aide du client, reliée depuis Info": "The client's Help page, linked from Info",
   "Ce que le client apprend": "What the client learns",
   "Le glossaire et les huit éclairages de ces onglets sont la page Guide du client : les bulles « i » des fiches, les éclairages de deux minutes, la recherche, le simulateur, et la page Aide. Corriger un terme ici le corrige partout, sans code.": "The glossary and the eight insights in these tabs are the client's Guide page: the 'i' bubbles on the pages, the two-minute insights, the search, the simulator, and the Help page. Fixing a term here fixes it everywhere, without code.",
-  "Voir la page Guide": "See the Guide page",
+  "Voir les éclairages du client": "See the client's briefings",
   "La page Guide du client : recherche, aide, éclairages, simulateur, glossaire": "The client's Guide page: search, help, insights, simulator, glossary",
   "Premiers pas : l'écran « Comprendre, et trouver de l'aide » (téléphone)": "First steps: the 'Understanding, and finding help' screen (phone)",
   "Comment utiliser le Guide ?": "How to use the Guide?",

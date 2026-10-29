@@ -2,9 +2,6 @@
   max-width: 980px;
   min-width: 0;
 }
-.anchor {
-  scroll-margin-top: 80px; /* under the sticky header */
-}
 
 /* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
    2026 : leurs mesures vivent dans sa feuille. */
@@ -199,9 +196,14 @@
   }
 }
 
-/* the « Tout replier » control under the search */
-.foldBar {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 10px;
+/* Le renvoi vers l'aide, qui était posé à côté du titre de la section. */
+.versAide {
+  margin: 0 0 var(--s-7);
+}
+
+/* Le titre de « Pour aller plus loin », sur la page des éclairages : trois
+   outils CITÉS, qui ont leur entrée ailleurs dans la colonne. */
+.plusLoin {
+  margin: var(--s-8) 0 0;
+  font-size: var(--t-6);
 }

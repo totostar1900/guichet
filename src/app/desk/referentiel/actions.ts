@@ -19,7 +19,12 @@ const KINDS = Object.values(REF) as string[];
 const KIND_LABEL: Record<string, string> = { product_type: "type de produit", bond_term: "échéancier", company: "société", issuer: "émetteur", glossary: "terme", lesson: "éclairage", policy: "règle" };
 
 function revalidateAll() {
-  for (const p of ["/", "/desk", "/desk/referentiel", "/societes", "/fonds", "/comparer", "/info"]) revalidatePath(p);
+  /* « /info » ne rend plus rien : c'est une redirection. Le glossaire et les
+     éclairages, qu'on vient d'éditer ici, vivent maintenant à leur adresse, et
+     ce sont elles qu'il faut rafraîchir — sans quoi un terme corrigé au desk
+     resterait l'ancien sur la page qui le montre. */
+  for (const p of ["/", "/desk", "/desk/referentiel", "/societes", "/fonds", "/comparer", "/info/eclairages", "/info/glossaire", "/info/aide"]) revalidatePath(p);
+  revalidatePath("/info/aide/[chapitre]", "page");
   revalidatePath("/info/[key]", "page");
   revalidatePath("/offres/[id]", "page");
   revalidatePath("/societes/[mnemo]", "page");

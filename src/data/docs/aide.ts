@@ -18,6 +18,7 @@ export const AIDE: DocPage = {
     {
       id: "guichet",
       title: l("Ce que Guichet fait pour vous", "What Guichet does for you"),
+      promesse: l("ce que la maison fait, et ce qu’elle ne fait pas", "what the firm does, and what it does not"),
       blocks: [
         { type: "lead", text: l("Guichet est le comptoir en ligne de Purpose Capital, société de bourse agréée par la COSUMAF. Vous y voyez les placements de la zone CEMAC avec leurs chiffres expliqués, vous nous dites ce que vous souhaitez faire, et un conseiller vous rappelle avant tout engagement.", "Guichet is the online counter of Purpose Capital, a brokerage firm licensed by the COSUMAF. You see the CEMAC zone's investments with their figures explained, you tell us what you wish to do, and an adviser calls you back before any commitment.") },
         {
@@ -33,6 +34,7 @@ export const AIDE: DocPage = {
     {
       id: "connexion",
       title: l("Se connecter", "Signing in"),
+      promesse: l("le code reçu par e-mail, l’empreinte, un appareil oublié", "the code received by e-mail, the fingerprint, a forgotten device"),
       blocks: [
         {
           type: "table",
@@ -53,6 +55,7 @@ export const AIDE: DocPage = {
     {
       id: "compte",
       title: l("Ouvrir un compte", "Opening an account"),
+      promesse: l("les pièces à préparer, le délai, où en est le dossier", "the papers to prepare, the delay, where the file stands"),
       blocks: [
         { type: "flow", steps: [l("Vous remplissez le dossier (cinq minutes)", "You fill in the file (five minutes)"), l("Vous le soumettez", "You submit it"), l("Nous le complétons avec vous si besoin", "We complete it with you if needed"), l("Approuvé : votre compte-titres est ouvert", "Approved: your custody account is opened")] },
         {
@@ -69,6 +72,7 @@ export const AIDE: DocPage = {
     {
       id: "lignes",
       title: l("Lire une ligne", "Reading a line"),
+      promesse: l("le rendement, le prix servi, le cours du jour", "the yield, the allotted price, the day’s quote"),
       blocks: [
         {
           type: "table",
@@ -101,6 +105,7 @@ export const AIDE: DocPage = {
     {
       id: "intentions",
       title: l("Déclarer une intention, suivre un ordre", "Declaring an intention, following an order"),
+      promesse: l("le code WhatsApp, le profil, le suivi d’un ordre", "the WhatsApp code, the profile, following an order"),
       blocks: [
         { type: "lead", text: l("Une intention n'est pas un ordre : vous dites ce que vous voulez, un conseiller vous rappelle, confirme avec vous, puis transmet. Rien n'est engagé sans votre confirmation.", "An intention is not an order: you say what you want, an adviser calls you back, confirms with you, then transmits. Nothing is committed without your confirmation.") },
         { type: "flow", steps: [l("Reçue", "Received"), l("Confirmée avec vous", "Confirmed with you"), l("Transmise", "Transmitted"), l("Servie ou non servie", "Served or not served"), l("Réglée", "Settled")] },
@@ -122,6 +127,7 @@ export const AIDE: DocPage = {
     {
       id: "reglement",
       title: l("Régler, recevoir ses documents", "Settling, receiving your documents"),
+      promesse: l("où envoyer l’argent, quels papiers arrivent", "where to send the money, which papers arrive"),
       blocks: [
         {
           type: "table",
@@ -137,6 +143,7 @@ export const AIDE: DocPage = {
     {
       id: "contact",
       title: l("Nous joindre, être prévenu", "Reaching us, being told"),
+      promesse: l("WhatsApp, e-mail, et ce que deviennent vos données", "WhatsApp, e-mail, and what becomes of your data"),
       blocks: [
         {
           type: "table",
@@ -153,6 +160,7 @@ export const AIDE: DocPage = {
     {
       id: "entretien",
       title: l("Comment Guichet est entretenu", "How Guichet is looked after"),
+      promesse: l("qui écrit, d’où viennent les cours, ce qui se passe en cas de panne", "who writes, where the quotes come from, what happens in an outage"),
       blocks: [
         { type: "lead", text: l("Guichet est mis à jour souvent, par petites touches, sans interruption de service. Ce que vous voyez est relu par une personne avant d'être publié ; ce qui tourne tout seul est surveillé chaque matin.", "Guichet is updated often, in small steps, with no service interruption. What you see is read by a person before it is published; what runs by itself is checked every morning.") },
         {
