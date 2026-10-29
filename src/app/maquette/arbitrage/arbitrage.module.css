@@ -1,0 +1,139 @@
+/**
+ * LES DEUX OBJETS NEUFS DE LA CINQUIÈME MAQUETTE : LE TRAJET, ET LA FENÊTRE.
+ *
+ * Tout le reste est emprunté au kit — « ../commun.module.css » — comme pour
+ * les trois autres. Une maquette qui réinventerait sa feuille ne prouverait
+ * rien sur la forme qu'on juge, et c'était la demande du 28 octobre.
+ *
+ * LE TRAJET EST LE SEUL ÉCRAN DE LA MAISON QUI A DEUX SUJETS. Les quatre
+ * autres maquettes posent une question sur UNE ligne ; celle-ci en met deux
+ * face à face, et ce qui compte n'est aucune des deux mais le MOUVEMENT entre
+ * elles. Aujourd'hui ce mouvement est une liste déroulante intitulée
+ * « Replacer le produit dans (facultatif) » : le geste le plus engageant du
+ * guichet est invisible, et son étiquette dit « facultatif ».
+ *
+ * DEUX PANNEAUX ET UNE FLÈCHE, donc, empilés sur un téléphone — côte à côte,
+ * chacun ferait quinze caractères de large, et le nom d'un fonds en fait
+ * quarante. La flèche descend entre eux : c'est le seul endroit où la
+ * verticale veut dire quelque chose.
+ */
+/* Il vit dans la ligne de conséquence du kit, qui est un paragraphe : d'où
+   des « span » en grille plutôt que des « div », et une marge basse pour le
+   détacher de la phrase qui le suit. */
+.trajet {
+  display: grid;
+  gap: var(--s-4);
+  margin-bottom: var(--s-5);
+  text-align: left;
+}
+.jambe {
+  display: grid;
+  gap: 2px;
+  padding: var(--s-6);
+  border: 1px solid var(--line);
+  border-radius: var(--rond);
+  background: var(--panel-inset);
+}
+/* LA JAMBE VIDE SE DESSINE EN POINTILLÉ, et c'est ce qui fait qu'on la
+   remplit : un cadre plein et vide se lit comme un champ désactivé. */
+.jambeVide {
+  border-style: dashed;
+  background: transparent;
+}
+.role {
+  font-size: var(--t-1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ligne {
+  font-size: var(--t-4);
+  font-weight: 600;
+}
+.sousLigne {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.fleche {
+  justify-self: center;
+  color: var(--ink-3);
+  font-size: var(--t-5);
+  line-height: 1;
+}
+
+/* LES ARRIVÉES POSSIBLES, ET RIEN QUE CELLES-LÀ. La liste n'est pas un
+   catalogue : le domaine écarte déjà les adjudications et les émissions,
+   parce qu'on n'y est pas sûr d'arriver. */
+.choix {
+  display: grid;
+  gap: var(--s-4);
+}
+.cible,
+.cibleOn {
+  display: grid;
+  gap: 2px;
+  padding: var(--s-5) var(--s-6);
+  min-height: 56px;
+  align-content: center;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: var(--rond);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.cibleOn {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--fill-ink);
+}
+.cibleOn .sousLigne {
+  color: inherit;
+  opacity: 0.8;
+}
+
+/**
+ * LA FENÊTRE : DES DURÉES, ET NON UN CALENDRIER.
+ *
+ * Le formulaire actuel pose « <input type="date" » : le client doit traduire
+ * sa pensée — « je laisse ça courir un mois » — en un jour du calendrier,
+ * puis ouvrir la roue du téléphone, puis viser. Trois gestes et une
+ * traduction pour une décision qui n'en demande aucune.
+ *
+ * LES DURÉES S'ARRÊTENT À QUATRE-VINGT-DIX JOURS, et ce n'est pas la
+ * maquette qui le décide : elle lit « FENETRE_MAX_JOURS » du domaine. Un
+ * écran qui réinventerait la borne finirait par s'en écarter.
+ */
+/* CINQ COLONNES, ET NON « autant qu'il en tient ». En « auto-fit » les
+   durées se cassaient en trois puis deux, et une échelle à rangée bancale ne
+   se lit plus comme une échelle : l'œil compare 15-30-45 d'un côté et 60-90
+   de l'autre. D'un seul trait, elles redeviennent une règle graduée qu'on
+   parcourt. Mesuré à 390 px : cinq cases de 58 px et quatre écarts de 8 —
+   et soixante-quatre pixels de hauteur rendus, qui font passer l'action
+   au-dessus du pli au lieu de la laisser rognée de cinq. */
+.fenetre {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--s-3);
+}
+.duree,
+.dureeOn {
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.dureeOn {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--fill-ink);
+  font-weight: 700;
+}
