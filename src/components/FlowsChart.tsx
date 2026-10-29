@@ -1,11 +1,11 @@
 "use client";
 
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import type { CashFlow } from "@/lib/finance";
 import { useState } from "react";
 import { type Lu, RangeRead, TrackBand, TrackMarks, togglePin, trackStyles, useTracker } from "./charts/tracker";
 import type { BondResult } from "@/lib/finance";
-import { fmt, fmtDate, fmtPct, fmtUnits, money } from "@/lib/format";
+import { fmt, fmtPct, fmtUnits, money } from "@/lib/format";
 
 /**
  * Cash flows for one bond position: one outflow at settlement, then coupons and
@@ -31,6 +31,7 @@ import { fmt, fmtDate, fmtPct, fmtUnits, money } from "@/lib/format";
  * plutôt qu'un résultat entier, et le dessin ne change pas pour autant.
  */
 export function FlowsChart({ r, outlay, flows, settleOn, scale: size = 1 }: { r?: BondResult; outlay?: number; flows?: CashFlow[]; settleOn: string; scale?: number }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [pins, setPins] = useState<string[]>([]);
   const out = r ? r.outlay : (outlay ?? 0);

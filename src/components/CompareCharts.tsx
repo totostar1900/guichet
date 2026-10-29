@@ -6,10 +6,10 @@ import type { CompareLine, FlowItem } from "@/lib/domain/compare";
 import { drawdown, invested, REF_AMOUNT, rollingAnnualised, type SeriesPoint } from "./FundCharts";
 import { axisLabel } from "./NavChart";
 import { daysBetween } from "@/lib/finance";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { fmt, fmtPct } from "@/lib/format";
 import q from "./QuoteHistory.module.css";
 import styles from "./CompareCharts.module.css";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { type Lu, RangeRead, TrackBand, TrackMarks, togglePin, trackStyles, useTracker } from "./charts/tracker";
 
 /**
@@ -93,6 +93,7 @@ function ReturnBars({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Be
 /* ---------- 2. two funds on one frame ---------- */
 type Reading = "placement" | "rendement" | "repli";
 function TwoFunds({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Benchmark }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [reading, setReading] = useState<Reading>("placement");
   const navs = lines.map((l) => (l.navs ?? []).map((n) => ({ date: n.date, nav: n.nav, bulletinNo: n.bulletinNo, perfSinceInceptionPct: 0 })));
@@ -158,6 +159,7 @@ function TwoFunds({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Benc
 
 /* ---------- 3. a fund against a debt security ---------- */
 function FundVsDebt({ fund, debt }: { fund: CompareLine; debt: CompareLine }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const items = debt.flows!.items;
   const start = items[0].date;
@@ -211,6 +213,7 @@ function FundVsDebt({ fund, debt }: { fund: CompareLine; debt: CompareLine }) {
 /* ---------- 4. the cash-flow calendar ---------- */
 const KIND: Record<FlowItem["kind"], string> = { sortie: "Décaissement", coupon: "Coupon", capital: "Remboursement", dividende: "Dividende attendu", cession: "Produit de cession" };
 function Calendar({ lines }: { lines: CompareLine[] }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [hover, setHover] = useState<{ l: number; i: number } | null>(null);
   const phone = usePhone();
@@ -329,6 +332,7 @@ function Calendar({ lines }: { lines: CompareLine[] }) {
 /* ---------- the two-line frame ---------- */
 type XY = SeriesPoint & { x?: number };
 function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond }: { series: XY[][]; labels: string[]; bench?: { label: string; at: (date: string) => number }; fmtY: (v: number) => string; zero: boolean; area: "up" | "down"; xDays?: number; stepSecond?: boolean }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const phone = usePhone();
   const [pins, setPins] = useState<string[]>([]);
@@ -365,7 +369,7 @@ function DualChart({ series, labels, bench, fmtY, zero, area, xDays, stepSecond 
   if (ys.length === 0) return <div className="empty">{t("Pas assez d'historique commun.")}</div>;
   const path = (s: XY[], step?: boolean) => s.map((p, i) => `${i === 0 ? "M" : step ? "L" : "L"}${x(px(p)).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
   const baseY = area === "down" ? y(Math.max(min, Math.min(max, 0))) : H - pad;
-  const axis = axisLabel(dates, phone);
+  const axis = axisLabel(dates, fmtDate, phone);
   const hs = track.hover != null ? stops[track.hover] : null;
   const hovered = hs ? series.map((s) => atStop(s, hs.d)) : [];
   const when = (st: { d: number; date: string }) => (xDays ? `${Math.round(st.d / 30)} ${t("mois")}` : fmtDate(st.date));

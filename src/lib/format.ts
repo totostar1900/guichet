@@ -48,8 +48,90 @@ export const setFormatLang = (l: LangueDesDates): void => {
 export const setFormatLangSource = (lecture: () => LangueDesDates): void => {
   lireLaLangue = lecture;
 };
-const MONTHS = new Proxy([] as string[], { get: (_t, i) => (lireLaLangue() === "en" ? MONTHS_EN : MONTHS_FR)[i as unknown as number] });
-const DAYS = new Proxy([] as string[], { get: (_t, i) => (lireLaLangue() === "en" ? DAYS_EN : DAYS_FR)[i as unknown as number] });
+/**
+ * ET POURQUOI CE N'EST PLUS UNE LECTURE NON PLUS, CÔTÉ NAVIGATEUR.
+ *
+ * La lecture ci-dessus vit dans un module, et il y en a DEUX à l'exécution :
+ * celui du graphe serveur, où « i18n/server.ts » la branche sur la requête, et
+ * celui du graphe client, que personne ne branche — « i18n/client.tsx » garde
+ * « setFormatLang » derrière « typeof window », et ce garde est juste : sans
+ * lui, deux requêtes de langues différentes se disputeraient la variable au
+ * rendu serveur, exactement la fuite que le commentaire d'au-dessus raconte.
+ *
+ * Conséquence mesurée le 30 octobre 2026 : un composant CLIENT rendait ses
+ * dates en français au rendu serveur, quelle que soit la langue du lecteur,
+ * puis en anglais une fois hydraté. React jetait le sous-arbre — « Hydration
+ * failed because the server rendered text didn't match the client » — sur cinq
+ * pages, dont « /titres », « /fonds » et « Ouvrir un compte », où l'on lisait
+ * « Data consent given on jeu. 29 oct. 23 h 29 » : dans UN SEUL composant, le
+ * dictionnaire savait l'anglais — il voyage par le contexte React — et la date
+ * ne le savait pas.
+ *
+ * LA LANGUE DEVIENT DONC UN ARGUMENT. « formatsDeLaLangue » rend des fonctions
+ * pures, liées à une langue, sans aucun global : le contexte React les donne
+ * aux composants clients (voir « useDates » dans i18n/client.tsx), et les
+ * fonctions nues plus bas les prennent pour le serveur, où la lecture par
+ * requête reste la bonne réponse.
+ */
+export interface FormatsDeDate {
+  fmtDate: (iso: string, withYear?: boolean) => string;
+  fmtDateTime: (iso: string) => string;
+  fmtDay: (iso: string) => string;
+  fmtTime: (iso: string) => string;
+  /** L'heure DITE : « 17 h 00 » en français, « 17:00 » en anglais. */
+  fmtHeure: (iso: string) => string;
+  fmtWhen: (iso: string) => string;
+}
+
+const deuxChiffres = (n: number): string => String(n).padStart(2, "0");
+
+function formatsDe(lang: LangueDesDates): FormatsDeDate {
+  const MOIS = lang === "en" ? MONTHS_EN : MONTHS_FR;
+  const JOURS = lang === "en" ? DAYS_EN : DAYS_FR;
+  const heure = (h: number, min: number) => `${deuxChiffres(h)}${lang === "en" ? ":" : " h "}${deuxChiffres(min)}`;
+  const fmtDate = (iso: string, withYear = true): string => {
+    const d = partsDeLaPlace(iso);
+    return `${d.j} ${MOIS[d.m]}${withYear ? ` ${d.a}` : ""}`;
+  };
+  const fmtDateTime = (iso: string): string => {
+    const d = partsDeLaPlace(iso);
+    return `${JOURS[d.js]} ${d.j} ${MOIS[d.m]} ${heure(d.h, d.min)}`;
+  };
+  return {
+    fmtDate,
+    fmtDateTime,
+    /** Weekday, day, month and year : the heading of a day in a feed. */
+    fmtDay: (iso) => {
+      const d = partsDeLaPlace(iso);
+      return `${JOURS[d.js]} ${d.j} ${MOIS[d.m]} ${d.a}`;
+    },
+    /** L'heure NUE, celle d'un tableau de bord : les deux langues l'écrivent pareil. */
+    fmtTime: (iso) => {
+      const d = partsDeLaPlace(iso);
+      return `${deuxChiffres(d.h)}:${deuxChiffres(d.min)}`;
+    },
+    /* L'HEURE DITE SUIT SON LECTEUR, comme le reste de la date. La table des
+       titres la composait à la main — « fmtTime(iso).replace(":", " h ") » —
+       et elle sortait donc « 17 h 00 » sous un en-tête anglais, quelle que
+       soit la langue. Elle sort d'ici maintenant, avec le séparateur de
+       « fmtDateTime », qui le posait déjà juste. */
+    fmtHeure: (iso) => {
+      const d = partsDeLaPlace(iso);
+      return heure(d.h, d.min);
+    },
+    fmtWhen: (iso) => (/T00:00(:00)?/.test(iso) ? fmtDate(iso) : fmtDateTime(iso)),
+  };
+}
+
+/** Les deux jeux, faits une fois : rien ici ne dépend d'une requête. */
+const JEUX: Record<LangueDesDates, FormatsDeDate> = { fr: formatsDe("fr"), en: formatsDe("en") };
+
+/** Les dates d'une langue donnée. C'est par là que passent les composants clients. */
+export const formatsDeLaLangue = (lang: LangueDesDates): FormatsDeDate => JEUX[lang];
+
+/** Celles de la langue lue : le serveur, où « lireLaLangue » suit la requête. */
+export const formatsDuLecteur = (): FormatsDeDate => JEUX[lireLaLangue()];
+const duLecteur = formatsDuLecteur;
 
 export const fmt = (n: number): string => nf.format(Math.round(n)).split(" ").join(ESPACE_DES_MILLIERS);
 
@@ -94,28 +176,17 @@ function partsDeLaPlace(iso: string): { a: number; m: number; j: number; js: num
   return { a: z.getUTCFullYear(), m: z.getUTCMonth(), j: z.getUTCDate(), js: z.getUTCDay(), h: z.getUTCHours(), min: z.getUTCMinutes() };
 }
 
-const hhmm = (h: number, min: number): string => `${String(h).padStart(2, "0")}${lireLaLangue() === "en" ? ":" : " h "}${String(min).padStart(2, "0")}`;
+/* LES QUATRE FORMES NUES : celles du serveur, qui lit la langue de sa requête.
+   Un composant client ne doit PAS les appeler — son graphe n'a pas cette
+   lecture — et un cliquet le lui refuse (src/test/dates-du-client.test.ts). */
+export const fmtDate = (iso: string, withYear = true): string => duLecteur().fmtDate(iso, withYear);
 
-export const fmtDate = (iso: string, withYear = true): string => {
-  const d = partsDeLaPlace(iso);
-  return `${d.j} ${MONTHS[d.m]}${withYear ? ` ${d.a}` : ""}`;
-};
-
-export const fmtDateTime = (iso: string): string => {
-  const d = partsDeLaPlace(iso);
-  return `${DAYS[d.js]} ${d.j} ${MONTHS[d.m]} ${hhmm(d.h, d.min)}`;
-};
+export const fmtDateTime = (iso: string): string => duLecteur().fmtDateTime(iso);
 
 /** Weekday, day, month and year : the heading of a day in a feed. */
-export const fmtDay = (iso: string): string => {
-  const d = partsDeLaPlace(iso);
-  return `${DAYS[d.js]} ${d.j} ${MONTHS[d.m]} ${d.a}`;
-};
+export const fmtDay = (iso: string): string => duLecteur().fmtDay(iso);
 
-export const fmtTime = (iso: string): string => {
-  const d = partsDeLaPlace(iso);
-  return `${String(d.h).padStart(2, "0")}:${String(d.min).padStart(2, "0")}`;
-};
+export const fmtTime = (iso: string): string => duLecteur().fmtTime(iso);
 
 export const fmtMillions = (n: number): string => `${nf.format(Math.round(n / 1e6))} M`;
 
@@ -214,4 +285,4 @@ export const escapeHtml = (s: string): string => s.replace(/[&<>"']/g, (c) => ({
  * que pose l'ingestion quand le document ne dit rien. L'heure reparaît dès que
  * le desk la lit sur la pièce et la saisit.
  */
-export const fmtWhen = (iso: string): string => (/T00:00(:00)?/.test(iso) ? fmtDate(iso) : fmtDateTime(iso));
+export const fmtWhen = (iso: string): string => duLecteur().fmtWhen(iso);

@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useT } from "@/i18n/client";
-import { fmt, fmtDate } from "@/lib/format";
+import { useDates, useT } from "@/i18n/client";
+import { fmt } from "@/lib/format";
 import { JOURS_AVANT_ALERTE } from "@/lib/domain/virement";
 import { trancherLeCredit, type VirementResult } from "./actions";
 import type { ClientVu } from "./LireLeReleve";
@@ -31,6 +31,7 @@ export interface AttenteVu {
  * est ce qui se passe entre les deux, et aucune page ne peut le faire.
  */
 export function EnAttente({ file, clients }: { file: AttenteVu[]; clients: ClientVu[] }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [etat, action, enCours] = useActionState<VirementResult | null, FormData>(trancherLeCredit, null);
   const [choix, setChoix] = useState<Record<string, string>>({});

@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { fold } from "@/lib/text";
-import { fmtDate } from "@/lib/format";
 import { Origin, type DraftState } from "./Origin";
 import styles from "./page.module.css";
 
@@ -42,6 +41,7 @@ const originRank = (r: TermRow) => (r.state === "estime" ? 0 : r.draft ? 1 : r.i
  * schedule, each with « Créer » pre-filled: the answer to the Santé point.
  */
 export function TermsTable({ rows, highlight, initialFilter }: { rows: TermRow[]; highlight?: string; initialFilter?: string }) {
+  const { fmtDate } = useDates();
   const tr = useT();
   const missing = rows.filter((r) => r.state === "estime");
   const [q, setQ] = useState("");

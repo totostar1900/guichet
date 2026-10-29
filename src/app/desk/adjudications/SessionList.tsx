@@ -4,8 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Poignee } from "@/components/Poignee";
-import { useT } from "@/i18n/client";
-import { fmtDate } from "@/lib/format";
+import { useDates, useT } from "@/i18n/client";
 import type { EtatSeance } from "@/lib/market/auction-results";
 import styles from "./SessionList.module.css";
 
@@ -52,6 +51,7 @@ const ONGLETS: { clef: EtatSeance | "tout"; mot: string }[] = [
 type Colonne = "date" | "ligne" | "etat";
 
 export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: string }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const router = useRouter();
   const [onglet, setOnglet] = useState<EtatSeance | "tout">("tout");

@@ -4,13 +4,13 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { type Lu, TrackBand, TrackMarks, trackStyles, useTracker } from "./charts/tracker";
 import { BarreDePlage } from "./charts/BarreDePlage";
 import { IndiceEtNegoce } from "./market/IndiceEtNegoce";
 import { ampleurVariations, echelonVariations } from "@/lib/domain/indice-fenetre";
-import { fmt, fmtDate, money } from "@/lib/format";
+import { fmt, money } from "@/lib/format";
 import { gouttiere } from "@/components/charts/gouttiere";
 import styles from "./IndexChart.module.css";
 
@@ -110,6 +110,7 @@ const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}$
  * a week apart are not joined : a missing bulletin is a gap, not a line.
  */
 export function IndexChart({ points, overlays, defaultPeriod = "12m", societeInitiale = "", lieSocieteALAdresse = false }: { points: ChartPoint[]; overlays: OverlaySeries[]; defaultPeriod?: PeriodKey; /** La société que l'adresse porte déjà pour le tableau des séances. */ societeInitiale?: string; /** Écrire le choix dans l'adresse, pour que le tableau des séances suive. */ lieSocieteALAdresse?: boolean }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [view, setView] = useState<IndexView>("niveau");
   const [period, setPeriod] = useState<PeriodKey>(defaultPeriod);
@@ -539,6 +540,7 @@ const capAt = (o: OverlaySeries, date: string, kind: "total" | "float") => {
  * 2024 à 0,99 % en 2026.
  */
 function Variations({ index, W, pins, onPin, onRange }: { index: ChartPoint[]; W: number; pins: string[]; onPin: (d: string) => void; onRange: (a: string, b: string) => void }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const H = W < 480 ? 220 : 280;
   const padL = 44;
@@ -643,6 +645,7 @@ function Variations({ index, W, pins, onPin, onRange }: { index: ChartPoint[]; W
 }
 
 function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; overlays: OverlaySeries[]; from: string; to: string }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [kind, setKind] = useState<"total" | "float">("total");
   const a = index.find((p) => p.date >= from);
@@ -702,6 +705,7 @@ function Contributions({ index, overlays, from, to }: { index: ChartPoint[]; ove
 
 /** The sum of the capitalisations, session after session, total and float stacked. */
 function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries; pins: string[]; onPin: (d: string) => void; onRange: (a: string, b: string) => void }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [floatOnly, setFloatOnly] = useState(false);
   // four readings : the exchange in francs (linear or log, size and growth in one frame), each company in base 100, or each one's share of the exchange
@@ -935,6 +939,7 @@ function Capitalisation({ index, overlays, W, company, pins, onPin, onRange }: {
 
 /** The published index against a float-weighted reading of the same prices, base 100, and the float rotation per share. */
 function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { index: ChartPoint[]; overlays: OverlaySeries[]; W: number; company?: OverlaySeries; pins: string[]; onPin: (d: string) => void; onRange: (a: string, b: string) => void }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const H = W < 480 ? 220 : 260;
   const padL = 46;
@@ -1107,6 +1112,7 @@ function FloatView({ index, overlays, W, company, pins, onPin, onRange }: { inde
 
 /** A year (or the period) of sessions : one cell per weekday, a column per week ; colour is the move, dashed is a bulletin not read. */
 function Calendar({ points, company, from, to, onPick, W, pins }: { points: ChartPoint[]; company?: OverlaySeries; from: string; to: string; onPick: (d: string) => void; W: number; pins: string[] }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const byDate = new Map(points.map((p) => [p.date, p]));
   const coByDate = new Map((company?.points ?? []).map((p) => [p.date, p]));

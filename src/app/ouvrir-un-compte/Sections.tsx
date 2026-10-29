@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { startTransition, useActionState } from "react";
 import { shrinkPhoto } from "@/lib/image-client";
 import type { ClientFile, KycDocKind, KycDocument } from "@/lib/domain/kyc";
 import { DOC_LABEL, requiredDocs } from "@/lib/kyc/checklist";
-import { fmtDateTime } from "@/lib/format";
 import { addPersonAction, removeDocAction, removePersonAction, saveConsentsAction, saveFundsProfileAction, saveIdentityAction, submitFileAction, uploadDocAction, type StepResult } from "./actions";
 import styles from "./page.module.css";
 
@@ -221,6 +220,7 @@ export function PersonsSection({ file, editable }: P) {
 
 /* ---------------- 3 · Pièces ---------------- */
 function DocRow({ kind, file, editable }: { kind: KycDocKind; file: ClientFile; editable: boolean }) {
+  const { fmtDateTime } = useDates();
   const t = useT();
   const [state, action, pending] = useActionState<StepResult | null, FormData>(uploadDocAction, null);
   const have = file.documents.find((d) => d.kind === kind);
@@ -294,6 +294,7 @@ export function DocsSection({ file, editable }: P) {
 
 /** Une pièce que le client a jointe de lui-même : son libellé, et le retrait. */
 function PieceLibre({ doc, editable }: { doc: KycDocument; editable: boolean }) {
+  const { fmtDateTime } = useDates();
   const t = useT();
   const [state, action, pending] = useActionState<StepResult | null, FormData>(removeDocAction, null);
   return (
@@ -430,6 +431,7 @@ export function FundsSection({ file, editable }: P) {
 
 /* ---------------- 5 · Consentements ---------------- */
 export function ConsentSection({ file, editable }: P) {
+  const { fmtDateTime } = useDates();
   const t = useT();
   const [state, action, pending] = useActionState<StepResult | null, FormData>(saveConsentsAction, null);
   const c = file.consents;

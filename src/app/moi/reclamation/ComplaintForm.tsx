@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
-import { fmtDate } from "@/lib/format";
 import { complaintDepositAction, complaintPrepareAction, type ComplaintStep } from "./actions";
 import styles from "./page.module.css";
 
 export function ComplaintForm({ ops, phone, email }: { ops: { ref: string; label: string }[]; phoneProven: boolean; phone?: string; email?: string }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [facts, setFacts] = useState("");
   const [ask, setAsk] = useState("");

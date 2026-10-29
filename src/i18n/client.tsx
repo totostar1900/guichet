@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useMemo } from "react";
 import { translator, type Lang, type T } from "./core";
-import { setFormatLang } from "@/lib/format";
+import { formatsDeLaLangue, setFormatLang, type FormatsDeDate } from "@/lib/format";
 
 const Ctx = createContext<{ lang: Lang; t: T }>({ lang: "fr", t: translator("fr") });
 
@@ -22,3 +22,18 @@ export function LangProvider({ lang, children }: { lang: Lang; children: React.R
 
 export const useLang = (): Lang => useContext(Ctx).lang;
 export const useT = (): T => useContext(Ctx).t;
+
+/**
+ * LES DATES D'UN COMPOSANT CLIENT VIENNENT D'ICI, ET DE NULLE PART AILLEURS.
+ *
+ * « fmtDate » et ses sœurs, importées de @/lib/format, lisent une variable de
+ * module que SEUL le graphe serveur branche sur la requête. Dans le graphe
+ * client la variable reste au français : au rendu serveur, un composant client
+ * écrivait donc « jeu. 29 oct. » dans une page anglaise, et le navigateur
+ * réécrivait « Thu 29 Oct » après hydratation. React jetait le sous-arbre.
+ *
+ * Le contexte, lui, connaît la langue des deux côtés — c'est le serveur qui la
+ * lui passe en propriété. Les formateurs en sortent donc comme le
+ * dictionnaire, et le rendu est le même des deux côtés.
+ */
+export const useDates = (): FormatsDeDate => formatsDeLaLangue(useLang());

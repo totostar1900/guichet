@@ -1,9 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
-import { fmtDateTime } from "@/lib/format";
 import { accesVivant, CAUSES_DE_RETRAIT, ROLE_ACCES_LABEL, type AccesCompte, type RoleQuiAgit } from "@/lib/domain/acces-nomme";
 import { accorderAccesAction, fixerPlafondAction, revoquerAccesAction, type AccesResult } from "./acces-actions";
 
@@ -18,6 +17,7 @@ import { accorderAccesAction, fixerPlafondAction, revoquerAccesAction, type Acce
  * n'est pas déclaré n'existe pas.
  */
 export function AccesNommes({ fileId, candidats, acces, plafondDuCompte }: { fileId: string; candidats: { nom: string; role: RoleQuiAgit }[]; acces: AccesCompte[]; plafondDuCompte?: number }) {
+  const { fmtDateTime } = useDates();
   const t = useT();
   const [pose, accorder, enCours] = useActionState<AccesResult | null, FormData>(accorderAccesAction, null);
   const [retrait, revoquer] = useActionState<AccesResult | null, FormData>(revoquerAccesAction, null);

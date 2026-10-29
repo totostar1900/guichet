@@ -17,16 +17,16 @@ import { TeteGroupe } from "@/components/market/TeteGroupe";
 import { Dropdown } from "@/components/market/Dropdown";
 import { FundCard } from "./FundCard";
 import { BandeFonds } from "./BandeFonds";
-import { depuisQuand, FenetreCtx, useFenetre, useNomFenetre, valeurFenetre } from "./fenetre";
+import { FenetreCtx, useDepuisQuand, useFenetre, useNomFenetre, valeurFenetre } from "./fenetre";
 import { ChoixFenetre } from "./ChoixFenetre";
 import { BandeauRepliable } from "@/components/market/BandeauRepliable";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { rememberList, useListScroll } from "@/components/ListNav";
 import { useDeskView, useLineHref } from "@/components/DeskView";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, fundKey, type FundNav } from "@/lib/domain/market";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { fmt, fmtPct } from "@/lib/format";
 import styles from "./page.module.css";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import type { FundCurve } from "@/lib/domain/fund-curve";
 
 /** One fund as the browser needs it : flat, serialisable, computed on the server. */
@@ -143,6 +143,7 @@ const signed = (v?: number) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct
  */
 function useDouzeMois() {
   const t = useT();
+  const depuisQuand = useDepuisQuand();
   const fenetre = useFenetre();
   const noms = useNomFenetre();
   const def = FENETRES.find((f) => f.id === fenetre)!;
@@ -185,6 +186,7 @@ const num = (v?: number) => (v == null ? -Infinity : v);
 
 /** One row of the table, with its « ··· ». */
 function FundTr({ r }: { r: FundRow }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const fenetre = useFenetre();
   const douze = useDouzeMois()(r);
@@ -257,6 +259,7 @@ function FundTr({ r }: { r: FundRow }) {
  * lit un prix sans savoir quand on l'obtient.
  */
 function FundLi({ r }: { r: FundRow }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const fenetre = useFenetre();
   const noms = useNomFenetre();

@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useT } from "@/i18n/client";
-import { fmt, fmtDate } from "@/lib/format";
+import { useDates, useT } from "@/i18n/client";
+import { fmt } from "@/lib/format";
 import { payerRestitution, refuserRestitution, type PayoutResult } from "./payout-actions";
 import styles from "./page.module.css";
 
@@ -19,6 +19,7 @@ import styles from "./page.module.css";
  * contrainte là où il peut poser la question.
  */
 export function Versements({ demandes }: { demandes: { id: string; nom: string; askedAt: string; askedAmount: number; dispo: number; note?: string }[] }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [pRes, payer, pPending] = useActionState<PayoutResult | null, FormData>(payerRestitution, null);
   const [rRes, refuser, rPending] = useActionState<PayoutResult | null, FormData>(refuserRestitution, null);

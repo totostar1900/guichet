@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BarreDePlage } from "@/components/charts/BarreDePlage";
 import { Select } from "@/components/ui/Select";
 import { TrackBand, TrackMarks, togglePin, trackStyles, useTracker, type Lu } from "@/components/charts/tracker";
-import { useT } from "@/i18n/client";
-import { fmt, fmtDate, money } from "@/lib/format";
+import { useDates, useT } from "@/i18n/client";
+import { fmt, money } from "@/lib/format";
 import { gouttiere } from "@/components/charts/gouttiere";
 import styles from "./IndiceEtNegoce.module.css";
 
@@ -57,6 +57,7 @@ const PAD_B = 20;
 const BAS_VOL = H_VOL - PAD_B;
 
 export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, societe }: { seances: SeanceNegoce[]; societes?: NegoceSociete[]; avecBarre?: boolean; /** La société choisie par l'écran qui nous accueille ; sans elle, la nôtre. */ societe?: string }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const boite = useRef<HTMLDivElement>(null);
   const [W, setW] = useState(760);

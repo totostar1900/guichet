@@ -51,13 +51,17 @@ describe("fund chart readings", () => {
 
 describe("x axis", () => {
   it("shows every date when few, six over a short span, five with the year over a long one", async () => {
+    const { formatsDeLaLangue } = await import("@/lib/format");
     const { axisLabel } = await import("@/components/NavChart");
+    /* L'axe prend son formateur en paramètre depuis le 30 octobre 2026 : ce
+       contrôle ne juge que les repères, il lui passe celui du français. */
+    const { fmtDate } = formatsDeLaLangue("fr");
     const s = weekly().map((p) => p.date);
-    expect(axisLabel(s.slice(0, 5)).ticks).toEqual([0, 1, 2, 3, 4]);
-    const short = axisLabel(s.slice(0, 30));
+    expect(axisLabel(s.slice(0, 5), fmtDate).ticks).toEqual([0, 1, 2, 3, 4]);
+    const short = axisLabel(s.slice(0, 30), fmtDate);
     expect(short.ticks).toEqual([0, 6, 12, 17, 23, 29]);
     expect(short.label(s[0])).not.toMatch(/2024/);
-    const long = axisLabel(s);
+    const long = axisLabel(s, fmtDate);
     expect(long.ticks).toHaveLength(5);
     expect(long.ticks[4]).toBe(s.length - 1);
     expect(long.label(s[0])).toMatch(/2024/);

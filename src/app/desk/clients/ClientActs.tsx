@@ -1,10 +1,10 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import type { Closure } from "@/lib/domain/kyc";
-import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
+import { fmt } from "@/lib/format";
 import { closureStepAction, complaintDeskAction, couponNoticeAction, transferAction, type ActResult } from "./acts-actions";
 import styles from "./page.module.css";
 
@@ -49,6 +49,7 @@ function Msg({ state }: { state: ActResult | null }) {
  * numbered document listed under « Documents émis ».
  */
 export function ClientActs({ fileId, clientId, status, closure, positions, operations, custodianAccount }: { fileId: string; clientId: string; status: string; closure?: Closure; positions: ActPosition[]; operations: ActOperation[]; custodianAccount?: string }) {
+  const { fmtDate, fmtDateTime } = useDates();
   const t = useT();
   const [open, setOpen] = useState<Open>("");
   const [flow, setFlow] = useState<{ isin: string; date: string } | null>(null);

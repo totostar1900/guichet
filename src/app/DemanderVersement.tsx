@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useT } from "@/i18n/client";
-import { fmt, fmtDate } from "@/lib/format";
+import { useDates, useT } from "@/i18n/client";
+import { fmt } from "@/lib/format";
 import { demanderRestitution, type RestitutionResult } from "./trader/restitution-actions";
 import styles from "./Console.module.css";
 
@@ -22,6 +22,7 @@ import styles from "./Console.module.css";
  * recalcule au moment de virer, parce qu'un coupon peut tomber entre les deux.
  */
 export function DemanderVersement({ montant, demande }: { montant: number; demande?: { state: "demandee" | "payee" | "refusee"; askedAt: string; askedAmount: number; paidAmount?: number; closedReason?: string; closedAt?: string } }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [res, action, pending] = useActionState<RestitutionResult | null, FormData>(demanderRestitution, null);
   const [ouvert, setOuvert] = useState(false);

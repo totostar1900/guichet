@@ -2,8 +2,7 @@
 
 import { createContext, useContext } from "react";
 import { FENETRE_PAR_DEFAUT, type FenetreId } from "@/lib/domain/fund-perf";
-import { fmtDate } from "@/lib/format";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import type { FundCurve } from "@/lib/domain/fund-curve";
 
 /**
@@ -55,7 +54,13 @@ export const valeurFenetre = (r: AvecCourbe, f: FenetreId): number | undefined =
  * semaines avant la date visée, parce que le fonds ne publiait pas cette
  * semaine-là, déplace le résultat sans que rien ne le dise.
  */
-export function depuisQuand(r: AvecCourbe, f: FenetreId): string | undefined {
-  const d = r.curve?.fenetres?.[f]?.depuis;
-  return d ? `${fmtDate(d)} → ${fmtDate(r.navDate)}` : undefined;
+export function useDepuisQuand(): (r: AvecCourbe, f: FenetreId) => string | undefined {
+  /* LA LANGUE DES DATES VIENT DU CONTEXTE, comme la fenêtre juste au-dessus :
+     « fmtDate » nu lit une variable que seul le graphe serveur branche, et
+     cette ligne sortait donc en français dans une page anglaise. */
+  const { fmtDate } = useDates();
+  return (r, f) => {
+    const d = r.curve?.fenetres?.[f]?.depuis;
+    return d ? `${fmtDate(d)} → ${fmtDate(r.navDate)}` : undefined;
+  };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import Link from "next/link";
 import { useActionState, useState } from "react";
@@ -8,7 +8,7 @@ import type { Confidence, IntakeItem, Offer, OfferDraft } from "@/lib/domain/typ
 import { OPERATION_LABEL } from "@/lib/domain/status";
 import { enabledTypes, kindForEngine, legacyTypeKey, typeByKey } from "@/lib/registry";
 import { bondCalc, btaCalc, parseDate, tenorText } from "@/lib/finance";
-import { fmt, fmtDateTime, fmtPct } from "@/lib/format";
+import { fmt, fmtPct } from "@/lib/format";
 import { missingFields } from "@/lib/intake/publish";
 import { lireSourceAction, publishAction, rejectAction, requestReviewAction, saveDraftAction, sendBackAction, type IntakeResult } from "./actions";
 import { CAUSES_DE_REJET } from "@/lib/desk/rejet";
@@ -95,6 +95,7 @@ function Field({ k, draft, type = "text", options, snapShot, onSelect }: { k: ke
 const CAUSES = Object.entries(CAUSES_DE_REJET);
 
 export function ValidateForm({ item, offer, niveau }: { item: IntakeItem; offer?: Offer; niveau?: NiveauMarche }) {
+  const { fmtDateTime } = useDates();
   const tr = useT();
   const d = item.draft;
   const [snap, setSnap] = useState<Snap>({});

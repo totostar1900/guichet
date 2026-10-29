@@ -1,6 +1,6 @@
 "use client";
 
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import Link from "next/link";
 import { useDensity } from "@/components/Density";
 import { LineMenu } from "@/components/mobile/LineMenu";
@@ -10,8 +10,8 @@ import { useRef } from "react";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fundYtdPct } from "@/lib/domain/fund-curve";
 import { FENETRES, raisonSansFenetre } from "@/lib/domain/fund-perf";
-import { depuisQuand, useFenetre, useNomFenetre, valeurFenetre } from "./fenetre";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { useDepuisQuand, useFenetre, useNomFenetre, valeurFenetre } from "./fenetre";
+import { fmt, fmtPct } from "@/lib/format";
 import type { FundRow } from "./FundsBrowser";
 import styles from "@/components/OfferCard.module.css";
 import propres from "./FundCard.module.css";
@@ -53,6 +53,8 @@ const cls = (v?: number | null) => (v == null ? "" : v > 0 ? styles.up : v < 0 ?
  * souscrit, mais au bout de la bande, avec sa date et son dernier mouvement.
  */
 export function FundCard({ r }: { r: FundRow }) {
+  const { fmtDate } = useDates();
+  const depuisQuand = useDepuisQuand();
   /* Un douze mois vide veut dire deux choses : le fonds n'a pas un an, ou nos
      VL ne remontent pas à un an. La case ne peut pas les confondre. */
   /* La première VL de la courbe est le début réel de la série pour ces

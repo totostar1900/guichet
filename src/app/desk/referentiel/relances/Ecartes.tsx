@@ -1,8 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useT } from "@/i18n/client";
-import { fmtDate } from "@/lib/format";
+import { useDates, useT } from "@/i18n/client";
 import { reprendreRappelAction, taireRappelAction, type RelancePolitiqueResult } from "./actions";
 import styles from "./page.module.css";
 
@@ -28,6 +27,7 @@ export interface LigneEcartee {
  * qu'il a donnée. Le champ est donc obligatoire, et l'action le refuse vide.
  */
 export function Ecartes({ rows }: { rows: LigneEcartee[] }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [state, action, pending] = useActionState<RelancePolitiqueResult | null, FormData>(reprendreRappelAction, null);
   const [ouvert, setOuvert] = useState<string | null>(null);
@@ -105,6 +105,7 @@ export interface LigneVivante {
  * client, et c'est voulu : signer un ordre ou le retirer sont ses gestes.
  */
 export function FileVivante({ rows, plafond, raisons }: { rows: LigneVivante[]; plafond: number; raisons: Record<string, string> }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [state, action, pending] = useActionState<RelancePolitiqueResult | null, FormData>(taireRappelAction, null);
   const [ouvert, setOuvert] = useState<string | null>(null);

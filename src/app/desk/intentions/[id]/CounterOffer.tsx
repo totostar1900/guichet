@@ -1,11 +1,11 @@
 "use client";
 
 import { useId, useState } from "react";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { ConfirmPublish } from "@/components/desk/ConfirmPublish";
 import { counterPriceText, counterText, counterUnit, forInput, type Counter } from "@/lib/domain/counter";
 import type { Intent, Offer } from "@/lib/domain/types";
-import { fmt, fmtDateTime } from "@/lib/format";
+import { fmt } from "@/lib/format";
 import { proposeCounter } from "../../counter-actions";
 import styles from "./page.module.css";
 
@@ -21,6 +21,7 @@ import styles from "./page.module.css";
  * plus, parce qu'un prix ne tient pas.
  */
 export function CounterOffer({ intent, offer, defaultUntil, now }: { intent: Intent; offer: Offer; defaultUntil: string; /** l’heure du rendu : comparer a Date.now() pendant le rendu rendrait le composant impur */ now: string }) {
+  const { fmtDateTime } = useDates();
   const t = useT();
   const id = useId();
   const [amount, setAmount] = useState(intent.amount != null ? String(intent.amount) : "");

@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { platformAuthenticatorIsAvailable, startRegistration } from "@simplewebauthn/browser";
-import { useT } from "@/i18n/client";
-import { fmtDateTime } from "@/lib/format";
+import { useDates, useT } from "@/i18n/client";
 import type { ChannelStatus, TrustedDevice } from "@/lib/domain/types";
 import { ProofBlock } from "@/components/ProofBlock";
 import { clearDevice, deviceLabel, newDeviceToken, readDevice, saveDevice } from "@/lib/device-client";
@@ -25,6 +24,7 @@ const snapshot = () => {
  * change is told on both channels.
  */
 export function SecurityPanel({ who, channels, devices, sessionEmail }: { who: string; channels: ChannelStatus; devices: TrustedDevice[]; sessionEmail?: string }) {
+  const { fmtDateTime } = useDates();
   const t = useT();
   const raw = useSyncExternalStore(noop, snapshot, () => "");
   const here = raw ? readDevice() : null;

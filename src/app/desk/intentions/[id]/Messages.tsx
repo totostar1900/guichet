@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useT } from "@/i18n/client";
-import { fmtDateTime } from "@/lib/format";
+import { useDates, useT } from "@/i18n/client";
 import styles from "./page.module.css";
 
 export interface DeskMessage {
@@ -28,6 +27,7 @@ export interface DeskMessage {
  * cache est écrit sur l'onglet, pour qu'on sache qu'elle est là.
  */
 export function Messages({ messages }: { messages: DeskMessage[] }) {
+  const { fmtDateTime } = useDates();
   const t = useT();
   const [show, setShow] = useState<"echanges" | "systeme" | "tout">("echanges");
   const talk = messages.filter((m) => m.dir !== "sys");

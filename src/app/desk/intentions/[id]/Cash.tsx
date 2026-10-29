@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { useT } from "@/i18n/client";
-import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
+import { useDates, useT } from "@/i18n/client";
+import { fmt } from "@/lib/format";
 import type { CashEntry } from "@/lib/domain/cash";
 import { recordProvision, recordRestitution, type CashResult } from "./cash-actions";
 import styles from "./page.module.css";
@@ -20,6 +20,7 @@ import styles from "./page.module.css";
  * c'est l'écart que ce journal existe pour fermer.
  */
 export function Cash({ intentId, ref_, position }: { intentId: string; ref_: string; position: { balance: number; assigned: number; idle: number; idleSince?: string; toRestore: number; entries: CashEntry[] } }) {
+  const { fmtDate, fmtDateTime } = useDates();
   const t = useT();
   const [prov, provAction, provPending] = useActionState<CashResult | null, FormData>(recordProvision, null);
   const [rest, restAction, restPending] = useActionState<CashResult | null, FormData>(recordRestitution, null);

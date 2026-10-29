@@ -1,12 +1,12 @@
 "use client";
 
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { useState } from "react";
 import type { LessonWidget as Kind } from "@/data/lessons";
 import { ActorsMap, FundCategories, Lifeline, OrderPath } from "@/components/lessons/Diagrams";
 import { bondCalc, btaCalc } from "@/lib/finance";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { fmt, fmtPct } from "@/lib/format";
 import styles from "./page.module.css";
 
 /** What the server hands the widget: a real line, reduced to the numbers the lesson plays with. */
@@ -82,6 +82,7 @@ function BondPrice({ live }: { live: Live }) {
 }
 
 function ReadOta({ live }: { live: Live }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const items: [string, string, string][] = [
     ["1", "Coupon", `${pct(live.couponRate ?? 6)} par an, calculé sur le nominal`],
@@ -297,6 +298,7 @@ function Risks() {
 
 /** The index: the level and its horizons, the weights of the seven shares, and « move one share » to see the index follow. */
 function IndexWidget({ live }: { live: Live }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const ix = live.index;
   const [pick, setPick] = useState(0);

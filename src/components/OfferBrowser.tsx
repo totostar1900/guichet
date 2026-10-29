@@ -40,7 +40,7 @@ import { LAST_LIST_KEY } from "./mobile/MobileShell";
 import { rememberList, useListScroll } from "./ListNav";
 import type { TermKey } from "@/lib/glossary";
 import styles from "./OfferBrowser.module.css";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import type { T } from "@/i18n/core";
 
 /**
@@ -431,6 +431,11 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge, e
 export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis }: { offers: Offer[]; nowIso: string; fundsCount: number; lieu?: Lieu; /** Les lignes sur lesquelles CE lecteur a armé une alerte, lues au serveur. */ suivis?: string[] }) {
   const now = useMemo(() => new Date(nowIso), [nowIso]);
   const t: T = useT();
+  /* LES DATES DU RÉSUMÉ VIENNENT DU CONTEXTE, PAS DU MODULE : ce composant est
+     « client », et son graphe ne branche pas la langue du lecteur. Sans cette
+     ligne la table sortait « 15 oct. · 17 h 00 » sous un en-tête « Closed »,
+     puis « 15 Oct · 17:00 » une fois hydratée, et React la jetait. */
+  const dates = useDates();
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
@@ -649,7 +654,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     if (kind.size && !kind.has(fam)) return false;
     if (country.size && !country.has(o.country)) return false;
     if (status.size) {
-      const sel = status.has("selection") && summarize(o, now).badges.some((b) => b.key === "selection");
+      const sel = status.has("selection") && summarize(o, now, { dates }).badges.some((b) => b.key === "selection");
       const rest = new Set([...status].filter((x) => x !== "selection"));
       if (!sel && (rest.size === 0 || !rest.has(normStatus(st)))) return false;
     }
@@ -676,7 +681,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
 
   const rows = useMemo(() => {
     const ql = fold(q.trim());
-    const out = offers.filter((o) => garde(o, ql, true)).map((o) => ({ o, s: summarize(o, now) }));
+    const out = offers.filter((o) => garde(o, ql, true)).map((o) => ({ o, s: summarize(o, now, { dates }) }));
     const cmp = (a: { o: Offer; s: OfferSummary }, b: { o: Offer; s: OfferSummary }): number => {
       switch (sort) {
         case "deadline": {

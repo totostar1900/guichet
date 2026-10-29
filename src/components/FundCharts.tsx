@@ -5,9 +5,9 @@ import { type Lu, TrackBand, TrackMarks, trackStyles, useTracker } from "./chart
 import { labelMetrics, usePhone } from "./chart-utils";
 import { axisLabel, axisRow, type NavPoint } from "./NavChart";
 import { daysBetween } from "@/lib/finance";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { fmt, fmtPct } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 
 /**
  * The four readings of a fund beyond its NAV, all computed from the published
@@ -72,6 +72,7 @@ export function drawdown(window: NavPoint[]): SeriesPoint[] {
 }
 
 export function FundChart({ mode, series, benchmark, windowDays, onRange }: { mode: Exclude<ChartMode, "vl">; series: SeriesPoint[]; benchmark?: Benchmark; windowDays?: number; onRange?: (from: string, to: string) => void }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const phone = usePhone();
   const metrics = labelMetrics(phone);
@@ -97,7 +98,7 @@ export function FundChart({ mode, series, benchmark, windowDays, onRange }: { mo
   const y = (v: number) => H - pad - ((v - min) * (H - 2 * pad)) / (max - min);
   const line = series.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
   const zero = y(Math.max(min, Math.min(max, 0)));
-  const axis = axisLabel(series.map((p) => p.date), phone);
+  const axis = axisLabel(series.map((p) => p.date), fmtDate, phone);
   const row = axisRow(phone);
   const last = n - 1;
 

@@ -5,9 +5,9 @@ import { useMemo } from "react";
 import { NavChart, type NavPoint } from "./NavChart";
 import { type Benchmark, type ChartMode, changes, drawdown, FundChart, invested, MODE_LABEL, REF_AMOUNT, rollingAnnualised } from "./FundCharts";
 import { daysBetween } from "@/lib/finance";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { fmt, fmtPct } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 
 /**
  * The window of the NAV chart: six durations or two free dates, kept in the
@@ -54,6 +54,7 @@ const shift = (iso: string, days: number) => {
 const nearest = (dates: string[], iso: string) => dates.reduce((best, d) => (Math.abs(daysBetween(d, iso)) < Math.abs(daysBetween(best, iso)) ? d : best), dates[0]);
 
 export function NavPeriod({ series, benchmark, narrow }: { series: NavPoint[]; benchmark?: Benchmark; narrow?: boolean }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const router = useRouter();
   const pathname = usePathname();

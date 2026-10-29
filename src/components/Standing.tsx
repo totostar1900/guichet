@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { groupDigits, groupedInput } from "@/lib/ui/grouped";
-import { fmt, fmtDate, parseAmount } from "@/lib/format";
+import { fmt, parseAmount } from "@/lib/format";
 import { premierVersement } from "@/lib/domain/standing";
 import { createStandingAction, stopStandingAction, type StandingResult } from "@/app/moi/standing-actions";
 import { ModifierInstruction, type FondsChoix } from "./ModifierInstruction";
@@ -65,6 +65,7 @@ export function StandingForm({
    */
   aujourdhui?: string;
 }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [state, action, pending] = useActionState<StandingResult | null, FormData>(createStandingAction, null);
   const [choisi, setChoisi] = useState(offerId ?? fonds?.[0]?.id ?? "");
@@ -324,6 +325,7 @@ export interface StandingRow {
  * douter qu'il cache quelque chose.
  */
 export function StandingList({ rows, fonds = [] }: { rows: StandingRow[]; fonds?: FondsChoix[] }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [state, action, pending] = useActionState<StandingResult | null, FormData>(stopStandingAction, null);
   const [tout, setTout] = useState(false);

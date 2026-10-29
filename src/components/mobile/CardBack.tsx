@@ -1,7 +1,7 @@
 "use client";
 
-import { useT } from "@/i18n/client";
-import { fmt, fmtDate } from "@/lib/format";
+import { useDates, useT } from "@/i18n/client";
+import { fmt } from "@/lib/format";
 import type { FundCurve } from "@/lib/domain/fund-curve";
 import type { BackFacts } from "@/lib/domain/back";
 import styles from "./CardBack.module.css";
@@ -122,6 +122,7 @@ function fmtY(v: number): string {
 
 /** A small line: the last point in gold with its value, the first and last dates underneath; the label steps aside from the edges and the line. */
 function Spark({ curve }: { curve: FundCurve }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const ys = curve.ys;
   const min = Math.min(...ys);

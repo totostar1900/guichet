@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { Amount } from "./Amount";
 import { FlowsChart } from "./FlowsChart";
 import { bondCalc, btaCalc, type CashFlow } from "@/lib/finance";
 import { marketAmortInput, marketBondCalc, marketBondInput } from "@/lib/domain/status";
-import { fmtDate } from "@/lib/format";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import styles from "./OrderFlows.module.css";
 
@@ -26,6 +25,7 @@ import styles from "./OrderFlows.module.css";
  * versements.
  */
 export function OrderFlows({ offer, quantity, amount, limit, type, settleOn }: { offer: Offer; quantity: number; amount: number; limit: number | null; type: IntentType; settleOn?: string }) {
+  const { fmtDate } = useDates();
   const t = useT();
   // Le tableau d'abord : il donne les dates exactes, que le dessin ne donne
   // pas. Le dessin donne la forme, que le tableau ne donne pas. Personne ne

@@ -4,7 +4,7 @@ import { countdown, displayStatus, displayYield, isPast, KIND_LABEL, type Market
 import { typeOf } from "@/lib/registry";
 import { fundAnnualPct } from "./fund-perf";
 import { daysBetween, parseDate, tenorCourt, tenorText } from "../finance";
-import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtTime, localIso } from "../format";
+import { fmt, fmtPct, fmtPrice, formatsDuLecteur, localIso, type FormatsDeDate } from "../format";
 
 /**
  * What a listing row says about an offer, whatever the instrument : computed once
@@ -56,7 +56,7 @@ const yearOnly = maturityIsGuess;
 /* « 3 ans 9 mois » : la vie restante se lit sous une échéance, dans une
    colonne étroite, et la conjonction l'y faisait passer à la ligne. */
 const left = (now: Date, to: string): string => (to < localIso(now) ? "échue" : tenorCourt(localIso(now), to));
-const maturityText = (o: Offer): string => (!o.maturityOn ? "—" : yearOnly(o) ? o.maturityOn.slice(0, 4) : fmtDate(o.maturityOn));
+const maturityText = (o: Offer, fmtDate: FormatsDeDate["fmtDate"]): string => (!o.maturityOn ? "—" : yearOnly(o) ? o.maturityOn.slice(0, 4) : fmtDate(o.maturityOn));
 const maturityNote = (o: Offer): string | undefined => (o.maturityOn && yearOnly(o) ? "année seule au BOC" : undefined);
 
 const signed = (v: number, d = 2) => `${v > 0 ? "+" : ""}${fmtPct(v, d)}`;
@@ -81,7 +81,19 @@ export function badgesFor(o: Offer, st: DisplayStatus, now: Date): Badge[] {
   return out;
 }
 
-export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): OfferSummary {
+/**
+ * LES DATES SUIVENT LE LECTEUR, ET UN COMPOSANT CLIENT DOIT DIRE LEQUEL.
+ *
+ * « fmtDate » nu lit une variable de module que SEUL le graphe serveur branche
+ * sur la requête. Ce résumé est appelé des deux côtés — « OfferBrowser » est un
+ * composant client — et la table des titres sortait donc « 15 oct. · 17 h 00 »
+ * sous un en-tête « Closed », puis « 15 Oct · 17:00 » une fois hydratée :
+ * React jetait la table entière. Le seul appelant client passe maintenant ses
+ * formateurs, qu'il tient du contexte ; les treize appelants serveur gardent
+ * la lecture par requête, qui est juste chez eux.
+ */
+export function summarize(o: Offer, now: Date, opts: { fine?: boolean; dates?: FormatsDeDate } = {}): OfferSummary {
+  const { fmtDate, fmtDateTime, fmtHeure } = opts.dates ?? formatsDuLecteur();
   const st = displayStatus(o, now);
   const past = isPast(st);
   const dy = displayYield(o);
@@ -106,8 +118,11 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
     promesse: ligneGrise(o),
     origine: origineDuChiffre(o, now),
   };
-  const dl = (iso: string) => (parseDate(iso).toDateString() === now.toDateString() ? `Auj. ${fmtTime(iso)}` : fmtDateTime(iso));
-  const dlParts = (iso: string): [string, string] => (parseDate(iso).toDateString() === now.toDateString() ? ["Aujourd'hui", fmtTime(iso)] : [fmtDate(iso, false), fmtTime(iso).replace(":", " h ")]);
+  const dl = (iso: string) => (parseDate(iso).toDateString() === now.toDateString() ? `Auj. ${fmtHeure(iso)}` : fmtDateTime(iso));
+  /* LES DEUX BRANCHES DISENT L'HEURE DE LA MÊME FAÇON, et dans la langue du
+     lecteur : celle du jour rendait « 17:00 », l'autre « 17 h 00 » composé à
+     la main, donc du français sous un en-tête anglais. */
+  const dlParts = (iso: string): [string, string] => (parseDate(iso).toDateString() === now.toDateString() ? ["Aujourd'hui", fmtHeure(iso)] : [fmtDate(iso, false), fmtHeure(iso)]);
   const closing = st === "closing" ? countdown(o.deadlineAt, now) : undefined;
 
   if (o.kind === "OTA" || o.kind === "APE") {
@@ -125,7 +140,7 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
       countdown: closing,
       coupon: fmtPct(o.couponRate ?? 0, 2),
       tenor,
-      maturity: maturityText(o),
+      maturity: maturityText(o, fmtDate),
       minimum: `${fmt((o.minTitles ?? 1) * o.nominal)} FCFA`,
       minimumSub: o.minTitles ? `${fmt(o.minTitles)} titres de ${fmt(o.nominal)}` : "1 titre",
       primary: past ? null : st === "upcoming" ? { label: "Me réserver", intent: "appetit" } : { label: "Prise ferme", intent: "ferme" },
@@ -180,7 +195,7 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
       countdown: closing,
       coupon: "—",
       tenor,
-      maturity: maturityText(o),
+      maturity: maturityText(o, fmtDate),
       minimum: `${fmt(o.nominal)} FCFA`,
       minimumSub: "1 bon, intérêts précomptés",
       primary: past ? null : st === "upcoming" ? { label: "Me réserver", intent: "appetit" } : { label: "Prise ferme", intent: "ferme" },
@@ -326,7 +341,7 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
     deadline: "continue",
     coupon: isBond ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} div.` : "—",
     tenor: isBond && o.maturityOn ? `${yearOnly(o) ? "≈ " : ""}${left(now, o.maturityOn)}` : "—",
-    maturity: maturityText(o),
+    maturity: maturityText(o, fmtDate),
     maturityNote: maturityNote(o),
     minimum: o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—",
     minimumSub: `${lot} ${isBond ? "titre" : "action"}${lot > 1 ? "s" : ""} au cours${isBond ? ` · nominal ${fmt(o.nominal)}` : ""}`,
@@ -341,7 +356,7 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
          quatre cents jours et un prix d'hier ne valent pas la même confiance.
          La date entière se lit au dos ; ici il n'y a place que pour les jours. */
       ["Cours", priceTxt, o.priceSince ? `${fmt(daysBetween(o.priceSince, localIso(now)))} j` : undefined],
-      isBond ? ["Échéance", o.maturityOn ? `${maturityText(o)}${yearOnly(o) ? " ≈" : ""}` : "—", o.maturityOn ? left(now, o.maturityOn) : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
+      isBond ? ["Échéance", o.maturityOn ? `${maturityText(o, fmtDate)}${yearOnly(o) ? " ≈" : ""}` : "—", o.maturityOn ? left(now, o.maturityOn) : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
       /* UNE ESPACE ORDINAIRE AVANT L UNITE, ET C EST MESURE. La typographie
          francaise voudrait une insecable, et elle a ete essayee : dans la plus
          etroite des quatre colonnes, « 10 000 FCFA » devient alors un seul mot
@@ -354,7 +369,7 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean } = {}): O
       [dy.atPar ? "Taux nominal" : isBond ? "Rendement actuariel" : "Rendement du dividende", yTxt, dy.atPar ? `au pair${o.lastPriceOn ? ` le ${fmtDate(o.lastPriceOn, false)}` : ""}` : `brut, au cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}`],
       ["Dernier échange", o.lastTradedOn ? fmtDate(o.lastTradedOn, false) : "—", o.lastTradedOn ? undefined : "le bulletin cote la ligne sans qu'elle traite"],
       isBond ? ["Coupon", fmtPct(o.couponRate ?? 0, 2), "taux facial"] : ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", "brut, dernier exercice"],
-      isBond ? ["Échéance", maturityText(o), o.maturityOn ? `${yearOnly(o) ? "≈ " : ""}${left(now, o.maturityOn)}` : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
+      isBond ? ["Échéance", maturityText(o, fmtDate), o.maturityOn ? `${yearOnly(o) ? "≈ " : ""}${left(now, o.maturityOn)}` : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
       ["Ticket", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—", `${lot} ${isBond ? "titre" : "action"}${lot > 1 ? "s" : ""}`],
     ],
   };

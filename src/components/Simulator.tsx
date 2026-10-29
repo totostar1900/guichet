@@ -1,15 +1,16 @@
 "use client";
 
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { Select } from "./ui/Select";
 import { useState } from "react";
 import { FlowsChart } from "./FlowsChart";
 import { bondCalc, btaCalc, parseDate } from "@/lib/finance";
-import { fmt, fmtDate, fmtPct, fmtPrice, parseAmount } from "@/lib/format";
+import { fmt, fmtPct, fmtPrice, parseAmount } from "@/lib/format";
 import styles from "./Simulator.module.css";
 
 /** Free-form bond / bill simulator : deliberately separate from any live offer. */
 export function Simulator() {
+  const { fmtDate } = useDates();
   const t = useT();
   const [kind, setKind] = useState<"OTA" | "BTA">("OTA");
   const [amount, setAmount] = useState("10 000 000");

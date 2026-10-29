@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { BLOCK_LABEL, CAPACITY_LABEL, CONFIDENCE_LABEL, computeProfile, INVESTABLE_LABEL, KNOWLEDGE_LABEL, PROFILE_LABEL, PROFILE_QUESTIONS, toCover, VERIFICATIONS, type FinancialProfile, type ProfileBlock } from "@/data/profile";
-import { useLang, useT } from "@/i18n/client";
-import { fmtDate } from "@/lib/format";
+import { useDates, useLang, useT } from "@/i18n/client";
 import { cachedGuideIndex, loadGuideIndex, readDoneLessons } from "@/lib/guide-index-client";
 import { useLocalProfile, writeLocalProfile } from "@/lib/profile-local";
 import { saveProfile } from "./actions";
@@ -32,6 +31,7 @@ async function lessonsReadHere(): Promise<number> {
 }
 
 export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; guest?: boolean }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const lang = useLang();
   const [saved, setSaved] = useState<FinancialProfile | undefined>(undefined);

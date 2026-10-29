@@ -1,10 +1,10 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import type { FluxSuivi } from "@/lib/domain/encaissement";
 import type { Temoignage } from "@/lib/domain/temoignage";
-import { fmt, fmtDate } from "@/lib/format";
+import { fmt } from "@/lib/format";
 import { direLeFlux, type TemoignageResult } from "./temoignage-actions";
 import styles from "./Reinvest.module.css";
 
@@ -27,6 +27,7 @@ import styles from "./Reinvest.module.css";
  * corrige.
  */
 export function DireLeFlux({ flux, deja }: { flux: FluxSuivi[]; deja: Record<string, Temoignage> }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [res, action, pending] = useActionState<TemoignageResult | null, FormData>(direLeFlux, null);
   const [autre, setAutre] = useState<string | null>(null);

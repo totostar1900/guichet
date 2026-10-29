@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { useT } from "@/i18n/client";
-import { fmt, fmtDate } from "@/lib/format";
+import { useDates, useT } from "@/i18n/client";
+import { fmt } from "@/lib/format";
 import { intituleConcordant, lireLeReleve, resoudreLeMotif, verdictDuVirement, type Intitule, type LigneLue, type Verdict } from "@/lib/domain/virement";
 import { inscrireLeCredit, type VirementResult } from "./actions";
 import styles from "./page.module.css";
@@ -44,6 +44,7 @@ function Msg({ state }: { state: VirementResult | null }) {
  * d'un autre et qu'il n'existe pas de bouton pour défaire ça.
  */
 export function LireLeReleve({ clients, dejaLues }: { clients: ClientVu[]; dejaLues: string[] }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [texte, setTexte] = useState("");
   const [etat, action, enCours] = useActionState<VirementResult | null, FormData>(inscrireLeCredit, null);

@@ -1,9 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import type { Preavis } from "@/lib/domain/preavis";
-import { fmt, fmtDate } from "@/lib/format";
+import { fmt } from "@/lib/format";
 import { arreterLOperation, type ArretResult } from "./arret-actions";
 import styles from "./Console.module.css";
 
@@ -22,6 +22,7 @@ import styles from "./Console.module.css";
  * des questions : combien, sur quoi, et me reste-t-il le temps.
  */
 export function Annonce({ preavis, titres }: { preavis: Preavis[]; titres: Record<string, string> }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const [res, action, pending] = useActionState<ArretResult | null, FormData>(arreterLOperation, null);
   const [motif, setMotif] = useState<string | null>(null);

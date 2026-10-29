@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { useT } from "@/i18n/client";
-import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
+import { useDates, useT } from "@/i18n/client";
+import { fmt } from "@/lib/format";
 import { groupedInput } from "@/lib/ui/grouped";
 import { Select } from "@/components/ui/Select";
 import { creerMandatAction, envoyerCodeMandatAction, revoquerMandatAction, signerMandatAction, type MandatResult } from "./actions";
@@ -70,6 +70,7 @@ export function MesMandats({
   /** L'instruction qu'on vient de signer, quand on arrive de là. */
   instructionDemandee?: string;
 }) {
+  const { fmtDate, fmtDateTime } = useDates();
   const t = useT();
   const [creer, creerAct, creation] = useActionState<MandatResult | null, FormData>(creerMandatAction, null);
   const [envoi, envoiAct, envoyant] = useActionState<MandatResult | null, FormData>(envoyerCodeMandatAction, null);

@@ -4,9 +4,9 @@ import { useState } from "react";
 import { type Lu, TrackBand, TrackMarks, trackStyles, useTracker } from "./charts/tracker";
 import { labelMetrics, usePhone } from "./chart-utils";
 import { daysBetween } from "@/lib/finance";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { fmt, fmtPct, type FormatsDeDate } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 
 /** One published NAV as the chart shows it : the bubble tells the whole story of the point. */
 export interface NavPoint {
@@ -23,7 +23,11 @@ export const axisTicks = (n: number, count = 6): number[] => (n <= 8 ? Array.fro
  * Over more than a year the year matters and the labels get longer: five of them, with the year.
  * The phone draws its labels larger, so it gets fewer: four, three with the year.
  */
-export const axisLabel = (dates: string[], phone = false) => {
+/* LE FORMATEUR SE PASSE, IL NE SE PREND PLUS AU MODULE : « fmtDate » nu lit
+   une langue que seul le graphe serveur connaît, et l'axe sortait en français
+   sous une page anglaise. Il vient maintenant de « useDates », donc du
+   contexte, et le paramètre est OBLIGATOIRE : un défaut ramènerait le défaut. */
+export const axisLabel = (dates: string[], fmtDate: FormatsDeDate["fmtDate"], phone = false) => {
   const long = dates.length > 1 && daysBetween(dates[0], dates[dates.length - 1]) > 366;
   return { ticks: axisTicks(dates.length, phone ? (long ? 3 : 4) : long ? 5 : 6), label: (d: string) => fmtDate(d, long) };
 };
@@ -34,6 +38,7 @@ const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}$
 
 /** The NAV curve, one dot per bulletin, with a bubble on hover or touch showing that NAV. */
 export function NavChart({ series, sinceStart, onRange }: { series: NavPoint[]; sinceStart?: boolean; onRange?: (from: string, to: string) => void }) {
+  const { fmtDate } = useDates();
   const t = useT();
   const phone = usePhone();
   const metrics = labelMetrics(phone);
@@ -54,7 +59,7 @@ export function NavChart({ series, sinceStart, onRange }: { series: NavPoint[]; 
   const iMax = values.indexOf(max);
   const iMin = values.indexOf(min);
   const last = series.length - 1;
-  const axis = axisLabel(series.map((p) => p.date), phone);
+  const axis = axisLabel(series.map((p) => p.date), fmtDate, phone);
   const keys = series.map((p) => p.date);
   const idx = (k: string) => keys.indexOf(k);
   // only the pin the reader just set is drawn : the chart is already framed on the period, marking its edges would say nothing
