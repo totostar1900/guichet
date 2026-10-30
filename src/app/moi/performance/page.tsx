@@ -160,7 +160,7 @@ export default async function PerformancePage() {
               {p.lines.map((l) => (
                 <tr key={l.offerId}>
                   <td>
-                    <Link href={`/offres/${l.offerId}`}>{l.title}</Link>
+                    <Link href={`/offres/${l.offerId}`}>{t(l.title)}</Link>
                     <small className="muted mono"> {l.isin}</small>
                     {l.sold ? <small className="muted"> · {t("des parts sont sorties")}</small> : null}
                   </td>

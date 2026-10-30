@@ -108,6 +108,36 @@ const TEMPLATES: { re: RegExp; keys: string[]; en: string }[] = Object.entries(E
 
 const SEPARATORS = [" · ", " — ", " ; ", ". ", " : "];
 
+/**
+ * UN POINT D'ABRÉVIATION NE FINIT PAS UNE PHRASE — RELEVÉ LE 30 OCTOBRE 2026.
+ *
+ * Le découpage par séparateurs traite « . » comme une fin de phrase. Or les
+ * mois de la maison s'abrègent : « 8 juil. 2031 » se coupait en « 8 juil » et
+ * « 2031 », et le rattrapage des dates, qui cherche un mois DERRIÈRE un
+ * nombre et AVEC son point, ne trouvait plus rien.
+ *
+ * On ne le voyait que sur les titres qui portent aussi un deux-points —
+ * « OTA Cameroun 6,25 % · 8 juil. 2031 : secondaire » — parce que « · » est
+ * essayé en premier et rendait la main avant. Sur la page des titres, le
+ * lecteur anglais lisait donc « 8 juil. 2031 : secondary » : la moitié de la
+ * ligne traduite, l'autre non.
+ */
+const ABREVIATION = /(?:janv|févr|avr|juil|sept|oct|nov|déc|lun|mar|mer|jeu|ven|sam|dim|éch|env|cf|etc|M|Mme|n°)$/;
+
+/** Les phrases d'une chaîne, sans couper à l'intérieur d'une abréviation. */
+const phrases = (s: string): string[] => {
+  const out: string[] = [];
+  let debut = 0;
+  for (let i = s.indexOf(". "); i >= 0; i = s.indexOf(". ", i + 1)) {
+    const gauche = s.slice(debut, i);
+    if (ABREVIATION.test(gauche)) continue; // le point appartient au mot
+    out.push(gauche);
+    debut = i + 2;
+  }
+  out.push(s.slice(debut));
+  return out;
+};
+
 let LOWER: Record<string, string> | null = null;
 const lowerIndex = (): Record<string, string> => {
   if (!LOWER) {
@@ -156,7 +186,7 @@ function toEnglish(s: string, depth = 0): string {
   if (depth < 3) {
     for (const sep of SEPARATORS) {
       if (!s.includes(sep)) continue;
-      const parts = s.split(sep);
+      const parts = sep === ". " ? phrases(s) : s.split(sep);
       if (parts.length < 2) continue;
       const done = parts.map((p) => toEnglish(p, depth + 1));
       if (done.some((p, i) => p !== parts[i])) return done.join(sep);

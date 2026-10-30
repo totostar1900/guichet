@@ -29,7 +29,10 @@ export function ContactRapide({ offer, emailProuve, telephoneProuve, canalInitia
   const t = useT();
   const canaux = canauxOuverts({ emailProuve, telephoneProuve });
   const [canal, setCanal] = useState<Channel>(canalInitial && canaux.includes(canalInitial) ? canalInitial : (canaux[0] ?? "E-mail"));
-  const [texte, setTexte] = useState(t(MESSAGE_CLEF, { t: offer.title }));
+  /* LE TITRE AUSSI PASSE PAR t() : les paramètres sont substitués APRÈS la
+     traduction, donc une ligne française restait au milieu d'un message
+     anglais — « I am interested in the line “OTA 6,50 % · 14 févr. 2028” ». */
+  const [texte, setTexte] = useState(t(MESSAGE_CLEF, { t: t(offer.title) }));
   const [envoye, setEnvoye] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoi, demarrer] = useTransition();

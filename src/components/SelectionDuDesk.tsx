@@ -47,7 +47,7 @@ export async function SelectionDuDesk() {
           <li key={o.id} className={styles.ligne}>
             <Link className={styles.lien} href={`/offres/${o.id}`}>
               <span className={styles.nom}>
-                {o.title}
+                {t(o.title)}
                 <small>{t(s.subtitle)}</small>
               </span>
               <span className={styles.chiffre}>

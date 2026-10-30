@@ -62,7 +62,7 @@ export default async function IntentionPage({ params, searchParams }: Props) {
           <EnTete
             retour={{ href: `/offres/${o.id}`, mot: t("La fiche") }}
             surTitre={t(summary.subtitle)}
-            titre={o.title}
+            titre={t(o.title)}
             aCote={
               <span className={styles.meta}>
                 <span className={`pill ${c.st}`}>{t(statusLabel(o, c.st))}</span>

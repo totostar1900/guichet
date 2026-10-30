@@ -36,7 +36,7 @@ export function ResultsForm({ offerIds, lines }: { offerIds: string[]; lines: Li
         <div key={l.offerId} className={styles.line}>
           <div className={styles.lineHead}>
             <div>
-              <b>{l.title}</b> <span className="mono muted">{l.isin}</span>
+              <b>{t(l.title)}</b> <span className="mono muted">{l.isin}</span>
             </div>
             {l.kind === "BTA" ? (
               <label className="field">

@@ -69,7 +69,7 @@ export async function CeQuiFermeBientot({ offres, max = 3 }: { /** Les offres d�
           <li key={e.offerId}>
             <Link className={styles.ligne} href={e.href}>
               <span className={styles.quoi}>
-                <b>{e.titre}</b>
+                <b>{t(e.titre)}</b>
                 <small>{t(e.quoi.key, e.quoi.params)}</small>
               </span>
               {/* L'URGENCE EST ÉCRITE, pas seulement teintée : « dans 3 jours »

@@ -382,7 +382,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               {ordered ? ` · ${market ? `${fmt(ordered)} ${t(offer.instrument === "obligation" ? "titres" : "actions")}` : `${fmtUnits(ordered)} ${t(offer.kind === "FONDS" && type === "rachat" ? "parts" : "FCFA")}`}` : ""}
             </dd>
             <dt>{t("La ligne")}</dt>
-            <dd>{offer.title}</dd>
+            <dd>{t(offer.title)}</dd>
             {/* LE PRIX MANQUAIT, et c'est ce qu'on signe. Le reçu disait le type,
                 la quantité et la ligne : on repartait avec « 105 titres » sans
                 savoir à combien, ni ce que ça engage. Le prix d'exécution n'est
@@ -822,7 +822,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <div className={styles.trajet}>
                 <span className={styles.jambe}>
                   <span className={styles.jambeRole}>{t("Vous quittez")}</span>
-                  <span className={styles.jambeLigne}>{offer.title}</span>
+                  <span className={styles.jambeLigne}>{t(offer.title)}</span>
                 </span>
                 <span className={styles.fleche} aria-hidden="true">
                   ↓
@@ -1041,7 +1041,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
         <div className={styles.recap}>
           <div>
             <span>{t("Ligne")}</span>
-            <b>{offer.title}</b>
+            <b>{t(offer.title)}</b>
           </div>
           <div>
             <span>{t("Demande")}</span>

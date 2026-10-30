@@ -1160,7 +1160,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
             {lignesEpinglees.map(({ o, s: som }) => (
               <div key={o.id} className={styles.epingle}>
                 <OfferCard o={o} s={som} suivi={armees.has(o.id)} />
-                <button type="button" className={styles.detacher} onClick={() => basculerEpingle(o.id)} aria-label={`${t("Détacher")} ${o.title}`} title={t("Détacher")}>
+                <button type="button" className={styles.detacher} onClick={() => basculerEpingle(o.id)} aria-label={`${t("Détacher")} ${t(o.title)}`} title={t("Détacher")}>
                   ×
                 </button>
               </div>

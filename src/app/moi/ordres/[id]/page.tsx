@@ -110,7 +110,7 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
           retour={{ href: "/moi/documents", mot: t("Mes documents") }}
           surTitre={`${t(INTENT_LABEL[intent.type])} · ${intent.signedAt ? t("signé") : signable ? t("étape 2 sur 2") : t(INTENT_STATE_LABEL[intent.state])}`}
           titre={intent.signedAt ? t("Votre ordre") : t("Signer mon ordre")}
-          phrase={`${offer.title}${f ? ` · ${f.manager}` : ""}`}
+          phrase={`${t(offer.title)}${f ? ` · ${f.manager}` : ""}`}
         />
 
         <section className={styles.recap}>

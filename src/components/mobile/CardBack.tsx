@@ -41,7 +41,7 @@ export function CardBack({ facts, figures, curve }: { facts: BackFacts; figures?
            droite. `first` leur garde leur colonne. Un nom qui passerait
            dessous se lirait sous deux icônes. */
         <div className={`${styles.sec} ${styles.first} ${styles.ident}`}>
-          <div className={styles.name}>{facts.title}</div>
+          <div className={styles.name}>{t(facts.title)}</div>
           {facts.sub && <div className={styles.sub}>{facts.sub}</div>}
         </div>
       )}

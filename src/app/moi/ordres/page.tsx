@@ -119,7 +119,7 @@ export default async function OrdresPage() {
                     <div key={i.id} className={styles.card}>
                       <div className={styles.cardTop}>
                         <div>
-                          <b>{o ? <Link href={`/offres/${o.id}`}>{o.title}</Link> : i.offerId}</b>
+                          <b>{o ? <Link href={`/offres/${o.id}`}>{t(o.title)}</Link> : i.offerId}</b>
                           <small>
                             {t(INTENT_LABEL[i.type])}
                             {i.amount ? ` · ${montant(i, o?.kind)}` : ""} · {t("réf.")} {i.ref}
@@ -166,7 +166,7 @@ export default async function OrdresPage() {
                     <li key={i.id}>
                       <Link href={`/moi/ordres/${i.id}`}>
                         <span className={styles.quoiOrdre}>
-                          <b>{o?.title ?? i.offerId}</b>
+                          <b>{o ? t(o.title) : i.offerId}</b>
                           <small>
                             {t(INTENT_LABEL[i.type])}
                             {i.amount ? ` · ${montant(i, o?.kind)}` : ""} · {t("réf.")} {i.ref}

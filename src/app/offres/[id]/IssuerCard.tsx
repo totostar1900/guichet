@@ -102,11 +102,11 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
                   const cells = (
                     <>
                       <span className={styles.cNom}>
-                        <b className={styles.longName} title={l.title}>
-                          {l.title}
+                        <b className={styles.longName} title={t(l.title)}>
+                          {t(l.title)}
                         </b>
-                        <b className={styles.shortName} title={l.title}>
-                          {l.short}
+                        <b className={styles.shortName} title={t(l.title)}>
+                          {t(l.short)}
                         </b>
                         {l.here && <small className={styles.hereTag}>{t("cette fiche")}</small>}
                       </span>

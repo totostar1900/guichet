@@ -91,7 +91,7 @@ export function LinePicker({ name, lines, value, label, segments }: { name: stri
       <button type="button" className={styles.pickBtn} aria-haspopup="dialog" aria-expanded={open} aria-controls={`${id}-panel`} onClick={() => setOpen(!open)}>
         {current ? (
           <span className={styles.pickCur}>
-            <b>{current.title}</b>
+            <b>{t(current.title)}</b>
             <small>
               {t(current.family)} · {current.issuer} · {current.yieldText}
             </small>
@@ -175,7 +175,7 @@ export function LinePicker({ name, lines, value, label, segments }: { name: stri
             {shown.map((l, i) => (
               <button key={l.id} type="button" role="option" aria-selected={l.id === cur} className={`${styles.opt} ${i === active ? styles.optOn : ""} ${l.id === cur ? styles.optCur : ""}`} onMouseEnter={() => setActive(i)} onClick={() => choose(l)}>
                 <span className={styles.optBody}>
-                  <b>{l.title}</b>
+                  <b>{t(l.title)}</b>
                   <small>
                     {t(l.family)} · {l.issuer} · {l.country} · {t(l.status)}
                   </small>

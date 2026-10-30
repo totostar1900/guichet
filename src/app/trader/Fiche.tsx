@@ -55,7 +55,7 @@ export function Fiche({ sv, raison, etapes, titre, apercus }: { sv: ServiceVu; r
         <ul className={styles.apercus}>
           {apercus.map((a) => (
             <li key={a.nom}>
-              <em>{a.nom}</em>
+              <em>{t(a.nom)}</em>
               <b>{t(a.dit.key, a.dit.params)}</b>
             </li>
           ))}

@@ -172,7 +172,7 @@ export function LineMenu({ line, watching, onFiche = true, pdf, className, openR
             <div ref={sheet} className={`${styles.sheet} ${visible ? styles.sheetOpen : ""}`} role="dialog" aria-modal="true" aria-label={t("Actions sur cette ligne")} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
               <div className={styles.grab} />
               <div className={styles.head}>
-                <div className={styles.title}>{line.title}</div>
+                <div className={styles.title}>{t(line.title)}</div>
                 {line.sub && <div className={styles.sub}>{line.sub}</div>}
               </div>
               {items.map(([k, label, d, small]) => (

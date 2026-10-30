@@ -290,6 +290,9 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
  * seul reste alors, comme avant.
  */
 function PeekBody({ n, pos, go, body }: { n: Neighbour; pos: string; go: string; body?: React.ReactNode }) {
+  /* Le nom de la ligne est gardé en français dans la liste mémorisée, comme
+     la donnée dont il sort : il se traduit ici, à l'affichage. */
+  const t = useT();
   const p = n.peek;
   // La vraie lecture est là : elle remplace le résumé, et rien ne s'ajoute par-dessus.
   // Sa barre de retour porte déjà « 2 / 45 » et « Suivante » : un second repère aurait
@@ -299,7 +302,7 @@ function PeekBody({ n, pos, go, body }: { n: Neighbour; pos: string; go: string;
     <div className={styles.peekBody}>
       <span className={styles.peekPos}>{pos}</span>
       {p?.stamp && <span className={`pill ${p.tone ?? ""}`}>{p.stamp}</span>}
-      <b>{n.title}</b>
+      <b>{t(n.title)}</b>
       {p?.sub && <span className={styles.peekSub}>{p.sub}</span>}
       {p?.hero && (
         <span className={`${styles.peekHero} ${p.gold ? styles.peekGold : ""}`}>

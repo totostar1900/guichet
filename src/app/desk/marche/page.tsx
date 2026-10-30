@@ -87,7 +87,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
         <td>
           <b>
             <Link href={`/desk/lignes/${o.id}`} style={{ textDecoration: "none" }}>
-              {o.title}
+              {t(o.title)}
             </Link>
           </b>
           <br />
@@ -360,7 +360,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
                     <td>
                       <b>
                         <Link href={`/desk/lignes/${o.id}`} style={{ textDecoration: "none" }}>
-                          {o.title}
+                          {t(o.title)}
                         </Link>
                       </b>
                       <br />
@@ -546,7 +546,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
                       {i.clientName}
                       <small>{i.clientSegment}</small>
                     </td>
-                    <td>{o.title}</td>
+                    <td>{t(o.title)}</td>
                     <td>
                       <span className={`st ${i.type}`}>{t(INTENT_LABEL[i.type])}</span>
                     </td>

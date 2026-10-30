@@ -42,7 +42,7 @@ export async function CrossBook({ lines, fills, canExecute = false }: { lines: {
           <section key={c.offerId} className={styles.line}>
             <header className={styles.head}>
               <span className={styles.who}>
-                <Link href={`/desk/lignes/${o.id}`}>{o.title}</Link>
+                <Link href={`/desk/lignes/${o.id}`}>{t(o.title)}</Link>
                 <small className="muted">
                   {o.isin}
                   {/* Le taux de service donne son poids à l'appariement : sur une

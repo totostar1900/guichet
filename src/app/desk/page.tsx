@@ -349,7 +349,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
                         <small>{i.clientSegment}</small>
                       </td>
                       <td>
-                        {o?.title ?? i.offerId}
+                        {o ? t(o.title) : i.offerId}
                         {i.message && (
                           <>
                             <br />

@@ -71,7 +71,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
               passe à l'étalon — et la marge écrite en style en ligne s'en va
               avec, puisque l'écart sous un en-tête vit dans sa feuille. */}
           <ListNav id={o.id} fallbackHref="/" fallbackLabel="Toutes les offres" />
-          <EnTete titre={o.title} phrase={t("Cette ligne a été retirée de Guichet. Pour toute question, contactez le desk.")} />
+          <EnTete titre={t(o.title)} phrase={t("Cette ligne a été retirée de Guichet. Pour toute question, contactez le desk.")} />
         </div>
       </div>
     );

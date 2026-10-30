@@ -96,7 +96,7 @@ export default async function DocumentPage({ params, searchParams }: { params: P
           phrase={
             intent && offre ? (
               <>
-                {t("Il porte votre {op} de {m} sur", { op: t(INTENT_LABEL[intent.type]).toLowerCase(), m: quantite ?? "" })} <Link href={`/offres/${offre.id}`}>{offre.title}</Link>
+                {t("Il porte votre {op} de {m} sur", { op: t(INTENT_LABEL[intent.type]).toLowerCase(), m: quantite ?? "" })} <Link href={`/offres/${offre.id}`}>{t(offre.title)}</Link>
                 {t(", référence {r}. Établi le {d}.", { r: intent.ref, d: fmtDateTime(doc.createdAt) })}
               </>
             ) : (

@@ -121,7 +121,7 @@ export default async function ResultsPage() {
             <div className={styles.doneRow}>
               {a.lines.map((l) => (
                 <span key={l.o.id}>
-                  {l.o.title} : {l.o.resultLine ?? (displayStatus(l.o, now) === "closed" ? "aucun ordre transmis" : "—")}
+                  {t(l.o.title)} : {l.o.resultLine ?? (displayStatus(l.o, now) === "closed" ? "aucun ordre transmis" : "—")}
                 </span>
               ))}
             </div>
@@ -157,7 +157,7 @@ export default async function ResultsPage() {
                     <small>{p.intent.clientSegment}</small>
                   </td>
                   <td>
-                    {p.offer.title}
+                    {t(p.offer.title)}
                     <br />
                     <span className="mono muted">{p.offer.isin}</span>
                   </td>
@@ -207,7 +207,7 @@ export default async function ResultsPage() {
                     {fmtDate(u.flow.date)} <span className="muted">(J{u.inDays ? `+${u.inDays}` : ""})</span>
                   </td>
                   <td>{u.position.intent.clientName}</td>
-                  <td>{u.position.offer.title}</td>
+                  <td>{t(u.position.offer.title)}</td>
                   <td>{u.flow.label}</td>
                   <td className="r num">{fmt(u.flow.amount)}</td>
                 </tr>
