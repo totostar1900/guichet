@@ -1,7 +1,7 @@
 import "server-only";
 import { repo } from "@/lib/data";
 import { audit } from "@/lib/audit";
-import { SEUIL_CLIENTS, SEUIL_MONTANT, consensus, mur, prete } from "@/lib/domain/sondage";
+import { SEUIL_CLIENTS, SEUIL_MONTANT, consensus, expiree, mur, prete } from "@/lib/domain/sondage";
 import { fmt, fmtDate, fmtPct, localIso } from "@/lib/format";
 import { direLaClotureDeLAttente } from "@/lib/notify/sondage";
 
@@ -57,16 +57,33 @@ export async function tourDuSondage(now = new Date()): Promise<TourDuSondage> {
 
   for (const l of vivantes) {
     const jour = prete(l);
+    /**
+     * C'EST LA FIN DE LA FENÊTRE QUI REND LA MAIN, QUAND IL Y EN A UNE.
+     *
+     * Une ligne ne portait qu'un DÉBUT, et le robot la fermait le lendemain de
+     * ce début : « prêt à partir du 18 novembre » devenait clos le 19. C'était
+     * la seule lecture possible d'une date seule, et elle contredit maintenant
+     * ce que le client écrit — « valable jusqu'au 31 décembre » veut dire qu'il
+     * reste preneur six semaines de plus.
+     *
+     * Sans « jusquA », rien ne change : le début gouverne, comme avant, et les
+     * lignes d'avant le 30 octobre 2026 se ferment au même jour qu'hier.
+     */
+    const fin = l.jusquA ?? jour;
+    const parLaFin = Boolean(l.jusquA) && expiree(l, aujourdHui);
     /* LE JOUR SE COMPTE DEPUIS LA CRÉATION, et non depuis aujourd'hui. « Dans
        21 jours » dit le 20 octobre veut dire le 10 novembre, pour toujours ;
        recalculé chaque soir à partir du jour courant, il fuirait devant le
        robot et aucune attente n'expirerait jamais. */
-    if (!jour || jour >= aujourdHui) continue;
+    if (!fin || fin >= aujourdHui) continue;
     try {
-      const motif =
-        l.origine === "desk"
-          ? `L'horizon du ${fmtDate(jour, false)} est passé : la maison ne sonde plus cette ligne.`
-          : `Vous étiez prêt à partir du ${fmtDate(jour, false)}, et cette date est passée sans qu'une séance s'ouvre. Rien ne vous engageait, et rien ne vous engage : redites-le quand vous voudrez.`;
+      const motif = parLaFin
+        ? l.origine === "desk"
+          ? `Cette ligne n'était sondée que jusqu'au ${fmtDate(fin, false)}, et ce jour est passé.`
+          : `Votre attente était valable jusqu'au ${fmtDate(fin, false)}, et ce jour est passé. Rien ne vous engageait, et rien ne vous engage : redites-le quand vous voudrez.`
+        : l.origine === "desk"
+          ? `L'horizon du ${fmtDate(fin, false)} est passé : la maison ne sonde plus cette ligne.`
+          : `Vous étiez prêt à partir du ${fmtDate(fin, false)}, et cette date est passée sans qu'une séance s'ouvre. Rien ne vous engageait, et rien ne vous engage : redites-le quand vous voudrez.`;
       await r.updateLigneSondee(l.id, { state: "close", closedReason: motif });
       /* AU REGISTRE, comme la clôture faite à la main. Le desk qui clôt une
          attente laisse « sondage.statut » ; le robot ne laissait rien, et le
@@ -75,10 +92,10 @@ export async function tourDuSondage(now = new Date()): Promise<TourDuSondage> {
       await audit("sondage.statut", "sondage", l.id, {
         before: { state: l.state },
         after: { state: "close", closedReason: motif },
-        reason: `${l.ref} · horizon du ${fmtDate(jour, false)} passé`,
+        reason: `${l.ref} · ${parLaFin ? "fenêtre fermée le" : "horizon du"} ${fmtDate(fin, false)}${parLaFin ? "" : " passé"}`,
         actor: ROBOT,
       });
-      await r.logEvent({ kind: "system", html: `Sondage <b>${l.ref}</b> : <b>clos</b>, la date du ${fmtDate(jour, false)} est passée · rien n'était engagé` });
+      await r.logEvent({ kind: "system", html: `Sondage <b>${l.ref}</b> : <b>clos</b>, ${parLaFin ? "sa fenêtre se fermait" : "la date"} du ${fmtDate(fin, false)} est passée · rien n'était engagé` });
       /* ET LE CLIENT L'APPREND. Le motif ci-dessus est écrit à la deuxième
          personne — il l'a toujours été — et il attendait que le client revienne
          le chercher. L'envoi vient APRÈS l'écriture et son échec ne la défait

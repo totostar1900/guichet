@@ -628,12 +628,12 @@ const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId:
 type SurveyLineRow = {
   id: string; ref: string; origine: LigneSondee["origine"]; reponse_a: string | null; famille_id: string | null; user_id: string | null; client_name: string | null; client_segment: string | null;
   instrument: LigneSondee["instrument"]; country: string; tenor: string; rate: number | null; price_pct: number | null; montant: number;
-  seance_le: string | null; dans_jours: number | null; note: string | null; state: LigneSondee["state"]; closed_reason: string | null; created_at: string; updated_at: string;
+  seance_le: string | null; dans_jours: number | null; jusqu_a: string | null; note: string | null; state: LigneSondee["state"]; closed_reason: string | null; created_at: string; updated_at: string;
 };
 const toLigneSondee = (r: SurveyLineRow): LigneSondee => ({
   id: r.id, ref: r.ref, origine: r.origine, repondA: u(r.reponse_a), familleId: u(r.famille_id), userId: u(r.user_id), clientName: u(r.client_name), clientSegment: u(r.client_segment),
   instrument: r.instrument, country: r.country as LigneSondee["country"], tenor: r.tenor, rate: r.rate ?? undefined, pricePct: r.price_pct ?? undefined,
-  montant: Number(r.montant), seanceLe: u(r.seance_le), dansJours: r.dans_jours ?? undefined, note: u(r.note), state: r.state, closedReason: u(r.closed_reason),
+  montant: Number(r.montant), seanceLe: u(r.seance_le), dansJours: r.dans_jours ?? undefined, jusquA: u(r.jusqu_a), note: u(r.note), state: r.state, closedReason: u(r.closed_reason),
   createdAt: r.created_at, updatedAt: r.updated_at,
 });
 type NotifRow = {
@@ -2181,6 +2181,7 @@ export const supabaseRepository: Repository = {
       montant: input.montant,
       seance_le: input.seanceLe ?? null,
       dans_jours: input.dansJours ?? null,
+      jusqu_a: input.jusquA ?? null,
       note: input.note ?? null,
     };
     const { data, error } = await db().from("survey_lines").insert(row).select("*").single();
@@ -2205,6 +2206,7 @@ export const supabaseRepository: Repository = {
       pricePct: "price_pct",
       seanceLe: "seance_le",
       dansJours: "dans_jours",
+      jusquA: "jusqu_a",
       note: "note",
     };
     for (const [cle, colonne] of Object.entries(colonnes)) {

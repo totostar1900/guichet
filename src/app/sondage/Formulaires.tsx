@@ -50,7 +50,18 @@ export interface Modifiable {
   montant: number;
   rate?: number;
   pricePct?: number;
-  dansJours?: number;
+  /**
+   * LA FENÊTRE, EN DEUX DATES, ET PLUS UN DÉLAI.
+   *
+   * Le champ demandait un NOMBRE DE JOURS et toute la page répondait par une
+   * DATE — « prête vers 24 déc. ». Le client ne relisait jamais ce qu'il avait
+   * tapé, et le nombre qu'on lui rendait n'était même pas le sien : c'était ce
+   * qui restait à courir, 55 aujourd'hui, 54 demain, pour une intention
+   * inchangée. Il écrit maintenant le jour, et le jour est ce que la base
+   * garde : « seanceLe », que « prete » lit en premier.
+   */
+  pretLe?: string;
+  jusquA?: string;
   note?: string;
   instrument: InstrumentSonde;
   country: string;
@@ -61,11 +72,47 @@ export interface Modifiable {
    « 50000000 » : c'est la forme que le champ tient, et elle se relit. */
 const groupe = (n: number) => n.toLocaleString("fr-FR").replace(/[\u00a0\u202f]/g, " ");
 
+/**
+ * LA FENÊTRE, ET ELLE EST LA MÊME DANS LES TROIS FORMULAIRES.
+ *
+ * Deux dates côte à côte : à partir de quand, jusqu'à quand. La première est
+ * celle que la page relit — « prête vers 24 déc. » — et la seconde est la
+ * moitié qui manquait : sans elle une attente ne s'éteint jamais, et le desk
+ * porte au Trésor un appétit que le client a peut-être placé ailleurs depuis
+ * trois mois. Le robot du soir la lit et rend la main.
+ *
+ * LE JOUR D'AUJOURD'HUI VIENT DU SERVEUR, jamais de « new Date() » ici : ce
+ * composant est rendu des deux côtés, et deux horloges qui ne disent pas la
+ * même seconde font une discordance d'hydratation.
+ */
+function Fenetre({ aujourdHui, pretLe, jusquA, prefixe }: { aujourdHui: string; pretLe?: string; jusquA?: string; prefixe: string }) {
+  const t = useT();
+  const [debut, setDebut] = useState(pretLe ?? "");
+  return (
+    <div className={styles.deux}>
+      <label className="field">
+        <span className={styles.question}>
+          {t("Prêt à partir du")}
+          <Info text="Une séance tenue avant ce jour vous trouverait sans fonds : c'est pour cela qu'on vous le demande." label={t("Prêt à partir du")} subtle />
+        </span>
+        <input id={`${prefixe}-debut`} name="seanceLe" type="date" min={aujourdHui} value={debut} onChange={(e) => setDebut(e.target.value)} required />
+      </label>
+      <label className="field">
+        <span className={styles.question}>
+          {t("Valable jusqu'au")}
+          <Info text="Passé ce jour, votre attente se retire d'elle-même : le desk ne porte au Trésor que des appétits vivants. Laissez vide pour qu'elle tienne jusqu'à ce que vous la retiriez." label={t("Valable jusqu'au")} subtle />
+        </span>
+        <input id={`${prefixe}-fin`} name="jusquA" type="date" min={debut || aujourdHui} defaultValue={jusquA ?? ""} />
+      </label>
+    </div>
+  );
+}
+
 /* `discret` : le même geste, à l'endroit où il n'est pas le geste principal.
    Dans la liste des intentions, « Modifier » est un lien comme « Retirer » ; sur
    la tuile d'une question, c'est le bouton qu'on est venu chercher. Un libellé
    long à côté d'un court ferait lire deux gestes différents. */
-export function Repondre({ question, existante, discret }: { question: { id: string; instrument: InstrumentSonde; mot: "coupon" | "taux" }; existante?: Modifiable; discret?: boolean }) {
+export function Repondre({ question, existante, discret, aujourdHui }: { question: { id: string; instrument: InstrumentSonde; mot: "coupon" | "taux" }; existante?: Modifiable; discret?: boolean; aujourdHui: string }) {
   const t = useT();
   const [state, action, pending] = useActionState<SondageResult | null, FormData>(existante ? modifierLaLigne : deposerLaLigne, null);
   const [montant, setMontant] = useState(existante ? groupe(existante.montant) : "");
@@ -126,13 +173,7 @@ export function Repondre({ question, existante, discret }: { question: { id: str
           <input name="rate" inputMode="decimal" placeholder="6,25" defaultValue={existante?.rate ?? ""} />
         </label>
       </div>
-      <label className="field">
-        <span className={styles.question}>
-          {t("Prêt à partir de (jours)")}
-          <Info text="Une séance tenue avant ce délai vous trouverait sans fonds : c'est pour cela qu'on vous le demande." label={t("Prêt à partir de")} subtle />
-        </span>
-        <input name="dansJours" type="number" min="0" max="365" placeholder="21" defaultValue={existante?.dansJours ?? ""} required />
-      </label>
+      <Fenetre aujourdHui={aujourdHui} pretLe={existante?.pretLe} jusquA={existante?.jusquA} prefixe={`rep-${question.id}`} />
       {!state?.ok && state?.error && <em className={styles.erreur}>{state.error}</em>}
       <div className={styles.boutons}>
         <button type="submit" className="btn primary" disabled={pending}>
@@ -153,19 +194,25 @@ export function Repondre({ question, existante, discret }: { question: { id: str
 /** Un jeton qu'on prend ou qu'on rend : le même geste pour les deux listes. */
 const bascule = (liste: string[], pose: (v: string[]) => void, v: string) => pose(liste.includes(v) ? liste.filter((x) => x !== v) : [...liste, v]);
 
-export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) {
+export function ProposerMaLigne({ existante, aujourdHui }: { existante?: Modifiable; aujourdHui: string }) {
   const t = useT();
   const [state, action, pending] = useActionState<SondageResult | null, FormData>(existante ? modifierLaLigne : deposerLaLigne, null);
   const [instrument, setInstrument] = useState<InstrumentSonde>(existante?.instrument ?? "OTA");
-  const [country, setCountry] = useState(existante?.country ?? "Cameroun");
   const [montant, setMontant] = useState(existante ? groupe(existante.montant) : "");
-  /* La durée suit le compartiment : changer d'instrument change la liste, et une
-     valeur qui n'y est plus laisserait le champ sur « 5 ans » pour un bon. */
-  const durees = dureesDe(instrument);
-  const [tenor, setTenor] = useState(existante?.tenor ?? "");
-  const choisie = durees.includes(tenor) ? tenor : durees[instrument === "BTA" ? 2 : 2];
-  const setTenorSur = (v: string) => setTenor(v);
   const [ouvert, setOuvert] = useState(false);
+  /**
+   * UN SEUL GABARIT POUR LES DEUX GESTES.
+   *
+   * Proposer donnait six jetons de Trésor et neuf de durée, qu'on prend par
+   * poignées ; modifier donnait deux listes déroulantes. Même formulaire, deux
+   * grammaires, et le client qui revenait sur sa ligne ne retrouvait pas
+   * l'écran où il l'avait posée.
+   *
+   * CE QUI CHANGE N'EST PLUS LA FORME, C'EST LA RÈGLE : une intention porte un
+   * Trésor et une durée, donc en modification le choix se DÉPLACE au lieu de
+   * s'ajouter. Elle est écrite sous la légende, là où le lecteur la cherche.
+   */
+  const seul = Boolean(existante);
   /* LES CHOIX MULTIPLES, ET LA LISTE QU'ILS PRODUISENT. Un seul Trésor et une
      seule durée au départ : la proposition la plus courante reste d'un geste,
      et l'on n'élargit que si l'on veut. */
@@ -281,23 +328,7 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
           />
         </div>
       </div>
-      {existante ? (
-        <div className={styles.deux}>
-          <Select name="country" label={t("Le Trésor")} value={country} onChange={setCountry} block cherchable={false} options={PAYS_CEMAC.map((p) => ({ value: p, label: t(p) }))} />
-          {/* LA DURÉE SE CHOISIT, ELLE NE S'ÉCRIT PLUS. C'est la demande du
-              dirigeant — « plusieurs maturités à choisir » — et cela ferme à la
-              source ce qu'on avait appris à réparer après coup : « 5ans », « 5 ANS »
-              et « cinq ans » faisaient trois lignes différentes pour la
-              consolidation. La liste vient du domaine, qui sait ce qu'un Trésor de
-              la zone sert sur chaque compartiment. */}
-          <div className={`field ${styles.avecBulle}`}>
-            <span className={styles.coin}>
-              <Info text={aide("tenor")} label={t("La durée")} subtle />
-            </span>
-            <Select name="tenor" label={t("La durée")} value={choisie} onChange={setTenorSur} block cherchable={false} options={dureesDe(instrument).map((d) => ({ value: d, label: d }))} />
-          </div>
-        </div>
-      ) : (
+      {
         /* PLUSIEURS TRÉSORS ET PLUSIEURS DURÉES, D'UN SEUL GESTE.
            C'est la demande du 29 octobre 2026, et ce n'est pas un confort de
            saisie : un client qui prendrait du camerounais OU du gabonais, à
@@ -313,13 +344,16 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
            lieu de l'écrire. */
         <>
           <fieldset className={styles.jeux}>
-            <legend>{t("Le ou les Trésors")}</legend>
+            <legend>
+              {t(seul ? "Le Trésor" : "Le ou les Trésors")}
+              <Info text={seul ? "Une intention porte un seul Trésor : en choisir un autre déplace votre choix." : "Prenez-en plusieurs si plusieurs vous conviennent : ce sont des alternatives, pas des additions, et votre montant n'est compté qu'une fois."} label={t("Le Trésor")} subtle />
+            </legend>
             {pays.map((p) => (
               <input key={p} type="hidden" name="country" value={p} />
             ))}
             <div className={styles.jetons}>
               {PAYS_CEMAC.map((p) => (
-                <button key={p} type="button" aria-pressed={pays.includes(p)} className={pays.includes(p) ? styles.jetonOn : styles.jeton} onClick={() => bascule(pays, setPays, p)}>
+                <button key={p} type="button" aria-pressed={pays.includes(p)} className={pays.includes(p) ? styles.jetonOn : styles.jeton} onClick={() => (seul ? setPays([p]) : bascule(pays, setPays, p))}>
                   {pays.includes(p) && (
                     <span className={styles.coche} aria-hidden="true">
                       ✓
@@ -332,15 +366,15 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
           </fieldset>
           <fieldset className={styles.jeux}>
             <legend>
-              {t("La ou les durées")}
-              <Info text={aide("tenor")} label={t("La durée")} subtle />
+              {t(seul ? "La durée" : "La ou les durées")}
+              <Info text={seul ? "Une intention porte une seule durée : en choisir une autre déplace votre choix." : aide("tenor")} label={t("La durée")} subtle />
             </legend>
             {tenorsValides.map((d) => (
               <input key={d} type="hidden" name="tenor" value={d} />
             ))}
             <div className={styles.jetons}>
               {dureesDe(instrument).map((d) => (
-                <button key={d} type="button" aria-pressed={tenorsValides.includes(d)} className={tenorsValides.includes(d) ? styles.jetonOn : styles.jeton} onClick={() => bascule(tenors, setTenors, d)}>
+                <button key={d} type="button" aria-pressed={tenorsValides.includes(d)} className={tenorsValides.includes(d) ? styles.jetonOn : styles.jeton} onClick={() => (seul ? setTenors([d]) : bascule(tenors, setTenors, d))}>
                   {tenorsValides.includes(d) && (
                     <span className={styles.coche} aria-hidden="true">
                       ✓
@@ -351,14 +385,21 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
               ))}
             </div>
           </fieldset>
-          {lignesProduites.length > 1 && (
+          {/* LA BANDE GARDE SA PLACE DANS LES DEUX GESTES : ce qui change est ce
+              qu'elle compte, et un bloc qui disparaît d'un écran à l'autre fait
+              deux gabarits là où la maison n'en veut qu'un. */}
+          {seul ? (
+            <p className={styles.apercu}>
+              <b>{t("Une ligne, celle que vous modifiez.")}</b> {t("Pour en viser une seconde, proposez-la depuis la page : votre montant n'est compté qu'une fois par ligne.")}
+            </p>
+          ) : lignesProduites.length > 1 ? (
             <p className={styles.apercu}>
               <b>{t("{n} lignes, pour le même montant", { n: String(lignesProduites.length) })}</b>{" "}
               {t("Ce sont des alternatives : le desk n'en portera qu'une, et votre montant n'est compté qu'une fois.")}
             </p>
-          )}
+          ) : null}
         </>
-      )}
+      }
       <div className={styles.deux}>
         <label className="field">
           <span className={styles.question}>
@@ -377,7 +418,7 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
           </label>
         )}
       </div>
-      <div className={styles.deux}>
+      <div className={styles.un}>
         <label className="field">
           <span className={styles.question}>
             {t("Ce que vous prendriez (FCFA)")}
@@ -385,14 +426,8 @@ export function ProposerMaLigne({ existante }: { existante?: Modifiable } = {}) 
           </span>
           <input name="montant" inputMode="numeric" placeholder="50 000 000" value={montant} {...groupedInput(setMontant)} required />
         </label>
-        <label className="field">
-          <span className={styles.question}>
-            {t("Prêt à partir de (jours)")}
-            <Info text={aide("quand")} label={t("Prêt à partir de")} subtle />
-          </span>
-          <input name="dansJours" type="number" min="0" max="365" placeholder="60" defaultValue={existante?.dansJours ?? ""} required />
-        </label>
       </div>
+      <Fenetre aujourdHui={aujourdHui} pretLe={existante?.pretLe} jusquA={existante?.jusquA} prefixe={existante ? `mod-${existante.id}` : "neuve"} />
       <label className="field">
         {t("Ce que le desk doit savoir (facultatif)")}
         <textarea name="note" rows={2} maxLength={600} placeholder={t("Pourquoi cette ligne, ou ce qui vous ferait changer d'avis.")} defaultValue={existante?.note ?? ""} />

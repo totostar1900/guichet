@@ -1,7 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { etatDeLAttente, joursRestants, motDuNiveau, prete, rendementDeLaLigne } from "@/lib/domain/sondage";
+import { etatDeLAttente, motDuNiveau, prete, rendementDeLaLigne } from "@/lib/domain/sondage";
 import type { LigneSondee } from "@/lib/domain/types";
 import { getT } from "@/i18n/server";
 import { fmtDate, fmtPct, fmtUnits, localIso } from "@/lib/format";
@@ -51,17 +51,19 @@ export const metadata = { title: "Sondage" };
 /**
  * CE QU'UNE INTENTION REND AU FORMULAIRE QUI LA ROUVRE.
  *
- * LE DÉLAI EST CE QUI RESTE À COURIR, et non celui qui a été tapé : écrit
- * « dans 21 jours » le 19 et rouvert le 26, il reste quatorze jours, et c'est
- * quatorze que le client doit lire — l'action refera la conversion en sens
- * inverse. Voir « domain/sondage ».
+ * ELLE REND SES DEUX DATES, ET PLUS UN DÉLAI. Le champ demandait un nombre de
+ * jours, la page répondait par une date, et le nombre rendu n'était même pas
+ * celui qu'on avait tapé : c'était ce qui restait à courir, quatorze le 26
+ * pour un « vingt et un » écrit le 19. Le client écrit maintenant le jour, et
+ * c'est ce jour que la base garde.
  */
-const modifiable = (l: LigneSondee, aujourdHui: string) => ({
+const modifiable = (l: LigneSondee) => ({
   id: l.id,
   montant: l.montant,
   rate: l.rate,
   pricePct: l.pricePct,
-  dansJours: joursRestants(l, aujourdHui),
+  pretLe: prete(l),
+  jusquA: l.jusquA,
   note: l.note,
   instrument: l.instrument,
   country: l.country,
@@ -112,7 +114,26 @@ export default async function SondagePage() {
            * Et la légende de « ~ », « ind. » et « min. » suppose la liste
            * sous les yeux : elle passe en « apres », après les étapes.
            */
-          phrase={t("Dire ce que vous prendriez avant qu'une séance ouvre. Rien ici ne vous engage.")}
+          /**
+           * DEUX SOUS-TEXTES, ET LE SECOND REMONTE CE QUE LE PREMIER TAISAIT.
+           *
+           * La phrase ne disait que l'objet de la page ; ce qui JUSTIFIE la
+           * page — « la plupart des séances que nous obtenons en viennent » —
+           * était enfermé dans l'état vide de la liste, c'est-à-dire dans
+           * l'écran que presque personne n'atteint : tant qu'une ligne est
+           * sondée, et c'est le cas normal, le lecteur n'apprenait jamais que
+           * pousser sa propre ligne est ce qui fait naître les séances.
+           *
+           * ET AUCUN DES DEUX NE NOMME LE VIDE. Une page ne dit pas « il n'y a
+           * rien » : elle dit ce qu'on y fait. Quand la maison ne sonde rien,
+           * il reste un geste, et c'est celui-là ; quand elle sonde, il y en a
+           * deux, dans l'ordre où ils se présentent à l'écran.
+           */
+          phrase={
+            ouvertes.length === 0
+              ? t("Dire ce que vous prendriez avant qu'une séance ouvre. Proposez la ligne que vous cherchez : la plupart des séances que nous obtenons en viennent, et rien ne vous engage.")
+              : t("Dire ce que vous prendriez avant qu'une séance ouvre. Répondez à une ligne, ou proposez celle que vous cherchez : la plupart des séances que nous obtenons en viennent, et rien ne vous engage.")
+          }
           aCote={
             <EnBref
               cles={["sondage"]}
@@ -148,9 +169,11 @@ export default async function SondagePage() {
             la montrer barrée ferait chercher un bouton qui n'existe plus. */}
         <section className={styles.bloc}>
           <h2 className={styles.titre}>{t("Combien investiriez-vous ?")}</h2>
-          {ouvertes.length === 0 ? (
-            <p className={styles.vide}>{t("Rien n'est sondé en ce moment. Proposez la vôtre ci-dessous : c'est de là que partent la plupart des séances que nous obtenons.")}</p>
-          ) : (
+          {/* RIEN NE S'ÉCRIT ICI QUAND RIEN N'EST SONDÉ : la phrase du haut vient
+              de dire quoi faire, et la bande « Proposer votre propre ligne » est
+              juste dessous. Un second texte redirait le premier à dix
+              centimètres, et nommerait le vide par-dessus le marché. */}
+          {ouvertes.length === 0 ? null : (
             <ul className={styles.liste}>
               {ouvertes.map((q) => {
                 const mienne = repondu.get(q.id);
@@ -178,7 +201,7 @@ export default async function SondagePage() {
                         Elle vit UNE fois, dans vos intentions ; ici il ne reste
                         que le fait d'avoir répondu, et le bouton qui rouvre la
                         réponse telle qu'elle a été dite. */}
-                    <Repondre question={{ id: q.id, instrument: q.instrument, mot: motDuNiveau(q.instrument) }} existante={mienne ? modifiable(mienne, aujourdHui) : undefined} />
+                    <Repondre question={{ id: q.id, instrument: q.instrument, mot: motDuNiveau(q.instrument) }} existante={mienne ? modifiable(mienne) : undefined} aujourdHui={aujourdHui} />
                   </li>
                 );
               })}
@@ -203,7 +226,7 @@ export default async function SondagePage() {
             un réglage de cette liste-là ; posé ici, il est ce qu'il est : la
             suite de la question qu'on vient de lire — « et si ce que je cherche
             n'y était pas ? » — et la porte de ce qu'on va trouver en dessous. */}
-        <ProposerMaLigne />
+        <ProposerMaLigne aujourdHui={aujourdHui} />
 
         <section className={styles.bloc} id="mes-attentes">
           <h2 className={styles.titre}>{t("Vos intentions")}</h2>
@@ -245,9 +268,9 @@ export default async function SondagePage() {
                     {m.state !== "close" && (
                       <div className={styles.gestes}>
                         {m.repondA ? (
-                          <Repondre question={{ id: m.repondA, instrument: m.instrument, mot: motDuNiveau(m.instrument) }} existante={modifiable(m, aujourdHui)} discret />
+                          <Repondre question={{ id: m.repondA, instrument: m.instrument, mot: motDuNiveau(m.instrument) }} existante={modifiable(m)} discret aujourdHui={aujourdHui} />
                         ) : (
-                          <ProposerMaLigne existante={modifiable(m, aujourdHui)} />
+                          <ProposerMaLigne existante={modifiable(m)} aujourdHui={aujourdHui} />
                         )}
                         <Retirer id={m.id} ref_={m.ref} />
                       </div>
@@ -373,6 +396,9 @@ function Faits({ l, role, t, avant }: { l: LigneSondee; role: "question" | "atte
     l.rate != null ? { quoi: `${t(mot === "taux" ? "taux" : "coupon")} ${q}`, dit: fmtPct(l.rate, 2) } : null,
     r != null ? { quoi: `${t("rendement")} ${q}`, dit: fmtPct(r, 2) } : null,
     j ? { quoi: t("prête vers"), dit: fmtDate(j, false) } : null,
+    /* LA FENÊTRE SE LIT ENTIÈRE : un début sans fin laisse croire qu'une
+       attente court toujours, et c'est précisément ce qu'elle ne fait plus. */
+    l.jusquA ? { quoi: t("valable jusqu'au"), dit: fmtDate(l.jusquA, false) } : null,
   ].filter((x): x is { quoi: string; dit: string; fort?: boolean } => x !== null);
 
   return (

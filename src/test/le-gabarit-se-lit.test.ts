@@ -65,10 +65,13 @@ describe("le gabarit se lit", () => {
     const css = lire(CSS);
     expect(css, "le sélecteur du coin vise de nouveau tous les boutons du champ").not.toMatch(/\.avecBulle > button \{/);
     expect(css, "la bulle de coin a perdu sa règle").toMatch(/\.coin \{[^}]*position: absolute/);
-    /* LES DEUX BULLES DE COIN, COMPTÉES. Une seule suffisait à la clause
-       d'origine, donc en sortir une de son enveloppe ne la faisait pas
-       tomber : la liste du compartiment et celle de la durée en ont chacune
-       une, et c'est la paire qui se garde. */
-    expect((code(TSX).match(/<span className=\{styles\.coin\}>/g) ?? []).length, "une bulle de coin est sortie de son enveloppe").toBe(2);
+    /* UNE SEULE BULLE DE COIN DEPUIS LE 30 OCTOBRE 2026, et ce n'est pas un
+       relâchement : il n'y a plus qu'UNE liste déroulante dans ce formulaire.
+       La durée avait la sienne tant que modifier une ligne rendait deux listes
+       là où en proposer une rendait des jetons ; les deux gestes partagent
+       maintenant le même gabarit, les jetons, et la durée commente sa légende.
+       Le compte reste exact, et il tomberait si celle du compartiment sortait
+       de son enveloppe. Vérification inverse faite. */
+    expect((code(TSX).match(/<span className=\{styles\.coin\}>/g) ?? []).length, "la bulle de coin du compartiment est sortie de son enveloppe").toBe(1);
   });
 });

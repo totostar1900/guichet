@@ -428,7 +428,7 @@ export interface Repository {
    */
   updateLigneSondee(
     id: string,
-    patch: Partial<Pick<LigneSondee, "state" | "closedReason" | "instrument" | "country" | "tenor" | "montant" | "rate" | "pricePct" | "seanceLe" | "dansJours" | "note">>,
+    patch: Partial<Pick<LigneSondee, "state" | "closedReason" | "instrument" | "country" | "tenor" | "montant" | "rate" | "pricePct" | "seanceLe" | "dansJours" | "jusquA" | "note">>,
   ): Promise<LigneSondee>;
 
   listWatches(userId?: string): Promise<Watch[]>;

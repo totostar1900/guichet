@@ -269,7 +269,11 @@ describe("le modèle du sondage", () => {
   it("pose le bouton de la ligne du client entre les deux listes", () => {
     const page = lire("src/app/sondage/page.tsx");
     const question = page.indexOf('t("Combien investiriez-vous ?")');
-    const bouton = page.indexOf("<ProposerMaLigne />");
+    /* Le déclencheur porte le jour d'aujourd'hui depuis le 30 octobre 2026 —
+       la fenêtre de dates le borne au serveur, jamais à l'horloge du
+       navigateur. Celui de la liste des intentions porte « existante » avant,
+       donc ce motif ne vise que le bouton de la page. */
+    const bouton = page.search(/<ProposerMaLigne aujourdHui=/);
     const intentions = page.indexOf('id="mes-attentes"');
     for (const [nom, i] of [["le titre de la question", question], ["le bouton", bouton], ["la section des intentions", intentions]] as const) {
       expect(i, `${nom} a disparu de la page : l'épreuve ne mesure plus rien`).toBeGreaterThan(-1);

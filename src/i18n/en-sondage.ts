@@ -235,4 +235,29 @@ export const EN_SONDAGE: Record<string, string> = {
   "Votre réponse y entre sans rien engager : il n'y a rien à signer et rien à provisionner.":
     "Your answer joins it without committing you to anything: there is nothing to sign and nothing to fund.",
   "Lire une ligne": "Reading a line",
+  /* LA FENÊTRE D'UNE ATTENTE, depuis le 30 octobre 2026 : deux dates côte à
+     côte, un début et une fin, là où le champ demandait un nombre de jours. */
+  "Prêt à partir du": "Ready from",
+  "Valable jusqu'au": "Valid until",
+  "valable jusqu'au": "valid until",
+  "Une séance tenue avant ce jour vous trouverait sans fonds : c'est pour cela qu'on vous le demande.":
+    "A session held before that day would find you without funds : that is why we ask.",
+  "Passé ce jour, votre attente se retire d'elle-même : le desk ne porte au Trésor que des appétits vivants. Laissez vide pour qu'elle tienne jusqu'à ce que vous la retiriez.":
+    "After that day your expression of interest withdraws itself : the desk carries only live appetite to the Treasury. Leave it empty and it stands until you withdraw it.",
+  /* LE GABARIT UNIQUE : la règle change, la forme non. */
+  "Une intention porte un seul Trésor : en choisir un autre déplace votre choix.":
+    "One expression of interest carries one Treasury : choosing another moves your choice.",
+  "Une intention porte une seule durée : en choisir une autre déplace votre choix.":
+    "One expression of interest carries one term : choosing another moves your choice.",
+  "Prenez-en plusieurs si plusieurs vous conviennent : ce sont des alternatives, pas des additions, et votre montant n'est compté qu'une fois.":
+    "Take several if several suit you : they are alternatives, not additions, and your amount is counted once.",
+  "Une ligne, celle que vous modifiez.": "One line, the one you are changing.",
+  "Pour en viser une seconde, proposez-la depuis la page : votre montant n'est compté qu'une fois par ligne.":
+    "To aim at a second one, propose it from the page : your amount is counted once per line.",
+  /* LES DEUX SOUS-TEXTES DE LA PAGE : ce qu'on y fait, selon qu'une ligne est
+     sondée ou non. Aucun des deux ne nomme le vide. */
+  "Dire ce que vous prendriez avant qu'une séance ouvre. Proposez la ligne que vous cherchez : la plupart des séances que nous obtenons en viennent, et rien ne vous engage.":
+    "Say what you would take before a session opens. Propose the line you are after : most of the sessions we obtain come from one, and nothing commits you.",
+  "Dire ce que vous prendriez avant qu'une séance ouvre. Répondez à une ligne, ou proposez celle que vous cherchez : la plupart des séances que nous obtenons en viennent, et rien ne vous engage.":
+    "Say what you would take before a session opens. Answer a line, or propose the one you are after : most of the sessions we obtain come from one, and nothing commits you.",
 };

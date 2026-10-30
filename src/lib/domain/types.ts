@@ -451,6 +451,21 @@ export interface LigneSondee {
   /** La date visée, ou le délai en jours quand la date n'est pas fixée. L'un des deux. */
   seanceLe?: string;
   dansJours?: number;
+  /**
+   * LA FIN DE LA FENÊTRE : jusqu'à quand cette attente tient.
+   *
+   * Elle n'en avait pas, et c'était la moitié manquante d'une fenêtre : une
+   * ligne disait à partir de quand son auteur serait prêt, jamais jusqu'à
+   * quand il le resterait. Le desk portait donc au Trésor des appétits que
+   * personne n'avait démentis — et que personne n'avait confirmés non plus.
+   * La seule sortie était le bouton « Retirer », qu'il fallait penser à venir
+   * presser.
+   *
+   * Passé ce jour, la ligne cesse de compter dans le consensus : voir
+   * « expiree » et « consensus » dans domain/sondage. Vide, l'attente tient
+   * jusqu'à ce que son auteur la retire, comme avant.
+   */
+  jusquA?: string;
   note?: string;
   state: EtatDeSondage;
   /** Le motif de clôture, que le client lit. */
@@ -475,6 +490,8 @@ export interface NewLigneSondee {
   montant: number;
   seanceLe?: string;
   dansJours?: number;
+  /** Jusqu'à quand l'attente tient : voir « LigneSondee.jusquA ». */
+  jusquA?: string;
   note?: string;
 }
 

@@ -1,5 +1,5 @@
 /**
- * CE QUE LES 120 MIGRATIONS DU DÉPÔT DÉCLARENT.
+ * CE QUE LES 121 MIGRATIONS DU DÉPÔT DÉCLARENT.
  *
  * ÉCRIT PAR UN SCRIPT, JAMAIS À LA MAIN : `npm run schema:attendu`. Un cliquet
  * (src/test/schema-attendu.test.ts) refuse qu'il s'écarte des migrations, parce
@@ -208,6 +208,7 @@ export const SCHEMA_ATTENDU: Omit<SchemaDeclare, "incompris"> = {
   "standing_orders.supersedes",
   "standing_runs.intents",
   "survey_lines.famille_id",
+  "survey_lines.jusqu_a",
   "treasury_operations.montant_realise",
   "treasury_operations.source_rapport_url",
   "treasury_operations.taux_participation",
@@ -334,6 +335,7 @@ export const SCHEMA_ATTENDU: Omit<SchemaDeclare, "incompris"> = {
   "standing_runs_file",
   "standing_runs_une_par_occurrence",
   "survey_lines_famille_idx",
+  "survey_lines_jusqu_a_idx",
   "survey_lines_ouvertes_idx",
   "survey_lines_reponse_a_idx",
   "survey_lines_seance_le_idx",

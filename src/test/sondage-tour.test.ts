@@ -264,4 +264,56 @@ describe("le tour du sondage", () => {
     const plaintes = (await r.listEvents(100)).filter((e) => /clôture non annoncée/i.test(e.html) && e.html.includes(sienne.ref));
     expect(plaintes, "la maison se plaint de ne pas avoir pu se prévenir elle-même").toEqual([]);
   });
+
+  /**
+   * LA FENÊTRE GOUVERNE QUAND IL Y EN A UNE — RELEVÉ LE 30 OCTOBRE 2026.
+   *
+   * Une ligne ne portait qu'un DÉBUT, et le robot la fermait le lendemain :
+   * « prêt à partir du 18 novembre » devenait clos le 19. C'était la seule
+   * lecture possible d'une date seule. Elle contredit maintenant ce que le
+   * client écrit — « valable jusqu'au 31 décembre » veut dire qu'il reste
+   * preneur six semaines de plus — et sans cette clause, le robot le
+   * démentirait chaque soir sans que personne le voie.
+   */
+  it("laisse vivre une attente dont le début est passé mais la fenêtre ouverte", async () => {
+    const { repo } = await import("@/lib/data");
+    const { tourDuSondage } = await import("@/lib/sondage/tour");
+    const r = repo();
+
+    const ouverte = await r.createLigneSondee({
+      origine: "client",
+      userId: "u-tour-fenetre",
+      clientName: "Essai Fenêtre",
+      instrument: "OTA",
+      country: "Gabon",
+      tenor: "5 ans",
+      montant: 20_000_000,
+      seanceLe: "2026-10-01",
+      jusquA: "2026-12-31",
+    });
+    const fermee = await r.createLigneSondee({
+      origine: "client",
+      userId: "u-tour-fenetre",
+      clientName: "Essai Fenêtre",
+      instrument: "OTA",
+      country: "Tchad",
+      tenor: "5 ans",
+      montant: 20_000_000,
+      seanceLe: "2026-10-01",
+      jusquA: "2026-10-20",
+    });
+
+    const t = await tourDuSondage(new Date("2026-10-26T06:40:00Z"));
+
+    expect(t.closes, "une attente dont la fenêtre court encore a été close par son début").not.toContain(ouverte.ref);
+    expect(t.closes, "une attente dont la fenêtre est fermée court toujours").toContain(fermee.ref);
+
+    const apres = (await r.listLignesSondees({ userId: "u-tour-fenetre" })).find((x) => x.id === fermee.id)!;
+    /* LE MOTIF DIT LA FIN, ET NON LE DÉBUT : écrit « vous étiez prêt à partir
+       du 1er octobre », il nommerait une date que le client a lui-même
+       dépassée exprès, et le motif passerait pour une erreur. */
+    expect(apres.closedReason, "le motif nomme le début au lieu de la fin").toMatch(/valable jusqu'au/i);
+    expect(apres.closedReason, "la fin n'est pas nommée").toMatch(/20 oct/);
+    expect(apres.closedReason, "le vocabulaire de l'échec n'a rien à faire ici").not.toMatch(/échou|raté|erreur|refus/i);
+  });
 });

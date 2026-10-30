@@ -1199,6 +1199,11 @@ export const SEED_SONDAGES: LigneSondee[] = [
     pricePct: 99,
     montant: 30_000_000,
     dansJours: 60,
+    /* LA FENÊTRE, SUR LA LIGNE QUE LE CLIENT A POUSSÉE : elle montre à l'écran
+       ce que le champ demande, et le robot la lit le soir venu. Les autres
+       lignes du semis n'en portent pas, et c'est voulu : sans fin, une attente
+       tient jusqu'au retrait, comme toutes celles d'avant le 30 octobre. */
+    jusquA: "2027-02-28",
     note: "Je cherche du court congolais : rien d'annoncé depuis juin.",
     state: "ouverte",
     createdAt: "2026-10-25T16:20:00",

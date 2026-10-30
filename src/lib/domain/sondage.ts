@@ -126,7 +126,7 @@ export const dureesDe = (i: InstrumentSonde): string[] =>
  * ou un coupon sur un bon serait demander un chiffre qui n'existe pas.
  */
 export interface ChampDuGabarit {
-  cle: "country" | "tenor" | "rate" | "pricePct" | "montant" | "quand";
+  cle: "country" | "tenor" | "rate" | "pricePct" | "montant" | "quand" | "jusqua";
   nom: string;
   aide: string;
   requis: boolean;
@@ -148,7 +148,8 @@ export function gabarit(i: InstrumentSonde): ChampDuGabarit[] {
     ...commun,
     ...niveau,
     { cle: "montant", nom: "Ce que vous prendriez", aide: "En francs. C'est ce chiffre qui est porté au Trésor, et rien ne vous engage.", requis: true },
-    { cle: "quand", nom: "À partir de quand", aide: "La date où vous seriez prêt, ou le nombre de jours. Une séance tenue avant elle vous trouverait sans fonds.", requis: true },
+    { cle: "quand", nom: "Prêt à partir du", aide: "Le jour où vous seriez prêt. Une séance tenue avant lui vous trouverait sans fonds.", requis: true },
+    { cle: "jusqua", nom: "Valable jusqu'au", aide: "Le jour où votre attente s'arrête d'elle-même. Le desk ne porte au Trésor que des appétits vivants.", requis: false },
   ];
 }
 
@@ -169,6 +170,11 @@ export function manquesDeLaLigne(l: Partial<LigneSondee>, aujourdHui: string): s
   if (!l.seanceLe && l.dansJours == null) dits.push("Dites à partir de quand vous seriez prêt : une date, ou un nombre de jours.");
   if (l.seanceLe && l.seanceLe < aujourdHui) dits.push("Cette date est passée : une séance ne se tient pas hier.");
   if (l.dansJours != null && (l.dansJours < 0 || l.dansJours > 365)) dits.push("Le délai se dit entre 0 et 365 jours.");
+  /* LA FENÊTRE SE TIENT DANS LE BON SENS, et elle ne se ferme pas hier : une
+     attente déjà expirée au dépôt ne compterait nulle part, et le client
+     croirait l'avoir dite. */
+  if (l.jusquA && l.jusquA < aujourdHui) dits.push("Cette fin est passée : une attente qui s'arrête hier ne dit rien au desk.");
+  if (l.jusquA && l.seanceLe && l.jusquA < l.seanceLe) dits.push("La fin vient avant le début : votre attente se fermerait avant de s'ouvrir.");
   if (l.rate != null && !(l.rate > 0 && l.rate <= 30)) dits.push("Un taux au-dessus de 30 % est probablement une faute de frappe.");
   if (l.pricePct != null && (l.pricePct < 50 || l.pricePct > 150)) dits.push("Un prix se dit en pourcentage du nominal, entre 50 et 150.");
   /* UN BON N'A NI COUPON NI PRIX : il se vend précompté, et son taux EST son
@@ -306,6 +312,17 @@ const minuit = (iso: string) => Date.parse(`${iso.slice(0, 10)}T00:00:00Z`);
  * Lui remontrer 21 lui dirait que sa ligne est prête le 16 novembre, alors
  * qu'elle l'est le 9. Ce qu'il doit lire est ce qui reste : quatorze.
  */
+/**
+ * LA FENÊTRE EST-ELLE REFERMÉE ?
+ *
+ * « jusquA » vide veut dire « jusqu'à ce que je la retire », et c'est le cas de
+ * toutes les lignes d'avant le 30 octobre 2026 : elles ne s'éteignent pas, et
+ * elles ne doivent pas s'éteindre rétroactivement.
+ */
+export function expiree(l: Pick<LigneSondee, "jusquA">, aujourdHui: string): boolean {
+  return Boolean(l.jusquA && l.jusquA < aujourdHui);
+}
+
 export function joursRestants(l: Pick<LigneSondee, "seanceLe" | "dansJours" | "createdAt">, aujourdHui: string): number | undefined {
   const j = prete(l);
   return j ? Math.max(0, Math.round((minuit(j) - minuit(aujourdHui)) / JOUR)) : undefined;

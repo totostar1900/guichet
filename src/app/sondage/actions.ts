@@ -36,6 +36,8 @@ const champs = z.object({
   /** L'un OU l'autre : la contrainte de la base refuse les deux. */
   seanceLe: z.string().optional(),
   dansJours: z.string().optional(),
+  /** La fin de la fenêtre : jusqu'à quand l'attente tient. */
+  jusquA: z.string().optional(),
   note: z.string().max(600).optional(),
 });
 
@@ -101,6 +103,7 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
     montant: parseAmount(d.montant ?? "") ?? 0,
     seanceLe: d.seanceLe?.trim() || undefined,
     dansJours: d.seanceLe?.trim() ? undefined : nombre(d.dansJours),
+    jusquA: d.jusquA?.trim() || undefined,
     note: d.note?.trim() || undefined,
   };
   /* LA FAMILLE N'EXISTE QUE S'IL Y A PLUSIEURS SŒURS. Une ligne seule porterait
@@ -218,6 +221,7 @@ export async function modifierLaLigne(_p: SondageResult | null, form: FormData):
        semaine — et sur une intention plus ancienne, la poserait dans le passé,
        où le robot la clôt le soir même. Voir « domain/sondage ». */
     dansJours: d.seanceLe?.trim() ? undefined : jours != null ? delaiDepuisLaCreation(sienne.createdAt, jours, localIso(new Date())) : undefined,
+    jusquA: d.jusquA?.trim() || undefined,
     note: d.note?.trim() || undefined,
   };
 
