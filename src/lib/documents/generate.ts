@@ -250,20 +250,19 @@ export async function generateCouponNotice(clientId: string, isin: string, flowD
   return store({ type: "coupon", number, registerNo, title: `${/rembours/i.test(flow.label) ? "Avis de remboursement" : "Avis de coupon"} : ${position.offer.title} · ${fmtDate(flow.date)}`, clientName: contact.name, clientId, offerId: position.offer.id, intentId: position.intent.id, createdBy: opts.advisor, templateVersions: wording.versions, flowKey }, pdf, now);
 }
 
-/** A complaint, from the client (signed by code) or recorded by the desk. The deadlines are stamped on it. */
-export async function generateComplaint(clientId: string, input: { operation?: string; facts: string; ask: string; receivedVia: string; signedBy?: string; advisor?: string; contact?: Contact }): Promise<GeneratedDocument & { ackBy: string; answerBy: string }> {
+/** A complaint, from the client (signed by code) or recorded by the desk. Only the internal acknowledgement date is stamped; no answer deadline exists (« délai raisonnable »). */
+export async function generateComplaint(clientId: string, input: { operation?: string; facts: string; ask: string; receivedVia: string; signedBy?: string; advisor?: string; contact?: Contact }): Promise<GeneratedDocument & { ackBy: string }> {
   const r = repo();
   const contact = (await r.getContact(clientId)) ?? input.contact;
   if (!contact) throw new Error("Client introuvable");
   const now = new Date();
   const ackBy = addBusinessDays(now, 2).toISOString().slice(0, 10);
-  const answerBy = new Date(now.getTime() + 30 * 86400e3).toISOString().slice(0, 10);
   const { number, registerNo } = await nextNumbers("reclamation", now);
   const wording = await resolvePassages("reclamation");
   const ctx: ComplaintCtx = { number, contact, operation: input.operation, facts: input.facts, ask: input.ask, receivedVia: input.receivedVia, signedBy: input.signedBy, now, texts: wording.text };
   const pdf = await renderToBuffer(el(createElement(ReclamationPdf, ctx)));
   const doc = await store({ type: "reclamation", number, registerNo, title: `Réclamation : ${contact.name}${input.operation ? ` · ${input.operation.slice(0, 40)}` : ""}`, clientName: contact.name, clientId, createdBy: input.advisor, templateVersions: wording.versions }, pdf, now);
-  return { ...doc, ackBy, answerBy };
+  return { ...doc, ackBy };
 }
 
 export async function generateTransferOrder(file: ClientFile, closure: Closure, advisor?: string): Promise<GeneratedDocument> {

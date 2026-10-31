@@ -147,6 +147,13 @@ describe("la maison ne promet pas de délai de réponse", () => {
     expect(pdf, "la copie signée porte de nouveau une date limite de réponse").not.toMatch(/au plus tard le|answerBy|ackBy/);
   });
 
+  it("n'a plus de date limite de réponse, ni au desk ni dans les envois", () => {
+    /* Le desk garde l'accusé de réception (cible interne) ; la réponse n'a plus de date. */
+    for (const f of ["src/lib/documents/generate.ts", "src/app/moi/reclamation/actions.ts", "src/app/desk/clients/acts-actions.ts"]) {
+      expect(sansNotes(lire(f)), `${f} recalcule ou affiche de nouveau une date de réponse`).not.toMatch(/answerBy|réponse avant le/);
+    }
+  });
+
   it("et le relevé voit bien une promesse, et laisse une heure d'ouverture", () => {
     /* La fonction est PURE : cinq formes à refuser, quatre à laisser. */
     expect(promessesDeDelai("un conseiller répond dans l'heure ouvrée")).toHaveLength(1);

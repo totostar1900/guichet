@@ -174,7 +174,7 @@ export async function complaintDeskAction(_p: ActResult | null, form: FormData):
   if (facts.length < 10 || ask.length < 5) return { ok: false, error: "Notez les faits et la demande, avec les mots du client." };
   const doc = await generateComplaint(f.userId, { operation, facts, ask, receivedVia: `${receivedVia} (enregistrée par ${desk.name})`, signedBy: `enregistrée par ${desk.name} d'après ${receivedVia.toLowerCase()}`, advisor: desk.name });
   const contact = await r.getContact(f.userId);
-  await r.createInbound({ channel: receivedVia === "E-mail" ? "email" : "whatsapp", from: contact?.phone ?? contact?.email ?? f.userId, name: f.identity.name, subject: `Réclamation ${doc.number}`, body: `${facts}\n\nDemande : ${ask}\n\nAccusé de réception avant le ${doc.ackBy}, réponse avant le ${doc.answerBy}.` });
+  await r.createInbound({ channel: receivedVia === "E-mail" ? "email" : "whatsapp", from: contact?.phone ?? contact?.email ?? f.userId, name: f.identity.name, subject: `Réclamation ${doc.number}`, body: `${facts}\n\nDemande : ${ask}\n\nAccusé de réception avant le ${doc.ackBy}.` });
   const channel = await preferredChannel(f.userId);
   if (contact && channel) await notifyClientDocument(doc, contact, channel);
   await r.logEvent({ kind: "desk", html: `<b>Réclamation</b> ${doc.number} enregistrée : ${f.identity.name} (${receivedVia}) · accusé avant le ${fmtDate(doc.ackBy)} · par ${desk.name}` });

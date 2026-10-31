@@ -43,7 +43,7 @@ describe("actes et avis", () => {
     const c = await generateComplaint("c-se", { facts: "Le coupon est arrivé en retard.", ask: "Une explication.", receivedVia: "le site", signedBy: "code sur WhatsApp" });
     expect(c.number).toMatch(/^PC-REC-/);
     expect(c.ackBy > c.createdAt.slice(0, 10)).toBe(true);
-    expect(c.answerBy > c.ackBy).toBe(true);
+    expect((c as { answerBy?: string }).answerBy, "la réponse n'a plus de date limite").toBeUndefined();
 
     const file = await r.createClientFile({ userId: "c-se", kind: "physique", status: "approuve", identity: { name: "S. E.", city: "Paris", country: "Cameroun" }, persons: [], documents: [], funds: { pep: false }, profile: { category: "non_professionnel" }, consents: {}, review: { custodianAccount: "0001-TEST" }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
     const tr = await generateTransferOrder(file, { scope: "tout", destination: "Autre SDB", requestedAt: new Date().toISOString() }, "Desk Test");
