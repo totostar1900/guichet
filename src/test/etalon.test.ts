@@ -195,8 +195,18 @@ describe("les deux arbitrages", () => {
       "src/app/moi/epargne/page.module.css",
       "src/app/moi/documents/page.module.css",
     ];
-    const hors = porteurs.filter((p) => !lire(p).includes("gap: var(--s-10)"));
-    expect(hors, "ces pages n'écartent plus leurs bandes de l'écart de l'étalon").toEqual([]);
+    /* LE CLIQUET LIT LE CONTENEUR, ET NON LA CHAÎNE (31 octobre 2026). Il vérifiait
+       que « gap: var(--s-10) » figurait QUELQUE PART dans le fichier : Trade a
+       glissé à 20 pendant qu'une autre règle du même fichier gardait le 32, et il
+       restait vert. On lit maintenant la règle du conteneur de page. */
+    const conteneur = (p: string) => (lire(p).replace(/\/\*[\s\S]*?\*\//g, "").match(/\.(?:page|wrap|rayons)\s*\{[^}]*\}/g) ?? []).filter((r) => /\bgap:/.test(r));
+    const hors = porteurs.filter((p) => {
+      const regles = conteneur(p);
+      return regles.length === 0 || regles.some((r) => !/gap:\s*var\(--sections-gap\)/.test(r));
+    });
+    expect(hors, "ces pages n'écartent plus leurs bandes du jeton --sections-gap").toEqual([]);
+    expect(lire("src/app/globals.css"), "le jeton des sections n'est plus 26 px").toMatch(/--sections-gap:\s*26px/);
+    expect(lire("src/app/globals.css"), "le jeton des tuiles n'est plus 12 px").toMatch(/--tuiles-gap:\s*var\(--s-6\)/);
   });
 });
 

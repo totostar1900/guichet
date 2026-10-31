@@ -200,7 +200,7 @@ describe("un rayon, une page", () => {
        commune qui le tient. */
     const css = lire("src/components/mobile/Rubriques.module.css");
     expect(css, "les rubriques sont revenues à de simples filets").toMatch(/\.ligne \{[^}]*border-radius/);
-    expect(css, "l'écart entre deux bandes n'est plus celui de l'étalon").toMatch(/\.liste \{[^}]*gap: var\(--s-10\)/);
+    expect(css, "l'écart entre deux bandes n'est plus celui des tuiles (--tuiles-gap, douze)").toMatch(/\.liste \{[^}]*gap: var\(--tuiles-gap\)/);
   });
 
   it("ne replie plus rien, et ne compte plus rien", () => {

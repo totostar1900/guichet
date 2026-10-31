@@ -19,7 +19,7 @@
      moins tient au-dessus de la ligne de flottaison ; à vingt, quatre titres
      nus se lisaient comme un seul texte (c'est ce que la page de réinvestissement
      avait relevé). Voir ETALON.md. */
-  gap: var(--s-10);
+  gap: var(--sections-gap);
 }
 
 /* CE QUI SE FABRIQUE : le seul papier qui n'existe pas encore quand on

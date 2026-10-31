@@ -9,8 +9,8 @@
    rubrique ouvre une page, c'est désigner qu'il faut.
 
    Les mesures sont celles de l'étalon : fond, bord d'un pixel, rayon, marge
-   intérieure 12/16, et l'écart entre deux bandes vaut « --s-10 », écrit ici
-   SEUL — jamais composé d'un gap et d'une marge, la faute que l'arbitrage B
+   intérieure 12/16, et l'écart entre deux bandes vaut « --tuiles-gap » (12, depuis
+   le 31 octobre 2026 ; c'était --s-10), écrit ici SEUL — jamais composé d'un gap et d'une marge, la faute que l'arbitrage B
    a défaite (voir ETALON.md). */
 
 .liste {
@@ -19,7 +19,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--s-10);
+  gap: var(--tuiles-gap);
 }
 /* La bande est la même qu'elle mène ailleurs ou qu'elle change l'écran sur
    place : les quatre dernières déclarations ne servent qu'au bouton, dont le

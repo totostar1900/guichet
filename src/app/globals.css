@@ -330,7 +330,17 @@
      grammaire de plis ne se ressemblaient pas. Le réglage vit ici, et les
      pages harmonisées le lisent — le jour où la maison veut respirer plus
      large, un seul chiffre bouge. */
-  --sections-gap: var(--s-8);
+  /* VINGT-SIX, DÉCIDÉ LE 31 OCTOBRE 2026 (revue des écarts, page par page).
+     Mesuré sur vingt-cinq pages : huit valeurs entre 8 et 40, dont douze pages
+     à 20 et cinq à 32, quand ETALON.md disait déjà « 32, écrit une seule
+     fois ». Le chiffre vit ICI, et seulement ici : une page qui écrit le sien
+     dans « gap » ne lit plus la maison. Hors échelle (--s-*) à dessein : 20 se
+     lisait comme un seul texte, 32 flottait sur téléphone. */
+  --sections-gap: 26px;
+  /* L'ÉCART ENTRE DEUX TUILES, ÉCRIT UNE FOIS : douze. C'était déjà la valeur la
+     plus répandue (Trade, Agir, Services, Compte) ; une bande de sommaire à 32
+     se lisait comme une autre section. */
+  --tuiles-gap: var(--s-6);
   /* ── LES DEUX GABARITS DE PAGE, ET POURQUOI DEUX ───────────────────────────
      Mesuré le 24 octobre 2026 : vingt-deux pages, SIX largeurs. Et le trajet
      comptait plus que le tableau — dans le seul groupe « Portefeuille » :

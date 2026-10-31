@@ -173,7 +173,7 @@ describe("l'écran de Trade", () => {
     const css = lire("src/app/trader/page.module.css");
     const rayons = [...css.matchAll(/\.rayons\s*\{([^}]*)\}/g)];
     expect(rayons.length, "« .rayons » est de nouveau écrit deux fois : la seconde écriture gagne en silence").toBe(1);
-    expect(rayons[0][1], "l'écart des rayons n'est plus celui de l'étalon").toMatch(/gap:\s*var\(--s-10\)/);
+    expect(rayons[0][1], "l'écart des rayons n'est plus celui de l'étalon").toMatch(/gap:\s*var\(--sections-gap\)/);
   });
 });
 
