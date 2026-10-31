@@ -158,7 +158,8 @@ describe("ce que le parcours du mandat doit dire", () => {
   const vue = readFileSync("src/app/moi/prelevements/MesMandats.tsx", "utf8");
 
   it("dit la signature après que le formulaire qui la portait a disparu", () => {
-    const signe = vue.slice(vue.indexOf("{m.signeLe ? ("), vue.indexOf(") : ("));
+    const debutSigne = vue.indexOf("{m.signeLe ? (");
+    const signe = vue.slice(debutSigne, vue.indexOf(") : (", debutSigne));
     expect(signe, "la confirmation de signature n'est plus dans la branche qui survit").toMatch(/sign\?\.ok && sign\.message/);
     /* Non vacuité : le message vient bien de l'action de signature, et la
        branche examinée est bien celle du mandat signé. */

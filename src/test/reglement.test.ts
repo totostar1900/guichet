@@ -144,7 +144,8 @@ describe("écrire le compte de règlement", () => {
      destination de l'argent de toute la clientèle. */
   it("enregistre un brouillon, et jamais la valeur publiée", () => {
     const src = code(ACTIONS);
-    const enregistrer = src.slice(src.indexOf("export async function enregistrerReglementAction"), src.indexOf("export async function publierReglementAction"));
+    const debut = src.indexOf("export async function enregistrerReglementAction");
+    const enregistrer = src.slice(debut, src.indexOf("export async function publierReglementAction", debut));
     expect(enregistrer, "l'enregistrement n'écrit plus un brouillon").toContain("saveReferenceDraft");
     expect(enregistrer, "l'enregistrement publie directement : le second regard est contourné").not.toContain("upsertReference");
     expect(enregistrer, "l'enregistrement publie directement : le second regard est contourné").not.toContain("publishReference");

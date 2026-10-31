@@ -376,7 +376,7 @@ describe("l'en-tête d'une page", () => {
        de l'en-tête il ne reste donc aucune balise à fermer. */
     const pose = s.indexOf("{aCote}");
     expect(pose, "le créneau « à côté » a disparu de la coquille").toBeGreaterThan(0);
-    expect(s.slice(pose, s.indexOf("</header>")), "le « à côté » est repassé sous le titre, dans le bloc des mots").not.toContain("</div>");
+    expect(s.slice(pose, s.indexOf("</header>", pose)), "le « à côté » est repassé sous le titre, dans le bloc des mots").not.toContain("</div>");
     const css = fs.readFileSync(path.join(ROOT, "src/components/EnTete.module.css"), "utf8");
     expect(css, "le « à côté » ne sait plus passer à la ligne quand la place manque").toMatch(/\.avecCote\s*{[^}]*flex-wrap:\s*wrap/);
   });

@@ -54,7 +54,8 @@ describe("une liste déroulante ouverte dans une feuille", () => {
     expect(feuille, "la feuille ne regarde plus si une liste est ouverte avant de se fermer").toMatch(/document\.querySelector\("\[data-liste-ouverte\]"\)/);
     /* NON VACUITÉ : c'est bien la touche Échap qui est en cause, et la feuille
        se ferme toujours quand aucune liste n'est ouverte. */
-    const bloc = feuille.slice(feuille.indexOf("const onKey"), feuille.indexOf("document.addEventListener"));
+    const debutOnKey = feuille.indexOf("const onKey");
+    const bloc = feuille.slice(debutOnKey, feuille.indexOf("document.addEventListener", debutOnKey));
     expect(bloc, "le garde ne tient plus sur la touche Échap").toMatch(/e\.key !== "Escape"/);
     expect(bloc, "la feuille ne se ferme plus du tout sur Échap").toMatch(/onClose\(\)/);
   });

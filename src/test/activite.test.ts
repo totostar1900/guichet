@@ -177,7 +177,8 @@ describe("le barème se règle au référentiel, et se publie en voyant qui boug
        sans que personne ne l'ait regardée. */
     const src = lire("src/app/desk/referentiel/bareme/actions.ts");
     expect(src).toMatch(/saveReferenceDraft\(REF\.bareme, BAREME_KEY/);
-    const enregistrer = src.slice(src.indexOf("export async function enregistrerBaremeAction"), src.indexOf("export async function publierBaremeAction"));
+    const debut = src.indexOf("export async function enregistrerBaremeAction");
+    const enregistrer = src.slice(debut, src.indexOf("export async function publierBaremeAction", debut));
     expect(enregistrer).not.toMatch(/publishReference/);
   });
 

@@ -216,7 +216,8 @@ describe("une intention en cours", () => {
     expect(carte, "le clic dehors ne referme plus le menu").toMatch(/mousedown/);
     /* ET IL NE PORTE QUE DES ACTIONS : la raison d'un retrait impossible est
        une information, et elle se lisait comme une commande en panne. */
-    const menu = carte.slice(carte.indexOf('role="menu"'), carte.indexOf("{confirme &&"));
+    const debutMenu = carte.indexOf('role="menu"');
+    const menu = carte.slice(debutMenu, carte.indexOf("{confirme &&", debutMenu));
     expect(menu, "la raison du retrait impossible est remontée dans le menu").not.toContain("raisonNonRetrait");
     expect(carte, "la raison du retrait impossible ne se lit plus nulle part").toContain("{raisonNonRetrait && ");
   });

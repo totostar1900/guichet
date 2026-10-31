@@ -123,6 +123,96 @@ const lireDuDepot = (chemin: string): string | null => {
   }
 };
 
+/**
+ * LA FIN D'UNE TRANCHE SE CHERCHE DEPUIS SON DÉBUT.
+ *
+ * ─── Le second motif de vacuité, et il est silencieux aussi ────────────────
+ *
+ * Une épreuve découpe une région du source et lui refuse quelque chose :
+ *
+ *     const menu = carte.slice(carte.indexOf('role="menu"'), carte.indexOf("{confirme &&"));
+ *     expect(menu).not.toContain("raisonNonRetrait");
+ *
+ * Le second « indexOf » part de ZÉRO. Il trouve donc la première occurrence
+ * du FICHIER, et non la première après le début de la tranche. Tant que le
+ * marqueur de fin vient après celui de début, tout va bien — c'est le cas de
+ * naissance, et c'est pourquoi personne ne le voit. Le jour où on déplace un
+ * bloc, où l'on ajoute un bouton au-dessus d'un autre, où l'on réordonne deux
+ * fonctions d'un fichier d'actions, la fin passe AVANT le début : la tranche
+ * sort VIDE, et tout ce qu'on lui refuse devient vrai pour rien.
+ *
+ * RELEVÉ LE 1er NOVEMBRE 2026, deux fois. Une tranche de « sondage-modele »
+ * d'abord, en vérifiant la revue du marché à l'envers ; puis onze autres en
+ * passant la suite entière à la sonde. Aucune n'était vide ce jour-là — elles
+ * étaient justes par l'ordre des choses, pas par construction.
+ *
+ * ─── Pourquoi la règle suffit, alors qu'on ne peut pas mesurer le vide ─────
+ *
+ * On ne peut pas garder « la tranche n'est pas vide » : cela dépend du
+ * contenu, qu'une épreuve statique ne lit pas. Mais la fin cherchée DEPUIS LE
+ * DÉBUT change la nature de la panne. Marqueur introuvable après le début,
+ * « indexOf » rend -1, et « slice(debut, -1) » va jusqu'à l'avant-dernier
+ * caractère : la tranche devient énorme au lieu de disparaître. Ce qu'on lui
+ * refuse a alors toutes les chances de s'y trouver, et la clause TOMBE.
+ *
+ * C'est tout ce qu'on demande à une garde : se tromper en rouge plutôt qu'en
+ * vert. Un faux rouge se corrige le jour même ; un faux vert dort des mois.
+ */
+describe("une tranche de source cherche sa fin depuis son début", () => {
+  /** Les tranches dont la fin part de zéro, avec leur ligne. */
+  const finSansDebut = (source: string): number[] =>
+    source
+      .split("\n")
+      .map((l, i) => ({ l, n: i + 1 }))
+      /* Le début de la tranche n'est pas zéro — « slice(0, …) » n'a pas de
+         début à propager — et la fin est un « indexOf » à UN SEUL argument.
+         Le second argument, quand il est là, est soit un nombre, soit un
+         autre « indexOf » : les deux portent une virgule hors des guillemets
+         du motif, qu'on reconnaît à ce qu'elle suit une parenthèse fermante
+         ou un mot. */
+      .filter(({ l }) => {
+        const m = /\.slice\(\s*(?!0\s*,)[^,]+,\s*[\w.]+\.indexOf\((.*)\)\s*\)/.exec(l);
+        if (!m) return false;
+        const args = m[1];
+        /* « "x" » seul : pas de seconde borne. « "x", debut » ou
+           « "x", y.indexOf(…) » : il y en a une. */
+        return !/"\s*,|'\s*,|`\s*,/.test(args);
+      })
+      .map(({ n }) => n);
+
+  it("ne laisse aucune tranche chercher sa fin depuis le début du texte", () => {
+    const fautives: string[] = [];
+    for (const f of epreuves()) {
+      if (f === "clause-qui-distingue.test.ts") continue;
+      for (const n of finSansDebut(readFileSync(join(ROOT, "src/test", f), "utf8"))) fautives.push(`${f}:${n}`);
+    }
+    expect(
+      fautives,
+      `ces tranches cherchent leur fin depuis le début du texte : le jour où le marqueur de fin passera avant celui de début, elles sortiront VIDES et tout ce qu'on leur refuse deviendra vrai pour rien. Passez le début en seconde borne — « s.indexOf("fin", debut) » :\n  ${fautives.join("\n  ")}`,
+    ).toEqual([]);
+  });
+
+  it("et il voit bien une fin qui part de zéro", () => {
+    /* NON VACUITÉ PAR LA FONCTION : quatre formes à refuser, quatre à
+       laisser. Sans ce cas, le motif pourrait cesser de reconnaître quoi que
+       ce soit et rendre « aucune tranche fautive ». */
+    const refuse = [
+      `const a = s.slice(s.indexOf("debut"), s.indexOf("fin"));`,
+      `const b = x.slice(i, x.indexOf("fin"));`,
+      `expect(s.slice(pose, s.indexOf("</header>"))).not.toContain("x");`,
+      `const d = sb.slice(sb.indexOf("async a"), sb.indexOf("async b"));`,
+    ];
+    const laisse = [
+      `const a = s.slice(s.indexOf("debut"), s.indexOf("fin", debut));`,
+      `const b = css.slice(css.indexOf(".band {"), css.indexOf("\\n}", css.indexOf(".band {")));`,
+      `const c = m.slice(0, m.indexOf("fin"));`,
+      `const d = s.slice(i);`,
+    ];
+    expect(finSansDebut(refuse.join("\n")), "le relevé ne reconnaît plus une fin cherchée depuis zéro").toEqual([1, 2, 3, 4]);
+    expect(finSansDebut(laisse.join("\n")), "le relevé refuse des tranches qui portent déjà leur borne : il rendra de faux rouges").toEqual([]);
+  });
+});
+
 describe("une clause de présence sait ce qu'elle a trouvé", () => {
   it("n'exige jamais un jeton que son fichier écrit deux fois", () => {
     const fautives: string[] = [];

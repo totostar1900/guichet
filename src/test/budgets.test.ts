@@ -604,7 +604,8 @@ describe("la page des budgets", () => {
   it("est rangée au rail du desk, dans « Le marché »", () => {
     const groupes = lire("src/lib/desk-groupes.ts");
     expect(groupes, "la page n'est plus au rail du desk").toMatch(/\["\/desk\/budgets", "Budgets des États"\]/);
-    const marche = groupes.slice(groupes.indexOf('label: "Le marché"'), groupes.indexOf('label: "Publier"'));
+    const debutMarche = groupes.indexOf('label: "Le marché"');
+    const marche = groupes.slice(debutMarche, groupes.indexOf('label: "Publier"', debutMarche));
     expect(marche.includes("/desk/budgets"), "la page a quitté le groupe « Le marché »").toBe(true);
     expect(marche.indexOf("/desk/budgets") > marche.indexOf("/desk/dette"), "la page ne suit plus « Dette des États » : le stock se lit avant le flux").toBe(true);
   });

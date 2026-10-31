@@ -94,7 +94,7 @@ describe("relever demande deux regards, abaisser non", () => {
   it("c'est le même geste que donner un accès", () => {
     const a = lire("src/app/desk/clients/acces-actions.ts");
     const i = a.indexOf("export async function fixerPlafondAction");
-    const bloc = a.slice(i, a.indexOf("export async function revoquerAccesAction"));
+    const bloc = a.slice(i, a.indexOf("export async function revoquerAccesAction", i));
     expect(bloc).toContain("const releve = voulu == null || (avant != null && voulu > avant);");
     expect(bloc).toContain("if (releve) {");
     expect(bloc).toContain("quatreYeux(me,");

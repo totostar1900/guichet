@@ -100,7 +100,7 @@ describe("un montant, un jour", () => {
     expect(src, "le formulaire est redevenu d'un seul tenant").toMatch(/data-at=\{etape\}/);
     const deb = src.indexOf('data-step="2"');
     expect(deb, "le récapitulatif a disparu").toBeGreaterThan(0);
-    const recap = src.slice(deb, src.indexOf("styles.pied"));
+    const recap = src.slice(deb, src.indexOf("styles.pied", deb));
     for (const dit of ["Vers quel fonds", "Chaque mois", "Jusqu'au", "Si un mois l'exécution est impossible", "Comment l'argent arrivera", "Premier versement le \\{d\\}"]) {
       expect(recap, `le récapitulatif ne redit plus « ${dit} »`).toMatch(new RegExp(dit));
     }

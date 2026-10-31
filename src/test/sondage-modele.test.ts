@@ -373,7 +373,8 @@ describe("le modèle du sondage", () => {
     const cles = [...bloc.matchAll(/"(\w+)"/g)].map((m) => m[1]);
     expect(cles.length, "la liste des champs modifiables n'a pas été relue : l'épreuve ne mesure rien").toBeGreaterThanOrEqual(11);
     const sb = lire("src/lib/data/supabase.ts");
-    const corps = sb.slice(sb.indexOf("async updateLigneSondee"), sb.indexOf("async listWatches"));
+    const debutMaj = sb.indexOf("async updateLigneSondee");
+    const corps = sb.slice(debutMaj, sb.indexOf("async listWatches", debutMaj));
     for (const cle of cles) {
       expect(corps, `le dépôt Supabase ignore « ${cle} » : la modification se perdra en silence`).toMatch(new RegExp(`\\b${cle}:`));
     }

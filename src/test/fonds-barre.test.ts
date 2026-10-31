@@ -205,7 +205,8 @@ describe("les commandes de la page des fonds", () => {
        Société de gestion » faisait 177 px et les renvoyait à la ligne, d'où
        les étiquettes d'un mot. « VL » les accompagnait jusqu'au 7 octobre
        2026 : on ne choisit pas un fonds sur le rythme de sa VL. */
-    const rang = SRC.slice(SRC.indexOf("<div className={styles.rangee}>"), SRC.indexOf("{actifs.map("));
+    const debutRangee = SRC.indexOf("<div className={styles.rangee}>");
+    const rang = SRC.slice(debutRangee, SRC.indexOf("{actifs.map(", debutRangee));
     for (const liste of ['label="Grouper"', 'label="Tri"']) {
       expect(rang, `${liste} a quitté la rangée des listes`).toContain(liste);
     }

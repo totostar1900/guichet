@@ -186,7 +186,8 @@ describe("le registre est à part de la chaîne d'audit", () => {
        lui impose une lecture avant chaque écriture. Tenable pour une décision
        du desk, intenable pour des milliers de gestes de clients. */
     const sb = readFileSync(path.join(ROOT, "src/lib/data/supabase.ts"), "utf8");
-    const bloc = sb.slice(sb.indexOf("async logClientAction"), sb.indexOf("async listClientActions"));
+    const debut = sb.indexOf("async logClientAction");
+    const bloc = sb.slice(debut, sb.indexOf("async listClientActions", debut));
     expect(bloc).not.toMatch(/prev_hash|order\(/);
     expect(bloc).toMatch(/error\.code !== "23505"/);
   });

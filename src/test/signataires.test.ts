@@ -81,11 +81,12 @@ describe("ajouter un signataire demande deux regards et un acte", () => {
   it("et le second regard est demandé, parce que cette liste commande les accès", () => {
     const a = lire("src/app/desk/clients/acces-actions.ts");
     const i = a.indexOf("export async function ajouterSignataireAction");
-    const bloc = a.slice(i, a.indexOf("export async function retirerSignataireAction"));
+    const bloc = a.slice(i, a.indexOf("export async function retirerSignataireAction", i));
     expect(bloc).toContain("quatreYeux(me,");
     expect(bloc).toContain("direLeGestePasseSeul");
     // Retirer se fait d'une main : c'est une restriction.
-    expect(a.slice(a.indexOf("export async function retirerSignataireAction"), a.indexOf("export async function fixerPlafondAction"))).not.toContain("quatreYeux(");
+    const retrait = a.indexOf("export async function retirerSignataireAction");
+    expect(a.slice(retrait, a.indexOf("export async function fixerPlafondAction", retrait))).not.toContain("quatreYeux(");
   });
 
   it("un ajout n'est possible qu'après l'approbation : avant, c'est le client qui déclare", async () => {
