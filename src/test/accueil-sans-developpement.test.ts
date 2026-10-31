@@ -179,13 +179,15 @@ describe("la page d'accueil", () => {
     /* LES DEUX ÉTIQUETTES QUE J'AVAIS PLAIDÉ DE GARDER, nommées pour qu'on
        sache ce qui a été tranché et ne pas le rejouer : « 2 au desk » sur les
        intentions du sondage, « 2 en place » sur les rayons des services. Les
-       rayons sont rendus par DEUX surfaces — l'écran large et la tuile du
-       téléphone — et un texte retiré d'une seule revient par l'autre. */
+       rayons étaient rendus par DEUX surfaces — l'écran large et la tuile
+       du téléphone — et un texte retiré d'une seule revenait par l'autre.
+       Depuis le 31 octobre 2026 il n'y a plus qu'une surface, « Tuiles », et
+       c'est elle qu'on relève : le motif reste, parce qu'un compte dans un
+       intitulé est ce qui revient, pas le fichier qui le porte. */
     const fautes: string[] = [];
     for (const [f, motifs] of [
       ["src/app/Console.tsx", [/"\{n\} au desk"/, /"1 au desk"/]],
-      ["src/app/trader/Rayons.tsx", [/"\{n\} en place"/, /"1 en place"/]],
-      ["src/app/trader/Parcours.tsx", [/"\{n\} en place"/, /"1 en place"/]],
+      ["src/app/trader/Tuiles.tsx", [/"\{n\} en place"/, /"1 en place"/]],
     ] as const) {
       const src = code(f);
       for (const m of motifs) if (m.test(src)) fautes.push(`${f} : ${m.source}`);

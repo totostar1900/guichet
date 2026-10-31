@@ -34,7 +34,7 @@ type Seg = "primaire" | "secondaire";
 export function TitresHead({}: { fundsCount: number }) {
   const t = useT();
   return (
-    <EnTete surTitre={t("Investissez")} titre={t("Titres")} phrase={t("Obligations, bons du Trésor et actions de la zone CEMAC")} aCote={<EnBref cles={["cote", "souscription"]} titre="La cote en bref" />} />
+    <EnTete surTitre={t("Investissez")} titre={t("Titres")} phrase={t("Obligations, bons du Trésor et actions de la zone CEMAC")} aCote={<EnBref brief="cote" />} />
   );
 }
 

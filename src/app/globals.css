@@ -234,7 +234,6 @@
   --serv-reinvestissement: #0d627b;
   --serv-prelevement: #4a4cae;
   --serv-provision: #78502f;
-  --serv-garde: #6b3a5e;
 
   --shadow: 0 1px 2px rgba(17, 24, 39, 0.06), 0 8px 24px -12px rgba(17, 24, 39, 0.14);
   /* L'echelle d'espacement.
@@ -457,7 +456,6 @@
     --serv-reinvestissement: #74c6e0;
     --serv-prelevement: #a9aaf0;
     --serv-provision: #d9a87c;
-    --serv-garde: #d9a6c8;
   }
 }
 :root[data-theme="dark"] {
@@ -490,7 +488,6 @@
   --serv-reinvestissement: #74c6e0;
   --serv-prelevement: #a9aaf0;
   --serv-provision: #d9a87c;
-  --serv-garde: #d9a6c8;
   --paper: #0e1928;
   --surface: #16233a;
   --surface-2: #1d2d48;

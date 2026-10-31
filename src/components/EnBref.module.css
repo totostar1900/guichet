@@ -6,26 +6,42 @@
    toutes les autres. Ce qui leur reste en propre (les pastilles de catégorie
    d'un fonds) reste chez elles. */
 
-/* Le bouton « En bref » : discret à côté du titre, assez grand pour le pouce.
-   Rayon zéro, comme le reste depuis le 29 septembre 2026. */
+/* ── LE ROND « i » ──────────────────────────────────────────────────────────
+   UN SEUL OBJET POUR LES DEUX SURFACES — 31 octobre 2026, sur décision du
+   dirigeant : « un discret i », « rond seul partout ».
+
+   CE QU'IL ÉTAIT : un bouton bordé de la hauteur d'un champ de saisie
+   (« --ctrl-h »), portant le mot « En bref » à côté de son dessin. Il ouvrait
+   une lecture facultative et se présentait comme une commande du même rang
+   que « Approvisionner », à dix pixels d'un titre de page.
+
+   CE QU'IL EST : un rond de 26 px, le dessin seul, au trait. Le mot n'est pas
+   perdu pour autant — il part en « aria-label », et c'est le TITRE DE LA
+   FEUILLE qui s'y écrit, « Les fonds en bref » plutôt que « En bref ». Ce que
+   la voix entend est donc plus précis que ce que l'œil lisait avant.
+
+   POURQUOI PARTOUT LE MÊME, et non le mot sur les pages et le rond sur les
+   tuiles : les deux ouvrent la MÊME feuille. Deux formes pour une même chose
+   finissent toujours par diverger, et la maison a déjà payé cette facture-là.
+   La position, elle, appartient à la surface : l'en-tête le pose à côté du
+   titre, la tuile de Trade dans son coin. */
 .bouton {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-2);
-  margin-top: var(--s-2);
-  padding: 0 var(--s-4);
-  min-height: var(--ctrl-h);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
   box-sizing: border-box;
+  padding: 0;
   border: 1px solid var(--line-2);
-  border-radius: 0;
+  border-radius: 50%;
   background: var(--surface);
-  color: var(--ink-2);
+  color: var(--ink-3);
   font: inherit;
-  font-size: var(--ctrl-t);
-  font-weight: 600;
   cursor: pointer;
 }
-.bouton:hover {
+.bouton:hover,
+.bouton:focus-visible {
   border-color: var(--gold);
   color: var(--ink);
 }

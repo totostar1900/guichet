@@ -337,28 +337,23 @@ export function servicesDuClient(c: ContexteClient, fmt: (n: number) => string =
         }),
   );
 
-  /* 07 · Conservation. Elle est en place dès qu'une ligne est tenue. */
-  out.push(
-    c.lignes > 0
-      ? enPlace({
-          rayon: "compte",
-          cle: "garde",
-          nom: "Conservation",
-          href: "/moi",
-          // « 1 lignes inscrites » se lisait sur la première page qu'un client
-          // ouvre. Deux clefs plutôt qu'une règle de pluriel : le dictionnaire
-          // est indexé par le français, et une règle de pluriel française ne
-          // vaut pas pour l'anglais.
-          phrase: c.lignes === 1 ? { key: "1 ligne inscrite à votre nom au dépositaire." } : { key: "{n} lignes inscrites à votre nom au dépositaire.", params: { n: c.lignes } },
-        })
-      : aActiver({
-          rayon: "compte",
-          cle: "garde",
-          nom: "Conservation",
-          href: "/titres",
-          phrase: { key: "Dès votre première ligne, elle sera inscrite à votre nom au dépositaire." },
-        }),
-  );
+  /* 07 · LA CONSERVATION N'EST PLUS UN SERVICE — 31 octobre 2026, sur décision
+     du dirigeant.
+     ELLE N'EN ÉTAIT PAS UN, et sa fiche le disait elle-même : sa première
+     étape était « Rien à activer ». Un service est quelque chose qu'on prend ;
+     la conservation est ce que la maison fait de toute façon, dès la première
+     ligne, sans qu'on le demande et sans qu'on puisse s'en passer. Une tuile
+     qui ne mène à aucun geste est une tuile qui apprend à ne plus toucher.
+     ELLE AVAIT AUSSI SA DESTINATION AILLEURS QUE SON EXPLICATION : la tuile
+     menait à « /moi », son « En bref » vivait sur « /moi/garde ». Tant que la
+     fiche intermédiaire portait la raison d'être, cela ne se voyait pas ; la
+     fiche partant, le seul texte qui explique la conservation devenait
+     inatteignable depuis Trade.
+     CE QUI NE SE PERD PAS : la promesse de ségrégation — vos titres à votre
+     nom, jamais en compte collectif — n'est pas un argument de vente, c'est
+     ce que la maison doit au client. Elle reste en entier, avec ce qu'elle
+     portait d'étapes, dans le brief de « /moi/garde », où les avis de droits
+     de garde se lisent. Voir `src/components/briefs/conservation.tsx`. */
 
   /* ADJUDICATIONS ET ÉMISSIONS, et non « placement primaire ».
      « Primaire » oppose au secondaire, et cette opposition n'existe que pour
@@ -707,7 +702,6 @@ export const CATALOGUE: { cle: string; nom: string; rayon: Rayon; href: string }
   { cle: "reinvestissement", nom: "Réinvestir", rayon: "compte", href: "/moi/reinvestir" },
   { cle: "prelevement", nom: "Prélèvement", rayon: "compte", href: "/moi/prelevements" },
   { cle: "provision", nom: "Votre provision", rayon: "compte", href: "/moi/provision" },
-  { cle: "garde", nom: "Conservation", rayon: "compte", href: "/moi" },
 ];
 
 /**
@@ -781,7 +775,6 @@ export const SOUS: Record<string, string> = {
   reinvestissement: "Les coupons repartent tout seuls",
   prelevement: "Nous prélevons, vous ne virez plus",
   provision: "Votre argent chez nous, prêt à régler",
-  garde: "Vos titres inscrits à votre nom",
 };
 
 export const RAISON: Record<string, string> = {
@@ -796,7 +789,6 @@ export const RAISON: Record<string, string> = {
   reinvestissement: "Remettre au travail un coupon ou un remboursement dès son arrivée, au lieu de le laisser dormir sur un compte.",
   prelevement: "Autoriser la maison à débiter votre compte bancaire à date fixe, du montant exact que vous écrivez, pour n'avoir plus de virement à faire.",
   provision: "Laisser de l'argent chez nous pour que vos ordres se règlent sans attendre un virement, et le reprendre quand vous voulez.",
-  garde: "Vos titres sont inscrits à votre nom au dépositaire, jamais dans un compte collectif, et tout mouvement vous est prouvé.",
 };
 
 export const ETAPES: Record<string, string[]> = {
@@ -826,18 +818,6 @@ export const ETAPES: Record<string, string[]> = {
     "Choisir le fonds, sa catégorie et la périodicité de sa valeur liquidative.",
     "Dire le montant à souscrire.",
     "La VL retenue à la centralisation fixe le nombre exact de parts : il n'est donc connu qu'après.",
-  ],
-  garde: [
-    "Rien à activer : la conservation commence avec votre première ligne.",
-    /* LA DEUXIÈME ÉTAPE REDISAIT LA RAISON, mot pour mot — « inscrits à votre
-       nom au dépositaire, jamais dans un compte collectif ». Personne ne l'a
-       vu tant que les deux vivaient sur deux écrans : la fiche de Trade ne
-       montre que les étapes, et la raison se lisait ailleurs. Le brief les a
-       mises l'une sous l'autre le 26 octobre 2026, et la répétition a sauté
-       aux yeux. L'étape dit maintenant QUAND et SOUS QUOI l'inscription se
-       fait, ce que la raison ne porte pas. */
-    "Chaque ligne servie est inscrite au dépositaire central, sous votre identifiant, à la date de règlement.",
-    "Le relevé et les avis d'opéré suivent chaque mouvement ; les droits de garde sont appelés par période.",
   ],
   reinvestissement: [
     "Un coupon ou un remboursement arrive sur votre poche.",

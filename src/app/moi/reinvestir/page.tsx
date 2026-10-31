@@ -82,7 +82,7 @@ export default async function ReinvestirPage() {
           phrase={t(
             "Un coupon qui dort sur un compte en banque cesse de rapporter pendant que la ligne qui l'a versé continue. Cette instruction replace ce qui vous revient, dès qu'il arrive, sur la ligne que vous choisissez maintenant.",
           )}
-          aCote={<EnBref cles={["reinvestissement"]} titre="Le réinvestissement en bref" />}
+          aCote={<EnBref brief="reinvestissement" />}
         />
 
         {/* LES QUATRE CHAPITRES PRENNENT LA BANDE DE « MES DOCUMENTS ».

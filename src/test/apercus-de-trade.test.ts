@@ -332,22 +332,25 @@ describe("les aperçus des tuiles de Trade", () => {
 
     /* ET L'ENCRE S'EFFACE : la feuille pose « --ink-3 » sur les deux moitiés
        de la ligne, comme les sous-titres de la maison. */
-    const css = lire("src/app/trader/Parcours.module.css");
+    const css = lire("src/app/trader/page.module.css");
     const bloc = css.slice(css.indexOf(".prose em,"));
     expect(bloc.slice(0, 120), "le repli ne s'efface plus : il se lit comme une donnée du client").toMatch(/color:\s*var\(--ink-3\)/);
   });
 
-  /* LES DEUX ÉCRANS RENDENT LA MÊME DONNÉE, et c'est l'invariant que
-     « Parcours.tsx » déclare en tête. Un aperçu posé sur la tuile et oublié
-     dans la fiche rouvrirait l'écart que les phrases des tuiles ont déjà
-     coûté une fois. */
-  it("pose le même aperçu sur les deux écrans, depuis un seul calcul", () => {
+  /* UN SEUL CALCUL, ET IL ARRIVE JUSQU'À LA TUILE.
+     IL Y AVAIT DEUX ÉCRANS JUSQU'AU 31 OCTOBRE 2026 — l'arrangement large et
+     le téléphone — et cette clause tenait l'invariant que le parcours
+     déclarait en tête : un aperçu posé sur la tuile et oublié dans la fiche
+     rouvrait l'écart que les phrases des tuiles avaient déjà coûté une fois.
+     Il n'y a plus qu'un écran, donc plus d'écart possible entre deux rendus ;
+     ce qui reste à tenir est que le calcul se fasse UNE FOIS, dans la page,
+     et que la tuile rende ce qu'on lui confie — un aperçu calculé et jamais
+     posé ne se voit nulle part. */
+  it("calcule l'aperçu une seule fois, et la tuile le rend", () => {
     const page = code("src/app/trader/page.tsx");
     expect((page.match(/apercusDuService\(/g) ?? []).length, "la page ne calcule plus les aperçus une seule fois").toBe(1);
-    expect(page, "l'écran large ne reçoit plus les aperçus").toMatch(/<Rayons[^>]*apercus=\{apercus\}/);
-    expect(page, "le téléphone ne reçoit plus les aperçus").toMatch(/<Parcours[^>]*apercus=\{apercus\}/);
-    expect(code("src/app/trader/Fiche.tsx"), "la fiche ne rend plus l'aperçu qu'on lui confie").toContain("apercus.map");
-    expect(code("src/app/trader/Parcours.tsx"), "la tuile ne rend plus l'aperçu").toContain("a.dit.key");
+    expect(page, "les tuiles ne reçoivent plus les aperçus").toMatch(/<Tuiles[^>]*apercus=\{apercus\}/);
+    expect(code("src/app/trader/Tuiles.tsx"), "la tuile ne rend plus l'aperçu qu'on lui confie").toContain("a.dit.key");
   });
 
   /* ET AUCUNE LECTURE DE PLUS : c'est la condition qui a permis de les écrire.

@@ -53,7 +53,7 @@ describe("les icônes de service se voient", () => {
      trait rouvrirait la divergence que cette feuille ferme. Ils gardent la
      taille et la couleur, qui leur appartiennent. */
   it("ne laisse aucun poseur réécrire le trait de son côté", () => {
-    for (const f of ["src/app/trader/Parcours.module.css", "src/components/Pli.module.css", "src/components/mobile/Rubriques.module.css"]) {
+    for (const f of ["src/app/trader/page.module.css", "src/components/Pli.module.css", "src/components/mobile/Rubriques.module.css"]) {
       const bloc = lire(f);
       const marque = bloc.slice(bloc.indexOf(".marque svg"), bloc.indexOf("}", bloc.indexOf(".marque svg")));
       expect(marque, `${f} réécrit la peinture des icônes`).not.toMatch(/fill:|stroke:/);
@@ -109,7 +109,7 @@ describe("les icônes de service se voient", () => {
    * s'ouvre ni sur un téléphone ni sur un écran de bureau.
    */
   it("pose l'écusson dans le coin, et bascule au même seuil que les colonnes", () => {
-    const css = lire("src/app/trader/Parcours.module.css");
+    const css = lire("src/app/trader/page.module.css");
     expect(css, "l'écusson n'est plus dans le coin de la tuile").toMatch(/\.marque \{[\s\S]*?position: absolute/);
     expect(css, "la tuile n'est plus le repère de ce coin : l'écusson se posera sur la page").toMatch(/\.tuile \{\n\s*position: relative/);
 

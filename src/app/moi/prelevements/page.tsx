@@ -68,7 +68,7 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
           phrase={t(
             "Vous pouvez nous autoriser à prélever une somme sur votre compte bancaire, à une date fixe du mois. Chaque prélèvement est annoncé avant de partir, et vous pouvez révoquer votre autorisation à tout moment, sans motif.",
           )}
-          aCote={<EnBref cles={["prelevement"]} titre="Le prélèvement en bref" />}
+          aCote={<EnBref brief="prelevement" />}
         />
 
         {/* LE COMPTE DÉBITÉ EST CELUI DU CLIENT, et la page le redit là où il va

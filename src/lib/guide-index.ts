@@ -98,8 +98,13 @@ export async function buildGuideIndex(t: (s: string) => string, lang: Lang, { ap
            « langue » pour les paramétrages, par exemple. Il est traduit comme
            le reste : un lecteur anglais tape « language », pas « langue ». */
         ...pages.map((p) => ({ kind: "page" as const, title: t(p.label), text: t(p.hint), href: p.href, extra: [p.short, p.tuile, p.mots].filter(Boolean).map((x) => t(x as string)).join(" ") })),
-        /* Les trois rayons de Trade : ce qu'on vient y faire. */
-        ...RAYONS.map((r) => ({ kind: "page" as const, title: `${t("Trade")} · ${t(r.nom)}`, text: t(r.quoi), href: `/trader?r=${r.cle}`, extra: "trade services" })),
+        /* Les deux rayons de Trade : ce qu'on vient y faire.
+           ILS MÈNENT À « /trader » TOUT COURT depuis le 31 octobre 2026. Ils
+           avaient chacun leur adresse — « ?r=compte » — du temps où un rayon
+           ouvrait un écran à lui sur téléphone. Il n'y a plus qu'un écran, et
+           les deux rayons y sont des intertitres : une adresse qui porterait
+           encore leur clef ouvrirait la même page en promettant autre chose. */
+        ...RAYONS.map((r) => ({ kind: "page" as const, title: `${t("Trade")} · ${t(r.nom)}`, text: t(r.quoi), href: "/trader", extra: "trade services" })),
         /* Les dix services, avec leur raison d'être : c'est elle qu'on cherche,
            pas leur nom, qu'on ne connaît pas encore. */
         ...CATALOGUE.map((x) => ({ kind: "service" as const, title: t(x.nom), text: t(RAISON[x.cle] ?? ""), href: x.href, extra: `${t("Trade")} ${t(RAYONS.find((r) => r.cle === x.rayon)?.nom ?? "")} ${x.cle}` })),

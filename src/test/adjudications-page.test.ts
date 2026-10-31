@@ -32,7 +32,12 @@ import { EN_ALL } from "@/i18n/core";
  */
 const sansNotes = (src: string) => src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 const PAGE = sansNotes(readFileSync("src/app/calendrier/page.tsx", "utf8"));
-const BREF = readFileSync("src/app/calendrier/EnBref.tsx", "utf8");
+/* LA PROSE DU BRIEF A QUITTÉ LA PAGE le 31 octobre 2026 : le « i » d'une
+   tuile de Trade ouvre la même feuille, et Trade n'a aucun moyen d'atteindre
+   du JSX écrit dans le corps d'une page. Ce que cette épreuve garde n'a pas
+   changé — ce qui est dit du déroulé d'une séance et du prix affiché — mais
+   c'est dans le registre des proses qu'il faut aller le lire. */
+const BREF = readFileSync("src/components/briefs/prose.tsx", "utf8");
 const BROWSER = readFileSync("src/components/OfferBrowser.tsx", "utf8");
 const CARTE = readFileSync("src/components/OfferCard.tsx", "utf8");
 const CSS = readFileSync("src/app/calendrier/page.module.css", "utf8");

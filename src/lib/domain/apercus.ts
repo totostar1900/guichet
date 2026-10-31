@@ -377,9 +377,5 @@ export function apercusDuService(cle: string, offers: Offer[], ctx: ContexteClie
     ];
   }
 
-  if (cle === "garde" && ctx.lignes > 0) {
-    return [{ nom: "Inscrites à votre nom", dit: ctx.lignes === 1 ? { key: "1 ligne" } : { key: "{n} lignes", params: { n: ctx.lignes } } }];
-  }
-
   return [];
 }

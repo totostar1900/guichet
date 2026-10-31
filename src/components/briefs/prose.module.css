@@ -1,12 +1,14 @@
-/* CE QUI RESTE EN PROPRE À LA FEUILLE DES FONDS.
+/* CE QUI RESTE EN PROPRE À LA PROSE DES BRIEFS.
 
-   Elle portait son bouton, son corps, son titre de section et sa liste de
-   définitions — une trentaine de lignes que la feuille des adjudications
-   portait aussi, à l'identique, chez elle. Les deux copies sont parties dans
-   « components/EnBref.module.css », avec les six autres pages qui ouvrent
-   maintenant un brief. Ne restent ici que les deux choses que personne
-   d'autre n'a : la pastille de couleur d'une catégorie d'OPCVM, et le pied
-   de feuille qui renvoie à l'éclairage. */
+   Le bouton, le corps de la feuille, le titre de section et la liste de
+   définitions vivent dans « components/EnBref.module.css », avec les huit
+   briefs qui les emploient. Ne restent ici que les trois choses que personne
+   d'autre n'a : la pastille de couleur d'une catégorie d'OPCVM, le pied de
+   feuille qui renvoie à l'éclairage, et le prix d'un geste d'arbitrage.
+
+   Elles arrivent de « app/fonds/FondsEnBref.module.css », partie avec la
+   prose le 31 octobre 2026 : une page ne peut plus garder son brief pour
+   elle depuis que le « i » d'une tuile de Trade ouvre la même feuille. */
 
 /* La pastille d'une catégorie : la même couleur que la famille porte partout
    ailleurs, lue au même jeton. */

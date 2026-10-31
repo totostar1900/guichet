@@ -55,8 +55,8 @@ describe("les services de la vitrine, quel que soit le client", () => {
   it("tiennent dans les trois rayons, chacun une seule fois", () => {
     for (const c of [vide, garni]) {
       const v = servicesDuClient(c);
-      expect(v).toHaveLength(10);
-      expect(new Set(v.map((s) => s.cle)).size).toBe(10);
+      expect(v).toHaveLength(9);
+      expect(new Set(v.map((s) => s.cle)).size).toBe(9);
       /* Aucun rayon vide : un rayon sans ligne est un rayon mal nommé, et
          « Tenir » n'en aurait eu qu'une avant que la provision n'y entre. */
       for (const r of RAYONS) expect(v.filter((x) => x.rayon === r.cle).length, r.cle).toBeGreaterThan(0);
@@ -100,7 +100,6 @@ describe("l'état suit la donnée du client", () => {
     const m = parCle(garni);
     expect(m.get("reinvestissement")!.etat).toBe("en_place");
     expect(m.get("epargne")!.etat).toBe("en_place");
-    expect(m.get("garde")!.etat).toBe("en_place");
   });
 
   it("propose d'activer ce qui est ouvert et jamais pris", () => {
@@ -156,8 +155,8 @@ describe("l'état suit la donnée du client", () => {
 
   it("compte les deux états sans en perdre un", () => {
     const c = compteDesEtats(servicesDuClient(garni));
-    expect(c.en_place + c.a_activer).toBe(10);
-    expect(c.en_place).toBe(4);
+    expect(c.en_place + c.a_activer).toBe(9);
+    expect(c.en_place).toBe(3);
   });
 
   /**
@@ -175,9 +174,9 @@ describe("l'état suit la donnée du client", () => {
    */
   it("ne propose l'ouverture du compte que là où elle est la première étape", () => {
     const sans = servicesDuClient({ ...garni, compteOuvert: false });
-    expect(sans.length).toBe(10);
+    expect(sans.length).toBe(9);
     const surLeCompte = sans.filter((x) => x.href === "/ouvrir-un-compte");
-    expect(surLeCompte.map((x) => x.cle).sort()).toEqual(["epargne", "garde", "prelevement", "provision", "reinvestissement"]);
+    expect(surLeCompte.map((x) => x.cle).sort()).toEqual(["epargne", "prelevement", "provision", "reinvestissement"]);
     expect([...new Set(surLeCompte.map((x) => x.geste.key))]).toEqual(["Ouvrir un compte-titres"]);
     expect(surLeCompte.every((x) => x.porte)).toBe(true);
     /* Les cinq autres gardent leur chemin : regarder ne demande rien. */
@@ -185,7 +184,7 @@ describe("l'état suit la donnée du client", () => {
     expect(libres.map((x) => x.cle).sort()).toEqual(["cote", "fonds", "passage", "primaire", "sondage"]);
     expect(libres.some((x) => x.porte)).toBe(false);
     /* Et les états restent lisibles : on ne perd pas ce qui tourne déjà. */
-    expect(sans.filter((x) => x.etat === "en_place").length).toBe(4);
+    expect(sans.filter((x) => x.etat === "en_place").length).toBe(3);
   });
 
   it("laisse chaque service nommer son geste quand le compte est ouvert", () => {
@@ -215,7 +214,7 @@ describe("ce qu'une phrase dit, et ce qu'elle ne dit pas", () => {
     const m = parCle(garni, fmt);
     expect(m.get("epargne")!.phrase.params).toMatchObject({ m: fmt(50_000), j: 5 });
     expect(String(m.get("epargne")!.phrase.params!.m), "le montant sort sans ses séparateurs de milliers").toMatch(/50\s000/);
-    expect(m.get("garde")!.phrase.params).toMatchObject({ n: 4 });
+    expect(m.get("reinvestissement")!.phrase.params).toMatchObject({ d: "Fonds Obligataire CEMAC" });
   });
 
   /**

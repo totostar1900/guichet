@@ -15,52 +15,113 @@ const code = (p: string) =>
     .replace(/^\s*\/\/.*$/gm, "");
 
 /**
- * LE PARCOURS DE « TRADE », RELEVÉ LE 24 OCTOBRE 2026.
+ * L'ÉCRAN DE « TRADE », RELEVÉ LE 31 OCTOBRE 2026.
  *
- * Trois défauts, et le même sous les trois : la page s'était écrit à elle
- * seule ce que la maison écrivait déjà ailleurs.
+ * ─── Ce que cette feuille gardait avant, et qui n'existe plus ──────────────
+ *
+ * Elle s'appelait « trade-parcours » et tenait un ruban de trois écrans : le
+ * fil d'Ariane, les points de profondeur, le sommaire des rayons, la tête
+ * posée dans le panneau de la racine. Les trois écrans sont devenus un, sur
+ * décision du dirigeant, et cinq de ses clauses décrivaient alors des pièces
+ * supprimées. Une clause qui garde un fichier absent ne garde rien : elle
+ * tombe au chargement, ou pire, elle passe.
+ *
+ * ─── Ce qu'elle garde maintenant ───────────────────────────────────────────
+ *
+ * LES DEUX CRANS INTERMÉDIAIRES NE DOIVENT PAS REVENIR, et c'est la raison
+ * qui compte plus que la règle : la fiche d'un service redisait `RAISON` et
+ * `ETAPES` — la même table que le brief de sa page — et la liste d'un rayon
+ * répétait des noms déjà lus. Le client traversait deux écrans pour arriver
+ * là où la tuile pouvait le mener directement.
+ *
+ * LE « i » DOIT RESTER CLIQUABLE, et c'est le défaut le plus silencieux de
+ * tout ce travail. La tuile porte deux gestes : un lien qui s'étend sur elle
+ * par un calque, et un bouton qui ouvre le brief. Emboîtés, le navigateur
+ * n'en clique qu'un — un bouton dans un lien est invalide en HTML. Sans
+ * « z-index », le rond passe SOUS le calque : il répond encore au clavier,
+ * donc rien ne tombe, et seule la souris tombe dans le trou.
+ *
+ * LA PRÉCONDITION DOIT RESTER DITE. Quand le compte-titres n'est pas ouvert,
+ * les services du compte mènent à l'ouverture. La fiche était le seul endroit
+ * qui l'écrivait ; sans elle, quatre tuiles emmèneraient ailleurs que là où
+ * elles annoncent, sans un mot.
  */
-describe("le parcours de Trade", () => {
-  /* LES TROIS POINTS. Ils comptaient la profondeur — « deuxième de trois » —
-     pendant que le chemin, à dix pixels de là, la NOMMAIT : « Trade ›
-     Placer ». Deux dispositifs pour un fait, et le plus pauvre était le plus
-     voyant : une rangée de points à droite d'une barre se lit partout
-     ailleurs comme un nombre de pages à suivre. */
-  it("ne compte plus la profondeur à côté du chemin qui la nomme", () => {
-    expect(lire("src/app/trader/Parcours.module.css"), "les points de profondeur sont revenus").not.toMatch(/\.points\b/);
-    const tsx = lire("src/app/trader/Parcours.tsx");
-    expect(tsx, "une rangée de pastilles est revenue dans le fil").not.toMatch(/\[0,\s*1,\s*2\]/);
-  });
-
-  /* LE PREMIER ÉCRAN n'a qu'un cran de chemin, et ce cran est le titre de la
-     page. L'écrire là, c'est l'écrire deux fois sur le même écran — cinq
-     cents pixels plus bas, et en plus petit. */
-  it("n'écrit pas le chemin quand il ne dirait que le titre de la page", () => {
-    expect(lire("src/app/trader/Parcours.tsx"), "le fil reparaît au premier niveau").toMatch(/\{niveau > 0 && \(\s*<nav/);
-  });
-
-  /* LA LISTE DES RAYONS EST UN SOMMAIRE, et « Rubriques » est né d'elle : son
-     fichier le dit. Les six autres sièges sont passés en bandes le 24 octobre ;
-     celui-là gardait sa copie, restée en filets — la divergence que le
-     composant devait empêcher, arrivée chez son propre ancêtre.
-
-     LE SECOND NIVEAU, LUI, N'EN EST PLUS UN depuis le 25 octobre 2026. Il
-     rangeait deux rayons distincts ; depuis que « Programmer » et « Tenir »
-     n'en font qu'un, ce sont cinq services d'une même famille — ce qui s'écrit
-     sur le compte — et une famille se COMPARE au lieu de se descendre. C'est
-     l'argument exact qui avait mis « Placer » en tuiles à la racine. Ce qui
-     reste interdit est le même : recopier le sommaire dans cette feuille. */
-  it("garde le sommaire de la maison pour la liste des rayons, et n'en recopie aucun", () => {
-    const tsx = lire("src/app/trader/Parcours.tsx");
-    expect(tsx, "le parcours a repris une liste à lui").toContain("<Rubriques");
-    expect((tsx.match(/<Rubriques/g) ?? []).length, "un second sommaire est revenu : le niveau des services est fait de tuiles").toBe(1);
-    const css = lire("src/app/trader/Parcours.module.css");
-    for (const mort of [".liste", ".ligne", ".chev", ".quoi", ".enPlace"]) {
-      expect(css, `« ${mort} » est réapparu dans la feuille du parcours : c'est la copie du sommaire qui revient`).not.toContain(mort);
+describe("l'écran de Trade", () => {
+  /* UN SEUL ÉCRAN, ET UN SEUL ARRANGEMENT. La page rendait deux fois le même
+     contenu — un pour l'écran large, un pour le téléphone — et déclarait
+     elle-même l'invariant que ça met en danger : « deux rendus d'un même
+     contenu finissent toujours par diverger ». La meilleure façon de le tenir
+     est de n'en avoir qu'un. */
+  it("ne rend plus deux arrangements du même contenu", () => {
+    const page = code("src/app/trader/page.tsx");
+    for (const parti of ["<Parcours", "<Rayons", "<Fiche", "styles.large", "styles.petit"]) {
+      expect(page, `« ${parti} » est revenu : la page rend de nouveau deux fois le même contenu`).not.toContain(parti);
     }
-    /* ET LES DEUX NIVEAUX DE TUILES PARTAGENT LEUR FORME : une seconde classe
-       de tuile serait la même divergence, d'un cran plus bas. */
-    expect((tsx.match(/className=\{styles\.tuile\}/g) ?? []).length, "les deux niveaux de tuiles ne partagent plus la même forme").toBe(2);
+    for (const f of ["src/app/trader/Parcours.tsx", "src/app/trader/Rayons.tsx", "src/app/trader/Fiche.tsx", "src/app/trader/niveaux.ts"]) {
+      expect(fs.existsSync(path.join(ROOT, f)), `« ${f} » est revenu : les crans intermédiaires avec lui`).toBe(false);
+    }
+    /* ET LA FICHE N'EST PAS REVENUE SOUS UN AUTRE NOM : ce qu'elle rendait,
+       c'était la raison d'être et les étapes, que le brief rend déjà. */
+    const tuiles = code("src/app/trader/Tuiles.tsx");
+    for (const table of ["RAISON", "ETAPES"]) {
+      expect(tuiles, `les tuiles lisent « ${table} » : c'est la fiche intermédiaire qui revient, et le brief la dit déjà`).not.toContain(table);
+    }
+  });
+
+  /* LE « i » OUVRE LA MÊME FEUILLE QUE LA PAGE DE SERVICE, et c'est la
+     demande même : « c'est pas deux pages distinctes mais bien la même
+     page ». Une tuile qui se dessinerait son propre rond ouvrirait autre
+     chose le jour où l'un des deux change. */
+  it("ouvre le brief du service depuis la tuile, par le composant de la maison", () => {
+    const tuiles = code("src/app/trader/Tuiles.tsx");
+    expect(tuiles, "les tuiles n'ouvrent plus le brief : le « i » a disparu").toContain("<BriefDuService");
+    expect(tuiles, "la tuile s'est dessiné son propre rond : il divergera de celui des pages de service").not.toMatch(/<svg/);
+    /* UN SEUL BOUTON DANS LA FEUILLE DU BRIEF : « rond seul partout », décidé
+       le 31 octobre 2026. Une seconde forme pour la même chose est ce que la
+       maison refuse ailleurs. */
+    const css = lire("src/components/EnBref.module.css");
+    expect((css.match(/^\.bouton\s*\{/gm) ?? []).length, "« .bouton » est écrit deux fois : deux ronds pour une même feuille").toBe(1);
+    expect(css.match(/\.bouton\s*\{([^}]*)\}/)![1], "le rond a repris la hauteur d'une commande : il n'est plus discret").toMatch(/border-radius:\s*50%/);
+  });
+
+  /* UN BOUTON DANS UN LIEN EST INVALIDE EN HTML, et le navigateur ne le
+     clique pas. La tuile était un bouton qui poussait l'adresse ; elle mène
+     maintenant à une page ET porte le « i ». Les deux doivent être FRÈRES,
+     et le rond doit passer au-dessus du calque qui étend le lien — sans quoi
+     il répond au clavier et pas à la souris, ce qui ne tombe nulle part. */
+  it("ne met pas le « i » dans le lien de la tuile, et le pose au-dessus du calque", () => {
+    const tuiles = code("src/app/trader/Tuiles.tsx");
+    const lien = tuiles.indexOf("<Link");
+    const ferme = tuiles.indexOf("</Link>", lien);
+    expect(lien, "la tuile ne mène plus nulle part").toBeGreaterThan(0);
+    expect(tuiles.slice(lien, ferme), "le « i » est emboîté dans le lien : le navigateur n'en cliquera qu'un").not.toContain("BriefDuService");
+    const css = lire("src/app/trader/page.module.css");
+    expect(css, "le calque qui étend le lien sur la tuile a disparu : seul le nom est cliquable").toMatch(/\.lien::after\s*\{[^}]*position:\s*absolute/);
+    expect(css.match(/\.info\s*\{([^}]*)\}/)?.[1], "le rond passe sous le calque du lien : la souris ouvre la page au lieu du brief, et le clavier non").toMatch(/z-index/);
+  });
+
+  /* LA PRÉCONTION VIT SUR LA TUILE, ET SEULEMENT QUAND ELLE EXISTE. Elle
+     n'était dite que sur la fiche ; la fiche partie, la tuile la porte à la
+     place de sa ligne fixe. Les deux ne coexistent jamais — un service dont
+     la porte est fermée n'a pas à expliquer en plus de quoi il s'agit. */
+  it("dit la précondition sur la tuile quand il y en a une, à la place de la ligne fixe", () => {
+    const tuiles = code("src/app/trader/Tuiles.tsx");
+    expect(tuiles, "la précondition a disparu de la tuile : quatre tuiles mènent à l'ouverture sans le dire").toMatch(/sv\.porte \? t\(sv\.porte\.key/);
+    expect(tuiles, "la ligne fixe a disparu de la tuile").toContain("t(sv.sous)");
+  });
+
+  /* L'INTERTITRE NE CLIQUE PAS. Le rayon ouvrait un écran ; il ne range plus
+     qu'une grille. Un titre qui ressemble à un lien et n'en est pas se fait
+     viser une fois par lecteur, et l'adresse « ?r=compte » qu'il portait
+     n'ouvre plus rien. */
+  it("range les tuiles sous deux intertitres qui ne mènent nulle part", () => {
+    const tuiles = code("src/app/trader/Tuiles.tsx");
+    expect(tuiles, "les rayons ne rangent plus les tuiles").toContain("RAYONS.map");
+    expect(tuiles, "l'intertitre du rayon a disparu").toMatch(/<h2 className=\{styles\.rayon\}/);
+    expect(tuiles, "le rayon est redevenu un endroit où l'on va").not.toMatch(/aller\(|router\.push|<Rubriques/);
+    /* ET L'INDEX DU GUIDE NE PROMET PLUS DE CRAN : « /trader?r=compte »
+       ouvrirait la même page en annonçant autre chose. */
+    expect(lire("src/lib/guide-index.ts"), "le guide renvoie de nouveau à un cran de rayon qui n'existe plus").not.toContain("/trader?r=");
   });
 
   /* L'EN-TÊTE. La phrase partait en colonne 8 d'une grille de douze, soit huit
@@ -80,45 +141,21 @@ describe("le parcours de Trade", () => {
      LES DEUX MOITIÉS VOYAGENT ENSEMBLE, et c'est tout l'objet de cette
      épreuve. Retirer la bande en laissant le « sauf » prive le client du
      chiffre ; retirer le « sauf » en laissant la bande le lui donne deux
-     fois. Ni l'un ni l'autre ne se voit en lisant le diff. */
+     fois. Ni l'un ni l'autre ne se voit en lisant le diff.
+
+     ET ELLE N'EST ÉCRITE QU'UNE FOIS. Elle l'était deux, du temps des deux
+     arrangements : la page en gardait un assemblage commun, passé à l'un et
+     à l'autre. Il n'y a plus qu'un écran, donc plus de raison d'assembler. */
   it("ne dit le disponible qu'une fois sur la page qui sert à agir", () => {
     const tsx = lire("src/app/trader/page.tsx");
     expect(tsx, "la bande du disponible a disparu, mais l'attente reste écartée : le chiffre n'est plus nulle part").toContain("styles.solde");
     expect(tsx, "l'attente « disponible » est revenue à côté de la bande : le même franc deux fois").toMatch(/<CeQuiVousAttend[^>]*sauf=\{\["disponible"\]\}/);
-  });
-
-  /* 441 PX SUR 844 QUI NE BOUGEAIENT JAMAIS.
-     Relevé le 24 octobre 2026 : au-dessus du ruban, le titre, la phrase et
-     « Ce qui vous attend » se repeignaient à l'identique aux trois niveaux —
-     52 % de l'écran. Le solde et les échéances s'y sont ajoutés depuis, ce
-     qui a aggravé la chose plutôt que de la réparer.
-
-     Ces trois états répondent à « qu'est-ce que je peux faire, et avec
-     quoi » : une fois le service choisi, ils sont du contexte déjà lu. Posés
-     DANS le premier panneau du ruban, ils glissent avec lui, et au deuxième
-     niveau il ne reste que le chemin et la fiche.
-
-     L'écran large, lui, n'a pas de niveaux : il les garde en tête de page.
-     D'où un seul assemblage rendu à deux endroits — « contexteDuClient » est
-     en cache par requête, et les offres sont lues une fois puis passées. */
-  it("ne laisse plus la tête de la racine se repeindre aux trois niveaux", () => {
-    const page = code("src/app/trader/page.tsx");
-    expect((page.match(/styles\.solde/g) ?? []).length, "la bande du disponible est écrite plus d'une fois : les deux copies divergeront").toBe(1);
-    expect(page, "la tête n'est plus passée au parcours : elle se repeindra aux trois niveaux").toMatch(/<Parcours[^>]*racine=\{tete\}/);
-
-    const parcours = code("src/app/trader/Parcours.tsx");
-    const i = parcours.indexOf("{racine}");
-    expect(i, "le parcours ne rend plus la tête qu'on lui confie").toBeGreaterThan(0);
-    /* Et dans le panneau de la RACINE, pas dans un autre : les trois
-       panneaux ne se distinguent que par le niveau qu'ils masquent. */
-    const ouvre = parcours.lastIndexOf("<section", i);
-    expect(parcours.slice(ouvre, i), "la tête est posée dans un autre panneau que celui de la racine").toContain("niveau !== 0");
+    expect((code("src/app/trader/page.tsx").match(/styles\.solde/g) ?? []).length, "la bande du disponible est écrite plus d'une fois : les deux copies divergeront").toBe(1);
   });
 
   /* UNE CLEF ÉCARTÉE QUI N'EXISTE PAS N'ÉCARTE RIEN, et ne le dit pas. Le
      filtre passerait, la liste serait entière, et la page afficherait de
-     nouveau le doublon qu'elle croit avoir retiré. Même défaut que viserait
-     un rayon renommé dans « trader/niveaux ». */
+     nouveau le doublon qu'elle croit avoir retiré. */
   it("écarte une attente que le domaine sait produire", () => {
     const corps = lire("src/lib/domain/services.ts");
     const debut = corps.indexOf("export function attentesDuClient");
@@ -126,35 +163,6 @@ describe("le parcours de Trade", () => {
     const ecartees = [...lire("src/app/trader/page.tsx").matchAll(/sauf=\{\[([^\]]*)\]\}/g)].flatMap((m) => [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]));
     expect(ecartees.length, "la page n'écarte plus rien : l'épreuve au-dessus devrait déjà l'avoir dit").toBeGreaterThan(0);
     expect(ecartees.filter((c) => !clefs.has(c)), "ces clefs n'existent dans aucune attente : le filtre ne retire rien et le doublon revient").toEqual([]);
-  });
-
-  /* LES DEUX ÉCRANS RENDENT LE MÊME TEXTE, et ce fichier le déclare en tête :
-     « les deux écrans lisent la MÊME donnée et rendent le même texte dans le
-     même ordre ; ce qui change est la façon de s'y déplacer ».
-
-     L'écran large rend la fiche ENTIÈRE de chaque service dans sa bande : sa
-     phrase s'y lit sans rien ouvrir. Les tuiles du téléphone, elles, n'ont
-     porté que le nom pendant une journée — l'invariant était rompu par la
-     pièce qui l'annonce.
-
-     LA PHRASE, ET PAS LE RESTE. « porte » est exclu de la liste depuis le
-     début, et sa propre note dit pourquoi : « répété dans la liste, il
-     effaçait neuf sous-titres pour dire neuf fois la même chose ». Une
-     précondition est la même pour presque tous les services ; une phrase
-     porte les chiffres du client et diffère de l'un à l'autre. */
-  it("montre la même ligne sur les deux listes, et la précondition sur aucune des deux", () => {
-    const parcours = lire("src/app/trader/Parcours.tsx");
-    /* LA PHRASE DU CLIENT A QUITTÉ LES LISTES LE 25 OCTOBRE 2026, et elle n'a
-       pas disparu : elle est le sujet de la fiche, à un doigt de là, où elle
-       porte les chiffres de CE client. Ce qui la remplace dans les deux listes
-       est la ligne fixe « sous » — six mots qui disent de quoi il s'agit, et
-       qui tiennent sous un en-tête doublé de taille.
-       L'INVARIANT N'A PAS CHANGÉ : les deux écrans rendent le même texte dans
-       le même ordre. Il est seulement tenu un cran plus bas. */
-    expect(lire("src/app/trader/Fiche.tsx"), "la fiche ne rend plus la phrase du service").toContain("sv.phrase.key");
-    expect(parcours, "les tuiles du téléphone ne portent plus la ligne fixe").toContain("sv.sous");
-    expect(lire("src/app/trader/Rayons.tsx"), "l'écran large ne porte plus la ligne fixe : il en dira moins que le téléphone dans la même liste").toContain("sous={t(sv.sous)}");
-    expect(parcours, "la précondition est remontée dans la liste du téléphone : neuf sous-titres pour dire neuf fois la même chose").not.toContain("sv.porte");
   });
 
   /* L'ÉCART DE L'ÉTALON, qu'une écriture en double effaçait : « .rayons »

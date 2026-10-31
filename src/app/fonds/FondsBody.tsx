@@ -2,7 +2,7 @@ import { repo } from "@/lib/data";
 import { fondsListes } from "@/lib/domain/listes";
 import { fundAnnualPct } from "@/lib/domain/fund-perf";
 import { FundsBrowser } from "./FundsBrowser";
-import { FondsEnBref } from "./FondsEnBref";
+import { EnBref } from "@/components/EnBref";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { EnTete } from "@/components/EnTete";
@@ -46,7 +46,7 @@ export async function FondsBody() {
           le titre, dans la meme boite, donc sur la ligne suivante : il
           reculait d un cran le debut de la liste, qui est ce pour quoi on
           vient. En face, il ne coute aucune hauteur. */}
-      <EnTete surTitre={t("Investissez")} titre={t("Fonds communs de placement")} aCote={<FondsEnBref />} />
+      <EnTete surTitre={t("Investissez")} titre={t("Fonds communs de placement")} aCote={<EnBref brief="fonds" />} />
 
       <FundsBrowser rows={funds.map((o) => ({ id: o.id, title: o.title, isin: o.isin, category: o.fund.category, frequency: o.fund.frequency, manager: o.issuer, depositary: o.fund.depositary, nav: o.fund.nav, navDate: o.fund.navDate, variationPct: o.fund.variationPct, perf1yPct: o.fund.perf1yPct, perfSinceInceptionPct: o.fund.perfSinceInceptionPct, annualPct: fundAnnualPct(o.fund, maintenant) ?? undefined, inceptionDate: o.fund.inceptionDate, open: o.fund.distributed && !o.hidden, entryFeePct: o.fund.entryFeePct, exitFeePct: o.fund.exitFeePct, managementFeePct: o.fund.managementFeePct, minAmount: o.fund.minAmount, cutoff: o.fund.cutoff, settlementDays: o.fund.settlementDays, curve: curves.get(o.fund.key) }))} />
       {funds.length === 0 && <p className={styles.note}>{t("Les fonds apparaîtront ici dès que leurs valeurs liquidatives seront disponibles.")}</p>}

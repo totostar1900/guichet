@@ -81,13 +81,6 @@ export const ICONE_SERVICE: Record<string, React.ReactNode> = {
       <circle cx="12" cy="15" r="2" />
     </>,
   ),
-  // La garde : ce qui est inscrit à votre nom, et protégé.
-  garde: svg(
-    <>
-      <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
-      <path d="M9 12l2 2 4-4" />
-    </>,
-  ),
   // L'adjudication : le marteau d'une séance.
   primaire: svg(
     <>

@@ -65,7 +65,7 @@ describe("les deux services intermittents", () => {
     expect(vus.has("rachat"), "une tuile « Rachats du Trésor » paraît sans rachat ouvert").toBe(false);
     /* Non vacuité : les dix autres sont bien là. Sans cette ligne, la même
        épreuve passerait sur un catalogue entièrement muet. */
-    expect(vus.size, "ce ne sont pas deux absences dans une liste vide").toBe(10);
+    expect(vus.size, "ce ne sont pas deux absences dans une liste vide").toBe(9);
   });
 
   it("paraissent dès qu'il y en a un, et chacun pour son compte", () => {
@@ -73,7 +73,7 @@ describe("les deux services intermittents", () => {
     expect(cles({ ...MARCHE_VIDE, souscriptionsOuvertes: 1 }).has("rachat"), "un rachat paraît parce qu'une émission est ouverte").toBe(false);
     expect(cles({ ...MARCHE_VIDE, rachatsOuverts: 1 }).has("rachat")).toBe(true);
     expect(cles({ ...MARCHE_VIDE, rachatsOuverts: 1 }).has("souscription"), "une émission paraît parce qu'un rachat est ouvert").toBe(false);
-    expect(cles({ ...MARCHE_VIDE, souscriptionsOuvertes: 2, rachatsOuverts: 3 }).size).toBe(12);
+    expect(cles({ ...MARCHE_VIDE, souscriptionsOuvertes: 2, rachatsOuverts: 3 }).size).toBe(11);
   });
 
   /* LE SINGULIER EST ÉCRIT À PART, et cette épreuve est la seule chose qui

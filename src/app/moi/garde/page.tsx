@@ -52,7 +52,7 @@ export default async function GardePage() {
           surTitre={t("Votre dossier")}
           titre={t("Vos droits de garde")}
           phrase={t("Ce que la conservation de vos titres a coûté. Chaque avis s'ouvre ligne à ligne : c'est ce qui permet de le vérifier plutôt que de le subir.")}
-          aCote={<EnBref cles={["garde"]} titre="La conservation en bref" />}
+          aCote={<EnBref brief="conservation" />}
         />
 
         <div className="panel">

@@ -8,7 +8,7 @@ import { fmtDate, fmtPct, fmtUnits, localIso } from "@/lib/format";
 import { codeDuPays } from "@/lib/market/budget";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
-import { EnBref, TitreDeBrief } from "@/components/EnBref";
+import { EnBref } from "@/components/EnBref";
 import { Pourquoi } from "@/components/Pourquoi";
 import { Repondre, ProposerMaLigne, Retirer } from "./Formulaires";
 import styles from "./page.module.css";
@@ -110,9 +110,14 @@ export default async function SondagePage() {
            * CE QUI N'EN ÉTAIT PAS, ET QUI A DÉMÉNAGÉ. Pourquoi un Trésor
            * achète ce renseignement est un contexte que le catalogue des
            * services ne porte pas et ne doit pas porter : il parle du MARCHÉ,
-           * pas du service. Il passe donc en « children », avant les étapes.
-           * Et la légende de « ~ », « ind. » et « min. » suppose la liste
-           * sous les yeux : elle passe en « apres », après les étapes.
+           * pas du service. Il vient donc avant les étapes. Et la légende de
+           * « ~ », « ind. » et « min. » suppose la liste sous les yeux : elle
+           * vient après.
+           *
+           * LES DEUX SONT PARTIES DE CETTE PAGE le 31 octobre 2026, dans
+           * « components/briefs/prose ». Le « i » d'une tuile de Trade ouvre
+           * désormais la même feuille, et Trade n'a aucun moyen d'atteindre du
+           * JSX écrit dans le corps d'une page qu'il n'ouvre pas.
            */
           /**
            * DEUX SOUS-TEXTES, ET LE SECOND REMONTE CE QUE LE PREMIER TAISAIT.
@@ -134,29 +139,7 @@ export default async function SondagePage() {
               ? t("Dire ce que vous prendriez avant qu'une séance ouvre. Proposez la ligne que vous cherchez : la plupart des séances que nous obtenons en viennent, et rien ne vous engage.")
               : t("Dire ce que vous prendriez avant qu'une séance ouvre. Répondez à une ligne, ou proposez celle que vous cherchez : la plupart des séances que nous obtenons en viennent, et rien ne vous engage.")
           }
-          aCote={
-            <EnBref
-              cles={["sondage"]}
-              titre="Le sondage en bref"
-              apres={
-                <section>
-                  <TitreDeBrief>{t("Lire une ligne")}</TitreDeBrief>
-                  <p>
-                    {t(
-                      "Sur chaque ligne, « ~ » précède la date à partir de laquelle elle serait prête — ce n'est pas une séance, et ce n'est pas une promesse. « ind. » est le niveau que la maison indique ; « min. » celui que vous posez comme plancher.",
-                    )}
-                  </p>
-                </section>
-              }
-            >
-              <p>
-                {t(
-                  "Les six Trésors de la CEMAC décident seuls de ce qu'ils émettent, et quand. Ce qu'ils achètent à une société de bourse, c'est le renseignement : à quel niveau la demande tient encore, et pour combien. Une ligne sondée ici n'annonce donc aucune séance : c'est la maison qui réunit les appétits, avant qu'il y ait quoi que ce soit à annoncer.",
-                )}
-              </p>
-              <p>{t("Votre réponse y entre sans rien engager : il n'y a rien à signer et rien à provisionner.")}</p>
-            </EnBref>
-          }
+          aCote={<EnBref brief="sondage" />}
         />
 
         {/* LE TITRE POSE LA QUESTION, et c'est la demande du dirigeant :

@@ -14,6 +14,15 @@ export const EN_REST: Record<string, string> = {
   "Le prélèvement en bref": "Direct debit in brief",
   "La provision en bref": "Your float in brief",
   "La conservation en bref": "Custody in brief",
+  /* LES TROIS MOMENTS DE LA CONSERVATION, 31 octobre 2026. La conservation a
+     cessé d'être un service — on ne la prend pas, elle commence avec la
+     première ligne — et ce qu'elle portait d'étapes est devenu la prose de
+     son brief. Les phrases, elles, n'ont pas changé : seuls les trois
+     intitulés qui les rangent sont neufs. */
+  "Ce qui se passe, et quand": "What happens, and when",
+  "Dès la première ligne": "From your first line",
+  "À chaque règlement": "At every settlement",
+  "Ensuite, par période": "Then, period by period",
 
   /* ---------- la page des adjudications, 5 octobre 2026 ---------- */
   "Les adjudications en bref": "Auctions in brief",
