@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { BarreDuCompte } from "./BarreDuCompte";
-import { MarketChips } from "./MarketChips";
+import { MarketFab } from "./MarketFab";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
 import { isEspaceSection, isMarcheSection, isTradeSection, listForFiche } from "@/lib/nav-section";
@@ -326,7 +326,11 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
         </div>
       </div>
 
-      {!deskHost && <MarketChips />}
+      {/* LES PAGES VOISINES DU MARCHÉ, SOUS UN BOUTON ET NON EN BANDEAU.
+          Le bandeau de pastilles occupait la première bande de l'écran, celle
+          où l'on cherche le titre de la page qu'on vient d'ouvrir, et n'en
+          montrait que deux à la fois sur sept. Voir « MarketFab ». */}
+      {!deskHost && <MarketFab />}
 
       {/* Le dock ne parait qu a qui est entre. Tout ce qu il porte demande une
           connexion : le montrer a un visiteur serait lui offrir quatre portes

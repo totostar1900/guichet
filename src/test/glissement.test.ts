@@ -84,12 +84,24 @@ describe("le glissement entre pages", () => {
   });
 
   /**
-   * ENTRE DEUX PAGES D'UNE MÊME SECTION, la direction ne se devine pas : on ne
-   * descend ni ne remonte, on se déplace de côté. Le seul ordre qui existe est
-   * celui des pastilles qu'on a sous les yeux, et c'est lui que le rail lit.
+   * ENTRE DEUX PAGES D'UNE MÊME SECTION, la direction ne se devinait pas : on
+   * n'y descend ni n'y remonte, on se déplace de côté. Le rail des pastilles
+   * déclarait donc, pour chacune, si elle était avant ou après celle qu'on
+   * lisait, et le glissement suivait.
+   *
+   * LE RAIL EST PARTI LE 1er NOVEMBRE 2026, remplacé par un bouton flottant
+   * qui ouvre une feuille : voir « MarketFab ». ET LA QUESTION DE LA DIRECTION
+   * EST PARTIE AVEC LUI, parce qu'une feuille n'a pas de côté. On ne glisse
+   * pas depuis une liste verticale posée par-dessus la page ; on la ferme et
+   * la page suivante arrive. L'ancienne règle ne s'applique donc plus — mais
+   * ce qu'elle protégeait, si : que les liens de la famille ne retombent pas
+   * au « default: none », où changer de page du marché ne montrait rien.
+   * Ici, c'est la feuille elle-même qui marque le passage.
    */
-  it("fait déclarer au rail du marché la direction de chaque pastille", () => {
-    const s = fs.readFileSync(path.join(ROOT, "src/components/mobile/MarketChips.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(s, "le rail ne compare plus sa place à celle de la pastille").toMatch(/i > ici \? LienAvant : LienRetour/);
+  it("ouvre la famille du marché en feuille, et non en rail qui glisse", () => {
+    expect(fs.existsSync(path.join(ROOT, "src/components/mobile/MarketChips.tsx")), "le rail des pastilles est revenu : il faut alors lui rendre sa direction").toBe(false);
+    const s = fs.readFileSync(path.join(ROOT, "src/components/mobile/MarketFab.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(s, "le bouton n'ouvre plus la feuille de la maison").toContain("<Sheet");
+    expect(s, "le bouton a repris un glissement de côté, que sa feuille n'a pas").not.toMatch(/LienAvant|LienRetour/);
   });
 });

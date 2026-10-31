@@ -1557,4 +1557,34 @@ export const EN_REST: Record<string, string> = {
   "Adjudication · {e}": "Auction · {e}",
   "et {n} autres séances": "and {n} more sessions",
   "et une autre séance": "and one more session",
+
+  /* ---------- la revue des quatre écrans, 1er novembre 2026 ---------- */
+  /* « Données » a quitté la page de l'indice ; ce qu'il avait en propre est
+     descendu dans « Données et méthode ». */
+  "Le dernier bulletin lu porte la séance du {d} ; il a été lu le {q}, {by}.":
+    "The last bulletin read carries the session of {d}; it was read on {q}, {by}.",
+  "La séance du {d} est la dernière lue.": "The session of {d} is the last one read.",
+  "{n} jours ouvrés n'ont pas de bulletin lu, jours fériés compris, dont les derniers : {l}.":
+    "{n} business days have no bulletin read, public holidays included, the latest being: {l}.",
+  "Aucun jour ouvré ne manque à la série.": "No business day is missing from the series.",
+  /* La porte du marché : l'éclairage et la comparaison y ont une section. */
+  "Première ligne": "First line",
+  "Seconde ligne": "Second line",
+  "{n} min de lecture": "{n} min read",
+  "{n} termes expliqués": "{n} terms explained",
+  "La page de comparaison": "The comparison page",
+  "{n} lignes au catalogue aujourd'hui : rendement, échéance, ticket et calcul de référence côte à côte, avec l'indice en repère.":
+    "{n} lines on the catalogue today: yield, maturity, ticket and reference calculation side by side, with the index as a benchmark.",
+  "D'où viennent ces chiffres, et ce qui manque à la série": "Where these figures come from, and what the series is missing",
+  /* « Vos intentions » : la carte qui se déplie, et son détail. */
+  "Voir l'ordre": "See the order",
+  "Étape {n} sur {m}": "Step {n} of {m}",
+  "Le détail de l'opération": "The detail of the operation",
+  "Passé le": "Placed on",
+  "Votre limite": "Your limit",
+  "Titres servis": "Securities allotted",
+  "Signé le": "Signed on",
+  "Signer et payer": "Sign and pay",
+  "ce qui attend quelque chose de quelqu'un": "what is waiting on someone",
+  "Nous écrire": "Write to us",
 };

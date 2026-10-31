@@ -191,40 +191,10 @@ tfoot .when {
   line-height: 1.5;
 }
 
-.info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 0 22px;
-  margin: 0;
-  /* le retrait horizontal vient du panneau */
-  padding-block: 0;
-}
-.info div {
-  display: grid;
-  gap: 2px;
-  padding: 10px 0;
-  border-top: 1px solid var(--line);
-}
-.info dt {
-  font-size: 0.64rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  font-weight: 800;
-}
-.info dd {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.info dd small {
-  display: block;
-  font-weight: 500;
-  color: var(--ink-3);
-  font-size: 0.74rem;
-  line-height: 1.4;
-}
+/* « .info » est parti avec le panneau « Données », le 1er novembre 2026 :
+   c'était sa liste de définitions, et aucun autre écran ne l'emploie. Ce que
+   ce panneau avait en propre est descendu dans « Données et méthode », qui
+   se rend en paragraphes et n'a besoin d'aucune grille. */
 .btns {
   display: flex;
   gap: 8px;

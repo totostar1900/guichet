@@ -111,15 +111,87 @@
   color: var(--warn);
 }
 
-/* Le sommaire du téléphone : une liste de rubriques en tête, là où l'écran
-   large n'en a pas besoin — il voit les sections d'un coup d'œil, le
-   téléphone doit descendre un mur pour atteindre la troisième porte. */
-.sommaire {
-  display: block;
-  margin-bottom: var(--s-8);
+/* ── L'ÉCLAIRAGE ────────────────────────────────────────────────────────────
+   Une leçon n'a pas de chiffre : sa tuile se lit comme un paragraphe, avec
+   la question qu'elle pose mise en évidence. C'est la seule section de la
+   page qui n'aligne rien à droite, parce qu'elle n'a rien à comparer. */
+.lecon {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
 }
-@media (min-width: 761px) {
-  .sommaire {
-    display: none;
+.lecon b {
+  font-size: var(--t-4);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.lecon p {
+  margin: 0;
+  font-size: var(--t-2);
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 74ch;
+}
+/* LA QUESTION DU QUIZ, et elle se détache : c'est elle qui fait ouvrir la
+   leçon. Un filet à gauche plutôt qu'un fond — la page n'a aucun aplat, et
+   un seul en ferait une alerte. */
+.question {
+  border-left: 2px solid var(--gold-line);
+  padding-left: var(--s-6);
+  color: var(--ink) !important;
+  font-style: italic;
+}
+.meta {
+  font-size: var(--t-1);
+  color: var(--ink-3);
+}
+
+/* ── COMPARER DEUX LIGNES ───────────────────────────────────────────────────
+   Deux cases et un bouton. À l'étroit elles s'empilent : deux listes
+   déroulantes côte à côte sur 390 px rendent deux champs de 160 px, où un
+   titre de ligne ne se lit pas. */
+.comparer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-6);
+  align-items: end;
+}
+@media (min-width: 561px) {
+  .comparer {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   }
+}
+.case {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.case span {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.case select {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--ctrl-h);
+  box-sizing: border-box;
+  padding: 0 var(--s-5);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--ctrl-t);
+}
+.case select:focus-visible {
+  border-color: var(--gold);
+  outline: none;
+}
+.comparer button[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

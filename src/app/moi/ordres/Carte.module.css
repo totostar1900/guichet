@@ -1,0 +1,271 @@
+/* ── La carte d'une intention en cours ───────────────────────────────────────
+   Elle vivait dans « moi/page.module.css », au milieu des mesures de cinq
+   autres écrans. Elle a sa feuille depuis le 1er novembre 2026, parce qu'elle
+   a maintenant une mécanique à elle : un menu, un dépli, une piste nommée. */
+
+.carte {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s-7);
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+
+/* ── La rangée du titre ──────────────────────────────────────────────────────
+   Le titre prend la place qui reste, l'état et le bouton n'en prennent que
+   la leur : sans « min-width: 0 », une référence sans espace pousse les deux
+   autres hors de la carte. */
+.tete {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-5);
+}
+.quoi {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.quoi b {
+  display: block;
+  font-size: var(--t-3);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.quoi b a {
+  color: inherit;
+  text-decoration: none;
+}
+.quoi b a:hover,
+.quoi b a:focus-visible {
+  color: var(--gold-ink);
+}
+.quoi small {
+  display: block;
+  margin-top: var(--s-2);
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+/* LE BOUTON NE BOUGE PAS ET NE DISPARAÎT PAS : c'est le même point à toucher
+   pour ouvrir et pour refermer. Quarante-quatre pixels de cible, qui est le
+   minimum du pouce, obtenus par la marge négative plutôt qu'en poussant la
+   rangée. */
+.points {
+  flex: none;
+  margin: calc(var(--s-3) * -1) calc(var(--s-3) * -1) 0 0;
+  padding: var(--s-3) var(--s-4);
+  background: none;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--ink-3);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  cursor: pointer;
+}
+.points:hover,
+.points[aria-expanded="true"] {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+
+/* ── Le menu ─────────────────────────────────────────────────────────────────
+   SOUS la rangée et non dedans : dans la rangée, il en devenait la troisième
+   colonne et repliait le titre sur trois lignes. Il ne porte que des actions ;
+   la raison d'un retrait impossible est descendue dans le dépli. */
+.menu {
+  display: grid;
+  gap: var(--s-4);
+  padding: var(--s-6);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: var(--t-2);
+}
+.menu a,
+.menu button {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+.menu a:hover,
+.menu button:hover,
+.menu a:focus-visible,
+.menu button:focus-visible {
+  color: var(--gold-ink);
+  text-decoration: underline;
+}
+
+/* Le retrait pousse la carte : il ne flotte pas, et l'on lit ce qu'il fait. */
+.retrait {
+  display: grid;
+  gap: var(--s-5);
+  padding: var(--s-6);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  border-radius: var(--radius);
+  font-size: var(--t-2);
+}
+.retrait p {
+  margin: 0;
+  line-height: 1.5;
+}
+.retraitBtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+}
+
+/* ── La piste, avec ses arrêts nommés ────────────────────────────────────────
+   Cinq segments anonymes et une légende écrite une fois en tête de section,
+   à quatre cents pixels de là : on voyait des barres vertes sans savoir de
+   quoi. Les noms sont sous les segments.
+
+   CINQ COLONNES ÉGALES, et elles tiennent : « confirmée » est le plus long
+   des cinq mots, 52 px au degré de la ligne fixe, dans une colonne de 66 px
+   sur une carte pleine largeur à 390. Un mot qui déborderait se replierait
+   sur deux hauteurs sans rien casser. */
+.piste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--s-2);
+}
+.piste li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.piste i {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-2);
+}
+.piste span {
+  font-size: var(--t-1);
+  line-height: 1.25;
+  color: var(--ink-3);
+  overflow-wrap: break-word;
+}
+/* CE QUI EST FAIT EST VERT, CE QUI EST EN COURS EST DORÉ. Deux couleurs et
+   trois états : passé, ici, à venir. L'or est l'accent de la maison, et il
+   dit « c'est là que ça se joue » partout ailleurs. */
+.passe i {
+  background: var(--good);
+}
+.ici i {
+  background: var(--gold);
+}
+.ici span {
+  color: var(--gold-ink);
+  font-weight: 700;
+}
+
+/* ── Ce qui se passe ensuite ─────────────────────────────────────────────────
+   AUCUNE FLÈCHE. La feuille en posait une, dorée et grasse, devant une phrase
+   qui n'était pas un lien : le dirigeant a mis une journée à essayer de
+   cliquer dessus. Une flèche est une promesse de destination ; ici c'est le
+   bouton qui la porte, et seulement là où il y a un geste. */
+.suite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-5);
+}
+.suite p {
+  flex: 1 1 14rem;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--t-2);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+/* ── Le dépli ────────────────────────────────────────────────────────────────
+   Une ligne qui se touche, sur toute la largeur, avec son chevron. */
+.plus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  width: 100%;
+  padding: var(--s-4) 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: var(--t-1);
+  cursor: pointer;
+}
+.plus:hover,
+.plus:focus-visible {
+  color: var(--ink);
+}
+.plus i {
+  font-style: normal;
+  transition: transform 0.18s;
+}
+.haut {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .plus i {
+    transition: none;
+  }
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  font-size: var(--t-2);
+}
+/* Pourquoi l'ordre ne se retire plus : une information, pas une commande.
+   Elle était le troisième item d'un menu, où elle se lisait comme une
+   commande en panne. */
+.pourquoi {
+  margin: 0;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+/* Le détail : une définition par ligne, le nom à gauche et la valeur à
+   droite, comme partout ailleurs dans la maison. Sur un écran étroit la
+   valeur passe dessous plutôt que de couper le nom. */
+.lignes {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+}
+.lignes > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 var(--s-5);
+  min-width: 0;
+}
+.lignes dt {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--ink-3);
+  overflow-wrap: break-word;
+}
+.lignes dd {
+  flex: 0 1 auto;
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

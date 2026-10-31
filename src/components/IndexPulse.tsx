@@ -14,7 +14,33 @@ const tone = (v?: number) => (v == null || Math.abs(v) < 0.005 ? styles.flat : v
  * months, sixty sessions in a line. A price index, and a link to the lesson
  * that says how to read it. Quiet when no bulletin carried the index yet.
  */
-export async function IndexPulse({ compact, entete }: { compact?: boolean; /** Le titre de section et son lien, quand la page en veut un : voir la note. */ entete?: { titre: string; lien: { href: string; mot: string } } }) {
+export async function IndexPulse({
+  compact,
+  entete,
+  liens = true,
+}: {
+  compact?: boolean;
+  /** Le titre de section et son lien, quand la page en veut un : voir la note. */
+  entete?: { titre: string; lien: { href: string; mot: string } };
+  /**
+   * LES DEUX SORTIES DU BAS DE LA CARTE, et la page qui peut s'en passer.
+   *
+   * RELEVÉ LE 1er NOVEMBRE 2026 par le dirigeant, sur « /marche » : quatre
+   * sections y portaient leur lien en haut à droite et celle-ci les portait
+   * EN BAS, au milieu de ses chiffres. Deux grammaires sur une page de cinq
+   * cartes.
+   *
+   * La page du marché prend donc l'en-tête de la maison et éteint ces deux
+   * liens : « voir l'indice » y redirait le lien de l'en-tête, et « comment
+   * le lire » a sa propre section, qui dit ce qu'on y apprend.
+   *
+   * ELLES RESTENT ALLUMÉES PARTOUT AILLEURS, et le tableau de bord en est la
+   * raison : son en-tête mène à « /marche », la famille, et ces deux liens
+   * sont ses seules portes vers l'indice et vers la leçon. Les éteindre pour
+   * tout le monde fermerait deux portes pour en aligner une.
+   */
+  liens?: boolean;
+}) {
   const t = await getT();
   const bulletins = await repo().listBulletins(400).catch(() => []);
   const stats = indexStats(indexSeries(bulletins));
@@ -82,12 +108,16 @@ export async function IndexPulse({ compact, entete }: { compact?: boolean; /** L
           </span>
           {plat && bouge && <span className={styles.calme}>{t("dernier mouvement le {d}, {v}", { d: fmtDate(bouge.date, false), v: signed(bouge.variationPct, 2) })}</span>}
           {plat && !bouge && stats.points.length > 1 && <span className={styles.calme}>{t("aucun mouvement depuis la première séance lue, le {d}", { d: fmtDate(stats.points[0].date) })}</span>}
-          <Link href="/indice" className={styles.how}>
-            {t("voir l'indice")} →
-          </Link>
-          <Link href="/info/indice-bvmac" className={styles.how}>
-            {t("comment le lire")} →
-          </Link>
+          {liens && (
+            <>
+              <Link href="/indice" className={styles.how}>
+                {t("voir l'indice")} →
+              </Link>
+              <Link href="/info/indice-bvmac" className={styles.how}>
+                {t("comment le lire")} →
+              </Link>
+            </>
+          )}
         </div>
       </div>
       <span className={styles.tag} title={t("Les dividendes ne sont pas comptés dans l'indice")}>

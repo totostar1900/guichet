@@ -72,11 +72,13 @@ describe("ce qui s'est échangé, et quand le cours a bougé", () => {
   });
 
   /* La promesse de ce lot : deux lectures de plus, aucune requête de plus. */
-  it("n'ajoute aucune lecture à la page du marché", () => {
+  it("tire ses deux mesures de ce que la page tient déjà", () => {
     const page = readFileSync(join(process.cwd(), "src/app/marche/page.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(page, "la page lit « indexPageData », et rien d'autre").not.toMatch(/\brepo\(\)/);
     expect(page).toContain("echangesDeLaSeance(");
     expect(page).toContain("dernierMouvement(");
+    /* Les deux se calculent de « indexPageData », qui porte déjà le négoce :
+       un aperçu qui aurait demandé une requête de plus aurait été écarté. */
+    expect(page, "la page relit le marché pour ce qu'elle a en main").toMatch(/echangesDeLaSeance\(trading,/);
   });
 });
 
@@ -98,9 +100,34 @@ describe("les aperçus de la porte du marché", () => {
 
   /* La promesse du lot : ce que « indexPageData » porte déjà ne se redemande
      pas. Les actualités vivent ailleurs, d'où la seule requête ajoutée. */
-  it("ne lit que ce qu'elle doit : l'indice, et les actualités publiées", () => {
-    expect(page, "la page lit « indexPageData », pas le dépôt").not.toMatch(/\brepo\(\)/);
-    expect(page).toContain("publishedNews()");
+  /**
+   * ELLE NE LIT QUE DES SOURCES NOMMÉES, ET LA LISTE EST ICI.
+   *
+   * L'ancienne écriture interdisait le mot « repo() » dans ce fichier. Elle
+   * visait juste — une porte qui gagne une requête à chaque idée finit par
+   * coûter plus cher que les pages qu'elle ouvre — mais elle gardait un MOT
+   * plutôt qu'une règle : la page appelait déjà « publishedNews » et
+   * « loadCompanies », qui lisent le dépôt par un autre chemin.
+   *
+   * Elle garde donc la vraie règle : les sources sont comptées et nommées.
+   * Une lecture de plus fait tomber ce cas, et celui qui l'ajoute doit
+   * l'inscrire ici avec sa raison — ce qui est exactement le moment où l'on
+   * se demande si elle vaut son prix.
+   *
+   * « listOffers » est entrée le 1er novembre 2026 avec la section qui
+   * propose deux lignes à comparer : le catalogue ne se déduit d'aucune des
+   * autres sources, et sans lui la section ne peut rien offrir.
+   */
+  it("ne lit que les sources nommées ici", () => {
+    const attendues = ["indexPageData()", "loadCompanies()", "publishedNews()", "loadLessons()", "repo().listOffers()"];
+    /* LE BON « Promise.all » : celui qui porte l'indice. La page en ouvre deux,
+       et le premier ne tient que la langue — viser le premier venu, c'est lire
+       « getT, getLang » et conclure que la page ne lit rien. */
+    const debut = page.lastIndexOf("Promise.all([", page.indexOf("indexPageData()"));
+    const bloc = page.slice(debut, page.indexOf("]);", debut));
+    const lues = [...bloc.matchAll(/([A-Za-z.()]*\b(?:indexPageData|loadCompanies|publishedNews|loadLessons|listOffers)\(\))/g)].map((m) => m[1]);
+    expect(lues.length, "le relevé ne voit plus les lectures de la page : son verdict ne prouve rien").toBeGreaterThanOrEqual(4);
+    expect(lues.filter((x) => !attendues.includes(x)), "cette page a gagné une lecture : l'inscrire ici, avec ce qu'elle sert").toEqual([]);
     expect(page, "la dernière note se calcule des données en main").toContain("quarterNote(undefined, data)");
   });
 

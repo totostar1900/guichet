@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
-import { fmt, fmtDate } from "@/lib/format";
-import type { Intent } from "@/lib/domain/types";
+import { INTENT_LABEL, INTENT_STATE_LABEL, ordreSignable, retirableParLeClient } from "@/lib/domain/intent";
+import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import type { Intent, Offer } from "@/lib/domain/types";
 import { CounterAnswer } from "../CounterAnswer";
-import { OrdreMenu } from "../OrdreMenu";
+import { CarteOrdre } from "./Carte";
 import { getT } from "@/i18n/server";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import styles from "../page.module.css";
+import detail from "./Carte.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -48,8 +49,12 @@ export async function generateMetadata() {
  */
 
 /* Les cinq arrêts par lesquels passe tout ordre. Une contre-proposition n'a
-   pas reculé : l'ordre est là, il attend une réponse. */
+   pas reculé : l'ordre est là, il attend une réponse.
+   ILS SE NOMMENT SOUS LES SEGMENTS depuis le 1er novembre 2026. La piste
+   montrait cinq barres anonymes et la légende était écrite une fois, en tête
+   de section, à quatre cents pixels de la carte la plus basse. */
 const STOPS: Intent["state"][] = ["recue", "confirmee", "transmise", "servie", "reglee"];
+const ARRET_NOM: Record<string, string> = { recue: "reçue", confirmee: "confirmée", transmise: "transmise", servie: "servie", reglee: "réglée" };
 const stopIndex = (st: Intent["state"]) => (st === "non_servie" ? 3 : st === "annulee" ? -1 : st === "contre_proposee" ? 0 : STOPS.indexOf(st));
 
 const EN_COURS: Intent["state"][] = ["recue", "contre_proposee", "confirmee", "transmise"];
@@ -93,6 +98,73 @@ export default async function OrdresPage() {
 
   const montant = (i: Intent, kind?: string) => (i.amount ? (i.type === "rachat" ? `${i.amount.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts` : `${fmt(i.amount)} ${kind === "RACHAT" ? "titres" : "FCFA"}`) : "");
 
+  /**
+   * LE DÉTAIL DE L'OPÉRATION, RENDU PAR LE SERVEUR.
+   *
+   * CE QUI NE SE LISAIT NULLE PART, et que la donnée portait depuis toujours :
+   * la date de l'ordre, le prix limite posé par le client, le prix auquel il a
+   * été exécuté, la part servie et les titres reçus, le canal par lequel il
+   * est arrivé. La carte disait « Prise ferme · 1 500 000 FCFA · réf. … », ce
+   * qui est l'intention et non l'opération.
+   *
+   * IL EST RENDU ICI ET PASSÉ EN ÉLÉMENT, plutôt que de voyager en chaînes
+   * jusqu'au composant client. Les montants et les dates se formatent avec
+   * `fmt` et `fmtDate`, qui lisent la langue du lecteur : les laisser au
+   * navigateur ferait rendre une valeur au serveur et une autre au client,
+   * c'est-à-dire la discordance d'hydratation que la maison a corrigée cinq
+   * fois en octobre.
+   */
+  const detailsDe = (i: Intent, o?: Offer) => {
+    const lignes: [string, string][] = [
+      [t("Passé le"), fmtDate(i.createdAt)],
+      [t("Référence"), i.ref],
+    ];
+    if (i.limitPrice != null) lignes.push([t("Votre limite"), `${fmt(i.limitPrice)} FCFA`]);
+    if (i.executedPrice != null) lignes.push([t("Prix exécuté"), `${fmt(i.executedPrice)} FCFA`]);
+    if (i.allocationPct != null) lignes.push([t("Part servie"), fmtPct(i.allocationPct, 0)]);
+    if (i.servedUnits != null) lignes.push([t("Titres servis"), fmt(i.servedUnits)]);
+    if (i.signedAt) lignes.push([t("Signé le"), fmtDate(i.signedAt)]);
+    if (o) lignes.push([t("La ligne"), t(o.title)]);
+    if (i.closedReason) lignes.push([t("Motif"), t(i.closedReason)]);
+    return (
+      <dl className={detail.lignes}>
+        {lignes.map(([quoi, valeur]) => (
+          <div key={quoi}>
+            <dt>{quoi}</dt>
+            <dd>{valeur}</dd>
+          </div>
+        ))}
+      </dl>
+    );
+  };
+
+  /**
+   * LE GESTE ATTENDU DU CLIENT, QUAND IL Y EN A UN.
+   *
+   * C'est la réparation la plus coûteuse de cet écran. La carte disait
+   * « Signez le bulletin et effectuez le virement » et ne menait nulle part :
+   * l'écran où l'on signe — « /moi/ordres/{id} », avec sa signature par code —
+   * existe depuis des semaines, les ordres CLOS y mènent, et les ordres en
+   * cours n'y menaient pas. Le seul ordre qui avait quelque chose à faire
+   * était le seul sans porte.
+   *
+   * RIEN LÀ OÙ RIEN N'EST ATTENDU. Un ordre transmis au SVT n'attend pas le
+   * client : lui poser un bouton serait lui demander de faire ce que personne
+   * n'attend de lui, et c'est exactement ce que la flèche dorée faisait.
+   */
+  const gesteDe = (i: Intent) => {
+    if (ordreSignable(i)) return { mot: t("Signer et payer"), href: `/moi/ordres/${i.id}` };
+    /* UNE CONTRE-PROPOSITION SANS SES TERMES. Quand le desk a changé l'état
+       sans poser les conditions, « CounterAnswer » rend null et la carte
+       retombe sur sa phrase : « votre réponse est attendue ». C'était un
+       devoir sans moyen — le défaut même que cet écran vient de réparer
+       ailleurs — et l'écran de l'ordre ne sait pas répondre non plus, il ne
+       connaît que la signature. Le seul geste vrai est alors de nous écrire,
+       et c'est celui qu'on offre. */
+    if (i.state === "contre_proposee" && !i.counter) return { mot: t("Nous écrire"), href: "/moi/contact" };
+    return undefined;
+  };
+
   return (
     <Glissement>
       <main className={styles.wrap}>
@@ -106,7 +178,11 @@ export default async function OrdresPage() {
         <section className={styles.sec}>
           <div className={styles.secTete}>
             <h2>{t("En cours")}</h2>
-            <span className="muted">{t("reçue → confirmée → transmise → servie → réglée")}</span>
+            {/* LA LÉGENDE A QUITTÉ L'EN-TÊTE DE SECTION : chaque piste porte
+                maintenant ses arrêts sous ses segments, et une légende qui
+                répète cinq mots à quatre cents pixels de la carte la plus
+                basse ne sert personne. Reste ce que la section dit d'elle. */}
+            <span className="muted">{t("ce qui attend quelque chose de quelqu'un")}</span>
           </div>
           <div className="panel">
             {ouvertes.length === 0 && <div className="empty">{t("Aucune intention en cours : choisissez une ligne dans Guichet.")}</div>}
@@ -114,34 +190,45 @@ export default async function OrdresPage() {
               <div className={styles.cards}>
                 {ouvertes.map((i) => {
                   const o = byOffer.get(i.offerId);
-                  const k = stopIndex(i.state);
+                  /* Une contre-proposition se décide sur la carte : c'est le oui
+                     du client qui change l'ordre. « i.counter » est dans la
+                     condition et pas seulement dans le composant : sans les
+                     termes, celui-ci rend null, et la carte n'afficherait alors
+                     RIEN à la place de sa phrase de suite — un ordre qui attend
+                     une réponse sans dire laquelle. */
+                  const counter = i.state === "contre_proposee" && o && i.counter ? <CounterAnswer intent={i} offer={o} now={new Date()} /> : undefined;
                   return (
-                    <div key={i.id} className={styles.card}>
-                      <div className={styles.cardTop}>
-                        <div>
-                          <b>{o ? <Link href={`/offres/${o.id}`}>{t(o.title)}</Link> : i.offerId}</b>
-                          <small>
-                            {t(INTENT_LABEL[i.type])}
-                            {i.amount ? ` · ${montant(i, o?.kind)}` : ""} · {t("réf.")} {i.ref}
-                          </small>
-                        </div>
-                        <span className={`st ${i.state}`}>{t(INTENT_STATE_LABEL[i.state])}</span>
-                        <OrdreMenu intentId={i.id} offerId={i.offerId} etat={i.state} ref_={i.ref} signe={Boolean(i.signedAt)} />
-                      </div>
-                      {/* Une contre-proposition se décide ici : c’est le oui du client qui change l’ordre.
-                          « i.counter » est dans la condition et pas seulement
-                          dans le composant : sans les termes, celui-ci rend
-                          null, et la carte n'affichait alors RIEN entre son
-                          titre et sa piste — un ordre qui attend une réponse
-                          sans dire laquelle. La phrase de suite prend le
-                          relais, et elle le dit. */}
-                      {i.state === "contre_proposee" && o && i.counter ? <CounterAnswer intent={i} offer={o} now={new Date()} /> : <div className={styles.next}>{t((o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}</div>}
-                      <div className={styles.track} aria-label={t("Étape {n} sur 5", { n: k + 1 })}>
-                        {STOPS.map((st, n) => (
-                          <i key={st} className={n <= k ? styles.done : undefined} />
-                        ))}
-                      </div>
-                    </div>
+                    <CarteOrdre
+                      key={i.id}
+                      id={i.id}
+                      etat={i.state}
+                      etatLabel={t(INTENT_STATE_LABEL[i.state])}
+                      titre={o ? t(o.title) : i.offerId}
+                      ligneHref={`/offres/${i.offerId}`}
+                      /* LA DATE SANS SON ARTICLE : « Prise ferme · 1 500 000 FCFA · 20 oct. ».
+                         Les points médians font déjà la liste, et « le » y ajoutait une
+                         clef à trous de six caractères — la maison en borne le nombre,
+                         parce qu'une clef trop courte se retrouve dans dix contextes et
+                         ne se traduit juste dans aucun. Le dépli, lui, dit « Passé le ». */
+                      resume={`${t(INTENT_LABEL[i.type])}${i.amount ? ` · ${montant(i, o?.kind)}` : ""} · ${fmtDate(i.createdAt, false)}`}
+                      etape={stopIndex(i.state)}
+                      arrets={STOPS.map((st) => t(ARRET_NOM[st]))}
+                      suite={t((o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}
+                      geste={gesteDe(i)}
+                      counter={counter}
+                      details={detailsDe(i, o)}
+                      retirable={retirableParLeClient(i)}
+                      raisonNonRetrait={
+                        retirableParLeClient(i)
+                          ? undefined
+                          : t(
+                              i.state === "transmise" || i.state === "servie" || i.state === "non_servie" || i.state === "reglee"
+                                ? "L'ordre est parti au marché : il ne se retire plus, ni par vous ni par nous."
+                                : "Vous avez signé cet ordre : appelez-nous pour le retirer.",
+                            )
+                      }
+                      refOrdre={i.ref}
+                    />
                   );
                 })}
               </div>

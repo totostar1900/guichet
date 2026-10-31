@@ -1,4 +1,3 @@
-import { IndexPulse } from "@/components/IndexPulse";
 import { fold } from "@/lib/text";
 import Link from "next/link";
 import { Toolbar } from "@/components/ui/Toolbar";
@@ -80,7 +79,13 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
             titre={t("Actualités du marché")}
             phrase={t("Chaque jour, le desk retient les publications qui comptent pour vos lignes, communiqués des Trésors, bulletins de la BVMAC, avis de la COSUMAF, presse économique, et dit pourquoi. Les articles restent chez leurs éditeurs : Guichet renvoie vers l'original.")}
           />
-          <IndexPulse />
+          {/* LE GRAPHIQUE DE L'INDICE EST PARTI, le 1er novembre 2026, sur
+              décision du dirigeant. Il tenait entre l'en-tête et les filtres,
+              sur une page qui parle de dépêches : l'indice n'explique aucune
+              d'elles, et son sparkline de soixante séances était la première
+              chose qu'on voyait en venant lire ce que le desk a relu. Il vit
+              sur « /marche », où il est le sujet, et le bouton des pages du
+              marché y conduit d'un geste. */}
 
           <div data-coach="filters">
             <Toolbar placeholder={t("Une ligne, un émetteur, un mot")} chipKey="rubrique" chips={[{ value: "", label: t("Tout") }, ...RUBRICS.map((r) => ({ value: r, label: t(RUBRIC_LABEL[r]), count: all.filter((n) => n.rubric === r).length || undefined }))]} />

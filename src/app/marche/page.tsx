@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { Rubriques } from "@/components/mobile/Rubriques";
-import { MARKET_PAGES } from "@/lib/market/pages";
 import { IndexPulse } from "@/components/IndexPulse";
 import { COMPANY } from "@/lib/config";
 import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
@@ -8,7 +6,10 @@ import { dernierMouvement, echangesDeLaSeance } from "@/lib/market/echanges";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters, quarterNote } from "@/lib/market/index-quarter";
 import { aLaUne, publishedNews, titreLu } from "@/lib/news";
-import { loadCompanies } from "@/lib/reference";
+import { loadCompanies, loadLessons } from "@/lib/reference";
+import { repo } from "@/lib/data";
+import { familyLabel, offerFamily } from "@/lib/domain/status";
+import { ChoisirDeuxLignes } from "./ChoisirDeuxLignes";
 import { getLang, getT } from "@/i18n/server";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
@@ -29,7 +30,13 @@ export const metadata = { title: "Le marché" };
  */
 export default async function MarchePage() {
   const [t, lang] = await Promise.all([getT(), getLang()]);
-  const [data, companies, actualites] = await Promise.all([indexPageData(), loadCompanies().catch(() => []), publishedNews().catch(() => [])]);
+  const [data, companies, actualites, lecons, offres] = await Promise.all([
+    indexPageData(),
+    loadCompanies().catch(() => []),
+    publishedNews().catch(() => []),
+    loadLessons().catch(() => []),
+    repo().listOffers().catch(() => []),
+  ]);
   const { weights, nameOf, lastBulletin, histories, trading } = data;
   const notes = quarters(data);
   /* La dernière note se calcule de « data », déjà en main : aucune lecture de
@@ -59,37 +66,75 @@ export default async function MarchePage() {
   const tete = weights.slice(0, 3);
   const partDeTete = tete.reduce((a, w) => a + w.weightTotal, 0);
   const bougeLe = (mnemo: string) => dernierMouvement(histories.find((h) => h.w.mnemo === mnemo)?.quotes ?? []);
+  /* L'ÉCLAIRAGE, LU DANS LE RÉFÉRENTIEL ET NON RECOPIÉ. Le desk peut
+     réécrire une leçon par « Référentiel » : une tuile qui porterait sa propre
+     phrase d'accroche dirait autre chose que la page qu'elle ouvre dès la
+     première correction. Absent — leçon retirée du référentiel — la section ne
+     paraît pas, plutôt que de s'excuser. */
+  const lecon = lecons.find((l) => l.key === "indice-bvmac");
+  /* LES LIGNES QU'ON PEUT METTRE EN FACE L'UNE DE L'AUTRE : celles que
+     « /comparer » accepte, c'est-à-dire le catalogue moins ce qui est caché.
+     Le filtre est écrit ici comme là-bas, et c'est le même. */
+  const comparables = offres
+    .filter((o) => !o.hidden)
+    .map((o) => ({ id: o.id, titre: o.title, famille: familyLabel(offerFamily(o)) }));
 
   return (
     <Glissement>
       <>
-        {/* LE SOMMAIRE DU TÉLÉPHONE, et le reste de la page sur l'écran large.
-            « Le marché » est déjà la porte d'entrée de l'environnement BVMAC :
-            rien n'y est produit, chaque section montre ce qui existe et mène à
-            sa page. Sur un écran large cela se parcourt d'un coup d'œil ; sur
-            un téléphone, c'est un mur qu'il faut descendre pour atteindre la
-            troisième porte. Les rubriques la donnent en une liste, et le reste
-            se lit ensuite, à sa place.
-            Le choix se fait en CSS et non en JavaScript : mesurer la largeur au
-            montage ferait rendre au serveur un arrangement et au navigateur
-            l'autre. */}
-        <div className={styles.sommaire}>
-          <Rubriques items={MARKET_PAGES.filter((p) => p.href !== "/marche").map((p) => ({ href: p.href, nom: t(p.label), quoi: t(p.hint) }))} />
-        </div>
+        {/* ─── LE SOMMAIRE DU TÉLÉPHONE EST PARTI, le 1er novembre 2026 ──────
+            Il posait les six pages de la famille en tuiles muettes AVANT le
+            sur-titre et le titre : relevé au navigateur à 390 px, 712 px de
+            liste statique sur une page de 1 482, soit la moitié de la page
+            avant qu'elle se nomme.
+            Et il redisait ce qui suit. Les notes, les actualités, l'indice,
+            les sociétés ont chacune leur section en dessous, avec un chiffre
+            qui bouge ; la tuile, elle, ne portait qu'un nom. « Une tuile
+            statique qui répète une section vivante est du bruit » — c'est la
+            règle que cette page avait déjà écrite pour sa bande de pied, et
+            qui vaut en tête comme au pied.
+            LES DEUX QUI N'AVAIENT PAS DE SECTION EN ONT UNE MAINTENANT :
+            l'éclairage et la comparaison, plus bas. Aucune porte ne se ferme.
+            Sur l'écran large la liste était déjà masquée par la feuille : la
+            colonne de gauche porte la famille. */}
         <EnTete
           surTitre={`BVMAC · ${t("Bourse des Valeurs Mobilières de l'Afrique Centrale")}`}
           titre={t("Le marché")}
           phrase={`${t("Ce que la Bourse publie à chaque séance, et ce que nous en lisons : l'indice, les sociétés cotées, et les notes que nous en tirons.")}${lastBulletin ? ` ${t("Dernier bulletin lu : n° {n} du {d}.", { n: String(lastBulletin.number), d: fmtDate(lastBulletin.sessionDate) })}` : ""}`}
         />
 
-        <IndexPulse />
+        {/* L'EN-TÊTE DE LA MAISON, ET SA FLÈCHE AU MÊME ENDROIT QUE LES AUTRES.
+            Relevé le 1er novembre 2026 : quatre sections portaient leur lien
+            en haut à droite, dans « panel-h », et l'indice portait les siens
+            EN BAS, au milieu de ses chiffres, après « douze mois ». Deux
+            grammaires sur une page de cinq cartes, et c'est la plus voyante
+            qui faisait exception.
+            « IndexPulse » savait déjà rendre cet en-tête — la page d'arrivée
+            s'en sert — et cette page ne le lui demandait pas. Le second lien
+            de sa carte, « comment le lire », descend dans la section de
+            l'éclairage, qui est faite pour lui : une carte, une flèche. */}
+        <IndexPulse entete={{ titre: t("L'indice"), lien: { href: "/indice", mot: t("Séance par séance") } }} liens={false} />
 
         {ech && lastBulletin && (
           <section className="panel" id="echanges">
             <div className="panel-h">
+              {/* « right » POUSSE LA FLÈCHE AU BORD DROIT, et les cinq
+                  sections la portent. Sans elle, « .panel-h » empile ses
+                  enfants à gauche : le lien se posait juste après le titre,
+                  donc à une abscisse différente par section — « Toutes les
+                  notes » à 190 px, « Les 7 sociétés » à 140, « La page de
+                  comparaison » à 230. L'œil qui descend la page cherchait la
+                  sortie à chaque carte. La classe existe dans le globals
+                  depuis longtemps ; aucune de ces cartes ne s'en servait. */}
               <h2>{t("Ce qui s'est échangé")}</h2>
-              <Link className="btn sm ghost" href="/indice">
-                {t("Séance par séance")} →
+              {/* « LES SÉANCES » ET NON « SÉANCE PAR SÉANCE », depuis le
+                  1er novembre 2026 : l'en-tête de l'indice, à cent pixels
+                  au-dessus, porte désormais ce mot-là. Deux cartes voisines
+                  dont les deux flèches disaient la même chose et menaient à
+                  la même page — celle-ci va au tableau des séances, qui est
+                  ce qu'elle résume. */}
+              <Link className="btn sm ghost right" href="/indice#seances">
+                {t("Les séances")} →
               </Link>
             </div>
             <div className={styles.ech}>
@@ -131,7 +176,7 @@ export default async function MarchePage() {
           <section className="panel" id="societes">
             <div className="panel-h">
               <h2>{t("Les sociétés")}</h2>
-              <Link className="btn sm ghost" href="/societes">
+              <Link className="btn sm ghost right" href="/societes">
                 {t("Les {n} sociétés", { n: weights.length })} →
               </Link>
             </div>
@@ -163,7 +208,7 @@ export default async function MarchePage() {
         <section className="panel" id="notes">
             <div className="panel-h">
               <h2>{t(derniere ? "La dernière note" : "Les notes de marché")}</h2>
-              <Link className="btn sm ghost" href="/indice/notes">
+              <Link className="btn sm ghost right" href="/indice/notes">
                 {t("Toutes les notes")} →
               </Link>
             </div>
@@ -184,6 +229,54 @@ export default async function MarchePage() {
           <p className={styles.note}>{t("Le pouls du trimestre, en une page.")}</p>
         </section>
 
+        {/* ─── L'ÉCLAIRAGE, ET CE QU'ON Y APPREND ───────────────────────────
+            Il n'avait, sur cette page, qu'une tuile muette dans le sommaire
+            du téléphone et un « comment le lire → » au bas de la carte de
+            l'indice — qui disparaît avec elle les jours sans bulletin. Une
+            leçon n'a pas de chiffre qui bouge : ce qui la rend vivante, c'est
+            ce qu'elle contient, et cela se lit dans le référentiel plutôt que
+            de se recopier ici. Le desk réécrit la leçon, la tuile suit. */}
+        {lecon && (
+          <section className="panel" id="eclairage">
+            <div className="panel-h">
+              <h2>{t("L'éclairage")}</h2>
+              <Link className="btn sm ghost right" href="/info/indice-bvmac">
+                {t("Comment le lire")} →
+              </Link>
+            </div>
+            <div className={styles.lecon}>
+              <b>{t(lecon.title)}</b>
+              <p>{t(lecon.intro)}</p>
+              {/* LA QUESTION PLUTÔT QU'UN RÉSUMÉ. Un résumé de leçon rend la
+                  leçon inutile ou la trahit ; la question qu'elle pose, elle,
+                  donne envie de l'ouvrir et ne répond à rien. Elle vient du
+                  quiz de la leçon : une seule écriture, et elle suit le desk. */}
+              <p className={styles.question}>{t(lecon.quiz.q)}</p>
+              <span className={styles.meta}>
+                {t("{n} min de lecture", { n: lecon.minutes })}
+                {lecon.terms.length > 0 ? ` · ${t("{n} termes expliqués", { n: lecon.terms.length })}` : ""}
+              </span>
+            </div>
+          </section>
+        )}
+
+        {/* ─── COMPARER DEUX LIGNES ──────────────────────────────────────────
+            Deux listes déroulantes, et aucune paire proposée : voir la note
+            de « ChoisirDeuxLignes ». Sous deux lignes au catalogue il n'y a
+            rien à comparer, et la section ne paraît pas. */}
+        {comparables.length >= 2 && (
+          <section className="panel" id="comparer">
+            <div className="panel-h">
+              <h2>{t("Comparer deux lignes")}</h2>
+              <Link className="btn sm ghost right" href="/comparer">
+                {t("La page de comparaison")} →
+              </Link>
+            </div>
+            <ChoisirDeuxLignes lignes={comparables} />
+            <p className={styles.note}>{t("{n} lignes au catalogue aujourd'hui : rendement, échéance, ticket et calcul de référence côte à côte, avec l'indice en repère.", { n: comparables.length })}</p>
+          </section>
+        )}
+
         {/* LES ACTUALITÉS NE PARAISSENT QUE S'IL Y EN A. Une rubrique vide en
             tête de siège apprend à ne plus l'ouvrir ; cinq dépêches reçues et
             relues, non publiées, ne sont pas une actualité. */}
@@ -191,7 +284,7 @@ export default async function MarchePage() {
           <section className="panel" id="actualites">
             <div className="panel-h">
               <h2>{t("À la une")}</h2>
-              <Link className="btn sm ghost" href="/actualites">
+              <Link className="btn sm ghost right" href="/actualites">
                 {t("Toutes les actualités")} →
               </Link>
             </div>
@@ -231,7 +324,14 @@ export default async function MarchePage() {
             depuis le 5 octobre, et cette page ne la sert jamais autrement. */}
         <p className={styles.source}>
           {t("Guichet montre l'indice tel qu'il est publié, séance après séance ; il n'en construit pas et ne mesure personne contre lui.")}{" "}
-          <Link href="/indice#donnees">{t("Ce que l'indice publie, champ par champ")}</Link>.{" "}
+          {/* L'ANCRE A SUIVI SON PANNEAU. « #donnees » a été retiré de la page
+              de l'indice le 1er novembre 2026 : ce qu'il avait en propre — la
+              provenance du dernier bulletin, les jours sans bulletin lu, la
+              série en CSV — est descendu dans « Données et méthode », qui est
+              l'ancre « #lecture ». Un lien vers une ancre disparue ne tombe
+              pas : il ouvre la page en haut, et le lecteur cherche ce qu'on
+              lui a promis. */}
+          <Link href="/indice#lecture">{t("D'où viennent ces chiffres, et ce qui manque à la série")}</Link>.{" "}
           {t("Calculs {c}.", { c: COMPANY.legalName })}
         </p>
       </>

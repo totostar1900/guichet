@@ -86,15 +86,15 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
     const qs = u.toString();
     return `/indice${qs ? `?${qs}` : ""}#seances`;
   };
-  // twelve months of trading, for the data panel
+  /* DOUZE MOIS DE NÉGOCE, pour le chiffre que le niveau porte en tête.
+     QUATRE CALCULS SONT PARTIS AVEC LE PANNEAU « DONNÉES », le 1er novembre
+     2026 : le nombre de transactions, la société qui en concentre le plus, la
+     dernière séance qui a bougé, et la rotation du flottant. Ils ne se
+     lisaient que là. Les garder calculés pour personne serait une page qui
+     travaille sans rien montrer — et le relevé des variables mortes l'aurait
+     dit au premier passage. */
   const since12 = stats.last ? new Date(new Date(`${stats.last.date}T12:00:00Z`).getTime() - 365 * 86400e3).toISOString().slice(0, 10) : "";
-  const y12 = [...trading.entries()].filter(([d]) => d >= since12);
-  const amount12 = y12.reduce((a, [, s]) => a + s.amount, 0);
-  const trades12 = y12.reduce((a, [, s]) => a + s.trades, 0);
-  const byShare12 = new Map<string, number>();
-  for (const [, s] of y12) for (const [m, v] of Object.entries(s.shares)) byShare12.set(m, (byShare12.get(m) ?? 0) + v.amount);
-  const top12 = [...byShare12.entries()].sort((a, b) => b[1] - a[1])[0];
-  const lastMoved = [...stats.points].reverse().find((p) => (p.variationPct ?? 0) !== 0);
+  const amount12 = [...trading.entries()].filter(([d]) => d >= since12).reduce((a, [, s]) => a + s.amount, 0);
   const last = stats.last;
   const year = last ? stats.points.filter((p) => p.date >= new Date(new Date(`${last.date}T12:00:00Z`).getTime() - 365 * 86400e3).toISOString().slice(0, 10)) : [];
   const high = year.reduce<typeof last>((a, p) => (!a || p.value > a.value ? p : a), undefined);
@@ -103,7 +103,6 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
   const tone = (v?: number) => (v == null || Math.abs(v) < 0.005 ? "" : v > 0 ? styles.up : styles.down);
   const capT = weights.reduce((a, w) => a + w.capTotal, 0);
   const capF = weights.reduce((a, w) => a + w.capFloat, 0);
-  const rotation12 = capF ? (amount12 / capF) * 100 : undefined;
 
   return (
     <>
@@ -141,7 +140,12 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
             { id: "niveau", title: t("Le niveau") },
             { id: "courbe", title: t("Séance après séance") },
             ...(notes.length > 0 ? [{ id: "notes", title: t("Les notes de marché") }] : []),
-            { id: "donnees", title: t("Données") },
+            /* « Données » a quitté cette liste avec son panneau, le 1er
+               novembre 2026. Il redisait ce que le niveau porte déjà — la
+               capitalisation, les douze mois échangés — et sa méthode est
+               celle de « Données et méthode », trois sections plus bas. Ce
+               qu'il avait en propre y est descendu : la série en CSV, les
+               jours sans bulletin, et qui a lu le dernier. */
             { id: "seances", title: t("Les séances") },
             { id: "composition", title: t("Composition") },
             /* L'ancre « sante » est posée par la page du desk, qui rend le
@@ -232,87 +236,6 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
               </div>
             </section>
           )}
-
-          <section className="panel" id="donnees">
-            <div className="panel-h">
-              <h2>{t("Données")}</h2>
-              <span className="muted">{t("d'où vient chaque chiffre, ce qui manque, ce qu'on peut emporter")}</span>
-            </div>
-            <dl className={styles.info}>
-              <div>
-                <dt>{t("Dernier bulletin")}</dt>
-                <dd>
-                  {t("séance du {d}", { d: fmtDate(last.date) })}
-                  {lastBulletin && <small>{t("lu le {d}, {by}", { d: fmtDateTime(lastBulletin.ingestedAt), by: lastBulletin.ingestedBy === "cron" ? t("par le robot") : t("par le desk") })}</small>}
-                </dd>
-              </div>
-              <div>
-                <dt>{t("Historique")}</dt>
-                <dd>
-                  {stats.points.length} {t("séances")}
-                  <small>
-                    {t("du {a} au {b}", { a: fmtDate(stats.points[0].date), b: fmtDate(last.date) })}
-                  </small>
-                </dd>
-              </div>
-              <div>
-                <dt>{t("Jours ouvrés sans bulletin lu")}</dt>
-                <dd>
-                  {missing.length}
-                  <small>{missing.length ? `${missing.slice(-6).map((d) => fmtDate(d)).join(", ")}${missing.length > 6 ? " …" : ""} · ${t("jours fériés compris")}` : t("aucun")}</small>
-                </dd>
-              </div>
-              <div>
-                <dt>{t("Séances avec mouvement")}</dt>
-                <dd>
-                  {movedSessions.length}
-                  <small>
-                    {fmtPct((movedSessions.length / stats.points.length) * 100, 0)} {t("des séances")}
-                    {lastMoved ? ` · ${t("dernière")} : ${fmtDate(lastMoved.date)}, ${signed(lastMoved.variationPct)}` : ""}
-                  </small>
-                </dd>
-              </div>
-              <div>
-                <dt>{t("Montant échangé 12 mois")}</dt>
-                <dd>
-                  {money(amount12)} FCFA
-                  <small>
-                    {fmt(trades12)} {t("transactions")}
-                    {top12 && amount12 ? ` · ${fmtPct((top12[1] / amount12) * 100, 0)} ${t("sur")} ${top12[0]}` : ""}
-                  </small>
-                </dd>
-              </div>
-              <div>
-                <dt>{t("Capitalisation")}</dt>
-                <dd>
-                  {money(capT)} FCFA
-                  <small>
-                    {t("flottant coté")} {money(capF)} ({capT ? fmtPct((capF / capT) * 100, 0) : "—"})
-                    {rotation12 != null ? ` · ${t("rotation du flottant 12 mois")} : ${fmtPct(rotation12, 0)}` : ""}
-                  </small>
-                </dd>
-              </div>
-              <div>
-                <dt>{t("Méthode")}</dt>
-                <dd>
-                  {t("indice de prix, pondéré par la capitalisation")}
-                </dd>
-              </div>
-            </dl>
-            <div className={styles.btns}>
-              {/* Un fichier : au desk il vient du Guichet, donc dans un onglet à
-                  côté plutôt qu'en quittant la page. */}
-              <a className="btn sm primary" href="/indice/serie.csv" target={desk ? "_blank" : undefined} rel={desk ? "noreferrer" : undefined}>
-                {t("Télécharger la série (CSV)")}
-              </a>
-              <Link className="btn sm" href="/info/indice-bvmac">
-                {t("L'éclairage")}
-              </Link>
-              <Link className="btn sm ghost" href={`${base}/societes`}>
-                {t("Les sociétés cotées")}
-              </Link>
-            </div>
-          </section>
 
           <section className="panel" id="seances">
             <div className="panel-h">
@@ -504,6 +427,40 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
                   : t("Le niveau publié repose donc sur des cours du jour.")}
               </p>
             )}
+            {/* ─── CE QUI DESCEND DU PANNEAU « DONNÉES », le 1er novembre 2026 ──
+                Il a été retiré sur décision du dirigeant : il redisait la
+                capitalisation et les douze mois échangés, que le niveau porte
+                déjà en tête de page, et sa ligne « Méthode » répétait le
+                premier paragraphe d'ici.
+                CE QU'IL AVAIT EN PROPRE N'A PAS DE SECOND ENDROIT, et c'est
+                ce qui suit. La provenance du dernier chiffre — qui l'a lu, et
+                quand — est la seule chose qui distingue un indice publié d'un
+                indice affirmé. Les jours ouvrés sans bulletin sont le TROU de
+                la série : une page qui montre une courbe sans dire ce qui lui
+                manque laisse croire qu'il ne lui manque rien. Et la série en
+                CSV est la seule sortie de données de tout Guichet. */}
+            <p className={styles.method}>
+              {lastBulletin
+                ? t("Le dernier bulletin lu porte la séance du {d} ; il a été lu le {q}, {by}.", {
+                    d: fmtDate(last.date),
+                    q: fmtDateTime(lastBulletin.ingestedAt),
+                    by: lastBulletin.ingestedBy === "cron" ? t("par le robot") : t("par le desk"),
+                  })
+                : t("La séance du {d} est la dernière lue.", { d: fmtDate(last.date) })}{" "}
+              {missing.length
+                ? t("{n} jours ouvrés n'ont pas de bulletin lu, jours fériés compris, dont les derniers : {l}.", {
+                    n: String(missing.length),
+                    l: missing.slice(-6).map((d) => fmtDate(d)).join(", "),
+                  })
+                : t("Aucun jour ouvré ne manque à la série.")}
+            </p>
+            <div className={styles.btns}>
+              {/* Un fichier : au desk il vient du Guichet, donc dans un onglet à
+                  côté plutôt qu'en quittant la page. */}
+              <a className="btn sm primary" href="/indice/serie.csv" target={desk ? "_blank" : undefined} rel={desk ? "noreferrer" : undefined}>
+                {t("Télécharger la série (CSV)")}
+              </a>
+            </div>
             </details>
             <MarketStrip current="indice" mode={mode} />
             <BackToTop />

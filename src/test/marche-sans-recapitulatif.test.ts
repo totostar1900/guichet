@@ -67,26 +67,40 @@ describe("la porte du marché", () => {
     expect(lire("src/app/indice/IndiceBody.tsx"), "la bande du desk n'est plus montée nulle part").toContain("<MarketStrip");
   });
   /* ET ELLE NE LA REDIT PLUS EN TÊTE NON PLUS.
-     Le même relevé comptait trois écritures de la famille ; le pied est parti
-     le premier, et les deux autres sont restées face à face : les pastilles
-     du rail à y 60, puis le sommaire à y 115-659. Sept pastilles courtes dont
-     la plus inutile marque la page où l'on se tient, puis six rubriques
-     nommées et expliquées — avant le titre, sur l'écran le plus étroit.
+     Le même relevé comptait trois écritures de la famille. Le pied est parti
+     le premier, puis les deux autres se sont retrouvées face à face : les
+     pastilles du rail à y 60, puis le sommaire du téléphone à y 115-659 —
+     sept pastilles courtes dont la plus inutile marque la page où l'on se
+     tient, puis six rubriques nommées et expliquées, le tout AVANT le titre
+     de la page, sur l'écran le plus étroit.
 
-     C'EST LA PLUS PAUVRE QUI S'EFFACE. Le rail sert « celui qui LIT et veut
-     savoir où il est », sa propre note le dit : sur la porte de la famille on
-     ne lit pas, on choisit. Et il montre deux ou trois pastilles à la fois
-     sur un téléphone, quand le sommaire les montre toutes avec ce qu'elles
-     contiennent.
+     LES DEUX SONT PARTIES ENSEMBLE, le 1er novembre 2026, et c'est la seule
+     façon de ne pas rouvrir le trou que cette épreuve nommait. L'ancienne
+     écriture tenait le rail SILENCIEUX sur la porte parce que le sommaire y
+     était, et elle disait le risque mot pour mot : « retirer le sommaire sans
+     rendre le rail laisserait le téléphone sans aucune entrée vers la
+     famille ». C'est exactement ce qui est arrivé à la première écriture de
+     ce travail : les six entrées sont devenues des sections qui portent un
+     chiffre, et un jour sans bulletin, sans ligne et sans dépêche — l'état du
+     dépôt mémoire — quatre d'entre elles ne rendaient rien.
 
-     LES DEUX MOITIÉS VOYAGENT ENSEMBLE : le rail se tait sur la porte PARCE
-     QUE le sommaire y est. Retirer le sommaire sans rendre le rail laisserait
-     le téléphone sans aucune entrée vers la famille. */
-  it("ne dit pas la famille deux fois avant le titre, au téléphone", () => {
-    const rail = code("src/components/mobile/MarketChips.tsx");
-    expect(rail, "le rail reparaît sur la porte de la famille, où le sommaire liste déjà les entrées").toMatch(/here === "marche"/);
+     UN BOUTON FLOTTANT LES PORTE MAINTENANT, sur les six pages ET sur la
+     porte, en trente-quatre pixels au lieu de sept cents. Ce que cette
+     épreuve garde n'a pas changé de nature : la famille ne s'écrit pas deux
+     fois avant le titre, et elle ne disparaît pas non plus. */
+  it("porte la famille une seule fois, et jamais avant le titre", () => {
     const page = code("src/app/marche/page.tsx");
-    expect(page, "le sommaire du téléphone a disparu, et le rail s'y tait : la famille n'a plus d'entrée sur l'écran étroit").toContain("styles.sommaire");
+    expect(page, "le sommaire des six entrées est revenu avant le titre, au téléphone").not.toContain("<Rubriques");
+    /* ET IL N'EST PAS REVENU SOUS UN AUTRE NOM : la table des pages du marché
+       n'a rien à faire dans le corps de cette page, qui montre des sections. */
+    expect(page, "la page récrit la table de la famille : c'est le sommaire qui revient").not.toContain("MARKET_PAGES");
+
+    const fab = code("src/components/mobile/MarketFab.tsx");
+    expect(fab, "le bouton des pages du marché ne lit plus la table de la famille").toContain("MARKET_PAGES");
+    /* IL NE SE TAIT NULLE PART DANS LA FAMILLE, porte comprise. Une garde
+       « ici === \"marche\" » rouvrirait le trou décrit ci-dessus. */
+    expect(fab, "le bouton se tait sur la porte : un jour creux, la famille n'a plus d'entrée au téléphone").not.toMatch(/ici === "marche"/);
+    expect(fab, "le bouton ne s'efface plus hors de la famille : il paraîtrait sur tout le site").toMatch(/if \(!monte \|\| !ici\) return null;/);
   });
 
   /* La prémisse de l'épreuve au-dessus : « /marche » est bien ce que la
