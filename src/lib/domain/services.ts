@@ -835,9 +835,9 @@ export const ETAPES: Record<string, string[]> = {
      geste que le dirigeant a demandé en premier et que personne ne devine. */
   sondage: [
     "Lire ce que la maison sonde : un compartiment, un Trésor, une durée, et le niveau qu'elle indique.",
-    "Dire ce que vous prendriez et à partir de quand. Un taux ou un prix si vous en avez un : sans condition, votre réponse tient quel que soit le niveau.",
+    "Dire le montant et à partir de quand, et un taux ou un prix si vous en avez un.",
     "Si ce que vous cherchez n'est pas sondé, remplir le gabarit : OTA ou BTA, le Trésor, la durée, le niveau, le montant.",
-    "Le desk réunit les demandes qui se ressemblent et les porte au Trésor. Rien ne vous engage, et vous retirez votre attente quand vous voulez.",
+    "Le desk réunit les demandes qui se ressemblent et les porte au Trésor. Vous retirez votre attente quand vous voulez.",
   ],
   passage: [
     "Partir d'une ligne que vous détenez et qui se revend : une part de fonds, une action ou une obligation cotée.",

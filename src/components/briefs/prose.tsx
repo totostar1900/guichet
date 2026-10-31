@@ -92,10 +92,10 @@ function Sondage() {
     <>
       <p>
         {t(
-          "Les six Trésors de la CEMAC décident seuls de ce qu'ils émettent, et quand. Ce qu'ils achètent à une société de bourse, c'est le renseignement : à quel niveau la demande tient encore, et pour combien. Une ligne sondée ici n'annonce donc aucune séance : c'est la maison qui réunit les appétits, avant qu'il y ait quoi que ce soit à annoncer.",
+          "Les six Trésors de la CEMAC décident seuls de ce qu'ils émettent, et quand. Ce qu'ils achètent à une société de bourse, c'est le renseignement : à quel niveau la demande tient encore, et pour combien. Une ligne sondée ici n'annonce donc aucune séance : elle existe avant qu'il y ait quoi que ce soit à annoncer.",
         )}
       </p>
-      <p>{t("Votre réponse y entre sans rien engager : il n'y a rien à signer et rien à provisionner.")}</p>
+      <p>{t("Il n'y a rien à signer et rien à provisionner.")}</p>
     </>
   );
 }

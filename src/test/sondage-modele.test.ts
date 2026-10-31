@@ -573,4 +573,61 @@ describe("le modèle du sondage", () => {
     const page = lire("src/app/sondage/page.tsx");
     expect(page, "la page recopie les étapes du service").not.toMatch(/Lire ce que la maison sonde/);
   });
+
+  /**
+   * ON NE PROMET PAS QUATRE FOIS QU'IL NE SE PASSE RIEN.
+   *
+   * RELEVÉ LE 2 NOVEMBRE 2026, en relisant le brief d'un trait. « Rien ne
+   * vous engage » s'y disait QUATRE FOIS : la phrase sous le titre de la
+   * page, le second paragraphe de la prose, la raison d'être du service, et
+   * la fin de la quatrième étape. Dans un texte qu'on ouvre précisément pour
+   * savoir à quoi l'on s'engage, c'est le genre de répétition qui finit par
+   * inquiéter — on se demande ce qu'elle protège.
+   *
+   * DEUX SURFACES SE LISENT SEULES, et doivent donc porter la promesse
+   * chacune : la phrase sous le titre, que tout le monde lit sans rien
+   * ouvrir ; et la raison d'être, qui est la première ligne du brief quand on
+   * l'ouvre DEPUIS LA TUILE DE TRADE, où la page n'existe pas. Les deux
+   * autres copies ne se lisent qu'après celles-là.
+   *
+   * CE CLIQUET COMPTE, IL NE CENSURE PAS. Deux, c'est la promesse tenue aux
+   * deux portes ; trois, c'est qu'une troisième surface s'est mise à la
+   * répéter, et il faudra dire laquelle des trois se lit seule.
+   */
+  it("ne promet qu'aux deux portes que rien n'engage", () => {
+    const services = lire("src/lib/domain/services.ts");
+    const bloc = (nom: string) => {
+      const i = services.indexOf(nom);
+      return services.slice(i, services.indexOf("\n};", i));
+    };
+    const raison = /sondage: "([^"]+)"/.exec(bloc("export const RAISON"))![1];
+    const etapesBloc = bloc("export const ETAPES");
+    const j = etapesBloc.indexOf("sondage: [");
+    const etapes = [...etapesBloc.slice(j, etapesBloc.indexOf("],", j)).matchAll(/"((?:[^"\\]|\\.)+)"/g)].map((m) => m[1]);
+    const prose = lire("src/components/briefs/prose.tsx");
+    const debutProse = prose.indexOf("function Sondage()");
+    const sondage = prose.slice(debutProse, prose.indexOf("function LireUneLigne", debutProse));
+    const page = lire("src/app/sondage/page.tsx");
+    const phrase = /t\("(Dire ce que vous prendriez[^"]+)"\)/.exec(page)?.[1] ?? "";
+
+    /* Non vacuité : les quatre sources ont bien été lues. Un découpage qui
+       raterait sa cible rendrait des chaînes vides et compterait zéro — ce
+       qui est aussi ce que répond un texte irréprochable. */
+    expect(raison.length, "la raison d'être du sondage n'a pas été relue").toBeGreaterThan(40);
+    expect(etapes.length, "les étapes du sondage n'ont pas été relues").toBe(4);
+    expect(sondage.length, "la prose du brief n'a pas été relue").toBeGreaterThan(200);
+    expect(phrase.length, "la phrase sous le titre n'a pas été relue").toBeGreaterThan(40);
+
+    const dit = (t: string) => /engag/i.test(t);
+    const porteurs = [
+      ["la phrase sous le titre", phrase],
+      ["la raison d'être", raison],
+      ["la prose du brief", sondage],
+      ...etapes.map((e, n) => [`l'étape ${n + 1}`, e] as [string, string]),
+    ].filter(([, t]) => dit(t)).map(([nom]) => nom);
+    expect(
+      porteurs,
+      `« rien ne vous engage » est dit ${porteurs.length} fois sur le même écran : ${porteurs.join(", ")}. Deux suffisent — la phrase du titre, qui se lit sans rien ouvrir, et la raison d'être, qui ouvre le brief depuis Trade où la page n'existe pas.`,
+    ).toEqual(["la phrase sous le titre", "la raison d'être"]);
+  });
 });

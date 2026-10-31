@@ -15,12 +15,12 @@ export const EN_SONDAGE: Record<string, string> = {
   /* ---------- Les étapes du service, lues par le brief ---------- */
   "Lire ce que la maison sonde : un compartiment, un Trésor, une durée, et le niveau qu'elle indique.":
     "Read what the firm is surveying : a compartment, a Treasury, a term, and the level it indicates.",
-  "Dire ce que vous prendriez et à partir de quand. Un taux ou un prix si vous en avez un : sans condition, votre réponse tient quel que soit le niveau.":
-    "Say what you would take and from when. A rate or a price if you have one : with no condition, your answer holds whatever the level.",
+  "Dire le montant et à partir de quand, et un taux ou un prix si vous en avez un.":
+    "Say the amount and from when, and a rate or a price if you have one.",
   "Si ce que vous cherchez n'est pas sondé, remplir le gabarit : OTA ou BTA, le Trésor, la durée, le niveau, le montant.":
     "If what you are after is not being surveyed, fill in the template : OTA or BTA, the Treasury, the term, the level, the amount.",
-  "Le desk réunit les demandes qui se ressemblent et les porte au Trésor. Rien ne vous engage, et vous retirez votre attente quand vous voulez.":
-    "The desk gathers similar requests and carries them to the Treasury. Nothing commits you, and you withdraw your expression of interest whenever you want.",
+  "Le desk réunit les demandes qui se ressemblent et les porte au Trésor. Vous retirez votre attente quand vous voulez.":
+    "The desk gathers similar requests and carries them to the Treasury. You withdraw your expression of interest whenever you want.",
 
   /* ---------- La page du client ---------- */
   /* LA SECONDE ÉCRITURE, 26 octobre 2026 : « moins chargé, plus aéré ». Les
@@ -30,8 +30,8 @@ export const EN_SONDAGE: Record<string, string> = {
      anglais une version de la page qui n'existe plus. */
   "Dire ce que vous prendriez avant qu'une séance ouvre. Rien ici ne vous engage.": "Say what you would take before a session opens. Nothing here commits you.",
   "À quoi sert un sondage": "What a survey is for",
-  "Les six Trésors de la CEMAC décident seuls de ce qu'ils émettent, et quand. Ce qu'ils achètent à une société de bourse, c'est le renseignement : à quel niveau la demande tient encore, et pour combien. Une ligne sondée ici n'annonce donc aucune séance : c'est la maison qui réunit les appétits, avant qu'il y ait quoi que ce soit à annoncer.":
-    "The six CEMAC Treasuries alone decide what they issue, and when. What they buy from a broker is intelligence : at what level demand still holds, and for how much. So a line surveyed here announces no session : it is the firm gathering appetites, before there is anything at all to announce.",
+  "Les six Trésors de la CEMAC décident seuls de ce qu'ils émettent, et quand. Ce qu'ils achètent à une société de bourse, c'est le renseignement : à quel niveau la demande tient encore, et pour combien. Une ligne sondée ici n'annonce donc aucune séance : elle existe avant qu'il y ait quoi que ce soit à annoncer.":
+    "The six CEMAC Treasuries alone decide what they issue, and when. What they buy from a broker is intelligence : at what level demand still holds, and for how much. So a line surveyed here announces no session : it exists before there is anything at all to announce.",
   "Votre réponse entre dans ce renseignement. Ce n'est pas un ordre : il n'y a rien à signer et rien à provisionner, et vous la retirez quand vous voulez. Si une séance s'ouvre sur une ligne que vous avez demandée, le desk vous rappelle avant la clôture.":
     "Your answer feeds that intelligence. It is not an order : there is nothing to sign and nothing to fund, and you withdraw it whenever you want. If a session opens on a line you asked for, the desk calls you before the cut-off.",
   "Sur chaque ligne, « ~ » précède la date à partir de laquelle elle serait prête — ce n'est pas une séance, et ce n'est pas une promesse. « ind. » est le niveau que la maison indique ; « min. » celui que vous posez comme plancher.":
@@ -232,8 +232,7 @@ export const EN_SONDAGE: Record<string, string> = {
      étiquette la date sous laquelle la ligne serait prête, et la phrase qui
      suit est ce qui reste de l'accordéon replié dans le brief. */
   "prête vers": "ready around",
-  "Votre réponse y entre sans rien engager : il n'y a rien à signer et rien à provisionner.":
-    "Your answer joins it without committing you to anything: there is nothing to sign and nothing to fund.",
+  "Il n'y a rien à signer et rien à provisionner.": "There is nothing to sign and nothing to fund.",
   "Lire une ligne": "Reading a line",
   /* LA FENÊTRE D'UNE ATTENTE, depuis le 30 octobre 2026 : deux dates côte à
      côte, un début et une fin, là où le champ demandait un nombre de jours. */
