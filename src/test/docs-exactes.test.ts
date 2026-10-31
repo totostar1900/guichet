@@ -104,7 +104,106 @@ describe("les chiffres que la documentation annonce", () => {
   });
 });
 
+/**
+ * LES PAGES QU'UNE MAIN VIENT DE TOUCHER, LUES DANS L'ARBRE.
+ *
+ * `git status --porcelain` rend une ligne par fichier : deux caractères
+ * d'état, une espace, le chemin. Un renommage s'écrit « ancien -> nouveau »,
+ * et c'est le nouveau qui compte ; un chemin à caractères spéciaux arrive
+ * entre guillemets. Une page supprimée y figure aussi, et elle n'a plus de
+ * date à vérifier — l'appelant l'écarte.
+ *
+ * C'EST UNE FONCTION PURE, et elle l'est pour une seule raison : quand
+ * l'arbre est propre, la clause qui s'en sert ne regarde rien et passe. Sa
+ * non-vacuité ne peut donc pas venir de l'arbre ; elle vient d'ici, où l'on
+ * peut lui donner un relevé et vérifier qu'elle y voit ce qu'il faut.
+ */
+export const pagesTouchees = (porcelain: string, dossier = DOCS_DIR): string[] =>
+  porcelain
+    .split("\n")
+    .filter((l) => l.length > 3)
+    .map((l) => l.slice(3))
+    .map((c) => (c.includes(" -> ") ? c.slice(c.indexOf(" -> ") + 4) : c))
+    .map((c) => c.replace(/^"|"$/g, ""))
+    .filter((c) => c.startsWith(`${dossier}/`) && c.endsWith(".ts"))
+    .map((c) => c.slice(dossier.length + 1))
+    .filter((f) => !["index.ts", "types.ts"].includes(f));
+
 describe("la date « vérifié le »", () => {
+  /**
+   * ELLE SUIT LE JOUR OÙ L'ON ÉCRIT, ET NON LE JOUR OÙ L'ON POUSSE.
+   *
+   * CE QUI MANQUAIT, et qui a coûté deux envois de suite. La clause du
+   * dessous compare la date de relecture à la DATE DU COMMIT du fichier :
+   * tant que rien n'est commis, elle ne voit rien. Elle ne peut donc tomber
+   * qu'au premier `npm test` APRÈS le push — c'est-à-dire sur l'envoi
+   * suivant, chez quelqu'un qui n'a pas touché à la page et qui découvre un
+   * rouge dont il n'est pas l'auteur. Le 30 octobre 2026 c'était
+   * `technique.ts`, le 31 `fonctionnement.ts`.
+   *
+   * CELLE-CI LIT L'ARBRE. Une page modifiée, mise en scène ou neuve est une
+   * page qu'une main vient de toucher : sa relecture ne peut pas dater
+   * d'avant aujourd'hui, puisque c'est aujourd'hui qu'on l'écrit. Le rouge
+   * tombe alors chez l'auteur, avant le commit, pendant qu'il a encore le
+   * fichier sous les yeux.
+   *
+   * ELLE NE REMPLACE PAS L'AUTRE. Celle-ci garde la fenêtre avant le commit,
+   * l'autre garde l'histoire : un rebase, une fusion, un envoi passé sans
+   * épreuves laissent des pages datées de la veille, et seule la date du
+   * commit les désigne encore.
+   */
+  it("suit le jour où l'on écrit, et non le jour où l'on pousse", () => {
+    let porcelain = "";
+    try {
+      porcelain = execSync("git status --porcelain -- src/data/docs", { encoding: "utf8" });
+    } catch {
+      return; // hors d'un dépôt : le cas ne juge rien
+    }
+    const aujourdHui = new Date().toISOString().slice(0, 10);
+    const muettes: string[] = [];
+    for (const f of pagesTouchees(porcelain)) {
+      if (!existsSync(`${DOCS_DIR}/${f}`)) continue; // supprimée : plus rien à dater
+      const vu = texte(f).match(/checkedOn: "(\d{4}-\d{2}-\d{2})"/)?.[1];
+      if (vu && vu < aujourdHui) muettes.push(`${f} : touchée aujourd'hui, relue le ${vu}`);
+    }
+    expect(muettes, `ces pages changent sans être relues ; portez leur « checkedOn » au ${aujourdHui}, dans le même commit :\n  ${muettes.join("\n  ")}`).toEqual([]);
+  });
+
+  it("et le relevé de l'arbre voit bien ce qu'il doit voir", () => {
+    /* NON VACUITÉ, et elle ne peut pas venir de l'arbre : quand il est
+       propre, la clause du dessus ne regarde rien et passe — ce qui est son
+       état normal. On donne donc au relevé un `git status` écrit à la main,
+       avec les quatre formes qu'il rend. */
+    const releve = [
+      " M src/data/docs/technique.ts", // modifiée, pas mise en scène
+      "M  src/data/docs/aide.ts", // mise en scène
+      "?? src/data/docs/neuve.ts", // neuve
+      "R  src/data/docs/vieux.ts -> src/data/docs/renommee.ts", // renommée
+      " D src/data/docs/partie.ts", // supprimée : rendue, l'appelant l'écarte
+      " M src/data/docs/index.ts", // le sommaire n'est pas une page
+      " M src/data/docs/types.ts", // le type non plus
+      " M src/app/trader/page.tsx", // hors du dossier
+      /* ET UN « .ts » HORS DU DOSSIER, qui est le seul cas où le filtre du
+         dossier travaille vraiment. Sans cette ligne, on pouvait retirer le
+         « startsWith » sans que rien ne tombe : les deux autres intrus sont
+         écartés par leur extension, « .tsx » et « .md ». Relevé en vérifiant
+         ce cliquet à l'envers, le 31 octobre 2026. */
+      " M src/lib/domain/briefs.ts",
+      " M src/data/docs/notes.md", // pas une page TypeScript
+      "",
+    ].join("\n");
+    expect(pagesTouchees(releve), "le relevé de l'arbre ne voit plus les pages qu'une main a touchées").toEqual([
+      "technique.ts",
+      "aide.ts",
+      "neuve.ts",
+      "renommee.ts",
+      "partie.ts",
+    ]);
+    /* Et un arbre propre ne désigne personne : sans cela, la clause du dessus
+       accuserait tout le dépôt le jour où le relevé rend n'importe quoi. */
+    expect(pagesTouchees(""), "un arbre propre désigne des pages : la clause accuserait sans raison").toEqual([]);
+  });
+
   it("ne précède jamais le dernier mot écrit dans la page", () => {
     /* ELLE DIT « QUELQU'UN A RELU CETTE PAGE », et c'est la seule promesse
        que le lecteur ne peut pas vérifier lui-même. Une page modifiée après
