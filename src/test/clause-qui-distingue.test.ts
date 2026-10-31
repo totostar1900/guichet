@@ -89,6 +89,20 @@ export function clausesDePresence(source: string, lire: (chemin: string) => stri
   const liaisons = new Map<string, string>();
   for (const m of source.matchAll(/const\s+(\w+)\s*=\s*(?:lire|code|texte|source|lit)\(\s*"([^"]+)"/g)) liaisons.set(m[1], m[2]);
   for (const m of source.matchAll(/const\s+(\w+)\s*=\s*readFileSync\(\s*(?:join\([^,]+,\s*)?"([^"]+)"/g)) liaisons.set(m[1], m[2]);
+  /* LE CHEMIN PASSÉ PAR UNE CONSTANTE, et c'était un angle mort. Beaucoup
+     d'épreuves nomment leur cible en tête — « const ORDRES = "src/app/…" » —
+     puis lisent « code(ORDRES) ». Le relevé ne suivait que les chaînes
+     écrites dans l'appel, et laissait donc passer tout un fichier.
+     RELEVÉ LE 1er NOVEMBRE 2026 en reprenant les mutations une par une : une
+     clause de « revue-du-marche » exigeait « executedPrice » d'une page qui
+     l'écrit deux fois, et ce cliquet ne la voyait pas. Il garde maintenant
+     ce qu'il prétendait garder. */
+  const chemins = new Map<string, string>();
+  for (const m of source.matchAll(/const\s+([A-Z_][A-Z_0-9]*)\s*=\s*"([^"]+)"/g)) chemins.set(m[1], m[2]);
+  for (const m of source.matchAll(/const\s+(\w+)\s*=\s*(?:lire|code|texte|source|lit)\(\s*([A-Z_][A-Z_0-9]*)\s*\)/g)) {
+    const c = chemins.get(m[2]);
+    if (c) liaisons.set(m[1], c);
+  }
 
   const out: ClauseDePresence[] = [];
   const compter = (cible: string, jeton: string, ligne: number) => {
@@ -100,7 +114,27 @@ export function clausesDePresence(source: string, lire: (chemin: string) => stri
     out.push({ ligne, jeton, cible, n: contenu.split(jeton).length - 1 });
   };
 
+  /* LE JETON TENU PAR UNE BOUCLE, et c'était le second angle mort.
+     « for (const champ of ["limitPrice", "executedPrice", …]) » suivi de
+     « expect(page).toContain(champ) » : le motif ne voyait qu'une variable et
+     passait son chemin. Relevé le 1er novembre 2026 — une clause de
+     « revue-du-marche », la mienne, exigeait ainsi cinq jetons d'une page qui
+     en écrit deux fois trois d'entre eux.
+     On ne résout que la forme la plus simple : une liste de chaînes écrite
+     sur place. Une liste construite ailleurs reste hors de portée, et c'est
+     dit en tête de feuille. */
+  const boucles = new Map<string, string[]>();
+  for (const m of source.matchAll(/for\s*\(\s*const\s+(\w+)\s+of\s*\[([^\]]*)\]\s*\)/g)) {
+    const mots = [...m[2].matchAll(/"((?:[^"\\]|\\.)*)"/g)].map((x) => dechapper(x[1]));
+    if (mots.length) boucles.set(m[1], mots);
+  }
+
   source.split("\n").forEach((l, i) => {
+    /* LE JETON DE BOUCLE : expect(page).toContain(champ) */
+    const enBoucle = /expect\(\s*(\w+)\s*(?:,[^)]*)?\)\s*\.toContain\((\w+)\)/.exec(l);
+    if (enBoucle && liaisons.has(enBoucle[1]) && boucles.has(enBoucle[2])) {
+      for (const mot of boucles.get(enBoucle[2])!) compter(liaisons.get(enBoucle[1])!, mot, i + 1);
+    }
     /* LE SUJET LIÉ : expect(src, "…").toContain("…") */
     const lie = /expect\(\s*(\w+)\s*(?:,[^)]*)?\)\s*\.toContain\("((?:[^"\\]|\\.)+)"\)/.exec(l);
     if (lie && liaisons.has(lie[1])) compter(liaisons.get(lie[1])!, dechapper(lie[2]), i + 1);
@@ -247,17 +281,30 @@ describe("une clause de présence sait ce qu'elle a trouvé", () => {
     expect(clauses, "le relevé ne résout plus les clauses de présence : son zéro ne prouve rien").toBeGreaterThan(80);
   });
 
-  it("et il voit bien une clause qui ne distingue pas", () => {
+  it("et il voit bien les quatre formes qu'il sait lire", () => {
     /* NON VACUITÉ PAR LA FONCTION, et c'est la seule qui ne dépende pas de
-       l'état du dépôt : on lui donne une épreuve écrite à la main, avec les
-       deux formes qu'elle sait lire et les trois qu'elle doit laisser. */
+       l'état du dépôt.
+
+       ELLE PORTE LES QUATRE FORMES DEPUIS LE 1er NOVEMBRE 2026, et c'est une
+       correction. La première écriture n'en éprouvait que deux, et le
+       plancher du dépôt — « plus de 80 clauses résolues » — ne rattrapait
+       pas la perte des autres : le gros du compte vient de la liaison par
+       chaîne, donc perdre la boucle ou la constante laissait le plancher
+       au-dessus. Vérifié en mutant le relevé lui-même : deux résolutions
+       pouvaient disparaître sans qu'aucune clause ne tombe.
+       Un témoin qui ne couvre qu'une partie de ce qu'il garde ne garde que
+       cette partie. */
     const garde = `
+      const CIBLE = "un/fichier.ts";
       const src = lire("un/fichier.ts");
+      const parConstante = code(CIBLE);
       const bloc = src.slice(2);
       it("…", () => {
         expect(src).toContain("monGarde");
         expect(src, "un message").toContain("uneSeuleFois");
         expect(lire("un/fichier.ts")).toContain("monGarde");
+        expect(parConstante).toContain("monGarde");
+        for (const champ of ["monGarde", "uneSeuleFois"]) expect(src).toContain(champ);
         expect(src).toContain("ok");
         expect(bloc).toContain("monGarde");
         expect(v.raison).toContain("monGarde");
@@ -268,11 +315,11 @@ describe("une clause de présence sait ce qu'elle a trouvé", () => {
     const vu = clausesDePresence(garde, faux);
     expect(
       vu.map((c) => `${c.jeton}×${c.n}`),
-      "le relevé ne lit plus les deux formes, ou il s'est mis à lire celles qu'il doit laisser",
-    ).toEqual(["monGarde×2", "uneSeuleFois×1", "monGarde×2"]);
-    /* Et ce qu'il laisse, il le laisse pour une raison écrite plus haut : une
+      "le relevé a perdu une de ses quatre formes, ou il s'est mis à lire celles qu'il doit laisser",
+    ).toEqual(["monGarde×2", "uneSeuleFois×1", "monGarde×2", "monGarde×2", "monGarde×2", "uneSeuleFois×1"]);
+    /* Et ce qu'il laisse, il le laisse pour une raison écrite en tête : une
        tranche, une valeur calculée, un jeton trop court, une expression
        régulière. Quatre absences, et chacune est nommée. */
-    expect(vu.length, "le relevé s'est mis à compter des tranches ou des valeurs calculées : il rendra de faux rouges").toBe(3);
+    expect(vu.length, "le relevé s'est mis à compter des tranches ou des valeurs calculées : il rendra de faux rouges").toBe(6);
   });
 });

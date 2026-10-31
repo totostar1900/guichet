@@ -132,8 +132,15 @@ describe("ce qui entre, et ce qui reste dehors", () => {
     expect(lire(SIGNES_PAGE)).toMatch(/consent\.version && \(/);
     expect(lire(SOMMAIRE)).toMatch(/href="\/moi\/textes"/);
     const textes = lire("src/app/moi/textes/page.tsx");
-    // Un sommaire, pas une copie : chaque texte renvoie là où il vit déjà.
-    for (const ou of ["/info/mentions", "/info/risques", "/moi/tarifs", "/moi/services"]) expect(textes, ou).toContain(ou);
+    /* Un sommaire, pas une copie : chaque texte renvoie là où il vit déjà.
+       LE LIEN, ET NON L'ADRESSE ÉCRITE QUELQUE PART. Trois de ces quatre
+       chemins sont aussi cités dans la note de tête de la page — « les
+       mentions à /info/mentions, les risques à /info/risques, l'annexe à
+       /moi/tarifs » — donc exiger l'adresse laissait la clause verte le jour
+       où l'entrée disparaîtrait du sommaire. On lit le source sans ses notes,
+       et c'est le « href » qu'on y cherche. */
+    const sansNotes = textes.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    for (const ou of ["/info/mentions", "/info/risques", "/moi/tarifs", "/moi/services"]) expect(sansNotes, ou).toContain(`href: "${ou}"`);
   });
 });
 

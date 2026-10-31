@@ -246,9 +246,25 @@ describe("une intention en cours", () => {
      l'opération. */
   it("montre au dépli ce que la donnée portait et que rien n'affichait", () => {
     const page = code(ORDRES);
-    for (const champ of ["limitPrice", "executedPrice", "allocationPct", "servedUnits", "createdAt"]) {
-      expect(page, `« ${champ} » ne se lit nulle part : la carte dit l'intention et jamais l'opération`).toContain(champ);
+    /* LA LIGNE DU DÉPLI, ET NON LE NOM DU CHAMP. Chacun de ces champs est
+       écrit DEUX FOIS sur cette page — à la condition qui le teste et à la
+       ligne qui le pose — donc exiger le nom laissait la clause verte le jour
+       où la ligne partirait. Vérifié à l'envers le 1er novembre 2026 : en
+       figeant la condition du prix exécuté, la clause restait verte et le
+       dépli ne montrait plus le prix auquel l'ordre s'était exécuté.
+       C'est la construction de la liste qu'on tient, étiquette comprise :
+       un champ sans étiquette ne se lit pas davantage. */
+    for (const [champ, etiquette] of [
+      ["limitPrice", "Votre limite"],
+      ["executedPrice", "Prix exécuté"],
+      ["allocationPct", "Part servie"],
+      ["servedUnits", "Titres servis"],
+    ] as const) {
+      expect(page, `« ${etiquette} » ne se pose plus au dépli : la carte dit l'intention et jamais l'opération`).toMatch(
+        new RegExp(`lignes\\.push\\(\\[t\\("${etiquette}"\\),[^\n]*i\\.${champ}`),
+      );
     }
+    expect(page, "la date de l'ordre ne se pose plus au dépli").toMatch(/\[t\("Passé le"\), fmtDate\(i\.createdAt\)\]/);
     expect(code(CARTE), "le dépli a disparu : les douze lignes sont remontées sur la carte").toMatch(/aria-expanded=\{ouvert\}/);
   });
 });
