@@ -113,5 +113,14 @@ export const isInstrumentsSection = (path: string): boolean =>
  */
 export const isTradeSection = (path: string): boolean => path.startsWith("/trader") || isInstrumentsSection(path);
 
+/**
+ * LE SIÈGE « AIDE » : DEMANDER, ET TROUVER SOI-MÊME.
+ *
+ * La règle vivait en ligne dans le dock du téléphone ; la bande du haut en a
+ * besoin aussi pour dire où l'on est (« lieuDe »), et deux copies d'une règle
+ * d'appartenance finissent par ne plus désigner les mêmes pages.
+ */
+export const isAideSection = (path: string): boolean => path === "/aide" || path.startsWith("/info") || path.startsWith("/moi/contact") || path.startsWith("/moi/reclamation");
+
 /** Vers quelle liste remonter depuis une fiche, faute de liste mémorisée. */
 export const listForFiche = (path: string): string => (path.startsWith(FUND_FICHE) ? "/fonds" : TITRES);

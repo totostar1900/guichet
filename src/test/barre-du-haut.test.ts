@@ -22,7 +22,8 @@ const FEUILLE = "src/components/mobile/MobileShell.module.css";
  * Elle portait « PURPOSE CAPITAL · Guichet » sur le tiers gauche de tous les
  * sièges du dock, c'est-à-dire sur l'écran le plus étroit de la maison, pour
  * dire au client ce qu'il sait déjà : chez qui il est. Elle porte maintenant
- * le nom de la PAGE, et le cède au `h1` tant qu'il est à l'écran.
+ * le nom de la PAGE, et le cédait au `h1` tant qu'il était à l'écran ; depuis
+ * le 31 octobre 2026 elle dit le LIEU (siège et rubrique), à toute hauteur.
  */
 describe("la barre du haut", () => {
   it("ne nomme plus la maison là où la place manque", () => {
@@ -69,14 +70,14 @@ describe("la barre du haut", () => {
   });
 
   /* LE DÉCALAGE D'UNE COLONNE, qu'on ne voit que sur un siège du dock.
-     La barre est une grille de trois colonnes — retour, titre, icônes — et
+     La barre est une grille de trois colonnes — retour, lieu, icônes — et
      la flèche ne paraît pas sur une racine, qui n'a pas de parent. Sans
-     place écrite, le placement automatique rangerait alors le titre en
+     place écrite, le placement automatique rangerait alors le lieu en
      première colonne et les icônes en deuxième. */
   it("écrit la place de chaque pièce, pour le jour où la flèche manque", () => {
     const css = lire(FEUILLE);
     const bloc = (nom: string) => css.match(new RegExp(`\\.${nom}\\s*\\{([^}]*)\\}`))?.[1] ?? "";
-    expect(bloc("title"), "le titre n'a plus de colonne : sans flèche il glisse à gauche").toMatch(/grid-column:\s*2/);
+    expect(bloc("lieu"), "le lieu n'a plus de colonne : sans flèche il glisse à gauche").toMatch(/grid-column:\s*2/);
     expect(bloc("right"), "les icônes n'ont plus de colonne : sans flèche elles glissent d'un cran").toMatch(/grid-column:\s*3/);
   });
 
@@ -84,5 +85,99 @@ describe("la barre du haut", () => {
      l'historique, ou nulle part. */
   it("ne pose la flèche de retour que là où l'on peut remonter", () => {
     expect(code(BARRE), "la flèche de retour n'est plus conditionnée à la racine").toMatch(/\{!isRoot && \(/);
+  });
+});
+
+/** Le source sans ses notes : un commentaire qui explique ne compte pas comme du code. */
+const sansNotes = (s: string) => s.replace(/\{\/\*[\s\S]*?\*\/\}/g, "").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+/**
+ * LE COIN DROIT DU TÉLÉPHONE : L'HORLOGE, L'ÉTOILE, LE MENU (31 octobre 2026).
+ *
+ * Décidé sur maquette. Ces clauses tiennent ce qui ne se voit pas d'un coup
+ * d'œil : qui porte quelle barre, que les deux pages ont leur croix, qu'un
+ * favori ne peut pas mener hors de la maison, et que la table n'est lisible
+ * que par son propriétaire.
+ */
+describe("la barre du client", () => {
+  it("un client a l'horloge, l'étoile et le menu ; le desk garde la barre du compte", () => {
+    const shell = sansNotes(lire("src/components/mobile/MobileShell.tsx"));
+    expect(shell, "le client n'a plus la nouvelle barre").toMatch(/\{signedIn && !desk && <BarreDuHaut /);
+    expect(shell, "le desk n'a plus sa barre du compte").toMatch(/\{signedIn && desk && <BarreDuCompte /);
+  });
+
+  it("trois cibles : l'horloge et l'étoile sont des liens, le menu ouvre un tiroir", () => {
+    const b = sansNotes(lire("src/components/mobile/BarreDuHaut.tsx"));
+    expect(b, "l'horloge ne mène plus à la page des échéances").toMatch(/<Link href="\/echeances" className=\{`\$\{styles\.ic\} \$\{styles\.ambre\}`\}/);
+    expect(b, "l'étoile ne mène plus aux favoris").toMatch(/<Link href="\/favoris" className=\{`\$\{styles\.ic\} \$\{styles\.or\}`\}/);
+    expect(b, "les trois barres n'ouvrent plus le tiroir").toMatch(/onClick=\{\(\) => setOuvert\(true\)\}[\s\S]{0,120}aria-haspopup="dialog"/);
+  });
+
+  it("la pastille du menu compte ce qui attend, celle de l'horloge ce qui presse", () => {
+    const b = sansNotes(lire("src/components/mobile/BarreDuHaut.tsx"));
+    expect(b, "le menu ne compte plus les attentes ET le brouillon").toMatch(/const combien = attentes\.length \+ \(brouillon \? 1 : 0\)/);
+    expect(b, "la pastille du menu n'est plus rouge par défaut").toMatch(/\{combien > 0 && <em className=\{styles\.pas\}>/);
+    expect(b, "l'horloge n'a plus sa pastille ambre, ou la montre à zéro").toMatch(/\{urgentes > 0 && <em className=\{`\$\{styles\.pas\} \$\{styles\.pasAmbre\}`\}/);
+  });
+
+  it("le tiroir se ferme au voile, à la croix et à Échap, et verrouille la page", () => {
+    const b = sansNotes(lire("src/components/mobile/BarreDuHaut.tsx"));
+    expect(b, "le voile ne ferme plus le tiroir").toMatch(/className=\{`\$\{styles\.voile\}[^`]*`\} onClick=\{fermer\}/);
+    expect(b, "la croix ne ferme plus le tiroir").toMatch(/className=\{styles\.fermer\} onClick=\{fermer\}/);
+    expect(b, "Échap ne ferme plus le tiroir").toMatch(/e\.key === "Escape"[^)]*\)[^;]*setOuvert\(false\)/);
+    expect(b, "la page défile de nouveau derrière le tiroir").toMatch(/verrouiller\(\);[\s\S]{0,700}deverrouiller\(\)/);
+  });
+
+  it("le nombre de l'horloge se lit dans la mise en page, une fois par requête", () => {
+    const l = sansNotes(lire("src/app/layout.tsx"));
+    expect(l, "la mise en page ne calcule plus les échéances urgentes").toMatch(/echeancesUrgentes\(echeancesProches\(o\)\)/);
+    expect(l, "le nombre n'arrive plus à la barre").toMatch(/urgentes=\{urgentes \?\? 0\}/);
+  });
+});
+
+describe("les pages pleines", () => {
+  it("l'horloge et l'étoile sont des pages pleines, fermées par leur croix", () => {
+    for (const f of ["src/app/echeances/page.tsx", "src/app/favoris/page.tsx"]) {
+      expect(sansNotes(lire(f)), `${f} n'est plus une page pleine`).toMatch(/<PagePleine\s/);
+    }
+    const p = sansNotes(lire("src/components/PagePleine.tsx"));
+    expect(p, "la page pleine n'a plus sa croix").toMatch(/<FermerLaPage label=\{fermer\} \/>/);
+    expect(sansNotes(lire("src/components/FermerLaPage.tsx")), "la croix ne recule plus comme la flèche de la barre").toMatch(/onClick=\{\(\) => reculer\(router, "\/"\)\}/);
+    expect(sansNotes(lire("src/components/mobile/MobileShell.tsx")), "la flèche de la barre ne passe plus par la règle commune").toMatch(/const back = \(\) => reculer\(router, fallbackFor\(path\)\)/);
+  });
+});
+
+describe("un favori ne mène jamais hors de la maison", () => {
+  it("l'action nettoie le chemin AVANT d'écrire, et refuse ce qu'elle ne reconnaît pas", () => {
+    const a = sansNotes(lire("src/app/favoris/actions.ts"));
+    const nettoie = a.indexOf("cheminDeFavori(href)");
+    const ecrit = a.indexOf("addFavori(");
+    expect(nettoie, "l'action ne nettoie plus le chemin").toBeGreaterThan(-1);
+    expect(ecrit, "l'action n'écrit plus").toBeGreaterThan(-1);
+    expect(nettoie < ecrit, "l'action écrit un chemin qu'elle n'a pas encore nettoyé").toBe(true);
+    expect(a, "un chemin refusé doit sortir sans rien écrire").toMatch(/if \(!chemin\) return \{ ok: false/);
+  });
+
+  it("la table ne se lit, ne s'écrit et ne se vide que par son propriétaire", () => {
+    const m = lire("supabase/migrations/0123_favoris.sql");
+    expect(m, "la table n'est plus sous RLS").toMatch(/alter table favoris enable row level security/);
+    for (const verbe of ["select", "insert", "delete"]) expect(m, `plus de règle « ${verbe} » sur les favoris`).toMatch(new RegExp(`on favoris for ${verbe}`));
+    expect(m, "la table accepte de nouveau une adresse hors de la maison").toMatch(/check \(href like '\/%' and href not like '\/\/%'\)/);
+    expect(m, "un favori n'est plus unique par client et par page").toMatch(/unique \(user_id, href\)/);
+  });
+});
+
+describe("une seule bande collée en haut : la barre", () => {
+  it("la ligne « Sur cette page » du téléphone défile avec la page", () => {
+    /* Elle collait sous la barre — « A · Le marché et ses acteurs · 0/4 lues » —
+       et empilait deux repères là où la barre dit déjà le lieu. Retirée sur
+       toutes les pages qui l'emploient, le 31 octobre 2026. */
+    const css = lire("src/components/PageOutline.module.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    const debut = css.indexOf(".phone {\n    display: block;");
+    expect(debut, "la règle du téléphone est introuvable : la clause ne garde plus rien").toBeGreaterThan(-1);
+    const bloc = css.slice(debut, css.indexOf("}", debut));
+    expect(bloc, "la ligne « Sur cette page » colle de nouveau sous la barre").not.toMatch(/position:\s*sticky/);
+    // Non-vacuité : le rail du grand écran, lui, colle encore — on lit bien un fichier qui sait coller.
+    expect(css.slice(0, css.indexOf(".phone")), "le rail du grand écran ne colle plus : le relevé lit autre chose").toMatch(/position:\s*sticky/);
   });
 });

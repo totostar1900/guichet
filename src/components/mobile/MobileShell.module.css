@@ -42,37 +42,37 @@
     stroke-linecap: round;
     stroke-linejoin: round;
   }
-  .title {
-    /* SA COLONNE EST ÉCRITE, et ce n'est pas une précaution de style : le
-       placement automatique rangerait le titre en première colonne le jour
-       où la flèche manque, et les icônes de droite en deuxième. Le défaut ne
-       se voit que sur les sièges du dock. */
+  /* LE LIEU : UN SIÈGE EN PETITES CAPITALES, LA RUBRIQUE DESSOUS.
+     Il remplace le nom de la page, que la barre cédait au titre tant qu'il
+     était visible. Il ne bouge plus : ni opacité, ni transition. Sa colonne
+     est écrite, et ce n'est pas une précaution de style : le placement
+     automatique rangerait le lieu en première colonne le jour où la flèche
+     manque, et les icônes de droite en deuxième. */
+  .lieu {
     grid-column: 2;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 0 6px;
+  }
+  .siege {
+    font-size: var(--t-1);
     font-weight: 700;
-    font-size: 0.9rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    /* Écrit en dur : la barre est bleu nuit à toute surface (comme les pastilles), et --gold-line s'y éteint. */
+    color: #e2c466;
+    line-height: 1.1;
+  }
+  .rubrique {
+    font-weight: 700;
+    font-size: var(--t-4);
+    line-height: 1.15;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-width: 0;
-    transition:
-      opacity 0.18s ease,
-      transform 0.18s ease;
-  }
-  /* LE NOM N'EST ÉCRIT QU'UNE FOIS À L'ÉCRAN.
-     La barre portait le nom de la page et la page le répétait trois cents
-     pixels plus bas : « Mes documents » deux fois, à la même seconde. La barre
-     cède donc la parole tant que le titre de la page est visible, et la
-     reprend dès qu'il passe sous elle — c'est-à-dire au moment précis où le
-     lecteur perd son repère. Elle garde sa place : rien ne bouge autour,
-     seule l'encre s'efface. Voir ETALON.md, arbitrage A. */
-  .titleCede {
-    opacity: 0;
-    transform: translateY(3px);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .title {
-      transition: none;
-    }
   }
   .right {
     grid-column: 3;

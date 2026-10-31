@@ -4,7 +4,7 @@ import type { AccesCompte } from "@/lib/domain/acces-nomme";
 import type { FinancialProfile } from "@/data/profile";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type LigneSondee, type InboundMessage, type BudgetEtat, type NoteBudget } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ClientPrefs, type Contact, type DocumentType, type TemplateText, type TemplateTextStatus, type DeviceKind, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type IntentState, type Notification, type Offer, type ProofChannel, type ReferenceDraft, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type Favori, type LigneSondee, type InboundMessage, type BudgetEtat, type NoteBudget } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { CompteDeclare, Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
@@ -621,6 +621,8 @@ const toPayout = (r: PayoutRow): CashPayout => ({
   cashEntry: u(r.cash_entry),
 });
 
+type FavoriRow = { id: string; user_id: string; href: string; title: string; created_at: string };
+const toFavori = (r: FavoriRow): Favori => ({ id: r.id, userId: r.user_id, href: r.href, title: r.title, createdAt: r.created_at });
 type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string; mode?: string | null; last_daily?: string | null };
 const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId: r.offer_id, lastHero: u(r.last_hero), lastStatus: u(r.last_status), alertedAt: u(r.alerted_at), createdAt: r.created_at, mode: (u(r.mode) as Watch["mode"]) ?? "evenement", lastDaily: u(r.last_daily) });
 /* Le sondage d'avant séance : « montant » et « dans_jours » reviennent en
@@ -2238,6 +2240,24 @@ export const supabaseRepository: Repository = {
   async removeWatch(userId, offerId) {
     const { error } = await db().from("watchlist").delete().eq("user_id", userId).eq("offer_id", offerId);
     if (error) fail("removeWatch", error);
+  },
+  async listFavoris(userId) {
+    try {
+      const data = await parLots<FavoriRow>("listFavoris", (de, a) => db().from("favoris").select("*").eq("user_id", userId).order("created_at", { ascending: false }).order("id").range(de, a));
+      return data.map(toFavori);
+    } catch (e) {
+      if (/favoris/.test((e as Error).message)) return []; // migration 0123 not applied yet
+      throw e;
+    }
+  },
+  async addFavori(userId, href, title) {
+    const { data, error } = await db().from("favoris").upsert({ user_id: userId, href, title }, { onConflict: "user_id,href" }).select("*").single();
+    if (error) fail("addFavori", error);
+    return toFavori(data as FavoriRow);
+  },
+  async removeFavori(userId, href) {
+    const { error } = await db().from("favoris").delete().eq("user_id", userId).eq("href", href);
+    if (error) fail("removeFavori", error);
   },
   async updateWatch(id, patch) {
     const row: Record<string, unknown> = {};

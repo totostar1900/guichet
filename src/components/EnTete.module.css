@@ -66,3 +66,12 @@
   color: var(--ink-2);
   max-width: 64ch;
 }
+
+/* LE SUR-TITRE SE TAIT SUR TÉLÉPHONE : la bande du haut dit déjà le lieu (siège et rubrique),
+   et le redire trois centimètres plus bas était le doublon que la bande a été réécrite pour retirer.
+   Décidé le 31 octobre 2026. Au-delà de 760 px il n'y a pas de bande : le sur-titre reste. */
+@media (max-width: 760px) {
+  .surTitre {
+    display: none;
+  }
+}

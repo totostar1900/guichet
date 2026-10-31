@@ -88,6 +88,8 @@ describe("le brouillon d'un ordre", () => {
 });
 
 describe("ce que la cloche en fait", () => {
+  /* LA LISTE A DÉMÉNAGÉ le 31 octobre 2026 : « Attentes.tsx » la porte, pour la cloche de la colonne ET pour la ligne « Ce qui m'attend » du menu à trois barres. Le compte, lui, reste dans « BarreDuCompte ». */
+  const liste = () => readFileSync(`${RACINE}/src/components/mobile/Attentes.tsx`, "utf8").replace(/\{\/\*[\s\S]*?\*\/\}/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
   const barre = () => readFileSync(`${RACINE}/src/components/mobile/BarreDuCompte.tsx`, "utf8").replace(/\{\/\*[\s\S]*?\*\/\}/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
   const form = () => readFileSync(`${RACINE}/src/components/IntentForm.tsx`, "utf8").replace(/\{\/\*[\s\S]*?\*\/\}/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
 
@@ -100,7 +102,7 @@ describe("ce que la cloche en fait", () => {
   });
 
   it("l'offre à reprendre, et à abandonner sur place", () => {
-    const b = barre();
+    const b = liste();
     expect(b, "on ne peut plus reprendre l'ordre depuis la cloche").toMatch(/href=\{reprendre\(brouillon\)\}/);
     /* L'ABANDON SE JOUE ICI, et c'est l'exception à la règle des attentes :
        celles-ci renvoient à la page où la décision se prend, parce que le

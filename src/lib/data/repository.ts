@@ -4,7 +4,7 @@ import type { MesurePosee } from "@/lib/domain/mesure";
 import type { AccesCompte, CauseDeRetrait } from "@/lib/domain/acces-nomme";
 import type { Stockage } from "@/lib/domain/stockage";
 import type { SchemaVu } from "@/lib/domain/schema-declare";
-import type { Approval, AuditEntry, BudgetEtat, ChannelCode, ChannelStatus, ClientPrefs, Contact, DeskExchange, DeskThread, DeviceKind, EventLog, GeneratedDocument, InboundMessage, IntakeItem, Intent, IntentState, LigneSondee, NewLigneSondee, NewAuditEntry, NewIntentInput, NoteBudget, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TemplateText, TemplateTextStatus, TrustedDevice, Watch } from "@/lib/domain/types";
+import type { Approval, AuditEntry, BudgetEtat, ChannelCode, ChannelStatus, ClientPrefs, Contact, DeskExchange, Favori, DeskThread, DeviceKind, EventLog, GeneratedDocument, InboundMessage, IntakeItem, Intent, IntentState, LigneSondee, NewLigneSondee, NewAuditEntry, NewIntentInput, NoteBudget, Notification, Offer, OfferVersion, PieceGardee, ProofChannel, PushSubscription, ReferenceDraft, ReferenceRow, StaffMember, StaffRole, TemplateText, TemplateTextStatus, TrustedDevice, Watch } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
 import type { Preavis } from "@/lib/domain/preavis";
@@ -432,6 +432,10 @@ export interface Repository {
   ): Promise<LigneSondee>;
 
   listWatches(userId?: string): Promise<Watch[]>;
+  /** Les pages mises en favori par un client, la dernière posée d'abord. */
+  listFavoris(userId: string): Promise<Favori[]>;
+  addFavori(userId: string, href: string, title: string): Promise<Favori>;
+  removeFavori(userId: string, href: string): Promise<void>;
   addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }, mode?: Watch["mode"]): Promise<Watch>;
   removeWatch(userId: string, offerId: string): Promise<void>;
   updateWatch(id: string, patch: Partial<Pick<Watch, "lastHero" | "lastStatus" | "alertedAt" | "lastDaily">>): Promise<void>;

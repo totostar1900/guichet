@@ -120,6 +120,8 @@ export const GESTES: Record<string, Geste> = {
   "message.envoye": { genre: "relation", phrase: "Vous nous avez écrit", auDesk: "a écrit au desk" },
   "reclamation.deposee": { genre: "relation", phrase: "Vous avez déposé une réclamation", auDesk: "a déposé une réclamation" },
   "ligne.suivie": { genre: "relation", phrase: "Vous avez suivi une ligne", auDesk: "a suivi une ligne" },
+  "favori.pose": { genre: "relation", phrase: "Vous avez mis une page en favori", auDesk: "a mis une page en favori" },
+  "favori.retire": { genre: "relation", phrase: "Vous avez retiré une page de vos favoris", auDesk: "a retiré une page de ses favoris" },
   "ligne.delaissee": { genre: "relation", phrase: "Vous ne suivez plus une ligne", auDesk: "ne suit plus une ligne" },
 };
 

@@ -38,7 +38,7 @@ import styles from "./CeQuiFermeBientot.module.css";
  * ELLE SE BORNE À TROIS, puis nomme le reste et mène au calendrier, dont
  * c'est le travail de les porter toutes.
  */
-export async function CeQuiFermeBientot({ offres, max = 3 }: { /** Les offres déjà en main, pour ne pas les relire. */ offres?: Offer[]; max?: number }) {
+export async function CeQuiFermeBientot({ offres, max = 3, entete = true }: { /** Les offres déjà en main, pour ne pas les relire. */ offres?: Offer[]; max?: number; /** Faux sur la page pleine de l'horloge, dont l'en-tête dit déjà le titre. */ entete?: boolean }) {
   const t = await getT();
   /* LES OFFRES SE PASSENT QUAND ON LES A DÉJÀ. La page d'arrivée les lit pour
      ses positions ; les relire ici serait deux lectures du même objet dans la
@@ -54,14 +54,16 @@ export async function CeQuiFermeBientot({ offres, max = 3 }: { /** Les offres d�
 
   return (
     <section className={styles.bloc} aria-labelledby="ferme-bientot">
-      <div className={styles.tete}>
-        <h2 id="ferme-bientot" className={styles.titre}>
-          {t("Ce qui ferme bientôt")}
-        </h2>
-        <Link className={styles.tout} href="/calendrier">
-          {t("Le calendrier")} →
-        </Link>
-      </div>
+      {entete && (
+        <div className={styles.tete}>
+          <h2 id="ferme-bientot" className={styles.titre}>
+            {t("Ce qui ferme bientôt")}
+          </h2>
+          <Link className={styles.tout} href="/calendrier">
+            {t("Le calendrier")} →
+          </Link>
+        </div>
+      )}
       <ul className={styles.liste}>
         {montrees.map((e) => {
           const quand = joursEnMots(e.jours);

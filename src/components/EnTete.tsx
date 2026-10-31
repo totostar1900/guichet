@@ -94,7 +94,7 @@ export function EnTete({
       )}
       <header className={`${styles.tete} ${aCote ? styles.avecCote : ""}`}>
         <div className={styles.mots}>
-          {surTitre && <div className="eyebrow">{surTitre}</div>}
+          {surTitre && <div className={`eyebrow ${styles.surTitre}`}>{surTitre}</div>}
           <h1 className={`display ${reference ? styles.ref : ""}`}>{titre}</h1>
           {phrase && <p className={styles.phrase}>{phrase}</p>}
         </div>

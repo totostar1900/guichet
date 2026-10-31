@@ -1,0 +1,65 @@
+.onglets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.onglets a {
+  font-size: var(--t-4);
+  font-weight: 600;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  text-decoration: none;
+}
+.onglets a[aria-current="page"] {
+  background: var(--navy);
+  border-color: var(--gold);
+  color: var(--on-navy);
+}
+.liste {
+  display: grid;
+  gap: 8px;
+}
+.ligne {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card, var(--paper));
+}
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.page a {
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.page small {
+  color: var(--muted);
+}
+.etoile {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+}
+.etoile svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}

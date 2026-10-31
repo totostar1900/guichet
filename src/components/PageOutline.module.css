@@ -98,14 +98,9 @@
     display: block;
     /* la ligne « Sur cette page » se lit avant l'article, pas après lui */
     order: -1;
-    /* et elle y reste : sans rail sous le seuil, c'est le seul repère de
-       section. Sous la barre du téléphone : à zéro elle se figeait derrière
-       elle, gelée et invisible, ce qui se lit comme une ligne qui ne gèle
-       pas. */
-    position: sticky;
-    top: var(--gel-desk);
-    z-index: 6;
-    background: var(--paper);
+    /* ELLE NE COLLE PLUS, depuis le 31 octobre 2026. Une seconde bande gelée sous la
+       barre — « A · Le marché et ses acteurs · 0/4 lues » — empilait deux repères là où
+       la barre dit déjà le lieu ; la ligne se lit en tête de page, et défile avec elle. */
     margin-bottom: 14px;
   }
 }

@@ -37,6 +37,8 @@ import { cookies, headers } from "next/headers";
 import { clientOrigin, deskSplit, isDeskHost } from "@/lib/hosts";
 import { LEGAL_VERSION } from "@/data/legal";
 import { attentesPourLaBarre } from "@/lib/domain/contexte-client";
+import { echeancesUrgentes } from "@/lib/domain/favoris";
+import { echeancesProches } from "@/lib/domain/echeances";
 
 // One family for everything, display, text and figures, with tabular numerals; see globals.css.
 const ui = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-ui", display: "swap" });
@@ -138,15 +140,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
    * affiché derrière un clic : c'est le genre de ligne qui ne se retire que le
    * jour où son seul lecteur disparaît.
    */
-  const [account, attentes, consent, poste] = session
+  const [account, attentes, consent, poste, urgentes] = session
     ? await Promise.all([
         accountLine(session.userId),
         deskUi ? [] : attentesPourLaBarre(session.userId),
         // A client accepts the legal text once per version of it; the desk is bound by its contract, not by this box.
         !desk ? repo().getConsent(session.userId).catch(() => ({}) as { version?: string }) : undefined,
         deskUi ? chargerPoste(session.userId, session.role).catch(() => undefined) : undefined,
+        /* Le nombre de l'horloge : les lignes qui ferment sous sept jours. Les offres sont lues une fois par requête (memo), la page les relit sans coût. */
+        deskUi ? 0 : repo().listOffers().then((o) => echeancesUrgentes(echeancesProches(o))).catch(() => 0),
       ])
-    : [undefined, [], undefined, undefined];
+    : [undefined, [], undefined, undefined, 0];
   const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
   /* LA SURFACE, ET POURQUOI C'EST LA SESSION QUI LA DIT.
      Le système de design décrit la vitrine devant la porte et l'espace de
@@ -220,7 +224,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </div>
         </header>
-        <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} desk={deskUi} deskHost={onDeskHost} menu={menu} />
+        <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} urgentes={urgentes ?? 0} desk={deskUi} deskHost={onDeskHost} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation />
         <Onboarding />

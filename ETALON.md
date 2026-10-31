@@ -340,7 +340,7 @@ REGARDE pas ne prouve rien.*
 
 ## 7. Les deux arbitrages — tranchés le 24 octobre 2026
 
-**A — le titre répété : la barre cède.** Elle se tait tant que le `h1` est à
+**A — le titre répété : la barre cède.** *(Révisé le 31 octobre 2026 : la barre ne cède ni ne reprend plus rien, elle dit le LIEU — le siège en petites capitales, la rubrique dessous — à toute hauteur de défilement ; le sur-titre se tait sous 760 px. Ce qui suit est la décision du 24 octobre.)* Elle se tait tant que le `h1` est à
 l'écran et reprend le nom dès qu'il passe **sous** elle : le repère réapparaît
 au moment exact où l'autre disparaît, jamais les deux ensemble. Une page sans
 `h1` garde son nom dans la barre. Mesuré après coup : opacité 0 / `aria-hidden`

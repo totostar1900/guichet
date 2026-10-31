@@ -4,12 +4,15 @@ import { useT } from "@/i18n/client";
 import { COMPANY, PRODUCT } from "@/lib/config";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { BarreDuCompte } from "./BarreDuCompte";
+import { BarreDuHaut } from "./BarreDuHaut";
 import { MarketFab } from "./MarketFab";
+import { reculer } from "./retour";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
-import { isEspaceSection, isMarcheSection, isTradeSection, listForFiche } from "@/lib/nav-section";
+import { lieuDe } from "@/lib/domain/lieu";
+import { isAideSection, isEspaceSection, isMarcheSection, isTradeSection, listForFiche } from "@/lib/nav-section";
 
 /**
  * The phone shell (≤ 760 px): a top bar with a real « back » and the page
@@ -123,7 +126,7 @@ function fallbackFor(path: string): string {
   return "/";
 }
 
-export function MobileShell({ signedIn, name, desk, deskHost = false, attentes = [], menu }: { signedIn: boolean; name?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; /** Ce qui attend le client, pour la pastille de la barre : voir BarreProps. */ attentes?: Attente[]; menu?: React.ReactNode }) {
+export function MobileShell({ signedIn, name, desk, deskHost = false, attentes = [], urgentes = 0, menu }: { signedIn: boolean; name?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; /** Ce qui attend le client, pour la pastille de la barre : voir BarreProps. */ attentes?: Attente[]; /** Les lignes qui ferment sous sept jours : le nombre de l'horloge. */ urgentes?: number; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -141,58 +144,16 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
   }, [path]);
 
   /**
-   * LA BARRE CÈDE LE NOM À LA PAGE, TANT QUE LA PAGE LE PORTE.
+   * LA BARRE DIT OÙ L'ON EST, ET NE DIT JAMAIS LE NOM DE LA PAGE.
    *
-   * Les deux l'écrivaient en même temps : « Mes documents » dans la barre, et
-   * « Mes documents » en trente pixels trois cents plus bas. Le doublon se
-   * voyait sur toute page qui a un titre, c'est-à-dire presque toutes.
-   *
-   * La barre s'efface donc tant que le `h1` est à l'écran, et revient dès
-   * qu'il passe SOUS elle — le repère réapparaît au moment exact où l'autre
-   * disparaît, et jamais les deux ensemble. La marge négative vaut la hauteur
-   * de la barre, qui recouvre le contenu : sans elle, le titre serait réputé
-   * visible alors qu'il est déjà caché derrière.
-   *
-   * ELLE CÈDE D'ABORD, ET REPREND SI ELLE DOIT. Le défaut du rendu est « la
-   * barre se tait », et l'effet ne fait que la rendre à la page sans `h1`.
-   * L'inverse — se taire une fois l'observateur installé — faisait clignoter
-   * le titre à chaque navigation : il paraissait le temps d'une image, puis
-   * s'effaçait en cent quatre-vingts millisecondes, bien visibles.
-   *
-   * L'ÉTAT N'EST PAS DANS REACT, ET C'EST VOULU : rien d'autre dans l'arbre ne
-   * dépend de ce que l'observateur voit, et le passer par un rendu coûtait un
-   * `setState` par défilement. Poser une classe est exactement ce qu'un effet
-   * est fait pour faire — synchroniser le DOM avec un système extérieur.
+   * Elle cédait le nom au `h1` tant qu'il était à l'écran et le reprenait dès
+   * qu'il passait dessous : tantôt un titre, tantôt rien. Décidé le 31 octobre
+   * 2026, sur maquette : elle porte le LIEU — le siège, et la rubrique quand il
+   * y en a une — à toute hauteur de défilement, de la même façon sur toutes les
+   * pages. Le titre reste dans la page, une seule fois. Le nom lu dans
+   * l'onglet ne sert plus qu'à ranger une page en favori (« BarreDuHaut »).
    */
-  const titreRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = titreRef.current;
-    if (!el) return;
-    const rendreLeNom = () => {
-      el.classList.remove(styles.titleCede);
-      el.removeAttribute("aria-hidden");
-    };
-    const h1 = document.querySelector("main h1");
-    if (!h1) {
-      rendreLeNom();
-      return;
-    }
-    const barre = getComputedStyle(document.documentElement).getPropertyValue("--bar-h").trim() || "62px";
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          el.classList.add(styles.titleCede);
-          el.setAttribute("aria-hidden", "true");
-        } else rendreLeNom();
-      },
-      { rootMargin: `-${barre} 0px 0px 0px` },
-    );
-    io.observe(h1);
-    return () => io.disconnect();
-    /* « title » entre dans les dépendances pour une raison de calendrier : il
-       change quand la page suivante s'est rendue, ce qui donne à l'effet une
-       seconde chance de trouver un `h1` arrivé après lui. */
-  }, [path, title]);
+  const lieu = lieuDe(path);
 
   // Did this tab see another of our pages before this one? Then the browser history is ours.
   useEffect(() => {
@@ -205,17 +166,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
     }
   }, [path]);
 
-  const back = () => {
-    let ours = false;
-    try {
-      ours = Boolean(sessionStorage.getItem("guichet:cameFrom"));
-    } catch {
-      // storage unavailable
-    }
-    // Our own history: go back (Next restores the list scroll). A link opened from WhatsApp: the remembered list.
-    if (ours && window.history.length > 1) router.back();
-    else router.push(fallbackFor(path));
-  };
+  const back = () => reculer(router, fallbackFor(path));
 
   const t = useT();
   /**
@@ -259,7 +210,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
        couvre tous les deux. C'est déjà le nom du groupe au rail de l'écran
        large, et deux surfaces qui nomment la même chose doivent la nommer
        pareil. */
-    { href: "/aide", label: t("Aide"), icon: I.aide, match: (p) => p === "/aide" || p.startsWith("/info") || p.startsWith("/moi/contact") || p.startsWith("/moi/reclamation") },
+    { href: "/aide", label: t("Aide"), icon: I.aide, match: isAideSection },
     /* « À DÉCIDER » A QUITTÉ LE DOCK le 2 octobre 2026. Un onglet qui porte ce
        nom demande d'aller voir s'il y a quelque chose, et il est vide neuf jours
        sur dix : un onglet vide neuf jours sur dix est un onglet qu'on cesse
@@ -301,8 +252,13 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
             </svg>
           </button>
         )}
-        <div ref={titreRef} className={`${styles.title} ${styles.titleCede}`} aria-hidden="true">
-          {title ? t(title) : "…"}
+        <div className={styles.lieu}>
+          {lieu && (
+            <>
+              <span className={styles.siege}>{t(lieu.siege)}</span>
+              {lieu.rubrique && <span className={styles.rubrique}>{t(lieu.rubrique)}</span>}
+            </>
+          )}
         </div>
         <div className={styles.right}>
           {/* LA LANGUE N'EST PAS ICI. Elle y est passée une matinée, le temps de
@@ -319,9 +275,10 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
               place que ce dock laisse libre à qui n'est pas entré. Garder ce
               lien, c'était afficher « Se connecter » deux fois sur le même
               écran, et reprendre au titre la largeur que la barre n'a pas. */}
-          {signedIn && (
-            <BarreDuCompte name={name ?? "?"} desk={desk} attentes={attentes} />
-          )}
+          {/* UN CLIENT A L'HORLOGE, L'ÉTOILE ET LE MENU ; le desk garde la barre
+              du compte et son lien « Desk ». Voir BarreDuHaut. */}
+          {signedIn && !desk && <BarreDuHaut name={name ?? "?"} attentes={attentes} urgentes={urgentes} titre={title} />}
+          {signedIn && desk && <BarreDuCompte name={name ?? "?"} desk={desk} attentes={attentes} />}
           {menu}
         </div>
       </div>

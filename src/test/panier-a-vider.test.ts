@@ -100,7 +100,8 @@ describe("la sourdine a quitté la pastille", () => {
      bouton a changé de main, il n'a pas disparu — le desk l'a, pour le
      client qui téléphone. */
   it("le client n'a plus de bouton pour faire taire un rappel", () => {
-    const panneau = readFileSync("src/components/mobile/BarreDuCompte.tsx", "utf8");
+    /* La liste des attentes vit dans « Attentes.tsx » (cloche de la colonne et menu du téléphone). */
+    const panneau = readFileSync("src/components/mobile/BarreDuCompte.tsx", "utf8") + readFileSync("src/components/mobile/Attentes.tsx", "utf8");
     expect(panneau).not.toMatch(/Ne plus me le rappeler/);
     expect(panneau).not.toMatch(/ecarterRappelAction/);
     // La seconde issue, elle, est bien là, et elle mène à une page.

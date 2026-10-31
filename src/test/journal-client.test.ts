@@ -18,6 +18,7 @@ import { clefDuJour, estQuotidien, genreDe, GENRES, GESTES } from "@/lib/domain/
  */
 const ROOT = process.cwd();
 const FICHIERS = [
+  "src/app/favoris/actions.ts",
   "src/app/moi/actions.ts",
   "src/app/moi/counter-actions.ts",
   "src/app/moi/modifier-actions.ts",
@@ -73,6 +74,8 @@ const DISPENSEES: Record<string, string> = {
   forgetDeviceAction: "noté par « securite.appareil.oublie » dans la même fonction",
   submitIntent: "noté par « ordre.depose » dans la même fonction",
   toggleWatch: "noté par « ligne.suivie » dans la même fonction",
+  basculerFavori: "noté par « favori.pose » ou « favori.retire » dans la même fonction",
+  estFavori: "lecture seule : rien n'est écrit",
   sendPhoneProof: "noté par « canal.preuve.envoyee » dans la même fonction",
   checkPhoneProof: "noté par « canal.prouve » dans la même fonction",
   contacterSurLigne: "noté par « message.envoye » dans la même fonction",
@@ -211,7 +214,7 @@ describe("rien n'a été oublié dans les dossiers d'actions", () => {
         else if (/actions\.ts$/.test(e.name)) trouves.push(`${d}/${e.name}`);
       }
     };
-    for (const racine of ["src/app/moi", "src/app/offres", "src/app/ouvrir-un-compte"]) walk(racine);
+    for (const racine of ["src/app/favoris", "src/app/moi", "src/app/offres", "src/app/ouvrir-un-compte"]) walk(racine);
     expect(trouves.sort()).toEqual([...FICHIERS].sort());
   });
 });

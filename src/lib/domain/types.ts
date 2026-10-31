@@ -843,6 +843,26 @@ export interface Watch {
   createdAt: string;
 }
 
+/**
+ * UNE PAGE MISE EN FAVORI : l'adresse et le nom qu'elle avait ce jour-là.
+ *
+ * Les LIGNES favorites n'ont pas de table à elles : une ligne mise en favori
+ * est une ligne suivie (« Watch »), l'étoile de la fiche est la même. Cette
+ * table ne tient donc que les PAGES — une éclairage du guide, l'indice, un
+ * fonds — que le client veut retrouver d'un geste.
+ *
+ * LE NOM EST COPIÉ, pas relu : la page peut changer de titre, le favori garde
+ * ce que le client a vu en le posant.
+ */
+export interface Favori {
+  id: string;
+  userId: string;
+  /** Chemin interne, sans domaine, avec sa requête éventuelle : « /info/lire-une-ligne ». */
+  href: string;
+  title: string;
+  createdAt: string;
+}
+
 export interface Notification {
   id: string;
   kind: NotifyKind;

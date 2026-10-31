@@ -71,6 +71,10 @@ const feuillesDuGuichet = (): string[] => {
        session (« if (!session) return <ApercuPartage …> ») : c'est la page
        qu'on reçoit par WhatsApp, elle vend, elle respire plus large. */
     "ApercuPartage.module.css",
+    /* LA PAGE PLEINE (l'horloge, les favoris) porte son titre DANS une bande
+       bleu nuit de 56 px, avec sa croix : c'est la barre de la page, pas
+       l'en-tête de son corps. Un titre à 2 rem y déborderait de la bande. */
+    "PagePleine.module.css",
   ];
   return out.filter((p) => !p.includes(`${path.sep}desk${path.sep}`) && !vitrine.some((v) => p.endsWith(v)));
 };
@@ -151,9 +155,9 @@ describe("l'étalon d'une page", () => {
  * LES DEUX ARBITRAGES D'ETALON.MD, TRANCHÉS LE 24 OCTOBRE 2026.
  *
  * A — LE NOM N'EST ÉCRIT QU'UNE FOIS À L'ÉCRAN. La barre du téléphone portait
- * le nom de la page et la page le répétait trois cents pixels plus bas. La
- * barre cède tant que le `h1` est visible et le reprend dès qu'il passe SOUS
- * elle : le repère réapparaît au moment exact où l'autre disparaît.
+ * le nom de la page et la page le répétait trois cents pixels plus bas. Elle
+ * cédait tant que le `h1` était visible ; RÉVISÉ le 31 octobre 2026 : elle ne
+ * dit plus le nom du tout, elle dit le LIEU (siège et rubrique).
  *
  * B — UN ÉCART, ÉCRIT UNE FOIS. Les quarante pixels entre deux bandes étaient
  * composés en deux endroits — vingt de `gap` au conteneur, vingt de
@@ -165,14 +169,18 @@ describe("l'étalon d'une page", () => {
 describe("les deux arbitrages", () => {
   const lire = (p: string) => fs.readFileSync(path.join(ROOT, p), "utf8");
 
-  it("fait céder la barre tant que la page porte son nom", () => {
+  it("dit le lieu dans la barre, et ne lui fait plus céder ni reprendre le nom de la page", () => {
+    /* A A ÉTÉ RÉVISÉ LE 31 OCTOBRE 2026. La barre cédait le nom au `h1` tant
+       qu'il était visible et le reprenait dès qu'il passait dessous : tantôt un
+       titre, tantôt rien. Elle dit maintenant le LIEU — siège et rubrique — à
+       toute hauteur de défilement, et le titre n'est écrit qu'une fois, dans la
+       page. Le sur-titre se tait sur téléphone, où la barre le dit déjà. */
     const shell = lire("src/components/mobile/MobileShell.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(shell, "la barre ne regarde plus le titre de la page").toMatch(/IntersectionObserver/);
-    expect(shell, "elle ne regarde pas le titre, mais autre chose").toMatch(/querySelector\("main h1"\)/);
-    expect(shell, "la barre ne cède plus la place").toMatch(/styles\.titleCede/);
-    /* Sans la marge négative, le titre serait réputé visible alors qu'il est
-       déjà caché derrière la barre, qui recouvre le contenu. */
-    expect(shell, "la hauteur de la barre n'entre plus dans le calcul").toMatch(/--bar-h/);
+    expect(shell, "la barre ne dit plus où l'on est").toMatch(/const lieu = lieuDe\(path\)/);
+    expect(shell, "la barre observe de nouveau le titre de la page : elle va céder et reprendre").not.toMatch(/IntersectionObserver/);
+    expect(shell, "la barre cède de nouveau la place au titre").not.toMatch(/titleCede/);
+    const entete = lire("src/components/EnTete.module.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(entete, "le sur-titre ne se tait plus sur téléphone").toMatch(/@media \(max-width: 760px\) \{\s*\.surTitre \{\s*display: none;/);
   });
 
   it("n'écrit l'écart entre bandes qu'à un seul endroit", () => {
@@ -236,6 +244,7 @@ const SANS_ENTETE: Record<string, string> = {
      titres sont des phrases — « La porte d'entrée des marchés financiers
      d'Afrique centrale » n'est pas le nom d'une page. */
   "src/app/Accueil.tsx": "la vitrine (ETALON § C) : serif, échelle fluide, et un titre qui est une phrase",
+  "src/components/PagePleine.tsx": "la page pleine (l'horloge, les favoris) : son titre est dans la bande bleu nuit qui porte aussi la croix, pas en tête d'un corps de page",
   "src/app/a-propos/page.tsx": "la vitrine (ETALON § C)",
   "src/app/placements/page.tsx": "la vitrine (ETALON § C)",
   "src/app/offres/[id]/ApercuPartage.tsx": "la vitrine (ETALON § C) : la page que voit celui à qui on partage une ligne",

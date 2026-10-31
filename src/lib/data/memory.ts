@@ -8,7 +8,7 @@ import { SEED_BUDGETS, SEED_NOTES_BUDGET } from "@/data/budgets-seed";
 import { coteDEssai } from "@/data/cote-seed";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
-import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type LigneSondee, type InboundMessage, type DeskThread, type DeskExchange, type BudgetEtat, type NoteBudget } from "@/lib/domain/types";
+import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type Favori, type LigneSondee, type InboundMessage, type DeskThread, type DeskExchange, type BudgetEtat, type NoteBudget } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { AccesCompte } from "@/lib/domain/acces-nomme";
 import type { Rapprochement } from "@/lib/domain/rapprochement";
@@ -240,6 +240,7 @@ interface Store {
   deskThreads: DeskThread[];
   deskExchanges: DeskExchange[];
   watches: Watch[];
+  favoris?: Favori[]; // a store kept alive across a code reload may predate the list
   sondages: LigneSondee[];
   cash: CashEntry[];
   mandats: MandatPrelevement[];
@@ -1127,6 +1128,21 @@ export const memoryRepository: Repository = {
   },
   async removeWatch(userId, offerId) {
     store().watches = store().watches.filter((w) => !(w.userId === userId && w.offerId === offerId));
+  },
+  async listFavoris(userId) {
+    return structuredClone((store().favoris ??= []).filter((f) => f.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+  },
+  async addFavori(userId, href, title) {
+    const liste = (store().favoris ??= []);
+    const existing = liste.find((f) => f.userId === userId && f.href === href);
+    if (existing) return structuredClone(existing);
+    const f: Favori = { id: uid(), userId, href, title, createdAt: nowIso() };
+    liste.push(f);
+    return structuredClone(f);
+  },
+  async removeFavori(userId, href) {
+    const s = store();
+    s.favoris = (s.favoris ??= []).filter((f) => !(f.userId === userId && f.href === href));
   },
   async updateWatch(id, patch) {
     const w = store().watches.find((x) => x.id === id);

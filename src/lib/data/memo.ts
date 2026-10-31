@@ -48,6 +48,7 @@ const READS = new Set([
   "findAdvisor",
   "listReference",
   "listWatches",
+  "listFavoris",
   "getPrefs",
   "listTemplateTexts",
   "getConsent",

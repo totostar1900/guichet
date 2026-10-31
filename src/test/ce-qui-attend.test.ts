@@ -172,8 +172,10 @@ describe("où la liste se lit", () => {
        qui déplie, une ligne par attente, et le geste de chacune. */
     expect(compte, "la pastille est redevenue un lien qui emmène ailleurs").not.toContain('"/#a-decider"');
     expect(compte, "la pastille ne déplie plus son panneau").toMatch(/onClick=\{\(\) => setAlertes\(!alertes\)\}/);
-    expect(compte, "le panneau ne déroule plus une ligne par attente").toMatch(/attentes\.map\(\(a\) =>/);
-    expect(compte, "une attente du panneau ne porte plus son propre geste").toMatch(/href=\{a\.href\}/);
+    /* LA LISTE VIT DANS « Attentes.tsx » depuis le 31 octobre 2026 : la cloche de la colonne et le menu à trois barres du téléphone la déroulent tous deux. */
+    expect(compte, "le panneau n'appelle plus la liste des attentes").toMatch(/<ListeAttentes attentes=\{attentes\}/);
+    expect(lire("src/components/mobile/Attentes.tsx"), "le panneau ne déroule plus une ligne par attente").toMatch(/attentes\.map\(\(a\) =>/);
+    expect(lire("src/components/mobile/Attentes.tsx"), "une attente du panneau ne porte plus son propre geste").toMatch(/href=\{a\.href\}/);
     const layout = lire("src/app/layout.tsx");
     expect(layout).toContain("attentes={deskUi ? [] : attentes}");
   });
