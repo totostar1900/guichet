@@ -13,6 +13,7 @@ import { LangSwitch } from "../LangSwitch";
 import { PaletteSwitch } from "../PaletteSwitch";
 import { MenuRecherche, useGuideIndex } from "../menu/Pieces";
 import { ListeAttentes, useBrouillon } from "./Attentes";
+import { titreDeLOnglet } from "./titre-onglet";
 import { Sheet } from "./Sheet";
 import { useSheetPresence } from "./useSheetPresence";
 import { deverrouiller, verrouiller } from "./verrou-defilement";
@@ -45,8 +46,6 @@ export interface BarreDuHautProps {
   attentes: Attente[];
   /** Lignes qui ferment sous sept jours : le nombre de l'horloge. */
   urgentes: number;
-  /** Le nom de la page courante, tel que l'onglet le porte : ce qu'on range en favori. */
-  titre: string;
 }
 
 const ICONE = {
@@ -69,7 +68,7 @@ function Trace({ d, plein }: { d: string; plein?: boolean }) {
   );
 }
 
-export function BarreDuHaut({ name, attentes, urgentes, titre }: BarreDuHautProps) {
+export function BarreDuHaut({ name, attentes, urgentes }: BarreDuHautProps) {
   const t = useT();
   const lang = useLang();
   const chemin = usePathname();
@@ -184,7 +183,7 @@ export function BarreDuHaut({ name, attentes, urgentes, titre }: BarreDuHautProp
                     aria-pressed={favori}
                     onClick={() =>
                       start(async () => {
-                        const r = await basculerFavori(ici, titre, !favori);
+                        const r = await basculerFavori(ici, titreDeLOnglet(), !favori);
                         if (r.ok) setFavori(r.favori);
                       })
                     }

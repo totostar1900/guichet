@@ -1,0 +1,61 @@
+.raccourcis {
+  display: flex;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-7) 0;
+}
+.lien {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: var(--t-2);
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+.lien:hover {
+  background: color-mix(in srgb, var(--navy) 8%, transparent);
+}
+.lien svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* L'ambre et l'or sont ceux de la barre ; ils sont lus sur le fond de la colonne, pas sur le bleu nuit. */
+.ambre svg {
+  color: #c27a10;
+}
+.or svg {
+  color: var(--gold);
+}
+.lien span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* La pastille se pose sur l'angle du bouton : en ligne, elle prenait vingt pixels au mot. */
+.pas {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #f0a23a;
+  color: #1c1203;
+  font: 700 10.5px/17px var(--font-sans, system-ui, sans-serif);
+  font-style: normal;
+  text-align: center;
+}

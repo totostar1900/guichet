@@ -38,6 +38,7 @@ import { clientOrigin, deskSplit, isDeskHost } from "@/lib/hosts";
 import { LEGAL_VERSION } from "@/data/legal";
 import { attentesPourLaBarre } from "@/lib/domain/contexte-client";
 import { echeancesUrgentes } from "@/lib/domain/favoris";
+import { RaccourcisColonne } from "@/components/RaccourcisColonne";
 import { echeancesProches } from "@/lib/domain/echeances";
 
 // One family for everything, display, text and figures, with tabular numerals; see globals.css.
@@ -219,7 +220,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   {t("démo · mémoire")}
                 </span>
               )}
-              <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, desk: deskUi, attentes: deskUi ? [] : attentes } : undefined} />
+              <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, desk: deskUi, attentes: deskUi ? [] : attentes, urgentes: urgentes ?? 0 } : undefined} />
               {menu}
             </div>
           </div>
@@ -245,6 +246,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Colonne
             mode={deskUi ? "desk" : "client"}
             connecte={Boolean(session)}
+            raccourcis={session && !deskUi ? <RaccourcisColonne urgentes={urgentes ?? 0} /> : undefined}
             enseigne={
               /* Même règle qu'en haut de la barre : l'enseigne de la
                  colonne nomme la maison, et le groupe « Accueil » juste en

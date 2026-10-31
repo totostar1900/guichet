@@ -181,3 +181,24 @@ describe("une seule bande collée en haut : la barre", () => {
     expect(css.slice(0, css.indexOf(".phone")), "le rail du grand écran ne colle plus : le relevé lit autre chose").toMatch(/position:\s*sticky/);
   });
 });
+
+describe("grand écran : les mêmes raccourcis, là où la barre du téléphone n'existe pas", () => {
+  it("de 761 à 1040 px, l'en-tête du client porte les trois boutons ; le pied de colonne et le desk gardent la feuille du compte", () => {
+    const u = sansNotes(lire("src/components/UserMenu.tsx"));
+    expect(u, "l'en-tête de bureau n'a plus les trois boutons du client").toMatch(/!account\.desk && dock !== "bottom-left" \? <BarreDuHaut /);
+    expect(u, "le desk ou le pied de colonne ont perdu la feuille du compte").toMatch(/: <BarreDuCompte \{\.\.\.account\} dock=\{dock\} \/>/);
+    expect(sansNotes(lire("src/app/layout.tsx")), "le nombre de l'horloge n'arrive plus à l'en-tête de bureau").toMatch(/attentes: deskUi \? \[\] : attentes, urgentes: urgentes \?\? 0/);
+  });
+
+  it("à partir de 1041 px, la colonne du client porte l'horloge et l'étoile, sous l'enseigne", () => {
+    const l = sansNotes(lire("src/app/layout.tsx"));
+    expect(l, "la colonne du client n'a plus ses raccourcis").toMatch(/raccourcis=\{session && !deskUi \? <RaccourcisColonne urgentes=\{urgentes \?\? 0\} \/> : undefined\}/);
+    const c = sansNotes(lire("src/components/Colonne.tsx"));
+    expect(c.indexOf("{raccourcis}"), "la colonne ne rend plus ses raccourcis").toBeGreaterThan(-1);
+    expect(c.indexOf("{raccourcis}") < c.indexOf("<Chercher groupes"), "les raccourcis ne sont plus au-dessus de la recherche").toBe(true);
+    const r = sansNotes(lire("src/components/RaccourcisColonne.tsx"));
+    expect(r, "l'horloge de la colonne ne mène plus aux échéances").toMatch(/<Link href="\/echeances"/);
+    expect(r, "l'étoile de la colonne ne mène plus aux favoris").toMatch(/<Link href="\/favoris"/);
+    expect(r, "la pastille ambre n'est plus conditionnée à un nombre").toMatch(/\{urgentes > 0 && \(/);
+  });
+});

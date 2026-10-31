@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { titreDeLOnglet } from "@/components/mobile/titre-onglet";
+import { COMPANY, PRODUCT } from "@/lib/config";
 import { cheminDeFavori, echeancesUrgentes, lesFavoris } from "@/lib/domain/favoris";
 import type { Echeance } from "@/lib/domain/echeances";
 import type { Favori, Offer, Watch } from "@/lib/domain/types";
@@ -37,5 +39,18 @@ describe("les favoris : les lignes suivies, et les pages", () => {
     const r = lesFavoris([w("a"), w("fantome")], offres, [f("/indice")]);
     expect(r.lignes.map((o) => o.id)).toEqual(["a"]);
     expect(r.pages).toHaveLength(1);
+  });
+});
+
+describe("le nom qu'on range en favori : celui de l'onglet, sans le suffixe de la maison", () => {
+  const poser = (t: string) => ((globalThis as { document?: unknown }).document = { title: t });
+  afterEach(() => delete (globalThis as { document?: unknown }).document);
+  it("coupe « · Guichet » et « · Purpose Capital », et rien d'autre", () => {
+    poser(`Le parcours CEMAC · ${PRODUCT.name}`);
+    expect(titreDeLOnglet()).toBe("Le parcours CEMAC");
+    poser(`${PRODUCT.name} · ${COMPANY.name}`);
+    expect(titreDeLOnglet(), "la racine garde le nom du produit : il n'y a rien avant le séparateur").toBe(PRODUCT.name);
+    poser("Fonds - rendement net");
+    expect(titreDeLOnglet(), "un tiret dans le titre ne doit pas le couper").toBe("Fonds - rendement net");
   });
 });

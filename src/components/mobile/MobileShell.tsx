@@ -1,10 +1,9 @@
 "use client";
 
 import { useT } from "@/i18n/client";
-import { COMPANY, PRODUCT } from "@/lib/config";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { BarreDuCompte } from "./BarreDuCompte";
 import { BarreDuHaut } from "./BarreDuHaut";
 import { MarketFab } from "./MarketFab";
@@ -25,19 +24,6 @@ export const LAST_LIST_KEY = "guichet:lastList";
 
 // Une racine ne porte pas de flèche de retour : c'est une destination du dock.
 // « /titres » en est une depuis que « / » est devenu la console.
-/**
- * LE SUFFIXE QUE LE TITRE DE L'ONGLET PORTE, ET D'OÙ IL VIENT.
- *
- * « layout.tsx » compose le titre avec « %s · {PRODUCT.name} », et la racine
- * avec « {PRODUCT.name} · {COMPANY.name} ». La barre n'en veut que le nom de
- * la page, donc elle coupe le reste — et elle coupait sur deux noms écrits en
- * dur, à côté d'un « config.ts » qui se présente comme le seul endroit où les
- * changer. Renommer la société aurait laissé « Tableau de bord · Nouvelle
- * Raison Sociale » dans la barre du téléphone, sans que rien ne tombe.
- */
-const échappe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const SUFFIXE = new RegExp(`\\s*[·—-]\\s*(${[PRODUCT.name, COMPANY.name].map(échappe).join("|")}).*$`, "i");
-
 const ROOTS = ["/", "/titres", "/fonds", "/moi", "/info", "/desk", "/connexion", "/actualites", "/marche"];
 
 /**
@@ -129,19 +115,7 @@ function fallbackFor(path: string): string {
 export function MobileShell({ signedIn, name, desk, deskHost = false, attentes = [], urgentes = 0, menu }: { signedIn: boolean; name?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; /** Ce qui attend le client, pour la pastille de la barre : voir BarreProps. */ attentes?: Attente[]; /** Les lignes qui ferment sous sept jours : le nombre de l'horloge. */ urgentes?: number; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
-  const [title, setTitle] = useState("");
   const isRoot = ROOTS.includes(path) || path === "/societes";
-
-  // The page title comes from <title>, which every page already sets.
-  useEffect(() => {
-    const read = () => setTitle(document.title.replace(SUFFIXE, "").trim());
-    read();
-    const t = document.querySelector("title");
-    if (!t) return;
-    const mo = new MutationObserver(read);
-    mo.observe(t, { childList: true, characterData: true, subtree: true });
-    return () => mo.disconnect();
-  }, [path]);
 
   /**
    * LA BARRE DIT OÙ L'ON EST, ET NE DIT JAMAIS LE NOM DE LA PAGE.
@@ -277,7 +251,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
               écran, et reprendre au titre la largeur que la barre n'a pas. */}
           {/* UN CLIENT A L'HORLOGE, L'ÉTOILE ET LE MENU ; le desk garde la barre
               du compte et son lien « Desk ». Voir BarreDuHaut. */}
-          {signedIn && !desk && <BarreDuHaut name={name ?? "?"} attentes={attentes} urgentes={urgentes} titre={title} />}
+          {signedIn && !desk && <BarreDuHaut name={name ?? "?"} attentes={attentes} urgentes={urgentes} />}
           {signedIn && desk && <BarreDuCompte name={name ?? "?"} desk={desk} attentes={attentes} />}
           {menu}
         </div>

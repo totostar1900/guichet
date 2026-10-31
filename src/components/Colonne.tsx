@@ -68,6 +68,7 @@ export function Colonne({
   connecte,
   badges: badgesPasses,
   enseigne,
+  raccourcis,
   pied,
 }: {
   /** « desk » sert la console, « client » le guichet. */
@@ -76,6 +77,8 @@ export function Colonne({
   /** Ce qui attend, par adresse. Omis, la colonne les lit au magasin, ce qui est le cas de l'application entière ; le passer sert à monter une colonne isolée. */
   badges?: Record<string, number>;
   enseigne: React.ReactNode;
+  /** Ce que le client garde sous la main : l'horloge et l'étoile, sous l'enseigne. Absent au desk et devant la porte. */
+  raccourcis?: React.ReactNode;
   pied: React.ReactNode;
 }) {
   /**
@@ -392,6 +395,7 @@ export function Colonne({
           </button>
         </div>
       </div>
+      {raccourcis}
       <Chercher groupes={groupes} badges={badges} auDesk={auDesk} connecte={connecte} />
       <div className={`${styles.corps} rail-y`}>
         <Epingles groupes={groupes} epingles={epingles} basculerEpingle={basculerEpingle} actifP={actifP} badges={badges} />

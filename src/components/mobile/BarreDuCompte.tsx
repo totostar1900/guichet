@@ -49,6 +49,8 @@ export interface BarreProps {
   desk: boolean;
   /** Ce qui attend le client, en entier : le panneau de la pastille le déroule. */
   attentes?: Attente[];
+  /** Les lignes qui ferment sous sept jours : le nombre de l'horloge, pour le client. */
+  urgentes?: number;
 }
 
 export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-left" }) {

@@ -106,4 +106,7 @@ export const EN_COMPTE: Record<string, string> = {
   "Une ligne ferme dans les {j} prochains jours.": "One line closes in the next {j} days.",
   "Tout le calendrier": "The whole calendar",
   "Besoin d'aide": "Need help",
+  "Échéances": "Closings",
+  "Favoris": "Favourites",
+  "{n} sous sept jours": "{n} within seven days",
 };

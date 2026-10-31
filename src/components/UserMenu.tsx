@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Session } from "@/lib/auth/types";
 import type { BarreProps } from "./mobile/BarreDuCompte";
 import { BarreDuCompte } from "./mobile/BarreDuCompte";
+import { BarreDuHaut } from "./mobile/BarreDuHaut";
 import styles from "./UserMenu.module.css";
 import { getT } from "@/i18n/server";
 
@@ -41,7 +42,10 @@ export async function UserMenu({ session, deskUi, account, dock }: { session: Se
     <div className={styles.menu}>
       {account && (
         <span className={styles.compact}>
-          <BarreDuCompte {...account} dock={dock} />
+          {/* UN CLIENT A LES MÊMES TROIS BOUTONS QU'AU TÉLÉPHONE dans l'en-tête de bureau
+              (de 761 à 1040 px) : l'horloge, l'étoile et le menu. Au pied de la colonne, la
+              feuille du compte reste celle d'avant ; le desk n'a jamais eu les trois boutons. */}
+          {!account.desk && dock !== "bottom-left" ? <BarreDuHaut name={account.name} attentes={account.attentes ?? []} urgentes={account.urgentes ?? 0} /> : <BarreDuCompte {...account} dock={dock} />}
         </span>
       )}
       <Link href={deskUi ? "/desk" : "/"} className={styles.who}>
