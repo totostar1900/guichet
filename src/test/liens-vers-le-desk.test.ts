@@ -90,7 +90,13 @@ describe("les sorties se ferment dans l'app installée", () => {
     // Jamais une adresse : elle ne s'ouvre chez personne d'autre.
     expect(src).not.toMatch(/navigator\.share\([^)]*url:/);
     // La capacité se teste, elle ne se devine pas.
-    expect(readFileSync("src/components/useModeAffichage.ts", "utf8")).toContain("navigator.canShare");
+    /* LE TEST DE CAPACITÉ, ET NON LE MOT. Il est écrit deux fois sur la même
+       ligne — le type de la fonction, puis son appel — et exiger le mot ne dit
+       pas lequel. Ce qui compte est qu'on DEMANDE au navigateur s'il sait
+       partager ce fichier-là, plutôt que de le supposer. */
+    expect(readFileSync("src/components/useModeAffichage.ts", "utf8"), "le partage se devine au lieu de se demander").toMatch(
+      /typeof navigator\.canShare === "function" && navigator\.canShare\(\{ files:/,
+    );
   });
 
   /* Sur iOS, dans une app de l'écran d'accueil, « a download » ne fait RIEN :
@@ -98,7 +104,13 @@ describe("les sorties se ferment dans l'app installée", () => {
      8 octobre 2026. Le seul chemin qui y pose un fichier est la feuille. */
   it("sur iOS installée, enregistrer passe par la feuille et non par un téléchargement", () => {
     const hook = readFileSync("src/components/useModeAffichage.ts", "utf8");
-    expect(hook).toContain("installee-ios");
+    /* LA DÉTECTION, ET NON LE MOT. « installee-ios » est écrit quatre fois
+       dans ce fichier — l'union de types, la détection, et deux règles qui
+       s'en servent — donc une clause qui exige le mot ne sait pas lequel des
+       quatre elle a trouvé. C'est la reconnaissance du mode qui compte : sans
+       elle, iOS installé passe pour un navigateur ordinaire et l'on retombe
+       sur le téléchargement muet du 8 octobre 2026. */
+    expect(hook, "iOS installée n'est plus reconnue : elle repassera pour un navigateur ordinaire").toMatch(/nav\.standalone === true\) return "installee-ios"/);
     expect(hook).toMatch(/telechargementFiable = \(m: ModeAffichage\): boolean => m !== "installee-ios"/);
     const src = readFileSync("src/app/moi/documents/[id]/Sorties.tsx", "utf8");
     expect(src).toContain("!telechargementFiable(mode)");

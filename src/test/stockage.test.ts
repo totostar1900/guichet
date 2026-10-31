@@ -81,7 +81,12 @@ describe("le plafond suit le plan, et à la main", () => {
 
   it("le jeu d'essai ne rend rien plutôt qu'un zéro", () => {
     // Rendre zéro ferait croire à un plafond lointain ; rendre rien fait taire le point.
-    expect(lire("src/lib/data/memory.ts")).toContain("async tailleDuStockage() {");
-    expect(lire("src/lib/data/memory.ts")).toContain("return undefined;");
+    /* LA MÉTHODE AVEC SON CORPS. « return undefined; » est écrit cinq fois
+       dans ce dépôt mémoire : exiger le mot seul laissait la clause verte le
+       jour où CETTE méthode-ci rendrait zéro, et le point d'alerte aurait
+       annoncé un plafond lointain sur un jeu d'essai. */
+    expect(lire("src/lib/data/memory.ts"), "le jeu d'essai rend un chiffre de stockage : il fera croire à un plafond lointain").toMatch(
+      /async tailleDuStockage\(\) \{[\s\S]{0,260}?return undefined;/,
+    );
   });
 });

@@ -68,7 +68,11 @@ describe("la page d'accueil", () => {
      bandes pour la même chose — un nom, une phrase, une destination —
      faisaient deux grammaires sur une seule page. */
   it("pose ses destinations dans le sommaire de la maison", () => {
-    expect(code("src/app/Console.tsx"), "l'accueil s'est réécrit une liste de destinations").toContain("<Rubriques");
+    /* LES DEUX SOMMAIRES, ET NON « au moins un ». L'accueil en pose deux, et
+       exiger « <Rubriques » laissait la clause verte le jour où l'un des deux
+       redeviendrait une grille écrite à la main — c'est précisément la
+       seconde grammaire que cette épreuve existe pour refuser. */
+    expect((code("src/app/Console.tsx").match(/<Rubriques\b/g) ?? []).length, "l'accueil s'est réécrit une liste de destinations à la place d'un de ses deux sommaires").toBe(2);
     expect(code("src/app/moi/page.module.css"), "la grille de tuiles est revenue").not.toMatch(/\.tuiles?\s*\{/);
     expect(code("src/app/Console.module.css"), "la bande des services s'est réécrite à part").not.toMatch(/\.bandeServices\b/);
   });

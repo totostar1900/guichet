@@ -85,7 +85,10 @@ describe("la porte du marché", () => {
   it("choisit deux lignes avec la liste de la maison, et jamais la même des deux côtés", () => {
     const src = code("src/app/marche/ChoisirDeuxLignes.tsx");
     expect(src, "la liste native est revenue").not.toMatch(/<select[\s>]/);
-    expect(src, "la liste de la maison n'est plus employée").toContain("<Select");
+    /* LES DEUX LISTES, ET NON « au moins une ». La tuile en pose deux ; une
+       seule remplacée par une balise native laisserait la clause verte, et
+       c'est exactement la moitié du défaut qu'elle refuse. */
+    expect((src.match(/<Select\b/g) ?? []).length, "une des deux listes a quitté celle de la maison").toBe(2);
     expect(src, "la même ligne peut être choisie des deux côtés : deux colonnes identiques se lisent comme une panne").toMatch(/options\(b\)[\s\S]*options\(a\)/);
     /* ET AUCUNE PAIRE N'EST PROPOSÉE : décision du dirigeant, et c'est la
        règle de la maison — une paire choisie par nous est une mise en avant,

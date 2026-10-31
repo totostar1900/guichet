@@ -141,7 +141,11 @@ describe("le compte en pages", () => {
     /* La loupe est la seule chose que la feuille garde : une recherche se fait
        là où l'on est, et sur un téléphone la barre du haut n'a pas la largeur
        d'un champ. */
-    expect(barre, "la recherche n'a plus de porte sur téléphone").toContain("MenuRecherche");
+    /* LE MONTAGE, ET NON L'IMPORT. Le mot est écrit deux fois, à sa ligne
+       d'import et à son emploi : exiger le mot laisse la clause verte quand la
+       loupe quitte la barre, puisque l'import survit. Un import ne pose rien
+       à l'écran. */
+    expect(barre, "la recherche n'a plus de porte sur téléphone").toMatch(/<MenuRecherche\b/);
   });
 
   /**
