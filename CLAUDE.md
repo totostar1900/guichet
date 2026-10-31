@@ -7,6 +7,7 @@
 - Le modèle de données vit dans `src/lib/domain/types.ts` ET `supabase/migrations/*.sql` — modifier les deux ensemble, régénérer `supabase/seed.sql` avec `npm run seed:sql`.
 - Sans `.env.local`, le repository mémoire est utilisé (données de `src/data/seed.ts`).
 - Toute écriture métier passe par `audit()` (src/lib/audit.ts) avec avant / après ; les écritures d'offres passent `expectedVersion` ; les termes financiers passent par `approvalReason()` (src/lib/policy.ts) avant d'écrire.
+- Toucher une page de `src/data/docs/*.ts`, c'est porter son `checkedOn` au jour de l'envoi, **dans le même commit** : `docs-exactes` compare cette date à la date du commit du fichier, donc il ne peut tomber qu'APRÈS le push, sur l'envoi suivant. Même règle pour un changement d'écran qui rend une page de documentation inexacte : la relire et la dater avec le code.
 - Avant de conclure : `npm run typecheck && npm run lint && npm test`.
 
 <!-- BEGIN:nextjs-agent-rules -->

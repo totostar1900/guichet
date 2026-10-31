@@ -8,7 +8,7 @@ export const FONCTIONNEMENT: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 1,
-  checkedOn: "2026-10-23",
+  checkedOn: "2026-10-31",
   owner: "Georges",
   chapters: [
     {
@@ -47,7 +47,14 @@ export const FONCTIONNEMENT: DocPage = {
             ],
             [
               l("Trade", "Trade"),
-              l("Les services que le client déclenche lui-même : déclarer une intention, programmer une épargne, demander ses espèces, tenir et prouver ce qu'il détient. Le mot est le même en français et en anglais, et il dit le geste plutôt que la permission.", "The services the client triggers themselves: declaring an intention, scheduling savings, requesting their cash, holding and proving what they own. The word is the same in both languages, and it names the gesture rather than the permission."),
+              /* « TENIR ET PROUVER CE QU'IL DÉTIENT » EST PARTI le 31 octobre
+                 2026 : la conservation a cessé d'être un service de Trade. On
+                 ne la déclenche pas — elle commence avec la première ligne,
+                 et sa fiche l'avouait, « rien à activer ». Ce que la maison
+                 doit au client sur la garde de ses titres se lit sur ses
+                 droits de garde, dans Portefeuille. Trade ne garde que les
+                 gestes qu'on pose. */
+              l("Les services que le client déclenche lui-même : déclarer une intention, programmer une épargne, mettre en place un prélèvement, demander ses espèces. Le mot est le même en français et en anglais, et il dit le geste plutôt que la permission.", "The services the client triggers themselves: declaring an intention, scheduling savings, setting up a direct debit, requesting their cash. The word is the same in both languages, and it names the gesture rather than the permission."),
             ],
             [
               l("Aide", "Help"),
