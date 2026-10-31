@@ -171,25 +171,25 @@ export function BarreDuHaut({ name, attentes, urgentes }: BarreDuHautProps) {
                   <span>{t("Ce qui ferme bientôt")}</span>
                   {urgentes > 0 && <em className={`${styles.nb} ${styles.nbAmbre}`}>{urgentes}</em>}
                 </Link>
-                <Link href="/favoris" className={styles.ligne} onClick={fermer}>
-                  <Trace d={ICONE.etoile} />
-                  <span>{t("Mes favoris")}</span>
-                </Link>
-                {rangeable && favori !== null && (
+                {/* UN SEUL NIVEAU DE FAVORIS DANS LE MENU (décidé le 31 octobre 2026). Il y avait
+                    « Mes favoris » ET « Mettre cette page en favori » : deux lignes pour le même
+                    sujet, dont l'une redoublait l'étoile de la barre. L'étoile ouvre la liste ;
+                    le menu ne porte que le geste qu'on ne peut faire qu'ici, sur la page courante. */}
+                {rangeable && (
                   <button
                     type="button"
-                    className={`${styles.ligne} ${styles.sous}`}
-                    disabled={pending}
-                    aria-pressed={favori}
+                    className={styles.ligne}
+                    disabled={pending || favori === null}
+                    aria-pressed={favori === true}
                     onClick={() =>
                       start(async () => {
-                        const r = await basculerFavori(ici, titreDeLOnglet(), !favori);
+                        const r = await basculerFavori(ici, titreDeLOnglet(), favori !== true);
                         if (r.ok) setFavori(r.favori);
                       })
                     }
                   >
-                    <Trace d={ICONE.etoile} plein={favori} />
-                    <span>{favori ? t("Retirer cette page des favoris") : t("Mettre cette page en favori")}</span>
+                    <Trace d={ICONE.etoile} plein={favori === true} />
+                    <span>{favori === true ? t("Retirer cette page des favoris") : t("Mettre cette page en favori")}</span>
                   </button>
                 )}
 

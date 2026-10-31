@@ -182,6 +182,18 @@ describe("une seule bande collée en haut : la barre", () => {
   });
 });
 
+describe("le menu : un seul niveau de favoris", () => {
+  it("le geste sur la page courante, et pas de seconde porte vers la liste", () => {
+    const b = sansNotes(lire("src/components/mobile/BarreDuHaut.tsx"));
+    const tiroir = b.slice(b.indexOf("<aside"));
+    expect(tiroir.length, "le tiroir est introuvable : la clause ne garde plus rien").toBeGreaterThan(500);
+    expect(tiroir, "le menu a de nouveau un lien « Mes favoris » : deux niveaux pour le même sujet, l'étoile de la barre ouvre déjà la liste").not.toMatch(/href="\/favoris"/);
+    expect(tiroir, "le menu n'a plus le geste de mettre la page courante en favori").toMatch(/Mettre cette page en favori/);
+    // La liste, elle, reste à une touche : l'étoile de la barre.
+    expect(b.slice(0, b.indexOf("<aside")), "l'étoile de la barre ne mène plus aux favoris").toMatch(/<Link href="\/favoris"/);
+  });
+});
+
 describe("grand écran : les mêmes raccourcis, là où la barre du téléphone n'existe pas", () => {
   it("de 761 à 1040 px, l'en-tête du client porte les trois boutons ; le pied de colonne et le desk gardent la feuille du compte", () => {
     const u = sansNotes(lire("src/components/UserMenu.tsx"));

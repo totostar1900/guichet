@@ -231,11 +231,6 @@
 .chaud {
   background: color-mix(in srgb, var(--navy) 9%, transparent);
 }
-.sous {
-  padding-left: 22px;
-  font-size: var(--t-4);
-  color: var(--muted);
-}
 .nb {
   margin-left: auto;
   font-style: normal;
