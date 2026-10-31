@@ -52,8 +52,6 @@ export const PLACEHOLDER_LABEL: Record<string, string> = {
   rib: "fin du RIB du compte de règlement",
   prochain: "prochain flux (date et nature)",
   etablissement: "établissement de destination",
-  delai_accuse: "délai d'accusé de réception",
-  delai_reponse: "délai de réponse",
   canal: "canal de signature (WhatsApp, e-mail)",
   svt: "nom du SVT",
   gestion: "société de gestion",
@@ -83,7 +81,7 @@ export const PASSAGES: Partial<Record<TemplateScope, PassageDef[]>> = {
     P("reserve", "Réserve", "la note au pied", "relu", [], "Montants bruts, sous réserve du paiement effectif par l'émetteur ; la fiscalité applicable est celle du titre. Cet avis ne vaut pas relevé de position.", "Gross amounts, subject to actual payment by the issuer; the tax treatment is that of the security. This notice is not a statement of position."),
   ],
   reclamation: [
-    P("engagement", "Engagement", "le paragraphe après la demande", "reglementaire", ["societe", "delai_accuse", "delai_reponse"], "{societe} accuse réception de la réclamation sous {delai_accuse} et y répond de façon motivée sous {delai_reponse}.", "{societe} acknowledges the complaint within {delai_accuse} and answers it with reasons within {delai_reponse}.", ["societe"]),
+    P("engagement", "Engagement", "le paragraphe après la demande", "reglementaire", ["societe"], "{societe} accuse réception de la réclamation et y répond de façon motivée dans un délai raisonnable.", "{societe} acknowledges the complaint and answers it with reasons within a reasonable time.", ["societe"]),
     P("recours", "Recours", "le paragraphe de fin", "reglementaire", [], "À défaut de réponse satisfaisante dans ce délai, le réclamant peut saisir la Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF).", "Failing a satisfactory answer within that time, the complainant may refer the matter to the Central African Financial Market Supervisory Commission (COSUMAF)."),
     P("signature", "Ligne de signature", "sous le texte", "libre", ["canal"], "Le réclamant : date et signature, ou code de signature envoyé sur {canal}", "The complainant: date and signature, or signature code sent on {canal}"),
   ],

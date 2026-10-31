@@ -105,7 +105,7 @@ export const FLOWS: Flow[] = [
     steps: [
       { actor: "tiers", who: "Émetteur", title: "Paie un coupon ou rembourse à l'échéance", state: "flux payé", docs: [{ type: "coupon" }] },
       { actor: "client", who: "Client", title: "Demande un relevé ou une attestation", state: "à la demande", docs: [{ type: "releve" }, { type: "attestation" }] },
-      { actor: "client", who: "Client", title: "Dépose une réclamation", state: "reçue → traitée", clock: "accusé sous 2 jours ouvrés, réponse sous 30 jours", docs: [{ type: "reclamation" }] },
+      { actor: "client", who: "Client", title: "Dépose une réclamation", state: "reçue → traitée", clock: "accusé de réception, puis réponse dans un délai raisonnable", docs: [{ type: "reclamation" }] },
       { actor: "client", who: "Client", title: "Demande le transfert ou la clôture", state: "en clôture → clos", docs: [{ type: "transfert" }] },
       { actor: "desk", who: "Desk", title: "Exécute chez le dépositaire, clôt le dossier", state: "clos", docs: [{ type: "releve", variant: "Relevé final" }] },
     ],

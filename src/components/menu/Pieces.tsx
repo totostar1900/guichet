@@ -147,7 +147,6 @@ export function MenuContact({ close, surFiche, compact }: { close: () => void; /
             </svg>
             <b>{t("E-mail")}</b>
             <small>{COMPANY.email}</small>
-            <small>{t("réponse sous un jour ouvré")}</small>
           </a>
           {/* L adresse n est pas un lien : elle se
               lit. La raison sociale et l'agrément vivent au pied de la
@@ -173,7 +172,7 @@ export function MenuContact({ close, surFiche, compact }: { close: () => void; /
           <b>WhatsApp</b>
         </span>
         <strong>{COMPANY.phone}</strong>
-        <small>{t(ligne ? "un conseiller répond dans l'heure ouvrée, au sujet de cette ligne" : "un conseiller répond dans l'heure ouvrée")}</small>
+        <small>{t(ligne ? "un conseiller répond au sujet de cette ligne" : "un conseiller vous répond")}</small>
         <span className={styles.waBtn}>{t("Écrire")}</span>
       </a>
       <div className={styles.contactPair}>
@@ -191,7 +190,6 @@ export function MenuContact({ close, surFiche, compact }: { close: () => void; /
           </svg>
           <b>{t("E-mail")}</b>
           <strong>{COMPANY.email}</strong>
-          <small>{t("réponse sous un jour ouvré")}</small>
         </a>
       </div>
       <div className={styles.address}>

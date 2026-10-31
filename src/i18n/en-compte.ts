@@ -84,5 +84,5 @@ export const EN_COMPTE: Record<string, string> = {
     "Both walkthroughs replay on top of the page you are looking at, and close with one gesture.",
   "ce qu'on nous demande": "what we get asked",
   "ce qu'on nous demande le plus souvent, répondu une fois pour toutes": "what we get asked most often, answered once and for all",
-  "ce que la maison ne promet pas, et ce qu'elle ne fait pas": "what the firm does not promise, and what it does not do",
+  "ce qu'une intention engage, la limite de chaque opération, les risques, et comment réclamer": "what an intention commits you to, the limit of each operation, the risks, and how to complain",
 };

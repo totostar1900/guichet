@@ -40,11 +40,18 @@ export default async function AidePage() {
           même page, et les huit sont devenues des pages. Les tuiles sont le
           sommaire, et elles mènent où elles disent. */}
       <article className={styles.doc}>
-        <EnTete
-          surTitre={t("Aide")}
-          titre={t("Vos questions, nos réponses")}
-          phrase={t("Se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.")}
-        />
+        {/* PAS DE PHRASE SOUS CE TITRE, depuis le 31 octobre 2026. Elle récitait
+            six des huit titres de tuiles — « se connecter, ouvrir un compte,
+            lire une ligne, déclarer une intention, régler, recevoir ses
+            documents, nous joindre » — à cent pixels au-dessus des tuiles qui
+            les portent, et n'apprenait rien qu'elles ne montrent déjà. Le
+            champ juste dessous dit quoi faire (« Une question ? Tapez-la, ou
+            choisissez un sujet. ») ; une seconde phrase pour le dire serait la
+            troisième du même siège.
+            Elle reste dans l'index de recherche (« guide-index »), où elle sert
+            de texte à trouver : c'est là que « se connecter » ramène cette
+            page, et ce n'est pas un endroit où on la lit. */}
+        <EnTete surTitre={t("Aide")} titre={t("Vos questions, nos réponses")} />
         <p className={styles.source}>{`${t("Mis à jour le")} ${fmtDate(doc.checkedOn)}`}</p>
         <AideBrowser chapters={chapters} wa={wa} />
         <GuideBar pos={{ label: t("Aide") }} />

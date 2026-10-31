@@ -260,7 +260,7 @@ export async function generateComplaint(clientId: string, input: { operation?: s
   const answerBy = new Date(now.getTime() + 30 * 86400e3).toISOString().slice(0, 10);
   const { number, registerNo } = await nextNumbers("reclamation", now);
   const wording = await resolvePassages("reclamation");
-  const ctx: ComplaintCtx = { number, contact, operation: input.operation, facts: input.facts, ask: input.ask, receivedVia: input.receivedVia, signedBy: input.signedBy, ackBy, answerBy, now, texts: wording.text };
+  const ctx: ComplaintCtx = { number, contact, operation: input.operation, facts: input.facts, ask: input.ask, receivedVia: input.receivedVia, signedBy: input.signedBy, now, texts: wording.text };
   const pdf = await renderToBuffer(el(createElement(ReclamationPdf, ctx)));
   const doc = await store({ type: "reclamation", number, registerNo, title: `Réclamation : ${contact.name}${input.operation ? ` · ${input.operation.slice(0, 40)}` : ""}`, clientName: contact.name, clientId, createdBy: input.advisor, templateVersions: wording.versions }, pdf, now);
   return { ...doc, ackBy, answerBy };
@@ -459,7 +459,7 @@ export async function renderPreview(type: DocumentType, override?: { passage: st
   if (type === "coupon" || type === "reclamation" || type === "transfert") {
     const contact: Contact = { id: "apercu", name: "Client de démonstration", segment: "Personne physique · Yaoundé", phone: "+237 6 00 00 00 00", email: "client@exemple.com", whatsappOptIn: true };
     const file: ClientFile = { id: "apercu", userId: "apercu", kind: "physique", status: "approuve", identity: { name: contact.name, phone: contact.phone, email: contact.email, city: "Yaoundé", country: "Cameroun" }, persons: [], documents: [], funds: { pep: false, bankName: "Banque de démonstration", bankAccount: "00000 00000 00000000000 47" }, profile: { category: "non_professionnel" }, consents: {}, review: { custodianAccount: "0000-DEMO" }, createdAt: now.toISOString(), updatedAt: now.toISOString() };
-    if (type === "reclamation") return renderToBuffer(el(createElement(ReclamationPdf, { number, contact, operation: "PF-0000-000 · ligne de démonstration · 500 titres", facts: "Le coupon annoncé a été crédité treize jours après la date du relevé, sans avis.", ask: "Une explication du délai et la confirmation de la date du prochain coupon.", receivedVia: "le site", signedBy: "code de signature sur WhatsApp", ackBy: now.toISOString().slice(0, 10), answerBy: now.toISOString().slice(0, 10), now, texts })));
+    if (type === "reclamation") return renderToBuffer(el(createElement(ReclamationPdf, { number, contact, operation: "PF-0000-000 · ligne de démonstration · 500 titres", facts: "Le coupon annoncé a été crédité treize jours après la date du relevé, sans avis.", ask: "Une explication du délai et la confirmation de la date du prochain coupon.", receivedVia: "le site", signedBy: "code de signature sur WhatsApp", now, texts })));
     const offers = await repo().listOffers();
     const offer = offers.find((o) => (o.kind === "OTA" || o.kind === "APE") && !o.hidden) ?? offers[0];
     if (!offer) return undefined;
@@ -532,7 +532,7 @@ export async function renderPreview(type: DocumentType, override?: { passage: st
 
 /** The text of a passage as a document would print it, on the demonstration values (for the registry's list). */
 export function previewLine(type: DocumentType, key: string, text: string): string {
-  const vars: Record<string, string> = { societe: "Purpose Capital S.A.", agrement: "agrément COSUMAF", email: "info@purposecapital.africa", marche: "BVMAC", prix: "98,50 %", prix_limite: "au prix du marché", date_adjudication: "15 oct. 2026", date_reglement: "17 oct. 2026", delai: "T+3", compte: "Banque · 00000-00000-00000000000-00", categorie: "non professionnel", conseiller: " · Conseiller", rendement: "6,93 %", livraison: "Titres dématérialisés, inscrits à votre nom.", banque: "Banque de démonstration", rib: "0047", prochain: "coupon du 31 déc. 2026 (272 500 FCFA)", etablissement: "Société de bourse de démonstration · compte 0000-XX", delai_accuse: "deux jours ouvrés", delai_reponse: "trente jours", canal: "WhatsApp" };
+  const vars: Record<string, string> = { societe: "Purpose Capital S.A.", agrement: "agrément COSUMAF", email: "info@purposecapital.africa", marche: "BVMAC", prix: "98,50 %", prix_limite: "au prix du marché", date_adjudication: "15 oct. 2026", date_reglement: "17 oct. 2026", delai: "T+3", compte: "Banque · 00000-00000-00000000000-00", categorie: "non professionnel", conseiller: " · Conseiller", rendement: "6,93 %", livraison: "Titres dématérialisés, inscrits à votre nom.", banque: "Banque de démonstration", rib: "0047", prochain: "coupon du 31 déc. 2026 (272 500 FCFA)", etablissement: "Société de bourse de démonstration · compte 0000-XX", canal: "WhatsApp" };
   void type;
   void key;
   return fill(text, vars);

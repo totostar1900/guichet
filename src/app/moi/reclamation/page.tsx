@@ -51,7 +51,7 @@ export default async function ComplaintPage() {
         <EnTete
           retour={{ href: "/", mot: t("Tableau de bord") }}
           titre={t("Déposer une réclamation")}
-          phrase={t("Dites ce qui s'est passé et ce que vous demandez, avec vos mots. Purpose Capital accuse réception sous deux jours ouvrés et répond sous trente jours ; sans réponse satisfaisante, la COSUMAF peut être saisie.")}
+          phrase={t("Dites ce qui s'est passé et ce que vous demandez, avec vos mots. Purpose Capital accuse réception et répond dans un délai raisonnable ; sans réponse satisfaisante, la COSUMAF peut être saisie.")}
         />
         <ComplaintForm ops={ops} phoneProven={Boolean(channels?.phoneVerifiedAt)} phone={channels?.phone ?? s.phone} email={s.email} />
         {mine.length > 0 && (

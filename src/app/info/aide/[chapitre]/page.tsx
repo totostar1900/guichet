@@ -60,7 +60,7 @@ export default async function ChapitrePage({ params }: { params: Promise<{ chapi
           </svg>
           <span>
             <b>{t("Toujours bloqué ?")}</b>
-            <small>{t("un conseiller répond sur WhatsApp dans l'heure ouvrée, ou au {phone}", { phone: COMPANY.phone })}</small>
+            <small>{t("un conseiller répond sur WhatsApp, ou au {phone}", { phone: COMPANY.phone })}</small>
           </span>
           <a href={wa} target="_blank" rel="noopener">
             {t("Écrire")}

@@ -61,13 +61,11 @@ export interface ComplaintCtx {
   ask: string;
   receivedVia: string;
   signedBy?: string; // "code 4471 sur WhatsApp" or "signature papier" or the desk
-  ackBy: string; // date limit of the acknowledgement
-  answerBy: string;
   now: Date;
   texts?: Record<string, string>;
 }
 
-export function ReclamationPdf({ number, contact, operation, facts, ask, receivedVia, signedBy, ackBy, answerBy, now, texts }: ComplaintCtx) {
+export function ReclamationPdf({ number, contact, operation, facts, ask, receivedVia, signedBy, now, texts }: ComplaintCtx) {
   return (
     <Letter heading={`Réclamation · ${number}`}>
       <Text style={s.h1}>Réclamation</Text>
@@ -91,7 +89,7 @@ export function ReclamationPdf({ number, contact, operation, facts, ask, receive
       </View>
       <View style={s.box}>
         <Text>
-          <Text style={s.b}>Engagement.</Text> {passage("reclamation", "engagement", texts, { societe: COMPANY.legalName, delai_accuse: "deux jours ouvrés", delai_reponse: "trente jours" })} Accusé de réception au plus tard le {fmtDate(ackBy)} ; réponse au plus tard le {fmtDate(answerBy)}.
+          <Text style={s.b}>Engagement.</Text> {passage("reclamation", "engagement", texts, { societe: COMPANY.legalName })}
         </Text>
       </View>
       <Text style={s.p}>{passage("reclamation", "recours", texts)}</Text>

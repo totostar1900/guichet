@@ -15,7 +15,7 @@ export const COMPTES_A_PLUSIEURS_MAINS: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 2,
-  checkedOn: "2026-10-23",
+  checkedOn: "2026-10-31",
   owner: "Georges",
   chapters: [
     {
@@ -60,8 +60,8 @@ export const COMPTES_A_PLUSIEURS_MAINS: DocPage = {
           type: "note",
           kind: "warn",
           text: l(
-            "LA BONNE RÉPONSE AU TÉLÉPHONE EST LA MÊME POUR TOUS : « Je ne peux prendre un ordre que du titulaire lui-même. Demandez-lui de nous écrire ou de nous appeler, nous le rappelons dans l'heure. » Ne rien promettre de recontacter le tiers, ne rien dire du dossier, et proposer le rappel du titulaire : c'est la seule issue, et elle est rapide.",
-            "THE RIGHT ANSWER ON THE PHONE IS THE SAME FOR EVERYONE: « I can only take an order from the holder themselves. Ask them to write or call us, we call back within the hour. » Promise nothing about calling the third party back, say nothing about the file, and offer to call the holder: it is the only way through, and it is quick.",
+            "LA BONNE RÉPONSE AU TÉLÉPHONE EST LA MÊME POUR TOUS : « Je ne peux prendre un ordre que du titulaire lui-même. Demandez-lui de nous écrire ou de nous appeler, nous le rappelons. » Ne rien promettre de recontacter le tiers, ne rien dire du dossier, et proposer le rappel du titulaire : c'est la seule issue.",
+            "THE RIGHT ANSWER ON THE PHONE IS THE SAME FOR EVERYONE: « I can only take an order from the holder themselves. Ask them to write or call us, we call back. » Promise nothing about calling the third party back, say nothing about the file, and offer to call the holder: it is the only way through.",
           ),
         },
         {

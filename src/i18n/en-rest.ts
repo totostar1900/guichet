@@ -1539,7 +1539,7 @@ export const EN_REST: Record<string, string> = {
   "comprendre avant de placer": "understand before you invest",
   /* Les six entrées du menu « Aide », nées le 29 octobre 2026 des sections du
      Guide remontées : chacune a maintenant son adresse, donc son nom. */
-  "huit éclairages de deux minutes : rendement, coupon, adjudication, risques": "eight two-minute insights: yield, coupon, auction, risks",
+  "huit éclairages de deux à trois minutes : rendement, coupon, adjudication, risques": "eight insights of two to three minutes: yield, coupon, auction, risks",
   "Le parcours CEMAC": "The CEMAC course",
   "le marché, de bout en bout": "the market, end to end",
   "le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie": "the market and its players, the instruments, the risks, placing an order, tax and fees, rates and currency",

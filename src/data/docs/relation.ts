@@ -8,7 +8,7 @@ export const RELATION: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 2,
-  checkedOn: "2026-10-23",
+  checkedOn: "2026-10-31",
   owner: "Georges",
   chapters: [
     {
@@ -64,7 +64,7 @@ export const RELATION: DocPage = {
           head: [l("Situation", "Situation"), l("Délai", "Timing"), l("Qui", "Who"), l("Si dépassé", "If exceeded")],
           rows: [
             [l("Message WhatsApp reçu aux heures ouvrées", "WhatsApp message received during business hours"), l("Réponse dans l'heure", "Answer within the hour"), l("Opérateur de permanence", "Operator on duty"), l("Le message reste « non lu » dans Messages ; le responsable le voit", "The message stays “unread” in Messages; the manager sees it")],
-            [l("Intention reçue", "Intention received"), l("Rappel dans l'heure ouvrée ; même jour au plus tard", "Call back within the business hour; same day at the latest"), l("Opérateur", "Operator"), l("Aujourd'hui passe en orange, puis en rouge à 24 h", "Today turns orange, then red at 24 h")],
+            [l("Intention reçue", "Intention received"), l("Rappel dans l'heure ouvrée ; même jour au plus tard", "Call back within the business hour; same day at the latest"), l("Opérateur", "Operator"), l("Passé le délai de souffrance du Référentiel (7 jours par défaut), ou à l'approche de la clôture de la ligne (3 jours par défaut), l'ordre est marqué et compté sous « En souffrance » dans Aujourd'hui", "Past the overdue delay set in Reference data (7 days by default), or as the line's closing approaches (3 days by default), the order is flagged and counted under “Overdue” in Today")],
             [l("Intention confirmée sur une ligne qui clôture", "Confirmed intention on a line that closes"), l("Transmise avant la clôture, bordereau produit", "Transmitted before closing, slip produced"), l("Opérateur", "Operator"), l("Le point du matin liste les clôtures du jour", "The morning brief lists the day's closings")],
             [l("Résultat d'adjudication connu", "Auction result known"), l("Saisi le jour même ; avis envoyé", "Entered the same day; notice sent"), l("Opérateur", "Operator"), l("Tuile « résultats à saisir » dans Aujourd'hui", "“Results to enter” tile in Today")],
             [l("Dossier d'ouverture soumis", "Account-opening file submitted"), l("Première revue sous deux jours ouvrés", "First review within two business days"), l("Opérateur, puis responsable pour l'approbation", "Operator, then manager for approval"), l("Le dossier reste « soumis » dans Dossiers, en tête de file", "The file stays “submitted” in Files, at the head of the queue")],
@@ -99,7 +99,7 @@ export const RELATION: DocPage = {
       id: "situations",
       title: l("Situations et conduite à tenir", "Situations and what to do"),
       blocks: [
-        { type: "p", text: l("Trois actes ont leur document et leur circuit : l'avis de coupon ou de remboursement quand un flux est payé (Aujourd'hui, ou le dossier), la réclamation (le client la dépose depuis le siège « Aide » › Nous contacter, signée par code ; accusé de réception sous deux jours ouvrés, réponse sous trente jours, recours COSUMAF), le transfert ou la clôture (ordre signé par le client, dossier « en clôture » puis « clos » à la confirmation du dépositaire, relevé final joint).", "Three acts have their document and their circuit: the coupon or redemption notice when a flow is paid (Today, or the file), the complaint (the client files it from the \"Help\" seat › Reach us, signed by code; acknowledgement within two business days, answer within thirty days, COSUMAF as recourse), the transfer or closure (order signed by the client, file “in closure” then “closed” at the custodian's confirmation, final statement attached).") },
+        { type: "p", text: l("Trois actes ont leur document et leur circuit : l'avis de coupon ou de remboursement quand un flux est payé (Aujourd'hui, ou le dossier), la réclamation (le client la dépose depuis le siège « Aide » › Nous contacter, signée par code ; accusé de réception, réponse dans un délai raisonnable, recours COSUMAF), le transfert ou la clôture (ordre signé par le client, dossier « en clôture » puis « clos » à la confirmation du dépositaire, relevé final joint).", "Three acts have their document and their circuit: the coupon or redemption notice when a flow is paid (Today, or the file), the complaint (the client files it from the \"Help\" seat › Reach us, signed by code; acknowledgement, answer within a reasonable time, COSUMAF as recourse), the transfer or closure (order signed by the client, file “in closure” then “closed” at the custodian's confirmation, final statement attached).") },
         {
           type: "table",
           head: [l("Situation", "Situation"), l("Conduite", "What to do")],

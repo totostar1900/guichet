@@ -60,7 +60,7 @@ export async function ConseillerCard({ anchor, advisor, client }: { anchor?: str
         <span className={styles.cQui}>
           <small className={styles.cEtiquette}>{c.nomme ? t("Votre conseiller") : t("Le desk de Guichet")}</small>
           <b id="conseiller-nom">{c.nom}</b>
-          <span className={styles.cDispo}>{t("Écrivez sur WhatsApp, appelez, ou envoyez un e-mail : le desk répond en journée, du lundi au vendredi.")}</span>
+          <span className={styles.cDispo}>{t("Écrivez sur WhatsApp, appelez, ou envoyez un e-mail : le desk est joignable du lundi au vendredi.")}</span>
         </span>
       </div>
 

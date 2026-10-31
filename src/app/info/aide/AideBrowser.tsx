@@ -145,7 +145,7 @@ export function AideBrowser({ chapters, wa }: { chapters: AideChapter[]; wa: str
         </svg>
         <span>
           <b>{t("Toujours bloqué ?")}</b>
-          <small>{t("un conseiller répond sur WhatsApp dans l'heure ouvrée, ou au {phone}", { phone: COMPANY.phone })}</small>
+          <small>{t("un conseiller répond sur WhatsApp, ou au {phone}", { phone: COMPANY.phone })}</small>
         </span>
         <a href={wa} target="_blank" rel="noopener">
           {t("Écrire")}

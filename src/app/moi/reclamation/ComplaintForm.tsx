@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { useDates, useT } from "@/i18n/client";
+import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { complaintDepositAction, complaintPrepareAction, type ComplaintStep } from "./actions";
 import styles from "./page.module.css";
 
 export function ComplaintForm({ ops, phone, email }: { ops: { ref: string; label: string }[]; phoneProven: boolean; phone?: string; email?: string }) {
-  const { fmtDate } = useDates();
   const t = useT();
   const [facts, setFacts] = useState("");
   const [ask, setAsk] = useState("");
@@ -81,7 +80,7 @@ export function ComplaintForm({ ops, phone, email }: { ops: { ref: string; label
               <input type="checkbox" name="confirm" /> {t("Je signe cette réclamation avec mon e-mail de connexion ({e}).", { e: email ?? "" })}
             </label>
           )}
-          <p className="muted">{t("Purpose Capital accuse réception sous deux jours ouvrés et répond sous trente jours. Vous recevez une copie signée dans Mes documents.")}</p>
+          <p className="muted">{t("Purpose Capital accuse réception et vous répond dans un délai raisonnable. Vous recevez une copie signée dans Mes documents.")}</p>
           {dep && !dep.ok && <p className={styles.err}>{dep.error}</p>}
           <div className={styles.foot}>
             <button type="button" className="btn sm ghost" onClick={() => window.location.reload()}>
@@ -99,7 +98,7 @@ export function ComplaintForm({ ops, phone, email }: { ops: { ref: string; label
           <p>
             <b>{t("Réclamation déposée")} · {dep.number}</b>
           </p>
-          <p>{t("Accusé de réception au plus tard le {a} ; réponse au plus tard le {b}. La copie signée est dans Mes documents.", { a: fmtDate(dep.ackBy), b: fmtDate(dep.answerBy) })}</p>
+          <p>{t("Nous accusons réception de votre réclamation et vous répondrons dans un délai raisonnable. La copie signée est dans Mes documents.")}</p>
           <div className={styles.foot}>
             <a className="btn sm primary" href={`/moi/documents/${dep.id}`}>
               {t("Voir le document")}

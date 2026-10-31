@@ -64,7 +64,7 @@ export function intentReceived(i: Intent, o: Offer, estimate?: string): Message 
         ? "Le desk vous rappelle avant la clôture pour arrêter le montant."
         : i.type === "cession"
           ? "Nous vérifions la position et vous confirmons."
-          : "Un conseiller vous répond dans l'heure."
+          : "Un conseiller vous répond."
   }\nCe message n'est ni un ordre ni une garantie d'allocation.`;
   return { subject: `Reçu : ${i.ref} · ${o.title}`, text, template: { name: tmpl("WA_TEMPLATE_UPDATE", "guichet_maj"), params: [i.clientName, text.replace(/^.*\n/, "")] } };
 }

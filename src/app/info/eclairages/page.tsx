@@ -118,7 +118,7 @@ export default async function EclairagesPage() {
           stops={[
             { target: "colonne-recherche", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, un éclairage, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service de Guichet.") },
             { target: "info-aide", title: t("Vos questions, nos réponses"), text: t("La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.") },
-            { target: "info-insights", title: t("Huit éclairages de deux minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque éclairage se lit en deux minutes et se coche une fois lue.") },
+            { target: "info-insights", title: t("Huit éclairages de deux à trois minutes"), text: t("Rendement et coupon, adjudication, coupon couru, actions, fonds, risques : chaque éclairage se lit en deux à trois minutes et se coche une fois lue.") },
           ]}
         />
       </div>

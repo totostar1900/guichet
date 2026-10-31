@@ -16,7 +16,7 @@ import { INTENT_LABEL } from "@/lib/domain/intent";
  * The PDF is numbered, kept in Mes documents, and the desk gets it in
  * Messages with the acknowledgement clock.
  */
-export type ComplaintStep = { ok: true; step: "code"; channel: "whatsapp" | "email"; demoCode?: string } | { ok: true; step: "done"; number: string; id: string; ackBy: string; answerBy: string } | { ok: false; error: string };
+export type ComplaintStep = { ok: true; step: "code"; channel: "whatsapp" | "email"; demoCode?: string } | { ok: true; step: "done"; number: string; id: string } | { ok: false; error: string };
 
 const clean = (v: FormDataEntryValue | null, max: number) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
 
@@ -82,5 +82,5 @@ export async function complaintDepositAction(_p: ComplaintStep | null, form: For
   revalidatePath("/");
   revalidatePath("/desk/messages");
   await noter("reclamation.deposee", { objet: doc.number });
-  return { ok: true, step: "done", number: doc.number, id: doc.id, ackBy: doc.ackBy, answerBy: doc.answerBy };
+  return { ok: true, step: "done", number: doc.number, id: doc.id };
 }
