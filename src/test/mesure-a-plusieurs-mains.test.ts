@@ -42,7 +42,13 @@ describe("la mesure reste sur le compte, et l'écran le dit", () => {
 
   it("et le formulaire avertit qu'elle arrête toutes les mains", () => {
     const f = lire("src/app/desk/clients/MesureForm.tsx");
-    expect(f).toContain("plusieursMains");
+    /* L'AVERTISSEMENT AVEC SA CONDITION. Vérifié à l'envers : rendre le bloc
+       inconditionnel — « {true && (» — laissait la clause verte, parce que
+       « plusieursMains » reste écrit à la déclaration de la propriété et que
+       la phrase, elle, est toujours dans le fichier. Le formulaire aurait
+       alors averti TOUT LE MONDE qu'une mesure arrête toutes les mains, y
+       compris sur un compte qui n'en a qu'une. */
+    expect(f, "l'avertissement n'est plus conditionné : il paraîtra sur un compte à une seule main").toMatch(/\{plusieursMains && \(/);
     expect(f).toContain("les arrête toutes, et toutes la lisent");
     // Et il nomme l'outil par personne, plutôt que de laisser chercher.
     expect(f).toContain("retirez son accès plus bas");

@@ -199,7 +199,16 @@ describe("le modèle du sondage", () => {
     const retirer = f.slice(f.indexOf("export function Retirer"));
     const vif = retirer.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
     /* Le premier bouton ne fait qu'ouvrir la question. */
-    const premier = vif.slice(vif.indexOf('aria-label={t("Retirer l\'attente {r}"'), vif.indexOf("</button>"));
+    /* LA FIN SE CHERCHE DEPUIS LE DÉBUT, et elle ne le faisait pas : le
+       second « indexOf » partait de zéro, donc du PREMIER « </button> » du
+       composant. Il se trouve que c'est le bon aujourd'hui — « Retirer » est
+       le premier bouton — mais le jour où l'on en pose un au-dessus, la fin
+       passe avant le début et la tranche sort VIDE : « not.toMatch » serait
+       alors vrai pour rien. Relevé le 1er novembre 2026 en cherchant ce motif
+       dans toute la suite, après deux clauses vacues de la même famille. */
+    const ouvre = vif.indexOf('aria-label={t("Retirer l\'attente {r}"');
+    const premier = vif.slice(ouvre, vif.indexOf("</button>", ouvre));
+    expect(premier.length, "la tranche du premier bouton sort vide : tout ce qu'on lui refuse passerait").toBeGreaterThan(40);
     expect(premier, "le bouton « Retirer » appelle de nouveau le retrait au premier doigt").not.toMatch(/retirerLaLigne/);
     expect(premier, "le bouton « Retirer » n'ouvre plus la question").toMatch(/setDemande\(true\)/);
     /* Et le retrait est derrière un bouton qui nomme le geste. */

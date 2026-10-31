@@ -91,7 +91,12 @@ describe("la langue des dates suit son lecteur", () => {
     const serveur = readFileSync("src/i18n/server.ts", "utf8");
     // setFormatLang écrit un global : sur le serveur il traverse les requêtes.
     expect(serveur).not.toMatch(/\bsetFormatLang\s*\(/);
-    expect(serveur).toContain("setFormatLangSource");
+    /* L'APPEL, ET NON L'IMPORT. Vérifié à l'envers le 1er novembre 2026 :
+       neutraliser l'appel laissait la clause verte, le mot restant sur sa
+       ligne d'import. Les formats repartaient alors à leur langue par défaut
+       sans que rien ne tombe — et une date en anglais dans une page française
+       est précisément ce que cette épreuve existe pour attraper. */
+    expect(serveur, "la source de la langue n'est plus posée : seul l'import en reste").toMatch(/^setFormatLangSource\(/m);
   });
 });
 

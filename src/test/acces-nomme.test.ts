@@ -41,7 +41,12 @@ describe("qui peut recevoir un accès", () => {
        service. L'action cherche la personne dans le dossier. */
     const a = lire("src/app/desk/clients/acces-actions.ts");
     expect(a).toContain("f.persons.find((p) => p.name === nom)");
-    expect(a).toContain("n'est pas déclarée au dossier");
+    /* LE REFUS AVEC SA CONDITION. Vérifié à l'envers : désarmer le garde —
+       « if (false) » au lieu de « if (!personne) » — laissait la clause verte,
+       parce que la même phrase sert un SECOND refus plus bas, celui du retrait
+       d'un accès. Deux gardes, une phrase : la clause ne savait pas laquelle
+       elle tenait, et c'est l'autre qui la rassurait. */
+    expect(a, "le refus d'une personne hors dossier n'est plus conditionné à son absence").toMatch(/if \(!personne\) return \{ ok: false, error: "Cette personne n'est pas déclarée au dossier/);
     // Et l'écran ne paraît pas du tout sur un compte de personne physique.
     expect(a).toContain('f.kind === "physique"');
     expect(lire("src/app/desk/clients/page.tsx")).toContain('selected.kind !== "physique" && (');

@@ -177,7 +177,21 @@ describe("ce que le parcours du mandat doit dire", () => {
     expect(vue, "le formulaire se referme derrière un bouton même sans autorisation").toMatch(/useState\(connue \|\| vivants\.length === 0\)/);
     /* Le repli garde son sens dès qu'une autorisation existe : on vient alors
        lire la liste, et en ajouter une seconde est délibéré. */
-    expect(vue, "le bouton de repli a disparu : on ne peut plus refermer").toContain("Préparer un mandat");
+    /* LE BOUTON, ET NON LE MOT. Vérifié à l'envers le 1er novembre 2026 :
+       renommer le bouton laissait cette clause VERTE, parce que le fichier
+       explique le bouton deux fois dans ses commentaires — « un écran dont le
+       seul contenu était un bouton “Préparer un mandat” » — et que « vue »
+       lit le source tel quel. C'est le piège que la maison a nommé ailleurs,
+       « le code, pas ce qu'on en dit », et il avait franchi ce fichier-ci.
+       On lit donc le source sans ses notes, et c'est l'ÉTIQUETTE TRADUITE
+       qu'on y cherche, appel à la traduction compris : une phrase de
+       commentaire ne porte pas cet appel.
+       (Et ce commentaire-ci l'a écrit une fois, en exemple, avant que le
+        relevé du français sans anglais ne l'attrape comme une chaîne à
+        traduire. Un scanner qui ne retire pas les notes se prend aux notes :
+        c'est le défaut même qu'on répare dix lignes plus bas.) */
+    const sansNotes = vue.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+    expect(sansNotes, "le bouton de repli a disparu : on ne peut plus refermer").toContain('t("Préparer un mandat")');
   });
 
   /* LA SIGNATURE MANUSCRITE, POUR LA BANQUE ET POUR ELLE SEULE. Plusieurs

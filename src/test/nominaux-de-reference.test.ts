@@ -84,8 +84,12 @@ describe("les deux écritures disent la même chose", () => {
     expect(sql).toContain("q.nominal_remaining > 0");
     expect(sql).toContain("q.instrument = 'obligation'");
     expect(sql).toContain("order by q.isin, q.session_date desc");
-    // L'index partiel : sans lui la requête balaie 15 905 lignes pour en rendre 39.
-    expect(sql).toContain("quotes_nominal_reference_idx");
+    /* L'INDEX PARTIEL : sans lui la requête balaie 15 905 lignes pour en
+       rendre 39. ON GARDE SA CRÉATION, et non son nom : vérifié à l'envers le
+       1er novembre 2026, renommer l'index laissait la clause verte, parce que
+       le « comment on index » plus bas répète le nom. L'index aurait disparu
+       de la migration sans que rien ne tombe. */
+    expect(sql, "l'index partiel n'est plus créé : la requête balaiera toute la table").toMatch(/create index if not exists quotes_nominal_reference_idx/);
     expect(sql).toContain("revoke all on function nominaux_de_reference(date) from public");
   });
 });

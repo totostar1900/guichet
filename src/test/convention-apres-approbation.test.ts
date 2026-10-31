@@ -70,7 +70,13 @@ describe("la convention s'accepte après l'approbation", () => {
     const { readFileSync } = await import("node:fs");
     const actions = readFileSync("src/app/ouvrir-un-compte/actions.ts", "utf8");
     expect(actions).not.toContain("if (file.consents.conventionAt) return");
-    expect(actions).toContain("conventionAJour(file)");
+    /* LES DEUX GARDES, ET NON LE SEUL NOM. Vérifié à l'envers : désarmer
+       celui qui refuse une seconde acceptation laissait la clause verte,
+       parce que l'autre emploi — celui qui choisit le message d'erreur —
+       porte le même appel. Deux usages, un mot : la clause en tenait un sans
+       savoir lequel. */
+    expect(actions, "la convention déjà acceptée se ré-accepte en silence").toMatch(/if \(conventionAJour\(file\)\) return \{ ok: true/);
+    expect(actions, "le message ne distingue plus une convention déjà acceptée d'un dossier non approuvé").toMatch(/conventionAJour\(file\) \? "Convention déjà acceptée\."/);
     const sections = readFileSync("src/app/ouvrir-un-compte/Sections.tsx", "utf8");
     expect(sections).toContain("const accepted = Boolean(c.conventionAt) && !signable");
   });

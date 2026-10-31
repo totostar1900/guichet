@@ -96,7 +96,11 @@ describe("la porte du marché", () => {
     expect(page, "la page récrit la table de la famille : c'est le sommaire qui revient").not.toContain("MARKET_PAGES");
 
     const fab = code("src/components/mobile/MarketFab.tsx");
-    expect(fab, "le bouton des pages du marché ne lit plus la table de la famille").toContain("MARKET_PAGES");
+    /* LA LECTURE DE LA TABLE, ET NON SON NOM : vérifié à l'envers le jour
+       même où cette clause a été écrite, le mot reste sur la ligne d'import
+       quand la feuille cesse de lire la table, et le bouton ouvrirait alors
+       une liste vide. */
+    expect(fab, "le bouton des pages du marché ne lit plus la table de la famille").toMatch(/MARKET_PAGES\.filter\(/);
     /* IL NE SE TAIT NULLE PART DANS LA FAMILLE, porte comprise. Une garde
        « ici === \"marche\" » rouvrirait le trou décrit ci-dessus. */
     expect(fab, "le bouton se tait sur la porte : un jour creux, la famille n'a plus d'entrée au téléphone").not.toMatch(/ici === "marche"/);

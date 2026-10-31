@@ -149,7 +149,12 @@ describe("le dépouillement d'une adjudication", () => {
 
   it("le compte rendu de l'écran le redit, parce qu'un journal de cinquante lignes ne se lit pas", () => {
     const a = readFileSync("src/app/desk/resultats/actions.ts", "utf8");
-    expect(a).toContain("horsPlafond");
+    /* L'ALERTE AVEC SON COMPTE. Vérifié à l'envers le 1er novembre 2026 :
+       figer « const alerte = false » laissait la clause verte, parce que
+       « horsPlafond » reste écrit quatre fois ailleurs — à sa destructuration
+       et dans la phrase morte. Le desk aurait alors dépouillé une séance sans
+       jamais apprendre quels ordres sont au-delà du plafond signé. */
+    expect(a, "le compte rendu ne redit plus les hors-plafond : le desk ne saura pas qui rappeler").toMatch(/const alerte = horsPlafond > 0/);
     expect(a).toContain("à appeler");
   });
 });
@@ -221,8 +226,18 @@ describe("la couverture sur provision", () => {
 
   it("l'écran le dit AVANT de signer, pas après", () => {
     const src = readFileSync("src/app/moi/ordres/[id]/page.tsx", "utf8");
-    expect(src).toContain("couvrirait");
+    /* LE CALCUL, ET NON LE NOM. Vérifié à l'envers le 1er novembre 2026 :
+       figer « const couvrirait = false » laissait la clause verte — le mot
+       reste écrit quatre fois, à l'assignation et à ses trois emplois — et
+       l'écran ne disait alors PLUS JAMAIS qu'une provision suffisante dispense
+       du virement. Le client serait parti à sa banque pour rien, ce qui est
+       exactement la friction que cette page existe pour retirer.
+       On tient donc les trois choses qui font la promesse : la condition qui
+       la calcule, la ligne de la piste, et la phrase du bas. */
+    expect(src, "la couverture ne se calcule plus du solde disponible").toMatch(/const couvrirait = !intent\.signedAt && aRegler > 0 && dispo >= aRegler;/);
+    expect(src, "la piste ne montre plus l'étape « réglé sur la provision » à qui la provision couvre").toMatch(/\{couvert \|\| couvrirait \?/);
     expect(src).toContain("Réglé sur votre provision");
+    expect(src, "le bas de page ne dit plus qu'il n'y aura rien à virer").toContain("Votre solde disponible couvre cet ordre");
   });
 });
 

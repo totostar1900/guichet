@@ -116,7 +116,10 @@ describe("ce que le registre ne fera jamais", () => {
   it("et la publication demande une seconde personne", () => {
     const a = lire("src/app/desk/referentiel/registre/actions.ts");
     expect(a).toContain("quatreYeux(me,");
-    expect(a).toContain("direLeGestePasseSeul");
+    /* L'APPEL, ET NON LE NOM. Vérifié à l'envers : remplacer l'appel par
+       autre chose laissait la clause verte, parce que la ligne d'import porte
+       déjà le mot. Un import ne fait rien ; c'est le geste qu'on garde. */
+    expect(a, "le passage à une seule personne n'est plus dit au journal").toMatch(/await direLeGestePasseSeul\(/);
     // Écarter quelqu'un vaut une mesure posée d'avance : le mot se recopie aussi.
     expect(a).toContain('mot !== "publier"');
   });

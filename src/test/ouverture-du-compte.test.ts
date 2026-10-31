@@ -68,7 +68,13 @@ describe("le garde-fou du desk", () => {
   it("la transmission refuse l'ordre sur titre sans sous-compte, et le dit", () => {
     const src = readFileSync("src/app/desk/actions.ts", "utf8");
     expect(src).toContain('state === "transmise"');
-    expect(src).toContain("enAttenteDOuverture");
+    /* L'APPEL DANS SON « if », ET NON LE NOM. Vérifié à l'envers le
+       1er novembre 2026 : remplacer la condition par « false » — le garde-fou
+       désarmé, donc tout ordre sur titre transmis sans sous-compte —
+       laissait la clause verte, le mot restant sur sa ligne d'import. Un
+       garde-fou qui ne garde plus est exactement ce que cette épreuve existe
+       pour attraper. */
+    expect(src, "le garde-fou du sous-compte est désarmé : seul son import en reste").toMatch(/if \(enAttenteDOuverture\(/);
     /* LE REFUS SE DIT. Un garde qui rend la main sans un mot est la panne la
        plus chère de ce projet : le desk clique, rien ne bouge, personne ne
        sait pourquoi. Le journal porte donc la raison. */
