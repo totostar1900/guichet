@@ -50,6 +50,7 @@
 }
 
 .note {
+  margin: 0;
   font-size: 0.78rem;
   color: var(--ink-3);
   max-width: 80ch;
@@ -631,6 +632,16 @@
    thème clair — donc il appartient visiblement à sa page. */
 .debutDeListe {
   border-top: 1px solid var(--select);
-  margin-top: var(--s-7);
+  /* Pas de marge haute : le « gap » du navigateur sépare déjà la liste de ce qui la précède (ETALON.md § 8). */
   padding-top: var(--s-6);
+}
+
+/* Le navigateur de fonds : un enfant de la pile, dont les commandes se tiennent à « --titre-gap » les unes des autres. */
+.navigateur {
+  display: grid;
+  gap: var(--titre-gap);
+  min-width: 0;
+}
+.navigateur > * {
+  min-width: 0;
 }

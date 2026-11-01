@@ -13,10 +13,11 @@ export async function generateMetadata() {
 export default async function FondsPage() {
   return (
     <Glissement>
-      <>
+      {/* UNE PILE : l'espace entre les onglets, l'en-tête, le navigateur et les notes vient du jeton des sections (ETALON.md § 8). */}
+      <div className="pile">
         <OngletsMarche />
         <FondsBody />
-      </>
+      </div>
     </Glissement>
   );
 }

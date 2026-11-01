@@ -754,6 +754,8 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
 
   return (
     <FenetreCtx.Provider value={fenetre}>
+      {/* UN SEUL ENFANT DE LA PILE : les commandes, le bandeau et la liste gardent leur rythme serré (« --titre-gap »), et la page ne voit que le bloc (ETALON.md § 8). */}
+      <div className={styles.navigateur}>
       {/* LE BOUTON DES FILTRES RAMÈNE EN HAUT, puisqu'il n'y a plus de
           feuille ici : les commandes sont à plat, et c'est vers elles qu'il
           conduit. Il ne paraît qu'une fois la barre passée sous l'en-tête ;
@@ -999,6 +1001,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
           { target: "fonds-table", title: t("Lire une ligne"), text: t("Dernière VL et sa date, la variation depuis la VL précédente, la performance sur douze mois et depuis l'origine. « Voir la fiche » donne l'historique des VL et le formulaire de souscription ; le « ··· » suit, compare, partage.") },
         ]}
       />}
+      </div>
     </FenetreCtx.Provider>
   );
 }
