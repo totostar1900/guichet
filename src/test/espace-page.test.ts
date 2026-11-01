@@ -60,6 +60,7 @@ describe("la pile", () => {
     expect(pile, "la pile ne lit plus --sections-gap").toMatch(/gap:\s*var\(--sections-gap\);/);
     expect(pile, "la pile n'enlève plus la marge de l'en-tête").toMatch(/--entete-marge:\s*0px;/);
     expect(pile, "la pile n'enlève plus la marge du bouton de rappel des repères").toMatch(/--replay-marge:\s*0px;/);
+    expect(pile, "la pile n'enlève plus la marge des onglets du marché").toMatch(/--onglets-marge:\s*0px;/);
     expect(css, "le panneau garde sa marge dans la pile : elle s'ajoute au gap").toMatch(/\.pile > \.panel\s*\{\s*margin-bottom:\s*0;/);
   });
 

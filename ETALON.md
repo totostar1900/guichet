@@ -500,12 +500,12 @@ que quelqu'un l'écrive deux fois.
 ### 8.5 Où en est la migration (31 octobre 2026)
 
 *Mesuré à 390 px, tous les écarts d'un niveau à 28 :* l'Accueil, Trade, Marché,
-Actualités (fil et rail), l'aide en questions, Éclairages, Glossaire, Simulateur, Sondage, Analyse, Provision, Tarifs,
+Actualités (fil et rail), l'aide en questions, Éclairages, Glossaire, Simulateur, Titres, Sondage, Analyse, Provision, Tarifs,
 Prélèvements, Textes, Sécurité, Profil, Réclamation, Risques,
 Documents, Épargne, Réinvestir, et le « Feuillet » commun (Aide, Compte,
 Appareil, Identité, Contact, Services, Agir).
 
-*Encore à marges d'enfants, à convertir page par page :* Titres, Fonds, Indice,
+*Encore à marges d'enfants, à convertir page par page :* Fonds, Indice,
 Sociétés, Comparer, Ordres, Garde, Activité, Suivies,
 le parcours, la fiche d'un ordre et d'un
 document, la fiche d'une ligne et son intention, la convention.
@@ -514,7 +514,9 @@ document, la fiche d'une ligne et son intention, la convention.
 
 *Écarts internes restants,* relevés au 31 octobre 2026 et à reprendre en
 convertissant la page : sous la liste de « Calendrier » (40 au lieu de 28 : le
-navigateur d'offres porte 12 px de plus), sous la mention de version de
+navigateur d'offres porte 12 px de plus) ; la liste de cartes d'offres de « Titres »
+et de « Calendrier » (20 px entre cartes : ce sont des cartes d'offre, pas une
+famille de tuiles, et un écart de 0 les collerait en aspect « lignes »), sous la mention de version de
 « Mentions » (36 : une marge de 8 sous une ligne qui est un enfant de la pile).
 
 *Exemptées* (§ C, la vitrine) : l'accueil du visiteur, À propos, Nos

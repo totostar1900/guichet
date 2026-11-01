@@ -1090,6 +1090,7 @@ html[data-tuiles="lignes"] {
   gap: var(--sections-gap);
   --entete-marge: 0px;
   --replay-marge: 0px;
+  --onglets-marge: 0px;
 }
 .pile > .panel {
   margin-bottom: 0;

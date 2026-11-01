@@ -17,10 +17,11 @@ export const metadata = { title: "Titres" };
 export default async function TitresPage() {
   return (
     <Glissement>
-      <>
+      {/* UNE PILE : l'espace entre les onglets du marché et la liste vient du jeton des sections (ETALON.md § 8). */}
+      <div className="pile">
         <OngletsMarche />
         <TitresBody />
-      </>
+      </div>
     </Glissement>
   );
 }
