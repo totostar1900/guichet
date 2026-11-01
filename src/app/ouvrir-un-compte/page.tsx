@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { emptyClientFile } from "@/lib/domain/kyc";
-import { conventionAReprendre, conventionSignable, etapesDuDossier, KIND_LABEL, missingForSubmission, STATUS_LABEL } from "@/lib/kyc/checklist";
+import { conventionAReprendre, conventionSignable, KIND_LABEL, missingForSubmission, STATUS_LABEL } from "@/lib/kyc/checklist";
 import { fmtDateTime } from "@/lib/format";
 import { setKindAction } from "./actions";
 import { ConsentSection, ConventionSection, DocsSection, FundsSection, IdentitySection, PersonsSection, SubmitSection } from "./Sections";
@@ -48,7 +47,6 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
 
   /* Les étapes viennent du domaine : le même compte sert à l'écran du dossier
      en cours, et deux listes auraient divergé. */
-  const steps: [string, boolean][] = etapesDuDossier(file).map((e) => [t(e.clef), e.fait]);
   /* « Brouillon » est le mot de la base, et le desk a raison de le garder. Au
      client il ne dit rien de vrai : son dossier est en cours, pas à l'état
      d'ébauche ; et « approuvé » ne veut plus dire « compte actif » tant que la
@@ -103,12 +101,6 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
             {file.submittedAt && <small className="muted">{t("soumis le")} {fmtDateTime(file.submittedAt)}</small>}
             {file.status === "complements" && file.review.requestedItems && <div className={styles.request}>{t("Compléments demandés")} : {file.review.requestedItems}</div>}
             {file.status === "approuve" && file.review.custodianAccount && <small className="muted">{t(`sous-compte n° ${file.review.custodianAccount}`)}</small>}
-            {/* Pas d'invitation à partir tant qu'il reste la signature à donner. */}
-            {file.status === "approuve" && !signable && (
-              <Link href={sp.next && sp.next.startsWith("/") ? sp.next : "/"} className="btn primary sm">
-                {t("Aller à Guichet")}
-              </Link>
-            )}
           </div>
         </div>
 
@@ -132,15 +124,6 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
             l'accroche promettait « ci-dessous », ce qui n'était vrai qu'au prix
             d'un très long défilement. */}
         {signable && conventionBloc}
-
-        <ol className={styles.rail}>
-          {steps.map(([label, done], i) => (
-            <li key={label} className={done ? styles.done : ""}>
-              <span>{i + 1}</span>
-              {label}
-            </li>
-          ))}
-        </ol>
 
         <section className={styles.sec} id="type">
           <h2 className="display">{t("1 · Type de client")}</h2>

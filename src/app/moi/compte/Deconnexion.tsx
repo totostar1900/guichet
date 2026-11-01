@@ -12,11 +12,12 @@ import styles from "./page.module.css";
  * rubriques au lieu de se ranger parmi elles : pas de chevron, pas de phrase
  * qui promet une suite, et un cadre qui dit que c'est un geste.
  *
- * « PARTOUT » SE DEMANDE, ET NE S'OFFRE PAS. Se déconnecter de cet appareil
- * est sans conséquence : on se reconnecte. Se déconnecter de TOUS retire
- * aussi la clé d'accès des autres, et quelqu'un qui n'a plus son téléphone
- * d'avant se retrouve dehors. Les deux ne peuvent donc pas être deux boutons
- * côte à côte de même poids.
+ * « PARTOUT » A LE MÊME BOUTON QUE « CET APPAREIL » (1er novembre 2026, sur demande),
+ * ET SE DEMANDE ENCORE. Se déconnecter de cet appareil est sans conséquence : on se
+ * reconnecte. Se déconnecter de TOUS retire aussi la clé d'accès des autres, et
+ * quelqu'un qui n'a plus son téléphone d'avant se retrouve dehors. Le bouton a
+ * donc la même forme, mais il ne déconnecte pas au premier toucher : il ouvre une
+ * confirmation, « Oui, partout » ou « Annuler ».
  */
 export function Deconnexion() {
   const t = useT();
@@ -40,7 +41,7 @@ export function Deconnexion() {
           </button>
         </form>
       ) : (
-        <button type="button" className={styles.sortieNon} onClick={() => setPartout(true)}>
+        <button type="button" className={styles.sortieBtn} onClick={() => setPartout(true)}>
           {t("Se déconnecter partout")}
         </button>
       )}

@@ -101,7 +101,6 @@ export default async function MarchePage() {
         <EnTete
           surTitre={`BVMAC · ${t("Bourse des Valeurs Mobilières de l'Afrique Centrale")}`}
           titre={t("Le marché")}
-          phrase={`${t("Ce que la Bourse publie à chaque séance, et ce que nous en lisons : l'indice, les sociétés cotées, et les notes que nous en tirons.")}${lastBulletin ? ` ${t("Dernier bulletin lu : n° {n} du {d}.", { n: String(lastBulletin.number), d: fmtDate(lastBulletin.sessionDate) })}` : ""}`}
         />
 
         {/* L'EN-TÊTE DE LA MAISON, ET SA FLÈCHE AU MÊME ENDROIT QUE LES AUTRES.

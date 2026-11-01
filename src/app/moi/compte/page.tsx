@@ -62,7 +62,7 @@ export default async function ComptePage() {
   return (
     <Glissement>
         <div className={styles.page}>
-          <EnTete surTitre={t("Vous")} titre={t("Mon compte")} phrase={t("Qui vous êtes, ce que la maison détient de vous, et ce que fait cet appareil-ci.")} />
+          <EnTete surTitre={t("Vous")} titre={t("Mon compte")} />
 
           {/* LA TABLE DIT LES CINQ, LA PAGE DIT L'ÉTAT. Les noms et les phrases
               vivent dans `COMPTE_PAGES`, que la recherche lit aussi : une page
