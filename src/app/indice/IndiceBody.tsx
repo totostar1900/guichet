@@ -105,7 +105,8 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
   const capF = weights.reduce((a, w) => a + w.capFloat, 0);
 
   return (
-    <>
+    /* UNE PILE : l'espace entre l'en-tête, les liens et le sommaire vient du jeton des sections (ETALON.md § 8). Le desk, qui rend le même corps, en profite. */
+    <div className="pile">
       {/* LE LIEN DU SUR-TITRE DEVIENT LE RETOUR, et c'est la règle appliquée
           plutôt que contournée. « BVMAC » menait à « /marche » depuis le
           créneau d'avant-titre : un chemin vers le parent, déguisé en mot
@@ -156,7 +157,8 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
           ]}
           meta={t("À chaque séance.")}
         >
-          <div className={styles.sections}>
+          {/* LES SECTIONS FORMENT UNE PILE : plus de marge de 38 px sous chacune, l'écart vient du jeton. */}
+          <div className={`pile ${styles.sections}`}>
             <section className={styles.level} id="niveau">
             {/* La carte porte un nom : sans lui, le grand chiffre flottait en
                 tête de page sans dire ce qu'il mesurait. */}
@@ -467,6 +469,6 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
           </div>
         </Sommaire>
       )}
-    </>
+    </div>
   );
 }
