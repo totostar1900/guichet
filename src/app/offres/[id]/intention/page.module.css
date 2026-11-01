@@ -3,7 +3,9 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--sections-gap);
+  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
+  --entete-marge: 0px;
 }
 .head {
   background: var(--surface);
@@ -37,9 +39,6 @@
   color: var(--ink-3);
 }
 @media (max-width: 760px) {
-  .page {
-    gap: 10px;
-  }
   /* Cette tête ne se fige plus. Haute de 338 px sur un écran de 812, elle en
      gelait deux cinquièmes et ne laissait que 410 px au formulaire, alors que
      la barre du téléphone porte déjà le titre de la page et que le prix se

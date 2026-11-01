@@ -91,6 +91,14 @@ describe("chaque feuille de page est convertie, ou le dit", () => {
     for (const [f, cls] of CONVERTIES) {
       const g = gapDe(regle(f, cls));
       expect(g, `${f} : « .${cls} » n'écrit plus son gap au jeton (il écrit « ${g} »)`).toBe("var(--sections-gap)");
+      /* ET AUCUNE AUTRE RÈGLE DU MÊME CONTENEUR, même indentée dans une requête de média :
+         « .page { gap: 10px } » sous « @media (max-width: 760px) » redisait l'écart sur
+         téléphone, et la lecture de la première règle ne le voyait pas (mesuré sur la
+         page d'intention, le 31 octobre 2026 : 10 px là où le jeton dit 28). */
+      for (const m of sansNotes(lire(f)).matchAll(new RegExp(`\\.${cls}\\s*\\{[^}]*\\}`, "g"))) {
+        const autre = gapDe(m[0]);
+        if (autre !== undefined) expect(autre, `${f} : une autre règle « .${cls} » (média ?) écrit « gap: ${autre} » au lieu du jeton`).toBe("var(--sections-gap)");
+      }
     }
   });
 
