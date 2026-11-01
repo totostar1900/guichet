@@ -186,7 +186,11 @@
   align-items: baseline;
   gap: var(--s-6);
   flex-wrap: wrap;
-  margin-bottom: var(--s-6);
+  margin-bottom: var(--titre-gap);
+}
+/* Une section de la pile : son panneau perd la marge basse de 18 px, l'écart vient du « gap » (ETALON.md § 8). */
+.sec > :global(.panel) {
+  margin-bottom: 0;
 }
 .secTete h2 {
   margin: 0;

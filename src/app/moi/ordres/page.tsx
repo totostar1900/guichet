@@ -167,7 +167,8 @@ export default async function OrdresPage() {
 
   return (
     <Glissement>
-      <main className={styles.wrap}>
+      {/* UNE PILE : l'espace entre l'en-tête et les sections vient du jeton des sections (ETALON.md § 8). */}
+      <main className={`pile ${styles.wrap}`}>
         <EnTete
           retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Votre dossier")}
