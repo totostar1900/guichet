@@ -1,9 +1,7 @@
 /* La console : dense, réglée, sans une seule carte.
    Le site public respire, la console travaille. */
 .page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sections-gap);
+  /* L'écart entre ses chapitres vient de la classe globale « chapitres » (--chapitres-gap), posée à côté de celle-ci. */
   padding-bottom: var(--s-10);
 }
 
@@ -539,17 +537,6 @@
 }
 
 /* ---------- La bande des services ---------- */
-/* VOTRE DOSSIER : LE SOMMAIRE DE LA MAISON, et plus une bande écrite ici.
-   « .bandeServices » était la septième forme de la même chose — un nom, une
-   phrase, un chevron — et elle portait en plus un compte, « 1 en place · 9 à
-   activer », calculé ici pour une page qui le recompte. La forme vient de
-   « Rubriques », l'écart entre deux bandes de l'étalon, et le titre ne tient
-   que le mot. */
-.dossier {
-  display: flex;
-  flex-direction: column;
-  gap: var(--titre-gap);
-}
 
 @media (max-width: 900px) {
   .valeur {

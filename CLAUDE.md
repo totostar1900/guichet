@@ -8,7 +8,7 @@
 - Sans `.env.local`, le repository mémoire est utilisé (données de `src/data/seed.ts`).
 - Toute écriture métier passe par `audit()` (src/lib/audit.ts) avec avant / après ; les écritures d'offres passent `expectedVersion` ; les termes financiers passent par `approvalReason()` (src/lib/policy.ts) avant d'écrire.
 - Toucher une page de `src/data/docs/*.ts`, c'est porter son `checkedOn` au jour même, **dans le même commit** ; `docs-exactes` lit l'arbre et le refuse avant le commit. Même règle pour un changement d'écran qui rend une page de documentation inexacte : la relire et la dater avec le code.
-- L'espace d'une page : quatre jetons dans `globals.css` (`--sections-gap` 28, `--tuiles-gap`, `--titre-gap`, `--retour-gap`) et la classe `pile` ; jamais un écart en dur ni de marge entre deux blocs d'une page. Règles et migration : `ETALON.md` § 8 ; une page convertie entre dans `src/test/espace-registre.ts`.
+- L'espace d'une page : cinq jetons dans `globals.css` (`--sections-gap` 28, `--tuiles-gap`, `--titre-gap`, `--retour-gap`, `--chapitres-gap` 44, réservé à l'Accueil) et les classes `pile` / `chapitres` ; jamais un écart en dur ni de marge entre deux blocs d'une page. Règles et migration : `ETALON.md` § 8 ; une page convertie entre dans `src/test/espace-registre.ts`.
 - Avant de conclure : `npm run typecheck && npm run lint && npm test`.
 
 <!-- BEGIN:nextjs-agent-rules -->

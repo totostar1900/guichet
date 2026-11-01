@@ -37,6 +37,9 @@ const QUI_SE_TAISENT = [
   "src/components/CeQuiPerforme.tsx",
   "src/components/IndexPulse.tsx",
   "src/components/SelectionDuDesk.tsx",
+  /* LES DEUX NOUVEAUX CHAPITRES DE L'ACCUEIL (1er novembre 2026) : un chapitre vide laisserait un écart de 44 px pour rien, ils se taisent donc eux aussi. */
+  "src/components/accueil/TuilesDuHaut.tsx",
+  "src/components/accueil/DossierAccueil.tsx",
 ];
 
 const nomDe = (f: string) => path.basename(f, ".tsx");
@@ -74,7 +77,9 @@ describe("les sections qui s'effacent", () => {
   /* L'indice porte son titre lui-même, et c'est la forme que prend la règle
      quand la section n'a rien d'autre à montrer. */
   it("fait porter son titre à l'indice, là où la page en demande un", () => {
-    expect(code("src/app/Console.tsx"), "la page a repris l'écriture du titre du marché").toMatch(/<IndexPulse[^/>]*entete=\{/);
+    /* SUR LA PAGE D'ARRIVÉE, depuis le 1er novembre 2026, la carte n'a plus de titre : elle est un lien (« pied »), et « Le marché » est parti. */
+    expect(code("src/app/Console.tsx"), "la page a repris l'écriture du titre du marché").not.toMatch(/titre: t\("Le marché"\)/);
+    expect(code("src/app/Console.tsx"), "la carte de l'indice n'est plus un lien sur la page d'arrivée").toMatch(/<IndexPulse[^/>]*pied=\{/);
     expect(code("src/components/IndexPulse.tsx"), "l'indice ne rend plus l'en-tête qu'on lui confie").toMatch(/\{entete\.titre && <h2>\{entete\.titre\}<\/h2>\}/);
   });
 });

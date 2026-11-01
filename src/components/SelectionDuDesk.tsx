@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { repo } from "@/lib/data";
 import { summarize } from "@/lib/domain/summary";
+import type { Offer } from "@/lib/domain/types";
 import styles from "./SelectionDuDesk.module.css";
 
 /**
@@ -26,25 +27,32 @@ import styles from "./SelectionDuDesk.module.css";
  * c'est la règle de la bande voisine, pour la même raison, un emplacement qui
  * dit « rien » apprend à l'oeil à sauter cet endroit.
  */
-export async function SelectionDuDesk() {
-  const t = await getT();
-  const now = new Date();
+/** Les lignes que le desk met en avant : la règle, écrite une fois, que la page et son chapitre lisent tous deux. */
+export function lignesDuDesk(offers: Offer[], now = new Date()) {
   const today = now.toISOString().slice(0, 10);
-  const offers = await repo()
-    .listOffers()
-    .catch(() => []);
-  const picks = offers
+  return offers
     .filter((o) => !o.hidden && o.featured && o.featured.until >= today)
     .map((o) => ({ o, s: summarize(o, now) }))
     .filter(({ s }) => !s.past)
     .slice(0, 3);
+}
+
+export async function SelectionDuDesk({ offres }: { /** Les offres déjà en main : la page d'arrivée les lit pour ses positions, les relire serait une seconde lecture du même objet. */ offres?: Offer[] } = {}) {
+  const t = await getT();
+  const now = new Date();
+  const offers =
+    offres ??
+    (await repo()
+      .listOffers()
+      .catch(() => []));
+  const picks = lignesDuDesk(offers, now);
   if (!picks.length) return null;
   return (
     <section className={styles.bande} aria-label={t("La sélection du desk")}>
       <h2 className={styles.titre}>{t("La sélection du desk")}</h2>
       <ul className={styles.liste}>
         {picks.map(({ o, s }) => (
-          <li key={o.id} className={styles.ligne}>
+          <li key={o.id}>
             <Link className={styles.lien} href={`/offres/${o.id}`}>
               <span className={styles.nom}>
                 {t(o.title)}

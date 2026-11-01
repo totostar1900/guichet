@@ -65,6 +65,9 @@ describe("les lignes suivies", () => {
     const console = code("src/app/Console.tsx");
     expect(console, "l'accueil remonte les titres suivis un par un : ils se confondront avec les lignes détenues").not.toMatch(/suivies\.map\(/);
     expect(console, "le compte des lignes suivies est revenu dans la rubrique").not.toMatch(/suivies\.length/);
-    expect(console, "l'accueil relit les veilles : elles ne servaient qu'à ce compte").not.toMatch(/listWatches|lignesSuivies\(/);
+    /* LES VEILLES SONT LUES, depuis le 1er novembre 2026, pour la seule
+       PRÉSENCE de la rubrique : « Lignes suivies » ne paraît que s'il y en a
+       une. Le compte et la fonction qui le faisait restent proscrits. */
+    expect(console, "l'accueil recompte les lignes suivies").not.toMatch(/lignesSuivies\(/);
   });
 });

@@ -46,13 +46,15 @@ describe("la page d'accueil", () => {
      programmés » est une section de /moi/epargne, avec le même composant. */
   it("mène à une page au lieu de déplier la section", () => {
     const console_ = code("src/app/Console.tsx");
+    /* LES BANDES DU DOSSIER VIVENT DANS « DossierAccueil » depuis le 1er novembre 2026 : la page ne les écrit plus, elle le monte. */
+    const dossier = code("src/components/accueil/DossierAccueil.tsx");
     for (const [quoi, ou] of [
       ["les intentions", "/moi/ordres"],
       ["les versements programmés", "/moi/epargne"],
       ["les droits de garde", "/moi/garde"],
       ["les lignes suivies", "/moi/suivies"],
     ] as const) {
-      expect(console_, `${quoi} : la bande qui y mène a disparu de l'accueil`).toContain(`href: "${ou}"`);
+      expect(dossier, `${quoi} : la bande qui y mène a disparu de l'accueil`).toContain(`href: "${ou}"`);
     }
     for (const page of ["src/app/moi/ordres/page.tsx", "src/app/moi/garde/page.tsx", "src/app/moi/suivies/page.tsx"]) {
       expect(fs.existsSync(path.join(ROOT, page)), `${page} n'existe plus : une bande de l'accueil ne mène donc nulle part`).toBe(true);
@@ -72,7 +74,11 @@ describe("la page d'accueil", () => {
        exiger « <Rubriques » laissait la clause verte le jour où l'un des deux
        redeviendrait une grille écrite à la main — c'est précisément la
        seconde grammaire que cette épreuve existe pour refuser. */
-    expect((code("src/app/Console.tsx").match(/<Rubriques\b/g) ?? []).length, "l'accueil s'est réécrit une liste de destinations à la place d'un de ses deux sommaires").toBe(2);
+    /* DEPUIS LE 1ER NOVEMBRE 2026, les deux sommaires sont deux composants — « GrilleInvestir » et « DossierAccueil » —, montés une fois chacun, et la page n'écrit plus aucune liste à la main. */
+    const accueil = code("src/app/Console.tsx");
+    expect((accueil.match(/<GrilleInvestir\b/g) ?? []).length, "« Investir » n'est plus monté exactement une fois").toBe(1);
+    expect((accueil.match(/<DossierAccueil\b/g) ?? []).length, "« Mon dossier » n'est plus monté exactement une fois").toBe(1);
+    expect(accueil, "l'accueil s'est réécrit une liste de destinations à la place d'un de ses deux sommaires").not.toMatch(/<Rubriques\b/);
     expect(code("src/app/moi/page.module.css"), "la grille de tuiles est revenue").not.toMatch(/\.tuiles?\s*\{/);
     expect(code("src/app/Console.module.css"), "la bande des services s'est réécrite à part").not.toMatch(/\.bandeServices\b/);
   });
@@ -107,21 +113,24 @@ describe("la page d'accueil", () => {
      deux cas, et oublier la négation la fait paraître deux fois sur le même
      écran. Les deux se voient à l'œil une fois en production, et jamais
      avant. */
-  it("pose « Ce qui ferme bientôt » à une place et une seule", () => {
-    const src = code("src/app/Console.tsx");
-    const poses = [...src.matchAll(/<CeQuiFermeBientot\b/g)];
-    expect(poses.length, "la bande n'est plus posée exactement deux fois : une branche a disparu, ou une troisième est née").toBe(2);
-    expect(src, "la branche du haut ne dépend plus du seuil").toMatch(/\{presse\(echeances\) && <CeQuiFermeBientot/);
-    expect(src, "la branche du bas ne dépend plus du seuil, ou sa négation a sauté : la bande paraîtrait deux fois").toMatch(/\{!presse\(echeances\) && <CeQuiFermeBientot/);
+  it("pose « Échéances » à une place et une seule, en haut, sans relire les offres", () => {
+    /* LA SECTION NE SE DÉPLACE PLUS : « Échéances » remplace « Ce qui ferme
+       bientôt » sur cette page, en haut, pleine largeur (1er novembre 2026).
+       Ce qui peut encore se casser est le branchement : la bande de Trade
+       garde son titre, celle-ci porte le sien, deux lignes, et mène à la page
+       de l'horloge. Et elle ne relit pas les offres que la page tient déjà :
+       deux lectures du même objet dans la même requête sont deux occasions de
+       diverger. */
+    const accueil = code("src/app/Console.tsx");
+    expect(accueil, "la page monte encore « Ce qui ferme bientôt » à la place d'« Échéances »").not.toMatch(/<CeQuiFermeBientot\b/);
+    expect((accueil.match(/<TuilesDuHaut offres=\{offers\}/g) ?? []).length, "les occasions du haut ne sont plus montées exactement une fois, avec les offres de la page").toBe(1);
+    const haut = lire("src/components/accueil/TuilesDuHaut.tsx");
+    expect((haut.match(/<CeQuiFermeBientot\b/g) ?? []).length, "la bande des échéances n'est plus posée exactement une fois").toBe(1);
+    expect(haut, "la bande n'a plus ses deux lignes, son titre ou le lien vers l'horloge").toMatch(/<CeQuiFermeBientot offres=\{offres\} max=\{2\} titre="Échéances" lien=\{\{ href: "\/echeances"/);
   });
 
-  /* Deux lectures du même objet dans la même requête sont deux occasions de
-     diverger : la page tient déjà les offres pour ses positions. */
-  it("ne fait pas relire les offres à la bande des échéances", () => {
-    expect(code("src/app/Console.tsx"), "la bande relit les offres que la page tient déjà").toMatch(/<CeQuiFermeBientot offres=\{offers\}/);
-  });
   it("nomme les familles d'« Investir » par la table de navigation", () => {
-    expect(code("src/app/Console.tsx"), "les familles ne viennent plus de la table de navigation : l'accueil peut en nommer une qui n'existe pas").toContain("INSTRUMENTS_PAGES.map");
+    expect(code("src/components/accueil/GrilleInvestir.tsx"), "les familles ne viennent plus de la table de navigation : l'accueil peut en nommer une qui n'existe pas").toContain("INSTRUMENTS_PAGES.find");
   });
 
   /**
@@ -176,7 +185,11 @@ describe("la page d'accueil", () => {
        lignes suivies. Une épreuve qui ne garderait que le texte laisserait
        le coût en place, prêt à reservir au prochain qui veut un chiffre. */
     expect(code("src/app/layout.tsx"), "le gabarit relit toutes les offres à chaque page : cette lecture ne servait qu'au compte du menu").not.toMatch(/countOffers/);
-    expect(code("src/app/Console.tsx"), "l'accueil relit les veilles : elles ne servaient qu'au compte des lignes suivies").not.toMatch(/listWatches/);
+    /* LES VEILLES SONT DE RETOUR, POUR UNE AUTRE RAISON (1er novembre 2026) :
+       « Mon dossier » ne montre « Lignes suivies » que s'il y en a une, et il
+       faut le savoir. Le compte, lui, ne revient pas : la fonction qui le
+       calculait reste proscrite, et la présence se lit sur la liste. */
+    expect(code("src/app/Console.tsx"), "l'accueil recompte les lignes suivies avec la fonction qui les comptait").not.toMatch(/lignesSuivies\(/);
   });
 
   it("n'annonce plus le nombre des gestes du client non plus", () => {
@@ -205,9 +218,12 @@ describe("la page d'accueil", () => {
        que cette rubrique avait à dire. Et la rubrique du sondage ne paraît
        que s'il y a quelque chose : c'est la condition, et non le chiffre, qui
        porte l'information maintenant. */
-    const src = code("src/app/Console.tsx");
-    expect(src, "« à signer » a disparu du mandat : le seul devoir que la rubrique portait").toContain('t("à signer")');
-    expect(src, "la rubrique du sondage paraît même sans intention : son compte parti, c'est sa condition qui informe").toMatch(/ctx\.attentesSondees > 0/);
+    /* DEPUIS LE 1ER NOVEMBRE 2026 : le devoir s'écrit dans « DossierAccueil »
+       (étiquette « à signer » sur le mandat), et la condition dans le domaine,
+       « rubriquesPresentes » — écrite une fois pour les huit rubriques. */
+    const dossier = code("src/components/accueil/DossierAccueil.tsx");
+    expect(dossier, "« à signer » a disparu du mandat : le seul devoir que la rubrique portait").toMatch(/mandatASigner \? t\("à signer"\)/);
+    expect(code("src/lib/domain/accueil.ts"), "la rubrique du sondage paraît même sans intention : son compte parti, c'est sa condition qui informe").toMatch(/f\.attentesSondees > 0\) out\.push\("sondage"\)/);
   });
   /* LA MARGE D'UNE PIÈCE POSÉE DANS UNE COLONNE À ÉCART DÉCLARÉ.
      « IndexPulse » porte « margin: 0 0 12px » pour ses deux pages du marché.

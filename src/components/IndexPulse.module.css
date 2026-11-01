@@ -149,3 +149,21 @@
   font-size: var(--t-2);
   color: var(--gold-ink);
 }
+
+/* La carte entière est le lien : pas de soulignement, la couleur du texte. */
+.carteLien {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.carteLien:hover .pulse {
+  border-color: var(--line-2);
+  border-left-color: var(--gold);
+}
+.pied {
+  grid-column: 1 / -1;
+  justify-self: end;
+  font-size: var(--t-2);
+  font-weight: 700;
+  color: var(--gold-ink);
+}

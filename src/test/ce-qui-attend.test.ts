@@ -128,7 +128,7 @@ describe("où la liste se lit", () => {
   it("la page d'arrivée porte les devoirs, puis les occasions", () => {
     const src = lire("src/app/Console.tsx");
     const attend = src.indexOf("<CeQuiVousAttend");
-    const offres = src.indexOf("<SelectionDuDesk");
+    const offres = src.indexOf("<TuilesDuHaut");
     const valeur = src.indexOf("styles.valeur");
     expect(attend).toBeGreaterThan(0);
     expect(offres).toBeGreaterThan(attend);

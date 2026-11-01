@@ -358,6 +358,11 @@
      était un enfant de la page à part entière. « EnTete » la range maintenant
      avec son titre dans un seul bloc, et cette distance lui est intérieure. */
   --retour-gap: var(--s-6);
+  /* ENTRE DEUX CHAPITRES D'UNE PAGE D'ARRIVÉE : quarante-quatre, décidé le 1er
+     novembre 2026 (refonte de l'Accueil). Vingt-huit sépare deux sections d'un
+     même chapitre ; quarante-quatre sépare deux chapitres — le devoir, l'occasion,
+     le marché, le dossier. Une page qui n'a pas de chapitres n'en lit pas. */
+  --chapitres-gap: 44px;
   /* ── L'ASPECT D'UNE TUILE : un jeu de jetons, trois préréglages ──────────────
      Toute liste de tuiles (rubriques, échéances, rayons de Trade, leçons, outils,
      sujets d'aide) lit ces jetons : fond, bord, trait de séparation, rayon, marge
@@ -1091,6 +1096,24 @@ html[data-tuiles="lignes"] {
   --replay-marge: 0px;
   --onglets-marge: 0px;
   --infosearch-marge: 0;
+}
+/* LES CHAPITRES : une pile dont l'écart est --chapitres-gap. Ses enfants sont des
+   chapitres — soit une « pile » qui porte ses sections, soit une pièce qui se
+   tait quand elle n'a rien à dire (jamais un conteneur vide : il laisserait deux
+   écarts). Voir ETALON.md § 8.2. */
+.chapitres {
+  display: flex;
+  flex-direction: column;
+  gap: var(--chapitres-gap);
+  --replay-marge: 0px;
+  --onglets-marge: 0px;
+  --infosearch-marge: 0;
+}
+/* UNE PILE DE TUILES : l'écart entre deux tuiles voisines, --tuiles-gap. */
+.pile-tuiles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tuiles-gap);
 }
 .pile > .panel {
   margin-bottom: 0;

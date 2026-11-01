@@ -1,0 +1,135 @@
+/* « Investir » : un titre, une grille de tuiles, un bouton. L'écart entre le titre
+   et ce qu'il porte est --titre-gap ; entre deux tuiles, --tuiles-gap (la pile de
+   tuiles et la grille le lisent). Aucune marge entre deux blocs. */
+.bloc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--titre-gap);
+  min-width: 0;
+}
+.grille {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tuiles-gap);
+}
+.grille > * {
+  min-width: 0;
+}
+.tuile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  color: inherit;
+  text-decoration: none;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+}
+.tuile:hover {
+  border-color: var(--line-2);
+}
+.haut {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+.haut b {
+  font-size: var(--t-3);
+  font-weight: 700;
+}
+.chev,
+.plus {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* La ligne en tête : ce qui presse, ou ce qui vient d'arriver. Un trait or la distingue des deux autres. */
+.tete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  border-left: 3px solid var(--gold);
+  padding-left: var(--s-4);
+}
+.tete b {
+  font-size: var(--t-2);
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.tete small {
+  font-size: var(--t-1);
+  font-weight: 700;
+  color: var(--gold-ink);
+}
+.urgent {
+  border-left-color: var(--warn);
+}
+.urgent small {
+  color: var(--warn);
+}
+.ligne {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  border-top: 1px solid var(--line);
+  padding-top: var(--s-4);
+  min-width: 0;
+}
+.ligne b {
+  font-size: var(--t-2);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ligne small {
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.hint {
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+/* La quatrième place : une tuile, ou deux qui se la partagent. Elle prend la
+   hauteur de sa rangée, pour que la grille reste un rectangle. */
+.place {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tuiles-gap);
+}
+.place > .tuile {
+  flex: 1 1 auto;
+}
+.prevues {
+  border-style: dashed;
+}
+.proposer .hint {
+  color: var(--ink-2);
+}
+.tous {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  font-size: var(--t-3);
+  font-weight: 700;
+  color: var(--gold-ink);
+  text-decoration: none;
+  border: 1px dashed var(--gold);
+  border-radius: var(--tuile-rayon);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+}
+.tous:hover {
+  background: var(--surface);
+}

@@ -380,6 +380,7 @@ une phrase à Claude, et se fait en un fichier.*
 | Vous voulez | Dites | Où ça change |
 |---|---|---|
 | des sections plus serrées ou plus aérées | « mets l'écart entre sections à 20 px » | `--sections-gap` · `globals.css` |
+| plus ou moins d'air **entre les chapitres** de l'Accueil (le devoir, l'occasion, le marché, le dossier) | « mets l'écart entre chapitres à 36 px » | `--chapitres-gap` · `globals.css` |
 | des tuiles plus proches ou plus écartées | « mets l'écart entre tuiles à 8 px » | `--tuiles-gap` · `globals.css` |
 | un titre plus près de son contenu | « mets l'écart titre → contenu à 8 px » | `--titre-gap` · `globals.css` |
 | la flèche de retour plus près du titre | « mets l'écart flèche → titre à 8 px » | `--retour-gap` · `globals.css` |
@@ -426,7 +427,7 @@ Et un cliquet qui ne tenait rien : il cherchait la chaîne `gap: var(--s-10)`
 *quelque part* dans quatre fichiers. Trade a glissé à 20 pendant qu'une autre
 règle du même fichier gardait le 32 : il restait vert.
 
-### 8.2 Les mesures — quatre rôles, quatre jetons
+### 8.2 Les mesures — cinq rôles, cinq jetons
 
 Tous vivent dans le bloc « l'espace d'une page » de `src/app/globals.css`. **Changer
 la ligne d'un jeton change toute l'application, et rien d'autre à faire.**
@@ -434,6 +435,7 @@ la ligne d'un jeton change toute l'application, et rien d'autre à faire.**
 | jeton | valeur | il règle | exemples |
 |---|---|---|---|
 | `--sections-gap` | **28 px** | l'écart entre deux sections d'une page ; aussi la gouttière quand deux colonnes se côtoient | l'Accueil, Trade, tout « Feuillet », le fil et le rail d'Actualités |
+| `--chapitres-gap` | **44 px** | l'écart entre deux CHAPITRES d'une page d'arrivée (classe globale `chapitres`) : le devoir, l'occasion, le relevé, Investir, le marché, le dossier. Réservé à l'Accueil | l'Accueil (`Console`) ; une page sans chapitres n'en lit pas |
 | `--tuiles-gap` | **12 px** (`--s-6`) | l'écart entre deux tuiles d'une liste | les rubriques de l'Accueil, les rayons de Trade, les échéances |
 | `--titre-gap` | **12 px** (`--s-6`) | entre le titre d'une section et ce qu'elle contient | « Ce qui ferme bientôt », « Votre dossier », « La sélection du desk » |
 | `--retour-gap` | **12 px** (`--s-6`) | entre la flèche de retour et le titre de la page | toute page à flèche (intérieur à `EnTete`) |
@@ -464,6 +466,16 @@ composant — le `padding` d'une carte, le `gap` d'une ligne de tableau — rest
 6. **Une exception se déclare.** La vitrine garde son pas (§ C : `--respiration`,
    `--s-9`, `--s-11`) ; une page à deux colonnes (Actualités, la fiche d'une
    ligne) pose le jeton en ligne *et* en colonne, sauf raison écrite.
+
+7. **Les chapitres (Accueil, 1er novembre 2026).** Une page d'arrivée a deux
+   niveaux d'écart : 28 px entre les sections d'un même chapitre, **44 px entre
+   deux chapitres**. Son conteneur porte la classe `chapitres` (et non `pile`) ;
+   chaque chapitre est soit une `pile`, soit une pièce qui se tait quand elle
+   n'a rien à dire. **Jamais un conteneur vide entre deux chapitres** : il
+   laisserait deux écarts de 44 px. D'où la règle des pièces muettes
+   (`sections-qui-s-effacent.test.ts`) : « TuilesDuHaut » et « DossierAccueil »
+   rendent `null` quand rien ne les justifie. L'Accueil sort de `CONVERTIES`
+   pour `CHAPITRES` (`espace-registre.ts`).
 
 ### 8.4 Ajouter une page, convertir une page
 

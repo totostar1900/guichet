@@ -251,11 +251,15 @@ describe("le modèle du sondage", () => {
    * ce que cette épreuve garde.
    */
   it("ouvre une rubrique du sondage à l'accueil, et seulement s'il y a une intention", () => {
+    /* DEPUIS LE 1ER NOVEMBRE 2026 la rubrique vit dans « DossierAccueil », et
+       sa condition dans le domaine (« rubriquesPresentes ») : la page lui passe
+       le compte du contexte, la règle « > 0 » est écrite une fois. */
     const console_ = lire("src/app/Console.tsx");
-    const bloc = console_.slice(console_.indexOf('href: "/sondage"') - 400, console_.indexOf('href: "/sondage"') + 400);
-    expect(bloc, "la rubrique du sondage a quitté l'accueil").toContain('href: "/sondage"');
-    expect(bloc, "la rubrique du sondage paraît même quand le client n'a rien dit").toMatch(/ctx\.attentesSondees > 0/);
-    expect(bloc, "la rubrique recompte les intentions au desk dans son intitulé").not.toMatch(/"\{n\} au desk"|"1 au desk"/);
+    const dossier = lire("src/components/accueil/DossierAccueil.tsx");
+    expect(dossier, "la rubrique du sondage a quitté l'accueil").toMatch(/href: "\/sondage"/);
+    expect(lire("src/lib/domain/accueil.ts"), "la rubrique du sondage paraît même quand le client n'a rien dit").toMatch(/f\.attentesSondees > 0\) out\.push\("sondage"\)/);
+    expect(console_, "la page ne passe plus le compte du contexte au dossier").toMatch(/attentesSondees=\{ctx\.attentesSondees\}/);
+    expect(dossier, "la rubrique recompte les intentions au desk dans son intitulé").not.toMatch(/"\{n\} au desk"|"1 au desk"/);
     /* NON VACUITÉ : le compte est bien celui du contexte, et non un second
        calcul fait sur place. */
     expect(console_, "l'accueil recalcule les attentes au lieu de lire le contexte").not.toMatch(/listLignesSondees/);

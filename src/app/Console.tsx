@@ -12,14 +12,13 @@ import { direLePlafond } from "@/lib/domain/plafond-du-compte";
 import { DemanderVersement } from "./DemanderVersement";
 import { bilan, suivre, type LigneTenue } from "@/lib/domain/encaissement";
 import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
-import { CeQuiFermeBientot } from "@/components/CeQuiFermeBientot";
-import { echeancesProches, joursEnMots, presse } from "@/lib/domain/echeances";
-import { SelectionDuDesk } from "@/components/SelectionDuDesk";
+import { TuilesDuHaut } from "@/components/accueil/TuilesDuHaut";
+import { GrilleInvestir } from "@/components/accueil/GrilleInvestir";
+import { DossierAccueil } from "@/components/accueil/DossierAccueil";
+import { joursEnMots } from "@/lib/domain/echeances";
 import { IndexPulse } from "@/components/IndexPulse";
 import { CeQuiPerforme } from "@/components/CeQuiPerforme";
 import { aLaUne, pourquoiLu, publishedNews, titreLu } from "@/lib/news";
-import { Rubriques } from "@/components/mobile/Rubriques";
-import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
 import { TrustNudge } from "@/components/TrustNudge";
 import { Reinvest } from "@/components/Reinvest";
 import { buildPerformanceParts } from "@/lib/performance-report";
@@ -114,7 +113,7 @@ export async function Console({ session }: { session: Session }) {
   /* LE CONTEXTE EST EN CACHE PAR REQUÊTE, et « CeQuiVousAttend » le lit déjà
      plus bas : le relire ici ne coûte rien, et c'est ce qui garantit que la
      rubrique et la tuile du service comptent le même nombre. */
-  const [ctx, [intents, offers, cash, payouts, preavis, standing, temoignages]] = await Promise.all([
+  const [ctx, [intents, offers, cash, payouts, preavis, standing, temoignages, avis, veilles]] = await Promise.all([
     contexteDuClient(session.userId),
     Promise.all([
     r.listIntents(),
@@ -126,10 +125,13 @@ export async function Console({ session }: { session: Session }) {
     /* Ce que le client a déjà dit : sans cela, la bande du réinvestissement
        lui redemanderait ce qu'il vient de répondre. */
     r.listTemoignages({ userId: session.userId }).catch(() => []),
-    /* LES VEILLES NE SONT PLUS LUES ICI. Elles ne servaient qu'à compter
-       « Lignes suivies », et ce compte est parti le 29 octobre : une requête
-       de moins sur la page la plus visitée de la maison, ce qui est le seul
-       gain mesurable de la journée. Leur page les lit pour elle-même. */
+    /* LES VEILLES ET LES AVIS DE GARDE SONT DE RETOUR, le 1er novembre 2026, et
+       pour une autre raison que le compte : « Mon dossier » ne montre plus une
+       rubrique que s'il y a quelque chose dedans, et il faut donc savoir s'il y
+       a une veille, un avis. Deux lectures bornées au client, parties avec les
+       autres — jamais un compte écrit dans un intitulé. */
+    r.listCustodyNotices({ userId: session.userId }).catch(() => []),
+    r.listWatches(session.userId).catch(() => []),
     ] as const),
   ]);
 
@@ -144,9 +146,6 @@ export async function Console({ session }: { session: Session }) {
   const b = bilan(suivre(tenues, cash));
 
   const { perf, mouvements } = buildPerformanceParts(mine, offers, cash);
-  /* Lues une fois, pour la bande ET pour savoir où la poser : le seuil de
-     sept jours décide de sa place, et il ne se calcule pas deux fois. */
-  const echeances = echeancesProches(offers);
   /* La dépêche du jour, s'il y en a une : « loadNews » est en cache pour la
      requête, donc cette lecture ne coûte rien à qui la demande déjà. */
   const une = aLaUne(await publishedNews().catch(() => []));
@@ -170,8 +169,9 @@ export async function Console({ session }: { session: Session }) {
   const signe = (v: number) => `${v > 0 ? "+" : ""}${pct(v)}`;
 
   return (
-    <div className={styles.page}>
-
+    <div className={`${styles.page} chapitres`}>
+      {/* CHAPITRE 1 : LES DEVOIRS. Une pile (28 px) ; les chapitres suivants sont séparés de 44. */}
+      <div className="pile">
       <div className={styles.bonjour}>
         <h1>{t("Bonjour {p}", { p: session.name.split(" ")[0] })}</h1>
         {/* « valide » n'a jamais été un état de dossier : les huit valeurs vont
@@ -258,24 +258,23 @@ export async function Console({ session }: { session: Session }) {
           sommaire n'a pas à porter la file d'attente complète, il a à ne rien
           cacher. Cette page-ci, où l'on atterrit, l'a pour sujet. */}
       <CeQuiVousAttend userId={session.userId} tout />
-      {/* UNE CLÔTURE SOUS SEPT JOURS PASSE DEVANT LE RESTE, et c'est la seule
-          chose qui déplace une section de cette page. La raison n'est pas
-          l'esthétique : un virement interbancaire de la zone met deux à trois
-          jours, et l'argent doit être arrivé avant le dépôt. En deçà du
-          seuil, la séance n'est plus une annonce, c'est un délai. Au-delà,
-          elle attend son tour plus bas — voir `domain/echeances`, qui tient
-          le seuil pour les deux surfaces. */}
-      {presse(echeances) && <CeQuiFermeBientot offres={offers} />}
       {/* CE QUI EST REVENU ET DORT : la seule décision entre l'achat et le
           remboursement, et elle remonte ici. Elle vivait au bas du relevé, à
           deux mille pixels du titre, pendant que cette page écrivait sa propre
           règle trois cents lignes plus haut : « ce qui attend une décision,
           avant les positions et jamais après ». */}
       <Reinvest positions={positions} entries={cash} temoignages={temoignages} now={new Date()} />
-      <SelectionDuDesk />
-      {/* Rien ne presse : la liste se lit après ce que le client possède. */}
-      {!presse(echeances) && <CeQuiFermeBientot offres={offers} />}
+      </div>
 
+      {/* CHAPITRE 2 : LES OCCASIONS, EN HAUT DE PAGE, pleine largeur.
+          La sélection du desk, puis les échéances. « Échéances » REMPLACE la
+          section « Ce qui ferme bientôt », qui n'est plus sur cette page : la
+          même bande, deux fois, c'était la faute. Elles se taisent quand elles
+          n'ont rien à dire, et le chapitre avec elles — voir « TuilesDuHaut ». */}
+      <TuilesDuHaut offres={offers} />
+
+      {/* CHAPITRE 3 : LE RELEVÉ — ce que ça vaut, ce que ça a rapporté, ce qu'on tient. */}
+      <div className="pile">
       {/* 1. Ce que ça vaut, et ce que ça a rapporté. */}
       {positions.length > 0 ? (
         <section className={styles.valeur}>
@@ -464,33 +463,13 @@ export async function Console({ session }: { session: Session }) {
         </section>
       )}
 
-      {/* 6. OÙ PLACER : LES TROIS FAMILLES, ET CE QU'ELLES CONTIENNENT.
-          AUCUNE NE DIT COMBIEN ELLE CONTIENT, depuis le 29 octobre 2026.
-          Elles l'ont dit pendant cinq jours — « 45 lignes », « 3 fonds »,
-          « 2 séances » —, héritage de « /instruments », fermée le 24 octobre
-          quand Trade l'a absorbée : cette page défendait son compte au motif
-          qu'« Adjudications · 3 séances » épargne un détour. L'argument vaut
-          pour une séance, qui ouvre et se ferme, et qui n'est donc PAS un
-          inventaire ; il ne vaut pas pour une cote ni pour un catalogue de
-          fonds, où le nombre ne change pas la décision de celui qui vient
-          voir ce qu'il y a. Le compte est reparti avec la demande, et les
-          trois ensemble : une règle qui ne vaut que pour un tiers des cas
-          n'est pas une règle, c'est une exception qu'on finit par oublier.
-
-          PAS D'APERÇU DES LIGNES NON PLUS. La maquette en donnait deux par
-          famille ; pour les adjudications, ces deux lignes sont exactement
-          celles que « Ce qui ferme bientôt » vient de poser plus haut sur
-          cette même page. */}
-      <div className={styles.dossier}>
-        <span className="eyebrow">{t("Investir")}</span>
-        <Rubriques
-          items={INSTRUMENTS_PAGES.map((p) => ({
-            href: p.href,
-            nom: t(p.label),
-            quoi: t(p.hint),
-          }))}
-        />
       </div>
+
+      {/* CHAPITRE 4 : INVESTIR. Trois entrées vivantes, la quatrième place faite
+          de ce que la maison annonce ou de ce que le client propose, et la porte
+          du catalogue entier. Aucune ne dit combien elle contient (arbitrage du
+          29 octobre 2026) ; leurs règles vivent dans « GrilleInvestir ». */}
+      <GrilleInvestir offres={offers} />
 
       {/* 7. LE MARCHÉ, EN UN CHIFFRE ET SA DATE.
           L'indice est la seule mesure de la place qui oriente sans qu'on
@@ -520,7 +499,7 @@ export async function Console({ session }: { session: Session }) {
           qui lit deux mille bulletins, les derniers cours, les sociétés, puis
           deux mille cotations PAR LIGNE cotée : une dizaine de requêtes, sur
           la page la plus visitée de la maison. L'indice en coûte une. */}
-      <IndexPulse compact entete={{ titre: t("Le marché"), lien: { href: "/marche", mot: t("La place") } }} />
+      <IndexPulse compact pied={{ href: "/marche", mot: t("La place") }} />
 
       {/* 8. CE QUI PERFORME, juste après l'indice : le niveau de la place,
           puis les lignes qui l'ont fait bouger. Sa lecture lui est propre et
@@ -565,120 +544,24 @@ export async function Console({ session }: { session: Session }) {
           d'une croix, et ne revient pas. */}
       <TrustNudge />
 
-      {/* 11. VOTRE DOSSIER : UN SOMMAIRE, ET PLUS SIX SECTIONS DÉPLIÉES.
-          Le relevé était le bas de cette page, et il y développait ce qui a
-          désormais une adresse : les intentions, les versements programmés et
-          leurs instructions — avec leur formulaire de modification —, les
-          droits de garde, les lignes suivies. Mesuré le 24 octobre 2026, cela
-          faisait 2 954 px, trois écrans et demi de téléphone, où la même
-          chose se lisait deux fois : le lien de l'analyse à 969 px de
-          lui-même, deux fiches de ligne à 815 et 870 px des leurs, « Vos
-          opérations » à 662 px de sa tuile, et la date du 14 février sous
-          trois noms différents.
-
-          LA RÈGLE QUI EN SORT : une page d'accueil RÉPOND, elle ne développe
-          pas. Ce qui vous attend, ce que ça vaut, puis où aller — et chaque
-          « où » est une bande, de la même forme que les six autres sommaires
-          de la maison.
-
-          AUCUNE NE PORTE DE COMPTE, et la règle est redevenue simple le
-          29 octobre 2026. Elle l'était déjà avant le 24 : « un nombre posé
-          sur la page d'avant se calcule toujours ailleurs que là où il sera
-          vérifié ». Le 24 l'avait assouplie — une rubrique pouvait compter à
-          condition d'emprunter la fonction de sa page d'arrivée, ce qui
-          écartait bien le second calcul. Mais une condition technique ne
-          répond pas à une question de ton, et c'est celle-là qui était posée :
-          un intitulé qui annonce son inventaire parle de la maison, pas du
-          lecteur.
-
-          CE QUI RESTE SUR UNE RUBRIQUE N'EST DONC PLUS UN COMPTE MAIS UN
-          DEVOIR : « à signer » sur un mandat, « 2 au desk » sur des
-          intentions qu'on a soi-même portées. Ces deux-là ne disent pas
-          combien la maison en a, ils disent ce que le lecteur a fait ou doit
-          faire — et le second compte des gestes du client, jamais un
-          catalogue. */}
-      <div className={styles.dossier}>
-        <span className="eyebrow">{t("Votre dossier")}</span>
-        <Rubriques
-          items={[
-            { href: "/moi/ordres", nom: t("Vos intentions"), quoi: t("Où en est chaque ordre, et ce qu'il attend de vous") },
-            /**
-             * DEUX RUBRIQUES QUI NE PARAISSENT QUE S'IL Y A QUELQUE CHOSE À
-             * DIRE, le 26 octobre 2026, après la revue à 360° des treize
-             * services.
-             *
-             * LE SONDAGE N'AVAIT AUCUNE PORTE ICI : ses intentions vivaient sur
-             * leur page et nulle part ailleurs. Elles n'ont pas leur place dans
-             * la bande des attentes — celle-ci porte les DEVOIRS, ce que le
-             * client doit faire, et une intention portée au desk n'attend rien
-             * de lui. Elle a sa place ici, où l'on vient voir ce qu'on a.
-             *
-             * ET LE PRÉLÈVEMENT NON PLUS. La bande porte le mandat À SIGNER —
-             * c'est un devoir, elle a raison de le porter — mais un mandat
-             * SIGNÉ et vivant n'avait plus aucune porte depuis l'accueil : ni
-             * bande, puisqu'il n'attend rien, ni rubrique, puisqu'il n'y en
-             * avait pas. Le client le retrouvait par le catalogue des services,
-             * ou pas du tout.
-             *
-             * ELLES SONT CONDITIONNELLES, et c'est la règle déjà écrite pour
-             * les services intermittents : une rubrique permanente qui dirait
-             * « aucune en ce moment » onze mois sur douze apprend à ne plus
-             * regarder la liste entière.
-             *
-             * ELLES NE PORTENT PLUS DE COMPTE NON PLUS. « 2 au desk » a vécu
-             * ici, et j'avais plaidé pour le garder : il comptait les gestes
-             * du client, non le catalogue de la maison. L'arbitrage du
-             * 29 octobre 2026 a tranché l'inverse, et il a raison sur un
-             * point que la distinction manquait — le lecteur ne fait pas le
-             * tri entre les deux. Il voit un chiffre dans un intitulé, et
-             * c'est cela qu'on ne voulait plus. Une règle qui demande au
-             * lecteur de savoir d'où vient le nombre n'est pas une règle.
-             *
-             * LE CONTEXTE RESTE LU, et sa condition avec : la rubrique ne
-             * PARAÎT que s'il y a quelque chose, et c'est cela qui porte
-             * l'information désormais. Zéro ne s'écrit pas ; un ne se compte
-             * plus.
-             */
-            ...(ctx.attentesSondees > 0
-              ? [
-                  {
-                    href: "/sondage",
-                    nom: t("Vos intentions au sondage"),
-                    quoi: t("Ce que vous prendriez, avant qu'une séance ouvre"),
-                  },
-                ]
-              : []),
-            ...(ctx.mandats > 0
-              ? [
-                  {
-                    href: "/moi/prelevements",
-                    nom: t("Vos prélèvements"),
-                    quoi: t("Le mandat qui vous débite, et ce qu'il a payé"),
-                    /* « À SIGNER » PASSE DEVANT LE COMPTE : c'est la seule
-                       chose à faire, et un mandat non signé ne prélève rien. */
-                    etiquette: ctx.mandatASigner ? t("à signer") : undefined,
-                  },
-                ]
-              : []),
-            { href: "/moi/epargne", nom: t("Vos versements programmés"), quoi: t("Ce qui part chaque mois, et comment le changer") },
-            { href: "/moi/garde", nom: t("Vos droits de garde"), quoi: t("Ce que la conservation a coûté, avis par avis") },
-            /* ELLE PORTAIT « 3 LIGNES », et c'était la dernière du dossier à
-               porter un compte : il venait de « lignesSuivies », la fonction
-               même que sa page emploie, donc il ne pouvait pas diverger. Il
-               part quand même le 29 octobre, avec ceux d'« Investir » — « ne
-               plus annoncer le nombre de lignes ou de services dans les
-               intitulés ». La justesse du nombre n'a jamais été la question :
-               celui qui surveille trois lignes sait qu'il en surveille trois,
-               et celui qui n'en surveille aucune n'a pas besoin qu'on le lui
-               compte. */
-            { href: "/moi/suivies", nom: t("Lignes suivies"), quoi: t("Ce que vous surveillez sans le détenir") },
-            { href: "/moi/performance#operations", nom: t("Vos opérations et l'échéancier"), quoi: t("Ce que votre argent a fait, et ce qui vient") },
-            { href: "/moi/documents", nom: t("Mes documents"), quoi: t("Relevés, avis d'opéré et bulletins") },
-            { href: "/trader", nom: t("Vos services"), quoi: t("Ce que Guichet peut faire pour vous") },
-          ]}
-        />
-      </div>
-
+      {/* 11. MON DOSSIER : UNE RUBRIQUE N'EXISTE QUE SI ELLE A QUELQUE CHOSE À MONTRER.
+          Chacune dit son dernier fait, jamais un compte (arbitrage du 29 octobre
+          2026), s'ouvre sur place et renvoie à sa page ; le pied « Vous pouvez
+          aussi » propose les gestes que le client n'a pas encore faits. La règle
+          est dans « domain/accueil », l'histoire dans « DossierAccueil ». */}
+      <DossierAccueil
+        mine={mine}
+        offers={offers}
+        standing={standing}
+        avis={avis}
+        veilles={veilles}
+        attentesSondees={ctx.attentesSondees}
+        mandats={ctx.mandats}
+        mandatASigner={Boolean(ctx.mandatASigner)}
+        prochaine={prochain ? { date: prochain.flow.date, titre: prochain.position.offer.title } : undefined}
+        operations={positions.length}
+        conventionOk={peutOPCVM(session)}
+      />
     </div>
   );
 }

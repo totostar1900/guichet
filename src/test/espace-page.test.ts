@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { A_CONVERTIR, CONVERTIES, PAR_LA_PILE, VITRINE } from "./espace-registre";
+import { A_CONVERTIR, CHAPITRES, CONVERTIES, PAR_LA_PILE, VITRINE } from "./espace-registre";
 
 const lire = (f: string) => readFileSync(f, "utf8");
 const sansNotes = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
@@ -162,6 +162,9 @@ const FAMILLES_DE_TUILES: [string, string][] = [
   ["src/app/info/aide/aide.module.css", ".tile"],
   ["src/app/info/page.module.css", ".tile"],
   ["src/app/info/page.module.css", ".lesson"],
+  ["src/components/accueil/GrilleInvestir.module.css", ".tuile"],
+  ["src/components/accueil/TuilesDossier.module.css", ".tuile"],
+  ["src/components/SelectionDuDesk.module.css", ".lien"],
 ];
 
 describe("l'aspect des tuiles", () => {
@@ -226,5 +229,47 @@ describe("la carte de l'indice dans une pile", () => {
     const css = sansNotes(lire("src/components/IndexPulse.module.css"));
     expect(/(?:^|\n)\.pulse\s*\{([^}]*)\}/.exec(css)?.[1] ?? "", "la carte a repris une marge basse : elle s'ajoute à l'écart de la pile").toMatch(/margin:\s*0;/);
     expect(/(?:^|\n)\.entete\s*\{([^}]*)\}/.exec(css)?.[1] ?? "", "l'en-tête de la carte n'est plus à --titre-gap de la carte").toMatch(/margin-bottom:\s*var\(--titre-gap\);/);
+  });
+});
+
+/**
+ * LES CHAPITRES : QUARANTE-QUATRE ENTRE DEUX CHAPITRES, VINGT-HUIT DANS UN CHAPITRE
+ * (ETALON.md § 8.3, règle 7 ; décidé le 1er novembre 2026, refonte de l'Accueil).
+ */
+describe("les chapitres d'une page d'arrivée", () => {
+  const globals = sansNotes(lire("src/app/globals.css"));
+  it("ont leur jeton, 44 px, et leur classe qui le lit", () => {
+    expect(globals, "--chapitres-gap n'est plus 44 px").toMatch(/--chapitres-gap:\s*44px;/);
+    const classe = /(?:^|\n)\.chapitres\s*\{([^}]*)\}/.exec(globals)?.[1] ?? "";
+    expect(classe, "la classe « chapitres » est introuvable").not.toBe("");
+    expect(classe, "« chapitres » ne lit plus son jeton").toMatch(/gap:\s*var\(--chapitres-gap\);/);
+    expect(classe, "« chapitres » n'empile plus").toMatch(/flex-direction:\s*column;/);
+  });
+  it("sont dits dans la doctrine, avec leur valeur et leur ligne de mode d'emploi", () => {
+    const doc = lire("ETALON.md");
+    expect(doc, "la doctrine ne dit plus 44 px").toMatch(/`--chapitres-gap` \| \*\*44 px\*\*/);
+    const debut = doc.indexOf("### 8.0 Mode d'emploi");
+    const mode = doc.slice(debut, doc.indexOf("### 8.1 ", debut));
+    expect(mode, "le mode d'emploi n'a plus de ligne pour --chapitres-gap").toMatch(/\| [^\n]*`--chapitres-gap`[^\n]*\|/);
+  });
+  it("sont portés par les pages à chapitres, dont le module n'écrit aucun gap", () => {
+    expect(CHAPITRES.length, "le registre des pages à chapitres est vide : la clause ne garde plus rien").toBeGreaterThan(0);
+    for (const [feuille, cls, page] of CHAPITRES) {
+      expect(lire(page), `${page} ne porte plus la classe « chapitres »`).toMatch(/className=\{`\$\{styles\.page\} chapitres`\}/);
+      const regle = (sansNotes(lire(feuille)).match(new RegExp(`(?:^|\\n)\\.${cls}\\s*\\{[^}]*\\}`)) ?? [""])[0];
+      expect(regle, `${feuille} : « .${cls} » est introuvable`).not.toBe("");
+      expect(regle, `${feuille} : « .${cls} » écrit un gap : il écraserait celui des chapitres`).not.toMatch(/(?<![-\w])gap:/);
+    }
+  });
+  it("n'ont pour enfants que des piles ou des pièces qui se taisent", () => {
+    const src = sansNotes(lire("src/app/Console.tsx"));
+    /* DEUX PILES : les devoirs, le relevé. Les autres chapitres sont des pièces qui rendent « null » sans rien — « TuilesDuHaut », « IndexPulse », « CeQuiPerforme », « TrustNudge », « DossierAccueil » — : un conteneur sans condition à leur place laisserait deux écarts de 44 px quand elles se taisent. */
+    expect((src.match(/<div className="pile">/g) ?? []).length, "la page n'a plus ses deux chapitres en pile").toBe(2);
+    for (const piece of ["TuilesDuHaut", "GrilleInvestir", "IndexPulse", "CeQuiPerforme", "TrustNudge", "DossierAccueil"]) {
+      expect(src, `« ${piece} » n'est plus un chapitre de la page`).toMatch(new RegExp(`<${piece}\\b`));
+    }
+    for (const f of ["src/components/accueil/TuilesDuHaut.tsx", "src/components/accueil/DossierAccueil.tsx"]) {
+      expect(lire(f), `${f} ne se tait plus : son chapitre laisserait un écart de 44 px pour rien`).toMatch(/return null;/);
+    }
   });
 });

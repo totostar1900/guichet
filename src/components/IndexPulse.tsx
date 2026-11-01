@@ -14,10 +14,22 @@ const tone = (v?: number) => (v == null || Math.abs(v) < 0.005 ? styles.flat : v
  * months, sixty sessions in a line. A price index, and a link to the lesson
  * that says how to read it. Quiet when no bulletin carried the index yet.
  */
+/* Sans « pied », la carte n'est pas un lien : elle porte ses propres liens (« voir l'indice »). Avec, toute la surface en est un, et deux ancres imbriquées sont interdites — d'où « liens && !pied » plus bas. Défini hors du rendu : un composant créé pendant le rendu repartirait de zéro à chaque passage. */
+function Enveloppe({ pied, children }: { pied?: { href: string; mot: string }; children: React.ReactNode }) {
+  return pied ? (
+    <Link href={pied.href} className={styles.carteLien}>
+      {children}
+    </Link>
+  ) : (
+    <>{children}</>
+  );
+}
+
 export async function IndexPulse({
   compact,
   entete,
   liens = true,
+  pied,
 }: {
   compact?: boolean;
   /** Le titre de section et son lien, quand la page en veut un : voir la note. */
@@ -40,6 +52,13 @@ export async function IndexPulse({
    * tout le monde fermerait deux portes pour en aligner une.
    */
   liens?: boolean;
+  /**
+   * LA CARTE ENTIÈRE EST LE LIEN, et son pied le dit (1er novembre 2026).
+   * Sur la page d'arrivée, le titre « Le marché » et son lien partaient de
+   * la carte : le lien descend dans la carte, au bord droit de son pied, et toute
+   * la surface se touche. Sans chevron : le mot et sa flèche suffisent.
+   */
+  pied?: { href: string; mot: string };
 }) {
   const t = await getT();
   const bulletins = await repo().listBulletins(400).catch(() => []);
@@ -82,6 +101,7 @@ export async function IndexPulse({
           <Link href={entete.lien.href}>{entete.lien.mot} →</Link>
         </div>
       )}
+      <Enveloppe pied={pied}>
       <section className={`${styles.pulse} ${compact ? styles.compact : ""}`} aria-label="BVMAC All Share Index" data-coach="indice">
       <div className={styles.level}>
         <small>BVMAC All Share</small>
@@ -109,7 +129,7 @@ export async function IndexPulse({
           </span>
           {plat && bouge && <span className={styles.calme}>{t("dernier mouvement le {d}, {v}", { d: fmtDate(bouge.date, false), v: signed(bouge.variationPct, 2) })}</span>}
           {plat && !bouge && stats.points.length > 1 && <span className={styles.calme}>{t("aucun mouvement depuis la première séance lue, le {d}", { d: fmtDate(stats.points[0].date) })}</span>}
-          {liens && (
+          {liens && !pied && (
             <>
               <Link href="/indice" className={styles.how}>
                 {t("voir l'indice")} →
@@ -124,7 +144,9 @@ export async function IndexPulse({
       <span className={styles.tag} title={t("Les dividendes ne sont pas comptés dans l'indice")}>
         {t("indice de prix")}
       </span>
+      {pied && <span className={styles.pied}>{pied.mot} →</span>}
       </section>
+      </Enveloppe>
     </div>
   );
 }
