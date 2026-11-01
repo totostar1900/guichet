@@ -43,7 +43,8 @@ export default async function ChapitrePage({ params }: { params: Promise<{ chapi
   const wa = `https://wa.me/${COMPANY.phone.replace(/\D/g, "")}?text=${encodeURIComponent(t("Bonjour, j'ai une question sur Guichet…"))}`;
   return (
     <Glissement>
-      <article className={styles.doc}>
+      {/* UNE PILE : l'espace entre l'en-tête, l'introduction, les questions et le bandeau d'aide vient du jeton des sections (ETALON.md § 8). */}
+      <article className={`pile ${styles.doc}`}>
         <EnTete
           retour={{ href: "/info/aide", mot: t("Questions courantes") }}
           surTitre={t("Aide")}

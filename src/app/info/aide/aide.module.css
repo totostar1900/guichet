@@ -114,7 +114,6 @@
 .chapitre {
   display: grid;
   gap: var(--s-4);
-  margin-top: var(--s-7);
 }
 
 .intro {

@@ -506,7 +506,9 @@ Prélèvements, Textes, Sécurité, Profil, Réclamation, Risques,
 Documents, Épargne, Réinvestir, et le « Feuillet » commun (Aide, Compte,
 Appareil, Identité, Contact, Services, Agir).
 
-*Encore à marges d'enfants, à convertir page par page :* aucune de la revue du 31 octobre 2026 ; reste le balayage des pages que la revue n'avait pas ouvertes (voir ci-dessous).
+*Balayage des pages que la revue n'avait pas ouvertes, fait le 31 octobre 2026 :* les notes de marché, la fiche société et la fiche émetteur, « Ouvrir un compte » et le dossier en cours, les éclairages (`/info/[key]`), les chapitres de l'aide, la lecture d'un ordre. Toutes lisent le jeton.
+
+*Exemptée, comme document :* la note trimestrielle (`/indice/note/[trimestre]`) — une feuille éditoriale (bandeau, titre, chapeau, fiche, colonnes) qui a sa propre typographie, comme la peau d'un document ; elle n'est pas une pile de sections.
 
 *Presque tout à 28, avec un reliquat nommé ci-dessous :* Calendrier et Mentions.
 

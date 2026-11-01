@@ -15,6 +15,7 @@ export const CONVERTIES: [string, string][] = [
   ["src/app/moi/documents/page.module.css", "page"],
   ["src/components/Feuillet.module.css", "page"],
   ["src/app/Console.module.css", "page"],
+  ["src/app/Dossier.module.css", "page"],
   ["src/app/calendrier/page.module.css", "page"],
   ["src/app/sondage/page.module.css", "page"],
   ["src/app/moi/performance/page.module.css", "page"],
@@ -38,7 +39,7 @@ export const CONVERTIES: [string, string][] = [
 ];
 
 /** Converties par la classe globale « pile » (aucune règle de module à lire) : le fichier de la page DOIT la porter. */
-export const PAR_LA_PILE = ["src/app/marche/page.tsx", "src/app/titres/page.tsx", "src/app/fonds/page.tsx", "src/app/indice/IndiceBody.tsx", "src/app/societes/SocietesBody.tsx", "src/app/comparer/ComparerBody.tsx", "src/app/moi/ordres/page.tsx", "src/app/moi/garde/page.tsx", "src/app/moi/activite/page.tsx", "src/app/moi/suivies/page.tsx", "src/app/indice/notes/page.tsx", "src/app/societes/[mnemo]/SocieteBody.tsx", "src/app/actualites/page.tsx", "src/app/info/aide/page.tsx", "src/app/info/eclairages/page.tsx", "src/app/info/glossaire/page.tsx", "src/app/info/simulateur/page.tsx"];
+export const PAR_LA_PILE = ["src/app/marche/page.tsx", "src/app/titres/page.tsx", "src/app/fonds/page.tsx", "src/app/indice/IndiceBody.tsx", "src/app/societes/SocietesBody.tsx", "src/app/comparer/ComparerBody.tsx", "src/app/moi/ordres/page.tsx", "src/app/moi/garde/page.tsx", "src/app/moi/activite/page.tsx", "src/app/moi/suivies/page.tsx", "src/app/indice/notes/page.tsx", "src/app/societes/[mnemo]/SocieteBody.tsx", "src/app/ouvrir-un-compte/page.tsx", "src/app/info/[key]/page.tsx", "src/app/emetteurs/[slug]/page.tsx", "src/app/info/aide/[chapitre]/page.tsx", "src/app/actualites/page.tsx", "src/app/info/aide/page.tsx", "src/app/info/eclairages/page.tsx", "src/app/info/glossaire/page.tsx", "src/app/info/simulateur/page.tsx"];
 
 /**
  * Feuilles de page qui ÉCRIVENT ENCORE leur écart (un « gap » qui n'est pas le jeton).

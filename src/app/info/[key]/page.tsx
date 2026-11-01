@@ -92,7 +92,8 @@ export default async function LessonPage({ params }: Props) {
         next={nextL ? { href: `/info/${nextL.key}`, title: t(nextL.title), pos: next ? pos(i + 2) : t("Section suivante") } : undefined}
         hints={{ next: "Glissez vers la gauche : l'éclairage suivante", prev: "Glissez vers la droite : l'éclairage précédente" }}
       >
-      <div className={styles.wrap}>
+      {/* UNE PILE : l'espace entre l'en-tête, le texte, l'outil, la question et le pager vient du jeton des sections (ETALON.md § 8). */}
+      <div className={`pile ${styles.wrap}`}>
         {/* C'EST CETTE PAGE QUI A ÉLARGI LE SUR-TITRE À UN NŒUD. Elle y pose
             la PASTILLE de sa section — une forme et une couleur — avant de la
             nommer, puis le rang de l'éclairage et sa durée. Un glyphe de plus

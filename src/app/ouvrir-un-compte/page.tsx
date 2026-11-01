@@ -69,7 +69,8 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
 
   return (
     <Glissement>
-      <div className={styles.wrap}>
+      {/* UNE PILE : l'espace entre l'en-tête, la progression et les sections vient du jeton des sections (ETALON.md § 8). */}
+      <div className={`pile ${styles.wrap}`}>
         <div className={styles.head}>
           <div>
             {/* Une fois le dossier approuvé, l'accroche ne reprend pas

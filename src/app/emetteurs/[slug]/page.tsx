@@ -44,7 +44,8 @@ export default async function EmetteurPage({ params }: Props) {
 
   return (
     <Glissement>
-      <>
+      {/* UNE PILE : comme la fiche société, dont cette page emprunte la feuille — l'écart vient du jeton des sections (ETALON.md § 8). */}
+      <div className="pile">
         {/* La flèche appartient au créneau, pas au texte : elle était écrite
             DANS la chaîne traduite, donc répétée dans chaque dictionnaire. */}
         <EnTete
@@ -257,7 +258,7 @@ export default async function EmetteurPage({ params }: Props) {
             </div>
           </div>
         </div>
-      </>
+      </div>
     </Glissement>
   );
 }
