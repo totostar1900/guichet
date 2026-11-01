@@ -2,7 +2,8 @@
 
 import { useT } from "@/i18n/client";
 import Link from "next/link";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useLayoutEffect, useRef, useState } from "react";
+import { repere, restituer, type Repere } from "@/lib/ui/garder-la-place";
 import styles from "./FichePanes.module.css";
 
 /**
@@ -18,13 +19,26 @@ export const PANES: [string, string][] = [
   ["emetteur", "Émetteur"],
 ];
 
-const PaneCtx = createContext<{ pane: string; setPane: (p: string) => void }>({ pane: "essentiel", setPane: () => undefined });
+const PaneCtx = createContext<{ pane: string; setPane: (p: string) => void; sans: string[] }>({ pane: "essentiel", setPane: () => undefined, sans: [] });
 
-export function FichePanes({ children, className }: { children: React.ReactNode; className?: string }) {
+export function FichePanes({ children, className, sans = [] }: { children: React.ReactNode; className?: string; /** Les volets que cette fiche ne montre pas (voir « fiche-volets »). */ sans?: string[] }) {
   const [pane, setPane] = useState("essentiel");
+  const racine = useRef<HTMLDivElement>(null);
+  const avant = useRef<Repere | null>(null);
+  const barre = () => racine.current?.querySelector('[role="tablist"]') ?? null;
+  /* GARDER LA PLACE : la barre d'onglets est ce que le doigt vient de toucher, elle ne bouge pas quand le volet change de hauteur (voir « garder-la-place »). */
+  const choisir = (p: string) => {
+    avant.current = repere(barre());
+    setPane(p);
+  };
+  useLayoutEffect(() => {
+    const m = avant.current;
+    avant.current = null;
+    restituer(m, barre(), racine.current);
+  }, [pane]);
   return (
-    <PaneCtx.Provider value={{ pane, setPane }}>
-      <div className={`${styles.panes} ${className ?? ""}`} data-show={pane}>
+    <PaneCtx.Provider value={{ pane, setPane: choisir, sans }}>
+      <div ref={racine} className={`${styles.panes} ${className ?? ""}`} data-show={pane}>
         {children}
       </div>
     </PaneCtx.Provider>
@@ -33,11 +47,11 @@ export function FichePanes({ children, className }: { children: React.ReactNode;
 
 /** The segmented control, placed where the page wants it (under the identity block). */
 export function FicheSegments() {
-  const { pane, setPane } = useContext(PaneCtx);
+  const { pane, setPane, sans } = useContext(PaneCtx);
   const t = useT();
   return (
     <div className={styles.seg} role="tablist" aria-label={t("Sections de la fiche")}>
-      {PANES.map(([k, label]) => (
+      {PANES.filter(([k]) => !sans.includes(k)).map(([k, label]) => (
         <button key={k} type="button" role="tab" aria-selected={pane === k} className={pane === k ? styles.on : undefined} onClick={() => setPane(k)}>
           {t(label)}
         </button>

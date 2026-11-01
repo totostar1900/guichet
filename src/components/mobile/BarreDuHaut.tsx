@@ -11,10 +11,8 @@ import { cheminDeFavori } from "@/lib/domain/favoris";
 import type { Attente } from "@/lib/domain/services";
 import { LangSwitch } from "../LangSwitch";
 import { PaletteSwitch } from "../PaletteSwitch";
-import { MenuRecherche, useGuideIndex } from "../menu/Pieces";
 import { ListeAttentes, useBrouillon } from "./Attentes";
 import { titreDeLOnglet } from "./titre-onglet";
-import { Sheet } from "./Sheet";
 import { useSheetPresence } from "./useSheetPresence";
 import { deverrouiller, verrouiller } from "./verrou-defilement";
 import styles from "./BarreDuHaut.module.css";
@@ -46,6 +44,8 @@ export interface BarreDuHautProps {
   attentes: Attente[];
   /** Lignes qui ferment sous sept jours : le nombre de l'horloge. */
   urgentes: number;
+  /** Le client a au moins un favori : sans, l'étoile n'existe pas (1er novembre 2026). */
+  favoris: boolean;
 }
 
 const ICONE = {
@@ -68,16 +68,16 @@ function Trace({ d, plein }: { d: string; plein?: boolean }) {
   );
 }
 
-export function BarreDuHaut({ name, attentes, urgentes }: BarreDuHautProps) {
+export function BarreDuHaut({ name, attentes, urgentes, favoris }: BarreDuHautProps) {
   const t = useT();
   const lang = useLang();
   const chemin = usePathname();
   const [ouvert, setOuvert] = useState(false);
-  const [cherche, setCherche] = useState(false);
+  /* L'étoile paraît dès que le client a un favori — et dès qu'il en pose un depuis le menu, sans recharger. */
+  const [aUnFavori, setAUnFavori] = useState(favoris);
   const [attendu, setAttendu] = useState(false);
   const [favori, setFavori] = useState<boolean | null>(null);
   const [pending, start] = useTransition();
-  const { index } = useGuideIndex(cherche);
   const brouillon = useBrouillon();
   const combien = attentes.length + (brouillon ? 1 : 0);
   const { shown, visible } = useSheetPresence(ouvert);
@@ -121,9 +121,17 @@ export function BarreDuHaut({ name, attentes, urgentes }: BarreDuHautProps) {
         <Trace d={ICONE.horloge} />
         {urgentes > 0 && <em className={`${styles.pas} ${styles.pasAmbre}`}>{urgentes > 9 ? "9+" : urgentes}</em>}
       </Link>
-      <Link href="/favoris" className={`${styles.ic} ${styles.or}`} aria-label={t("Mes favoris")} title={t("Mes favoris")}>
-        <Trace d={ICONE.etoile} />
-      </Link>
+      {aUnFavori && (
+        <Link href="/favoris" className={`${styles.ic} ${styles.or}`} aria-label={t("Mes favoris")} title={t("Mes favoris")}>
+          <Trace d={ICONE.etoile} />
+        </Link>
+      )}
+      {/* LA RECHERCHE EST UN LIEN, PAS UNE BARRE (1er novembre 2026). Le champ du tiroir ouvrait une feuille de six résultats qui se comportait mal ; la page de recherche sait déjà chercher. La loupe y mène d'un geste, de toutes les pages sauf d'elle-même. */}
+      {chemin !== "/recherche" && (
+        <Link href="/recherche" className={styles.ic} aria-label={t("Rechercher")} title={t("Rechercher")}>
+          <Trace d={ICONE.loupe} />
+        </Link>
+      )}
       <button type="button" className={styles.ic} onClick={() => setOuvert(true)} aria-haspopup="dialog" aria-expanded={ouvert} aria-label={libelleMenu} title={t("Menu")}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 7h16M4 12h16M4 17h16" />
@@ -151,11 +159,6 @@ export function BarreDuHaut({ name, attentes, urgentes }: BarreDuHautProps) {
                 </button>
               </div>
               <div className={styles.corps}>
-                <button type="button" className={styles.champ} onClick={() => setCherche(true)} aria-haspopup="dialog">
-                  <Trace d={ICONE.loupe} />
-                  {t("Chercher une page, une réponse")}
-                </button>
-
                 <button type="button" className={`${styles.ligne} ${combien > 0 ? styles.chaud : ""}`} aria-expanded={attendu} onClick={() => setAttendu(!attendu)} disabled={combien === 0}>
                   <Trace d={ICONE.cloche} />
                   <span>{t("Ce qui m'attend")}</span>
@@ -184,7 +187,10 @@ export function BarreDuHaut({ name, attentes, urgentes }: BarreDuHautProps) {
                     onClick={() =>
                       start(async () => {
                         const r = await basculerFavori(ici, titreDeLOnglet(), favori !== true);
-                        if (r.ok) setFavori(r.favori);
+                        if (r.ok) {
+                          setFavori(r.favori);
+                          if (r.favori) setAUnFavori(true);
+                        }
                       })
                     }
                   >
@@ -234,14 +240,6 @@ export function BarreDuHaut({ name, attentes, urgentes }: BarreDuHautProps) {
           document.body,
         )}
 
-      {chemin !== "/recherche" && (
-        <Sheet open={cherche} onClose={() => setCherche(false)} navy tall dock="top-right" title={t("Rechercher")}>
-          <MenuRecherche index={index} close={() => { setCherche(false); fermer(); }} />
-          <Link className={styles.tout} href="/recherche" onClick={() => { setCherche(false); fermer(); }}>
-            {t("Ouvrir la recherche entière")} →
-          </Link>
-        </Sheet>
-      )}
     </>
   );
 }

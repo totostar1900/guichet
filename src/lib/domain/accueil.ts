@@ -95,18 +95,42 @@ export function rubriquesPresentes(f: FaitsDuDossier): CleDeRubrique[] {
 }
 
 /**
- * LES GESTES QU'UN CLIENT PEUT FAIRE LUI-MÊME ET QU'IL N'A PAS FAITS. « Vous
- * pouvez aussi » : seulement des gestes (programmer un versement, suivre une
- * ligne) — jamais « Droits de garde » ou « Documents », que le client ne peut
- * pas créer : ils paraissent d'eux-mêmes.
+ * « VOUS POUVEZ AUSSI » : LES GESTES QUE LE CLIENT PEUT FAIRE LUI-MÊME ET N'A PAS FAITS.
+ *
+ * Elle n'avait qu'une ligne parce qu'elle ne listait que l'inachevé, et que le
+ * client de démonstration avait presque tout fait. Elle suit maintenant un
+ * CATALOGUE ORDONNÉ — du plus bloquant au plus facultatif —, dont on garde les
+ * cinq premiers qui s'appliquent, puis deux OUTILS qui valent toujours
+ * (simulateur, comparer) : elle n'est jamais en dessous de deux lignes.
+ *
+ * Jamais « Droits de garde » ni « Documents » : le client ne les crée pas, ils
+ * paraissent d'eux-mêmes.
  */
-export type GesteProposable = "intention" | "versement" | "suivre" | "prelevement";
+export type GesteProposable = "dossier" | "intention" | "versement" | "reinvestir" | "appareil" | "profil" | "suivre" | "sondage" | "simulateur" | "comparer";
 
-export function gestesProposables(f: FaitsDuDossier, conventionOk: boolean): GesteProposable[] {
+export interface FaitsPourGestes extends FaitsDuDossier {
+  /** Le compte est ouvert et la convention acceptée : on peut agir. */
+  conventionOk: boolean;
+  /** Le dossier attend quelque chose du client (convention, compléments). */
+  dossierAPoursuivre: boolean;
+  profilRenseigne: boolean;
+  appareilAjoute: boolean;
+  /** Des coupons sont attendus, et aucun réinvestissement n'est en place. */
+  couponsSansReinvestissement: boolean;
+}
+
+export const NB_GESTES = 5;
+
+export function gestesProposables(f: FaitsPourGestes): GesteProposable[] {
   const out: GesteProposable[] = [];
-  if (conventionOk && f.intentions === 0) out.push("intention");
-  if (conventionOk && f.versements === 0) out.push("versement");
+  if (f.dossierAPoursuivre) out.push("dossier");
+  if (f.conventionOk && f.intentions === 0) out.push("intention");
+  if (f.conventionOk && f.versements === 0) out.push("versement");
+  if (f.couponsSansReinvestissement) out.push("reinvestir");
+  if (!f.appareilAjoute) out.push("appareil");
+  if (!f.profilRenseigne) out.push("profil");
   if (f.lignesSuivies === 0) out.push("suivre");
-  if (conventionOk && f.mandats === 0) out.push("prelevement");
-  return out;
+  if (f.attentesSondees === 0) out.push("sondage");
+  out.push("simulateur", "comparer");
+  return out.slice(0, NB_GESTES);
 }

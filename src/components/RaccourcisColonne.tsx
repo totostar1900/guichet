@@ -14,7 +14,7 @@ import styles from "./RaccourcisColonne.module.css";
  * ferment sous sept jours, rien en dessous de un). Une pièce serveur, sans
  * état : deux liens.
  */
-export async function RaccourcisColonne({ urgentes }: { urgentes: number }) {
+export async function RaccourcisColonne({ urgentes, favoris }: { urgentes: number; /** Le client a un favori : sans, la ligne n'existe pas. */ favoris: boolean }) {
   const t = await getT();
   return (
     <div className={styles.raccourcis}>
@@ -30,12 +30,14 @@ export async function RaccourcisColonne({ urgentes }: { urgentes: number }) {
           </em>
         )}
       </Link>
-      <Link href="/favoris" className={`${styles.lien} ${styles.or}`}>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 3.3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.6l-5.5 2.9 1-6.2L3 9.9l6.2-.9z" />
-        </svg>
-        <span>{t("Favoris")}</span>
-      </Link>
+      {favoris && (
+        <Link href="/favoris" className={`${styles.lien} ${styles.or}`}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3.3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.6l-5.5 2.9 1-6.2L3 9.9l6.2-.9z" />
+          </svg>
+          <span>{t("Favoris")}</span>
+        </Link>
+      )}
     </div>
   );
 }

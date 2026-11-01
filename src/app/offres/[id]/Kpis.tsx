@@ -3,7 +3,7 @@ import { explainKpis } from "@/lib/domain/explain";
 import { displayYield } from "@/lib/domain/status";
 import type { Offer } from "@/lib/domain/types";
 import { fmt, fmtDate, fmtPct, fmtPrice, localIso } from "@/lib/format";
-import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
+import { FUND_CATEGORY_LABEL } from "@/lib/domain/market";
 import { daysBetween } from "@/lib/finance";
 import { fundAnnualPct } from "@/lib/domain/fund-perf";
 import styles from "./page.module.css";
@@ -38,7 +38,8 @@ export function Kpis({ o, base = "" }: { o: Offer; base?: string }) {
             // extrapolerait un trimestre sur une année.
             ...(fundAnnualPct(o.fund, now) != null ? ([["Rendement annualisé depuis l'origine", `${fundAnnualPct(o.fund, now)! > 0 ? "+" : ""}${fmtPct(fundAnnualPct(o.fund, now)!, 2)}`, false]] as [string, string, boolean][]) : []),
             ["Valeur liquidative (FCFA)", fmt(o.fund.nav), false],
-            ["Catégorie", `${FUND_CATEGORY_LABEL[o.fund.category]} · ${FUND_FREQUENCY_LABEL[o.fund.frequency]}`, false],
+            /* LA CATÉGORIE SEULE, depuis le 1er novembre 2026 : la fréquence a sa propre ligne, « Fréquence de la VL », dans « Souscription, rachat et règlement ». */
+            ["Catégorie", FUND_CATEGORY_LABEL[o.fund.category], false],
           ]
       : o.kind === "MARCHE"
         ? [
@@ -80,7 +81,7 @@ export function Kpis({ o, base = "" }: { o: Offer; base?: string }) {
   // Every card opens on tap: the number decomposed with this line's own figures.
   const explains = explainKpis(o, now);
   return (
-    <div className={styles.kpis} data-coach="kpis">
+    <div className={styles.kpis}>
       {items.map(([k, v, gold], i) => (
         <KpiCard key={k} label={k} value={v} gold={gold} explain={explains[i]} compareHref={`${base}/comparer?a=${o.id}`} coach={gold ? "hero" : undefined} />
       ))}

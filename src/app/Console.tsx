@@ -113,7 +113,7 @@ export async function Console({ session }: { session: Session }) {
   /* LE CONTEXTE EST EN CACHE PAR REQUÊTE, et « CeQuiVousAttend » le lit déjà
      plus bas : le relire ici ne coûte rien, et c'est ce qui garantit que la
      rubrique et la tuile du service comptent le même nombre. */
-  const [ctx, [intents, offers, cash, payouts, preavis, standing, temoignages, avis, veilles]] = await Promise.all([
+  const [ctx, [intents, offers, cash, payouts, preavis, standing, temoignages, avis, veilles, sondees, profil, appareils]] = await Promise.all([
     contexteDuClient(session.userId),
     Promise.all([
     r.listIntents(),
@@ -132,6 +132,10 @@ export async function Console({ session }: { session: Session }) {
        autres — jamais un compte écrit dans un intitulé. */
     r.listCustodyNotices({ userId: session.userId }).catch(() => []),
     r.listWatches(session.userId).catch(() => []),
+    /* LES TROIS LECTURES DU DOSSIER VIVANT (1er novembre 2026) : ce que le client a dit au sondage (pour l'afficher, pas seulement le compter), son profil et ses appareils (pour savoir quels gestes lui proposer). Bornées au client, parties avec les autres. */
+    r.listLignesSondees({ userId: session.userId }).catch(() => []),
+    r.getFinancialProfile(session.userId).catch(() => undefined),
+    r.listDevices(session.userId).catch(() => []),
     ] as const),
   ]);
 
@@ -555,12 +559,16 @@ export async function Console({ session }: { session: Session }) {
         standing={standing}
         avis={avis}
         veilles={veilles}
-        attentesSondees={ctx.attentesSondees}
+        sondees={sondees}
         mandats={ctx.mandats}
         mandatASigner={Boolean(ctx.mandatASigner)}
         prochaine={prochain ? { date: prochain.flow.date, titre: prochain.position.offer.title } : undefined}
         operations={positions.length}
         conventionOk={peutOPCVM(session)}
+        dossierAPoursuivre={Boolean(ctx.dossier) || !peutOPCVM(session)}
+        profilRenseigne={Boolean(profil)}
+        appareilAjoute={appareils.length > 0}
+        couponsSansReinvestissement={Boolean(ctx.attendu) && !ctx.reinvestissement}
       />
     </div>
   );

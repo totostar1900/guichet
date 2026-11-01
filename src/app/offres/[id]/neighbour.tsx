@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { repo } from "@/lib/data";
 import { estUneFiche } from "@/lib/fiche-url";
+import { voletsMasques } from "@/lib/fiche-volets";
 import { FicheReading, loadFiche } from "./FicheReading";
 import { FicheHead } from "./FicheHead";
 import { ListNav } from "@/components/ListNav";
@@ -39,9 +40,9 @@ export async function neighbourReading(offerId: string): Promise<React.ReactNode
   const data = await loadFiche(o);
   const now = new Date();
   return (
-    <FichePanes className={styles.main}>
+    <FichePanes className={styles.main} sans={voletsMasques(o)}>
       <ListNav id={o.id} fallbackHref={o.kind === "FONDS" ? "/fonds" : "/"} fallbackLabel={o.kind === "FONDS" ? "Tous les fonds" : "Toutes les offres"} />
-      <FicheHead o={o} s={summarize(o, now)} st={displayStatus(o, now)} preview />
+      <FicheHead o={o} s={summarize(o, now)} st={displayStatus(o, now)} />
       <FicheReading o={o} data={data} />
     </FichePanes>
   );

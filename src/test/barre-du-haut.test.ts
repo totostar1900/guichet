@@ -204,7 +204,7 @@ describe("grand écran : les mêmes raccourcis, là où la barre du téléphone 
 
   it("à partir de 1041 px, la colonne du client porte l'horloge et l'étoile, sous l'enseigne", () => {
     const l = sansNotes(lire("src/app/layout.tsx"));
-    expect(l, "la colonne du client n'a plus ses raccourcis").toMatch(/raccourcis=\{session && !deskUi \? <RaccourcisColonne urgentes=\{urgentes \?\? 0\} \/> : undefined\}/);
+    expect(l, "la colonne du client n'a plus ses raccourcis").toMatch(/raccourcis=\{session && !deskUi \? <RaccourcisColonne urgentes=\{urgentes \?\? 0\} favoris=\{Boolean\(favoris\)\} \/> : undefined\}/);
     const c = sansNotes(lire("src/components/Colonne.tsx"));
     expect(c.indexOf("{raccourcis}"), "la colonne ne rend plus ses raccourcis").toBeGreaterThan(-1);
     expect(c.indexOf("{raccourcis}") < c.indexOf("<Chercher groupes"), "les raccourcis ne sont plus au-dessus de la recherche").toBe(true);
@@ -212,5 +212,34 @@ describe("grand écran : les mêmes raccourcis, là où la barre du téléphone 
     expect(r, "l'horloge de la colonne ne mène plus aux échéances").toMatch(/<Link href="\/echeances"/);
     expect(r, "l'étoile de la colonne ne mène plus aux favoris").toMatch(/<Link href="\/favoris"/);
     expect(r, "la pastille ambre n'est plus conditionnée à un nombre").toMatch(/\{urgentes > 0 && \(/);
+  });
+});
+
+/**
+ * LA LOUPE ET L'ÉTOILE (1er novembre 2026, planche « fiche et Accueil », point 12B).
+ *
+ * La barre de recherche du tiroir ouvrait une feuille de six résultats qui se
+ * comportait mal : elle est partie, remplacée par une loupe dans la barre du haut
+ * qui MÈNE à la page de recherche. Et l'étoile n'existe que si le client a un
+ * favori : une étoile vers une liste vide apprend à ne plus la toucher.
+ */
+describe("la loupe et l'étoile", () => {
+  const barre = () => code("src/components/mobile/BarreDuHaut.tsx");
+  it("mène à la page de recherche par un lien, sauf depuis elle-même", () => {
+    expect(barre(), "la loupe n'est plus un lien vers la page de recherche").toMatch(/chemin !== "\/recherche" && \(\s*<Link href="\/recherche"/);
+  });
+  it("n'a plus de barre de recherche dans le tiroir, ni de feuille de résultats", () => {
+    expect(barre(), "le tiroir a retrouvé un champ de recherche").not.toMatch(/styles\.champ/);
+    expect(barre(), "la feuille de résultats est revenue").not.toMatch(/<Sheet\b|MenuRecherche|useGuideIndex/);
+  });
+  it("ne montre l'étoile que si le client a un favori, et la montre dès qu'il en pose un", () => {
+    expect(barre(), "l'étoile n'est plus conditionnelle").toMatch(/\{aUnFavori && \(\s*<Link href="\/favoris"/);
+    expect(barre(), "le premier favori posé depuis le menu ne fait plus paraître l'étoile").toMatch(/if \(r\.favori\) setAUnFavori\(true\)/);
+    expect(code("src/components/RaccourcisColonne.tsx"), "la colonne montre « Favoris » même sans favori").toMatch(/\{favoris && \(\s*<Link href="\/favoris"/);
+  });
+  it("le calcule une fois, au gabarit, pour les trois surfaces", () => {
+    const l = code("src/app/layout.tsx");
+    expect(l, "le gabarit ne dit plus s'il y a un favori").toMatch(/aDesFavoris\(w, o, p\)/);
+    for (const surface of [/favoris: Boolean\(favoris\)/, /favoris=\{Boolean\(favoris\)\} desk=/, /favoris=\{Boolean\(favoris\)\} \/> : undefined/]) expect(l, `une surface ne reçoit plus l'indicateur : ${surface.source}`).toMatch(surface);
   });
 });

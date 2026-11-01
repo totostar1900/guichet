@@ -163,7 +163,8 @@ const FAMILLES_DE_TUILES: [string, string][] = [
   ["src/app/info/page.module.css", ".tile"],
   ["src/app/info/page.module.css", ".lesson"],
   ["src/components/accueil/GrilleInvestir.module.css", ".tuile"],
-  ["src/components/accueil/TuilesDossier.module.css", ".tuile"],
+  ["src/components/accueil/DossierAccueil.module.css", ".pleine"],
+  ["src/components/accueil/DossierAccueil.module.css", ".compacte"],
   ["src/components/SelectionDuDesk.module.css", ".lien"],
 ];
 

@@ -184,6 +184,8 @@ export interface IssuerDocument {
 
 export const FUND_CATEGORY_LABEL: Record<FundNav["category"], string> = { M: "Monétaire", O: "Obligataire", D: "Diversifié", A: "Actions", "?": "—" };
 export const FUND_FREQUENCY_LABEL: Record<FundNav["frequency"], string> = { quotidienne: "VL quotidienne", hebdomadaire: "VL hebdomadaire", mensuelle: "VL mensuelle", trimestrielle: "VL trimestrielle", "?": "" };
+/** La fréquence seule, pour une ligne « Fréquence de la VL » : « hebdomadaire », sans le « VL » du libellé de liste. */
+export const FUND_FREQUENCY_ADJ: Record<FundNav["frequency"], string> = { quotidienne: "quotidienne", hebdomadaire: "hebdomadaire", mensuelle: "mensuelle", trimestrielle: "trimestrielle", "?": "" };
 export const SEGMENT_LABEL: Record<NonNullable<Quote["segment"]>, string> = { etats: "Obligations d'État", regionales: "Institutions régionales", privees: "Obligations privées" };
 
 /** Stable key for a fund from its printed name ("FCP ASCA LIQUIDITÉS" → "fcp-asca-liquidites"). */

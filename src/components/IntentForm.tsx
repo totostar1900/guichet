@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useActionState, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { repere as noterLaPlace, restituer, type Repere as PlaceNotee } from "@/lib/ui/garder-la-place";
 import { poserLeBrouillon } from "@/lib/brouillon";
 import type { IntentResult } from "@/app/offres/[id]/actions";
 import { submitIntent } from "@/app/offres/[id]/actions";
@@ -163,6 +164,13 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
    */
   const [mode, setMode] = useState<"" | "une" | "mois">(monthly ? "" : "une");
   const formRef = useRef<HTMLFormElement>(null);
+  /* GARDER LA PLACE À LA BASCULE (1er novembre 2026) : « Souscription / Rachat de parts » change les champs, donc la hauteur de la page (844 → 877 px mesurés) ; défilée, la bascule partait sous le doigt. On note où elle était, on la remet là (voir « garder-la-place »). */
+  const placeDeLaBascule = useRef<PlaceNotee | null>(null);
+  useLayoutEffect(() => {
+    const m = placeDeLaBascule.current;
+    placeDeLaBascule.current = null;
+    restituer(m, formRef.current?.querySelector('input[name="type"]:checked')?.closest("label") ?? null, formRef.current);
+  }, [type]);
   /**
    * CE QUI MANQUE POUR AVANCER, DIT SANS BOUGER L'ÉCRAN.
    *
@@ -278,6 +286,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   // privait le garde-fou du profil de son montant. Le compartiment décide.
   const mktBond = market && offer.instrument === "obligation" && ordered > 0 ? marketBondCalc(offer, ordered * offer.nominal, lim ?? offer.ask ?? offer.lastPrice ?? 0) : null;
   const outlay = market ? (mktBond?.outlay ?? (ordered > 0 ? ordered * unitPrice(offer, type, lim) : 0)) : (est.outlay ?? 0);
+  const totalRedondant = offer.kind === "FONDS" && type === "souscription" && outlay > 0 && Math.round(outlay) === Math.round(parse(amount));
   const sized = market ? ordered > 0 : est.ok;
   /* CE QUE LA VENTE RAPPORTERAIT AUJOURD'HUI : le domaine le dit pour les
      trois sorties, dont deux où « outlay » est aveugle — négatif sur un
@@ -497,7 +506,10 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
             <span className={styles.bosse} data-second={type === types[1] ? "oui" : "non"} aria-hidden="true" />
             {types.map((it) => (
               <label key={it} className={type === it ? styles.motOn : styles.mot}>
-                <input type="radio" name="type" value={it} checked={type === it} onChange={() => setType(it)} />
+                <input type="radio" name="type" value={it} checked={type === it} onChange={(e) => {
+                  placeDeLaBascule.current = noterLaPlace(e.currentTarget.closest("label"));
+                  setType(it);
+                }} />
                 {t(INTENT_LABEL[it])}
               </label>
             ))}
@@ -506,7 +518,10 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           <div className={styles.radio}>
             {types.map((it) => (
               <label key={it}>
-                <input type="radio" name="type" value={it} checked={type === it} onChange={() => setType(it)} />
+                <input type="radio" name="type" value={it} checked={type === it} onChange={(e) => {
+                  placeDeLaBascule.current = noterLaPlace(e.currentTarget.closest("label"));
+                  setType(it);
+                }} />
                 {t(INTENT_LABEL[it])}
               </label>
             ))}
@@ -932,7 +947,8 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
 
                 Le détail du calcul passe dans une bulle : une phrase qu'on lit
                 une fois pour vérifier, pas un chiffre qu'on suit. */}
-            {sized && outlay > 0 ? (
+            {/* LE TOTAL D'UNE SOUSCRIPTION À UN FONDS REDISAIT LE MONTANT (1er novembre 2026) : sans frais affichés, « Total à décaisser » vaut le chiffre que le client vient de taper, en grand, juste au-dessus. Une seconde case pour le même nombre : la boîte blanche du thème clair. Elle revient si un écart apparaît, et le rachat garde la sienne (des parts tapées, des FCFA reçus). */}
+            {sized && outlay > 0 && totalRedondant ? null : sized && outlay > 0 ? (
               <RefTotals
                 figures={[
                   {

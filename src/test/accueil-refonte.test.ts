@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { SEED_OFFERS } from "@/data/seed";
-import { gestesProposables, rubriquesPresentes, seancesOuvertes, seancesPrevues, type FaitsDuDossier } from "@/lib/domain/accueil";
+import { gestesProposables, NB_GESTES, rubriquesPresentes, seancesOuvertes, seancesPrevues, type FaitsDuDossier, type FaitsPourGestes } from "@/lib/domain/accueil";
 import type { Offer } from "@/lib/domain/types";
 
 const ROOT = path.join(__dirname, "../..");
@@ -32,6 +32,8 @@ const seance = (id: string, ouvreDans: number, fermeDans: number): Offer => {
   return { ...base, id, title: id, opensAt: jour(ouvreDans), deadlineAt: jour(fermeDans) };
 };
 const faits = (o: Partial<FaitsDuDossier> = {}): FaitsDuDossier => ({ intentions: 0, attentesSondees: 0, mandats: 0, versements: 0, avisDeGarde: 0, lignesSuivies: 0, operations: 0, documents: 0, ...o });
+/** Un client qui n'a encore rien fait, compte ouvert : tous les gestes s'appliquent. */
+const pourGestes = (o: Partial<FaitsPourGestes> = {}): FaitsPourGestes => ({ ...faits(), conventionOk: true, dossierAPoursuivre: false, profilRenseigne: false, appareilAjoute: false, couponsSansReinvestissement: false, ...o });
 
 describe("les rubriques du dossier", () => {
   it("ne montrent rien à un client qui n'a rien", () => {
@@ -57,17 +59,25 @@ describe("les rubriques du dossier", () => {
 });
 
 describe("« Vous pouvez aussi »", () => {
-  it("ne propose que des gestes que le client peut faire lui-même", () => {
-    const tous = gestesProposables(faits(), true);
-    expect(tous).toEqual(["intention", "versement", "suivre", "prelevement"]);
+  it("ne propose que des gestes que le client peut faire lui-même, les inachevés d'abord", () => {
+    const tous = gestesProposables(pourGestes());
+    expect(tous).toEqual(["intention", "versement", "appareil", "profil", "suivre"]);
     /* Les droits de garde et les documents ne se créent pas : ils ne sont jamais proposés. */
     for (const g of tous) expect(["garde", "documents"]).not.toContain(g);
   });
-  it("ne propose pas ce que le client a déjà fait", () => {
-    expect(gestesProposables(faits({ intentions: 1, versements: 1, lignesSuivies: 1, mandats: 1 }), true)).toEqual([]);
+  it("met le dossier à poursuivre devant tout, et rien d'engageant sans convention", () => {
+    const g = gestesProposables(pourGestes({ conventionOk: false, dossierAPoursuivre: true }));
+    expect(g[0]).toBe("dossier");
+    expect(g, "sans convention, on ne propose pas d'agir").not.toContain("intention");
+    expect(g, "sans convention, on ne propose pas de programmer un versement").not.toContain("versement");
   });
-  it("ne propose pas d'agir sans convention : seul suivre une ligne reste ouvert", () => {
-    expect(gestesProposables(faits(), false)).toEqual(["suivre"]);
+  it("n'est jamais en dessous de deux lignes : les outils comblent quand tout est fait", () => {
+    const fait = pourGestes({ intentions: 1, versements: 1, lignesSuivies: 1, attentesSondees: 1, profilRenseigne: true, appareilAjoute: true });
+    expect(gestesProposables(fait)).toEqual(["simulateur", "comparer"]);
+  });
+  it("propose le réinvestissement des coupons attendus, et jamais plus de cinq gestes", () => {
+    expect(gestesProposables(pourGestes({ couponsSansReinvestissement: true }))).toContain("reinvestir");
+    expect(gestesProposables(pourGestes({ dossierAPoursuivre: true, couponsSansReinvestissement: true })), "la liste dépasse la borne").toHaveLength(NB_GESTES);
   });
 });
 
@@ -91,7 +101,7 @@ describe("la quatrième place d'« Investir »", () => {
 
 describe("les composants de l'Accueil", () => {
   const grille = code("src/components/accueil/GrilleInvestir.tsx");
-  const dossier = code("src/components/accueil/TuilesDossier.tsx");
+  const dossier = code("src/components/accueil/DossierAccueil.tsx");
   const accueil = code("src/app/Console.tsx");
 
   it("posent la proposition du client toujours, et les prochaines séances seulement s'il y en a", () => {
@@ -108,15 +118,27 @@ describe("les composants de l'Accueil", () => {
   it("n'annoncent le nombre de lignes dans aucune entrée d'« Investir »", () => {
     expect(grille, "une entrée d'« Investir » annonce de nouveau son inventaire").not.toMatch(/"\{n\} (lignes|fonds|séances)"|\.length\}/);
   });
-  it("ouvrent une seule tuile du dossier à la fois, repliée au chargement", () => {
-    expect(dossier, "l'état d'ouverture n'est plus une seule clé").toMatch(/useState<string \| null>\(null\)/);
-    expect(dossier, "la tuile ne dit plus si elle est ouverte à qui lit l'écran").toMatch(/aria-expanded=\{est\}/);
+  it("montrent d'office les rubriques qui ont de l'information, sans rien à déplier", () => {
+    expect(dossier, "le dossier est redevenu un composant client : ses tuiles se déplieraient").not.toMatch(/"use client"|aria-expanded|useState/);
+    /* LES TROIS EN PLEINE LARGEUR, DANS CET ORDRE : intentions, sondage, lignes suivies — puis la grille des petites. */
+    const i = dossier.indexOf('href="/moi/ordres"');
+    const sond = dossier.indexOf('href="/sondage" nom=', i);
+    const suiv = dossier.indexOf('href="/moi/suivies"', sond);
+    const grille = dossier.indexOf("className={styles.grille}", suiv);
+    expect(i, "les intentions ne sont plus la première rubrique pleine largeur").toBeGreaterThan(0);
+    expect(sond, "le sondage ne vient plus après les intentions").toBeGreaterThan(i);
+    expect(suiv, "les lignes suivies ne viennent plus après le sondage").toBeGreaterThan(sond);
+    expect(grille, "les petites tuiles ne viennent plus après les trois pleines").toBeGreaterThan(suiv);
   });
-  it("laissent « Vous pouvez aussi » ouvert, sans chevron ni bouton qui le replie", () => {
+  it("laisse « Vous pouvez aussi » ouvert, sans chevron ni bouton qui le replie", () => {
     expect(dossier, "« Vous pouvez aussi » est redevenu repliable").not.toMatch(/<details\b/);
     const pied = dossier.slice(dossier.indexOf("className={styles.aussi}"));
     expect(pied, "le pied n'est plus rendu").not.toBe("");
     expect(pied, "le pied porte un bouton : il se replierait").not.toMatch(/<button\b/);
+  });
+  it("montre pour une ligne suivie le chiffre qui compte et ce qui presse, trois lignes au plus", () => {
+    expect(dossier, "les lignes suivies ne montrent plus que trois lignes").toMatch(/\.slice\(0, 3\);\n/);
+    expect(dossier, "ce qui presse (la clôture) ne se lit plus sur une ligne suivie").toMatch(/q \? t\("ferme \{q\}"/);
   });
   it("posent la carte de l'indice comme un lien entier, sans titre ni chevron", () => {
     const carte = code("src/components/IndexPulse.tsx");

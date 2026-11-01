@@ -6,10 +6,13 @@ import { QuoteHistory } from "@/components/QuoteHistory";
 import { companyByIsin, issuerByIsin, loadIssuerRegistry } from "@/lib/reference";
 import { FicheSegments } from "@/components/mobile/FichePanes";
 import { Kpis } from "./Kpis";
+import { Info } from "@/components/Info";
+import { voletsMasques } from "@/lib/fiche-volets";
+import { FUND_FREQUENCY_ADJ } from "@/lib/domain/market";
 import { Amount } from "@/components/Amount";
 import { RefTotals } from "@/components/RefTotals";
 import { repo } from "@/lib/data";
-import { displayStatus, displayYield, marketAmortInput, marketBondInput, repaymentLabel } from "@/lib/domain/status";
+import { displayYield, marketAmortInput, marketBondInput, repaymentLabel } from "@/lib/domain/status";
 import { summarize } from "@/lib/domain/summary";
 import { coverageOf, headline, thin, type AuctionResult } from "@/lib/market/auction-results";
 import { bondTerms } from "@/lib/domain/status";
@@ -252,10 +255,6 @@ async function latestBta(): Promise<{ label: string; pct: number } | undefined> 
  * deux fiches finiraient par diverger sans que rien ne le signale.
  */
 export async function loadFiche(o: Offer) {
-  // L’état de la ligne sert au calendrier : il se relit ici plutôt que de
-  // voyager depuis la page, pour que les deux fiches ne puissent pas en
-  // recevoir deux versions différentes.
-  const st = displayStatus(o, new Date());
   // Ce que la fiche demande, tout en même temps.
   //
   // Ces lectures ne dépendent pas les unes des autres, et pourtant chacune
@@ -338,7 +337,9 @@ export async function loadFiche(o: Offer) {
       ? [
           ["Société de gestion", o.fund.manager],
           ["Dépositaire", o.fund.depositary],
-          ["Centralisation", o.fund.cutoff ?? (st === "quoted" ? "avant la prochaine VL" : "sur demande")],
+          /* LA FRÉQUENCE DIT « QUAND », « Centralisation · avant la prochaine VL » ne le disait pas. La centralisation, elle, reste dite quand le desk l'a renseignée (« mardi 12 h ») : c'est la seule ligne qui dit jusqu'à quand un ordre est pris pour la prochaine VL. Vide, elle n'écrit rien. */
+          ...(FUND_FREQUENCY_ADJ[o.fund.frequency] ? ([["Fréquence de la VL", FUND_FREQUENCY_ADJ[o.fund.frequency]]] as [string, string][]) : []),
+          ...(o.fund.cutoff ? ([["Centralisation", o.fund.cutoff]] as [string, string][]) : []),
           ["Création du fonds", fmtDate(o.fund.inceptionDate)],
         ]
       : o.kind === "MARCHE"
@@ -428,19 +429,19 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
             <span className={`stamp ${stampPending ? "pending" : ""}`}>{t(stamp)}</span>
           </div>
           <Kpis o={o} base={base} />
-          <p className={styles.blurb}>{t(o.blurb)}</p>
+          {/* LA PHRASE DU FONDS EST PARTIE (1er novembre 2026) : générée à l'import du Bulletin Officiel de la Cote avec le nom, la catégorie, la société, le dépositaire et la fréquence, elle redisait « Caractéristiques ». Les autres lignes gardent la leur. */}
+          {o.kind !== "FONDS" && <p className={styles.blurb}>{t(o.blurb)}</p>}
           {o.resultLine && <div className={styles.result}>{o.resultLine}</div>}
           <CrossSignal o={o} facing={facing} />
-          <p className={styles.note}>
-            {t("Les risques d'une ligne se lisent dans le Guide :")} <Link href="/info/les-quatre-risques">{t("Les quatre risques, et ce qu'on peut faire")}</Link>.
-          </p>
         </section>
 
         <section className={styles.sec} data-pane="chiffres">
           <Reference o={o} mode={mode} />
-          <p className={styles.note}>
-            {t("Chiffres de référence au prix publié. Pour votre montant, indiquez-le dans votre intention ; le desk vous confirme le décaissement exact. Pour explorer d'autres prix ou durées, utilisez le")}{" "}
-            <Link href="/info/simulateur">{t("simulateur")}</Link>.
+          {/* LA NOTE EST UNE BULLE (1er novembre 2026) : elle tenait une phrase sous le bloc, que personne ne relisait deux fois. Le « i » la garde à un toucher, et le simulateur reste un lien. */}
+          <p className={styles.noteBulle}>
+            <span>{t("Chiffres de référence")}</span>
+            <Info text="Chiffres de référence au prix publié. Pour votre montant, indiquez-le dans votre intention ; le desk vous confirme le décaissement exact." label="Chiffres de référence" />
+            <Link href="/info/simulateur">{t("Essayer le simulateur")} →</Link>
           </p>
         </section>
 
@@ -510,10 +511,13 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
 
         <RelatedNews kind="offer" keyOf={o.id} className={styles.sec} />
 
-        <section className={styles.sec} data-pane="emetteur">
-          <h3>{t("L'émetteur")}</h3>
-          <IssuerCard profile={profile} o={o} others={others} company={company} issuer={issuer} />
-        </section>
+        {/* L'ÉMETTEUR D'UN FONDS EST SA SOCIÉTÉ DE GESTION, déjà nommée dans « Souscription, rachat et règlement » : plus de volet pour lui côté client (1er novembre 2026). Le desk garde la carte. Les autres lignes aussi. */}
+        {(!voletsMasques(o).includes("emetteur") || mode === "desk") && (
+          <section className={styles.sec} data-pane="emetteur">
+            <h3>{t("L'émetteur")}</h3>
+            <IssuerCard profile={profile} o={o} others={others} company={company} issuer={issuer} />
+          </section>
+        )}
     </>
   );
 }

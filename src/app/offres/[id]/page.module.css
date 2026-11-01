@@ -229,3 +229,17 @@
 }
 
 /* the client's profile against this line: a quiet word by the status, never a wall */
+
+/* « Chiffres de référence ⓘ · Essayer le simulateur → » : une ligne, à la place d'une phrase. */
+.noteBulle {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.noteBulle a {
+  margin-left: auto;
+  color: var(--gold-ink);
+}

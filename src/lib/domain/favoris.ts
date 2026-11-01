@@ -19,6 +19,16 @@ export interface Favoris {
   pages: Favori[];
 }
 
+/**
+ * LE CLIENT A-T-IL UN FAVORI ? L'étoile de la barre n'existe que s'il y en a un (1er novembre 2026) :
+ * une étoile vers une liste vide apprend à ne plus la toucher. Le premier favori se pose depuis le
+ * menu (« Mettre cette page en favori ») ou depuis l'étoile d'une ligne, qui sont toujours là.
+ */
+export const aDesFavoris = (watches: Watch[], offers: Offer[], pages: Favori[]): boolean => {
+  const f = lesFavoris(watches, offers, pages);
+  return f.lignes.length + f.pages.length > 0;
+};
+
 export const lesFavoris = (watches: Watch[], offers: Offer[], pages: Favori[]): Favoris => ({ lignes: lignesSuivies(watches, offers), pages });
 
 /**

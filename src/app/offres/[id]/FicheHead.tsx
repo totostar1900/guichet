@@ -2,7 +2,6 @@ import { LineIdentity } from "@/components/LineIdentity";
 import { HorizonMark } from "@/components/HorizonMark";
 import { WatchButton } from "@/components/WatchButton";
 import { LineMenu } from "@/components/mobile/LineMenu";
-import { CoachMarks, type CoachStop } from "@/components/mobile/CoachMarks";
 import type { DisplayStatus, Offer } from "@/lib/domain/types";
 import type { OfferSummary } from "@/lib/domain/summary";
 import { familySegment, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
@@ -31,24 +30,16 @@ export async function FicheHead({
   o,
   s,
   st,
-  coach = false,
-  preview = false,
   horizon,
   watching = false,
   signedIn = false,
-  stops = [],
 }: {
   o: Offer;
   s: OfferSummary;
   st: DisplayStatus;
-  /** La page seule marque le cachet pour la visite guidée : deux repères se la disputeraient. */
-  coach?: boolean;
-  /** La voisine qui glisse : mêmes boutons, mêmes tailles, aucun effet. */
-  preview?: boolean;
   horizon?: { level?: "ok" | "warn"; text?: string; hasProfile: boolean };
   watching?: boolean;
   signedIn?: boolean;
-  stops?: CoachStop[];
 }) {
   const t = await getT();
   return (
@@ -60,7 +51,7 @@ export async function FicheHead({
       <div className={styles.headRow}>
         <LineIdentity o={o} s={s} size="xl" as="h1" />
         <div className={styles.headActions}>
-          <span className={`pill ${st}`} {...(coach ? { "data-coach": "status" } : {})}>
+          <span className={`pill ${st}`}>
             {t(statusLabel(o, st))}
           </span>
           {/* Les trois ronds ne se quittent pas.
@@ -81,7 +72,6 @@ export async function FicheHead({
             <a className={`btn sm ${styles.pdfBtn}`} href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
               {t("Fiche PDF")}
             </a>
-            <CoachMarks id="fiche" replayLabel={t("Comment lire cette fiche ?")} stops={stops} auto={!preview} inert={preview} />
           </div>
         </div>
       </div>

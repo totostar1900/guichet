@@ -258,11 +258,13 @@ describe("le modèle du sondage", () => {
     const dossier = lire("src/components/accueil/DossierAccueil.tsx");
     expect(dossier, "la rubrique du sondage a quitté l'accueil").toMatch(/href: "\/sondage"/);
     expect(lire("src/lib/domain/accueil.ts"), "la rubrique du sondage paraît même quand le client n'a rien dit").toMatch(/f\.attentesSondees > 0\) out\.push\("sondage"\)/);
-    expect(console_, "la page ne passe plus le compte du contexte au dossier").toMatch(/attentesSondees=\{ctx\.attentesSondees\}/);
+    expect(console_, "la page ne passe plus les lignes du sondage au dossier").toMatch(/sondees=\{sondees\}/);
+    expect(dossier, "le dossier ne tire plus la présence de la rubrique des lignes vivantes du sondage").toMatch(/attentesSondees: vivantes\.length/);
     expect(dossier, "la rubrique recompte les intentions au desk dans son intitulé").not.toMatch(/"\{n\} au desk"|"1 au desk"/);
-    /* NON VACUITÉ : le compte est bien celui du contexte, et non un second
-       calcul fait sur place. */
-    expect(console_, "l'accueil recalcule les attentes au lieu de lire le contexte").not.toMatch(/listLignesSondees/);
+    /* LA PAGE LIT MAINTENANT LES LIGNES ELLES-MÊMES (1er novembre 2026) : la rubrique les montre, elle ne se contente plus de les compter. La règle « vivante » reste celle du contexte — tout sauf « close » —, écrite une fois de chaque côté : un second sens du mot ferait paraître une rubrique que la page des services dit vide. */
+    expect(console_, "l'accueil ne lit plus les lignes du sondage de CE client").toMatch(/listLignesSondees\(\{ userId: session\.userId \}\)/);
+    expect(lire("src/lib/domain/contexte-client.ts"), "le contexte ne compte plus les attentes vivantes comme l'accueil").toMatch(/sondees\.filter\(\(x\) => x\.state !== "close"\)\.length/);
+    expect(dossier, "le dossier n'applique plus la même règle « vivante »").toMatch(/sondees\.filter\(\(x\) => x\.state !== "close"\)/);
     expect(console_, "l'accueil ne lit plus le contexte").toMatch(/contexteDuClient\(session\.userId\)/);
   });
 

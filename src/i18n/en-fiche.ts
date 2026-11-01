@@ -1,0 +1,36 @@
+/**
+ * English for what the November 2026 rework added to the fund fiche, the
+ * intention page, the home page's dossier and the top bar.
+ */
+export const EN_FICHE: Record<string, string> = {
+  "Fréquence de la VL": "NAV frequency",
+  quotidienne: "daily",
+  hebdomadaire: "weekly",
+  mensuelle: "monthly",
+  trimestrielle: "quarterly",
+  "Chiffres de référence": "Reference figures",
+  "Essayer le simulateur": "Try the simulator",
+  "Performances passées non garanties": "Past performance is not guaranteed",
+  "Sur la période choisie": "Over the chosen period",
+  "ferme {q}": "closes {q}",
+  "sur 12 mois": "over 12 months",
+  "ouverte": "open",
+  "portée au Trésor": "taken to the Treasury",
+  "Mes lignes suivies": "My followed lines",
+  "Toutes mes lignes suivies": "All my followed lines",
+  "Compléter mon dossier": "Complete my file",
+  "Dix minutes pour pouvoir verser et placer": "Ten minutes to be able to pay in and invest",
+  "Dites ce que vous prendriez, le desk revient vers vous": "Say what you would take; the desk comes back to you",
+  "Une somme chaque mois, sans y penser": "A sum every month, without thinking about it",
+  "Réinvestir mes coupons": "Reinvest my coupons",
+  "Ne laissez pas dormir ce qui vous revient": "Do not let what comes back to you sit idle",
+  "Ajouter ce téléphone": "Add this phone",
+  "Ouvrir d'un doigt la prochaine fois": "Open with one finger next time",
+  "Compléter mon profil d'investisseur": "Complete my investor profile",
+  "Dix-sept questions, quelques minutes": "Seventeen questions, a few minutes",
+  "Une alerte à la clôture ou au prix": "An alert at closing or at a price",
+  "Dites ce que vous prendriez avant qu'une séance ouvre": "Say what you would take before a session opens",
+  "Calculer un rendement avant d'ordonner": "Work out a yield before ordering",
+  "Comparer deux lignes": "Compare two lines",
+  "Côte à côte, avec l'indice en repère": "Side by side, with the index as a benchmark",
+};

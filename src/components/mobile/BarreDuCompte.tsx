@@ -51,6 +51,8 @@ export interface BarreProps {
   attentes?: Attente[];
   /** Les lignes qui ferment sous sept jours : le nombre de l'horloge, pour le client. */
   urgentes?: number;
+  /** Le client a au moins un favori : l'étoile de la barre n'existe qu'alors. */
+  favoris?: boolean;
 }
 
 export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-left" }) {

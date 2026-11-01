@@ -1,7 +1,7 @@
+import Link from "next/link";
 import { ContactRapide } from "@/components/ContactRapide";
 import type { Channel } from "@/lib/domain/types";
 import { ListNav } from "@/components/ListNav";
-import { newsFor } from "@/lib/news";
 import { notFound } from "next/navigation";
 import { IntentForm } from "@/components/IntentForm";
 import { Vu } from "@/components/Vu";
@@ -13,7 +13,7 @@ import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { peutOPCVM, isDesk } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
-import { ficheStops } from "@/lib/domain/fiche-stops";
+import { voletsMasques } from "@/lib/fiche-volets";
 import { tenorText } from "@/lib/finance";
 import { fmtDate } from "@/lib/format";
 import styles from "./page.module.css";
@@ -80,11 +80,10 @@ export default async function OfferPage({ params, searchParams }: Props) {
   // de l'intention, le corps de la fiche, les actualités liées. Enchaînées, la
   // page payait quatre allers-retours avant de commencer à se rendre, et c'est
   // ce qu'on attendait en glissant d'une fiche à la suivante.
-  const [watching, ctx, fiche, relatedNews] = await Promise.all([
+  const [watching, ctx, fiche] = await Promise.all([
     session ? repo().listWatches(session.userId).then((w) => w.some((x) => x.offerId === id)) : Promise.resolve(false),
     loadIntentContext(o, sp, session),
     loadFiche(o),
-    newsFor("offer", o.id).then((n) => n.length),
   ]);
   const { channels, bridge, fin, mark, types, initial, held, qty, st, past, switchTargets } = ctx;
   const summary = summarize(o, new Date());
@@ -94,7 +93,6 @@ export default async function OfferPage({ params, searchParams }: Props) {
   // fabriqués dans le domaine plutôt qu'ici, pour qu'un cliquet puisse vérifier
   // qu'ils passent en anglais : composés autour du chiffre principal, ils
   // traversent t() sous forme de variable, et le scanner de clefs ne les voit pas.
-  const coachStops = ficheStops(o, summary, { hasNews: relatedNews > 0 });
 
   return (
     <Glissement>
@@ -103,11 +101,15 @@ export default async function OfferPage({ params, searchParams }: Props) {
             navigateur qui le dit, une fois par jour et par ligne. */}
         {session && <Vu geste="vu.fiche" objet={o.id} detail={o.title} />}
         <SwipePager id={o.id} hintKey="fiche" hints={{ next: "Glissez vers la gauche : la ligne suivante", prev: "Glissez vers la droite : la ligne précédente" }}>
-        <FichePanes className={styles.main}>
+        <FichePanes className={styles.main} sans={voletsMasques(o)}>
           <ListNav id={o.id} fallbackHref={o.kind === "FONDS" ? "/fonds" : "/"} fallbackLabel={o.kind === "FONDS" ? "Tous les fonds" : "Toutes les offres"} />
-          <FicheHead o={o} s={summary} st={st} coach horizon={{ level: mark?.level, text: mark?.[lang], hasProfile: Boolean(fin) }} watching={watching} signedIn={Boolean(session)} stops={coachStops.map((c) => ({ ...c, title: t(c.title), text: t(c.text) }))} />
+          <FicheHead o={o} s={summary} st={st} horizon={{ level: mark?.level, text: mark?.[lang], hasProfile: Boolean(fin) }} watching={watching} signedIn={Boolean(session)} />
 
           <FicheReading o={o} data={fiche} />
+          {/* LES RISQUES, EN PIED DE PAGE (1er novembre 2026) : hors des volets, donc sous le client quel que soit l'onglet où il lit un rendement, juste avant la barre d'action. Elle vivait dans l'Essentiel, où l'on ne regarde pas les chiffres. */}
+          <p className={styles.note}>
+            {t("Les risques d'une ligne se lisent dans le Guide :")} <Link href="/info/les-quatre-risques">{t("Les quatre risques, et ce qu'on peut faire")}</Link>.
+          </p>
         </FichePanes>
         </SwipePager>
 

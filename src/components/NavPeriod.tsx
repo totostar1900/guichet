@@ -8,6 +8,7 @@ import { daysBetween } from "@/lib/finance";
 import { fmt, fmtPct } from "@/lib/format";
 import styles from "./QuoteHistory.module.css";
 import { useDates, useT } from "@/i18n/client";
+import { Info } from "@/components/Info";
 
 /**
  * The window of the NAV chart: six durations or two free dates, kept in the
@@ -177,10 +178,8 @@ export function NavPeriod({ series, benchmark, narrow }: { series: NavPoint[]; b
           <span>{t("au")}</span>
           <input type="date" value={b} min={first} max={last} onChange={(e) => e.target.value && update({ du: a, au: e.target.value, periode: undefined })} />
         </label>
-        <span className={styles.periodCount}>
-          {t("{n} VL publiées sur la période", { n: window_.length })} · {fmtDate(a)} → {fmtDate(b)}
-          {duration === "origine" && !custom ? ` · ${t("depuis notre première VL lue, pas depuis la création du fonds")}` : ""}
-        </span>
+        {/* LA LIGNE « 47 VL PUBLIÉES SUR LA PÉRIODE · 17 OCT. → 16 OCT. » EST PARTIE (1er novembre 2026) : les dates sont dans les champs « du / au », le nombre n'aidait personne. Reste la seule précision qui ne se lit nulle part ailleurs : une durée « depuis l'origine » part de notre première VL lue. */}
+        {duration === "origine" && !custom && <span className={styles.periodCount}>{t("depuis notre première VL lue, pas depuis la création du fonds")}</span>}
       </div>
 
       <div className={styles.periodGrid}>
@@ -194,16 +193,6 @@ export function NavPeriod({ series, benchmark, narrow }: { series: NavPoint[]; b
                   <b className={cls(headline.v)}>{headline.text}</b>
                 </div>
               )}
-              {mode === "vl" && s && (
-                <div className={styles.legend}>
-                  <span>
-                    {t("{n} VL sur la période · plus haut {hi} ({a}) · plus bas {lo} ({b})", { n: window_.length, hi: fmt(s.hi.nav), a: fmtDate(s.hi.date), lo: fmt(s.lo.nav), b: fmtDate(s.lo.date) })}
-                  </span>
-                  <b className={cls(s.perf)} title={t("Variation de la VL entre la première et la dernière date affichées")}>
-                    {signed(s.perf)}
-                  </b>
-                </div>
-              )}
             </>
           ) : (
             <div className="empty">{t("Aucune VL publiée sur cette période.")}</div>
@@ -211,7 +200,10 @@ export function NavPeriod({ series, benchmark, narrow }: { series: NavPoint[]; b
         </div>
         {s && (
           <div className={styles.periodStats}>
-            <span className="eyebrow">{t("Sur la période choisie")}</span>
+            <span className="eyebrow">
+              {t("Sur la période choisie")}
+              <Info text="Chiffres bruts, calculés sur les VL publiées, avant droits d'entrée et de sortie et fiscalité ; le montant placé suppose une souscription à la première VL de la période. Les performances passées ne préjugent pas des performances futures." label="Sur la période choisie" />
+            </span>
             <dl className={styles.periodDl}>
               <div>
                 <dt>{t("Performance")}</dt>
@@ -252,7 +244,8 @@ export function NavPeriod({ series, benchmark, narrow }: { series: NavPoint[]; b
                 <dd>{s.placed == null ? "—" : `${fmt(s.placed)} FCFA`}</dd>
               </div>
             </dl>
-            <p className={styles.periodNote}>{t("Chiffres bruts, calculés sur les VL publiées, avant droits d'entrée et de sortie et fiscalité ; le montant placé suppose une souscription à la première VL de la période. Les performances passées ne préjugent pas des performances futures.")}</p>
+            {/* PERFORMANCES PASSÉES : la mise en garde reste LISIBLE, la précision est dans la bulle (1er novembre 2026). */}
+            <p className={styles.periodNote}>{t("Performances passées non garanties")}</p>
           </div>
         )}
       </div>

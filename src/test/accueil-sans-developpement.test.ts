@@ -54,7 +54,7 @@ describe("la page d'accueil", () => {
       ["les droits de garde", "/moi/garde"],
       ["les lignes suivies", "/moi/suivies"],
     ] as const) {
-      expect(dossier, `${quoi} : la bande qui y mène a disparu de l'accueil`).toContain(`href: "${ou}"`);
+      expect(dossier, `${quoi} : la bande qui y mène a disparu de l'accueil`).toMatch(new RegExp(`href(?:=|: )"${ou}"`));
     }
     for (const page of ["src/app/moi/ordres/page.tsx", "src/app/moi/garde/page.tsx", "src/app/moi/suivies/page.tsx"]) {
       expect(fs.existsSync(path.join(ROOT, page)), `${page} n'existe plus : une bande de l'accueil ne mène donc nulle part`).toBe(true);

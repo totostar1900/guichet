@@ -8,7 +8,6 @@ import { offerReference, offerRisks } from "@/lib/domain/sheet";
 import { explainKpis } from "@/lib/domain/explain";
 import { displayStatus, repaymentLabel, statusLabel } from "@/lib/domain/status";
 import { tenorCourt, tenorText } from "@/lib/finance";
-import { ficheStops } from "@/lib/domain/fiche-stops";
 import { compareLine } from "@/lib/domain/compare";
 import { standingBlock } from "@/lib/domain/standing";
 import { reasonForClient, reasonForDesk } from "@/lib/domain/cancel-reasons";
@@ -109,12 +108,6 @@ describe("les textes du desk et de la fiche passent en anglais", () => {
       if (c) deskPhrases.push(c.family, c.ret.note, c.flows?.title ?? "");
       deskPhrases.push(...sans("standingBlock", () => standingBlock(o, { amount: 50_000, dayOfMonth: 5, startsOn: "2026-11-05" }), []));
       deskPhrases.push(sans("repaymentLabel", () => repaymentLabel(o) ?? "", ""));
-      // Les repères du tour de la fiche : ils parlent de cette ligne, avec son
-      // chiffre principal, et une clôture proche change le troisième.
-      const s2 = sans(`summarize ${o.id}`, () => summarize(o, NOW), undefined);
-      if (s2)
-        for (const hasNews of [false, true])
-          for (const countdown of [undefined, "2 h 10"]) deskPhrases.push(...sans("ficheStops", () => ficheStops(o, { ...s2, countdown }, { hasNews }).flatMap((c) => [c.title, c.text]), []));
     }
     // La durée réelle : deux mots que la fiche répète partout, et que
     // l'inventaire des producteurs du desk avait d'abord laissés de côté.

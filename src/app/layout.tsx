@@ -37,7 +37,7 @@ import { cookies, headers } from "next/headers";
 import { clientOrigin, deskSplit, isDeskHost } from "@/lib/hosts";
 import { LEGAL_VERSION } from "@/data/legal";
 import { attentesPourLaBarre } from "@/lib/domain/contexte-client";
-import { echeancesUrgentes } from "@/lib/domain/favoris";
+import { aDesFavoris, echeancesUrgentes } from "@/lib/domain/favoris";
 import { RaccourcisColonne } from "@/components/RaccourcisColonne";
 import { echeancesProches } from "@/lib/domain/echeances";
 
@@ -141,7 +141,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
    * affiché derrière un clic : c'est le genre de ligne qui ne se retire que le
    * jour où son seul lecteur disparaît.
    */
-  const [account, attentes, consent, poste, urgentes] = session
+  const [account, attentes, consent, poste, urgentes, favoris] = session
     ? await Promise.all([
         accountLine(session.userId),
         deskUi ? [] : attentesPourLaBarre(session.userId),
@@ -150,8 +150,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         deskUi ? chargerPoste(session.userId, session.role).catch(() => undefined) : undefined,
         /* Le nombre de l'horloge : les lignes qui ferment sous sept jours. Les offres sont lues une fois par requête (memo), la page les relit sans coût. */
         deskUi ? 0 : repo().listOffers().then((o) => echeancesUrgentes(echeancesProches(o))).catch(() => 0),
+        /* L'ÉTOILE N'EXISTE QUE S'IL Y A UN FAVORI : deux lectures bornées au client (les offres sont déjà lues, par la mémoire de la requête). */
+        deskUi ? false : Promise.all([repo().listWatches(session.userId), repo().listOffers(), repo().listFavoris(session.userId)]).then(([w, o, p]) => aDesFavoris(w, o, p)).catch(() => false),
       ])
-    : [undefined, [], undefined, undefined, 0];
+    : [undefined, [], undefined, undefined, 0, false];
   const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
   /* LA SURFACE, ET POURQUOI C'EST LA SESSION QUI LA DIT.
      Le système de design décrit la vitrine devant la porte et l'espace de
@@ -220,12 +222,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   {t("démo · mémoire")}
                 </span>
               )}
-              <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, desk: deskUi, attentes: deskUi ? [] : attentes, urgentes: urgentes ?? 0 } : undefined} />
+              <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, desk: deskUi, attentes: deskUi ? [] : attentes, urgentes: urgentes ?? 0, favoris: Boolean(favoris) } : undefined} />
               {menu}
             </div>
           </div>
         </header>
-        <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} urgentes={urgentes ?? 0} desk={deskUi} deskHost={onDeskHost} menu={menu} />
+        <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} urgentes={urgentes ?? 0} favoris={Boolean(favoris)} desk={deskUi} deskHost={onDeskHost} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation />
         <Onboarding />
@@ -246,7 +248,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Colonne
             mode={deskUi ? "desk" : "client"}
             connecte={Boolean(session)}
-            raccourcis={session && !deskUi ? <RaccourcisColonne urgentes={urgentes ?? 0} /> : undefined}
+            raccourcis={session && !deskUi ? <RaccourcisColonne urgentes={urgentes ?? 0} favoris={Boolean(favoris)} /> : undefined}
             enseigne={
               /* Même règle qu'en haut de la barre : l'enseigne de la
                  colonne nomme la maison, et le groupe « Accueil » juste en
