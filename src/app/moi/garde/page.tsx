@@ -46,7 +46,8 @@ export default async function GardePage() {
 
   return (
     <Glissement>
-      <main className={styles.wrap}>
+      {/* UNE PILE : l'espace entre l'en-tête, les avis et le lien d'annexe vient du jeton des sections (ETALON.md § 8). */}
+      <main className={`pile ${styles.wrap}`}>
         <EnTete
           retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Votre dossier")}
