@@ -9,6 +9,11 @@ describe("lieuDe : où l'on est, en un siège et une rubrique", () => {
     expect(lieuDe("/marche")?.siege).toBe("Marché");
     expect(lieuDe("/aide")?.siege).toBe("Aide");
   });
+  it("sur la racine d'un siège, la bande ne redit pas le siège par une rubrique", () => {
+    for (const r of ["/trader", "/marche", "/aide"]) expect(lieuDe(r)?.rubrique, `« ${r} » est la racine de son siège : pas de rubrique`).toBeUndefined();
+    // Non-vacuité : une page qui n'est pas une racine garde la sienne.
+    expect(lieuDe("/titres")?.rubrique).toBeTruthy();
+  });
   it("la rubrique est la page du siège dont l'adresse est le plus long préfixe", () => {
     expect(lieuDe("/moi/documents/argent")).toEqual({ siege: "Accueil", rubrique: "Mes documents" });
     expect(lieuDe("/info/parcours")).toEqual({ siege: "Aide", rubrique: "Le parcours CEMAC" });

@@ -81,7 +81,8 @@ export default async function MarchePage() {
 
   return (
     <Glissement>
-      <>
+      {/* UNE PILE : l'espace entre les cartes vient du jeton des sections, et d'aucune marge (ETALON.md § 8). */}
+      <div className="pile">
         {/* ─── LE SOMMAIRE DU TÉLÉPHONE EST PARTI, le 1er novembre 2026 ──────
             Il posait les six pages de la famille en tuiles muettes AVANT le
             sur-titre et le titre : relevé au navigateur à 390 px, 712 px de
@@ -334,7 +335,7 @@ export default async function MarchePage() {
           <Link href="/indice#lecture">{t("D'où viennent ces chiffres, et ce qui manque à la série")}</Link>.{" "}
           {t("Calculs {c}.", { c: COMPANY.legalName })}
         </p>
-      </>
+      </div>
     </Glissement>
   );
 }

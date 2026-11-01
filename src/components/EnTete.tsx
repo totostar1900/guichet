@@ -85,8 +85,13 @@ export function EnTete({
    */
   aCote?: React.ReactNode;
 }) {
+  /* LA FLÈCHE ET LE TITRE FORMENT UN SEUL BLOC (31 octobre 2026). Ils étaient deux
+     enfants de la page : l'écart entre eux était « gap + marge de la flèche », et
+     montait à 48 px. Rangés ensemble, la distance flèche → titre est intérieure
+     (« --retour-gap »), et la page ne voit qu'un enfant, séparé du suivant par son
+     seul « gap ». */
   return (
-    <>
+    <div className={styles.entete}>
       {retour && (
         <LienRetour href={retour.href} className={styles.retour}>
           ← {retour.mot}
@@ -100,6 +105,6 @@ export function EnTete({
         </div>
         {aCote}
       </header>
-    </>
+    </div>
   );
 }

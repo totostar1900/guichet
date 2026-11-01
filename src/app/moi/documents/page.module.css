@@ -20,6 +20,8 @@
      nus se lisaient comme un seul texte (c'est ce que la page de réinvestissement
      avait relevé). Voir ETALON.md. */
   gap: var(--sections-gap);
+  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
+  --entete-marge: 0px;
 }
 
 /* CE QUI SE FABRIQUE : le seul papier qui n'existe pas encore quand on
@@ -83,7 +85,6 @@
   justify-content: space-between;
   gap: var(--s-6);
   flex-wrap: wrap;
-  margin-top: var(--s-8);
   padding: var(--s-7);
   border: 1px solid var(--line);
   border-radius: var(--radius);

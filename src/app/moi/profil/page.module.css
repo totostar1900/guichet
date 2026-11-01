@@ -1,7 +1,9 @@
 .wrap {
   display: grid;
-  gap: 12px;
+  gap: var(--sections-gap);
   max-width: 640px;
+  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
+  --entete-marge: 0px;
 }
 .quiz {
   display: grid;

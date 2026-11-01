@@ -4,15 +4,17 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--s-11);
+  gap: var(--sections-gap);
   padding-bottom: var(--respiration);
+  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
+  --entete-marge: 0px;
 }
 
 /* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
    2026 ; la grille de douze colonnes qui ne servait qu'à eux est partie avec.
    Ne reste que la mention de version, sous l'en-tête. */
 .version {
-  margin: calc(-1 * var(--s-6)) 0 var(--s-9);
+  margin: 0;
   font-size: 0.78rem;
   color: var(--ink-3);
   font-variant-numeric: tabular-nums;

@@ -30,20 +30,13 @@
   padding: var(--s-8) var(--s-7) var(--s-10);
   display: flex;
   flex-direction: column;
-  gap: var(--s-11);
+  gap: var(--sections-gap);
+  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
+  --entete-marge: 0px;
 }
 .bloc {
   display: grid;
   gap: var(--s-6);
-}
-/* L'EN-TÊTE PORTE DÉJÀ SA MARGE BASSE — 24 px, posés par « EnTete » pour
-   toutes les pages — et l'écart de chapitre s'y ajoutait : mesuré à l'écran,
-   cent cinquante pixels de rien entre le bouton « En bref » et le premier
-   titre, ce qui se lit comme une page qui commence deux fois. On retire ici ce
-   que l'en-tête apporte, et nulle part ailleurs : la règle de la maison reste
-   la sienne. */
-.page > header {
-  margin-bottom: calc(var(--s-9) - var(--s-11));
 }
 
 /* LE TITRE DE CHAPITRE PORTE SON POINT, sur la même ligne de base : un point

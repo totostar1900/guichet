@@ -51,7 +51,7 @@
   gap: var(--s-7);
   padding-bottom: var(--s-5);
   border-bottom: 1px solid var(--navy);
-  margin-bottom: var(--s-7);
+  margin-bottom: var(--titre-gap);
 }
 .tete b {
   font-size: 0.7rem;
@@ -548,7 +548,7 @@
 .dossier {
   display: flex;
   flex-direction: column;
-  gap: var(--s-6);
+  gap: var(--titre-gap);
 }
 
 @media (max-width: 900px) {

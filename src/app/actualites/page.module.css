@@ -1,7 +1,8 @@
 .page {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 32px;
+  /* LE MÊME JETON EN COLONNE ET EN LIGNE : empilés, le fil et le rail sont deux sections ; côte à côte, la gouttière vaut l'écart des sections. */
+  gap: var(--sections-gap);
   align-items: start;
 }
 @media (max-width: 960px) {
@@ -10,9 +11,7 @@
   }
 }
 .main {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  /* Une pile (« .pile », globals.css) : l'écart vient du jeton, pas d'ici. */
   min-width: 0;
 }
 /* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
@@ -191,9 +190,8 @@
   font-size: 0.9rem;
 }
 .rail {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  /* Une pile aussi : trois cartes titrées, trois sections. */
+  min-width: 0;
 }
 .card {
   padding: 16px 18px;

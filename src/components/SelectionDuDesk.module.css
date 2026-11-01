@@ -7,7 +7,7 @@
   padding-top: var(--s-5);
 }
 .titre {
-  margin: 0 0 var(--s-4);
+  margin: 0 0 var(--titre-gap);
   font-size: var(--t-1);
   font-weight: 700;
   letter-spacing: 0.07em;

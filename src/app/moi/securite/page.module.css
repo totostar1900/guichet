@@ -1,6 +1,8 @@
 .wrap {
   display: grid;
-  gap: 18px;
+  gap: var(--sections-gap);
+  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
+  --entete-marge: 0px;
 }
 
 .grid {
@@ -162,8 +164,17 @@
    et l'adresse SONT les deux canaux prouvés, et c'est cette page qui les
    gouverne. */
 .h2 {
-  margin: var(--s-10) 0 var(--s-6);
+  margin: 0;
   font-size: 1.05rem;
+}
+/* Un titre et ce qu'il contient forment UNE section de la pile : « --titre-gap » entre eux,
+   et le panneau perd sa marge basse (il est le dernier enfant d'une section, pas d'une pile). */
+.section {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.section > :global(.panel) {
+  margin-bottom: 0;
 }
 .bloc {
   margin-top: var(--s-7);

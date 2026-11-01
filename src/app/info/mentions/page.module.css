@@ -1,7 +1,9 @@
 .wrap {
   max-width: 720px;
   display: grid;
-  gap: 8px;
+  gap: var(--sections-gap);
+  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
+  --entete-marge: 0px;
 }
 /* Le titre et la phrase sont montés par « EnTete » depuis le 24 octobre 2026 :
    leurs mesures vivaient ici, elles vivent dans sa feuille. */

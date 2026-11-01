@@ -17,8 +17,11 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--s-8);
+  gap: var(--sections-gap);
   padding-bottom: var(--s-11);
+  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
+  --entete-marge: 0px;
+  --onglets-marge: 0px;
 }
 
 .page h2 {

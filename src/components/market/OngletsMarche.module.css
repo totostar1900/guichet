@@ -37,7 +37,8 @@
   align-items: stretch;
   gap: var(--s-9);
   border-bottom: 1px solid var(--line);
-  margin-bottom: var(--s-9);
+  /* Les onglets du marché s'ajoutaient à l'écart d'une pile : une page qui les range dans une pile met « --onglets-marge: 0px » (comme « --entete-marge »). */
+  margin-bottom: var(--onglets-marge, var(--s-9));
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
@@ -76,7 +77,7 @@
 @media (max-width: 760px) {
   .onglets {
     gap: var(--s-8);
-    margin-bottom: var(--s-8);
+    margin-bottom: var(--onglets-marge, var(--s-8));
   }
   .onglet {
     font-size: 0.78rem;

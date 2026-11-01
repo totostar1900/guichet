@@ -28,14 +28,17 @@ export interface Lieu {
 /** Les quatre mots du dock, et « Compte ». Un cliquet les compare à ceux du dock. */
 export const SIEGES = { accueil: "Accueil", trade: "Trade", marche: "Marché", aide: "Aide", compte: "Compte" } as const;
 
+/** L'adresse de chaque siège : sur elle, la bande ne dit que le siège. */
+const RACINES = ["/", "/trader", "/marche", "/aide"];
+
 const plusLong = (path: string, pages: NavPage[]): string | undefined => {
   let meilleur: NavPage | undefined;
   for (const p of pages) {
     const ok = p.href === "/" ? path === "/" : path === p.href || path.startsWith(`${p.href}/`);
     if (ok && (!meilleur || p.href.length > meilleur.href.length)) meilleur = p;
   }
-  // La racine est le siège lui-même : « Accueil › Tableau de bord » redirait.
-  return meilleur && meilleur.href !== "/" ? meilleur.label : undefined;
+  // LA RACINE EST LE SIÈGE LUI-MÊME : « Trade › Passer un ordre » sur « /trader » redirait, comme « Accueil › Tableau de bord ».
+  return meilleur && !RACINES.includes(meilleur.href) ? meilleur.label : undefined;
 };
 
 export function lieuDe(brut: string): Lieu | null {

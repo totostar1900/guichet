@@ -68,7 +68,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
   return (
     <Glissement>
       <div className={styles.page}>
-        <div className={styles.main}>
+        <div className={`pile ${styles.main}`}>
           {/* LE NOM EN TITRE, PAS LA PHRASE. « Ce qui bouge sur le marché, en
               trois lignes » est une phrase, et la page en portait déjà une
               juste dessous : le titre disait donc deux fois la même chose, en
@@ -168,7 +168,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
           <p className={styles.legal}>{t("Les articles et communiqués appartiennent à leurs éditeurs ; Guichet n'en reproduit ni le texte ni les images. La sélection et les deux lignes de lecture sont rédigées par le desk de Purpose Capital et n'ont pas valeur de conseil.")}</p>
         </div>
 
-        <aside className={styles.rail}>
+        <aside className={`pile ${styles.rail}`}>
           {session?.role === "client" && (
             <div className={styles.card}>
               <span className="eyebrow">{t("En lien avec vos lignes")}</span>

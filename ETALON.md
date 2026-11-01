@@ -17,7 +17,7 @@ ce relevé : **il n'y a rien à inventer, seulement à appliquer.**
 | jeton | valeur | ce que son commentaire dit |
 |---|---|---|
 | `--marge-page` | 16 px (≤760) / 20 px | la marge d'une page |
-| `--sections-gap` | 20 px | l'écart entre sections |
+| `--sections-gap` | 20 px au 24 octobre ; **28 px depuis le 31 octobre 2026** | l'écart entre sections (voir § 8) |
 | `--t-7` | 20,2 px | **« titre de page »** |
 | `--t-6` | 17,2 px | « titre de panneau » |
 | `--t-4` | 13,2 px | « corps d'un panneau » |
@@ -349,7 +349,7 @@ tant que le titre est visible, opacité 1 dès qu'il est sous la barre.
 *Le défaut du rendu est « la barre se tait », et non l'inverse : se taire une
 fois l'observateur installé faisait clignoter le titre à chaque navigation.*
 
-**B — l'écart entre bandes : 32, et écrit une seule fois.** En l'appliquant
+**B — l'écart entre bandes : 32, et écrit une seule fois.** *(Révisé le 31 octobre 2026 : 28, lu au jeton `--sections-gap` ; voir § 8. Ce qui suit est la décision du 24 octobre.)* En l'appliquant
 j'ai trouvé que les 40 px n'étaient pas un réglage mais une **addition** :
 20 px de `gap` au conteneur plus 20 px de `margin-top` au rayon. Deux pages
 l'avaient remarqué et s'en accommodaient — « les deux font les quarante qu'on
@@ -362,6 +362,133 @@ pas : ce n'est pas 20. Le rayon ne porte plus de marge, le nombre vit dans le
 `gap`, seul. Mesuré sur « Mes documents » : à 40 les bandes de 81 px flottent,
 à 32 elles se lisent comme une liste et une de plus tient au-dessus de la
 ligne de flottaison.
+
+---
+
+## 8. L'espace d'une page — les mesures, et où elles vivent
+
+*Décidé le 31 octobre 2026, à l'issue d'une revue des écarts mesurée au
+navigateur à 390 px sur 57 pages. Cette section est la référence : un écart
+qu'elle ne nomme pas n'a pas de règle, et un écart qu'une page écrit à la main
+est une faute.*
+
+### 8.1 Ce que la revue a trouvé
+
+Aucune mesure n'était tenue. Sur vingt-cinq pages au `gap` déclaré : **huit
+valeurs** entre 8 et 40 px (douze pages à 20, cinq à 32, deux à 40, deux à 18,
+deux à 16, une à 24, une à 12, une à 8) ; quatorze autres n'avaient pas de
+`gap` et tiraient leur espace des marges de leurs enfants (24, 18, 0, 16, 58…).
+Trois causes, toutes additives :
+
+1. **le jeton et la décision se contredisaient** — `--sections-gap` valait 20 ;
+   § 7-B disait 32 ; Trade lisait le jeton et ses voisines la décision ;
+2. **l'en-tête ajoutait ses marges à l'écart de la page** : 20 sous la flèche,
+   24 sous le titre, par-dessus le `gap` — le titre était à « gap + 24 » du
+   premier bloc (40, 44, 50, 56 ou 64 px selon la page) ;
+3. **le panneau portait sa marge basse** (`.panel`, 18 px) : dans une pile à
+   `gap`, les deux s'additionnaient — 18 + 28 au lieu de 28.
+
+Et un cliquet qui ne tenait rien : il cherchait la chaîne `gap: var(--s-10)`
+*quelque part* dans quatre fichiers. Trade a glissé à 20 pendant qu'une autre
+règle du même fichier gardait le 32 : il restait vert.
+
+### 8.2 Les mesures — quatre rôles, quatre jetons
+
+Tous vivent dans le bloc « l'espace d'une page » de `src/app/globals.css`. **Changer
+la ligne d'un jeton change toute l'application, et rien d'autre à faire.**
+
+| jeton | valeur | il règle | exemples |
+|---|---|---|---|
+| `--sections-gap` | **28 px** | l'écart entre deux sections d'une page ; aussi la gouttière quand deux colonnes se côtoient | l'Accueil, Trade, tout « Feuillet », le fil et le rail d'Actualités |
+| `--tuiles-gap` | **12 px** (`--s-6`) | l'écart entre deux tuiles d'une liste | les rubriques de l'Accueil, les rayons de Trade, les échéances |
+| `--titre-gap` | **12 px** (`--s-6`) | entre le titre d'une section et ce qu'elle contient | « Ce qui ferme bientôt », « Votre dossier », « La sélection du desk » |
+| `--retour-gap` | **12 px** (`--s-6`) | entre la flèche de retour et le titre de la page | toute page à flèche (intérieur à `EnTete`) |
+| `--entete-marge` | 24 px par défaut ; `0` dans une pile | ce que l'en-tête ajoute sous lui | **transitoire** : disparaît avec la dernière page à marges d'enfants |
+
+Ces valeurs sont **hors de l'échelle `--s-*` à dessein** pour la première
+(28) : 20 se lisait comme un seul long texte, 32 flottait sur téléphone.
+Les trois autres sont des pas de l'échelle. Les espaces *intérieurs* à un
+composant — le `padding` d'une carte, le `gap` d'une ligne de tableau — restent
+à l'échelle `--s-*` : ce ne sont pas des rôles de page.
+
+### 8.3 Les règles
+
+1. **Une page est une pile.** Son conteneur est la classe globale `pile`
+   (`display: flex; flex-direction: column; gap: var(--sections-gap)`), ou une
+   règle de module `.page` / `.wrap` qui déclare `gap: var(--sections-gap)` et
+   `--entete-marge: 0px`.
+2. **Un enfant de la pile ne porte aucune marge verticale vers son voisin.**
+   Pas de `margin-top` sur le premier bloc, pas de `margin-bottom` sur le
+   dernier : l'espace vient du `gap`, seul. Le panneau (`.panel`) perd sa marge
+   basse dans une pile (`.pile > .panel`) ; hors d'une pile il la garde.
+3. **L'en-tête est un enfant comme un autre.** `EnTete` range la flèche et le
+   titre dans un seul bloc ; la distance qui les sépare lui est intérieure
+   (`--retour-gap`), et la page ne voit qu'un enfant.
+4. **Dans une section : le titre à `--titre-gap` de son contenu, les tuiles à
+   `--tuiles-gap` les unes des autres.**
+5. **Jamais une valeur en dur, jamais un `--s-*`, pour ces rôles.** On lit le
+   jeton. Une page qui écrit son propre écart ne lit plus la maison.
+6. **Une exception se déclare.** La vitrine garde son pas (§ C : `--respiration`,
+   `--s-9`, `--s-11`) ; une page à deux colonnes (Actualités, la fiche d'une
+   ligne) pose le jeton en ligne *et* en colonne, sauf raison écrite.
+
+### 8.4 Ajouter une page, convertir une page
+
+*Page neuve :*
+
+```tsx
+<Glissement>
+  <div className="pile">
+    <EnTete retour={…} titre={…} phrase={…} />
+    <section className="panel">…</section>
+    <p className={styles.note}>…</p>
+  </div>
+</Glissement>
+```
+
+*Page existante à marges d'enfants :* (1) remplacer le conteneur par `pile` ;
+(2) retirer chaque `margin-top` / `margin-bottom` qui séparait deux blocs
+voisins, y compris la note de pied ; (3) lire `--titre-gap` entre un titre et
+son contenu ; (4) mesurer au navigateur à 390 px — tous les écarts d'un niveau
+valent le jeton — puis la déclarer dans `espace-page.test.ts`.
+
+*Régler l'application :* modifier la ligne du jeton dans `globals.css`. Rien
+d'autre. Le cliquet vérifie la valeur déclarée ; la changer demande de changer
+aussi la clause qui la nomme, ce qui est voulu : une valeur ne glisse pas sans
+que quelqu'un l'écrive deux fois.
+
+### 8.5 Où en est la migration (31 octobre 2026)
+
+*Mesuré à 390 px, tous les écarts d'un niveau à 28 :* l'Accueil, Trade, Marché,
+Actualités (fil et rail), Sondage, Analyse, Provision, Tarifs,
+Prélèvements, Textes, Sécurité, Profil, Réclamation, Risques,
+Documents, Épargne, Réinvestir, et le « Feuillet » commun (Aide, Compte,
+Appareil, Identité, Contact, Services, Agir).
+
+*Encore à marges d'enfants, à convertir page par page :* Titres, Fonds, Indice,
+Sociétés, Comparer, Ordres, Garde, Activité, Suivies, Éclairages, Glossaire,
+Simulateur, l'aide en questions, le parcours, la fiche d'un ordre et d'un
+document, la fiche d'une ligne et son intention, la convention.
+
+*Presque tout à 28, avec un reliquat nommé ci-dessous :* Calendrier et Mentions.
+
+*Écarts internes restants,* relevés au 31 octobre 2026 et à reprendre en
+convertissant la page : sous la liste de « Calendrier » (40 au lieu de 28 : le
+navigateur d'offres porte 12 px de plus), sous la mention de version de
+« Mentions » (36 : une marge de 8 sous une ligne qui est un enfant de la pile).
+
+*Exemptées* (§ C, la vitrine) : l'accueil du visiteur, À propos, Nos
+placements, l'aperçu d'une ligne partagée.
+
+### 8.6 Comment ça tient
+
+`src/test/espace-page.test.ts` : les cinq jetons sont déclarés et valent ce que
+cette section dit ; la pile existe et retire la marge du panneau ; `EnTete`
+range la flèche et le titre dans un seul bloc ; chaque feuille de page est soit
+convertie, soit nommée dans la liste « à convertir » — une page neuve qui
+écrirait son écart en dur fait tomber la clause le jour même, et une page
+convertie qu'on oublie de retirer de la liste la fait tomber aussi. Le cliquet
+lit **la règle du conteneur**, jamais la chaîne dans le fichier.
 
 ---
 

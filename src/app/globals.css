@@ -330,17 +330,34 @@
      grammaire de plis ne se ressemblaient pas. Le réglage vit ici, et les
      pages harmonisées le lisent — le jour où la maison veut respirer plus
      large, un seul chiffre bouge. */
-  /* VINGT-SIX, DÉCIDÉ LE 31 OCTOBRE 2026 (revue des écarts, page par page).
+  /* ── L'ESPACE D'UNE PAGE : QUATRE RÔLES, QUATRE JETONS, UNE PILE ───────────
+     Sections, tuiles, titre → contenu, flèche → titre. Chaque rôle a UN
+     chiffre, ici et nulle part ailleurs ; une page est une pile (classe
+     « .pile », plus bas) qui les lit. Changer une ligne de ce bloc change toute
+     l'application. Doctrine, règles et état de la migration : ETALON.md § 8 ;
+     cliquet : src/test/espace-page.test.ts. */
+  /* VINGT-HUIT, DÉCIDÉ LE 31 OCTOBRE 2026 (revue des écarts, page par page ; d'abord 26,
+     porté à 28 le même jour).
      Mesuré sur vingt-cinq pages : huit valeurs entre 8 et 40, dont douze pages
      à 20 et cinq à 32, quand ETALON.md disait déjà « 32, écrit une seule
      fois ». Le chiffre vit ICI, et seulement ici : une page qui écrit le sien
      dans « gap » ne lit plus la maison. Hors échelle (--s-*) à dessein : 20 se
      lisait comme un seul texte, 32 flottait sur téléphone. */
-  --sections-gap: 26px;
+  --sections-gap: 28px;
   /* L'ÉCART ENTRE DEUX TUILES, ÉCRIT UNE FOIS : douze. C'était déjà la valeur la
      plus répandue (Trade, Agir, Services, Compte) ; une bande de sommaire à 32
      se lisait comme une autre section. */
   --tuiles-gap: var(--s-6);
+  /* ENTRE LE TITRE D'UNE SECTION ET CE QU'ELLE CONTIENT : douze, décidé le 31
+     octobre 2026. L'Accueil en posait quatre — 16 (une marge sous l'en-tête),
+     12, 10 et 8 —, et deux sections voisines n'avaient pas le même souffle
+     sous leur titre. */
+  --titre-gap: var(--s-6);
+  /* ENTRE LA FLÈCHE DE RETOUR ET LE TITRE : douze, décidé le 31 octobre 2026.
+     Elle valait « écart de la page + 20 » — 48 px à 28 — parce que la flèche
+     était un enfant de la page à part entière. « EnTete » la range maintenant
+     avec son titre dans un seul bloc, et cette distance lui est intérieure. */
+  --retour-gap: var(--s-6);
   /* ── LES DEUX GABARITS DE PAGE, ET POURQUOI DEUX ───────────────────────────
      Mesuré le 24 octobre 2026 : vingt-deux pages, SIX largeurs. Et le trajet
      comptait plus que le tableau — dans le seul groupe « Portefeuille » :
@@ -1027,6 +1044,25 @@ h1 {
   margin-bottom: 18px;
   overflow: hidden;
 }
+/* ── LA PILE : L'ESPACE D'UNE PAGE, ÉCRIT UNE FOIS ──────────────────────────────
+   Une page est une pile de sections. Tout ce qui la compose — l'en-tête, les
+   bandes, les panneaux, la note de pied — est un ENFANT de la pile, et ne porte
+   AUCUNE marge qui le sépare de son voisin : l'écart vient du « gap », et le
+   « gap » du jeton « --sections-gap ». Changer ce jeton change toute l'application.
+
+   Le panneau garde sa marge basse partout ailleurs (« .panel » vaut 18 px hors
+   d'une pile) ; dans une pile il la perd, sans quoi les deux s'additionneraient.
+   L'en-tête perd la sienne par « --entete-marge: 0 ». Voir ETALON.md § 8. */
+.pile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sections-gap);
+  --entete-marge: 0px;
+}
+.pile > .panel {
+  margin-bottom: 0;
+}
+
 /* Le corps d'un panneau prend la marge de son en-tete.
 
    Le panneau n'en posait aucune : sur les 87 panneaux de l'application, ceux

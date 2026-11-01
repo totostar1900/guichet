@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { CONVERTIES } from "./espace-registre";
 import { describe, expect, it } from "vitest";
 
 const ROOT = path.resolve(__dirname, "../..");
@@ -112,6 +113,10 @@ const titresHorsJeton = (): string[] => {
   return hors.sort();
 };
 
+
+const PORTEURS = CONVERTIES;
+const PORTEURS_ENTETE = PORTEURS.filter(([f]) => f !== "src/app/Console.module.css" && f !== "src/app/actualites/page.module.css");
+
 describe("l'étalon d'une page", () => {
   it("ne laisse aucune coquille poser une seconde marge latérale", () => {
     const fautives: string[] = [];
@@ -189,24 +194,25 @@ describe("les deux arbitrages", () => {
     expect(rayon, "le rayon a changé de nom").not.toBeNull();
     expect(rayon?.[1].replace(/\s/g, ""), "le rayon reprend une marge haute : l'écart se compose de nouveau en deux endroits").toContain("margin-top:0");
 
-    const porteurs = [
-      "src/app/trader/page.module.css",
-      "src/app/moi/reinvestir/page.module.css",
-      "src/app/moi/epargne/page.module.css",
-      "src/app/moi/documents/page.module.css",
-    ];
+    const porteurs = PORTEURS;
     /* LE CLIQUET LIT LE CONTENEUR, ET NON LA CHAÎNE (31 octobre 2026). Il vérifiait
        que « gap: var(--s-10) » figurait QUELQUE PART dans le fichier : Trade a
        glissé à 20 pendant qu'une autre règle du même fichier gardait le 32, et il
        restait vert. On lit maintenant la règle du conteneur de page. */
-    const conteneur = (p: string) => (lire(p).replace(/\/\*[\s\S]*?\*\//g, "").match(/\.(?:page|wrap|rayons)\s*\{[^}]*\}/g) ?? []).filter((r) => /\bgap:/.test(r));
-    const hors = porteurs.filter((p) => {
-      const regles = conteneur(p);
-      return regles.length === 0 || regles.some((r) => !/gap:\s*var\(--sections-gap\)/.test(r));
-    });
+    const regle = (p: string, cls: string) => (lire(p).replace(/\/\*[\s\S]*?\*\//g, "").match(new RegExp(`(?:^|\\n)\\.${cls}\\s*\\{[^}]*\\}`)) ?? [""])[0];
+    const hors = porteurs.filter(([p, cls]) => !/(?<![-\w])gap:\s*var\(--sections-gap\)/.test(regle(p, cls))).map(([p]) => p);
     expect(hors, "ces pages n'écartent plus leurs bandes du jeton --sections-gap").toEqual([]);
-    expect(lire("src/app/globals.css"), "le jeton des sections n'est plus 26 px").toMatch(/--sections-gap:\s*26px/);
+    expect(lire("src/app/globals.css"), "le jeton des sections n'est plus 28 px").toMatch(/--sections-gap:\s*28px/);
     expect(lire("src/app/globals.css"), "le jeton des tuiles n'est plus 12 px").toMatch(/--tuiles-gap:\s*var\(--s-6\)/);
+    /* ENTRE UN TITRE ET SON CONTENU : douze, et lu au jeton par les sections de l'Accueil. */
+    expect(lire("src/app/globals.css"), "le jeton titre → contenu n'est plus 12 px").toMatch(/--titre-gap:\s*var\(--s-6\)/);
+    for (const [f, motif] of [
+      ["src/app/Console.module.css", /\.tete \{[^}]*margin-bottom:\s*var\(--titre-gap\)/],
+      ["src/app/Console.module.css", /\.dossier \{[^}]*gap:\s*var\(--titre-gap\)/],
+      ["src/components/CeQuiFermeBientot.module.css", /\.bloc \{[^}]*gap:\s*var\(--titre-gap\)/],
+      ["src/components/CeQuiVousAttend.module.css", /margin:\s*0 0 var\(--titre-gap\)/],
+      ["src/components/SelectionDuDesk.module.css", /\.titre \{[^}]*margin:\s*0 0 var\(--titre-gap\)/],
+    ] as [string, RegExp][]) expect(lire(f).replace(/\/\*[\s\S]*?\*\//g, ""), `${f} n'écrit plus son écart titre → contenu au jeton`).toMatch(motif);
   });
 });
 
@@ -320,6 +326,20 @@ describe("l'en-tête d'une page", () => {
     const restants = entetesALaMain().filter((f) => !SANS_ENTETE[f]);
     expect(restants.length, `${restants.length} en-têtes encore écrits à la main (plafond ${PLAFOND}) :\n  ${restants.join("\n  ")}`).toBeLessThanOrEqual(PLAFOND);
     expect(PLAFOND - restants.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(2);
+  });
+
+  it("n'ajoute pas ses 24 px à l'écart des pages dont le conteneur pose un gap", () => {
+    /* MESURÉ LE 31 OCTOBRE 2026 : le titre était à « gap + 24 » du premier bloc, soit 50
+       sur Trade (26 + 24). Une page convertie met « --entete-marge: 0px » dans la règle
+       de son conteneur ; le défaut de 24 reste pour celles qui n'ont pas de gap. */
+    const enTete = fs.readFileSync(path.join(ROOT, "src/components/EnTete.module.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(enTete, "l'en-tête ne lit plus --entete-marge : une page ne peut plus retirer ses 24 px").toMatch(/\.entete \{\s*margin-bottom:\s*var\(--entete-marge, var\(--s-9\)\);/);
+    /* LES PAGES QUI MONTENT « EnTete » : Console (l'Accueil) n'en a pas, son « Bonjour » est à lui. */
+    for (const [f, cls] of PORTEURS_ENTETE) {
+      const page = fs.readFileSync(path.join(ROOT, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").match(new RegExp(`(?:^|\\n)\\.${cls}\\s*\\{[^}]*\\}`))?.[0] ?? "";
+      expect(page, `${f} : la règle du conteneur est introuvable`).toMatch(/gap:\s*var\(--sections-gap\)/);
+      expect(page, `${f} : l'en-tête ajoute de nouveau ses 24 px à l'écart des sections`).toMatch(/--entete-marge:\s*0px/);
+    }
   });
 
   it("pose les quatre créneaux dans l'ordre, et un seul genre par créneau", () => {

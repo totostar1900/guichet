@@ -4,12 +4,14 @@
    « reprendre » prennent le corps et l'encadré. */
 .wrap {
   display: grid;
-  gap: var(--s-8);
+  gap: var(--sections-gap);
   /* ELLE ÉTAIT COLLÉE AU BORD GAUCHE. Elle portait sa largeur mais pas son
      centrage : trois cents pixels de vide à droite, mesurés le 24 octobre
      2026. Le gabarit porte les deux. */
   max-width: var(--page-texte);
   margin-inline: auto;
+  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
+  --entete-marge: 0px;
 }
 
 /* LE SOLDE : un total, une barre qui le partage, et chaque état porte SON

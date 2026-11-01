@@ -50,6 +50,7 @@ export default async function SecurityPage() {
             deux endroits pour une seule chose. Le consentement les suit, parce que
             c'est la même question posée autrement, et les alertes aussi, parce que
             c'est le même appareil. */}
+        <section className={styles.section}>
         <h2 className={styles.h2}>{t("Mes coordonnées")}</h2>
         <div className="panel">
           <ContactForm phone={contact?.phone ?? s.phone} email={contact?.email ?? s.email} />
@@ -62,6 +63,7 @@ export default async function SecurityPage() {
             <PushToggle vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} />
           </div>
         </div>
+        </section>
       </div>
     </Glissement>
   );
