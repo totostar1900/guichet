@@ -81,6 +81,8 @@ export function Parcours({ sections, lessons }: { sections: Section[]; lessons: 
         </span>
       </div>
 
+      {/* LES SECTIONS FORMENT UNE LISTE : un seul enfant de la pile, ses cartes à « --titre-gap » les unes des autres (ETALON.md § 8). */}
+      <div className={styles.liste}>
       {sections.map((s) => {
         const ls = bySection(s);
         const doneN = ls.filter((l) => isDone(l.key)).length;
@@ -132,6 +134,7 @@ export function Parcours({ sections, lessons }: { sections: Section[]; lessons: 
           </section>
         );
       })}
+      </div>
     </>
   );
 }

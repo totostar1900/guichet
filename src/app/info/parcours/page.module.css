@@ -1,8 +1,21 @@
 .wrap {
   display: grid;
-  gap: 14px;
+  gap: var(--sections-gap);
+  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
+  --entete-marge: 0px;
+  --replay-marge: 0px;
   min-width: 0;
   max-width: 860px;
+}
+/* L'en-tête et la bande des dix acteurs : deux blocs de la pile, à l'écart des sections. */
+.head {
+  display: grid;
+  gap: var(--sections-gap);
+}
+/* Les six sections repliables : une liste, un seul enfant de la pile. */
+.liste {
+  display: grid;
+  gap: var(--titre-gap);
 }
 /* Titre, sur-titre et phrase sont montés par « EnTete » depuis le 24 octobre
    2026 : leurs mesures vivent dans sa feuille. Le bloc reste pour son ancre
