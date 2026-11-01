@@ -115,7 +115,7 @@ const titresHorsJeton = (): string[] => {
 
 
 const PORTEURS = CONVERTIES;
-const PORTEURS_ENTETE = PORTEURS.filter(([f]) => f !== "src/app/Console.module.css" && f !== "src/app/actualites/page.module.css");
+const PORTEURS_ENTETE = PORTEURS.filter(([f]) => f !== "src/app/Console.module.css" && f !== "src/app/actualites/page.module.css" && f !== "src/app/info/aide/aide.module.css");
 
 describe("l'étalon d'une page", () => {
   it("ne laisse aucune coquille poser une seconde marge latérale", () => {

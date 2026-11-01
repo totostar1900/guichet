@@ -68,6 +68,19 @@
   font-size: var(--t-2);
   color: var(--ink-3);
 }
+/* DANS UNE PILE (« .pile », globals.css), la ligne de source est un enfant comme un
+   autre : elle ne porte plus ses 10 px du haut ni ses 20 du bas, l'écart vient du
+   « gap ». Posée après « .doc .source », de même poids, pour gagner sans surcharge. */
+.enteteSource {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.enteteSource .source {
+  margin: 0;
+}
+:global(.pile) > .source {
+  margin: 0;
+}
 .doc .lead {
   font-size: 0.98rem;
   color: var(--ink);

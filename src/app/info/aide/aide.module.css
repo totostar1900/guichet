@@ -1,6 +1,6 @@
 .wrap {
   display: grid;
-  gap: 18px;
+  gap: var(--sections-gap);
   min-width: 0;
   max-width: 760px;
 }
@@ -10,7 +10,7 @@
   border-radius: var(--radius);
   padding: 18px 18px 16px;
   display: grid;
-  gap: 12px;
+  gap: var(--titre-gap);
 }
 .hero > b {
   font-family: var(--font-display);
@@ -72,7 +72,7 @@
 .tiles {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: var(--tuiles-gap);
 }
 .tile {
   display: flex;

@@ -55,7 +55,8 @@
    cette carte-là plutôt que comme une offre faite à la page entière. */
 .replay {
   white-space: nowrap;
-  margin-top: var(--s-10);
+  /* Dans une pile (« .pile », globals.css) le « gap » sépare déjà le bouton de la dernière carte : « --replay-marge: 0px ». */
+  margin-top: var(--replay-marge, var(--s-10));
 }
 @media (prefers-reduced-motion: reduce) {
   .dim,

@@ -39,7 +39,8 @@ export default async function AidePage() {
       {/* LE SOMMAIRE A PERDU SA RAISON D'ÊTRE : il listait huit ancres d'une
           même page, et les huit sont devenues des pages. Les tuiles sont le
           sommaire, et elles mènent où elles disent. */}
-      <article className={styles.doc}>
+      {/* UNE PILE : l'espace entre l'en-tête, la ligne de source et le navigateur d'aide vient du jeton des sections (ETALON.md § 8). */}
+      <article className={`pile ${styles.doc}`}>
         {/* PAS DE PHRASE SOUS CE TITRE, depuis le 31 octobre 2026. Elle récitait
             six des huit titres de tuiles — « se connecter, ouvrir un compte,
             lire une ligne, déclarer une intention, régler, recevoir ses
@@ -51,8 +52,12 @@ export default async function AidePage() {
             Elle reste dans l'index de recherche (« guide-index »), où elle sert
             de texte à trouver : c'est là que « se connecter » ramène cette
             page, et ce n'est pas un endroit où on la lit. */}
-        <EnTete surTitre={t("Aide")} titre={t("Vos questions, nos réponses")} />
-        <p className={styles.source}>{`${t("Mis à jour le")} ${fmtDate(doc.checkedOn)}`}</p>
+        {/* LA LIGNE « MIS À JOUR » EST SOUS LE TITRE, pas à vingt-huit pixels de lui : elle
+            le légende. Les deux forment UN enfant de la pile, séparés par « --titre-gap ». */}
+        <div className={styles.enteteSource}>
+          <EnTete surTitre={t("Aide")} titre={t("Vos questions, nos réponses")} />
+          <p className={styles.source}>{`${t("Mis à jour le")} ${fmtDate(doc.checkedOn)}`}</p>
+        </div>
         <AideBrowser chapters={chapters} wa={wa} />
         <GuideBar pos={{ label: t("Aide") }} />
         <CoachMarks

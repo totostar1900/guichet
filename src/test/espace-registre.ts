@@ -28,10 +28,11 @@ export const CONVERTIES: [string, string][] = [
   ["src/app/info/risques/page.module.css", "page"],
   ["src/app/info/mentions/page.module.css", "wrap"],
   ["src/app/actualites/page.module.css", "page"],
+  ["src/app/info/aide/aide.module.css", "wrap"],
 ];
 
 /** Converties par la classe globale « pile » (aucune règle de module à lire) : le fichier de la page DOIT la porter. */
-export const PAR_LA_PILE = ["src/app/marche/page.tsx", "src/app/actualites/page.tsx"];
+export const PAR_LA_PILE = ["src/app/marche/page.tsx", "src/app/actualites/page.tsx", "src/app/info/aide/page.tsx"];
 
 /**
  * Feuilles de page qui ÉCRIVENT ENCORE leur écart (un « gap » qui n'est pas le jeton).

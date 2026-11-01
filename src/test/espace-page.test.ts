@@ -58,11 +58,19 @@ describe("la pile", () => {
     expect(pile, "la pile n'empile plus").toMatch(/display:\s*flex;[\s\S]*flex-direction:\s*column;/);
     expect(pile, "la pile ne lit plus --sections-gap").toMatch(/gap:\s*var\(--sections-gap\);/);
     expect(pile, "la pile n'enlève plus la marge de l'en-tête").toMatch(/--entete-marge:\s*0px;/);
+    expect(pile, "la pile n'enlève plus la marge du bouton de rappel des repères").toMatch(/--replay-marge:\s*0px;/);
     expect(css, "le panneau garde sa marge dans la pile : elle s'ajoute au gap").toMatch(/\.pile > \.panel\s*\{\s*margin-bottom:\s*0;/);
   });
 
   it("est portée par les pages qui s'en servent", () => {
     for (const f of PAR_LA_PILE) expect(lire(f), `${f} ne porte plus la classe « pile »`).toMatch(/className=(?:"pile"|\{`pile )/);
+  });
+});
+
+describe("ce qui s'ajoutait à l'écart d'une pile", () => {
+  it("le bouton de rappel des repères lit sa marge, et la pile la remet à zéro", () => {
+    const css = sansNotes(lire("src/components/mobile/CoachMarks.module.css"));
+    expect(css, "le bouton de rappel n'a plus de marge réglable : une pile ne peut plus la retirer").toMatch(/\.replay\s*\{[^}]*margin-top:\s*var\(--replay-marge, var\(--s-10\)\);/);
   });
 });
 
