@@ -1573,8 +1573,7 @@ export const EN_REST: Record<string, string> = {
   "{n} min de lecture": "{n} min read",
   "{n} termes expliqués": "{n} terms explained",
   "La page de comparaison": "The comparison page",
-  "{n} lignes au catalogue aujourd'hui : rendement, échéance, ticket et calcul de référence côte à côte, avec l'indice en repère.":
-    "{n} lines on the catalogue today: yield, maturity, ticket and reference calculation side by side, with the index as a benchmark.",
+  "Rendement, échéance, ticket et calcul de référence côte à côte, avec l'indice en repère.": "Yield, maturity, ticket and reference calculation side by side, with the index as a benchmark.",
   "D'où viennent ces chiffres, et ce qui manque à la série": "Where these figures come from, and what the series is missing",
   /* « Vos intentions » : la carte qui se déplie, et son détail. */
   "Voir l'ordre": "See the order",

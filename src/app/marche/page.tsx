@@ -114,7 +114,7 @@ export default async function MarchePage() {
             s'en sert — et cette page ne le lui demandait pas. Le second lien
             de sa carte, « comment le lire », descend dans la section de
             l'éclairage, qui est faite pour lui : une carte, une flèche. */}
-        <IndexPulse entete={{ titre: t("L'indice"), lien: { href: "/indice", mot: t("Séance par séance") } }} liens={false} />
+        <IndexPulse entete={{ lien: { href: "/indice", mot: t("L'indice") } }} liens={false} />
 
         {ech && lastBulletin && (
           <section className="panel" id="echanges">
@@ -176,9 +176,9 @@ export default async function MarchePage() {
         {weights.length > 0 && (
           <section className="panel" id="societes">
             <div className="panel-h">
-              <h2>{t("Les sociétés")}</h2>
+              <h2>{t("Les sociétés cotées")}</h2>
               <Link className="btn sm ghost right" href="/societes">
-                {t("Les {n} sociétés", { n: weights.length })} →
+                {t("Toutes")} →
               </Link>
             </div>
             <div className={styles.apercu}>
@@ -274,7 +274,7 @@ export default async function MarchePage() {
               </Link>
             </div>
             <ChoisirDeuxLignes lignes={comparables} />
-            <p className={styles.note}>{t("{n} lignes au catalogue aujourd'hui : rendement, échéance, ticket et calcul de référence côte à côte, avec l'indice en repère.", { n: comparables.length })}</p>
+            <p className={styles.note}>{t("Rendement, échéance, ticket et calcul de référence côte à côte, avec l'indice en repère.")}</p>
           </section>
         )}
 

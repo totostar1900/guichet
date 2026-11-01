@@ -129,6 +129,10 @@
   border-bottom: 1px solid var(--navy);
   margin-bottom: var(--s-7);
 }
+.enteteSeul {
+  /* Sans titre : le lien seul, au bord droit, comme celui des autres cartes de la page. */
+  justify-content: flex-end;
+}
 .entete h2 {
   margin: 0;
   font-size: 0.7rem;

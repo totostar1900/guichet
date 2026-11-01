@@ -21,7 +21,7 @@ export async function IndexPulse({
 }: {
   compact?: boolean;
   /** Le titre de section et son lien, quand la page en veut un : voir la note. */
-  entete?: { titre: string; lien: { href: string; mot: string } };
+  entete?: { /** Absent : la carte n'a que son lien, posé au bord droit (« /marche », depuis le 1er novembre 2026). */ titre?: string; lien: { href: string; mot: string } };
   /**
    * LES DEUX SORTIES DU BAS DE LA CARTE, et la page qui peut s'en passer.
    *
@@ -76,8 +76,8 @@ export async function IndexPulse({
           pages du marché n'en demandent pas : elles ont leur propre en-tête,
           et elles n'arrivent jamais là par hasard. */}
       {entete && (
-        <div className={styles.entete}>
-          <h2>{entete.titre}</h2>
+        <div className={`${styles.entete} ${entete.titre ? "" : styles.enteteSeul}`}>
+          {entete.titre && <h2>{entete.titre}</h2>}
           <Link href={entete.lien.href}>{entete.lien.mot} →</Link>
         </div>
       )}

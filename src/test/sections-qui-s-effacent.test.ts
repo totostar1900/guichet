@@ -75,6 +75,6 @@ describe("les sections qui s'effacent", () => {
      quand la section n'a rien d'autre à montrer. */
   it("fait porter son titre à l'indice, là où la page en demande un", () => {
     expect(code("src/app/Console.tsx"), "la page a repris l'écriture du titre du marché").toMatch(/<IndexPulse[^/>]*entete=\{/);
-    expect(code("src/components/IndexPulse.tsx"), "l'indice ne rend plus l'en-tête qu'on lui confie").toContain("entete.titre");
+    expect(code("src/components/IndexPulse.tsx"), "l'indice ne rend plus l'en-tête qu'on lui confie").toMatch(/\{entete\.titre && <h2>\{entete\.titre\}<\/h2>\}/);
   });
 });
