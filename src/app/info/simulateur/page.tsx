@@ -25,7 +25,8 @@ export default async function SimulateurPage() {
   const t = await getT();
   return (
     <Glissement>
-      <div className={styles.wrap}>
+      {/* UNE PILE : l'espace entre l'en-tête et l'outil vient du jeton des sections (ETALON.md § 8). */}
+      <div className={`pile ${styles.wrap}`}>
         <EnTete
           surTitre={t("Aide")}
           titre={t("Simulateur d'obligation")}

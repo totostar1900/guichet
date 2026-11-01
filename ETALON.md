@@ -500,14 +500,14 @@ que quelqu'un l'écrive deux fois.
 ### 8.5 Où en est la migration (31 octobre 2026)
 
 *Mesuré à 390 px, tous les écarts d'un niveau à 28 :* l'Accueil, Trade, Marché,
-Actualités (fil et rail), l'aide en questions, Éclairages, Glossaire, Sondage, Analyse, Provision, Tarifs,
+Actualités (fil et rail), l'aide en questions, Éclairages, Glossaire, Simulateur, Sondage, Analyse, Provision, Tarifs,
 Prélèvements, Textes, Sécurité, Profil, Réclamation, Risques,
 Documents, Épargne, Réinvestir, et le « Feuillet » commun (Aide, Compte,
 Appareil, Identité, Contact, Services, Agir).
 
 *Encore à marges d'enfants, à convertir page par page :* Titres, Fonds, Indice,
 Sociétés, Comparer, Ordres, Garde, Activité, Suivies,
-Simulateur, le parcours, la fiche d'un ordre et d'un
+le parcours, la fiche d'un ordre et d'un
 document, la fiche d'une ligne et son intention, la convention.
 
 *Presque tout à 28, avec un reliquat nommé ci-dessous :* Calendrier et Mentions.

@@ -107,10 +107,9 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 16px 18px;
-  margin-bottom: 26px;
 }
 .sim > p {
-  margin: 0 0 10px;
+  margin: 0 0 var(--titre-gap);
   max-width: 70ch;
   font-size: 0.86rem;
 }
@@ -121,7 +120,7 @@
   font-size: 0.76rem;
   padding: 8px 12px;
   border-radius: 0 var(--radius) var(--radius) 0;
-  margin-bottom: 14px;
+  margin-bottom: var(--titre-gap);
 }
 
 /* the card to the second course */
