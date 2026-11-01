@@ -92,7 +92,8 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
   const better = (i: number) => data.length === 2 && data[0].dy.pct != null && data[1].dy.pct != null && (data[0].dy.pct > data[1].dy.pct ? 0 : 1) === i;
 
   return (
-    <div className={styles.page}>
+    /* UNE PILE : l'espace entre l'en-tête, le choix, la comparaison et les graphiques vient du jeton des sections (ETALON.md § 8). */
+    <div className={`pile ${styles.page}`}>
       {/* LE RETOUR RESTE UN « BackButton », ET C'EST VOULU. Le créneau de
           l'étalon mène à un parent NOMMÉ ; cette page n'en a pas un seul — on
           y arrive de la fiche d'une ligne comme du marché — et son retour est
