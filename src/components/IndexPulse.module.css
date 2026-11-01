@@ -1,3 +1,6 @@
+.bloc {
+  min-width: 0;
+}
 .pulse {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -8,7 +11,7 @@
   border-left: 4px solid var(--gold);
   border-radius: var(--radius);
   padding: 8px 14px;
-  margin: 0 0 12px;
+  margin: 0;
 }
 /* LA VARIANTE COMPACTE EST CELLE QU'ON POSE DANS LA COLONNE D'UNE AUTRE
    PAGE, et une pièce posée dans une colonne à écart déclaré ne porte pas sa
@@ -127,7 +130,7 @@
   gap: var(--s-7);
   padding-bottom: var(--s-5);
   border-bottom: 1px solid var(--navy);
-  margin-bottom: var(--s-7);
+  margin-bottom: var(--titre-gap);
 }
 .enteteSeul {
   /* Sans titre : le lien seul, au bord droit, comme celui des autres cartes de la page. */

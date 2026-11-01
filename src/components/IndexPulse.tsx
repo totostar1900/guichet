@@ -62,7 +62,8 @@ export async function IndexPulse({
   const span = max - min || 1;
   const line = pts.map((p, i) => `${((i / Math.max(1, pts.length - 1)) * 416 + 2).toFixed(1)},${(56 - ((p.value - min) / span) * 50).toFixed(1)}`).join(" ");
   return (
-    <>
+    /* UN SEUL ENFANT DE LA PAGE : l'en-tête et la carte forment un bloc, séparés par « --titre-gap ». Rendus en deux enfants d'une pile, ils s'écartaient de 28 + 16 px (mesuré sur le code, le 1er novembre 2026) et la carte portait en plus ses 12 px de marge basse. */
+    <div className={styles.bloc}>
       {/* LE TITRE S'EN VA AVEC LA PIÈCE, OU IL NE VIENT PAS.
           La page d'arrivée l'écrivait de son côté, dans une section à elle :
           « LE MARCHÉ · La place → », puis l'indice en dessous. Or l'indice
@@ -124,6 +125,6 @@ export async function IndexPulse({
         {t("indice de prix")}
       </span>
       </section>
-    </>
+    </div>
   );
 }

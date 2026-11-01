@@ -215,3 +215,16 @@ describe("l'aspect des tuiles", () => {
     expect(sansNotes(lire("src/app/trader/page.module.css")), "les tuiles de Trade écrivent leur écart en dur").toMatch(/\.tuiles\s*\{[^}]*gap:\s*var\(--tuiles-gap\);/);
   });
 });
+
+describe("la carte de l'indice dans une pile", () => {
+  it("est un seul enfant, sans marge propre, son en-tête à --titre-gap", () => {
+    /* MESURÉ SUR LE CODE le 1er novembre 2026, à la suite d'un changement de libellés : la carte rendait
+       deux enfants (l'en-tête, puis la section) et gardait 12 px de marge basse. Dans la pile de
+       « /marche » : 28 + 16 entre le lien et la carte, 28 + 12 entre la carte et la suivante. */
+    const tsx = sansNotes(lire("src/components/IndexPulse.tsx").replace(/\{\/\*[\s\S]*?\*\/\}/g, ""));
+    expect(tsx, "la carte de l'indice n'est plus rangée dans un seul bloc").toMatch(/<div className=\{styles\.bloc\}>[\s\S]*<\/div>\s*\);\s*\}\s*$/);
+    const css = sansNotes(lire("src/components/IndexPulse.module.css"));
+    expect(/(?:^|\n)\.pulse\s*\{([^}]*)\}/.exec(css)?.[1] ?? "", "la carte a repris une marge basse : elle s'ajoute à l'écart de la pile").toMatch(/margin:\s*0;/);
+    expect(/(?:^|\n)\.entete\s*\{([^}]*)\}/.exec(css)?.[1] ?? "", "l'en-tête de la carte n'est plus à --titre-gap de la carte").toMatch(/margin-bottom:\s*var\(--titre-gap\);/);
+  });
+});
