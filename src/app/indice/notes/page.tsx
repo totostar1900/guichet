@@ -35,7 +35,8 @@ export default async function NotesArchivePage() {
 
   return (
     <Glissement>
-      <div className={styles.page}>
+      {/* UNE PILE : l'espace entre l'en-tête et les années vient du jeton des sections (ETALON.md § 8). */}
+      <div className={`pile ${styles.page}`}>
         {/* L'EN-TÊTE DE L'ÉTALON, et le cran en arrière qui manquait : cette
             archive est sous « L'indice », et on n'en revenait que par le
             bouton du navigateur. Sa feuille posait aussi

@@ -7,7 +7,9 @@
 /* Titre, phrase et retour sont montés par « EnTete » depuis le 24 octobre
    2026 : leurs mesures vivent dans sa feuille. */
 .year {
-  margin-top: var(--s-10);
+  /* Une année : son titre et ses cartes, un enfant de la pile, à « --titre-gap » l'un de l'autre. */
+  display: grid;
+  gap: var(--titre-gap);
 }
 .year h2 {
   font-family: var(--font-display);
@@ -16,12 +18,12 @@
   font-variant-numeric: tabular-nums;
   border-bottom: 1px solid var(--line-2);
   padding-bottom: var(--s-3);
-  margin: 0 0 var(--s-2);
+  margin: 0;
 }
 .list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: var(--s-2);
+  gap: var(--titre-gap);
 }
 .note {
   display: block;
@@ -70,7 +72,7 @@
   color: var(--warn);
 }
 .empty {
-  margin-top: var(--s-9);
+  margin: 0;
   color: var(--ink-3);
   border: 1px dashed var(--line-2);
   border-radius: var(--radius);

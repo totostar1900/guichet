@@ -59,7 +59,8 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
   const revenueTerm: TermKey = a.latest.revenueLabel.startsWith("Produit") ? "pnb" : a.latest.revenueLabel.startsWith("Primes") ? "primes" : "chiffre_affaires";
 
   return (
-    <>
+    /* UNE PILE : l'espace entre les retours, l'en-tête, les chiffres et les panneaux vient du jeton des sections (ETALON.md § 8). Le desk, qui rend le même corps, en profite. */
+    <div className="pile">
       <div className={styles.backs}>
         {sp.depuis === "indice" && (
           <Link href={desk ? "/desk/indice/apercu" : "/indice"} className={`${styles.back} ${styles.backFrom}`}>
@@ -327,6 +328,6 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
         </div>
       </div>
       <MarketStrip current="societes" mode={mode} />
-    </>
+    </div>
   );
 }

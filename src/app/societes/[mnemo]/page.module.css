@@ -3,7 +3,6 @@
   color: var(--ink-3);
   text-decoration: none;
   display: inline-block;
-  margin-bottom: 10px;
 }
 .head {
   display: flex;
@@ -11,7 +10,6 @@
   gap: 20px;
   align-items: flex-start;
   flex-wrap: wrap;
-  margin-bottom: 14px;
 }
 .head h1 {
   /* Titre de page : le jeton. Voir ETALON.md. */
@@ -41,7 +39,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
-  margin-bottom: 16px;
 }
 .kpi {
   background: var(--surface);
@@ -89,7 +86,6 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 16px 18px;
-  margin-bottom: 16px;
   min-width: 0;
 }
 .panel h2 {
@@ -334,6 +330,6 @@
 
 /* Le retour vers la cote, au pied des autres émetteurs. */
 .retour {
-  margin: var(--s-7) 0 0;
+  margin: 0;
   font-size: 0.86rem;
 }
