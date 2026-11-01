@@ -452,8 +452,14 @@ voisins, y compris la note de pied ; (3) lire `--titre-gap` entre un titre et
 son contenu ; (4) mesurer au navigateur à 390 px — tous les écarts d'un niveau
 valent le jeton — puis la déclarer dans `espace-page.test.ts`.
 
-*Régler l'application :* modifier la ligne du jeton dans `globals.css`. Rien
-d'autre. Le cliquet vérifie la valeur déclarée ; la changer demande de changer
+*Régler l'application, instantanément :* il n'y a ni panneau ni réglage au
+desk (décidé le 31 octobre 2026) — **les mesures se changent dans le code, et
+c'est volontaire** : un réglage de mise en page n'est pas une donnée métier, il
+se relit en revue et se versionne avec le reste. Avec `npm run dev`, ouvrir
+`src/app/globals.css`, changer la ligne du jeton (`--sections-gap: 28px;` par
+exemple) et enregistrer : **toutes les pages se redessinent à l'enregistrement**,
+sans rechargement ni autre fichier à toucher. Pour juger, parcourir l'Accueil,
+Trade, Marché et une page de compte à 390 px. Le cliquet vérifie la valeur déclarée ; la changer demande de changer
 aussi la clause qui la nomme, ce qui est voulu : une valeur ne glisse pas sans
 que quelqu'un l'écrive deux fois.
 
