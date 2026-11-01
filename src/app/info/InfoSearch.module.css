@@ -1,6 +1,7 @@
+/* Dans une pile (« --infosearch-marge: 0 »), le « gap » sépare déjà le champ de ce qui l'entoure : ses 18 et 26 px s'y ajoutaient (46 px mesurés sur « Rechercher » au lieu de 28). Hors pile, la feuille du menu et le Guide gardent leur air. */
 .wrap {
   position: relative;
-  margin: 18px 0 26px;
+  margin: var(--infosearch-marge, 18px 0 26px);
 }
 .field {
   display: flex;

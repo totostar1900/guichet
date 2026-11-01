@@ -23,6 +23,10 @@
   /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
   --entete-marge: 0px;
 }
+/* Un paragraphe posé directement dans la page n'a pas la marge par défaut du navigateur : elle s'ajoutait au « gap » (ETALON.md § 8). */
+.page > p {
+  margin-block: 0;
+}
 
 /* CE QUI SE FABRIQUE : le seul papier qui n'existe pas encore quand on
    arrive, donc le seul qui mérite le filet d'or. */

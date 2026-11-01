@@ -438,6 +438,7 @@ la ligne d'un jeton change toute l'application, et rien d'autre à faire.**
 | `--titre-gap` | **12 px** (`--s-6`) | entre le titre d'une section et ce qu'elle contient | « Ce qui ferme bientôt », « Votre dossier », « La sélection du desk » |
 | `--retour-gap` | **12 px** (`--s-6`) | entre la flèche de retour et le titre de la page | toute page à flèche (intérieur à `EnTete`) |
 | `--entete-marge` | 24 px par défaut ; `0` dans une pile | ce que l'en-tête ajoute sous lui | **transitoire** : disparaît avec la dernière page à marges d'enfants |
+| `--onglets-marge`, `--replay-marge`, `--infosearch-marge` | leur marge d'origine ; `0` dans une pile | la marge propre d'un composant partagé (onglets du marché, bouton de rappel des repères, champ de recherche) | **transitoires** comme `--entete-marge` : la pile les remet à zéro, les pages sans pile gardent la leur |
 
 Ces valeurs sont **hors de l'échelle `--s-*` à dessein** pour la première
 (28) : 20 se lisait comme un seul long texte, 32 flottait sur téléphone.
@@ -500,12 +501,12 @@ que quelqu'un l'écrive deux fois.
 ### 8.5 Où en est la migration (31 octobre 2026)
 
 *Mesuré à 390 px, tous les écarts d'un niveau à 28 :* l'Accueil, Trade, Marché,
-Actualités (fil et rail), l'aide en questions, Éclairages, Glossaire, Simulateur, Titres, Fonds, Indice, Sociétés, Comparer, Ordres, Garde, Activité, Suivies, le parcours, la fiche d'un ordre, la fiche d'un document (non mesurée : aucun document dans les données de démonstration), l'intention, la convention, Sondage, Analyse, Provision, Tarifs,
+Actualités (fil et rail), l'aide en questions, Éclairages, Glossaire, Simulateur, Titres, Fonds, Indice, Sociétés, Comparer, Ordres, Garde, Activité, Suivies, le parcours, la fiche d'un ordre, la fiche d'un document (non mesurée : aucun document dans les données de démonstration), l'intention, la convention, la fiche d'une ligne (colonnes de lecture et d'action ; le contenu de lecture garde ses marges internes), Sondage, Analyse, Provision, Tarifs,
 Prélèvements, Textes, Sécurité, Profil, Réclamation, Risques,
 Documents, Épargne, Réinvestir, et le « Feuillet » commun (Aide, Compte,
 Appareil, Identité, Contact, Services, Agir).
 
-*Encore à marges d'enfants, à convertir page par page :* la fiche d'une ligne.
+*Encore à marges d'enfants, à convertir page par page :* aucune de la revue du 31 octobre 2026 ; reste le balayage des pages que la revue n'avait pas ouvertes (voir ci-dessous).
 
 *Presque tout à 28, avec un reliquat nommé ci-dessous :* Calendrier et Mentions.
 

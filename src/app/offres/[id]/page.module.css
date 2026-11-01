@@ -1,7 +1,8 @@
 .page {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 420px;
-  gap: 24px;
+  /* Le même jeton en colonne et en ligne : empilés, la lecture et l'action sont deux sections ; côte à côte, la gouttière vaut l'écart des sections (ETALON.md § 8). */
+  gap: var(--sections-gap);
   align-items: start;
 }
 .main {
@@ -140,7 +141,7 @@
   top: 78px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--sections-gap);
 }
 .sideNote {
   font-size: 0.78rem;

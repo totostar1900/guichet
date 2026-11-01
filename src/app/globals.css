@@ -1091,9 +1091,14 @@ html[data-tuiles="lignes"] {
   --entete-marge: 0px;
   --replay-marge: 0px;
   --onglets-marge: 0px;
+  --infosearch-marge: 0;
 }
 .pile > .panel {
   margin-bottom: 0;
+}
+/* Un paragraphe posé directement dans la pile n'a pas la marge par défaut du navigateur : elle s'ajoutait au « gap » (43 px au lieu de 28 mesurés sur « Mes documents › Argent »). */
+.pile > p {
+  margin-block: 0;
 }
 
 /* Le corps d'un panneau prend la marge de son en-tete.
