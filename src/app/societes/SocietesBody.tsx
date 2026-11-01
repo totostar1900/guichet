@@ -30,7 +30,8 @@ export async function SocietesBody({ mode = "client" }: { mode?: "client" | "des
   const totalCap = rows.reduce((s, a) => s + (a.marketCap ?? 0), 0);
 
   return (
-    <>
+    /* UNE PILE : l'espace entre l'en-tête, le navigateur, les émetteurs et la note vient du jeton des sections (ETALON.md § 8). */
+    <div className="pile">
       {/* LE CACHET DU BULLETIN EST UN « aCote », et il l'était déjà sans le
           nom : une boîte posée en face du titre, alignée en bas. C'est
           exactement le créneau que la page des fonds avait justifié — sous le
@@ -124,6 +125,6 @@ export async function SocietesBody({ mode = "client" }: { mode?: "client" | "des
         {t("Ce sont des informations, pas des conseils : les performances passées ne préjugent pas des performances futures.")}
       </p>
       <MarketStrip current="societes" mode={mode} />
-    </>
+    </div>
   );
 }

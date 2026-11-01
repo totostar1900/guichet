@@ -87,7 +87,8 @@ export function CompaniesBrowser({ rows }: { rows: CompanyRow[] }) {
   };
 
   return (
-    <>
+    /* UN SEUL ENFANT DE LA PILE : le tri et le tableau se tiennent à « --titre-gap » (ETALON.md § 8). */
+    <div className={styles.navigateur}>
       {/* FILTRER ET TRIER FAISAIENT LA MÊME CHOSE. Une recherche, un pays, un
           secteur et un tri, pour sept sociétés qui tiennent toutes à l'écran :
           un filtre sert à retirer ce qu'on ne veut pas voir quand il y en a
@@ -159,6 +160,6 @@ export function CompaniesBrowser({ rows }: { rows: CompanyRow[] }) {
           </table>
         </div>
       </div>
-    </>
+    </div>
   );
 }

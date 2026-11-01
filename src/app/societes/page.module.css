@@ -4,7 +4,6 @@
   gap: 20px;
   align-items: flex-end;
   flex-wrap: wrap;
-  margin-bottom: 16px;
 }
 /* Titre et phrase sont montés par « EnTete » depuis le 24 octobre 2026. */
 .stamp {
@@ -17,7 +16,6 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
-  margin-bottom: 16px;
 }
 /**
  * LE NOM RESTE QUAND LA TABLE GLISSE.
@@ -70,7 +68,6 @@
   align-items: center;
   gap: var(--s-4);
   flex-wrap: wrap;
-  margin-bottom: var(--s-6);
 }
 .dirBtn {
   border: 1px solid var(--line-2);
@@ -120,16 +117,15 @@
   color: var(--crit);
 }
 .note {
+  margin: 0;
   font-size: 0.78rem;
   color: var(--ink-3);
   max-width: 84ch;
-  margin: 8px 0 0;
 }
 .howto {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
-  margin-bottom: 16px;
 }
 .howto > div {
   background: var(--surface);
@@ -258,4 +254,14 @@
 .retour {
   margin: var(--s-7) 0 0;
   font-size: 0.86rem;
+}
+
+/* Le navigateur de sociétés : le tri puis le tableau, un seul enfant de la pile, à « --titre-gap » l'un de l'autre. */
+.navigateur {
+  display: grid;
+  gap: var(--titre-gap);
+  min-width: 0;
+}
+.navigateur > * {
+  min-width: 0;
 }
