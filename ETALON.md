@@ -372,6 +372,40 @@ navigateur à 390 px sur 57 pages. Cette section est la référence : un écart
 qu'elle ne nomme pas n'a pas de règle, et un écart qu'une page écrit à la main
 est une faute.*
 
+### 8.0 Mode d'emploi — une demande, une ligne
+
+*À lire d'abord. Le reste de la section explique pourquoi. Chaque ligne se dit en
+une phrase à Claude, et se fait en un fichier.*
+
+| Vous voulez | Dites | Où ça change |
+|---|---|---|
+| des sections plus serrées ou plus aérées | « mets l'écart entre sections à 20 px » | `--sections-gap` · `globals.css` |
+| des tuiles plus proches ou plus écartées | « mets l'écart entre tuiles à 8 px » | `--tuiles-gap` · `globals.css` |
+| un titre plus près de son contenu | « mets l'écart titre → contenu à 8 px » | `--titre-gap` · `globals.css` |
+| la flèche de retour plus près du titre | « mets l'écart flèche → titre à 8 px » | `--retour-gap` · `globals.css` |
+| **des tuiles moins prononcées**, partout | « passe les tuiles en douces » | `TUILES = "douces"` · `src/lib/config.ts` |
+| **des lignes fines à la place des tuiles**, partout | « passe les tuiles en lignes » | `TUILES = "lignes"` · `src/lib/config.ts` |
+| revenir à l'allure d'origine | « remets les tuiles en tuiles » | `TUILES = "tuiles"` · `src/lib/config.ts` |
+| des coins plus ou moins arrondis | « arrondis les tuiles à 12 px » | `--tuile-rayon` · `globals.css` |
+| un fond ou un bord de tuile différent | « mets le bord des tuiles en 2 px » | `--tuile-fond`, `--tuile-bord` · `globals.css` |
+| plus ou moins d'air dans une tuile | « mets la marge intérieure des tuiles à 20 px » | `--tuile-pad-x`, `--tuile-pad-y` · `globals.css` |
+| un quatrième aspect (« pleines », « encadrées »…) | « ajoute un aspect des tuiles nommé pleines : fond marine, sans bord » | un bloc `html[data-tuiles="…"]` · `globals.css`, et le mot dans `AspectDesTuiles` · `config.ts` |
+| une page neuve | « fais une page avec la pile » | `className="pile"` (§ 8.4) |
+| une liste de tuiles neuve | « fais cette liste avec les jetons de tuile » | les six jetons `--tuile-*` (§ 8.7) |
+
+**Ce qu'on ne fait jamais :** écrire un écart, un fond, un bord ou un rayon en
+dur dans une page ou un composant. Les cliquets (`espace-page.test.ts`) le
+refusent le jour même.
+
+**Ce que ces réglages ne couvrent pas :** les couleurs et la palette
+(`palettes.css`), les tailles de texte (`--t-*`), la largeur des pages
+(`--page-texte`, `--page-large`). Chacun a son propre jeton ; ce ne sont pas
+des réglages d'espace.
+
+*Pour juger un réglage :* `npm run dev`, enregistrer, et parcourir l'Accueil,
+Trade, Éclairages et une page de compte à 390 px. Toutes les pages se
+redessinent à l'enregistrement ; rien d'autre à toucher.
+
 ### 8.1 Ce que la revue a trouvé
 
 Aucune mesure n'était tenue. Sur vingt-cinq pages au `gap` déclaré : **huit
@@ -466,13 +500,13 @@ que quelqu'un l'écrive deux fois.
 ### 8.5 Où en est la migration (31 octobre 2026)
 
 *Mesuré à 390 px, tous les écarts d'un niveau à 28 :* l'Accueil, Trade, Marché,
-Actualités (fil et rail), l'aide en questions, Éclairages, Sondage, Analyse, Provision, Tarifs,
+Actualités (fil et rail), l'aide en questions, Éclairages, Glossaire, Sondage, Analyse, Provision, Tarifs,
 Prélèvements, Textes, Sécurité, Profil, Réclamation, Risques,
 Documents, Épargne, Réinvestir, et le « Feuillet » commun (Aide, Compte,
 Appareil, Identité, Contact, Services, Agir).
 
 *Encore à marges d'enfants, à convertir page par page :* Titres, Fonds, Indice,
-Sociétés, Comparer, Ordres, Garde, Activité, Suivies, Glossaire,
+Sociétés, Comparer, Ordres, Garde, Activité, Suivies,
 Simulateur, le parcours, la fiche d'un ordre et d'un
 document, la fiche d'une ligne et son intention, la convention.
 
@@ -488,13 +522,56 @@ placements, l'aperçu d'une ligne partagée.
 
 ### 8.6 Comment ça tient
 
-`src/test/espace-page.test.ts` : les cinq jetons sont déclarés et valent ce que
+`src/test/espace-page.test.ts` : les jetons d'espace et d'aspect des tuiles sont déclarés et valent ce que
 cette section dit ; la pile existe et retire la marge du panneau ; `EnTete`
 range la flèche et le titre dans un seul bloc ; chaque feuille de page est soit
 convertie, soit nommée dans la liste « à convertir » — une page neuve qui
 écrirait son écart en dur fait tomber la clause le jour même, et une page
 convertie qu'on oublie de retirer de la liste la fait tomber aussi. Le cliquet
 lit **la règle du conteneur**, jamais la chaîne dans le fichier.
+
+---
+
+### 8.7 L'aspect des tuiles
+
+*Décidé le 31 octobre 2026 : « des tuiles moins prononcées, ou des lignes fines
+à la place des tuiles, dans toute l'application » doit tenir en une ligne.*
+
+Une **tuile** est un élément de liste qui se désigne et qui mène quelque part :
+une rubrique de l'Accueil, une échéance, un rayon de Trade, une leçon, un outil,
+un sujet d'aide. Six familles aujourd'hui, toutes lues aux mêmes jetons :
+
+| jeton | allure d'origine | « douces » | « lignes » |
+|---|---|---|---|
+| `--tuile-fond` | `--surface` | surface à 45 % | transparent |
+| `--tuile-bord` | 1 px `--line` | 1 px `--line` à 55 % | aucun |
+| `--tuile-trait` (le trait du bas) | égal au bord | égal au bord | 1 px `--line`, **seul** |
+| `--tuile-rayon` | `--radius` | 6 px | 0 |
+| `--tuile-pad-x` / `--tuile-pad-y` | 16 / 12 px | inchangés | 0 / 12 px |
+| `--tuiles-gap` (l'écart entre tuiles) | 12 px | inchangé | 0 |
+
+**Comment ça marche.** Les jetons de `:root` valent l'allure d'origine. Les deux
+autres aspects sont deux blocs, `html[data-tuiles="douces"]` et
+`html[data-tuiles="lignes"]`, qui ne redisent que ce qui change. Le mot se
+choisit dans `src/lib/config.ts` (`TUILES`) ; la mise en page le pose sur
+`<html>`. Changer le mot change toutes les listes de tuiles, sans toucher une
+page.
+
+**Les six familles :** les rubriques (`Rubriques`), les échéances
+(`CeQuiFermeBientot`), les tuiles de Trade (`trader/page.module.css`), les
+sujets de l'aide (`info/aide`), et les leçons et outils des éclairages
+(`info/page.module.css`). Chacune écrit `background: var(--tuile-fond)`,
+`border: var(--tuile-bord)`, `border-bottom: var(--tuile-trait)`,
+`border-radius: var(--tuile-rayon)` et un `padding` qui lit `--tuile-pad-*`.
+
+**Ajouter une famille de tuiles :** copier ces cinq déclarations dans sa règle,
+ajouter la famille à `FAMILLES_DE_TUILES` dans `espace-page.test.ts`, et
+regarder la page dans les trois aspects (`data-tuiles` se change dans les
+outils du navigateur, sans recharger).
+
+**Ce qui n'est pas une tuile :** une carte d'information qu'on ne touche pas
+(un panneau, `.panel`), un bandeau marine (le parcours), une alerte. Elles
+gardent leur allure : l'aspect des tuiles ne les concerne pas.
 
 ---
 

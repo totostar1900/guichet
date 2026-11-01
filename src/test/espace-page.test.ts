@@ -24,7 +24,8 @@ const gapDe = (r: string) => /(?<![-\w])gap:\s*([^;]+);/.exec(r)?.[1].trim();
  * hors du jeton.
  */
 describe("les mesures de l'espace d'une page", () => {
-  const globals = sansNotes(lire("src/app/globals.css"));
+  /* Les préréglages d'aspect (« html[data-tuiles=…] ») REDISENT des jetons à dessein : ils ne comptent pas comme une seconde déclaration. */
+  const globals = sansNotes(lire("src/app/globals.css")).replace(/html\[data-tuiles="\w+"\]\s*\{[^}]*\}/g, "");
 
   it("sont déclarées une fois, dans globals.css, et valent ce que la doctrine dit", () => {
     expect(globals, "--sections-gap n'est plus 28 px").toMatch(/--sections-gap:\s*28px;/);
@@ -134,5 +135,74 @@ describe("chaque feuille de page est convertie, ou le dit", () => {
     };
     marche("src/app");
     expect(n, "le relevé ne voit presque plus de feuilles de page").toBeGreaterThan(30);
+  });
+});
+
+/**
+ * L'ASPECT DES TUILES : UN MOT, TROIS PRÉRÉGLAGES (ETALON.md § 8.7).
+ *
+ * « Des tuiles moins prononcées », « des lignes fines à la place des tuiles,
+ * partout » : deux demandes qui doivent tenir en une ligne. Elles tiennent à
+ * CONDITION qu'aucune liste de tuiles n'écrive son fond, son bord ou son rayon
+ * en dur — c'est ce que ces clauses lisent, famille par famille.
+ */
+const FAMILLES_DE_TUILES: [string, string][] = [
+  ["src/components/mobile/Rubriques.module.css", ".ligne"],
+  ["src/components/CeQuiFermeBientot.module.css", ".ligne"],
+  ["src/app/trader/page.module.css", ".tuile"],
+  ["src/app/info/aide/aide.module.css", ".tile"],
+  ["src/app/info/page.module.css", ".tile"],
+  ["src/app/info/page.module.css", ".lesson"],
+];
+
+describe("l'aspect des tuiles", () => {
+  const globals = sansNotes(lire("src/app/globals.css"));
+
+  it("a un jeu de jetons, et trois préréglages dont deux ne redisent que ce qui change", () => {
+    for (const j of ["--tuile-fond", "--tuile-bord", "--tuile-trait", "--tuile-rayon", "--tuile-pad-x", "--tuile-pad-y"]) {
+      expect(globals, `le jeton ${j} n'est plus déclaré dans « :root »`).toMatch(new RegExp(`(?:^|\\n)\\s*${j}:`));
+    }
+    for (const mot of ["douces", "lignes"]) expect(globals, `le préréglage « ${mot} » a disparu`).toMatch(new RegExp(`html\\[data-tuiles="${mot}"\\]\\s*\\{`));
+    const lignes = /html\[data-tuiles="lignes"\]\s*\{([^}]*)\}/.exec(globals)?.[1] ?? "";
+    expect(lignes, "« lignes » n'enlève plus le bord").toMatch(/--tuile-bord:\s*0;/);
+    expect(lignes, "« lignes » n'a plus son trait de séparation").toMatch(/--tuile-trait:\s*1px solid/);
+    expect(lignes, "« lignes » laisse un écart entre les lignes").toMatch(/--tuiles-gap:\s*0px;/);
+  });
+
+  it("se choisit en un mot, dans config.ts, posé sur <html>", () => {
+    expect(lire("src/lib/config.ts"), "le mot des tuiles n'est plus dans config.ts").toMatch(/export const TUILES: AspectDesTuiles = "(tuiles|douces|lignes)";/);
+    expect(lire("src/lib/config.ts"), "le type ne nomme plus les trois aspects").toMatch(/AspectDesTuiles = "tuiles" \| "douces" \| "lignes"/);
+    expect(sansNotes(lire("src/app/layout.tsx")), "la mise en page ne pose plus le mot sur <html>").toMatch(/<html lang=\{lang\} data-tuiles=\{TUILES\}/);
+  });
+
+  it("est lu par chaque famille de tuiles, sans fond, bord ni rayon en dur", () => {
+    for (const [f, sel] of FAMILLES_DE_TUILES) {
+      const m = new RegExp(`(?:^|\\n)\\${sel}\\s*\\{([^}]*)\\}`).exec(sansNotes(lire(f)));
+      expect(m, `${f} : « ${sel} » est introuvable`).not.toBeNull();
+      const r = m![1];
+      expect(r, `${f} ${sel} : le fond n'est plus celui des tuiles`).toMatch(/background:\s*var\(--tuile-fond\);/);
+      expect(r, `${f} ${sel} : le bord n'est plus celui des tuiles`).toMatch(/(?<![-\w])border:\s*var\(--tuile-bord\);/);
+      expect(r, `${f} ${sel} : le trait du bas n'est plus celui des tuiles`).toMatch(/border-bottom:\s*var\(--tuile-trait\);/);
+      expect(r, `${f} ${sel} : le rayon n'est plus celui des tuiles`).toMatch(/border-radius:\s*var\(--tuile-rayon\);/);
+      expect(r, `${f} ${sel} : la marge intérieure n'est plus celle des tuiles`).toMatch(/padding:[^;]*var\(--tuile-pad-x\)/);
+    }
+  });
+
+  it("est dit en une phrase par réglage dans le mode d'emploi de la doctrine", () => {
+    const doc = lire("ETALON.md");
+    const debut = doc.indexOf("### 8.0 Mode d'emploi");
+    const mode = doc.slice(debut, doc.indexOf("### 8.1 ", debut));
+    expect(mode.length, "le mode d'emploi est introuvable : la clause ne garde plus rien").toBeGreaterThan(1500);
+    // Chaque réglage d'espace et d'aspect a SA ligne de table, avec son fichier.
+    for (const j of ["--sections-gap", "--tuiles-gap", "--titre-gap", "--retour-gap", "--tuile-rayon", "--tuile-fond", "--tuile-pad-x"]) {
+      expect(mode, `le mode d'emploi n'a plus de ligne pour ${j}`).toMatch(new RegExp(`\\| [^\\n]*\`${j}\`[^\\n]*\\|`));
+    }
+    for (const mot of ["tuiles", "douces", "lignes"]) expect(mode, `le mode d'emploi ne dit plus comment obtenir « ${mot} »`).toContain(`TUILES = "${mot}"`);
+    expect(mode, "le mode d'emploi ne dit plus où se règle le mot des tuiles").toContain("src/lib/config.ts");
+    expect(doc, "la doctrine n'a plus sa section sur l'aspect des tuiles").toMatch(/### 8\.7 L'aspect des tuiles/);
+  });
+
+  it("et l'écart des tuiles de Trade lit le jeton comme les autres", () => {
+    expect(sansNotes(lire("src/app/trader/page.module.css")), "les tuiles de Trade écrivent leur écart en dur").toMatch(/\.tuiles\s*\{[^}]*gap:\s*var\(--tuiles-gap\);/);
   });
 });

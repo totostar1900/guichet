@@ -4,7 +4,7 @@ import { Instrument_Serif, Manrope } from "next/font/google";
 import "./globals.css";
 import "./palettes.css";
 import styles from "./layout.module.css";
-import { COMPANY, DISCLAIMER, PRODUCT } from "@/lib/config";
+import { COMPANY, DISCLAIMER, PRODUCT, TUILES } from "@/lib/config";
 import { NavTabs } from "@/components/NavTabs";
 import { repo } from "@/lib/data";
 import { backendName } from "@/lib/data";
@@ -164,7 +164,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const menu = <AppMenu signedIn={Boolean(session)} desk={deskUi} name={session?.name} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
-    <html lang={lang} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value, surface)}>
+    <html lang={lang} data-tuiles={TUILES} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value, surface)}>
       <head>
         {/* the device's palette and theme, applied before the first paint */}
         <script dangerouslySetInnerHTML={{ __html: PALETTE_BOOT }} />

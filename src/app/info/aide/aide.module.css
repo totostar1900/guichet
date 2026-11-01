@@ -78,13 +78,14 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface);
   color: var(--ink);
   text-decoration: none;
   min-height: 44px;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+  padding: calc(var(--tuile-pad-y) + 4px) var(--tuile-pad-x);
 }
 .tile:hover {
   border-color: var(--gold);

@@ -358,6 +358,18 @@
      était un enfant de la page à part entière. « EnTete » la range maintenant
      avec son titre dans un seul bloc, et cette distance lui est intérieure. */
   --retour-gap: var(--s-6);
+  /* ── L'ASPECT D'UNE TUILE : un jeu de jetons, trois préréglages ──────────────
+     Toute liste de tuiles (rubriques, échéances, rayons de Trade, leçons, outils,
+     sujets d'aide) lit ces jetons : fond, bord, trait de séparation, rayon, marge
+     intérieure. Le préréglage se choisit en UN MOT dans src/lib/config.ts
+     (« TUILES ») ; les trois blocs sont plus bas, « html[data-tuiles=…] ».
+     Écrire un fond, un bord ou un rayon en dur sur une tuile est une faute. */
+  --tuile-fond: var(--surface);
+  --tuile-bord: 1px solid var(--line);
+  --tuile-trait: 1px solid var(--line); /* le trait du bas : égal au bord en tuiles, seul en lignes */
+  --tuile-rayon: var(--radius);
+  --tuile-pad-x: var(--s-7);
+  --tuile-pad-y: var(--s-6);
   /* ── LES DEUX GABARITS DE PAGE, ET POURQUOI DEUX ───────────────────────────
      Mesuré le 24 octobre 2026 : vingt-deux pages, SIX largeurs. Et le trajet
      comptait plus que le tableau — dans le seul groupe « Portefeuille » :
@@ -1044,6 +1056,25 @@ h1 {
   margin-bottom: 18px;
   overflow: hidden;
 }
+/* ── LES TROIS ASPECTS DES TUILES (src/lib/config.ts › TUILES) ─────────────────
+   « tuiles » est le défaut : les jetons de « :root » valent l'allure d'origine.
+   Les deux autres ne redisent que ce qui change. Spécificité « html[data-…] » :
+   supérieure à « :root », sans « !important ». */
+html[data-tuiles="douces"] {
+  --tuile-fond: color-mix(in srgb, var(--surface) 45%, transparent);
+  --tuile-bord: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+  --tuile-trait: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+  --tuile-rayon: var(--s-3);
+}
+html[data-tuiles="lignes"] {
+  --tuile-fond: transparent;
+  --tuile-bord: 0;
+  --tuile-trait: 1px solid var(--line);
+  --tuile-rayon: 0;
+  --tuile-pad-x: 0px;
+  --tuiles-gap: 0px;
+}
+
 /* ── LA PILE : L'ESPACE D'UNE PAGE, ÉCRIT UNE FOIS ──────────────────────────────
    Une page est une pile de sections. Tout ce qui la compose — l'en-tête, les
    bandes, les panneaux, la note de pied — est un ENFANT de la pile, et ne porte

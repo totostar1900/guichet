@@ -28,16 +28,17 @@
   display: flex;
   align-items: center;
   gap: var(--s-6);
-  padding: var(--s-6) var(--s-7);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface-2);
   color: inherit;
   text-decoration: none;
   width: 100%;
   font: inherit;
   text-align: left;
   cursor: pointer;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
 }
 .ligne:hover {
   border-color: var(--line-2);

@@ -29,7 +29,8 @@ export default async function GlossairePage() {
   const keys = Object.keys(G).sort((a, b) => G[a].short.localeCompare(G[b].short, "fr"));
   return (
     <Glissement>
-      <div className={styles.wrap}>
+      {/* UNE PILE : l'espace entre l'en-tête et le glossaire vient du jeton des sections (ETALON.md § 8). */}
+      <div className={`pile ${styles.wrap}`}>
         <EnTete
           surTitre={t("Aide")}
           titre={t("Les mots de Guichet")}

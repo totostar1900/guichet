@@ -1,3 +1,16 @@
+/**
+ * L'ASPECT DES TUILES, DE TOUTE L'APPLICATION, EN UN MOT (ETALON.md § 8).
+ *
+ *   "tuiles" : des cartes à fond et à bord, séparées de 12 px (l'allure d'origine) ;
+ *   "douces" : les mêmes, en moins prononcé (fond et bord atténués, rayon réduit) ;
+ *   "lignes" : plus de cartes, des lignes fines de séparation.
+ *
+ * Changer ce mot change toutes les listes de tuiles. Les trois préréglages vivent
+ * dans « globals.css » (« html[data-tuiles=…] ») ; la mise en page pose le mot sur « <html> ».
+ */
+export type AspectDesTuiles = "tuiles" | "douces" | "lignes";
+export const TUILES: AspectDesTuiles = "tuiles";
+
 /** Product and company identity : the one place to change names. */
 export const PRODUCT = {
   name: "Guichet",

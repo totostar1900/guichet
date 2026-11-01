@@ -14,13 +14,14 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 14px 16px;
   text-decoration: none;
   color: var(--ink);
   min-height: 118px;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+  padding: calc(var(--tuile-pad-y) + 4px) var(--tuile-pad-x);
 }
 .tile:hover {
   border-color: var(--gold-line);
@@ -61,12 +62,13 @@
   grid-template-columns: 34px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 10px 14px;
   text-decoration: none;
   color: var(--ink);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
 }
 .lesson:hover {
   border-color: var(--gold-line);

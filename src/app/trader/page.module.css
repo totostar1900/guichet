@@ -80,7 +80,7 @@
   padding: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--s-6);
+  gap: var(--tuiles-gap);
 }
 @media (min-width: 430px) {
   .tuiles {
@@ -133,13 +133,14 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--s-5);
-  padding: var(--s-7);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
   color: var(--ink);
   font: inherit;
   text-align: left;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+  padding: calc(var(--tuile-pad-y) + 4px) var(--tuile-pad-x);
 }
 .tuile:hover,
 .tuile:focus-within {
