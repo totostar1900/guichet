@@ -1,7 +1,9 @@
 .wrap {
   display: flex;
   flex-direction: column;
-  gap: var(--s-6);
+  gap: var(--sections-gap);
+  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
+  --entete-marge: 0px;
   max-width: 56ch;
 }
 
@@ -248,7 +250,7 @@
    pas « signer » et « renoncer » au même rang, et deux cibles de même taille à
    un doigt l'une de l'autre finissent par se confondre. */
 .renonce {
-  margin: var(--s-6) 0 0;
+  margin: 0;
   text-align: center;
 }
 .renonce button {
@@ -293,7 +295,6 @@
    de celui-là. Le mêler aux lignes du récapitulatif le ferait lire comme une
    clause, et le client chercherait sa signature. */
 .arbitrage {
-  margin-top: var(--s-6);
   padding: var(--s-5);
   border: 1px solid var(--line);
   background: var(--surface);

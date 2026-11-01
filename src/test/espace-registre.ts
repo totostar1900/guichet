@@ -30,6 +30,8 @@ export const CONVERTIES: [string, string][] = [
   ["src/app/actualites/page.module.css", "page"],
   ["src/app/info/aide/aide.module.css", "wrap"],
   ["src/app/info/parcours/page.module.css", "wrap"],
+  ["src/app/moi/documents/[id]/page.module.css", "wrap"],
+  ["src/app/moi/ordres/[id]/page.module.css", "wrap"],
 ];
 
 /** Converties par la classe globale « pile » (aucune règle de module à lire) : le fichier de la page DOIT la porter. */
@@ -40,8 +42,6 @@ export const PAR_LA_PILE = ["src/app/marche/page.tsx", "src/app/titres/page.tsx"
  * Chaque entrée sera retirée par la conversion de la page ; la clause tombe si on l'oublie.
  */
 export const A_CONVERTIR: [string, string][] = [
-  ["src/app/moi/documents/[id]/page.module.css", "wrap"],
-  ["src/app/moi/ordres/[id]/page.module.css", "wrap"],
   ["src/app/offres/[id]/intention/page.module.css", "page"],
   ["src/app/offres/[id]/page.module.css", "page"],
   ["src/app/ouvrir-un-compte/convention/page.module.css", "page"],

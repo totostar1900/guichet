@@ -1,7 +1,9 @@
 .wrap {
   display: flex;
   flex-direction: column;
-  gap: var(--s-6);
+  gap: var(--sections-gap);
+  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
+  --entete-marge: 0px;
   /* La visionneuse prend ce qui reste : le document se lit, il ne se devine pas. */
   min-height: 0;
 }
@@ -75,7 +77,6 @@
   justify-content: space-between;
   gap: var(--s-6);
   padding: var(--s-5) var(--s-6);
-  margin-bottom: var(--s-7);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface-2);
@@ -105,5 +106,4 @@
   display: flex;
   gap: var(--s-5);
   flex-wrap: wrap;
-  margin-top: var(--s-7);
 }
