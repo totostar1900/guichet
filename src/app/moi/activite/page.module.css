@@ -7,7 +7,7 @@
   display: flex;
   flex-wrap: wrap;
   border: 1px solid var(--line);
-  margin: var(--s-7) 0;
+  margin: 0;
 }
 
 .compteur {
@@ -31,7 +31,6 @@
 
 .fil {
   border: 1px solid var(--line);
-  margin-bottom: var(--s-7);
 }
 
 .jour {

@@ -43,7 +43,8 @@ export default async function ActivitePage() {
 
   return (
     <Glissement>
-      <main className={commun.wrap}>
+      {/* UNE PILE : l'espace entre l'en-tête, les compteurs, le fil et les panneaux vient du jeton des sections (ETALON.md § 8). */}
+      <main className={`pile ${commun.wrap}`}>
         <EnTete
           surTitre={t("Mon compte")}
           titre={t("Votre activité")}
