@@ -32,7 +32,7 @@ export const CONVERTIES: [string, string][] = [
 ];
 
 /** Converties par la classe globale « pile » (aucune règle de module à lire) : le fichier de la page DOIT la porter. */
-export const PAR_LA_PILE = ["src/app/marche/page.tsx", "src/app/actualites/page.tsx", "src/app/info/aide/page.tsx"];
+export const PAR_LA_PILE = ["src/app/marche/page.tsx", "src/app/actualites/page.tsx", "src/app/info/aide/page.tsx", "src/app/info/eclairages/page.tsx"];
 
 /**
  * Feuilles de page qui ÉCRIVENT ENCORE leur écart (un « gap » qui n'est pas le jeton).

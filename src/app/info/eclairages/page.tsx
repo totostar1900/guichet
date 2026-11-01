@@ -35,7 +35,10 @@ export default async function EclairagesPage() {
   const parcoursCount = toutes.filter((l) => l.section).length;
   return (
     <Glissement>
-      <div className={styles.wrap}>
+      {/* UNE PILE : l'espace entre les blocs vient du jeton des sections (ETALON.md § 8). */}
+      <div className={`pile ${styles.wrap}`}>
+        {/* L'EN-TÊTE ET SON RENVOI VERS L'AIDE forment UN bloc : le renvoi est une action du titre, à « --titre-gap » de lui. */}
+        <div className={styles.enteteAction}>
         <EnTete
           surTitre={t("Aide")}
           titre={t("Huit éclairages courts")}
@@ -50,6 +53,7 @@ export default async function EclairagesPage() {
             {t("Aide : vos questions, nos réponses")} →
           </Link>
         </p>
+        </div>
         <div className={styles.lessons} data-coach="info-insights">
           {lessons.map((l) => (
             <Link key={l.key} href={`/info/${l.key}`} className={styles.lesson}>
@@ -84,6 +88,8 @@ export default async function EclairagesPage() {
           <span className={styles.parcoursGo}>{t("Commencer")} →</span>
         </Link>
 
+        {/* UN TITRE ET SES OUTILS : une section de la pile, « --titre-gap » entre eux. */}
+        <section className={styles.plusLoinBloc}>
         <h2 className={styles.plusLoin}>{t("Pour aller plus loin")}</h2>
         <div className={styles.grid}>
           <Link href="/comparer" className={styles.tile}>
@@ -102,6 +108,7 @@ export default async function EclairagesPage() {
             <span>{t("Comptes, dividendes, actionnariat, documents publiés à la BVMAC.")}</span>
           </Link>
         </div>
+        </section>
 
         <BackToTop lift />
         <GuideBar pos={{ label: t("Éclairages") }} />

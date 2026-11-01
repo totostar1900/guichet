@@ -8,8 +8,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
-  gap: 12px;
-  margin-bottom: 28px;
+  gap: var(--tuiles-gap);
 }
 .tile {
   display: flex;
@@ -48,7 +47,7 @@
 
 .lessons {
   display: grid;
-  gap: 8px;
+  gap: var(--tuiles-gap);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 @media (max-width: 760px) {
@@ -198,12 +197,23 @@
 
 /* Le renvoi vers l'aide, qui était posé à côté du titre de la section. */
 .versAide {
-  margin: 0 0 var(--s-7);
+  margin: 0;
+}
+/* L'EN-TÊTE ET SON RENVOI, UN SEUL ENFANT DE LA PILE : le renvoi légende le titre. */
+.enteteAction {
+  display: grid;
+  gap: var(--titre-gap);
+  justify-items: start;
+}
+/* UN TITRE ET SES OUTILS, UNE SECTION DE LA PILE. */
+.plusLoinBloc {
+  display: grid;
+  gap: var(--titre-gap);
 }
 
 /* Le titre de « Pour aller plus loin », sur la page des éclairages : trois
    outils CITÉS, qui ont leur entrée ailleurs dans la colonne. */
 .plusLoin {
-  margin: var(--s-8) 0 0;
+  margin: 0;
   font-size: var(--t-6);
 }
