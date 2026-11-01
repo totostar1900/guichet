@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { LIST_ORDER_KEY, rememberedListUrl, type ListMemory, type ListPeek } from "@/components/ListNav";
 import { neighbourReading } from "@/app/offres/[id]/neighbour";
+import { estUneFiche } from "@/lib/fiche-url";
 import styles from "./SwipePager.module.css";
 
 /**
@@ -121,6 +122,8 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
   const asked = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (!ready || !window.matchMedia("(max-width: 760px)").matches) return;
+    /* LE CHEMIN COURANT, AU MOMENT D'APPELER : une action part vers la page où l'on est, et non vers celle qui l'a montée. Après une navigation, la nôtre n'est plus une fiche (voir « fiche-url »). */
+    if (!estUneFiche(window.location.pathname)) return;
     for (const nid of wantIds) {
       if (asked.current.has(nid)) continue;
       asked.current.add(nid);

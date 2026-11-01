@@ -1,6 +1,8 @@
 "use server";
 
+import { headers } from "next/headers";
 import { repo } from "@/lib/data";
+import { estUneFiche } from "@/lib/fiche-url";
 import { FicheReading, loadFiche } from "./FicheReading";
 import { FicheHead } from "./FicheHead";
 import { ListNav } from "@/components/ListNav";
@@ -29,6 +31,9 @@ import styles from "./page.module.css";
  * enveloppe à lui, le voisin les montrerait tous les quatre à la fois.
  */
 export async function neighbourReading(offerId: string): Promise<React.ReactNode> {
+  /* UNE ACTION SE RÉSOUT DANS LA ROUTE QUI L'APPELLE. Venue d'une autre page que la fiche (« /info/[key] » le 1er novembre 2026), elle rendrait des composants client que cette route ne porte pas : le rendu échoue APRÈS le retour, hors de tout « catch ». On répond « rien » avant : la vignette reste. Sans en-tête « referer », on ne peut pas savoir, et l'on rend comme avant. */
+  const depuis = (await headers()).get("referer");
+  if (depuis && !estUneFiche(depuis)) return null;
   const o = await repo().getOffer(offerId);
   if (!o || o.hidden || o.status === "withdrawn") return null;
   const data = await loadFiche(o);
