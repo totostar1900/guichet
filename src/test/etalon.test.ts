@@ -328,17 +328,23 @@ describe("l'en-tête d'une page", () => {
     expect(PLAFOND - restants.length, "le plafond a pris du jeu : le rabaisser au compte du jour").toBeLessThanOrEqual(2);
   });
 
-  it("n'ajoute pas ses 24 px à l'écart des pages dont le conteneur pose un gap", () => {
+  it("n'ajoute aucune marge à l'écart des pages : l'en-tête est un enfant de la pile comme un autre", () => {
     /* MESURÉ LE 31 OCTOBRE 2026 : le titre était à « gap + 24 » du premier bloc, soit 50
-       sur Trade (26 + 24). Une page convertie met « --entete-marge: 0px » dans la règle
-       de son conteneur ; le défaut de 24 reste pour celles qui n'ont pas de gap. */
+       sur Trade (26 + 24). Toutes les pages montent « EnTete » dans une pile : l'enveloppe
+       n'a plus de marge, et le défaut transitoire (« --entete-marge ») est parti. */
     const enTete = fs.readFileSync(path.join(ROOT, "src/components/EnTete.module.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(enTete, "l'en-tête ne lit plus --entete-marge : une page ne peut plus retirer ses 24 px").toMatch(/\.entete \{\s*margin-bottom:\s*var\(--entete-marge, var\(--s-9\)\);/);
-    /* LES PAGES QUI MONTENT « EnTete » : Console (l'Accueil) n'en a pas, son « Bonjour » est à lui. */
+    expect(enTete, "l'enveloppe de l'en-tête a repris une marge propre").toMatch(/\.entete \{\s*margin:\s*0;\s*\}/);
+    /* « .retour » garde sa marge (--retour-gap) : elle est INTÉRIEURE au bloc. Ce que l'en-tête ne porte plus, c'est une marge SOUS lui. */
+    for (const sel of ["entete", "tete"]) {
+      const regle = new RegExp(`(?:^|\\n)\\.${sel}\\s*\\{[^}]*\\}`).exec(enTete)?.[0] ?? "";
+      expect(regle.length, `« .${sel} » est introuvable : la clause ne garde plus rien`).toBeGreaterThan(5);
+      expect(regle, `« .${sel} » a de nouveau un « margin-bottom » : il s'ajoute à l'écart de la page`).not.toMatch(/margin-bottom/);
+    }
+    expect(enTete, "la variable transitoire --entete-marge est revenue").not.toMatch(/--entete-marge/);
     for (const [f, cls] of PORTEURS_ENTETE) {
       const page = fs.readFileSync(path.join(ROOT, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").match(new RegExp(`(?:^|\\n)\\.${cls}\\s*\\{[^}]*\\}`))?.[0] ?? "";
       expect(page, `${f} : la règle du conteneur est introuvable`).toMatch(/gap:\s*var\(--sections-gap\)/);
-      expect(page, `${f} : l'en-tête ajoute de nouveau ses 24 px à l'écart des sections`).toMatch(/--entete-marge:\s*0px/);
+      expect(page, `${f} : la page redéclare --entete-marge, qui n'existe plus`).not.toMatch(/--entete-marge/);
     }
   });
 

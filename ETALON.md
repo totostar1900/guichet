@@ -437,8 +437,7 @@ la ligne d'un jeton change toute l'application, et rien d'autre à faire.**
 | `--tuiles-gap` | **12 px** (`--s-6`) | l'écart entre deux tuiles d'une liste | les rubriques de l'Accueil, les rayons de Trade, les échéances |
 | `--titre-gap` | **12 px** (`--s-6`) | entre le titre d'une section et ce qu'elle contient | « Ce qui ferme bientôt », « Votre dossier », « La sélection du desk » |
 | `--retour-gap` | **12 px** (`--s-6`) | entre la flèche de retour et le titre de la page | toute page à flèche (intérieur à `EnTete`) |
-| `--entete-marge` | 24 px par défaut ; `0` dans une pile | ce que l'en-tête ajoute sous lui | **transitoire** : disparaît avec la dernière page à marges d'enfants |
-| `--onglets-marge`, `--replay-marge`, `--infosearch-marge` | leur marge d'origine ; `0` dans une pile | la marge propre d'un composant partagé (onglets du marché, bouton de rappel des repères, champ de recherche) | **transitoires** comme `--entete-marge` : la pile les remet à zéro, les pages sans pile gardent la leur |
+| `--onglets-marge`, `--replay-marge`, `--infosearch-marge` | leur marge d'origine ; `0` dans une pile | la marge propre d'un composant partagé (onglets du marché, bouton de rappel des repères, champ de recherche) | **transitoires** : la pile les remet à zéro, les pages sans pile gardent la leur |
 
 Ces valeurs sont **hors de l'échelle `--s-*` à dessein** pour la première
 (28) : 20 se lisait comme un seul long texte, 32 flottait sur téléphone.
@@ -450,8 +449,7 @@ composant — le `padding` d'une carte, le `gap` d'une ligne de tableau — rest
 
 1. **Une page est une pile.** Son conteneur est la classe globale `pile`
    (`display: flex; flex-direction: column; gap: var(--sections-gap)`), ou une
-   règle de module `.page` / `.wrap` qui déclare `gap: var(--sections-gap)` et
-   `--entete-marge: 0px`.
+   règle de module `.page` / `.wrap` qui déclare `gap: var(--sections-gap)`.
 2. **Un enfant de la pile ne porte aucune marge verticale vers son voisin.**
    Pas de `margin-top` sur le premier bloc, pas de `margin-bottom` sur le
    dernier : l'espace vient du `gap`, seul. Le panneau (`.panel`) perd sa marge
@@ -510,14 +508,7 @@ Appareil, Identité, Contact, Services, Agir).
 
 *Exemptée, comme document :* la note trimestrielle (`/indice/note/[trimestre]`) — une feuille éditoriale (bandeau, titre, chapeau, fiche, colonnes) qui a sa propre typographie, comme la peau d'un document ; elle n'est pas une pile de sections.
 
-*Presque tout à 28, avec un reliquat nommé ci-dessous :* Calendrier et Mentions.
-
-*Écarts internes restants,* relevés au 31 octobre 2026 et à reprendre en
-convertissant la page : sous la liste de « Calendrier » (40 au lieu de 28 : le
-navigateur d'offres porte 12 px de plus) ; la liste de cartes d'offres de « Titres »
-et de « Calendrier » (20 px entre cartes : ce sont des cartes d'offre, pas une
-famille de tuiles, et un écart de 0 les collerait en aspect « lignes »), sous la mention de version de
-« Mentions » (36 : une marge de 8 sous une ligne qui est un enfant de la pile).
+*Tout à 28 aux écarts d'un niveau.* *Écart interne restant, volontaire :* la liste de cartes d'offres de « Titres » et de « Calendrier » (20 px entre cartes : ce sont des cartes d'offre, pas une famille de tuiles, et un écart de 0 les collerait en aspect « lignes »).
 
 *Exemptées* (§ C, la vitrine) : l'accueil du visiteur, À propos, Nos
 placements, l'aperçu d'une ligne partagée.

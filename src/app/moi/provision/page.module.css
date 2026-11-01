@@ -10,8 +10,6 @@
      2026. Le gabarit porte les deux. */
   max-width: var(--page-texte);
   margin-inline: auto;
-  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
-  --entete-marge: 0px;
 }
 
 /* LE SOLDE : un total, une barre qui le partage, et chaque état porte SON

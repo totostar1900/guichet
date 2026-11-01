@@ -2,8 +2,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--sections-gap);
-  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
-  --entete-marge: 0px;
   /* La visionneuse prend ce qui reste : le document se lit, il ne se devine pas. */
   min-height: 0;
 }

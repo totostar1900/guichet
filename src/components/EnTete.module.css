@@ -19,16 +19,12 @@
   color: var(--ink);
 }
 
-/* L'ESPACE SOUS L'EN-TÊTE N'EST PAS CELUI DE LA PAGE, et il s'ajoutait à lui.
-   Mesuré le 31 octobre 2026 : sur une page dont le conteneur pose son « gap », le
-   titre était à « gap + 24 » du premier bloc — 40, 44, 50, 56 ou 64 selon la
-   page. L'enveloppe porte donc cette marge, et une page rangée dans une pile
-   (« .pile », ou un conteneur qui déclare « --entete-marge: 0 ») la remet à zéro :
-   l'en-tête est un enfant comme un autre. LE DÉFAUT RESTE 24 pour les pages encore
-   à marges d'enfants, qui n'ont pas de « gap » et comptent sur lui ; il disparaît
-   avec la dernière. */
+/* L'EN-TÊTE N'A PAS DE MARGE SOUS LUI : c'est un enfant comme un autre de la pile de la page, et
+   l'écart qui le suit est celui des sections (« --sections-gap », ETALON.md § 8). Il en portait 24
+   (« margin-bottom ») qui s'ajoutaient à l'écart de la page — 40, 44, 50, 56 ou 64 px selon la page,
+   mesuré le 31 octobre 2026. Toutes les pages l'emploient maintenant dans une pile : la marge est partie. */
 .entete {
-  margin-bottom: var(--entete-marge, var(--s-9));
+  margin: 0;
 }
 .tete {
   margin: 0;

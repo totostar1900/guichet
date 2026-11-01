@@ -43,7 +43,7 @@ describe("les mesures de l'espace d'une page", () => {
     expect(doc, "ETALON.md n'a plus sa section « L'espace d'une page »").toMatch(/## 8\. L'espace d'une page/);
     /* UNE LIGNE DE LA TABLE, pas une simple mention : le nom d'un jeton revient dans
        les règles et les exemples, et « le texte le cite » ne prouve pas qu'il est mesuré. */
-    for (const j of ["--sections-gap", "--tuiles-gap", "--titre-gap", "--retour-gap", "--entete-marge"]) {
+    for (const j of ["--sections-gap", "--tuiles-gap", "--titre-gap", "--retour-gap"]) {
       expect(doc, `la table de la doctrine n'a plus la ligne de ${j}`).toMatch(new RegExp(`\\n\\| \`${j}\` \\|`));
     }
     expect(doc, "la doctrine ne dit plus que le conteneur d'une page est la classe pile").toMatch(/Son conteneur est la classe globale `pile`/);
@@ -58,7 +58,6 @@ describe("la pile", () => {
     expect(pile.length, "la classe « pile » est introuvable : la clause ne garde plus rien").toBeGreaterThan(30);
     expect(pile, "la pile n'empile plus").toMatch(/display:\s*flex;[\s\S]*flex-direction:\s*column;/);
     expect(pile, "la pile ne lit plus --sections-gap").toMatch(/gap:\s*var\(--sections-gap\);/);
-    expect(pile, "la pile n'enlève plus la marge de l'en-tête").toMatch(/--entete-marge:\s*0px;/);
     expect(pile, "la pile n'enlève plus la marge du bouton de rappel des repères").toMatch(/--replay-marge:\s*0px;/);
     expect(pile, "la pile n'enlève plus la marge des onglets du marché").toMatch(/--onglets-marge:\s*0px;/);
     expect(pile, "la pile n'enlève plus la marge du champ de recherche").toMatch(/--infosearch-marge:\s*0;/);

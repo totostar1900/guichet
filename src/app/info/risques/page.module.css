@@ -6,8 +6,6 @@
   flex-direction: column;
   gap: var(--sections-gap);
   padding-bottom: var(--respiration);
-  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
-  --entete-marge: 0px;
 }
 
 /* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre

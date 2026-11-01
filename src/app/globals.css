@@ -1083,12 +1083,11 @@ html[data-tuiles="lignes"] {
 
    Le panneau garde sa marge basse partout ailleurs (« .panel » vaut 18 px hors
    d'une pile) ; dans une pile il la perd, sans quoi les deux s'additionneraient.
-   L'en-tête perd la sienne par « --entete-marge: 0 ». Voir ETALON.md § 8. */
+   L'en-tête n'en a plus : il est un enfant comme un autre. Voir ETALON.md § 8. */
 .pile {
   display: flex;
   flex-direction: column;
   gap: var(--sections-gap);
-  --entete-marge: 0px;
   --replay-marge: 0px;
   --onglets-marge: 0px;
   --infosearch-marge: 0;

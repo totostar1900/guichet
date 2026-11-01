@@ -20,8 +20,6 @@
      nus se lisaient comme un seul texte (c'est ce que la page de réinvestissement
      avait relevé). Voir ETALON.md. */
   gap: var(--sections-gap);
-  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
-  --entete-marge: 0px;
 }
 /* Un paragraphe posé directement dans la page n'a pas la marge par défaut du navigateur : elle s'ajoutait au « gap » (ETALON.md § 8). */
 .page > p {

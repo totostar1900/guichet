@@ -30,8 +30,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--sections-gap);
-  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
-  --entete-marge: 0px;
   --infosearch-marge: 0;
 }
 /* Un paragraphe posé directement dans la page n'a pas la marge par défaut du navigateur : elle s'ajoutait au « gap » (ETALON.md § 8). */

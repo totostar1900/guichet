@@ -1,8 +1,6 @@
 .wrap {
   display: grid;
   gap: var(--sections-gap);
-  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
-  --entete-marge: 0px;
   --replay-marge: 0px;
   min-width: 0;
   max-width: 860px;

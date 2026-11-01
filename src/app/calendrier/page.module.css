@@ -19,8 +19,6 @@
   flex-direction: column;
   gap: var(--sections-gap);
   padding-bottom: var(--s-11);
-  /* L'en-tête est un enfant comme un autre : l'écart qui le suit est celui des sections (voir EnTete.module.css). */
-  --entete-marge: 0px;
   --onglets-marge: 0px;
 }
 
@@ -30,6 +28,7 @@
 }
 
 .note {
+  margin: 0;
   font-size: 0.82rem;
   color: var(--ink-2);
   line-height: 1.5;

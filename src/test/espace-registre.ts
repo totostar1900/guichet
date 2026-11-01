@@ -7,7 +7,7 @@
  * niveau valent le jeton ; elle sort de « A_CONVERTIR » le même jour.
  */
 
-/** [feuille, classe du conteneur] — le conteneur lit `--sections-gap` et pose `--entete-marge: 0px`. */
+/** [feuille, classe du conteneur] — le conteneur lit `--sections-gap`. */
 export const CONVERTIES: [string, string][] = [
   ["src/app/trader/page.module.css", "page"],
   ["src/app/moi/reinvestir/page.module.css", "page"],
