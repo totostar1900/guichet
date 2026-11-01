@@ -14,7 +14,7 @@ export const CLIENTELE: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 2,
-  checkedOn: "2026-10-31",
+  checkedOn: "2026-11-01",
   owner: "Georges",
   chapters: [
     {
@@ -64,7 +64,7 @@ export const CLIENTELE: DocPage = {
           type: "note",
           kind: "warn",
           text: l(
-            "Treize mois de détail, puis des compteurs sans le geste, par un robot mensuel. Ce n'est pas un réglage : l'article 8 de la convention le promet au client, et le client lit son propre registre dans « Votre activité ». Changer la durée oblige à changer l'article, donc à faire reprendre la convention.",
+            "Treize mois de détail, puis des compteurs sans le geste, par un robot mensuel. Ce n'est pas un réglage : l'article 8 de la convention le promet au client, et le client lit son propre registre dans « Mon activité ». Changer la durée oblige à changer l'article, donc à faire reprendre la convention.",
             "Thirteen months of detail, then counters without the move, by a monthly robot. This is not a setting: article 8 of the agreement promises it to the client, and the client reads their own register under « Your activity ». Changing the duration means changing the article, hence having the agreement re-accepted.",
           ),
         },
@@ -409,7 +409,7 @@ export const CLIENTELE: DocPage = {
             [l("Régler les poids du score", "Setting the score's weights"), l("Référentiel › Barème", "Reference data › Scale")],
             [l("Écrire à un groupe", "Writing to a group"), l("Carnet › la ligne à la une › Segment", "Book › the featured line › Segment")],
             [l("Écarter quelqu'un, ou lever une inscription", "Barring someone, or lifting an entry"), l("Référentiel › Registre", "Reference data › Register")],
-            [l("Ce que le client voit de lui-même", "What the client sees of themselves"), l("Son espace › Votre activité", "Their space › Your activity")],
+            [l("Ce que le client voit de lui-même", "What the client sees of themselves"), l("Son espace › Mon activité", "Their space › Your activity")],
           ],
         },
       ],

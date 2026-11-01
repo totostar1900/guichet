@@ -141,7 +141,7 @@ export function BarreDuHaut({ name, attentes, urgentes }: BarreDuHautProps) {
                   <span className={styles.init}>{initial}</span>
                   <span>
                     <b>{name}</b>
-                    <small>{t("Votre compte")}</small>
+                    <small>{t("Mon compte")}</small>
                   </span>
                 </Link>
                 <button ref={croix} type="button" className={styles.fermer} onClick={fermer} aria-label={t("Fermer")}>

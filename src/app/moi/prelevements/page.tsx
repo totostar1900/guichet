@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Vos prélèvements") };
+  return { title: t("Mes prélèvements") };
 }
 
 /**
@@ -55,7 +55,7 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
       <div className={styles.wrap}>
         <EnTete
           surTitre={t("Payer sans y penser")}
-          titre={t("Vos prélèvements")}
+          titre={t("Mes prélèvements")}
           /* LE PLAFOND EST PARTI DE LA PHRASE D'OUVERTURE, le 25 octobre 2026.
              Il se disait trois fois sur un même écran — ici, sous le champ du
              montant (« ce montant est aussi votre plafond »), et sur chaque
@@ -116,7 +116,7 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
             pourquoi n'est pas à lui de le faire. */}
         {tirages.length > 0 && (
           <section className={styles.bloc}>
-            <h2>{t("Vos prélèvements")}</h2>
+            <h2>{t("Mes prélèvements")}</h2>
             <ul className={styles.tirages}>
               {tirages.slice(0, 12).map((x) => {
                 const m = mandats.find((y) => y.id === x.mandatId);

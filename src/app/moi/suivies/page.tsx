@@ -49,7 +49,7 @@ export default async function SuiviesPage() {
       <main className={`pile ${styles.wrap}`}>
         <EnTete
           retour={{ href: "/", mot: t("Tableau de bord") }}
-          surTitre={t("Votre dossier")}
+          surTitre={t("Mon dossier")}
           titre={t("Lignes suivies")}
           phrase={t("Ce que vous surveillez sans le détenir. Un message vous prévient à chaque changement de cours, de prix ou de statut.")}
         />

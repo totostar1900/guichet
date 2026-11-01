@@ -33,7 +33,7 @@ export const RAYONS_DES_PAPIERS = [
   {
     cle: "demarches",
     href: "/moi/documents/demarches",
-    nom: "Vos démarches",
+    nom: "Mes démarches",
     quoi: "Ce qu'on ouvre quand quelque chose ne va pas, ou quand on s'en va.",
   },
 ] as const;

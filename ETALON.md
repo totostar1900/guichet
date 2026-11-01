@@ -35,7 +35,7 @@ Mesuré à 390 px, le format qui commande.
 
 | page | gouttière | h1 | h2 | avant le titre |
 |---|---|---|---|---|
-| `/moi/documents` | **30** | 30 | — | sur-titre « Vos papiers » |
+| `/moi/documents` | **30** | 30 | — | sur-titre « Mes papiers » |
 | `/moi/textes` | **30** | 30 | — | sur-titre « La maison » |
 | `/moi/performance` | **30** | 30 | 16 | **lien retour** « ← Portefeuille » |
 | `/moi/compte` | **30** | 26 | — | rien |
@@ -437,7 +437,7 @@ la ligne d'un jeton change toute l'application, et rien d'autre à faire.**
 | `--sections-gap` | **28 px** | l'écart entre deux sections d'une page ; aussi la gouttière quand deux colonnes se côtoient | l'Accueil, Trade, tout « Feuillet », le fil et le rail d'Actualités |
 | `--chapitres-gap` | **44 px** | l'écart entre deux CHAPITRES d'une page d'arrivée (classe globale `chapitres`) : le devoir, l'occasion, le relevé, Investir, le marché, le dossier. Réservé à l'Accueil | l'Accueil (`Console`) ; une page sans chapitres n'en lit pas |
 | `--tuiles-gap` | **12 px** (`--s-6`) | l'écart entre deux tuiles d'une liste | les rubriques de l'Accueil, les rayons de Trade, les échéances |
-| `--titre-gap` | **12 px** (`--s-6`) | entre le titre d'une section et ce qu'elle contient | « Ce qui ferme bientôt », « Votre dossier », « La sélection du desk » |
+| `--titre-gap` | **12 px** (`--s-6`) | entre le titre d'une section et ce qu'elle contient | « Ce qui ferme bientôt », « Mon dossier », « La sélection du desk » |
 | `--retour-gap` | **12 px** (`--s-6`) | entre la flèche de retour et le titre de la page | toute page à flèche (intérieur à `EnTete`) |
 | `--onglets-marge`, `--replay-marge`, `--infosearch-marge` | leur marge d'origine ; `0` dans une pile | la marge propre d'un composant partagé (onglets du marché, bouton de rappel des repères, champ de recherche) | **transitoires** : la pile les remet à zéro, les pages sans pile gardent la leur |
 
@@ -579,6 +579,35 @@ outils du navigateur, sans recharger).
 gardent leur allure : l'aspect des tuiles ne les concerne pas.
 
 ---
+
+## 9. La voix des libellés — « Mes » pour ce qui est au client, « Votre » pour ce que la maison lui dit
+
+*Décidé le 1er novembre 2026. Gardé par `src/test/mes-et-votre.test.ts`.*
+
+Un **nom de rubrique, de page ou d'entrée de menu** est un lieu que le client
+possède : il se dit à la première personne. Une **phrase de la maison**, une
+**consigne de formulaire** ou un **texte contractuel** parlent *au* client : ils
+restent à la deuxième. Le défaut relevé était le mélange dans une même liste,
+« Mes documents » à côté de « Vos intentions ».
+
+| Famille | Voix | Exemples |
+|---|---|---|
+| nom de rubrique, de page, d'entrée de menu, sur-titre | **Mes / Mon / Ma** | « Mon compte », « Mes intentions », « Mes versements programmés », « Ma provision », « Mon dossier » |
+| renvoi vers l'un de ces lieux | **Mon compte › …** | « Mon compte › Sécurité » |
+| phrase de la maison, statut, avis | **Votre / Vos** | « Votre ordre est servi », « Votre dossier est approuvé » |
+| consigne ou champ de formulaire | **Votre / Vos** | « Votre limite », « Votre code à 4 chiffres » |
+| texte contractuel, annexe, mentions | **Votre / Vos** | « Votre convention », « Vos titres à votre nom » |
+| le catalogue de ce que la maison fait pour le client | **Vos** | « Tous vos services » |
+
+*Pour changer un libellé :* « passe tel libellé de lieu à la deuxième personne »
+est une régression ; l'inverse (un nouveau nom de lieu) se dit à la première.
+Un libellé est aussi une clé de traduction : le renommer, c'est renommer sa clé
+dans `src/i18n/en-*.ts` — le test de couverture le refuse sinon.
+
+*Hors périmètre, à dessein :* l'interface du desk (`Votre poste`, `Votre siège`,
+`Votre journée`) parle à l'équipe, non au client ; et la note de version de la
+convention (`src/data/legal.ts`), qui cite « Votre activité » dans un texte daté
+— le modifier suppose de versionner le texte.
 
 ## Annexe — l'énoncé d'origine des deux arbitrages
 

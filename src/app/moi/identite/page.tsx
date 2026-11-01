@@ -51,7 +51,7 @@ export default async function IdentitePage() {
     <Glissement>
         <div className={styles.page}>
           <EnTete
-            retour={{ href: "/moi/compte", mot: t("Votre compte") }}
+            retour={{ href: "/moi/compte", mot: t("Mon compte") }}
             surTitre={t("Vous")}
             titre={t("Profil")}
             phrase={t("Le nom qui s'imprime sur vos bulletins, et les deux canaux par lesquels la maison vous joint et vous fait signer.")}

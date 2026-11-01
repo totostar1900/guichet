@@ -212,7 +212,7 @@ export default async function SondagePage() {
         <ProposerMaLigne aujourdHui={aujourdHui} />
 
         <section className={styles.bloc} id="mes-attentes">
-          <h2 className={styles.titre}>{t("Vos intentions")}</h2>
+          <h2 className={styles.titre}>{t("Mes intentions")}</h2>
           {vivantes.length === 0 && closes.length === 0 ? (
             <p className={styles.vide}>{t("Rien encore. Répondre à une ligne ci-dessus prend deux chiffres ; proposer la vôtre en prend six.")}</p>
           ) : (

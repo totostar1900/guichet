@@ -99,7 +99,7 @@ export function MesMandats({
     <>
       {vivants.length > 0 && (
         <section className={styles.bloc}>
-          <h2>{t("Vos autorisations")}</h2>
+          <h2>{t("Mes autorisations")}</h2>
           <ul className={styles.liste}>
             {vivants.map((m) => (
               /* L'ANCRE DU RAPPEL : son second lien renvoie ici, sur le

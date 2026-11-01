@@ -42,10 +42,10 @@ export default async function PlacerPage() {
     <Glissement>
       <div className={styles.wrap}>
         <EnTete
-          retour={{ href: "/moi/provision", mot: t("Votre provision") }}
+          retour={{ href: "/moi/provision", mot: t("Ma provision") }}
           /* Le retour dit « Votre provision » : le sur-titre dit la famille,
              pas le même mot — c'est celui que porte la page du solde. */
-          surTitre={t("Votre argent chez nous")}
+          surTitre={t("Mon argent chez nous")}
           titre={t("La faire travailler")}
           phrase={t("En parts d'un fonds monétaire, inscrites à votre nom. Le rendement est celui du fonds ; nous n'en promettons aucun.")}
         />

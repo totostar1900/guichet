@@ -31,7 +31,7 @@ export const sansNotes = (src: string) =>
  *   « cinq sièges … Portefeuille, Instruments » — quatre, depuis que Trade a
  *   absorbé Instruments, et le premier s'appelle Accueil ;
  *   « Portefeuille › Mes documents », deux fois — c'est Accueil ;
- *   « Votre compte › Mon profil » — la page s'appelle Profil d'investisseur,
+ *   « Mon compte › Mon profil » — la page s'appelle Profil d'investisseur,
  *   et « Profil » est une autre page (nom, ville, canaux) ;
  *   « le bouton Filtrer · Trier » — il porte « Revenir aux filtres » sur les
  *   fonds ;
@@ -201,7 +201,7 @@ describe("les chemins que l'aide cite existent", () => {
   /* « VOTRE COMPTE » EST UN LIEU QU'AUCUNE TABLE NE PORTE : c'est le bouton de
      l'initiale, dans la barre du compte. On le lit donc là où il est écrit
      plutôt que de l'ajouter à la main. */
-  if (sansNotes(lire("src/components/mobile/BarreDuCompte.tsx")).includes('t("Votre compte")')) lieux.push("Votre compte");
+  if (sansNotes(lire("src/components/mobile/BarreDuCompte.tsx")).includes('t("Mon compte")')) lieux.push("Mon compte");
 
   it("ne cite « X › Y » que si X est un siège ou un lieu, et Y une page", () => {
     const fr = paires(lire(AIDE));
@@ -219,15 +219,15 @@ describe("les chemins que l'aide cite existent", () => {
   it("et le relevé voit bien un chemin faux", () => {
     /* La fonction est PURE, et c'est ce qui permet de l'éprouver sans l'état
        du dépôt : trois formes à refuser, deux à laisser. */
-    const L = ["Accueil", "Trade", "Votre compte"];
+    const L = ["Accueil", "Trade", "Mon compte"];
     const P = ["Mes documents", "Profil d'investisseur", "Sécurité", "Paramétrages"];
     const X = new Set(["Ajouter cet appareil", "Cet appareil"]); // « Cet appareil » existe ailleurs que comme page : c'est le piège
     expect(cheminsInconnus("dans Portefeuille › Mes documents et vous", L, P, X), "un siège disparu n'est plus refusé").toHaveLength(1);
-    expect(cheminsInconnus("dans Votre compte › Mon profil : votre horizon", L, P, X), "une page inexistante n'est plus refusée").toHaveLength(1);
-    expect(cheminsInconnus("dans Votre compte › Cet appareil.", L, P, X), "une page renommée passe parce que son ancien nom est écrit ailleurs").toHaveLength(1);
+    expect(cheminsInconnus("dans Mon compte › Mon profil : votre horizon", L, P, X), "une page inexistante n'est plus refusée").toHaveLength(1);
+    expect(cheminsInconnus("dans Mon compte › Cet appareil.", L, P, X), "une page renommée passe parce que son ancien nom est écrit ailleurs").toHaveLength(1);
     expect(cheminsInconnus("dans Accueil › Mes documents et vous", L, P, X), "un chemin vrai est refusé : le relevé rendra de faux rouges").toEqual([]);
-    expect(cheminsInconnus("dans Votre compte › Sécurité › Ajouter cet appareil", L, P, X), "un bouton d'une page est refusé").toEqual([]);
-    expect(cheminsInconnus("dans Votre compte › Sécurité › Inventé", L, P, X), "un bouton inventé d'une page n'est plus refusé").toHaveLength(1);
+    expect(cheminsInconnus("dans Mon compte › Sécurité › Ajouter cet appareil", L, P, X), "un bouton d'une page est refusé").toEqual([]);
+    expect(cheminsInconnus("dans Mon compte › Sécurité › Inventé", L, P, X), "un bouton inventé d'une page n'est plus refusé").toHaveLength(1);
     expect(cheminsInconnus("aucun chemin ici", L, P, X)).toEqual([]);
   });
 });

@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Vos intentions") };
+  return { title: t("Mes intentions") };
 }
 
 /**
@@ -171,8 +171,8 @@ export default async function OrdresPage() {
       <main className={`pile ${styles.wrap}`}>
         <EnTete
           retour={{ href: "/", mot: t("Tableau de bord") }}
-          surTitre={t("Votre dossier")}
-          titre={t("Vos intentions")}
+          surTitre={t("Mon dossier")}
+          titre={t("Mes intentions")}
           phrase={t("Chaque ordre que vous avez dit, et où il en est. Un ordre en cours dit ce qu'il attend ; un ordre clos garde sa date et sa référence.")}
         />
 
@@ -242,7 +242,7 @@ export default async function OrdresPage() {
         <section className={styles.sec}>
           <div className={styles.secTete}>
             <h2>{t("Passées")}</h2>
-            <Link href="/moi/performance#operations">{t("Vos opérations")} →</Link>
+            <Link href="/moi/performance#operations">{t("Mes opérations")} →</Link>
           </div>
           <div className="panel">
             {closes.length === 0 && <div className="empty">{t("Rien de clos pour l'instant.")}</div>}

@@ -63,7 +63,7 @@ export const EN_COMPTE: Record<string, string> = {
      tomber. */
   Changer: "Change",
   Ajouter: "Add",
-  "Vos canaux": "Your channels",
+  "Mes canaux": "Your channels",
   "aucune adresse connue": "no address on file",
   "aucun numéro connu": "no number on file",
   "Un canal prouvé est celui sur lequel un code à usage unique peut partir : c'est ce qui vous permet de signer. Tant qu'aucun ne l'est, le desk vous appelle.":

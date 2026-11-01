@@ -279,7 +279,7 @@ export async function Console({ session }: { session: Session }) {
       {positions.length > 0 ? (
         <section className={styles.valeur}>
           <div className={styles.grand}>
-            <span className={styles.etiquette}>{t("Votre portefeuille")}</span>
+            <span className={styles.etiquette}>{t("Mon portefeuille")}</span>
             {/* Rien de valorisable et de l'argent versé : « 0 FCFA » serait
                 exact et illisible, un client lirait une perte totale. Un chiffre
                 absent se nomme au lieu d'être affiché à zéro. */}
@@ -442,7 +442,7 @@ export async function Console({ session }: { session: Session }) {
       {positions.length > 0 && (
         <section>
           <div className={styles.tete}>
-            <b>{t("Vos lignes")}</b>
+            <b>{t("Mes lignes")}</b>
           </div>
           <div className={styles.lignes}>
             {positions.map((p) => (

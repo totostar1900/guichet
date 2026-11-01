@@ -8,7 +8,7 @@ export const SOURCES: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin", "tech"],
   order: 3,
-  checkedOn: "2026-10-23",
+  checkedOn: "2026-11-01",
   owner: "Georges",
   chapters: [
     {
@@ -44,7 +44,7 @@ export const SOURCES: DocPage = {
               l("Le client lui-même : chaque geste du catalogue, et la consultation d'un objet nommé une fois par jour", "The client themselves: every move of the catalogue, and the viewing of a named object once a day"),
               l("Notés depuis le navigateur au moment du geste ; ni la durée, ni le défilement, ni l'ordre des écrans", "Recorded from the browser at the moment of the move; neither duration, nor scrolling, nor the order of screens"),
               l("Table client_actions, détail treize mois puis des compteurs (article 8 de la convention)", "Table client_actions, thirteen months of detail then counters (article 8 of the agreement)"),
-              l("Le client (les siens, rubrique « Votre activité »), le desk", "The client (their own, under « Your activity »), the desk"),
+              l("Le client (les siens, rubrique « Mon activité »), le desk", "The client (their own, under « Your activity »), the desk"),
             ],
             [
               l("Qui peut se connecter sur un compte à plusieurs mains", "Who may sign in on an account with several hands"),

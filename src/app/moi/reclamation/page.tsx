@@ -57,7 +57,7 @@ export default async function ComplaintPage() {
         {mine.length > 0 && (
           <section className="panel">
             <div className="panel-h">
-              <h2>{t("Vos réclamations")}</h2>
+              <h2>{t("Mes réclamations")}</h2>
             </div>
             <ul className={styles.list}>
               {mine.map((d) => (

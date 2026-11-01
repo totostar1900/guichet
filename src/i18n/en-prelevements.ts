@@ -7,7 +7,7 @@
  * jour où le juriste demandera ce que le client a exactement autorisé.
  */
 export const EN_PRELEVEMENTS: Record<string, string> = {
-  "Vos prélèvements": "Your direct debits",
+  "Mes prélèvements": "Your direct debits",
   /* La rubrique de l'accueil : elle ne paraît que si un mandat vit, et elle dit
      ce que le mandat FAIT — un mandat signé n'avait plus aucune porte depuis
      l'accueil, la bande ne portant que les devoirs. */
@@ -17,7 +17,7 @@ export const EN_PRELEVEMENTS: Record<string, string> = {
      fois sur le même écran, et pour la provision il VAUT le montant écrit. */
   "Vous pouvez nous autoriser à prélever une somme sur votre compte bancaire, à une date fixe du mois. Chaque prélèvement est annoncé avant de partir, et vous pouvez révoquer votre autorisation à tout moment, sans motif.":
     "You may authorise us to debit a sum from your bank account, on a fixed day of the month. Every debit is announced before it leaves, and you may revoke your authorisation at any time, without giving a reason.",
-  "Vos autorisations": "Your authorisations",
+  "Mes autorisations": "Your authorisations",
   "Alimenter ma provision": "Funding my provision",
   "Alimenter mon épargne programmée": "Funding my savings plan",
   suspendu: "suspended",

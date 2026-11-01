@@ -21,7 +21,7 @@ export const EN_JOURNAL: Record<string, string> = {
     "No move under this filter. The register started on 10 October 2026: nothing before it is there.",
   "Ce que les clients font dans le Guichet : un ordre déposé, une pièce reçue, un mandat signé, un appareil enrôlé, une fiche consultée. Ce registre n'est pas chaîné et ne prouve rien : il raconte. Une consultation ne s'y écrit qu'une fois par jour et par objet, et ni la durée, ni le défilement, ni la souris n'y entrent.":
     "What clients do in the Guichet: an order placed, a document received, a mandate signed, a device enrolled, a sheet consulted. This register is not chained and proves nothing: it tells. A consultation is written once a day and per object, and neither duration, nor scrolling, nor the mouse go into it.",
-  "Votre activité": "Your activity",
+  "Mon activité": "Your activity",
   "tout ce qui a été fait sur votre compte": "everything done on your account",
   "Tout ce qui a été fait sur votre compte. Vous y voyez ce que nous voyons. Si une ligne vous surprend, dites-le nous : c'est le moyen le plus rapide de repérer un accès qui ne serait pas le vôtre.":
     "Everything done on your account. You see what we see. If a line surprises you, tell us: it is the fastest way to spot access that is not yours.",
@@ -234,7 +234,7 @@ export const EN_JOURNAL: Record<string, string> = {
   "Vous avez retiré une page de vos favoris": "You removed a page from your favourites",
   "a retiré une page de ses favoris": "removed a page from their favourites",
   "Le détail est gardé {n} mois, puis seuls des compteurs restent.": "The detail is kept for {n} months, then only counters remain.",
-  "Votre compte": "Your account",
+  "Mon compte": "Your account",
   "Recevoir toute mon activité en fichier": "Get all my activity as a file",
   "Le fichier porte tout ce que cette page montre, depuis l'ouverture de votre compte, dans un format qu'un tableur ouvre.": "The file carries everything this page shows, since your account was opened, in a format a spreadsheet opens.",
   "Mettre mon compte en sommeil, ou en demander la clôture": "Put my account to sleep, or ask to close it",

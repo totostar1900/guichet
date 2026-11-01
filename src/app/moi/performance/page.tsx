@@ -65,7 +65,7 @@ export default async function PerformancePage() {
       <div className={styles.page}>
         <EnTete
           retour={{ href: "/", mot: t("Tableau de bord") }}
-          surTitre={t("Votre portefeuille")}
+          surTitre={t("Mon portefeuille")}
           titre={t("Ce que votre épargne a rapporté")}
           phrase={t("Ce rapport paraît dès votre première opération réglée : il se calcule sur ce que vous avez versé et sur ce que vous détenez.")}
         />
@@ -84,7 +84,7 @@ export default async function PerformancePage() {
             différentes au même endroit. Voir ETALON.md. */}
         <EnTete
           retour={{ href: "/", mot: t("Tableau de bord") }}
-          surTitre={t("Votre portefeuille")}
+          surTitre={t("Mon portefeuille")}
           titre={t("Analyse de votre portefeuille")}
           phrase={t("Depuis le {d}, sur ce que vous avez réellement versé et pour le temps où chaque versement a couru.", { d: fmtDate(p.since ?? "") })}
         />
@@ -98,7 +98,7 @@ export default async function PerformancePage() {
             { id: "detenu", title: t("Ce que vous détenez"), groupe: t("Le portefeuille") },
             { id: "rapporte", title: t("Ce que ça a rapporté"), groupe: t("Le portefeuille") },
             { id: "echeancier", title: t("L'échéancier"), groupe: t("Ce qui vient") },
-            { id: "operations", title: t("Vos opérations"), groupe: t("Ce qui vient") },
+            { id: "operations", title: t("Mes opérations"), groupe: t("Ce qui vient") },
           ]}
         >
         <div className={styles.sections}>
@@ -190,7 +190,7 @@ export default async function PerformancePage() {
         </section>
 
         <section id="operations">
-          <h2 className={styles.h2}>{t("Vos opérations")}</h2>
+          <h2 className={styles.h2}>{t("Mes opérations")}</h2>
           {operations.length === 0 ? (
             <p className="muted">{t("Aucun mouvement encore porté au journal.")}</p>
           ) : (

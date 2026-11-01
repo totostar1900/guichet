@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Votre provision") };
+  return { title: t("Ma provision") };
 }
 
 /**
@@ -77,8 +77,8 @@ export default async function ProvisionPage() {
       <div className={styles.wrap}>
         <EnTete
           retour={{ href: "/", mot: t("Tableau de bord") }}
-          surTitre={t("Votre argent chez nous")}
-          titre={t("Votre provision")}
+          surTitre={t("Mon argent chez nous")}
+          titre={t("Ma provision")}
           phrase={t(
             "Ce que vous laissez ici règle vos ordres sans attendre un virement. Elle n'est jamais obligatoire : vous pouvez payer chaque ordre au coup par coup. Elle reste votre argent, sur un compte séparé de celui de la maison.",
           )}
@@ -145,7 +145,7 @@ export default async function ProvisionPage() {
                   fragment, et le client atterrissait en haut de son
                   portefeuille. La liste existe. */}
               <div className={styles.gestesDeLEtat}>
-                <Link href="/moi/ordres">{t("Vos ordres en cours")} →</Link>
+                <Link href="/moi/ordres">{t("Mes ordres en cours")} →</Link>
               </div>
             </div>
           </div>

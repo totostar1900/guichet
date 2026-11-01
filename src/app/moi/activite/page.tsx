@@ -11,7 +11,7 @@ import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Votre activité" };
+export const metadata = { title: "Mon activité" };
 
 /**
  * CE QUE LE CLIENT VOIT DE SON PROPRE JOURNAL.
@@ -47,7 +47,7 @@ export default async function ActivitePage() {
       <main className={`pile ${commun.wrap}`}>
         <EnTete
           surTitre={t("Mon compte")}
-          titre={t("Votre activité")}
+          titre={t("Mon activité")}
           phrase={t(
             "Tout ce qui a été fait sur votre compte. Vous y voyez ce que nous voyons. Si une ligne vous surprend, dites-le nous : c'est le moyen le plus rapide de repérer un accès qui ne serait pas le vôtre.",
           )}
@@ -125,7 +125,7 @@ export default async function ActivitePage() {
             ce qu'ils gèlent, qui les lève, et ce que la réglementation oblige à
             garder sous scellé. En attendant, le chemin existe et il est dit. */}
         <div className="panel">
-          <h2>{t("Votre compte")}</h2>
+          <h2>{t("Mon compte")}</h2>
           <p>
             <a href="/moi/activite/mon-activite.csv">{t("Recevoir toute mon activité en fichier")}</a>
           </p>

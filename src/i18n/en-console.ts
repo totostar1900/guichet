@@ -34,7 +34,7 @@ export const EN_CONSOLE: Record<string, string> = {
   "{n} décisions possibles aujourd'hui": "{n} decisions open today",
   "Vos services": "Your services",
   "{a} en place · {b} à activer": "{a} running · {b} to switch on",
-  "Votre portefeuille": "Your portfolio",
+  "Mon portefeuille": "Your portfolio",
   "Le relevé": "The statement",
   Valorisé: "Valued at",
   "{n} lignes à votre nom": "{n} lines in your name",
@@ -345,11 +345,11 @@ export const EN_CONSOLE: Record<string, string> = {
   /* La page de la provision : son domicile, le 9 octobre 2026. */
   /* « Your provision » se lit comme une clause de contrat en anglais ; ce
      dont il s'agit est une réserve de liquidités chez le courtier. */
-  "Votre provision": "Your cash reserve",
+  "Ma provision": "Your cash reserve",
   "Total": "Total",
   "Bénéficiaire": "Beneficiary",
   "Banque du bénéficiaire": "Beneficiary's bank",
-  "Votre argent chez nous": "Your money with us",
+  "Mon argent chez nous": "Your money with us",
   "Ce que vous laissez ici règle vos ordres sans attendre un virement. Elle n'est jamais obligatoire : vous pouvez payer chaque ordre au coup par coup. Elle reste votre argent, sur un compte séparé de celui de la maison.":
     "What you leave here settles your orders without waiting for a transfer. It is never compulsory: you may pay for each order one at a time. It remains your money, on an account separate from the firm's.",
   "FCFA, pour votre prochain ordre": "FCFA, for your next order",
@@ -403,7 +403,7 @@ export const EN_CONSOLE: Record<string, string> = {
   "Ce que ça a rapporté": "What it has returned",
   "L'échéancier": "The schedule",
   "Ce qui vient": "What is coming",
-  "Vos opérations": "Your operations",
+  "Mes opérations": "Your operations",
   "{n} ligne(s) sont hors du dessin, faute de cours publié. Elles ne valent pas zéro : les compter à zéro ferait baisser votre répartition sans raison.": "{n} line(s) are outside the drawing, for want of a published price. They are not worth zero: counting them at zero would lower your breakdown for no reason.",
   "Ce que vos lignes doivent vous verser, mois par mois.": "What your lines are due to pay you, month by month.",
   "Aucun mouvement encore porté au journal.": "No movement carried to the journal yet.",
@@ -546,13 +546,13 @@ export const EN_CONSOLE: Record<string, string> = {
 
   /* Le sommaire du dossier, et les trois pages qui en sortent — le 24 octobre
      2026, quand les sections dépliées de l'accueil sont devenues des pages. */
-  "Votre dossier": "Your file",
-  "Vos intentions": "Your orders",
+  "Mon dossier": "Your file",
+  "Mes intentions": "Your orders",
   "Où en est chaque ordre, et ce qu'il attend de vous": "Where each order stands, and what it needs from you",
   "Ce qui part chaque mois, et comment le changer": "What leaves each month, and how to change it",
   "Ce que la conservation a coûté, avis par avis": "What custody has cost, notice by notice",
   "Ce que vous surveillez sans le détenir": "What you watch without holding it",
-  "Vos opérations et l'échéancier": "Your operations and the schedule",
+  "Mes opérations et l'échéancier": "Your operations and the schedule",
   "Ce que votre argent a fait, et ce qui vient": "What your money has done, and what is coming",
   "Relevés, avis d'opéré et bulletins": "Statements, contract notes and subscription forms",
   "Ce que Guichet peut faire pour vous": "What Guichet can do for you",

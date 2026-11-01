@@ -181,7 +181,7 @@ export function BarreDuCompte(p: BarreProps & { dock?: "top-right" | "bottom-lef
       {/* L'INITIALE MÈNE AU COMPTE, et c'est tout ce qu'elle fait. Elle ouvrait
           une feuille de deux écrans de défilement ; elle ouvre un sommaire de
           cinq lignes, qui a une adresse et un retour. */}
-      <Link href="/moi/compte" className={styles.avatar} aria-label={t("Votre compte")} title={p.name}>
+      <Link href="/moi/compte" className={styles.avatar} aria-label={t("Mon compte")} title={p.name}>
         {initial}
       </Link>
     </>

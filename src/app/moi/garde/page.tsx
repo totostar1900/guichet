@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Vos droits de garde") };
+  return { title: t("Mes droits de garde") };
 }
 
 /**
@@ -50,8 +50,8 @@ export default async function GardePage() {
       <main className={`pile ${styles.wrap}`}>
         <EnTete
           retour={{ href: "/", mot: t("Tableau de bord") }}
-          surTitre={t("Votre dossier")}
-          titre={t("Vos droits de garde")}
+          surTitre={t("Mon dossier")}
+          titre={t("Mes droits de garde")}
           phrase={t("Ce que la conservation de vos titres a coûté. Chaque avis s'ouvre ligne à ligne : c'est ce qui permet de le vérifier plutôt que de le subir.")}
           aCote={<EnBref brief="conservation" />}
         />

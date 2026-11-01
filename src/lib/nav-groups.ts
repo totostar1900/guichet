@@ -31,7 +31,7 @@ export const PORTEFEUILLE_PAGES: NavPage[] = [
      place est ici, avec le reste de ce qu'on a. Elle avait été rangée dans
      « Agir » la veille, par la même main qui écrit ceci, et c'était la
      confondre avec les services qui la dépensent. */
-  { key: "provision", href: "/moi/provision", label: "Votre provision", tuile: "votre argent chez nous", hint: "ce que vous laissez chez nous règle vos ordres sans attendre un virement" },
+  { key: "provision", href: "/moi/provision", label: "Ma provision", tuile: "votre argent chez nous", hint: "ce que vous laissez chez nous règle vos ordres sans attendre un virement" },
 ];
 
 /**

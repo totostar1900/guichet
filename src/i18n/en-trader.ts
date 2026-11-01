@@ -40,7 +40,7 @@ export const EN_TRADER: Record<string, string> = {
   "Relire la pièce": "Read the document again",
 
   /* ---------- « Votre conseiller » dans Trader ---------- */
-  "Votre conseiller": "Your adviser",
+  "Mon conseiller": "Your adviser",
   "Le desk de Guichet": "Guichet desk",
   "Répond sur WhatsApp en journée, du lundi au vendredi.": "Answers on WhatsApp during the day, Monday to Friday.",
   "La personne disponible au desk vous répond, sur WhatsApp en journée.": "Whoever is free at the desk answers you, on WhatsApp during the day.",

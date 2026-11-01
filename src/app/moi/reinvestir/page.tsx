@@ -133,7 +133,7 @@ export default async function ReinvestirPage() {
         {enPlace.length > 0 && (
           <Pli
             cle="reinv:instruction"
-            titre={t("Votre instruction")}
+            titre={t("Mon instruction")}
             sous={t("Ce qui est en place, et que vous arrêtez quand vous voulez.")}
             compte={t(enPlace.length > 1 ? "{n} instructions" : "1 instruction", { n: String(enPlace.length) })}
           >

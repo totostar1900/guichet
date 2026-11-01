@@ -19,7 +19,7 @@ export const EN_ENCAISSEMENTS: Record<string, string> = {
   "placer chaque mois": "invest every month",
   "une somme fixe, un jour du mois, vers le fonds que vous choisissez": "a fixed sum, one day a month, into the fund you choose",
   "Une somme fixe, un jour du mois, une destination choisie maintenant : le versement part tout seul, et vous l'arrêtez quand vous voulez. C'est un placement qui se répète, pas une autorisation de débit.": "A fixed sum, one day a month, a destination chosen now: the payment goes out by itself, and you stop it whenever you want. It is an investment that repeats, not a debit authorisation.",
-  "Vos versements programmés": "Your scheduled payments",
+  "Mes versements programmés": "Your scheduled payments",
   "Ce qui part chaque mois, et que vous arrêtez quand vous voulez.": "What goes out every month, and that you stop whenever you want.",
   "{n} actifs": "{n} active",
   "1 actif": "1 active",
@@ -94,7 +94,7 @@ export const EN_ENCAISSEMENTS: Record<string, string> = {
   "aucune échéance connue": "no known payment",
   "« Disponible » est de l'argent réellement arrivé sur le compte de règlement et constaté par le desk. « Échu, pas encore reçu » est une créance sur l'émetteur : elle vous est due, elle n'est pas là, et rien ne se replace avec.":
     "\"Available\" is money that has actually arrived on the settlement account and been confirmed by the desk. \"Due, not yet received\" is a claim on the issuer: it is owed to you, it is not there, and nothing is reinvested with it.",
-  "Votre instruction": "Your instruction",
+  "Mon instruction": "Your instruction",
   "Mettre le réinvestissement en place": "Set up the reinvestment",
   "Comment cela marche": "How it works",
   "Un coupon ou un remboursement tombe. Le desk constate le crédit et le porte à votre journal : à ce moment seulement, la somme est « reçue ».":
@@ -131,7 +131,7 @@ export const EN_ENCAISSEMENTS: Record<string, string> = {
      not set it yet, and a closed schedule charges nothing: the English has to
      carry that a missing tariff is a decision, not an omission. */
   "Droits de garde": "Custody fees",
-  "Vos droits de garde": "Your custody fees",
+  "Mes droits de garde": "Your custody fees",
   "Conserver des titres pour un client est un service rendu tous les jours. Le calcul, l'avis et le prélèvement sont ici ; le prix appartient à la maison, et tant qu'il n'est pas arrêté rien n'est facturé.":
     "Holding securities for a client is a service rendered every day. The calculation, the statement and the charge are here; the price belongs to the firm, and until it is set nothing is charged.",
   "Le barème": "The fee schedule",

@@ -80,7 +80,7 @@ export function Identite({ nom, segment, email, emailOk, phone, phoneOk }: { nom
       </section>
 
       <section className={styles.bloc}>
-        <h2>{t("Vos canaux")}</h2>
+        <h2>{t("Mes canaux")}</h2>
         {/* PROUVÉ VEUT DIRE QUELQUE CHOSE, et la page le dit : c'est le canal
             sur lequel un code peut partir. Une adresse non prouvée reçoit les
             avis mais ne signe rien. */}

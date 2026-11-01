@@ -9,7 +9,7 @@ import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Votre compte" };
+export const metadata = { title: "Mon compte" };
 
 /**
  * LE COMPTE DEVIENT UN SIÈGE, ET LA FEUILLE SE VIDE.
@@ -62,7 +62,7 @@ export default async function ComptePage() {
   return (
     <Glissement>
         <div className={styles.page}>
-          <EnTete surTitre={t("Vous")} titre={t("Votre compte")} phrase={t("Qui vous êtes, ce que la maison détient de vous, et ce que fait cet appareil-ci.")} />
+          <EnTete surTitre={t("Vous")} titre={t("Mon compte")} phrase={t("Qui vous êtes, ce que la maison détient de vous, et ce que fait cet appareil-ci.")} />
 
           {/* LA TABLE DIT LES CINQ, LA PAGE DIT L'ÉTAT. Les noms et les phrases
               vivent dans `COMPTE_PAGES`, que la recherche lit aussi : une page

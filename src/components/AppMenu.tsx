@@ -32,7 +32,7 @@ export interface AppMenuProps {
   signedIn: boolean;
   desk: boolean;
   name?: string;
-  /** Kept for the layout's call; the alerts row lives on « Votre compte › Cet appareil » now. */
+  /** Kept for the layout's call; the alerts row lives on « Mon compte › Cet appareil » now. */
   vapidKey?: string;
   build?: string;
 }
@@ -299,7 +299,7 @@ export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
                         repère un accès qui n'est pas le sien avant nous. */}
                     <Link className={styles.tile} href="/moi/activite" onClick={close}>
                       <Icon d={D.clock} />
-                      <b>{t("Votre activité")}</b>
+                      <b>{t("Mon activité")}</b>
                       <small>{t("tout ce qui a été fait sur votre compte")}</small>
                     </Link>
                   </div>

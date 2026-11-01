@@ -24,7 +24,7 @@ export async function Rayon({ cle, children }: { cle: CleDeRayon; children: Reac
   return (
     <Glissement>
       <div className={styles.page}>
-        <EnTete retour={{ href: "/moi/documents", mot: t("Mes documents") }} surTitre={t("Vos papiers")} titre={t(rayon.nom)} phrase={t(rayon.quoi)} />
+        <EnTete retour={{ href: "/moi/documents", mot: t("Mes documents") }} surTitre={t("Mes papiers")} titre={t(rayon.nom)} phrase={t(rayon.quoi)} />
         {children}
       </div>
     </Glissement>

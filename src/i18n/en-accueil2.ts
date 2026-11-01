@@ -37,7 +37,7 @@ export const EN_ACCUEIL2: Record<string, string> = {
   "aucune part n'est jugée : la maison exécute, elle ne conseille pas de répartition": "no share is judged: the firm executes, it does not advise on allocation",
   "Obligations d'entreprise": "Corporate bonds",
   Espèces: "Cash",
-  "Vos lignes": "Your lines",
+  "Mes lignes": "Your lines",
   "Pas encore de valorisation": "No valuation yet",
   "Une ligne est tenue sans cours publié : {m} FCFA y sont versés, et elle reste hors de ce total.":
     "One line is held with no published price: {m} FCFA are paid into it, and it stays outside this total.",

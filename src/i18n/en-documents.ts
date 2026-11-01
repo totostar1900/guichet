@@ -10,7 +10,7 @@
  */
 export const EN_DOCUMENTS: Record<string, string> = {
   /* ---- la page ---- */
-  "Vos papiers": "Your papers",
+  "Mes papiers": "Your papers",
   "Aucun document pour l'instant": "No document yet",
   "Tout ce qui porte votre nom et un numéro : ce que vous avez signé, ce que vos opérations ont produit, et les mouvements de votre argent.":
     "Everything that carries your name and a number: what you have signed, what your operations produced, and the movements of your money.",
@@ -58,7 +58,7 @@ export const EN_DOCUMENTS: Record<string, string> = {
   Contester: "Dispute",
 
   /* ---- rayon 4 ---- */
-  "Vos démarches": "Your procedures",
+  "Mes démarches": "Your procedures",
   "Ce qu'on ouvre quand quelque chose ne va pas, ou quand on s'en va.": "What you open when something is wrong, or when you leave.",
   "déposée le {d}": "filed on {d}",
   "une réponse écrite, puis la médiation COSUMAF si rien ne va": "a written answer, then COSUMAF mediation if nothing works",

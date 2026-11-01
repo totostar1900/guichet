@@ -31,7 +31,7 @@ export default async function SecurityPage() {
             troisième grammaire. Le retour remonte au compte, dont « Sécurité »
             est une rubrique ; le sur-titre dit la famille. Voir ETALON.md. */}
         <EnTete
-          retour={{ href: "/moi/compte", mot: t("Votre compte") }}
+          retour={{ href: "/moi/compte", mot: t("Mon compte") }}
           /* LE RETOUR NOMME LA PAGE D'AU-DESSUS, LE SUR-TITRE NOMME LA
              FAMILLE, et ce n'est pas le même mot : « ← Votre compte » suivi
              de « VOTRE COMPTE » écrivait la même chose deux fois, à deux

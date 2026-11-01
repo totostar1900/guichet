@@ -93,7 +93,7 @@ export const EN_PROVISION: Record<string, string> = {
     "When you sign an order, the amount is set aside on this provision: you have nothing to transfer, and nothing to do here.",
   "Si l'ordre n'est servi qu'en partie, ou pas du tout, la différence redevient disponible le jour où le résultat est connu.":
     "If the order is served only in part, or not at all, the difference becomes available again on the day the result is known.",
-  "Vos ordres en cours": "Your orders in progress",
+  "Mes ordres en cours": "Your orders in progress",
 
   /* ---- le pied ---- */
   "D'où vient ce solde": "Where this balance comes from",
