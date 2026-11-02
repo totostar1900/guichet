@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { repo } from "@/lib/data";
-import { variationDe } from "@/lib/domain/accueil";
+import { variationAffichee, variationsDesActions } from "@/lib/market/variations";
 import { summarize } from "@/lib/domain/summary";
 import type { Offer } from "@/lib/domain/types";
 import { Avatar } from "@/components/Avatar";
@@ -51,6 +51,7 @@ export async function SelectionDuDesk({ offres, sobre = false }: { /** Le titre 
       .catch(() => []));
   const picks = lignesDuDesk(offers, now);
   if (!picks.length) return null;
+  const actions = sobre ? await variationsDesActions(picks.map((p) => p.o)) : new Map();
   return (
     <section className={`${styles.bande} ${sobre ? styles.sobre : ""}`} aria-label={t("La sélection du desk")}>
       {sobre ? <TitreDeBloc titre="La sélection du desk" href="/titres" /> : <h2 className={styles.titre}>{t("La sélection du desk")}</h2>}
@@ -66,7 +67,7 @@ export async function SelectionDuDesk({ offres, sobre = false }: { /** Le titre 
               <span className={styles.chiffre}>
                 <b>{s.hero}</b>
                 {s.heroUnit ? <small>{t(s.heroUnit)}</small> : null}
-                {sobre && <PastilleVariation v={variationDe(o)} titre={t("Variation de la dernière valeur liquidative")} />}
+                {sobre && <PastilleVariation v={variationAffichee(o, actions, t)?.v} titre={variationAffichee(o, actions, t)?.titre} />}
               </span>
               <span className={styles.motif}>{t(o.featured!.reason)}</span>
               <span className={styles.quand}>{t(s.status)}</span>

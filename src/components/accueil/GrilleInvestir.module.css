@@ -138,6 +138,7 @@
   background: var(--surface);
 }
 /* La pastille de variation reste à la taille de son texte dans la colonne de la ligne. */
-.ligne i {
+.ligne i,
+.tete i {
   align-self: flex-start;
 }

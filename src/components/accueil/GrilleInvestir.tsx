@@ -2,7 +2,8 @@ import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { joursEnMots } from "@/lib/domain/echeances";
 import { PastilleVariation } from "@/components/PastilleVariation";
-import { fondsOuverts, joursRestants, lignesActives, seancesOuvertes, seancesPrevues, variationDe } from "@/lib/domain/accueil";
+import { fondsOuverts, joursRestants, lignesActives, seancesOuvertes, seancesPrevues } from "@/lib/domain/accueil";
+import { variationAffichee, variationsDesActions } from "@/lib/market/variations";
 import { summarize } from "@/lib/domain/summary";
 import type { Offer } from "@/lib/domain/types";
 import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
@@ -41,12 +42,13 @@ export async function GrilleInvestir({ offres }: { offres: Offer[] }) {
   const cote = lignesActives(offres, now);
   const fonds = fondsOuverts(offres);
   const prevues = seancesPrevues(offres, now, 3);
+  const actions = await variationsDesActions(cote.slice(0, 3));
   const page = (cle: string) => INSTRUMENTS_PAGES.find((p) => p.key === cle)!;
 
-  type Ligne = { id: string; nom: string; valeur: string; variation?: number };
+  type Ligne = { id: string; nom: string; valeur: string; variation?: { v: number; titre: string } };
   const ligne = (o: Offer): Ligne => {
     const s = summarize(o, now);
-    return { id: o.id, nom: t(o.title), valeur: s.hero, variation: variationDe(o) };
+    return { id: o.id, nom: t(o.title), valeur: s.hero, variation: variationAffichee(o, actions, t) };
   };
   const tuile = (cle: "titres" | "fonds" | "calendrier", liste: Offer[], tete: (o: Offer) => { texte: string; ton?: "urgent" | "calme" }) => {
     const p = page(cle);
@@ -65,6 +67,7 @@ export async function GrilleInvestir({ offres }: { offres: Offer[] }) {
             <span className={`${styles.tete} ${lead.ton === "urgent" ? styles.urgent : ""}`}>
               <b>{t(premiere.title)}</b>
               <small>{lead.texte}</small>
+              <PastilleVariation v={variationAffichee(premiere, actions, t)?.v} titre={variationAffichee(premiere, actions, t)?.titre} />
             </span>
             {liste.slice(1, 3).map((o) => {
               const l = ligne(o);
@@ -72,7 +75,7 @@ export async function GrilleInvestir({ offres }: { offres: Offer[] }) {
                 <span key={l.id} className={styles.ligne}>
                   <b>{l.nom}</b>
                   <small>{l.valeur}</small>
-                  <PastilleVariation v={l.variation} titre={t("Variation de la dernière valeur liquidative")} />
+                  <PastilleVariation v={l.variation?.v} titre={l.variation?.titre} />
                 </span>
               );
             })}

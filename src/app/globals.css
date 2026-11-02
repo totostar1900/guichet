@@ -1089,7 +1089,7 @@ html[data-tuiles="douces"] {
   --accueil-titre-casse: uppercase;
   --accueil-titre-poids: 700;
   --accueil-titre-espacement: 0.08em;
-  --accueil-titre-encre: var(--ink-3);
+  --accueil-titre-encre: var(--ink-2);
   --accueil-nom: var(--t-5);
   --accueil-meta: var(--t-3);
   --accueil-chiffre: var(--t-6);

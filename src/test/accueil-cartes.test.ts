@@ -3,7 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { drapeauDe, monogrammeDe, avatarDe } from "@/components/Avatar";
 import { SEED_OFFERS } from "@/data/seed";
-import { variationDe } from "@/lib/domain/accueil";
+import { variationDe, variationDesDerniersEchanges } from "@/lib/domain/accueil";
+import type { Quote } from "@/lib/domain/market";
 
 const ROOT = path.join(__dirname, "../..");
 const lire = (p: string) => fs.readFileSync(path.join(ROOT, p), "utf8");
@@ -62,6 +63,7 @@ describe("l'Accueil « cartes »", () => {
     const css = lire("src/app/globals.css");
     expect(css, "le titre n'est plus une étiquette de 12 px").toMatch(/--accueil-titre-tuile:\s*var\(--t-3\)/);
     expect(css, "le titre n'est plus en capitales").toMatch(/--accueil-titre-casse:\s*uppercase/);
+    expect(css, "l'encre des titres repasse sous 4,5:1 sur la carte (mesuré le 2 novembre 2026 : --ink-3 donnait 4,24 en sombre, 4,4 en « dim »)").toMatch(/--accueil-titre-encre:\s*var\(--ink-2\)/);
     expect(css, "le chiffre n'est plus une marche au-dessus du nom").toMatch(/--accueil-chiffre:\s*var\(--t-6\)/);
     expect(css, "la carte n'est plus plus claire que la surface").toMatch(/--tuile-fond:\s*color-mix\(in srgb, var\(--surface-2\) 94%, var\(--ink\)\)/);
   });
@@ -73,7 +75,29 @@ describe("l'Accueil « cartes »", () => {
       else expect(v, `${o.id} : pas de variation connue, pas de pastille`).toBeUndefined();
     }
     expect(code("src/components/PastilleVariation.tsx")).toMatch(/if \(v === undefined\) return null;/);
-    expect(code("src/components/SelectionDuDesk.tsx")).toMatch(/<PastilleVariation v=\{variationDe\(o\)\}/);
-    expect(code("src/components/accueil/GrilleInvestir.tsx")).toMatch(/variation: variationDe\(o\)/);
+    expect(code("src/components/SelectionDuDesk.tsx")).toMatch(/<PastilleVariation v=\{variationAffichee\(o, actions, t\)\?\.v\}/);
+    expect(code("src/components/accueil/GrilleInvestir.tsx")).toMatch(/variation: variationAffichee\(o, actions, t\)/);
+  });
+
+  it("la variation d'une action va du dernier échange au précédent, séances muettes ignorées", () => {
+    const q = (sessionDate: string, close: number, volumeTraded: number, trades = volumeTraded > 0 ? 1 : 0) => ({ isin: "X", sessionDate, close, volumeTraded, trades }) as unknown as Quote;
+    // la plus récente d'abord ; le 29 et le 27 n'ont pas traité
+    const v = variationDesDerniersEchanges([q("2026-10-30", 102, 5), q("2026-10-29", 90, 0), q("2026-10-27", 90, 0), q("2026-10-26", 100, 3)]);
+    expect(v).toEqual({ pct: 2, depuis: "2026-10-26", le: "2026-10-30" });
+    // un cours identique est un zéro réel, rendu comme tel
+    expect(variationDesDerniersEchanges([q("2026-10-30", 82500, 4), q("2026-10-29", 82500, 2)])?.pct).toBe(0);
+    // un seul échange, ou rien : pas de variation, jamais un zéro inventé
+    expect(variationDesDerniersEchanges([q("2026-10-30", 100, 1), q("2026-10-29", 99, 0)])).toBeUndefined();
+    expect(variationDesDerniersEchanges([])).toBeUndefined();
+    // un cours précédent nul ne se divise pas
+    expect(variationDesDerniersEchanges([q("2026-10-30", 100, 1), q("2026-10-29", 0, 1)])).toBeUndefined();
+  });
+
+  it("seules les actions lisent l'historique, une lecture par ligne affichée", () => {
+    const v = code("src/lib/market/variations.ts");
+    expect(v, "les lignes cotées sont de genre MARCHE : le filtre ne doit pas se limiter à ACTIONS").toMatch(/o\.kind === "MARCHE" \|\| o\.kind === "ACTIONS"/);
+    expect(v, "c'est la cotation qui dit action ou obligation").toMatch(/q\[0\]\?\.instrument === "action"/);
+    expect(v).toMatch(/repo\(\)\.listQuotes\(o\.isin, 60\)/);
+    expect(v, "jamais la vue entière des dernières cotations").not.toMatch(/latestQuotes/);
   });
 });

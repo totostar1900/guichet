@@ -35,6 +35,7 @@ export const EN_ACCUEIL3: Record<string, string> = {
   "Proposer une adjudication": "Suggest an auction",
   "Tous vos services": "All your services",
   "Gestes rapides": "Quick actions",
+  "Variation depuis l'échange du {d}": "Change since the trade of {d}",
   "Variation de la dernière valeur liquidative": "Change since the previous NAV",
   "Verser": "Deposit",
   "Retrait": "Withdraw",

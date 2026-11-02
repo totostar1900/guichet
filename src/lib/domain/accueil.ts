@@ -1,5 +1,6 @@
 import type { IntentState, IntentType, Offer } from "./types";
 import { displayStatus } from "./status";
+import { tradedSession, type Quote } from "./market";
 import { fondsListes, lignesDeLaCote, seancesAnnoncees } from "./listes";
 
 /**
@@ -178,4 +179,31 @@ export function variationDe(o: Offer): number | undefined {
   if (o.kind !== "FONDS") return undefined;
   const v = o.fund?.variationPct;
   return typeof v === "number" && Number.isFinite(v) ? v : undefined;
+}
+
+/** La variation d'une ligne cotée : entre ses deux derniers ÉCHANGES, et les dates qui la bornent. */
+export interface VariationDeLigne {
+  pct: number;
+  /** La séance du précédent échange (ISO). */
+  depuis: string;
+  /** La séance du dernier échange (ISO). */
+  le: string;
+}
+
+/**
+ * LA VARIATION D'UNE ACTION : DU DERNIER ÉCHANGE AU PRÉCÉDENT (2 novembre 2026).
+ *
+ * `quotes` : la plus récente d'abord, comme `listQuotes`. Une séance où rien
+ * n'a traité ne compte pas (c'est la règle de `tradedSession` : seuls le volume
+ * et les transactions font foi) ; la comparaison se fait donc entre deux prix
+ * qui se sont vraiment formés, parfois à une semaine d'écart, d'où les deux
+ * dates rendues avec le pourcentage. Moins de deux échanges, ou un cours
+ * précédent nul : pas de variation, jamais un zéro inventé. Un zéro REEL
+ * (cours identique) se rend, lui, comme tel.
+ */
+export function variationDesDerniersEchanges(quotes: Quote[]): VariationDeLigne | undefined {
+  const echanges = quotes.filter(tradedSession);
+  const [dernier, precedent] = echanges;
+  if (!dernier || !precedent || !(precedent.close > 0)) return undefined;
+  return { pct: Math.round((dernier.close / precedent.close - 1) * 10000) / 100, depuis: precedent.sessionDate, le: dernier.sessionDate };
 }

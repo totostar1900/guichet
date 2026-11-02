@@ -574,7 +574,7 @@ page** (`data-tuiles="cartes"`, l'Accueil seul), jamais sur `<html>`. Il redit l
 jetons : fond `--surface-2` à 94 % mêlé d'`--ink` (la carte se voit sans bord),
 bord et trait nuls, rayon 16 px. Les listes de lignes se groupent en **une**
 carte, leurs lignes sans fond ni trait. Il porte aussi l'échelle locale de
-l'Accueil : `--accueil-titre-*` (étiquette de 12 px, gras, capitales, `--ink-3`),
+l'Accueil : `--accueil-titre-*` (étiquette de 12 px, gras, capitales, `--ink-2`),
 `--accueil-nom` (15 px), `--accueil-meta` (12 px), `--accueil-chiffre` (17 px,
 gras). Les rapports minimaux entre ces niveaux sont dans le skill
 `guichet-benchmark` (§ 4 bis) ; la pastille de variation (`PastilleVariation`) ne
