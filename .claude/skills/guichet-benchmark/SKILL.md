@@ -81,6 +81,25 @@ Produire un tableau court, **une ligne par principe** :
 
 Puis **trier** : ce qui se règle en une ligne de jeton (effet global, à valider à l'échelle de l'application) ; ce qui demande de refaire un composant ; ce qui n'est **pas transposable** (autre marché, autre réglementation, autre public).
 
+## 4 bis. Hiérarchie : les rapports minimaux (règles validées le 2 novembre 2026)
+
+Une mesure de tailles et d'écarts ne dit pas si un écran **se lit**. Le 2 novembre 2026 l'Accueil a passé ses mesures avec un titre de tuile et un nom de ligne à 15 px, dans la même encre : rien ne les séparait, et le client l'a vu avant nous. Avant de proposer un écran, mesurer aussi :
+
+| Rapport | Minimum | Comment |
+|---|---|---|
+| titre / nom de ligne | un cran de **taille ou de poids ET de couleur** (ex. étiquette 12 px gras capitales gris, contre nom 15 px) | jamais deux textes de même taille, même poids, même encre |
+| chiffre / libellé | le chiffre **une marche au-dessus** et en **gras tabulaire**, l'unité en méta | le chiffre porte la ligne |
+| nom / méta | méta plus petite **et** plus pâle (`--ink-3`) | |
+| carte / page | la carte **se voit sans bord** : fond plus clair que la page d'un cran net | à vérifier en thème sombre ET clair |
+
+**Règle des chiffres.** Une ligne qui montre un cours ou une VL montre aussi sa **variation**, en pastille (signe écrit, couleur en renfort). Sans variation connue de la maison, **pas de pastille** : jamais « 0 % » inventé. La donnée vient du domaine (`variationDe`, `src/lib/domain/accueil.ts`) ; si elle manque pour une famille de lignes, on le dit au client au lieu de la fabriquer.
+
+**Règle du blanc.** Au plus **trois niveaux d'encre** par écran (`--ink`, `--ink-2`, `--ink-3`), tous distincts à l'œil ; un écran où tout est `--ink` est une faute.
+
+**Revue en deux thèmes.** Capturer l'écran en thème sombre **et** clair, puis le comparer **côte à côte** aux références. Les mesures ne remplacent pas le regard.
+
+**Planche avant le code, toujours**, y compris pour une correction de hiérarchie : la hiérarchie se juge sur une image.
+
 ## 5. Les garde-fous propres à Guichet
 
 Une référence moderne peut être **fausse pour nous**. Avant de proposer quoi que ce soit, vérifier :

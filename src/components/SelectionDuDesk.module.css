@@ -127,3 +127,30 @@
 .groupe .quand {
   font-size: var(--accueil-meta, var(--t-2));
 }
+/* B1 : le chiffre d'une ligne, une marche au-dessus du nom ; l'unité en méta, la pastille dessous, à droite. */
+.groupe .chiffre {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.groupe .chiffre b {
+  font-size: var(--accueil-chiffre, var(--t-4));
+  font-weight: 700;
+}
+.groupe .chiffre small {
+  margin-left: 0;
+  font-size: var(--accueil-meta, var(--t-1));
+}
+/* Sur téléphone, le rond reste à gauche du nom (la règle de repli plus haut mettait le nom à 100 % et le rond seul sur sa ligne) ;
+   le motif et l'échéance passent dessous, alignés sur le nom : 36 px de rond + son écart. */
+@media (max-width: 700px) {
+  .groupe .nom {
+    min-width: 0;
+  }
+  .groupe .motif,
+  .groupe .quand {
+    flex: 1 0 100%;
+    padding-left: calc(36px + var(--s-5));
+  }
+}

@@ -569,6 +569,17 @@ sujets de l'aide (`info/aide`), et les leçons et outils des éclairages
 `border: var(--tuile-bord)`, `border-bottom: var(--tuile-trait)`,
 `border-radius: var(--tuile-rayon)` et un `padding` qui lit `--tuile-pad-*`.
 
+**Un quatrième aspect, « cartes » (2 novembre 2026).** Posé sur la **racine d'une
+page** (`data-tuiles="cartes"`, l'Accueil seul), jamais sur `<html>`. Il redit les
+jetons : fond `--surface-2` à 94 % mêlé d'`--ink` (la carte se voit sans bord),
+bord et trait nuls, rayon 16 px. Les listes de lignes se groupent en **une**
+carte, leurs lignes sans fond ni trait. Il porte aussi l'échelle locale de
+l'Accueil : `--accueil-titre-*` (étiquette de 12 px, gras, capitales, `--ink-3`),
+`--accueil-nom` (15 px), `--accueil-meta` (12 px), `--accueil-chiffre` (17 px,
+gras). Les rapports minimaux entre ces niveaux sont dans le skill
+`guichet-benchmark` (§ 4 bis) ; la pastille de variation (`PastilleVariation`) ne
+se pose que sur une ligne dont la maison connaît la variation (`variationDe`).
+
 **Ajouter une famille de tuiles :** copier ces cinq déclarations dans sa règle,
 ajouter la famille à `FAMILLES_DE_TUILES` dans `espace-page.test.ts`, et
 regarder la page dans les trois aspects (`data-tuiles` se change dans les

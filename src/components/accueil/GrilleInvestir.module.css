@@ -38,6 +38,9 @@
 }
 .haut b {
   font-size: var(--accueil-titre-tuile, var(--t-3));
+  text-transform: var(--accueil-titre-casse, none);
+  letter-spacing: var(--accueil-titre-espacement, normal);
+  color: var(--accueil-titre-encre, inherit);
   font-weight: 700;
 }
 .chev,
@@ -92,8 +95,9 @@
   white-space: nowrap;
 }
 .ligne small {
-  font-size: var(--accueil-meta, var(--t-1));
-  color: var(--ink-3);
+  font-size: var(--accueil-chiffre, var(--t-1));
+  font-weight: 700;
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 .hint {
@@ -132,4 +136,8 @@
 }
 .tous:hover {
   background: var(--surface);
+}
+/* La pastille de variation reste à la taille de son texte dans la colonne de la ligne. */
+.ligne i {
+  align-self: flex-start;
 }

@@ -41,6 +41,8 @@ Pour **chaque point**, dans l'ordre de la demande, numéroté comme elle :
 
 Règles de ton : pas de compte rendu de ce que j'ai fait, pas de liste de ce que « je pourrais » ; des points décidables. Si un choix touche à la **conformité** (mentions réglementaires, avertissements de performance), je le dis et je ne le tranche pas.
 
+> **Règle ajoutée le 2 novembre 2026.** Une correction de hiérarchie (titres, chiffres, couleurs, relief) passe aussi par la planche : elle se juge à l'œil, pas à la mesure. Montrer l'état actuel à côté de l'état proposé, **en thème sombre et en thème clair**.
+
 ## 3. La planche de choix
 
 Une page HTML, publiée avec l'outil Artifact (charger d'abord le skill `artifact-design`). Partir de `modele-planche.html` à côté de ce fichier. Contenu :

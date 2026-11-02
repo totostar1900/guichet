@@ -1075,16 +1075,24 @@ html[data-tuiles="douces"] {
    Des tuiles arrondies sans bord ni trait ; les listes de lignes se groupent en
    UNE carte (« .groupe »), leurs lignes sans fond. Réversible d'un mot. */
 [data-tuiles="cartes"] {
-  --tuile-fond: color-mix(in srgb, var(--surface) 70%, var(--paper));
+  /* D1 (2 novembre 2026) : la carte se VOIT sans bord, un cran plus claire que la surface. */
+  --tuile-fond: color-mix(in srgb, var(--surface-2) 94%, var(--ink));
   --tuile-bord: 0;
   --tuile-trait: 0;
   --tuile-rayon: 16px;
   --tuile-pad-x: var(--s-7);
   --tuile-pad-y: var(--s-6);
   /* L'échelle typographique de l'Accueil, locale : un titre de tuile à 15, un nom de ligne à 15, une mention à 12. */
-  --accueil-titre-tuile: var(--t-5);
+  /* A1 : le titre d'un bloc ou d'une tuile est une ÉTIQUETTE (12 px, gras, capitales par la feuille de style, gris) ;
+     le nom d'une ligne est le seul texte fort (15 px). B1 : le chiffre d'une ligne, une marche au-dessus (17 px, gras). */
+  --accueil-titre-tuile: var(--t-3);
+  --accueil-titre-casse: uppercase;
+  --accueil-titre-poids: 700;
+  --accueil-titre-espacement: 0.08em;
+  --accueil-titre-encre: var(--ink-3);
   --accueil-nom: var(--t-5);
   --accueil-meta: var(--t-3);
+  --accueil-chiffre: var(--t-6);
 }
 html[data-tuiles="lignes"] {
   --tuile-fond: transparent;

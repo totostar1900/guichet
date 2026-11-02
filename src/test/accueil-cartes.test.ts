@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { drapeauDe, monogrammeDe, avatarDe } from "@/components/Avatar";
+import { SEED_OFFERS } from "@/data/seed";
+import { variationDe } from "@/lib/domain/accueil";
 
 const ROOT = path.join(__dirname, "../..");
 const lire = (p: string) => fs.readFileSync(path.join(ROOT, p), "utf8");
@@ -46,7 +48,7 @@ describe("l'Accueil « cartes »", () => {
     expect(code("src/components/accueil/TuilesDuHaut.tsx")).toMatch(/<SelectionDuDesk offres=\{offres\} sobre \/>/);
     expect(code("src/components/SelectionDuDesk.tsx")).toContain("<TitreDeBloc");
     expect(code("src/components/CeQuiFermeBientot.tsx")).toContain("<TitreDeBloc");
-    expect(code("src/components/TitreDeBloc.tsx")).toContain("›");
+    expect(code("src/components/TitreDeBloc.module.css")).toMatch(/text-transform: uppercase;/);
   });
 
   it("l'avatar : le drapeau pour le Trésor, le monogramme pour le reste", () => {
@@ -54,5 +56,24 @@ describe("l'Accueil « cartes »", () => {
     expect(monogrammeDe("Société Générale")).toBe("SO");
     expect(avatarDe({ issuer: "Trésor public du Cameroun", country: "Cameroun", title: "BTA" }).drapeau).toBe("🇨🇲");
     expect(avatarDe({ issuer: "Afriland First Bank", country: "Cameroun", title: "Obligation" })).toEqual({ mono: "AF" });
+  });
+
+  it("A1 · B1 · D1 : titres en étiquette, chiffre au-dessus du nom, carte plus claire que la surface", () => {
+    const css = lire("src/app/globals.css");
+    expect(css, "le titre n'est plus une étiquette de 12 px").toMatch(/--accueil-titre-tuile:\s*var\(--t-3\)/);
+    expect(css, "le titre n'est plus en capitales").toMatch(/--accueil-titre-casse:\s*uppercase/);
+    expect(css, "le chiffre n'est plus une marche au-dessus du nom").toMatch(/--accueil-chiffre:\s*var\(--t-6\)/);
+    expect(css, "la carte n'est plus plus claire que la surface").toMatch(/--tuile-fond:\s*color-mix\(in srgb, var\(--surface-2\) 94%, var\(--ink\)\)/);
+  });
+
+  it("C2 : la variation n'existe que si la maison la connaît, et se pose sur les lignes qui la portent", () => {
+    for (const o of SEED_OFFERS) {
+      const v = variationDe(o);
+      if (o.kind === "FONDS" && typeof o.fund?.variationPct === "number") expect(v, o.id).toBe(o.fund.variationPct);
+      else expect(v, `${o.id} : pas de variation connue, pas de pastille`).toBeUndefined();
+    }
+    expect(code("src/components/PastilleVariation.tsx")).toMatch(/if \(v === undefined\) return null;/);
+    expect(code("src/components/SelectionDuDesk.tsx")).toMatch(/<PastilleVariation v=\{variationDe\(o\)\}/);
+    expect(code("src/components/accueil/GrilleInvestir.tsx")).toMatch(/variation: variationDe\(o\)/);
   });
 });

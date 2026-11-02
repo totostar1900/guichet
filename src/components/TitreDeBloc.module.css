@@ -7,14 +7,10 @@
 }
 .titre {
   margin: 0;
-  font-size: var(--t-6);
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--ink);
-}
-.chevron {
-  font-size: var(--t-6);
+  font-size: var(--t-3);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--ink-3);
 }
 .tout {

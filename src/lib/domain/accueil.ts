@@ -163,3 +163,19 @@ export function chiffresDeLIntention(i: { type: IntentType; amount?: number | nu
   if (typeof i.allocationPct === "number" && (i.state === "servie" || i.state === "reglee")) out.serviPct = Math.round(i.allocationPct);
   return out;
 }
+
+/**
+ * LA VARIATION D'UNE LIGNE, SI LA MAISON LA CONNAÎT (Accueil, 2 novembre 2026).
+ *
+ * Une pastille de variation se pose sur chaque ligne qui a un cours ou une VL
+ * dont on connaît le précédent. Aujourd'hui, seule la VL d'un fonds porte sa
+ * variation sur l'offre (`fund.variationPct`, d'une VL à la suivante) : les
+ * cours des titres cotés vivent dans l'historique des séances, et un cours du
+ * Trésor n'a pas de précédent. Une ligne sans variation connue n'a PAS de
+ * pastille : jamais « 0 % » inventé.
+ */
+export function variationDe(o: Offer): number | undefined {
+  if (o.kind !== "FONDS") return undefined;
+  const v = o.fund?.variationPct;
+  return typeof v === "number" && Number.isFinite(v) ? v : undefined;
+}

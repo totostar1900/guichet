@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { repo } from "@/lib/data";
+import { variationDe } from "@/lib/domain/accueil";
 import { summarize } from "@/lib/domain/summary";
 import type { Offer } from "@/lib/domain/types";
 import { Avatar } from "@/components/Avatar";
+import { PastilleVariation } from "@/components/PastilleVariation";
 import { TitreDeBloc } from "@/components/TitreDeBloc";
 import styles from "./SelectionDuDesk.module.css";
 
@@ -64,6 +66,7 @@ export async function SelectionDuDesk({ offres, sobre = false }: { /** Le titre 
               <span className={styles.chiffre}>
                 <b>{s.hero}</b>
                 {s.heroUnit ? <small>{t(s.heroUnit)}</small> : null}
+                {sobre && <PastilleVariation v={variationDe(o)} titre={t("Variation de la dernière valeur liquidative")} />}
               </span>
               <span className={styles.motif}>{t(o.featured!.reason)}</span>
               <span className={styles.quand}>{t(s.status)}</span>
