@@ -1,0 +1,157 @@
+/* LES COURBES BEAC DU DESK : un graphique, ses réglages dessous (décidé le 2 novembre 2026). */
+.page {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--s-9) clamp(var(--s-7), 3vw, var(--s-10)) var(--s-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sections-gap);
+}
+.tete h1 {
+  margin: 0 0 var(--s-2);
+}
+.sous {
+  color: var(--ink-2);
+  margin: 0;
+  max-width: 56rem;
+  font-size: var(--t-4);
+}
+.prereglages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  align-items: center;
+}
+.prereglages > span {
+  font-size: var(--t-1);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.prereglages a {
+  font-size: var(--t-3);
+  padding: var(--s-3) var(--s-6);
+  border: 1px solid var(--line-2);
+  color: var(--ink-2);
+  text-decoration: none;
+  border-radius: 999px;
+}
+.prereglages a[aria-current="true"] {
+  background: var(--fill);
+  border-color: var(--fill);
+  color: var(--fill-ink);
+  font-weight: 700;
+}
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--titre-gap);
+}
+.figure h2 {
+  margin: 0;
+  font-size: var(--t-5);
+}
+.axeDit {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.trop {
+  margin: 0;
+  padding: var(--s-7);
+  border: 1px solid var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: var(--t-3);
+}
+.reglages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: var(--s-6) var(--s-7);
+}
+.rang {
+  display: flex;
+  align-items: center;
+  gap: var(--s-7);
+  flex-wrap: wrap;
+}
+.etiq {
+  flex: none;
+  min-width: 4.5rem;
+  font-size: var(--t-1);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.rang select {
+  font: inherit;
+  font-size: var(--t-3);
+  padding: var(--s-3) var(--s-5);
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
+  min-width: 8rem;
+}
+.cases {
+  display: flex;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.case {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.case input {
+  accent-color: var(--fill);
+  margin: 0;
+}
+.case i {
+  width: 10px;
+  height: 10px;
+  display: block;
+  flex: none;
+}
+.grise {
+  opacity: 0.55;
+  cursor: help;
+}
+.appliquer {
+  font: inherit;
+  font-size: var(--t-3);
+  padding: var(--s-3) var(--s-6);
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.notes p,
+.notes ul {
+  margin: 0;
+}
+.notes ul {
+  padding-left: var(--s-8);
+}
+.saut {
+  color: var(--warn);
+}
+.provenance {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}

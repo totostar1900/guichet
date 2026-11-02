@@ -9,7 +9,8 @@ import { consolide } from "@/lib/market/zone";
 import { LectureCourbe } from "./LectureCourbe";
 import { AideReglage } from "./AideReglage";
 import { useT } from "@/i18n/client";
-import { coupeAu, serieBeacDe, type CourbePays, type Fenetre, type ReleveBeacVu } from "@/lib/market/courbe-vue";
+import { lien as lienCourbesBeac } from "@/lib/market/courbes-beac-vue";
+import { coupeAu, seriesBeacDe, type CourbePays, type Fenetre, type ReleveBeacVu } from "@/lib/market/courbe-vue";
 import styles from "./CourbeFusion.module.css";
 
 /**
@@ -250,11 +251,10 @@ export function CourbeFusion({
     return courbeDuJour.filter((p) => choix === "tous" || choix === p.pays).map((p) => ({ nom: p.pays, couleur: COUNTRY_COLOR[p.pays], obs: preparer(p) }));
   }, [courbeDuJour, choix, preparer, t]);
 
-  /** Le filigrane de la BEAC ne paraît que devant un seul Trésor. */
+  /** Le filigrane de la BEAC : le Trésor choisi, ou tous ceux qu'elle publie (3 au plus), chacun à son mois. */
   const beac = useMemo(() => {
     if (!voirBeac) return [];
-    const sien = serieBeacDe(choix, beacReleve);
-    return sien ? [{ nom: sien.pays, pts: sien.points }] : [];
+    return seriesBeacDe(choix, beacReleve, new Date().toISOString().slice(0, 10)).map((s) => ({ nom: s.pays, pts: s.points, mois: s.mois ?? beacReleve!.mois, source: s.source }));
   }, [voirBeac, choix, beacReleve]);
 
   const tous = series.flatMap((s) => s.obs);
@@ -641,12 +641,8 @@ export function CourbeFusion({
               type="button"
               aria-pressed={voirBeac && beac.length > 0}
               onClick={() => setVoirBeac((v) => !v)}
-              disabled={choix === "tous" || choix === "cemac" || !beacReleve}
-              title={
-                choix === "tous" || choix === "cemac"
-                  ? t("La BEAC ne se compare qu'à un Trésor à la fois : les deux courbes ne mesurent pas la même chose, et ce qu'on regarde en les superposant est l'écart d'un Trésor avec lui-même.")
-                  : undefined
-              }
+              disabled={choix === "cemac" || !beacReleve}
+              title={choix === "cemac" ? t("La BEAC publie une feuille de zone, mais elle reprend celles des trois Trésors : ses courbes se posent derrière les Trésors, pas derrière la zone.") : undefined}
             >
               {t("la courbe de la BEAC")}
             </button>
@@ -775,10 +771,10 @@ export function CourbeFusion({
                   {bout && beacReleve && (
                     <text x={X(bout.annees) + 6} y={Y(bout.pct)} className={styles.beacBout}>
                       <tspan x={X(bout.annees) + 6} dy={0}>
-                        {t("BEAC")}
+                        {beac.length > 1 ? `${t("BEAC")} · ${t(b.nom)}` : t("BEAC")}
                       </tspan>
                       <tspan x={X(bout.annees) + 6} dy={11} className={styles.beacDate}>
-                        {fmtMois(beacReleve.mois, true)}
+                        {fmtMois(b.mois, true)}
                       </tspan>
                     </text>
                   )}
@@ -998,25 +994,42 @@ export function CourbeFusion({
         </p>
       )}
 
-      {beac.length > 0 && beacReleve && (
-        <p className={`${styles.beacNote} ${jours(beacReleve.mois) > 100 ? styles.beacVieux : ""}`}>
+      {beac.length > 0 && beacReleve && (() => {
+        const plusAncien = beac.reduce((a, b) => (b.mois < a ? b.mois : a), beac[0].mois);
+        return (
+        <p className={`${styles.beacNote} ${jours(plusAncien) > 100 ? styles.beacVieux : ""}`}>
           <i aria-hidden="true" />
-          {t("En pointillé, la courbe que la BEAC publie dans ses statistiques mensuelles n° {n}, arrêtée en {d} et relevée le {r} dans le tracé de son PDF, faute de table publiée.", {
-            n: beacReleve.numero,
-            d: fmtMois(beacReleve.mois),
-            r: fmtJour(beacReleve.releveLe),
-          })}{" "}
-          {jours(beacReleve.mois) > 100 && <b>{t("Ce relevé a {n} jours : ce n'est plus un repère sur aujourd'hui.", { n: jours(beacReleve.mois) })}</b>}{" "}
+          {beacReleve.numero != null && beacReleve.releveLe
+            ? t("En pointillé, la courbe que la BEAC publie dans ses statistiques mensuelles n° {n}, arrêtée en {d} et relevée le {r} dans le tracé de son PDF, faute de table publiée.", {
+                n: String(beacReleve.numero),
+                d: fmtMois(beacReleve.mois),
+                r: fmtJour(beacReleve.releveLe),
+              })
+            : t("En pointillé, les courbes que la BEAC publie chaque mois, une feuille par Trésor : {liste}. Les chiffres sont lus dans la table imprimée sur la feuille, confirmés par son tracé quand il se lit.", {
+                liste: beac.map((b) => `${t(b.nom)} ${fmtMois(b.mois)}`).join(", "),
+              })}{" "}
+          {jours(plusAncien) > 100 && <b>{t("Ce relevé a {n} jours : ce n'est plus un repère sur aujourd'hui.", { n: jours(plusAncien) })}</b>}{" "}
           <b>
             {t(
               "Son abscisse est la durée d'émission, la nôtre la vie restante : chez elle une obligation émise à sept ans reste posée à « 7 ans » toute sa vie, chez nous elle glisse vers la gauche en approchant de son terme.",
             )}
           </b>{" "}
-          <a href={beacReleve.source} target="_blank" rel="noreferrer">
-            {t("sa pièce")}
-          </a>
+          {beac.filter((b) => b.source).map((b, i) => (
+            <a key={b.nom} href={b.source} target="_blank" rel="noreferrer">
+              {i > 0 ? " · " : ""}
+              {beac.length > 1 ? t(b.nom) : t("sa pièce")}
+            </a>
+          ))}
+          {" "}
+          <a href={lienCourbesBeac({ axe: "duree", pays: beac.map((b) => b.nom), mois: [plusAncien], duree: 10, source: "deux" })}>{t("Voir en détail")} →</a>{" "}
+          {beac.every((b) => !b.source) && beacReleve.source && (
+            <a href={beacReleve.source} target="_blank" rel="noreferrer">
+              {t("sa pièce")}
+            </a>
+          )}
         </p>
-      )}
+        );
+      })()}
 
       {modele && zeroCoupon && (
         <p className={styles.note}>

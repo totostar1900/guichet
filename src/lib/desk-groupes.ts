@@ -75,6 +75,8 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
          « Dette des Etats », qui part de la cote BVMAC : deux sources, deux
          perimetres, et les melanger ferait un total sans date. */
       ["/desk/beac", "BEAC"],
+      /* Les courbes de rendement de la BEAC, comparées entre Trésors, suivies point par point, et posées à côté des nôtres. */
+      ["/desk/courbes-beac", "Courbes BEAC"],
       ["/desk/analyses", "Courbe des taux"],
       ["/desk/indice/apercu", "Indice"],
     ],

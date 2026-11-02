@@ -38,6 +38,8 @@ export interface Serie {
   /** Un disque sur chaque point. */
   ronds?: boolean;
   rayon?: number;
+  /** Des disques seuls, sans la ligne qui les joint : nos propres observations ne se relient pas d'office. */
+  sansLigne?: boolean;
 }
 
 export interface OptionsRepere {

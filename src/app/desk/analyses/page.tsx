@@ -7,6 +7,7 @@ import { Poignee } from "@/components/Poignee";
 import { PageOutline } from "@/components/PageOutline";
 import type { SectionItem } from "@/components/SectionLine";
 import { BEAC_COURBE } from "@/data/beac-courbe";
+import { releveDeLaBase } from "@/lib/market/courbe-vue";
 import { CourbeFusion } from "@/components/market/CourbeFusion";
 import type { CourbePays, Fenetre } from "@/lib/market/courbe-vue";
 import { DateObservation } from "@/components/market/DateObservation";
@@ -79,8 +80,8 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
    * Le robot le rafraîchit chaque mois. Avant son premier passage la semence
    * évite que la figure soit nue ; après, le dépôt gagne toujours.
    */
-  const beacDepot = await r.latestBeacCurve();
-  const beacReleve = beacDepot ?? {
+  const [beacDepot, beacBase] = await Promise.all([r.latestBeacCurve(), r.courbesBeac().then(releveDeLaBase, () => undefined)]);
+  const beacReleve = beacBase ?? beacDepot ?? {
     numero: BEAC_COURBE.numero,
     mois: BEAC_COURBE.arreteLe.slice(0, 7),
     source: BEAC_COURBE.source,
@@ -505,10 +506,12 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                     )}
                   </p>
                   <p>
-                    {t("Le filigrane affiché porte le bulletin n° {n}, arrêté en {d} : c'est sa date de valeur, et elle est écrite sous son nom au bout de son trait.", {
-                      n: beacReleve.numero,
-                      d: beacMois,
-                    })}{" "}
+                    {beacReleve.numero != null
+                      ? t("Le filigrane affiché porte le bulletin n° {n}, arrêté en {d} : c'est sa date de valeur, et elle est écrite sous son nom au bout de son trait.", {
+                          n: String(beacReleve.numero),
+                          d: beacMois,
+                        })
+                      : t("Chaque filigrane affiché est la dernière feuille que la BEAC a publiée pour ce Trésor, arrêtée à son mois : c'est sa date de valeur, et elle est écrite sous son nom au bout de son trait.")}{" "}
                     {t(
                       "Elle paraît une fois par mois avec environ deux mois de retard. Au delà de cent jours, la figure cesse de la présenter comme un repère sur aujourd'hui et le dit en clair.",
                     )}

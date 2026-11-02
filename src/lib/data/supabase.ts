@@ -2836,7 +2836,7 @@ export const supabaseRepository: Repository = {
    */
   async courbesBeac() {
     const lignes = await parLots<Record<string, unknown>>("courbesBeac", (de, a) =>
-      db().from("beac_yield_curves").select("mois, pays, tenor, annees, taux, file_key").order("mois").order("id").range(de, a),
+      db().from("beac_yield_curves").select("mois, pays, tenor, annees, taux, file_key, source_chemin").order("mois").order("id").range(de, a),
     );
     return lignes.map((r) => ({
       mois: r.mois as string,
@@ -2845,6 +2845,7 @@ export const supabaseRepository: Repository = {
       annees: Number(r.annees),
       taux: Number(r.taux),
       fileKey: u(r.file_key as string | null),
+      sourceChemin: u(r.source_chemin as string | null),
     }));
   },
   async encoursOfficiel() {

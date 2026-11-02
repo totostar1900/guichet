@@ -59,7 +59,7 @@ export function Trace({
           }
           return (
             <g key={i}>
-              {s.pts.length > 1 ? <path className={styles.serie} stroke={s.couleur} d={chemin(r, s.pts)} /> : null}
+              {s.pts.length > 1 && !s.sansLigne ? <path className={styles.serie} stroke={s.couleur} d={chemin(r, s.pts)} /> : null}
               {s.ronds
                 ? s.pts.map((p, j) => (
                     <circle key={j} className={styles.point} fill={s.couleur} cx={r.px(p.x)} cy={r.py(p.y)} r={s.rayon ?? 3.4}>

@@ -99,6 +99,8 @@ export interface PointCourbeBeac {
   annees: number;
   taux: number;
   fileKey?: string;
+  /** L'adresse de la feuille quand elle est une adresse (la BEAC), sinon le chemin de la bibliothèque : sans elle un point n'a pas de provenance. */
+  sourceChemin?: string;
 }
 
 /** L'encours officiel d'un Trésor à un mois, en millions de francs. */

@@ -22,6 +22,7 @@ import { EN_TARIFS } from "./en-tarifs";
 import { EN_VIREMENTS } from "./en-virements";
 import { EN_ACCUEIL2 } from "./en-accueil2";
 import { EN_ACCUEIL3 } from "./en-accueil3";
+import { EN_COURBES_BEAC } from "./en-courbes-beac";
 import { EN_FICHE } from "./en-fiche";
 import { EN_BANDEAU } from "./en-bandeau";
 import { EN_TRADER } from "./en-trader";
@@ -61,6 +62,7 @@ const EN: Record<string, string> = {
   ...EN_TARIFS,
   ...EN_ACCUEIL2,
   ...EN_ACCUEIL3,
+  ...EN_COURBES_BEAC,
   ...EN_FICHE,
   ...EN_BANDEAU,
   ...EN_TRADER,

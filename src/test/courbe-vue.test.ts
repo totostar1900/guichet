@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coupeAu, serieBeacDe } from "@/lib/market/courbe-vue";
+import { coupeAu, releveDeLaBase, serieBeacDe, seriesBeacDe, type ReleveBeacVu } from "@/lib/market/courbe-vue";
 
 /**
  * Les deux règles du filigrane, éprouvées sans monter un rendu.
@@ -96,5 +96,44 @@ describe("le mois d'arrêté du relevé", () => {
   it("s'écrit comme un mois de dépôt, pour que l'écran le mette en mots", () => {
     expect(releve.mois).toMatch(/^\d{4}-\d{2}$/);
     expect(new Date(`${releve.mois}-01`).getUTCMonth()).toBe(6);
+  });
+});
+
+describe("les courbes de la BEAC que la base porte (2 novembre 2026)", () => {
+  const pt = (mois: string, pays: string, annees: number, taux: number, sourceChemin?: string) => ({ mois, pays, annees, taux, sourceChemin });
+  const base = [
+    pt("2026-07-01", "Gabon", 1, 9, "https://beac.int/gabon-juillet.pdf"),
+    pt("2026-09-01", "Gabon", 3, 13.08, "https://beac.int/gabon-sept.pdf"),
+    pt("2026-09-01", "Gabon", 1, 8.97, "https://beac.int/gabon-sept.pdf"),
+    pt("2026-09-01", "Congo", 1, 9.18),
+    pt("2017-02-01", "Tchad", 1, 5),
+  ];
+
+  it("garde pour chaque Trésor sa courbe la plus récente, rangée, avec son mois et son adresse", () => {
+    const r = releveDeLaBase(base)!;
+    const gabon = r.series.find((s) => s.pays === "Gabon")!;
+    expect(gabon.mois).toBe("2026-09");
+    expect(gabon.points.map((p) => p.annees)).toEqual([1, 3]);
+    expect(gabon.source).toBe("https://beac.int/gabon-sept.pdf");
+    expect(r.series.find((s) => s.pays === "Tchad")!.mois).toBe("2017-02");
+    expect(r.mois).toBe("2026-09");
+    expect(releveDeLaBase([])).toBeUndefined();
+  });
+
+  it("une adresse de bibliothèque n'est pas un lien : seule une adresse web en devient un", () => {
+    const r = releveDeLaBase([pt("2026-07-01", "Congo", 1, 9, "1. Donnees de marche/Courbe.pdf")])!;
+    expect(r.series[0].source).toBeUndefined();
+  });
+
+  it("en vue d'ensemble pose les Trésors à jour, jamais une courbe de plus de dix-huit mois", () => {
+    const r = releveDeLaBase(base)! as ReleveBeacVu;
+    expect(seriesBeacDe("tous", r, "2026-11-02").map((s) => s.pays).sort()).toEqual(["Congo", "Gabon"]);
+  });
+
+  it("pour un Trésor choisi pose sa courbe même ancienne (la figure dit son âge), et rien pour la zone", () => {
+    const r = releveDeLaBase(base)!;
+    expect(seriesBeacDe("Tchad", r, "2026-11-02").map((s) => s.pays)).toEqual(["Tchad"]);
+    expect(seriesBeacDe("cemac", r, "2026-11-02")).toEqual([]);
+    expect(seriesBeacDe("Gabon", undefined, "2026-11-02")).toEqual([]);
   });
 });
