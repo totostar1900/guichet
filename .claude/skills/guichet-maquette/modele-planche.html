@@ -1,0 +1,81 @@
+<title>Planche de choix</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* MODÈLE DE PLANCHE — à copier, remplir, publier avec l'outil Artifact.
+   Thème unique sombre aux couleurs de l'application. Les chiffres sont des EXEMPLES :
+   les écarts viennent des jetons (44 chapitres · 28 sections · 12 tuiles et titre). */
+:root{--nuit:#0a2342;--papier:#0d1a2c;--carte:#14233b;--trait:#243756;--encre:#eef2f8;--voile:#9fb0c8;--or:#e2b94c;--ambre:#f0a23a;--vert:#3ecf8e;--rouge:#ff9a94;--ui:"Instrument Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papier);color:var(--encre);font:15px/1.5 var(--ui);padding-block:40px 90px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:72px}
+h1{font-size:34px;line-height:1.15;margin:0;text-wrap:balance}h2{font-size:22px;margin:0;text-wrap:balance}p{margin:0;max-width:70ch}
+.eyebrow{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--or)}
+.lede{color:var(--voile);font-size:17px}
+section.q{display:flex;flex-direction:column;gap:22px}
+.opts{display:flex;flex-wrap:wrap;gap:30px 32px;align-items:flex-start}
+.opt{display:flex;flex-direction:column;gap:10px;width:340px;max-width:100%}
+.lettre{display:flex;gap:10px;align-items:center;font-weight:700}
+.lettre i{font-style:normal;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--or);color:#1c1203;font-weight:800}
+.lettre small{font-weight:500;color:var(--voile)}
+.tag{font:700 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:4px 7px;border-radius:5px;width:fit-content}
+.tag.oui{background:#12362b;color:var(--vert)}.tag.non{background:#3a1d22;color:var(--rouge)}.tag.peut{background:#3a2c14;color:var(--ambre)}
+.tel{width:340px;max-width:100%;border:1px solid var(--trait);border-radius:20px;background:var(--papier);padding:14px;display:flex;flex-direction:column;overflow:hidden}
+.note{font-size:12.5px;color:var(--voile);line-height:1.5}.note b{color:var(--encre)}
+.mesure{font:500 11px/1.4 var(--mono);color:var(--ambre)}
+/* briques : une carte, une rangée, un chiffre, une cote d'écart */
+.c{background:var(--carte);border:1px solid var(--trait);border-radius:8px;padding:12px 14px}
+.row{display:flex;align-items:center;gap:10px}.sp{margin-left:auto}.gris{color:var(--voile)}.pt{font-size:12px}
+.cote{display:flex;align-items:center;gap:8px;color:var(--ambre);font:500 10px/1 var(--mono);height:var(--h)}
+.cote::before,.cote::after{content:"";flex:1;border-top:1px dashed var(--ambre);opacity:.55}
+.nota{background:#10243d;border:1px solid var(--trait);border-radius:8px;padding:14px 16px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}.tbl th,.tbl td{border:1px solid var(--trait);padding:8px 10px;text-align:left;vertical-align:top}.tbl th{color:var(--voile);font-weight:600}
+</style>
+<main>
+<header style="display:flex;flex-direction:column;gap:14px">
+  <span class="eyebrow">Guichet · SUJET DE LA PLANCHE</span>
+  <h1>N points, des options à choisir</h1>
+  <p class="lede">Réponse attendue sous la forme « 1A, 2B… », avec vos corrections. Les chiffres sont des exemples. <b>Rien n'est codé.</b></p>
+</header>
+
+<!-- UNE SECTION PAR POINT : numéro, titre-question, fait mesuré, 2 ou 3 options, note éventuelle. -->
+<section class="q">
+  <span class="eyebrow">1 · NOM DU POINT</span>
+  <h2>La question, posée à la forme du choix</h2>
+  <p class="lede">Ce que j'ai vu ou mesuré. <span class="mesure">Mesuré à 390 px : …</span></p>
+  <div class="opts">
+    <div class="opt">
+      <div class="lettre"><i>A</i><span>Titre de l'option <small>sous-titre</small></span></div>
+      <span class="tag oui">recommandé</span>
+      <div class="tel">
+        <!-- L'état visé, avec les vrais gabarits. Les écarts se dessinent : -->
+        <div class="c">Bloc 1</div>
+        <div class="cote" style="--h:44"><span>44 px · chapitre → chapitre</span></div>
+        <div class="c">Bloc 2</div>
+      </div>
+      <p class="note">Conséquence en deux lignes, avec <b>les mots clés</b> en gras.</p>
+    </div>
+    <div class="opt">
+      <div class="lettre"><i>B</i><span>Autre option <small>sous-titre</small></span></div>
+      <span class="tag peut">alternative</span>
+      <div class="tel"><div class="c">…</div></div>
+      <p class="note">…</p>
+    </div>
+    <div class="opt">
+      <div class="lettre"><i>C</i><span>Option écartée <small>sous-titre</small></span></div>
+      <span class="tag non">écarté</span>
+      <div class="tel"><div class="c">…</div></div>
+      <p class="note">…</p>
+    </div>
+  </div>
+  <!-- Quand un choix a une conséquence qu'on ne peut pas trancher (conformité, portée) : -->
+  <div class="nota"><b>À ne pas perdre.</b><p class="note" style="margin-top:6px">…</p></div>
+</section>
+
+<!-- SYNTHÈSE, EN DERNIER : un tableau point · recommandation · décision attendue. -->
+<section class="q">
+  <span class="eyebrow">En résumé</span>
+  <table class="tbl"><thead><tr><th>#</th><th>Point</th><th>Je recommande</th><th>Votre décision</th></tr></thead>
+  <tbody><tr><td>1</td><td>…</td><td>A · …</td><td>1 A/B/C</td></tr></tbody></table>
+</section>
+</main>
