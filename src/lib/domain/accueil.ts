@@ -207,3 +207,24 @@ export function variationDesDerniersEchanges(quotes: Quote[]): VariationDeLigne 
   if (!dernier || !precedent || !(precedent.close > 0)) return undefined;
   return { pct: Math.round((dernier.close / precedent.close - 1) * 10000) / 100, depuis: precedent.sessionDate, le: dernier.sessionDate };
 }
+
+/**
+ * LE TON D'UN ÉTAT D'INTENTION (2 novembre 2026, planche « couleur et fonds », 2A).
+ *
+ * La couleur dit où en est l'ordre : vert quand la maison a confirmé, servi ou réglé ;
+ * ambre quand la balle est dans le camp du client (une contre-proposition à
+ * accepter) ; neutre pour le reste. « Non servie » n'est PAS rouge : ce n'est pas
+ * une faute du client, c'est le résultat d'une séance. Le rouge est réservé à ce
+ * qui est faux ou refusé, et aucun état d'intention n'est l'un ni l'autre.
+ */
+export type TonDEtat = "bon" | "attention" | "neutre";
+export const TON_DE_LETAT: Record<IntentState, TonDEtat> = {
+  recue: "neutre",
+  contre_proposee: "attention",
+  confirmee: "bon",
+  transmise: "neutre",
+  servie: "bon",
+  non_servie: "neutre",
+  reglee: "bon",
+  annulee: "neutre",
+};

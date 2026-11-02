@@ -14,11 +14,11 @@
 }
 .titre {
   margin: 0;
-  font-size: 0.7rem;
+  font-size: var(--accueil-titre-tuile, 0.7rem);
   font-weight: 700;
-  letter-spacing: 0.07em;
+  letter-spacing: var(--accueil-titre-espacement, 0.07em);
   text-transform: uppercase;
-  color: var(--ink);
+  color: var(--accueil-titre-encre, var(--ink));
 }
 .tout {
   flex: none;
@@ -70,6 +70,10 @@
   margin: 0;
   padding: 0;
   display: grid;
+  /* UNE COLONNE QUI PEUT RÉTRÉCIR. Sans « minmax(0, 1fr) » la piste grandit jusqu'au plus long nom
+     (« SOCIÉTÉ AFRICAINE FORESTIÈRE ET AGRICOLE DU CAMEROUN ») et la ligne sort de l'écran :
+     mesuré le 2 novembre 2026 à 390 px, 562 px pour 376 de conteneur, le cours et la variation coupés. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-4);
 }
 .ligne {
@@ -116,4 +120,17 @@
 .baisse {
   background: var(--crit-soft);
   color: var(--crit);
+}
+
+/* 5A : sur l'Accueil (« cartes »), la liste est UNE carte et ses lignes n'ont ni fond ni contour. */
+:global([data-tuiles="cartes"]) .liste {
+  gap: 0;
+  background: var(--tuile-fond);
+  border-radius: var(--tuile-rayon);
+  padding: var(--s-3) 0;
+}
+:global([data-tuiles="cartes"]) .ligne {
+  background: none;
+  border: 0;
+  border-radius: 0;
 }

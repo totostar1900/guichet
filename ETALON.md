@@ -571,14 +571,20 @@ sujets de l'aide (`info/aide`), et les leçons et outils des éclairages
 
 **Un quatrième aspect, « cartes » (2 novembre 2026).** Posé sur la **racine d'une
 page** (`data-tuiles="cartes"`, l'Accueil seul), jamais sur `<html>`. Il redit les
-jetons : fond `--surface-2` à 94 % mêlé d'`--ink` (la carte se voit sans bord),
-bord et trait nuls, rayon 16 px. Les listes de lignes se groupent en **une**
-carte, leurs lignes sans fond ni trait. Il porte aussi l'échelle locale de
-l'Accueil : `--accueil-titre-*` (étiquette de 12 px, gras, capitales, `--ink-2`),
-`--accueil-nom` (15 px), `--accueil-meta` (12 px), `--accueil-chiffre` (17 px,
-gras). Les rapports minimaux entre ces niveaux sont dans le skill
-`guichet-benchmark` (§ 4 bis) ; la pastille de variation (`PastilleVariation`) ne
-se pose que sur une ligne dont la maison connaît la variation (`variationDe`).
+jetons : fond = `--surface` (6A, après la planche « couleur et fonds » : le fond
+plus clair d'abord choisi pesait, il couvrait 60 % de l'écran et devenait en clair
+plus sombre que la page), bord et trait nuls, rayon 16 px. Les listes de lignes se
+groupent en **une** carte, leurs lignes sans fond ni trait ; l'indice et « Ce qui
+performe » sont de cette famille sur l'Accueil (barre d'or de l'indice à 0). Il
+porte aussi l'échelle locale : `--accueil-titre-*` (étiquette de 12 px, gras,
+capitales, `--ink-2`), `--accueil-nom` (15 px), `--accueil-meta` (12 px),
+`--accueil-chiffre` (17 px, gras) et `--accueil-geste-*` (3C : un chevron ou un « + »
+est un geste, dans un rond de 28 px à l'encre d'accent). **La couleur dit un état
+ou un geste** : l'état d'une intention est une pastille teintée (`TON_DE_LETAT`,
+« non servie » reste neutre), la variation une pastille douce, jamais l'encre
+pleine. Les rapports minimaux sont dans le skill `guichet-benchmark` (§ 4 bis) ; la
+pastille de variation ne se pose que sur une ligne dont la maison connaît la
+variation (`variationDe`, `variationDesDerniersEchanges`).
 
 **Ajouter une famille de tuiles :** copier ces cinq déclarations dans sa règle,
 ajouter la famille à `FAMILLES_DE_TUILES` dans `espace-page.test.ts`, et

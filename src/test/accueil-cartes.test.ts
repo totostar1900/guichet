@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { drapeauDe, monogrammeDe, avatarDe } from "@/components/Avatar";
 import { SEED_OFFERS } from "@/data/seed";
-import { variationDe, variationDesDerniersEchanges } from "@/lib/domain/accueil";
+import { TON_DE_LETAT, variationDe, variationDesDerniersEchanges } from "@/lib/domain/accueil";
 import type { Quote } from "@/lib/domain/market";
 
 const ROOT = path.join(__dirname, "../..");
@@ -59,13 +59,13 @@ describe("l'Accueil « cartes »", () => {
     expect(avatarDe({ issuer: "Afriland First Bank", country: "Cameroun", title: "Obligation" })).toEqual({ mono: "AF" });
   });
 
-  it("A1 · B1 · D1 : titres en étiquette, chiffre au-dessus du nom, carte plus claire que la surface", () => {
+  it("A1 · B1 · 6A : titres en étiquette, chiffre au-dessus du nom, carte = surface", () => {
     const css = lire("src/app/globals.css");
     expect(css, "le titre n'est plus une étiquette de 12 px").toMatch(/--accueil-titre-tuile:\s*var\(--t-3\)/);
     expect(css, "le titre n'est plus en capitales").toMatch(/--accueil-titre-casse:\s*uppercase/);
     expect(css, "l'encre des titres repasse sous 4,5:1 sur la carte (mesuré le 2 novembre 2026 : --ink-3 donnait 4,24 en sombre, 4,4 en « dim »)").toMatch(/--accueil-titre-encre:\s*var\(--ink-2\)/);
     expect(css, "le chiffre n'est plus une marche au-dessus du nom").toMatch(/--accueil-chiffre:\s*var\(--t-6\)/);
-    expect(css, "la carte n'est plus plus claire que la surface").toMatch(/--tuile-fond:\s*color-mix\(in srgb, var\(--surface-2\) 94%, var\(--ink\)\)/);
+    expect(css, "la carte n'est plus la surface (6A : D1 défait, le gris pesait)").toMatch(/\[data-tuiles="cartes"\]\s*\{[^}]*--tuile-fond:\s*var\(--surface\);/);
   });
 
   it("C2 : la variation n'existe que si la maison la connaît, et se pose sur les lignes qui la portent", () => {
@@ -99,5 +99,41 @@ describe("l'Accueil « cartes »", () => {
     expect(v, "c'est la cotation qui dit action ou obligation").toMatch(/q\[0\]\?\.instrument === "action"/);
     expect(v).toMatch(/repo\(\)\.listQuotes\(o\.isin, 60\)/);
     expect(v, "jamais la vue entière des dernières cotations").not.toMatch(/latestQuotes/);
+  });
+
+  it("2A : chaque état d'intention a son ton, et « non servie » n'est pas rouge", () => {
+    const etats = ["recue", "contre_proposee", "confirmee", "transmise", "servie", "non_servie", "reglee", "annulee"] as const;
+    expect(Object.keys(TON_DE_LETAT).sort()).toEqual([...etats].sort());
+    expect(TON_DE_LETAT.non_servie).toBe("neutre");
+    expect(TON_DE_LETAT.contre_proposee).toBe("attention");
+    for (const e of ["confirmee", "servie", "reglee"] as const) expect(TON_DE_LETAT[e], e).toBe("bon");
+    expect(code("src/components/accueil/DossierAccueil.tsx")).toMatch(/<PastilleEtat ton=\{l\.ton\}>\{l\.etat\}<\/PastilleEtat>/);
+  });
+
+  it("3C : chevrons et « + » sont des gestes en rond, à l'encre d'accent", () => {
+    const css = lire("src/app/globals.css");
+    expect(css).toMatch(/--accueil-geste-taille:\s*28px/);
+    expect(css).toMatch(/--accueil-geste-encre:\s*var\(--gold-ink\)/);
+    for (const f of ["src/components/accueil/DossierAccueil.module.css", "src/components/accueil/GrilleInvestir.module.css"]) {
+      expect(lire(f), `${f} : le chevron ne lit plus les jetons de geste`).toMatch(/stroke:\s*var\(--accueil-geste-encre, var\(--ink-3\)\)/);
+      expect(lire(f), `${f} : le chevron n'est plus un rond`).toMatch(/border-radius:\s*999px;\s*background:\s*var\(--accueil-geste-fond, transparent\)/);
+    }
+  });
+
+  it("4A : le montant du sondage est une marche au-dessus, avec l'état en pastille", () => {
+    const d = code("src/components/accueil/DossierAccueil.tsx");
+    expect(d).toMatch(/<span className=\{styles\.montant\}>\s*<b>\{l\.montant\}<\/b>\s*<small>FCFA<\/small>\s*<PastilleEtat ton=\{l\.ton\}>/);
+    expect(lire("src/components/accueil/DossierAccueil.module.css")).toMatch(/\.ligne \.montant b \{\s*font-size: var\(--accueil-chiffre, var\(--t-2\)\);\s*font-weight: 700;/);
+  });
+
+  it("5A : « Ce qui performe » ne déborde plus et l'indice lit les jetons de tuile", () => {
+    const perf = lire("src/components/CeQuiPerforme.module.css");
+    const debut = perf.indexOf(".liste {");
+    const liste = perf.slice(debut, perf.indexOf(".ligne {", debut));
+    expect(liste, "la piste de la liste peut de nouveau grandir jusqu'au plus long nom").toMatch(/grid-template-columns:\s*minmax\(0, 1fr\);/);
+    expect(perf).toMatch(/:global\(\[data-tuiles="cartes"\]\) \.liste \{[^}]*background: var\(--tuile-fond\)/);
+    const idx = lire("src/components/IndexPulse.module.css");
+    expect(idx).toMatch(/background: var\(--tuile-fond\);/);
+    expect(idx).toMatch(/border-left: var\(--indice-barre, 4px solid var\(--gold\)\);/);
   });
 });

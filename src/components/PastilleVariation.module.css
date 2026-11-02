@@ -18,6 +18,10 @@
   background: var(--crit-soft);
   color: var(--crit);
 }
+.attention {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
 .stable {
   background: var(--neutral-soft);
   color: var(--ink-2);

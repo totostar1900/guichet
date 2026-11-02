@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
-import { chiffresDeLIntention, gestesProposables, rubriquesPresentes, type CleDeRubrique, type FaitsDuDossier, type GesteProposable } from "@/lib/domain/accueil";
+import { PastilleEtat } from "@/components/PastilleEtat";
+import { chiffresDeLIntention, gestesProposables, rubriquesPresentes, TON_DE_LETAT, type CleDeRubrique, type FaitsDuDossier, type GesteProposable } from "@/lib/domain/accueil";
 import { echeancesProches, joursEnMots } from "@/lib/domain/echeances";
 import type { AvisGarde } from "@/lib/domain/garde";
 import { attendUneSignature, INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
@@ -133,7 +134,7 @@ export async function DossierAccueil({
     .sort((a, b) => a.jours - b.jours)
     .slice(0, 3);
 
-  type Ligne = { texte: string; note?: string };
+  type Ligne = { texte: string; montant: string; etat: string; ton: "bon" | "attention" | "neutre" };
   /* LES CHIFFRES DE « MES INTENTIONS » : le type d'ordre et le montant à gauche, l'état et la part servie à droite. Voir « chiffresDeLIntention ». */
   const intentions = mine.slice(0, 3).map((i) => {
     const c = chiffresDeLIntention(i, offre(i.offerId)?.kind ?? "");
@@ -141,12 +142,15 @@ export async function DossierAccueil({
       nom: t(titreDe(i.offerId)),
       detail: [t(INTENT_LABEL[i.type]), c.montant ? `${fmt(c.montant.valeur)} ${c.montant.unite}` : ""].filter(Boolean).join(" · "),
       etat: t(INTENT_STATE_LABEL[i.state]),
+      ton: TON_DE_LETAT[i.state],
       servi: c.serviPct != null ? t("servi à {n} %", { n: String(c.serviPct) }) : undefined,
     };
   });
   const auSondage: Ligne[] = vivantes.slice(0, 2).map((x) => ({
     texte: `${x.instrument} ${x.tenor} · ${t(x.country)}`,
-    note: `${fmt(x.montant)} FCFA · ${t(x.state === "consolidee" ? "portée au Trésor" : "ouverte")}`,
+    montant: fmt(x.montant),
+    etat: t(x.state === "consolidee" ? "portée au Trésor" : "ouverte"),
+    ton: x.state === "consolidee" ? "neutre" : "bon",
   }));
 
   type Compacte = { cle: CleDeRubrique; href: string; nom: string; resume: string; etiquette?: string };
@@ -188,7 +192,7 @@ export async function DossierAccueil({
                   <small>{l.detail}</small>
                 </span>
                 <span className={styles.quoi}>
-                  <b>{l.etat}</b>
+                  <PastilleEtat ton={l.ton}>{l.etat}</PastilleEtat>
                   {l.servi && <small>{l.servi}</small>}
                 </span>
               </span>
@@ -200,7 +204,11 @@ export async function DossierAccueil({
             {auSondage.map((l, k) => (
               <span key={k} className={styles.ligne}>
                 <b>{l.texte}</b>
-                <small>{l.note}</small>
+                <span className={styles.montant}>
+                  <b>{l.montant}</b>
+                  <small>FCFA</small>
+                  <PastilleEtat ton={l.ton}>{l.etat}</PastilleEtat>
+                </span>
               </span>
             ))}
           </Pleine>

@@ -90,9 +90,15 @@ Une mesure de tailles et d'écarts ne dit pas si un écran **se lit**. Le 2 nove
 | titre / nom de ligne | un cran de **taille ou de poids ET de couleur** (ex. étiquette 12 px gras capitales gris, contre nom 15 px) | jamais deux textes de même taille, même poids, même encre |
 | chiffre / libellé | le chiffre **une marche au-dessus** et en **gras tabulaire**, l'unité en méta | le chiffre porte la ligne |
 | nom / méta | méta plus petite **et** plus pâle (`--ink-3`) | |
-| carte / page | la carte **se voit sans bord** : fond plus clair que la page d'un cran net | à vérifier en thème sombre ET clair |
+| carte / page | la carte **se voit sans peser** : la surface sur la page, jamais un fond « plus clair que la surface » (il a été essayé et défait le 2 novembre 2026 : gris sale en clair) | à vérifier en thème sombre ET clair, rapport carte/page ≥ 1,1 et **jamais une carte plus sombre que la page** |
 
 **Règle des chiffres.** Une ligne qui montre un cours ou une VL montre aussi sa **variation**, en pastille (signe écrit, couleur en renfort). Sans variation connue de la maison, **pas de pastille** : jamais « 0 % » inventé. La donnée vient du domaine (`variationDe`, `src/lib/domain/accueil.ts`) ; si elle manque pour une famille de lignes, on le dit au client au lieu de la fabriquer.
+
+**Règle de la couleur de sens (2 novembre 2026).** Tout **état** (réglée, confirmée, ouverte, à signer) se lit en **pastille teintée** ; tout **geste** (chevron, « + », lien) en **encre d'accent**. Jamais en encre pleine ni en gris tertiaire. Le vert dit « fait », l'ambre « à vous de jouer », le neutre « en cours ou sans suite » ; **le rouge est réservé à ce qui est faux ou refusé**.
+
+**Un seul traitement de fond par écran.** Compter les fonds distincts des blocs (`audit-accueil.cjs`) : s'il y en a plus d'un, c'est une faute (le 2 novembre 2026 : trois sur l'Accueil, et un « creux » entre les blocs).
+
+**Aucun débordement horizontal.** Une ligne dont la piste de grille peut grandir jusqu'à son plus long nom sort de l'écran sans que la page défile : mesurer les éléments dont le bord droit dépasse celui de leur section (`minmax(0, 1fr)` règle le cas).
 
 **Règle du blanc.** Au plus **trois niveaux d'encre** par écran (`--ink`, `--ink-2`, `--ink-3`), tous distincts à l'œil ; un écran où tout est `--ink` est une faute.
 

@@ -1075,8 +1075,10 @@ html[data-tuiles="douces"] {
    Des tuiles arrondies sans bord ni trait ; les listes de lignes se groupent en
    UNE carte (« .groupe »), leurs lignes sans fond. Réversible d'un mot. */
 [data-tuiles="cartes"] {
-  /* D1 (2 novembre 2026) : la carte se VOIT sans bord, un cran plus claire que la surface. */
-  --tuile-fond: color-mix(in srgb, var(--surface-2) 94%, var(--ink));
+  /* 6A (2 novembre 2026, après la planche « couleur et fonds ») : la carte est la SURFACE, rien de plus.
+     D1 (surface-2 mêlée d'encre) pesait : cartes à 60 % de l'écran, gris sale en clair, où elle
+     devenait plus sombre que la page (rapport 1,18). Sombre : surface ; clair : blanc sur page grise. */
+  --tuile-fond: var(--surface);
   --tuile-bord: 0;
   --tuile-trait: 0;
   --tuile-rayon: 16px;
@@ -1093,6 +1095,13 @@ html[data-tuiles="douces"] {
   --accueil-nom: var(--t-5);
   --accueil-meta: var(--t-3);
   --accueil-chiffre: var(--t-6);
+  /* 3C : un chevron ou un « + » est un GESTE, dans un petit rond (28 px) à l'encre d'accent. */
+  --accueil-geste-taille: 28px;
+  --accueil-geste-pad: 6px;
+  --accueil-geste-fond: var(--neutral-soft);
+  --accueil-geste-encre: var(--gold-ink);
+  /* 5A : l'indice de l'Accueil est une carte comme les autres, sans la barre d'or des pages du marché. */
+  --indice-barre: 0;
 }
 html[data-tuiles="lignes"] {
   --tuile-fond: transparent;

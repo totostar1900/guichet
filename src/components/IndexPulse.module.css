@@ -6,10 +6,11 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 14px;
   align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--gold);
-  border-radius: var(--radius);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  /* La barre d'or des pages du marché ; l'Accueil (« cartes ») la pose à 0. */
+  border-left: var(--indice-barre, 4px solid var(--gold));
+  border-radius: var(--tuile-rayon);
   padding: 8px 14px;
   margin: 0;
 }

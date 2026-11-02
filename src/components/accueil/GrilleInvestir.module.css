@@ -46,10 +46,14 @@
 .chev,
 .plus {
   flex: none;
-  width: 16px;
-  height: 16px;
+  box-sizing: border-box;
+  width: var(--accueil-geste-taille, 16px);
+  height: var(--accueil-geste-taille, 16px);
+  padding: var(--accueil-geste-pad, 0px);
+  border-radius: 999px;
+  background: var(--accueil-geste-fond, transparent);
   fill: none;
-  stroke: var(--ink-3);
+  stroke: var(--accueil-geste-encre, var(--ink-3));
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
