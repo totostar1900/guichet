@@ -21,7 +21,7 @@ Ce skill décrit les quatre premières étapes ; `guichet-maquette` mène la pla
 | Écran visé | Référence | Où |
 |---|---|---|
 | **Accueil** | une application de courtage moderne (Revolut Invest) : 20 captures versées | `docs/design-refs/concurrents/revolut/` — `NOTES.md` (index), `ANALYSE-accueil.md` (grille et écart), et `references/revolut-accueil.md` à côté de ce fichier (les neuf principes traduits en jetons de Guichet) |
-| **Accueil, fiche d'une ligne, recherche** | une application de suivi de marchés (Yahoo Finance) : 4 captures décrites, fichiers à déposer | `docs/design-refs/concurrents/yahoo-finance/NOTES.md` et `references/yahoo-finance.md` : cartes à titre + lien d'issue, ligne de cours à pastille de variation, jauge de fourchette, « Modifier l'accueil », récents/populaires |
+| **Accueil, fiche d'une ligne, recherche** | une application de suivi de marchés (Yahoo Finance) : 4 captures décrites, 4 fichiers versés | `docs/design-refs/concurrents/yahoo-finance/NOTES.md` et `references/yahoo-finance.md` : cartes à titre + lien d'issue, ligne de cours à pastille de variation, jauge de fourchette, « Modifier l'accueil », récents/populaires |
 | Fiche d'une ligne, épargne | mêmes captures, pas encore analysées en grille | idem, `NOTES.md` |
 | Fiche d'une ligne : graphique à deux couleurs, jauge de fourchette, alerte de prix | une application de suivi de marchés (**à confirmer**, probablement Google Finance) : 3 captures | `docs/design-refs/concurrents/autre-application-a-confirmer/` |
 | Toute référence **Wise** | **aucune image identifiée comme telle** | à demander |

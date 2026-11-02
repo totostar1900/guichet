@@ -1,15 +1,15 @@
 # Yahoo Finance (application mobile, thème sombre) — captures du 2 novembre 2026
 
-*Quatre captures reçues dans la conversation du 2 novembre 2026. **Les fichiers image ne sont pas encore dans le dépôt** : le chat ne les a pas déposés sur disque. À placer ici sous les noms ci-dessous (voir « Fichiers attendus »). Aucune ne montre de donnée personnelle sensible, mais elles portent des publicités tierces : ne rien en recopier.*
+*Quatre captures reçues dans la conversation du 2 novembre 2026. **Les quatre fichiers sont dans ce dossier.** Aucune ne montre de donnée personnelle sensible, mais elles portent des publicités tierces : ne rien en recopier.*
 
-## Fichiers attendus
+## Fichiers
 
 | Nom | Ce qu'elle montre |
 |---|---|
-| `accueil-liste-de-suivi.png` | Accueil : barre de recherche + alerte + avatar ; bandeau « marchés ouverts dans 8 min » avec 4 indices défilants ; carte « Listes de suivi » (4 lignes : code, nom, mini-courbe, cours, variation en pastille verte/rouge) ; carte « Créer un portefeuille » ; « Vos plus gros mouvements » (histogramme) ; « Vos événements à venir » et « Vos rapports » avec **état vide illustré en pointillé + lien « Voir tout »** ; bouton flottant « Modifier l'accueil » ; barre de 4 onglets |
-| `recherche-recents-et-populaires.png` | Recherche : « Récents » (3 lignes, étoile pleine), « Populaires aujourd'hui » avec filtres en pastilles (Tout / Actions), lignes code + type + nom à gauche, cours + variation à droite, étoile |
-| `fiche-onglet-actualites.png` | Onglet Actualités d'une ligne : fil dense de titres, source + date, codes des lignes citées en pastilles |
-| `fiche-resume-ligne.png` | Fiche d'une ligne : onglets Résumé / Actualités / Financiers ; prix en grand + variation + horodatage ; courbe verte avec volumes ; pastilles de période ; carte « Mes avoirs » fermable ; « Statistiques clés » (jauges de fourchette jour et 52 semaines, grille libellé/valeur) ; « Dernières actualités » ; « Chaîne de contrats » ; « Sentiment » (Baissier / Neutre / Haussier) |
+| `accueil-liste-de-suivi.jpg` | Accueil : barre de recherche + alerte + avatar ; bandeau « marchés ouverts dans 8 min » avec 4 indices défilants ; carte « Listes de suivi » (4 lignes : code, nom, mini-courbe, cours, variation en pastille verte/rouge) ; carte « Créer un portefeuille » ; « Vos plus gros mouvements » (histogramme) ; « Vos événements à venir » et « Vos rapports » avec **état vide illustré en pointillé + lien « Voir tout »** ; bouton flottant « Modifier l'accueil » ; barre de 4 onglets |
+| `recherche-recents-et-populaires.jpg` | Recherche : « Récents » (3 lignes, étoile pleine), « Populaires aujourd'hui » avec filtres en pastilles (Tout / Actions), lignes code + type + nom à gauche, cours + variation à droite, étoile |
+| `fiche-onglet-actualites.jpg` | Onglet Actualités d'une ligne : fil dense de titres, source + date, codes des lignes citées en pastilles |
+| `fiche-resume-ligne.jpg` | Fiche d'une ligne : onglets Résumé / Actualités / Financiers ; prix en grand + variation + horodatage ; courbe verte avec volumes ; pastilles de période ; carte « Mes avoirs » fermable ; « Statistiques clés » (jauges de fourchette jour et 52 semaines, grille libellé/valeur) ; « Dernières actualités » ; « Chaîne de contrats » ; « Sentiment » (Baissier / Neutre / Haussier) |
 
 ## Principes à retenir (mesurables)
 
