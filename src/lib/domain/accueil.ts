@@ -1,4 +1,4 @@
-import type { Offer } from "./types";
+import type { IntentState, IntentType, Offer } from "./types";
 import { displayStatus } from "./status";
 import { fondsListes, lignesDeLaCote, seancesAnnoncees } from "./listes";
 
@@ -133,4 +133,33 @@ export function gestesProposables(f: FaitsPourGestes): GesteProposable[] {
   if (f.attentesSondees === 0) out.push("sondage");
   out.push("simulateur", "comparer");
   return out.slice(0, NB_GESTES);
+}
+
+/**
+ * LES CHIFFRES D'UNE INTENTION, POUR LA TUILE « MES INTENTIONS » (1er novembre 2026).
+ *
+ * Un nom et un état ne disaient pas combien. On ajoute ce que le client a lui-même
+ * dit — le montant — et, une fois la séance passée, la part qu'on lui a servie.
+ *
+ * L'UNITÉ N'EST DITE QUE QUAND ON LA SAIT. « amount » est « des FCFA, ou des titres
+ * pour une cession » (voir le modèle) : une souscription, une prise ferme et un appétit
+ * s'expriment en FCFA ; le rachat de parts d'un fonds en parts. Un ordre d'achat ou de
+ * vente sur la cote peut porter une quantité autant qu'un montant : on n'invente pas
+ * d'unité, on ne dit pas le chiffre.
+ */
+export interface ChiffresIntention {
+  montant?: { valeur: number; unite: "FCFA" | "parts" };
+  /** La part servie, de 0 à 100, une fois la séance rendue. */
+  serviPct?: number;
+}
+
+export function chiffresDeLIntention(i: { type: IntentType; amount?: number | null; allocationPct?: number | null; state: IntentState }, kind: string): ChiffresIntention {
+  const out: ChiffresIntention = {};
+  const valeur = i.amount ?? 0;
+  if (valeur > 0) {
+    if (i.type === "souscription" || i.type === "ferme" || i.type === "appetit") out.montant = { valeur, unite: "FCFA" };
+    else if (i.type === "rachat" && kind === "FONDS") out.montant = { valeur, unite: "parts" };
+  }
+  if (typeof i.allocationPct === "number" && (i.state === "servie" || i.state === "reglee")) out.serviPct = Math.round(i.allocationPct);
+  return out;
 }

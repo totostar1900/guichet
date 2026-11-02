@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
-import { gestesProposables, rubriquesPresentes, type CleDeRubrique, type FaitsDuDossier, type GesteProposable } from "@/lib/domain/accueil";
+import { chiffresDeLIntention, gestesProposables, rubriquesPresentes, type CleDeRubrique, type FaitsDuDossier, type GesteProposable } from "@/lib/domain/accueil";
 import { echeancesProches, joursEnMots } from "@/lib/domain/echeances";
 import type { AvisGarde } from "@/lib/domain/garde";
-import { attendUneSignature, INTENT_STATE_LABEL } from "@/lib/domain/intent";
+import { attendUneSignature, INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { displayStatus } from "@/lib/domain/status";
 import type { StandingOrder } from "@/lib/domain/standing";
 import { summarize } from "@/lib/domain/summary";
@@ -134,7 +134,16 @@ export async function DossierAccueil({
     .slice(0, 3);
 
   type Ligne = { texte: string; note?: string };
-  const intentions: Ligne[] = mine.slice(0, 3).map((i) => ({ texte: t(titreDe(i.offerId)), note: t(INTENT_STATE_LABEL[i.state]) }));
+  /* LES CHIFFRES DE « MES INTENTIONS » : le type d'ordre et le montant à gauche, l'état et la part servie à droite. Voir « chiffresDeLIntention ». */
+  const intentions = mine.slice(0, 3).map((i) => {
+    const c = chiffresDeLIntention(i, offre(i.offerId)?.kind ?? "");
+    return {
+      nom: t(titreDe(i.offerId)),
+      detail: [t(INTENT_LABEL[i.type]), c.montant ? `${fmt(c.montant.valeur)} ${c.montant.unite}` : ""].filter(Boolean).join(" · "),
+      etat: t(INTENT_STATE_LABEL[i.state]),
+      servi: c.serviPct != null ? t("servi à {n} %", { n: String(c.serviPct) }) : undefined,
+    };
+  });
   const auSondage: Ligne[] = vivantes.slice(0, 2).map((x) => ({
     texte: `${x.instrument} ${x.tenor} · ${t(x.country)}`,
     note: `${fmt(x.montant)} FCFA · ${t(x.state === "consolidee" ? "portée au Trésor" : "ouverte")}`,
@@ -169,14 +178,19 @@ export async function DossierAccueil({
 
   return (
     <section className={styles.bloc} aria-label={t("Mon dossier")}>
-      <span className="eyebrow">{t("Mon dossier")}</span>
       <div className="pile-tuiles">
         {presentes.has("intentions") && (
           <Pleine href="/moi/ordres" nom={t("Mes intentions")} etiquette={aSigner ? t("à signer") : undefined} lien={t("Mes intentions")}>
             {intentions.map((l, k) => (
-              <span key={k} className={styles.ligne}>
-                <b>{l.texte}</b>
-                <small>{l.note}</small>
+              <span key={k} className={styles.suivie}>
+                <span className={styles.qui}>
+                  <b>{l.nom}</b>
+                  <small>{l.detail}</small>
+                </span>
+                <span className={styles.quoi}>
+                  <b>{l.etat}</b>
+                  {l.servi && <small>{l.servi}</small>}
+                </span>
               </span>
             ))}
           </Pleine>

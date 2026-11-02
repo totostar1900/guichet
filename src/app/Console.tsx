@@ -168,6 +168,8 @@ export async function Console({ session }: { session: Session }) {
   const quandProchain = prochain ? joursEnMots(prochain.inDays) : undefined;
 
   const trace = dessin(courbe);
+  /* Le relevé n'existe que s'il a quelque chose à montrer : une ligne tenue, une courbe, ou une répartition. */
+  const aDuReleve = positions.length > 0 || Boolean(trace) || familles.length > 0;
   const famille = (f: Famille) => t(NOM_FAMILLE[f]);
   const pct = (v: number) => `${v.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
   const signe = (v: number) => `${v > 0 ? "+" : ""}${pct(v)}`;
@@ -278,9 +280,11 @@ export async function Console({ session }: { session: Session }) {
       <TuilesDuHaut offres={offers} />
 
       {/* CHAPITRE 3 : LE RELEVÉ — ce que ça vaut, ce que ça a rapporté, ce qu'on tient. */}
+      {/* UN CHAPITRE VIDE LAISSERAIT 88 PX (deux écarts de 44) POUR RIEN : sans ligne ni courbe ni famille, il n'est pas rendu. La phrase « Vous ne tenez encore aucune ligne » qui le remplissait est partie le 1er novembre 2026 ; un client sans ligne voit « Investir » juste après ses devoirs. */}
+      {aDuReleve && (
       <div className="pile">
       {/* 1. Ce que ça vaut, et ce que ça a rapporté. */}
-      {positions.length > 0 ? (
+      {positions.length > 0 && (
         <section className={styles.valeur}>
           <div className={styles.grand}>
             <span className={styles.etiquette}>{t("Mon portefeuille")}</span>
@@ -375,8 +379,6 @@ export async function Console({ session }: { session: Session }) {
           {/* Ce solde appartient au client : il le lit ici, donc il le réclame ici. */}
           <DemanderVersement montant={poche.idle} demande={derniereDemande} />
         </section>
-      ) : (
-        <p className={styles.vide}>{t("Vous ne tenez encore aucune ligne. Les titres et les fonds ouverts se parcourent sans engagement.")}</p>
       )}
 
       {/* 3. Ce qui est entré, ce qui est revenu, et ce que ça vaut aujourd'hui. */}
@@ -468,6 +470,7 @@ export async function Console({ session }: { session: Session }) {
       )}
 
       </div>
+      )}
 
       {/* CHAPITRE 4 : INVESTIR. Trois entrées vivantes, la quatrième place faite
           de ce que la maison annonce ou de ce que le client propose, et la porte

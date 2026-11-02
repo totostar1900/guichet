@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { SEED_OFFERS } from "@/data/seed";
-import { gestesProposables, NB_GESTES, rubriquesPresentes, seancesOuvertes, seancesPrevues, type FaitsDuDossier, type FaitsPourGestes } from "@/lib/domain/accueil";
+import { chiffresDeLIntention, gestesProposables, NB_GESTES, rubriquesPresentes, seancesOuvertes, seancesPrevues, type FaitsDuDossier, type FaitsPourGestes } from "@/lib/domain/accueil";
 import type { Offer } from "@/lib/domain/types";
 
 const ROOT = path.join(__dirname, "../..");
@@ -145,5 +145,43 @@ describe("les composants de l'Accueil", () => {
     expect(accueil, "la carte n'est plus un lien sur la page d'arrivée").toMatch(/<IndexPulse compact pied=\{\{ href: "\/marche", mot: t\("La place"\) \}\} \/>/);
     expect(carte, "la carte n'enveloppe plus sa surface dans le lien").toMatch(/<Link href=\{pied\.href\} className=\{styles\.carteLien\}>/);
     expect(carte, "deux ancres imbriquées : les liens internes doivent se taire quand la carte est un lien").toMatch(/liens && !pied && \(/);
+  });
+});
+
+describe("les chiffres de « Mes intentions »", () => {
+  it("dit le montant en FCFA d'une souscription, d'une prise ferme et d'un appétit", () => {
+    for (const type of ["souscription", "ferme", "appetit"] as const) expect(chiffresDeLIntention({ type, amount: 5_000_000, state: "recue" }, "OTA").montant, type).toEqual({ valeur: 5_000_000, unite: "FCFA" });
+  });
+  it("dit des parts pour le rachat d'un fonds, et se tait quand l'unité est ambiguë", () => {
+    expect(chiffresDeLIntention({ type: "rachat", amount: 61, state: "recue" }, "FONDS").montant).toEqual({ valeur: 61, unite: "parts" });
+    /* Un achat ou une vente sur la cote peut porter une quantité autant qu'un montant : on ne dit pas le chiffre. */
+    for (const type of ["achat", "vente", "cession"] as const) expect(chiffresDeLIntention({ type, amount: 100, state: "recue" }, "MARCHE").montant, type).toBeUndefined();
+    expect(chiffresDeLIntention({ type: "rachat", amount: 61, state: "recue" }, "OTA").montant, "un rachat hors fonds n'a pas des parts").toBeUndefined();
+  });
+  it("ne dit pas de montant nul ou absent", () => {
+    expect(chiffresDeLIntention({ type: "souscription", amount: 0, state: "recue" }, "FONDS").montant).toBeUndefined();
+    expect(chiffresDeLIntention({ type: "souscription", amount: null, state: "recue" }, "FONDS").montant).toBeUndefined();
+  });
+  it("ne dit la part servie qu'une fois la séance rendue", () => {
+    expect(chiffresDeLIntention({ type: "ferme", amount: 1, allocationPct: 60, state: "servie" }, "OTA").serviPct).toBe(60);
+    expect(chiffresDeLIntention({ type: "ferme", amount: 1, allocationPct: 60, state: "reglee" }, "OTA").serviPct).toBe(60);
+    expect(chiffresDeLIntention({ type: "ferme", amount: 1, allocationPct: 60, state: "confirmee" }, "OTA").serviPct, "une intention pas encore servie ne dit pas de part").toBeUndefined();
+  });
+});
+
+describe("l'Accueil sans phrase de vide ni titre de dossier", () => {
+  const accueil = () => code("src/app/Console.tsx");
+  it("n'a plus la phrase « Vous ne tenez encore aucune ligne… », et son chapitre disparaît avec elle", () => {
+    expect(accueil(), "la phrase du client sans ligne est revenue").not.toMatch(/Vous ne tenez encore aucune ligne/);
+    expect(accueil(), "le relevé n'est plus conditionné : un chapitre vide laisserait 88 px").toMatch(/\{aDuReleve && \(\s*<div className="pile">/);
+    expect(accueil(), "la condition du relevé ne regarde plus les lignes, la courbe et les familles").toMatch(/const aDuReleve = positions\.length > 0 \|\| Boolean\(trace\) \|\| familles\.length > 0;/);
+  });
+  it("n'a plus le titre « Mon dossier » au-dessus de ses tuiles", () => {
+    expect(code("src/components/accueil/DossierAccueil.tsx"), "le titre « Mon dossier » est revenu au-dessus du dossier").not.toMatch(/className="eyebrow">\{t\("Mon dossier"\)\}/);
+  });
+  it("montre les chiffres de l'intention : type et montant à gauche, état et part servie à droite", () => {
+    const d = code("src/components/accueil/DossierAccueil.tsx");
+    expect(d, "les intentions n'appellent plus « chiffresDeLIntention »").toMatch(/chiffresDeLIntention\(i, offre\(i\.offerId\)\?\.kind \?\? ""\)/);
+    expect(d, "la part servie ne s'affiche plus").toMatch(/t\("servi à \{n\} %"/);
   });
 });

@@ -14,6 +14,7 @@ export const EN_FICHE: Record<string, string> = {
   "Sur la période choisie": "Over the chosen period",
   "ferme {q}": "closes {q}",
   "sur 12 mois": "over 12 months",
+  "servi à {n} %": "filled at {n} %",
   "ouverte": "open",
   "portée au Trésor": "taken to the Treasury",
   "Mes lignes suivies": "My followed lines",
