@@ -3,6 +3,8 @@ import { getT } from "@/i18n/server";
 import { repo } from "@/lib/data";
 import { summarize } from "@/lib/domain/summary";
 import type { Offer } from "@/lib/domain/types";
+import { Avatar } from "@/components/Avatar";
+import { TitreDeBloc } from "@/components/TitreDeBloc";
 import styles from "./SelectionDuDesk.module.css";
 
 /**
@@ -37,7 +39,7 @@ export function lignesDuDesk(offers: Offer[], now = new Date()) {
     .slice(0, 3);
 }
 
-export async function SelectionDuDesk({ offres }: { /** Les offres déjà en main : la page d'arrivée les lit pour ses positions, les relire serait une seconde lecture du même objet. */ offres?: Offer[] } = {}) {
+export async function SelectionDuDesk({ offres, sobre = false }: { /** Le titre sobre (chevron, « Tout voir »), les lignes en une carte, des ronds : l'allure de l'Accueil. */ sobre?: boolean; /** Les offres déjà en main : la page d'arrivée les lit pour ses positions, les relire serait une seconde lecture du même objet. */ offres?: Offer[] } = {}) {
   const t = await getT();
   const now = new Date();
   const offers =
@@ -48,12 +50,13 @@ export async function SelectionDuDesk({ offres }: { /** Les offres déjà en mai
   const picks = lignesDuDesk(offers, now);
   if (!picks.length) return null;
   return (
-    <section className={styles.bande} aria-label={t("La sélection du desk")}>
-      <h2 className={styles.titre}>{t("La sélection du desk")}</h2>
-      <ul className={styles.liste}>
+    <section className={`${styles.bande} ${sobre ? styles.sobre : ""}`} aria-label={t("La sélection du desk")}>
+      {sobre ? <TitreDeBloc titre="La sélection du desk" href="/titres" /> : <h2 className={styles.titre}>{t("La sélection du desk")}</h2>}
+      <ul className={`${styles.liste} ${sobre ? styles.groupe : ""}`}>
         {picks.map(({ o, s }) => (
           <li key={o.id}>
             <Link className={styles.lien} href={`/offres/${o.id}`}>
+              {sobre && <Avatar offre={o} />}
               <span className={styles.nom}>
                 {t(o.title)}
                 <small>{t(s.subtitle)}</small>

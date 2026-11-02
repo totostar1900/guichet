@@ -175,7 +175,7 @@ export async function Console({ session }: { session: Session }) {
   const signe = (v: number) => `${v > 0 ? "+" : ""}${pct(v)}`;
 
   return (
-    <div className={`${styles.page} chapitres`}>
+    <div className={`${styles.page} chapitres`} data-tuiles="cartes">
       {/* CHAPITRE 1 : LES DEVOIRS. Une pile (28 px) ; les chapitres suivants sont séparés de 44. */}
       <div className="pile">
       <div className={styles.bonjour}>
@@ -199,6 +199,59 @@ export async function Console({ session }: { session: Session }) {
         )}
       </div>
 
+      {/* LE CHIFFRE DU PORTEFEUILLE EN TÊTE, AVANT LES DEVOIRS (2 novembre 2026, décidé sur la planche de référence). Ce que le client possède se lit d'abord ; ce qu'on attend de lui vient juste dessous. Quatre gestes ronds sous le chiffre, et la mention des lignes sans cours reste ici : un total qui omet une ligne le dit à côté du total. */}
+      {positions.length > 0 && (
+        <section className={styles.hero} aria-label={t("Mon portefeuille")}>
+          <div className={styles.grand}>
+            <span className={styles.etiquette}>{t("Mon portefeuille")}</span>
+            {/* Rien de valorisable et de l'argent versé : « 0 FCFA » serait
+                exact et illisible, un client lirait une perte totale. Un chiffre
+                absent se nomme au lieu d'être affiché à zéro. */}
+            {total === 0 && perf.unvalued > 0 ? (
+              <b className={styles.sansValeur}>{t("Pas encore de valorisation")}</b>
+            ) : (
+              <b>
+                {fmt(Math.round(total))} <em>FCFA</em>
+              </b>
+            )}
+            {perf.invested > 0 && (
+              <span className={styles.gain}>
+                <b className={gain >= 0 ? styles.bon : styles.moins}>
+                  {gain >= 0 ? "+" : ""}
+                  {fmt(Math.round(gain))}
+                </b>
+                <b className={gain >= 0 ? styles.bon : styles.moins}>{signe(Math.round((gain / perf.invested) * 1000) / 10)}</b>
+                <small>{t("depuis l'origine, coupons reçus compris")}</small>
+              </span>
+            )}
+          </div>
+          {/* Une ligne sans cours publié ne se compte pas zéro : elle sort du
+              total, et la page dit laquelle et combien on y a mis, plutôt que
+              de laisser un chiffre inexpliqué à côté du tableau des lignes. */}
+          {perf.unvalued > 0 && (
+            <p className={styles.horsTotal}>
+              {perf.unvalued === 1
+                ? t("Une ligne est tenue sans cours publié : {m} FCFA y sont versés, et elle reste hors de ce total.", { m: fmt(Math.round(perf.unvaluedInvested)) })
+                : t("{n} lignes sont tenues sans cours publié : {m} FCFA y sont versés, et elles restent hors de ce total.", { n: perf.unvalued, m: fmt(Math.round(perf.unvaluedInvested)) })}
+            </p>
+          )}
+        </section>
+      )}
+      {peutOPCVM(session) && (
+        <nav className={styles.raccourcis} aria-label={t("Gestes rapides")}>
+          {[
+            { href: "/moi/provision/alimenter", mot: "Verser", glyphe: "+" },
+            { href: "/moi/provision/reprendre", mot: "Retrait", glyphe: "−" },
+            { href: "/titres", mot: "Investir", glyphe: "↗" },
+            { href: "/trader", mot: "Plus", glyphe: "⋯" },
+          ].map((g) => (
+            <Link key={g.mot} href={g.href} className={styles.raccourci}>
+              <span className={styles.rondGeste} aria-hidden="true">{g.glyphe}</span>
+              <small>{t(g.mot)}</small>
+            </Link>
+          ))}
+        </nav>
+      )}
       {/* CE QUI VA PARTIR, ET LE MOYEN DE DIRE NON.
           Le robot exécutait puis prévenait ; prévenir sans bouton d'arrêt
           n'aurait déplacé le problème que d'une case. Cette bande expire, d'où
@@ -286,39 +339,6 @@ export async function Console({ session }: { session: Session }) {
       {/* 1. Ce que ça vaut, et ce que ça a rapporté. */}
       {positions.length > 0 && (
         <section className={styles.valeur}>
-          <div className={styles.grand}>
-            <span className={styles.etiquette}>{t("Mon portefeuille")}</span>
-            {/* Rien de valorisable et de l'argent versé : « 0 FCFA » serait
-                exact et illisible, un client lirait une perte totale. Un chiffre
-                absent se nomme au lieu d'être affiché à zéro. */}
-            {total === 0 && perf.unvalued > 0 ? (
-              <b className={styles.sansValeur}>{t("Pas encore de valorisation")}</b>
-            ) : (
-              <b>
-                {fmt(Math.round(total))} <em>FCFA</em>
-              </b>
-            )}
-            {perf.invested > 0 && (
-              <span className={styles.gain}>
-                <b className={gain >= 0 ? styles.bon : styles.moins}>
-                  {gain >= 0 ? "+" : ""}
-                  {fmt(Math.round(gain))}
-                </b>
-                <b className={gain >= 0 ? styles.bon : styles.moins}>{signe(Math.round((gain / perf.invested) * 1000) / 10)}</b>
-                <small>{t("depuis l'origine, coupons reçus compris")}</small>
-              </span>
-            )}
-          </div>
-          {/* Une ligne sans cours publié ne se compte pas zéro : elle sort du
-              total, et la page dit laquelle et combien on y a mis, plutôt que
-              de laisser un chiffre inexpliqué à côté du tableau des lignes. */}
-          {perf.unvalued > 0 && (
-            <p className={styles.horsTotal}>
-              {perf.unvalued === 1
-                ? t("Une ligne est tenue sans cours publié : {m} FCFA y sont versés, et elle reste hors de ce total.", { m: fmt(Math.round(perf.unvaluedInvested)) })
-                : t("{n} lignes sont tenues sans cours publié : {m} FCFA y sont versés, et elles restent hors de ce total.", { n: perf.unvalued, m: fmt(Math.round(perf.unvaluedInvested)) })}
-            </p>
-          )}
           <div className={styles.faits}>
             <span>
               <small>{t("Versé à ce jour")}</small>

@@ -23,8 +23,8 @@ export async function TuilesDuHaut({ offres }: { offres: Offer[] }) {
   if (!aDuDesk && !aEcheances) return null;
   return (
     <div className="pile">
-      <SelectionDuDesk offres={offres} />
-      <CeQuiFermeBientot offres={offres} max={2} titre="Échéances" lien={{ href: "/echeances", mot: "Toutes les échéances" }} />
+      <SelectionDuDesk offres={offres} sobre />
+      <CeQuiFermeBientot offres={offres} max={2} titre="Échéances" lien={{ href: "/echeances", mot: "Toutes les échéances" }} sobre />
     </div>
   );
 }

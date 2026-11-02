@@ -98,3 +98,32 @@
     min-width: 100%;
   }
 }
+
+/* L'ALLURE « SOBRE » DE L'ACCUEIL : les lignes se groupent en UNE carte, sans
+   trait, chacune précédée de son rond. Le jeton « --tuile-fond » vient de la
+   page (data-tuiles="cartes") ; la ligne elle-même n'a plus de fond. */
+.sobre {
+  display: flex;
+  flex-direction: column;
+  gap: var(--titre-gap);
+}
+.groupe {
+  gap: 0;
+  background: var(--tuile-fond);
+  border-radius: var(--tuile-rayon);
+  padding: var(--s-3) 0;
+}
+.groupe .lien {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+.groupe .nom {
+  font-size: var(--accueil-nom, var(--t-4));
+}
+.groupe .nom small,
+.groupe .motif,
+.groupe .quand {
+  font-size: var(--accueil-meta, var(--t-2));
+}

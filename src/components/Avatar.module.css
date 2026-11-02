@@ -1,0 +1,15 @@
+/* Le rond d'une ligne : une taille, une teinte neutre, aucune bordure. */
+.rond {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--neutral-soft);
+  color: var(--ink-2);
+  font-size: var(--t-3);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}

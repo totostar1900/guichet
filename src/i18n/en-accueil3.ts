@@ -34,4 +34,7 @@ export const EN_ACCUEIL3: Record<string, string> = {
   "ouvre le {d}": "opens on {d}",
   "Proposer une adjudication": "Suggest an auction",
   "Tous vos services": "All your services",
+  "Gestes rapides": "Quick actions",
+  "Verser": "Deposit",
+  "Retrait": "Withdraw",
 };

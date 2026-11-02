@@ -100,3 +100,22 @@
 .autres:hover {
   color: var(--ink);
 }
+
+/* L'allure « sobre » de l'Accueil : une carte, des lignes sans fond ni trait. */
+.groupe {
+  gap: 0;
+  background: var(--tuile-fond);
+  border-radius: var(--tuile-rayon);
+  padding: var(--s-3) 0;
+}
+.groupe .ligne {
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+.groupe .quoi b {
+  font-size: var(--accueil-nom, var(--t-2));
+}
+.groupe .quoi small {
+  font-size: var(--accueil-meta, var(--t-1));
+}

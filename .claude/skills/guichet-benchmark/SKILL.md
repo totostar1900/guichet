@@ -20,11 +20,13 @@ Ce skill décrit les quatre premières étapes ; `guichet-maquette` mène la pla
 
 | Écran visé | Référence | Où |
 |---|---|---|
-| **Accueil** | une application de courtage moderne (Revolut Invest) : 23 captures versées | `docs/design-refs/concurrents/revolut/` — `NOTES.md` (index), `ANALYSE-accueil.md` (grille et écart), et `references/revolut-accueil.md` à côté de ce fichier (les neuf principes traduits en jetons de Guichet) |
+| **Accueil** | une application de courtage moderne (Revolut Invest) : 20 captures versées | `docs/design-refs/concurrents/revolut/` — `NOTES.md` (index), `ANALYSE-accueil.md` (grille et écart), et `references/revolut-accueil.md` à côté de ce fichier (les neuf principes traduits en jetons de Guichet) |
+| **Accueil, fiche d'une ligne, recherche** | une application de suivi de marchés (Yahoo Finance) : 4 captures décrites, fichiers à déposer | `docs/design-refs/concurrents/yahoo-finance/NOTES.md` et `references/yahoo-finance.md` : cartes à titre + lien d'issue, ligne de cours à pastille de variation, jauge de fourchette, « Modifier l'accueil », récents/populaires |
 | Fiche d'une ligne, épargne | mêmes captures, pas encore analysées en grille | idem, `NOTES.md` |
-| Toute référence **Wise** | **aucune image reçue** | à demander |
+| Fiche d'une ligne : graphique à deux couleurs, jauge de fourchette, alerte de prix | une application de suivi de marchés (**à confirmer**, probablement Google Finance) : 3 captures | `docs/design-refs/concurrents/autre-application-a-confirmer/` |
+| Toute référence **Wise** | **aucune image identifiée comme telle** | à demander |
 
-Pour l'Accueil, partir de `references/revolut-accueil.md` : les principes y sont déjà écrits, avec leurs réserves propres à Guichet.
+Pour l'Accueil, partir de `references/revolut-accueil.md`, puis confronter à `references/yahoo-finance.md` (un second modèle : les deux se complètent, aucun des deux ne se copie) : les principes y sont déjà écrits, avec leurs réserves propres à Guichet.
 
 ## 1. Ce qu'il faut du client (et comment le demander)
 

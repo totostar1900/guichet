@@ -3,12 +3,14 @@
  *
  *   "tuiles" : des cartes à fond et à bord, séparées de 12 px (l'allure d'origine) ;
  *   "douces" : les mêmes, en moins prononcé (fond et bord atténués, rayon réduit) ;
- *   "lignes" : plus de cartes, des lignes fines de séparation.
+ *   "lignes" : plus de cartes, des lignes fines de séparation ;
+ *   "cartes" : des cartes arrondies (16 px) sans bord, dont les lignes sont groupées dans UNE carte, sans trait.
+ *              Posé par page (« data-tuiles » sur sa racine) : l'Accueil seul, depuis le 2 novembre 2026.
  *
  * Changer ce mot change toutes les listes de tuiles. Les trois préréglages vivent
  * dans « globals.css » (« html[data-tuiles=…] ») ; la mise en page pose le mot sur « <html> ».
  */
-export type AspectDesTuiles = "tuiles" | "douces" | "lignes";
+export type AspectDesTuiles = "tuiles" | "douces" | "lignes" | "cartes";
 export const TUILES: AspectDesTuiles = "tuiles";
 
 /** Product and company identity : the one place to change names. */

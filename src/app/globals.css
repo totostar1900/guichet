@@ -1071,6 +1071,21 @@ html[data-tuiles="douces"] {
   --tuile-trait: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
   --tuile-rayon: var(--s-3);
 }
+/* « cartes » : posé sur la racine d'une PAGE (l'Accueil), jamais sur <html>.
+   Des tuiles arrondies sans bord ni trait ; les listes de lignes se groupent en
+   UNE carte (« .groupe »), leurs lignes sans fond. Réversible d'un mot. */
+[data-tuiles="cartes"] {
+  --tuile-fond: color-mix(in srgb, var(--surface) 70%, var(--paper));
+  --tuile-bord: 0;
+  --tuile-trait: 0;
+  --tuile-rayon: 16px;
+  --tuile-pad-x: var(--s-7);
+  --tuile-pad-y: var(--s-6);
+  /* L'échelle typographique de l'Accueil, locale : un titre de tuile à 15, un nom de ligne à 15, une mention à 12. */
+  --accueil-titre-tuile: var(--t-5);
+  --accueil-nom: var(--t-5);
+  --accueil-meta: var(--t-3);
+}
 html[data-tuiles="lignes"] {
   --tuile-fond: transparent;
   --tuile-bord: 0;

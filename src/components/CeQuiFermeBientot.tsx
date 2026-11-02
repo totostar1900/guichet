@@ -3,6 +3,8 @@ import { getT } from "@/i18n/server";
 import { repo } from "@/lib/data";
 import { echeancesProches, joursEnMots, type Urgence } from "@/lib/domain/echeances";
 import type { Offer } from "@/lib/domain/types";
+import { Avatar } from "@/components/Avatar";
+import { TitreDeBloc } from "@/components/TitreDeBloc";
 import styles from "./CeQuiFermeBientot.module.css";
 
 /**
@@ -44,7 +46,10 @@ export async function CeQuiFermeBientot({
   entete = true,
   titre = "Ce qui ferme bientôt",
   lien = { href: "/calendrier", mot: "Le calendrier" },
+  sobre = false,
 }: {
+  /** L'allure de l'Accueil : titre sobre à chevron, lignes en une carte, ronds. */
+  sobre?: boolean;
   /** Les offres déjà en main, pour ne pas les relire. */
   offres?: Offer[];
   max?: number;
@@ -69,8 +74,9 @@ export async function CeQuiFermeBientot({
   const reste = toutes.length - montrees.length;
 
   return (
-    <section className={styles.bloc} aria-labelledby="ferme-bientot">
-      {entete && (
+    <section className={`${styles.bloc} ${sobre ? styles.sobre : ""}`} aria-labelledby="ferme-bientot">
+      {entete && sobre && <TitreDeBloc id="ferme-bientot" titre={titre} href={lien.href} />}
+      {entete && !sobre && (
         <div className={styles.tete}>
           <h2 id="ferme-bientot" className={styles.titre}>
             {t(titre)}
@@ -80,12 +86,13 @@ export async function CeQuiFermeBientot({
           </Link>
         </div>
       )}
-      <ul className={styles.liste}>
+      <ul className={`${styles.liste} ${sobre ? styles.groupe : ""}`}>
         {montrees.map((e) => {
           const quand = joursEnMots(e.jours);
           return (
           <li key={e.offerId}>
             <Link className={styles.ligne} href={e.href}>
+              {sobre && offers.find((o) => o.id === e.offerId) && <Avatar offre={offers.find((o) => o.id === e.offerId)!} />}
               <span className={styles.quoi}>
                 <b>{t(e.titre)}</b>
                 <small>{t(e.quoi.key, e.quoi.params)}</small>
@@ -102,7 +109,7 @@ export async function CeQuiFermeBientot({
           );
         })}
       </ul>
-      {reste > 0 && (
+      {reste > 0 && !sobre && (
         <Link className={styles.autres} href={lien.href}>
           {t(reste > 1 ? "et {n} autres séances" : "et une autre séance", { n: String(reste) })}
         </Link>

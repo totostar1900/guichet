@@ -37,7 +37,7 @@
   gap: var(--s-4);
 }
 .haut b {
-  font-size: var(--t-3);
+  font-size: var(--accueil-titre-tuile, var(--t-3));
   font-weight: 700;
 }
 .chev,
@@ -66,7 +66,7 @@
   overflow-wrap: anywhere;
 }
 .tete small {
-  font-size: var(--t-1);
+  font-size: var(--accueil-meta, var(--t-1));
   font-weight: 700;
   color: var(--gold-ink);
 }
@@ -85,14 +85,14 @@
   min-width: 0;
 }
 .ligne b {
-  font-size: var(--t-2);
+  font-size: var(--accueil-nom, var(--t-2));
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .ligne small {
-  font-size: var(--t-1);
+  font-size: var(--accueil-meta, var(--t-1));
   color: var(--ink-3);
   font-variant-numeric: tabular-nums;
 }
