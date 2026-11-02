@@ -123,7 +123,7 @@ describe("l'Accueil « cartes »", () => {
   it("4A : le montant du sondage est une marche au-dessus, avec l'état en pastille", () => {
     const d = code("src/components/accueil/DossierAccueil.tsx");
     expect(d).toMatch(/<span className=\{styles\.montant\}>\s*<b>\{l\.montant\}<\/b>\s*<small>FCFA<\/small>\s*<PastilleEtat ton=\{l\.ton\}>/);
-    expect(lire("src/components/accueil/DossierAccueil.module.css")).toMatch(/\.ligne \.montant b \{\s*font-size: var\(--accueil-chiffre, var\(--t-2\)\);\s*font-weight: 700;/);
+    expect(lire("src/components/accueil/DossierAccueil.module.css")).toMatch(/\.montant b \{\s*font-size: var\(--accueil-chiffre, var\(--t-2\)\);\s*font-weight: 700;/);
   });
 
   it("5A : « Ce qui performe » ne déborde plus et l'indice lit les jetons de tuile", () => {

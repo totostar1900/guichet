@@ -115,6 +115,8 @@ Une page qui garde un écart écrit à la main figure dans `A_CONVERTIR` **et le
 - **Un défilement doux sur `html`** (`scroll-behavior: smooth`) : tout `scrollTo` de restitution doit être `behavior: "instant"`.
 - **Un composant créé dans le rendu** (`const Carte = () => …` dans la fonction) : la règle `react-hooks/static-components` le refuse ; le définir hors du rendu.
 
+**Le titre à plat.** Le titre d'un bloc de l'Accueil se pose À PLAT au-dessus de sa carte (`TitreDeBloc` : capitales de 12 px, « Tout voir » à droite, le titre est un lien), et la carte ne porte que des rangées. Un titre écrit dans la carte avec un chevron en rond est l'ancien format : à convertir, et à ne pas reproduire dans un bloc neuf. L'écart titre → carte est `--titre-gap`.
+
 **Un lien dans un lien.** Une tuile entière en `<a>` (« toute la tuile est le lien ») ne peut pas porter de rangées-liens : HTML interdit les ancres imbriquées et React le signale. Quand une tuile doit mener à la liste ET chaque rangée à sa fiche, la tuile est un conteneur ; le titre (avec « Tout voir ») est le lien vers la liste, et chaque rangée est son propre lien. À mesurer : la cible d'une rangée fait au moins 44 px de haut.
 
 ## 9. Avant de conclure

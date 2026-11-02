@@ -10,6 +10,7 @@ import type { StandingOrder } from "@/lib/domain/standing";
 import { summarize } from "@/lib/domain/summary";
 import type { Intent, LigneSondee, Offer, Watch } from "@/lib/domain/types";
 import { fmt, fmtDate } from "@/lib/format";
+import { BlocPlat } from "./BlocPlat";
 import styles from "./DossierAccueil.module.css";
 
 function Fleche() {
@@ -20,18 +21,11 @@ function Fleche() {
   );
 }
 
-/* Une rubrique en pleine largeur : toute la tuile est le lien, et son pied le dit. Défini hors du rendu — un composant créé pendant le rendu repartirait de zéro à chaque passage. */
-function Pleine({ href, nom, etiquette, sous, children, lien }: { href: string; nom: string; etiquette?: string; sous?: string; children: React.ReactNode; lien: string }) {
+/* Toute la rangée est un lien vers sa page. Défini hors du rendu — un composant créé pendant le rendu repartirait de zéro à chaque passage. */
+function Rang({ href, children }: { href: string; children: React.ReactNode }) {
   return (
-    <Link href={href} className={styles.pleine}>
-      <span className={styles.entete}>
-        <b>{nom}</b>
-        {etiquette && <span className={styles.etiquette}>{etiquette}</span>}
-        <Fleche />
-      </span>
-      {sous && <small className={styles.sous}>{sous}</small>}
+    <Link href={href} className={styles.rang}>
       {children}
-      <span className={styles.lien}>{lien} →</span>
     </Link>
   );
 }
@@ -123,6 +117,7 @@ export async function DossierAccueil({
       const q = e ? joursEnMots(e.jours) : undefined;
       const perf = o.kind === "FONDS" && o.fund?.perf1yPct != null ? `${o.fund.perf1yPct > 0 ? "+" : ""}${o.fund.perf1yPct.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} % ${t("sur 12 mois")}` : undefined;
       return {
+        href: `/offres/${o.id}`,
         nom: t(o.title),
         sous: t(s.subtitle),
         valeur: `${s.hero}${s.heroUnit ? ` ${t(s.heroUnit)}` : ""}`,
@@ -139,6 +134,7 @@ export async function DossierAccueil({
   const intentions = mine.slice(0, 3).map((i) => {
     const c = chiffresDeLIntention(i, offre(i.offerId)?.kind ?? "");
     return {
+      href: `/offres/${i.offerId}`,
       nom: t(titreDe(i.offerId)),
       detail: [t(INTENT_LABEL[i.type]), c.montant ? `${fmt(c.montant.valeur)} ${c.montant.unite}` : ""].filter(Boolean).join(" · "),
       etat: t(INTENT_STATE_LABEL[i.state]),
@@ -181,89 +177,84 @@ export async function DossierAccueil({
   if (rien && !gestes.length) return null;
 
   return (
-    <section className={styles.bloc} aria-label={t("Mon dossier")}>
-      <div className="pile-tuiles">
-        {presentes.has("intentions") && (
-          <Pleine href="/moi/ordres" nom={t("Mes intentions")} etiquette={aSigner ? t("à signer") : undefined} lien={t("Mes intentions")}>
-            {intentions.map((l, k) => (
-              <span key={k} className={styles.suivie}>
-                <span className={styles.qui}>
-                  <b>{l.nom}</b>
-                  <small>{l.detail}</small>
-                </span>
-                <span className={styles.quoi}>
-                  <PastilleEtat ton={l.ton}>{l.etat}</PastilleEtat>
-                  {l.servi && <small>{l.servi}</small>}
-                </span>
+    <section className="pile" aria-label={t("Mon dossier")}>
+      {presentes.has("intentions") && (
+        <BlocPlat id="dossier-intentions" titre="Mes intentions" href="/moi/ordres" etiquette={aSigner ? <PastilleEtat ton="attention">{t("à signer")}</PastilleEtat> : undefined}>
+          {intentions.map((l, k) => (
+            <Rang key={k} href={l.href}>
+              <span className={styles.qui}>
+                <b>{l.nom}</b>
+                <small>{l.detail}</small>
               </span>
-            ))}
-          </Pleine>
-        )}
-        {presentes.has("sondage") && (
-          <Pleine href="/sondage" nom={t("Mes intentions au sondage")} sous={t("Ce que vous prendriez, avant qu'une séance ouvre")} lien={t("Mes intentions au sondage")}>
-            {auSondage.map((l, k) => (
-              <span key={k} className={styles.ligne}>
+              <span className={styles.quoi}>
+                <PastilleEtat ton={l.ton}>{l.etat}</PastilleEtat>
+                {l.servi && <small>{l.servi}</small>}
+              </span>
+            </Rang>
+          ))}
+        </BlocPlat>
+      )}
+      {presentes.has("sondage") && (
+        <BlocPlat id="dossier-sondage" titre="Mes intentions au sondage" href="/sondage">
+          {auSondage.map((l, k) => (
+            <Rang key={k} href="/sondage">
+              <span className={styles.qui}>
                 <b>{l.texte}</b>
-                <span className={styles.montant}>
-                  <b>{l.montant}</b>
-                  <small>FCFA</small>
-                  <PastilleEtat ton={l.ton}>{l.etat}</PastilleEtat>
-                </span>
               </span>
-            ))}
-          </Pleine>
-        )}
-        {presentes.has("suivies") && suivies.length > 0 && (
-          <Pleine href="/moi/suivies" nom={t("Mes lignes suivies")} lien={t("Toutes mes lignes suivies")}>
-            {suivies.map((l, k) => (
-              <span key={k} className={styles.suivie}>
-                <span className={styles.qui}>
-                  <b>{l.nom}</b>
-                  <small>{l.sous}</small>
-                </span>
-                <span className={styles.quoi}>
-                  <b>{l.valeur}</b>
-                  {l.note && <small className={l.presse ? styles.presse : undefined}>{l.note}</small>}
-                </span>
+              <span className={styles.montant}>
+                <b>{l.montant}</b>
+                <small>FCFA</small>
+                <PastilleEtat ton={l.ton}>{l.etat}</PastilleEtat>
               </span>
-            ))}
-          </Pleine>
-        )}
-        {compactes.length > 0 && (
-          <div className={styles.grille}>
-            {compactes.map((c) => (
-              <Link key={c.cle} href={c.href} className={styles.compacte}>
-                <span className={styles.entete}>
-                  <b>{c.nom}</b>
-                  {c.etiquette && <span className={styles.etiquette}>{c.etiquette}</span>}
-                  <Fleche />
-                </span>
-                {c.resume && <small className={styles.sous}>{c.resume}</small>}
-              </Link>
-            ))}
-          </div>
-        )}
-        {gestes.length > 0 && (
-          <div className={styles.aussi}>
-            <b>{t("Vous pouvez aussi")}</b>
-            <ul>
-              {gestes.map((g) => (
-                <li key={g.href}>
-                  <Link href={g.href}>
-                    <span>
-                      <span className={styles.geste}>{g.nom}</span>
-                      <small>{g.dit}</small>
-                    </span>
-                    <svg className={styles.plus} viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+            </Rang>
+          ))}
+        </BlocPlat>
+      )}
+      {presentes.has("suivies") && suivies.length > 0 && (
+        <BlocPlat id="dossier-suivies" titre="Mes lignes suivies" href="/moi/suivies">
+          {suivies.map((l, k) => (
+            <Rang key={k} href={l.href}>
+              <span className={styles.qui}>
+                <b>{l.nom}</b>
+                <small>{l.sous}</small>
+              </span>
+              <span className={styles.quoi}>
+                <b>{l.valeur}</b>
+                {l.note && <small className={l.presse ? styles.presse : undefined}>{l.note}</small>}
+              </span>
+            </Rang>
+          ))}
+        </BlocPlat>
+      )}
+      {compactes.length > 0 && (
+        <BlocPlat id="dossier-espace" titre="Mon espace">
+          {compactes.map((c) => (
+            <Rang key={c.cle} href={c.href}>
+              <span className={styles.qui}>
+                <b>{c.nom}</b>
+                {c.resume && <small>{c.resume}</small>}
+              </span>
+              {c.etiquette && <PastilleEtat ton="attention">{c.etiquette}</PastilleEtat>}
+              <Fleche />
+            </Rang>
+          ))}
+        </BlocPlat>
+      )}
+      {gestes.length > 0 && (
+        <BlocPlat id="dossier-aussi" titre="Vous pouvez aussi">
+          {gestes.map((g) => (
+            <Rang key={g.href} href={g.href}>
+              <span className={styles.qui}>
+                <b>{g.nom}</b>
+                <small>{g.dit}</small>
+              </span>
+              <svg className={styles.plus} viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </Rang>
+          ))}
+        </BlocPlat>
+      )}
     </section>
   );
 }

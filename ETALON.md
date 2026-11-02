@@ -596,6 +596,16 @@ contenu ; sinon l'invitation à proposer une séance passe dans « Vous pouvez a
 fiche rend la liste de sa famille (`listeDeLaFiche`), trois lignes similaires et les
 lignes du même émetteur (`LignesSimilaires`).
 
+**Tous les titres de l'Accueil sont à plat (2 novembre 2026).** « Mes intentions »,
+« Mes intentions au sondage », « Mes lignes suivies », « Mon espace » et « Vous pouvez
+aussi » suivent le geste de « Titres » et « Fonds » : le titre au-dessus de la carte
+(`BlocPlat`), la carte ne portant que des rangées, chacune un lien. Les deux petites tuiles
+(opérations, documents) et leurs semblables sont fusionnées dans « Mon espace », une carte
+de rangées-liens. **La ligne d'un titre** met le cours en tête (en or, `--accueil-cours`),
+la pastille de variation collée dessous, puis les revenus abrégés — « Div. » et « Rdt »,
+ou « Coupon » et « Rdt » pour une obligation — en bleu d'information
+(`--accueil-revenu`) ; l'unité « FCFA » s'écrit en très petit.
+
 **Ajouter une famille de tuiles :** copier ces cinq déclarations dans sa règle,
 ajouter la famille à `FAMILLES_DE_TUILES` dans `espace-page.test.ts`, et
 regarder la page dans les trois aspects (`data-tuiles` se change dans les

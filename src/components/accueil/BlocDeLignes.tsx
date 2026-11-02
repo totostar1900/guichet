@@ -9,6 +9,7 @@ import type { Offer } from "@/lib/domain/types";
 import { summarize } from "@/lib/domain/summary";
 import { joursEnMots } from "@/lib/domain/echeances";
 import { fmtDate } from "@/lib/format";
+import { coursEtRevenus } from "@/lib/domain/ligne-titre";
 import { joursRestants } from "@/lib/domain/accueil";
 import { variationAffichee, variationsDesActions } from "@/lib/market/variations";
 import styles from "./BlocDeLignes.module.css";
@@ -29,6 +30,9 @@ export interface LigneDeBloc {
   meta?: string;
   valeur: string;
   libelle?: string;
+  /** Une ligne de titre : le cours en tête (le chiffre le plus visible), et sous lui ses revenus abrégés. */
+  cours?: { texte: string; unite?: string };
+  revenus?: { etiquette: string; texte: string; unite?: string }[];
   variation?: { v: number; titre: string };
   etat?: { texte: string; ton: TonDEtat };
 }
@@ -46,6 +50,7 @@ export async function lignesDeBloc(offres: Offer[], mode: "cote" | "fonds" | "ad
       return { ...base, etat: { texte: t(q.key, q.params), ton: j <= 7 ? "attention" : "neutre" } };
     }
     if (mode === "prevues") return { ...base, etat: { texte: t("ouvre le {d}", { d: fmtDate(o.opensAt.slice(0, 10), false) }), ton: "neutre" } };
+    if (mode === "cote") return { ...base, ...coursEtRevenus(o, s.hero, t), variation: variationAffichee(o, actions, t) };
     return { ...base, variation: variationAffichee(o, actions, t) };
   });
 }
@@ -72,10 +77,23 @@ export async function BlocDeLignes({ id, titre, href, tout, lignes }: { id: stri
                 {l.meta && <small>{l.meta}</small>}
               </span>
               <span className={styles.quoi}>
-                <b>{l.valeur}</b>
-                {l.libelle && <small>{l.libelle}</small>}
+                {l.cours ? (
+                  <b className={styles.cours}>
+                    {l.cours.texte}
+                    {l.cours.unite && <i className={styles.unite}>{l.cours.unite}</i>}
+                  </b>
+                ) : (
+                  <b>{l.valeur}</b>
+                )}
+                {!l.cours && l.libelle && <small>{l.libelle}</small>}
                 {l.variation && <PastilleVariation v={l.variation.v} titre={l.variation.titre} />}
                 {l.etat && <PastilleEtat ton={l.etat.ton}>{l.etat.texte}</PastilleEtat>}
+                {l.revenus?.map((r) => (
+                  <small key={r.etiquette} className={styles.revenu}>
+                    {r.etiquette} <b>{r.texte}</b>
+                    {r.unite && <i className={styles.unite}>{r.unite}</i>}
+                  </small>
+                ))}
               </span>
             </Link>
           </li>

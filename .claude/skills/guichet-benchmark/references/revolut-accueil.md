@@ -37,6 +37,8 @@ Sources : `trade-listes-obligations.jpeg` (listes de catégories), `fiche-obliga
 | 12 | **La rangée dit l'essentiel sans ouvrir** : nom jusqu'à 3 lignes, méta (coupon · échéance), valeur à droite avec son libellé dessous (« Yield ») | nom jusqu'à 2 lignes, méta (échéance, émetteur), valeur en gras + libellé (« rendement », « sur 12 mois »), pastille de variation | un chiffre sans libellé ni date n'est pas lisible ; pas de troncature à une ligne |
 | 13 | **La fiche garde ses sorties** : « See all » par section (stats, notes, attributs), et « similaires » en bas de la fiche d'une action | un pied de fiche « Lignes similaires » (même émetteur, même famille) et un lien « Voir toutes les … » vers la liste, filtrée comme on est arrivé | les similaires ne recommandent rien : même famille ou même émetteur, jamais « pour vous » |
 
+**Palette des chiffres (2 novembre 2026, choix P2).** Le cours en or (`--accueil-cours`), les revenus (dividende, rendement, coupon) en bleu d'information (`--accueil-revenu`), la variation en vert ou rouge ; l'unité en très petit. Deux jetons de page : un mot à changer pour tout recolorer. À mesurer en deux thèmes (contraste d'au moins 4,5:1 sur la carte).
+
 Mesures Revolut : rangée ≈ 80 px de haut à 360 px de large (165 px sur la capture de 720), nom 15 px, méta 12 px, valeur à droite en gras ; carte de rayon 16 px sans trait entre les rangées.
 
 ## Ce qu'on ne reprend pas (raisons écrites)

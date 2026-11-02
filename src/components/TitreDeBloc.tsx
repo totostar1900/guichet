@@ -8,13 +8,26 @@ import styles from "./TitreDeBloc.module.css";
  * « Tout voir » à droite dit la porte pour qui ne devine pas qu'un titre se touche. Un seul lien vers la même
  * page, deux manières de le lire : la cible du doigt est la ligne entière.
  */
-export async function TitreDeBloc({ id, titre, href, tout = "Tout voir" }: { id?: string; titre: string; href: string; tout?: string }) {
+export async function TitreDeBloc({ id, titre, href, tout = "Tout voir", etiquette }: { id?: string; titre: string; href?: string; tout?: string; /** Une pastille après le titre (« à signer »). */ etiquette?: React.ReactNode }) {
   const t = await getT();
+  const titreNu = (
+    <h2 id={id} className={styles.titre}>
+      {t(titre)}
+    </h2>
+  );
+  /* SANS ADRESSE, le titre ne mène nulle part : un bloc qui n'a pas de liste complète (« Mon espace », « Vous pouvez aussi ») ne dit pas « Tout voir ». */
+  if (!href) {
+    return (
+      <div className={styles.tete}>
+        {titreNu}
+        {etiquette}
+      </div>
+    );
+  }
   return (
     <Link className={styles.tete} href={href}>
-      <h2 id={id} className={styles.titre}>
-        {t(titre)}
-      </h2>
+      {titreNu}
+      {etiquette}
       <span className={styles.tout}>{t(tout)}</span>
     </Link>
   );

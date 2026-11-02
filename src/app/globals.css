@@ -1095,6 +1095,9 @@ html[data-tuiles="douces"] {
   --accueil-nom: var(--t-5);
   --accueil-meta: var(--t-3);
   --accueil-chiffre: var(--t-6);
+  /* P2 (2 novembre 2026) : le COURS en or, le REVENU (dividende, rendement, coupon) en bleu d'information, la variation en vert ou rouge. */
+  --accueil-cours: var(--gold-ink);
+  --accueil-revenu: var(--info);
   /* 3C : un chevron ou un « + » est un GESTE, dans un petit rond (28 px) à l'encre d'accent. */
   --accueil-geste-taille: 28px;
   --accueil-geste-pad: 6px;

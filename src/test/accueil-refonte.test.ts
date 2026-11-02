@@ -121,19 +121,21 @@ describe("les composants de l'Accueil", () => {
   });
   it("montrent d'office les rubriques qui ont de l'information, sans rien à déplier", () => {
     expect(dossier, "le dossier est redevenu un composant client : ses tuiles se déplieraient").not.toMatch(/"use client"|aria-expanded|useState/);
-    /* LES TROIS EN PLEINE LARGEUR, DANS CET ORDRE : intentions, sondage, lignes suivies — puis la grille des petites. */
-    const i = dossier.indexOf('href="/moi/ordres"');
-    const sond = dossier.indexOf('href="/sondage" nom=', i);
-    const suiv = dossier.indexOf('href="/moi/suivies"', sond);
-    const grille = dossier.indexOf("className={styles.grille}", suiv);
-    expect(i, "les intentions ne sont plus la première rubrique pleine largeur").toBeGreaterThan(0);
+    /* LES TROIS BLOCS DE CONTENU, DANS CET ORDRE : intentions, sondage, lignes suivies — puis « Mon espace », puis « Vous pouvez aussi ». Chacun est un bloc à plat (titre au-dessus de la carte). */
+    const i = dossier.indexOf('titre="Mes intentions" href="/moi/ordres"');
+    const sond = dossier.indexOf('titre="Mes intentions au sondage" href="/sondage"', i);
+    const suiv = dossier.indexOf('titre="Mes lignes suivies" href="/moi/suivies"', sond);
+    const espace = dossier.indexOf('titre="Mon espace"', suiv);
+    const aussi = dossier.indexOf('titre="Vous pouvez aussi"', espace);
+    expect(i, "les intentions ne sont plus le premier bloc").toBeGreaterThan(0);
     expect(sond, "le sondage ne vient plus après les intentions").toBeGreaterThan(i);
     expect(suiv, "les lignes suivies ne viennent plus après le sondage").toBeGreaterThan(sond);
-    expect(grille, "les petites tuiles ne viennent plus après les trois pleines").toBeGreaterThan(suiv);
+    expect(espace, "« Mon espace » ne vient plus après les trois blocs de contenu").toBeGreaterThan(suiv);
+    expect(aussi, "« Vous pouvez aussi » ne vient plus en dernier").toBeGreaterThan(espace);
   });
   it("laisse « Vous pouvez aussi » ouvert, sans chevron ni bouton qui le replie", () => {
     expect(dossier, "« Vous pouvez aussi » est redevenu repliable").not.toMatch(/<details\b/);
-    const pied = dossier.slice(dossier.indexOf("className={styles.aussi}"));
+    const pied = dossier.slice(dossier.indexOf('titre="Vous pouvez aussi"'));
     expect(pied, "le pied n'est plus rendu").not.toBe("");
     expect(pied, "le pied porte un bouton : il se replierait").not.toMatch(/<button\b/);
   });

@@ -3,6 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { SEED_OFFERS } from "@/data/seed";
 import { gestesProposables, lignesSimilaires, listeDeLaFiche, type FaitsPourGestes } from "@/lib/domain/accueil";
+import { coursEtRevenus } from "@/lib/domain/ligne-titre";
+import { fmt } from "@/lib/format";
 import type { Offer } from "@/lib/domain/types";
 
 const ROOT = path.join(__dirname, "../..");
@@ -96,5 +98,52 @@ describe("les rangées et la fiche (lecture du code)", () => {
     const sim = code("src/app/offres/[id]/LignesSimilaires.tsx");
     expect(sim, "le lien vers toutes les lignes de l'émetteur a disparu").toMatch(/`\/recherche\?q=\$\{encodeURIComponent\(o\.issuer\)\}`/);
     expect(sim, "le titre ne mène plus à la liste de la famille").toMatch(/href=\{liste\.href\}/);
+  });
+});
+
+describe("la ligne d'un titre : le cours en tête, les revenus dessous (2 novembre 2026)", () => {
+  const t = (k: string) => k;
+  const action = { instrument: "action", lastPrice: 228085, dividendPerShare: 4835 } as unknown as Offer;
+  const obligation = { instrument: "obligation", lastPrice: 100, couponRate: 6.25 } as unknown as Offer;
+
+  it("une action : le cours en FCFA, puis le dividende et le rendement, abrégés", () => {
+    const r = coursEtRevenus(action, "2,12 %", t);
+    expect(r.cours).toEqual({ texte: fmt(228085), unite: "FCFA" });
+    expect(r.revenus?.map((x) => x.etiquette)).toEqual(["Div.", "Rdt"]);
+    expect(r.revenus?.[0].unite).toBe("FCFA");
+  });
+
+  it("une obligation : le cours en % du nominal, puis le coupon et le rendement", () => {
+    const r = coursEtRevenus(obligation, "6,25 %", t);
+    expect(r.cours).toEqual({ texte: "100 %", unite: "du nominal" });
+    expect(r.revenus?.map((x) => x.etiquette)).toEqual(["Coupon", "Rdt"]);
+  });
+
+  it("sans cours connu, la ligne garde son ancienne forme ; sans rendement, pas de ligne de rendement", () => {
+    expect(coursEtRevenus({ instrument: "action" } as unknown as Offer, "2 %", t)).toEqual({});
+    expect(coursEtRevenus(action, "—", t).revenus?.map((x) => x.etiquette)).toEqual(["Div."]);
+  });
+
+  it("le cours est en or et le revenu en bleu, par deux jetons de page ; l'unité est en petit", () => {
+    const css = lire("src/app/globals.css");
+    expect(css, "le cours n'est plus en or").toMatch(/--accueil-cours:\s*var\(--gold-ink\)/);
+    expect(css, "le revenu n'est plus en bleu d'information").toMatch(/--accueil-revenu:\s*var\(--info\)/);
+    const b = lire("src/components/accueil/BlocDeLignes.module.css");
+    expect(b).toMatch(/\.cours \{\s*color: var\(--accueil-cours, inherit\);/);
+    expect(b).toMatch(/\.unite \{[^}]*font-size: var\(--t-1\);/);
+  });
+});
+
+describe("les titres à plat sur tout l'Accueil", () => {
+  it("le dossier n'a plus de titre dans une carte : chaque rubrique est un BlocPlat", () => {
+    const d = code("src/components/accueil/DossierAccueil.tsx");
+    for (const titre of ["Mes intentions", "Mes intentions au sondage", "Mes lignes suivies", "Mon espace", "Vous pouvez aussi"]) expect(d, `« ${titre} » n'est plus un bloc à plat`).toContain(`titre="${titre}"`);
+    expect(d, "une rubrique est redevenue une tuile entière en lien").not.toMatch(/styles\.pleine|styles\.compacte|styles\.entete/);
+    expect(code("src/components/accueil/BlocPlat.tsx"), "la carte d'un bloc à plat est devenue un lien").not.toContain("<Link");
+  });
+
+  it("« Mon espace » liste les rubriques présentes, chacune un lien", () => {
+    const d = code("src/components/accueil/DossierAccueil.tsx");
+    expect(d).toMatch(/<BlocPlat id="dossier-espace" titre="Mon espace">\s*\{compactes\.map\(\(c\) => \(\s*<Rang key=\{c\.cle\} href=\{c\.href\}>/);
   });
 });

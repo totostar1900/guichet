@@ -72,3 +72,20 @@
   font-size: var(--accueil-meta, var(--t-2));
   color: var(--ink-3);
 }
+
+/* LE COURS EN OR, LES REVENUS EN BLEU (P2) : deux jetons de page, un mot à changer pour les recolorer. L'unité, très petite, n'est pas ce qu'on lit. */
+.cours {
+  color: var(--accueil-cours, inherit);
+}
+.revenu b {
+  color: var(--accueil-revenu, inherit);
+  font-size: var(--accueil-meta, var(--t-2));
+  font-weight: 700;
+}
+.unite {
+  font-style: normal;
+  font-weight: 500;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  margin-left: 3px;
+}
