@@ -26,7 +26,8 @@ On ne discute jamais de mémoire. Avant d'écrire un mot de recommandation :
 2. **Chercher les décisions antérieures** qui contredisent la demande : `grep` les commentaires « décidé le », les tests de `src/test/` qui nomment l'écran. Une règle déjà écrite se discute avec le client, elle ne se contourne pas en silence. Exemples déjà rencontrés : « aucun compte dans un intitulé » (29 octobre), « une seule réponse sur la provenance des chiffres dans l'aide » (`provenance.test.ts`).
 3. **Voir l'écran réel** : lancer l'application, ouvrir l'écran à 390 px avec la session de démonstration, capturer, et **mesurer** (positions, écarts, hauteurs). Un défaut décrit en mots (« la boîte blanche », « la page bouge ») se confirme par une mesure avant d'être cause d'une option.
 4. **Lister ce que les données de démonstration ne montrent pas** (pas de bulletin, pas de séance prévue, pas de ligne suivie…) : ces états se simulent ou se déclarent « non vus », jamais « vérifiés ».
-5. **Regarder les images de référence** fournies : `docs/design-refs/<sujet>/` ou jointes à la demande. Une image dit « l'allure voulue » ; elle ne dit pas « la portée ».
+5. **Regarder les images de référence** fournies : `docs/design-refs/` ou jointes à la demande. Une image dit « l'allure voulue » ; elle ne dit pas « la portée ».
+6. **Si la demande vise le niveau de finition de la concurrence** (« moderne comme », « plus dynamique », « moins plat », images d'autres applications) : appliquer le skill **`guichet-benchmark`** avant la discussion. Il transforme les images en principes mesurés et en écart chiffré, qui nourrissent la planche. On ne compare qu'avec une capture de Guichet **dans le même état et la même largeur**.
 
 ## 2. La discussion, dans le chat
 
@@ -54,6 +55,7 @@ Une page HTML, publiée avec l'outil Artifact (charger d'abord le skill `artifac
 - **Les mesures réelles** dans une ligne `mesure` (ambre, police mono) : « mesuré à 390 px : la barre saute de 261 px ».
 - **Une capture de l'écran actuel** en image (données `data:`) quand un défaut est décrit : le client voit ce que je vois.
 - **Un tableau de synthèse** en fin de page : point, recommandation, décision attendue.
+- **Quand une référence est en jeu** : une section « avant / après » (capture de Guichet à gauche, état visé à droite, mesures dessous), et une section « ce qu'on ne reprend pas » avec la raison. Jamais le nom, le logo, le texte ou l'illustration d'un concurrent dans la planche.
 
 Contraintes techniques de la planche : un seul fichier, thème sombre à jetons, aucune dépendance externe hors polices Google, lisible à 400 px de large, pas de défilement horizontal. Vérifier le rendu par une capture avant de publier (texte qui déborde, nombres coupés).
 
@@ -92,6 +94,7 @@ Court, factuel, dans cet ordre : ce qui est fait ; ce que j'ai **interprété** 
 - **La portée oubliée** : « retirer le volet Émetteur » pour un fonds, ou pour toutes les lignes ?
 - **Le même mot, deux pages** : « la page compte » = ouverture de compte ou « Mon compte » ?
 - **Un chapitre vide** qui laisse 88 px d'écart après le retrait d'une phrase.
+- **Copier au lieu d'adapter** : une planche qui reproduit l'écran d'un concurrent est une planche à refaire ; on reprend un principe, on garde la voix, les jetons et les mentions de Guichet.
 - **Un défaut qui n'existe que dans un thème** (la boîte blanche du thème clair) : reproduire dans le thème où il apparaît.
 - **Une donnée de démonstration absente** : la tuile n'a pas été vue, elle n'est pas « vérifiée ».
 - **Un script qui réécrit un fichier avec lui-même** : ne jamais ouvrir un fichier en écriture avant d'avoir fini de le lire.

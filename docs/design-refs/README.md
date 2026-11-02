@@ -3,14 +3,25 @@
 Déposer ici les images qui montrent **l'allure voulue** : une capture d'une autre application,
 une maquette, la capture de l'écran actuel avec une annotation. Claude les lit directement.
 
-## Convention
+## Organisation
 
 ```
-docs/design-refs/<sujet>/
-  NOTES.md          une ligne par image : ce qu'elle montre, ce qu'on en retient, ce qu'on n'en retient pas
-  01-courte-description.png
-  02-courte-description.png
+docs/design-refs/
+  concurrents/<nom>/          les écrans d'une autre application, un dossier par acteur
+    NOTES.md                  une ligne par image : ce qu'elle montre, ce qu'on en retient, ce qu'on n'en retient pas
+    ANALYSE-<ecran>.md        l'analyse chiffrée (copie de _modele/ANALYSE.md)
+    01-courte-description.png
+  guichet-actuel/             nos propres écrans, capturés dans le même état et la même largeur, datés
+    fiche-fonds-chiffres-2026-11-02.png
+  <sujet>/                    une idée précise (une tuile, un graphique) quand elle ne vient pas d'un acteur
+  _modele/ANALYSE.md          la grille d'analyse à copier
 ```
+
+Le skill **`guichet-benchmark`** lit ce dossier : il passe des images à une grille de principes mesurés, compare avec `guichet-actuel/`, chiffre l'écart et le propose en planche. Le skill `guichet-maquette` mène ensuite la discussion et le code.
+
+## Ce qu'on peut reprendre, et ce qu'on ne reprend pas
+
+On s'inspire de **principes** (hiérarchie, densité, rythme, états, gestes). On ne reprend **ni** le nom ou le logo, **ni** le texte, **ni** l'illustration ou l'icône, **ni** la composition à l'identique. Les captures de concurrents restent dans ce dépôt comme **notes de travail** ; elles ne sont jamais publiées ni intégrées à l'application.
 
 Exemple de `NOTES.md` :
 
