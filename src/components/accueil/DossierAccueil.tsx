@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { PastilleEtat } from "@/components/PastilleEtat";
-import { chiffresDeLIntention, gestesProposables, rubriquesPresentes, TON_DE_LETAT, type CleDeRubrique, type FaitsDuDossier, type GesteProposable } from "@/lib/domain/accueil";
+import { chiffresDeLIntention, gestesProposables, rubriquesPresentes, seancesOuvertes, seancesPrevues, TON_DE_LETAT, type CleDeRubrique, type FaitsDuDossier, type GesteProposable } from "@/lib/domain/accueil";
 import { echeancesProches, joursEnMots } from "@/lib/domain/echeances";
 import type { AvisGarde } from "@/lib/domain/garde";
 import { attendUneSignature, INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
@@ -175,7 +175,7 @@ export async function DossierAccueil({
     simulateur: { href: "/info/simulateur", nom: t("Essayer le simulateur"), dit: t("Calculer un rendement avant d'ordonner") },
     comparer: { href: "/comparer", nom: t("Comparer deux lignes"), dit: t("Côte à côte, avec l'indice en repère") },
   };
-  const gestes = gestesProposables({ ...faits, conventionOk, dossierAPoursuivre, profilRenseigne, appareilAjoute, couponsSansReinvestissement }).map((g) => GESTES[g]);
+  const gestes = gestesProposables({ ...faits, conventionOk, dossierAPoursuivre, profilRenseigne, appareilAjoute, couponsSansReinvestissement, sansAdjudication: seancesOuvertes(offers, now).length === 0 && seancesPrevues(offers, now, 1).length === 0 }).map((g) => GESTES[g]);
 
   const rien = !presentes.size && !suivies.length;
   if (rien && !gestes.length) return null;

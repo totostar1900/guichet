@@ -94,6 +94,8 @@ Une mesure de tailles et d'écarts ne dit pas si un écran **se lit**. Le 2 nove
 
 **Règle des chiffres.** Une ligne qui montre un cours ou une VL montre aussi sa **variation**, en pastille (signe écrit, couleur en renfort). Sans variation connue de la maison, **pas de pastille** : jamais « 0 % » inventé. La donnée vient du domaine (`variationDe`, `src/lib/domain/accueil.ts`) ; si elle manque pour une famille de lignes, on le dit au client au lieu de la fabriquer.
 
+**Règle de la rangée généreuse et cliquable (2 novembre 2026).** Sur une liste d'entrée (Accueil, tuile « Investir »), une rangée a au moins **64 px** de haut, son nom peut tenir **sur deux lignes** (pas de troncature à une ligne), sa valeur est à droite **avec son libellé dessous**. **Toute la rangée est un lien vers la fiche de la ligne ; le titre du bloc et « Tout voir » sont un lien vers la liste complète** ; une tuile entière qui est un lien ne peut pas contenir de rangées-liens (liens imbriqués) : le conteneur n'est pas un `<a>`. Une fiche rend la liste : « Voir toutes les … » et des lignes similaires (même famille ou même émetteur, jamais « pour vous »).
+
 **Règle de la couleur de sens (2 novembre 2026).** Tout **état** (réglée, confirmée, ouverte, à signer) se lit en **pastille teintée** ; tout **geste** (chevron, « + », lien) en **encre d'accent**. Jamais en encre pleine ni en gris tertiaire. Le vert dit « fait », l'ambre « à vous de jouer », le neutre « en cours ou sans suite » ; **le rouge est réservé à ce qui est faux ou refusé**.
 
 **Un seul traitement de fond par écran.** Compter les fonds distincts des blocs (`audit-accueil.cjs`) : s'il y en a plus d'un, c'est une faute (le 2 novembre 2026 : trois sur l'Accueil, et un « creux » entre les blocs).

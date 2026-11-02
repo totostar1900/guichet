@@ -1,0 +1,74 @@
+/* Un bloc de lignes : le titre (lien vers la liste), puis UNE carte dont chaque rangée est un lien vers sa fiche.
+   Titre → carte : --titre-gap. Aucune marge entre deux blocs d'une page : l'écart vient de la pile qui les porte. */
+.bloc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--titre-gap);
+  min-width: 0;
+}
+.carte {
+  list-style: none;
+  margin: 0;
+  padding: var(--s-3) 0;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  overflow: hidden;
+}
+/* La rangée entière est la cible : au moins 64 px, bien au-delà des 44 px d'un doigt. */
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  min-height: 64px;
+  padding: var(--s-5) var(--tuile-pad-x);
+  color: inherit;
+  text-decoration: none;
+}
+.ligne:hover,
+.ligne:focus-visible {
+  background: var(--neutral-soft);
+}
+.qui {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+/* Le nom peut tenir sur DEUX lignes : tronqué à une seule, « OTA Cameroun 6,25 %… » ne disait plus de quelle ligne il s'agissait. */
+.qui b {
+  font-size: var(--accueil-nom, var(--t-4));
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.qui small {
+  font-size: var(--accueil-meta, var(--t-2));
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Le chiffre de tête, son libellé dessous, puis la pastille : à droite, alignés, tabulaires. */
+.quoi {
+  flex: none;
+  max-width: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s-1);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.quoi b {
+  font-size: var(--accueil-chiffre, var(--t-5));
+  font-weight: 700;
+}
+.quoi small {
+  font-size: var(--accueil-meta, var(--t-2));
+  color: var(--ink-3);
+}

@@ -115,6 +115,8 @@ Une page qui garde un écart écrit à la main figure dans `A_CONVERTIR` **et le
 - **Un défilement doux sur `html`** (`scroll-behavior: smooth`) : tout `scrollTo` de restitution doit être `behavior: "instant"`.
 - **Un composant créé dans le rendu** (`const Carte = () => …` dans la fonction) : la règle `react-hooks/static-components` le refuse ; le définir hors du rendu.
 
+**Un lien dans un lien.** Une tuile entière en `<a>` (« toute la tuile est le lien ») ne peut pas porter de rangées-liens : HTML interdit les ancres imbriquées et React le signale. Quand une tuile doit mener à la liste ET chaque rangée à sa fiche, la tuile est un conteneur ; le titre (avec « Tout voir ») est le lien vers la liste, et chaque rangée est son propre lien. À mesurer : la cible d'une rangée fait au moins 44 px de haut.
+
 ## 9. Avant de conclure
 
 `npm run typecheck && npm run lint && npm test`. Une clause nouvelle se **vérifie par mutation** (la casser dans le code, constater qu'elle tombe). Mettre à jour `ETALON.md` et `CLAUDE.md` si un jeton ou une classe naît.

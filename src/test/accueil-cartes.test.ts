@@ -76,7 +76,7 @@ describe("l'Accueil « cartes »", () => {
     }
     expect(code("src/components/PastilleVariation.tsx")).toMatch(/if \(v === undefined\) return null;/);
     expect(code("src/components/SelectionDuDesk.tsx")).toMatch(/<PastilleVariation v=\{variationAffichee\(o, actions, t\)\?\.v\}/);
-    expect(code("src/components/accueil/GrilleInvestir.tsx")).toMatch(/variation: variationAffichee\(o, actions, t\)/);
+    expect(code("src/components/accueil/BlocDeLignes.tsx")).toMatch(/variation: variationAffichee\(o, actions, t\)/);
   });
 
   it("la variation d'une action va du dernier échange au précédent, séances muettes ignorées", () => {
@@ -114,7 +114,7 @@ describe("l'Accueil « cartes »", () => {
     const css = lire("src/app/globals.css");
     expect(css).toMatch(/--accueil-geste-taille:\s*28px/);
     expect(css).toMatch(/--accueil-geste-encre:\s*var\(--gold-ink\)/);
-    for (const f of ["src/components/accueil/DossierAccueil.module.css", "src/components/accueil/GrilleInvestir.module.css"]) {
+    for (const f of ["src/components/accueil/DossierAccueil.module.css"]) {
       expect(lire(f), `${f} : le chevron ne lit plus les jetons de geste`).toMatch(/stroke:\s*var\(--accueil-geste-encre, var\(--ink-3\)\)/);
       expect(lire(f), `${f} : le chevron n'est plus un rond`).toMatch(/border-radius:\s*999px;\s*background:\s*var\(--accueil-geste-fond, transparent\)/);
     }

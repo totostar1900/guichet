@@ -586,6 +586,16 @@ pleine. Les rapports minimaux sont dans le skill `guichet-benchmark` (§ 4 bis) 
 pastille de variation ne se pose que sur une ligne dont la maison connaît la
 variation (`variationDe`, `variationDesDerniersEchanges`).
 
+**Les blocs de lignes de l'Accueil (2 novembre 2026).** « Titres », « Fonds » et
+« Adjudications » sont des blocs pleine largeur (`BlocDeLignes`), pas des demi-tuiles :
+un titre qui est un lien vers la liste (avec « Tout voir »), puis UNE carte dont **chaque
+rangée est un lien vers sa fiche** (64 px au moins, nom sur deux lignes, chiffre de tête
+avec son libellé dessous, pastille de variation ou d'état). Le conteneur n'est jamais un
+lien (pas de liens imbriqués). Le bloc des adjudications n'existe que s'il y a du
+contenu ; sinon l'invitation à proposer une séance passe dans « Vous pouvez aussi ». La
+fiche rend la liste de sa famille (`listeDeLaFiche`), trois lignes similaires et les
+lignes du même émetteur (`LignesSimilaires`).
+
 **Ajouter une famille de tuiles :** copier ces cinq déclarations dans sa règle,
 ajouter la famille à `FAMILLES_DE_TUILES` dans `espace-page.test.ts`, et
 regarder la page dans les trois aspects (`data-tuiles` se change dans les

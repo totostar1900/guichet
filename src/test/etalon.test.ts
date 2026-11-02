@@ -208,7 +208,7 @@ describe("les deux arbitrages", () => {
     expect(lire("src/app/globals.css"), "le jeton titre → contenu n'est plus 12 px").toMatch(/--titre-gap:\s*var\(--s-6\)/);
     for (const [f, motif] of [
       ["src/app/Console.module.css", /\.tete \{[^}]*margin-bottom:\s*var\(--titre-gap\)/],
-      ["src/components/accueil/GrilleInvestir.module.css", /\.bloc \{[^}]*gap:\s*var\(--titre-gap\)/],
+      ["src/components/accueil/BlocDeLignes.module.css", /\.bloc \{[^}]*gap:\s*var\(--titre-gap\)/],
       ["src/components/accueil/DossierAccueil.module.css", /\.bloc \{[^}]*gap:\s*var\(--titre-gap\)/],
       ["src/components/CeQuiFermeBientot.module.css", /\.bloc \{[^}]*gap:\s*var\(--titre-gap\)/],
       ["src/components/CeQuiVousAttend.module.css", /margin:\s*0 0 var\(--titre-gap\)/],

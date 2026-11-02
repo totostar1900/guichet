@@ -2,6 +2,7 @@ import type { IntentState, IntentType, Offer } from "./types";
 import { displayStatus } from "./status";
 import { tradedSession, type Quote } from "./market";
 import { fondsListes, lignesDeLaCote, seancesAnnoncees } from "./listes";
+import { lieuDe, type Lieu } from "./sections";
 
 /**
  * CE QUE LA PAGE D'ARRIVÉE CHOISIT DANS LES OFFRES, ÉCRIT UNE FOIS.
@@ -118,6 +119,8 @@ export interface FaitsPourGestes extends FaitsDuDossier {
   appareilAjoute: boolean;
   /** Des coupons sont attendus, et aucun réinvestissement n'est en place. */
   couponsSansReinvestissement: boolean;
+  /** Aucune séance n'est ouverte ni annoncée : le bloc « Adjudications » n'a rien à montrer, et l'invitation à en proposer une passe ici. */
+  sansAdjudication?: boolean;
 }
 
 export const NB_GESTES = 5;
@@ -131,7 +134,7 @@ export function gestesProposables(f: FaitsPourGestes): GesteProposable[] {
   if (!f.appareilAjoute) out.push("appareil");
   if (!f.profilRenseigne) out.push("profil");
   if (f.lignesSuivies === 0) out.push("suivre");
-  if (f.attentesSondees === 0) out.push("sondage");
+  if (f.attentesSondees === 0 || f.sansAdjudication) out.push("sondage");
   out.push("simulateur", "comparer");
   return out.slice(0, NB_GESTES);
 }
@@ -228,3 +231,39 @@ export const TON_DE_LETAT: Record<IntentState, TonDEtat> = {
   reglee: "bon",
   annulee: "neutre",
 };
+
+/**
+ * LA LISTE D'OÙ UNE FICHE VIENT, QUAND ON NE SAIT PAS D'OÙ ON VIENT (2 novembre 2026).
+ *
+ * « Retour à la liste » mémorise la liste exacte (filtres, tri, place) quand on arrive
+ * d'une liste. Arrivé de l'Accueil, ou d'un lien partagé, il n'y a rien à mémoriser, et
+ * le repli était « Toutes les offres » : la racine, qui est l'Accueil lui-même. Le repli
+ * est désormais la liste de la famille de la ligne : les titres, les fonds ou les
+ * adjudications.
+ */
+export function listeDeLaFiche(o: Pick<Offer, "kind" | "instrument" | "typeKey">): { href: string; label: string } {
+  const lieu: Lieu = lieuDe(o);
+  if (lieu === "fonds") return { href: "/fonds", label: "Tous les fonds" };
+  if (lieu === "adjudications") return { href: "/calendrier", label: "Toutes les adjudications" };
+  return { href: "/titres", label: "Tous les titres" };
+}
+
+/**
+ * LES LIGNES SIMILAIRES D'UNE FICHE : MÊME FAMILLE, DE PRÉFÉRENCE MÊME ÉMETTEUR, PUIS MÊME PAYS.
+ *
+ * Elles ne recommandent rien : aucun classement « pour vous », aucune performance. Une
+ * ligne est similaire parce qu'elle est de la même famille et que le même émetteur la
+ * porte, et rien d'autre. Elle n'est jamais la ligne elle-même, ni une ligne qu'on ne
+ * peut plus prendre (retirée, close).
+ */
+export function lignesSimilaires(o: Offer, offers: Offer[], now = new Date(), n = 3): Offer[] {
+  const lieu = lieuDe(o);
+  const candidates = lieu === "fonds" ? fondsOuverts(offers) : lieu === "adjudications" ? seancesAnnoncees(offers).filter((x) => displayStatus(x, now) !== "closed") : lignesActives(offers, now);
+  const score = (x: Offer) => (x.issuer === o.issuer ? 2 : 0) + (x.country === o.country ? 1 : 0);
+  return candidates
+    .filter((x) => x.id !== o.id && !x.hidden && lieuDe(x) === lieu)
+    .map((x, i) => ({ x, i, s: score(x) }))
+    .sort((a, b) => b.s - a.s || a.i - b.i)
+    .slice(0, n)
+    .map(({ x }) => x);
+}

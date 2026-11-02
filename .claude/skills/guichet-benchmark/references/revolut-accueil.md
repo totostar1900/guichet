@@ -26,6 +26,19 @@
 | 8 | Chiffres tabulaires, décimales plus petites | `font-variant-numeric: tabular-nums` (déjà là), classe de décimales | les montants en FCFA n'ont pas de décimales ; vaut pour les taux |
 | 9 | Pied réglementaire discret | un paragraphe en pied d'Accueil | la maison tranche le texte ; ne pas cacher un avertissement obligatoire |
 
+## Les quatre principes de navigation (2 novembre 2026)
+
+Sources : `trade-listes-obligations.jpeg` (listes de catégories), `fiche-obligation-capture-longue.jpeg` et `fiche-capture-longue-1/2.jpeg` (fiches). Ils répondent à : comment une liste d'entrée se relie à sa fiche, et la fiche à la liste complète.
+
+| # | Principe | Dans Guichet | Réserve |
+|---|---|---|---|
+| 10 | **Une carte par catégorie** (« Government bonds », « Corporate bonds »), trois rangées généreuses | un bloc par famille (Titres, Fonds) pleine largeur, pas une demi-tuile à deux lignes | la maison n'a que 2 familles cotées : ne pas inventer de catégories |
+| 11 | **La rangée entière est un lien vers la fiche ; le titre du bloc et « See all » mènent à la liste** | rangée = lien `/offres/{id}` ; titre et « Tout voir » = lien vers `/titres`, `/fonds` | **jamais de lien dans un lien** : la tuile devient un conteneur, le titre un lien, chaque rangée un lien |
+| 12 | **La rangée dit l'essentiel sans ouvrir** : nom jusqu'à 3 lignes, méta (coupon · échéance), valeur à droite avec son libellé dessous (« Yield ») | nom jusqu'à 2 lignes, méta (échéance, émetteur), valeur en gras + libellé (« rendement », « sur 12 mois »), pastille de variation | un chiffre sans libellé ni date n'est pas lisible ; pas de troncature à une ligne |
+| 13 | **La fiche garde ses sorties** : « See all » par section (stats, notes, attributs), et « similaires » en bas de la fiche d'une action | un pied de fiche « Lignes similaires » (même émetteur, même famille) et un lien « Voir toutes les … » vers la liste, filtrée comme on est arrivé | les similaires ne recommandent rien : même famille ou même émetteur, jamais « pour vous » |
+
+Mesures Revolut : rangée ≈ 80 px de haut à 360 px de large (165 px sur la capture de 720), nom 15 px, méta 12 px, valeur à droite en gras ; carte de rayon 16 px sans trait entre les rangées.
+
 ## Ce qu'on ne reprend pas (raisons écrites)
 
 Bandeau promotionnel, « plus fortes hausses / baisses » et « plus échangés » (poussent à acheter ce qui bouge), CFD / conseil automatisé / marchés privés (non proposés), personnalisation des blocs (contredit l'ordre des blocs, demande de la persistance), image d'ambiance derrière le chiffre (décorative, lourde sur un réseau lent).

@@ -21,6 +21,8 @@ import { getLang, getT } from "@/i18n/server";
 import { intentHref, loadIntentContext } from "./intent-context";
 import { COMPANY, PRODUCT } from "@/lib/config";
 import { ApercuPartage } from "./ApercuPartage";
+import { LignesSimilaires } from "./LignesSimilaires";
+import { listeDeLaFiche } from "@/lib/domain/accueil";
 import { identite } from "./identite";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
@@ -70,7 +72,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
               un déplacement dans la liste d'où l'on vient. L'en-tête, lui,
               passe à l'étalon — et la marge écrite en style en ligne s'en va
               avec, puisque l'écart sous un en-tête vit dans sa feuille. */}
-          <ListNav id={o.id} fallbackHref="/" fallbackLabel="Toutes les offres" />
+          <ListNav id={o.id} fallbackHref={listeDeLaFiche(o).href} fallbackLabel={listeDeLaFiche(o).label} />
           <EnTete titre={t(o.title)} phrase={t("Cette ligne a été retirée de Guichet. Pour toute question, contactez le desk.")} />
         </div>
       </div>
@@ -102,10 +104,12 @@ export default async function OfferPage({ params, searchParams }: Props) {
         {session && <Vu geste="vu.fiche" objet={o.id} detail={o.title} />}
         <SwipePager id={o.id} hintKey="fiche" hints={{ next: "Glissez vers la gauche : la ligne suivante", prev: "Glissez vers la droite : la ligne précédente" }}>
         <FichePanes className={styles.main} sans={voletsMasques(o)}>
-          <ListNav id={o.id} fallbackHref={o.kind === "FONDS" ? "/fonds" : "/"} fallbackLabel={o.kind === "FONDS" ? "Tous les fonds" : "Toutes les offres"} />
+          <ListNav id={o.id} fallbackHref={listeDeLaFiche(o).href} fallbackLabel={listeDeLaFiche(o).label} />
           <FicheHead o={o} s={summary} st={st} horizon={{ level: mark?.level, text: mark?.[lang], hasProfile: Boolean(fin) }} watching={watching} signedIn={Boolean(session)} />
 
           <FicheReading o={o} data={fiche} />
+          {/* LES SORTIES D'UNE FICHE (2 novembre 2026) : des lignes similaires, la liste complète, les lignes du même émetteur. Hors des volets, comme la note des risques. */}
+          <LignesSimilaires o={o} />
           {/* LES RISQUES, EN PIED DE PAGE (1er novembre 2026) : hors des volets, donc sous le client quel que soit l'onglet où il lit un rendement, juste avant la barre d'action. Elle vivait dans l'Essentiel, où l'on ne regarde pas les chiffres. */}
           <p className={styles.note}>
             {t("Les risques d'une ligne se lisent dans le Guide :")} <Link href="/info/les-quatre-risques">{t("Les quatre risques, et ce qu'on peut faire")}</Link>.

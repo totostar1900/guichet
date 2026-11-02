@@ -1,135 +1,46 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
-import { joursEnMots } from "@/lib/domain/echeances";
-import { PastilleVariation } from "@/components/PastilleVariation";
-import { fondsOuverts, joursRestants, lignesActives, seancesOuvertes, seancesPrevues } from "@/lib/domain/accueil";
-import { variationAffichee, variationsDesActions } from "@/lib/market/variations";
-import { summarize } from "@/lib/domain/summary";
+import { fondsOuverts, lignesActives, seancesOuvertes, seancesPrevues } from "@/lib/domain/accueil";
 import type { Offer } from "@/lib/domain/types";
 import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
-import { fmtDate } from "@/lib/format";
+import { BlocDeLignes, lignesDeBloc, NB_LIGNES_PAR_BLOC } from "./BlocDeLignes";
 import styles from "./GrilleInvestir.module.css";
 
 /**
- * « INVESTIR » : TROIS ENTRÉES QUI MONTRENT CE QU'ELLES CONTIENNENT, ET LA PORTE DU RESTE.
+ * « INVESTIR » : TROIS BLOCS PLEINE LARGEUR, DONT CHAQUE LIGNE MÈNE À SA FICHE (2 novembre 2026).
  *
- * Titres, Fonds et Adjudications étaient trois bandes neutres — un nom, une
- * phrase fixe, un chevron — qui disaient la même chose les jours où tout bougeait
- * et ceux où rien ne bougeait. Chacune porte désormais UNE LIGNE EN TÊTE et deux
- * lignes de choix, tirées des offres que la page a déjà : aucune lecture de plus.
+ * Titres, Fonds et Adjudications étaient des demi-tuiles de 170 px : une ligne de tête,
+ * deux lignes, des noms coupés sur une seule ligne et un chiffre sans libellé, sous un
+ * lien unique vers la liste. La référence donne à chaque famille sa propre carte, des
+ * rangées hautes, et fait de chaque rangée un lien : le titre du bloc et « Tout voir »
+ * mènent à la liste complète, la rangée à la fiche.
  *
- * AUCUN NOMBRE DE LIGNES. L'arbitrage du 29 octobre 2026 vaut ici comme
- * ailleurs : un intitulé qui annonce son inventaire parle de la maison, pas du
- * lecteur. Ce que la tuile dit, c'est ce qui presse (une clôture), ou ce qui
- * vient de se passer (la dernière séance).
+ * L'ADJUDICATION N'A SA PLACE QUE S'IL Y A DU CONTENU. Les séances ouvertes d'abord ;
+ * à défaut, les séances annoncées ; à défaut des deux, le bloc disparaît (pas de carte
+ * qui dirait « rien ») et l'invitation à proposer une adjudication passe dans « Vous
+ * pouvez aussi » (voir `gestesProposables`, fait « sansAdjudication »).
  *
- * LA QUATRIÈME PLACE EST DYNAMIQUE, ET C'EST LE CLIENT QUI LA REMPLIT.
- *  — des séances sont annoncées mais pas encore ouvertes : la place porte deux
- *    tuiles, « Prochaines adjudications » et, plus petite, l'invitation à en
- *    proposer une soi-même ;
- *  — il n'y en a pas : l'invitation prend toute la place. Une tuile « prochaines
- *    séances » qui dirait « rien » apprendrait à l'œil à sauter cet endroit.
- * Proposer, c'est le sondage : la ligne que le client pousse lui-même, avant
- * qu'il y ait quoi que ce soit à prendre.
- *
- * LE PIED MÈNE AU CATALOGUE ENTIER. « Vos services » n'est plus une tuile du bas
- * de page : c'est un bouton sous les entrées, au niveau d'« Investir ».
+ * LE PIED MÈNE AU CATALOGUE ENTIER, sous les blocs.
  */
 export async function GrilleInvestir({ offres }: { offres: Offer[] }) {
   const t = await getT();
   const now = new Date();
-  const ouvertes = seancesOuvertes(offres, now);
-  const cote = lignesActives(offres, now);
-  const fonds = fondsOuverts(offres);
-  const prevues = seancesPrevues(offres, now, 3);
-  const actions = await variationsDesActions(cote.slice(0, 3));
   const page = (cle: string) => INSTRUMENTS_PAGES.find((p) => p.key === cle)!;
-
-  type Ligne = { id: string; nom: string; valeur: string; variation?: { v: number; titre: string } };
-  const ligne = (o: Offer): Ligne => {
-    const s = summarize(o, now);
-    return { id: o.id, nom: t(o.title), valeur: s.hero, variation: variationAffichee(o, actions, t) };
-  };
-  const tuile = (cle: "titres" | "fonds" | "calendrier", liste: Offer[], tete: (o: Offer) => { texte: string; ton?: "urgent" | "calme" }) => {
-    const p = page(cle);
-    const premiere = liste[0];
-    const lead = premiere ? tete(premiere) : undefined;
-    return (
-      <Link key={cle} href={p.href} className={styles.tuile}>
-        <span className={styles.haut}>
-          <b>{t(p.label)}</b>
-          <svg className={styles.chev} viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M9 6l6 6-6 6" />
-          </svg>
-        </span>
-        {premiere && lead ? (
-          <>
-            <span className={`${styles.tete} ${lead.ton === "urgent" ? styles.urgent : ""}`}>
-              <b>{t(premiere.title)}</b>
-              <small>{lead.texte}</small>
-              <PastilleVariation v={variationAffichee(premiere, actions, t)?.v} titre={variationAffichee(premiere, actions, t)?.titre} />
-            </span>
-            {liste.slice(1, 3).map((o) => {
-              const l = ligne(o);
-              return (
-                <span key={l.id} className={styles.ligne}>
-                  <b>{l.nom}</b>
-                  <small>{l.valeur}</small>
-                  <PastilleVariation v={l.variation?.v} titre={l.variation?.titre} />
-                </span>
-              );
-            })}
-          </>
-        ) : (
-          <small className={styles.hint}>{t(p.hint)}</small>
-        )}
-      </Link>
-    );
-  };
-
+  const ouvertes = seancesOuvertes(offres, now).slice(0, NB_LIGNES_PAR_BLOC);
+  const prevues = ouvertes.length ? [] : seancesPrevues(offres, now, NB_LIGNES_PAR_BLOC);
+  const [titres, fonds, adjudications] = await Promise.all([
+    lignesDeBloc(lignesActives(offres, now).slice(0, NB_LIGNES_PAR_BLOC), "cote", now),
+    lignesDeBloc(fondsOuverts(offres).slice(0, NB_LIGNES_PAR_BLOC), "fonds", now),
+    lignesDeBloc(ouvertes.length ? ouvertes : prevues, ouvertes.length ? "adjudications" : "prevues", now),
+  ]);
   return (
-    <section className={`${styles.bloc}`} aria-label={t("Investir")}>
-      <span className="eyebrow">{t("Investir")}</span>
-      <div className="pile-tuiles">
-        <div className={styles.grille}>
-          {tuile("titres", cote, (o) => ({ texte: o.lastTradedOn ? t("dernière séance le {d}", { d: fmtDate(o.lastTradedOn, false) }) : t(summarize(o, now).status) }))}
-          {tuile("fonds", fonds, (o) => ({ texte: t(summarize(o, now).status) }))}
-          {tuile("calendrier", ouvertes, (o) => {
-            const q = joursEnMots(joursRestants(o.deadlineAt, now));
-            return { texte: t(q.key, q.params), ton: joursRestants(o.deadlineAt, now) <= 7 ? "urgent" : "calme" };
-          })}
-          <div className={styles.place}>
-            {prevues.length > 0 && (
-              <Link href="/calendrier" className={`${styles.tuile} ${styles.prevues}`}>
-                <span className={styles.haut}>
-                  <b>{t("Prochaines adjudications")}</b>
-                  <svg className={styles.chev} viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M9 6l6 6-6 6" />
-                  </svg>
-                </span>
-                {prevues.map((o) => (
-                  <span key={o.id} className={styles.ligne}>
-                    <b>{t(o.title)}</b>
-                    <small>{t("ouvre le {d}", { d: fmtDate(o.opensAt.slice(0, 10), false) })}</small>
-                  </span>
-                ))}
-              </Link>
-            )}
-            <Link href="/sondage" className={`${styles.tuile} ${styles.proposer}`}>
-              <span className={styles.haut}>
-                <b>{t("Proposer une adjudication")}</b>
-                <svg className={styles.plus} viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-              </span>
-              <small className={styles.hint}>{t("Ce que vous prendriez, avant qu'une séance ouvre")}</small>
-            </Link>
-          </div>
-        </div>
-        <Link href="/trader" className={styles.tous}>
-          {t("Tous vos services")} →
-        </Link>
-      </div>
+    <section className="pile" aria-label={t("Investir")}>
+      <BlocDeLignes id="investir-titres" titre={page("titres").label} href={page("titres").href} lignes={titres} />
+      <BlocDeLignes id="investir-fonds" titre={page("fonds").label} href={page("fonds").href} lignes={fonds} />
+      <BlocDeLignes id="investir-adjudications" titre={page("calendrier").label} href={page("calendrier").href} lignes={adjudications} />
+      <Link href="/trader" className={styles.tous}>
+        {t("Tous vos services")} →
+      </Link>
     </section>
   );
 }

@@ -104,12 +104,13 @@ describe("les composants de l'Accueil", () => {
   const dossier = code("src/components/accueil/DossierAccueil.tsx");
   const accueil = code("src/app/Console.tsx");
 
-  it("posent la proposition du client toujours, et les prochaines séances seulement s'il y en a", () => {
-    expect(grille, "les prochaines adjudications ne dépendent plus de leur existence").toMatch(/prevues\.length > 0 && \(/);
-    expect(grille, "la proposition du client mène au sondage").toMatch(/href="\/sondage" className=\{`\$\{styles\.tuile\} \$\{styles\.proposer\}`\}/);
-    /* NON-VACUITÉ : la proposition n'est PAS sous la même condition que les prochaines séances, sinon elle disparaîtrait avec elles. */
-    const apres = grille.slice(grille.indexOf("prevues.length > 0 && ("));
-    expect(apres.indexOf('href="/sondage"'), "la proposition n'est plus rendue après la tuile conditionnelle").toBeGreaterThan(apres.indexOf("</Link>\n              )}"));
+  it("ne posent le bloc des adjudications que s'il y a du contenu : les séances ouvertes, sinon les annoncées, sinon rien", () => {
+    expect(grille, "les séances annoncées ne se prennent plus qu'à défaut d'ouvertes").toMatch(/const prevues = ouvertes\.length \? \[\] : seancesPrevues\(offres, now, NB_LIGNES_PAR_BLOC\);/);
+    expect(grille, "le bloc des adjudications ne lit plus ouvertes puis prévues").toMatch(/lignesDeBloc\(ouvertes\.length \? ouvertes : prevues,/);
+    expect(code("src/components/accueil/BlocDeLignes.tsx"), "un bloc sans ligne doit se taire, pas dire « rien »").toMatch(/if \(!lignes\.length\) return null;/);
+    /* L'INVITATION À PROPOSER PASSE DANS « VOUS POUVEZ AUSSI » quand le bloc se tait : plus de tuile « Proposer » dans Investir. */
+    expect(grille, "la tuile « Proposer une adjudication » est revenue dans Investir").not.toContain('href="/sondage"');
+    expect(dossier, "le dossier ne dit plus au domaine qu'aucune adjudication n'est affichée").toMatch(/sansAdjudication: seancesOuvertes\(offers, now\)\.length === 0 && seancesPrevues\(offers, now, 1\)\.length === 0/);
   });
   it("mènent à tout le catalogue par un bouton sous les entrées, et plus par une tuile du bas", () => {
     expect(grille, "le bouton « Tous vos services » a disparu").toMatch(/<Link href="\/trader" className=\{styles\.tous\}>/);
