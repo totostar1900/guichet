@@ -165,7 +165,7 @@ export async function DossierAccueil({
     versement: { href: "/moi/epargne", nom: t("Programmer un versement"), dit: t("Une somme chaque mois, sans y penser") },
     reinvestir: { href: "/moi/reinvestir", nom: t("Réinvestir mes coupons"), dit: t("Ne laissez pas dormir ce qui vous revient") },
     appareil: { href: "/moi/securite", nom: t("Ajouter ce téléphone"), dit: t("Ouvrir d'un doigt la prochaine fois") },
-    profil: { href: "/moi/profil", nom: t("Compléter mon profil d'investisseur"), dit: t("Dix-sept questions, quelques minutes") },
+    profil: { href: "/moi/profil", nom: t("Compléter mon profil d'investisseur"), dit: "" },
     suivre: { href: "/titres", nom: t("Suivre une ligne"), dit: t("Une alerte à la clôture ou au prix") },
     sondage: { href: "/sondage", nom: t("Proposer une adjudication"), dit: t("Dites ce que vous prendriez avant qu'une séance ouvre") },
     simulateur: { href: "/info/simulateur", nom: t("Essayer le simulateur"), dit: t("Calculer un rendement avant d'ordonner") },
@@ -202,8 +202,10 @@ export async function DossierAccueil({
                 <b>{l.texte}</b>
               </span>
               <span className={styles.montant}>
-                <b>{l.montant}</b>
-                <small>FCFA</small>
+                <b>
+                  {l.montant}
+                  <i className={styles.unite}>FCFA</i>
+                </b>
                 <PastilleEtat ton={l.ton}>{l.etat}</PastilleEtat>
               </span>
             </Rang>
@@ -246,7 +248,7 @@ export async function DossierAccueil({
             <Rang key={g.href} href={g.href}>
               <span className={styles.qui}>
                 <b>{g.nom}</b>
-                <small>{g.dit}</small>
+                {g.dit && <small>{g.dit}</small>}
               </span>
               <svg className={styles.plus} viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 5v14M5 12h14" />

@@ -35,6 +35,7 @@ export const EN_ACCUEIL3: Record<string, string> = {
   "Proposer une adjudication": "Suggest an auction",
   "Tous vos services": "All your services",
   "Gestes rapides": "Quick actions",
+  "Indice de prix : les dividendes ne sont pas comptés dans l'indice": "Price index: dividends are not counted in the index",
   "Div.": "Div.",
   "Rdt": "Yld",
   "Mon espace": "My space",

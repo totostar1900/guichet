@@ -120,9 +120,10 @@ describe("l'Accueil « cartes »", () => {
     }
   });
 
-  it("4A : le montant du sondage est une marche au-dessus, avec l'état en pastille", () => {
+  it("4A : le montant du sondage est une marche au-dessus, « FCFA » sur la MÊME ligne en petit, l'état en pastille dessous", () => {
     const d = code("src/components/accueil/DossierAccueil.tsx");
-    expect(d).toMatch(/<span className=\{styles\.montant\}>\s*<b>\{l\.montant\}<\/b>\s*<small>FCFA<\/small>\s*<PastilleEtat ton=\{l\.ton\}>/);
+    expect(d, "« FCFA » n'est plus à la suite du nombre, sur la même ligne").toMatch(/<span className=\{styles\.montant\}>\s*<b>\s*\{l\.montant\}\s*<i className=\{styles\.unite\}>FCFA<\/i>\s*<\/b>\s*<PastilleEtat ton=\{l\.ton\}>/);
+    expect(lire("src/components/accueil/DossierAccueil.module.css"), "l'unité n'est plus très petite").toMatch(/\.unite \{[^}]*font-size: var\(--t-1\);/);
     expect(lire("src/components/accueil/DossierAccueil.module.css")).toMatch(/\.montant b \{\s*font-size: var\(--accueil-chiffre, var\(--t-2\)\);\s*font-weight: 700;/);
   });
 

@@ -147,3 +147,12 @@ describe("les titres à plat sur tout l'Accueil", () => {
     expect(d).toMatch(/<BlocPlat id="dossier-espace" titre="Mon espace">\s*\{compactes\.map\(\(c\) => \(\s*<Rang key=\{c\.cle\} href=\{c\.href\}>/);
   });
 });
+
+describe("retouches du 2 novembre 2026 sur l'Accueil", () => {
+  it("la phrase « Dix-sept questions » n'est plus sous « Compléter mon profil » : la ligne ne porte que son nom", () => {
+    const d = code("src/components/accueil/DossierAccueil.tsx");
+    expect(d).not.toContain("Dix-sept questions");
+    expect(d, "le geste « profil » a retrouvé une phrase").toMatch(/profil: \{ href: "\/moi\/profil", nom: t\("Compléter mon profil d'investisseur"\), dit: "" \}/);
+    expect(d, "une ligne sans phrase ne doit pas rendre un <small> vide").toMatch(/\{g\.dit && <small>\{g\.dit\}<\/small>\}/);
+  });
+});

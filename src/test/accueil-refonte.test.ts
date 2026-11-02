@@ -143,11 +143,14 @@ describe("les composants de l'Accueil", () => {
     expect(dossier, "les lignes suivies ne montrent plus que trois lignes").toMatch(/\.slice\(0, 3\);\n/);
     expect(dossier, "ce qui presse (la clôture) ne se lit plus sur une ligne suivie").toMatch(/q \? t\("ferme \{q\}"/);
   });
-  it("posent la carte de l'indice comme un lien entier, sans titre ni chevron", () => {
+  it("posent l'indice avec son titre à plat et sa carte entière en lien, sans le nom ni la pastille dans la carte", () => {
     const carte = code("src/components/IndexPulse.tsx");
-    expect(accueil, "la carte n'est plus un lien sur la page d'arrivée").toMatch(/<IndexPulse compact pied=\{\{ href: "\/marche", mot: t\("La place"\) \}\} \/>/);
+    expect(accueil, "l'indice n'a plus son titre à plat sur la page d'arrivée").toMatch(/<IndexPulse compact aPlat=\{\{ titre: "BVMAC Index", href: "\/marche", mot: "La place" \}\} \/>/);
+    expect(carte, "le titre à plat n'est plus rendu au-dessus de la carte").toMatch(/\{aPlat && <TitreDeBloc id="indice-bvmac" titre=\{aPlat\.titre\}/);
     expect(carte, "la carte n'enveloppe plus sa surface dans le lien").toMatch(/<Link href=\{pied\.href\} className=\{styles\.carteLien\}>/);
-    expect(carte, "deux ancres imbriquées : les liens internes doivent se taire quand la carte est un lien").toMatch(/liens && !pied && \(/);
+    expect(carte, "deux ancres imbriquées : les liens internes doivent se taire quand la carte est un lien").toMatch(/liens && !pied && !aPlat && \(/);
+    expect(carte, "la carte répète encore le nom de l'indice").toMatch(/\{!aPlat && <small>BVMAC All Share<\/small>\}/);
+    expect(carte, "la pastille « indice de prix » est revenue dans la carte de l'Accueil").toMatch(/\{!aPlat && \(\s*<span className=\{styles\.tag\}/);
   });
 });
 

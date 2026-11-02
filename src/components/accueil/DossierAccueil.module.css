@@ -88,3 +88,11 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+/* « FCFA » à la suite du nombre, très petit, sur la MÊME ligne : comme le cours des titres. */
+.unite {
+  font-style: normal;
+  font-weight: 500;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  margin-left: 3px;
+}

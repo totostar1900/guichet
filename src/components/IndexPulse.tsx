@@ -3,6 +3,7 @@ import { repo } from "@/lib/data";
 import { fmtDate } from "@/lib/format";
 import { indexSeries, indexStats } from "@/lib/market/index";
 import { getT } from "@/i18n/server";
+import { TitreDeBloc } from "@/components/TitreDeBloc";
 import styles from "./IndexPulse.module.css";
 
 const signed = (v?: number, d = 1) => (v == null ? "—" : `${v > 0 ? "+" : ""}${v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d })} %`);
@@ -30,8 +31,15 @@ export async function IndexPulse({
   entete,
   liens = true,
   pied,
+  aPlat,
 }: {
   compact?: boolean;
+  /**
+   * L'ALLURE DE L'ACCUEIL (2 novembre 2026) : le titre À PLAT au-dessus de la carte, comme « Titres » et
+   * « Fonds » ; la carte ne répète ni le nom de l'indice (« BVMAC All Share », c'est le titre) ni la
+   * pastille « indice de prix » (la mention passe en infobulle de la carte). Toute la carte reste un lien.
+   */
+  aPlat?: { titre: string; href: string; mot: string };
   /** Le titre de section et son lien, quand la page en veut un : voir la note. */
   entete?: { /** Absent : la carte n'a que son lien, posé au bord droit (« /marche », depuis le 1er novembre 2026). */ titre?: string; lien: { href: string; mot: string } };
   /**
@@ -101,10 +109,11 @@ export async function IndexPulse({
           <Link href={entete.lien.href}>{entete.lien.mot} →</Link>
         </div>
       )}
-      <Enveloppe pied={pied}>
-      <section className={`${styles.pulse} ${compact ? styles.compact : ""}`} aria-label="BVMAC All Share Index" data-coach="indice">
+      {aPlat && <TitreDeBloc id="indice-bvmac" titre={aPlat.titre} href={aPlat.href} tout={aPlat.mot} />}
+      <Enveloppe pied={pied ?? (aPlat ? { href: aPlat.href, mot: "" } : undefined)}>
+      <section className={`${styles.pulse} ${compact ? styles.compact : ""}`} aria-label="BVMAC All Share Index" data-coach="indice" title={aPlat ? t("Indice de prix : les dividendes ne sont pas comptés dans l'indice") : undefined}>
       <div className={styles.level}>
-        <small>BVMAC All Share</small>
+        {!aPlat && <small>BVMAC All Share</small>}
         <b>{stats.last.value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
         <span className={styles.date}>{fmtDate(stats.last.date)}</span>
       </div>
@@ -129,7 +138,7 @@ export async function IndexPulse({
           </span>
           {plat && bouge && <span className={styles.calme}>{t("dernier mouvement le {d}, {v}", { d: fmtDate(bouge.date, false), v: signed(bouge.variationPct, 2) })}</span>}
           {plat && !bouge && stats.points.length > 1 && <span className={styles.calme}>{t("aucun mouvement depuis la première séance lue, le {d}", { d: fmtDate(stats.points[0].date) })}</span>}
-          {liens && !pied && (
+          {liens && !pied && !aPlat && (
             <>
               <Link href="/indice" className={styles.how}>
                 {t("voir l'indice")} →
@@ -141,9 +150,11 @@ export async function IndexPulse({
           )}
         </div>
       </div>
-      <span className={styles.tag} title={t("Les dividendes ne sont pas comptés dans l'indice")}>
-        {t("indice de prix")}
-      </span>
+      {!aPlat && (
+        <span className={styles.tag} title={t("Les dividendes ne sont pas comptés dans l'indice")}>
+          {t("indice de prix")}
+        </span>
+      )}
       {pied && <span className={styles.pied}>{pied.mot} →</span>}
       </section>
       </Enveloppe>

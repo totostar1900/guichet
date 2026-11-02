@@ -28,7 +28,6 @@ export const EN_FICHE: Record<string, string> = {
   "Ajouter ce téléphone": "Add this phone",
   "Ouvrir d'un doigt la prochaine fois": "Open with one finger next time",
   "Compléter mon profil d'investisseur": "Complete my investor profile",
-  "Dix-sept questions, quelques minutes": "Seventeen questions, a few minutes",
   "Une alerte à la clôture ou au prix": "An alert at closing or at a price",
   "Dites ce que vous prendriez avant qu'une séance ouvre": "Say what you would take before a session opens",
   "Calculer un rendement avant d'ordonner": "Work out a yield before ordering",

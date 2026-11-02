@@ -77,9 +77,9 @@ describe("les sections qui s'effacent", () => {
   /* L'indice porte son titre lui-même, et c'est la forme que prend la règle
      quand la section n'a rien d'autre à montrer. */
   it("fait porter son titre à l'indice, là où la page en demande un", () => {
-    /* SUR LA PAGE D'ARRIVÉE, depuis le 1er novembre 2026, la carte n'a plus de titre : elle est un lien (« pied »), et « Le marché » est parti. */
+    /* SUR LA PAGE D'ARRIVÉE, depuis le 2 novembre 2026, le titre « BVMAC Index » est À PLAT au-dessus de la carte (« aPlat »), comme « Titres » et « Fonds » ; « Le marché » est parti. */
     expect(code("src/app/Console.tsx"), "la page a repris l'écriture du titre du marché").not.toMatch(/titre: t\("Le marché"\)/);
-    expect(code("src/app/Console.tsx"), "la carte de l'indice n'est plus un lien sur la page d'arrivée").toMatch(/<IndexPulse[^/>]*pied=\{/);
+    expect(code("src/app/Console.tsx"), "la carte de l'indice n'est plus un lien sur la page d'arrivée").toMatch(/<IndexPulse[^/>]*aPlat=\{\{ titre: "BVMAC Index", href: "\/marche"/);
     expect(code("src/components/IndexPulse.tsx"), "l'indice ne rend plus l'en-tête qu'on lui confie").toMatch(/\{entete\.titre && <h2>\{entete\.titre\}<\/h2>\}/);
   });
 });

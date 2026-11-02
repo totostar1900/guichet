@@ -526,7 +526,7 @@ export async function Console({ session }: { session: Session }) {
           qui lit deux mille bulletins, les derniers cours, les sociétés, puis
           deux mille cotations PAR LIGNE cotée : une dizaine de requêtes, sur
           la page la plus visitée de la maison. L'indice en coûte une. */}
-      <IndexPulse compact pied={{ href: "/marche", mot: t("La place") }} />
+      <IndexPulse compact aPlat={{ titre: "BVMAC Index", href: "/marche", mot: "La place" }} />
 
       {/* 8. CE QUI PERFORME, juste après l'indice : le niveau de la place,
           puis les lignes qui l'ont fait bouger. Sa lecture lui est propre et
