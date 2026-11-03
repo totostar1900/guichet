@@ -63,16 +63,28 @@
    sur la même ligne de base, et ne pousse rien — ce qu'on retire doit rester
    sous les yeux pendant qu'on décide. */
 .confirme {
-  display: inline-flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: var(--s-4);
+  flex-basis: 100%;
+  display: grid;
+  gap: var(--s-6);
+  padding: var(--s-6) var(--s-7);
+  border: 1px solid var(--line-2);
+  border-left: 3px solid var(--crit);
+  border-radius: var(--radius);
+  background: var(--surface);
 }
-/* LA QUESTION PORTE L'ENCRE PLEINE et les liens l'encre atténuée : c'est elle
-   qu'on doit lire avant de toucher l'un des deux. */
+/* LA QUESTION PORTE L'ENCRE PLEINE : c'est elle qu'on doit lire avant de toucher l'un des deux boutons. */
 .quoi {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-4);
+  line-height: 1.5;
+}
+.quoi b {
   color: var(--ink);
-  font-size: var(--t-3);
+}
+.danger {
+  border-color: var(--crit);
+  color: var(--crit);
 }
 
 /* MODIFIER PUIS RETIRER, sur une ligne : le premier est le geste ordinaire, le
@@ -492,9 +504,4 @@
 }
 .closes[open] summary {
   margin-bottom: var(--titre-gap);
-}
-.lienAccuse {
-  color: var(--ink);
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }

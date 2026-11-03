@@ -45,8 +45,6 @@ export const EN_SONDAGE: Record<string, string> = {
   "Mes intentions": "Your expressions of interest",
   "Mon intention": "Your expression of interest",
   "Nuage coupon × prix": "Coupon × price scatter",
-  "Voir le nuage coupon × prix": "Show the coupon × price scatter",
-  "Masquer le nuage coupon × prix": "Hide the coupon × price scatter",
   "Coupon en abscisse · prix en ordonnée": "Coupon on the x axis · price on the y axis",
   "Le quadrant teinté réunit vos deux limites : coupon au moins égal, prix au plus égal.": "The shaded quadrant gathers both your limits: coupon at least equal, price at most equal.",
   "Un point par séance.": "One dot per auction.",
@@ -73,7 +71,6 @@ export const EN_SONDAGE: Record<string, string> = {
   "Aucun prix n'est fixé : le comparatif ne compte rien.": "No price is set: the comparison counts nothing.",
   "Aucun taux minimum n'est fixé : le comparatif ne compte rien.": "No minimum rate is set: the comparison counts nothing.",
   "couv. {c} %": "cover. {c} %",
-  "Voir le détail": "See the detail",
   "À répondre": "To answer",
   "Closes ({n})": "Closed ({n})",
   "Ce que vous avez dit": "What you told us",
@@ -192,6 +189,8 @@ export const EN_SONDAGE: Record<string, string> = {
      qu'il confirme, et c'est au moment où l'on hésite qu'on a besoin de le
      lire. L'anglais tient la même règle. */
   "Retirer cette intention ?": "Withdraw this expression of interest ?",
+  "Retirer « {l} » ?": "Withdraw “{l}”?",
+  "Elle quitte ce que le desk porte au Trésor et ne se reprend pas : il faudra la redire en entier.": "It leaves what the desk carries to the Treasury and cannot be taken back: you would have to state it again in full.",
   "Oui, retirer": "Yes, withdraw",
   "Oui, retirer l'attente {r}": "Yes, withdraw expression of interest {r}",
   "Retrait impossible.": "Cannot be withdrawn.",

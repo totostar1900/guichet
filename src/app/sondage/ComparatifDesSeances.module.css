@@ -135,19 +135,6 @@
   background: var(--fill);
   color: var(--fill-ink);
 }
-.option {
-  justify-self: start;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ink-2);
-  font: inherit;
-  font-size: var(--t-3);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
 .courbe {
   width: 100%;
   max-width: 460px;

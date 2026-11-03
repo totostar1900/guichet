@@ -159,7 +159,7 @@ describe("la page dédiée : comparatif, boutons, listes (3 novembre 2026)", () 
     expect(g, "la frise séparée est revenue").not.toMatch(/function Frise/);
     expect(g, "la fourchette n'est plus sur la courbe").toMatch(/className=\{styles\.fourchette\}/);
     expect(g, "la limite n'est plus étiquetée sur la courbe").toMatch(/className=\{styles\.puce\}/);
-    expect(g, "le nuage n'est plus en option").toMatch(/aria-expanded=\{nuage\}/);
+    expect(g, "le nuage a disparu").toMatch(/function Nuage/);
     expect(g, "le sélecteur de mesure a disparu").toMatch(/aria-pressed=\{active === d\.m\}/);
   });
 
@@ -190,10 +190,34 @@ describe("la page dédiée : comparatif, boutons, listes (3 novembre 2026)", () 
     expect(p, "la réponse rapide a quitté la rangée").toMatch(/forme="sobre"/);
   });
 
-  it("l'accusé de réception mène au détail", () => {
+  it("l'accusé de réception ne porte plus de lien « Voir le détail »", () => {
     const f = lire("src/app/sondage/Formulaires.tsx");
-    expect([...f.matchAll(/<LienDuDetail id=\{state\.id\} \/>/g)].length, "l'accusé ne mène plus au détail depuis les deux formulaires").toBe(2);
-    expect(lire("src/app/sondage/actions.ts"), "l'action ne rend plus l'identifiant de la ligne").toMatch(/id: creee\.id/);
+    expect(f, "le lien « Voir le détail » est revenu dans l'accusé").not.toMatch(/Voir le détail|LienDuDetail/);
+    expect(lire("src/app/sondage/actions.ts"), "l'action rend de nouveau l'identifiant pour un lien").not.toMatch(/id: creee\.id/);
+  });
+
+  it("« Retirer » demande une seconde couche : elle nomme la ligne, dit la conséquence, et « Annuler » vient en premier avec le focus", () => {
+    const f = lire("src/app/sondage/Formulaires.tsx");
+    const r = f.slice(f.indexOf("export function Retirer"));
+    expect(r, "la confirmation ne nomme plus la ligne retirée").toMatch(/t\("Retirer « \{l\} » \?", \{ l: libelle \}\)/);
+    expect(r, "la confirmation ne dit plus ce que le retrait coûte").toMatch(/ne se reprend pas : il faudra la redire en entier/);
+    expect(r, "« Annuler » n'a plus le focus").toMatch(/className="btn" disabled=\{pending\} autoFocus onClick=\{\(\) => setDemande\(false\)\}/);
+    expect(r.indexOf('t("Annuler")'), "« Oui, retirer » vient de nouveau avant « Annuler »").toBeLessThan(r.indexOf('"Oui, retirer"'));
+    expect(lire("src/app/sondage/page.tsx"), "la page ne passe plus le libellé de la ligne à « Retirer »").toMatch(/<Retirer id=\{m\.id\} ref_=\{m\.ref\} libelle=\{`\$\{gabaritDeSondage\(m\)\} · \$\{montantDe\(m\)\}`\} \/>/);
+  });
+
+  it("le nuage coupon × prix n'est plus masqué : il est toujours sous la courbe quand il y a de quoi le tracer", () => {
+    const g = lire("src/app/sondage/CourbeDesSeances.tsx");
+    expect(g, "le nuage est de nouveau derrière un bouton").not.toMatch(/aria-expanded|setNuage/);
+    expect(g, "le nuage n'est plus rendu sous la courbe").toMatch(/\{peutNuage && <Nuage /);
+  });
+
+  it("les icônes des gestes de l'Accueil (+, −, ↗, ⋯) sont en or et en gras", () => {
+    const css = lire("src/app/Console.module.css");
+    const m = /\.rondGeste \{([^}]*)\}/.exec(css);
+    expect(m, "« .rondGeste » est introuvable").not.toBeNull();
+    expect(m![1], "les icônes des gestes ne sont plus en or").toMatch(/color:\s*var\(--gold-ink\);/);
+    expect(m![1], "les icônes des gestes ne sont plus en gras").toMatch(/font-weight:\s*800;/);
   });
 
   it("une tuile de chiffres impaire s'étale sur les deux colonnes, et les listes de la page n'ont pas de seconde étiquette", () => {

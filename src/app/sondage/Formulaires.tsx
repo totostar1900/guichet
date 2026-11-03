@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
@@ -109,24 +108,6 @@ function Fenetre({ aujourdHui, pretLe, jusquA, prefixe }: { aujourdHui: string; 
   );
 }
 
-/**
- * L'ACCUSÉ MÈNE AU DÉTAIL (3 novembre 2026) : après l'envoi, le client atterrit sur ce qu'il vient de
- * dire — et sur le comparatif — au lieu de chercher sa ligne dans la liste. Le lien s'ajoute à
- * l'accusé, il ne le remplace pas.
- */
-function LienDuDetail({ id }: { id?: string }) {
-  const t = useT();
-  if (!id) return null;
-  return (
-    <>
-      {" "}
-      <Link href={`/sondage?ligne=${id}`} className={styles.lienAccuse}>
-        {t("Voir le détail")}
-      </Link>
-    </>
-  );
-}
-
 /* `forme` : le même geste, à trois endroits.
    « primaire » : le bouton qu'on est venu chercher (la page d'une question, ou le détail d'une
    intention) ; « sobre » : la réponse rapide sous une rangée de la liste, qui se déplie sur place ;
@@ -151,10 +132,7 @@ export function Repondre({ question, existante, forme = "primaire", aujourdHui }
     return (
       <>
         {accuseFrais && state?.ok && (
-          <p className={styles.recu}>
-            {t(state.message)}
-            <LienDuDetail id={state.id} />
-          </p>
+          <p className={styles.recu}>{t(state.message)}</p>
         )}
         <button
           type="button"
@@ -303,7 +281,6 @@ export function ProposerMaLigne({ existante, bouton, aujourdHui }: { existante?:
       {accuseFrais && state?.ok && (
         <p className={styles.recu}>
           {t(state.message)} <span className="mono">{state.ref}</span>
-          <LienDuDetail id={state.id} />
         </p>
       )}
       {declencheur}
@@ -481,7 +458,7 @@ export function ProposerMaLigne({ existante, bouton, aujourdHui }: { existante?:
  * fait sur l'ordre sans bouton de retrait — « un panier qu'on ne peut pas vider
  * se garde plein ».
  */
-export function Retirer({ id, ref_ }: { id: string; ref_: string }) {
+export function Retirer({ id, ref_, libelle }: { id: string; ref_: string; libelle: string }) {
   const t = useT();
   const [pending, start] = useTransition();
   const [erreur, setErreur] = useState<string | null>(null);
@@ -523,30 +500,43 @@ export function Retirer({ id, ref_ }: { id: string; ref_: string }) {
       </>
     );
 
+  /**
+   * LA SECONDE COUCHE (3 novembre 2026) : « s'assurer que retirer a une couche supplémentaire de
+   * validation ». La confirmation tenait en deux liens soulignés côte à côte — « Oui, retirer » et
+   * « Annuler » du même degré, à six pixels l'un de l'autre. Elle est maintenant un bloc : il NOMME la
+   * ligne qu'on retire (« OTA 5 ans • CMR · 50 000 000 FCFA »), dit ce que le retrait coûte — elle
+   * quitte ce que le desk porte au Trésor, et il faudra la redire en entier — et propose deux vrais
+   * boutons. « Annuler » vient en premier et reçoit le focus : le geste définitif n'est jamais celui
+   * que le pouce touche par défaut.
+   */
   return (
-    <span className={styles.confirme}>
-      <span className={styles.quoi}>{t("Retirer cette intention ?")}</span>
-      <button
-        type="button"
-        className={styles.retirer}
-        disabled={pending}
-        aria-label={t("Oui, retirer l'attente {r}", { r: ref_ })}
-        onClick={() =>
-          start(async () => {
-            const r = await retirerLaLigne(id);
-            if (!r.ok) {
-              setErreur(r.error ?? t("Retrait impossible."));
-              setDemande(false);
-            }
-          })
-        }
-      >
-        {t(pending ? "Un instant…" : "Oui, retirer")}
-      </button>
-      <button type="button" className={styles.lien} disabled={pending} onClick={() => setDemande(false)}>
-        {t("Annuler")}
-      </button>
+    <div className={styles.confirme} role="alertdialog" aria-label={t("Retirer l'attente {r}", { r: ref_ })}>
+      <p className={styles.quoi}>
+        <b>{t("Retirer « {l} » ?", { l: libelle })}</b> {t("Elle quitte ce que le desk porte au Trésor et ne se reprend pas : il faudra la redire en entier.")}
+      </p>
+      <div className={styles.boutons}>
+        <button type="button" className="btn" disabled={pending} autoFocus onClick={() => setDemande(false)}>
+          {t("Annuler")}
+        </button>
+        <button
+          type="button"
+          className={`btn ${styles.danger}`}
+          disabled={pending}
+          aria-label={t("Oui, retirer l'attente {r}", { r: ref_ })}
+          onClick={() =>
+            start(async () => {
+              const r = await retirerLaLigne(id);
+              if (!r.ok) {
+                setErreur(r.error ?? t("Retrait impossible."));
+                setDemande(false);
+              }
+            })
+          }
+        >
+          {t(pending ? "Un instant…" : "Oui, retirer")}
+        </button>
+      </div>
       {erreur && <em className={styles.erreur}>{erreur}</em>}
-    </span>
+    </div>
   );
 }

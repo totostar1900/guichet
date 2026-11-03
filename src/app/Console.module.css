@@ -789,6 +789,9 @@
   height: 48px;
   border-radius: 999px;
   background: var(--tuile-fond);
+  /* LES ICÔNES SONT EN OR ET EN GRAS (3 novembre 2026) : « + », « − », « ↗ » et « ⋯ » sont les gestes de la page, pas du texte. */
+  color: var(--gold-ink);
   font-size: var(--t-7);
+  font-weight: 800;
   line-height: 1;
 }

@@ -11,7 +11,7 @@ import { PAYS_CEMAC } from "@/lib/market/budget";
 import { fmt, fmtPct, localIso, parseAmount } from "@/lib/format";
 import type { Country, NewLigneSondee } from "@/lib/domain/types";
 
-export type SondageResult = { ok: true; ref: string; id?: string; message: string } | { ok: false; error: string };
+export type SondageResult = { ok: true; ref: string; message: string } | { ok: false; error: string };
 
 const PATH = "/sondage";
 
@@ -161,7 +161,6 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
   return {
     ok: true,
     ref: creee.ref,
-    id: creee.id,
     message: question
       ? "Votre réponse est au desk. Elle ne vous engage à rien : c'est un renseignement, et il sert à dire au Trésor à quel niveau la demande tient encore."
       : familleId
@@ -247,7 +246,7 @@ export async function modifierLaLigne(_p: SondageResult | null, form: FormData):
   });
   revalidatePath(PATH);
   revalidatePath("/desk/sondage");
-  return { ok: true, ref: sienne.ref, id: sienne.id, message: "Votre intention est modifiée. Le desk lit la nouvelle, et elle garde la même référence." };
+  return { ok: true, ref: sienne.ref, message: "Votre intention est modifiée. Le desk lit la nouvelle, et elle garde la même référence." };
 }
 
 /**

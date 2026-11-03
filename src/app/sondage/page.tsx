@@ -89,6 +89,8 @@ export default async function SondagePage({ searchParams }: Props) {
   /* « MODIFIER » ET « RETIRER » VIVENT DANS LE DÉTAIL (3 novembre 2026) : « Modifier » est le bouton
      principal de la page d'une intention, « Retirer » reste un lien — le geste définitif ne doit pas
      être le premier sous la main, et il demande toujours une seconde confirmation. */
+  /* Le montant se dit une seule fois dans la page, et c'est celui des chiffres : le libellé de la confirmation le relit de là. */
+  const montantDe = (m: LigneSondee) => chiffresDe(m, "attente", t).find((c) => c.fort)?.dit ?? "";
   const gestes = (m: LigneSondee) =>
     m.state !== "close" && (
       <div className={styles.gestes}>
@@ -97,7 +99,7 @@ export default async function SondagePage({ searchParams }: Props) {
         ) : (
           <ProposerMaLigne existante={modifiable(m)} bouton aujourdHui={aujourdHui} />
         )}
-        <Retirer id={m.id} ref_={m.ref} />
+        <Retirer id={m.id} ref_={m.ref} libelle={`${gabaritDeSondage(m)} · ${montantDe(m)}`} />
       </div>
     );
 

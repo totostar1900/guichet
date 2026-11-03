@@ -29,8 +29,8 @@ type Mesure = "niveau" | "coupon" | "rendement";
  * d'un bon), le coupon, le rendement — et la limite change avec lui. Le coupon est fixé par le
  * Trésor à l'émission : il avance par paliers, et la courbe le dit en marches.
  *
- * LE NUAGE COUPON × PRIX EST EN OPTION : un point par séance, et le quadrant de vos deux limites. Il
- * demande un temps d'apprentissage, donc il ne s'ouvre que si on le demande.
+ * LE NUAGE COUPON × PRIX EST TOUJOURS SOUS LA COURBE (3 novembre 2026 : « ne plus masquer le graphe
+ * nuage ») : un point par séance, et le quadrant de vos deux limites.
  */
 export function CourbeDesSeances({
   points,
@@ -49,7 +49,6 @@ export function CourbeDesSeances({
 }) {
   const t = useT();
   const [mesure, setMesure] = useState<Mesure>("niveau");
-  const [nuage, setNuage] = useState(false);
 
   const chrono = [...points].reverse();
   const dispo: { m: Mesure; nom: string }[] = [
@@ -86,14 +85,7 @@ export function CourbeDesSeances({
       <h3 className={styles.sous}>{titre}</h3>
       <Graphique serie={serie.map((p) => ({ id: p.id, le: p.le, v: valeurDe(p)!, bas: active === "niveau" ? p.bas : undefined, haut: active === "niveau" ? p.haut : undefined }))} limite={lim} etiquette={etiquetteLimite} marches={active === "coupon"} decimales={active === "niveau" && unite === "prix" ? 0 : 1} />
       <p className={styles.legende}>{active === "niveau" ? t("Barre claire : fourchette min–max de la séance.") : t("Un point par séance.")}</p>
-      {peutNuage && (
-        <>
-          <button type="button" className={styles.option} aria-expanded={nuage} onClick={() => setNuage(!nuage)}>
-            {t(nuage ? "Masquer le nuage coupon × prix" : "Voir le nuage coupon × prix")}
-          </button>
-          {nuage && <Nuage points={chrono.filter((p) => p.coupon != null && p.niveau != null)} limitePrix={limite} limiteCoupon={limiteCoupon} />}
-        </>
-      )}
+      {peutNuage && <Nuage points={chrono.filter((p) => p.coupon != null && p.niveau != null)} limitePrix={limite} limiteCoupon={limiteCoupon} />}
     </div>
   );
 }

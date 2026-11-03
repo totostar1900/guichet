@@ -218,14 +218,15 @@ describe("le modèle du sondage", () => {
     expect(premier, "le bouton « Retirer » appelle de nouveau le retrait au premier doigt").not.toMatch(/retirerLaLigne/);
     expect(premier, "le bouton « Retirer » n'ouvre plus la question").toMatch(/setDemande\(true\)/);
     /* Et le retrait est derrière un bouton qui nomme le geste. */
-    expect(vif, "la question du retrait a disparu").toMatch(/Retirer cette intention \?/);
+    expect(vif, "la question du retrait a disparu").toMatch(/Retirer « \{l\} » \?/);
     expect(vif, "le bouton de confirmation ne nomme plus le geste").toMatch(/Oui, retirer/);
     /* « ANNULER » PORTE LE RAVISEMENT, et l'épreuve lit CE bouton-là : vérifiée
        à l'envers le 26 octobre 2026, elle restait verte le geste retiré du
        bouton, parce que « setDemande(false) » paraît aussi dans la branche
        d'échec du retrait. Une garde qui trouve son motif ailleurs ne garde
        rien. */
-    const annuler = vif.slice(vif.indexOf("className={styles.lien}"));
+    const annuler = vif.slice(vif.indexOf('className="btn" disabled={pending} autoFocus'));
+    expect(annuler.length, "le bouton « Annuler » est introuvable : l'épreuve ne garde plus rien").toBeGreaterThan(40);
     expect(annuler.slice(0, annuler.indexOf("</button>")), "on ne peut plus se raviser : « Annuler » ne referme plus la question").toMatch(/setDemande\(false\)/);
     /* NON VACUITÉ : le retrait existe toujours, et il est appelé quelque part —
        une confirmation qui ne retire rien serait verte et inutile. */
