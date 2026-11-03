@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { etatDeLAttente, motDuNiveau, prete, rendementDeLaLigne } from "@/lib/domain/sondage";
+import { gabaritDeSondage } from "@/lib/domain/gabarit";
+import { comparatifDeLigne } from "@/lib/domain/sondage-comparatif";
 import type { LigneSondee } from "@/lib/domain/types";
 import { getT } from "@/i18n/server";
 import { fmtDate, fmtPct, fmtUnits, localIso } from "@/lib/format";
@@ -11,6 +14,7 @@ import { EnTete } from "@/components/EnTete";
 import { EnBref } from "@/components/EnBref";
 import { Pourquoi } from "@/components/Pourquoi";
 import { Repondre, ProposerMaLigne, Retirer } from "./Formulaires";
+import { ComparatifDesSeances } from "./ComparatifDesSeances";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +89,18 @@ export default async function SondagePage({ searchParams }: Props) {
   const vivantes = miennes.filter((m) => m.state !== "close");
   const closes = miennes.filter((m) => m.state === "close");
 
+  const gestes = (m: LigneSondee) =>
+    m.state !== "close" && (
+      <div className={styles.gestes}>
+        {m.repondA ? (
+          <Repondre question={{ id: m.repondA, instrument: m.instrument, mot: motDuNiveau(m.instrument) }} existante={modifiable(m)} discret aujourdHui={aujourdHui} />
+        ) : (
+          <ProposerMaLigne existante={modifiable(m)} aujourdHui={aujourdHui} />
+        )}
+        <Retirer id={m.id} ref_={m.ref} />
+      </div>
+    );
+
   const attente = (m: LigneSondee) => {
     const e = etatDeLAttente(m);
     return (
@@ -116,16 +132,7 @@ export default async function SondagePage({ searchParams }: Props) {
             Une réponse se rouvre par son formulaire de réponse, une
             ligne poussée par son gabarit : ce n'est pas le même
             geste, parce que ce ne sont pas les mêmes champs. */}
-        {m.state !== "close" && (
-          <div className={styles.gestes}>
-            {m.repondA ? (
-              <Repondre question={{ id: m.repondA, instrument: m.instrument, mot: motDuNiveau(m.instrument) }} existante={modifiable(m)} discret aujourdHui={aujourdHui} />
-            ) : (
-              <ProposerMaLigne existante={modifiable(m)} aujourdHui={aujourdHui} />
-            )}
-            <Retirer id={m.id} ref_={m.ref} />
-          </div>
-        )}
+        {gestes(m)}
       </li>
     );
   };
@@ -133,13 +140,54 @@ export default async function SondagePage({ searchParams }: Props) {
   /* LE DÉTAIL D'UNE INTENTION : « ?ligne=<id> » n'ouvre que celle-là, avec le
      chemin du retour vers la liste. Un identifiant inconnu retombe sur la page
      entière plutôt que sur un écran vide. */
-  const choisie = ligne ? miennes.find((m) => m.id === ligne) : undefined;
+  /* UNE LIGNE DU CLIENT, OU UNE QUESTION DU DESK : la page dédiée sert les deux (3 novembre 2026,
+     « les questions du desk aussi »). Sur une question, le niveau est celui que la maison indique. */
+  const duDesk = ligne ? questions.find((q) => q.id === ligne) : undefined;
+  const choisie = ligne ? (miennes.find((m) => m.id === ligne) ?? duDesk) : undefined;
   if (choisie) {
+    const role = duDesk && choisie === duDesk ? "question" : "attente";
+    const e = etatDeLAttente(choisie);
+    const historique = await r.listAuctionResults({ instrument: choisie.instrument, confirmed: true, limit: 1000 });
+    const cmp = comparatifDeLigne(choisie, historique, aujourdHui);
     return (
       <Glissement>
         <main className={styles.page}>
-          <EnTete surTitre={t("Investissez")} titre={t("Mon intention")} retour={{ href: "/sondage", mot: t("Sondage") }} />
-          <ul className={styles.attentes}>{attente(choisie)}</ul>
+          <EnTete surTitre={t("Mon intention")} titre={gabaritDeSondage(choisie)} retour={{ href: "/sondage", mot: t("Sondage") }} />
+          {/* TROIS BLOCS EMPILÉS : ce que le client a dit, ce que la place a servi, les gestes.
+              Le chapitre de la place se tait quand aucune séance n'est comparable. */}
+          <section className={styles.bloc}>
+            <h2 className={styles.titre}>{t(role === "attente" ? "Ce que vous avez dit" : "Ce que la maison demande")}</h2>
+            <p className={styles.etatLigne}>
+              {role === "attente" ? (
+                <span className={styles.pastille} data-etat={e.etat}>
+                  {t(e.mot)}
+                </span>
+              ) : repondu.get(choisie.id) ? (
+                <span className={styles.pastille}>{t("Répondu")}</span>
+              ) : null}{" "}
+              <span className={`mono ${styles.ref}`}>{choisie.ref}</span>
+            </p>
+            <dl className={styles.vosChiffres}>
+              {chiffresDe(choisie, role, t).map((c) => (
+                <div key={c.quoi} className={styles.tuileChiffre}>
+                  <dt className={styles.etiquette}>{c.quoi}</dt>
+                  <dd className={styles.grosChiffre}>{c.dit}</dd>
+                </div>
+              ))}
+            </dl>
+            {choisie.closedReason && <p className={styles.motif}>{choisie.closedReason}</p>}
+          </section>
+          {cmp && (
+            <section className={styles.bloc}>
+              <h2 className={styles.titre}>{t("Ce que la place a servi")}</h2>
+              <ComparatifDesSeances c={cmp} rendementLimite={rendementDeLaLigne(choisie)} role={role} t={t} />
+            </section>
+          )}
+          {role === "attente" ? (
+            gestes(choisie)
+          ) : (
+            <Repondre question={{ id: choisie.id, instrument: choisie.instrument, mot: motDuNiveau(choisie.instrument) }} existante={repondu.get(choisie.id) ? modifiable(repondu.get(choisie.id)!) : undefined} aujourdHui={aujourdHui} />
+          )}
         </main>
       </Glissement>
     );
@@ -248,6 +296,9 @@ export default async function SondagePage({ searchParams }: Props) {
                         que le fait d'avoir répondu, et le bouton qui rouvre la
                         réponse telle qu'elle a été dite. */}
                     <Repondre question={{ id: q.id, instrument: q.instrument, mot: motDuNiveau(q.instrument) }} existante={mienne ? modifiable(mienne) : undefined} aujourdHui={aujourdHui} />
+                    <Link href={`/sondage?ligne=${q.id}`} className={styles.lien}>
+                      {t("Voir les séances passées")}
+                    </Link>
                   </li>
                 );
               })}
@@ -352,22 +403,36 @@ export default async function SondagePage({ searchParams }: Props) {
  * LE MONTANT CHERCHÉ RESTE DEMANDÉ AU DESK, et c'est voulu : c'est sa cible, et
  * la page du desk la met en regard de ce que la place donne. Il n'en sort pas.
  */
-function Faits({ l, role, t, avant }: { l: LigneSondee; role: "question" | "attente"; t: (s: string, v?: Record<string, string>) => string; avant?: ReactNode }) {
-  /* Le niveau est un taux sur les deux compartiments — coupon sur une OTA, taux
-     précompté sur un bon : même sens, deux mots, voir « motDuNiveau ». */
+/**
+ * LES CHIFFRES D'UNE LIGNE SONDÉE, ÉCRITS UNE FOIS pour la tuile de la liste et pour la page dédiée.
+ *
+ * LE PRIX EST DEDANS (3 novembre 2026) : « prix min. » (3 novembre 2026, le dirigeant refuse « prix max »), du même rang que le
+ * coupon ou le taux minimum. Le rendement qui en découle reste à côté, il compare.
+ */
+function chiffresDe(l: LigneSondee, role: "question" | "attente", t: (s: string, v?: Record<string, string>) => string): { quoi: string; dit: string; fort?: boolean }[] {
+  /* Le niveau est un taux sur les deux compartiments — coupon sur une OTA, taux précompté sur un bon :
+     même sens, deux mots, voir « motDuNiveau ». */
   const mot = motDuNiveau(l.instrument);
-  /* Toujours une date, jamais le délai tel qu'il a été écrit : « dans 21 jours »
-     posé le 19 se relit « le 16 novembre » quand la ligne dit le 9. */
-  const j = prete(l);
-  /* « IND. » POUR LA MAISON, « MIN. » POUR LE CLIENT, et c'est la seule chose
-     que le rôle change : la maison indique un niveau, le client pose un
-     plancher. Deux abréviations de même longueur, au même endroit de la
-     phrase — l'œil compare les chiffres, pas les mots. */
+  /* « IND. » POUR LA MAISON, « MIN. » POUR LE CLIENT, et c'est la seule chose que le rôle change : la
+     maison indique un niveau, le client pose un plancher. L'œil compare les chiffres, pas les mots. */
   const q = role === "question" ? "ind." : "min.";
-  /* LE RENDEMENT EST LE CHIFFRE QUI COMPARE : un coupon de 6,25 % acheté à 97
-     ne rend pas 6,25 %. Un bon n'en a pas — son taux EST son rendement. */
+  /* Toujours une date, jamais le délai tel qu'il a été écrit : « dans 21 jours » posé le 19 se relit
+     « le 16 novembre » quand la ligne dit le 9. */
+  const j = prete(l);
+  /* LE RENDEMENT EST LE CHIFFRE QUI COMPARE : un coupon de 6,25 % acheté à 97 ne rend pas 6,25 %. Un
+     bon n'en a pas — son taux EST son rendement. */
   const r = rendementDeLaLigne(l);
+  return [
+    role === "attente" ? { quoi: t("montant"), dit: fmtUnits(l.montant, true), fort: true } : null,
+    l.rate != null ? { quoi: `${t(mot === "taux" ? "taux" : "coupon")} ${q}`, dit: fmtPct(l.rate, 2) } : null,
+    l.pricePct != null ? { quoi: `${t("prix")} ${q}`, dit: fmtPct(l.pricePct, Number.isInteger(l.pricePct) ? 0 : 2) } : null,
+    r != null ? { quoi: `${t("rendement")} ${q}`, dit: fmtPct(r, 2) } : null,
+    j ? { quoi: t("prête vers"), dit: fmtDate(j, false) } : null,
+    l.jusquA ? { quoi: t("valable jusqu'au"), dit: fmtDate(l.jusquA, false) } : null,
+  ].filter((x): x is { quoi: string; dit: string; fort?: boolean } => x !== null);
+}
 
+function Faits({ l, role, t, avant }: { l: LigneSondee; role: "question" | "attente"; t: (s: string, v?: Record<string, string>) => string; avant?: ReactNode }) {
   /**
    * DEUX RANGÉES, ET NON UNE PHRASE : L'IDENTITÉ, PUIS LES CHIFFRES.
    *
@@ -394,15 +459,7 @@ function Faits({ l, role, t, avant }: { l: LigneSondee; role: "question" | "atte
    * le niveau prend la tête.
    */
   const identite = [l.instrument, codeDuPays(l.country), l.tenor].join(" · ");
-  const chiffres: { quoi: string; dit: string; fort?: boolean }[] = [
-    role === "attente" ? { quoi: t("montant"), dit: fmtUnits(l.montant, true), fort: true } : null,
-    l.rate != null ? { quoi: `${t(mot === "taux" ? "taux" : "coupon")} ${q}`, dit: fmtPct(l.rate, 2) } : null,
-    r != null ? { quoi: `${t("rendement")} ${q}`, dit: fmtPct(r, 2) } : null,
-    j ? { quoi: t("prête vers"), dit: fmtDate(j, false) } : null,
-    /* LA FENÊTRE SE LIT ENTIÈRE : un début sans fin laisse croire qu'une
-       attente court toujours, et c'est précisément ce qu'elle ne fait plus. */
-    l.jusquA ? { quoi: t("valable jusqu'au"), dit: fmtDate(l.jusquA, false) } : null,
-  ].filter((x): x is { quoi: string; dit: string; fort?: boolean } => x !== null);
+  const chiffres = chiffresDe(l, role, t);
 
   return (
     <p className={styles.faits}>

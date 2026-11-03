@@ -29,16 +29,17 @@ export function gabaritDIntention(o: Pick<Offer, "kind" | "country" | "settleOn"
 /**
  * LES LIMITES D'UNE LIGNE SONDÉE, TELLES QUE LA PAGE DU SONDAGE LES DÉFINIT (2 novembre 2026).
  *
- * Le client y pose un PLANCHER : « coupon min. » sur une OTA, « taux min. » sur un bon, et — quand
- * il a donné aussi un prix — le « rendement min. » qui en découle (`rendementDeLaLigne`). La tuile de
- * l'Accueil dit exactement ça, avec les mêmes mots : pas de « prix » à part, que la page du sondage
- * n'écrit pas, et pas de mot vide à la place d'un chiffre absent (« taux — » était un mot sans
- * chiffre). Une limite non fixée ne s'écrit pas.
+ * Le client y pose un PLANCHER de niveau — « coupon min. » sur une OTA, « taux min. » sur un bon — et,
+ * sur une OTA, un « prix min. » — le mot que le dirigeant a demandé le 3 novembre 2026 (« prix max, non »). Le rendement
+ * qui en découle (`rendementDeLaLigne`) n'est qu'un équivalent, écrit en gris à côté du prix. Pas de mot
+ * vide à la place d'un chiffre absent (« taux — » était un mot sans chiffre) : une limite non fixée
+ * ne s'écrit pas.
  */
-export function limitesDeSondage(l: Pick<LigneSondee, "instrument" | "tenor" | "rate" | "pricePct" | "seanceLe" | "dansJours" | "createdAt">): { niveau?: { mot: "coupon" | "taux"; valeur: string }; rendement?: { valeur: string } } {
+export function limitesDeSondage(l: Pick<LigneSondee, "instrument" | "tenor" | "rate" | "pricePct" | "seanceLe" | "dansJours" | "createdAt">): { niveau?: { mot: "coupon" | "taux"; valeur: string }; prix?: { valeur: string }; rendement?: { valeur: string } } {
   const r = rendementDeLaLigne(l);
   return {
     ...(l.rate != null ? { niveau: { mot: motDuNiveau(l.instrument), valeur: fmtPct(l.rate, 2) } } : {}),
+    ...(l.instrument === "OTA" && l.pricePct != null ? { prix: { valeur: fmtPct(l.pricePct, Number.isInteger(l.pricePct) ? 0 : 2) } } : {}),
     ...(r != null ? { rendement: { valeur: fmtPct(r, 2) } } : {}),
   };
 }

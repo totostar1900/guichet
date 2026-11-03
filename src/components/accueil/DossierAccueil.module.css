@@ -106,6 +106,10 @@
 .groupe {
   white-space: nowrap;
 }
+/* Le rendement équivalent d'un prix : entre parenthèses, en gris — il compare, il ne se saisit pas. */
+.gris {
+  color: var(--ink-3);
+}
 /* La période d'une performance tient sur UNE ligne (« 18 sept. 25 – 16 oct. 26 ») : la colonne de droite s'élargit au besoin, le nom cède. */
 .quoiLarge {
   max-width: none;

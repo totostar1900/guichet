@@ -432,3 +432,36 @@
   right: 0;
   z-index: 1;
 }
+
+/* LA PAGE DÉDIÉE D'UNE INTENTION : les chiffres du client en tuiles, deux par rangée. */
+.vosChiffres {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tuiles-gap);
+  margin: 0;
+}
+.tuileChiffre {
+  display: grid;
+  gap: var(--s-1);
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--tuile-rayon);
+  background: var(--surface);
+  min-width: 0;
+}
+.tuileChiffre dt,
+.tuileChiffre dd {
+  margin: 0;
+}
+.grosChiffre {
+  font-size: var(--t-7);
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.etatLigne {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}

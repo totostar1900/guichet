@@ -236,17 +236,18 @@ export async function DossierAccueil({
             <Rang key={k} href={`/sondage?ligne=${l.id}`}>
               <span className={styles.qui}>
                 <b>{l.texte}</b>
-                {(l.limites.niveau || l.limites.rendement) && (
+                {(l.limites.niveau || l.limites.prix) && (
                   <small>
                     {l.limites.niveau && (
                       <span className={`${styles.bleu} ${styles.groupe}`}>
                         {t(l.limites.niveau.mot)} {t("min")} {l.limites.niveau.valeur}
                       </span>
                     )}
-                    {l.limites.niveau && l.limites.rendement && " • "}
-                    {l.limites.rendement && (
+                    {l.limites.niveau && l.limites.prix && " • "}
+                    {l.limites.prix && (
                       <span className={`${styles.bleu} ${styles.groupe}`}>
-                        {t("rendement")} {t("min")} {l.limites.rendement.valeur}
+                        {t("prix")} {t("min")} {l.limites.prix.valeur}
+                        {l.limites.rendement && <span className={styles.gris}> (≈ {l.limites.rendement.valeur})</span>}
                       </span>
                     )}
                   </small>

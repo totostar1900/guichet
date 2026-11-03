@@ -609,7 +609,10 @@ ou « Coupon » et « Rdt » pour une obligation — en bleu d'information
 **Le gabarit des lignes qui se demandent (2 novembre 2026).** « Mes intentions » et
 « Mes intentions au sondage » écrivent « OTA 4 ans • CMR » (`gabarit.ts` : instrument,
 durée, pays abrégé `CODE_PAYS`) ; dessous, le montant en or, le coupon et les limites en
-bleu — un taux **minimum**, un prix **maximum**, jamais l'inverse. « Mes lignes suivies »
+bleu — un taux **minimum**, un prix **minimum** (« prix max » est refusé par le dirigeant, 3 novembre 2026) ; le rendement qui en
+découle n'est qu'un équivalent, en gris entre parenthèses. Une rangée du sondage ouvre
+`/sondage?ligne=<id>` (une question du desk aussi) : ce que le client a dit, puis le comparatif des séances passées
+(tableau, frise, courbe, autres pays repliés). « Mes lignes suivies »
 met le rendement seul en haut, la période sur sa ligne (« du {a} au {b} » pour un fonds), et
 ce qui presse en pastille : plus de note qui répète le chiffre.
 

@@ -1,0 +1,144 @@
+/* Les blocs du comparatif (phrase, tableau, frise, courbe, autres pays) sont des BLOCS d'un chapitre :
+   l'écart qui les sépare est celui des sections, pas celui des tuiles — sinon la page se tasse. */
+.comparatif {
+  display: grid;
+  gap: var(--sections-gap);
+}
+.phrase {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--t-5);
+  line-height: 1.55;
+  max-width: 60ch;
+}
+.mention {
+  color: var(--ink-3);
+  font-size: var(--t-4);
+}
+.defile {
+  overflow-x: auto;
+}
+.tableau {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-4);
+  font-variant-numeric: tabular-nums;
+}
+.tableau th,
+.tableau td {
+  padding: var(--s-4) var(--s-2);
+  text-align: right;
+  white-space: nowrap;
+  border-top: 1px solid var(--line);
+}
+.tableau th:first-child,
+.tableau td:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.tableau th {
+  color: var(--ink-3);
+  font-size: var(--t-1);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-top: 0;
+}
+.vous td {
+  color: var(--gold-ink);
+  font-weight: 700;
+}
+.np {
+  color: var(--ink-3);
+  font-style: italic;
+}
+.bloc {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.sous {
+  margin: 0;
+  font-size: var(--t-2);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.frise {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s-2) var(--s-3);
+  padding-block: var(--s-2);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.frVal {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.piste {
+  position: relative;
+  grid-column: 1 / -1;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--surface-2);
+}
+.plage {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--a) * 1%);
+  width: max(4px, calc((var(--b) - var(--a)) * 1%));
+  border-radius: 4px;
+  background: var(--info);
+}
+.limite {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: calc(var(--a) * 1%);
+  width: 2px;
+  background: var(--gold-ink);
+}
+.legende {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: var(--t-3);
+}
+.courbe {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+}
+.ligne {
+  stroke: var(--info);
+  stroke-width: 2;
+}
+.point {
+  fill: var(--info);
+}
+.trait {
+  stroke: var(--gold-ink);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+.axe {
+  display: flex;
+  justify-content: space-between;
+  max-width: 420px;
+  color: var(--ink-3);
+  font-size: var(--t-3);
+}
+.ailleurs summary {
+  cursor: pointer;
+  color: var(--ink-2);
+  font-size: var(--t-4);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.ailleurs summary::after {
+  content: "▾";
+  margin-left: var(--s-2);
+  color: var(--ink-3);
+}
