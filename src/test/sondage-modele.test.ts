@@ -148,14 +148,20 @@ describe("le modèle du sondage", () => {
    * oublie — et aucune épreuve ne voit cette divergence, parce que les deux
    * pages restent justes séparément.
    */
-  it("écrit la bande de faits une fois, et l'appelle deux fois", () => {
+  it("écrit la rangée une fois, et l'appelle pour les deux listes", () => {
     const page = lire("src/app/sondage/page.tsx");
-    expect([...page.matchAll(/className=\{styles\.faits\}/g)].length, "une tuile s'est remise à écrire sa propre bande de faits").toBe(1);
-    expect([...page.matchAll(/<Faits\b/g)].length, "les deux tuiles ne passent plus par la même bande").toBe(2);
+    const rangee = lire("src/app/sondage/RangeeDeSondage.tsx");
+    expect([...page.matchAll(/className=\{styles\.rang\}/g)].length, "la page s'est remise à écrire sa propre rangée").toBe(0);
+    expect([...rangee.matchAll(/className=\{styles\.rang\}/g)].length, "la rangée n'est plus écrite qu'à un endroit").toBe(1);
+    expect(page, "les questions ne passent plus par la même rangée").toMatch(/<RangeeDeSondage l=\{q\} role="question"/);
+    expect(page, "les intentions ne passent plus par la même rangée").toMatch(/<RangeeDeSondage l=\{m\} role="attente"/);
     /* LE RÔLE NE CHANGE QUE LE SENS DU NIVEAU : la maison dit un niveau
-       INDICATIF, le client dit un PLANCHER. Les confondre porterait au Trésor
+       INDICATIF, le client dit une limite. Les confondre porterait au Trésor
        un chiffre que personne n'a dit. */
-    expect(page, "le niveau indicatif de la maison a disparu de la bande").toMatch(/role === "question" \? "ind\." : "min\."/);
+    expect(rangee, "le niveau indicatif de la maison a disparu de la rangée").toMatch(/role === "question" \? "ind\." : t\(m\)/);
+    expect(page, "le niveau indicatif de la maison a disparu des chiffres du détail").toMatch(/role === "question" \? "ind\." : "min\."/);
+    /* TOUTE LA RANGÉE EST UN LIEN vers SA ligne : c'est ce qui manquait pour atterrir sur le détail. */
+    expect(rangee, "une rangée n'ouvre plus sa ligne").toMatch(/<Link href=\{`\/sondage\?ligne=\$\{l\.id\}`\} className=\{styles\.rang\}>/);
   });
 
   /**
@@ -478,7 +484,9 @@ describe("le modèle du sondage", () => {
     /* NON VACUITÉ : la question est bien rendue par cette bande, et le montant
        existe toujours sur le modèle — la garde ne tient rien si la tuile a
        disparu ou si le champ a été supprimé. */
-    expect(page, "la question ne passe plus par la bande de faits").toMatch(/<Faits\s+l=\{q\}\s+role="question"/);
+    expect(page, "la question ne passe plus par la rangée").toMatch(/<RangeeDeSondage l=\{q\} role="question"/);
+    /* ET LA RANGÉE NE RENDRA JAMAIS LE MONTANT D'UNE QUESTION : « 500 M FCFA » écrit sur la question donne la réponse avant de poser la question. */
+    expect(lire("src/app/sondage/RangeeDeSondage.tsx"), "la rangée rend un montant sans la garde « attente »").toMatch(/role === "attente" && \(\s*<span className=\{styles\.montant\}>/);
     expect(lire("src/lib/domain/types.ts"), "le montant a quitté le modèle : la garde ne mesure plus rien").toMatch(/montant: number/);
     /* ET IL RESTE AU DESK, qui en a besoin comme cible — le chiffre lui-même,
        et pas le mot : « cherchés » paraît deux fois sur cette page, et la garde

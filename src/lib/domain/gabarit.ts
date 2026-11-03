@@ -30,7 +30,7 @@ export function gabaritDIntention(o: Pick<Offer, "kind" | "country" | "settleOn"
  * LES LIMITES D'UNE LIGNE SONDÉE, TELLES QUE LA PAGE DU SONDAGE LES DÉFINIT (2 novembre 2026).
  *
  * Le client y pose un PLANCHER de niveau — « coupon min. » sur une OTA, « taux min. » sur un bon — et,
- * sur une OTA, un « prix min. » — le mot que le dirigeant a demandé le 3 novembre 2026 (« prix max, non »). Le rendement
+ * sur une OTA, un « prix max. », tel qu'il l'a saisi — un plafond, car un acheteur plafonne ce qu'il paie (le dirigeant a tranché le 3 novembre 2026 : « prix max partout »). Le rendement
  * qui en découle (`rendementDeLaLigne`) n'est qu'un équivalent, écrit en gris à côté du prix. Pas de mot
  * vide à la place d'un chiffre absent (« taux — » était un mot sans chiffre) : une limite non fixée
  * ne s'écrit pas.

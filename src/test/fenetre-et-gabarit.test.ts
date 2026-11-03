@@ -50,7 +50,8 @@ describe("le sondage : un gabarit, une fenêtre", () => {
     expect((src.match(/dureesDe\(instrument\)\.map/g) ?? []).length, "les jetons des durées sont écrits deux fois").toBe(1);
     /* CE QUI CHANGE EST LA RÈGLE, ET ELLE EST ÉCRITE : en modification le
        choix se déplace au lieu de s'ajouter. */
-    expect(src, "le choix unique de la modification n'est plus posé").toMatch(/seul \? setPays\(\[p\]\) : bascule/);
+    /* LE TRÉSOR EST UNIQUE DANS LES DEUX GESTES depuis le 3 novembre 2026 : il se déplace toujours, il ne s'ajoute plus. */
+    expect(src, "le choix unique du Trésor n'est plus posé").toMatch(/onClick=\{\(\) => setPays\(\[p\]\)\}/);
     expect(src, "le choix unique de la durée n'est plus posé").toMatch(/seul \? setTenors\(\[d\]\) : bascule/);
     expect(src, "la règle du choix unique n'est dite nulle part").toMatch(/Une intention porte un seul Trésor/);
   });

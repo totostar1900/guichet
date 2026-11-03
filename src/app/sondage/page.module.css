@@ -111,49 +111,6 @@
   max-width: 58ch;
 }
 
-.liste,
-.attentes {
-  display: grid;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.liste {
-  gap: var(--s-6);
-}
-
-/* UNE QUESTION DE LA MAISON APPELLE UN GESTE : elle garde son cadre, et c'est
-   le seul de la page. Le fond doré a disparu — il faisait trois blocs dorés
-   dans la même vue avec l'accusé de réponse et le bouton. */
-.question {
-  display: grid;
-  gap: var(--s-5);
-  padding: var(--s-6);
-  border: 1px solid var(--gold-line);
-  background: var(--surface);
-}
-
-/* UNE ATTENTE EST UN CONSTAT : un filet entre deux, et rien autour. */
-.attentes {
-  gap: 0;
-}
-.attente {
-  display: grid;
-  gap: var(--s-4);
-  padding: var(--s-6) 0;
-  /* Venu de l'Accueil par « #attente-… » : la ligne s'arrête sous le haut de page, pas dessous. */
-  scroll-margin-top: var(--s-12);
-}
-.attente + .attente {
-  border-top: 1px solid var(--line);
-}
-/* CE QUI EST CLOS S'EFFACE SANS DISPARAÎTRE : on doit pouvoir le retrouver —
-   « remplacée par votre nouvelle réponse » répond à une question qu'on se pose
-   — sans qu'il dispute la lecture à ce qui vit. */
-.attente[data-etat="close"] {
-  opacity: 0.62;
-}
-
 /* LA PASTILLE D'ÉTAT : UN MOT, ET PAS UNE BOÎTE.
 
    Elle était encadrée comme celles du reste de la maison. Sur une page qu'on
@@ -190,56 +147,6 @@
   margin-left: var(--s-2);
 }
 
-/* LES FAITS EN UNE PHRASE. Le montant porte le degré du chiffre — c'est lui
-   qu'on cherche — et le reste suit en encre atténuée, dans la même phrase. */
-/* LA BANDE EST TOUT LE CONTENU DE LA TUILE, donc elle est au degré de la
-   LECTURE et non à celui d'une légende : elle vivait sous un nom de ligne en
-   gras, elle n'a plus rien au-dessus d'elle. Une seule taille, une seule encre,
-   et les six faits au même rang — c'est la « police harmonisée ». */
-.faits {
-  margin: 0;
-  color: var(--ink-2);
-  font-size: var(--t-5);
-  line-height: 1.55;
-  /* SANS CETTE LIGNE, LA PAGE ENTIÈRE DÉBORDE. Une carte est une grille, et un
-     enfant de grille vaut `min-width: auto` : sa piste ne descend pas sous la
-     largeur de son plus long morceau INSÉCABLE. Depuis que chaque fait porte
-     « nowrap », ce morceau fait vingt-cinq signes, la piste s'élargit, et c'est
-     TOUT le document qui se met à défiler de côté — relevé à 412 px, la
-     référence coupée au bord droit sur les deux listes. */
-  min-width: 0;
-}
-/* UN FAIT NE SE COUPE PAS EN DEUX : il emporte son séparateur, et la bande
-   passe à la ligne entre deux faits. */
-/* LES DEUX RANGÉES D'UNE LIGNE : son identité, puis ses chiffres.
-   Demandé le 29 octobre 2026 — « une présentation plus harmonieuse des
-   lignes proposées, facilitant la lecture rapide ». Voir « Faits » pour la
-   raison : dans une liste, l'œil compare la même grandeur d'une rangée à
-   l'autre, et une phrase la déplace à chaque fois. */
-.identite {
-  white-space: nowrap;
-  color: var(--ink);
-  font-weight: 600;
-}
-.chiffres {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px var(--s-5);
-  margin-top: var(--s-3);
-  font-size: var(--t-4);
-}
-.chiffre,
-.chiffreFort {
-  white-space: nowrap;
-  /* MÊME CHASSE POUR TOUS LES CHIFFRES : sans cela, « 1 » est plus étroit
-     que « 8 », et deux montants de même ordre ne s'alignent pas d'une
-     rangée à l'autre — ce qui est exactement ce qu'on vient corriger. */
-  font-variant-numeric: tabular-nums;
-}
-.chiffreFort {
-  color: var(--ink);
-  font-weight: 700;
-}
 /* L'étiquette dit QUOI, et se retire devant le chiffre : c'est lui qu'on
    compare. En petites capitales, elle se lit sans se disputer la ligne. */
 .etiquette {
@@ -413,7 +320,7 @@
    quelque chose qu'un client peut avoir besoin de lire une fois — mais elles
    attendent qu'on les demande.
    ──────────────────────────────────────────────────────────────────────────── */
-.question {
+.libelleChamp {
   display: inline-flex;
   align-items: center;
   gap: var(--s-3);
@@ -449,6 +356,10 @@
   background: var(--surface);
   min-width: 0;
 }
+/* UNE TUILE IMPAIRE S'ÉTALE sur les deux colonnes : seule à demi-largeur, elle laissait un trou. */
+.tuileChiffre:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
 .tuileChiffre dt,
 .tuileChiffre dd {
   margin: 0;
@@ -464,4 +375,126 @@
   display: flex;
   align-items: baseline;
   gap: var(--s-2);
+}
+
+/* ─── LES DEUX LISTES, À LA MANIÈRE DE L'ACCUEIL (3 novembre 2026) ────────────────────────────────
+   Le titre est à plat au-dessus ; la carte ne porte que des rangées, chacune un lien (64 px au moins).
+   Le fond, le bord et le rayon sont ceux des tuiles : un seul jeu de jetons pour toute la maison. */
+.compte {
+  color: var(--ink-3);
+  font-size: var(--t-3);
+  font-weight: 500;
+}
+.carte {
+  margin: 0;
+  padding: var(--s-3) 0;
+  list-style: none;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  overflow: hidden;
+}
+.carte > li + li {
+  border-top: 1px solid var(--line);
+}
+.rang {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  min-height: 64px;
+  padding: var(--s-5) var(--tuile-pad-x);
+  color: inherit;
+  text-decoration: none;
+}
+.rang:hover,
+.rang:focus-visible {
+  background: var(--neutral-soft);
+}
+.qui {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.qui b {
+  font-size: var(--t-5);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.qui small {
+  font-size: var(--t-3);
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+.etat {
+  font-size: var(--t-1);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.etat[data-ton="bon"] {
+  color: var(--good);
+}
+.etat[data-ton="attention"] {
+  color: var(--warn);
+}
+.bleu {
+  color: var(--info);
+  font-weight: 700;
+}
+.groupe {
+  white-space: nowrap;
+}
+.gris {
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.montant {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.montant b {
+  font-size: var(--t-5);
+  font-weight: 700;
+  color: var(--gold-ink);
+}
+.unite {
+  font-style: normal;
+  font-weight: 500;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  margin-left: 3px;
+}
+.chev {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* La réponse rapide se déplie sous la rangée, alignée sur son texte : un geste, pas un second titre. */
+.rapide {
+  padding: 0 var(--tuile-pad-x) var(--s-6);
+}
+.closes summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--ink-3);
+  font-size: var(--t-4);
+  font-weight: 600;
+  cursor: pointer;
+}
+.closes[open] summary {
+  margin-bottom: var(--titre-gap);
+}
+.lienAccuse {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

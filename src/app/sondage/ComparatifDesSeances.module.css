@@ -1,8 +1,42 @@
-/* Les blocs du comparatif (phrase, tableau, frise, courbe, autres pays) sont des BLOCS d'un chapitre :
+/* Les blocs du comparatif (listes, phrase, tableau, courbe) sont des BLOCS d'un chapitre :
    l'écart qui les sépare est celui des sections, pas celui des tuiles — sinon la page se tasse. */
 .comparatif {
   display: grid;
   gap: var(--sections-gap);
+}
+.selecteurs {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.deuxListes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tuiles-gap);
+}
+.champ {
+  display: grid;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.etiquette {
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.etat {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-7);
+  align-items: baseline;
+  color: var(--ink-3);
+  font-size: var(--t-3);
+}
+.revenir {
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .phrase {
   margin: 0;
@@ -12,6 +46,7 @@
   max-width: 60ch;
 }
 .mention {
+  margin: 0;
   color: var(--ink-3);
   font-size: var(--t-4);
 }
@@ -44,6 +79,12 @@
   text-transform: uppercase;
   border-top: 0;
 }
+.tableau small {
+  display: block;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  font-weight: 500;
+}
 .vous td {
   color: var(--gold-ink);
   font-weight: 700;
@@ -64,51 +105,66 @@
   text-transform: uppercase;
   color: var(--ink-3);
 }
-.frise {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--s-2) var(--s-3);
-  padding-block: var(--s-2);
-  font-size: var(--t-3);
-  color: var(--ink-2);
-}
-.frVal {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.piste {
-  position: relative;
-  grid-column: 1 / -1;
-  height: 10px;
-  border-radius: 5px;
-  background: var(--surface-2);
-}
-.plage {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: calc(var(--a) * 1%);
-  width: max(4px, calc((var(--b) - var(--a)) * 1%));
-  border-radius: 4px;
-  background: var(--info);
-}
-.limite {
-  position: absolute;
-  top: -4px;
-  bottom: -4px;
-  left: calc(var(--a) * 1%);
-  width: 2px;
-  background: var(--gold-ink);
-}
 .legende {
   margin: 0;
   color: var(--ink-3);
   font-size: var(--t-3);
 }
+.segment {
+  display: flex;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.segment button {
+  flex: 1;
+  min-height: 44px;
+  padding: var(--s-4) var(--s-3);
+  border: 0;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  font-weight: 600;
+  cursor: pointer;
+}
+.segment button + button {
+  border-left: 1px solid var(--line-2);
+}
+.segment button[aria-pressed="true"] {
+  background: var(--fill);
+  color: var(--fill-ink);
+}
+.option {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 .courbe {
   width: 100%;
-  max-width: 420px;
+  max-width: 460px;
   height: auto;
+}
+.grille {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.graduation {
+  font-size: 10px;
+  fill: var(--ink-3);
+}
+.valeur {
+  font-size: 10.5px;
+  font-weight: 700;
+  fill: var(--ink);
 }
 .ligne {
   stroke: var(--info);
@@ -117,28 +173,24 @@
 .point {
   fill: var(--info);
 }
+.fourchette {
+  fill: var(--info);
+  opacity: 0.28;
+}
 .trait {
   stroke: var(--gold-ink);
-  stroke-width: 1;
-  stroke-dasharray: 4 3;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
 }
-.axe {
-  display: flex;
-  justify-content: space-between;
-  max-width: 420px;
-  color: var(--ink-3);
-  font-size: var(--t-3);
+.puce {
+  fill: var(--gold-ink);
 }
-.ailleurs summary {
-  cursor: pointer;
-  color: var(--ink-2);
-  font-size: var(--t-4);
-  min-height: 44px;
-  display: flex;
-  align-items: center;
+.puceTexte {
+  font-size: 10px;
+  font-weight: 800;
+  fill: var(--paper);
 }
-.ailleurs summary::after {
-  content: "▾";
-  margin-left: var(--s-2);
-  color: var(--ink-3);
+.zone {
+  fill: var(--info);
+  opacity: 0.14;
 }

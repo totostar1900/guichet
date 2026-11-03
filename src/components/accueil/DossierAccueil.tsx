@@ -246,7 +246,7 @@ export async function DossierAccueil({
                     {l.limites.niveau && l.limites.prix && " • "}
                     {l.limites.prix && (
                       <span className={`${styles.bleu} ${styles.groupe}`}>
-                        {t("prix")} {t("min")} {l.limites.prix.valeur}
+                        {t("prix")} {t("max")} {l.limites.prix.valeur}
                         {l.limites.rendement && <span className={styles.gris}> (≈ {l.limites.rendement.valeur})</span>}
                       </span>
                     )}

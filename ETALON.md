@@ -609,10 +609,20 @@ ou « Coupon » et « Rdt » pour une obligation — en bleu d'information
 **Le gabarit des lignes qui se demandent (2 novembre 2026).** « Mes intentions » et
 « Mes intentions au sondage » écrivent « OTA 4 ans • CMR » (`gabarit.ts` : instrument,
 durée, pays abrégé `CODE_PAYS`) ; dessous, le montant en or, le coupon et les limites en
-bleu — un taux **minimum**, un prix **minimum** (« prix max » est refusé par le dirigeant, 3 novembre 2026) ; le rendement qui en
-découle n'est qu'un équivalent, en gris entre parenthèses. Une rangée du sondage ouvre
-`/sondage?ligne=<id>` (une question du desk aussi) : ce que le client a dit, puis le comparatif des séances passées
-(tableau, frise, courbe, autres pays repliés). « Mes lignes suivies »
+bleu — un taux **minimum**, un prix **maximum** (« prix max partout », 3 novembre 2026) ; le rendement qui en
+découle n'est qu'un équivalent, en gris entre parenthèses.
+
+**La page Sondage et le détail d'une intention (3 novembre 2026).** Les deux listes (« Combien
+investiriez-vous ? », « Mes intentions ») ont la grammaire de l'Accueil : titre à plat, carte qui ne
+porte que des rangées, toute la rangée est un lien vers `/sondage?ligne=<id>` (une question du desk
+aussi). « Modifier » et « Retirer » ne sont plus dans la liste : sur le détail, « Modifier » est le
+bouton principal et « Retirer » un lien. La réponse rapide se déplie sous la rangée d'une question ;
+les intentions closes sont repliées (« Closes (n) »). Le détail dit ce que le client a dit, puis ce
+que la place a servi : deux listes en tête (pays — un seul à la fois —, durée exacte ou panier, dans
+l'adresse), le tableau (coupon, prix, rendement, la durée sur chaque ligne), la courbe à axes avec
+sa fourchette min–max et la limite étiquetée, un sélecteur de mesure (prix, coupon, rendement) et le
+nuage coupon × prix en option. Aucune lecture n'est une promesse : un compte du passé, avec sa
+mention. « Mes lignes suivies »
 met le rendement seul en haut, la période sur sa ligne (« du {a} au {b} » pour un fonds), et
 ce qui presse en pastille : plus de note qui répète le chiffre.
 

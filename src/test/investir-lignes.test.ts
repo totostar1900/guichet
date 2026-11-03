@@ -214,8 +214,10 @@ describe("chaque rangée de l'Accueil ouvre la ligne qu'elle montre (2 novembre 
     const d = code("src/components/accueil/DossierAccueil.tsx");
     expect(d, "les rangées du sondage mènent de nouveau à la page entière").toContain("href={`/sondage?ligne=${l.id}`}");
     expect(d, "le sondage de l'Accueil montre trois lignes").toContain("vivantes.slice(0, 3)");
+    /* LA PAGE DU SONDAGE FAIT DE MÊME : toute la rangée d'une intention ouvre son détail. */
+    expect(code("src/app/sondage/RangeeDeSondage.tsx"), "une rangée de la page du sondage n'ouvre plus sa ligne").toContain("href={`/sondage?ligne=${l.id}`}");
     const p = code("src/app/sondage/page.tsx");
-    expect(p, "la page du sondage ne lit plus ?ligne=").toMatch(/const \{ ligne \} = await searchParams/);
+    expect(p, "la page du sondage ne lit plus ?ligne=").toMatch(/const \{ ligne, pays, duree \} = await searchParams/);
     expect(p, "le détail n'a plus son retour vers la liste").toMatch(/retour=\{\{ href: "\/sondage"/);
   });
 

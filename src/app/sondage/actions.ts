@@ -11,7 +11,7 @@ import { PAYS_CEMAC } from "@/lib/market/budget";
 import { fmt, fmtPct, localIso, parseAmount } from "@/lib/format";
 import type { Country, NewLigneSondee } from "@/lib/domain/types";
 
-export type SondageResult = { ok: true; ref: string; message: string } | { ok: false; error: string };
+export type SondageResult = { ok: true; ref: string; id?: string; message: string } | { ok: false; error: string };
 
 const PATH = "/sondage";
 
@@ -72,10 +72,9 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
   /**
    * UN GESTE, PLUSIEURS LIGNES — ET ELLES NE S'ADDITIONNENT PAS.
    *
-   * Le client choisit désormais plusieurs Trésors et plusieurs durées d'un
-   * coup : « cinquante millions, sur du camerounais ou du gabonais, à deux,
-   * cinq ou sept ans ». Cela fait six lignes pour cinquante millions, pas
-   * trois cents — voir « DOCTRINE_UNE_SEULE_FOIS ». Elles partagent donc un
+   * Le client choisit plusieurs durées d'un coup (un seul Trésor depuis le 3 novembre 2026) :
+   * « cinquante millions, sur du camerounais, à deux, cinq ou sept ans ». Cela fait trois lignes
+   * pour cinquante millions, pas cent cinquante — voir « DOCTRINE_UNE_SEULE_FOIS ». Elles partagent donc un
    * identifiant de famille, et le consensus s'en sert pour ne compter ce
    * montant ferme nulle part.
    *
@@ -83,6 +82,9 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
    * Trésor et la durée, il n'y a rien à multiplier.
    */
   const pays = question ? [question.country] : [...new Set(form.getAll("country").map(String).filter(Boolean))];
+  /* UN SEUL TRÉSOR PAR PROPOSITION (3 novembre 2026) : le formulaire n'en laisse plus cocher qu'un,
+     et le serveur le redit — un formulaire est une commodité qu'on peut contourner. */
+  if (pays.length > 1) return { ok: false, error: "Une proposition porte un seul Trésor : pour en viser un autre, proposez une autre ligne." };
   const durees = question ? [question.tenor] : [...new Set(form.getAll("tenor").map(String).map((x) => x.trim()).filter(Boolean))];
   if (!pays.length) return { ok: false, error: "Choisissez au moins un Trésor." };
   if (!durees.length) return { ok: false, error: "Choisissez au moins une durée." };
@@ -159,6 +161,7 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
   return {
     ok: true,
     ref: creee.ref,
+    id: creee.id,
     message: question
       ? "Votre réponse est au desk. Elle ne vous engage à rien : c'est un renseignement, et il sert à dire au Trésor à quel niveau la demande tient encore."
       : familleId
@@ -244,7 +247,7 @@ export async function modifierLaLigne(_p: SondageResult | null, form: FormData):
   });
   revalidatePath(PATH);
   revalidatePath("/desk/sondage");
-  return { ok: true, ref: sienne.ref, message: "Votre intention est modifiée. Le desk lit la nouvelle, et elle garde la même référence." };
+  return { ok: true, ref: sienne.ref, id: sienne.id, message: "Votre intention est modifiée. Le desk lit la nouvelle, et elle garde la même référence." };
 }
 
 /**

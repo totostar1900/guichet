@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
@@ -91,14 +92,14 @@ function Fenetre({ aujourdHui, pretLe, jusquA, prefixe }: { aujourdHui: string; 
   return (
     <div className={styles.deux}>
       <label className="field">
-        <span className={styles.question}>
+        <span className={styles.libelleChamp}>
           {t("Prêt à partir du")}
           <Info text="Une séance tenue avant ce jour vous trouverait sans fonds : c'est pour cela qu'on vous le demande." label={t("Prêt à partir du")} subtle />
         </span>
         <input id={`${prefixe}-debut`} name="seanceLe" type="date" min={aujourdHui} value={debut} onChange={(e) => setDebut(e.target.value)} required />
       </label>
       <label className="field">
-        <span className={styles.question}>
+        <span className={styles.libelleChamp}>
           {t("Valable jusqu'au")}
           <Info text="Passé ce jour, votre attente se retire d'elle-même : le desk ne porte au Trésor que des appétits vivants. Laissez vide pour qu'elle tienne jusqu'à ce que vous la retiriez." label={t("Valable jusqu'au")} subtle />
         </span>
@@ -108,11 +109,29 @@ function Fenetre({ aujourdHui, pretLe, jusquA, prefixe }: { aujourdHui: string; 
   );
 }
 
-/* `discret` : le même geste, à l'endroit où il n'est pas le geste principal.
-   Dans la liste des intentions, « Modifier » est un lien comme « Retirer » ; sur
-   la tuile d'une question, c'est le bouton qu'on est venu chercher. Un libellé
-   long à côté d'un court ferait lire deux gestes différents. */
-export function Repondre({ question, existante, discret, aujourdHui }: { question: { id: string; instrument: InstrumentSonde; mot: "coupon" | "taux" }; existante?: Modifiable; discret?: boolean; aujourdHui: string }) {
+/**
+ * L'ACCUSÉ MÈNE AU DÉTAIL (3 novembre 2026) : après l'envoi, le client atterrit sur ce qu'il vient de
+ * dire — et sur le comparatif — au lieu de chercher sa ligne dans la liste. Le lien s'ajoute à
+ * l'accusé, il ne le remplace pas.
+ */
+function LienDuDetail({ id }: { id?: string }) {
+  const t = useT();
+  if (!id) return null;
+  return (
+    <>
+      {" "}
+      <Link href={`/sondage?ligne=${id}`} className={styles.lienAccuse}>
+        {t("Voir le détail")}
+      </Link>
+    </>
+  );
+}
+
+/* `forme` : le même geste, à trois endroits.
+   « primaire » : le bouton qu'on est venu chercher (la page d'une question, ou le détail d'une
+   intention) ; « sobre » : la réponse rapide sous une rangée de la liste, qui se déplie sur place ;
+   « lien » : un texte, quand le geste n'est pas le principal. */
+export function Repondre({ question, existante, forme = "primaire", aujourdHui }: { question: { id: string; instrument: InstrumentSonde; mot: "coupon" | "taux" }; existante?: Modifiable; forme?: "primaire" | "sobre" | "lien"; aujourdHui: string }) {
   const t = useT();
   const [state, action, pending] = useActionState<SondageResult | null, FormData>(existante ? modifierLaLigne : deposerLaLigne, null);
   const [montant, setMontant] = useState(existante ? groupe(existante.montant) : "");
@@ -131,16 +150,21 @@ export function Repondre({ question, existante, discret, aujourdHui }: { questio
   if (!ouvert || accuseFrais)
     return (
       <>
-        {accuseFrais && state?.ok && <p className={styles.recu}>{t(state.message)}</p>}
+        {accuseFrais && state?.ok && (
+          <p className={styles.recu}>
+            {t(state.message)}
+            <LienDuDetail id={state.id} />
+          </p>
+        )}
         <button
           type="button"
-          className={discret ? styles.lien : "btn primary"}
+          className={forme === "lien" ? styles.lien : forme === "sobre" ? "btn" : "btn primary"}
           onClick={() => {
             setRefLue(refRecue);
             setOuvert(true);
           }}
         >
-          {t(discret ? "Modifier" : accuseFrais ? "Modifier ma réponse" : existante ? "Modifier ma réponse" : "Je serais preneur")}
+          {t(forme === "lien" ? "Modifier" : accuseFrais || existante ? "Modifier ma réponse" : "Je serais preneur")}
         </button>
       </>
     );
@@ -166,7 +190,7 @@ export function Repondre({ question, existante, discret, aujourdHui }: { questio
             écritures ; c'est le navigateur qui coupait. « decimal » donne le même
             clavier au doigt et laisse passer la virgule. */}
         <label className="field">
-          <span className={styles.question}>
+          <span className={styles.libelleChamp}>
             {t(question.mot === "taux" ? "Au taux d'au moins (%)" : "Au coupon d'au moins (%)")}
             <Info text="Facultatif : sans condition, votre réponse tient quel que soit le niveau." label={t("Votre condition")} subtle />
           </span>
@@ -194,7 +218,7 @@ export function Repondre({ question, existante, discret, aujourdHui }: { questio
 /** Un jeton qu'on prend ou qu'on rend : le même geste pour les deux listes. */
 const bascule = (liste: string[], pose: (v: string[]) => void, v: string) => pose(liste.includes(v) ? liste.filter((x) => x !== v) : [...liste, v]);
 
-export function ProposerMaLigne({ existante, aujourdHui }: { existante?: Modifiable; aujourdHui: string }) {
+export function ProposerMaLigne({ existante, bouton, aujourdHui }: { existante?: Modifiable; bouton?: boolean; aujourdHui: string }) {
   const t = useT();
   const [state, action, pending] = useActionState<SondageResult | null, FormData>(existante ? modifierLaLigne : deposerLaLigne, null);
   const [instrument, setInstrument] = useState<InstrumentSonde>(existante?.instrument ?? "OTA");
@@ -263,7 +287,7 @@ export function ProposerMaLigne({ existante, aujourdHui }: { existante?: Modifia
      voyait plus ni le début du formulaire ni la fin. Une feuille garde la page
      dessous, à sa place, et rend les six champs d'un seul tenant. */
   const declencheur = existante ? (
-    <button type="button" className={styles.lien} onClick={ouvrir}>
+    <button type="button" className={bouton ? "btn primary" : styles.lien} onClick={ouvrir}>
       {t("Modifier")}
     </button>
   ) : (
@@ -279,6 +303,7 @@ export function ProposerMaLigne({ existante, aujourdHui }: { existante?: Modifia
       {accuseFrais && state?.ok && (
         <p className={styles.recu}>
           {t(state.message)} <span className="mono">{state.ref}</span>
+          <LienDuDetail id={state.id} />
         </p>
       )}
       {declencheur}
@@ -329,31 +354,28 @@ export function ProposerMaLigne({ existante, aujourdHui }: { existante?: Modifia
         </div>
       </div>
       {
-        /* PLUSIEURS TRÉSORS ET PLUSIEURS DURÉES, D'UN SEUL GESTE.
-           C'est la demande du 29 octobre 2026, et ce n'est pas un confort de
-           saisie : un client qui prendrait du camerounais OU du gabonais, à
-           deux, cinq OU sept ans, devait jusqu'ici remplir six fois le même
-           formulaire — ou n'en remplir qu'un et taire le reste. Le desk ne
-           voyait alors qu'un sixième de ce que la place accepterait.
-           CE QUI SÉPARE CES JETONS D'UNE LISTE : on en prend PLUSIEURS. Un
-           jeton qui s'ajoute et un jeton qui remplace se ressemblent trop pour
-           qu'on les laisse identiques — d'où la coche, qui dit « celui-ci
-           AUSSI » là où un fond plein dirait seulement « celui-ci ».
-           ET CE QU'ILS PRODUISENT SE LIT DESSOUS : six cases cochées ne font
-           pas une ligne mais six, et c'est la seule façon de le faire voir au
-           lieu de l'écrire. */
+        /* UN SEUL TRÉSOR, PLUSIEURS DURÉES (3 novembre 2026).
+           Le 29 octobre, le client pouvait cocher plusieurs Trésors ET plusieurs durées d'un seul
+           geste. Demandé le 3 novembre : « retirer la possibilité de sélectionner plusieurs pays
+           dans la proposition de lignes ». Une proposition porte donc UN Trésor — choisir un autre
+           déplace le choix — et garde ses durées multiples : « cinquante millions, au Cameroun, à
+           deux, cinq ou sept ans » reste un seul geste. Pour viser un autre Trésor, on propose une
+           autre ligne.
+           CE QUI SÉPARE CES JETONS D'UNE LISTE : pour les durées, on en prend PLUSIEURS, et la coche
+           dit « celle-ci AUSSI » là où un fond plein dirait seulement « celle-ci ». ET CE QU'ILS
+           PRODUISENT SE LIT DESSOUS : trois durées cochées ne font pas une ligne mais trois. */
         <>
           <fieldset className={styles.jeux}>
             <legend>
-              {t(seul ? "Le Trésor" : "Le ou les Trésors")}
-              <Info text={seul ? "Une intention porte un seul Trésor : en choisir un autre déplace votre choix." : "Prenez-en plusieurs si plusieurs vous conviennent : ce sont des alternatives, pas des additions, et votre montant n'est compté qu'une fois."} label={t("Le Trésor")} subtle />
+              {t("Le Trésor")}
+              <Info text={seul ? "Une intention porte un seul Trésor : en choisir un autre déplace votre choix." : "Une proposition porte un seul Trésor : pour en viser un autre, proposez une autre ligne."} label={t("Le Trésor")} subtle />
             </legend>
             {pays.map((p) => (
               <input key={p} type="hidden" name="country" value={p} />
             ))}
             <div className={styles.jetons}>
               {PAYS_CEMAC.map((p) => (
-                <button key={p} type="button" aria-pressed={pays.includes(p)} className={pays.includes(p) ? styles.jetonOn : styles.jeton} onClick={() => (seul ? setPays([p]) : bascule(pays, setPays, p))}>
+                <button key={p} type="button" aria-pressed={pays.includes(p)} className={pays.includes(p) ? styles.jetonOn : styles.jeton} onClick={() => setPays([p])}>
                   {pays.includes(p) && (
                     <span className={styles.coche} aria-hidden="true">
                       ✓
@@ -402,7 +424,7 @@ export function ProposerMaLigne({ existante, aujourdHui }: { existante?: Modifia
       }
       <div className={styles.deux}>
         <label className="field">
-          <span className={styles.question}>
+          <span className={styles.libelleChamp}>
             {t(instrument === "BTA" ? "Le taux que vous accepteriez, au moins (%)" : "Le coupon que vous attendez, au moins (%)")}
             <Info text={aide("rate")} label={t(instrument === "BTA" ? "Le taux que vous accepteriez" : "Le coupon que vous attendez")} subtle />
           </span>
@@ -410,7 +432,7 @@ export function ProposerMaLigne({ existante, aujourdHui }: { existante?: Modifia
         </label>
         {instrument === "OTA" && (
           <label className="field">
-            <span className={styles.question}>
+            <span className={styles.libelleChamp}>
               {t("Le prix que vous accepteriez, au plus (%)")}
               <Info text={aide("pricePct")} label={t("Le prix que vous accepteriez")} subtle />
             </span>
@@ -420,7 +442,7 @@ export function ProposerMaLigne({ existante, aujourdHui }: { existante?: Modifia
       </div>
       <div className={styles.un}>
         <label className="field">
-          <span className={styles.question}>
+          <span className={styles.libelleChamp}>
             {t("Ce que vous prendriez (FCFA)")}
             <Info text={aide("montant")} label={t("Ce que vous prendriez")} subtle />
           </span>
