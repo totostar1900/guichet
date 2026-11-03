@@ -10,7 +10,7 @@ import { summarize } from "@/lib/domain/summary";
 import { joursEnMots } from "@/lib/domain/echeances";
 import { fmtDate } from "@/lib/format";
 import { coursEtRevenus } from "@/lib/domain/ligne-titre";
-import { joursRestants } from "@/lib/domain/accueil";
+import { aUnRond, joursRestants } from "@/lib/domain/accueil";
 import { variationAffichee, variationsDesActions } from "@/lib/market/variations";
 import styles from "./BlocDeLignes.module.css";
 
@@ -26,6 +26,8 @@ export interface LigneDeBloc {
   id: string;
   href: string;
   offre: Pick<Offer, "issuer" | "country" | "title">;
+  /** Le rond (drapeau) devant le nom : les adjudications seulement. */
+  rond?: boolean;
   nom: string;
   meta?: string;
   valeur: string;
@@ -43,7 +45,7 @@ export async function lignesDeBloc(offres: Offer[], mode: "cote" | "fonds" | "ad
   const actions = mode === "cote" ? await variationsDesActions(offres) : new Map();
   return offres.map((o) => {
     const s = summarize(o, now);
-    const base: LigneDeBloc = { id: o.id, href: `/offres/${o.id}`, offre: o, nom: t(o.title), meta: t(s.subtitle), valeur: s.hero, libelle: s.heroUnit ? t(s.heroUnit) : undefined };
+    const base: LigneDeBloc = { id: o.id, href: `/offres/${o.id}`, offre: o, rond: aUnRond(o), nom: t(o.title), meta: t(s.subtitle), valeur: s.hero, libelle: s.heroUnit ? t(s.heroUnit) : undefined };
     if (mode === "adjudications") {
       const j = joursRestants(o.deadlineAt, now);
       const q = joursEnMots(j);
@@ -71,7 +73,7 @@ export async function BlocDeLignes({ id, titre, href, tout, lignes }: { id: stri
         {lignes.map((l) => (
           <li key={l.id}>
             <Link href={l.href} className={styles.ligne}>
-              <Avatar offre={l.offre} />
+              {l.rond && <Avatar offre={l.offre} />}
               <span className={styles.qui}>
                 <b>{l.nom}</b>
                 {l.meta && <small>{l.meta}</small>}

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { SEED_OFFERS } from "@/data/seed";
-import { gestesProposables, lignesSimilaires, listeDeLaFiche, type FaitsPourGestes } from "@/lib/domain/accueil";
+import { aUnRond, gestesProposables, lignesSimilaires, listeDeLaFiche, type FaitsPourGestes } from "@/lib/domain/accueil";
 import { coursEtRevenus } from "@/lib/domain/ligne-titre";
 import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
 import { gabaritDIntention, gabaritDeSondage, limitesDeSondage, periodeDeFonds } from "@/lib/domain/gabarit";
@@ -164,10 +164,12 @@ describe("le gabarit « OTA 4 ans • CMR » et les lignes suivies sans doublon 
     expect(gabaritDeSondage({ instrument: "BTA", tenor: "52 semaines", country: "Gabon" })).toBe("BTA 52 semaines • GAB");
   });
 
-  it("les limites : un taux MINIMUM et un prix MAXIMUM, jamais l'inverse ; rien sans valeur", () => {
-    expect(limitesDeSondage({ rate: 6.5, pricePct: 95 })).toEqual({ taux: `${fmtPct(6.5, 1)} min`, prix: `${fmtPrice(95)} max` });
-    expect(limitesDeSondage({ rate: 5.2 })).toEqual({ taux: `${fmtPct(5.2, 1)} min` });
-    expect(limitesDeSondage({})).toEqual({});
+  it("les limites : un taux MINIMUM et un prix MAXIMUM, deux emplacements toujours écrits ; un bon n'a pas de prix", () => {
+    expect(limitesDeSondage({ instrument: "OTA", rate: 6.5, pricePct: 95 })).toEqual({ taux: { valeur: fmtPct(6.5, 1) }, prix: { valeur: fmtPrice(95) } });
+    expect(limitesDeSondage({ instrument: "OTA" })).toEqual({ taux: { valeur: undefined }, prix: { valeur: undefined } });
+    const bon = limitesDeSondage({ instrument: "BTA", rate: 5.2 });
+    expect(bon.taux.valeur).toBe(fmtPct(5.2, 1));
+    expect(bon.prix, "un bon se vend précompté : pas d'emplacement « prix »").toBeUndefined();
   });
 
   it("une intention sur une OTA ou un BTA a son gabarit ; un fonds ou une action non", () => {
@@ -177,9 +179,11 @@ describe("le gabarit « OTA 4 ans • CMR » et les lignes suivies sans doublon 
     expect(gabaritDIntention({ ...base, kind: "OTA", maturityOn: "" })).toBeUndefined();
   });
 
-  it("la période d'un fonds donne ses deux dates, sans date de départ pas de période", () => {
-    const p = periodeDeFonds({ perf1yPct: 7.4, perf1yFrom: "2025-09-18", navDate: "2026-09-18" });
-    expect(p).toEqual({ a: fmtDate("2025-09-18"), b: fmtDate("2026-09-18") });
+  it("la période d'un fonds s'écrit en abrégé, deux dates à deux chiffres d'année ; sans date de départ pas de période", () => {
+    const p = periodeDeFonds({ perf1yPct: 7.4, perf1yFrom: "2025-09-18", navDate: "2026-10-16" });
+    expect(p?.a).toMatch(/25$/);
+    expect(p?.b).toMatch(/26$/);
+    expect(p?.a).not.toMatch(/2025/);
     expect(periodeDeFonds({ perf1yPct: 7.4, navDate: "2026-09-18" })).toBeUndefined();
     expect(periodeDeFonds({ perf1yFrom: "2025-09-18", navDate: "2026-09-18" })).toBeUndefined();
   });
@@ -188,8 +192,51 @@ describe("le gabarit « OTA 4 ans • CMR » et les lignes suivies sans doublon 
     const d = code("src/components/accueil/DossierAccueil.tsx");
     expect(d, "le doublon (une note qui répète la performance) est revenu").not.toMatch(/perf \?\? /);
     expect(d, "le chiffre de tête n'est plus seul en haut, en or").toMatch(/<b className=\{styles\.or\}>\{l\.valeur\}<\/b>/);
-    expect(d, "la période n'a plus sa propre ligne").toMatch(/\{l\.periode && <small>\{l\.periode\}<\/small>\}/);
+    expect(d, "la période n'a plus sa propre ligne").toMatch(/\{l\.periode && <small className=\{styles\.periode\}>\{l\.periode\}<\/small>\}/);
     expect(d, "ce qui presse n'est plus une pastille").toMatch(/\{l\.urgence && <PastilleEtat ton=\{l\.presse \? "attention" : "neutre"\}>/);
-    expect(d, "la période n'est plus écrite avec ses deux dates").toContain('t("du {a} au {b}", periodeFonds)');
+    expect(d, "la période n'est plus écrite en abrégé avec ses deux dates").toContain("`${periodeFonds.a} – ${periodeFonds.b}`");
+    expect(lire("src/components/accueil/DossierAccueil.module.css"), "la période peut de nouveau se couper sur deux lignes").toMatch(/\.periode \{\s*white-space: nowrap;/);
+  });
+});
+
+describe("chaque rangée de l'Accueil ouvre la ligne qu'elle montre (2 novembre 2026)", () => {
+  it("une rangée du sondage ouvre SA ligne : un lien propre, jamais la page entière", () => {
+    const d = code("src/components/accueil/DossierAccueil.tsx");
+    expect(d, "les rangées du sondage mènent de nouveau à la page entière").toContain("href={`/sondage#attente-${l.id}`}");
+    expect(code("src/app/sondage/page.tsx"), "la page du sondage n'a plus d'ancre par ligne").toContain("id={`attente-${m.id}`}");
+  });
+
+  it("une rangée d'intention, de ligne suivie, de titre, de fonds ou d'adjudication ouvre la fiche de SA ligne", () => {
+    const d = code("src/components/accueil/DossierAccueil.tsx");
+    expect(d).toContain("href: `/offres/${i.offerId}`");
+    expect(d).toContain("href: `/offres/${o.id}`");
+    expect(code("src/components/accueil/BlocDeLignes.tsx")).toContain("href: `/offres/${o.id}`");
+  });
+});
+
+describe("« Ce qui performe » : chaque rangée ouvre sa ligne (2 novembre 2026)", () => {
+  it("la rangée est un lien vers la fiche de la ligne, ou à défaut vers la société — jamais vers rien", () => {
+    const s = code("src/components/SensDuClassement.tsx");
+    expect(s, "la rangée n'est plus un lien").toMatch(/<Link href=\{l\.href\} className=\{styles\.ligne\}>/);
+    const c = code("src/components/CeQuiPerforme.tsx");
+    expect(c, "la fiche de la ligne n'est plus le lien quand le catalogue la porte").toContain("`/offres/boc-${l.isin.toLowerCase()}`");
+    expect(c, "le repli vers la société a disparu : un lien vers une fiche absente serait un 404").toContain("`/societes/${encodeURIComponent(l.mnemo)}`");
+  });
+});
+
+describe("le rond devant le nom : les adjudications seulement (2 novembre 2026)", () => {
+  it("un drapeau devant une séance du Trésor ; rien devant un titre coté ni un fonds", () => {
+    expect(aUnRond({ kind: "OTA" })).toBe(true);
+    expect(aUnRond({ kind: "BTA" })).toBe(true);
+    expect(aUnRond({ kind: "RACHAT" })).toBe(true);
+    expect(aUnRond({ kind: "MARCHE" }), "un titre coté n'a plus de rond").toBe(false);
+    expect(aUnRond({ kind: "FONDS" }), "un fonds n'a plus de rond").toBe(false);
+  });
+
+  it("les trois blocs qui posent un rond le conditionnent à la règle", () => {
+    expect(code("src/components/accueil/BlocDeLignes.tsx")).toContain("{l.rond && <Avatar offre={l.offre} />}");
+    expect(code("src/components/accueil/BlocDeLignes.tsx")).toContain("rond: aUnRond(o)");
+    expect(code("src/components/SelectionDuDesk.tsx")).toContain("{sobre && aUnRond(o) && <Avatar offre={o} />}");
+    expect(code("src/components/CeQuiFermeBientot.tsx")).toMatch(/o && aUnRond\(o\) \? <Avatar offre=\{o\} \/> : null/);
   });
 });

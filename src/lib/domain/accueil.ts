@@ -267,3 +267,12 @@ export function lignesSimilaires(o: Offer, offers: Offer[], now = new Date(), n 
     .slice(0, n)
     .map(({ x }) => x);
 }
+
+/**
+ * LE ROND D'UNE LIGNE (2 novembre 2026) : SEULES LES ADJUDICATIONS EN ONT.
+ *
+ * Un drapeau dit de quel Trésor on parle, et c'est ce qui distingue deux séances (« BTA 13
+ * semaines · Tchad », « OTA 5 ans · Gabon »). Devant un titre coté ou un fonds, le monogramme
+ * n'apprenait rien que le nom ne dise déjà, et prenait la place du nom : il part.
+ */
+export const aUnRond = (o: Pick<Offer, "kind" | "instrument" | "typeKey">): boolean => lieuDe(o) === "adjudications";

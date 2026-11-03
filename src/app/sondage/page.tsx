@@ -220,7 +220,7 @@ export default async function SondagePage() {
               {[...vivantes, ...closes].map((m) => {
                 const e = etatDeLAttente(m);
                 return (
-                  <li key={m.id} className={styles.attente} data-etat={e.etat}>
+                  <li key={m.id} id={`attente-${m.id}`} className={styles.attente} data-etat={e.etat}>
                     {/* L'ÉTAT OUVRE LA LIGNE, et il la quitte aussitôt : le mot
                         dit où en est l'attente, et le point d'interrogation dit
                         ce que le mot veut dire — vrai en permanence, donc

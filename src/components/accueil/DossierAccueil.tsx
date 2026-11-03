@@ -123,7 +123,7 @@ export async function DossierAccueil({
         nom: t(o.title),
         sous: t(s.subtitle),
         valeur: s.hero,
-        periode: periodeFonds ? t("du {a} au {b}", periodeFonds) : s.heroUnit ? t(s.heroUnit) : undefined,
+        periode: periodeFonds ? `${periodeFonds.a} – ${periodeFonds.b}` : s.heroUnit ? t(s.heroUnit) : undefined,
         urgence: q ? t("ferme {q}", { q: t(q.key, q.params) }) : undefined,
         statut: !q && displayStatus(o, now) !== "quoted" ? t(s.status) : undefined,
         presse: Boolean(e && e.urgence !== "calme"),
@@ -150,10 +150,11 @@ export async function DossierAccueil({
       servi: c.serviPct != null ? t("servi à {n} %", { n: String(c.serviPct) }) : undefined,
     };
   });
-  type Ligne = { texte: string; taux?: string; prix?: string; montant: string; etat: string; ton: "bon" | "attention" | "neutre" };
+  type Ligne = { id: string; texte: string; limites: ReturnType<typeof limitesDeSondage>; montant: string; etat: string; ton: "bon" | "attention" | "neutre" };
   const auSondage: Ligne[] = vivantes.slice(0, 2).map((x) => ({
+    id: x.id,
     texte: gabaritDeSondage(x),
-    ...limitesDeSondage(x),
+    limites: limitesDeSondage(x),
     montant: fmt(x.montant),
     etat: t(x.state === "consolidee" ? "portée au Trésor" : "ouverte"),
     ton: x.state === "consolidee" ? "neutre" : "bon",
@@ -231,16 +232,30 @@ export async function DossierAccueil({
       {presentes.has("sondage") && (
         <BlocPlat id="dossier-sondage" titre="Mes intentions au sondage" href="/sondage">
           {auSondage.map((l, k) => (
-            <Rang key={k} href="/sondage">
+            <Rang key={k} href={`/sondage#attente-${l.id}`}>
               <span className={styles.qui}>
                 <b>{l.texte}</b>
-                {(l.taux || l.prix) && (
-                  <small>
-                    {l.taux && <span className={styles.bleu}>{l.taux}</span>}
-                    {l.taux && l.prix && " • "}
-                    {l.prix && <span className={styles.bleu}>{l.prix}</span>}
-                  </small>
-                )}
+                <small>
+                  {l.limites.taux.valeur ? (
+                    <span className={`${styles.bleu} ${styles.groupe}`}>
+                      {l.limites.taux.valeur} {t("min")}
+                    </span>
+                  ) : (
+                    <span className={`${styles.muet} ${styles.groupe}`}>{t("taux")} —</span>
+                  )}
+                  {l.limites.prix && (
+                    <>
+                      {" • "}
+                      {l.limites.prix.valeur ? (
+                        <span className={`${styles.bleu} ${styles.groupe}`}>
+                          {l.limites.prix.valeur} {t("max")}
+                        </span>
+                      ) : (
+                        <span className={`${styles.muet} ${styles.groupe}`}>{t("prix")} —</span>
+                      )}
+                    </>
+                  )}
+                </small>
               </span>
               <span className={styles.montant}>
                 <b>
@@ -261,9 +276,9 @@ export async function DossierAccueil({
                 <b>{l.nom}</b>
                 <small>{l.sous}</small>
               </span>
-              <span className={styles.quoi}>
+              <span className={`${styles.quoi} ${styles.quoiLarge}`}>
                 <b className={styles.or}>{l.valeur}</b>
-                {l.periode && <small>{l.periode}</small>}
+                {l.periode && <small className={styles.periode}>{l.periode}</small>}
                 {l.urgence && <PastilleEtat ton={l.presse ? "attention" : "neutre"}>{l.urgence}</PastilleEtat>}
                 {l.statut && <small>{l.statut}</small>}
               </span>

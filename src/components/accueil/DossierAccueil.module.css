@@ -106,3 +106,14 @@
 .groupe {
   white-space: nowrap;
 }
+/* Une limite non fixée se lit « taux — » : en gris, pas en bleu. */
+.muet {
+  color: var(--ink-3);
+}
+/* La période d'une performance tient sur UNE ligne (« 18 sept. 25 – 16 oct. 26 ») : la colonne de droite s'élargit au besoin, le nom cède. */
+.quoiLarge {
+  max-width: none;
+}
+.periode {
+  white-space: nowrap;
+}

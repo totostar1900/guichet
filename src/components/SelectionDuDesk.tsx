@@ -5,6 +5,7 @@ import { variationAffichee, variationsDesActions } from "@/lib/market/variations
 import { summarize } from "@/lib/domain/summary";
 import type { Offer } from "@/lib/domain/types";
 import { Avatar } from "@/components/Avatar";
+import { aUnRond } from "@/lib/domain/accueil";
 import { PastilleVariation } from "@/components/PastilleVariation";
 import { TitreDeBloc } from "@/components/TitreDeBloc";
 import styles from "./SelectionDuDesk.module.css";
@@ -59,7 +60,7 @@ export async function SelectionDuDesk({ offres, sobre = false }: { /** Le titre 
         {picks.map(({ o, s }) => (
           <li key={o.id}>
             <Link className={styles.lien} href={`/offres/${o.id}`}>
-              {sobre && <Avatar offre={o} />}
+              {sobre && aUnRond(o) && <Avatar offre={o} />}
               <span className={styles.nom}>
                 {t(o.title)}
                 <small>{t(s.subtitle)}</small>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
+import { repo } from "@/lib/data";
 import { fmtDate } from "@/lib/format";
 import { performanceSur } from "@/lib/market/performe";
 import { SensDuClassement } from "./SensDuClassement";
@@ -33,6 +34,8 @@ export async function CeQuiPerforme({ max = 3 }: { max?: number }) {
   const t = await getT();
   const classement = await performanceSur();
   if (!classement) return null;
+  /* CHAQUE LIGNE OUVRE SA LIGNE (2 novembre 2026) : la fiche de la ligne quand le catalogue la porte, sinon la page de la société. Jamais un lien vers rien. */
+  const ouvertes = new Set((await repo().listOffers().catch(() => [])).filter((o) => !o.hidden).map((o) => o.id));
 
   return (
     <section className={styles.bloc} aria-labelledby="ce-qui-performe">
@@ -48,7 +51,7 @@ export async function CeQuiPerforme({ max = 3 }: { max?: number }) {
           pourcentage sans sa période se lit comme celui du jour, et c'est
           justement le chiffre qui n'existe pas ici. */}
       <p className={styles.fenetre}>{t("Du {a} au {b}, d'une séance à l'autre.", { a: fmtDate(classement.depuis, false), b: fmtDate(classement.jusquAu, false) })}</p>
-      <SensDuClassement lignes={classement.lignes} max={max} />
+      <SensDuClassement lignes={classement.lignes.map((l) => ({ ...l, href: ouvertes.has(`boc-${l.isin.toLowerCase()}`) ? `/offres/boc-${l.isin.toLowerCase()}` : `/societes/${encodeURIComponent(l.mnemo)}` }))} max={max} />
     </section>
   );
 }

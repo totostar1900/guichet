@@ -141,6 +141,8 @@
   display: grid;
   gap: var(--s-4);
   padding: var(--s-6) 0;
+  /* Venu de l'Accueil par « #attente-… » : la ligne s'arrête sous le haut de page, pas dessous. */
+  scroll-margin-top: var(--s-12);
 }
 .attente + .attente {
   border-top: 1px solid var(--line);

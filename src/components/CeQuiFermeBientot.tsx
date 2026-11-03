@@ -4,6 +4,7 @@ import { repo } from "@/lib/data";
 import { echeancesProches, joursEnMots, type Urgence } from "@/lib/domain/echeances";
 import type { Offer } from "@/lib/domain/types";
 import { Avatar } from "@/components/Avatar";
+import { aUnRond } from "@/lib/domain/accueil";
 import { TitreDeBloc } from "@/components/TitreDeBloc";
 import styles from "./CeQuiFermeBientot.module.css";
 
@@ -92,7 +93,7 @@ export async function CeQuiFermeBientot({
           return (
           <li key={e.offerId}>
             <Link className={styles.ligne} href={e.href}>
-              {sobre && offers.find((o) => o.id === e.offerId) && <Avatar offre={offers.find((o) => o.id === e.offerId)!} />}
+              {sobre && (() => { const o = offers.find((x) => x.id === e.offerId); return o && aUnRond(o) ? <Avatar offre={o} /> : null; })()}
               <span className={styles.quoi}>
                 <b>{t(e.titre)}</b>
                 <small>{t(e.quoi.key, e.quoi.params)}</small>

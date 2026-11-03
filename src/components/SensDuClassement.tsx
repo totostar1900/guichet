@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useT } from "@/i18n/client";
 import { fmt } from "@/lib/format";
@@ -23,7 +24,7 @@ import styles from "./CeQuiPerforme.module.css";
  * de tout un mois : un onglet qui s'ouvre sur rien se lit comme une panne,
  * alors qu'il dit quelque chose — que personne n'a reculé.
  */
-export function SensDuClassement({ lignes, max = 3 }: { lignes: Performance[]; max?: number }) {
+export function SensDuClassement({ lignes, max = 3 }: { lignes: (Performance & { href: string })[]; max?: number }) {
   const t = useT();
   const [baisse, setBaisse] = useState(false);
 
@@ -50,7 +51,8 @@ export function SensDuClassement({ lignes, max = 3 }: { lignes: Performance[]; m
       ) : (
         <ul className={styles.liste}>
           {vues.map((l) => (
-            <li key={l.isin} className={styles.ligne}>
+            <li key={l.isin}>
+              <Link href={l.href} className={styles.ligne}>
               <b className={styles.mnemo}>{l.mnemo}</b>
               <span className={styles.nom}>{l.nom}</span>
               <b className={styles.cours}>{fmt(Math.round(l.cours))}</b>
@@ -60,6 +62,7 @@ export function SensDuClassement({ lignes, max = 3 }: { lignes: Performance[]; m
                 {l.variationPct > 0 ? "+" : "−"}
                 {Math.abs(l.variationPct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
               </span>
+              </Link>
             </li>
           ))}
         </ul>

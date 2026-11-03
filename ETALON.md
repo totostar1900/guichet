@@ -613,6 +613,10 @@ bleu — un taux **minimum**, un prix **maximum**, jamais l'inverse. « Mes lign
 met le rendement seul en haut, la période sur sa ligne (« du {a} au {b} » pour un fonds), et
 ce qui presse en pastille : plus de note qui répète le chiffre.
 
+**Le rond devant un nom (2 novembre 2026).** Seules les adjudications en ont un (le drapeau
+du Trésor, `aUnRond`) : devant un titre coté ou un fonds, le monogramme prenait la place du nom
+sans rien apprendre.
+
 **Ajouter une famille de tuiles :** copier ces cinq déclarations dans sa règle,
 ajouter la famille à `FAMILLES_DE_TUILES` dans `espace-page.test.ts`, et
 regarder la page dans les trois aspects (`data-tuiles` se change dans les

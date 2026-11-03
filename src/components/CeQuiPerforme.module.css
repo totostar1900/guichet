@@ -134,3 +134,12 @@
   border: 0;
   border-radius: 0;
 }
+
+/* La rangée est le lien : couleur et soulignement du texte courant, cible d'au moins 64 px sur l'Accueil. */
+.ligne {
+  color: inherit;
+  text-decoration: none;
+}
+:global([data-tuiles="cartes"]) .ligne {
+  min-height: 64px;
+}
