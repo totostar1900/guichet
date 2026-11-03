@@ -7,6 +7,7 @@ import { Info } from "@/components/Info";
 import { Dropdown } from "@/components/market/Dropdown";
 import { useT } from "@/i18n/client";
 import { fmt, fmtPct, fmtUnits } from "@/lib/format";
+import { MiniCourbe } from "@/components/MiniCourbe";
 import styles from "./page.module.css";
 
 /** One listed company as the table needs it : flat, computed on the server. */
@@ -20,6 +21,9 @@ export interface CompanyRow {
   close?: number;
   variationPct?: number | null;
   ytdPct?: number | null;
+  /** Les cours de clôture des trois derniers mois, du plus ancien au plus récent : le petit graphe de la ligne. */
+  serie?: number[];
+  troisMoisPct?: number;
   marketCap?: number;
   per?: number;
   dividendYieldPct?: number;
@@ -27,11 +31,12 @@ export interface CompanyRow {
   dividendYear?: string | number;
 }
 
-type SortKey = "cap" | "name" | "price" | "day" | "ytd" | "per" | "yield" | "dividend";
+type SortKey = "cap" | "name" | "price" | "day" | "ytd" | "m3" | "per" | "yield" | "dividend";
 const SORT: [SortKey, string][] = [
   ["cap", "capitalisation"],
   ["yield", "rendement du dividende"],
   ["per", "PER"],
+  ["m3", "variation sur 3 mois"],
   ["ytd", "depuis le 1er janvier"],
   ["day", "variation du jour"],
   ["price", "cours"],
@@ -59,6 +64,8 @@ export function CompaniesBrowser({ rows }: { rows: CompanyRow[] }) {
           return num(a.variationPct) - num(b.variationPct);
         case "ytd":
           return num(a.ytdPct) - num(b.ytdPct);
+        case "m3":
+          return num(a.troisMoisPct) - num(b.troisMoisPct);
         case "per":
           return num(a.per) - num(b.per);
         case "yield":
@@ -100,13 +107,35 @@ export function CompaniesBrowser({ rows }: { rows: CompanyRow[] }) {
         </button>
       </div>
 
-      <div className={styles.panel}>
+      {/* SUR TÉLÉPHONE, UNE RANGÉE PAR SOCIÉTÉ, LE GRAPHE AU MILIEU (3 novembre 2026). Le tableau défilait de côté et sa colonne
+          « depuis le 1er janvier » était coupée ; la rangée dit le nom, la forme du cours sur trois mois, le cours et la variation
+          sur la même fenêtre. La description passe sur la fiche, qui est où elle se lit. Le tableau reste pour l'écran large. */}
+      <ul className={styles.rangees}>
+        {list.map((c) => (
+          <li key={c.mnemo}>
+            <Link className={styles.rang} href={`${base}/societes/${c.mnemo.toLowerCase()}`}>
+              <span className={styles.qui}>
+                <b>{c.mnemo}</b>
+                <small>{c.shortName}</small>
+              </span>
+              {c.serie && <MiniCourbe serie={c.serie} largeur={84} hauteur={32} />}
+              <span className={styles.px}>
+                <b>{c.close != null ? fmt(c.close) : "—"}</b>
+                {c.troisMoisPct != null && <span className={`${styles.pilule} ${cls(c.troisMoisPct)}`}>{signed(c.troisMoisPct, 1)}</span>}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <div className={`${styles.panel} ${styles.large}`}>
         <div className="scroll-x">
           <table className={styles.tbl}>
             <thead>
               <tr>
                 {th("name", t("Société"))}
                 {th("price", t("Cours"), "cours")}
+                {th("m3", t("3 mois"))}
                 {th("day", t("Var. jour"), undefined, true)}
                 {th("ytd", t("Depuis le 1er janv."), "ytd")}
                 {th("cap", t("Capitalisation"), "capitalisation")}
@@ -132,6 +161,12 @@ export function CompaniesBrowser({ rows }: { rows: CompanyRow[] }) {
                   <td className={styles.r}>
                     <b>{c.close != null ? fmt(c.close) : "—"}</b>
                   </td>
+                  <td className={styles.r}>
+                    <span className={styles.troisMois}>
+                      {c.serie && <MiniCourbe serie={c.serie} largeur={72} hauteur={26} />}
+                      <span className={cls(c.troisMoisPct)}>{c.troisMoisPct != null ? signed(c.troisMoisPct, 1) : "—"}</span>
+                    </span>
+                  </td>
                   <td className={`${styles.r} ${styles.hideSm} ${cls(c.variationPct)}`}>{signed(c.variationPct)}</td>
                   <td className={`${styles.r} ${cls(c.ytdPct)}`}>{c.ytdPct != null ? signed(c.ytdPct) : "—"}</td>
                   <td className={styles.r}>{c.marketCap != null ? fmtUnits(c.marketCap) : "—"}</td>
@@ -151,7 +186,7 @@ export function CompaniesBrowser({ rows }: { rows: CompanyRow[] }) {
               ))}
               {list.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="muted">
+                  <td colSpan={11} className="muted">
                     {t("Aucune société ne correspond à ces filtres.")}
                   </td>
                 </tr>

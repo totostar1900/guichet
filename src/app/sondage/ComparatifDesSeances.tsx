@@ -92,7 +92,7 @@ export function ComparatifDesSeances({ c, rendementLimite, role = "attente", bas
       )}
 
       <CourbeDesSeances
-        points={c.seances.map((s) => ({ id: s.id, le: s.le, niveau: s.niveau, bas: s.bas, haut: s.haut, coupon: s.coupon, rendement: s.rendement }))}
+        points={c.seances.map((s) => ({ id: s.id, le: s.le, tenor: s.tenor, couverture: s.couverture, niveau: s.niveau, bas: s.bas, haut: s.haut, coupon: s.coupon, rendement: s.rendement }))}
         unite={c.unite}
         limite={c.limite}
         limiteCoupon={c.limiteCoupon}

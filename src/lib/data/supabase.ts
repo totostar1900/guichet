@@ -2932,6 +2932,10 @@ export const supabaseRepository: Repository = {
     const data = await parLots<unknown>("quotesOn", (de, a) => db().from("quotes").select("*").eq("session_date", sessionDate).order("isin").order("session_date").range(de, a));
     return (data as QuoteRow[]).map(toQuote);
   },
+  async actionQuotesSince(depuis) {
+    const data = await parLots<unknown>("actionQuotesSince", (de, a) => db().from("quotes").select("*").eq("instrument", "action").gte("session_date", depuis).order("session_date").order("isin").range(de, a));
+    return (data as QuoteRow[]).map(toQuote);
+  },
   async marketMovements() {
     /* UNE FONCTION EN BASE, et non une lecture suivie d'un recoupement ici :
        la différence d'ensembles porte sur toutes les séances à la fois, donc

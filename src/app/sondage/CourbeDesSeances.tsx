@@ -8,6 +8,8 @@ import styles from "./ComparatifDesSeances.module.css";
 export interface PointDeCourbe {
   id: string;
   le: string;
+  tenor?: string;
+  couverture?: number;
   niveau?: number;
   bas?: number;
   haut?: number;
@@ -194,9 +196,19 @@ function Graphique({ serie, limite, etiquette, marches, decimales }: { serie: { 
   );
 }
 
-/** Le nuage : un point par séance, le coupon en abscisse et le prix en ordonnée ; vos deux limites en quadrant. */
+/**
+ * LE NUAGE : UN POINT PAR SÉANCE, COLORÉ PAR ANNÉE, ET UNE FICHE AU TOUCHER (3 novembre 2026).
+ *
+ * Quand plusieurs séances ont le même coupon et des prix voisins, les étiquettes d'année se recouvraient. Elles sont
+ * parties : chaque année a sa teinte, d'une rampe qui va du plus ancien (bleu) au plus récent (rouge), doublée d'une
+ * légende — la teinte ne porte rien seule. Toucher ou survoler un point (ou l'atteindre au clavier) trace DEUX BARRES
+ * jusqu'aux axes, avec leur valeur, et ouvre la fiche de la séance : date, durée, coupon, prix, rendement, couverture.
+ * La plus récente est choisie d'office, pour que le nuage ne s'ouvre pas sur une page sans lecture.
+ */
 function Nuage({ points, limitePrix, limiteCoupon }: { points: PointDeCourbe[]; limitePrix?: number; limiteCoupon?: number }) {
   const t = useT();
+  const { fmtDate } = useDates();
+  const [choisi, setChoisi] = useState<string>(points[points.length - 1]?.id ?? "");
   const cs = [...points.map((p) => p.coupon!), ...(limiteCoupon != null ? [limiteCoupon] : [])];
   const ps = [...points.map((p) => p.niveau!), ...(limitePrix != null ? [limitePrix] : [])];
   const mc = (Math.max(...cs) - Math.min(...cs)) * 0.15 || 0.5;
@@ -207,18 +219,19 @@ function Nuage({ points, limitePrix, limiteCoupon }: { points: PointDeCourbe[]; 
   const p1 = Math.max(...ps) + mp;
   const X = (c: number) => G + ((c - c0) / (c1 - c0)) * (W - G - D);
   const Y = (p: number) => HAUT + (1 - (p - p0) / (p1 - p0)) * (H - HAUT - BAS);
-  /* Deux séances de la même année au même coupon n'écrivent leur année qu'une fois : sinon les étiquettes se recouvrent. */
-  const deja = new Set<string>();
-  const etiquette = (p: PointDeCourbe): string | undefined => {
-    const k = `${p.coupon}-${p.le.slice(0, 4)}`;
-    if (deja.has(k)) return undefined;
-    deja.add(k);
-    return p.le.slice(0, 4);
+  const nb = (v: number, d = 2) => v.toFixed(d).replace(".", ",");
+  /* Une teinte par année, du plus ancien au plus récent. */
+  const annees = [...new Set(points.map((p) => p.le.slice(0, 4)))].sort();
+  const teinte = (a: string) => {
+    const i = annees.indexOf(a);
+    const h = annees.length < 2 ? 215 : 215 - (i / (annees.length - 1)) * 205;
+    return `hsl(${h.toFixed(0)} 68% 58%)`;
   };
+  const sel = points.find((p) => p.id === choisi) ?? points[0];
   return (
     <div className={styles.bloc}>
       <h3 className={styles.sous}>{t("Coupon en abscisse · prix en ordonnée")}</h3>
-      <svg viewBox={`0 0 ${W} ${H}`} className={styles.courbe} role="img" aria-label={t("Nuage coupon × prix")}>
+      <svg viewBox={`0 0 ${W} ${H}`} className={styles.courbe} role="group" aria-label={t("Nuage coupon × prix")}>
         {graduations(p0, p1).map((v) => (
           <g key={v}>
             <line x1={G} x2={W - D} y1={Y(v)} y2={Y(v)} className={styles.grille} />
@@ -235,16 +248,54 @@ function Nuage({ points, limitePrix, limiteCoupon }: { points: PointDeCourbe[]; 
         {limitePrix != null && limiteCoupon != null && <rect x={X(limiteCoupon)} y={Y(limitePrix)} width={W - D - X(limiteCoupon)} height={H - BAS - Y(limitePrix)} className={styles.zone} />}
         {limiteCoupon != null && <line x1={X(limiteCoupon)} x2={X(limiteCoupon)} y1={HAUT} y2={H - BAS} className={styles.trait} />}
         {limitePrix != null && <line x1={G} x2={W - D} y1={Y(limitePrix)} y2={Y(limitePrix)} className={styles.trait} />}
-        {points.map((p) => (
-          <g key={p.id}>
-            <circle cx={X(p.coupon!)} cy={Y(p.niveau!)} r={4} className={styles.point} />
-            <text x={X(p.coupon!) + 7} y={Y(p.niveau!) + 3} className={styles.valeur}>
-              {etiquette(p)}
+        {/* LES BARRES DE SURVOL : deux guides du point choisi jusqu'aux axes, et leur valeur en étiquette pleine. */}
+        {sel && (
+          <g aria-hidden="true">
+            <line x1={X(sel.coupon!)} x2={X(sel.coupon!)} y1={Y(sel.niveau!)} y2={H - BAS} className={styles.guide} />
+            <line x1={G} x2={X(sel.coupon!)} y1={Y(sel.niveau!)} y2={Y(sel.niveau!)} className={styles.guide} />
+            <rect x={X(sel.coupon!) - 19} y={H - BAS + 1} width={38} height={14} rx={3} className={styles.etiquetteAxe} />
+            <text x={X(sel.coupon!)} y={H - BAS + 11.5} textAnchor="middle" className={styles.etiquetteAxeTexte}>
+              {nb(sel.coupon!)} %
+            </text>
+            <rect x={2} y={Y(sel.niveau!) - 7} width={G - 4} height={14} rx={3} className={styles.etiquetteAxe} />
+            <text x={G / 2} y={Y(sel.niveau!) + 3.5} textAnchor="middle" className={styles.etiquetteAxeTexte}>
+              {nb(sel.niveau!)}
             </text>
           </g>
-        ))}
+        )}
+        {points.map((p) => {
+          const ici = p.id === sel?.id;
+          const libelle = `${fmtDate(p.le)} · ${t("Coupon")} ${nb(p.coupon!)} % · ${t("Prix")} ${nb(p.niveau!)} %`;
+          return (
+            <g key={p.id} role="button" tabIndex={0} aria-label={libelle} aria-pressed={ici} className={styles.pointNuage} onPointerEnter={() => setChoisi(p.id)} onClick={() => setChoisi(p.id)} onFocus={() => setChoisi(p.id)}>
+              {/* Une cible de 24 px : un point de 9 px ne se touche pas du pouce. */}
+              <circle cx={X(p.coupon!)} cy={Y(p.niveau!)} r={12} fill="transparent" />
+              <circle cx={X(p.coupon!)} cy={Y(p.niveau!)} r={ici ? 6.5 : 4.5} fill={teinte(p.le.slice(0, 4))} className={ici ? styles.pointChoisi : styles.pointAnnee} />
+            </g>
+          );
+        })}
       </svg>
-      <p className={styles.legende}>{limitePrix != null && limiteCoupon != null ? t("Le quadrant teinté réunit vos deux limites : coupon au moins égal, prix au plus égal.") : t("Un point par séance.")}</p>
+      <div className={styles.legendeAnnees} aria-label={t("Années")}>
+        {annees.map((a) => (
+          <span key={a}>
+            <i style={{ background: teinte(a) }} aria-hidden="true" />
+            {a}
+          </span>
+        ))}
+      </div>
+      {sel && (
+        <div className={styles.fiche} aria-live="polite">
+          <b>
+            {fmtDate(sel.le)}
+            {sel.tenor ? ` · ${sel.tenor}` : ""}
+          </b>
+          <span>
+            {t("Coupon")} {nb(sel.coupon!)} % · {t("Prix")} {nb(sel.niveau!)} %{sel.rendement != null ? ` · ${t("Rdt")} ${nb(sel.rendement)} %` : ""}
+          </span>
+          {sel.couverture != null && <small>{t("couv. {c} %", { c: String(Math.round(sel.couverture)) })}</small>}
+        </div>
+      )}
+      <p className={styles.legende}>{limitePrix != null && limiteCoupon != null ? t("Le quadrant teinté réunit vos deux limites : coupon au moins égal, prix au plus égal.") : t("Touchez un point pour lire sa séance.")}</p>
     </div>
   );
 }

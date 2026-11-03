@@ -265,3 +265,82 @@
 .navigateur > * {
   min-width: 0;
 }
+
+/* ─── LES SOCIÉTÉS EN RANGÉES SUR TÉLÉPHONE, LE GRAPHE AU MILIEU (3 novembre 2026) ─────────────────────
+   Une carte qui ne porte que des rangées, chacune un lien de 64 px : la grammaire de l'Accueil. Le tableau garde
+   l'écran large ; le téléphone n'a plus de défilement latéral. */
+.rangees {
+  margin: 0;
+  padding: var(--s-3) 0;
+  list-style: none;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  overflow: hidden;
+}
+.rangees > li + li {
+  border-top: 1px solid var(--line);
+}
+.rang {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  min-height: 64px;
+  padding: var(--s-5) var(--tuile-pad-x);
+  color: inherit;
+  text-decoration: none;
+}
+.rang:hover,
+.rang:focus-visible {
+  background: var(--neutral-soft);
+}
+.qui {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.qui b {
+  font-size: var(--t-5);
+  font-weight: 700;
+}
+.qui small {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.px {
+  flex: none;
+  min-width: 74px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s-2);
+  font-variant-numeric: tabular-nums;
+}
+.px b {
+  font-size: var(--t-4);
+}
+.pilule {
+  font-size: var(--t-2);
+  font-weight: 700;
+}
+.troisMois {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.large {
+  display: none;
+}
+@media (min-width: 821px) {
+  .rangees {
+    display: none;
+  }
+  .large {
+    display: block;
+  }
+}

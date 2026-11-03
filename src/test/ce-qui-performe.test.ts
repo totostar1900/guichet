@@ -42,16 +42,25 @@ describe("ce qui performe, à l'écran", () => {
   /* LE SIGNE EST ÉCRIT, PAS SEULEMENT TEINTÉ. Qui ne distingue pas le vert du
      rouge doit lire « −3,1 % » et savoir tout. */
   it("écrit le signe de la variation", () => {
-    expect(code(SENS), "le signe n'est plus écrit : la couleur porte seule le sens de la variation").toMatch(/variationPct > 0 \? "\+" : "−"/);
+    expect(code(SENS), "le signe n'est plus écrit : la couleur porte seule le sens de la variation").toMatch(/arrondi > 0 \? "\+" : arrondi < 0 \? "−" : ""/);
   });
 
-  /* UN CÔTÉ VIDE SE NOMME. Sur cette place, un mois entier sans une seule
-     baisse arrive, et un onglet qui s'ouvre sur rien se lit comme une panne
-     alors qu'il dit quelque chose. */
-  it("nomme chacun des deux côtés vides", () => {
+  /* « TOUJOURS DEUX À TROIS LIGNES » (3 novembre 2026) : aucun seuil n'écarte une ligne immobile, et un côté
+     ne se vide plus — la bascule garde la queue du classement retournée, et les lignes à 0,0 % complètent. */
+  it("ne vide plus un côté : plus de message de côté vide, plus de filtre sur le signe", () => {
     const src = code(SENS);
-    expect(src, "le côté sans baisse ne se nomme plus").toContain("Aucune ligne n'a reculé sur la période.");
-    expect(src, "le côté sans hausse ne se nomme plus").toContain("Aucune ligne n'a monté sur la période.");
+    expect(src, "un côté vide se nomme de nouveau : le classement ne complète plus avec des lignes à 0,0 %").not.toContain("Aucune ligne n'a reculé");
+    expect(src, "le classement refiltre sur le signe : un marché calme vide de nouveau le bloc").not.toMatch(/variationPct\s*[<>]\s*0\)/);
+    expect(src, "les baisses ne sont plus la queue du classement, retournée").toMatch(/\(baisse \? \[\.\.\.lignes\]\.reverse\(\) : lignes\)\.slice\(0, max\)/);
+  });
+
+  /* LE PETIT GRAPHE EST AU MILIEU DE LA LIGNE : la forme du cours sur la fenêtre, entre le nom et le cours. */
+  it("dessine le petit graphe de chaque ligne, entre le nom et le cours", () => {
+    const src = code(SENS);
+    expect(src, "le petit graphe a quitté la ligne").toMatch(/<MiniCourbe serie=\{l\.serie\} \/>/);
+    expect(src.indexOf("<MiniCourbe"), "le graphe n'est plus entre le nom et le cours").toBeGreaterThan(src.indexOf("styles.nom"));
+    expect(src.indexOf("<MiniCourbe"), "le graphe n'est plus avant le cours").toBeLessThan(src.indexOf("styles.cours"));
+    expect(code(SECTION), "la fenêtre n'est plus dite sur trois mois").toContain("sur trois mois");
   });
 
   /* L'ÉTAT NON CHOISI GARDE SON CONTOUR, et les deux onglets se disent à qui

@@ -626,6 +626,18 @@ mention. « Mes lignes suivies »
 met le rendement seul en haut, la période sur sa ligne (« du {a} au {b} » pour un fonds), et
 ce qui presse en pastille : plus de note qui répète le chiffre.
 
+**La cote, les sociétés et « Ce qui performe » (3 novembre 2026).** « Ce qui performe » compare sur
+**trois mois** (du 3 août au 2 nov. en ce moment), pas d'une séance à l'autre : le classement et le petit
+graphe de chaque ligne (`MiniCourbe`, au milieu de la rangée, teinté par le signe, cours de départ en
+pointillé) lisent une seule requête (`actionQuotesSince`). Aucun seuil n'écarte une ligne immobile : « toujours
+deux à trois lignes », quitte à les afficher à 0,0 %. La page des sociétés a la même fenêtre : une rangée-lien par
+société sur téléphone, le graphe au milieu, et la colonne « 3 mois » sur l'écran large. La cote (`/titres`) ouvre
+sur « Actions » et montre **une section à la fois** — la bande des sections filtre de nouveau, contre la décision du
+4 octobre —, chaque pastille avec l'icône de son émetteur ; « Tout » rend les cinq. Une section se limite à huit
+lignes, puis « Voir les N lignes » ; sur les États, six pastilles à la couleur de chaque Trésor
+(`COUNTRY_COLOR`) filtrent par pays. Le nuage coupon × prix a une teinte par année, deux barres de survol vers
+les axes et une fiche au toucher.
+
 **Le rond devant un nom (2 novembre 2026).** Seules les adjudications en ont un (le drapeau
 du Trésor, `aUnRond`) : devant un titre coté ou un fonds, le monogramme prenait la place du nom
 sans rien apprendre.

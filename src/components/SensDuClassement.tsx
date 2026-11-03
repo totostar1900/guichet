@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import { fmt } from "@/lib/format";
 import type { Performance } from "@/lib/market/performe";
+import { MiniCourbe } from "./MiniCourbe";
 import styles from "./CeQuiPerforme.module.css";
 
 /**
@@ -20,20 +21,22 @@ import styles from "./CeQuiPerforme.module.css";
  * différence de teinte ; « role=tab » et « aria-selected » le disent à qui
  * écoute la page, et la bordure le dit à qui la regarde.
  *
- * UN CÔTÉ VIDE SE NOMME. Sur cette place, il arrive qu'aucune ligne ne baisse
- * de tout un mois : un onglet qui s'ouvre sur rien se lit comme une panne,
- * alors qu'il dit quelque chose — que personne n'a reculé.
+ * LE GRAPHE EST AU MILIEU DE LA LIGNE (3 novembre 2026) : le nom à gauche, la forme du cours sur trois mois au
+ * centre, le cours et la variation à droite. Un côté ne se vide plus : « toujours deux à trois lignes », quitte
+ * à les afficher à 0,0 %.
  */
 export function SensDuClassement({ lignes, max = 3 }: { lignes: (Performance & { href: string })[]; max?: number }) {
   const t = useT();
+  const { fmtDate } = useDates();
   const [baisse, setBaisse] = useState(false);
 
   /* Le classement arrive de la plus forte hausse à la plus forte baisse : les
      hausses sont donc la tête, et les baisses la queue, retournée pour que la
      plus forte vienne en premier dans les deux cas. */
-  const hausses = lignes.filter((l) => l.variationPct > 0);
-  const baisses = lignes.filter((l) => l.variationPct < 0).reverse();
-  const vues = (baisse ? baisses : hausses).slice(0, max);
+  /* « TOUJOURS DEUX À TROIS LIGNES » (3 novembre 2026) : les hausses sont la tête du classement et les
+     baisses sa queue, retournée pour que la plus forte vienne en premier. Aucun seuil : sur un marché calme,
+     des lignes à 0,0 % complètent la liste plutôt que de la laisser se vider. */
+  const vues = (baisse ? [...lignes].reverse() : lignes).slice(0, max);
 
   return (
     <>
@@ -46,27 +49,32 @@ export function SensDuClassement({ lignes, max = 3 }: { lignes: (Performance & {
         </button>
       </div>
 
-      {vues.length === 0 ? (
-        <p className={styles.rien}>{baisse ? t("Aucune ligne n'a reculé sur la période.") : t("Aucune ligne n'a monté sur la période.")}</p>
-      ) : (
-        <ul className={styles.liste}>
-          {vues.map((l) => (
+      <ul className={styles.liste}>
+        {vues.map((l) => {
+          const arrondi = Math.round(l.variationPct * 10) / 10;
+          const ton = arrondi > 0 ? styles.hausse : arrondi < 0 ? styles.baisse : styles.stable;
+          return (
             <li key={l.isin}>
               <Link href={l.href} className={styles.ligne}>
-              <b className={styles.mnemo}>{l.mnemo}</b>
-              <span className={styles.nom}>{l.nom}</span>
-              <b className={styles.cours}>{fmt(Math.round(l.cours))}</b>
-              {/* LE SIGNE EST ÉCRIT, pas seulement teinté : qui ne distingue
-                  pas le vert du rouge lit « −3,1 % » et sait tout. */}
-              <span className={`${styles.pilule} ${l.variationPct > 0 ? styles.hausse : styles.baisse}`}>
-                {l.variationPct > 0 ? "+" : "−"}
-                {Math.abs(l.variationPct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
-              </span>
+                <span className={styles.qui}>
+                  <b className={styles.mnemo}>{l.mnemo}</b>
+                  <span className={styles.nom}>{l.nom}</span>
+                </span>
+                <MiniCourbe serie={l.serie} />
+                <span className={styles.px}>
+                  <b className={styles.cours}>{fmt(Math.round(l.cours))}</b>
+                  {/* LE SIGNE EST ÉCRIT, pas seulement teinté : qui ne distingue pas le vert du rouge lit
+                      « −3,1 % » et sait tout. UNE LIGNE ENTRÉE PENDANT LA FENÊTRE le dit dans l'infobulle. */}
+                  <span className={`${styles.pilule} ${ton}`} title={l.entree ? t("Depuis l'entrée à la cote, le {d}", { d: fmtDate(l.depuis, false) }) : undefined}>
+                    {arrondi > 0 ? "+" : arrondi < 0 ? "−" : ""}
+                    {Math.abs(l.variationPct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
+                  </span>
+                </span>
               </Link>
             </li>
-          ))}
-        </ul>
-      )}
+          );
+        })}
+      </ul>
     </>
   );
 }

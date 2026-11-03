@@ -9,6 +9,7 @@ import { fmtDate, fmtUnits } from "@/lib/format";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { MarketStrip } from "@/components/MarketStrip";
+import { performanceSur } from "@/lib/market/performe";
 import { EnTete } from "@/components/EnTete";
 
 
@@ -23,7 +24,9 @@ import { EnTete } from "@/components/EnTete";
 export async function SocietesBody({ mode = "client" }: { mode?: "client" | "desk" } = {}) {
   const t = await getT();
   const r = repo();
-  const [latest, bulletins] = await Promise.all([r.latestQuotes(), r.listBulletins(1)]);
+  const [latest, bulletins, trois] = await Promise.all([r.latestQuotes(), r.listBulletins(1), performanceSur().catch(() => undefined)]);
+  /* LE PETIT GRAPHE ET LA VARIATION SUR TROIS MOIS viennent de la même lecture que « Ce qui performe » : une seule fenêtre dans la maison. */
+  const troisMois = new Map((trois?.lignes ?? []).map((l) => [l.mnemo, l]));
   const quotes = new Map(latest.filter((q) => q.instrument === "action").map((q) => [q.isin, q]));
   const [COMPANIES, ISSUERS] = await Promise.all([loadCompanies(), loadIssuers()]);
   const rows = COMPANIES.map((c) => analyse(c, quotes.get(c.isin))).sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0));
@@ -64,6 +67,8 @@ export async function SocietesBody({ mode = "client" }: { mode?: "client" | "des
           close: a.quote?.close,
           variationPct: a.quote?.variationPct,
           ytdPct: a.quote?.ytdVariationPct,
+          serie: troisMois.get(a.company.mnemo)?.serie,
+          troisMoisPct: troisMois.get(a.company.mnemo)?.variationPct,
           marketCap: a.marketCap,
           per: a.per,
           dividendYieldPct: a.dividendYieldPct,

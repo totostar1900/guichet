@@ -1,0 +1,44 @@
+.rangee {
+  display: flex;
+  gap: var(--s-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.rangee::-webkit-scrollbar {
+  display: none;
+}
+.rangee button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 36px;
+  padding: var(--s-3) var(--s-6);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  font-weight: 600;
+  cursor: pointer;
+}
+.rangee button b {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+.rangee button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.rangee button.on {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.rond {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+  box-shadow: 0 0 0 1px var(--line-2);
+}

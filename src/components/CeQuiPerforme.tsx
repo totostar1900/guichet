@@ -50,7 +50,7 @@ export async function CeQuiPerforme({ max = 3 }: { max?: number }) {
       {/* LA FENÊTRE EST DANS LA PHRASE, PAS DANS UNE NOTE DE BAS DE BLOC : un
           pourcentage sans sa période se lit comme celui du jour, et c'est
           justement le chiffre qui n'existe pas ici. */}
-      <p className={styles.fenetre}>{t("Du {a} au {b}, d'une séance à l'autre.", { a: fmtDate(classement.depuis, false), b: fmtDate(classement.jusquAu, false) })}</p>
+      <p className={styles.fenetre}>{t("Du {a} au {b}, sur trois mois.", { a: fmtDate(classement.depuis, false), b: fmtDate(classement.jusquAu, false) })}</p>
       <SensDuClassement lignes={classement.lignes.map((l) => ({ ...l, href: ouvertes.has(`boc-${l.isin.toLowerCase()}`) ? `/offres/boc-${l.isin.toLowerCase()}` : `/societes/${encodeURIComponent(l.mnemo)}` }))} max={max} />
     </section>
   );

@@ -144,8 +144,11 @@ describe("la page des adjudications", () => {
        laisse la tête en double, ce qu'un seul « toMatch » ne voyait pas. */
     expect([...BROWSER.matchAll(/grouped && !featured && !deja/g)].length, "« renderUn » regroupe de nouveau sous un bloc qui a déjà son titre").toBe(4);
     expect(BROWSER, "un regroupement a repris sans tenir compte du bloc qui l'appelle").not.toMatch(/grouped && !featured \?/);
-    // La bande des sections ne paraît plus : le titre est le sommaire.
-    expect(BROWSER, "la bande des sections est revenue au-dessus des titres").toMatch(/\{!sommaire && <SectionChips/);
+    /* LA BANDE DES SECTIONS NE PARAÎT PAS SUR LES ADJUDICATIONS : le titre y est le sommaire. Sur la COTE, elle est revenue
+       le 3 novembre 2026, et elle FILTRE (« Actions » d'abord) : la liste faisait 12 390 px, et les actions commençaient à
+       83 % de la page. */
+    expect(BROWSER, "la bande des sections paraît de nouveau sur les adjudications").toMatch(/\{!adj && \(\s*<SectionChips/);
+    expect(BROWSER, "la bande de la cote ne filtre plus").toMatch(/filtrant=\{lieu === "cote"\}/);
   });
 
   it("met le filtre, le rangement et le resserrement sur une seule ligne", () => {

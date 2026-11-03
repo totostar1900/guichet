@@ -15,6 +15,8 @@ import { CoachMarks } from "./mobile/CoachMarks";
 import { DensitySwitch, useDistinction } from "./Density";
 import { BackToTop } from "./BackToTop";
 import { SectionChips } from "./SectionChips";
+import { PastillesPays } from "./PastillesPays";
+import { PAYS_CEMAC } from "@/lib/market/budget";
 import { DureeGauge, dureeRangeLabel, dureeRangeParam, parseDureeRange } from "./DureeRange";
 import { AireEpinglee } from "./market/AireEpinglee";
 import { NuageTitres } from "./market/NuageTitres";
@@ -428,6 +430,9 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge, e
 }
 
 /* ---------- browser ---------- */
+/** Le nombre de lignes qu'une section montre avant « Voir les N lignes ». */
+const LIGNES_VISIBLES = 8;
+
 export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis }: { offers: Offer[]; nowIso: string; fundsCount: number; lieu?: Lieu; /** Les lignes sur lesquelles CE lecteur a armé une alerte, lues au serveur. */ suivis?: string[] }) {
   const now = useMemo(() => new Date(nowIso), [nowIso]);
   const t: T = useT();
@@ -443,7 +448,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
 
   const kind = setOf("instrument");
   const segment = (sp.get("marche") as MarketSegment | null) ?? undefined;
-  const sectionChoisie = (sp.get("section") as Section | null) ?? undefined;
+  const sectionParam = sp.get("section");
   const grouped = sp.get("groupe") === "emetteur";
   const country = setOf("pays");
   const status = setOf("statut");
@@ -535,6 +540,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    */
   const view: View = phone ? "cards" : ((sp.get("vue") as View) || "table");
   const [sheet, setSheet] = useState(false);
+  /* La section dont on a demandé toutes les lignes : une seule à la fois, et elle se referme en changeant de section. */
+  const [deployee, setDeployee] = useState<string | null>(null);
   // The search's suggestions while typing: distinct lines, issuers and ISINs that contain the letters.
   const [draft, setDraft] = useState("");
   const suggestions = useMemo(() => {
@@ -587,13 +594,22 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
      choisie, l'ordre et son sens. Il ne remettait que les filtres, et qui
      avait trié gardait son ordre après l'avoir touché. */
   const reset = () => update({ marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, ans: undefined, rendement: undefined, q: undefined, section: undefined, tri: undefined, sens: undefined, mesure: undefined });
+  /**
+   * UNE SECTION À LA FOIS, « ACTIONS » D'ABORD (3 novembre 2026).
+   *
+   * La liste de la cote empilait cinq sections : 12 390 px à 390 px de large, dont 6 281 pour les seuls États, et les
+   * actions — ce que l'on cherche le plus — commençaient à 83 % de la page. La cote ouvre donc sur « Actions » ; « Tout »
+   * (« ?section=tout ») rend les cinq. Une recherche ou un filtre actif ne force rien : on cherche dans tout.
+   */
+  const filterCount0 = kind.size + country.size + status.size + tenor.size;
+  const sectionChoisie: Section | undefined = sectionParam === "tout" ? undefined : ((sectionParam as Section | null) ?? (lieu === "cote" && filterCount0 === 0 && !sp.get("q") && !sp.get("rendement") && !sp.get("ans") && !sp.get("marche") ? ("actions" as Section) : undefined));
   const filterCount = kind.size + country.size + status.size + tenor.size + (yr.min != null || yr.max != null ? 1 : 0) + (dr.min != null || dr.max != null ? 1 : 0) + (segment ? 1 : 0);
   /* Ce que « Tout effacer » aurait à défaire : il se lit après le compte des
      filtres, qui en fait partie. */
   /* « mesure » n'est pas un filtre, elle ne retire aucune ligne : elle est
      dans « Tout effacer » pour la raison du tri, parce qu'effacer veut dire
      rendre la page telle qu'elle s'ouvre. */
-  const aEffacer = filterCount > 0 || Boolean(q) || Boolean(sp.get("tri")) || Boolean(sp.get("sens")) || Boolean(sectionChoisie) || Boolean(sp.get("mesure"));
+  const aEffacer = filterCount > 0 || Boolean(q) || Boolean(sp.get("tri")) || Boolean(sp.get("sens")) || Boolean(sectionParam) || Boolean(sp.get("mesure"));
   const famItems = SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyShort(f)] as [string, string]));
   const groups: Group[] = [
     { key: "instrument", label: t("Instrument"), items: famItems, selected: kind },
@@ -636,6 +652,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     }
     return c;
   }, [offers, lieu]);
+  /* Les six Trésors, et combien de lignes d'État chacun porte : les pastilles de couleur de la section « États ». */
+  const paysDesEtats = useMemo(() => PAYS_CEMAC.map((p) => ({ pays: p, n: offers.filter((o) => sectionDe(o) === "etats" && o.country === p).length })), [offers]);
   /**
    * LE CRIBLE, ÉCRIT UNE FOIS, ET SES DEUX PLAGES EN OPTION.
    *
@@ -826,7 +844,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     return groupBySection(list, lieu).map((g) => ({ clef: g.section, entier: t(SECTION_LABEL[g.section]), rows: g.rows }));
   };
 
-  const render = (list: Row[], featured: boolean) =>
+  const rendreListe = (list: Row[], featured: boolean) =>
     view === "table" ? (
       <Table
         rows={list}
@@ -838,7 +856,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         chosen={Boolean(sp.get("vue"))}
         sections={!featured && !sansGroupe && !grouped && !sectionChoisie ? blocsDuSommaire(list).map((b) => ({ clef: b.clef, nom: b.entier, rows: b.rows })) : undefined}
       />
-    ) : sommaire && !featured && !sansGroupe ? (
+    ) : sommaire && !featured && !sansGroupe && !sectionChoisie ? (
       (() => {
         const blocs = blocsDuSommaire(list);
         /* LES NOMS COURTS NE VALENT QUE POUR LES ÉMETTEURS. « Trésor public
@@ -875,6 +893,29 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       renderUn(list, featured)
     );
 
+  /**
+   * HUIT LIGNES, PUIS « VOIR LES N LIGNES » (3 novembre 2026).
+   *
+   * Les États en portent quarante-huit : même seuls sur la page, ils en feraient 6 000 px. La section ne montre que
+   * ses huit premières lignes, et « Voir les N lignes » rend les autres — comme « Tout voir » de l'Accueil. Une
+   * recherche ou un filtre actif n'abrège rien : on cherche dans tout.
+   */
+  const abrege = lieu === "cote" && Boolean(sectionChoisie) && !q && filterCount === 0 && deployee !== sectionChoisie;
+  const render = (list: Row[], featured: boolean) => {
+    const tronque = abrege && !featured && list.length > LIGNES_VISIBLES;
+    return (
+      <>
+        {rendreListe(tronque ? list.slice(0, LIGNES_VISIBLES) : list, featured)}
+        {tronque && (
+          <button type="button" className={styles.voirTout} onClick={() => setDeployee(sectionChoisie ?? null)}>
+            <span>{t("Voir les {n} lignes", { n: list.length })}</span>
+            <span aria-hidden="true">→</span>
+          </button>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className={styles.wrap} ref={wrapRef}>
       {/* L'en-tête nomme la cote et renvoie aux fonds : il n'a rien à dire sur
@@ -889,7 +930,17 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       {/* LA BANDE DES SECTIONS NE PARAÎT PLUS SUR LES ADJUDICATIONS : le
           titre de chaque bloc y est le sommaire, comme sur les fonds, et deux
           rangements au choix auraient demandé deux barres. */}
-      {!sommaire && <SectionChips sections={SECTIONS[lieu]} counts={sectionCounts} selected={sectionChoisie} total={offers.length} onChange={(k) => update({ section: k, instrument: undefined })} />}
+      {!adj && (
+        <SectionChips
+          sections={lieu === "cote" ? ["actions", "etats", "regionales", "entreprises", "souscription"] : SECTIONS[lieu]}
+          counts={sectionCounts}
+          selected={sectionChoisie}
+          total={offers.length}
+          filtrant={lieu === "cote"}
+          onChange={(k) => update({ section: k ?? (lieu === "cote" ? "tout" : undefined), instrument: undefined, pays: lieu === "cote" ? undefined : country.size ? [...country].join(",") : undefined })}
+        />
+      )}
+      {lieu === "cote" && sectionChoisie === "etats" && <PastillesPays pays={paysDesEtats} selected={country} onChange={(p) => update({ pays: p })} />}
       <div className={styles.top} ref={top}>
         <div className={styles.toolbar} data-coach="titres-filtres">
           {!adj && (

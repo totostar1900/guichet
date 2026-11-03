@@ -68,6 +68,7 @@ const READS = new Set([
   "listQuotes",
   "latestQuotes",
   "quotesOn",
+  "actionQuotesSince",
   "quoteActivity",
   "marketMovements",
   "listFundNavs",

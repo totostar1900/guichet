@@ -2,128 +2,116 @@ import { repo } from "@/lib/data";
 import type { Quote } from "@/lib/domain/market";
 
 /**
- * CE QUI A PERFORMÉ SUR UNE FENÊTRE, EN TROIS LECTURES BORNÉES.
+ * CE QUI A PERFORMÉ SUR TROIS MOIS, EN DEUX LECTURES BORNÉES (3 novembre 2026).
+ *
+ * DEMANDÉ : « "ce qui performe" sur les 3 derniers mois et non d'une séance à l'autre, avec un petit
+ * graphe de performance dans la ligne. On veut toujours 2 à 3 lignes, quitte à afficher des lignes à 0 %. »
  *
  * ─── Pourquoi une lecture à part ───────────────────────────────────────────
  *
- * « indexPageData » répond déjà à cette question, et la page du marché s'en
- * sert : elle lit deux mille bulletins, les derniers cours, les sociétés,
- * puis deux mille cotations PAR LIGNE cotée. Une dizaine de requêtes, dont
- * sept non bornées. C'est juste pour une page où l'on vient étudier le
- * marché ; c'est hors de prix sur la page d'arrivée, qui est la plus visitée
- * de la maison et qui en fait déjà huit pour le dossier du client.
+ * « indexPageData » répond déjà à cette question, et la page du marché s'en sert : elle lit deux mille
+ * bulletins, les derniers cours, les sociétés, puis deux mille cotations PAR LIGNE cotée. C'est juste pour
+ * une page où l'on vient étudier le marché ; c'est hors de prix sur la page d'arrivée, qui est la plus
+ * visitée de la maison.
  *
- * Un classement sur trente jours ne demande pourtant que DEUX COURS par
- * ligne : celui d'aujourd'hui et celui d'il y a trente jours. Et « quotesOn »
- * rend toutes les lignes d'une séance en une requête. D'où trois lectures,
- * toutes bornées : le calendrier récent des séances, puis les deux bornes.
+ * Le classement sur trois mois et le petit graphe lisent donc la MÊME lecture : le dernier bulletin (la
+ * date de fin), puis « actionQuotesSince », qui rend les cotations des actions depuis la borne en une seule
+ * requête — une soixantaine de séances par action, jamais l'histoire ligne par ligne.
  *
  * ─── Ce que la fenêtre répare ──────────────────────────────────────────────
  *
- * Relevé dans « IndexPulse » et dans la page du marché : l'indice bouge sur
- * 70 des 271 séances lues, et une action garde son cours dans 95 % d'entre
- * elles. Un classement du JOUR serait donc une colonne de zéros trois jours
- * sur quatre, et « les plus fortes baisses » resterait vide. La fenêtre est
- * déclarée, et c'est elle qui rend le classement lisible.
+ * Une action garde son cours dans 95 % des séances. D'une séance à l'autre, le classement était une colonne
+ * de zéros ; sur trente jours il restait court. Sur TROIS MOIS, il a une forme, et le petit graphe la montre.
  *
- * ─── Deux restrictions, et elles sont dans la donnée ───────────────────────
+ * ─── Ce que le classement refuse d'inventer ────────────────────────────────
  *
- * LES ACTIONS SEULES. Une obligation se cote en pourcentage du nominal et son
- * mouvement dit l'état des taux ; une action se cote en francs et son
- * mouvement dit celui de la société. Les ranger dans un même classement
- * reviendrait à comparer deux grandeurs qui n'ont ni la même unité ni la même
- * cause.
+ * LES ACTIONS SEULES. Une obligation se cote en pourcentage du nominal et son mouvement dit l'état des
+ * taux ; une action se cote en francs et son mouvement dit celui de la société.
  *
- * CELLES QUI N'ONT PAS BOUGÉ N'Y SONT PAS. Une ligne à « 0,0 % » sur trente
- * jours n'a pas performé : l'inscrire dans un classement de performance
- * remplirait la liste de lignes immobiles, ce que la fenêtre venait
- * justement d'éviter. Le seuil est celui de l'affichage — une variation
- * arrondie à zéro à l'écran n'est pas un mouvement pour le lecteur.
+ * UNE LIGNE ENTRÉE À LA COTE PENDANT LA FENÊTRE n'a pas de cours de départ : sa variation part de sa
+ * PREMIÈRE cotation, et la ligne le dit (« entree »). BGFI Holding est entrée le 26 août 2026 : lui prêter un
+ * chiffre depuis le 3 août serait le plus gros du classement, et il serait inventé.
+ *
+ * CELLES QUI N'ONT PAS BOUGÉ Y SONT, À 0,0 % (3 novembre 2026). Elles en étaient écartées par un seuil
+ * d'affichage ; mais « toujours deux à trois lignes » vaut mieux qu'un bloc qui se vide sur un marché calme,
+ * et un cours inchangé depuis trois mois est lui-même une information. À égalité, l'ordre alphabétique du
+ * mnémonique tranche.
  */
 
-/** La fenêtre par défaut : trente jours, comme le dit la section. */
-export const JOURS_FENETRE = 30;
+/** La fenêtre : trois mois civils, comme le dit la section. */
+export const MOIS_FENETRE = 3;
 
-/**
- * Le nombre de bulletins lus pour retrouver la séance de référence.
- *
- * La BVMAC cote environ cinq fois par semaine : quarante-cinq bulletins
- * couvrent largement trente jours, même avec des trous. C'est la seule des
- * trois lectures dont la borne est un pari, et elle se trompe du bon côté :
- * trop court, la fonction ne rend rien plutôt qu'une fenêtre fausse.
- */
-const BULLETINS_LUS = 45;
-
-/** En deçà, la variation s'affiche « 0,0 % » : ce n'est pas un mouvement pour le lecteur. */
-const SEUIL = 0.05;
+/** Une première cotation plus tardive que ceci (en jours) après la borne : la ligne est entrée pendant la fenêtre. */
+const JOURS_DE_GRACE = 10;
 
 export interface Performance {
   isin: string;
   mnemo: string;
   nom: string;
-  /** Le cours de clôture à la borne récente, dans l'unité de la ligne. */
   cours: number;
-  /** La variation entre les deux bornes, en pour-cent. */
   variationPct: number;
+  /** Les cours de clôture de la fenêtre, du plus ancien au plus récent : de quoi dessiner la ligne. */
+  serie: number[];
+  /** Le jour de la première cotation lue. */
+  depuis: string;
+  /** Vrai quand la ligne est entrée à la cote après le début de la fenêtre : sa variation part de `depuis`. */
+  entree: boolean;
 }
 
 export interface Classement {
-  /** La séance la plus récente lue, et celle qui sert de référence. */
   jusquAu: string;
+  /** La première séance de la fenêtre, celle qu'on écrit : la plus ancienne première cotation lue, pas la borne civile. */
   depuis: string;
-  /** Les lignes qui ont bougé, de la plus forte hausse à la plus forte baisse. */
+  /** Toutes les actions lues, de la plus forte hausse à la plus forte baisse. */
   lignes: Performance[];
 }
 
+const jours = (de: string, a: string): number => Math.round((Date.parse(`${a}T00:00:00Z`) - Date.parse(`${de}T00:00:00Z`)) / 86_400_000);
+
+/** Le début de la fenêtre : trois mois civils avant la dernière séance. */
+export function debutDeFenetre(jusquAu: string, mois = MOIS_FENETRE): string {
+  const d = new Date(`${jusquAu}T12:00:00Z`);
+  d.setUTCMonth(d.getUTCMonth() - mois);
+  return d.toISOString().slice(0, 10);
+}
+
 /**
- * Le classement, à partir des deux bornes. Pur : c'est ici que tout se
- * décide, et c'est ici que les épreuves regardent.
+ * Le classement, écrit une fois et testé sans base : il reçoit les cotations, jamais le dépôt.
  */
-export function classer(fin: Quote[], debut: Quote[], seuil = SEUIL): Performance[] {
-  /* UN SEUL FILTRE SUR L'INSTRUMENT, et il est plus bas. Il y en avait deux
-     — ici et sur la borne récente — qui produisaient le même effet : aucune
-     épreuve ne pouvait alors distinguer celui qui travaille de celui qui
-     dort, et retirer l'un des deux ne cassait rien. */
-  const avant = new Map(debut.map((q) => [q.isin, q]));
+export function classerSurFenetre(cotations: Quote[], depuis: string): Performance[] {
+  const parLigne = new Map<string, Quote[]>();
+  for (const q of cotations) {
+    if (q.instrument !== "action" || q.sessionDate < depuis || !q.close) continue;
+    parLigne.set(q.isin, [...(parLigne.get(q.isin) ?? []), q]);
+  }
   const out: Performance[] = [];
-  for (const q of fin) {
-    if (q.instrument !== "action") continue;
-    const d = avant.get(q.isin);
-    /* UNE LIGNE ARRIVÉE APRÈS LA BORNE N'A PAS DE PERFORMANCE SUR LA FENÊTRE.
-       BGFI Holding est entrée à la cote le 26 août 2026 : lui prêter une
-       variation depuis une séance où elle n'était pas cotée donnerait un
-       chiffre inventé. */
-    if (!d || !d.close || !q.close) continue;
-    const variationPct = ((q.close - d.close) / d.close) * 100;
-    if (Math.abs(variationPct) < seuil) continue;
-    out.push({ isin: q.isin, mnemo: q.mnemo, nom: q.designation || q.mnemo, cours: q.close, variationPct });
+  for (const lot of parLigne.values()) {
+    const l = [...lot].sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
+    const premier = l[0];
+    const dernier = l[l.length - 1];
+    /* UNE SEULE COTATION NE FAIT PAS UNE PERFORMANCE : il faut deux bornes. */
+    if (l.length < 2 || !premier.close || !dernier.close) continue;
+    out.push({
+      isin: dernier.isin,
+      mnemo: dernier.mnemo,
+      nom: dernier.designation || dernier.mnemo,
+      cours: dernier.close,
+      variationPct: ((dernier.close - premier.close) / premier.close) * 100,
+      serie: l.map((q) => q.close as number),
+      depuis: premier.sessionDate,
+      entree: jours(depuis, premier.sessionDate) > JOURS_DE_GRACE,
+    });
   }
   return out.sort((a, b) => b.variationPct - a.variationPct || a.mnemo.localeCompare(b.mnemo, "fr"));
 }
 
-/**
- * Les trois lectures, puis le classement.
- *
- * Rend « undefined » quand l'histoire lue ne couvre pas la fenêtre : mieux
- * vaut pas de section qu'une fenêtre plus courte que son titre.
- *
- * LA FENÊTRE S'ANCRE SUR LA DERNIÈRE SÉANCE, PAS SUR L'HORLOGE. Si la place
- * n'a rien publié depuis une semaine — vacances, panne de collecte, jours
- * fériés nationaux — compter trente jours depuis aujourd'hui donnerait une
- * fenêtre de vingt-trois séances sous un titre qui en annonce trente. Les
- * deux bornes sont deux séances réelles, et la section dit lesquelles.
- */
-export async function performanceSur(jours = JOURS_FENETRE): Promise<Classement | undefined> {
+export async function performanceSur(mois = MOIS_FENETRE): Promise<Classement | undefined> {
   const r = repo();
-  const bulletins = await r.listBulletins(BULLETINS_LUS).catch(() => []);
-  if (bulletins.length < 2) return undefined;
-  /* « listBulletins » rend du plus récent au plus ancien. */
-  const jusquAu = bulletins[0].sessionDate;
-  const limite = new Date(new Date(`${jusquAu}T12:00:00Z`).getTime() - jours * 86_400_000).toISOString().slice(0, 10);
-  const reference = bulletins.find((b) => b.sessionDate <= limite);
-  if (!reference) return undefined;
-  const [fin, debut] = await Promise.all([r.quotesOn(jusquAu).catch(() => []), r.quotesOn(reference.sessionDate).catch(() => [])]);
-  const lignes = classer(fin, debut);
+  const [dernier] = await r.listBulletins(1).catch(() => []);
+  if (!dernier) return undefined;
+  const jusquAu = dernier.sessionDate;
+  const depuis = debutDeFenetre(jusquAu, mois);
+  const lignes = classerSurFenetre(await r.actionQuotesSince(depuis).catch(() => []), depuis);
   if (!lignes.length) return undefined;
-  return { jusquAu, depuis: reference.sessionDate, lignes };
+  return { jusquAu, depuis: lignes.reduce((m, l) => (l.depuis < m ? l.depuis : m), lignes[0].depuis), lignes };
 }

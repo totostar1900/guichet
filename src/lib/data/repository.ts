@@ -616,6 +616,14 @@ export interface Repository {
   latestQuotes(): Promise<Quote[]>;
   /** Every line quoted at one session. */
   quotesOn(sessionDate: string): Promise<Quote[]>;
+  /**
+   * Les cotations des ACTIONS depuis une date, toutes lignes, en une seule lecture.
+   *
+   * C'est ce qui permet d'écrire la performance sur trois mois ET son petit graphe sans lire
+   * l'histoire ligne par ligne : une requête bornée, quelque 70 séances par action. Les
+   * obligations n'y sont pas — leur mouvement dit l'état des taux, pas celui d'une société.
+   */
+  actionQuotesSince(depuis: string): Promise<Quote[]>;
   /** Les volumes échangés depuis une date, toutes lignes : de quoi calculer un taux de service. */
   quoteActivity(since: string): Promise<QuoteActivity[]>;
   /** Pour chaque séance, les lignes entrées et sorties depuis la précédente de la série. */

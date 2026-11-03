@@ -1502,6 +1502,9 @@ export const memoryRepository: Repository = {
   async quotesOn(sessionDate) {
     return structuredClone(store().quotes.filter((q) => q.sessionDate === sessionDate));
   },
+  async actionQuotesSince(depuis) {
+    return structuredClone(store().quotes.filter((q) => q.instrument === "action" && q.sessionDate >= depuis).sort((a, b) => a.sessionDate.localeCompare(b.sessionDate) || a.isin.localeCompare(b.isin)));
+  },
   async marketMovements() {
     /* La même différence d'ensembles que la fonction en base, sur le jeu
        d'essai qui tient en mémoire. Deux écritures d'une règle, et c'est
