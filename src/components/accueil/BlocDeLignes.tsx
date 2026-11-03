@@ -9,7 +9,7 @@ import type { Offer } from "@/lib/domain/types";
 import { summarize } from "@/lib/domain/summary";
 import { joursEnMots } from "@/lib/domain/echeances";
 import { fmtDate } from "@/lib/format";
-import { coursEtRevenus } from "@/lib/domain/ligne-titre";
+import { coursEtRevenus, sousLigne } from "@/lib/domain/ligne-titre";
 import { aUnRond, joursRestants } from "@/lib/domain/accueil";
 import { variationAffichee, variationsDesActions } from "@/lib/market/variations";
 import styles from "./BlocDeLignes.module.css";
@@ -45,7 +45,7 @@ export async function lignesDeBloc(offres: Offer[], mode: "cote" | "fonds" | "ad
   const actions = mode === "cote" ? await variationsDesActions(offres) : new Map();
   return offres.map((o) => {
     const s = summarize(o, now);
-    const base: LigneDeBloc = { id: o.id, href: `/offres/${o.id}`, offre: o, rond: aUnRond(o), nom: t(o.title), meta: t(s.subtitle), valeur: s.hero, libelle: s.heroUnit ? t(s.heroUnit) : undefined };
+    const base: LigneDeBloc = { id: o.id, href: `/offres/${o.id}`, offre: o, rond: aUnRond(o), nom: t(o.title), meta: sousLigne(o, t(s.subtitle)), valeur: s.hero, libelle: s.heroUnit ? t(s.heroUnit) : undefined };
     if (mode === "adjudications") {
       const j = joursRestants(o.deadlineAt, now);
       const q = joursEnMots(j);

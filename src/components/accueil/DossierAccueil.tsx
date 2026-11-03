@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { PastilleEtat } from "@/components/PastilleEtat";
+import { sousLigne } from "@/lib/domain/ligne-titre";
 import { gabaritDIntention, gabaritDeSondage, limitesDeSondage, periodeDeFonds } from "@/lib/domain/gabarit";
 import { chiffresDeLIntention, gestesProposables, rubriquesPresentes, seancesOuvertes, seancesPrevues, TON_DE_LETAT, type CleDeRubrique, type FaitsDuDossier, type GesteProposable } from "@/lib/domain/accueil";
 import { echeancesProches, joursEnMots } from "@/lib/domain/echeances";
@@ -121,7 +122,7 @@ export async function DossierAccueil({
       return {
         href: `/offres/${o.id}`,
         nom: t(o.title),
-        sous: t(s.subtitle),
+        sous: sousLigne(o, t(s.subtitle)),
         valeur: s.hero,
         periode: periodeFonds ? `${periodeFonds.a} – ${periodeFonds.b}` : s.heroUnit ? t(s.heroUnit) : undefined,
         urgence: q ? t("ferme {q}", { q: t(q.key, q.params) }) : undefined,
@@ -151,7 +152,7 @@ export async function DossierAccueil({
     };
   });
   type Ligne = { id: string; texte: string; limites: ReturnType<typeof limitesDeSondage>; montant: string; etat: string; ton: "bon" | "attention" | "neutre" };
-  const auSondage: Ligne[] = vivantes.slice(0, 2).map((x) => ({
+  const auSondage: Ligne[] = vivantes.slice(0, 3).map((x) => ({
     id: x.id,
     texte: gabaritDeSondage(x),
     limites: limitesDeSondage(x),
@@ -232,30 +233,24 @@ export async function DossierAccueil({
       {presentes.has("sondage") && (
         <BlocPlat id="dossier-sondage" titre="Mes intentions au sondage" href="/sondage">
           {auSondage.map((l, k) => (
-            <Rang key={k} href={`/sondage#attente-${l.id}`}>
+            <Rang key={k} href={`/sondage?ligne=${l.id}`}>
               <span className={styles.qui}>
                 <b>{l.texte}</b>
-                <small>
-                  {l.limites.taux.valeur ? (
-                    <span className={`${styles.bleu} ${styles.groupe}`}>
-                      {l.limites.taux.valeur} {t("min")}
-                    </span>
-                  ) : (
-                    <span className={`${styles.muet} ${styles.groupe}`}>{t("taux")} —</span>
-                  )}
-                  {l.limites.prix && (
-                    <>
-                      {" • "}
-                      {l.limites.prix.valeur ? (
-                        <span className={`${styles.bleu} ${styles.groupe}`}>
-                          {l.limites.prix.valeur} {t("max")}
-                        </span>
-                      ) : (
-                        <span className={`${styles.muet} ${styles.groupe}`}>{t("prix")} —</span>
-                      )}
-                    </>
-                  )}
-                </small>
+                {(l.limites.niveau || l.limites.rendement) && (
+                  <small>
+                    {l.limites.niveau && (
+                      <span className={`${styles.bleu} ${styles.groupe}`}>
+                        {t(l.limites.niveau.mot)} {t("min")} {l.limites.niveau.valeur}
+                      </span>
+                    )}
+                    {l.limites.niveau && l.limites.rendement && " • "}
+                    {l.limites.rendement && (
+                      <span className={`${styles.bleu} ${styles.groupe}`}>
+                        {t("rendement")} {t("min")} {l.limites.rendement.valeur}
+                      </span>
+                    )}
+                  </small>
+                )}
               </span>
               <span className={styles.montant}>
                 <b>

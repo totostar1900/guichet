@@ -22,3 +22,12 @@ export function coursEtRevenus(o: Offer, rendement: string, t: (k: string) => st
   return { cours: estObligation ? { texte: fmtPrice(prix), unite: t("du nominal") } : { texte: fmt(prix), unite: "FCFA" }, revenus };
 }
 
+
+/**
+ * LA SOUS-LIGNE D'UNE LIGNE, COURTE (2 novembre 2026) : pour un fonds, la société de gestion seule.
+ *
+ * « Corridor Asset Management · LCB Bank » se coupait en « … LCB B… » dans la colonne : le
+ * dépositaire ne s'affiche plus dans les blocs de l'Accueil. Il reste à la fiche, où l'on vérifie
+ * qui garde les avoirs.
+ */
+export const sousLigne = (o: Pick<Offer, "kind" | "issuer">, sousTitre: string): string => (o.kind === "FONDS" ? o.issuer : sousTitre);

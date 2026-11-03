@@ -70,7 +70,10 @@ const modifiable = (l: LigneSondee) => ({
   tenor: l.tenor,
 });
 
-export default async function SondagePage() {
+type Props = { searchParams: Promise<{ ligne?: string }> };
+
+export default async function SondagePage({ searchParams }: Props) {
+  const { ligne } = await searchParams;
   const t = await getT();
   const s = await requireSession("/sondage");
   const r = repo();
@@ -81,6 +84,66 @@ export default async function SondagePage() {
   const repondu = new Map(miennes.filter((m) => m.repondA && m.state !== "close").map((m) => [m.repondA!, m]));
   const vivantes = miennes.filter((m) => m.state !== "close");
   const closes = miennes.filter((m) => m.state === "close");
+
+  const attente = (m: LigneSondee) => {
+    const e = etatDeLAttente(m);
+    return (
+      <li key={m.id} id={`attente-${m.id}`} className={styles.attente} data-etat={e.etat}>
+        {/* L'ÉTAT OUVRE LA LIGNE, et il la quitte aussitôt : le mot
+            dit où en est l'attente, et le point d'interrogation dit
+            ce que le mot veut dire — vrai en permanence, donc
+            replié. Le MOTIF d'une clôture, lui, reste à l'écran :
+            il change d'une ligne à l'autre. */}
+        <Faits
+          l={m}
+          role="attente"
+          t={t}
+          avant={
+            <>
+              <span className={styles.pastille} data-etat={e.etat}>
+                {t(e.mot)}
+              </span>
+              <Pourquoi titre={e.etat === "close" ? "Une attente close" : e.etat === "consolidee" ? "Une attente portée au Trésor" : "Une attente reçue"} petit>
+                <p>{t(e.phrase)}</p>
+              </Pourquoi>
+            </>
+          }
+        />
+        {m.closedReason && <p className={styles.motif}>{m.closedReason}</p>}
+        {/* MODIFIER AVANT RETIRER : c'est le geste qu'on vient faire
+            le plus souvent — un chiffre a bougé — et le retrait, qui
+            est définitif, ne doit pas être le premier sous la main.
+            Une réponse se rouvre par son formulaire de réponse, une
+            ligne poussée par son gabarit : ce n'est pas le même
+            geste, parce que ce ne sont pas les mêmes champs. */}
+        {m.state !== "close" && (
+          <div className={styles.gestes}>
+            {m.repondA ? (
+              <Repondre question={{ id: m.repondA, instrument: m.instrument, mot: motDuNiveau(m.instrument) }} existante={modifiable(m)} discret aujourdHui={aujourdHui} />
+            ) : (
+              <ProposerMaLigne existante={modifiable(m)} aujourdHui={aujourdHui} />
+            )}
+            <Retirer id={m.id} ref_={m.ref} />
+          </div>
+        )}
+      </li>
+    );
+  };
+
+  /* LE DÉTAIL D'UNE INTENTION : « ?ligne=<id> » n'ouvre que celle-là, avec le
+     chemin du retour vers la liste. Un identifiant inconnu retombe sur la page
+     entière plutôt que sur un écran vide. */
+  const choisie = ligne ? miennes.find((m) => m.id === ligne) : undefined;
+  if (choisie) {
+    return (
+      <Glissement>
+        <main className={styles.page}>
+          <EnTete surTitre={t("Investissez")} titre={t("Mon intention")} retour={{ href: "/sondage", mot: t("Sondage") }} />
+          <ul className={styles.attentes}>{attente(choisie)}</ul>
+        </main>
+      </Glissement>
+    );
+  }
 
   return (
     <Glissement>
@@ -217,50 +280,7 @@ export default async function SondagePage() {
             <p className={styles.vide}>{t("Rien encore. Répondre à une ligne ci-dessus prend deux chiffres ; proposer la vôtre en prend six.")}</p>
           ) : (
             <ul className={styles.attentes}>
-              {[...vivantes, ...closes].map((m) => {
-                const e = etatDeLAttente(m);
-                return (
-                  <li key={m.id} id={`attente-${m.id}`} className={styles.attente} data-etat={e.etat}>
-                    {/* L'ÉTAT OUVRE LA LIGNE, et il la quitte aussitôt : le mot
-                        dit où en est l'attente, et le point d'interrogation dit
-                        ce que le mot veut dire — vrai en permanence, donc
-                        replié. Le MOTIF d'une clôture, lui, reste à l'écran :
-                        il change d'une ligne à l'autre. */}
-                    <Faits
-                      l={m}
-                      role="attente"
-                      t={t}
-                      avant={
-                        <>
-                          <span className={styles.pastille} data-etat={e.etat}>
-                            {t(e.mot)}
-                          </span>
-                          <Pourquoi titre={e.etat === "close" ? "Une attente close" : e.etat === "consolidee" ? "Une attente portée au Trésor" : "Une attente reçue"} petit>
-                            <p>{t(e.phrase)}</p>
-                          </Pourquoi>
-                        </>
-                      }
-                    />
-                    {m.closedReason && <p className={styles.motif}>{m.closedReason}</p>}
-                    {/* MODIFIER AVANT RETIRER : c'est le geste qu'on vient faire
-                        le plus souvent — un chiffre a bougé — et le retrait, qui
-                        est définitif, ne doit pas être le premier sous la main.
-                        Une réponse se rouvre par son formulaire de réponse, une
-                        ligne poussée par son gabarit : ce n'est pas le même
-                        geste, parce que ce ne sont pas les mêmes champs. */}
-                    {m.state !== "close" && (
-                      <div className={styles.gestes}>
-                        {m.repondA ? (
-                          <Repondre question={{ id: m.repondA, instrument: m.instrument, mot: motDuNiveau(m.instrument) }} existante={modifiable(m)} discret aujourdHui={aujourdHui} />
-                        ) : (
-                          <ProposerMaLigne existante={modifiable(m)} aujourdHui={aujourdHui} />
-                        )}
-                        <Retirer id={m.id} ref_={m.ref} />
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
+              {[...vivantes, ...closes].map(attente)}
             </ul>
           )}
         </section>

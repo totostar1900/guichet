@@ -1,6 +1,7 @@
-import { fmtDate, fmtPct, fmtPrice } from "@/lib/format";
+import { fmtDate, fmtPct } from "@/lib/format";
 import { tenorCourt } from "@/lib/finance";
 import { CODE_PAYS } from "./carte-compacte";
+import { motDuNiveau, rendementDeLaLigne } from "./sondage";
 import type { FundTerms, LigneSondee, Offer } from "./types";
 
 /**
@@ -26,19 +27,19 @@ export function gabaritDIntention(o: Pick<Offer, "kind" | "country" | "settleOn"
 }
 
 /**
- * LES LIMITES D'UNE LIGNE SONDÉE, DANS LE LANGAGE DE LA MAISON : un taux MINIMUM, un prix MAXIMUM.
+ * LES LIMITES D'UNE LIGNE SONDÉE, TELLES QUE LA PAGE DU SONDAGE LES DÉFINIT (2 novembre 2026).
  *
- * Un acheteur veut au moins tel coupon et ne paie pas plus que tel prix (`checks.ts` : « Taux
- * minimum … », « Prix maximum … »). « 95 % min » aurait dit l'inverse du prix d'un acheteur.
- *
- * DEUX EMPLACEMENTS, TOUJOURS ÉCRITS (2 novembre 2026) : une limite que le client n'a pas fixée se
- * lit « taux — » ou « prix — », pas par son absence. Un bon (BTA) se vend précompté : il n'a pas
- * de prix, donc pas d'emplacement « prix ». `valeur` absente = limite non fixée.
+ * Le client y pose un PLANCHER : « coupon min. » sur une OTA, « taux min. » sur un bon, et — quand
+ * il a donné aussi un prix — le « rendement min. » qui en découle (`rendementDeLaLigne`). La tuile de
+ * l'Accueil dit exactement ça, avec les mêmes mots : pas de « prix » à part, que la page du sondage
+ * n'écrit pas, et pas de mot vide à la place d'un chiffre absent (« taux — » était un mot sans
+ * chiffre). Une limite non fixée ne s'écrit pas.
  */
-export function limitesDeSondage(l: Pick<LigneSondee, "instrument" | "rate" | "pricePct">): { taux: { valeur?: string }; prix?: { valeur?: string } } {
+export function limitesDeSondage(l: Pick<LigneSondee, "instrument" | "tenor" | "rate" | "pricePct" | "seanceLe" | "dansJours" | "createdAt">): { niveau?: { mot: "coupon" | "taux"; valeur: string }; rendement?: { valeur: string } } {
+  const r = rendementDeLaLigne(l);
   return {
-    taux: { valeur: l.rate != null ? fmtPct(l.rate, 1) : undefined },
-    ...(l.instrument === "OTA" ? { prix: { valeur: l.pricePct != null ? fmtPrice(l.pricePct) : undefined } } : {}),
+    ...(l.rate != null ? { niveau: { mot: motDuNiveau(l.instrument), valeur: fmtPct(l.rate, 2) } } : {}),
+    ...(r != null ? { rendement: { valeur: fmtPct(r, 2) } } : {}),
   };
 }
 

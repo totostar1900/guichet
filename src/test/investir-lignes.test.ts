@@ -4,7 +4,9 @@ import path from "node:path";
 import { SEED_OFFERS } from "@/data/seed";
 import { aUnRond, gestesProposables, lignesSimilaires, listeDeLaFiche, type FaitsPourGestes } from "@/lib/domain/accueil";
 import { coursEtRevenus } from "@/lib/domain/ligne-titre";
-import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
+import { fmt, fmtPct } from "@/lib/format";
+import { sousLigne } from "@/lib/domain/ligne-titre";
+import { rendementDeLaLigne } from "@/lib/domain/sondage";
 import { gabaritDIntention, gabaritDeSondage, limitesDeSondage, periodeDeFonds } from "@/lib/domain/gabarit";
 import type { Offer } from "@/lib/domain/types";
 
@@ -164,12 +166,20 @@ describe("le gabarit « OTA 4 ans • CMR » et les lignes suivies sans doublon 
     expect(gabaritDeSondage({ instrument: "BTA", tenor: "52 semaines", country: "Gabon" })).toBe("BTA 52 semaines • GAB");
   });
 
-  it("les limites : un taux MINIMUM et un prix MAXIMUM, deux emplacements toujours écrits ; un bon n'a pas de prix", () => {
-    expect(limitesDeSondage({ instrument: "OTA", rate: 6.5, pricePct: 95 })).toEqual({ taux: { valeur: fmtPct(6.5, 1) }, prix: { valeur: fmtPrice(95) } });
-    expect(limitesDeSondage({ instrument: "OTA" })).toEqual({ taux: { valeur: undefined }, prix: { valeur: undefined } });
-    const bon = limitesDeSondage({ instrument: "BTA", rate: 5.2 });
-    expect(bon.taux.valeur).toBe(fmtPct(5.2, 1));
-    expect(bon.prix, "un bon se vend précompté : pas d'emplacement « prix »").toBeUndefined();
+  it("les limites sont celles du sondage : coupon/taux min et rendement min, écrites seulement si elles sont fixées", () => {
+    const base = { tenor: "4 ans", seanceLe: "2026-12-01", dansJours: undefined, createdAt: "2026-10-01T00:00:00Z" };
+    const ota = limitesDeSondage({ ...base, instrument: "OTA", rate: 6.5, pricePct: 95 });
+    expect(ota.niveau).toEqual({ mot: "coupon", valeur: fmtPct(6.5, 2) });
+    expect(ota.rendement?.valeur).toBe(fmtPct(rendementDeLaLigne({ ...base, instrument: "OTA", rate: 6.5, pricePct: 95 })!, 2));
+    expect(limitesDeSondage({ ...base, instrument: "OTA" }), "rien de fixé : aucun mot sans chiffre").toEqual({});
+    const bon = limitesDeSondage({ ...base, instrument: "BTA", rate: 5.2 });
+    expect(bon.niveau).toEqual({ mot: "taux", valeur: fmtPct(5.2, 2) });
+    expect(bon.rendement, "un bon n'a pas de rendement à part").toBeUndefined();
+  });
+
+  it("la sous-ligne d'un fonds ne porte que l'émetteur, jamais le dépositaire", () => {
+    expect(sousLigne({ kind: "FONDS", issuer: "Gestionnaire" }, "Gestionnaire · Dépositaire")).toBe("Gestionnaire");
+    expect(sousLigne({ kind: "OTA", issuer: "Cameroun" }, "Trésor du Cameroun")).toBe("Trésor du Cameroun");
   });
 
   it("une intention sur une OTA ou un BTA a son gabarit ; un fonds ou une action non", () => {
@@ -202,8 +212,11 @@ describe("le gabarit « OTA 4 ans • CMR » et les lignes suivies sans doublon 
 describe("chaque rangée de l'Accueil ouvre la ligne qu'elle montre (2 novembre 2026)", () => {
   it("une rangée du sondage ouvre SA ligne : un lien propre, jamais la page entière", () => {
     const d = code("src/components/accueil/DossierAccueil.tsx");
-    expect(d, "les rangées du sondage mènent de nouveau à la page entière").toContain("href={`/sondage#attente-${l.id}`}");
-    expect(code("src/app/sondage/page.tsx"), "la page du sondage n'a plus d'ancre par ligne").toContain("id={`attente-${m.id}`}");
+    expect(d, "les rangées du sondage mènent de nouveau à la page entière").toContain("href={`/sondage?ligne=${l.id}`}");
+    expect(d, "le sondage de l'Accueil montre trois lignes").toContain("vivantes.slice(0, 3)");
+    const p = code("src/app/sondage/page.tsx");
+    expect(p, "la page du sondage ne lit plus ?ligne=").toMatch(/const \{ ligne \} = await searchParams/);
+    expect(p, "le détail n'a plus son retour vers la liste").toMatch(/retour=\{\{ href: "\/sondage"/);
   });
 
   it("une rangée d'intention, de ligne suivie, de titre, de fonds ou d'adjudication ouvre la fiche de SA ligne", () => {

@@ -43,6 +43,7 @@ export const EN_SONDAGE: Record<string, string> = {
      desk à rappeler, ce n'est pas une conversation. */
   "Combien investiriez-vous ?": "How much would you invest ?",
   "Mes intentions": "Your expressions of interest",
+  "Mon intention": "Your expression of interest",
   /* LES DEUX RUBRIQUES DE L'ACCUEIL, le 26 octobre 2026. « Au sondage » n'est
      pas de l'ornement : « Vos intentions » nomme déjà les ordres dans la même
      liste, et deux rubriques du même nom se confondent. L'anglais tient la même
