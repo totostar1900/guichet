@@ -40,7 +40,7 @@ const PAGE_CSS = readFileSync("src/app/fonds/page.module.css", "utf8");
 const TETE = readFileSync("src/components/market/TeteGroupe.tsx", "utf8");
 const TETE_CSS = readFileSync("src/components/market/TeteGroupe.module.css", "utf8");
 const ONGLETS = readFileSync("src/components/market/OngletsMarche.module.css", "utf8");
-const BANDE_CSS = readFileSync("src/components/SectionChips.module.css", "utf8");
+const BANDE_CSS = readFileSync("src/components/GrilleDInstruments.module.css", "utf8");
 
 /** La fermeture d'un bloc d'instructions, par opposition à celle du JSX. */
 const BLOC = "\n  };\n";
@@ -96,10 +96,10 @@ describe("les commandes de la page des fonds", () => {
       /* « tri » et « sens » sont dans « clearAll » depuis que « Tout
          effacer » efface AUSSI l'ordre : ils ont donc leur commande nommée,
          comme les filtres. */
-      tri: { quoi: "la liste des ordres", preuve: /<Dropdown label="Tri"/ },
-      sens: { quoi: "la flèche qui retourne l'ordre", preuve: /styles\.dirBtn/ },
+      tri: { quoi: "la liste des ordres, dans la fenêtre « Affichage »", preuve: /tri=\{\{ quoi: t\("Trier par"\)/ },
+      sens: { quoi: "le sens qui retourne l'ordre, dans la fenêtre « Affichage »", preuve: /onSens: sort !== "categorie"/ },
       q: { quoi: "le champ de recherche", preuve: /type="search"/ },
-      cat: { quoi: "la rangée des catégories, à plat", preuve: /rangee\(\s*"Catégorie"/ },
+      cat: { quoi: "la grille des catégories, en carrés", preuve: /<GrilleDInstruments\s+etiquette="Catégorie"/ },
       gestion: { quoi: "la pastille de la société de gestion", preuve: /clef: "gestion"/ },
       depositaire: { quoi: "la pastille du dépositaire", preuve: /clef: "depositaire"/ },
       /* La fenêtre d'observation n'est pas un filtre — elle ne retire aucun
@@ -118,7 +118,7 @@ describe("les commandes de la page des fonds", () => {
     }
     /* LA RANGÉE À PLAT PORTE SA SORTIE : « Toutes » remet le filtre à zéro là
        où on l'a pris. Sans elle, on ne peut plus que tout effacer. */
-    expect(corpsDe("const rangee = ("), "la sortie de la rangée ne remet rien à zéro").toMatch(/onClick=\{\(\) => choisir\(""\)\}/);
+    expect(SRC, "la tuile « Toutes » ne remet rien à zéro").toMatch(/cle: "toutes"[^}]*onClick: \(\) => setCat\(""\)/);
     // Les pastilles rendent la main : une pastille sans « retirer » est un cul-de-sac.
     const pastilles = [...SRC.matchAll(/actifs\.push\([\s\S]*?\);/g)];
     expect(pastilles.length, "plus aucune pastille : le test ne mesure plus rien").toBeGreaterThan(1);
@@ -138,7 +138,9 @@ describe("les commandes de la page des fonds", () => {
        La liste des périodicités a été retirée le 7 octobre 2026 : on ne
        choisit pas un fonds sur le rythme auquel sa VL est frappée, et elle
        reste écrite sous le nom de chaque fonds, où elle se lit. */
-    const rang = SRC.slice(SRC.indexOf('rangee(\n            "Catégorie"'), SRC.indexOf('rangee(\n            "Catégorie"') + 400);
+    const debutGrille = SRC.indexOf('etiquette="Catégorie"');
+    expect(debutGrille, "la grille des catégories est introuvable").toBeGreaterThan(-1);
+    const rang = SRC.slice(debutGrille, debutGrille + 900);
     expect(rang, "les catégories ne sont plus filtrées sur les lignes reçues").toMatch(/rows\.some\(/);
     expect(SRC, "la liste des périodicités est revenue : elle a été retirée exprès").not.toMatch(/<Dropdown\s+label="VL"/);
   });
@@ -199,52 +201,31 @@ describe("les commandes de la page des fonds", () => {
     expect(SRC).toMatch(/else if \(sug\.kind === "depositaire"\) update\(\{ depositaire: sug\.text/);
   });
 
-  it("range les deux listes sur une seule rangée, et retire la flèche là où elle ne veut rien dire", () => {
-    /* Grouper et Tri sont deux choix de même nature : ils tiennent sur une
-       rangée, et ils y tiennent VRAIMENT — mesuré à 412 px, « Grouper ·
-       Société de gestion » faisait 177 px et les renvoyait à la ligne, d'où
-       les étiquettes d'un mot. « VL » les accompagnait jusqu'au 7 octobre
-       2026 : on ne choisit pas un fonds sur le rythme de sa VL. */
-    const debutRangee = SRC.indexOf("<div className={styles.rangee}>");
-    const rang = SRC.slice(debutRangee, SRC.indexOf("{actifs.map(", debutRangee));
-    for (const liste of ['label="Grouper"', 'label="Tri"']) {
-      expect(rang, `${liste} a quitté la rangée des listes`).toContain(liste);
-    }
-    expect(rang, "la liste des ordres ne vient plus de SORT").toMatch(/items=\{SORT\}/);
-    /* « par catégorie » est un rangement, pas une mesure : il n'a pas de sens
-       à inverser, et la flèche ne doit pas s'y proposer. */
-    expect(rang).toMatch(/\{sort !== "categorie" && \([\s\S]*?styles\.dirBtn/);
+  it("range le tri, le regroupement, les vues et la densité derrière « Affichage », et retire le sens là où il ne veut rien dire", () => {
+    /* DEPUIS LE 4 NOVEMBRE 2026 (choix C de la planche), la barre est « Rechercher · Affichage » : les commandes qui se règlent une fois
+       tiennent dans une fenêtre au milieu de l'écran, la même que sur Titres et Adjudications. Les listes « Grouper » et « Tri », leur
+       flèche, le choix des vues et le resserrement n'occupent plus de rangée. */
+    const debut = SRC.indexOf("<Affichage");
+    expect(debut, "le bouton « Affichage » a quitté la barre des fonds").toBeGreaterThan(-1);
+    const fenetre = SRC.slice(debut, SRC.indexOf("/>", SRC.indexOf("onReset={clearAll}", debut)) + 2);
+    expect(fenetre, "le tri a quitté la fenêtre d'affichage").toMatch(/tri=\{\{ quoi: t\("Trier par"\)[^}]*options: SORT\.map/);
+    expect(fenetre, "le regroupement a quitté la fenêtre d'affichage").toMatch(/groupe=\{\{ quoi: t\("Grouper par"\)[^}]*options: GROUPES\.map/);
+    expect(fenetre, "les vues ont quitté la fenêtre d'affichage").toMatch(/vue=\{!phone \? \{ quoi: t\("Vue"\)/);
+    expect(fenetre, "le resserrement ne paraît plus que sur la vue cartes").toMatch(/densite=\{vue === "cards" && !desk\}/);
+    /* « par catégorie » est un rangement, pas une mesure : il n'a pas de sens à inverser, et le sens ne doit pas s'y proposer. */
+    expect(fenetre, "le sens s'offre sur « par catégorie »").toMatch(/onSens: sort !== "categorie" \? \(\) => setAsc\(!asc\) : undefined/);
+    expect(SRC, "une liste « Grouper » est revenue en pleine barre").not.toMatch(/<Dropdown\s+label="Grouper"/);
+    expect(SRC, "une liste « Tri » est revenue en pleine barre").not.toMatch(/<Dropdown\s+label="Tri"/);
   });
 
-  it("ne compte plus les fonds, et met le resserrement après le choix des vues", () => {
-    /* « 25 obligataires correspondant aux filtres » répétait ce que la liste
-       montre, sur une ligne payée à chaque écran, et dont personne ne tire
+  it("ne compte plus les fonds, et garde « Tout effacer » dans la fenêtre d'affichage", () => {
+    /* « 25 obligataires correspondant aux filtres » répétait ce que la liste montre, sur une ligne payée à chaque écran, et dont personne ne tire
        une décision : on ne compte pas des fonds, on en cherche un. */
-    /* La fenêtre va jusqu'à la fin de la ligne du compte, et non sur un
-       nombre de caractères deviné : le commentaire du bouton a grossi, et
-       les 1 400 caractères s'arrêtaient avant le resserrement. */
-    const debutCompte = PAGE.indexOf("styles.count");
-    const compte = PAGE.slice(debutCompte, PAGE.indexOf("<DensitySwitch />}", debutCompte) + 20);
-    expect(compte, "le compte est revenu sur la ligne des vues").not.toMatch(/filtered\.length/);
-    expect(compte, "la phrase du compte est revenue").not.toMatch(/correspondant aux filtres/);
-    /* TOUT EFFACER EFFACE AUSSI L'ORDRE, et paraît dès qu'un ordre est posé :
-       sans cela, le tri n'avait aucune sortie à lui. Il est à gauche du
-       choix des vues, au bout de la ligne qu'il défait. */
-    /* IL RESTE À SA PLACE MÊME SANS RIEN À EFFACER, éteint : un bouton qui
-       n'apparaît qu'au moment où l'on en a besoin ne s'apprend jamais, et
-       c'est à ce moment-là qu'on le cherche. Signalé à l'écran : « je ne
-       vois pas le tout effacer ». */
-    expect(compte, "« Tout effacer » a quitté la gauche du choix des vues").toMatch(/onClick=\{clearAll\} disabled=\{!poseSurLaListe\}/);
+    expect(SRC, "le compte est revenu").not.toMatch(/styles\.count/);
+    expect(SRC, "la phrase du compte est revenue").not.toMatch(/correspondant aux filtres/);
+    /* TOUT EFFACER EFFACE AUSSI L'ORDRE, et il est en pied de la fenêtre d'affichage, éteint quand il n'y a rien à défaire (« poseSurLaListe »). */
+    expect(SRC, "« Tout effacer » a quitté la fenêtre d'affichage").toMatch(/onReset=\{clearAll\}\s+aEffacer=\{poseSurLaListe\}/);
     expect(SRC, "le bouton ne paraît plus quand seul l'ordre a changé").toMatch(/const poseSurLaListe = [^;]*sort !== "categorie"/);
-    expect(compte.indexOf("onClick={clearAll}"), "il doit précéder le choix des vues").toBeLessThan(compte.indexOf("styles.seg"));
-    /* Le resserrement ne règle que la vue cartes : avant elles, il se lisait
-       comme s'il commandait les trois. */
-    const vues = compte.indexOf("styles.seg");
-    const densite = compte.indexOf("<DensitySwitch");
-    expect(vues, "le choix des vues a disparu").toBeGreaterThan(-1);
-    expect(densite, "le resserrement a disparu").toBeGreaterThan(-1);
-    expect(vues, "le resserrement doit suivre le choix des vues, pas le précéder").toBeLessThan(densite);
-    expect(PAGE, "le resserrement paraît sur une vue qui n'en a pas").toMatch(/\{vue === "cards" && !desk && <DensitySwitch \/>\}/);
   });
 
   it("traduit toutes les étiquettes, qui passent par t(variable)", () => {
@@ -272,7 +253,7 @@ describe("la pile collante", () => {
     expect(ONGLETS, "la rangée des pages colle de nouveau en haut de l'écran").not.toMatch(/\.onglets \{[^}]*position: sticky/);
     /* Et ce qui colle ne doit plus réserver sa hauteur : sinon les bandes
        flottent quarante pixels sous l'en-tête, devant du vide. */
-    expect(BANDE_CSS, "la bande des sections garde la hauteur d'une rangée qui ne colle plus").not.toMatch(/\.bar \{[^}]*--lieux-h/);
+    expect(BANDE_CSS, "la bande des sections garde la hauteur d'une rangée qui ne colle plus").not.toMatch(/--lieux-h/);
     expect(PAGE_CSS, "le titre de groupe garde la hauteur d'une rangée qui ne colle plus").not.toMatch(/\.teteGroupe \{[^}]*--lieux-h/);
   });
 
@@ -288,8 +269,10 @@ describe("la pile collante", () => {
        est le sommaire — mais celle des titres en garde une, et l'éclairage
        vaut pour elle. */
     expect(readFileSync("src/app/globals.css", "utf8"), "la hauteur du sommaire doit être nommée une fois, pour tous").toMatch(/--sections-h:/);
-    expect(BANDE_CSS, "la bande reçoit de nouveau sa hauteur de son contenu : personne ne peut plus s'y caler").toMatch(/\.bar \{[^}]*height: var\(--sections-h\);/);
-    expect(readFileSync("src/components/OfferBrowser.module.css", "utf8"), "le titre de section des titres doit se caler sur cette hauteur").toMatch(/top: calc\(var\(--barre-app[^)]*\) \+ var\(--sections-h\)\)/);
+    /* LA BANDE NE COLLE PLUS (4 novembre 2026) : elle est une grille de tuiles dans la page. Le titre de section se cale donc sur l'en-tête de
+       l'application seul, et plus sur la hauteur d'une bande qui n'existe plus. */
+    expect(BANDE_CSS, "la grille des instruments recolle sous l'en-tête").not.toMatch(/position: sticky/);
+    expect(readFileSync("src/components/OfferBrowser.module.css", "utf8"), "le titre de section des titres doit se caler sur l'en-tête de l'application").toMatch(/\.secHead \{[^}]*top: var\(--barre-app, 0px\);/);
   });
 
   it("couvre toute la largeur, sinon la liste défile visiblement à côté", () => {

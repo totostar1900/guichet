@@ -70,24 +70,38 @@ export function CourbeDesSeances({
         });
   const titre = active === "niveau" ? t(unite === "prix" ? "Prix servi · moyen et fourchette" : "Taux servi · moyen et fourchette") : active === "coupon" ? t("Coupon des lignes adjugées") : t("Rendement moyen servi");
 
-  if (serie.length < 2 && !(serie.length === 1 && lim != null)) return null;
-  const peutNuage = unite === "prix" && chrono.filter((p) => p.coupon != null && p.niveau != null).length >= 2;
+  /* LE NUAGE NE DÉPEND PAS DE LA COURBE (3 novembre 2026, « rétablir le graphe nuage et le rendre permanent »). Il disparaissait avec
+     elle : la courbe se tait sous deux points, et emportait le nuage dans son retour. Il a maintenant sa place à toute heure — le
+     nuage quand il y a de quoi le tracer, une phrase qui dit pourquoi il est vide sinon. */
+  const peutCourbe = !(serie.length < 2 && !(serie.length === 1 && lim != null));
+  const pointsNuage = chrono.filter((p) => p.coupon != null && p.niveau != null);
 
   return (
     <div className={styles.bloc}>
-      {dispo.length > 1 && (
-        <div className={styles.segment} role="group" aria-label={t("Mesure")}>
-          {dispo.map((d) => (
-            <button key={d.m} type="button" aria-pressed={active === d.m} onClick={() => setMesure(d.m)}>
-              {d.nom}
-            </button>
-          ))}
+      {peutCourbe && (
+        <>
+          {dispo.length > 1 && (
+            <div className={styles.segment} role="group" aria-label={t("Mesure")}>
+              {dispo.map((d) => (
+                <button key={d.m} type="button" aria-pressed={active === d.m} onClick={() => setMesure(d.m)}>
+                  {d.nom}
+                </button>
+              ))}
+            </div>
+          )}
+          <h3 className={styles.sous}>{titre}</h3>
+          <Graphique serie={serie.map((p) => ({ id: p.id, le: p.le, v: valeurDe(p)!, bas: active === "niveau" ? p.bas : undefined, haut: active === "niveau" ? p.haut : undefined }))} limite={lim} etiquette={etiquetteLimite} marches={active === "coupon"} decimales={active === "niveau" && unite === "prix" ? 0 : 1} />
+          <p className={styles.legende}>{active === "niveau" ? t("Barre claire : fourchette min–max de la séance.") : t("Un point par séance.")}</p>
+        </>
+      )}
+      {unite === "prix" && pointsNuage.length >= 1 ? (
+        <Nuage points={pointsNuage} limitePrix={limite} limiteCoupon={limiteCoupon} />
+      ) : (
+        <div className={styles.bloc}>
+          <h3 className={styles.sous}>{t("Coupon en abscisse · prix en ordonnée")}</h3>
+          <p className={styles.mention}>{t(unite === "taux" ? "Un bon n'a ni coupon ni prix : il n'y a pas de nuage coupon × prix." : "Aucune séance de ce choix ne porte à la fois un coupon et un prix : le nuage coupon × prix reste vide.")}</p>
         </div>
       )}
-      <h3 className={styles.sous}>{titre}</h3>
-      <Graphique serie={serie.map((p) => ({ id: p.id, le: p.le, v: valeurDe(p)!, bas: active === "niveau" ? p.bas : undefined, haut: active === "niveau" ? p.haut : undefined }))} limite={lim} etiquette={etiquetteLimite} marches={active === "coupon"} decimales={active === "niveau" && unite === "prix" ? 0 : 1} />
-      <p className={styles.legende}>{active === "niveau" ? t("Barre claire : fourchette min–max de la séance.") : t("Un point par séance.")}</p>
-      {peutNuage && <Nuage points={chrono.filter((p) => p.coupon != null && p.niveau != null)} limitePrix={limite} limiteCoupon={limiteCoupon} />}
     </div>
   );
 }

@@ -35,10 +35,3 @@
   border-color: var(--ink);
   color: var(--ink);
 }
-.rond {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex: none;
-  box-shadow: 0 0 0 1px var(--line-2);
-}

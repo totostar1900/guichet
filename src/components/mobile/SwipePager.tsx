@@ -236,7 +236,7 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
         } catch {
           // haptics unavailable
         }
-        window.setTimeout(() => router.push(target), reduced ? 0 : EXIT);
+        window.setTimeout(() => router.replace(target), reduced ? 0 : EXIT);
       } else {
         place(0, true);
         window.setTimeout(() => el.classList.remove(styles.dragging), 280);

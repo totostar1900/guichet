@@ -78,8 +78,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1 1 260px;
-  min-width: 200px;
+  /* LE CHAMP EST COURT SUR TÉLÉPHONE (4 novembre 2026) : « Rechercher · Filtrer · Affichage » tiennent sur une seule ligne, et c'est le
+     champ qui cède la place aux deux boutons. Il retrouve sa largeur de lecture sur écran large. */
+  flex: 0 1 150px;
+  min-width: 110px;
   max-width: 420px;
   border: 1px solid var(--line-2);
   border-radius: var(--radius);
@@ -122,32 +124,6 @@
   text-decoration-color: var(--ink-3);
   text-underline-offset: 3px;
 }
-.seg {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  /* La même hauteur que les sélecteurs qui l'entourent : il se posait trois
-     pixels plus haut qu'eux sur la même rangée. */
-  min-height: var(--ctrl-h);
-  box-sizing: border-box;
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius);
-  padding: 3px;
-  background: var(--surface);
-}
-.seg button {
-  border: none;
-  background: transparent;
-  border-radius: 4px;
-  padding: 5px 12px;
-  font-size: var(--ctrl-t);
-  font-weight: 700;
-  color: var(--ink-2);
-}
-.seg button[aria-pressed="true"] {
-  background: var(--ink);
-  color: var(--surface);
-}
 
 .meta {
   display: flex;
@@ -158,29 +134,6 @@
   padding: 2px 2px 0;
 }
 .meta b {
-  color: var(--ink);
-}
-.sortSel {
-  margin-left: 16px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.sortSel select {
-  border: none;
-  background: transparent;
-  font-weight: 700;
-  color: var(--ink);
-  font-size: 0.82rem;
-  padding: 2px 0;
-}
-.dirBtn {
-  border: 1px solid var(--line-2);
-  background: var(--surface);
-  border-radius: var(--radius);
-  width: var(--ctrl-h);
-  height: var(--ctrl-h);
-  font-size: var(--ctrl-t);
   color: var(--ink);
 }
 
@@ -452,18 +405,6 @@
 }
 
 @media (max-width: 820px) {
-  .seg {
-    margin-left: 0;
-    width: 100%;
-    justify-content: stretch;
-  }
-  .seg button {
-    flex: 1;
-  }
-  .search {
-    max-width: none;
-    flex-basis: 100%;
-  }
   .line {
     /* 200 et non 260 : à 812 px la table demandait 807 px dans 755, et les
        cinquante-deux de trop étaient exactement cette colonne. Elle se serre,
@@ -482,9 +423,6 @@
   }
   .groupToggle {
     margin-left: 0;
-  }
-  .sortSel {
-    margin-left: auto;
   }
 }
 .compareLink {
@@ -538,9 +476,10 @@
     flex-wrap: wrap;
   }
   .search {
-    flex: 1 1 auto;
-    flex-basis: auto;
-    min-width: 0;
+    /* Prend ce que les deux boutons laissent, jamais moins de 96 px : la rangée ne se casse plus. */
+    flex: 1 1 0;
+    min-width: 96px;
+    max-width: none;
   }
   .sheetBtn {
     display: inline-flex;
@@ -581,9 +520,6 @@
   }
   .meta > span:first-child {
     flex: 1 1 100%;
-  }
-  .sortSel {
-    margin-left: auto;
   }
 }
 
@@ -836,7 +772,9 @@
      l'objet de « fonds-barre.test.ts », né de sept pixels d'écart par
      lesquels les cartes défilaient. La changer d'un seul côté rouvrirait
      exactement ce défaut. */
-  top: calc(var(--barre-app, 0px) + var(--sections-h));
+  /* La bande des sections ne colle plus (4 novembre 2026) : elle est une grille de tuiles dans la page. Le titre de section se pose donc
+     directement sous l'en-tête de l'application. */
+  top: var(--barre-app, 0px);
   z-index: 3;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -866,35 +804,9 @@
    fait à l'instant du clic ne peut pas faire — la mise en page bouge entre les
    deux, et on arrive dans la section d'avant. */
 .bloc {
-  scroll-margin-top: calc(var(--barre-app, 0px) + var(--sections-h) + var(--s-2));
+  scroll-margin-top: calc(var(--barre-app, 0px) + var(--s-2));
 }
 
-/* TOUT EFFACER, au bout de la ligne des commandes : il défait ce qu'elles
-   ont posé. Discret, parce qu'il ne sert qu'une fois sur dix, mais nommé en
-   toutes lettres : une croix seule ne dit pas ce qu'elle emporte. */
-.clearAll {
-  flex: none;
-  border: 0;
-  background: none;
-  color: var(--gold-ink);
-  font: inherit;
-  font-size: var(--ctrl-t);
-  font-weight: 600;
-  padding: 0 var(--s-3);
-  min-height: var(--ctrl-h);
-  cursor: pointer;
-}
-.clearAll:hover {
-  text-decoration: underline;
-}
-/* Éteint quand il n'a rien à défaire : il garde sa place pour s'apprendre,
-   sans prétendre pouvoir agir. */
-.clearAll:disabled {
-  color: var(--ink-3);
-  opacity: 0.55;
-  cursor: default;
-  text-decoration: none;
-}
 
 /* Le bandeau replié dit qu'une plage est posée : sans cela, on referme le
    tracé en croyant avoir tout sous les yeux, et la liste en cache une part. */
@@ -1009,4 +921,11 @@
   font-size: var(--t-4);
   font-weight: 600;
   cursor: pointer;
+}
+
+@media (min-width: 821px) {
+  .search {
+    flex: 1 1 260px;
+    min-width: 200px;
+  }
 }

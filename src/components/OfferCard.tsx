@@ -14,6 +14,7 @@ import { useMemo, useRef } from "react";
 import { famVars } from "@/lib/registry";
 import { useDensity } from "./Density";
 import { lieuDe } from "@/lib/domain/sections";
+import { MiniCourbe } from "./MiniCourbe";
 import styles from "./OfferCard.module.css";
 
 const Turn = () => (
@@ -68,7 +69,20 @@ function Cloche() {
   );
 }
 
-export function OfferCard({ o, s, suivi = false }: { o: Offer; s: OfferSummary; suivi?: boolean }) {
+/**
+ * UN MONTANT EN FRANCS, LE « FCFA » RÉDUIT (4 novembre 2026) : « abréger dividende, réduire FCFA sur les deux montants ». Sur la carte
+ * compacte d'une action, « Div. 2 500 FCFA » et « cours 90 000 FCFA » gardent le chiffre en tête et l'unité en petit.
+ */
+function Montant({ etiquette, n }: { etiquette: string; n: string }) {
+  return (
+    <>
+      {etiquette} {n}
+      <i className={styles.fcfa}>FCFA</i>
+    </>
+  );
+}
+
+export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferSummary; suivi?: boolean; /** Le petit graphe sur trois mois d'une action : la forme du cours, avec sa variation. */ courbe?: { serie: number[]; variationPct: number } }) {
   const href = useLineHref()(o.id);
   const desk = useDeskView();
   const t = useT();
@@ -115,11 +129,14 @@ export function OfferCard({ o, s, suivi = false }: { o: Offer; s: OfferSummary; 
           <Link href={href} className={styles.cLink}>
             <span className={styles.cId}>
               <b className={styles.cCode}>{s.code}</b>
-              <small className={styles.cSub}>{s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : t(s.promesse.key, s.promesse.params)}</small>
+              <small className={styles.cSub}>{s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : s.promesse.key === "Dividende {n} FCFA" ? <Montant etiquette={t("Div.")} n={String(s.promesse.params?.n ?? "")} /> : t(s.promesse.key, s.promesse.params)}</small>
             </span>
+            {/* LE GRAPHE D'ÉVOLUTION DU TITRE, AU MILIEU DE LA TUILE (4 novembre 2026) : entre le nom et le chiffre, la forme du cours sur
+                trois mois. Seules les actions en ont un. */}
+            {courbe && <MiniCourbe serie={courbe.serie} largeur={76} hauteur={28} />}
             <span className={styles.cNum} data-coach="titres-chiffre">
               <b className={s.gold ? styles.taux : ""}>{s.hero}</b>
-              <small>{t(s.origine.key, s.origine.params)}</small>
+              <small>{s.origine.key === "cours {n} FCFA" ? <Montant etiquette={t("cours")} n={String(s.origine.params?.n ?? "")} /> : t(s.origine.key, s.origine.params)}</small>
             </span>
           </Link>
           <span className={styles.cTools}>
@@ -147,6 +164,17 @@ export function OfferCard({ o, s, suivi = false }: { o: Offer; s: OfferSummary; 
           <div className={styles.big}>
             <b className={s.gold ? styles.taux : ""}>{s.hero}</b>
             <small>{t(s.heroSub)}</small>
+            {/* LE GRAPHE À DROITE DU CHIFFRE EN AVANT (option A de la planche du 4 novembre) : le dividende reste le chiffre en avant, la
+                forme du cours sur trois mois dit le reste, avec sa variation. La carte ne grandit pas. */}
+            {courbe && (
+              <span className={styles.courbe}>
+                <MiniCourbe serie={courbe.serie} />
+                <em className={`${styles.pctCourbe} ${courbe.variationPct > 0.05 ? styles.hausseC : courbe.variationPct < -0.05 ? styles.baisseC : ""}`}>
+                  {courbe.variationPct > 0.05 ? "+" : courbe.variationPct < -0.05 ? "−" : ""}
+                  {Math.abs(courbe.variationPct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
+                </em>
+              </span>
+            )}
             <span className={styles.whenC}>
               {whenLabel}
               {when}

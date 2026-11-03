@@ -801,7 +801,6 @@ export const EN_REST: Record<string, string> = {
   "Replier": "Fold",
   "Déplier": "Unfold",
   "Titres": "Securities",
-  "Obligations, bons du Trésor et actions de la zone CEMAC": "Bonds, treasury bills and shares of the CEMAC zone",
   "Voir les {n} fonds (OPCVM)": "See the {n} mutual funds",
   "Les deux marchés sont affichés : éteignez-en un pour ne voir que l'autre.": "Both markets are shown: switch one off to see only the other.",
   // fund chart window (2026-09-19)

@@ -5,7 +5,7 @@ import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 import { OngletsMarche } from "@/components/market/OngletsMarche";
 import { OfferBrowser } from "@/components/OfferBrowser";
-import { EnBref } from "@/components/EnBref";
+import { EnBrefInstruments } from "@/components/EnBrefInstruments";
 import { seancesAnnoncees } from "@/lib/domain/listes";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
@@ -63,7 +63,7 @@ export default async function CalendrierPage() {
             tenue regardera, et il n'existe que si on le note. */}
         {session && <Vu geste="vu.seance" objet="adjudications" />}
         <OngletsMarche />
-        <EnTete surTitre={t("Investissez")} titre={t("Adjudications")} aCote={<EnBref brief="adjudications" />} />
+        <EnTete surTitre={t("Investissez")} titre={t("Adjudications")} titreMasque aCote={<EnBrefInstruments page="adjudications" />} />
         {seances.length > 0 ? (
           <OfferBrowser offers={seances} nowIso={new Date().toISOString()} fundsCount={0} lieu="adjudications" suivis={suivis} />
         ) : (

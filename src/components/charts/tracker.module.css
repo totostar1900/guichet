@@ -235,3 +235,12 @@
   cursor: pointer;
 }
 
+
+/* LE DOIGT SUIT LE TRACÉ LIBREMENT (4 novembre 2026). « Le surlignement doigt sur le graphe de l'indice ne permet pas un
+   mouvement libre du doigt » : avec « pan-y », le navigateur prend le geste pour un défilement dès que le premier mouvement
+   est plus vertical qu'horizontal — le surlignement s'arrête (« pointercancel ») et la page glisse. Mesuré sur l'indice à
+   390 px : une diagonale à 30° se suit, une diagonale à 45° annule la lecture. Le tracé réclame donc le geste (« none ») ;
+   le défilement de la page reste à la gouttière, au bandeau de lecture et aux marges du tracé. */
+svg.track {
+  touch-action: none;
+}

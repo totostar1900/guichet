@@ -67,7 +67,7 @@ function write(key: string, v: string) {
   window.dispatchEvent(new Event(EVENT));
 }
 
-function DensityButtons() {
+export function DensityButtons() {
   const t = useT();
   const d = useDensity();
   return (
@@ -124,6 +124,16 @@ export function CardDisplaySheet({ open, onClose }: { open: boolean; onClose: ()
       </div>
       <p className={styles.hint}>{t("Le choix est gardé sur cet appareil, pour les titres et les fonds.")}</p>
     </Sheet>
+  );
+}
+
+/** Le choix de densité seul, avec le style de ses boutons : c'est ce que la fenêtre « Affichage » pose. */
+export function DensiteChoix() {
+  const t = useT();
+  return (
+    <span className={styles.dens} role="group" aria-label={t("Densité des cartes")}>
+      <DensityButtons />
+    </span>
   );
 }
 

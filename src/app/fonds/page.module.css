@@ -207,6 +207,7 @@
 .barre {
   display: flex;
   align-items: center;
+  gap: var(--s-4);
   padding: var(--s-2) 0 var(--s-3);
 }
 /* Le champ garde sa largeur de lecture : seul sur sa ligne, il prenait les
@@ -215,7 +216,14 @@
    pas. Les 380 px de la règle générale tiennent ; sur téléphone la règle du
    bas lui rend toute la largeur, qui y vaut 380 px de moins. */
 .barre .search {
-  flex: 1 1 auto;
+  /* Court sur téléphone : le bouton « Affichage » prend sa place sur la même ligne (4 novembre 2026). */
+  flex: 1 1 0;
+  min-width: 96px;
+}
+@media (min-width: 821px) {
+  .barre .search {
+    flex: 1 1 auto;
+  }
 }
 /* LES RANGÉES DE FILTRES : une étiquette, puis les valeurs, à plat. */
 .aplat {
@@ -285,16 +293,6 @@
   color: var(--on-select);
 }
 
-.dirBtn {
-  border: 1px solid var(--line-2);
-  background: var(--surface);
-  color: var(--ink);
-  width: var(--s-9);
-  height: var(--s-9);
-  font-size: 0.8rem;
-  font-family: inherit;
-  cursor: pointer;
-}
 /* DEUX BLOCS « .search input » DANS CETTE FEUILLE, et c'est celui-ci qui
    gagne — même spécificité, écrit plus bas. Le premier ne pose que la
    souplesse ; la taille se règle donc ici, et nulle part ailleurs. */
@@ -310,33 +308,6 @@
   color: var(--ink);
 }
 
-/* Il est le premier de sa ligne maintenant : la marge qui l'écartait de ce
-   qui le précédait n'a plus rien à écarter. */
-.clear {
-  border: 0;
-  background: none;
-  color: var(--gold-ink);
-  font-weight: 600;
-  font-size: var(--ctrl-t);
-  min-height: var(--ctrl-h);
-  cursor: pointer;
-  font-family: inherit;
-}
-.count {
-  font-size: var(--ctrl-t);
-  color: var(--ink-3);
-  /* AU BOUT DE LA RANGÉE DES FILTRES, et non plus sur une ligne à lui : il
-     y est monté, et « auto » l'y pousse à droite comme sur les deux autres
-     listes. La marge basse s'en va avec la ligne qu'elle séparait. */
-  margin: 0 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.count > b {
-  margin-right: 2px;
-}
 /* ------------------------------------------------------------------
    LES GROUPES : un titre collant par bloc, et le sommaire au-dessus.
    Le titre se range SOUS la bande du sommaire, qui est elle-même sous les
@@ -396,9 +367,6 @@
     margin: 0 -12px;
     padding: 6px 12px 0;
   }
-  .count {
-    margin-bottom: 6px;
-  }
   .search {
     width: 100%;
     flex-basis: 100%;
@@ -423,34 +391,6 @@
   gap: 14px;
 }
 
-/* Le sélecteur d'affichage, copié au trait près de celui des titres : deux
-   listes qui se ressemblent doivent se commander pareil. */
-.seg {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  /* La même hauteur que les sélecteurs qui l'entourent : il se posait trois
-     pixels plus haut qu'eux sur la même rangée. */
-  min-height: var(--ctrl-h);
-  box-sizing: border-box;
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius);
-  padding: 3px;
-  background: var(--surface);
-}
-.seg button {
-  border: none;
-  background: transparent;
-  border-radius: 4px;
-  padding: 5px var(--s-6);
-  font-size: var(--ctrl-t);
-  font-weight: 700;
-  color: var(--ink-2);
-}
-.seg button[aria-pressed="true"] {
-  background: var(--ink);
-  color: var(--surface);
-}
 
 /* La vue Liste : un fonds d'un trait, sans colonnes. */
 .list {
@@ -544,13 +484,6 @@
   color: var(--gold-ink);
 }
 
-/* Éteint quand il n'a rien à défaire : il garde sa place pour s'apprendre,
-   sans prétendre pouvoir agir. */
-.clear:disabled {
-  color: var(--ink-3);
-  opacity: 0.55;
-  cursor: default;
-}
 
 /* Une mention n'est pas un chiffre : elle se dit en petit, en gris, et sans
    la graisse que porte une performance. Trois colonnes de tirets se lisaient

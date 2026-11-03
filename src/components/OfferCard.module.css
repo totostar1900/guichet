@@ -486,3 +486,31 @@
   color: var(--ink-3);
   font-weight: 400;
 }
+
+/* « FCFA » RÉDUIT sur les montants de la carte compacte d'une action, et le graphe d'évolution du titre (4 novembre 2026). */
+.fcfa {
+  font-style: normal;
+  font-size: 0.6rem;
+  font-weight: 500;
+  margin-left: 2px;
+  color: var(--ink-3);
+}
+.courbe {
+  margin-left: auto;
+  display: grid;
+  justify-items: end;
+  gap: var(--s-2);
+}
+.pctCourbe {
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+.hausseC {
+  color: var(--good);
+}
+.baisseC {
+  color: var(--crit);
+}

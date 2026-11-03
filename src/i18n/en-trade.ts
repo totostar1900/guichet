@@ -75,4 +75,16 @@ export const EN_TRADE: Record<string, string> = {
     "Leave money with us so your orders settle without waiting for a transfer, and take it back whenever you want.",
   "Vos titres sont inscrits à votre nom au dépositaire, jamais dans un compte collectif, et tout mouvement vous est prouvé.":
     "Your securities are registered in your name at the depositary, never in an omnibus account, and every movement is evidenced to you.",
+  "Les instruments en bref": "The instruments in brief",
+  "En un coup d'œil": "At a glance",
+  "Délai": "Timing",
+  "un cours": "a quoted price",
+  "la valeur liquidative": "the net asset value",
+  "le prix d'adjudication": "the auction price",
+  "en séance, en continu": "during the session, continuously",
+  "à la prochaine valeur liquidative": "at the next net asset value",
+  "à la clôture du dépôt": "when bidding closes",
+  "dividende ou coupon": "dividend or coupon",
+  "variation de la valeur liquidative": "change in the net asset value",
+  "taux actuariel de l'adjudication": "the auction's actuarial yield",
 };

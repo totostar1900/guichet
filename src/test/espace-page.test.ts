@@ -79,7 +79,7 @@ describe("ce qui s'ajoutait à l'écart d'une pile", () => {
 describe("l'en-tête d'une page", () => {
   it("range la flèche et le titre dans un seul bloc, séparés par --retour-gap", () => {
     const tsx = sansNotes(lire("src/components/EnTete.tsx").replace(/\{\/\*[\s\S]*?\*\/\}/g, ""));
-    expect(tsx, "la flèche et le titre ne sont plus rangés dans un seul bloc").toMatch(/<div className=\{styles\.entete\}>[\s\S]*<LienRetour[\s\S]*<header[\s\S]*<\/header>\s*<\/div>/);
+    expect(tsx, "la flèche et le titre ne sont plus rangés dans un seul bloc").toMatch(/<div className=\{styles\.entete\}>[\s\S]*<LienRetour[\s\S]*<header[\s\S]*<\/header>\s*(?:\)\}\s*)?<\/div>/);
     const css = sansNotes(lire("src/components/EnTete.module.css"));
     expect(css, "la flèche n'est plus à --retour-gap du titre").toMatch(/\.retour\s*\{[^}]*margin-bottom:\s*var\(--retour-gap\);/);
     expect(css, "l'en-tête a repris une marge propre sous lui-même").toMatch(/\.tete\s*\{\s*margin:\s*0;/);

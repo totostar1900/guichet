@@ -1,0 +1,55 @@
+/* LA GRILLE DES INSTRUMENTS : trois colonnes fixes sur téléphone, une rangée sur écran large. Chaque tuile est un carré arrondi
+   avec son icône, et son nom dessous : le format des sélecteurs que le dirigeant a demandé le 4 novembre 2026. */
+.grille {
+  display: grid;
+  grid-template-columns: repeat(var(--colonnes, 3), minmax(0, 1fr));
+  gap: var(--s-6) var(--tuiles-gap);
+}
+.tuile {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+.tuile i {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+}
+.tuile:hover:not(:disabled) i {
+  border-color: var(--line-2);
+}
+.on {
+  color: var(--ink);
+}
+.on i {
+  background: var(--surface-2);
+  border-color: var(--gold-ink);
+  color: var(--gold-ink);
+}
+/* Éteinte, pas cachée : sans nombre, c'est l'éclat qui dit l'absence. */
+.empty {
+  opacity: 0.4;
+  cursor: default;
+}
+@media (min-width: 821px) {
+  .grille {
+    grid-template-columns: repeat(6, 92px);
+    justify-content: start;
+  }
+}

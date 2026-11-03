@@ -47,6 +47,19 @@ export const SECTION_LABEL: Record<Section, string> = {
   fonds: "Fonds",
 };
 
+/** Le nom d'une section sur sa tuile : un mot, parfois deux — « Institutions régionales » ne tient pas sous une icône de 52 px. */
+export const SECTION_COURT: Record<Section, string> = {
+  souscription: "Souscription",
+  etats: "États",
+  regionales: "Institutions",
+  entreprises: "Entreprises",
+  actions: "Actions",
+  obligations_tresor: "Obligations",
+  bons_tresor: "Bons",
+  rachats: "Rachats",
+  fonds: "Fonds",
+};
+
 /**
  * Ce qu une section est, en une ligne : la regle d appartenance et rien d autre.
  *

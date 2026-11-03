@@ -209,7 +209,9 @@ describe("la page dédiée : comparatif, boutons, listes (3 novembre 2026)", () 
   it("le nuage coupon × prix n'est plus masqué : il est toujours sous la courbe quand il y a de quoi le tracer", () => {
     const g = lire("src/app/sondage/CourbeDesSeances.tsx");
     expect(g, "le nuage est de nouveau derrière un bouton").not.toMatch(/aria-expanded|setNuage/);
-    expect(g, "le nuage n'est plus rendu sous la courbe").toMatch(/\{peutNuage && <Nuage /);
+    expect(g, "le nuage n'est plus rendu sous la courbe").toMatch(/\{unite === "prix" && pointsNuage\.length >= 1 \? \(\s*<Nuage /);
+    expect(g, "le nuage disparaît de nouveau avec la courbe (retour anticipé)").not.toMatch(/if \(serie\.length < 2[^\n]*return null/);
+    expect(g, "quand le nuage est vide, la page ne dit plus pourquoi").toMatch(/le nuage coupon × prix reste vide/);
   });
 
   it("les icônes des gestes de l'Accueil (+, −, ↗, ⋯) sont en or et en gras", () => {

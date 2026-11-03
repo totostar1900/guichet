@@ -50,18 +50,14 @@ import styles from "./EnBref.module.css";
  * service, et ce que la maison doit au client sur la garde de ses titres est
  * resté. Voir « domain/briefs ».
  */
-export function EnBref({ brief }: { brief: string }) {
+export function EnBref({ brief, className }: { brief: string; className?: string }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const b = briefParId(brief);
   if (!b) return null;
-  const { Avant, Apres } = PROSE[b.id] ?? {};
-  /* Le nom vient du catalogue, comme le reste : un appel qui l'écrirait à la
-     main appellerait « Passage » un service renommé « Arbitrage ». */
-  const nom = (cle: string) => CATALOGUE.find((c) => c.cle === cle)?.nom ?? cle;
   return (
     <>
-      <BoutonBrief titre={t(b.titre)} coach={b.coach ?? `enbref-${b.id}`} onClick={() => setOpen(true)} />
+      <BoutonBrief titre={t(b.titre)} coach={b.coach ?? `enbref-${b.id}`} onClick={() => setOpen(true)} className={className} />
       {/* UNE PAGE ENTIÈRE, ET NON UN PANNEAU AU COIN.
           DEMANDÉ LE 29 OCTOBRE 2026 : « chaque en bref sera sur une page
           complète avec sa croix pour refermer ». La feuille s'ouvrait du
@@ -71,7 +67,25 @@ export function EnBref({ brief }: { brief: string }) {
           panneau au coin se lit en diagonale. La croix reste la sortie,
           comme avant. */}
       <Sheet open={open} onClose={() => setOpen(false)} title={t(b.titre)} plein>
-        <div className={styles.corps}>
+        <CorpsDeBrief brief={brief} />
+      </Sheet>
+    </>
+  );
+}
+
+/**
+ * LE CORPS D'UN BRIEF, SANS SA FEUILLE : le même texte dans la feuille d'une page (« EnBref ») et dans un onglet des « instruments en bref »
+ * (« EnBrefInstruments »). Un seul rendu, pour que les deux ne divergent jamais.
+ */
+export function CorpsDeBrief({ brief }: { brief: string }) {
+  const t = useT();
+  const b = briefParId(brief);
+  if (!b) return null;
+  const { Avant, Apres } = PROSE[b.id] ?? {};
+  /* Le nom vient du catalogue, comme le reste : un appel qui l'écrirait à la main appellerait « Passage » un service renommé « Arbitrage ». */
+  const nom = (cle: string) => CATALOGUE.find((c) => c.cle === cle)?.nom ?? cle;
+  return (
+    <div className={styles.corps}>
           {Avant && <Avant />}
           {b.cles.map((cle) => (
             <section key={cle} className={styles.service}>
@@ -90,8 +104,6 @@ export function EnBref({ brief }: { brief: string }) {
           ))}
           {Apres && <Apres />}
         </div>
-      </Sheet>
-    </>
   );
 }
 
@@ -130,9 +142,9 @@ export function BriefDuService({ cle }: { cle: string }) {
  * position, elle, appartient à la surface — l'en-tête le pose à côté du
  * titre, la tuile dans son coin — et c'est la seule chose qui les distingue.
  */
-export function BoutonBrief({ titre, coach, onClick }: { titre: string; coach: string; onClick: () => void }) {
+export function BoutonBrief({ titre, coach, onClick, className }: { titre: string; coach: string; onClick: () => void; className?: string }) {
   return (
-    <button type="button" className={styles.bouton} onClick={onClick} aria-haspopup="dialog" aria-label={titre} title={titre} data-coach={coach}>
+    <button type="button" className={className ?? styles.bouton} onClick={onClick} aria-haspopup="dialog" aria-label={titre} title={titre} data-coach={coach}>
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="9" />
         <path d="M12 11v5" />

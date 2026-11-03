@@ -73,6 +73,10 @@ const poses = (): { chemin: string; id: string }[] => {
   for (const { chemin, texte } of ecrans()) {
     for (const m of sansNotes(texte).matchAll(/<EnBref\b[^>]*\bbrief="([^"]+)"/g)) out.push({ chemin, id: m[1] });
   }
+  /* Depuis le 4 novembre 2026 les trois briefs d'Instruments s'ouvrent depuis UNE feuille à trois onglets : « EnBrefInstruments » les nomme dans sa table « BRIEF ». */
+  const inst = readFileSync(join(ROOT, "src/components/EnBrefInstruments.tsx"), "utf8");
+  const table = /const BRIEF: Record<Instrument, string> = \{([^}]*)\}/.exec(inst)?.[1] ?? "";
+  for (const m of table.matchAll(/: "([^"]+)"/g)) out.push({ chemin: "src/components/EnBrefInstruments.tsx", id: m[1] });
   return out;
 };
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { EnBrefInstruments, type Instrument } from "@/components/EnBrefInstruments";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -60,6 +61,9 @@ const ICONE = {
   sortie: "M10 5H5v14h5M14 8l4 4-4 4M18 12H9",
   loupe: "M11 4.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM16 16l4 4",
 };
+/** Les trois pages d'Instruments, et le brief que chacune porte. */
+const BRIEF_DE_LA_PAGE: Record<string, Instrument> = { "/titres": "titres", "/fonds": "fonds", "/calendrier": "adjudications" };
+
 function Trace({ d, plein }: { d: string; plein?: boolean }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" data-plein={plein ? "oui" : undefined}>
@@ -126,6 +130,8 @@ export function BarreDuHaut({ name, attentes, urgentes, favoris }: BarreDuHautPr
           <Trace d={ICONE.etoile} />
         </Link>
       )}
+      {/* LE « i » DES TROIS PAGES D'INSTRUMENTS EST DANS LA BARRE (4 novembre 2026, choix 1A) : sans grand titre, il n'a plus de « face » où se poser, et il suit la page quand on défile. */}
+      {BRIEF_DE_LA_PAGE[chemin] && <EnBrefInstruments page={BRIEF_DE_LA_PAGE[chemin]} className={styles.ic} />}
       {/* LA RECHERCHE EST UN LIEN, PAS UNE BARRE (1er novembre 2026). Le champ du tiroir ouvrait une feuille de six résultats qui se comportait mal ; la page de recherche sait déjà chercher. La loupe y mène d'un geste, de toutes les pages sauf d'elle-même. */}
       {chemin !== "/recherche" && (
         <Link href="/recherche" className={styles.ic} aria-label={t("Rechercher")} title={t("Rechercher")}>

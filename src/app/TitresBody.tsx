@@ -2,6 +2,7 @@ import { OfferBrowser } from "@/components/OfferBrowser";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { fondsListes, lignesDeLaCote } from "@/lib/domain/listes";
+import { performanceSur } from "@/lib/market/performe";
 
 
 /**
@@ -35,10 +36,14 @@ export async function TitresBody() {
    * prix de ce rattrapage est que la cloche se taira si la table boude — c'est
    * le même choix que « mes lignes suivies », pour la même raison.
    */
-  const [all, veilles] = await Promise.all([
+  const [all, veilles, trois] = await Promise.all([
     repo().listOffers(),
     session ? repo().listWatches(session.userId).catch(() => []) : Promise.resolve([]),
+    performanceSur().catch(() => undefined),
   ]);
+  /* LE PETIT GRAPHE DE CHAQUE ACTION (4 novembre 2026) : les trois mois de « Ce qui performe », lus en UNE requête pour toute la cote, jamais
+     ligne par ligne. Les obligations n'y sont pas : leur mouvement dit l'état des taux, pas celui d'une société. */
+  const courbes = Object.fromEntries((trois?.lignes ?? []).map((l) => [l.isin, { serie: l.serie, variationPct: l.variationPct }]));
   /* La cote et les fonds : le tri vit dans « domain/listes », avec ce qu'il
      écarte et pourquoi. Les séances ont leur page. */
   const offers = lignesDeLaCote(all);
@@ -52,7 +57,7 @@ export async function TitresBody() {
        a sa page, et le calendrier des adjudications est désormais à un
        toucher dans la bande des lieux. */
     <>
-      <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} suivis={veilles.map((w) => w.offerId)} />
+      <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} suivis={veilles.map((w) => w.offerId)} courbes={courbes} />
       {/* Le retour en haut est monté par la liste, avec son jumeau : les
           deux paraissent au même moment. */}
     </>

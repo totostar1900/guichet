@@ -8,13 +8,15 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Info } from "@/components/Info";
 import { AireEpinglee } from "@/components/market/AireEpinglee";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
-import { DensitySwitch, useDistinction } from "@/components/Density";
+import { useDistinction } from "@/components/Density";
+import { Affichage } from "@/components/Affichage";
+import { GrilleDInstruments, type TuileDInstrument } from "@/components/GrilleDInstruments";
+import type { NomIcone } from "@/components/IconeDeSection";
 import { usePhone } from "@/components/chart-utils";
 import { BackToTop } from "@/components/BackToTop";
 import { nomsCourts } from "@/lib/domain/nom-court";
 import { estFenetre, FENETRE_PAR_DEFAUT, FENETRES, type FenetreId, raisonSansFenetre } from "@/lib/domain/fund-perf";
 import { TeteGroupe } from "@/components/market/TeteGroupe";
-import { Dropdown } from "@/components/market/Dropdown";
 import { FundCard } from "./FundCard";
 import { BandeFonds } from "./BandeFonds";
 import { FenetreCtx, useDepuisQuand, useFenetre, useNomFenetre, valeurFenetre } from "./fenetre";
@@ -732,26 +734,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
    * une catégorie que personne ne pratique n'a pas de pastille, et un filtre
    * ne mène donc jamais à une liste vide.
    */
-  const rangee = (etiquette: string, valeur: string, toutes: string, options: [string, string][], choisir: (v: string) => void) => (
-    /* L'ÉTIQUETTE RESTE, MAIS POUR L'OREILLE SEULEMENT. Écrite à l'écran,
-       « CATÉGORIE » prenait toute une ligne sur un téléphone : les cinq
-       pastilles tiennent dans 343 px des 384 disponibles, l'étiquette les
-       poussait à 417 et les renvoyait à la ligne suivante. « Toutes ·
-       Monétaire · Obligataire · Diversifié · Actions » se nomme tout seul
-       pour qui voit ; un lecteur d'écran, lui, a besoin qu'on le dise, et
-       c'est ce que fait « aria-label ». */
-    <div className={styles.rangee} role="group" aria-label={t(etiquette)}>
-      <button type="button" className={`${styles.pst} ${valeur === "" ? styles.pstOn : ""}`} aria-pressed={valeur === ""} onClick={() => choisir("")}>
-        {t(toutes)}
-      </button>
-      {options.map(([v, l]) => (
-        <button key={v} type="button" className={`${styles.pst} ${valeur === v ? styles.pstOn : ""}`} aria-pressed={valeur === v} onClick={() => choisir(valeur === v ? "" : v)}>
-          {t(l)}
-        </button>
-      ))}
-    </div>
-  );
-
   return (
     <FenetreCtx.Provider value={fenetre}>
       {/* UN SEUL ENFANT DE LA PILE : les commandes, le bandeau et la liste gardent leur rythme serré (« --titre-gap »), et la page ne voit que le bloc (ETALON.md § 8). */}
@@ -768,7 +750,31 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         {/* UN CHAMP, DEUX RANGÉES, PUIS CE QUE LA LISTE DIT D'ELLE-MÊME.
             Rien derrière un bouton, rien dans une feuille : tout ce qui
             commande cette liste est sous les yeux, du champ au tri. */}
-        <div className={styles.barre}>{recherche}</div>
+        {/* LES CARRÉS D'ABORD, LA BARRE EN DESSOUS (4 novembre 2026) : comme sur Titres et Adjudications — le choix de l'instrument, puis « Rechercher · Affichage » sur une seule ligne. */}
+        {/* LE SÉLECTEUR DES CATÉGORIES, EN CARRÉS (4 novembre 2026) : la grille des trois pages, une icône par catégorie, pas de nombre. */}
+        <GrilleDInstruments
+          etiquette="Catégorie"
+          coach="fonds-categories"
+          items={[
+            { cle: "toutes", icone: "tout", nom: t("Toutes"), accessible: t("Toutes"), on: cat === "", onClick: () => setCat("") },
+            ...CATS.filter((c) => c !== "?" && rows.some((r) => r.category === c)).map(
+              (c): TuileDInstrument => ({ cle: c, icone: (c === "M" ? "monetaire" : c === "O" ? "obligataire" : c === "D" ? "diversifie" : "fonds_actions") as NomIcone, nom: t(FUND_CATEGORY_LABEL[c]), accessible: t(FUND_CATEGORY_LABEL[c]), on: cat === c, onClick: () => setCat(cat === c ? "" : c) }),
+            ),
+          ]}
+        />
+        <div className={styles.barre}>
+          {recherche}
+          {/* L'AFFICHAGE — GROUPER, TRIER, LA VUE, LA DENSITÉ, TOUT EFFACER — EST DERRIÈRE UN SEUL BOUTON (4 novembre 2026, choix C de la
+              planche) : la même barre que Titres et Adjudications. */}
+          <Affichage
+            tri={{ quoi: t("Trier par"), valeur: sort, options: SORT.map(([k, l]) => [k, t(l)] as [string, string]), onChange: (v) => setSort(v as SortKey), sens: asc ? "asc" : "desc", onSens: sort !== "categorie" ? () => setAsc(!asc) : undefined }}
+            groupe={{ quoi: t("Grouper par"), valeur: groupe || "aucun", options: GROUPES.map(([k, l]) => [k, t(l)] as [string, string]), onChange: (v) => setGroupe((v === "aucun" ? "" : v) as GroupKey | "") }}
+            vue={!phone ? { quoi: t("Vue"), valeur: vue, options: (["table", "list", "cards"] as Vue[]).map((v) => [v, t(v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes")] as [string, string]), onChange: (v) => update({ vue: v }) } : undefined}
+            densite={vue === "cards" && !desk}
+            onReset={clearAll}
+            aEffacer={poseSurLaListe}
+          />
+        </div>
         {/* TROIS LIGNES SOUS LE CHAMP, ET PAS UNE DE PLUS.
             Les pastilles de catégorie, puis les trois listes, puis les vues.
             Les étiquettes de rangée ont disparu : « CATÉGORIE » prenait sa
@@ -777,65 +783,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
             Monétaire · Obligataire » n'a jamais eu besoin qu'on dise de quoi
             c'est la liste. */}
         <div className={styles.aplat}>
-          {rangee(
-            "Catégorie",
-            cat,
-            "Toutes",
-            CATS.filter((c) => c !== "?" && rows.some((r) => r.category === c)).map((c) => [c, FUND_CATEGORY_LABEL[c]]),
-            (v) => setCat(v as FundNav["category"] | ""),
-          )}
-          {/* LES TROIS LISTES CÔTE À CÔTE : à quel rythme la VL est frappée,
-              comment la liste se range, dans quel ordre. Chacune tombe du bord
-              de son propre bouton, règle de la maison, et c'est la liste des
-              titres : un seul objet pour les deux pages.
-              La flèche ne paraît pas sur « par catégorie », qui est un
-              rangement et non une mesure : il n'y a pas de sens à inverser. */}
-          <div className={styles.rangee}>
-            <Dropdown label="Grouper" single effacable={false} items={GROUPES} selected={new Set([groupe || "aucun"])} onChange={(s) => setGroupe((([...s][0] ?? "aucun") === "aucun" ? "" : [...s][0]) as GroupKey | "")} />
-            <Dropdown label="Tri" single effacable={sort !== "categorie"} items={SORT} selected={new Set([sort])} onChange={(s) => setSort((([...s][0] as SortKey) ?? "categorie") as SortKey)} />
-            {sort !== "categorie" && (
-              <button type="button" className={styles.dirBtn} onClick={() => setAsc(!asc)} aria-label={t(asc ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
-                {asc ? "↑" : "↓"}
-              </button>
-            )}
-            {/* LE CHOIX DES VUES MONTE DANS CETTE RANGÉE, et la page perd
-                une ligne. Il vivait seul sur la sienne, poussé à droite :
-                quarante-six pixels de hauteur pour trois mots, sur une page
-                qui en comptait déjà quatre avant la liste. Les deux autres
-                listes le font rouler au bout de la rangée des filtres
-                depuis toujours ; celle-ci les rejoint. */}
-            {/* LE COMPTE EST PARTI. « 25 obligataires correspondant aux filtres »
-                répétait ce que la liste montre déjà, sur une ligne qui coûtait sa
-                hauteur à chaque écran, et dont personne ne tire une décision : on
-                ne compte pas des fonds, on en cherche un. Ce qui restait d'utile
-                sur cette ligne — effacer, trier — a rejoint les listes au-dessus. */}
-            <div className={styles.count}>
-              {/* « TOUT EFFACER » À GAUCHE DU CHOIX DES VUES : il défait ce que
-                  les commandes du dessus ont posé, et il se tient donc au bout de
-                  leur ligne plutôt qu'au milieu d'elles.
-                  IL RESTE LÀ MÊME SANS RIEN À EFFACER, éteint : un bouton qui
-                  n'apparaît qu'au moment où l'on en a besoin ne s'apprend
-                  jamais, et c'est à ce moment-là qu'on le cherche. */}
-              <button type="button" className={styles.clear} onClick={clearAll} disabled={!poseSurLaListe} title={poseSurLaListe ? undefined : t("Rien à effacer")}>
-                {t("Tout effacer")}
-              </button>
-              {!phone && (
-                <div className={styles.seg} role="group" aria-label={t("Affichage")}>
-                  {(["table", "list", "cards"] as Vue[]).map((v) => (
-                    <button key={v} type="button" aria-pressed={vue === v} onClick={() => update({ vue: v })}>
-                      {t(v === "table" ? "Tableau" : v === "list" ? "Liste" : "Cartes")}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {/* LE RESSERREMENT DES CARTES SUIT LE CHOIX DES VUES, à sa droite :
-                  il ne règle que la vue cartes, et il se lisait mal posé avant
-                  elle, comme s'il commandait les trois. Il ne paraît d'ailleurs
-                  que sur cette vue, parce qu'un réglage sans effet visible se lit
-                  comme une panne. */}
-              {vue === "cards" && !desk && <DensitySwitch />}
-            </div>
-          </div>
           {actifs.map((f) => (
             <div key={f.clef} className={styles.rangee}>
               <span className={styles.quoi}>{t(f.quoi ?? "")}</span>

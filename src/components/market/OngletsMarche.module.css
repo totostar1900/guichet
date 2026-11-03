@@ -31,55 +31,56 @@
    Une page sur trois ne justifie pas de prendre le risque sur les deux
    autres, et conditionner la rangée à l'état vivant du rail la ferait
    apparaître et disparaître sous le doigt qui replie la colonne. */
+/* TROIS CARTES ÉGALES (choix 1B+C du 4 novembre 2026) : la famille, au-dessus de la grille des instruments. Elles ne défilent plus :
+   trois colonnes de 1fr, une cible d'au moins 44 px. Le trait or de la carte active est celui des tuiles de dessous. */
 .onglets {
-  height: var(--lieux-h);
-  display: flex;
-  align-items: stretch;
-  gap: var(--s-9);
-  border-bottom: 1px solid var(--line);
-  /* Les onglets du marché s'ajoutaient à l'écart d'une pile : une page qui les range dans une pile met « --onglets-marge: 0px ». */
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-4);
   margin-bottom: var(--onglets-marge, var(--s-9));
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  background: var(--paper);
-  /* PLEINE LARGEUR : collante, elle doit couvrir ce qui defile dessous, y
-     compris dans les gouttieres de la page. Sans ces marges negatives les
-     cartes passaient VISIBLEMENT de part et d autre. */
-  padding-left: var(--s-8);
-  padding-right: var(--s-8);
-  margin-left: calc(-1 * var(--s-8));
-  margin-right: calc(-1 * var(--s-8));
-}
-
-
-.onglets::-webkit-scrollbar {
-  display: none;
 }
 .onglet {
-  padding: var(--s-6) 0 var(--s-6);
-  border-bottom: 2px solid transparent;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: var(--s-2);
+  min-width: 0;
+  min-height: 44px;
+  padding: var(--s-5) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-2);
+  text-align: center;
   text-decoration: none;
+}
+.onglet svg {
+  width: 22px;
+  height: 22px;
+}
+.onglet b {
+  font-size: var(--t-4);
+  font-weight: 700;
+  color: var(--ink);
+}
+.onglet small {
+  font-size: var(--t-1);
+  line-height: 1.25;
   color: var(--ink-3);
-  white-space: nowrap;
 }
 .onglet:hover {
-  color: var(--ink);
+  border-color: var(--line-2);
 }
 .onglet[aria-current="page"] {
-  color: var(--ink);
-  border-bottom-color: var(--accent, var(--navy));
+  border-color: var(--gold-ink);
+  background: var(--surface-2);
 }
-
+.onglet[aria-current="page"] svg,
+.onglet[aria-current="page"] b {
+  color: var(--gold-ink);
+}
 @media (max-width: 760px) {
   .onglets {
-    gap: var(--s-8);
     margin-bottom: var(--onglets-marge, var(--s-8));
-  }
-  .onglet {
-    font-size: 0.78rem;
   }
 }

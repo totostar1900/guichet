@@ -2,7 +2,7 @@
 import { type MarketSegment, SEGMENT_HINT, SEGMENT_LABEL } from "@/lib/domain/status";
 import { useT } from "@/i18n/client";
 import { EnTete } from "./EnTete";
-import { EnBref } from "./EnBref";
+import { EnBrefInstruments } from "./EnBrefInstruments";
 
 /**
  * The head of the Titres page (what it holds, the bridge to the funds) and,
@@ -34,7 +34,7 @@ type Seg = "primaire" | "secondaire";
 export function TitresHead({}: { fundsCount: number }) {
   const t = useT();
   return (
-    <EnTete surTitre={t("Investissez")} titre={t("Titres")} phrase={t("Obligations, bons du Trésor et actions de la zone CEMAC")} aCote={<EnBref brief="cote" />} />
+    <EnTete surTitre={t("Investissez")} titre={t("Titres")} titreMasque aCote={<EnBrefInstruments page="titres" />} />
   );
 }
 

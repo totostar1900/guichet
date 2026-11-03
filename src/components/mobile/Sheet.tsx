@@ -28,7 +28,7 @@ import { deverrouiller, verrouiller } from "./verrou-defilement";
  * de fois par jour, en bas de l’écran où se tient le pouce ; le principe les
  * désigne, la décision du 23 septembre 2026 est de ne pas y toucher.
  */
-export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, anchorTop, tabs, tall, plein, foot, action }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode; wide?: boolean; navy?: boolean; dock?: "top-right" | "under" | "bottom-left"; /** avec dock « under » : le bas du déclencheur, mesuré à l'ouverture */ anchorTop?: number; tabs?: { key: string; label: React.ReactNode; on: boolean; pick: () => void }[]; tall?: boolean; /**
+export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, anchorTop, tabs, tall, plein, foot, action, centre }: { open: boolean; onClose: () => void; title: string; sub?: string; children: React.ReactNode; wide?: boolean; navy?: boolean; dock?: "top-right" | "under" | "bottom-left"; /** avec dock « under » : le bas du déclencheur, mesuré à l'ouverture */ anchorTop?: number; tabs?: { key: string; label: React.ReactNode; on: boolean; pick: () => void }[]; tall?: boolean; /**
  * PLEINE PAGE À TOUTE LARGEUR, et la croix pour seule sortie.
  *
  * DEMANDÉ LE 29 OCTOBRE 2026 pour les « en bref » : « chaque en bref sera
@@ -40,7 +40,7 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, a
  * Variante à part plutôt que « tall » élargi : le Guide emploie « tall » et
  * doit garder son panneau sur un écran large, où il sert de second volet à
  * côté de la page qu'on lit.
- */ plein?: boolean; foot?: React.ReactNode; /** un objet posé à droite du titre, avant la croix : un réglage qu'on veut en tête et non au fond */ action?: React.ReactNode }) {
+ */ plein?: boolean; foot?: React.ReactNode; /** un objet posé à droite du titre, avant la croix : un réglage qu'on veut en tête et non au fond */ action?: React.ReactNode; /** une fenêtre posée AU MILIEU de l'écran, sur téléphone aussi : un choix court, pas une feuille qui monte du bas */ centre?: boolean }) {
   const t = useT();
   const box = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y0: number; dy: number } | null>(null);
@@ -84,6 +84,7 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, a
    * déjà en haut. Sinon il défile, comme avant : une feuille longue se lit.
    */
   const onTouchStart = (e: React.TouchEvent) => {
+    if (centre) return;
     const cible = e.target as HTMLElement;
     const corps = cible.closest(`.${styles.body}`);
     const surLaTete = Boolean(cible.closest(`.${styles.head}`));
@@ -109,7 +110,7 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, a
   return createPortal(
     <>
       <div className={`${styles.scrim} ${visible ? styles.scrimOpen : ""}`} style={dock === "under" && anchorTop != null ? { top: anchorTop } : undefined} onClick={onClose} aria-hidden="true" />
-      <div ref={box} className={`${styles.sheet} ${wide ? styles.wide : ""} ${navy ? styles.navy : ""} ${dock === "top-right" ? styles.dockTopRight : ""} ${dock === "bottom-left" ? styles.dockBottomLeft : ""} ${dock === "under" ? styles.dockUnder : ""} ${tall ? styles.tall : ""} ${plein ? styles.plein : ""} ${visible ? styles.sheetOpen : ""}`} style={dock === "under" && anchorTop != null ? { top: anchorTop, maxHeight: `calc(100vh - ${anchorTop + 16}px)` } : undefined} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <div ref={box} className={`${styles.sheet} ${wide ? styles.wide : ""} ${navy ? styles.navy : ""} ${dock === "top-right" ? styles.dockTopRight : ""} ${dock === "bottom-left" ? styles.dockBottomLeft : ""} ${dock === "under" ? styles.dockUnder : ""} ${tall ? styles.tall : ""} ${plein ? styles.plein : ""} ${centre ? styles.centre : ""} ${visible ? styles.sheetOpen : ""}`} style={dock === "under" && anchorTop != null ? { top: anchorTop, maxHeight: `calc(100vh - ${anchorTop + 16}px)` } : undefined} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
         <div className={styles.head}>
           <div className={styles.grab} />
           <div className={styles.titleRow}>

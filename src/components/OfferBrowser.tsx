@@ -12,7 +12,8 @@ import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
 import { TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
-import { DensitySwitch, useDistinction } from "./Density";
+import { useDistinction } from "./Density";
+import { Affichage } from "./Affichage";
 import { BackToTop } from "./BackToTop";
 import { SectionChips } from "./SectionChips";
 import { PastillesPays } from "./PastillesPays";
@@ -36,7 +37,6 @@ import { Sheet } from "./mobile/Sheet";
 import { LineIdentity } from "./LineIdentity";
 import { famVars } from "@/lib/registry";
 import { Info } from "./Info";
-import { Select } from "./ui/Select";
 import { parseYieldRange, YieldDropdown, YieldGauge, yieldRangeLabel, yieldRangeParam } from "./YieldRange";
 import { LAST_LIST_KEY } from "./mobile/MobileShell";
 import { rememberList, useListScroll } from "./ListNav";
@@ -433,7 +433,7 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge, e
 /** Le nombre de lignes qu'une section montre avant « Voir les N lignes ». */
 const LIGNES_VISIBLES = 8;
 
-export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis }: { offers: Offer[]; nowIso: string; fundsCount: number; lieu?: Lieu; /** Les lignes sur lesquelles CE lecteur a armé une alerte, lues au serveur. */ suivis?: string[] }) {
+export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis, courbes }: { offers: Offer[]; nowIso: string; fundsCount: number; lieu?: Lieu; /** Les lignes sur lesquelles CE lecteur a armé une alerte, lues au serveur. */ suivis?: string[]; /** Le petit graphe sur trois mois de chaque action, par ISIN. */ courbes?: Record<string, { serie: number[]; variationPct: number }> }) {
   const now = useMemo(() => new Date(nowIso), [nowIso]);
   const t: T = useT();
   /* LES DATES DU RÉSUMÉ VIENNENT DU CONTEXTE, PAS DU MODULE : ce composant est
@@ -822,7 +822,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           <GroupBody key={`b-${g.issuer}`} issuer={grouped && !featured && !deja ? g.issuer : ""}>
             {g.rows.map(({ o, s }) => (
               <div key={o.id} className={featured ? styles.pickCard : undefined}>
-                <OfferCard o={o} s={s} suivi={armees.has(o.id)} />
+                <OfferCard o={o} s={s} suivi={armees.has(o.id)} courbe={o.isin ? courbes?.[o.isin] : undefined} />
                 {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
               </div>
             ))}
@@ -930,20 +930,17 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       {/* LA BANDE DES SECTIONS NE PARAÎT PLUS SUR LES ADJUDICATIONS : le
           titre de chaque bloc y est le sommaire, comme sur les fonds, et deux
           rangements au choix auraient demandé deux barres. */}
-      {!adj && (
-        <SectionChips
-          sections={lieu === "cote" ? ["actions", "etats", "regionales", "entreprises", "souscription"] : SECTIONS[lieu]}
-          counts={sectionCounts}
-          selected={sectionChoisie}
-          total={offers.length}
-          filtrant={lieu === "cote"}
-          onChange={(k) => update({ section: k ?? (lieu === "cote" ? "tout" : undefined), instrument: undefined, pays: lieu === "cote" ? undefined : country.size ? [...country].join(",") : undefined })}
-        />
-      )}
+      <SectionChips
+        sections={lieu === "cote" ? ["actions", "etats", "regionales", "entreprises", "souscription"] : SECTIONS[lieu]}
+        counts={sectionCounts}
+        selected={sectionChoisie}
+        total={offers.length}
+        filtrant
+        onChange={(k) => update({ section: k ?? (lieu === "cote" ? "tout" : undefined), instrument: undefined, pays: lieu === "cote" ? undefined : country.size ? [...country].join(",") : undefined })}
+      />
       {lieu === "cote" && sectionChoisie === "etats" && <PastillesPays pays={paysDesEtats} selected={country} onChange={(p) => update({ pays: p })} />}
       <div className={styles.top} ref={top}>
         <div className={styles.toolbar} data-coach="titres-filtres">
-          {!adj && (
           <label className={styles.search}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
@@ -995,33 +992,23 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
               </ul>
             )}
           </label>
-          )}
           <button type="button" className={styles.sheetBtn} onClick={() => setSheet(true)} aria-haspopup="dialog">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <path d="M4 6h16M7 12h10M10 18h4" />
             </svg>
             {t("Filtrer")}{filterCount > 0 ? ` · ${filterCount}` : ""}
           </button>
-          {/* CE QU'ON RETIRE, COMMENT ON RANGE, COMMENT ON LIT : les trois
-              commandes de la page sur une ligne, dans l'ordre des décisions.
-              Elles étaient sur trois lignes, « Filtrer » seule en haut et les
-              deux autres soixante pixels plus bas. */}
-          {sommaire && (
-            <Dropdown label="Grouper" single effacable={false} items={GROUPEMENTS} selected={new Set([sansGroupe ? "aucun" : grouped ? "emetteur" : "type"])} onChange={(x) => update({ groupe: [...x][0] === "type" ? undefined : [...x][0] })} />
-          )}
-          {sommaire && view === "cards" && !desk && <DensitySwitch />}
-          {/* TOUT EFFACER RESTE À SA PLACE, MÊME SANS RIEN À EFFACER.
-              Il ne paraissait que lorsqu'un filtre était posé, et c'était
-              defendable — sauf qu'un bouton qui n'est là que lorsqu'on en a
-              besoin ne s'apprend jamais : on ne sait pas qu'il existe tant
-              qu'on n'est pas dans l'état où il apparaît, et c'est justement
-              l'état où l'on cherche comment sortir. Signalé à l'écran : « je
-              ne vois pas le "tout effacer" ».
-              Il est donc toujours là, éteint quand il n'a rien à défaire :
-              la ligne garde sa forme, et le bouton s'apprend à froid. */}
-          <button type="button" className={styles.clearAll} onClick={reset} disabled={!aEffacer} title={aEffacer ? undefined : t("Rien à effacer")}>
-            {t("Tout effacer")}
-          </button>
+          {/* L'AFFICHAGE — TRI, REGROUPEMENT, VUE, DENSITÉ, TOUT EFFACER — EST DERRIÈRE UN SEUL BOUTON (4 novembre 2026, choix C de
+              la planche) : la même barre sur Titres, Fonds et Adjudications. Ces quatre commandes se règlent une fois ; elles tenaient
+              autant de place que celles qu'on touche à chaque visite. Les adjudications ont la recherche depuis le 4 novembre 2026 ; leur tri reste celui de la page (clôture). */}
+          <Affichage
+            tri={!adj ? { quoi: t("Trier par"), valeur: sort, options: (Object.keys(SORT_LABEL) as SortKey[]).map((k) => [k, t(SORT_LABEL[k])] as [string, string]), onChange: (v) => update({ tri: v, sens: undefined }), sens: dir, onSens: () => update({ sens: dir === "asc" ? "desc" : "asc" }) } : undefined}
+            groupe={sommaire ? { quoi: t("Grouper par"), valeur: sansGroupe ? "aucun" : grouped ? "emetteur" : "type", options: GROUPEMENTS.map(([k, l]) => [k, t(l)] as [string, string]), onChange: (v) => update({ groupe: v === "type" ? undefined : v }) } : undefined}
+            vue={!phone ? { quoi: t("Vue"), valeur: view, options: VIEWS.map((v) => [v, t(VIEW_LABEL[v])] as [string, string]), onChange: (v) => update({ vue: v }) } : undefined}
+            densite={view === "cards" && !desk}
+            onReset={reset}
+            aEffacer={aEffacer}
+          />
           <div className={styles.filters}>
           <Dropdown
             label={t("Instrument")}
@@ -1037,15 +1024,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
             <button type="button" className={styles.clear} onClick={reset}>
               {t("Effacer")}
             </button>
-          )}
-          {!phone && (
-            <div className={styles.seg} role="group" aria-label={t("Affichage")} data-coach="titres-vues">
-              {VIEWS.map((v) => (
-                <button key={v} type="button" aria-pressed={view === v} onClick={() => update({ vue: v })}>
-                  {t(VIEW_LABEL[v])}
-                </button>
-              ))}
-            </div>
           )}
           </div>
         </div>
@@ -1135,16 +1113,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           </label>
         )}
         {grouped && !sommaire && <FoldAll group="titres" ids={groupByIssuer(rest).map((g) => groupId(g.issuer))} />}
-        {!adj && (
-        <label className={styles.sortSel}>
-          {t("Tri")}
-          <Select compact cherchable={false} value={sort} onChange={(v) => update({ tri: v, sens: undefined })} options={(Object.keys(SORT_LABEL) as SortKey[]).map((k) => ({ value: k, label: t(SORT_LABEL[k]) }))} />
-          <button type="button" className={styles.dirBtn} onClick={() => update({ sens: dir === "asc" ? "desc" : "asc" })} aria-label={t(dir === "asc" ? "Ordre croissant" : "Ordre décroissant")} title={t("Inverser l'ordre")}>
-            {dir === "asc" ? "↑" : "↓"}
-          </button>
-        </label>
-        )}
-        {view === "cards" && !desk && !sommaire && <DensitySwitch />}
       </div>
 
       {/* LE NUAGE NE PARAÎT QUE SUR LA COTE. Aux adjudications, huit séances
@@ -1152,7 +1120,10 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           les mêmes bornes ; ailleurs il n'y a pas d'échéance à porter en
           abscisse. Il se tient entre les commandes et la liste parce qu'il
           est les deux : il montre, et il resserre. */}
-      {lieu === "cote" && (
+      {/* LE NUAGE « RENDEMENT ET DURÉE » NE S'APPLIQUE PAS AUX ACTIONS (3 novembre 2026). Il place chaque ligne par son rendement
+          à l'échéance et sa durée : une action n'a ni l'un ni l'autre — son « rendement » est un dividende, et elle n'a pas
+          d'échéance. Sur la section « Actions », il disait « 0 lignes » : il est donc caché, et il revient avec les autres sections. */}
+      {lieu === "cote" && sectionChoisie !== "actions" && (
         <BandeauRepliable
           titre={t("Rendement et durée")}
           ouvert={nuageOuvert}
@@ -1210,7 +1181,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           <AireEpinglee cle={lignesEpinglees.map(({ o }) => o.id).join(",")}>
             {lignesEpinglees.map(({ o, s: som }) => (
               <div key={o.id} className={styles.epingle}>
-                <OfferCard o={o} s={som} suivi={armees.has(o.id)} />
+                <OfferCard o={o} s={som} suivi={armees.has(o.id)} courbe={o.isin ? courbes?.[o.isin] : undefined} />
                 <button type="button" className={styles.detacher} onClick={() => basculerEpingle(o.id)} aria-label={`${t("Détacher")} ${t(o.title)}`} title={t("Détacher")}>
                   ×
                 </button>

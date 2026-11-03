@@ -374,7 +374,8 @@ describe("les deux bandes collantes", () => {
        parent doit être « wrap », aussi haut que la liste. */
     const dansTop = /<div className=\{styles\.top\}[\s\S]{0,400}?<SectionChips/.test(browser);
     expect(dansTop, "les pastilles sont retombées dans « top » : elles ne colleront plus").toBe(false);
-    expect(readFileSync(`${RACINE}/src/components/SectionChips.module.css`, "utf8")).toMatch(/\.bar \{[^}]*position: sticky/);
+    /* Depuis le 4 novembre 2026 la bande n'est plus collante : c'est une grille de tuiles dans la page (choix C de la planche). */
+    expect(readFileSync(`${RACINE}/src/components/GrilleDInstruments.module.css`, "utf8"), "la grille des instruments n'a plus ses colonnes (trois par défaut)").toMatch(/\.grille \{[^}]*grid-template-columns: repeat\(var\(--colonnes, 3\), minmax\(0, 1fr\)\)/);
   });
 
   it("le repère mesure la section, pas son titre collant", () => {
@@ -386,7 +387,10 @@ describe("les deux bandes collantes", () => {
     /* Mesurée à 44,5 et devinée à 40, la bande des sections chevauchait la
        rangée de quatre pixels et demi. Deux modules, un seul nombre. */
     expect(readFileSync(`${RACINE}/src/app/globals.css`, "utf8"), "la hauteur est posée une fois, dans globals").toMatch(/--lieux-h:/);
-    expect(readFileSync(`${RACINE}/src/components/market/OngletsMarche.module.css`, "utf8"), "la rangée doit VALOIR cette hauteur, pas la laisser au contenu").toMatch(/height: var\(--lieux-h\)/);
+    /* Depuis le 4 novembre 2026 la rangée est faite de trois cartes (choix 1B+C) : elle ne vaut plus --lieux-h, elle tient trois colonnes égales dont chaque cible fait au moins 44 px. */
+    const o = readFileSync(`${RACINE}/src/components/market/OngletsMarche.module.css`, "utf8");
+    expect(o, "les trois cartes ne sont plus trois colonnes égales").toMatch(/\.onglets \{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+    expect(o, "la cible d'une carte est descendue sous 44 px").toMatch(/\.onglet \{[^}]*min-height: 44px/);
   });
 });
 
@@ -444,8 +448,8 @@ describe("la bande des sections conduit, et le saut est instantané", () => {
        cas qui défendait cette promesse est tombé sur le correctif. Il
        demande donc un débord ÉGAL À LA GOUTTIÈRE, quel que soit son
        chiffre. */
-    expect(readFileSync(`${RACINE}/src/components/SectionChips.module.css`, "utf8")).toMatch(/\.bar \{[^}]*margin-inline: calc\(var\(--marge-page\) \* -1\)/);
-    expect(readFileSync(`${RACINE}/src/components/market/OngletsMarche.module.css`, "utf8")).toMatch(/margin-left: calc\(-1 \* var\(--s-8\)\)/);
+    /* La rangée des trois cartes n'est plus une bande pleine largeur : elle vit dans la gouttière, sans débord. */
+    expect(readFileSync(`${RACINE}/src/components/market/OngletsMarche.module.css`, "utf8")).not.toMatch(/margin-left: calc\(-1/);
   });
 
   it("la rangée d'onglets ne se replie plus", () => {
@@ -481,9 +485,8 @@ describe("la pile collante commence sous l'en-tête de l'application", () => {
     expect(g, "elle ne vaut que sur téléphone, où cet en-tête existe").toMatch(/@media \(max-width: 760px\)[\s\S]{0,200}--barre-app: calc\(var\(--mobile-bar\)/);
     const onglets = readFileSync(`${RACINE}/src/components/market/OngletsMarche.module.css`, "utf8");
     expect(onglets, "la rangée des pages ne colle plus : elle n'a donc plus de « top »").not.toMatch(/\.onglets \{[^}]*position: sticky/);
-    expect(readFileSync(`${RACINE}/src/components/SectionChips.module.css`, "utf8"), "les sections se posent directement sous l'en-tête").toMatch(/\.bar \{[^}]*top: var\(--barre-app, 0px\);/);
     const o = readFileSync(`${RACINE}/src/components/OfferBrowser.module.css`, "utf8");
-    expect(o, "le titre de section se pose sous la bande des sections, et sous elle seule").toMatch(/top: calc\(var\(--barre-app[^)]*\) \+ var\(--sections-h\)\)/);
+    expect(o, "le titre de section se pose directement sous l'en-tête : la bande des sections ne colle plus").toMatch(/\.secHead \{[^}]*top: var\(--barre-app, 0px\);/);
     expect(o, "et le saut réserve la même hauteur").toMatch(/scroll-margin-top: calc\(var\(--barre-app/);
   });
 
@@ -491,6 +494,5 @@ describe("la pile collante commence sous l'en-tête de l'application", () => {
     // Il est à 40 : ce qui se glisse dessous doit rester en dessous.
     const z = (css: string, sel: RegExp) => Number((css.match(sel) ?? [])[1] ?? 0);
     expect(z(readFileSync(`${RACINE}/src/components/market/OngletsMarche.module.css`, "utf8"), /\.onglets \{[^}]*z-index: (\d+)/)).toBeLessThan(40);
-    expect(z(readFileSync(`${RACINE}/src/components/SectionChips.module.css`, "utf8"), /\.bar \{[^}]*z-index: (\d+)/)).toBeLessThan(40);
   });
 });

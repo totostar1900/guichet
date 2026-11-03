@@ -7,6 +7,7 @@ import type { Offer } from "@/lib/domain/types";
 import { COUNTRY_CODE, type OfferSummary } from "@/lib/domain/summary";
 import { titreCourt } from "@/lib/domain/carte-compacte";
 import { famVars } from "@/lib/registry";
+import { Drapeau } from "./Drapeau";
 import styles from "./LineIdentity.module.css";
 
 /**
@@ -39,7 +40,7 @@ export function LineIdentity({ o, s, href, size = "md", as: Tag = "div", isin = 
           </span>
         ) : (
           <span className="cc" title={t(o.countryName)}>
-            {COUNTRY_CODE[o.country]}
+            <Drapeau pays={o.country} largeur={13} /> {COUNTRY_CODE[o.country]}
           </span>
         )}
         {/* Qui émet passe avant la référence. Le commentaire de ce composant

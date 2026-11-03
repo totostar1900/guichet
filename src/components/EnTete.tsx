@@ -35,6 +35,7 @@ export function EnTete({
   reference,
   phrase,
   aCote,
+  titreMasque,
 }: {
   /** Un cran en arrière. Omis sur une racine de siège, où il n'y a rien au-dessus. */
   retour?: { href: string; mot: string };
@@ -84,6 +85,12 @@ export function EnTete({
    * vaut pour les trois listes.
    */
   aCote?: React.ReactNode;
+  /**
+   * LE TITRE SE LIT, IL NE SE VOIT PAS (4 novembre 2026). Sur les trois pages d'Instruments, la carte active de la rangée du haut est
+   * le titre : l'écrire en grand dessous disait deux fois la même chose. Le « h1 » reste pour les lecteurs d'écran et le plan de la
+   * page ; l'objet d'en face (« en bref ») garde sa rangée, alignée à droite.
+   */
+  titreMasque?: boolean;
 }) {
   /* LA FLÈCHE ET LE TITRE FORMENT UN SEUL BLOC (31 octobre 2026). Ils étaient deux
      enfants de la page : l'écart entre eux était « gap + marge de la flèche », et
@@ -97,6 +104,12 @@ export function EnTete({
           ← {retour.mot}
         </LienRetour>
       )}
+      {titreMasque ? (
+        <header className={styles.teteMasquee}>
+          <h1 className={styles.masque}>{titre}</h1>
+          {aCote && <span className={styles.coteHorsTelephone}>{aCote}</span>}
+        </header>
+      ) : (
       <header className={`${styles.tete} ${aCote ? styles.avecCote : ""}`}>
         <div className={styles.mots}>
           {surTitre && <div className={`eyebrow ${styles.surTitre}`}>{surTitre}</div>}
@@ -105,6 +118,7 @@ export function EnTete({
         </div>
         {aCote}
       </header>
+      )}
     </div>
   );
 }

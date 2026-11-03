@@ -108,8 +108,12 @@ describe("la page des adjudications", () => {
        vaut pour la cote comme pour les adjudications ; « adj » ne garde que
        ce qui tient au lieu. Le compte part des deux. */
     expect(BROWSER, "le compte des lignes est revenu").toMatch(/\{!sommaire && \(\s*<span>\s*<b>\{rows\.length\}<\/b>/);
-    expect(BROWSER, "la recherche est revenue dans la barre des adjudications").toMatch(/\{!adj && \(\s*<label className=\{styles\.search\}>/);
-    expect(BROWSER, "le tri est revenu dans la barre des adjudications").toMatch(/\{!adj && \(\s*<label className=\{styles\.sortSel\}>/);
+    /* Depuis le 4 novembre 2026 les trois pages ont la même barre : la recherche n'est plus masquée aux adjudications. */
+    expect(BROWSER, "la recherche a de nouveau disparu de la barre des adjudications").not.toMatch(/\{!adj && \(\s*<label className=\{styles\.search\}>/);
+    expect(BROWSER, "la barre n'a plus de champ de recherche").toMatch(/<div className=\{styles\.toolbar\}[^>]*>\s*<label className=\{styles\.search\}>/);
+    /* Depuis le 4 novembre 2026 le tri vit dans la fenêtre « Affichage » (choix C de la planche) : les adjudications n'en ont pas. */
+    expect(BROWSER, "le tri est revenu dans la barre des adjudications").toMatch(/tri=\{!adj \? \{ quoi: t\("Trier par"\)/);
+    expect(BROWSER, "le tri est revenu en pleine barre").not.toMatch(/styles\.sortSel/);
     expect(BROWSER, "la feuille promet encore un tri qu'elle ne porte pas").toMatch(/title=\{t\(trie \? "Filtrer et trier" : "Filtrer"\)\}/);
     expect(BROWSER, "la durée en jauge a quitté la feuille des adjudications").toMatch(/<DureeGauge values=\{durees\}/);
     /* Les barres de la jauge montrent TOUTES les lignes du lieu : sur les
@@ -123,7 +127,8 @@ describe("la page des adjudications", () => {
        ramenait sur « Type », qui est un rangement, et la liste à plat était
        donc impossible à obtenir. La liste n'a plus d'« Effacer ». */
     expect(BROWSER, "le troisième rangement a disparu").toMatch(/\["aucun", "Aucun"\]/);
-    expect(BROWSER, "le choix du rangement a disparu de la barre").toMatch(/<Dropdown label="Grouper" single effacable=\{false\} items=\{GROUPEMENTS\}/);
+    /* LE RANGEMENT VIT DANS LA FENÊTRE « AFFICHAGE » (4 novembre 2026), pour la cote comme pour les adjudications. */
+    expect(BROWSER, "le choix du rangement a disparu de la fenêtre d'affichage").toMatch(/groupe=\{sommaire \? \{ quoi: t\("Grouper par"\)[^}]*options: GROUPEMENTS\.map/);
     /* « EFFACER » NE S'OFFRE QUE S'IL EFFACE QUELQUE CHOSE. Un rangement est
        toujours à une valeur : sur « Type », qui est le défaut, le mot ne
        changeait rien. Signalé à l'écran. */
@@ -147,8 +152,8 @@ describe("la page des adjudications", () => {
     /* LA BANDE DES SECTIONS NE PARAÎT PAS SUR LES ADJUDICATIONS : le titre y est le sommaire. Sur la COTE, elle est revenue
        le 3 novembre 2026, et elle FILTRE (« Actions » d'abord) : la liste faisait 12 390 px, et les actions commençaient à
        83 % de la page. */
-    expect(BROWSER, "la bande des sections paraît de nouveau sur les adjudications").toMatch(/\{!adj && \(\s*<SectionChips/);
-    expect(BROWSER, "la bande de la cote ne filtre plus").toMatch(/filtrant=\{lieu === "cote"\}/);
+    expect(BROWSER, "le sélecteur d'instruments ne filtre plus sur la cote et les adjudications").toMatch(/<SectionChips[\s\S]*?\bfiltrant\b/);
+    expect(BROWSER, "le sélecteur est de nouveau absent des adjudications").not.toMatch(/\{!adj && \(\s*<SectionChips/);
   });
 
   it("met le filtre, le rangement et le resserrement sur une seule ligne", () => {
@@ -172,19 +177,16 @@ describe("la page des adjudications", () => {
        passait. Et « styles.sheetBtn » sans accolade attrape aussi un
        « styles.sheetBtnX » : la borne doit être close. */
     const filtre = barre.indexOf("className={styles.sheetBtn}");
-    const grouper = barre.indexOf('{sommaire && (\n            <Dropdown label="Grouper"');
-    const densite = barre.indexOf('{sommaire && view === "cards" && !desk && <DensitySwitch />}');
-    /* TOUT EFFACER FERME LA LIGNE : il défait ce qu'elle pose, donc il vient
-       après. À 412 px les quatre ne tiennent pas ensemble — mesuré, le
-       quatrième allait de 373 à 431 — et la rangée se casse plutôt que de
-       déborder : les trois que le lecteur a nommés restent ensemble. */
-    expect(barre, "« Tout effacer » a quitté la ligne des commandes").toMatch(/styles\.clearAll/);
-    expect(barre.indexOf("styles.clearAll"), "il doit fermer la ligne, pas l'ouvrir").toBeGreaterThan(densite);
-    for (const [quoi, i] of [["le filtre", filtre], ["le rangement", grouper], ["le resserrement", densite]] as const) {
-      expect(i, `${quoi} a quitté la ligne des commandes`).toBeGreaterThan(-1);
-    }
-    expect(filtre, "le filtre doit venir en premier").toBeLessThan(grouper);
-    expect(grouper, "le resserrement doit suivre le rangement").toBeLessThan(densite);
+    const affichage = barre.indexOf("<Affichage");
+    /* LA BARRE EST « RECHERCHER · FILTRER · AFFICHAGE » (4 novembre 2026, choix C de la planche) : le tri, le rangement, la vue, la densité
+       et « Tout effacer » sont dans la fenêtre. Le bouton du filtre vient avant celui de l'affichage, et la barre ne porte plus de liste. */
+    expect(filtre, "le filtre a quitté la ligne des commandes").toBeGreaterThan(-1);
+    expect(affichage, "le bouton d'affichage a quitté la ligne des commandes").toBeGreaterThan(-1);
+    expect(filtre, "le filtre doit venir avant l'affichage").toBeLessThan(affichage);
+    expect(barre, "une liste « Grouper » est revenue en pleine barre").not.toMatch(/<Dropdown label="Grouper"/);
+    expect(barre, "« Tout effacer » est revenu en pleine barre").not.toMatch(/styles\.clearAll/);
+    expect(barre, "la densité est revenue en pleine barre").not.toMatch(/<DensitySwitch/);
+    expect(barre, "l'affichage ne porte plus le « Tout effacer »").toMatch(/onReset=\{reset\}/);
   });
 
   it("peint le chiffre principal en vert, comme les fonds", () => {
