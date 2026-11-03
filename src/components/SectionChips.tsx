@@ -22,18 +22,21 @@ import { GrilleDInstruments, type TuileDInstrument } from "./GrilleDInstruments"
  * ÉTEINTE : sans nombre, c'est l'éclat qui dit l'absence, et le nom accessible dit « aucune ». La règle de la maison est que
  * l'absence se voie.
  */
-export function SectionChips({ sections, counts, selected, total, onChange, filtrant = false }: { sections: Section[]; counts: Record<string, number>; selected?: Section; total: number; onChange: (s: Section | undefined) => void; filtrant?: boolean }) {
+export function SectionChips({ sections: toutes, counts, selected, onChange, filtrant = false }: { sections: Section[]; counts: Record<string, number>; selected?: Section; onChange: (s: Section | undefined) => void; filtrant?: boolean }) {
   const t = useT();
   const bar = useRef<HTMLDivElement>(null);
+  /* PAS DE RACHAT, PAS DE TUILE (5 novembre 2026) : un rachat n'est pas une section qu'on attend, c'est une offre du Trésor qui paraît ou non. Sans ligne, son icône ne mène nulle part : elle est retirée, et elle revient avec la première offre. Les autres sections vides restent éteintes (l'absence se voit). */
+  const sections = toutes.filter((s) => s !== "rachats" || (counts[s] ?? 0) > 0 || selected === s);
   const { enVue, conduire } = useSommaire(sections, bar, !selected && !filtrant);
-  const lignes = (n: number) => (n === 0 ? t("aucune") : n === 1 ? t("1 ligne") : t("{n} lignes", { n: String(n) }));
+  /* AUCUN NOMBRE DE LIGNES, nulle part (5 novembre 2026) : le nom accessible dit seulement « aucune » quand la section est vide. */
+  const dit = (nom: string, n: number) => (n === 0 ? `${nom}, ${t("aucune")}` : nom);
 
   const items: TuileDInstrument[] = [
-    ...(selected || filtrant ? [{ cle: "tout", icone: "tout" as NomIcone, nom: t("Tout"), accessible: `${t("Tout")}, ${lignes(total)}`, on: !selected, onClick: () => onChange(undefined) }] : []),
+    ...(selected || filtrant ? [{ cle: "tout", icone: "tout" as NomIcone, nom: t("Tout"), accessible: t("Tout"), on: !selected, onClick: () => onChange(undefined) }] : []),
     ...sections.map((s) => {
       const n = counts[s] ?? 0;
       const ici = !selected && !filtrant && enVue === s;
-      return { cle: s, icone: s as NomIcone, nom: t(SECTION_COURT[s]), accessible: `${t(SECTION_COURT[s])}, ${lignes(n)}`, on: selected === s || ici, vide: n === 0, onClick: () => (filtrant ? onChange(s) : selected ? onChange(undefined) : conduire(s)) };
+      return { cle: s, icone: s as NomIcone, nom: t(SECTION_COURT[s]), accessible: dit(t(SECTION_COURT[s]), n), on: selected === s || ici, vide: n === 0, onClick: () => (filtrant ? onChange(s) : selected ? onChange(undefined) : conduire(s)) };
     }),
   ];
   return <GrilleDInstruments ref={bar} items={items} etiquette="Sections" coach="titres-sections" />;

@@ -107,7 +107,8 @@ describe("la page des adjudications", () => {
     /* « sommaire » dit « cette liste range ses blocs sous un titre figé » et
        vaut pour la cote comme pour les adjudications ; « adj » ne garde que
        ce qui tient au lieu. Le compte part des deux. */
-    expect(BROWSER, "le compte des lignes est revenu").toMatch(/\{!sommaire && \(\s*<span>\s*<b>\{rows\.length\}<\/b>/);
+    /* Depuis le 5 novembre 2026 aucun compte de lignes ne s'écrit nulle part. */
+    expect(BROWSER, "le compte des lignes est revenu").not.toMatch(/<b>\{rows\.length\}<\/b>/);
     /* Depuis le 4 novembre 2026 les trois pages ont la même barre : la recherche n'est plus masquée aux adjudications. */
     expect(BROWSER, "la recherche a de nouveau disparu de la barre des adjudications").not.toMatch(/\{!adj && \(\s*<label className=\{styles\.search\}>/);
     expect(BROWSER, "la barre n'a plus de champ de recherche").toMatch(/<div className=\{styles\.toolbar\}[^>]*>\s*<label className=\{styles\.search\}>/);

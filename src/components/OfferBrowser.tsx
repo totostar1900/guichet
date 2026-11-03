@@ -5,8 +5,8 @@ import { useSearchCommit } from "@/lib/ui/commit-search";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { DisplayStatus, Offer } from "@/lib/domain/types";
-import { displayStatus, FAMILIES, familyLabel, familySegment, familyShort, headlineYield, isActionable, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_LABEL, tenorYears, clientStatusGroup } from "@/lib/domain/status";
+import type { Country, DisplayStatus, Offer } from "@/lib/domain/types";
+import { displayStatus, FAMILIES, familyLabel, familySegment, familyShort, headlineYield, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_LABEL, tenorYears, clientStatusGroup } from "@/lib/domain/status";
 import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
 import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
@@ -16,6 +16,7 @@ import { useDistinction } from "./Density";
 import { Affichage } from "./Affichage";
 import { BackToTop } from "./BackToTop";
 import { SectionChips } from "./SectionChips";
+import { Drapeau } from "./Drapeau";
 import { PastillesPays } from "./PastillesPays";
 import { PAYS_CEMAC } from "@/lib/market/budget";
 import { DureeGauge, dureeRangeLabel, dureeRangeParam, parseDureeRange } from "./DureeRange";
@@ -29,7 +30,7 @@ import { nomsCourts } from "@/lib/domain/nom-court";
 import { Dropdown } from "./market/Dropdown";
 import { SECTIONS, SECTION_LABEL, sectionDe, type Lieu, type Section } from "@/lib/domain/sections";
 import { usePhone } from "./chart-utils";
-import { FoldAll, useFold } from "./Fold";
+import { BlocRepliable, FoldAll, useFold } from "./Fold";
 import { issuerKey, issuerZone, type IssuerZone } from "@/data/issuer-registry";
 import { LineMenu } from "./mobile/LineMenu";
 import { useDeskView, useLineHref } from "./DeskView";
@@ -169,7 +170,7 @@ function SectionHead({ section, n }: { section: Section; n: number }) {
           écran qu'on parcourt pour comparer des lignes. Le titre suffit à
           celui qui descend ; celui qui veut la règle la trouve au Guide. */}
       <h2 id={`sec-${section}`}>{t(SECTION_LABEL[section])}</h2>
-      <span className={styles.secN}>{n > 0 ? n : t("aucune ligne")}</span>
+      {n === 0 && <span className={styles.secN}>{t("aucune ligne")}</span>}
     </div>
   );
 }
@@ -179,17 +180,16 @@ const groupId = (issuer: string) => issuer.normalize("NFD").replace(/[̀-ͯ]/g, 
 
 /** An issuer's head: flag, name, count; it folds its lines on a tap (the state stays on the device, « Tout replier » folds them all). */
 function GroupHead({ g, colSpan }: { g: ReturnType<typeof groupByIssuer>[number]; colSpan?: number }) {
-  const t = useT();
   const { open, toggle } = useFold("titres", groupId(g.issuer));
   const fams = [...new Set(g.rows.map((r) => r.s.kind))];
   const inner = (
     <>
       <span className={`cc ${g.zone === "CEMAC" ? "cemac" : ""}`} title={g.countryName}>
-        {g.zone === "CEMAC" ? "CEMAC" : COUNTRY_CODE[g.zone]}
+        {g.zone === "CEMAC" ? "CEMAC" : (<><Drapeau pays={g.zone} largeur={19} /> {COUNTRY_CODE[g.zone]}</>)}
       </span>
       <b>{g.issuer}</b>
       <span className={styles.groupMeta}>
-        {g.rows.length} {t(g.rows.length > 1 ? "lignes" : "ligne")} · {fams.join(" · ")}
+        {fams.join(" · ")}
       </span>
       <span className={`${styles.groupChev} ${open ? styles.groupOpen : ""}`} aria-hidden="true">
         <svg viewBox="0 0 24 24">
@@ -389,10 +389,10 @@ function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boo
 
 /* ---------- the filters, the search and the sort in a sheet over the list (the page keeps its place) ---------- */
 type Group = { key: string; label: string; items: [string, string][]; selected: Set<string>; single?: boolean };
-function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge, extra, trie = true }: { open: boolean; onClose: () => void; groups: Group[]; onToggle: (key: string, value: string, single?: boolean) => void; onClear: () => void; count: number; gauge: React.ReactNode; extra: React.ReactNode; /** Faux quand la feuille ne porte pas le tri : son titre ne doit pas le promettre. */ trie?: boolean }) {
+function FilterSheet({ open, onClose, groups, onToggle, onClear, gauge, extra, trie = true }: { open: boolean; onClose: () => void; groups: Group[]; onToggle: (key: string, value: string, single?: boolean) => void; onClear: () => void; gauge: React.ReactNode; extra: React.ReactNode; /** Faux quand la feuille ne porte pas le tri : son titre ne doit pas le promettre. */ trie?: boolean }) {
   const t = useT();
   return (
-    <Sheet open={open} onClose={onClose} title={t(trie ? "Filtrer et trier" : "Filtrer")}>
+    <Sheet open={open} onClose={onClose} title={t(trie ? "Filtrer et trier" : "Filtrer")} centre>
       <div className={styles.sheetBody}>
           {extra}
           {groups.map((g) => (
@@ -422,7 +422,7 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, count, gauge, e
           {t("Effacer")}
         </button>
         <button type="button" className={`btn primary ${styles.sheetApply}`} onClick={onClose}>
-          {t("Voir")} {count} {count > 1 ? "lignes" : "ligne"}
+          {t("Appliquer")}
         </button>
       </div>
     </Sheet>
@@ -638,6 +638,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     ...(yr.min != null || yr.max != null ? [{ key: "rendement", value: "*", label: `${t("Rendement")} ${yieldRangeLabel(yr)}`, single: true }] : []),
     ...(dr.min != null || dr.max != null ? [{ key: "ans", value: "*", label: `${t("Durée")} ${dureeRangeLabel(dr)}`, single: true }] : []),
   ];
+  /* LE PAYS CHOISI SE LIT SUR SA PASTILLE (5 novembre 2026) : sur les États, une puce « Gabon × » dessous ne disait que ce que la pastille allumée dit déjà. */
+  const chipsVisibles = activeChips.filter((c) => !(c.key === "pays" && lieu === "cote" && sectionChoisie === "etats"));
   const setYield = (min?: number, max?: number) => update({ rendement: yieldRangeParam(min, max) });
   const yields = useMemo(() => offers.map((o) => headlineYield(o)).filter((y): y is number => y != null), [offers]);
   /* Le compte de chaque section se fait sur TOUTES les lignes du lieu, pas sur
@@ -773,7 +775,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    */
   const lignesEpinglees = rows.filter((r) => epingles.includes(r.o.id));
 
-  const live = offers.filter((o) => isActionable(displayStatus(o, now))).length;
   // « À la une » : the desk's picks, in their own frame under the toolbar, in the same view as the list.
   const today = nowIso.slice(0, 10);
   // « À la une » only while a client can act on the line: a closed line leaves the frame by itself.
@@ -839,10 +840,14 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    * n'est ouverte, ce qu'une section absente ne dit pas. Un émetteur vide,
    * lui, n'existe pas : on ne le nomme que parce qu'il a des lignes.
    */
-  const blocsDuSommaire = (list: Row[]): { clef: string; entier: string; rows: Row[] }[] => {
-    if (parEmetteur) return groupByIssuer(list).map((g) => ({ clef: groupId(g.issuer), entier: g.issuer, rows: g.rows }));
+  const blocsDuSommaire = (list: Row[]): { clef: string; entier: string; rows: Row[]; pays?: Country }[] => {
+    if (parEmetteur) return groupByIssuer(list).map((g) => ({ clef: groupId(g.issuer), entier: g.issuer, rows: g.rows, pays: g.zone === "CEMAC" ? undefined : g.zone }));
     return groupBySection(list, lieu).map((g) => ({ clef: g.section, entier: t(SECTION_LABEL[g.section]), rows: g.rows }));
   };
+
+  /* PLIER / DÉPLIER TOUT, QUAND LA LISTE EST GROUPÉE (5 novembre 2026) : un chevron à côté d'« Affichage ». Il agit sur les blocs de la liste (par type ou par émetteur) ou, dans une section, sur les groupes d'émetteur. */
+  const blocsEnVue = sommaire && !sansGroupe && !sectionChoisie && view !== "table";
+  const repli = blocsEnVue ? { group: "blocs", ids: blocsDuSommaire(rest).map((b) => `sec-${b.clef}`) } : grouped && view !== "table" ? { group: "titres", ids: groupByIssuer(rest).map((g) => groupId(g.issuer)) } : null;
 
   const rendreListe = (list: Row[], featured: boolean) =>
     view === "table" ? (
@@ -868,13 +873,14 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
            deux mots, dont le second est une préposition que la liste des
            mots-outils française ne connaît pas. */
         const brefs = parEmetteur ? nomsCourts(blocs.map((b) => b.entier)) : new Map<string, string>();
-        const titres: Groupe[] = blocs.map((b) => ({ clef: b.clef, nom: brefs.get(b.entier) ?? b.entier, entier: b.entier, n: b.rows.length }));
+        const titres: Groupe[] = blocs.map((b) => ({ clef: b.clef, nom: brefs.get(b.entier) ?? b.entier, entier: b.entier, pays: b.pays }));
         return (
           <>
             {blocs.map((b, i) => (
               <section key={b.clef} className={styles.bloc} aria-labelledby={`sec-${b.clef}`}>
-                <TeteGroupe id={`sec-${b.clef}`} nom={titres[i].nom} entier={b.entier} n={b.rows.length} groupes={titres} unite={b.rows.length > 1 ? "lignes" : "ligne"} />
-                {b.rows.length > 0 && renderUn(b.rows, false, true)}
+                <BlocRepliable id={`sec-${b.clef}`} tete={(ouvert, bascule) => <TeteGroupe id={`sec-${b.clef}`} nom={titres[i].nom} entier={b.entier} pays={b.pays} groupes={titres} ouvert={ouvert} onBascule={bascule} />}>
+                  {b.rows.length > 0 && renderUn(b.rows, false, true)}
+                </BlocRepliable>
               </section>
             ))}
           </>
@@ -908,7 +914,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         {rendreListe(tronque ? list.slice(0, LIGNES_VISIBLES) : list, featured)}
         {tronque && (
           <button type="button" className={styles.voirTout} onClick={() => setDeployee(sectionChoisie ?? null)}>
-            <span>{t("Voir les {n} lignes", { n: list.length })}</span>
+            <span>{t("Voir toutes les lignes")}</span>
             <span aria-hidden="true">→</span>
           </button>
         )}
@@ -934,7 +940,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         sections={lieu === "cote" ? ["actions", "etats", "regionales", "entreprises", "souscription"] : SECTIONS[lieu]}
         counts={sectionCounts}
         selected={sectionChoisie}
-        total={offers.length}
         filtrant
         onChange={(k) => update({ section: k ?? (lieu === "cote" ? "tout" : undefined), instrument: undefined, pays: lieu === "cote" ? undefined : country.size ? [...country].join(",") : undefined })}
       />
@@ -1009,6 +1014,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
             onReset={reset}
             aEffacer={aEffacer}
           />
+          {repli && repli.ids.length > 1 && <FoldAll group={repli.group} ids={repli.ids} />}
           <div className={styles.filters}>
           <Dropdown
             label={t("Instrument")}
@@ -1027,9 +1033,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           )}
           </div>
         </div>
-        {activeChips.length > 0 && (
+        {chipsVisibles.length > 0 && (
           <div className={styles.activeRow}>
-            {activeChips.map((c) => (
+            {chipsVisibles.map((c) => (
               <button key={c.key + c.value} type="button" className={`${styles.chipBtn} ${styles.chipOn}`} onClick={() => toggle(c.key, c.value, c.single)} aria-label={`${t("Retirer le filtre")} ${c.label}`}>
                 {c.label} <span aria-hidden="true">×</span>
               </button>
@@ -1048,7 +1054,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         groups={groups}
         onToggle={toggle}
         onClear={reset}
-        count={rows.length}
         /* LA JAUGE DU RENDEMENT A QUITTÉ LA FEUILLE SUR LA COTE : le nuage
            règle déjà cette plage, et la même borne commandée à deux endroits
            est une borne dont on ne sait plus lequel la tient. Elle reste aux
@@ -1089,15 +1094,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       <BackToTop watch={top} />
 
       <div className={styles.meta}>
-        {/* « 13 lignes · 1 ouverte ou cotée » répétait ce que la liste montre,
-            sur une page qui en porte huit : le compte se voit. Il reste sur
-            la cote, où il y en a trente-cinq et où le filtre en retire. */}
-        {!sommaire && (
-        <span>
-          <b>{rows.length}</b> {t(rows.length > 1 ? "lignes" : "ligne")}
-          {filterCount > 0 || q ? ` ${t("correspondant aux filtres")}` : ""} · {live} {t(live > 1 ? "ouvertes ou cotées" : "ouverte ou cotée")}
-        </span>
-        )}
         <Link className={styles.compareLink} href="/comparer">
           {t("Comparer deux lignes")}
         </Link>
@@ -1112,7 +1108,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
             {t("Grouper par émetteur")}
           </label>
         )}
-        {grouped && !sommaire && <FoldAll group="titres" ids={groupByIssuer(rest).map((g) => groupId(g.issuer))} />}
       </div>
 
       {/* LE NUAGE NE PARAÎT QUE SUR LA COTE. Aux adjudications, huit séances
@@ -1130,16 +1125,10 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           surOuvrir={(v) => update({ nuage: v ? "1" : undefined })}
           resume={
             <>
-              <span>
-                <b>{resumeNuage.n}</b> {t("lignes")}
-              </span>
               {/* UNE SEULE CLEF POUR LA FOURCHETTE. « de » et « à »
                   traduits séparément donnaient « of 4,6 % at 11,1 % » :
                   deux mots-outils n'ont pas de sens hors de leur phrase. */}
               {resumeNuage.n > 0 && <span>{t("de {bas} à {haut}", { bas: fmtPct(resumeNuage.bas, 1), haut: fmtPct(resumeNuage.haut, 1) })}</span>}
-              <span>
-                <b>{resumeNuage.decotees}</b> {t("sous 100 %")}
-              </span>
               {dr.min != null || dr.max != null || yr.min != null || yr.max != null ? <span className={styles.resumePose}>{t("plage posée")}</span> : null}
             </>
           }
@@ -1168,7 +1157,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       {lieu === "cote" && lignesEpinglees.length > 0 && (
         <section className={styles.epingles} aria-label={t("Lignes épinglées")}>
           <div className={styles.epinglesTete}>
-            <span>{lignesEpinglees.length > 1 ? t("{n} lignes épinglées", { n: lignesEpinglees.length }) : t("1 ligne épinglée")}</span>
+            <span>{t("Lignes épinglées")}</span>
             <button type="button" className={styles.detacherTout} onClick={() => update({ epingle: undefined })}>
               {t("Tout détacher")}
             </button>

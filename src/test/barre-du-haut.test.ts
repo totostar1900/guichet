@@ -81,9 +81,9 @@ describe("la barre du haut", () => {
     expect(bloc("right"), "les icônes n'ont plus de colonne : sans flèche elles glissent d'un cran").toMatch(/grid-column:\s*3/);
   });
 
-  /* UNE RACINE N'A PAS DE PARENT. La flèche y renverrait au hasard de
-     l'historique, ou nulle part. */
+  /* DEPUIS LE 5 NOVEMBRE 2026 la flèche paraît sur toutes les pages sauf l'accueil et la connexion : la barre « n'avait pas toujours le retour ». */
   it("ne pose la flèche de retour que là où l'on peut remonter", () => {
+    expect(lire("src/components/mobile/MobileShell.tsx"), "la liste des pages sans flèche a changé").toMatch(/const SANS_FLECHE = \["\/", "\/connexion"\];/);
     expect(code(BARRE), "la flèche de retour n'est plus conditionnée à la racine").toMatch(/\{!isRoot && \(/);
   });
 });
@@ -143,7 +143,7 @@ describe("les pages pleines", () => {
     const p = sansNotes(lire("src/components/PagePleine.tsx"));
     expect(p, "la page pleine n'a plus sa croix").toMatch(/<FermerLaPage label=\{fermer\} \/>/);
     expect(sansNotes(lire("src/components/FermerLaPage.tsx")), "la croix ne recule plus comme la flèche de la barre").toMatch(/onClick=\{\(\) => reculer\(router, "\/"\)\}/);
-    expect(sansNotes(lire("src/components/mobile/MobileShell.tsx")), "la flèche de la barre ne passe plus par la règle commune").toMatch(/const back = \(\) => reculer\(router, fallbackFor\(path\)\)/);
+    expect(sansNotes(lire("src/components/mobile/MobileShell.tsx")), "la flèche de la barre ne passe plus par la règle commune").toMatch(/reculer\(router, repli === path \? "\/" : repli\)/);
   });
 });
 

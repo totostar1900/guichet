@@ -155,3 +155,30 @@
   font-size: var(--t-2);
   font-weight: 800;
 }
+
+/* LE REPLI D'UN GROUPE (5 novembre 2026) : un chevron à gauche du titre, comme celui d'une arborescence ; le titre, lui, reste le saut vers un autre groupe. */
+.teteGroupe:has(.teteReplier) {
+  display: flex;
+  align-items: stretch;
+}
+.teteGroupe:has(.teteReplier) .teteBouton {
+  flex: 1;
+  min-width: 0;
+  padding-left: 0;
+}
+.teteReplier {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  border: 0;
+  background: none;
+  color: var(--gold-ink);
+  cursor: pointer;
+}
+.teteReplier svg {
+  transition: transform 0.15s;
+}
+.teteReplie svg {
+  transform: rotate(-90deg);
+}

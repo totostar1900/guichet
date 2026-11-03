@@ -66,7 +66,9 @@ const PAGE = SRC.slice(SRC.indexOf("  return ("));
 
 describe("les commandes de la page des fonds", () => {
   it("ne cache plus rien derrière une feuille", () => {
-    for (const enferme of ["Sheet", "FilterLine"]) {
+    /* « Sheet » est revenu le 5 novembre 2026, et c'est voulu : la fenêtre « Filtrer » des fonds est la même, centrée, que celle de Titres. Elle ne porte que la société de gestion et le dépositaire. */
+    expect(SRC, "la fenêtre « Filtrer » des fonds n'est plus centrée").toMatch(/<Sheet\s+open=\{filtres\}[\s\S]*?centre/);
+    for (const enferme of ["FilterLine"]) {
       expect(SRC, `« ${enferme} » est revenu : la page remet des commandes derrière un geste`).not.toMatch(new RegExp(`import \\{[^}]*\\b${enferme}\\b`));
     }
     /* « FilterFab » EST REVENU, MAIS IL N'OUVRE RIEN : il ramène aux

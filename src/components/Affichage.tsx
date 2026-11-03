@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useT } from "@/i18n/client";
 import { Sheet } from "./mobile/Sheet";
-import { CardDisplaySheet, DensiteChoix } from "./Density";
+import { DensiteChoix, DistinctionChoix } from "./Density";
 import styles from "./Affichage.module.css";
 
 export interface ChoixAffichage {
@@ -30,7 +30,6 @@ export interface ChoixAffichage {
 export function Affichage({ tri, groupe, vue, densite, onReset, aEffacer }: { tri?: ChoixAffichage & { sens?: "asc" | "desc"; onSens?: () => void }; groupe?: ChoixAffichage; vue?: ChoixAffichage; densite?: boolean; onReset: () => void; aEffacer: boolean }) {
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
-  const [cartes, setCartes] = useState(false);
 
   const rangee = (c: ChoixAffichage) => (
     <div className={styles.groupe} role="group" aria-label={c.quoi} key={c.quoi}>
@@ -86,10 +85,9 @@ export function Affichage({ tri, groupe, vue, densite, onReset, aEffacer }: { tr
             <div className={styles.groupe}>
               <span className={styles.etiquette}>{t("Densité des cartes")}</span>
               <DensiteChoix />
-              <button type="button" className={styles.lien} onClick={() => setCartes(true)} aria-haspopup="dialog">
-                {t("Choisir ce que montrent les cartes")}
-              </button>
-              <CardDisplaySheet open={cartes} onClose={() => setCartes(false)} />
+              {/* UNE SEULE FENÊTRE (5 novembre 2026) : « Choisir ce que montrent les cartes » ouvrait une seconde fenêtre ; la distinction entre les cartes est maintenant ici, avec la densité. */}
+              <span className={styles.etiquette}>{t("Distinction entre les cartes")}</span>
+              <DistinctionChoix />
             </div>
           )}
         </div>

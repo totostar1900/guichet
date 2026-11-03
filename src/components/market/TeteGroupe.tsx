@@ -4,10 +4,12 @@ import { useRef, useState } from "react";
 import { useT } from "@/i18n/client";
 import { conduireVers } from "@/lib/ui/sommaire";
 import { useFermeDehors } from "@/lib/ui/ferme-dehors";
+import type { Country } from "@/lib/domain/types";
+import { Drapeau } from "../Drapeau";
 import styles from "./TeteGroupe.module.css";
 
 /** Un groupe tel que le sommaire le montre : sa clef d'ancre, son nom court, son nom entier, son compte. */
-export type Groupe = { clef: string; nom: string; entier: string; n: number };
+export type Groupe = { clef: string; nom: string; entier: string; /** Le pays de l'émetteur : son drapeau précède le nom. */ pays?: Country };
 
 /**
  * LE TITRE D'UN GROUPE EST LE SOMMAIRE : il n'y a pas de bande au-dessus.
@@ -35,7 +37,7 @@ export type Groupe = { clef: string; nom: string; entier: string; n: number };
  * est le mot qui le suit, parce qu'on ne compte pas des fonds sur une page
  * d'adjudications.
  */
-export function TeteGroupe({ id, nom, entier, n, groupes, unite = "lignes" }: { id: string; nom: string; entier: string; n: number; groupes: Groupe[]; unite?: string }) {
+export function TeteGroupe({ id, nom, entier, pays, groupes, ouvert: replie, onBascule }: { id: string; nom: string; entier: string; pays?: Country; groupes: Groupe[]; /** Le groupe est-il déplié ? Avec « onBascule », un chevron à gauche du titre le replie. */ ouvert?: boolean; onBascule?: () => void }) {
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
   const boite = useRef<HTMLDivElement>(null);
@@ -45,8 +47,17 @@ export function TeteGroupe({ id, nom, entier, n, groupes, unite = "lignes" }: { 
   return (
     <div className={styles.teteBoite} ref={boite}>
       <h2 id={id} className={styles.teteGroupe} ref={tete} title={entier !== nom ? entier : undefined}>
-        <button type="button" className={styles.teteBouton} onClick={() => !seul && setOuvert(!ouvert)} aria-expanded={seul ? undefined : ouvert} disabled={seul} aria-label={`${entier} · ${n} ${t(unite)}${seul ? "" : ` · ${t("Aller à un groupe")}`}`}>
-          <span>{nom}</span>
+        {onBascule && (
+          <button type="button" className={`${styles.teteReplier} ${replie ? "" : styles.teteReplie}`} onClick={onBascule} aria-expanded={replie} aria-label={`${t(replie ? "Replier" : "Déplier")} : ${entier}`}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+        )}
+        <button type="button" className={styles.teteBouton} onClick={() => !seul && setOuvert(!ouvert)} aria-expanded={seul ? undefined : ouvert} disabled={seul} aria-label={`${entier}${seul ? "" : ` · ${t("Aller à un groupe")}`}`}>
+          <span>
+            {pays && <Drapeau pays={pays} largeur={19} />} {nom}
+          </span>
           {/* LA QUANTITÉ A QUITTÉ LE TITRE, pas l'étiquette parlée. Elle
               répétait ce que les rangées montrent, et sur une liste groupée
               par société de gestion elle mettait un nombre tous les deux
@@ -76,8 +87,9 @@ export function TeteGroupe({ id, nom, entier, n, groupes, unite = "lignes" }: { 
                 conduireVers(g.clef, tete.current?.getBoundingClientRect().top ?? 0);
               }}
             >
-              <span>{g.nom}</span>
-              <b>{g.n}</b>
+              <span>
+                {g.pays && <Drapeau pays={g.pays} largeur={17} />} {g.nom}
+              </span>
             </button>
           ))}
         </div>

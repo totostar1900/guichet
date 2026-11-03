@@ -40,7 +40,7 @@ export function LineIdentity({ o, s, href, size = "md", as: Tag = "div", isin = 
           </span>
         ) : (
           <span className="cc" title={t(o.countryName)}>
-            <Drapeau pays={o.country} largeur={13} /> {COUNTRY_CODE[o.country]}
+            <Drapeau pays={o.country} largeur={19} /> {COUNTRY_CODE[o.country]}
           </span>
         )}
         {/* Qui émet passe avant la référence. Le commentaire de ce composant

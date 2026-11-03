@@ -69,10 +69,6 @@ export default async function CalendrierPage() {
         ) : (
           <p className="muted">{t("Aucune séance ouverte à Guichet pour l'instant. Les Trésors publient leurs communiqués par vagues, souvent une semaine avant la séance.")}</p>
         )}
-
-        <p className={styles.note}>
-          {t("Chaque ligne cite le communiqué du Trésor concerné, publié par la BEAC : c'est la source, et elle fait foi. Le montant, le taux et le nominal sont dans le communiqué. Pour prendre part à une séance, dites-le au desk avant la clôture, qui précède la séance.")}
-        </p>
       </div>
     </Glissement>
   );

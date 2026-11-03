@@ -65,19 +65,6 @@
   text-underline-offset: 3px;
   cursor: pointer;
 }
-.lien {
-  justify-self: start;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ink-2);
-  font: inherit;
-  font-size: var(--t-3);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
 .pied {
   display: flex;
   justify-content: space-between;

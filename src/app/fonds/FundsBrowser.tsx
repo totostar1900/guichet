@@ -10,6 +10,9 @@ import { AireEpinglee } from "@/components/market/AireEpinglee";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { useDistinction } from "@/components/Density";
 import { Affichage } from "@/components/Affichage";
+import { Drapeau } from "@/components/Drapeau";
+import { BlocRepliable, FoldAll } from "@/components/Fold";
+import type { Country } from "@/lib/domain/types";
 import { GrilleDInstruments, type TuileDInstrument } from "@/components/GrilleDInstruments";
 import type { NomIcone } from "@/components/IconeDeSection";
 import { usePhone } from "@/components/chart-utils";
@@ -28,12 +31,16 @@ import { useDeskView, useLineHref } from "@/components/DeskView";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL, fundKey, type FundNav } from "@/lib/domain/market";
 import { fmt, fmtPct } from "@/lib/format";
 import styles from "./page.module.css";
+import affichage from "@/components/Affichage.module.css";
+import { Sheet } from "@/components/mobile/Sheet";
 import { useDates, useT } from "@/i18n/client";
 import type { FundCurve } from "@/lib/domain/fund-curve";
 
 /** One fund as the browser needs it : flat, serialisable, computed on the server. */
 export interface FundRow {
   id: string;
+  /** Le pays de la société de gestion : son drapeau précède son nom. */
+  country: Country;
   title: string;
   isin: string;
   category: FundNav["category"];
@@ -204,7 +211,7 @@ function FundTr({ r }: { r: FundRow }) {
         </small>
       </td>
       <td className={styles.hideSm}>
-        {r.manager}
+        <Drapeau pays={r.country} largeur={15} /> {r.manager}
         <br />
         <small className="muted">{r.depositary}</small>
       </td>
@@ -273,7 +280,7 @@ function FundLi({ r }: { r: FundRow }) {
       <span className={styles.liName}>
         <Link href={href}>{r.title}</Link>
         <small>
-          {t(FUND_CATEGORY_LABEL[r.category])} · {t(FUND_FREQUENCY_LABEL[r.frequency])} · {r.manager}
+          {t(FUND_CATEGORY_LABEL[r.category])} · {t(FUND_FREQUENCY_LABEL[r.frequency])} · <Drapeau pays={r.country} largeur={15} /> {r.manager}
         </small>
       </span>
       <span className={styles.liNav}>
@@ -373,6 +380,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   // de 180 à 400 ms, plus longue que l'hésitation d'un doigt : une frappe posée
   // ne déclenche plus un rendu complet par lettre.
   const [draft, setDraft] = useState(q);
+  const [filtres, setFiltres] = useState(false);
   const pushed = useRef(q);
   const [pushing, startPush] = useTransition();
   useEffect(() => {
@@ -559,14 +567,14 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const groupes = useMemo(() => {
     if (!groupe) return [];
     const nomDe = (r: FundRow) => (groupe === "gestion" ? r.manager : groupe === "depositaire" ? r.depositary : t(FUND_CATEGORY_LABEL[r.category]));
-    const out: { clef: string; entier: string; rows: FundRow[] }[] = [];
+    const out: { clef: string; entier: string; rows: FundRow[]; pays?: Country }[] = [];
     const vus = new Map<string, number>();
     for (const r of rowsShown) {
       const entier = nomDe(r) || t("Non renseigné");
       const clef = fundKey(entier) || "sans-nom";
       if (!vus.has(clef)) {
         vus.set(clef, out.length);
-        out.push({ clef, entier, rows: [] });
+        out.push({ clef, entier, rows: [], pays: groupe === "gestion" ? r.country : undefined });
       }
       out[vus.get(clef)!].rows.push(r);
     }
@@ -578,7 +586,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   /** Les blocs à rendre : les groupes, ou la liste entière comme un seul bloc muet. */
   const blocs = groupe && groupes.length > 0 ? groupes : [{ clef: "", nom: "", entier: "", rows: rowsShown }];
   /** Ce que le sommaire du titre propose : les mêmes groupes, sans leurs lignes. */
-  const sommaire = groupes.map((g) => ({ clef: g.clef, nom: g.nom, entier: g.entier, n: g.rows.length }));
+  const sommaire = groupes.map((g) => ({ clef: g.clef, nom: g.nom, entier: g.entier, pays: g.pays }));
   // L'en-tête d'une colonne est déjà le nom de ce qu'on veut trier : une
   // fonction, pas un composant, qu'un composant déclaré dans le rendu
   // reperdrait son état à chaque passage.
@@ -764,6 +772,48 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         />
         <div className={styles.barre}>
           {recherche}
+          {/* LE FILTRE DES FONDS (5 novembre 2026) : la même fenêtre centrée que sur Titres et Adjudications, sur la société de gestion et le dépositaire. */}
+          <button type="button" className={styles.filtrer} onClick={() => setFiltres(true)} aria-haspopup="dialog">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 6h16M7 12h10M10 18h4" />
+            </svg>
+            {t("Filtrer")}
+            {(manager ? 1 : 0) + (depositary ? 1 : 0) > 0 ? ` · ${(manager ? 1 : 0) + (depositary ? 1 : 0)}` : ""}
+          </button>
+          <Sheet
+            open={filtres}
+            onClose={() => setFiltres(false)}
+            title={t("Filtrer")}
+            centre
+            foot={
+              <div className={affichage.pied}>
+                <button type="button" className={affichage.efface} onClick={() => update({ gestion: undefined, depositaire: undefined })} disabled={!manager && !depositary}>
+                  {t("Effacer")}
+                </button>
+                <button type="button" className="btn primary" onClick={() => setFiltres(false)}>
+                  {t("Fermer")}
+                </button>
+              </div>
+            }
+          >
+            <div className={affichage.corps}>
+              {([
+                [t("Société de gestion"), managers, manager, setManager],
+                [t("Dépositaire"), depositaries, depositary, setDepositary],
+              ] as [string, string[], string, (v: string) => void][]).map(([quoi, valeurs, choisi, choisir]) => (
+                <div className={affichage.groupe} role="group" aria-label={quoi} key={quoi}>
+                  <span className={affichage.etiquette}>{quoi}</span>
+                  <div className={affichage.options}>
+                    {valeurs.map((v) => (
+                      <button key={v} type="button" aria-pressed={choisi === v} className={choisi === v ? affichage.on : undefined} onClick={() => choisir(choisi === v ? "" : v)}>
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Sheet>
           {/* L'AFFICHAGE — GROUPER, TRIER, LA VUE, LA DENSITÉ, TOUT EFFACER — EST DERRIÈRE UN SEUL BOUTON (4 novembre 2026, choix C de la
               planche) : la même barre que Titres et Adjudications. */}
           <Affichage
@@ -774,6 +824,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
             onReset={clearAll}
             aEffacer={poseSurLaListe}
           />
+          {groupe && vue !== "table" && blocs.length > 1 && <FoldAll group="blocs" ids={blocs.filter((b) => b.clef).map((b) => `sec-${b.clef}`)} />}
         </div>
         {/* TROIS LIGNES SOUS LE CHAMP, ET PAS UNE DE PLUS.
             Les pastilles de catégorie, puis les trois listes, puis les vues.
@@ -805,9 +856,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         surOuvrir={(v) => update({ bande: v ? "1" : undefined })}
         resume={
           <>
-            <span>
-              <b>{pourLaBande.length}</b> {t("fonds mesurables")}
-            </span>
             {pourLaBande.length > 0 && <span>{t("de {bas} à {haut}", { bas: fmtPct(Math.min(...pourLaBande.map((p) => p.valeur)), 1), haut: fmtPct(Math.max(...pourLaBande.map((p) => p.valeur)), 1) })}</span>}
             <span>{t("mesurés sur {f}", { f: noms[fenetre] })}</span>
             {plage ? <span className={styles.resumePose}>{t("plage posée")}</span> : null}
@@ -833,7 +881,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
       {fondsEpingles.length > 0 && (
         <section className={styles.epingles} aria-label={t("Fonds épinglés")}>
           <div className={styles.epinglesTete}>
-            <span>{fondsEpingles.length > 1 ? t("{n} fonds épinglés", { n: fondsEpingles.length }) : t("1 fonds épinglé")}</span>
+            <span>{t("Fonds épinglés")}</span>
             <button type="button" className={styles.detacherTout} onClick={() => update({ epingle: undefined })}>
               {t("Tout détacher")}
             </button>
@@ -858,12 +906,13 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         <div data-coach="fonds-table" ref={searchList} className={styles.debutDeListe}>
           {blocs.map((b) => (
             <section key={b.clef || "tout"} className={styles.bloc} aria-labelledby={b.clef ? `sec-${b.clef}` : undefined}>
-              {b.clef && <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} entier={b.entier} n={b.rows.length} groupes={sommaire} unite="fonds" />}
+              <BlocRepliable id={`sec-${b.clef}`} tete={(ouvert, bascule) => b.clef ? <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} entier={b.entier} pays={"pays" in b ? b.pays : undefined} groupes={sommaire} ouvert={ouvert} onBascule={bascule} /> : null}>
               <div className={styles.cards} data-sep={sep}>
                 {b.rows.map((r) => (
                   <FundCard key={r.id} r={r} />
                 ))}
               </div>
+              </BlocRepliable>
             </section>
           ))}
         </div>
@@ -872,12 +921,13 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         <div data-coach="fonds-table" ref={searchList} className={styles.debutDeListe}>
           {blocs.map((b) => (
             <section key={b.clef || "tout"} className={styles.bloc} aria-labelledby={b.clef ? `sec-${b.clef}` : undefined}>
-              {b.clef && <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} entier={b.entier} n={b.rows.length} groupes={sommaire} unite="fonds" />}
+              <BlocRepliable id={`sec-${b.clef}`} tete={(ouvert, bascule) => b.clef ? <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} entier={b.entier} pays={"pays" in b ? b.pays : undefined} groupes={sommaire} ouvert={ouvert} onBascule={bascule} /> : null}>
               <ul className={styles.list}>
                 {b.rows.map((r) => (
                   <FundLi key={r.id} r={r} />
                 ))}
               </ul>
+              </BlocRepliable>
             </section>
           ))}
         </div>
@@ -925,7 +975,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
                   {b.clef && (
                     <tr className={styles.teteRangee}>
                       <td colSpan={8} id={`sec-${b.clef}`}>
-                        {b.nom} <b>{b.rows.length}</b>
+                        {b.nom}
                       </td>
                     </tr>
                   )}

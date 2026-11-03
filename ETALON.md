@@ -652,6 +652,15 @@ page : le `h1` reste pour les lecteurs d'écran (`titreMasque`), et le « i » e
 (`EnBrefInstruments` : une feuille, trois onglets, un tableau « en un coup d'œil », lecture seule). Le glissement
 entre fiches et les cartes de famille **remplacent** l'entrée d'historique (`replace`) : Retour ne les rejoue pas.
 
+**Retouches du 5 novembre 2026.** Aucun **nombre de lignes** ne s'écrit nulle part (tuiles, pastilles de pays, bandeau du
+nuage, titres de groupe, « Voir toutes les lignes ») ; une section vide reste éteinte, sauf **Rachats**, retirée sans offre.
+Un groupe se replie par le **chevron à gauche de son titre** (`BlocRepliable`), tous à la fois par celui d'« Affichage »
+(`FoldAll`). « Affichage » porte aussi la **distinction entre les cartes** (une seule fenêtre). « Filtrer » est une fenêtre
+**centrée** sur les trois pages (Fonds : société de gestion, dépositaire). Les drapeaux précèdent l'émetteur sur les cartes,
+les titres de groupe et les fonds ; le pays choisi se lit sur sa pastille (fond plein), sans puce dessous. La flèche de
+retour paraît partout sauf à l'Accueil et à la connexion. Un rendement n'est **pas calculé** sur une obligation cotée dont
+seule l'année d'échéance est connue et qui a moins d'un an à courir (décision maintenue le 5 novembre).
+
 **Le rond devant un nom (2 novembre 2026).** Seules les adjudications en ont un (le drapeau
 du Trésor, `aUnRond`) : devant un titre coté ou un fonds, le monogramme prenait la place du nom
 sans rien apprendre.

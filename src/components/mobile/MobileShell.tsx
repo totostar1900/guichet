@@ -22,9 +22,10 @@ import { isAideSection, isEspaceSection, isMarcheSection, isTradeSection, listFo
  */
 export const LAST_LIST_KEY = "guichet:lastList";
 
-// Une racine ne porte pas de flèche de retour : c'est une destination du dock.
-// « /titres » en est une depuis que « / » est devenu la console.
-const ROOTS = ["/", "/titres", "/fonds", "/moi", "/info", "/desk", "/connexion", "/actualites", "/marche"];
+// LA FLÈCHE DE RETOUR PARAÎT SUR TOUTES LES PAGES, SAUF L'ACCUEIL ET LA CONNEXION (5 novembre 2026). Elle ne paraissait pas sur les sièges du
+// dock (Titres, Fonds, Marché, Aide…) et paraissait sur les autres : « la barre du haut n'a pas toujours le retour ». Sur un siège, « reculer »
+// revient à la page d'où l'on vient quand elle est de chez nous, et sinon au repli du siège (voir « retour.ts »).
+const SANS_FLECHE = ["/", "/connexion"];
 
 /**
  * `feuille` : le siège ouvre sa liste au lieu de sauter sur une page.
@@ -115,7 +116,7 @@ function fallbackFor(path: string): string {
 export function MobileShell({ signedIn, name, desk, deskHost = false, attentes = [], urgentes = 0, favoris = false, menu }: { signedIn: boolean; name?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; /** Ce qui attend le client, pour la pastille de la barre : voir BarreProps. */ attentes?: Attente[]; /** Les lignes qui ferment sous sept jours : le nombre de l'horloge. */ urgentes?: number; /** Le client a un favori : l'étoile paraît. */ favoris?: boolean; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
-  const isRoot = ROOTS.includes(path) || path === "/societes";
+  const isRoot = SANS_FLECHE.includes(path);
 
   /**
    * LA BARRE DIT OÙ L'ON EST, ET NE DIT JAMAIS LE NOM DE LA PAGE.
@@ -140,7 +141,11 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
     }
   }, [path]);
 
-  const back = () => reculer(router, fallbackFor(path));
+  /* Le repli d'un siège est parfois lui-même (« /fonds » → « /fonds ») : reculer n'irait nulle part, on retombe alors sur l'accueil. */
+  const back = () => {
+    const repli = fallbackFor(path);
+    reculer(router, repli === path ? "/" : repli);
+  };
 
   const t = useT();
   /**

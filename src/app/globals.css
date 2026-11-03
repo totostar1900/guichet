@@ -818,6 +818,13 @@ h1 {
 }
 
 .cc {
+  /* MÊME HAUTEUR QUE LA PASTILLE DE FAMILLE À CÔTÉ (« OTA »), drapeau à l'échelle de cette pastille (5 novembre 2026). */
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 19px;
+  box-sizing: border-box;
+  vertical-align: 1px;
   font-size: 0.66rem;
   font-weight: 800;
   background: var(--neutral-soft);
@@ -913,7 +920,10 @@ h1 {
 }
 /* Instrument family badge: same colour in the table, the list, the cards and the fiche. */
 .fam {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 19px;
+  box-sizing: border-box;
   font-size: 0.64rem;
   font-weight: 700;
   letter-spacing: 0.05em;

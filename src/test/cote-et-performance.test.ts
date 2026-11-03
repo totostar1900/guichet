@@ -30,7 +30,8 @@ describe("la cote : une section à la fois, « Actions » d'abord", () => {
     expect(b, "le nombre de lignes montrées n'est plus huit").toMatch(/const LIGNES_VISIBLES = 8;/);
     expect(b, "la section ne s'abrège plus").toMatch(/list\.slice\(0, LIGNES_VISIBLES\)/);
     expect(b, "une recherche ou un filtre abrège de nouveau : on cherche dans tout").toMatch(/const abrege = lieu === "cote" && Boolean\(sectionChoisie\) && !q && filterCount === 0 && deployee !== sectionChoisie;/);
-    expect(b, "« Voir les N lignes » a disparu").toMatch(/t\("Voir les \{n\} lignes", \{ n: list\.length \}\)/);
+    expect(b, "« Voir toutes les lignes » a disparu").toMatch(/t\("Voir toutes les lignes"\)/);
+    expect(b, "le bouton écrit de nouveau un nombre de lignes").not.toMatch(/t\("Voir les \{n\} lignes"/);
   });
 
   it("montre les pastilles des Trésors, à leur couleur, sur la section des États seulement", () => {
@@ -154,6 +155,47 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     for (const k of ["Prix", "Délai", "Rendement"]) expect(e, `la ligne « ${k} » a disparu du tableau`).toMatch(new RegExp(`quoi: "${k}"`));
     expect(e.replace(/\/\*[\s\S]*?\*\//g, ""), "un onglet mène à une page : il ne devait que lire (choix 2A)").not.toMatch(/<Link\b|href=|router\./);
     for (const f of ["src/components/MarketToggles.tsx", "src/app/fonds/FondsBody.tsx", "src/app/calendrier/page.tsx"]) expect(lire(f), `${f} ouvre de nouveau un « en bref » à une seule page`).toMatch(/<EnBrefInstruments page="/);
+  });
+
+  it("retouches du 5 novembre 2026 : aucun compte de lignes, flèche partout, une seule fenêtre Affichage, filtre centré", () => {
+    const ob = lire("src/components/OfferBrowser.tsx");
+    const sc = lire("src/components/SectionChips.tsx");
+    const fb = lire("src/app/fonds/FundsBrowser.tsx");
+    // 6 · aucun nombre de lignes
+    expect(sc, "une tuile dit de nouveau son nombre de lignes").not.toMatch(/\{n\} lignes|1 ligne/);
+    expect(lire("src/components/PastillesPays.tsx"), "une pastille de pays écrit de nouveau son nombre").not.toMatch(/<b>\{x\.n\}<\/b>/);
+    expect(ob, "le nuage dit de nouveau « sous 100 % » avec un nombre").not.toMatch(/resumeNuage\.decotees/);
+    expect(ob, "le nuage dit de nouveau son nombre de lignes").not.toMatch(/resumeNuage\.n\}<\/b>/);
+    expect(lire("src/components/market/TeteGroupe.tsx"), "le sommaire d'un groupe écrit de nouveau un nombre").not.toMatch(/\{g\.n\}/);
+    expect(fb, "la bande des fonds dit de nouveau « N fonds mesurables »").not.toMatch(/fonds mesurables/);
+    // 13 · pas de tuile Rachats sans rachat
+    expect(sc, "la tuile Rachats reparaît sans ligne").toMatch(/s !== "rachats" \|\| \(counts\[s\] \?\? 0\) > 0/);
+    // 5 · le texte du bas de la page des adjudications est parti
+    expect(lire("src/app/calendrier/page.tsx"), "le texte du bas des adjudications est revenu").not.toMatch(/styles\.note/);
+    // 3 · une seule fenêtre Affichage
+    const af = lire("src/components/Affichage.tsx");
+    expect(af, "« Affichage » rouvre une seconde fenêtre pour les cartes").not.toMatch(/CardDisplaySheet/);
+    expect(af, "la distinction entre les cartes a quitté la fenêtre Affichage").toMatch(/<DistinctionChoix \/>/);
+    // 9 et 11 · filtre centré, et sur Fonds aussi
+    expect(ob, "la fenêtre Filtrer de Titres n'est plus centrée").toMatch(/title=\{t\(trie \? "Filtrer et trier" : "Filtrer"\)\} centre>/);
+    expect(fb, "Fonds n'a plus son bouton Filtrer").toMatch(/className=\{styles\.filtrer\}/);
+    // 2 · plier / déplier tout, sur les trois pages
+    expect(ob, "Titres et Adjudications n'ont plus le chevron plier/déplier tout").toMatch(/<FoldAll group=\{repli\.group\}/);
+    expect(fb, "Fonds n'a plus le chevron plier/déplier tout").toMatch(/<FoldAll group="blocs"/);
+    expect(lire("src/components/market/TeteGroupe.tsx"), "un groupe ne se replie plus").toMatch(/onClick=\{onBascule\}/);
+    // 4 · drapeaux
+    expect(ob, "l'en-tête d'un groupe d'émetteur n'a plus son drapeau").toMatch(/<Drapeau pays=\{g\.zone\}/);
+    expect(fb, "les fonds n'ont plus le drapeau de leur société de gestion").toMatch(/<Drapeau pays=\{r\.country\}/);
+    expect(lire("src/components/market/TeteGroupe.tsx"), "le titre d'un groupe n'a plus le drapeau de son émetteur").toMatch(/<Drapeau pays=\{pays\}/);
+    // 1 · même hauteur que la pastille de famille
+    const g = lire("src/app/globals.css");
+    expect(g, "la pastille de pays n'a plus la hauteur de la pastille de famille").toMatch(/\.cc \{[^}]*min-height: 19px/);
+    expect(g, "la pastille de famille n'a plus la hauteur de celle du pays").toMatch(/\.fam \{[^}]*min-height: 19px/);
+    // 7 · le pays choisi se lit sur sa pastille, pas dans une puce dessous
+    expect(ob, "une puce « pays » reparaît sous les pastilles des États").toMatch(/c\.key === "pays" && lieu === "cote" && sectionChoisie === "etats"/);
+    expect(lire("src/components/PastillesPays.module.css"), "le pays choisi n'est plus en fond plein").toMatch(/\.rangee button\.on \{[^}]*background: var\(--fill\)/);
+    // 10 · la rangée d'icônes de Fonds commence à la même hauteur que celle de Titres
+    expect(lire("src/app/fonds/page.module.css"), "la rangée d'icônes de Fonds a repris une marge en haut").toMatch(/\.tools \{[^}]*padding: 0 var\(--marge-page\) 0;/);
   });
 
   it("chaque Trésor a son drapeau dessiné, et il est sur chaque ligne et sur chaque pastille de pays", () => {

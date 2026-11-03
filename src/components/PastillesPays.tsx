@@ -21,7 +21,7 @@ export function PastillesPays({ pays, selected, onChange }: { pays: { pays: Coun
         return (
           <button key={x.pays} type="button" aria-pressed={ici} disabled={x.n === 0} className={ici ? styles.on : undefined} onClick={() => onChange(ici && selected.size === 1 ? undefined : x.pays)} title={t(x.pays)}>
             <Drapeau pays={x.pays} largeur={18} />
-            {COUNTRY_CODE[x.pays]} <b>{x.n}</b>
+            {COUNTRY_CODE[x.pays]}
           </button>
         );
       })}

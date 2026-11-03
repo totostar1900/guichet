@@ -87,9 +87,23 @@ export function DensityButtons() {
 }
 
 /** Every card setting in one sheet: density, and how one card is told from the next. */
-export function CardDisplaySheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+/** Les trois façons de distinguer les cartes. Un seul rendu : la fenêtre « Affichage » et la feuille « Affichage des cartes » le posent chacune. */
+export function DistinctionChoix() {
   const t = useT();
   const sep = useDistinction();
+  return (
+    <div className={styles.chips} role="group" aria-label={t("Distinction entre les cartes")}>
+      {DISTINCTIONS.map(([k, label]) => (
+        <button key={k} type="button" className={`${styles.chip} ${sep === k ? styles.chipOn : ""}`} aria-pressed={sep === k} onClick={() => write(SEP_KEY, k)}>
+          {t(label)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function CardDisplaySheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT();
   return (
     // Sans pied, la feuille n'avait aucun bouton de sortie : le choix
     // s'appliquait bien, mais rien ne le refermait, et elle passait pour
@@ -114,13 +128,7 @@ export function CardDisplaySheet({ open, onClose }: { open: boolean; onClose: ()
       </div>
       <div className={styles.row}>
         <span className={styles.label}>{t("Distinction entre les cartes")}</span>
-        <div className={styles.chips} role="group" aria-label={t("Distinction entre les cartes")}>
-          {DISTINCTIONS.map(([k, label]) => (
-            <button key={k} type="button" className={`${styles.chip} ${sep === k ? styles.chipOn : ""}`} aria-pressed={sep === k} onClick={() => write(SEP_KEY, k)}>
-              {t(label)}
-            </button>
-          ))}
-        </div>
+        <DistinctionChoix />
       </div>
       <p className={styles.hint}>{t("Le choix est gardé sur cet appareil, pour les titres et les fonds.")}</p>
     </Sheet>

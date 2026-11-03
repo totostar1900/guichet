@@ -127,3 +127,17 @@ export function useFold(group: string, id: string, defaultOpen = true): { open: 
   const open = stored ? stored === "open" : defaultOpen;
   return { open, toggle: () => write(key(group, id), open ? "closed" : "open") };
 }
+
+/**
+ * UN BLOC QUI SE REPLIE, DANS UNE LISTE GROUPÉE (5 novembre 2026). Il lit l'état que « FoldAll » écrit (groupe « blocs », clef = l'id du titre) : le chevron
+ * du titre replie ce bloc, le chevron de la barre les replie tous. « tete » reçoit l'état et la bascule ; le contenu disparaît tant que le bloc est replié.
+ */
+export function BlocRepliable({ id, tete, children }: { id: string; tete: (ouvert: boolean, bascule: () => void) => ReactNode; children: ReactNode }) {
+  const { open, toggle } = useFold("blocs", id);
+  return (
+    <>
+      {tete(open, toggle)}
+      {open && children}
+    </>
+  );
+}

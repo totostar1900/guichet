@@ -125,7 +125,8 @@
      chiffre. Écrit « -20px », il dépassait de quatre pixels sur téléphone,
      où la gouttière vaut seize. */
   margin-inline: calc(var(--marge-page) * -1);
-  padding: 10px var(--marge-page) 0;
+  /* PAS DE MARGE EN HAUT (5 novembre 2026) : la rangée d'icônes de Titres et d'Adjudications commence à la gouttière de la pile ; ici elle commençait 6 à 10 px plus bas, et l'œil la voyait sauter en passant d'une page à l'autre. */
+  padding: 0 var(--marge-page) 0;
   border-bottom: 1px solid var(--line);
 }
 .search {
@@ -365,7 +366,7 @@
 @media (max-width: 760px) {
   .tools {
     margin: 0 -12px;
-    padding: 6px 12px 0;
+    padding: 0 12px 0;
   }
   .search {
     width: 100%;
@@ -577,4 +578,22 @@
 }
 .navigateur > * {
   min-width: 0;
+}
+
+/* LE BOUTON « FILTRER » DES FONDS : le même que celui de Titres (trait or, fond doux), à côté du champ et d'« Affichage ». */
+.filtrer {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
 }

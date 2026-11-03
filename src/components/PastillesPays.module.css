@@ -23,15 +23,14 @@
   font-weight: 600;
   cursor: pointer;
 }
-.rangee button b {
-  font-variant-numeric: tabular-nums;
-  color: var(--ink-3);
-}
 .rangee button:disabled {
   opacity: 0.45;
   cursor: default;
 }
+/* LE PAYS CHOISI SE VOIT (5 novembre 2026) : fond plein de la teinte d'action, texte à l'encre de ce fond. Un simple trait d'encre ne se distinguait pas des cinq autres. */
 .rangee button.on {
-  border-color: var(--ink);
-  color: var(--ink);
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--fill-ink);
+  font-weight: 800;
 }
