@@ -52,9 +52,6 @@
   font-size: var(--accueil-meta, var(--t-2));
   color: var(--ink-3);
 }
-.presse {
-  color: var(--warn);
-}
 /* 4A : le montant du sondage, une marche au-dessus du libellé ; l'unité en méta, l'état en pastille dessous, à droite. */
 .montant {
   flex: none;
@@ -95,4 +92,17 @@
   font-size: var(--t-1);
   color: var(--ink-3);
   margin-left: 3px;
+}
+/* Le montant d'une intention en or (comme le cours), les limites du client et le coupon en bleu (comme les revenus). */
+.or {
+  color: var(--accueil-cours, inherit);
+  font-weight: 700;
+}
+.bleu {
+  color: var(--accueil-revenu, inherit);
+  font-weight: 700;
+}
+/* Un chiffre et son unité ne se coupent pas : « 6,50 / % » sur deux lignes ne se lit pas. */
+.groupe {
+  white-space: nowrap;
 }

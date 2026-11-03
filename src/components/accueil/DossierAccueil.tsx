@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { PastilleEtat } from "@/components/PastilleEtat";
+import { gabaritDIntention, gabaritDeSondage, limitesDeSondage, periodeDeFonds } from "@/lib/domain/gabarit";
 import { chiffresDeLIntention, gestesProposables, rubriquesPresentes, seancesOuvertes, seancesPrevues, TON_DE_LETAT, type CleDeRubrique, type FaitsDuDossier, type GesteProposable } from "@/lib/domain/accueil";
 import { echeancesProches, joursEnMots } from "@/lib/domain/echeances";
 import type { AvisGarde } from "@/lib/domain/garde";
@@ -9,7 +10,7 @@ import { displayStatus } from "@/lib/domain/status";
 import type { StandingOrder } from "@/lib/domain/standing";
 import { summarize } from "@/lib/domain/summary";
 import type { Intent, LigneSondee, Offer, Watch } from "@/lib/domain/types";
-import { fmt, fmtDate } from "@/lib/format";
+import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
 import { BlocPlat } from "./BlocPlat";
 import styles from "./DossierAccueil.module.css";
 
@@ -115,13 +116,16 @@ export async function DossierAccueil({
       const s = summarize(o, now);
       const e = pressantes.get(o.id);
       const q = e ? joursEnMots(e.jours) : undefined;
-      const perf = o.kind === "FONDS" && o.fund?.perf1yPct != null ? `${o.fund.perf1yPct > 0 ? "+" : ""}${o.fund.perf1yPct.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} % ${t("sur 12 mois")}` : undefined;
+      /* LE RENDEMENT EN HAUT, LA PÉRIODE SUR SA LIGNE, ET PLUS DE DOUBLON (2 novembre 2026). Le chiffre de tête et sa note disaient deux fois « +7,4 % sur 12 mois ». Le chiffre est seul ; la période s'écrit avec ses deux dates (« du 18 sept. 2025 au 18 sept. 2026 ») pour un fonds, et avec sa condition (« si servi à 97 % ») pour le reste ; ce qui presse (une clôture) est une pastille. */
+      const periodeFonds = o.kind === "FONDS" && o.fund ? periodeDeFonds(o.fund) : undefined;
       return {
         href: `/offres/${o.id}`,
         nom: t(o.title),
         sous: t(s.subtitle),
-        valeur: `${s.hero}${s.heroUnit ? ` ${t(s.heroUnit)}` : ""}`,
-        note: q ? t("ferme {q}", { q: t(q.key, q.params) }) : (perf ?? (displayStatus(o, now) === "quoted" ? "" : t(s.status))),
+        valeur: s.hero,
+        periode: periodeFonds ? t("du {a} au {b}", periodeFonds) : s.heroUnit ? t(s.heroUnit) : undefined,
+        urgence: q ? t("ferme {q}", { q: t(q.key, q.params) }) : undefined,
+        statut: !q && displayStatus(o, now) !== "quoted" ? t(s.status) : undefined,
         presse: Boolean(e && e.urgence !== "calme"),
         jours: e?.jours ?? 9999,
       };
@@ -129,21 +133,27 @@ export async function DossierAccueil({
     .sort((a, b) => a.jours - b.jours)
     .slice(0, 3);
 
-  type Ligne = { texte: string; montant: string; etat: string; ton: "bon" | "attention" | "neutre" };
-  /* LES CHIFFRES DE « MES INTENTIONS » : le type d'ordre et le montant à gauche, l'état et la part servie à droite. Voir « chiffresDeLIntention ». */
   const intentions = mine.slice(0, 3).map((i) => {
     const c = chiffresDeLIntention(i, offre(i.offerId)?.kind ?? "");
+    const o = offre(i.offerId);
+    /* LE GABARIT DE LA MAISON (2 novembre 2026) : « OTA 4 ans • CMR » en tête ; dessous, le type, le montant (en or), le coupon et la limite du client (en bleu). */
+    const limite = i.limitPrice != null && o?.instrument === "obligation" ? `${fmtPrice(i.limitPrice)} ${i.type === "vente" ? t("min") : t("max")}` : undefined;
     return {
       href: `/offres/${i.offerId}`,
-      nom: t(titreDe(i.offerId)),
-      detail: [t(INTENT_LABEL[i.type]), c.montant ? `${fmt(c.montant.valeur)} ${c.montant.unite}` : ""].filter(Boolean).join(" · "),
+      nom: (o && gabaritDIntention(o)) ?? t(titreDe(i.offerId)),
+      type: t(INTENT_LABEL[i.type]),
+      montant: c.montant ? { texte: fmt(c.montant.valeur), unite: c.montant.unite } : undefined,
+      coupon: o?.kind === "OTA" && o.couponRate ? fmtPct(o.couponRate, 2) : undefined,
+      limite,
       etat: t(INTENT_STATE_LABEL[i.state]),
       ton: TON_DE_LETAT[i.state],
       servi: c.serviPct != null ? t("servi à {n} %", { n: String(c.serviPct) }) : undefined,
     };
   });
+  type Ligne = { texte: string; taux?: string; prix?: string; montant: string; etat: string; ton: "bon" | "attention" | "neutre" };
   const auSondage: Ligne[] = vivantes.slice(0, 2).map((x) => ({
-    texte: `${x.instrument} ${x.tenor} · ${t(x.country)}`,
+    texte: gabaritDeSondage(x),
+    ...limitesDeSondage(x),
     montant: fmt(x.montant),
     etat: t(x.state === "consolidee" ? "portée au Trésor" : "ouverte"),
     ton: x.state === "consolidee" ? "neutre" : "bon",
@@ -184,7 +194,31 @@ export async function DossierAccueil({
             <Rang key={k} href={l.href}>
               <span className={styles.qui}>
                 <b>{l.nom}</b>
-                <small>{l.detail}</small>
+                <small>
+                  {l.type}
+                  {l.montant && (
+                    <>
+                      {" • "}
+                      <span className={styles.groupe}>
+                        <span className={styles.or}>{l.montant.texte}</span> {l.montant.unite}
+                      </span>
+                    </>
+                  )}
+                  {l.coupon && (
+                    <>
+                      {" • "}
+                      <span className={styles.groupe}>
+                        {t("coupon")} <span className={styles.bleu}>{l.coupon}</span>
+                      </span>
+                    </>
+                  )}
+                  {l.limite && (
+                    <>
+                      {" • "}
+                      <span className={`${styles.bleu} ${styles.groupe}`}>{l.limite}</span>
+                    </>
+                  )}
+                </small>
               </span>
               <span className={styles.quoi}>
                 <PastilleEtat ton={l.ton}>{l.etat}</PastilleEtat>
@@ -200,6 +234,13 @@ export async function DossierAccueil({
             <Rang key={k} href="/sondage">
               <span className={styles.qui}>
                 <b>{l.texte}</b>
+                {(l.taux || l.prix) && (
+                  <small>
+                    {l.taux && <span className={styles.bleu}>{l.taux}</span>}
+                    {l.taux && l.prix && " • "}
+                    {l.prix && <span className={styles.bleu}>{l.prix}</span>}
+                  </small>
+                )}
               </span>
               <span className={styles.montant}>
                 <b>
@@ -221,8 +262,10 @@ export async function DossierAccueil({
                 <small>{l.sous}</small>
               </span>
               <span className={styles.quoi}>
-                <b>{l.valeur}</b>
-                {l.note && <small className={l.presse ? styles.presse : undefined}>{l.note}</small>}
+                <b className={styles.or}>{l.valeur}</b>
+                {l.periode && <small>{l.periode}</small>}
+                {l.urgence && <PastilleEtat ton={l.presse ? "attention" : "neutre"}>{l.urgence}</PastilleEtat>}
+                {l.statut && <small>{l.statut}</small>}
               </span>
             </Rang>
           ))}

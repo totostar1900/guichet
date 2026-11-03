@@ -4,7 +4,8 @@ import path from "node:path";
 import { SEED_OFFERS } from "@/data/seed";
 import { gestesProposables, lignesSimilaires, listeDeLaFiche, type FaitsPourGestes } from "@/lib/domain/accueil";
 import { coursEtRevenus } from "@/lib/domain/ligne-titre";
-import { fmt } from "@/lib/format";
+import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
+import { gabaritDIntention, gabaritDeSondage, limitesDeSondage, periodeDeFonds } from "@/lib/domain/gabarit";
 import type { Offer } from "@/lib/domain/types";
 
 const ROOT = path.join(__dirname, "../..");
@@ -154,5 +155,41 @@ describe("retouches du 2 novembre 2026 sur l'Accueil", () => {
     expect(d).not.toContain("Dix-sept questions");
     expect(d, "le geste « profil » a retrouvé une phrase").toMatch(/profil: \{ href: "\/moi\/profil", nom: t\("Compléter mon profil d'investisseur"\), dit: "" \}/);
     expect(d, "une ligne sans phrase ne doit pas rendre un <small> vide").toMatch(/\{g\.dit && <small>\{g\.dit\}<\/small>\}/);
+  });
+});
+
+describe("le gabarit « OTA 4 ans • CMR » et les lignes suivies sans doublon (2 novembre 2026)", () => {
+  it("une ligne de sondage s'écrit « OTA 4 ans • CMR », le pays abrégé comme sur les cartes", () => {
+    expect(gabaritDeSondage({ instrument: "OTA", tenor: "4 ans", country: "Cameroun" })).toBe("OTA 4 ans • CMR");
+    expect(gabaritDeSondage({ instrument: "BTA", tenor: "52 semaines", country: "Gabon" })).toBe("BTA 52 semaines • GAB");
+  });
+
+  it("les limites : un taux MINIMUM et un prix MAXIMUM, jamais l'inverse ; rien sans valeur", () => {
+    expect(limitesDeSondage({ rate: 6.5, pricePct: 95 })).toEqual({ taux: `${fmtPct(6.5, 1)} min`, prix: `${fmtPrice(95)} max` });
+    expect(limitesDeSondage({ rate: 5.2 })).toEqual({ taux: `${fmtPct(5.2, 1)} min` });
+    expect(limitesDeSondage({})).toEqual({});
+  });
+
+  it("une intention sur une OTA ou un BTA a son gabarit ; un fonds ou une action non", () => {
+    const base = { country: "Cameroun", settleOn: "2026-01-15", maturityOn: "2030-01-15" } as const;
+    expect(gabaritDIntention({ ...base, kind: "OTA" })).toBe("OTA 4 ans • CMR");
+    expect(gabaritDIntention({ ...base, kind: "FONDS" })).toBeUndefined();
+    expect(gabaritDIntention({ ...base, kind: "OTA", maturityOn: "" })).toBeUndefined();
+  });
+
+  it("la période d'un fonds donne ses deux dates, sans date de départ pas de période", () => {
+    const p = periodeDeFonds({ perf1yPct: 7.4, perf1yFrom: "2025-09-18", navDate: "2026-09-18" });
+    expect(p).toEqual({ a: fmtDate("2025-09-18"), b: fmtDate("2026-09-18") });
+    expect(periodeDeFonds({ perf1yPct: 7.4, navDate: "2026-09-18" })).toBeUndefined();
+    expect(periodeDeFonds({ perf1yFrom: "2025-09-18", navDate: "2026-09-18" })).toBeUndefined();
+  });
+
+  it("une ligne suivie n'écrit son chiffre qu'une fois : plus de « note » qui le répète", () => {
+    const d = code("src/components/accueil/DossierAccueil.tsx");
+    expect(d, "le doublon (une note qui répète la performance) est revenu").not.toMatch(/perf \?\? /);
+    expect(d, "le chiffre de tête n'est plus seul en haut, en or").toMatch(/<b className=\{styles\.or\}>\{l\.valeur\}<\/b>/);
+    expect(d, "la période n'a plus sa propre ligne").toMatch(/\{l\.periode && <small>\{l\.periode\}<\/small>\}/);
+    expect(d, "ce qui presse n'est plus une pastille").toMatch(/\{l\.urgence && <PastilleEtat ton=\{l\.presse \? "attention" : "neutre"\}>/);
+    expect(d, "la période n'est plus écrite avec ses deux dates").toContain('t("du {a} au {b}", periodeFonds)');
   });
 });
