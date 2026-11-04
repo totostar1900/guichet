@@ -300,7 +300,8 @@
   display: flex;
   align-items: center;
   gap: var(--s-4);
-  margin: 0;
+  /* À --titre-gap du bloc qui la précède (elle y était collée, à 8 px). Les marges adjacentes se confondent : l'écart vaut le plus grand des deux, 12, et non leur somme. */
+  margin: var(--titre-gap) 0 0;
   font-size: var(--t-2);
   color: var(--ink-3);
 }
@@ -321,3 +322,4 @@
   color: var(--gold-ink);
   text-decoration: none;
 }
+

@@ -311,3 +311,10 @@ describe("la barre du haut dit la famille de la fiche (8 novembre 2026)", () => 
     expect(lieuDe("/offres/une-adjudication")?.rubrique, "sans la famille dite par la fiche, la barre retombe sur Titres").toBe("Titres");
   });
 });
+
+describe("la note « Chiffres de référence » se tient à --titre-gap de son bloc (8 novembre 2026)", () => {
+  it("la note a sa marge haute à --titre-gap, et la section n'est pas devenue une grille (qui doublerait les écarts du bloc)", () => {
+    expect(lire("src/app/offres/[id]/page.module.css")).toMatch(/\.noteBulle \{[^}]*margin: var\(--titre-gap\) 0 0;/);
+    expect(lire("src/app/offres/[id]/FicheReading.tsx"), "la section des chiffres est devenue une grille").not.toMatch(/styles\.ensemble/);
+  });
+});
