@@ -15,7 +15,8 @@
   border-bottom: 1px solid var(--line);
   font-size: 0.86rem;
   font-weight: 700;
-  color: var(--ink);
+  /* LE BLEU DES REPÈRES (7 novembre 2026, choix 1c B) : le titre d'un groupe n'est pas une commande, et l'or est celui des boutons. Le bleu est celui de l'information, comme le « i ». */
+  color: var(--navy-text);
 }
 /* LE TITRE EST LE SOMMAIRE : il se touche sur toute sa largeur, et pas
    seulement sur son chevron. Une cible de 366 px sur 33 ne se rate pas, là
@@ -47,7 +48,7 @@
   margin-left: auto;
   flex: none;
   align-self: center;
-  color: var(--gold-ink);
+  color: inherit;
 }
 /* CE QUE LE TITRE OUVRE : une ligne par groupe, pleine largeur, verticale.
    Treize lignes font une seule glissade du pouce ; treize pastilles en
@@ -144,12 +145,14 @@
   }
 }
 
-/* LE TITRE D'UN GROUPE EST EN OR ET EN CAPITALES. Il se confondait avec le
+/* LE TITRE D'UN GROUPE EST EN BLEU ET EN CAPITALES (7 novembre 2026, choix 1c B) : il était en or, la teinte choisie par le client, et se lisait comme un bouton. Le bleu est celui de l'information. Ce qui suit dit pourquoi les capitales.
+
+   (Avant : LE TITRE D'UN GROUPE EST EN OR ET EN CAPITALES. Il se confondait avec le
    nom d'une ligne : même casse, même encre, et sur une liste groupée par
    société de gestion on ne savait plus lequel des deux on lisait. L'or est
-   la couleur que le client a choisie, donc le repère appartient à sa page. */
+   la couleur que le client a choisie, donc le repère appartient à sa page.) */
 .teteGroupe span:first-child {
-  color: var(--select);
+  color: var(--navy-text);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-size: var(--t-2);

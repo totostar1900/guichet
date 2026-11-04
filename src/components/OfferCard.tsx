@@ -136,6 +136,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
   const compact = useDensity() === "compact";
   const estAction = o.kind === "MARCHE" && o.instrument === "action";
   const prix = estAction ? prixDe(s) : null;
+  const avecCoupon = (o.kind === "OTA" || o.kind === "APE") && s.coupon !== "—";
   // « Clôture · jeu. 15 oct. 17 h 00 » on the card's foot; a listed line reads « cotation continue ».
   const continuous = s.deadline === "continue";
   const when = continuous ? t("cotation continue") : t(s.deadline);
@@ -150,7 +151,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
           <div className={`${styles.head} ${dos ? styles.dosTete : ""}`}>
             <LineIdentity o={o} s={s} href={dos ? undefined : href} size="lg" isin={false} />
             {!dos && (
-              <div className={styles.corner}>
+              <div className={styles.corner} data-coach="titres-etat">
                 <span className={styles.etat}>
                   {suiviEtat && <Cloche />}
                   <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
@@ -160,7 +161,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
             )}
           </div>
           {estAction && prix ? (
-            <div className={styles.bigAction}>
+            <div className={styles.bigAction} data-coach="titres-prix">
               <div className={styles.prixCol}>
                 <b className={styles.prix}>
                   {prix.nombre}
@@ -175,9 +176,18 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
               )}
             </div>
           ) : (
-          <div className={styles.big}>
+          <div className={`${styles.big} ${avecCoupon ? styles.duo : ""}`} data-coach="titres-prix">
+              {/* LE COUPON À LA TAILLE DU RENDEMENT (7 novembre 2026, choix 1b A) : ce que l'État verse, puis ce que vous gagnez au prix servi. Sorti de la grille. */}
+              {avecCoupon && (
+                <span className={styles.chiffre}>
+                  <b className={styles.coupon}>{s.coupon}</b>
+                  <small>{t("coupon")}</small>
+                </span>
+              )}
+              <span className={avecCoupon ? styles.chiffre : styles.contenu}>
               <b className={s.gold ? styles.taux : ""}>{s.hero}</b>
               <small>{t(s.heroSub)}</small>
+              </span>
               {/* LE GRAPHE À DROITE DU CHIFFRE EN AVANT (option A de la planche du 4 novembre) : le dividende reste le chiffre en avant, la
                   forme du cours sur trois mois dit le reste, avec sa variation. La carte ne grandit pas. */}
               {courbe && (
@@ -195,8 +205,8 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
               </span>
             </div>
           )}
-          <div className={styles.facts}>
-            {(estAction && prix ? faitsAction(s) : s.facts).map(([k, v, note]) => (
+          <div className={styles.facts} data-coach="titres-grille">
+            {(estAction && prix ? faitsAction(s) : avecCoupon ? s.facts.filter(([k]) => k !== "Coupon") : s.facts).map(([k, v, note]) => (
               <div key={k}>
                 <span>{t(k)}</span>
                 <b>{v}</b>
@@ -204,7 +214,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
               </div>
             ))}
           </div>
-          <div className={styles.foot}>
+          <div className={styles.foot} data-coach="titres-pied">
             {/* L'ISIN DESCEND AU PIED, en face de « Voir la fiche ». Il ne sert
                 qu'à passer un ordre en banque, jamais à reconnaître une ligne :
                 sa place est au bas de la carte, là où l'on agit, et non dans la

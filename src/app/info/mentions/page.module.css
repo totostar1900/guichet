@@ -11,6 +11,8 @@
   color: var(--ink-3);
 }
 .section {
+  /* Sous la barre de l'application et sous la bande de menu collée. */
+  scroll-margin-top: calc(var(--barre-app, 0px) + 56px);
   padding: 12px 0;
   border-top: 1px solid var(--line);
 }
@@ -22,5 +24,23 @@
   margin: 0 0 8px;
   font-size: 0.92rem;
   line-height: 1.6;
+  color: var(--ink-2);
+}
+
+/* Les fiches d'une section : un terme, puis ce qu'il veut dire, sans tuile ni marge entre deux fiches (un seul écart, celui de la liste). */
+.lignes {
+  margin: 0;
+  display: grid;
+  gap: var(--tuiles-gap);
+}
+.lignes dt {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.lignes dd {
+  margin: 2px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
   color: var(--ink-2);
 }

@@ -5,6 +5,8 @@
   border-radius: var(--radius);
   padding: 14px 16px 14px;
   display: grid;
+  /* One shrinkable column: an auto track grew to the longest unbroken line (issuer + type) and pushed the corner pill and the "···" button out of the card. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   min-width: 0;
   overflow: hidden;
@@ -182,6 +184,22 @@
 }
 .taux {
   color: var(--good);
+}
+/* COUPON ET RENDEMENT CÔTE À CÔTE (7 novembre 2026) : deux colonnes, le chiffre au-dessus de sa condition ; la seconde cède à la ligne avant la première. « contenu » garde la ligne d'avant (chiffre puis condition sur une ligne) quand il n'y a pas de coupon. */
+.contenu {
+  display: contents;
+}
+.duo {
+  align-items: flex-start;
+  gap: 8px 22px;
+}
+.chiffre {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.coupon {
+  color: var(--gold-ink);
 }
 
 /* TOUS SUR LA MÊME BANDE, trois ou quatre selon ce que la ligne a à dire : une

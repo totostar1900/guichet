@@ -1,0 +1,39 @@
+/* La bande colle sous la barre de l'application et défile de côté ; elle sort de la gouttière pour aller bord à bord. */
+.bande {
+  position: sticky;
+  top: var(--barre-app, 0px);
+  z-index: 5;
+  display: flex;
+  gap: var(--s-4);
+  margin-inline: -20px;
+  padding: var(--s-4) 20px;
+  overflow-x: auto;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  scrollbar-width: none;
+}
+.bande::-webkit-scrollbar {
+  display: none;
+}
+.onglet {
+  flex: none;
+  padding: var(--s-2) var(--s-6);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.onglet[aria-current="true"] {
+  background: var(--gold-soft);
+  border-color: var(--gold);
+  color: var(--gold-ink);
+}
+@media (max-width: 820px) {
+  .bande {
+    margin-inline: calc(-1 * (var(--s-6) + var(--s-1)));
+    padding-inline: calc(var(--s-6) + var(--s-1));
+  }
+}

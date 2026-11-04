@@ -47,7 +47,7 @@ export function OngletsMarche() {
   return (
     <nav className={styles.onglets} aria-label={t("Ce qui s'achète")}>
       {pages.map((p) => (
-        <Link key={p.key} href={p.href} replace className={styles.onglet} aria-current={estIci(p, path) ? "page" : undefined}>
+        <Link key={p.key} href={p.href} replace data-coach={p.key === "fonds" ? "titres-fonds" : undefined} className={styles.onglet} aria-current={estIci(p, path) ? "page" : undefined}>
           <svg viewBox="0 0 24 24" aria-hidden="true" {...TRAIT}>
             {ICONES[p.key]}
           </svg>

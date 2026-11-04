@@ -106,6 +106,17 @@ export function EnBrefInstruments({ page, className }: { page: Instrument; class
         </div>
         <CorpsDeBrief brief={BRIEF[onglet]} />
         {onglet === "titres" && <VariationEtRisques />}
+        {/* LA VISITE SE LANCE DEPUIS LE « i » (7 novembre 2026, choix 3c A) : la feuille se ferme, puis la visite adaptée à la vue courante démarre. Le signal est celui que le menu « ⋮ » envoie déjà. */}
+        <button
+          type="button"
+          className={`btn sm ghost ${styles.lire}`}
+          onClick={() => {
+            setOpen(false);
+            window.setTimeout(() => window.dispatchEvent(new Event("guichet:coach:replay")), 350);
+          }}
+        >
+          {t("Comment lire cette page ?")}
+        </button>
       </Sheet>
     </>
   );

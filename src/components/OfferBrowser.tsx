@@ -12,7 +12,8 @@ import { parseDate } from "@/lib/finance";
 import { OfferCard } from "./OfferCard";
 import { TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
-import { useDistinction } from "./Density";
+import { visiteDesTitres } from "@/lib/ui/visite-titres";
+import { useDensity, useDistinction } from "./Density";
 import { Affichage } from "./Affichage";
 import { BackToTop } from "./BackToTop";
 import { SectionChips } from "./SectionChips";
@@ -540,6 +541,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    * densité des cartes, et la feuille qui dit ce qu'une carte porte.
    */
   const view: View = phone ? "cards" : ((sp.get("vue") as View) || "table");
+  const densite = useDensity();
   const [sheet, setSheet] = useState(false);
   /* La section dont on a demandé toutes les lignes : une seule à la fois, et elle se referme en changeant de section. */
   const [deployee, setDeployee] = useState<string | null>(null);
@@ -1201,15 +1203,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       {!desk && <CoachMarks
         id="titres"
         replayLabel={t("Comment lire cette page ?")}
-        stops={[
-          { target: "titres-marches", title: t("Deux marchés, deux interrupteurs"), text: t("Marché primaire : vous souscrivez auprès de l'émetteur pendant une fenêtre. Marché secondaire : vous achetez à un autre investisseur au cours du jour. Les deux sont affichés ; éteignez-en un pour ne voir que l'autre.") },
-          { target: "titres-fonds", title: t("Les fonds ont leur page"), text: t("Les parts de fonds (OPCVM) se souscrivent à la prochaine valeur liquidative : elles ont leur propre tableau, avec leurs catégories et leur société de gestion.") },
-          { target: "titres-filtres", title: t("Filtrer, puis trier"), text: t("Instrument, pays, statut, durée, rendement : chaque filtre s'ajoute aux autres, et le compte des lignes retenues s'affiche à côté. Le tri se prend dans la même feuille, ou dans l'en-tête d'une colonne du tableau. Tri et filtres restent dans l'adresse de la page : revenez d'une fiche, la liste est telle que vous l'aviez laissée, et le lien que vous envoyez montre ce que vous voyiez.") },
-          { target: "titres-vues", title: t("Tableau, liste ou cartes"), text: t("Le tableau compare les chiffres colonne par colonne, la liste se lit d'un trait, les cartes conviennent au téléphone. Un second réglage, la densité, resserre les cartes : en compacte une carte ne porte plus qu'un nom et un chiffre, et tout le reste passe au dos. Le rendement est toujours le premier chiffre.") },
-          { target: "titres-chiffre", title: t("Le chiffre en avant, et d'où il vient"), text: t("Le grand nombre est le rendement actuariel annuel brut : ce que la ligne rapporte si vous l'achetez à ce cours et la gardez jusqu'au bout. La petite ligne sous lui en dit l'origine, et c'est elle qui compte : « 97 % · 47 j » veut dire que le cours est de 97 % du nominal et qu'il n'a pas bougé depuis 47 jours. Ce n'est pas la date d'une transaction.") },
-          { target: "titres-carte", title: t("Tirez la carte vers la gauche"), text: t("Trois actions apparaissent sous la carte. Contacter ouvre un message prêt à envoyer sur cette ligne. Déclarer ouvre une intention, sans engagement. La troisième dépend du marché : sur la cote c'est Suivre, qui vous prévient à chaque mouvement de la ligne ; à l'adjudication c'est Alerte, qui vous rappelle chaque jour jusqu'à la clôture du dépôt.") },
-          { target: "titres-retourner", title: t("Les deux faces de la carte"), text: t("La face dit ce qu'il faut pour choisir : qui emprunte, ce que ça rapporte, depuis quand ce cours tient. Le dos dit ce qu'il faut pour vérifier, et il est le même quelle que soit la vue : le nom complet de la ligne avec son ISIN, trois chiffres côte à côte (le cours, le rendement, l'échéance), les faits datés de la ligne, et enfin le calcul de référence, qui montre d'où sort le rendement, coupon couru compris. Tirez vers la droite ou touchez l'icône pour retourner.") },
-        ]}
+        stops={visiteDesTitres({ vue: view === "cards" ? (densite === "compact" ? "compactes" : "detaillees") : view === "list" ? "liste" : "tableau", page: lieu === "adjudications" ? "adjudications" : "cote", t })}
       />}
     </div>
     </SuivisContext.Provider>

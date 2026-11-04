@@ -253,16 +253,16 @@
   }
 }
 
-/* LE « i » EST À PART (6 novembre 2026) : une teinte qui n'est celle d'aucune autre icône de la barre, et un filet qui le sépare de la loupe. Il explique la page ; les autres agissent. */
+/* LE « i » EST À PART (6 novembre 2026), PUIS À GAUCHE (7 novembre) : une teinte qui n'est celle d'aucune autre icône de la barre, et un filet qui le sépare de l'horloge. Il explique la page ; les autres agissent. */
 .info {
   color: #8db6ff;
-  margin-inline: 6px 10px;
+  margin-inline: 0 12px;
   position: relative;
 }
 .info::after {
   content: "";
   position: absolute;
-  right: -7px;
+  right: -8px;
   top: 10px;
   bottom: 10px;
   width: 1px;

@@ -7,6 +7,7 @@ import { EN_PROSE } from "./en-prose";
 import { EN_TEMPLATES } from "./en-templates";
 import { EN_DATA } from "./en-data";
 import { EN_NEWS } from "./en-news";
+import { EN_VISITE } from "./en-visite";
 import { EN_DOCS } from "./en-docs";
 import { EN_PARCOURS } from "./en-parcours";
 import { EN_ANALYSES } from "./en-analyses";
@@ -47,6 +48,7 @@ const EN: Record<string, string> = {
   ...EN_TEMPLATES,
   ...EN_DATA,
   ...EN_NEWS,
+  ...EN_VISITE,
   ...EN_DOCS,
   ...EN_PARCOURS,
   ...EN_ANALYSES,

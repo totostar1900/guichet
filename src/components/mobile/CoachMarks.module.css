@@ -55,6 +55,11 @@
    cette carte-là plutôt que comme une offre faite à la page entière. */
 .replay {
   white-space: nowrap;
+  /* À SA LARGEUR (7 novembre 2026, choix 3a A) : dans une pile ou une grille le bouton s'étirait sur 362 px et se lisait comme une barre de commande. Il garde la largeur de son mot, centré. */
+  justify-self: center;
+  align-self: center;
+  width: fit-content;
+  margin-inline: auto;
   /* Dans une pile (« .pile », globals.css) le « gap » sépare déjà le bouton de la dernière carte : « --replay-marge: 0px ». */
   margin-top: var(--replay-marge, var(--s-10));
 }

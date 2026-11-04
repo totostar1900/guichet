@@ -122,6 +122,8 @@ export function BarreDuHaut({ name, attentes, urgentes, favoris }: BarreDuHautPr
 
   return (
     <>
+      {/* LE « i » DES TROIS PAGES D'INSTRUMENTS EST DANS LA BARRE (4 novembre 2026, choix 1A) ET À GAUCHE DU GROUPE (7 novembre 2026) : en tête de rangée, avec son filet à droite, il se lit comme l'explication de la page et non comme une commande de plus entre l'horloge et la loupe : sans grand titre, il n'a plus de « face » où se poser, et il suit la page quand on défile. */}
+      {BRIEF_DE_LA_PAGE[chemin] && <EnBrefInstruments page={BRIEF_DE_LA_PAGE[chemin]} className={`${styles.ic} ${styles.info}`} />}
       <Link href="/echeances" className={`${styles.ic} ${styles.ambre}`} aria-label={urgentes > 0 ? t("Ce qui ferme bientôt · {n} sous sept jours", { n: String(urgentes) }) : t("Ce qui ferme bientôt")} title={t("Ce qui ferme bientôt")}>
         <Trace d={ICONE.horloge} />
         {urgentes > 0 && <em className={`${styles.pas} ${styles.pasAmbre}`}>{urgentes > 9 ? "9+" : urgentes}</em>}
@@ -131,8 +133,6 @@ export function BarreDuHaut({ name, attentes, urgentes, favoris }: BarreDuHautPr
           <Trace d={ICONE.etoile} />
         </Link>
       )}
-      {/* LE « i » DES TROIS PAGES D'INSTRUMENTS EST DANS LA BARRE (4 novembre 2026, choix 1A) : sans grand titre, il n'a plus de « face » où se poser, et il suit la page quand on défile. */}
-      {BRIEF_DE_LA_PAGE[chemin] && <EnBrefInstruments page={BRIEF_DE_LA_PAGE[chemin]} className={`${styles.ic} ${styles.info}`} />}
       {/* LA RECHERCHE EST UN LIEN, PAS UNE BARRE (1er novembre 2026). Le champ du tiroir ouvrait une feuille de six résultats qui se comportait mal ; la page de recherche sait déjà chercher. La loupe y mène d'un geste, de toutes les pages sauf d'elle-même. */}
       {chemin !== "/recherche" && (
         <Link href="/recherche" className={styles.ic} aria-label={t("Rechercher")} title={t("Rechercher")}>

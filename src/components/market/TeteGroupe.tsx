@@ -46,7 +46,7 @@ export function TeteGroupe({ id, nom, entier, pays, groupes, ouvert: replie, onB
   const seul = groupes.length < 2;
   return (
     <div className={styles.teteBoite} ref={boite}>
-      <h2 id={id} className={styles.teteGroupe} ref={tete} title={entier !== nom ? entier : undefined}>
+      <h2 id={id} data-coach="titres-groupe" className={styles.teteGroupe} ref={tete} title={entier !== nom ? entier : undefined}>
         {onBascule && (
           <button type="button" className={`${styles.teteReplier} ${replie ? "" : styles.teteReplie}`} onClick={onBascule} aria-expanded={replie} aria-label={`${t(replie ? "Replier" : "Déplier")} : ${entier}`}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">

@@ -134,3 +134,7 @@ Court, factuel, dans cet ordre : ce qui est fait ; **les skills utilisés et ce 
 - **Un défaut qui n'existe que dans un thème** (la boîte blanche du thème clair) : reproduire dans le thème où il apparaît.
 - **Une donnée de démonstration absente** : la tuile n'a pas été vue, elle n'est pas « vérifiée ».
 - **Un script qui réécrit un fichier avec lui-même** : ne jamais ouvrir un fichier en écriture avant d'avoir fini de le lire.
+
+## Leçon du 7 novembre 2026 : une référence inaccessible se remplace par les captures et le PDF du client
+
+Quand le site de référence ne se résout pas depuis le conteneur, on ne l'invente pas : on part des captures et des documents que le client fournit (ici le PDF « Description of Services, Financial Instruments and Risks »), on en tire la STRUCTURE (parties, ordre, tableaux terme · description) et jamais les phrases. Une documentation réglementaire n'affirme que ce que l'application fait déjà (parcours de `flows.ts`, chiffres de `summary.ts`) ; ce qui relève de la conformité (garantie d'investisseurs, assurance) reste signalé comme à écrire, pas improvisé. Le tour de lecture d'une page suit la vue choisie et ancre chaque arrêt à un repère réel (`data-coach`) : un repère mort est un arrêt qui ne parle jamais (c'était le cas de `titres-fonds`).

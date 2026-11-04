@@ -1,5 +1,7 @@
 .id {
   display: grid;
+  /* Une colonne qui rétrécit : la pastille « Sélection du desk » et sa raison (une longue ligne) élargissaient la colonne auto, et le surtitre du Trésor passait sous la pastille d'état. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 3px;
   min-width: 0;
 }
@@ -16,6 +18,14 @@
 }
 .title a:hover {
   text-decoration: underline;
+}
+.surtitre {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
 }
 .lg .title {
   font-size: 0.94rem;
@@ -79,7 +89,15 @@
   text-transform: uppercase;
   padding: 2px 7px;
   border-radius: 999px;
+  /* La raison de la sélection est redite sous la carte : la pastille la tronque (…) plutôt que de sortir de la carte ou de devenir un bloc de quatre lignes. */
   white-space: nowrap;
+  max-width: 100%;
+  min-width: 0;
+}
+.badge > em {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .badge em {
   font-style: normal;

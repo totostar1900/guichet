@@ -27,8 +27,13 @@ export function LineIdentity({ o, s, href, size = "md", as: Tag = "div", isin = 
   const nom = Tag === "h1" ? s.title : titreCourt(o);
   const title = href ? <Link href={href}>{t(nom)}</Link> : t(nom);
   const zone = issuerZone(o);
+  /* LE TRÉSOR EN SURTITRE SUR LA CARTE (7 novembre 2026, choix 1a C) : « Trésor public de la République gabonaise » se lisait en gris, à demi caché, sous un titre qui ne dit que « OTA 6,25 % ». La carte (taille « lg ») le monte au-dessus du titre ; la ligne grise ne garde que le reste (« abondement », « rachat par le Trésor »). On traduit avant de couper : la coupure suit la langue du lecteur. */
+  const [emetteur, ...reste] = t(s.subtitle).split(" · ");
+  const surtitre = size === "lg" && Tag === "div" && /^(Trésor public|Public Treasury)/i.test(emetteur) ? emetteur : null;
+  const ligneGrise = surtitre ? reste.join(" · ") : t(s.subtitle);
   return (
     <div className={`${styles.id} ${size === "lg" ? styles.lg : size === "xl" ? styles.xl : ""}`}>
+      {surtitre && <span className={styles.surtitre}>{surtitre}</span>}
       <Tag className={styles.title}>{title}</Tag>
       <div className={styles.meta}>
         <span className={`fam fam-${s.family}`} style={famVars(s.family) as React.CSSProperties}>
@@ -48,7 +53,7 @@ export function LineIdentity({ o, s, href, size = "md", as: Tag = "div", isin = 
             on lisait « OTA 6,50 % · CF0000018421 » avant de savoir de quel
             Trésor il s'agit, et l'ISIN ne sert qu'à passer un ordre en banque,
             jamais à reconnaître une ligne. */}
-        <span className={styles.issuer}>{t(s.subtitle)}</span>
+        {ligneGrise && <span className={styles.issuer}>{ligneGrise}</span>}
         {isin && <span className={styles.isin}>{o.isin}</span>}
       </div>
       {s.badges.length > 0 && (
