@@ -8,6 +8,7 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { lesFavoris } from "@/lib/domain/favoris";
 import { summarize } from "@/lib/domain/summary";
+import { cadenceDuSuivi } from "@/lib/domain/sections";
 import { RetirerFavori } from "./RetirerFavori";
 import styles from "./favoris.module.css";
 
@@ -77,7 +78,7 @@ export default async function FavorisPage({ searchParams }: { searchParams: Prom
               return (
                 <div key={o.id} className={styles.ligne}>
                   <LineIdentity o={o} s={sm} href={`/offres/${o.id}`} />
-                  <WatchButton offerId={o.id} initial signedIn />
+                  <WatchButton offerId={o.id} initial signedIn cadence={cadenceDuSuivi(o)} />
                 </div>
               );
             })}

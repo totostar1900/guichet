@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { visiteDesTitres, type PageDeLaVisite, type VueDeLaVisite } from "@/lib/ui/visite-titres";
 import { ORDRE_DE_LA_PAGE } from "@/data/services-risques";
@@ -170,6 +170,9 @@ describe("la bulle de confirmation, une seule (7 novembre 2026)", () => {
       expect(s, `${f} dit le suivi à sa façon`).not.toMatch(/Alerte armée : un message par jour/);
     }
     expect(lire("src/components/mobile/Bulle.tsx")).toMatch(/export function texteDuSuivi\(/);
+    /* ELLE SURVIT À SA PAGE : retirer une ligne de Suivies ou de Favoris démonte le bouton qui parle ; la bulle est un magasin de module, affiché par l'hôte de la mise en page. */
+    expect(lire("src/components/mobile/Bulle.tsx"), "la bulle est de nouveau liée au composant qui la dit").toMatch(/let texte = "";[\s\S]*export function HoteDeLaBulle\(\)/);
+    expect(lire("src/app/layout.tsx"), "l'hôte de la bulle n'est plus dans la mise en page").toMatch(/<HoteDeLaBulle \/>/);
     expect(lire("src/components/mobile/Bulle.module.css")).toMatch(/\.bulle \{[^}]*position: fixed;[^}]*z-index: 70;/);
   });
   it("l'étoile de la fiche lit le même état de suivi que le menu, le glissement et la cloche", () => {
@@ -185,5 +188,83 @@ describe("la documentation reprend les risques par instrument du document de ré
     const inst = m.INSTRUMENTS.lignes ?? [];
     expect(inst.length).toBeGreaterThanOrEqual(5);
     for (const l of inst) expect(l.texte.fr, l.terme.fr).toMatch(/À veiller/);
+  });
+});
+
+describe("les confirmations disent la même chose partout, y compris sur la fiche (7 novembre 2026)", () => {
+  it("la fiche passe la cadence de la ligne à l'étoile et au menu, comme les cartes", () => {
+    const f = lire("src/app/offres/[id]/FicheHead.tsx");
+    expect(f).toMatch(/const cadence = cadenceDuSuivi\(o\);/);
+    expect(f).toMatch(/<WatchButton [^>]*cadence=\{cadence\}/);
+    expect(f).toMatch(/watching=\{watching\} cadence=\{cadence\}/);
+    const w = lire("src/components/WatchButton.tsx");
+    expect(w).toMatch(/toggleWatch\(offerId, !on, cadence\)/);
+    expect(w).toMatch(/texteDuSuivi\(res\.watching, cadence, t\)/);
+  });
+});
+
+describe("quel que soit le lien de suivi utilisé, la même cadence et la même bulle (7 novembre 2026)", () => {
+  const sources = (): string[] => {
+    const out: string[] = [];
+    const marche = (d: string) => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        const p = `${d}/${e.name}`;
+        if (e.isDirectory()) marche(p);
+        else if (p.endsWith(".tsx")) out.push(p);
+      }
+    };
+    marche("src");
+    return out;
+  };
+  it("chaque <LineMenu> et chaque <WatchButton> reçoit une cadence", () => {
+    const sans: string[] = [];
+    for (const f of sources()) {
+      if (f.endsWith("mobile/LineMenu.tsx") || f.endsWith("components/WatchButton.tsx")) continue;
+      const s = lire(f);
+      for (const m of s.matchAll(/<(LineMenu|WatchButton)\b[^>]*?\/>/g)) if (!/cadence=/.test(m[0])) sans.push(`${f} · ${m[1]}`);
+    }
+    expect(sans, "un lien de suivi n'envoie pas la cadence de la ligne").toEqual([]);
+  });
+  it("une seule règle de cadence, lue partout", () => {
+    expect(lire("src/lib/domain/sections.ts")).toMatch(/export function cadenceDuSuivi\(/);
+    for (const f of ["src/components/OfferCard.tsx", "src/components/OfferBrowser.tsx", "src/app/offres/[id]/FicheHead.tsx", "src/app/favoris/page.tsx", "src/app/moi/suivies/page.tsx"]) expect(lire(f), f).toMatch(/cadenceDuSuivi\(o\)/);
+  });
+});
+
+describe("la règle de cadence elle-même", () => {
+  it("une séance se rappelle chaque jour, une ligne cotée et un fonds à chaque mouvement", async () => {
+    const { cadenceDuSuivi } = await import("@/lib/domain/sections");
+    for (const kind of ["OTA", "BTA", "RACHAT"] as const) expect(cadenceDuSuivi({ kind } as never), kind).toBe("quotidien");
+    expect(cadenceDuSuivi({ kind: "MARCHE", instrument: "action" } as never)).toBe("evenement");
+    expect(cadenceDuSuivi({ kind: "FONDS" } as never)).toBe("evenement");
+  });
+});
+
+describe("pas d'événement, pas de compte à rebours : pas d'alerte (7 novembre 2026)", () => {
+  it("la règle : une séance a une alerte tant qu'elle n'est pas close, un fonds a la sienne, une ligne cotée seulement si elle a traité", async () => {
+    const { alerteOuverte } = await import("@/lib/domain/alerte");
+    expect(alerteOuverte({ kind: "OTA" } as never, false), "séance ouverte").toBe(true);
+    expect(alerteOuverte({ kind: "OTA" } as never, true), "séance close : plus de compte à rebours").toBe(false);
+    expect(alerteOuverte({ kind: "RACHAT" } as never, true)).toBe(false);
+    expect(alerteOuverte({ kind: "FONDS", fund: { nav: 1 } } as never, false)).toBe(true);
+    expect(alerteOuverte({ kind: "MARCHE", instrument: "action", lastPrice: 90000 } as never, false)).toBe(true);
+    expect(alerteOuverte({ kind: "MARCHE", instrument: "action", lastPrice: null } as never, false), "jamais traitée : rien à annoncer").toBe(false);
+  });
+  it("le glissement, le menu ⋯, l'étoile de la fiche et le tableau ne proposent pas d'alerte quand il n'y a rien à annoncer, sauf si elle est déjà armée", () => {
+    const sw = lire("src/components/mobile/SwipeActions.tsx");
+    expect(sw).toMatch(/const avecAlerte = alerte \|\| on;/);
+    expect(sw).toMatch(/\{avecAlerte && \(\s*<button type="button" className=\{`\$\{styles\.b3\}/);
+    expect(sw, "la poignée garde la place de trois actions").toMatch(/const reveal = avecAlerte \? REVEAL : REVEAL_DEUX;/);
+    expect(lire("src/components/mobile/LineMenu.tsx")).toMatch(/line\.alerte === false && !on \? \[\]/);
+    expect(lire("src/components/WatchButton.tsx")).toMatch(/if \(!alerte && !on\) return null;/);
+    for (const f of ["src/components/OfferCard.tsx", "src/components/OfferBrowser.tsx", "src/app/offres/[id]/FicheHead.tsx"]) expect(lire(f), f).toMatch(/alerteOuverte\(o, s\.past\)/);
+  });
+});
+
+describe("le menu ⋯ parle de la cadence de la ligne", () => {
+  it("une séance propose « Armer l'alerte » (un message par jour jusqu'à la clôture), une ligne cotée « Suivre »", () => {
+    const m = lire("src/components/mobile/LineMenu.tsx");
+    expect(m).toMatch(/cadence === "quotidien" \? \(on \? "Retirer l'alerte" : "Armer l'alerte"\) : on \? "Ne plus suivre" : "Suivre"/);
+    expect(m).toMatch(/"un message par jour jusqu'à la clôture"/);
   });
 });

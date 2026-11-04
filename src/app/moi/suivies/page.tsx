@@ -4,6 +4,7 @@ import { repo } from "@/lib/data";
 import { LineIdentity } from "@/components/LineIdentity";
 import { WatchButton } from "@/components/WatchButton";
 import { summarize } from "@/lib/domain/summary";
+import { cadenceDuSuivi } from "@/lib/domain/sections";
 import { lignesSuivies } from "@/lib/domain/suivies";
 import { getT } from "@/i18n/server";
 import { Glissement } from "@/components/mobile/Glissement";
@@ -71,7 +72,7 @@ export default async function SuiviesPage() {
                       <small>{t(sm.heroUnit ?? sm.heroSub)}</small>
                     </div>
                     <span className={`pill ${sm.statusClass}`}>{t(sm.status)}</span>
-                    <WatchButton offerId={o.id} initial signedIn />
+                    <WatchButton offerId={o.id} initial signedIn cadence={cadenceDuSuivi(o)} />
                   </div>
                 );
               })}

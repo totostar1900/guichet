@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Instrument_Serif, Manrope } from "next/font/google";
 import "./globals.css";
 import "./palettes.css";
+import { HoteDeLaBulle } from "@/components/mobile/Bulle";
 import styles from "./layout.module.css";
 import { COMPANY, DISCLAIMER, PRODUCT, TUILES } from "@/lib/config";
 import { NavTabs } from "@/components/NavTabs";
@@ -296,6 +297,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               depuis que la colonne existe, et chaque page du marché portait
               quand même sa grille à deux colonnes pour un rail invisible. */}
           <main className={styles.main}>{children}</main>
+          <HoteDeLaBulle />
         </div>
         </RegistryProvider>
         </ColonneStore>

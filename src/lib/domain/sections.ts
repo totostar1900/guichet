@@ -139,3 +139,12 @@ export function sectionDe(o: Pick<Offer, "kind" | "instrument" | "typeKey" | "is
 
 /** Le nom du segment que le bulletin imprime, pour les trois sections obligataires de la cote. */
 export const SEGMENT_BOC: Partial<Record<Section, string>> = { etats: "etats", regionales: "regionales", entreprises: "privees" };
+
+/**
+ * LA CADENCE D'UN SUIVI, UNE SEULE FOIS (7 novembre 2026) : une séance se rappelle chaque jour jusqu'à sa clôture, une ligne cotée ou un fonds à chaque
+ * mouvement. Les cartes, le menu ⋯, le glissement, l'étoile de la fiche et celle des pages Favoris et Suivies la lisent ici : quel que soit le lien de suivi
+ * utilisé, le même suivi est armé et la même bulle le dit.
+ */
+export function cadenceDuSuivi(o: Pick<Offer, "kind" | "instrument" | "typeKey">): "evenement" | "quotidien" {
+  return lieuDe(o) === "adjudications" ? "quotidien" : "evenement";
+}

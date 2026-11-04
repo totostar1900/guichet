@@ -12,7 +12,8 @@ import { SwipeActions } from "./mobile/SwipeActions";
 import { useRef } from "react";
 import { famVars } from "@/lib/registry";
 import { useDensity } from "./Density";
-import { lieuDe } from "@/lib/domain/sections";
+import { cadenceDuSuivi } from "@/lib/domain/sections";
+import { alerteOuverte } from "@/lib/domain/alerte";
 import { MiniCourbe } from "./MiniCourbe";
 import { issuerZone } from "@/data/issuer-registry";
 import { Drapeau } from "./Drapeau";
@@ -146,7 +147,8 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
   const more = useRef<(() => void) | null>(null);
   const turn = useRef<(() => void) | null>(null);
   const [suiviEtat] = useSuivi(o.id, suivi);
-  const menu = { id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() };
+  const alerte = alerteOuverte(o, s.past);
+  const menu = { id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, alerte, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() };
   /** Le corps de la vue détaillée. `dos` : le coin est porté par la tête de la face arrière. */
   const corps = (dos: boolean) => (
     <>
@@ -158,7 +160,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
                   {suiviEtat && <Cloche />}
                   <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
                 </span>
-                {!desk && <LineMenu line={menu} watching={suivi} cadence={lieuDe(o) === "adjudications" ? "quotidien" : "evenement"} openRef={more} />}
+                {!desk && <LineMenu line={menu} watching={suivi} cadence={cadenceDuSuivi(o)} openRef={more} />}
               </div>
             )}
           </div>
@@ -244,12 +246,12 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
       {corps(false)}
     </article>
   );
-  const cadence = lieuDe(o) === "adjudications" ? "quotidien" : "evenement";
+  const cadence = cadenceDuSuivi(o);
   /* PAS DE DOS EN VUE DÉTAILLÉE (6 novembre 2026) : la carte détaillée est déjà tout ce qu'on peut en dire. Sans dos, ni chevron à gauche ni icône de
      retournement. En vue compacte, le dos EST la carte détaillée, comme sur les fonds. */
   if (!compact) {
     return (
-      <SwipeActions key="pleine" id={o.id} cadence={cadence} suivi={suivi}>
+      <SwipeActions key="pleine" id={o.id} cadence={cadence} suivi={suivi} alerte={alerte}>
         {detaillee()}
       </SwipeActions>
     );
@@ -263,6 +265,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
          se suit a chaque changement : deux marches, deux cadences. */
       cadence={cadence}
       suivi={suivi}
+      alerte={alerte}
       backHead={
         <div className={styles.corner}>
           <span className={styles.etat}>
@@ -328,7 +331,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
             </span>
           </Link>
           <span className={styles.cTools}>
-            {!desk && <LineMenu line={menu} watching={suivi} cadence={lieuDe(o) === "adjudications" ? "quotidien" : "evenement"} openRef={more} className={styles.cDots} />}
+            {!desk && <LineMenu line={menu} watching={suivi} cadence={cadenceDuSuivi(o)} openRef={more} className={styles.cDots} />}
             <button type="button" data-coach="titres-retourner" className={styles.cFlip} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
               <Turn />
             </button>

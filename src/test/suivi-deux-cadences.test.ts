@@ -127,7 +127,7 @@ describe("le geste dit laquelle des deux cadences il arme", () => {
 
   it("la carte passe la cadence de son lieu", () => {
     const carte = readFileSync(`${RACINE}/src/components/OfferCard.tsx`, "utf8");
-    expect(carte).toMatch(/cadence=\{lieuDe\(o\) === "adjudications" \? "quotidien" : "evenement"\}/);
+    expect(carte).toMatch(/cadence=\{cadenceDuSuivi\(o\)\}/);
   });
 
   it("le mot qui suit l'appui nomme la cadence, pas seulement l'état", () => {

@@ -248,7 +248,7 @@ function FundTr({ r }: { r: FundRow }) {
           <Link className="btn sm ghost" href={href}>
             {t(desk ? "Voir la ligne" : "Voir la fiche")}
           </Link>
-          {!desk && <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, kind: "FONDS", sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} />}
+          {!desk && <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, kind: "FONDS", sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} cadence="evenement" />}
         </span>
       </td>
     </tr>
@@ -294,7 +294,7 @@ function FundLi({ r }: { r: FundRow }) {
         <Link className="btn sm ghost" href={href}>
           {t(desk ? "Voir la ligne" : "Voir la fiche")}
         </Link>
-        {!desk && <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, kind: "FONDS", sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} />}
+        {!desk && <LineMenu line={{ id: r.id, title: r.title, isin: r.isin, kind: "FONDS", sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` }} cadence="evenement" />}
       </span>
     </li>
   );

@@ -5,6 +5,8 @@ import { LineMenu } from "@/components/mobile/LineMenu";
 import type { DisplayStatus, Offer } from "@/lib/domain/types";
 import type { OfferSummary } from "@/lib/domain/summary";
 import { familySegment, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
+import { cadenceDuSuivi } from "@/lib/domain/sections";
+import { alerteOuverte } from "@/lib/domain/alerte";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 
@@ -41,6 +43,8 @@ export async function FicheHead({
   watching?: boolean;
   signedIn?: boolean;
 }) {
+  /* LA MÊME CADENCE QUE LES CARTES (7 novembre 2026) : une séance se rappelle chaque jour jusqu'à sa clôture, une ligne cotée à chaque mouvement. La fiche la disait toujours « à chaque mouvement ». */
+  const cadence = cadenceDuSuivi(o);
   const t = await getT();
   return (
     <div className={styles.head}>
@@ -65,8 +69,8 @@ export async function FicheHead({
               au lieu de se couper en deux. */}
           <div className={styles.headIcons}>
             <HorizonMark level={horizon?.level} text={horizon?.text} hasProfile={horizon?.hasProfile ?? false} />
-            <WatchButton offerId={o.id} initial={watching} signedIn={signedIn} />
-            <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} watching={watching} onFiche={false} pdf />
+            <WatchButton offerId={o.id} initial={watching} signedIn={signedIn} cadence={cadence} alerte={alerteOuverte(o, s.past)} />
+            <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, alerte: alerteOuverte(o, s.past), sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} watching={watching} cadence={cadence} onFiche={false} pdf />
           </div>
           <div className={styles.headBtns}>
             <a className={`btn sm ${styles.pdfBtn}`} href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">

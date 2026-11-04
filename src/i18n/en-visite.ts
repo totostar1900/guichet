@@ -33,4 +33,8 @@ export const EN_VISITE: Record<string, string> = {
   "Variation du cours sur trois mois, depuis le {d}": "Price change over three months, since {d}",
   "Variation du cours · 3 mois": "Price change · 3 months",
   "hors dividendes": "excluding dividends",
+  "Armer l'alerte": "Set the alert",
+  "Retirer l'alerte": "Remove the alert",
+  "alerte armée": "alert set",
+  "un message par jour jusqu'à la clôture": "one message a day until closing",
 };

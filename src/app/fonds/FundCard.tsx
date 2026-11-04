@@ -110,7 +110,7 @@ export function FundCard({ r }: { r: FundRow }) {
         {!dos && (
           <div className={styles.corner}>
             {pastille}
-            {!desk && <LineMenu line={menu} openRef={more} />}
+            {!desk && <LineMenu line={menu} cadence="evenement" openRef={more} />}
           </div>
         )}
       </div>
@@ -205,7 +205,7 @@ export function FundCard({ r }: { r: FundRow }) {
           </span>
         </Link>
         <span className={propres.cOutils}>
-          {!desk && <LineMenu line={menu} openRef={more} className={propres.cDots} />}
+          {!desk && <LineMenu line={menu} cadence="evenement" openRef={more} className={propres.cDots} />}
           <button type="button" className={propres.cFlip} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3" />
