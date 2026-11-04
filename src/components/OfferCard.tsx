@@ -1,5 +1,6 @@
 "use client";
 
+import { useSuivi } from "@/lib/ui/suivi";
 import { useT } from "@/i18n/client";
 import Link from "next/link";
 import type { Offer } from "@/lib/domain/types";
@@ -95,10 +96,12 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
   const whenLabel = continuous || !when ? null : <em className={styles.whenLabel}>{t("Clôture")}</em>;
   const more = useRef<(() => void) | null>(null);
   const turn = useRef<(() => void) | null>(null);
-  const facts = useMemo(() => backFacts(o, new Date()), [o]);
+  const [suiviEtat] = useSuivi(o.id, suivi);
+  const facts = useMemo(() => backFacts(o, new Date(), courbe?.serie), [o, courbe]);
   const menu = { id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() };
   return (
     <SwipeActions
+      key={compact ? "compacte" : "pleine"}
       id={o.id}
       turnRef={turn}
       /* Une seance se rappelle chaque jour jusqu a sa cloture, une ligne cotee
@@ -108,7 +111,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
       backHead={
         <div className={styles.corner}>
           <span className={styles.etat}>
-            {suivi && <Cloche />}
+            {suiviEtat && <Cloche />}
             <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
           </span>
           {/* LE DOS N'A PLUS SON ICÔNE DE RETOURNEMENT : elle proposait un
@@ -146,7 +149,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
             </span>
           </Link>
           <span className={styles.cTools}>
-            {!desk && <LineMenu line={menu} openRef={more} className={styles.cDots} />}
+            {!desk && <LineMenu line={menu} watching={suivi} cadence={lieuDe(o) === "adjudications" ? "quotidien" : "evenement"} openRef={more} className={styles.cDots} />}
             <button type="button" data-coach="titres-retourner" className={styles.cFlip} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
               <Turn />
             </button>
@@ -158,10 +161,10 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
             <LineIdentity o={o} s={s} href={href} size="lg" isin={false} />
             <div className={styles.corner}>
               <span className={styles.etat}>
-                {suivi && <Cloche />}
+                {suiviEtat && <Cloche />}
                 <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
               </span>
-              {!desk && <LineMenu line={menu} openRef={more} />}
+              {!desk && <LineMenu line={menu} watching={suivi} cadence={lieuDe(o) === "adjudications" ? "quotidien" : "evenement"} openRef={more} />}
               <button type="button" data-coach="titres-retourner" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
                 <Turn />
               </button>

@@ -447,7 +447,7 @@
 }
 .chipBtn {
   border: 1px solid var(--line-2);
-  border-radius: 999px;
+  border-radius: var(--radius);
   padding: 6px 12px;
   font-size: 0.78rem;
   font-weight: 600;

@@ -162,7 +162,7 @@ export function FundCard({ r }: { r: FundRow }) {
 
   if (!compact)
     return (
-      <SwipeActions id={r.id}>
+      <SwipeActions key="pleine" id={r.id}>
         <article className={styles.card} style={{ ["--card-c" as string]: "var(--info)" }}>
           {corps(false)}
         </article>
@@ -171,6 +171,7 @@ export function FundCard({ r }: { r: FundRow }) {
 
   return (
     <SwipeActions
+      key="compacte"
       id={r.id}
       turnRef={turn}
       backHead={

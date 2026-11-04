@@ -1,5 +1,6 @@
 "use client";
 
+import { useSuivi } from "@/lib/ui/suivi";
 import { useT } from "@/i18n/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -56,7 +57,7 @@ const SLOP = 8;
 
 export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "evenement", suivi = false, children }: { id: string; back?: React.ReactNode; backHead?: React.ReactNode; onTurn?: (turned: boolean) => void; turnRef?: React.MutableRefObject<(() => void) | null>; cadence?: "evenement" | "quotidien"; suivi?: boolean; children: React.ReactNode }) {
   const t = useT();
-  const [on, setOn] = useState(suivi);
+  const [on, setOn] = useSuivi(id, suivi);
   const [dit, setDit] = useState("");
   const [, demarrer] = useTransition();
   const router = useRouter();
@@ -104,7 +105,9 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
     };
     const fit = (turned: boolean) => {
       const h = turned ? backEl.current?.scrollHeight : front.current?.offsetHeight;
-      el.style.height = h ? `${h}px` : "";
+      /* LA FACE AVANT PREND SA HAUTEUR NATURELLE (5 novembre 2026) : fixée en pixels, elle restait la même quand la densité changeait ou
+         qu'un graphe arrivait, et laissait des vides entre les cartes. Seul le dos, absolu, a besoin d'une hauteur posée. */
+      el.style.height = turned && h ? `${h}px` : "";
       f.style.height = turned && h ? `${h}px` : "";
     };
     // The back may grow once its curve arrives: the boxes follow.
@@ -130,7 +133,11 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
       paint(true);
     };
     const turnByButton = () => {
-      if (st.angle > 0) return;
+      /* DU DOS, LE MÊME BOUTON RAMÈNE À LA FACE (5 novembre 2026) : il ne savait que tourner vers le dos, et l'icône du dos ne faisait rien. */
+      if (st.angle > 0) {
+        close();
+        return;
+      }
       wake();
       st.x = 0;
       st.angle = 180;
@@ -294,6 +301,7 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
         return;
       }
       setOn(res.watching);
+      router.refresh();
       setDit(res.watching ? (cadence === "quotidien" ? t("Alerte armée : un message par jour jusqu'à la clôture") : t("Ligne suivie : un message à chaque mouvement")) : t("Alerte retirée"));
       window.setTimeout(() => setDit(""), 1600);
     });

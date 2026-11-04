@@ -229,7 +229,7 @@ describe("la page des adjudications", () => {
        demie, et rien ensuite ne distingue la ligne. La cloche est AVANT la
        pastille d'état : l'alerte appartient au lecteur, l'état au marché. */
     expect(CARTE, "la cloche a disparu de la carte").toMatch(/function Cloche\(\)/);
-    const etats = [...CARTE.matchAll(/<span className=\{styles\.etat\}>\s*\{suivi && <Cloche \/>\}\s*<span className=\{`pill/g)].length;
+    const etats = [...CARTE.matchAll(/<span className=\{styles\.etat\}>\s*\{suiviEtat && <Cloche \/>\}\s*<span className=\{`pill/g)].length;
     expect(etats, "la cloche doit précéder la pastille, sur les deux faces de la carte").toBe(2);
     expect(BROWSER, "la carte ne sait plus si une alerte est armée").toMatch(/suivi=\{armees\.has\(o\.id\)\}/);
     expect(PAGE, "la page ne lit plus les alertes du lecteur").toMatch(/listWatches\(session\.userId\)/);

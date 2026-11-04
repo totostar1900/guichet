@@ -1,5 +1,6 @@
 "use client";
 
+import { useSuivi } from "@/lib/ui/suivi";
 import { useT } from "@/i18n/client";
 import { deverrouiller, verrouiller } from "./verrou-defilement";
 import { useRouter } from "next/navigation";
@@ -31,13 +32,12 @@ function Icon({ d }: { d: string }) {
   );
 }
 
-export function LineMenu({ line, watching, onFiche = true, pdf, className, openRef }: { line: LineRef; watching?: boolean; onFiche?: boolean; pdf?: boolean; className?: string; openRef?: React.MutableRefObject<(() => void) | null> }) {
+export function LineMenu({ line, watching, cadence, onFiche = true, pdf, className, openRef }: { line: LineRef; watching?: boolean; /** La cadence du suivi : un message par jour jusqu'à la clôture (adjudication) ou à chaque changement (cote). */ cadence?: "evenement" | "quotidien"; onFiche?: boolean; pdf?: boolean; className?: string; openRef?: React.MutableRefObject<(() => void) | null> }) {
   const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [toast, setToast] = useState("");
-  const [onState, setOn] = useState<boolean | null>(null);
-  const on = onState ?? Boolean(watching);
+  const [on, setOn] = useSuivi(line.id, Boolean(watching));
   const [pending, start] = useTransition();
   const sheet = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y0: number; dy: number } | null>(null);
@@ -118,10 +118,11 @@ export function LineMenu({ line, watching, onFiche = true, pdf, className, openR
     } else if (what === "suivre") {
       start(async () => {
         const next = !on;
-        const res = await toggleWatch(line.id, next);
+        const res = await toggleWatch(line.id, next, cadence);
         if (res.ok) {
           setOn(res.watching);
-          say(t(res.watching ? "Ligne suivie : vous êtes prévenu à chaque changement" : "Ligne retirée du suivi"));
+          router.refresh();
+          say(t(res.watching ? (cadence === "quotidien" ? "Alerte armée : un message par jour jusqu'à la clôture" : "Ligne suivie : vous êtes prévenu à chaque changement") : "Ligne retirée du suivi"));
         } else router.push(`/connexion?next=${encodeURIComponent(href)}`);
       });
     }

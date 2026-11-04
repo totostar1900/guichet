@@ -70,7 +70,7 @@
 }
 .chip {
   border: 1px solid var(--line-2);
-  border-radius: 999px;
+  border-radius: var(--radius);
   padding: 6px 12px;
   font: inherit;
   font-size: 0.78rem;
@@ -99,4 +99,33 @@
 .foot {
   display: flex;
   justify-content: flex-end;
+}
+
+/* LE CHOIX DE DENSITÉ DE LA FENÊTRE « AFFICHAGE » : deux cases égales, 44 px, la choisie en fond plein. */
+.densChoix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-4);
+}
+.densChoix button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  min-height: 44px;
+  padding: 0 var(--s-5);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  font-weight: 600;
+  cursor: pointer;
+}
+.densChoix .densOn {
+  border-color: var(--fill);
+  background: var(--fill);
+  color: var(--fill-ink);
+  font-weight: 800;
 }

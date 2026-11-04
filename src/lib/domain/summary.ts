@@ -92,6 +92,9 @@ export function badgesFor(o: Offer, st: DisplayStatus, now: Date): Badge[] {
  * formateurs, qu'il tient du contexte ; les treize appelants serveur gardent
  * la lecture par requête, qui est juste chez eux.
  */
+/** Une liste dont on a retiré les cases sans objet (écrites « null » à leur place). */
+const sansVide = <T,>(l: (T | null)[]): T[] => l.filter((x): x is T => x != null);
+
 export function summarize(o: Offer, now: Date, opts: { fine?: boolean; dates?: FormatsDeDate } = {}): OfferSummary {
   const { fmtDate, fmtDateTime, fmtHeure } = opts.dates ?? formatsDuLecteur();
   const st = displayStatus(o, now);
@@ -347,7 +350,7 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean; dates?: F
     minimumSub: `${lot} ${isBond ? "titre" : "action"}${lot > 1 ? "s" : ""} au cours${isBond ? ` · nominal ${fmt(o.nominal)}` : ""}`,
     primary: st === "quoted" ? { label: "Acheter", intent: "achat" } : null,
     secondary: st === "quoted" ? { label: "Vendre", intent: "vente" } : { label: "Question", intent: "info" },
-    facts: [
+    facts: sansVide<[string, string, string?]>([
       [isBond ? "Coupon" : "Dividende", isBond ? fmtPct(o.couponRate ?? 0, 2) : o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—"],
       /* LE COURS ENTRE LE COUPON ET L'ÉCHÉANCE, avec son âge et rien d'autre.
          Le grand chiffre au-dessus est le rendement À CE COURS : sans le cours
@@ -356,7 +359,8 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean; dates?: F
          quatre cents jours et un prix d'hier ne valent pas la même confiance.
          La date entière se lit au dos ; ici il n'y a place que pour les jours. */
       ["Cours", priceTxt, o.priceSince ? `${fmt(daysBetween(o.priceSince, localIso(now)))} j` : undefined],
-      isBond ? ["Échéance", o.maturityOn ? `${maturityText(o, fmtDate)}${yearOnly(o) ? " ≈" : ""}` : "—", o.maturityOn ? left(now, o.maturityOn) : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
+      /* PAS D'« ACHETEUR / VENDEUR » SUR UNE ACTION (5 novembre 2026) : le bulletin ne le donne presque jamais, et la case disait « — » sur chaque carte. Une case qui n'a rien à dire n'est pas écrite. */
+      isBond ? ["Échéance", o.maturityOn ? `${maturityText(o, fmtDate)}${yearOnly(o) ? " ≈" : ""}` : "—", o.maturityOn ? left(now, o.maturityOn) : undefined] : null,
       /* UNE ESPACE ORDINAIRE AVANT L UNITE, ET C EST MESURE. La typographie
          francaise voudrait une insecable, et elle a ete essayee : dans la plus
          etroite des quatre colonnes, « 10 000 FCFA » devient alors un seul mot
@@ -364,14 +368,14 @@ export function summarize(o: Offer, now: Date, opts: { fine?: boolean; dates?: F
          peut, « 10 000 FCF / A ». Couper entre le nombre et sa monnaie est le
          moindre mal. */
       ["Ticket min.", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—"],
-    ],
-    ledger: [
+    ]),
+    ledger: sansVide<[string, string, string?]>([
       [dy.atPar ? "Taux nominal" : isBond ? "Rendement actuariel" : "Rendement du dividende", yTxt, dy.atPar ? `au pair${o.lastPriceOn ? ` le ${fmtDate(o.lastPriceOn, false)}` : ""}` : `brut, au cours ${priceTxt}${o.lastPriceOn ? ` du ${fmtDate(o.lastPriceOn, false)}` : ""}`],
       ["Dernier échange", o.lastTradedOn ? fmtDate(o.lastTradedOn, false) : "—", o.lastTradedOn ? undefined : "le bulletin cote la ligne sans qu'elle traite"],
       isBond ? ["Coupon", fmtPct(o.couponRate ?? 0, 2), "taux facial"] : ["Dividende", o.dividendPerShare ? `${fmt(o.dividendPerShare)} FCFA` : "—", "brut, dernier exercice"],
-      isBond ? ["Échéance", maturityText(o, fmtDate), o.maturityOn ? `${yearOnly(o) ? "≈ " : ""}${left(now, o.maturityOn)}` : undefined] : ["Acheteur / vendeur", o.bid != null && o.ask != null ? `${fmt(o.bid)} / ${fmt(o.ask)}` : "—"],
+      isBond ? ["Échéance", maturityText(o, fmtDate), o.maturityOn ? `${yearOnly(o) ? "≈ " : ""}${left(now, o.maturityOn)}` : undefined] : null,
       ["Ticket", o.lastPrice != null ? `${fmt(lot * (isBond ? (o.nominal * o.lastPrice) / 100 : o.lastPrice))} FCFA` : "—", `${lot} ${isBond ? "titre" : "action"}${lot > 1 ? "s" : ""}`],
-    ],
+    ]),
   };
 }
 

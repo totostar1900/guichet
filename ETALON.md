@@ -669,6 +669,13 @@ fidèle. L'icône de retournement est de nouveau au dos, sous le « ··· ». L
 une rangée** (Fonds en cinq, Titres en six), le nom se coupe plutôt que de pousser. Le bouton **Filtrer est blanc sans filtre,
 doré avec**, à la hauteur d'« Affichage ». Le drapeau précède aussi le code des lignes compactes.
 
+**Suivi, dos, densité (5 novembre 2026, suite).** Le suivi d'une ligne a **un seul état par ligne** (`useSuivi`) : le menu « ··· »,
+le glissement à gauche et la cloche de la carte le lisent et l'écrivent ensemble, la cadence suit le lieu (un message par jour
+pour une adjudication). Le bouton de retournement **du dos ramène à la face** ; la face avant garde sa **hauteur naturelle** (plus
+de pixels figés) et le dos prend la hauteur de son contenu ; changer de densité remet la carte à zéro. Les cases des fenêtres
+« Filtrer » et « Affichage » ont l'arrondi de l'application, pas la pilule. Le choix de densité est de **deux grosses cases** avec
+libellé. Une action n'écrit plus « Acheteur / vendeur » (case vide) ; son dos ajoute la fourchette sur trois mois.
+
 **Le rond devant un nom (2 novembre 2026).** Seules les adjudications en ont un (le drapeau
 du Trésor, `aUnRond`) : devant un titre coté ou un fonds, le monogramme prenait la place du nom
 sans rien apprendre.

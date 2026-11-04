@@ -218,6 +218,24 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     expect(fc, "le bouton Filtrer de Fonds ne se dore plus avec un filtre").toMatch(/\.filtrer\[data-actif="oui"\] \{[^}]*background: var\(--gold-soft\)/);
   });
 
+  it("suivi partagé, retournement du dos, hauteur naturelle, cases moins arrondies, densité visible, pas d'acheteur / vendeur vide", () => {
+    const sw = lire("src/components/mobile/SwipeActions.tsx");
+    const lm = lire("src/components/mobile/LineMenu.tsx");
+    expect(sw, "le glissement n'a plus l'état de suivi partagé").toMatch(/const \[on, setOn\] = useSuivi\(id, suivi\)/);
+    expect(lm, "le menu « ··· » n'a plus l'état de suivi partagé").toMatch(/const \[on, setOn\] = useSuivi\(line\.id, Boolean\(watching\)\)/);
+    expect(lm, "le menu « ··· » n'envoie plus la cadence du suivi").toMatch(/toggleWatch\(line\.id, next, cadence\)/);
+    expect(lire("src/components/OfferCard.tsx"), "la cloche ne lit plus l'état partagé").toMatch(/const \[suiviEtat\] = useSuivi\(o\.id, suivi\)/);
+    expect(sw, "le bouton du dos ne ramène plus à la face").toMatch(/if \(st\.angle > 0\) \{\s*close\(\);\s*return;/);
+    expect(sw, "la face avant garde de nouveau une hauteur figée en pixels").toMatch(/el\.style\.height = turned && h \? `\$\{h\}px` : "";/);
+    expect(lire("src/components/mobile/SwipeActions.module.css"), "le dos est de nouveau étiré à la hauteur de la face").not.toMatch(/\.back \{[^}]*inset: 0;/);
+    expect(lire("src/components/OfferCard.tsx"), "changer de densité ne remet plus la carte à zéro").toMatch(/key=\{compact \? "compacte" : "pleine"\}/);
+    expect(lire("src/components/Affichage.module.css"), "les cases d'Affichage sont de nouveau en pilule").not.toMatch(/border-radius: 999px/);
+    expect(lire("src/components/Density.module.css"), "les cases de distinction sont de nouveau en pilule").not.toMatch(/\.chip \{[^}]*border-radius: 999px/);
+    expect(lire("src/components/OfferBrowser.module.css"), "les cases du filtre sont de nouveau en pilule").not.toMatch(/\.chipBtn \{[^}]*border-radius: 999px/);
+    expect(lire("src/components/Density.tsx"), "le choix de densité n'a plus ses deux grosses cases").toMatch(/className=\{styles\.densChoix\}/);
+    expect(lire("src/lib/domain/summary.ts"), "la case « Acheteur / vendeur » est revenue sur la face d'une action").not.toMatch(/\["Acheteur \/ vendeur"/);
+  });
+
   it("chaque Trésor a son drapeau dessiné, et il est sur chaque ligne et sur chaque pastille de pays", () => {
     const d = lire("src/components/Drapeau.tsx");
     for (const p of ["Cameroun", "Gabon", "Congo", "Tchad", "RCA", "Guinée éq."]) expect(d, `le drapeau « ${p} » n'est plus dessiné`).toContain(`case "${p}":`);

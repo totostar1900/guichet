@@ -90,7 +90,7 @@ function steps(now: Date, items: [string, string | undefined, string | undefined
   });
 }
 
-export function backFacts(o: Offer, now: Date): BackFacts {
+export function backFacts(o: Offer, now: Date, cours?: number[]): BackFacts {
   if ((o.kind === "OTA" || o.kind === "APE") && o.maturityOn) {
     const first = o.kind === "OTA" ? firstCouponDate(o.settleOn, o.maturityOn) : undefined;
     const price = o.servedPricePct ?? o.pricePct ?? 100;
@@ -238,6 +238,8 @@ export function backFacts(o: Offer, now: Date): BackFacts {
     const n = 100;
     const rows: [string, string, boolean?][] = [];
     if (o.dividendPerShare) rows.push(["Dividende annuel attendu", `${fmt(n * o.dividendPerShare)} FCFA`]);
+    /* LA FOURCHETTE DE TROIS MOIS, quand la carte a son graphe : où se situe le cours que l'on va payer, ce que la face ne dit pas. */
+    if (cours && cours.length > 1 && Math.max(...cours) > Math.min(...cours)) rows.push(["Cours sur 3 mois", `${fmt(Math.min(...cours))} – ${fmt(Math.max(...cours))} FCFA`]);
     if (o.bid && o.ask && o.ask > 0) rows.push(["Écart acheteur / vendeur", fmtPct(((o.ask - o.bid) / o.ask) * 100, 1)]);
     rows.push([`Vous payez, règlement à T+${o.settlementDays ?? 3}`, `${fmt(n * ref)} FCFA`, true]);
     return { sansChiffres: true, reference: { title: `Pour ${n} actions au cours vendeur`, rows } };

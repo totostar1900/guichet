@@ -138,10 +138,20 @@ export function CardDisplaySheet({ open, onClose }: { open: boolean; onClose: ()
 /** Le choix de densité seul, avec le style de ses boutons : c'est ce que la fenêtre « Affichage » pose. */
 export function DensiteChoix() {
   const t = useT();
+  const d = useDensity();
+  /* LE CHOIX DE DENSITÉ SE VOIT (5 novembre 2026) : deux grosses cases côte à côte, une icône et un mot chacune, la choisie en fond plein. Deux petites icônes
+     de 16 px dans un coin de la fenêtre passaient pour un décor. */
   return (
-    <span className={styles.dens} role="group" aria-label={t("Densité des cartes")}>
-      <DensityButtons />
-    </span>
+    <div className={styles.densChoix} role="group" aria-label={t("Densité des cartes")}>
+      {(["detail", "compact"] as Density[]).map((k) => (
+        <button key={k} type="button" className={d === k ? styles.densOn : undefined} aria-pressed={d === k} onClick={() => write(KEY, k)}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            {k === "detail" ? <path d="M4 5h16v6H4z M4 14h16v6H4z" /> : <path d="M4 6h16 M4 10h10 M4 15h16 M4 19h10" />}
+          </svg>
+          {t(k === "detail" ? "Cartes détaillées" : "Cartes compactes")}
+        </button>
+      ))}
+    </div>
   );
 }
 
