@@ -6,6 +6,8 @@ import { useDensity } from "@/components/Density";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { useDeskView, useLineHref } from "@/components/DeskView";
 import { SwipeActions } from "@/components/mobile/SwipeActions";
+import { Drapeau } from "@/components/Drapeau";
+import { Turn } from "@/components/OfferCard";
 import { useRef } from "react";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fundYtdPct } from "@/lib/domain/fund-curve";
@@ -99,9 +101,9 @@ export function FundCard({ r }: { r: FundRow }) {
               Le gestionnaire prend donc sa ligne, seul, et les deux autres la
               suivante, côte à côte. */}
           <div className={propres.sous}>
-            <span className={propres.gestion}>{r.manager}</span>
+            <span className={propres.gestion}><Drapeau pays={r.country} largeur={15} /> {r.manager}</span>
             <span className={propres.traits}>
-              <i className={propres.point} data-cat={r.category} aria-hidden="true" />
+              <Drapeau pays={r.country} largeur={14} /> <i className={propres.point} data-cat={r.category} aria-hidden="true" />
               {t(FUND_CATEGORY_LABEL[r.category])} · {t(FUND_FREQUENCY_LABEL[r.frequency])}
             </span>
           </div>
@@ -180,6 +182,9 @@ export function FundCard({ r }: { r: FundRow }) {
               <circle cx="12" cy="12" r="2" />
               <circle cx="19" cy="12" r="2" />
             </svg>
+          </button>
+          <button type="button" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
+            <Turn />
           </button>
         </div>
       }

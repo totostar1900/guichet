@@ -32,7 +32,7 @@ export function CardBack({ facts, figures, curve }: { facts: BackFacts; figures?
      a qu'une, d'où le découpage à trois ou à quatre éléments. */
   const band = facts.band;
   const tete = Boolean(facts.title);
-  const haut = band ?? figures;
+  const haut = facts.sansChiffres ? undefined : (band ?? figures);
   return (
     <div className={styles.back}>
       {facts.title && (
@@ -62,7 +62,7 @@ export function CardBack({ facts, figures, curve }: { facts: BackFacts; figures?
       {facts.calendar && (
         <div className={`${styles.sec} ${haut || tete ? "" : styles.first}`}>
           <div className={styles.lbl}>
-            {t("Calendrier")}
+            {t(facts.calendarTitle ?? "Calendrier")}
             {facts.calendar.some((s) => s.state === "on") && <i>{t("étape en cours")}</i>}
           </div>
           <div className={styles.tl} style={{ ["--n" as string]: facts.calendar.length }}>
@@ -94,7 +94,7 @@ export function CardBack({ facts, figures, curve }: { facts: BackFacts; figures?
           <Spark curve={curve} />
         </div>
       )}
-      <div className={styles.sec}>
+      <div className={`${styles.sec} ${haut || tete || facts.calendar || facts.lines || curve ? "" : styles.first}`}>
         <div className={styles.lbl}>{t(facts.reference.title)}</div>
         <div className={styles.calc}>
           {facts.reference.rows.map(([k, v, total]) => (

@@ -128,7 +128,7 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     expect(lire("src/components/SectionChips.tsx"), "Titres et Adjudications ne passent plus par la grille").toMatch(/<GrilleDInstruments/);
     expect(lire("src/app/fonds/FundsBrowser.tsx"), "Fonds ne passe plus par la grille").toMatch(/<GrilleDInstruments\s+etiquette="Catégorie"/);
     expect(lire("src/components/GrilleDInstruments.module.css"), "la grille n'a plus ses colonnes (trois par défaut)").toMatch(/repeat\(var\(--colonnes, 3\), minmax\(0, 1fr\)\)/);
-    expect(g, "quatre tuiles ou moins ne tiennent plus sur une seule rangée").toMatch(/items\.length <= 4 \? Math\.max\(items\.length, 1\) : 3/);
+    expect(g, "six tuiles ou moins ne tiennent plus sur une seule rangée").toMatch(/items\.length <= 6 \? Math\.max\(items\.length, 1\) : 3/);
   });
 
   it("les trois cartes du haut de Trade sont le titre : le grand titre est masqué sur Titres, Fonds et Adjudications", () => {
@@ -196,6 +196,26 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     expect(lire("src/components/PastillesPays.module.css"), "le pays choisi n'est plus en fond plein").toMatch(/\.rangee button\.on \{[^}]*background: var\(--fill\)/);
     // 10 · la rangée d'icônes de Fonds commence à la même hauteur que celle de Titres
     expect(lire("src/app/fonds/page.module.css"), "la rangée d'icônes de Fonds a repris une marge en haut").toMatch(/\.tools \{[^}]*padding: 0 var\(--marge-page\) 0;/);
+  });
+
+  it("la tuile compacte porte le drapeau, le dos des cartes porte l'icône de retournement, et les tuiles tiennent sur une rangée", () => {
+    const oc = lire("src/components/OfferCard.tsx");
+    expect(oc, "la ligne compacte n'a plus le drapeau de son pays").toMatch(/<b className=\{styles\.cCode\}>\{issuerZone\(o\) !== "CEMAC" && <Drapeau pays=\{o\.country\}/);
+    expect(oc, "le dos d'une carte n'a plus son icône de retournement sous le « ··· »").toMatch(/<\/button>\s*\{\/\*[^*]*\*\/\}\s*<button type="button" className=\{styles\.flipBtn\} onClick=\{\(\) => turn\.current\?\.\(\)\}/);
+    const fc = lire("src/app/fonds/FundCard.tsx");
+    expect(fc, "le dos d'un fonds n'a plus son icône de retournement").toMatch(/className=\{styles\.flipBtn\} onClick=\{\(\) => turn\.current\?\.\(\)\}/);
+    expect(fc, "la carte d'un fonds n'a plus le drapeau de sa société de gestion").toMatch(/<Drapeau pays=\{r\.country\}/);
+  });
+
+  it("le bouton Filtrer est blanc sans filtre et doré avec (Titres, Adjudications, Fonds)", () => {
+    expect(lire("src/components/OfferBrowser.tsx"), "le bouton Filtrer de Titres n'annonce plus s'il y a un filtre").toMatch(/className=\{styles\.sheetBtn\} data-actif=\{filterCount > 0 \? "oui" : undefined\}/);
+    expect(lire("src/app/fonds/FundsBrowser.tsx"), "le bouton Filtrer de Fonds n'annonce plus s'il y a un filtre").toMatch(/className=\{styles\.filtrer\} data-actif=\{manager \|\| depositary \? "oui" : undefined\}/);
+    const oc = lire("src/components/OfferBrowser.module.css");
+    expect(oc, "le bouton Filtrer de Titres est de nouveau doré sans filtre").not.toMatch(/\.sheetBtn \{[^}]*background: var\(--gold-soft\)/);
+    expect(oc, "le bouton Filtrer de Titres ne se dore plus avec un filtre").toMatch(/\.sheetBtn\[data-actif="oui"\] \{[^}]*background: var\(--gold-soft\)/);
+    const fc = lire("src/app/fonds/page.module.css");
+    expect(fc, "le bouton Filtrer de Fonds est de nouveau doré sans filtre").not.toMatch(/\.filtrer \{[^}]*background: var\(--gold-soft\)/);
+    expect(fc, "le bouton Filtrer de Fonds ne se dore plus avec un filtre").toMatch(/\.filtrer\[data-actif="oui"\] \{[^}]*background: var\(--gold-soft\)/);
   });
 
   it("chaque Trésor a son drapeau dessiné, et il est sur chaque ligne et sur chaque pastille de pays", () => {

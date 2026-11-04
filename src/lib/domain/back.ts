@@ -1,7 +1,7 @@
 import type { Offer } from "./types";
-import { bondTerms, marketAmortInput, marketBondCalc, marketBondInput, maturityIsGuess } from "./status";
-import { bondCalc, btaAmountForBonds, btaCalc, couponDates, daysBetween, firstCouponDate, parseDate, tenorCourt } from "../finance";
-import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, localIso } from "../format";
+import { bondTerms, marketAmortInput, marketBondCalc, marketBondInput } from "./status";
+import { bondCalc, btaAmountForBonds, btaCalc, couponDates, daysBetween, firstCouponDate, parseDate } from "../finance";
+import { fmt, fmtDate, fmtDateTime, fmtPct, localIso } from "../format";
 
 /**
  * What the back of a card says, from the offer alone (pure, client-side):
@@ -23,6 +23,10 @@ export interface BackFacts {
    */
   title?: string;
   sub?: string;
+  /** Le dos ne porte pas la grille de chiffres de la face avant (dividende, acheteur / vendeur, ticket) : elle la redirait. */
+  sansChiffres?: boolean;
+  /** Le nom du bloc de dates, quand ce ne sont pas les étapes d'une opération. */
+  calendarTitle?: string;
   /**
    * TROIS CHIFFRES CÔTE À CÔTE : combien ça vaut, ce que ça rapporte, jusqu'à
    * quand. Ils remplacent les quatre cases de la liste quand une ligne a mieux
@@ -190,32 +194,33 @@ export function backFacts(o: Offer, now: Date): BackFacts {
       if (next) lines.push(["Prochain coupon", `${fmtDate(next.toISOString().slice(0, 10))} · ${fmtPct(o.couponRate ?? 0, 2)}`]);
       const terms = bondTerms(o.isin);
       lines.push(["Amortissement", terms ? `${terms.periodsPerYear === 1 ? "annuités" : terms.periodsPerYear === 2 ? "semestrialités" : "trimestrialités"} égales` : "in fine (à confirmer)"]);
-      /* LE TICKET DESCEND DE LA FAÇADE. En compacte la façade ne montre qu'un
-         chiffre ; le ticket était l'une des quatre cases du dos, il reprend la
-         place laissée par la ligne de règlement. */
-      const lot = o.lotSize ?? 1;
-      if (ref > 0) lines.push(["Ticket minimum", `${fmt((lot * o.nominal * ref) / 100)} FCFA`]);
+      /* LE DOS D'UNE OBLIGATION DIT CE QUE LA FAÇADE NE DIT PAS (5 novembre 2026, choix 4A de la planche) : les FLUX (quand tombent les
+         versements, combien), la LIQUIDITÉ (dernier échange, écart acheteur / vendeur) et ce que coûte et rapporte la ligne gardée
+         jusqu'au terme. Le bandeau Cours · Rendement · Échéance en est parti : c'était, au mot près, la face avant. */
+      const flux = r.flows;
+      const vus = flux.length > 3 ? [flux[0], flux[1], flux[flux.length - 1]] : flux;
+      const calendar: CalendarStep[] = vus.map((fl, i) => ({
+        label: i === vus.length - 1 ? "Dernier versement + capital" : "Versement",
+        when: fmtDate(fl.date.toISOString().slice(0, 10)),
+        state: i === 0 ? "on" : "next",
+      }));
+      if (flux.length > 0 && r.titles > 0) lines.unshift(["Prochain versement par titre", `${fmt(Math.round(flux[0].amount / r.titles))} FCFA`]);
+      const echange = ageDuCours(o, now).filter(Boolean).join(" · ");
+      if (echange) lines.push(["Dernier échange", echange]);
+      if (o.bid && o.ask && o.ask > 0) lines.push(["Écart acheteur / vendeur", fmtPct(((o.ask - o.bid) / o.ask) * 100, 1)]);
       return {
         title: o.title,
         sub: `${o.isin} · ${o.market ?? "BVMAC"}, cotation continue`,
-        band: [
-          ["Cours", fmtPrice(ref), ...ageDuCours(o, now)],
-          ["Rendement", fmtPct(r.irr, 2), "à l'échéance, à ce cours"],
-          ["Échéance", maturityIsGuess(o) ? `${o.maturityOn?.slice(0, 4) ?? "—"} ≈` : fmtDate(o.maturityOn ?? ""), o.maturityOn ? tenorCourt(localIso(now), o.maturityOn) : undefined],
-        ],
+        sansChiffres: true,
+        calendarTitle: "Ce que la ligne verse",
+        calendar,
         lines,
         reference: {
           title: `Pour ${fmt(1000)} titres au cours de référence`,
           rows: [
-            [`Prix ${fmtPrice(ref)}`, fmt(r.titles * r.pricePerTitle)],
-            [`Coupon couru (${r.accruedDays} jours)`, fmt(r.accrued)],
-            /* LA LIGNE DE RÈGLEMENT EST PARTIE : « T+3 · cotation continue » se
-               répétait à côté d'un décaissement qui le disait déjà, et la place
-               valait mieux. Elle ne disparaît pas pour autant : le décaissement
-               porte désormais SA DATE, ce qui est plus utile qu'un délai, et
-               c'est elle qui compte les jours de coupon couru juste au-dessus. */
-            [`Décaissement le ${fmtDate(src.settleOn)}`, `${fmt(r.outlay)} FCFA`],
-            ["Rendement actuariel annuel brut à ce cours", fmtPct(r.irr, 2), true],
+            [`Vous payez le ${fmtDate(src.settleOn)}, coupon couru inclus`, `${fmt(r.outlay)} FCFA`],
+            ["Coupons et remboursement jusqu'au terme", `${fmt(r.outlay + r.gain)} FCFA`],
+            ["Gain brut si gardée jusqu'au terme", `${fmt(r.gain)} FCFA`, true],
           ],
         },
       };
@@ -227,8 +232,15 @@ export function backFacts(o: Offer, now: Date): BackFacts {
       lines.push(["Amortissement", terms ? `${terms.periodsPerYear === 1 ? "annuités" : terms.periodsPerYear === 2 ? "semestrialités" : "trimestrialités"} égales` : "in fine (à confirmer)"]);
     }
   } else {
-    if (o.dividendPerShare) lines.push(["Dernier dividende brut", `${fmt(o.dividendPerShare)} FCFA`]);
-    if (o.lastPriceOn) lines.push(["Dernier cours", `${fmt(o.lastPrice ?? 0)} FCFA · ${short(o.lastPriceOn, now)}`]);
+    /* LE DOS D'UNE ACTION NE DIT QUE CE QU'IL COÛTE ET CE QU'IL RAPPORTE (5 novembre 2026, choix 3B de la planche) : le dividende, l'acheteur / vendeur et le
+       ticket sont déjà sur la face avant, le dernier cours aussi. Reste ce que la face ne calcule pas : le montant à T+n, le dividende d'un lot de cent
+       actions, et l'écart entre l'offre et la demande, qui est le vrai coût d'une action peu liquide. */
+    const n = 100;
+    const rows: [string, string, boolean?][] = [];
+    if (o.dividendPerShare) rows.push(["Dividende annuel attendu", `${fmt(n * o.dividendPerShare)} FCFA`]);
+    if (o.bid && o.ask && o.ask > 0) rows.push(["Écart acheteur / vendeur", fmtPct(((o.ask - o.bid) / o.ask) * 100, 1)]);
+    rows.push([`Vous payez, règlement à T+${o.settlementDays ?? 3}`, `${fmt(n * ref)} FCFA`, true]);
+    return { sansChiffres: true, reference: { title: `Pour ${n} actions au cours vendeur`, rows } };
   }
   /* Une action, ou une obligation dont le calcul n'aboutit pas : le règlement
      reste dit ici, puisque aucun décaissement daté ne le porte. */

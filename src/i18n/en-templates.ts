@@ -668,4 +668,6 @@ export const EN_TEMPLATES: Record<string, string> = {
   "douze mois écoulés": "over twelve months",
   "Coupon {c} · dépôt {d}": "Coupon {c} · bids by {d}",
   "Bon précompté · dépôt {d}": "Discounted bill · bids by {d}",
+  "Vous payez le {d}, coupon couru inclus": "You pay on {d}, accrued coupon included",
+  "Vous payez, règlement à T+{n}": "You pay, settlement at T+{n}",
 };

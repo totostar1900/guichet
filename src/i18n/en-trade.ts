@@ -87,4 +87,10 @@ export const EN_TRADE: Record<string, string> = {
   "dividende ou coupon": "dividend or coupon",
   "variation de la valeur liquidative": "change in the net asset value",
   "taux actuariel de l'adjudication": "the auction's actuarial yield",
+  "Écart acheteur / vendeur": "Bid / ask spread",
+  "Dernier versement + capital": "Last payment + principal",
+  "Prochain versement par titre": "Next payment per security",
+  "Coupons et remboursement jusqu'au terme": "Coupons and redemption to maturity",
+  "Gain brut si gardée jusqu'au terme": "Gross gain if held to maturity",
+  "Ce que la ligne verse": "What the line pays",
 };

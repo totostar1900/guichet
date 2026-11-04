@@ -98,6 +98,9 @@
  * élargissait le haut de la carte et faisait passer les titres à la ligne.
  */
 .corner {
+  /* AU-DESSUS DU CHIFFRE EN AVANT (5 novembre 2026) : le coin remonte de quatre fois --s-11 sur la carte (marge basse négative), donc recouvert par « .big » sur une action à graphe — le bouton de retournement ne recevait plus le toucher. */
+  position: relative;
+  z-index: 2;
   flex: none;
   display: flex;
   flex-direction: column;

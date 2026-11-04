@@ -661,6 +661,14 @@ les titres de groupe et les fonds ; le pays choisi se lit sur sa pastille (fond 
 retour paraît partout sauf à l'Accueil et à la connexion. Un rendement n'est **pas calculé** sur une obligation cotée dont
 seule l'année d'échéance est connue et qui a moins d'un an à courir (décision maintenue le 5 novembre).
 
+**Dos des cartes, tuiles, filtre (5 novembre 2026, suite).** Le dos ne redit pas la face. **Action** : un seul bloc « Pour 100
+actions » (dividende annuel attendu, écart acheteur / vendeur sur le cours vendeur, montant à T+n). **Obligation cotée** : les
+flux (prochains versements et dernier + capital), la liquidité (dernier échange, écart), le gain gardé jusqu'au terme ; plus de
+bandeau Cours · Rendement · Échéance. Les dos des OTA, BTA, rachats et fonds sont inchangés, en attente d'un choix sur une planche
+fidèle. L'icône de retournement est de nouveau au dos, sous le « ··· ». Le sélecteur d'instruments tient jusqu'à **six tuiles sur
+une rangée** (Fonds en cinq, Titres en six), le nom se coupe plutôt que de pousser. Le bouton **Filtrer est blanc sans filtre,
+doré avec**, à la hauteur d'« Affichage ». Le drapeau précède aussi le code des lignes compactes.
+
 **Le rond devant un nom (2 novembre 2026).** Seules les adjudications en ont un (le drapeau
 du Trésor, `aUnRond`) : devant un titre coté ou un fonds, le monogramme prenait la place du nom
 sans rien apprendre.

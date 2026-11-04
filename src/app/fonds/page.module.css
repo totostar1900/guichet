@@ -588,12 +588,18 @@
   gap: 6px;
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid var(--gold);
+  /* BLANC SANS FILTRE, DORÉ AVEC (5 novembre 2026) : comme sur Titres. */
+  border: 1px solid var(--line-2);
   border-radius: var(--radius);
-  background: var(--gold-soft);
-  color: var(--gold-ink);
+  background: var(--surface);
+  color: var(--ink);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
+}
+.filtrer[data-actif="oui"] {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
 }

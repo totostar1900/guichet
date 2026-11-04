@@ -15,9 +15,11 @@ import { famVars } from "@/lib/registry";
 import { useDensity } from "./Density";
 import { lieuDe } from "@/lib/domain/sections";
 import { MiniCourbe } from "./MiniCourbe";
+import { issuerZone } from "@/data/issuer-registry";
+import { Drapeau } from "./Drapeau";
 import styles from "./OfferCard.module.css";
 
-const Turn = () => (
+export const Turn = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3" />
     <path d="M18 3v4h-4M6 21v-4h4" />
@@ -120,6 +122,10 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
               <circle cx="19" cy="12" r="2" />
             </svg>
           </button>
+          {/* L'ICÔNE DE RETOURNEMENT EST REVENUE AU DOS (5 novembre 2026), sous le « ··· » : le glissement ne se devine pas, et sur le dos on cherche d'abord comment revenir. */}
+          <button type="button" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
+            <Turn />
+          </button>
         </div>
       }
       back={<CardBack facts={facts} figures={s.ledger.slice(1)} />}
@@ -128,7 +134,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
         <article data-coach="titres-carte" className={`${styles.card} ${styles.compact} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
           <Link href={href} className={styles.cLink}>
             <span className={styles.cId}>
-              <b className={styles.cCode}>{s.code}</b>
+              <b className={styles.cCode}>{issuerZone(o) !== "CEMAC" && <Drapeau pays={o.country} largeur={17} />} {s.code}</b>
               <small className={styles.cSub}>{s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : s.promesse.key === "Dividende {n} FCFA" ? <Montant etiquette={t("Div.")} n={String(s.promesse.params?.n ?? "")} /> : t(s.promesse.key, s.promesse.params)}</small>
             </span>
             {/* LE GRAPHE D'ÉVOLUTION DU TITRE, AU MILIEU DE LA TUILE (4 novembre 2026) : entre le nom et le chiffre, la forme du cours sur

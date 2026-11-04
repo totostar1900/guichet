@@ -486,15 +486,23 @@
     align-items: center;
     gap: 6px;
     flex: none;
-    border: 1px solid var(--gold);
-    background: var(--gold-soft);
-    color: var(--gold-ink);
+    /* BLANC SANS FILTRE, DORÉ AVEC (5 novembre 2026) : le bouton ne s'allume que lorsqu'il y a quelque chose à voir derrière, comme « Affichage » reste neutre. Même hauteur que lui. */
+    min-height: 44px;
+    box-sizing: border-box;
+    border: 1px solid var(--line-2);
+    background: var(--surface);
+    color: var(--ink);
     border-radius: var(--radius);
-    padding: 8px 12px;
+    padding: 0 12px;
     font-size: 0.8rem;
     font-weight: 700;
     font-family: inherit;
     cursor: pointer;
+  }
+  .sheetBtn[data-actif="oui"] {
+    border-color: var(--gold);
+    background: var(--gold-soft);
+    color: var(--gold-ink);
   }
   .activeRow {
     display: flex;

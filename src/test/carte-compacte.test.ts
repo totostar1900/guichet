@@ -295,6 +295,44 @@ describe("l'écart sous l'ISIN ne dépend pas de l'orientation", () => {
   });
 });
 
+describe("le dos d'une action et d'une obligation dit ce que la face ne dit pas (5 novembre 2026)", () => {
+  const action = (o: Partial<Offer> = {}): Offer => cotee({ instrument: "action", title: "BGFI Holding (BHC) : action cotée", isin: "GA0000010074", couponRate: undefined, maturityOn: undefined, dividendPerShare: 2500, lastPrice: 90_000, bid: 89_500, ask: 90_500, settlementDays: 3, ...o });
+
+  it("action (3B) : ni grille de chiffres, ni dernier cours, mais le coût et l'écart acheteur / vendeur", () => {
+    const f = backFacts(action(), NOW);
+    expect(f.sansChiffres, "le dos d'une action redit de nouveau la grille de la face").toBe(true);
+    expect(f.lines, "le dos d'une action redit de nouveau le dernier cours").toBeUndefined();
+    const rows = f.reference.rows;
+    expect(rows.map((r) => r[0])).toEqual(["Dividende annuel attendu", "Écart acheteur / vendeur", "Vous payez, règlement à T+3"]);
+    expect(rows[0][1]).toMatch(/^250.000 FCFA$/);
+    // (90 500 − 89 500) / 90 500 = 1,1 %
+    expect(rows[1][1]).toBe("1,1 %");
+    // L'écart se mesure sur le cours vendeur, pas sur l'acheteur : (90 000 − 80 000) / 90 000 = 11,1 % et non 12,5 %.
+    expect(backFacts(action({ bid: 80_000, ask: 90_000 }), NOW).reference.rows[1][1]).toBe("11,1 %");
+    expect(rows[2][2], "la ligne « Vous payez » n'est plus la ligne mise en valeur").toBe(true);
+  });
+
+  it("action : sans cours acheteur, l'écart n'est pas écrit", () => {
+    const f = backFacts(action({ bid: undefined }), NOW);
+    expect(f.reference.rows.map((r) => r[0])).not.toContain("Écart acheteur / vendeur");
+  });
+
+  it("obligation (4A) : les flux, la liquidité, le gain gardé jusqu'au terme ; plus de bandeau Cours · Rendement · Échéance", () => {
+    const f = backFacts(cotee({ lastPrice: 96, ask: 96, priceSince: "2026-08-18" }), NOW);
+    expect(f.band, "le bandeau Cours · Rendement · Échéance est revenu sur le dos").toBeUndefined();
+    expect(f.sansChiffres).toBe(true);
+    expect(f.calendarTitle).toBe("Ce que la ligne verse");
+    expect(f.calendar!.length).toBeGreaterThan(0);
+    expect(f.calendar!.at(-1)!.label).toBe("Dernier versement + capital");
+    const noms = f.lines!.map(([k]) => k);
+    expect(noms).toContain("Prochain versement par titre");
+    expect(noms).toContain("Dernier échange");
+    expect(noms, "le ticket minimum redit la face").not.toContain("Ticket minimum");
+    expect(f.reference.rows.at(-1)![0]).toBe("Gain brut si gardée jusqu'au terme");
+    expect(f.reference.rows.at(-1)![2]).toBe(true);
+  });
+});
+
 describe("au dos, la glose du cours tient sur deux lignes", () => {
   /**
    * « depuis le 18 août 2026, 47 jours » sur une seule ligne se coupe où la
@@ -307,16 +345,13 @@ describe("au dos, la glose du cours tient sur deux lignes", () => {
    */
   it("la date d'abord, la durée en dessous", () => {
     const f = backFacts(cotee({ priceSince: "2026-08-18" }), new Date("2026-10-04T12:00:00"));
-    const cours = f.band!.find(([k]) => k === "Cours")!;
-    expect(cours[2]).toBe("depuis le 18 août 2026");
-    expect(cours[3]).toBe("47 jours");
+    /* Depuis le 5 novembre 2026 le bandeau Cours · Rendement · Échéance est parti du dos (choix 4A) : la date et la durée forment la ligne « Dernier échange ». */
+    expect(f.lines!.find(([k]) => k === "Dernier échange")![1]).toBe("depuis le 18 août 2026 · 47 jours");
   });
 
   it("sans date de changement, une seule glose et pas de seconde vide", () => {
     const f = backFacts(cotee({ priceSince: undefined, lastPriceOn: "2026-10-02" }), new Date("2026-10-04T12:00:00"));
-    const cours = f.band!.find(([k]) => k === "Cours")!;
-    expect(cours[2]).toBe("séance du 2 oct. 2026");
-    expect(cours[3]).toBeUndefined();
+    expect(f.lines!.find(([k]) => k === "Dernier échange")![1]).toBe("séance du 2 oct. 2026");
   });
 
   it("le dos rend les deux gloses, l'une sous l'autre", () => {

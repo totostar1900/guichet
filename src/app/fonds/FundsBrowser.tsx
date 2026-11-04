@@ -773,7 +773,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         <div className={styles.barre}>
           {recherche}
           {/* LE FILTRE DES FONDS (5 novembre 2026) : la même fenêtre centrée que sur Titres et Adjudications, sur la société de gestion et le dépositaire. */}
-          <button type="button" className={styles.filtrer} onClick={() => setFiltres(true)} aria-haspopup="dialog">
+          <button type="button" className={styles.filtrer} data-actif={manager || depositary ? "oui" : undefined} onClick={() => setFiltres(true)} aria-haspopup="dialog">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <path d="M4 6h16M7 12h10M10 18h4" />
             </svg>

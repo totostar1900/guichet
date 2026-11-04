@@ -30,7 +30,7 @@ export const GrilleDInstruments = forwardRef<HTMLDivElement, { items: TuileDInst
   return (
     /* QUATRE TUILES OU MOINS TIENNENT CÔTE À CÔTE (4 novembre 2026) : les adjudications en ont quatre (Tout, Obligations, Bons, Rachats), et la
        troisième colonne laissait « Rachats » seul sur une deuxième rangée. Au-delà, trois colonnes : six tuiles font deux rangées pleines. */
-    <div ref={ref} className={styles.grille} style={{ ["--colonnes" as string]: items.length <= 4 ? Math.max(items.length, 1) : 3 }} role="group" aria-label={t(etiquette)} data-coach={coach}>
+    <div ref={ref} className={styles.grille} style={{ ["--colonnes" as string]: items.length <= 6 ? Math.max(items.length, 1) : 3 }} role="group" aria-label={t(etiquette)} data-coach={coach}>
       {items.map((x) => (
         <button key={x.cle} type="button" data-section={x.cle} className={`${styles.tuile} ${x.on ? styles.on : ""} ${x.vide ? styles.empty : ""}`.trim()} aria-pressed={x.on} aria-label={x.accessible} onClick={x.onClick} disabled={x.vide}>
           <i>

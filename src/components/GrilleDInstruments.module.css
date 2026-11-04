@@ -16,7 +16,9 @@
   background: none;
   color: var(--ink-2);
   font: inherit;
-  font-size: var(--t-3);
+  /* LA MÊME TUILE SUR LES TROIS PAGES (5 novembre 2026) : Fonds en tient cinq sur une rangée et Titres six ; le nom se lit donc à la taille d'une légende, et se coupe plutôt que de pousser sa voisine. */
+  min-width: 0;
+  font-size: var(--t-2);
   font-weight: 600;
   text-align: center;
   cursor: pointer;
@@ -52,4 +54,10 @@
     grid-template-columns: repeat(6, 92px);
     justify-content: start;
   }
+}
+.tuile > span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
