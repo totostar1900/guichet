@@ -71,7 +71,7 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
           {href && (
             <>
               {website ? " · " : ""}
-              <Link href={href}>{t(company ? "Analyse complète : comptes certifiés, ratios, dividendes" : "Profil de l'émetteur : comptes publiés, actionnariat, autres emprunts")} →</Link>
+              <Link href={href}>{t(company ? "Analyse complète : comptes certifiés, ratios, dividendes" : sovereign ? "Ses emprunts, ses séances et son calendrier d'adjudications" : "Profil de l'émetteur : comptes publiés, actionnariat, autres emprunts")} →</Link>
             </>
           )}
         </p>

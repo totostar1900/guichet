@@ -54,15 +54,11 @@ let turnedNow: (() => void) | null = null;
  * les boutons. Les étiquettes tiennent en 68, et la carte garde sa moitié.
  */
 const REVEAL = 232;
-/** Sans alerte à proposer : la poignée et deux actions (28 + 68 × 2). */
-const REVEAL_DEUX = 164;
 const SLOP = 8;
 
-export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "evenement", suivi, alerte = true, children }: { id: string; back?: React.ReactNode; backHead?: React.ReactNode; onTurn?: (turned: boolean) => void; turnRef?: React.MutableRefObject<(() => void) | null>; cadence?: "evenement" | "quotidien"; suivi?: boolean; /** Y a-t-il quelque chose à annoncer ? Faux : la troisième action (l'alerte) n'est pas proposée, sauf si une alerte est déjà armée (voir `alerteOuverte`). */ alerte?: boolean; children: React.ReactNode }) {
+export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "evenement", suivi, children }: { id: string; back?: React.ReactNode; backHead?: React.ReactNode; onTurn?: (turned: boolean) => void; turnRef?: React.MutableRefObject<(() => void) | null>; cadence?: "evenement" | "quotidien"; suivi?: boolean; children: React.ReactNode }) {
   const t = useT();
   const [on, setOn] = useSuivi(id, suivi);
-  const avecAlerte = alerte || on;
-  const reveal = avecAlerte ? REVEAL : REVEAL_DEUX;
   const { dire } = useBulle();
   const [, demarrer] = useTransition();
   const router = useRouter();
@@ -181,7 +177,7 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
       const w = el.clientWidth;
       if (d.mode === "actions") {
         let x = Math.min(0, d.fromX + dx);
-        if (x < -reveal) x = -reveal + (x + reveal) * 0.35; // a rubber band past the actions
+        if (x < -REVEAL) x = -REVEAL + (x + REVEAL) * 0.35; // a rubber band past the actions
         d.x = x;
         st.x = x;
       } else {
@@ -217,7 +213,7 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
           return;
         }
         // From an open card a slide back of 40 px closes; from a closed one, 40 % of the actions opens.
-        st.x = done.fromX < 0 ? (done.x > -reveal + 40 ? 0 : -reveal) : done.x < -reveal * 0.4 ? -reveal : 0;
+        st.x = done.fromX < 0 ? (done.x > -REVEAL + 40 ? 0 : -REVEAL) : done.x < -REVEAL * 0.4 ? -REVEAL : 0;
         st.angle = 0;
         paint(true);
         return;
@@ -271,7 +267,7 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
       if (turnRef) turnRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, Boolean(back), reveal]);
+  }, [id, Boolean(back)]);
 
   const closeThen = (fn?: () => void) => {
     state.current.x = 0;
@@ -329,14 +325,12 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
           </svg>
           {t("Déclarer")}
         </button>
-        {avecAlerte && (
         <button type="button" className={`${styles.b3} ${on ? styles.b3on : ""}`} onClick={() => closeThen(basculerLeSuivi)} tabIndex={-1}>
           <svg viewBox="0 0 24 24">
             {cadence === "quotidien" ? <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z M10 20h4" /> : <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z" />}
           </svg>
           {t(on ? (cadence === "quotidien" ? "Alerte armée" : "Suivie") : cadence === "quotidien" ? "Alerte" : "Suivre")}
         </button>
-        )}
       </div>
       <div ref={flip} className={styles.flip}>
         <div ref={front} className={styles.front}>

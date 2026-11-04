@@ -1,17 +1,19 @@
 "use client";
 
 import { useT } from "@/i18n/client";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
+import { Sheet } from "@/components/mobile/Sheet";
 import type { TermKey } from "@/lib/glossary";
 import { getRegistry, lessonForTerm } from "@/lib/registry";
 import styles from "./Info.module.css";
 
 /**
- * A small « i » that opens a bubble on click (or Enter); it closes on a click
- * anywhere else or Escape : never on a mouse move, so its link stays reachable. The bubble is
- * rendered at the end of <body> in fixed position, so no scrolling table or
- * sticky header can clip it; it flips under the button when there is no room above.
+ * UN PETIT « i » QUI OUVRE SA BULLE AU MILIEU DE L'ÉCRAN (8 novembre 2026).
+ *
+ * LA RÈGLE DE LA MAISON : chaque bulle d'information s'ouvre AU MILIEU de l'écran, sur un voile, et se ferme d'un geste du doigt (tirer vers le bas), par la
+ * croix ou en touchant à côté. Ce n'est plus une infobulle flèche posée près du « i » : elle se coupait sous un en-tête collant, sortait de l'écran sur un
+ * téléphone et ne se fermait que d'un toucher précis. On réutilise la fenêtre centrée de la maison (« Sheet » « centre ») : même voile, même geste, même croix.
+ * Exceptions voulues : le « i » de la barre du haut (sa feuille d'onglets) ; le reste est à discuter (voir le skill guichet-espace-tuiles, « Les bulles »).
  */
 export function Info({ term, text, label, subtle }: { term?: TermKey; text?: string; label?: string; subtle?: boolean }) {
   const tr = useT();
@@ -19,78 +21,34 @@ export function Info({ term, text, label, subtle }: { term?: TermKey; text?: str
   const body = tr(text ?? t?.text ?? "");
   const title = label ? tr(label) : t ? ("long" in t && t.long ? `${tr(t.short)} : ${tr(t.long)}` : tr(t.short)) : "";
   const lesson = term ? lessonForTerm(term) : undefined;
-  const btn = useRef<HTMLButtonElement>(null);
-  const bubble = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top: number; left: number; below: boolean; arrow: number }>({ top: 0, left: 0, below: false, arrow: 0 });
-
-  useLayoutEffect(() => {
-    if (!open || !btn.current || !bubble.current) return;
-    const place = () => {
-      const b = btn.current!.getBoundingClientRect();
-      const w = bubble.current!.offsetWidth;
-      const h = bubble.current!.offsetHeight;
-      const vw = window.innerWidth;
-      const cx = b.left + b.width / 2;
-      const left = Math.max(8, Math.min(vw - w - 8, cx - w / 2));
-      const below = b.top - h - 10 < 8;
-      const top = below ? b.bottom + 10 : b.top - h - 10;
-      setPos({ top, left, below, arrow: Math.max(12, Math.min(w - 12, cx - left)) });
-    };
-    place();
-    window.addEventListener("scroll", place, true);
-    window.addEventListener("resize", place);
-    return () => {
-      window.removeEventListener("scroll", place, true);
-      window.removeEventListener("resize", place);
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const off = (e: PointerEvent) => {
-      const t = e.target as Node;
-      if (btn.current && !btn.current.contains(t) && !bubble.current?.contains(t)) setOpen(false);
-    };
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("pointerdown", off);
-    document.addEventListener("keydown", esc);
-    return () => {
-      document.removeEventListener("pointerdown", off);
-      document.removeEventListener("keydown", esc);
-    };
-  }, [open]);
+  /* Un clic dans la fenêtre remonte, en React, jusqu'au parent du « i » (une rangée-lien, un en-tête de colonne) : il s'arrête ici. */
+  const stop = (e: React.SyntheticEvent) => e.stopPropagation();
 
   return (
-    <span className={styles.wrap}>
+    <span className={styles.wrap} onClick={stop} onTouchStart={stop}>
       <button
-        ref={btn}
         type="button"
         className={`${styles.btn} ${subtle ? styles.subtle : ""} ${open ? styles.on : ""}`}
         aria-label={`${tr("Explication")} : ${title || tr("ce terme")}`}
         aria-expanded={open}
+        aria-haspopup="dialog"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          setOpen((o) => !o);
+          setOpen(true);
         }}
       >
         i
       </button>
-      {open &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <span ref={bubble} role="tooltip" className={`${styles.bubble} ${pos.below ? styles.below : ""}`} style={{ top: pos.top, left: pos.left, ["--arrow" as string]: `${pos.arrow}px` }}>
-            {title && <b>{title}</b>}
-            {body}
-            {lesson && (
-              <a className={styles.more} href={`/info/${lesson.key}`}>
-                {tr("En savoir plus")} : {tr(lesson.title)} →
-              </a>
-            )}
-          </span>,
-          document.body,
+      <Sheet open={open} onClose={() => setOpen(false)} title={title || tr("Explication")} centre>
+        <p className={styles.texte}>{body}</p>
+        {lesson && (
+          <a className={styles.more} href={`/info/${lesson.key}`}>
+            {tr("En savoir plus")} : {tr(lesson.title)} →
+          </a>
         )}
+      </Sheet>
     </span>
   );
 }

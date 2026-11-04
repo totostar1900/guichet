@@ -259,7 +259,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
               écran, et reprendre au titre la largeur que la barre n'a pas. */}
           {/* UN CLIENT A L'HORLOGE, L'ÉTOILE ET LE MENU ; le desk garde la barre
               du compte et son lien « Desk ». Voir BarreDuHaut. */}
-          {signedIn && !desk && <BarreDuHaut name={name ?? "?"} attentes={attentes} urgentes={urgentes} favoris={favoris} />}
+          {signedIn && !desk && <BarreDuHaut attentes={attentes} urgentes={urgentes} favoris={favoris} />}
           {signedIn && desk && <BarreDuCompte name={name ?? "?"} desk={desk} attentes={attentes} />}
           {menu}
         </div>

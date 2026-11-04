@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { visiteDesTitres, type PageDeLaVisite, type VueDeLaVisite } from "@/lib/ui/visite-titres";
 import { ORDRE_DE_LA_PAGE } from "@/data/services-risques";
@@ -240,27 +240,6 @@ describe("la règle de cadence elle-même", () => {
   });
 });
 
-describe("pas d'événement, pas de compte à rebours : pas d'alerte (7 novembre 2026)", () => {
-  it("la règle : une séance a une alerte tant qu'elle n'est pas close, un fonds a la sienne, une ligne cotée seulement si elle a traité", async () => {
-    const { alerteOuverte } = await import("@/lib/domain/alerte");
-    expect(alerteOuverte({ kind: "OTA" } as never, false), "séance ouverte").toBe(true);
-    expect(alerteOuverte({ kind: "OTA" } as never, true), "séance close : plus de compte à rebours").toBe(false);
-    expect(alerteOuverte({ kind: "RACHAT" } as never, true)).toBe(false);
-    expect(alerteOuverte({ kind: "FONDS", fund: { nav: 1 } } as never, false)).toBe(true);
-    expect(alerteOuverte({ kind: "MARCHE", instrument: "action", lastPrice: 90000 } as never, false)).toBe(true);
-    expect(alerteOuverte({ kind: "MARCHE", instrument: "action", lastPrice: null } as never, false), "jamais traitée : rien à annoncer").toBe(false);
-  });
-  it("le glissement, le menu ⋯, l'étoile de la fiche et le tableau ne proposent pas d'alerte quand il n'y a rien à annoncer, sauf si elle est déjà armée", () => {
-    const sw = lire("src/components/mobile/SwipeActions.tsx");
-    expect(sw).toMatch(/const avecAlerte = alerte \|\| on;/);
-    expect(sw).toMatch(/\{avecAlerte && \(\s*<button type="button" className=\{`\$\{styles\.b3\}/);
-    expect(sw, "la poignée garde la place de trois actions").toMatch(/const reveal = avecAlerte \? REVEAL : REVEAL_DEUX;/);
-    expect(lire("src/components/mobile/LineMenu.tsx")).toMatch(/line\.alerte === false && !on \? \[\]/);
-    expect(lire("src/components/WatchButton.tsx")).toMatch(/if \(!alerte && !on\) return null;/);
-    for (const f of ["src/components/OfferCard.tsx", "src/components/OfferBrowser.tsx", "src/app/offres/[id]/FicheHead.tsx"]) expect(lire(f), f).toMatch(/alerteOuverte\(o, s\.past\)/);
-  });
-});
-
 describe("le menu ⋯ parle de la cadence de la ligne", () => {
   it("une séance propose « Armer l'alerte » (un message par jour jusqu'à la clôture), une ligne cotée « Suivre »", () => {
     const m = lire("src/components/mobile/LineMenu.tsx");
@@ -319,32 +298,79 @@ describe("la note « Chiffres de référence » se tient à --titre-gap de son b
   });
 });
 
-describe("l'alerte est définitive, et il n'y a pas de seuil d'âge (8 novembre 2026)", () => {
-  it("l'âge d'un cours ne retire pas l'alerte, et un fonds a la sienne sans condition", async () => {
-    const { alerteOuverte } = await import("@/lib/domain/alerte");
-    const ligne = { kind: "MARCHE", instrument: "action", lastPrice: 53000 };
-    expect(alerteOuverte({ ...ligne, priceSince: "2026-07-22" } as never, false), "un cours de 107 jours").toBe(true);
-    expect(alerteOuverte({ ...ligne, priceSince: "2020-01-01" } as never, false), "un cours de plusieurs années").toBe(true);
-    expect(alerteOuverte({ kind: "FONDS" } as never, false), "un fonds sans condition").toBe(true);
-    expect(lire("src/lib/domain/alerte.ts").split("export function")[1], "un âge est entré dans la règle").not.toMatch(/priceSince|daysBetween/);
-  });
-  it("rien, côté maison, ne désarme une alerte : seul le client la retire", () => {
-    const appels: string[] = [];
+describe("toute ligne peut recevoir une alerte, et seul le client la retire (8 novembre 2026)", () => {
+  const fichiers = (): string[] => {
+    const out: string[] = [];
     const marche = (d: string) => {
       for (const e of readdirSync(d, { withFileTypes: true })) {
         const p = `${d}/${e.name}`;
         if (e.isDirectory()) marche(p);
-        else if (/\.tsx?$/.test(p) && !p.startsWith("src/test") && !p.startsWith("src/lib/data/")) {
-          if (/\.removeWatch\(/.test(lire(p))) appels.push(p);
-        }
+        else if (/\.tsx?$/.test(p) && !p.startsWith("src/test")) out.push(p);
       }
     };
     marche("src");
+    return out;
+  };
+  it("aucune règle ne retire l'offre d'une alerte : ni module de règle, ni propriété « alerte » sur le glissement, le menu ou l'étoile", () => {
+    expect(existsSync("src/lib/domain/alerte.ts"), "une règle d'offre de l'alerte est revenue").toBe(false);
+    for (const f of ["src/components/mobile/SwipeActions.tsx", "src/components/mobile/LineMenu.tsx", "src/components/WatchButton.tsx"]) expect(lire(f), f).not.toMatch(/alerteOuverte|avecAlerte|line\.alerte|\balerte\?: boolean/);
+    expect(lire("src/components/WatchButton.tsx"), "l'étoile disparaît de nouveau pour certaines lignes").not.toMatch(/return null;\s*\n\s*if \(!signedIn\)/);
+  });
+  it("le glissement porte ses trois actions pour toute ligne, la poignée garde sa largeur de trois", () => {
+    const sw = lire("src/components/mobile/SwipeActions.tsx");
+    expect(sw).toMatch(/const REVEAL = 232;/);
+    expect(sw).toMatch(/<button type="button" className=\{`\$\{styles\.b3\} \$\{on \? styles\.b3on : ""\}`\}/);
+    expect(sw, "la largeur à deux actions est revenue").not.toMatch(/REVEAL_DEUX/);
+    expect(lire("src/components/mobile/LineMenu.tsx"), "« Suivre » est de nouveau conditionnel dans le menu").toMatch(/\n    \["suivre", cadence === "quotidien"/);
+  });
+  it("rien, côté maison, ne désarme une alerte : « toggleWatch » est le seul appelant de « removeWatch »", () => {
+    const appels = fichiers().filter((p) => !p.startsWith("src/lib/data/") && /\.removeWatch\(/.test(lire(p)));
     expect(appels, "une autre voie retire des alertes").toEqual(["src/app/offres/[id]/actions.ts"]);
   });
-  it("une alerte déjà armée reste visible partout, même quand la règle n'en propose plus", () => {
-    expect(lire("src/components/mobile/SwipeActions.tsx")).toMatch(/const avecAlerte = alerte \|\| on;/);
-    expect(lire("src/components/mobile/LineMenu.tsx")).toMatch(/line\.alerte === false && !on \? \[\]/);
-    expect(lire("src/components/WatchButton.tsx")).toMatch(/if \(!alerte && !on\) return null;/);
+  it("une alerte sur une séance close ne dit rien : l'envoi du jour saute les séances échues", () => {
+    expect(lire("src/lib/watch.ts"), "l'envoi quotidien ne saute plus une séance échue").toMatch(/if \(reste < 0 \|\| w\.lastDaily === jour\) continue;/);
+  });
+});
+
+describe("bulles d'information au milieu, menu sans identité, résultat de séance et communiqué (8 novembre 2026)", () => {
+  it("le « i » d'explication ouvre une fenêtre centrée, fermée d'un geste du doigt : plus d'infobulle à flèche", () => {
+    const i = lire("src/components/Info.tsx");
+    expect(i, "l'explication n'est plus dans la fenêtre centrée").toMatch(/<Sheet open=\{open\} onClose=\{\(\) => setOpen\(false\)\} title=\{title \|\| tr\("Explication"\)\} centre>/);
+    expect(i, "l'infobulle à flèche est revenue").not.toMatch(/role="tooltip"|createPortal|getBoundingClientRect/);
+    expect(lire("src/components/Info.module.css")).not.toMatch(/\.bubble|border-top-color/);
+    expect(lire("src/components/mobile/Sheet.tsx"), "la fenêtre centrée ne se ferme plus au geste").toMatch(/centre \? `translate\(-50%, calc\(-50% \+ \$\{drag\.current\.dy\}px\)\)`/);
+  });
+  it("la règle des bulles est écrite dans le skill et dans l'étalon, avec ses exceptions", () => {
+    const s = lire(".claude/skills/guichet-espace-tuiles/SKILL.md");
+    expect(s).toMatch(/## Les bulles d'information/);
+    expect(s).toMatch(/Exceptions/);
+    expect(lire("ETALON.md")).toMatch(/### 8\.9 Les bulles d'information/);
+  });
+  it("le menu ☰ n'a plus d'identité en haut : ni initiale, ni nom ; « Mon compte » reste une ligne de la liste", () => {
+    const b = lire("src/components/mobile/BarreDuHaut.tsx");
+    expect(b, "l'identité est revenue en haut du menu").not.toMatch(/styles\.identite|styles\.init|const initial/);
+    expect(b.match(/href="\/moi\/compte"/g)?.length, "« Mon compte » n'est plus joignable depuis le menu").toBe(1);
+    expect(lire("src/components/mobile/BarreDuHaut.module.css")).not.toMatch(/\.identite|\.init \{/);
+  });
+  it("le résultat de séance : plus de « Taux servi … précompté » chez le client, plus de phrase sur les soumissions, le communiqué est un document", () => {
+    const f = lire("src/app/offres/[id]/FicheReading.tsx");
+    expect(f, "la ligne de résultat du desk s'affiche de nouveau chez le client").toMatch(/\{mode === "desk" && o\.resultLine && <div className=\{styles\.result\}>/);
+    expect(f, "la phrase sur les soumissions est revenue").not.toMatch(/Peu de soumissions/);
+    expect(f, "le communiqué n'est plus rangé avec les documents").toMatch(/\{seance && \(\s*<a className=\{`\$\{styles\.doc\} \$\{styles\.docLink\}`\} href=\{seance\.sourceUrl\}/);
+  });
+  it("un émetteur souverain a son propre libellé, qui ne parle ni de comptes publiés ni d'actionnariat", () => {
+    expect(lire("src/app/offres/[id]/IssuerCard.tsx")).toMatch(/sovereign \? "Ses emprunts, ses séances et son calendrier d'adjudications"/);
+  });
+});
+
+describe("les trois bulles d'information sont la fenêtre centrée (8 novembre 2026)", () => {
+  it("le « i » d'un terme, la carte de chiffre et le « ? » d'un réglage ouvrent « Sheet » « centre » ; aucune ne se place à la main", () => {
+    for (const f of ["src/components/Info.tsx", "src/components/KpiCard.tsx", "src/components/market/AideReglage.tsx"]) {
+      const s = lire(f);
+      expect(s, `${f} n'ouvre plus la fenêtre centrée`).toMatch(/<Sheet\b[\s\S]*?\bcentre\b/);
+      expect(s, `${f} se place de nouveau à la main`).not.toMatch(/createPortal|getBoundingClientRect|position: fixed/);
+    }
+    expect(lire("src/components/KpiCard.module.css"), "les règles de l'ancienne feuille sont revenues").not.toMatch(/\.scrim|\.sheet|\.grab/);
+    expect(lire("src/components/market/AideReglage.module.css"), "l'ancienne bulle posée est revenue").not.toMatch(/\.bulle/);
   });
 });

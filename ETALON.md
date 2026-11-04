@@ -720,6 +720,12 @@ La règle, mesurée sur la fiche le jour même :
 
 **Les liens de sortie mènent au contenu attendu** : « Toutes les lignes de {émetteur} » ouvre la liste de la famille (adjudications, titres, fonds) déjà filtrée sur cet émetteur (`?q=`), pas la page de recherche générale.
 
+### 8.9 Les bulles d'information (8 novembre 2026)
+
+**Chaque bulle d'information s'ouvre au milieu de l'écran et se ferme d'un geste du doigt.** C'est la fenêtre centrée de la maison (`Sheet` « centre ») : un voile, un titre, un texte, une croix, et un tiré vers le bas de plus de 80 px qui la ferme. Elle remplace l'infobulle à flèche du « i » de terme, qui se coupait sous un en-tête collant et sortait de l'écran sur un téléphone.
+
+**Exceptions** : le « i » de la barre du haut (une feuille à onglets) ; pour tout le reste (confirmation d'un suivi, astuce de glissement, visite guidée, survol d'un graphe, `title=""` natifs, bandeaux d'état), la décision appartient au client et se prend avec lui. La liste est dans le skill `guichet-espace-tuiles`.
+
 ## 9. La voix des libellés — « Mes » pour ce qui est au client, « Votre » pour ce que la maison lui dit
 
 *Décidé le 1er novembre 2026. Gardé par `src/test/mes-et-votre.test.ts`.*

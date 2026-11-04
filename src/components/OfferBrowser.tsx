@@ -29,7 +29,6 @@ import { estMesure, MESURE_PAR_DEFAUT, type MesureNuage } from "@/lib/domain/nua
 import { TeteGroupe, type Groupe } from "./market/TeteGroupe";
 import { nomsCourts } from "@/lib/domain/nom-court";
 import { Dropdown } from "./market/Dropdown";
-import { alerteOuverte } from "@/lib/domain/alerte";
 import { cadenceDuSuivi, SECTIONS, SECTION_LABEL, sectionDe, type Lieu, type Section } from "@/lib/domain/sections";
 import { usePhone } from "./chart-utils";
 import { BlocRepliable, FoldAll, useFold } from "./Fold";
@@ -333,7 +332,7 @@ function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: bo
               <Link className="btn sm ghost" href={href(o.id)}>
                 {t(desk ? "Voir la ligne" : "Voir la fiche")}
               </Link>
-              {!desk && <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, alerte: alerteOuverte(o, s.past), sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} cadence={cadenceDuSuivi(o)} />}
+              {!desk && <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} cadence={cadenceDuSuivi(o)} />}
             </span>
           </td>
         </tr>
@@ -385,7 +384,7 @@ function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boo
         </dl>
         <div className={styles.rowAct}>{t(desk ? "Voir la ligne" : "Voir la fiche")} →</div>
       </Link>
-      {!desk && <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, alerte: alerteOuverte(o, s.past), sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} cadence={cadenceDuSuivi(o)} className={styles.rowDots} />}
+      {!desk && <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} cadence={cadenceDuSuivi(o)} className={styles.rowDots} />}
     </div>
   );
 }

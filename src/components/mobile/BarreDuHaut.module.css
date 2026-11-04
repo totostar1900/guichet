@@ -90,46 +90,13 @@
   flex: none;
   display: flex;
   align-items: center;
+  /* Plus d'identité à gauche (8 novembre 2026) : la croix reste seule, à droite. « Mon compte » est une ligne de la liste. */
+  justify-content: flex-end;
   gap: 8px;
   padding: env(safe-area-inset-top, 0px) 8px 0 14px;
   min-height: var(--mobile-bar, 56px);
   background: var(--navy);
   color: var(--on-navy);
-}
-.identite {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: inherit;
-  text-decoration: none;
-}
-.identite span:last-child {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.identite b {
-  font-size: var(--t-4);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.identite small {
-  opacity: 0.75;
-  font-size: var(--t-2);
-}
-.init {
-  width: 34px;
-  height: 34px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--gold);
-  color: var(--navy);
-  font-weight: 800;
-  display: grid;
-  place-items: center;
 }
 .fermer {
   width: 40px;

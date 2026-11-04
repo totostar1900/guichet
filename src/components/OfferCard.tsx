@@ -13,7 +13,6 @@ import { useRef } from "react";
 import { famVars } from "@/lib/registry";
 import { useDensity } from "./Density";
 import { cadenceDuSuivi } from "@/lib/domain/sections";
-import { alerteOuverte } from "@/lib/domain/alerte";
 import { MiniCourbe } from "./MiniCourbe";
 import { issuerZone } from "@/data/issuer-registry";
 import { Drapeau } from "./Drapeau";
@@ -147,8 +146,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
   const more = useRef<(() => void) | null>(null);
   const turn = useRef<(() => void) | null>(null);
   const [suiviEtat] = useSuivi(o.id, suivi);
-  const alerte = alerteOuverte(o, s.past);
-  const menu = { id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, alerte, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() };
+  const menu = { id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() };
   /** Le corps de la vue détaillée. `dos` : le coin est porté par la tête de la face arrière. */
   const corps = (dos: boolean) => (
     <>
@@ -251,7 +249,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
      retournement. En vue compacte, le dos EST la carte détaillée, comme sur les fonds. */
   if (!compact) {
     return (
-      <SwipeActions key="pleine" id={o.id} cadence={cadence} suivi={suivi} alerte={alerte}>
+      <SwipeActions key="pleine" id={o.id} cadence={cadence} suivi={suivi}>
         {detaillee()}
       </SwipeActions>
     );
@@ -265,7 +263,6 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
          se suit a chaque changement : deux marches, deux cadences. */
       cadence={cadence}
       suivi={suivi}
-      alerte={alerte}
       backHead={
         <div className={styles.corner}>
           <span className={styles.etat}>

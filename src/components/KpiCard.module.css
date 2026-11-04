@@ -52,51 +52,7 @@
   color: var(--gold-ink);
 }
 
-/* ---- popover (desktop) / bottom sheet (phone) ---- */
-.scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 120;
-  background: rgba(11, 37, 69, 0.12);
-}
-.sheet {
-  position: fixed;
-  z-index: 121;
-  top: var(--top, 80px);
-  left: var(--left, 12px);
-  width: min(380px, calc(100vw - 24px));
-  max-height: calc(100vh - var(--top, 80px) - 16px);
-  overflow-y: auto;
-  /* Le verrou empêche la page de bouger, pas le geste de se propager au parent
-     une fois le panneau arrivé en bout de course. */
-  overscroll-behavior: contain;
-  background: var(--surface);
-  color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px 14px 14px;
-  box-shadow: 0 18px 40px -12px rgba(17, 24, 39, 0.35);
-}
-.grab {
-  display: none;
-}
-.head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-.head b {
-  font-size: 0.95rem;
-}
-.close {
-  border: 0;
-  background: none;
-  color: var(--ink-3);
-  font-size: 0.9rem;
-  cursor: pointer;
-  padding: 4px;
-}
+/* La bulle est la fenêtre centrée de la maison (« Sheet » « centre ») : plus de voile, de panneau ni de poignée écrits ici. */
 .big {
   font-family: var(--font-display);
   font-size: 1.8rem;
@@ -139,7 +95,7 @@
   color: var(--ink);
 }
 .caveats {
-  margin: 0 0 12px;
+  margin: 0;
   padding-left: 16px;
   font-size: 0.76rem;
   color: var(--ink-3);
@@ -152,29 +108,4 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-}
-@media (max-width: 760px) {
-  .scrim {
-    background: rgba(11, 37, 69, 0.45);
-  }
-  .sheet {
-    top: auto;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    max-height: 86vh;
-    border-radius: 18px 18px 0 0;
-    padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
-    box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.25);
-  }
-  .grab {
-    display: block;
-    width: 36px;
-    height: 4px;
-    border-radius: 2px;
-    background: var(--line-2);
-    margin: 0 auto 10px;
-  }
-
 }

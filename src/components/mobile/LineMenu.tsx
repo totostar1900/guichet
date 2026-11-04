@@ -30,8 +30,6 @@ export interface LineRef {
   kind?: string;
   /** Une séance close n'a plus d'action. */
   past?: boolean;
-  /** Y a-t-il quelque chose à annoncer (un événement, un compte à rebours) ? Faux : pas de « Suivre » à proposer (voir `alerteOuverte`). */
-  alerte?: boolean;
 }
 
 function Icon({ d }: { d: string }) {
@@ -156,7 +154,7 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
 
   const items: [string, string, string, string?][] = [
     ...(onFiche ? [["fiche", "Voir la fiche", "M4 5h16v14H4z M8 9h8 M8 13h5"] as [string, string, string]] : []),
-    ...(line.alerte === false && !on ? [] : [["suivre", cadence === "quotidien" ? (on ? "Retirer l'alerte" : "Armer l'alerte") : on ? "Ne plus suivre" : "Suivre", cadence === "quotidien" ? "M6 16V11a6 6 0 0 1 12 0v5l2 2H4z M10 20h4" : "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z", cadence === "quotidien" ? (on ? "alerte armée" : "un message par jour jusqu'à la clôture") : on ? "alertes actives sur cette ligne" : "prévenu à chaque changement"] as [string, string, string, string]]),
+    ["suivre", cadence === "quotidien" ? (on ? "Retirer l'alerte" : "Armer l'alerte") : on ? "Ne plus suivre" : "Suivre", cadence === "quotidien" ? "M6 16V11a6 6 0 0 1 12 0v5l2 2H4z M10 20h4" : "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z", cadence === "quotidien" ? (on ? "alerte armée" : "un message par jour jusqu'à la clôture") : on ? "alertes actives sur cette ligne" : "prévenu à chaque changement"],
     ["contacter", "Contacter un conseiller", "M3 6h18v12H3z M3.5 7l8.5 6 8.5-6"],
     ["comparer", "Comparer avec…", "M4 6h7v12H4z M13 6h7v12h-7z"],
     ["partager", "Partager le lien", "M12 3v12 M8 7l4-4 4 4 M5 13v6h14v-6"],

@@ -43,50 +43,16 @@
   border-color: var(--navy-text);
   color: var(--navy-text);
 }
-.bubble {
-  position: fixed;
-  z-index: 1000;
-  width: max-content;
-  max-width: min(320px, calc(100vw - 16px));
-  background: var(--ink);
-  color: var(--surface);
-  font-family: var(--font-ui);
-  font-size: 0.78rem;
-  font-weight: 500;
-  line-height: 1.45;
-  letter-spacing: 0;
-  text-transform: none;
-  text-align: left;
-  white-space: normal;
-  padding: 10px 12px;
-  border-radius: 6px;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.45);
-  pointer-events: auto;
-}
-.bubble b {
-  display: block;
-  margin-bottom: 4px;
-  font-weight: 800;
-  color: var(--surface);
-}
-.bubble::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: var(--arrow, 50%);
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: var(--ink);
-}
-.bubble.below::after {
-  top: auto;
-  bottom: 100%;
-  border-top-color: transparent;
-  border-bottom-color: var(--ink);
+/* Le texte de la bulle, dans la fenêtre centrée. */
+.texte {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink-2);
 }
 .more {
   display: block;
-  margin-top: 6px;
+  margin-top: var(--s-5);
   color: var(--gold-ink);
   font-weight: 600;
   text-decoration: none;

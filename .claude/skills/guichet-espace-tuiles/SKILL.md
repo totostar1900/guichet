@@ -153,3 +153,15 @@ Le skill n'avait jamais été appliqué à la fiche : sa lecture vivait dans une
 4. Un lien de sortie d'une liste vit **dans le bloc de la liste** (`--titre-gap`), pas comme enfant de la pile (il se tiendrait à 28 px d'elle).
 5. **Aucun enfant « témoin » dans une pile** : un élément d'un pixel (observateur de défilement) ajoute un écart de 28 px. Observer l'élément lui-même (`IntersectionObserver` avec `rootMargin` et `threshold: [1]`).
 6. **Mesurer** : à 390 px, la distance entre les enfants visibles de la pile = 28 partout ; le conteneur a `background: transparent`, bords et `padding` à 0. Une carte d'un composant partagé (`BlocDeLignes`) se met à plat par une variante, pas par un style de page.
+
+## Les bulles d'information : au milieu de l'écran, fermées d'un geste du doigt (8 novembre 2026)
+
+**Règle.** Chaque bulle d'information (le petit « i » d'un terme, d'un chiffre, d'un titre : composant `Info`, et `Term`) s'ouvre **au milieu de l'écran**, sur un voile, et se ferme **d'un geste du doigt** (tirer vers le bas), par la croix ou en touchant à côté. On réutilise la fenêtre centrée de la maison : `Sheet` avec `centre`. Une bulle neuve se fait avec elle, jamais avec une infobulle à flèche posée près de son déclencheur (elle se coupait sous un en-tête collant, sortait de l'écran sur un téléphone et ne se fermait que d'un toucher précis).
+
+- Le texte est un paragraphe à `--ink-2`, le lien « En savoir plus » à `--s-5` du texte ; le titre de la fenêtre est le nom du terme.
+- Un clic dans la fenêtre ne remonte pas au parent du « i » (une rangée-lien, un en-tête de colonne) : l'enveloppe arrête la propagation.
+- Mesurer : à 390 px, la fenêtre est centrée (gauche = droite), le tiré de plus de 80 px la ferme, la page dessous garde son défilement.
+
+**Exceptions** (écrites ici pour ne pas être « corrigées » par erreur) :
+1. **Le « i » de la barre du haut** : c'est une feuille à onglets (`EnBrefInstruments`), pleine page, pas une bulle d'un terme.
+2. **À discuter avec le client, tant qu'on n'a pas tranché** (ne rien changer sans lui) : la bulle de confirmation d'un suivi (`Bulle`, en haut, 1,6 s, sans geste : une confirmation n'est pas une explication) ; l'astuce « Glissez vers la gauche » du pager ; l'étape d'une visite guidée (`CoachMarks`) ; l'infobulle de survol d'un graphe (date et valeur sous le doigt) ; les `title=""` natifs (pastille de variation, état) ; le bandeau d'état d'un contact rapide ou d'un export.

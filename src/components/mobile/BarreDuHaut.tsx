@@ -41,7 +41,6 @@ import styles from "./BarreDuHaut.module.css";
  * LE DESK N'A PAS CETTE BARRE : il garde « BarreDuCompte » et son lien « Desk ».
  */
 export interface BarreDuHautProps {
-  name: string;
   attentes: Attente[];
   /** Lignes qui ferment sous sept jours : le nombre de l'horloge. */
   urgentes: number;
@@ -73,7 +72,7 @@ function Trace({ d, plein }: { d: string; plein?: boolean }) {
   );
 }
 
-export function BarreDuHaut({ name, attentes, urgentes, favoris }: BarreDuHautProps) {
+export function BarreDuHaut({ attentes, urgentes, favoris }: BarreDuHautProps) {
   const t = useT();
   const lang = useLang();
   const chemin = usePathname();
@@ -87,7 +86,6 @@ export function BarreDuHaut({ name, attentes, urgentes, favoris }: BarreDuHautPr
   const combien = attentes.length + (brouillon ? 1 : 0);
   const { shown, visible } = useSheetPresence(ouvert);
   const croix = useRef<HTMLButtonElement>(null);
-  const initial = name.trim().charAt(0).toUpperCase() || "?";
   const fermer = () => setOuvert(false);
 
   /* Le tiroir s'ouvre : défilement verrouillé, Échap ferme, la croix reçoit le
@@ -152,13 +150,6 @@ export function BarreDuHaut({ name, attentes, urgentes, favoris }: BarreDuHautPr
             <div className={`${styles.voile} ${visible ? styles.voileOuvert : ""}`} onClick={fermer} aria-hidden="true" />
             <aside className={`${styles.tiroir} ${visible ? styles.tiroirOuvert : ""}`} role="dialog" aria-modal="true" aria-label={t("Menu")} aria-hidden={!ouvert}>
               <div className={styles.haut}>
-                <Link href="/moi/compte" className={styles.identite} onClick={fermer}>
-                  <span className={styles.init}>{initial}</span>
-                  <span>
-                    <b>{name}</b>
-                    <small>{t("Mon compte")}</small>
-                  </span>
-                </Link>
                 <button ref={croix} type="button" className={styles.fermer} onClick={fermer} aria-label={t("Fermer")}>
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M6 6l12 12M18 6L6 18" />

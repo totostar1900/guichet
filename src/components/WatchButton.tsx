@@ -16,7 +16,7 @@ import styles from "./WatchButton.module.css";
  * pas une phrase : l'étoile le dit dans la place d'un pouce, et le mot reste
  * dans l'infobulle et pour les lecteurs d'écran.
  */
-export function WatchButton({ offerId, initial, signedIn, cadence, alerte = true }: { offerId: string; initial: boolean; signedIn: boolean; cadence?: "evenement" | "quotidien"; /** Rien à annoncer (ni événement ni compte à rebours) : pas d'étoile, sauf si le suivi est déjà armé (voir `alerteOuverte`). */ alerte?: boolean }) {
+export function WatchButton({ offerId, initial, signedIn, cadence }: { offerId: string; initial: boolean; signedIn: boolean; cadence?: "evenement" | "quotidien" }) {
   /* LE MÊME ÉTAT DE SUIVI QUE LE MENU, LE GLISSEMENT ET LA CLOCHE (7 novembre 2026), et la même bulle : l'étoile de la fiche ne parlait pas et pouvait diverger. */
   const [on, setOn] = useSuivi(offerId, initial);
   const { dire } = useBulle();
@@ -27,7 +27,6 @@ export function WatchButton({ offerId, initial, signedIn, cadence, alerte = true
       <path d="M12 3.3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.6l-5.5 2.9 1-6.2L3 9.9l6.2-.9z" />
     </svg>
   );
-  if (!alerte && !on) return null;
   if (!signedIn) {
     return (
       <Link className={styles.star} href={`/connexion?next=${encodeURIComponent(`/offres/${offerId}`)}`} title={t("Connectez-vous pour suivre cette ligne")} aria-label={t("Suivre")}>

@@ -16,7 +16,7 @@ import { displayYield, marketAmortInput, marketBondInput, repaymentLabel } from 
 import { summarize } from "@/lib/domain/summary";
 import { variationTroisMois } from "@/lib/market/variations";
 import { titreCourt } from "@/lib/domain/carte-compacte";
-import { coverageOf, headline, thin, type AuctionResult } from "@/lib/market/auction-results";
+import { coverageOf, headline, type AuctionResult } from "@/lib/market/auction-results";
 import { bondTerms } from "@/lib/domain/status";
 import { amortCalc } from "@/lib/finance";
 import type { Offer } from "@/lib/domain/types";
@@ -413,10 +413,6 @@ function Seance({ r, t }: { r: AuctionResult; t: (s: string, v?: Record<string, 
       </div>
       <p className="muted" style={{ fontSize: ".78rem", marginTop: 8 }}>
         {t("Séance du {d}, telle que le Trésor l'a publiée.", { d: fmtDate(r.sessionOn) })}
-        {thin(r) ? ` ${t("Peu de soumissions : le taux sorti engage surtout ceux qui ont soumissionné.")}` : ""}{" "}
-        <a href={r.sourceUrl} target="_blank" rel="noreferrer">
-          {t("Le communiqué")} ↗
-        </a>
       </p>
     </section>
   );
@@ -440,7 +436,8 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
           <Kpis o={o} base={base} variation={variation3m} />
           {/* LA PHRASE DU FONDS EST PARTIE (1er novembre 2026) : générée à l'import du Bulletin Officiel de la Cote avec le nom, la catégorie, la société, le dépositaire et la fréquence, elle redisait « Caractéristiques ». Les autres lignes gardent la leur. */}
           {o.kind !== "FONDS" && <p className={styles.blurb}>{t(o.blurb)}</p>}
-          {o.resultLine && <div className={styles.result}>{o.resultLine}</div>}
+          {/* « Taux servi 6,97 % précompté » ne se lit plus chez le client (8 novembre 2026) : le résultat de la séance a sa section, avec ses chiffres. Le desk garde la ligne qu'il a saisie. */}
+          {mode === "desk" && o.resultLine && <div className={styles.result}>{o.resultLine}</div>}
           <CrossSignal o={o} facing={facing} />
         </section>
 
@@ -503,7 +500,15 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
         <section className={styles.sec} data-pane="docs">
           <h3>{t("Documents")}</h3>
           <div className={styles.docs}>
-            {o.documents.length === 0 && <span className="muted" style={{ fontSize: ".82rem" }}>{t("Documents archivés.")}</span>}
+            {o.documents.length === 0 && !seance && <span className="muted" style={{ fontSize: ".82rem" }}>{t("Documents archivés.")}</span>}
+            {/* LE COMMUNIQUÉ DE LA SÉANCE EST UN DOCUMENT (8 novembre 2026) : il n'était qu'un lien au bas du résultat. Il est maintenant rangé avec les autres. */}
+            {seance && (
+              <a className={`${styles.doc} ${styles.docLink}`} href={seance.sourceUrl} target="_blank" rel="noreferrer">
+                <span className="mono">PDF</span>
+                {t("Communiqué des résultats")}
+                <span className={styles.docMeta}>{t("Séance du {d}", { d: fmtDate(seance.sessionOn) })} ↗</span>
+              </a>
+            )}
             {o.documents.map((d, n) => {
               const href = d.url ?? (d.fileKey ? `/offres/${o.id}/doc/${n}` : undefined);
               if (!href) return null;

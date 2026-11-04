@@ -42,4 +42,6 @@ export const EN_VISITE: Record<string, string> = {
   "Services et risques associés": "Services and related risks",
   "Chaque instrument, ses chiffres, vos ordres": "Each instrument, its figures, your orders",
   "Communication à caractère promotionnel. Risque de perte en capital.": "Promotional communication. Risk of capital loss.",
+  "Communiqué des résultats": "Results release",
+  "Ses emprunts, ses séances et son calendrier d'adjudications": "Its borrowings, its sessions and its auction calendar",
 };
