@@ -113,10 +113,12 @@ const faitsAction = (s: OfferSummary): [string, string, string?][] => {
   const div = trouve("Dividende");
   if (div) out.push([div[0], div[1], div[2]]);
   if (s.hero && s.hero !== "—") out.push(["Rendement", s.hero, "du dividende"]);
-  const age = trouve("Cours")?.[2];
+  const cours = trouve("Cours");
+  const age = cours?.[2];
   const ticket = trouve("Ticket min.");
   if (age) out.push(["Cours inchangé depuis", age]);
-  else if (ticket) out.push([ticket[0], ticket[1], ticket[2]]);
+  /* Le ticket ne reste que s'il dit autre chose que le prix : pour une action à l'unité il le redit mot pour mot (« 90 000 FCFA » deux fois sur la même carte). */
+  else if (ticket && ticket[1] !== cours?.[1]) out.push([ticket[0], ticket[1], ticket[2]]);
   return out;
 };
 

@@ -280,6 +280,7 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     expect(oc, "la variation n'écrit plus sa période").toMatch(/\{court \? t\("3 mois"\) : t\("sur 3 mois"\)\}/);
     expect(oc, "la carte détaillée d'une action n'a plus le prix en avant").toMatch(/estAction && prix \? \(\s*<div className=\{styles\.bigAction\}>/);
     expect(oc, "la grille d'une action redit de nouveau le cours ou le ticket").toMatch(/const faitsAction = /);
+    expect(oc, "le ticket redit de nouveau le prix dans la grille d'une action").toMatch(/ticket && ticket\[1\] !== cours\?\.\[1\]/);
     expect(oc, "la tuile compacte d'une action n'a plus le prix en avant").toMatch(/estAction && prix \? \(\s*<>\s*<b>\s*\{prix\.nombre\}/);
     const css = lire("src/components/OfferCard.module.css");
     expect(css, "le prix d'une action n'est plus à l'encre").toMatch(/\.prix \{[^}]*color: var\(--ink\)/);
