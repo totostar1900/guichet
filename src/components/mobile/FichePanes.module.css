@@ -1,23 +1,17 @@
 .seg,
 .bande,
-.temoin,
 .cta,
 .cale {
   display: none;
 }
 @media (max-width: 760px) {
-  /* Le témoin : un pixel au-dessus de la bande, pour savoir quand elle colle. */
-  .temoin {
-    display: block;
-    height: 1px;
-  }
   /* LA BANDE EST OPAQUE ET VA BORD À BORD : la carte de la fiche a 14 px de gouttière sur téléphone, la bande les reprend de chaque côté. */
   .bande {
     position: sticky;
     top: 52px;
     z-index: 10;
     display: block;
-    margin: 0 -14px var(--s-2);
+    margin: 0 -14px;
     background: var(--surface);
     border-bottom: 1px solid var(--line);
   }

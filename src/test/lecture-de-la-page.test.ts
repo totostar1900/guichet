@@ -113,7 +113,7 @@ describe("la bande de menu de la fiche (7 novembre 2026, choix 1A · 2C · 3B ·
     expect(css()).toMatch(/data-show="calendrier"\] \[data-pane\]:not\(\[data-pane="calendrier"\]\)/);
   });
   it("collée, la bande porte le nom court de la ligne et son chiffre en avant", () => {
-    expect(lire("src/components/mobile/FichePanes.tsx")).toMatch(/setColle\(!e\.isIntersecting && e\.boundingClientRect\.top < 52\)/);
+    expect(lire("src/components/mobile/FichePanes.tsx")).toMatch(/setColle\(e\.intersectionRatio < 1 && e\.boundingClientRect\.top <= 53\)/);
     expect(css()).toMatch(/\.colle \.mini \{[^}]*display: flex;/);
     expect(lire("src/app/offres/[id]/FicheReading.tsx")).toMatch(/const mini = \{ nom: t\(titreCourt\(o\)\)/);
   });
@@ -266,5 +266,35 @@ describe("le menu ⋯ parle de la cadence de la ligne", () => {
     const m = lire("src/components/mobile/LineMenu.tsx");
     expect(m).toMatch(/cadence === "quotidien" \? \(on \? "Retirer l'alerte" : "Armer l'alerte"\) : on \? "Ne plus suivre" : "Suivre"/);
     expect(m).toMatch(/"un message par jour jusqu'à la clôture"/);
+  });
+});
+
+describe("la fiche d'une ligne : une pile sans cadre, un pied qui range les risques, un lien qui mène à la liste (8 novembre 2026)", () => {
+  const css = () => lire("src/app/offres/[id]/page.module.css");
+  it("la lecture est une pile sans fond, sans bord, sans rayon, sans gouttière propre", () => {
+    const m = css().match(/\n\.main \{[^}]*\}/)?.[0] ?? "";
+    expect(m, "la lecture n'est plus une pile").toMatch(/display: grid;\s*gap: var\(--sections-gap\);/);
+    expect(m, "le cadre de la fiche est revenu").not.toMatch(/background|border|padding/);
+    expect(css(), "la gouttière du téléphone est revenue").not.toMatch(/\.main \{\s*padding: 4px 14px 8px;/);
+    expect(css()).toMatch(/\.main \.sec \{\s*padding: 0;\s*border-bottom: 0;/);
+    expect(css()).toMatch(/\.main \.sec h3 \{\s*margin: 0 0 var\(--titre-gap\);/);
+  });
+  it("aucun enfant témoin ni marge basse ne vient s'ajouter aux 28 px", () => {
+    expect(lire("src/components/mobile/FichePanes.module.css"), "un témoin est revenu dans la pile").not.toMatch(/\.temoin/);
+    expect(lire("src/components/mobile/FichePanes.tsx")).not.toMatch(/temoin/);
+    expect(lire("src/components/ListNav.module.css")).not.toMatch(/margin-bottom: 4px/);
+  });
+  it("les lignes similaires sont à plat, et le lien de l'émetteur mène à la liste de la famille filtrée", () => {
+    const s = lire("src/app/offres/[id]/LignesSimilaires.tsx");
+    expect(s, "les lignes similaires ont de nouveau leur carte").toMatch(/lignes=\{lignes\} plat \/>/);
+    expect(s, "le lien de l'émetteur ne mène plus à la liste filtrée").toMatch(/href=\{`\$\{liste\.href\}\?q=\$\{encodeURIComponent\(o\.issuer\)\}`\}/);
+    expect(s, "le lien n'est plus dans le bloc des lignes").toMatch(/<div className=\{styles\.similaires\}>/);
+    expect(lire("src/components/accueil/BlocDeLignes.module.css")).toMatch(/\.plat \{[^}]*background: none;[^}]*border: 0;/);
+  });
+  it("le pied de la fiche range les risques en trois liens : le texte opposable, la leçon, la documentation", () => {
+    const p = lire("src/app/offres/[id]/PiedDeFiche.tsx");
+    for (const h of ['"/info/risques#risques"', '"/info/les-quatre-risques"', '"/info/mentions#types-de-risques"']) expect(p, h).toContain(h);
+    expect(p).toMatch(/<footer className=\{styles\.pied\}/);
+    expect(lire("src/app/offres/[id]/page.tsx")).toMatch(/<PiedDeFiche \/>/);
   });
 });

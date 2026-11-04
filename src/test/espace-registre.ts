@@ -35,6 +35,8 @@ export const CONVERTIES: [string, string][] = [
   ["src/app/offres/[id]/intention/page.module.css", "page"],
   ["src/app/ouvrir-un-compte/convention/page.module.css", "page"],
   ["src/app/offres/[id]/page.module.css", "page"],
+  /* La lecture de la fiche : une pile sans cadre (8 novembre 2026). */
+  ["src/app/offres/[id]/page.module.css", "main"],
 ];
 
 /**

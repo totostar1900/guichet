@@ -52,24 +52,24 @@ export function FichePanes({ children, className, sans = [] }: { children: React
  * Des onglets soulignés, bord à bord, sur un fond opaque : le segment arrondi laissait lire le texte de la carte à travers ses coins quand il collait.
  * « Calendrier » n'est un onglet que lorsque la ligne en documente un (« exclure » le retire sinon) ; il n'y a pas d'onglet « Risques », ils restent au pied
  * de la page. COLLÉE, la bande montre au-dessus des onglets le nom court de la ligne et son chiffre en avant : la tête de la fiche a défilé, on sait encore
- * laquelle on lit. Un témoin d'un pixel juste au-dessus dit quand la bande colle.
+ * laquelle on lit.
  */
 export function FicheSegments({ exclure = [], mini }: { exclure?: string[]; mini?: { nom: string; chiffre: string; sous?: string } }) {
   const { pane, setPane, sans } = useContext(PaneCtx);
   const t = useT();
-  const temoin = useRef<HTMLDivElement>(null);
+  const bande = useRef<HTMLDivElement>(null);
   const [colle, setColle] = useState(false);
   useEffect(() => {
-    const el = temoin.current;
+    const el = bande.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
-    const o = new IntersectionObserver(([e]) => setColle(!e.isIntersecting && e.boundingClientRect.top < 52), { rootMargin: "-52px 0px 0px 0px" });
+    /* COLLÉE = rognée d'un pixel par la marge haute de l'observateur (la bande colle à 52 px) : pas d'élément témoin, qui serait un enfant de plus de la pile et lui ajouterait un écart. */
+    const o = new IntersectionObserver(([e]) => setColle(e.intersectionRatio < 1 && e.boundingClientRect.top <= 53), { rootMargin: "-53px 0px 0px 0px", threshold: [1] });
     o.observe(el);
     return () => o.disconnect();
   }, []);
   return (
     <>
-      <div ref={temoin} className={styles.temoin} aria-hidden="true" />
-      <div className={`${styles.bande} ${colle ? styles.colle : ""}`}>
+      <div ref={bande} className={`${styles.bande} ${colle ? styles.colle : ""}`}>
         {mini && (
           <div className={styles.mini} aria-hidden="true">
             <b>{mini.nom}</b>

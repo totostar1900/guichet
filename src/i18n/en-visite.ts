@@ -37,4 +37,9 @@ export const EN_VISITE: Record<string, string> = {
   "Retirer l'alerte": "Remove the alert",
   "alerte armée": "alert set",
   "un message par jour jusqu'à la clôture": "one message a day until closing",
+  "Le texte qui s'applique à toutes les lignes": "The text that applies to every line",
+  "La leçon du Guide": "The Guide lesson",
+  "Services et risques associés": "Services and related risks",
+  "Chaque instrument, ses chiffres, vos ordres": "Each instrument, its figures, your orders",
+  "Communication à caractère promotionnel. Risque de perte en capital.": "Promotional communication. Risk of capital loss.",
 };

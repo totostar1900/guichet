@@ -6,10 +6,23 @@
   align-items: start;
 }
 .main {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 18px 24px 8px;
+  /* LA FICHE N'EST PLUS DANS UN ENCADRÉ (8 novembre 2026) : une pile, comme les autres pages. Ni fond, ni filet, ni rayon, ni gouttière propre : la page porte
+     la sienne, et c'est le « gap » qui sépare la tête, la bande d'onglets, les sections, les lignes similaires et le pied. Les filets qui coupaient chaque section
+     (« .sec ») sont partis avec le cadre. */
+  display: grid;
+  gap: var(--sections-gap);
+  min-width: 0;
+}
+.main .head {
+  padding: 0;
+  border-bottom: 0;
+}
+.main .sec {
+  padding: 0;
+  border-bottom: 0;
+}
+.main .sec h3 {
+  margin: 0 0 var(--titre-gap);
 }
 
 .head {
@@ -77,6 +90,62 @@
 }
 .note a {
   color: var(--gold-ink);
+}
+/* LE PIED DE LA FICHE (8 novembre 2026) : un titre, des rangées-liens à plat (un filet entre deux rangées, rien autour), puis la mention en petit. Les risques d'abord :
+   le texte opposable, la leçon, la documentation. Aucun cadre. */
+.pied {
+  display: grid;
+  gap: var(--titre-gap);
+  min-width: 0;
+}
+.pied h2 {
+  margin: 0;
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.piedListe {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.piedListe li + li {
+  border-top: 1px solid var(--line);
+}
+.piedLien {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  min-height: 56px;
+  color: inherit;
+  text-decoration: none;
+}
+.piedLien span {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: var(--s-1);
+}
+.piedLien b {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.piedLien small {
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+.piedLien i {
+  flex: none;
+  font-style: normal;
+  color: var(--gold-ink);
+}
+.piedMention {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--ink-3);
 }
 .tl {
   display: grid;
@@ -184,10 +253,6 @@
 }
 
 @media (max-width: 760px) {
-
-  .main {
-    padding: 4px 14px 8px;
-  }
   .headRow {
     flex-direction: column;
     align-items: flex-start;
@@ -213,8 +278,8 @@
     flex: 0 0 100%;
     justify-content: flex-start;
   }
-  .sec {
-    padding: 14px 0;
+  .main .sec {
+    padding: 0;
   }
   /* on the phone the intention has its own page (/offres/[id]/intention): the side column stays off */
   .side {
@@ -242,4 +307,17 @@
 .noteBulle a {
   margin-left: auto;
   color: var(--gold-ink);
+}
+
+/* Les lignes similaires et le lien vers toutes celles de l'émetteur forment UN bloc de la pile : le lien se tient à --titre-gap de la liste, pas à l'écart des sections. */
+.similaires {
+  display: grid;
+  gap: var(--titre-gap);
+  min-width: 0;
+}
+.toutEmetteur {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--gold-ink);
+  text-decoration: none;
 }

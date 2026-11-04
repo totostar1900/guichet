@@ -47,7 +47,7 @@ describe("la barre flottante de la fiche", () => {
     /* Au-dessus de 760 px, la barre n'existe pas : une cale qui y resterait
        poserait un trou blanc au bas de chaque fiche d'écran large. Les deux
        sont éteintes ensemble, et rallumées ensemble. */
-    expect(css(), "la cale vit hors du téléphone, où la barre n'existe pas").toMatch(/\.seg,\s*\n\s*\.bande,\s*\n\s*\.temoin,\s*\n\s*\.cta,\s*\n\s*\.cale \{\s*\n\s*display: none;/);
+    expect(css(), "la cale vit hors du téléphone, où la barre n'existe pas").toMatch(/\.seg,\s*\n\s*\.bande,\s*\n\s*\.cta,\s*\n\s*\.cale \{\s*\n\s*display: none;/);
     const tel = css().slice(css().indexOf("@media (max-width: 760px)"));
     expect(tel, "la cale ne se rallume pas avec la barre").toMatch(/\.cale \{\s*\n\s*display: block;/);
   });

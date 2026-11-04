@@ -99,7 +99,7 @@ describe("les rangées et la fiche (lecture du code)", () => {
     expect(page).toMatch(/fallbackHref=\{listeDeLaFiche\(o\)\.href\}/);
     expect(code("src/app/offres/[id]/neighbour.tsx")).toMatch(/fallbackHref=\{listeDeLaFiche\(o\)\.href\}/);
     const sim = code("src/app/offres/[id]/LignesSimilaires.tsx");
-    expect(sim, "le lien vers toutes les lignes de l'émetteur a disparu").toMatch(/`\/recherche\?q=\$\{encodeURIComponent\(o\.issuer\)\}`/);
+    expect(sim, "le lien vers toutes les lignes de l'émetteur a disparu").toMatch(/`\$\{liste\.href\}\?q=\$\{encodeURIComponent\(o\.issuer\)\}`/);
     expect(sim, "le titre ne mène plus à la liste de la famille").toMatch(/href=\{liste\.href\}/);
   });
 });

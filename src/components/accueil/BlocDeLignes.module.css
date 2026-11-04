@@ -15,6 +15,20 @@
   border-radius: var(--tuile-rayon);
   overflow: hidden;
 }
+/* À PLAT (8 novembre 2026) : sans fond, sans bord, sans rayon, sans gouttière de carte ; un filet seulement entre deux rangées. Les trois aspects de tuiles n'y changent rien. */
+.plat {
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+.plat li + li {
+  border-top: 1px solid var(--line);
+}
+.plat .ligne {
+  padding-inline: 0;
+}
 /* La rangée entière est la cible : au moins 64 px, bien au-delà des 44 px d'un doigt. */
 .ligne {
   display: flex;

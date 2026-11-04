@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { ContactRapide } from "@/components/ContactRapide";
 import type { Channel } from "@/lib/domain/types";
 import { ListNav } from "@/components/ListNav";
+import { PiedDeFiche } from "./PiedDeFiche";
 import { notFound } from "next/navigation";
 import { IntentForm } from "@/components/IntentForm";
 import { Vu } from "@/components/Vu";
@@ -110,10 +110,8 @@ export default async function OfferPage({ params, searchParams }: Props) {
           <FicheReading o={o} data={fiche} />
           {/* LES SORTIES D'UNE FICHE (2 novembre 2026) : des lignes similaires, la liste complète, les lignes du même émetteur. Hors des volets, comme la note des risques. */}
           <LignesSimilaires o={o} />
-          {/* LES RISQUES, EN PIED DE PAGE (1er novembre 2026) : hors des volets, donc sous le client quel que soit l'onglet où il lit un rendement, juste avant la barre d'action. Elle vivait dans l'Essentiel, où l'on ne regarde pas les chiffres. */}
-          <p className={styles.note}>
-            {t("Les risques d'une ligne se lisent dans le Guide :")} <Link href="/info/les-quatre-risques">{t("Les quatre risques, et ce qu'on peut faire")}</Link>.
-          </p>
+          {/* LES RISQUES, EN PIED DE PAGE (1er novembre 2026), RANGÉS EN TROIS LIENS (8 novembre) : hors des volets, sous le client quel que soit l'onglet, juste avant la barre d'action. */}
+          <PiedDeFiche />
         </FichePanes>
         </SwipePager>
 

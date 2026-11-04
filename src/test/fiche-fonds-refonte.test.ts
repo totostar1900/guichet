@@ -86,11 +86,15 @@ describe("la fiche d'un fonds", () => {
     expect(code("src/app/offres/[id]/FicheReading.tsx"), "les risques sont revenus dans un volet").not.toMatch(/les-quatre-risques/);
     const page = code("src/app/offres/[id]/page.tsx");
     const lecturePage = page.indexOf("<FicheReading o={o} data={fiche} />");
-    const risques = page.indexOf("/info/les-quatre-risques", lecturePage);
+    const risques = page.indexOf("<PiedDeFiche />", lecturePage);
     const fin = page.indexOf("</FichePanes>", lecturePage);
     expect(lecturePage, "la lecture de la fiche est introuvable").toBeGreaterThan(0);
     expect(risques, "les risques ne sont plus en pied de la fiche").toBeGreaterThan(lecturePage);
     expect(risques, "les risques sont sortis de la fiche").toBeLessThan(fin);
+    /* LE PIED PORTE LES DEUX LIENS (8 novembre 2026) : la page dédiée « Risques et limites » ET la leçon. */
+    const pied = code("src/app/offres/[id]/PiedDeFiche.tsx");
+    expect(pied, "le lien vers la page dédiée aux risques a disparu").toMatch(/href: "\/info\/risques#risques"/);
+    expect(pied, "le lien vers la leçon a disparu").toMatch(/href: "\/info\/les-quatre-risques"/);
   });
   it("met les deux notes dans des bulles, avec une mention courte visible, et sans les lignes de VL", () => {
     const nav = code("src/components/NavPeriod.tsx");

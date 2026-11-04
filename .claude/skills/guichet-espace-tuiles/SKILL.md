@@ -142,3 +142,14 @@ Une barre d'onglets qui colle doit porter SON fond opaque et aller bord à bord 
 ## Leçon du 7 novembre 2026 (nuit) : une feuille de style cassée passe les tests
 
 Un retrait de règles CSS par expression régulière a laissé un bloc sans accolade ; `typecheck`, `lint` et les 3 700 épreuves sont restés verts, seul `next build` l'a refusé. **Après toute édition de `.module.css` en série, lancer le build** (ou la reconstruction de contrôle) avant de conclure, et relire la fin du fichier.
+
+## Leçon du 8 novembre 2026 : la fiche d'une ligne est une page comme les autres (pile, sans cadre)
+
+Le skill n'avait jamais été appliqué à la fiche : sa lecture vivait dans une carte (fond, bord, rayon, gouttière de 24 px), avec un filet sous chaque section et une seconde carte pour les lignes similaires. **Les marges standards d'une page de lecture** (ETALON § 8.8) :
+
+1. Le conteneur de la lecture est une **pile** (`gap: var(--sections-gap)`), **sans fond, sans bord, sans rayon, sans `padding`** ; il est déclaré dans `CONVERTIES` de `espace-registre.ts`.
+2. **Entre deux blocs : 28 px, par le `gap`.** Pas de filet de section, pas de marge basse (ListNav, bande d'onglets, note) : ce sont eux qui faisaient les espaces à 4, 8 ou 18 px.
+3. Un titre de section → son contenu : `--titre-gap`. Une liste de rangées **à plat** (`plat` sur `BlocDeLignes`) : un filet entre deux rangées, rien autour.
+4. Un lien de sortie d'une liste vit **dans le bloc de la liste** (`--titre-gap`), pas comme enfant de la pile (il se tiendrait à 28 px d'elle).
+5. **Aucun enfant « témoin » dans une pile** : un élément d'un pixel (observateur de défilement) ajoute un écart de 28 px. Observer l'élément lui-même (`IntersectionObserver` avec `rootMargin` et `threshold: [1]`).
+6. **Mesurer** : à 390 px, la distance entre les enfants visibles de la pile = 28 partout ; le conteneur a `background: transparent`, bords et `padding` à 0. Une carte d'un composant partagé (`BlocDeLignes`) se met à plat par une variante, pas par un style de page.

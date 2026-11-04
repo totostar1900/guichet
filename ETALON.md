@@ -701,6 +701,25 @@ gardent leur allure : l'aspect des tuiles ne les concerne pas.
 
 ---
 
+### 8.8 La page de lecture sans cadre — la fiche d'une ligne (8 novembre 2026)
+
+**Une page de lecture n'a ni encadré, ni filet entre ses sections.** La fiche d'une ligne avait quatre surfaces imbriquées : la carte de la lecture (fond, bord, rayon, 24 px de gouttière), un filet sous chaque section, la carte des lignes similaires dans la carte, et une note de pied. À 390 px on lisait des lignes partout, et les espaces n'étaient ceux d'aucun jeton.
+
+La règle, mesurée sur la fiche le jour même :
+
+| Élément | Règle |
+|---|---|
+| La lecture (`.main`) | **une pile** : `display: grid; gap: var(--sections-gap)`. Ni fond, ni bord, ni rayon, ni `padding`. La page porte sa gouttière. |
+| Entre deux blocs (tête, bande d'onglets, section, lignes similaires, pied) | **28 px**, par le `gap`, jamais par une marge ni un filet |
+| Un titre de section → son contenu | `--titre-gap` (12) |
+| Une liste de rangées dans la page | **à plat** : pas de carte autour, un filet de `--line` seulement ENTRE deux rangées (`.plat` de `BlocDeLignes`) |
+| Un lien de sortie rattaché à une liste (« Toutes les lignes de … ») | dans le même bloc que la liste, à `--titre-gap` d'elle |
+| Un élément qui n'est qu'un témoin (observateur de défilement) | jamais un enfant de la pile : il lui ajouterait un écart ; on observe l'élément lui-même |
+
+**Le pied de page** range ses textes comme un pied de page de référence : un titre en capitales (« Pour investir sereinement »), puis des **rangées-liens** à plat (le titre du texte, ce qu'il contient, une flèche), puis la mention en petit. Les risques y sont **trois liens** : le texte opposable (« Risques et limites »), la leçon qui l'explique, la documentation par instrument. Le ton est celui du § 10 : le chemin vers le texte avant la mise en garde, aucune mention retirée.
+
+**Les liens de sortie mènent au contenu attendu** : « Toutes les lignes de {émetteur} » ouvre la liste de la famille (adjudications, titres, fonds) déjà filtrée sur cet émetteur (`?q=`), pas la page de recherche générale.
+
 ## 9. La voix des libellés — « Mes » pour ce qui est au client, « Votre » pour ce que la maison lui dit
 
 *Décidé le 1er novembre 2026. Gardé par `src/test/mes-et-votre.test.ts`.*
