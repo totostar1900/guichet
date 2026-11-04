@@ -137,30 +137,6 @@
   font-weight: 700;
   cursor: pointer;
 }
-.toast {
-  position: fixed;
-  left: 50%;
-  top: 64px;
-  transform: translateX(-50%);
-  /* LA MÊME BULLE QUE CELLE DU GLISSEMENT (« .dit » de SwipeActions), 6 novembre 2026 : or doux, filet or, angle de l'application. Armer un suivi parlait de deux façons. */
-  border: 1px solid var(--gold-line);
-  background: var(--gold-soft);
-  color: var(--gold-ink);
-  font-size: 0.74rem;
-  font-weight: 600;
-  line-height: 1.3;
-  padding: 6px 12px;
-  border-radius: var(--radius);
-  opacity: 0;
-  transition: opacity 0.2s;
-  z-index: 62;
-  pointer-events: none;
-  max-width: calc(100vw - 32px);
-  text-align: center;
-}
-.toastOn {
-  opacity: 1;
-}
 @media (max-width: 760px) {
   /* LE TÉLÉPHONE GARDE LA FENÊTRE CENTRÉE (7 novembre 2026) : elle n'est plus une feuille du bas. Une barre de saisie en haut dit qu'on la tire vers le bas pour la fermer. */
   .sheet {
@@ -192,10 +168,6 @@
     padding: 13px 8px;
     font-size: 0.94rem;
   }
-  .toast {
-    top: auto;
-    bottom: calc(120px + env(safe-area-inset-bottom, 0px));
-  }
 }
 /* LE PIED RESTE VISIBLE : l'action de la ligne et « Fermer » collent au bas de la fenêtre, même quand la liste des gestes défile. */
 .pied {
@@ -215,8 +187,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .sheet,
-  .scrim,
-  .toast {
+  .scrim {
     transition: none;
   }
 }

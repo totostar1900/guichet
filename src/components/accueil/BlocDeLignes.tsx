@@ -35,7 +35,7 @@ export interface LigneDeBloc {
   /** Une ligne de titre : le cours en tête (le chiffre le plus visible), et sous lui ses revenus abrégés. */
   cours?: { texte: string; unite?: string };
   revenus?: { etiquette: string; texte: string; unite?: string }[];
-  variation?: { v: number; titre: string };
+  variation?: { v: number; titre: string; periode?: string };
   etat?: { texte: string; ton: TonDEtat };
 }
 
@@ -88,7 +88,7 @@ export async function BlocDeLignes({ id, titre, href, tout, lignes }: { id: stri
                   <b>{l.valeur}</b>
                 )}
                 {!l.cours && l.libelle && <small>{l.libelle}</small>}
-                {l.variation && <PastilleVariation v={l.variation.v} titre={l.variation.titre} />}
+                {l.variation && <PastilleVariation v={l.variation.v} titre={l.variation.titre} periode={l.variation.periode} />}
                 {l.etat && <PastilleEtat ton={l.etat.ton}>{l.etat.texte}</PastilleEtat>}
                 {l.revenus?.map((r) => (
                   <small key={r.etiquette} className={styles.revenu}>

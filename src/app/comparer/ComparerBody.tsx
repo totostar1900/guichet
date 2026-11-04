@@ -17,6 +17,7 @@ import { floatRotation, indexSeries, indexStats, indexWeights, rotationWording }
 import { summarize } from "@/lib/domain/summary";
 import { offerReference } from "@/lib/domain/sheet";
 import type { Offer } from "@/lib/domain/types";
+import { variationsDesActions } from "@/lib/market/variations";
 import styles from "./page.module.css";
 import { EnTete } from "@/components/EnTete";
 
@@ -50,6 +51,8 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
   const a = sp.a ? all.find((o) => o.id === sp.a) : undefined;
   const b = sp.b ? all.find((o) => o.id === sp.b) : undefined;
   const cols = [a, b].filter((o): o is Offer => Boolean(o));
+  /* LA VARIATION SUR TROIS MOIS DES ACTIONS, la même qu'à l'Accueil et sur Titres (7 novembre 2026) : une requête pour les deux colonnes. */
+  const variations = await variationsDesActions(cols);
   const data = cols.map((o) => {
     const s = summarize(o, now);
     const map = new Map<string, string>();
@@ -67,6 +70,8 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
       map.clear();
       rows.forEach(([k, v]) => map.set(k, v));
     }
+    const v3 = variations.get(o.id);
+    if (v3) map.set("Variation du cours · 3 mois", `${sg(v3.pct)} · ${t("hors dividendes")}`);
     return { s, dy: displayYield(o), ref: offerReference(o, now), map };
   });
   // The graphs need the funds' NAV history and the latest BTA as a reference rate.

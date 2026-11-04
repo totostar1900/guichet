@@ -2,7 +2,9 @@
 
 import { useT } from "@/i18n/client";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { texteDuSuivi, useBulle } from "@/components/mobile/Bulle";
+import { useSuivi } from "@/lib/ui/suivi";
 import { toggleWatch } from "@/app/offres/[id]/actions";
 import styles from "./WatchButton.module.css";
 
@@ -15,7 +17,9 @@ import styles from "./WatchButton.module.css";
  * dans l'infobulle et pour les lecteurs d'écran.
  */
 export function WatchButton({ offerId, initial, signedIn }: { offerId: string; initial: boolean; signedIn: boolean }) {
-  const [on, setOn] = useState(initial);
+  /* LE MÊME ÉTAT DE SUIVI QUE LE MENU, LE GLISSEMENT ET LA CLOCHE (7 novembre 2026), et la même bulle : l'étoile de la fiche ne parlait pas et pouvait diverger. */
+  const [on, setOn] = useSuivi(offerId, initial);
+  const { dire, bulle } = useBulle();
   const [pending, start] = useTransition();
   const t = useT();
   const star = (
@@ -41,11 +45,15 @@ export function WatchButton({ offerId, initial, signedIn }: { offerId: string; i
       onClick={() =>
         start(async () => {
           const res = await toggleWatch(offerId, !on);
-          if (res.ok) setOn(res.watching);
+          if (res.ok) {
+            setOn(res.watching);
+            dire(texteDuSuivi(res.watching, undefined, t));
+          }
         })
       }
     >
       {star}
+      {bulle}
     </button>
   );
 }

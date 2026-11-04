@@ -161,3 +161,29 @@ describe("retouches du 7 novembre au soir : tuile compacte, hauteurs, menu ⋯, 
     expect(e).toMatch(/onTouchEnd=\{/);
   });
 });
+
+describe("la bulle de confirmation, une seule (7 novembre 2026)", () => {
+  it("le menu ⋯, le glissement et l'étoile de la fiche disent « c'est fait » par la même bulle et le même texte", () => {
+    for (const f of ["src/components/mobile/LineMenu.tsx", "src/components/mobile/SwipeActions.tsx", "src/components/WatchButton.tsx"]) {
+      const s = lire(f);
+      expect(s, `${f} n'utilise plus la bulle commune`).toMatch(/useBulle\(\)/);
+      expect(s, `${f} dit le suivi à sa façon`).not.toMatch(/Alerte armée : un message par jour/);
+    }
+    expect(lire("src/components/mobile/Bulle.tsx")).toMatch(/export function texteDuSuivi\(/);
+    expect(lire("src/components/mobile/Bulle.module.css")).toMatch(/\.bulle \{[^}]*position: fixed;[^}]*z-index: 70;/);
+  });
+  it("l'étoile de la fiche lit le même état de suivi que le menu, le glissement et la cloche", () => {
+    expect(lire("src/components/WatchButton.tsx")).toMatch(/const \[on, setOn\] = useSuivi\(offerId, initial\);/);
+  });
+});
+
+describe("la documentation reprend les risques par instrument du document de référence (7 novembre 2026)", () => {
+  it("la page porte une section « comment un prix réagit » et chaque instrument a ses risques propres", async () => {
+    const m = await import("@/data/services-risques");
+    const ids = m.ORDRE_DE_LA_PAGE.map((e) => ("doc" in e ? e.doc.id : e.legal));
+    expect(ids).toContain("reactions");
+    const inst = m.INSTRUMENTS.lignes ?? [];
+    expect(inst.length).toBeGreaterThanOrEqual(5);
+    for (const l of inst) expect(l.texte.fr, l.terme.fr).toMatch(/À veiller/);
+  });
+});

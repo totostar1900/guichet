@@ -3,7 +3,8 @@
 import { useSuivi } from "@/lib/ui/suivi";
 import { useT } from "@/i18n/client";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useTransition } from "react";
+import { texteDuSuivi, useBulle } from "./Bulle";
 import styles from "./SwipeActions.module.css";
 
 /**
@@ -58,7 +59,7 @@ const SLOP = 8;
 export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "evenement", suivi, children }: { id: string; back?: React.ReactNode; backHead?: React.ReactNode; onTurn?: (turned: boolean) => void; turnRef?: React.MutableRefObject<(() => void) | null>; cadence?: "evenement" | "quotidien"; suivi?: boolean; children: React.ReactNode }) {
   const t = useT();
   const [on, setOn] = useSuivi(id, suivi);
-  const [dit, setDit] = useState("");
+  const { dire, bulle } = useBulle();
   const [, demarrer] = useTransition();
   const router = useRouter();
   const wrap = useRef<HTMLDivElement>(null);
@@ -302,18 +303,13 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
       }
       setOn(res.watching);
       router.refresh();
-      setDit(res.watching ? (cadence === "quotidien" ? t("Alerte armée : un message par jour jusqu'à la clôture") : t("Ligne suivie : un message à chaque mouvement")) : t("Alerte retirée"));
-      window.setTimeout(() => setDit(""), 1600);
+      dire(texteDuSuivi(res.watching, cadence, t));
     });
   };
 
   return (
     <div ref={wrap} className={styles.wrap}>
-      {dit && (
-        <span className={styles.dit} role="status">
-          {dit}
-        </span>
-      )}
+      {bulle}
       <div className={styles.under} aria-hidden="true">
         <button type="button" className={styles.handle} onClick={() => closeThen()} tabIndex={-1} aria-label={t("Fermer")}>
           ‹

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { useSheetPresence } from "./useSheetPresence";
+import { texteDuSuivi, useBulle } from "./Bulle";
 import { toggleWatch } from "@/app/offres/[id]/actions";
 import styles from "./LineMenu.module.css";
 
@@ -43,7 +44,7 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
   const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [toast, setToast] = useState("");
+  const { dire, bulle } = useBulle();
   const [on, setOn] = useSuivi(line.id, watching);
   const [pending, start] = useTransition();
   const sheet = useRef<HTMLDivElement>(null);
@@ -65,10 +66,7 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
       openRef.current = null;
     };
   }, [openRef]);
-  const say = (msg: string) => {
-    setToast(msg);
-    window.setTimeout(() => setToast(""), 1600);
-  };
+  const say = dire;
 
   useEffect(() => {
     if (!open) return;
@@ -130,7 +128,7 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
         if (res.ok) {
           setOn(res.watching);
           router.refresh();
-          say(t(res.watching ? (cadence === "quotidien" ? "Alerte armée : un message par jour jusqu'à la clôture" : "Ligne suivie : un message à chaque mouvement") : "Alerte retirée"));
+          say(texteDuSuivi(res.watching, cadence, t));
         } else router.push(`/connexion?next=${encodeURIComponent(href)}`);
       });
     }
@@ -177,7 +175,7 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
         </svg>
       </button>
       {mounted &&
-        (shown || toast) &&
+        shown &&
         createPortal(
           <>
             {shown && <div className={`${styles.scrim} ${visible ? styles.scrimOpen : ""}`} onClick={close} aria-hidden="true" />}
@@ -207,14 +205,10 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
               </div>
             </div>
             )}
-            {toast && (
-              <div className={`${styles.toast} ${styles.toastOn}`} role="status" aria-live="polite">
-                {toast}
-              </div>
-            )}
           </>,
           document.body,
         )}
+      {bulle}
     </>
   );
 }

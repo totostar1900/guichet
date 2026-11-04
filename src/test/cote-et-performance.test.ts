@@ -254,9 +254,8 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     expect(lire("src/components/OfferBrowser.tsx"), "la liste ne pose plus les suivis du serveur").toMatch(/<SuivisContext\.Provider value=\{armees\}>/);
     expect(lire("src/app/fonds/FundsBrowser.tsx"), "les fonds ne posent plus les suivis du serveur").toMatch(/<SuivisContext\.Provider value=\{armees\}>/);
     expect(lire("src/app/fonds/FondsBody.tsx"), "les fonds suivis ne sont plus lus").toMatch(/listWatches\(session\.userId\)/);
-    // bulle : la même pour le menu et le glissement
-    const t = lire("src/components/mobile/LineMenu.module.css");
-    expect(t, "la bulle du menu n'est plus celle du glissement").toMatch(/\.toast \{[^}]*background: var\(--gold-soft\)/);
+    // bulle : une seule, pour le menu, le glissement et l'étoile (7 novembre 2026)
+    expect(lire("src/components/mobile/Bulle.module.css"), "la bulle n'est plus or doux").toMatch(/\.bulle \{[^}]*background: var\(--gold-soft\)/);
     // fenêtre centrée : se ferme d'un geste vers le bas
     expect(lire("src/components/mobile/Sheet.tsx"), "la fenêtre centrée ne se ferme plus au geste").toMatch(/centre \? `translate\(-50%, calc\(-50% \+ \$\{drag\.current\.dy\}px\)\)`/);
     expect(lire("src/components/mobile/Sheet.tsx"), "la fenêtre centrée ignore de nouveau le geste").not.toMatch(/if \(centre\) return;/);

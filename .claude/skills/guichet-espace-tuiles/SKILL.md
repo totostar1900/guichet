@@ -138,3 +138,7 @@ Une carte (`display: grid`) ou une identité (`.id`) sans `grid-template-columns
 ## Leçon du 7 novembre 2026 : une bande collante a son propre fond
 
 Une barre d'onglets qui colle doit porter SON fond opaque et aller bord à bord (marge négative égale à la gouttière de la carte) : un segment arrondi à fond propre laissait lire le texte de la carte à travers ses coins. Un témoin d'un pixel juste au-dessus dit quand la bande colle, et c'est alors seulement qu'elle montre la ligne mince (nom court + chiffre en avant). Quand on mesure « collée », vérifier que la page défile assez : une fiche courte ne dépasse pas la position naturelle de la bande.
+
+## Leçon du 7 novembre 2026 (nuit) : une feuille de style cassée passe les tests
+
+Un retrait de règles CSS par expression régulière a laissé un bloc sans accolade ; `typecheck`, `lint` et les 3 700 épreuves sont restés verts, seul `next build` l'a refusé. **Après toute édition de `.module.css` en série, lancer le build** (ou la reconstruction de contrôle) avant de conclure, et relire la fin du fichier.

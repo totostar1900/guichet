@@ -93,12 +93,20 @@ describe("l'Accueil « cartes »", () => {
     expect(variationDesDerniersEchanges([q("2026-10-30", 100, 1), q("2026-10-29", 0, 1)])).toBeUndefined();
   });
 
-  it("seules les actions lisent l'historique, une lecture par ligne affichée", () => {
+  it("la variation d'une action est celle des trois mois de « Ce qui performe », lue en une requête pour toute la cote (7 novembre 2026)", () => {
     const v = code("src/lib/market/variations.ts");
     expect(v, "les lignes cotées sont de genre MARCHE : le filtre ne doit pas se limiter à ACTIONS").toMatch(/o\.kind === "MARCHE" \|\| o\.kind === "ACTIONS"/);
-    expect(v, "c'est la cotation qui dit action ou obligation").toMatch(/q\[0\]\?\.instrument === "action"/);
-    expect(v).toMatch(/repo\(\)\.listQuotes\(o\.isin, 60\)/);
+    expect(v.match(/await performanceSur\(\)/g)?.length, "une des deux lectures ne vient plus de performanceSur : l'Accueil et Titres divergent de nouveau").toBe(2);
+    expect(v, "une lecture par ligne est revenue").not.toMatch(/listQuotes/);
     expect(v, "jamais la vue entière des dernières cotations").not.toMatch(/latestQuotes/);
+    expect(v, "la période n'est plus écrite").toMatch(/periode: t\("3 mois"\)/);
+  });
+
+  it("la fiche et le comparateur lisent la même variation sur trois mois", () => {
+    expect(code("src/app/offres/[id]/FicheReading.tsx")).toMatch(/await variationTroisMois\(o\.isin\)/);
+    expect(code("src/app/offres/[id]/Kpis.tsx")).toMatch(/"Variation du cours · 3 mois"/);
+    expect(code("src/app/comparer/ComparerBody.tsx")).toMatch(/await variationsDesActions\(cols\)/);
+    expect(code("src/app/comparer/ComparerBody.tsx")).toMatch(/map\.set\("Variation du cours · 3 mois"/);
   });
 
   it("2A : chaque état d'intention a son ton, et « non servie » n'est pas rouge", () => {

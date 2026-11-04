@@ -16,7 +16,7 @@ import styles from "./page.module.css";
  * saisit en montant nominal, et un cours de « 101 % » ne veut rien dire sans
  * savoir 101 % de quoi.
  */
-export function Kpis({ o, base = "" }: { o: Offer; base?: string }) {
+export function Kpis({ o, base = "", variation }: { o: Offer; base?: string; /** La variation du cours sur trois mois d'une action (hors dividendes). */ variation?: { pct: number; depuis: string } }) {
   const now = new Date();
   const dy = displayYield(o);
   const y = dy.pct;
@@ -59,6 +59,8 @@ export function Kpis({ o, base = "" }: { o: Offer; base?: string }) {
               false,
             ],
             ...(o.instrument === "obligation" && o.nominal ? ([["Nominal par titre (FCFA)", fmt(o.nominal), false]] as [string, string, boolean][]) : []),
+            /* LA VARIATION SUR TROIS MOIS, avec sa période écrite (7 novembre 2026) : la même qu'à l'Accueil et sur Titres, hors dividendes. */
+            ...(o.instrument === "action" && variation ? ([["Variation du cours · 3 mois", `${variation.pct > 0 ? "+" : ""}${fmtPct(variation.pct, 2)}`, false]] as [string, string, boolean][]) : []),
           ]
       : o.kind === "BTA"
         ? [

@@ -14,6 +14,7 @@ import { RefTotals } from "@/components/RefTotals";
 import { repo } from "@/lib/data";
 import { displayYield, marketAmortInput, marketBondInput, repaymentLabel } from "@/lib/domain/status";
 import { summarize } from "@/lib/domain/summary";
+import { variationTroisMois } from "@/lib/market/variations";
 import { titreCourt } from "@/lib/domain/carte-compacte";
 import { coverageOf, headline, thin, type AuctionResult } from "@/lib/market/auction-results";
 import { bondTerms } from "@/lib/domain/status";
@@ -365,7 +366,9 @@ export async function loadFiche(o: Offer) {
           ...(repay ? ([["Remboursement", repay]] as [string, string][]) : []),
           [o.kind === "BTA" ? "Remboursement" : o.kind === "RACHAT" ? "Échéance initiale" : "Premier coupon", firstCoupon ? fmtDate(firstCoupon.toISOString().slice(0, 10)) : o.maturityOn ? fmtDate(o.maturityOn) : "—"],
         ];
-  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance: seances[0] };
+  /* LA VARIATION DU COURS SUR TROIS MOIS, la même qu'à l'Accueil et sur Titres (7 novembre 2026) : une action seulement. */
+  const variation3m = o.kind === "MARCHE" && o.instrument === "action" ? await variationTroisMois(o.isin) : undefined;
+  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance: seances[0], variation3m };
 }
 
 export type FicheData = Awaited<ReturnType<typeof loadFiche>>;
@@ -420,7 +423,7 @@ function Seance({ r, t }: { r: AuctionResult; t: (s: string, v?: Record<string, 
 }
 export async function FicheReading({ o, data, mode = "client" }: { o: Offer; data: FicheData; mode?: FicheMode }) {
   const t = await getT();
-  const { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance } = data;
+  const { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance, variation3m } = data;
   const base = mode === "desk" ? "/desk" : "";
   /* LE CALENDRIER EST UN ONGLET QUAND IL EST DOCUMENTÉ (7 novembre 2026, choix 2C) : une opération de titres publics a ses dates (dépôt, résultats, règlement, coupon). Une ligne cotée ou un fonds garde sa section « règlement » dans l'Essentiel : ce n'est pas un calendrier. */
   const avecCalendrier = o.kind !== "FONDS" && o.kind !== "MARCHE" && timeline.length > 0;
@@ -434,7 +437,7 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
           <div style={{ marginBottom: 10 }}>
             <span className={`stamp ${stampPending ? "pending" : ""}`}>{t(stamp)}</span>
           </div>
-          <Kpis o={o} base={base} />
+          <Kpis o={o} base={base} variation={variation3m} />
           {/* LA PHRASE DU FONDS EST PARTIE (1er novembre 2026) : générée à l'import du Bulletin Officiel de la Cote avec le nom, la catégorie, la société, le dépositaire et la fréquence, elle redisait « Caractéristiques ». Les autres lignes gardent la leur. */}
           {o.kind !== "FONDS" && <p className={styles.blurb}>{t(o.blurb)}</p>}
           {o.resultLine && <div className={styles.result}>{o.resultLine}</div>}

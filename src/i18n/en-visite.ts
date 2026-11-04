@@ -30,4 +30,7 @@ export const EN_VISITE: Record<string, string> = {
   "Chaque colonne est un indicateur : rendement, coupon, échéance, ticket, cours, variation. Touchez un en-tête pour trier ; deux lignes cochées se comparent côte à côte.": "Each column is an indicator: yield, coupon, maturity, ticket, price, change. Tap a header to sort; two ticked lines compare side by side.",
   "Dans cette page": "On this page",
   "Documentation relue le {date}": "Documentation reviewed on {date}",
+  "Variation du cours sur trois mois, depuis le {d}": "Price change over three months, since {d}",
+  "Variation du cours · 3 mois": "Price change · 3 months",
+  "hors dividendes": "excluding dividends",
 };

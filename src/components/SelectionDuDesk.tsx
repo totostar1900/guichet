@@ -68,7 +68,7 @@ export async function SelectionDuDesk({ offres, sobre = false }: { /** Le titre 
               <span className={styles.chiffre}>
                 <b>{s.hero}</b>
                 {s.heroUnit ? <small>{t(s.heroUnit)}</small> : null}
-                {sobre && <PastilleVariation v={variationAffichee(o, actions, t)?.v} titre={variationAffichee(o, actions, t)?.titre} />}
+                {sobre && <PastilleVariation v={variationAffichee(o, actions, t)?.v} titre={variationAffichee(o, actions, t)?.titre} periode={variationAffichee(o, actions, t)?.periode} />}
               </span>
               <span className={styles.motif}>{t(o.featured!.reason)}</span>
               <span className={styles.quand}>{t(s.status)}</span>
