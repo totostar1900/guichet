@@ -137,6 +137,8 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
   const estAction = o.kind === "MARCHE" && o.instrument === "action";
   const prix = estAction ? prixDe(s) : null;
   const avecCoupon = (o.kind === "OTA" || o.kind === "APE") && s.coupon !== "—";
+  /* Le Trésor se nomme sur la tuile compacte comme sur la carte détaillée (7 novembre 2026) : « RCA » seul ne disait pas qui emprunte. */
+  const tresor = /^Trésor public/.test(s.subtitle);
   // « Clôture · jeu. 15 oct. 17 h 00 » on the card's foot; a listed line reads « cotation continue ».
   const continuous = s.deadline === "continue";
   const when = continuous ? t("cotation continue") : t(s.deadline);
@@ -144,7 +146,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
   const more = useRef<(() => void) | null>(null);
   const turn = useRef<(() => void) | null>(null);
   const [suiviEtat] = useSuivi(o.id, suivi);
-  const menu = { id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() };
+  const menu = { id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() };
   /** Le corps de la vue détaillée. `dos` : le coin est porté par la tête de la face arrière. */
   const corps = (dos: boolean) => (
     <>
@@ -289,8 +291,17 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
         <article data-coach="titres-carte" className={`${styles.card} ${styles.compact} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
           <Link href={href} className={styles.cLink}>
             <span className={styles.cId}>
-              <b className={styles.cCode}>{issuerZone(o) !== "CEMAC" && <Drapeau pays={o.country} largeur={17} />} {s.code}</b>
-              <small className={styles.cSub}>{s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : estAction && prix && s.hero !== "—" ? `${t("Div.")} ${s.hero}` : s.promesse.key === "Dividende {n} FCFA" ? <Montant etiquette={t("Div.")} n={String(s.promesse.params?.n ?? "")} /> : t(s.promesse.key, s.promesse.params)}</small>
+              <b className={styles.cCode}>{issuerZone(o) !== "CEMAC" && <Drapeau pays={o.country} largeur={17} />} {tresor && <span className={styles.cTresor}>{t("Trésor public")} </span>}{s.code}</b>
+              <small className={styles.cSub}>{avecCoupon ? (
+                  /* LE COUPON EN OR EN TÊTE DE LA LIGNE GRISE (7 novembre 2026) : « Coupon 6,50 % » était gris comme le reste ; il passe en or gras, et la ligne dit ensuite la clôture ou la date. */
+                  <>
+                    <b className={styles.cCoupon}>
+                      {t("coupon")} {s.coupon}
+                    </b>
+                    {" · "}
+                    {s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : t(s.promesse.key, s.promesse.params).replace(/^[^·]*·\s*/, "")}
+                  </>
+                ) : s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : estAction && prix && s.hero !== "—" ? `${t("Div.")} ${s.hero}` : s.promesse.key === "Dividende {n} FCFA" ? <Montant etiquette={t("Div.")} n={String(s.promesse.params?.n ?? "")} /> : t(s.promesse.key, s.promesse.params)}</small>
             </span>
             {/* LE GRAPHE D'ÉVOLUTION DU TITRE, AU MILIEU DE LA TUILE (4 novembre 2026) : entre le nom et le chiffre, la forme du cours sur
                 trois mois. Seules les actions en ont un. */}

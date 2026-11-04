@@ -76,7 +76,7 @@ export function FundCard({ r }: { r: FundRow }) {
   const more = useRef<(() => void) | null>(null);
   const turn = useRef<(() => void) | null>(null);
   const ytd = fundYtdPct(r.curve);
-  const menu = { id: r.id, title: r.title, isin: r.isin, sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` };
+  const menu = { id: r.id, title: r.title, isin: r.isin, kind: "FONDS", sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` };
 
   const pastille = (
     <span className={`pill ${r.open ? "open" : "quoted"}`}>{t(r.open ? "Souscription ouverte" : "Information")}</span>

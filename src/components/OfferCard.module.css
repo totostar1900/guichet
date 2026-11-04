@@ -579,3 +579,13 @@
 .cNum small .variation {
   font-size: inherit;
 }
+
+/* Sur la tuile compacte : « Trésor public » devant le code du pays, le coupon en or gras dans la ligne grise. */
+.cTresor {
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.cCoupon {
+  color: var(--gold-ink);
+  font-weight: 700;
+}

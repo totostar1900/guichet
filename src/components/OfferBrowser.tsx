@@ -332,7 +332,7 @@ function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: bo
               <Link className="btn sm ghost" href={href(o.id)}>
                 {t(desk ? "Voir la ligne" : "Voir la fiche")}
               </Link>
-              {!desk && <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} />}
+              {!desk && <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} />}
             </span>
           </td>
         </tr>
@@ -384,7 +384,7 @@ function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boo
         </dl>
         <div className={styles.rowAct}>{t(desk ? "Voir la ligne" : "Voir la fiche")} →</div>
       </Link>
-      {!desk && <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} className={styles.rowDots} />}
+      {!desk && <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} className={styles.rowDots} />}
     </div>
   );
 }

@@ -75,3 +75,9 @@
   width: fit-content;
   margin-top: var(--s-6);
 }
+
+/* La zone de glissement : toute la feuille sous les onglets ; le défilement vertical reste celui de la feuille. */
+.glisse {
+  min-height: 100%;
+  touch-action: pan-y;
+}

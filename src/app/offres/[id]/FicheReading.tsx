@@ -14,6 +14,7 @@ import { RefTotals } from "@/components/RefTotals";
 import { repo } from "@/lib/data";
 import { displayYield, marketAmortInput, marketBondInput, repaymentLabel } from "@/lib/domain/status";
 import { summarize } from "@/lib/domain/summary";
+import { titreCourt } from "@/lib/domain/carte-compacte";
 import { coverageOf, headline, thin, type AuctionResult } from "@/lib/market/auction-results";
 import { bondTerms } from "@/lib/domain/status";
 import { amortCalc } from "@/lib/finance";
@@ -421,9 +422,14 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
   const t = await getT();
   const { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance } = data;
   const base = mode === "desk" ? "/desk" : "";
+  /* LE CALENDRIER EST UN ONGLET QUAND IL EST DOCUMENTÉ (7 novembre 2026, choix 2C) : une opération de titres publics a ses dates (dépôt, résultats, règlement, coupon). Une ligne cotée ou un fonds garde sa section « règlement » dans l'Essentiel : ce n'est pas un calendrier. */
+  const avecCalendrier = o.kind !== "FONDS" && o.kind !== "MARCHE" && timeline.length > 0;
+  const resume = summarize(o, new Date());
+  const cours = resume.facts.find(([k]) => k === "Cours")?.[1];
+  const mini = { nom: t(titreCourt(o)), chiffre: o.kind === "MARCHE" && o.instrument === "action" && cours ? cours : resume.hero, sous: o.kind === "MARCHE" && o.instrument === "action" ? undefined : t(resume.heroUnit ?? "") };
   return (
     <>
-        <FicheSegments />
+        <FicheSegments exclure={avecCalendrier ? [] : ["calendrier"]} mini={mini} />
         <section className={styles.sec} data-pane="essentiel">
           <div style={{ marginBottom: 10 }}>
             <span className={`stamp ${stampPending ? "pending" : ""}`}>{t(stamp)}</span>
@@ -477,7 +483,7 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
             </section>
           ) : null;
         })()}
-        <section className={styles.sec} data-pane="essentiel">
+        <section className={styles.sec} data-pane={avecCalendrier ? "calendrier" : "essentiel"}>
           <h3>{t(o.kind === "FONDS" ? "Souscription, rachat et règlement" : o.kind === "MARCHE" ? "Cotation et règlement" : "Calendrier de l'opération")}</h3>
           <div className={styles.tl}>
             {timeline.map(([k, v]) => (

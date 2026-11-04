@@ -480,6 +480,8 @@
     flex: 1 1 0;
     min-width: 96px;
     max-width: none;
+    /* LA MÊME HAUTEUR QUE « FILTRER » ET « AFFICHAGE » (7 novembre 2026) : le champ faisait 34 px, les deux boutons 44. Une rangée de trois commandes a une seule hauteur. */
+    min-height: 44px;
   }
   .sheetBtn {
     display: inline-flex;

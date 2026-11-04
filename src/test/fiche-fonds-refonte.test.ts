@@ -56,7 +56,7 @@ describe("les volets d'une fiche", () => {
   });
   it("filtre la barre d'onglets, et la garde en place au changement de volet", () => {
     const src = code("src/components/mobile/FichePanes.tsx");
-    expect(src, "la barre ne filtre plus les volets masqués").toMatch(/PANES\.filter\(\(\[k\]\) => !sans\.includes\(k\)\)/);
+    expect(src, "la barre ne filtre plus les volets masqués").toMatch(/PANES\.filter\(\(\[k\]\) => !sans\.includes\(k\) && !exclure\.includes\(k\)\)/);
     expect(src, "le changement de volet ne note plus la position de la barre").toMatch(/avant\.current = repere\(barre\(\)\);\s*setPane\(p\);/);
     expect(src, "la position n'est plus rendue avant la peinture").toMatch(/useLayoutEffect\(\(\) => \{[\s\S]*?restituer\(m, barre\(\), racine\.current\)/);
   });

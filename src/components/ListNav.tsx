@@ -91,11 +91,11 @@ export function ListNav({ id, fallbackHref, fallbackLabel }: { id: string; fallb
       {known && (
         <div className={styles.steps}>
           {prev ? (
-            <Link href={`/offres/${prev}`} className="btn sm ghost" rel="prev">
-              ‹ {t("Précédente")}
+            <Link href={`/offres/${prev}`} className="btn sm ghost" rel="prev" aria-label={t("Précédente")}>
+              ‹<span className={styles.mot}> {t("Précédente")}</span>
             </Link>
           ) : (
-            <span className={`btn sm ghost ${styles.off}`}>‹ {t("Précédente")}</span>
+            <span className={`btn sm ghost ${styles.off}`}>‹<span className={styles.mot}> {t("Précédente")}</span></span>
           )}
           <span className={styles.pos}>
             {known.ids.length <= 10 && (
@@ -108,11 +108,11 @@ export function ListNav({ id, fallbackHref, fallbackLabel }: { id: string; fallb
             {i + 1} / {known.ids.length}
           </span>
           {next ? (
-            <Link href={`/offres/${next}`} className="btn sm ghost" rel="next">
-              {t("Suivante")} ›
+            <Link href={`/offres/${next}`} className="btn sm ghost" rel="next" aria-label={t("Suivante")}>
+              <span className={styles.mot}>{t("Suivante")} </span>›
             </Link>
           ) : (
-            <span className={`btn sm ghost ${styles.off}`}>{t("Suivante")} ›</span>
+            <span className={`btn sm ghost ${styles.off}`}><span className={styles.mot}>{t("Suivante")} </span>›</span>
           )}
         </div>
       )}

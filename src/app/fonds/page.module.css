@@ -220,6 +220,8 @@
   /* Court sur téléphone : le bouton « Affichage » prend sa place sur la même ligne (4 novembre 2026). */
   flex: 1 1 0;
   min-width: 96px;
+  /* Comme sur Titres : la même hauteur que « Filtrer » et « Affichage » (7 novembre 2026). */
+  min-height: 44px;
 }
 @media (min-width: 821px) {
   .barre .search {

@@ -134,3 +134,7 @@ Une page qui garde un écart écrit à la main figure dans `A_CONVERTIR` **et le
 ## Leçon du 7 novembre 2026 : une grille sans colonne nommée déborde
 
 Une carte (`display: grid`) ou une identité (`.id`) sans `grid-template-columns` crée une colonne « auto », qui grandit jusqu'à la plus longue ligne insécable (émetteur + type, pastille « Sélection du desk » en `nowrap`). Résultat mesuré : en-tête de 356 px dans une boîte de 328, pastille d'état et « ⋯ » rognés. **Toute grille de carte ou de bloc d'identité déclare `grid-template-columns: minmax(0, 1fr)`**, et une pastille qui porte une phrase passe à la ligne. À mesurer à 390 px sur toutes les cartes (largeur de chaque enfant contre celle de l'article) avant de conclure ; une carte « À la une » dans un défilement n'est pas une excuse.
+
+## Leçon du 7 novembre 2026 : une bande collante a son propre fond
+
+Une barre d'onglets qui colle doit porter SON fond opaque et aller bord à bord (marge négative égale à la gouttière de la carte) : un segment arrondi à fond propre laissait lire le texte de la carte à travers ses coins. Un témoin d'un pixel juste au-dessus dit quand la bande colle, et c'est alors seulement qu'elle montre la ligne mince (nom court + chiffre en avant). Quand on mesure « collée », vérifier que la page défile assez : une fiche courte ne dépasse pas la position naturelle de la bande.

@@ -2,7 +2,7 @@
 
 import { useT } from "@/i18n/client";
 import Link from "next/link";
-import { createContext, useContext, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { repere, restituer, type Repere } from "@/lib/ui/garder-la-place";
 import styles from "./FichePanes.module.css";
 
@@ -15,6 +15,7 @@ import styles from "./FichePanes.module.css";
 export const PANES: [string, string][] = [
   ["essentiel", "Essentiel"], // translated at render
   ["chiffres", "Chiffres"],
+  ["calendrier", "Calendrier"], // seulement quand la ligne en documente un : voir « FicheSegments »
   ["docs", "Documents"],
   ["emetteur", "Émetteur"],
 ];
@@ -45,18 +46,48 @@ export function FichePanes({ children, className, sans = [] }: { children: React
   );
 }
 
-/** The segmented control, placed where the page wants it (under the identity block). */
-export function FicheSegments() {
+/**
+ * LA BANDE DE MENU DE LA FICHE (7 novembre 2026, choix 1A · 2C · 3B de la planche).
+ *
+ * Des onglets soulignés, bord à bord, sur un fond opaque : le segment arrondi laissait lire le texte de la carte à travers ses coins quand il collait.
+ * « Calendrier » n'est un onglet que lorsque la ligne en documente un (« exclure » le retire sinon) ; il n'y a pas d'onglet « Risques », ils restent au pied
+ * de la page. COLLÉE, la bande montre au-dessus des onglets le nom court de la ligne et son chiffre en avant : la tête de la fiche a défilé, on sait encore
+ * laquelle on lit. Un témoin d'un pixel juste au-dessus dit quand la bande colle.
+ */
+export function FicheSegments({ exclure = [], mini }: { exclure?: string[]; mini?: { nom: string; chiffre: string; sous?: string } }) {
   const { pane, setPane, sans } = useContext(PaneCtx);
   const t = useT();
+  const temoin = useRef<HTMLDivElement>(null);
+  const [colle, setColle] = useState(false);
+  useEffect(() => {
+    const el = temoin.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const o = new IntersectionObserver(([e]) => setColle(!e.isIntersecting && e.boundingClientRect.top < 52), { rootMargin: "-52px 0px 0px 0px" });
+    o.observe(el);
+    return () => o.disconnect();
+  }, []);
   return (
-    <div className={styles.seg} role="tablist" aria-label={t("Sections de la fiche")}>
-      {PANES.filter(([k]) => !sans.includes(k)).map(([k, label]) => (
-        <button key={k} type="button" role="tab" aria-selected={pane === k} className={pane === k ? styles.on : undefined} onClick={() => setPane(k)}>
-          {t(label)}
-        </button>
-      ))}
-    </div>
+    <>
+      <div ref={temoin} className={styles.temoin} aria-hidden="true" />
+      <div className={`${styles.bande} ${colle ? styles.colle : ""}`}>
+        {mini && (
+          <div className={styles.mini} aria-hidden="true">
+            <b>{mini.nom}</b>
+            <span>
+              {mini.chiffre}
+              {mini.sous && <i>{mini.sous}</i>}
+            </span>
+          </div>
+        )}
+        <div className={styles.seg} role="tablist" aria-label={t("Sections de la fiche")}>
+          {PANES.filter(([k]) => !sans.includes(k) && !exclure.includes(k)).map(([k, label]) => (
+            <button key={k} type="button" role="tab" aria-selected={pane === k} className={pane === k ? styles.on : undefined} onClick={() => setPane(k)}>
+              {t(label)}
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
   );
 }
 

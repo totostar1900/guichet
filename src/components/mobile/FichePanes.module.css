@@ -1,39 +1,85 @@
 .seg,
+.bande,
+.temoin,
 .cta,
 .cale {
   display: none;
 }
 @media (max-width: 760px) {
-  .seg {
+  /* Le témoin : un pixel au-dessus de la bande, pour savoir quand elle colle. */
+  .temoin {
+    display: block;
+    height: 1px;
+  }
+  /* LA BANDE EST OPAQUE ET VA BORD À BORD : la carte de la fiche a 14 px de gouttière sur téléphone, la bande les reprend de chaque côté. */
+  .bande {
     position: sticky;
     top: 52px;
     z-index: 10;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    background: var(--surface-2);
-    border-radius: 10px;
-    padding: 3px;
-    margin: 12px 0 4px;
+    display: block;
+    margin: 0 -14px var(--s-2);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .mini {
+    display: none;
+  }
+  .colle .mini {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--s-4);
+    padding: var(--s-3) 14px 0;
+    font-size: 0.78rem;
+  }
+  .mini b {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mini span {
+    flex: none;
+    font-weight: 700;
+    color: var(--good);
+  }
+  .mini i {
+    margin-left: var(--s-2);
+    font-style: normal;
+    font-weight: 400;
+    font-size: 0.68rem;
+    color: var(--ink-3);
+  }
+  .seg {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 var(--s-3);
+  }
+  .seg::-webkit-scrollbar {
+    display: none;
   }
   .seg button {
+    flex: 1 0 auto;
     border: 0;
+    border-bottom: 2px solid transparent;
     background: none;
     font: inherit;
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-weight: 700;
     color: var(--ink-3);
-    padding: 8px 0;
-    border-radius: 8px;
+    padding: var(--s-5) var(--s-5);
     cursor: pointer;
+    white-space: nowrap;
   }
   .seg .on {
-    background: var(--surface);
     color: var(--ink);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    border-bottom-color: var(--gold);
   }
   /* One pane at a time: a section whose data-pane differs from data-show is hidden. */
   .panes[data-show="essentiel"] [data-pane]:not([data-pane="essentiel"]),
   .panes[data-show="chiffres"] [data-pane]:not([data-pane="chiffres"]),
+  .panes[data-show="calendrier"] [data-pane]:not([data-pane="calendrier"]),
   .panes[data-show="docs"] [data-pane]:not([data-pane="docs"]),
   .panes[data-show="emetteur"] [data-pane]:not([data-pane="emetteur"]) {
     display: none;

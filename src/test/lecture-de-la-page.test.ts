@@ -95,3 +95,69 @@ describe("les cartes d'adjudication (7 novembre 2026)", () => {
     expect(lire("src/components/market/TeteGroupe.module.css")).toMatch(/\.teteGroupe \{[^}]*color: var\(--navy-text\);/);
   });
 });
+
+describe("la bande de menu de la fiche (7 novembre 2026, choix 1A · 2C · 3B · 4)", () => {
+  const css = () => lire("src/components/mobile/FichePanes.module.css");
+  it("les onglets sont soulignés, bord à bord, sur un fond opaque qui colle sous la barre", () => {
+    expect(css()).toMatch(/\.bande \{[^}]*position: sticky;[^}]*margin: 0 -14px[^}]*background: var\(--surface\);/);
+    expect(css(), "l'onglet actif n'est plus souligné").toMatch(/\.seg \.on \{[^}]*border-bottom-color: var\(--gold\);/);
+  });
+  it("« Calendrier » n'est un onglet que pour une ligne qui en documente un, et il n'y a pas d'onglet « Risques »", () => {
+    const r = lire("src/app/offres/[id]/FicheReading.tsx");
+    expect(r).toMatch(/const avecCalendrier = o\.kind !== "FONDS" && o\.kind !== "MARCHE" && timeline\.length > 0;/);
+    expect(r).toMatch(/<FicheSegments exclure=\{avecCalendrier \? \[\] : \["calendrier"\]\}/);
+    expect(r).toMatch(/data-pane=\{avecCalendrier \? "calendrier" : "essentiel"\}/);
+    const f = lire("src/components/mobile/FichePanes.tsx");
+    expect(f).toMatch(/\["calendrier", "Calendrier"\]/);
+    expect(f, "un onglet Risques est apparu").not.toMatch(/\["risques"/);
+    expect(css()).toMatch(/data-show="calendrier"\] \[data-pane\]:not\(\[data-pane="calendrier"\]\)/);
+  });
+  it("collée, la bande porte le nom court de la ligne et son chiffre en avant", () => {
+    expect(lire("src/components/mobile/FichePanes.tsx")).toMatch(/setColle\(!e\.isIntersecting && e\.boundingClientRect\.top < 52\)/);
+    expect(css()).toMatch(/\.colle \.mini \{[^}]*display: flex;/);
+    expect(lire("src/app/offres/[id]/FicheReading.tsx")).toMatch(/const mini = \{ nom: t\(titreCourt\(o\)\)/);
+  });
+  it("la barre « Toutes les offres · ‹ 5 / 17 › » tient sur une ligne sur téléphone", () => {
+    const c = lire("src/components/ListNav.module.css");
+    expect(c).toMatch(/@media \(max-width: 760px\) \{\s*\.bar \{\s*flex-wrap: nowrap;/);
+    expect(c, "les mots Précédente/Suivante ne s'effacent plus").toMatch(/\.mot \{\s*display: none;/);
+    expect(lire("src/components/ListNav.tsx"), "le lien sans mot perd son nom accessible").toMatch(/rel="prev" aria-label=\{t\("Précédente"\)\}/);
+  });
+});
+
+describe("retouches du 7 novembre au soir : tuile compacte, hauteurs, menu ⋯, toucher, onglets du « i »", () => {
+  it("la tuile compacte d'une adjudication nomme le Trésor et met le coupon en or", () => {
+    const o = lire("src/components/OfferCard.tsx");
+    expect(o).toMatch(/const tresor = \/\^Trésor public\/\.test\(s\.subtitle\);/);
+    expect(o).toMatch(/\{tresor && <span className=\{styles\.cTresor\}>\{t\("Trésor public"\)\} <\/span>\}/);
+    expect(o).toMatch(/<b className=\{styles\.cCoupon\}>/);
+    expect(lire("src/components/OfferCard.module.css")).toMatch(/\.cCoupon \{[^}]*color: var\(--gold-ink\);/);
+  });
+  it("le champ de recherche a la hauteur de « Filtrer » et d'« Affichage » (44 px), sur Titres comme sur Fonds", () => {
+    expect(lire("src/components/OfferBrowser.module.css")).toMatch(/max-width: none;\s*\/\*[^*]*\*\/\s*min-height: 44px;/);
+    expect(lire("src/app/fonds/page.module.css")).toMatch(/min-width: 96px;\s*\/\*[^*]*\*\/\s*min-height: 44px;/);
+  });
+  it("le menu ⋯ est une fenêtre centrée, fermée en tirant vers le bas, avec « Contacter » et l'action de la ligne au pied", () => {
+    const m = lire("src/components/mobile/LineMenu.tsx");
+    expect(m, "le glissement ne garde plus la fenêtre centrée").toMatch(/translate\(-50%, calc\(-50% \+ \$\{drag\.current\.dy\}px\)\)/);
+    expect(m).toMatch(/\["contacter", "Contacter un conseiller"/);
+    expect(m).toMatch(/\/moi\/contact\?ligne=/);
+    expect(m, "l'action de la ligne a perdu ses trois libellés").toMatch(/"Souscrire ou racheter" : line\.kind === "MARCHE" \? "Passer un ordre" : "Déclarer une intention"/);
+    expect(m, "l'action reparaît sur la fiche ou sur une séance close").toMatch(/onFiche && !line\.past && line\.kind/);
+    const c = lire("src/components/mobile/LineMenu.module.css");
+    expect(c, "le menu redevient une feuille du bas sur téléphone").not.toMatch(/translateY\(105%\)/);
+    expect(c).toMatch(/\.pied \{[^}]*position: sticky;[^}]*bottom: 0;/);
+  });
+  it("chaque appelant du menu donne le type de la ligne", () => {
+    for (const f of ["src/components/OfferCard.tsx", "src/components/OfferBrowser.tsx", "src/app/fonds/FundCard.tsx", "src/app/fonds/FundsBrowser.tsx"]) expect(lire(f), f).toMatch(/kind: (o\.kind|"FONDS")/);
+  });
+  it("le navigateur du téléphone ne peint plus son rectangle clair sur ce qu'on touche", () => {
+    expect(lire("src/app/globals.css")).toMatch(/a,\s*\nbutton,\s*\nsummary,\s*\n\[role="button"\],\s*\n\[role="tab"\] \{\s*\n\s*-webkit-tap-highlight-color: transparent;/);
+  });
+  it("les onglets du « i » se parcourent en glissant, d'au moins 60 px et plus large que haut", () => {
+    const e = lire("src/components/EnBrefInstruments.tsx");
+    expect(e).toMatch(/Math\.abs\(dx\) < 60 \|\| Math\.abs\(dx\) < Math\.abs\(dy\) \* 1\.5/);
+    expect(e).toMatch(/dx < 0 \? 1 : -1/);
+    expect(e).toMatch(/onTouchEnd=\{/);
+  });
+});

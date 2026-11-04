@@ -693,6 +693,14 @@ a {
   text-decoration-color: var(--ink-3);
   text-underline-offset: 3px;
 }
+/* PAS DE RECTANGLE BLANC AU TOUCHER (7 novembre 2026) : sans cette ligne, le navigateur du téléphone peint son propre rectangle clair sur la tuile qu'on touche, avant que la page s'ouvre. Le retour du toucher est celui de l'application (« :active » des cartes). */
+a,
+button,
+summary,
+[role="button"],
+[role="tab"] {
+  -webkit-tap-highlight-color: transparent;
+}
 :focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;

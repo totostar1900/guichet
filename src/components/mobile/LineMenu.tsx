@@ -3,6 +3,7 @@
 import { useSuivi } from "@/lib/ui/suivi";
 import { useT } from "@/i18n/client";
 import { deverrouiller, verrouiller } from "./verrou-defilement";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { createPortal } from "react-dom";
@@ -14,14 +15,20 @@ import styles from "./LineMenu.module.css";
  * The « ··· » of a line: the same five actions wherever the line appears (a
  * card, a row of the table, the fiche itself), in a bottom sheet on the phone
  * and a small dialog on a desk.
- * « Déclarer une intention » is deliberately not here: it stays a visible
- * button, never a menu item.
+ *
+ * LE MENU EST UNE FENÊTRE CENTRÉE, FERMÉE EN TIRANT VERS LE BAS (7 novembre 2026), et il porte l'action de la ligne en un bouton plein, visible au pied :
+ * « Passer un ordre », « Souscrire ou racheter » ou « Déclarer une intention » selon la ligne, avec « Contacter » parmi les gestes. Il n'avait ni l'un
+ * ni l'autre : on ouvrait le menu pour agir et il fallait refermer pour trouver le bouton.
  */
 export interface LineRef {
   id: string;
   title: string;
   isin: string;
   sub?: string; // issuer · the number, under the title of the sheet
+  /** Le type de la ligne : il décide du libellé de l'action du pied (pas d'action sans lui). */
+  kind?: string;
+  /** Une séance close n'a plus d'action. */
+  past?: boolean;
 }
 
 function Icon({ d }: { d: string }) {
@@ -104,6 +111,7 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
     close();
     if (what === "fiche") router.push(href);
     else if (what === "comparer") router.push(`/comparer?a=${line.id}`);
+    else if (what === "contacter") router.push(`/moi/contact?ligne=${encodeURIComponent(line.id)}`);
     else if (what === "pdf") window.open(`${href}/fiche`, "_blank", "noopener");
     else if (what === "isin") await copy(line.isin, t("ISIN copié"));
     else if (what === "partager") {
@@ -136,7 +144,7 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
   const onTouchMove = (e: React.TouchEvent) => {
     if (!drag.current || !sheet.current) return;
     drag.current.dy = Math.max(0, e.touches[0].clientY - drag.current.y0);
-    sheet.current.style.transform = `translateY(${drag.current.dy}px)`;
+    sheet.current.style.transform = `translate(-50%, calc(-50% + ${drag.current.dy}px))`;
   };
   const onTouchEnd = () => {
     const dy = drag.current?.dy ?? 0;
@@ -149,11 +157,15 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
   const items: [string, string, string, string?][] = [
     ...(onFiche ? [["fiche", "Voir la fiche", "M4 5h16v14H4z M8 9h8 M8 13h5"] as [string, string, string]] : []),
     ["suivre", on ? "Ne plus suivre" : "Suivre", "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z", on ? "alertes actives sur cette ligne" : "prévenu à chaque changement"],
+    ["contacter", "Contacter un conseiller", "M3 6h18v12H3z M3.5 7l8.5 6 8.5-6"],
     ["comparer", "Comparer avec…", "M4 6h7v12H4z M13 6h7v12h-7z"],
     ["partager", "Partager le lien", "M12 3v12 M8 7l4-4 4 4 M5 13v6h14v-6"],
     ["isin", "Copier l'ISIN", "M8 4h9l3 3v13H8z M5 8v12h10", line.isin],
     ...(pdf ? [["pdf", "Fiche PDF", "M6 3h9l4 4v14H6z M9 12h6 M9 16h6"] as [string, string, string]] : []),
   ];
+
+  /* L'action de la ligne, la même que celle de sa fiche : pas sur la fiche elle-même (« onFiche » faux, le bouton y est déjà) ni sur une séance close. */
+  const action = onFiche && !line.past && line.kind ? { label: line.kind === "FONDS" ? "Souscrire ou racheter" : line.kind === "MARCHE" ? "Passer un ordre" : "Déclarer une intention", href: `/offres/${line.id}/intention` } : null;
 
   return (
     <>
@@ -183,9 +195,16 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
                   {small && <small>{k === "isin" ? small : t(small)}</small>}
                 </button>
               ))}
-              <button type="button" className={styles.cancel} onClick={close}>
-                {t("Fermer")}
-              </button>
+              <div className={styles.pied}>
+                {action && (
+                  <Link href={action.href} className={`btn primary ${styles.agir}`} onClick={close}>
+                    {t(action.label)}
+                  </Link>
+                )}
+                <button type="button" className={styles.cancel} onClick={close}>
+                  {t("Fermer")}
+                </button>
+              </div>
             </div>
             )}
             {toast && (

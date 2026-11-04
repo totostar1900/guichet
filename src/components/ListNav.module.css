@@ -49,3 +49,19 @@
     display: inline-flex;
   }
 }
+
+/* UNE SEULE LIGNE SUR TÉLÉPHONE (7 novembre 2026) : « Toutes les offres » à gauche, « ‹ 5 / 17 › » à droite. Les mots « Précédente » et « Suivante » s'effacent (le lien garde son aria-label) ; sans eux la barre tient en 330 px et la bande d'onglets remonte d'une soixantaine de pixels. */
+@media (max-width: 760px) {
+  .bar {
+    flex-wrap: nowrap;
+  }
+  .back {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mot {
+    display: none;
+  }
+}

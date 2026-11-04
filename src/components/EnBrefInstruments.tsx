@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useT } from "@/i18n/client";
 import { Sheet } from "@/components/mobile/Sheet";
 import { BoutonBrief, CorpsDeBrief } from "@/components/EnBref";
@@ -70,6 +70,13 @@ export function EnBrefInstruments({ page, className }: { page: Instrument; class
   const [onglet, setOnglet] = useState<Instrument>(page);
   const ordre: Instrument[] = ["titres", "fonds", "adjudications"];
   const titre = t("Les instruments en bref");
+  /* LES ONGLETS SE PARCOURENT AU DOIGT (7 novembre 2026) : un glissement horizontal d'au moins 60 px, plus large que haut, passe à l'onglet voisin (vers la gauche : le suivant). Un geste vertical reste un défilement. */
+  const depart = useRef<{ x: number; y: number } | null>(null);
+  const glisser = (dx: number, dy: number) => {
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    const i = ordre.indexOf(onglet) + (dx < 0 ? 1 : -1);
+    if (i >= 0 && i < ordre.length) setOnglet(ordre[i]);
+  };
   return (
     <>
       <BoutonBrief
@@ -82,6 +89,15 @@ export function EnBrefInstruments({ page, className }: { page: Instrument; class
         className={className}
       />
       <Sheet open={open} onClose={() => setOpen(false)} title={titre} plein tabs={ordre.map((k) => ({ key: k, label: t(NOM[k]), on: k === onglet, pick: () => setOnglet(k) }))}>
+        <div
+          className={styles.glisse}
+          onTouchStart={(e) => (depart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
+          onTouchEnd={(e) => {
+            const d = depart.current;
+            depart.current = null;
+            if (d) glisser(e.changedTouches[0].clientX - d.x, e.changedTouches[0].clientY - d.y);
+          }}
+        >
         <div className={styles.glance} role="table" aria-label={t("En un coup d'œil")}>
           <span role="row" className={styles.ligne}>
             <span role="columnheader" />
@@ -117,6 +133,7 @@ export function EnBrefInstruments({ page, className }: { page: Instrument; class
         >
           {t("Comment lire cette page ?")}
         </button>
+        </div>
       </Sheet>
     </>
   );
