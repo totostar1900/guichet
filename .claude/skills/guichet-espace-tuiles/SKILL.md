@@ -167,3 +167,13 @@ Le skill n'avait jamais été appliqué à la fiche : sa lecture vivait dans une
 2. **La confirmation d'un suivi** (`Bulle`, `dire(...)`) **est une bulle comme les autres depuis le 8 novembre 2026** : fenêtre centrée, titre = ce qui précède « : », détail = ce qui suit, fermée d'un geste, par la croix ou en touchant à côté, et d'elle-même au bout de 3 s. Elle vit hors de la page qui la dit (magasin de module + `HoteDeLaBulle` dans la mise en page).
 3. **L'astuce de glissement du pager** (« Glissez vers la gauche : la ligne suivante », une fois par type de page) **est une bulle centrée depuis le 8 novembre 2026**, comme la confirmation : titre avant « : », détail après, geste, croix, retrait d'elle-même (4,2 s).
 4. **À discuter avec le client, tant qu'on n'a pas tranché** (ne rien changer sans lui) : l'étape d'une visite guidée (`CoachMarks`) ; l'infobulle de survol d'un graphe (date et valeur sous le doigt) ; les `title=""` natifs (pastille de variation, état) ; le bandeau d'état d'un contact rapide ou d'un export.
+
+## Leçon du 8 novembre 2026 (soir) : une page de lecture se sépare par l'air et par UN titre, pas par des cadres
+
+La fiche d'une ligne avait un seul écart (28 px) et trois styles de titre (phrase 14 px, capitales 12 px, capitales espacées) : à 390 px rien ne disait où une section commence. Ce qui a marché, validé sur planche (1A · 2A · 3C) :
+
+- **Deux niveaux d'écart, pas de filet** : 28 px sous la tête et la bande d'onglets (`.main`), **44 px entre les sections** par un groupe `chapitres` posé dans la lecture ; les sections et leurs pièces (lignes similaires, pied) en sont les enfants. Le desk, qui partage `FicheReading`, garde sa lecture : le groupe dépend de `mode`.
+- **Un seul titre** : `--t-6`, gras, encre pleine (+20 % demandé par le client). Un composant partagé avec l'Accueil (`TitreDeBloc`) prend une propriété (`fort`) plutôt qu'une feuille copiée.
+- **Un groupe imbriqué** (le calcul en trois blocs) est lui-même `chapitres` : même écart dedans et dehors. Mesurer avec `.chapitres > *` compte aussi les enfants du groupe imbriqué : un « écart » négatif y est un artefact de mesure, pas un défaut.
+- **Une taille hors échelle fait tomber `typographie.test`** : prendre un jeton `--t-*` (le plafond ne monte pas).
+- **Un onglet vide parle**, et une pièce répétée sous chaque onglet (lignes similaires) se range dans l'onglet qui lui correspond.

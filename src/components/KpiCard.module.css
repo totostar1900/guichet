@@ -109,3 +109,81 @@
   gap: 8px;
   flex-wrap: wrap;
 }
+
+/* LE CHIFFRE EN AVANT ET LES RANGÉES (la fiche du client, 8 novembre 2026, 3C). Ni fond ni bord : la page porte la mise en forme, un filet sépare deux rangées. */
+.heros {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.heros:disabled {
+  cursor: default;
+}
+.heros .label {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.heros b {
+  display: block;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-8);
+  line-height: 1.1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold-ink);
+}
+.rangee {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-6);
+  width: 100%;
+  padding: var(--s-4) 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.rangee:disabled {
+  cursor: default;
+}
+.rangee .label {
+  min-width: 0;
+  font-size: var(--t-4);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-2);
+}
+.rangee b {
+  flex: none;
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--t-5);
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.attente b {
+  color: var(--warn, var(--gold-ink));
+}
+/* La rangée de la date du chiffre : une phrase courte, en texte courant, pas un chiffre en gras. */
+.date b {
+  font-size: var(--t-3);
+  font-weight: 400;
+  color: var(--ink-2);
+}
+.date.attente b {
+  color: var(--warn);
+}

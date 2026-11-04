@@ -20,7 +20,39 @@ export interface RefFigure {
   note?: string;
 }
 
-export function RefTotals({ figures, rate }: { figures: RefFigure[]; rate?: { label: string; value: string; note?: string } }) {
+export function RefTotals({ figures, rate, plat = false }: { figures: RefFigure[]; rate?: { label: string; value: string; note?: string }; /** À plat (la fiche, sans cadre : ETALON § 8.8) : le premier chiffre en avant, les autres en rangées libellé / valeur. */ plat?: boolean }) {
+  if (plat) {
+    const [tete, ...autres] = figures;
+    return (
+      <div className={styles.plat}>
+        <div className={styles.tete}>
+          <span className={styles.lab}>{tete.label}</span>
+          <b className={styles.grand}>{tete.value}</b>
+          {tete.note && <em className={styles.note}>{tete.note}</em>}
+        </div>
+        <dl className={styles.rangees}>
+          {autres.map((f) => (
+            <div key={f.label}>
+              <dt>
+                {f.label}
+                {f.note && <em className={styles.note}>{f.note}</em>}
+              </dt>
+              <dd>{f.value}</dd>
+            </div>
+          ))}
+          {rate && (
+            <div className={styles.taux}>
+              <dt>
+                {rate.label}
+                {rate.note && <em className={styles.note}>{rate.note}</em>}
+              </dt>
+              <dd>{rate.value}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
+    );
+  }
   return (
     <div className={styles.band}>
       <div className={styles.figures} data-n={figures.length}>

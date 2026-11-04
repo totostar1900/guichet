@@ -15,7 +15,7 @@ import styles from "./KpiCard.module.css";
  * ordinateur, écrits ici sans le « Sheet » partagé. C'est maintenant la fenêtre centrée de la maison (voile, croix, tiré vers le bas), comme toute bulle
  * d'information (skill guichet-espace-tuiles, « Les bulles d'information »).
  */
-export function KpiCard({ label, value, gold, explain, compareHref, coach }: { label: string; value: string; gold?: boolean; explain?: KpiExplanation; compareHref?: string; coach?: string }) {
+export function KpiCard({ label, value, gold, explain, compareHref, coach, forme = "carte", attente, date = false }: { label: string; value: string; gold?: boolean; explain?: KpiExplanation; compareHref?: string; coach?: string; /** « carte » (le desk), « heros » (le chiffre en avant) ou « rangee » (libellé à gauche, valeur à droite) : la fiche du client. */ forme?: "carte" | "heros" | "rangee"; /** Un chiffre indicatif, pas encore fixé : la valeur se teinte d'ambre. */ attente?: boolean; /** La rangée « de quand date le chiffre » : une valeur de texte courant, pas un chiffre. */ date?: boolean }) {
   const [open, setOpen] = useState(false);
 
   const t = useT();
@@ -24,7 +24,7 @@ export function KpiCard({ label, value, gold, explain, compareHref, coach }: { l
 
   return (
     <>
-      <button type="button" className={`${styles.card} ${gold ? styles.gold : ""}`} onClick={() => explain && setOpen(true)} aria-haspopup={explain ? "dialog" : undefined} data-coach={coach} disabled={!explain}>
+      <button type="button" className={`${forme === "heros" ? styles.heros : forme === "rangee" ? styles.rangee : styles.card} ${gold ? styles.gold : ""} ${attente ? styles.attente : ""} ${date ? styles.date : ""}`} onClick={() => explain && setOpen(true)} aria-haspopup={explain ? "dialog" : undefined} data-coach={coach} disabled={!explain}>
         <span className={styles.label}>
           {t(label)}
           {explain && <i aria-hidden="true">?</i>}

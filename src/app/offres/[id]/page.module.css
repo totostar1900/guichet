@@ -21,8 +21,17 @@
   padding: 0;
   border-bottom: 0;
 }
+.main .sec {
+  min-width: 0;
+}
+/* LE TITRE D'UNE SECTION, UN SEUL (8 novembre 2026, choix 1A, agrandi de 20 % à la demande du client) : 14,25 px devenus 17,25 px (« --t-6 »), en gras. Les trois styles
+   d'avant (phrase, capitales, capitales espacées) n'en font plus qu'un : « .sec h3 », le titre du bloc des lignes similaires et celui du pied. */
 .main .sec h3 {
   margin: 0 0 var(--titre-gap);
+  font-size: var(--t-6);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ink);
 }
 
 .head {
@@ -100,11 +109,10 @@
 }
 .pied h2 {
   margin: 0;
-  font-size: var(--t-1);
+  font-size: var(--t-6);
   font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-3);
+  line-height: 1.25;
+  color: var(--ink);
 }
 .piedListe {
   list-style: none;
@@ -323,3 +331,68 @@
   text-decoration: none;
 }
 
+
+/* LE CHIFFRE EN AVANT, PUIS LES RANGÉES (8 novembre 2026, 3C) : le chiffre de tête, puis les faits un par rangée, à --titre-gap. Un filet entre deux rangées seulement. */
+.chiffres {
+  display: grid;
+  gap: var(--titre-gap);
+  min-width: 0;
+}
+.rangees {
+  display: grid;
+}
+.rangees > :first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+/* LE CALENDRIER EN FRISE VERTICALE (8 novembre 2026) : un point et un trait par date, la date en capitales d'or, son libellé dessous. */
+.frise {
+  display: grid;
+  margin-left: var(--s-2);
+}
+.frise div {
+  position: relative;
+  padding: 0 0 var(--s-7) var(--s-8);
+  border-left: 2px solid var(--line-2);
+  font-size: var(--t-4);
+}
+.frise div:last-child {
+  padding-bottom: 0;
+  border-left-color: transparent;
+}
+.frise div::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 2px solid var(--gold);
+}
+.frise span {
+  display: block;
+  font-size: var(--t-1);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gold-ink);
+}
+.frise b {
+  display: block;
+  font-weight: 600;
+}
+/* UN ONGLET SANS DOCUMENT PARLE (8 novembre 2026) : un fond doux, une ligne qui dit ce qui s'y rangera. */
+.vide {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-6);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink-2);
+  font-size: var(--t-4);
+}
+.vide b {
+  color: var(--ink);
+}

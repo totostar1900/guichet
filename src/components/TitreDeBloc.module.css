@@ -22,3 +22,11 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+/* LE TITRE D'UNE SECTION DE LA FICHE (8 novembre 2026) : le même que « .sec h3 » de la page, pas l'étiquette en capitales de l'Accueil. */
+.fort {
+  font-size: var(--t-6);
+  line-height: 1.25;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+}

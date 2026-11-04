@@ -64,11 +64,11 @@ export async function lignesDeBloc(offres: Offer[], mode: "cote" | "fonds" | "ad
  * (avec « Tout voir ») est le lien vers la liste complète, chaque rangée est son
  * propre lien, et la cible d'une rangée fait au moins 64 px de haut.
  */
-export async function BlocDeLignes({ id, titre, href, tout, lignes, plat = false }: { id: string; titre: string; href: string; tout?: string; lignes: LigneDeBloc[]; /** À plat : les rangées sans carte autour (un filet entre deux rangées), pour une page qui n'a pas d'encadré, comme la fiche. */ plat?: boolean }) {
+export async function BlocDeLignes({ id, titre, href, tout, lignes, plat = false, fort = false }: { id: string; titre: string; href: string; tout?: string; lignes: LigneDeBloc[]; /** Le titre d'une section de la fiche, pas l'étiquette en capitales de l'Accueil. */ fort?: boolean; /** À plat : les rangées sans carte autour (un filet entre deux rangées), pour une page qui n'a pas d'encadré, comme la fiche. */ plat?: boolean }) {
   if (!lignes.length) return null;
   return (
     <section className={styles.bloc} aria-labelledby={id}>
-      <TitreDeBloc id={id} titre={titre} href={href} tout={tout} />
+      <TitreDeBloc id={id} titre={titre} href={href} tout={tout} fort={fort} />
       <ul className={`${styles.carte} ${plat ? styles.plat : ""}`}>
         {lignes.map((l) => (
           <li key={l.id}>

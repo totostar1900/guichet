@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { RelatedNews } from "@/components/RelatedNews";
 import { FlowsChart } from "@/components/FlowsChart";
@@ -57,15 +58,65 @@ export type FicheMode = "client" | "desk";
  * Le mode ne sert ici qu'a la taille du dessin : au desk, la page porte aussi
  * le cycle de vie, les pieces et la piste d'audit, et le graphique se range.
  */
-async function Reference({ o, mode = "client" }: { o: Offer; mode?: FicheMode }) {
+/**
+ * LE CALCUL SE LIT EN TROIS BLOCS (8 novembre 2026, choix 1A) : ce qu'on achète, ce que cela représente, le dessin des versements. Chez le client chaque bloc est une
+ * section de la pile, séparée des autres par l'écart des chapitres et titrée comme elle ; au desk, qui garde sa lecture, c'est un seul bloc comme avant. `fin` (la
+ * note « Chiffres de référence ») se range dans le dernier bloc.
+ */
+function Decoupe({ mode, t, titre, calcul, totaux, courbe, note, fin }: { mode: FicheMode; t: (s: string) => string; titre: string; calcul: ReactNode; totaux?: ReactNode; courbe?: ReactNode; note?: ReactNode; fin?: ReactNode }) {
+  if (mode === "desk") {
+    return (
+      <>
+        <h3>{titre}</h3>
+        {calcul}
+        {totaux}
+        {courbe}
+        {note}
+        {fin}
+      </>
+    );
+  }
+  const dernier = courbe ? "courbe" : totaux ? "totaux" : "calcul";
+  const queue = (bloc: string) => (bloc === dernier ? <>{note}{fin}</> : null);
+  return (
+    <>
+      <section className={styles.sec}>
+        <h3>{titre}</h3>
+        {calcul}
+        {queue("calcul")}
+      </section>
+      {totaux && (
+        <section className={styles.sec}>
+          <h3>{t("Ce que cela représente")}</h3>
+          {totaux}
+          {queue("totaux")}
+        </section>
+      )}
+      {courbe && (
+        <section className={styles.sec}>
+          <h3>{t("L'échéancier")}</h3>
+          {courbe}
+          {queue("courbe")}
+        </section>
+      )}
+    </>
+  );
+}
+
+async function Reference({ o, mode = "client", fin }: { o: Offer; mode?: FicheMode; fin?: ReactNode }) {
   const t = await getT();
   const chart = mode === "desk" ? 0.6 : 1;
+  const plat = mode !== "desk";
   if ((o.kind === "OTA" || o.kind === "APE") && o.couponRate != null && o.maturityOn) {
     const price = o.servedPricePct ?? o.pricePct ?? 100;
     const r = bondCalc({ nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn, commissionPct: o.commissionPct }, 10_000_000, price);
     return (
-      <>
-        <h3>{t(o.servedPricePct ? "Pour 10 000 000 FCFA de nominal, au prix servi" : "Pour 10 000 000 FCFA de nominal, au prix Purpose")}</h3>
+      <Decoupe
+        mode={mode}
+        t={t}
+        fin={fin}
+        titre={t(o.servedPricePct ? "Pour 10 000 000 FCFA de nominal, au prix servi" : "Pour 10 000 000 FCFA de nominal, au prix Purpose")}
+        calcul={
         <div className="out">
           <div>Titres (nominal {fmt(o.nominal)})</div>
           <div>{fmt(r.titles)}</div>
@@ -74,37 +125,49 @@ async function Reference({ o, mode = "client" }: { o: Offer; mode?: FicheMode })
           <div>Coupon couru ({r.accruedDays} jours)</div>
           <div>{r.accruedDays ? fmt(r.accrued) : "néant, ligne nouvelle"}</div>
         </div>
+        }
+        totaux={
         <RefTotals
+          plat={plat}
           figures={[
             { label: t("À décaisser"), value: <Amount value={r.outlay} />, note: t(`règlement le ${fmtDate(o.settleOn, false)}`) },
             { label: t("Encaissé jusqu'au terme"), value: <Amount value={r.outlay + r.gain} />, note: t(`soit ${fmt(r.gain)} de gain brut`) },
           ]}
           rate={{ label: t("Rendement actuariel annuel brut"), value: fmtPct(r.irr, 2), note: t("si la ligne est gardée jusqu'à l'échéance") }}
         />
-        <FlowsChart r={r} settleOn={o.settleOn} scale={chart} />
-      </>
+        }
+        courbe={<FlowsChart r={r} settleOn={o.settleOn} scale={chart} />}
+      />
     );
   }
   if (o.kind === "BTA" && o.precountRate != null && o.maturityOn) {
     const b = { nominal: o.nominal, settleOn: o.settleOn, maturityOn: o.maturityOn };
     const r = btaCalc(b, btaAmountForBonds(b, 10, o.precountRate), o.precountRate);
     return (
-      <>
-        <h3>{t(`Pour 10 bons de ${fmt(o.nominal)} FCFA`)}</h3>
+      <Decoupe
+        mode={mode}
+        t={t}
+        fin={fin}
+        titre={t(`Pour 10 bons de ${fmt(o.nominal)} FCFA`)}
+        calcul={
         <div className="out">
           <div>{t("Bons")}</div>
           <div>{fmt(r.n)}</div>
           <div>{t("Prix d'achat par bon")}</div>
           <div>{fmt(r.pricePerBond)}</div>
         </div>
+        }
+        totaux={
         <RefTotals
+          plat={plat}
           figures={[
             { label: t("À décaisser"), value: <Amount value={r.outlay} />, note: t(`règlement le ${fmtDate(o.settleOn, false)}`) },
             { label: t("Remboursement"), value: <Amount value={r.redemption} />, note: t(`le ${fmtDate(o.maturityOn, false)} · ${fmt(r.gain)} d'intérêt précompté`) },
           ]}
           rate={{ label: t("Rendement actuariel annuel"), value: fmtPct(r.yieldPct, 2) }}
         />
-      </>
+        }
+      />
     );
   }
   if (o.kind === "FONDS" && o.fund) {
@@ -113,8 +176,12 @@ async function Reference({ o, mode = "client" }: { o: Offer; mode?: FicheMode })
     const net = amount / (1 + f.entryFeePct / 100);
     const units = f.nav > 0 ? Math.floor((net / f.nav) * 1000) / 1000 : 0;
     return (
-      <>
-        <h3>{t(`Pour ${fmt(amount)} FCFA à la dernière VL`)}</h3>
+      <Decoupe
+        mode={mode}
+        t={t}
+        fin={fin}
+        titre={t(`Pour ${fmt(amount)} FCFA à la dernière VL`)}
+        calcul={
         <div className="out">
           {f.entryFeePct > 0 && (
             <>
@@ -132,13 +199,17 @@ async function Reference({ o, mode = "client" }: { o: Offer; mode?: FicheMode })
             </>
           )}
         </div>
+        }
+        totaux={
         <RefTotals
+          plat={plat}
           figures={[
             { label: t("Investi dans le fonds"), value: <Amount value={net} />, note: f.entryFeePct > 0 ? t("après {p} de droits d'entrée", { p: fmtPct(f.entryFeePct, 2) }) : t("sans droits d'entrée") },
             { label: t("Parts obtenues"), value: <span className="num">≈ {units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</span>, note: t(`VL ${fmt(f.nav)} du ${fmtDate(f.navDate, false)}`) },
           ]}
         />
-      </>
+        }
+      />
     );
   }
   if (o.kind === "MARCHE") {
@@ -152,41 +223,58 @@ async function Reference({ o, mode = "client" }: { o: Offer; mode?: FicheMode })
       const r = ai && ai.maturityOn > ai.settleOn ? amortCalc(ai, n * o.nominal, ref) : bondCalc(bi!, n * o.nominal, ref);
       const settleOn = ai && ai.maturityOn > ai.settleOn ? ai.settleOn : bi!.settleOn;
       return (
-        <>
-          <h3>{t(`Pour ${fmt(n)} titres au cours vendeur`)}</h3>
+        <Decoupe
+          mode={mode}
+          t={t}
+          fin={fin}
+          titre={t(`Pour ${fmt(n)} titres au cours vendeur`)}
+          calcul={
           <div className="out">
             <div>Prix {fmtPrice(ref)}</div>
             <div>{fmt(r.titles * r.pricePerTitle)}</div>
             <div>Coupon couru ({r.accruedDays} jours)</div>
             <div>{fmt(r.accrued)}</div>
           </div>
+          }
+          totaux={
           <RefTotals
+            plat={plat}
             figures={[
               { label: t("À décaisser"), value: <Amount value={r.outlay} />, note: t("règlement T+{n}", { n: o.settlementDays ?? 3 }) },
               { label: t("Encaissé jusqu'au terme"), value: <Amount value={r.outlay + r.gain} />, note: t(`soit ${fmt(r.gain)} de gain brut`) },
             ]}
             rate={{ label: t("Rendement actuariel annuel brut à ce cours"), value: fmtPct(r.irr, 2) }}
           />
-          <FlowsChart r={r} settleOn={settleOn} scale={chart} />
-          {terms ? (
+          }
+          courbe={<FlowsChart r={r} settleOn={settleOn} scale={chart} />}
+          note={
+          terms ? (
             <p className={styles.note}>
               Échéancier : remboursement du capital en {terms.periodsPerYear === 1 ? "annuités" : terms.periodsPerYear === 2 ? "semestrialités" : "trimestrialités"} égales jusqu&apos;au {fmtDate(terms.maturityOn)}
               {terms.graceUntil ? `, intérêts seuls jusqu'au ${fmtDate(terms.graceUntil)}` : ""}, sur le nominal restant de {fmt(o.nominal)} FCFA par titre.
             </p>
           ) : (
             <p className={styles.note}>{t("Seule l'année de l'échéance est connue : rendement calculé sur un remboursement in fine au 31 décembre, à confirmer avec la note d'information.")}</p>
-          )}
-        </>
+          )
+          }
+        />
       );
     }
     return (
-      <>
-        <h3>{t(`Pour ${n} actions au cours vendeur`)}</h3>
+      <Decoupe
+        mode={mode}
+        t={t}
+        fin={fin}
+        titre={t(`Pour ${n} actions au cours vendeur`)}
+        calcul={
         <div className="out">
           <div>{t("Cours vendeur")}</div>
           <div>{fmt(ref)} FCFA</div>
         </div>
+        }
+        totaux={
         <RefTotals
+          plat={plat}
           figures={[
             { label: t("À décaisser"), value: <Amount value={n * ref} />, note: t("{n} actions au cours vendeur", { n: fmt(n) }) },
             ...(o.dividendPerShare
@@ -194,14 +282,19 @@ async function Reference({ o, mode = "client" }: { o: Offer; mode?: FicheMode })
               : []),
           ]}
         />
-      </>
+        }
+      />
     );
   }
   if (o.kind === "ACTIONS" && o.pricePerShare) {
     const n = 100;
     return (
-      <>
-        <h3>{t(`Pour ${n} actions`)}</h3>
+      <Decoupe
+        mode={mode}
+        t={t}
+        fin={fin}
+        titre={t(`Pour ${n} actions`)}
+        calcul={
         <div className="out">
           <div>{t("Actions")}</div>
           <div>{n}</div>
@@ -218,14 +311,19 @@ async function Reference({ o, mode = "client" }: { o: Offer; mode?: FicheMode })
             </>
           )}
         </div>
-      </>
+        }
+      />
     );
   }
   const n = 500;
   const proceeds = n * o.nominal;
   return (
-    <>
-      <h3>{t(`Pour ${n} titres cédés`)}</h3>
+    <Decoupe
+      mode={mode}
+      t={t}
+      fin={fin}
+      titre={t(`Pour ${n} titres cédés`)}
+      calcul={
       <div className="out">
         <div>{t("Titres cédés")}</div>
         <div>{n}</div>
@@ -236,7 +334,8 @@ async function Reference({ o, mode = "client" }: { o: Offer; mode?: FicheMode })
         <div className="hl">{t(`Encaissement le ${fmtDate(o.settleOn, false)}`)}</div>
         <div>{fmt(proceeds)}</div>
       </div>
-    </>
+      }
+    />
   );
 }
 
@@ -417,7 +516,7 @@ function Seance({ r, t }: { r: AuctionResult; t: (s: string, v?: Record<string, 
     </section>
   );
 }
-export async function FicheReading({ o, data, mode = "client" }: { o: Offer; data: FicheData; mode?: FicheMode }) {
+export async function FicheReading({ o, data, mode = "client", children }: { o: Offer; data: FicheData; mode?: FicheMode; /** Ce que la page range à la suite des sections, dans la même pile : les lignes similaires et le pied. */ children?: ReactNode }) {
   const t = await getT();
   const { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance, variation3m } = data;
   const base = mode === "desk" ? "/desk" : "";
@@ -426,14 +525,11 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
   const resume = summarize(o, new Date());
   const cours = resume.facts.find(([k]) => k === "Cours")?.[1];
   const mini = { nom: t(titreCourt(o)), chiffre: o.kind === "MARCHE" && o.instrument === "action" && cours ? cours : resume.hero, sous: o.kind === "MARCHE" && o.instrument === "action" ? undefined : t(resume.heroUnit ?? "") };
-  return (
+  const corps = (
     <>
         <FicheSegments exclure={avecCalendrier ? [] : ["calendrier"]} mini={mini} />
         <section className={styles.sec} data-pane="essentiel">
-          <div style={{ marginBottom: 10 }}>
-            <span className={`stamp ${stampPending ? "pending" : ""}`}>{t(stamp)}</span>
-          </div>
-          <Kpis o={o} base={base} variation={variation3m} />
+          <Kpis o={o} base={base} variation={variation3m} mode={mode} stamp={{ texte: t(stamp), attente: stampPending }} />
           {/* LA PHRASE DU FONDS EST PARTIE (1er novembre 2026) : générée à l'import du Bulletin Officiel de la Cote avec le nom, la catégorie, la société, le dépositaire et la fréquence, elle redisait « Caractéristiques ». Les autres lignes gardent la leur. */}
           {o.kind !== "FONDS" && <p className={styles.blurb}>{t(o.blurb)}</p>}
           {/* « Taux servi 6,97 % précompté » ne se lit plus chez le client (8 novembre 2026) : le résultat de la séance a sa section, avec ses chiffres. Le desk garde la ligne qu'il a saisie. */}
@@ -441,15 +537,26 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
           <CrossSignal o={o} facing={facing} />
         </section>
 
-        <section className={styles.sec} data-pane="chiffres">
-          <Reference o={o} mode={mode} />
-          {/* LA NOTE EST UNE BULLE (1er novembre 2026) : elle tenait une phrase sous le bloc, que personne ne relisait deux fois. Le « i » la garde à un toucher, et le simulateur reste un lien. */}
-          <p className={styles.noteBulle}>
-            <span>{t("Chiffres de référence")}</span>
-            <Info text="Chiffres de référence au prix publié. Pour votre montant, indiquez-le dans votre intention ; le desk vous confirme le décaissement exact." label="Chiffres de référence" />
-            <Link href="/info/simulateur">{t("Essayer le simulateur")} →</Link>
-          </p>
-        </section>
+        {/* LE CALCUL EST UN GROUPE DE BLOCS chez le client (8 novembre 2026) : un groupe « chapitres » dans la pile, ses blocs séparés comme les autres sections. Le desk garde une seule section. */}
+        {(() => {
+          /* LA NOTE EST UNE BULLE (1er novembre 2026) : elle tenait une phrase sous le bloc, que personne ne relisait deux fois. Le « i » la garde à un toucher, et le simulateur reste un lien. */
+          const noteBulle = (
+            <p className={styles.noteBulle}>
+              <span>{t("Chiffres de référence")}</span>
+              <Info text="Chiffres de référence au prix publié. Pour votre montant, indiquez-le dans votre intention ; le desk vous confirme le décaissement exact." label="Chiffres de référence" />
+              <Link href="/info/simulateur">{t("Essayer le simulateur")} →</Link>
+            </p>
+          );
+          return mode === "desk" ? (
+            <section className={styles.sec} data-pane="chiffres">
+              <Reference o={o} mode={mode} fin={noteBulle} />
+            </section>
+          ) : (
+            <div className="chapitres" data-pane="chiffres">
+              <Reference o={o} mode={mode} fin={noteBulle} />
+            </div>
+          );
+        })()}
 
         {navs.length > 0 && (
           <section className={styles.sec} data-pane="chiffres">
@@ -485,7 +592,8 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
         })()}
         <section className={styles.sec} data-pane={avecCalendrier ? "calendrier" : "essentiel"}>
           <h3>{t(o.kind === "FONDS" ? "Souscription, rachat et règlement" : o.kind === "MARCHE" ? "Cotation et règlement" : "Calendrier de l'opération")}</h3>
-          <div className={styles.tl}>
+          {/* LES DATES EN FRISE VERTICALE chez le client (8 novembre 2026, choix 4) : une date par ligne, lue de haut en bas dans l'ordre où elle arrive. Le desk garde sa grille. */}
+          <div className={mode === "desk" ? styles.tl : styles.frise}>
             {timeline.map(([k, v]) => (
               <div key={k}>
                 <span>{t(k)}</span>
@@ -500,7 +608,12 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
         <section className={styles.sec} data-pane="docs">
           <h3>{t("Documents")}</h3>
           <div className={styles.docs}>
-            {o.documents.length === 0 && !seance && <span className="muted" style={{ fontSize: ".82rem" }}>{t("Documents archivés.")}</span>}
+            {o.documents.length === 0 && !seance && (
+              <div className={styles.vide}>
+                <b>{t("Aucun document pour le moment")}</b>
+                <span>{t("Le communiqué des résultats s'y range dès qu'il est publié.")}</span>
+              </div>
+            )}
             {/* LE COMMUNIQUÉ DE LA SÉANCE EST UN DOCUMENT (8 novembre 2026) : il n'était qu'un lien au bas du résultat. Il est maintenant rangé avec les autres. */}
             {seance && (
               <a className={`${styles.doc} ${styles.docLink}`} href={seance.sourceUrl} target="_blank" rel="noreferrer">
@@ -532,6 +645,8 @@ export async function FicheReading({ o, data, mode = "client" }: { o: Offer; dat
             <IssuerCard profile={profile} o={o} others={others} company={company} issuer={issuer} />
           </section>
         )}
+        {children}
     </>
   );
+  return mode === "desk" ? corps : <div className="chapitres">{corps}</div>;
 }

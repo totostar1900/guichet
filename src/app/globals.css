@@ -361,7 +361,7 @@
   /* ENTRE DEUX CHAPITRES D'UNE PAGE D'ARRIVÉE : quarante-quatre, décidé le 1er
      novembre 2026 (refonte de l'Accueil). Vingt-huit sépare deux sections d'un
      même chapitre ; quarante-quatre sépare deux chapitres — le devoir, l'occasion,
-     le marché, le dossier. Une page qui n'a pas de chapitres n'en lit pas. */
+     le marché, le dossier. Une page qui n'a pas de chapitres n'en lit pas. La fiche d'une ligne en lit aussi (8 novembre 2026) : ses sections sont les enfants d'un groupe « chapitres ». */
   --chapitres-gap: 44px;
   /* ── L'ASPECT D'UNE TUILE : un jeu de jetons, trois préréglages ──────────────
      Toute liste de tuiles (rubriques, échéances, rayons de Trade, leçons, outils,

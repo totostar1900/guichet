@@ -44,4 +44,8 @@ export const EN_VISITE: Record<string, string> = {
   "Communication à caractère promotionnel. Risque de perte en capital.": "Promotional communication. Risk of capital loss.",
   "Communiqué des résultats": "Results release",
   "Ses emprunts, ses séances et son calendrier d'adjudications": "Its borrowings, its sessions and its auction calendar",
+  "Ce que cela représente": "What this amounts to",
+  "Aucun document pour le moment": "No document yet",
+  "Le communiqué des résultats s'y range dès qu'il est publié.": "The results release is filed here as soon as it is published.",
+  "Date du chiffre": "Date of the figure",
 };

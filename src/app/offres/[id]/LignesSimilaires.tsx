@@ -26,8 +26,8 @@ export async function LignesSimilaires({ o }: { o: Offer }) {
   const lignes = await lignesDeBloc(similaires, lieuDe(o) === "fonds" ? "fonds" : lieuDe(o) === "adjudications" ? "adjudications" : "cote", now);
   const dumeme = offres.filter((x) => x.id !== o.id && x.issuer === o.issuer && !x.hidden).length;
   return (
-    <div className={styles.similaires}>
-      <BlocDeLignes id="lignes-similaires" titre="Lignes similaires" href={liste.href} tout={t("Voir toutes les lignes")} lignes={lignes} plat />
+    <div className={styles.similaires} data-pane="essentiel">
+      <BlocDeLignes id="lignes-similaires" titre="Lignes similaires" href={liste.href} tout={t("Voir toutes les lignes")} lignes={lignes} plat fort />
       {dumeme > 0 && (
         /* LE LIEN MÈNE À LA LISTE DE LA FAMILLE, FILTRÉE SUR CET ÉMETTEUR (8 novembre 2026) : il menait à la page de recherche générale, qui rend des pages et des
            définitions avant les lignes. La liste (adjudications, titres ou fonds) filtre déjà sur l'émetteur par « ?q= » (nom du registre compris). */

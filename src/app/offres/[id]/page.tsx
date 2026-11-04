@@ -109,11 +109,13 @@ export default async function OfferPage({ params, searchParams }: Props) {
           <ListNav id={o.id} fallbackHref={listeDeLaFiche(o).href} fallbackLabel={listeDeLaFiche(o).label} />
           <FicheHead o={o} s={summary} st={st} horizon={{ level: mark?.level, text: mark?.[lang], hasProfile: Boolean(fin) }} watching={watching} signedIn={Boolean(session)} />
 
-          <FicheReading o={o} data={fiche} />
-          {/* LES SORTIES D'UNE FICHE (2 novembre 2026) : des lignes similaires, la liste complète, les lignes du même émetteur. Hors des volets, comme la note des risques. */}
-          <LignesSimilaires o={o} />
-          {/* LES RISQUES, EN PIED DE PAGE (1er novembre 2026), RANGÉS EN TROIS LIENS (8 novembre) : hors des volets, sous le client quel que soit l'onglet, juste avant la barre d'action. */}
-          <PiedDeFiche />
+          {/* LES SORTIES ET LE PIED SONT DANS LA PILE DES SECTIONS (8 novembre 2026), pour que l'écart des chapitres les sépare comme les autres.
+              LES LIGNES SIMILAIRES (2 novembre) ne paraissent que dans l'Essentiel (choix 2A) : c'est « d'autres lignes », pas la suite d'un document ou d'un calendrier.
+              LES RISQUES, EN PIED DE PAGE (1er novembre), EN TROIS LIENS (8 novembre) : sous chaque onglet, juste avant la barre d'action. */}
+          <FicheReading o={o} data={fiche}>
+            <LignesSimilaires o={o} />
+            <PiedDeFiche />
+          </FicheReading>
         </FichePanes>
         </SwipePager>
 

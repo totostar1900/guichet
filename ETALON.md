@@ -435,7 +435,7 @@ la ligne d'un jeton change toute l'application, et rien d'autre à faire.**
 | jeton | valeur | il règle | exemples |
 |---|---|---|---|
 | `--sections-gap` | **28 px** | l'écart entre deux sections d'une page ; aussi la gouttière quand deux colonnes se côtoient | l'Accueil, Trade, tout « Feuillet », le fil et le rail d'Actualités |
-| `--chapitres-gap` | **44 px** | l'écart entre deux CHAPITRES d'une page d'arrivée (classe globale `chapitres`) : le devoir, l'occasion, le relevé, Investir, le marché, le dossier. Réservé à l'Accueil | l'Accueil (`Console`) ; une page sans chapitres n'en lit pas |
+| `--chapitres-gap` | **44 px** | l'écart entre deux CHAPITRES d'une page d'arrivée (classe globale `chapitres`) : le devoir, l'occasion, le relevé, Investir, le marché, le dossier. L'Accueil et la fiche d'une ligne (§ 8.8) | l'Accueil (`Console`), la fiche d'une ligne (groupe `chapitres` dans la lecture) ; une page sans chapitres n'en lit pas |
 | `--tuiles-gap` | **12 px** (`--s-6`) | l'écart entre deux tuiles d'une liste | les rubriques de l'Accueil, les rayons de Trade, les échéances |
 | `--titre-gap` | **12 px** (`--s-6`) | entre le titre d'une section et ce qu'elle contient | « Ce qui ferme bientôt », « Mon dossier », « La sélection du desk » |
 | `--retour-gap` | **12 px** (`--s-6`) | entre la flèche de retour et le titre de la page | toute page à flèche (intérieur à `EnTete`) |
@@ -710,13 +710,21 @@ La règle, mesurée sur la fiche le jour même :
 | Élément | Règle |
 |---|---|
 | La lecture (`.main`) | **une pile** : `display: grid; gap: var(--sections-gap)`. Ni fond, ni bord, ni rayon, ni `padding`. La page porte sa gouttière. |
-| Entre deux blocs (tête, bande d'onglets, section, lignes similaires, pied) | **28 px**, par le `gap`, jamais par une marge ni un filet |
-| Un titre de section → son contenu | `--titre-gap` (12) |
+| Entre la tête, la bande d'onglets et la lecture | **28 px**, par le `gap` de `.main`, jamais par une marge ni un filet |
+| Entre deux sections de la lecture (Chiffres clés, En bref, Calendrier, Documents, lignes similaires, pied) | **44 px** (`--chapitres-gap`) : les sections sont les enfants d'un groupe `chapitres` posé dans la lecture (8 novembre 2026, planche 1A). Le desk garde sa lecture en 28 px |
+| Un titre de section → son contenu | `--titre-gap` (12). **Un seul titre** : `--t-6` (17,25 px, +20 % sur les 14,25 d'avant), gras, encre pleine, jamais en capitales — `.sec h3`, le titre des lignes similaires (`fort`), le titre du pied |
 | Une liste de rangées dans la page | **à plat** : pas de carte autour, un filet de `--line` seulement ENTRE deux rangées (`.plat` de `BlocDeLignes`) |
 | Un lien de sortie rattaché à une liste (« Toutes les lignes de … ») | dans le même bloc que la liste, à `--titre-gap` d'elle |
 | Un élément qui n'est qu'un témoin (observateur de défilement) | jamais un enfant de la pile : il lui ajouterait un écart ; on observe l'élément lui-même |
 
-**Le pied de page** range ses textes comme un pied de page de référence : un titre en capitales (« Pour investir sereinement »), puis des **rangées-liens** à plat (le titre du texte, ce qu'il contient, une flèche), puis la mention en petit. Les risques y sont **trois liens** : le texte opposable (« Risques et limites »), la leçon qui l'explique, la documentation par instrument. Le ton est celui du § 10 : le chemin vers le texte avant la mise en garde, aucune mention retirée.
+**Le pied de page** range ses textes comme un pied de page de référence : un titre de section (« Pour investir sereinement »), puis des **rangées-liens** à plat (le titre du texte, ce qu'il contient, une flèche), puis la mention en petit. Les risques y sont **trois liens** : le texte opposable (« Risques et limites »), la leçon qui l'explique, la documentation par instrument. Le ton est celui du § 10 : le chemin vers le texte avant la mise en garde, aucune mention retirée.
+
+**Ce que la planche du 8 novembre 2026 a fixé** (1A · 2A · 3C, tous les onglets du client) :
+
+- **Les lignes similaires ne paraissent que dans l'Essentiel** (`data-pane="essentiel"`) ; le pied de risques reste sous chaque onglet (§ 10 : le chemin vers le texte opposable accompagne les chiffres).
+- **Le chiffre en avant, puis des rangées** : le chiffre de tête (`KpiCard` « heros », `--t-8`) puis les faits en rangées libellé / valeur ; de quand date le chiffre est la dernière rangée (plus de puce au-dessus). Le desk garde ses cartes.
+- **Le calcul de référence se lit en trois blocs titrés** (« Pour … », « Ce que cela représente », « L'échéancier »), `RefTotals` à plat.
+- **Le calendrier est une frise verticale** ; **un onglet Documents vide parle** (« Aucun document pour le moment »).
 
 **Les liens de sortie mènent au contenu attendu** : « Toutes les lignes de {émetteur} » ouvre la liste de la famille (adjudications, titres, fonds) déjà filtrée sur cet émetteur (`?q=`), pas la page de recherche générale.
 

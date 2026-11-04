@@ -16,7 +16,7 @@ import styles from "./page.module.css";
  * saisit en montant nominal, et un cours de « 101 % » ne veut rien dire sans
  * savoir 101 % de quoi.
  */
-export function Kpis({ o, base = "", variation }: { o: Offer; base?: string; /** La variation du cours sur trois mois d'une action (hors dividendes). */ variation?: { pct: number; depuis: string } }) {
+export function Kpis({ o, base = "", variation, mode = "client", stamp }: { o: Offer; base?: string; /** La variation du cours sur trois mois d'une action (hors dividendes). */ variation?: { pct: number; depuis: string }; /** Le desk garde ses cartes ; le client lit le chiffre en avant puis des rangées. */ mode?: "client" | "desk"; /** De quand date le chiffre : une rangée de plus chez le client. */ stamp?: { texte: string; attente: boolean } }) {
   const now = new Date();
   const dy = displayYield(o);
   const y = dy.pct;
@@ -82,6 +82,22 @@ export function Kpis({ o, base = "", variation }: { o: Offer; base?: string; /**
             ];
   // Every card opens on tap: the number decomposed with this line's own figures.
   const explains = explainKpis(o, now);
+  /* LE CHIFFRE EN AVANT, PUIS LES RANGÉES (8 novembre 2026, choix 3C) : le chiffre de tête (le rendement d'une obligation, la performance d'un fonds) à grande taille, les faits en rangées libellé / valeur, et de quand date le chiffre en dernière rangée (c'était une puce au-dessus). Chacun s'ouvre toujours sur son calcul. Le desk garde les cartes. */
+  if (mode !== "desk") {
+    const tete = items.findIndex(([, , gold]) => gold);
+    const dateLabel = o.kind === "OTA" || o.kind === "APE" || o.kind === "ACTIONS" || o.kind === "RACHAT" ? "Prix" : o.kind === "BTA" ? "Taux" : "Date du chiffre";
+    return (
+      <div className={styles.chiffres}>
+        {tete >= 0 && <KpiCard forme="heros" label={items[tete][0]} value={items[tete][1]} gold explain={explains[tete]} compareHref={`${base}/comparer?a=${o.id}`} coach="hero" />}
+        <div className={styles.rangees}>
+          {items.map(([k, v], i) =>
+            i === tete ? null : <KpiCard key={k} forme="rangee" label={k} value={v} explain={explains[i]} compareHref={`${base}/comparer?a=${o.id}`} />,
+          )}
+          {stamp && <KpiCard forme="rangee" label={dateLabel} value={stamp.texte} attente={stamp.attente} date />}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={styles.kpis}>
       {items.map(([k, v, gold], i) => (

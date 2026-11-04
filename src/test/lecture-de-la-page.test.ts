@@ -268,9 +268,9 @@ describe("la fiche d'une ligne : une pile sans cadre, un pied qui range les risq
   });
   it("les lignes similaires sont à plat, et le lien de l'émetteur mène à la liste de la famille filtrée", () => {
     const s = lire("src/app/offres/[id]/LignesSimilaires.tsx");
-    expect(s, "les lignes similaires ont de nouveau leur carte").toMatch(/lignes=\{lignes\} plat \/>/);
+    expect(s, "les lignes similaires ont de nouveau leur carte").toMatch(/lignes=\{lignes\} plat fort \/>/);
     expect(s, "le lien de l'émetteur ne mène plus à la liste filtrée").toMatch(/href=\{`\$\{liste\.href\}\?q=\$\{encodeURIComponent\(o\.issuer\)\}`\}/);
-    expect(s, "le lien n'est plus dans le bloc des lignes").toMatch(/<div className=\{styles\.similaires\}>/);
+    expect(s, "le lien n'est plus dans le bloc des lignes").toMatch(/<div className=\{styles\.similaires\} data-pane="essentiel">/);
     expect(lire("src/components/accueil/BlocDeLignes.module.css")).toMatch(/\.plat \{[^}]*background: none;[^}]*border: 0;/);
   });
   it("le pied de la fiche range les risques en trois liens : le texte opposable, la leçon, la documentation", () => {
@@ -386,5 +386,56 @@ describe("l'astuce de glissement est une bulle au milieu de l'écran (8 novembre
     expect(lire("src/components/mobile/SwipePager.module.css"), "les règles de l'ancienne pastille sont revenues").not.toMatch(/\.hint/);
     expect(s, "l'astuce ne se retire plus d'elle-même").toMatch(/window\.setTimeout\(\(\) => setHint\(false\), 4200\)/);
     expect(s, "l'astuce se montre de nouveau à chaque visite").toMatch(/if \(!localStorage\.getItem\(key\) && \(prevHref \|\| nextHref\)\)/);
+  });
+});
+
+describe("la fiche d'une ligne : des sections qui se lisent (8 novembre 2026, planche 1A · 2A · 3C)", () => {
+  const css = () => lire("src/app/offres/[id]/page.module.css");
+  const lecture = () => lire("src/app/offres/[id]/FicheReading.tsx");
+  const bloc = (s: string, selecteur: string) => s.match(new RegExp(`\\n${selecteur.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\{([^}]*)\\}`))?.[1] ?? "";
+
+  it("les sections du client sont séparées par l'écart des chapitres, la tête et la bande gardent celui des sections", () => {
+    expect(lecture(), "le client n'a plus sa pile de chapitres, ou le desk l'a prise").toMatch(/return mode === "desk" \? corps : <div className="chapitres">\{corps\}<\/div>;/);
+    expect(lecture(), "les lignes similaires et le pied ne sont plus dans la pile des sections").toMatch(/\{children\}\s*<\/>\s*\);\s*return mode === "desk"/);
+    expect(lire("src/app/offres/[id]/page.tsx"), "la page ne range plus les sorties et le pied dans la lecture").toMatch(/<FicheReading o=\{o\} data=\{fiche\}>\s*<LignesSimilaires o=\{o\} \/>\s*<PiedDeFiche \/>\s*<\/FicheReading>/);
+    expect(bloc(css(), ".main"), "la lecture n'est plus la pile de la tête et de la bande").toMatch(/gap: var\(--sections-gap\);/);
+  });
+  it("un seul titre de section : 17 px (--t-6, +20 %), en gras, en encre pleine, jamais en capitales", () => {
+    const h3 = bloc(css(), ".main .sec h3");
+    expect(h3, "le titre n'est plus à --t-6").toMatch(/font-size: var\(--t-6\);/);
+    expect(h3, "le titre n'est plus en gras").toMatch(/font-weight: 700;/);
+    expect(h3, "le titre n'est plus en encre pleine").toMatch(/color: var\(--ink\);/);
+    const pied = bloc(css(), ".pied h2");
+    expect(pied, "le titre du pied n'est plus celui des sections").toMatch(/font-size: var\(--t-6\);[^}]*font-weight: 700;/);
+    expect(pied, "le titre du pied est revenu en capitales").not.toMatch(/text-transform|letter-spacing/);
+    const fort = bloc(lire("src/components/TitreDeBloc.module.css"), ".fort");
+    expect(fort, "le titre des lignes similaires n'est plus celui des sections").toMatch(/font-size: var\(--t-6\);[^}]*text-transform: none;/);
+    expect(lire("src/components/TitreDeBloc.tsx"), "« fort » ne choisit plus la classe").toMatch(/\$\{fort \? styles\.fort : ""\}/);
+  });
+  it("les lignes similaires ne paraissent que dans l'Essentiel, le pied sous chaque onglet", () => {
+    expect(lire("src/app/offres/[id]/LignesSimilaires.tsx")).toMatch(/<div className=\{styles\.similaires\} data-pane="essentiel">/);
+    expect(lire("src/app/offres/[id]/PiedDeFiche.tsx"), "le pied est devenu propre à un onglet").not.toMatch(/data-pane/);
+  });
+  it("le chiffre en avant puis des rangées chez le client, les cartes au desk ; de quand date le chiffre est la dernière rangée", () => {
+    const k = lire("src/app/offres/[id]/Kpis.tsx");
+    expect(k, "le client n'a plus le chiffre en avant").toMatch(/if \(mode !== "desk"\) \{[\s\S]*forme="heros"/);
+    expect(k, "les rangées ne sont plus des rangées").toMatch(/forme="rangee"/);
+    expect(k, "la date du chiffre n'est plus une rangée").toMatch(/\{stamp && <KpiCard forme="rangee" label=\{dateLabel\}/);
+    expect(k, "le desk n'a plus ses cartes").toMatch(/return \(\s*<div className=\{styles\.kpis\}>/);
+    expect(lecture(), "la puce de date est revenue au-dessus des chiffres").not.toMatch(/<span className=\{`stamp/);
+    expect(lecture()).toMatch(/<Kpis o=\{o\} base=\{base\} variation=\{variation3m\} mode=\{mode\} stamp=/);
+  });
+  it("le calcul se découpe en trois blocs titrés chez le client, un seul au desk", () => {
+    const l = lecture();
+    expect(l, "le calcul n'est plus découpé").toMatch(/<h3>\{t\("Ce que cela représente"\)\}<\/h3>/);
+    expect(l).toMatch(/<h3>\{t\("L'échéancier"\)\}<\/h3>/);
+    expect(l, "le desk n'a plus sa lecture d'un bloc").toMatch(/if \(mode === "desk"\) \{\s*return \(\s*<>\s*<h3>\{titre\}<\/h3>/);
+    expect(l, "le groupe du calcul n'est plus un groupe de chapitres chez le client").toMatch(/<div className="chapitres" data-pane="chiffres">/);
+    expect(lire("src/components/RefTotals.tsx"), "le total à plat n'a plus son chiffre en avant").toMatch(/if \(plat\) \{[\s\S]*styles\.grand/);
+  });
+  it("le calendrier est une frise verticale chez le client ; un onglet sans document le dit", () => {
+    expect(lecture(), "la frise n'est plus celle du client").toMatch(/className=\{mode === "desk" \? styles\.tl : styles\.frise\}/);
+    expect(bloc(css(), ".frise div::before").length, "les points de la frise ont disparu").toBeGreaterThan(0);
+    expect(lecture(), "l'onglet sans document ne parle plus").toMatch(/o\.documents\.length === 0 && !seance && \(\s*<div className=\{styles\.vide\}>/);
   });
 });

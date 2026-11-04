@@ -8,10 +8,10 @@ import styles from "./TitreDeBloc.module.css";
  * « Tout voir » à droite dit la porte pour qui ne devine pas qu'un titre se touche. Un seul lien vers la même
  * page, deux manières de le lire : la cible du doigt est la ligne entière.
  */
-export async function TitreDeBloc({ id, titre, href, tout = "Tout voir", etiquette }: { id?: string; titre: string; href?: string; tout?: string; /** Une pastille après le titre (« à signer »). */ etiquette?: React.ReactNode }) {
+export async function TitreDeBloc({ id, titre, href, tout = "Tout voir", etiquette, fort = false }: { id?: string; titre: string; href?: string; tout?: string; /** Une pastille après le titre (« à signer »). */ etiquette?: React.ReactNode; /** Le titre d'une section de la fiche (1,14 rem, gras, encre pleine) et non l'étiquette en capitales de l'Accueil. */ fort?: boolean }) {
   const t = await getT();
   const titreNu = (
-    <h2 id={id} className={styles.titre}>
+    <h2 id={id} className={`${styles.titre} ${fort ? styles.fort : ""}`}>
       {t(titre)}
     </h2>
   );
