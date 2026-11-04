@@ -10,6 +10,7 @@ import { MarketFab } from "./MarketFab";
 import { reculer } from "./retour";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
+import { useListeDeLaFiche } from "@/components/LieuDeLaFiche";
 import { lieuDe } from "@/lib/domain/lieu";
 import { isAideSection, isEspaceSection, isMarcheSection, isTradeSection, listForFiche } from "@/lib/nav-section";
 
@@ -128,7 +129,9 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
    * pages. Le titre reste dans la page, une seule fois. Le nom lu dans
    * l'onglet ne sert plus qu'à ranger une page en favori (« BarreDuHaut »).
    */
-  const lieu = lieuDe(path);
+  /* UNE FICHE DIT SA FAMILLE (8 novembre 2026) : sous « /offres/… » l'adresse ne la porte pas, la barre disait « Titres » devant une adjudication. */
+  const listeDeLaFiche = useListeDeLaFiche(path);
+  const lieu = lieuDe(listeDeLaFiche ?? path);
 
   // Did this tab see another of our pages before this one? Then the browser history is ours.
   useEffect(() => {

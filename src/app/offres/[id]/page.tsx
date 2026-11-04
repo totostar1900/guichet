@@ -1,6 +1,7 @@
 import { ContactRapide } from "@/components/ContactRapide";
 import type { Channel } from "@/lib/domain/types";
 import { ListNav } from "@/components/ListNav";
+import { LieuDeLaFiche } from "@/components/LieuDeLaFiche";
 import { PiedDeFiche } from "./PiedDeFiche";
 import { notFound } from "next/navigation";
 import { IntentForm } from "@/components/IntentForm";
@@ -98,6 +99,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
 
   return (
     <Glissement>
+      <LieuDeLaFiche chemin={`/offres/${o.id}`} liste={listeDeLaFiche(o).href} />
       <div className={styles.page}>
         {/* Une fiche regardée se note, une fiche préchargée non : c'est le
             navigateur qui le dit, une fois par jour et par ligne. */}

@@ -298,3 +298,16 @@ describe("la fiche d'une ligne : une pile sans cadre, un pied qui range les risq
     expect(lire("src/app/offres/[id]/page.tsx")).toMatch(/<PiedDeFiche \/>/);
   });
 });
+
+describe("la barre du haut dit la famille de la fiche (8 novembre 2026)", () => {
+  it("la fiche publie la liste de sa famille, la barre la lit pour CETTE adresse seulement", async () => {
+    expect(lire("src/app/offres/[id]/page.tsx")).toMatch(/<LieuDeLaFiche chemin=\{`\/offres\/\$\{o\.id\}`\} liste=\{listeDeLaFiche\(o\)\.href\} \/>/);
+    const sh = lire("src/components/mobile/MobileShell.tsx");
+    expect(sh).toMatch(/const lieu = lieuDe\(listeDeLaFiche \?\? path\);/);
+    expect(lire("src/components/LieuDeLaFiche.tsx"), "la fiche quittée laisse son lieu à la page suivante").toMatch(/c\.chemin === chemin \? c\.liste : undefined/);
+    const { lieuDe } = await import("@/lib/domain/lieu");
+    expect(lieuDe("/calendrier")?.rubrique, "l'adresse de la liste des adjudications ne dit plus « Adjudications »").toBe("Adjudications");
+    expect(lieuDe("/fonds")?.rubrique).toBe("Fonds");
+    expect(lieuDe("/offres/une-adjudication")?.rubrique, "sans la famille dite par la fiche, la barre retombe sur Titres").toBe("Titres");
+  });
+});

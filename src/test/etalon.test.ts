@@ -181,7 +181,7 @@ describe("les deux arbitrages", () => {
        toute hauteur de défilement, et le titre n'est écrit qu'une fois, dans la
        page. Le sur-titre se tait sur téléphone, où la barre le dit déjà. */
     const shell = lire("src/components/mobile/MobileShell.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(shell, "la barre ne dit plus où l'on est").toMatch(/const lieu = lieuDe\(path\)/);
+    expect(shell, "la barre ne dit plus où l'on est").toMatch(/const lieu = lieuDe\((listeDeLaFiche \?\? )?path\)/);
     expect(shell, "la barre observe de nouveau le titre de la page : elle va céder et reprendre").not.toMatch(/IntersectionObserver/);
     expect(shell, "la barre cède de nouveau la place au titre").not.toMatch(/titleCede/);
     const entete = lire("src/components/EnTete.module.css").replace(/\/\*[\s\S]*?\*\//g, "");
