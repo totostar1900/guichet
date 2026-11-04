@@ -96,11 +96,13 @@ describe("rien ne sort de la maison", () => {
     expect(action).toContain("canauxOuverts({ emailProuve, telephoneProuve }).includes(canal)");
   });
 
-  it("« Contacter » mène au bloc de contact, plus au formulaire entier", () => {
+  it("« Contacter » mène à la page Nous contacter, avec la ligne, plus au formulaire entier", () => {
+    /* L'ancre « #contact » de la fiche ne menait nulle part sur téléphone (6 novembre 2026) : la tuile ouvre la page de contact, qui existe, et le message nomme la ligne. */
     const swipe = readFileSync(`${RACINE}/src/components/mobile/SwipeActions.tsx`, "utf8");
-    const ligne = swipe.split("\n").find((l) => l.includes('t("Contacter")') || l.includes("#contact"));
+    const ligne = swipe.split("\n").find((l) => l.includes('t("Contacter")') || l.includes("/moi/contact"));
     expect(ligne).toBeDefined();
-    expect(swipe).toContain("#contact");
+    expect(swipe).toContain("/moi/contact?ligne=");
+    expect(swipe).not.toContain("#contact");
     expect(swipe).not.toContain("intention?intent=rappel");
   });
 });

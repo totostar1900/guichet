@@ -26,6 +26,8 @@ Ce skill décrit les quatre premières étapes ; `guichet-maquette` mène la pla
 | Fiche d'une ligne : graphique à deux couleurs, jauge de fourchette, alerte de prix | une application de suivi de marchés (**à confirmer**, probablement Google Finance) : 3 captures | `docs/design-refs/concurrents/autre-application-a-confirmer/` |
 | Toute référence **Wise** | **aucune image identifiée comme telle** | à demander |
 
+| **Ligne d'une action : prix, variation, dividende** | fiches d'action et listes de cours de Revolut (Invest) et Yahoo Finance (déjà versées) | principes écrits au § 4 bis, « Règle du prix et de la variation » ; mesures de Guichet du 6 novembre 2026 dans `ETALON.md` § 8.7 |
+
 Pour l'Accueil, partir de `references/revolut-accueil.md`, puis confronter à `references/yahoo-finance.md` (un second modèle : les deux se complètent, aucun des deux ne se copie) : les principes y sont déjà écrits, avec leurs réserves propres à Guichet.
 
 ## 1. Ce qu'il faut du client (et comment le demander)
@@ -94,6 +96,11 @@ Une mesure de tailles et d'écarts ne dit pas si un écran **se lit**. Le 2 nove
 
 **Règle des chiffres.** Une ligne qui montre un cours ou une VL montre aussi sa **variation**, en pastille (signe écrit, couleur en renfort). Sans variation connue de la maison, **pas de pastille** : jamais « 0 % » inventé. La donnée vient du domaine (`variationDe`, `src/lib/domain/accueil.ts`) ; si elle manque pour une famille de lignes, on le dit au client au lieu de la fabriquer.
 
+**Règle du prix et de la variation d'une action (6 novembre 2026).** Dans les références, le **prix domine** et la variation est son **satellite** : plus petite, colorée
+par son signe, avec une flèche, et **toujours avec sa période** (« All time », « 1M »). La variation seule en gros chiffre n'apparaît que pour les « plus gros mouvements ».
+Le **rendement du dividende** est une case de grille, pas un titre ; **le chiffre en avant change avec la classe d'actif** (rendement pour une obligation, prix et variation
+pour une action). Sur un marché peu échangé, une variation à zéro peut dire « pas d'échange » et non « stable » : l'âge du cours reste écrit à côté.
+
 **Règle de la rangée généreuse et cliquable (2 novembre 2026).** Sur une liste d'entrée (Accueil, tuile « Investir »), une rangée a au moins **64 px** de haut, son nom peut tenir **sur deux lignes** (pas de troncature à une ligne), sa valeur est à droite **avec son libellé dessous**. **Toute la rangée est un lien vers la fiche de la ligne ; le titre du bloc et « Tout voir » sont un lien vers la liste complète** ; une tuile entière qui est un lien ne peut pas contenir de rangées-liens (liens imbriqués) : le conteneur n'est pas un `<a>`. Une fiche rend la liste : « Voir toutes les … » et des lignes similaires (même famille ou même émetteur, jamais « pour vous »).
 
 **Règle du titre à plat (2 novembre 2026).** Le titre d'un bloc est **à plat, au-dessus de sa carte** (étiquette en capitales de 12 px à gauche, « Tout voir » ou un lien à droite), **jamais dans la carte** : la carte ne contient que des rangées. C'est le geste de « Titres » et « Fonds » de l'Accueil ; une tuile qui garde son titre dans la carte (avec un chevron en rond) parle une autre langue que sa voisine. Quand on ajoute ou convertit un bloc d'une page d'arrivée, on le met au même format ; deux tuiles compactes au contenu maigre se fusionnent en une carte de rangées-liens plutôt que de porter chacune son titre.
@@ -114,6 +121,7 @@ Une mesure de tailles et d'écarts ne dit pas si un écran **se lit**. Le 2 nove
 
 Une référence moderne peut être **fausse pour nous**. Avant de proposer quoi que ce soit, vérifier :
 
+- **Ton des mises en garde** : rassurer sans rien retirer (`ETALON.md` § 10) — le geste avant la menace, un vocabulaire calme, les mentions obligatoires écrites en toutes lettres, un seul lien vers le texte opposable.
 - **Conformité** : les mentions réglementaires et les avertissements de performance restent **visibles** à côté des chiffres qu'ils qualifient ; une bulle ⓘ ne remplace pas un avertissement obligatoire (le dire, ne pas le trancher).
 - **Aucune commission affichée au client** (règle de la maison).
 - **Pas de gamification trompeuse** (confettis sur un ordre, urgence artificielle) : un ordre engage de l'argent réel.
@@ -141,6 +149,8 @@ Chaque option dit **ce que son application change** dans toute l'application qua
 4. Si un principe se révèle bon à l'échelle, **l'écrire dans la doctrine** (`ETALON.md`) et dans le skill concerné : c'est ainsi que Guichet s'améliore d'une demande à l'autre.
 
 ## 8. Pièges
+
+- **Dessiner l'état actuel de Guichet** au lieu de le capturer : la planche n'est pas fidèle, le client ne peut pas décider (5 novembre 2026). Capture réelle, 390 px, sans bannière.
 
 - **Copier l'écran au lieu du principe** : on obtient un clone sans âme et un risque d'imitation.
 - **Une seule référence** : elle impose son goût. Au moins deux, de familles différentes (courtier mondial, banque mobile, application locale), et on cherche ce qu'elles **partagent**.

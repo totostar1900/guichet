@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useT } from "@/i18n/client";
 import { Sheet } from "@/components/mobile/Sheet";
@@ -27,6 +28,41 @@ const LIGNES: { quoi: string; vals: Record<Instrument, string> }[] = [
   { quoi: "Délai", vals: { titres: "en séance, en continu", fonds: "à la prochaine valeur liquidative", adjudications: "à la clôture du dépôt" } },
   { quoi: "Rendement", vals: { titres: "dividende ou coupon", fonds: "variation de la valeur liquidative", adjudications: "taux actuariel de l'adjudication" } },
 ];
+
+/**
+ * LA VARIATION AFFICHÉE ET CE QU'IL EST BON DE SAVOIR (6 novembre 2026, choix 4·1) : la variation d'une action est une performance passée ; la liquidité vient en
+ * premier parce que c'est le trait de ce marché. Le ton est celui d'un repère, pas d'une alerte. UN SEUL LIEN, vers la page « Risques et limites » (le texte
+ * opposable) : la leçon « Les quatre risques » y est déjà citée, deux liens dans une feuille courte feraient du bruit.
+ */
+function VariationEtRisques() {
+  const t = useT();
+  return (
+    <>
+      <section className={styles.ajout}>
+        <h3>{t("Comment lire la variation")}</h3>
+        <p>{t("La variation d'une action est celle de son cours sur trois mois, hors dividendes. Elle décrit le passé : elle ne préjuge pas des performances futures.")}</p>
+      </section>
+      <section className={styles.ajout}>
+        <h3>{t("Pour investir sereinement")}</h3>
+        <ul>
+          <li>
+            <b>{t("Liquidité.")}</b> {t("Peu d'actions s'échangent à chaque séance : prévoyez un délai pour revendre, et gardez en tête que le prix de vente peut différer du dernier cours. L'âge du cours est affiché sur chaque carte.")}
+          </li>
+          <li>
+            <b>{t("Prix.")}</b> {t("Un cours évolue avec le marché, dans les deux sens ; le capital investi n'est pas garanti.")}
+          </li>
+          <li>
+            <b>{t("Dividende.")}</b> {t("Il dépend des résultats de la société et se vote chaque année : un dividende passé n'est pas une promesse.")}
+          </li>
+        </ul>
+        <p>{t("Un repère simple : n'investissez que ce que vous pouvez conserver, et répartissez entre plusieurs sociétés.")}</p>
+        <Link className={styles.lien} href="/info/risques#risques">
+          {t("Tout savoir sur les risques et les limites")} →
+        </Link>
+      </section>
+    </>
+  );
+}
 
 export function EnBrefInstruments({ page, className }: { page: Instrument; className?: string }) {
   const t = useT();
@@ -69,6 +105,7 @@ export function EnBrefInstruments({ page, className }: { page: Instrument; class
           ))}
         </div>
         <CorpsDeBrief brief={BRIEF[onglet]} />
+        {onglet === "titres" && <VariationEtRisques />}
       </Sheet>
     </>
   );

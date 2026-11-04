@@ -1,4 +1,5 @@
 import { repo } from "@/lib/data";
+import { getSession } from "@/lib/auth";
 import { fondsListes } from "@/lib/domain/listes";
 import { fundAnnualPct } from "@/lib/domain/fund-perf";
 import { FundsBrowser } from "./FundsBrowser";
@@ -28,6 +29,9 @@ export async function FondsBody() {
   // Les courbes partent avec la page : une carte retournée les dessine tout de suite,
   // au lieu d'aller les demander et de montrer « Courbe en cours de lecture… ».
   const curves = await r.listFundCurves(funds.map((o) => o.fund.key));
+  /* LES FONDS QUE CE LECTEUR SUIT (6 novembre 2026) : lus ici, comme sur Titres. Sans eux, un fonds suivi redevenait « Suivre » au premier rafraîchissement. */
+  const session = await getSession();
+  const veilles = session ? await r.listWatches(session.userId).catch(() => []) : [];
   /* L'ANNUALISÉ SE CALCULE ICI, UNE FOIS, parce qu'il dépend de la date du
      jour : calculé dans le navigateur, il diffère de celui qui vient d'être
      rendu, et React le signale comme un désaccord d'hydratation. La machine
@@ -48,7 +52,7 @@ export async function FondsBody() {
           vient. En face, il ne coute aucune hauteur. */}
       <EnTete surTitre={t("Investissez")} titre={t("Fonds communs de placement")} titreMasque aCote={<EnBrefInstruments page="fonds" />} />
 
-      <FundsBrowser rows={funds.map((o) => ({ id: o.id, country: o.country, title: o.title, isin: o.isin, category: o.fund.category, frequency: o.fund.frequency, manager: o.issuer, depositary: o.fund.depositary, nav: o.fund.nav, navDate: o.fund.navDate, variationPct: o.fund.variationPct, perf1yPct: o.fund.perf1yPct, perfSinceInceptionPct: o.fund.perfSinceInceptionPct, annualPct: fundAnnualPct(o.fund, maintenant) ?? undefined, inceptionDate: o.fund.inceptionDate, open: o.fund.distributed && !o.hidden, entryFeePct: o.fund.entryFeePct, exitFeePct: o.fund.exitFeePct, managementFeePct: o.fund.managementFeePct, minAmount: o.fund.minAmount, cutoff: o.fund.cutoff, settlementDays: o.fund.settlementDays, curve: curves.get(o.fund.key) }))} />
+      <FundsBrowser suivis={veilles.map((w) => w.offerId)} rows={funds.map((o) => ({ id: o.id, title: o.title, isin: o.isin, category: o.fund.category, frequency: o.fund.frequency, manager: o.issuer, depositary: o.fund.depositary, nav: o.fund.nav, navDate: o.fund.navDate, variationPct: o.fund.variationPct, perf1yPct: o.fund.perf1yPct, perfSinceInceptionPct: o.fund.perfSinceInceptionPct, annualPct: fundAnnualPct(o.fund, maintenant) ?? undefined, inceptionDate: o.fund.inceptionDate, open: o.fund.distributed && !o.hidden, entryFeePct: o.fund.entryFeePct, exitFeePct: o.fund.exitFeePct, managementFeePct: o.fund.managementFeePct, minAmount: o.fund.minAmount, cutoff: o.fund.cutoff, settlementDays: o.fund.settlementDays, curve: curves.get(o.fund.key) }))} />
       {funds.length === 0 && <p className={styles.note}>{t("Les fonds apparaîtront ici dès que leurs valeurs liquidatives seront disponibles.")}</p>}
       <p className={styles.note}>
         {t("Les performances passées ne préjugent pas des performances futures. Une souscription est exécutée à la prochaine valeur liquidative ; droits d'entrée et de sortie selon le règlement de chaque fonds.")}

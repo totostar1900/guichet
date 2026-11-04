@@ -37,7 +37,7 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [toast, setToast] = useState("");
-  const [on, setOn] = useSuivi(line.id, Boolean(watching));
+  const [on, setOn] = useSuivi(line.id, watching);
   const [pending, start] = useTransition();
   const sheet = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y0: number; dy: number } | null>(null);
@@ -122,7 +122,7 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
         if (res.ok) {
           setOn(res.watching);
           router.refresh();
-          say(t(res.watching ? (cadence === "quotidien" ? "Alerte armée : un message par jour jusqu'à la clôture" : "Ligne suivie : vous êtes prévenu à chaque changement") : "Ligne retirée du suivi"));
+          say(t(res.watching ? (cadence === "quotidien" ? "Alerte armée : un message par jour jusqu'à la clôture" : "Ligne suivie : un message à chaque mouvement") : "Alerte retirée"));
         } else router.push(`/connexion?next=${encodeURIComponent(href)}`);
       });
     }

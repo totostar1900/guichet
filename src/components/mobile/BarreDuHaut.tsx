@@ -56,6 +56,7 @@ const ICONE = {
   ordres: "M5 4h10l4 4v12H5zM9 12h6M9 16h6",
   documents: "M4 6h16v12H4zM4 10h16",
   compte: "M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0zM4 21c0-4 4-7 8-7s8 3 8 7",
+  contact: "M3 6h18v12H3zM3.5 7l8.5 6 8.5-6",
   aide: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5M12 17h.01",
   langue: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18",
   sortie: "M10 5H5v14h5M14 8l4 4-4 4M18 12H9",
@@ -131,7 +132,7 @@ export function BarreDuHaut({ name, attentes, urgentes, favoris }: BarreDuHautPr
         </Link>
       )}
       {/* LE « i » DES TROIS PAGES D'INSTRUMENTS EST DANS LA BARRE (4 novembre 2026, choix 1A) : sans grand titre, il n'a plus de « face » où se poser, et il suit la page quand on défile. */}
-      {BRIEF_DE_LA_PAGE[chemin] && <EnBrefInstruments page={BRIEF_DE_LA_PAGE[chemin]} className={styles.ic} />}
+      {BRIEF_DE_LA_PAGE[chemin] && <EnBrefInstruments page={BRIEF_DE_LA_PAGE[chemin]} className={`${styles.ic} ${styles.info}`} />}
       {/* LA RECHERCHE EST UN LIEN, PAS UNE BARRE (1er novembre 2026). Le champ du tiroir ouvrait une feuille de six résultats qui se comportait mal ; la page de recherche sait déjà chercher. La loupe y mène d'un geste, de toutes les pages sauf d'elle-même. */}
       {chemin !== "/recherche" && (
         <Link href="/recherche" className={styles.ic} aria-label={t("Rechercher")} title={t("Rechercher")}>
@@ -222,7 +223,11 @@ export function BarreDuHaut({ name, attentes, urgentes, favoris }: BarreDuHautPr
                 <div className={styles.rub}>{t("Besoin d'aide")}</div>
                 <Link href="/aide" className={styles.ligne} onClick={fermer}>
                   <Trace d={ICONE.aide} />
-                  <span>{t("Aide et contact")}</span>
+                  <span>{t("Aide")}</span>
+                </Link>
+                <Link href="/moi/contact" className={styles.ligne} onClick={fermer}>
+                  <Trace d={ICONE.contact} />
+                  <span>{t("Nous contacter")}</span>
                 </Link>
 
                 <div className={styles.rub}>{t("Réglages")}</div>

@@ -1,0 +1,8 @@
+/* LA MISE EN GARDE EN PIED DE LA PAGE TITRES (6 novembre 2026) : la variation affichée est une performance passée, et un cours peut rester inchangé faute d'échange. */
+.note {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+  max-width: 80ch;
+}

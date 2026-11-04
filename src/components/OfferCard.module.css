@@ -504,16 +504,60 @@
   justify-items: end;
   gap: var(--s-2);
 }
-.pctCourbe {
-  font-style: normal;
-  font-size: 0.7rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink-3);
-}
 .hausseC {
   color: var(--good);
 }
 .baisseC {
   color: var(--crit);
+}
+
+/* LE DOS D'UNE CARTE COMPACTE EST LA CARTE DÉTAILLÉE (6 novembre 2026), dont le coin est porté par la tête de la face arrière. */
+.dos {
+  display: grid;
+  gap: var(--s-6);
+  min-width: 0;
+}
+.dosTete {
+  padding-right: calc(var(--s-11) + var(--s-9));
+}
+
+/* LE PRIX D'UNE ACTION, SA VARIATION DESSOUS, LA COURBE À DROITE (6 novembre 2026) : le prix est le plus grand chiffre de la carte, à l'encre ; la variation
+   prend la couleur de son signe, avec sa flèche et sa période écrite. */
+.bigAction {
+  margin-top: calc(var(--s-7) + var(--s-1) - var(--s-6));
+  padding-right: calc(var(--s-10) + var(--s-6));
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-6);
+}
+.prixCol {
+  display: grid;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.prix {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.variation {
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+.variationNb {
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+.periode {
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.cNum small .variation {
+  font-size: inherit;
 }

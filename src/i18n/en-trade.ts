@@ -42,8 +42,11 @@ export const EN_TRADE: Record<string, string> = {
     "A person follows your account. Write to them: the message leaves with what is needed, so nobody has to ask who you are.",
   "La réponse est souvent déjà écrite : les questions courantes répondent à ce qu'on nous demande le plus, et les éclairages expliquent ce qui se passe derrière un ordre.":
     "The answer is often already written: the common questions cover what we are asked most, and the insights say what happens behind an order.",
-  "Si quelque chose s'est mal passé et qu'un message ne suffit pas, déposez une réclamation : elle est enregistrée, datée, et vous en suivez le traitement.":
-    "If something went wrong and a message is not enough, file a complaint: it is recorded, dated, and you follow how it is handled.",
+  "Si quelque chose s'est mal passé et qu'un message ne suffit pas, déposez une réclamation":
+    "If something went wrong and a message is not enough, file a complaint",
+  "Message de {nom}": "Message from {nom}",
+  "Ma question porte sur la ligne {ligne}.": "My question is about the line {ligne}.",
+  "la ligne {ligne}": "the line {ligne}",
   "Déposer une réclamation": "File a complaint",
 
   /* ---- à quoi chaque service sert : la phrase qui manquait ---- */
@@ -93,4 +96,22 @@ export const EN_TRADE: Record<string, string> = {
   "Coupons et remboursement jusqu'au terme": "Coupons and redemption to maturity",
   "Gain brut si gardée jusqu'au terme": "Gross gain if held to maturity",
   "Ce que la ligne verse": "What the line pays",
+  "3 mois": "3 months",
+  "sur 3 mois": "over 3 months",
+  "variation du cours": "price change",
+  "Rendement": "Yield",
+  "du dividende": "of dividend",
+  "Cours inchangé depuis": "Price unchanged for",
+  "Comment lire la variation": "How to read the change",
+  "La variation d'une action est celle de son cours sur trois mois, hors dividendes. Elle décrit le passé : elle ne préjuge pas des performances futures.": "A share's change is the change in its price over three months, excluding dividends. It describes the past: it does not predict future performance.",
+  "Pour investir sereinement": "To invest with peace of mind",
+  "Liquidité.": "Liquidity.",
+  "Peu d'actions s'échangent à chaque séance : prévoyez un délai pour revendre, et gardez en tête que le prix de vente peut différer du dernier cours. L'âge du cours est affiché sur chaque carte.": "Few shares trade at each session: allow time to sell, and keep in mind that the selling price may differ from the last price. The age of the price is shown on each card.",
+  "Prix.": "Price.",
+  "Un cours évolue avec le marché, dans les deux sens ; le capital investi n'est pas garanti.": "A price moves with the market, in both directions; the capital invested is not guaranteed.",
+  "Dividende.": "Dividend.",
+  "Il dépend des résultats de la société et se vote chaque année : un dividende passé n'est pas une promesse.": "It depends on the company's results and is voted each year: a past dividend is not a promise.",
+  "Un repère simple : n'investissez que ce que vous pouvez conserver, et répartissez entre plusieurs sociétés.": "A simple rule of thumb: only invest what you can keep invested, and spread it across several companies.",
+  "Tout savoir sur les risques et les limites": "Everything about the risks and limits",
+  "Les variations de cours sont des performances passées, mesurées sur trois mois et hors dividendes : elles ne préjugent pas des performances futures. Un cours reste inchangé quand une ligne n'est pas échangée : la carte dit depuis quand.": "Price changes are past performance, measured over three months and excluding dividends: they do not predict future performance. A price stays unchanged when a line does not trade: the card says since when.",
 };

@@ -676,6 +676,16 @@ de pixels figés) et le dos prend la hauteur de son contenu ; changer de densit�
 « Filtrer » et « Affichage » ont l'arrondi de l'application, pas la pilule. Le choix de densité est de **deux grosses cases** avec
 libellé. Une action n'écrit plus « Acheteur / vendeur » (case vide) ; son dos ajoute la fourchette sur trois mois.
 
+**Le prix d'une action en avant (6 novembre 2026).** Choix 0·2, 1·1, 2·2, 3·1, 4·1 de la planche « Le cours et sa variation » (références : fiches
+d'action et listes de cours des applications de courtage et de suivi de marchés — le prix domine, la variation est son satellite et nomme sa période).
+Sur la carte détaillée d'une **action** : le prix est le plus grand chiffre (1,75 rem, encre), la **variation sur trois mois** dessous (flèche, couleur du
+signe, « sur 3 mois » écrit), la courbe à droite ; le dividende est une case de la grille avec son rendement, puis « Cours inchangé depuis » (le ticket
+redit le cours). Tuile compacte : prix à droite, variation dessous (« 3 mois »), « Div. 2,78 % » sous le nom. Le titre perd « : action cotée » (le badge
+et « cotation continue » le disent) ; la pastille « Cotée » reste. Une variation à 0,0 % s'écrit comme les autres, et l'âge du cours est dans la grille.
+Obligations, bons, fonds et adjudications gardent leur chiffre en avant. Tri « variation du cours » (les lignes sans variation connue en dernier).
+**Avertissement :** le « i » de l'onglet Titres dit comment lire la variation et ce qu'il est bon de savoir (liquidité en premier, prix, dividende) avec
+**un seul lien**, vers « Risques et limites » (la leçon « Les quatre risques » y est déjà citée) ; la même mise en garde est en pied de la page Titres.
+
 **Le rond devant un nom (2 novembre 2026).** Seules les adjudications en ont un (le drapeau
 du Trésor, `aUnRond`) : devant un titre coté ou un fonds, le monogramme prenait la place du nom
 sans rien apprendre.
@@ -719,6 +729,27 @@ dans `src/i18n/en-*.ts` — le test de couverture le refuse sinon.
 `Votre journée`) parle à l'équipe, non au client ; et la note de version de la
 convention (`src/data/legal.ts`), qui cite « Votre activité » dans un texte daté
 — le modifier suppose de versionner le texte.
+
+## 10. Le ton des risques et des mises en garde — rassurer sans rien retirer
+
+*Décidé le 6 novembre 2026. Gardé par `src/test/skills.test.ts` (le « i » des instruments).*
+
+Un texte de risque se lit **avant d'investir**, par un épargnant qui n'est pas juriste. Il doit lui donner de quoi décider, pas lui faire peur. Le ton est celui
+d'un **repère**, jamais d'une alerte ; la **vérité** est celle de la loi, jamais adoucie.
+
+| Règle | Ce que cela veut dire |
+|---|---|
+| **Le geste avant la menace** | on dit ce qu'on peut faire (« prévoyez un délai pour revendre », « répartissez entre plusieurs sociétés ») avant ce qui peut arriver |
+| **Un vocabulaire calme** | pas de « ATTENTION », de capitales, de point d'exclamation, de « danger » ; des verbes d'action et des phrases courtes |
+| **Rien n'est retiré** | « le capital n'est pas garanti », « ne préjuge pas des performances futures » restent écrits **en toutes lettres** ; positif ne veut pas dire omis |
+| **Le ton ne change pas le sens** | une mention obligatoire se reformule pour être plus claire, jamais pour être moins nette ; en cas de doute, on la garde telle quelle et on le dit |
+| **La liquidité d'abord, sur ce marché** | peu de lignes s'échangent à chaque séance : c'est le trait de la BVMAC, donc le premier point de la liste |
+| **À côté du chiffre qu'on qualifie** | l'avertissement vit dans la feuille « i » **et** en pied de la page ; une bulle ne remplace pas une mention |
+| **Un seul lien vers le texte opposable** | « Risques et limites » ; la leçon pédagogique y est déjà citée, deux liens font du bruit |
+| **Le rouge est réservé au faux ou au refusé** | une baisse de cours se colore par son signe, un risque ne se colore pas |
+
+*Un texte de risque nouveau passe par la discussion (`guichet-maquette`), est confronté aux références (`guichet-benchmark`) et ne s'écrit en anglais qu'avec son
+français validé.*
 
 ## Annexe — l'énoncé d'origine des deux arbitrages
 

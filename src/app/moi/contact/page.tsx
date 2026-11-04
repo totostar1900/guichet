@@ -30,7 +30,8 @@ export const metadata = { title: "Nous contacter" };
  * s'est passé ne va pas. La réclamation est nommée et non cachée : une maison
  * qui n'écrit pas le mot oblige son client à l'inventer.
  */
-export default async function ContactPage() {
+export default async function ContactPage({ searchParams }: { searchParams: Promise<{ ligne?: string }> }) {
+  const { ligne } = await searchParams;
   const s = await requireSession("/moi/contact");
   const t = await getT();
   const r = repo();
@@ -45,6 +46,8 @@ export default async function ContactPage() {
   /* La dernière intention par la date, pas par l'ordre de la table : le
      message préparé la cite, et citer la mauvaise ferait perdre du temps aux
      deux bouts. */
+  /* LA LIGNE D'OÙ L'ON VIENT (« Contacter » du glissement d'une carte) : le message la nomme, pour que le desk n'ait pas à la demander. */
+  const laLigne = ligne ? await r.getOffer(ligne).catch(() => undefined) : undefined;
   const derniere = [...intents.filter((i) => i.clientId === s.userId)].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]?.ref;
 
   return (
@@ -60,7 +63,7 @@ export default async function ContactPage() {
           phrase={t("Une personne suit votre compte. Écrivez-lui : le message part avec ce qu'il faut pour qu'on n'ait pas à vous demander qui vous êtes.")}
         />
 
-        <ConseillerCard anchor="conseiller" advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: ctx.lignes, derniere }} />
+        <ConseillerCard anchor="conseiller" advisor={advisor} client={{ nom: s.name, compte: dossier?.review.custodianAccount, lignes: ctx.lignes, derniere, ligne: laLigne?.title }} />
 
         <section className={styles.autres}>
           <p>
@@ -76,10 +79,10 @@ export default async function ContactPage() {
           {/* LA RÉCLAMATION SE NOMME. Une maison qui n'écrit pas le mot oblige
               son client à l'inventer, et c'est précisément quand il va mal
               qu'il ne doit pas avoir à chercher ses mots. */}
-          <p>
-            {t("Si quelque chose s'est mal passé et qu'un message ne suffit pas, déposez une réclamation : elle est enregistrée, datée, et vous en suivez le traitement.")}{" "}
-            <Link href="/moi/reclamation">{t("Déposer une réclamation")}</Link>
-          </p>
+          <p>{t("Si quelque chose s'est mal passé et qu'un message ne suffit pas, déposez une réclamation")}</p>
+          <Link className="btn" href="/moi/reclamation">
+            {t("Déposer une réclamation")}
+          </Link>
         </section>
         </div>
     </Glissement>

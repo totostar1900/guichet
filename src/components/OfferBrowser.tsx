@@ -31,6 +31,7 @@ import { Dropdown } from "./market/Dropdown";
 import { SECTIONS, SECTION_LABEL, sectionDe, type Lieu, type Section } from "@/lib/domain/sections";
 import { usePhone } from "./chart-utils";
 import { BlocRepliable, FoldAll, useFold } from "./Fold";
+import { SuivisContext } from "@/lib/ui/suivi";
 import { issuerKey, issuerZone, type IssuerZone } from "@/data/issuer-registry";
 import { LineMenu } from "./mobile/LineMenu";
 import { useDeskView, useLineHref } from "./DeskView";
@@ -85,7 +86,7 @@ const TENORS: [string, string][] = [
   ["gt3", "Plus de 3 ans"],
   ["eq", "Actions et fonds"],
 ];
-export type SortKey = "deadline" | "yield" | "coupon" | "tenor" | "minimum" | "title" | "issuer";
+export type SortKey = "deadline" | "yield" | "coupon" | "tenor" | "minimum" | "title" | "issuer" | "variation";
 type Dir = "asc" | "desc";
 type View = "table" | "list" | "cards";
 /**
@@ -110,7 +111,7 @@ const VIEW_LABEL: Record<View, string> = { table: "Tableau", list: "Liste", card
    l'ordre, pas la colonne, et un ordre se renverse — « la plus proche »
    devenait faux dès qu'on inversait la flèche. « Plus récent » est parti : il
    range sur la date d'entrée au référentiel, qui ne dit rien de la ligne. */
-const SORT_LABEL: Record<SortKey, string> ={ deadline: "Date de clôture", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", title: "nom", issuer: "émetteur" };
+const SORT_LABEL: Record<SortKey, string> ={ deadline: "Date de clôture", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", title: "nom", issuer: "émetteur", variation: "variation du cours" };
 const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2, quoted: 2, on_request: 3, results: 4, closed: 4, live: 5, matured: 6 };
 
 const normStatus = (s: DisplayStatus): string => clientStatusGroup(s);
@@ -714,6 +715,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         }
         case "yield":
           return (a.s.yieldPct ?? -1) - (b.s.yieldPct ?? -1);
+        case "variation":
+          /* Les lignes sans variation connue passent après les autres, dans les deux sens : un « 0 » inventé les mêlerait aux vraies. */
+          return (courbes?.[a.o.isin ?? ""]?.variationPct ?? -999) - (courbes?.[b.o.isin ?? ""]?.variationPct ?? -999);
         case "coupon":
           return parseNum(a.s.coupon) - parseNum(b.s.coupon);
         case "tenor":
@@ -732,7 +736,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     out.sort((a, b) => (dir === "asc" ? cmp(a, b) : cmp(b, a)));
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [offers, now, sp, sort, dir]);
+  }, [offers, now, sp, sort, dir, courbes]);
 
   /**
    * LES POINTS DU NUAGE : les lignes à échéance, sans les deux plages qu'il
@@ -923,6 +927,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   };
 
   return (
+    <SuivisContext.Provider value={armees}>
     <div className={styles.wrap} ref={wrapRef}>
       {/* L'en-tête nomme la cote et renvoie aux fonds : il n'a rien à dire sur
           une page d'adjudications, qui a son propre titre et son calendrier. */}
@@ -953,7 +958,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
             </svg>
             <input
               type="search"
-              placeholder={t("Rechercher une ligne, un émetteur, un ISIN")}
+              placeholder={t("Recherche")}
               aria-label={t("Rechercher")}
               defaultValue={q}
               ref={searchInput}
@@ -1207,5 +1212,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         ]}
       />}
     </div>
+    </SuivisContext.Provider>
   );
 }

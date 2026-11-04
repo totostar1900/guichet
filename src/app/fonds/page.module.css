@@ -587,14 +587,14 @@
   align-items: center;
   gap: 6px;
   min-height: 44px;
-  padding: 0 12px;
+  padding: 0 10px;
   /* BLANC SANS FILTRE, DORÉ AVEC (5 novembre 2026) : comme sur Titres. */
   border: 1px solid var(--line-2);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -602,4 +602,17 @@
   border-color: var(--gold);
   background: var(--gold-soft);
   color: var(--gold-ink);
+}
+
+/* LA LOUPE DANS LE CHAMP (6 novembre 2026) : la même que celle de Titres et d'Adjudications, et le même mot, « Recherche ». */
+.search .loupe {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-3);
+  pointer-events: none;
+}
+.search input {
+  padding-left: 34px;
 }

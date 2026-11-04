@@ -143,7 +143,7 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     expect(lire("src/components/mobile/SwipePager.tsx"), "le glissement entre fiches empile de nouveau l'historique").not.toMatch(/router\.push\(target\)/);
     expect(lire("src/components/market/OngletsMarche.tsx"), "changer de famille empile de nouveau l'historique").toMatch(/<Link key=\{p\.key\} href=\{p\.href\} replace /);
     const b = lire("src/components/mobile/BarreDuHaut.tsx");
-    expect(b, "le « i » a quitté la barre du haut").toMatch(/\{BRIEF_DE_LA_PAGE\[chemin\] && <EnBrefInstruments page=\{BRIEF_DE_LA_PAGE\[chemin\]\} className=\{styles\.ic\} \/>\}/);
+    expect(b, "le « i » a quitté la barre du haut").toMatch(/\{BRIEF_DE_LA_PAGE\[chemin\] && <EnBrefInstruments page=\{BRIEF_DE_LA_PAGE\[chemin\]\} className=\{`\$\{styles\.ic\} \$\{styles\.info\}`\} \/>\}/);
     expect(b, "une des trois pages n'a plus son brief dans la barre").toMatch(/"\/titres": "titres", "\/fonds": "fonds", "\/calendrier": "adjudications"/);
   });
 
@@ -153,7 +153,10 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     expect(e, "la feuille ne s'ouvre plus sur l'onglet de la page courante").toMatch(/setOnglet\(page\);/);
     expect(e, "le tableau « en un coup d'œil » a disparu").toMatch(/aria-label=\{t\("En un coup d'œil"\)\}/);
     for (const k of ["Prix", "Délai", "Rendement"]) expect(e, `la ligne « ${k} » a disparu du tableau`).toMatch(new RegExp(`quoi: "${k}"`));
-    expect(e.replace(/\/\*[\s\S]*?\*\//g, ""), "un onglet mène à une page : il ne devait que lire (choix 2A)").not.toMatch(/<Link\b|href=|router\./);
+    /* Les onglets ne mènent nulle part pour changer de page (choix 2A). Un seul lien existe, depuis le 6 novembre 2026 : « Risques et limites », demandé pour l'onglet Titres. */
+    const code = e.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(code, "un onglet change de page : il ne devait que lire (choix 2A)").not.toMatch(/router\./);
+    expect([...code.matchAll(/<Link\b[^>]*href="([^"]+)"/g)].map((m) => m[1]), "la feuille a un lien de trop (ou plus celui des risques)").toEqual(["/info/risques#risques"]);
     for (const f of ["src/components/MarketToggles.tsx", "src/app/fonds/FondsBody.tsx", "src/app/calendrier/page.tsx"]) expect(lire(f), `${f} ouvre de nouveau un « en bref » à une seule page`).toMatch(/<EnBrefInstruments page="/);
   });
 
@@ -185,7 +188,7 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     expect(lire("src/components/market/TeteGroupe.tsx"), "un groupe ne se replie plus").toMatch(/onClick=\{onBascule\}/);
     // 4 · drapeaux
     expect(ob, "l'en-tête d'un groupe d'émetteur n'a plus son drapeau").toMatch(/<Drapeau pays=\{g\.zone\}/);
-    expect(fb, "les fonds n'ont plus le drapeau de leur société de gestion").toMatch(/<Drapeau pays=\{r\.country\}/);
+    expect(fb, "un drapeau est revenu sur les fonds (retiré le 6 novembre 2026)").not.toMatch(/<Drapeau/);
     expect(lire("src/components/market/TeteGroupe.tsx"), "le titre d'un groupe n'a plus le drapeau de son émetteur").toMatch(/<Drapeau pays=\{pays\}/);
     // 1 · même hauteur que la pastille de famille
     const g = lire("src/app/globals.css");
@@ -204,7 +207,7 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     expect(oc, "le dos d'une carte n'a plus son icône de retournement sous le « ··· »").toMatch(/<\/button>\s*\{\/\*[^*]*\*\/\}\s*<button type="button" className=\{styles\.flipBtn\} onClick=\{\(\) => turn\.current\?\.\(\)\}/);
     const fc = lire("src/app/fonds/FundCard.tsx");
     expect(fc, "le dos d'un fonds n'a plus son icône de retournement").toMatch(/className=\{styles\.flipBtn\} onClick=\{\(\) => turn\.current\?\.\(\)\}/);
-    expect(fc, "la carte d'un fonds n'a plus le drapeau de sa société de gestion").toMatch(/<Drapeau pays=\{r\.country\}/);
+    expect(fc, "un drapeau est revenu sur la carte d'un fonds (retiré le 6 novembre 2026)").not.toMatch(/<Drapeau/);
   });
 
   it("le bouton Filtrer est blanc sans filtre et doré avec (Titres, Adjudications, Fonds)", () => {
@@ -222,18 +225,70 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     const sw = lire("src/components/mobile/SwipeActions.tsx");
     const lm = lire("src/components/mobile/LineMenu.tsx");
     expect(sw, "le glissement n'a plus l'état de suivi partagé").toMatch(/const \[on, setOn\] = useSuivi\(id, suivi\)/);
-    expect(lm, "le menu « ··· » n'a plus l'état de suivi partagé").toMatch(/const \[on, setOn\] = useSuivi\(line\.id, Boolean\(watching\)\)/);
+    expect(lm, "le menu « ··· » n'a plus l'état de suivi partagé").toMatch(/const \[on, setOn\] = useSuivi\(line\.id, watching\)/);
     expect(lm, "le menu « ··· » n'envoie plus la cadence du suivi").toMatch(/toggleWatch\(line\.id, next, cadence\)/);
     expect(lire("src/components/OfferCard.tsx"), "la cloche ne lit plus l'état partagé").toMatch(/const \[suiviEtat\] = useSuivi\(o\.id, suivi\)/);
     expect(sw, "le bouton du dos ne ramène plus à la face").toMatch(/if \(st\.angle > 0\) \{\s*close\(\);\s*return;/);
     expect(sw, "la face avant garde de nouveau une hauteur figée en pixels").toMatch(/el\.style\.height = turned && h \? `\$\{h\}px` : "";/);
     expect(lire("src/components/mobile/SwipeActions.module.css"), "le dos est de nouveau étiré à la hauteur de la face").not.toMatch(/\.back \{[^}]*inset: 0;/);
-    expect(lire("src/components/OfferCard.tsx"), "changer de densité ne remet plus la carte à zéro").toMatch(/key=\{compact \? "compacte" : "pleine"\}/);
+    expect(lire("src/components/OfferCard.tsx"), "changer de densité ne remet plus la carte à zéro").toMatch(/key="pleine"[\s\S]*key="compacte"/);
     expect(lire("src/components/Affichage.module.css"), "les cases d'Affichage sont de nouveau en pilule").not.toMatch(/border-radius: 999px/);
     expect(lire("src/components/Density.module.css"), "les cases de distinction sont de nouveau en pilule").not.toMatch(/\.chip \{[^}]*border-radius: 999px/);
     expect(lire("src/components/OfferBrowser.module.css"), "les cases du filtre sont de nouveau en pilule").not.toMatch(/\.chipBtn \{[^}]*border-radius: 999px/);
     expect(lire("src/components/Density.tsx"), "le choix de densité n'a plus ses deux grosses cases").toMatch(/className=\{styles\.densChoix\}/);
     expect(lire("src/lib/domain/summary.ts"), "la case « Acheteur / vendeur » est revenue sur la face d'une action").not.toMatch(/\["Acheteur \/ vendeur"/);
+  });
+
+  it("série du 6 novembre 2026 : dos = carte détaillée en compact, pas de dos en détaillé, suivi lu du serveur, sans drapeau sur les fonds", () => {
+    const oc = lire("src/components/OfferCard.tsx");
+    // vue détaillée : une SwipeActions sans dos, donc ni chevron à gauche ni icône de retournement
+    const pleine = oc.slice(oc.indexOf('key="pleine"'), oc.indexOf("</SwipeActions>", oc.indexOf('key="pleine"')));
+    expect(pleine, "la vue détaillée a de nouveau un dos").not.toMatch(/back=|backHead=|turnRef=/);
+    expect(oc.slice(0, oc.indexOf('key="compacte"')), "la carte détaillée porte de nouveau un bouton de retournement").not.toMatch(/styles\.flipBtn[^}]*>\s*<Turn/);
+    // vue compacte : le dos EST la carte détaillée
+    expect(oc, "le dos d'une carte compacte n'est plus la carte détaillée").toMatch(/back=\{<div className=\{styles\.dos\}>\{corps\(true\)\}<\/div>\}/);
+    expect(oc, "l'ancien dos chiffré est revenu").not.toMatch(/CardBack|backFacts/);
+    // suivi : le serveur sert de départ à tout menu et à tout glissement
+    const su = lire("src/lib/ui/suivi.ts");
+    expect(su, "le suivi ne lit plus les lignes suivies du serveur").toMatch(/departExplicite \?\? Boolean\(serveur\?\.has\(id\)\)/);
+    expect(lire("src/components/OfferBrowser.tsx"), "la liste ne pose plus les suivis du serveur").toMatch(/<SuivisContext\.Provider value=\{armees\}>/);
+    expect(lire("src/app/fonds/FundsBrowser.tsx"), "les fonds ne posent plus les suivis du serveur").toMatch(/<SuivisContext\.Provider value=\{armees\}>/);
+    expect(lire("src/app/fonds/FondsBody.tsx"), "les fonds suivis ne sont plus lus").toMatch(/listWatches\(session\.userId\)/);
+    // bulle : la même pour le menu et le glissement
+    const t = lire("src/components/mobile/LineMenu.module.css");
+    expect(t, "la bulle du menu n'est plus celle du glissement").toMatch(/\.toast \{[^}]*background: var\(--gold-soft\)/);
+    // fenêtre centrée : se ferme d'un geste vers le bas
+    expect(lire("src/components/mobile/Sheet.tsx"), "la fenêtre centrée ne se ferme plus au geste").toMatch(/centre \? `translate\(-50%, calc\(-50% \+ \$\{drag\.current\.dy\}px\)\)`/);
+    expect(lire("src/components/mobile/Sheet.tsx"), "la fenêtre centrée ignore de nouveau le geste").not.toMatch(/if \(centre\) return;/);
+  });
+
+  it("série du 6 novembre 2026 : recherche, tuiles, « i », contact", () => {
+    expect(lire("src/components/OfferBrowser.tsx"), "le champ de Titres n'écrit plus « Recherche »").toMatch(/placeholder=\{t\("Recherche"\)\}/);
+    const fb = lire("src/app/fonds/FundsBrowser.tsx");
+    expect(fb, "le champ de Fonds n'écrit plus « Recherche »").toMatch(/placeholder=\{t\("Recherche"\)\}/);
+    expect(fb, "le champ de Fonds a perdu sa loupe").toMatch(/className=\{styles\.loupe\}/);
+    expect(lire("src/components/GrilleDInstruments.module.css"), "six tuiles n'ont plus la police réduite ni la grille élargie").toMatch(/\[data-serre="oui"\] \.tuile \{[^}]*font-size: 0\.6rem/);
+    expect(lire("src/components/mobile/BarreDuHaut.module.css"), "le « i » n'est plus à part").toMatch(/\.info \{[^}]*color: #8db6ff/);
+    const cc = lire("src/app/moi/contact/ConseillerCard.tsx");
+    expect(cc, "la phrase WhatsApp est revenue").not.toMatch(/Écrivez sur WhatsApp, appelez/);
+    expect(cc, "l'e-mail n'est plus un vrai bouton").toMatch(/<a className="btn" href=\{`mailto:/);
+    expect(lire("src/components/mobile/BarreDuHaut.tsx"), "« Nous contacter » a quitté le menu").toMatch(/href="\/moi\/contact"[^>]*>\s*<Trace d=\{ICONE\.contact\}/);
+  });
+
+  it("le prix d'une action est en avant avec sa variation sur trois mois, la période écrite ; avertissement et risques ; titre sans « action cotée »", () => {
+    const oc = lire("src/components/OfferCard.tsx");
+    expect(oc, "la variation n'écrit plus sa période").toMatch(/\{court \? t\("3 mois"\) : t\("sur 3 mois"\)\}/);
+    expect(oc, "la carte détaillée d'une action n'a plus le prix en avant").toMatch(/estAction && prix \? \(\s*<div className=\{styles\.bigAction\}>/);
+    expect(oc, "la grille d'une action redit de nouveau le cours ou le ticket").toMatch(/const faitsAction = /);
+    expect(oc, "la tuile compacte d'une action n'a plus le prix en avant").toMatch(/estAction && prix \? \(\s*<>\s*<b>\s*\{prix\.nombre\}/);
+    const css = lire("src/components/OfferCard.module.css");
+    expect(css, "le prix d'une action n'est plus à l'encre").toMatch(/\.prix \{[^}]*color: var\(--ink\)/);
+    expect(lire("src/lib/domain/carte-compacte.ts"), "le titre porte de nouveau « action cotée »").toMatch(/replace\(\/\\s\*:\\s\*action cotée\\s\*\$\/i, ""\)/);
+    expect(lire("src/components/OfferBrowser.tsx"), "le tri par variation a disparu").toMatch(/case "variation":/);
+    const i = lire("src/components/EnBrefInstruments.tsx");
+    expect(i, "le « i » n'a plus ses risques pour l'onglet Titres").toMatch(/onglet === "titres" && <VariationEtRisques \/>/);
+    expect(i, "la liquidité n'est plus nommée dans le « i »").toMatch(/<b>\{t\("Liquidité\."\)\}<\/b>/);
+    expect(lire("src/app/TitresBody.tsx"), "la mise en garde a quitté le pied de la page Titres").toMatch(/performances passées, mesurées sur trois mois/);
   });
 
   it("chaque Trésor a son drapeau dessiné, et il est sur chaque ligne et sur chaque pastille de pays", () => {
@@ -246,7 +301,8 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
   it("les cartes d'actions portent le graphe : à droite du chiffre en avant, au milieu de la tuile compacte, avec « Div. » et « FCFA » réduit", () => {
     const c = lire("src/components/OfferCard.tsx");
     expect(c, "le graphe de la carte complète a quitté le chiffre en avant").toMatch(/<span className=\{styles\.courbe\}>\s*<MiniCourbe serie=\{courbe\.serie\} \/>/);
-    const compact = c.slice(c.indexOf("{compact ? ("), c.indexOf(") : (", c.indexOf("{compact ? (")));
+    const d0 = c.indexOf("styles.compact");
+    const compact = c.slice(d0, c.indexOf("</article>", d0));
     expect(compact.indexOf("<MiniCourbe"), "le graphe n'est plus au milieu de la tuile compacte").toBeGreaterThan(compact.indexOf("styles.cId"));
     expect(compact.indexOf("<MiniCourbe"), "le graphe n'est plus avant le chiffre").toBeLessThan(compact.indexOf("styles.cNum"));
     expect(compact, "« Dividende » n'est plus abrégé en « Div. »").toMatch(/<Montant etiquette=\{t\("Div\."\)\}/);

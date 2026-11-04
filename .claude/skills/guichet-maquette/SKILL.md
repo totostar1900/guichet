@@ -7,6 +7,18 @@ description: Discuter et maquetter AVANT de coder, pour toute demande de concept
 
 La règle de la maison : **le client ne découvre pas une décision de conception dans le code.** Une demande de conception passe par trois temps, dans cet ordre, et le code n'arrive qu'au troisième.
 
+## Les skills voisins — on les consulte à chaque étape, on les nomme au compte rendu
+
+| Quand… | Consulter |
+|---|---|
+| on se compare à d'autres applications, on juge une hiérarchie, une densité, un chiffre en avant | `guichet-benchmark` (références déjà analysées d'abord : `docs/design-refs/`) |
+| on touche un écart, un chapitre, une tuile, un jeton d'espace | `guichet-espace-tuiles` |
+| on écrit un texte de risque, de mise en garde, d'avertissement | `ETALON.md` § 10 — **rassurer sans rien retirer** |
+| on nomme un lieu du client ou on lui parle | `ETALON.md` § 9 — « Mes » pour ce qui est à lui, « Votre » pour la maison |
+
+*Ce n'est pas une liste à cocher une fois :* chaque nouvelle demande de conception repart de cette table. Une leçon apprise en route (un piège, une règle de
+ton, un principe de hiérarchie) **s'écrit dans le skill concerné** avant la fin de la session, pas seulement dans la conversation.
+
 ## 0. Quand ce skill s'applique
 
 | La demande est… | On fait… |
@@ -43,6 +55,14 @@ Règles de ton : pas de compte rendu de ce que j'ai fait, pas de liste de ce que
 
 > **Règle ajoutée le 2 novembre 2026.** Une correction de hiérarchie (titres, chiffres, couleurs, relief) passe aussi par la planche : elle se juge à l'œil, pas à la mesure. Montrer l'état actuel à côté de l'état proposé, **en thème sombre et en thème clair**.
 
+### Challenger, pas seulement exécuter
+
+« Discuter et challenger » veut dire : si la demande contredit ce que montrent les **références** (`guichet-benchmark`) ou les **données** (marché peu échangé,
+historique court), on le dit avec la mesure, on propose la forme qui sert l'intention, et on pose les **questions qui tranchent** (pas dix : celles dont la
+réponse change le code). Exemples déjà rencontrés : « la variation en gros chiffre » → les références mettent le **prix** en avant et la variation à côté,
+période écrite ; un « 0,0 % » sur une ligne muette se lit comme de la stabilité. Une réponse du client qui choisit autre chose que la recommandation **se suit**,
+et le compte rendu dit ce que l'on avait déconseillé.
+
 ## 3. La planche de choix
 
 Une page HTML, publiée avec l'outil Artifact (charger d'abord le skill `artifact-design`). Partir de `modele-planche.html` à côté de ce fichier. Contenu :
@@ -65,6 +85,13 @@ Les mockups reprennent les **libellés de la maison** (voix « Mes/Mon » pour l
 
 Après publication : donner le lien, résumer en chat les recommandations et les questions bloquantes. **L'abonnement de réveil sur la planche échoue souvent** : le dire une fois, et préciser que les réponses s'écrivent dans le chat.
 
+**L'état « aujourd'hui » d'une planche est une capture réelle, jamais un dessin.** Les « aujourd'hui » dessinés à la main ont été jugés infidèles (5 novembre
+2026) : le client ne peut pas décider contre un état qu'il ne reconnaît pas. Capturer à 390 px, **sans bannière ouverte** (fermer la présentation et les coachs),
+puis mesurer les tailles réelles (`getComputedStyle`) et les citer. Les options reprennent **les mêmes valeurs** que la capture.
+
+**Chaque option dit ce qu'elle change ailleurs** : un chiffre en avant est lu par la carte, la tuile, la liste, la fiche ; une donnée calculée à un endroit doit
+l'être **une seule fois** pour toutes les surfaces, sinon deux pages disent deux choses.
+
 ## 4. Attendre le choix
 
 Le client répond « 1A, 2B, 3A, 4C… » avec ses corrections (« A, sans le nombre de lignes », « B, et renommer X »). On **relit chaque réponse comme une consigne** et on liste ce qu'on a compris, surtout quand une réponse est ambiguë (« tuile ouverte », « 13 : non »). Ce qui n'a pas été tranché reçoit un défaut prudent, **dit** dans le compte rendu final.
@@ -78,6 +105,8 @@ Respecter les règles de `CLAUDE.md` et les habitudes de la maison :
 - Lire `node_modules/next/dist/docs/` avant d'écrire du code Next.js.
 - `src/lib/finance.ts` pour tout calcul ; toute écriture métier par `audit()` ; données en `types.ts` **et** migrations SQL.
 - Les écarts viennent des jetons (skill `guichet-espace-tuiles`) ; jamais une valeur en dur.
+- **Un texte de risque ou de mise en garde suit `ETALON.md` § 10** : le geste avant la menace, un vocabulaire calme, aucune mention retirée, la liquidité d'abord sur ce marché,
+  un seul lien vers le texte opposable. Le ton se discute dans la planche comme le reste.
 - **Un conteneur ne doit jamais rester vide** entre deux chapitres : une pièce qui se tait rend `null`, et le chapitre qui la porte avec elle.
 - Un libellé est aussi une clé de traduction : ajouter l'anglais dans `src/i18n/en-*.ts`, le test de couverture le refuse sinon.
 - **Une règle écrite dans un test se met à jour dans le test**, pas à côté : réécrire la clause pour qu'elle garde l'intention dans la nouvelle forme.
@@ -89,9 +118,14 @@ Respecter les règles de `CLAUDE.md` et les habitudes de la maison :
 
 ## 6. Le compte rendu final
 
-Court, factuel, dans cet ordre : ce qui est fait ; ce que j'ai **interprété** (portée non tranchée, défaut choisi) ; ce qui n'a pas été **vu à l'écran** ; ce qui reste à décider. Jamais un « tout est vérifié » qui ne l'est pas.
+Court, factuel, dans cet ordre : ce qui est fait ; **les skills utilisés et ce qu'on en a appliqué** ; ce que j'ai **interprété** (portée non tranchée, défaut choisi) ; ce qui n'a pas été **vu à l'écran** ; ce qui reste à décider. Jamais un « tout est vérifié » qui ne l'est pas.
 
 ## Pièges déjà rencontrés
+
+- **Dessiner l'état « aujourd'hui »** au lieu de le capturer : la planche est à refaire (5 novembre 2026).
+- **Deux liens pour un même sujet** dans une feuille courte (la page opposable et la leçon) : un seul, vers le texte opposable, qui cite l'autre.
+- **Un ton qui retire une mention** : adoucir une mise en garde jusqu'à la rendre moins nette n'est pas « plus positif », c'est une faute (`ETALON.md` § 10).
+- **Une capture polluée** par une bannière (présentation, mentions légales) : la fermer avant de capturer, relire la capture avant de la poser dans la planche.
 
 - **La portée oubliée** : « retirer le volet Émetteur » pour un fonds, ou pour toutes les lignes ?
 - **Le même mot, deux pages** : « la page compte » = ouverture de compte ou « Mon compte » ?

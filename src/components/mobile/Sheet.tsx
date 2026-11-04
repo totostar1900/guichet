@@ -84,7 +84,7 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, a
    * déjà en haut. Sinon il défile, comme avant : une feuille longue se lit.
    */
   const onTouchStart = (e: React.TouchEvent) => {
-    if (centre) return;
+    /* LA FENÊTRE CENTRÉE SE FERME AUSSI D'UN GESTE DE HAUT EN BAS (6 novembre 2026), comme la feuille du bas : « Filtrer » et « Affichage » en sont. */
     const cible = e.target as HTMLElement;
     const corps = cible.closest(`.${styles.body}`);
     const surLaTete = Boolean(cible.closest(`.${styles.head}`));
@@ -98,7 +98,7 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, a
     // vers le bord d'où elle est venue.
     const up = dock === "under";
     drag.current.dy = Math.max(0, up ? drag.current.y0 - e.touches[0].clientY : e.touches[0].clientY - drag.current.y0);
-    box.current.style.transform = `translateY(${up ? -drag.current.dy : drag.current.dy}px)`;
+    box.current.style.transform = centre ? `translate(-50%, calc(-50% + ${drag.current.dy}px))` : `translateY(${up ? -drag.current.dy : drag.current.dy}px)`;
   };
   const onTouchEnd = () => {
     const dy = drag.current?.dy ?? 0;

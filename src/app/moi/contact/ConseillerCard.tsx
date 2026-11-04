@@ -1,6 +1,7 @@
 import { conseillerDe, lienWhatsApp, type Conseiller } from "@/lib/domain/conseiller";
 import type { StaffMember } from "@/lib/domain/types";
 import { getT } from "@/i18n/server";
+import { COMPANY } from "@/lib/config";
 import styles from "./page.module.css";
 
 /**
@@ -27,7 +28,7 @@ import styles from "./page.module.css";
    « Voyez votre conseiller » sans dire où est une impasse, et la page des
    tarifs porte déjà la trace de cette faute : un texte opposable renvoyait à
    un document que personne n'avait écrit. */
-export async function ConseillerCard({ anchor, advisor, client }: { anchor?: string; advisor: StaffMember | undefined; client: { nom: string; compte?: string; lignes: number; derniere?: string } }) {
+export async function ConseillerCard({ anchor, advisor, client }: { anchor?: string; advisor: StaffMember | undefined; client: { nom: string; compte?: string; lignes: number; derniere?: string; ligne?: string } }) {
   const t = await getT();
   const c: Conseiller = conseillerDe(advisor);
 
@@ -35,10 +36,11 @@ export async function ConseillerCard({ anchor, advisor, client }: { anchor?: str
      une phrase assemblée puis traduite ne trouve aucune clef. */
   const bouts = [client.compte ? t("Bonjour, je suis {nom}, compte {compte}.", { nom: client.nom, compte: client.compte }) : t("Bonjour, je suis {nom}.", { nom: client.nom })];
   if (client.derniere) bouts.push(t("Ma dernière intention porte la référence {ref}.", { ref: client.derniere }));
+  if (client.ligne) bouts.push(t("Ma question porte sur la ligne {ligne}.", { ligne: client.ligne }));
   const texte = bouts.join(" ");
 
   /* Ce que le lien emporte, dit au client dans ses propres termes. */
-  const emporte = [client.compte ? t("compte {compte}", { compte: client.compte }) : undefined, client.lignes ? t("{n} lignes au dépositaire", { n: client.lignes }) : undefined, client.derniere ? t("dernière intention {ref}", { ref: client.derniere }) : undefined].filter(Boolean);
+  const emporte = [client.compte ? t("compte {compte}", { compte: client.compte }) : undefined, client.lignes ? t("{n} lignes au dépositaire", { n: client.lignes }) : undefined, client.derniere ? t("dernière intention {ref}", { ref: client.derniere }) : undefined, client.ligne ? t("la ligne {ligne}", { ligne: client.ligne }) : undefined].filter(Boolean);
 
   return (
     <section id={anchor} className={styles.conseiller} aria-labelledby="conseiller-nom">
@@ -60,7 +62,6 @@ export async function ConseillerCard({ anchor, advisor, client }: { anchor?: str
         <span className={styles.cQui}>
           <small className={styles.cEtiquette}>{c.nomme ? t("Mon conseiller") : t("Le desk de Guichet")}</small>
           <b id="conseiller-nom">{c.nom}</b>
-          <span className={styles.cDispo}>{t("Écrivez sur WhatsApp, appelez, ou envoyez un e-mail : le desk est joignable du lundi au vendredi.")}</span>
         </span>
       </div>
 
@@ -84,11 +85,14 @@ export async function ConseillerCard({ anchor, advisor, client }: { anchor?: str
               public. Celui d'un conseiller reste dans le lien. */}
           {c.nomme ? t("Appeler") : t("Appeler le {tel}", { tel: c.telephone })}
         </a>
-        {c.email && (
-          <a className={styles.cMail} href={`mailto:${c.email}`}>
-            {t("Écrire un e-mail")}
-          </a>
-        )}
+        {/* UN VRAI BOUTON, TOUJOURS (6 novembre 2026) : le lien souligné n'existait que si le conseiller avait une adresse. Sans elle, c'est celle de la maison. */}
+        <a className="btn" href={`mailto:${c.email ?? COMPANY.email}?subject=${encodeURIComponent(t("Message de {nom}", { nom: client.nom }))}&body=${encodeURIComponent(texte)}`}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="2" />
+            <path d="m3.5 7 8.5 6 8.5-6" />
+          </svg>
+          {t("Écrire un e-mail")}
+        </a>
       </div>
     </section>
   );

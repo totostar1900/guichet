@@ -6,7 +6,6 @@ import { useDensity } from "@/components/Density";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { useDeskView, useLineHref } from "@/components/DeskView";
 import { SwipeActions } from "@/components/mobile/SwipeActions";
-import { Drapeau } from "@/components/Drapeau";
 import { Turn } from "@/components/OfferCard";
 import { useRef } from "react";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
@@ -101,9 +100,9 @@ export function FundCard({ r }: { r: FundRow }) {
               Le gestionnaire prend donc sa ligne, seul, et les deux autres la
               suivante, côte à côte. */}
           <div className={propres.sous}>
-            <span className={propres.gestion}><Drapeau pays={r.country} largeur={15} /> {r.manager}</span>
+            <span className={propres.gestion}>{r.manager}</span>
             <span className={propres.traits}>
-              <Drapeau pays={r.country} largeur={14} /> <i className={propres.point} data-cat={r.category} aria-hidden="true" />
+              <i className={propres.point} data-cat={r.category} aria-hidden="true" />
               {t(FUND_CATEGORY_LABEL[r.category])} · {t(FUND_FREQUENCY_LABEL[r.frequency])}
             </span>
           </div>

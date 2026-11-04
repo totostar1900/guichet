@@ -91,9 +91,12 @@ export function codeCourt(o: Pick<Offer, "isin" | "issuer" | "title" | "country"
  * parle, et au dos de la carte, qui est fait pour cela.
  */
 export function titreCourt(o: Pick<Offer, "isin" | "issuer" | "title" | "country">): string {
+  /* « : ACTION COTÉE » EST PARTI DU TITRE (6 novembre 2026) : le badge « ACTION » le dit déjà, et la ligne grise « cotation continue » aussi. Le suffixe ne vivait que
+     dans le libellé de certaines lignes, si bien que BGFI le portait et pas SEMC. */
+  const titre = o.title.replace(/\s*:\s*action cotée\s*$/i, "");
   const prefixe = `${o.issuer} · `;
-  if (!o.title.startsWith(prefixe)) return o.title;
-  const reste = o.title.slice(prefixe.length);
+  if (!titre.startsWith(prefixe)) return titre;
+  const reste = titre.slice(prefixe.length);
   const code = codeCourt(o);
   const suite = reste.slice(code.length);
   /* LA BORNE EST « PAS UNE LETTRE NI UN CHIFFRE », pas « une espace ». Deux

@@ -10,9 +10,8 @@ import { AireEpinglee } from "@/components/market/AireEpinglee";
 import { CoachMarks } from "@/components/mobile/CoachMarks";
 import { useDistinction } from "@/components/Density";
 import { Affichage } from "@/components/Affichage";
-import { Drapeau } from "@/components/Drapeau";
 import { BlocRepliable, FoldAll } from "@/components/Fold";
-import type { Country } from "@/lib/domain/types";
+import { SuivisContext } from "@/lib/ui/suivi";
 import { GrilleDInstruments, type TuileDInstrument } from "@/components/GrilleDInstruments";
 import type { NomIcone } from "@/components/IconeDeSection";
 import { usePhone } from "@/components/chart-utils";
@@ -39,8 +38,6 @@ import type { FundCurve } from "@/lib/domain/fund-curve";
 /** One fund as the browser needs it : flat, serialisable, computed on the server. */
 export interface FundRow {
   id: string;
-  /** Le pays de la société de gestion : son drapeau précède son nom. */
-  country: Country;
   title: string;
   isin: string;
   category: FundNav["category"];
@@ -211,7 +208,7 @@ function FundTr({ r }: { r: FundRow }) {
         </small>
       </td>
       <td className={styles.hideSm}>
-        <Drapeau pays={r.country} largeur={15} /> {r.manager}
+        {r.manager}
         <br />
         <small className="muted">{r.depositary}</small>
       </td>
@@ -280,7 +277,7 @@ function FundLi({ r }: { r: FundRow }) {
       <span className={styles.liName}>
         <Link href={href}>{r.title}</Link>
         <small>
-          {t(FUND_CATEGORY_LABEL[r.category])} · {t(FUND_FREQUENCY_LABEL[r.frequency])} · <Drapeau pays={r.country} largeur={15} /> {r.manager}
+          {t(FUND_CATEGORY_LABEL[r.category])} · {t(FUND_FREQUENCY_LABEL[r.frequency])} · {r.manager}
         </small>
       </span>
       <span className={styles.liNav}>
@@ -312,7 +309,8 @@ function FundLi({ r }: { r: FundRow }) {
  * compare et partage, la densité des cartes, la visite guidée) ne paraissent
  * pas. Une correction faite ici paraît des deux côtés le même jour.
  */
-export function FundsBrowser({ rows }: { rows: FundRow[] }) {
+export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds que ce lecteur suit, lus au serveur. */ suivis?: string[] }) {
+  const armees = useMemo(() => new Set(suivis ?? []), [suivis]);
   const desk = useDeskView();
   const t = useT();
   // The filters and sort live in the URL, so the list comes back exactly as it was left (and the link can be shared).
@@ -567,14 +565,14 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   const groupes = useMemo(() => {
     if (!groupe) return [];
     const nomDe = (r: FundRow) => (groupe === "gestion" ? r.manager : groupe === "depositaire" ? r.depositary : t(FUND_CATEGORY_LABEL[r.category]));
-    const out: { clef: string; entier: string; rows: FundRow[]; pays?: Country }[] = [];
+    const out: { clef: string; entier: string; rows: FundRow[] }[] = [];
     const vus = new Map<string, number>();
     for (const r of rowsShown) {
       const entier = nomDe(r) || t("Non renseigné");
       const clef = fundKey(entier) || "sans-nom";
       if (!vus.has(clef)) {
         vus.set(clef, out.length);
-        out.push({ clef, entier, rows: [], pays: groupe === "gestion" ? r.country : undefined });
+        out.push({ clef, entier, rows: [] });
       }
       out[vus.get(clef)!].rows.push(r);
     }
@@ -586,7 +584,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
   /** Les blocs à rendre : les groupes, ou la liste entière comme un seul bloc muet. */
   const blocs = groupe && groupes.length > 0 ? groupes : [{ clef: "", nom: "", entier: "", rows: rowsShown }];
   /** Ce que le sommaire du titre propose : les mêmes groupes, sans leurs lignes. */
-  const sommaire = groupes.map((g) => ({ clef: g.clef, nom: g.nom, entier: g.entier, pays: g.pays }));
+  const sommaire = groupes.map((g) => ({ clef: g.clef, nom: g.nom, entier: g.entier }));
   // L'en-tête d'une colonne est déjà le nom de ce qu'on veut trier : une
   // fonction, pas un composant, qu'un composant déclaré dans le rendu
   // reperdrait son état à chaque passage.
@@ -676,10 +674,14 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
    */
   const recherche = (
     <div className={styles.search}>
+      <svg className={styles.loupe} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.5-3.5" />
+      </svg>
       <input
         ref={searchInput}
         type="search"
-        placeholder={manager ? t("Un fonds de cette société…") : t("Un fonds, une société de gestion, un dépositaire")}
+        placeholder={t("Recherche")}
         aria-label={t("Rechercher")}
         value={draft}
         onChange={(e) => {
@@ -743,6 +745,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
    * ne mène donc jamais à une liste vide.
    */
   return (
+    <SuivisContext.Provider value={armees}>
     <FenetreCtx.Provider value={fenetre}>
       {/* UN SEUL ENFANT DE LA PILE : les commandes, le bandeau et la liste gardent leur rythme serré (« --titre-gap »), et la page ne voit que le bloc (ETALON.md § 8). */}
       <div className={styles.navigateur}>
@@ -906,7 +909,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         <div data-coach="fonds-table" ref={searchList} className={styles.debutDeListe}>
           {blocs.map((b) => (
             <section key={b.clef || "tout"} className={styles.bloc} aria-labelledby={b.clef ? `sec-${b.clef}` : undefined}>
-              <BlocRepliable id={`sec-${b.clef}`} tete={(ouvert, bascule) => b.clef ? <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} entier={b.entier} pays={"pays" in b ? b.pays : undefined} groupes={sommaire} ouvert={ouvert} onBascule={bascule} /> : null}>
+              <BlocRepliable id={`sec-${b.clef}`} tete={(ouvert, bascule) => b.clef ? <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} entier={b.entier} groupes={sommaire} ouvert={ouvert} onBascule={bascule} /> : null}>
               <div className={styles.cards} data-sep={sep}>
                 {b.rows.map((r) => (
                   <FundCard key={r.id} r={r} />
@@ -921,7 +924,7 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
         <div data-coach="fonds-table" ref={searchList} className={styles.debutDeListe}>
           {blocs.map((b) => (
             <section key={b.clef || "tout"} className={styles.bloc} aria-labelledby={b.clef ? `sec-${b.clef}` : undefined}>
-              <BlocRepliable id={`sec-${b.clef}`} tete={(ouvert, bascule) => b.clef ? <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} entier={b.entier} pays={"pays" in b ? b.pays : undefined} groupes={sommaire} ouvert={ouvert} onBascule={bascule} /> : null}>
+              <BlocRepliable id={`sec-${b.clef}`} tete={(ouvert, bascule) => b.clef ? <TeteGroupe id={`sec-${b.clef}`} nom={b.nom} entier={b.entier} groupes={sommaire} ouvert={ouvert} onBascule={bascule} /> : null}>
               <ul className={styles.list}>
                 {b.rows.map((r) => (
                   <FundLi key={r.id} r={r} />
@@ -1000,5 +1003,6 @@ export function FundsBrowser({ rows }: { rows: FundRow[] }) {
       />}
       </div>
     </FenetreCtx.Provider>
+    </SuivisContext.Provider>
   );
 }

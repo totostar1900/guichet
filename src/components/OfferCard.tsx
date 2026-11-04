@@ -9,9 +9,7 @@ import { LineIdentity } from "./LineIdentity";
 import { LineMenu } from "./mobile/LineMenu";
 import { useDeskView, useLineHref } from "./DeskView";
 import { SwipeActions } from "./mobile/SwipeActions";
-import { CardBack } from "./mobile/CardBack";
-import { backFacts } from "@/lib/domain/back";
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 import { famVars } from "@/lib/registry";
 import { useDensity } from "./Density";
 import { lieuDe } from "@/lib/domain/sections";
@@ -85,11 +83,57 @@ function Montant({ etiquette, n }: { etiquette: string; n: string }) {
   );
 }
 
+/**
+ * LE PRIX D'UNE ACTION EN AVANT, SA VARIATION SUR TROIS MOIS À CÔTÉ (6 novembre 2026, choix 1·1 et 3·1 de la planche).
+ *
+ * Aucune application de référence ne met le rendement d'un dividende en gros sur une action : le prix domine, la variation est son satellite (couleur,
+ * flèche, PÉRIODE ÉCRITE), le dividende est une case de la grille. Les obligations, bons, fonds et adjudications gardent leur chiffre en avant.
+ */
+function Variation({ pct, court = false }: { pct: number; court?: boolean }) {
+  const t = useT();
+  const sens = pct > 0.05 ? "hausse" : pct < -0.05 ? "baisse" : "";
+  const flèche = sens === "hausse" ? "▲ " : sens === "baisse" ? "▼ " : "";
+  const signe = sens === "hausse" ? "+" : sens === "baisse" ? "−" : "";
+  return (
+    <span className={styles.variation}>
+      <em className={`${styles.variationNb} ${sens === "hausse" ? styles.hausseC : sens === "baisse" ? styles.baisseC : ""}`}>
+        {flèche}
+        {signe}
+        {Math.abs(pct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
+      </em>
+      <span className={styles.periode}> · {court ? t("3 mois") : t("sur 3 mois")}</span>
+    </span>
+  );
+}
+
+/** La grille d'une action dont le prix est en avant : le dividende, son rendement, depuis quand le cours n'a pas bougé (le ticket redit le cours, sauf lot supérieur à un). */
+const faitsAction = (s: OfferSummary): [string, string, string?][] => {
+  const trouve = (cle: string) => s.facts.find(([k]) => k === cle);
+  const out: [string, string, string?][] = [];
+  const div = trouve("Dividende");
+  if (div) out.push([div[0], div[1], div[2]]);
+  if (s.hero && s.hero !== "—") out.push(["Rendement", s.hero, "du dividende"]);
+  const age = trouve("Cours")?.[2];
+  const ticket = trouve("Ticket min.");
+  if (age) out.push(["Cours inchangé depuis", age]);
+  else if (ticket) out.push([ticket[0], ticket[1], ticket[2]]);
+  return out;
+};
+
+/** « 90 000 FCFA » → le nombre, et l'unité réduite. */
+const prixDe = (s: OfferSummary): { nombre: string; unite: boolean } | null => {
+  const c = s.facts.find(([k]) => k === "Cours")?.[1];
+  if (!c || c === "—") return null;
+  return { nombre: c.replace(/\s*FCFA$/, ""), unite: /FCFA$/.test(c) };
+};
+
 export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferSummary; suivi?: boolean; /** Le petit graphe sur trois mois d'une action : la forme du cours, avec sa variation. */ courbe?: { serie: number[]; variationPct: number } }) {
   const href = useLineHref()(o.id);
   const desk = useDeskView();
   const t = useT();
   const compact = useDensity() === "compact";
+  const estAction = o.kind === "MARCHE" && o.instrument === "action";
+  const prix = estAction ? prixDe(s) : null;
   // « Clôture · jeu. 15 oct. 17 h 00 » on the card's foot; a listed line reads « cotation continue ».
   const continuous = s.deadline === "continue";
   const when = continuous ? t("cotation continue") : t(s.deadline);
@@ -97,100 +141,60 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
   const more = useRef<(() => void) | null>(null);
   const turn = useRef<(() => void) | null>(null);
   const [suiviEtat] = useSuivi(o.id, suivi);
-  const facts = useMemo(() => backFacts(o, new Date(), courbe?.serie), [o, courbe]);
   const menu = { id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() };
-  return (
-    <SwipeActions
-      key={compact ? "compacte" : "pleine"}
-      id={o.id}
-      turnRef={turn}
-      /* Une seance se rappelle chaque jour jusqu a sa cloture, une ligne cotee
-         se suit a chaque changement : deux marches, deux cadences. */
-      cadence={lieuDe(o) === "adjudications" ? "quotidien" : "evenement"}
-      suivi={suivi}
-      backHead={
-        <div className={styles.corner}>
-          <span className={styles.etat}>
-            {suiviEtat && <Cloche />}
-            <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
-          </span>
-          {/* LE DOS N'A PLUS SON ICÔNE DE RETOURNEMENT : elle proposait un
-              geste que le glissement fait déjà, et la bascule n'existe que
-              sous 760 px, où le doigt est toujours disponible. Le « ··· »
-              reste, lui : aucun geste ne l'ouvre. */}
-          <button type="button" className={styles.dotsBack} onClick={() => more.current?.()} aria-label={t("Plus d'actions")}>
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="5" cy="12" r="2" />
-              <circle cx="12" cy="12" r="2" />
-              <circle cx="19" cy="12" r="2" />
-            </svg>
-          </button>
-          {/* L'ICÔNE DE RETOURNEMENT EST REVENUE AU DOS (5 novembre 2026), sous le « ··· » : le glissement ne se devine pas, et sur le dos on cherche d'abord comment revenir. */}
-          <button type="button" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
-            <Turn />
-          </button>
-        </div>
-      }
-      back={<CardBack facts={facts} figures={s.ledger.slice(1)} />}
-    >
-      {compact ? (
-        <article data-coach="titres-carte" className={`${styles.card} ${styles.compact} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
-          <Link href={href} className={styles.cLink}>
-            <span className={styles.cId}>
-              <b className={styles.cCode}>{issuerZone(o) !== "CEMAC" && <Drapeau pays={o.country} largeur={17} />} {s.code}</b>
-              <small className={styles.cSub}>{s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : s.promesse.key === "Dividende {n} FCFA" ? <Montant etiquette={t("Div.")} n={String(s.promesse.params?.n ?? "")} /> : t(s.promesse.key, s.promesse.params)}</small>
-            </span>
-            {/* LE GRAPHE D'ÉVOLUTION DU TITRE, AU MILIEU DE LA TUILE (4 novembre 2026) : entre le nom et le chiffre, la forme du cours sur
-                trois mois. Seules les actions en ont un. */}
-            {courbe && <MiniCourbe serie={courbe.serie} largeur={76} hauteur={28} />}
-            <span className={styles.cNum} data-coach="titres-chiffre">
-              <b className={s.gold ? styles.taux : ""}>{s.hero}</b>
-              <small>{s.origine.key === "cours {n} FCFA" ? <Montant etiquette={t("cours")} n={String(s.origine.params?.n ?? "")} /> : t(s.origine.key, s.origine.params)}</small>
-            </span>
-          </Link>
-          <span className={styles.cTools}>
-            {!desk && <LineMenu line={menu} watching={suivi} cadence={lieuDe(o) === "adjudications" ? "quotidien" : "evenement"} openRef={more} className={styles.cDots} />}
-            <button type="button" data-coach="titres-retourner" className={styles.cFlip} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
-              <Turn />
-            </button>
-          </span>
-        </article>
-      ) : (
-        <article data-coach="titres-carte" className={`${styles.card} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
-          <div className={styles.head}>
-            <LineIdentity o={o} s={s} href={href} size="lg" isin={false} />
-            <div className={styles.corner}>
-              <span className={styles.etat}>
-                {suiviEtat && <Cloche />}
-                <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
-              </span>
-              {!desk && <LineMenu line={menu} watching={suivi} cadence={lieuDe(o) === "adjudications" ? "quotidien" : "evenement"} openRef={more} />}
-              <button type="button" data-coach="titres-retourner" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
-                <Turn />
-              </button>
-            </div>
-          </div>
-          <div className={styles.big}>
-            <b className={s.gold ? styles.taux : ""}>{s.hero}</b>
-            <small>{t(s.heroSub)}</small>
-            {/* LE GRAPHE À DROITE DU CHIFFRE EN AVANT (option A de la planche du 4 novembre) : le dividende reste le chiffre en avant, la
-                forme du cours sur trois mois dit le reste, avec sa variation. La carte ne grandit pas. */}
-            {courbe && (
-              <span className={styles.courbe}>
-                <MiniCourbe serie={courbe.serie} />
-                <em className={`${styles.pctCourbe} ${courbe.variationPct > 0.05 ? styles.hausseC : courbe.variationPct < -0.05 ? styles.baisseC : ""}`}>
-                  {courbe.variationPct > 0.05 ? "+" : courbe.variationPct < -0.05 ? "−" : ""}
-                  {Math.abs(courbe.variationPct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
-                </em>
-              </span>
+  /** Le corps de la vue détaillée. `dos` : le coin est porté par la tête de la face arrière. */
+  const corps = (dos: boolean) => (
+    <>
+          <div className={`${styles.head} ${dos ? styles.dosTete : ""}`}>
+            <LineIdentity o={o} s={s} href={dos ? undefined : href} size="lg" isin={false} />
+            {!dos && (
+              <div className={styles.corner}>
+                <span className={styles.etat}>
+                  {suiviEtat && <Cloche />}
+                  <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
+                </span>
+                {!desk && <LineMenu line={menu} watching={suivi} cadence={lieuDe(o) === "adjudications" ? "quotidien" : "evenement"} openRef={more} />}
+              </div>
             )}
-            <span className={styles.whenC}>
-              {whenLabel}
-              {when}
-            </span>
           </div>
+          {estAction && prix ? (
+            <div className={styles.bigAction}>
+              <div className={styles.prixCol}>
+                <b className={styles.prix}>
+                  {prix.nombre}
+                  {prix.unite && <i className={styles.fcfa}>FCFA</i>}
+                </b>
+                {courbe && <Variation pct={courbe.variationPct} />}
+              </div>
+              {courbe && (
+                <span className={styles.courbe}>
+                  <MiniCourbe serie={courbe.serie} />
+                </span>
+              )}
+            </div>
+          ) : (
+          <div className={styles.big}>
+              <b className={s.gold ? styles.taux : ""}>{s.hero}</b>
+              <small>{t(s.heroSub)}</small>
+              {/* LE GRAPHE À DROITE DU CHIFFRE EN AVANT (option A de la planche du 4 novembre) : le dividende reste le chiffre en avant, la
+                  forme du cours sur trois mois dit le reste, avec sa variation. La carte ne grandit pas. */}
+              {courbe && (
+                <span className={styles.courbe}>
+                  <MiniCourbe serie={courbe.serie} />
+                  <em className={`${styles.pctCourbe} ${courbe.variationPct > 0.05 ? styles.hausseC : courbe.variationPct < -0.05 ? styles.baisseC : ""}`}>
+                    {courbe.variationPct > 0.05 ? "+" : courbe.variationPct < -0.05 ? "−" : ""}
+                    {Math.abs(courbe.variationPct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
+                  </em>
+                </span>
+              )}
+              <span className={styles.whenC}>
+                {whenLabel}
+                {when}
+              </span>
+            </div>
+          )}
           <div className={styles.facts}>
-            {s.facts.map(([k, v, note]) => (
+            {(estAction && prix ? faitsAction(s) : s.facts).map(([k, v, note]) => (
               <div key={k}>
                 <span>{t(k)}</span>
                 <b>{v}</b>
@@ -219,8 +223,94 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
               {t("Voir la fiche")} →
             </Link>
           </div>
+    </>
+  );
+  const detaillee = () => (
+        <article data-coach="titres-carte" className={`${styles.card} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
+      {corps(false)}
+    </article>
+  );
+  const cadence = lieuDe(o) === "adjudications" ? "quotidien" : "evenement";
+  /* PAS DE DOS EN VUE DÉTAILLÉE (6 novembre 2026) : la carte détaillée est déjà tout ce qu'on peut en dire. Sans dos, ni chevron à gauche ni icône de
+     retournement. En vue compacte, le dos EST la carte détaillée, comme sur les fonds. */
+  if (!compact) {
+    return (
+      <SwipeActions key="pleine" id={o.id} cadence={cadence} suivi={suivi}>
+        {detaillee()}
+      </SwipeActions>
+    );
+  }
+  return (
+    <SwipeActions
+      key="compacte"
+      id={o.id}
+      turnRef={turn}
+      /* Une seance se rappelle chaque jour jusqu a sa cloture, une ligne cotee
+         se suit a chaque changement : deux marches, deux cadences. */
+      cadence={cadence}
+      suivi={suivi}
+      backHead={
+        <div className={styles.corner}>
+          <span className={styles.etat}>
+            {suiviEtat && <Cloche />}
+            <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
+          </span>
+          {/* LE DOS N'A PLUS SON ICÔNE DE RETOURNEMENT : elle proposait un
+              geste que le glissement fait déjà, et la bascule n'existe que
+              sous 760 px, où le doigt est toujours disponible. Le « ··· »
+              reste, lui : aucun geste ne l'ouvre. */}
+          <button type="button" className={styles.dotsBack} onClick={() => more.current?.()} aria-label={t("Plus d'actions")}>
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="5" cy="12" r="2" />
+              <circle cx="12" cy="12" r="2" />
+              <circle cx="19" cy="12" r="2" />
+            </svg>
+          </button>
+          {/* L'ICÔNE DE RETOURNEMENT EST REVENUE AU DOS (5 novembre 2026), sous le « ··· » : le glissement ne se devine pas, et sur le dos on cherche d'abord comment revenir. */}
+          <button type="button" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
+            <Turn />
+          </button>
+        </div>
+      }
+      back={<div className={styles.dos}>{corps(true)}</div>}
+    >
+        <article data-coach="titres-carte" className={`${styles.card} ${styles.compact} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
+          <Link href={href} className={styles.cLink}>
+            <span className={styles.cId}>
+              <b className={styles.cCode}>{issuerZone(o) !== "CEMAC" && <Drapeau pays={o.country} largeur={17} />} {s.code}</b>
+              <small className={styles.cSub}>{s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : estAction && prix && s.hero !== "—" ? `${t("Div.")} ${s.hero}` : s.promesse.key === "Dividende {n} FCFA" ? <Montant etiquette={t("Div.")} n={String(s.promesse.params?.n ?? "")} /> : t(s.promesse.key, s.promesse.params)}</small>
+            </span>
+            {/* LE GRAPHE D'ÉVOLUTION DU TITRE, AU MILIEU DE LA TUILE (4 novembre 2026) : entre le nom et le chiffre, la forme du cours sur
+                trois mois. Seules les actions en ont un. */}
+            {courbe && <MiniCourbe serie={courbe.serie} largeur={76} hauteur={28} />}
+            <span className={styles.cNum} data-coach="titres-chiffre">
+              {estAction && prix ? (
+                <>
+                  <b>
+                    {prix.nombre}
+                    {prix.unite && <i className={styles.fcfa}>FCFA</i>}
+                  </b>
+                  {courbe && (
+                    <small>
+                      <Variation pct={courbe.variationPct} court />
+                    </small>
+                  )}
+                </>
+              ) : (
+                <>
+              <b className={s.gold ? styles.taux : ""}>{s.hero}</b>
+              <small>{s.origine.key === "cours {n} FCFA" ? <Montant etiquette={t("cours")} n={String(s.origine.params?.n ?? "")} /> : t(s.origine.key, s.origine.params)}</small>
+                </>
+              )}
+            </span>
+          </Link>
+          <span className={styles.cTools}>
+            {!desk && <LineMenu line={menu} watching={suivi} cadence={lieuDe(o) === "adjudications" ? "quotidien" : "evenement"} openRef={more} className={styles.cDots} />}
+            <button type="button" data-coach="titres-retourner" className={styles.cFlip} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
+              <Turn />
+            </button>
+          </span>
         </article>
-      )}
     </SwipeActions>
   );
 }

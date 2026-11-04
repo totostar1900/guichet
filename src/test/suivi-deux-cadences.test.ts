@@ -150,7 +150,7 @@ describe("le geste dit laquelle des deux cadences il arme", () => {
        entier, qui redemande quatre champs déjà prouvés pour poser une
        question ; il mène depuis au bloc de contact de la fiche, où un client
        prouvé écrit au desk en un geste. */
-    expect(src).toContain("#contact");
+    expect(src).toContain("/moi/contact?ligne=");
   });
 
   it("un second appui désarme", () => {

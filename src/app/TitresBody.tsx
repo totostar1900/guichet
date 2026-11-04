@@ -1,4 +1,6 @@
 import { OfferBrowser } from "@/components/OfferBrowser";
+import { getT } from "@/i18n/server";
+import styles from "./TitresBody.module.css";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { fondsListes, lignesDeLaCote } from "@/lib/domain/listes";
@@ -13,6 +15,7 @@ import { performanceSur } from "@/lib/market/performe";
  * qui dit où mènent les rangées et quelles commandes n'ont pas lieu d'être.
  */
 export async function TitresBody() {
+  const t = await getT();
   const session = await getSession();
   /**
    * LES ALERTES DE CE LECTEUR, LUES ICI.
@@ -58,6 +61,7 @@ export async function TitresBody() {
        toucher dans la bande des lieux. */
     <>
       <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} suivis={veilles.map((w) => w.offerId)} courbes={courbes} />
+      <p className={styles.note}>{t("Les variations de cours sont des performances passées, mesurées sur trois mois et hors dividendes : elles ne préjugent pas des performances futures. Un cours reste inchangé quand une ligne n'est pas échangée : la carte dit depuis quand.")}</p>
       {/* Le retour en haut est monté par la liste, avec son jumeau : les
           deux paraissent au même moment. */}
     </>

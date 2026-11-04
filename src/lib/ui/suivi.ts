@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { createContext, useContext, useSyncExternalStore } from "react";
 
 /**
  * LE SUIVI D'UNE LIGNE, UN SEUL ÉTAT PAR LIGNE (5 novembre 2026).
@@ -23,7 +23,12 @@ export function poserSuivi(id: string, v: boolean): void {
   for (const f of ecouteurs) f();
 }
 
-export function useSuivi(id: string, depart: boolean): [boolean, (v: boolean) => void] {
+/** Les lignes suivies que le serveur a lues, posées par la liste : un menu ou un glissement qui n'a pas reçu l'état de sa carte le retrouve ici (sans cela, un rafraîchissement le remettait à « Suivre »). */
+export const SuivisContext = createContext<ReadonlySet<string> | null>(null);
+
+export function useSuivi(id: string, departExplicite?: boolean): [boolean, (v: boolean) => void] {
+  const serveur = useContext(SuivisContext);
+  const depart = departExplicite ?? Boolean(serveur?.has(id));
   const lu = useSyncExternalStore(
     abonner,
     () => (etat.has(id) ? (etat.get(id) ? "oui" : "non") : ""),

@@ -55,7 +55,7 @@ let turnedNow: (() => void) | null = null;
 const REVEAL = 232;
 const SLOP = 8;
 
-export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "evenement", suivi = false, children }: { id: string; back?: React.ReactNode; backHead?: React.ReactNode; onTurn?: (turned: boolean) => void; turnRef?: React.MutableRefObject<(() => void) | null>; cadence?: "evenement" | "quotidien"; suivi?: boolean; children: React.ReactNode }) {
+export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "evenement", suivi, children }: { id: string; back?: React.ReactNode; backHead?: React.ReactNode; onTurn?: (turned: boolean) => void; turnRef?: React.MutableRefObject<(() => void) | null>; cadence?: "evenement" | "quotidien"; suivi?: boolean; children: React.ReactNode }) {
   const t = useT();
   const [on, setOn] = useSuivi(id, suivi);
   const [dit, setDit] = useState("");
@@ -318,7 +318,7 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
         <button type="button" className={styles.handle} onClick={() => closeThen()} tabIndex={-1} aria-label={t("Fermer")}>
           ‹
         </button>
-        <button type="button" className={styles.b2} onClick={() => closeThen(() => router.push(`${href}#contact`))} tabIndex={-1}>
+        <button type="button" className={styles.b2} onClick={() => closeThen(() => router.push(`/moi/contact?ligne=${encodeURIComponent(id)}`))} tabIndex={-1}>
           <svg viewBox="0 0 24 24">
             <path d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.5 5.7 2 2 0 0 1 6.5 3.5z" />
           </svg>

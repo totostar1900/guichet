@@ -61,3 +61,14 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* SIX TUILES SUR UNE RANGÉE (Titres) : le nom passe à une taille un peu plus petite pour s'écrire en entier (6 novembre 2026). */
+.grille[data-serre="oui"] {
+  /* Mesuré à 390 px : à 0,62 rem et 600, « Souscription » faisait 62 px dans 52. À 0,6 rem, 500, sans écart entre colonnes et la grille débordant de 6 px de chaque côté, les six noms tiennent (54 px dans 54). */
+  column-gap: 0;
+  margin-inline: -6px;
+}
+.grille[data-serre="oui"] .tuile {
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}

@@ -32,3 +32,39 @@
   background: var(--surface-2);
   color: var(--gold-ink);
 }
+
+/* LA VARIATION ET LES RISQUES, sous le texte de l'onglet Titres. */
+.ajout {
+  display: grid;
+  gap: var(--s-4);
+  margin-top: var(--s-8);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-3);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.ajout h3 {
+  margin: 0;
+  font-size: var(--t-1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.ajout p,
+.ajout ul {
+  margin: 0;
+}
+.ajout ul {
+  display: grid;
+  gap: var(--s-4);
+  padding-left: var(--s-8);
+}
+.ajout b {
+  color: var(--ink);
+}
+.lien {
+  color: var(--gold-ink);
+  font-weight: 700;
+  text-decoration: none;
+}
