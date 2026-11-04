@@ -173,7 +173,10 @@ describe("la bulle de confirmation, une seule (7 novembre 2026)", () => {
     /* ELLE SURVIT À SA PAGE : retirer une ligne de Suivies ou de Favoris démonte le bouton qui parle ; la bulle est un magasin de module, affiché par l'hôte de la mise en page. */
     expect(lire("src/components/mobile/Bulle.tsx"), "la bulle est de nouveau liée au composant qui la dit").toMatch(/let texte = "";[\s\S]*export function HoteDeLaBulle\(\)/);
     expect(lire("src/app/layout.tsx"), "l'hôte de la bulle n'est plus dans la mise en page").toMatch(/<HoteDeLaBulle \/>/);
-    expect(lire("src/components/mobile/Bulle.module.css")).toMatch(/\.bulle \{[^}]*position: fixed;[^}]*z-index: 70;/);
+    const b = lire("src/components/mobile/Bulle.tsx");
+    expect(b, "la confirmation n'est plus au milieu de l'écran, fermée au geste").toMatch(/<Sheet open=\{Boolean\(t\)\} onClose=\{fermer\} title=\{titre\} centre>/);
+    expect(b, "la confirmation ne se referme plus d'elle-même").toMatch(/const DUREE = 3000;/);
+    expect(existsSync("src/components/mobile/Bulle.module.css"), "l'ancienne bulle en haut d'écran est revenue").toBe(false);
   });
   it("l'étoile de la fiche lit le même état de suivi que le menu, le glissement et la cloche", () => {
     expect(lire("src/components/WatchButton.tsx")).toMatch(/const \[on, setOn\] = useSuivi\(offerId, initial\);/);

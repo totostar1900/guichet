@@ -724,7 +724,7 @@ La règle, mesurée sur la fiche le jour même :
 
 **Chaque bulle d'information s'ouvre au milieu de l'écran et se ferme d'un geste du doigt.** C'est la fenêtre centrée de la maison (`Sheet` « centre ») : un voile, un titre, un texte, une croix, et un tiré vers le bas de plus de 80 px qui la ferme. Elle remplace l'infobulle à flèche du « i » de terme, qui se coupait sous un en-tête collant et sortait de l'écran sur un téléphone.
 
-**Exceptions** : le « i » de la barre du haut (une feuille à onglets) ; pour tout le reste (confirmation d'un suivi, astuce de glissement, visite guidée, survol d'un graphe, `title=""` natifs, bandeaux d'état), la décision appartient au client et se prend avec lui. La liste est dans le skill `guichet-espace-tuiles`.
+**La confirmation d'un suivi en fait partie** (titre, détail, geste, croix, et fermeture d'elle-même au bout de 3 s). **Exceptions** : le « i » de la barre du haut (une feuille à onglets) ; pour le reste (astuce de glissement, visite guidée, survol d'un graphe, `title=""` natifs, bandeaux d'état), la décision appartient au client et se prend avec lui. La liste est dans le skill `guichet-espace-tuiles`.
 
 ## 9. La voix des libellés — « Mes » pour ce qui est au client, « Votre » pour ce que la maison lui dit
 
