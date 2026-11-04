@@ -318,3 +318,33 @@ describe("la note « Chiffres de référence » se tient à --titre-gap de son b
     expect(lire("src/app/offres/[id]/FicheReading.tsx"), "la section des chiffres est devenue une grille").not.toMatch(/styles\.ensemble/);
   });
 });
+
+describe("l'alerte est définitive, et il n'y a pas de seuil d'âge (8 novembre 2026)", () => {
+  it("l'âge d'un cours ne retire pas l'alerte, et un fonds a la sienne sans condition", async () => {
+    const { alerteOuverte } = await import("@/lib/domain/alerte");
+    const ligne = { kind: "MARCHE", instrument: "action", lastPrice: 53000 };
+    expect(alerteOuverte({ ...ligne, priceSince: "2026-07-22" } as never, false), "un cours de 107 jours").toBe(true);
+    expect(alerteOuverte({ ...ligne, priceSince: "2020-01-01" } as never, false), "un cours de plusieurs années").toBe(true);
+    expect(alerteOuverte({ kind: "FONDS" } as never, false), "un fonds sans condition").toBe(true);
+    expect(lire("src/lib/domain/alerte.ts").split("export function")[1], "un âge est entré dans la règle").not.toMatch(/priceSince|daysBetween/);
+  });
+  it("rien, côté maison, ne désarme une alerte : seul le client la retire", () => {
+    const appels: string[] = [];
+    const marche = (d: string) => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        const p = `${d}/${e.name}`;
+        if (e.isDirectory()) marche(p);
+        else if (/\.tsx?$/.test(p) && !p.startsWith("src/test") && !p.startsWith("src/lib/data/")) {
+          if (/\.removeWatch\(/.test(lire(p))) appels.push(p);
+        }
+      }
+    };
+    marche("src");
+    expect(appels, "une autre voie retire des alertes").toEqual(["src/app/offres/[id]/actions.ts"]);
+  });
+  it("une alerte déjà armée reste visible partout, même quand la règle n'en propose plus", () => {
+    expect(lire("src/components/mobile/SwipeActions.tsx")).toMatch(/const avecAlerte = alerte \|\| on;/);
+    expect(lire("src/components/mobile/LineMenu.tsx")).toMatch(/line\.alerte === false && !on \? \[\]/);
+    expect(lire("src/components/WatchButton.tsx")).toMatch(/if \(!alerte && !on\) return null;/);
+  });
+});
