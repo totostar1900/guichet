@@ -5,8 +5,7 @@
 .cur {
   min-width: 0;
 }
-.peek,
-.hint {
+.peek {
   display: none;
 }
 @media (max-width: 760px) {
@@ -153,27 +152,6 @@
   .nudgePrevIn {
     animation: nudgePrevIn 1s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .hint {
-    display: block;
-    position: fixed;
-    left: 50%;
-    bottom: calc(120px + env(safe-area-inset-bottom, 0px));
-    transform: translateX(-50%);
-    background: var(--ink);
-    color: var(--paper);
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 8px 14px;
-    border-radius: 999px;
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.25s;
-    pointer-events: none;
-    z-index: 40;
-  }
-  .hintOn {
-    opacity: 1;
-  }
 }
 @keyframes nudgeNext {
   0%,
@@ -217,8 +195,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .anim,
-  .exit,
-  .hint {
+  .exit {
     transition: none;
   }
 }

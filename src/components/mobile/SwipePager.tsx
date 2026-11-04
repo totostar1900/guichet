@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "reac
 import { LIST_ORDER_KEY, rememberedListUrl, type ListMemory, type ListPeek } from "@/components/ListNav";
 import { neighbourReading } from "@/app/offres/[id]/neighbour";
 import { estUneFiche } from "@/lib/fiche-url";
+import { Sheet } from "./Sheet";
 import styles from "./SwipePager.module.css";
 
 /**
@@ -275,9 +276,11 @@ export function SwipePager({ id, prev: prevProp, next: nextProp, hintKey, hints,
           <PeekBody n={next} pos={`${next.pos} →`} go={t("Relâchez pour ouvrir")} body={nextBody} />
         </div>
       )}
-      <div className={`${styles.hint} ${hint ? styles.hintOn : ""}`} role="status">
-        {t(nextHref ? hints.next : hints.prev)}
-      </div>
+      {/* L'ASTUCE DE GLISSEMENT EST UNE BULLE COMME LES AUTRES (8 novembre 2026) : au milieu de l'écran, fermée d'un geste du doigt, par la croix ou en touchant à côté ;
+          sans geste, elle se retire d'elle-même (4,2 s). Le titre est ce qui précède « : », le détail ce qui suit. Elle n'apparaît qu'une fois par type de page. */}
+      <Sheet open={hint} onClose={() => setHint(false)} title={t(nextHref ? hints.next : hints.prev).split(" : ")[0]} centre>
+        {t(nextHref ? hints.next : hints.prev).includes(" : ") && <p style={{ margin: 0, lineHeight: 1.55 }}>{t(nextHref ? hints.next : hints.prev).split(" : ").slice(1).join(" : ")}</p>}
+      </Sheet>
     </div>
   );
 }

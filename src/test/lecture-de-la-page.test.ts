@@ -377,3 +377,14 @@ describe("les trois bulles d'information sont la fenêtre centrée (8 novembre 2
     expect(lire("src/components/market/AideReglage.module.css"), "l'ancienne bulle posée est revenue").not.toMatch(/\.bulle/);
   });
 });
+
+describe("l'astuce de glissement est une bulle au milieu de l'écran (8 novembre 2026)", () => {
+  it("l'astuce du pager ouvre la fenêtre centrée, fermée au geste, et n'a plus de pastille à elle", () => {
+    const s = lire("src/components/mobile/SwipePager.tsx");
+    expect(s, "l'astuce n'est plus la fenêtre centrée").toMatch(/<Sheet open=\{hint\} onClose=\{\(\) => setHint\(false\)\} title=\{[^}]*\} centre>/);
+    expect(s, "l'ancienne pastille du bas est revenue").not.toMatch(/styles\.hint/);
+    expect(lire("src/components/mobile/SwipePager.module.css"), "les règles de l'ancienne pastille sont revenues").not.toMatch(/\.hint/);
+    expect(s, "l'astuce ne se retire plus d'elle-même").toMatch(/window\.setTimeout\(\(\) => setHint\(false\), 4200\)/);
+    expect(s, "l'astuce se montre de nouveau à chaque visite").toMatch(/if \(!localStorage\.getItem\(key\) && \(prevHref \|\| nextHref\)\)/);
+  });
+});
