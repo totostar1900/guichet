@@ -17,7 +17,7 @@ import styles from "./IssuerCard.module.css";
  * profile. Only what a source says appears; a fact the source does not give
  * is simply not there.
  */
-export async function IssuerCard({ profile, o, others, company, issuer }: { profile?: IssuerProfile; o: Offer; others: { o: Offer; s: OfferSummary }[]; company?: Company; issuer?: BondIssuer }) {
+export async function IssuerCard({ profile, o, others, company, issuer, lignesSeulement = false }: { profile?: IssuerProfile; o: Offer; others: { o: Offer; s: OfferSummary }[]; company?: Company; issuer?: BondIssuer; /** Seulement l'échelle de ses autres lignes : l'identité est dite ailleurs (la fiche d'une action, 9 novembre 2026). */ lignesSeulement?: boolean }) {
   const t = await getT();
   const name = profile?.name ?? o.issuer;
   const zone = profile?.zone ?? o.country;
@@ -42,6 +42,8 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
   const years = others.length > 0 ? issuerLadder([{ o, s: summarize(o, new Date()) }, ...others], name, o.id) : [];
   return (
     <div className={styles.card}>
+      {!lignesSeulement && (
+        <>
       <div className={styles.head}>
         <span className={`${styles.badge} ${zone === "CEMAC" ? styles.cemac : ""}`}>{zone === "CEMAC" ? "CEMAC" : initials || COUNTRY_CODE[o.country]}</span>
         <div className={styles.who}>
@@ -76,13 +78,17 @@ export async function IssuerCard({ profile, o, others, company, issuer }: { prof
           )}
         </p>
       )}
+        </>
+      )}
       {years.length > 0 && (
         <div className={styles.others}>
+          {!lignesSeulement && (
           <div>
             <h4>
               {t("Ses autres lignes à Guichet")} <small>{others.length}</small>
             </h4>
           </div>
+          )}
           <div className={styles.headWrap}>
             <div />
             <div className={styles.headRow}>

@@ -114,7 +114,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
               LES RISQUES, EN PIED DE PAGE (1er novembre), EN TROIS LIENS (8 novembre) : sous chaque onglet, juste avant la barre d'action. */}
           <FicheReading o={o} data={fiche}>
             <LignesSimilaires o={o} />
-            <PiedDeFiche />
+            <PiedDeFiche carte={o.kind === "MARCHE" && o.instrument === "action"} />
           </FicheReading>
         </FichePanes>
         </SwipePager>

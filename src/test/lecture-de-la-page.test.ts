@@ -277,7 +277,7 @@ describe("la fiche d'une ligne : une pile sans cadre, un pied qui range les risq
     const p = lire("src/app/offres/[id]/PiedDeFiche.tsx");
     for (const h of ['"/info/risques#risques"', '"/info/les-quatre-risques"', '"/info/mentions#types-de-risques"']) expect(p, h).toContain(h);
     expect(p).toMatch(/<footer className=\{styles\.pied\}/);
-    expect(lire("src/app/offres/[id]/page.tsx")).toMatch(/<PiedDeFiche \/>/);
+    expect(lire("src/app/offres/[id]/page.tsx")).toMatch(/<PiedDeFiche carte=\{/);
   });
 });
 
@@ -397,7 +397,7 @@ describe("la fiche d'une ligne : des sections qui se lisent (8 novembre 2026, pl
   it("les sections du client sont séparées par l'écart des chapitres, la tête et la bande gardent celui des sections", () => {
     expect(lecture(), "le client n'a plus sa pile de chapitres, ou le desk l'a prise").toMatch(/return mode === "desk" \? corps : <div className="chapitres">\{corps\}<\/div>;/);
     expect(lecture(), "les lignes similaires et le pied ne sont plus dans la pile des sections").toMatch(/\{children\}\s*<\/>\s*\);\s*return mode === "desk"/);
-    expect(lire("src/app/offres/[id]/page.tsx"), "la page ne range plus les sorties et le pied dans la lecture").toMatch(/<FicheReading o=\{o\} data=\{fiche\}>\s*<LignesSimilaires o=\{o\} \/>\s*<PiedDeFiche \/>\s*<\/FicheReading>/);
+    expect(lire("src/app/offres/[id]/page.tsx"), "la page ne range plus les sorties et le pied dans la lecture").toMatch(/<FicheReading o=\{o\} data=\{fiche\}>\s*<LignesSimilaires o=\{o\} \/>\s*<PiedDeFiche carte=\{[^}]*\}\s*\/>\s*<\/FicheReading>/);
     expect(bloc(css(), ".main"), "la lecture n'est plus la pile de la tête et de la bande").toMatch(/gap: var\(--sections-gap\);/);
   });
   it("un seul titre de section : 17 px (--t-6, +20 %), en gras, en encre pleine, jamais en capitales", () => {
@@ -437,5 +437,67 @@ describe("la fiche d'une ligne : des sections qui se lisent (8 novembre 2026, pl
     expect(lecture(), "la frise n'est plus celle du client").toMatch(/className=\{mode === "desk" \? styles\.tl : styles\.frise\}/);
     expect(bloc(css(), ".frise div::before").length, "les points de la frise ont disparu").toBeGreaterThan(0);
     expect(lecture(), "l'onglet sans document ne parle plus").toMatch(/o\.documents\.length === 0 && !seance && \(\s*<div className=\{styles\.vide\}>/);
+  });
+});
+
+describe("la fiche d'une action : des encadrés en relief, des graphes, des mosaïques (9 novembre 2026, planche 1A · 2B · 44 px)", () => {
+  const dir = "src/app/offres/[id]";
+  const action = () => lire(`${dir}/FicheAction.tsx`);
+  const bloc = (s: string, selecteur: string) => s.match(new RegExp(`(?:^|\\n)${selecteur.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\{([^}]*)\\}`))?.[1] ?? "";
+
+  it("le client lit sa propre fiche d'action, le desk garde l'ancienne", () => {
+    const l = lire(`${dir}/FicheReading.tsx`);
+    expect(l, "la fiche d'une action du client n'est plus à part").toMatch(/if \(mode !== "desk" && o\.kind === "MARCHE" && o\.instrument === "action"\) \{[\s\S]*?<FicheAction o=\{o\} data=\{data\} base=\{base\} noteBulle=\{noteBulle\} \/>[\s\S]*?\{children\}/);
+    expect(l, "le desk n'a plus sa lecture d'avant (Kpis)").toMatch(/<Kpis o=\{o\} base=\{base\}/);
+  });
+  it("le titre est À PLAT, au-dessus de l'encadré, jamais dedans", () => {
+    expect(action(), "le titre est entré dans la carte").toMatch(/<h3>\{titre\}<\/h3>\s*<Carte plat=\{plat\}>\{children\}<\/Carte>/);
+    const c = bloc(lire("src/components/Carte.module.css"), ".carte");
+    expect(c, "la carte n'a plus le fond de la surface").toMatch(/background: var\(--surface\);/);
+    expect(c, "la carte n'a plus l'ombre de la maison").toMatch(/box-shadow:[^;]*var\(--shadow\);/);
+    expect(c, "la carte n'a plus le rayon des choses qu'on touche").toMatch(/border-radius: var\(--rond\);/);
+  });
+  it("le chiffre majeur est à la taille dominante et les tuiles passent deux par deux", () => {
+    const css = lire("src/components/Mosaique.module.css");
+    expect(bloc(css, ".valeur"), "le majeur n'est plus à --t-8").toMatch(/font-size: var\(--t-8\);/);
+    expect(bloc(css, ".c2"), "quatre tuiles ne sont plus sur deux colonnes").toMatch(/grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/);
+    expect(lire("src/components/Mosaique.tsx"), "le nombre de tuiles ne choisit plus les colonnes").toMatch(/n === 1 \? styles\.c1 : n === 3 \? styles\.c3 : styles\.c2/);
+    expect(action(), "le rendement n'est plus le chiffre majeur des chiffres clés").toMatch(/majeur=\{<KpiCard forme="heros" label="Rendement du dernier dividende"/);
+  });
+  it("les sections de chaque onglet sont là, dans l'ordre", () => {
+    const a = action();
+    const ordre = ['t("Cours")', 't("Chiffres clés")', 't("Dernière séance")', 't("Cotation et règlement")', 't(`Pour ${n} actions au cours vendeur`)', 't("Évolution du cours")', 't("Dernières séances")', 't("Dividendes")', 't("Documents")', 't("L\'émetteur")', 't("Performance financière")', 't("Actionnaires")'];
+    let depuis = 0;
+    for (const o of ordre) {
+      const i = a.indexOf(o, depuis);
+      expect(i, `la section ${o} manque ou n'est plus dans l'ordre`).toBeGreaterThan(-1);
+      depuis = i;
+    }
+  });
+  it("la courbe garde ses trois périodes et ses volumes, et la fiche lit 400 séances", () => {
+    const c = lire("src/components/CourbeDuCours.tsx");
+    expect(c, "les périodes ont changé").toMatch(/\["mois", t\("1 mois"\)\],\s*\["trimestre", t\("3 mois"\)\],\s*\["tout", t\(introduction \? "Depuis l'introduction" : "Tout"\)\]/);
+    expect(c, "les volumes ne sont plus dessinés").toMatch(/styles\.volume/);
+    expect(lire(`${dir}/FicheReading.tsx`), "l'action ne lit plus assez de séances pour remonter à l'introduction").toMatch(/o\.instrument === "action" \? 400 : 60/);
+  });
+  it("une action n'a pas de remboursement : « in fine » est réservé aux obligations", async () => {
+    const { repaymentLabel } = await import("@/lib/domain/status");
+    const base = { kind: "MARCHE", isin: "XX0000000000", couponRate: null } as never;
+    expect(repaymentLabel({ ...(base as object), instrument: "action" } as never), "une action affiche de nouveau un remboursement").toBeUndefined();
+    expect(repaymentLabel({ ...(base as object), instrument: "obligation" } as never), "une obligation a perdu son remboursement").toMatch(/in fine/);
+  });
+  it("les lignes similaires d'une action défilent en cartes, les rangées du pied sont dans une carte plate", () => {
+    const s = lire(`${dir}/LignesSimilaires.tsx`);
+    expect(s, "les lignes similaires d'une action ne sont plus des cartes").toMatch(/const enCartes = o\.kind === "MARCHE" && o\.instrument === "action";/);
+    expect(s).toMatch(/<ul className=\{cartes\.rail\}>/);
+    expect(bloc(lire(`${dir}/CartesSimilaires.module.css`), ".rail"), "le rail ne défile plus").toMatch(/overflow-x: auto;/);
+    expect(lire(`${dir}/PiedDeFiche.tsx`), "le pied n'a plus sa carte").toMatch(/return carte \? <Carte plat>\{liste\}<\/Carte> : liste;/);
+    expect(lire(`${dir}/page.tsx`), "la page ne demande plus la carte du pied pour une action").toMatch(/<PiedDeFiche carte=\{o\.kind === "MARCHE" && o\.instrument === "action"\} \/>/);
+  });
+  it("l'Émetteur porte la société : identité, performance financière, actionnaires, et ses autres lignes à part", () => {
+    const a = action();
+    expect(a, "les comptes ne sont plus dessinés en deux séries").toMatch(/teinte: "or" \},\s*\{ nom: t\("Résultat net"\), valeurs: comptes\.map\(\(f\) => f\.netIncome \/ echelle\.div\), teinte: "bleu" \}/);
+    expect(a, "les autres lignes ne sont plus une section à part").toMatch(/lignesSeulement \/>/);
+    expect(lire(`${dir}/IssuerCard.tsx`), "l'identité est de nouveau dite deux fois").toMatch(/\{!lignesSeulement && \(\s*<>/);
   });
 });

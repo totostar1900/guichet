@@ -27,6 +27,7 @@ import { fmt, fmtDate, fmtDateTime, fmtPct, fmtPrice, fmtWhen } from "@/lib/form
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { IssuerCard } from "./IssuerCard";
+import { FicheAction } from "./FicheAction";
 import { CrossSignal } from "@/components/CrossSignal";
 import { facingSignal } from "@/lib/domain/crossing";
 import { loadCrossPolicy } from "@/lib/policy";
@@ -378,7 +379,8 @@ export async function loadFiche(o: Offer) {
     r.listOffers(),
     o.kind === "MARCHE" && o.instrument === "action" ? companyByIsin(o.isin) : undefined,
     o.kind === "MARCHE" && o.instrument === "obligation" ? issuerByIsin(o.isin) : undefined,
-    o.kind === "MARCHE" && o.priceSource === "boc" ? r.listQuotes(o.isin, 60) : [],
+    /* Une action en garde plus : sa courbe remonte à l'introduction en bourse (9 novembre 2026). */
+    o.kind === "MARCHE" && o.priceSource === "boc" ? r.listQuotes(o.isin, o.instrument === "action" ? 400 : 60) : [],
     o.kind === "FONDS" && o.fund ? r.listFundNavs(o.fund.key, 2000) : [],
     // The reference rate on a fund's charts: the most recent BTA the desk published (a client knows that rate).
     o.kind === "FONDS" ? latestBta() : undefined,
@@ -525,6 +527,25 @@ export async function FicheReading({ o, data, mode = "client", children }: { o: 
   const resume = summarize(o, new Date());
   const cours = resume.facts.find(([k]) => k === "Cours")?.[1];
   const mini = { nom: t(titreCourt(o)), chiffre: o.kind === "MARCHE" && o.instrument === "action" && cours ? cours : resume.hero, sous: o.kind === "MARCHE" && o.instrument === "action" ? undefined : t(resume.heroUnit ?? "") };
+  /* LA NOTE EST UNE BULLE (1er novembre 2026) : elle tenait une phrase sous le bloc, que personne ne relisait deux fois. Le « i » la garde à un toucher, et le simulateur reste un lien. */
+  const noteBulle = (
+    <p className={styles.noteBulle}>
+      <span>{t("Chiffres de référence")}</span>
+      <Info text="Chiffres de référence au prix publié. Pour votre montant, indiquez-le dans votre intention ; le desk vous confirme le décaissement exact." label="Chiffres de référence" />
+      <Link href="/info/simulateur">{t("Essayer le simulateur")} →</Link>
+    </p>
+  );
+  /* LA FICHE D'UNE ACTION CHEZ LE CLIENT a sa propre lecture (9 novembre 2026) : encadrés en relief, graphes, mosaïques. Le desk garde la sienne. */
+  if (mode !== "desk" && o.kind === "MARCHE" && o.instrument === "action") {
+    return (
+      <div className="chapitres">
+        <FicheSegments exclure={["calendrier"]} mini={mini} />
+        <FicheAction o={o} data={data} base={base} noteBulle={noteBulle} />
+        <RelatedNews kind="offer" keyOf={o.id} className={styles.sec} />
+        {children}
+      </div>
+    );
+  }
   const corps = (
     <>
         <FicheSegments exclure={avecCalendrier ? [] : ["calendrier"]} mini={mini} />
@@ -539,14 +560,6 @@ export async function FicheReading({ o, data, mode = "client", children }: { o: 
 
         {/* LE CALCUL EST UN GROUPE DE BLOCS chez le client (8 novembre 2026) : un groupe « chapitres » dans la pile, ses blocs séparés comme les autres sections. Le desk garde une seule section. */}
         {(() => {
-          /* LA NOTE EST UNE BULLE (1er novembre 2026) : elle tenait une phrase sous le bloc, que personne ne relisait deux fois. Le « i » la garde à un toucher, et le simulateur reste un lien. */
-          const noteBulle = (
-            <p className={styles.noteBulle}>
-              <span>{t("Chiffres de référence")}</span>
-              <Info text="Chiffres de référence au prix publié. Pour votre montant, indiquez-le dans votre intention ; le desk vous confirme le décaissement exact." label="Chiffres de référence" />
-              <Link href="/info/simulateur">{t("Essayer le simulateur")} →</Link>
-            </p>
-          );
           return mode === "desk" ? (
             <section className={styles.sec} data-pane="chiffres">
               <Reference o={o} mode={mode} fin={noteBulle} />

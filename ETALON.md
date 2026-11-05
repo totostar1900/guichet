@@ -703,7 +703,7 @@ gardent leur allure : l'aspect des tuiles ne les concerne pas.
 
 ### 8.8 La page de lecture sans cadre — la fiche d'une ligne (8 novembre 2026)
 
-**Une page de lecture n'a ni encadré, ni filet entre ses sections.** La fiche d'une ligne avait quatre surfaces imbriquées : la carte de la lecture (fond, bord, rayon, 24 px de gouttière), un filet sous chaque section, la carte des lignes similaires dans la carte, et une note de pied. À 390 px on lisait des lignes partout, et les espaces n'étaient ceux d'aucun jeton.
+**Une page de lecture n'a ni encadré, ni filet entre ses sections** (sauf la fiche d'une action : § 8.10). La fiche d'une ligne avait quatre surfaces imbriquées : la carte de la lecture (fond, bord, rayon, 24 px de gouttière), un filet sous chaque section, la carte des lignes similaires dans la carte, et une note de pied. À 390 px on lisait des lignes partout, et les espaces n'étaient ceux d'aucun jeton.
 
 La règle, mesurée sur la fiche le jour même :
 
@@ -733,6 +733,25 @@ La règle, mesurée sur la fiche le jour même :
 **Chaque bulle d'information s'ouvre au milieu de l'écran et se ferme d'un geste du doigt.** C'est la fenêtre centrée de la maison (`Sheet` « centre ») : un voile, un titre, un texte, une croix, et un tiré vers le bas de plus de 80 px qui la ferme. Elle remplace l'infobulle à flèche du « i » de terme, qui se coupait sous un en-tête collant et sortait de l'écran sur un téléphone.
 
 **La confirmation d'un suivi en fait partie** (titre, détail, geste, croix, et fermeture d'elle-même au bout de 3 s). **Exceptions** : le « i » de la barre du haut (une feuille à onglets) ; l'astuce de glissement du pager aussi ; pour le reste (visite guidée, survol d'un graphe, `title=""` natifs, bandeaux d'état), la décision appartient au client et se prend avec lui. La liste est dans le skill `guichet-espace-tuiles`.
+
+### 8.10 La fiche d'une action : des encadrés en relief, des graphes, des mosaïques (9 novembre 2026)
+
+**Décision du client** (planche « Fiche d'une action », réponses « 1A · 2B · 3 oui · 4 oui · a oui · b 44 · c rendement · d oui · e oui · f Émetteur · g cartes ») : pour les actions seulement, le § 8.8 est levé. Les autres lignes (OTA, BTA, rachats, fonds) gardent la page à plat ; elles seront décidées une à une.
+
+| Élément | Règle |
+|---|---|
+| Une section | un **titre à plat** (`.sec h3`, `--t-6`, gras) puis UNE carte (`Carte`) : le titre n'est jamais dans la carte |
+| La carte | fond `--surface`, rayon `--rond`, marge `--s-7`, l'ombre `--shadow` et un liseré clair en haut. Rapport page / carte : 1,12 en sombre, 1,07 en clair : en clair, l'ombre porte le relief |
+| Entre deux sections | **44 px** (`--chapitres-gap`), comme avant : le groupe `chapitres` de la lecture |
+| Une mosaïque (`Mosaique`) | le chiffre **majeur** en haut à `--t-8`, les autres dessous côte à côte en tuiles (`--surface-2`) : 2 colonnes pour 2 ou 4 tuiles, 3 pour 3. Une tuile sans valeur n'existe pas |
+| Le chiffre majeur d'une action | le **rendement du dernier dividende** (bulle de calcul au toucher) ; le cours est dans la carte « Cours », avec sa variation sur 3 mois et sa courbe |
+| Les graphes | la courbe du cours et ses volumes (`CourbeDuCours`, périodes 1 mois · 3 mois · depuis l'introduction), les dividendes et les comptes en barres (`BarresDeComptes`), les actionnaires en barres. Aucune série inventée ; le client lit 400 séances pour remonter à l'introduction |
+| L'Émetteur | porte la société : identité en mosaïque, performance financière, actionnaires, et ses autres lignes à part |
+| Les lignes similaires | des cartes qui défilent (`CartesSimilaires.module.css`) ; le pied de risques est une carte de rangées |
+
+**Une action n'a pas de remboursement** : `repaymentLabel` ne rend « in fine » que pour une obligation (la ligne « Remboursement : in fine » s'affichait sur une action).
+
+**Ce qu'on ne reprend pas des références** : la suggestion d'analystes, les CFD, le carnet d'ordres, l'alerte de prix en carte (déjà dans le menu « ··· »).
 
 ## 9. La voix des libellés — « Mes » pour ce qui est au client, « Votre » pour ce que la maison lui dit
 

@@ -28,6 +28,8 @@ Ce skill décrit les quatre premières étapes ; `guichet-maquette` mène la pla
 
 | **Ligne d'une action : prix, variation, dividende** | fiches d'action et listes de cours de Revolut (Invest) et Yahoo Finance (déjà versées) | principes écrits au § 4 bis, « Règle du prix et de la variation » ; mesures de Guichet du 6 novembre 2026 dans `ETALON.md` § 8.7 |
 
+| **Fiche d'une action** : prix, graphe, statistiques clés, états financiers | `docs/design-refs/concurrents/revolut/fiche-capture-longue-*.jpeg` et `fiche-action-finances-*.jpeg` | principes repris le 9 novembre 2026 (ETALON § 8.10) : prix en grand et variation avec sa période, graphe en tête avec pastilles de période, cartes de chiffres sous un titre à plat, barres annuelles, lignes proches en cartes qui défilent ; refusés : suggestion d'analystes, CFD, carnet d'ordres |
+
 Pour l'Accueil, partir de `references/revolut-accueil.md`, puis confronter à `references/yahoo-finance.md` (un second modèle : les deux se complètent, aucun des deux ne se copie) : les principes y sont déjà écrits, avec leurs réserves propres à Guichet.
 
 ## 1. Ce qu'il faut du client (et comment le demander)

@@ -1,0 +1,56 @@
+.bloc {
+  display: grid;
+  gap: var(--s-5);
+  min-width: 0;
+}
+.periodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+.periodes button {
+  border: 0;
+  padding: var(--s-3) var(--s-5);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-2);
+  font-weight: 700;
+  cursor: pointer;
+}
+.periodes .on {
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+}
+.dessin {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.aire {
+  fill: var(--gold);
+  opacity: 0.14;
+}
+.trait {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+.volume {
+  fill: var(--ink-3);
+  opacity: 0.55;
+}
+.point {
+  fill: var(--gold);
+}
+.borne {
+  fill: var(--ink-3);
+  font-size: 8px;
+}
+.legende {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}

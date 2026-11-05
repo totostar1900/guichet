@@ -1,0 +1,13 @@
+.carte {
+  display: grid;
+  gap: var(--s-6);
+  min-width: 0;
+  padding: var(--s-7);
+  border-radius: var(--rond);
+  background: var(--surface);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 9%, transparent), var(--shadow);
+}
+.plat {
+  gap: 0;
+  padding-block: var(--s-2);
+}

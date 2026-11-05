@@ -177,3 +177,15 @@ La fiche d'une ligne avait un seul écart (28 px) et trois styles de titre (phra
 - **Un groupe imbriqué** (le calcul en trois blocs) est lui-même `chapitres` : même écart dedans et dehors. Mesurer avec `.chapitres > *` compte aussi les enfants du groupe imbriqué : un « écart » négatif y est un artefact de mesure, pas un défaut.
 - **Une taille hors échelle fait tomber `typographie.test`** : prendre un jeton `--t-*` (le plafond ne monte pas).
 - **Un onglet vide parle**, et une pièce répétée sous chaque onglet (lignes similaires) se range dans l'onglet qui lui correspond.
+
+## Leçon du 9 novembre 2026 : l'encadré en relief, le titre à plat, la mosaïque (fiche d'une action)
+
+Le client a levé le § 8.8 pour les actions et demandé des encadrés en relief (ETALON § 8.10). Ce qui s'applique, et qui se réutilise pour la page suivante :
+
+- **Le titre reste à plat, au-dessus de la carte** : une section = `<h3>` + `<Carte>`, jamais le titre dans la carte. Le gabarit existe (`Carte`, `Mosaique`/`Majeur`, `BarresDeComptes`, `CourbeDuCours`) : une nouvelle fiche l'assemble, elle ne le recopie pas.
+- **Le relief se mesure dans les deux thèmes** : rapport page / carte 1,12 en sombre mais 1,07 en clair (sous la règle de 1,1) : c'est l'ombre qui porte le relief en clair. Un fond « plus sombre que la page » est exclu (skill benchmark).
+- **Une mosaïque a UN majeur** (`--t-8`) et des tuiles dessous, deux par deux ; une tuile sans donnée n'est pas écrite, et le nombre de colonnes suit le nombre de tuiles.
+- **Un graphe ne vient que de ce qui existe** (la cote, la fiche de la société) ; il n'écrit pas une seconde variation, qui contredirait celle de la tête.
+- **La portée se déclare** : le desk et les autres lignes gardent leur lecture (`mode`, `o.instrument`) ; chaque nouvelle règle de lecture se garde par une clause dans `lecture-de-la-page.test.ts`, vérifiée par mutation.
+- **Taille hors échelle** : prendre un jeton `--t-*` (le plafond de `typographie.test` ne monte pas).
+- **Un cours démo n'est pas un cours cote** : les deux jeux de démonstration (`seed.ts` et `cote-seed.ts`) donnent 90 000 et 85 000 pour BHC ; en production le cours vient du bulletin (`boc.ts`), donc la même valeur. Ce n'est pas un défaut de lecture.

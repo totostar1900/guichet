@@ -1,0 +1,60 @@
+/* LES LIGNES SIMILAIRES D'UNE ACTION : un rail de cartes en relief qui défile, le titre à plat au-dessus (9 novembre 2026). */
+.bloc {
+  display: grid;
+  gap: var(--titre-gap);
+  min-width: 0;
+}
+.rail {
+  display: flex;
+  gap: var(--s-5);
+  margin: 0;
+  padding: var(--s-2) var(--s-2) var(--s-5);
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+.rail li {
+  flex: none;
+  width: 148px;
+  scroll-snap-align: start;
+}
+.carte {
+  display: grid;
+  align-content: start;
+  gap: var(--s-3);
+  height: 100%;
+  padding: var(--s-6);
+  border-radius: var(--rond);
+  background: var(--surface);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 9%, transparent), var(--shadow);
+  color: inherit;
+  text-decoration: none;
+}
+.nom {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: var(--t-3);
+  line-height: 1.3;
+}
+.chiffre {
+  font-size: var(--t-6);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.chiffre i {
+  margin-left: var(--s-2);
+  font-style: normal;
+  font-size: var(--t-2);
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.carte small {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}

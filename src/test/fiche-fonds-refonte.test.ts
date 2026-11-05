@@ -86,7 +86,7 @@ describe("la fiche d'un fonds", () => {
     expect(code("src/app/offres/[id]/FicheReading.tsx"), "les risques sont revenus dans un volet").not.toMatch(/les-quatre-risques/);
     const page = code("src/app/offres/[id]/page.tsx");
     const lecturePage = page.indexOf("<FicheReading o={o} data={fiche}>");
-    const risques = page.indexOf("<PiedDeFiche />", lecturePage);
+    const risques = page.indexOf("<PiedDeFiche", lecturePage);
     const fin = page.indexOf("</FichePanes>", lecturePage);
     expect(lecturePage, "la lecture de la fiche est introuvable").toBeGreaterThan(0);
     expect(risques, "les risques ne sont plus en pied de la fiche").toBeGreaterThan(lecturePage);

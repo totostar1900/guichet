@@ -1,0 +1,44 @@
+.bloc {
+  display: grid;
+  gap: var(--s-4);
+}
+.dessin {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.axe {
+  stroke: var(--line-2);
+  stroke-width: 1;
+}
+.or {
+  fill: var(--gold);
+}
+.bleu {
+  fill: var(--navy-text);
+}
+.annee {
+  fill: var(--ink-3);
+  font-size: 9px;
+}
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-6);
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.legende i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: var(--s-3);
+  border-radius: 2px;
+}
+.fondOr {
+  background: var(--gold);
+}
+.fondBleu {
+  background: var(--navy-text);
+}

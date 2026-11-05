@@ -1,0 +1,73 @@
+.mosaique {
+  display: grid;
+  gap: var(--s-6);
+  min-width: 0;
+}
+.majeur {
+  display: grid;
+  gap: var(--s-1);
+}
+.etiquette {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.valeur {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--t-8);
+  line-height: 1.1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.valeur i {
+  margin-left: var(--s-2);
+  font-style: normal;
+  font-size: var(--t-3);
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.or {
+  color: var(--gold-ink);
+}
+.sous {
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.tuiles {
+  display: grid;
+  gap: var(--s-4);
+}
+.c1 {
+  grid-template-columns: 1fr;
+}
+.c2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.c3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.tuile {
+  display: grid;
+  align-content: start;
+  gap: var(--s-2);
+  min-width: 0;
+  padding: var(--s-5) var(--s-5);
+  border-radius: calc(var(--rond) - var(--s-3));
+  background: var(--surface-2);
+}
+.tuile span {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.tuile b {
+  font-size: var(--t-4);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}

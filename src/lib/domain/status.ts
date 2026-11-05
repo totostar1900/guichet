@@ -135,7 +135,7 @@ export function tenorYears(o: Offer): number {
  * une fois, ce que dit aussi le communiqué de toute adjudication du primaire.
  */
 export function repaymentLabel(o: Offer): string | undefined {
-  if (o.kind === "FONDS" || o.kind === "ACTIONS" || o.kind === "APE") return undefined;
+  if (o.kind === "FONDS" || o.kind === "ACTIONS" || o.kind === "APE" || (o.kind === "MARCHE" && o.instrument === "action")) return undefined;
   const t = bondTerms(o.isin);
   if (t && o.instrument === "obligation" && o.couponRate != null) {
     return t.graceUntil
