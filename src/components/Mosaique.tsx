@@ -19,21 +19,27 @@ export function Majeur({ etiquette, valeur, unite, sous, or = false }: { etiquet
   );
 }
 
-export function Mosaique({ majeur, tuiles }: { majeur: ReactNode; tuiles: [string, string][] }) {
+/** Les tuiles seules : sous un graphe, par exemple. Deux colonnes pour deux ou quatre, trois pour trois, une pour une seule. */
+export function Tuiles({ tuiles }: { tuiles: [string, string][] }) {
   const n = tuiles.length;
+  if (n === 0) return null;
+  return (
+    <div className={`${styles.tuiles} ${n === 1 ? styles.c1 : n === 3 ? styles.c3 : styles.c2}`}>
+      {tuiles.map(([k, v]) => (
+        <div key={k} className={styles.tuile}>
+          <span>{k}</span>
+          <b>{v}</b>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function Mosaique({ majeur, tuiles }: { majeur: ReactNode; tuiles: [string, string][] }) {
   return (
     <div className={styles.mosaique}>
       {majeur}
-      {n > 0 && (
-        <div className={`${styles.tuiles} ${n === 1 ? styles.c1 : n === 3 ? styles.c3 : styles.c2}`}>
-          {tuiles.map(([k, v]) => (
-            <div key={k} className={styles.tuile}>
-              <span>{k}</span>
-              <b>{v}</b>
-            </div>
-          ))}
-        </div>
-      )}
+      <Tuiles tuiles={tuiles} />
     </div>
   );
 }

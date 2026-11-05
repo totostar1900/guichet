@@ -38,11 +38,10 @@ import type { Quote } from "@/lib/domain/market";
  * mnémonique tranche.
  */
 
-/** La fenêtre : trois mois civils, comme le dit la section. */
-export const MOIS_FENETRE = 3;
+import { debutDeFenetre, JOURS_DE_GRACE, MOIS_FENETRE } from "@/lib/market/periodes";
 
-/** Une première cotation plus tardive que ceci (en jours) après la borne : la ligne est entrée pendant la fenêtre. */
-const JOURS_DE_GRACE = 10;
+/** La fenêtre et son début se définissent dans `periodes.ts`, partagé avec le graphe de la fiche : une seule définition de « trois mois ». */
+export { debutDeFenetre, MOIS_FENETRE };
 
 export interface Performance {
   isin: string;
@@ -67,13 +66,6 @@ export interface Classement {
 }
 
 const jours = (de: string, a: string): number => Math.round((Date.parse(`${a}T00:00:00Z`) - Date.parse(`${de}T00:00:00Z`)) / 86_400_000);
-
-/** Le début de la fenêtre : trois mois civils avant la dernière séance. */
-export function debutDeFenetre(jusquAu: string, mois = MOIS_FENETRE): string {
-  const d = new Date(`${jusquAu}T12:00:00Z`);
-  d.setUTCMonth(d.getUTCMonth() - mois);
-  return d.toISOString().slice(0, 10);
-}
 
 /**
  * Le classement, écrit une fois et testé sans base : il reçoit les cotations, jamais le dépôt.

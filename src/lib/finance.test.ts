@@ -91,3 +91,51 @@ describe("dates", () => {
     expect(daysBetween("2026-02-14", "2026-09-16")).toBe(214);
   });
 });
+
+describe("les rapports des comptes d'une société cotée", () => {
+  it("la marge nette, la rentabilité des fonds propres et la part des fonds propres", async () => {
+    const { margeNettePct, rentabiliteFondsPropresPct, partFondsPropresPct } = await import("./finance");
+    expect(margeNettePct(840_686_520, 10_456_986_789)).toBeCloseTo(8.04, 2);
+    expect(rentabiliteFondsPropresPct(840_686_520, 4_767_320_406)).toBeCloseTo(17.63, 2);
+    expect(partFondsPropresPct(4_767_320_406, 7_848_354_395)).toBeCloseTo(60.74, 2);
+  });
+  it("un rapport trompeur n'est pas rendu : résultat net au-dessus des produits (BHC), dénominateur nul ou négatif", async () => {
+    const { margeNettePct, rentabiliteFondsPropresPct, partFondsPropresPct } = await import("./finance");
+    expect(margeNettePct(59_489, 30_334), "BHC 2025 : 196 % n'est pas une marge").toBeNull();
+    expect(margeNettePct(-5, 100), "une perte est une marge négative, pas un trou").toBeCloseTo(-5, 5);
+    expect(margeNettePct(5, 0)).toBeNull();
+    expect(rentabiliteFondsPropresPct(5, 0)).toBeNull();
+    expect(rentabiliteFondsPropresPct(5, -3)).toBeNull();
+    expect(partFondsPropresPct(5, 0)).toBeNull();
+  });
+});
+
+describe("la capitalisation et les rapports qui en découlent", () => {
+  it("la capitalisation, le rapport cours / bénéfice, le cours / valeur comptable, le rendement (SAFACAM, démonstration)", async () => {
+    const { capitalisation, rapportCoursBenefice, coursSurValeurComptable, rendementDividendePct } = await import("./finance");
+    const cap = capitalisation(32_000, 1_242_000);
+    expect(cap).toBe(39_744_000_000);
+    expect(rapportCoursBenefice(cap, 3_219_423_726)).toBeCloseTo(12.35, 2);
+    expect(coursSurValeurComptable(cap, 22_149_885_911)).toBeCloseTo(1.79, 2);
+    expect(rendementDividendePct(2_200, 32_000)).toBeCloseTo(6.875, 3);
+  });
+  it("un changement du nombre de titres ne change ni le rapport cours / bénéfice ni le cours / valeur comptable", async () => {
+    const { capitalisation, rapportCoursBenefice, coursSurValeurComptable } = await import("./finance");
+    /* Division du nominal par 5 : cinq fois plus de titres, un cinquième du cours. */
+    const avant = capitalisation(50_000, 1_000_000);
+    const apres = capitalisation(10_000, 5_000_000);
+    expect(apres).toBe(avant);
+    expect(rapportCoursBenefice(apres, 2_000_000_000)).toBe(rapportCoursBenefice(avant, 2_000_000_000));
+    expect(coursSurValeurComptable(apres, 9_000_000_000)).toBe(coursSurValeurComptable(avant, 9_000_000_000));
+  });
+  it("un rapport qui ne veut rien dire rend null : résultat net nul ou négatif, capitaux propres négatifs, dividende inconnu, cours nul", async () => {
+    const { rapportCoursBenefice, coursSurValeurComptable, rendementDividendePct } = await import("./finance");
+    expect(rapportCoursBenefice(1e9, 0)).toBeNull();
+    expect(rapportCoursBenefice(1e9, -5)).toBeNull();
+    expect(coursSurValeurComptable(1e9, -1)).toBeNull();
+    expect(rendementDividendePct(null, 1000)).toBeNull();
+    expect(rendementDividendePct(undefined, 1000)).toBeNull();
+    expect(rendementDividendePct(100, 0)).toBeNull();
+    expect(rendementDividendePct(0, 1000), "un dividende de zéro est un rendement de zéro, pas un trou").toBe(0);
+  });
+});

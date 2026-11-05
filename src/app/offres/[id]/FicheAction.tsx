@@ -1,20 +1,22 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { BarresDeComptes } from "@/components/BarresDeComptes";
+import { GrapheComptes } from "@/components/GrapheComptes";
 import { Carte } from "@/components/Carte";
 import { CourbeDuCours } from "@/components/CourbeDuCours";
 import { CrossSignal } from "@/components/CrossSignal";
 import { KpiCard } from "@/components/KpiCard";
-import { Majeur, Mosaique } from "@/components/Mosaique";
+import { Majeur, Mosaique, Tuiles } from "@/components/Mosaique";
 import { PastilleVariation } from "@/components/PastilleVariation";
 import { explainKpis } from "@/lib/domain/explain";
 import { tradedSession } from "@/lib/domain/market";
 import type { Offer } from "@/lib/domain/types";
 import { displayYield } from "@/lib/domain/status";
-import { daysBetween } from "@/lib/finance";
+import { serieDeValorisation } from "@/lib/market/valorisation";
+import { daysBetween, margeNettePct, partFondsPropresPct, rentabiliteFondsPropresPct } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct, fmtScaled, localIso, pickScale } from "@/lib/format";
 import { voletsMasques } from "@/lib/fiche-volets";
 import { getT } from "@/i18n/server";
+import { GraphesDeValorisation } from "./GraphesDeValorisation";
 import { IssuerCard } from "./IssuerCard";
 import type { FicheData } from "./FicheReading";
 import styles from "./page.module.css";
@@ -33,11 +35,12 @@ import fa from "./FicheAction.module.css";
 const signe = (v: number) => `${v > 0 ? "+" : ""}${fmtPct(v, 2)}`;
 const titres = (n: number) => `${fmt(n)} titre${n > 1 ? "s" : ""}`;
 
-function Bloc({ pane, titre, children, plat = false }: { pane: string; titre: string; children: ReactNode; plat?: boolean }) {
+function Bloc({ pane, titre, children, plat = false, fin }: { pane: string; titre: string; children: ReactNode; plat?: boolean; /** Sous la carte, dans la même section : la mention courte du dernier bloc d'un onglet. */ fin?: ReactNode }) {
   return (
     <section className={styles.sec} data-pane={pane}>
       <h3>{titre}</h3>
       <Carte plat={plat}>{children}</Carte>
+      {fin}
     </section>
   );
 }
@@ -45,7 +48,7 @@ function Bloc({ pane, titre, children, plat = false }: { pane: string; titre: st
 export async function FicheAction({ o, data, base, noteBulle }: { o: Offer; data: FicheData; base: string; /** « Chiffres de référence ⓘ · Essayer le simulateur → », rangée au pied de la simulation. */ noteBulle: ReactNode }) {
   const t = await getT();
   const now = new Date();
-  const { company, quotes, variation3m, facing, stamp, profile, others, issuer } = data;
+  const { company, quotes, facing, stamp, profile, others, issuer } = data;
   const dy = displayYield(o);
   const yTxt = dy.pct != null ? `${dy.approx ? "≈ " : ""}${fmtPct(dy.pct, 2)}` : "—";
   const explains = explainKpis(o, now);
@@ -54,6 +57,7 @@ export async function FicheAction({ o, data, base, noteBulle }: { o: Offer; data
   const tradee = quotes.find(tradedSession);
   const points = [...quotes].reverse().map((q) => ({ d: q.sessionDate, c: q.close, v: q.volumeTraded }));
   const comparer = `${base}/comparer?a=${o.id}`;
+  const mention = <p className={fa.mention}>{t("Communication à caractère promotionnel. Risque de perte en capital.")}</p>;
 
   const tuilesCles: [string, string][] = [];
   if (o.dividendPerShare) tuilesCles.push([t("Dividende brut"), `${fmt(o.dividendPerShare)} FCFA`]);
@@ -64,32 +68,43 @@ export async function FicheAction({ o, data, base, noteBulle }: { o: Offer; data
   const ref = o.ask ?? o.lastPrice ?? 0;
   const n = 100;
   const divAttendu = o.dividendPerShare ? n * o.dividendPerShare : 0;
-  const divs = (company?.figures ?? []).filter((f) => typeof f.dividendPerShare === "number");
-  const dernierDiv = divs[divs.length - 1];
-  const precedents = divs.slice(0, -1).reverse().slice(0, 3).map((f): [string, string] => [t("Exercice {y}", { y: String(f.year) }), `${fmt(f.dividendPerShare as number)} FCFA`]);
   const comptes = company?.figures ?? [];
   const dernierCompte = comptes[comptes.length - 1];
-  const echelle = pickScale(comptes.flatMap((f) => [f.revenue, f.netIncome, f.totalAssets, f.equity]));
+  const annees = comptes.map((f) => String(f.year));
+  const echelleBilan = pickScale(comptes.flatMap((f) => [f.revenue, f.totalAssets, f.equity]));
+  const echelleResultat = pickScale(comptes.map((f) => f.netIncome));
+  const sur = (v: number, e: { div: number }) => Math.round((v / e.div) * 100) / 100;
+  const marges = comptes.map((f) => margeNettePct(f.netIncome, f.revenue));
+  const rentabilites = comptes.map((f) => rentabiliteFondsPropresPct(f.netIncome, f.equity));
+  const parts = comptes.map((f) => partFondsPropresPct(f.equity, f.totalAssets));
+  const arrondi = (v: number | null) => (v == null ? null : Math.round(v * 10) / 10);
+  /* UNE MARGE N'EST TRACÉE QUE SI TOUS LES EXERCICES LA PERMETTENT : une série trouée (BHC publie un résultat net supérieur à son chiffre d'affaires certaines années) laisserait des points isolés qui se liraient comme des mesures comparables. */
+  const margesFiables = marges.length >= 2 && marges.every((v) => v != null);
+  const rapportsLisibles = margesFiables || rentabilites.filter((v) => v != null).length >= 2;
+  const dividendes = comptes.map((f) => (typeof f.dividendPerShare === "number" ? f.dividendPerShare : null));
+  const dernierDiv = [...comptes].reverse().find((f) => typeof f.dividendPerShare === "number");
+  /* LA VALORISATION : la capitalisation et ses rapports, séance par séance, tirés des cotations (nombre de titres de chaque séance) et des comptes. */
+  const valorisation = company && comptes.length > 0 ? serieDeValorisation([...quotes].reverse().map((q) => ({ d: q.sessionDate, c: q.close, titres: q.sharesTotal, flottants: q.sharesFloat })), comptes.map((f) => ({ year: f.year, netIncome: f.netIncome, equity: f.equity, dividendPerShare: f.dividendPerShare })), { titres: company.sharesTotal, flottants: company.sharesFloat }) : [];
+  const nominalDivise = comptes.some((f) => /division du nominal/i.test(f.source));
   const lienSociete = profile?.href ?? (company ? `/societes/${company.mnemo.toLowerCase()}` : undefined);
   const initiales = (company?.shortName ?? o.issuer).replace(/[^A-Za-zÀ-ÿ0-9 ]/g, "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
   const emetteur = !voletsMasques(o).includes("emetteur");
+  /* LA MENTION COURTE SE RANGE SOUS LA DERNIÈRE SECTION QUI EXISTE de l'onglet : une section de plus ne doit pas la laisser en route. */
+  const presentes = ["identite", company && others.length > 0 ? "lignes" : "", dernierCompte ? "perf" : "", rapportsLisibles ? "rapports" : "", dernierCompte && parts.some((v) => v != null) ? "bilan" : "", dernierDiv ? "dividende" : "", valorisation.length >= 2 ? "valorisation" : "", company && company.coreShareholders.length > 0 ? "actionnaires" : ""].filter(Boolean);
+  const derniere = presentes[presentes.length - 1];
+  const fin = (cle: string) => (derniere === cle ? mention : undefined);
 
   return (
     <>
-      {/* ESSENTIEL : le cours et sa courbe, les chiffres clés, la dernière séance, la cotation. */}
+      {/* ESSENTIEL (Chiffres y est regroupé, 9 novembre 2026) : le cours et sa courbe, les chiffres clés, les séances, la simulation, la cotation. */}
       <Bloc pane="essentiel" titre={t("Cours")}>
         <Majeur
           etiquette={o.lastPriceOn ? t("Dernier cours · {d}", { d: fmtDate(o.lastPriceOn) }) : t("Dernier cours")}
           valeur={o.lastPrice != null ? fmt(o.lastPrice) : "—"}
           unite="FCFA"
-          sous={
-            <>
-              {variation3m && <PastilleVariation v={variation3m.pct} periode={t("3 mois")} />}
-              {age >= 1 && <span className={fa.age}> {t("même cours depuis {n} jours", { n: age })}</span>}
-            </>
-          }
+          sous={age >= 1 ? <span className={fa.age}>{t("même cours depuis {n} jours", { n: age })}</span> : undefined}
         />
-        {points.length > 1 && <CourbeDuCours points={points} introduction={company?.listedOn} />}
+        {points.length > 1 && <CourbeDuCours points={points} />}
         {o.priceSource !== "boc" && <p className={fa.note}>{t(stamp)}</p>}
       </Bloc>
 
@@ -99,7 +114,7 @@ export async function FicheAction({ o, data, base, noteBulle }: { o: Offer; data
       </Bloc>
 
       {dernier && (
-        <Bloc pane="essentiel" titre={t("Dernière séance")}>
+        <Bloc pane="essentiel" titre={t("Séances")}>
           <Mosaique
             majeur={<Majeur etiquette={t("Clôture · {d}", { d: fmtDate(dernier.sessionDate) })} valeur={fmt(dernier.close)} unite="FCFA" sous={<PastilleVariation v={dernier.variationPct} periode={t("séance")} />} />}
             tuiles={[
@@ -109,38 +124,6 @@ export async function FicheAction({ o, data, base, noteBulle }: { o: Offer; data
               [t("Référence prochaine séance"), `${fmt(dernier.referenceNext)} FCFA`],
             ]}
           />
-        </Bloc>
-      )}
-
-      <Bloc pane="essentiel" titre={t("Cotation et règlement")}>
-        <Mosaique
-          majeur={<Majeur etiquette={t("Règlement")} valeur={`T+${o.settlementDays ?? 3}`} />}
-          tuiles={[
-            [t("Marché"), o.market ?? "—"],
-            [t("Cotation"), t("continue, jours ouvrés")],
-          ]}
-        />
-        <p className={fa.texte}>{t(o.blurb)}</p>
-      </Bloc>
-
-      {/* CHIFFRES : la simulation, l'évolution du cours, les dernières séances, les dividendes. */}
-      <Bloc pane="chiffres" titre={t(`Pour ${n} actions au cours vendeur`)}>
-        <Mosaique
-          majeur={<Majeur etiquette={t("À décaisser")} valeur={fmt(n * ref)} unite="FCFA" sous={t("{n} actions au cours vendeur", { n: fmt(n) })} />}
-          tuiles={[[t("Cours vendeur"), `${fmt(ref)} FCFA`], ...(divAttendu ? ([[t("Dividende annuel attendu, s'il est maintenu"), `${fmt(divAttendu)} FCFA`]] as [string, string][]) : [])]}
-        />
-        {noteBulle}
-      </Bloc>
-
-      {points.length > 1 && (
-        <Bloc pane="chiffres" titre={t("Évolution du cours")}>
-          <CourbeDuCours points={points} introduction={company?.listedOn} hauteur={150} />
-          <p className={fa.note}>{t("Ces cours ne préjugent pas du prix auquel votre ordre sera exécuté.")}</p>
-        </Bloc>
-      )}
-
-      {quotes.length > 0 && (
-        <Bloc pane="chiffres" titre={t("Dernières séances")}>
           <table className={fa.seances}>
             <thead>
               <tr>
@@ -178,24 +161,30 @@ export async function FicheAction({ o, data, base, noteBulle }: { o: Offer; data
               </table>
             </details>
           )}
+          <p className={fa.note}>{t("Ces cours ne préjugent pas du prix auquel votre ordre sera exécuté.")}</p>
         </Bloc>
       )}
 
-      {dernierDiv && (
-        <Bloc pane="chiffres" titre={t("Dividendes")}>
-          <Mosaique
-            majeur={
-              <>
-                <Majeur etiquette={t("Dernier dividende · exercice {y}", { y: String(dernierDiv.year) })} valeur={fmt(dernierDiv.dividendPerShare as number)} unite={t("FCFA par action")} />
-                <BarresDeComptes annees={divs.map((f) => String(f.year))} series={[{ nom: t("Dividende brut par action"), valeurs: divs.map((f) => f.dividendPerShare as number), teinte: "or" }]} resume={divs.map((f) => `${f.year} : ${fmt(f.dividendPerShare as number)} FCFA`).join(", ")} />
-              </>
-            }
-            tuiles={[[t("Rendement"), yTxt], ...precedents]}
-          />
-        </Bloc>
-      )}
+      <Bloc pane="essentiel" titre={t(`Pour ${n} actions au cours vendeur`)}>
+        <Mosaique
+          majeur={<Majeur etiquette={t("À décaisser")} valeur={fmt(n * ref)} unite="FCFA" sous={t("{n} actions au cours vendeur", { n: fmt(n) })} />}
+          tuiles={[[t("Cours vendeur"), `${fmt(ref)} FCFA`], ...(divAttendu ? ([[t("Dividende annuel attendu, s'il est maintenu"), `${fmt(divAttendu)} FCFA`]] as [string, string][]) : [])]}
+        />
+        {noteBulle}
+      </Bloc>
 
-      {/* DOCUMENTS : des rangées à plat dans une carte. */}
+      <Bloc pane="essentiel" titre={t("Cotation et règlement")}>
+        <Mosaique
+          majeur={<Majeur etiquette={t("Règlement")} valeur={`T+${o.settlementDays ?? 3}`} />}
+          tuiles={[
+            [t("Marché"), o.market ?? "—"],
+            [t("Cotation"), t("continue, jours ouvrés")],
+          ]}
+        />
+        <p className={fa.texte}>{t(o.blurb)}</p>
+      </Bloc>
+
+      {/* DOCUMENTS : des rangées à plat dans une carte, la mention courte dessous (le pied de trois liens n'est que dans l'Essentiel). */}
       <section className={styles.sec} data-pane="docs">
         <h3>{t("Documents")}</h3>
         <Carte plat>
@@ -222,12 +211,13 @@ export async function FicheAction({ o, data, base, noteBulle }: { o: Offer; data
             </div>
           )}
         </Carte>
+        {mention}
       </section>
 
-      {/* ÉMETTEUR : la société (identité, performance financière, actionnaires). */}
+      {/* ÉMETTEUR : la société — identité, performance financière à deux axes, rapports, bilan, dividendes, actionnaires. */}
       {emetteur && (
         <>
-          <Bloc pane="emetteur" titre={t("L'émetteur")}>
+          <Bloc pane="emetteur" titre={t("L'émetteur")} fin={fin("identite")}>
             {company ? (
               <>
                 <Mosaique
@@ -239,7 +229,7 @@ export async function FicheAction({ o, data, base, noteBulle }: { o: Offer; data
                       <div>
                         <b>{company.shortName}</b>
                         <small>
-                          {t("Société")} · {t(o.countryName)} · BVMAC
+                          {t("Société")} · {t(o.countryName)}
                         </small>
                       </div>
                     </div>
@@ -263,39 +253,75 @@ export async function FicheAction({ o, data, base, noteBulle }: { o: Offer; data
           </Bloc>
 
           {company && others.length > 0 && (
-            <Bloc pane="emetteur" titre={t("Ses autres lignes à Guichet")}>
+            <Bloc pane="emetteur" titre={t("Ses autres lignes à Guichet")} fin={fin("lignes")}>
               <IssuerCard profile={profile} o={o} others={others} company={company} issuer={issuer} lignesSeulement />
             </Bloc>
           )}
 
           {dernierCompte && (
-            <Bloc pane="emetteur" titre={t("Performance financière")}>
-              <Mosaique
-                majeur={
-                  <>
-                    <Majeur etiquette={t("Résultat net · {y}", { y: String(dernierCompte.year) })} valeur={fmtScaled(dernierCompte.netIncome, echelle.div, 1)} unite={echelle.short} />
-                    <BarresDeComptes
-                      annees={comptes.map((f) => String(f.year))}
-                      series={[
-                        { nom: t(dernierCompte.revenueLabel), valeurs: comptes.map((f) => f.revenue / echelle.div), teinte: "or" },
-                        { nom: t("Résultat net"), valeurs: comptes.map((f) => f.netIncome / echelle.div), teinte: "bleu" },
-                      ]}
-                      resume={comptes.map((f) => `${f.year} : ${fmtScaled(f.revenue, echelle.div, 1)} / ${fmtScaled(f.netIncome, echelle.div, 1)} ${echelle.short}`).join(" ; ")}
-                    />
-                  </>
-                }
+            <Bloc pane="emetteur" titre={t("Performance financière")} fin={fin("perf")}>
+              <Majeur etiquette={t("Résultat net · {y}", { y: String(dernierCompte.year) })} valeur={fmtScaled(dernierCompte.netIncome, echelleResultat.div, 1)} unite={echelleResultat.short} />
+              <GrapheComptes
+                annees={annees}
+                unite={echelleBilan.short}
+                barres={[{ nom: t(dernierCompte.revenueLabel), valeurs: comptes.map((f) => sur(f.revenue, echelleBilan)), teinte: "or" }]}
+                droit={{ unite: echelleResultat.short, lignes: [{ nom: t("Résultat net"), valeurs: comptes.map((f) => sur(f.netIncome, echelleResultat)), teinte: "bleu" }] }}
+                resume={comptes.map((f) => `${f.year} : ${fmtScaled(f.revenue, echelleBilan.div, 1)} ${echelleBilan.short} / ${fmtScaled(f.netIncome, echelleResultat.div, 1)} ${echelleResultat.short}`).join(" ; ")}
+              />
+              <Tuiles
                 tuiles={[
-                  [t(dernierCompte.revenueLabel), `${fmtScaled(dernierCompte.revenue, echelle.div, 1)} ${echelle.short}`],
-                  [t("Total bilan"), `${fmtScaled(dernierCompte.totalAssets, echelle.div, 1)} ${echelle.short}`],
-                  [t("Capitaux propres"), `${fmtScaled(dernierCompte.equity, echelle.div, 1)} ${echelle.short}`],
+                  [t(dernierCompte.revenueLabel), `${fmtScaled(dernierCompte.revenue, echelleBilan.div, 1)} ${echelleBilan.short}`],
+                  [t("Total bilan"), `${fmtScaled(dernierCompte.totalAssets, echelleBilan.div, 1)} ${echelleBilan.short}`],
+                  [t("Capitaux propres"), `${fmtScaled(dernierCompte.equity, echelleBilan.div, 1)} ${echelleBilan.short}`],
                 ]}
               />
               <p className={fa.note}>{t("Exercices clos au 31/12 · norme {n}", { n: dernierCompte.standard })}</p>
             </Bloc>
           )}
 
+          {rapportsLisibles && (
+            <Bloc pane="emetteur" titre={t("Marge et rentabilité")} fin={fin("rapports")}>
+              <GrapheComptes
+                annees={annees}
+                unite="%"
+                lignes={[
+                  { nom: t("Rentabilité des fonds propres"), valeurs: rentabilites.map(arrondi), teinte: "or" },
+                  ...(margesFiables ? [{ nom: t("Marge nette"), valeurs: marges.map(arrondi), teinte: "bleu" as const }] : []),
+                ]}
+                resume={comptes.map((f, j) => `${f.year} : ${rentabilites[j] == null ? "—" : fmtPct(rentabilites[j] as number, 1)}`).join(" ; ")}
+              />
+              {!margesFiables && <p className={fa.note}>{t("Marge nette non affichée : le résultat net dépasse le chiffre d'affaires publié.")}</p>}
+            </Bloc>
+          )}
+
+          {dernierCompte && parts.some((v) => v != null) && (
+            <Bloc pane="emetteur" titre={t("Bilan et capitaux propres")} fin={fin("bilan")}>
+              <Majeur etiquette={t("Capitaux propres / total bilan · {y}", { y: String(dernierCompte.year) })} valeur={fmtPct(parts[parts.length - 1] ?? 0, 1)} />
+              <GrapheComptes
+                annees={annees}
+                unite={echelleBilan.short}
+                barres={[
+                  { nom: t("Total bilan"), valeurs: comptes.map((f) => sur(f.totalAssets, echelleBilan)), teinte: "or" },
+                  { nom: t("Capitaux propres"), valeurs: comptes.map((f) => sur(f.equity, echelleBilan)), teinte: "or-doux" },
+                ]}
+                droit={{ unite: "%", lignes: [{ nom: t("Part des fonds propres"), valeurs: parts.map(arrondi), teinte: "bleu" }] }}
+                resume={comptes.map((f, j) => `${f.year} : ${fmtScaled(f.totalAssets, echelleBilan.div, 1)} / ${fmtScaled(f.equity, echelleBilan.div, 1)} ${echelleBilan.short}, ${parts[j] == null ? "—" : fmtPct(parts[j] as number, 1)}`).join(" ; ")}
+              />
+            </Bloc>
+          )}
+
+          {dernierDiv && (
+            <Bloc pane="emetteur" titre={t("Dividende par action")} fin={fin("dividende")}>
+              <Majeur etiquette={t("Dernier dividende · exercice {y}", { y: String(dernierDiv.year) })} valeur={fmt(dernierDiv.dividendPerShare as number)} unite={t("FCFA par action")} sous={`${t("Rendement")} ${yTxt}`} />
+              <GrapheComptes annees={annees} unite="FCFA" barres={[{ nom: t("Dividende brut par action"), valeurs: dividendes, teinte: "or" }]} resume={comptes.map((f, j) => `${f.year} : ${dividendes[j] == null ? t("aucun dividende") : `${fmt(dividendes[j] as number)} FCFA`}`).join(" ; ")} />
+              {nominalDivise && <p className={fa.note}>{t("Le dernier dividende est écrit après division du nominal : les exercices précédents ne lui sont pas comparables.")}</p>}
+            </Bloc>
+          )}
+
+          {valorisation.length >= 2 && <GraphesDeValorisation serie={valorisation} resultatAuDessusDuChiffreDAffaires={comptes.some((f) => f.netIncome > f.revenue)} fin={fin("valorisation")} />}
+
           {company && company.coreShareholders.length > 0 && (
-            <Bloc pane="emetteur" titre={t("Actionnaires")}>
+            <Bloc pane="emetteur" titre={t("Actionnaires")} fin={fin("actionnaires")}>
               <ul className={fa.actionnaires}>
                 {company.coreShareholders.map((a) => (
                   <li key={a.name}>

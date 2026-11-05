@@ -148,3 +148,15 @@
   border-radius: 3px;
   background: var(--gold);
 }
+.mention {
+  margin: var(--titre-gap) 0 0;
+  font-size: var(--t-2);
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.entete {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-5);
+}

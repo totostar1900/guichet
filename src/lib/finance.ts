@@ -336,3 +336,41 @@ export function addBusinessDays(from: Date, n: number): Date {
   }
   return d;
 }
+
+/**
+ * LES RAPPORTS DES COMPTES D'UNE SOCIÉTÉ COTÉE (fiche d'une action, onglet Émetteur, 9 novembre 2026).
+ *
+ * Trois rapports, calculés ici et nulle part ailleurs, sur les chiffres que la société publie (chiffre d'affaires ou produits, résultat net, total bilan,
+ * capitaux propres). Chacun rend `null` quand il ne veut rien dire : un dénominateur nul ou négatif, ou, pour la marge, un résultat net qui DÉPASSE les produits
+ * (la fiche de BHC publie 59,5 Md de résultat net pour 30,3 Md de chiffre d'affaires : une marge de 196 % n'est pas une marge, c'est deux grandeurs de
+ * périmètres différents). On n'affiche pas un rapport qu'on sait trompeur ; on le dit.
+ */
+export const margeNettePct = (resultatNet: number, produits: number): number | null => (produits > 0 && resultatNet <= produits ? (resultatNet / produits) * 100 : null);
+
+/** Résultat net / capitaux propres : ce que la société gagne pour un franc de fonds propres. */
+export const rentabiliteFondsPropresPct = (resultatNet: number, capitauxPropres: number): number | null => (capitauxPropres > 0 ? (resultatNet / capitauxPropres) * 100 : null);
+
+/** Capitaux propres / total bilan : la part du bilan que la société finance par ses propres moyens. */
+export const partFondsPropresPct = (capitauxPropres: number, totalBilan: number): number | null => (totalBilan > 0 && capitauxPropres >= 0 ? (capitauxPropres / totalBilan) * 100 : null);
+
+/**
+ * LA CAPITALISATION BOURSIÈRE D'UNE ACTION ET LES RAPPORTS QUI EN DÉCOULENT (fiche d'une action, onglet Émetteur, 9 novembre 2026).
+ *
+ * LA CAPITALISATION d'une séance est le cours de clôture × le nombre de titres DE CETTE SÉANCE (le bulletin le donne à chaque séance : une division du nominal ne
+ * la fausse pas). Les rapports se tirent d'elle et non du cours par action : le rapport cours / bénéfice est la capitalisation ÷ le résultat net, le cours / valeur
+ * comptable est la capitalisation ÷ les capitaux propres. Ainsi un changement du nombre de titres n'entre pas dans le calcul. Le rendement, lui, garde le dividende
+ * PAR ACTION tel que la société le publie, sur le cours de la séance.
+ *
+ * Chacun rend `null` quand il ne veut rien dire : un résultat net nul ou négatif n'a pas de rapport cours / bénéfice, des capitaux propres nuls ou négatifs pas de
+ * cours / valeur comptable, un cours nul pas de rendement. On n'écrit pas « 0 » à la place d'un rapport qu'on ne sait pas dire.
+ */
+export const capitalisation = (cours: number, titres: number): number => cours * titres;
+
+/** Capitalisation ÷ résultat net : combien d'années du résultat de l'exercice le marché paie. */
+export const rapportCoursBenefice = (capitalisationFcfa: number, resultatNet: number): number | null => (resultatNet > 0 ? capitalisationFcfa / resultatNet : null);
+
+/** Capitalisation ÷ capitaux propres : combien de fois la valeur comptable le marché paie. */
+export const coursSurValeurComptable = (capitalisationFcfa: number, capitauxPropres: number): number | null => (capitauxPropres > 0 ? capitalisationFcfa / capitauxPropres : null);
+
+/** Dividende brut par action du dernier exercice connu ÷ cours : le rendement qu'on lirait en achetant à ce cours. */
+export const rendementDividendePct = (dividendeParAction: number | null | undefined, cours: number): number | null => (typeof dividendeParAction === "number" && cours > 0 ? (dividendeParAction / cours) * 100 : null);

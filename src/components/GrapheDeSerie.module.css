@@ -1,0 +1,65 @@
+.bloc {
+  display: grid;
+  gap: var(--s-4);
+  min-width: 0;
+}
+.dessin {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.grille {
+  stroke: var(--line-2);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.graduation {
+  fill: var(--ink-3);
+  font-size: 8px;
+}
+.unite {
+  fill: var(--ink-3);
+  font-size: 8px;
+  font-weight: 700;
+}
+.aire {
+  fill: var(--gold);
+  opacity: 0.14;
+}
+.trait {
+  fill: none;
+  stroke-width: 1.9;
+  stroke-linejoin: round;
+}
+.or {
+  stroke: var(--gold);
+}
+.bleu {
+  stroke: var(--navy-text);
+}
+.marque {
+  stroke: var(--ink-3);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-5) var(--s-6);
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.legende i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: var(--s-3);
+  border-radius: 2px;
+}
+.fondOr {
+  background: var(--gold);
+}
+.fondBleu {
+  background: var(--navy-text);
+}

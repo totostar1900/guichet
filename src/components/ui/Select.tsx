@@ -23,6 +23,8 @@ export interface SelectOption {
   hint?: string;
   /** Group heading (rendered, not selectable) when set on an option with an empty value. */
   group?: boolean;
+  /** Shown, greyed, and not selectable : a choice the data cannot serve (« 5 ans » when the series holds one year), with its reason in `hint`. */
+  disabled?: boolean;
 }
 
 const PHONE = "(max-width: 760px)";
@@ -173,11 +175,15 @@ export function Select({ value, options, onChange, label, name, placeholder, com
         openMenu();
         return;
       }
-      const n = (active < 0 ? 0 : active) + (e.key === "ArrowDown" ? 1 : -1);
+      const pas = e.key === "ArrowDown" ? 1 : -1;
+      let n = (active < 0 ? 0 : active) + pas;
+      while (visible[n]?.disabled) n += pas;
       setActive(Math.min(visible.length - 1, Math.max(0, n)));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (open && active >= 0 && visible[active]) choose(visible[active].value);
+      if (open && active >= 0 && visible[active]) {
+        if (!visible[active].disabled) choose(visible[active].value);
+      }
       else if (open) closeMenu();
       else openMenu();
     } else if (e.key === "Escape") {
@@ -314,10 +320,11 @@ export function Select({ value, options, onChange, label, name, placeholder, com
                   id={`${id}-${i}`}
                   role="option"
                   aria-selected={o.value === cur}
-                  className={`${styles.selItem} ${i === active ? styles.selActive : ""}`}
-                  onMouseEnter={() => setActive(i)}
+                  aria-disabled={o.disabled || undefined}
+                  className={`${styles.selItem} ${i === active && !o.disabled ? styles.selActive : ""} ${o.disabled ? styles.selOff : ""}`}
+                  onMouseEnter={() => !o.disabled && setActive(i)}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => choose(o.value)}
+                  onClick={() => !o.disabled && choose(o.value)}
                 >
                   <span>{o.label}</span>
                   {o.hint && <small>{o.hint}</small>}

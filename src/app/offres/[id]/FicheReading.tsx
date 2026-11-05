@@ -539,7 +539,7 @@ export async function FicheReading({ o, data, mode = "client", children }: { o: 
   if (mode !== "desk" && o.kind === "MARCHE" && o.instrument === "action") {
     return (
       <div className="chapitres">
-        <FicheSegments exclure={["calendrier"]} mini={mini} />
+        <FicheSegments exclure={["calendrier", "chiffres"]} mini={mini} />
         <FicheAction o={o} data={data} base={base} noteBulle={noteBulle} />
         <RelatedNews kind="offer" keyOf={o.id} className={styles.sec} />
         {children}

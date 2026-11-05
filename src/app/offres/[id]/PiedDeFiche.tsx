@@ -18,7 +18,7 @@ export async function PiedDeFiche({ carte = false }: { /** Les rangées dans un 
     { href: "/info/mentions#types-de-risques", titre: t("Services et risques associés"), sous: t("Chaque instrument, ses chiffres, vos ordres") },
   ];
   return (
-    <footer className={styles.pied} aria-labelledby="pied-fiche">
+    <footer className={styles.pied} aria-labelledby="pied-fiche" data-pane={carte ? "essentiel" : undefined}>
       <h2 id="pied-fiche">{t("Pour investir sereinement")}</h2>
       {(() => {
         const liste = (

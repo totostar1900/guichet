@@ -189,3 +189,19 @@ Le client a levé le § 8.8 pour les actions et demandé des encadrés en relief
 - **La portée se déclare** : le desk et les autres lignes gardent leur lecture (`mode`, `o.instrument`) ; chaque nouvelle règle de lecture se garde par une clause dans `lecture-de-la-page.test.ts`, vérifiée par mutation.
 - **Taille hors échelle** : prendre un jeton `--t-*` (le plafond de `typographie.test` ne monte pas).
 - **Un cours démo n'est pas un cours cote** : les deux jeux de démonstration (`seed.ts` et `cote-seed.ts`) donnent 90 000 et 85 000 pour BHC ; en production le cours vient du bulletin (`boc.ts`), donc la même valeur. Ce n'est pas un défaut de lecture.
+
+## Leçon du 9 novembre 2026 (suite) : une liste déroulante est celle de la maison, un axe secondaire se dit, un chiffre grisé se justifie
+
+- **Pas de `<select>` natif dans les écrans du client** (`listes-natives.test.ts`) : la liste est `components/ui/Select`. Un choix que les données ne servent pas y est `disabled` avec sa raison dans l'indice (« historique insuffisant »), pas retiré.
+- **Une variation de période n'a qu'une définition** (`periodes.ts`, partagée avec « Ce qui performe ») ; un fichier lu par le navigateur n'importe jamais le dépôt (`performe.ts` réimporte `periodes.ts`, pas l'inverse).
+- **Deux grandeurs d'échelles différentes** (chiffre d'affaires, résultat net) : barres sur l'axe principal, courbe sur un axe secondaire dans sa propre couleur et sa propre unité ; jamais deux barres côte à côte sur deux échelles.
+- **Un rapport qui tromperait n'est pas rendu** (marge nette au-dessus de 100 % : BHC publie un résultat net supérieur à son chiffre d'affaires) ; on écrit pourquoi, on ne trace pas.
+- **La mention courte suit la dernière section de l'onglet** : elle se range par une liste des sections présentes, pas par une position écrite en dur.
+- **Une donnée de source officielle se vérifie à la source** : l'image de la fiche BVMAC se lit (outil de lecture d'image) quand le texte n'est pas extractible.
+
+## Leçon du 9 novembre 2026 (valorisation) : un sélecteur partagé, des rapports qui ne dépendent pas du nombre de titres
+
+- **Un sélecteur pour plusieurs graphes** : le composant client qui porte l'état rend toutes les sections (un fragment de `section` : elles restent des enfants de la pile des chapitres, donc à 44 px les unes des autres). Une seule `Select` (une clause compte `<Select` dans le fichier) ; la période se lit par `lirePeriode`, la même que le cours.
+- **Écrire le rapport comme capitalisation ÷ grandeur de la société** (et non cours ÷ par-action) rend la série insensible à une division du nominal : le nombre de titres est celui de la séance, il disparaît du rapport. Garder le dividende PAR ACTION tel que publié pour le rendement.
+- **Une hypothèse de calcul s'écrit dans UN endroit** (`entreeEnVigueur`) avec son test et sa phrase dans l'étalon : « l'exercice N compte à partir du 1ᵉʳ juillet N+1 » ne se redit pas ailleurs.
+- **Un `label` de `Select` est visible** : un label long tronque la valeur sur un téléphone (« Durée », pas « Durée des quatre graphiques »).

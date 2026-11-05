@@ -412,9 +412,9 @@ describe("la fiche d'une ligne : des sections qui se lisent (8 novembre 2026, pl
     expect(fort, "le titre des lignes similaires n'est plus celui des sections").toMatch(/font-size: var\(--t-6\);[^}]*text-transform: none;/);
     expect(lire("src/components/TitreDeBloc.tsx"), "« fort » ne choisit plus la classe").toMatch(/\$\{fort \? styles\.fort : ""\}/);
   });
-  it("les lignes similaires ne paraissent que dans l'Essentiel, le pied sous chaque onglet", () => {
+  it("les lignes similaires ne paraissent que dans l'Essentiel ; le pied aussi pour une action, sous chaque onglet pour les autres lignes", () => {
     expect(lire("src/app/offres/[id]/LignesSimilaires.tsx")).toMatch(/<div className=\{styles\.similaires\} data-pane="essentiel">/);
-    expect(lire("src/app/offres/[id]/PiedDeFiche.tsx"), "le pied est devenu propre à un onglet").not.toMatch(/data-pane/);
+    expect(lire("src/app/offres/[id]/PiedDeFiche.tsx"), "le pied d'une action n'est plus dans l'Essentiel seulement, ou celui des autres lignes l'est devenu").toMatch(/data-pane=\{carte \? "essentiel" : undefined\}/);
   });
   it("le chiffre en avant puis des rangées chez le client, les cartes au desk ; de quand date le chiffre est la dernière rangée", () => {
     const k = lire("src/app/offres/[id]/Kpis.tsx");
@@ -464,21 +464,31 @@ describe("la fiche d'une action : des encadrés en relief, des graphes, des mosa
     expect(lire("src/components/Mosaique.tsx"), "le nombre de tuiles ne choisit plus les colonnes").toMatch(/n === 1 \? styles\.c1 : n === 3 \? styles\.c3 : styles\.c2/);
     expect(action(), "le rendement n'est plus le chiffre majeur des chiffres clés").toMatch(/majeur=\{<KpiCard forme="heros" label="Rendement du dernier dividende"/);
   });
-  it("les sections de chaque onglet sont là, dans l'ordre", () => {
+  it("Chiffres est regroupé dans l'Essentiel : trois onglets, les sections de chaque onglet sont là, dans l'ordre", () => {
+    expect(lire(`${dir}/FicheReading.tsx`), "l'onglet Chiffres est revenu pour une action").toMatch(/<FicheSegments exclure=\{\["calendrier", "chiffres"\]\} mini=\{mini\} \/>\s*<FicheAction/);
     const a = action();
-    const ordre = ['t("Cours")', 't("Chiffres clés")', 't("Dernière séance")', 't("Cotation et règlement")', 't(`Pour ${n} actions au cours vendeur`)', 't("Évolution du cours")', 't("Dernières séances")', 't("Dividendes")', 't("Documents")', 't("L\'émetteur")', 't("Performance financière")', 't("Actionnaires")'];
+    expect(a, "un bloc de la fiche d'une action est encore rangé dans l'onglet Chiffres").not.toMatch(/pane="chiffres"/);
+    const ordre = ['t("Cours")', 't("Chiffres clés")', 't("Séances")', 't(`Pour ${n} actions au cours vendeur`)', 't("Cotation et règlement")', 't("Documents")', 't("L\'émetteur")', 't("Performance financière")', 't("Marge et rentabilité")', 't("Bilan et capitaux propres")', 't("Dividende par action")', '<GraphesDeValorisation', 't("Actionnaires")'];
     let depuis = 0;
     for (const o of ordre) {
       const i = a.indexOf(o, depuis);
       expect(i, `la section ${o} manque ou n'est plus dans l'ordre`).toBeGreaterThan(-1);
       depuis = i;
     }
+    expect(a, "la courbe « Évolution du cours » est revenue : le cours a UNE courbe").not.toMatch(/titre=\{t\("Évolution du cours"\)\}/);
   });
-  it("la courbe garde ses trois périodes et ses volumes, et la fiche lit 400 séances", () => {
+  it("la courbe a sa liste déroulante (celle de la maison), ses axes et ses volumes ; la fiche lit 400 séances", () => {
     const c = lire("src/components/CourbeDuCours.tsx");
-    expect(c, "les périodes ont changé").toMatch(/\["mois", t\("1 mois"\)\],\s*\["trimestre", t\("3 mois"\)\],\s*\["tout", t\(introduction \? "Depuis l'introduction" : "Tout"\)\]/);
+    expect(c, "la liste des périodes n'est plus celle de la maison").toMatch(/import \{ Select \} from "\.\/ui\/Select";/);
+    expect(c, "la liste ne grise plus les périodes sans historique").toMatch(/disabled: !l\.disponible,/);
+    expect(c, "les périodes viennent d'ailleurs que de periodes.ts").toMatch(/lirePeriode, periodeParDefaut, PERIODES, volumetrie/);
+    expect(c, "les volumes n'ont plus leur axe en titres").toMatch(/<text x=\{2\} y=\{volTop - 6\} className=\{styles\.unite\}>\s*\{t\("titres"\)\}\s*<\/text>/);
     expect(c, "les volumes ne sont plus dessinés").toMatch(/styles\.volume/);
-    expect(lire(`${dir}/FicheReading.tsx`), "l'action ne lit plus assez de séances pour remonter à l'introduction").toMatch(/o\.instrument === "action" \? 400 : 60/);
+    expect(c, "la volumétrie n'est plus dite sous le graphe").toMatch(/Séances avec échange/);
+    expect(lire(`${dir}/FicheReading.tsx`), "l'action ne lit plus assez de séances").toMatch(/o\.instrument === "action" \? 400 : 60/);
+    const p = lire("src/lib/market/periodes.ts");
+    expect(p, "les huit périodes ont changé").toMatch(/cle: "3m"[\s\S]*cle: "6m"[\s\S]*cle: "1a"[\s\S]*cle: "debut"[\s\S]*cle: "2a"[\s\S]*cle: "3a"[\s\S]*cle: "5a"[\s\S]*cle: "max"/);
+    expect(lire("src/lib/market/performe.ts"), "« Ce qui performe » a de nouveau sa propre fenêtre de trois mois").toMatch(/from "@\/lib\/market\/periodes";/);
   });
   it("une action n'a pas de remboursement : « in fine » est réservé aux obligations", async () => {
     const { repaymentLabel } = await import("@/lib/domain/status");
@@ -494,10 +504,57 @@ describe("la fiche d'une action : des encadrés en relief, des graphes, des mosa
     expect(lire(`${dir}/PiedDeFiche.tsx`), "le pied n'a plus sa carte").toMatch(/return carte \? <Carte plat>\{liste\}<\/Carte> : liste;/);
     expect(lire(`${dir}/page.tsx`), "la page ne demande plus la carte du pied pour une action").toMatch(/<PiedDeFiche carte=\{o\.kind === "MARCHE" && o\.instrument === "action"\} \/>/);
   });
-  it("l'Émetteur porte la société : identité, performance financière, actionnaires, et ses autres lignes à part", () => {
+  it("l'Émetteur porte la société : le résultat net sur un axe secondaire, les rapports, le bilan, les dividendes, les actionnaires, la mention en dernier", () => {
     const a = action();
-    expect(a, "les comptes ne sont plus dessinés en deux séries").toMatch(/teinte: "or" \},\s*\{ nom: t\("Résultat net"\), valeurs: comptes\.map\(\(f\) => f\.netIncome \/ echelle\.div\), teinte: "bleu" \}/);
+    expect(a, "le résultat net n'est plus sur un axe secondaire").toMatch(/droit=\{\{ unite: echelleResultat\.short, lignes: \[\{ nom: t\("Résultat net"\)/);
+    expect(a, "le chiffre d'affaires n'est plus en barres sur l'axe principal").toMatch(/barres=\{\[\{ nom: t\(dernierCompte\.revenueLabel\)/);
+    expect(a, "les rapports ne passent plus par finance.ts").toMatch(/margeNettePct, partFondsPropresPct, rentabiliteFondsPropresPct/);
+    expect(a, "la marge est de nouveau tracée par morceaux : points isolés sur une série trouée").toMatch(/const margesFiables = marges\.length >= 2 && marges\.every\(\(v\) => v != null\);/);
+    expect(a, "la marge ne suit plus sa fiabilité").toMatch(/\.\.\.\(margesFiables \? \[\{ nom: t\("Marge nette"\)/);
     expect(a, "les autres lignes ne sont plus une section à part").toMatch(/lignesSeulement \/>/);
+    expect(a, "la mention courte ne suit plus la dernière section d'un onglet").toMatch(/const fin = \(cle: string\) => \(derniere === cle \? mention : undefined\);/);
+    expect(a, "la mention n'est plus sous Documents").toMatch(/<\/Carte>\s*\{mention\}/);
     expect(lire(`${dir}/IssuerCard.tsx`), "l'identité est de nouveau dite deux fois").toMatch(/\{!lignesSeulement && \(\s*<>/);
+    const g = lire("src/components/GrapheComptes.tsx");
+    expect(g, "l'axe secondaire n'est plus dessiné").toMatch(/droit\?: \{ unite: string; lignes: SerieAnnuelle\[\] \}/);
+    expect(g, "une année sans valeur n'est plus un tiret").toMatch(/—/);
+  });
+  it("les lignes similaires d'une action sont les autres actions, alignées en trois rangées fixes", () => {
+    const s = lire(`${dir}/LignesSimilaires.tsx`);
+    expect(s, "les lignes similaires d'une action ne sont plus les autres actions").toMatch(/lignesSimilaires\(o, autresActions, now, 7\)/);
+    expect(s, "le jeu en double par ISIN n'est plus écarté").toMatch(/x\.isin !== o\.isin/);
+    const css = lire(`${dir}/CartesSimilaires.module.css`);
+    expect(css.match(/\.nom \{([^}]*)\}/)?.[1] ?? "", "le nom ne réserve plus ses trois lignes").toMatch(/min-height: calc\(3 \* 1\.3 \* var\(--t-3\)\);/);
+    expect(css.match(/\.perf \{([^}]*)\}/)?.[1] ?? "", "la rangée de performance n'a plus de hauteur fixe").toMatch(/min-height: var\(--s-9\);/);
+    expect(s, "la pastille n'est plus dans sa rangée").toMatch(/<span className=\{cartes\.perf\}>/);
+  });
+});
+
+describe("la valorisation d'une action : un graphe par indicateur, une durée pour tous (9 novembre 2026, planche B)", () => {
+  const dir = "src/app/offres/[id]";
+  const val = () => lire(`${dir}/GraphesDeValorisation.tsx`);
+
+  it("quatre sections à plat dans l'Émetteur, une seule liste de durée pour les quatre", () => {
+    const v = val();
+    expect((v.match(/<Select\b/g) ?? []).length, "la durée n'est plus UNE liste pour les quatre graphiques").toBe(1);
+    expect(v, "la capitalisation n'a plus sa section").toMatch(/<h3>\{t\("Capitalisation boursière"\)\}<\/h3>/);
+    expect(v, "les trois indicateurs ne sont plus des sections").toMatch(/\{ cle: "per", titre: t\("Rapport cours \/ bénéfice"\)[\s\S]*\{ cle: "pb", titre: t\("Cours \/ valeur comptable"\)[\s\S]*\{ cle: "rendement", titre: t\("Rendement du dividende"\)/);
+    expect(v, "la période ne vient plus de la même lecture que le cours").toMatch(/lirePeriode\(reperes, p\.cle\)/);
+    expect(v, "les quatre sections ne sont plus dans l'Émetteur").toMatch(/<section className=\{styles\.sec\} data-pane="emetteur">[\s\S]*<section key=\{ind\.cle\} className=\{styles\.sec\} data-pane="emetteur">/);
+    expect(v, "les rapports ne sont plus dessinés en marches").toMatch(/<GrapheDeSerie dates=\{dates\} unite=\{ind\.unite\} pas /);
+    expect(v, "la mention courte ne suit plus la dernière section").toMatch(/\{i === indicateurs\.length - 1 && fin\}/);
+    expect(v, "l'avertissement du résultat net supérieur au chiffre d'affaires a disparu").toMatch(/resultatAuDessusDuChiffreDAffaires && ind\.cle !== "rendement"/);
+  });
+  it("la fiche la place entre le dividende et les actionnaires, et lui passe la mention", () => {
+    const a = lire(`${dir}/FicheAction.tsx`);
+    expect(a, "la valorisation n'est plus tirée des cotations et des comptes").toMatch(/serieDeValorisation\(\[\.\.\.quotes\]\.reverse\(\)\.map\(\(q\) => \(\{ d: q\.sessionDate, c: q\.close, titres: q\.sharesTotal, flottants: q\.sharesFloat \}\)\)/);
+    expect(a, "la valorisation n'est plus comptée parmi les sections de l'onglet").toMatch(/valorisation\.length >= 2 \? "valorisation" : ""/);
+    expect(a, "la mention n'est plus passée à la valorisation").toMatch(/<GraphesDeValorisation serie=\{valorisation\}[\s\S]*?fin=\{fin\("valorisation"\)\} \/>/);
+  });
+  it("l'axe d'un rapport part de zéro, une valeur absente coupe la courbe, l'exercice change en vigueur le 1er juillet", () => {
+    const g = lire("src/components/GrapheDeSerie.tsx");
+    expect(g, "l'axe d'un rapport ne part plus de zéro").toMatch(/ticksPropres\(0, Math\.max\(\.\.\.valeurs, 0\.0001\), 4\)/);
+    expect(g, "une valeur absente ne coupe plus la courbe").toMatch(/if \(v == null\) return;/);
+    expect(lire("src/lib/market/valorisation.ts"), "l'exercice n'entre plus en vigueur le 1er juillet").toMatch(/`\$\{annee \+ 1\}-07-01`/);
   });
 });

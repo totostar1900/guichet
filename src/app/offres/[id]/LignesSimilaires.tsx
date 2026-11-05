@@ -24,13 +24,15 @@ export async function LignesSimilaires({ o }: { o: Offer }) {
   const t = await getT();
   const now = new Date();
   const offres = await repo().listOffers().catch(() => []);
-  const similaires = lignesSimilaires(o, offres, now);
+  /* LES LIGNES SIMILAIRES D'UNE ACTION SONT LES AUTRES ACTIONS COTÉES (9 novembre 2026, planche 2B : « les 6 autres ») : des cartes qui défilent, toutes de la même
+     structure, donc alignées. Une action par ISIN : le jeu de démonstration en porte une en double. Les autres lignes gardent trois lignes à plat. */
+  const enCartes = o.kind === "MARCHE" && o.instrument === "action";
+  const autresActions = enCartes ? [...new Map(offres.filter((x) => x.kind === "MARCHE" && x.instrument === "action" && x.isin !== o.isin).map((x) => [x.isin, x] as const)).values()] : [];
+  const similaires = enCartes ? lignesSimilaires(o, autresActions, now, 7) : lignesSimilaires(o, offres, now);
   if (!similaires.length) return null;
   const liste = listeDeLaFiche(o);
   const lignes = await lignesDeBloc(similaires, lieuDe(o) === "fonds" ? "fonds" : lieuDe(o) === "adjudications" ? "adjudications" : "cote", now);
   const dumeme = offres.filter((x) => x.id !== o.id && x.issuer === o.issuer && !x.hidden).length;
-  /* LES LIGNES SIMILAIRES D'UNE ACTION SONT DES CARTES QUI DÉFILENT (9 novembre 2026, planche g) : une carte en relief par ligne, le chiffre en avant, la variation avec sa période. Les autres lignes gardent la liste à plat. */
-  const enCartes = o.kind === "MARCHE" && o.instrument === "action";
   return (
     <div className={styles.similaires} data-pane="essentiel">
       {enCartes ? (
@@ -45,9 +47,10 @@ export async function LignesSimilaires({ o }: { o: Offer }) {
                     {l.cours ? l.cours.texte : l.valeur}
                     {l.cours?.unite && <i>{l.cours.unite}</i>}
                   </span>
-                  {!l.cours && l.libelle && <small>{l.libelle}</small>}
-                  {l.variation && <PastilleVariation v={l.variation.v} titre={l.variation.titre} periode={l.variation.periode} />}
-                  {l.etat && <PastilleEtat ton={l.etat.ton}>{l.etat.texte}</PastilleEtat>}
+                  <span className={cartes.perf}>
+                    {l.variation && <PastilleVariation v={l.variation.v} titre={l.variation.titre} periode={l.variation.periode} />}
+                    {l.etat && <PastilleEtat ton={l.etat.ton}>{l.etat.texte}</PastilleEtat>}
+                  </span>
                 </Link>
               </li>
             ))}

@@ -389,3 +389,9 @@
   background: var(--gold-soft);
   color: var(--gold-ink);
 }
+
+/* Un choix que les données ne servent pas : visible, grisé, sa raison dans l'indice, jamais sélectionnable. */
+.selOff {
+  opacity: 0.55;
+  cursor: default;
+}

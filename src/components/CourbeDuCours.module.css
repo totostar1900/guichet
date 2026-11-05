@@ -3,30 +3,33 @@
   gap: var(--s-5);
   min-width: 0;
 }
-.periodes {
+.entete {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-3);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
 }
-.periodes button {
-  border: 0;
-  padding: var(--s-3) var(--s-5);
-  border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--ink-2);
-  font: inherit;
-  font-size: var(--t-2);
-  font-weight: 700;
-  cursor: pointer;
-}
-.periodes .on {
-  background: var(--gold-soft);
-  color: var(--gold-ink);
+.variation {
+  min-width: 0;
 }
 .dessin {
   display: block;
   width: 100%;
   height: auto;
+}
+.grille {
+  stroke: var(--line-2);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.graduation {
+  fill: var(--ink-3);
+  font-size: 8px;
+}
+.unite {
+  fill: var(--ink-3);
+  font-size: 8px;
+  font-weight: 700;
 }
 .aire {
   fill: var(--gold);
@@ -40,14 +43,10 @@
 }
 .volume {
   fill: var(--ink-3);
-  opacity: 0.55;
+  opacity: 0.6;
 }
 .point {
   fill: var(--gold);
-}
-.borne {
-  fill: var(--ink-3);
-  font-size: 8px;
 }
 .legende {
   margin: 0;
