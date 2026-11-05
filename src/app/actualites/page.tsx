@@ -23,10 +23,19 @@ export async function generateMetadata() {
 
 /** The reader's view: what the desk selected this month, grouped by day, the original one click away. */
 export default async function NewsPage({ searchParams }: { searchParams: Promise<{ rubrique?: string; q?: string; archive?: string }> }) {
-  const [t, lang, sp, session] = await Promise.all([getT(), getLang(), searchParams, getSession()]);
   const now = new Date();
+  const r = repo();
+  const sessionP = getSession();
+  /* UN SEUL ÉTAGE : la langue, la session, la question, les nouvelles (qui ne dépendent que de « archive ») et, pour un client, ses demandes et les offres. */
+  const [t, lang, sp, session, all, mesLectures] = await Promise.all([
+    getT(),
+    getLang(),
+    searchParams,
+    sessionP,
+    searchParams.then((s) => publishedNews(now, s.archive === "1")),
+    sessionP.then((s) => (s && s.role === "client" ? Promise.all([r.listIntents(), r.listOffers()]) : undefined)),
+  ]);
   const archive = sp.archive === "1";
-  const all = await publishedNews(now, archive);
   const q = fold(sp.q ?? "").trim();
   const rubric = (RUBRICS as string[]).includes(sp.rubrique ?? "") ? sp.rubrique : "";
   const shown = all.filter((n) => (!rubric || n.rubric === rubric) && (!q || fold(`${n.title} ${n.titleEn ?? ""} ${n.why} ${n.source} ${n.links.map((l) => l.label).join(" ")}`).includes(q)));
@@ -50,9 +59,8 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
 
   // Signed-in readers: what was published about the lines they hold or asked for.
   let mine: { href: string; label: string; hint: string }[] = [];
-  if (session && session.role === "client") {
-    const r = repo();
-    const [intents, offers] = await Promise.all([r.listIntents(), r.listOffers()]);
+  if (session && session.role === "client" && mesLectures) {
+    const [intents, offers] = mesLectures;
     const own = intents.filter((i) => i.clientId === session.userId);
     const held = new Set([...positionsFrom(own, offers, now).map((p) => p.offer.id), ...own.map((i) => i.offerId)]);
     mine = all

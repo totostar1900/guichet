@@ -28,9 +28,8 @@ export async function generateMetadata() {
  * veut savoir, et « rien » est une réponse.
  */
 export default async function EcheancesPage() {
-  const t = await getT();
-  await requireSession("/echeances");
-  const offres = await repo().listOffers().catch(() => []);
+  /* Langue, session et offres ne dépendent de rien : un seul étage (une session absente redirige, les offres lues sont jetées). */
+  const [t, , offres] = await Promise.all([getT(), requireSession("/echeances"), repo().listOffers().catch(() => [])]);
   const n = echeancesProches(offres).length;
   return (
     <Glissement>

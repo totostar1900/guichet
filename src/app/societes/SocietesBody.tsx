@@ -22,13 +22,12 @@ import { EnTete } from "@/components/EnTete";
  * corps, qui dit où mènent les rangées.
  */
 export async function SocietesBody({ mode = "client" }: { mode?: "client" | "desk" } = {}) {
-  const t = await getT();
   const r = repo();
-  const [latest, bulletins, trois] = await Promise.all([r.latestQuotes(), r.listBulletins(1), performanceSur().catch(() => undefined)]);
+  /* UN SEUL ÉTAGE : langue, cours, bulletin, trois mois, sociétés et émetteurs ne dépendent pas les uns des autres. */
+  const [t, latest, bulletins, trois, COMPANIES, ISSUERS] = await Promise.all([getT(), r.latestQuotes(), r.listBulletins(1), performanceSur().catch(() => undefined), loadCompanies(), loadIssuers()]);
   /* LE PETIT GRAPHE ET LA VARIATION SUR TROIS MOIS viennent de la même lecture que « Ce qui performe » : une seule fenêtre dans la maison. */
   const troisMois = new Map((trois?.lignes ?? []).map((l) => [l.mnemo, l]));
   const quotes = new Map(latest.filter((q) => q.instrument === "action").map((q) => [q.isin, q]));
-  const [COMPANIES, ISSUERS] = await Promise.all([loadCompanies(), loadIssuers()]);
   const rows = COMPANIES.map((c) => analyse(c, quotes.get(c.isin))).sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0));
   const totalCap = rows.reduce((s, a) => s + (a.marketCap ?? 0), 0);
 

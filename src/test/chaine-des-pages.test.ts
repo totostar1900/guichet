@@ -31,4 +31,17 @@ describe("la chaîne de lecture des listes d'entrée", () => {
     expect(src, "comparer : les lectures des colonnes ne partent plus ensemble").toMatch(/\[variations, chartLines, bulletins, quotes, rotations\] = await Promise\.all\(/);
     expect(src, "comparer : une lecture est de nouveau attendue en série").not.toMatch(/await r\.(listBulletins|latestQuotes)|const variations = await/);
   });
+  it("actualités : langue, session, nouvelles et lectures du client partent ensemble", () => {
+    const src = lire("src/app/actualites/page.tsx");
+    expect(src, "actualités : les nouvelles et les lectures du client ne partent plus avec la langue et la session").toMatch(/\[t, lang, sp, session, all, mesLectures\] = await Promise\.all\(\[\s*getT\(\),\s*getLang\(\),\s*searchParams,\s*sessionP,\s*searchParams\.then\(\(s\) => publishedNews\(now, s\.archive === "1"\)\),\s*sessionP\.then\(/);
+    expect(src, "actualités : les nouvelles sont de nouveau attendues en série").not.toMatch(/const all = await publishedNews/);
+  });
+  it("sociétés : langue, cours, bulletin, trois mois, sociétés et émetteurs partent ensemble", () => {
+    const src = lire("src/app/societes/SocietesBody.tsx");
+    expect(src, "sociétés : les six lectures ne partent plus ensemble").toMatch(/\[t, latest, bulletins, trois, COMPANIES, ISSUERS\] = await Promise\.all\(\[getT\(\), r\.latestQuotes\(\), r\.listBulletins\(1\), performanceSur\(\)\.catch\(\(\) => undefined\), loadCompanies\(\), loadIssuers\(\)\]\)/);
+  });
+  it("échéances : langue, session et offres partent ensemble", () => {
+    const src = lire("src/app/echeances/page.tsx");
+    expect(src, "échéances : la langue, la session et les offres ne partent plus ensemble").toMatch(/\[t, , offres\] = await Promise\.all\(\[getT\(\), requireSession\("\/echeances"\), repo\(\)/);
+  });
 });
