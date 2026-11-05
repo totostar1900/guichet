@@ -89,7 +89,7 @@ export function CardBack({ facts, figures, curve }: { facts: BackFacts; figures?
         <div className={styles.sec}>
           <div className={styles.lbl}>
             {t("Valeurs liquidatives")}
-            <i>{curve.ys.length} VL</i>
+            <i>{curve.n ?? curve.ys.length} VL</i>
           </div>
           <Spark curve={curve} />
         </div>

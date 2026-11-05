@@ -5,6 +5,7 @@ import { fundAnnualPct } from "@/lib/domain/fund-perf";
 import { FundsBrowser } from "./FundsBrowser";
 import { EnBrefInstruments } from "@/components/EnBrefInstruments";
 import styles from "./page.module.css";
+import { echantillonner } from "@/lib/domain/fund-curve";
 import { getT } from "@/i18n/server";
 import { EnTete } from "@/components/EnTete";
 
@@ -28,7 +29,8 @@ export async function FondsBody() {
   const funds = fondsListes(offers);
   // Les courbes partent avec la page : une carte retournée les dessine tout de suite,
   // au lieu d'aller les demander et de montrer « Courbe en cours de lecture… ».
-  const curves = await r.listFundCurves(funds.map((o) => o.fund.key));
+  /* LES COURBES VOYAGENT ÉCHANTILLONNÉES (30 valeurs sur la même durée) : elles pesaient les trois quarts des lignes de la liste. Voir `echantillonner`. */
+  const curves = new Map([...(await r.listFundCurves(funds.map((o) => o.fund.key)))].map(([k, c]) => [k, echantillonner(c)] as const));
   /* LES FONDS QUE CE LECTEUR SUIT (6 novembre 2026) : lus ici, comme sur Titres. Sans eux, un fonds suivi redevenait « Suivre » au premier rafraîchissement. */
   const session = await getSession();
   const veilles = session ? await r.listWatches(session.userId).catch(() => []) : [];

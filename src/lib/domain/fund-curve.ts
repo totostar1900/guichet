@@ -52,6 +52,11 @@ export interface FundCurve {
    * autour d'elle. L'écran le dit tel quel plutôt que d'accuser sa jeunesse.
    */
   trous?: FenetreId[];
+  /**
+   * LE NOMBRE DE VL QUE LA COURBE RÉSUME, quand elle a été échantillonnée pour voyager (`echantillonner`). Sans lui, « 60 VL » au dos d'une carte deviendrait « 30 VL » alors que la ligne
+   * couvre toujours les mêmes soixante.
+   */
+  n?: number;
 }
 
 /**
@@ -91,4 +96,33 @@ export function fundYtdPct(curve: Pick<FundCurve, "ys" | "ytdFrom"> | undefined)
   const derniere = curve.ys[curve.ys.length - 1];
   if (!Number.isFinite(derniere)) return null;
   return ((derniere - curve.ytdFrom) / curve.ytdFrom) * 100;
+}
+
+/**
+ * LA COURBE ÉCHANTILLONNÉE POUR LE TRANSPORT (11 novembre 2026, point 4 de la lenteur).
+ *
+ * Mesuré : sur la liste des fonds, les courbes (60 VL pour 47 fonds) pèsent 35 Ko bruts et 13 Ko compressés, soit les trois quarts des lignes ; une ligne de trois cents pixels n'a
+ * pas besoin de soixante points. On garde `max` valeurs sur LA MÊME DURÉE : la première et la dernière exactement (la dernière valeur s'inscrit en or, et l'année en cours se mesure
+ * depuis elle), et le plus haut et le plus bas de la série, qui donnent son échelle au dessin. Les fenêtres, l'année en cours et les trous ne bougent pas : ils ne sortent pas de `ys`.
+ * Une courbe déjà courte revient telle quelle.
+ */
+export function echantillonner(curve: FundCurve, max = 30): FundCurve {
+  const n = curve.ys.length;
+  if (n <= max || max < 4) return curve;
+  const indices = Array.from({ length: max }, (_, k) => Math.round((k * (n - 1)) / (max - 1)));
+  let bas = 0;
+  let haut = 0;
+  curve.ys.forEach((v, i) => {
+    if (v < curve.ys[bas]) bas = i;
+    if (v > curve.ys[haut]) haut = i;
+  });
+  // Un extrême qui tombe entre deux échantillons prend la place de l'échantillon le plus proche (jamais la première ni la dernière valeur) : l'espacement ne bouge que d'un cran.
+  for (const e of [bas, haut]) {
+    if (indices.includes(e)) continue;
+    let k = 1;
+    for (let j = 2; j < max - 1; j++) if (Math.abs(indices[j] - e) < Math.abs(indices[k] - e)) k = j;
+    indices[k] = e;
+  }
+  indices.sort((a, b) => a - b);
+  return { ...curve, ys: indices.map((i) => curve.ys[i]), n };
 }
