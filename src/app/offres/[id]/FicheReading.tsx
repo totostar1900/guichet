@@ -28,6 +28,7 @@ import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { IssuerCard } from "./IssuerCard";
 import { FicheAction } from "./FicheAction";
+import { FicheFonds } from "./FicheFonds";
 import { CrossSignal } from "@/components/CrossSignal";
 import { facingSignal } from "@/lib/domain/crossing";
 import { loadCrossPolicy } from "@/lib/policy";
@@ -541,6 +542,17 @@ export async function FicheReading({ o, data, mode = "client", children }: { o: 
       <div className="chapitres">
         <FicheSegments exclure={["calendrier", "chiffres"]} mini={mini} />
         <FicheAction o={o} data={data} />
+        <RelatedNews kind="offer" keyOf={o.id} className={styles.sec} />
+        {children}
+      </div>
+    );
+  }
+  /* LA FICHE D'UN FONDS, CALQUÉE SUR CELLE D'UN TITRE (10 novembre 2026) : trois onglets (Essentiel · Documents · Société de gestion), une courbe à trois mesures, « Investir ». Le desk garde la lecture d'avant. */
+  if (mode !== "desk" && o.kind === "FONDS" && o.fund) {
+    return (
+      <div className="chapitres">
+        <FicheSegments exclure={["calendrier", "chiffres"]} libelles={{ emetteur: "Société de gestion" }} mini={mini} />
+        <FicheFonds o={o} data={data} />
         <RelatedNews kind="offer" keyOf={o.id} className={styles.sec} />
         {children}
       </div>

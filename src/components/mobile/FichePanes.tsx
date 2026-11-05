@@ -66,7 +66,7 @@ export function FichePanes({ children, className, sans = [] }: { children: React
  * de la page. COLLÉE, la bande montre au-dessus des onglets le nom court de la ligne et son chiffre en avant : la tête de la fiche a défilé, on sait encore
  * laquelle on lit.
  */
-export function FicheSegments({ exclure = [], mini }: { exclure?: string[]; mini?: { nom: string; chiffre: string; sous?: string } }) {
+export function FicheSegments({ exclure = [], mini, libelles = {} }: { exclure?: string[]; mini?: { nom: string; chiffre: string; sous?: string }; /** Le nom d'un onglet propre à la ligne : « Société de gestion » pour un fonds, à la place de « Émetteur » (10 novembre 2026). */ libelles?: Record<string, string> }) {
   const { pane, setPane, sans } = useContext(PaneCtx);
   const t = useT();
   const bande = useRef<HTMLDivElement>(null);
@@ -94,7 +94,7 @@ export function FicheSegments({ exclure = [], mini }: { exclure?: string[]; mini
         <div className={styles.seg} role="tablist" aria-label={t("Sections de la fiche")}>
           {PANES.filter(([k]) => !sans.includes(k) && !exclure.includes(k)).map(([k, label]) => (
             <button key={k} type="button" role="tab" aria-selected={pane === k} className={pane === k ? styles.on : undefined} onClick={() => setPane(k)}>
-              {t(label)}
+              {t(libelles[k] ?? label)}
             </button>
           ))}
         </div>

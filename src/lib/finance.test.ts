@@ -149,3 +149,13 @@ describe("la rotation du flottant", () => {
     expect(rotationDuFlottantPct(-1, 100)).toBeNull();
   });
 });
+
+describe("le rendement annualisé d'une période de VL", () => {
+  it("annualise sur 365 jours, et rien sous 30 jours", async () => {
+    const { rendementAnnualisePct } = await import("./finance");
+    expect(rendementAnnualisePct(10_000, 10_463, 365)).toBeCloseTo(4.63, 2);
+    expect(rendementAnnualisePct(10_000, 11_000, 730), "deux ans : la racine").toBeCloseTo(4.88, 2);
+    expect(rendementAnnualisePct(10_000, 10_100, 29), "un mois ne dit rien de l'année").toBeNull();
+    expect(rendementAnnualisePct(0, 10_100, 365)).toBeNull();
+  });
+});

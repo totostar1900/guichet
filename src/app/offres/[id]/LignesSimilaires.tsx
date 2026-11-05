@@ -26,9 +26,12 @@ export async function LignesSimilaires({ o }: { o: Offer }) {
   const offres = await repo().listOffers().catch(() => []);
   /* LES LIGNES SIMILAIRES D'UNE ACTION SONT LES AUTRES ACTIONS COTÉES (9 novembre 2026, planche 2B : « les 6 autres ») : des cartes qui défilent, toutes de la même
      structure, donc alignées. Une action par ISIN : le jeu de démonstration en porte une en double. Les autres lignes gardent trois lignes à plat. */
-  const enCartes = o.kind === "MARCHE" && o.instrument === "action";
-  const autresActions = enCartes ? [...new Map(offres.filter((x) => x.kind === "MARCHE" && x.instrument === "action" && x.isin !== o.isin).map((x) => [x.isin, x] as const)).values()] : [];
-  const similaires = enCartes ? lignesSimilaires(o, autresActions, now, 7) : lignesSimilaires(o, offres, now);
+  const action = o.kind === "MARCHE" && o.instrument === "action";
+  const fonds = o.kind === "FONDS" && Boolean(o.fund);
+  /* LES LIGNES SIMILAIRES D'UN FONDS SONT LES AUTRES FONDS (10 novembre 2026, planche 1A) : mêmes cartes qui défilent, sept au plus, ceux de la même société d'abord. */
+  const enCartes = action || fonds;
+  const autres = action ? [...new Map(offres.filter((x) => x.kind === "MARCHE" && x.instrument === "action" && x.isin !== o.isin).map((x) => [x.isin, x] as const)).values()] : fonds ? offres.filter((x) => x.kind === "FONDS" && x.fund && x.id !== o.id) : [];
+  const similaires = enCartes ? lignesSimilaires(o, autres, now, 7) : lignesSimilaires(o, offres, now);
   if (!similaires.length) return null;
   const liste = listeDeLaFiche(o);
   const lignes = await lignesDeBloc(similaires, lieuDe(o) === "fonds" ? "fonds" : lieuDe(o) === "adjudications" ? "adjudications" : "cote", now);

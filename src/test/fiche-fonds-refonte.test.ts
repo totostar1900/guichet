@@ -50,9 +50,8 @@ describe("restituer", () => {
 });
 
 describe("les volets d'une fiche", () => {
-  it("masque « Émetteur » pour un fonds, et pour lui seul", () => {
-    expect(voletsMasques({ kind: "FONDS" })).toEqual(["emetteur"]);
-    for (const k of ["OTA", "BTA", "ACTIONS", "MARCHE", "APE"]) expect(voletsMasques({ kind: k }), k).toEqual([]);
+  it("ne masque plus aucun volet : « Société de gestion » reprend la place de l'émetteur d'un fonds (10 novembre 2026, planche 1A)", () => {
+    for (const k of ["FONDS", "OTA", "BTA", "ACTIONS", "MARCHE", "APE"]) expect(voletsMasques({ kind: k }), k).toEqual([]);
   });
   it("filtre la barre d'onglets, et la garde en place au changement de volet", () => {
     const src = code("src/components/mobile/FichePanes.tsx");

@@ -780,6 +780,18 @@ La règle, mesurée sur la fiche le jour même :
 - **Pas de point d'interrogation dans l'en-tête de la fiche** : sans profil, le repère (`HorizonMark`) ne paraît pas ; avec un profil, il garde sa coche ou son signe d'alerte.
 - **L'historique de cotation d'une action est lu en entier** (5 000 séances) : en base, SAFACAM en a 829 depuis le 3 mars 2023 ; la limite de 400 posée d'abord grisait « 2 ans » et « 3 ans » à tort. Reste que l'historique de la maison commence en mars 2023 (les bulletins plus anciens ne sont pas ingérés) : « 5 ans » et « max » depuis l'introduction (2008 pour SAFACAM) demandent d'ingérer les anciens bulletins.
 
+### 8.11 La fiche d'un fonds, calquée sur celle d'un titre (10 novembre 2026, planche « 1A · 2B · 3A · 4A »)
+
+Consigne du client : « s'inspirer fortement de la page Titres ». La fiche d'un fonds (client seulement, `FicheFonds.tsx` ; le desk garde la sienne) parle donc la même langue que la fiche d'une action : titre à plat + carte en relief, 44 px entre sections, un chiffre majeur et des tuiles, un « i » par section, la mention courte sous la dernière section de chaque onglet.
+
+- **Trois onglets, comme Titres** : Essentiel · Documents · Société de gestion (`FicheSegments` reçoit `libelles` : l'onglet « emetteur » se lit « Société de gestion »). Cela **revient sur la décision du 1er novembre** (plus de volet émetteur pour un fonds) : `voletsMasques` ne masque plus rien. « Chiffres » est regroupé dans l'Essentiel.
+- **L'Essentiel enchaîne** : Valeur liquidative (dernière VL, sa variation, la courbe) → Chiffres clés (la performance sur 12 mois en majeur doré, puis rendement annualisé, catégorie, fréquence de la VL, création) → Investir (parts obtenues pour 1 000 000 FCFA, droits d'entrée, frais de sortie écrits, lien du simulateur) → lignes similaires (cartes qui défilent, sept au plus, la même société d'abord) → pied de page en carte plate.
+- **Une courbe, trois mesures** (`CourbeDeLaVL`, choix 2B) : un commutateur à plat (Valeur · Rendement · 1 M placés) ; le rendement glissant et le montant placé reprennent `rollingAnnualised` / `invested` ; la ligne pointillée est le dernier BTA publié. Bulle noire, axes avec années, libellés qui ne se superposent pas (audité à 390 et 340 px).
+- **Une seule liste de périodes** (choix 4A), la même que Titres (3 mois à Max, les périodes sans historique grisées) ; plus de dates libres. Largeur fixe, libellé non écrit : changer de période ne déplace rien.
+- **La mise en garde reste écrite** (ETALON § 10) : « Performances passées non garanties · brutes, avant droits d'entrée et de sortie et fiscalité » sous les tuiles, pas seulement dans une bulle ; les frais du fonds à l'entrée et à la sortie restent dits ; aucun barème du desk n'est montré au client.
+- **La légende de la courbe réserve ses trois lignes** : sans réserve, passer de « Valeur » à « Rendement » faisait sauter la carte de 33 px. Mesuré : 684 px pour les trois mesures et toutes les périodes.
+- `rendementAnnualisePct` (finance.ts) : l'annualisation d'une période de VL ; rien sous 30 jours.
+
 **Une action n'a pas de remboursement** : `repaymentLabel` ne rend « in fine » que pour une obligation (la ligne « Remboursement : in fine » s'affichait sur une action).
 
 **Ce qu'on ne reprend pas des références** : la suggestion d'analystes, les CFD, le carnet d'ordres, l'alerte de prix en carte (déjà dans le menu « ··· »).

@@ -382,3 +382,11 @@ export const rendementDividendePct = (dividendeParAction: number | null | undefi
  * MARCHÉ, PAS LA SOCIÉTÉ. `null` quand il n'y a pas de flottant à rapporter.
  */
 export const rotationDuFlottantPct = (valeurEchangee: number, capitalisationFlottante: number): number | null => (capitalisationFlottante > 0 && valeurEchangee >= 0 ? (valeurEchangee / capitalisationFlottante) * 100 : null);
+
+/**
+ * LE RENDEMENT ANNUALISÉ D'UNE PÉRIODE DE VL (fiche d'un fonds, 10 novembre 2026).
+ *
+ * (VL de fin ÷ VL de début) élevé à 365 ÷ jours, moins un, en %. Sous 30 jours une période ne dit rien de l'année : `null` plutôt qu'un chiffre extrapolé d'un mois.
+ * Brut, avant droits d'entrée et de sortie et fiscalité.
+ */
+export const rendementAnnualisePct = (valeurDebut: number, valeurFin: number, jours: number): number | null => (jours >= 30 && valeurDebut > 0 && valeurFin > 0 ? (Math.pow(valeurFin / valeurDebut, 365 / jours) - 1) * 100 : null);

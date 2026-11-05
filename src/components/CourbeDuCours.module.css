@@ -79,3 +79,47 @@
   font-size: var(--t-2);
   color: var(--ink-3);
 }
+/* LE COMMUTATEUR À PLAT d'un fonds (10 novembre 2026) : trois mesures dans une même piste, la mesure lue pleine d'or. Aucun cadre, aucune ombre : il se pose sur la carte. */
+.commutateur {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-1);
+  padding: var(--s-1);
+  background: var(--surface-2);
+  border-radius: var(--rond);
+}
+.commutateur button {
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--rond);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  font-weight: 600;
+  cursor: pointer;
+}
+.commutateur button:disabled {
+  color: var(--ink-3);
+  cursor: not-allowed;
+}
+.commutateur .actif {
+  background: var(--select);
+  color: var(--on-select);
+}
+.referenceLigne {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+}
+.garde {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+/* LA LÉGENDE D'UN FONDS RÉSERVE SES TROIS LIGNES (10 novembre 2026) : la mesure « Rendement » en écrit trois, « Valeur » une ; sans réserve, la carte et tout ce qui est dessous sautaient de 33 px au changement de mesure. */
+.legendeFixe {
+  line-height: 1.4;
+  min-height: 3lh;
+}

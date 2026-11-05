@@ -1,12 +1,10 @@
 /**
  * LES VOLETS QUE LA FICHE NE MONTRE PAS, par ligne.
  *
- * « L'émetteur » d'un fonds est sa société de gestion, déjà nommée avec son
- * dépositaire dans « Souscription, rachat et règlement » : le volet n'a rien à
- * ajouter, et il est parti le 1er novembre 2026. Les autres lignes (un titre a
- * un émetteur qui compte : un Trésor, une société) gardent leurs quatre volets.
- * Le desk, qui lit tout, garde le sien.
+ * Plus aucun (10 novembre 2026). Le volet « Émetteur » d'un fonds avait été retiré le 1er novembre : la société de gestion était déjà nommée avec son dépositaire dans
+ * « Souscription, rachat et règlement ». La fiche d'un fonds, calquée sur celle d'un titre, le reprend sous le nom « Société de gestion » (planche 1A). La fonction
+ * reste : c'est le point où une ligne qui n'a rien à dire d'un volet le retirerait.
  */
-export function voletsMasques(o: { kind: string }): string[] {
-  return o.kind === "FONDS" ? ["emetteur"] : [];
+export function voletsMasques(_o: { kind: string }): string[] {
+  return [];
 }
