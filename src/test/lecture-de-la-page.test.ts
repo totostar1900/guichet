@@ -461,7 +461,9 @@ describe("la fiche d'une action : des encadrés en relief, des graphes, des mosa
     const css = lire("src/components/Mosaique.module.css");
     expect(bloc(css, ".valeur"), "le majeur n'est plus à --t-8").toMatch(/font-size: var\(--t-8\);/);
     expect(bloc(css, ".c2"), "quatre tuiles ne sont plus sur deux colonnes").toMatch(/grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/);
-    expect(lire("src/components/Mosaique.tsx"), "le nombre de tuiles ne choisit plus les colonnes").toMatch(/n === 1 \? styles\.c1 : n === 3 \? styles\.c3 : styles\.c2/);
+    expect(lire("src/components/Mosaique.tsx"), "le nombre de tuiles ne choisit plus les colonnes").toMatch(/n === 1 \? styles\.c1 : n === 3 && !deux \? styles\.c3 : styles\.c2/);
+    expect(lire("src/components/Mosaique.module.css"), "trois tuiles à libellé long ne peuvent plus passer sur deux colonnes").toMatch(/\.derniereLarge \.tuile:last-child \{\s*grid-column: 1 \/ -1;/);
+    expect(lire(`${dir}/FicheFonds.tsx`), "les chiffres clés du fonds repassent à trois colonnes serrées").toMatch(/tuiles=\{tuilesCles\} deux \/>/);
     expect(action(), "le rendement n'est plus le chiffre majeur des chiffres clés").toMatch(/majeur=\{<Majeur etiquette=\{t\("Rendement du dernier dividende"\)\} valeur=\{yTxt\} or \/>\}/);
     expect(action(), "le chiffre clé porte de nouveau son propre « ? » : un seul « i » par section").not.toMatch(/<KpiCard/);
   });
@@ -665,15 +667,47 @@ describe("la fiche d'un fonds, calquée sur celle d'un titre (10 novembre 2026, 
     expect(r, "l'onglet de la société ne s'appelle plus « Société de gestion »").toMatch(/exclure=\{\["calendrier", "chiffres"\]\} libelles=\{\{ emetteur: "Société de gestion" \}\}/);
     expect(lire("src/components/mobile/FichePanes.tsx"), "la bande ne lit plus les libellés propres à la ligne").toMatch(/\{t\(libelles\[k\] \?\? label\)\}/);
   });
-  it("l'Essentiel enchaîne la VL et sa courbe, les chiffres clés, « Investir » ; la société est un onglet", () => {
+  it("l'Essentiel enchaîne Évolution et Chiffres clés ; plus d'« Investir » ni de simulateur ; la société est un onglet", () => {
     const f = fonds();
-    const ordre = ["titre={t(\"Valeur liquidative\")}", "titre={t(\"Chiffres clés\")}", "titre={t(\"Investir\")}", "titre={t(\"Société de gestion\")}"].map((x) => f.indexOf(x));
-    expect(ordre.every((i) => i > 0), "une section de l'Essentiel a disparu").toBe(true);
+    const ordre = ["titre={t(\"Évolution\")}", "titre={t(\"Chiffres clés\")}", "titre={t(\"Société de gestion\")}"].map((x) => f.indexOf(x));
+    expect(ordre.every((i) => i > 0), "une section de la fiche a disparu ou a changé de nom").toBe(true);
     expect([...ordre].sort((a, b) => a - b), "les sections ne sont plus dans l'ordre de Titres").toEqual(ordre);
-    expect(f, "la performance sur douze mois n'est plus le chiffre majeur doré").toMatch(/<Majeur etiquette=\{perf\.etiquette\} valeur=\{signe\(perf\.v\)\} or \/>/);
+    expect(f, "la carte « Investir » ou le simulateur est revenu").not.toMatch(/titre=\{t\("Investir"\)\}|info\/simulateur/);
+    expect(f, "la performance sur douze mois n'est plus le chiffre majeur doré, daté").toMatch(/<Majeur etiquette=\{perf\.etiquette\} valeur=\{signe\(perf\.v\)\} or sous=\{f\.perf1yPct != null \? t\("sur les 12 mois jusqu'au \{d\} · chiffre du bulletin"/);
+    expect(f, "l'annualisé depuis la création n'est plus une tuile datée").toMatch(/t\("Rendement annualisé depuis le \{d\}", \{ d: fmtDate\(f\.inceptionDate\) \}\)/);
+    expect(f, "les droits d'entrée sont revenus dans les chiffres clés (choix : sans)").not.toMatch(/entryFeePct/);
     expect(f, "la société n'est plus dans l'onglet « emetteur »").toMatch(/<Bloc pane="emetteur" titre=\{t\("Société de gestion"\)\}/);
     expect(f, "les frais à la sortie ne sont plus écrits").toMatch(/Frais du fonds à la sortie/);
     expect(f, "une commission du desk est montrée au client").not.toMatch(/commission/i);
+    expect(f, "la fiche du fonds justifie d'où vient la donnée").not.toMatch(/Source : /);
+  });
+  it("les documents d'un fonds ne portent pas les bulletins, et la rubrique n'existe que s'il reste une pièce", () => {
+    const f = fonds();
+    expect(f, "les bulletins de la cote sont de nouveau des documents du fonds").toMatch(/const documents = o\.documents\.filter\(\(d\) => !estUnBulletin\(d\)\);/);
+    expect(f, "la rubrique « Documents » s'écrit sans pièce").toMatch(/\{documents\.length > 0 && \(\s*<section className=\{styles\.sec\} data-pane="docs">/);
+    expect(lire("src/lib/fiche-volets.ts"), "l'onglet « Documents » d'un fonds sans pièce n'est plus masqué").toMatch(/\? \["docs"\] : \[\]/);
+  });
+  it("la clef interne d'un fonds ne s'écrit plus sous le titre : un fonds n'a pas d'ISIN", () => {
+    expect(lire("src/components/LineIdentity.tsx"), "la clef du fonds est de nouveau écrite comme un ISIN").toMatch(/\{isin && o\.kind !== "FONDS" && <span className=\{styles\.isin\}>/);
+  });
+  it("l'en-tête d'Évolution suit la mesure, et réserve sa hauteur", () => {
+    const c = courbe();
+    expect(c, "le chiffre du haut ne suit plus la mesure").toMatch(/mesureLue === "vl" \? \([\s\S]*?\) : mesureLue === "rendement" \? \([\s\S]*?\) : \(/);
+    expect(c, "l'en-tête n'est plus dans la cellule qui réserve sa hauteur").toMatch(/<div className=\{styles\.enteteMesure\}>\{entete\}<\/div>/);
+    expect(bloc(lire("src/components/CourbeDuCours.module.css"), ".enteteMesure"), "l'en-tête ne réserve plus sa hauteur : la carte saute au changement de mesure").toMatch(/min-height: 6rem;/);
+  });
+  it("la société de gestion montre le siège et l'agrément saisis au desk, jamais inventés : le livré est vide", async () => {
+    const f = fonds();
+    expect(f, "le siège n'est plus lu de la saisie du desk").toMatch(/if \(gestionnaire\?\.siege\) tuilesGestion\.push\(\[t\("Siège"\), gestionnaire\.siege\]\);/);
+    expect(f, "l'agrément n'est plus lu de la saisie du desk").toMatch(/if \(agrement\) tuilesGestion\.push\(\[t\("Agrément COSUMAF"\), agrement\]\);/);
+    const { GESTIONNAIRES, cleDeGestionnaire } = await import("@/data/gestionnaires");
+    expect(GESTIONNAIRES, "une société de gestion est livrée sans source officielle lue").toEqual([]);
+    expect(cleDeGestionnaire("AFRICA BRIGHT ASSET MANAGEMENT")).toBe(cleDeGestionnaire("Africa  Bright Asset-Management"));
+    expect(cleDeGestionnaire("Société Générale Gestion")).toBe("societe-generale-gestion");
+    expect(lire("src/app/desk/referentiel/page.tsx"), "l'onglet du desk liste deux graphies d'une même société comme deux sociétés").toMatch(/if \(o\.kind === "FONDS" && o\.fund && !parCle\.has\(cleDeGestionnaire\(o\.fund\.manager\)\)\) parCle\.set\(/);
+    const a = lire("src/app/desk/referentiel/actions.ts");
+    expect(a, "une société de gestion s'enregistre sans source").toMatch(/source: z\.string\(\)\.trim\(\)\.min\(5, "Source requise/);
+    expect(a, "la saisie ne passe plus par le brouillon et le journal d'audit").toMatch(/saveReferenceDraft\(REF\.gestionnaires, key, \{ op: "set", data \}, desk\.name\);\s*await audit\("reference\.draft"/);
   });
   it("la courbe a trois mesures en commutateur à plat et une seule liste des huit périodes, sans dates libres", () => {
     const c = courbe();
@@ -687,16 +721,15 @@ describe("la fiche d'un fonds, calquée sur celle d'un titre (10 novembre 2026, 
     expect(c, "la ligne du dernier BTA n'est plus tracée").toMatch(/\{reference && <path d=\{reference\} className=\{styles\.referenceLigne\} \/>\}/);
     expect(lire("src/components/CourbeDuCours.module.css"), "le commutateur n'a plus de piste à trois colonnes").toMatch(/\.commutateur \{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/);
   });
-  it("la légende réserve ses trois lignes, et l'unité de l'axe est posée au-dessus de la première graduation", () => {
+  it("la légende réserve ses deux lignes, et l'unité de l'axe est posée au-dessus de la première graduation", () => {
     expect(courbe(), "la légende n'est plus celle qui réserve sa hauteur").toMatch(/className=\{`\$\{styles\.legende\} \$\{styles\.legendeFixe\}`\}/);
-    expect(bloc(lire("src/components/CourbeDuCours.module.css"), ".legendeFixe"), "la légende ne réserve plus trois lignes : la carte saute au changement de mesure").toMatch(/min-height: 3lh;/);
+    expect(bloc(lire("src/components/CourbeDuCours.module.css"), ".legendeFixe"), "la légende ne réserve plus deux lignes : la carte saute au changement de mesure").toMatch(/min-height: 2lh;/);
     expect(courbe(), "le tracé démarre trop haut : « FCFA » touche la graduation du haut").toMatch(/const y = \(v: number\) => 18 \+ \(haut === bas \? \(bas0 - 18\) \/ 2 : \(1 - \(v - bas\) \/ \(haut - bas\)\) \* \(bas0 - 18\)\);/);
+  });
+  it("la hauteur rendue à un onglet court reste en bas : la pile ne s'étire pas ligne par ligne", () => {
+    expect(lire(`${dir}/page.module.css`).match(/\n\.main \{([^}]*)\}/)?.[1] ?? "", "le vide d'un onglet court s'ouvre de nouveau entre l'en-tête et la barre d'onglets").toMatch(/align-content: start;/);
   });
   it("la société de gestion s'écrit en identité, pas en chiffre majeur", () => {
     expect(fonds(), "le nom de la société est de nouveau un chiffre majeur").toMatch(/<div className=\{fa\.identite\}>[\s\S]*?<b>\{f\.manager\}<\/b>/);
-  });
-  it("la société de gestion tient la place de l'émetteur : plus aucun volet masqué", async () => {
-    const { voletsMasques } = await import("@/lib/fiche-volets");
-    for (const k of ["FONDS", "OTA", "BTA", "ACTIONS", "MARCHE", "APE"]) expect(voletsMasques({ kind: k }), k).toEqual([]);
   });
 });

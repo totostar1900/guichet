@@ -11,6 +11,8 @@
      (« .sec ») sont partis avec le cadre. */
   display: grid;
   gap: var(--sections-gap);
+  /* LE VIDE D'UN ONGLET COURT RESTE EN BAS (10 novembre 2026) : « garder la place » rend la hauteur manquante au conteneur par un « min-height » ; sans « align-content: start » les lignes de la grille s'étirent toutes, et le vide s'ouvrait ENTRE l'en-tête et la barre d'onglets (relevé à 390 px sur un titre et sur un fonds, en passant d'Essentiel à Documents page défilée). */
+  align-content: start;
   min-width: 0;
 }
 .main .head {

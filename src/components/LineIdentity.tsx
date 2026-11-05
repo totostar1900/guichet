@@ -54,7 +54,7 @@ export function LineIdentity({ o, s, href, size = "md", as: Tag = "div", isin = 
             Trésor il s'agit, et l'ISIN ne sert qu'à passer un ordre en banque,
             jamais à reconnaître une ligne. */}
         {ligneGrise && <span className={styles.issuer}>{ligneGrise}</span>}
-        {isin && <span className={styles.isin}>{o.isin}</span>}
+        {isin && o.kind !== "FONDS" && <span className={styles.isin}>{o.isin}</span>}
       </div>
       {s.badges.length > 0 && (
         <div className={styles.badges}>

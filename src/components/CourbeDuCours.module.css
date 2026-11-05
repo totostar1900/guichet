@@ -79,7 +79,7 @@
   font-size: var(--t-2);
   color: var(--ink-3);
 }
-/* LE COMMUTATEUR À PLAT d'un fonds (10 novembre 2026) : trois mesures dans une même piste, la mesure lue pleine d'or. Aucun cadre, aucune ombre : il se pose sur la carte. */
+/* LE COMMUTATEUR À PLAT d'une courbe de VL (10 novembre 2026) : trois mesures dans une même piste, la mesure lue pleine d'or. Aucun cadre, aucune ombre : il se pose sur la carte. */
 .commutateur {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -118,8 +118,15 @@
   font-size: var(--t-2);
   color: var(--ink-3);
 }
-/* LA LÉGENDE D'UN FONDS RÉSERVE SES TROIS LIGNES (10 novembre 2026) : la mesure « Rendement » en écrit trois, « Valeur » une ; sans réserve, la carte et tout ce qui est dessous sautaient de 33 px au changement de mesure. */
+/* LA LÉGENDE D'UNE COURBE DE VL RÉSERVE SES DEUX LIGNES (10 novembre 2026) : les dates, puis une ligne d'indice (« Rendement », « 1 M placés ») ; sans réserve, la carte et tout ce qui est dessous sautaient au changement de mesure. */
 .legendeFixe {
   line-height: 1.4;
-  min-height: 3lh;
+  min-height: 2lh;
+}
+/* L'EN-TÊTE D'UNE COURBE DE VL RÉSERVE SA HAUTEUR (10 novembre 2026) : étiquette sur deux lignes au plus, chiffre, ligne « sous » ; mesurée à 86 px au plus (390 et 340 px, trois mesures), arrondie à 6 rem. */
+.enteteMesure {
+  min-height: 6rem;
+}
+.indice {
+  display: block;
 }

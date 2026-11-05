@@ -9,7 +9,7 @@ import { ticksPropres } from "@/lib/ui/axes";
 import { BulleNoire, useLecture, type Lecture } from "./charts/lecture";
 import { type Benchmark, invested, REF_AMOUNT, rollingAnnualised } from "./FundCharts";
 import type { NavPoint } from "./NavChart";
-import { Tuiles } from "./Mosaique";
+import { Majeur, Tuiles } from "./Mosaique";
 import { PastilleVariation } from "./PastilleVariation";
 import { Select } from "./ui/Select";
 import styles from "./CourbeDuCours.module.css";
@@ -97,8 +97,21 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
   const basse = fenetreNav.reduce((m, p) => Math.min(m, p.nav), Infinity);
   const baisses = fenetreNav.slice(1).filter((p, i) => p.nav < fenetreNav[i].nav).length;
 
+  /* L'EN-TÊTE SUIT LA MESURE (10 novembre 2026, planche 1A) : le chiffre du haut dit ce que la courbe montre, VL, rendement du dernier point ou valeur du montant placé. Une ligne « sous » dans les trois états, réservée en hauteur : changer de mesure ne déplace rien. */
+  const derniereVL = series[series.length - 1];
+  const variationDuPlace = ((dernier.y / REF_AMOUNT) - 1) * 100;
+  const entete =
+    mesureLue === "vl" ? (
+      <Majeur etiquette={t("Dernière VL · {d}", { d: fmtDate(derniereVL.date) })} valeur={fmt(derniereVL.nav)} unite="FCFA" sous={derniereVL.variationPct != null ? <PastilleVariation v={derniereVL.variationPct} periode={t("dernière VL")} /> : <span>{fmtDate(derniereVL.date)}</span>} />
+    ) : mesureLue === "rendement" ? (
+      <Majeur etiquette={t("Rendement annualisé · {n} jours glissants", { n: fenetre ?? 365 })} valeur={signe(dernier.y)} sous={<span>{benchmark ? `– – ${benchmark.label} ${signe(benchmark.pct)}` : fmtDate(dernier.d)}</span>} />
+    ) : (
+      <Majeur etiquette={t("{n} FCFA placés le {d}", { n: fmt(REF_AMOUNT), d: fmtDate(premier.d) })} valeur={fmt(dernier.y)} unite="FCFA" sous={<PastilleVariation v={variationDuPlace} periode={t(lue.libelle)} />} />
+    );
+
   return (
     <div className={styles.bloc}>
+      <div className={styles.enteteMesure}>{entete}</div>
       <div className={styles.commutateur} role="group" aria-label={t("Ce que la courbe mesure")}>
         {MESURES.map(([m, libelle]) => (
           <button key={m} type="button" aria-pressed={mesureLue === m} disabled={m === "rendement" && !rendementPossible} className={mesureLue === m ? styles.actif : undefined} onClick={() => setMesure(m)}>
@@ -158,14 +171,13 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
       </div>
       <p className={`${styles.legende} ${styles.legendeFixe}`}>
         {t(n > 1 ? "{n} VL publiées · du {a} au {b}" : "1 VL publiée · du {a} au {b}", { n, a: fmtDate(premier.d), b: fmtDate(dernier.d) })}
-        {mesureLue === "rendement" && fenetre ? ` · ${t("chaque point mesure les {n} jours qui le précèdent", { n: fenetre })}` : ""}
-        {mesureLue === "placement" ? ` · ${t("placés à la première VL de la période, brut, avant frais")}` : ""}
-        {ref && benchmark ? ` · ${t("trait pointillé : {r}", { r: benchmark.label })}` : ""}
+        {mesureLue === "rendement" && fenetre ? <span className={styles.indice}>{t("les {n} jours qui précèdent chaque point", { n: fenetre })}</span> : null}
+        {mesureLue === "placement" ? <span className={styles.indice}>{t("placés à la première VL, brut, avant frais")}</span> : null}
       </p>
       <Tuiles
         tuiles={[
-          [t("Performance"), lue.variationPct !== undefined ? signe(lue.variationPct) : "—"],
-          [t("Annualisée"), annualisee == null ? "—" : signe(annualisee)],
+          [t("Performance sur la période"), lue.variationPct !== undefined ? signe(lue.variationPct) : "—"],
+          [t("Annualisée sur la période"), annualisee == null ? "—" : signe(annualisee)],
           [t("Plus haut · plus bas"), `${fmt(haute)} · ${fmt(basse)}`],
           [t("VL en baisse"), `${baisses} ${t("sur")} ${Math.max(0, fenetreNav.length - 1)}`],
         ]}

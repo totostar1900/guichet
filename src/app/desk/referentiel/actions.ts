@@ -11,12 +11,13 @@ import { GLOSSARY } from "@/lib/glossary";
 import { LESSONS } from "@/data/lessons";
 import { COMPANIES } from "@/data/companies";
 import { ISSUERS } from "@/data/issuers";
+import { cleDeGestionnaire } from "@/data/gestionnaires";
 import { BUILTIN_TYPES, type ProductType } from "@/lib/registry";
 
 export type RefResult = { ok: true; message: string } | { ok: false; error: string };
 
 const KINDS = Object.values(REF) as string[];
-const KIND_LABEL: Record<string, string> = { product_type: "type de produit", bond_term: "échéancier", company: "société", issuer: "émetteur", glossary: "terme", lesson: "éclairage", policy: "règle" };
+const KIND_LABEL: Record<string, string> = { product_type: "type de produit", bond_term: "échéancier", company: "société", issuer: "émetteur", gestionnaire: "société de gestion", glossary: "terme", lesson: "éclairage", policy: "règle" };
 
 function revalidateAll() {
   /* « /info » ne rend plus rien : c'est une redirection. Le glossaire et les
@@ -36,7 +37,7 @@ async function log(html: string, by: string) {
 }
 
 /** The tab of the page that shows one kind. */
-const TAB_OF: Record<string, string> = { [REF.types]: "types", [REF.bondTerms]: "echeanciers", [REF.glossary]: "glossaire", [REF.lessons]: "lecons", [REF.companies]: "societes", [REF.issuers]: "emetteurs" };
+const TAB_OF: Record<string, string> = { [REF.types]: "types", [REF.bondTerms]: "echeanciers", [REF.glossary]: "glossaire", [REF.lessons]: "lecons", [REF.companies]: "societes", [REF.issuers]: "emetteurs", [REF.gestionnaires]: "gestionnaires" };
 
 /** After a staged change: back to the list, the row highlighted, the form closed. */
 function done(kind: string, key: string): never {
@@ -140,6 +141,34 @@ export async function saveGlossaryAction(_p: RefResult | null, form: FormData): 
   await audit("reference.draft", "reference", `${REF.glossary}/${key}`, { before: beforeG, after: { short, long, text } });
   await log(`Terme du glossaire <b>${short}</b> en brouillon`, desk.name);
   done(REF.glossary, key);
+}
+
+/* ---------- Sociétés de gestion ---------- */
+
+const jour = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date : AAAA-MM-JJ.");
+const gestionnaireSchema = z.object({
+  name: z.string().trim().min(2, "Nom de la société requis."),
+  siege: z.string().trim().default(""),
+  agrementNo: z.string().trim().default(""),
+  agrementDate: z.union([jour, z.literal("")]).default(""),
+  source: z.string().trim().min(5, "Source requise : le texte ou l'adresse où ces faits ont été lus."),
+  verifiedOn: jour,
+});
+
+/** Siège, numéro et date d'agrément d'une société de gestion : un brouillon, avec sa source et le jour de sa relecture. Rien n'est écrit sans source. */
+export async function saveGestionnaireAction(_p: RefResult | null, form: FormData): Promise<RefResult> {
+  const desk = await requireDesk("/desk/referentiel");
+  const p = gestionnaireSchema.safeParse(Object.fromEntries(form));
+  if (!p.success) return { ok: false, error: p.error.issues[0]?.message ?? "Saisie invalide." };
+  const { name, siege, agrementNo, agrementDate, source, verifiedOn } = p.data;
+  if (!siege && !agrementNo && !agrementDate) return { ok: false, error: "Renseignez au moins le siège, le numéro ou la date d'agrément." };
+  const key = cleDeGestionnaire(name);
+  const data = { key, name, ...(siege ? { siege } : {}), ...(agrementNo ? { agrementNo } : {}), ...(agrementDate ? { agrementDate } : {}), source, verifiedOn };
+  const before = (await repo().listReference(REF.gestionnaires)).find((r) => r.key === key)?.data;
+  await repo().saveReferenceDraft(REF.gestionnaires, key, { op: "set", data }, desk.name);
+  await audit("reference.draft", "reference", `${REF.gestionnaires}/${key}`, { before, after: data });
+  await log(`Société de gestion <b>${name}</b> en brouillon`, desk.name);
+  done(REF.gestionnaires, key);
 }
 
 /* ---------- Éclairages (Info) ---------- */
@@ -274,6 +303,7 @@ const builtinKeys: Record<string, () => string[]> = {
   [REF.lessons]: () => LESSONS.map((l) => l.key),
   [REF.companies]: () => COMPANIES.map((c) => c.mnemo),
   [REF.issuers]: () => ISSUERS.map((i) => i.slug),
+  [REF.gestionnaires]: () => [],
 };
 
 /**

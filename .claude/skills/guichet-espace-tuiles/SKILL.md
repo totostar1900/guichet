@@ -236,3 +236,12 @@ Le client a levé le § 8.8 pour les actions et demandé des encadrés en relief
 - **L'unité d'un axe se pose au-dessus de la graduation du haut, pas sur elle** : un tracé qui démarre à 14 px fait toucher « FCFA » (y = 9) et la première graduation ; 18 px, comme la courbe du cours. L'audit des chevauchements doit viser le bon `svg` (`svg[role=img]`), pas le premier venu (un chevron).
 - **Un nom long en capitales ne se met pas en chiffre majeur** : le nom d'une société de gestion se lit en identité (monogramme + nom), pas à la taille d'un chiffre.
 - **Inverser une décision écrite se dit et se teste** : le volet émetteur d'un fonds, retiré le 1er novembre, revient sous un autre nom ; le test d'origine est réécrit, la documentation relue et datée, et le compte rendu l'annonce.
+
+## Leçon du 10 novembre 2026 (soir) : un en-tête qui suit un commutateur, un vide qui reste en bas, une donnée qu'on n'invente pas
+
+- **Un en-tête qui suit un commutateur se mesure dans CHAQUE état** : le chiffre du haut dit la mesure choisie (valeur, rendement, montant placé) ; son étiquette peut passer sur deux lignes à 340 px (86 px mesurés contre 72) : on réserve le plus haut (`min-height`), et la légende deux lignes. Vérifier mesure × période × deux largeurs : une seule hauteur.
+- **Un `min-height` rendu à une grille s'étire sur TOUTES ses lignes** : sans `align-content: start`, le vide d'un onglet court s'ouvre entre l'en-tête et la barre d'onglets. Pour tout conteneur auquel on rend de la hauteur, dire où va le surplus.
+- **Trois tuiles à libellé long ne se mettent pas sur trois colonnes** : « hebdomadai/re » coupé ; deux colonnes, la dernière pleine largeur (`Tuiles deux`).
+- **Une donnée qu'on ne peut pas lire à la source ne s'écrit pas** : la liste des sociétés de gestion de la COSUMAF était inaccessible (403, article payant) ; on a livré le champ vide et le formulaire du desk, avec la source obligatoire, plutôt qu'un siège ou un agrément tirés d'un article de presse. Et la source ne s'affiche pas chez le client (provenance).
+- **Une clef interne n'est pas un identifiant à montrer** : l'« ISIN » d'un fonds est sa clef ; on ne l'écrit pas.
+- **Deux graphies d'un même nom font deux lignes** tant qu'on ne groupe pas par clef normalisée (« Corridor » / « CORRIDOR »).

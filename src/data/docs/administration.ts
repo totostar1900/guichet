@@ -8,7 +8,7 @@ export const ADMINISTRATION: DocPage = {
   visibility: "desk",
   audience: ["admin"],
   order: 6,
-  checkedOn: "2026-10-23",
+  checkedOn: "2026-11-05",
   owner: "Georges",
   chapters: [
     {
@@ -106,7 +106,7 @@ export const ADMINISTRATION: DocPage = {
       id: "referentiel",
       title: l("Référentiel : changer l'application sans code", "Reference data: changing the app without code"),
       blocks: [
-        { type: "lead", text: l("Six onglets, chacun avec des valeurs par défaut livrées avec l'application. Ce que vous enregistrez est d'abord un brouillon : « Publier » le rend visible des clients, « Abandonner » le retire, « Revenir aux valeurs par défaut » efface votre version.", "Six tabs, each with defaults shipped with the app; what you save takes precedence, and \"back to defaults\" erases it.") },
+        { type: "lead", text: l("Sept onglets, chacun avec des valeurs par défaut livrées avec l'application. Ce que vous enregistrez est d'abord un brouillon : « Publier » le rend visible des clients, « Abandonner » le retire, « Revenir aux valeurs par défaut » efface votre version.", "Seven tabs, each with defaults shipped with the app; what you save takes precedence, and \"back to defaults\" erases it.") },
         {
           type: "table",
           head: [l("Onglet", "Tab"), l("Ce qu'on y règle", "What is set there"), l("Effet immédiat sur", "Immediate effect on")],
@@ -117,6 +117,7 @@ export const ADMINISTRATION: DocPage = {
             [l("Éclairages", "Insights"), l("Les huit éclairages d'Info.", "The eight Info insights."), l("Info, onboarding.", "Info, onboarding.")],
             [l("Sociétés cotées", "Listed companies"), l("Activité, comptes, actionnariat, lecture des chiffres, documents.", "Activity, accounts, shareholders, reading of the figures, documents."), l("Sociétés, rapports PDF.", "Companies, PDF reports.")],
             [l("Émetteurs", "Issuers"), l("Les émetteurs obligataires non cotés en actions.", "Bond issuers without listed shares."), l("Fiches émetteur.", "Issuer pages.")],
+            [l("Sociétés de gestion", "Management companies"), l("Le siège, le numéro et la date d'agrément de la COSUMAF de chaque société de gestion de fonds, avec la source lue et le jour de sa relecture. Rien n'est livré : aucun fait n'est écrit sans source.", "The head office, COSUMAF approval number and date of each fund management company, with the source read and the day it was re-read. Nothing is shipped: no fact is written without a source."), l("Onglet « Société de gestion » d'un fonds.", "A fund's \"Management company\" tab.")],
           ],
         },
         {

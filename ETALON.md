@@ -792,6 +792,15 @@ Consigne du client : « s'inspirer fortement de la page Titres ». La fiche d'un
 - **La légende de la courbe réserve ses trois lignes** : sans réserve, passer de « Valeur » à « Rendement » faisait sauter la carte de 33 px. Mesuré : 684 px pour les trois mesures et toutes les périodes.
 - `rendementAnnualisePct` (finance.ts) : l'annualisation d'une période de VL ; rien sous 30 jours.
 
+**Retouches du fonds du 10 novembre 2026 (planche « suite » : 1A · 2B sans droits d'entrée · 3A · 4A)** :
+
+- **La première carte s'appelle « Évolution », et son en-tête suit la mesure** : « Valeur » dit la dernière VL et sa variation, « Rendement » le rendement annualisé du dernier point (avec le BTA en pointillé), « 1 M placés » ce que valent 1 000 000 FCFA placés au début de la période. L'en-tête réserve 6 rem (mesuré 72 à 86 px selon la mesure et la largeur) et la légende deux lignes : hauteur identique sur les trois mesures et toutes les périodes (700 px à 390, 685 à 340).
+- **Chiffres clés sans doublon (2B)** : le chiffre du bulletin en majeur, DATÉ (« sur les 12 mois jusqu'au … »), l'annualisé depuis la création en tuile DATÉE (« depuis le 18 sept. 2023 »), la catégorie, la fréquence, les frais de sortie s'il y en a. **Les droits d'entrée n'y sont pas** (choix du client) ; la période, avec ses dates, vit dans « Évolution ». Trois tuiles tiennent sur deux colonnes, la dernière pleine largeur (`Tuiles deux`).
+- **Plus d'« Investir » ni de simulateur** sur la fiche d'un fonds. **Plus de clef interne sous le titre** : un fonds n'a pas d'ISIN, la colonne porte une clef (`LineIdentity`).
+- **« Documents » n'existe que s'il reste une pièce** autre qu'un bulletin de la cote (`voletsMasques` : un fonds sans pièce a deux onglets).
+- **Société de gestion saisie au desk (3A)** : Référentiel › Sociétés de gestion (siège, n° et date d'agrément, **source obligatoire** et jour de relecture, en brouillon puis « Publier », avec audit). **Le livré est vide** : rien n'est écrit sans source officielle lue. Chez le client, une tuile sans valeur n'est pas écrite et la source ne s'affiche pas (provenance, 28 octobre).
+- **Le changement d'onglet ne casse plus la page** : la pile de la fiche est une grille ; sans `align-content: start`, la hauteur rendue à un onglet court étirait toutes ses lignes et ouvrait un vide de 200 px entre l'en-tête et la barre d'onglets (barre mesurée à 359 px au lieu de 52).
+
 **Une action n'a pas de remboursement** : `repaymentLabel` ne rend « in fine » que pour une obligation (la ligne « Remboursement : in fine » s'affichait sur une action).
 
 **Ce qu'on ne reprend pas des références** : la suggestion d'analystes, les CFD, le carnet d'ordres, l'alerte de prix en carte (déjà dans le menu « ··· »).

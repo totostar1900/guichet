@@ -10,7 +10,8 @@ import { INTENT_LABEL } from "@/lib/domain/intent";
 import { SEGMENT_LABEL } from "@/lib/domain/status";
 import { ENGINE_LABEL, type Engine, type ProductType } from "@/lib/registry";
 import type { Lesson } from "@/data/lessons";
-import { saveGlossaryAction, saveLessonAction, saveTermAction, saveTypeAction, type RefResult } from "./actions";
+import type { Gestionnaire } from "@/data/gestionnaires";
+import { saveGestionnaireAction, saveGlossaryAction, saveLessonAction, saveTermAction, saveTypeAction, type RefResult } from "./actions";
 import styles from "./page.module.css";
 
 function Msg({ state }: { state: RefResult | null }) {
@@ -196,6 +197,45 @@ export function GlossaryForm({ k, t }: { k?: string; t?: Term }) {
       </label>
       <div className={styles.actions}>
         <Foot tab="glossaire" editing={Boolean(k)} pending={pending} label={tr("Enregistrer le brouillon")} />
+      </div>
+      <Msg state={state} />
+    </form>
+  );
+}
+
+/** Siège, numéro et date d'agrément d'une société de gestion, avec la source et le jour de relecture. Le nom vient du bulletin et ne se corrige pas ici. */
+export function GestionnaireForm({ nom, g }: { nom: string; g?: Gestionnaire }) {
+  const tr = useT();
+  const [state, action, pending] = useActionState<RefResult | null, FormData>(saveGestionnaireAction, null);
+  return (
+    <form action={action} className={`${styles.form} ${styles.compact}`}>
+      <input type="hidden" name="name" value={nom} />
+      <div className={styles.row3}>
+        <label>
+          <span>{tr("Siège (ville, pays)")}</span>
+          <input name="siege" defaultValue={g?.siege} />
+        </label>
+        <label>
+          <span>{tr("N° d'agrément")}</span>
+          <input name="agrementNo" defaultValue={g?.agrementNo} className="mono" />
+        </label>
+        <label>
+          <span>{tr("Date d'agrément")}</span>
+          <input name="agrementDate" type="date" defaultValue={g?.agrementDate} />
+        </label>
+      </div>
+      <div className={styles.row3}>
+        <label>
+          <span>{tr("Source lue (texte ou adresse)")}</span>
+          <input name="source" defaultValue={g?.source} required />
+        </label>
+        <label>
+          <span>{tr("Relue le")}</span>
+          <input name="verifiedOn" type="date" defaultValue={g?.verifiedOn} required />
+        </label>
+      </div>
+      <div className={styles.actions}>
+        <Foot tab="gestionnaires" editing pending={pending} label={tr("Enregistrer le brouillon")} />
       </div>
       <Msg state={state} />
     </form>

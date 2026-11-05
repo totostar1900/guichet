@@ -3,14 +3,15 @@ import { DeskNav } from "@/components/DeskNav";
 import { BOND_TERMS, type BondTerms } from "@/data/bond-terms";
 import { COMPANIES, type Company } from "@/data/companies";
 import { ISSUERS, type BondIssuer } from "@/data/issuers";
+import { cleDeGestionnaire, type Gestionnaire } from "@/data/gestionnaires";
 import { repo } from "@/lib/data";
 import type { ReferenceRow } from "@/lib/domain/types";
 import { SEGMENT_LABEL } from "@/lib/domain/status";
 import { fmtDateTime } from "@/lib/format";
 import { GLOSSARY as GLOSSARY_DEFAULTS, type Term } from "@/lib/glossary";
-import { isTombstone, loadBondTerms, loadCompanies, loadGlossary, loadIssuers, loadLessons, loadTypes, REF } from "@/lib/reference";
+import { isTombstone, loadBondTerms, loadCompanies, loadGestionnaires, loadGlossary, loadIssuers, loadLessons, loadTypes, REF } from "@/lib/reference";
 import { BUILTIN_TYPES, ENGINE_LABEL, type ProductType } from "@/lib/registry";
-import { GlossaryForm, LessonForm, TermForm, TypeForm } from "./Forms";
+import { GestionnaireForm, GlossaryForm, LessonForm, TermForm, TypeForm } from "./Forms";
 import { FicheForm, type FicheSeed } from "./FicheForm";
 import { Origin, type DraftState } from "./Origin";
 import { DeleteButton, DiscardButton, PublishButton, ResetButton, RestoreButton } from "./RowActions";
@@ -23,7 +24,7 @@ import { getT } from "@/i18n/server";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Référentiel" };
 
-type Tab = "types" | "echeanciers" | "glossaire" | "lecons" | "societes" | "emetteurs";
+type Tab = "types" | "echeanciers" | "glossaire" | "lecons" | "societes" | "emetteurs" | "gestionnaires";
 const TABS: [Tab, string, string][] = [
   ["types", "Types de produits", REF.types],
   ["echeanciers", "Échéanciers", REF.bondTerms],
@@ -31,6 +32,7 @@ const TABS: [Tab, string, string][] = [
   ["lecons", "Éclairages", REF.lessons],
   ["societes", "Sociétés cotées", REF.companies],
   ["emetteurs", "Émetteurs", REF.issuers],
+  ["gestionnaires", "Sociétés de gestion", REF.gestionnaires],
 ];
 
 type Sp = { onglet?: string; cle?: string; ok?: string; publie?: string; nouveau?: string; copie?: string; filtre?: string; depuis?: string; point?: string };
@@ -147,6 +149,7 @@ export default async function ReferentielPage({ searchParams }: { searchParams: 
       {tab === "lecons" && <Lessons list={await loadLessons()} {...ctx} copie={sp.copie ?? ""} />}
       {tab === "societes" && <Companies list={await loadCompanies()} {...ctx} nouveau={sp.nouveau ?? ""} />}
       {tab === "emetteurs" && <Issuers list={await loadIssuers()} {...ctx} nouveau={sp.nouveau ?? ""} />}
+      {tab === "gestionnaires" && <Gestionnaires list={await loadGestionnaires()} {...ctx} />}
     </>
   );
 }
@@ -326,6 +329,69 @@ async function Glossary({ glossary, rows, open, ok }: { glossary: Record<string,
         {cur ? <EditHead title={`${tr("Modifier")} « ${cur.item.short} »`} kind={REF.glossary} k={cur.item.key} s={cur} remove={{ what: cur.item.short, where: tr("du glossaire et des bulles « i » qui le citent") }} /> : <EditHead title={tr("Nouveau terme")} kind={REF.glossary} />}
         <GlossaryForm key={cur?.item.key ?? "new"} k={cur?.item.key} t={cur ? { short: cur.item.short, long: cur.item.long, text: cur.item.text } : undefined} />
       </div>
+    </>
+  );
+}
+
+/**
+ * LES SOCIÉTÉS DE GESTION (10 novembre 2026) : celles que portent les fonds, avec ce que la maison sait d'elles. Le livré est vide : le siège, le numéro et la date
+ * d'agrément se saisissent ici, avec la source lue et le jour de sa relecture, et paraissent sur l'onglet « Société de gestion » d'un fonds une fois publiés.
+ */
+async function Gestionnaires({ list: published, rows, open, ok }: { list: Gestionnaire[] } & Ctx) {
+  const tr = await getT();
+  /* Une société par CLEF : le bulletin écrit parfois le même nom en capitales et en casse mixte (deux lignes pour une seule société). */
+  const parCle = new Map<string, string>();
+  for (const o of await repo().listOffers()) if (o.kind === "FONDS" && o.fund && !parCle.has(cleDeGestionnaire(o.fund.manager))) parCle.set(cleDeGestionnaire(o.fund.manager), o.fund.manager);
+  const noms = [...parCle.values()].sort((a, b) => a.localeCompare(b, "fr"));
+  const vus = new Map(seen(published, (g) => g.key, [], (g) => g.key, rows).map((s) => [s.item.key, s] as const));
+  const lignes = noms.map((nom) => ({ nom, cle: cleDeGestionnaire(nom), s: vus.get(cleDeGestionnaire(nom)) }));
+  const cur = lignes.find((l) => l.cle === open);
+  return (
+    <>
+      <div className="panel">
+        <div className="panel-h">
+          <h2>
+            {tr("Sociétés de gestion")} ({lignes.length})
+          </h2>
+          <span className="muted">{tr("Le siège, le numéro et la date d'agrément de la COSUMAF, sur l'onglet « Société de gestion » d'un fonds. Rien n'est écrit sans source.")}</span>
+        </div>
+        <table className={`tbl ${styles.tbl}`}>
+          <thead>
+            <tr>
+              <th>{tr("Société")}</th>
+              <th>{tr("Siège")}</th>
+              <th>{tr("Agrément")}</th>
+              <th>{tr("Origine")}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {lignes.map(({ nom, cle, s }) => (
+              <tr key={cle} className={cle === ok ? styles.hl : undefined} id={cle}>
+                <td>
+                  <b>{nom}</b>
+                  <br />
+                  <small className="mono muted">{cle}</small>
+                </td>
+                <td>{s?.item.siege ?? <span className="muted">—</span>}</td>
+                <td>{s && (s.item.agrementNo || s.item.agrementDate) ? [s.item.agrementNo ? `n° ${s.item.agrementNo}` : "", s.item.agrementDate ?? ""].filter(Boolean).join(" · ") : <span className="muted">—</span>}</td>
+                <td>{s ? <Origin inDb={s.inDb} builtin={s.builtin} draft={s.draft} /> : <span className="muted">{tr("à renseigner")}</span>}</td>
+                <td className="r">
+                  <Link className="btn sm" href={`/desk/referentiel?onglet=gestionnaires&cle=${cle}#edit`}>
+                    {tr(s ? "Modifier" : "Renseigner")}
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {cur && (
+        <div className="panel" id="edit">
+          {cur.s ? <EditHead title={`${tr("Modifier")} « ${cur.nom} »`} kind={REF.gestionnaires} k={cur.cle} s={cur.s} /> : <EditHead title={`${tr("Renseigner")} « ${cur.nom} »`} kind={REF.gestionnaires} />}
+          <GestionnaireForm key={cur.cle} nom={cur.nom} g={cur.s?.item} />
+        </div>
+      )}
     </>
   );
 }

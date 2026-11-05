@@ -5,6 +5,7 @@ import { repo } from "@/lib/data";
 import { BOND_TERMS, type BondTerms } from "@/data/bond-terms";
 import { COMPANIES, type Company } from "@/data/companies";
 import { ISSUERS, type BondIssuer } from "@/data/issuers";
+import { cleDeGestionnaire, GESTIONNAIRES, type Gestionnaire } from "@/data/gestionnaires";
 import { GLOSSARY as GLOSSARY_DEFAULTS, type Term } from "@/lib/glossary";
 import { LESSONS, type Lesson } from "@/data/lessons";
 import { BUILTIN_TYPES, type ProductType, type Registry, setRegistry } from "@/lib/registry";
@@ -16,7 +17,7 @@ import { buildIssuerRegistry, setIssuerRegistry, type IssuerProfile } from "@/da
  * `reference` table : so an empty table changes nothing. The desk's changes
  * wait as drafts on the row until « Publier » ; only `data` is read here.
  */
-export const REF = { types: "product_type", bondTerms: "bond_term", companies: "company", issuers: "issuer", glossary: "glossary", policy: "policy", lessons: "lesson", bareme: "bareme", ecartes: "ecarte" } as const;
+export const REF = { types: "product_type", bondTerms: "bond_term", companies: "company", issuers: "issuer", gestionnaires: "gestionnaire", glossary: "glossary", policy: "policy", lessons: "lesson", bareme: "bareme", ecartes: "ecarte" } as const;
 
 /**
  * Supprimer une entrée que le code livre.
@@ -146,6 +147,14 @@ export const loadIssuers = cache(async (): Promise<BondIssuer[]> => {
   for (const [key, i] of db) if (!merged.some((m) => m.slug === key)) merged.push({ ...i, slug: key });
   return merged;
 });
+/** Les sociétés de gestion dont le desk a saisi les faits (le livré est vide). */
+export const loadGestionnaires = cache(async (): Promise<Gestionnaire[]> => {
+  const [db, removed] = await Promise.all([rows<Gestionnaire>(REF.gestionnaires), gone(REF.gestionnaires)]);
+  const merged = GESTIONNAIRES.filter((g) => !removed.has(g.key)).map((g) => db.get(g.key) ?? g);
+  for (const [key, g] of db) if (!merged.some((m) => m.key === key)) merged.push({ ...g, key });
+  return merged;
+});
+export const gestionnaireDe = async (nom: string): Promise<Gestionnaire | undefined> => (await loadGestionnaires()).find((g) => g.key === cleDeGestionnaire(nom));
 export const issuerBySlug = async (slug: string) => (await loadIssuers()).find((i) => i.slug === slug.toLowerCase());
 export const issuerByIsin = async (isin: string) => (await loadIssuers()).find((i) => i.isins.includes(isin));
 

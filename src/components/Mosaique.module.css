@@ -71,3 +71,7 @@
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
+/* DEUX COLONNES POUR UN NOMBRE IMPAIR DE TUILES (10 novembre 2026) : la dernière prend les deux colonnes plutôt que d'en laisser une vide. */
+.derniereLarge .tuile:last-child {
+  grid-column: 1 / -1;
+}

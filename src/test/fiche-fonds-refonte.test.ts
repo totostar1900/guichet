@@ -50,8 +50,11 @@ describe("restituer", () => {
 });
 
 describe("les volets d'une fiche", () => {
-  it("ne masque plus aucun volet : « Société de gestion » reprend la place de l'émetteur d'un fonds (10 novembre 2026, planche 1A)", () => {
-    for (const k of ["FONDS", "OTA", "BTA", "ACTIONS", "MARCHE", "APE"]) expect(voletsMasques({ kind: k }), k).toEqual([]);
+  it("masque « Documents » d'un fonds qui n'a que des bulletins ; « Société de gestion » reprend la place de l'émetteur (10 novembre 2026)", () => {
+    for (const k of ["OTA", "BTA", "ACTIONS", "MARCHE", "APE"]) expect(voletsMasques({ kind: k }), k).toEqual([]);
+    expect(voletsMasques({ kind: "FONDS", documents: [] }), "un fonds sans pièce garde un onglet vide").toEqual(["docs"]);
+    expect(voletsMasques({ kind: "FONDS", documents: [{ name: "Bulletin officiel de la cote n° 1234" }] }), "un bulletin est une pièce de la bourse, pas du fonds").toEqual(["docs"]);
+    expect(voletsMasques({ kind: "FONDS", documents: [{ name: "Prospectus" }] }), "un fonds qui a une pièce perd son onglet").toEqual([]);
   });
   it("filtre la barre d'onglets, et la garde en place au changement de volet", () => {
     const src = code("src/components/mobile/FichePanes.tsx");

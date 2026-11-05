@@ -4,7 +4,7 @@ import { RelatedNews } from "@/components/RelatedNews";
 import { FlowsChart } from "@/components/FlowsChart";
 import { NavHistory } from "@/components/NavHistory";
 import { QuoteHistory } from "@/components/QuoteHistory";
-import { companyByIsin, issuerByIsin, loadIssuerRegistry } from "@/lib/reference";
+import { companyByIsin, gestionnaireDe, issuerByIsin, loadIssuerRegistry } from "@/lib/reference";
 import { FicheSegments } from "@/components/mobile/FichePanes";
 import { Kpis } from "./Kpis";
 import { Info } from "@/components/Info";
@@ -375,7 +375,7 @@ export async function loadFiche(o: Offer) {
   // Le signal d'appariement part avec les autres lectures, et il ne lit rien du
   // tout sur une ligne qui n'est pas cotée : le carnet n'existe que sur la cote.
   const wantsFacing = o.kind === "MARCHE" && !o.hidden;
-  const [, offers, company, issuer, quotes, navs, btaBenchmark, signalPolicy, session, seances] = await Promise.all([
+  const [, offers, company, issuer, quotes, navs, btaBenchmark, signalPolicy, session, seances, gestionnaire] = await Promise.all([
     loadIssuerRegistry(),
     r.listOffers(),
     o.kind === "MARCHE" && o.instrument === "action" ? companyByIsin(o.isin) : undefined,
@@ -390,6 +390,8 @@ export async function loadFiche(o: Offer) {
     // La séance d'adjudication de cette ligne, si quelqu'un l'a relue. Le code
     // d'émission du Trésor est notre ISIN : c'est lui qui fait le lien.
     o.kind === "BTA" || o.kind === "OTA" || o.kind === "APE" ? r.listAuctionResults({ codeEmission: o.isin, confirmed: true, limit: 1 }) : [],
+    // Les faits de la société de gestion (siège, agrément), saisis au desk : le livré est vide.
+    o.kind === "FONDS" && o.fund ? gestionnaireDe(o.fund.manager) : undefined,
   ]);
   const profile = resolveIssuer(o);
   // Toutes ses lignes, sans plafond : l'État du Gabon en a seize, et un rayon
@@ -470,7 +472,7 @@ export async function loadFiche(o: Offer) {
         ];
   /* LA VARIATION DU COURS SUR TROIS MOIS, la même qu'à l'Accueil et sur Titres (7 novembre 2026) : une action seulement. */
   const variation3m = o.kind === "MARCHE" && o.instrument === "action" ? await variationTroisMois(o.isin) : undefined;
-  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance: seances[0], variation3m };
+  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance: seances[0], variation3m, gestionnaire };
 }
 
 export type FicheData = Awaited<ReturnType<typeof loadFiche>>;
