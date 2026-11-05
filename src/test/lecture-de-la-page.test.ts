@@ -681,6 +681,17 @@ describe("la fiche d'un fonds, calquée sur celle d'un titre (10 novembre 2026, 
     expect(f, "une commission du desk est montrée au client").not.toMatch(/commission/i);
     expect(f, "la fiche du fonds justifie d'où vient la donnée").not.toMatch(/Source : /);
   });
+  it("l'onglet Société de gestion range ses voisins : les autres fonds de la société, puis les autres sociétés, la plus fournie d'abord", () => {
+    const f = fonds();
+    const ordre = ['titre={t("Société de gestion")}', 'titre={t("Autres fonds de cette société")}', 'titre={t("Autres sociétés de gestion")}'].map((x) => f.indexOf(x));
+    expect(ordre.every((i) => i > 0), "une des trois sections de la société a disparu ou changé de nom").toBe(true);
+    expect([...ordre].sort((a, b) => a - b), "les sections de la société ne sont plus dans l'ordre").toEqual(ordre);
+    expect(f, "une société ne mène plus à la liste de ses fonds").toMatch(/href=\{`\/fonds\?gestion=\$\{encodeURIComponent\(s2\.nom\)\}`\}/);
+    expect(f, "un fonds voisin ne mène plus à sa fiche").toMatch(/href=\{`\/offres\/\$\{x\.id\}`\}/);
+    const r = lire(`${dir}/FicheReading.tsx`);
+    expect(r, "les fonds de la société ne sont plus pris sur la clef normalisée du nom").toMatch(/cleDeGestionnaire\(x\.fund!\.manager\) === cle\)/);
+    expect(r, "les sociétés ne sont plus rangées par nombre de fonds").toMatch(/\.sort\(\(a, b\) => b\.n - a\.n \|\| a\.nom\.localeCompare\(b\.nom, "fr"\)\)/);
+  });
   it("les documents d'un fonds ne portent pas les bulletins, et la rubrique n'existe que s'il reste une pièce", () => {
     const f = fonds();
     expect(f, "les bulletins de la cote sont de nouveau des documents du fonds").toMatch(/const documents = o\.documents\.filter\(\(d\) => !estUnBulletin\(d\)\);/);

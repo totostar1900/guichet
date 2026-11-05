@@ -151,4 +151,11 @@ export const EN_VISITE: Record<string, string> = {
   "Agrément": "Approval",
   "les {n} jours qui précèdent chaque point": "the {n} days before each point",
   "placés à la première VL, brut, avant frais": "invested at the first NAV, gross, before fees",
+  "Autres fonds de cette société": "Other funds from this company",
+  "Les autres fonds que cette société de gestion propose à Guichet, avec leur performance sur douze mois quand le bulletin la donne, sinon depuis leur création.": "The other funds this management company offers on Guichet, with their twelve-month performance when the bulletin gives it, otherwise since creation.",
+  "depuis la création": "since creation",
+  "Autres sociétés de gestion": "Other management companies",
+  "Les autres sociétés de gestion dont Guichet propose des fonds, la plus fournie d'abord. Un toucher ouvre la liste de leurs fonds.": "The other management companies whose funds Guichet offers, the largest first. A tap opens the list of their funds.",
+  "{n} fonds proposés à Guichet": "{n} funds offered on Guichet",
+  "1 fonds proposé à Guichet": "1 fund offered on Guichet",
 };

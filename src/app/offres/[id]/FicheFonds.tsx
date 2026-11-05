@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Carte } from "@/components/Carte";
 import { CourbeDeLaVL } from "@/components/CourbeDeLaVL";
 import { Info } from "@/components/Info";
+import Link from "next/link";
 import { Majeur, Mosaique } from "@/components/Mosaique";
 import { PastilleVariation } from "@/components/PastilleVariation";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_ADJ } from "@/lib/domain/market";
@@ -10,7 +11,6 @@ import type { Offer } from "@/lib/domain/types";
 import { estUnBulletin } from "@/lib/fiche-volets";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { getT } from "@/i18n/server";
-import { IssuerCard } from "./IssuerCard";
 import type { FicheData } from "./FicheReading";
 import styles from "./page.module.css";
 import fa from "./FicheAction.module.css";
@@ -43,7 +43,7 @@ export async function FicheFonds({ o, data }: { o: Offer; data: FicheData }) {
   const f = o.fund;
   if (!f) return null;
   const now = new Date();
-  const { navs, btaBenchmark, others, profile, company, issuer, gestionnaire } = data;
+  const { navs, btaBenchmark, gestionnaire, fondsDeLaSociete, autresSocietes } = data;
   const series = [...navs].reverse().map((n) => ({ date: n.navDate, nav: n.nav, variationPct: n.variationPct, perfSinceInceptionPct: n.perfSinceInceptionPct, bulletinNo: n.bulletinNo }));
   const annuel = fundAnnualPct(f, now);
   const perf = f.perf1yPct != null ? { etiquette: t("Performance sur 12 mois"), v: f.perf1yPct } : { etiquette: f.inceptionDate ? t("Depuis l'origine ({d})", { d: fmtDate(f.inceptionDate) }) : t("Depuis l'origine"), v: f.perfSinceInceptionPct };
@@ -106,8 +106,8 @@ export async function FicheFonds({ o, data }: { o: Offer; data: FicheData }) {
       </section>
       )}
 
-      {/* SOCIÉTÉ DE GESTION : tient la place de l'émetteur. Ses autres fonds, rangés, dessous. */}
-      <Bloc pane="emetteur" titre={t("Société de gestion")} fin={others.length === 0 ? mention : undefined} info={t("La société qui gère le fonds, son dépositaire, et le moment jusqu'où un ordre est pris pour la prochaine valeur liquidative.")}>
+      {/* SOCIÉTÉ DE GESTION : tient la place de l'émetteur. Puis les autres fonds de cette société et les autres sociétés de gestion (10 novembre 2026). */}
+      <Bloc pane="emetteur" titre={t("Société de gestion")} fin={fondsDeLaSociete.length === 0 && autresSocietes.length === 0 ? mention : undefined} info={t("La société qui gère le fonds, son dépositaire, et le moment jusqu'où un ordre est pris pour la prochaine valeur liquidative.")}>
         <Mosaique
           majeur={
             <div className={fa.identite}>
@@ -126,9 +126,41 @@ export async function FicheFonds({ o, data }: { o: Offer; data: FicheData }) {
           deux
         />
       </Bloc>
-      {others.length > 0 && (
-        <Bloc pane="emetteur" titre={t("Ses autres lignes à Guichet")} fin={mention} info={t("Les autres lignes de cette société de gestion proposées à Guichet.")}>
-          <IssuerCard profile={profile} o={o} others={others} company={company} issuer={issuer} lignesSeulement />
+
+      {fondsDeLaSociete.length > 0 && (
+        <Bloc pane="emetteur" titre={t("Autres fonds de cette société")} fin={autresSocietes.length === 0 ? mention : undefined} info={t("Les autres fonds que cette société de gestion propose à Guichet, avec leur performance sur douze mois quand le bulletin la donne, sinon depuis leur création.")}>
+          <div className={fa.rangees}>
+            {fondsDeLaSociete.map((x) => {
+              const perfX = x.fund!.perf1yPct != null ? { v: x.fund!.perf1yPct, p: t("sur 12 mois") } : { v: x.fund!.perfSinceInceptionPct, p: t("depuis la création") };
+              return (
+                <Link key={x.id} className={fa.rangee} href={`/offres/${x.id}`}>
+                  <span>
+                    <b>{x.title}</b>
+                    <small>
+                      {signe(perfX.v)} · {perfX.p}
+                    </small>
+                  </span>
+                  <i aria-hidden="true">→</i>
+                </Link>
+              );
+            })}
+          </div>
+        </Bloc>
+      )}
+
+      {autresSocietes.length > 0 && (
+        <Bloc pane="emetteur" titre={t("Autres sociétés de gestion")} fin={mention} info={t("Les autres sociétés de gestion dont Guichet propose des fonds, la plus fournie d'abord. Un toucher ouvre la liste de leurs fonds.")}>
+          <div className={fa.rangees}>
+            {autresSocietes.map((s2) => (
+              <Link key={s2.nom} className={fa.rangee} href={`/fonds?gestion=${encodeURIComponent(s2.nom)}`}>
+                <span>
+                  <b>{s2.nom}</b>
+                  <small>{[s2.siege, s2.n > 1 ? t("{n} fonds proposés à Guichet", { n: s2.n }) : t("1 fonds proposé à Guichet")].filter(Boolean).join(" · ")}</small>
+                </span>
+                <i aria-hidden="true">→</i>
+              </Link>
+            ))}
+          </div>
         </Bloc>
       )}
     </>

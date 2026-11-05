@@ -4,7 +4,9 @@ import { RelatedNews } from "@/components/RelatedNews";
 import { FlowsChart } from "@/components/FlowsChart";
 import { NavHistory } from "@/components/NavHistory";
 import { QuoteHistory } from "@/components/QuoteHistory";
-import { companyByIsin, gestionnaireDe, issuerByIsin, loadIssuerRegistry } from "@/lib/reference";
+import { companyByIsin, issuerByIsin, loadGestionnaires, loadIssuerRegistry } from "@/lib/reference";
+import { cleDeGestionnaire } from "@/data/gestionnaires";
+import { fondsOuverts } from "@/lib/domain/accueil";
 import { FicheSegments } from "@/components/mobile/FichePanes";
 import { Kpis } from "./Kpis";
 import { Info } from "@/components/Info";
@@ -375,7 +377,7 @@ export async function loadFiche(o: Offer) {
   // Le signal d'appariement part avec les autres lectures, et il ne lit rien du
   // tout sur une ligne qui n'est pas cotée : le carnet n'existe que sur la cote.
   const wantsFacing = o.kind === "MARCHE" && !o.hidden;
-  const [, offers, company, issuer, quotes, navs, btaBenchmark, signalPolicy, session, seances, gestionnaire] = await Promise.all([
+  const [, offers, company, issuer, quotes, navs, btaBenchmark, signalPolicy, session, seances, gestionnaires] = await Promise.all([
     loadIssuerRegistry(),
     r.listOffers(),
     o.kind === "MARCHE" && o.instrument === "action" ? companyByIsin(o.isin) : undefined,
@@ -391,7 +393,7 @@ export async function loadFiche(o: Offer) {
     // d'émission du Trésor est notre ISIN : c'est lui qui fait le lien.
     o.kind === "BTA" || o.kind === "OTA" || o.kind === "APE" ? r.listAuctionResults({ codeEmission: o.isin, confirmed: true, limit: 1 }) : [],
     // Les faits de la société de gestion (siège, agrément) : ceux de la liste de la COSUMAF livrés avec le code, ou saisis au desk.
-    o.kind === "FONDS" && o.fund ? gestionnaireDe(o.fund.manager) : undefined,
+    o.kind === "FONDS" && o.fund ? loadGestionnaires() : undefined,
   ]);
   const profile = resolveIssuer(o);
   // Toutes ses lignes, sans plafond : l'État du Gabon en a seize, et un rayon
@@ -472,7 +474,21 @@ export async function loadFiche(o: Offer) {
         ];
   /* LA VARIATION DU COURS SUR TROIS MOIS, la même qu'à l'Accueil et sur Titres (7 novembre 2026) : une action seulement. */
   const variation3m = o.kind === "MARCHE" && o.instrument === "action" ? await variationTroisMois(o.isin) : undefined;
-  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance: seances[0], variation3m, gestionnaire };
+  /* LA SOCIÉTÉ DE GESTION D'UN FONDS ET SES VOISINS (10 novembre 2026) : ce qu'elle a saisi au desk ou reçu de la COSUMAF, les autres fonds qu'elle gère, puis les autres sociétés de gestion (leur nombre de fonds, le plus fourni d'abord). */
+  const cle = o.kind === "FONDS" && o.fund ? cleDeGestionnaire(o.fund.manager) : "";
+  const gestionnaire = gestionnaires?.find((g) => g.key === cle);
+  const fonds = o.kind === "FONDS" && o.fund ? fondsOuverts(offers).filter((x) => x.fund && x.id !== o.id) : [];
+  const fondsDeLaSociete = fonds.filter((x) => cleDeGestionnaire(x.fund!.manager) === cle);
+  const parSociete = new Map<string, { nom: string; n: number }>();
+  for (const x of fonds) {
+    const k = cleDeGestionnaire(x.fund!.manager);
+    if (k === cle) continue;
+    parSociete.set(k, { nom: x.fund!.manager, n: (parSociete.get(k)?.n ?? 0) + 1 });
+  }
+  const autresSocietes = [...parSociete.entries()]
+    .map(([k, v]) => ({ nom: v.nom, n: v.n + (k === cle ? 1 : 0), siege: gestionnaires?.find((g) => g.key === k)?.siege }))
+    .sort((a, b) => b.n - a.n || a.nom.localeCompare(b.nom, "fr"));
+  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance: seances[0], variation3m, gestionnaire, fondsDeLaSociete, autresSocietes };
 }
 
 export type FicheData = Awaited<ReturnType<typeof loadFiche>>;
