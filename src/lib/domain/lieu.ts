@@ -1,5 +1,5 @@
-import { AIDE_PAGES, COMPTE_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, TRADE_PAGES, type NavPage } from "@/lib/nav-groups";
-import { isAideSection, isEspaceSection, isMarcheSection, isTradeSection, listForFiche } from "@/lib/nav-section";
+import { AIDE_PAGES, COMPTE_PAGES, INSTRUMENTS_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, TRADE_PAGES, type NavPage } from "@/lib/nav-groups";
+import { isAideSection, isEspaceSection, isInstrumentsSection, isMarcheSection, isTradeSection, listForFiche } from "@/lib/nav-section";
 
 /**
  * OÙ ON EST : UN SIÈGE, ET LA RUBRIQUE QUAND IL Y EN A UNE.
@@ -25,8 +25,8 @@ export interface Lieu {
   rubrique?: string;
 }
 
-/** Les quatre mots du dock, et « Compte ». Un cliquet les compare à ceux du dock. */
-export const SIEGES = { accueil: "Accueil", trade: "Trade", marche: "Marché", aide: "Aide", compte: "Compte" } as const;
+/** Les cinq mots du dock, et « Compte ». Un cliquet les compare à ceux du dock. */
+export const SIEGES = { accueil: "Accueil", trade: "Trade", investir: "Investir", marche: "Marché", aide: "Aide", compte: "Compte" } as const;
 
 /** L'adresse de chaque siège : sur elle, la bande ne dit que le siège. */
 const RACINES = ["/", "/trader", "/marche", "/aide"];
@@ -47,6 +47,11 @@ export function lieuDe(brut: string): Lieu | null {
   const compte = path === "/moi/compte" || path.startsWith("/moi/compte/") || COMPTE_PAGES.some((p) => path === p.href || path.startsWith(`${p.href}/`));
   if (compte) return { siege: SIEGES.compte, rubrique: path === "/moi/compte" ? undefined : plusLong(path, COMPTE_PAGES) };
   if (isAideSection(path)) return { siege: SIEGES.aide, rubrique: plusLong(path, AIDE_PAGES) };
+  /* « INVESTIR » : les trois familles et les fiches qui en viennent. Trade garde sa page (« /trader »). */
+  if (isInstrumentsSection(path)) {
+    const ref = path.startsWith("/offres/") ? listForFiche(path) : path;
+    return { siege: SIEGES.investir, rubrique: plusLong(ref, INSTRUMENTS_PAGES) };
+  }
   if (isTradeSection(path)) {
     // Une fiche vit sous « /offres » : sa rubrique est la liste d'où elle vient.
     const ref = path.startsWith("/offres/") ? listForFiche(path) : path;

@@ -43,7 +43,7 @@ export const FONCTIONNEMENT: DocPage = {
             ],
             [
               l("Instruments", "Instruments"),
-              l("Ce qui s'achète : les titres (emprunts des Trésors, introductions, rachats, marché secondaire de la BVMAC), les fonds avec leur dernière valeur liquidative, et les adjudications annoncées. C'est l'accueil d'un visiteur.", "What can be bought: securities (Treasury issues, IPOs, buybacks, BVMAC secondary market), funds with their latest net asset value, and the announced auctions. It is a visitor's home."),
+              l("Ce qui s'achète : les titres (emprunts des Trésors, introductions, rachats, marché secondaire de la BVMAC), les fonds avec leur dernière valeur liquidative, et les adjudications annoncées. C'est l'accueil d'un visiteur. Sur téléphone, le siège s'appelle « Investir » et ouvre ces trois familles d'un toucher.", "What can be bought: securities (Treasury issues, IPOs, buybacks, BVMAC secondary market), funds with their latest net asset value, and the announced auctions. It is a visitor's home. On a phone the seat is called \"Invest\" and opens these three families in one tap."),
             ],
             [
               l("Trade", "Trade"),

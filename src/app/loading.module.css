@@ -1,0 +1,63 @@
+/* L'ÉCRAN D'ATTENTE : un titre, une phrase, trois encadrés en relief. Les écarts sont ceux de la « pile » (--sections-gap) ; aucune marge entre deux blocs. */
+.attente {
+  min-width: 0;
+}
+.entete {
+  display: grid;
+  gap: var(--s-4);
+}
+.titre,
+.phrase {
+  display: block;
+  border-radius: var(--rond);
+  background: var(--surface-2);
+  animation: pulsation 1.4s ease-in-out infinite;
+}
+.titre {
+  width: 55%;
+  height: var(--t-9);
+}
+.phrase {
+  width: 80%;
+  height: var(--t-4);
+}
+.carte,
+.carteBasse {
+  display: block;
+  border-radius: var(--rond);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  animation: pulsation 1.4s ease-in-out infinite;
+}
+.carte {
+  height: 9rem;
+}
+.carteBasse {
+  height: 6rem;
+}
+/* Le texte du lecteur d'écran, hors de l'écran. */
+.cache {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@keyframes pulsation {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .titre,
+  .phrase,
+  .carte,
+  .carteBasse {
+    animation: none;
+  }
+}

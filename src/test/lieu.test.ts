@@ -29,17 +29,22 @@ describe("lieuDe : où l'on est, en un siège et une rubrique", () => {
     expect(lieuDe("/moi/reclamation")?.siege).toBe("Aide");
   });
   it("une fiche dit la liste d'où elle vient", () => {
-    expect(lieuDe("/offres/ota-gabon")?.siege).toBe("Trade");
-    expect(lieuDe("/offres/fund-x")?.rubrique).toBe("Fonds");
+    expect(lieuDe("/offres/ota-gabon")?.siege).toBe("Investir");
+    expect(lieuDe("/offres/fund-x")).toEqual({ siege: "Investir", rubrique: "Fonds" });
+  });
+  it("Trade ne garde que sa page : les trois familles sont du siège « Investir »", () => {
+    for (const p of ["/titres", "/fonds", "/calendrier"]) expect(lieuDe(p)?.siege, p).toBe("Investir");
+    expect(lieuDe("/titres")?.rubrique).toBe("Titres");
+    expect(lieuDe("/calendrier")?.rubrique).toBe("Adjudications");
   });
   it("la connexion n'a pas de lieu", () => {
     expect(lieuDe("/connexion")).toBeNull();
     expect(lieuDe("/connexion/mfa")).toBeNull();
   });
-  it("les quatre sièges portent les mots du dock", () => {
+  it("les cinq sièges portent les mots du dock", () => {
     /* Deux copies d'un mot : celle du dock (MobileShell) et celle de la bande.
        Elles se lisent côte à côte à l'écran, et ne doivent jamais diverger. */
     const dock = readFileSync("src/components/mobile/MobileShell.tsx", "utf8");
-    for (const mot of [SIEGES.accueil, SIEGES.trade, SIEGES.marche, SIEGES.aide]) expect(dock, `le dock ne dit plus « ${mot} »`).toContain(["label:", " t", '("', mot, '")'].join(""));
+    for (const mot of [SIEGES.accueil, SIEGES.trade, SIEGES.investir, SIEGES.marche, SIEGES.aide]) expect(dock, `le dock ne dit plus « ${mot} »`).toContain(["label:", " t", '("', mot, '")'].join(""));
   });
 });

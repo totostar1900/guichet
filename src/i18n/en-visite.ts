@@ -162,4 +162,5 @@ export const EN_VISITE: Record<string, string> = {
   "Rendement depuis le {d} · non annualisé": "Return since {d} · not annualised",
   "Fonds de {n} jours : le rendement glissant demande {mini} jours d'historique, « Rendement » montre l'écart depuis la première VL, non annualisé.": "Fund of {n} days: the rolling return needs {mini} days of history, \"Return\" shows the change since the first NAV, not annualised.",
   "écart avec la première VL de la période, brut, avant frais": "change from the first NAV of the period, gross, before fees",
+  "Chargement de la page": "Loading the page",
 };

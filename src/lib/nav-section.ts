@@ -114,6 +114,14 @@ export const isInstrumentsSection = (path: string): boolean =>
 export const isTradeSection = (path: string): boolean => path.startsWith("/trader") || isInstrumentsSection(path);
 
 /**
+ * LE SIÈGE TRADE DU TÉLÉPHONE N'EST QUE SA PAGE (10 novembre 2026).
+ *
+ * Le dock a un siège « Investir » qui ouvre Titres, Fonds et Adjudications d'un geste : les trois familles et les fiches qui en viennent lui appartiennent (« isInstrumentsSection »). Trade garde sa page et ses services,
+ * et ne s'allume plus que sur elle ; sans cela deux sièges s'allumeraient ensemble sur « /titres ». La bande de l'écran large, elle, garde « isTradeSection ».
+ */
+export const isTraderSection = (path: string): boolean => path.startsWith("/trader");
+
+/**
  * LE SIÈGE « AIDE » : DEMANDER, ET TROUVER SOI-MÊME.
  *
  * La règle vivait en ligne dans le dock du téléphone ; la bande du haut en a

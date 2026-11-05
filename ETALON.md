@@ -806,6 +806,12 @@ Consigne du client : « s'inspirer fortement de la page Titres ». La fiche d'un
 
 **Ce qu'on ne reprend pas des références** : la suggestion d'analystes, les CFD, le carnet d'ordres, l'alerte de prix en carte (déjà dans le menu « ··· »).
 
+### 8.12 Entrer dans les lignes d'un toucher, et ne jamais laisser un lien muet (10 novembre 2026)
+
+- **Le menu du bas a cinq sièges : Accueil · Trade · Investir · Marché · Aide.** « Investir » ouvre `/titres`, dont les trois tuiles du haut mènent à Fonds et à Adjudications : les trois familles et les fiches qui en viennent lui appartiennent (`isInstrumentsSection`). **La page Trade n'est pas touchée** : son siège ne s'allume plus que sur `/trader` (`isTraderSection`), sans quoi deux sièges s'allumeraient ensemble sur une liste. La bande du haut dit « INVESTIR · Titres » ; la bande de l'écran large garde « Trade » (`isTradeSection`). C'est le cinquième siège que la fusion du 24 octobre avait retiré, remis à la demande du client : à 390 px chaque siège fait 78 px, et les cinq libellés tiennent.
+- **Un écran d'attente à la racine** (`src/app/loading.tsx`) : squelette à l'instant du toucher (titre, phrase, trois encadrés en relief, jetons de la maison, pulsation arrêtée pour qui veut moins d'animation), menu et bande restant interactifs. Mesuré : le squelette paraît 104 ms après le toucher alors que le serveur répond 2,5 s plus tard. **Réserve connue** (docs Next, « Status Codes ») : une page qui répond « introuvable » après le début du flux répond 200 avec `noindex` et non 404.
+- **Ce qui a été mesuré de la lenteur** (pour les points suivants) : les fonctions sont à Dublin, la base aussi ; chaque chargement complet fait 18 à 36 lectures de base, dont seize de « socle » relues sur chaque page ; leur médiane en production est de 90 à 165 ms pour les tables du client, contre 14 à 28 ms pour une table isolée.
+
 ## 9. La voix des libellés — « Mes » pour ce qui est au client, « Votre » pour ce que la maison lui dit
 
 *Décidé le 1er novembre 2026. Gardé par `src/test/mes-et-votre.test.ts`.*

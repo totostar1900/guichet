@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { isEspaceSection, isFundsSection, isMarcheSection, isTitresSection, isTradeSection, listForFiche, TITRES } from "@/lib/nav-section";
+import { isEspaceSection, isFundsSection, isInstrumentsSection, isMarcheSection, isTitresSection, isTraderSection, listForFiche, TITRES } from "@/lib/nav-section";
 
 /**
  * La fiche d'un fonds appartient aux Fonds, pas aux Titres.
@@ -98,7 +98,8 @@ describe("chaque siège s'allume sur son propre sommaire", () => {
   /* Les deux règles qui vivent en clair dans le dock : un préfixe chacune. */
   const REGLES: { nom: string; prend: (p: string) => boolean }[] = [
     { nom: "isEspaceSection", prend: isEspaceSection },
-    { nom: "isTradeSection", prend: isTradeSection },
+    { nom: "isTraderSection", prend: isTraderSection },
+    { nom: "isInstrumentsSection", prend: isInstrumentsSection },
     { nom: "isMarcheSection", prend: isMarcheSection },
     { nom: "aide", prend: (p) => p === "/aide" || p.startsWith("/info") },
   ];
@@ -111,9 +112,9 @@ describe("chaque siège s'allume sur son propre sommaire", () => {
      parce que l'un résumait la racine et l'autre nommait deux fois ce que
      Trade mène. Le compte est un plancher : un siège de plus devra, lui
      aussi, dire à quelle règle il appartient. */
-  it("lit bien les quatre sièges du dock", () => {
-    expect(sommaires.length, `sièges trouvés : ${sommaires.join(", ")}`).toBeGreaterThanOrEqual(4);
-    expect(sommaires, "la racine porte désormais le premier siège").toEqual(expect.arrayContaining(["/", "/trader"]));
+  it("lit bien les cinq sièges du dock", () => {
+    expect(sommaires.length, `sièges trouvés : ${sommaires.join(", ")}`).toBeGreaterThanOrEqual(5);
+    expect(sommaires, "la racine porte désormais le premier siège, et « Investir » ouvre les familles").toEqual(expect.arrayContaining(["/", "/trader", "/titres"]));
   });
 
   it("ne laisse aucun sommaire sans siège", () => {

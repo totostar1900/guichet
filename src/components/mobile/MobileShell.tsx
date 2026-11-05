@@ -12,7 +12,7 @@ import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
 import { useListeDeLaFiche } from "@/components/LieuDeLaFiche";
 import { lieuDe } from "@/lib/domain/lieu";
-import { isAideSection, isEspaceSection, isMarcheSection, isTradeSection, listForFiche } from "@/lib/nav-section";
+import { isAideSection, isEspaceSection, isInstrumentsSection, isMarcheSection, isTraderSection, listForFiche } from "@/lib/nav-section";
 
 /**
  * The phone shell (≤ 760 px): a top bar with a real « back » and the page
@@ -61,6 +61,13 @@ const I = {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M3 17l5-6 4 4 6-9" />
       <path d="M14 6h6v6" />
+    </svg>
+  ),
+  // Investir : un disque dont on sépare une part, les familles d'où l'on choisit sa ligne.
+  investir: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 3v9h9" />
     </svg>
   ),
   fonds: (
@@ -179,7 +186,9 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
        menaient déjà aux trois familles, donc le second siège nommait une
        seconde fois ce que le premier menait. Un siège de moins, et la
        quatrième place du dock libérée. */
-    { href: "/trader", label: t("Trade"), icon: I.trader, match: isTradeSection },
+    { href: "/trader", label: t("Trade"), icon: I.trader, match: isTraderSection },
+    /* « INVESTIR » EST L'ENTRÉE DES LIGNES EN UN TOUCHER (10 novembre 2026) : Titres, Fonds et Adjudications. Trade garde sa page et ses services, et ne s'allume plus sur les listes ni sur les fiches. Le siège ouvre « /titres », dont les trois tuiles du haut mènent aux deux autres familles. */
+    { href: "/titres", label: t("Investir"), icon: I.investir, match: isInstrumentsSection },
     { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection },
     /* LE CINQUIÈME SIÈGE : DEMANDER, ET TROUVER SOI-MÊME. Quatre onglets
        menaient à ce qu'on possède, ce qu'on achète, ce qu'on fait et ce
