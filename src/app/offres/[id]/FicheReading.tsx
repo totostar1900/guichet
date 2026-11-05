@@ -483,7 +483,8 @@ export async function loadFiche(o: Offer) {
   for (const x of fonds) {
     const k = cleDeGestionnaire(x.fund!.manager);
     if (k === cle) continue;
-    parSociete.set(k, { nom: x.fund!.manager, n: (parSociete.get(k)?.n ?? 0) + 1 });
+    /* LE NOM DU FILTRE EST CELUI DE LA LISTE DES FONDS (« o.issuer », en casse normale), pas le nom brut du bulletin : « /fonds?gestion=… » compare à la lettre, et le nom en capitales ne ramenait aucun fonds. */
+    parSociete.set(k, { nom: x.issuer, n: (parSociete.get(k)?.n ?? 0) + 1 });
   }
   const autresSocietes = [...parSociete.entries()]
     .map(([k, v]) => ({ nom: v.nom, n: v.n + (k === cle ? 1 : 0), siege: gestionnaires?.find((g) => g.key === k)?.siege }))

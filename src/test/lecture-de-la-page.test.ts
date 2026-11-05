@@ -689,6 +689,8 @@ describe("la fiche d'un fonds, calquée sur celle d'un titre (10 novembre 2026, 
     expect(f, "une société ne mène plus à la liste de ses fonds").toMatch(/href=\{`\/fonds\?gestion=\$\{encodeURIComponent\(s2\.nom\)\}`\}/);
     expect(f, "un fonds voisin ne mène plus à sa fiche").toMatch(/href=\{`\/offres\/\$\{x\.id\}`\}/);
     const r = lire(`${dir}/FicheReading.tsx`);
+    expect(r, "le lien d'une société n'est plus le nom que la liste des fonds filtre : « /fonds?gestion=… » ne ramène aucun fonds").toMatch(/parSociete\.set\(k, \{ nom: x\.issuer, n:/);
+    expect(lire("src/app/fonds/FondsBody.tsx"), "la liste des fonds ne filtre plus sur l'émetteur : le lien d'une société doit changer avec elle").toMatch(/manager: o\.issuer,/);
     expect(r, "les fonds de la société ne sont plus pris sur la clef normalisée du nom").toMatch(/cleDeGestionnaire\(x\.fund!\.manager\) === cle\)/);
     expect(r, "les sociétés ne sont plus rangées par nombre de fonds").toMatch(/\.sort\(\(a, b\) => b\.n - a\.n \|\| a\.nom\.localeCompare\(b\.nom, "fr"\)\)/);
   });
