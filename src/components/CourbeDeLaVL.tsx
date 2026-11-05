@@ -4,11 +4,14 @@ import { useState } from "react";
 import { useDates, useT } from "@/i18n/client";
 import { daysBetween, rendementAnnualisePct } from "@/lib/finance";
 import { fmt } from "@/lib/format";
+import { fundCurveFrom } from "@/lib/domain/fund-curve";
+import { CLE_DE_PERIODE, classer, type Comparaison, ligneDeComparaison, rangEcrit } from "@/lib/market/comparatif";
 import { lirePeriode, PERIODES, type PeriodeCours } from "@/lib/market/periodes";
 import { ticksPropres } from "@/lib/ui/axes";
 import { BulleNoire, useLecture, type Lecture } from "./charts/lecture";
 import { invested, REF_AMOUNT, rollingAnnualised } from "./FundCharts";
 import type { NavPoint } from "./NavChart";
+import { BarresDeRang } from "./BarresDeRang";
 import { Majeur, Tuiles } from "./Mosaique";
 import { PastilleVariation } from "./PastilleVariation";
 import { Select } from "./ui/Select";
@@ -23,27 +26,37 @@ import styles from "./CourbeDuCours.module.css";
  * Au toucher (ou au glissement), une bulle noire au-dessus du tracé dit la VL. Les dates de l'axe portent toujours l'année. Les performances passées ne sont pas
  * garanties : la mention reste écrite sous les chiffres, pas seulement dans une bulle.
  */
-type Mesure = "vl" | "rendement" | "placement";
+type Mesure = "vl" | "rendement" | "placement" | "comparatif";
 const MESURES: [Mesure, string][] = [
   ["vl", "Valeur"],
   ["rendement", "Rendement"],
   ["placement", "1 M placés"],
 ];
+const COMPARATIF: [Mesure, string] = ["comparatif", "Comparatif"];
 /** Les fenêtres de calcul du rendement glissant, de la plus longue à la plus courte ; il faut de la place devant la série. */
 const FENETRES = [365, 183, 92];
 /** L'historique qu'il faut pour tracer le rendement glissant de la plus courte fenêtre : elle plus 20 % de marge devant la série. */
 const JOURS_MINI = Math.ceil(FENETRES[FENETRES.length - 1] * 1.2);
 const signe = (v: number, d = 2) => `${v > 0 ? "+" : ""}${v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d })} %`;
 
-export function CourbeDeLaVL({ series, hauteur = 190 }: { series: NavPoint[]; hauteur?: number }) {
+export function CourbeDeLaVL({ series, comparaison, hauteur = 190 }: { series: NavPoint[]; /** Les pairs de la même catégorie, classés sur la liste des fonds : sans eux, pas d'onglet « Comparatif ». */ comparaison?: Comparaison; hauteur?: number }) {
   const t = useT();
   const { fmtDate } = useDates();
   const points = series.map((p) => ({ d: p.date, c: p.nav, v: 0 }));
   const lectures = PERIODES.map((p) => lirePeriode(points, p.cle));
   const [periode, setPeriode] = useState<PeriodeCours>(() => (lirePeriode(points, "1a").disponible ? "1a" : "max"));
   const [mesure, setMesure] = useState<Mesure>("vl");
+  const [choisi, setChoisi] = useState<string | undefined>(undefined);
   const lue = lectures.find((l) => l.cle === periode && l.disponible) ?? lectures.find((l) => l.cle === "max") ?? lectures[0];
-  const debut = lue.serie[0]?.d ?? series[0]?.date;
+  /* UNE SEULE DÉFINITION DE LA PERFORMANCE D'UN FONDS SUR UNE PÉRIODE (11 novembre 2026) : celle de la LISTE DES FONDS (« fenetresDe » : la dernière VL publiée AVANT la date visée ; l'année en cours : la dernière VL avant le 1er janvier). La carte la calcule sur la même série avec la même fonction : la pastille, les tuiles, la courbe, « 1 M placés » et le classement du comparatif disent le même chiffre. Pour 5 ans et Max, que la liste ne mesure pas, la période garde sa définition propre. */
+  const moiLigne = ligneDeComparaison("moi", "", fundCurveFrom(series.map((p) => ({ navDate: p.date, nav: p.nav }))));
+  const mesureDe = (cle: PeriodeCours) => {
+    const c = CLE_DE_PERIODE[cle];
+    return c ? moiLigne.pcts[c] : undefined;
+  };
+  const mesureListe = mesureDe(lue.cle);
+  const perfPeriode = mesureListe?.pct ?? lue.variationPct;
+  const debut = mesureListe?.depuis ?? lue.serie[0]?.d ?? series[0]?.date;
   const fenetre = series.length > 1 ? FENETRES.find((j) => daysBetween(series[0].date, series[series.length - 1].date) >= j * 1.2) : undefined;
   const glissant = fenetre ? rollingAnnualised(series, fenetre) : [];
   const rendementPossible = glissant.length >= 2;
@@ -59,7 +72,13 @@ export function CourbeDeLaVL({ series, hauteur = 190 }: { series: NavPoint[]; ha
       : mesure === "placement"
         ? invested(fenetreNav).map((p) => ({ d: p.date, y: p.y, nav: p.nav }))
         : fenetreNav.map((p) => ({ d: p.date, y: p.nav, nav: p.nav }));
-  const mesureLue: Mesure = mesure;
+  /* LE COMPARATIF (11 novembre 2026, planche option A) : la courbe est remplacée par le classement des pairs ; le reste de la carte (liste de période, tuiles, mise en garde) ne bouge pas. */
+  const comparatif = mesure === "comparatif" && Boolean(comparaison);
+  /* LA PÉRIODE DU COMPARATIF est la plus longue que la LISTE mesure pour ce fonds (un fonds de trois mois n'a ni 1 an ni 6 mois) ; sans aucune, rien à comparer. */
+  const periodeComparable = (["1a", "debut", "6m", "3m", "2a", "3a"] as PeriodeCours[]).find((k) => mesureDe(k));
+  const aUnePeriodeComparable = periodeComparable !== undefined;
+  const cleComparee = CLE_DE_PERIODE[lue.cle];
+  const mesureLue: Mesure = comparatif ? "vl" : mesure;
   const W = 320;
   const gauche = 46;
   const droite = 8;
@@ -103,7 +122,22 @@ export function CourbeDeLaVL({ series, hauteur = 190 }: { series: NavPoint[]; ha
   /* L'EN-TÊTE SUIT LA MESURE (10 novembre 2026, planche 1A) : le chiffre du haut dit ce que la courbe montre, VL, rendement du dernier point ou valeur du montant placé. Une ligne « sous » dans les trois états, réservée en hauteur : changer de mesure ne déplace rien. */
   const derniereVL = series[series.length - 1];
   const variationDuPlace = ((dernier.y / REF_AMOUNT) - 1) * 100;
-  const entete =
+  const rang = comparatif && comparaison && cleComparee ? classer(comparaison.moi, comparaison.pairs, cleComparee) : undefined;
+  const entete = comparatif ? (
+    rang && comparaison ? (
+      rang.rang != null ? (
+        <Majeur
+          etiquette={t("Rang sur {n} fonds · {p}", { n: rang.total, p: t(lue.libelle) })}
+          valeur={rangEcrit(rang.rang)}
+          sous={<span>{rang.premier ? t("Le premier de la catégorie fait {v}", { v: signe(rang.premier.pct) }) : t("En tête de sa catégorie sur la période")}</span>}
+        />
+      ) : (
+        <Majeur etiquette={t("Rang · {p}", { p: t(lue.libelle) })} valeur="—" sous={<span>{t("Pas assez d'historique sur cette période.")}</span>} />
+      )
+    ) : (
+      <Majeur etiquette={t("Comparatif")} valeur="—" sous={<span>{aUnePeriodeComparable ? t("Cette période ne se compare pas entre fonds.") : t("Pas assez d'historique pour comparer ce fonds.")}</span>} />
+    )
+  ) :
     mesureLue === "vl" ? (
       <Majeur etiquette={t("Dernière VL · {d}", { d: fmtDate(derniereVL.date) })} valeur={fmt(derniereVL.nav)} unite="FCFA" sous={derniereVL.variationPct != null ? <PastilleVariation v={derniereVL.variationPct} periode={t("dernière VL")} /> : <span>{fmtDate(derniereVL.date)}</span>} />
     ) : mesureLue === "rendement" ? (
@@ -119,9 +153,18 @@ export function CourbeDeLaVL({ series, hauteur = 190 }: { series: NavPoint[]; ha
   return (
     <div className={styles.bloc}>
       <div className={styles.enteteMesure}>{entete}</div>
-      <div className={styles.commutateur} role="group" aria-label={t("Ce que la courbe mesure")}>
-        {MESURES.map(([m, libelle]) => (
-          <button key={m} type="button" aria-pressed={mesureLue === m} className={mesureLue === m ? styles.actif : undefined} onClick={() => setMesure(m)}>
+      <div className={`${styles.commutateur} ${comparaison ? styles.quatre : ""}`} role="group" aria-label={t("Ce que la courbe mesure")}>
+        {(comparaison ? [...MESURES, COMPARATIF] : MESURES).map(([m, libelle]) => (
+          <button
+            key={m}
+            type="button"
+            aria-pressed={mesure === m}
+            className={mesure === m ? styles.actif : undefined}
+            onClick={() => {
+              setMesure(m);
+              if (m === "comparatif" && !mesureDe(lue.cle) && periodeComparable) setPeriode(periodeComparable);
+            }}
+          >
             {t(libelle)}
           </button>
         ))}
@@ -129,7 +172,7 @@ export function CourbeDeLaVL({ series, hauteur = 190 }: { series: NavPoint[]; ha
       {/* UN FONDS JEUNE (FCP CCA Invest : 63 jours) n'a pas assez d'historique pour un rendement glissant : la mesure « Rendement » montre alors l'écart depuis la première VL, non annualisé, et la ligne le dit. */}
       {!rendementPossible && <p className={styles.indisponible}>{t("Fonds de {n} jours : le rendement glissant demande {mini} jours d'historique, « Rendement » montre l'écart depuis la première VL, non annualisé.", { mini: JOURS_MINI, n: joursDHistorique })}</p>}
       <div className={styles.entete}>
-        <span className={styles.variation}>{lue.variationPct !== undefined && <PastilleVariation v={lue.variationPct} periode={t(lue.libelle)} />}</span>
+        <span className={styles.variation}>{perfPeriode !== undefined && <PastilleVariation v={perfPeriode} periode={t(lue.libelle)} />}</span>
         <Select
           compact
           block
@@ -142,11 +185,18 @@ export function CourbeDeLaVL({ series, hauteur = 190 }: { series: NavPoint[]; ha
           options={lectures.map((p) => ({
             value: p.cle,
             label: t(p.libelle),
-            disabled: !p.disponible,
-            hint: p.disponible ? (p.cle === "max" && p.depuis ? t("depuis le {d}", { d: fmtDate(p.depuis) }) : p.variationPct !== undefined ? signe(p.variationPct) : "—") : t("historique insuffisant"),
+            disabled: !p.disponible || (comparatif && !CLE_DE_PERIODE[p.cle]),
+            hint: comparatif && p.disponible && !CLE_DE_PERIODE[p.cle] ? t("non comparable entre fonds") : p.disponible ? (p.cle === "max" && p.depuis ? t("depuis le {d}", { d: fmtDate(p.depuis) }) : (mesureDe(p.cle)?.pct ?? p.variationPct) !== undefined ? signe((mesureDe(p.cle)?.pct ?? p.variationPct) as number) : "—") : t("historique insuffisant"),
           }))}
         />
       </div>
+      {comparatif && comparaison ? (
+        rang && rang.lignes.length > 0 ? (
+          <BarresDeRang lignes={rang.lignes} choisi={choisi} onChoisir={setChoisi} idDuFonds={comparaison.moi.id} titreDuFonds={comparaison.moi.titre} depuisLe={(d) => fmtDate(d)} />
+        ) : (
+          <p className={styles.zoneVide}>{aUnePeriodeComparable ? t("Aucun fonds de la catégorie n'a de mesure sur cette période.") : t("Pas encore trois mois d'historique : rien à comparer.")}</p>
+        )
+      ) : (
       <div className={styles.zone}>
         <BulleNoire lecture={lecture} x={index == null ? 0 : x(index)} W={W} />
         <svg viewBox={`0 0 ${W} ${H}`} className={styles.dessin} role="img" aria-label={`${nom} ${t("du {a} au {b}", { a: fmtDate(premier.d), b: fmtDate(dernier.d) })} : ${fmtY(premier.y)} → ${fmtY(dernier.y)}`} {...handlers}>
@@ -177,15 +227,25 @@ export function CourbeDeLaVL({ series, hauteur = 190 }: { series: NavPoint[]; ha
           )}
         </svg>
       </div>
+      )}
       <p className={`${styles.legende} ${styles.legendeFixe}`}>
-        {t(n > 1 ? "{n} VL publiées · du {a} au {b}" : "1 VL publiée · du {a} au {b}", { n, a: fmtDate(premier.d), b: fmtDate(dernier.d) })}
-        {mesureLue === "rendement" && fenetre && !cumule ? <span className={styles.indice}>{t("les {n} jours qui précèdent chaque point", { n: fenetre })}</span> : null}
-        {cumule ? <span className={styles.indice}>{t("écart avec la première VL de la période, brut, avant frais")}</span> : null}
-        {mesureLue === "placement" ? <span className={styles.indice}>{t("placés à la première VL, brut, avant frais")}</span> : null}
+        {comparatif && comparaison && rang ? (
+          <>
+            {rang.sans > 0 ? t("{n} fonds comparés · {k} sans historique", { n: rang.total, k: rang.sans }) : t("{n} fonds comparés · {c}", { n: rang.total, c: t(comparaison.categorie) })}
+            <span className={styles.indice}>{t("mêmes chiffres que la liste des fonds")}</span>
+          </>
+        ) : (
+          <>
+            {t(n > 1 ? "{n} VL publiées · du {a} au {b}" : "1 VL publiée · du {a} au {b}", { n, a: fmtDate(premier.d), b: fmtDate(dernier.d) })}
+            {mesureLue === "rendement" && fenetre && !cumule ? <span className={styles.indice}>{t("les {n} jours qui précèdent chaque point", { n: fenetre })}</span> : null}
+            {cumule ? <span className={styles.indice}>{t("écart avec la première VL de la période, brut, avant frais")}</span> : null}
+            {mesureLue === "placement" ? <span className={styles.indice}>{t("placés à la première VL, brut, avant frais")}</span> : null}
+          </>
+        )}
       </p>
       <Tuiles
         tuiles={[
-          [t("Performance sur la période"), lue.variationPct !== undefined ? signe(lue.variationPct) : "—"],
+          [t("Performance sur la période"), perfPeriode !== undefined ? signe(perfPeriode) : "—"],
           [t("Annualisée sur la période"), annualisee == null ? "—" : signe(annualisee)],
           [t("Plus haut · plus bas"), `${fmt(haute)} · ${fmt(basse)}`],
           [t("VL en baisse"), `${baisses} ${t("sur")} ${Math.max(0, fenetreNav.length - 1)}`],

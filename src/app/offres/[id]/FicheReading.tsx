@@ -11,7 +11,8 @@ import { FicheSegments } from "@/components/mobile/FichePanes";
 import { Kpis } from "./Kpis";
 import { Info } from "@/components/Info";
 import { voletsMasques } from "@/lib/fiche-volets";
-import { FUND_FREQUENCY_ADJ } from "@/lib/domain/market";
+import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_ADJ } from "@/lib/domain/market";
+import { type Comparaison, ligneDeComparaison } from "@/lib/market/comparatif";
 import { Amount } from "@/components/Amount";
 import { RefTotals } from "@/components/RefTotals";
 import { repo } from "@/lib/data";
@@ -489,7 +490,16 @@ export async function loadFiche(o: Offer) {
   const autresSocietes = [...parSociete.entries()]
     .map(([k, v]) => ({ nom: v.nom, n: v.n + (k === cle ? 1 : 0), siege: gestionnaires?.find((g) => g.key === k)?.siege }))
     .sort((a, b) => b.n - a.n || a.nom.localeCompare(b.nom, "fr"));
-  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance: seances[0], variation3m, gestionnaire, fondsDeLaSociete, autresSocietes };
+  /* LE COMPARATIF DU FONDS (11 novembre 2026) : ses pairs de la MÊME catégorie, classés sur les mesures de la liste des fonds (une lecture groupée des courbes, la même que la liste). Un fonds sans pair n'a pas d'onglet. */
+  let comparaison: Comparaison | undefined;
+  if (o.kind === "FONDS" && o.fund) {
+    const pairsOffres = fonds.filter((x) => x.fund && x.fund.category === o.fund!.category);
+    if (pairsOffres.length > 0) {
+      const courbes = await r.listFundCurves([o.fund.key, ...pairsOffres.map((x) => x.fund!.key)]);
+      comparaison = { categorie: FUND_CATEGORY_LABEL[o.fund.category], moi: ligneDeComparaison(o.id, o.title, courbes.get(o.fund.key)), pairs: pairsOffres.map((x) => ligneDeComparaison(x.id, x.title, courbes.get(x.fund!.key))) };
+    }
+  }
+  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance: seances[0], variation3m, gestionnaire, fondsDeLaSociete, autresSocietes, comparaison };
 }
 
 export type FicheData = Awaited<ReturnType<typeof loadFiche>>;

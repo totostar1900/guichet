@@ -130,3 +130,17 @@
   font-size: var(--t-2);
   color: var(--ink-3);
 }
+/* QUATRE MESURES DANS LA PISTE quand le fonds a des pairs : « Comparatif » prend la quatrième colonne. */
+.commutateur.quatre {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+/* « Comparatif » sans mesure sur la période : la même boîte que la courbe, pour ne rien déplacer. */
+.zoneVide {
+  display: grid;
+  place-items: center;
+  margin: 0;
+  aspect-ratio: 320 / 190;
+  text-align: center;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}

@@ -1,0 +1,82 @@
+/* LA ZONE DES BARRES A LA HAUTEUR DE LA COURBE QU'ELLE REMPLACE (viewBox 320 × 190) : changer de mesure ne déplace rien. */
+.zone {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: var(--s-2);
+  aspect-ratio: 320 / 190;
+  min-width: 0;
+}
+.rangs {
+  display: grid;
+  grid-auto-rows: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-height: 0;
+}
+.rangs li {
+  min-height: 0;
+  display: grid;
+}
+.rang {
+  display: grid;
+  grid-template-columns: 7.2rem minmax(0, 1fr) 3.9rem;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  padding: 0 var(--s-2);
+  border: 0;
+  border-radius: var(--rond);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-2);
+  text-align: left;
+  cursor: pointer;
+}
+.nom {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.piste {
+  position: relative;
+  height: 0.7rem;
+  border-radius: var(--rond);
+  background: var(--surface-2);
+}
+.piste i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--rond);
+  background: var(--ink-3);
+  opacity: 0.7;
+}
+.val {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.moi {
+  color: var(--ink);
+  font-weight: 700;
+}
+.moi .piste i {
+  background: var(--gold);
+  opacity: 1;
+}
+.choisi {
+  background: var(--surface-2);
+}
+.lien {
+  font-size: var(--t-2);
+  font-weight: 600;
+  color: var(--gold-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
