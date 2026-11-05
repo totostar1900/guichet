@@ -33,12 +33,12 @@ type Onglet = (typeof ONGLETS)[number];
  * interrupteur, et la liste suit.
  */
 export default async function FavorisPage({ searchParams }: { searchParams: Promise<{ onglet?: string }> }) {
-  const t = await getT();
-  const s = await requireSession("/favoris");
   const r = repo();
-  const [watches, offers, pages] = await Promise.all([r.listWatches(s.userId).catch(() => []), r.listOffers().catch(() => []), r.listFavoris(s.userId).catch(() => [])]);
+  /* Langue, session, onglet et offres ne dépendent de rien : un seul étage ; les deux lectures du client viennent après la session. */
+  const [t, s, sp, offers] = await Promise.all([getT(), requireSession("/favoris"), searchParams, r.listOffers().catch(() => [])]);
+  const [watches, pages] = await Promise.all([r.listWatches(s.userId).catch(() => []), r.listFavoris(s.userId).catch(() => [])]);
   const { lignes, pages: lesPages } = lesFavoris(watches, offers, pages);
-  const q = (await searchParams).onglet;
+  const q = sp.onglet;
   const onglet: Onglet = (ONGLETS as readonly string[]).includes(q ?? "") ? (q as Onglet) : "tout";
   const now = new Date();
   const compte: Record<Onglet, number> = { tout: lignes.length + lesPages.length, lignes: lignes.length, pages: lesPages.length };

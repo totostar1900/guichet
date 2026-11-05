@@ -47,12 +47,12 @@ export async function generateMetadata() {
  * plus sous celle-ci.
  */
 export default async function CalendrierPage() {
-  const t = await getT();
-  const session = await getSession();
+  /* Langue, session et offres partent ensemble ; les alertes n'attendent que la session. */
   /* LES ALERTES DE CE LECTEUR, lues ici : la carte ne peut pas les demander
      elle-même sans un aller-retour par ligne, et sans elles la cloche ne
      saurait pas quoi montrer. Sans session, personne n'a d'alerte. */
-  const [offers, veilles] = await Promise.all([repo().listOffers(), session ? repo().listWatches(session.userId) : Promise.resolve([])]);
+  const quand = getSession();
+  const [t, offers, veilles, session] = await Promise.all([getT(), repo().listOffers(), quand.then((session) => (session ? repo().listWatches(session.userId) : [])), quand]);
   const seances = seancesAnnoncees(offers);
   const suivis = veilles.map((w) => w.offerId);
 

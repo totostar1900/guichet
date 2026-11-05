@@ -43,16 +43,24 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
   // sur ce domaine : le renvoi vers lui reste une phrase, pas un lien.
   const desk = mode === "desk";
   const fiche = (id: string) => (desk ? `/desk/lignes/${id}` : `/offres/${id}`);
-  const sp = await searchParams;
-  const t = await getT();
   const r = repo();
-  const all = (await r.listOffers()).filter((o) => !o.hidden);
+  const [sp, t, lues] = await Promise.all([searchParams, getT(), r.listOffers()]);
+  const all = lues.filter((o) => !o.hidden);
   const now = new Date();
   const a = sp.a ? all.find((o) => o.id === sp.a) : undefined;
   const b = sp.b ? all.find((o) => o.id === sp.b) : undefined;
   const cols = [a, b].filter((o): o is Offer => Boolean(o));
   /* LA VARIATION SUR TROIS MOIS DES ACTIONS, la même qu'à l'Accueil et sur Titres (7 novembre 2026) : une requête pour les deux colonnes. */
-  const variations = await variationsDesActions(cols);
+  /* TOUT CE QUI SE LIT À PARTIR DES DEUX COLONNES PART ENSEMBLE (variations, historiques des fonds, indice, poids, rotations) : un étage, non cinq. */
+  const shares = cols.length === 2 && cols.every((o) => o.kind === "MARCHE" && o.instrument === "action");
+  const [variations, chartLines, bulletins, quotes, rotations] = await Promise.all([
+    variationsDesActions(cols),
+    // The graphs need the funds' NAV history and the latest BTA as a reference rate.
+    cols.length === 2 ? Promise.all(cols.map(async (o) => compareLine(o, o.kind === "FONDS" && o.fund ? await r.listFundNavs(o.fund.key, 2000) : [], now))) : [],
+    shares ? r.listBulletins(400).catch(() => []) : [],
+    shares ? r.latestQuotes().catch(() => []) : [],
+    shares ? Promise.all(cols.map(async (o) => (o.isin ? floatRotation(await r.listQuotes(o.isin, 400).catch(() => [])) : undefined))) : [],
+  ]);
   const data = cols.map((o) => {
     const s = summarize(o, now);
     const map = new Map<string, string>();
@@ -74,17 +82,13 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
     if (v3) map.set("Variation du cours · 3 mois", `${sg(v3.pct)} · ${t("hors dividendes")}`);
     return { s, dy: displayYield(o), ref: offerReference(o, now), map };
   });
-  // The graphs need the funds' NAV history and the latest BTA as a reference rate.
-  const chartLines = cols.length === 2 ? await Promise.all(cols.map(async (o) => compareLine(o, o.kind === "FONDS" && o.fund ? await r.listFundNavs(o.fund.key, 2000) : [], now))) : [];
   const bta = all.filter((x) => x.kind === "BTA" && x.precountRate != null && x.maturityOn && x.settleOn).sort((p, q) => (q.pricedAt ?? "").localeCompare(p.pricedAt ?? ""))[0];
   const btaY = bta ? displayYield(bta).pct : null;
   const btaBench = bta && btaY != null ? { label: `BTA ${Math.round(daysBetween(bta.settleOn, bta.maturityOn!) / 7)} sem.`, pct: btaY } : undefined;
   // Two listed shares compare to the equity market, not to a Treasury bill: the BVMAC All Share Index over twelve months.
-  const shares = cols.length === 2 && cols.every((o) => o.kind === "MARCHE" && o.instrument === "action");
-  const idx = shares ? indexStats(indexSeries(await r.listBulletins(400).catch(() => []))) : undefined;
+  const idx = shares ? indexStats(indexSeries(bulletins)) : undefined;
   const benchmark = shares ? (idx?.year != null ? { label: "BVMAC All Share · 12 mois", pct: idx.year } : undefined) : btaBench;
-  const weights = shares ? indexWeights(await r.latestQuotes().catch(() => [])) : [];
-  const rotations = shares ? await Promise.all(cols.map(async (o) => (o.isin ? floatRotation(await r.listQuotes(o.isin, 400).catch(() => [])) : undefined))) : [];
+  const weights = shares ? indexWeights(quotes) : [];
   const labels = [...new Set(data.flatMap((d) => [...d.map.keys()]))];
   // The since-inception figure sits right under the return, whichever side brought it.
   if (labels.includes("Depuis l'origine")) labels.splice(1, 0, ...labels.splice(labels.indexOf("Depuis l'origine"), 1));

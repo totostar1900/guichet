@@ -105,7 +105,7 @@ describe("l'Accueil « cartes »", () => {
   it("la fiche et le comparateur lisent la même variation sur trois mois", () => {
     expect(code("src/app/offres/[id]/FicheReading.tsx")).toMatch(/await variationTroisMois\(o\.isin\)/);
     expect(code("src/app/offres/[id]/Kpis.tsx")).toMatch(/"Variation du cours · 3 mois"/);
-    expect(code("src/app/comparer/ComparerBody.tsx")).toMatch(/await variationsDesActions\(cols\)/);
+    expect(code("src/app/comparer/ComparerBody.tsx")).toMatch(/\[variations, [^\]]*\] = await Promise\.all\(\[\s*variationsDesActions\(cols\)/);
     expect(code("src/app/comparer/ComparerBody.tsx")).toMatch(/map\.set\("Variation du cours · 3 mois"/);
   });
 

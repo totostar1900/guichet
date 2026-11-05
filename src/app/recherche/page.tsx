@@ -41,12 +41,12 @@ export async function generateMetadata() {
  * l'application, et une liste de portes fermées n'est pas une réponse.
  */
 export default async function RecherchePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  await requireSession("/recherche");
+  /* Session, question, langue : quatre attentes indépendantes, un seul étage. */
+  const pret = Promise.all([requireSession("/recherche"), searchParams, getT(), getLang()]);
   /* LA QUESTION ARRIVE DÉJÀ TAPÉE depuis la colonne de l'écran large : on y
      cherchait un nom de page, on n'a rien trouvé, et retaper le mot sur la
      page suivante serait exactement le détour qu'un pont doit éviter. */
-  const { q: depart } = await searchParams;
-  const [t, lang] = await Promise.all([getT(), getLang()]);
+  const [, { q: depart }, t, lang] = await pret;
   const { entries } = await buildGuideIndex(t, lang, { app: true });
   /* Les trois questions les plus posées, dans l'ordre de la table qui les
      nomme : elles répondent avant qu'on ait tapé, et c'est tout l'intérêt
