@@ -79,6 +79,9 @@ export function CourbeDuCours({ points, hauteur = 258 }: { points: PointCours[];
         <span className={styles.variation}>{lue.variationPct !== undefined && <PastilleVariation v={lue.variationPct} periode={t(lue.libelle)} />}</span>
         <Select
           compact
+          block
+          className={styles.choix}
+          libelleVisible={false}
           cherchable={false}
           label={t("Période du graphe")}
           value={lue.cle}

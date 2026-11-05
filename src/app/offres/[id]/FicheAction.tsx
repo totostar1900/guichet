@@ -4,7 +4,6 @@ import { GrapheComptes } from "@/components/GrapheComptes";
 import { Carte } from "@/components/Carte";
 import { CourbeDuCours } from "@/components/CourbeDuCours";
 import { CrossSignal } from "@/components/CrossSignal";
-import { KpiCard } from "@/components/KpiCard";
 import { Majeur, Mosaique, Tuiles } from "@/components/Mosaique";
 import { PastilleVariation } from "@/components/PastilleVariation";
 import { explainKpis } from "@/lib/domain/explain";
@@ -49,18 +48,24 @@ function Bloc({ pane, titre, children, plat = false, fin, info }: { pane: string
   );
 }
 
-export async function FicheAction({ o, data, base }: { o: Offer; data: FicheData; base: string }) {
+export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
   const t = await getT();
   const now = new Date();
   const { company, quotes, facing, stamp, profile, others, issuer } = data;
   const dy = displayYield(o);
   const yTxt = dy.pct != null ? `${dy.approx ? "≈ " : ""}${fmtPct(dy.pct, 2)}` : "—";
-  const explains = explainKpis(o, now);
+  /* UN SEUL « i » POUR LES CHIFFRES CLÉS (9 novembre 2026) : la section dit ce qu'elle montre ET comment se calcule le rendement (le « ? » du chiffre est parti). */
+  const calcul = explainKpis(o, now)[0];
+  const infoChiffresCles = [
+    t("Le rendement du dernier dividende (dividende brut ÷ cours), puis les faits qui l'accompagnent."),
+    ...(calcul ? ["", `${t(calcul.title)} :`, ...calcul.lines.map(([k, v]) => `• ${t(k)} : ${t(v)}`), ...calcul.caveats.map((c) => t(c))] : []),
+  ].join("\n");
   const age = o.priceSince ? daysBetween(o.priceSince, localIso(now)) : 0;
   const dernier = quotes[0];
   const tradee = quotes.find(tradedSession);
   const points = [...quotes].reverse().map((q) => ({ d: q.sessionDate, c: q.close, v: q.volumeTraded, val: q.valueTraded }));
-  const comparer = `${base}/comparer?a=${o.id}`;
+  /* LES BULLETINS DE LA COTE NE SONT PLUS DES DOCUMENTS de l'action (9 novembre 2026) : ce sont des pièces de la bourse, pas de la société. */
+  const documents = o.documents.filter((d) => !/^bulletin\b/i.test(d.name));
   const mention = <p className={fa.mention}>{t("Communication à caractère promotionnel. Risque de perte en capital.")}</p>;
 
   const tuilesCles: [string, string][] = [];
@@ -111,8 +116,8 @@ export async function FicheAction({ o, data, base }: { o: Offer; data: FicheData
         {o.priceSource !== "boc" && <p className={fa.note}>{t(stamp)}</p>}
       </Bloc>
 
-      <Bloc pane="essentiel" titre={t("Chiffres clés")} info={t("Le rendement du dernier dividende (dividende brut ÷ cours), puis les faits qui l'accompagnent. Touchez le chiffre pour voir son calcul.")}>
-        <Mosaique majeur={<KpiCard forme="heros" label="Rendement du dernier dividende" value={yTxt} gold explain={explains[0]} compareHref={comparer} coach="hero" />} tuiles={tuilesCles} />
+      <Bloc pane="essentiel" titre={t("Chiffres clés")} info={infoChiffresCles}>
+        <Mosaique majeur={<Majeur etiquette={t("Rendement du dernier dividende")} valeur={yTxt} or />} tuiles={tuilesCles} />
         <CrossSignal o={o} facing={facing} />
       </Bloc>
 
@@ -186,14 +191,14 @@ export async function FicheAction({ o, data, base }: { o: Offer; data: FicheData
           <Info text={t("Les pièces publiées sur cette action.")} label={t("Documents")} />
         </h3>
         <Carte plat>
-          {o.documents.length === 0 ? (
+          {documents.length === 0 ? (
             <div className={fa.vide}>
               <b>{t("Aucun document pour le moment")}</b>
               <span>{t("Le communiqué des résultats s'y range dès qu'il est publié.")}</span>
             </div>
           ) : (
             <div className={fa.rangees}>
-              {o.documents.map((d, i) => {
+              {documents.map((d, i) => {
                 const href = d.url ?? (d.fileKey ? `/offres/${o.id}/doc/${i}` : undefined);
                 if (!href) return null;
                 return (
@@ -326,7 +331,7 @@ export async function FicheAction({ o, data, base }: { o: Offer; data: FicheData
           {valorisation.length >= 2 && <GraphesDeValorisation serie={valorisation} resultatAuDessusDuChiffreDAffaires={comptes.some((f) => f.netIncome > f.revenue)} fin={fin("valorisation")} />}
 
           {company && company.coreShareholders.length > 0 && (
-            <Bloc pane="emetteur" titre={t("Actionnaires")} fin={fin("actionnaires")} info={t("Les principaux actionnaires et la part du capital qu'ils détiennent.")}>
+            <Bloc pane="emetteur" titre={t("Actionnaires")} fin={fin("actionnaires")}>
               <ul className={fa.actionnaires}>
                 {company.coreShareholders.map((a) => (
                   <li key={a.name}>

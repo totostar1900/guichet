@@ -1,6 +1,6 @@
 "use client";
 
-import { ticksPropres } from "@/lib/ui/axes";
+import { reperesSansChevauchement, ticksPropres } from "@/lib/ui/axes";
 import { BulleNoire, useLecture, type Lecture } from "./charts/lecture";
 import styles from "./GrapheComptes.module.css";
 
@@ -67,6 +67,8 @@ export function GrapheComptes({
   const yG = echelle(tG);
   const yD = echelle(tD.length ? tD : [0, 1]);
   const cx = (j: number) => gauche + j * fente + fente / 2;
+  /* LES REPÈRES NE SE SUPERPOSENT JAMAIS : quarante-quatre mois ne tiennent pas sous le dessin, on écrit ceux qui tiennent (l'année passe avant les autres) ; la bulle dit les autres. */
+  const reperes = reperesSansChevauchement(annees.map((_, j) => cx(j)), annees);
   const { handlers, index } = useLecture(n, cx, W);
   const largeur = Math.min(24, (fente * 0.8) / Math.max(1, barres.length));
   const trace = (s: SerieAnnuelle, y: (v: number) => number) => {
@@ -140,11 +142,11 @@ export function GrapheComptes({
             {s.valeurs.map((v, j) => (v == null ? null : <circle key={j} cx={cx(j)} cy={yD(v)} r={3} className={classe(s.teinte)} />))}
           </g>
         ))}
-        {annees.map((a, j) => (
+        {annees.map((a, j) => (reperes[j] ? (
           <text key={a} x={cx(j)} y={H - 6} textAnchor="middle" className={styles.graduation}>
             {a}
           </text>
-        ))}
+        ) : null))}
       </svg>
       </div>
       <p className={styles.legende}>

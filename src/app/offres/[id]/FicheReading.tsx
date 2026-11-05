@@ -379,8 +379,8 @@ export async function loadFiche(o: Offer) {
     r.listOffers(),
     o.kind === "MARCHE" && o.instrument === "action" ? companyByIsin(o.isin) : undefined,
     o.kind === "MARCHE" && o.instrument === "obligation" ? issuerByIsin(o.isin) : undefined,
-    /* Une action en garde plus : sa courbe remonte à l'introduction en bourse (9 novembre 2026). */
-    o.kind === "MARCHE" && o.priceSource === "boc" ? r.listQuotes(o.isin, o.instrument === "action" ? 400 : 60) : [],
+    /* Une action les garde TOUTES (5 000 séances, une vingtaine d'années) : ses périodes vont de 3 mois à « max », et 2, 3 et 5 ans ne sont grisées que si la série ne les couvre vraiment pas (la limite de 400, posée d'abord, les grisait à tort : 829 séances en base pour SAFACAM). */
+    o.kind === "MARCHE" && o.priceSource === "boc" ? r.listQuotes(o.isin, o.instrument === "action" ? 5000 : 60) : [],
     o.kind === "FONDS" && o.fund ? r.listFundNavs(o.fund.key, 2000) : [],
     // The reference rate on a fund's charts: the most recent BTA the desk published (a client knows that rate).
     o.kind === "FONDS" ? latestBta() : undefined,
@@ -540,7 +540,7 @@ export async function FicheReading({ o, data, mode = "client", children }: { o: 
     return (
       <div className="chapitres">
         <FicheSegments exclure={["calendrier", "chiffres"]} mini={mini} />
-        <FicheAction o={o} data={data} base={base} />
+        <FicheAction o={o} data={data} />
         <RelatedNews kind="offer" keyOf={o.id} className={styles.sec} />
         {children}
       </div>

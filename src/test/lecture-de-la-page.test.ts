@@ -447,7 +447,7 @@ describe("la fiche d'une action : des encadrés en relief, des graphes, des mosa
 
   it("le client lit sa propre fiche d'action, le desk garde l'ancienne", () => {
     const l = lire(`${dir}/FicheReading.tsx`);
-    expect(l, "la fiche d'une action du client n'est plus à part").toMatch(/if \(mode !== "desk" && o\.kind === "MARCHE" && o\.instrument === "action"\) \{[\s\S]*?<FicheAction o=\{o\} data=\{data\} base=\{base\} \/>[\s\S]*?\{children\}/);
+    expect(l, "la fiche d'une action du client n'est plus à part").toMatch(/if \(mode !== "desk" && o\.kind === "MARCHE" && o\.instrument === "action"\) \{[\s\S]*?<FicheAction o=\{o\} data=\{data\} \/>[\s\S]*?\{children\}/);
     expect(l, "le desk n'a plus sa lecture d'avant (Kpis)").toMatch(/<Kpis o=\{o\} base=\{base\}/);
   });
   it("le titre est À PLAT, au-dessus de l'encadré, jamais dedans", () => {
@@ -462,7 +462,8 @@ describe("la fiche d'une action : des encadrés en relief, des graphes, des mosa
     expect(bloc(css, ".valeur"), "le majeur n'est plus à --t-8").toMatch(/font-size: var\(--t-8\);/);
     expect(bloc(css, ".c2"), "quatre tuiles ne sont plus sur deux colonnes").toMatch(/grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/);
     expect(lire("src/components/Mosaique.tsx"), "le nombre de tuiles ne choisit plus les colonnes").toMatch(/n === 1 \? styles\.c1 : n === 3 \? styles\.c3 : styles\.c2/);
-    expect(action(), "le rendement n'est plus le chiffre majeur des chiffres clés").toMatch(/majeur=\{<KpiCard forme="heros" label="Rendement du dernier dividende"/);
+    expect(action(), "le rendement n'est plus le chiffre majeur des chiffres clés").toMatch(/majeur=\{<Majeur etiquette=\{t\("Rendement du dernier dividende"\)\} valeur=\{yTxt\} or \/>\}/);
+    expect(action(), "le chiffre clé porte de nouveau son propre « ? » : un seul « i » par section").not.toMatch(/<KpiCard/);
   });
   it("Chiffres est regroupé dans l'Essentiel : trois onglets, les sections de chaque onglet sont là, dans l'ordre", () => {
     expect(lire(`${dir}/FicheReading.tsx`), "l'onglet Chiffres est revenu pour une action").toMatch(/<FicheSegments exclure=\{\["calendrier", "chiffres"\]\} mini=\{mini\} \/>\s*<FicheAction/);
@@ -478,7 +479,7 @@ describe("la fiche d'une action : des encadrés en relief, des graphes, des mosa
     expect(a, "la courbe « Évolution du cours » est revenue : le cours a UNE courbe").not.toMatch(/titre=\{t\("Évolution du cours"\)\}/);
     expect(a, "la tuile « Pour 100 actions au cours vendeur » est revenue : elle ne disait rien de particulier").not.toMatch(/au cours vendeur/);
   });
-  it("la courbe a sa liste déroulante (celle de la maison), ses axes et ses volumes ; la fiche lit 400 séances", () => {
+  it("la courbe a sa liste déroulante (celle de la maison), ses axes et ses volumes ; la fiche lit toutes les séances", () => {
     const c = lire("src/components/CourbeDuCours.tsx");
     expect(c, "la liste des périodes n'est plus celle de la maison").toMatch(/import \{ Select \} from "\.\/ui\/Select";/);
     expect(c, "la liste ne grise plus les périodes sans historique").toMatch(/disabled: !l\.disponible,/);
@@ -489,7 +490,7 @@ describe("la fiche d'une action : des encadrés en relief, des graphes, des mosa
     expect(c, "les dates de l'axe ont perdu leur année").toMatch(/\{fmtDate\(serie\[i\]\.d\)\}/);
     expect(c, "les volumes ne sont plus dessinés").toMatch(/styles\.volume/);
     expect(c, "la volumétrie n'est plus dite sous le graphe").toMatch(/Séances avec échange/);
-    expect(lire(`${dir}/FicheReading.tsx`), "l'action ne lit plus assez de séances").toMatch(/o\.instrument === "action" \? 400 : 60/);
+    expect(lire(`${dir}/FicheReading.tsx`), "l'action ne lit plus toutes ses séances : 2, 3 et 5 ans seraient grisés à tort").toMatch(/o\.instrument === "action" \? 5000 : 60/);
     const p = lire("src/lib/market/periodes.ts");
     expect(p, "les huit périodes ont changé").toMatch(/cle: "3m"[\s\S]*cle: "6m"[\s\S]*cle: "1a"[\s\S]*cle: "debut"[\s\S]*cle: "2a"[\s\S]*cle: "3a"[\s\S]*cle: "5a"[\s\S]*cle: "max"/);
     expect(lire("src/lib/market/performe.ts"), "« Ce qui performe » a de nouveau sa propre fenêtre de trois mois").toMatch(/from "@\/lib\/market\/periodes";/);
@@ -594,7 +595,11 @@ describe("les graphes de la fiche : lecture au toucher, années sur l'axe, « i 
   it("chaque section de la fiche d'une action a son « i »", () => {
     const dir = "src/app/offres/[id]";
     const a = lire(`${dir}/FicheAction.tsx`);
-    expect((a.match(/info=\{t\("/g) ?? []).length, "une section de l'action a perdu son « i »").toBeGreaterThanOrEqual(11);
+    expect((a.match(/info=\{t\("/g) ?? []).length, "une section de l'action a perdu son « i »").toBeGreaterThanOrEqual(9);
+    expect(a, "les chiffres clés ont perdu le « i » qui porte aussi le calcul du rendement").toMatch(/<Bloc pane="essentiel" titre=\{t\("Chiffres clés"\)\} info=\{infoChiffresCles\}>/);
+    expect(a, "le « i » des chiffres clés ne dit plus le calcul du rendement").toMatch(/\.\.\.calcul\.lines\.map\(\(\[k, v\]\) => `• \$\{t\(k\)\} : \$\{t\(v\)\}`\)/);
+    expect(a, "les actionnaires ont retrouvé un « i »").toMatch(/<Bloc pane="emetteur" titre=\{t\("Actionnaires"\)\} fin=\{fin\("actionnaires"\)\}>/);
+    expect(a, "les bulletins de la cote sont revenus dans les documents").toMatch(/const documents = o\.documents\.filter\(\(d\) => !\/\^bulletin\\b\/i\.test\(d\.name\)\);/);
     expect(a, "la section Documents n'a plus son « i »").toMatch(/<h3>\s*\{t\("Documents"\)\}\s*<Info text=/);
     const v = lire(`${dir}/GraphesDeValorisation.tsx`);
     expect((v.match(/<Info text=/g) ?? []).length, "une section de valorisation a perdu son « i »").toBe(3);
@@ -621,5 +626,30 @@ describe("quand un exercice entre en vigueur : la date existante, celle du desk,
     const a = lire("src/app/offres/[id]/FicheAction.tsx");
     expect(a, "les dates ne sont plus passées à la valorisation").toMatch(/publieLe: f\.publieLe, publieLeDesk: f\.publieLeDesk/);
     expect(a, "l'avertissement du résultat net n'est plus sous la performance financière").toMatch(/comptes\.some\(\(f\) => f\.netIncome > f\.revenue\) && <p className=\{fa\.note\}>\{t\("Le résultat net dépasse le chiffre d'affaires publié/);
+  });
+});
+
+describe("retouches du 9 novembre 2026 (soir) : en-tête sans « ? », liste de période stable, axes lisibles", () => {
+  it("l'en-tête de la fiche n'a plus de point d'interrogation : sans profil, le repère ne paraît pas", () => {
+    const h = lire("src/components/HorizonMark.tsx");
+    expect(h, "le repère sans profil est revenu dans l'en-tête").toMatch(/if \(!hasProfile\) return null;/);
+    expect(lire("src/components/HorizonMark.module.css"), "la classe du « ? » est restée").not.toMatch(/\.none \{/);
+  });
+  it("changer de période ne déplace rien : la liste a une largeur fixe et sans libellé visible, la pastille rogne", () => {
+    const c = lire("src/components/CourbeDuCours.module.css");
+    expect(c.match(/\.entete \{([^}]*)\}/)?.[1] ?? "", "la ligne de la pastille et de la liste n'est plus à deux colonnes").toMatch(/grid-template-columns: minmax\(0, 1fr\) var\(--largeur-liste\);/);
+    expect(c.match(/\.choix \{([^}]*)\}/)?.[1] ?? "", "la liste n'a plus sa largeur fixe").toMatch(/width: var\(--largeur-liste\);/);
+    expect(c.match(/\.variation \{([^}]*)\}/)?.[1] ?? "", "la pastille ne rogne plus").toMatch(/text-overflow: ellipsis;/);
+    expect(lire("src/components/CourbeDuCours.tsx"), "la liste du cours écrit de nouveau son libellé dans le bouton").toMatch(/libelleVisible=\{false\}/);
+    expect(lire("src/app/offres/[id]/GraphesDeValorisation.tsx"), "la liste de durée écrit de nouveau son libellé dans le bouton").toMatch(/libelleVisible=\{false\}/);
+    expect(lire("src/app/offres/[id]/FicheAction.module.css").match(/\.entete \{([^}]*)\}/)?.[1] ?? "", "l'en-tête des cartes de valorisation n'est plus à deux colonnes").toMatch(/grid-template-columns: minmax\(0, 1fr\) var\(--largeur-liste\);/);
+  });
+  it("les repères d'un axe ne se superposent jamais : un graphe de mois écrit ceux qui tiennent", () => {
+    const g = lire("src/components/GrapheComptes.tsx");
+    expect(g, "l'axe des mois n'est plus éclairci").toMatch(/const reperes = reperesSansChevauchement\(annees\.map\(\(_, j\) => cx\(j\)\), annees\);/);
+    expect(g, "les repères sont de nouveau tous écrits").toMatch(/\{annees\.map\(\(a, j\) => \(reperes\[j\] \? \(/);
+  });
+  it("trois repères de dates sur téléphone pour l'axe des valeurs liquidatives : avec l'année, quatre se touchent", () => {
+    expect(lire("src/components/NavChart.tsx")).toMatch(/axisTicks\(dates\.length, phone \? 3 : long \? 5 : 6\)/);
   });
 });

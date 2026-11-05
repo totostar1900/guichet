@@ -29,11 +29,6 @@
   color: var(--warn);
   background: var(--warn-soft);
 }
-/* Sans profil : rien d'alarmant, une invitation. */
-.none {
-  color: var(--ink-3);
-  border-color: var(--line-2);
-}
 .mark:hover,
 .mark:focus-visible {
   border-width: 2px;

@@ -771,6 +771,15 @@ La règle, mesurée sur la fiche le jour même :
 
 **La rotation du flottant (9 novembre 2026)** : la part du flottant échangée sur la période (valeur échangée ÷ capitalisation flottante, `rotationDuFlottantPct` dans `finance.ts`). Un point (une tuile dans la carte Capitalisation, qui suit la durée choisie) ET une évolution (un graphe de barres mois par mois, dans sa propre section, avec la même liste de durée). Un chiffre bas décrit le marché, pas la société : le « i » le dit. Un graphe journalier n'aurait aucun sens (la plupart des séances n'ont aucun échange) : le mois est la plus petite maille lisible.
 
+**Retouches du 9 novembre 2026 (soir)** :
+
+- **Les libellés de l'axe des abscisses ne se superposent jamais** (`reperesSansChevauchement`, `src/lib/ui/axes.ts`) : on écrit ceux qui tiennent, l'année passe avant les autres, le premier et le dernier sont gardés ; la bulle dit les autres. Un axe de dates à quatre repères avec année ne tient pas à 330 px : trois sur téléphone (`NavChart`).
+- **Changer de période ne déplace rien** : la liste de période a une largeur fixe et son libellé n'est pas écrit dans le bouton (`libelleVisible`), la pastille de variation rogne au lieu de pousser. Mesuré avant / après « Début d'année » : la ligne, le dessin (266 px) et la carte (602 px) ne bougent plus d'un pixel.
+- **Un seul « i » par section** : les chiffres clés n'ont plus de « ? » sur le chiffre, le « i » de la section dit aussi le calcul du rendement ; les actionnaires n'ont plus de « i ».
+- **Les bulletins de la cote ne sont plus des documents de l'action.**
+- **Pas de point d'interrogation dans l'en-tête de la fiche** : sans profil, le repère (`HorizonMark`) ne paraît pas ; avec un profil, il garde sa coche ou son signe d'alerte.
+- **L'historique de cotation d'une action est lu en entier** (5 000 séances) : en base, SAFACAM en a 829 depuis le 3 mars 2023 ; la limite de 400 posée d'abord grisait « 2 ans » et « 3 ans » à tort. Reste que l'historique de la maison commence en mars 2023 (les bulletins plus anciens ne sont pas ingérés) : « 5 ans » et « max » depuis l'introduction (2008 pour SAFACAM) demandent d'ingérer les anciens bulletins.
+
 **Une action n'a pas de remboursement** : `repaymentLabel` ne rend « in fine » que pour une obligation (la ligne « Remboursement : in fine » s'affichait sur une action).
 
 **Ce qu'on ne reprend pas des références** : la suggestion d'analystes, les CFD, le carnet d'ordres, l'alerte de prix en carte (déjà dans le menu « ··· »).

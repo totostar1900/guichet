@@ -3,14 +3,23 @@
   gap: var(--s-5);
   min-width: 0;
 }
+/* LA LIGNE DE LA PASTILLE ET DE LA LISTE NE BOUGE PAS QUAND LA PÉRIODE CHANGE (9 novembre 2026) : deux colonnes (la pastille, qui rogne au besoin, et la liste, de largeur fixe).
+   « Début d'année » élargissait la ligne, donc la carte, donc le dessin (+5 px de haut) et tout ce qui est dessous. */
 .entete {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--largeur-liste);
   align-items: center;
-  justify-content: space-between;
   gap: var(--s-5);
+  --largeur-liste: 9.5rem;
+}
+.choix {
+  width: var(--largeur-liste);
 }
 .variation {
   min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .zone {
   position: relative;

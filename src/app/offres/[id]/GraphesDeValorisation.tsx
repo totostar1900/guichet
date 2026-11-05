@@ -54,6 +54,9 @@ export function GraphesDeValorisation({ serie, resultatAuDessusDuChiffreDAffaire
   const selecteur = () => (
     <Select
       compact
+      block
+      className={fa.choix}
+      libelleVisible={false}
       cherchable={false}
       label={t("Durée")}
       value={lue.cle}
