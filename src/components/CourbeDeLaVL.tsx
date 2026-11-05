@@ -31,6 +31,8 @@ const MESURES: [Mesure, string][] = [
 ];
 /** Les fenêtres de calcul du rendement glissant, de la plus longue à la plus courte ; il faut de la place devant la série. */
 const FENETRES = [365, 183, 92];
+/** L'historique qu'il faut pour tracer le rendement glissant de la plus courte fenêtre : elle plus 20 % de marge devant la série. */
+const JOURS_MINI = Math.ceil(FENETRES[FENETRES.length - 1] * 1.2);
 const signe = (v: number, d = 2) => `${v > 0 ? "+" : ""}${v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d })} %`;
 
 export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: NavPoint[]; benchmark?: Benchmark; hauteur?: number }) {
@@ -45,6 +47,7 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
   const fenetre = series.length > 1 ? FENETRES.find((j) => daysBetween(series[0].date, series[series.length - 1].date) >= j * 1.2) : undefined;
   const glissant = fenetre ? rollingAnnualised(series, fenetre) : [];
   const rendementPossible = glissant.length >= 2;
+  const joursDHistorique = series.length > 1 ? daysBetween(series[0].date, series[series.length - 1].date) : 0;
   const fenetreNav = series.filter((p) => p.date >= debut);
   const tracee: { d: string; y: number; nav: number }[] =
     mesure === "rendement" && rendementPossible
@@ -119,6 +122,8 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
           </button>
         ))}
       </div>
+      {/* LE RENDEMENT GRISÉ SE JUSTIFIE (10 novembre 2026) : un fonds jeune (FCP CCA Invest : 63 jours) n'a pas assez d'historique pour un rendement glissant, et un bouton grisé sans un mot se lisait comme un bouton cassé. */}
+      {!rendementPossible && <p className={styles.indisponible}>{t("Rendement indisponible : {mini} jours d'historique sont nécessaires, ce fonds en compte {n}.", { mini: JOURS_MINI, n: joursDHistorique })}</p>}
       <div className={styles.entete}>
         <span className={styles.variation}>{lue.variationPct !== undefined && <PastilleVariation v={lue.variationPct} periode={t(lue.libelle)} />}</span>
         <Select

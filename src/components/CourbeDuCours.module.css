@@ -131,3 +131,8 @@
 .indice {
   display: block;
 }
+.indisponible {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}

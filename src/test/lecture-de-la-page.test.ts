@@ -747,6 +747,11 @@ describe("la fiche d'un fonds, calquée sur celle d'un titre (10 novembre 2026, 
     expect(lire("src/components/CourbeDuCours.module.css").match(/\.commutateur button \{([^}]*)\}/)?.[1] ?? "", "le commutateur est plus haut que le sélecteur de période (34 px)").toMatch(/min-height: 30px;/);
     expect(lire("src/components/CourbeDuCours.module.css"), "le commutateur n'a plus de piste à trois colonnes").toMatch(/\.commutateur \{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/);
   });
+  it("un rendement grisé dit pourquoi : l'historique d'un fonds jeune ne suffit pas au rendement glissant", () => {
+    const c = courbe();
+    expect(c, "le seuil d'historique du rendement n'est plus calculé de la plus courte fenêtre").toMatch(/const JOURS_MINI = Math\.ceil\(FENETRES\[FENETRES\.length - 1\] \* 1\.2\);/);
+    expect(c, "le rendement grisé ne dit plus pourquoi").toMatch(/\{!rendementPossible && <p className=\{styles\.indisponible\}>\{t\("Rendement indisponible : \{mini\} jours d'historique sont nécessaires, ce fonds en compte \{n\}\."/);
+  });
   it("la légende réserve ses deux lignes, et l'unité de l'axe est posée au-dessus de la première graduation", () => {
     expect(courbe(), "la légende n'est plus celle qui réserve sa hauteur").toMatch(/className=\{`\$\{styles\.legende\} \$\{styles\.legendeFixe\}`\}/);
     expect(bloc(lire("src/components/CourbeDuCours.module.css"), ".legendeFixe"), "la légende ne réserve plus deux lignes : la carte saute au changement de mesure").toMatch(/min-height: 2lh;/);
