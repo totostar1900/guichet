@@ -89,7 +89,8 @@
   border-radius: var(--rond);
 }
 .commutateur button {
-  min-height: 44px;
+  /* LA HAUTEUR DU SÉLECTEUR DE PÉRIODE (34 px, demande du 5 novembre 2026) : 30 px de bouton + 2 × 2 px de piste. */
+  min-height: 30px;
   border: 0;
   border-radius: var(--rond);
   background: transparent;

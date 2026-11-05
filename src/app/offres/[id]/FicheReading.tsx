@@ -390,7 +390,7 @@ export async function loadFiche(o: Offer) {
     // La séance d'adjudication de cette ligne, si quelqu'un l'a relue. Le code
     // d'émission du Trésor est notre ISIN : c'est lui qui fait le lien.
     o.kind === "BTA" || o.kind === "OTA" || o.kind === "APE" ? r.listAuctionResults({ codeEmission: o.isin, confirmed: true, limit: 1 }) : [],
-    // Les faits de la société de gestion (siège, agrément), saisis au desk : le livré est vide.
+    // Les faits de la société de gestion (siège, agrément) : ceux de la liste de la COSUMAF livrés avec le code, ou saisis au desk.
     o.kind === "FONDS" && o.fund ? gestionnaireDe(o.fund.manager) : undefined,
   ]);
   const profile = resolveIssuer(o);

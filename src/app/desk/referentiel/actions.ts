@@ -11,7 +11,7 @@ import { GLOSSARY } from "@/lib/glossary";
 import { LESSONS } from "@/data/lessons";
 import { COMPANIES } from "@/data/companies";
 import { ISSUERS } from "@/data/issuers";
-import { cleDeGestionnaire } from "@/data/gestionnaires";
+import { cleDeGestionnaire, GESTIONNAIRES } from "@/data/gestionnaires";
 import { BUILTIN_TYPES, type ProductType } from "@/lib/registry";
 
 export type RefResult = { ok: true; message: string } | { ok: false; error: string };
@@ -303,7 +303,7 @@ const builtinKeys: Record<string, () => string[]> = {
   [REF.lessons]: () => LESSONS.map((l) => l.key),
   [REF.companies]: () => COMPANIES.map((c) => c.mnemo),
   [REF.issuers]: () => ISSUERS.map((i) => i.slug),
-  [REF.gestionnaires]: () => [],
+  [REF.gestionnaires]: () => GESTIONNAIRES.map((g) => g.key),
 };
 
 /**

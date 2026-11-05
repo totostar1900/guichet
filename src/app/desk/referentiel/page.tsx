@@ -3,7 +3,7 @@ import { DeskNav } from "@/components/DeskNav";
 import { BOND_TERMS, type BondTerms } from "@/data/bond-terms";
 import { COMPANIES, type Company } from "@/data/companies";
 import { ISSUERS, type BondIssuer } from "@/data/issuers";
-import { cleDeGestionnaire, type Gestionnaire } from "@/data/gestionnaires";
+import { cleDeGestionnaire, GESTIONNAIRES, type Gestionnaire } from "@/data/gestionnaires";
 import { repo } from "@/lib/data";
 import type { ReferenceRow } from "@/lib/domain/types";
 import { SEGMENT_LABEL } from "@/lib/domain/status";
@@ -334,7 +334,7 @@ async function Glossary({ glossary, rows, open, ok }: { glossary: Record<string,
 }
 
 /**
- * LES SOCIÉTÉS DE GESTION (10 novembre 2026) : celles que portent les fonds, avec ce que la maison sait d'elles. Le livré est vide : le siège, le numéro et la date
+ * LES SOCIÉTÉS DE GESTION (10 novembre 2026) : celles que portent les fonds, avec ce que la maison sait d'elles. Le livré porte la liste de la COSUMAF de fin 2025 ; le siège, le numéro et la date
  * d'agrément se saisissent ici, avec la source lue et le jour de sa relecture, et paraissent sur l'onglet « Société de gestion » d'un fonds une fois publiés.
  */
 async function Gestionnaires({ list: published, rows, open, ok }: { list: Gestionnaire[] } & Ctx) {
@@ -343,7 +343,7 @@ async function Gestionnaires({ list: published, rows, open, ok }: { list: Gestio
   const parCle = new Map<string, string>();
   for (const o of await repo().listOffers()) if (o.kind === "FONDS" && o.fund && !parCle.has(cleDeGestionnaire(o.fund.manager))) parCle.set(cleDeGestionnaire(o.fund.manager), o.fund.manager);
   const noms = [...parCle.values()].sort((a, b) => a.localeCompare(b, "fr"));
-  const vus = new Map(seen(published, (g) => g.key, [], (g) => g.key, rows).map((s) => [s.item.key, s] as const));
+  const vus = new Map(seen(published, (g) => g.key, GESTIONNAIRES, (g) => g.key, rows).map((s) => [s.item.key, s] as const));
   const lignes = noms.map((nom) => ({ nom, cle: cleDeGestionnaire(nom), s: vus.get(cleDeGestionnaire(nom)) }));
   const cur = lignes.find((l) => l.cle === open);
   return (
@@ -353,7 +353,7 @@ async function Gestionnaires({ list: published, rows, open, ok }: { list: Gestio
           <h2>
             {tr("Sociétés de gestion")} ({lignes.length})
           </h2>
-          <span className="muted">{tr("Le siège, le numéro et la date d'agrément de la COSUMAF, sur l'onglet « Société de gestion » d'un fonds. Rien n'est écrit sans source.")}</span>
+          <span className="muted">{tr("Le siège, le numéro et la date d'agrément de la COSUMAF, sur l'onglet « Société de gestion » d'un fonds. Livrés : ceux de la liste de la COSUMAF de fin 2025. Rien n'est écrit sans source.")}</span>
         </div>
         <table className={`tbl ${styles.tbl}`}>
           <thead>

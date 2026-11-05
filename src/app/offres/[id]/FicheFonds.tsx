@@ -59,10 +59,10 @@ export async function FicheFonds({ o, data }: { o: Offer; data: FicheData }) {
   if (f.exitFeePct > 0) tuilesCles.push([t("Frais du fonds à la sortie"), fmtPct(f.exitFeePct, 2)]);
 
   /* SIÈGE ET AGRÉMENT : saisis au desk, jamais inventés. Une tuile sans valeur n'est pas écrite. */
-  const agrement = [gestionnaire?.agrementNo ? `n° ${gestionnaire.agrementNo}` : "", gestionnaire?.agrementDate ? fmtDate(gestionnaire.agrementDate) : ""].filter(Boolean).join(" · ");
   const tuilesGestion: [string, string][] = [];
   if (gestionnaire?.siege) tuilesGestion.push([t("Siège"), gestionnaire.siege]);
-  if (agrement) tuilesGestion.push([t("Agrément COSUMAF"), agrement]);
+  if (gestionnaire?.agrementNo) tuilesGestion.push([t("N° d'agrément"), gestionnaire.agrementNo]);
+  if (gestionnaire?.agrementDate) tuilesGestion.push([t("Date d'agrément"), fmtDate(gestionnaire.agrementDate)]);
   tuilesGestion.push([t("Dépositaire"), f.depositary]);
   if (f.cutoff) tuilesGestion.push([t("Centralisation"), f.cutoff]);
   tuilesGestion.push([t("Fréquence de la VL"), FUND_FREQUENCY_ADJ[f.frequency] ? t(FUND_FREQUENCY_ADJ[f.frequency]) : "—"]);
@@ -123,6 +123,7 @@ export async function FicheFonds({ o, data }: { o: Offer; data: FicheData }) {
             </div>
           }
           tuiles={tuilesGestion}
+          deux
         />
       </Bloc>
       {others.length > 0 && (

@@ -147,7 +147,7 @@ export const loadIssuers = cache(async (): Promise<BondIssuer[]> => {
   for (const [key, i] of db) if (!merged.some((m) => m.slug === key)) merged.push({ ...i, slug: key });
   return merged;
 });
-/** Les sociétés de gestion dont le desk a saisi les faits (le livré est vide). */
+/** Les sociétés de gestion dont le desk a saisi les faits (livrées : la liste de la COSUMAF de fin 2025). */
 export const loadGestionnaires = cache(async (): Promise<Gestionnaire[]> => {
   const [db, removed] = await Promise.all([rows<Gestionnaire>(REF.gestionnaires), gone(REF.gestionnaires)]);
   const merged = GESTIONNAIRES.filter((g) => !removed.has(g.key)).map((g) => db.get(g.key) ?? g);

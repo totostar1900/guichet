@@ -696,12 +696,26 @@ describe("la fiche d'un fonds, calquée sur celle d'un titre (10 novembre 2026, 
     expect(c, "l'en-tête n'est plus dans la cellule qui réserve sa hauteur").toMatch(/<div className=\{styles\.enteteMesure\}>\{entete\}<\/div>/);
     expect(bloc(lire("src/components/CourbeDuCours.module.css"), ".enteteMesure"), "l'en-tête ne réserve plus sa hauteur : la carte saute au changement de mesure").toMatch(/min-height: 6rem;/);
   });
-  it("la société de gestion montre le siège et l'agrément saisis au desk, jamais inventés : le livré est vide", async () => {
+  it("la société de gestion montre le siège et l'agrément lus dans la liste de la COSUMAF ou saisis au desk, jamais inventés", async () => {
     const f = fonds();
     expect(f, "le siège n'est plus lu de la saisie du desk").toMatch(/if \(gestionnaire\?\.siege\) tuilesGestion\.push\(\[t\("Siège"\), gestionnaire\.siege\]\);/);
-    expect(f, "l'agrément n'est plus lu de la saisie du desk").toMatch(/if \(agrement\) tuilesGestion\.push\(\[t\("Agrément COSUMAF"\), agrement\]\);/);
+    expect(f, "le numéro d'agrément n'est plus lu de la saisie du desk").toMatch(/if \(gestionnaire\?\.agrementNo\) tuilesGestion\.push\(\[t\("N° d'agrément"\), gestionnaire\.agrementNo\]\);/);
+    expect(f, "la date d'agrément n'est plus lue de la saisie du desk").toMatch(/if \(gestionnaire\?\.agrementDate\) tuilesGestion\.push\(\[t\("Date d'agrément"\), fmtDate\(gestionnaire\.agrementDate\)\]\);/);
     const { GESTIONNAIRES, cleDeGestionnaire } = await import("@/data/gestionnaires");
-    expect(GESTIONNAIRES, "une société de gestion est livrée sans source officielle lue").toEqual([]);
+    expect(GESTIONNAIRES.length, "la liste livrée a changé : relire la source COSUMAF").toBe(15);
+    for (const g of GESTIONNAIRES) {
+      expect(g.key, `${g.name} : la clef n'est plus celle du nom de bulletin`).toBe(cleDeGestionnaire(g.name));
+      expect(g.source, `${g.name} est livrée sans source`).toMatch(/COSUMAF.*Essentiel.*2e semestre 2025/);
+      expect(g.verifiedOn, `${g.name} est livrée sans jour de relecture`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(g.agrementNo, `${g.name} : le numéro d'agrément n'a pas la forme de la COSUMAF`).toMatch(/^(MFAC|COSUMAF)-SGO?P(C)?-\d{2}\/\d{4}$/);
+      expect(g.agrementDate, `${g.name} : la date d'agrément n'est pas une date`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(g.siege, `${g.name} : le siège manque`).toMatch(/, (Cameroun|Congo|Gabon)$/);
+    }
+    expect(new Set(GESTIONNAIRES.map((g) => g.key)).size, "deux entrées portent la même clef").toBe(GESTIONNAIRES.length);
+    const harvest = GESTIONNAIRES.find((g) => g.key === "harvest-asset-management");
+    expect([harvest?.siege, harvest?.agrementNo, harvest?.agrementDate], "Harvest ne dit plus ce que la liste de la COSUMAF dit").toEqual(["Douala, Cameroun", "MFAC-SGP-01/2017", "2017-12-14"]);
+    const ess = GESTIONNAIRES.find((g) => g.key === "ess-asset-management");
+    expect([ess?.siege, ess?.agrementNo, ess?.agrementDate], "ESS ne dit plus ce que la liste dit d'« Emrald Securities Services » (confirmé par le client)").toEqual(["Douala, Cameroun", "COSUMAF-SGP-05/2021", "2021-12-16"]);
     expect(cleDeGestionnaire("AFRICA BRIGHT ASSET MANAGEMENT")).toBe(cleDeGestionnaire("Africa  Bright Asset-Management"));
     expect(cleDeGestionnaire("Société Générale Gestion")).toBe("societe-generale-gestion");
     expect(lire("src/app/desk/referentiel/page.tsx"), "l'onglet du desk liste deux graphies d'une même société comme deux sociétés").toMatch(/if \(o\.kind === "FONDS" && o\.fund && !parCle\.has\(cleDeGestionnaire\(o\.fund\.manager\)\)\) parCle\.set\(/);
@@ -719,6 +733,7 @@ describe("la fiche d'un fonds, calquée sur celle d'un titre (10 novembre 2026, 
     expect(c, "la mention des performances passées n'est plus écrite sous les chiffres").toMatch(/<p className=\{styles\.garde\}>\{t\("Performances passées non garanties"\)\}/);
     expect(c, "la bulle noire n'est plus posée sur la courbe").toMatch(/<BulleNoire lecture=\{lecture\}/);
     expect(c, "la ligne du dernier BTA n'est plus tracée").toMatch(/\{reference && <path d=\{reference\} className=\{styles\.referenceLigne\} \/>\}/);
+    expect(lire("src/components/CourbeDuCours.module.css").match(/\.commutateur button \{([^}]*)\}/)?.[1] ?? "", "le commutateur est plus haut que le sélecteur de période (34 px)").toMatch(/min-height: 30px;/);
     expect(lire("src/components/CourbeDuCours.module.css"), "le commutateur n'a plus de piste à trois colonnes").toMatch(/\.commutateur \{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/);
   });
   it("la légende réserve ses deux lignes, et l'unité de l'axe est posée au-dessus de la première graduation", () => {
