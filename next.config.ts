@@ -25,7 +25,8 @@ const nextConfig: NextConfig = {
     "/desk/marche": ["./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"],
   },
   // Phone photos and PDFs go through server actions (KYC pieces, intake sources): the 1 MB default is far too small.
-  experimental: { serverActions: { bodySizeLimit: "25mb" } },
+  /* LA PAGE EST GARDÉE 30 SECONDES CÔTÉ NAVIGATEUR (11 novembre 2026, choix du client) : par défaut une page dynamique n'est pas gardée (« staleTimes.dynamic » vaut 0), donc chaque retour recommence au serveur. Revenir sur une page vue il y a moins de 30 s l'affiche d'un coup ; au-delà, elle est redemandée. Une écriture (server action avec « revalidatePath ») vide cette mémoire. */
+  experimental: { serverActions: { bodySizeLimit: "25mb" }, staleTimes: { dynamic: 30 } },
   // « Apprendre » and « Simulateur & repères » merged into Info; old links keep working.
   async redirects() {
     return [

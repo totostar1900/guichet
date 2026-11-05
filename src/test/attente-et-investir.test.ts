@@ -44,3 +44,14 @@ describe("le siège « Investir » du menu du bas", () => {
     for (const p of ["/titres", "/fonds", "/calendrier", "/offres/mkt-bhc", "/offres/fund-fcp-ab-avenir"]) expect([isTraderSection(p), isInstrumentsSection(p)], p).toEqual([false, true]);
   });
 });
+
+describe("la page gardée 30 secondes côté navigateur (11 novembre 2026, choix du client)", () => {
+  it("garde une page dynamique 30 s : un retour dans ce délai s'affiche d'un coup, au-delà elle est redemandée", () => {
+    const c = lire("next.config.ts");
+    expect(c, "la page dynamique n'est plus gardée 30 s côté navigateur : chaque retour recommence au serveur (mesuré : 660 ms au lieu de 32 ms)").toMatch(/experimental: \{ serverActions: \{ bodySizeLimit: "25mb" \}, staleTimes: \{ dynamic: 30 \} \}/);
+  });
+  it("garde la mémoire courte : pas plus de 60 s, parce que les cours et les valeurs liquidatives s'y lisent", () => {
+    const m = lire("next.config.ts").match(/staleTimes: \{ dynamic: (\d+) \}/);
+    expect(Number(m?.[1]), "la page est gardée plus d'une minute : un cours périmé se lirait trop longtemps").toBeLessThanOrEqual(60);
+  });
+});
