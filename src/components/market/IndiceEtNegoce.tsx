@@ -1,5 +1,6 @@
 "use client";
 
+import { motDeMois } from "@/lib/ui/axes";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BarreDePlage } from "@/components/charts/BarreDePlage";
 import { Select } from "@/components/ui/Select";
@@ -319,7 +320,7 @@ function moisDe(pts: SeanceNegoce[]): { i: number; mot: string }[] {
     const cle = p.on.slice(0, 7);
     if (cle === vu) return;
     vu = cle;
-    out.push({ i, mot: new Date(`${p.on}T12:00:00Z`).toLocaleDateString("fr-FR", { month: "short" }) });
+    out.push({ i, mot: motDeMois(p.on, out.length === 0 || cle.slice(5) === "01") });
   });
   return out;
 }

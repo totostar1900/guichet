@@ -55,6 +55,7 @@ describe("les périodes du graphe du cours", () => {
       { d: "2026-09-03", c: 1, v: 0 },
       { d: "2026-09-04", c: 1, v: 120 },
     ]);
-    expect(v).toEqual({ total: 420, seancesAvecEchange: 2, seances: 4, plusFort: 300 });
+    expect(v).toEqual({ total: 420, valeur: 0, seancesAvecEchange: 2, seances: 4, plusFort: 300 });
+    expect(volumetrie([{ d: "2026-09-01", c: 1, v: 10, val: 500_000 }, { d: "2026-09-02", c: 1, v: 5, val: 250_000 }]).valeur, "le volume des transactions est la somme des valeurs échangées").toBe(750_000);
   });
 });

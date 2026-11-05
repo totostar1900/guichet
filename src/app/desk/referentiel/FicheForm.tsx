@@ -41,10 +41,10 @@ const num = (s: string): number | undefined => {
 const show = (n?: number | null): string => (n == null ? "" : String(n));
 
 type Holder = { name: string; pct: string };
-type Fig = { year: string; standard: "OHADA" | "IFRS"; totalAssets: string; equity: string; revenue: string; revenueLabel: string; valueAdded: string; netIncome: string; dividend: "unknown" | "none" | "amount"; dividendPerShare: string; source: string };
+type Fig = { year: string; standard: "OHADA" | "IFRS"; totalAssets: string; equity: string; revenue: string; revenueLabel: string; valueAdded: string; netIncome: string; dividend: "unknown" | "none" | "amount"; dividendPerShare: string; source: string; publieLe: string; publieLeDesk: string };
 type Doc = { kind: DocKind; year: string; title: string; url: string };
 
-const emptyFig = (year: string): Fig => ({ year, standard: "OHADA", totalAssets: "", equity: "", revenue: "", revenueLabel: REVENUE_LABELS[0], valueAdded: "", netIncome: "", dividend: "unknown", dividendPerShare: "", source: "" });
+const emptyFig = (year: string): Fig => ({ year, standard: "OHADA", totalAssets: "", equity: "", revenue: "", revenueLabel: REVENUE_LABELS[0], valueAdded: "", netIncome: "", dividend: "unknown", dividendPerShare: "", source: "", publieLe: "", publieLeDesk: "" });
 
 function Rows<T>({ items, onChange, blank, render, add }: { items: T[]; onChange: (v: T[]) => void; blank: () => T; render: (item: T, set: (patch: Partial<T>) => void, i: number) => React.ReactNode; add: string }) {
   const t = useT();
@@ -113,7 +113,7 @@ export function FicheForm({ kind, data, tab, copy, seed }: { kind: string; data?
   const [figs, setFigs] = useState<Fig[]>(
     (data?.figures ?? []).map((f) => {
       const y = f as Partial<YearFigures & IssuerFigures>;
-      return { year: show(y.year), standard: y.standard ?? "OHADA", totalAssets: show(y.totalAssets), equity: show(y.equity), revenue: show(y.revenue), revenueLabel: y.revenueLabel ?? REVENUE_LABELS[0], valueAdded: show(y.valueAdded), netIncome: show(y.netIncome), dividend: y.dividendPerShare === null ? "none" : y.dividendPerShare == null ? "unknown" : "amount", dividendPerShare: show(y.dividendPerShare), source: y.source ?? "" };
+      return { year: show(y.year), standard: y.standard ?? "OHADA", totalAssets: show(y.totalAssets), equity: show(y.equity), revenue: show(y.revenue), revenueLabel: y.revenueLabel ?? REVENUE_LABELS[0], valueAdded: show(y.valueAdded), netIncome: show(y.netIncome), dividend: y.dividendPerShare === null ? "none" : y.dividendPerShare == null ? "unknown" : "amount", dividendPerShare: show(y.dividendPerShare), source: y.source ?? "", publieLe: (y as { publieLe?: string }).publieLe ?? "", publieLeDesk: (y as { publieLeDesk?: string }).publieLeDesk ?? "" };
     }),
   );
   const [docs, setDocs] = useState<Doc[]>((data?.documents ?? []).map((d) => ({ kind: ((d as { kind?: DocKind }).kind ?? "autre") as DocKind, year: show(d.year), title: d.title, url: d.url })));
@@ -166,6 +166,9 @@ export function FicheForm({ kind, data, tab, copy, seed }: { kind: string; data?
             netIncome: num(f.netIncome) ?? 0,
             ...(f.dividend === "none" ? { dividendPerShare: null } : f.dividend === "amount" && num(f.dividendPerShare) != null ? { dividendPerShare: num(f.dividendPerShare) } : {}),
             source: f.source.trim(),
+            /* LA DATE EXISTANTE SE GARDE telle quelle (la fiche la lit en premier) ; celle du desk vient après (valorisation de l'onglet Émetteur). */
+            ...(f.publieLe ? { publieLe: f.publieLe } : {}),
+            ...(f.publieLeDesk ? { publieLeDesk: f.publieLeDesk } : {}),
           })),
         documents: docs.filter((d) => d.title.trim() && d.url.trim()).map((d) => ({ kind: d.kind, year: num(d.year) ?? 0, title: d.title.trim(), url: d.url.trim() })),
       };
@@ -398,6 +401,11 @@ export function FicheForm({ kind, data, tab, copy, seed }: { kind: string; data?
                       <input value={f.dividendPerShare} onChange={(e) => set({ dividendPerShare: e.target.value })} inputMode="numeric" />
                     </label>
                   )}
+                  <label>
+                    <span>{t("Date de publication des comptes")}</span>
+                    <input type="date" value={f.publieLeDesk} onChange={(e) => set({ publieLeDesk: e.target.value })} />
+                    <small>{f.publieLe ? t("Une date existe déjà dans la donnée : {d}. Elle passe avant celle-ci.", { d: f.publieLe }) : t("À défaut : le 1er avril de l'année suivante.")}</small>
+                  </label>
                   <label className={styles.figSource}>
                     <span>{t("Source (titre du document)")}</span>
                     <input value={f.source} onChange={(e) => set({ source: e.target.value })} />

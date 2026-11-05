@@ -50,7 +50,7 @@ describe("fund chart readings", () => {
 });
 
 describe("x axis", () => {
-  it("shows every date when few, six over a short span, five with the year over a long one", async () => {
+  it("shows every date when few, six over a short span, five over a long one, every label with its year", async () => {
     const { formatsDeLaLangue } = await import("@/lib/format");
     const { axisLabel } = await import("@/components/NavChart");
     /* L'axe prend son formateur en paramètre depuis le 30 octobre 2026 : ce
@@ -60,7 +60,7 @@ describe("x axis", () => {
     expect(axisLabel(s.slice(0, 5), fmtDate).ticks).toEqual([0, 1, 2, 3, 4]);
     const short = axisLabel(s.slice(0, 30), fmtDate);
     expect(short.ticks).toEqual([0, 6, 12, 17, 23, 29]);
-    expect(short.label(s[0])).not.toMatch(/2024/);
+    expect(short.label(s[0]), "les dates de l'axe portent toujours l'année").toMatch(/2024/);
     const long = axisLabel(s, fmtDate);
     expect(long.ticks).toHaveLength(5);
     expect(long.ticks[4]).toBe(s.length - 1);

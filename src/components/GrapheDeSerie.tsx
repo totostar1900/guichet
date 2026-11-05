@@ -2,6 +2,7 @@
 
 import { useDates, useT } from "@/i18n/client";
 import { ticksPropres } from "@/lib/ui/axes";
+import { BulleNoire, useLecture, type Lecture } from "./charts/lecture";
 import styles from "./GrapheDeSerie.module.css";
 
 /**
@@ -9,7 +10,8 @@ import styles from "./GrapheDeSerie.module.css";
  *
  * Une ou deux courbes, l'axe des ordonnées gradué (de zéro : on ne coupe pas l'axe d'un rapport pour grossir un mouvement), l'unité écrite, trois dates en bas. `pas`
  * dessine en marches : un rapport tiré des comptes ne bouge qu'avec le cours et à chaque nouvel exercice, jamais entre deux séances. `marques` plante un trait
- * pointillé aux jours où l'exercice change. Une valeur absente coupe la courbe : jamais de zéro à sa place.
+ * pointillé aux jours où l'exercice change. Une valeur absente coupe la courbe : jamais de zéro à sa place. Les dates de l'axe portent TOUJOURS l'année.
+ * Au toucher ou au glissement du doigt, une bulle noire au-dessus du dessin dit la séance (date, valeur, exercice en vigueur).
  */
 export interface SerieDuGraphe {
   nom: string;
@@ -19,20 +21,21 @@ export interface SerieDuGraphe {
 
 const nombre = (v: number) => v.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
 
-export function GrapheDeSerie({ dates, series, unite, pas = false, aire = false, marques = [], hauteur = 150, resume }: { dates: string[]; series: SerieDuGraphe[]; unite: string; pas?: boolean; aire?: boolean; marques?: { d: string; libelle: string }[]; hauteur?: number; resume: string }) {
+export function GrapheDeSerie({ dates, series, unite, pas = false, aire = false, marques = [], hauteur = 150, resume, exercices }: { dates: string[]; series: SerieDuGraphe[]; unite: string; pas?: boolean; aire?: boolean; marques?: { d: string; libelle: string }[]; hauteur?: number; resume: string; /** L'exercice qui compte à chaque séance (un rapport tiré des comptes) : dit dans la bulle. */ exercices?: (number | null)[] }) {
   const { fmtDate } = useDates();
   const t = useT();
-  if (dates.length < 2) return null;
   const W = 320;
-  const H = hauteur;
   const gauche = 44;
   const droite = 8;
+  const x = (i: number) => gauche + (i * (W - gauche - droite)) / Math.max(1, dates.length - 1);
+  const { handlers, index } = useLecture(dates.length, x, W);
+  if (dates.length < 2) return null;
+  const H = hauteur;
   const haut = 18;
   const bas = H - 24;
   const valeurs = series.flatMap((s) => s.valeurs.filter((v): v is number => v != null));
   const ticks = ticksPropres(0, Math.max(...valeurs, 0.0001), 4);
   const max = ticks[ticks.length - 1];
-  const x = (i: number) => gauche + (i * (W - gauche - droite)) / (dates.length - 1);
   const y = (v: number) => bas - (v / max) * (bas - haut);
   const trace = (s: SerieDuGraphe) => {
     let d = "";
@@ -47,9 +50,21 @@ export function GrapheDeSerie({ dates, series, unite, pas = false, aire = false,
   const premier = series[0];
   const aireD = aire && premier.valeurs.every((v) => v != null) ? `${trace(premier)} L${x(dates.length - 1).toFixed(1)} ${bas} L${x(0).toFixed(1)} ${bas} Z` : "";
   const libres = [0, Math.floor((dates.length - 1) / 2), dates.length - 1];
+  const lecture: Lecture | null =
+    index == null || !dates[index]
+      ? null
+      : {
+          titre: fmtDate(dates[index]),
+          lignes: [
+            ...series.map((s) => ({ nom: s.nom, valeur: s.valeurs[index] == null ? "—" : `${nombre(s.valeurs[index] as number)} ${unite}`, couleur: s.teinte === "bleu" ? "var(--navy-text)" : "var(--gold)" })),
+            ...(exercices && exercices[index] != null ? [{ nom: t("Exercice en vigueur"), valeur: String(exercices[index]) }] : []),
+          ],
+        };
   return (
     <div className={styles.bloc}>
-      <svg viewBox={`0 0 ${W} ${H}`} className={styles.dessin} role="img" aria-label={resume}>
+      <div className={styles.zone}>
+      <BulleNoire lecture={lecture} x={index == null ? 0 : x(index)} W={W} />
+      <svg viewBox={`0 0 ${W} ${H}`} className={styles.dessin} role="img" aria-label={resume} {...handlers}>
         <text x={2} y={9} className={styles.unite}>
           {unite}
         </text>
@@ -79,10 +94,17 @@ export function GrapheDeSerie({ dates, series, unite, pas = false, aire = false,
         })}
         {libres.map((i, k) => (
           <text key={i} x={x(i)} y={H - 6} textAnchor={k === 0 ? "start" : k === 2 ? "end" : "middle"} className={styles.graduation}>
-            {fmtDate(dates[i], false)}
+            {fmtDate(dates[i])}
           </text>
         ))}
+        {index != null && dates[index] && (
+          <g>
+            <line x1={x(index)} x2={x(index)} y1={haut} y2={bas} className={styles.curseur} />
+            {series.map((s) => (s.valeurs[index] == null ? null : <circle key={s.nom} cx={x(index)} cy={y(s.valeurs[index] as number)} r={3.8} className={styles.pointLu} />))}
+          </g>
+        )}
       </svg>
+      </div>
       {series.length > 1 && (
         <p className={styles.legende}>
           {series.map((s) => (

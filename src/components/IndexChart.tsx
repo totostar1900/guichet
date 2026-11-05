@@ -1,5 +1,6 @@
 "use client";
 
+import { motDeMois } from "@/lib/ui/axes";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
@@ -1207,7 +1208,7 @@ function Calendar({ points, company, from, to, onPick, W, pins }: { points: Char
   const missing = weeks.flat().filter((d) => d >= from && d <= to && !byDate.has(d)).length;
   const monthAt = (i: number) => {
     const m = weeks[i][0].slice(0, 7);
-    return i === 0 || weeks[i - 1][0].slice(0, 7) !== m ? new Date(`${weeks[i][0]}T12:00:00Z`).toLocaleDateString("fr-FR", { month: "short" }) : "";
+    return i === 0 || weeks[i - 1][0].slice(0, 7) !== m ? motDeMois(weeks[i][0], i === 0 || m.slice(5) === "01") : "";
   };
   const day = ["lun", "mar", "mer", "jeu", "ven"];
   /**

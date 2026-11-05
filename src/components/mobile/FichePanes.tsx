@@ -3,7 +3,7 @@
 import { useT } from "@/i18n/client";
 import Link from "next/link";
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { repere, restituer, type Repere } from "@/lib/ui/garder-la-place";
+import { cibleEnHaut, defilerVers, fautRevenirEnHaut, repere, restituer, type Repere } from "@/lib/ui/garder-la-place";
 import styles from "./FichePanes.module.css";
 
 /**
@@ -35,6 +35,18 @@ export function FichePanes({ children, className, sans = [] }: { children: React
   useLayoutEffect(() => {
     const m = avant.current;
     avant.current = null;
+    /* PAGE DÉFILÉE (la bande est collée) : on revient en HAUT du nouvel onglet, sous la bande. Sinon, la barre garde sa place (« garder la place »). */
+    const bande = barre()?.parentElement;
+    const premiere = racine.current ? Array.from(racine.current.querySelectorAll<HTMLElement>("[data-pane]")).find((e) => e.offsetParent !== null) : undefined;
+    if (m && bande && bande.offsetHeight > 0 && premiere) {
+      const collage = parseFloat(getComputedStyle(bande).top) || 0;
+      const ecart = parseFloat(getComputedStyle(racine.current as HTMLElement).getPropertyValue("--chapitres-gap")) || 0;
+      const cible = cibleEnHaut(premiere.getBoundingClientRect().top + window.scrollY, collage, bande.offsetHeight, ecart);
+      if (fautRevenirEnHaut(m.scrollY, cible)) {
+        defilerVers(cible, racine.current);
+        return;
+      }
+    }
     restituer(m, barre(), racine.current);
   }, [pane]);
   return (

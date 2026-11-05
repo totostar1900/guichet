@@ -23,3 +23,13 @@ export function ticksPropres(min: number, max: number, n = 3): number[] {
   }
   return out;
 }
+
+/**
+ * LE MOIS D'UN AXE DE TEMPS, AVEC SON ANNÉE QUAND ELLE CHANGE (9 novembre 2026).
+ *
+ * « juil. », « août », « sept. » sans année ne disent pas de quelle année on parle. L'étiquette porte l'année au premier repère et à chaque janvier : « juil. 2025 »,
+ * « août », « sept. », … « janv. 2026 ». Les autres mois restent courts, pour que douze repères tiennent sur un téléphone.
+ */
+export function motDeMois(iso: string, avecAnnee: boolean): string {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString("fr-FR", avecAnnee ? { month: "short", year: "numeric" } : { month: "short" });
+}

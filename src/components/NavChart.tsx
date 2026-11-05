@@ -29,7 +29,7 @@ export const axisTicks = (n: number, count = 6): number[] => (n <= 8 ? Array.fro
    contexte, et le paramètre est OBLIGATOIRE : un défaut ramènerait le défaut. */
 export const axisLabel = (dates: string[], fmtDate: FormatsDeDate["fmtDate"], phone = false) => {
   const long = dates.length > 1 && daysBetween(dates[0], dates[dates.length - 1]) > 366;
-  return { ticks: axisTicks(dates.length, phone ? (long ? 3 : 4) : long ? 5 : 6), label: (d: string) => fmtDate(d, long) };
+  return { ticks: axisTicks(dates.length, phone ? (long ? 3 : 4) : long ? 5 : 6), label: (d: string) => fmtDate(d) };
 };
 /** The date row sits lower on the phone, clear of the lowest value label. */
 export const axisRow = (phone: boolean) => (phone ? { y: 20, extra: 24 } : { y: 11, extra: 14 });

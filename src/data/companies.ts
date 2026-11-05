@@ -28,6 +28,10 @@ export interface YearFigures {
   valueAdded?: number;
   netIncome: number; // résultat net
   dividendPerShare?: number | null; // brut, null = non distribué, undefined = inconnu
+  /** AAAA-MM-JJ : le jour où ces comptes ont été publiés, quand la source le dit (date EXISTANTE, première dans l'ordre de la valorisation). */
+  publieLe?: string;
+  /** AAAA-MM-JJ : la date saisie par le desk quand la donnée n'a pas la sienne (deuxième dans l'ordre). À défaut des deux : le 1er avril de l'année suivante. */
+  publieLeDesk?: string;
   source: string; // document title
 }
 

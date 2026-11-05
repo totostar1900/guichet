@@ -3,10 +3,23 @@
   gap: var(--s-4);
   min-width: 0;
 }
+.zone {
+  position: relative;
+}
 .dessin {
   display: block;
   width: 100%;
   height: auto;
+  touch-action: pan-y;
+}
+.curseur {
+  stroke: var(--ink-2);
+  stroke-width: 1;
+}
+.pointLu {
+  fill: var(--surface);
+  stroke: var(--gold);
+  stroke-width: 2;
 }
 .grille {
   stroke: var(--line-2);

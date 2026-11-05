@@ -540,7 +540,7 @@ export async function FicheReading({ o, data, mode = "client", children }: { o: 
     return (
       <div className="chapitres">
         <FicheSegments exclure={["calendrier", "chiffres"]} mini={mini} />
-        <FicheAction o={o} data={data} base={base} noteBulle={noteBulle} />
+        <FicheAction o={o} data={data} base={base} />
         <RelatedNews kind="offer" keyOf={o.id} className={styles.sec} />
         {children}
       </div>

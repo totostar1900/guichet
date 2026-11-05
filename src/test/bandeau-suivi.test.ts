@@ -49,7 +49,8 @@ describe("le bandeau de suivi", () => {
       if (f.nom === "tracker.tsx") continue; // la pièce elle-même
       const suivis = [...f.src.matchAll(/useTracker\(/g)].length;
       if (suivis === 0) continue;
-      const bandeaux = [...f.src.matchAll(/<TrackBand\b/g)].length;
+      /* UN SUIVI SE DIT PAR LE BANDEAU, OU PAR LA BULLE NOIRE DES GRAPHES DE LA FICHE D'UNE ACTION (9 novembre 2026, demande du client) : posée AU-DESSUS du dessin, hors du tracé, en absolu — elle ne cache pas le point lu et ne change pas la hauteur. Le fichier qui la définit compte pour son afficheur. */
+      const bandeaux = [...f.src.matchAll(/<TrackBand\b|<BulleNoire\b|function BulleNoire\b/g)].length;
       if (bandeaux < suivis) manques.push(`${f.nom} : ${suivis} suivi(s), ${bandeaux} bandeau(x)`);
     }
     expect(manques, "un graphique qui suit sans rien afficher lit un point et le garde pour lui").toEqual([]);

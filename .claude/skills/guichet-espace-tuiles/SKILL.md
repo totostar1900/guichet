@@ -205,3 +205,19 @@ Le client a levé le § 8.8 pour les actions et demandé des encadrés en relief
 - **Écrire le rapport comme capitalisation ÷ grandeur de la société** (et non cours ÷ par-action) rend la série insensible à une division du nominal : le nombre de titres est celui de la séance, il disparaît du rapport. Garder le dividende PAR ACTION tel que publié pour le rendement.
 - **Une hypothèse de calcul s'écrit dans UN endroit** (`entreeEnVigueur`) avec son test et sa phrase dans l'étalon : « l'exercice N compte à partir du 1ᵉʳ juillet N+1 » ne se redit pas ailleurs.
 - **Un `label` de `Select` est visible** : un label long tronque la valeur sur un téléphone (« Durée », pas « Durée des quatre graphiques »).
+
+## Leçon du 9 novembre 2026 (lecture des graphes) : l'année sur l'axe, la bulle au-dessus, le retour en haut d'onglet
+
+- **L'axe des abscisses d'un graphe de dates porte TOUJOURS l'année.** « 1 oct. » ne dit pas de quelle année on parle ; un graphe qui n'écrit l'année que « sur les longues périodes » est une faute (`NavChart` le faisait). Sur un axe de mois, l'année va au premier repère et à chaque janvier (`motDeMois`). **À vérifier pour tout nouveau graphe** : `fmtDate(d)` sans `false`. Gardé par `lecture-de-la-page.test.ts` (graphes de la fiche, `NavChart`, `CompareCharts`, `IndiceEtNegoce`, `CardBack`).
+- **Une bulle de lecture ne se pose jamais à côté du point** : au-dessus du dessin, en absolu (le doigt ne la cache pas, le tracé ne bouge pas). `useLecture` + `BulleNoire` ; `touch-action: pan-y` sur le `<svg>` pour que la page défile verticalement pendant que le doigt glisse en travers.
+- **Un « i » par section, pas seulement sur le chiffre clé** : `Bloc` porte `info` ; le texte dit ce que la section montre, sans provenance (`provenance.test.ts` refuse « Bulletin Officiel », « BVMAC »…).
+- **Changer d'onglet page défilée = revenir en HAUT de l'onglet.** « Garder la place » (la barre sous le doigt) ne vaut que quand la page n'a pas défilé jusqu'à la bande ; une fois la bande collée, le client veut le début de ce qu'il choisit, surtout pour un onglet court (Documents). Le cas se mesure à 390 px, page défilée, avant / après le clic.
+- **Un graphe de séances en trois panneaux** (prix, titres, valeur) : trois échelles, trois axes écrits ; la bulle dit les trois.
+- **Un cliquet de doctrine ancien se lit avant de le contourner** (`bandeau-suivi` : « la bulle est partie le 5 octobre ») : la demande du client rouvre la question, la réponse garde la raison de l'ancienne règle (le doigt ne cache rien, la hauteur ne bouge pas) et l'écrit dans le cliquet.
+
+## Leçon du 9 novembre 2026 (exercice en vigueur, rotation) : une règle de repli se dit dans l'ordre, un champ saisi ne doit pas effacer la donnée
+
+- **Un repli en trois rangs s'écrit en une fonction** (`dateDEntree` : la date existante, sinon celle du desk, sinon le 1er avril de N+1), chaque rang testé, une valeur mal formée laissant la main au rang suivant.
+- **Un formulaire qui réécrit un objet perd ce qu'il ne montre pas** : le formulaire du référentiel du desk reconstruit les comptes champ par champ ; la date existante doit être relue dans l'état et réécrite (clause dans `lecture-de-la-page.test.ts`). Ajouter un champ à la donnée = ajouter sa conservation au formulaire.
+- **Une grandeur « point » ET « évolution »** : le point (tuile) suit la durée ; l'évolution se dessine à la plus petite maille lisible (le mois pour une rotation, car la plupart des séances n'ont aucun échange).
+- **Une réserve de lecture se dit à chaque endroit où le chiffre fautif se voit** : sous le graphe qui montre l'incohérence ET sous les rapports qui en sortent.

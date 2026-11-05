@@ -139,3 +139,13 @@ describe("la capitalisation et les rapports qui en découlent", () => {
     expect(rendementDividendePct(0, 1000), "un dividende de zéro est un rendement de zéro, pas un trou").toBe(0);
   });
 });
+
+describe("la rotation du flottant", () => {
+  it("valeur échangée ÷ capitalisation flottante, en %, et rien sans flottant", async () => {
+    const { rotationDuFlottantPct } = await import("./finance");
+    expect(rotationDuFlottantPct(250_000_000, 7_950_000_000)).toBeCloseTo(3.145, 3);
+    expect(rotationDuFlottantPct(0, 7_950_000_000), "aucun échange : zéro, pas un trou").toBe(0);
+    expect(rotationDuFlottantPct(1000, 0)).toBeNull();
+    expect(rotationDuFlottantPct(-1, 100)).toBeNull();
+  });
+});

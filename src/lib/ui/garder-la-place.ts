@@ -56,3 +56,37 @@ export function restituer(avant: Repere | null, el: Element | null, conteneur: H
   /* « instant », et non le défilement doux de la page : une animation lancée ici laisserait la barre glisser sous le doigt, ce que ce fichier existe pour éviter. */
   if (Math.abs(cible - window.scrollY) >= 1) window.scrollTo({ top: cible, left: 0, behavior: "instant" });
 }
+
+/**
+ * CHANGER D'ONGLET, PAGE DÉFILÉE : ON REVIENT EN HAUT DU NOUVEL ONGLET (9 novembre 2026).
+ *
+ * Relevé sur la fiche d'une action, à 390 px, page défilée : passer à « Documents » (un onglet court) laissait le client au milieu d'un vide ou au pied de la page,
+ * à la hauteur où il avait quitté l'onglet d'avant, au lieu de lui montrer le début de ce qu'il venait de choisir. « Garder la place » (ci-dessus) gardait la BARRE
+ * d'onglets sous le doigt, ce qui est juste quand la page n'a pas défilé ; une fois la barre collée, ce que le client veut lire est le HAUT de l'onglet.
+ *
+ * La cible est la position où la première section de l'onglet se pose sous la bande collée : sa position dans le document, moins le collage de la bande, sa hauteur
+ * et l'écart des chapitres. Si la page n'a pas défilé jusque-là (la bande n'est pas collée), on ne bouge pas et « garder la place » reprend la main.
+ */
+export function cibleEnHaut(topDuVolet: number, collage: number, hauteurBande: number, ecart: number): number {
+  return Math.max(0, Math.round(topDuVolet - collage - hauteurBande - ecart));
+}
+
+/** Vrai quand la page a défilé au-delà du haut du volet : la bande est collée, on revient en haut du nouvel onglet. */
+export const fautRevenirEnHaut = (scrollAvant: number, cible: number): boolean => scrollAvant > cible;
+
+/**
+ * Défile jusqu'à `cible`, en rendant au conteneur la hauteur qui manque quand l'onglet est trop court pour qu'on puisse défiler jusque-là (un vide sous le volet court,
+ * jamais un début d'onglet caché sous la bande). Instantané : une animation ferait glisser la page sous le doigt.
+ */
+export function defilerVers(cible: number, conteneur: HTMLElement | null): void {
+  if (!conteneur || typeof window === "undefined") return;
+  conteneur.style.minHeight = "";
+  let minHeight = conteneur.offsetHeight;
+  for (let passe = 0; passe < 4; passe++) {
+    const manque = cible - Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    if (manque <= 0) break;
+    minHeight += manque;
+    conteneur.style.minHeight = `${minHeight}px`;
+  }
+  if (Math.abs(cible - window.scrollY) >= 1) window.scrollTo({ top: cible, left: 0, behavior: "instant" });
+}

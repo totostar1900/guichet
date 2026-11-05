@@ -3,10 +3,18 @@
   gap: var(--s-4);
   min-width: 0;
 }
+.zone {
+  position: relative;
+}
 .dessin {
   display: block;
   width: 100%;
   height: auto;
+  touch-action: pan-y;
+}
+.colonne {
+  fill: var(--ink-3);
+  opacity: 0.12;
 }
 .grille {
   stroke: var(--line-2);

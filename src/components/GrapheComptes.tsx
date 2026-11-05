@@ -1,4 +1,7 @@
+"use client";
+
 import { ticksPropres } from "@/lib/ui/axes";
+import { BulleNoire, useLecture, type Lecture } from "./charts/lecture";
 import styles from "./GrapheComptes.module.css";
 
 /**
@@ -7,7 +10,8 @@ import styles from "./GrapheComptes.module.css";
  * Des barres sur l'axe de gauche, des courbes sur l'axe de droite (un axe SECONDAIRE, dans la couleur de sa courbe, avec son unité) : le chiffre d'affaires ne
  * « écrase » plus le résultat net, et deux grandeurs d'échelles différentes ne se lisent plus comme une comparaison de hauteur. Des courbes seules sur l'axe de
  * gauche servent aux rapports en % (marge, rentabilité). Une année sans valeur n'a ni barre ni point : un tiret, jamais un zéro inventé.
- * Dessin pur, rendu côté serveur ; la phrase `resume` dit les valeurs à qui ne voit pas le dessin.
+ * L'axe des abscisses porte les ANNÉES. Au toucher d'une année (barre ou point), une bulle noire au-dessus du dessin dit toutes les valeurs de l'exercice, dans leur unité ;
+ * la phrase `resume` dit les mêmes valeurs à qui ne voit pas le dessin.
  */
 export interface SerieAnnuelle {
   nom: string;
@@ -26,6 +30,7 @@ export function GrapheComptes({
   lignes = [],
   droit,
   resume,
+  etiquettesLues,
 }: {
   annees: string[];
   /** L'unité de l'axe de gauche (« Md FCFA », « % », « FCFA »). */
@@ -35,6 +40,8 @@ export function GrapheComptes({
   /** L'axe secondaire : des courbes dans une autre unité. */
   droit?: { unite: string; lignes: SerieAnnuelle[] };
   resume: string;
+  /** Les repères en toutes lettres pour la bulle (« oct. 2026 » quand l'axe, trop serré, ne dit que « oct. ») : l'année y est toujours. */
+  etiquettesLues?: string[];
 }) {
   const W = 320;
   const H = 172;
@@ -60,6 +67,7 @@ export function GrapheComptes({
   const yG = echelle(tG);
   const yD = echelle(tD.length ? tD : [0, 1]);
   const cx = (j: number) => gauche + j * fente + fente / 2;
+  const { handlers, index } = useLecture(n, cx, W);
   const largeur = Math.min(24, (fente * 0.8) / Math.max(1, barres.length));
   const trace = (s: SerieAnnuelle, y: (v: number) => number) => {
     let d = "";
@@ -70,9 +78,22 @@ export function GrapheComptes({
     return d.trim();
   };
   const toutes = [...barres.map((s) => ({ s, axe: "g" as const })), ...lignes.map((s) => ({ s, axe: "g" as const })), ...(droit?.lignes ?? []).map((s) => ({ s, axe: "d" as const }))];
+  const lecture: Lecture | null =
+    index == null || !annees[index]
+      ? null
+      : {
+          titre: etiquettesLues?.[index] ?? annees[index],
+          lignes: toutes.map(({ s, axe }) => {
+            const v = s.valeurs[index];
+            return { nom: s.nom, valeur: v == null ? "—" : `${nombre(v)} ${axe === "d" ? droit?.unite ?? "" : unite}`.trim(), couleur: s.teinte === "bleu" ? "var(--navy-text)" : "var(--gold)" };
+          }),
+        };
   return (
     <div className={styles.bloc}>
-      <svg viewBox={`0 0 ${W} ${H}`} className={styles.dessin} role="img" aria-label={resume}>
+      <div className={styles.zone}>
+      <BulleNoire lecture={lecture} x={index == null ? 0 : cx(index)} W={W} />
+      <svg viewBox={`0 0 ${W} ${H}`} className={styles.dessin} role="img" aria-label={resume} {...handlers}>
+        {index != null && <rect x={cx(index) - fente / 2} y={haut} width={fente} height={bas - haut} className={styles.colonne} />}
         <text x={2} y={9} className={`${styles.unite} ${barres[0] ? classe(barres[0].teinte) : lignes[0] ? classe(lignes[0].teinte) : ""}`} style={{ fill: "currentColor" }}>
           {unite}
         </text>
@@ -125,6 +146,7 @@ export function GrapheComptes({
           </text>
         ))}
       </svg>
+      </div>
       <p className={styles.legende}>
         {toutes.map(({ s, axe }) => (
           <span key={s.nom}>

@@ -289,7 +289,7 @@ function Calendar({ lines }: { lines: CompareLine[] }) {
           })}
           {ticks.map((d) => (
             <text key={d} x={x(d)} y={H - 7} className={styles.calTick} textAnchor="middle">
-              {fmtDate(d, span > 400).replace(/^1 /, "")}
+              {fmtDate(d).replace(/^1 /, "")}
             </text>
           ))}
         </svg>

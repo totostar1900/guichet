@@ -1,0 +1,53 @@
+/* LA BULLE NOIRE : posée au-dessus du dessin, hors du tracé, jamais sous le doigt ; ni elle ni son ombre ne changent la hauteur du graphique. */
+.bulle {
+  position: absolute;
+  bottom: calc(100% + var(--s-3));
+  z-index: 6;
+  display: grid;
+  gap: var(--s-1);
+  min-width: 112px;
+  max-width: 78%;
+  padding: var(--s-4) var(--s-5);
+  border-radius: calc(var(--rond) - var(--s-3));
+  background: var(--bulle-bg);
+  border: 1px solid var(--bulle-line);
+  color: var(--bulle-ink);
+  box-shadow: var(--bulle-ombre);
+  font-size: var(--t-2);
+  line-height: 1.35;
+  pointer-events: none;
+}
+.centre {
+  transform: translateX(-50%);
+}
+.gauche {
+  transform: translateX(0);
+}
+.droite {
+  transform: translateX(-100%);
+}
+.bulle b {
+  font-size: var(--t-2);
+  color: var(--bulle-ink-2);
+}
+.bulle span {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  white-space: nowrap;
+}
+.bulle i {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+.bulle em {
+  font-style: normal;
+  color: var(--bulle-ink-3);
+}
+.bulle strong {
+  margin-left: auto;
+  padding-left: var(--s-4);
+  font-variant-numeric: tabular-nums;
+}

@@ -151,10 +151,10 @@ function Spark({ curve }: { curve: FundCurve }) {
         {label}
       </text>
       <text x={PAD_L} y={H - 4} fontSize="8.5" fill="var(--ink-2)" style={{ fontSize: 8.5 }}>
-        {fmtDate(curve.from, false)}
+        {fmtDate(curve.from)}
       </text>
       <text x={W - PAD_R} y={H - 4} textAnchor="end" fontSize="8.5" fill="var(--ink-2)" style={{ fontSize: 8.5 }}>
-        {fmtDate(curve.to, false)}
+        {fmtDate(curve.to)}
       </text>
     </svg>
   );

@@ -374,3 +374,11 @@ export const coursSurValeurComptable = (capitalisationFcfa: number, capitauxProp
 
 /** Dividende brut par action du dernier exercice connu ÷ cours : le rendement qu'on lirait en achetant à ce cours. */
 export const rendementDividendePct = (dividendeParAction: number | null | undefined, cours: number): number | null => (typeof dividendeParAction === "number" && cours > 0 ? (dividendeParAction / cours) * 100 : null);
+
+/**
+ * LA ROTATION DU FLOTTANT (fiche d'une action, valorisation, 9 novembre 2026) : la part du flottant qui s'est échangée sur la période.
+ *
+ * Valeur échangée (en FCFA) ÷ capitalisation flottante, en %. Elle dit à quel point le titre se négocie : sur ce marché, quelques pour cent par an. UN CHIFFRE BAS DÉCRIT LE
+ * MARCHÉ, PAS LA SOCIÉTÉ. `null` quand il n'y a pas de flottant à rapporter.
+ */
+export const rotationDuFlottantPct = (valeurEchangee: number, capitalisationFlottante: number): number | null => (capitalisationFlottante > 0 && valeurEchangee >= 0 ? (valeurEchangee / capitalisationFlottante) * 100 : null);

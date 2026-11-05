@@ -40,6 +40,8 @@ export interface PointCours {
   c: number;
   /** Volume échangé, en titres. */
   v: number;
+  /** Valeur échangée (le volume des transactions), en FCFA. */
+  val?: number;
 }
 
 export interface LecturePeriode {
@@ -85,7 +87,7 @@ export function periodeParDefaut(points: PointCours[]): PeriodeCours {
 }
 
 /** Ce que la période dit des échanges : de quoi lire la volumétrie sans deviner. */
-export function volumetrie(serie: PointCours[]): { total: number; seancesAvecEchange: number; seances: number; plusFort: number } {
+export function volumetrie(serie: PointCours[]): { total: number; valeur: number; seancesAvecEchange: number; seances: number; plusFort: number } {
   const total = serie.reduce((s, p) => s + p.v, 0);
-  return { total, seancesAvecEchange: serie.filter((p) => p.v > 0).length, seances: serie.length, plusFort: serie.reduce((m, p) => Math.max(m, p.v), 0) };
+  return { total, valeur: serie.reduce((s, p) => s + (p.val ?? 0), 0), seancesAvecEchange: serie.filter((p) => p.v > 0).length, seances: serie.length, plusFort: serie.reduce((m, p) => Math.max(m, p.v), 0) };
 }
