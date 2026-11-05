@@ -43,7 +43,7 @@ export async function FicheFonds({ o, data }: { o: Offer; data: FicheData }) {
   const f = o.fund;
   if (!f) return null;
   const now = new Date();
-  const { navs, btaBenchmark, gestionnaire, fondsDeLaSociete, autresSocietes } = data;
+  const { navs, gestionnaire, fondsDeLaSociete, autresSocietes } = data;
   const series = [...navs].reverse().map((n) => ({ date: n.navDate, nav: n.nav, variationPct: n.variationPct, perfSinceInceptionPct: n.perfSinceInceptionPct, bulletinNo: n.bulletinNo }));
   const annuel = fundAnnualPct(f, now);
   const perf = f.perf1yPct != null ? { etiquette: t("Performance sur 12 mois"), v: f.perf1yPct } : { etiquette: f.inceptionDate ? t("Depuis l'origine ({d})", { d: fmtDate(f.inceptionDate) }) : t("Depuis l'origine"), v: f.perfSinceInceptionPct };
@@ -71,7 +71,7 @@ export async function FicheFonds({ o, data }: { o: Offer; data: FicheData }) {
     <>
       {/* ESSENTIEL : la VL et sa courbe, les chiffres clés, « Investir ». */}
       <Bloc pane="essentiel" titre={t("Évolution")} info={t("La valeur liquidative du fonds et sa courbe. Un commutateur choisit ce que la courbe mesure : la valeur, le rendement annualisé ou ce que vaudraient 1 000 000 FCFA placés ; le chiffre du haut suit ce choix. La période se choisit dans la liste : la performance et l'annualisée des tuiles sont calculées sur nos VL publiées entre les deux dates écrites sous la courbe. Les performances passées ne préjugent pas des performances futures.")}>
-        {series.length > 1 ? <CourbeDeLaVL series={series} benchmark={btaBenchmark} /> : <Majeur etiquette={t("Dernière VL · {d}", { d: fmtDate(f.navDate) })} valeur={fmt(f.nav)} unite="FCFA" sous={f.variationPct != null ? <PastilleVariation v={f.variationPct} periode={t("dernière VL")} /> : undefined} />}
+        {series.length > 1 ? <CourbeDeLaVL series={series} /> : <Majeur etiquette={t("Dernière VL · {d}", { d: fmtDate(f.navDate) })} valeur={fmt(f.nav)} unite="FCFA" sous={f.variationPct != null ? <PastilleVariation v={f.variationPct} periode={t("dernière VL")} /> : undefined} />}
       </Bloc>
 
       <Bloc pane="essentiel" titre={t("Chiffres clés")} info={t("La performance du fonds sur douze mois, telle que le bulletin la publie, puis les faits qui l'accompagnent. Le rendement annualisé ramène à un an la performance depuis la création, pour comparer deux fonds d'âges différents ; il ne paraît qu'au-delà de six mois de vie. Chiffres bruts, avant droits d'entrée et de sortie et fiscalité.")}>

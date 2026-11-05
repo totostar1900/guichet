@@ -7,7 +7,7 @@ import { fmt } from "@/lib/format";
 import { lirePeriode, PERIODES, type PeriodeCours } from "@/lib/market/periodes";
 import { ticksPropres } from "@/lib/ui/axes";
 import { BulleNoire, useLecture, type Lecture } from "./charts/lecture";
-import { type Benchmark, invested, REF_AMOUNT, rollingAnnualised } from "./FundCharts";
+import { invested, REF_AMOUNT, rollingAnnualised } from "./FundCharts";
 import type { NavPoint } from "./NavChart";
 import { Majeur, Tuiles } from "./Mosaique";
 import { PastilleVariation } from "./PastilleVariation";
@@ -17,7 +17,7 @@ import styles from "./CourbeDuCours.module.css";
 /**
  * LA COURBE D'UN FONDS : UNE COURBE, TROIS MESURES, UNE LISTE DE PÉRIODES (fiche d'un fonds, 10 novembre 2026, planche « 1A · 2B · 3A · 4A »).
  *
- * Un commutateur à plat choisit ce que la courbe mesure : la valeur liquidative, le rendement annualisé (avec la ligne du dernier BTA publié) ou ce que vaudraient
+ * Un commutateur à plat choisit ce que la courbe mesure : la valeur liquidative, le rendement annualisé ou ce que vaudraient
  * 1 000 000 FCFA placés au début de la période. Une seule liste, la même que celle d'une action (3 mois à Max), règle les trois : la courbe, la variation écrite
  * à côté et les tuiles du dessous. Une période que la série ne couvre pas est dans la liste, grisée. Les dates libres ne sont plus : la liste les remplace.
  * Au toucher (ou au glissement), une bulle noire au-dessus du tracé dit la VL. Les dates de l'axe portent toujours l'année. Les performances passées ne sont pas
@@ -35,7 +35,7 @@ const FENETRES = [365, 183, 92];
 const JOURS_MINI = Math.ceil(FENETRES[FENETRES.length - 1] * 1.2);
 const signe = (v: number, d = 2) => `${v > 0 ? "+" : ""}${v.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d })} %`;
 
-export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: NavPoint[]; benchmark?: Benchmark; hauteur?: number }) {
+export function CourbeDeLaVL({ series, hauteur = 190 }: { series: NavPoint[]; hauteur?: number }) {
   const t = useT();
   const { fmtDate } = useDates();
   const points = series.map((p) => ({ d: p.date, c: p.nav, v: 0 }));
@@ -71,9 +71,7 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
   if (series.length === 0 || n < 2) return null;
   const premier = tracee[0];
   const dernier = tracee[n - 1];
-  /* LA LIGNE DE RÉFÉRENCE : le taux du dernier BTA (rendement), ou le même montant qui croîtrait à ce taux (placement). */
-  const ref: number[] | null = benchmark && mesureLue === "rendement" && !cumule ? tracee.map(() => benchmark.pct) : benchmark && mesureLue === "placement" ? tracee.map((p) => REF_AMOUNT * (1 + (benchmark.pct / 100) * (daysBetween(premier.d, p.d) / 365))) : null;
-  const toutes = [...tracee.map((p) => p.y), ...(ref ?? []), ...(mesureLue === "rendement" ? [0] : [])];
+  const toutes = [...tracee.map((p) => p.y), ...(mesureLue === "rendement" ? [0] : [])];
   const ticks = ticksPropres(Math.min(...toutes), Math.max(...toutes), 3);
   const bas = ticks[0];
   const haut = ticks[ticks.length - 1];
@@ -81,7 +79,6 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
   const fmtY = (v: number) => (mesureLue === "rendement" ? `${v.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %` : fmt(v));
   const trait = tracee.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
   const aire = `${trait} L${x(n - 1).toFixed(1)} ${bas0} L${x(0).toFixed(1)} ${bas0} Z`;
-  const reference = ref ? ref.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ") : null;
   const dates = [0, Math.floor((n - 1) / 2), n - 1];
   const nom = mesureLue === "vl" ? t("Valeur liquidative") : mesureLue === "rendement" ? (cumule ? t("Rendement depuis la première VL") : t("Rendement annualisé")) : t("{n} FCFA placés", { n: fmt(REF_AMOUNT) });
   const lecture: Lecture | null =
@@ -92,7 +89,6 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
           lignes: [
             { nom, valeur: mesureLue === "vl" ? `${fmt(tracee[index].y)} FCFA` : mesureLue === "rendement" ? signe(tracee[index].y) : `${fmt(tracee[index].y)} FCFA`, couleur: "var(--gold)" },
             ...(mesureLue !== "vl" ? [{ nom: t("VL"), valeur: `${fmt(tracee[index].nav)} FCFA`, couleur: "var(--ink-3)" }] : []),
-            ...(ref && benchmark ? [{ nom: benchmark.label, valeur: mesureLue === "rendement" ? signe(benchmark.pct) : `${fmt(ref[index])} FCFA`, couleur: "var(--ink-2)" }] : []),
           ],
         };
   /* LES TUILES DE LA PÉRIODE : calculées sur les VL publiées dans la fenêtre, brutes, avant droits d'entrée et de sortie et fiscalité. */
@@ -114,7 +110,7 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
       cumule ? (
         <Majeur etiquette={t("Rendement depuis le {d} · non annualisé", { d: fmtDate(premier.d) })} valeur={signe(dernier.y)} sous={<span>{fmtDate(dernier.d)}</span>} />
       ) : (
-        <Majeur etiquette={t("Rendement annualisé · {n} jours glissants", { n: fenetre ?? 365 })} valeur={signe(dernier.y)} sous={<span>{benchmark ? `– – ${benchmark.label} ${signe(benchmark.pct)}` : fmtDate(dernier.d)}</span>} />
+        <Majeur etiquette={t("Rendement annualisé · {n} jours glissants", { n: fenetre ?? 365 })} valeur={signe(dernier.y)} sous={<span>{fmtDate(dernier.d)}</span>} />
       )
     ) : (
       <Majeur etiquette={t("{n} FCFA placés le {d}", { n: fmt(REF_AMOUNT), d: fmtDate(premier.d) })} valeur={fmt(dernier.y)} unite="FCFA" sous={<PastilleVariation v={variationDuPlace} periode={t(lue.libelle)} />} />
@@ -166,7 +162,6 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
             </g>
           ))}
           <path d={aire} className={styles.aire} />
-          {reference && <path d={reference} className={styles.referenceLigne} />}
           <path d={trait} className={styles.trait} />
           <circle cx={x(n - 1)} cy={y(dernier.y)} r={3.5} className={styles.point} />
           {dates.map((i, k) => (

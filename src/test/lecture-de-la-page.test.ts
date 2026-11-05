@@ -745,7 +745,7 @@ describe("la fiche d'un fonds, calquée sur celle d'un titre (10 novembre 2026, 
     expect(c, "le rendement ne passe plus par finance.ts").toMatch(/rendementAnnualisePct\(f\.nav, l\.nav, jours\)/);
     expect(c, "la mention des performances passées n'est plus écrite sous les chiffres").toMatch(/<p className=\{styles\.garde\}>\{t\("Performances passées non garanties"\)\}/);
     expect(c, "la bulle noire n'est plus posée sur la courbe").toMatch(/<BulleNoire lecture=\{lecture\}/);
-    expect(c, "la ligne du dernier BTA n'est plus tracée").toMatch(/\{reference && <path d=\{reference\} className=\{styles\.referenceLigne\} \/>\}/);
+    expect(c, "le comparatif BTA est revenu sur la courbe d'un fonds (retiré à la demande du client le 10 novembre 2026)").not.toMatch(/benchmark|BTA|referenceLigne/);
     expect(lire("src/components/CourbeDuCours.module.css").match(/\.commutateur button \{([^}]*)\}/)?.[1] ?? "", "le commutateur est plus haut que le sélecteur de période (34 px)").toMatch(/min-height: 30px;/);
     expect(lire("src/components/CourbeDuCours.module.css"), "le commutateur n'a plus de piste à trois colonnes").toMatch(/\.commutateur \{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/);
   });
@@ -756,7 +756,6 @@ describe("la fiche d'un fonds, calquée sur celle d'un titre (10 novembre 2026, 
     expect(c, "le rendement d'un fonds jeune n'est plus étiqueté non annualisé").toMatch(/t\("Rendement depuis le \{d\} · non annualisé"/);
     expect(c, "le bouton « Rendement » est de nouveau grisé pour un fonds jeune").not.toMatch(/disabled=\{m === "rendement"/);
     expect(c, "la ligne qui explique le rendement d'un fonds jeune a disparu").toMatch(/\{!rendementPossible && <p className=\{styles\.indisponible\}>\{t\("Fonds de \{n\} jours : le rendement glissant demande \{mini\} jours/);
-    expect(c, "le BTA est tracé sur un rendement non annualisé : deux grandeurs qui ne se comparent pas").toMatch(/benchmark && mesureLue === "rendement" && !cumule \?/);
   });
   it("la légende réserve ses deux lignes, et l'unité de l'axe est posée au-dessus de la première graduation", () => {
     expect(courbe(), "la légende n'est plus celle qui réserve sa hauteur").toMatch(/className=\{`\$\{styles\.legende\} \$\{styles\.legendeFixe\}`\}/);

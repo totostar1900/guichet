@@ -108,12 +108,6 @@
   background: var(--select);
   color: var(--on-select);
 }
-.referenceLigne {
-  fill: none;
-  stroke: var(--ink-2);
-  stroke-width: 1.2;
-  stroke-dasharray: 4 3;
-}
 .garde {
   margin: 0;
   font-size: var(--t-2);
