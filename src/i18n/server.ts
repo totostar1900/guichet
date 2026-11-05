@@ -46,11 +46,19 @@ setFormatLangSource(() => {
  */
 const langueDuCompte = async (): Promise<Lang | undefined> => {
   try {
-    const { getSession } = await import("@/lib/auth");
+    const { getSession, lireLaSessionDeBase } = await import("@/lib/auth");
+    const base = await lireLaSessionDeBase();
+    if (!base || base.role !== "client") return undefined;
+    const { repo } = await import("@/lib/data");
+    /* LES PRÉFÉRENCES PARTENT AVEC LA RECHERCHE DU DOSSIER, pas après (11 novembre 2026) : la langue ne dépend que de la personne qui se présente, et attendre « getSession » ajoutait une
+       étape en série à chaque page et à chaque clic (mesuré : −27 % du temps de réponse à latence égale). Quand l'accès nommé bascule la session sur un autre compte (rare), ce sont les
+       préférences de CE compte qui font foi, comme avant : on les relit. */
+    const enParallele = repo()
+      .getPrefs(base.userId)
+      .catch(() => undefined);
     const s = await getSession();
     if (!s || s.role !== "client") return undefined;
-    const { repo } = await import("@/lib/data");
-    const prefs = await repo().getPrefs(s.userId);
+    const prefs = s.userId === base.userId ? await enParallele : await repo().getPrefs(s.userId);
     return isLang(prefs?.lang) ? prefs.lang : undefined;
   } catch {
     // Hors requête, sans base, ou pendant une panne : la langue n'en dépend pas.

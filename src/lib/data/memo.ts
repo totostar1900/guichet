@@ -80,6 +80,9 @@ const READS = new Set([
   "listNews",
   "listCash",
   "listRelances",
+  /* DEUX LECTURES QUE LE CLASSEMENT PAR LE NOM AVAIT LAISSÉES DEHORS (11 novembre 2026) : l'accès nommé d'une personne sans dossier propre. Non classées, elles VIDAIENT la mémoire de la requête à chaque appel (tout ce qui n'est pas une lecture est traité comme une écriture), donc le dossier, déjà lu, était relu : une étape en série de plus pour un nouveau client. */
+  "accesDeLaPersonne",
+  "accesParCanal",
   /* Une LECTURE que le classement par le nom avait laissee dehors : elle ne
      touche pas la table du referentiel, elle rend les nominaux de reference
      d une seance. Non classee, elle VIDAIT le memo a chaque appel, puisque

@@ -9,15 +9,25 @@ import { estEssai } from "@/lib/essai";
 // Sur la branche d essai, connexion de developpement : voir src/lib/essai.ts.
 export const authMode = (): "supabase" | "dev" => (!estEssai() && process.env.NEXT_PUBLIC_SUPABASE_URL ? "supabase" : "dev");
 
-/** Current session, or null. Cached per request. Tier 2 comes from an approved KYC file. */
-export const getSession = cache(async (): Promise<Session | null> => {
-  let s: Session | null;
+/**
+ * L'AUTHENTIFICATION NUE, AVANT TOUTE LECTURE DU COMPTE (11 novembre 2026).
+ *
+ * Elle dit QUI se présente (cookie, ou jeton Supabase) sans interroger le dossier : la langue du compte peut donc partir lire ses préférences EN MÊME TEMPS que `getSession` cherche le
+ * dossier, au lieu d'attendre qu'il ait fini. Mesuré : c'était une étape en série de trop sur chaque page, et sur chaque clic. Gardée par requête.
+ */
+export const lireLaSessionDeBase = cache(async (): Promise<Session | null> => {
   if (authMode() === "supabase") {
     const { readSupabaseSession } = await import("./supabase");
-    s = await readSupabaseSession();
-  } else {
-    s = await readDevSession();
+    return readSupabaseSession();
   }
+  return readDevSession();
+});
+
+/** Current session, or null. Cached per request. Tier 2 comes from an approved KYC file. */
+export const getSession = cache(async (): Promise<Session | null> => {
+  const base = await lireLaSessionDeBase();
+  // Une copie : la suite écrit le palier, le nom et le plafond, et la session de base reste celle qu'on a lue.
+  let s: Session | null = base ? { ...base } : null;
   if (s && s.role === "client") {
     const { repo } = await import("@/lib/data");
     s = await résoudreLAcces(s);
