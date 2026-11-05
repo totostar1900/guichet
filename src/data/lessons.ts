@@ -155,3 +155,14 @@ export const FIRST_COURSE: Lesson[] = [
 
 /** Every lesson: the first course, then the parcours. */
 export const LESSONS: Lesson[] = [...FIRST_COURSE, ...PARCOURS_LESSONS, ...ECONOMIE_LESSONS];
+
+/**
+ * LES ÉCLAIRAGES ALLÉGÉS POUR LE NAVIGATEUR (11 novembre 2026, point 4 de la lenteur : « listes plus légères »).
+ *
+ * Mesuré sur la page des fonds : le registre que la mise en page renvoie au navigateur à chaque premier chargement pesait 78,7 Ko, dont 48,2 Ko pour les trente-sept éclairages
+ * (61 %), soit plus de la moitié des 44 Ko de Titres une fois compressés. Or le navigateur n'en lit que la CLÉ et le TITRE (le lien « L'éclairage qui en parle » d'une bulle « i »),
+ * et leurs termes pour retrouver celui d'un mot : les textes, les questions et leurs réponses ne servent qu'aux pages du Guide, rendues sur le serveur avec les éclairages entiers.
+ * Ce qui traverse est ce qui sert à reconnaître un éclairage, rien de plus.
+ */
+export const lessonsForClient = (list: Lesson[]): Lesson[] =>
+  list.map(({ key, order, title, minutes, terms, section, widget }) => ({ key, order, title, minutes, terms, section, widget, intro: "", body: [], quiz: { q: "", options: [], answer: 0, why: "" } }));

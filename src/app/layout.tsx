@@ -23,6 +23,7 @@ import type { ClientPrefs } from "@/lib/domain/types";
 import { RegistryProvider } from "@/components/RegistryProvider";
 import { loadIssuerRegistry, loadRegistry } from "@/lib/reference";
 import { issuersForClient } from "@/data/issuer-registry";
+import { lessonsForClient } from "@/data/lessons";
 import { LangProvider } from "@/i18n/client";
 import { getLang, getT } from "@/i18n/server";
 import { AuthHashRedirect } from "@/components/AuthHashRedirect";
@@ -178,7 +179,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <PaletteKeeper saved={account?.prefs} />
         <BarProbe />
         <ColonneStore>
-        <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={registry.lessons} issuers={issuersForClient(issuers)}>
+        <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={lessonsForClient(registry.lessons)} issuers={issuersForClient(issuers)}>
         <TermSheetHost />
         <header className={styles.top}>
           <div className={styles.topIn}>

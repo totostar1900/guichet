@@ -160,3 +160,7 @@ Chaque option dit **ce que son application change** dans toute l'application qua
 - **« Plus moderne » sans mesure** : voir la règle de lecture.
 - **Changer un jeton global pour une demande locale** : mesurer l'effet sur les autres pages, ou le faire par une classe locale, mais jamais par une valeur en dur.
 - **Oublier ce que la démonstration ne montre pas** : la comparaison porte sur ce qu'on a vu.
+
+## Ce que le client a observé chez la référence, et qu'on mesure sur Guichet (11 novembre 2026)
+
+- **Le premier toucher d'une page prend un instant, ensuite elle revient d'un coup** (l'application de courtage de référence). La fluidité perçue vient du SECOND passage : une page déjà vue est gardée, et les suivantes sont préchargées. Ce n'est pas « tout est instantané » : c'est « le premier toucher est lisible (squelette) et le second est immédiat ». Sur Guichet : squelette à la racine (fait), page gardée quelques secondes (`staleTimes.dynamic`, à décider : fraîcheur des cours), précharge des listes. À comparer en chronométrant premier et second toucher sur la même page, à 390 px, réseau ralenti.
