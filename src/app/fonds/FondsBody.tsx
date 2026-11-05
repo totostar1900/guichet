@@ -18,22 +18,26 @@ import { EnTete } from "@/components/EnTete";
  * rangées et quelles commandes n'ont pas lieu d'être.
  */
 export async function FondsBody() {
-  const t = await getT();
   const r = repo();
-  /* LE BULLETIN N'EST PLUS LU ICI, NI LES COMPTES TENUS. « VL lues au BOC n° {n}
-     du {d} » a quitté l'en-tête, et le chapô qui annonçait le nombre de fonds
-     ouverts et le nombre par catégorie est parti dans « En bref », qui ne donne
-     plus de compte. Il restait la requête du bulletin, payée à chaque visite
-     pour une valeur que plus rien n'affiche, et trois variables mortes. */
-  const offers = await r.listOffers();
-  const funds = fondsListes(offers);
-  // Les courbes partent avec la page : une carte retournée les dessine tout de suite,
-  // au lieu d'aller les demander et de montrer « Courbe en cours de lecture… ».
-  /* LES COURBES VOYAGENT ÉCHANTILLONNÉES (30 valeurs sur la même durée) : elles pesaient les trois quarts des lignes de la liste. Voir `echantillonner`. */
-  const curves = new Map([...(await r.listFundCurves(funds.map((o) => o.fund.key)))].map(([k, c]) => [k, echantillonner(c)] as const));
-  /* LES FONDS QUE CE LECTEUR SUIT (6 novembre 2026) : lus ici, comme sur Titres. Sans eux, un fonds suivi redevenait « Suivre » au premier rafraîchissement. */
-  const session = await getSession();
-  const veilles = session ? await r.listWatches(session.userId).catch(() => []) : [];
+  /* TROIS LECTURES EN PARALLÈLE, DEUX ÉTAGES AU PLUS (ce qui était en série : langue, offres, courbes, session, fonds suivis, cinq étages).
+     Seules les courbes attendent les offres (elles se lisent par clé de fonds) ; la session et les fonds suivis n'en dépendent pas. */
+  const [t, { funds, curves }, veilles] = await Promise.all([
+    getT(),
+    /* LE BULLETIN N'EST PLUS LU ICI, NI LES COMPTES TENUS. « VL lues au BOC n° {n}
+       du {d} » a quitté l'en-tête, et le chapô qui annonçait le nombre de fonds
+       ouverts et le nombre par catégorie est parti dans « En bref », qui ne donne
+       plus de compte. Il restait la requête du bulletin, payée à chaque visite
+       pour une valeur que plus rien n'affiche, et trois variables mortes. */
+    r.listOffers().then(async (offers) => {
+      const funds = fondsListes(offers);
+      // Les courbes partent avec la page : une carte retournée les dessine tout de suite.
+      /* LES COURBES VOYAGENT ÉCHANTILLONNÉES (30 valeurs sur la même durée) : elles pesaient les trois quarts des lignes de la liste. Voir `echantillonner`. */
+      const curves = new Map([...(await r.listFundCurves(funds.map((o) => o.fund.key)))].map(([k, c]) => [k, echantillonner(c)] as const));
+      return { funds, curves };
+    }),
+    /* LES FONDS QUE CE LECTEUR SUIT (6 novembre 2026) : lus ici, comme sur Titres. Sans eux, un fonds suivi redevenait « Suivre » au premier rafraîchissement. */
+    getSession().then((session) => (session ? r.listWatches(session.userId).catch(() => []) : [])),
+  ]);
   /* L'ANNUALISÉ SE CALCULE ICI, UNE FOIS, parce qu'il dépend de la date du
      jour : calculé dans le navigateur, il diffère de celui qui vient d'être
      rendu, et React le signale comme un désaccord d'hydratation. La machine

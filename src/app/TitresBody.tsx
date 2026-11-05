@@ -15,8 +15,8 @@ import { performanceSur } from "@/lib/market/performe";
  * qui dit où mènent les rangées et quelles commandes n'ont pas lieu d'être.
  */
 export async function TitresBody() {
-  const t = await getT();
-  const session = await getSession();
+  /* La langue et la session ne dépendent de rien : une seule attente, puis les lectures de la page (deux étages, non trois). */
+  const [t, session] = await Promise.all([getT(), getSession()]);
   /**
    * LES ALERTES DE CE LECTEUR, LUES ICI.
    *
