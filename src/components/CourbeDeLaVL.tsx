@@ -49,13 +49,17 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
   const rendementPossible = glissant.length >= 2;
   const joursDHistorique = series.length > 1 ? daysBetween(series[0].date, series[series.length - 1].date) : 0;
   const fenetreNav = series.filter((p) => p.date >= debut);
+  /* UN FONDS JEUNE (« rendementPossible » faux) : « Rendement » montre l'écart avec la première VL de la période, NON ANNUALISÉ (10 novembre 2026) : annualiser deux mois extrapolerait. */
+  const cumule = mesure === "rendement" && !rendementPossible;
   const tracee: { d: string; y: number; nav: number }[] =
     mesure === "rendement" && rendementPossible
       ? glissant.filter((p) => p.date >= debut).map((p) => ({ d: p.date, y: p.y, nav: p.nav }))
+      : cumule
+        ? fenetreNav.map((p) => ({ d: p.date, y: fenetreNav[0].nav > 0 ? (p.nav / fenetreNav[0].nav - 1) * 100 : 0, nav: p.nav }))
       : mesure === "placement"
         ? invested(fenetreNav).map((p) => ({ d: p.date, y: p.y, nav: p.nav }))
         : fenetreNav.map((p) => ({ d: p.date, y: p.nav, nav: p.nav }));
-  const mesureLue: Mesure = mesure === "rendement" && !rendementPossible ? "vl" : mesure;
+  const mesureLue: Mesure = mesure;
   const W = 320;
   const gauche = 46;
   const droite = 8;
@@ -68,7 +72,7 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
   const premier = tracee[0];
   const dernier = tracee[n - 1];
   /* LA LIGNE DE RÉFÉRENCE : le taux du dernier BTA (rendement), ou le même montant qui croîtrait à ce taux (placement). */
-  const ref: number[] | null = benchmark && mesureLue === "rendement" ? tracee.map(() => benchmark.pct) : benchmark && mesureLue === "placement" ? tracee.map((p) => REF_AMOUNT * (1 + (benchmark.pct / 100) * (daysBetween(premier.d, p.d) / 365))) : null;
+  const ref: number[] | null = benchmark && mesureLue === "rendement" && !cumule ? tracee.map(() => benchmark.pct) : benchmark && mesureLue === "placement" ? tracee.map((p) => REF_AMOUNT * (1 + (benchmark.pct / 100) * (daysBetween(premier.d, p.d) / 365))) : null;
   const toutes = [...tracee.map((p) => p.y), ...(ref ?? []), ...(mesureLue === "rendement" ? [0] : [])];
   const ticks = ticksPropres(Math.min(...toutes), Math.max(...toutes), 3);
   const bas = ticks[0];
@@ -79,7 +83,7 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
   const aire = `${trait} L${x(n - 1).toFixed(1)} ${bas0} L${x(0).toFixed(1)} ${bas0} Z`;
   const reference = ref ? ref.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ") : null;
   const dates = [0, Math.floor((n - 1) / 2), n - 1];
-  const nom = mesureLue === "vl" ? t("Valeur liquidative") : mesureLue === "rendement" ? t("Rendement annualisé") : t("{n} FCFA placés", { n: fmt(REF_AMOUNT) });
+  const nom = mesureLue === "vl" ? t("Valeur liquidative") : mesureLue === "rendement" ? (cumule ? t("Rendement depuis la première VL") : t("Rendement annualisé")) : t("{n} FCFA placés", { n: fmt(REF_AMOUNT) });
   const lecture: Lecture | null =
     index == null || !tracee[index]
       ? null
@@ -107,7 +111,11 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
     mesureLue === "vl" ? (
       <Majeur etiquette={t("Dernière VL · {d}", { d: fmtDate(derniereVL.date) })} valeur={fmt(derniereVL.nav)} unite="FCFA" sous={derniereVL.variationPct != null ? <PastilleVariation v={derniereVL.variationPct} periode={t("dernière VL")} /> : <span>{fmtDate(derniereVL.date)}</span>} />
     ) : mesureLue === "rendement" ? (
-      <Majeur etiquette={t("Rendement annualisé · {n} jours glissants", { n: fenetre ?? 365 })} valeur={signe(dernier.y)} sous={<span>{benchmark ? `– – ${benchmark.label} ${signe(benchmark.pct)}` : fmtDate(dernier.d)}</span>} />
+      cumule ? (
+        <Majeur etiquette={t("Rendement depuis le {d} · non annualisé", { d: fmtDate(premier.d) })} valeur={signe(dernier.y)} sous={<span>{fmtDate(dernier.d)}</span>} />
+      ) : (
+        <Majeur etiquette={t("Rendement annualisé · {n} jours glissants", { n: fenetre ?? 365 })} valeur={signe(dernier.y)} sous={<span>{benchmark ? `– – ${benchmark.label} ${signe(benchmark.pct)}` : fmtDate(dernier.d)}</span>} />
+      )
     ) : (
       <Majeur etiquette={t("{n} FCFA placés le {d}", { n: fmt(REF_AMOUNT), d: fmtDate(premier.d) })} valeur={fmt(dernier.y)} unite="FCFA" sous={<PastilleVariation v={variationDuPlace} periode={t(lue.libelle)} />} />
     );
@@ -117,13 +125,13 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
       <div className={styles.enteteMesure}>{entete}</div>
       <div className={styles.commutateur} role="group" aria-label={t("Ce que la courbe mesure")}>
         {MESURES.map(([m, libelle]) => (
-          <button key={m} type="button" aria-pressed={mesureLue === m} disabled={m === "rendement" && !rendementPossible} className={mesureLue === m ? styles.actif : undefined} onClick={() => setMesure(m)}>
+          <button key={m} type="button" aria-pressed={mesureLue === m} className={mesureLue === m ? styles.actif : undefined} onClick={() => setMesure(m)}>
             {t(libelle)}
           </button>
         ))}
       </div>
-      {/* LE RENDEMENT GRISÉ SE JUSTIFIE (10 novembre 2026) : un fonds jeune (FCP CCA Invest : 63 jours) n'a pas assez d'historique pour un rendement glissant, et un bouton grisé sans un mot se lisait comme un bouton cassé. */}
-      {!rendementPossible && <p className={styles.indisponible}>{t("Rendement indisponible : {mini} jours d'historique sont nécessaires, ce fonds en compte {n}.", { mini: JOURS_MINI, n: joursDHistorique })}</p>}
+      {/* UN FONDS JEUNE (FCP CCA Invest : 63 jours) n'a pas assez d'historique pour un rendement glissant : la mesure « Rendement » montre alors l'écart depuis la première VL, non annualisé, et la ligne le dit. */}
+      {!rendementPossible && <p className={styles.indisponible}>{t("Fonds de {n} jours : le rendement glissant demande {mini} jours d'historique, « Rendement » montre l'écart depuis la première VL, non annualisé.", { mini: JOURS_MINI, n: joursDHistorique })}</p>}
       <div className={styles.entete}>
         <span className={styles.variation}>{lue.variationPct !== undefined && <PastilleVariation v={lue.variationPct} periode={t(lue.libelle)} />}</span>
         <Select
@@ -176,7 +184,8 @@ export function CourbeDeLaVL({ series, benchmark, hauteur = 190 }: { series: Nav
       </div>
       <p className={`${styles.legende} ${styles.legendeFixe}`}>
         {t(n > 1 ? "{n} VL publiées · du {a} au {b}" : "1 VL publiée · du {a} au {b}", { n, a: fmtDate(premier.d), b: fmtDate(dernier.d) })}
-        {mesureLue === "rendement" && fenetre ? <span className={styles.indice}>{t("les {n} jours qui précèdent chaque point", { n: fenetre })}</span> : null}
+        {mesureLue === "rendement" && fenetre && !cumule ? <span className={styles.indice}>{t("les {n} jours qui précèdent chaque point", { n: fenetre })}</span> : null}
+        {cumule ? <span className={styles.indice}>{t("écart avec la première VL de la période, brut, avant frais")}</span> : null}
         {mesureLue === "placement" ? <span className={styles.indice}>{t("placés à la première VL, brut, avant frais")}</span> : null}
       </p>
       <Tuiles

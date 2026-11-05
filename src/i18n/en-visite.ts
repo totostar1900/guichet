@@ -158,5 +158,8 @@ export const EN_VISITE: Record<string, string> = {
   "Les autres sociétés de gestion dont Guichet propose des fonds, la plus fournie d'abord. Un toucher ouvre la liste de leurs fonds.": "The other management companies whose funds Guichet offers, the largest first. A tap opens the list of their funds.",
   "{n} fonds proposés à Guichet": "{n} funds offered on Guichet",
   "1 fonds proposé à Guichet": "1 fund offered on Guichet",
-  "Rendement indisponible : {mini} jours d'historique sont nécessaires, ce fonds en compte {n}.": "Return unavailable: {mini} days of history are needed, this fund has {n}.",
+  "Rendement depuis la première VL": "Return since the first NAV",
+  "Rendement depuis le {d} · non annualisé": "Return since {d} · not annualised",
+  "Fonds de {n} jours : le rendement glissant demande {mini} jours d'historique, « Rendement » montre l'écart depuis la première VL, non annualisé.": "Fund of {n} days: the rolling return needs {mini} days of history, \"Return\" shows the change since the first NAV, not annualised.",
+  "écart avec la première VL de la période, brut, avant frais": "change from the first NAV of the period, gross, before fees",
 };

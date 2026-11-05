@@ -747,10 +747,14 @@ describe("la fiche d'un fonds, calquée sur celle d'un titre (10 novembre 2026, 
     expect(lire("src/components/CourbeDuCours.module.css").match(/\.commutateur button \{([^}]*)\}/)?.[1] ?? "", "le commutateur est plus haut que le sélecteur de période (34 px)").toMatch(/min-height: 30px;/);
     expect(lire("src/components/CourbeDuCours.module.css"), "le commutateur n'a plus de piste à trois colonnes").toMatch(/\.commutateur \{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/);
   });
-  it("un rendement grisé dit pourquoi : l'historique d'un fonds jeune ne suffit pas au rendement glissant", () => {
+  it("un fonds jeune a un rendement non annualisé, et la ligne le dit : le bouton n'est jamais grisé", () => {
     const c = courbe();
     expect(c, "le seuil d'historique du rendement n'est plus calculé de la plus courte fenêtre").toMatch(/const JOURS_MINI = Math\.ceil\(FENETRES\[FENETRES\.length - 1\] \* 1\.2\);/);
-    expect(c, "le rendement grisé ne dit plus pourquoi").toMatch(/\{!rendementPossible && <p className=\{styles\.indisponible\}>\{t\("Rendement indisponible : \{mini\} jours d'historique sont nécessaires, ce fonds en compte \{n\}\."/);
+    expect(c, "le rendement d'un fonds jeune n'est plus l'écart avec la première VL").toMatch(/: cumule\s*\? fenetreNav\.map\(\(p\) => \(\{ d: p\.date, y: fenetreNav\[0\]\.nav > 0 \? \(p\.nav \/ fenetreNav\[0\]\.nav - 1\) \* 100 : 0, nav: p\.nav \}\)\)/);
+    expect(c, "le rendement d'un fonds jeune n'est plus étiqueté non annualisé").toMatch(/t\("Rendement depuis le \{d\} · non annualisé"/);
+    expect(c, "le bouton « Rendement » est de nouveau grisé pour un fonds jeune").not.toMatch(/disabled=\{m === "rendement"/);
+    expect(c, "la ligne qui explique le rendement d'un fonds jeune a disparu").toMatch(/\{!rendementPossible && <p className=\{styles\.indisponible\}>\{t\("Fonds de \{n\} jours : le rendement glissant demande \{mini\} jours/);
+    expect(c, "le BTA est tracé sur un rendement non annualisé : deux grandeurs qui ne se comparent pas").toMatch(/benchmark && mesureLue === "rendement" && !cumule \?/);
   });
   it("la légende réserve ses deux lignes, et l'unité de l'axe est posée au-dessus de la première graduation", () => {
     expect(courbe(), "la légende n'est plus celle qui réserve sa hauteur").toMatch(/className=\{`\$\{styles\.legende\} \$\{styles\.legendeFixe\}`\}/);
