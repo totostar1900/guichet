@@ -97,7 +97,6 @@ export const EN_DATA: Record<string, string> = {
   "Les coupons sont « bruts » : retenue à la source applicable. Le nominal restant par titre est celui imprimé au bulletin de la BVMAC.": "Coupons are “gross”: withholding tax applies. The remaining par per security is the one printed in the BVMAC bulletin.",
   "Société Nationale des Pétroles du Congo": "Société Nationale des Pétroles du Congo",
   "Enoch Miatabouna (représentant la Présidence de la République)": "Enoch Miatabouna (representing the Presidency of the Republic)",
-  "Pour un prêteur, l'essentiel est que les revenus couvrent durablement les intérêts et les remboursements : un résultat positif et stable compte plus qu'une forte croissance.": "For a lender, what matters is that income durably covers interest and repayments: a positive, stable result counts more than strong growth.",
 
   /* ---------- seed line descriptions ---------- */
   "Ligne nouvelle : aucun coupon couru, décaissement exactement au prix. Deux coupons pleins puis le capital.": "New line: no accrued interest, outlay exactly at the price. Two full coupons then the capital.",
