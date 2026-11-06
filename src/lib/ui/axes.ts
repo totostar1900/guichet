@@ -7,7 +7,10 @@
 export function pasPropre(etendue: number, n: number): number {
   if (!(etendue > 0)) return 1;
   const brut = etendue / Math.max(1, n - 1);
-  const p = Math.pow(10, Math.floor(Math.log10(brut)));
+  /* LA PUISSANCE DE DIX SE LIT DANS L'ÉCRITURE DÉCIMALE, PAS DANS « Math.pow » NI « Math.log10 » (6 novembre 2026) : ces deux-là ne rendent pas les mêmes derniers chiffres dans Node
+     et dans le navigateur, le pas et le nombre de graduations différaient entre le serveur et le client (erreur React #418 sur le rendement de REG). « toExponential » et
+     « Number("1e-3") » sont exacts, partout pareils. */
+  const p = Number(`1e${brut.toExponential().split("e")[1]}`);
   const f = brut / p;
   return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p;
 }
@@ -17,9 +20,11 @@ export function ticksPropres(min: number, max: number, n = 3): number[] {
   const pas = pasPropre(max - min, n);
   const debut = Math.floor(min / pas) * pas;
   const out: number[] = [];
-  for (let v = debut; v < max + pas; v += pas) {
+  /* Chaque graduation est calculée depuis la première (k × pas), jamais en additionnant : l'addition cumule des erreurs d'arrondi et le dernier repère pouvait changer. */
+  for (let k = 0; ; k++) {
+    const v = debut + k * pas;
     out.push(Math.round(v * 1e6) / 1e6);
-    if (v >= max) break;
+    if (v >= max || k > 1000) break;
   }
   return out;
 }
