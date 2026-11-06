@@ -15,9 +15,13 @@ import styles from "./Info.module.css";
  * téléphone et ne se fermait que d'un toucher précis. On réutilise la fenêtre centrée de la maison (« Sheet » « centre ») : même voile, même geste, même croix.
  * Exceptions voulues : le « i » de la barre du haut (sa feuille d'onglets) ; le reste est à discuter (voir le skill guichet-espace-tuiles, « Les bulles »).
  */
-export function Info({ term, text, label, subtle }: { term?: TermKey; text?: string; label?: string; subtle?: boolean }) {
+export function Info({ term, termes, text, label, subtle }: { term?: TermKey; /** UN SEUL « i » POUR UN GRAPHE OU UN TABLEAU (6 novembre 2026) : tous les termes qu'il emploie, chacun avec sa définition, dans une seule fenêtre. */ termes?: TermKey[]; text?: string; label?: string; subtle?: boolean }) {
   const tr = useT();
   const t = term ? getRegistry().glossary[term] : undefined;
+  const liste = (termes ?? []).flatMap((k) => {
+    const g = getRegistry().glossary[k];
+    return g ? [{ k, nom: "long" in g && g.long ? `${tr(g.short)} : ${tr(g.long)}` : tr(g.short), texte: tr(g.text), lecon: lessonForTerm(k) }] : [];
+  });
   const body = tr(text ?? t?.text ?? "");
   const title = label ? tr(label) : t ? ("long" in t && t.long ? `${tr(t.short)} : ${tr(t.long)}` : tr(t.short)) : "";
   const lesson = term ? lessonForTerm(term) : undefined;
@@ -42,7 +46,28 @@ export function Info({ term, text, label, subtle }: { term?: TermKey; text?: str
         i
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title={title || tr("Explication")} centre>
-        <p className={styles.texte}>{body}</p>
+        {liste.length > 0 ? (
+          <dl className={styles.termes}>
+            {liste.map((e) => (
+              <div key={e.k}>
+                <dt>{e.nom}</dt>
+                <dd>
+                  {e.texte}
+                  {e.lecon && (
+                    <>
+                      {" "}
+                      <a className={styles.lien} href={`/info/${e.lecon.key}`}>
+                        {tr("En savoir plus")} →
+                      </a>
+                    </>
+                  )}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p className={styles.texte}>{body}</p>
+        )}
         {lesson && (
           <a className={styles.more} href={`/info/${lesson.key}`}>
             {tr("En savoir plus")} : {tr(lesson.title)} →

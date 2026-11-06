@@ -21,7 +21,7 @@ import styles from "./CourbeDuCours.module.css";
  * séances n'ont aucun échange, et une courbe plate ne dit pas « stable » mais « pas d'échange ». Les dates de l'axe portent TOUJOURS l'année.
  * Au toucher (ou au glissement du doigt), une bulle noire au-dessus du dessin dit la séance : clôture, titres, valeur.
  */
-export function CourbeDuCours({ points, hauteur = 258 }: { points: PointCours[]; hauteur?: number }) {
+export function CourbeDuCours({ points, hauteur = 300 }: { points: PointCours[]; hauteur?: number }) {
   const t = useT();
   const { fmtDate } = useDates();
   const [periode, setPeriode] = useState<PeriodeCours>(() => periodeParDefaut(points));
@@ -33,9 +33,9 @@ export function CourbeDuCours({ points, hauteur = 258 }: { points: PointCours[];
   const droite = 8;
   const H = hauteur;
   const prixH = Math.round(H * 0.42);
-  const volTop = prixH + 26;
+  const volTop = prixH + 36;
   const volBas = volTop + Math.round(H * 0.15);
-  const valTop = volBas + 26;
+  const valTop = volBas + 36;
   const valBas = H - 22;
   const x = (i: number) => gauche + (i * (W - gauche - droite)) / Math.max(1, serie.length - 1);
   const { handlers, index } = useLecture(serie.length, x, W);
@@ -45,7 +45,7 @@ export function CourbeDuCours({ points, hauteur = 258 }: { points: PointCours[];
   const ticks = ticksPropres(Math.min(...closes), Math.max(...closes), 3);
   const bas = ticks[0];
   const haut = ticks[ticks.length - 1];
-  const y = (v: number) => 18 + (haut === bas ? (prixH - 18) / 2 : (1 - (v - bas) / (haut - bas)) * (prixH - 18));
+  const y = (v: number) => 26 + (haut === bas ? (prixH - 26) / 2 : (1 - (v - bas) / (haut - bas)) * (prixH - 26));
   const trait = serie.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(p.c).toFixed(1)}`).join(" ");
   const aire = `${trait} L${x(serie.length - 1).toFixed(1)} ${prixH} L${x(0).toFixed(1)} ${prixH} Z`;
   const vol = volumetrie(serie);
@@ -97,13 +97,13 @@ export function CourbeDuCours({ points, hauteur = 258 }: { points: PointCours[];
       <div className={styles.zone}>
         <BulleNoire lecture={lecture} x={index == null ? 0 : x(index)} W={W} />
         <svg viewBox={`0 0 ${W} ${H}`} className={styles.dessin} role="img" aria-label={`${t("Clôtures du {a} au {b}", { a: fmtDate(serie[0].d), b: fmtDate(dernier.d) })} : ${fmt(serie[0].c)} → ${fmt(dernier.c)} FCFA`} {...handlers}>
-          <text x={2} y={9} className={styles.unite}>
+          <text x={2} y={11} className={styles.unite}>
             FCFA
           </text>
           {ticks.map((v) => (
             <g key={v}>
               <line x1={gauche} x2={W - droite} y1={y(v)} y2={y(v)} className={styles.grille} />
-              <text x={gauche - 4} y={y(v) + 2.5} textAnchor="end" className={styles.graduation}>
+              <text x={gauche - 4} y={y(v) + 3.5} textAnchor="end" className={styles.graduation}>
                 {fmt(v)}
               </text>
             </g>
@@ -111,25 +111,25 @@ export function CourbeDuCours({ points, hauteur = 258 }: { points: PointCours[];
           <path d={aire} className={styles.aire} />
           <path d={trait} className={styles.trait} />
           <circle cx={x(serie.length - 1)} cy={y(dernier.c)} r={3.5} className={styles.point} />
-          <text x={2} y={volTop - 8} className={styles.unite}>
+          <text x={2} y={volTop - 14} className={styles.unite}>
             {t("titres")}
           </text>
           {vticks.map((v) => (
             <g key={v}>
               <line x1={gauche} x2={W - droite} y1={vy(v)} y2={vy(v)} className={styles.grille} />
-              <text x={gauche - 4} y={vy(v) + 2.5} textAnchor="end" className={styles.graduation}>
+              <text x={gauche - 4} y={vy(v) + 3.5} textAnchor="end" className={styles.graduation}>
                 {fmt(v)}
               </text>
             </g>
           ))}
           {serie.map((p, i) => (p.v > 0 ? <rect key={p.d} x={x(i) - largeur / 2} y={vy(p.v)} width={largeur} height={volBas - vy(p.v)} className={styles.volume} /> : null))}
-          <text x={2} y={valTop - 8} className={styles.unite}>
+          <text x={2} y={valTop - 14} className={styles.unite}>
             {t("Valeur échangée")} · {aEchange ? echelle.short : "FCFA"}
           </text>
           {gticks.map((v) => (
             <g key={v}>
               <line x1={gauche} x2={W - droite} y1={valBas - (v / ghaut) * (valBas - valTop)} y2={valBas - (v / ghaut) * (valBas - valTop)} className={styles.grille} />
-              <text x={gauche - 4} y={valBas - (v / ghaut) * (valBas - valTop) + 2.5} textAnchor="end" className={styles.graduation}>
+              <text x={gauche - 4} y={valBas - (v / ghaut) * (valBas - valTop) + 3.5} textAnchor="end" className={styles.graduation}>
                 {v.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}
               </text>
             </g>

@@ -32,7 +32,7 @@ export function GrapheDeSerie({ dates, series, unite, pas = false, aire = false,
   const { handlers, index } = useLecture(dates.length, x, W);
   if (dates.length < 2) return null;
   const H = hauteur;
-  const haut = 18;
+  const haut = 26;
   const bas = H - 28;
   const valeurs = series.flatMap((s) => s.valeurs.filter((v): v is number => v != null));
   const ticks = ticksPropres(0, Math.max(...valeurs, 0.0001), 4);

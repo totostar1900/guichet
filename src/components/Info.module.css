@@ -62,3 +62,26 @@
 .more:hover {
   text-decoration: underline;
 }
+/* Une seule fenêtre pour tous les termes d'un graphe ou d'un tableau : un terme en gras, sa définition dessous. */
+.termes {
+  display: grid;
+  gap: var(--s-6);
+  margin: 0;
+}
+.termes dt {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.termes dd {
+  margin: var(--s-2) 0 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.lien {
+  color: var(--gold-ink);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}

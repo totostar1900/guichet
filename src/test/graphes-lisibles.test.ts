@@ -89,3 +89,52 @@ describe("les tableaux de lecture", () => {
     expect(corps).toMatch(/t\("« aucun » : exercice sans dividende distribué\."\)/);
   });
 });
+
+describe("les repères d'un axe ne se chevauchent pas (6 novembre 2026)", () => {
+  it("la largeur estimée d'un caractère est celle du texte de 10 px, partagée", () => {
+    expect(sansCommentaires(lire("src/lib/ui/graphe.ts"))).toMatch(/export const GRAPHE_CAR = 5\.8;/);
+    expect(sansCommentaires(lire("src/lib/ui/axes.ts"))).toMatch(/reperesSansChevauchement\(xs: number\[\], etiquettes: string\[\], px = GRAPHE_CAR, marge = 6\)/);
+  });
+
+  it("l'unité d'un axe a sa ligne, au-dessus de la plus haute graduation", () => {
+    for (const f of ["src/components/GrapheComptes.tsx", "src/components/GrapheDeSerie.tsx"]) expect(sansCommentaires(lire(f)), f).toMatch(/const haut = 26;/);
+    const courbe = sansCommentaires(lire("src/components/CourbeDuCours.tsx"));
+    expect(courbe).toMatch(/const y = \(v: number\) => 26 \+/);
+    expect(courbe).toMatch(/y=\{volTop - 14\}/);
+    expect(courbe).toMatch(/y=\{valTop - 14\}/);
+  });
+
+  it("les graduations d'une courbe bornent son axe (la plus haute ne sort pas du dessin)", () => {
+    expect(sansCommentaires(lire("src/components/Charts.tsx"))).toMatch(/max = Math\.max\(max, ticks\[ticks\.length - 1\]\);/);
+  });
+});
+
+describe("un seul « i » par graphe et par tableau", () => {
+  const corps = lire("src/app/societes/[mnemo]/SocieteBody.tsx");
+
+  it("le tableau des chiffres clés n'a plus un « i » par ligne : un seul, sur son titre, qui dit tous les termes", () => {
+    const debut = corps.indexOf('{t("Chiffres clés certifiés")}');
+    const tableau = corps.slice(debut, corps.indexOf("</table>", debut));
+    expect(tableau).toMatch(/<Info termes=\{\[revenueTerm, "valeur_ajoutee", "resultat_net", "fonds_propres", "total_bilan", "bnpa", "dividende"\]\}/);
+    expect(tableau.match(/<Info /g)?.length).toBe(1);
+  });
+
+  it("un titre de graphe qui nomme deux termes les réunit dans un seul « i »", () => {
+    expect(corps).toMatch(/<Info termes=\{\[revenueTerm, "resultat_net"\]\}/);
+    expect(corps).toMatch(/<Info termes=\{\["fonds_propres", "total_bilan"\]\}/);
+    expect(corps).not.toMatch(/<Info term="resultat_net" \/>/);
+    expect(corps).not.toMatch(/<Info term="total_bilan" \/>/);
+  });
+
+  it("la liste des ratios a son « i » sur le titre, pas un terme-lien par ratio", () => {
+    expect(corps).toMatch(/\{t\("Ratios, et comment les lire"\)\} <Info termes=\{a\.ratios\.flatMap/);
+    expect(corps).not.toMatch(/<Term term=/);
+  });
+
+  it("le composant sait dire plusieurs termes dans une seule fenêtre", () => {
+    const info = lire("src/components/Info.tsx");
+    expect(info).toMatch(/termes\?: TermKey\[\]/);
+    expect(info).toMatch(/<dl className=\{styles\.termes\}>/);
+  });
+});
+

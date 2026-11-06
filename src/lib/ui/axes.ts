@@ -1,3 +1,5 @@
+import { GRAPHE_CAR } from "./graphe";
+
 /**
  * LES GRADUATIONS D'UN AXE : des valeurs rondes, en nombre voulu, qui encadrent la série (9 novembre 2026).
  *
@@ -44,10 +46,10 @@ export function motDeMois(iso: string, avecAnnee: boolean): string {
  *
  * Douze mois, quarante-quatre mois sur « max » : tous ne tiennent pas sous le dessin. Cette fonction dit lesquels écrire. Un repère centré en `x` occupe
  * `largeur(texte)` pixels ; on en garde autant que possible SANS QUE DEUX SE TOUCHENT (une marge entre eux), dans cet ordre de priorité : le premier, le dernier, ceux qui
- * portent une année (« janv. 2026 »), puis les autres. La largeur d'un caractère est une estimation (`px`, 4,6 pour du 8 px) : mieux vaut en perdre un que le lire
+ * portent une année (« janv. 2026 »), puis les autres. La largeur d'un caractère est une estimation (`px`, `GRAPHE_CAR` : 5,8 pour du 10 px) : mieux vaut en perdre un que le lire
  * collé à son voisin.
  */
-export function reperesSansChevauchement(xs: number[], etiquettes: string[], px = 4.6, marge = 6): boolean[] {
+export function reperesSansChevauchement(xs: number[], etiquettes: string[], px = GRAPHE_CAR, marge = 6): boolean[] {
   const n = xs.length;
   const garde = new Array<boolean>(n).fill(false);
   if (n === 0) return garde;

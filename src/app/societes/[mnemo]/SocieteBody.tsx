@@ -8,7 +8,7 @@ import { analyse, PERIODS, periodComment, periodFrom, pricePeriod } from "@/lib/
 import { IndexVsShare } from "@/components/IndexVsShare";
 import { floatRotation, indexSeries, indexWeights } from "@/lib/market/index";
 import { COUNTRY_CODE } from "@/lib/domain/summary";
-import { Info, Term } from "@/components/Info";
+import { Info } from "@/components/Info";
 import type { TermKey } from "@/lib/glossary";
 import { fmt, fmtDate, fmtPct, fmtScaled, fmtUnits, pickScale } from "@/lib/format";
 import styles from "./page.module.css";
@@ -240,7 +240,7 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
 
           <div className={styles.panel} {...pane("comptes")}>
             <h2>
-              {a.latest.revenueLabel} <Info term={revenueTerm} /> {t("et bénéfice net")} <Info term="resultat_net" /> · {figs[0].year}–{a.latest.year}
+              {a.latest.revenueLabel} {t("et bénéfice net")} <Info termes={[revenueTerm, "resultat_net"]} label={`${t(a.latest.revenueLabel)} ${t("et bénéfice net")}`} /> · {figs[0].year}–{a.latest.year}
             </h2>
             <div className={styles.unitNote}>{t("en FCFA · survolez les barres pour les montants exacts et la variation d'une année sur l'autre")}</div>
             <BarChart groups={years} series={[{ name: t(a.latest.revenueLabel), values: figs.map((f) => f.revenue) }, { name: t("Bénéfice net"), values: figs.map((f) => f.netIncome), accent: true }]} ariaLabel={`${t(a.latest.revenueLabel)} ${t("et bénéfice net par année")}`} />
@@ -266,7 +266,7 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
 
           <div className={styles.panel} {...pane("comptes")}>
             <h2>
-              {t("Fonds propres")} <Info term="fonds_propres" /> {t("et total du bilan")} <Info term="total_bilan" />
+              {t("Fonds propres")} {t("et total du bilan")} <Info termes={["fonds_propres", "total_bilan"]} label={`${t("Fonds propres")} ${t("et total du bilan")}`} />
             </h2>
             <div className={styles.unitNote}>{t("en FCFA · survolez les barres pour les montants exacts")}</div>
             <BarChart groups={years} series={[{ name: t("Total du bilan"), values: figs.map((f) => f.totalAssets) }, { name: t("Fonds propres"), values: figs.map((f) => f.equity), accent: true }]} ariaLabel={t("Total du bilan et fonds propres par année")} />
@@ -306,7 +306,9 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
           )}
 
           <div className={styles.panel} {...pane("comptes")}>
-            <h2>{t("Chiffres clés certifiés")}</h2>
+            <h2>
+              {t("Chiffres clés certifiés")} <Info termes={[revenueTerm, "valeur_ajoutee", "resultat_net", "fonds_propres", "total_bilan", "bnpa", "dividende"]} label={t("Chiffres clés certifiés")} />
+            </h2>
             <div className={styles.unitNote}>{t(`en ${scale.label}, sauf les montants par action (FCFA)`)}</div>
             <div className="scroll-x">
               <table className={styles.tbl}>
@@ -331,11 +333,9 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
                       ["Bénéfice par action (FCFA)", "bnpa", (f) => fmt(f.netIncome / c.sharesTotal)],
                       ["Dividende brut par action (FCFA)", "dividende", (f) => (f.dividendPerShare === null ? t("aucun") : f.dividendPerShare != null ? fmt(f.dividendPerShare) : "—")],
                     ] as [string, TermKey, (f: (typeof figs)[number]) => string][]
-                  ).map(([label, term, fn]) => (
+                  ).map(([label, , fn]) => (
                     <tr key={label}>
-                      <td>
-                        {t(label)} <Info term={term} />
-                      </td>
+                      <td>{t(label)}</td>
                       {figs.map((f) => (
                         <td key={f.year} className={styles.r}>
                           {fn(f)}
@@ -370,12 +370,14 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
           </div>
 
           <div className={styles.panel} {...pane("ratios")}>
-            <h2>{t("Ratios, et comment les lire")}</h2>
+            <h2>
+              {t("Ratios, et comment les lire")} <Info termes={a.ratios.flatMap((x) => (RATIO_TERM[x.key] ? [RATIO_TERM[x.key]] : []))} label={t("Ratios, et comment les lire")} />
+            </h2>
             <ul className={styles.ratios}>
               {a.ratios.map((x) => (
                 <li key={x.key}>
                   <div className={styles.ratioHead}>
-                    <span className={styles.ratioLabel}>{RATIO_TERM[x.key] ? <Term term={RATIO_TERM[x.key]}>{t(x.label)}</Term> : t(x.label)}</span>
+                    <span className={styles.ratioLabel}>{t(x.label)}</span>
                     <b className={styles.ratioValue}>{x.value}</b>
                   </div>
                   <p className={styles.ratioReading}>{t(x.reading)}</p>

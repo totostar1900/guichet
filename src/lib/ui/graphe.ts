@@ -5,3 +5,6 @@
  */
 export const GRAPHE_L = 320;
 export const GRAPHE_H = 190;
+
+/** La largeur estimée d'un caractère du texte d'un dessin (10 px) : sert à ne pas écrire deux repères d'axe l'un sur l'autre (`reperesSansChevauchement`). */
+export const GRAPHE_CAR = 5.8;

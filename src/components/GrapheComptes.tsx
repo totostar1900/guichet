@@ -49,7 +49,7 @@ export function GrapheComptes({
   const H = GRAPHE_H;
   const gauche = 44;
   const marge = droit ? 44 : 8;
-  const haut = 18;
+  const haut = 26;
   const bas = H - 30;
   const n = annees.length;
   const fente = (W - gauche - marge) / n;

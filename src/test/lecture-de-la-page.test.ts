@@ -487,8 +487,8 @@ describe("la fiche d'une action : des encadrés en relief, des graphes, des mosa
     expect(c, "la liste des périodes n'est plus celle de la maison").toMatch(/import \{ Select \} from "\.\/ui\/Select";/);
     expect(c, "la liste ne grise plus les périodes sans historique").toMatch(/disabled: !l\.disponible,/);
     expect(c, "les périodes viennent d'ailleurs que de periodes.ts").toMatch(/lirePeriode, periodeParDefaut, PERIODES, volumetrie/);
-    expect(c, "les volumes n'ont plus leur axe en titres").toMatch(/<text x=\{2\} y=\{volTop - 8\} className=\{styles\.unite\}>\s*\{t\("titres"\)\}\s*<\/text>/);
-    expect(c, "le volume des transactions (la valeur échangée) n'a plus son panneau sous les titres échangés").toMatch(/<text x=\{2\} y=\{valTop - 8\} className=\{styles\.unite\}>\s*\{t\("Valeur échangée"\)\}/);
+    expect(c, "les volumes n'ont plus leur axe en titres").toMatch(/<text x=\{2\} y=\{volTop - 14\} className=\{styles\.unite\}>\s*\{t\("titres"\)\}\s*<\/text>/);
+    expect(c, "le volume des transactions (la valeur échangée) n'a plus son panneau sous les titres échangés").toMatch(/<text x=\{2\} y=\{valTop - 14\} className=\{styles\.unite\}>\s*\{t\("Valeur échangée"\)\}/);
     expect(c, "la bulle noire n'est plus au-dessus du dessin").toMatch(/<BulleNoire lecture=\{lecture\} x=\{index == null \? 0 : x\(index\)\} W=\{W\} \/>/);
     expect(c, "les dates de l'axe ont perdu leur année").toMatch(/\{fmtDate\(serie\[i\]\.d\)\}/);
     expect(c, "les volumes ne sont plus dessinés").toMatch(/styles\.volume/);

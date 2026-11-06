@@ -850,6 +850,8 @@ Mesuré sur La Régionale, 390 et 1 280 px : le texte des graphes faisait **4,7 
 - **Deux barres voisines ne portent pas deux libellés de 33 unités** : quand toutes les valeurs d'un graphe ont la même unité (Md), l'unité est sur l'axe et la barre dit le nombre seul.
 - **Un exercice sans dividende s'écrit « aucun »**, défini sous le tableau (« non distribué » ne tient pas dans une colonne de 40 px).
 - **Une grille de carte déclare sa colonne** (`grid-template-columns: minmax(0, 1fr)`) : sans elle, la colonne « auto » grandit jusqu'à son contenu (une bande de lecture de 344 px dans une carte de 324).
+- **Les repères d'un axe ne se chevauchent jamais** (mesuré sur les sept sociétés, tous les onglets, toutes les durées, 390 et 340 px) : `GRAPHE_CAR` (5,8 u par caractère à 10 px) règle `reperesSansChevauchement`, l'unité a sa ligne (`haut = 26`), les graduations bornent l'axe.
+- **Un seul « i » par graphe et par tableau** : au bout du titre, `Info` avec `termes`, une fenêtre qui dit chaque terme. Les tuiles de chiffres clés gardent le leur.
 - Gardé par `src/test/graphes-lisibles.test.ts` (jetons, feuilles de dessin, boîte partagée, plafond, écarts, tableaux), vérifié par mutation.
 
 ## 9. La voix des libellés — « Mes » pour ce qui est au client, « Votre » pour ce que la maison lui dit

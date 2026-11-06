@@ -63,12 +63,15 @@ export function LineChart({ points, unit = "FCFA", height = GRAPHE_H, ariaLabel 
   const pad = (max - min) * 0.08;
   min -= pad;
   max += pad;
+  /* Les graduations bornent l'axe : la plus haute ne sort pas du dessin (« 42 k » était coupé à 340 px). */
+  const ticks = niceTicks(min, max, 4);
+  min = Math.min(min, ticks[0]);
+  max = Math.max(max, ticks[ticks.length - 1]);
   const x = (i: number) => (points.length === 1 ? W / 2 : padL + (i * (W - padL - padR)) / Math.max(1, points.length - 1));
   const y = (v: number) => padT + (H - padT - padB) * (1 - (v - min) / (max - min));
   const keys = points.map((p) => p.date);
   const track = useTracker({ keys, x, W, pins, onPin: (k) => setPins((cur) => togglePin(cur, k)) });
   if (points.length === 0) return <div className={styles.empty}>{tr("Pas encore de cours sur cette période.")}</div>;
-  const ticks = niceTicks(min, max, 4);
   const d = points.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(p.value).toFixed(1)}`).join(" ");
   const area = `${d} L${x(points.length - 1).toFixed(1)} ${(H - padB).toFixed(1)} L${x(0).toFixed(1)} ${(H - padB).toFixed(1)} Z`;
   const last = points[points.length - 1];
