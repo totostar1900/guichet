@@ -23,7 +23,7 @@ describe("la cote : une section à la fois, « Actions » d'abord", () => {
     expect(b, "la bande ne filtre plus").toMatch(/<SectionChips[\s\S]*?\bfiltrant\b/);
     expect(b, "« Actions » n'est plus la première pastille").toMatch(/\["actions", "etats", "regionales", "entreprises", "souscription"\]/);
     expect(b, "le sélecteur d'instruments a quitté les adjudications : les trois pages n'ont plus la même forme").not.toMatch(/\{!adj && \(\s*<SectionChips/);
-    expect(b, "quand une section est choisie, la cote repasse par les blocs de tous les groupes").toMatch(/sommaire && !featured && !sansGroupe && !sectionChoisie \? \(/);
+    expect(b, "quand une section est choisie, la cote repasse par les blocs de tous les groupes").toMatch(/sommaire && !featured && !sansGroupe && \(!sectionChoisie \|\| \(adj && !parEmetteur\)\) \? \(/);
   });
 
   it("abrège une section à huit lignes, avec « Voir les N lignes », sauf recherche ou filtre", () => {

@@ -9,6 +9,7 @@ import type { Country, DisplayStatus, Offer } from "@/lib/domain/types";
 import { displayStatus, FAMILIES, familyLabel, familySegment, familyShort, headlineYield, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_LABEL, tenorYears, clientStatusGroup } from "@/lib/domain/status";
 import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
 import { parseDate } from "@/lib/finance";
+import { syntheseDesSeances } from "@/lib/domain/synthese-seances";
 import { OfferCard } from "./OfferCard";
 import { TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
@@ -250,7 +251,7 @@ const StatusPill = ({ s }: { s: OfferSummary }) => {
  * les cartes et la liste les affichent. Les recalculer ici aurait fait un
  * second découpage à tenir d'accord avec le premier.
  */
-function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections }: { rows: Row[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean; chosen?: boolean; sections?: { clef: string; nom: string; rows: Row[] }[] }) {
+function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections, picks }: { rows: Row[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean; chosen?: boolean; /** Les lignes retenues par le desk, rendues dans la liste même (adjudications). */ picks?: Set<string>; sections?: { clef: string; nom: string; rows: Row[] }[] }) {
   const groups = sections
     ? sections.map((x) => ({ issuer: x.nom, zone: "Cameroun" as const, countryName: "", rows: x.rows, section: x.clef }))
     : grouped
@@ -286,7 +287,7 @@ function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections }:
             ] : grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} colSpan={8} />] : []),
             <GroupBody key={`b-${g.issuer}`} issuer={grouped && !sections ? g.issuer : ""}>
               {g.rows.map(({ o, s }) => (
-                <TableRow key={o.id} o={o} s={s} featured={featured} />
+                <TableRow key={o.id} o={o} s={s} featured={featured || Boolean(picks?.has(o.id))} avertir={Boolean(picks)} />
               ))}
             </GroupBody>,
           ])}
@@ -296,8 +297,68 @@ function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections }:
   );
 }
 
+/**
+ * LA RAISON DU DESK, SOUS LA LIGNE QU'IL RETIENT. Sur la page des adjudications « À la une » n'est plus un cadre à part (6 novembre 2026, planche « 2A ») : la ligne retenue est la
+ * première de la liste, avec sa pastille, sa raison, et la phrase que le cadre portait en tête : une sélection n'est pas un conseil.
+ */
+function NoteDeSelection({ o, avertir = false }: { o: Offer; avertir?: boolean }) {
+  const t = useT();
+  if (!o.featured?.reason) return null;
+  return (
+    <>
+      <small className={styles.reason}>{o.featured.reason}</small>
+      {avertir && <small className={styles.avertissement}>{t("Une sélection, pas un conseil : chaque ligne se lit dans sa fiche.")}</small>}
+    </>
+  );
+}
+
+/** « 4 séances à jouer · actuariel de 7,00 % à 7,21 % · prochaine clôture 17 nov. » : une ligne, sans dépli (planche « 3A »). */
+function BandeSeances({ rows, nowIso }: { rows: Row[]; nowIso: string }) {
+  const t = useT();
+  const { fmtDate } = useDates();
+  const sy = syntheseDesSeances(rows, nowIso);
+  const titre = sy.aJouer === 0 ? t("Aucune séance à jouer") : sy.aJouer === 1 ? t("1 séance à jouer") : t("{n} séances à jouer", { n: String(sy.aJouer) });
+  const morceaux: string[] = [];
+  if (sy.rendementMin != null && sy.rendementMax != null) {
+    morceaux.push(sy.rendementMin === sy.rendementMax ? t("actuariel {a}", { a: fmtPct(sy.rendementMin, 2) }) : t("actuariel de {a} à {b}", { a: fmtPct(sy.rendementMin, 2), b: fmtPct(sy.rendementMax, 2) }));
+  }
+  if (sy.prochaineCloture) morceaux.push(t("prochaine clôture {d}", { d: fmtDate(sy.prochaineCloture.slice(0, 10), false) }));
+  return (
+    <div className={styles.bandeSeances} role="status">
+      <b>{titre}</b>
+      {morceaux.length > 0 && <span>{morceaux.join(" · ")}</span>}
+    </div>
+  );
+}
+
+/**
+ * LA SÉANCE CLOSE EN RANGÉE DE 64 PX, TOUTE LA RANGÉE EST UN LIEN (6 novembre 2026, planche « 4A »). Une séance close n'offre plus de geste : le nom, le pays, le coupon et la date
+ * de clôture à gauche, son rendement avec son hypothèse à droite. L'échéance, le ticket minimum et l'ISIN sont dans la fiche, à un toucher.
+ */
+function RangeeDeSeance({ o, s }: { o: Offer; s: OfferSummary }) {
+  const t = useT();
+  const href = useLineHref();
+  const desk = useDeskView();
+  const meta = [t(o.countryName), o.couponRate != null ? t("coupon {c}", { c: fmtPct(o.couponRate, 2) }) : null, s.deadlineParts ? t("clôturée le {d}", { d: s.deadlineParts[0] }) : t("clôturée")].filter(Boolean).join(" · ");
+  return (
+    <div className={styles.rangeeWrap}>
+      <Link href={href(o.id)} className={styles.rangee}>
+        <span className={styles.rangeeNom}>
+          <b>{t(o.title)}</b>
+          <small>{meta}</small>
+        </span>
+        <span className={styles.rangeeVal}>
+          <b className={s.gold ? styles.taux : undefined}>{s.hero}</b>
+          <small>{t(s.heroUnit ?? s.heroSub)}</small>
+        </span>
+      </Link>
+      {!desk && <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} cadence={cadenceDuSuivi(o)} />}
+    </div>
+  );
+}
+
 /** One row of the table, with its « ··· ». */
-function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boolean }) {
+function TableRow({ o, s, featured, avertir }: { o: Offer; s: OfferSummary; featured?: boolean; avertir?: boolean }) {
   const t = useT();
   const href = useLineHref();
   const desk = useDeskView();
@@ -305,7 +366,7 @@ function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: bo
         <tr className={`${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`}>
           <td className={styles.line}>
             <LineIdentity o={o} s={s} href={href(o.id)} />
-            {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
+            {featured && <NoteDeSelection o={o} avertir={avertir} />}
           </td>
           <td>
             <StatusPill s={s} />
@@ -340,7 +401,7 @@ function TableRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: bo
 }
 
 /* ---------- list ---------- */
-function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; featured?: boolean }) {
+function List({ rows, grouped, featured, picks }: { rows: Row[]; grouped: boolean; featured?: boolean; picks?: Set<string> }) {
   const groups = grouped ? groupByIssuer(rows) : [{ issuer: "", zone: "Cameroun" as const, countryName: "", rows }];
   return (
     <div className={styles.list}>
@@ -348,7 +409,7 @@ function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; feat
         ...(grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} />] : []),
         <GroupBody key={`b-${g.issuer}`} issuer={grouped ? g.issuer : ""}>
           {g.rows.map(({ o, s }) => (
-            <ListRow key={o.id} o={o} s={s} featured={featured} />
+            <ListRow key={o.id} o={o} s={s} featured={featured || Boolean(picks?.has(o.id))} avertir={Boolean(picks)} />
           ))}
         </GroupBody>,
       ])}
@@ -357,7 +418,7 @@ function List({ rows, grouped, featured }: { rows: Row[]; grouped: boolean; feat
 }
 
 /** One row of the list: the « ··· » sits on the corner of the link (a button cannot live inside it). */
-function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boolean }) {
+function ListRow({ o, s, featured, avertir }: { o: Offer; s: OfferSummary; featured?: boolean; avertir?: boolean }) {
   const t = useT();
   const href = useLineHref();
   const desk = useDeskView();
@@ -366,7 +427,7 @@ function ListRow({ o, s, featured }: { o: Offer; s: OfferSummary; featured?: boo
       <Link href={href(o.id)} className={`${styles.row} ${s.past ? styles.past : ""} ${featured ? styles.pick : ""}`} style={{ borderLeftColor: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
         <div className={styles.rowMain}>
           <LineIdentity o={o} s={s} size="lg" />
-          {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
+          {featured && <NoteDeSelection o={o} avertir={avertir} />}
           <div className={styles.rowStatus}>
             <StatusPill s={s} />
           </div>
@@ -788,12 +849,14 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   const pickIds = new Set(picks.map(({ o }) => o.id));
   /* Seules les lignes « à la une » sortent d'ici, parce qu'elles ont leur
      propre cadre au-dessus. L'épinglée, elle, garde son rang. */
-  const rest = rows.filter(({ o }) => !pickIds.has(o.id));
+  /* SUR LES ADJUDICATIONS, « À LA UNE » N'EST PLUS UN CADRE (6 novembre 2026, planche « 2A ») : la ligne retenue reste dans la liste, la première des ouvertes, avec sa pastille, sa raison et la phrase du desk. Les autres listes gardent leur cadre. */
+  const cadre = adj ? [] : picks;
+  const rest = adj ? rows : rows.filter(({ o }) => !pickIds.has(o.id));
   // The line pages step through this exact order and come back to this exact list.
   const listUrl = `${pathname}${sp.toString() ? `?${sp}` : ""}`;
-  const orderKey = [...picks, ...rest].map(({ o }) => o.id).join(",");
+  const orderKey = [...cadre, ...rest].map(({ o }) => o.id).join(",");
   useEffect(() => {
-    rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Toutes les offres", titles: [...picks, ...rest].map(({ o }) => o.title), peeks: [...picks, ...rest].map(({ s }) => ({ stamp: t(s.status), tone: s.statusClass, sub: t(s.subtitle), hero: s.hero, unit: s.heroUnit ? t(s.heroUnit) : undefined, gold: s.gold })) });
+    rememberList({ url: listUrl, ids: orderKey.split(",").filter(Boolean), label: "Toutes les offres", titles: [...cadre, ...rest].map(({ o }) => o.title), peeks: [...cadre, ...rest].map(({ s }) => ({ stamp: t(s.status), tone: s.statusClass, sub: t(s.subtitle), hero: s.hero, unit: s.heroUnit ? t(s.heroUnit) : undefined, gold: s.gold })) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listUrl, orderKey]);
   useListScroll(listUrl);
@@ -816,7 +879,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   const parSections = !sectionChoisie && view !== "table" && !sansGroupe;
   const renderUn = (list: Row[], featured: boolean, deja = false) =>
     view === "list" ? (
-      <List rows={list} grouped={grouped && !featured && !deja} featured={featured} />
+      <List rows={list} grouped={grouped && !featured && !deja} featured={featured} picks={adj ? pickIds : undefined} />
     ) : (
       <div className={`${styles.cards} ${featured ? styles.pickCards : ""}`} data-sep={sep}>
         {/* « deja » : le bloc qui nous appelle a déjà posé son titre. Sans
@@ -827,12 +890,17 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         {(grouped && !featured && !deja ? groupByIssuer(list) : [{ issuer: "", zone: "Cameroun" as const, countryName: "", rows: list }]).flatMap((g) => [
           ...(grouped && !featured && !deja ? [<GroupHead key={`g-${g.issuer}`} g={g} />] : []),
           <GroupBody key={`b-${g.issuer}`} issuer={grouped && !featured && !deja ? g.issuer : ""}>
-            {g.rows.map(({ o, s }) => (
-              <div key={o.id} className={featured ? styles.pickCard : undefined}>
-                <OfferCard o={o} s={s} suivi={armees.has(o.id)} courbe={o.isin ? courbes?.[o.isin] : undefined} />
-                {featured && o.featured?.reason && <small className={styles.reason}>{o.featured.reason}</small>}
-              </div>
-            ))}
+            {g.rows.map(({ o, s }) => {
+              /* Une séance close est une rangée de 64 px (planche « 4A ») ; une ligne retenue par le desk garde sa carte, sa raison dessous. */
+              if (adj && s.past) return <RangeeDeSeance key={o.id} o={o} s={s} />;
+              const pick = featured || (adj && pickIds.has(o.id));
+              return (
+                <div key={o.id} className={pick ? styles.pickCard : undefined}>
+                  <OfferCard o={o} s={s} suivi={armees.has(o.id)} courbe={o.isin ? courbes?.[o.isin] : undefined} />
+                  {pick && <NoteDeSelection o={o} avertir={adj} />}
+                </div>
+              );
+            })}
           </GroupBody>,
         ])}
       </div>
@@ -848,11 +916,21 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    */
   const blocsDuSommaire = (list: Row[]): { clef: string; entier: string; rows: Row[]; pays?: Country }[] => {
     if (parEmetteur) return groupByIssuer(list).map((g) => ({ clef: groupId(g.issuer), entier: g.issuer, rows: g.rows, pays: g.zone === "CEMAC" ? undefined : g.zone }));
+    /* LES ADJUDICATIONS SE RANGENT PAR ÉTAT, non par type (6 novembre 2026, planche « 1A ») : ce qui se joue d'abord (la ligne retenue par le desk en tête), les séances closes ensuite, repliées. Les pastilles du haut filtrent déjà par type. */
+    if (adj && !sansGroupe) {
+      const ouvertes = list.filter(({ s }) => !s.past);
+      const premieres = [...ouvertes.filter(({ o }) => pickIds.has(o.id)), ...ouvertes.filter(({ o }) => !pickIds.has(o.id))];
+      const closes = list.filter(({ s }) => s.past);
+      return [
+        { clef: "ouvertes", entier: t("Ouvertes et à venir · {n}", { n: String(premieres.length) }), rows: premieres },
+        { clef: "closes", entier: t("Séances closes · {n}", { n: String(closes.length) }), rows: closes },
+      ];
+    }
     return groupBySection(list, lieu).map((g) => ({ clef: g.section, entier: t(SECTION_LABEL[g.section]), rows: g.rows }));
   };
 
   /* PLIER / DÉPLIER TOUT, QUAND LA LISTE EST GROUPÉE (5 novembre 2026) : un chevron à côté d'« Affichage ». Il agit sur les blocs de la liste (par type ou par émetteur) ou, dans une section, sur les groupes d'émetteur. */
-  const blocsEnVue = sommaire && !sansGroupe && !sectionChoisie && view !== "table";
+  const blocsEnVue = sommaire && !sansGroupe && (!sectionChoisie || (adj && !parEmetteur)) && view !== "table";
   const repli = blocsEnVue ? { group: "blocs", ids: blocsDuSommaire(rest).map((b) => `sec-${b.clef}`) } : grouped && view !== "table" ? { group: "titres", ids: groupByIssuer(rest).map((g) => groupId(g.issuer)) } : null;
 
   const rendreListe = (list: Row[], featured: boolean) =>
@@ -865,9 +943,10 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         grouped={grouped && !featured}
         featured={featured}
         chosen={Boolean(sp.get("vue"))}
-        sections={!featured && !sansGroupe && !grouped && !sectionChoisie ? blocsDuSommaire(list).map((b) => ({ clef: b.clef, nom: b.entier, rows: b.rows })) : undefined}
+        picks={adj ? pickIds : undefined}
+        sections={!featured && !sansGroupe && !grouped && (!sectionChoisie || adj) ? blocsDuSommaire(list).map((b) => ({ clef: b.clef, nom: b.entier, rows: b.rows })) : undefined}
       />
-    ) : sommaire && !featured && !sansGroupe && !sectionChoisie ? (
+    ) : sommaire && !featured && !sansGroupe && (!sectionChoisie || (adj && !parEmetteur)) ? (
       (() => {
         const blocs = blocsDuSommaire(list);
         /* LES NOMS COURTS NE VALENT QUE POUR LES ÉMETTEURS. « Trésor public
@@ -884,7 +963,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           <>
             {blocs.map((b, i) => (
               <section key={b.clef} className={styles.bloc} aria-labelledby={`sec-${b.clef}`}>
-                <BlocRepliable id={`sec-${b.clef}`} tete={(ouvert, bascule) => <TeteGroupe id={`sec-${b.clef}`} nom={titres[i].nom} entier={b.entier} pays={b.pays} groupes={titres} ouvert={ouvert} onBascule={bascule} />}>
+                <BlocRepliable id={`sec-${b.clef}`} ouvertParDefaut={!(adj && b.clef === "closes") || Boolean(q) || filterCount > 0} tete={(ouvert, bascule) => <TeteGroupe id={`sec-${b.clef}`} nom={titres[i].nom} entier={b.entier} pays={b.pays} groupes={titres} ouvert={ouvert} onBascule={bascule} />}>
                   {b.rows.length > 0 && renderUn(b.rows, false, true)}
                 </BlocRepliable>
               </section>
@@ -1187,13 +1266,15 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         </section>
       )}
 
-      {picks.length > 0 && (
+      {adj && rows.length > 0 && <BandeSeances rows={rows} nowIso={nowIso} />}
+
+      {cadre.length > 0 && (
         <section className={styles.featured} aria-label={t("À la une")}>
           <div className={styles.featuredHead}>
             <span className="eyebrow">{t("À la une · sélection du desk")}</span>
             <small>{t("Une sélection, pas un conseil : chaque ligne se lit dans sa fiche.")}</small>
           </div>
-          {render(picks, true)}
+          {render(cadre, true)}
         </section>
       )}
 

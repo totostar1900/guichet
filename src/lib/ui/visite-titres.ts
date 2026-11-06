@@ -21,7 +21,14 @@ export function visiteDesTitres({ vue, page, t }: { vue: VueDeLaVisite; page: Pa
     { target: "titres-filtres", title: t("Filtrer, puis trier"), text: t("Instrument, pays, statut, durée, rendement : chaque filtre s'ajoute aux autres, et le compte des lignes retenues s'affiche à côté. Le tri se prend dans la même feuille, y compris par variation du cours. Tri et filtres restent dans l'adresse de la page : revenez d'une fiche, la liste est telle que vous l'aviez laissée.") },
     { target: "titres-vues", title: t("Quatre façons de lire"), text: t("Tableau, liste ou cartes ; en cartes, détaillées ou compactes. Le tableau compare les chiffres colonne par colonne, la liste se lit d'un trait, la carte détaillée dit tout, la carte compacte ne garde que l'essentiel. Cette visite s'adapte à celle que vous avez choisie.") },
   ];
-  const groupe: CoachStop = { target: "titres-groupe", title: t("Le titre d'un groupe"), text: t("Les lignes se rangent par type ou par émetteur. Touchez le titre pour sauter à un autre groupe ; le chevron plie ou déplie le groupe, et la flèche du haut plie ou déplie tout.") };
+  /* AUX ADJUDICATIONS, LES LIGNES SE RANGENT PAR ÉTAT (6 novembre 2026) : ce qui se joue d'abord, les séances closes ensuite, repliées ; ou par émetteur. */
+  const groupe: CoachStop = {
+    target: "titres-groupe",
+    title: t("Le titre d'un groupe"),
+    text: adj
+      ? t("Les séances se rangent par état, ou par émetteur : celles qui se jouent d'abord, les séances closes ensuite, repliées. Touchez le titre pour sauter à un autre groupe ; le chevron plie ou déplie le groupe, et la flèche du haut plie ou déplie tout.")
+      : t("Les lignes se rangent par type ou par émetteur. Touchez le titre pour sauter à un autre groupe ; le chevron plie ou déplie le groupe, et la flèche du haut plie ou déplie tout."),
+  };
   const swipe: CoachStop = { target: "titres-carte", title: t("Tirez la carte vers la gauche"), text: t("Trois actions apparaissent sous la carte. Contacter ouvre un message prêt à envoyer sur cette ligne. Déclarer ouvre une intention, sans engagement. La troisième dépend du marché : sur la cote c'est Suivre, qui vous prévient à chaque mouvement de la ligne ; à l'adjudication c'est Alerte, qui vous rappelle chaque jour jusqu'à la clôture du dépôt.") };
 
   if (vue === "detaillees") {
