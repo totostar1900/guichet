@@ -532,6 +532,15 @@
     display: none;
   }
 }
+/* LE TRIO S'EMPILE QUAND LE FORMULAIRE EST ÉTROIT, pas seulement quand l'écran l'est (6 novembre 2026). Sur grand écran le formulaire vit dans une colonne de 420 px : trois cases de 108 px y coupaient le chiffre qu'on tape (« --t-9 », 39 px) à « 10 00 ». La largeur qui compte est celle du formulaire, d'où une requête de conteneur. */
+@container (max-width: 700px) {
+  .trio {
+    grid-template-columns: 1fr;
+  }
+  .trioOp {
+    display: none;
+  }
+}
 /* L'équivalence se lit pendant la frappe : encre pleine, pas le gris des
    notes, parce que c'est un chiffre et non un commentaire. */
 .equiv {
