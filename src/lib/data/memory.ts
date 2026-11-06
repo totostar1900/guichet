@@ -6,6 +6,7 @@ import { SEED_GESTES } from "@/data/gestes-seed";
 import { SEED_NEWS } from "@/data/news-seed";
 import { SEED_BUDGETS, SEED_NOTES_BUDGET } from "@/data/budgets-seed";
 import { coteDEssai } from "@/data/cote-seed";
+import { alignerSurLaCloture } from "@/lib/domain/cote-alignee";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type Favori, type LigneSondee, type InboundMessage, type DeskThread, type DeskExchange, type BudgetEtat, type NoteBudget } from "@/lib/domain/types";
@@ -295,6 +296,9 @@ interface Store {
 
 const g = globalThis as unknown as { __guichetStore?: Store };
 
+/** Le magasin dont les lignes cotées ont déjà été alignées sur la cote : une fois par magasin. */
+const alignes = new WeakSet<object>();
+
 function store(): Store {
   if (!g.__guichetStore) {
     g.__guichetStore = {
@@ -405,6 +409,10 @@ function store(): Store {
      cote volontairement vide doit le rester. */
   if (!g.__guichetStore.bulletins || !g.__guichetStore.quotes || !g.__guichetStore.fundNavs) Object.assign(g.__guichetStore, cote());
   if (!g.__guichetStore.fundNavs) g.__guichetStore.fundNavs = [];
+  if (!alignes.has(g.__guichetStore)) {
+    alignes.add(g.__guichetStore);
+    alignerSurLaCloture(g.__guichetStore.offers, g.__guichetStore.quotes);
+  }
   if (!g.__guichetStore.issuerDocs) g.__guichetStore.issuerDocs = [];
   if (!g.__guichetStore.auctionResults) g.__guichetStore.auctionResults = [];
   if (!g.__guichetStore.emissionNotices) g.__guichetStore.emissionNotices = [];
