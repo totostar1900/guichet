@@ -90,6 +90,7 @@ describe("les cartes d'adjudication (7 novembre 2026)", () => {
     const c = lire("src/components/LineIdentity.module.css");
     expect(c).toMatch(/\.id \{[^}]*grid-template-columns: minmax\(0, 1fr\);/);
     expect(c, "la pastille de sélection ne se tronque plus").toMatch(/\.badge > em \{[^}]*text-overflow: ellipsis;/);
+    expect(c, "la raison de la sélection est de nouveau coupée sur la fiche").toMatch(/\.xl \.badge \{[^}]*white-space: normal;[^}]*\}\s*\.xl \.badge > em \{[^}]*overflow: visible;[^}]*text-overflow: clip;/);
   });
   it("le titre d'un groupe est bleu, plus or", () => {
     expect(lire("src/components/market/TeteGroupe.module.css")).toMatch(/\.teteGroupe \{[^}]*color: var\(--navy-text\);/);

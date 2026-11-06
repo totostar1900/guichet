@@ -105,6 +105,18 @@
   text-transform: none;
   letter-spacing: 0;
 }
+/* SUR LA FICHE, LA RAISON DE LA SÉLECTION S'ÉCRIT EN ENTIER (6 novembre 2026) : la carte la redit sous elle et peut la tronquer, la fiche ne la redit nulle part. La pastille passe à la ligne au lieu de couper la phrase (« …entre les bons à… »). */
+.xl .badge {
+  display: block;
+  white-space: normal;
+  border-radius: 10px;
+  line-height: 1.35;
+}
+.xl .badge > em {
+  display: inline;
+  overflow: visible;
+  text-overflow: clip;
+}
 .selection {
   background: var(--gold);
   color: var(--navy);
