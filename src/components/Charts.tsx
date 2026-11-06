@@ -6,6 +6,7 @@ import { type Lu, RangeRead, TrackBand, TrackMarks, togglePin, trackStyles, useT
 import styles from "./Charts.module.css";
 import { useT } from "@/i18n/client";
 
+import { actionnariatTotal } from "@/lib/domain/actionnariat";
 /**
  * Small SVG charts with a tracker: move over the chart and the nearest point or
  * bar is highlighted with its numbers. No library; theme tokens for colour.
@@ -271,9 +272,7 @@ export function BarChart({ groups, series, height = 220, ariaLabel }: { groups: 
 /** Horizontal share of capital. */
 export function ShareBar({ parts }: { parts: { name: string; pct: number }[] }) {
   const tr = useT();
-  const total = parts.reduce((s, p) => s + p.pct, 0);
-  const rest = Math.max(0, 100 - total);
-  const all = rest > 0.05 ? [...parts, { name: tr("Flottant et autres"), pct: rest }] : parts;
+  const all = actionnariatTotal(parts, tr("Flottant et autres"));
   return (
     <div className={styles.shareWrap}>
       <div className={styles.shareBar} role="img" aria-label={all.map((p) => `${p.name} ${p.pct} %`).join(", ")}>

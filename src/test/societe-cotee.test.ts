@@ -78,11 +78,25 @@ describe("la page d'une société cotée", () => {
   });
 
   it("la fiche de l'action garde tous ses actionnaires et la page de la société aussi", () => {
-    expect(sans(FICHE), "la fiche n'affiche plus tous les actionnaires").toMatch(/company\.coreShareholders\.map\(\(a\) => \(/);
+    expect(sans(FICHE), "la fiche n'affiche plus tous les actionnaires").toMatch(/actionnariatTotal\(company\.coreShareholders, t\("Flottant et autres"\)\)\.map\(/);
+    expect(sans("src/components/Charts.tsx"), "la barre ne complète plus à 100 %").toMatch(/actionnariatTotal\(parts, tr\("Flottant et autres"\)\)/);
     expect(sans(PAGE), "la page n'affiche plus la barre des actionnaires").toMatch(/<ShareBar parts=\{c\.coreShareholders\} \/>/);
   });
 
   it("sa liste de lignes ne porte « cette fiche » sur aucune ligne", () => {
     expect(sans("src/app/offres/[id]/IssuerCard.tsx")).toMatch(/issuerLadder\(\[\{ o, s: summarize\(o, new Date\(\)\) \}, \.\.\.others\], name, sansRepere \? "" : o\.id\)/);
+  });
+
+  it("l'actionnariat montré fait toujours 100 %, pour chaque société", async () => {
+    const { COMPANIES } = await import("@/data/companies");
+    const { actionnariatTotal } = await import("@/lib/domain/actionnariat");
+    for (const c of COMPANIES) {
+      const somme = actionnariatTotal(c.coreShareholders, "Flottant et autres").reduce((s, p) => s + p.pct, 0);
+      expect(Math.abs(somme - 100) < 0.06, `${c.mnemo} : ${somme} %`).toBe(true);
+    }
+  });
+
+  it("le graphe annuel écrit lui-même l'espace des milliers (sinon l'hydratation échoue sur un dividende > 1 000)", () => {
+    expect(sans("src/components/GrapheComptes.tsx")).toMatch(/const nombre = \(v: number\) => v\.toLocaleString\("fr-FR", \{ maximumFractionDigits: 2 \}\)\.replace\(\/\[\\u202f\\u00a0\]\/g, "\\u00a0"\);/);
   });
 });

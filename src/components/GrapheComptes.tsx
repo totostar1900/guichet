@@ -21,7 +21,8 @@ export interface SerieAnnuelle {
 
 const classe = (t: SerieAnnuelle["teinte"]) => (t === "bleu" ? styles.bleu : t === "or-doux" ? styles.orDoux : styles.or);
 const fond = (t: SerieAnnuelle["teinte"]) => (t === "bleu" ? styles.fondBleu : t === "or-doux" ? styles.fondOrDoux : styles.fondOr);
-const nombre = (v: number) => v.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+/* L'espace des milliers est écrit ici, pas lu de l'ICU : le serveur (Node) et le navigateur n'ont pas la même (U+202F ou U+00A0) et un dividende de plus de 1 000 FCFA (REG : 1 004,5) faisait échouer l'hydratation (erreur React #418, 6 novembre 2026). Même espace que « fmt ». */
+const nombre = (v: number) => v.toLocaleString("fr-FR", { maximumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, "\u00a0");
 
 export function GrapheComptes({
   annees,

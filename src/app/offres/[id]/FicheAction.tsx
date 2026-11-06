@@ -16,6 +16,7 @@ import { getT } from "@/i18n/server";
 import { GraphesDeValorisation } from "./GraphesDeValorisation";
 import { SeancesDeLAction } from "./SeancesDeLAction";
 import { Info } from "@/components/Info";
+import { actionnariatTotal } from "@/lib/domain/actionnariat";
 import { IssuerCard } from "./IssuerCard";
 import type { FicheData } from "./FicheReading";
 import styles from "./page.module.css";
@@ -288,11 +289,11 @@ export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
           {company && company.coreShareholders.length > 0 && (
             <Bloc pane="emetteur" titre={t("Actionnaires")} fin={fin("actionnaires")}>
               <ul className={fa.actionnaires}>
-                {company.coreShareholders.map((a) => (
+                {actionnariatTotal(company.coreShareholders, t("Flottant et autres")).map((a, _, tous) => (
                   <li key={a.name}>
                     <span>{a.name}</span>
                     <b>{fmtPct(a.pct, 2)}</b>
-                    <i style={{ width: `${(a.pct / company.coreShareholders[0].pct) * 100}%` }} />
+                    <i style={{ width: `${(a.pct / Math.max(...tous.map((x) => x.pct))) * 100}%` }} />
                   </li>
                 ))}
               </ul>
