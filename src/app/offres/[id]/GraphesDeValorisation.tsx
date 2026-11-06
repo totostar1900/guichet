@@ -95,7 +95,7 @@ export function GraphesDeValorisation({ serie, resultatAuDessusDuChiffreDAffaire
   const indicateurs: { cle: "per" | "pb" | "rendement"; titre: string; unite: string; info: string }[] = [
     { cle: "per", titre: t("Rapport cours / bénéfice"), unite: "×", info: t("Combien d'années de bénéfice le marché paie : capitalisation ÷ résultat net du dernier exercice en vigueur. Il change avec le cours et d'un cran à chaque nouvel exercice (trait pointillé).") },
     { cle: "pb", titre: t("Cours / valeur comptable"), unite: "×", info: t("Combien de fois la valeur comptable le marché paie : capitalisation ÷ capitaux propres du dernier exercice en vigueur.") },
-    { cle: "rendement", titre: t("Rendement du dividende"), unite: "%", info: t("Dividende brut par action du dernier exercice en vigueur ÷ cours. Un dividende n'est pas garanti : il peut baisser ou ne pas être versé.") },
+    { cle: "rendement", titre: t("Rendement du dividende"), unite: "%", info: t("Dividende brut par action du dernier exercice en vigueur qui en a un ÷ cours. Un dividende n'est pas garanti : il peut baisser ou ne pas être versé.") },
   ];
   return (
     <>
@@ -128,11 +128,16 @@ export function GraphesDeValorisation({ serie, resultatAuDessusDuChiffreDAffaire
                   etiquette={t("Valeur au {d}", { d: fmtDate(dernier.d) })}
                   valeur={courant == null ? "—" : decimales(courant)}
                   unite={ind.unite}
-                  sous={courant == null ? t("Aucun exercice en vigueur à cette date.") : b && b.de !== b.a ? t("de {a} à {b} sur la période", { a: decimales(b.de), b: decimales(b.a) }) : t("inchangé sur la période")}
+                  sous={courant == null ? t(dernier.exercice != null ? "Aucun dividende publié à cette date." : "Aucun exercice en vigueur à cette date.") : b && b.de !== b.a ? t("de {a} à {b} sur la période", { a: decimales(b.de), b: decimales(b.a) }) : t("inchangé sur la période")}
                 />
                 {selecteur()}
               </div>
+              {b && (
               <GrapheDeSerie dates={dates} unite={ind.unite} pas series={[{ nom: ind.titre, valeurs: valeurs.map((v) => (v == null ? null : Math.round(v * 100) / 100)), teinte: "or" }]} marques={marques} exercices={fenetre.map((p) => p.exercice)} resume={`${ind.titre} : ${b ? `${decimales(b.de)} → ${decimales(b.a)} ${ind.unite}` : "—"}`} />
+              )}
+              {ind.cle === "rendement" && dernier.exercice != null && dernier.exerciceDuDividende != null && dernier.exercice !== dernier.exerciceDuDividende && (
+                <p className={fa.note}>{t("Exercice {y} : pas de dividende publié. Le rendement reprend le dernier dividende connu, celui de l'exercice {z}.", { y: String(dernier.exercice), z: String(dernier.exerciceDuDividende) })}</p>
+              )}
               {resultatAuDessusDuChiffreDAffaires && ind.cle !== "rendement" && <p className={fa.note}>{t("Tiré d'un résultat net supérieur au chiffre d'affaires publié : à lire avec prudence.")}</p>}
             </Enveloppe>
         );

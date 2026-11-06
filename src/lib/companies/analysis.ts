@@ -90,7 +90,9 @@ export function analyse(company: Company, quote?: Quote): Analysis {
   // A PER above 100 means the profit is negligible next to the price: printing it misleads more than it informs.
   const per = price != null && eps > 0 && price / eps < 100 ? price / eps : undefined;
   const priceToBook = price != null && bookValuePerShare > 0 ? price / bookValuePerShare : undefined;
-  const lastDividend = quote?.lastDividend ?? latest.dividendPerShare ?? undefined;
+  /* Le dernier dividende CONNU : celui du bulletin, sinon celui du dernier exercice qui en a un (un exercice « non distribué » n'efface pas le rendement : voir « dividendeDeReference »). */
+  const dernierAvecDividende = [...figs].reverse().find((f) => typeof f.dividendPerShare === "number");
+  const lastDividend = quote?.lastDividend ?? dernierAvecDividende?.dividendPerShare ?? undefined;
   const dividendYieldPct = price != null && lastDividend ? (lastDividend / price) * 100 : undefined;
   const payoutPct = latest.dividendPerShare && eps > 0 ? (latest.dividendPerShare / eps) * 100 : undefined;
   const netMarginPct = (latest.netIncome / latest.revenue) * 100;

@@ -41,6 +41,8 @@ export interface PointDeValorisation {
   rendement: number | null;
   /** L'exercice qui compte ce jour-là. */
   exercice: number | null;
+  /** L'exercice dont vient le dividende du rendement : le dernier qui en a un, pas forcément « exercice ». */
+  exerciceDuDividende: number | null;
 }
 
 const JOUR = /^\d{4}-\d{2}-\d{2}$/;
@@ -60,12 +62,22 @@ export function exerciceEnVigueur<T extends { year: number; publieLe?: string | 
   return [...comptes].filter((f) => dateDEntree(f) <= date).sort((a, b) => b.year - a.year)[0];
 }
 
+/**
+ * LE DIVIDENDE DE RÉFÉRENCE D'UN JOUR (6 novembre 2026) : celui du dernier exercice en vigueur QUI EN A UN.
+ * Quand l'exercice le plus récent n'a pas de dividende (« non distribué », ou pas encore publié), le rendement ne s'efface pas : il garde le dernier dividende connu, et
+ * `exerciceDuDividende` dit de quel exercice il vient, pour que l'écran l'écrive. La page de La Régionale affichait « — » et des graduations toutes à 0 pour son exercice 2024.
+ */
+export function dividendeDeReference<T extends { year: number; dividendPerShare?: number | null; publieLe?: string | null; publieLeDesk?: string | null }>(comptes: T[], date: string): T | undefined {
+  return [...comptes].filter((f) => dateDEntree(f) <= date && typeof f.dividendPerShare === "number").sort((a, b) => b.year - a.year)[0];
+}
+
 export function serieDeValorisation(cotations: CotationDeValorisation[], comptes: ComptesDeValorisation[], repli: { titres: number; flottants: number | null }): PointDeValorisation[] {
   return cotations.map((q) => {
     const titres = q.titres ?? repli.titres;
     const flottants = q.flottants ?? repli.flottants;
     const cap = capitalisation(q.c, titres);
     const f = exerciceEnVigueur(comptes, q.d);
+    const g = dividendeDeReference(comptes, q.d);
     return {
       d: q.d,
       cap,
@@ -73,8 +85,9 @@ export function serieDeValorisation(cotations: CotationDeValorisation[], comptes
       valeur: q.valeur ?? 0,
       per: f ? rapportCoursBenefice(cap, f.netIncome) : null,
       pb: f ? coursSurValeurComptable(cap, f.equity) : null,
-      rendement: f ? rendementDividendePct(f.dividendPerShare, q.c) : null,
+      rendement: g ? rendementDividendePct(g.dividendPerShare, q.c) : null,
       exercice: f?.year ?? null,
+      exerciceDuDividende: g?.year ?? null,
     };
   });
 }
