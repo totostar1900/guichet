@@ -220,4 +220,5 @@ export const EN_VISITE: Record<string, string> = {
   "Voir la fiche complète": "See the full page",
   "Séances et cotation": "Sessions and listing",
   "Ses lignes à Guichet": "Its lines at Guichet",
+  "« aucun » : exercice sans dividende distribué.": "“none”: financial year with no dividend distributed.",
 };

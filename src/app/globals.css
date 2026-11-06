@@ -319,7 +319,14 @@
 
      IL NE SERT QU'À CELA. Un titre qui le prendrait se mettrait à crier. */
   --t-9: 2.6rem; /*   39,0 px : le chiffre qu'on saisit, et rien d'autre */
-  /* Le pas du site public, et le seul au-dessus de l'echelle. Une page qui
+
+  /* LE TEXTE D'UN DESSIN (6 novembre 2026, planche « 1A ») : tous les graphes de lecture sont dessinés dans une boîte de 320 unités de large (« GRAPHE_L », 190 de haut), affichée
+     à peu près à sa taille : une unité vaut un pixel à 390 px. Le texte d'un dessin se lit donc en pixels, jamais dans un viewBox de 720. La largeur est plafonnée pour que le texte
+     reste sous 14 px sur grand écran. */
+  --graphe-texte: 10px; /* graduations, années, unité */
+  --graphe-valeur: 9.5px; /* montant écrit sur une barre */
+  --graphe-max: 460px; /* largeur maximale d'un dessin */
+  --bloc-gap: 20px; /* entre deux blocs d'une carte : légende, graphe, tableau, note */  /* Le pas du site public, et le seul au-dessus de l'echelle. Une page qui
      vend respire plus large qu'une page qui travaille : c'est cet ecart qui
      distingue les deux, et il porte donc un nom plutot que de se reecrire a la
      main a chaque section. */

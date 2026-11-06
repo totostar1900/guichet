@@ -5,6 +5,9 @@
 }
 .zone {
   position: relative;
+  width: 100%;
+  max-width: var(--graphe-max);
+  margin-inline: auto;
 }
 .dessin {
   display: block;
@@ -28,11 +31,11 @@
 }
 .graduation {
   fill: var(--ink-3);
-  font-size: 8px;
+  font-size: var(--graphe-texte);
 }
 .unite {
   fill: var(--ink-3);
-  font-size: 8px;
+  font-size: var(--graphe-texte);
   font-weight: 700;
 }
 .aire {

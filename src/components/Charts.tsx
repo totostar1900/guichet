@@ -6,6 +6,7 @@ import { type Lu, RangeRead, TrackBand, TrackMarks, togglePin, trackStyles, useT
 import styles from "./Charts.module.css";
 import { useT } from "@/i18n/client";
 
+import { GRAPHE_H, GRAPHE_L } from "@/lib/ui/graphe";
 import { actionnariatTotal } from "@/lib/domain/actionnariat";
 /**
  * Small SVG charts with a tracker: move over the chart and the nearest point or
@@ -29,11 +30,12 @@ const frDate = (iso: string) => {
 function niceTicks(min: number, max: number, n = 4): number[] {
   if (max === min) return [min];
   const raw = (max - min) / n;
-  const p = Math.pow(10, Math.floor(Math.log10(raw)));
+  /* La puissance de dix se lit dans l'écriture décimale (voir « pasPropre ») : « Math.pow » et « Math.log10 » ne rendent pas les mêmes derniers chiffres sur le serveur et dans le navigateur. */
+  const p = Number(`1e${raw.toExponential().split("e")[1]}`);
   const step = [1, 2, 2.5, 5, 10].map((m) => m * p).find((s) => s >= raw) ?? raw;
   const start = Math.floor(min / step) * step;
   const out: number[] = [];
-  for (let v = start; v <= max + step / 2; v += step) out.push(Math.round(v * 1e6) / 1e6);
+  for (let k = 0; start + k * step <= max + step / 2 && k < 1000; k++) out.push(Math.round((start + k * step) * 1e6) / 1e6);
   return out;
 }
 
@@ -42,15 +44,15 @@ function niceTicks(min: number, max: number, n = 4): number[] {
  * price every session). Tracked : the crosshair reads a session, two taps pin a
  * range and read the change between the dates.
  */
-export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { points: { date: string; value: number; extra?: string; volume?: number; amount?: number }[]; unit?: string; height?: number; ariaLabel: string }) {
+export function LineChart({ points, unit = "FCFA", height = GRAPHE_H, ariaLabel }: { points: { date: string; value: number; extra?: string; volume?: number; amount?: number }[]; unit?: string; height?: number; ariaLabel: string }) {
   const tr = useT();
   const [pins, setPins] = useState<string[]>([]);
-  const W = 720;
+  const W = GRAPHE_L;
   const H = height;
-  const padL = 56;
-  const padR = 12;
-  const padT = 14;
-  const padB = 28;
+  const padL = 42;
+  const padR = 8;
+  const padT = 16;
+  const padB = 26;
   const vals = points.map((p) => p.value);
   let min = points.length ? Math.min(...vals) : 0;
   let max = points.length ? Math.max(...vals) : 1;
@@ -136,7 +138,7 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
         {ticks.map((t) => (
           <g key={t}>
             <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} className={styles.grid} />
-            <text x={padL - 8} y={y(t) + 4} className={styles.tick} textAnchor="end">
+            <text x={padL - 6} y={y(t) + 3.5} className={styles.tick} textAnchor="end">
               {fmtShort(t)}
             </text>
           </g>
@@ -145,12 +147,12 @@ export function LineChart({ points, unit = "FCFA", height = 220, ariaLabel }: { 
         <path d={d} className={up ? styles.lineUp : styles.lineDown} />
         {h == null && <circle cx={x(points.length - 1)} cy={y(last.value)} r={4} className={up ? styles.dotUp : styles.dotDown} />}
         {h == null && (
-          <text x={Math.min(x(points.length - 1), W - padR - 70)} y={y(last.value) - 10} className={styles.lastLabel} textAnchor="end">
+          <text x={Math.min(x(points.length - 1), W - padR)} y={y(last.value) - 8} className={styles.lastLabel} textAnchor="end">
             {fmtShort(last.value)} {unit}
           </text>
         )}
         {labelIdx.map((i) => (
-          <text key={i} x={x(i)} y={H - 8} className={styles.tick} textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"}>
+          <text key={i} x={x(i)} y={H - 7} className={styles.tick} textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"}>
             {frDate(points[i].date)}
           </text>
         ))}
@@ -173,16 +175,16 @@ function svgX(e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElemen
 }
 
 /** Grouped bars per year (e.g. revenue and net income). Values in FCFA. */
-export function BarChart({ groups, series, height = 220, ariaLabel }: { groups: string[]; series: { name: string; values: number[]; accent?: boolean }[]; height?: number; ariaLabel: string }) {
+export function BarChart({ groups, series, height = GRAPHE_H, ariaLabel }: { groups: string[]; series: { name: string; values: number[]; accent?: boolean }[]; height?: number; ariaLabel: string }) {
   const t = useT();
   const [hover, setHover] = useState<number | null>(null);
   const ref = useRef<SVGSVGElement>(null);
   useOutsideTap(ref, hover != null, useCallback(() => setHover(null), []));
-  const W = 720;
+  const W = GRAPHE_L;
   const H = height;
-  const padL = 56;
-  const padR = 12;
-  const padT = 14;
+  const padL = 42;
+  const padR = 8;
+  const padT = 16;
   const padB = 44;
   const all = series.flatMap((s) => s.values);
   const max = Math.max(0, ...all);
@@ -192,7 +194,10 @@ export function BarChart({ groups, series, height = 220, ariaLabel }: { groups: 
   const bottom = Math.min(min, ticks[0]);
   const y = (v: number) => padT + (H - padT - padB) * (1 - (v - bottom) / (top - bottom || 1));
   const gw = (W - padL - padR) / groups.length;
-  const bw = Math.min(40, (gw * 0.7) / series.length);
+  const bw = Math.min(28, (gw * 0.76) / series.length);
+  /* Deux barres voisines ne portent pas deux libellés de 33 unités : quand toutes les valeurs ont la même unité (Md), l'unité est sur l'axe et la barre dit le nombre seul. */
+  const unites = new Set(all.map((v) => fmtShort(v).split(" ").slice(1).join(" ")));
+  const sansUnite = unites.size === 1 && [...unites][0] !== "";
   const onMove = (e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElement>) => {
     if (!ref.current) return;
     const px = svgX(e, ref.current, W);
@@ -227,7 +232,7 @@ export function BarChart({ groups, series, height = 220, ariaLabel }: { groups: 
         {ticks.map((t) => (
           <g key={t}>
             <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} className={t === 0 ? styles.axis : styles.grid} />
-            <text x={padL - 8} y={y(t) + 4} className={styles.tick} textAnchor="end">
+            <text x={padL - 6} y={y(t) + 3.5} className={styles.tick} textAnchor="end">
               {fmtShort(t)}
             </text>
           </g>
@@ -244,20 +249,20 @@ export function BarChart({ groups, series, height = 220, ariaLabel }: { groups: 
                 <g key={s.name}>
                   <rect x={x0 + 1} y={yTop} width={bw - 2} height={Math.max(hh, 1)} rx={3} className={s.accent ? styles.barAccent : styles.bar} />
                   {series.length <= 2 && (
-                    <text x={x0 + bw / 2} y={yTop - 5} className={styles.value} textAnchor="middle">
-                      {fmtShort(v)}
+                    <text x={x0 + bw / 2} y={yTop - 4} className={styles.value} textAnchor="middle">
+                      {sansUnite ? fmtShort(v).replace(/ \S+$/, "") : fmtShort(v)}
                     </text>
                   )}
                 </g>
               );
             })}
-            <text x={padL + gi * gw + gw / 2} y={H - 26} className={styles.tickStrong} textAnchor="middle">
+            <text x={padL + gi * gw + gw / 2} y={H - 24} className={styles.tickStrong} textAnchor="middle">
               {g}
             </text>
           </g>
         ))}
         {series.map((s, si) => (
-          <g key={s.name} transform={`translate(${padL + si * 170}, ${H - 8})`}>
+          <g key={s.name} transform={`translate(${padL + si * 130}, ${H - 6})`}>
             <rect width={10} height={10} y={-9} rx={2} className={s.accent ? styles.barAccent : styles.bar} />
             <text x={14} className={styles.tick}>
               {s.name}

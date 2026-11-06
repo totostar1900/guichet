@@ -75,11 +75,21 @@
 .down {
   color: var(--crit);
 }
+/* LES TROIS ÉCARTS D'UN VOLET (6 novembre 2026, planche « 3A ») : 28 px entre deux cartes (la gouttière aussi), 20 px entre deux blocs d'une carte (légende, graphe, tableau,
+   note : jamais deux graphes qui se touchent), 12 px entre un titre et ce qui le suit. Les cartes d'une colonne se touchaient depuis le passage à la pile du 1er novembre
+   (la marge basse du panneau avait été retirée sans que la colonne devienne une pile). */
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  gap: 16px;
+  gap: var(--sections-gap);
   align-items: start;
+}
+.grid > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sections-gap);
+  align-content: start;
+  min-width: 0;
 }
 .panel {
   background: var(--surface);
@@ -87,10 +97,20 @@
   border-radius: var(--radius);
   padding: 16px 18px;
   min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bloc-gap);
+  align-content: start;
 }
 .panel h2 {
   font-size: 1rem;
-  margin: 0 0 10px;
+  margin: 0;
+}
+/* Ce qui suit un titre (ou sa légende) est à --titre-gap, plus près que les autres blocs. */
+.panel > h2 + *,
+.panel > .panelH + *,
+.panel > .unitNote + * {
+  margin-top: calc(var(--titre-gap) - var(--bloc-gap));
 }
 .panelH {
   display: flex;
@@ -98,7 +118,20 @@
   align-items: baseline;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+}
+/* Un chiffre et le graphe qu'il dit : à --titre-gap l'un de l'autre. */
+.avecChiffre {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--titre-gap);
+}
+/* La part des fonds propres, sous les barres du même panneau : un filet et l'air des blocs (planche « 4B »). */
+.sousBloc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--titre-gap);
+  border-top: 1px solid var(--line);
+  padding-top: var(--bloc-gap);
 }
 .panelH h2 {
   margin: 0;
@@ -130,7 +163,6 @@
   padding: 10px 12px;
   font-size: 0.82rem;
   color: var(--ink-2);
-  margin-top: 10px;
 }
 .reading b {
   color: var(--ink);
@@ -147,20 +179,31 @@
 .comments li b {
   color: var(--ink);
 }
+/* LES TABLEAUX DE LECTURE (6 novembre 2026, planche « 2A ») : corps 13,2 px, en-tête 11,1 px ; la première colonne a sa largeur (l'étiquette tient sur une ou deux lignes), les
+   années se partagent le reste, et la plus récente n'est jamais rognée. Un tableau plus long défile dans son cadre. */
 .tbl {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.84rem;
+  font-size: var(--t-4);
 }
 .tbl th,
 .tbl td {
-  padding: 8px 10px;
+  padding: 9px 5px;
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
 }
+.tbl th:first-child,
+.tbl td:first-child {
+  width: 7.4rem;
+  padding-left: 0;
+}
+.tbl th:last-child,
+.tbl td:last-child {
+  padding-right: 0;
+}
 .tbl th {
-  font-size: 0.68rem;
+  font-size: var(--t-2);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--ink-3);
@@ -216,7 +259,7 @@
 .unitNote {
   font-size: 0.74rem;
   color: var(--ink-3);
-  margin: -6px 0 8px;
+  margin: 0;
 }
 .docs {
   display: grid;
@@ -256,7 +299,6 @@
 .source {
   font-size: 0.74rem;
   color: var(--ink-3);
-  margin-top: 8px;
 }
 @media (max-width: 900px) {
   .grid {

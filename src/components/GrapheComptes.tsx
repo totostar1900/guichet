@@ -1,6 +1,7 @@
 "use client";
 
 import { reperesSansChevauchement, ticksPropres } from "@/lib/ui/axes";
+import { GRAPHE_H, GRAPHE_L } from "@/lib/ui/graphe";
 import { BulleNoire, useLecture, type Lecture } from "./charts/lecture";
 import styles from "./GrapheComptes.module.css";
 
@@ -44,12 +45,12 @@ export function GrapheComptes({
   /** Les repères en toutes lettres pour la bulle (« oct. 2026 » quand l'axe, trop serré, ne dit que « oct. ») : l'année y est toujours. */
   etiquettesLues?: string[];
 }) {
-  const W = 320;
-  const H = 172;
+  const W = GRAPHE_L;
+  const H = GRAPHE_H;
   const gauche = 44;
   const marge = droit ? 44 : 8;
-  const haut = 16;
-  const bas = 140;
+  const haut = 18;
+  const bas = H - 30;
   const n = annees.length;
   const fente = (W - gauche - marge) / n;
   const valeursG = [...barres, ...lignes].flatMap((s) => s.valeurs.filter((v): v is number => v != null));
@@ -97,24 +98,24 @@ export function GrapheComptes({
       <BulleNoire lecture={lecture} x={index == null ? 0 : cx(index)} W={W} />
       <svg viewBox={`0 0 ${W} ${H}`} className={styles.dessin} role="img" aria-label={resume} {...handlers}>
         {index != null && <rect x={cx(index) - fente / 2} y={haut} width={fente} height={bas - haut} className={styles.colonne} />}
-        <text x={2} y={9} className={`${styles.unite} ${barres[0] ? classe(barres[0].teinte) : lignes[0] ? classe(lignes[0].teinte) : ""}`} style={{ fill: "currentColor" }}>
+        <text x={2} y={11} className={`${styles.unite} ${barres[0] ? classe(barres[0].teinte) : lignes[0] ? classe(lignes[0].teinte) : ""}`} style={{ fill: "currentColor" }}>
           {unite}
         </text>
         {tG.map((v) => (
           <g key={v}>
             <line x1={gauche} x2={W - marge} y1={yG(v)} y2={yG(v)} className={styles.grille} />
-            <text x={gauche - 4} y={yG(v) + 2.5} textAnchor="end" className={styles.graduation}>
+            <text x={gauche - 4} y={yG(v) + 3.5} textAnchor="end" className={styles.graduation}>
               {nombre(v)}
             </text>
           </g>
         ))}
         {droit && (
           <>
-            <text x={W - 2} y={9} textAnchor="end" className={styles.uniteDroite}>
+            <text x={W - 2} y={11} textAnchor="end" className={styles.uniteDroite}>
               {droit.unite}
             </text>
             {tD.map((v) => (
-              <text key={v} x={W - marge + 4} y={yD(v) + 2.5} className={styles.graduationDroite}>
+              <text key={v} x={W - marge + 4} y={yD(v) + 3.5} className={styles.graduationDroite}>
                 {nombre(v)}
               </text>
             ))}

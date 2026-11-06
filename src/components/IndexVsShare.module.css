@@ -35,14 +35,15 @@
 .svg {
   width: 100%;
   height: auto;
-  max-height: 200px;
+  max-width: var(--graphe-max);
+  margin-inline: auto;
   display: block;
 }
 .grid {
   stroke: var(--line);
 }
 .tick {
-  font-size: 10px;
+  font-size: var(--graphe-texte);
   fill: var(--ink-3);
 }
 .index {

@@ -2,6 +2,7 @@
 
 import { useDates, useT } from "@/i18n/client";
 import { ticksPropres } from "@/lib/ui/axes";
+import { GRAPHE_H, GRAPHE_L } from "@/lib/ui/graphe";
 import { BulleNoire, useLecture, type Lecture } from "./charts/lecture";
 import styles from "./GrapheDeSerie.module.css";
 
@@ -21,10 +22,10 @@ export interface SerieDuGraphe {
 
 const nombre = (v: number) => v.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
 
-export function GrapheDeSerie({ dates, series, unite, pas = false, aire = false, marques = [], hauteur = 150, resume, exercices }: { dates: string[]; series: SerieDuGraphe[]; unite: string; pas?: boolean; aire?: boolean; marques?: { d: string; libelle: string }[]; hauteur?: number; resume: string; /** L'exercice qui compte à chaque séance (un rapport tiré des comptes) : dit dans la bulle. */ exercices?: (number | null)[] }) {
+export function GrapheDeSerie({ dates, series, unite, pas = false, aire = false, marques = [], hauteur = GRAPHE_H, resume, exercices }: { dates: string[]; series: SerieDuGraphe[]; unite: string; pas?: boolean; aire?: boolean; marques?: { d: string; libelle: string }[]; hauteur?: number; resume: string; /** L'exercice qui compte à chaque séance (un rapport tiré des comptes) : dit dans la bulle. */ exercices?: (number | null)[] }) {
   const { fmtDate } = useDates();
   const t = useT();
-  const W = 320;
+  const W = GRAPHE_L;
   const gauche = 44;
   const droite = 8;
   const x = (i: number) => gauche + (i * (W - gauche - droite)) / Math.max(1, dates.length - 1);
@@ -32,7 +33,7 @@ export function GrapheDeSerie({ dates, series, unite, pas = false, aire = false,
   if (dates.length < 2) return null;
   const H = hauteur;
   const haut = 18;
-  const bas = H - 24;
+  const bas = H - 28;
   const valeurs = series.flatMap((s) => s.valeurs.filter((v): v is number => v != null));
   const ticks = ticksPropres(0, Math.max(...valeurs, 0.0001), 4);
   const max = ticks[ticks.length - 1];
@@ -65,13 +66,13 @@ export function GrapheDeSerie({ dates, series, unite, pas = false, aire = false,
       <div className={styles.zone}>
       <BulleNoire lecture={lecture} x={index == null ? 0 : x(index)} W={W} />
       <svg viewBox={`0 0 ${W} ${H}`} className={styles.dessin} role="img" aria-label={resume} {...handlers}>
-        <text x={2} y={9} className={styles.unite}>
+        <text x={2} y={11} className={styles.unite}>
           {unite}
         </text>
         {ticks.map((v) => (
           <g key={v}>
             <line x1={gauche} x2={W - droite} y1={y(v)} y2={y(v)} className={styles.grille} />
-            <text x={gauche - 4} y={y(v) + 2.5} textAnchor="end" className={styles.graduation}>
+            <text x={gauche - 4} y={y(v) + 3.5} textAnchor="end" className={styles.graduation}>
               {nombre(v)}
             </text>
           </g>
@@ -86,7 +87,7 @@ export function GrapheDeSerie({ dates, series, unite, pas = false, aire = false,
           return (
             <g key={m.d}>
               <line x1={x(i)} x2={x(i)} y1={haut} y2={bas} className={styles.marque} />
-              <text x={x(i) + 3} y={haut + 8} className={styles.graduation}>
+              <text x={x(i) + 3} y={haut + 10} className={styles.graduation}>
                 {m.libelle}
               </text>
             </g>

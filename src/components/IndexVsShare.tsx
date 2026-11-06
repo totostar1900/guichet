@@ -3,6 +3,7 @@ import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
 import type { FloatRotation, IndexPoint, IndexWeight } from "@/lib/market/index";
 import { base100, rotationWording } from "@/lib/market/index";
 import { getT } from "@/i18n/server";
+import { GRAPHE_H, GRAPHE_L } from "@/lib/ui/graphe";
 import styles from "./IndexVsShare.module.css";
 
 /**
@@ -18,10 +19,10 @@ export async function IndexVsShare({ name, share, index, from, weight, dividendP
   if (s.length < 2 || i.length < 2) return null;
   const all = [...s, ...i];
   const dates = [...new Set(all.map((p) => p.date))].sort();
-  const x = (d: string) => 34 + (dates.indexOf(d) / Math.max(1, dates.length - 1)) * 642;
+  const x = (d: string) => 30 + (dates.indexOf(d) / Math.max(1, dates.length - 1)) * (GRAPHE_L - 38);
   const lo = Math.min(...all.map((p) => p.value)) - 2;
   const hi = Math.max(...all.map((p) => p.value)) + 2;
-  const y = (v: number) => 150 - ((v - lo) / (hi - lo)) * 130;
+  const y = (v: number) => 158 - ((v - lo) / (hi - lo)) * 132;
   const path = (pts: { date: string; value: number }[]) => pts.map((p) => `${x(p.date).toFixed(1)},${y(p.value).toFixed(1)}`).join(" ");
   const sEnd = s[s.length - 1].value - 100;
   const iEnd = i[i.length - 1].value - 100;
@@ -36,19 +37,19 @@ export async function IndexVsShare({ name, share, index, from, weight, dividendP
           <i className={styles.kShare} /> {name} <i className={styles.kIndex} /> <Link href="/indice">BVMAC-AS →</Link>
         </span>
       </div>
-      <svg viewBox="0 0 680 170" role="img" aria-label={t("Cours de {n} et indice BVMAC, base 100", { n: name })} className={styles.svg}>
+      <svg viewBox={`0 0 ${GRAPHE_L} ${GRAPHE_H}`} role="img" aria-label={t("Cours de {n} et indice BVMAC, base 100", { n: name })} className={styles.svg}>
         <title>{t("Cours de {n} et indice BVMAC, base 100", { n: name })}</title>
         {ticks.map((v) => (
           <g key={v}>
-            <line x1="34" x2="676" y1={y(v)} y2={y(v)} className={styles.grid} />
-            <text x="4" y={y(v) + 3} className={styles.tick}>
+            <line x1="30" x2={GRAPHE_L - 8} y1={y(v)} y2={y(v)} className={styles.grid} />
+            <text x="2" y={y(v) + 3.5} className={styles.tick}>
               {Math.round(v)}
             </text>
           </g>
         ))}
         <polyline points={path(i)} className={styles.index} />
         <polyline points={path(s)} className={styles.share} />
-        <text x="676" y="166" textAnchor="end" className={styles.tick}>
+        <text x={GRAPHE_L - 8} y={GRAPHE_H - 6} textAnchor="end" className={styles.tick}>
           {fmtDate(dates[0])} → {fmtDate(dates[dates.length - 1])}
         </text>
       </svg>

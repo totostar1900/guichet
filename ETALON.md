@@ -831,6 +831,27 @@ Consigne du client : « s'inspirer fortement de la page Titres ». La fiche d'un
 - **La fiche d'une séance du Trésor (OTA, BTA, APE, rachat) chez le client (6 novembre 2026, planche « A · 10 000 000 par défaut »)** : « Chiffres » est fusionné dans l'Essentiel (quatre onglets : Essentiel, Calendrier, Documents, Émetteur) ; la carte « Rendement » garde ses chiffres et ses bulles ⓘ ; « Ce que cela représente » se calcule pour le **montant nominal saisi** (10 000 000 FCFA au départ, minimum = ticket de la ligne, arrondi au titre ou au bon, le calcul reste dans `finance.ts`) et se lit « Vous payez → Vous recevez » ; le graphique des flux (barre de la mise, coupons, capital) est conservé et suit le montant, un bon a le sien (la mise, puis le remboursement) ; le résultat de la séance quitte la fiche (la rubrique dédiée viendra d'une autre racine ; le communiqué reste dans Documents) ; les lignes similaires défilent en cartes avec le libellé de leur chiffre. **Le champ est une tuile de la surface** (`--surface-2`, encre de la page), jamais le champ natif : case blanche à encre noire dans une carte sombre. Le desk et les autres lignes gardent leur lecture. Gardé par `src/test/fiche-seance.test.ts`.
 - **Les lectures d'une liste d'entrée partent ensemble (11 novembre 2026)** : `FondsBody` enchaînait cinq étages (langue, offres, courbes, session, fonds suivis) ; seules les courbes dépendent des offres. Elles partent maintenant en trois lectures parallèles, et `TitresBody` attend langue et session ensemble. Mesuré sur le banc (150 ms par lecture, médiane de 9) : `/fonds` 642 → 350 ms au total, `/titres` inchangé (471 ms : la langue y était déjà prête). Retirer le « socle du menu » de la mise en page, lui, ne change rien (321 ms contre 320) : la mise en page et la page lisent en parallèle, le temps vient de la chaîne de la page. Même geste le même jour sur Favoris, Calendrier, Recherche et Comparer (Comparer : cinq étages en un). Ces quatre pages se rendent en ~325 ms sur le banc, soit le plancher de deux lectures ; leur état d'avant n'a pas été chronométré. Gardé par `src/test/chaine-des-pages.test.ts`.
 
+### 8.14 Des graphes et des tableaux qui se lisent, et trois écarts d'un volet (6 novembre 2026, planche « 1A · 2A · 3A · 4B »)
+
+Mesuré sur La Régionale, 390 et 1 280 px : le texte des graphes faisait **4,7 à 8,1 px** à 390 px (le cours et les barres étaient dessinés dans 720 unités puis réduits à 324 px), quatre hauteurs de graphe coexistaient (81, 99, 152, 174 px), le tableau des chiffres clés rognait l'année 2024, les cartes d'une colonne se touchaient (0 px) et deux graphes d'un même panneau étaient à 0 px l'un de l'autre.
+
+| Règle | Valeur | Où |
+|---|---|---|
+| Boîte d'un graphe de lecture | **320 × 190 unités** (une unité ≈ un pixel à 390 px) | `GRAPHE_L`, `GRAPHE_H` (`src/lib/ui/graphe.ts`) |
+| Texte d'un dessin | **10 px** (graduations, années, unité), **9,5 px** (montant sur une barre) | `--graphe-texte`, `--graphe-valeur` (`globals.css`) |
+| Largeur d'un dessin | plafonnée à **460 px** (le texte reste sous 14,4 px sur grand écran) | `--graphe-max`, sur la zone qui porte aussi la bulle |
+| Corps d'un tableau de lecture / en-tête | **13,2 px** (`--t-4`) / **11,1 px** (`--t-2`) | `.tbl` (société), `.seances` (fiche d'une action) |
+| Première colonne d'un tableau | **7,4 rem**, l'étiquette sur une ou deux lignes ; la dernière année n'est jamais rognée | `.tbl th:first-child` |
+| Entre deux cartes d'une colonne | **28 px** | `--sections-gap`, par `.grid > div` |
+| Entre deux blocs d'une carte | **20 px** | `--bloc-gap` (nouveau), par `.panel` |
+| Titre → ce qui le suit ; chiffre → son graphe | **12 px** | `--titre-gap` |
+
+- **Un graphe, un titre.** Quand un panneau porte deux graphes, le second est séparé du premier par un filet et 20 px (`.sousBloc`), et son chiffre en avant le précède à 12 px (`.avecChiffre`).
+- **Deux barres voisines ne portent pas deux libellés de 33 unités** : quand toutes les valeurs d'un graphe ont la même unité (Md), l'unité est sur l'axe et la barre dit le nombre seul.
+- **Un exercice sans dividende s'écrit « aucun »**, défini sous le tableau (« non distribué » ne tient pas dans une colonne de 40 px).
+- **Une grille de carte déclare sa colonne** (`grid-template-columns: minmax(0, 1fr)`) : sans elle, la colonne « auto » grandit jusqu'à son contenu (une bande de lecture de 344 px dans une carte de 324).
+- Gardé par `src/test/graphes-lisibles.test.ts` (jetons, feuilles de dessin, boîte partagée, plafond, écarts, tableaux), vérifié par mutation.
+
 ## 9. La voix des libellés — « Mes » pour ce qui est au client, « Votre » pour ce que la maison lui dit
 
 *Décidé le 1er novembre 2026. Gardé par `src/test/mes-et-votre.test.ts`.*

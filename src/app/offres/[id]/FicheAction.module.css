@@ -21,13 +21,13 @@
 .seances {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--t-3);
+  font-size: var(--t-4);
   font-variant-numeric: tabular-nums;
 }
 .seances th {
   padding-bottom: var(--s-4);
   text-align: right;
-  font-size: var(--t-1);
+  font-size: var(--t-2);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;

@@ -136,6 +136,8 @@
 .bSerie span {
   font-weight: 700;
   color: var(--ink);
+  white-space: nowrap;
+  flex: none;
 }
 /* LA VARIANTE MINCE, pour les tracés de 96 px : le bandeau normal ferait la
    moitié de la hauteur du dessin.

@@ -271,7 +271,7 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
             <div className={styles.unitNote}>{t("en FCFA · survolez les barres pour les montants exacts")}</div>
             <BarChart groups={years} series={[{ name: t("Total du bilan"), values: figs.map((f) => f.totalAssets) }, { name: t("Fonds propres"), values: figs.map((f) => f.equity), accent: true }]} ariaLabel={t("Total du bilan et fonds propres par année")} />
             {client && partsFP.some((v) => v != null) && (
-              <>
+              <div className={styles.sousBloc}>
                 <Majeur etiquette={t("Capitaux propres / total bilan · {y}", { y: String(a.latest.year) })} valeur={fmtPct(partsFP[partsFP.length - 1] ?? 0, 1)} />
                 <GrapheComptes
                   annees={annees}
@@ -279,7 +279,7 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
                   lignes={[{ nom: t("Part des fonds propres"), valeurs: partsFP.map(arrondi), teinte: "bleu" }]}
                   resume={figs.map((f, j) => `${f.year} : ${partsFP[j] == null ? "—" : fmtPct(partsFP[j] as number, 1)}`).join(" ; ")}
                 />
-              </>
+              </div>
             )}
             <div className={styles.reading}>
               <b>{t("Comment lire.")}</b> {t("Le total du bilan est tout ce que l'entreprise possède ; les fonds propres, la part qui appartient aux actionnaires. Des fonds propres qui grossissent année après année veulent dire que l'entreprise garde une partie de ses bénéfices.")} {c.sector === "Banque" || c.sector === "Holding bancaire" ? t("Pour une banque, un bilan très supérieur aux fonds propres est normal : il est constitué des dépôts des clients.") : ""}
@@ -291,14 +291,16 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
               <h2>
                 {t("Dividende par action")} <Info text={t("Le dividende brut versé par action pour chaque exercice, tel que la société le publie, et le rendement que chacun donnerait au cours actuel (courbe, axe de droite). Un dividende n'est pas garanti : il peut baisser ou ne pas être versé.")} label={t("Dividende par action")} />
               </h2>
-              <Majeur etiquette={t("Dernier dividende · exercice {y}", { y: String(dernierDiv.year) })} valeur={fmt(dernierDiv.dividendPerShare as number)} unite={t("FCFA par action")} sous={`${t("Rendement")} ${a.dividendYieldPct != null ? fmtPct(a.dividendYieldPct, 2) : "—"}`} />
-              <GrapheComptes
-                annees={annees}
-                unite="FCFA"
-                barres={[{ nom: t("Dividende brut par action"), valeurs: dividendes, teinte: "or" }]}
-                droit={{ unite: "%", lignes: [{ nom: t("Rendement au cours actuel"), valeurs: dividendes.map((d) => { const r2 = rendementDividendePct(d, quote?.close ?? 0); return r2 == null ? null : Math.round(r2 * 100) / 100; }), teinte: "bleu" }] }}
-                resume={figs.map((f, j) => `${f.year} : ${dividendes[j] == null ? t("aucun dividende") : `${fmt(dividendes[j] as number)} FCFA`}`).join(" ; ")}
-              />
+              <div className={styles.avecChiffre}>
+                <Majeur etiquette={t("Dernier dividende · exercice {y}", { y: String(dernierDiv.year) })} valeur={fmt(dernierDiv.dividendPerShare as number)} unite={t("FCFA par action")} sous={`${t("Rendement")} ${a.dividendYieldPct != null ? fmtPct(a.dividendYieldPct, 2) : "—"}`} />
+                <GrapheComptes
+                  annees={annees}
+                  unite="FCFA"
+                  barres={[{ nom: t("Dividende brut par action"), valeurs: dividendes, teinte: "or" }]}
+                  droit={{ unite: "%", lignes: [{ nom: t("Rendement au cours actuel"), valeurs: dividendes.map((d) => { const r2 = rendementDividendePct(d, quote?.close ?? 0); return r2 == null ? null : Math.round(r2 * 100) / 100; }), teinte: "bleu" }] }}
+                  resume={figs.map((f, j) => `${f.year} : ${dividendes[j] == null ? t("aucun dividende") : `${fmt(dividendes[j] as number)} FCFA`}`).join(" ; ")}
+                />
+              </div>
               {nominalDivise && <div className={styles.reading}>{t("Le dernier dividende est écrit après division du nominal : les exercices précédents ne lui sont pas comparables.")}</div>}
             </div>
           )}
@@ -327,7 +329,7 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
                       ["Fonds propres", "fonds_propres", (f) => sc(f.equity)],
                       ["Total du bilan", "total_bilan", (f) => sc(f.totalAssets)],
                       ["Bénéfice par action (FCFA)", "bnpa", (f) => fmt(f.netIncome / c.sharesTotal)],
-                      ["Dividende brut par action (FCFA)", "dividende", (f) => (f.dividendPerShare === null ? t("non distribué") : f.dividendPerShare != null ? fmt(f.dividendPerShare) : "—")],
+                      ["Dividende brut par action (FCFA)", "dividende", (f) => (f.dividendPerShare === null ? t("aucun") : f.dividendPerShare != null ? fmt(f.dividendPerShare) : "—")],
                     ] as [string, TermKey, (f: (typeof figs)[number]) => string][]
                   ).map(([label, term, fn]) => (
                     <tr key={label}>
@@ -344,7 +346,7 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
                 </tbody>
               </table>
             </div>
-            <div className={styles.source}>{t("Sources")} : {[...new Set(figs.map((f) => t(f.source)))].join(" · ")}. {t("Normes")} {[...new Set(figs.map((f) => f.standard))].join(" / ")}. {t("Bénéfice par action calculé sur {n} actions.", { n: fmt(c.sharesTotal) })}{scale.div > 1 ? ` 1 ${scale.short.replace(" FCFA", "")} = ${fmt(scale.div)} FCFA.` : ""}</div>
+            <div className={styles.source}>{t("Sources")} : {[...new Set(figs.map((f) => t(f.source)))].join(" · ")}. {t("Normes")} {[...new Set(figs.map((f) => f.standard))].join(" / ")}. {t("Bénéfice par action calculé sur {n} actions.", { n: fmt(c.sharesTotal) })}{scale.div > 1 ? ` 1 ${scale.short.replace(" FCFA", "")} = ${fmt(scale.div)} FCFA.` : ""}{figs.some((f) => f.dividendPerShare === null) ? ` ${t("« aucun » : exercice sans dividende distribué.")}` : ""}</div>
           </div>
         </div>
 
