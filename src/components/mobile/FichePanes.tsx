@@ -22,8 +22,8 @@ export const PANES: [string, string][] = [
 
 const PaneCtx = createContext<{ pane: string; setPane: (p: string) => void; sans: string[] }>({ pane: "essentiel", setPane: () => undefined, sans: [] });
 
-export function FichePanes({ children, className, sans = [] }: { children: React.ReactNode; className?: string; /** Les volets que cette fiche ne montre pas (voir « fiche-volets »). */ sans?: string[] }) {
-  const [pane, setPane] = useState("essentiel");
+export function FichePanes({ children, className, sans = [], depart = "essentiel" }: { children: React.ReactNode; className?: string; /** Les volets que cette fiche ne montre pas (voir « fiche-volets »). */ sans?: string[]; /** Le volet ouvert au départ : « marche » pour la page d'une société (6 novembre 2026). */ depart?: string }) {
+  const [pane, setPane] = useState(depart);
   const racine = useRef<HTMLDivElement>(null);
   const avant = useRef<Repere | null>(null);
   const barre = () => racine.current?.querySelector('[role="tablist"]') ?? null;
@@ -66,7 +66,7 @@ export function FichePanes({ children, className, sans = [] }: { children: React
  * de la page. COLLÉE, la bande montre au-dessus des onglets le nom court de la ligne et son chiffre en avant : la tête de la fiche a défilé, on sait encore
  * laquelle on lit.
  */
-export function FicheSegments({ exclure = [], mini, libelles = {} }: { exclure?: string[]; mini?: { nom: string; chiffre: string; sous?: string }; /** Le nom d'un onglet propre à la ligne : « Société de gestion » pour un fonds, à la place de « Émetteur » (10 novembre 2026). */ libelles?: Record<string, string> }) {
+export function FicheSegments({ exclure = [], mini, libelles = {}, volets = PANES }: { /** Les onglets de la page, quand ce ne sont pas ceux d'une fiche de ligne : « Marché · Comptes · Ratios · Société » pour une société cotée. */ volets?: [string, string][]; exclure?: string[]; mini?: { nom: string; chiffre: string; sous?: string }; /** Le nom d'un onglet propre à la ligne : « Société de gestion » pour un fonds, à la place de « Émetteur » (10 novembre 2026). */ libelles?: Record<string, string> }) {
   const { pane, setPane, sans } = useContext(PaneCtx);
   const t = useT();
   const bande = useRef<HTMLDivElement>(null);
@@ -92,7 +92,7 @@ export function FicheSegments({ exclure = [], mini, libelles = {} }: { exclure?:
           </div>
         )}
         <div className={styles.seg} role="tablist" aria-label={t("Sections de la fiche")}>
-          {PANES.filter(([k]) => !sans.includes(k) && !exclure.includes(k)).map(([k, label]) => (
+          {volets.filter(([k]) => !sans.includes(k) && !exclure.includes(k)).map(([k, label]) => (
             <button key={k} type="button" role="tab" aria-selected={pane === k} className={pane === k ? styles.on : undefined} onClick={() => setPane(k)}>
               {t(libelles[k] ?? label)}
             </button>

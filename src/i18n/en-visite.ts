@@ -212,4 +212,10 @@ export const EN_VISITE: Record<string, string> = {
   "Ouvertes et à venir · {n}": "Open and upcoming · {n}",
   "Séances closes · {n}": "Closed sessions · {n}",
   "Les séances se rangent par état, ou par émetteur : celles qui se jouent d'abord, les séances closes ensuite, repliées. Touchez le titre pour sauter à un autre groupe ; le chevron plie ou déplie le groupe, et la flèche du haut plie ou déplie tout.": "Sessions are ordered by state, or by issuer: those to play first, closed sessions after, folded. Touch the heading to jump to another group; the chevron folds or unfolds the group, and the arrow at the top folds or unfolds everything.",
+  "Cours · clôture {d}": "Price · close {d}",
+  "à {p} FCFA": "at {p} FCFA",
+  "Ratios": "Ratios",
+  "Voir la fiche complète": "See the full page",
+  "Séances et cotation": "Sessions and listing",
+  "Ses lignes à Guichet": "Its lines at Guichet",
 };

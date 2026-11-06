@@ -548,14 +548,14 @@ describe("la valorisation d'une action : un graphe par indicateur, une durée po
     expect((v.match(/<Select\b/g) ?? []).length, "la liste de durée n'est plus UN composant, un seul état").toBe(1);
     expect((v.match(/\{selecteur\(\)\}/g) ?? []).length, "la liste de durée n'est plus dans chaque graphe (capitalisation, les trois indicateurs, la rotation)").toBe(3);
     expect(v, "la liste n'est plus dans l'en-tête de la carte de la capitalisation").toMatch(/<div className=\{fa\.entete\}>\s*<Majeur etiquette=\{t\("Valeur au \{d\}"/);
-    expect(v, "la capitalisation n'a plus sa section et son « i »").toMatch(/<h3>\s*\{t\("Capitalisation boursière"\)\}\s*<Info text=/);
+    expect(v, "la capitalisation n'a plus sa section et son « i »").toMatch(/<Enveloppe pane=\{pane\} panneau=\{panneau\} titre=\{t\("Capitalisation boursière"\)\} info=\{t\(/);
     expect(v, "les trois indicateurs ne sont plus des sections").toMatch(/\{ cle: "per", titre: t\("Rapport cours \/ bénéfice"\)[\s\S]*\{ cle: "pb", titre: t\("Cours \/ valeur comptable"\)[\s\S]*\{ cle: "rendement", titre: t\("Rendement du dividende"\)/);
     expect(v, "la période ne vient plus de la même lecture que le cours").toMatch(/lirePeriode\(reperes, p\.cle\)/);
-    expect(v, "les quatre sections ne sont plus dans l'Émetteur").toMatch(/<section className=\{styles\.sec\} data-pane="emetteur">[\s\S]*<section key=\{ind\.cle\} className=\{styles\.sec\} data-pane="emetteur">/);
+    expect(v, "les quatre sections ne sont plus dans l'Émetteur").toMatch(/<section className=\{styles\.sec\} data-pane=\{pane\}>[\s\S]*pane = "emetteur"[\s\S]*<Enveloppe key=\{ind\.cle\} pane=\{pane\} panneau=\{panneau\}/);
     expect(v, "les rapports ne sont plus dessinés en marches").toMatch(/<GrapheDeSerie dates=\{dates\} unite=\{ind\.unite\} pas /);
-    expect(v, "la mention courte ne suit plus la dernière section (la rotation du flottant)").toMatch(/<\/Carte>\s*\{fin\}\s*<\/section>\s*<\/>/);
+    expect(v, "la mention courte ne suit plus la dernière section (la rotation du flottant)").toMatch(/<Enveloppe pane=\{pane\} panneau=\{panneau\} titre=\{t\("Rotation du flottant"\)\} info=\{t\([^\n]*\)\} fin=\{fin\}>/);
     expect(v, "la bulle d'un mois de la rotation a perdu son année").toMatch(/etiquettesLues=\{mois\.map\(\(m\) => motDeMois\(`\$\{m\.mois\}-01`, true\)\)\}/);
-    expect(v, "la rotation du flottant n'a plus sa section, mois par mois").toMatch(/<h3>\s*\{t\("Rotation du flottant"\)\}\s*<Info text=/);
+    expect(v, "la rotation du flottant n'a plus sa section, mois par mois").toMatch(/<Enveloppe pane=\{pane\} panneau=\{panneau\} titre=\{t\("Rotation du flottant"\)\} info=\{t\(/);
     expect(v, "la rotation du flottant n'est plus en tuile sous la capitalisation").toMatch(/<Tuiles tuiles=\{\[\[t\("Valeur échangée"\), valeurEchangee\], \[t\("Rotation du flottant"\), rotationTexte\]\]\} \/>/);
     expect(v, "l'avertissement du résultat net supérieur au chiffre d'affaires a disparu").toMatch(/resultatAuDessusDuChiffreDAffaires && ind\.cle !== "rendement"/);
   });
@@ -605,8 +605,8 @@ describe("les graphes de la fiche : lecture au toucher, années sur l'axe, « i 
     expect(a, "les bulletins de la cote sont revenus dans les documents").toMatch(/const documents = o\.documents\.filter\(\(d\) => !\/\^bulletin\\b\/i\.test\(d\.name\)\);/);
     expect(a, "la section Documents n'a plus son « i »").toMatch(/<h3>\s*\{t\("Documents"\)\}\s*<Info text=/);
     const v = lire(`${dir}/GraphesDeValorisation.tsx`);
-    expect((v.match(/<Info text=/g) ?? []).length, "une section de valorisation a perdu son « i »").toBe(3);
-    expect(v, "les indicateurs n'ont plus leur « i »").toMatch(/\{ind\.titre\}\s*<Info text=\{ind\.info\} label=\{ind\.titre\} \/>/);
+    expect((v.match(/<Enveloppe\b[^>]*\binfo=/g) ?? []).length, "une section de valorisation a perdu son « i »").toBe(3);
+    expect(v, "les indicateurs n'ont plus leur « i »").toMatch(/<Enveloppe key=\{ind\.cle\} pane=\{pane\} panneau=\{panneau\} titre=\{ind\.titre\} info=\{ind\.info\}>/);
   });
   it("changer d'onglet page défilée ramène en haut du nouvel onglet, sous la bande", () => {
     const f = lire("src/components/mobile/FichePanes.tsx");

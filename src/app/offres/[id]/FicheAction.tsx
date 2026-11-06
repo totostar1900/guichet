@@ -5,9 +5,7 @@ import { Carte } from "@/components/Carte";
 import { CourbeDuCours } from "@/components/CourbeDuCours";
 import { CrossSignal } from "@/components/CrossSignal";
 import { Majeur, Mosaique, Tuiles } from "@/components/Mosaique";
-import { PastilleVariation } from "@/components/PastilleVariation";
 import { explainKpis } from "@/lib/domain/explain";
-import { tradedSession } from "@/lib/domain/market";
 import type { Offer } from "@/lib/domain/types";
 import { displayYield } from "@/lib/domain/status";
 import { serieDeValorisation } from "@/lib/market/valorisation";
@@ -16,6 +14,7 @@ import { fmt, fmtDate, fmtPct, fmtScaled, localIso, pickScale } from "@/lib/form
 import { voletsMasques } from "@/lib/fiche-volets";
 import { getT } from "@/i18n/server";
 import { GraphesDeValorisation } from "./GraphesDeValorisation";
+import { SeancesDeLAction } from "./SeancesDeLAction";
 import { Info } from "@/components/Info";
 import { IssuerCard } from "./IssuerCard";
 import type { FicheData } from "./FicheReading";
@@ -32,8 +31,6 @@ import fa from "./FicheAction.module.css";
  * - l'Émetteur porte la société : identité, performance financière, actionnaires. Les lignes similaires défilent en cartes (`LignesSimilaires`).
  * Le desk garde la lecture d'avant : cette fiche est celle du client seulement.
  */
-const signe = (v: number) => `${v > 0 ? "+" : ""}${fmtPct(v, 2)}`;
-const titres = (n: number) => `${fmt(n)} titre${n > 1 ? "s" : ""}`;
 
 function Bloc({ pane, titre, children, plat = false, fin, info }: { pane: string; titre: string; children: ReactNode; plat?: boolean; /** Sous la carte, dans la même section : la mention courte du dernier bloc d'un onglet. */ fin?: ReactNode; /** Le « i » du titre : ce que la section dit, en une bulle au milieu de l'écran (§ 8.9). */ info?: string }) {
   return (
@@ -53,7 +50,12 @@ export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
   const now = new Date();
   const { company, quotes, facing, stamp, profile, others, issuer } = data;
   const dy = displayYield(o);
-  const yTxt = dy.pct != null ? `${dy.approx ? "≈ " : ""}${fmtPct(dy.pct, 2)}` : "—";
+  /* UN SEUL COURS, UNE SEULE DATE (6 novembre 2026, planche « 1A ») : le cours est la clôture de la dernière séance publiée, datée ; le dernier échange est écrit à part dans « Séances ». Le rendement du dividende se lit sur ce même cours : la page de la société et la fiche donnent le même chiffre. */
+  const cloture = quotes[0] && (!o.lastPriceOn || quotes[0].sessionDate >= o.lastPriceOn) ? quotes[0] : undefined;
+  const cours = cloture ? cloture.close : o.lastPrice;
+  const coursLe = cloture ? cloture.sessionDate : o.lastPriceOn;
+  const rendementRef = cloture ? rendementDividendePct(o.dividendPerShare, cloture.close) : null;
+  const yTxt = rendementRef != null ? fmtPct(rendementRef, 2) : dy.pct != null ? `${dy.approx ? "≈ " : ""}${fmtPct(dy.pct, 2)}` : "—";
   /* UN SEUL « i » POUR LES CHIFFRES CLÉS (9 novembre 2026) : la section dit ce qu'elle montre ET comment se calcule le rendement (le « ? » du chiffre est parti). */
   const calcul = explainKpis(o, now)[0];
   const infoChiffresCles = [
@@ -62,7 +64,6 @@ export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
   ].join("\n");
   const age = o.priceSince ? daysBetween(o.priceSince, localIso(now)) : 0;
   const dernier = quotes[0];
-  const tradee = quotes.find(tradedSession);
   const points = [...quotes].reverse().map((q) => ({ d: q.sessionDate, c: q.close, v: q.volumeTraded, val: q.valueTraded }));
   /* LES BULLETINS DE LA COTE NE SONT PLUS DES DOCUMENTS de l'action (9 novembre 2026) : ce sont des pièces de la bourse, pas de la société. */
   const documents = o.documents.filter((d) => !/^bulletin\b/i.test(d.name));
@@ -107,10 +108,10 @@ export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
       {/* ESSENTIEL (Chiffres y est regroupé, 9 novembre 2026) : le cours et sa courbe, les chiffres clés, les séances, la simulation, la cotation. */}
       <Bloc pane="essentiel" titre={t("Cours")} info={t("Le dernier cours de clôture, et sa courbe. La variation écrite est celle de la période choisie, dividendes non compris. Sur ce marché beaucoup de séances n'ont aucun échange : une courbe plate veut dire « pas d'échange », pas « stable ».")}>
         <Majeur
-          etiquette={o.lastPriceOn ? t("Dernier cours · {d}", { d: fmtDate(o.lastPriceOn) }) : t("Dernier cours")}
-          valeur={o.lastPrice != null ? fmt(o.lastPrice) : "—"}
+          etiquette={coursLe ? t("Cours · clôture {d}", { d: fmtDate(coursLe) }) : t("Dernier cours")}
+          valeur={cours != null ? fmt(cours) : "—"}
           unite="FCFA"
-          sous={age >= 1 ? <span className={fa.age}>{t("même cours depuis {n} jours", { n: age })}</span> : undefined}
+          sous={age >= 1 && (!cloture || cloture.close === o.lastPrice) ? <span className={fa.age}>{t("même cours depuis {n} jours", { n: age })}</span> : undefined}
         />
         {points.length > 1 && <CourbeDuCours points={points} />}
         {o.priceSource !== "boc" && <p className={fa.note}>{t(stamp)}</p>}
@@ -123,53 +124,7 @@ export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
 
       {dernier && (
         <Bloc pane="essentiel" titre={t("Séances")} info={t("La dernière séance de cotation : clôture, seuils de variation permis, volume échangé et référence de la prochaine séance. Le tableau liste les cinq dernières séances.")}>
-          <Mosaique
-            majeur={<Majeur etiquette={t("Clôture · {d}", { d: fmtDate(dernier.sessionDate) })} valeur={fmt(dernier.close)} unite="FCFA" sous={<PastilleVariation v={dernier.variationPct} periode={t("séance")} />} />}
-            tuiles={[
-              [t("Dernière transaction"), tradee ? `${fmtDate(tradee.sessionDate)}${tradee.volumeTraded > 0 ? ` · ${titres(tradee.volumeTraded)}` : ""}` : t("aucune sur {n} séances", { n: String(quotes.length) })],
-              [t("Seuils de séance"), `${fmt(dernier.thresholdLow)} – ${fmt(dernier.thresholdHigh)}`],
-              [t("Volume échangé"), `${titres(dernier.volumeTraded)} · ${fmt(dernier.valueTraded)} FCFA`],
-              [t("Référence prochaine séance"), `${fmt(dernier.referenceNext)} FCFA`],
-            ]}
-          />
-          <table className={fa.seances}>
-            <thead>
-              <tr>
-                <th>{t("Séance")}</th>
-                <th>{t("Clôture")}</th>
-                <th>{t("Var.")}</th>
-                <th>{t("Volume")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {quotes.slice(0, 5).map((q) => (
-                <tr key={q.sessionDate}>
-                  <td>{fmtDate(q.sessionDate)}</td>
-                  <td>{fmt(q.close)}</td>
-                  <td className={q.variationPct < 0 ? fa.baisse : q.variationPct > 0 ? fa.hausse : undefined}>{signe(q.variationPct)}</td>
-                  <td>{fmt(q.volumeTraded)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {quotes.length > 5 && (
-            <details className={fa.plus}>
-              <summary>{t("Voir les {n} séances", { n: Math.min(quotes.length, 40) })}</summary>
-              <table className={fa.seances}>
-                <tbody>
-                  {quotes.slice(5, 40).map((q) => (
-                    <tr key={q.sessionDate}>
-                      <td>{fmtDate(q.sessionDate)}</td>
-                      <td>{fmt(q.close)}</td>
-                      <td className={q.variationPct < 0 ? fa.baisse : q.variationPct > 0 ? fa.hausse : undefined}>{signe(q.variationPct)}</td>
-                      <td>{fmt(q.volumeTraded)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </details>
-          )}
-          <p className={fa.note}>{t("Ces cours ne préjugent pas du prix auquel votre ordre sera exécuté.")}</p>
+          <SeancesDeLAction quotes={quotes} />
         </Bloc>
       )}
 

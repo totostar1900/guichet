@@ -75,7 +75,11 @@
   .panes[data-show="chiffres"] [data-pane]:not([data-pane="chiffres"]),
   .panes[data-show="calendrier"] [data-pane]:not([data-pane="calendrier"]),
   .panes[data-show="docs"] [data-pane]:not([data-pane="docs"]),
-  .panes[data-show="emetteur"] [data-pane]:not([data-pane="emetteur"]) {
+  .panes[data-show="emetteur"] [data-pane]:not([data-pane="emetteur"]),
+  .panes[data-show="marche"] [data-pane]:not([data-pane="marche"]),
+  .panes[data-show="comptes"] [data-pane]:not([data-pane="comptes"]),
+  .panes[data-show="ratios"] [data-pane]:not([data-pane="ratios"]),
+  .panes[data-show="societe"] [data-pane]:not([data-pane="societe"]) {
     display: none;
   }
   /* LA HAUTEUR DE LA BARRE, ÉCRITE UNE FOIS : la barre flotte, la cale la

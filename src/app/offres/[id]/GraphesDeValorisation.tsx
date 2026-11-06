@@ -16,6 +16,29 @@ import { paliersDExercice, rotationParMois, rotationSurPeriode, type PointDeValo
 import styles from "./page.module.css";
 import fa from "./FicheAction.module.css";
 
+/** Une section de valorisation : l'habillage d'une fiche (titre à plat, carte) ou celui d'un panneau de la page d'une société. Défini hors du composant : défini dedans, il serait un autre composant à chaque rendu et ferait perdre leur état aux graphes. */
+function Enveloppe({ pane, panneau, titre, info, children, fin }: { pane: string; panneau?: string; titre: string; info: string; children: ReactNode; fin?: ReactNode }) {
+  return panneau ? (
+    <div className={panneau} data-pane={pane}>
+      <h2>
+        {titre}
+        <Info text={info} label={titre} />
+      </h2>
+      {children}
+      {fin}
+    </div>
+  ) : (
+    <section className={styles.sec} data-pane={pane}>
+      <h3>
+        {titre}
+        <Info text={info} label={titre} />
+      </h3>
+      <Carte>{children}</Carte>
+      {fin}
+    </section>
+  );
+}
+
 /**
  * LA VALORISATION D'UNE ACTION : UN GRAPHE PAR INDICATEUR, UNE DURÉE POUR TOUS (fiche, onglet Émetteur, 9 novembre 2026, planche « B »).
  *
@@ -24,7 +47,7 @@ import fa from "./FicheAction.module.css";
  * listes. Ce sont les mêmes huit périodes que le cours, une période que l'historique ne couvre pas est grisée avec sa raison. Les rapports se lisent en marches : ils bougent avec le cours et d'un cran à
  * chaque nouvel exercice (marqué par un trait). La mention courte du dernier onglet (`fin`) se range sous la dernière section.
  */
-export function GraphesDeValorisation({ serie, resultatAuDessusDuChiffreDAffaires = false, fin }: { serie: PointDeValorisation[]; /** Un résultat net supérieur au chiffre d'affaires publié : les rapports qui en sortent sont à lire avec prudence. */ resultatAuDessusDuChiffreDAffaires?: boolean; fin?: ReactNode }) {
+export function GraphesDeValorisation({ serie, resultatAuDessusDuChiffreDAffaires = false, fin, pane = "emetteur", panneau }: { /** Le volet où se rangent les sections (« emetteur » sur la fiche, « ratios » sur la page d'une société). */ pane?: string; /** La classe d'un panneau de la page d'une société : les sections prennent son habillage (titre h2, sans carte) au lieu de celui de la fiche (titre à plat, carte). */ panneau?: string; serie: PointDeValorisation[]; /** Un résultat net supérieur au chiffre d'affaires publié : les rapports qui en sortent sont à lire avec prudence. */ resultatAuDessusDuChiffreDAffaires?: boolean; fin?: ReactNode }) {
   const t = useT();
   const { fmtDate } = useDates();
   const reperes = serie.map((p) => ({ d: p.d, c: p.cap, v: 0 }));
@@ -76,12 +99,7 @@ export function GraphesDeValorisation({ serie, resultatAuDessusDuChiffreDAffaire
   ];
   return (
     <>
-      <section className={styles.sec} data-pane="emetteur">
-        <h3>
-          {t("Capitalisation boursière")}
-          <Info text={t("La valeur de toutes les actions au cours de clôture : cours × nombre de titres de la séance. La part flottante est la partie des titres réellement échangeable en bourse.")} label={t("Capitalisation boursière")} />
-        </h3>
-        <Carte>
+      <Enveloppe pane={pane} panneau={panneau} titre={t("Capitalisation boursière")} info={t("La valeur de toutes les actions au cours de clôture : cours × nombre de titres de la séance. La part flottante est la partie des titres réellement échangeable en bourse.")}>
           <div className={fa.entete}>
             <Majeur etiquette={t("Valeur au {d}", { d: fmtDate(dernier.d) })} valeur={fmtScaled(dernier.cap, echelle.div, 1)} unite={echelle.short} sous={variationCap !== undefined ? <PastilleVariation v={variationCap} periode={t(lue.libelle)} /> : undefined} />
             {selecteur()}
@@ -97,20 +115,14 @@ export function GraphesDeValorisation({ serie, resultatAuDessusDuChiffreDAffaire
             resume={`${t("Capitalisation du {a} au {b}", { a: fmtDate(dates[0]), b: fmtDate(dates[dates.length - 1]) })} : ${fmtScaled(fenetre[0].cap, echelle.div, 1)} → ${fmtScaled(dernier.cap, echelle.div, 1)} ${echelle.short}`}
           />
           <Tuiles tuiles={[[t("Valeur échangée"), valeurEchangee], [t("Rotation du flottant"), rotationTexte]]} />
-        </Carte>
-      </section>
+        </Enveloppe>
       {indicateurs.map((ind) => {
         const valeurs = fenetre.map((p) => p[ind.cle]);
         const b = bornes(valeurs);
         const courant = dernier[ind.cle];
         const decimales = ind.cle === "rendement" ? (v: number) => fmtPct(v, 2).replace(" %", "") : nombre1;
         return (
-          <section key={ind.cle} className={styles.sec} data-pane="emetteur">
-            <h3>
-              {ind.titre}
-              <Info text={ind.info} label={ind.titre} />
-            </h3>
-            <Carte>
+          <Enveloppe key={ind.cle} pane={pane} panneau={panneau} titre={ind.titre} info={ind.info}>
               <div className={fa.entete}>
                 <Majeur
                   etiquette={t("Valeur au {d}", { d: fmtDate(dernier.d) })}
@@ -122,16 +134,10 @@ export function GraphesDeValorisation({ serie, resultatAuDessusDuChiffreDAffaire
               </div>
               <GrapheDeSerie dates={dates} unite={ind.unite} pas series={[{ nom: ind.titre, valeurs: valeurs.map((v) => (v == null ? null : Math.round(v * 100) / 100)), teinte: "or" }]} marques={marques} exercices={fenetre.map((p) => p.exercice)} resume={`${ind.titre} : ${b ? `${decimales(b.de)} → ${decimales(b.a)} ${ind.unite}` : "—"}`} />
               {resultatAuDessusDuChiffreDAffaires && ind.cle !== "rendement" && <p className={fa.note}>{t("Tiré d'un résultat net supérieur au chiffre d'affaires publié : à lire avec prudence.")}</p>}
-            </Carte>
-          </section>
+            </Enveloppe>
         );
       })}
-      <section className={styles.sec} data-pane="emetteur">
-        <h3>
-          {t("Rotation du flottant")}
-          <Info text={t("La part du flottant qui s'est échangée : valeur échangée ÷ capitalisation flottante, mois par mois. Elle dit à quel point le titre se négocie ; un chiffre bas décrit le marché, pas la société.")} label={t("Rotation du flottant")} />
-        </h3>
-        <Carte>
+      <Enveloppe pane={pane} panneau={panneau} titre={t("Rotation du flottant")} info={t("La part du flottant qui s'est échangée : valeur échangée ÷ capitalisation flottante, mois par mois. Elle dit à quel point le titre se négocie ; un chiffre bas décrit le marché, pas la société.")} fin={fin}>
           <div className={fa.entete}>
             <Majeur etiquette={t("Sur la période")} valeur={rotation.rotationPct == null ? "—" : fmtPct(rotation.rotationPct, 2).replace(" %", "")} unite="%" sous={t("{v} échangés", { v: valeurEchangee })} />
             {selecteur()}
@@ -143,9 +149,7 @@ export function GraphesDeValorisation({ serie, resultatAuDessusDuChiffreDAffaire
             barres={[{ nom: t("Rotation du flottant"), valeurs: mois.map((m) => (m.rotationPct == null ? null : Math.round(m.rotationPct * 100) / 100)), teinte: "or" }]}
             resume={mois.map((m) => `${m.mois} : ${m.rotationPct == null ? "—" : fmtPct(m.rotationPct, 2)} (${fmt(m.valeur)} FCFA)`).join(" ; ")}
           />
-        </Carte>
-        {fin}
-      </section>
+        </Enveloppe>
     </>
   );
 }

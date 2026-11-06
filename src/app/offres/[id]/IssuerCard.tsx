@@ -17,7 +17,7 @@ import styles from "./IssuerCard.module.css";
  * profile. Only what a source says appears; a fact the source does not give
  * is simply not there.
  */
-export async function IssuerCard({ profile, o, others, company, issuer, lignesSeulement = false }: { profile?: IssuerProfile; o: Offer; others: { o: Offer; s: OfferSummary }[]; company?: Company; issuer?: BondIssuer; /** Seulement l'échelle de ses autres lignes : l'identité est dite ailleurs (la fiche d'une action, 9 novembre 2026). */ lignesSeulement?: boolean }) {
+export async function IssuerCard({ profile, o, others, company, issuer, lignesSeulement = false, sansRepere = false }: { /** La page d'une société n'est la fiche d'aucune de ses lignes : aucune n'y porte « cette fiche ». */ sansRepere?: boolean; profile?: IssuerProfile; o: Offer; others: { o: Offer; s: OfferSummary }[]; company?: Company; issuer?: BondIssuer; /** Seulement l'échelle de ses autres lignes : l'identité est dite ailleurs (la fiche d'une action, 9 novembre 2026). */ lignesSeulement?: boolean }) {
   const t = await getT();
   const name = profile?.name ?? o.issuer;
   const zone = profile?.zone ?? o.country;
@@ -39,7 +39,7 @@ export async function IssuerCard({ profile, o, others, company, issuer, lignesSe
   // La fiche qu'on lit garde sa place dans l'échelle : sans elle, la section se
   // lit comme une liste d'autres possibilités alors que c'est un rayon où le
   // client doit pouvoir se situer.
-  const years = others.length > 0 ? issuerLadder([{ o, s: summarize(o, new Date()) }, ...others], name, o.id) : [];
+  const years = others.length > 0 ? issuerLadder([{ o, s: summarize(o, new Date()) }, ...others], name, sansRepere ? "" : o.id) : [];
   return (
     <div className={styles.card}>
       {!lignesSeulement && (
