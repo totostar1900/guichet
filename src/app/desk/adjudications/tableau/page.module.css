@@ -207,3 +207,25 @@
   white-space: nowrap;
 }
 
+
+/* La source des chiffres d'une séance (planche 4A). */
+.srcPdf,
+.srcExcel,
+.srcDeux {
+  display: inline-block;
+  padding: 0 0.4rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.srcPdf {
+  color: var(--navy-text);
+}
+.srcExcel {
+  color: var(--gold);
+}
+.srcDeux {
+  color: var(--good);
+}

@@ -5,6 +5,7 @@ import { repo } from "@/lib/data";
 import { toCsv } from "@/lib/reporting";
 import { applyFilter, sortRows, toRow, type SortKey, type TableFilter } from "@/lib/market/auction-table";
 import { lireConvention } from "@/lib/market/convention";
+import { etatSource, vueParSource, type ModeDeVue } from "@/lib/market/sources-seance";
 
 /**
  * Les séances de la zone en CSV : desk seulement.
@@ -33,7 +34,10 @@ export async function GET(req: NextRequest) {
   };
   const tri = p.get("tri") ?? "date";
   const rev = tri.endsWith("-");
-  const all = await repo().listAuctionResults({ limit: 5000 });
+  /* La source du rapport : le fichier suit le choix de l'écran (valeurs retenues, PDF seul, Excel seul, les deux). */
+  const src = p.get("source");
+  const mode: ModeDeVue = src === "pdf" || src === "excel" || src === "les-deux" ? src : "retenu";
+  const all = vueParSource(await repo().listAuctionResults({ limit: 5000 }), mode);
   /* L export porte la convention du lecteur : un fichier dont les chiffres
      ne sont pas ceux de l ecran est un fichier qui trompe. */
   const convention = await lireConvention();
@@ -46,7 +50,7 @@ export async function GET(req: NextRequest) {
       "Prix min", "Prix max", "Prix limite", "Prix moyen pondéré",
       "Couverture %", "SVT réseau", "SVT soumissionnaires",
       "Annoncé FCFA", "Soumis FCFA", "Servi FCFA",
-      "Séance mince", "Relue par", "Relue le", "Notre ligne", "Communiqué",
+      "Séance mince", "Relue par", "Relue le", "Notre ligne", "Communiqué", "Source des chiffres", "Écarts PDF/Excel ouverts",
     ],
     rows.map(({ r, couverture, mince }) => [
       r.sessionOn, r.country, r.instrument, r.tenor, r.abondement ? "oui" : "non", r.codeEmission ?? "",
@@ -54,7 +58,7 @@ export async function GET(req: NextRequest) {
       r.priceMin, r.priceMax, r.priceLimit, r.priceAvg,
       couverture ?? undefined, r.networkSize, r.bidders,
       r.announced, r.bid, r.served,
-      mince ? "oui" : "non", r.confirmedBy ?? "", r.confirmedAt ?? "", r.offerId ?? "", r.sourceUrl,
+      mince ? "oui" : "non", r.confirmedBy ?? "", r.confirmedAt ?? "", r.offerId ?? "", r.sourceUrl, etatSource(r).libelle, etatSource(r).ecartsOuverts,
     ]),
   );
 

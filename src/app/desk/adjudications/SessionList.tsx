@@ -33,6 +33,9 @@ export interface LigneSeance {
   code?: string;
   etat: EtatSeance;
   mince: boolean;
+  /** D'où viennent les chiffres : PDF, Excel, ou les deux (planche 4A). */
+  source: "PDF" | "Excel" | "PDF + Excel";
+  ecartsOuverts: number;
 }
 
 const MOT: Record<EtatSeance, string> = { a_lire: "à lire", a_relire: "à relire", relue: "relue", ecartee: "écartée" };
@@ -77,7 +80,7 @@ export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: 
     const gardees = rows.filter((r) => {
       if (onglet === "tout" ? r.etat === "ecartee" : r.etat !== onglet) return false;
       if (!mots.length) return true;
-      const foin = `${r.on} ${r.pays} ${r.instrument} ${r.tenor} ${r.code ?? ""}`.toLowerCase();
+      const foin = `${r.on} ${r.pays} ${r.instrument} ${r.tenor} ${r.code ?? ""} ${r.source}`.toLowerCase();
       // Chaque mot doit être présent : c'est le même comportement que la
       // recherche des dossiers, et le desk n'a qu'une habitude à prendre.
       return mots.every((m) => foin.includes(m));
@@ -166,6 +169,10 @@ export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: 
                 <td>
                   <span className={`${styles.etat} ${styles[r.etat]}`}>{t(MOT[r.etat])}</span>
                   {r.mince && <span className={styles.mince}>{t("mince")}</span>}
+                  <span className={`${styles.source} ${r.source === "Excel" ? styles.sourceExcel : r.source === "PDF" ? styles.sourcePdf : styles.sourceDeux}`} title={r.ecartsOuverts ? t("{n} écart(s) à trancher entre le PDF et l'Excel", { n: r.ecartsOuverts }) : undefined}>
+                    {r.source}
+                    {r.ecartsOuverts > 0 ? ` · ${r.ecartsOuverts}` : r.source === "PDF + Excel" ? " ✓" : ""}
+                  </span>
                 </td>
               </tr>
             ))}

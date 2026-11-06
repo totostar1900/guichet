@@ -146,3 +146,11 @@ Le Trésor en surtitre et le coupon au rang du rendement ont été codés sur la
 ## Leçon du 6 novembre 2026 : « garder les graphiques existants » veut dire les inventorier avant de dessiner
 
 La première maquette de la fiche d'une séance avait remplacé le graphique des flux par un tableau, et fusionné « Chiffres » en perdant ses bulles ⓘ : le client a dû le redire. Avant une planche qui fusionne ou refond une page, **lister chaque graphique, chaque bulle et chaque texte** de la page actuelle (un script qui imprime le texte de chaque onglet suffit) et les placer un par un dans un tableau « où va chaque élément ». Un dessin se redessine à l'échelle avec ses vraies valeurs, jamais en tableau de remplacement. Deux remarques du client à la suite (« montant au milieu », « case blanche ») se résolvent dans la même planche, mais une remarque qu'on n'a pas retrouvée dans l'historique se dit comme une **interprétation** dans le compte rendu.
+
+## Leçon du 6 novembre 2026 : importer un fichier externe, et ce qu'on en montre au client
+
+- **Lire un classeur sans se fier à sa dimension déclarée** : les exports OJA « Enchères » et « Titres » annoncent une ligne et en ont des milliers ; un lecteur qui s'y fie n'en voit qu'une. Compter les lignes réellement lues, et le dire dans l'aperçu.
+- **Un gros fichier se lit dans le navigateur, et seul l'agrégé voyage** : la limite d'une requête serveur (4,5 Mo sur Vercel) et celle de React sur les arguments d'une action (« Maximum array nesting exceeded » quand un lot de plusieurs Mo accompagne un deuxième argument) imposent UNE chaîne en argument, revalidée côté serveur.
+- **Deux sources, une règle par champ, et une trace** : la valeur retenue se dérive des deux jeux de valeurs gardés ; l'écart tranché garde la valeur écartée, le motif, l'auteur, le jour. Une source se peut exclure, même chargée.
+- **Le client lit une liste blanche** (`vueClient`), jamais une liste de retraits : un champ ajouté demain ne sort pas tant qu'il n'est pas écrit dans la projection et dans son test. Une couverture recalculée n'est pas une couverture imprimée.
+- **Un test de navigateur sur fichiers à nom accentué** : Playwright perd le nom ; recopier sous un nom ASCII avant `setInputFiles`.

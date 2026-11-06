@@ -115,7 +115,7 @@ export default async function SondagePage({ searchParams }: Props) {
   if (choisie) {
     const role = duDesk && choisie === duDesk ? "question" : "attente";
     const e = etatDeLAttente(choisie);
-    const historique = await r.listAuctionResults({ instrument: choisie.instrument, confirmed: true, limit: 1000 });
+    const historique = await r.listAuctionResults({ instrument: choisie.instrument, confirmed: true, limit: 3000 });
     const cmp = comparatifDeLigne(choisie, historique, aujourdHui, choixDeLAdresse(choisie, pays, duree));
     return (
       <Glissement>

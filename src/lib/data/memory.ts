@@ -27,6 +27,7 @@ import type { ObservationBeac } from "@/lib/market/beac-journal";
 import type { EncoursDette } from "@/lib/market/encours-dette";
 import type { ComptesEmetteur, CoutDesRessources, EncoursOfficiel, OperationDuTresor, PointCourbeBeac } from "./repository";
 import type { AuctionResult } from "@/lib/market/auction-results";
+import type { OjaImport } from "@/lib/market/oja";
 import type { EmissionNotice } from "@/lib/market/emission-notices";
 import type { BeacCurveRow } from "./repository";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -287,6 +288,7 @@ interface Store {
   fundNavs: FundNav[];
   issuerDocs: IssuerDocument[];
   auctionResults: AuctionResult[];
+  ojaImports: OjaImport[];
   /** Les avis d annonce : les modalites de l emprunt, que le communique de resultats ne porte pas. */
   emissionNotices: EmissionNotice[];
   beacCurves: BeacCurveRow[];
@@ -378,6 +380,7 @@ function store(): Store {
       ...cote(),
       issuerDocs: [],
       auctionResults: structuredClone(REF_AUCTIONS),
+      ojaImports: [],
       emissionNotices: [],
       beacCurves: [],
       seq: 17,
@@ -415,6 +418,7 @@ function store(): Store {
   }
   if (!g.__guichetStore.issuerDocs) g.__guichetStore.issuerDocs = [];
   if (!g.__guichetStore.auctionResults) g.__guichetStore.auctionResults = [];
+  if (!g.__guichetStore.ojaImports) g.__guichetStore.ojaImports = [];
   if (!g.__guichetStore.emissionNotices) g.__guichetStore.emissionNotices = [];
   if (!g.__guichetStore.news) g.__guichetStore.news = structuredClone(SEED_NEWS);
   if (!g.__guichetStore.budgets) g.__guichetStore.budgets = structuredClone(SEED_BUDGETS);
@@ -1699,6 +1703,34 @@ export const memoryRepository: Repository = {
     const { confirmedBy: _by, confirmedAt: _at, ...reste } = s.auctionResults[i];
     s.auctionResults[i] = { ...reste, updatedAt: new Date().toISOString() };
     return structuredClone(s.auctionResults[i]);
+  },
+
+  async insertAuctionResults(rows) {
+    const s = store();
+    const now = new Date().toISOString();
+    let n = 0;
+    for (const r of rows) {
+      if (s.auctionResults.some((x) => x.country === r.country && x.sessionOn === r.sessionOn && x.codeEmission === r.codeEmission)) continue;
+      s.auctionResults.push({ ...r, id: uid(), createdAt: now, updatedAt: now });
+      n++;
+    }
+    return n;
+  },
+  async listOjaImports() {
+    return structuredClone([...store().ojaImports].sort((a, b) => b.at.localeCompare(a.at)));
+  },
+  async createOjaImport(i) {
+    const s = store();
+    const row: OjaImport = { ...i, id: uid(), at: new Date().toISOString() };
+    s.ojaImports.push(row);
+    return structuredClone(row);
+  },
+  async updateOjaImport(id, patch) {
+    const s = store();
+    const k = s.ojaImports.findIndex((x) => x.id === id);
+    if (k < 0) throw new Error("Import introuvable");
+    s.ojaImports[k] = { ...s.ojaImports[k], ...patch };
+    return structuredClone(s.ojaImports[k]);
   },
 
   async listIssuerDocuments(mnemo) {

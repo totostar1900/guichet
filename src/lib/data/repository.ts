@@ -22,6 +22,7 @@ import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
 import type { DernierEtat, ObservationBeac } from "@/lib/market/beac-journal";
 import type { EncoursDette } from "@/lib/market/encours-dette";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
+import type { NouvelImportOja, OjaImport } from "@/lib/market/oja";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
 import type { FundCurve } from "@/lib/domain/fund-curve";
@@ -669,6 +670,13 @@ export interface Repository {
   updateAuctionResult(id: string, patch: PatchAuctionResult): Promise<AuctionResult>;
   /** Le seul effacement légitime de la table : la séance repasse « à relire ». */
   reopenAuctionResult(id: string): Promise<AuctionResult>;
+  /** Insère des séances nouvelles d'un coup (import OJA : plus de deux mille). Une séance déjà là, même pays, même jour, même code, n'est PAS touchée. Rend le nombre inséré. */
+  insertAuctionResults(rows: NewAuctionResult[]): Promise<number>;
+  /** Le journal des imports OJA, du plus récent au plus ancien. */
+  listOjaImports(): Promise<OjaImport[]>;
+  createOjaImport(i: NouvelImportOja): Promise<OjaImport>;
+  /** Un import exclu ne compte plus pour les valeurs retenues : réversible. */
+  updateOjaImport(id: string, patch: Partial<Pick<OjaImport, "exclu">>): Promise<OjaImport>;
 
   /**
    * Les avis d'annonce de la BEAC : les modalités de l'emprunt, que le

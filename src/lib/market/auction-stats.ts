@@ -88,3 +88,41 @@ export function programByYear(rows: AuctionResult[]): ProgramYear[] {
     .map((a) => ({ ...a, serviSurAnnonce: (a.served / a.announced) * 100 }))
     .sort((a, b) => a.country.localeCompare(b.country) || a.year.localeCompare(b.year));
 }
+
+export interface CarnetYear {
+  country: string;
+  year: string;
+  sessions: number;
+  bid: number;
+  rejete: number;
+  /** Part des soumissions refusées au prix, en %. */
+  partRejetee: number;
+  /** Moyenne des soumissionnaires distincts par séance. */
+  soumissionnaires: number;
+}
+
+/**
+ * Ce que seul le carnet d'offres de l'export OJA sait : la part des soumissions refusées au prix et le nombre de soumissionnaires.
+ *
+ * Desk seulement : jamais montré au client. Ne compte que les séances qui portent le carnet, d'une source Excel non exclue, et d'après le
+ * 1er février 2023 : avant, l'état des offres est ambigu et la part rejetée serait une supposition.
+ */
+export function carnetByYear(rows: AuctionResult[]): CarnetYear[] {
+  const cle = new Map<string, CarnetYear & { somBid: number }>();
+  for (const r of rows) {
+    const s = r.sources;
+    if (!s?.carnet || s.carnet.rejeteAuPrix == null || s.exclues?.includes("excel") || r.sessionOn < "2023-02-01") continue;
+    const bid = s.excel?.bid ?? r.bid;
+    if (!bid) continue;
+    const k = `${r.country}|${r.sessionOn.slice(0, 4)}`;
+    const a = cle.get(k) ?? { country: r.country, year: r.sessionOn.slice(0, 4), sessions: 0, bid: 0, rejete: 0, partRejetee: 0, soumissionnaires: 0, somBid: 0 };
+    a.sessions += 1;
+    a.bid += bid;
+    a.rejete += s.carnet.rejeteAuPrix;
+    a.somBid += s.excel?.bidders ?? r.bidders ?? 0;
+    cle.set(k, a);
+  }
+  return [...cle.values()]
+    .map(({ somBid, ...a }) => ({ ...a, partRejetee: (a.rejete / a.bid) * 100, soumissionnaires: somBid / a.sessions }))
+    .sort((a, b) => a.country.localeCompare(b.country) || a.year.localeCompare(b.year));
+}

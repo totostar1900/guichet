@@ -22,7 +22,7 @@ import { repo } from "@/lib/data";
 import { getLang, getT } from "@/i18n/server";
 import { intlLocale } from "@/i18n/core";
 import { fmt, fmtDate } from "@/lib/format";
-import { pressureByYear, programByYear } from "@/lib/market/auction-stats";
+import { carnetByYear, pressureByYear, programByYear } from "@/lib/market/auction-stats";
 import { cribler } from "@/lib/market/anomalies";
 import { compteDansLesResultats } from "@/lib/market/auction-results";
 import { anomalieVueAction } from "./actions";
@@ -67,7 +67,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
   ilYADeuxAns.setFullYear(ilYADeuxAns.getFullYear() - 2);
   const debut = ilYADeuxAns.toISOString().slice(0, 10);
   const [seances, bulletins, activite, cotes] = await Promise.all([
-    r.listAuctionResults({ limit: 1000 }),
+    r.listAuctionResults({ limit: 5000 }),
     r.listBulletins(1000).catch(() => []),
     r.quoteActivity(debut).catch(() => []),
     r.latestQuotes().catch(() => []),
@@ -144,6 +144,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
   const tracables = courbe.countries.filter((c) => c.points.length >= MIN_POINTS);
   const pression = pressureByYear(relues);
   const programme = programByYear(relues);
+  const carnet = carnetByYear(relues);
   const liq = liquidity(activite, cotes);
   const frais = liq ? freshness(liq) : undefined;
   const ponts = liq ? bridge(seances, liq.lines) : [];
@@ -343,6 +344,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
     { id: "reprix", title: "Ce que chaque durée a payé", groupe: "Les volumes" },
     { id: "pression", title: "La pression de la demande", groupe: "Les volumes" },
     { id: "programme", title: "L'exécution du programme", groupe: "Les volumes" },
+    ...(carnet.length ? [{ id: "carnet", title: "Ce que le carnet a refusé", groupe: "Les volumes" }] : []),
     { id: "liquidite", title: "La liquidité du secondaire", groupe: "Le secondaire" },
     { id: "fraicheur", title: "La fraîcheur de l'indice", groupe: "Le secondaire" },
     { id: "pont", title: "Le pont primaire / secondaire", groupe: "Le secondaire" },
@@ -855,6 +857,45 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
             </table>
           </div>
         </Bloc>
+
+        {/* 3 bis. Le carnet : ce que l'export OJA sait et que le communiqué ne dit pas. Desk seulement. */}
+        {carnet.length > 0 && (
+          <Bloc id="carnet">
+            <div className="panel-h">
+              <h2>{t("Ce que le carnet d'offres a refusé au prix")}</h2>
+              <span className="muted">{sortie(false, "Tiré de l'export OJA, depuis le 1er février 2023 : avant, l'état des offres est ambigu. Réservé au desk, jamais publié au client.")}</span>
+            </div>
+            <div className="scroll-x">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>{t("Trésor")}</th>
+                    <th>{t("Année")}</th>
+                    <th className="r">{t("Séances")}</th>
+                    <th className="r">{t("Soumis")}</th>
+                    <th className="r">{t("Refusé au prix")}</th>
+                    <th className="r">{t("Part refusée")}</th>
+                    <th className="r">{t("Soumissionnaires / séance")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {carnet.map((c) => (
+                    <tr key={`${c.country}-${c.year}`}>
+                      <td>{c.country}</td>
+                      <td>{c.year}</td>
+                      <td className="r">{c.sessions}</td>
+                      <td className="r">{md(c.bid)}</td>
+                      <td className="r">{md(c.rejete)}</td>
+                      <td className="r"><b>{pct(c.partRejetee, 0)}</b></td>
+                      <td className="r">{c.soumissionnaires.toFixed(1).replace(".", ",")}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className={styles.note}>{t("Une part refusée qui monte dit que le Trésor tient son prix malgré la demande ; elle se lit avec la couverture du bloc précédent.")}</p>
+          </Bloc>
+        )}
 
         {/* 4. La liquidité : aucune donnée nouvelle, et la mesure qui qualifie tout le reste. */}
         {liq && (

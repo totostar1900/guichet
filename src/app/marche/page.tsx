@@ -8,6 +8,7 @@ import { quarters, quarterNote } from "@/lib/market/index-quarter";
 import { aLaUne, publishedNews, titreLu } from "@/lib/news";
 import { loadCompanies, loadLessons } from "@/lib/reference";
 import { repo } from "@/lib/data";
+import { vueClient } from "@/lib/market/adjudications-client";
 import { familyLabel, offerFamily } from "@/lib/domain/status";
 import { ChoisirDeuxLignes } from "./ChoisirDeuxLignes";
 import { getLang, getT } from "@/i18n/server";
@@ -30,13 +31,16 @@ export const metadata = { title: "Le marché" };
  */
 export default async function MarchePage() {
   const [t, lang] = await Promise.all([getT(), getLang()]);
-  const [data, companies, actualites, lecons, offres] = await Promise.all([
+  const [data, companies, actualites, lecons, offres, resultats] = await Promise.all([
     indexPageData(),
     loadCompanies().catch(() => []),
     publishedNews().catch(() => []),
     loadLessons().catch(() => []),
     repo().listOffers().catch(() => []),
+    repo().listAuctionResults({ limit: 400 }).catch(() => []),
   ]);
+  /* La dernière séance close : une ligne, tirée de la même projection que la rubrique (jamais d'autre champ que ceux du communiqué). */
+  const derniereAdj = vueClient(resultats)[0];
   const { weights, nameOf, lastBulletin, histories, trading } = data;
   const notes = quarters(data);
   /* La dernière note se calcule de « data », déjà en main : aucune lecture de
@@ -202,6 +206,29 @@ export default async function MarchePage() {
               {t("Ces trois-là pèsent {p} de la capitalisation, {c} FCFA au total dont {f} de flottant coté.", { p: fmtPct(partDeTete, 1), c: money(capTotal), f: money(capFloat) })}{" "}
               {t("Les {n} autres, et toutes les colonnes, sur leur page.", { n: weights.length - tete.length })}
             </p>
+          </section>
+        )}
+
+        {derniereAdj && (
+          <section className="panel" id="adjudications">
+            <div className="panel-h">
+              <h2>{t("Les adjudications")}</h2>
+              <Link className="btn sm ghost right" href="/marche/adjudications">
+                {t("Toutes les séances")} →
+              </Link>
+            </div>
+            <div className={styles.apercu}>
+              <Link href="/marche/adjudications">
+                <b>
+                  {derniereAdj.country} · {derniereAdj.instrument} {t(derniereAdj.tenor)}
+                </b>
+                <span>{fmtDate(derniereAdj.sessionOn, false)}</span>
+                {(derniereAdj.instrument === "BTA" ? derniereAdj.rateAvg : derniereAdj.priceAvg) != null && (
+                  <i>{fmtPct((derniereAdj.instrument === "BTA" ? derniereAdj.rateAvg : derniereAdj.priceAvg) as number, 2)}</i>
+                )}
+              </Link>
+            </div>
+            <p className={styles.note}>{t("Ce que les Trésors ont obtenu, tel que leur communiqué le publie.")}</p>
           </section>
         )}
 

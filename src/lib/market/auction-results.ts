@@ -30,6 +30,8 @@ import type { Country, OfferKind } from "@/lib/domain/types";
  */
 
 /** Une séance, telle que le communiqué de résultats la publie. */
+import type { SourcesSeance } from "./sources-seance";
+
 export interface AuctionResult {
   id: string;
   /**
@@ -142,6 +144,11 @@ export interface AuctionResult {
   correctedBy?: string;
   correctedAt?: string;
   offerId?: string;
+  /**
+   * LES DEUX SOURCES DE LA SÉANCE (6 novembre 2026) : le communiqué et l'export OJA, chacun avec ses valeurs, la source retenue par champ, les écarts tranchés et les
+   * sources exclues. Les colonnes plates ci-dessus sont la valeur RETENUE. Vide : la séance est un communiqué, et seulement cela. Voir « sources-seance.ts ».
+   */
+  sources?: SourcesSeance;
   createdAt: string;
   updatedAt: string;
 }

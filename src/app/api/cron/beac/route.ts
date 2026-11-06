@@ -157,7 +157,7 @@ export async function GET(req: NextRequest) {
     // passage, pour rien et sur le dos de la BEAC. Et on retente ce qui manque :
     // un 502 au moment de la création laissait sinon une séance sans sa pièce pour
     // toujours, puisque le passage suivant la reconnaissait et l'ignorait.
-    const gardees = new Map((await r.listAuctionResults({ limit: 2000 }).catch(() => [])).map((x) => [x.sourceUrl, x.fileKey]));
+    const gardees = new Map((await r.listAuctionResults({ limit: 5000 }).catch(() => [])).map((x) => [x.sourceUrl, x.fileKey]));
     let created = 0;
     let flagged = 0;
     let sansPiece = 0;

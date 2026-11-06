@@ -8,7 +8,7 @@ export const TECHNIQUE: DocPage = {
   visibility: "desk",
   audience: ["tech", "admin"],
   order: 7,
-  checkedOn: "2026-10-31",
+  checkedOn: "2026-11-06",
   owner: "Georges",
   chapters: [
     {
@@ -35,7 +35,7 @@ export const TECHNIQUE: DocPage = {
       id: "donnees",
       title: l("Les données et qui peut les voir", "The data and who can see it"),
       blocks: [
-        { type: "lead", text: l("Tout est dans une base Postgres chez Supabase, en Europe, chiffrée au repos. 123 migrations SQL versionnées dans le dépôt (supabase/migrations) décrivent chaque table ; on les applique à la main, dans l'ordre, avant le déploiement qui les utilise.", "Everything is in a Postgres database at Supabase, in Europe, encrypted at rest. 123 SQL migrations versioned in the repo (supabase/migrations) describe every table; they are applied by hand, in order, before the deployment that uses them.") },
+        { type: "lead", text: l("Tout est dans une base Postgres chez Supabase, en Europe, chiffrée au repos. 124 migrations SQL versionnées dans le dépôt (supabase/migrations) décrivent chaque table ; on les applique à la main, dans l'ordre, avant le déploiement qui les utilise.", "Everything is in a Postgres database at Supabase, in Europe, encrypted at rest. 124 SQL migrations versioned in the repo (supabase/migrations) describe every table; they are applied by hand, in order, before the deployment that uses them.") },
         {
           type: "table",
           head: [l("Table", "Table"), l("Contenu", "Content"), l("Qui lit / qui écrit", "Who reads / who writes")],

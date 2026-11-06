@@ -17,7 +17,7 @@ export const metadata = { title: "Allocations et règlement" };
 export default async function ResultsPage() {
   const t = await getT();
   const r = repo();
-  const [offers, intents, seances] = await Promise.all([r.listOffers(), r.listIntents(), r.listAuctionResults({ limit: 400 }).catch(() => [])]);
+  const [offers, intents, seances] = await Promise.all([r.listOffers(), r.listIntents(), r.listAuctionResults({ limit: 3000 }).catch(() => [])]);
   const now = new Date();
   /**
    * CE QUE LE DÉPOUILLEMENT PROPOSE, QUAND IL EST AU DÉPÔT.

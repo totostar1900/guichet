@@ -112,6 +112,13 @@ export const ICONE_PAGE: Record<string, React.ReactNode> = {
       <path d="M6 20V9M12 20V4M18 20v-7" />
     </>,
   ),
+  // Les résultats d'adjudication : un relevé, des lignes de chiffres sous un trait.
+  adjudications: svg(
+    <>
+      <path d="M5 4h14v16H5z" />
+      <path d="M8 9h8M8 13h8M8 17h5" />
+    </>,
+  ),
   actualites: svg(
     <>
       <path d="M4 5h16v14H4z" />

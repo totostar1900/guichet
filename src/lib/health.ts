@@ -253,7 +253,7 @@ export async function healthChecks(now = new Date()): Promise<HealthCheck[]> {
     r.derniereEcritureDesSeries().catch(() => ({}) as Record<string, string | undefined>),
     r.listTours(200).catch(() => []),
   ]);
-  const adjudications = await r.listAuctionResults({ limit: 2000 }).catch(() => []);
+  const adjudications = await r.listAuctionResults({ limit: 5000 }).catch(() => []);
   const out: HealthCheck[] = [];
 
   /* Le rythme réellement observé de chaque fonds, par sa série. */

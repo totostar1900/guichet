@@ -76,6 +76,7 @@ const READS = new Set([
   "latestFundNavs",
   "listIssuerDocuments",
   "listAuctionResults",
+  "listOjaImports",
   "getAuctionResult",
   "listNews",
   "listCash",

@@ -64,7 +64,7 @@ export default async function CourbesBeacPage({ searchParams }: { searchParams: 
   /* NOS POINTS, seulement quand on les demande et en axe durée : ils viennent de nos adjudications relues, pas de l'historique de nos courbes. */
   let nous: PointNous[] = [];
   if (reglages.axe === "duree" && reglages.source !== "beac") {
-    const [seances, convention] = await Promise.all([r.listAuctionResults({ limit: 1000 }).catch(() => []), lireConvention()]);
+    const [seances, convention] = await Promise.all([r.listAuctionResults({ limit: 5000 }).catch(() => []), lireConvention()]);
     const aujourdHui = new Date().toISOString().slice(0, 10);
     const courbe = buildCurve(seances, { windowDays: 365, on: aujourdHui, convention });
     nous = courbe.countries.filter((c) => c.points.length >= MIN_POINTS).flatMap((c) => c.points.map((p) => ({ pays: c.country, annees: p.years, pct: p.yield.pct })));

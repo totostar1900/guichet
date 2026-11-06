@@ -13,6 +13,9 @@ import { auctionReadingAvailable } from "@/lib/market/auction-extract";
 import { cribler } from "@/lib/market/anomalies";
 import { Anomalies, type LigneAnomalie } from "./Anomalies";
 import { ConfirmerEnLot } from "./ConfirmerEnLot";
+import { ImportOja } from "./ImportOja";
+import { SourcesDeLaSeance } from "./SourcesSeance";
+import { aConfirmerSurPiece, etatSource } from "@/lib/market/sources-seance";
 import { ResultForm } from "./ResultForm";
 import { SessionList, type LigneSeance } from "./SessionList";
 import styles from "./page.module.css";
@@ -43,7 +46,8 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
-  const all = await r.listAuctionResults({ limit: 300 });
+  const all = await r.listAuctionResults({ limit: 3000 });
+  const imports = await r.listOjaImports();
   // Une pièce écartée n'attend personne et n'atteste de rien : elle sort des
   // deux files, et se retrouve par son propre onglet.
   const resultats = all.filter(compteDansLesResultats);
@@ -61,6 +65,8 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
     code: x.codeEmission,
     etat: etatSeance(x),
     mince: thin(x),
+    source: etatSource(x).libelle,
+    ecartsOuverts: etatSource(x).ecartsOuverts,
   }));
   const offer = selected?.offerId ? await r.getOffer(selected.offerId) : undefined;
 
@@ -94,7 +100,7 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
 
   const convention = await lireConvention();
 
-  const lotBta = aRelire.filter((x) => x.instrument === "BTA" && !confirmable(x) && x.codeEmission);
+  const lotBta = aRelire.filter((x) => x.instrument === "BTA" && !confirmable(x) && x.codeEmission && !aConfirmerSurPiece(x));
   /* CES DEUX COMPTES NE SUIVENT PAS LE COMMUTATEUR, ET C'EST VOULU : ils
      disent si une séance PEUT donner un point, ce qui est une propriété des
      chiffres relevés, pas du barème choisi pour les lire. Un lot « prêt à
@@ -115,6 +121,7 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
             {t("Ce que le marché a payé, séance par séance. Le robot dépose l'identité de la séance, une personne en relève les chiffres sur le communiqué.")}{" "}
             <Link href="/desk/adjudications/tableau">{t("Voir la table")} →</Link>
           </p>
+          <ImportOja imports={imports} />
           <Anomalies lignes={anomalies} vues={crible.vues} courante={selected?.id} />
           <ConfirmerEnLot instrument="BTA" enAttente={lotBta.length} muettes={lotBta.length - avecRdt.length} pointsGagnes={pointsGagnes} />
           <SessionList rows={lignes} current={selected?.id} />
@@ -124,14 +131,17 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
 
         <div className={styles.main}>
           {selected ? (
-            <ResultForm
-              key={selected.id}
-              r={selected}
-              offerTitle={offer?.title}
-              canRead={auctionReadingAvailable()}
-              convention={convention}
-              commutateur={<ConventionDuRendement />}
-            />
+            <>
+              <ResultForm
+                key={selected.id}
+                r={selected}
+                offerTitle={offer?.title}
+                canRead={auctionReadingAvailable()}
+                convention={convention}
+                commutateur={<ConventionDuRendement />}
+              />
+              <SourcesDeLaSeance r={selected} />
+            </>
           ) : (
             <div className="empty">
               {t("Aucune séance. Le robot BEAC en dépose une dès qu'un Trésor publie ses résultats.")}

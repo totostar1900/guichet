@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
       Boolean(x.fileKey) && x.instrument === "OTA" && x.couponRate == null && x.yieldAvg == null && (x.priceAvg != null || x.priceLimit != null || x.priceAvgFcfa != null);
   
     if (avis) {
-      const tous = await r.listEmissionNotices({ country: pays as AuctionResult["country"] | undefined, limit: 1000 });
+      const tous = await r.listEmissionNotices({ country: pays as AuctionResult["country"] | undefined, limit: 5000 });
       /**
        * « avis=<id> » : relire cette pièce-là, et elle seule.
        *

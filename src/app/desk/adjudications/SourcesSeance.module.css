@@ -1,0 +1,93 @@
+.bloc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5) var(--s-6);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-width: 0;
+}
+.tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+.tete h3 {
+  margin: 0;
+  font-size: var(--t-4);
+}
+.pastille,
+.puce {
+  display: inline-block;
+  padding: 0 var(--s-3);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: var(--t-1);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pdf {
+  color: var(--navy-text);
+}
+.excel {
+  color: var(--gold);
+}
+.deux {
+  color: var(--good);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-2);
+  font-variant-numeric: tabular-nums;
+}
+.table th {
+  text-align: left;
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding-bottom: var(--s-3);
+}
+.table td {
+  padding: var(--s-3) var(--s-2) var(--s-3) 0;
+  border-top: 1px solid var(--line);
+  vertical-align: middle;
+}
+.ouvert td:first-child {
+  color: var(--crit);
+  font-weight: 700;
+}
+.barre {
+  text-decoration: line-through;
+  color: var(--ink-3);
+}
+.puce {
+  color: var(--ink-2);
+}
+.motif {
+  margin-left: var(--s-3);
+  color: var(--ink-3);
+}
+.choix {
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.ok {
+  color: var(--good);
+}
+.exclure {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.aide {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  line-height: 1.5;
+}

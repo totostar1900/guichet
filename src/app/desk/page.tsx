@@ -53,7 +53,7 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
     r.listNotifications(20),
     r.listApprovals(true),
     r.listContacts().catch(() => []),
-    r.listAuctionResults({ limit: 800 }).catch(() => []),
+    r.listAuctionResults({ limit: 5000 }).catch(() => []),
   ]);
   /* LE CARNET EST UNE FILE DE GESTES, PAS UN CHIFFRE : un ordre de
      démonstration y RESTE, sinon on ne pourrait plus montrer le desk en train

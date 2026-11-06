@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
   ilYADeuxAns.setFullYear(ilYADeuxAns.getFullYear() - 2);
 
   const [seances, bulletins, activite, cotes] = await Promise.all([
-    r.listAuctionResults({ limit: 2000 }),
+    r.listAuctionResults({ limit: 5000 }),
     r.listBulletins(1000).catch(() => []),
     r.quoteActivity(ilYADeuxAns.toISOString().slice(0, 10)).catch(() => []),
     r.latestQuotes().catch(() => []),

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
+import { aConfirmerSurPiece } from "@/lib/market/sources-seance";
 import { audit } from "@/lib/audit";
 import { repo } from "@/lib/data";
 import { confirmable, millions, MOTIFS_ECART, rangerBornes, type NewAuctionResult } from "@/lib/market/auction-results";
@@ -181,8 +182,9 @@ export async function confirmBatchAction(_prev: ResultOutcome | null, form: Form
   const pays = String(form.get("pays") ?? "");
 
   const r = repo();
-  const attente = (await r.listAuctionResults({ limit: 1000 })).filter(
-    (x) => !x.confirmedBy && x.instrument === instrument && (!pays || x.country === pays),
+  const attente = (await r.listAuctionResults({ limit: 5000 })).filter(
+    /* Une séance née de l'Excel avant le 1er février 2023 attend sa pièce : le lot ne la signe pas. */
+    (x) => !x.confirmedBy && !aConfirmerSurPiece(x) && x.instrument === instrument && (!pays || x.country === pays),
   );
 
   let signees = 0;

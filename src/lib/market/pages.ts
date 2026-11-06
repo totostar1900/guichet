@@ -55,11 +55,15 @@ export const MARKET_PAGES: MarketPage[] = [
   { key: "societes", href: "/societes", deskHref: "/desk/societes", label: "Les sociétés cotées", short: "Les sociétés cotées", tuile: "les sept de la cote", hint: "les sept actions de la cote, leur cours, leur poids, leur rendement" },
   { key: "notes", href: "/indice/notes", deskHref: "/desk/indice", label: "Les notes de marché", short: "Les notes", tuile: "un trimestre par note", hint: "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre" },
   { key: "comparer", href: "/comparer", deskHref: "/desk/comparer", label: "Comparer deux lignes", short: "Comparer", tuile: "deux lignes côte à côte", hint: "deux titres côte à côte, avec l'indice en repère" },
+  { key: "adjudications", href: "/marche/adjudications", label: "Les adjudications", short: "Adjudications", tuile: "ce que le marché a payé", hint: "les séances closes des Trésors, telles que leur communiqué les publie : taux, couverture, montants servis" },
   /* LES ADJUDICATIONS ONT QUITTÉ CETTE TABLE pour le siège Instruments. Elles y
      étaient rangées comme une publication, entre l'indice et les notes, alors
      qu'une séance annoncée est une occasion d'acheter et non un article. La
      règle, désormais : Marché se lit, Instruments s'achète, Trader fait. Voir
-     `lib/nav-groups.ts`, où les trois sièges déclarent leurs pages. */
+     `lib/nav-groups.ts`, où les trois sièges déclarent leurs pages.
+     (6 novembre 2026 : la rubrique ci-dessus n'est pas le calendrier. Elle
+     montre des séances CLOSES, telles que le communiqué les imprime : cela se
+     lit, et ne s'achète pas. Le calendrier reste à Trade.) */
   // Le Guide est servi sur les deux domaines : une seule adresse suffit.
   { key: "lecon", href: "/info/indice-bvmac", deskHref: "/info/indice-bvmac", label: "L'éclairage : comment lire l'indice", short: "L'éclairage", tuile: "comment lire l'indice", hint: "comment il se calcule, ce que pèse chaque société, et le curseur à manipuler", guide: true },
   // cinq rubriques, pas seulement la BVMAC : Trésors, BVMAC, Sociétés, Fonds, Réglementation
@@ -85,6 +89,7 @@ export function currentMarketPage(path: string): string | undefined {
      (La note disait « elles ont leur siège, Instruments » : ce siège a fermé
      le 24 octobre 2026, absorbé par Trade. Le calendrier y vit désormais, et
      la raison du retrait n'a pas bougé.) */
+  if (path.startsWith("/marche/adjudications")) return "adjudications";
   if (path.startsWith("/info/indice-bvmac")) return "lecon";
   if (path.startsWith("/actualites")) return "actualites";
   if (path.startsWith("/marche")) return "marche";

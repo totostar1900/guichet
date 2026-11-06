@@ -18,6 +18,8 @@ import type { BulletinNote, FundNav, IssuerDocument, MarketBulletin, Quote } fro
 import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
 import type { DernierEtat } from "@/lib/market/beac-journal";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
+import type { NouvelImportOja, OjaImport } from "@/lib/market/oja";
+import type { SourcesSeance } from "@/lib/market/sources-seance";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -778,6 +780,8 @@ export type AuctionResultRow = {
   coverage: string | null; source_url: string; source_title: string; file_key: string | null; confirmed_by: string | null; confirmed_at: string | null;
   set_aside_reason?: string | null; set_aside_by?: string | null; set_aside_at?: string | null;
   correction?: string | null; corrected_by?: string | null; corrected_at?: string | null;
+  /* Migration 0124 : les deux sources de la séance. */
+  sources?: SourcesSeance | null;
   offer_id: string | null; created_at: string; updated_at: string;
 };
 /**
@@ -799,7 +803,21 @@ export const toAuctionResult = (r: AuctionResultRow): AuctionResult => ({
   setAsideReason: u(r.set_aside_reason), setAsideBy: u(r.set_aside_by), setAsideAt: u(r.set_aside_at),
   /* Migration 0097 : un chiffre qui s ecarte de la piece dit lequel, et qui l a decide. */
   correction: u(r.correction), correctedBy: u(r.corrected_by), correctedAt: u(r.corrected_at),
+  /* Migration 0124 : le communiqué et l'export OJA, côte à côte. */
+  sources: u(r.sources),
   createdAt: r.created_at, updatedAt: r.updated_at,
+});
+type OjaImportRow = {
+  id: string; created_at: string; created_by: string; fichiers: OjaImport["fichiers"]; plage_du: string | null; plage_au: string | null;
+  seances: number; nouvelles: number; rapprochees: number; concordantes: number; ecarts: number; ignorees: number; exclu: boolean;
+};
+const toOjaImport = (r: OjaImportRow): OjaImport => ({
+  id: r.id, at: r.created_at, by: r.created_by, fichiers: r.fichiers ?? [], plage: r.plage_du && r.plage_au ? { du: r.plage_du, au: r.plage_au } : undefined,
+  seances: r.seances, nouvelles: r.nouvelles, rapprochees: r.rapprochees, concordantes: r.concordantes, ecarts: r.ecarts, ignorees: r.ignorees, exclu: r.exclu,
+});
+const fromOjaImport = (i: NouvelImportOja) => ({
+  created_by: i.by, fichiers: i.fichiers, plage_du: i.plage?.du ?? null, plage_au: i.plage?.au ?? null,
+  seances: i.seances, nouvelles: i.nouvelles, rapprochees: i.rapprochees, concordantes: i.concordantes, ecarts: i.ecarts, ignorees: i.ignorees, exclu: i.exclu,
 });
 type EmissionNoticeRow = {
   id: string; source_url: string; source_title: string; file_key: string | null;
@@ -922,6 +940,7 @@ const fromAuctionResult = (r: PatchAuctionResult): Record<string, unknown> => {
   put("source_url", "sourceUrl");
   put("source_title", "sourceTitle");
   put("file_key", "fileKey");
+  put("sources", "sources");
   put("confirmed_by", "confirmedBy");
   put("confirmed_at", "confirmedAt");
   /* Un null ecrit remet la seance dans la file : la mise a l ecart se defait. */
@@ -3171,6 +3190,32 @@ export const supabaseRepository: Repository = {
     const { data, error } = await db().from("emission_notices").update(row).eq("id", id).select("*").single();
     if (error) fail("updateEmissionNotice", error);
     return toEmissionNotice(data as EmissionNoticeRow);
+  },
+  async insertAuctionResults(rows) {
+    // Par paquets : une séance déjà présente (même pays, même jour, même code) est laissée telle quelle, ce qui rend l'import rejouable sans rien défaire.
+    let n = 0;
+    for (let i = 0; i < rows.length; i += 250) {
+      const lot = rows.slice(i, i + 250).map((r) => ({ ...fromAuctionResult(r), updated_at: new Date().toISOString() }));
+      const { data, error } = await db().from("auction_results").upsert(lot, { onConflict: "country,session_on,code_emission", ignoreDuplicates: true }).select("id");
+      if (error) fail("insertAuctionResults", error);
+      n += data?.length ?? 0;
+    }
+    return n;
+  },
+  async listOjaImports() {
+    const { data, error } = await db().from("oja_imports").select("*").order("created_at", { ascending: false }).limit(200);
+    if (error) fail("listOjaImports", error);
+    return (data as OjaImportRow[]).map(toOjaImport);
+  },
+  async createOjaImport(i) {
+    const { data, error } = await db().from("oja_imports").insert(fromOjaImport(i)).select("*").single();
+    if (error) fail("createOjaImport", error);
+    return toOjaImport(data as OjaImportRow);
+  },
+  async updateOjaImport(id, patch) {
+    const { data, error } = await db().from("oja_imports").update({ ...(patch.exclu !== undefined ? { exclu: patch.exclu } : {}) }).eq("id", id).select("*").single();
+    if (error) fail("updateOjaImport", error);
+    return toOjaImport(data as OjaImportRow);
   },
   async reopenAuctionResult(id) {
     const { data, error } = await db().from("auction_results").update({ confirmed_by: null, confirmed_at: null, updated_at: new Date().toISOString() }).eq("id", id).select("*").single();

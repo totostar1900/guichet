@@ -12,6 +12,7 @@ import { EN_DOCS } from "./en-docs";
 import { EN_PARCOURS } from "./en-parcours";
 import { EN_ANALYSES } from "./en-analyses";
 import { EN_BEAC } from "./en-beac";
+import { EN_OJA } from "./en-oja";
 import { EN_ENCAISSEMENTS } from "./en-encaissements";
 import { EN_ACCUEIL } from "./en-accueil";
 import { EN_CONSOLE } from "./en-console";
@@ -53,6 +54,7 @@ const EN: Record<string, string> = {
   ...EN_PARCOURS,
   ...EN_ANALYSES,
   ...EN_BEAC,
+  ...EN_OJA,
   ...EN_ENCAISSEMENTS,
   ...EN_ACCUEIL,
   ...EN_CONSOLE,

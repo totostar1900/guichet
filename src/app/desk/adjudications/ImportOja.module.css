@@ -1,0 +1,152 @@
+/* La carte d'import vit au-dessus de la liste, là où l'on voit la file et pas une séance. Mêmes jetons que « Confirmer en lot ». */
+.carte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5) var(--s-6);
+  margin-bottom: var(--s-5);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-width: 0;
+}
+.entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  font-size: var(--t-4);
+}
+.sous {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+.exclu {
+  color: var(--crit);
+  font-style: normal;
+}
+.chiffres,
+.compteurs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: var(--s-4);
+}
+.chiffres div,
+.compteurs div {
+  display: flex;
+  flex-direction: column;
+  padding: var(--s-3) var(--s-4);
+  background: var(--surface);
+  border-radius: 6px;
+}
+.chiffres b,
+.compteurs b {
+  font-size: var(--t-7);
+  line-height: 1.1;
+}
+.chiffres span,
+.compteurs span {
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.bon {
+  color: var(--good);
+}
+.mauvais {
+  color: var(--crit);
+}
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.aide {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.erreur {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--crit);
+}
+.fait {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--good);
+}
+.panneau {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+}
+.depot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-5);
+  border: 1px dashed var(--line-2);
+  border-radius: 8px;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.apercu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.apercu h3 {
+  margin: 0;
+  font-size: var(--t-5);
+}
+.ecarts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  background: var(--surface);
+  border-radius: 6px;
+  max-height: 340px;
+  overflow: auto;
+}
+.sceance {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--line);
+}
+.quand {
+  font-size: var(--t-3);
+  font-weight: 600;
+}
+.quand small {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.champ {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: var(--s-3);
+  align-items: center;
+  font-size: var(--t-2);
+  font-variant-numeric: tabular-nums;
+}
+.val {
+  color: var(--ink-2);
+}
+.case {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  font-size: var(--t-3);
+}

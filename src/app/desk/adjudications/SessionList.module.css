@@ -22,12 +22,14 @@
    chose qu'on cherche, et il devient ici une prise plutôt qu'une étiquette. */
 .onglets {
   display: flex;
+  flex-wrap: wrap;
   border: 1px solid var(--line-2);
   border-radius: 6px;
   overflow: hidden;
 }
 .onglets button {
-  flex: 1;
+  flex: 1 1 30%;
+  white-space: nowrap;
   min-width: 0;
   border: 0;
   background: var(--surface);
@@ -227,4 +229,27 @@
 .tirette:focus-visible,
 .tirette[data-tire="1"] {
   background: var(--gold);
+}
+
+/* La source des chiffres : trois états, une pastille (planche 4A). */
+.source {
+  display: block;
+  margin-top: var(--s-1);
+  width: fit-content;
+  padding: 0 var(--s-3);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.sourcePdf {
+  color: var(--navy-text);
+}
+.sourceExcel {
+  color: var(--gold);
+}
+.sourceDeux {
+  color: var(--good);
 }

@@ -79,7 +79,7 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
     r.encoursOfficiel(),
     r.coutDesRessources(),
     r.operationsDuTresor(),
-    r.listAuctionResults({ limit: 2000 }),
+    r.listAuctionResults({ limit: 5000 }),
   ]);
 
   const vue = vueBeac(

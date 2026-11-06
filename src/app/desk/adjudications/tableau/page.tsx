@@ -9,6 +9,7 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate } from "@/lib/format";
 import { compteDansLesResultats, etatSeance } from "@/lib/market/auction-results";
+import { etatSource, vueParSource, type ModeDeVue } from "@/lib/market/sources-seance";
 import { applyFilter, distinct, estUnPoint, sortRows, summarise, toRow, type SortKey, type TableFilter } from "@/lib/market/auction-table";
 import styles from "./page.module.css";
 
@@ -39,7 +40,10 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
   const t = await getT();
   const sp = await searchParams;
   const r = repo();
-  const all = await r.listAuctionResults({ limit: 1000 });
+  const tous = await r.listAuctionResults({ limit: 5000 });
+  /* LA SOURCE DU RAPPORT (planche 4A) : valeurs retenues, PDF seul, Excel seul, ou les séances qui portent les deux. */
+  const mode: ModeDeVue = sp.source === "pdf" || sp.source === "excel" || sp.source === "les-deux" ? sp.source : "retenu";
+  const all = vueParSource(tous, mode);
 
   const f: TableFilter = { pays: sp.pays, instrument: sp.instrument, duree: sp.duree, etat: sp.etat, du: sp.du, au: sp.au };
   const tri = sp.tri ?? "date";
@@ -87,7 +91,7 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <DeskNav current="/desk/adjudications/tableau" badges={{ "/desk/adjudications": all.filter((x) => compteDansLesResultats(x) && !x.confirmedBy).length }} />
+      <DeskNav current="/desk/adjudications/tableau" badges={{ "/desk/adjudications": tous.filter((x) => compteDansLesResultats(x) && !x.confirmedBy).length }} />
 
       <div className={styles.page}>
         <header className={styles.head}>
@@ -192,6 +196,7 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                   {th("soumis", "Soumis.", true)}
                   {th("servi", "Servi", true)}
                   {th("etat", "État")}
+                  <th>{t("Source")}</th>
                   </tr>
                   {/* Chaque commande sous la colonne qu'elle resserre.
                       SANS BOUTON « FILTRER » : chaque commande part en
@@ -225,12 +230,19 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                         ["relues", "Relues"],
                       ], "tous")}
                     </th>
+                    <th>
+                      {filtre("source", [
+                        ["pdf", "PDF seul"],
+                        ["excel", "Excel seul"],
+                        ["les-deux", "Les deux sources"],
+                      ], "valeurs retenues")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={11} className={styles.rienDuTout}>
+                    <td colSpan={12} className={styles.rienDuTout}>
                       {t("Aucune séance ne répond à ces filtres.")}{" "}
                       <Link href="/desk/adjudications/tableau">{t("Tout afficher")}</Link>
                     </td>
@@ -298,6 +310,12 @@ export default async function TableauPage({ searchParams }: { searchParams: Prom
                       {(() => {
                         const e = etatSeance(x);
                         return e === "relue" ? <span className={styles.ok}>{t("relue")}</span> : e === "a_relire" ? <span className={styles.todo}>{t("à relire")}</span> : <span className={styles.vide}>{t("à lire")}</span>;
+                      })()}
+                    </td>
+                    <td>
+                      {(() => {
+                        const e = etatSource(x);
+                        return <span className={e.libelle === "Excel" ? styles.srcExcel : e.libelle === "PDF" ? styles.srcPdf : styles.srcDeux}>{e.libelle}{e.ecartsOuverts ? ` · ${e.ecartsOuverts}` : e.concordantes ? " ✓" : ""}</span>;
                       })()}
                     </td>
                   </tr>

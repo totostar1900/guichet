@@ -98,7 +98,7 @@ export default async function IntakePage({
     const on = draft.deadlineAt.slice(0, 10);
     const annees = (Date.parse(draft.maturityOn) - Date.parse(on)) / 86_400_000 / 365;
     if (annees > 0) {
-      const historique = await r.listAuctionResults({ instrument: draft.kind, limit: 600 });
+      const historique = await r.listAuctionResults({ instrument: draft.kind, limit: 3000 });
       niveau = niveauDuMarche({ country: draft.country, instrument: draft.kind, annees, on }, historique);
     }
   }
