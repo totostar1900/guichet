@@ -153,8 +153,8 @@
   text-decoration: none;
 }
 .periods a[aria-current="true"] {
-  background: var(--ink);
-  color: var(--surface);
+  background: var(--choisi-fond);
+  color: var(--choisi-ink);
 }
 .reading {
   background: var(--gold-soft);

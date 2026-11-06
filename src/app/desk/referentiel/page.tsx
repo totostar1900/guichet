@@ -10,7 +10,8 @@ import { SEGMENT_LABEL } from "@/lib/domain/status";
 import { fmtDateTime } from "@/lib/format";
 import { GLOSSARY as GLOSSARY_DEFAULTS, type Term } from "@/lib/glossary";
 import { isTombstone, loadBondTerms, loadCompanies, loadGestionnaires, loadGlossary, loadIssuers, loadLessons, loadTypes, REF } from "@/lib/reference";
-import { BUILTIN_TYPES, ENGINE_LABEL, type ProductType } from "@/lib/registry";
+import { BUILTIN_TYPES, ENGINE_LABEL, famVars, type ProductType } from "@/lib/registry";
+import type { CSSProperties } from "react";
 import { GestionnaireForm, GlossaryForm, LessonForm, TermForm, TypeForm } from "./Forms";
 import { FicheForm, type FicheSeed } from "./FicheForm";
 import { Origin, type DraftState } from "./Origin";
@@ -201,7 +202,7 @@ async function Types({ types, rows, open, ok }: { types: ProductType[] } & Ctx) 
             {list.map(({ item: t, ...s }) => (
               <tr key={t.key} className={`${t.enabled ? "" : styles.off} ${t.key === ok ? styles.hl : ""}`} id={`ref-${t.key}`}>
                 <td>
-                  <b className={styles.badge} style={{ color: t.color, background: t.colorSoft, borderColor: t.color }}>
+                  <b className={`${styles.badge} fam-${t.key}`} style={{ color: "var(--fam-c, var(--ink))", background: "var(--fam-s, var(--surface-2))", borderColor: "var(--fam-c, var(--line-2))", ...famVars(t.key) } as CSSProperties}>
                     {t.short}
                   </b>
                 </td>

@@ -137,5 +137,17 @@ export const enabledTypes = (): ProductType[] => [...REG.types].filter((x) => x.
 /** Inline colour variables for a family badge / edge (desk-created types have no CSS class). */
 export function famVars(key: string): Record<string, string> {
   const t = typeByKey(key);
-  return t ? { "--fam-c": t.color, "--fam-s": t.colorSoft, [`--fam-${key}`]: t.color } : {};
+  if (!t) return {};
+  /* LES HUIT FAMILLES DE LA MAISON SUIVENT LE THÈME, ET N'ONT PAS DE COULEUR EN LIGNE (6 novembre 2026). Leur teinte et son fond vivent dans
+     « globals.css », en clair et en sombre. L'ancienne version posait en ligne les deux valeurs CLAIRES du registre sur chaque pastille : en thème
+     sombre, c'étaient des rectangles clairs au texte foncé, quel que soit le thème. */
+  if (FAMILLES_THEMEES.has(key)) return {};
+  /* Un type créé au desk n'a pas de jeton : sa teinte se mêle à l'encre et son fond à la surface, donc à ce que le thème en fait. */
+  return {
+    "--fam-c": `color-mix(in srgb, ${t.color} 60%, var(--ink))`,
+    "--fam-s": `color-mix(in srgb, ${t.color} 16%, var(--surface))`,
+    [`--fam-${key}`]: t.color,
+  };
 }
+
+const FAMILLES_THEMEES = new Set(["OTA", "BTA", "APE", "IPO", "RACHAT", "ACTION_COTEE", "OBLIGATION_COTEE", "OPCVM"]);

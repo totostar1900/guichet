@@ -36,7 +36,8 @@
   font-size: 0.8rem;
 }
 .desk {
-  background: #fff;
+  background: var(--surface-2);
+  color: var(--ink);
 }
 
 @media (max-width: 900px) {

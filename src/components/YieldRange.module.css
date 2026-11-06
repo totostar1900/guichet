@@ -139,9 +139,9 @@
   border-color: var(--ink-3);
 }
 .btnOn {
-  background: var(--ink);
-  color: var(--surface);
-  border-color: var(--ink);
+  background: var(--choisi-fond);
+  color: var(--choisi-ink);
+  border-color: var(--choisi-line);
 }
 .btn b {
   background: rgba(255, 255, 255, 0.22);

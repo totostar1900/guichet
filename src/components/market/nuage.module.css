@@ -50,9 +50,9 @@
 /* La mesure choisie porte un fond plein ET son filet : un fond seul perd
    contre le survol, qui gagne sur l'élément choisi. */
 .mes[aria-pressed="true"] {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--surface);
+  background: var(--choisi-fond);
+  border-color: var(--choisi-line);
+  color: var(--choisi-ink);
 }
 .compte {
   margin: 0;

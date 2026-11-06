@@ -1,5 +1,10 @@
 /* Design tokens : Purpose Capital identity (navy · gold · warm paper). */
 :root {
+  color-scheme: light;
+  /* Un choix (période, mesure, filtre actif) : plein encre au clair, or discret au sombre. Jamais un rectangle clair sur fond sombre. */
+  --choisi-fond: var(--ink);
+  --choisi-ink: var(--surface);
+  --choisi-line: var(--ink);
   --navy: #0b2545;
   --navy-2: #13315c;
   --gold: #b8860b;
@@ -438,6 +443,10 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dim"]) {
+    color-scheme: dark;
+    --choisi-fond: var(--gold-soft);
+    --choisi-ink: var(--gold-ink);
+    --choisi-line: var(--gold-line);
     --paper: #0e1928;
     --surface: #16233a;
     --surface-2: #1d2d48;
@@ -517,6 +526,11 @@
   }
 }
 :root[data-theme="dark"] {
+  color-scheme: dark;
+  --choisi-fond: var(--gold-soft);
+  --choisi-ink: var(--gold-ink);
+  --choisi-line: var(--gold-line);
+
   --fam-OTA: #9db6e0;
   --fam-OTA-soft: #1c2c48;
   --fam-BTA: #6fcdc6;
@@ -596,6 +610,7 @@
 }
 /* « Tamisé » : a real middle ground, read with the light inks : a blue-grey page, softer surfaces, the navy and the gold as in the light. */
 :root[data-theme="dim"] {
+  color-scheme: light;
   /* Ces trois-là sont mesurés, pas choisis : l'or porte une encre navy sur
      vingt-sept pastilles, le gris tertiaire sert d'encre sur trois fonds
      pâles, et le vert plein porte l'encre du papier. Aucun ne tenait 4,5:1
@@ -695,6 +710,22 @@ select,
 textarea {
   font: inherit;
   color: inherit;
+}
+/* PAS DE CHAMP BLANC (6 novembre 2026). Un champ sans fond propre prenait le blanc du navigateur sous un texte clair : l'encre du thème sombre sur du
+   blanc, donc rien à lire (les listes « Source retenue » des écarts d'import, la recherche, la convention du rendement). Le fond et l'encre d'un
+   champ suivent le thème ; « :where » garde une spécificité nulle, donc toute feuille de composant qui pose le sien l'emporte comme avant. */
+:where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="button"], [type="submit"], [type="hidden"]), select, textarea) {
+  background-color: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+}
+:where(input, textarea)::placeholder {
+  color: var(--ink-3);
+}
+:where(select option) {
+  background-color: var(--surface);
+  color: var(--ink);
 }
 button {
   cursor: pointer;

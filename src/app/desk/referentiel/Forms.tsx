@@ -99,7 +99,7 @@ export function TypeForm({ t, isNew }: { t?: ProductType; isNew?: boolean }) {
         </label>
         <div className={styles.preview}>
           <span>{tr("Aperçu")}</span>
-          <b style={{ color, background: soft, borderColor: color }}>{t?.short ?? "Badge"}</b>
+          <b style={{ color: `color-mix(in srgb, ${color} 60%, var(--ink))`, background: `color-mix(in srgb, ${color} 16%, var(--surface))`, borderColor: color }}>{t?.short ?? "Badge"}</b>
         </div>
       </div>
       <label>

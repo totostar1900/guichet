@@ -22,12 +22,12 @@
   border-color: var(--ink-3);
 }
 .ddOn {
-  background: var(--ink);
-  color: var(--surface);
-  border-color: var(--ink);
+  background: var(--choisi-fond);
+  color: var(--choisi-ink);
+  border-color: var(--choisi-line);
 }
 .ddOn:hover {
-  border-color: var(--ink);
+  border-color: var(--choisi-line);
 }
 /**
  * LA VALEUR CHOISIE DOIT SE LIRE, ET ELLE NE SE LISAIT PLUS.

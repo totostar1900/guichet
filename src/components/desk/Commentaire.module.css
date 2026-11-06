@@ -60,9 +60,9 @@
 .chip {
   padding: var(--s-1) var(--s-4);
   border-radius: 999px;
-  border: 1px solid #c7ddf7;
-  background: #eef6ff;
-  color: #1e40af;
+  border: 1px solid var(--line-2);
+  background: var(--surface-2);
+  color: var(--ink-2);
   font-size: 0.6rem;
   font-weight: 800;
 }

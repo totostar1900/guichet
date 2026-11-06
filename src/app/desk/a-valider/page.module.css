@@ -181,9 +181,9 @@
   margin-bottom: 10px;
 }
 .paper {
-  background: #fcfbf7;
-  color: #1c1c1c;
-  border: 1px solid #e2ded2;
+  background: var(--surface-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
   padding: 16px 18px;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 0.76rem;

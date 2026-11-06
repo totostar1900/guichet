@@ -108,4 +108,6 @@ export const EN_OJA: Record<string, string> = {
   "Soumissionnaires / séance": "Bidders / session",
   "Une part refusée qui monte dit que le Trésor tient son prix malgré la demande ; elle se lit avec la couverture du bloc précédent.": "A rising refused share says the Treasury holds its price despite demand; read it with the coverage in the previous block.",
   "Ce que le carnet a refusé": "What the book refused",
+  "L'écriture est en cours : elle ne peut plus être annulée.": "Writing is in progress: it can no longer be cancelled.",
+  "Rien n'est écrit tant que vous n'avez pas confirmé l'import.": "Nothing is written until you confirm the import.",
 };

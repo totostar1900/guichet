@@ -47,12 +47,12 @@
 /* La fenêtre choisie porte un fond plein ET son filet : un fond seul perdait
    contre le survol, qui gagnait sur l'élément choisi. */
 .fen[aria-pressed="true"] {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--surface);
+  background: var(--choisi-fond);
+  border-color: var(--choisi-line);
+  color: var(--choisi-ink);
 }
 .fen[aria-pressed="true"] small {
-  color: var(--surface);
+  color: var(--choisi-ink);
   opacity: 0.75;
 }
 .fen:disabled {

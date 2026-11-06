@@ -37,6 +37,8 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
   const { fmtDate } = useDates();
   const router = useRouter();
   const entree = useRef<HTMLInputElement>(null);
+  /* Un jeton par lecture : annuler le fait avancer, et une lecture déjà partie ne pose plus rien à l'écran quand elle revient. */
+  const jeton = useRef(0);
   const [ouvert, setOuvert] = useState(false);
   const [etat, setEtat] = useState<"repos" | "lecture" | "apercu" | "ecriture" | "fait">("repos");
   const [progres, setProgres] = useState("");
@@ -50,7 +52,22 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
   const [, demarrer] = useTransition();
   const dernier = imports[0];
 
+  function annuler() {
+    jeton.current++;
+    setApercu(null);
+    setLot("");
+    setChoix({});
+    setErreur(null);
+    setProgres("");
+    setMessage("");
+    setEtat("repos");
+    setOuvert(false);
+    if (entree.current) entree.current.value = "";
+  }
+
   async function lire(fichiers: FileList) {
+    const mien = ++jeton.current;
+    const abandonne = () => jeton.current !== mien;
     setErreur(null);
     setApercu(null);
     setEtat("lecture");
@@ -60,13 +77,16 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
       for (const f of Array.from(fichiers)) {
         setProgres(t("Lecture de {f}…", { f: f.name }));
         const buf = new Uint8Array(await f.arrayBuffer());
+        if (abandonne()) return;
         const tete = await lireClasseur(buf, { seulementEntetes: true });
+        if (abandonne()) return;
         const type = reconnaitreFichier(tete.entetes);
         if (!type) throw new Error(t("« {f} » n'est pas un export OJA reconnu (offres, enchères ou titres).", { f: f.name }));
         const manque = entetesManquants(type, tete.entetes);
         if (manque.length) throw new Error(t("« {f} » : colonne(s) manquante(s) : {c}.", { f: f.name, c: manque.join(", ") }));
         if (lus[type]) throw new Error(t("Deux fichiers « {n} » : déposez un seul de chaque.", { n: NOM_FICHIER[type] }));
         const c = await lireClasseur(buf, { colonnes: COLONNES[type], surProgres: (n) => setProgres(t("Lecture de {f} : {n} lignes…", { f: f.name, n })) });
+        if (abandonne()) return;
         if (!c.lignes.length) throw new Error(t("« {f} » ne contient aucune ligne.", { f: f.name }));
         lus[type] = c.lignes;
         meta.push({ type, nom: f.name, lignes: c.lignes.length });
@@ -78,6 +98,7 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
       setLot(brut);
       setProgres(t("Comparaison avec le Desk…"));
       const a = await apercuOjaAction(brut);
+      if (abandonne()) return;
       if (!a.ok) throw new Error(a.error ?? t("Aperçu impossible."));
       const init: Record<string, Source> = {};
       for (const l of a.ecarts) for (const c of l.champs) init[c.cle] = c.proposition.source;
@@ -87,11 +108,14 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
       setAConfirmer(false);
       setEtat("apercu");
     } catch (e) {
+      if (abandonne()) return;
       setErreur(e instanceof Error ? e.message : String(e));
       setEtat("repos");
     } finally {
-      setProgres("");
-      if (entree.current) entree.current.value = "";
+      if (!abandonne()) {
+        setProgres("");
+        if (entree.current) entree.current.value = "";
+      }
     }
   }
 
@@ -231,6 +255,15 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
               />
             </form>
           )}
+
+          {/* ANNULER À TOUTE ÉTAPE, SAUF PENDANT L'ÉCRITURE : une lecture ou un aperçu s'abandonnent sans rien écrire ; une écriture partie ne se rappelle pas. */}
+          <div className={styles.ligne}>
+            <button type="button" className="btn sm" onClick={annuler} disabled={etat === "ecriture"}>
+              {etat === "fait" ? t("Fermer") : t("Annuler")}
+            </button>
+            {etat === "ecriture" && <span className={styles.aide}>{t("L'écriture est en cours : elle ne peut plus être annulée.")}</span>}
+            {(etat === "lecture" || etat === "apercu") && <span className={styles.aide}>{t("Rien n'est écrit tant que vous n'avez pas confirmé l'import.")}</span>}
+          </div>
         </div>
       )}
     </div>
