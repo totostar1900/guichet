@@ -29,8 +29,10 @@ export async function LignesSimilaires({ o }: { o: Offer }) {
   const action = o.kind === "MARCHE" && o.instrument === "action";
   const fonds = o.kind === "FONDS" && Boolean(o.fund);
   /* LES LIGNES SIMILAIRES D'UN FONDS SONT LES AUTRES FONDS (10 novembre 2026, planche 1A) : mêmes cartes qui défilent, sept au plus, ceux de la même société d'abord. */
-  const enCartes = action || fonds;
-  const autres = action ? [...new Map(offres.filter((x) => x.kind === "MARCHE" && x.instrument === "action" && x.isin !== o.isin).map((x) => [x.isin, x] as const)).values()] : fonds ? offres.filter((x) => x.kind === "FONDS" && x.fund && x.id !== o.id) : [];
+  /* LES LIGNES SIMILAIRES D'UNE SÉANCE DU TRÉSOR AUSSI (6 novembre 2026, planche « A ») : les lignes de la même famille, en cartes qui défilent, sept au plus. */
+  const seance = o.kind === "OTA" || o.kind === "APE" || o.kind === "BTA" || o.kind === "RACHAT";
+  const enCartes = action || fonds || seance;
+  const autres = action ? [...new Map(offres.filter((x) => x.kind === "MARCHE" && x.instrument === "action" && x.isin !== o.isin).map((x) => [x.isin, x] as const)).values()] : fonds ? offres.filter((x) => x.kind === "FONDS" && x.fund && x.id !== o.id) : seance ? offres : [];
   const similaires = enCartes ? lignesSimilaires(o, autres, now, 7) : lignesSimilaires(o, offres, now);
   if (!similaires.length) return null;
   const liste = listeDeLaFiche(o);
@@ -50,6 +52,8 @@ export async function LignesSimilaires({ o }: { o: Offer }) {
                     {l.cours ? l.cours.texte : l.valeur}
                     {l.cours?.unite && <i>{l.cours.unite}</i>}
                   </span>
+                  {/* LE LIBELLÉ DU CHIFFRE d'une séance (« si servi à 94 % ») : sans lui, 11,26 % ne dit pas de quoi il est le rendement. Les cartes d'une action ou d'un fonds n'en portent pas. */}
+                  {seance && l.libelle && <span className={cartes.libelle}>{l.libelle}</span>}
                   <span className={cartes.perf}>
                     {l.variation && <PastilleVariation v={l.variation.v} titre={l.variation.titre} periode={l.variation.periode} />}
                     {l.etat && <PastilleEtat ton={l.etat.ton}>{l.etat.texte}</PastilleEtat>}

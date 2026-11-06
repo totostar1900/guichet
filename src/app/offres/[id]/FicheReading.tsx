@@ -9,6 +9,9 @@ import { cleDeGestionnaire } from "@/data/gestionnaires";
 import { fondsOuverts } from "@/lib/domain/accueil";
 import { FicheSegments } from "@/components/mobile/FichePanes";
 import { Kpis } from "./Kpis";
+import { Carte } from "@/components/Carte";
+import { SimulationSeance } from "./SimulationSeance";
+import type { ParamsSeance } from "@/lib/domain/simulation-seance";
 import { Info } from "@/components/Info";
 import { voletsMasques } from "@/lib/fiche-volets";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_ADJ } from "@/lib/domain/market";
@@ -587,26 +590,47 @@ export async function FicheReading({ o, data, mode = "client", children }: { o: 
       </div>
     );
   }
-  const corps = (
+  /* LA FICHE D'UNE SÉANCE CHEZ LE CLIENT (6 novembre 2026, planche « A · 10 000 000 par défaut ») : « Chiffres » est fusionné dans l'Essentiel (quatre onglets : Essentiel, Calendrier, Documents, Émetteur), le calcul se fait pour le montant qu'on saisit, un bon a son échéancier, le résultat de la séance a quitté la fiche (il aura sa rubrique). Le desk et les autres onglets gardent leur lecture. */
+  const seanceClient = mode !== "desk" && (o.kind === "OTA" || o.kind === "APE" || o.kind === "BTA" || o.kind === "RACHAT");
+  const paramsSeance: ParamsSeance | undefined =
+    seanceClient && (o.kind === "OTA" || o.kind === "APE") && o.couponRate != null && o.maturityOn
+      ? { genre: "obligation", nominal: o.nominal, couponRate: o.couponRate, settleOn: o.settleOn, maturityOn: o.maturityOn, lastCouponOn: o.lastCouponOn, commissionPct: o.commissionPct, prix: o.servedPricePct ?? o.pricePct ?? 100, servi: Boolean(o.servedPricePct), minimum: (o.minTitles ?? 1) * o.nominal }
+      : seanceClient && o.kind === "BTA" && o.precountRate != null && o.maturityOn
+        ? { genre: "bon", nominal: o.nominal, settleOn: o.settleOn, maturityOn: o.maturityOn, taux: o.precountRate, minimum: o.nominal }
+        : undefined;
+  const kpisEtPhrase = (
     <>
-        <FicheSegments exclure={avecCalendrier ? [] : ["calendrier"]} mini={mini} />
-        <section className={styles.sec} data-pane="essentiel">
           <Kpis o={o} base={base} variation={variation3m} mode={mode} stamp={{ texte: t(stamp), attente: stampPending }} />
           {/* LA PHRASE DU FONDS EST PARTIE (1er novembre 2026) : générée à l'import du Bulletin Officiel de la Cote avec le nom, la catégorie, la société, le dépositaire et la fréquence, elle redisait « Caractéristiques ». Les autres lignes gardent la leur. */}
           {o.kind !== "FONDS" && <p className={styles.blurb}>{t(o.blurb)}</p>}
           {/* « Taux servi 6,97 % précompté » ne se lit plus chez le client (8 novembre 2026) : le résultat de la séance a sa section, avec ses chiffres. Le desk garde la ligne qu'il a saisie. */}
           {mode === "desk" && o.resultLine && <div className={styles.result}>{o.resultLine}</div>}
           <CrossSignal o={o} facing={facing} />
+    </>
+  );
+  const corps = (
+    <>
+        <FicheSegments exclure={[...(avecCalendrier ? [] : ["calendrier"]), ...(seanceClient ? ["chiffres"] : [])]} mini={mini} />
+        <section className={styles.sec} data-pane="essentiel">
+          {seanceClient && <h3>{t("Rendement")}</h3>}
+          {seanceClient ? (
+            <Carte>
+              {kpisEtPhrase}
+            </Carte>
+          ) : (
+            kpisEtPhrase
+          )}
         </section>
 
         {/* LE CALCUL EST UN GROUPE DE BLOCS chez le client (8 novembre 2026) : un groupe « chapitres » dans la pile, ses blocs séparés comme les autres sections. Le desk garde une seule section. */}
         {(() => {
+          if (paramsSeance) return <SimulationSeance params={paramsSeance} fin={noteBulle} />;
           return mode === "desk" ? (
             <section className={styles.sec} data-pane="chiffres">
               <Reference o={o} mode={mode} fin={noteBulle} />
             </section>
           ) : (
-            <div className="chapitres" data-pane="chiffres">
+            <div className="chapitres" data-pane={seanceClient ? "essentiel" : "chiffres"}>
               <Reference o={o} mode={mode} fin={noteBulle} />
             </div>
           );
@@ -657,7 +681,7 @@ export async function FicheReading({ o, data, mode = "client", children }: { o: 
           </div>
         </section>
 
-        {seance && <Seance r={seance} t={t} />}
+        {seance && !seanceClient && <Seance r={seance} t={t} />}
 
         <section className={styles.sec} data-pane="docs">
           <h3>{t("Documents")}</h3>

@@ -103,7 +103,7 @@ export function FlowsChart({ r, outlay, flows, settleOn, scale: size = 1 }: { r?
           }
         : {
             quand: t("l'échéancier"),
-            dit: t("{n} versements", { n: String(pts.length - 1) }),
+            dit: pts.length - 1 === 1 ? t("1 remboursement") : t("{n} versements", { n: String(pts.length - 1) }),
             valeur: gros(total),
             sous: t("ce qui revient"),
             droite: [

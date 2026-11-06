@@ -105,7 +105,7 @@ describe("la bande de menu de la fiche (7 novembre 2026, choix 1A · 2C · 3B ·
   it("« Calendrier » n'est un onglet que pour une ligne qui en documente un, et il n'y a pas d'onglet « Risques »", () => {
     const r = lire("src/app/offres/[id]/FicheReading.tsx");
     expect(r).toMatch(/const avecCalendrier = o\.kind !== "FONDS" && o\.kind !== "MARCHE" && timeline\.length > 0;/);
-    expect(r).toMatch(/<FicheSegments exclure=\{avecCalendrier \? \[\] : \["calendrier"\]\}/);
+    expect(r).toMatch(/<FicheSegments exclure=\{\[\.\.\.\(avecCalendrier \? \[\] : \["calendrier"\]\), \.\.\.\(seanceClient \? \["chiffres"\] : \[\]\)\]\}/);
     expect(r).toMatch(/data-pane=\{avecCalendrier \? "calendrier" : "essentiel"\}/);
     const f = lire("src/components/mobile/FichePanes.tsx");
     expect(f).toMatch(/\["calendrier", "Calendrier"\]/);
@@ -430,7 +430,7 @@ describe("la fiche d'une ligne : des sections qui se lisent (8 novembre 2026, pl
     expect(l, "le calcul n'est plus découpé").toMatch(/<h3>\{t\("Ce que cela représente"\)\}<\/h3>/);
     expect(l).toMatch(/<h3>\{t\("L'échéancier"\)\}<\/h3>/);
     expect(l, "le desk n'a plus sa lecture d'un bloc").toMatch(/if \(mode === "desk"\) \{\s*return \(\s*<>\s*<h3>\{titre\}<\/h3>/);
-    expect(l, "le groupe du calcul n'est plus un groupe de chapitres chez le client").toMatch(/<div className="chapitres" data-pane="chiffres">/);
+    expect(l, "le groupe du calcul n'est plus un groupe de chapitres chez le client").toMatch(/<div className="chapitres" data-pane=\{seanceClient \? "essentiel" : "chiffres"\}>/);
     expect(lire("src/components/RefTotals.tsx"), "le total à plat n'a plus son chiffre en avant").toMatch(/if \(plat\) \{[\s\S]*styles\.grand/);
   });
   it("le calendrier est une frise verticale chez le client ; un onglet sans document le dit", () => {
@@ -505,7 +505,7 @@ describe("la fiche d'une action : des encadrés en relief, des graphes, des mosa
   });
   it("les lignes similaires d'une action défilent en cartes, les rangées du pied sont dans une carte plate", () => {
     const s = lire(`${dir}/LignesSimilaires.tsx`);
-    expect(s, "les lignes similaires d'une action ne sont plus des cartes").toMatch(/const action = o\.kind === "MARCHE" && o\.instrument === "action";[\s\S]*?const enCartes = action \|\| fonds;/);
+    expect(s, "les lignes similaires d'une action ne sont plus des cartes").toMatch(/const action = o\.kind === "MARCHE" && o\.instrument === "action";[\s\S]*?const enCartes = action \|\| fonds \|\| seance;/);
     expect(s).toMatch(/<ul className=\{cartes\.rail\}>/);
     expect(bloc(lire(`${dir}/CartesSimilaires.module.css`), ".rail"), "le rail ne défile plus").toMatch(/overflow-x: auto;/);
     expect(lire(`${dir}/PiedDeFiche.tsx`), "le pied n'a plus sa carte").toMatch(/return carte \? <Carte plat>\{liste\}<\/Carte> : liste;/);

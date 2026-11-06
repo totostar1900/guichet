@@ -1,0 +1,170 @@
+/* LE MONTANT ET LE BILAN D'UNE SÉANCE (6 novembre 2026). Une carte : le champ en tuile de la surface, puis « Vous payez → Vous recevez », le rendement, le détail du calcul. */
+.champ {
+  display: grid;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.lab {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.saisie {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  min-width: 0;
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid transparent;
+  border-radius: calc(var(--rond) - var(--s-3));
+  background: var(--surface-2);
+}
+.saisie:focus-within {
+  border-color: var(--gold-ink);
+}
+.saisie input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: right;
+  font: inherit;
+  font-size: var(--t-7);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.saisie span {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.refus,
+.refus:focus-within {
+  border-color: var(--crit);
+}
+.aide {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.aide em {
+  font-style: normal;
+}
+.aide button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gold-ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.erreur {
+  color: var(--crit);
+}
+.hypothese {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.paire {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3);
+}
+.pay,
+.get {
+  display: grid;
+  align-content: start;
+  gap: var(--s-2);
+  min-width: 0;
+  padding: var(--s-5);
+  border-radius: calc(var(--rond) - var(--s-3));
+  background: var(--surface-2);
+}
+.pay b,
+.get b {
+  font-size: var(--t-5);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.get b {
+  color: var(--gold-ink);
+}
+.pay small,
+.get small {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.fleche {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  font-style: normal;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.rendement {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-5);
+  border-radius: calc(var(--rond) - var(--s-3));
+  background: var(--surface-2);
+}
+.rendement b {
+  font-size: var(--t-6);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold-ink);
+}
+.rendement small {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.detail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-4);
+  margin: 0;
+}
+.detail div {
+  display: grid;
+  gap: var(--s-1);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+  min-width: 0;
+}
+.detail dt {
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.detail dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+/* Un montant refusé grise le bilan sans le retirer : la forme reste, aucun saut. */
+.grise {
+  opacity: 0.5;
+}

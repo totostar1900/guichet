@@ -62,3 +62,7 @@
   font-weight: 500;
   color: var(--ink-3);
 }
+.libelle {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
