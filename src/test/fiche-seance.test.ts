@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { MONTANT_PAR_DEFAUT, calculer, type ParamsSeance } from "@/lib/domain/simulation-seance";
+import { MONTANT_PAR_DEFAUT, calculer, montantDeLaQuantite, quantiteDuMontant, type ParamsSeance } from "@/lib/domain/simulation-seance";
 
 const lire = (p: string) => readFileSync(`${__dirname}/../../${p}`, "utf8");
 const dir = "src/app/offres/[id]";
@@ -49,7 +49,7 @@ describe("la fiche d'une séance du Trésor chez le client (6 novembre 2026, pla
     expect(r, "la séance n'est plus reconnue chez le client").toMatch(/const seanceClient = mode !== "desk" && \(o\.kind === "OTA" \|\| o\.kind === "APE" \|\| o\.kind === "BTA" \|\| o\.kind === "RACHAT"\);/);
     expect(r, "l'onglet Chiffres est revenu pour une séance").toMatch(/\.\.\.\(seanceClient \? \["chiffres"\] : \[\]\)/);
     expect(r, "le résultat de la séance est revenu dans la fiche du client").toMatch(/\{seance && !seanceClient && <Seance r=\{seance\} t=\{t\} \/>\}/);
-    expect(r, "la fiche d'une séance n'appelle plus le montant saisi").toMatch(/if \(paramsSeance\) return <SimulationSeance params=\{paramsSeance\} fin=\{noteBulle\} \/>;/);
+    expect(r, "la fiche d'une séance n'appelle plus le montant saisi").toMatch(/if \(paramsSeance\) return <SimulationSeance params=\{paramsSeance\} titresInitiaux=\{qty\} fin=\{noteBulle\} \/>;/);
     expect(r, "les autres lignes ont perdu leur bloc de calcul au desk").toMatch(/<section className=\{styles\.sec\} data-pane="chiffres">\s*<Reference o=\{o\} mode=\{mode\} fin=\{noteBulle\} \/>/);
   });
 
@@ -62,7 +62,7 @@ describe("la fiche d'une séance du Trésor chez le client (6 novembre 2026, pla
 
   it("le champ est numérique, nommé, annonce son erreur, et porte le montant par défaut", () => {
     const t = lire(`${dir}/SimulationSeance.tsx`);
-    expect(t).toMatch(/useState\(fmt\(MONTANT_PAR_DEFAUT\)\)/);
+    expect(t, "le montant de départ n'est plus 10 000 000").toMatch(/useState\(fmt\(depart >= p\.minimum \? depart : MONTANT_PAR_DEFAUT\)\)/);
     expect(t).toMatch(/inputMode="numeric"/);
     expect(t).toMatch(/<label htmlFor=\{id\}/);
     expect(t).toMatch(/aria-invalid=\{refuse\}/);
@@ -78,5 +78,24 @@ describe("la fiche d'une séance du Trésor chez le client (6 novembre 2026, pla
   it("les lignes similaires d'une séance portent le libellé de leur chiffre (« si servi à 94 % »)", () => {
     const s = lire(`${dir}/LignesSimilaires.tsx`);
     expect(s, "la carte d'une séance a perdu le libellé de son chiffre").toMatch(/\{seance && l\.libelle && <span className=\{cartes\.libelle\}>\{l\.libelle\}<\/span>\}/);
+  });
+
+  it("la quantité de l'adresse et le montant se répondent : 25 000 000 = 2 500 titres, 10 bons = 10 000 000", () => {
+    expect(quantiteDuMontant(OTA, 25_000_000)).toBe(2500);
+    expect(montantDeLaQuantite(OTA, 2500)).toBe(25_000_000);
+    expect(quantiteDuMontant(OTA, 10_005_000)).toBe(1000);
+    expect(quantiteDuMontant(BTA, 10_000_000)).toBe(10);
+    expect(montantDeLaQuantite(BTA, 10)).toBe(10_000_000);
+    expect(quantiteDuMontant(BTA, 500_000)).toBe(0);
+  });
+
+  it("le montant se garde dans l'adresse (« ?qty= »), la page le relit et le formulaire d'intention le reprend", () => {
+    const t = lire(`${dir}/SimulationSeance.tsx`);
+    expect(t, "le montant ne s'écrit plus dans l'adresse").toMatch(/router\.replace\(`\$\{pathname\}\?\$\{q\.toString\(\)\}`, \{ scroll: false \}\)/);
+    expect(t, "l'adresse n'amorce plus le montant").toMatch(/const depart = titresInitiaux \? montantDeLaQuantite\(p, titresInitiaux\) : 0;/);
+    expect(t, "un montant refusé efface l'adresse").toMatch(/const qtyVoulue = refuse \|\| \(montant === MONTANT_PAR_DEFAUT && qtyActuelle == null\) \? undefined :/);
+    expect(lire(`${dir}/page.tsx`), "la page ne passe plus la quantité à la fiche").toMatch(/<FicheReading o=\{o\} data=\{fiche\} qty=\{qty\}>/);
+    expect(lire(`${dir}/FicheReading.tsx`), "la fiche ne passe plus la quantité au montant").toMatch(/<SimulationSeance params=\{paramsSeance\} titresInitiaux=\{qty\}/);
+    expect(lire("src/components/IntentForm.tsx"), "le formulaire ne reprend plus la quantité de l'adresse quand elle change").toMatch(/if \(amorce !== initialAmount\) \{\s*setAmorce\(initialAmount\);\s*if \(offer\.kind === "OTA" \|\| offer\.kind === "APE" \|\| offer\.kind === "BTA"\) setAmount\(/);
   });
 });

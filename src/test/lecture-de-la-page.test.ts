@@ -398,7 +398,7 @@ describe("la fiche d'une ligne : des sections qui se lisent (8 novembre 2026, pl
   it("les sections du client sont séparées par l'écart des chapitres, la tête et la bande gardent celui des sections", () => {
     expect(lecture(), "le client n'a plus sa pile de chapitres, ou le desk l'a prise").toMatch(/return mode === "desk" \? corps : <div className="chapitres">\{corps\}<\/div>;/);
     expect(lecture(), "les lignes similaires et le pied ne sont plus dans la pile des sections").toMatch(/\{children\}\s*<\/>\s*\);\s*return mode === "desk"/);
-    expect(lire("src/app/offres/[id]/page.tsx"), "la page ne range plus les sorties et le pied dans la lecture").toMatch(/<FicheReading o=\{o\} data=\{fiche\}>\s*<LignesSimilaires o=\{o\} \/>\s*<PiedDeFiche carte=\{[^}]*\}\s*\/>\s*<\/FicheReading>/);
+    expect(lire("src/app/offres/[id]/page.tsx"), "la page ne range plus les sorties et le pied dans la lecture").toMatch(/<FicheReading o=\{o\} data=\{fiche\} qty=\{qty\}>\s*<LignesSimilaires o=\{o\} \/>\s*<PiedDeFiche carte=\{[^}]*\}\s*\/>\s*<\/FicheReading>/);
     expect(bloc(css(), ".main"), "la lecture n'est plus la pile de la tête et de la bande").toMatch(/gap: var\(--sections-gap\);/);
   });
   it("un seul titre de section : 17 px (--t-6, +20 %), en gras, en encre pleine, jamais en capitales", () => {

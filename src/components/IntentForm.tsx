@@ -82,6 +82,12 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const lang = useLang();
   const fmtUnits = (v: number) => (offer.kind === "FONDS" ? v.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) : fmt(v));
   const [amount, setAmount] = useState(initialAmount ? fmtUnits(initialAmount) : "");
+  /* LA QUANTITÉ DE L'ADRESSE RÉAMORCE LE CHAMP (6 novembre 2026) : sur la fiche d'une séance, « Ce que cela représente » écrit « ?qty= » dans l'adresse quand le lecteur change son montant ; la page se rend de nouveau, et le formulaire, déjà monté, reprend la nouvelle quantité au lieu de garder l'ancienne. Réglage pendant le rendu, comme le recommande React, et seulement pour une séance du Trésor. */
+  const [amorce, setAmorce] = useState(initialAmount);
+  if (amorce !== initialAmount) {
+    setAmorce(initialAmount);
+    if (offer.kind === "OTA" || offer.kind === "APE" || offer.kind === "BTA") setAmount(initialAmount ? fmtUnits(initialAmount) : "");
+  }
   const [type, setType] = useState<IntentType>(initialType);
   const [limit, setLimit] = useState("");
   // La ligne d arrivee d un arbitrage : il faut un etat, la liste de la maison

@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { Amount } from "@/components/Amount";
 import { Carte } from "@/components/Carte";
@@ -8,7 +9,7 @@ import { FlowsChart } from "@/components/FlowsChart";
 import { Info } from "@/components/Info";
 import { useT } from "@/i18n/client";
 import { useDates } from "@/i18n/client";
-import { MONTANT_PAR_DEFAUT, calculer, type ParamsSeance } from "@/lib/domain/simulation-seance";
+import { MONTANT_PAR_DEFAUT, calculer, montantDeLaQuantite, quantiteDuMontant, type ParamsSeance } from "@/lib/domain/simulation-seance";
 import { fmt, fmtPct, parseAmount } from "@/lib/format";
 import styles from "./page.module.css";
 import css from "./SimulationSeance.module.css";
@@ -23,13 +24,30 @@ import css from "./SimulationSeance.module.css";
  * une carte sombre. Le montant est un NOMINAL (c'est ce que le titre de la carte disait) ; un montant sous le ticket minimum de la ligne est refusé, un montant qui
  * n'est pas un multiple du titre est arrondi vers le bas, et la ligne d'aide le dit.
  */
-export function SimulationSeance({ params: p, fin }: { params: ParamsSeance; /** La note « Chiffres de référence » : elle se range sous le bloc, comme avant. */ fin?: ReactNode }) {
+export function SimulationSeance({ params: p, titresInitiaux, fin }: { params: ParamsSeance; /** La quantité de l'adresse (« ?qty= ») : le montant reprend là où le lecteur l'avait laissé. */ titresInitiaux?: number; /** La note « Chiffres de référence » : elle se range sous le bloc, comme avant. */ fin?: ReactNode }) {
   const t = useT();
   const { fmtDate } = useDates();
   const id = useId();
-  const [saisie, setSaisie] = useState(fmt(MONTANT_PAR_DEFAUT));
+  const router = useRouter();
+  const pathname = usePathname();
+  const adresse = useSearchParams();
+  const depart = titresInitiaux ? montantDeLaQuantite(p, titresInitiaux) : 0;
+  const [saisie, setSaisie] = useState(fmt(depart >= p.minimum ? depart : MONTANT_PAR_DEFAUT));
   const montant = parseAmount(saisie);
   const refuse = montant < p.minimum;
+  /* LE MONTANT SE GARDE DANS L'ADRESSE (6 novembre 2026) : « ?qty= » porte la quantité achetée. La page la relit, donc le montant survit au rechargement, la barre « Déclarer une intention » et le formulaire la reprennent. Un montant refusé ne touche pas à l'adresse ; le montant de départ n'y met rien tant qu'elle n'en porte pas. */
+  const qtyActuelle = adresse.get("qty");
+  const qtyVoulue = refuse || (montant === MONTANT_PAR_DEFAUT && qtyActuelle == null) ? undefined : String(quantiteDuMontant(p, montant));
+  const parametres = adresse.toString();
+  useEffect(() => {
+    if (qtyVoulue === undefined || qtyVoulue === qtyActuelle) return;
+    const attente = setTimeout(() => {
+      const q = new URLSearchParams(parametres);
+      q.set("qty", qtyVoulue);
+      router.replace(`${pathname}?${q.toString()}`, { scroll: false });
+    }, 600);
+    return () => clearTimeout(attente);
+  }, [qtyVoulue, qtyActuelle, parametres, pathname, router]);
   const c = refuse ? null : calculer(p, montant);
   const modifie = montant !== MONTANT_PAR_DEFAUT;
   const obligation = p.genre === "obligation";

@@ -50,3 +50,16 @@ export function calculer(p: ParamsSeance, montant: number): Calcul {
     detail: [fmt(r.n), fmt(r.pricePerBond), fmt(r.gain)],
   };
 }
+
+/**
+ * LA QUANTITÉ QUE PORTE L'ADRESSE (« ?qty= ») : le nombre de titres, ou de bons, que le montant achète. C'est ce que la barre « Déclarer une intention » et le formulaire
+ * d'intention reprennent, et ce qui garde le montant au rechargement (6 novembre 2026).
+ */
+export function quantiteDuMontant(p: ParamsSeance, montant: number): number {
+  return Math.max(0, Math.floor(montant / p.nominal));
+}
+
+/** Le montant nominal d'une quantité de titres ou de bons : l'inverse de `quantiteDuMontant` pour un montant déjà arrondi. */
+export function montantDeLaQuantite(p: ParamsSeance, n: number): number {
+  return Math.max(0, Math.floor(n)) * p.nominal;
+}

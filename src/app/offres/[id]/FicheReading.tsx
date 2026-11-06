@@ -551,7 +551,7 @@ function Seance({ r, t }: { r: AuctionResult; t: (s: string, v?: Record<string, 
     </section>
   );
 }
-export async function FicheReading({ o, data, mode = "client", children }: { o: Offer; data: FicheData; mode?: FicheMode; /** Ce que la page range à la suite des sections, dans la même pile : les lignes similaires et le pied. */ children?: ReactNode }) {
+export async function FicheReading({ o, data, mode = "client", qty, children }: { o: Offer; data: FicheData; mode?: FicheMode; /** La quantité de l'adresse (« ?qty= »), que « Ce que cela représente » reprend. */ qty?: number; /** Ce que la page range à la suite des sections, dans la même pile : les lignes similaires et le pied. */ children?: ReactNode }) {
   const t = await getT();
   const { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance, variation3m } = data;
   const base = mode === "desk" ? "/desk" : "";
@@ -624,7 +624,7 @@ export async function FicheReading({ o, data, mode = "client", children }: { o: 
 
         {/* LE CALCUL EST UN GROUPE DE BLOCS chez le client (8 novembre 2026) : un groupe « chapitres » dans la pile, ses blocs séparés comme les autres sections. Le desk garde une seule section. */}
         {(() => {
-          if (paramsSeance) return <SimulationSeance params={paramsSeance} fin={noteBulle} />;
+          if (paramsSeance) return <SimulationSeance params={paramsSeance} titresInitiaux={qty} fin={noteBulle} />;
           return mode === "desk" ? (
             <section className={styles.sec} data-pane="chiffres">
               <Reference o={o} mode={mode} fin={noteBulle} />
