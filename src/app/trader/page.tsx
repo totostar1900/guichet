@@ -46,14 +46,14 @@ export const metadata = { title: "Trade" };
  * Une page qui fait agir ne fait que cela.
  */
 export default async function TradePage() {
-  const s = await requireSession("/trader");
-  const t = await getT();
+  /* Session, langue et offres ne dépendent de rien : un seul étage (une session absente redirige, les offres lues sont jetées). Le contexte du client attend seulement la session. */
+  const [s, t, offers] = await Promise.all([requireSession("/trader"), getT(), repo().listOffers().catch(() => [])]);
 
   /* UN SEUL ASSEMBLAGE, ET C'EST CELUI DE contexte-client. Cette page en
      refaisait un deuxième, ligne pour ligne, pendant que la bande « Ce qui
      vous attend » lisait le premier : deux lectures du même client dans la
      même requête, donc deux occasions de diverger. */
-  const [ctx, offers] = await Promise.all([contexteDuClient(s.userId), repo().listOffers().catch(() => [])]);
+  const ctx = await contexteDuClient(s.userId);
   const services = servicesDuClient(ctx, fmt);
   /* CE QUI ATTEND DERRIÈRE CHAQUE TUILE, calculé UNE FOIS. Tout sort des
      offres déjà lues plus haut : un aperçu qui aurait demandé une requête par

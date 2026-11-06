@@ -44,4 +44,9 @@ describe("la chaîne de lecture des listes d'entrée", () => {
     const src = lire("src/app/echeances/page.tsx");
     expect(src, "échéances : la langue, la session et les offres ne partent plus ensemble").toMatch(/\[t, , offres\] = await Promise\.all\(\[getT\(\), requireSession\("\/echeances"\), repo\(\)/);
   });
+  it("trader : session, langue et offres partent ensemble, le contexte du client attend la session", () => {
+    const src = lire("src/app/trader/page.tsx");
+    expect(src, "trader : la session, la langue et les offres ne partent plus ensemble").toMatch(/\[s, t, offers\] = await Promise\.all\(\[requireSession\("\/trader"\), getT\(\), repo\(\)\.listOffers\(\)\.catch\(\(\) => \[\]\)\]\)/);
+    expect(src, "trader : la session est de nouveau attendue seule, en série").not.toMatch(/const s = await requireSession/);
+  });
 });
