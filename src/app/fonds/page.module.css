@@ -34,6 +34,10 @@
   text-align: right !important;
   font-variant-numeric: tabular-nums;
 }
+/* LA VARIATION DU JOUR TIENT SUR UNE LIGNE (6 novembre 2026) : « +0,08 % » se coupait en « +0,08 » puis « % » dans une colonne de 64 px. */
+.nw {
+  white-space: nowrap;
+}
 .name a {
   font-weight: 600;
   text-decoration: none;

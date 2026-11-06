@@ -217,7 +217,7 @@ function FundTr({ r }: { r: FundRow }) {
         <br />
         <small className="muted">{fmtDate(r.navDate)}</small>
       </td>
-      <td className={`${styles.r} ${cls(r.variationPct)}`}>{signed(r.variationPct)}</td>
+      <td className={`${styles.r} ${styles.nw} ${cls(r.variationPct)}`}>{signed(r.variationPct)}</td>
       <td className={`${styles.r} ${cls(valeurFenetre(r, fenetre))}`} title={douze.titre}>
         {douze.mention ? <small className={styles.mention}>{douze.texte}</small> : douze.texte}
       </td>

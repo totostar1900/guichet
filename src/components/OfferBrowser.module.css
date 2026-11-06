@@ -161,6 +161,8 @@
   border-radius: var(--radius);
   overflow-x: clip; /* not a scroll container, so the header can stick to the page */
   min-width: 0;
+  /* LE TABLEAU SE MESURE LUI-MÊME (6 novembre 2026) : ses colonnes optionnelles se retirent selon SA largeur, non celle de la fenêtre. */
+  container: tableau / inline-size;
 }
 @media (max-width: 640px) {
   .tableWrap {
@@ -241,6 +243,10 @@
   font-size: 0.74rem;
   font-weight: 500;
   white-space: nowrap;
+}
+/* LE SOUS-TITRE D'UNE LIGNE PASSE À LA LIGNE dans la colonne qui le porte (6 novembre 2026) : tenu sur une seule ligne, il dépassait la colonne et se lisait sous la pastille d'état (« …abondement » sous « Clôturée »). */
+.table td.line small {
+  white-space: normal;
 }
 .wrapCell {
   max-width: 150px;
@@ -390,7 +396,8 @@
   grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: 14px;
 }
-@media (max-width: 1180px) {
+/* ÉCHÉANCE ET DURÉE SE RETIRENT QUAND LE TABLEAU A MOINS DE 1 080 PX, pas quand la fenêtre en a moins de 1 180 (6 novembre 2026). Sur grand écran le menu de gauche prend 290 px : à 1 280 px de fenêtre le tableau n'en avait que 964 pour 1 057 demandés, et « Voir la fiche » était coupé au bord. La largeur qui compte est celle du tableau. */
+@container tableau (max-width: 1080px) {
   .hideMd {
     display: none;
   }
