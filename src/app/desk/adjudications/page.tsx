@@ -115,38 +115,46 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
     <>
       <DeskNav current="/desk/adjudications" badges={{ "/desk/adjudications": aRelire.length }} />
 
-      <div className={styles.page}>
-        <aside className={styles.list} aria-label={t("Séances")}>
-          <p className={styles.blurb}>
-            {t("Ce que le marché a payé, séance par séance. Le robot dépose l'identité de la séance, une personne en relève les chiffres sur le communiqué.")}{" "}
-            <Link href="/desk/adjudications/tableau">{t("Voir la table")} →</Link>
-          </p>
+      <div className={styles.racine}>
+        {/* LA BANDE DE TÊTE (6 novembre 2026, planche « Page Adjudications », 1A) : tout ce qui n'est pas la liste, côte à côte. Le tableau de bord de
+            l'import garde ses compteurs, ses fichiers et ses deux gestes ; « à vérifier » et « à signer » l'accompagnent ; la colonne de gauche ne porte plus
+            que la liste, qui retrouve sa hauteur. Aucune information de l'ancienne colonne n'a été retirée. */}
+        <p className={styles.blurb}>
+          {t("Ce que le marché a payé, séance par séance. Le robot dépose l'identité de la séance, une personne en relève les chiffres sur le communiqué.")}{" "}
+          <Link href="/desk/adjudications/tableau">{t("Voir la table")} →</Link>
+        </p>
+        <div className={styles.bande}>
           <ImportOja imports={imports} />
           <Anomalies lignes={anomalies} vues={crible.vues} courante={selected?.id} />
           <ConfirmerEnLot instrument="BTA" enAttente={lotBta.length} muettes={lotBta.length - avecRdt.length} pointsGagnes={pointsGagnes} />
-          <SessionList rows={lignes} current={selected?.id} />
-        </aside>
+        </div>
 
-        <Poignee variable="--liste" min={240} max={520} memoire="adj.liste" libelle="Régler la largeur de la liste" />
+        <div className={styles.page}>
+          <aside className={styles.list} aria-label={t("Séances")}>
+            <SessionList rows={lignes} current={selected?.id} />
+          </aside>
 
-        <div className={styles.main}>
-          {selected ? (
-            <>
-              <ResultForm
-                key={selected.id}
-                r={selected}
-                offerTitle={offer?.title}
-                canRead={auctionReadingAvailable()}
-                convention={convention}
-                commutateur={<ConventionDuRendement />}
-              />
-              <SourcesDeLaSeance r={selected} />
-            </>
-          ) : (
-            <div className="empty">
-              {t("Aucune séance. Le robot BEAC en dépose une dès qu'un Trésor publie ses résultats.")}
-            </div>
-          )}
+          <Poignee variable="--liste" min={240} max={520} memoire="adj.liste" libelle="Régler la largeur de la liste" />
+
+          <div className={styles.main}>
+            {selected ? (
+              <>
+                <ResultForm
+                  key={selected.id}
+                  r={selected}
+                  offerTitle={offer?.title}
+                  canRead={auctionReadingAvailable()}
+                  convention={convention}
+                  commutateur={<ConventionDuRendement />}
+                />
+                <SourcesDeLaSeance r={selected} />
+              </>
+            ) : (
+              <div className="empty">
+                {t("Aucune séance. Le robot BEAC en dépose une dès qu'un Trésor publie ses résultats.")}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>

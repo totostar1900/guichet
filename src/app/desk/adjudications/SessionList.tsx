@@ -168,10 +168,13 @@ export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: 
                 </td>
                 <td>
                   <span className={`${styles.etat} ${styles[r.etat]}`}>{t(MOT[r.etat])}</span>
-                  {r.mince && <span className={styles.mince}>{t("mince")}</span>}
-                  <span className={`${styles.source} ${r.source === "Excel" ? styles.sourceExcel : r.source === "PDF" ? styles.sourcePdf : styles.sourceDeux}`} title={r.ecartsOuverts ? t("{n} écart(s) à trancher entre le PDF et l'Excel", { n: r.ecartsOuverts }) : undefined}>
-                    {r.source}
-                    {r.ecartsOuverts > 0 ? ` · ${r.ecartsOuverts}` : r.source === "PDF + Excel" ? " ✓" : ""}
+                  {/* La source et « mince » à côté l'une de l'autre, sous l'état : deux lignes par rangée, comme les deux autres colonnes, au lieu de trois. */}
+                  <span className={styles.sous}>
+                    <span className={`${styles.source} ${r.source === "Excel" ? styles.sourceExcel : r.source === "PDF" ? styles.sourcePdf : styles.sourceDeux}`} title={r.ecartsOuverts ? t("{n} écart(s) à trancher entre le PDF et l'Excel", { n: r.ecartsOuverts }) : undefined}>
+                      {r.source}
+                      {r.ecartsOuverts > 0 ? ` · ${r.ecartsOuverts}` : r.source === "PDF + Excel" ? " ✓" : ""}
+                    </span>
+                    {r.mince && <span className={styles.mince}>{t("mince")}</span>}
                   </span>
                 </td>
               </tr>

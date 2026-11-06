@@ -171,7 +171,7 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
       )}
 
       {ouvert && (
-        <div className={styles.panneau}>
+        <div className={styles.panneau} data-import-ouvert="">
           <label className={styles.depot}>
             <span>{t("Déposez les exports OJA : « Toutes les offres » (exigé), « Enchères » et « Titres » (recommandés).")}</span>
             <input ref={entree} type="file" accept=".xlsx" multiple disabled={etat === "lecture" || etat === "ecriture"} onChange={(e) => e.target.files?.length && lire(e.target.files)} />

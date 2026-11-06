@@ -186,9 +186,15 @@
   background: var(--surface-2);
   color: var(--ink-3);
 }
-.mince {
-  display: block;
+.sous {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--s-3);
   margin-top: var(--s-1);
+}
+.mince {
+  display: inline;
   font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -233,8 +239,7 @@
 
 /* La source des chiffres : trois états, une pastille (planche 4A). */
 .source {
-  display: block;
-  margin-top: var(--s-1);
+  display: inline-block;
   width: fit-content;
   padding: 0 var(--s-3);
   border: 1px solid currentColor;

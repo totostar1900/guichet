@@ -5,10 +5,25 @@ import Link from "next/link";
 import { SourceViewer } from "@/components/SourceViewer";
 import { Poignee } from "@/components/Poignee";
 import { useT } from "@/i18n/client";
-import { coverageOf, etatSeance, thin, type AuctionResult } from "@/lib/market/auction-results";
-import { auctionYield, YIELD_ORIGIN_LABEL, type Convention } from "@/lib/market/yield";
+import {
+  coverageOf,
+  etatSeance,
+  thin,
+  type AuctionResult,
+} from "@/lib/market/auction-results";
+import {
+  auctionYield,
+  YIELD_ORIGIN_LABEL,
+  type Convention,
+} from "@/lib/market/yield";
 import { Ecarter } from "./Ecarter";
-import { confirmResultAction, proposeResultAction, reopenResultAction, saveResultAction, type ResultOutcome } from "./actions";
+import {
+  confirmResultAction,
+  proposeResultAction,
+  reopenResultAction,
+  saveResultAction,
+  type ResultOutcome,
+} from "./actions";
 import styles from "./page.module.css";
 
 /**
@@ -37,8 +52,10 @@ import styles from "./page.module.css";
  */
 type Champs = Record<string, string>;
 
-const txt = (v: number | string | undefined | null): string => (v == null ? "" : String(v).replace(".", ","));
-const enM = (v: number | undefined): string => (v == null ? "" : txt(v / 1_000_000));
+const txt = (v: number | string | undefined | null): string =>
+  v == null ? "" : String(v).replace(".", ",");
+const enM = (v: number | undefined): string =>
+  v == null ? "" : txt(v / 1_000_000);
 
 const seedOf = (r: AuctionResult): Champs => ({
   codeEmission: r.codeEmission ?? "",
@@ -73,7 +90,17 @@ const proposedFields = (p: Partial<AuctionResult> | undefined): Champs => {
     served: enM(p.served),
     coverage: txt(p.coverage),
   };
-  for (const k of ["rateMin", "rateMax", "rateLimit", "rateAvg", "priceMin", "priceMax", "priceLimit", "priceAvg"] as const) out[k] = txt(p[k]);
+  for (const k of [
+    "rateMin",
+    "rateMax",
+    "rateLimit",
+    "rateAvg",
+    "priceMin",
+    "priceMax",
+    "priceLimit",
+    "priceAvg",
+  ] as const)
+    out[k] = txt(p[k]);
   return out;
 };
 
@@ -98,9 +125,18 @@ export function ResultForm({
   const t = useT();
   // Ce que le desk a tapé, et rien d'autre : la valeur affichée se calcule.
   const [edits, setEdits] = useState<Champs>({});
-  const [saved, save, saving] = useActionState<ResultOutcome | null, FormData>(saveResultAction, null);
-  const [done, confirm, confirming] = useActionState<ResultOutcome | null, FormData>(confirmResultAction, null);
-  const [read, propose, reading] = useActionState<ResultOutcome | null, FormData>(proposeResultAction, null);
+  const [saved, save, saving] = useActionState<ResultOutcome | null, FormData>(
+    saveResultAction,
+    null,
+  );
+  const [done, confirm, confirming] = useActionState<
+    ResultOutcome | null,
+    FormData
+  >(confirmResultAction, null);
+  const [read, propose, reading] = useActionState<
+    ResultOutcome | null,
+    FormData
+  >(proposeResultAction, null);
   /* Chaque retour s'affiche auprès du bouton qui le produit : plus rien à arbitrer. */
   const ecrit = done ?? saved;
   const bill = r.instrument === "BTA";
@@ -118,9 +154,11 @@ export function ResultForm({
   const base = seedOf(r);
   const propose_ = read?.ok ? proposedFields(read.proposal) : {};
   const vals: Champs = {};
-  for (const k of Object.keys(base)) vals[k] = edits[k] ?? (base[k] || propose_[k] || "");
+  for (const k of Object.keys(base))
+    vals[k] = edits[k] ?? (base[k] || propose_[k] || "");
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setEdits((v) => ({ ...v, [k]: e.target.value }));
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setEdits((v) => ({ ...v, [k]: e.target.value }));
 
   /**
    * Un champ : le libellé sur une ligne, l'unité dans la boîte.
@@ -129,16 +167,33 @@ export function ResultForm({
    * portait déjà : la boîte passe au doré, et le desk voit d'un coup d'œil ce
    * qu'il lui reste à vérifier sur la pièce.
    */
-  const champ = (name: string, label: string, unit?: string, aide?: string, texte = false) => {
+  const champ = (
+    name: string,
+    label: string,
+    unit?: string,
+    aide?: string,
+    texte = false,
+  ) => {
     const lu = !edits[name] && !base[name] && Boolean(propose_[name]);
     return (
-      <label className={`${styles.field} ${texte ? styles.large : ""}`} key={name}>
+      <label
+        className={`${styles.field} ${texte ? styles.large : ""}`}
+        key={name}
+      >
         <span title={aide ? `${t(label)} · ${t(aide)}` : t(label)}>
           {t(label)}
           {aide ? <em> · {t(aide)}</em> : null}
         </span>
-        <div className={`${styles.box} ${texte ? styles.txt : ""} ${lu ? styles.lu : ""}`}>
-          <input name={name} value={vals[name] ?? ""} onChange={set(name)} inputMode={texte ? undefined : "decimal"} autoComplete="off" />
+        <div
+          className={`${styles.box} ${texte ? styles.txt : ""} ${lu ? styles.lu : ""}`}
+        >
+          <input
+            name={name}
+            value={vals[name] ?? ""}
+            onChange={set(name)}
+            inputMode={texte ? undefined : "decimal"}
+            autoComplete="off"
+          />
           {unit ? <span className={styles.unite}>{t(unit)}</span> : null}
         </div>
       </label>
@@ -158,190 +213,309 @@ export function ResultForm({
    */
   return (
     <>
-    {/* LE RÉGLAGE SE TIENT AU-DESSUS DE LA FEUILLE, ET HORS D'ELLE. Le desk
+      {/* LE RÉGLAGE SE TIENT AU-DESSUS DE LA FEUILLE, ET HORS D'ELLE. Le desk
         relève une séance ici, donc il doit pouvoir changer de convention sans
         quitter la pièce ouverte à côté ; mais il porte son propre formulaire,
         et un formulaire dans un formulaire ne part jamais : le menu changeait
         d'aspect et le chiffre ne bougeait pas. Même règle que « Écarter »
         plus bas. */}
-    {commutateur ? <div className={styles.convention}>{commutateur}</div> : null}
-
-    <form className={styles.form}>
-      <input type="hidden" name="id" value={r.id} />
-
-      <header className={styles.head}>
-        <div>
-          <h2>
-            {r.instrument} {r.tenor} · {t(r.country)}
-          </h2>
-          <p className="muted">
-            {t("Séance du {d}", { d: r.sessionOn })}
-            {r.abondement ? ` · ${t("abondement")}` : ""} ·{" "}
-            <a href={r.sourceUrl} target="_blank" rel="noreferrer">
-              {t("le communiqué chez la BEAC")} ↗
-            </a>
-          </p>
-        </div>
-        <span className={`${styles.pill} ${etat === "ecartee" ? styles.range : r.confirmedBy ? styles.done : styles.todo}`}>
-          {etat === "ecartee"
-            ? t("Écartée")
-            : etat === "relue"
-              ? t("Relue par {n}", { n: r.confirmedBy ?? "" })
-              : etat === "a_relire"
-                ? t("À relire")
-                : t("À lire")}
-        </span>
-      </header>
-
-      {/**
-       * CE QU'ON SAIT DE CETTE LIGNE AVANT DE LA SIGNER.
-       *
-       * La note de correction existait en base depuis des semaines et
-       * n'apparaissait sur aucun écran : dix-neuf lignes en portaient une,
-       * personne ne pouvait la lire. Le 16 octobre 2026 deux lignes sont
-       * reparties à relire parce que leur taux était contesté, et sans cette
-       * boîte le desk les aurait signées sans voir pourquoi. Signer, c'est
-       * répondre d'un chiffre : ce qu'on sait contre lui doit être sous les
-       * yeux au même moment.
-       */}
-      {r.correction ? (
-        <div className={styles.note}>
-          <b>{t("Ce qu'il faut savoir sur cette ligne")}</b>
-          <p>{r.correction}</p>
-          {r.correctedBy ? (
-            <small className="muted">{t("Corrigée par {n}", { n: r.correctedBy })}</small>
-          ) : null}
-        </div>
-      ) : null}
-
-      <div className={styles.split}>
-        <div className={styles.doc}>
-          {r.fileKey ? (
-            <SourceViewer src={`/desk/adjudications/source/${r.id}`} title={t("Communiqué de résultats")} fill />
-          ) : (
+      <div className={styles.fiche}>
+        <header className={styles.head}>
+          <div>
+            <h2>
+              {r.instrument} {r.tenor} · {t(r.country)}
+            </h2>
             <p className="muted">
+              {t("Séance du {d}", { d: r.sessionOn })}
+              {r.abondement ? ` · ${t("abondement")}` : ""} ·{" "}
+              <a href={r.sourceUrl} target="_blank" rel="noreferrer">
+                {t("le communiqué chez la BEAC")} ↗
+              </a>
+            </p>
+          </div>
+          <div className={styles.droite}>
+            <span
+              className={`${styles.pill} ${etat === "ecartee" ? styles.range : r.confirmedBy ? styles.done : styles.todo}`}
+            >
+              {etat === "ecartee"
+                ? t("Écartée")
+                : etat === "relue"
+                  ? t("Relue par {n}", { n: r.confirmedBy ?? "" })
+                  : etat === "a_relire"
+                    ? t("À relire")
+                    : t("À lire")}
+            </span>
+            {commutateur ? (
+              <div className={styles.convention}>{commutateur}</div>
+            ) : null}
+          </div>
+        </header>
+
+        <form className={styles.form}>
+          <input type="hidden" name="id" value={r.id} />
+
+          {/**
+           * CE QU'ON SAIT DE CETTE LIGNE AVANT DE LA SIGNER.
+           *
+           * La note de correction existait en base depuis des semaines et
+           * n'apparaissait sur aucun écran : dix-neuf lignes en portaient une,
+           * personne ne pouvait la lire. Le 16 octobre 2026 deux lignes sont
+           * reparties à relire parce que leur taux était contesté, et sans cette
+           * boîte le desk les aurait signées sans voir pourquoi. Signer, c'est
+           * répondre d'un chiffre : ce qu'on sait contre lui doit être sous les
+           * yeux au même moment.
+           */}
+          {r.correction ? (
+            <div className={styles.note}>
+              <b>{t("Ce qu'il faut savoir sur cette ligne")}</b>
+              <p>{r.correction}</p>
+              {r.correctedBy ? (
+                <small className="muted">
+                  {t("Corrigée par {n}", { n: r.correctedBy })}
+                </small>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* PAS DE COMMUNIQUÉ : UN BANDEAU D'UNE LIGNE, ET LES CHAMPS REPRENNENT LA LARGEUR. La moitié gauche de la page restait vide, avec la même phrase en gros. */}
+          {!r.fileKey && (
+            <p className={styles.bandeau}>
               {t("Le communiqué n'a pas pu être rapatrié.")}{" "}
               <a href={r.sourceUrl} target="_blank" rel="noreferrer">
                 {t("L'ouvrir chez la BEAC")} ↗
               </a>
             </p>
           )}
-        </div>
 
-        <Poignee variable="--champs" min={280} max={560} memoire="adj.champs" depuisLaDroite libelle="Régler la largeur des champs" />
+          <div className={`${styles.split} ${r.fileKey ? "" : styles.sansDoc}`}>
+            {r.fileKey && (
+              <>
+                <div className={styles.doc}>
+                  <SourceViewer
+                    src={`/desk/adjudications/source/${r.id}`}
+                    title={t("Communiqué de résultats")}
+                    fill
+                  />
+                </div>
 
-        <div className={styles.fields}>
-          {/* Ce qu'on regarde avant de signer, déduit et non saisi. */}
-          <div className={styles.strip}>
-            <div>
-              <span>{t("Couverture")}</span>
-              <b className={couv != null && couv < 100 ? styles.crit : undefined}>{couv == null ? "—" : `${(couv / 100).toFixed(2).replace(".", ",")} ×`}</b>
-            </div>
-            <div>
-              <span>{t("Soumissionnaires")}</span>
-              <b>{r.bidders == null ? "—" : `${r.bidders}${r.networkSize ? ` / ${r.networkSize}` : ""}`}</b>
-            </div>
-            <div>
-              <span>{t("Rendement")}</span>
-              <b className={styles.gold} title={rdt ? t(YIELD_ORIGIN_LABEL[rdt.origin]) : undefined}>
-                {rdt ? `${rdt.pct.toFixed(2).replace(".", ",")} %` : "—"}
-              </b>
-            </div>
-          </div>
+                <Poignee
+                  variable="--champs"
+                  min={280}
+                  max={560}
+                  memoire="adj.champs"
+                  depuisLaDroite
+                  libelle="Régler la largeur des champs"
+                />
+              </>
+            )}
 
-          {/* La machine passe devant, et n'écrit rien. */}
-          <div className={styles.machine}>
-            <button className="btn sm" type="submit" formAction={propose} disabled={!canRead || !r.fileKey || reading} formNoValidate>
-              {t(reading ? "Lecture en cours…" : "Lire le communiqué")}
-            </button>
-            <small>
-              {canRead
-                ? t("La lecture se pose dans les champs. Rien n'est enregistré : vous vérifiez, puis vous confirmez.")
-                : t("Lecture automatique indisponible : les chiffres se saisissent à la main.")}
-            </small>
-          </div>
+            <div className={styles.fields}>
+              {/* Ce qu'on regarde avant de signer, déduit et non saisi. */}
+              <div className={styles.strip}>
+                <div>
+                  <span>{t("Couverture")}</span>
+                  <b
+                    className={
+                      couv != null && couv < 100 ? styles.crit : undefined
+                    }
+                  >
+                    {couv == null
+                      ? "—"
+                      : `${(couv / 100).toFixed(2).replace(".", ",")} ×`}
+                  </b>
+                </div>
+                <div>
+                  <span>{t("Soumissionnaires")}</span>
+                  <b>
+                    {r.bidders == null
+                      ? "—"
+                      : `${r.bidders}${r.networkSize ? ` / ${r.networkSize}` : ""}`}
+                  </b>
+                </div>
+                <div>
+                  <span>{t("Rendement")}</span>
+                  <b
+                    className={styles.gold}
+                    title={rdt ? t(YIELD_ORIGIN_LABEL[rdt.origin]) : undefined}
+                  >
+                    {rdt ? `${rdt.pct.toFixed(2).replace(".", ",")} %` : "—"}
+                  </b>
+                </div>
+              </div>
 
-          {read && (read.ok ? <div className={styles.ok}>{read.message}</div> : <div className={styles.err}>{read.error}</div>)}
-          {read?.remarks && read.remarks.length > 0 && (
-            <ul className={styles.remarks}>
-              {read.remarks.map((m) => (
-                <li key={m}>{m}</li>
-              ))}
-            </ul>
-          )}
+              {/* La machine passe devant, et n'écrit rien. */}
+              <div className={styles.machine}>
+                <button
+                  className="btn sm"
+                  type="submit"
+                  formAction={propose}
+                  disabled={!canRead || !r.fileKey || reading}
+                  formNoValidate
+                >
+                  {t(reading ? "Lecture en cours…" : "Lire le communiqué")}
+                </button>
+                <small>
+                  {canRead
+                    ? t(
+                        "La lecture se pose dans les champs. Rien n'est enregistré : vous vérifiez, puis vous confirmez.",
+                      )
+                    : t(
+                        "Lecture automatique indisponible : les chiffres se saisissent à la main.",
+                      )}
+                </small>
+              </div>
 
-          <fieldset>
-            <legend>{t("La ligne")}</legend>
-            {champ("tenor", "Durée", undefined, "exigée pour confirmer", true)}
-            {champ("codeEmission", "Code émission", undefined, "pour rattacher à une ligne", true)}
-            {champ("offerId", "Notre ligne", undefined, "facultatif", true)}
-            {offerTitle && (
-              <p className={styles.linked}>
-                {t("Rattachée à")} <Link href={`/desk/lignes/${r.offerId}`}>{offerTitle}</Link>
+              {read &&
+                (read.ok ? (
+                  <div className={styles.ok}>{read.message}</div>
+                ) : (
+                  <div className={styles.err}>{read.error}</div>
+                ))}
+              {read?.remarks && read.remarks.length > 0 && (
+                <ul className={styles.remarks}>
+                  {read.remarks.map((m) => (
+                    <li key={m}>{m}</li>
+                  ))}
+                </ul>
+              )}
+
+              <fieldset>
+                <legend>{t("La ligne")}</legend>
+                {champ(
+                  "tenor",
+                  "Durée",
+                  undefined,
+                  "exigée pour confirmer",
+                  true,
+                )}
+                {champ(
+                  "codeEmission",
+                  "Code émission",
+                  undefined,
+                  "pour rattacher à une ligne",
+                  true,
+                )}
+                {champ("offerId", "Notre ligne", undefined, "facultatif", true)}
+                {offerTitle && (
+                  <p className={styles.linked}>
+                    {t("Rattachée à")}{" "}
+                    <Link href={`/desk/lignes/${r.offerId}`}>{offerTitle}</Link>
+                  </p>
+                )}
+              </fieldset>
+
+              <fieldset>
+                <legend>{t("La séance")}</legend>
+                {num("networkSize", "SVT du réseau")}
+                {num("bidders", "SVT soumissionnaires")}
+                {num("announced", "Montant annoncé", "en millions")}
+                {num("bid", "Total des soumissions", "en millions")}
+                {num("served", "Total servi", "en millions")}
+                {num("coverage", "Taux de couverture", "%", "tel qu'imprimé")}
+              </fieldset>
+
+              <fieldset>
+                <legend>
+                  {bill
+                    ? t("Les taux, précomptés")
+                    : t("Les prix, en % du nominal")}
+                </legend>
+                {bill
+                  ? [
+                      num("rateMin", "Taux minimum", "%"),
+                      num("rateMax", "Taux maximum", "%"),
+                      num("rateLimit", "Taux limite", "%"),
+                      num("rateAvg", "Taux moyen pondéré", "%"),
+                    ]
+                  : [
+                      num("priceMin", "Prix minimum", "%"),
+                      num("priceMax", "Prix maximum", "%"),
+                      num("priceLimit", "Prix limite", "%"),
+                      num("priceAvg", "Prix moyen pondéré", "%"),
+                    ]}
+              </fieldset>
+
+              {/* Ce que le chiffre vaut, dit à côté du chiffre. */}
+              {(couv != null || r.bidders != null) && (
+                <p className={`${styles.weight} ${mince ? styles.warn : ""}`}>
+                  {r.bidders != null
+                    ? t("{n} soumissionnaire(s)", { n: String(r.bidders) })
+                    : ""}
+                  {couv != null
+                    ? `${r.bidders != null ? " · " : ""}${t("couverture {c} %", { c: couv.toFixed(2).replace(".", ",") })}`
+                    : ""}
+                  {mince
+                    ? ` · ${t("séance mince : le taux est celui d'une contrepartie, pas du marché")}`
+                    : ""}
+                </p>
+              )}
+
+              {ecrit &&
+                (ecrit.ok ? (
+                  <div className={styles.ok}>{ecrit.message}</div>
+                ) : (
+                  <div className={styles.err}>{ecrit.error}</div>
+                ))}
+
+              <div className={styles.actions}>
+                <button
+                  className="btn"
+                  type="submit"
+                  formAction={save}
+                  disabled={saving || confirming || reading}
+                >
+                  {t(saving ? "Enregistrement…" : "Enregistrer la lecture")}
+                </button>
+                {r.confirmedBy ? (
+                  <button
+                    className="btn sm ghost"
+                    type="submit"
+                    formAction={reopenResultAction}
+                    formNoValidate
+                  >
+                    {t("Rouvrir")}
+                  </button>
+                ) : (
+                  <button
+                    className="btn primary"
+                    type="submit"
+                    formAction={confirm}
+                    disabled={saving || confirming || reading}
+                  >
+                    {t(confirming ? "…" : "Confirmer la séance")}
+                  </button>
+                )}
+              </div>
+
+              <p className="muted">
+                {etat === "ecartee"
+                  ? t(
+                      "Rangée : cette pièce n'est pas un résultat, et ne compte nulle part.",
+                    )
+                  : etat === "relue"
+                    ? t(
+                        "Confirmée : ce taux sert de référence aux indications du desk.",
+                      )
+                    : etat === "a_relire"
+                      ? t(
+                          "Lue et enregistrée. Tant qu'une personne ne l'a pas confirmée, elle ne sert de référence à aucune offre.",
+                        )
+                      : t("Rien n'a encore été lu sur cette pièce.")}
               </p>
-            )}
-          </fieldset>
-
-          <fieldset>
-            <legend>{t("La séance")}</legend>
-            {num("networkSize", "SVT du réseau")}
-            {num("bidders", "SVT soumissionnaires")}
-            {num("announced", "Montant annoncé", "en millions")}
-            {num("bid", "Total des soumissions", "en millions")}
-            {num("served", "Total servi", "en millions")}
-            {num("coverage", "Taux de couverture", "%", "tel qu'imprimé")}
-          </fieldset>
-
-          <fieldset>
-            <legend>{bill ? t("Les taux, précomptés") : t("Les prix, en % du nominal")}</legend>
-            {bill
-              ? [num("rateMin", "Taux minimum", "%"), num("rateMax", "Taux maximum", "%"), num("rateLimit", "Taux limite", "%"), num("rateAvg", "Taux moyen pondéré", "%")]
-              : [num("priceMin", "Prix minimum", "%"), num("priceMax", "Prix maximum", "%"), num("priceLimit", "Prix limite", "%"), num("priceAvg", "Prix moyen pondéré", "%")]}
-          </fieldset>
-
-          {/* Ce que le chiffre vaut, dit à côté du chiffre. */}
-          {(couv != null || r.bidders != null) && (
-            <p className={`${styles.weight} ${mince ? styles.warn : ""}`}>
-              {r.bidders != null ? t("{n} soumissionnaire(s)", { n: String(r.bidders) }) : ""}
-              {couv != null ? `${r.bidders != null ? " · " : ""}${t("couverture {c} %", { c: couv.toFixed(2).replace(".", ",") })}` : ""}
-              {mince ? ` · ${t("séance mince : le taux est celui d'une contrepartie, pas du marché")}` : ""}
-            </p>
-          )}
-
-          {ecrit && (ecrit.ok ? <div className={styles.ok}>{ecrit.message}</div> : <div className={styles.err}>{ecrit.error}</div>)}
-
-          <div className={styles.actions}>
-            <button className="btn" type="submit" formAction={save} disabled={saving || confirming || reading}>
-              {t(saving ? "Enregistrement…" : "Enregistrer la lecture")}
-            </button>
-            {r.confirmedBy ? (
-              <button className="btn sm ghost" type="submit" formAction={reopenResultAction} formNoValidate>
-                {t("Rouvrir")}
-              </button>
-            ) : (
-              <button className="btn primary" type="submit" formAction={confirm} disabled={saving || confirming || reading}>
-                {t(confirming ? "…" : "Confirmer la séance")}
-              </button>
-            )}
+            </div>
           </div>
+        </form>
 
-          <p className="muted">
-            {etat === "ecartee"
-              ? t("Rangée : cette pièce n'est pas un résultat, et ne compte nulle part.")
-              : etat === "relue"
-              ? t("Confirmée : ce taux sert de référence aux indications du desk.")
-              : etat === "a_relire"
-                ? t("Lue et enregistrée. Tant qu'une personne ne l'a pas confirmée, elle ne sert de référence à aucune offre.")
-                : t("Rien n'a encore été lu sur cette pièce.")}
-          </p>
-        </div>
-      </div>
-    </form>
-
-    {/* Le troisième geste : ni lire, ni confirmer, mais constater que cette
+        {/* Le troisième geste : ni lire, ni confirmer, mais constater que cette
         pièce n'en est pas une. Il porte son propre formulaire, donc il se tient
         à côté et jamais dedans. */}
-    <Ecarter id={r.id} ecartee={etat === "ecartee"} motif={r.setAsideReason} par={r.setAsideBy} />
+        <Ecarter
+          id={r.id}
+          ecartee={etat === "ecartee"}
+          motif={r.setAsideReason}
+          par={r.setAsideBy}
+        />
+      </div>
     </>
   );
 }

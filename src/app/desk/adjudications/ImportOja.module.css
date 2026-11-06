@@ -54,6 +54,17 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
+/* Les trois compteurs du dernier import : même gabarit, plus bas que ceux de l'aperçu. */
+.chiffres {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-3);
+}
+.chiffres div {
+  padding: var(--s-2) var(--s-4);
+}
+.chiffres b {
+  font-size: var(--t-6);
+}
 .bon {
   color: var(--good);
 }
