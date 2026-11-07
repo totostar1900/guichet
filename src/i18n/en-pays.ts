@@ -160,4 +160,13 @@ export const EN_PAYS: Record<string, string> = {
   "Rien n'est définitif : un écart se reprend ici, en rechargeant ce lot avec cette case cochée, ou depuis la fiche de la séance.": "Nothing is final: a discrepancy can be reopened here, by reloading this batch with this box ticked, or from the session sheet.",
   "déjà tranché : {s} par {p}": "already settled: {s} by {p}",
   "Rien n'est définitif : un écart tranché se reprend ici à tout moment, par l'autre bouton ; le changement est tracé au journal d'audit. Un lot rechargé avec « Réexaminer les écarts déjà tranchés » les remet aussi en jeu.": "Nothing is final: a settled discrepancy can be reopened here at any time with the other button; the change is traced in the audit log. A batch reloaded with « Also reconsider discrepancies already settled » puts them back in play too.",
+  "Import Excel": "Excel import",
+  "Import des exports OJA": "Import of OJA exports",
+  "Déposez les exports OJA pour comparer les séances du Desk, combler celles qui manquent et trancher les écarts entre le communiqué et l'Excel. Rien n'est écrit avant « Importer ».": "Upload the OJA exports to compare the Desk's sessions, fill the missing ones and settle the discrepancies between the notice and the Excel. Nothing is written before « Import ».",
+  "Retour aux séances": "Back to the sessions",
+  "Importer un export Excel": "Import an Excel export",
+  "Journal des imports": "Import log",
+  "Aucun import pour le moment.": "No import yet.",
+  "Fichiers": "Files",
+  "Par": "By",
 };

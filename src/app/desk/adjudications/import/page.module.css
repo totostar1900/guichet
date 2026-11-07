@@ -1,0 +1,48 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sections-gap, 28px);
+  max-width: 1100px;
+  padding-bottom: var(--s-11);
+}
+.tete h1 {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-8);
+}
+.sous {
+  margin: 0;
+  color: var(--ink-3);
+  max-width: 72ch;
+}
+.journal {
+  display: grid;
+  gap: var(--s-4);
+}
+.journal h2 {
+  margin: 0;
+  font-size: var(--t-6);
+}
+.tableau {
+  overflow-x: auto;
+}
+.tableau table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.tableau th,
+.tableau td {
+  text-align: left;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.tableau th {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.exclu {
+  color: var(--crit);
+  font-style: normal;
+}

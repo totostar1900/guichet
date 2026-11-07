@@ -13,7 +13,6 @@ import { auctionReadingAvailable } from "@/lib/market/auction-extract";
 import { cribler } from "@/lib/market/anomalies";
 import { Anomalies, type LigneAnomalie } from "./Anomalies";
 import { ConfirmerEnLot } from "./ConfirmerEnLot";
-import { ImportOja } from "./ImportOja";
 import { SourcesDeLaSeance } from "./SourcesSeance";
 import { aConfirmerSurPiece, etatSource } from "@/lib/market/sources-seance";
 import { ResultForm } from "./ResultForm";
@@ -47,7 +46,6 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
   const sp = await searchParams;
   const r = repo();
   const all = await r.listAuctionResults({ limit: 3000 });
-  const imports = await r.listOjaImports();
   // Une pièce écartée n'attend personne et n'atteste de rien : elle sort des
   // deux files, et se retrouve par son propre onglet.
   const resultats = all.filter(compteDansLesResultats);
@@ -115,24 +113,17 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
     <>
       <DeskNav current="/desk/adjudications" badges={{ "/desk/adjudications": aRelire.length }} />
 
-      <div className={styles.racine}>
-        {/* LA BANDE DE TÊTE (6 novembre 2026, planche « Page Adjudications », 1A) : tout ce qui n'est pas la liste, côte à côte. Le tableau de bord de
-            l'import garde ses compteurs, ses fichiers et ses deux gestes ; « à vérifier » et « à signer » l'accompagnent ; la colonne de gauche ne porte plus
-            que la liste, qui retrouve sa hauteur. Aucune information de l'ancienne colonne n'a été retirée. */}
-        <p className={styles.blurb}>
-          {t("Ce que le marché a payé, séance par séance. Le robot dépose l'identité de la séance, une personne en relève les chiffres sur le communiqué.")}{" "}
-          <Link href="/desk/adjudications/tableau">{t("Voir la table")} →</Link>
-        </p>
-        <div className={styles.bande}>
-          <ImportOja imports={imports} />
+      <div className={styles.page}>
+        <aside className={styles.list} aria-label={t("Séances")}>
+          <p className={styles.blurb}>
+            {t("Ce que le marché a payé, séance par séance. Le robot dépose l'identité de la séance, une personne en relève les chiffres sur le communiqué.")}{" "}
+            <Link href="/desk/adjudications/tableau">{t("Voir la table")} →</Link>{" · "}
+            <Link href="/desk/adjudications/import">{t("Importer un export Excel")} →</Link>
+          </p>
           <Anomalies lignes={anomalies} vues={crible.vues} courante={selected?.id} />
           <ConfirmerEnLot instrument="BTA" enAttente={lotBta.length} muettes={lotBta.length - avecRdt.length} pointsGagnes={pointsGagnes} />
-        </div>
-
-        <div className={styles.page}>
-          <aside className={styles.list} aria-label={t("Séances")}>
-            <SessionList rows={lignes} current={selected?.id} />
-          </aside>
+          <SessionList rows={lignes} current={selected?.id} />
+        </aside>
 
           <Poignee variable="--liste" min={240} max={520} memoire="adj.liste" libelle="Régler la largeur de la liste" />
 
@@ -154,7 +145,6 @@ export default async function AdjudicationsPage({ searchParams }: { searchParams
                 {t("Aucune séance. Le robot BEAC en dépose une dès qu'un Trésor publie ses résultats.")}
               </div>
             )}
-          </div>
         </div>
       </div>
     </>

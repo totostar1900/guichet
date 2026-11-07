@@ -93,6 +93,7 @@ export const COLONNE_VISITEUR: GroupeColonne[] = [
  */
 export const ROUTES_LARGES: string[] = [
   "/desk/adjudications/tableau",
+  "/desk/adjudications/import",
   "/desk/bulletins",
   "/desk/clients/quantitatif",
   "/desk/dette",

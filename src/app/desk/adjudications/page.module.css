@@ -1,36 +1,14 @@
 /* Trois volets, deux poignées. Les largeurs sont des variables : la poignée
    les écrit, le navigateur les retient, et la maquette ne tranche pas à la
    place du desk une question qui dépend du scan qu'il est en train de lire. */
-/* La page : une bande de tête, puis la liste et la séance qui se partagent la hauteur restante. */
-.racine {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-5);
-  height: calc(100vh - 118px);
-  min-height: 520px;
-}
-.bande {
-  flex: 0 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--s-5);
-  align-items: start;
-}
-/* Les blocs portaient leur propre marge basse pour la colonne : dans la bande, c'est l'écart de la grille qui compte. */
-.bande.bande > * {
-  margin-bottom: 0;
-}
-/* Le panneau d'import ouvert reprend toute la largeur : son aperçu est un tableau. */
-.bande > :has([data-import-ouvert]) {
-  grid-column: 1 / -1;
-}
+/* Trois volets : la liste (avec « à vérifier » et « à signer » au-dessus), la poignée, la séance. */
 .page {
-  flex: 1 1 auto;
   display: grid;
-  grid-template-columns: var(--liste, 340px) auto minmax(0, 1fr);
+  grid-template-columns: var(--liste, 300px) auto minmax(0, 1fr);
   gap: var(--s-5);
   align-items: stretch;
-  min-height: 0;
+  height: calc(100vh - 118px);
+  min-height: 520px;
 }
 /* La liste se borne comme celle de « À valider » : mille séances ne doivent pas
    pousser hors de vue le formulaire qu'on est en train de remplir. */
@@ -40,6 +18,8 @@
   gap: var(--s-4);
   min-width: 0;
   min-height: 0;
+  /* Sur un écran court, « à vérifier » et « à signer » ne doivent pas écraser la liste : la colonne défile, la liste garde sa hauteur de lecture. */
+  overflow-y: auto;
 }
 .blurb {
   margin: 0;
@@ -339,12 +319,6 @@
 }
 
 @media (max-width: 1000px) {
-  .racine {
-    height: auto;
-  }
-  .bande {
-    grid-template-columns: minmax(0, 1fr);
-  }
   .page,
   .split {
     grid-template-columns: minmax(0, 1fr);
@@ -535,3 +509,4 @@
   font-size: var(--t-2);
   max-width: 52ch;
 }
+

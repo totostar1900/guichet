@@ -225,7 +225,7 @@ export async function appliquerOjaAction(charge: string): Promise<ResultatOja> {
     reason: `Import OJA par ${desk.name} : ${creees} séance(s) créée(s), ${aVerser.length} séance(s) enrichie(s)`,
   });
   await r.logEvent({ kind: "desk", html: `<b>Import OJA</b> par ${desk.name} : ${creees} séance(s) nouvelle(s), ${aVerser.length} enrichie(s) de l'Excel, ${plan.compteurs.ecarts} écart(s)` });
-  revalidatePath("/desk/adjudications");
+  revalidatePath("/desk/adjudications", "layout");
   revalidatePath("/desk/analyses");
   revalidatePath("/marche/adjudications");
   return {
@@ -256,7 +256,7 @@ export async function trancherEcartAction(form: FormData): Promise<void> {
     after: { [c.data]: col[c.data], retenu: s.data },
     reason: `Écart tranché sur « ${c.data} » : ${s.data} retenu (${motif})`,
   });
-  revalidatePath("/desk/adjudications");
+  revalidatePath("/desk/adjudications", "layout");
 }
 
 /** Exclure ou rétablir une source pour une séance. Une séance garde toujours au moins une source. */
@@ -280,7 +280,7 @@ export async function exclureSourceAction(form: FormData): Promise<void> {
     after: { exclues: apres.exclues ?? [] },
     reason: `${excl ? "Source exclue" : "Source rétablie"} : ${s.data} (${desk.name})`,
   });
-  revalidatePath("/desk/adjudications");
+  revalidatePath("/desk/adjudications", "layout");
   revalidatePath("/desk/analyses");
 }
 
@@ -312,7 +312,7 @@ export async function exclureImportAction(form: FormData): Promise<void> {
   });
   await r.updateOjaImport(importId, { exclu: excl });
   await audit("oja.import", "oja_import", importId, { after: { exclu: excl, seances: touchees }, reason: `${excl ? "Import exclu" : "Import rétabli"} par ${desk.name} : ${touchees} séance(s)` });
-  revalidatePath("/desk/adjudications");
+  revalidatePath("/desk/adjudications", "layout");
   revalidatePath("/desk/analyses");
   revalidatePath("/marche/adjudications");
 }
