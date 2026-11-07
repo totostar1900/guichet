@@ -7,8 +7,7 @@ import { SEED_BUDGETS } from "./budgets-seed";
  * Chaque montant vient d'une pièce publiée par l'État lui-même : la loi de finances, son fascicule, la note d'information du Trésor aux investisseurs, ou la page du
  * ministère. Montants en MILLIONS de FCFA, comme partout. Ce que la pièce ne dit pas, ou dit de deux façons, est NOMMÉ dans `aRelever` plutôt que tranché.
  *
- * LE GABON N'Y EST PAS : aucune pièce officielle n'a pu être ouverte (le texte de la loi de finances rectificative n'a été trouvé que repris par la presse). Il reste
- * « non publié » à la fiche tant que le Desk n'a pas la pièce.
+ * LE GABON y est depuis l'ouverture du Journal officiel n° 123 bis (loi n° 002/2026), publié par le ministère : sa loi rectificative est lue dans ses tableaux d'équilibre.
  *
  * Un bouton du Desk charge ce relevé, sous le nom de celui qui clique et avec l'audit habituel ; il ne se charge pas tout seul.
  */
@@ -158,6 +157,57 @@ const RCA: BudgetEtat = {
   ],
 };
 
+const GABON: BudgetEtat = {
+  pays: "Gabon",
+  exercice: 2026,
+  millesime: "revise",
+  loi: "Loi n° 002/2026 du 17 juillet 2026 portant loi de finances rectificative de l'année 2026 (décret de promulgation n° 0322/PR du 17 juillet 2026)",
+  promulgueeLe: "2026-07-17",
+  hypotheses: [],
+  recettes: [
+    { cle: "fiscales", libelle: "Recettes fiscales", montant: 1_767_678 },
+    { cle: "dons", libelle: "Dons, legs et fonds de concours", montant: 36_194 },
+    { cle: "cotisations", libelle: "Cotisations sociales", montant: 10_780 },
+    { cle: "autres", libelle: "Autres recettes", montant: 1_351_620 },
+    { cle: "prelevements", libelle: "Prélèvements (collectivités, organisations internationales, établissements publics, prestations sociales, autres)", montant: -412_106 },
+    { cle: "comptes_speciaux", libelle: "Recettes des comptes spéciaux", montant: 174_070 },
+  ],
+  depenses: [
+    { cle: "interets", libelle: "Charges financières de la dette", montant: 487_551 },
+    { cle: "personnel", libelle: "Dépenses de personnel", montant: 958_580 },
+    { cle: "biens", libelle: "Dépenses de biens et services", montant: 562_442 },
+    { cle: "transferts", libelle: "Dépenses de transfert", montant: 428_169 },
+    { cle: "investissement", libelle: "Dépenses d'investissement", montant: 1_169_122 },
+    { cle: "autres", libelle: "Autres dépenses", montant: 63_921 },
+    { cle: "comptes_speciaux", libelle: "Dépenses des comptes spéciaux", montant: 174_070 },
+  ],
+  budgetTotal: 5_495_234,
+  soldeDeclare: -915_619,
+  besoinDeFinancement: 915_619,
+  financement: [
+    { cle: "titres", libelle: "Émissions de titres publics", montant: 1_282_754, titres: true },
+    { cle: "bancaire", libelle: "Financement bancaire", montant: 266_265 },
+    { cle: "tirages", libelle: "Tirages", montant: 122_653 },
+    { cle: "prets_programmes", libelle: "Tirages sur conventions de prêts programmes", montant: 36_102 },
+    { cle: "autres_ressources", libelle: "Autres ressources de trésorerie", montant: 544_000 },
+    { cle: "charges", libelle: "Moins les charges de trésorerie (amortissements de la dette extérieure, des prêts bancaires et autres, autres opérations)", montant: -1_336_154 },
+  ],
+  programmeBeac: SEED_BUDGETS.find((b) => b.pays === "Gabon")!.programmeBeac,
+  source: { texte: "Loi n° 002/2026 du 17 juillet 2026, Journal officiel n° 123 bis, articles 62, 77, 79, 83 et 84 (tableaux d'équilibre)", releveLe: LE, url: "https://budget.gouv.ga/wp-content/uploads/budget-source/85c30d2292bd57008059.pdf" },
+  references: [
+    ref("Loi n° 002/2026 portant loi de finances rectificative de l'année 2026 (Journal officiel n° 123 bis du 17 juillet 2026)", "Ministère de l'Économie, des Finances, de la Dette et des Participations du Gabon", "https://budget.gouv.ga/wp-content/uploads/budget-source/85c30d2292bd57008059.pdf", "2026-07-17"),
+    ref("Loi de finances rectificative 2026 (page du ministère)", "Ministère de l'Économie, des Finances, de la Dette et des Participations du Gabon", "https://www.budget.gouv.ga/9-actualites/2617-loi-de-finances-rectificative-2026/", "2026-07-21"),
+    ref("Loi n° 041/2025 du 29 décembre 2025 portant loi de finances pour 2026 (loi initiale, Journal officiel n° 96 quater)", "Gouvernement du Gabon", "https://gouvernement.ga/wp-content/uploads/2026/02/Journal-Officiel_n%C2%B096-Quater-du-30-decembre-2025_LOI-FIN-2026-1.pdf", "2025-12-30"),
+  ],
+  aRelever: [
+    "Trois montants se suivent : 7 233,3 milliards au projet de loi de finances (octobre 2025), 6 358,2 à la loi initiale votée, 5 495,2 à la loi rectificative (−863,0). Le relevé du 25 octobre donnait le premier comme initial : il est corrigé.",
+    "Le budget total (5 495,2) comprend les ristournes (315,2) ; les dépenses budgétaires sont de 3 843,9 (budget général 3 669,8 et comptes spéciaux 174,1), et l'ensemble des dépenses de l'État de 5 180,0 avec les opérations de trésorerie.",
+    "Le besoin de financement est celui du budget général (article 79) : 915,6. Il est couvert par 2 251,8 de ressources de trésorerie, dont 1 282,8 de titres publics, moins 1 336,2 de charges de trésorerie.",
+    "L'article 82 autorise jusqu'à 1,5 milliard de dollars (857,9 milliards de FCFA) de financements extérieurs, en plus des titres publics du marché régional.",
+    "Le programme annuel BEAC 2026 du Gabon annonce 1 046,0 de titres (BTA 566, OTA 480) ; la loi prévoit 1 282,8 d'émissions de titres publics. Les deux ne se recoupent pas.",
+  ],
+};
+
 const CAMEROUN: BudgetEtat = {
   ...SEED_BUDGETS.find((b) => b.pays === "Cameroun")!,
   source: { ...SEED_BUDGETS.find((b) => b.pays === "Cameroun")!.source, url: "https://www.dgb.cm/wp-content/uploads/2025/12/Expose-des-Motifs_LF-2026_fr.pdf" },
@@ -167,5 +217,5 @@ const CAMEROUN: BudgetEtat = {
   ],
 };
 
-/** Les cinq États dont une pièce officielle a été ouverte. Le Gabon manque, et c'est dit. */
-export const RELEVE_OFFICIEL: BudgetEtat[] = [CAMEROUN, CONGO, TCHAD, RCA, GUINEE];
+/** Les six États, chacun lu dans une pièce officielle ouverte. */
+export const RELEVE_OFFICIEL: BudgetEtat[] = [CAMEROUN, GABON, CONGO, TCHAD, RCA, GUINEE];

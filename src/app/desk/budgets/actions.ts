@@ -25,7 +25,7 @@ export async function chargerReleve(_p: BudgetResult | null, form: FormData): Pr
   const me = await requireDesk("/desk/budgets");
   const pays = String(form.get("pays") ?? "tous");
   const liste = pays === "tous" ? RELEVE_OFFICIEL : RELEVE_OFFICIEL.filter((b) => b.pays === pays);
-  if (!liste.length) return { ok: false, error: "Aucun relevé officiel pour cet État : le Gabon attend sa pièce." };
+  if (!liste.length) return { ok: false, error: "Aucun relevé officiel pour cet État." };
   for (const b of liste) await ecrire(b, me.name, `relevé des pièces officielles du 7 novembre 2026 : ${b.pays} ${b.exercice}`);
   revalidatePath("/desk/budgets", "layout");
   revalidatePath("/pays", "layout");

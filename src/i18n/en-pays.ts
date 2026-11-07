@@ -137,7 +137,7 @@ export const EN_PAYS: Record<string, string> = {
   "Financement": "Financing",
   "Budget non publié dans la base": "Budget not published in the database",
   "Relevé des pièces officielles": "Statement of official documents",
-  "Tchad, Congo, Guinée équatoriale, Centrafrique et Cameroun : les budgets 2026 tels que leurs pièces officielles les écrivent. Le Gabon attend sa pièce.": "Chad, Congo, Equatorial Guinea, Central African Republic and Cameroon: the 2026 budgets as their official documents write them. Gabon is waiting for its document.",
+  "Les six budgets 2026 tels que leurs pièces officielles (lois de finances, journal officiel, note d'information du Trésor) les écrivent.": "The six 2026 budgets as their official documents (finance laws, official gazette, Treasury information note) write them.",
   "aucun budget enregistré : saisir ou charger": "no budget saved: enter or load",
   "Aucun budget enregistré pour cet État.": "No budget saved for this state.",
   "Aucune pièce officielle n'a pu être ouverte pour cet État : saisissez le budget quand le Desk a la pièce.": "No official document could be opened for this state: enter the budget once the Desk has the document.",
@@ -149,7 +149,6 @@ export const EN_PAYS: Record<string, string> = {
   "Un PDF, une page web ou une image : pas d'autre format.": "A PDF, a web page or an image: no other format.",
   "Donnez une adresse https ou déposez le fichier.": "Give an https address or upload the file.",
   "Aucun relevé officiel pour cet État.": "No official statement for this state.",
-  "Aucun relevé officiel pour cet État : le Gabon attend sa pièce.": "No official statement for this state: Gabon is waiting for its document.",
   "Renseignez le pays, l'exercice, le millésime, le texte de la loi et la pièce source (adresse en https).": "Fill in the country, the fiscal year, the vintage, the text of the law and the source document (https address).",
   // Import OJA, liste des séances (7 novembre 2026)
   "Ouvrir le communiqué (PDF) dans sa page": "Open the notice (PDF) in its own page",

@@ -97,7 +97,7 @@ export default async function BudgetsPage() {
         <section className={styles.carnet}>
           <h2>{t("Relevé des pièces officielles")}</h2>
           <p className={styles.carnetDit}>
-            {t("Tchad, Congo, Guinée équatoriale, Centrafrique et Cameroun : les budgets 2026 tels que leurs pièces officielles les écrivent. Le Gabon attend sa pièce.")}
+            {t("Les six budgets 2026 tels que leurs pièces officielles (lois de finances, journal officiel, note d'information du Trésor) les écrivent.")}
           </p>
           <ChargerReleve pays="tous" etats={RELEVE_OFFICIEL.map((x) => x.pays)} />
           <ul className={styles.lignes}>

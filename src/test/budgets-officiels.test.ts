@@ -11,8 +11,8 @@ import { cleDePiece, entiteDeBudget, lireLignesBudget, typeAdmis } from "@/lib/m
 const de = (p: string) => RELEVE_OFFICIEL.find((b) => b.pays === p)!;
 
 describe("le relevé des budgets officiels", () => {
-  it("couvre cinq États, pas le Gabon (aucune pièce officielle ouverte)", () => {
-    expect(RELEVE_OFFICIEL.map((b) => b.pays).sort()).toEqual(["Cameroun", "Congo", "Guinée éq.", "RCA", "Tchad"]);
+  it("couvre les six États, chacun dans une pièce officielle ouverte", () => {
+    expect(RELEVE_OFFICIEL.map((b) => b.pays).sort()).toEqual(["Cameroun", "Congo", "Gabon", "Guinée éq.", "RCA", "Tchad"]);
   });
 
   it("chaque budget nomme une pièce source et ses pièces, toutes en https", () => {
@@ -44,6 +44,15 @@ describe("le relevé des budgets officiels", () => {
     expect(sommeDes(b.recettes)).toBe(b.budgetTotal);
     expect(sommeDes(b.financement)).toBe(b.besoinDeFinancement);
     expect(b.budgetTotal! - sommeDes(b.depenses)).toBe(b.soldeDeclare);
+  });
+
+  it("Gabon : les tableaux de la loi rectificative tombent juste, à l'arrondi du million près", () => {
+    const b = de("Gabon");
+    expect(Math.abs(sommeDes(b.recettes) - 2_928_235)).toBeLessThanOrEqual(2);
+    expect(Math.abs(sommeDes(b.depenses) - 3_843_854)).toBeLessThanOrEqual(2);
+    expect(Math.abs(sommeDes(b.recettes) - sommeDes(b.depenses) - b.soldeDeclare!)).toBeLessThanOrEqual(2);
+    expect(Math.abs(sommeDes(b.financement) - b.besoinDeFinancement!)).toBeLessThanOrEqual(2);
+    expect(b.budgetTotal).toBe(5_495_234);
   });
 
   it("Congo : recettes moins dépenses donnent l'excédent, et le plan couvre les charges de trésorerie", () => {
