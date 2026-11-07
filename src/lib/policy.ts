@@ -250,3 +250,27 @@ export const loadRelance = cache(async (): Promise<PolitiqueDeRelance> => {
     return RELANCE_DEFAUT;
   }
 });
+
+/**
+ * LE TAUX BANCAIRE DE RÉFÉRENCE (7 novembre 2026).
+ *
+ * Le comparatif sur une période valorise le temps sans placement d'un bon roulé à un taux bancaire. Le Desk renseigne et date ce taux ; le client peut y mettre le sien
+ * pour son compte, et la page dit toujours celui qui a servi. Il n'y a pas de taux par défaut : sans référence, le temps sans placement est valorisé à zéro, et la page le dit.
+ */
+export const TAUX_BANCAIRE_KEY = "taux-bancaire";
+
+export interface TauxBancaire {
+  pct: number;
+  /** Le jour où le Desk l'a arrêté. */
+  on: string;
+}
+
+export const loadTauxBancaire = cache(async (): Promise<TauxBancaire | undefined> => {
+  try {
+    const row = (await repo().listReference(REF.policy)).find((r) => r.key === TAUX_BANCAIRE_KEY);
+    const d = row?.data as Partial<TauxBancaire> | null | undefined;
+    return d && typeof d.pct === "number" && typeof d.on === "string" ? { pct: d.pct, on: d.on } : undefined;
+  } catch {
+    return undefined;
+  }
+});

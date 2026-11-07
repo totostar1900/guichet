@@ -20,6 +20,10 @@ import type { Offer } from "@/lib/domain/types";
 import { variationsDesActions } from "@/lib/market/variations";
 import styles from "./page.module.css";
 import { EnTete } from "@/components/EnTete";
+import { compatibilite, plusProches, type NatureChiffre, type Point, type ProfilLigne } from "@/lib/domain/comparaison";
+import { loadTauxBancaire } from "@/lib/policy";
+import { PeriodePassee } from "./PeriodePassee";
+import { preparerPeriode } from "./periode";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
@@ -38,7 +42,14 @@ export async function generateMetadata() {
  */
 const sg = (v: number, d = 2) => `${v > 0 ? "+" : ""}${fmtPct(v, d)}`;
 
-export async function ComparerBody({ searchParams, mode = "client" }: { searchParams: Promise<{ a?: string; b?: string }>; mode?: "client" | "desk" }) {
+export type ParamsComparer = { a?: string; b?: string; mode?: string; du?: string; au?: string; tb?: string; t?: string };
+
+/** Ce que le chiffre de rendement d'une ligne EST, sans rien calculer : une promesse, un passé, ou un dividende au cours du jour. */
+const natureAttendue = (o: Offer): NatureChiffre => (o.kind === "BTA" || o.kind === "OTA" || o.kind === "APE" || (o.kind === "MARCHE" && o.instrument === "obligation") ? "promesse" : o.kind === "FONDS" ? "passe" : o.kind === "RACHAT" ? "aucune" : "cours");
+const profilDe = (o: Offer): ProfilLigne => ({ id: o.id, nature: natureAttendue(o), horizonJours: natureAttendue(o) === "promesse" && o.settleOn && o.maturityOn ? daysBetween(o.settleOn, o.maturityOn) : undefined });
+const NATURE_MOT: Record<NatureChiffre, string> = { promesse: "une promesse, si l'émetteur paie", passe: "un passé, pas une prévision", cours: "un dividende au cours du jour, jamais garanti", aucune: "pas de rendement à comparer" };
+
+export async function ComparerBody({ searchParams, mode = "client" }: { searchParams: Promise<ParamsComparer>; mode?: "client" | "desk" }) {
   // Au desk, une ligne mène à la ligne du desk et l'indice n'est pas servi
   // sur ce domaine : le renvoi vers lui reste une phrase, pas un lien.
   const desk = mode === "desk";
@@ -50,6 +61,25 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
   const a = sp.a ? all.find((o) => o.id === sp.a) : undefined;
   const b = sp.b ? all.find((o) => o.id === sp.b) : undefined;
   const cols = [a, b].filter((o): o is Offer => Boolean(o));
+  const passe = sp.mode === "passe";
+  const verdict = cols.length === 2 ? compatibilite(profilDe(cols[0]), profilDe(cols[1])) : undefined;
+  const proches = cols.length === 2 && verdict && verdict.niveau !== "ok" ? plusProches(profilDe(cols[0]), all.map(profilDe).filter((p) => p.id !== cols[1].id), 3).map((p) => all.find((o) => o.id === p.id)!).filter(Boolean) : [];
+  /* LE TAUX BANCAIRE : celui du client s'il en a saisi un, sinon la référence du Desk, sinon zéro, et la page le dit. */
+  const tbSaisi = sp.tb ? Number(sp.tb.replace(",", ".")) : NaN;
+  const tbRef = passe ? await loadTauxBancaire() : undefined;
+  const tauxBancairePct = Number.isFinite(tbSaisi) && tbSaisi >= 0 && tbSaisi <= 25 ? tbSaisi : (tbRef?.pct ?? 0);
+  const tbSource = Number.isFinite(tbSaisi) && tbSaisi >= 0 && tbSaisi <= 25 ? ({ kind: "client" } as const) : tbRef ? ({ kind: "desk", on: tbRef.on } as const) : ({ kind: "aucun" } as const);
+  const periode =
+    passe && cols.length === 2
+      ? await (async () => {
+          const [seances, navs, cours] = await Promise.all([
+            r.listAuctionResults({ limit: 20_000 }),
+            Promise.all(cols.filter((o) => o.kind === "FONDS" && o.fund).map(async (o) => [o.fund!.key, (await r.listFundNavs(o.fund!.key, 2000)).map((n): Point => ({ date: n.navDate, valeur: n.nav })).sort((p, q) => p.date.localeCompare(q.date))] as const)),
+            Promise.all(cols.filter((o) => o.kind === "MARCHE" && o.isin).map(async (o) => [o.isin!, (await r.listQuotes(o.isin!, 2000).catch(() => [])).map((x): Point => ({ date: x.sessionDate, valeur: x.close })).sort((p, q) => p.date.localeCompare(q.date))] as const)),
+          ]);
+          return preparerPeriode({ lignes: cols, navs: new Map(navs), cours: new Map(cours), seances, du: sp.du, au: sp.au, tauxBancairePct, tresor: sp.t, capital: 10_000_000 });
+        })()
+      : undefined;
   /* LA VARIATION SUR TROIS MOIS DES ACTIONS, la même qu'à l'Accueil et sur Titres (7 novembre 2026) : une requête pour les deux colonnes. */
   /* TOUT CE QUI SE LIT À PARTIR DES DEUX COLONNES PART ENSEMBLE (variations, historiques des fonds, indice, poids, rotations) : un étage, non cinq. */
   const shares = cols.length === 2 && cols.every((o) => o.kind === "MARCHE" && o.instrument === "action");
@@ -98,7 +128,7 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
     const dy = displayYield(o);
     return { id: o.id, title: o.title, family: familyLabel(fam), segment: familySegment(fam), issuer: o.issuer, country: o.countryName, yieldText: dy.pct == null ? "—" : `${dy.approx ? "≈ " : ""}${fmtPct(dy.pct, 2)}`, status: statusLabel(o, displayStatus(o, now)) };
   });
-  const better = (i: number) => data.length === 2 && data[0].dy.pct != null && data[1].dy.pct != null && (data[0].dy.pct > data[1].dy.pct ? 0 : 1) === i;
+  const better = (i: number) => data.length === 2 && verdict?.niveau === "ok" && data[0].dy.pct != null && data[1].dy.pct != null && (data[0].dy.pct > data[1].dy.pct ? 0 : 1) === i;
 
   return (
     /* UNE PILE : l'espace entre l'en-tête, le choix, la comparaison et les graphiques vient du jeton des sections (ETALON.md § 8). */
@@ -117,7 +147,18 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
         />
       </div>
 
+      {/* LES DEUX QUESTIONS, UN GESTE POUR CHANGER DE L'UNE À L'AUTRE (planche du 7 novembre 2026, 1A) : les deux lignes suivent. */}
+      <nav className={styles.modes} aria-label={t("Mode de comparaison")}>
+        <a href={`?${new URLSearchParams({ ...(sp.a ? { a: sp.a } : {}), ...(sp.b ? { b: sp.b } : {}) }).toString()}`} aria-current={passe ? undefined : "page"}>
+          {t("À partir d'aujourd'hui")}
+        </a>
+        <a href={`?${new URLSearchParams({ ...(sp.a ? { a: sp.a } : {}), ...(sp.b ? { b: sp.b } : {}), mode: "passe" }).toString()}`} aria-current={passe ? "page" : undefined}>
+          {t("Sur une période passée")}
+        </a>
+      </nav>
+
       <form className={styles.pick} method="get">
+        {passe && <input type="hidden" name="mode" value="passe" />}
         {(["a", "b"] as const).map((k) => (
           <LinePicker key={k} name={k} lines={lines} value={sp[k] ?? ""} label={`${t("Ligne")} ${k.toUpperCase()}`} segments={SEGMENT_LABEL} />
         ))}
@@ -126,7 +167,28 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
         </button>
       </form>
 
-      {cols.length === 2 && (
+      {cols.length === 2 && !passe && verdict && verdict.niveau !== "ok" && (
+        <div className={styles.verdict} role="note">
+          <b>
+            {verdict.niveau === "horizons"
+              ? t("Horizons différents : {a} contre {b}", { a: t(tenorText(cols[0].settleOn, cols[0].maturityOn ?? cols[0].settleOn)), b: t(tenorText(cols[1].settleOn, cols[1].maturityOn ?? cols[1].settleOn)) })
+              : t("Natures différentes : {a} contre {b}", { a: t(NATURE_MOT[natureAttendue(cols[0])]), b: t(NATURE_MOT[natureAttendue(cols[1])]) })}
+          </b>
+          <span>{t("Ces chiffres ne se comparent pas tels quels. Pour comparer sur des dates communes, passez à « Sur une période passée ».")}</span>
+          {proches.length > 0 && (
+            <span className={styles.proches}>
+              {t("Plus proche de {l} :", { l: t(cols[0].title) })}{" "}
+              {proches.map((o) => (
+                <a key={o.id} href={`?${new URLSearchParams({ a: cols[0].id, b: o.id }).toString()}`}>{t(o.title)}</a>
+              ))}
+            </span>
+          )}
+        </div>
+      )}
+
+      {cols.length === 2 && passe && periode && <PeriodePassee periode={periode} a={cols[0].id} b={cols[1].id} tb={Number.isFinite(tbSaisi) ? sp.tb : undefined} tbSource={tbSource} t={t} />}
+
+      {cols.length === 2 && !passe && (
         <div className={styles.grid}>
           <div className={styles.corner} />
           {cols.map((o, i) => (
@@ -214,7 +276,7 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
           </div>
         </div>
       )}
-      {cols.length === 2 && <CompareCharts lines={chartLines} benchmark={benchmark} />}
+      {cols.length === 2 && !passe && <CompareCharts lines={chartLines} benchmark={benchmark} />}
       {cols.length === 1 && <p className="muted">{t("Choisissez une seconde ligne pour comparer.")}</p>}
       <MarketStrip current="comparer" mode={mode} />
     </div>

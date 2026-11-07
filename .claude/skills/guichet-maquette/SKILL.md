@@ -154,3 +154,10 @@ La première maquette de la fiche d'une séance avait remplacé le graphique des
 - **Deux sources, une règle par champ, et une trace** : la valeur retenue se dérive des deux jeux de valeurs gardés ; l'écart tranché garde la valeur écartée, le motif, l'auteur, le jour. Une source se peut exclure, même chargée.
 - **Le client lit une liste blanche** (`vueClient`), jamais une liste de retraits : un champ ajouté demain ne sort pas tant qu'il n'est pas écrit dans la projection et dans son test. Une couverture recalculée n'est pas une couverture imprimée.
 - **Un test de navigateur sur fichiers à nom accentué** : Playwright perd le nom ; recopier sous un nom ASCII avant `setInputFiles`.
+
+## Leçon du 7 novembre 2026 : comparer deux lignes, c'est d'abord les mettre sur la même période
+
+- **Un chiffre de rendement a une nature** (promesse à l'échéance, passé, dividende au cours) **et un horizon.** Mettre en face deux natures sous un seul mot « rendement », ou couronner le plus grand, ment par omission : le verdict de compatibilité prévient sans bloquer, et l'étiquette « plus élevé » ne reste que sur une même nature.
+- **On ne mesure sur une période que ce qu'on sait** : variation de la valeur liquidative pour un fonds, du cours (dividendes non compris) pour une action, bon tenu jusqu'à l'échéance et réinvesti pour un BTA. Un OTA, sans sortie anticipée, garde son rendement actuariel : « non mesuré sur la période » vaut mieux qu'un chiffre inventé.
+- **La plage se borne aux données communes et le dit** ; sous trente jours, pas de taux annuel ; le rétrospectif porte sa mise en garde en tête (`ETALON.md` § 10) et montre la dispersion selon le jour d'entrée sans nommer « le bon jour ».
+- **Un réglage de maison (taux bancaire) a une référence datée au Desk, que le client peut surcharger**, et la page dit toujours laquelle a servi.

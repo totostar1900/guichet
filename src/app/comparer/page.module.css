@@ -359,3 +359,227 @@
     overflow-wrap: anywhere;
   }
 }
+
+/* ─── Comparer sur une même période (7 novembre 2026) ─────────────────────── */
+.modes {
+  display: flex;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.modes a {
+  flex: 1;
+  text-align: center;
+  padding: var(--s-4) var(--s-5);
+  text-decoration: none;
+  color: var(--ink-2);
+  font-size: var(--t-3);
+}
+.modes a[aria-current="page"] {
+  background: var(--choisi-fond);
+  color: var(--choisi-ink);
+  font-weight: 800;
+}
+.verdict {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-5) var(--s-6);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  border-radius: 8px;
+  font-size: var(--t-3);
+  color: var(--ink);
+}
+.verdict b {
+  color: var(--gold-ink);
+}
+.proches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3) var(--s-5);
+}
+.garde {
+  margin: 0;
+  padding: var(--s-4) var(--s-6);
+  border: 1px solid var(--gold-line);
+  border-radius: 8px;
+  background: var(--gold-soft);
+  font-size: var(--t-3);
+}
+.fenetre {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5) var(--s-6);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.puces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+.puce {
+  padding: var(--s-2) var(--s-5);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  color: var(--ink-2);
+  text-decoration: none;
+  font-size: var(--t-3);
+}
+.puceOn {
+  background: var(--choisi-fond);
+  border-color: var(--choisi-line);
+  color: var(--choisi-ink);
+  font-weight: 700;
+}
+.dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--s-4);
+  align-items: end;
+}
+.dates label,
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  min-width: 0;
+}
+.dates input,
+.dates select,
+.champ input {
+  min-height: var(--ctrl-h, 34px);
+  padding: 0 var(--s-4);
+  font-size: var(--t-3);
+}
+.taux {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--ink);
+}
+.taux input {
+  width: 100%;
+  min-width: 0;
+}
+.note {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  line-height: 1.5;
+  max-width: 74ch;
+}
+.bande {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--surface-2);
+}
+.bande i {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  border-radius: 3px;
+  background: var(--gold-line);
+}
+.avert {
+  margin: 0;
+  padding: var(--s-3) var(--s-5);
+  border-radius: 6px;
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  font-size: var(--t-3);
+}
+.resultats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.resultat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-5) var(--s-6);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-width: 0;
+}
+.resultat h3 {
+  margin: 0;
+  font-size: var(--t-4);
+}
+.nature {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.chiffre {
+  margin: 0;
+  font-size: var(--t-4);
+  font-variant-numeric: tabular-nums;
+}
+.chiffre b {
+  font-size: var(--t-7);
+}
+.hors {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.barre {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.barre i {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+}
+.entree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  font-size: var(--t-3);
+  min-width: 0;
+}
+.entree span {
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.etendue {
+  position: relative;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+.etendue i {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  border-radius: 4px;
+  background: var(--gold-line);
+}
+.etendue em {
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  width: 2px;
+  background: var(--gold);
+}
+/* Le libellé du taux et son « i » restent sur une seule ligne. */
+.champ > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  white-space: nowrap;
+}

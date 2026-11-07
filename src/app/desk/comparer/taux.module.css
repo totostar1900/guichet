@@ -1,0 +1,38 @@
+.form {
+  display: grid;
+  grid-template-columns: auto 6rem auto auto;
+  align-items: center;
+  justify-content: start;
+  gap: var(--s-3) var(--s-4);
+  padding: var(--s-5) var(--s-6);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: var(--t-3);
+}
+.form label {
+  font-weight: 700;
+}
+.aide,
+.fait,
+.erreur {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.fait {
+  color: var(--good);
+}
+.erreur {
+  color: var(--crit);
+}
+@media (max-width: 600px) {
+  .form {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .form label,
+  .form input {
+    grid-column: 1 / -1;
+  }
+}

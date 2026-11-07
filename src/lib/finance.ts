@@ -231,9 +231,12 @@ export interface BtaResult {
 }
 
 /** Treasury bill with precounted interest: price = N × (1 − r × d/360). */
+/** Le prix d'un bon précompté, en part du nominal : 1 − taux × jours / 360. Une seule écriture, pour la fiche, le calcul de référence et le comparatif. */
+export const prixDuBonEnPartDuNominal = (precountRatePct: number, days: number): number => 1 - (precountRatePct / 100) * (days / 360);
+
 export function btaCalc(b: BtaInput, amount: number, precountRatePct: number): BtaResult {
   const days = daysBetween(b.settleOn, b.maturityOn);
-  const p = 1 - (precountRatePct / 100) * (days / 360);
+  const p = prixDuBonEnPartDuNominal(precountRatePct, days);
   const pricePerBond = b.nominal * p;
   const n = Math.max(0, Math.floor(amount / pricePerBond));
   return {
@@ -250,7 +253,7 @@ export function btaCalc(b: BtaInput, amount: number, precountRatePct: number): B
 /** Number of BTA bonds whose price sums to at most `amount`… used for reference blocks. */
 export function btaAmountForBonds(b: BtaInput, n: number, precountRatePct: number): number {
   const days = daysBetween(b.settleOn, b.maturityOn);
-  const p = 1 - (precountRatePct / 100) * (days / 360);
+  const p = prixDuBonEnPartDuNominal(precountRatePct, days);
   return n * b.nominal * p + 1;
 }
 
@@ -390,3 +393,13 @@ export const rotationDuFlottantPct = (valeurEchangee: number, capitalisationFlot
  * Brut, avant droits d'entrée et de sortie et fiscalité.
  */
 export const rendementAnnualisePct = (valeurDebut: number, valeurFin: number, jours: number): number | null => (jours >= 30 && valeurDebut > 0 && valeurFin > 0 ? (Math.pow(valeurFin / valeurDebut, 365 / jours) - 1) * 100 : null);
+
+/**
+ * LE RENDEMENT CUMULÉ D'UNE PÉRIODE, EN % (comparatif sur une même période, 7 novembre 2026).
+ *
+ * (valeur de fin ÷ valeur de début) − 1. Sans annualisation : celle-ci passe par `rendementAnnualisePct`, qui refuse les périodes de moins de trente jours.
+ */
+export const rendementCumulePct = (valeurDebut: number, valeurFin: number): number | null => (valeurDebut > 0 && valeurFin > 0 ? (valeurFin / valeurDebut - 1) * 100 : null);
+
+/** L'intérêt simple d'un argent laissé sur un compte bancaire, au taux annuel donné, sur un nombre de jours (base 365). */
+export const facteurBancaire = (tauxPct: number, jours: number): number => 1 + (tauxPct / 100) * (jours / 365);
