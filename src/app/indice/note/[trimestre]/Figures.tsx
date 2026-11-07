@@ -1,4 +1,5 @@
 import { fmt, fmtPct } from "@/lib/format";
+import type { ComparaisonBase100 } from "@/lib/market/index-series";
 import type { QuarterLine, QuarterNote } from "@/lib/market/index-quarter";
 
 /**
@@ -223,6 +224,79 @@ export function ContribBars({ lines, unit }: { lines: QuarterLine[]; unit: strin
           </g>
         );
       })}
+    </svg>
+  );
+}
+
+/* ─── Les graphes ajoutés le 7 novembre 2026 (planche « Notes de marché », 1B et 3B) ─────────────────────────────────────────────────────────────────────────────── */
+
+const SENS = (v: number) => (v > 0 ? "var(--good)" : v < 0 ? "var(--crit)" : "var(--ink-3)");
+
+/** La mini-courbe d'une société sur la période : pleine, teintée par le sens de sa variation, sans axe. */
+export function MiniCourbe({ serie, sens, width = 78, height = 28 }: { serie: number[]; sens: number; width?: number; height?: number }) {
+  if (serie.length < 2) return <svg width={width} height={height} aria-hidden="true" />;
+  const lo = Math.min(...serie);
+  const hi = Math.max(...serie);
+  const y = (v: number) => height - 3 - ((v - lo) / Math.max(1e-9, hi - lo)) * (height - 6);
+  const pts = serie.map((v, i) => `${((i / (serie.length - 1)) * width).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const c = SENS(sens);
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true" style={{ display: "block" }}>
+      {hi - lo < 1e-9 ? <line x1={0} x2={width} y1={height / 2} y2={height / 2} stroke={c} strokeWidth={1.6} strokeDasharray="3 3" /> : <polyline points={pts} fill="none" stroke={c} strokeWidth={1.7} strokeLinejoin="round" strokeLinecap="round" />}
+    </svg>
+  );
+}
+
+/** L'indice, la société qui le porte et le reste de la cote, tous à 100 au début de la période : le fait central de la note, dessiné. */
+export function Comparaison({ compare, labels, dateOf }: { compare: ComparaisonBase100; labels: { indice: string; reste: string; base: string }; dateOf: (d: string) => string }) {
+  const { dates, indice, principale, reste } = compare;
+  if (dates.length < 2) return null;
+  const W = 680;
+  const H = 230;
+  const L = 48;
+  const R = 16;
+  const T = 16;
+  const B = 44;
+  const tous = [...indice, ...principale.serie, ...reste, 100];
+  const lo = Math.min(...tous) - 0.5;
+  const hi = Math.max(...tous) + 0.5;
+  const x = (i: number) => L + (i / (dates.length - 1)) * (W - L - R);
+  const y = (v: number) => T + (1 - (v - lo) / Math.max(1e-9, hi - lo)) * (H - T - B);
+  const ligne = (s: number[]) => s.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const every = Math.max(1, Math.ceil(dates.length / 4));
+  const SERIES: { cle: string; s: number[]; couleur: string; epais: number; nom: string }[] = [
+    { cle: "idx", s: indice, couleur: "var(--chart-out)", epais: 2.4, nom: labels.indice },
+    { cle: "p", s: principale.serie, couleur: "var(--chart-in)", epais: 1.6, nom: principale.name },
+    { cle: "r", s: reste, couleur: "var(--good)", epais: 1.6, nom: labels.reste },
+  ];
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={labels.base} style={{ width: "100%", height: "auto", display: "block" }}>
+      {ticks(lo, hi, 4).map((v) => (
+        <g key={v}>
+          <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke={v === 100 ? "var(--ink-3)" : "var(--line)"} strokeWidth={1} strokeDasharray={v === 100 ? "4 4" : undefined} />
+          <text x={L - 8} y={y(v) + 4} textAnchor="end" fill="var(--ink-3)" fontSize={11} style={MONO}>
+            {dec(v, v % 1 ? 1 : 0)}
+          </text>
+        </g>
+      ))}
+      {SERIES.map((l) => (
+        <polyline key={l.cle} points={ligne(l.s)} fill="none" stroke={l.couleur} strokeWidth={l.epais} strokeLinejoin="round" strokeLinecap="round" />
+      ))}
+      {dates.map((d, i) =>
+        i % every === 0 || i === dates.length - 1 ? (
+          <text key={d} x={x(i)} y={H - 26} textAnchor={i === 0 ? "start" : i === dates.length - 1 ? "end" : "middle"} fill="var(--ink-3)" fontSize={10.5} style={MONO}>
+            {dateOf(d)}
+          </text>
+        ) : null,
+      )}
+      {SERIES.map((l, k) => (
+        <g key={`l${l.cle}`} transform={`translate(${L + k * 190}, ${H - 8})`}>
+          <line x1={0} x2={16} y1={-4} y2={-4} stroke={l.couleur} strokeWidth={l.epais} />
+          <text x={22} y={0} fill="var(--ink-2)" fontSize={11}>
+            {l.nom} {signed(l.s[l.s.length - 1] - 100, 1)}
+          </text>
+        </g>
+      ))}
     </svg>
   );
 }

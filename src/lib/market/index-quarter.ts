@@ -3,6 +3,7 @@ import { fmt, fmtPct, money } from "@/lib/format";
 import { floatRotation } from "@/lib/market/index";
 import { indexPageData, type IndexPageData } from "@/lib/market/index-data";
 import { loadCompanies } from "@/lib/reference";
+import { seriesDeLaPeriode, type ComparaisonBase100 } from "@/lib/market/index-series";
 
 /**
  * The quarterly note on the index, written for a client: what the quarter did,
@@ -54,6 +55,8 @@ export interface QuarterLine {
   amount: number;
   trades: number;
   rotation?: number;
+  /** Le cours sur le trimestre, à la base 100 de son début, une valeur par séance de la courbe. */
+  serie: number[];
 }
 
 export interface QuarterNote {
@@ -77,6 +80,8 @@ export interface QuarterNote {
   capFloat: number;
   rotation?: number;
   lines: QuarterLine[];
+  /** L'indice, la société la plus lourde et le reste de la cote, à la base 100 du début du trimestre. */
+  compare?: ComparaisonBase100;
   /** Level at the end of each month of the quarter, for the figure. */
   monthly: { label: string; value: number; ret: number }[];
   /** Sessions of the quarter that moved, most recent first, with what traded. */
@@ -169,6 +174,7 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
   }
 
   const companies = await loadCompanies().catch(() => []);
+  const series = seriesDeLaPeriode(d, quarter.from, quarter.to);
   const lines: QuarterLine[] = d.histories
     .map(({ w, quotes }) => {
       const start = quotes.filter((q) => q.sessionDate < quarter.from).pop() ?? quotes.find((q) => q.sessionDate >= quarter.from);
@@ -199,6 +205,7 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
         amount: t.amount,
         trades: t.trades,
         rotation: rot?.pct,
+        serie: series.parSociete[w.mnemo] ?? [],
       };
     })
     .sort((a, b) => b.weight - a.weight);
@@ -355,6 +362,7 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
     lines,
     monthly,
     movedSessions,
+    compare: series.comparaison,
     points: inQ.map((p) => ({ date: p.date, value: p.value, variationPct: p.variationPct ?? 0 })),
     peak,
     stats,

@@ -2,6 +2,7 @@ import "server-only";
 import { fmt, fmtPct, money } from "@/lib/format";
 import { floatRotation, type IndexWeight } from "@/lib/market/index";
 import { indexPageData, type IndexPageData } from "@/lib/market/index-data";
+import { seriesDeLaPeriode, type ComparaisonBase100 } from "@/lib/market/index-series";
 
 /**
  * The monthly index note: everything the note says, computed once from the
@@ -24,6 +25,8 @@ export interface NoteLine {
   points: number;
   amount: number;
   trades: number;
+  /** Le cours sur le mois, à la base 100 de son début. */
+  serie: number[];
 }
 
 export interface IndexNote {
@@ -47,6 +50,10 @@ export interface IndexNote {
   low?: { date: string; value: number };
   /** Per share over the month, heaviest contribution first. */
   lines: NoteLine[];
+  /** L'indice, la société la plus lourde et le reste de la cote, à la base 100 du début du mois. */
+  compare?: ComparaisonBase100;
+  /** Les séances du mois, pour la courbe du niveau. */
+  points: { date: string; value: number }[];
   weights: IndexWeight[];
   capTotal: number;
   capFloat: number;
@@ -110,13 +117,14 @@ export async function indexNote(monthKey?: string, data?: IndexPageData): Promis
   }
   // each share's own move over the month, and its contribution in index points
   const nameOf = d.nameOf;
+  const series = seriesDeLaPeriode(d, month.from, month.to);
   const lines: NoteLine[] = d.histories
     .map(({ w, quotes }) => {
       const before0 = quotes.filter((q) => q.sessionDate < month.from).pop() ?? quotes.find((q) => q.sessionDate >= month.from);
       const end = quotes.filter((q) => q.sessionDate <= month.to).pop();
       const move = before0 && end && before0.close > 0 ? (end.close / before0.close - 1) * 100 : 0;
       const t = perShare.get(w.mnemo) ?? { amount: 0, trades: 0, titles: 0 };
-      return { mnemo: w.mnemo, name: nameOf(w.mnemo), weight: w.weightTotal, move, points: (w.weightTotal / 100) * move, amount: t.amount, trades: t.trades };
+      return { mnemo: w.mnemo, name: nameOf(w.mnemo), weight: w.weightTotal, move, points: (w.weightTotal / 100) * move, amount: t.amount, trades: t.trades, serie: series.parSociete[w.mnemo] ?? [] };
     })
     .sort((a, b) => Math.abs(b.points) - Math.abs(a.points));
   // the sessions our prices do not reconstitute : the same test as Santé, over the month
@@ -172,6 +180,8 @@ export async function indexNote(monthKey?: string, data?: IndexPageData): Promis
     high: { date: high.date, value: high.value },
     low: { date: low.date, value: low.value },
     lines,
+    compare: series.comparaison,
+    points: inMonth.map((p) => ({ date: p.date, value: p.value })),
     weights: d.weights,
     capTotal,
     capFloat,

@@ -9,8 +9,13 @@ import { getT } from "@/i18n/server";
 import { BackToTop } from "@/components/BackToTop";
 import { PageOutline } from "@/components/PageOutline";
 import { QuarterStepper } from "@/components/QuarterStepper";
-import { ContribBars, IndexCurve, MonthBars, WeightBars } from "./Figures";
+import { Comparaison, ContribBars, IndexCurve, MonthBars, WeightBars } from "./Figures";
+import { BandeauMoment, NiveauDuMarche, LignesSocietes } from "./Marche";
+import { momentDeLaPlace } from "@/lib/market/moment";
+import { repo } from "@/lib/data";
+import { PastilleVariation } from "@/components/PastilleVariation";
 import styles from "./note.module.css";
+import ecran from "./marche.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +48,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
   const data = await indexPageData();
   const note = await quarterNote(trimestre.toUpperCase(), data);
   if (!note) notFound();
+  const moment = momentDeLaPlace(data, await repo().listOffers().catch(() => []));
   const n = note;
   const traded = n.lines.filter((l) => l.trades > 0);
   const first = n.lines[0];
@@ -85,17 +91,35 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
           {t("Lecture des bulletins officiels de la cote ; calculs {c}", { c: COMPANY.legalName })} · <Link href="/indice">{t("la page de l'indice, mise à jour à chaque séance")}</Link>
         </p>
 
+        <div className={ecran.ecran}>
+          <NiveauDuMarche niveau={n.level} variation={n.ret} periode={t("sur le trimestre")} aLaDate={t("au {d}", { d: fmtDate(n.quarter.to) })} />
+          <BandeauMoment
+            moment={moment}
+            l={{ titre: t("Aujourd'hui sur la place"), derniere: t("Dernière séance de l'indice"), semaine: t("Échangé, cinq dernières séances"), adjudication: t("Prochaine adjudication"), ouverte: t("Adjudication ouverte"), aucune: t("Aucune annoncée"), cloture: t("clôture le"), transactions: t("transactions") }}
+          />
+          <figure className={styles.figure}>
+            <div className={styles.figtitle}>{t("Figure 1 · Niveau de l'indice, séance par séance")}</div>
+            <IndexCurve note={n} dateOf={shortDate} peakLabel={n.peak ? `${shortDate(n.peak.date)} : ${signed(n.peak.variationPct, 1)}` : undefined} />
+            <figcaption>
+              {t("Un point coloré marque une séance où l'indice a bougé : vert à la hausse, orange à la baisse. Entre deux points, le niveau tient parce qu'aucune transaction n'a modifié un cours de référence.")}{" "}
+              {t("Plus haut {h} le {hd} · plus bas {l} le {ld} · {m} séances lues, {x} sans bulletin", { h: fmt(n.high.value), hd: fmtDate(n.high.date), l: fmt(n.low.value), ld: fmtDate(n.low.date), m: String(n.sessions), x: String(n.missing) })}
+            </figcaption>
+          </figure>
+        </div>
+
         <dl className={styles.fiche}>
           <div>
-            <dt>{t("Niveau")}</dt>
-            <dd>{fmt(n.level)}</dd>
-            <small>{t("au {d}", { d: fmtDate(n.quarter.to) })}</small>
+            <dt>{t("Douze mois")}</dt>
+            <dd>{n.year != null ? <PastilleVariation v={Number(n.year.toFixed(2))} /> : "—"}</dd>
+            <small>{t("de l'indice, jusqu'au {d}", { d: fmtDate(n.quarter.to) })}</small>
           </div>
           <div>
-            <dt>{t("Le trimestre")}</dt>
-            <dd className={n.ret > 0 ? styles.up : n.ret < 0 ? styles.down : ""}>{signed(n.ret)}</dd>
+            <dt>{t("Plus haut · plus bas")}</dt>
+            <dd>
+              {fmt(n.high.value)} · {fmt(n.low.value)}
+            </dd>
             <small>
-              {t("douze mois")} {signed(n.year, 1)}
+              {shortDate(n.high.date)} · {shortDate(n.low.date)}
             </small>
           </div>
           <div>
@@ -127,6 +151,8 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
             <small>{t("sur douze mois")}</small>
           </div>
         </dl>
+
+        <LignesSocietes lines={n.lines} l={{ titre: t("Les sept sociétés de la cote"), poids: t("poids"), periode: t("trimestre") }} />
 
         <div className={styles.cols}>
           {/* la colonne de gauche porte la navigation du document : ou on en est, et ou aller ensuite */}
@@ -169,14 +195,6 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
               </h2>
               <p className={styles.lede}>{say(n.reading)}</p>
 
-              <figure className={styles.figure}>
-                <div className={styles.figtitle}>{t("Figure 1 · Niveau de l'indice, séance par séance")}</div>
-                <IndexCurve note={n} dateOf={shortDate} peakLabel={n.peak ? `${shortDate(n.peak.date)} : ${signed(n.peak.variationPct, 1)}` : undefined} />
-                <figcaption>
-                  {t("Un point coloré marque une séance où l'indice a bougé : vert à la hausse, orange à la baisse. Entre deux points, le niveau tient parce qu'aucune transaction n'a modifié un cours de référence.")}{" "}
-                  {t("Plus haut {h} le {hd} · plus bas {l} le {ld} · {m} séances lues, {x} sans bulletin", { h: fmt(n.high.value), hd: fmtDate(n.high.date), l: fmt(n.low.value), ld: fmtDate(n.low.date), m: String(n.sessions), x: String(n.missing) })}
-                </figcaption>
-              </figure>
 
               <figure className={styles.figure}>
                 <div className={styles.figtitle}>{t("Figure 2 · Ce que chaque mois a donné")}</div>
@@ -245,14 +263,30 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
                 </p>
               )}
 
+              {n.compare && (
+                <figure className={styles.figure}>
+                  <div className={styles.figtitle}>{t("Figure 3 · L'indice, la société qui le porte et le reste de la cote, à 100 au début du trimestre")}</div>
+                  <Comparaison compare={n.compare} dateOf={shortDate} labels={{ indice: t("Indice"), reste: t("Reste de la cote"), base: t("Base 100 au début du trimestre") }} />
+                  <figcaption>
+                    {t("{m} pèse {w} de la cote. À 100 au début du trimestre, l'indice finit à {i}, {m} à {p} et le reste de la cote à {r}.", {
+                      m: n.compare.principale.name,
+                      w: fmtPct(n.compare.principale.weight, 1),
+                      i: fmtPct(n.compare.indice[n.compare.indice.length - 1], 1).replace(" %", ""),
+                      p: fmtPct(n.compare.principale.serie[n.compare.principale.serie.length - 1], 1).replace(" %", ""),
+                      r: fmtPct(n.compare.reste[n.compare.reste.length - 1], 1).replace(" %", ""),
+                    })}
+                  </figcaption>
+                </figure>
+              )}
+
               <figure className={styles.figure}>
-                <div className={styles.figtitle}>{t("Figure 3 · Le poids de chaque société, sur le capital global et sur le flottant coté")}</div>
+                <div className={styles.figtitle}>{t("Figure 4 · Le poids de chaque société, sur le capital global et sur le flottant coté")}</div>
                 <WeightBars lines={n.lines} totalLabel={t("capital global")} floatLabel={t("flottant coté")} />
                 <figcaption>{t("Le flottant rééquilibre : ce que l'on peut réellement acheter n'a pas la forme de ce que l'indice mesure. C'est la différence entre le capital d'une société et la part de ce capital qui circule en bourse.")}</figcaption>
               </figure>
 
               <figure className={styles.figure}>
-                <div className={styles.figtitle}>{t("Figure 4 · Ce que chaque société a apporté au trimestre")}</div>
+                <div className={styles.figtitle}>{t("Figure 5 · Ce que chaque société a apporté au trimestre")}</div>
                 <ContribBars lines={n.lines} unit={t("points d'indice")} />
                 <figcaption>
                   {top && best && best.mnemo !== top.mnemo

@@ -2,6 +2,7 @@ import { View } from "@react-pdf/renderer";
 import { COMPANY } from "@/lib/config";
 import { fmt, fmtDate, fmtDateTime, fmtPct, money } from "@/lib/format";
 import type { IndexNote } from "@/lib/market/index-note";
+import { CompareBase100, CourbeNiveau, LignesDuMois, teinte, tonDe } from "./charts";
 import { KV, Letter, Table, Text, s } from "./primitives";
 
 /**
@@ -24,16 +25,23 @@ export function NoteIndice({ note, texts }: { note: IndexNote; texts?: Record<st
         {n.lastBulletin ? ` · dernier bulletin lu : n° ${n.lastBulletin.number} du ${fmtDate(n.lastBulletin.date)}, ${fmtDateTime(n.lastBulletin.ingestedAt)} par ${n.lastBulletin.by}` : ""}
       </Text>
 
+      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, marginBottom: 8 }}>
+        <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 26, lineHeight: 1, color: "#0B2545" }}>{fmt(n.level)}</Text>
+        <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 11, color: tonDe(Number(n.ret.toFixed(2))), marginBottom: 2 }}>{signed(n.ret)} sur le mois</Text>
+      </View>
+      <CourbeNiveau points={n.points} sens={n.ret} from={fmtDate(n.month.from, false)} to={fmtDate(n.month.to, false)} />
+
       <Text style={s.p}>{n.headline}</Text>
       <Text style={s.p}>{n.reading}</Text>
       <Text style={s.p}>{n.caution}</Text>
 
       <Text style={[s.p, s.b]}>1. Le mois en chiffres</Text>
       <KV
+        large
         rows={[
           ["Niveau à la fin du mois", `${fmt(n.level)} points (fin du mois précédent : ${fmt(n.levelBefore)})`],
-          ["Performance du mois", signed(n.ret)],
-          ["Depuis le 1er janvier · douze mois", `${signed(n.ytd, 1)} · ${signed(n.year, 1)}`],
+          ["Performance du mois", teinte(signed(n.ret), n.ret)],
+          ["Depuis le 1er janvier · douze mois", teinte(`${signed(n.ytd, 1)} · ${signed(n.year, 1)}`, n.ytd ?? 0)],
           ["Séances lues · avec mouvement", `${n.sessions} · ${n.moved} (${n.up} hausse${n.up > 1 ? "s" : ""}, ${n.down} baisse${n.down > 1 ? "s" : ""})`],
           ["Plus haut · plus bas du mois", n.high && n.low ? `${fmt(n.high.value)} le ${fmtDate(n.high.date)} · ${fmt(n.low.value)} le ${fmtDate(n.low.date)}` : "—"],
           ["Jours ouvrés sans bulletin lu", String(n.missing)],
@@ -43,18 +51,17 @@ export function NoteIndice({ note, texts }: { note: IndexNote; texts?: Record<st
       />
 
       <Text style={[s.p, s.b]}>2. Ce qui a fait le mouvement</Text>
-      <Table
-        cols={[
-          { label: "Société", flex: 2 },
-          { label: "Poids", flex: 1, right: true },
-          { label: "Cours du mois", flex: 1.2, right: true },
-          { label: "Contribution", flex: 1.2, right: true },
-          { label: "Échangé (FCFA)", flex: 1.4, right: true },
-          { label: "Transactions", flex: 1, right: true },
-        ]}
-        rows={n.lines.map((l) => [`${l.mnemo} · ${l.name}`, fmtPct(l.weight, 1), signed(l.move, 1), pts(l.points), l.amount ? money(l.amount) : "—", l.trades || "—"])}
-        total={["Ensemble", "100 %", signed(n.ret), pts(n.lines.reduce((x, l) => x + l.points, 0)), money(n.amount), n.trades || "—"]}
+      <LignesDuMois
+        cols={["Société", "Poids", "Cours du mois", "Contribution", "Évolution", "Échangé (FCFA)", "Transact."]}
+        lignes={n.lines.map((l) => ({ nom: `${l.mnemo} · ${l.name}`, poids: fmtPct(l.weight, 1), move: teinte(signed(l.move, 1), l.move), points: teinte(pts(l.points), l.points), serie: l.serie, sens: l.move, echange: l.amount ? money(l.amount) : "—", trans: String(l.trades || "—") }))}
+        total={["Ensemble", "100 %", teinte(signed(n.ret), n.ret), teinte(pts(n.lines.reduce((x, l) => x + l.points, 0)), n.lines.reduce((x, l) => x + l.points, 0)), "", money(n.amount), String(n.trades || "—")]}
       />
+      {n.compare && (
+        <>
+          <Text style={[s.small, { marginTop: 2, marginBottom: 2 }]}>À 100 au début du mois : l&apos;indice, la société qui le porte ({n.compare.principale.name}, {fmtPct(n.compare.principale.weight, 1)} de la cote) et le reste de la cote.</Text>
+          <CompareBase100 compare={n.compare} labels={{ indice: "Indice", reste: "Reste de la cote" }} />
+        </>
+      )}
       <Text style={s.small}>
         La contribution est le poids de la société multiplié par la variation de son cours sur le mois, en points d&apos;indice : une forte hausse sur une petite valeur pèse peu. L&apos;écart entre la somme des contributions et la performance publiée est traité au paragraphe 4.
       </Text>
@@ -80,7 +87,7 @@ export function NoteIndice({ note, texts }: { note: IndexNote; texts?: Record<st
               { label: "Indice", flex: 1, right: true },
               { label: "Cours modifiés dans nos lectures", flex: 3 },
             ]}
-            rows={n.unexplained.slice(0, 8).map((u) => [fmtDate(u.date), signed(u.variationPct), u.movers])}
+            rows={n.unexplained.slice(0, 8).map((u) => [fmtDate(u.date), teinte(signed(u.variationPct), u.variationPct), u.movers])}
           />
         </>
       ) : (

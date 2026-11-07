@@ -45,7 +45,7 @@ export const s = StyleSheet.create({
   tr: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: LINE, paddingVertical: 4.5, paddingHorizontal: 6 },
   th: { backgroundColor: "#EEF1F6", fontSize: 6.5, letterSpacing: 0.6, textTransform: "uppercase", color: INK2 },
   tot: { backgroundColor: "#FBF1DA", fontFamily: "Helvetica-Bold" },
-  cell: { flex: 1 },
+  cell: { flex: 1, paddingRight: 8 },
   r: { textAlign: "right" },
   mono: { fontFamily: "Courier", fontSize: 8.5 },
   box: { borderWidth: 1, borderColor: LINE, borderLeftWidth: 3, borderLeftColor: GOLD, backgroundColor: "#FBF9F3", padding: 8, marginVertical: 8 },
@@ -97,11 +97,14 @@ export function Letter({ heading, children, legal }: { heading: string; children
 
 export type Col = { label: string; flex?: number; right?: boolean; mono?: boolean };
 
-export function Table({ cols, rows, total }: { cols: Col[]; rows: (string | number)[][]; total?: (string | number)[] }) {
+/** Une cellule peinte : le texte et sa couleur (vert, rouge ou gris pour une variation). Le signe reste écrit dans le texte. */
+export type Cellule = string | number | { t: string; ton: string };
+
+export function Table({ cols, rows, total }: { cols: Col[]; rows: Cellule[][]; total?: Cellule[] }) {
   const showHead = cols.some((c) => c.label);
-  const cell = (c: Col, v: string | number, extra?: Style) => (
-    <Text key={cols.indexOf(c)} style={[s.cell, { flex: c.flex ?? 1 }, c.right ? s.r : {}, c.mono ? s.mono : {}, extra ?? {}]}>
-      {String(v)}
+  const cell = (c: Col, v: Cellule, extra?: Style) => (
+    <Text key={cols.indexOf(c)} style={[s.cell, { flex: c.flex ?? 1 }, c.right ? s.r : {}, c.mono ? s.mono : {}, typeof v === "object" ? { color: v.ton, fontFamily: "Helvetica-Bold" } : {}, extra ?? {}]}>
+      {typeof v === "object" ? v.t : String(v)}
     </Text>
   );
   return (
@@ -129,8 +132,8 @@ export function Table({ cols, rows, total }: { cols: Col[]; rows: (string | numb
   );
 }
 
-export function KV({ rows, total, left }: { rows: [string, string][]; total?: [string, string]; left?: boolean }) {
-  return <Table cols={[{ label: "", flex: left ? 1.2 : 3 }, { label: "", flex: left ? 3 : 1.4, right: !left }]} rows={rows} total={total} />;
+export function KV({ rows, total, left, large }: { rows: [string, Cellule][]; total?: [string, Cellule]; left?: boolean; /** Colonne des valeurs aussi large que celle des libellés : une valeur longue ne se coupe plus sur deux lignes. */ large?: boolean }) {
+  return <Table cols={[{ label: "", flex: left ? 1.2 : large ? 1.5 : 3 }, { label: "", flex: left ? 3 : large ? 2.5 : 1.4, right: !left }]} rows={rows} total={total} />;
 }
 
 export function Addr({ blocks }: { blocks: [string, string[]][] }) {

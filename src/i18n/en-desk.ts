@@ -1941,8 +1941,8 @@ export const EN_MORE: Record<string, string> = {
   /* ---------- la note trimestrielle, version complète ---------- */
   "Figure 1 · Niveau de l'indice, séance par séance": "Figure 1 · Index level, session by session",
   "Figure 2 · Ce que chaque mois a donné": "Figure 2 · What each month gave",
-  "Figure 3 · Le poids de chaque société, sur le capital global et sur le flottant coté": "Figure 3 · Each company's weight, on the whole capital and on the quoted float",
-  "Figure 4 · Ce que chaque société a apporté au trimestre": "Figure 4 · What each company brought to the quarter",
+  "Figure 4 · Le poids de chaque société, sur le capital global et sur le flottant coté": "Figure 4 · Each company's weight, on the whole capital and on the quoted float",
+  "Figure 5 · Ce que chaque société a apporté au trimestre": "Figure 5 · What each company brought to the quarter",
   "Tableau 1 · Les séances où l'indice a bougé": "Table 1 · The sessions where the index moved",
   "Tableau 2 · La cote actions de la BVMAC": "Table 2 · The BVMAC equity market",
   "Tableau 3 · Le négoce du trimestre et la rotation du flottant": "Table 3 · The quarter's trading and the float rotation",

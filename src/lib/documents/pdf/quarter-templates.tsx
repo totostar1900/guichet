@@ -2,6 +2,7 @@ import { Circle, G, Line, Polyline, Rect, Svg, View } from "@react-pdf/renderer"
 import { COMPANY } from "@/lib/config";
 import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
 import { fillAll, type QuarterLine, type QuarterNote } from "@/lib/market/index-quarter";
+import { CompareBase100, teinte, tonDe } from "./charts";
 import { KV, Letter, Table, Text, s } from "./primitives";
 
 /**
@@ -110,10 +111,16 @@ export function NoteTrimestrielle({ note, texts }: { note: QuarterNote; texts?: 
 
       <Text style={s.p}>{fillAll(n.headline)}</Text>
 
+      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, marginBottom: 8 }}>
+        <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 26, lineHeight: 1, color: NAVY }}>{fmt(n.level)}</Text>
+        <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 11, color: tonDe(Number(n.ret.toFixed(2))), marginBottom: 2 }}>{signed(n.ret)} sur le trimestre</Text>
+      </View>
+
       <KV
+        large
         rows={[
           ["Niveau à la fin du trimestre", `${fmt(n.level)} points (fin du trimestre précédent : ${fmt(n.levelBefore)})`],
-          ["Performance du trimestre · douze mois", `${signed(n.ret)} · ${signed(n.year, 1)}`],
+          ["Performance du trimestre · douze mois", teinte(`${signed(n.ret)} · ${signed(n.year, 1)}`, n.ret)],
           ["Séances lues · avec mouvement", `${n.sessions} · ${n.moved} (${n.up} hausse${n.up > 1 ? "s" : ""}, ${n.down} baisse${n.down > 1 ? "s" : ""})`],
           ["Plus haut · plus bas", `${fmt(n.high.value)} le ${fmtDate(n.high.date)} · ${fmt(n.low.value)} le ${fmtDate(n.low.date)}`],
           ["Échangé sur les actions", `${money(n.amount)} FCFA · ${n.trades} transaction${n.trades > 1 ? "s" : ""} · ${fmt(n.titles)} titre${n.titles > 1 ? "s" : ""}`],
@@ -130,7 +137,7 @@ export function NoteTrimestrielle({ note, texts }: { note: QuarterNote; texts?: 
       <Caption>{`Un point marque une séance où l'indice a bougé : vert à la hausse, orange à la baisse. Plus haut ${fmt(n.high.value)} le ${fmtDate(n.high.date)}, plus bas ${fmt(n.low.value)} le ${fmtDate(n.low.date)}. ${n.sessions} séances lues, ${n.missing} jours ouvrés sans bulletin.`}</Caption>
 
       <FigTitle>Fin de mois</FigTitle>
-      <Table cols={[{ label: "Mois", flex: 1.2 }, { label: "Niveau", flex: 1, right: true }, { label: "Le mois", flex: 1, right: true }]} rows={n.monthly.map((m) => [m.label, fmt(m.value), signed(m.ret, 1)])} />
+      <Table cols={[{ label: "Mois", flex: 1.2 }, { label: "Niveau", flex: 1, right: true }, { label: "Le mois", flex: 1, right: true }]} rows={n.monthly.map((m) => [m.label, fmt(m.value), teinte(signed(m.ret, 1), m.ret)])} />
       <Caption>{flat > 0 ? `${flat} séances du trimestre sur ${n.sessions} n'ont enregistré aucun mouvement : sur cette cote, l'absence de transaction est le régime ordinaire.` : "Chaque séance lue du trimestre a enregistré un mouvement."}</Caption>
 
       {n.movedSessions.length > 0 && (
@@ -138,7 +145,7 @@ export function NoteTrimestrielle({ note, texts }: { note: QuarterNote; texts?: 
           <FigTitle>Tableau 1 · Les séances où l&apos;indice a bougé</FigTitle>
           <Table
             cols={[{ label: "Séance", flex: 1.2 }, { label: "Variation", flex: 0.9, right: true }, { label: "Ce qui a traité", flex: 3 }]}
-            rows={n.movedSessions.slice(0, 12).map((x) => [fmtDate(x.date), signed(x.variationPct), x.movers || "aucun cours d'action modifié dans nos lectures"])}
+            rows={n.movedSessions.slice(0, 12).map((x) => [fmtDate(x.date), teinte(signed(x.variationPct), x.variationPct), x.movers || "aucun cours d'action modifié dans nos lectures"])}
           />
         </>
       )}
@@ -166,11 +173,18 @@ export function NoteTrimestrielle({ note, texts }: { note: QuarterNote; texts?: 
           {first.name} représente {fmtPct(first.weight, 1)} de la capitalisation de la cote. Les autres sociétés se partagent le reste. Dire « le marché monte » revient, le plus souvent, à dire « {first.name} monte ».
         </Text>
       )}
-      <FigTitle>Figure 2 · Le poids de chaque société : capital global (bleu), flottant coté (or)</FigTitle>
+      {n.compare && (
+        <>
+          <FigTitle>Figure 2 · L&apos;indice, la société qui le porte et le reste de la cote, à 100 au début du trimestre</FigTitle>
+          <CompareBase100 compare={n.compare} labels={{ indice: "Indice", reste: "Reste de la cote" }} />
+          <Caption>{`${n.compare.principale.name} pèse ${fmtPct(n.compare.principale.weight, 1)} de la cote. À 100 au début du trimestre, l'indice finit à ${dec(n.compare.indice[n.compare.indice.length - 1], 1)}, ${n.compare.principale.name} à ${dec(n.compare.principale.serie[n.compare.principale.serie.length - 1], 1)} et le reste de la cote à ${dec(n.compare.reste[n.compare.reste.length - 1], 1)}.`}</Caption>
+        </>
+      )}
+      <FigTitle>Figure 3 · Le poids de chaque société : capital global (bleu), flottant coté (or)</FigTitle>
       <Weights lines={n.lines} />
       <Table
         cols={[{ label: "Société", flex: 1.6 }, { label: "Capital global", flex: 1, right: true }, { label: "Flottant coté", flex: 1, right: true }, { label: "Apport au trimestre", flex: 1.2, right: true }]}
-        rows={n.lines.map((l) => [l.mnemo, fmtPct(l.weight, 1), fmtPct(l.weightFloat, 1), `${l.points > 0 ? "+" : ""}${dec(l.points, 2)} pt`])}
+        rows={n.lines.map((l) => [l.mnemo, fmtPct(l.weight, 1), fmtPct(l.weightFloat, 1), teinte(`${l.points > 0 ? "+" : ""}${dec(l.points, 2)} pt`, l.points)])}
       />
       <Caption>
         {top && best && best.mnemo !== top.mnemo
@@ -194,8 +208,8 @@ export function NoteTrimestrielle({ note, texts }: { note: QuarterNote; texts?: 
           { label: "Flottant", flex: 0.9, right: true },
           { label: "Trimestre", flex: 1, right: true },
         ]}
-        rows={n.lines.map((l) => [`${l.mnemo} · ${l.name}`, l.sector, l.country, fmt(l.price), l.yield != null ? fmtPct(l.yield, 1) : "—", fmtPct(l.weight, 1), fmtPct(l.floatShare, 0), signed(l.move, 1)])}
-        total={["Ensemble de la cote", "", "", "", "", "100 %", n.capTotal ? fmtPct((n.capFloat / n.capTotal) * 100, 0) : "—", signed(n.ret, 1)]}
+        rows={n.lines.map((l) => [`${l.mnemo} · ${l.name}`, l.sector, l.country, fmt(l.price), l.yield != null ? fmtPct(l.yield, 1) : "—", fmtPct(l.weight, 1), fmtPct(l.floatShare, 0), teinte(signed(l.move, 1), l.move)])}
+        total={["Ensemble de la cote", "", "", "", "", "100 %", n.capTotal ? fmtPct((n.capFloat / n.capTotal) * 100, 0) : "—", teinte(signed(n.ret, 1), n.ret)]}
       />
       <Text style={s.small}>
         Par secteur : {n.bySector.map((g) => `${g.label} ${fmtPct(g.pct, 1)}`).join(" · ")}. Par pays : {n.byCountry.map((g) => `${g.label} ${fmtPct(g.pct, 1)}`).join(" · ")}.
