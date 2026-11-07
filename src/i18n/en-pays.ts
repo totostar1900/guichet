@@ -151,4 +151,14 @@ export const EN_PAYS: Record<string, string> = {
   "Aucun relevé officiel pour cet État.": "No official statement for this state.",
   "Aucun relevé officiel pour cet État : le Gabon attend sa pièce.": "No official statement for this state: Gabon is waiting for its document.",
   "Renseignez le pays, l'exercice, le millésime, le texte de la loi et la pièce source (adresse en https).": "Fill in the country, the fiscal year, the vintage, the text of the law and the source document (https address).",
+  // Import OJA, liste des séances (7 novembre 2026)
+  "Ouvrir le communiqué (PDF) dans sa page": "Open the notice (PDF) in its own page",
+  "Le PDF s'ouvre dans un onglet : placez-le à côté de cette fenêtre pour recopier les chiffres.": "The PDF opens in a tab: place it next to this window to copy the figures.",
+  "Ouvrir le PDF": "Open the PDF",
+  "Fiche": "Sheet",
+  "La fiche de la séance : le PDF et l'Excel côte à côte, et de quoi trancher à tout moment. Le fichier Excel reste sur votre poste : il ne s'ouvre pas à la ligne ; cherchez le code dans la colonne Titre.": "The session sheet: the PDF and the Excel side by side, and what you need to settle at any time. The Excel file stays on your computer: it does not open at the line; search for the code in the Title column.",
+  "Réexaminer aussi les écarts déjà tranchés": "Also reconsider discrepancies already settled",
+  "Rien n'est définitif : un écart se reprend ici, en rechargeant ce lot avec cette case cochée, ou depuis la fiche de la séance.": "Nothing is final: a discrepancy can be reopened here, by reloading this batch with this box ticked, or from the session sheet.",
+  "déjà tranché : {s} par {p}": "already settled: {s} by {p}",
+  "Rien n'est définitif : un écart tranché se reprend ici à tout moment, par l'autre bouton ; le changement est tracé au journal d'audit. Un lot rechargé avec « Réexaminer les écarts déjà tranchés » les remet aussi en jeu.": "Nothing is final: a settled discrepancy can be reopened here at any time with the other button; the change is traced in the audit log. A batch reloaded with « Also reconsider discrepancies already settled » puts them back in play too.",
 };

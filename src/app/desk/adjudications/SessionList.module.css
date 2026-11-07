@@ -27,8 +27,25 @@
   border-radius: 6px;
   overflow: hidden;
 }
-.onglets button {
+.onglet {
+  position: relative;
   flex: 1 1 30%;
+  display: flex;
+  min-width: 0;
+}
+.onglet + .onglet {
+  border-left: 1px solid var(--line);
+}
+.bulle {
+  position: absolute;
+  top: 50%;
+  right: 2px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  z-index: 1;
+}
+.onglets button {
+  flex: 1 1 auto;
   white-space: nowrap;
   min-width: 0;
   border: 0;
@@ -39,9 +56,6 @@
   color: var(--ink-2);
   cursor: pointer;
   white-space: nowrap;
-}
-.onglets button + button {
-  border-left: 1px solid var(--line);
 }
 .onglets button span {
   color: var(--ink-3);

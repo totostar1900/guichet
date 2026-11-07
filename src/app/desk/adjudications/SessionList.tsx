@@ -4,7 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Poignee } from "@/components/Poignee";
+import { Info } from "@/components/Info";
 import { useDates, useT } from "@/i18n/client";
+import { ONGLETS_SEANCES } from "@/lib/market/oja-kpi";
 import type { EtatSeance } from "@/lib/market/auction-results";
 import styles from "./SessionList.module.css";
 
@@ -113,9 +115,15 @@ export function SessionList({ rows, current }: { rows: LigneSeance[]; current?: 
       <div className={styles.tete}>
         <div className={styles.onglets} role="tablist">
           {ONGLETS.map((o) => (
-            <button key={o.clef} type="button" role="tab" aria-selected={onglet === o.clef} onClick={() => setOnglet(o.clef)}>
-              {t(o.mot)} <span>{compte(o.clef)}</span>
-            </button>
+            <div key={o.clef} className={styles.onglet} role="presentation">
+              <button type="button" role="tab" aria-selected={onglet === o.clef} onClick={() => setOnglet(o.clef)}>
+                {t(o.mot)} <span>{compte(o.clef)}</span>
+              </button>
+              {/* LA BULLE VIT À CÔTÉ DE L'ONGLET, PAS DEDANS : un bouton dans un bouton ne s'active pas. */}
+              <span className={styles.bulle}>
+                <Info subtle label={ONGLETS_SEANCES[o.clef].titre} text={ONGLETS_SEANCES[o.clef].texte} />
+              </span>
+            </div>
           ))}
         </div>
         <input className={styles.cherche} value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Trésor, durée, code…")} aria-label={t("Chercher une séance")} autoComplete="off" />

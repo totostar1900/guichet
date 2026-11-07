@@ -60,6 +60,7 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
   const [aConfirmer, setAConfirmer] = useState(false);
   const [choix, setChoix] = useState<Record<string, Source>>({});
   const [message, setMessage] = useState("");
+  const [rouvrir, setRouvrir] = useState(false);
   const [, demarrer] = useTransition();
   const dernier = imports[0];
 
@@ -68,6 +69,7 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
     setApercu(null);
     setLot("");
     setChoix({});
+    setRouvrir(false);
     setErreur(null);
     setProgres("");
     setMessage("");
@@ -127,6 +129,28 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
         setProgres("");
         if (entree.current) entree.current.value = "";
       }
+    }
+  }
+
+  /** Recalcule l'aperçu avec ou sans les écarts déjà tranchés : le lot garde la case, l'import qui suit la reprend. */
+  async function recalculer(v: boolean) {
+    setRouvrir(v);
+    setErreur(null);
+    setProgres(t("Comparaison avec le Desk…"));
+    try {
+      const brut = JSON.stringify({ ...JSON.parse(lot), rouvrir: v });
+      const a = await apercuOjaAction(brut);
+      if (!a.ok) throw new Error(a.error ?? t("Aperçu impossible."));
+      const init: Record<string, Source> = {};
+      for (const l of a.ecarts) for (const x of l.champs) init[x.cle] = x.proposition.source;
+      setLot(brut);
+      setChoix(init);
+      setApercu(a);
+    } catch (e) {
+      setRouvrir(!v);
+      setErreur(e instanceof Error ? e.message : String(e));
+    } finally {
+      setProgres("");
     }
   }
 
@@ -208,16 +232,40 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
               {apercu.avertissements.map((a) => <p key={a} className={styles.aide}>⚠ {a}</p>)}
               <p className={styles.aide}>{t("Ignorées : séances du jour, séances rejetées, séances écartées au Desk.")}</p>
 
+              {/* LA CASE EST TOUJOURS LÀ : une fois tous les écarts tranchés, l'aperçu n'en montre plus, et c'est alors qu'on veut pouvoir les rouvrir. */}
+              <div className={styles.rouvrir}>
+                <label className={styles.case}>
+                  <input type="checkbox" checked={rouvrir} onChange={(e) => recalculer(e.target.checked)} />
+                  {t("Réexaminer aussi les écarts déjà tranchés")}
+                </label>
+                <p className={styles.aide}>{t("Rien n'est définitif : un écart se reprend ici, en rechargeant ce lot avec cette case cochée, ou depuis la fiche de la séance.")}</p>
+              </div>
+
               {apercu.ecartsTotal > 0 && (
                 <div className={styles.ecarts}>
                   <b>{t("Écarts à trancher")} · {apercu.ecartsTotal}</b>
                   <p className={styles.aide}>{t("La règle propose une source par champ : l'Excel pour une erreur d'unité ou un chiffre qui se contredit (depuis le 1er février 2023), le communiqué sinon. Changez au besoin.")}</p>
                   {apercu.ecarts.map((l) => (
                     <div key={l.deskId} className={styles.sceance}>
-                      <div className={styles.quand}>{l.pays} · {l.instrument} · {fmtDate(l.date)} <small>{l.code}</small></div>
+                      <div className={styles.quand}>
+                        {l.pays} · {l.instrument} · {fmtDate(l.date)} <small>{l.code}</small>
+                        <span className={styles.liens}>
+                          {l.fichier && (
+                            <a href={`/desk/adjudications/source/${l.deskId}`} target="_blank" rel="noopener">
+                              PDF ↗
+                            </a>
+                          )}
+                          <a href={`/desk/adjudications?s=${l.deskId}`} target="_blank" rel="noopener" title={t("La fiche de la séance : le PDF et l'Excel côte à côte, et de quoi trancher à tout moment. Le fichier Excel reste sur votre poste : il ne s'ouvre pas à la ligne ; cherchez le code dans la colonne Titre.")}>
+                            {t("Fiche")} ↗
+                          </a>
+                        </span>
+                      </div>
                       {l.champs.map((x) => (
                         <div key={x.cle} className={styles.champ}>
-                          <span>{t(x.libelle)}</span>
+                          <span>
+                            {t(x.libelle)}
+                            {x.dejaTranche && <small className={styles.deja}> · {t("déjà tranché : {s} par {p}", { s: x.dejaTranche.retenu === "pdf" ? "PDF" : "Excel", p: x.dejaTranche.par })}</small>}
+                          </span>
                           <span className={styles.val}>PDF {fmtValeur(x.champ, x.pdf)}</span>
                           <span className={styles.val}>Excel {fmtValeur(x.champ, x.excel)}</span>
                           <select value={choix[x.cle] ?? x.proposition.source} onChange={(e) => setChoix((v) => ({ ...v, [x.cle]: e.target.value as Source }))} aria-label={t("Source retenue")}>

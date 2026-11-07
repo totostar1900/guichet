@@ -39,11 +39,15 @@ const lotSchema = z.object({
   plage: z.object({ du: z.string(), au: z.string() }).optional(),
   fichiers: z.array(z.object({ type: z.enum(["offres", "encheres", "titres"]), nom: z.string().max(200), lignes: z.number().int().min(0) })).max(3),
   avertissements: z.array(z.string().max(300)).max(20),
+  /** Remet en jeu les écarts déjà tranchés (rien n'est définitif). */
+  rouvrir: z.boolean().optional(),
 });
 export type LotOja = z.infer<typeof lotSchema>;
 
 export interface LigneEcartOja {
   deskId: string;
+  /** La séance a un communiqué rapatrié : le lien PDF existe. */
+  fichier: boolean;
   code: string;
   pays: string;
   instrument: string;
@@ -89,13 +93,13 @@ export async function apercuOjaAction(brut: string): Promise<ApercuOja> {
   if ("erreur" in l) return { ...vide, error: l.erreur };
   const { lot } = l;
   const desk = await repo().listAuctionResults({ limit: 20_000 });
-  const plan = planifier(lot.seances as SeanceOja[], lot.rejeteesCles, lot.ignorees, desk.map(duDesk));
+  const plan = planifier(lot.seances as SeanceOja[], lot.rejeteesCles, lot.ignorees, desk.map(duDesk), { rouvrir: lot.rouvrir });
   const parId = new Map(desk.map((d) => [d.id, d]));
   const ecarts: LigneEcartOja[] = plan.rapprochees
     .filter((x) => x.ecarts.length > 0)
     .map((x) => {
       const d = parId.get(x.deskId)!;
-      return { deskId: x.deskId, code: d.codeEmission ?? x.oja.isin, pays: d.country, instrument: d.instrument, date: d.sessionOn, ecartJours: x.ecartJours, champs: x.ecarts.map((e) => ({ ...e, cle: `${x.deskId}:${e.champ}` })) };
+      return { deskId: x.deskId, fichier: Boolean(d.fileKey), code: d.codeEmission ?? x.oja.isin, pays: d.country, instrument: d.instrument, date: d.sessionOn, ecartJours: x.ecartJours, champs: x.ecarts.map((e) => ({ ...e, cle: `${x.deskId}:${e.champ}` })) };
     });
   const nouvellesParAn: Record<string, number> = {};
   for (const s of plan.nouvelles) nouvellesParAn[s.date.slice(0, 4)] = (nouvellesParAn[s.date.slice(0, 4)] ?? 0) + 1;
@@ -160,7 +164,7 @@ export async function appliquerOjaAction(charge: string): Promise<ResultatOja> {
   const { lot } = l;
   const r = repo();
   const existantes = await r.listAuctionResults({ limit: 20_000 });
-  const plan = planifier(lot.seances as SeanceOja[], lot.rejeteesCles, lot.ignorees, existantes.map(duDesk));
+  const plan = planifier(lot.seances as SeanceOja[], lot.rejeteesCles, lot.ignorees, existantes.map(duDesk), { rouvrir: lot.rouvrir });
   const le = new Date().toISOString();
 
   const aCreer = plan.nouvelles.filter((s) => (s.fiabilite === "fiable" ? choix.nouvellesFiables : choix.nouvellesAConfirmer));

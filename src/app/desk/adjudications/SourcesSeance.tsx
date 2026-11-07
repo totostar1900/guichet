@@ -34,6 +34,11 @@ export async function SourcesDeLaSeance({ r }: { r: AuctionResult }) {
     <section className={styles.bloc} aria-label={t("Sources des chiffres")}>
       <div className={styles.tete}>
         <h3>{t("Sources des chiffres")}</h3>
+        {r.fileKey && (
+          <a href={`/desk/adjudications/source/${r.id}`} target="_blank" rel="noopener" className={styles.lien}>
+            {t("Ouvrir le PDF")} ↗
+          </a>
+        )}
         <span className={`${styles.pastille} ${e.libelle === "Excel" ? styles.excel : e.libelle === "PDF" ? styles.pdf : styles.deux}`}>{e.libelle}{e.ecartsOuverts ? ` · ${e.ecartsOuverts}` : e.concordantes ? " ✓" : ""}</span>
       </div>
 
@@ -78,6 +83,8 @@ export async function SourcesDeLaSeance({ r }: { r: AuctionResult }) {
           </tbody>
         </table>
       )}
+
+      {s.excel && lignes.some((c) => enEcart.has(c)) && <p className={styles.aide}>{t("Rien n'est définitif : un écart tranché se reprend ici à tout moment, par l'autre bouton ; le changement est tracé au journal d'audit. Un lot rechargé avec « Réexaminer les écarts déjà tranchés » les remet aussi en jeu.")}</p>}
 
       {s.carnet && (
         <p className={styles.aide}>

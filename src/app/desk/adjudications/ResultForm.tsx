@@ -2,8 +2,6 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { SourceViewer } from "@/components/SourceViewer";
-import { Poignee } from "@/components/Poignee";
 import { useT } from "@/i18n/client";
 import {
   coverageOf,
@@ -287,27 +285,19 @@ export function ResultForm({
             </p>
           )}
 
-          <div className={`${styles.split} ${r.fileKey ? "" : styles.sansDoc}`}>
-            {r.fileKey && (
-              <>
-                <div className={styles.doc}>
-                  <SourceViewer
-                    src={`/desk/adjudications/source/${r.id}`}
-                    title={t("Communiqué de résultats")}
-                    fill
-                  />
-                </div>
+          {/* LE COMMUNIQUÉ S'OUVRE DANS SA PAGE, NON AU MILIEU DE L'ÉCRAN (7 novembre 2026). Le lecteur intégré ne chargeait pas en production : le document vit dans la
+              bibliothèque de la maison, que le navigateur ouvre dans son propre onglet, mais qu'il refuse d'afficher dans un cadre. Et sur un écran de quatorze pouces, le
+              scan et les champs ne tenaient plus côte à côte. Un onglet à part se pose à côté de la fenêtre : on lit l'un en remplissant l'autre. */}
+          {r.fileKey && (
+            <p className={styles.piece}>
+              <a href={`/desk/adjudications/source/${r.id}`} target="_blank" rel="noopener" className="btn sm primary">
+                {t("Ouvrir le communiqué (PDF) dans sa page")} ↗
+              </a>
+              <small>{t("Le PDF s'ouvre dans un onglet : placez-le à côté de cette fenêtre pour recopier les chiffres.")}</small>
+            </p>
+          )}
 
-                <Poignee
-                  variable="--champs"
-                  min={280}
-                  max={560}
-                  memoire="adj.champs"
-                  depuisLaDroite
-                  libelle="Régler la largeur des champs"
-                />
-              </>
-            )}
+          <div className={`${styles.split} ${styles.sansDoc}`}>
 
             <div className={styles.fields}>
               {/* Ce qu'on regarde avant de signer, déduit et non saisi. */}

@@ -91,3 +91,8 @@
   color: var(--ink-2);
   line-height: 1.5;
 }
+
+.lien {
+  margin-left: auto;
+  font-size: var(--t-2);
+}

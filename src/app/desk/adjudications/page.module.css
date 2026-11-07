@@ -85,15 +85,15 @@
 /* La fiche : la séance entière (titre, champs, écarter), à la hauteur de la colonne ; le réglage du rendement se pose dans son titre. */
 .fiche {
   position: relative;
-  flex: 1 0 100%;
+  flex: 1 0 auto;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   gap: var(--s-5);
   min-height: 0;
 }
 .form {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--s-5);
@@ -135,27 +135,16 @@
 /* La pièce à gauche, les champs à droite : recopier de mémoire un chiffre lu
    dans un autre onglet est la façon la plus sûre de se tromper de colonne. */
 .split {
-  flex: 1;
-  min-height: 0;
+  flex: 1 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto var(--champs, 360px);
   gap: var(--s-5);
   align-items: stretch;
 }
-/* Le scan prend toute la hauteur qu'on lui laisse : un communiqué se lit en
-   petits caractères, et chaque pixel rendu est un chiffre de moins à deviner. */
-.doc {
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
 /* Les champs défilent pour leur compte. La gouttière à droite laisse la barre
    de défilement sans qu'elle mange le dernier caractère d'un nombre. */
 .fields {
-  min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
+  min-width: 0;
   padding-right: var(--s-3);
   display: flex;
   flex-direction: column;
@@ -531,4 +520,18 @@
   display: block;
   margin-top: var(--s-4);
   font-size: var(--t-1);
+}
+
+/* Le lien du communiqué : un bouton et une ligne d'aide, au-dessus des champs. */
+.piece {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+.piece small {
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  max-width: 52ch;
 }

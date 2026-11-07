@@ -60,3 +60,33 @@ describe("le plan d'un import OJA", () => {
     expect(etatSource({ sessionOn: C.date, sources: s }).libelle).toBe("Excel");
   });
 });
+
+describe("rien n'est définitif : les écarts déjà tranchés se rouvrent", () => {
+  const d = desk("b", "GQ1200000172", "2026-10-22", { announced: 16_055_000, served: 15_000_000, rateLimit: 6.6 });
+  const o = oja("GQ1200000172", "2026-10-22", { announced: 15e9, served: 15e9, rateLimit: 6.6 });
+
+  it("un champ tranché ne revient pas à l'import suivant, mais revient quand on rouvre, avec son auteur et sa source", () => {
+    const v = verser(d, o, "imp1", { "b:announced": "excel", "b:served": "pdf" }, "Alice", "2026-11-07T10:00:00Z");
+    const tranchee = { ...d, sources: v.sources };
+    expect(planifier([o], [], 0, [tranchee]).rapprochees[0].ecarts).toHaveLength(0);
+    const rouvert = planifier([o], [], 0, [tranchee], { rouvrir: true }).rapprochees[0].ecarts;
+    expect(rouvert.map((e) => e.champ).sort()).toEqual(["announced", "served"]);
+    const ann = rouvert.find((e) => e.champ === "announced")!;
+    expect(ann.dejaTranche).toMatchObject({ retenu: "excel", par: "Alice" });
+    expect(ann.proposition.source).toBe("excel");
+    expect(rouvert.find((e) => e.champ === "served")!.proposition.source).toBe("pdf");
+  });
+
+  it("un champ jamais tranché ne porte pas de trace de décision", () => {
+    expect(planifier([o], [], 0, [d], { rouvrir: true }).rapprochees[0].ecarts.every((e) => e.dejaTranche === undefined)).toBe(true);
+  });
+
+  it("changer d'avis écrit la nouvelle source retenue, et la décision précédente disparaît du champ", () => {
+    const v1 = verser(d, o, "imp1", { "b:announced": "excel" }, "Alice", "2026-11-07T10:00:00Z");
+    const v2 = verser({ ...d, sources: v1.sources }, o, "imp2", { "b:announced": "pdf" }, "Bob", "2026-11-08T10:00:00Z");
+    const e = (v2.sources.ecarts ?? []).filter((x) => x.champ === "announced");
+    expect(e).toHaveLength(1);
+    expect(e[0]).toMatchObject({ retenu: "pdf", par: "Bob" });
+    expect(v2.sources.retenu.announced).toBe("pdf");
+  });
+});

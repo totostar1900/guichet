@@ -5,6 +5,9 @@
  */
 export type CleKpiOja = "nouvellesFiables" | "nouvellesAConfirmer" | "ecarts" | "concordantes" | "ignorees" | "nouvelles";
 
+/** Les cinq onglets de la liste des séances : « tout », puis les quatre états. */
+export type CleOnglet = "tout" | "a_lire" | "a_relire" | "relue" | "ecartee";
+
 const trois = (ce: string, faire: string, sert: string) => `${ce}\n\nÀ faire : ${faire}\n\nÀ quoi ça sert : ${sert}`;
 
 export const KPI_OJA: Record<CleKpiOja, { titre: string; texte: string }> = {
@@ -54,6 +57,53 @@ export const KPI_OJA: Record<CleKpiOja, { titre: string; texte: string }> = {
       "Séances créées au Desk par ce dernier import, parce qu'elles n'y existaient pas.",
       "ouvrez-les dans le tableau et confirmez sur la pièce celles qui sont marquées « à confirmer ».",
       "mesurer ce que l'import a réellement apporté à l'historique. Un chiffre à zéro veut dire que le Desk était déjà à jour.",
+    ),
+  },
+};
+
+/**
+ * LES ONGLETS DE LA LISTE DES SÉANCES, EXPLIQUÉS (7 novembre 2026) : ce que l'onglet contient, ce que le Desk en attend, à quoi cela sert.
+ * Même forme que les compteurs de l'import : trois paragraphes, dans le même ordre.
+ */
+export const ONGLETS_SEANCES: Record<CleOnglet, { titre: string; texte: string }> = {
+  tout: {
+    titre: "Toutes les séances",
+    texte: trois(
+      "Les séances de travail : à lire, à relire et relues. Les écartées n'en font pas partie.",
+      "rien en soi. L'objectif est que « À lire » et « À relire » tombent à zéro. Servez-vous de la recherche (Trésor, durée, code) pour retrouver une séance.",
+      "c'est la mémoire de ce que le marché a payé, séance par séance.",
+    ),
+  },
+  a_lire: {
+    titre: "À lire",
+    texte: trois(
+      "Séances que le robot a déposées avec leur identité mais sans aucun chiffre : le communiqué n'a encore rien donné.",
+      "ouvrir le communiqué, lancer « Lire le communiqué » ou saisir les chiffres à la main, puis enregistrer.",
+      "sans chiffres, une séance ne donne ni taux ni point de courbe.",
+    ),
+  },
+  a_relire: {
+    titre: "À relire",
+    texte: trois(
+      "Séances dont les chiffres sont posés (lus par la machine, repris d'un import Excel ou saisis) mais qu'aucune personne n'a confirmés.",
+      "comparer avec le communiqué, corriger au besoin, puis confirmer. Les bons du Trésor fiables se confirment en lot, depuis la bande du haut.",
+      "seule une séance confirmée fonde un taux, une courbe et ce que le client voit.",
+    ),
+  },
+  relue: {
+    titre: "Relues",
+    texte: trois(
+      "Séances confirmées par une personne : leurs chiffres font foi.",
+      "rien, sauf si un écart apparaît plus tard (import Excel, correction). Une séance relue se rouvre depuis sa fiche, et rien n'est jamais définitif.",
+      "c'est la base de tous les rendements affichés, des comparaisons sur une période passée et des fiches des lignes.",
+    ),
+  },
+  ecartee: {
+    titre: "Écartées",
+    texte: trois(
+      "Pièces qui ne sont pas un résultat (séance annulée ou infructueuse, doublon, communiqué hors sujet) : rangées, jamais effacées.",
+      "de temps en temps, vérifier qu'aucune séance utile n'y dort, et la remettre d'un clic si besoin.",
+      "garder la file de travail propre sans rien perdre : l'import OJA les ignore.",
     ),
   },
 };
@@ -112,10 +162,37 @@ const EN_PARTS: Record<CleKpiOja, { titre: string; texte: string }> = {
   },
 };
 
+const EN_ONGLETS: Record<CleOnglet, { titre: string; texte: string }> = {
+  tout: {
+    titre: "All sessions",
+    texte: trois_en("Working sessions: to read, to review and reviewed. Set-aside ones are not included.", "nothing in itself. The goal is for « To read » and « To review » to fall to zero. Use the search (Treasury, maturity, code) to find a session.", "it is the memory of what the market paid, session by session."),
+  },
+  a_lire: {
+    titre: "To read",
+    texte: trois_en("Sessions the robot filed with their identity but no figure at all: the notice has yielded nothing yet.", "open the notice, run « Read the notice » or key the figures in by hand, then save.", "without figures, a session gives neither a rate nor a point on the curve."),
+  },
+  a_relire: {
+    titre: "To review",
+    texte: trois_en("Sessions whose figures are set (read by the machine, taken from an Excel import or keyed in) but that no person has confirmed.", "compare with the notice, correct if needed, then confirm. Reliable Treasury bills are confirmed in a batch from the top strip.", "only a confirmed session grounds a rate, a curve and what the client sees."),
+  },
+  relue: {
+    titre: "Reviewed",
+    texte: trois_en("Sessions confirmed by a person: their figures are authoritative.", "nothing, unless a discrepancy shows up later (Excel import, correction). A reviewed session is reopened from its sheet, and nothing is ever final.", "it is the basis of every yield shown, of past-period comparisons and of the line sheets."),
+  },
+  ecartee: {
+    titre: "Set aside",
+    texte: trois_en("Documents that are not a result (cancelled or unsuccessful session, duplicate, off-topic notice): filed away, never deleted.", "now and then, check that no useful session is sleeping there, and put it back with one click if needed.", "keep the work queue clean without losing anything: the OJA import ignores them."),
+  },
+};
+
 /** Les paires français → anglais, à verser dans le dictionnaire (`en-oja.ts`). */
-export const EN_KPI_OJA: Record<string, string> = Object.fromEntries(
-  (Object.keys(KPI_OJA) as CleKpiOja[]).flatMap((k) => [
+export const EN_KPI_OJA: Record<string, string> = Object.fromEntries([
+  ...(Object.keys(KPI_OJA) as CleKpiOja[]).flatMap((k) => [
     [KPI_OJA[k].titre, EN_PARTS[k].titre],
     [KPI_OJA[k].texte, EN_PARTS[k].texte],
   ]),
-);
+  ...(Object.keys(ONGLETS_SEANCES) as CleOnglet[]).flatMap((k) => [
+    [ONGLETS_SEANCES[k].titre, EN_ONGLETS[k].titre],
+    [ONGLETS_SEANCES[k].texte, EN_ONGLETS[k].texte],
+  ]),
+]);

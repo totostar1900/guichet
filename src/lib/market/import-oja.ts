@@ -24,6 +24,8 @@ export interface EcartPropose {
   pdf?: number;
   excel?: number;
   proposition: Proposition;
+  /** Le champ avait déjà été tranché : par qui, quand, et dans quel sens. Présent seulement quand le lot est rechargé avec les écarts rouverts. */
+  dejaTranche?: { retenu: Source; par: string; le: string };
 }
 
 export interface SeanceRapprochee {
@@ -46,7 +48,11 @@ export interface PlanImport {
 
 const memesValeurs = (a?: SourcesSeance["excel"], b?: SourcesSeance["excel"]) => CHAMPS.every((c) => (a?.[c] ?? null) === (b?.[c] ?? null));
 
-export function planifier(seances: SeanceOja[], rejeteesCles: string[], ignoreesOja: number, desk: SeanceDuDesk[]): PlanImport {
+/**
+ * `rouvrir` : REMETTRE EN JEU LES ÉCARTS DÉJÀ TRANCHÉS (7 novembre 2026). Rien n'est définitif : un champ tranché une fois se reprend soit depuis la fiche de la séance, soit en
+ * rechargeant le lot avec cette case. Chaque champ rouvert garde la source retenue comme proposition, et dit qui l'avait tranché.
+ */
+export function planifier(seances: SeanceOja[], rejeteesCles: string[], ignoreesOja: number, desk: SeanceDuDesk[], options: { rouvrir?: boolean } = {}): PlanImport {
   const actifs = desk.filter((d) => !d.setAsideAt);
   const ecartees = desk.filter((d) => d.setAsideAt);
   const pris = new Set<SeanceDuDesk>();
@@ -64,13 +70,18 @@ export function planifier(seances: SeanceOja[], rejeteesCles: string[], ignorees
     const avant = sourcesDe(m.seance);
     const apres = verserExcel(m.seance, s.valeurs, { importId: "?", fiabilite: s.fiabilite });
     const pdf = avant.pdf ?? valeursPlates(m.seance);
-    const ecarts: EcartPropose[] = CHAMPS.filter((c) => pdf[c] != null && s.valeurs[c] != null && !egal(c, pdf[c]!, s.valeurs[c]!) && !(avant.ecarts ?? []).some((e) => e.champ === c)).map((c) => ({
-      champ: c,
-      libelle: LIBELLE_CHAMP[c],
-      pdf: pdf[c],
-      excel: s.valeurs[c],
-      proposition: proposer(c, { date: m.seance.sessionOn, pdf, excel: s.valeurs, anomaliesVues: m.seance.anomaliesVues }),
-    }));
+    const tranche = (c: Champ) => (avant.ecarts ?? []).find((e) => e.champ === c);
+    const ecarts: EcartPropose[] = CHAMPS.filter((c) => pdf[c] != null && s.valeurs[c] != null && !egal(c, pdf[c]!, s.valeurs[c]!) && (options.rouvrir || !tranche(c))).map((c) => {
+      const deja = tranche(c);
+      return {
+        champ: c,
+        libelle: LIBELLE_CHAMP[c],
+        pdf: pdf[c],
+        excel: s.valeurs[c],
+        proposition: deja ? { source: deja.retenu, raison: "a_trancher" as const } : proposer(c, { date: m.seance.sessionOn, pdf, excel: s.valeurs, anomaliesVues: m.seance.anomaliesVues }),
+        ...(deja ? { dejaTranche: { retenu: deja.retenu, par: deja.par, le: deja.le } } : {}),
+      };
+    });
     const inchangee = memesValeurs(avant.excel, apres.excel) && ecarts.length === 0 && avant.excel != null;
     rapprochees.push({ oja: s, deskId: m.seance.id, ecartJours: m.ecartJours, ecarts, inchangee });
   }

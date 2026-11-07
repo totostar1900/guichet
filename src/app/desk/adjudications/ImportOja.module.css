@@ -161,3 +161,19 @@
   gap: var(--s-3);
   font-size: var(--t-3);
 }
+
+/* Les liens d'une séance en écart : le communiqué et la fiche, côte à côte du nom. */
+.liens {
+  display: inline-flex;
+  gap: var(--s-4);
+  margin-left: var(--s-4);
+  font-size: var(--t-2);
+}
+.deja {
+  color: var(--gold-ink);
+}
+
+.rouvrir {
+  display: grid;
+  gap: var(--s-2);
+}
