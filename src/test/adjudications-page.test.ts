@@ -117,7 +117,7 @@ describe("la page des adjudications", () => {
     expect(BROWSER, "le tri est revenu dans la barre des adjudications").toMatch(/tri=\{!adj \? \{ quoi: t\("Trier par"\)/);
     expect(BROWSER, "le tri est revenu en pleine barre").not.toMatch(/styles\.sortSel/);
     expect(BROWSER, "la feuille promet encore un tri qu'elle ne porte pas").toMatch(/title=\{t\(trie \? "Filtrer et trier" : "Filtrer"\)\}/);
-    expect(BROWSER, "la durée en jauge a quitté la feuille des adjudications").toMatch(/<DureeGauge values=\{durees\}/);
+    expect(BROWSER, "la durée en jauge a quitté la feuille des adjudications").toMatch(/<DureeGauge values=\{dureesRestantes\} ensemble=\{durees\}/);
     /* Les barres de la jauge montrent TOUTES les lignes du lieu : sur les
        lignes filtrées, la jauge se viderait à mesure qu'on s'en sert. */
     expect(BROWSER, "la jauge se dessine sur les lignes déjà filtrées").toMatch(/const durees = useMemo\(\(\) => offers\.map/);

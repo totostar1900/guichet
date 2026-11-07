@@ -88,3 +88,44 @@
   opacity: 0.45;
   cursor: default;
 }
+
+/* DES FILTRES QUI SE RÉPONDENT (7 novembre 2026) : le nombre de fonds à droite du nom, une valeur à zéro grisée et pointillée, une valeur choisie devenue impossible barrée et retirable. */
+.n {
+  margin-left: var(--s-2);
+  font-size: var(--t-1);
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+.options button.vide {
+  opacity: 0.45;
+  border-style: dashed;
+}
+.options button.impossible {
+  text-decoration: line-through;
+  border-style: dashed;
+  opacity: 0.8;
+}
+.cherche {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 var(--s-5);
+  font-size: var(--t-3);
+}
+.phraseImpossible {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: 6px;
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  font-size: var(--t-2);
+}
+.retirer {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}

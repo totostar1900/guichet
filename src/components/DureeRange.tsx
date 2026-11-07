@@ -47,16 +47,18 @@ export const dureeRangeLabel = (r: { min?: number; max?: number }): string =>
 const PAS = 0.25;
 const CASES = 24;
 
-export function DureeGauge({ values, min, max, onChange }: { values: number[]; min?: number; max?: number; onChange: (min?: number, max?: number) => void }) {
+export function DureeGauge({ values, ensemble, min, max, onChange }: { values: number[]; /** Toutes les lignes du lieu, en fond pâle derrière ce qui reste après les autres filtres. */ ensemble?: number[]; min?: number; max?: number; onChange: (min?: number, max?: number) => void }) {
   const t = useT();
   const bas = 0;
-  const haut = Math.max(1, Math.ceil(Math.max(1, ...values)));
-  const cases = useMemo(() => {
+  const haut = Math.max(1, Math.ceil(Math.max(1, ...(ensemble ?? values))));
+  const compter = (xs: number[]) => {
     const out = new Array(CASES).fill(0);
-    for (const v of values) out[Math.min(CASES - 1, Math.max(0, Math.floor(((v - bas) / (haut - bas)) * CASES)))]++;
+    for (const v of xs) out[Math.min(CASES - 1, Math.max(0, Math.floor(((v - bas) / (haut - bas)) * CASES)))]++;
     return out;
-  }, [values, haut]);
-  const cime = Math.max(1, ...cases);
+  };
+  const cases = useMemo(() => compter(values), [values, haut]); // eslint-disable-line react-hooks/exhaustive-deps
+  const fond = useMemo(() => (ensemble ? compter(ensemble) : null), [ensemble, haut]); // eslint-disable-line react-hooks/exhaustive-deps
+  const cime = Math.max(1, ...(fond ?? cases));
   const a = min ?? bas;
   const b = max ?? haut;
   // L'état local pendant qu'on tire ; l'adresse ne change qu'au relâchement.
@@ -84,7 +86,12 @@ export function DureeGauge({ values, min, max, onChange }: { values: number[]; m
           const x0 = bas + (i / CASES) * (haut - bas);
           const x1 = bas + ((i + 1) / CASES) * (haut - bas);
           const dedans = x1 > cur.a && x0 < cur.b + 1e-9;
-          return <i key={i} style={{ height: `${Math.max(6, (n / cime) * 100)}%` }} className={dedans ? styles.on : undefined} />;
+          return (
+            <span key={i} className={styles.col}>
+              {fond && <b className={styles.pale} style={{ height: `${Math.max(6, (fond[i] / cime) * 100)}%` }} />}
+              <i style={{ height: `${n === 0 && fond ? 0 : Math.max(6, (n / cime) * 100)}%` }} className={dedans ? styles.on : undefined} />
+            </span>
+          );
         })}
       </div>
       <div className={styles.slider}>

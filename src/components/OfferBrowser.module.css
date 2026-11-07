@@ -469,6 +469,41 @@
   color: var(--on-select);
   border-color: var(--select);
 }
+/* DES FILTRES QUI SE RÉPONDENT (7 novembre 2026) : le nombre de lignes à droite du nom, une pastille à zéro grisée et pointillée, une valeur choisie devenue impossible barrée et retirable. */
+.chipN {
+  margin-left: var(--s-2);
+  font-size: var(--t-1);
+  font-weight: 600;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+.chipVide {
+  opacity: 0.45;
+  border-style: dashed;
+}
+.chipImpossible {
+  text-decoration: line-through;
+  border-style: dashed;
+  opacity: 0.8;
+}
+.impossible {
+  margin: var(--s-3) 0 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: 6px;
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  font-size: var(--t-2);
+}
+.retirer {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
 @media (max-width: 760px) {
   .filters {
     display: none;

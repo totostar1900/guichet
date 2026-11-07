@@ -62,4 +62,8 @@ export const EN_COMPARAISON: Record<string, string> = {
   "ligne d'émission ou de rachat : aucun historique de prix": "issue or buyback line: no price history",
   "aucune valeur utilisable aux deux bouts de la période": "no usable value at both ends of the period",
   "Le taux annuel que rapporte votre argent entre deux placements. Quand un bon arrive à l'échéance, il s'écoule parfois plusieurs jours avant la séance suivante : ce temps est compté à ce taux. La maison en propose un, arrêté et daté par le desk ; vous pouvez y mettre le taux de votre banque, et les chiffres changent avec. Il ne sert qu'au temps sans placement des bons, jamais aux fonds, aux actions ni aux OTA. Brut, avant fiscalité.": "The annual rate your money earns between two placements. When a bill matures, several days sometimes pass before the next auction: that time is counted at this rate. The house offers one, set and dated by the desk; you can enter your bank's rate, and the figures change with it. It only applies to the time bills spend without placement, never to funds, shares or OTAs. Gross, before tax.",
+  "dernier cours publié · exécuté au mieux, vous ne fixez pas le cours": "last published price · executed at best, you do not set the price",
+  "{v} ne donne aucune ligne avec vos autres choix.": "{v} gives no lines with your other choices.",
+  "Retirer ce filtre": "Remove this filter",
+  "Chercher dans cette liste…": "Search this list…",
 };

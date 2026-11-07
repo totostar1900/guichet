@@ -32,6 +32,7 @@ import { fmt, fmtPct } from "@/lib/format";
 import styles from "./page.module.css";
 import affichage from "@/components/Affichage.module.css";
 import { Sheet } from "@/components/mobile/Sheet";
+import { compterFacettes } from "@/lib/domain/facettes";
 import { useDates, useT } from "@/i18n/client";
 import type { FundCurve } from "@/lib/domain/fund-curve";
 
@@ -480,6 +481,24 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
     ].slice(0, 8);
   }, [draft, typing, managers, manager, depositaries, depositary, rows]);
 
+  /**
+   * LES FILTRES SE RÉPONDENT (7 novembre 2026, planche « Filtres qui se répondent »).
+   *
+   * Le nombre d'une société ou d'un dépositaire est celui des fonds qui resteraient si on le choisissait, la catégorie, la recherche, la plage et l'autre liste appliquées
+   * et sans la sienne : une société sans fonds pour la sélection est grisée, jamais retirée.
+   */
+  const comptesFacettes = useMemo(() => {
+    const ql = fold(draft.trim());
+    const dansPlage = (r: FundRow) => {
+      if (!plage) return true;
+      const v = valeurFenetre(r, fenetre);
+      return v != null && v >= plage[0] - 0.001 && v <= plage[1] + 0.001;
+    };
+    return compterFacettes(rows, ["gestion", "depositaire"], (r, cle) => (!cat || r.category === cat) && (cle === "gestion" || !manager || r.manager === manager) && (cle === "depositaire" || !depositary || r.depositary === depositary) && dansPlage(r) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)), (r, cle) => [cle === "gestion" ? r.manager : r.depositary]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, cat, manager, depositary, sp, fenetre, draft]);
+  const [chercheSheet, setChercheSheet] = useState<Record<string, string>>({});
+
   const filtered = useMemo(() => {
     const ql = fold(draft.trim());
     /* La plage ne retire que des fonds MESURABLES sur la fenêtre : un fonds
@@ -801,20 +820,38 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
           >
             <div className={affichage.corps}>
               {([
-                [t("Société de gestion"), managers, manager, setManager],
-                [t("Dépositaire"), depositaries, depositary, setDepositary],
-              ] as [string, string[], string, (v: string) => void][]).map(([quoi, valeurs, choisi, choisir]) => (
-                <div className={affichage.groupe} role="group" aria-label={quoi} key={quoi}>
-                  <span className={affichage.etiquette}>{quoi}</span>
-                  <div className={affichage.options}>
-                    {valeurs.map((v) => (
-                      <button key={v} type="button" aria-pressed={choisi === v} className={choisi === v ? affichage.on : undefined} onClick={() => choisir(choisi === v ? "" : v)}>
-                        {v}
-                      </button>
-                    ))}
+                ["gestion", t("Société de gestion"), managers, manager, setManager],
+                ["depositaire", t("Dépositaire"), depositaries, depositary, setDepositary],
+              ] as [string, string, string[], string, (v: string) => void][]).map(([cle, quoi, valeurs, choisi, choisir]) => {
+                const n = (v: string) => comptesFacettes[cle]?.[v] ?? 0;
+                const cherche = fold((chercheSheet[cle] ?? "").trim());
+                /* LES PLUS FOURNIES D'ABORD (planche 5B) : onze sociétés en colonne font une page entière sur un téléphone. Le tri par nombre met en haut ce qui compte, la recherche retrouve le reste, les sociétés à zéro vont en bas, grisées. Ce qui est choisi reste toujours visible. */
+                const montrees = [...valeurs].filter((v) => v === choisi || !cherche || fold(v).includes(cherche)).sort((x, y) => n(y) - n(x) || x.localeCompare(y, "fr"));
+                return (
+                  <div className={affichage.groupe} role="group" aria-label={quoi} key={cle}>
+                    <span className={affichage.etiquette}>{quoi}</span>
+                    {valeurs.length > 6 && (
+                      <input type="text" inputMode="search" className={affichage.cherche} placeholder={t("Chercher dans cette liste…")} aria-label={`${t("Chercher")} · ${quoi}`} value={chercheSheet[cle] ?? ""} onChange={(e) => setChercheSheet((c) => ({ ...c, [cle]: e.target.value }))} />
+                    )}
+                    <div className={affichage.options}>
+                      {montrees.map((v) => (
+                        <button key={v} type="button" aria-pressed={choisi === v} className={`${choisi === v ? affichage.on : ""} ${n(v) === 0 && choisi !== v ? affichage.vide : ""} ${n(v) === 0 && choisi === v ? affichage.impossible : ""}`} onClick={() => choisir(choisi === v ? "" : v)}>
+                          {v} <small className={affichage.n}>{n(v)}</small>
+                          {n(v) === 0 && choisi === v && <span aria-hidden="true"> ×</span>}
+                        </button>
+                      ))}
+                    </div>
+                    {choisi && n(choisi) === 0 && (
+                      <p className={affichage.phraseImpossible} role="status">
+                        {t("{v} ne donne aucune ligne avec vos autres choix.", { v: choisi })}{" "}
+                        <button type="button" className={affichage.retirer} onClick={() => choisir("")}>
+                          {t("Retirer ce filtre")}
+                        </button>
+                      </p>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Sheet>
           {/* L'AFFICHAGE — GROUPER, TRIER, LA VUE, LA DENSITÉ, TOUT EFFACER — EST DERRIÈRE UN SEUL BOUTON (4 novembre 2026, choix C de la

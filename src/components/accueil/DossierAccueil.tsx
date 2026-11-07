@@ -138,7 +138,9 @@ export async function DossierAccueil({
     const c = chiffresDeLIntention(i, offre(i.offerId)?.kind ?? "");
     const o = offre(i.offerId);
     /* LE GABARIT DE LA MAISON (2 novembre 2026) : « OTA 4 ans • CMR » en tête ; dessous, le type, le montant (en or), le coupon et la limite du client (en bleu). */
-    const limite = i.limitPrice != null && o?.instrument === "obligation" ? `${fmtPrice(i.limitPrice)} ${i.type === "vente" ? t("min") : t("max")}` : undefined;
+    /* LE PRIX MAX SE MONTRE AUSSI SUR UN OTA OU UN EMPRUNT, ET MÊME À 100 % (7 novembre 2026) : il n'y avait de limite que pour une obligation cotée, et un plafond au pair ne s'affichait nulle part. */
+    const enPrix = o?.kind === "OTA" || o?.kind === "APE" || o?.instrument === "obligation";
+    const limite = i.limitPrice != null && enPrix ? `${fmtPrice(i.limitPrice)} ${i.type === "vente" ? t("min") : t("max")}` : undefined;
     return {
       href: `/offres/${i.offerId}`,
       nom: (o && gabaritDIntention(o)) ?? t(titreDe(i.offerId)),

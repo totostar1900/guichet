@@ -30,6 +30,7 @@ import { estMesure, MESURE_PAR_DEFAUT, type MesureNuage } from "@/lib/domain/nua
 import { TeteGroupe, type Groupe } from "./market/TeteGroupe";
 import { nomsCourts } from "@/lib/domain/nom-court";
 import { Dropdown } from "./market/Dropdown";
+import { compterFacettes, impossibles, type Comptes } from "@/lib/domain/facettes";
 import { cadenceDuSuivi, SECTIONS, SECTION_LABEL, sectionDe, type Lieu, type Section } from "@/lib/domain/sections";
 import { usePhone } from "./chart-utils";
 import { BlocRepliable, FoldAll, useFold } from "./Fold";
@@ -452,7 +453,7 @@ function ListRow({ o, s, featured, avertir }: { o: Offer; s: OfferSummary; featu
 
 /* ---------- the filters, the search and the sort in a sheet over the list (the page keeps its place) ---------- */
 type Group = { key: string; label: string; items: [string, string][]; selected: Set<string>; single?: boolean };
-function FilterSheet({ open, onClose, groups, onToggle, onClear, gauge, extra, trie = true }: { open: boolean; onClose: () => void; groups: Group[]; onToggle: (key: string, value: string, single?: boolean) => void; onClear: () => void; gauge: React.ReactNode; extra: React.ReactNode; /** Faux quand la feuille ne porte pas le tri : son titre ne doit pas le promettre. */ trie?: boolean }) {
+function FilterSheet({ open, onClose, groups, comptes, onToggle, onClear, gauge, extra, trie = true }: { open: boolean; /** Le nombre de lignes par pastille : une pastille à zéro est grisée, une valeur choisie qui tombe à zéro est barrée et retirable. */ comptes?: Comptes; onClose: () => void; groups: Group[]; onToggle: (key: string, value: string, single?: boolean) => void; onClear: () => void; gauge: React.ReactNode; extra: React.ReactNode; /** Faux quand la feuille ne porte pas le tri : son titre ne doit pas le promettre. */ trie?: boolean }) {
   const t = useT();
   return (
     <Sheet open={open} onClose={onClose} title={t(trie ? "Filtrer et trier" : "Filtrer")} centre>
@@ -462,12 +463,28 @@ function FilterSheet({ open, onClose, groups, onToggle, onClear, gauge, extra, t
             <div key={g.key} className={styles.fg}>
               <span>{t(g.label)}</span>
               <div className={styles.chipRow}>
-                {g.items.map(([v, l]) => (
-                  <button key={v} type="button" className={`${styles.chipBtn} ${g.selected.has(v) ? styles.chipOn : ""}`} aria-pressed={g.selected.has(v)} onClick={() => onToggle(g.key, v, g.single)}>
-                    {t(l)}
-                  </button>
-                ))}
+                {g.items.map(([v, l]) => {
+                  const n = comptes?.[g.key]?.[v] ?? 0;
+                  const choisie = g.selected.has(v);
+                  const vide = comptes != null && n === 0;
+                  return (
+                    <button key={v} type="button" className={`${styles.chipBtn} ${choisie ? styles.chipOn : ""} ${vide && !choisie ? styles.chipVide : ""} ${vide && choisie ? styles.chipImpossible : ""}`} aria-pressed={choisie} onClick={() => onToggle(g.key, v, g.single)}>
+                      {t(l)}
+                      {comptes && <small className={styles.chipN}>{n}</small>}
+                      {vide && choisie && <span aria-hidden="true"> ×</span>}
+                    </button>
+                  );
+                })}
               </div>
+              {comptes &&
+                impossibles(g.selected, comptes[g.key]).map((v) => (
+                  <p key={v} className={styles.impossible} role="status">
+                    {t("{v} ne donne aucune ligne avec vos autres choix.", { v: t(g.items.find(([x]) => x === v)?.[1] ?? v) })}{" "}
+                    <button type="button" className={styles.retirer} onClick={() => onToggle(g.key, v, g.single)}>
+                      {t("Retirer ce filtre")}
+                    </button>
+                  </p>
+                ))}
             </div>
           ))}
           {/* Le titre ne paraît qu'avec sa jauge : la cote n'en a plus, le
@@ -674,7 +691,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
      dans « Tout effacer » pour la raison du tri, parce qu'effacer veut dire
      rendre la page telle qu'elle s'ouvre. */
   const aEffacer = filterCount > 0 || Boolean(q) || Boolean(sp.get("tri")) || Boolean(sp.get("sens")) || Boolean(sectionParam) || Boolean(sp.get("mesure"));
-  const famItems = SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyShort(f)] as [string, string]));
+  /* UN INSTRUMENT QUE LA PAGE N'A JAMAIS NE S'OFFRE PAS (planche du 7 novembre 2026, 4A) : « Action » ou « IPO » sur les adjudications ne sont pas des pastilles à zéro, elles n'ont pas lieu d'être. Ce qui est choisi reste offert. */
+  const famPresentes = new Set(offers.map((o) => offerFamily(o)));
+  const famItems = SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => FAMILIES().filter((f) => familySegment(f) === sg && (famPresentes.has(f) || kind.has(f))).map((f) => [f, familyShort(f)] as [string, string]));
   const groups: Group[] = [
     { key: "instrument", label: t("Instrument"), items: famItems, selected: kind },
     { key: "pays", label: t("Pays"), items: COUNTRIES.map((c) => [c, c] as [string, string]), selected: country },
@@ -730,14 +749,14 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    * les deux bornes qu'il pose. Recopier le crible pour cela, c'était deux
    * vérités sur la même page le jour où l'une des deux change.
    */
-  const garde = (o: Offer, ql: string, avecPlages: boolean): boolean => {
+  const garde = (o: Offer, ql: string, avecPlages: boolean, sans?: string): boolean => {
     const st = displayStatus(o, now);
     const fam = offerFamily(o);
     if (segment && familySegment(fam) !== segment) return false;
     if (sectionChoisie && sectionDe(o) !== sectionChoisie) return false;
-    if (kind.size && !kind.has(fam)) return false;
-    if (country.size && !country.has(o.country)) return false;
-    if (status.size) {
+    if (sans !== "instrument" && kind.size && !kind.has(fam)) return false;
+    if (sans !== "pays" && country.size && !country.has(o.country)) return false;
+    if (sans !== "statut" && status.size) {
       const sel = status.has("selection") && summarize(o, now, { dates }).badges.some((b) => b.key === "selection");
       const rest = new Set([...status].filter((x) => x !== "selection"));
       if (!sel && (rest.size === 0 || !rest.has(normStatus(st)))) return false;
@@ -747,11 +766,11 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       const k = o.kind === "ACTIONS" || o.kind === "FONDS" || (o.kind === "MARCHE" && o.instrument === "action") ? "eq" : t < 1 ? "lt1" : t <= 3 ? "1-3" : "gt3";
       if (!tenor.has(k)) return false;
     }
-    if (avecPlages && (dr.min != null || dr.max != null)) {
+    if (avecPlages && sans !== "duree" && (dr.min != null || dr.max != null)) {
       const an = tenorYears(o);
       if (!(an > 0) || (dr.min != null && an < dr.min) || (dr.max != null && an > dr.max)) return false;
     }
-    if (avecPlages && (yr.min != null || yr.max != null)) {
+    if (avecPlages && sans !== "rendement" && (yr.min != null || yr.max != null)) {
       const y = headlineYield(o);
       if (y == null || (yr.min != null && y < yr.min) || (yr.max != null && y > yr.max)) return false;
     }
@@ -800,6 +819,38 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offers, now, sp, sort, dir, courbes]);
+
+  /**
+   * LES FILTRES SE RÉPONDENT (7 novembre 2026, planche « Filtres qui se répondent »).
+   *
+   * Le nombre d'une pastille est celui des lignes qui resteraient si on la choisissait, tous les autres filtres appliqués et sans le sien. Les deux jauges se
+   * redessinent pour ce qui reste, l'ensemble des lignes du lieu restant en fond pâle. Le crible est celui de la liste : `garde`, qui sait ignorer un filtre.
+   */
+  const valeursDeStatut = (o: Offer): string[] => {
+    const v = [normStatus(displayStatus(o, now))];
+    if (summarize(o, now, { dates }).badges.some((b) => b.key === "selection")) v.push("selection");
+    return v;
+  };
+  const comptes: Comptes = useMemo(() => {
+    const ql = fold(q.trim());
+    return compterFacettes(
+      offers,
+      ["instrument", "pays", "statut"],
+      (o, cle) => garde(o, ql, true, cle),
+      (o, cle) => (cle === "instrument" ? [offerFamily(o)] : cle === "pays" ? [o.country] : valeursDeStatut(o)),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offers, now, sp]);
+  const yieldsRestants = useMemo(() => {
+    const ql = fold(q.trim());
+    return offers.filter((o) => garde(o, ql, true, "rendement")).map((o) => headlineYield(o)).filter((y): y is number => y != null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offers, now, sp]);
+  const dureesRestantes = useMemo(() => {
+    const ql = fold(q.trim());
+    return offers.filter((o) => garde(o, ql, true, "duree")).map((o) => tenorYears(o)).filter((a) => a > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offers, now, sp]);
 
   /**
    * LES POINTS DU NUAGE : les lignes à échéance, sans les deux plages qu'il
@@ -1106,12 +1157,13 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
             label={t("Instrument")}
             items={SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => [[`#${sg}`, SEGMENT_LABEL[sg]] as [string, string], ...FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyLabel(f)] as [string, string])])}
             selected={kind}
+            comptes={comptes.instrument}
             onChange={setFilter("instrument")}
           />
-          <Dropdown label={t("Pays")} items={COUNTRIES.map((c) => [c, c])} selected={country} onChange={setFilter("pays")} />
-          <Dropdown label={t("Statut")} items={STATUSES} selected={status} onChange={setFilter("statut")} />
+          <Dropdown label={t("Pays")} items={COUNTRIES.map((c) => [c, c])} selected={country} comptes={comptes.pays} onChange={setFilter("pays")} />
+          <Dropdown label={t("Statut")} items={STATUSES} selected={status} comptes={comptes.statut} onChange={setFilter("statut")} />
           <Dropdown label={t("Durée")} items={TENORS} selected={tenor} onChange={setFilter("duree")} />
-          <YieldDropdown values={yields} min={yr.min} max={yr.max} onChange={setYield} />
+          <YieldDropdown values={yieldsRestants} ensemble={yields} min={yr.min} max={yr.max} onChange={setYield} />
           {(filterCount > 0 || q) && (
             <button type="button" className={styles.clear} onClick={reset}>
               {t("Effacer")}
@@ -1138,13 +1190,14 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         open={sheet}
         onClose={() => setSheet(false)}
         groups={groups}
+        comptes={comptes}
         onToggle={toggle}
         onClear={reset}
         /* LA JAUGE DU RENDEMENT A QUITTÉ LA FEUILLE SUR LA COTE : le nuage
            règle déjà cette plage, et la même borne commandée à deux endroits
            est une borne dont on ne sait plus lequel la tient. Elle reste aux
            adjudications, qui n'ont pas de nuage. */
-        gauge={adj ? <YieldGauge values={yields} min={yr.min} max={yr.max} onChange={setYield} /> : null}
+        gauge={adj ? <YieldGauge values={yieldsRestants} ensemble={yields} min={yr.min} max={yr.max} onChange={setYield} /> : null}
         extra={
           adj ? (
             /* LA DURÉE EN JAUGE, et rien d'autre. Ce qui a été retiré de
@@ -1157,7 +1210,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
                lignes. */
             <div className={styles.fg}>
               <span>{t("Durée")}</span>
-              <DureeGauge values={durees} min={dr.min} max={dr.max} onChange={(min, max) => update({ ans: dureeRangeParam(min, max) })} />
+              <DureeGauge values={dureesRestantes} ensemble={durees} min={dr.min} max={dr.max} onChange={(min, max) => update({ ans: dureeRangeParam(min, max) })} />
             </div>
           ) : (
             /* LA FEUILLE NE PORTE PLUS QUE DES FILTRES, et c'est ce que son

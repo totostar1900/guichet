@@ -173,7 +173,8 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
     offerId,
     type,
     amount: amt || null,
-    limitPrice: limit && !isNaN(limit) ? limit : null,
+    /* Le client ne choisit pas le cours d'une action : une limite postée à la main (le formulaire est une commodité, cette action s'appelle sans lui) n'est pas retenue. */
+    limitPrice: !(offer.kind === "MARCHE" && offer.instrument === "action") && limit && !isNaN(limit) ? limit : null,
     switchToOfferId: switchTo,
     switchFloor: plancher,
     switchBy: limite,

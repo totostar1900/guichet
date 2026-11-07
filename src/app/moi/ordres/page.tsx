@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL, ordreSignable, retirableParLeClient } from "@/lib/domain/intent";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
 import type { Intent, Offer } from "@/lib/domain/types";
 import { CounterAnswer } from "../CounterAnswer";
 import { CarteOrdre } from "./Carte";
@@ -119,7 +119,10 @@ export default async function OrdresPage() {
       [t("Passé le"), fmtDate(i.createdAt)],
       [t("Référence"), i.ref],
     ];
-    if (i.limitPrice != null) lignes.push([t("Votre limite"), `${fmt(i.limitPrice)} FCFA`]);
+    /* Une dette se limite en % du nominal : « Prix maximum 100 % », y compris au pair. Une ligne cotée en francs garde sa limite en FCFA. */
+    const enPrix = o?.kind === "OTA" || o?.kind === "APE" || o?.instrument === "obligation";
+    if (i.limitPrice != null && enPrix) lignes.push([t(i.type === "vente" ? "Prix minimum" : "Prix maximum"), fmtPrice(i.limitPrice)]);
+    if (i.limitPrice != null && !enPrix) lignes.push([t("Votre limite"), `${fmt(i.limitPrice)} FCFA`]);
     if (i.executedPrice != null) lignes.push([t("Prix exécuté"), `${fmt(i.executedPrice)} FCFA`]);
     if (i.allocationPct != null) lignes.push([t("Part servie"), fmtPct(i.allocationPct, 0)]);
     if (i.servedUnits != null) lignes.push([t("Titres servis"), fmt(i.servedUnits)]);

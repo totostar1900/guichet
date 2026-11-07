@@ -62,6 +62,10 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+/* Une case de la rangée ne dépasse jamais la rangée : le libellé long de « Replacer le produit dans » (une liste sans retour à la ligne) élargissait la piste, et la carte des chiffres débordait de 27 px à droite sur l'ordre de vente. */
+.row > * {
+  min-width: 0;
+}
 .contact {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -509,6 +513,9 @@
 }
 .trio input {
   font-variant-numeric: tabular-nums;
+  /* Un champ à gros chiffres ne doit pas élargir sa case : sans cela la carte débordait de 15 px à droite quand c'était la quantité qu'on tapait. */
+  min-width: 0;
+  width: 100%;
 }
 /* Le champ qu'on tape porte l'encre ; celui qui suit porte le gris et le mot. */
 /* CES DEUX NOTES ÉTAIENT À 0,7 REM, soit plus petit que « --t-1 », le plus
@@ -526,7 +533,7 @@
 }
 @media (max-width: 760px) {
   .trio {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .trioOp {
     display: none;
@@ -535,7 +542,7 @@
 /* LE TRIO S'EMPILE QUAND LE FORMULAIRE EST ÉTROIT, pas seulement quand l'écran l'est (6 novembre 2026). Sur grand écran le formulaire vit dans une colonne de 420 px : trois cases de 108 px y coupaient le chiffre qu'on tape (« --t-9 », 39 px) à « 10 00 ». La largeur qui compte est celle du formulaire, d'où une requête de conteneur. */
 @container (max-width: 700px) {
   .trio {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .trioOp {
     display: none;

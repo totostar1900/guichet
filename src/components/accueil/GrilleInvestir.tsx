@@ -3,6 +3,9 @@ import { getT } from "@/i18n/server";
 import { fondsOuverts, lignesActives, seancesOuvertes, seancesPrevues } from "@/lib/domain/accueil";
 import type { Offer } from "@/lib/domain/types";
 import { INSTRUMENTS_PAGES } from "@/lib/nav-groups";
+import { getSession } from "@/lib/auth";
+import { repo } from "@/lib/data";
+import { FournisseurDeSuivis } from "./FournisseurDeSuivis";
 import { BlocDeLignes, lignesDeBloc, NB_LIGNES_PAR_BLOC } from "./BlocDeLignes";
 import styles from "./GrilleInvestir.module.css";
 
@@ -28,19 +31,24 @@ export async function GrilleInvestir({ offres }: { offres: Offer[] }) {
   const page = (cle: string) => INSTRUMENTS_PAGES.find((p) => p.key === cle)!;
   const ouvertes = seancesOuvertes(offres, now).slice(0, NB_LIGNES_PAR_BLOC);
   const prevues = ouvertes.length ? [] : seancesPrevues(offres, now, NB_LIGNES_PAR_BLOC);
+  const session = await getSession();
+  /* Les lignes que ce lecteur suit : un glissement sans elles dirait « Suivre » sur une ligne déjà suivie. Une lecture qui échoue ne fait pas tomber l'accueil. */
+  const veilles = session ? await repo().listWatches(session.userId).catch(() => []) : [];
   const [titres, fonds, adjudications] = await Promise.all([
     lignesDeBloc(lignesActives(offres, now).slice(0, NB_LIGNES_PAR_BLOC), "cote", now),
     lignesDeBloc(fondsOuverts(offres).slice(0, NB_LIGNES_PAR_BLOC), "fonds", now),
     lignesDeBloc(ouvertes.length ? ouvertes : prevues, ouvertes.length ? "adjudications" : "prevues", now),
   ]);
   return (
+    <FournisseurDeSuivis ids={veilles.map((w) => w.offerId)}>
     <section className="pile" aria-label={t("Investir")}>
-      <BlocDeLignes id="investir-titres" titre={page("titres").label} href={page("titres").href} lignes={titres} />
-      <BlocDeLignes id="investir-fonds" titre={page("fonds").label} href={page("fonds").href} lignes={fonds} />
-      <BlocDeLignes id="investir-adjudications" titre={page("calendrier").label} href={page("calendrier").href} lignes={adjudications} />
+      <BlocDeLignes id="investir-titres" titre={page("titres").label} href={page("titres").href} lignes={titres} glisser />
+      <BlocDeLignes id="investir-fonds" titre={page("fonds").label} href={page("fonds").href} lignes={fonds} glisser />
+      <BlocDeLignes id="investir-adjudications" titre={page("calendrier").label} href={page("calendrier").href} lignes={adjudications} glisser />
       <Link href="/trader" className={styles.tous}>
         {t("Tous vos services")} →
       </Link>
     </section>
+    </FournisseurDeSuivis>
   );
 }

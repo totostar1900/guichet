@@ -112,7 +112,8 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
    * somme, et « tout vendre » n'a de sens qu'en titres. Le choix ne se pose
    * donc que pour un achat, et il s'ouvre en francs.
    */
-  const [unit, setUnit] = useState<"titres" | "francs">("francs");
+  /* Les deux sens d'une ligne cotée se lisent pareil (7 novembre 2026) : on tape la quantité, le total se déduit. On peut toujours taper le total à l'achat. */
+  const [unit, setUnit] = useState<"titres" | "francs">(offer.kind === "MARCHE" ? "titres" : "francs");
   /**
    * LA SOMME D'UN ORDRE DE BOURSE S'AMORÇAIT DEPUIS NULLE PART.
    *
@@ -223,6 +224,26 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
        déjà là où il faut. */
     setStep(n);
   };
+  /**
+   * « ENTRÉE » VALIDE LA CASE ET PASSE À LA SUIVANTE (7 novembre 2026).
+   *
+   * Demandé par le client : une fois le montant ou la valeur tapés, la touche d'entrée du clavier ne doit pas envoyer le formulaire, mais passer au champ suivant. Au
+   * dernier champ de l'étape, elle passe à l'étape suivante (avec les mêmes contrôles que « Continuer ») ; à la dernière étape elle ne fait rien : un ordre ne part
+   * que par le bouton « Envoyer au desk », jamais par une touche tapée en passant. Le message libre (textarea) garde son retour à la ligne.
+   */
+  const entrerPourSuivre = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    const el = e.target;
+    if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing || !(el instanceof HTMLInputElement)) return;
+    if (["checkbox", "radio", "button", "submit", "hidden", "file"].includes(el.type)) return;
+    e.preventDefault();
+    const zone = el.closest<HTMLElement>("[data-step]");
+    const champs = Array.from(zone?.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([readonly]):not([disabled]), textarea:not([readonly]):not([disabled])') ?? []).filter((c) => c.offsetParent !== null && !c.closest("[data-calcule]"));
+    const suivant = champs[champs.indexOf(el) + 1];
+    if (suivant) {
+      suivant.focus({ preventScroll: true });
+      suivant.select();
+    } else if (step < 3) goTo(step + 1);
+  };
   const parse = (s: string) => (offer.kind === "FONDS" && type === "rachat" ? parseUnits(s) : parseAmount(s));
   const market = offer.kind === "MARCHE";
   // Le sondage ne vit que sur le primaire obligataire, et seulement quand le client
@@ -244,7 +265,9 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
      robot refusera chaque soir en silence jusqu'à l'expiration. */
 
   const limitNum = limit ? Number(limit.replace(",", ".")) : null;
-  const lim = limitNum != null && !isNaN(limitNum) && limitNum > 0 ? limitNum : null;
+  /* LE CLIENT NE CHOISIT PAS LE COURS D'UNE ACTION (7 novembre 2026) : il dit une quantité, l'ordre est exécuté au mieux au carnet. Seule une obligation cotée garde sa limite. */
+  const coursImpose = offer.kind === "MARCHE" && offer.instrument === "action";
+  const lim = !coursImpose && limitNum != null && !isNaN(limitNum) && limitNum > 0 ? limitNum : null;
   /* LE SENS DU LEVIER, ET IL S'INVERSE D'UN COMPARTIMENT À L'AUTRE : le Trésor
      sert d'abord ce qui lui coûte le moins, donc les taux les plus bas sur un
      bon et les prix les plus hauts sur une obligation. Le repère est le niveau
@@ -488,7 +511,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           </button>
         </div>
       )}
-      <form action={action} ref={formRef} data-at={step} className={styles.form}>
+      <form action={action} ref={formRef} data-at={step} className={styles.form} onKeyDown={entrerPourSuivre}>
         <input type="hidden" name="offerId" value={offer.id} />
         {bridge && <input type="hidden" name="de" value={bridge.token} />}
         <div className={styles.stepBar} aria-hidden="true">
@@ -556,7 +579,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                   c'est lui qui décide de « calculé » et de « vous tapez
                   ici ». Le chiffre qu'on écrit grandit ; celui qui se déduit
                   reste lisible sans prendre la parole. */}
-              <label className={`field ${byCash ? styles.chiffreSuit : styles.chiffreTape}`}>
+              <label className={`field ${byCash ? styles.chiffreSuit : styles.chiffreTape}`} data-calcule={byCash ? "" : undefined}>
                 <span>{t(offer.instrument === "obligation" ? "Quantité (titres)" : "Quantité (actions)")}</span>
                 <input
                   data-order-field
@@ -574,15 +597,24 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               <span className={styles.trioOp} aria-hidden="true">
                 ×
               </span>
+              {coursImpose ? (
+                /* LE COURS D'UNE ACTION SE LIT, IL NE SE TAPE PAS : même place, même gabarit, un champ en lecture seule, et rien n'en part vers le desk. */
+                <label className={`field ${styles.limite}`}>
+                  <span>{t("Cours (FCFA)")}</span>
+                  <input type="text" readOnly tabIndex={-1} value={groupDigits(String((vend ? offer.bid : offer.ask) ?? offer.lastPrice ?? ""))} aria-describedby="cours-impose" />
+                  <small id="cours-impose" className={styles.calc}>{t("dernier cours publié · exécuté au mieux, vous ne fixez pas le cours")}</small>
+                </label>
+              ) : (
               <label className={`field ${styles.limite}`}>
-                <span>{t(lim ? (offer.instrument === "obligation" ? "Votre limite (% du nominal)" : "Votre limite (FCFA)") : offer.instrument === "obligation" ? "Cours (% du nominal)" : "Cours (FCFA)")}</span>
-                <input name="limitPrice" type="number" step={offer.instrument === "obligation" ? "0.001" : "1"} placeholder={String((vend ? offer.bid : offer.ask) ?? offer.lastPrice ?? "")} value={limit} onChange={(e) => setLimit(e.target.value)} />
-                <small className={lim ? styles.typed : styles.calc}>{t(lim ? "votre limite : le desk ne dépasse pas" : "dernier cours publié · laissez vide pour au mieux")}</small>
-              </label>
+                  <span>{t(lim ? (offer.instrument === "obligation" ? "Votre limite (% du nominal)" : "Votre limite (FCFA)") : offer.instrument === "obligation" ? "Cours (% du nominal)" : "Cours (FCFA)")}</span>
+                  <input name="limitPrice" type="number" step={offer.instrument === "obligation" ? "0.001" : "1"} placeholder={String((vend ? offer.bid : offer.ask) ?? offer.lastPrice ?? "")} value={limit} onChange={(e) => setLimit(e.target.value)} />
+                  <small className={lim ? styles.typed : styles.calc}>{t(lim ? "votre limite : le desk ne dépasse pas" : "dernier cours publié · laissez vide pour au mieux")}</small>
+                </label>
+              )}
               <span className={styles.trioOp} aria-hidden="true">
                 =
               </span>
-              <label className={`field ${byCash && !vend ? styles.chiffreTape : styles.chiffreSuit}`}>
+              <label className={`field ${byCash && !vend ? styles.chiffreTape : styles.chiffreSuit}`} data-calcule={byCash && !vend ? undefined : ""}>
                 <span>{t(vend ? "Produit estimé (FCFA)" : "Total (FCFA)")}</span>
                 <input
                   inputMode="numeric"

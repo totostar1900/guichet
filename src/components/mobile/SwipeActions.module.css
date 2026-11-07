@@ -197,3 +197,14 @@
     stroke-linejoin: round;
   }
 }
+
+/* UNE RANGÉE DE L'ACCUEIL, PAS UNE CARTE (7 novembre 2026) : les mêmes trois actions sortent de dessous au tiré vers la gauche. Les angles restent droits (la rangée est dans une carte qui a les siens), et la rangée prend un fond plein le temps du geste, sans quoi les actions se liraient à travers elle. */
+@media (max-width: 760px) {
+  .ligne {
+    border-radius: 0;
+  }
+  .ligne.live .front,
+  .ligne.open .front {
+    background: var(--surface);
+  }
+}

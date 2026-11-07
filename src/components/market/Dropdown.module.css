@@ -97,6 +97,19 @@
 .ddItem:hover {
   background: var(--surface-2);
 }
+/* Le nombre de lignes de la valeur (7 novembre 2026) : à droite, grisé à zéro, barré si la valeur est choisie et ne donne plus rien. */
+.ddN {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.ddVide {
+  opacity: 0.45;
+}
+.ddImpossible {
+  text-decoration: line-through;
+  opacity: 0.8;
+}
 .ddItem input {
   accent-color: var(--select);
   margin: 0;

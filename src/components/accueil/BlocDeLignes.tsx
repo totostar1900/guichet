@@ -8,6 +8,8 @@ import type { TonDEtat } from "@/lib/domain/accueil";
 import type { Offer } from "@/lib/domain/types";
 import { summarize } from "@/lib/domain/summary";
 import { joursEnMots } from "@/lib/domain/echeances";
+import { cadenceDuSuivi } from "@/lib/domain/sections";
+import { SwipeActions } from "@/components/mobile/SwipeActions";
 import { fmtDate } from "@/lib/format";
 import { coursEtRevenus, sousLigne } from "@/lib/domain/ligne-titre";
 import { aUnRond, joursRestants } from "@/lib/domain/accueil";
@@ -26,6 +28,8 @@ export interface LigneDeBloc {
   id: string;
   href: string;
   offre: Pick<Offer, "issuer" | "country" | "title">;
+  /** Une séance se rappelle chaque jour jusqu'à sa clôture, une ligne cotée se suit à chaque mouvement : la cadence du glissement. */
+  cadence: "evenement" | "quotidien";
   /** Le rond (drapeau) devant le nom : les adjudications seulement. */
   rond?: boolean;
   nom: string;
@@ -45,7 +49,7 @@ export async function lignesDeBloc(offres: Offer[], mode: "cote" | "fonds" | "ad
   const actions = mode === "cote" ? await variationsDesActions(offres) : new Map();
   return offres.map((o) => {
     const s = summarize(o, now);
-    const base: LigneDeBloc = { id: o.id, href: `/offres/${o.id}`, offre: o, rond: aUnRond(o), nom: t(o.title), meta: sousLigne(o, t(s.subtitle)), valeur: s.hero, libelle: s.heroUnit ? t(s.heroUnit) : undefined };
+    const base: LigneDeBloc = { id: o.id, href: `/offres/${o.id}`, offre: o, cadence: cadenceDuSuivi(o), rond: aUnRond(o), nom: t(o.title), meta: sousLigne(o, t(s.subtitle)), valeur: s.hero, libelle: s.heroUnit ? t(s.heroUnit) : undefined };
     if (mode === "adjudications") {
       const j = joursRestants(o.deadlineAt, now);
       const q = joursEnMots(j);
@@ -64,7 +68,7 @@ export async function lignesDeBloc(offres: Offer[], mode: "cote" | "fonds" | "ad
  * (avec « Tout voir ») est le lien vers la liste complète, chaque rangée est son
  * propre lien, et la cible d'une rangée fait au moins 64 px de haut.
  */
-export async function BlocDeLignes({ id, titre, href, tout, lignes, plat = false, fort = false }: { id: string; titre: string; href: string; tout?: string; lignes: LigneDeBloc[]; /** Le titre d'une section de la fiche, pas l'étiquette en capitales de l'Accueil. */ fort?: boolean; /** À plat : les rangées sans carte autour (un filet entre deux rangées), pour une page qui n'a pas d'encadré, comme la fiche. */ plat?: boolean }) {
+export async function BlocDeLignes({ id, titre, href, tout, lignes, plat = false, fort = false, glisser = false }: { /** Au tiré vers la gauche, une rangée découvre « Déclarer », « Contacter » et « Suivre » ou « Alerte » (téléphone seulement), comme les cartes des listes. */ glisser?: boolean; id: string; titre: string; href: string; tout?: string; lignes: LigneDeBloc[]; /** Le titre d'une section de la fiche, pas l'étiquette en capitales de l'Accueil. */ fort?: boolean; /** À plat : les rangées sans carte autour (un filet entre deux rangées), pour une page qui n'a pas d'encadré, comme la fiche. */ plat?: boolean }) {
   if (!lignes.length) return null;
   return (
     <section className={styles.bloc} aria-labelledby={id}>
@@ -72,6 +76,7 @@ export async function BlocDeLignes({ id, titre, href, tout, lignes, plat = false
       <ul className={`${styles.carte} ${plat ? styles.plat : ""}`}>
         {lignes.map((l) => (
           <li key={l.id}>
+            <Enveloppe glisser={glisser} id={l.id} cadence={l.cadence}>
             <Link href={l.href} className={styles.ligne}>
               {l.rond && <Avatar offre={l.offre} />}
               <span className={styles.qui}>
@@ -98,6 +103,7 @@ export async function BlocDeLignes({ id, titre, href, tout, lignes, plat = false
                 ))}
               </span>
             </Link>
+            </Enveloppe>
           </li>
         ))}
       </ul>
@@ -107,3 +113,14 @@ export async function BlocDeLignes({ id, titre, href, tout, lignes, plat = false
 
 /** Pour tests de lecture : le nombre de lignes qu'un bloc montre au plus. */
 export const NB_LIGNES_PAR_BLOC = 3;
+
+/** La rangée, avec ou sans glissement : le glissement n'enveloppe que ce qui le demande. */
+function Enveloppe({ glisser, id, cadence, children }: { glisser: boolean; id: string; cadence: "evenement" | "quotidien"; children: React.ReactNode }) {
+  return glisser ? (
+    <SwipeActions id={id} cadence={cadence} ligne>
+      {children}
+    </SwipeActions>
+  ) : (
+    <>{children}</>
+  );
+}

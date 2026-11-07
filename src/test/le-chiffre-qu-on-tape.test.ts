@@ -85,6 +85,6 @@ describe("le chiffre qu'on tape", () => {
   it("empile le trio quand le formulaire est étroit, et non quand l'écran l'est seul", () => {
     const css = lire(CSS).replace(/\/\*[\s\S]*?\*\//g, "");
     expect(css, "le formulaire n'est plus un conteneur").toMatch(/\.wrap \{[^}]*container-type: inline-size;/);
-    expect(css, "le trio ne s'empile plus selon la largeur du formulaire").toMatch(/@container \(max-width: 700px\) \{\s*\.trio \{\s*grid-template-columns: 1fr;\s*\}\s*\.trioOp \{\s*display: none;/);
+    expect(css, "le trio ne s'empile plus selon la largeur du formulaire").toMatch(/@container \(max-width: 700px\) \{\s*\.trio \{\s*grid-template-columns: minmax\(0, 1fr\);\s*\}\s*\.trioOp \{\s*display: none;/);
   });
 });

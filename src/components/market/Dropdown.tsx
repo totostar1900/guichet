@@ -22,7 +22,7 @@ import styles from "./Dropdown.module.css";
  *
  * Un libellé préfixé de « # » est un titre de groupe, pas une valeur.
  */
-export function Dropdown({ label, items, selected, onChange, single, effacable = true }: { label: string; items: [string, string][]; selected: Set<string>; onChange: (s: Set<string>) => void; single?: boolean; /** Faux quand vider la liste ne changerait rien : voir plus bas. */ effacable?: boolean }) {
+export function Dropdown({ label, items, selected, onChange, single, effacable = true, comptes }: { /** Le nombre de lignes par valeur : une valeur à zéro est grisée, une valeur choisie qui tombe à zéro est barrée. */ comptes?: Record<string, number>; label: string; items: [string, string][]; selected: Set<string>; onChange: (s: Set<string>) => void; single?: boolean; /** Faux quand vider la liste ne changerait rien : voir plus bas. */ effacable?: boolean }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [bord, setBord] = useState<"gauche" | "droite">("gauche");
@@ -75,9 +75,10 @@ export function Dropdown({ label, items, selected, onChange, single, effacable =
                 {t(l)}
               </div>
             ) : (
-              <label key={v} className={styles.ddItem}>
+              <label key={v} className={`${styles.ddItem} ${comptes && !(comptes[v] ?? 0) ? (selected.has(v) ? styles.ddImpossible : styles.ddVide) : ""}`}>
                 <input type={single ? "radio" : "checkbox"} checked={selected.has(v)} onChange={() => toggle(v)} />
                 {t(l)}
+                {comptes && <small className={styles.ddN}>{comptes[v] ?? 0}</small>}
               </label>
             ),
           )}

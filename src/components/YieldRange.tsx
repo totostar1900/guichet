@@ -23,16 +23,19 @@ export const yieldRangeLabel = (r: { min?: number; max?: number }): string => (r
 const STEP = 0.25;
 const BINS = 24;
 
-export function YieldGauge({ values, min, max, onChange }: { values: number[]; min?: number; max?: number; onChange: (min?: number, max?: number) => void }) {
+export function YieldGauge({ values, ensemble, min, max, onChange }: { values: number[]; /** Toutes les lignes du lieu : l'ensemble se lit en fond pâle derrière ce qui reste après les autres filtres. */ ensemble?: number[]; min?: number; max?: number; onChange: (min?: number, max?: number) => void }) {
   const t = useT();
-  const lo = Math.floor(Math.min(0, ...values) / 1) || 0;
-  const hi = Math.max(1, Math.ceil(Math.max(0, ...values)));
-  const bins = useMemo(() => {
+  const base = ensemble ?? values;
+  const lo = Math.floor(Math.min(0, ...base) / 1) || 0;
+  const hi = Math.max(1, Math.ceil(Math.max(0, ...base)));
+  const cases = (xs: number[]) => {
     const out = new Array(BINS).fill(0);
-    for (const v of values) out[Math.min(BINS - 1, Math.max(0, Math.floor(((v - lo) / (hi - lo)) * BINS)))]++;
+    for (const v of xs) out[Math.min(BINS - 1, Math.max(0, Math.floor(((v - lo) / (hi - lo)) * BINS)))]++;
     return out;
-  }, [values, lo, hi]);
-  const peak = Math.max(1, ...bins);
+  };
+  const bins = useMemo(() => cases(values), [values, lo, hi]); // eslint-disable-line react-hooks/exhaustive-deps
+  const fond = useMemo(() => (ensemble ? cases(ensemble) : null), [ensemble, lo, hi]); // eslint-disable-line react-hooks/exhaustive-deps
+  const peak = Math.max(1, ...(fond ?? bins));
   const a = min ?? lo;
   const b = max ?? hi;
   // Local state while dragging; the URL updates on release.
@@ -58,7 +61,12 @@ export function YieldGauge({ values, min, max, onChange }: { values: number[]; m
           const x0 = lo + (i / BINS) * (hi - lo);
           const x1 = lo + ((i + 1) / BINS) * (hi - lo);
           const inRange = x1 > cur.a && x0 < cur.b + 1e-9;
-          return <i key={i} style={{ height: `${Math.max(6, (n / peak) * 100)}%` }} className={inRange ? styles.on : undefined} />;
+          return (
+            <span key={i} className={styles.col}>
+              {fond && <b className={styles.pale} style={{ height: `${Math.max(6, (fond[i] / peak) * 100)}%` }} />}
+              <i style={{ height: `${n === 0 && fond ? 0 : Math.max(6, (n / peak) * 100)}%` }} className={inRange ? styles.on : undefined} />
+            </span>
+          );
         })}
       </div>
       <div className={styles.slider}>
@@ -91,7 +99,7 @@ export function YieldGauge({ values, min, max, onChange }: { values: number[]; m
 }
 
 /** The toolbar button that opens the gauge (desktop). */
-export function YieldDropdown({ values, min, max, onChange }: { values: number[]; min?: number; max?: number; onChange: (min?: number, max?: number) => void }) {
+export function YieldDropdown({ values, ensemble, min, max, onChange }: { values: number[]; ensemble?: number[]; min?: number; max?: number; onChange: (min?: number, max?: number) => void }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -118,7 +126,7 @@ export function YieldDropdown({ values, min, max, onChange }: { values: number[]
       </button>
       {open && (
         <div className={styles.menu}>
-          <YieldGauge values={values} min={min} max={max} onChange={onChange} />
+          <YieldGauge values={values} ensemble={ensemble} min={min} max={max} onChange={onChange} />
         </div>
       )}
     </div>

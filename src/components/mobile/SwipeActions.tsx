@@ -56,7 +56,7 @@ let turnedNow: (() => void) | null = null;
 const REVEAL = 232;
 const SLOP = 8;
 
-export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "evenement", suivi, children }: { id: string; back?: React.ReactNode; backHead?: React.ReactNode; onTurn?: (turned: boolean) => void; turnRef?: React.MutableRefObject<(() => void) | null>; cadence?: "evenement" | "quotidien"; suivi?: boolean; children: React.ReactNode }) {
+export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "evenement", suivi, ligne = false, children }: { id: string; back?: React.ReactNode; backHead?: React.ReactNode; onTurn?: (turned: boolean) => void; turnRef?: React.MutableRefObject<(() => void) | null>; cadence?: "evenement" | "quotidien"; suivi?: boolean; /** Une rangée de liste (l'accueil) plutôt qu'une carte : angles droits, et fond plein le temps du geste. */ ligne?: boolean; children: React.ReactNode }) {
   const t = useT();
   const [on, setOn] = useSuivi(id, suivi);
   const { dire } = useBulle();
@@ -308,7 +308,7 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
   };
 
   return (
-    <div ref={wrap} className={styles.wrap}>
+    <div ref={wrap} className={`${styles.wrap} ${ligne ? styles.ligne : ""}`}>
       <div className={styles.under} aria-hidden="true">
         <button type="button" className={styles.handle} onClick={() => closeThen()} tabIndex={-1} aria-label={t("Fermer")}>
           ‹
