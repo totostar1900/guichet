@@ -19,6 +19,7 @@ import type { JugementBulletin } from "@/lib/domain/jugement-bulletin";
 import type { DernierEtat } from "@/lib/market/beac-journal";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
 import type { NouvelImportOja, OjaImport } from "@/lib/market/oja";
+import type { EntiteFait, PaysIndicateur } from "@/lib/market/pays";
 import type { SourcesSeance } from "@/lib/market/sources-seance";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
@@ -819,6 +820,10 @@ const fromOjaImport = (i: NouvelImportOja) => ({
   created_by: i.by, fichiers: i.fichiers, plage_du: i.plage?.du ?? null, plage_au: i.plage?.au ?? null,
   seances: i.seances, nouvelles: i.nouvelles, rapprochees: i.rapprochees, concordantes: i.concordantes, ecarts: i.ecarts, ignorees: i.ignorees, exclu: i.exclu,
 });
+type PaysIndicateurRow = { pays: string; indicateur: string; annee: number; valeur: string | number; source: string; estime: boolean; lu_le: string };
+const toPaysIndicateur = (r: PaysIndicateurRow): PaysIndicateur => ({ pays: r.pays as PaysIndicateur["pays"], indicateur: r.indicateur as PaysIndicateur["indicateur"], annee: r.annee, valeur: Number(r.valeur), source: r.source as PaysIndicateur["source"], estime: r.estime, luLe: r.lu_le });
+type EntiteFaitRow = { id: string; entite: string; genre: string; organisme: string; valeur: string; perspective: string | null; unite: string | null; date_fait: string; url: string; saisi_par: string; saisi_le: string };
+const toEntiteFait = (r: EntiteFaitRow): EntiteFait => ({ id: r.id, entite: r.entite, genre: r.genre as EntiteFait["genre"], organisme: r.organisme, valeur: r.valeur, perspective: u(r.perspective), unite: u(r.unite), dateFait: r.date_fait, url: r.url, saisiPar: r.saisi_par, saisiLe: r.saisi_le });
 type EmissionNoticeRow = {
   id: string; source_url: string; source_title: string; file_key: string | null;
   country: string; instrument: string; tenor: string | null; session_on: string; abondement: boolean;
@@ -3201,6 +3206,37 @@ export const supabaseRepository: Repository = {
       n += data?.length ?? 0;
     }
     return n;
+  },
+  async listPaysIndicateurs() {
+    const data = await parLots<PaysIndicateurRow>("listPaysIndicateurs", (de, a) => db().from("pays_indicateurs").select("*").order("pays").order("indicateur").order("annee").range(de, a));
+    return data.map(toPaysIndicateur);
+  },
+  async upsertPaysIndicateurs(rows) {
+    if (!rows.length) return 0;
+    for (let i = 0; i < rows.length; i += 500) {
+      const lot = rows.slice(i, i + 500).map((r) => ({ pays: r.pays, indicateur: r.indicateur, annee: r.annee, valeur: r.valeur, source: r.source, estime: r.estime, lu_le: r.luLe }));
+      const { error } = await db().from("pays_indicateurs").upsert(lot, { onConflict: "pays,indicateur,annee" });
+      if (error) fail("upsertPaysIndicateurs", error);
+    }
+    return rows.length;
+  },
+  async listEntiteFaits(entite) {
+    let q = db().from("entite_faits").select("*").order("date_fait", { ascending: false }).order("saisi_le", { ascending: false }).limit(1000);
+    if (entite) q = q.eq("entite", entite);
+    const { data, error } = await q;
+    if (error) fail("listEntiteFaits", error);
+    return (data as EntiteFaitRow[]).map(toEntiteFait);
+  },
+  async addEntiteFait(f) {
+    const { data, error } = await db().from("entite_faits").insert({ entite: f.entite, genre: f.genre, organisme: f.organisme, valeur: f.valeur, perspective: f.perspective ?? null, unite: f.unite ?? null, date_fait: f.dateFait, url: f.url, saisi_par: f.saisiPar }).select("*").single();
+    if (error) fail("addEntiteFait", error);
+    return toEntiteFait(data as EntiteFaitRow);
+  },
+  async deleteEntiteFait(id) {
+    const { data, error } = await db().from("entite_faits").delete().eq("id", id).select("*");
+    if (error) fail("deleteEntiteFait", error);
+    const row = (data as EntiteFaitRow[] | null)?.[0];
+    return row ? toEntiteFait(row) : undefined;
   },
   async listOjaImports() {
     const { data, error } = await db().from("oja_imports").select("*").order("created_at", { ascending: false }).limit(200);

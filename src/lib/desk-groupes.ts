@@ -70,6 +70,8 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
          l'une après l'autre et se renvoient l'une à l'autre. Interne au
          desk — aucune route publique, et « Vue client » n'en porte rien. */
       ["/desk/budgets", "Budgets des États"],
+      /* Les fiches pays : ce que le robot lit au FMI et à la Banque mondiale, et ce que le desk saisit chaque trimestre (notations, événements, comptes). */
+      ["/desk/pays", "Fiches pays"],
       /* La BEAC publie ce que la cote ne dit pas : l encours officiel des six
          Tresors, ses courbes et le cout de leurs ressources. Page a part de
          « Dette des Etats », qui part de la cote BVMAC : deux sources, deux

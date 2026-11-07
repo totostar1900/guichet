@@ -28,6 +28,7 @@ import type { EncoursDette } from "@/lib/market/encours-dette";
 import type { ComptesEmetteur, CoutDesRessources, EncoursOfficiel, OperationDuTresor, PointCourbeBeac } from "./repository";
 import type { AuctionResult } from "@/lib/market/auction-results";
 import type { OjaImport } from "@/lib/market/oja";
+import type { EntiteFait, PaysIndicateur } from "@/lib/market/pays";
 import type { EmissionNotice } from "@/lib/market/emission-notices";
 import type { BeacCurveRow } from "./repository";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -289,6 +290,8 @@ interface Store {
   issuerDocs: IssuerDocument[];
   auctionResults: AuctionResult[];
   ojaImports: OjaImport[];
+  paysIndicateurs: PaysIndicateur[];
+  entiteFaits: EntiteFait[];
   /** Les avis d annonce : les modalites de l emprunt, que le communique de resultats ne porte pas. */
   emissionNotices: EmissionNotice[];
   beacCurves: BeacCurveRow[];
@@ -381,6 +384,8 @@ function store(): Store {
       issuerDocs: [],
       auctionResults: structuredClone(REF_AUCTIONS),
       ojaImports: [],
+      paysIndicateurs: [],
+      entiteFaits: [],
       emissionNotices: [],
       beacCurves: [],
       seq: 17,
@@ -419,6 +424,8 @@ function store(): Store {
   if (!g.__guichetStore.issuerDocs) g.__guichetStore.issuerDocs = [];
   if (!g.__guichetStore.auctionResults) g.__guichetStore.auctionResults = [];
   if (!g.__guichetStore.ojaImports) g.__guichetStore.ojaImports = [];
+  if (!g.__guichetStore.paysIndicateurs) g.__guichetStore.paysIndicateurs = [];
+  if (!g.__guichetStore.entiteFaits) g.__guichetStore.entiteFaits = [];
   if (!g.__guichetStore.emissionNotices) g.__guichetStore.emissionNotices = [];
   if (!g.__guichetStore.news) g.__guichetStore.news = structuredClone(SEED_NEWS);
   if (!g.__guichetStore.budgets) g.__guichetStore.budgets = structuredClone(SEED_BUDGETS);
@@ -1715,6 +1722,33 @@ export const memoryRepository: Repository = {
       n++;
     }
     return n;
+  },
+  async listPaysIndicateurs() {
+    return structuredClone(store().paysIndicateurs);
+  },
+  async upsertPaysIndicateurs(rows) {
+    const s = store();
+    for (const r of rows) {
+      const k = s.paysIndicateurs.findIndex((x) => x.pays === r.pays && x.indicateur === r.indicateur && x.annee === r.annee);
+      if (k >= 0) s.paysIndicateurs[k] = structuredClone(r);
+      else s.paysIndicateurs.push(structuredClone(r));
+    }
+    return rows.length;
+  },
+  async listEntiteFaits(entite) {
+    return structuredClone(store().entiteFaits.filter((f) => !entite || f.entite === entite).sort((a, b) => b.dateFait.localeCompare(a.dateFait) || b.saisiLe.localeCompare(a.saisiLe)));
+  },
+  async addEntiteFait(f) {
+    const row: EntiteFait = { ...f, id: uid(), saisiLe: new Date().toISOString() };
+    store().entiteFaits.push(row);
+    return structuredClone(row);
+  },
+  async deleteEntiteFait(id) {
+    const s = store();
+    const k = s.entiteFaits.findIndex((x) => x.id === id);
+    if (k < 0) return undefined;
+    const [gone] = s.entiteFaits.splice(k, 1);
+    return structuredClone(gone);
   },
   async listOjaImports() {
     return structuredClone([...store().ojaImports].sort((a, b) => b.at.localeCompare(a.at)));

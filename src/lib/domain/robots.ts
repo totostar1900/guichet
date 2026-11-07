@@ -57,6 +57,8 @@ export const ROBOTS: Robot[] = [
   { cle: "epargne", quoi: "Préavis et exécution des instructions permanentes", heures: 48, cron: "0 8 * * *" },
   { cle: "beac", quoi: "Collecte des adjudications BEAC", heures: 48, cron: "0 9 * * *" },
   { cle: "beac-courbe", quoi: "Courbe mensuelle de la BEAC", heures: 24 * 62, cron: "0 5 3 * *" },
+  /* Les indicateurs des fiches pays, lus au FMI et à la Banque mondiale : un tour par mois, soixante-deux heures de tolérance comme les autres mensuels. */
+  { cle: "pays", quoi: "Indicateurs des fiches pays (FMI, Banque mondiale)", heures: 24 * 62, cron: "0 6 5 * *" },
   /* Soixante-deux heures de tolérance comme les autres mensuels : un tour
      manqué se voit, et celui-ci tient une promesse écrite à l'article 8 de la
      convention, pas un simple réglage. */

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Avatar } from "@/components/Avatar";
 import { FAMILY_LABEL, type IssuerProfile } from "@/data/issuer-registry";
 import type { BondIssuer } from "@/data/issuers";
 import type { Company } from "@/data/companies";
@@ -7,6 +8,8 @@ import type { OfferSummary } from "@/lib/domain/summary";
 import { COUNTRY_CODE, summarize } from "@/lib/domain/summary";
 import { issuerLadder } from "@/lib/domain/issuer-lines";
 import { fmt } from "@/lib/format";
+import { repo } from "@/lib/data";
+import { DEF_INDICATEUR, derniereJusqua, etatParPays, type IndicateurPays } from "@/lib/market/pays";
 import { getT } from "@/i18n/server";
 import styles from "./IssuerCard.module.css";
 
@@ -23,13 +26,17 @@ export async function IssuerCard({ profile, o, others, company, issuer, lignesSe
   const zone = profile?.zone ?? o.country;
   const family = profile?.family;
   const sovereign = family === "etat" || family === "supranational";
+  /* UN ÉTAT SE PRÉSENTE PAR SON TRÉSOR ET SON DRAPEAU, RIEN D'AUTRE (7 novembre 2026). « ÉC · État centrafricain · Famille État · Pays République centrafricaine · Siège Bangui » ne disait rien qu'on ne sache : le nom de l'emprunteur est celui du Trésor, le rond est son drapeau. */
+  const etat = family === "etat";
   const initials = name.replace(/[^A-Za-zÀ-ÿ0-9 ]/g, "").split(/\s+/).filter(Boolean).slice(0, 3).map((w) => w[0]).join("").toUpperCase();
   const href = profile?.href ?? (company ? `/societes/${company.mnemo.toLowerCase()}` : issuer ? `/emetteurs/${issuer.slug}` : undefined);
   const facts: [string, string][] = [];
-  if (family) facts.push(["Famille", t(FAMILY_LABEL[family])]);
-  if (zone === "CEMAC") facts.push(["Zone", "CEMAC"]);
+  if (family && !etat) facts.push(["Famille", t(FAMILY_LABEL[family])]);
+  if (etat) {
+    // aucun fait : ni la famille, ni le pays, ni le siège
+  } else if (zone === "CEMAC") facts.push(["Zone", "CEMAC"]);
   else facts.push(["Pays", t(o.countryName)]);
-  if (profile?.city ?? company?.city ?? issuer?.city) facts.push(["Siège", (profile?.city ?? company?.city ?? issuer?.city)!]);
+  if (!etat && (profile?.city ?? company?.city ?? issuer?.city)) facts.push(["Siège", (profile?.city ?? company?.city ?? issuer?.city)!]);
   if (!sovereign && (profile?.sector ?? company?.sector ?? issuer?.sector)) facts.push(["Secteur", t((profile?.sector ?? company?.sector ?? issuer?.sector)!)]);
   if (company?.shareCapital) facts.push(["Capital social", `${fmt(company.shareCapital)} FCFA`]);
   else if (issuer?.shareCapital) facts.push(["Capital social", `${fmt(issuer.shareCapital)} FCFA`]);
@@ -39,17 +46,45 @@ export async function IssuerCard({ profile, o, others, company, issuer, lignesSe
   // La fiche qu'on lit garde sa place dans l'échelle : sans elle, la section se
   // lit comme une liste d'autres possibilités alors que c'est un rayon où le
   // client doit pouvoir se situer.
+  /* LA SANTÉ DE L'ÉTAT EN QUATRE CHIFFRES ET UN LIEN (7 novembre 2026) : chacun avec son année et sa source, sans commentaire ; un chiffre que la source ne publie pas n'est pas montré ici, la fiche le nomme. */
+  const fiche = etat ? etatParPays(o.country) : undefined;
+  const CHIFFRES: IndicateurPays[] = ["dette_brute_pib", "solde_global_pib", "dette_exterieure_rnb", "service_dette_exports"];
+  const indicateurs = fiche && !lignesSeulement ? await repo().listPaysIndicateurs() : [];
+  const sante = fiche ? CHIFFRES.map((k) => ({ k, d: derniereJusqua(indicateurs, fiche.pays, k, new Date().getFullYear()) })).filter((x) => x.d) : [];
   const years = others.length > 0 ? issuerLadder([{ o, s: summarize(o, new Date()) }, ...others], name, sansRepere ? "" : o.id) : [];
   return (
     <div className={styles.card}>
       {!lignesSeulement && (
         <>
       <div className={styles.head}>
-        <span className={`${styles.badge} ${zone === "CEMAC" ? styles.cemac : ""}`}>{zone === "CEMAC" ? "CEMAC" : initials || COUNTRY_CODE[o.country]}</span>
+        {etat ? <Avatar offre={o} /> : <span className={`${styles.badge} ${zone === "CEMAC" ? styles.cemac : ""}`}>{zone === "CEMAC" ? "CEMAC" : initials || COUNTRY_CODE[o.country]}</span>}
         <div className={styles.who}>
-          <b>{name}</b>
+          <b>{etat ? t(o.issuer) : name}</b>
         </div>
       </div>
+      {fiche && (
+        <div className={styles.sante}>
+          {sante.length > 0 && (
+            <ul className={styles.santeChiffres}>
+              {sante.map(({ k, d }) => (
+                <li key={k}>
+                  <span>{t(DEF_INDICATEUR[k].libelle)}</span>
+                  <b>
+                    {d!.valeur.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <small>{t(DEF_INDICATEUR[k].unite)}</small>
+                  </b>
+                  <em>
+                    {d!.annee} · {t(d!.source)}
+                    {d!.estime ? ` · ${t("estimation ou prévision")}` : ""}
+                  </em>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link href={`/pays/${fiche.slug}`} className={styles.santeLien}>
+            {t("Santé économique et financière")} →
+          </Link>
+        </div>
+      )}
       {facts.length > 0 && (
         <div className={styles.facts}>
           {facts.map(([k, v]) => (

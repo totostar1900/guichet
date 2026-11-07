@@ -78,6 +78,10 @@ export const GLOSSARY = {
   compte_titres: { short: "Compte-titres", text: "Le compte ouvert à votre nom chez le dépositaire, par l'intermédiaire de Purpose Capital, où sont inscrits vos titres. Votre tableau de bord vous en montre le contenu ; les relevés vous sont adressés à chaque mouvement." },
   rachat: { short: "Rachat", text: "Le Trésor reprend ses propres titres avant l'échéance, en général au pair : une opération annoncée comme une ligne, où vous présentez les titres que vous détenez. Pour un fonds, le rachat est la revente de vos parts à la société de gestion, à la prochaine VL." },
   introduction: { short: "Introduction en bourse", text: "Une société ouvre son capital au public : ses actions sont offertes à un prix de souscription pendant une fenêtre, avec le visa de la COSUMAF, puis cotées à la BVMAC." },
+  dette_brute: { short: "Dette brute", text: "Tout ce que les administrations publiques doivent, rapporté à la richesse produite en un an (le PIB). Chiffre du FMI ; l'année et le caractère estimé ou prévu sont écrits à côté." },
+  solde_global: { short: "Solde global", text: "Les recettes moins les dépenses de l'État, rapportées au PIB. Négatif : l'État dépense plus qu'il ne perçoit et doit emprunter la différence. Chiffre du FMI." },
+  dette_exterieure: { short: "Dette extérieure", text: "Ce que le pays doit à des créanciers étrangers, rapporté à son revenu national brut (RNB). Chiffre de la Banque mondiale, publié avec un décalage de un à deux ans." },
+  service_dette: { short: "Service de la dette", text: "Les intérêts et le capital payés au titre de la dette extérieure, rapportés aux recettes d'exportation de l'année. Chiffre de la Banque mondiale, publié avec un décalage de un à deux ans." },
 } as const satisfies Record<string, Term>;
 
 export type TermKey = keyof typeof GLOSSARY;

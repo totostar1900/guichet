@@ -8,7 +8,7 @@ export const TECHNIQUE: DocPage = {
   visibility: "desk",
   audience: ["tech", "admin"],
   order: 7,
-  checkedOn: "2026-11-06",
+  checkedOn: "2026-11-07",
   owner: "Georges",
   chapters: [
     {
@@ -35,7 +35,7 @@ export const TECHNIQUE: DocPage = {
       id: "donnees",
       title: l("Les données et qui peut les voir", "The data and who can see it"),
       blocks: [
-        { type: "lead", text: l("Tout est dans une base Postgres chez Supabase, en Europe, chiffrée au repos. 124 migrations SQL versionnées dans le dépôt (supabase/migrations) décrivent chaque table ; on les applique à la main, dans l'ordre, avant le déploiement qui les utilise.", "Everything is in a Postgres database at Supabase, in Europe, encrypted at rest. 124 SQL migrations versioned in the repo (supabase/migrations) describe every table; they are applied by hand, in order, before the deployment that uses them.") },
+        { type: "lead", text: l("Tout est dans une base Postgres chez Supabase, en Europe, chiffrée au repos. 125 migrations SQL versionnées dans le dépôt (supabase/migrations) décrivent chaque table ; on les applique à la main, dans l'ordre, avant le déploiement qui les utilise.", "Everything is in a Postgres database at Supabase, in Europe, encrypted at rest. 125 SQL migrations versioned in the repo (supabase/migrations) describe every table; they are applied by hand, in order, before the deployment that uses them.") },
         {
           type: "table",
           head: [l("Table", "Table"), l("Contenu", "Content"), l("Qui lit / qui écrit", "Who reads / who writes")],
@@ -83,7 +83,7 @@ export const TECHNIQUE: DocPage = {
       id: "taches",
       title: l("Les tâches planifiées", "Scheduled tasks"),
       blocks: [
-        { type: "lead", text: l("Seize tâches, déclenchées par Vercel (vercel.json) avec le jeton CRON_SECRET ; chacune peut aussi être lancée à la main depuis Vercel › Cron Jobs › Run ou par une requête avec le jeton.", "Sixteen tasks, triggered by Vercel (vercel.json) with the CRON_SECRET token; each can also be run by hand from Vercel › Cron Jobs › Run or with a request carrying the token.") },
+        { type: "lead", text: l("17 tâches, déclenchées par Vercel (vercel.json) avec le jeton CRON_SECRET ; chacune peut aussi être lancée à la main depuis Vercel › Cron Jobs › Run ou par une requête avec le jeton.", "17 tasks, triggered by Vercel (vercel.json) with the CRON_SECRET token; each can also be run by hand from Vercel › Cron Jobs › Run or with a request carrying the token.") },
         {
           type: "table",
           head: [l("Adresse", "Address"), l("Quand (UTC)", "When (UTC)"), l("Fait", "Does")],
@@ -98,6 +98,7 @@ export const TECHNIQUE: DocPage = {
             [l("/api/cron/epargne", "/api/cron/epargne"), l("8 h", "8 am"), l("Les versements programmés du jour : préavis, couverture sur la provision ou appel de fonds.", "The day's scheduled payments: notice, cover from the float or call for funds.")],
             [l("/api/cron/beac", "/api/cron/beac"), l("9 h", "9 am"), l("Le calendrier des adjudications BEAC et les avis d'émission.", "The BEAC auction calendar and the issue notices.")],
             [l("/api/cron/beac-courbe", "/api/cron/beac-courbe"), l("Le 3 du mois, 5 h", "3rd of the month, 5 am"), l("La courbe des taux publiée par la BEAC.", "The yield curve published by the BEAC.")],
+            [l("/api/cron/pays", "/api/cron/pays"), l("Le 5 du mois, 6 h", "5th of the month, 6 am"), l("Lit au FMI et à la Banque mondiale les indicateurs des fiches pays (dette, solde, croissance, inflation, dette extérieure) ; ce qui était lu reste si une source est injoignable.", "Reads the country sheets' indicators (debt, balance, growth, inflation, external debt) from the IMF and the World Bank; what was read stays if a source is unreachable.")],
             [l("/api/cron/note-indice", "/api/cron/note-indice"), l("Le 3 du mois, 6 h 40", "3rd of the month, 6:40 am"), l("La note mensuelle de l'indice, pour le desk.", "The monthly index note, for the desk.")],
             [l("/api/cron/note-trimestre", "/api/cron/note-trimestre"), l("Le 5 janvier, avril, juillet, octobre, 7 h", "5 January, April, July, October, 7 am"), l("La note trimestrielle, publique.", "The quarterly note, public.")],
             [l("/api/cron/relances", "/api/cron/relances"), l("9 h 20", "9:20 am"), l("Rappelle les démarches laissées en route : convention, bulletin, mandat, pièces. Un message par client et par jour, cinq au plus, et le client peut les interrompre.", "Reminds clients of procedures left unfinished: agreement, order form, mandate, documents. One message per client per day, five at most, and the client can stop them.")],

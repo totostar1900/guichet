@@ -77,6 +77,8 @@ const READS = new Set([
   "listIssuerDocuments",
   "listAuctionResults",
   "listOjaImports",
+  "listPaysIndicateurs",
+  "listEntiteFaits",
   "getAuctionResult",
   "listNews",
   "listCash",

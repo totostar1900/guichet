@@ -1,0 +1,219 @@
+/* La fiche d'un émetteur : des faits, chacun avec son année et sa source. Aucune couleur de verdict. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sections-gap);
+  padding-bottom: var(--s-11);
+}
+.tete {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.mono {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface-2, var(--surface));
+  font-weight: 700;
+}
+.sous {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: var(--t-3);
+}
+.bloc {
+  display: grid;
+  gap: var(--bloc-gap);
+  min-width: 0;
+}
+.bloc h2,
+.pied h2 {
+  margin: 0;
+  font-size: var(--t-6);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.chiffres {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tuiles-gap);
+}
+.chiffre {
+  display: grid;
+  gap: var(--s-1);
+  padding: var(--s-4);
+  border: var(--tuile-trait);
+  border-radius: var(--tuile-rayon, 12px);
+  background: var(--surface);
+  min-width: 0;
+}
+.etiquette {
+  font-size: var(--t-2);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.valeur {
+  font-size: var(--t-7);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.valeur small {
+  font-size: var(--t-3);
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.meta {
+  color: var(--ink-3);
+  font-size: var(--t-3);
+}
+.absent {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: var(--t-3);
+}
+.legende {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: var(--t-3);
+}
+.graphe {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+.grille {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.texte {
+  fill: var(--ink-3);
+  font-size: var(--graphe-texte);
+}
+.pleine {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2;
+}
+.tiretee {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+}
+.point {
+  fill: var(--gold);
+}
+.traitPlein,
+.traitTiret {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top: 2px solid var(--gold);
+  vertical-align: middle;
+}
+.traitTiret {
+  border-top-style: dashed;
+}
+.faits {
+  margin: 0;
+  display: grid;
+  gap: var(--s-3);
+}
+.faits > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--s-3);
+}
+.faits dt {
+  color: var(--ink-2);
+}
+.faits dd {
+  margin: 0;
+  text-align: right;
+  min-width: 0;
+}
+.fait {
+  margin: 0;
+}
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-3);
+}
+.tableau {
+  overflow-x: auto;
+}
+.tableau table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-3);
+}
+.tableau th {
+  text-align: left;
+  color: var(--ink-3);
+  font-weight: 600;
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+}
+.tableau td {
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  border-top: 1px solid var(--line);
+  white-space: nowrap;
+}
+.echelleBloc {
+  display: grid;
+  gap: var(--s-2);
+}
+.echelle {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 var(--s-1);
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+}
+.cran {
+  flex: 0 0 auto;
+  padding: var(--s-1) var(--s-2);
+  font-size: var(--graphe-texte);
+  color: var(--ink-3);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.cranMarque {
+  color: var(--ink);
+  border-color: var(--gold);
+  background: var(--gold-soft);
+  font-weight: 700;
+}
+.cranFrontiere {
+  margin-right: var(--s-2);
+  border-right: 2px solid var(--ink-2);
+}
+.pied {
+  display: grid;
+  gap: var(--s-2);
+}
+.pied p {
+  margin: 0;
+  max-width: 66ch;
+}
+@media (max-width: 380px) {
+  .chiffres {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

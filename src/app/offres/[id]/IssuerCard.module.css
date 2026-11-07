@@ -307,3 +307,47 @@
     display: block;
   }
 }
+
+/* La santé de l'État : quatre chiffres datés et sourcés, puis le lien vers la fiche. Aucun verdict. */
+.sante {
+  display: grid;
+  gap: var(--s-3);
+}
+.santeChiffres {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3);
+}
+.santeChiffres li {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.santeChiffres span {
+  font-size: var(--t-2);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.santeChiffres b {
+  font-size: var(--t-6);
+  font-variant-numeric: tabular-nums;
+}
+.santeChiffres small {
+  font-size: var(--t-2);
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.santeChiffres em {
+  font-style: normal;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.santeLien {
+  font-weight: 600;
+  color: var(--gold-ink);
+}

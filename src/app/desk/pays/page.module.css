@@ -1,0 +1,133 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sections-gap, 28px);
+  max-width: 980px;
+}
+.tete h1 {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-8);
+}
+.sous {
+  margin: 0;
+  color: var(--ink-3);
+  max-width: 72ch;
+}
+.rafraichir {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+.fait {
+  color: var(--good);
+  font-size: var(--t-3);
+}
+.erreur {
+  color: var(--crit);
+  font-size: var(--t-3);
+}
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-4);
+}
+.ligne {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 1fr));
+  gap: var(--s-5);
+  align-items: center;
+  padding: var(--s-5) var(--s-6);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+.ligne b {
+  display: block;
+}
+.ligne small {
+  color: var(--ink-3);
+}
+.pastille {
+  display: inline-block;
+  padding: 0 var(--s-3);
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: var(--t-1);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.bon {
+  color: var(--good);
+}
+.attention {
+  color: var(--gold-ink);
+}
+.neutre {
+  color: var(--ink-3);
+}
+.form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--s-5);
+  padding: var(--s-6);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  min-width: 0;
+}
+.large {
+  grid-column: 1 / -1;
+}
+.actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+.tableau {
+  overflow-x: auto;
+}
+.tableau table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.tableau th,
+.tableau td {
+  text-align: left;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.tableau th {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.retirer {
+  border: 0;
+  background: none;
+  color: var(--crit);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+}
+@media (max-width: 760px) {
+  .ligne {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

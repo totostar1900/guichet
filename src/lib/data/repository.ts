@@ -23,6 +23,7 @@ import type { DernierEtat, ObservationBeac } from "@/lib/market/beac-journal";
 import type { EncoursDette } from "@/lib/market/encours-dette";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
 import type { NouvelImportOja, OjaImport } from "@/lib/market/oja";
+import type { EntiteFait, NouveauFait, PaysIndicateur } from "@/lib/market/pays";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
 import type { FundCurve } from "@/lib/domain/fund-curve";
@@ -673,6 +674,12 @@ export interface Repository {
   /** Insère des séances nouvelles d'un coup (import OJA : plus de deux mille). Une séance déjà là, même pays, même jour, même code, n'est PAS touchée. Rend le nombre inséré. */
   insertAuctionResults(rows: NewAuctionResult[]): Promise<number>;
   /** Le journal des imports OJA, du plus récent au plus ancien. */
+  /** Les fiches pays (7 novembre 2026) : les indicateurs lus au FMI et à la Banque mondiale, et les faits saisis au Desk. */
+  listPaysIndicateurs(): Promise<PaysIndicateur[]>;
+  upsertPaysIndicateurs(rows: PaysIndicateur[]): Promise<number>;
+  listEntiteFaits(entite?: string): Promise<EntiteFait[]>;
+  addEntiteFait(f: NouveauFait): Promise<EntiteFait>;
+  deleteEntiteFait(id: string): Promise<EntiteFait | undefined>;
   listOjaImports(): Promise<OjaImport[]>;
   createOjaImport(i: NouvelImportOja): Promise<OjaImport>;
   /** Un import exclu ne compte plus pour les valeurs retenues : réversible. */
