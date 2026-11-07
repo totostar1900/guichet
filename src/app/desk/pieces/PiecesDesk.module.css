@@ -1,0 +1,46 @@
+.form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--s-5);
+  padding: var(--s-6);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  min-width: 0;
+}
+.form textarea {
+  min-height: 7rem;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.large {
+  grid-column: 1 / -1;
+}
+.actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+.fait {
+  color: var(--good);
+  font-size: var(--t-3);
+}
+.erreur {
+  color: var(--crit);
+  font-size: var(--t-3);
+}

@@ -7,6 +7,8 @@ import { getT } from "@/i18n/server";
 import { fmtDate, localIso } from "@/lib/format";
 import { DEF_INDICATEUR, INDICATEURS, derniereRevue, etatParSlug, fraicheurDeLaSaisie, institutionParSlug, serie } from "@/lib/market/pays";
 import { FaitForm } from "../FaitForm";
+import { PiecesConservees } from "@/components/PiecesConservees";
+import { ArchiverPieceForm } from "../../pieces/PiecesDesk";
 import { retirerFait } from "../actions";
 import styles from "../page.module.css";
 
@@ -24,7 +26,7 @@ export default async function PaysDeskFichePage({ params }: { params: Promise<{ 
   const entite = (etat?.entite ?? inst?.entite)!;
   const nom = etat ? `${t("Trésor public")} · ${t(etat.pays)}` : inst!.nom;
   const r = repo();
-  const [indicateurs, faits] = await Promise.all([r.listPaysIndicateurs(), r.listEntiteFaits(entite)]);
+  const [indicateurs, faits, pieces] = await Promise.all([r.listPaysIndicateurs(), r.listEntiteFaits(entite), r.listPiecesArchivees(entite)]);
   const revue = derniereRevue(faits, entite);
   const fr = fraicheurDeLaSaisie(revue, localIso(new Date()));
 
@@ -78,6 +80,13 @@ export default async function PaysDeskFichePage({ params }: { params: Promise<{ 
         </section>
 
         <section>
+          <h2>{t("Copies des pièces conservées")}</h2>
+          <p className={styles.sous}>{t("Un lien se périme : le Desk garde une copie de ce qu'il a lu, avec son empreinte et le jour de la prise.")}</p>
+          <PiecesConservees pieces={pieces} />
+          <ArchiverPieceForm entite={entite} objet={inst ? "autre" : "notation"} />
+        </section>
+
+        <section>
           <h2>{t("Les faits saisis")}</h2>
           {faits.length === 0 ? (
             <p className={styles.sous}>{t("Aucun fait saisi pour le moment.")}</p>
@@ -110,6 +119,14 @@ export default async function PaysDeskFichePage({ params }: { params: Promise<{ 
                         <a href={f.url} target="_blank" rel="noreferrer">
                           {t("ouvrir")}
                         </a>
+                        {pieces.find((p) => p.urlOrigine === f.url) && (
+                          <>
+                            {" · "}
+                            <a href={`/pieces/${pieces.find((p) => p.urlOrigine === f.url)!.id}`} target="_blank" rel="noreferrer">
+                              {t("copie")}
+                            </a>
+                          </>
+                        )}
                       </td>
                       <td>{f.saisiPar}</td>
                       <td>

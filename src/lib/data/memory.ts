@@ -29,6 +29,7 @@ import type { ComptesEmetteur, CoutDesRessources, EncoursOfficiel, OperationDuTr
 import type { AuctionResult } from "@/lib/market/auction-results";
 import type { OjaImport } from "@/lib/market/oja";
 import type { EntiteFait, PaysIndicateur } from "@/lib/market/pays";
+import type { PieceArchivee } from "@/lib/market/pieces";
 import type { EmissionNotice } from "@/lib/market/emission-notices";
 import type { BeacCurveRow } from "./repository";
 import { receivedLabel } from "@/lib/domain/intent";
@@ -292,6 +293,7 @@ interface Store {
   ojaImports: OjaImport[];
   paysIndicateurs: PaysIndicateur[];
   entiteFaits: EntiteFait[];
+  piecesArchivees?: PieceArchivee[];
   /** Les avis d annonce : les modalites de l emprunt, que le communique de resultats ne porte pas. */
   emissionNotices: EmissionNotice[];
   beacCurves: BeacCurveRow[];
@@ -1749,6 +1751,25 @@ export const memoryRepository: Repository = {
     if (k < 0) return undefined;
     const [gone] = s.entiteFaits.splice(k, 1);
     return structuredClone(gone);
+  },
+  async listPiecesArchivees(entite) {
+    return structuredClone((store().piecesArchivees ?? []).filter((p) => !entite || p.entite === entite).sort((a, b) => b.archiveLe.localeCompare(a.archiveLe)));
+  },
+  async addPieceArchivee(p) {
+    const s = store();
+    s.piecesArchivees ??= [];
+    if (s.piecesArchivees.some((x) => x.cle === p.cle)) throw new Error("Cette pièce est déjà conservée.");
+    const row: PieceArchivee = { ...p, id: uid() };
+    s.piecesArchivees.push(row);
+    return structuredClone(row);
+  },
+  async upsertBudgetEtat(b) {
+    const s = store();
+    s.budgets ??= [];
+    const k = s.budgets.findIndex((x) => x.pays === b.pays && x.exercice === b.exercice);
+    if (k >= 0) s.budgets[k] = structuredClone(b);
+    else s.budgets.push(structuredClone(b));
+    return structuredClone(b);
   },
   async listOjaImports() {
     return structuredClone([...store().ojaImports].sort((a, b) => b.at.localeCompare(a.at)));

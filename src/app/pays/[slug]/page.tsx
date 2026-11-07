@@ -12,8 +12,8 @@ import { GRAPHE_H, GRAPHE_L } from "@/lib/ui/graphe";
 import {
   MOT_DU_MILLESIME,
   enMilliards,
-  estComplet,
   porteDesTitres,
+  sommeDes,
 } from "@/lib/market/budget";
 import { seancesOuvertes, seancesPrevues } from "@/lib/domain/accueil";
 import {
@@ -30,6 +30,8 @@ import {
   type IndicateurPays,
   type PaysIndicateur,
 } from "@/lib/market/pays";
+import { PiecesConservees } from "@/components/PiecesConservees";
+import { entiteDeBudget } from "@/lib/market/pieces";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -190,12 +192,13 @@ export default async function PaysFichePage({
   const t = await getT();
   const entite = (etat?.entite ?? inst?.entite)!;
   const r = repo();
-  const [indicateurs, faits, offers, encours, budgets] = await Promise.all([
+  const [indicateurs, faits, offers, encours, budgets, piecesEntite] = await Promise.all([
     r.listPaysIndicateurs(),
     r.listEntiteFaits(entite),
     r.listOffers(),
     r.encoursOfficiel(),
     r.budgetsDesEtats(),
+    r.listPiecesArchivees(),
   ]);
   const now = new Date();
   const aujourdhui = localIso(now);
@@ -256,6 +259,8 @@ export default async function PaysFichePage({
         .sort((a, b) => b.exercice - a.exercice)[0]
     : undefined;
   const titres = budget ? porteDesTitres(budget) : undefined;
+  const piecesBudget = etat ? piecesEntite.filter((c) => c.entite === entiteDeBudget(etat.pays, budget?.exercice)) : [];
+  const piecesNotes = piecesEntite.filter((c) => c.entite === entite);
 
   const seances = etat
     ? [
@@ -430,6 +435,14 @@ export default async function PaysFichePage({
                           >
                             {t("Voir la pièce")} ↗
                           </a>
+                          {piecesNotes.find((c) => c.urlOrigine === n.url) && (
+                            <>
+                              {" · "}
+                              <a href={`/pieces/${piecesNotes.find((c) => c.urlOrigine === n.url)!.id}`} target="_blank" rel="noopener">
+                                {t("copie")}
+                              </a>
+                            </>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -492,50 +505,66 @@ export default async function PaysFichePage({
         {etat && (
           <section className={styles.bloc} aria-labelledby="budget">
             <h2 id="budget">{t("Budget et besoin annuel d'endettement")}</h2>
-            {budget && estComplet(budget) ? (
-              <dl className={styles.faits}>
-                <div>
-                  <dt>{t("Exercice")}</dt>
-                  <dd>
-                    {budget.exercice} · {t(MOT_DU_MILLESIME[budget.millesime])}{" "}
-                    · {budget.loi}
-                  </dd>
-                </div>
-                {budget.budgetTotal !== undefined && (
+            {budget ? (
+              <>
+                <dl className={styles.faits}>
                   <div>
-                    <dt>{t("Budget total")}</dt>
+                    <dt>{t("Exercice")}</dt>
                     <dd>
-                      <b>{enMilliards(budget.budgetTotal)} Md FCFA</b>
+                      {budget.exercice} · {t(MOT_DU_MILLESIME[budget.millesime])} · {budget.loi}
                     </dd>
                   </div>
-                )}
-                {budget.soldeDeclare !== undefined && (
-                  <div>
-                    <dt>{t("Solde déclaré")}</dt>
-                    <dd>
-                      <b>{enMilliards(budget.soldeDeclare)} Md FCFA</b>
-                    </dd>
-                  </div>
-                )}
-                <div>
-                  <dt>{t("Besoin de financement")}</dt>
-                  <dd>
-                    <b>{enMilliards(budget.besoinDeFinancement)} Md FCFA</b>
-                  </dd>
-                </div>
-                {titres && (
-                  <div>
-                    <dt>{t("dont titres publics")}</dt>
-                    <dd>
-                      <b>{enMilliards(titres.montant)} Md FCFA</b>
-                    </dd>
-                  </div>
-                )}
-              </dl>
+                  {[
+                    ["Budget total", budget.budgetTotal],
+                    ["Recettes", budget.recettes.length ? sommeDes(budget.recettes) : undefined],
+                    ["Dépenses", budget.depenses.length ? sommeDes(budget.depenses) : undefined],
+                    ["Solde déclaré", budget.soldeDeclare],
+                    ["Besoin de financement", budget.besoinDeFinancement],
+                    ...(titres ? ([["dont titres publics", titres.montant]] as [string, number][]) : []),
+                  ].map(([libelle, v]) => (
+                    <div key={libelle as string}>
+                      <dt>{t(libelle as string)}</dt>
+                      <dd>
+                        {v === undefined ? <span className={styles.absent}>{t("non publié par la source")}</span> : <b>{enMilliards(v as number)} Md FCFA</b>}
+                      </dd>
+                    </div>
+                  ))}
+                  {budget.financement.map((f) => (
+                    <div key={f.cle}>
+                      <dt>{t("Financement")} · {f.libelle}</dt>
+                      <dd>
+                        <b>{enMilliards(f.montant)} Md FCFA</b>
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                {budget.references?.length ? (
+                  <ul className={styles.liste}>
+                    {budget.references.filter((x) => x.url).map((x) => {
+                      const copie = piecesBudget.find((c) => c.urlOrigine === x.url);
+                      return (
+                        <li key={x.url}>
+                          <a href={x.url} target="_blank" rel="noopener noreferrer">
+                            {x.titre} ↗
+                          </a>
+                          <span className={styles.meta}>
+                            {" "}
+                            · {x.editeur}
+                            {copie ? (
+                              <>
+                                {" "}
+                                · <a href={`/pieces/${copie.id}`} target="_blank" rel="noopener">{t("copie conservée")}</a>
+                              </>
+                            ) : null}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : null}
+              </>
             ) : (
-              <p className={styles.absent}>
-                {t("Budget complet non publié dans la base")}
-              </p>
+              <p className={styles.absent}>{t("Budget non publié dans la base")}</p>
             )}
           </section>
         )}
@@ -595,6 +624,13 @@ export default async function PaysFichePage({
                 );
               })}
             </dl>
+          </section>
+        )}
+
+        {piecesNotes.length + piecesBudget.length > 0 && (
+          <section className={styles.bloc} aria-labelledby="copies">
+            <h2 id="copies">{t("Copies des sources")}</h2>
+            <PiecesConservees pieces={[...piecesBudget, ...piecesNotes]} />
           </section>
         )}
 

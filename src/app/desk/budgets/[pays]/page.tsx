@@ -10,6 +10,10 @@ import { LIBELLES_DU_RELEVE, numeroSuivant, releveDuBudget } from "@/lib/market/
 import { DIT, signauxDe } from "@/lib/market/carnet";
 import { POURQUOI, SERVICE_FAIBLE, leveDe, placeSurDeclare, pourquoiPasDeTaux } from "@/lib/market/leve";
 import { RedigerNote } from "./RedigerNote";
+import { PiecesConservees } from "@/components/PiecesConservees";
+import { RELEVE_OFFICIEL } from "@/data/budgets-officiels";
+import { ArchiverPieceForm, ArchiverReleve, ChargerReleve, SaisieBudgetForm } from "../../pieces/PiecesDesk";
+import { entiteDeBudget } from "@/lib/market/pieces";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +46,32 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
   const r = repo();
   const [budgets, toutesNotes, seances] = await Promise.all([r.budgetsDesEtats(), r.notesBudget(), r.listAuctionResults({})]);
   const b = budgets.find((x) => x.pays === pays);
-  if (!b) notFound();
+  const conservees = await r.listPiecesArchivees(entiteDeBudget(pays));
+  const releve = RELEVE_OFFICIEL.some((x) => x.pays === pays);
+  /* AUCUN BUDGET EN BASE : la page ne se ferme pas, elle propose d'en saisir un, ou de charger le relevé des pièces officielles. */
+  if (!b) {
+    return (
+      <>
+        <DeskNav current="/desk/budgets" />
+        <main className={styles.page}>
+          <h1>
+            {t("Budget")} · {t(pays)}
+          </h1>
+          <p className={styles.chapo}>{t("Aucun budget enregistré pour cet État.")}</p>
+          {releve ? <ChargerReleve pays={pays} etats={[pays]} /> : <p className={styles.vide}>{t("Aucune pièce officielle n'a pu être ouverte pour cet État : saisissez le budget quand le Desk a la pièce.")}</p>}
+          <section className={styles.bloc}>
+            <h2>{t("Saisir le budget")}</h2>
+            <SaisieBudgetForm pays={pays} />
+          </section>
+          <section className={styles.bloc}>
+            <h2>{t("Copies des pièces conservées")}</h2>
+            <PiecesConservees pieces={conservees} />
+            <ArchiverPieceForm entite={entiteDeBudget(pays)} objet="budget" />
+          </section>
+        </main>
+      </>
+    );
+  }
 
   const notes = notesDe(toutesNotes, b.pays, b.exercice);
   const amort = amortissement(b);
@@ -333,6 +362,20 @@ export default async function FicheBudget({ params }: { params: Promise<{ pays: 
           ) : (
             <p className={styles.vide}>{t("Aucune pièce nommée. Le relevé vient de reprises de presse que personne n'a encore identifiées une par une.")}</p>
           )}
+        </section>
+
+        <section className={styles.bloc}>
+          <h2>{t("Copies des pièces conservées")}</h2>
+          <p className={styles.chapo}>{t("Un lien se périme : le Desk garde une copie de ce qu'il a lu, avec son empreinte et le jour de la prise.")}</p>
+          <PiecesConservees pieces={conservees} />
+          {releve && <ArchiverReleve pays={b.pays} />}
+          <ArchiverPieceForm entite={entiteDeBudget(b.pays)} objet="budget" />
+        </section>
+
+        <section className={styles.bloc}>
+          <h2>{t("Saisir ou corriger ce budget")}</h2>
+          {releve && <ChargerReleve pays={b.pays} etats={[b.pays]} />}
+          <SaisieBudgetForm pays={b.pays} />
         </section>
 
         {/* LES NOTES, APRÈS LES CHIFFRES : on ne lit pas une lecture avant de

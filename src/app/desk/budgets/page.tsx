@@ -4,8 +4,10 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmtDate } from "@/lib/format";
-import { MOT_DU_MILLESIME, enMilliards, estComplet, notesDe, parLisibilite, partDesTitres, piecesSuivies, porteDesTitres, slugDuPays, trousDe } from "@/lib/market/budget";
+import { MOT_DU_MILLESIME, PAYS_CEMAC, enMilliards, estComplet, notesDe, parLisibilite, partDesTitres, piecesSuivies, porteDesTitres, slugDuPays, trousDe } from "@/lib/market/budget";
 import { REFERENCES_ZONE } from "@/data/budgets-seed";
+import { RELEVE_OFFICIEL } from "@/data/budgets-officiels";
+import { ChargerReleve } from "../pieces/PiecesDesk";
 import { DIT, carnet } from "@/lib/market/carnet";
 import type { BudgetEtat } from "@/lib/domain/types";
 import styles from "./page.module.css";
@@ -91,6 +93,22 @@ export default async function BudgetsPage() {
             </ul>
           </section>
         ) : null}
+
+        <section className={styles.carnet}>
+          <h2>{t("Relevé des pièces officielles")}</h2>
+          <p className={styles.carnetDit}>
+            {t("Tchad, Congo, Guinée équatoriale, Centrafrique et Cameroun : les budgets 2026 tels que leurs pièces officielles les écrivent. Le Gabon attend sa pièce.")}
+          </p>
+          <ChargerReleve pays="tous" etats={RELEVE_OFFICIEL.map((x) => x.pays)} />
+          <ul className={styles.lignes}>
+            {PAYS_CEMAC.filter((p) => !budgets.some((b) => b.pays === p)).map((p) => (
+              <li key={p}>
+                <Link href={`/desk/budgets/${slugDuPays(p)}`}>{t(p)}</Link>
+                <span className={styles.dit}>{t("aucun budget enregistré : saisir ou charger")}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <div className={styles.cartes}>
           {liste.map((b) => {

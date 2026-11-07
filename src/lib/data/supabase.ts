@@ -20,6 +20,7 @@ import type { DernierEtat } from "@/lib/market/beac-journal";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
 import type { NouvelImportOja, OjaImport } from "@/lib/market/oja";
 import type { EntiteFait, PaysIndicateur } from "@/lib/market/pays";
+import type { PieceArchivee } from "@/lib/market/pieces";
 import type { SourcesSeance } from "@/lib/market/sources-seance";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
@@ -823,6 +824,8 @@ const fromOjaImport = (i: NouvelImportOja) => ({
 type PaysIndicateurRow = { pays: string; indicateur: string; annee: number; valeur: string | number; source: string; estime: boolean; lu_le: string };
 const toPaysIndicateur = (r: PaysIndicateurRow): PaysIndicateur => ({ pays: r.pays as PaysIndicateur["pays"], indicateur: r.indicateur as PaysIndicateur["indicateur"], annee: r.annee, valeur: Number(r.valeur), source: r.source as PaysIndicateur["source"], estime: r.estime, luLe: r.lu_le });
 type EntiteFaitRow = { id: string; entite: string; genre: string; organisme: string; valeur: string; perspective: string | null; unite: string | null; date_fait: string; url: string; saisi_par: string; saisi_le: string };
+type PieceRow = { id: string; entite: string; objet: string; titre: string; editeur: string; url_origine: string | null; cle: string; sha256: string; taille: number | string; type_mime: string; archive_le: string; archive_par: string };
+const toPiece = (r: PieceRow): PieceArchivee => ({ id: r.id, entite: r.entite, objet: r.objet as PieceArchivee["objet"], titre: r.titre, editeur: r.editeur, urlOrigine: u(r.url_origine), cle: r.cle, sha256: r.sha256, taille: Number(r.taille), typeMime: r.type_mime, archiveLe: r.archive_le, archivePar: r.archive_par });
 const toEntiteFait = (r: EntiteFaitRow): EntiteFait => ({ id: r.id, entite: r.entite, genre: r.genre as EntiteFait["genre"], organisme: r.organisme, valeur: r.valeur, perspective: u(r.perspective), unite: u(r.unite), dateFait: r.date_fait, url: r.url, saisiPar: r.saisi_par, saisiLe: r.saisi_le });
 type EmissionNoticeRow = {
   id: string; source_url: string; source_title: string; file_key: string | null;
@@ -3237,6 +3240,28 @@ export const supabaseRepository: Repository = {
     if (error) fail("deleteEntiteFait", error);
     const row = (data as EntiteFaitRow[] | null)?.[0];
     return row ? toEntiteFait(row) : undefined;
+  },
+  async listPiecesArchivees(entite) {
+    let q = db().from("pieces_archivees").select("*").order("archive_le", { ascending: false }).limit(1000);
+    if (entite) q = q.eq("entite", entite);
+    const { data, error } = await q;
+    if (error) fail("listPiecesArchivees", error);
+    return (data as PieceRow[]).map(toPiece);
+  },
+  async addPieceArchivee(p) {
+    const { data, error } = await db().from("pieces_archivees").insert({ entite: p.entite, objet: p.objet, titre: p.titre, editeur: p.editeur, url_origine: p.urlOrigine ?? null, cle: p.cle, sha256: p.sha256, taille: p.taille, type_mime: p.typeMime, archive_le: p.archiveLe, archive_par: p.archivePar }).select("*").single();
+    if (error) fail("addPieceArchivee", error);
+    return toPiece(data as PieceRow);
+  },
+  async upsertBudgetEtat(b) {
+    const row = {
+      pays: b.pays, exercice: b.exercice, millesime: b.millesime, loi: b.loi, promulguee_le: b.promulgueeLe ?? null, hypotheses: b.hypotheses ?? [], budget_total: b.budgetTotal ?? null,
+      recettes: b.recettes, depenses: b.depenses, solde_declare: b.soldeDeclare ?? null, besoin_de_financement: b.besoinDeFinancement ?? null, financement: b.financement,
+      source: b.source, references_pieces: b.references ?? [], a_relever: b.aRelever ?? [], updated_at: new Date().toISOString(),
+    };
+    const { error } = await db().from("budgets_etats").upsert(row, { onConflict: "pays,exercice" });
+    if (error) fail("upsertBudgetEtat", error);
+    return b;
   },
   async listOjaImports() {
     const { data, error } = await db().from("oja_imports").select("*").order("created_at", { ascending: false }).limit(200);

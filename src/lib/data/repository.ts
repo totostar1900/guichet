@@ -24,6 +24,7 @@ import type { EncoursDette } from "@/lib/market/encours-dette";
 import type { AuctionResult, NewAuctionResult, PatchAuctionResult } from "@/lib/market/auction-results";
 import type { NouvelImportOja, OjaImport } from "@/lib/market/oja";
 import type { EntiteFait, NouveauFait, PaysIndicateur } from "@/lib/market/pays";
+import type { NouvellePiece, PieceArchivee } from "@/lib/market/pieces";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
 import type { FundCurve } from "@/lib/domain/fund-curve";
@@ -680,6 +681,11 @@ export interface Repository {
   listEntiteFaits(entite?: string): Promise<EntiteFait[]>;
   addEntiteFait(f: NouveauFait): Promise<EntiteFait>;
   deleteEntiteFait(id: string): Promise<EntiteFait | undefined>;
+  /** Les pièces conservées (copie d'une source publique) et leur écriture. Le fichier vit dans le dépôt « sources ». */
+  listPiecesArchivees(entite?: string): Promise<PieceArchivee[]>;
+  addPieceArchivee(p: NouvellePiece): Promise<PieceArchivee>;
+  /** Un budget d'État s'enregistre par (pays, exercice) : le nouveau remplace l'ancien, qui part au journal d'audit de l'appelant. */
+  upsertBudgetEtat(b: BudgetEtat): Promise<BudgetEtat>;
   listOjaImports(): Promise<OjaImport[]>;
   createOjaImport(i: NouvelImportOja): Promise<OjaImport>;
   /** Un import exclu ne compte plus pour les valeurs retenues : réversible. */
