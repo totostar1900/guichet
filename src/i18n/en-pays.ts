@@ -23,8 +23,6 @@ export const EN_PAYS: Record<string, string> = {
   "échelle officielle": "official scale",
   "Le trait à droite de BBB- (Baa3 chez Moody's) borde la catégorie d'investissement. Notes à long terme, telles que les agences les publient.": "The bar to the right of BBB- (Baa3 at Moody's) marks the edge of the investment-grade category. Long-term ratings, as the agencies publish them.",
   "Aucune note publique saisie": "No public rating entered",
-  "Évaluation du FMI": "IMF assessment",
-  "Évaluation de viabilité de la dette non saisie": "Debt sustainability assessment not entered",
   "Chiffres des comptes publiés": "Published accounts figures",
   "Aucun chiffre des comptes saisi": "No accounts figure entered",
   "Budget et besoin annuel d'endettement": "Budget and annual borrowing need",
@@ -37,7 +35,7 @@ export const EN_PAYS: Record<string, string> = {
   "Autres indicateurs": "Other indicators",
   "Sources et fraîcheur": "Sources and freshness",
   "lu le": "read on",
-  "Notations et évaluation du FMI : saisies chaque trimestre à partir des pièces publiques, chacun avec son lien.": "Ratings and IMF assessment: entered every quarter from public documents, each with its link.",
+  "Notations : saisies chaque trimestre à partir des pièces publiques, chacun avec son lien.": "Ratings: entered every quarter from public documents, each with its link.",
   "Les chiffres décrivent le passé et des projections de leur source ; ils ne sont ni un conseil ni une prévision de Guichet.": "The figures describe the past and projections made by their source; they are neither advice nor a forecast by Guichet.",
   // Les indicateurs
   "Dette brute": "Gross debt",

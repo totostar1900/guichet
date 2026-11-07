@@ -37,7 +37,7 @@ const faitSchema = z.object({
 });
 
 /**
- * Un fait saisi : une notation, l'évaluation du FMI, un chiffre des comptes.
+ * Un fait saisi : une notation, un chiffre des comptes.
  * Toujours avec sa date et le lien de sa pièce ; jamais un commentaire. Une note doit être sur l'échelle officielle de son agence : « BBB- » chez S&P, « Baa3 » chez Moody's.
  */
 export async function ajouterFait(_p: PaysResult | null, form: FormData): Promise<PaysResult> {

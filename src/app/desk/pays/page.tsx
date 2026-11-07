@@ -14,7 +14,7 @@ export const metadata = { title: "Fiches pays" };
 /**
  * LES FICHES PAYS : CE QUE LE ROBOT A LU, ET CE QUE LE DESK A SAISI (7 novembre 2026).
  *
- * Chaque fiche a deux fraîcheurs. Les indicateurs du FMI et de la Banque mondiale se relisent chaque mois par un robot. Les notations, l'évaluation du FMI et les chiffres de
+ * Chaque fiche a deux fraîcheurs. Les indicateurs du FMI et de la Banque mondiale se relisent chaque mois par un robot. Les notations, les chiffres de
  * comptes des comptes se saisissent chaque trimestre par le responsable ou un opérateur ; passé un trimestre sans saisie, le bloc se lit « à vérifier ».
  * La fiche ne montre que des faits, avec leur pièce : aucun champ de commentaire n'existe ici.
  */

@@ -219,9 +219,6 @@ export default async function PaysFichePage({
   const notations = premierParOrganisme(
     faits.filter((f) => f.genre === "notation"),
   );
-  const evaluation = premierParOrganisme(
-    faits.filter((f) => f.genre === "evaluation" && f.organisme === "FMI"),
-  )[0];
   const chiffres = faits
     .filter((f) => f.genre === "chiffre")
     .sort((a, b) => b.dateFait.localeCompare(a.dateFait));
@@ -461,31 +458,6 @@ export default async function PaysFichePage({
           )}
         </section>
 
-        {etat && (
-          <section className={styles.bloc} aria-labelledby="fmi">
-            <h2 id="fmi">{t("Évaluation du FMI")}</h2>
-            {evaluation ? (
-              <p className={styles.fait}>
-                <b>{evaluation.valeur}</b>
-                <span className={styles.meta}>
-                  {" "}
-                  · {t("FMI")} · {fmtDate(evaluation.dateFait)} ·{" "}
-                  <a
-                    href={evaluation.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {t("Voir la pièce")} ↗
-                  </a>
-                </span>
-              </p>
-            ) : (
-              <p className={styles.absent}>
-                {t("Évaluation de viabilité de la dette non saisie")}
-              </p>
-            )}
-          </section>
-        )}
 
         {inst && (
           <section className={styles.bloc} aria-labelledby="comptes">
@@ -633,7 +605,7 @@ export default async function PaysFichePage({
               ? `${[...sourcesLues].map((s) => t(s)).join(" · ")} · ${t("lu le")} ${lu ? fmtDate(lu) : "—"}. `
               : ""}
             {t(
-              "Notations et évaluation du FMI : saisies chaque trimestre à partir des pièces publiques, chacun avec son lien.",
+              "Notations : saisies chaque trimestre à partir des pièces publiques, chacun avec son lien.",
             )}{" "}
             {t(
               "Les chiffres décrivent le passé et des projections de leur source ; ils ne sont ni un conseil ni une prévision de Guichet.",

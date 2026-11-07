@@ -5,12 +5,12 @@
  *
  *   LES INDICATEURS LUS    FMI (Perspectives de l'économie mondiale) et Banque mondiale, rafraîchis par un robot. Chaque valeur porte son année, sa source et le fait qu'elle
  *                          est estimée ou prévue (le FMI publie au-delà de la dernière année observée).
- *   LES FAITS SAISIS       notations des agences, évaluation du FMI, chiffres des comptes d'une institution : saisis au Desk chaque trimestre,
+ *   LES FAITS SAISIS       notations des agences, chiffres des comptes d'une institution : saisis au Desk chaque trimestre,
  *                          chacun avec sa date et le lien de sa pièce.
  *   NOS PROPRES CHIFFRES   les titres publics en circulation (BEAC), le mur d'échéances, le calendrier : ils existent déjà au Desk.
  *
  * AUCUN COMMENTAIRE DE LA MAISON, décidé par le dirigeant le 7 novembre 2026 : ni phrase d'appréciation, ni feu rouge ou vert. Le seul jugement montré est celui d'une source, cité
- * avec elle (une note d'agence, l'évaluation de viabilité de la dette du FMI). Un chiffre qui n'existe pas à la source est nommé, jamais comblé.
+ * avec elle (une note d'agence). Un chiffre qui n'existe pas à la source est nommé, jamais comblé.
  */
 import type { Country } from "@/lib/domain/types";
 
@@ -71,7 +71,7 @@ export const institutionParSlug = (slug: string) => INSTITUTIONS.find((i) => i.s
 
 /* ─── Les faits saisis ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
-export const GENRES = ["notation", "evaluation", "chiffre"] as const;
+export const GENRES = ["notation", "chiffre"] as const;
 export type GenreDeFait = (typeof GENRES)[number];
 
 export interface EntiteFait {

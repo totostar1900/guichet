@@ -7,7 +7,6 @@ import styles from "./page.module.css";
 
 const GENRES: [string, string][] = [
   ["notation", "Notation d'une agence"],
-  ["evaluation", "Évaluation du FMI"],
   ["chiffre", "Chiffre des comptes"],
 ];
 
@@ -21,7 +20,7 @@ export function FaitForm({ entite, institution }: { entite: string; institution:
       <label>
         {t("Nature du fait")}
         <select name="genre" defaultValue={institution ? "chiffre" : "notation"}>
-          {GENRES.filter(([g]) => !institution || g !== "evaluation").map(([g, l]) => (
+          {GENRES.map(([g, l]) => (
             <option key={g} value={g}>
               {t(l)}
             </option>
