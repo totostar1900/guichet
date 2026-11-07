@@ -4,7 +4,9 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ConfirmPublish } from "@/components/desk/ConfirmPublish";
 import { useDates, useT } from "@/i18n/client";
+import { Info } from "@/components/Info";
 import { lotDepuis } from "@/lib/market/import-oja";
+import { KPI_OJA, type CleKpiOja } from "@/lib/market/oja-kpi";
 import { agregerOja, entetesManquants, reconnaitreFichier, type LigneOja, type OjaImport, type TypeFichier } from "@/lib/market/oja";
 import type { Source } from "@/lib/market/sources-seance";
 import { lireClasseur } from "@/lib/market/xlsx-leger";
@@ -23,6 +25,15 @@ const COLONNES: Record<TypeFichier, string[]> = {
   encheres: ["Titre", "Etat", "Montant", "Date de confirmation", "Type d'opération"],
   titres: ["Code", "Valeur nominale", "Terme", "Taux", "Date d'échéance"],
 };
+/** Le libellé d'un compteur et sa bulle : ce que le chiffre veut dire, quoi faire, à quoi il sert. */
+function Kpi({ cle, libelle }: { cle: CleKpiOja; libelle: string }) {
+  return (
+    <span>
+      {libelle} <Info subtle label={KPI_OJA[cle].titre} text={KPI_OJA[cle].texte} />
+    </span>
+  );
+}
+
 const NOM_FICHIER: Record<TypeFichier, string> = { offres: "Toutes les offres", encheres: "Enchères", titres: "Titres" };
 
 const fmtValeur = (champ: string, v?: number): string => {
@@ -155,9 +166,9 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
             {dernier.exclu && <em className={styles.exclu}> · {t("exclu")}</em>}
           </p>
           <div className={styles.chiffres}>
-            <div><b>{dernier.nouvelles}</b><span>{t("nouvelles séances")}</span></div>
-            <div><b className={styles.bon}>{dernier.concordantes}</b><span>{t("concordantes")}</span></div>
-            <div><b className={dernier.ecarts ? styles.mauvais : undefined}>{dernier.ecarts}</b><span>{t("écarts")}</span></div>
+            <div><b>{dernier.nouvelles}</b><Kpi cle="nouvelles" libelle={t("nouvelles séances")} /></div>
+            <div><b className={styles.bon}>{dernier.concordantes}</b><Kpi cle="concordantes" libelle={t("concordantes")} /></div>
+            <div><b className={dernier.ecarts ? styles.mauvais : undefined}>{dernier.ecarts}</b><Kpi cle="ecarts" libelle={t("écarts")} /></div>
           </div>
           <form action={exclureImportAction} className={styles.ligne}>
             <input type="hidden" name="importId" value={dernier.id} />
@@ -188,11 +199,11 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
                 {apercu.plage ? ` · ${fmtDate(apercu.plage.du)} → ${fmtDate(apercu.plage.au)}` : ""}
               </p>
               <div className={styles.compteurs}>
-                <div><b className={styles.bon}>{c.nouvellesFiables}</b><span>{t("nouvelles fiables")}</span></div>
-                <div><b>{c.nouvellesAConfirmer}</b><span>{t("à confirmer (avant 2023)")}</span></div>
-                <div><b className={c.ecarts ? styles.mauvais : undefined}>{c.ecarts}</b><span>{t("écarts à trancher")}</span></div>
-                <div><b>{c.concordantes}</b><span>{t("concordantes")}</span></div>
-                <div><b>{c.ignorees}</b><span>{t("ignorées")}</span></div>
+                <div><b className={styles.bon}>{c.nouvellesFiables}</b><Kpi cle="nouvellesFiables" libelle={t("nouvelles fiables")} /></div>
+                <div><b>{c.nouvellesAConfirmer}</b><Kpi cle="nouvellesAConfirmer" libelle={t("à confirmer (avant 2023)")} /></div>
+                <div><b className={c.ecarts ? styles.mauvais : undefined}>{c.ecarts}</b><Kpi cle="ecarts" libelle={t("écarts à trancher")} /></div>
+                <div><b>{c.concordantes}</b><Kpi cle="concordantes" libelle={t("concordantes")} /></div>
+                <div><b>{c.ignorees}</b><Kpi cle="ignorees" libelle={t("ignorées")} /></div>
               </div>
               {apercu.avertissements.map((a) => <p key={a} className={styles.aide}>⚠ {a}</p>)}
               <p className={styles.aide}>{t("Ignorées : séances du jour, séances rejetées, séances écartées au Desk.")}</p>

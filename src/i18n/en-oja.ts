@@ -4,7 +4,10 @@
  * Une phrase se traduit entière : le dictionnaire tombe sinon dans son dernier recours, qui coupe sur les espaces et traduit ce qu'il reconnaît. Les libellés des
  * chiffres (« Montant annoncé », « Taux limite »…) passent par une variable dans l'écran : ils sont ici aussi, le scanner de clefs ne les voit pas.
  */
+import { EN_KPI_OJA } from "@/lib/market/oja-kpi";
+
 export const EN_OJA: Record<string, string> = {
+  ...EN_KPI_OJA,
   "Lecture de {f}…": "Reading {f}…",
   "« {f} » n'est pas un export OJA reconnu (offres, enchères ou titres).": "“{f}” is not a recognised OJA export (offers, auctions or securities).",
   "« {f} » : colonne(s) manquante(s) : {c}.": "“{f}”: missing column(s): {c}.",
