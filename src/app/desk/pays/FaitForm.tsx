@@ -8,7 +8,6 @@ import styles from "./page.module.css";
 const GENRES: [string, string][] = [
   ["notation", "Notation d'une agence"],
   ["evaluation", "Évaluation du FMI"],
-  ["evenement", "Retard ou événement de paiement"],
   ["chiffre", "Chiffre des comptes"],
 ];
 

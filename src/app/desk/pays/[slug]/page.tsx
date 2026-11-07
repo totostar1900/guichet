@@ -12,7 +12,7 @@ import styles from "../page.module.css";
 
 export const dynamic = "force-dynamic";
 
-const GENRE: Record<string, string> = { notation: "Notation", evaluation: "Évaluation du FMI", evenement: "Événement de paiement", chiffre: "Chiffre des comptes" };
+const GENRE: Record<string, string> = { notation: "Notation", evaluation: "Évaluation du FMI", chiffre: "Chiffre des comptes" };
 
 export default async function PaysDeskFichePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

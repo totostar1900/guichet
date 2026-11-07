@@ -222,9 +222,6 @@ export default async function PaysFichePage({
   const evaluation = premierParOrganisme(
     faits.filter((f) => f.genre === "evaluation" && f.organisme === "FMI"),
   )[0];
-  const evenements = faits
-    .filter((f) => f.genre === "evenement")
-    .sort((a, b) => b.dateFait.localeCompare(a.dateFait));
   const chiffres = faits
     .filter((f) => f.genre === "chiffre")
     .sort((a, b) => b.dateFait.localeCompare(a.dateFait));
@@ -490,32 +487,6 @@ export default async function PaysFichePage({
           </section>
         )}
 
-        <section className={styles.bloc} aria-labelledby="retards">
-          <h2 id="retards">{t("Retards et événements de paiement")}</h2>
-          {evenements.length ? (
-            <ul className={styles.liste}>
-              {evenements.map((ev) => (
-                <li key={ev.id}>
-                  <b>{ev.valeur}</b>
-                  <span className={styles.meta}>
-                    {" "}
-                    · {ev.organisme} · {fmtDate(ev.dateFait)} ·{" "}
-                    <a href={ev.url} target="_blank" rel="noopener noreferrer">
-                      {t("Voir la pièce")} ↗
-                    </a>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.absent}>
-              {revue
-                ? `${t("Aucun événement saisi")} · ${t("Dernière revue le")} ${fmtDate(revue)}`
-                : t("Aucun événement saisi")}
-            </p>
-          )}
-        </section>
-
         {inst && (
           <section className={styles.bloc} aria-labelledby="comptes">
             <h2 id="comptes">{t("Chiffres des comptes publiés")}</h2>
@@ -662,7 +633,7 @@ export default async function PaysFichePage({
               ? `${[...sourcesLues].map((s) => t(s)).join(" · ")} · ${t("lu le")} ${lu ? fmtDate(lu) : "—"}. `
               : ""}
             {t(
-              "Notations, évaluation du FMI et événements : saisis chaque trimestre à partir des pièces publiques, chacun avec son lien.",
+              "Notations et évaluation du FMI : saisies chaque trimestre à partir des pièces publiques, chacun avec son lien.",
             )}{" "}
             {t(
               "Les chiffres décrivent le passé et des projections de leur source ; ils ne sont ni un conseil ni une prévision de Guichet.",

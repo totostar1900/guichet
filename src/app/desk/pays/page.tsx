@@ -14,8 +14,8 @@ export const metadata = { title: "Fiches pays" };
 /**
  * LES FICHES PAYS : CE QUE LE ROBOT A LU, ET CE QUE LE DESK A SAISI (7 novembre 2026).
  *
- * Chaque fiche a deux fraîcheurs. Les indicateurs du FMI et de la Banque mondiale se relisent chaque mois par un robot. Les notations, l'évaluation du FMI, les événements de
- * paiement et les chiffres des comptes se saisissent chaque trimestre par le responsable ou un opérateur ; passé un trimestre sans saisie, le bloc se lit « à vérifier ».
+ * Chaque fiche a deux fraîcheurs. Les indicateurs du FMI et de la Banque mondiale se relisent chaque mois par un robot. Les notations, l'évaluation du FMI et les chiffres de
+ * comptes des comptes se saisissent chaque trimestre par le responsable ou un opérateur ; passé un trimestre sans saisie, le bloc se lit « à vérifier ».
  * La fiche ne montre que des faits, avec leur pièce : aucun champ de commentaire n'existe ici.
  */
 export default async function PaysDeskPage() {
@@ -40,7 +40,7 @@ export default async function PaysDeskPage() {
       <main className={styles.page}>
         <header className={styles.tete}>
           <h1>{t("Fiches pays")}</h1>
-          <p className={styles.sous}>{t("La santé économique et financière de chaque émetteur, en faits seuls : indicateurs du FMI et de la Banque mondiale lus par un robot, notations et événements saisis chaque trimestre, chacun avec sa pièce.")}</p>
+          <p className={styles.sous}>{t("La santé économique et financière de chaque émetteur, en faits seuls : indicateurs du FMI et de la Banque mondiale lus par un robot, notations saisies chaque trimestre, chacun avec sa pièce.")}</p>
         </header>
         <Rafraichir />
         <ul className={styles.liste}>
