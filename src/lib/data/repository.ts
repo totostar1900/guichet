@@ -689,7 +689,7 @@ export interface Repository {
   listOjaImports(): Promise<OjaImport[]>;
   createOjaImport(i: NouvelImportOja): Promise<OjaImport>;
   /** Un import exclu ne compte plus pour les valeurs retenues : réversible. */
-  updateOjaImport(id: string, patch: Partial<Pick<OjaImport, "exclu">>): Promise<OjaImport>;
+  updateOjaImport(id: string, patch: Partial<Pick<OjaImport, "exclu" | "nouvelles" | "excluMotif" | "excluPar" | "excluLe">> & { efface?: boolean }): Promise<OjaImport>;
 
   /**
    * Les avis d'annonce de la BEAC : les modalités de l'emprunt, que le

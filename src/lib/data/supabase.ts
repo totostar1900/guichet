@@ -812,10 +812,12 @@ export const toAuctionResult = (r: AuctionResultRow): AuctionResult => ({
 type OjaImportRow = {
   id: string; created_at: string; created_by: string; fichiers: OjaImport["fichiers"]; plage_du: string | null; plage_au: string | null;
   seances: number; nouvelles: number; rapprochees: number; concordantes: number; ecarts: number; ignorees: number; exclu: boolean;
+  exclu_motif?: string | null; exclu_par?: string | null; exclu_le?: string | null;
 };
 const toOjaImport = (r: OjaImportRow): OjaImport => ({
   id: r.id, at: r.created_at, by: r.created_by, fichiers: r.fichiers ?? [], plage: r.plage_du && r.plage_au ? { du: r.plage_du, au: r.plage_au } : undefined,
   seances: r.seances, nouvelles: r.nouvelles, rapprochees: r.rapprochees, concordantes: r.concordantes, ecarts: r.ecarts, ignorees: r.ignorees, exclu: r.exclu,
+  excluMotif: r.exclu_motif ?? undefined, excluPar: r.exclu_par ?? undefined, excluLe: r.exclu_le ?? undefined,
 });
 const fromOjaImport = (i: NouvelImportOja) => ({
   created_by: i.by, fichiers: i.fichiers, plage_du: i.plage?.du ?? null, plage_au: i.plage?.au ?? null,
@@ -3274,7 +3276,14 @@ export const supabaseRepository: Repository = {
     return toOjaImport(data as OjaImportRow);
   },
   async updateOjaImport(id, patch) {
-    const { data, error } = await db().from("oja_imports").update({ ...(patch.exclu !== undefined ? { exclu: patch.exclu } : {}) }).eq("id", id).select("*").single();
+    const { data, error } = await db().from("oja_imports").update({
+      ...(patch.exclu !== undefined ? { exclu: patch.exclu } : {}),
+      ...(patch.nouvelles !== undefined ? { nouvelles: patch.nouvelles } : {}),
+      ...(patch.excluMotif !== undefined ? { exclu_motif: patch.excluMotif } : {}),
+      ...(patch.excluPar !== undefined ? { exclu_par: patch.excluPar } : {}),
+      ...(patch.excluLe !== undefined ? { exclu_le: patch.excluLe } : {}),
+      ...(patch.efface ? { exclu_motif: null, exclu_par: null, exclu_le: null } : {}),
+    }).eq("id", id).select("*").single();
     if (error) fail("updateOjaImport", error);
     return toOjaImport(data as OjaImportRow);
   },

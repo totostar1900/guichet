@@ -10,6 +10,16 @@ export type CleOnglet = "tout" | "a_lire" | "a_relire" | "relue" | "ecartee";
 
 const trois = (ce: string, faire: string, sert: string) => `${ce}\n\nÀ faire : ${faire}\n\nÀ quoi ça sert : ${sert}`;
 
+/**
+ * LA RÈGLE QUE LE DESK DOIT AVOIR SOUS LES YEUX (7 novembre 2026) : une séance non relue n'est pas utilisée. Ni la courbe des taux, ni le repère montré au client, ni le comparatif sur une
+ * période passée, ni la fiche d'une ligne, ni les analyses et rapports du Desk ne la lisent. Seule exception, dite : la page Budgets du Desk compte aussi les séances non relues dans
+ * « ce qui a été levé », et en affiche le nombre à part.
+ */
+const NON_RELUE = "Tant qu'une séance n'est pas relue, elle n'est utilisée nulle part : ni dans les courbes, ni dans les comparaisons, ni dans les fiches des lignes, ni dans les analyses et les rapports (la page Budgets du Desk la compte à part et la signale).";
+const NON_RELUE_EN = "Until a session is reviewed, it is used nowhere: not in the curves, not in the comparisons, not in the line sheets, not in the analyses and reports (the Desk's Budgets page counts it separately and flags it).";
+const avec = (texte: string) => `${texte}\n\n${NON_RELUE}`;
+const avecEn = (texte: string) => `${texte}\n\n${NON_RELUE_EN}`;
+
 export const KPI_OJA: Record<CleKpiOja, { titre: string; texte: string }> = {
   nouvellesFiables: {
     titre: "Nouvelles fiables",
@@ -21,11 +31,11 @@ export const KPI_OJA: Record<CleKpiOja, { titre: string; texte: string }> = {
   },
   nouvellesAConfirmer: {
     titre: "À confirmer (avant 2023)",
-    texte: trois(
+    texte: avec(trois(
       "Séances nouvelles d'avant le 1er février 2023, quand l'état des offres est ambigu : le taux recalculé peut être faux.",
       "ne les importez que si vous pouvez les vérifier sur le communiqué. Elles entrent sans être confirmées.",
       "elles allongent l'historique. Tant qu'elles ne sont pas confirmées par une personne, le client ne les voit pas.",
-    ),
+    )),
   },
   ecarts: {
     titre: "Écarts à trancher",
@@ -46,18 +56,18 @@ export const KPI_OJA: Record<CleKpiOja, { titre: string; texte: string }> = {
   ignorees: {
     titre: "Ignorées",
     texte: trois(
-      "Séances laissées de côté : carnet du jour encore ouvert, séances rejetées par OJA, séances que le Desk a écartées.",
+      "Séances laissées de côté : carnet du jour encore ouvert, séances rejetées par OJA, séances que le Desk a écartées, et séances déjà présentes sous le même pays, jour et code.",
       "rien en général. Si un nombre vous surprend, ouvrez la séance concernée dans le tableau des adjudications.",
       "l'import ne reprend ni séance en cours ni séance annulée : aucun taux qui n'a pas existé n'entre dans la base.",
     ),
   },
   nouvelles: {
     titre: "Nouvelles séances",
-    texte: trois(
+    texte: avec(trois(
       "Séances créées au Desk par ce dernier import, parce qu'elles n'y existaient pas.",
       "ouvrez-les dans le tableau et confirmez sur la pièce celles qui sont marquées « à confirmer ».",
       "mesurer ce que l'import a réellement apporté à l'historique. Un chiffre à zéro veut dire que le Desk était déjà à jour.",
-    ),
+    )),
   },
 };
 
@@ -76,19 +86,19 @@ export const ONGLETS_SEANCES: Record<CleOnglet, { titre: string; texte: string }
   },
   a_lire: {
     titre: "À lire",
-    texte: trois(
+    texte: avec(trois(
       "Séances que le robot a déposées avec leur identité mais sans aucun chiffre : le communiqué n'a encore rien donné.",
       "ouvrir le communiqué, lancer « Lire le communiqué » ou saisir les chiffres à la main, puis enregistrer.",
       "sans chiffres, une séance ne donne ni taux ni point de courbe.",
-    ),
+    )),
   },
   a_relire: {
     titre: "À relire",
-    texte: trois(
+    texte: avec(trois(
       "Séances dont les chiffres sont posés (lus par la machine, repris d'un import Excel ou saisis) mais qu'aucune personne n'a confirmés.",
       "comparer avec le communiqué, corriger au besoin, puis confirmer. Les bons du Trésor fiables se confirment en lot, depuis la bande du haut.",
       "seule une séance confirmée fonde un taux, une courbe et ce que le client voit.",
-    ),
+    )),
   },
   relue: {
     titre: "Relues",
@@ -122,11 +132,11 @@ const EN_PARTS: Record<CleKpiOja, { titre: string; texte: string }> = {
   },
   nouvellesAConfirmer: {
     titre: "To confirm (before 2023)",
-    texte: trois_en(
+    texte: avecEn(trois_en(
       "New sessions from before 1 February 2023, when the offer states are ambiguous: the recomputed rate may be wrong.",
       "import them only if you can check them against the notice. They come in unconfirmed.",
       "they lengthen the history. Until a person confirms them, the client does not see them.",
-    ),
+    )),
   },
   ecarts: {
     titre: "Discrepancies to settle",
@@ -147,18 +157,18 @@ const EN_PARTS: Record<CleKpiOja, { titre: string; texte: string }> = {
   ignorees: {
     titre: "Ignored",
     texte: trois_en(
-      "Sessions left aside: today's order book still open, sessions OJA rejected, sessions the Desk set aside.",
+      "Sessions left aside: today's order book still open, sessions OJA rejected, sessions the Desk set aside, and sessions already present under the same country, day and code.",
       "nothing in general. If a number surprises you, open the session in the auctions table.",
       "the import takes neither a session in progress nor a cancelled one: no rate that never existed enters the database.",
     ),
   },
   nouvelles: {
     titre: "New sessions",
-    texte: trois_en(
+    texte: avecEn(trois_en(
       "Sessions created in the Desk by this latest import, because they did not exist there.",
       "open them in the table and confirm against the document those marked « to confirm ».",
       "measure what the import really added to the history. A zero means the Desk was already up to date.",
-    ),
+    )),
   },
 };
 
@@ -169,11 +179,11 @@ const EN_ONGLETS: Record<CleOnglet, { titre: string; texte: string }> = {
   },
   a_lire: {
     titre: "To read",
-    texte: trois_en("Sessions the robot filed with their identity but no figure at all: the notice has yielded nothing yet.", "open the notice, run « Read the notice » or key the figures in by hand, then save.", "without figures, a session gives neither a rate nor a point on the curve."),
+    texte: avecEn(trois_en("Sessions the robot filed with their identity but no figure at all: the notice has yielded nothing yet.", "open the notice, run « Read the notice » or key the figures in by hand, then save.", "without figures, a session gives neither a rate nor a point on the curve.")),
   },
   a_relire: {
     titre: "To review",
-    texte: trois_en("Sessions whose figures are set (read by the machine, taken from an Excel import or keyed in) but that no person has confirmed.", "compare with the notice, correct if needed, then confirm. Reliable Treasury bills are confirmed in a batch from the top strip.", "only a confirmed session grounds a rate, a curve and what the client sees."),
+    texte: avecEn(trois_en("Sessions whose figures are set (read by the machine, taken from an Excel import or keyed in) but that no person has confirmed.", "compare with the notice, correct if needed, then confirm. Reliable Treasury bills are confirmed in a batch from the top strip.", "only a confirmed session grounds a rate, a curve and what the client sees.")),
   },
   relue: {
     titre: "Reviewed",

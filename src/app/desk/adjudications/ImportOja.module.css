@@ -177,3 +177,19 @@
   display: grid;
   gap: var(--s-2);
 }
+
+.exclusion {
+  display: grid;
+  gap: var(--s-3);
+}
+.motif {
+  display: grid;
+  gap: var(--s-2);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.motif textarea {
+  font: inherit;
+  min-height: 3.2rem;
+  resize: vertical;
+}

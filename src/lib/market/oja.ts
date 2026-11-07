@@ -307,6 +307,10 @@ export interface OjaImport {
   ecarts: number;
   ignorees: number;
   exclu: boolean;
+  /** Pourquoi l'import a été exclu, par qui, quand : écrits au moment de l'exclusion, effacés au rétablissement. */
+  excluMotif?: string;
+  excluPar?: string;
+  excluLe?: string;
 }
 export type NouvelImportOja = Omit<OjaImport, "id" | "at">;
 

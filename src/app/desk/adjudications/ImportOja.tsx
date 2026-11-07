@@ -58,6 +58,7 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
   const [apercu, setApercu] = useState<ApercuOja | null>(null);
   const [fiables, setFiables] = useState(true);
   const [aConfirmer, setAConfirmer] = useState(false);
+  const [retablir, setRetablir] = useState(true);
   const [choix, setChoix] = useState<Record<string, Source>>({});
   const [message, setMessage] = useState("");
   const [rouvrir, setRouvrir] = useState(false);
@@ -119,6 +120,7 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
       setApercu(a);
       setFiables(true);
       setAConfirmer(false);
+      setRetablir(true);
       setEtat("apercu");
     } catch (e) {
       if (abandonne()) return;
@@ -158,7 +160,7 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
     e.preventDefault();
     setEtat("ecriture");
     demarrer(async () => {
-      const r = await appliquerOjaAction(JSON.stringify({ lot: JSON.parse(lot), choix: { nouvellesFiables: fiables, nouvellesAConfirmer: aConfirmer, decisions: choix } }));
+      const r = await appliquerOjaAction(JSON.stringify({ lot: JSON.parse(lot), choix: { nouvellesFiables: fiables, nouvellesAConfirmer: aConfirmer, retablir, decisions: choix } }));
       if (!r.ok) {
         setErreur(r.error ?? t("Import impossible."));
         setEtat("apercu");
@@ -194,11 +196,42 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
             <div><b className={styles.bon}>{dernier.concordantes}</b><Kpi cle="concordantes" libelle={t("concordantes")} /></div>
             <div><b className={dernier.ecarts ? styles.mauvais : undefined}>{dernier.ecarts}</b><Kpi cle="ecarts" libelle={t("écarts")} /></div>
           </div>
-          <form action={exclureImportAction} className={styles.ligne}>
+          {/* UNE EXCLUSION SE MOTIVE ET SE CONFIRME (7 novembre 2026) : le geste était silencieux, et c'est lui qui retire des milliers de séances des rapports. Un commentaire écrit,
+              puis une relecture des conséquences ; la décision est signée, datée, et reste affichée tant que l'import est exclu. */}
+          {dernier.exclu && dernier.excluMotif && (
+            <p className={styles.exclu}>
+              {t("Exclu par {p} le {d} : {m}", { p: dernier.excluPar ?? "—", d: dernier.excluLe ? fmtDate(dernier.excluLe) : "—", m: dernier.excluMotif })}
+            </p>
+          )}
+          <form id="exclusion-import" action={exclureImportAction} className={styles.exclusion}>
             <input type="hidden" name="importId" value={dernier.id} />
             <input type="hidden" name="exclure" value={dernier.exclu ? "0" : "1"} />
-            <button type="submit" className="btn sm">{dernier.exclu ? t("Rétablir cet import") : t("Exclure cet import")}</button>
-            <span className={styles.aide}>{t("Un import exclu ne compte plus pour les valeurs retenues ni les rapports ; les valeurs du communiqué reviennent.")}</span>
+            {!dernier.exclu && (
+              <label className={styles.motif}>
+                {t("Pourquoi exclure cet import ? (obligatoire, gardé au journal)")}
+                <textarea name="motif" required minLength={5} maxLength={400} rows={2} />
+              </label>
+            )}
+            <div className={styles.ligne}>
+              <ConfirmPublish
+                form="exclusion-import"
+                label={dernier.exclu ? t("Rétablir cet import") : t("Exclure cet import")}
+                title={dernier.exclu ? t("Rétablir cet import ?") : t("Exclure cet import ?")}
+                lines={
+                  dernier.exclu
+                    ? [t("Les séances nées de cet import sortent de la mise de côté et comptent de nouveau."), t("Les valeurs de l'Excel redeviennent des sources des séances qu'il avait enrichies."), t("Le rétablissement est écrit au journal d'audit.")]
+                    : [
+                        t("Les {n} séances nées de cet import seront mises de côté : elles ne comptent plus pour les valeurs retenues, les courbes ni les rapports.", { n: dernier.nouvelles }),
+                        t("Les séances enrichies par l'Excel retrouvent les valeurs du communiqué."),
+                        t("Rien n'est effacé : un nouvel import des mêmes fichiers, ou « Rétablir », les remet."),
+                        t("Votre nom, la date et votre commentaire sont écrits au journal d'audit."),
+                      ]
+                }
+                confirmLabel={dernier.exclu ? t("Rétablir") : t("Exclure")}
+                className="btn sm"
+              />
+              <span className={styles.aide}>{t("Un import exclu ne compte plus pour les valeurs retenues ni les rapports ; les valeurs du communiqué reviennent.")}</span>
+            </div>
           </form>
         </>
       ) : (
@@ -292,6 +325,13 @@ export function ImportOja({ imports }: { imports: OjaImport[] }) {
                 <input type="checkbox" checked={fiables} onChange={(e) => setFiables(e.target.checked)} />
                 {t("Importer et confirmer les {n} séances nouvelles fiables", { n: c.nouvellesFiables })}
               </label>
+              {c.reactivables > 0 && (
+                <label className={styles.case}>
+                  <input type="checkbox" checked={retablir} onChange={(e) => setRetablir(e.target.checked)} />
+                  {t("Rétablir les {n} séances mises de côté par l'exclusion d'un import précédent", { n: c.reactivables })}
+                </label>
+              )}
+              {c.doublons > 0 && <p className={styles.aide}>{t("{n} séance(s) ont déjà au Desk le même pays, le même jour et le même code : elles ne sont pas nouvelles et restent comptées parmi les ignorées.", { n: c.doublons })}</p>}
               <label className={styles.case}>
                 <input type="checkbox" checked={aConfirmer} onChange={(e) => setAConfirmer(e.target.checked)} />
                 {t("Importer aussi les {n} séances d'avant 2023, à confirmer sur la pièce", { n: c.nouvellesAConfirmer })}

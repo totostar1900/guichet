@@ -210,10 +210,10 @@ const GABON: BudgetEtat = {
 
 const CAMEROUN: BudgetEtat = {
   ...SEED_BUDGETS.find((b) => b.pays === "Cameroun")!,
-  source: { ...SEED_BUDGETS.find((b) => b.pays === "Cameroun")!.source, url: "https://www.dgb.cm/wp-content/uploads/2025/12/Expose-des-Motifs_LF-2026_fr.pdf" },
+  source: { texte: "Loi n° 2025/012 du 17 décembre 2025 · exposé des motifs et présentation du lancement du budget 2026 (Direction générale du budget)", releveLe: LE, url: "https://www.dgb.cm/wp-content/uploads/2025/12/Expose-des-Motifs_LF-2026_fr.pdf" },
   references: [
     ref("Exposé des motifs du projet de loi de finances 2026", "Direction générale du budget (DGB), Cameroun", "https://www.dgb.cm/wp-content/uploads/2025/12/Expose-des-Motifs_LF-2026_fr.pdf", "2025-11"),
-    ...(SEED_BUDGETS.find((b) => b.pays === "Cameroun")!.references ?? []),
+    ...(SEED_BUDGETS.find((b) => b.pays === "Cameroun")!.references ?? []).filter((r) => !r.url?.includes("Expose-des-Motifs")),
   ],
 };
 

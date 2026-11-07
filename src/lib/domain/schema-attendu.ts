@@ -1,5 +1,5 @@
 /**
- * CE QUE LES 125 MIGRATIONS DU DÉPÔT DÉCLARENT.
+ * CE QUE LES 126 MIGRATIONS DU DÉPÔT DÉCLARENT.
  *
  * ÉCRIT PAR UN SCRIPT, JAMAIS À LA MAIN : `npm run schema:attendu`. Un cliquet
  * (src/test/schema-attendu.test.ts) refuse qu'il s'écarte des migrations, parce
@@ -177,6 +177,9 @@ export const SCHEMA_ATTENDU: Omit<SchemaDeclare, "incompris"> = {
   "offers.price_source",
   "offers.settlement_days",
   "offers.type_key",
+  "oja_imports.exclu_le",
+  "oja_imports.exclu_motif",
+  "oja_imports.exclu_par",
   "profiles.advisor_id",
   "profiles.demo",
   "profiles.email",

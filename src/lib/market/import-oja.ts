@@ -1,4 +1,4 @@
-import { apparier, type RapportOja, type SeanceOja, type TypeFichier } from "./oja";
+import { apparier, codeIsin, type RapportOja, type SeanceOja, type TypeFichier } from "./oja";
 import { CHAMPS, LIBELLE_CHAMP, egal, proposer, valeursPlates, verserExcel, type Champ, type Proposition, type SeancePlate, type Source, type SourcesSeance, patchDesColonnes, sourcesDe } from "./sources-seance";
 
 /**
@@ -16,6 +16,7 @@ export interface SeanceDuDesk extends SeancePlate {
   instrument?: string;
   confirmedBy?: string;
   setAsideAt?: string;
+  setAsideReason?: string;
 }
 
 export interface EcartPropose {
@@ -41,9 +42,13 @@ export interface PlanImport {
   nouvelles: SeanceOja[];
   rapprochees: SeanceRapprochee[];
   ignoreesAuDesk: number;
+  /** Séances mises de côté par l'exclusion d'un import précédent, que ce lot retrouve : à rétablir si le desk le décide. */
+  reactivables: { oja: SeanceOja; deskId: string }[];
+  /** Séances qui n'ont pas de jumelle appariée mais dont le pays, le jour et le code existent déjà au Desk : la base les refuserait, elles ne sont pas nouvelles. */
+  doublons: number;
   /** Les séances du Desk qu'OJA dit « rejetées » alors qu'elles portent des montants. */
   contredites: { deskId: string; isin: string; date: string }[];
-  compteurs: { nouvellesFiables: number; nouvellesAConfirmer: number; concordantes: number; ecarts: number; ignorees: number; contredites: number };
+  compteurs: { nouvellesFiables: number; nouvellesAConfirmer: number; concordantes: number; ecarts: number; ignorees: number; contredites: number; reactivables: number };
 }
 
 const memesValeurs = (a?: SourcesSeance["excel"], b?: SourcesSeance["excel"]) => CHAMPS.every((c) => (a?.[c] ?? null) === (b?.[c] ?? null));
@@ -58,15 +63,35 @@ export function planifier(seances: SeanceOja[], rejeteesCles: string[], ignorees
   const pris = new Set<SeanceDuDesk>();
   const nouvelles: SeanceOja[] = [];
   const rapprochees: SeanceRapprochee[] = [];
+  const reactivables: PlanImport["reactivables"] = [];
   let ignoreesAuDesk = 0;
+  let doublons = 0;
+  /* LES CORRESPONDANCES EXACTES D'ABORD (même code, même jour), toutes, avant la moindre approchée. Deux séances OJA d'une même ligne à quelques jours d'écart se disputaient
+     la seule séance du Desk : celle qui passait la première, à un jour près, la prenait, et la jumelle exacte, privée de sa séance, devenait « nouvelle » alors que la base
+     refuse un deuxième pays-jour-code. Résultat : six séances « nouvelles » à chaque import, jamais créées (7 novembre 2026). */
+  const exactes = new Map<SeanceOja, SeanceDuDesk>();
   for (const s of seances) {
-    const m = apparier(s, actifs, pris);
+    const e = actifs.find((d) => codeIsin(d.codeEmission) === s.isin && d.sessionOn === s.date && !pris.has(d));
+    if (e) {
+      exactes.set(s, e);
+      pris.add(e);
+    }
+  }
+  for (const s of seances) {
+    const exacte = exactes.get(s);
+    const m = exacte ? { seance: exacte, ecartJours: 0 } : apparier(s, actifs, pris);
     if (!m) {
-      if (apparier(s, ecartees)) ignoreesAuDesk++;
-      else nouvelles.push(s);
+      const ec = apparier(s, ecartees);
+      if (ec) {
+        if ((ec.seance.setAsideReason ?? "").startsWith("Import OJA exclu")) reactivables.push({ oja: s, deskId: ec.seance.id });
+        else ignoreesAuDesk++;
+      } else if (desk.some((d) => d.country === s.pays && d.sessionOn === s.date && codeIsin(d.codeEmission) === s.isin)) {
+        doublons++;
+        ignoreesAuDesk++;
+      } else nouvelles.push(s);
       continue;
     }
-    pris.add(m.seance);
+    if (!exacte) pris.add(m.seance);
     const avant = sourcesDe(m.seance);
     const apres = verserExcel(m.seance, s.valeurs, { importId: "?", fiabilite: s.fiabilite });
     const pdf = avant.pdf ?? valeursPlates(m.seance);
@@ -100,6 +125,8 @@ export function planifier(seances: SeanceOja[], rejeteesCles: string[], ignorees
     nouvelles,
     rapprochees,
     ignoreesAuDesk,
+    reactivables,
+    doublons,
     contredites,
     compteurs: {
       nouvellesFiables: nouvelles.filter((s) => s.fiabilite === "fiable").length,
@@ -108,6 +135,7 @@ export function planifier(seances: SeanceOja[], rejeteesCles: string[], ignorees
       ecarts: rapprochees.filter((r) => r.ecarts.length > 0).length,
       ignorees: ignoreesOja + ignoreesAuDesk,
       contredites: contredites.length,
+      reactivables: reactivables.length,
     },
   };
 }

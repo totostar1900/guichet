@@ -61,7 +61,7 @@ export interface ApercuOja {
   error?: string;
   fichiers: LotOja["fichiers"];
   plage?: LotOja["plage"];
-  compteurs?: ReturnType<typeof planifier>["compteurs"] & { seances: number };
+  compteurs?: ReturnType<typeof planifier>["compteurs"] & { seances: number; doublons: number };
   avertissements: string[];
   ecarts: LigneEcartOja[];
   ecartsTotal: number;
@@ -107,7 +107,7 @@ export async function apercuOjaAction(brut: string): Promise<ApercuOja> {
     ok: true,
     fichiers: lot.fichiers,
     plage: lot.plage,
-    compteurs: { ...plan.compteurs, seances: lot.seances.length },
+    compteurs: { ...plan.compteurs, seances: lot.seances.length, doublons: plan.doublons },
     avertissements: lot.avertissements,
     ecarts: ecarts.slice(0, 120),
     ecartsTotal: ecarts.length,
@@ -126,12 +126,15 @@ export interface ResultatOja {
 const choixSchema = z.object({
   nouvellesFiables: z.boolean(),
   nouvellesAConfirmer: z.boolean(),
+  /** Rétablir les séances que l'exclusion d'un import précédent avait mises de côté et que ce lot retrouve. */
+  retablir: z.boolean().default(false),
   decisions: z.record(z.string().max(80), z.enum(["pdf", "excel"])),
 });
 
 export interface ChoixOja {
   nouvellesFiables: boolean;
   nouvellesAConfirmer: boolean;
+  retablir: boolean;
   decisions: Decisions;
 }
 
@@ -168,6 +171,7 @@ export async function appliquerOjaAction(charge: string): Promise<ResultatOja> {
   const le = new Date().toISOString();
 
   const aCreer = plan.nouvelles.filter((s) => (s.fiabilite === "fiable" ? choix.nouvellesFiables : choix.nouvellesAConfirmer));
+  const aRetablir = choix.retablir ? plan.reactivables : [];
   const aVerser = plan.rapprochees.filter((x) => !x.inchangee);
   const journal = await r.createOjaImport({
     by: desk.name,
@@ -219,6 +223,19 @@ export async function appliquerOjaAction(charge: string): Promise<ResultatOja> {
     };
   });
   const creees = lignes.length ? await r.insertAuctionResults(lignes) : 0;
+  /* LE JOURNAL DIT CE QUI S'EST PASSÉ, pas ce qui était prévu : la base refuse un deuxième pays-jour-code, et un compte « prévu » cachait des séances jamais créées. */
+  if (creees !== aCreer.length) await r.updateOjaImport(journal.id, { nouvelles: creees });
+
+  /* LES SÉANCES QUE L'EXCLUSION D'UN IMPORT AVAIT MISES DE CÔTÉ reviennent, avec les valeurs de ce lot : rien n'est définitif. */
+  let retablies = 0;
+  await jeterDansLesLots(aRetablir, 8, async (x) => {
+    const ligne = parId.get(x.deskId);
+    if (!ligne) return;
+    const colonnes = Object.fromEntries(CHAMPS.filter((c) => x.oja.valeurs[c] != null).map((c) => [c, x.oja.valeurs[c]])) as Partial<Record<Champ, number>>;
+    await r.updateAuctionResult(x.deskId, { sources: sourcesDeNouvelle(x.oja, journal.id), ...colonnes, setAsideReason: null, setAsideBy: null, setAsideAt: null });
+    await audit("auction.source", "auction_result", x.deskId, { before: { ecartee: true, motif: ligne.setAsideReason ?? null }, after: { ecartee: false }, reason: `Import OJA ${journal.id} : séance rétablie après l'exclusion d'un import précédent` });
+    retablies++;
+  });
 
   await audit("oja.import", "oja_import", journal.id, {
     after: { fichiers: lot.fichiers, plage: lot.plage ?? null, nouvelles: creees, rapprochees: plan.rapprochees.length, versees: aVerser.length, retenuesChangees: modifiees, ecarts: plan.compteurs.ecarts, contredites: plan.compteurs.contredites },
@@ -231,7 +248,7 @@ export async function appliquerOjaAction(charge: string): Promise<ResultatOja> {
   return {
     ok: true,
     importId: journal.id,
-    message: `${creees} séance(s) créée(s), ${aVerser.length} séance(s) enrichie(s), ${modifiees} valeur(s) retenue(s) changée(s).`,
+    message: `${creees} séance(s) créée(s)${creees !== aCreer.length ? ` sur ${aCreer.length} prévue(s) : la base en a refusé ${aCreer.length - creees}, déjà présente(s) sous le même pays, jour et code` : ""}, ${retablies} rétablie(s), ${aVerser.length} séance(s) enrichie(s), ${modifiees} valeur(s) retenue(s) changée(s).`,
   };
 }
 
@@ -289,13 +306,16 @@ export async function exclureSourceAction(form: FormData): Promise<void> {
  * retrouvent les valeurs du communiqué.
  */
 export async function exclureImportAction(form: FormData): Promise<void> {
-  const desk = await requireDesk("/desk/adjudications");
+  const desk = await requireDesk("/desk/adjudications/import");
   const importId = String(form.get("importId") ?? "");
   const excl = String(form.get("exclure") ?? "") === "1";
   if (!importId) return;
+  /* L'EXCLUSION SE MOTIVE : un commentaire d'au moins cinq signes, écrit au moment du geste, signé et daté. Sans lui, rien n'est écrit. */
+  const pourquoi = String(form.get("motif") ?? "").trim().slice(0, 400);
+  if (excl && pourquoi.length < 5) return;
   const r = repo();
   const lignes = (await r.listAuctionResults({ limit: 20_000 })).filter((x) => x.sources?.importId === importId);
-  const motif = `Import OJA exclu (${importId.slice(0, 8)})`;
+  const motif = excl ? `Import OJA exclu (${importId.slice(0, 8)}) : ${pourquoi}` : `Import OJA exclu (${importId.slice(0, 8)})`;
   let touchees = 0;
   await jeterDansLesLots(lignes, 8, async (x) => {
     const src = sourcesDe(x);
@@ -310,8 +330,8 @@ export async function exclureImportAction(form: FormData): Promise<void> {
     }
     touchees++;
   });
-  await r.updateOjaImport(importId, { exclu: excl });
-  await audit("oja.import", "oja_import", importId, { after: { exclu: excl, seances: touchees }, reason: `${excl ? "Import exclu" : "Import rétabli"} par ${desk.name} : ${touchees} séance(s)` });
+  await r.updateOjaImport(importId, excl ? { exclu: true, excluMotif: pourquoi, excluPar: desk.name, excluLe: new Date().toISOString() } : { exclu: false, efface: true });
+  await audit("oja.import", "oja_import", importId, { after: { exclu: excl, seances: touchees, motif: excl ? pourquoi : null }, reason: `${excl ? "Import exclu" : "Import rétabli"} par ${desk.name} : ${touchees} séance(s)${excl ? ` · ${pourquoi}` : ""}` });
   revalidatePath("/desk/adjudications", "layout");
   revalidatePath("/desk/analyses");
   revalidatePath("/marche/adjudications");

@@ -90,3 +90,48 @@ describe("rien n'est définitif : les écarts déjà tranchés se rouvrent", () 
     expect(v2.sources.retenu.announced).toBe("pdf");
   });
 });
+
+describe("le plan ne perd plus de séances ni ne les invente (investigation du 7 novembre 2026)", () => {
+  const A = oja("GA1100000841", "2026-04-09", { announced: 7.5e9 });
+  const B = oja("GA1100000841", "2026-04-10", { announced: 7.5e9 });
+  const ligneB = desk("b", "GA1100000841", "2026-04-10", { country: "Gabon" });
+
+  it("deux séances OJA d'une même ligne à un jour d'écart : la jumelle exacte garde sa séance du Desk, l'autre est nouvelle", () => {
+    const plan = planifier([A, B], [], 0, [ligneB]);
+    expect(plan.rapprochees.map((r) => [r.oja.date, r.deskId])).toEqual([["2026-04-10", "b"]]);
+    expect(plan.nouvelles.map((s) => s.date)).toEqual(["2026-04-09"]);
+  });
+
+  it("l'ordre des séances dans le fichier ne change rien", () => {
+    const plan = planifier([B, A], [], 0, [ligneB]);
+    expect(plan.rapprochees.map((r) => r.deskId)).toEqual(["b"]);
+    expect(plan.nouvelles.map((s) => s.date)).toEqual(["2026-04-09"]);
+  });
+
+  it("une séance dont le pays, le jour et le code existent déjà n'est jamais « nouvelle » : la base la refuserait, à chaque import", () => {
+    const pris = { ...desk("x", "GA1100000841", "2026-04-09", { country: "Gabon" }) };
+    // la jumelle du Desk est déjà prise par une autre séance OJA du même jour : on la simule par une approchée identique
+    const plan = planifier([A, oja("GA1100000841", "2026-04-09", { announced: 7.5e9 })], [], 0, [pris]);
+    expect(plan.nouvelles).toHaveLength(0);
+    expect(plan.doublons).toBe(1);
+  });
+
+  it("une séance mise de côté par l'exclusion d'un import est « réactivable » ; une séance écartée à la main reste ignorée", () => {
+    const excl = desk("e1", "GA1100000500", "2026-05-01", { country: "Gabon", setAsideAt: "2026-11-07", setAsideReason: "Import OJA exclu (58e60708) : doublon de test" });
+    const main = desk("e2", "GA1100000501", "2026-05-02", { country: "Gabon", setAsideAt: "2026-11-07", setAsideReason: "communiqué hors sujet" });
+    const plan = planifier([oja("GA1100000500", "2026-05-01", {}), oja("GA1100000501", "2026-05-02", {})], [], 0, [excl, main]);
+    expect(plan.reactivables.map((x) => x.deskId)).toEqual(["e1"]);
+    expect(plan.compteurs).toMatchObject({ reactivables: 1, ignorees: 1 });
+    expect(plan.nouvelles).toHaveLength(0);
+  });
+});
+
+describe("les bulles disent qu'une séance non relue n'est pas utilisée", () => {
+  it("l'onglet « À relire », « À lire » et les compteurs « à confirmer » et « nouvelles » portent la règle, en français et en anglais", async () => {
+    const { KPI_OJA, ONGLETS_SEANCES, EN_KPI_OJA } = await import("@/lib/market/oja-kpi");
+    for (const t of [ONGLETS_SEANCES.a_lire, ONGLETS_SEANCES.a_relire, KPI_OJA.nouvellesAConfirmer, KPI_OJA.nouvelles]) {
+      expect(t.texte, t.titre).toMatch(/n'est pas relue, elle n'est utilisée nulle part/);
+      expect(EN_KPI_OJA[t.texte], t.titre).toMatch(/is reviewed, it is used nowhere/);
+    }
+  });
+});

@@ -1784,7 +1784,13 @@ export const memoryRepository: Repository = {
     const s = store();
     const k = s.ojaImports.findIndex((x) => x.id === id);
     if (k < 0) throw new Error("Import introuvable");
-    s.ojaImports[k] = { ...s.ojaImports[k], ...patch };
+    const { efface, ...champs } = patch;
+    s.ojaImports[k] = { ...s.ojaImports[k], ...champs };
+    if (efface) {
+      delete s.ojaImports[k].excluMotif;
+      delete s.ojaImports[k].excluPar;
+      delete s.ojaImports[k].excluLe;
+    }
     return structuredClone(s.ojaImports[k]);
   },
 
