@@ -1377,7 +1377,7 @@ export const EN_MORE: Record<string, string> = {
   "Pondération": "Weighting",
   "flottant coté": "quoted float",
   "{m} bouge de": "{m} moves by",
-  "Si {m} seul bouge de {v}, l'indice passe à {a} ({d}) : les six autres valeurs n'ont pas bougé, mais leur poids recule un peu puisque la capitalisation de {m} a changé. Hypothèse : indice pondéré par la capitalisation, règles exactes à confirmer auprès de la BVMAC.": "If {m} alone moves by {v}, the index goes to {a} ({d}): the six other values have not moved, but their weight slips a little since {m}'s capitalisation changed. Assumption: capitalisation-weighted index, exact rules to confirm with the BVMAC.",
+  "Si {m} seul bouge de {v}, l'indice passe à {a} ({d}) : les six autres valeurs n'ont pas bougé, mais leur poids recule un peu puisque la capitalisation de {m} a changé. Hypothèse : indice pondéré par la capitalisation.": "If {m} alone moves by {v}, the index goes to {a} ({d}): the six other values have not moved, but their weight slips a little since {m}'s capitalisation changed. Assumption: capitalisation-weighted index.",
   "L'indice de la BVMAC : ce qu'il dit, ce qu'il ne dit pas": "The BVMAC index: what it says, what it does not",
   /* L'éclairage réécrite le 5 octobre 2026 : informer sans juger l'indice. */
   "L'indice de la BVMAC, et comment il se lit": "The BVMAC index, and how to read it",
@@ -1649,7 +1649,7 @@ export const EN_MORE: Record<string, string> = {
   "{n} lignes déplacées": "{n} lines moved",
   "déplacement appliqué à cette ligne": "move applied to this line",
   "Retirer ce déplacement": "Remove this move",
-  "Scénario : {s}. L'indice passe à {a} ({d}) ; chaque ligne y contribue à hauteur de son poids : {c}. Les lignes non déplacées voient leur poids se réajuster. Hypothèse : indice pondéré par la capitalisation, règles exactes à confirmer auprès de la BVMAC.": "Scenario: {s}. The index goes to {a} ({d}); each line contributes in proportion to its weight: {c}. The lines not moved see their weight readjust. Assumption: capitalisation-weighted index, exact rules to confirm with the BVMAC.",
+  "Scénario : {s}. L'indice passe à {a} ({d}) ; chaque ligne y contribue à hauteur de son poids : {c}. Les lignes non déplacées voient leur poids se réajuster. Hypothèse : indice pondéré par la capitalisation.": "Scenario: {s}. The index goes to {a} ({d}); each line contributes in proportion to its weight: {c}. The lines not moved see their weight readjust. Assumption: capitalisation-weighted index.",
   // Indice : vues, calendrier, sociétés, panneau Données
   "Vue": "View",
   "Niveau + volumes": "Level + volumes",

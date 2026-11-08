@@ -430,8 +430,8 @@ function IndexWidget({ live }: { live: Live }) {
           </div>
           <p className={styles.wRead}>
             {moved.length <= 1
-              ? t("Si {m} seul bouge de {v}, l'indice passe à {a} ({d}) : les six autres valeurs n'ont pas bougé, mais leur poids recule un peu puisque la capitalisation de {m} a changé. Hypothèse : indice pondéré par la capitalisation, règles exactes à confirmer auprès de la BVMAC.", { m: (moved[0] ?? ws[pick])?.mnemo ?? "", v: sg(moved[0] ? moveOf(moved[0].mnemo) : 0, 1), a: lvl(after), d: sg(shift * 100, 2) })
-              : t("Scénario : {s}. L'indice passe à {a} ({d}) ; chaque ligne y contribue à hauteur de son poids : {c}. Les lignes non déplacées voient leur poids se réajuster. Hypothèse : indice pondéré par la capitalisation, règles exactes à confirmer auprès de la BVMAC.", { s: scenario, a: lvl(after), d: sg(shift * 100, 2), c: moved.map((x) => `${x.mnemo} ${sg(contrib(x) * 100, 2)}`).join(", ") })}
+              ? t("Si {m} seul bouge de {v}, l'indice passe à {a} ({d}) : les six autres valeurs n'ont pas bougé, mais leur poids recule un peu puisque la capitalisation de {m} a changé. Hypothèse : indice pondéré par la capitalisation.", { m: (moved[0] ?? ws[pick])?.mnemo ?? "", v: sg(moved[0] ? moveOf(moved[0].mnemo) : 0, 1), a: lvl(after), d: sg(shift * 100, 2) })
+              : t("Scénario : {s}. L'indice passe à {a} ({d}) ; chaque ligne y contribue à hauteur de son poids : {c}. Les lignes non déplacées voient leur poids se réajuster. Hypothèse : indice pondéré par la capitalisation.", { s: scenario, a: lvl(after), d: sg(shift * 100, 2), c: moved.map((x) => `${x.mnemo} ${sg(contrib(x) * 100, 2)}`).join(", ") })}
           </p>
         </>
       )}
