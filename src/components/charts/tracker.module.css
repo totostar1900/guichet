@@ -246,3 +246,10 @@
 svg.track {
   touch-action: none;
 }
+
+/* LE MÊME GESTE DANS UN BLOC DE PLUSIEURS DESSINS (8 novembre 2026). La vue « Cours + volumes » pose les poignées sur un <div> qui porte trois dessins (niveau, montant, transactions) :
+   « svg.track » ne s'y appliquait pas, le navigateur prenait donc le glissement pour un défilement dès que le doigt dérivait en diagonale, et la lecture s'arrêtait. Chaque dessin du
+   bloc réclame le geste ; l'espace entre les dessins et leurs titres reste à la page. */
+div.track svg {
+  touch-action: none;
+}

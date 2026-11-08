@@ -1,6 +1,7 @@
 "use client";
 
-import { motDeMois } from "@/lib/ui/axes";
+import { motDeMois, reperesSansChevauchement } from "@/lib/ui/axes";
+import { GRAPHE_CAR } from "@/lib/ui/graphe";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
@@ -110,10 +111,10 @@ const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}$
  * listed shares as small charts against the index. Sessions further than
  * a week apart are not joined : a missing bulletin is a gap, not a line.
  */
-export function IndexChart({ points, overlays, defaultPeriod = "12m", societeInitiale = "", lieSocieteALAdresse = false }: { points: ChartPoint[]; overlays: OverlaySeries[]; defaultPeriod?: PeriodKey; /** La société que l'adresse porte déjà pour le tableau des séances. */ societeInitiale?: string; /** Écrire le choix dans l'adresse, pour que le tableau des séances suive. */ lieSocieteALAdresse?: boolean }) {
+export function IndexChart({ points, overlays, defaultPeriod = "12m", societeInitiale = "", lieSocieteALAdresse = false, lierPeriodeALAdresse = false, vueInitiale = "niveau" }: { points: ChartPoint[]; overlays: OverlaySeries[]; defaultPeriod?: PeriodKey; /** Écrire la période choisie dans l'adresse (`periode`), pour que les blocs sous le graphe se recalculent sur la même. */ lierPeriodeALAdresse?: boolean; /** La vue ouverte au premier rendu. */ vueInitiale?: IndexView; /** La société que l'adresse porte déjà pour le tableau des séances. */ societeInitiale?: string; /** Écrire le choix dans l'adresse, pour que le tableau des séances suive. */ lieSocieteALAdresse?: boolean }) {
   const { fmtDate } = useDates();
   const t = useT();
-  const [view, setView] = useState<IndexView>("niveau");
+  const [view, setView] = useState<IndexView>(vueInitiale);
   const [period, setPeriod] = useState<PeriodKey>(defaultPeriod);
   const [rebase, setRebase] = useState(false);
   const [pins, setPins] = useState<string[]>([]);
@@ -204,6 +205,10 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
   const choisirPeriode = (k: PeriodKey) => {
     setPeriod(k);
     setZoom(null);
+    if (!lierPeriodeALAdresse) return;
+    const q = new URLSearchParams(adresse.toString());
+    q.set("periode", k);
+    routeur.replace(`${chemin}?${q}`, { scroll: false });
   };
   /* Sur la vue du cours, la société choisie se superpose en base 100. */
   const ov = co;
@@ -255,14 +260,24 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
     if (cur.length) out.push(cur.join(" "));
     return out;
   };
-  // as many date ticks as the width can carry, first and last always
+  // as many date ticks as the width can carry, first and last always : cinq sur un téléphone, huit en grand, puis on écarte ceux qui se toucheraient
   const dateTicks: string[] = [];
   {
-    const n = W < 480 ? 1 : W < 760 ? 3 : 5;
+    const n = W < 480 ? 4 : W < 760 ? 5 : 7;
     const step = Math.max(1, span / n);
     for (let k = 0; k <= n; k++) dateTicks.push(shift(dN, Math.round(span - k * step)));
   }
-  const tickDate = (d: string) => (W < 480 ? new Date(`${d}T12:00:00Z`).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "2-digit" }) : fmtDate(d));
+  /* Sur un téléphone : « oct. 25 » quand la fenêtre dépasse quatre mois, « 12 oct. » sinon. Sept caractères au lieu de neuf : cinq repères tiennent sans se toucher à 340 px. */
+  const tickDate = (d: string) => (W < 480 ? new Date(`${d}T12:00:00Z`).toLocaleDateString("fr-FR", span > 120 ? { month: "short", year: "2-digit" } : { day: "numeric", month: "short" }) : fmtDate(d));
+  const dateGardee = (() => {
+    const mots = dateTicks.map(tickDate);
+    // 5,4 px par caractère à 10 px : « janv. 26 » mesure 43 px ; une marge de 3 px suffit entre deux repères
+    const CAR = GRAPHE_CAR * 0.93;
+    const demi = (i: number) => (mots[i].length * CAR) / 2;
+    // le premier est ancré à gauche et le dernier à droite : leur centre est décalé d'une demi-largeur
+    const xs = dateTicks.map((d, i) => x(d) + (i === 0 ? demi(i) : i === dateTicks.length - 1 ? -demi(i) : 0));
+    return reperesSansChevauchement(xs, mots, CAR, 3);
+  })();
   const togglePin = (date: string) => setPins((cur) => (cur.includes(date) ? cur.filter((d) => d !== date) : cur.length >= 2 ? [date] : [...cur, date].sort()));
   const setRange = (a: string, b: string) => setPins(a === b ? [a] : [a, b]);
   const at = (d: string) => pts.find((p) => p.date === d);
@@ -349,23 +364,15 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
             </button>
           ))}
         </div>
-        {lineView && (
-          <>
-            <label className={styles.check}>
-              <input type="checkbox" checked={showBase} disabled={Boolean(ov)} onChange={(e) => setRebase(e.target.checked)} /> {t("base 100")}
-            </label>
-            <Select compact cherchable={false} label={t("Tracé")} value={marks} onChange={(v) => setMarks(v as Marks)} options={[{ value: "ligne", label: t("ligne") }, { value: "ligne_mouvements", label: t("ligne et mouvements") }, { value: "points", label: t("points") }]} />
-          </>
-        )}
-        {/* UNE SEULE COMMANDE DE SOCIÉTÉ, sur toutes les vues qui savent en
-            faire quelque chose. Son libellé dit ce qu'elle fera ici : le
-            cours la superpose en base 100, le négoce montre ses volumes, le
-            calendrier colore ses séances, la capitalisation et le flottant
-            l'isolent de la pile. Les trois autres vues ne l'affichent pas,
-            faute de pouvoir l'honorer. */}
+      </div>
+      {/* LA RANGÉE DES SÉLECTEURS A TOUJOURS LA MÊME PLACE (8 novembre 2026). Ils se rangeaient à la suite des périodes : la valeur comparée venait tantôt à 31 px, tantôt à 613 ou
+          927, et la barre de dates d'en dessous montait ou descendait de 42 px selon la vue. La rangée a maintenant sa hauteur d'un sélecteur dans toutes les vues, la société
+          est toujours la première, et sur un téléphone les deux se partagent la largeur au lieu de passer à la ligne. */}
+      <div className={styles.selecteurs}>
         {view !== "variations" && view !== "contributions" && view !== "societes" && (
           <Select
             compact
+            fixe
             cherchable={false}
             label={view === "niveau" ? t("Comparer à") : view === "volumes" ? t("Volumes de") : t("Société")}
             value={societe}
@@ -375,6 +382,14 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
               ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name })),
             ]}
           />
+        )}
+        {lineView && (
+          <Select compact fixe cherchable={false} label={t("Tracé")} value={marks} onChange={(v) => setMarks(v as Marks)} options={[{ value: "ligne", label: t("ligne") }, { value: "ligne_mouvements", label: t("ligne et mouvements") }, { value: "points", label: t("points") }]} />
+        )}
+        {lineView && (
+          <label className={styles.check}>
+            <input type="checkbox" checked={showBase} disabled={Boolean(ov)} onChange={(e) => setRebase(e.target.checked)} /> {t("base 100")}
+          </label>
         )}
       </div>
 
@@ -401,11 +416,13 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
                 </text>
               </g>
             ))}
-            {dateTicks.map((d, i) => (
-              <text key={d} x={x(d)} y={H - 8} textAnchor={i === 0 ? "start" : i === dateTicks.length - 1 ? "end" : "middle"} className={styles.tick}>
-                {tickDate(d)}
-              </text>
-            ))}
+            {dateTicks.map((d, i) =>
+              dateGardee[i] ? (
+                <text key={d} x={x(d)} y={H - 8} textAnchor={i === 0 ? "start" : i === dateTicks.length - 1 ? "end" : "middle"} className={styles.tick}>
+                  {tickDate(d)}
+                </text>
+              ) : null,
+            )}
             {showBase && <line x1={padL} x2={W - padR} y1={y(100)} y2={y(100)} className={styles.baseLine} />}
             {segments(ovSeries).map((s, i) => (
               <polyline key={`o${i}`} points={s} className={styles.overlay} />

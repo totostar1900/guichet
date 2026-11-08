@@ -48,6 +48,8 @@ export interface QuarterLine {
   dividend?: number;
   yield?: number;
   weight: number;
+  /** Le poids au début de la période : celui qui sert à la contribution. */
+  weightStart: number;
   weightFloat: number;
   floatShare: number;
   move: number;

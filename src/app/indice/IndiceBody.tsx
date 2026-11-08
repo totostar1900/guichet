@@ -4,7 +4,7 @@ import { fmt, fmtDate, fmtDateTime, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters } from "@/lib/market/index-quarter";
 import { vueDePeriode } from "@/lib/market/index-period";
-import { Periode, debutDePeriode, periodeOuDefaut, type PeriodeKey } from "./Periode";
+import { Periode, debutDePeriode, periodeOuDefaut } from "./Periode";
 import { MarketStrip } from "@/components/MarketStrip";
 import { BackToTop } from "@/components/BackToTop";
 import { getT } from "@/i18n/server";
@@ -85,16 +85,8 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
     if (v.toutes) u.set("toutes", "1");
     if (v.societe) u.set("societe", v.societe);
     if (v.page && v.page !== "1") u.set("page", v.page);
-    if (periode !== "3m") u.set("periode", periode);
+    if (periode !== "12m") u.set("periode", periode);
     return `/indice${u.toString() ? `?${u.toString()}` : ""}#seances`;
-  };
-  /* La période des blocs « Sur la période » : dans l'adresse, pour qu'un lien la porte. */
-  const lienPeriode = (p: PeriodeKey) => {
-    const u = new URLSearchParams();
-    if (all) u.set("toutes", "1");
-    if (societe) u.set("societe", societe);
-    if (p !== "3m") u.set("periode", p);
-    return `/indice${u.toString() ? `?${u.toString()}` : ""}#periode`;
   };
   /* DOUZE MOIS DE NÉGOCE, pour le chiffre que le niveau porte en tête.
      QUATRE CALCULS SONT PARTIS AVEC LE PANNEAU « DONNÉES », le 1er novembre
@@ -210,11 +202,11 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
               <span className="muted">{t("lu depuis le bulletin du {d}", { d: fmtDate(stats.points[0].date) })}</span>
             </div>
             <div className={styles.chart}>
-              <IndexChart points={points} overlays={overlays} societeInitiale={societe} lieSocieteALAdresse />
+              <IndexChart points={points} overlays={overlays} defaultPeriod={periode} lierPeriodeALAdresse vueInitiale="volumes" societeInitiale={societe} lieSocieteALAdresse={desk} />
             </div>
+            {/* CE QUI SE LIT SOUS LE GRAPHE, sur la période qu'il montre : la période du graphe est dans l'adresse, et ces blocs se recalculent avec elle. */}
+            {vue && <Periode vue={vue} quarterNoteHref={!desk && notes[0] ? `/indice/note/${notes[0].key.toLowerCase()}` : undefined} />}
           </section>
-
-          {vue && <Periode vue={vue} periode={periode} lien={lienPeriode} quarterNoteHref={!desk && notes[0] ? `/indice/note/${notes[0].key.toLowerCase()}` : undefined} />}
 
           {notes.length > 0 && (
             <section className="panel" id="notes">
@@ -232,6 +224,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
             </section>
           )}
 
+          {desk && (
           <section className="panel" id="seances">
             <div className="panel-h">
               <h2>{all ? t("Toutes les séances") : t("Les séances où l'indice a bougé")}</h2>
@@ -323,6 +316,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
               </div>
             )}
           </section>
+          )}
 
           <section className="panel" id="composition">
             <div className="panel-h">

@@ -39,6 +39,18 @@
      pas la lecture. */
   font-size: var(--ctrl-t);
 }
+.selFixe {
+  width: var(--sel-fixe, 13rem);
+  max-width: 100%;
+  flex: none;
+}
+.selFixe .selBtn {
+  width: 100%;
+}
+.selFixe .selValue {
+  flex: 1;
+  min-width: 0;
+}
 .selLabel {
   color: var(--ink-3);
   font-weight: 500;

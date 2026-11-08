@@ -1,6 +1,6 @@
 "use client";
 
-import { motDeMois } from "@/lib/ui/axes";
+import { motDeMois, reperesSansChevauchement } from "@/lib/ui/axes";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BarreDePlage } from "@/components/charts/BarreDePlage";
 import { Select } from "@/components/ui/Select";
@@ -128,6 +128,7 @@ export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, socie
     societes.length > 0 && !pilote ? (
       <div className={styles.quoi}>
         <Select
+          fixe
           compact
           cherchable={false}
           label={t("Volumes de")}
@@ -222,6 +223,14 @@ export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, socie
       );
     });
 
+  /* LES MOIS QUI TIENNENT, SANS SE TOUCHER : douze mois de 38 px sur un téléphone se lisaient « oct. 2025nov. déc.janv. 2026 ». Le premier, le dernier et les mois qui portent une année
+     passent d'abord, puis les autres tant qu'il reste de la place. */
+  const reperesDuTemps = (() => {
+    const tous = moisDe(pts);
+    const gardes = reperesSansChevauchement(tous.map((m) => x(m.i)), tous.map((m) => m.mot), 5.4, 4);
+    return tous.filter((_, i) => gardes[i]);
+  })();
+
   return (
     <div ref={boite}>
       {barre}
@@ -294,7 +303,7 @@ export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, socie
             return <rect key={p.on} x={x(i) - bw / 2} y={BAS_VOL - h} width={bw} height={h} className={p.transactions === 0 ? styles.barreMuette : styles.barreBleue} />;
           })}
           {marques(H_VOL)}
-          {moisDe(pts).map((m) => (
+          {reperesDuTemps.map((m) => (
             <text key={m.i} x={x(m.i)} y={H_VOL - 5} textAnchor="middle" className={styles.tick}>
               {m.mot}
             </text>

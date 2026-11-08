@@ -2,7 +2,7 @@ import Link from "next/link";
 import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
 import type { VueDePeriode } from "@/lib/market/index-period";
 import { getT } from "@/i18n/server";
-import { Comparaison, ContribBars } from "./note/[trimestre]/Figures";
+import { ContribBars } from "./note/[trimestre]/Figures";
 import styles from "./periode.module.css";
 
 /**
@@ -11,12 +11,13 @@ import styles from "./periode.module.css";
  * Les graphes et les tableaux sont ceux de la note, par les mêmes figures et le même calcul (`vueDePeriode`) : une seule lecture, deux endroits. Le commentaire reste à la note,
  * qui est un trimestre figé avec sa date de publication ; ici la page est vivante et ne raconte rien.
  */
-export const PERIODES = ["1m", "3m", "ytd", "12m"] as const;
+export const PERIODES = ["1m", "3m", "ytd", "12m", "all"] as const;
 export type PeriodeKey = (typeof PERIODES)[number];
-export const periodeOuDefaut = (v?: string): PeriodeKey => ((PERIODES as readonly string[]).includes(v ?? "") ? (v as PeriodeKey) : "3m");
+export const periodeOuDefaut = (v?: string): PeriodeKey => ((PERIODES as readonly string[]).includes(v ?? "") ? (v as PeriodeKey) : "12m");
 
 /** Le premier jour de la période, d'après la dernière séance lue. */
 export function debutDePeriode(p: PeriodeKey, derniere: string): string {
+  if (p === "all") return "1900-01-01";
   if (p === "ytd") return `${derniere.slice(0, 4)}-01-01`;
   const jours = p === "1m" ? 30 : p === "3m" ? 91 : 365;
   return new Date(new Date(`${derniere}T12:00:00Z`).getTime() - jours * 86400e3).toISOString().slice(0, 10);
@@ -27,48 +28,16 @@ const signed = (v: number, d = 1) => {
   return `${r > 0 ? "+" : ""}${fmtPct(r === 0 ? 0 : v, d)}`;
 };
 
-export async function Periode({ vue, periode, lien, quarterNoteHref }: { vue: VueDePeriode; periode: PeriodeKey; lien: (p: PeriodeKey) => string; quarterNoteHref?: string }) {
+export async function Periode({ vue, quarterNoteHref }: { vue: VueDePeriode; quarterNoteHref?: string }) {
   const t = await getT();
-  const LABEL: Record<PeriodeKey, string> = { "1m": t("1 mois"), "3m": t("3 mois"), ytd: t("depuis le 1er janvier"), "12m": t("12 mois") };
-  const dateOf = (d: string) => fmtDate(d);
-  const { lines, compare, stats } = vue;
+  const { lines, stats } = vue;
   return (
-    <section className="panel" id="periode">
-      <div className="panel-h">
-        <h2>{t("Sur la période")}</h2>
-        <span className="muted">{t("du {a} au {b}", { a: fmtDate(vue.from), b: fmtDate(vue.to) })}</span>
-      </div>
-      <div className={styles.corps}>
-        <div className={styles.choix}>
-          {PERIODES.map((p) => (
-            <Link key={p} className={`btn sm ${p === periode ? "" : "ghost"}`} href={lien(p)} aria-current={p === periode ? "true" : undefined}>
-              {LABEL[p]}
-            </Link>
-          ))}
-        </div>
-        <p className={styles.resume}>
-          {t("{s} séances lues, dont {m} avec mouvement : l'indice fait {r} sur la période.", { s: String(vue.sessions), m: String(vue.moved), r: signed(vue.ret, 2) })}{" "}
-          {quarterNoteHref ? (
-            <Link href={quarterNoteHref}>{t("Le commentaire est dans la note du trimestre")} →</Link>
-          ) : null}
-        </p>
-
-        {compare && (
-          <figure className={styles.figure}>
-            <div className={styles.titre}>{t("L'indice, la société qui le porte et le reste de la cote, à 100 au début de la période")}</div>
-            <Comparaison compare={compare} dateOf={dateOf} labels={{ indice: t("Indice"), reste: t("Reste de la cote"), base: t("Base 100 au début de la période") }} />
-            <p className={styles.legende}>
-              {t("{m} pèse {w} de la cote. À 100 au début de la période, l'indice finit à {i}, {m} à {p} et le reste de la cote à {r}.", {
-                m: compare.principale.name,
-                w: fmtPct(compare.principale.weight, 1),
-                i: fmtPct(compare.indice[compare.indice.length - 1], 1).replace(" %", ""),
-                p: fmtPct(compare.principale.serie[compare.principale.serie.length - 1], 1).replace(" %", ""),
-                r: fmtPct(compare.reste[compare.reste.length - 1], 1).replace(" %", ""),
-              })}
-            </p>
-          </figure>
-        )}
-
+    <div className={styles.corps} id="periode">
+      <p className={styles.resume}>
+        <b>{t("Sur la période")}</b> · {t("du {a} au {b}", { a: fmtDate(vue.from), b: fmtDate(vue.to) })} {" "}
+        {t("{s} séances lues, dont {m} avec mouvement : l'indice fait {r} sur la période.", { s: String(vue.sessions), m: String(vue.moved), r: signed(vue.ret, 2) })}{" "}
+        {quarterNoteHref ? <Link href={quarterNoteHref}>{t("Le commentaire est dans la note du trimestre")} →</Link> : null}
+      </p>
         <figure className={styles.figure}>
           <div className={styles.titre}>{t("Ce que chaque société a apporté à la période")}</div>
           <ContribBars lines={lines} unit={t("points d'indice")} />
@@ -161,7 +130,6 @@ export async function Periode({ vue, periode, lien, quarterNoteHref }: { vue: Vu
             </div>
           ))}
         </div>
-      </div>
-    </section>
+    </div>
   );
 }

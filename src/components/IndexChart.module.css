@@ -1,6 +1,8 @@
 .wrap {
   position: relative;
   display: grid;
+  /* Une colonne nommée : sans elle la piste « auto » grandit jusqu'au plus large de ses enfants (le bloc des volumes), et la barre de dates sortait de 25 px à 320 px. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
 }
 .bar {
@@ -754,4 +756,23 @@ button.calCell:focus-visible {
   padding-top: var(--s-2);
   border-top: 1px solid var(--line-2);
   color: var(--ink-2);
+}
+
+/* LA RANGÉE DES SÉLECTEURS : même place, même hauteur dans toutes les vues (la barre de dates dessous ne bouge plus). La société d'abord, puis le tracé, puis « base 100 ».
+   Sur un téléphone les deux sélecteurs se partagent la largeur, et la rangée réserve deux lignes : le choix « base 100 » passe dessous sur la vue du cours. */
+.selecteurs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 13rem)) auto;
+  align-items: center;
+  gap: 8px 16px;
+  min-height: var(--ctrl-h);
+  margin-top: 8px;
+  --sel-fixe: 100%;
+}
+@media (max-width: 520px) {
+  .selecteurs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: calc(var(--ctrl-h) * 2 + 8px);
+    align-content: start;
+  }
 }

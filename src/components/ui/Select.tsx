@@ -35,7 +35,7 @@ const PHONE = "(max-width: 760px)";
  * promettait une recherche qui n'avait pas d'objet. Les listes longues — un
  * pays, un émetteur — le gardent.
  */
-export function Select({ value, options, onChange, label, name, placeholder, compact, block, className = "", disabled, required, cherchable = true, libelleVisible = true }: { value: string; options: SelectOption[]; onChange?: (v: string) => void; label?: string; name?: string; placeholder?: string; compact?: boolean; block?: boolean; className?: string; disabled?: boolean; required?: boolean; cherchable?: boolean; /** Faux : le libellé reste celui du lecteur d'écran et de la feuille du téléphone, mais n'est plus écrit dans le bouton (qui garde sa largeur quand la valeur change). */ libelleVisible?: boolean }) {
+export function Select({ value, options, onChange, label, name, placeholder, compact, block, className = "", disabled, required, cherchable = true, libelleVisible = true, fixe }: { value: string; options: SelectOption[]; onChange?: (v: string) => void; label?: string; name?: string; placeholder?: string; compact?: boolean; block?: boolean; className?: string; disabled?: boolean; required?: boolean; cherchable?: boolean; /** Faux : le libellé reste celui du lecteur d'écran et de la feuille du téléphone, mais n'est plus écrit dans le bouton (qui garde sa largeur quand la valeur change). */ libelleVisible?: boolean; /** Largeur fixe : le bouton ne change pas de taille avec la valeur choisie (le libellé long se coupe), et ne déplace plus ses voisins. */ fixe?: boolean }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [inner, setInner] = useState(value);
@@ -218,7 +218,7 @@ export function Select({ value, options, onChange, label, name, placeholder, com
   );
 
   return (
-    <div className={`${styles.sel} ${compact ? styles.selCompact : ""} ${block ? styles.selBlock : ""} ${open ? styles.selOpen : ""} ${className}`} ref={ref}>
+    <div className={`${styles.sel} ${compact ? styles.selCompact : ""} ${block ? styles.selBlock : ""} ${fixe ? styles.selFixe : ""} ${open ? styles.selOpen : ""} ${className}`} ref={ref}>
       {name && <input type="hidden" name={name} value={cur} required={required} />}
       {open && !phone && cherchable ? (
         <div className={`${styles.selBtn} ${styles.selHas}`} onClick={() => setTyping(true)}>
