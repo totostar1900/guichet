@@ -61,7 +61,7 @@ describe("une seule lecture, deux endroits", () => {
   it("le graphe s'ouvre sur la vue Cours + volumes, avec ses dates et un sélecteur de largeur fixe", () => {
     expect(BODY).toMatch(/vueInitiale="volumes"/);
     const chart = lire("src/components/IndexChart.tsx");
-    expect(chart, "le sélecteur de société doit garder sa largeur").toMatch(/compact\s+fixe\s+cherchable=\{false\}\s+label=\{view === "volumes"/);
+    expect(chart, "le sélecteur de société doit garder sa largeur").toMatch(/compact\s+fixe\s+cherchable=\{false\}\s+label=\{t\("Société"\)\}/);
     expect(chart, "le cours compare toutes les sociétés, indice compris, par des pastilles").toMatch(/aria-label=\{t\("Comparer"\)\}/);
     expect(chart, "cinq dates sur un téléphone").toMatch(/W < 480 \? 4 : W < 760 \? 5 : 7/);
     expect(chart).toMatch(/reperesSansChevauchement\(xs, mots, CAR, 3\)/);

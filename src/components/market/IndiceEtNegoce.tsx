@@ -57,7 +57,31 @@ const PAD_R = 10;
 const PAD_B = 20;
 const BAS_VOL = H_VOL - PAD_B;
 
-export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, societe }: { seances: SeanceNegoce[]; societes?: NegoceSociete[]; avecBarre?: boolean; /** La société choisie par l'écran qui nous accueille ; sans elle, la nôtre. */ societe?: string }) {
+/** Une société tracée sur l'étage du niveau, en base 100 au début de la plage. */
+export interface NegoceCourbe {
+  mnemo: string;
+  couleur: string;
+  points: { on: string; valeur: number }[];
+}
+
+export function IndiceEtNegoce({
+  seances,
+  societes = [],
+  avecBarre = true,
+  societe,
+  courbes = [],
+  indice = true,
+}: {
+  seances: SeanceNegoce[];
+  societes?: NegoceSociete[];
+  avecBarre?: boolean;
+  /** La société choisie par l'écran qui nous accueille ; sans elle, la nôtre. */
+  societe?: string;
+  /** Plusieurs cotes à tracer avec l'indice (base 100) ; les volumes sont alors ceux de leur ensemble. */
+  courbes?: NegoceCourbe[];
+  /** Tracer l'indice lui-même (toujours, tant qu'aucune cote n'est choisie). */
+  indice?: boolean;
+}) {
   const { fmtDate } = useDates();
   const t = useT();
   const boite = useRef<HTMLDivElement>(null);
@@ -90,16 +114,40 @@ export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, socie
    * disparaîtrait sous l'échelle de la cote entière.
    */
   const sel = societes.find((s) => s.mnemo === qui);
+  const choisies = useMemo(() => courbes.map((c) => c.mnemo), [courbes]);
   const pts = useMemo(() => {
+    if (choisies.length > 0) {
+      const somme = new Map<string, { montant: number; transactions: number }>();
+      for (const so of societes.filter((x) => choisies.includes(x.mnemo))) {
+        for (const p of so.points) {
+          const c = somme.get(p.on) ?? { montant: 0, transactions: 0 };
+          c.montant += p.montant;
+          c.transactions += p.transactions;
+          somme.set(p.on, c);
+        }
+      }
+      return fenetrees.map((s) => ({ ...s, montant: somme.get(s.on)?.montant ?? 0, transactions: somme.get(s.on)?.transactions ?? 0 }));
+    }
     if (!sel) return fenetrees;
     const par = new Map(sel.points.map((p) => [p.on, p]));
     return fenetrees.map((s) => ({ ...s, montant: par.get(s.on)?.montant ?? 0, transactions: par.get(s.on)?.transactions ?? 0 }));
-  }, [fenetrees, sel]);
+  }, [fenetrees, sel, choisies, societes]);
 
   const n = pts.length;
-  const niveaux = pts.map((p) => p.niveau);
-  const lo0 = n ? Math.min(...niveaux) : 0;
-  const hi0 = n ? Math.max(...niveaux) : 1;
+  /* Avec des cotes choisies, tout part de 100 au début de la plage : l'indice (s'il reste) et chaque cote. */
+  const base100 = courbes.length > 0;
+  const montrerIndice = indice || !base100;
+  const serieIndice = pts.map((p) => (base100 && pts[0].niveau ? (p.niveau / pts[0].niveau) * 100 : p.niveau));
+  const seriesCotes = base100
+    ? courbes.map((c) => {
+        const par = new Map(c.points.map((q) => [q.on, q.valeur]));
+        const b = pts.map((p) => par.get(p.on)).find((v): v is number => v != null && v > 0);
+        return { c, vals: pts.map((p) => { const v = par.get(p.on); return b && v != null ? (v / b) * 100 : null; }) };
+      })
+    : [];
+  const niveaux = [...(montrerIndice ? serieIndice : []), ...seriesCotes.flatMap((s) => s.vals.filter((v): v is number => v != null))];
+  const lo0 = n && niveaux.length ? Math.min(...niveaux) : 0;
+  const hi0 = n && niveaux.length ? Math.max(...niveaux) : 1;
   const marge = (hi0 - lo0 || Math.max(1, lo0 * 0.01)) * 0.08;
   const lo = lo0 - marge;
   const hi = hi0 + marge;
@@ -158,7 +206,11 @@ export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, socie
   const yN = (v: number) => PAD_T + (1 - (v - lo) / (hi - lo)) * (H_NIVEAU - PAD_T - PAD_B);
   const yV = (v: number, max: number) => BAS_VOL - (v / max) * (BAS_VOL - PAD_T);
   const bw = Math.max(1.5, (W - padL - PAD_R) / n - 0.8);
-  const trace = pts.map((p, i) => `${x(i).toFixed(1)},${yN(p.niveau).toFixed(1)}`).join(" ");
+  const trace = serieIndice.map((v, i) => `${x(i).toFixed(1)},${yN(v).toFixed(1)}`).join(" ");
+  const tracesCotes = seriesCotes.map(({ c, vals }) => ({
+    c,
+    d: vals.map((v, i) => (v == null ? null : `${x(i).toFixed(1)},${yN(v).toFixed(1)}`)).filter(Boolean).join(" "),
+  }));
   const gradN = [0, 1, 2, 3].map((q) => lo + ((hi - lo) * q) / 3);
 
   const sommeM = pts.reduce((s, p) => s + p.montant, 0);
@@ -168,7 +220,7 @@ export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, socie
   const prec = k > 0 ? pts[k - 1] : undefined;
   const dv = prec && prec.niveau ? ((lue.niveau - prec.niveau) / prec.niveau) * 100 : 0;
   const signe = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(2).replace(".", ",")} %`;
-  const ou = sel ? sel.mnemo : t("toute la cote");
+  const ou = base100 ? choisies.join(", ") : sel ? sel.mnemo : t("toute la cote");
 
   /* Deux épingles ne valent quelque chose qu'ensemble : tant qu'il n'y en a
      qu'une, il n'y a pas d'écart à lire, et le bandeau lit sa séance. */
@@ -262,7 +314,7 @@ export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, socie
       <TrackBand lu={lu} onClear={a ? () => setPins([]) : undefined} clearLabel={t("effacer")} />
 
       <div className={trackStyles.track} {...track.handlers}>
-        <p className={styles.etage}>{t("Niveau de l'indice")}</p>
+        <p className={styles.etage}>{base100 ? t("Niveau, base 100 au début de la plage") : t("Niveau de l'indice")}</p>
         <svg viewBox={`0 0 ${W} ${H_NIVEAU}`} className={styles.svg} role="img" aria-label={t("Niveau de l'indice, séance par séance")}>
           {gradN.map((v) => (
             <g key={v}>
@@ -272,10 +324,13 @@ export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, socie
               </text>
             </g>
           ))}
-          <polyline points={trace} className={styles.ligne} />
+          {montrerIndice && <polyline points={trace} className={styles.ligne} />}
+          {tracesCotes.map(({ c, d }) => (
+            <polyline key={c.mnemo} points={d} fill="none" stroke={c.couleur} strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" />
+          ))}
           <TrackMarks
             x={(d) => x(iDe(d))}
-            y={(d) => yN(pts[iDe(d)]?.niveau ?? lo)}
+            y={(d) => yN(serieIndice[iDe(d)] ?? lo)}
             hover={vu != null ? pts[k].on : undefined}
             pinA={track.pinA}
             pinB={track.pinB}
@@ -285,7 +340,7 @@ export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, socie
           />
         </svg>
 
-        <p className={styles.etage}>{sel ? t("Montant échangé par {m}, en FCFA", { m: ou }) : t("Montant échangé, en FCFA")}</p>
+        <p className={styles.etage}>{sel || base100 ? t("Montant échangé par {m}, en FCFA", { m: ou }) : t("Montant échangé, en FCFA")}</p>
         <svg viewBox={`0 0 ${W} ${H_VOL}`} className={styles.svg} role="img" aria-label={t("Montant échangé à chaque séance")}>
           {axeVol(maxM, (v) => money(v))}
           {pts.map((p, i) => {
@@ -295,7 +350,7 @@ export function IndiceEtNegoce({ seances, societes = [], avecBarre = true, socie
           {marques(H_VOL)}
         </svg>
 
-        <p className={styles.etage}>{sel ? t("Transactions de {m}", { m: ou }) : t("Transactions")}</p>
+        <p className={styles.etage}>{sel || base100 ? t("Transactions de {m}", { m: ou }) : t("Transactions")}</p>
         <svg viewBox={`0 0 ${W} ${H_VOL}`} className={styles.svg} role="img" aria-label={t("Nombre de transactions à chaque séance")}>
           {axeVol(maxT, (v) => String(Math.round(v)))}
           {pts.map((p, i) => {

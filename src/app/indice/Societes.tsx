@@ -175,6 +175,7 @@ export async function Societes({ societes, capFin, capFlottantFin }: { societes:
           moyen: t("Montant moyen"),
           total: t("Montant échangé"),
           trans: t("Transactions"),
+          part: t("Part"),
           legMoyen: t("Chaque barre est suivie du nombre de transactions de la période : une grande transaction moyenne dit un marché qui se traite par blocs."),
           legTotal: t("Le montant échangé sur la période, suivi de la part de chaque société dans le total."),
           legTrans: t("Le nombre de transactions de la période : beaucoup de petites transactions ou peu de grosses ne disent pas la même chose."),

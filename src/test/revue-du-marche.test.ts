@@ -107,27 +107,14 @@ describe("la page de l'indice", () => {
     expect(src, "le sommaire annonce une section qui n'existe plus : le lien ne mène nulle part").not.toMatch(/id: "donnees"/);
   });
 
-  /* ET CE QU'IL AVAIT EN PROPRE N'EST PAS PERDU. Trois choses ne se lisaient
-     que là : qui a lu le dernier bulletin et quand, le TROU de la série, et
-     la seule sortie de données de tout Guichet. Les supprimer avec le panneau
-     aurait été la perte que « supprimer » ne voulait pas dire. */
-  it("garde la provenance, le trou de la série et le CSV dans « Données et méthode »", () => {
+  /* LE PLI « DONNÉES ET MÉTHODE » EST RETIRÉ (8 novembre 2026, sur décision du dirigeant) : la
+     provenance du dernier bulletin, les jours sans bulletin et le CSV n'ont plus de place sur la
+     page. Aucun lien ne doit viser son ancre. */
+  it("n'a plus de pli « Données et méthode »", () => {
     const src = code(INDICE);
-    const bloc = src.slice(src.indexOf('id="lecture"'));
-    expect(bloc, "la provenance du dernier bulletin a disparu : une page qui montre une courbe sans dire qui l'a lue").toContain("ingestedBy");
-    /* LES DEUX BRANCHES, ET NON LE SEUL MOT « missing.length ». Vérifié à
-       l'envers : remplacer la CONDITION par « false » laissait le compte
-       écrit dans la branche vraie, et la clause passait au vert sur une page
-       qui ne dit plus jamais ce qui manque. Ce sont les deux phrases que le
-       lecteur voit qui se gardent, pas le nom d'une variable. */
-    expect(bloc, "le trou de la série ne se dit plus quand il y en a un").toContain("jours ouvrés n'ont pas de bulletin lu");
-    expect(bloc, "la série complète ne se dit plus : le silence s'y lirait comme une donnée manquante").toContain("Aucun jour ouvré ne manque à la série.");
-    /* ET C'EST LE COMPTE QUI DÉCIDE, pas une constante. Les deux phrases
-       peuvent rester écrites pendant qu'une condition figée en choisit
-       toujours une : la page dirait alors « aucun jour ne manque » un jour
-       où six manquent, ce qui est pire que de se taire. */
-    expect(bloc, "ce n'est plus le compte des jours manquants qui décide de la phrase").toMatch(/missing\.length[\s\S]{0,40}\?/);
-    expect(bloc, "la série en CSV a disparu : c'était la seule sortie de données de l'application").toContain("/indice/serie.csv");
+    expect(src).not.toContain('id="lecture"');
+    expect(src).not.toContain("Données et méthode");
+    expect(code(MARCHE), "un lien vise l'ancre du pli retiré").not.toContain("/indice#lecture");
   });
 
   /* ET AUCUN LIEN NE VISE L'ANCRE PARTIE. Un lien vers une ancre disparue ne
@@ -147,8 +134,6 @@ describe("la page de l'indice", () => {
     };
     marche(path.join(ROOT, "src"));
     expect(fautifs, `ces fichiers mènent à une ancre qui n'existe plus :\n  ${fautifs.join("\n  ")}`).toEqual([]);
-    /* Non vacuité : le lien existe bien, à sa nouvelle ancre. */
-    expect(code(MARCHE), "la porte ne renvoie plus à la provenance des chiffres").toContain("/indice#lecture");
   });
 });
 

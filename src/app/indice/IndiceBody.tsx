@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { type ChartPoint, type OverlaySeries } from "@/components/IndexChart";
 import { IndiceGraphe } from "./IndiceGraphe";
-import { fmt, fmtDate, fmtDateTime, fmtPct, money } from "@/lib/format";
+import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters } from "@/lib/market/index-quarter";
 import { vueDePeriode } from "@/lib/market/index-period";
@@ -40,31 +40,12 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
   const base = desk ? "/desk" : "";
   const [t, sp] = await Promise.all([getT(), searchParams]);
   const data = await indexPageData();
-  const { stats, weights, nameOf, histories, trading, movers, lastBulletin, missing } = data;
+  const { stats, weights, nameOf, histories, trading, movers } = data;
   const notes = quarters(data).slice(0, 6);
   const points: ChartPoint[] = stats.points.map((p) => {
     const s = trading.get(p.date);
     return { ...p, movers: (p.variationPct ?? 0) !== 0 ? movers.get(p.date) : undefined, titles: s?.titles ?? 0, amount: s?.amount ?? 0, trades: s?.trades ?? 0 };
   });
-  /**
-   * Depuis quand chaque valeur du panier n'a plus traité.
-   *
-   * Tiré des historiques déjà chargés : la dernière séance où la ligne a changé
-   * de mains, contre la dernière séance lue. Une valeur qui n'a jamais traité
-   * sur la période n'a pas une dormance de zéro, elle n'en a pas, et elle
-   * compte comme dormante.
-   */
-  const SEUIL_DORMANCE = 7;
-  const dernierJour = stats.points.at(-1)?.date;
-  const dormances = histories
-    .map(({ w, quotes }) => {
-      const derniere = [...quotes].reverse().find((q) => (q.trades ?? 0) > 0 || (q.volumeTraded ?? 0) > 0)?.sessionDate;
-      const jours = derniere && dernierJour ? Math.round((Date.parse(dernierJour) - Date.parse(derniere)) / 86_400_000) : undefined;
-      return { mnemo: w.mnemo, jours };
-    })
-    .sort((a, b) => (b.jours ?? 9999) - (a.jours ?? 9999));
-  const dormantes = dormances.filter((d) => (d.jours ?? 9999) > SEUIL_DORMANCE);
-
   const lastCount = (quotes: { sharesTotal?: number; sharesFloat?: number }[], k: "sharesTotal" | "sharesFloat") => [...quotes].reverse().find((q) => (q[k] ?? 0) > 0)?.[k];
   const companies = await loadCompanies().catch(() => []);
   const overlays: OverlaySeries[] = histories.map(({ w, quotes }) => ({ mnemo: w.mnemo, name: nameOf(w.mnemo), country: companies.find((c) => c.mnemo === w.mnemo)?.country, points: quotes.map((q) => ({ date: q.sessionDate, value: q.close, titles: q.volumeTraded || 0, amount: q.valueTraded || 0, trades: q.trades || 0, variationPct: q.variationPct })), sharesTotal: lastCount(quotes, "sharesTotal"), sharesFloat: lastCount(quotes, "sharesFloat") }));
@@ -326,67 +307,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
 
 
 
-          {/* TROIS PARAGRAPHES SONT DEVENUS QUATRE LIGNES. Ils expliquaient
-              l'indice par ses manques, « les poids sont très inégaux », « 0,00 %
-              est la norme », là où l'éclairage l'explique déjà et mieux. Reste ce
-              qu'une page de données doit porter : d'où viennent les chiffres,
-              ce que l'indice mesure, et ce qu'il ne mesure pas. */}
-          <details className={`panel ${styles.teach}`} id="lecture">
-            <summary>
-              <h2>{t("Données et méthode")}</h2>
-            </summary>
-            <p className={styles.method}>
-              {t("Indice de prix pondéré par la capitalisation, montré tel qu'il est publié. Les dividendes n'y entrent pas : la performance d'un porteur, c'est le cours et le dividende.")}{" "}
-              {t("L'historique commence au premier bulletin lu par Guichet, le {d}.", { d: fmtDate(stats.points[0].date) })}{" "}
-              {t("Guichet le publie et l'explique : c'est un repère de marché, que chaque investisseur rapporte ensuite à ses propres objectifs.")}
-            </p>
-            {/* La fraîcheur du panier : elle qualifie le niveau, et c'est une
-                précision de méthode plutôt qu'une phrase de carte. */}
-            {dormances.length > 0 && (
-              <p className={styles.method}>
-                {t("Sur les {m} valeurs du panier, {n} ont traité dans la semaine.", { m: String(dormances.length), n: String(dormances.length - dormantes.length) })}{" "}
-                {dormantes.length > 0
-                  ? t("{liste} : leur cours est celui de leur dernière transaction, et l'indice le reprend tel quel.", {
-                      liste: dormantes.map((d) => (d.jours == null ? t("{m}, aucune transaction sur la période", { m: d.mnemo }) : t("{m}, il y a {j} jours", { m: d.mnemo, j: String(d.jours) }))).join(" · "),
-                    })
-                  : t("Le niveau publié repose donc sur des cours du jour.")}
-              </p>
-            )}
-            {/* ─── CE QUI DESCEND DU PANNEAU « DONNÉES », le 1er novembre 2026 ──
-                Il a été retiré sur décision du dirigeant : il redisait la
-                capitalisation et les douze mois échangés, que le niveau porte
-                déjà en tête de page, et sa ligne « Méthode » répétait le
-                premier paragraphe d'ici.
-                CE QU'IL AVAIT EN PROPRE N'A PAS DE SECOND ENDROIT, et c'est
-                ce qui suit. La provenance du dernier chiffre — qui l'a lu, et
-                quand — est la seule chose qui distingue un indice publié d'un
-                indice affirmé. Les jours ouvrés sans bulletin sont le TROU de
-                la série : une page qui montre une courbe sans dire ce qui lui
-                manque laisse croire qu'il ne lui manque rien. Et la série en
-                CSV est la seule sortie de données de tout Guichet. */}
-            <p className={styles.method}>
-              {lastBulletin
-                ? t("Le dernier bulletin lu porte la séance du {d} ; il a été lu le {q}, {by}.", {
-                    d: fmtDate(last.date),
-                    q: fmtDateTime(lastBulletin.ingestedAt),
-                    by: lastBulletin.ingestedBy === "cron" ? t("par le robot") : t("par le desk"),
-                  })
-                : t("La séance du {d} est la dernière lue.", { d: fmtDate(last.date) })}{" "}
-              {missing.length
-                ? t("{n} jours ouvrés n'ont pas de bulletin lu, jours fériés compris, dont les derniers : {l}.", {
-                    n: String(missing.length),
-                    l: missing.slice(-6).map((d) => fmtDate(d)).join(", "),
-                  })
-                : t("Aucun jour ouvré ne manque à la série.")}
-            </p>
-            <div className={styles.btns}>
-              {/* Un fichier : au desk il vient du Guichet, donc dans un onglet à
-                  côté plutôt qu'en quittant la page. */}
-              <a className="btn sm primary" href="/indice/serie.csv" target={desk ? "_blank" : undefined} rel={desk ? "noreferrer" : undefined}>
-                {t("Télécharger la série (CSV)")}
-              </a>
-            </div>
-            </details>
+
             <MarketStrip current="indice" mode={mode} />
             <BackToTop />
           </div>

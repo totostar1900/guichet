@@ -141,27 +141,10 @@ tfoot .when {
 .moved td b {
   font-weight: 800;
 }
-.method {
-  margin: 0;
-  /* le retrait horizontal vient du panneau */
-  padding-block: 10px 16px;
-  font-size: 0.8rem;
-  color: var(--ink-3);
-  border-top: 1px solid var(--line);
-  line-height: 1.5;
-}
-
 /* « .info » est parti avec le panneau « Données », le 1er novembre 2026 :
    c'était sa liste de définitions, et aucun autre écran ne l'emploie. Ce que
    ce panneau avait en propre est descendu dans « Données et méthode », qui
    se rend en paragraphes et n'a besoin d'aucune grille. */
-.btns {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 12px 16px 16px;
-}
-
 .tableBar {
   display: flex;
   flex-wrap: wrap;
@@ -213,11 +196,6 @@ tfoot .when {
   letter-spacing: -0.015em;
   font-weight: 800;
 }
-/* la seule section qui explique plutôt que de compter */
-.teach {
-  background: var(--gold-soft);
-  border-color: var(--gold-line);
-}
 
 /* Le nom de la carte : il manquait, et le grand chiffre flottait sans dire
    ce qu'il mesurait. */
@@ -251,22 +229,3 @@ tfoot .when {
     gap: var(--s-5) var(--s-7);
   }
 }
-/* Le pli « Données et méthode » : une ligne tant qu'on ne l'ouvre pas. */
-.teach > summary {
-  cursor: pointer;
-  list-style: none;
-}
-.teach > summary::-webkit-details-marker {
-  display: none;
-}
-.teach > summary h2 {
-  margin: 0;
-}
-.teach > summary h2::after {
-  content: " +";
-  color: var(--ink-3);
-}
-.teach[open] > summary h2::after {
-  content: " –";
-}
-

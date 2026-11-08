@@ -351,14 +351,7 @@ export default async function MarchePage() {
             depuis le 5 octobre, et cette page ne la sert jamais autrement. */}
         <p className={styles.source}>
           {t("Guichet montre l'indice tel qu'il est publié, séance après séance ; il n'en construit pas et ne mesure personne contre lui.")}{" "}
-          {/* L'ANCRE A SUIVI SON PANNEAU. « #donnees » a été retiré de la page
-              de l'indice le 1er novembre 2026 : ce qu'il avait en propre — la
-              provenance du dernier bulletin, les jours sans bulletin lu, la
-              série en CSV — est descendu dans « Données et méthode », qui est
-              l'ancre « #lecture ». Un lien vers une ancre disparue ne tombe
-              pas : il ouvre la page en haut, et le lecteur cherche ce qu'on
-              lui a promis. */}
-          <Link href="/indice#lecture">{t("D'où viennent ces chiffres, et ce qui manque à la série")}</Link>.{" "}
+          {/* Le pli « Données et méthode » de /indice est retiré (8 novembre 2026, décision du dirigeant) : plus d'ancre « #lecture » à viser. */}
           {t("Calculs {c}.", { c: COMPANY.legalName })}
         </p>
       </div>

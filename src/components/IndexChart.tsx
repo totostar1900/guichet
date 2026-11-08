@@ -168,7 +168,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
   /* LA VUE DU COURS COMPARE TOUTES LES SOCIÉTÉS QU'ON VEUT, ET L'INDICE EN FAIT PARTIE (8 novembre 2026). Une rangée de pastilles à activer : indice compris, jusqu'aux sept sociétés
      d'un coup, toutes à la base 100 sur un seul axe. Les autres vues gardent leur société unique. */
   const couleursStables = couleursDe(overlays);
-  const [compares, setCompares] = useState<string[]>(societeInitiale ? [societeInitiale] : []);
+  const [compares, setCompares] = useState<string[]>(societeInitiale ? [societeInitiale] : vueInitiale === "societes" ? overlays.map((o) => o.mnemo) : []);
   const [indiceVisible, setIndiceVisible] = useState(true);
   const [reglagesOuverts, setReglagesOuverts] = useState(false);
   const ovs = compares.map((m) => overlays.find((o) => o.mnemo === m)).filter((o): o is OverlaySeries => Boolean(o));
@@ -370,13 +370,19 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
      panneau du desk : trois étages, trois axes, un seul axe du temps. Elle ne
      passe donc plus par le tracé du niveau, qui ne portait qu'une grandeur de
      volume à la fois et aucune graduation. */
-  const lineView = view === "niveau";
+  /* « SOCIÉTÉS EN BASE 100 » EST UN SEUL GRAPHE (8 novembre 2026) : les sociétés se superposent à l'indice sur le même axe, au lieu d'une vignette chacune. On y entre avec toutes les
+     sociétés cochées ; les pastilles permettent d'en retirer, ou de retirer l'indice. */
+  const choisirVue = (k: IndexView) => {
+    setView(k);
+    if (k === "societes" && compares.length === 0) setCompares(overlays.map((o) => o.mnemo));
+  };
+  const lineView = view === "niveau" || view === "societes";
 
   return (
     <div className={styles.wrap} ref={boxRef}>
       <div className={styles.views} role="tablist" aria-label={t("Vue")}>
         {VIEWS.map(([k, label]) => (
-          <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)}>
+          <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => choisirVue(k)}>
             {t(label)}
           </button>
         ))}
@@ -396,7 +402,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
           927, et la barre de dates d'en dessous montait ou descendait de 42 px selon la vue. La rangée a maintenant sa hauteur d'un sélecteur dans toutes les vues, la société
           est toujours la première, et sur un téléphone les deux se partagent la largeur au lieu de passer à la ligne. */}
       <div className={styles.selecteurs}>
-        {view === "niveau" && (
+        {(view === "niveau" || view === "societes" || view === "volumes") && (
           <div className={styles.puces} role="group" aria-label={t("Comparer")}>
             <button type="button" aria-pressed={montrerIndice} onClick={() => setIndiceVisible((v) => !v)}>
               <i style={{ background: "var(--chart-out)" }} />
@@ -423,16 +429,16 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
             ⚙ {t("Réglages")}
           </button>
         )}
-        {view !== "variations" && view !== "contributions" && view !== "societes" && view !== "niveau" && (
+        {view !== "variations" && view !== "contributions" && view !== "societes" && view !== "niveau" && view !== "volumes" && (
           <Select
             compact
             fixe
             cherchable={false}
-            label={view === "volumes" ? t("Volumes de") : t("Société")}
+            label={t("Société")}
             value={societe}
             onChange={setSociete}
             options={[
-              { value: "", label: view === "volumes" ? t("toute la cote") : view === "capitalisation" ? t("toutes, empilées") : t("toutes les sociétés") },
+              { value: "", label: view === "capitalisation" ? t("toutes, empilées") : t("toutes les sociétés") },
               ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name })),
             ]}
           />
@@ -536,7 +542,9 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
       {withVol && (
         <IndiceEtNegoce
           avecBarre={false}
-          societe={societe}
+          societe=""
+          indice={montrerIndice}
+          courbes={ovs.map((o) => ({ mnemo: o.mnemo, couleur: couleurDe(o.mnemo), points: o.points.map((q) => ({ on: q.date, valeur: q.value })) }))}
           seances={pts.map((p) => ({ on: p.date, niveau: p.value, montant: p.amount ?? 0, transactions: p.trades ?? 0 }))}
           societes={overlays.map((o) => ({ mnemo: o.mnemo, nom: o.name, points: o.points.map((q) => ({ on: q.date, montant: q.amount ?? 0, transactions: q.trades ?? 0 })) }))}
         />
@@ -561,7 +569,6 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
         />
       )}
 
-      {view === "societes" && <SmallMultiples index={pts} overlays={overlays} from={debut} />}
 
       {view === "variations" && <Variations index={pts} W={W} pins={pins} onPin={togglePin} onRange={setRange} />}
 
@@ -1521,60 +1528,3 @@ function Calendar({ points, company, from, to, onPick, W, pins }: { points: Char
   );
 }
 
-/** Each listed share against the index, both in base 100 over the period, one small chart per share. */
-function SmallMultiples({ index, overlays, from }: { index: ChartPoint[]; overlays: OverlaySeries[]; from: string }) {
-  const t = useT();
-  const i0 = index[0]?.value;
-  if (!i0) return null;
-  const ix = index.map((p) => ({ date: p.date, y: (p.value / i0) * 100 }));
-  const iEnd = ix[ix.length - 1].y - 100;
-  return (
-    <div className={styles.smWrap}>
-      <div className={styles.sm}>
-        {overlays.map((o) => {
-          const pts = o.points.filter((p) => p.date >= from);
-          const s0 = pts[0]?.value;
-          if (!s0 || pts.length < 2) return null;
-          const s = pts.map((p) => ({ date: p.date, y: (p.value / s0) * 100 }));
-          const sEnd = s[s.length - 1].y - 100;
-          const all = [...s.map((p) => p.y), ...ix.map((p) => p.y)];
-          const lo = Math.min(...all) - 1;
-          const hi = Math.max(...all) + 1;
-          const d0 = ix[0].date < s[0].date ? ix[0].date : s[0].date;
-          const dN = ix[ix.length - 1].date > s[s.length - 1].date ? ix[ix.length - 1].date : s[s.length - 1].date;
-          const span = Math.max(1, daysBetween(d0, dN));
-          const x = (d: string) => 4 + (daysBetween(d0, d) / span) * 192;
-          const y = (v: number) => 6 + (1 - (v - lo) / (hi - lo)) * 50;
-          const path = (arr: { date: string; y: number }[]) => arr.map((p) => `${x(p.date).toFixed(1)},${y(p.y).toFixed(1)}`).join(" ");
-          const alone = Math.abs(sEnd - iEnd) >= 2;
-          return (
-            <Link key={o.mnemo} href={`/societes/${o.mnemo.toLowerCase()}?depuis=indice`} className={styles.smCard}>
-              <b>
-                {o.mnemo} <span className={sEnd > 0 ? styles.upT : sEnd < 0 ? styles.downT : ""}>{signed(sEnd, 1)}</span>
-              </b>
-              <small>
-                {o.name} · {t("l'indice")} {signed(iEnd, 1)}
-              </small>
-              <svg viewBox="0 0 200 62" className={styles.smSvg} aria-label={`${o.mnemo} ${t("et l'indice, base 100")}`}>
-                <line x1="4" x2="196" y1={y(100)} y2={y(100)} className={styles.grid} />
-                <polyline points={path(ix)} className={styles.overlay} />
-                <polyline points={path(s)} className={styles.line} />
-              </svg>
-              <small>{alone ? (sEnd > iEnd ? t("a fait plus que le marché") : t("a fait moins que le marché")) : t("a suivi le marché")}</small>
-            </Link>
-          );
-        })}
-      </div>
-      <p className={styles.legend}>
-        <span>
-          <i className={styles.kLine} /> {t("la société")}
-        </span>
-        <span>
-          <i className={`${styles.kLine} ${styles.kGold}`} /> {t("l'indice")}
-        </span>
-        <span>{t("base 100 au début de la période · toucher une vignette ouvre la société")}</span>
-      </p>
-      <HowTo text={t("Une vignette par société : son cours en trait plein, l'indice en pointillé doré, les deux ramenés à 100 au début de la période. La courbe au-dessus du pointillé a fait mieux que le marché, celle en dessous moins bien. Les paliers sont les séances sans transaction, pas des jours de stabilité.")} />
-    </div>
-  );
-}

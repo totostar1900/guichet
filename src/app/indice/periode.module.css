@@ -192,3 +192,12 @@
   outline: 2px solid var(--gold);
   outline-offset: 1px;
 }
+
+.nomsDesChiffres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--s-5);
+  margin: 0;
+  font-size: var(--graphe-texte);
+  font-weight: 700;
+}

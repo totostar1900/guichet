@@ -20,6 +20,7 @@ export interface Libelles {
   moyen: string;
   total: string;
   trans: string;
+  part: string;
   legMoyen: string;
   legTotal: string;
   legTrans: string;
@@ -95,12 +96,30 @@ export function Profondeur({ societes, l }: { societes: { mnemo: string; moyen: 
             <g key={s.mnemo}>
               <rect x={x0} y={y} width={Math.max(v ? 1.5 : 0, x(v) - x0)} height={13} rx={2} fill="var(--chart-out)" />
               <text x={x(v) + 4} y={y + 10} fill="var(--ink-2)" style={{ fontSize: "var(--graphe-valeur)" }}>
-                {v ? (mode === "moyen" ? `${dec1(v / div)} · ${s.trades}` : mode === "total" ? `${fm(v)} · ${fmtPct(tot ? (v / tot) * 100 : 0, 0)}` : fmt(v)) : "—"}
+                {v ? (
+                  <>
+                    <tspan fill="var(--val-a)">{mode === "moyen" ? dec1(v / div) : mode === "total" ? fm(v) : fmt(v)}</tspan>
+                    {mode !== "trans" && (
+                      <>
+                        <tspan fill="var(--ink-3)"> · </tspan>
+                        <tspan fill="var(--val-b)">{mode === "moyen" ? s.trades : fmtPct(tot ? (v / tot) * 100 : 0, 0)}</tspan>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  "—"
+                )}
               </text>
             </g>
           );
         })}
       </svg>
+      {mode !== "trans" && (
+        <p className={styles.nomsDesChiffres}>
+          <span style={{ color: "var(--val-a)" }}>■ {mode === "moyen" ? l.moyen : l.total}</span>
+          <span style={{ color: "var(--val-b)" }}>■ {mode === "moyen" ? l.trans : l.part}</span>
+        </p>
+      )}
       <p className={styles.legende}>{leg}</p>
     </figure>
   );

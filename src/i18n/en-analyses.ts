@@ -230,6 +230,7 @@ export const EN_ANALYSES: Record<string, string> = {
   "Niveau de l’indice": "Index level",
   "100 % · la demande couvre l'offre": "100 % · demand covers supply",
   "Niveau de l'indice": "Index level",
+  "Niveau, base 100 au début de la plage": "Level, base 100 at the start of the range",
   "Lignes traitées, séance par séance": "Lines traded, session by session",
   "Aucun horizon n'est porté par deux Trésors à la fois : il n'y a pas de niveau de zone à consolider.": "No horizon is carried by two Treasuries at once: there is no zone level to consolidate.",
   "Aucun point à tracer pour ce choix.": "No point to plot for this choice.",
