@@ -80,6 +80,6 @@ describe("les sections qui s'effacent", () => {
     /* SUR LA PAGE D'ARRIVÉE, depuis le 2 novembre 2026, le titre « BVMAC Index » est À PLAT au-dessus de la carte (« aPlat »), comme « Titres » et « Fonds » ; « Le marché » est parti. */
     expect(code("src/app/Console.tsx"), "la page a repris l'écriture du titre du marché").not.toMatch(/titre: t\("Le marché"\)/);
     expect(code("src/app/Console.tsx"), "la carte de l'indice n'est plus un lien sur la page d'arrivée").toMatch(/<IndexPulse[^/>]*aPlat=\{\{ titre: "BVMAC Index", href: "\/marche"/);
-    expect(code("src/components/IndexPulse.tsx"), "l'indice ne rend plus l'en-tête qu'on lui confie").toMatch(/\{entete\.titre && <h2>\{entete\.titre\}<\/h2>\}/);
+    expect(code("src/components/IndexPulse.tsx"), "l'indice ne rend plus l'en-tête qu'on lui confie").toMatch(/\{entete\?\.titre && \(\s*<div className=\{styles\.entete\}>\s*<h2>\{entete\.titre\}<\/h2>/);
   });
 });

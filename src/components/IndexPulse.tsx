@@ -103,9 +103,10 @@ export async function IndexPulse({
           seul endroit qui sait s'il y a quelque chose à montrer. Les deux
           pages du marché n'en demandent pas : elles ont leur propre en-tête,
           et elles n'arrivent jamais là par hasard. */}
-      {entete && (
-        <div className={`${styles.entete} ${entete.titre ? "" : styles.enteteSeul}`}>
-          {entete.titre && <h2>{entete.titre}</h2>}
+      {/* Avec un titre de section, l'en-tête reste au-dessus de la carte ; sans titre, le lien seul passe DANS la carte, au coin haut droit (8 novembre 2026). */}
+      {entete?.titre && (
+        <div className={styles.entete}>
+          <h2>{entete.titre}</h2>
           <Link href={entete.lien.href}>{entete.lien.mot} →</Link>
         </div>
       )}
@@ -151,9 +152,16 @@ export async function IndexPulse({
         </div>
       </div>
       {!aPlat && (
-        <span className={styles.tag} title={t("Les dividendes ne sont pas comptés dans l'indice")}>
-          {t("indice de prix")}
-        </span>
+        <div className={styles.coin}>
+          {entete && !entete.titre && (
+            <Link href={entete.lien.href} className={styles.coinLien}>
+              {entete.lien.mot} →
+            </Link>
+          )}
+          <span className={styles.tag} title={t("Les dividendes ne sont pas comptés dans l'indice")}>
+            {t("indice de prix")}
+          </span>
+        </div>
       )}
       {pied && <span className={styles.pied}>{pied.mot} →</span>}
       </section>

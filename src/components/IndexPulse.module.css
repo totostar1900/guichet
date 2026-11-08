@@ -90,6 +90,19 @@
   font-weight: 700;
   color: var(--gold-ink);
 }
+/* Le coin haut droit de la carte : le lien de la page (s'il y en a un) au-dessus de la pastille. */
+.coin {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  align-self: start;
+}
+.coinLien {
+  font-size: var(--t-2);
+  font-weight: 700;
+  color: var(--gold-ink);
+}
 .tag {
   flex: none;
   font-size: 0.62rem;
@@ -107,8 +120,17 @@
     grid-template-columns: 1fr;
     gap: 6px;
   }
-  .tag {
-    justify-self: start;
+  .pulse {
+    position: relative;
+  }
+  /* Sur un téléphone la carte est une colonne : le lien reste au coin haut droit, en face du nom de l'indice. */
+  .coinLien {
+    position: absolute;
+    top: 8px;
+    right: 14px;
+  }
+  .coin {
+    align-items: flex-start;
   }
 }
 
@@ -132,10 +154,6 @@
   padding-bottom: var(--s-5);
   border-bottom: 1px solid var(--navy);
   margin-bottom: var(--titre-gap);
-}
-.enteteSeul {
-  /* Sans titre : le lien seul, au bord droit, comme celui des autres cartes de la page. */
-  justify-content: flex-end;
 }
 .entete h2 {
   margin: 0;

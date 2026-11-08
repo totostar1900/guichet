@@ -1301,6 +1301,10 @@ html[data-tuiles="lignes"] {
 .panel-h .right {
   margin-left: auto;
 }
+/* Le lien de coin d'un panneau (« Les séances → », « Toutes les sociétés → ») est or, comme ceux des cartes du marché, et non encre. */
+.panel-h a.right {
+  color: var(--gold-ink);
+}
 .tbl {
   width: 100%;
   border-collapse: collapse;

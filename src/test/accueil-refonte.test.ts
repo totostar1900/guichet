@@ -150,7 +150,7 @@ describe("les composants de l'Accueil", () => {
     expect(carte, "la carte n'enveloppe plus sa surface dans le lien").toMatch(/<Link href=\{pied\.href\} className=\{styles\.carteLien\}>/);
     expect(carte, "deux ancres imbriquées : les liens internes doivent se taire quand la carte est un lien").toMatch(/liens && !pied && !aPlat && \(/);
     expect(carte, "la carte répète encore le nom de l'indice").toMatch(/\{!aPlat && <small>BVMAC All Share<\/small>\}/);
-    expect(carte, "la pastille « indice de prix » est revenue dans la carte de l'Accueil").toMatch(/\{!aPlat && \(\s*<span className=\{styles\.tag\}/);
+    expect(carte, "la pastille « indice de prix » est revenue dans la carte de l'Accueil").toMatch(/\{!aPlat && \(\s*<div className=\{styles\.coin\}>[\s\S]*?<span className=\{styles\.tag\}/);
   });
 });
 
