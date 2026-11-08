@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { repo } from "@/lib/data";
 import { fmtDate } from "@/lib/format";
 import { performanceSur } from "@/lib/market/performe";
 import { SensDuClassement } from "./SensDuClassement";
+import { TitreDeBloc } from "./TitreDeBloc";
 import styles from "./CeQuiPerforme.module.css";
 
 /**
@@ -39,19 +39,14 @@ export async function CeQuiPerforme({ max = 3 }: { max?: number }) {
 
   return (
     <section className={styles.bloc} aria-labelledby="ce-qui-performe">
-      <div className={styles.tete}>
-        <h2 id="ce-qui-performe" className={styles.titre}>
-          {t("Ce qui performe")}
-        </h2>
-        <Link className={styles.tout} href="/societes">
-          {t("Les sociétés")} →
-        </Link>
-      </div>
+      <TitreDeBloc id="ce-qui-performe" titre="Ce qui performe" href="/societes" tout="Les sociétés" />
+      <div className={styles.corps}>
       {/* LA FENÊTRE EST DANS LA PHRASE, PAS DANS UNE NOTE DE BAS DE BLOC : un
           pourcentage sans sa période se lit comme celui du jour, et c'est
           justement le chiffre qui n'existe pas ici. */}
       <p className={styles.fenetre}>{t("Du {a} au {b}, sur trois mois.", { a: fmtDate(classement.depuis, false), b: fmtDate(classement.jusquAu, false) })}</p>
       <SensDuClassement lignes={classement.lignes.map((l) => ({ ...l, href: ouvertes.has(`boc-${l.isin.toLowerCase()}`) ? `/offres/boc-${l.isin.toLowerCase()}` : `/societes/${encodeURIComponent(l.mnemo)}` }))} max={max} />
+      </div>
     </section>
   );
 }

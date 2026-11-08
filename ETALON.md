@@ -980,3 +980,13 @@ l'onglet, la question à l'écran — et **un second fil d'Ariane** : celui de
 « Sécurité » n'était donc pas le dernier, il était le seul des treize pages
 relevées. La page a maintenant un nom, « Profil d'investisseur », l'en-tête
 de l'étalon, et la question en `h2`.*
+
+
+## § 8.15 L'en-tête d'un bloc de l'Accueil est un bandeau de la carte (8 novembre 2026)
+
+Décidé sur la planche « En-têtes de l'Accueil » (choix 1B · 2A). Il **remplace** « le titre à plat au-dessus de la carte, en capitales de 12 px » (2 novembre 2026) pour les blocs de l'Accueil :
+
+- le titre est **dans la carte**, en bandeau : `--t-6`, casse normale, une ligne de 1 px dessous (`--line`), `« Tout voir › »` en or (`--t-4`, 600) à droite ; la rangée entière est le lien, **44 px de haut au moins** ;
+- fond, bord et rayon (`--tuile-*`) sont à la **section**, jamais aux rangées ; le contenu garde son padding ;
+- **exception** : la fiche d'une ligne (« Lignes similaires », `fort`) et les blocs `plat` gardent leur titre à plat (§ 8.8, § 8.10) ;
+- composant : `TitreDeBloc` (`bandeau` par défaut tant que `fort` est faux) ; blocs : `BlocPlat`, `BlocDeLignes` (`enBandeau`), `SelectionDuDesk`, `CeQuiFermeBientot`, `IndexPulse` (`aPlat`), `CeQuiPerforme`, « À la une ». Gardé par `src/test/accueil-entetes.test.ts`.

@@ -18,7 +18,7 @@
 |---|---|---|---|
 | 1 | Le chiffre du portefeuille en tête, avec sa variation | un chapitre « hero » de l'Accueil | la maison a décidé « les devoirs d'abord, puis les occasions, puis le constat » : **arbitrer, ne pas imiter** |
 | 2 | Une échelle de texte plus grande | jetons `--t-*` de `globals.css` — **globaux** : mesurer l'effet sur toutes les pages, ou piloter l'Accueil par classes locales | texte de Guichet ≈ 25–35 % plus petit que la référence |
-| 3 | Titre de bloc = lien à chevron, « Tout voir » à droite | `EnTete` de section, `.eyebrow` | aujourd'hui capitales espacées de 10,5 px |
+| 3 | Titre de bloc = lien à chevron, « Tout voir » à droite | `TitreDeBloc` : **fait le 8 novembre 2026** (bandeau dans la carte, `--t-6`, « Tout voir › » or, 44 px ; `ETALON.md` § 8.15) | le bandeau est dans la carte (la référence le pose à plat) : choix du client, planche 1B |
 | 4 | Une carte par bloc, rayon généreux, rangées séparées par l'espace | un aspect de plus dans `AspectDesTuiles` (`config.ts`) + un bloc `html[data-tuiles="…"]` | rayon actuel 6 px ; les six familles de tuiles lisent les mêmes jetons |
 | 5 | Rangée à deux colonnes : identité à gauche, valeur et variation à droite | classes `qui` / `quoi` de `DossierAccueil` (déjà là pour les lignes suivies) | un chiffre sans date ni unité n'est pas lisible |
 | 6 | Un avatar rond par rangée (drapeau pour un Trésor, monogramme sinon) | composant d'avatar ; drapeaux en SVG de domaine public | pas d'emoji (rendu inégal), pas de logo tiers |

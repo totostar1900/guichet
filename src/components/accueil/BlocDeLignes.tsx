@@ -70,9 +70,11 @@ export async function lignesDeBloc(offres: Offer[], mode: "cote" | "fonds" | "ad
  */
 export async function BlocDeLignes({ id, titre, href, tout, lignes, plat = false, fort = false, glisser = false }: { /** Au tiré vers la gauche, une rangée découvre « Déclarer », « Contacter » et « Suivre » ou « Alerte » (téléphone seulement), comme les cartes des listes. */ glisser?: boolean; id: string; titre: string; href: string; tout?: string; lignes: LigneDeBloc[]; /** Le titre d'une section de la fiche, pas l'étiquette en capitales de l'Accueil. */ fort?: boolean; /** À plat : les rangées sans carte autour (un filet entre deux rangées), pour une page qui n'a pas d'encadré, comme la fiche. */ plat?: boolean }) {
   if (!lignes.length) return null;
+  /* Le bandeau est celui de l'Accueil (8 novembre 2026) ; la fiche, qui lit ce bloc « fort » ou « à plat », garde son titre à plat. */
+  const enBandeau = !fort && !plat;
   return (
-    <section className={styles.bloc} aria-labelledby={id}>
-      <TitreDeBloc id={id} titre={titre} href={href} tout={tout} fort={fort} />
+    <section className={`${styles.bloc} ${enBandeau ? styles.enBandeau : ""}`} aria-labelledby={id}>
+      <TitreDeBloc id={id} titre={titre} href={href} tout={tout} fort={fort} bandeau={enBandeau} />
       <ul className={`${styles.carte} ${plat ? styles.plat : ""}`}>
         {lignes.map((l) => (
           <li key={l.id}>

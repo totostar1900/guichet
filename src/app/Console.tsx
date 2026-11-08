@@ -18,6 +18,7 @@ import { DossierAccueil } from "@/components/accueil/DossierAccueil";
 import { joursEnMots } from "@/lib/domain/echeances";
 import { IndexPulse } from "@/components/IndexPulse";
 import { CeQuiPerforme } from "@/components/CeQuiPerforme";
+import { TitreDeBloc } from "@/components/TitreDeBloc";
 import { aLaUne, pourquoiLu, publishedNews, titreLu } from "@/lib/news";
 import { TrustNudge } from "@/components/TrustNudge";
 import { Reinvest } from "@/components/Reinvest";
@@ -550,11 +551,8 @@ export async function Console({ session }: { session: Session }) {
           non publiées, ne sont pas une actualité, et une rubrique vide en
           tête de page apprend à ne plus l'ouvrir. */}
       {une && (
-        <section>
-          <div className={styles.tete}>
-            <b>{t("À la une")}</b>
-            <Link href="/actualites">{t("Toutes les actualités")} →</Link>
-          </div>
+        <section className={styles.blocUne} aria-labelledby="a-la-une">
+          <TitreDeBloc id="a-la-une" titre="À la une" href="/actualites" tout="Toutes les actualités" />
           <Link href="/actualites" className={styles.une}>
             <small>
               {une.source} · {fmtDate(une.publishedAt.slice(0, 10), false)}

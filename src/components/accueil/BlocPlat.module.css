@@ -1,14 +1,14 @@
-/* Un bloc à plat : titre → carte à --titre-gap ; aucune marge entre deux blocs (la pile qui les porte écarte). */
+/* Un bloc : le bandeau du titre est DANS la carte (8 novembre 2026, 1B) ; fond, bord et rayon sont au bloc ; aucune marge entre deux blocs (la pile qui les porte écarte). */
 .bloc {
   display: flex;
   flex-direction: column;
-  gap: var(--titre-gap);
+  gap: 0;
   min-width: 0;
-}
-.carte {
-  padding: var(--s-3) 0;
   background: var(--tuile-fond);
   border: var(--tuile-bord);
   border-radius: var(--tuile-rayon);
   overflow: hidden;
+}
+.carte {
+  padding: var(--s-3) 0;
 }

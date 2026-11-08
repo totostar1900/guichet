@@ -209,7 +209,7 @@ describe("les deux arbitrages", () => {
     for (const [f, motif] of [
       ["src/app/Console.module.css", /\.tete \{[^}]*margin-bottom:\s*var\(--titre-gap\)/],
       ["src/components/accueil/BlocDeLignes.module.css", /\.bloc \{[^}]*gap:\s*var\(--titre-gap\)/],
-      ["src/components/accueil/BlocPlat.module.css", /\.bloc \{[^}]*gap:\s*var\(--titre-gap\)/],
+      /* BlocPlat : le bandeau est DANS la carte depuis le 8 novembre 2026 (1B), il n'y a plus d'écart titre → contenu à écrire. */
       ["src/components/CeQuiFermeBientot.module.css", /\.bloc \{[^}]*gap:\s*var\(--titre-gap\)/],
       ["src/components/CeQuiVousAttend.module.css", /margin:\s*0 0 var\(--titre-gap\)/],
       ["src/components/SelectionDuDesk.module.css", /\.titre \{[^}]*margin:\s*0 0 var\(--titre-gap\)/],

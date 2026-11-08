@@ -30,3 +30,23 @@
   text-transform: none;
   color: var(--ink);
 }
+
+/* LE BANDEAU D'UNE CARTE (8 novembre 2026, 1B · 2A) : titre à gauche, « Tout voir › » en or à droite, une ligne de 1 px dessous. La rangée entière est le lien, d'au moins 44 px de haut (la cible d'un doigt). */
+.bandeau {
+  align-items: center;
+  min-height: 44px;
+  padding: var(--s-5) var(--tuile-pad-x);
+  border-bottom: 1px solid var(--line);
+}
+.bandeau .titre {
+  font-size: var(--t-6);
+  line-height: 1.25;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+}
+.bandeau .tout {
+  font-size: var(--t-4);
+  font-weight: 600;
+  white-space: nowrap;
+}

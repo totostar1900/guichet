@@ -15,6 +15,19 @@
   border-radius: var(--tuile-rayon);
   overflow: hidden;
 }
+/* LE BANDEAU DANS LA CARTE (8 novembre 2026, 1B) : fond, bord et rayon passent de la liste à la section, le bandeau du titre en est la première rangée. */
+.enBandeau {
+  gap: 0;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  overflow: hidden;
+}
+.enBandeau .carte {
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
 /* À PLAT (8 novembre 2026) : sans fond, sans bord, sans rayon, sans gouttière de carte ; un filet seulement entre deux rangées. Les trois aspects de tuiles n'y changent rien. */
 .plat {
   padding: 0;

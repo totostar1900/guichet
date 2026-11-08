@@ -102,10 +102,15 @@
 }
 
 /* L'allure « sobre » de l'Accueil : une carte, des lignes sans fond ni trait. */
-.groupe {
+.sobre {
   gap: 0;
   background: var(--tuile-fond);
+  border: var(--tuile-bord);
   border-radius: var(--tuile-rayon);
+  overflow: hidden;
+}
+.groupe {
+  gap: 0;
   padding: var(--s-3) 0;
 }
 .groupe .ligne {

@@ -87,7 +87,7 @@ describe("les rangées et la fiche (lecture du code)", () => {
   });
 
   it("le titre d'un bloc mène à la liste, et les blocs de l'Accueil lisent les familles de la table de navigation", () => {
-    expect(bloc).toMatch(/<TitreDeBloc id=\{id\} titre=\{titre\} href=\{href\} tout=\{tout\} fort=\{fort\} \/>/);
+    expect(bloc).toMatch(/<TitreDeBloc id=\{id\} titre=\{titre\} href=\{href\} tout=\{tout\} fort=\{fort\} bandeau=\{enBandeau\} \/>/);
     const g = code("src/components/accueil/GrilleInvestir.tsx");
     for (const cle of ["titres", "fonds", "calendrier"]) expect(g, `le bloc ${cle} a disparu`).toContain(`page("${cle}")`);
   });

@@ -302,3 +302,8 @@ La note de marché existe en page et en PDF ; chaque support avait son défaut p
 - **Page : le texte d'un graphe se lit dans la boîte de 320 unités** (`GRAPHE_L`), jamais dans un `viewBox` de 680 : le texte tombait à 5-6 px. Un titre d'unité se pose à `top − 8` du PANNEAU (pas de la première graduation) et une barre ne dépasse jamais le haut de son panneau (graduations calculées jusqu'à un sommet qui couvre le maximum).
 - **Plusieurs grandeurs sous un même axe de dates** (niveau, montant échangé, transactions, capitalisation) : des panneaux empilés, jamais un double axe.
 - **Un texte de note ne dit pas ce qui est en cours** (rapprochements, questions ouvertes avec la Bourse) : cela reste au desk. Gardé par `src/test/note-lisible.test.ts`.
+
+
+## Leçon du 8 novembre 2026 : le titre d'un bloc de l'Accueil entre dans la carte (1B · 2A)
+
+La règle du 2 novembre (« le titre à plat, jamais dans la carte ») est levée **pour l'Accueil** : le bandeau (titre `--t-6`, ligne de 1 px, « Tout voir › » or, 44 px de haut) est la première rangée de la carte, et **fond, bord et rayon passent à la section** (`.bloc` / `.enBandeau` / `.sobre`), pas aux rangées. Une carte neuve de l'Accueil : `TitreDeBloc` dans une section qui porte les jetons de tuile, le corps dessous. La fiche (`fort`) et le mode `plat` gardent le titre à plat. Voir `ETALON.md` § 8.15. Piège : un composant dont la carte était la LISTE (`.liste`, `.groupe`) doit lui retirer son fond, sinon deux fonds se superposent.

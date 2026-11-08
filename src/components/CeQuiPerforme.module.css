@@ -4,26 +4,22 @@
 .bloc {
   display: flex;
   flex-direction: column;
-  gap: var(--s-6);
+  gap: 0;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  overflow: hidden;
 }
-.tete {
+/* Le bandeau (titre, ligne, « Les sociétés › ») est celui de TitreDeBloc, comme sur les autres blocs de l'Accueil (8 novembre 2026, 1B) ; ce qui suit est le corps de la carte. */
+.corps {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  flex-direction: column;
   gap: var(--s-6);
+  padding: var(--s-5) 0;
 }
-.titre {
-  margin: 0;
-  font-size: var(--accueil-titre-tuile, 0.7rem);
-  font-weight: 700;
-  letter-spacing: var(--accueil-titre-espacement, 0.07em);
-  text-transform: uppercase;
-  color: var(--accueil-titre-encre, var(--ink));
-}
-.tout {
-  flex: none;
-  font-size: var(--t-2);
-  color: var(--gold-ink);
+.corps > .fenetre,
+.corps > .sens {
+  padding-inline: var(--tuile-pad-x);
 }
 /* La fenêtre, écrite en toutes lettres : un pourcentage sans sa période se
    lit comme celui du jour, et c'est le chiffre qui n'existe pas ici. */
@@ -136,9 +132,7 @@
 /* 5A : sur l'Accueil (« cartes »), la liste est UNE carte et ses lignes n'ont ni fond ni contour. */
 :global([data-tuiles="cartes"]) .liste {
   gap: 0;
-  background: var(--tuile-fond);
-  border-radius: var(--tuile-rayon);
-  padding: var(--s-3) 0;
+  padding: 0;
 }
 :global([data-tuiles="cartes"]) .ligne {
   background: none;

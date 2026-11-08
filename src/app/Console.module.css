@@ -724,6 +724,18 @@
   color: inherit;
   text-decoration: none;
 }
+/* « À la une » dans une carte à bandeau, comme les autres blocs de l'Accueil (8 novembre 2026, 1B) : fond, bord et rayon sont à la section. */
+.blocUne {
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  overflow: hidden;
+}
+.blocUne .une {
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
 .une:hover {
   border-color: var(--line-2);
 }

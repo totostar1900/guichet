@@ -105,12 +105,14 @@
 .sobre {
   display: flex;
   flex-direction: column;
-  gap: var(--titre-gap);
+  gap: 0;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  overflow: hidden;
 }
 .groupe {
   gap: 0;
-  background: var(--tuile-fond);
-  border-radius: var(--tuile-rayon);
   padding: var(--s-3) 0;
 }
 .groupe .lien {

@@ -1,6 +1,18 @@
 .bloc {
   min-width: 0;
 }
+/* Sur l'Accueil (8 novembre 2026, 1B) : le bandeau « BVMAC Index » est la première rangée de la carte ; fond, bord et rayon passent au bloc. */
+.enBandeau {
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  overflow: hidden;
+}
+.enBandeau .pulse {
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
 .pulse {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
