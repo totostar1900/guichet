@@ -75,6 +75,35 @@ export async function Periode({ vue, periode, lien, quarterNoteHref }: { vue: Vu
           <p className={styles.legende}>{t("La contribution d'une société est son poids en début de période multiplié par la variation de son cours.")}</p>
         </figure>
 
+        <dl className={styles.stats}>
+          <div>
+            <dt>{t("Repli maximal")}</dt>
+            <dd>{signed(stats.drawdown, 1)}</dd>
+            <small>{stats.drawdownFrom && stats.drawdownTo ? t("du {a} au {b}", { a: fmtDate(stats.drawdownFrom, false), b: fmtDate(stats.drawdownTo, false) }) : t("sur la période")}</small>
+          </div>
+          {stats.volAll != null && stats.volMoved != null && (
+            <div>
+              <dt>{t("Variabilité annualisée")}</dt>
+              <dd>
+                {fmtPct(stats.volAll, 0)} / {fmtPct(stats.volMoved, 0)}
+              </dd>
+              <small>{t("toutes les séances / séances avec échange")}</small>
+            </div>
+          )}
+          <div>
+            <dt>{t("La finance dans la cote")}</dt>
+            <dd>{fmtPct(vue.financePct, 1)}</dd>
+            <small>{t("de la capitalisation")}</small>
+          </div>
+          {vue.rotation != null && (
+            <div>
+              <dt>{t("Rotation du flottant")}</dt>
+              <dd>{fmtPct(vue.rotation, 1)}</dd>
+              <small>{t("sur douze mois")}</small>
+            </div>
+          )}
+        </dl>
+
         <div className={styles.figure}>
           <div className={styles.titre}>{t("Les sociétés de la cote sur la période")}</div>
           <div className={styles.tableau}>
@@ -132,35 +161,6 @@ export async function Periode({ vue, periode, lien, quarterNoteHref }: { vue: Vu
             </div>
           ))}
         </div>
-
-        <dl className={styles.stats}>
-          <div>
-            <dt>{t("Repli maximal")}</dt>
-            <dd>{signed(stats.drawdown, 1)}</dd>
-            <small>{stats.drawdownFrom && stats.drawdownTo ? t("du {a} au {b}", { a: fmtDate(stats.drawdownFrom, false), b: fmtDate(stats.drawdownTo, false) }) : t("sur la période")}</small>
-          </div>
-          {stats.volAll != null && stats.volMoved != null && (
-            <div>
-              <dt>{t("Variabilité annualisée")}</dt>
-              <dd>
-                {fmtPct(stats.volAll, 0)} / {fmtPct(stats.volMoved, 0)}
-              </dd>
-              <small>{t("toutes les séances / séances avec échange")}</small>
-            </div>
-          )}
-          <div>
-            <dt>{t("La finance dans la cote")}</dt>
-            <dd>{fmtPct(vue.financePct, 1)}</dd>
-            <small>{t("de la capitalisation")}</small>
-          </div>
-          {vue.rotation != null && (
-            <div>
-              <dt>{t("Rotation du flottant")}</dt>
-              <dd>{fmtPct(vue.rotation, 1)}</dd>
-              <small>{t("sur douze mois")}</small>
-            </div>
-          )}
-        </dl>
       </div>
     </section>
   );

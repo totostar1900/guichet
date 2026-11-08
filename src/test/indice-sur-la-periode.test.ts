@@ -26,7 +26,7 @@ describe("la période se lit dans l'adresse", () => {
 describe("une seule lecture, deux endroits", () => {
   it("la page de l'indice rend la section avec les figures de la note", () => {
     expect(BODY).toMatch(/<Periode vue=\{vue\}/);
-    expect(BODY).toMatch(/\{ id: "periode", title: t\("Sur la période"\) \}/);
+    expect(BODY, "la page n'a plus de sommaire « Sur cette page »").not.toMatch(/Sommaire|Sur cette page/);
     expect(PERIODE).toMatch(/from "\.\/note\/\[trimestre\]\/Figures"/);
     expect(PERIODE).toMatch(/<Comparaison /);
     expect(PERIODE).toMatch(/<ContribBars /);
@@ -39,6 +39,14 @@ describe("une seule lecture, deux endroits", () => {
   it("la page ne recopie pas le commentaire : elle renvoie à la note", () => {
     expect(PERIODE).toMatch(/quarterNoteHref/);
     expect(PERIODE).not.toMatch(/ne dit pas|ne mesure pas/);
+  });
+  it("les quatre tuiles (repli maximal…) suivent tout de suite la contribution de chaque société", () => {
+    const contrib = PERIODE.indexOf("<ContribBars");
+    const tuiles = PERIODE.indexOf("<dl className={styles.stats}>");
+    const societes = PERIODE.indexOf('t("Les sociétés de la cote sur la période")');
+    expect(contrib).toBeGreaterThan(0);
+    expect(tuiles, "les tuiles ne suivent plus la contribution").toBeGreaterThan(contrib);
+    expect(tuiles, "les tuiles sont passées après le tableau des sociétés").toBeLessThan(societes);
   });
   it("la période est dans l'adresse des liens du tableau des séances", () => {
     expect(BODY).toMatch(/if \(periode !== "3m"\) u\.set\("periode", periode\)/);

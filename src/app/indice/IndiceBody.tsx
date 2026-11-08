@@ -5,7 +5,6 @@ import { indexPageData } from "@/lib/market/index-data";
 import { quarters } from "@/lib/market/index-quarter";
 import { vueDePeriode } from "@/lib/market/index-period";
 import { Periode, debutDePeriode, periodeOuDefaut, type PeriodeKey } from "./Periode";
-import { Sommaire } from "@/components/Sommaire";
 import { MarketStrip } from "@/components/MarketStrip";
 import { BackToTop } from "@/components/BackToTop";
 import { getT } from "@/i18n/server";
@@ -147,29 +146,8 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
       {!last ? (
         <div className="empty">{t("L'indice s'affichera ici dès la première séance lue.")}</div>
       ) : (
-        <Sommaire
-          label={t("Sur cette page")}
-          sections={[
-            { id: "niveau", title: t("Le niveau") },
-            { id: "courbe", title: t("Séance après séance") },
-            ...(vue ? [{ id: "periode", title: t("Sur la période") }] : []),
-            ...(notes.length > 0 ? [{ id: "notes", title: t("Les notes de marché") }] : []),
-            /* « Données » a quitté cette liste avec son panneau, le 1er
-               novembre 2026. Il redisait ce que le niveau porte déjà — la
-               capitalisation, les douze mois échangés — et sa méthode est
-               celle de « Données et méthode », trois sections plus bas. Ce
-               qu'il avait en propre y est descendu : la série en CSV, les
-               jours sans bulletin, et qui a lu le dernier. */
-            { id: "seances", title: t("Les séances") },
-            { id: "composition", title: t("Composition") },
-            /* L'ancre « sante » est posée par la page du desk, qui rend le
-               panneau après ce corps : un composant du desk ne s'importe pas
-               depuis une page du Guichet. */
-            ...(desk ? [{ id: "sante", title: t("Santé de l'indice") }] : []),
-            { id: "lecture", title: t("Comment le lire") },
-          ]}
-          meta={t("À chaque séance.")}
-        >
+        /* PAS DE SOMMAIRE « SUR CETTE PAGE » (8 novembre 2026, à la demande du client) : la page se lit de haut en bas, sans menu qui la suive. */
+        <>
           {/* LES SECTIONS FORMENT UNE PILE : plus de marge de 38 px sous chacune, l'écart vient du jeton. */}
           <div className={`pile ${styles.sections}`}>
             <section className={styles.level} id="niveau">
@@ -482,7 +460,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
             <MarketStrip current="indice" mode={mode} />
             <BackToTop />
           </div>
-        </Sommaire>
+        </>
       )}
     </div>
   );
