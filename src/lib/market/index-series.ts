@@ -63,3 +63,48 @@ export function seriesDeLaPeriode(d: IndexPageData, from: string, to: string): S
   }
   return { dates, parSociete, comparaison };
 }
+
+/**
+ * L'ACTIVITÉ D'UNE PÉRIODE, SÉANCE PAR SÉANCE : montant échangé, nombre de transactions, capitalisation de la cote (8 novembre 2026).
+ *
+ * Même axe que la courbe de l'indice (les séances où l'indice a été lu). La capitalisation est la somme des sept sociétés ; le dernier chiffre connu d'une société se reporte
+ * d'une séance à l'autre, comme leur cours. Une société sans capitalisation lue pour la séance retombe sur son nombre de titres × son cours, quand les deux sont connus.
+ */
+export interface ActiviteDeSeance {
+  date: string;
+  value: number;
+  amount: number;
+  trades: number;
+  cap: number;
+}
+
+export function activiteDeLaPeriode(d: IndexPageData, from: string, to: string): ActiviteDeSeance[] {
+  const dans = d.stats.points.filter((p) => p.date >= from && p.date <= to);
+  const dernier = new Map<string, number>();
+  const idx = new Map<string, number>();
+  // reprendre le dernier chiffre connu AVANT la période
+  for (const { w, quotes } of d.histories) {
+    let k = 0;
+    while (k < quotes.length && quotes[k].sessionDate < from) {
+      const c = capDe(quotes[k]);
+      if (c > 0) dernier.set(w.mnemo, c);
+      k++;
+    }
+    idx.set(w.mnemo, k);
+  }
+  return dans.map((p) => {
+    for (const { w, quotes } of d.histories) {
+      let k = idx.get(w.mnemo) ?? 0;
+      while (k < quotes.length && quotes[k].sessionDate <= p.date) {
+        const c = capDe(quotes[k]);
+        if (c > 0) dernier.set(w.mnemo, c);
+        k++;
+      }
+      idx.set(w.mnemo, k);
+    }
+    const t = d.trading.get(p.date);
+    return { date: p.date, value: p.value, amount: t?.amount ?? 0, trades: t?.trades ?? 0, cap: [...dernier.values()].reduce((a, b) => a + b, 0) };
+  });
+}
+
+const capDe = (q: { marketCapTotal?: number; sharesTotal?: number; close: number }): number => (q.marketCapTotal ?? 0) > 0 ? q.marketCapTotal! : q.sharesTotal && q.close > 0 ? q.sharesTotal * q.close : 0;

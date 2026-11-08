@@ -13,7 +13,7 @@ export const PUBLICATIONS: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin", "tech"],
   order: 4,
-  checkedOn: "2026-11-07",
+  checkedOn: "2026-11-08",
   owner: "Georges",
   chapters: [
     {
@@ -89,11 +89,11 @@ export const PUBLICATIONS: DocPage = {
             l("Ouvrir le trimestre et lire la page publique telle qu'un client la verra : le lien est sur la page du desk.", "Open the quarter and read the public page as a client will see it: the link is on the desk page."),
             l("Regarder les séances à éclaircir de la note mensuelle : une séance y figure quand la variation publiée ne se reconstitue pas avec les cours du même bulletin.", "Look at the monthly note's sessions to clear: a session appears there when the published variation does not reconstitute with the prices of the same bulletin."),
             l("Vérifier les jours sans bulletin : un trou de plusieurs jours veut souvent dire que la lecture a échoué, pas que le marché a fermé.", "Check the days without a bulletin: a gap of several days usually means the reading failed, not that the market closed."),
-            l("Vérifier le ton : la note dit ce que l'indice fait et ce qu'il ne dit pas ; elle ne recommande rien et ne compare aucun client à l'indice.", "Check the tone: the note says what the index does and what it does not say; it recommends nothing and compares no client to the index."),
+            l("Vérifier le ton : la note raconte ce qui s'est passé en mots simples ; elle ne recommande rien, ne compare aucun client à l'indice et ne parle pas de ce qui est en cours avec la Bourse.", "Check the tone: the note tells what happened in plain words; it recommends nothing, compares no client to the index and says nothing about work in progress with the exchange."),
             l("Publier.", "Publish."),
           ],
         },
-        { type: "note", kind: "warn", text: l("Tant que la note méthodologique de la BVMAC n'est pas reçue, la note publique dit en une ligne, en bas de page, que la méthodologie est en cours de confirmation. Le détail des écarts reste au desk : il ne se conclut pas en public avant la réponse de la Bourse.", "Until the BVMAC methodology note is received, the public note says in one line, at the foot of the page, that the methodology is being confirmed. The detail of the gaps stays at the desk: it is not concluded in public before the exchange replies.") },
+        { type: "note", kind: "info", text: l("Les séances à éclaircir restent au desk. La note publique n'en dit rien : tant qu'un écart avec le bulletin n'est pas tranché, il se traite ici, et la page comme le PDF restent des textes simples sur ce que le marché a fait. Chaque graphe de la note a ses axes écrits (niveau de l'indice, montants échangés, nombre de transactions, capitalisation) et le PDF garde la même marge sur chaque page.", "The sessions to clear stay at the desk. The public note says nothing about them: until a gap with the bulletin is settled, it is dealt with here, and the page and the PDF remain plain texts about what the market did. Every chart in the note has its axes written (index level, amounts traded, number of transactions, capitalisation) and the PDF keeps the same margin on every page.") },
       ],
     },
     {

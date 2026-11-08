@@ -2,7 +2,7 @@ import "server-only";
 import { fmt, fmtPct, money } from "@/lib/format";
 import { floatRotation, type IndexWeight } from "@/lib/market/index";
 import { indexPageData, type IndexPageData } from "@/lib/market/index-data";
-import { seriesDeLaPeriode, type ComparaisonBase100 } from "@/lib/market/index-series";
+import { activiteDeLaPeriode, seriesDeLaPeriode, type ActiviteDeSeance, type ComparaisonBase100 } from "@/lib/market/index-series";
 
 /**
  * The monthly index note: everything the note says, computed once from the
@@ -54,6 +54,8 @@ export interface IndexNote {
   compare?: ComparaisonBase100;
   /** Les séances du mois, pour la courbe du niveau. */
   points: { date: string; value: number }[];
+  /** The same sessions with what traded and the listed capitalisation. */
+  activity: ActiviteDeSeance[];
   weights: IndexWeight[];
   capTotal: number;
   capFloat: number;
@@ -182,6 +184,7 @@ export async function indexNote(monthKey?: string, data?: IndexPageData): Promis
     lines,
     compare: series.comparaison,
     points: inMonth.map((p) => ({ date: p.date, value: p.value })),
+    activity: activiteDeLaPeriode(d, month.from, month.to),
     weights: d.weights,
     capTotal,
     capFloat,

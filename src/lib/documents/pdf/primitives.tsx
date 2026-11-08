@@ -34,7 +34,9 @@ export const s = StyleSheet.create({
   lhBrand: { fontFamily: "Times-Bold", fontSize: 14, letterSpacing: 2.2 },
   lhTag: { color: "#E0B65A", fontSize: 7.5, marginTop: 2 },
   lhRight: { textAlign: "right", fontSize: 7, lineHeight: 1.4, color: "#D9E1EE" },
-  body: { paddingHorizontal: 40, paddingTop: 22 },
+  body: { paddingHorizontal: 40 },
+  // The letterhead is fixed (repeated on every page); this fixed band keeps the same air under it on pages 2+.
+  gap: { height: 22 },
   h1: { fontFamily: "Times-Bold", fontSize: 16, color: NAVY, marginBottom: 3 },
   ref: { fontFamily: "Courier", fontSize: 8, color: INK3, marginBottom: 14 },
   addr: { flexDirection: "row", gap: 20, marginBottom: 14 },
@@ -85,6 +87,7 @@ export function Letter({ heading, children, legal }: { heading: string; children
             <Text>{heading}</Text>
           </View>
         </View>
+        <View style={s.gap} fixed />
         <View style={s.body}>{children}</View>
         <Text style={s.footer} fixed>
           {legal ?? LEGAL}

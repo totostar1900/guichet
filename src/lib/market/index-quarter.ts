@@ -3,7 +3,7 @@ import { fmt, fmtPct, money } from "@/lib/format";
 import { floatRotation } from "@/lib/market/index";
 import { indexPageData, type IndexPageData } from "@/lib/market/index-data";
 import { loadCompanies } from "@/lib/reference";
-import { seriesDeLaPeriode, type ComparaisonBase100 } from "@/lib/market/index-series";
+import { activiteDeLaPeriode, seriesDeLaPeriode, type ActiviteDeSeance, type ComparaisonBase100 } from "@/lib/market/index-series";
 
 /**
  * The quarterly note on the index, written for a client: what the quarter did,
@@ -94,6 +94,8 @@ export interface QuarterNote {
   caution: Sentence[];
   /** Every session of the quarter, for the curve. */
   points: { date: string; value: number; variationPct: number }[];
+  /** The same sessions with what traded and the listed capitalisation, for the volume and capitalisation panels. */
+  activity: ActiviteDeSeance[];
   /** The session that moved the index most, for the annotation on the curve. */
   peak?: { date: string; variationPct: number; movers: string };
   /** Session statistics: what an honest reading of the risk looks like on this market. */
@@ -364,6 +366,7 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
     movedSessions,
     compare: series.comparaison,
     points: inQ.map((p) => ({ date: p.date, value: p.value, variationPct: p.variationPct ?? 0 })),
+    activity: activiteDeLaPeriode(d, quarter.from, quarter.to),
     peak,
     stats,
     financePct,

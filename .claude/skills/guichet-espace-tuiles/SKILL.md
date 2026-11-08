@@ -292,3 +292,13 @@ Demande du client après la planche 1A-4B : « les axes des abscisses se chevauc
 - **Les graduations bornent l'axe** : la plus haute n'est jamais plus haute que le dessin (une courbe dont la dernière graduation dépasse le maximum rognait « 42 k » à 340 px) ; l'axe s'étend jusqu'à elle.
 - **Un seul « i » par graphe et par tableau, et il dit tout.** Un graphe ou un tableau n'a qu'un « i », au bout de son titre (`Info` avec `termes={[…]}` : une fenêtre, chaque terme en gras avec sa définition). Plus de « i » par ligne d'un tableau (« Chiffres clés » en avait sept), plus de « i » par terme d'un titre (« Produit net bancaire i et bénéfice net i »), plus de terme-lien par ligne d'une liste de ratios. Le chiffre clé d'une tuile (KPI) garde le sien : ce n'est ni un graphe ni un tableau. **À compter à chaque page** : par panneau (`[data-pane]`), les boutons « Explication » ; plus d'un est une faute (cliquet `graphes-lisibles.test.ts`).
 
+
+## Leçon du 8 novembre 2026 : une note a deux supports, et chacun a ses marges et ses axes
+
+La note de marché existe en page et en PDF ; chaque support avait son défaut propre.
+
+- **PDF : une marge de haut ne se pose pas sur le corps.** L'en-tête est répété (`fixed`) mais le `paddingTop` du corps ne vaut que pour la première page : les suivantes démarraient collées sous le bandeau. La marge est une bande fixe (`s.gap`) posée sous l'en-tête, donc la même sur chaque page.
+- **PDF : un graphe sans axe n'est pas un graphe.** Tracé à sa taille réelle (515 pt), le texte d'un axe s'écrit à 8 pt au moins, avec son unité au-dessus et l'année sur l'axe des dates. Helvetica n'a pas l'espace fine insécable de `toLocaleString("fr-FR")` : « 1 010 » s'imprimait « 1/010 » dans un `SvgText` (le composant `Text` normalise, pas `SvgText`).
+- **Page : le texte d'un graphe se lit dans la boîte de 320 unités** (`GRAPHE_L`), jamais dans un `viewBox` de 680 : le texte tombait à 5-6 px. Un titre d'unité se pose à `top − 8` du PANNEAU (pas de la première graduation) et une barre ne dépasse jamais le haut de son panneau (graduations calculées jusqu'à un sommet qui couvre le maximum).
+- **Plusieurs grandeurs sous un même axe de dates** (niveau, montant échangé, transactions, capitalisation) : des panneaux empilés, jamais un double axe.
+- **Un texte de note ne dit pas ce qui est en cours** (rapprochements, questions ouvertes avec la Bourse) : cela reste au desk. Gardé par `src/test/note-lisible.test.ts`.

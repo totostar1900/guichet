@@ -9,7 +9,7 @@ import { getT } from "@/i18n/server";
 import { BackToTop } from "@/components/BackToTop";
 import { PageOutline } from "@/components/PageOutline";
 import { QuarterStepper } from "@/components/QuarterStepper";
-import { Comparaison, ContribBars, IndexCurve, MonthBars, WeightBars } from "./Figures";
+import { CapChart, Comparaison, ContribBars, IndexCurve, MonthBars, WeightBars } from "./Figures";
 import { BandeauMoment, NiveauDuMarche, LignesSocietes } from "./Marche";
 import { momentDeLaPlace } from "@/lib/market/moment";
 import { repo } from "@/lib/data";
@@ -36,12 +36,11 @@ export async function generateMetadata({ params }: { params: Promise<{ trimestre
 }
 
 /**
- * The quarterly note on the index, public and written for a client: what the
- * quarter did, the companies behind the number, what can be traded, what the
- * index measures and what it does not, and what would make it a real barometer.
- * Computed from that quarter's sessions only, so a published quarter reads the
- * same a year later. The reconciliation of published variations stays at the
- * desk: the note says in one line that the methodology is being confirmed.
+ * The quarterly note on the index, public and written for a client in plain
+ * words: what the quarter did, what traded, the companies behind the number and
+ * how to read it. Computed from that quarter's sessions only, so a published
+ * quarter reads the same a year later. Work in progress (reconciliations, open
+ * questions with the exchange) stays at the desk and is never written here.
  */
 export default async function QuarterNotePage({ params }: { params: Promise<{ trimestre: string }> }) {
   const [{ trimestre }, t] = await Promise.all([params, getT()]);
@@ -61,6 +60,8 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
   const say = (ss: { key: string; vars?: Record<string, string | number> }[]) =>
     ss.map((x) => t(x.key, x.vars?.q === n.quarter.label ? { ...x.vars, q: qlabel(n.quarter) } : x.vars)).join(" ");
   const shortDate = (d: string) => fmtDate(d, false);
+  /** A date on an axis always carries its year. */
+  const axisDate = (d: string) => fmtDate(d);
   const closed = quarters(data);
   const { older, newer } = quarterNeighbours(closed, n.quarter.key);
   // Deux formes du même service. Le rail a la place de nommer les quatre derniers
@@ -98,10 +99,15 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
             l={{ titre: t("Aujourd'hui sur la place"), derniere: t("Dernière séance de l'indice"), semaine: t("Échangé, cinq dernières séances"), adjudication: t("Prochaine adjudication"), ouverte: t("Adjudication ouverte"), aucune: t("Aucune annoncée"), cloture: t("clôture le"), transactions: t("transactions") }}
           />
           <figure className={styles.figure}>
-            <div className={styles.figtitle}>{t("Figure 1 · Niveau de l'indice, séance par séance")}</div>
-            <IndexCurve note={n} dateOf={shortDate} peakLabel={n.peak ? `${shortDate(n.peak.date)} : ${signed(n.peak.variationPct, 1)}` : undefined} />
+            <div className={styles.figtitle}>{t("Figure 1 · Niveau de l'indice, montants échangés et transactions, séance par séance")}</div>
+            <IndexCurve
+              note={n}
+              dateOf={axisDate}
+              labels={{ niveau: t("Niveau de l'indice (points)"), montant: t("Montant échangé"), transactions: t("Transactions par séance"), montantUnite: (u) => t("Montant échangé ({u})", { u }) }}
+            />
             <figcaption>
-              {t("Un point coloré marque une séance où l'indice a bougé : vert à la hausse, orange à la baisse. Entre deux points, le niveau tient parce qu'aucune transaction n'a modifié un cours de référence.")}{" "}
+              {t("Un point coloré marque une séance où l'indice a bougé : vert à la hausse, orange à la baisse. Les barres du dessous montrent ce qui s'est échangé le même jour.")}{" "}
+              {n.peak ? t("Plus forte séance : {d}, {v} (tirets sur la courbe).", { d: shortDate(n.peak.date), v: signed(n.peak.variationPct, 1) }) + " " : ""}
               {t("Plus haut {h} le {hd} · plus bas {l} le {ld} · {m} séances lues, {x} sans bulletin", { h: fmt(n.high.value), hd: fmtDate(n.high.date), l: fmt(n.low.value), ld: fmtDate(n.low.date), m: String(n.sessions), x: String(n.missing) })}
             </figcaption>
           </figure>
@@ -161,12 +167,12 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
               label={t("Sommaire")}
               sections={[
                 { id: "trimestre", title: t("Le trimestre") },
-                { id: "atouts", title: t("Ce que l'indice fait bien") },
-                { id: "concentration", title: t("La concentration") },
+                { id: "atouts", title: t("Une courbe régulière") },
+                { id: "concentration", title: t("Le poids de chaque société") },
                 { id: "societes", title: t("Les sociétés") },
                 { id: "negoce", title: t("Le négoce") },
-                { id: "mesure", title: t("Ce qu'il mesure") },
-                { id: "economie", title: t("L'indice et l'économie") },
+                { id: "mesure", title: t("Comment le lire") },
+                { id: "economie", title: t("Pour aller plus loin") },
               ]}
               foot={stepper}
             />
@@ -198,10 +204,10 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
 
               <figure className={styles.figure}>
                 <div className={styles.figtitle}>{t("Figure 2 · Ce que chaque mois a donné")}</div>
-                <MonthBars monthly={n.monthly} label={(k) => t(k)} />
+                <MonthBars monthly={n.monthly} label={(k) => t(k)} unit={t("Variation du mois (%)")} />
                 <figcaption>
                   {flat > 0
-                    ? t("{f} séances du trimestre sur {m} n'ont enregistré aucun mouvement : sur cette cote, l'absence de transaction est le régime ordinaire, et un mois plat ne veut pas dire un mois sans valeur.", { f: String(flat), m: String(n.sessions) })
+                    ? t("{f} séances sur {m} sont restées sans mouvement : aucun cours n'a changé ce jour-là.", { f: String(flat), m: String(n.sessions) })
                     : t("Chaque séance lue du trimestre a enregistré un mouvement.")}
                 </figcaption>
               </figure>
@@ -229,43 +235,50 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
                   </table>
                 </div>
               )}
+
+              {n.activity.some((a) => a.cap > 0) && (
+                <figure className={styles.figure}>
+                  <div className={styles.figtitle}>{t("Figure 3 · Capitalisation de la cote, séance par séance")}</div>
+                  <CapChart activity={n.activity} dateOf={axisDate} unit={(u) => t("Capitalisation ({u})", { u })} />
+                  <figcaption>{t("La capitalisation additionne la valeur en bourse des sept sociétés (cours × nombre de titres). Elle varie avec les cours : une société qui émet de nouveaux titres la fait aussi bouger.")}</figcaption>
+                </figure>
+              )}
             </section>
 
             <section id="atouts">
               <h2>
-                <span className={styles.n}>02</span> {t("Ce que cet indice fait bien")}
+                <span className={styles.n}>02</span> {t("Une courbe régulière")}
               </h2>
               <p>
-                {t("Trois choses jouent en sa faveur. Il existe et se publie à chaque séance, ce qui n'est pas acquis sur une place jeune : {m} séances lues sur le trimestre, {x} jours ouvrés seulement sans bulletin exploitable. Il repose sur une capitalisation substantielle, {c} FCFA. Et sa trajectoire paraît peu heurtée : le repli le plus marqué du trimestre est de {d}.", {
+                {t("Le trimestre compte {m} séances lues, avec {x} jours ouvrés seulement sans bulletin exploitable. La capitalisation de la cote atteint {c} FCFA et le repli le plus marqué du trimestre est de {d}.", {
                   m: String(n.sessions),
                   x: String(n.missing),
                   c: money(n.capTotal),
                   d: signed(n.stats.drawdown, 1),
                 })}
               </p>
-              <p>{t("Cette dernière qualité demande une nuance, et elle est au cœur de la lecture : une valeur qui ne s'échange pas ne baisse pas. Le calme apparent de la courbe tient autant à la rareté des transactions qu'à la stabilité des sociétés.")}</p>
               {n.stats.volAll != null && n.stats.volMoved != null && (
                 <p>
                   {volGap
-                    ? t("La mesure honnête tient dans deux chiffres plutôt qu'un : la variabilité annualisée ressort à {a} en comptant toutes les séances, et à {b} en ne comptant que celles où le marché a réellement traité. L'écart entre les deux mesure l'étroitesse de cette cote.", { a: fmtPct(n.stats.volAll, 0), b: fmtPct(n.stats.volMoved, 0) })
-                    : t("La variabilité annualisée ressort à {a} en comptant toutes les séances, et à {b} en ne comptant que celles où le marché a réellement traité. Les deux mesures se rejoignent ce trimestre : les séances sans transaction n'ont pas masqué de mouvement.", { a: fmtPct(n.stats.volAll, 0), b: fmtPct(n.stats.volMoved, 0) })}
+                    ? t("Sur une année, les mouvements de l'indice représenteraient environ {a} en comptant toutes les séances, et {b} en ne comptant que celles où des titres ont changé de mains. Les deux chiffres sont donnés ensemble parce que les séances sans échange tirent la première mesure vers le bas.", { a: fmtPct(n.stats.volAll, 0), b: fmtPct(n.stats.volMoved, 0) })
+                    : t("Sur une année, les mouvements de l'indice représenteraient environ {a} en comptant toutes les séances, et {b} en ne comptant que celles où des titres ont changé de mains : les deux mesures se rejoignent ce trimestre.", { a: fmtPct(n.stats.volAll, 0), b: fmtPct(n.stats.volMoved, 0) })}
                 </p>
               )}
             </section>
 
             <section id="concentration">
               <h2>
-                <span className={styles.n}>03</span> {t("Le point à connaître : la concentration")}
+                <span className={styles.n}>03</span> {t("Le poids de chaque société")}
               </h2>
               {first && (
                 <p className={styles.lede}>
-                  {t("{m} représente {w} de la capitalisation de la cote. Les autres sociétés se partagent le reste. Dire « le marché monte » revient, le plus souvent, à dire « {m} monte ».", { m: first.name, w: fmtPct(first.weight, 1) })}
+                  {t("{m} représente {w} de la capitalisation de la cote, les autres sociétés se partagent le reste : quand {m} bouge, l'indice bouge avec elle.", { m: first.name, w: fmtPct(first.weight, 1) })}
                 </p>
               )}
 
               {n.compare && (
                 <figure className={styles.figure}>
-                  <div className={styles.figtitle}>{t("Figure 3 · L'indice, la société qui le porte et le reste de la cote, à 100 au début du trimestre")}</div>
+                  <div className={styles.figtitle}>{t("Figure 4 · L'indice, la société qui le porte et le reste de la cote, à 100 au début du trimestre")}</div>
                   <Comparaison compare={n.compare} dateOf={shortDate} labels={{ indice: t("Indice"), reste: t("Reste de la cote"), base: t("Base 100 au début du trimestre") }} />
                   <figcaption>
                     {t("{m} pèse {w} de la cote. À 100 au début du trimestre, l'indice finit à {i}, {m} à {p} et le reste de la cote à {r}.", {
@@ -280,18 +293,18 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
               )}
 
               <figure className={styles.figure}>
-                <div className={styles.figtitle}>{t("Figure 4 · Le poids de chaque société, sur le capital global et sur le flottant coté")}</div>
-                <WeightBars lines={n.lines} totalLabel={t("capital global")} floatLabel={t("flottant coté")} />
-                <figcaption>{t("Le flottant rééquilibre : ce que l'on peut réellement acheter n'a pas la forme de ce que l'indice mesure. C'est la différence entre le capital d'une société et la part de ce capital qui circule en bourse.")}</figcaption>
+                <div className={styles.figtitle}>{t("Figure 5 · Le poids de chaque société, sur le capital global et sur le flottant coté")}</div>
+                <WeightBars lines={n.lines} totalLabel={t("capital global")} floatLabel={t("flottant coté")} unit={t("Part de la cote (%)")} />
+                <figcaption>{t("Le flottant est la part du capital d'une société qui circule en bourse : c'est celle que l'on peut acheter.")}</figcaption>
               </figure>
 
               <figure className={styles.figure}>
-                <div className={styles.figtitle}>{t("Figure 5 · Ce que chaque société a apporté au trimestre")}</div>
+                <div className={styles.figtitle}>{t("Figure 6 · Ce que chaque société a apporté au trimestre")}</div>
                 <ContribBars lines={n.lines} unit={t("points d'indice")} />
                 <figcaption>
                   {top && best && best.mnemo !== top.mnemo
-                    ? t("La meilleure variation de la cote n'est pas la meilleure contribution : {b} gagne {bm} mais pèse {bw}, quand {c} pèse {cw}. C'est le poids, pas la performance, qui fait l'indice.", { b: best.name, bm: signed(best.move, 1), bw: fmtPct(best.weight, 1), c: top.name, cw: fmtPct(top.weight, 1) })
-                    : t("Contribution d'une société : son poids en début de période multiplié par la variation de son cours. C'est une lecture à poids constants, calculée par nos soins.")}
+                    ? t("La plus forte hausse n'est pas la plus forte contribution : {b} gagne {bm} mais pèse {bw}, quand {c} pèse {cw}.", { b: best.name, bm: signed(best.move, 1), bw: fmtPct(best.weight, 1), c: top.name, cw: fmtPct(top.weight, 1) })
+                    : t("La contribution d'une société est son poids en début de période multiplié par la variation de son cours.")}
                 </figcaption>
               </figure>
             </section>
@@ -300,7 +313,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
               <h2>
                 <span className={styles.n}>04</span> {t("Les sept sociétés derrière le chiffre")}
               </h2>
-              <p>{t("Un indice de sept lignes se lit d'abord comme une liste d'entreprises : des sociétés d'exploitation qui emploient, produisent et distribuent des dividendes dans la région.")}</p>
+              <p>{t("Sept sociétés d'exploitation composent la cote : elles emploient, produisent et distribuent des dividendes dans la région.")}</p>
               <div className={styles.tw}>
                 <table>
                   <caption className={styles.figtitle}>{t("Tableau 2 · La cote actions de la BVMAC")}</caption>
@@ -369,7 +382,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
               </div>
 
               <p>
-                {t("Deux traits ressortent. Par secteur, la finance représente {f} de la capitalisation : l'indice est, pour l'essentiel, un baromètre bancaire. Par pays, {c} en représente {cp} ; acheter « le marché régional » revient surtout à acheter cette économie-là.", {
+                {t("Par secteur, la finance représente {f} de la capitalisation. Par pays, {c} en représente {cp}.", {
                   f: fmtPct(n.financePct, 1),
                   c: t(n.byCountry[0]?.label ?? "—"),
                   cp: fmtPct(n.byCountry[0]?.pct ?? 0, 1),
@@ -378,7 +391,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
 
               {held.length > 0 && (
                 <p>
-                  {t("Le flottant réduit vient d'une structure d'actionnariat que la cote ne corrige pas seule : {h}. Le marché est étroit parce que les maisons mères et les États gardent leurs titres, non parce que l'épargne régionale se détourne des actions.", {
+                  {t("Le flottant est réduit parce que des actionnaires stables gardent leurs titres : {h}.", {
                     h: held.map((l) => `${l.holder} ${t("de")} ${l.name}`).join(" · "),
                   })}
                 </p>
@@ -387,7 +400,7 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
 
             <section id="negoce">
               <h2>
-                <span className={styles.n}>05</span> {t("Ce qui s'est échangé, et ce que cela change pour vous")}
+                <span className={styles.n}>05</span> {t("Ce qui s'est échangé")}
               </h2>
               <p className={styles.lede}>{say(n.caution)}</p>
               {traded.length > 0 && (
@@ -418,66 +431,37 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
                 </div>
               )}
               <p>
-                {t("La rotation du flottant mesure la part des titres disponibles qui a changé de mains en un an. Sur l'ensemble de la cote elle ressort à {r} : c'est le trait d'un marché jeune, où les actionnaires sont des porteurs de long terme, et c'est la contrainte à connaître avant d'acheter.", { r: n.rotation != null ? fmtPct(n.rotation, 1) : "—" })}
+                {t("La rotation du flottant est la part des titres disponibles qui a changé de mains en un an : elle ressort à {r} sur l'ensemble de la cote.", { r: n.rotation != null ? fmtPct(n.rotation, 1) : "—" })}
               </p>
               <p>
                 {n.trades > 0
-                  ? t("La conséquence est pratique : une position se construit et se défait en semaines, pas en séances, à l'ordre à cours limité, et le cours affiché n'est pas un prix de sortie garanti. La transaction moyenne du trimestre porte sur {a} FCFA, ce qui montre un marché qui fonctionne par blocs négociés plutôt que par flux continu.", { a: money(n.amount / n.trades) })
-                  : t("La conséquence est pratique : une position se construit et se défait en semaines, pas en séances, à l'ordre à cours limité, et le cours affiché n'est pas un prix de sortie garanti.")}
+                  ? t("En pratique, une position se construit et se défait sur plusieurs semaines, avec un ordre à cours limité ; le cours affiché n'est pas un prix de sortie garanti. La transaction moyenne du trimestre porte sur {a} FCFA.", { a: money(n.amount / n.trades) })
+                  : t("En pratique, une position se construit et se défait sur plusieurs semaines, avec un ordre à cours limité ; le cours affiché n'est pas un prix de sortie garanti.")}
               </p>
             </section>
 
             <section id="mesure">
               <h2>
-                <span className={styles.n}>06</span> {t("Ce que l'indice mesure, et ce qu'il ne mesure pas")}
+                <span className={styles.n}>06</span> {t("Comment lire l'indice")}
               </h2>
               <ul className={styles.list}>
                 <li>
-                  <b>{t("C'est un indice de prix")}</b> : {t("les dividendes n'y sont pas. Sur cette cote ils font une part importante du rendement d'un porteur ; comparer sa performance à l'indice, c'est se sous-estimer.")}
+                  <b>{t("Un indice de prix")}</b> : {t("il suit les cours ; les dividendes versés s'ajoutent au rendement d'un porteur.")}
                 </li>
                 <li>
-                  <b>{t("Ce n'est pas une mesure d'activité")}</b> : {t("{f} séances du trimestre n'ont enregistré aucun mouvement. Sans transaction, le cours de référence ne bouge pas et l'indice non plus.", { f: String(flat) })}
+                  <b>{t("Un niveau qui tient entre deux échanges")}</b> : {t("{f} séances du trimestre sont restées sans mouvement ; l'indice garde alors son dernier niveau.", { f: String(flat) })}
                 </li>
                 <li>
-                  <b>{t("Ce n'est pas un portefeuille")}</b> : {t("reproduire sa composition supposerait d'acheter une proportion de la première valeur que le flottant disponible ne permet pas.")}
-                </li>
-                <li>
-                  <b>{t("Ce n'est pas un repère de risque")}</b> : {t("la variabilité mesurée dépend de ce que l'on compte : toutes les séances lues, ou seulement celles où le marché a traité. Un seul chiffre de risque serait donc trompeur sur cette cote.")}
+                  <b>{t("Un repère, pas un portefeuille")}</b> : {t("pour suivre la cote, on regarde l'indice ; pour investir, on choisit des lignes.")}
                 </li>
               </ul>
             </section>
 
             <section id="economie">
               <h2>
-                <span className={styles.n}>07</span> {t("Ce que l'indice dit, et ne dit pas, de l'économie de la région")}
+                <span className={styles.n}>07</span> {t("Pour aller plus loin")}
               </h2>
-              <p className={styles.lede}>{t("La tentation est forte de lire cet indice comme un baromètre de la CEMAC ou du Cameroun. La raison de s'en garder est arithmétique plutôt que doctrinale.")}</p>
-              <p>
-                {t("Un baromètre suppose un échantillon et des observations. Ici l'échantillon est de sept sociétés, dont une porte une large part du poids et le secteur financier {f} ; les observations utiles du trimestre sont les {m} séances où un prix a bougé. Une série aussi courte et aussi concentrée ne porte pas de conclusion sur la croissance, l'inflation ou le pétrole.", {
-                  f: fmtPct(n.financePct, 1),
-                  m: String(n.moved),
-                })}
-              </p>
-              <p>{t("Ce que l'indice dit réellement tient en trois points, et ils ont leur valeur : le niveau de prix du segment coté, utile pour situer une souscription ; l'état d'avancement du marché lui-même, mesuré par le nombre d'émetteurs, la taille du flottant et la rotation ; et la concentration du risque, qui est une information de gouvernance autant que de marché.")}</p>
-              <p>
-                {t("Pour lire l'économie de la zone, deux séries voisines sont plus solides, et Guichet les porte déjà : le marché des titres publics, où une seule adjudication du Trésor porte sur des montants sans commune mesure avec les échanges d'actions d'une année entière, avec des taux et une fréquence hebdomadaire ; et les valeurs liquidatives des OPCVM, publiées elles aussi à chaque bulletin. Ce sont elles qui portent le signal du coût de l'argent dans la région.")}
-              </p>
-              <h3>{t("Ce qui ferait de cet indice un vrai baromètre")}</h3>
-              <ul className={styles.list}>
-                <li>
-                  <b>{t("Des émetteurs")}</b> : {t("une dizaine de sociétés d'au moins trois secteurs non financiers changerait la nature de l'indice.")}
-                </li>
-                <li>
-                  <b>{t("Du flottant")}</b> : {t("les cessions partielles d'États et de maisons mères sont le levier immédiat, et elles se décident hors marché.")}
-                </li>
-                <li>
-                  <b>{t("Un indice de rendement global")}</b> : {t("publié à côté de l'indice de prix, dividendes réinvestis, qui est la mesure que regarde un épargnant.")}
-                </li>
-                <li>
-                  <b>{t("Une méthodologie publique")}</b> : {t("base, diviseur, traitement des jours sans cotation et des détachements de dividende.")}
-                </li>
-              </ul>
-              <p>{t("Ces conditions ne relèvent pas d'un intermédiaire, mais elles décrivent ce que nous pouvons accompagner : amener l'épargne vers le marché, expliquer honnêtement ce qu'elle y trouve, et ne jamais laisser croire qu'un chiffre porte plus de sens qu'il n'en contient.")}</p>
+              <p>{t("Pour suivre le coût de l'argent dans la région, deux séries complètent l'indice et sont déjà dans Guichet : les adjudications du Trésor, chaque semaine, avec leurs taux, et les valeurs liquidatives des OPCVM, publiées à chaque bulletin.")}</p>
             </section>
           </main>
 
@@ -534,19 +518,14 @@ export default async function QuarterNotePage({ params }: { params: Promise<{ tr
           </aside>
         </div>
 
-        <div className={styles.box}>
-          <h3>{t("Méthode")}</h3>
-          <p>
-            {t("Le niveau et la variation de chaque séance viennent du bloc « indice » du bulletin officiel de la cote, relevés sans retraitement. Les poids sont calculés à partir de la page des capitalisations du même bulletin : cours de clôture multiplié par le nombre de titres, sur le capital global puis sur le flottant coté. La contribution d'une société est le produit de son poids en début de période par la variation de son cours, à poids constants. La variabilité annualisée est l'écart-type des variations de séance rapporté à l'année, une fois sur toutes les séances, une fois sur les seules séances avec mouvement. Aucune valeur n'est interpolée : une séance sans bulletin lu est un trou, pas une ligne plate.")}
-          </p>
-        </div>
-
-
         <footer className={styles.footer}>
-          <b>{t("Source")}</b> · {t("Bulletin officiel de la cote de la BVMAC, séances lues à chaque parution ; calculs {c}.", { c: COMPANY.legalName })}{" "}
-          <b>{t("Limites")}</b> · {t("l'historique commence au premier bulletin lu, et non à la date de base de l'indice.")}{" "}
-          {n.methodOpen ? t("La méthodologie de l'indice (base, date de base, règle de pondération) est en cours de confirmation auprès de la BVMAC.") : t("Les variations publiées se reconstituent avec les cours et les poids du même bulletin.")}{" "}
-          <b>{t("Avertissement")}</b> · {t("ce document présente une information de marché ; il ne constitue ni un conseil en investissement, ni une recommandation personnalisée, ni une offre. Les performances passées ne préjugent pas des performances futures.")}
+          <p>
+            {t("Comment sont faits les chiffres. Chaque séance, on relève dans le bulletin officiel de la cote le niveau de l'indice et le cours de chaque société. Le poids d'une société est sa part de la capitalisation de la cote : on le calcule avec la page des capitalisations du même bulletin (cours × nombre de titres). Sa contribution est ce poids multiplié par la variation de son cours : une petite société qui monte beaucoup pèse peu sur l'indice. Une séance sans bulletin lu reste un trou dans la courbe ; rien n'est inventé pour le combler.")}
+          </p>
+          <p>
+            <b>{t("Source")}</b> · {t("Bulletin officiel de la cote de la BVMAC, séances lues à chaque parution ; calculs {c}.", { c: COMPANY.legalName })} <b>{t("Limites")}</b> · {t("l'historique commence au premier bulletin lu, et non à la date de base de l'indice.")}{" "}
+            <b>{t("Avertissement")}</b> · {t("ce document présente une information de marché ; il ne constitue ni un conseil en investissement, ni une recommandation personnalisée, ni une offre. Les performances passées ne préjugent pas des performances futures.")}
+          </p>
         </footer>
         <BackToTop />
       </article>

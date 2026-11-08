@@ -92,7 +92,6 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
                   t("La page publique et son PDF, sous le numéro {n}.", { n: quarter.number }),
                   t("{s} séances lues, {m} avec mouvement, {r} sur le trimestre, à {l} points.", { s: quarter.sessions, m: quarter.moved, r: `${quarter.ret > 0 ? "+" : ""}${fmtPct(quarter.ret, 2)}`, l: fmt(quarter.level) }),
                   t("Le numéro est dépensé : republier ce trimestre en consommera un autre."),
-                  ...(quarter.methodOpen ? [t("La note dira que la méthodologie de l'indice est en cours de confirmation auprès de la BVMAC.")] : []),
                 ]}
                 preview={{ href: `/indice/note/${quarter.quarter.key.toLowerCase()}`, label: t("Voir exactement ce que le client verra") }}
               />
@@ -100,7 +99,6 @@ export default async function NoteIndicePage({ searchParams }: { searchParams: P
           </div>
           <p className={styles.p}>
             {t("La page et le PDF sont publics et se lisent sans compte. Publier fige le trimestre : le PDF part dans Documents avec son numéro, et la page porte sa date de publication.")}
-            {quarter.methodOpen ? " " + t("Cette note dit en une ligne que la méthodologie de l'indice est en cours de confirmation auprès de la BVMAC.") : ""}
           </p>
         </section>
       )}

@@ -1,15 +1,16 @@
 import { View } from "@react-pdf/renderer";
 import { COMPANY } from "@/lib/config";
-import { fmt, fmtDate, fmtDateTime, fmtPct, money } from "@/lib/format";
+import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
 import type { IndexNote } from "@/lib/market/index-note";
-import { CompareBase100, CourbeNiveau, LignesDuMois, teinte, tonDe } from "./charts";
-import { KV, Letter, Table, Text, s } from "./primitives";
+import { CompareBase100, CourbeActivite, CourbeCapitalisation, LignesDuMois, teinte, tonDe } from "./charts";
+import { KV, Letter, Text, s } from "./primitives";
 
 /**
  * Note mensuelle sur l'indice BVMAC All Share : what the month did, who
- * moved it, what was traded, and what the figures do not say. Every number
- * comes from the bulletins already read; the desk reads and signs before
- * anything leaves.
+ * moved it and what was traded, in plain words. Every number comes from the
+ * bulletins already read; the desk reads and signs before anything leaves.
+ * Work in progress (gaps being looked at, questions with the exchange) is not
+ * written here: it stays at the desk.
  */
 const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}${fmtPct(v, d)}`);
 const pts = (v: number) => `${v > 0 ? "+" : ""}${fmtPct(v, 2).replace(" %", " pt")}`;
@@ -19,21 +20,23 @@ export function NoteIndice({ note, texts }: { note: IndexNote; texts?: Record<st
   const traded = n.lines.filter((l) => l.trades > 0);
   return (
     <Letter heading={`Note mensuelle · indice BVMAC All Share · ${n.month.label}`}>
-      <Text style={s.h1}>L&apos;indice BVMAC All Share en {n.month.label}</Text>
-      <Text style={s.ref}>
-        {n.number} · {COMPANY.legalName}, {COMPANY.licence} · séances du {fmtDate(n.month.from)} au {fmtDate(n.month.to)}
-        {n.lastBulletin ? ` · dernier bulletin lu : n° ${n.lastBulletin.number} du ${fmtDate(n.lastBulletin.date)}, ${fmtDateTime(n.lastBulletin.ingestedAt)} par ${n.lastBulletin.by}` : ""}
-      </Text>
+      <Text style={[s.h1, { marginBottom: 8 }]}>L&apos;indice BVMAC All Share en {n.month.label}</Text>
 
       <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, marginBottom: 8 }}>
         <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 26, lineHeight: 1, color: "#0B2545" }}>{fmt(n.level)}</Text>
         <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 11, color: tonDe(Number(n.ret.toFixed(2))), marginBottom: 2 }}>{signed(n.ret)} sur le mois</Text>
       </View>
-      <CourbeNiveau points={n.points} sens={n.ret} from={fmtDate(n.month.from, false)} to={fmtDate(n.month.to, false)} />
+      <CourbeActivite seances={n.activity} sens={n.ret} />
 
       <Text style={s.p}>{n.headline}</Text>
       <Text style={s.p}>{n.reading}</Text>
       <Text style={s.p}>{n.caution}</Text>
+      {n.activity.some((a) => a.cap > 0) && (
+        <>
+          <Text style={[s.eyebrow, { marginTop: 6, marginBottom: 4 }]}>Capitalisation de la cote, séance par séance</Text>
+          <CourbeCapitalisation seances={n.activity} />
+        </>
+      )}
 
       <Text style={[s.p, s.b]}>1. Le mois en chiffres</Text>
       <KV
@@ -63,7 +66,7 @@ export function NoteIndice({ note, texts }: { note: IndexNote; texts?: Record<st
         </>
       )}
       <Text style={s.small}>
-        La contribution est le poids de la société multiplié par la variation de son cours sur le mois, en points d&apos;indice : une forte hausse sur une petite valeur pèse peu. L&apos;écart entre la somme des contributions et la performance publiée est traité au paragraphe 4.
+        La contribution est le poids de la société multiplié par la variation de son cours sur le mois, en points d&apos;indice : une forte hausse sur une petite valeur pèse peu.
       </Text>
 
       <Text style={[s.p, s.b]}>3. Ce qui s&apos;est échangé</Text>
@@ -75,33 +78,16 @@ export function NoteIndice({ note, texts }: { note: IndexNote; texts?: Record<st
         <Text style={s.p}>Aucune valeur n&apos;a traité ce mois-ci : le niveau de l&apos;indice reflète les derniers cours connus.</Text>
       )}
 
-      <Text style={[s.p, s.b]}>4. Points de lecture</Text>
-      {n.unexplained.length > 0 ? (
-        <>
-          <Text style={s.p}>
-            {n.unexplained.length} séance{n.unexplained.length > 1 ? "s" : ""} du mois {n.unexplained.length > 1 ? "présentent" : "présente"} une variation publiée que les cours lus dans le même bulletin ne reconstituent pas. Ce point est ouvert avec la BVMAC ; il peut venir d&apos;une lecture partielle de notre côté, d&apos;une méthode de pondération différente de celle que nous supposons, ou d&apos;un décalage de séance entre les pages du bulletin. Aucune de nos lectures dérivées n&apos;est publiée comme un indice.
-          </Text>
-          <Table
-            cols={[
-              { label: "Séance", flex: 1.2 },
-              { label: "Indice", flex: 1, right: true },
-              { label: "Cours modifiés dans nos lectures", flex: 3 },
-            ]}
-            rows={n.unexplained.slice(0, 8).map((u) => [fmtDate(u.date), teinte(signed(u.variationPct), u.variationPct), u.movers])}
-          />
-        </>
-      ) : (
-        <Text style={s.p}>Toutes les séances avec mouvement du mois se reconstituent avec les cours et les poids du même bulletin.</Text>
-      )}
+      <Text style={[s.p, s.b]}>4. Pour lire la note</Text>
       <Text style={s.p}>
-        Rappel de portée : l&apos;indice est un indice de prix, dividendes non compris ; il porte sept sociétés dont une représente près des trois quarts de la capitalisation ; il ne mesure ni l&apos;activité économique de la zone, ni la performance d&apos;un portefeuille, et il n&apos;est pas reproductible à l&apos;achat. {texts?.portee ?? ""}
+        L&apos;indice est un indice de prix : il suit les cours, et les dividendes versés s&apos;ajoutent au rendement d&apos;un porteur. Il porte sept sociétés, dont une représente près des trois quarts de la capitalisation : quand elle bouge, l&apos;indice bouge avec elle. Entre deux échanges, il garde son dernier niveau. {texts?.portee ?? ""}
       </Text>
-
-      <View style={s.box}>
-        <Text style={s.small}>
-          Source : bulletin officiel de la cote de la BVMAC, séances lues par le Guichet ; calculs {COMPANY.legalName}. Base, date de base et règle de pondération de l&apos;indice à confirmer auprès de la BVMAC. Ce document présente une information de marché ; il ne constitue ni un conseil en investissement, ni une recommandation personnalisée, ni une offre. Les performances passées ne préjugent pas des performances futures.
-        </Text>
-      </View>
+      <Text style={s.small}>
+        Comment sont faits les chiffres. Chaque séance, on relève dans le bulletin officiel de la cote le niveau de l&apos;indice et le cours de chaque société. Le poids d&apos;une société est sa part de la capitalisation de la cote, calculée avec la page des capitalisations du même bulletin ; sa contribution est ce poids multiplié par la variation de son cours, en points d&apos;indice. Une séance sans bulletin lu reste un trou dans la courbe ; rien n&apos;est inventé pour le combler.
+      </Text>
+      <Text style={s.small}>
+        Source : bulletin officiel de la cote de la BVMAC, séances lues par le Guichet ; calculs {COMPANY.legalName}{COMPANY.legalName.endsWith(".") ? "" : "."} Ce document présente une information de marché ; il ne constitue ni un conseil en investissement, ni une recommandation personnalisée, ni une offre. Les performances passées ne préjugent pas des performances futures.
+      </Text>
     </Letter>
   );
 }
