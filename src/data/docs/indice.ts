@@ -13,7 +13,7 @@ export const INDICE: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 4,
-  checkedOn: "2026-10-23",
+  checkedOn: "2026-11-08",
   owner: "Georges",
   chapters: [
     {
@@ -107,6 +107,7 @@ export const INDICE: DocPage = {
           head: [l("Endroit", "Place"), l("Ce qui s'affiche", "What shows"), l("Source", "Source")],
           rows: [
             [l("Titres (marché secondaire) et Actualités", "Securities (secondary market) and News"), l("le pouls : niveau, séance, un mois, depuis le 1er janvier, douze mois, soixante séances en courbe, l'étiquette « indice de prix », le lien vers l'éclairage", "the pulse: level, session, one month, year to date, twelve months, sixty sessions in a line, the “price index” tag, the link to the insight"), l("market_bulletins", "market_bulletins")],
+            [l("Marché › L'indice › Sur la période", "Market › The index › Over the period"), l("les graphes et tableaux de la note du trimestre, sur la période choisie (1 mois, 3 mois, depuis le 1er janvier, 12 mois) : l'indice, la société qui le porte et le reste de la cote à 100, la contribution de chaque société, les sociétés de la cote, la répartition par secteur et par pays, le repli maximal, la variabilité, la rotation du flottant. Le commentaire reste à la note du trimestre", "the charts and tables of the quarterly note, over the chosen period (1 month, 3 months, year to date, 12 months): the index, the company that carries it and the rest of the market at 100, each company's contribution, the listed companies, the split by sector and country, the maximum drawdown, the variability, the float turnover. The commentary stays in the quarter's note"), l("quotes + market_bulletins", "quotes + market_bulletins")],
             [l("Sociétés › une action", "Companies › a share"), l("sous le graphique du cours : cours et indice en base 100 sur la période choisie, la phrase (« la valeur a fait plus que le marché »), le poids dans l'indice, le dernier dividende", "under the price chart: share and index rebased to 100 on the chosen period, the sentence (“the share did more than the market”), the weight in the index, the last dividend"), l("quotes + market_bulletins", "quotes + market_bulletins")],
             [l("Comparer", "Compare"), l("deux actions : l'indice sur douze mois remplace le BTA comme repère des rendements ; une ligne « Dans l'indice BVMAC » (poids, liquidité)", "two shares: the twelve-month index replaces the BTA as the returns reference; a row “In the BVMAC index” (weight, liquidity)"), l("quotes + market_bulletins", "quotes + market_bulletins")],
             [l("Santé", "Health"), l("« Indice BVMAC et cours d'actions » : une variation publiée sans cours d'action changé dans la lecture (ou l'inverse) passe en orange", "“BVMAC index and share prices”: a published variation with no share price changed in the reading (or the reverse) turns orange"), l("quotesOn(séance), bulletin", "quotesOn(session), bulletin")],

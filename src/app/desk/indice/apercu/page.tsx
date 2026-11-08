@@ -20,7 +20,7 @@ export const metadata = { title: "L'indice" };
  * commentent : « un émetteur pèse 73 % » est une mise en garde pour qui
  * conseille, et une phrase inquiétante pour qui lit seul.
  */
-export default async function DeskIndicePage({ searchParams }: { searchParams: Promise<{ toutes?: string; societe?: string; page?: string }> }) {
+export default async function DeskIndicePage({ searchParams }: { searchParams: Promise<{ toutes?: string; societe?: string; page?: string; periode?: string }> }) {
   await requireDesk("/desk/indice/apercu");
   const [data, comptes] = await Promise.all([indexPageData(), repo().comptesDesEmetteurs()]);
   return (

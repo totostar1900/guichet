@@ -4,7 +4,7 @@ import { Glissement } from "@/components/mobile/Glissement";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "L'indice BVMAC All Share" };
 
-export default async function IndicePage({ searchParams }: { searchParams: Promise<{ toutes?: string; societe?: string; page?: string }> }) {
+export default async function IndicePage({ searchParams }: { searchParams: Promise<{ toutes?: string; societe?: string; page?: string; periode?: string }> }) {
   return (
     <Glissement>
       <>

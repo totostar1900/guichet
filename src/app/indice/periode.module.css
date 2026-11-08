@@ -1,0 +1,119 @@
+/* « Sur la période » : les blocs de la note, calculés sur la période que l'on choisit. Tous les écarts viennent des jetons. */
+.corps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bloc-gap);
+  min-width: 0;
+}
+.choix {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.resume {
+  margin: 0;
+  color: var(--ink-2);
+  max-width: 66ch;
+}
+.figure {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--titre-gap);
+  min-width: 0;
+}
+.titre {
+  font-size: var(--t-2);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.legende {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: var(--t-3);
+  max-width: 66ch;
+}
+.tableau {
+  overflow-x: auto;
+}
+.tableau table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-3);
+}
+.tableau th {
+  text-align: left;
+  color: var(--ink-3);
+  font-weight: 600;
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  white-space: nowrap;
+}
+.tableau td {
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  border-top: 1px solid var(--line);
+  white-space: nowrap;
+}
+.num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+.up {
+  color: var(--good);
+}
+.down {
+  color: var(--warn);
+}
+.splits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--bloc-gap);
+}
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 8rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--t-3);
+}
+.split i {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--chart-out);
+}
+.split b {
+  font-variant-numeric: tabular-nums;
+}
+.stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--tuiles-gap);
+}
+.stats > div {
+  display: grid;
+  gap: var(--s-1);
+  padding: var(--s-4);
+  border: var(--tuile-trait);
+  border-radius: var(--tuile-rayon, 12px);
+  background: var(--surface);
+  min-width: 0;
+}
+.stats dt {
+  font-size: var(--t-2);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.stats dd {
+  margin: 0;
+  font-size: var(--t-6);
+  font-variant-numeric: tabular-nums;
+}
+.stats small {
+  color: var(--ink-3);
+  font-size: var(--t-3);
+}

@@ -2,8 +2,8 @@ import "server-only";
 import { fmt, fmtPct, money } from "@/lib/format";
 import { floatRotation } from "@/lib/market/index";
 import { indexPageData, type IndexPageData } from "@/lib/market/index-data";
-import { loadCompanies } from "@/lib/reference";
-import { activiteDeLaPeriode, seriesDeLaPeriode, type ActiviteDeSeance, type ComparaisonBase100 } from "@/lib/market/index-series";
+import { activiteDeLaPeriode, type ActiviteDeSeance, type ComparaisonBase100 } from "@/lib/market/index-series";
+import { lignesDeLaPeriode, partDeLaFinance, repartition, statsDeSeance } from "@/lib/market/index-period";
 
 /**
  * The quarterly note on the index, written for a client: what the quarter did,
@@ -175,43 +175,7 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
     }
   }
 
-  const companies = await loadCompanies().catch(() => []);
-  const series = seriesDeLaPeriode(d, quarter.from, quarter.to);
-  const lines: QuarterLine[] = d.histories
-    .map(({ w, quotes }) => {
-      const start = quotes.filter((q) => q.sessionDate < quarter.from).pop() ?? quotes.find((q) => q.sessionDate >= quarter.from);
-      const end = quotes.filter((q) => q.sessionDate <= quarter.to).pop();
-      const move = start && end && start.close > 0 ? (end.close / start.close - 1) * 100 : 0;
-      const t = perShare.get(w.mnemo) ?? { amount: 0, trades: 0, titles: 0 };
-      const c = companies.find((x) => x.mnemo === w.mnemo);
-      const core = c?.coreShareholders?.[0];
-      const rot = floatRotation(quotes);
-      const price = end?.close ?? w.close;
-      const dividend = end?.lastDividend ?? w.lastDividend;
-      return {
-        mnemo: w.mnemo,
-        name: c?.shortName ?? d.nameOf(w.mnemo),
-        sector: c?.sector ?? "—",
-        country: c?.country ?? "—",
-        activity: c?.activity ?? "",
-        holder: core ? `${core.name} ${fmtPct(core.pct, 1)}` : undefined,
-        holderPct: core?.pct,
-        price,
-        dividend,
-        yield: dividend && price ? (dividend / price) * 100 : undefined,
-        weight: w.weightTotal,
-        weightFloat: w.weightFloat,
-        floatShare: w.capTotal ? (w.capFloat / w.capTotal) * 100 : 0,
-        move,
-        points: (w.weightTotal / 100) * move,
-        amount: t.amount,
-        trades: t.trades,
-        rotation: rot?.pct,
-        serie: series.parSociete[w.mnemo] ?? [],
-      };
-    })
-    .sort((a, b) => b.weight - a.weight);
-
+  const { lines, compare: comparaison } = await lignesDeLaPeriode(d, quarter.from, quarter.to);
   const capTotal = d.weights.reduce((s, w) => s + w.capTotal, 0);
   const capFloat = d.weights.reduce((s, w) => s + w.capFloat, 0);
   const rotation = capFloat ? (d.histories.reduce((s, h) => s + (floatRotation(h.quotes)?.amount ?? 0), 0) / capFloat) * 100 : undefined;
@@ -233,11 +197,7 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
     movers: (d.movers.get(p.date) ?? []).filter((m) => m.variationPct !== 0).map((m) => `${m.mnemo} ${signed(m.variationPct)}`).join(" · "),
   }));
 
-  const group = (pick: (l: QuarterLine) => string) => {
-    const by = new Map<string, number>();
-    for (const l of lines) by.set(pick(l), (by.get(pick(l)) ?? 0) + l.weight);
-    return [...by.entries()].map(([label, pct]) => ({ label, pct })).sort((a, b) => b.pct - a.pct);
-  };
+  const group = (pick: (l: QuarterLine) => string) => repartition(lines, pick);
 
   // the reconciliation, said in one line only : the detail stays internal
   const methodOpen = moved.some((p) => {
@@ -247,40 +207,7 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
     return !(nz.length > 0 && ratio > 0.5 && ratio < 2);
   });
 
-  // what the sessions say about the risk : two volatilities, because one of them is an artefact
-  const vars = inQ.map((p) => p.variationPct ?? 0);
-  const avg = vars.reduce((x, y) => x + y, 0) / Math.max(1, vars.length);
-  const sd = Math.sqrt(vars.reduce((x, v) => x + (v - avg) ** 2, 0) / Math.max(1, vars.length - 1)) || 0;
-  const movedVars = moved.map((p) => p.variationPct ?? 0);
-  const movedAvg = movedVars.reduce((x, y) => x + y, 0) / Math.max(1, movedVars.length);
-  const movedSd = movedVars.length > 1 ? Math.sqrt(movedVars.reduce((x, v) => x + (v - movedAvg) ** 2, 0) / (movedVars.length - 1)) : 0;
-  const perYear = inQ.length * 4;
-  const stats = {
-    avg,
-    sd,
-    volAll: sd ? sd * Math.sqrt(perYear) : undefined,
-    volMoved: movedSd ? movedSd * Math.sqrt(Math.max(1, moved.length) * 4) : undefined,
-    ...(() => {
-      let peakV = inQ[0].value;
-      let peakD = inQ[0].date;
-      let dd = 0;
-      let from: string | undefined;
-      let to: string | undefined;
-      for (const p of inQ) {
-        if (p.value > peakV) {
-          peakV = p.value;
-          peakD = p.date;
-        }
-        const fall = peakV > 0 ? (p.value / peakV - 1) * 100 : 0;
-        if (fall < dd) {
-          dd = fall;
-          from = peakD;
-          to = p.date;
-        }
-      }
-      return { drawdown: dd, drawdownFrom: from, drawdownTo: to };
-    })(),
-  };
+  const stats = statsDeSeance(inQ);
 
   // the session that carried the quarter, named on the curve
   const peakSession = moved.reduce<(typeof moved)[number] | undefined>((a, p) => (a && Math.abs(a.variationPct ?? 0) >= Math.abs(p.variationPct ?? 0) ? a : p), undefined);
@@ -293,8 +220,7 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
     : undefined;
 
   // four of the seven are financial : the reading is, for the most part, a banking one
-  const FINANCE = /banqu|banca|assur|réassur|reassur|financ|holding/i;
-  const financePct = lines.filter((l) => FINANCE.test(l.sector) || FINANCE.test(l.activity)).reduce((x, l) => x + l.weight, 0);
+  const financePct = partDeLaFinance(lines);
 
   const top = lines.reduce((a, l) => (Math.abs(l.points) > Math.abs(a.points) ? l : a), lines[0]);
   const best = [...lines].sort((a, b) => b.move - a.move)[0];
@@ -364,7 +290,7 @@ export async function quarterNote(key?: string, data?: IndexPageData): Promise<Q
     lines,
     monthly,
     movedSessions,
-    compare: series.comparaison,
+    compare: comparaison,
     points: inQ.map((p) => ({ date: p.date, value: p.value, variationPct: p.variationPct ?? 0 })),
     activity: activiteDeLaPeriode(d, quarter.from, quarter.to),
     peak,

@@ -3,6 +3,8 @@ import { IndexChart, type ChartPoint, type OverlaySeries } from "@/components/In
 import { fmt, fmtDate, fmtDateTime, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters } from "@/lib/market/index-quarter";
+import { vueDePeriode } from "@/lib/market/index-period";
+import { Periode, debutDePeriode, periodeOuDefaut, type PeriodeKey } from "./Periode";
 import { Sommaire } from "@/components/Sommaire";
 import { MarketStrip } from "@/components/MarketStrip";
 import { BackToTop } from "@/components/BackToTop";
@@ -32,7 +34,7 @@ const lvl = (v: number) => v.toLocaleString("fr-FR", { minimumFractionDigits: 2,
 /** Où mènent les liens qui sortent : chez le desk, ou nulle part quand la page n'y est pas servie. */
 export type IndiceMode = "client" | "desk";
 
-export async function IndiceBody({ searchParams, mode = "client" }: { searchParams: Promise<{ toutes?: string; societe?: string; page?: string }>; mode?: IndiceMode }) {
+export async function IndiceBody({ searchParams, mode = "client" }: { searchParams: Promise<{ toutes?: string; societe?: string; page?: string; periode?: string }>; mode?: IndiceMode }) {
   const desk = mode === "desk";
   const base = desk ? "/desk" : "";
   const [t, sp] = await Promise.all([getT(), searchParams]);
@@ -77,14 +79,23 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
     .filter((p) => (societe ? Boolean(trading.get(p.date)?.shares[societe]?.trades || trading.get(p.date)?.shares[societe]?.variationPct) : true));
   const pageRows = tableRows.slice((page - 1) * PER, page * PER);
   const pages = Math.max(1, Math.ceil(tableRows.length / PER));
+  const periode = periodeOuDefaut(sp.periode);
   const q = (o: { toutes?: string; societe?: string; page?: string }) => {
     const u = new URLSearchParams();
     const v = { toutes: all ? "1" : "", societe, page: "", ...o };
     if (v.toutes) u.set("toutes", "1");
     if (v.societe) u.set("societe", v.societe);
     if (v.page && v.page !== "1") u.set("page", v.page);
-    const qs = u.toString();
-    return `/indice${qs ? `?${qs}` : ""}#seances`;
+    if (periode !== "3m") u.set("periode", periode);
+    return `/indice${u.toString() ? `?${u.toString()}` : ""}#seances`;
+  };
+  /* La période des blocs « Sur la période » : dans l'adresse, pour qu'un lien la porte. */
+  const lienPeriode = (p: PeriodeKey) => {
+    const u = new URLSearchParams();
+    if (all) u.set("toutes", "1");
+    if (societe) u.set("societe", societe);
+    if (p !== "3m") u.set("periode", p);
+    return `/indice${u.toString() ? `?${u.toString()}` : ""}#periode`;
   };
   /* DOUZE MOIS DE NÉGOCE, pour le chiffre que le niveau porte en tête.
      QUATRE CALCULS SONT PARTIS AVEC LE PANNEAU « DONNÉES », le 1er novembre
@@ -96,6 +107,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
   const since12 = stats.last ? new Date(new Date(`${stats.last.date}T12:00:00Z`).getTime() - 365 * 86400e3).toISOString().slice(0, 10) : "";
   const amount12 = [...trading.entries()].filter(([d]) => d >= since12).reduce((a, [, s]) => a + s.amount, 0);
   const last = stats.last;
+  const vue = last ? await vueDePeriode(data, debutDePeriode(periode, last.date), last.date) : undefined;
   const year = last ? stats.points.filter((p) => p.date >= new Date(new Date(`${last.date}T12:00:00Z`).getTime() - 365 * 86400e3).toISOString().slice(0, 10)) : [];
   const high = year.reduce<typeof last>((a, p) => (!a || p.value > a.value ? p : a), undefined);
   const low = year.reduce<typeof last>((a, p) => (!a || p.value < a.value ? p : a), undefined);
@@ -140,6 +152,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
           sections={[
             { id: "niveau", title: t("Le niveau") },
             { id: "courbe", title: t("Séance après séance") },
+            ...(vue ? [{ id: "periode", title: t("Sur la période") }] : []),
             ...(notes.length > 0 ? [{ id: "notes", title: t("Les notes de marché") }] : []),
             /* « Données » a quitté cette liste avec son panneau, le 1er
                novembre 2026. Il redisait ce que le niveau porte déjà — la
@@ -223,11 +236,13 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
             </div>
           </section>
 
+          {vue && <Periode vue={vue} periode={periode} lien={lienPeriode} quarterNoteHref={!desk && notes[0] ? `/indice/note/${notes[0].key.toLowerCase()}` : undefined} />}
+
           {notes.length > 0 && (
             <section className="panel" id="notes">
               <div className="panel-h">
                 <h2>{t("Les notes de marché")}</h2>
-                <span className="muted">{t("un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre, ce que l'indice ne dit pas")}</span>
+                <span className="muted">{t("un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre, ce qui s'est échangé")}</span>
               </div>
               <div className={styles.btns}>
                 {notes.map((q) => (
