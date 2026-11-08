@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
+import { fmtDate, fmtPct } from "@/lib/format";
 import type { VueDePeriode } from "@/lib/market/index-period";
 import { getT } from "@/i18n/server";
 import { ContribBars } from "./note/[trimestre]/Figures";
+import { Societes } from "./Societes";
 import styles from "./periode.module.css";
 
 /**
@@ -33,11 +34,11 @@ export async function Periode({ vue, quarterNoteHref }: { vue: VueDePeriode; qua
   const { lines, stats } = vue;
   return (
     <div className={styles.corps} id="periode">
-      <p className={styles.resume}>
-        <b>{t("Sur la période")}</b> · {t("du {a} au {b}", { a: fmtDate(vue.from), b: fmtDate(vue.to) })} {" "}
-        {t("{s} séances lues, dont {m} avec mouvement : l'indice fait {r} sur la période.", { s: String(vue.sessions), m: String(vue.moved), r: signed(vue.ret, 2) })}{" "}
-        {quarterNoteHref ? <Link href={quarterNoteHref}>{t("Le commentaire est dans la note du trimestre")} →</Link> : null}
-      </p>
+      {quarterNoteHref && (
+        <p className={styles.resume}>
+          <Link href={quarterNoteHref}>{t("Le commentaire de la période est dans la note du trimestre")} →</Link>
+        </p>
+      )}
         <figure className={styles.figure}>
           <div className={styles.titre}>{t("Ce que chaque société a apporté à la période")}</div>
           <ContribBars lines={lines} unit={t("points d'indice")} />
@@ -68,50 +69,12 @@ export async function Periode({ vue, quarterNoteHref }: { vue: VueDePeriode; qua
             <div>
               <dt>{t("Rotation du flottant")}</dt>
               <dd>{fmtPct(vue.rotation, 1)}</dd>
-              <small>{t("sur douze mois")}</small>
+              <small>{t("sur la période")}</small>
             </div>
           )}
         </dl>
 
-        <div className={styles.figure}>
-          <div className={styles.titre}>{t("Les sociétés de la cote sur la période")}</div>
-          <div className={styles.tableau}>
-          <table>
-            <thead>
-              <tr>
-                <th>{t("Société")}</th>
-                <th>{t("Activité")}</th>
-                <th>{t("Pays")}</th>
-                <th className={styles.num}>{t("Cours")}</th>
-                <th className={styles.num}>{t("Rendement")}</th>
-                <th className={styles.num}>{t("Poids")}</th>
-                <th className={styles.num}>{t("Période")}</th>
-                <th className={styles.num}>{t("Échangé")}</th>
-                <th className={styles.num}>{t("Transactions")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lines.map((l) => (
-                <tr key={l.mnemo}>
-                  <td>
-                    <Link href={`/societes/${l.mnemo.toLowerCase()}`}>
-                      <b>{l.mnemo}</b> · {l.name}
-                    </Link>
-                  </td>
-                  <td>{t(l.sector)}</td>
-                  <td>{t(l.country)}</td>
-                  <td className={styles.num}>{fmt(l.price)}</td>
-                  <td className={styles.num}>{l.yield != null ? fmtPct(l.yield, 1) : "—"}</td>
-                  <td className={styles.num}>{fmtPct(l.weight, 1)}</td>
-                  <td className={`${styles.num} ${l.move > 0 ? styles.up : l.move < 0 ? styles.down : ""}`}>{signed(l.move)}</td>
-                  <td className={styles.num}>{l.amount ? money(l.amount) : "—"}</td>
-                  <td className={styles.num}>{l.trades || "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </div>
-        </div>
+        <Societes societes={vue.societes} capFin={vue.capFin} capFlottantFin={vue.capFlottantFin} />
 
         <div className={styles.splits}>
           {[

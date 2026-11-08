@@ -1,6 +1,15 @@
 /* Design tokens : Purpose Capital identity (navy · gold · warm paper). */
 :root {
   color-scheme: light;
+  /* LES HUIT TEINTES DES SÉRIES D'UN GRAPHE (8 novembre 2026) : la palette de référence validée (écart minimal entre voisines : daltonisme 9,1 clair / 8,4 sombre). Une couleur suit une société, jamais un rang. */
+  --co-1: #2a78d6;
+  --co-2: #eb6834;
+  --co-3: #1baf7a;
+  --co-4: #eda100;
+  --co-5: #e87ba4;
+  --co-6: #008300;
+  --co-7: #6250d6;
+  --co-8: #e34948;
   /* Un choix (période, mesure, filtre actif) : plein encre au clair, or discret au sombre. Jamais un rectangle clair sur fond sombre. */
   --choisi-fond: var(--ink);
   --choisi-ink: var(--surface);
@@ -444,6 +453,14 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dim"]) {
     color-scheme: dark;
+    --co-1: #3987e5;
+    --co-2: #d95926;
+    --co-3: #199e70;
+    --co-4: #c98500;
+    --co-5: #d55181;
+    --co-6: #008300;
+    --co-7: #9085e9;
+    --co-8: #e66767;
     --choisi-fond: var(--gold-soft);
     --choisi-ink: var(--gold-ink);
     --choisi-line: var(--gold-line);
@@ -527,6 +544,14 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
+  --co-1: #3987e5;
+  --co-2: #d95926;
+  --co-3: #199e70;
+  --co-4: #c98500;
+  --co-5: #d55181;
+  --co-6: #008300;
+  --co-7: #9085e9;
+  --co-8: #e66767;
   --choisi-fond: var(--gold-soft);
   --choisi-ink: var(--gold-ink);
   --choisi-line: var(--gold-line);

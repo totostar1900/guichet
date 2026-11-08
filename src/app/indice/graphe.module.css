@@ -1,0 +1,42 @@
+/* La barre de période de la page de l'indice : elle colle sous la barre du haut tant qu'on lit le graphe et ses blocs, avec son propre fond. */
+.barre {
+  position: sticky;
+  top: var(--barre-collante, 0px);
+  z-index: 20;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-4);
+  padding: var(--s-2) 16px;
+  --sel-fixe: 17rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.lu {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+  font-variant-numeric: tabular-nums;
+}
+.graphe {
+  padding: 8px 16px 16px;
+}
+.court {
+  display: none;
+}
+@media (max-width: 520px) {
+  /* Une seule ligne de 44 px : la liste se resserre, les dates passent en mois et année. */
+  .barre {
+    --sel-fixe: 9.8rem;
+  }
+  .long {
+    display: none;
+  }
+  .court {
+    display: inline;
+  }
+}

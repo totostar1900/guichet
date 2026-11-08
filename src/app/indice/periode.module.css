@@ -112,3 +112,33 @@
   color: var(--ink-3);
   font-size: var(--t-3);
 }
+.svg {
+  width: 100%;
+  max-width: var(--graphe-max);
+  height: auto;
+  display: block;
+}
+.chiffres summary {
+  cursor: pointer;
+  color: var(--ink-2);
+  font-size: var(--t-3);
+  padding: var(--s-2) 0;
+}
+.definitions {
+  display: grid;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+  color: var(--ink-3);
+  font-size: var(--t-3);
+  max-width: 66ch;
+}
+.definitions p {
+  margin: 0;
+}
+.definitions b {
+  color: var(--ink);
+}
+.tableau tfoot td {
+  border-top: 2px solid var(--line-2);
+  font-weight: 700;
+}

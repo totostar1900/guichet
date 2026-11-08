@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { IndexChart, type ChartPoint, type OverlaySeries } from "@/components/IndexChart";
+import { type ChartPoint, type OverlaySeries } from "@/components/IndexChart";
+import { IndiceGraphe } from "./IndiceGraphe";
 import { fmt, fmtDate, fmtDateTime, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters } from "@/lib/market/index-quarter";
@@ -33,7 +34,7 @@ const lvl = (v: number) => v.toLocaleString("fr-FR", { minimumFractionDigits: 2,
 /** Où mènent les liens qui sortent : chez le desk, ou nulle part quand la page n'y est pas servie. */
 export type IndiceMode = "client" | "desk";
 
-export async function IndiceBody({ searchParams, mode = "client" }: { searchParams: Promise<{ toutes?: string; societe?: string; page?: string; periode?: string }>; mode?: IndiceMode }) {
+export async function IndiceBody({ searchParams, mode = "client" }: { searchParams: Promise<{ toutes?: string; societe?: string; page?: string; periode?: string; du?: string; au?: string }>; mode?: IndiceMode }) {
   const desk = mode === "desk";
   const base = desk ? "/desk" : "";
   const [t, sp] = await Promise.all([getT(), searchParams]);
@@ -79,6 +80,11 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
   const pageRows = tableRows.slice((page - 1) * PER, page * PER);
   const pages = Math.max(1, Math.ceil(tableRows.length / PER));
   const periode = periodeOuDefaut(sp.periode);
+  /* Une plage personnalisée (du, au) remplace la période : deux dates écrites en toutes lettres, sinon on l'ignore. */
+  const date = (v?: string) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
+  const du = date(sp.du);
+  const au = date(sp.au);
+  const plage = du && au && du < au ? { du, au } : undefined;
   const q = (o: { toutes?: string; societe?: string; page?: string }) => {
     const u = new URLSearchParams();
     const v = { toutes: all ? "1" : "", societe, page: "", ...o };
@@ -98,14 +104,13 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
   const since12 = stats.last ? new Date(new Date(`${stats.last.date}T12:00:00Z`).getTime() - 365 * 86400e3).toISOString().slice(0, 10) : "";
   const amount12 = [...trading.entries()].filter(([d]) => d >= since12).reduce((a, [, s]) => a + s.amount, 0);
   const last = stats.last;
-  const vue = last ? await vueDePeriode(data, debutDePeriode(periode, last.date), last.date) : undefined;
+  const vue = last ? await vueDePeriode(data, plage?.du ?? debutDePeriode(periode, last.date), plage?.au ?? last.date) : undefined;
   const year = last ? stats.points.filter((p) => p.date >= new Date(new Date(`${last.date}T12:00:00Z`).getTime() - 365 * 86400e3).toISOString().slice(0, 10)) : [];
   const high = year.reduce<typeof last>((a, p) => (!a || p.value > a.value ? p : a), undefined);
   const low = year.reduce<typeof last>((a, p) => (!a || p.value < a.value ? p : a), undefined);
   const movedSessions = [...stats.points].filter((p) => (p.variationPct ?? 0) !== 0).reverse();
   const tone = (v?: number) => (v == null || Math.abs(v) < 0.005 ? "" : v > 0 ? styles.up : styles.down);
   const capT = weights.reduce((a, w) => a + w.capTotal, 0);
-  const capF = weights.reduce((a, w) => a + w.capFloat, 0);
 
   return (
     /* UNE PILE : l'espace entre l'en-tête, les liens et le sommaire vient du jeton des sections (ETALON.md § 8). Le desk, qui rend le même corps, en profite. */
@@ -196,16 +201,15 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
 
           </section>
 
-          <section className="panel" id="courbe">
+          <section className={`panel ${styles.courbe}`} id="courbe">
             <div className="panel-h">
               <h2>{t("Séance après séance")}</h2>
               <span className="muted">{t("lu depuis le bulletin du {d}", { d: fmtDate(stats.points[0].date) })}</span>
             </div>
-            <div className={styles.chart}>
-              <IndexChart points={points} overlays={overlays} defaultPeriod={periode} lierPeriodeALAdresse vueInitiale="volumes" societeInitiale={societe} lieSocieteALAdresse={desk} />
-            </div>
-            {/* CE QUI SE LIT SOUS LE GRAPHE, sur la période qu'il montre : la période du graphe est dans l'adresse, et ces blocs se recalculent avec elle. */}
-            {vue && <Periode vue={vue} quarterNoteHref={!desk && notes[0] ? `/indice/note/${notes[0].key.toLowerCase()}` : undefined} />}
+            {/* LA PÉRIODE EST DANS UNE BARRE COLLANTE, et le graphe comme les blocs du dessous se lisent sur la même : elle est dans l'adresse (periode, ou du et au pour une plage). */}
+            <IndiceGraphe points={points} overlays={overlays} periode={periode} du={plage?.du} au={plage?.au} vueInitiale="volumes" societeInitiale={societe} lieSocieteALAdresse={desk}>
+              {vue && <Periode vue={vue} quarterNoteHref={!desk && notes[0] ? `/indice/note/${notes[0].key.toLowerCase()}` : undefined} />}
+            </IndiceGraphe>
           </section>
 
           {notes.length > 0 && (
@@ -318,77 +322,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
           </section>
           )}
 
-          <section className="panel" id="composition">
-            <div className="panel-h">
-              <h2>{t("Composition")}</h2>
-              <span className="muted">{t("les actions cotées et leur poids, sur le capital global et sur le flottant coté")}</span>
-            </div>
-            <div className={`scroll-x ${styles.tableWrap}`}>
-              <table className={`tbl ${styles.comp}`}>
-                <thead>
-                  <tr>
-                    <th className={styles.when}>{t("Société")}</th>
-                    <th className={styles.num}>{t("Cours")}</th>
-                    <th className={styles.num}>{t("Capital global")}</th>
-                    <th className={styles.num}>{t("Poids")}</th>
-                    <th className={styles.num}>{t("Flottant coté")}</th>
-                    <th className={styles.num}>{t("Poids")}</th>
-                    <th className={styles.num}>{t("Liquidité 3 mois")}</th>
-                    <th className={styles.num}>{t("Dernier dividende")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {weights.map((w) => (
-                    <tr key={w.isin}>
-                      <td className={styles.when}>
-                        <Link href={`${base}/societes/${w.mnemo.toLowerCase()}?depuis=indice`}>
-                          <b>{w.mnemo}</b> · {nameOf(w.mnemo)}
-                        </Link>
-                      </td>
-                      <td className={styles.num}>{fmt(w.close)}</td>
-                      <td className={styles.num}>{fmt(w.capTotal / 1e6)} M</td>
-                      <td className={styles.num}>
-                        <span className={styles.wcell}>
-                          <i style={{ width: `${w.weightTotal}%` }} />
-                          {fmtPct(w.weightTotal, 1)}
-                        </span>
-                      </td>
-                      <td className={styles.num}>{fmt(w.capFloat / 1e6)} M</td>
-                      <td className={styles.num}>
-                        <span className={styles.wcell}>
-                          <i className={styles.wf} style={{ width: `${w.weightFloat}%` }} />
-                          {fmtPct(w.weightFloat, 1)}
-                        </span>
-                      </td>
-                      <td className={styles.num}>{w.liquidity3mPct != null ? fmtPct(w.liquidity3mPct, 2) : "—"}</td>
-                      <td className={styles.num}>{w.lastDividend != null ? `${fmt(w.lastDividend)} FCFA` : "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td className={styles.when}>{t("Ensemble")}</td>
-                    <td />
-                    <td className={styles.num}>{fmt(capT / 1e6)} M</td>
-                    <td className={styles.num}>100 %</td>
-                    <td className={styles.num}>{fmt(capF / 1e6)} M</td>
-                    <td className={styles.num}>100 %</td>
-                    <td colSpan={2} className={styles.numSmall}>
-                      {t("flottant : {p} du capital global", { p: capT ? fmtPct((capF / capT) * 100, 0) : "—" })}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-            <div className={styles.two}>
-              <p>
-                <b>{t("Capital global")}</b> : {t("toutes les actions de la société × le cours, y compris les blocs de l'État ou des fondateurs. C'est la taille de la société ; une grosse société peu négociée pèse lourd.")}
-              </p>
-              <p>
-                <b>{t("Flottant coté")}</b> : {t("seulement les titres en mains du public × le cours, ce qui peut vraiment s'acheter et se vendre. C'est le poids que le marché peut porter ; une grosse société à petit flottant pèse moins.")}
-              </p>
-            </div>
-          </section>
+
 
           {/* TROIS PARAGRAPHES SONT DEVENUS QUATRE LIGNES. Ils expliquaient
               l'indice par ses manques, « les poids sont très inégaux », « 0,00 %

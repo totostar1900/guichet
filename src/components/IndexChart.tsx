@@ -37,7 +37,7 @@ export interface OverlaySeries {
 }
 
 export type IndexView = "niveau" | "variations" | "volumes" | "contributions" | "calendrier" | "societes" | "capitalisation" | "flottant";
-type PeriodKey = "1m" | "3m" | "ytd" | "12m" | "all";
+export type PeriodKey = "1m" | "3m" | "ytd" | "12m" | "all";
 type Marks = "ligne" | "ligne_mouvements" | "points";
 const PERIODS: [PeriodKey, string][] = [
   ["1m", "1 mois"],
@@ -111,11 +111,23 @@ const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}$
  * listed shares as small charts against the index. Sessions further than
  * a week apart are not joined : a missing bulletin is a gap, not a line.
  */
-export function IndexChart({ points, overlays, defaultPeriod = "12m", societeInitiale = "", lieSocieteALAdresse = false, lierPeriodeALAdresse = false, vueInitiale = "niveau" }: { points: ChartPoint[]; overlays: OverlaySeries[]; defaultPeriod?: PeriodKey; /** Écrire la période choisie dans l'adresse (`periode`), pour que les blocs sous le graphe se recalculent sur la même. */ lierPeriodeALAdresse?: boolean; /** La vue ouverte au premier rendu. */ vueInitiale?: IndexView; /** La société que l'adresse porte déjà pour le tableau des séances. */ societeInitiale?: string; /** Écrire le choix dans l'adresse, pour que le tableau des séances suive. */ lieSocieteALAdresse?: boolean }) {
+/** La période de la page, pilotée par sa barre collante : la période choisie, la fenêtre resserrée (plage personnalisée) et si les poignées sont visibles. */
+export interface CommandeDePeriode {
+  period: PeriodKey;
+  zoom: [number, number] | null;
+  setZoom: (z: [number, number] | null) => void;
+  plage: boolean;
+}
+
+/** Les mnémos dans l'ordre alphabétique : une couleur suit la société et jamais son rang ni le nombre de sociétés choisies. */
+const couleursDe = (overlays: OverlaySeries[]) => overlays.map((o) => o.mnemo).sort();
+
+export function IndexChart({ points, overlays, defaultPeriod = "12m", societeInitiale = "", lieSocieteALAdresse = false, vueInitiale = "niveau", commande }: { points: ChartPoint[]; overlays: OverlaySeries[]; defaultPeriod?: PeriodKey; /** La période et la fenêtre sont pilotées de l'extérieur (la barre collante de la page) : le graphe n'écrit plus ses boutons de période. */ commande?: CommandeDePeriode; /** La vue ouverte au premier rendu. */ vueInitiale?: IndexView; /** La société que l'adresse porte déjà pour le tableau des séances. */ societeInitiale?: string; /** Écrire le choix dans l'adresse, pour que le tableau des séances suive. */ lieSocieteALAdresse?: boolean }) {
   const { fmtDate } = useDates();
   const t = useT();
   const [view, setView] = useState<IndexView>(vueInitiale);
-  const [period, setPeriod] = useState<PeriodKey>(defaultPeriod);
+  const [periodeEtat, setPeriod] = useState<PeriodKey>(defaultPeriod);
+  const period = commande?.period ?? periodeEtat;
   const [rebase, setRebase] = useState(false);
   const [pins, setPins] = useState<string[]>([]);
   const [marks, setMarks] = useState<Marks>("ligne_mouvements");
@@ -152,6 +164,17 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
     routeur.replace(`${chemin}${q.toString() ? `?${q}` : ""}`, { scroll: false });
   };
   const co = overlays.find((o) => o.mnemo === societe);
+  /* LA VUE DU COURS COMPARE TOUTES LES SOCIÉTÉS QU'ON VEUT, ET L'INDICE EN FAIT PARTIE (8 novembre 2026). Une rangée de pastilles à activer : indice compris, jusqu'aux sept sociétés
+     d'un coup, toutes à la base 100 sur un seul axe. Les autres vues gardent leur société unique. */
+  const couleursStables = couleursDe(overlays);
+  const [compares, setCompares] = useState<string[]>(societeInitiale ? [societeInitiale] : []);
+  const [indiceVisible, setIndiceVisible] = useState(true);
+  const [reglagesOuverts, setReglagesOuverts] = useState(false);
+  const ovs = compares.map((m) => overlays.find((o) => o.mnemo === m)).filter((o): o is OverlaySeries => Boolean(o));
+  const couleurDe = (m: string) => `var(--co-${(couleursStables.indexOf(m) % 8) + 1})`;
+  const basculer = (m: string) => setCompares((cur) => (cur.includes(m) ? cur.filter((x) => x !== m) : [...cur, m]));
+  const toutesLesSocietes = overlays.length > 0 && overlays.every((o) => compares.includes(o.mnemo));
+  const montrerIndice = indiceVisible || ovs.length === 0;
   const boxRef = useRef<HTMLDivElement>(null);
   const [W, setW] = useState(760);
   useEffect(() => {
@@ -193,7 +216,9 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
    * rendue sur le serveur, et une poignée qui écrirait l'adresse à chaque
    * pas traînerait d'un aller-retour par pixel.
    */
-  const [zoom, setZoom] = useState<[number, number] | null>(null);
+  const [zoomEtat, setZoomEtat] = useState<[number, number] | null>(null);
+  const zoom = commande ? commande.zoom : zoomEtat;
+  const setZoom = (z: [number, number] | null) => (commande ? commande.setZoom(z) : setZoomEtat(z));
   const bornesPeriode = useMemo(() => {
     const d = debutDe(period);
     const i = d ? points.findIndex((p) => p.date >= d) : 0;
@@ -205,24 +230,18 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
   const choisirPeriode = (k: PeriodKey) => {
     setPeriod(k);
     setZoom(null);
-    if (!lierPeriodeALAdresse) return;
-    const q = new URLSearchParams(adresse.toString());
-    q.set("periode", k);
-    routeur.replace(`${chemin}?${q}`, { scroll: false });
   };
   /* Sur la vue du cours, la société choisie se superpose en base 100. */
-  const ov = co;
   /* La borne gauche de la fenêtre, pour tout ce qui se recoupe par date :
      la valeur comparée, les petites multiples, les contributions. */
   const debut = points[fenetre[0]]?.date ?? "";
-  const ovPts = useMemo(() => (ov ? ov.points.filter((p) => p.date >= debut) : []), [ov, debut]);
-  const showBase = rebase || Boolean(ov);
+  const showBase = rebase || ovs.length > 0;
   const base = <P extends { date: string; value: number }>(arr: P[]): (P & { y: number })[] => {
     const b = arr[0]?.value;
     return b ? arr.map((p) => ({ ...p, y: (p.value / b) * 100 })) : [];
   };
   const series = useMemo(() => (showBase ? base(pts) : pts.map((p) => ({ ...p, y: p.value }))), [pts, showBase]);
-  const ovSeries = useMemo(() => (ov ? base(ovPts) : []), [ovPts, ov]);
+  const ovSeriesList = ovs.map((o) => ({ o, s: base(o.points.filter((p) => p.date >= debut)) }));
   // the trading of each session, all shares or one
 
   const dates = pts.map((p) => p.date);
@@ -233,7 +252,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
      resserrer et jamais se rouvrir. */
   const toutesLesDates = points.map((p) => p.date);
   const span = Math.max(1, daysBetween(d0, dN));
-  const ys = [...series.map((p) => p.y), ...ovSeries.map((p) => p.y)];
+  const ys = [...(montrerIndice ? series.map((p) => p.y) : []), ...ovSeriesList.flatMap(({ s }) => s.map((p) => p.y))];
   let lo = Math.min(...ys);
   let hi = Math.max(...ys);
   const pad = (hi - lo || lo * 0.02 || 1) * 0.08;
@@ -289,7 +308,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
      commente, et il fallait jusqu'ici poser un doigt sur le bord droit du
      tracé pour la lire. Sous le doigt, la séance désignée prend sa place. */
   const sInfo = (d: string) => series.find((p) => p.date === d);
-  const oInfo = (d: string) => ovSeries.filter((p) => p.date <= d).pop();
+  const oInfo = (d: string) => ovSeriesList.map(({ o, s }) => ({ o, y: s.filter((p) => p.date <= d).pop()?.y })).filter((x) => x.y != null);
   const pinA = pins[0] ? at(pins[0]) : undefined;
   const pinB = pins[1] ? at(pins[1]) : undefined;
   const between = pinA && pinB ? pts.filter((p) => p.date > pinA.date && p.date <= pinB.date) : [];
@@ -328,7 +347,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
           droite: [
             <>
               <em className={(vu.variationPct ?? 0) > 0 ? styles.upT : (vu.variationPct ?? 0) < 0 ? styles.downT : ""}>{signed(vu.variationPct)}</em>
-              {ov && oInfo(vu.date) ? ` · ${ov.mnemo} ${lvl(oInfo(vu.date)!.y, 1)}` : ""}
+              {W >= 480 && oInfo(vu.date).length ? ` · ${oInfo(vu.date).slice(0, 3).map((x) => `${x.o.mnemo} ${lvl(x.y!, 1)}`).join(" · ")}${oInfo(vu.date).length > 3 ? ` +${oInfo(vu.date).length - 3}` : ""}` : ""}
             </>,
             /* CE QUE LE BANDEAU NOMME, C'EST LA FENÊTRE, PAS LE BOUTON.
                L'écart se mesurait déjà depuis la première séance affichée,
@@ -356,42 +375,67 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
           </button>
         ))}
       </div>
-      <div className={styles.bar}>
-        <div className={styles.pills} role="tablist" aria-label={t("Période")}>
-          {PERIODS.map(([k, label]) => (
-            <button key={k} type="button" role="tab" aria-selected={period === k && !zoom} onClick={() => choisirPeriode(k)}>
-              {t(label)}
-            </button>
-          ))}
+      {!commande && (
+        <div className={styles.bar}>
+          <div className={styles.pills} role="tablist" aria-label={t("Période")}>
+            {PERIODS.map(([k, label]) => (
+              <button key={k} type="button" role="tab" aria-selected={period === k && !zoom} onClick={() => choisirPeriode(k)}>
+                {t(label)}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
       {/* LA RANGÉE DES SÉLECTEURS A TOUJOURS LA MÊME PLACE (8 novembre 2026). Ils se rangeaient à la suite des périodes : la valeur comparée venait tantôt à 31 px, tantôt à 613 ou
           927, et la barre de dates d'en dessous montait ou descendait de 42 px selon la vue. La rangée a maintenant sa hauteur d'un sélecteur dans toutes les vues, la société
           est toujours la première, et sur un téléphone les deux se partagent la largeur au lieu de passer à la ligne. */}
       <div className={styles.selecteurs}>
-        {view !== "variations" && view !== "contributions" && view !== "societes" && (
+        {view === "niveau" && (
+          <div className={styles.puces} role="group" aria-label={t("Comparer")}>
+            <button type="button" aria-pressed={montrerIndice} onClick={() => setIndiceVisible((v) => !v)}>
+              <i style={{ background: "var(--chart-out)" }} />
+              {t("Indice")}
+            </button>
+            <button type="button" aria-pressed={toutesLesSocietes} onClick={() => setCompares(toutesLesSocietes ? [] : overlays.map((o) => o.mnemo))}>
+              {t("Toutes")}
+            </button>
+            {overlays.map((o) => (
+              <button key={o.mnemo} type="button" aria-pressed={compares.includes(o.mnemo)} onClick={() => basculer(o.mnemo)} title={o.name}>
+                <i style={{ background: couleurDe(o.mnemo) }} />
+                {o.mnemo}
+              </button>
+            ))}
+          </div>
+        )}
+        {lineView && (
+          <button type="button" className={styles.reglagesBtn} aria-expanded={reglagesOuverts} onClick={() => setReglagesOuverts((v) => !v)}>
+            ⚙ {t("Réglages")}
+          </button>
+        )}
+        {view !== "variations" && view !== "contributions" && view !== "societes" && view !== "niveau" && (
           <Select
             compact
             fixe
             cherchable={false}
-            label={view === "niveau" ? t("Comparer à") : view === "volumes" ? t("Volumes de") : t("Société")}
+            label={view === "volumes" ? t("Volumes de") : t("Société")}
             value={societe}
             onChange={setSociete}
             options={[
-              { value: "", label: view === "niveau" ? t("aucune valeur") : view === "volumes" ? t("toute la cote") : view === "capitalisation" ? t("toutes, empilées") : t("toutes les sociétés") },
+              { value: "", label: view === "volumes" ? t("toute la cote") : view === "capitalisation" ? t("toutes, empilées") : t("toutes les sociétés") },
               ...overlays.map((o) => ({ value: o.mnemo, label: o.mnemo, hint: o.name })),
             ]}
           />
         )}
-        {lineView && (
-          <Select compact fixe cherchable={false} label={t("Tracé")} value={marks} onChange={(v) => setMarks(v as Marks)} options={[{ value: "ligne", label: t("ligne") }, { value: "ligne_mouvements", label: t("ligne et mouvements") }, { value: "points", label: t("points") }]} />
-        )}
-        {lineView && (
-          <label className={styles.check}>
-            <input type="checkbox" checked={showBase} disabled={Boolean(ov)} onChange={(e) => setRebase(e.target.checked)} /> {t("base 100")}
-          </label>
-        )}
       </div>
+      {/* LES RÉGLAGES DE LA VUE DU COURS (le tracé, « base 100 ») se replient derrière un bouton, au bout de la rangée des pastilles : la rangée tient sur une ligne dans toutes les vues. */}
+      {lineView && reglagesOuverts && (
+        <div className={styles.reglages}>
+          <Select compact fixe cherchable={false} label={t("Tracé")} value={marks} onChange={(v) => setMarks(v as Marks)} options={[{ value: "ligne", label: t("ligne") }, { value: "ligne_mouvements", label: t("ligne et mouvements") }, { value: "points", label: t("points") }]} />
+          <label className={styles.check}>
+            <input type="checkbox" checked={showBase} disabled={ovs.length > 0} onChange={(e) => setRebase(e.target.checked)} /> {t("base 100")}
+          </label>
+        </div>
+      )}
 
       {/* UNE SEULE BARRE DE PLAGE, ET POUR TOUTES LES VUES.
           Il y en avait deux, qui ne disaient pas la même chose : des poignées
@@ -402,7 +446,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
           chose, la fenêtre ; l'épingle reste un clic sur le tracé ou sur une
           case du calendrier. Et la barre sort de la vue Niveau : les huit vues
           partent toutes des séances retenues, elles ont toutes besoin d'elle. */}
-      <BarreDePlage dates={toutesLesDates} fenetre={fenetre} surFenetre={setZoom} surTout={() => setZoom(null)} motTout={t("revenir à la période")} />
+      {(!commande || commande.plage) && <BarreDePlage dates={toutesLesDates} fenetre={fenetre} surFenetre={setZoom} surTout={() => setZoom(null)} motTout={t("revenir à la période")} />}
 
       {lineView && (
         <>
@@ -424,15 +468,16 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
               ) : null,
             )}
             {showBase && <line x1={padL} x2={W - padR} y1={y(100)} y2={y(100)} className={styles.baseLine} />}
-            {segments(ovSeries).map((s, i) => (
-              <polyline key={`o${i}`} points={s} className={styles.overlay} />
-            ))}
-            {marks !== "points" &&
+            {ovSeriesList.flatMap(({ o, s }) =>
+              segments(s).map((seg, i) => <polyline key={`o${o.mnemo}${i}`} points={seg} className={styles.overlay} style={{ stroke: couleurDe(o.mnemo), strokeDasharray: "none", strokeWidth: 1.5 }} />),
+            )}
+            {montrerIndice &&
+              marks !== "points" &&
               segments(series).map((s, i) => (
                 <polyline key={i} points={s} className={styles.line} />
               ))}
-            {marks === "points" && series.map((p) => <circle key={`m${p.date}`} cx={x(p.date)} cy={y(p.y)} r={2.4} className={styles.dot} />)}
-            {series
+            {montrerIndice && marks === "points" && series.map((p) => <circle key={`m${p.date}`} cx={x(p.date)} cy={y(p.y)} r={2.4} className={styles.dot} />)}
+            {(montrerIndice && ovs.length === 0 ? series : [])
               .filter((p) => marks !== "ligne" && (p.variationPct ?? 0) !== 0)
               .map((p) => (
                 <circle key={p.date} cx={x(p.date)} cy={y(p.y)} r={3.5} className={(p.variationPct ?? 0) > 0 ? styles.up : styles.down}>
@@ -452,13 +497,9 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
           </svg>
           <p className={styles.legend}>
             <span>
-              <i className={styles.kLine} /> {t("indice BVMAC All Share")}{showBase ? ` · ${t("base 100")}` : ""}
+              <i className={styles.kLine} style={{ opacity: montrerIndice ? 1 : 0.3 }} /> {t("indice BVMAC All Share")}{showBase ? ` · ${t("base 100")}` : ""}
             </span>
-            {ov && (
-              <span>
-                <i className={`${styles.kLine} ${styles.kGold} ${styles.kDash}`} /> {ov.mnemo} · {ov.name} ({t("base 100")})
-              </span>
-            )}
+            {ovs.length > 0 && <span>{t("sociétés en base 100 : l'indice et chaque société partent de 100 au début de la fenêtre")}</span>}
             <span>
               <i className={`${styles.sw} ${styles.kUp}`} /> {t("séance en hausse")} <i className={`${styles.sw} ${styles.kDown}`} /> {t("séance en baisse")}
             </span>

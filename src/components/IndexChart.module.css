@@ -758,21 +758,84 @@ button.calCell:focus-visible {
   color: var(--ink-2);
 }
 
-/* LA RANGÉE DES SÉLECTEURS : même place, même hauteur dans toutes les vues (la barre de dates dessous ne bouge plus). La société d'abord, puis le tracé, puis « base 100 ».
-   Sur un téléphone les deux sélecteurs se partagent la largeur, et la rangée réserve deux lignes : le choix « base 100 » passe dessous sur la vue du cours. */
+/* LA RANGÉE DES SÉLECTEURS : une ligne, dans toutes les vues (la barre de dates dessous ne bouge pas). Sur le cours : les pastilles qui défilent, puis le bouton « Réglages ». */
 .selecteurs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 13rem)) auto;
+  display: flex;
   align-items: center;
-  gap: 8px 16px;
+  gap: 8px 12px;
   min-height: var(--ctrl-h);
   margin-top: 8px;
-  --sel-fixe: 100%;
 }
-@media (max-width: 520px) {
-  .selecteurs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    min-height: calc(var(--ctrl-h) * 2 + 8px);
-    align-content: start;
-  }
+.reglages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+.reglagesBtn {
+  flex: none;
+  min-height: var(--ctrl-h);
+  padding: 0 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--ctrl-t);
+  font-weight: 600;
+  cursor: pointer;
+}
+.reglagesBtn[aria-expanded="true"] {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+/* LES PASTILLES DE COMPARAISON de la vue du cours : l'indice et chaque société, à activer une à une, sur une seule ligne qui défile (la rangée garde sa hauteur). */
+.puces {
+  flex: 1;
+  min-width: 0;
+  /* le fondu dit qu'il y en a d'autres à droite */
+  -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, #000 90%, transparent);
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.puces::-webkit-scrollbar {
+  display: none;
+}
+.puces button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--ctrl-h);
+  padding: 0 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 99px;
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: var(--ctrl-t);
+  font-weight: 600;
+  cursor: pointer;
+}
+.puces button[aria-pressed="true"] {
+  border-color: var(--ink);
+  color: var(--ink);
+  background: var(--surface-2);
+}
+.puces button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.puces i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
 }
