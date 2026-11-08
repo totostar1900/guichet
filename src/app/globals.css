@@ -1,6 +1,8 @@
 /* Design tokens : Purpose Capital identity (navy · gold · warm paper). */
 :root {
   color-scheme: light;
+  /* LE REPÈRE DE DÉBUT (8 novembre 2026) : le trait qui marque le début d'une période sur une barre de fin. Une teinte qui n'est ni celle des barres (bleu), ni l'or du flottant, ni le vert / orange des variations ; elle est cernée d'un liseré de la couleur du fond (`--surface`), donc visible sur la barre comme à côté d'elle, sous chaque palette. Mesurée par `contrast-repere.test.ts`. */
+  --repere: #be185d;
   /* LES HUIT TEINTES DES SÉRIES D'UN GRAPHE (8 novembre 2026) : la palette de référence validée (écart minimal entre voisines : daltonisme 9,1 clair / 8,4 sombre). Une couleur suit une société, jamais un rang. */
   --co-1: #2a78d6;
   --co-2: #eb6834;
@@ -453,6 +455,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dim"]) {
     color-scheme: dark;
+    --repere: #f472b6;
     --co-1: #3987e5;
     --co-2: #d95926;
     --co-3: #199e70;
@@ -544,6 +547,7 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
+  --repere: #f472b6;
   --co-1: #3987e5;
   --co-2: #d95926;
   --co-3: #199e70;

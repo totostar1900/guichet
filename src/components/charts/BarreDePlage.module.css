@@ -3,6 +3,9 @@
 .bloc {
   margin-top: var(--s-4);
 }
+.serre {
+  margin-top: 0;
+}
 .lu {
   display: flex;
   flex-wrap: wrap;

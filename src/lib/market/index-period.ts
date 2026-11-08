@@ -98,6 +98,23 @@ export function repartition(lines: QuarterLine[], pick: (l: QuarterLine) => stri
   return [...by.entries()].map(([label, pct]) => ({ label, pct })).sort((a, b) => b.pct - a.pct);
 }
 
+/** Secteur ou pays : le poids au début et à la fin de la période, pour que la répartition suive les dates choisies. */
+export interface RepartitionDeLaPeriode {
+  label: string;
+  debut: number;
+  fin: number;
+}
+export function repartitionDebutFin(societes: SocieteCompare[], pick: (s: SocieteCompare) => string): RepartitionDeLaPeriode[] {
+  const by = new Map<string, { debut: number; fin: number }>();
+  for (const s of societes) {
+    const cur = by.get(pick(s)) ?? { debut: 0, fin: 0 };
+    cur.debut += s.poidsDebut;
+    cur.fin += s.poidsFin;
+    by.set(pick(s), cur);
+  }
+  return [...by.entries()].map(([label, v]) => ({ label, ...v })).sort((a, b) => b.fin - a.fin);
+}
+
 /** Part des secteurs financiers dans la capitalisation. */
 export function partDeLaFinance(lines: QuarterLine[], poids: (l: QuarterLine) => number = (l) => l.weight): number {
   const FINANCE = /banqu|banca|assur|réassur|reassur|financ|holding/i;
@@ -260,9 +277,11 @@ export interface VueDePeriode {
   ret: number;
   lines: QuarterLine[];
   compare?: ComparaisonBase100;
-  bySector: { label: string; pct: number }[];
-  byCountry: { label: string; pct: number }[];
+  bySector: RepartitionDeLaPeriode[];
+  byCountry: RepartitionDeLaPeriode[];
   financePct: number;
+  /** La part de la finance au début de la période. */
+  financeDebut: number;
   stats: StatsDeSeance;
   /** La rotation du flottant SUR LA PÉRIODE (valeur échangée / flottant coté de la fin), et non sur douze mois fixes. */
   rotation?: number;
@@ -293,9 +312,10 @@ export async function vueDePeriode(d: IndexPageData, from: string, to: string): 
     ret: before.value > 0 ? (last.value / before.value - 1) * 100 : 0,
     lines,
     compare,
-    bySector: repartition(lines, (l) => l.sector, poidsFin),
-    byCountry: repartition(lines, (l) => l.country, poidsFin),
+    bySector: repartitionDebutFin(societes, (s) => s.sector),
+    byCountry: repartitionDebutFin(societes, (s) => s.country),
     financePct: partDeLaFinance(lines, poidsFin),
+    financeDebut: partDeLaFinance(lines, (l) => societes.find((s) => s.mnemo === l.mnemo)?.poidsDebut ?? l.weight),
     stats: statsDeSeance(inQ),
     rotation,
     societes,

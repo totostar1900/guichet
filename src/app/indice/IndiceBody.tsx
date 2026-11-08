@@ -5,6 +5,7 @@ import { fmt, fmtDate, fmtDateTime, fmtPct, money } from "@/lib/format";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters } from "@/lib/market/index-quarter";
 import { vueDePeriode } from "@/lib/market/index-period";
+import { loadCompanies } from "@/lib/reference";
 import { Periode, debutDePeriode, periodeOuDefaut } from "./Periode";
 import { MarketStrip } from "@/components/MarketStrip";
 import { BackToTop } from "@/components/BackToTop";
@@ -65,7 +66,8 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
   const dormantes = dormances.filter((d) => (d.jours ?? 9999) > SEUIL_DORMANCE);
 
   const lastCount = (quotes: { sharesTotal?: number; sharesFloat?: number }[], k: "sharesTotal" | "sharesFloat") => [...quotes].reverse().find((q) => (q[k] ?? 0) > 0)?.[k];
-  const overlays: OverlaySeries[] = histories.map(({ w, quotes }) => ({ mnemo: w.mnemo, name: nameOf(w.mnemo), points: quotes.map((q) => ({ date: q.sessionDate, value: q.close, titles: q.volumeTraded || 0, amount: q.valueTraded || 0, trades: q.trades || 0, variationPct: q.variationPct })), sharesTotal: lastCount(quotes, "sharesTotal"), sharesFloat: lastCount(quotes, "sharesFloat") }));
+  const companies = await loadCompanies().catch(() => []);
+  const overlays: OverlaySeries[] = histories.map(({ w, quotes }) => ({ mnemo: w.mnemo, name: nameOf(w.mnemo), country: companies.find((c) => c.mnemo === w.mnemo)?.country, points: quotes.map((q) => ({ date: q.sessionDate, value: q.close, titles: q.volumeTraded || 0, amount: q.valueTraded || 0, trades: q.trades || 0, variationPct: q.variationPct })), sharesTotal: lastCount(quotes, "sharesTotal"), sharesFloat: lastCount(quotes, "sharesFloat") }));
   // the sessions table : moved sessions by default, every session on demand, one share or all, fifty per page
   const all = sp.toutes === "1";
   const societe = sp.societe && weights.some((w) => w.mnemo === sp.societe) ? sp.societe : "";

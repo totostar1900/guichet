@@ -63,7 +63,7 @@ export async function Periode({ vue, quarterNoteHref }: { vue: VueDePeriode; qua
           <div>
             <dt>{t("La finance dans la cote")}</dt>
             <dd>{fmtPct(vue.financePct, 1)}</dd>
-            <small>{t("de la capitalisation")}</small>
+            <small>{t("de la capitalisation · au début {d}", { d: fmtPct(vue.financeDebut, 1) })}</small>
           </div>
           {vue.rotation != null && (
             <div>
@@ -83,15 +83,24 @@ export async function Periode({ vue, quarterNoteHref }: { vue: VueDePeriode; qua
           ].map((g) => (
             <div key={g.titre} className={styles.figure}>
               <div className={styles.titre}>{g.titre}</div>
-              {g.rows.map((r) => (
-                <div key={r.label} className={styles.split}>
-                  <span>{t(r.label)}</span>
-                  <i style={{ width: `${Math.max(0, Math.min(100, r.pct))}%` }} />
-                  <b>{fmtPct(r.pct, 1)}</b>
-                </div>
-              ))}
+              {g.rows.map((r) => {
+                const d = r.fin - r.debut;
+                return (
+                  <div key={r.label} className={styles.split}>
+                    <span>{t(r.label)}</span>
+                    <span className={styles.piste}>
+                      <i style={{ width: `${Math.max(0, Math.min(100, r.fin))}%` }} />
+                      <u style={{ left: `${Math.max(0, Math.min(100, r.debut))}%` }} />
+                    </span>
+                    <b>
+                      {fmtPct(r.fin, 1)} <small className={d > 0.05 ? styles.up : d < -0.05 ? styles.down : ""}>{`${d > 0.05 ? "+" : d < -0.05 ? "−" : ""}${fmtPct(Math.abs(d), 1).replace(" %", "")} pt`}</small>
+                    </b>
+                  </div>
+                );
+              })}
             </div>
           ))}
+          <p className={styles.legende}>{t("Barre : poids à la fin de la période. Trait : poids au début.")}</p>
         </div>
     </div>
   );

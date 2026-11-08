@@ -25,6 +25,7 @@ export function BarreDePlage({
   surFenetre,
   surTout,
   motTout,
+  partie = "tout",
 }: {
   /** Toutes les dates de la série, en ordre chronologique. */
   dates: string[];
@@ -34,6 +35,8 @@ export function BarreDePlage({
   surTout?: () => void;
   /** « revenir à la période » là où des périodes existent, « tout afficher » sinon. */
   motTout?: string;
+  /** « barre » : les deux poignées seules ; « champs » : les deux dates et le nombre de séances seuls ; « tout » : les deux (défaut). La bande collante de l'indice les sépare en deux lignes. */
+  partie?: "tout" | "barre" | "champs";
 }) {
   const t = useT();
   const n = dates.length;
@@ -42,7 +45,8 @@ export function BarreDePlage({
   const resserre = fenetre[0] !== 0 || fenetre[1] !== dernier;
 
   return (
-    <div className={styles.bloc}>
+    <div className={`${styles.bloc} ${partie !== "tout" ? styles.serre : ""}`}>
+      {partie !== "barre" && (
       <div className={styles.lu}>
         <label>
           {t("Du")}
@@ -71,6 +75,8 @@ export function BarreDePlage({
           </button>
         )}
       </div>
+      )}
+      {partie !== "champs" && (
       <div className={styles.barre}>
         <span className={styles.piste} aria-hidden="true" />
         <span
@@ -81,6 +87,7 @@ export function BarreDePlage({
         <input type="range" min={0} max={dernier} step={1} value={fenetre[0]} aria-label={t("Première séance affichée")} onChange={(e) => poser(Number(e.target.value), fenetre[1])} />
         <input type="range" min={0} max={dernier} step={1} value={fenetre[1]} aria-label={t("Dernière séance affichée")} onChange={(e) => poser(fenetre[0], Number(e.target.value))} />
       </div>
+      )}
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { fmt, fmtPct, fmtScaled, money, pickScale } from "@/lib/format";
+import { fmt, fmtPct, money } from "@/lib/format";
 import type { SocieteCompare } from "@/lib/market/index-period";
 import { GRAPHE_L } from "@/lib/ui/graphe";
 import { getT } from "@/i18n/server";
+import { Profondeur } from "./Profondeur";
 import styles from "./periode.module.css";
 
 /**
@@ -25,12 +26,17 @@ const signed = (v: number, d = 1) => {
 };
 const dec = (v: number) => v.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const tonDe = (v: number) => (v > 0.05 ? "var(--good)" : v < -0.05 ? "var(--warn)" : "var(--ink-3)");
-/** Le premier sommet rond au-dessus de `v` (1, 2, 2,5, 5, 10 × une puissance de dix) : des graduations qu'on lit. */
-const rond = (v: number) => {
-  const m = 10 ** Math.floor(Math.log10(Math.max(v, 1e-9)));
-  return ([1, 2, 2.5, 5, 10].map((k) => k * m).find((x) => x >= v - 1e-9) ?? 10 * m);
-};
 const haut = (max: number, pas: number) => Math.max(pas, Math.ceil(max / pas) * pas);
+
+/** Le repère de début : un trait de la teinte `--repere`, cerné d'un liseré de la couleur du fond pour se détacher de la barre qu'il traverse comme du fond lui-même. */
+function Repere({ x, y0, y1 }: { x: number; y0: number; y1: number }) {
+  return (
+    <>
+      <line x1={x} x2={x} y1={y0} y2={y1} stroke="var(--surface)" strokeWidth={5} strokeLinecap="round" />
+      <line x1={x} x2={x} y1={y0} y2={y1} stroke="var(--repere)" strokeWidth={2.5} strokeLinecap="round" />
+    </>
+  );
+}
 
 function Noms({ lignes, x }: { lignes: SocieteCompare[]; x: number }) {
   return (
@@ -83,12 +89,6 @@ export async function Societes({ societes, capFin, capFlottantFin }: { societes:
   const maxE = haut(Math.max(...societes.map((s) => Math.max(s.part, s.poidsFin))), 20);
   const xe = (v: number) => e0 + (v / maxE) * (e1 - e0);
 
-  // 3 · le montant moyen d'une transaction
-  const sc = pickScale(societes.map((s) => s.moyen));
-  const maxM = rond(Math.max(1, ...societes.map((s) => s.moyen / sc.div))) * sc.div;
-  const m0 = LAB + 8;
-  const m1 = 220;
-  const xm = (v: number) => m0 + (v / maxM) * (m1 - m0);
   const tot = societes.reduce((a, s) => a + s.amount, 0);
 
   return (
@@ -102,7 +102,7 @@ export async function Societes({ societes, capFin, capFlottantFin }: { societes:
           <g transform="translate(2, 20)">
             <rect x={0} y={-4} width={12} height={8} rx={2} fill="var(--chart-out)" />
             <text x={17} y={3.5} fill="var(--ink-3)" style={TXT}>{t("fin")}</text>
-            <line x1={46} x2={46} y1={-6} y2={6} stroke="var(--ink)" strokeWidth={2} />
+            <Repere x={46} y0={-6} y1={6} />
             <text x={52} y={3.5} fill="var(--ink-3)" style={TXT}>{t("début")}</text>
             <rect x={96} y={-2} width={14} height={4} rx={2} fill="var(--chart-in)" />
             <text x={115} y={3.5} fill="var(--ink-3)" style={TXT}>{t("flottant coté, fin")}</text>
@@ -114,7 +114,7 @@ export async function Societes({ societes, capFin, capFlottantFin }: { societes:
             return (
               <g key={s.mnemo}>
                 <rect x={p0} y={y + 3} width={Math.max(1.5, xp(s.poidsFin) - p0)} height={11} rx={2} fill="var(--chart-out)" />
-                <line x1={xp(s.poidsDebut)} x2={xp(s.poidsDebut)} y1={y} y2={y + 17} stroke="var(--ink)" strokeWidth={2} />
+                <Repere x={xp(s.poidsDebut)} y0={y} y1={y + 17} />
                 <rect x={p0} y={y + 17} width={Math.max(1.5, xp(s.poidsFlottantFin) - p0)} height={4} rx={2} fill="var(--chart-in)" />
                 <text x={W - 4} y={y + 12} textAnchor="end" fill="var(--ink-2)" style={{ fontSize: "var(--graphe-valeur)" }}>
                   {dec(s.poidsFin)} %
@@ -152,7 +152,7 @@ export async function Societes({ societes, capFin, capFlottantFin }: { societes:
                   {signed(s.move)}
                 </text>
                 <rect x={e0} y={y} width={Math.max(1.5, xe(s.part) - e0)} height={13} rx={2} fill="var(--chart-out)" />
-                <line x1={xe(s.poidsFin)} x2={xe(s.poidsFin)} y1={y - 3} y2={y + 16} stroke="var(--ink)" strokeWidth={2} />
+                <Repere x={xe(s.poidsFin)} y0={y - 3} y1={y + 16} />
                 <text x={W - 4} y={y + 10} textAnchor="end" fill="var(--ink-2)" style={{ fontSize: "var(--graphe-valeur)" }}>
                   {fmtPct(s.part, 0)}
                 </text>
@@ -163,28 +163,24 @@ export async function Societes({ societes, capFin, capFlottantFin }: { societes:
         <p className={styles.legende}>{t("Une société qui fait une part des échanges plus petite que son poids se négocie moins que sa taille ne le laisse croire.")}</p>
       </figure>
 
-      <figure className={styles.figure}>
-        <div className={styles.titre}>{t("À quelle profondeur : le montant moyen d'une transaction")}</div>
-        <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" aria-label={societes.map((s) => `${s.mnemo} ${s.moyen ? fmtScaled(s.moyen, sc.div, 1) : "—"} ${sc.short}`).join(", ")}>
-          <text x={2} y={11} fill="var(--ink-2)" style={TXT}>
-            {t("Montant moyen par transaction ({u}) · nombre de transactions", { u: sc.short })}
-          </text>
-          <Grille xs={[xm(0), xm(maxM / 2), xm(maxM)]} y0={T} y1={bas} etiquette={(i) => fmtScaled((maxM / 2) * i, sc.div, sc.div === 1 ? 0 : 1)} />
-          <Noms lignes={societes} x={LAB} />
-          {societes.map((s, i) => {
-            const y = T + i * RH + 5;
-            return (
-              <g key={s.mnemo}>
-                <rect x={m0} y={y} width={Math.max(s.moyen ? 1.5 : 0, xm(s.moyen) - m0)} height={13} rx={2} fill="var(--chart-out)" />
-                <text x={xm(s.moyen) + 4} y={y + 10} fill="var(--ink-2)" style={{ fontSize: "var(--graphe-valeur)" }}>
-                  {s.moyen ? `${fmtScaled(s.moyen, sc.div, 1)} · ${s.trades}` : "—"}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-        <p className={styles.legende}>{t("Chaque barre est suivie du nombre de transactions de la période : une grande transaction moyenne dit un marché qui se traite par blocs.")}</p>
-      </figure>
+      <Profondeur
+        societes={societes.map((s) => ({ mnemo: s.mnemo, moyen: s.moyen, amount: s.amount, trades: s.trades }))}
+        l={{
+          titreMoyen: t("À quelle profondeur : le montant moyen d'une transaction"),
+          titreTotal: t("Qui s'échange : le montant échangé sur la période"),
+          titreTrans: t("Combien de fois : le nombre de transactions sur la période"),
+          axeMoyen: t("Montant moyen par transaction ({u}) · nombre de transactions"),
+          axeTotal: t("Montant échangé ({u}) · part des échanges"),
+          axeTrans: t("Nombre de transactions"),
+          moyen: t("Montant moyen"),
+          total: t("Montant échangé"),
+          trans: t("Transactions"),
+          legMoyen: t("Chaque barre est suivie du nombre de transactions de la période : une grande transaction moyenne dit un marché qui se traite par blocs."),
+          legTotal: t("Le montant échangé sur la période, suivi de la part de chaque société dans le total."),
+          legTrans: t("Le nombre de transactions de la période : beaucoup de petites transactions ou peu de grosses ne disent pas la même chose."),
+          groupe: t("Mesure affichée"),
+        }}
+      />
 
       <details className={styles.chiffres}>
         <summary>{t("Voir les chiffres")}</summary>

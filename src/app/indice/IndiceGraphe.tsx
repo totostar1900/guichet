@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { IndexChart, type ChartPoint, type OverlaySeries, type PeriodKey, type IndexView } from "@/components/IndexChart";
+import { BarreDePlage } from "@/components/charts/BarreDePlage";
 import { Select } from "@/components/ui/Select";
 import { useDates, useT } from "@/i18n/client";
 import styles from "./graphe.module.css";
@@ -79,7 +80,8 @@ export function IndiceGraphe({
   const plageInitiale: [number, number] | null = du && au ? [indexDe(du), Math.max(0, dates.filter((x) => x <= au).length - 1)] : null;
   const [period, setPeriod] = useState<PeriodKey>(periode);
   const [zoom, setZoomEtat] = useState<[number, number] | null>(plageInitiale);
-  const [plage, setPlage] = useState(Boolean(plageInitiale));
+  /* Les deux champs de dates, sur demande : la barre à poignées est toujours là, les champs s'ouvrent par « Plage personnalisée… » ou par le bouton de la bande. */
+  const [champs, setChamps] = useState(Boolean(plageInitiale));
   const minuterie = useRef<number | null>(null);
   useEffect(() => () => {
     if (minuterie.current) window.clearTimeout(minuterie.current);
@@ -92,14 +94,14 @@ export function IndiceGraphe({
   };
   const choisir = (v: string) => {
     if (v === "plage") {
-      setPlage(true);
+      setChamps(true);
       if (!zoom) setZoomEtat(bornes(period));
       return;
     }
     const k = v as PeriodKey;
     setPeriod(k);
     setZoomEtat(null);
-    setPlage(false);
+    setChamps(false);
     if (minuterie.current) window.clearTimeout(minuterie.current);
     ecrire((q) => {
       q.set("periode", k);
@@ -111,7 +113,7 @@ export function IndiceGraphe({
     setZoomEtat(z);
     if (minuterie.current) window.clearTimeout(minuterie.current);
     if (!z) {
-      setPlage(false);
+      setChamps(false);
       ecrire((q) => {
         q.set("periode", period);
         q.delete("du");
@@ -129,25 +131,33 @@ export function IndiceGraphe({
 
   const fenetre = zoom ?? bornes(period);
   const n = fenetre[1] - fenetre[0] + 1;
-  const valeur = plage || zoom ? "plage" : period;
-  const commande = { period, zoom, setZoom, plage };
+  const valeur = zoom ? "plage" : period;
+  const commande = { period, zoom, setZoom };
 
   return (
     <>
+      {/* LA BANDE COLLANTE TIENT SUR DEUX LIGNES (8 novembre 2026) : la liste, la plage écrite et le bouton des dates ; dessous, la barre à deux poignées, toujours à portée du doigt. */}
       <div className={styles.barre}>
-        <Select
-          compact
-          fixe
-          cherchable={false}
-          label={t("Période")}
-          value={valeur}
-          onChange={choisir}
-          options={[...LABELS.map(([k, l]) => ({ value: k, label: t(l) })), { value: "plage", label: t("Plage personnalisée…") }]}
-        />
-        <span className={styles.lu}>
-          <span className={styles.long}>{t("du {a} au {b}", { a: fmtDate(dates[fenetre[0]] ?? derniere), b: fmtDate(dates[fenetre[1]] ?? derniere) })}</span>
-          <span className={styles.court}>{court(dates[fenetre[0]] ?? derniere, dates[fenetre[1]] ?? derniere)}</span> · {t("{n} séances", { n: String(n) })}
-        </span>
+        <div className={styles.ligne}>
+          <Select
+            compact
+            fixe
+            cherchable={false}
+            label={t("Période")}
+            value={valeur}
+            onChange={choisir}
+            options={[...LABELS.map(([k, l]) => ({ value: k, label: t(l) })), { value: "plage", label: t("Plage personnalisée…") }]}
+          />
+          <span className={styles.lu}>
+            <span className={styles.long}>{t("du {a} au {b}", { a: fmtDate(dates[fenetre[0]] ?? derniere), b: fmtDate(dates[fenetre[1]] ?? derniere) })}</span>
+            <span className={styles.court}>{court(dates[fenetre[0]] ?? derniere, dates[fenetre[1]] ?? derniere)}</span> · {t("{n} séances", { n: String(n) })}
+          </span>
+          <button type="button" className={styles.datesBtn} aria-expanded={champs} onClick={() => setChamps((v) => !v)}>
+            {t("Dates")}
+          </button>
+        </div>
+        <BarreDePlage dates={dates} fenetre={fenetre} surFenetre={setZoom} surTout={() => setZoom(null)} motTout={t("revenir à la période")} partie="barre" />
+        {champs && <BarreDePlage dates={dates} fenetre={fenetre} surFenetre={setZoom} surTout={() => setZoom(null)} motTout={t("revenir à la période")} partie="champs" />}
       </div>
       <div className={styles.graphe}>
         <IndexChart points={points} overlays={overlays} defaultPeriod={periode} commande={commande} vueInitiale={vueInitiale} societeInitiale={societeInitiale} lieSocieteALAdresse={lieSocieteALAdresse} />

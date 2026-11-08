@@ -34,6 +34,8 @@ export interface OverlaySeries {
   /** Shares in issue and in public hands (the last count read), so a capitalisation exists for every session. */
   sharesTotal?: number;
   sharesFloat?: number;
+  /** Le pays de la société : la vue du cours en tire des pastilles qui sélectionnent d'un coup toutes les sociétés d'un pays. */
+  country?: string;
 }
 
 export type IndexView = "niveau" | "variations" | "volumes" | "contributions" | "calendrier" | "societes" | "capitalisation" | "flottant";
@@ -111,12 +113,11 @@ const signed = (v?: number, d = 2) => (v == null ? "—" : `${v > 0 ? "+" : ""}$
  * listed shares as small charts against the index. Sessions further than
  * a week apart are not joined : a missing bulletin is a gap, not a line.
  */
-/** La période de la page, pilotée par sa barre collante : la période choisie, la fenêtre resserrée (plage personnalisée) et si les poignées sont visibles. */
+/** La période de la page, pilotée par sa bande collante : la période choisie et la fenêtre resserrée (plage personnalisée) ; les poignées et les dates sont dans la bande. */
 export interface CommandeDePeriode {
   period: PeriodKey;
   zoom: [number, number] | null;
   setZoom: (z: [number, number] | null) => void;
-  plage: boolean;
 }
 
 /** Les mnémos dans l'ordre alphabétique : une couleur suit la société et jamais son rang ni le nombre de sociétés choisies. */
@@ -173,6 +174,11 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
   const ovs = compares.map((m) => overlays.find((o) => o.mnemo === m)).filter((o): o is OverlaySeries => Boolean(o));
   const couleurDe = (m: string) => `var(--co-${(couleursStables.indexOf(m) % 8) + 1})`;
   const basculer = (m: string) => setCompares((cur) => (cur.includes(m) ? cur.filter((x) => x !== m) : [...cur, m]));
+  /* Les pays : une pastille sélectionne d'un coup les sociétés du pays (plusieurs pays à la fois, avec les sociétés qu'on veut). Ce ne sont pas des indices : chaque société garde sa courbe. */
+  const pays = [...new Set(overlays.map((o) => o.country).filter((c): c is string => Boolean(c)))]
+    .map((c) => ({ c, m: overlays.filter((o) => o.country === c).map((o) => o.mnemo) }))
+    .sort((a, b) => b.m.length - a.m.length || a.c.localeCompare(b.c));
+  const basculerPays = (m: string[]) => setCompares((cur) => (m.every((x) => cur.includes(x)) ? cur.filter((x) => !m.includes(x)) : [...new Set([...cur, ...m])]));
   const toutesLesSocietes = overlays.length > 0 && overlays.every((o) => compares.includes(o.mnemo));
   const montrerIndice = indiceVisible || ovs.length === 0;
   const boxRef = useRef<HTMLDivElement>(null);
@@ -399,6 +405,11 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
             <button type="button" aria-pressed={toutesLesSocietes} onClick={() => setCompares(toutesLesSocietes ? [] : overlays.map((o) => o.mnemo))}>
               {t("Toutes")}
             </button>
+            {pays.map(({ c, m }) => (
+              <button key={c} type="button" aria-pressed={m.every((x) => compares.includes(x))} onClick={() => basculerPays(m)} title={m.join(", ")} data-pays>
+                {t(c)} · {m.length}
+              </button>
+            ))}
             {overlays.map((o) => (
               <button key={o.mnemo} type="button" aria-pressed={compares.includes(o.mnemo)} onClick={() => basculer(o.mnemo)} title={o.name}>
                 <i style={{ background: couleurDe(o.mnemo) }} />
@@ -446,7 +457,7 @@ export function IndexChart({ points, overlays, defaultPeriod = "12m", societeIni
           chose, la fenêtre ; l'épingle reste un clic sur le tracé ou sur une
           case du calendrier. Et la barre sort de la vue Niveau : les huit vues
           partent toutes des séances retenues, elles ont toutes besoin d'elle. */}
-      {(!commande || commande.plage) && <BarreDePlage dates={toutesLesDates} fenetre={fenetre} surFenetre={setZoom} surTout={() => setZoom(null)} motTout={t("revenir à la période")} />}
+      {!commande && <BarreDePlage dates={toutesLesDates} fenetre={fenetre} surFenetre={setZoom} surTout={() => setZoom(null)} motTout={t("revenir à la période")} />}
 
       {lineView && (
         <>

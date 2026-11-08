@@ -109,7 +109,8 @@ describe("les sociétés comparées en graphiques, à la place des deux tableaux
   const SOC = lire("src/app/indice/Societes.tsx");
   it("trois dessins dans la boîte de la maison : poids, paire cours / part des échanges, montant moyen", () => {
     expect(SOC).toMatch(/const W = GRAPHE_L/);
-    expect(SOC.match(/<svg viewBox/g)?.length, "trois dessins").toBe(3);
+    expect(SOC.match(/<svg viewBox/g)?.length, "deux dessins ici, le troisième est dans Profondeur").toBe(2);
+    expect(lire("src/app/indice/Profondeur.tsx")).toMatch(/<svg viewBox/);
     expect(SOC, "aucun corps de texte en dur").not.toMatch(/fontSize=\{\d/);
     expect(SOC).toMatch(/Cours \(%\)/);
     expect(SOC).toMatch(/Part des échanges \(%\)/);
@@ -121,7 +122,8 @@ describe("les sociétés comparées en graphiques, à la place des deux tableaux
   });
   it("le poids, les secteurs, les pays et la finance suivent la période (poids de fin), la rotation aussi", () => {
     const P = lire("src/lib/market/index-period.ts");
-    expect(P).toMatch(/repartition\(lines, \(l\) => l\.sector, poidsFin\)/);
+    expect(P).toMatch(/repartitionDebutFin\(societes, \(s\) => s\.sector\)/);
+    expect(P).toMatch(/repartitionDebutFin\(societes, \(s\) => s\.country\)/);
     expect(P).toMatch(/partDeLaFinance\(lines, poidsFin\)/);
     expect(P).toMatch(/rotation: sFl \? \(sA \/ sFl\) \* 100/);
   });
@@ -147,7 +149,7 @@ describe("la barre de période collante et la comparaison de toutes les sociét�
   it("le graphe n'écrit plus ses boutons de période quand la page le pilote", () => {
     const chart = lire("src/components/IndexChart.tsx");
     expect(chart).toMatch(/\{!commande && \(\s*<div className=\{styles\.bar\}>\s*<div className=\{styles\.pills\}/);
-    expect(chart).toMatch(/\(!commande \|\| commande\.plage\) && <BarreDePlage/);
+    expect(chart, "la barre de dates est dans la bande collante, plus dans le graphe").toMatch(/\{!commande && <BarreDePlage/);
   });
   it("toutes les sociétés, l'indice compris, sur un seul axe en base 100, avec une couleur par société", () => {
     const chart = lire("src/components/IndexChart.tsx");
@@ -177,12 +179,49 @@ describe("la maquette appliquée sans perdre aucune information (8 novembre 2026
     expect(SOC).toMatch(/poidsDebut/);
   });
   it("1B : une ligne ; 2C : le tracé et « base 100 » derrière un bouton Réglages sur la rangée ; 3A : fondu au bord des pastilles", () => {
-    expect(GCSS).toMatch(/\.barre \{[^}]*flex-wrap: nowrap/);
+    expect(GCSS, "la ligne de la bande ne passe pas à la ligne").toMatch(/\.ligne \{[^}]*flex-wrap: nowrap/);
     expect(GCSS).toMatch(/--sel-fixe: 9\.8rem/);
     expect(CHART).toMatch(/className=\{styles\.reglagesBtn\}/);
     expect(CHART).toMatch(/lineView && reglagesOuverts && \(\s*<div className=\{styles\.reglages\}>/);
     expect(CSS).toMatch(/\.puces \{[^}]*mask-image: linear-gradient/);
     expect(CSS, "la rangée ne réserve plus deux lignes").not.toMatch(/\.selecteurs \{[^}]*calc\(var\(--ctrl-h\) \* 2/);
+  });
+});
+
+describe("switch, repères colorés, secteur et pays aux dates, bande à deux lignes, pays (8 novembre 2026)", () => {
+  const PROF = lire("src/app/indice/Profondeur.tsx");
+  const GCSS = readFileSync(`${process.cwd()}/src/app/indice/graphe.module.css`, "utf8");
+  const SOC = lire("src/app/indice/Societes.tsx");
+  const PER = lire("src/app/indice/Periode.tsx");
+  const GRAPHE = lire("src/app/indice/IndiceGraphe.tsx");
+  const CHART = lire("src/components/IndexChart.tsx");
+  it("le graphique de profondeur a son commutateur : montant moyen (défaut), montant échangé, transactions", () => {
+    expect(PROF).toMatch(/useState<Mode>\("moyen"\)/);
+    expect(PROF).toMatch(/\["moyen", l\.moyen\][\s\S]*\["total", l\.total\][\s\S]*\["trans", l\.trans\]/);
+    expect(PROF).toMatch(/aria-pressed=\{mode === k\}/);
+  });
+  it("le début est un trait de la teinte --repere, cerné du fond : sur les graphiques et sur les secteurs et pays", () => {
+    expect(SOC).toMatch(/stroke="var\(--repere\)"/);
+    expect(SOC).toMatch(/stroke="var\(--surface\)"/);
+    expect(SOC, "plus de trait de début à l'encre").not.toMatch(/stroke="var\(--ink\)" strokeWidth=\{2\}/);
+    expect(readFileSync(`${process.cwd()}/src/app/indice/periode.module.css`, "utf8")).toMatch(/background: var\(--repere\)/);
+  });
+  it("secteur et pays suivent les dates : poids de début et de fin, en barre et en trait", () => {
+    expect(PER).toMatch(/r\.fin/);
+    expect(PER).toMatch(/r\.debut/);
+    expect(PER).toMatch(/financeDebut/);
+  });
+  it("la bande collante tient sur deux lignes : la liste, puis la barre à deux poignées ; les dates sur demande", () => {
+    expect(GRAPHE).toMatch(/<BarreDePlage[\s\S]*?partie="barre"/);
+    expect(GRAPHE).toMatch(/\{champs && <BarreDePlage[\s\S]*?partie="champs"/);
+    expect(GRAPHE).toMatch(/className=\{styles\.ligne\}/);
+    expect(GCSS, "la bande a sa colonne nommée : la barre ne sort plus du panneau").toMatch(/\.barre \{[^}]*grid-template-columns: minmax\(0, 1fr\)/);
+  });
+  it("la vue du cours sélectionne des pays : une pastille par pays, toutes ses sociétés d'un coup (pas de sous-indice maison)", () => {
+    expect(CHART).toMatch(/const basculerPays = /);
+    expect(CHART).toMatch(/data-pays/);
+    expect(CHART).toMatch(/country\?: string/);
+    expect(lire("src/app/indice/IndiceBody.tsx")).toMatch(/country: companies\.find/);
   });
 });
 

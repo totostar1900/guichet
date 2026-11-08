@@ -65,21 +65,45 @@
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: var(--bloc-gap);
 }
+/* Secteur ou pays : la barre est le poids de fin, le trait (teinte du repère, cerné du fond) le poids du début. */
 .split {
   display: grid;
-  grid-template-columns: minmax(0, 8rem) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--s-3);
   font-size: var(--t-3);
 }
-.split i {
+.piste {
+  position: relative;
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface-2);
+}
+.piste i {
   display: block;
   height: 8px;
   border-radius: 4px;
   background: var(--chart-out);
 }
+.piste u {
+  position: absolute;
+  top: -4px;
+  width: 3px;
+  height: 16px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--repere);
+  box-shadow: 0 0 0 1.5px var(--surface);
+  text-decoration: none;
+}
 .split b {
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.split small {
+  font-weight: 600;
+  color: var(--ink-3);
 }
 .stats {
   margin: 0;
@@ -141,4 +165,30 @@
 .tableau tfoot td {
   border-top: 2px solid var(--line-2);
   font-weight: 700;
+}
+.commutateur {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+}
+.commutateur button {
+  min-height: var(--ctrl-h);
+  padding: 0 var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: 99px;
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: var(--ctrl-t);
+  font-weight: 600;
+  cursor: pointer;
+}
+.commutateur button[aria-pressed="true"] {
+  border-color: var(--ink);
+  color: var(--ink);
+  background: var(--surface-2);
+}
+.commutateur button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
 }

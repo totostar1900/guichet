@@ -3,11 +3,11 @@
   position: sticky;
   top: var(--barre-collante, 0px);
   z-index: 20;
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: var(--s-2) var(--s-4);
-  padding: var(--s-2) 16px;
+  display: grid;
+  /* Une colonne nommée : sans elle, la piste « auto » grandit jusqu'au plus large de ses enfants et la barre à poignées sortait du panneau. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding: var(--s-2) 16px 0;
   --sel-fixe: 17rem;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
@@ -39,4 +39,27 @@
   .court {
     display: inline;
   }
+}
+.ligne {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-4);
+}
+.datesBtn {
+  flex: none;
+  min-height: var(--ctrl-h);
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--ctrl-t);
+  font-weight: 600;
+  cursor: pointer;
+}
+.datesBtn[aria-expanded="true"] {
+  border-color: var(--ink);
+  color: var(--ink);
 }
