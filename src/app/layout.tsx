@@ -32,8 +32,9 @@ import { PorteVitrine } from "@/components/PorteVitrine";
 import { SaufSurLaPorte } from "@/components/SaufSurLaPorte";
 import { ConsentGate } from "@/components/ConsentGate";
 import { TermSheetHost } from "@/components/TermSheet";
-import { PALETTE_BOOT, P_COOKIE, T_COOKIE, paletteAttrs } from "@/lib/palette";
+import { DESK_BOOT, DESK_T_COOKIE, PALETTE_BOOT, P_COOKIE, T_COOKIE, deskAttrs, paletteAttrs } from "@/lib/palette";
 import { PaletteKeeper } from "@/components/PaletteSwitch";
+import { DeskThemeKeeper, DeskThemeSwitch } from "@/components/DeskThemeSwitch";
 import { BarProbe } from "@/components/mobile/BarProbe";
 import { cookies, headers } from "next/headers";
 import { clientOrigin, deskSplit, isDeskHost } from "@/lib/hosts";
@@ -168,15 +169,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const menu = <AppMenu signedIn={Boolean(session)} desk={deskUi} name={session?.name} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
-    <html lang={lang} data-tuiles={TUILES} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value, surface)}>
+    <html lang={lang} data-tuiles={TUILES} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...(deskUi ? deskAttrs(jar.get(DESK_T_COOKIE)?.value) : paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value, surface))}>
       <head>
         {/* the device's palette and theme, applied before the first paint */}
-        <script dangerouslySetInnerHTML={{ __html: PALETTE_BOOT }} />
+        <script dangerouslySetInnerHTML={{ __html: deskUi ? DESK_BOOT : PALETTE_BOOT }} />
       </head>
       <body>
         <LangProvider lang={lang}>
         <AuthHashRedirect />
-        <PaletteKeeper saved={account?.prefs} />
+        {deskUi ? <DeskThemeKeeper saved={account?.prefs?.deskTheme} /> : <PaletteKeeper saved={account?.prefs} />}
         <BarProbe />
         <ColonneStore>
         <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={lessonsForClient(registry.lessons)} issuers={issuersForClient(issuers)}>
@@ -274,7 +275,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                  opérateur n'a rien de tout cela, et elle lui montrait des
                  cases vides sous un « Bonjour ». */
               deskUi && session && poste ? (
-                <PosteDuDesk nom={session.name} poste={poste} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} dock="bottom-left" />
+                <>
+                  <DeskThemeSwitch />
+                  <PosteDuDesk nom={session.name} poste={poste} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} dock="bottom-left" />
+                </>
               ) : (
               <UserMenu
                 session={session}

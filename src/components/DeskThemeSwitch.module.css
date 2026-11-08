@@ -1,0 +1,26 @@
+/* Les trois thèmes du Desk : un segment de trois boutons au pied de la barre latérale. */
+.seg {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-1);
+  margin-bottom: var(--s-3);
+}
+.seg button {
+  padding: var(--s-1) var(--s-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-2);
+  cursor: pointer;
+}
+.seg button:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: 2px;
+}
+.seg .on {
+  border-color: var(--gold-ink);
+  color: var(--gold-ink);
+  font-weight: 700;
+}

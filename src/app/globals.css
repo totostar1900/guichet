@@ -1635,3 +1635,29 @@ html[data-tuiles="lignes"] {
     animation: none !important;
   }
 }
+
+/* LE SABLE, THÈME DU DESK (8 novembre 2026, planche « Thèmes du Desk », 1A). Un clair chaud : `data-theme="light"` garde toutes les règles du clair, `data-desk="sable"` ne redit que les couleurs.
+   Contrastes mesurés sur le fond de page : encre 12,1:1 · encre secondaire 6,3:1 · encre tertiaire 4,6:1 · or foncé 5,0:1. Posé par le seul Desk (`deskAttrs`) : le client ne le voit jamais. */
+:root[data-theme="light"][data-desk="sable"] {
+  color-scheme: light;
+  --paper: #ece3d3;
+  --surface: #f7f1e6;
+  --surface-2: #e7dcc7;
+  --line: #d8cdb5;
+  --line-2: #c3b595;
+  --ink: #2a2418;
+  --ink-2: #55493a;
+  --ink-3: #6b6049;
+  --gold: #a87a0c;
+  --gold-ink: #7a5a05;
+  --gold-soft: #f3e6c4;
+  --gold-line: #d6bf86;
+  --zebra: #e9dfca;
+  --neutral-soft: #efe6d3;
+  --back-face: #eadcb8;
+  --good-soft: #dfeede;
+  --warn-soft: #f6e3c5;
+  --crit-soft: #f3d9d2;
+  --info-soft: #dde6ee;
+  --shadow: 0 8px 24px rgba(70, 50, 10, 0.14);
+}

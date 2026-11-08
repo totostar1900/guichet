@@ -3750,4 +3750,8 @@ export const EN_MORE: Record<string, string> = {
   "les six États": "all six States",
   "note(s) s'y appuient": "note(s) rest on it",
   "jamais ouverte": "never opened",
+  "Thème du Desk": "Desk theme",
+  "Clair": "Light",
+  "Sombre": "Dark",
+  "Sable": "Sand",
 };

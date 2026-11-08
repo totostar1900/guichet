@@ -49,3 +49,28 @@ export function paletteAttrs(palette?: string, theme?: string, surface: Surface 
   if (theme === "light" || theme === "dim" || theme === "dark") out["data-theme"] = theme;
   return out;
 }
+
+
+/**
+ * LE DESK A SON PROPRE ASPECT (8 novembre 2026, planche « Thèmes du Desk », 1A · 2A · 3A).
+ *
+ * Trois thèmes seulement : clair, sombre, sable. Le sable est un clair chaud : il pose `data-theme="light"` (toutes les règles du clair continuent de valoir) et `data-desk="sable"`,
+ * qui ne redit que les jetons de couleur. Le Desk n'a ni palette ni « tamisé », et il ne lit JAMAIS le choix du client : ses clés d'appareil, son témoin et son champ de compte
+ * sont les siens (`deskTheme`), et le client, de son côté, ne lit pas ceux-ci. Sans choix, le Desk est sombre : l'espace de travail reste en nuit.
+ */
+export const DESK_THEMES = ["dark", "light", "sable"] as const;
+export type DeskTheme = (typeof DESK_THEMES)[number];
+export const DESK_T_KEY = "guichet:desk-theme";
+export const DESK_T_COOKIE = "guichet_desk_theme";
+export const isDeskTheme = (v: unknown): v is DeskTheme => typeof v === "string" && (DESK_THEMES as readonly string[]).includes(v);
+
+/** What the server puts on <html> for the desk: the theme and, for the sand, the extra mark; never a palette. */
+export function deskAttrs(theme?: string): { "data-theme": "light" | "dark"; "data-defaut": "dark"; "data-desk"?: "sable" } {
+  const out: { "data-theme": "light" | "dark"; "data-defaut": "dark"; "data-desk"?: "sable" } = { "data-theme": "dark", "data-defaut": "dark" };
+  if (theme === "light" || theme === "sable") out["data-theme"] = "light";
+  if (theme === "sable") out["data-desk"] = "sable";
+  return out;
+}
+
+/** The desk's boot script: applies the desk's own choice before the first paint, and nothing of the client's. */
+export const DESK_BOOT = `(function(){try{var t=localStorage.getItem("${DESK_T_KEY}"),r=document.documentElement;r.removeAttribute("data-palette");if(t==="light"||t==="sable"){r.setAttribute("data-theme","light")}else{r.setAttribute("data-theme","dark")}if(t==="sable")r.setAttribute("data-desk","sable");else r.removeAttribute("data-desk");if(t&&document.cookie.indexOf("${DESK_T_COOKIE}="+t)<0)document.cookie="${DESK_T_COOKIE}="+t+"; path=/; max-age=${YEAR}; samesite=lax";}catch(e){}})();`;

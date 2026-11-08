@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { isLang, LANG_COOKIE, type Lang } from "@/i18n/core";
-import { P_COOKIE, PALETTES, T_COOKIE, THEMES, YEAR } from "@/lib/palette";
+import { DESK_T_COOKIE, isDeskTheme, P_COOKIE, PALETTES, T_COOKIE, THEMES, YEAR } from "@/lib/palette";
 
 /**
  * L'apparence, enregistrée par le serveur et non par le navigateur.
@@ -35,6 +35,12 @@ export interface Display {
 const okPalette = (v: unknown): v is string => typeof v === "string" && PALETTES.some((p) => p.key === v);
 const okTheme = (v: unknown): v is string => typeof v === "string" && (THEMES as readonly string[]).includes(v);
 
+/** Ajoute des champs aux préférences du compte sans effacer les autres. */
+async function ecrireAuCompte(userId: string, champs: Partial<import("@/lib/domain/types").ClientPrefs>): Promise<void> {
+  const prefs = await repo().getPrefs(userId);
+  await repo().setPrefs(userId, { ...prefs, ...champs });
+}
+
 /** Pose les témoins pour un an, et garde le choix au compte quand il y en a un. */
 export async function saveDisplay(d: Display): Promise<void> {
   const jar = await cookies();
@@ -46,9 +52,7 @@ export async function saveDisplay(d: Display): Promise<void> {
   const session = await getSession();
   if (!session) return;
   try {
-    const prefs = await repo().getPrefs(session.userId);
-    await repo().setPrefs(session.userId, {
-      ...prefs,
+    await ecrireAuCompte(session.userId, {
       ...(okPalette(d.palette) ? { palette: d.palette } : {}),
       ...(okTheme(d.theme) ? { theme: d.theme } : {}),
       ...(isLang(d.lang) ? { lang: d.lang } : {}),
@@ -56,5 +60,20 @@ export async function saveDisplay(d: Display): Promise<void> {
   } catch {
     // Le compte n'a pas pu être écrit : le témoin tient déjà le choix sur cet
     // appareil, et l'apparence n'est pas une raison de faire échouer une page.
+  }
+}
+
+
+/** L'aspect du Desk : son propre témoin et son propre champ de compte, sans toucher à la palette ni au thème du client. */
+export async function saveDeskTheme(theme: string): Promise<void> {
+  if (!isDeskTheme(theme)) return;
+  const jar = await cookies();
+  jar.set(DESK_T_COOKIE, theme, { path: "/", maxAge: YEAR, sameSite: "lax" });
+  const session = await getSession();
+  if (!session) return;
+  try {
+    await ecrireAuCompte(session.userId, { deskTheme: theme });
+  } catch {
+    // le témoin tient déjà le choix sur cet appareil
   }
 }

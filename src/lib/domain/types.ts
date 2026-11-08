@@ -918,6 +918,8 @@ export interface ClientPrefs {
   palette?: string;
   theme?: string;
   lang?: "fr" | "en";
+  /** L'aspect du Desk (clair, sombre, sable) : un champ à part, que le client ne lit pas et que le Desk ne mêle pas à sa palette. */
+  deskTheme?: string;
 }
 
 /* ---------------- Templates : the desk's wording, versioned ---------------- */
