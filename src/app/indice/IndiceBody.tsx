@@ -110,7 +110,7 @@ export async function IndiceBody({ searchParams, mode = "client" }: { searchPara
             retour={desk ? undefined : { href: "/marche", mot: t("Le marché") }}
             surTitre={`BVMAC · ${t("indice de prix")} · ${t("à chaque séance")}`}
             titre={t("L'indice BVMAC All Share")}
-            phrase={t("Un seul nombre pour toutes les actions cotées à la BVMAC : la somme des capitalisations, ramenée à une base. Guichet le montre tel qu'il est publié.")}
+            phrase={t("Le niveau d'ensemble des actions cotées à la BVMAC : la somme de leurs capitalisations, ramenée à une base. Il suit les cours, pas les dividendes. Publié par la BVMAC à chaque séance.")}
           />
         </div>
         <div className={styles.links}>

@@ -105,6 +105,7 @@ export default async function MarchePage() {
         <EnTete
           surTitre={`BVMAC · ${t("Bourse des Valeurs Mobilières de l'Afrique Centrale")}`}
           titre={t("Le marché")}
+          phrase={t("La Bourse de l'Afrique Centrale, séance après séance : l'indice, ce qui s'est échangé, les sociétés cotées, les adjudications et les notes de marché.")}
         />
 
         {/* L'EN-TÊTE DE LA MAISON, ET SA FLÈCHE AU MÊME ENDROIT QUE LES AUTRES.

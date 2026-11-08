@@ -1597,7 +1597,8 @@ export const EN_MORE: Record<string, string> = {
   // La page de l'indice et son graphique
   "à chaque séance": "at every session",
   "L'indice BVMAC All Share": "The BVMAC All Share Index",
-  "Un seul nombre pour toutes les actions cotées à la BVMAC : la somme des capitalisations, ramenée à une base. Guichet le montre tel qu'il est publié.": "One number for every share listed on the BVMAC: the sum of capitalisations, rebased. Guichet shows it as published.",
+  "Le niveau d'ensemble des actions cotées à la BVMAC : la somme de leurs capitalisations, ramenée à une base. Il suit les cours, pas les dividendes. Publié par la BVMAC à chaque séance.": "The overall level of the shares listed on the BVMAC: the sum of their capitalisations, rebased. It follows prices, not dividends. Published by the BVMAC every session.",
+  "La Bourse de l'Afrique Centrale, séance après séance : l'indice, ce qui s'est échangé, les sociétés cotées, les adjudications et les notes de marché.": "The Central African stock exchange, session by session: the index, what was traded, the listed companies, the auctions and the market notes.",
   "L'éclairage : comment le lire": "The insight: how to read it",
   "sur la séance": "on the session",
   "plus haut 12 mois": "12-month high",
