@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef } from "react";
+import Link from "next/link";
 import { useT } from "@/i18n/client";
 import { IconeDeSection, type NomIcone } from "./IconeDeSection";
 import styles from "./GrilleDInstruments.module.css";
@@ -15,7 +16,9 @@ export interface TuileDInstrument {
   on: boolean;
   /** Éteinte, jamais cachée : sans nombre sur la tuile, c'est l'éclat qui dit l'absence. */
   vide?: boolean;
-  onClick: () => void;
+  onClick?: () => void;
+  /** Une tuile-lien (9 novembre 2026) : elle mène à une page au lieu de filtrer la liste. */
+  href?: string;
 }
 
 /**
@@ -31,14 +34,25 @@ export const GrilleDInstruments = forwardRef<HTMLDivElement, { items: TuileDInst
     /* QUATRE TUILES OU MOINS TIENNENT CÔTE À CÔTE (4 novembre 2026) : les adjudications en ont quatre (Tout, Obligations, Bons, Rachats), et la
        troisième colonne laissait « Rachats » seul sur une deuxième rangée. Au-delà, trois colonnes : six tuiles font deux rangées pleines. */
     <div ref={ref} className={styles.grille} data-serre={items.length >= 6 ? "oui" : undefined} style={{ ["--colonnes" as string]: items.length <= 6 ? Math.max(items.length, 1) : 3 }} role="group" aria-label={t(etiquette)} data-coach={coach}>
-      {items.map((x) => (
-        <button key={x.cle} type="button" data-section={x.cle} className={`${styles.tuile} ${x.on ? styles.on : ""} ${x.vide ? styles.empty : ""}`.trim()} aria-pressed={x.on} aria-label={x.accessible} onClick={x.onClick} disabled={x.vide}>
-          <i>
-            <IconeDeSection section={x.icone} taille={22} />
-          </i>
-          <span>{x.nom}</span>
-        </button>
-      ))}
+      {items.map((x) => {
+        const dedans = (
+          <>
+            <i>
+              <IconeDeSection section={x.icone} taille={22} />
+            </i>
+            <span>{x.nom}</span>
+          </>
+        );
+        return x.href ? (
+          <Link key={x.cle} href={x.href} data-section={x.cle} className={styles.tuile} aria-label={x.accessible}>
+            {dedans}
+          </Link>
+        ) : (
+          <button key={x.cle} type="button" data-section={x.cle} className={`${styles.tuile} ${x.on ? styles.on : ""} ${x.vide ? styles.empty : ""}`.trim()} aria-pressed={x.on} aria-label={x.accessible} onClick={x.onClick} disabled={x.vide}>
+            {dedans}
+          </button>
+        );
+      })}
     </div>
   );
 });

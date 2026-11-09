@@ -313,3 +313,10 @@ La règle du 2 novembre (« le titre à plat, jamais dans la carte ») est levé
 ## Leçon du 9 novembre 2026 : déplier plutôt que retourner, et un geste global plutôt que 121 feuilles
 
 Une carte qui cache une face (3D) se remplace par une **extension** : `Depliable` + `Extension` + `Outils` + `ChevronDeplie` (`mobile/CarteDepliee`), la même sur toutes les pages. Mouvement seul : on anime la hauteur (`grid-template-rows`), jamais l'opacité ni un voile. Un composant de carte NE redonne PAS sa propre classe au « ··· » (la taille redevenait différente d'une page à l'autre : 32 px sans anneau sur les Fonds, 34 px à anneau ailleurs). Un retour au toucher se pose UNE fois, globalement, avec `scale`. Piège : retirer un composant de dos laisse du code mort (`SwipeActions` garde son retournement : plus personne ne lui passe `back`) et des repères de visite à retargeter (`titres-retourner` → `titres-deplier`).
+
+## Leçon du 9 novembre 2026 (soir) : une page d'Investir ne montre que ce qui se joue ; le passé a une seule porte
+
+- **Les séances closes ont une page, pas deux** : la page des adjudications d'Investir ne garde que les séances ouvertes ou à venir (`!isPast(displayStatus(o))`, le même test que `summary.past`, sinon « résultats » ou « livrée » restent dans la liste). Les résultats confirmés ET les lignes closes du catalogue vivent aux Résultats (Marché) ; la page vide dit pourquoi et mène aux Résultats et au calendrier des séances passées.
+- **Deux liens de plus sur la rangée des filtres = deux tuiles-liens** (`GrilleDInstruments`, `href`) : six tuiles tiennent sur une rangée à 390 px (62 px chacune). Jamais un lien texte au-dessus de la rangée.
+- **Une rangée avec « ··· » à côté est plus étroite que sa voisine** (322 px contre 362) : une rangée de lecture seule, sans menu, prend toute la largeur et laisse son nom passer à la ligne.
+- **Un retrait ne perd rien** : ce qui quittait la page (13 lignes closes) a été relogé aux Résultats, sauf celles qu'un résultat porte déjà par le code d'émission.

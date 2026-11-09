@@ -18,13 +18,22 @@ describe("les séances closes", () => {
     expect(badgesFor(offre({}), "closed" as never, now).map((b) => b.key), "la sélection du desk paraît sur une séance close").not.toContain("selection");
     expect(badgesFor(offre({ deadlineAt: "2026-11-20T12:00:00Z" }), "open" as never, now).map((b) => b.key)).toContain("selection");
   });
-  it("la page d'Investir lit les résultats confirmés, sans créer d'offre, six au plus, hors lignes déjà au catalogue", () => {
+  it("la page d'Investir ne montre aucune séance close : ni résultats, ni lignes closes, des liens vers le Marché et le calendrier", () => {
     const p = code("src/app/calendrier/page.tsx");
-    expect(p).toMatch(/vueClient\(await repo\(\)\.listAuctionResults\(/);
-    expect(p, "les résultats ne sont plus bornés à six").toMatch(/\.slice\(0, 6\)/);
-    expect(p).toMatch(/codesDuCatalogue\.has\(r\.codeEmission\)/);
-    expect(p, "une offre est créée depuis un résultat").not.toMatch(/createOffer|publishOffer|upsertOffer/);
-    expect(p).toMatch(/<CarteDeSeanceClose key=\{r\.id\} s=\{r\} \/>/);
+    expect(p, "les résultats confirmés sont revenus dans Investir").not.toMatch(/listAuctionResults|CarteDeSeanceClose|Séances closes/);
+    expect(p, "une ligne close passe encore dans la liste d'Investir").toMatch(/!isPast\(displayStatus\(o, maintenant\)\)/);
+    expect(p, "la page vide ne mène plus aux résultats passés").toMatch(/href="\/marche\/adjudications"/);
+    expect(p, "la page vide ne mène plus au calendrier").toMatch(/href="\/calendrier\/seances"/);
+    expect(p, "le lien en tête du calendrier est revenu : il est une tuile à côté des filtres").not.toMatch(/Calendrier des séances\} ›/);
+    const b = code("src/components/OfferBrowser.tsx");
+    expect(b, "les tuiles Calendrier et Résultats ne sont plus sur la rangée des filtres").toMatch(/cle: "calendrier"[\s\S]*cle: "resultats"/);
+    expect(b, "le bloc des séances closes reparaît même vide").toMatch(/closes\.length > 0 \? \[\{ clef: "closes"/);
+  });
+  it("le Marché porte les lignes closes du catalogue, pleine largeur, hors celles qu'un résultat porte déjà", () => {
+    const m = code("src/app/marche/adjudications/page.tsx");
+    expect(m).toMatch(/codesDesResultats\.has\(o\.isin\)/);
+    expect(m).toMatch(/<RangeeDeLigneClose key=\{o\.id\} o=\{o\} \/>/);
+    expect(code("src/components/market/RangeeDeLigneClose.tsx"), "la rangée close porte de nouveau un menu qui la rétrécit").not.toMatch(/LineMenu/);
   });
   it("la carte close montre les huit chiffres du communiqué, aucun bouton d'ordre, aucune sélection", () => {
     const c = code("src/components/market/CarteDeSeanceClose.tsx");

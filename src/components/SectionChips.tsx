@@ -22,7 +22,7 @@ import { GrilleDInstruments, type TuileDInstrument } from "./GrilleDInstruments"
  * ÉTEINTE : sans nombre, c'est l'éclat qui dit l'absence, et le nom accessible dit « aucune ». La règle de la maison est que
  * l'absence se voie.
  */
-export function SectionChips({ sections: toutes, counts, selected, onChange, filtrant = false }: { sections: Section[]; counts: Record<string, number>; selected?: Section; onChange: (s: Section | undefined) => void; filtrant?: boolean }) {
+export function SectionChips({ sections: toutes, counts, selected, onChange, filtrant = false, liens = [] }: { sections: Section[]; counts: Record<string, number>; selected?: Section; onChange: (s: Section | undefined) => void; filtrant?: boolean; /** Des tuiles-liens à la suite des filtres, sur la même rangée (9 novembre 2026 : Calendrier, Résultats). */ liens?: { cle: string; icone: NomIcone; nom: string; href: string }[] }) {
   const t = useT();
   const bar = useRef<HTMLDivElement>(null);
   /* PAS DE RACHAT, PAS DE TUILE (5 novembre 2026) : un rachat n'est pas une section qu'on attend, c'est une offre du Trésor qui paraît ou non. Sans ligne, son icône ne mène nulle part : elle est retirée, et elle revient avec la première offre. Les autres sections vides restent éteintes (l'absence se voit). */
@@ -38,6 +38,7 @@ export function SectionChips({ sections: toutes, counts, selected, onChange, fil
       const ici = !selected && !filtrant && enVue === s;
       return { cle: s, icone: s as NomIcone, nom: t(SECTION_COURT[s]), accessible: dit(t(SECTION_COURT[s]), n), on: selected === s || ici, vide: n === 0, onClick: () => (filtrant ? onChange(s) : selected ? onChange(undefined) : conduire(s)) };
     }),
+    ...liens.map((l) => ({ cle: l.cle, icone: l.icone, nom: l.nom, accessible: l.nom, on: false, href: l.href })),
   ];
   return <GrilleDInstruments ref={bar} items={items} etiquette="Sections" coach="titres-sections" />;
 }

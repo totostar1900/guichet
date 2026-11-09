@@ -972,10 +972,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       const ouvertes = list.filter(({ s }) => !s.past);
       const premieres = [...ouvertes.filter(({ o }) => pickIds.has(o.id)), ...ouvertes.filter(({ o }) => !pickIds.has(o.id))];
       const closes = list.filter(({ s }) => s.past);
-      return [
-        { clef: "ouvertes", entier: t("Ouvertes et à venir · {n}", { n: String(premieres.length) }), rows: premieres },
-        { clef: "closes", entier: t("Séances closes · {n}", { n: String(closes.length) }), rows: closes },
-      ];
+      /* LES SÉANCES CLOSES ONT QUITTÉ CETTE PAGE (9 novembre 2026) : elles vivent aux Résultats (Marché). Le bloc ne reparaît que si une liste en porte encore (le desk). */
+      return [{ clef: "ouvertes", entier: t("Ouvertes et à venir · {n}", { n: String(premieres.length) }), rows: premieres }, ...(closes.length > 0 ? [{ clef: "closes", entier: t("Séances closes · {n}", { n: String(closes.length) }), rows: closes }] : [])];
     }
     return groupBySection(list, lieu).map((g) => ({ clef: g.section, entier: t(SECTION_LABEL[g.section]), rows: g.rows }));
   };
@@ -1078,6 +1076,14 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         counts={sectionCounts}
         selected={sectionChoisie}
         filtrant
+        liens={
+          lieu === "adjudications" && !desk
+            ? [
+                { cle: "calendrier", icone: "calendrier", nom: t("Calendrier"), href: "/calendrier/seances" },
+                { cle: "resultats", icone: "resultats", nom: t("Résultats"), href: "/marche/adjudications" },
+              ]
+            : []
+        }
         onChange={(k) => update({ section: k ?? (lieu === "cote" ? "tout" : undefined), instrument: undefined, pays: lieu === "cote" ? undefined : country.size ? [...country].join(",") : undefined })}
       />
       {lieu === "cote" && sectionChoisie === "etats" && <PastillesPays pays={paysDesEtats} selected={country} onChange={(p) => update({ pays: p })} />}

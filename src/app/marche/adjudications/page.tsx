@@ -6,6 +6,9 @@ import { COUVERTURE_FIABLE_DEPUIS, partCouverte, tauxLimiteParDuree, vueClient }
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { CarteDeSeanceClose } from "@/components/market/CarteDeSeanceClose";
+import { RangeeDeLigneClose } from "@/components/market/RangeeDeLigneClose";
+import { seancesAnnoncees } from "@/lib/domain/listes";
+import { displayStatus, isPast } from "@/lib/domain/status";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +27,10 @@ export const metadata = { title: "Les adjudications" };
 export default async function AdjudicationsClientPage() {
   const t = await getT();
   const toutes = vueClient(await repo().listAuctionResults({ limit: 20_000 }));
+  /* LES LIGNES CLOSES DU CATALOGUE ONT QUITTÉ INVESTIR (9 novembre 2026) : elles sont ici, sauf celles dont un résultat ci-dessus porte déjà le code d'émission. */
+  const codesDesResultats = new Set(toutes.map((r) => r.codeEmission).filter(Boolean));
+  const maintenant = new Date();
+  const lignesCloses = seancesAnnoncees(await repo().listOffers()).filter((o) => isPast(displayStatus(o, maintenant)) && !(o.isin && codesDesResultats.has(o.isin)));
   const dernieres = toutes.slice(0, 12);
   const durees = tauxLimiteParDuree(toutes);
   const part = toutes.length ? partCouverte(toutes, toutes[0].sessionOn) : undefined;
@@ -45,6 +52,17 @@ export default async function AdjudicationsClientPage() {
               <CarteDeSeanceClose key={s.id} s={s} />
             ))}
             <p className={styles.note}>{t("Les montants sont en francs CFA. Un taux ou un prix absent n'a pas été imprimé dans le communiqué.")}</p>
+          </section>
+        )}
+
+        {lignesCloses.length > 0 && (
+          <section className={styles.seances} id="lignes-closes" aria-labelledby="lignes-closes-titre">
+            <h2 id="lignes-closes-titre" className={styles.titreListe}>
+              {t("Lignes closes du catalogue")} · {lignesCloses.length}
+            </h2>
+            {lignesCloses.map((o) => (
+              <RangeeDeLigneClose key={o.id} o={o} />
+            ))}
           </section>
         )}
 
@@ -96,7 +114,7 @@ export default async function AdjudicationsClientPage() {
 
         <p className={styles.source}>
           {t("Guichet reproduit les chiffres des communiqués des Trésors, relus avant publication ; il n'en ajoute aucun.")}{" "}
-          <Link href="/marche">{t("Le marché")}</Link>
+          <Link href="/marche">{t("Le marché")}</Link> · <Link href="/calendrier/seances">{t("Calendrier des séances")}</Link>
         </p>
       </div>
     </Glissement>

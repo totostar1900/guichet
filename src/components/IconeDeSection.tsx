@@ -8,7 +8,7 @@ import type { Section } from "@/lib/domain/sections";
  * courbe, une émission en souscription une horloge. Les catégories de fonds et les compartiments des adjudications ont les
  * leurs. Elles s'écrivent à l'encre de la tuile et ne portent jamais le sens seules : le nom est dessous.
  */
-export type NomIcone = Section | "tout" | "monetaire" | "obligataire" | "diversifie" | "fonds_actions";
+export type NomIcone = Section | "tout" | "calendrier" | "resultats" | "monetaire" | "obligataire" | "diversifie" | "fonds_actions";
 
 const TRAITS: Partial<Record<NomIcone, string>> = {
   tout: "M4 4h6.5v6.5H4zM13.5 4H20v6.5h-6.5zM4 13.5h6.5V20H4zM13.5 13.5H20V20h-6.5z",
@@ -24,6 +24,8 @@ const TRAITS: Partial<Record<NomIcone, string>> = {
   diversifie: "M12 3v9h9a9 9 0 1 1-9-9ZM15 3.5A9 9 0 0 1 20.5 9H15V3.5Z",
   bons_tresor: "M4 12a8 8 0 1 0 16 0 8 8 0 0 0-16 0ZM12 8v4l3 2",
   rachats: "M5 12h14M9 8l-4 4 4 4",
+  calendrier: "M4 6.5h16V20H4zM4 10.5h16M8 4v4M16 4v4",
+  resultats: "M5 20v-9M12 20V4M19 20v-6",
 };
 
 export function IconeDeSection({ section, taille = 14 }: { section: NomIcone; taille?: number }) {
