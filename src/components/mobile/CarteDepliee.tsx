@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useId, useRef, useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useId, useRef, useSyncExternalStore, useTransition } from "react";
 import { toggleWatch } from "@/app/offres/[id]/actions";
 import { useT } from "@/i18n/client";
 import { useSuivi } from "@/lib/ui/suivi";
@@ -18,11 +18,28 @@ import styles from "./CarteDepliee.module.css";
  * LE MOUVEMENT EST SEUL : la hauteur glisse (`grid-template-rows`, 0fr → 1fr), sans fondu, sans voile, sans dépassement de courbe. Un clic sur la carte mène toujours à la fiche : seul le chevron déplie.
  * La région fermée est `inert` : ni focus ni lecteur d'écran n'y entrent.
  */
+/* UNE SEULE CARTE OUVERTE À LA FOIS, SUR TOUTES LES PAGES (9 novembre 2026) : ouvrir une carte referme celle qui l'était. Le magasin est un module : les cartes de Titres, Fonds, Adjudications et des séances closes le lisent. */
+let ouverteId: string | null = null;
+const abonnes = new Set<() => void>();
+const poser = (id: string | null) => {
+  if (ouverteId === id) return;
+  ouverteId = id;
+  abonnes.forEach((f) => f());
+};
+const abonner = (f: () => void) => {
+  abonnes.add(f);
+  return () => {
+    abonnes.delete(f);
+  };
+};
+
 export function useDepliee() {
-  const [ouvert, setOuvert] = useState(false);
   const id = useId();
-  const replier = useCallback(() => setOuvert(false), []);
-  return { ouvert, basculer: () => setOuvert((o) => !o), replier, idRegion: `carte-${id.replace(/:/g, "")}` };
+  const ouvert = useSyncExternalStore(abonner, () => ouverteId === id, () => false);
+  const replier = useCallback(() => {
+    if (ouverteId === id) poser(null);
+  }, [id]);
+  return { ouvert, basculer: () => poser(ouverteId === id ? null : id), replier, idRegion: `carte-${id.replace(/:/g, "")}` };
 }
 
 /** Le chevron, 34 px à anneau, sous les « ··· » : le même sur Titres, Fonds et Adjudications. */
@@ -149,13 +166,18 @@ export function BoutonsDeLaCarte({ id, href, kind, past, cadence, suivi, agir = 
  */
 export function BoutonsDeSeanceClose({ href }: { href?: string }) {
   const t = useT();
+  /* DÉJÀ SUR LA PAGE DES RÉSULTATS, le bouton qui y mène n'a plus lieu d'être (9 novembre 2026). */
+  const surLesResultats = usePathname().startsWith("/marche/adjudications");
+  if (surLesResultats && !href) return null;
   return (
     <div className={styles.boutons}>
-      <Link className={`btn primary ${styles.bouton}`} href="/marche/adjudications#seances">
-        {t("Tous les résultats")}
-      </Link>
+      {!surLesResultats && (
+        <Link className={`btn primary ${styles.bouton}`} href="/marche/adjudications#seances">
+          {t("Tous les résultats")}
+        </Link>
+      )}
       {href && (
-        <Link className={`btn ${styles.bouton}`} href={href}>
+        <Link className={`btn ${surLesResultats ? "primary" : ""} ${styles.bouton}`} href={href}>
           {t("Voir la fiche")}
         </Link>
       )}

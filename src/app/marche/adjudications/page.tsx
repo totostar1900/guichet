@@ -5,8 +5,8 @@ import { fmtDate, fmtPct } from "@/lib/format";
 import { COUVERTURE_FIABLE_DEPUIS, partCouverte, tauxLimiteParDuree, vueClient } from "@/lib/market/adjudications-client";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
-import { CarteDeSeanceClose } from "@/components/market/CarteDeSeanceClose";
-import { RangeeDeLigneClose } from "@/components/market/RangeeDeLigneClose";
+import type { EntreeClose } from "@/components/market/CarteDeSeanceClose";
+import { ListeDesSeancesCloses } from "@/components/market/ListeDesSeancesCloses";
 import { seancesAnnoncees } from "@/lib/domain/listes";
 import { displayStatus, isPast } from "@/lib/domain/status";
 import styles from "./page.module.css";
@@ -27,11 +27,17 @@ export const metadata = { title: "Les adjudications" };
 export default async function AdjudicationsClientPage() {
   const t = await getT();
   const toutes = vueClient(await repo().listAuctionResults({ limit: 20_000 }));
-  /* LES LIGNES CLOSES DU CATALOGUE ONT QUITTÉ INVESTIR (9 novembre 2026) : elles sont ici, sauf celles dont un résultat ci-dessus porte déjà le code d'émission. */
-  const codesDesResultats = new Set(toutes.map((r) => r.codeEmission).filter(Boolean));
+  /* UNE SEULE LISTE (9 novembre 2026, soir) : les résultats confirmés, chacun enrichi de la ligne du catalogue qui porte son code d'émission (coupon, échéance, fiche), et les lignes closes du catalogue qu'aucun résultat ne porte. */
+  const offres = seancesAnnoncees(await repo().listOffers());
+  const parCode = new Map(offres.filter((o) => o.isin).map((o) => [o.isin as string, o]));
   const maintenant = new Date();
-  const lignesCloses = seancesAnnoncees(await repo().listOffers()).filter((o) => isPast(displayStatus(o, maintenant)) && !(o.isin && codesDesResultats.has(o.isin)));
-  const dernieres = toutes.slice(0, 12);
+  const entrees: EntreeClose[] = [
+    ...toutes.map((s): EntreeClose => {
+      const offre = s.codeEmission ? parCode.get(s.codeEmission) : undefined;
+      return { type: "resultat", s, offre, href: offre ? `/offres/${offre.id}` : undefined };
+    }),
+    ...offres.filter((o) => isPast(displayStatus(o, maintenant)) && !(o.isin && toutes.some((s) => s.codeEmission === o.isin))).map((o): EntreeClose => ({ type: "ligne", o, href: `/offres/${o.id}` })),
+  ];
   const durees = tauxLimiteParDuree(toutes);
   const part = toutes.length ? partCouverte(toutes, toutes[0].sessionOn) : undefined;
 
@@ -40,29 +46,16 @@ export default async function AdjudicationsClientPage() {
       <div className="pile">
         <EnTete surTitre={`BVMAC · ${t("Le marché")}`} titre={t("Les adjudications")} phrase={t("Ce que les Trésors de la zone ont obtenu, séance après séance, tel que leur communiqué le publie.")} />
 
-        {dernieres.length === 0 ? (
+        {entrees.length === 0 ? (
           <div className="empty">{t("Aucune séance relue pour le moment.")}</div>
         ) : (
           <section className={styles.seances} id="seances" aria-labelledby="dernieres-seances">
-            {/* UNE TUILE PAR SÉANCE, PLEINE LARGEUR (9 novembre 2026, 3A) : le même composant que les séances closes d'Investir, au lieu de rangées dans un panneau qui les rétrécissait et collait la première au bandeau. */}
+            {/* UNE LISTE, UNE CARTE (9 novembre 2026, soir) : résultats confirmés et lignes closes du catalogue se cherchent, se filtrent et se rangent ensemble. */}
             <h2 id="dernieres-seances" className={styles.titreListe}>
               {t("Les dernières séances")}
             </h2>
-            {dernieres.map((s) => (
-              <CarteDeSeanceClose key={s.id} s={s} />
-            ))}
+            <ListeDesSeancesCloses entrees={entrees} />
             <p className={styles.note}>{t("Les montants sont en francs CFA. Un taux ou un prix absent n'a pas été imprimé dans le communiqué.")}</p>
-          </section>
-        )}
-
-        {lignesCloses.length > 0 && (
-          <section className={styles.seances} id="lignes-closes" aria-labelledby="lignes-closes-titre">
-            <h2 id="lignes-closes-titre" className={styles.titreListe}>
-              {t("Lignes closes du catalogue")} · {lignesCloses.length}
-            </h2>
-            {lignesCloses.map((o) => (
-              <RangeeDeLigneClose key={o.id} o={o} />
-            ))}
           </section>
         )}
 

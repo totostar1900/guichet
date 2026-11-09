@@ -29,22 +29,29 @@ describe("les séances closes", () => {
     expect(b, "les tuiles Calendrier et Résultats ne sont plus sur la rangée des filtres").toMatch(/cle: "calendrier"[\s\S]*cle: "resultats"/);
     expect(b, "le bloc des séances closes reparaît même vide").toMatch(/closes\.length > 0 \? \[\{ clef: "closes"/);
   });
-  it("le Marché porte les lignes closes du catalogue, pleine largeur, hors celles qu'un résultat porte déjà", () => {
+  it("le Marché porte UNE liste : les résultats enrichis de leur ligne, et les lignes closes qu'aucun résultat ne porte", () => {
     const m = code("src/app/marche/adjudications/page.tsx");
-    expect(m).toMatch(/codesDesResultats\.has\(o\.isin\)/);
-    expect(m).toMatch(/<RangeeDeLigneClose key=\{o\.id\} o=\{o\} \/>/);
-    expect(code("src/components/market/RangeeDeLigneClose.tsx"), "la rangée close porte de nouveau un menu qui la rétrécit").not.toMatch(/LineMenu/);
+    expect(m).toMatch(/toutes\.some\(\(s\) => s\.codeEmission === o\.isin\)/);
+    expect(m, "la liste unique n'est plus rendue par ListeDesSeancesCloses").toMatch(/<ListeDesSeancesCloses entrees=\{entrees\} \/>/);
+    expect(m, "une seconde liste de lignes closes est revenue").not.toMatch(/RangeeDeLigneClose|lignes-closes/);
+  });
+  it("la liste se cherche, se filtre et se range, et ne montre que ce qu'elle contient", () => {
+    const l = code("src/components/market/ListeDesSeancesCloses.tsx");
+    expect(l, "la recherche n'ignore plus les accents").toMatch(/fold\(/);
+    expect(l, "les Trésors proposés ne viennent plus de la liste").toMatch(/paysPresents = \[\.\.\.new Set\(lignes\.map/);
+    expect(l).toMatch(/Plus récentes[\s\S]*Plus anciennes[\s\S]*Taux ou prix moyen/);
+    expect(l, "la pagination a disparu").toMatch(/Voir plus de séances/);
   });
   it("la carte close montre les huit chiffres du communiqué, aucun bouton d'ordre, aucune sélection", () => {
     const c = code("src/components/market/CarteDeSeanceClose.tsx");
     for (const k of ["Annoncé", "Soumissions", "Servi", "Couverture", "Soumissionnaires", "SVT du réseau"]) expect(c, `« ${k} » a disparu`).toMatch(new RegExp(`faits\\.push\\(\\["${k}",`));
     expect(c, "la carte close porte un geste d'ordre").not.toMatch(/Passer un ordre|Déclarer|Souscrire|BoutonsDeLaCarte/);
     expect(c, "la carte close porte une sélection du desk").not.toMatch(/featured|Sélection du desk/);
-    expect(c).toMatch(/<BoutonsDeSeanceClose href=\{href\} \/>/);
+    expect(c).toMatch(/<BoutonsDeSeanceClose href=\{e\.href\} \/>/);
   });
-  it("la page du Marché lit le même composant, en tuiles pleine largeur, sans panneau", () => {
+  it("la liste du Marché lit la même carte, en tuiles pleine largeur, sans panneau", () => {
     const m = code("src/app/marche/adjudications/page.tsx");
-    expect(m).toMatch(/<CarteDeSeanceClose key=\{s\.id\} s=\{s\} \/>/);
+    expect(code("src/components/market/ListeDesSeancesCloses.tsx")).toMatch(/<CarteDeSeanceClose key=/);
     expect(m, "le panneau qui rétrécissait les rangées est revenu").not.toMatch(/className="panel" id="seances"/);
   });
 });

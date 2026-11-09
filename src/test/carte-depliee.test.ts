@@ -75,4 +75,16 @@ describe("la carte dépliée", () => {
     expect(tsx, "sortie par le haut : plus de correction du défilement").toMatch(/window\.scrollBy\(0, -perdu\)/);
     for (const f of ["src/components/OfferCard.tsx", "src/app/fonds/FundCard.tsx"]) expect(code(f), `${f} ne donne plus « replier » à sa carte`).toMatch(/<Depliable ouvert=\{ouvert\} replier=\{replier\}>/);
   });
+  it("une seule carte est ouverte à la fois, sur toutes les pages : en ouvrir une referme l'autre", () => {
+    const tsx = code("src/components/mobile/CarteDepliee.tsx");
+    expect(tsx, "l'état d'ouverture n'est plus partagé entre les cartes").toMatch(/let ouverteId: string \| null = null;/);
+    expect(tsx).toMatch(/useSyncExternalStore\(abonner, \(\) => ouverteId === id/);
+    expect(tsx, "ouvrir une carte ne referme plus celle qui l'était").toMatch(/basculer: \(\) => poser\(ouverteId === id \? null : id\)/);
+    expect(tsx, "une carte garde son propre état local d'ouverture").not.toMatch(/const \[ouvert, setOuvert\] = useState/);
+  });
+  it("« Tous les résultats » ne paraît pas sur la page des résultats", () => {
+    const tsx = code("src/components/mobile/CarteDepliee.tsx");
+    expect(tsx).toMatch(/usePathname\(\)\.startsWith\("\/marche\/adjudications"\)/);
+    expect(tsx).toMatch(/\{!surLesResultats && \(\s*<Link[^>]*>\s*\{t\("Tous les résultats"\)\}/);
+  });
 });

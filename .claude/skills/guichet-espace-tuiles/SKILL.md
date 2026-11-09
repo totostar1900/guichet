@@ -320,3 +320,11 @@ Une carte qui cache une face (3D) se remplace par une **extension** : `Depliable
 - **Deux liens de plus sur la rangée des filtres = deux tuiles-liens** (`GrilleDInstruments`, `href`) : six tuiles tiennent sur une rangée à 390 px (62 px chacune). Jamais un lien texte au-dessus de la rangée.
 - **Une rangée avec « ··· » à côté est plus étroite que sa voisine** (322 px contre 362) : une rangée de lecture seule, sans menu, prend toute la largeur et laisse son nom passer à la ligne.
 - **Un retrait ne perd rien** : ce qui quittait la page (13 lignes closes) a été relogé aux Résultats, sauf celles qu'un résultat porte déjà par le code d'émission.
+
+## Leçon du 9 novembre 2026 (nuit) : une carte ouverte à la fois, une liste, une carte
+
+- **Un état d'ouverture partagé** : `useDepliee` lit un magasin de module (`ouverteId`) ; toute carte qui s'ouvre referme celle qui l'était, sur Titres, Fonds, Adjudications et séances closes. Une carte neuve utilise `useDepliee`, jamais un `useState` à elle.
+- **Un bouton qui mène à la page où l'on est n'existe pas** : « Tous les résultats » est masqué sur `/marche/adjudications` (`usePathname`) ; une rangée de boutons vide ne se rend pas.
+- **Deux listes d'objets de même nature sont une liste** : résultats confirmés et lignes closes du catalogue partagent `CarteDeSeanceClose` (drapeau, nom, Trésor, date, coupon, fourchette, chiffre) ; un résultat emprunte coupon, échéance et fiche à la ligne qui porte son code d'émission.
+- **Une liste longue se cherche, se filtre, se range** (`ListeDesSeancesCloses`) : recherche sans accents, filtres limités à ce que la liste contient, vingt cartes puis « Voir plus ».
+- **Un appel `summarize` côté client passe une variable `now`**, pas `new Date()` : le cliquet `dates-du-client` lit l'appel jusqu'à la première parenthèse fermante.

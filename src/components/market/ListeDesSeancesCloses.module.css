@@ -1,0 +1,83 @@
+/* La liste des séances closes : barre de recherche et de choix, compte, cartes à --tuiles-gap. */
+.liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tuiles-gap);
+  min-width: 0;
+}
+.barre {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tuiles-gap);
+}
+.recherche {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding: 0 var(--s-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink-3);
+}
+.recherche input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+}
+.choix {
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.choix button {
+  min-height: 36px;
+  padding: 0 var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  font-weight: 600;
+  cursor: pointer;
+}
+.choix button[aria-pressed="true"] {
+  color: var(--gold-ink);
+  border-color: var(--gold-ink);
+  background: var(--surface-2);
+}
+.selecteurs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--tuiles-gap);
+}
+.compte {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+.efface {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gold-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.plus {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--gold-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
