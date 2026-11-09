@@ -1,0 +1,68 @@
+/* Le calendrier d'une ligne (9 novembre 2026) : un fil vertical, des points pleins pour le passé, un anneau d'or pour la prochaine étape. Les jetons de la maison. */
+.calendrier {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+.calendrier li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) auto;
+  gap: var(--s-5);
+  align-items: baseline;
+  min-height: 40px;
+  padding: var(--s-3) 0;
+}
+.calendrier li + li::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: -12px;
+  width: 2px;
+  height: 24px;
+  background: var(--line);
+}
+.calendrier i {
+  align-self: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--line-2);
+  background: none;
+  position: relative;
+}
+.calendrier li[data-etat="passee"] i {
+  background: var(--ink-3);
+  border-color: var(--ink-3);
+}
+.calendrier li[data-etat="prochaine"] i {
+  border-color: var(--gold);
+  background: var(--gold);
+}
+.mot {
+  font-size: var(--t-4);
+  color: var(--ink);
+}
+.calendrier li[data-etat="avenir"] .mot,
+.calendrier li[data-etat="passee"] .mot {
+  color: var(--ink-2);
+}
+.calendrier li[data-etat="prochaine"] .mot {
+  font-weight: 700;
+}
+.quand {
+  display: grid;
+  justify-items: end;
+  font-size: var(--t-3);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.quand em {
+  font-style: normal;
+  font-size: var(--t-2);
+  font-weight: 700;
+  color: var(--gold-ink);
+}

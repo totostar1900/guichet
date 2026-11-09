@@ -74,7 +74,7 @@ export function FundCard({ r }: { r: FundRow }) {
   const href = useLineHref()(r.id);
   const desk = useDeskView();
   const more = useRef<(() => void) | null>(null);
-  const { ouvert, basculer, idRegion } = useDepliee();
+  const { ouvert, basculer, replier, idRegion } = useDepliee();
   const ytd = fundYtdPct(r.curve);
   const menu = { id: r.id, title: r.title, isin: r.isin, kind: "FONDS", sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` };
 
@@ -176,7 +176,7 @@ export function FundCard({ r }: { r: FundRow }) {
 
   return (
     <SwipeActions key="compacte" id={r.id} cadence="evenement">
-      <Depliable ouvert={ouvert}>
+      <Depliable ouvert={ouvert} replier={replier}>
         <article className={`${styles.card} ${propres.compacte}`} style={{ ["--card-c" as string]: "var(--info)" }}>
           <Link href={href} className={propres.cLien}>
             <span className={propres.cNom}>

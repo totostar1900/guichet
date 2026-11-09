@@ -21,13 +21,22 @@ describe("la page des adjudications", () => {
     expect(b).toMatch(/groupes=\{adj \? \[\] : titres\} collant=\{!adj\}/);
     expect(fs.readFileSync(path.join(process.cwd(), "src/components/market/TeteGroupe.module.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).toMatch(/\.teteLibre \{\s*position: static;/);
   });
-  it("le calendrier des séances et ses boutons sont sous la liste", () => {
-    const p = code("src/app/calendrier/page.tsx");
-    expect(p).toMatch(/<OfferBrowser[^>]*lieu="adjudications"[^>]*\/>\s*\{\}\s*<BlocPlat id="calendrier-des-seances"/);
-    expect(p).toMatch(/<GrilleDuMois/);
-    expect(p).toMatch(/href="\/sondage"/);
-    expect(p).toMatch(/href="\/moi\/suivies"/);
-    expect(p, "le calendrier ne mène plus aux échéances").toMatch(/href="\/echeances" tout="Toutes les échéances"/);
+  it("le calendrier a sa page, et plus de place sous la liste", () => {
+    const liste = code("src/app/calendrier/page.tsx");
+    expect(liste, "le calendrier est revenu sous la liste").not.toMatch(/GrilleDuMois|calendrier-des-seances/);
+    expect(liste, "le lien vers la page dédiée a disparu").toMatch(/href="\/calendrier\/seances"/);
+    const page = code("src/app/calendrier/seances/page.tsx");
+    expect(page).toMatch(/<GrilleDuMois/);
+    for (const href of ["/sondage", "/moi/suivies", "/echeances"]) expect(page, `le bouton vers ${href} a disparu`).toContain(`href="${href}"`);
+  });
+  it("la ligne d'une adjudication a son chevron et son calendrier, quelle que soit la densité", () => {
+    expect(code("src/components/OfferBrowser.tsx")).toMatch(/<OfferCard [^>]*extension=\{adj\} \/>/);
+    const oc = code("src/components/OfferCard.tsx");
+    expect(oc).toMatch(/const compact = useDensity\(\) === "compact" \|\| extension;/);
+    expect(oc).toMatch(/\{dos && extension && <CalendrierDeLaLigne o=\{o\}/);
+    const cal = code("src/components/CalendrierDeLaLigne.tsx");
+    for (const mot of ["Ouverture des soumissions", "Clôture des soumissions", "Résultats", "Règlement", "Échéance de la ligne"]) expect(cal, `l'étape « ${mot} » a disparu`).toContain(mot);
+    expect(cal, "le temps qui reste est réécrit au lieu d'appeler joursEnMots").toMatch(/joursEnMots\(/);
   });
   it("la grille du mois : lundi en premier, un point par jour de clôture, jours sans séance inertes", () => {
     const g = code("src/components/market/GrilleDuMois.tsx");

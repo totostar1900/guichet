@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { BarreDuCompte } from "./BarreDuCompte";
 import { BarreDuHaut } from "./BarreDuHaut";
 import { MarketFab } from "./MarketFab";
+import { PlusFab } from "./PlusFab";
 import { reculer } from "./retour";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
@@ -279,6 +280,8 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
           où l'on cherche le titre de la page qu'on vient d'ouvrir, et n'en
           montrait que deux à la fois sur sept. Voir « MarketFab ». */}
       {!deskHost && <MarketFab />}
+      {/* LES PAGES OUVERTES PAR « PLUS » portent le même menu en bouton flottant (9 novembre 2026) : on passe de l'une à l'autre sans repasser par l'Accueil. */}
+      {!deskHost && signedIn && <PlusFab />}
 
       {/* Le dock ne parait qu a qui est entre. Tout ce qu il porte demande une
           connexion : le montrer a un visiteur serait lui offrir quatre portes

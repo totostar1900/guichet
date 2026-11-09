@@ -10,10 +10,6 @@ import { seancesAnnoncees } from "@/lib/domain/listes";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import Link from "next/link";
-import { BlocPlat } from "@/components/accueil/BlocPlat";
-import { GrilleDuMois } from "@/components/market/GrilleDuMois";
-import { nomDeSeance } from "@/lib/domain/nom-de-ligne";
-import { localIso } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -69,25 +65,12 @@ export default async function CalendrierPage() {
         {session && <Vu geste="vu.seance" objet="adjudications" />}
         <OngletsMarche />
         <EnTete surTitre={t("Investissez")} titre={t("Adjudications")} titreMasque aCote={<EnBrefInstruments page="adjudications" />} />
+        {/* LE CALENDRIER A SA PAGE (9 novembre 2026) : il n'est plus sous la liste ; un lien le porte, en tête. */}
+        <Link className={styles.versCalendrier} href="/calendrier/seances">
+          {t("Calendrier des séances")} ›
+        </Link>
         {seances.length > 0 ? (
-          <>
-            <OfferBrowser offers={seances} nowIso={new Date().toISOString()} fundsCount={0} lieu="adjudications" suivis={suivis} />
-            {/* LE CALENDRIER ET LES TROIS BOUTONS, SOUS LA LISTE (9 novembre 2026, 2B) : un mois, un point par jour de clôture ; puis ce qu'on vient faire après avoir lu les séances : en proposer une, retrouver ses alertes, voir toutes les échéances. */}
-            <BlocPlat id="calendrier-des-seances" titre="Calendrier des séances" href="/echeances" tout="Toutes les échéances">
-              <GrilleDuMois
-                aujourdhui={localIso(new Date())}
-                seances={seances.map((o) => ({ id: o.id, titre: nomDeSeance(o.title), jour: o.deadlineAt.slice(0, 10), clotureLe: o.deadlineAt, href: `/offres/${o.id}` }))}
-              />
-              <div className={styles.boutonsCalendrier}>
-                <Link className="btn primary" href="/sondage">
-                  {t("Proposer une adjudication")}
-                </Link>
-                <Link className="btn" href="/moi/suivies">
-                  {t("Mes alertes")}
-                </Link>
-              </div>
-            </BlocPlat>
-          </>
+          <OfferBrowser offers={seances} nowIso={new Date().toISOString()} fundsCount={0} lieu="adjudications" suivis={suivis} />
         ) : (
           <p className="muted">{t("Aucune séance ouverte à Guichet pour l'instant. Les Trésors publient leurs communiqués par vagues, souvent une semaine avant la séance.")}</p>
         )}

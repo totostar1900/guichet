@@ -56,7 +56,7 @@ describe("la carte dépliée", () => {
   it("trois boutons alignés sous l'extension : l'action de la ligne, favori, la fiche", () => {
     const tsx = code("src/components/mobile/CarteDepliee.tsx");
     expect(tsx).toMatch(/kind === "FONDS" \? "Souscrire" : kind === "MARCHE" \? "Passer un ordre" : "Déclarer une intention"/);
-    expect(tsx, "le favori a perdu son libellé").toMatch(/<\/svg>\s*\{t\("Favori"\)\}/);
+    expect(tsx, "le favori (ou l'alerte d'une adjudication) a perdu son libellé").toMatch(/\{cadence === "quotidien" \? t\("Alerte"\) : t\("Favori"\)\}/);
     expect(tsx, "la fiche a perdu son bouton").toMatch(/<Link className=\{`btn \$\{styles\.bouton\}`\} href=\{href\}>\s*\{t\("Voir la fiche"\)\}/);
     expect(tsx, "l'action de la ligne ne mène plus à l'intention").toMatch(/href=\{`\/offres\/\$\{id\}\/intention`\}/);
     expect(bloc(".boutons"), "les boutons ne sont plus sur une seule rangée").toMatch(/grid-auto-flow:\s*column/);
@@ -66,5 +66,13 @@ describe("la carte dépliée", () => {
   it("un clic sur la carte mène toujours à la fiche : seul le chevron déplie", () => {
     expect(code("src/components/OfferCard.tsx")).toMatch(/<Link href=\{href\} className=\{styles\.cLink\}>/);
     expect(code("src/app/fonds/FundCard.tsx")).toMatch(/<Link href=\{href\} className=\{propres\.cLien\}>/);
+  });
+
+  it("une carte dépliée se replie quand elle sort de l'écran, sans faire sauter la page", () => {
+    const tsx = code("src/components/mobile/CarteDepliee.tsx");
+    expect(tsx, "plus d'observateur de sortie d'écran").toMatch(/new IntersectionObserver\(/);
+    expect(tsx, "la carte ne se replie plus à la sortie").toMatch(/if \(e\.isIntersecting\) return;[\s\S]*replier\(\)/);
+    expect(tsx, "sortie par le haut : plus de correction du défilement").toMatch(/window\.scrollBy\(0, -perdu\)/);
+    for (const f of ["src/components/OfferCard.tsx", "src/app/fonds/FundCard.tsx"]) expect(code(f), `${f} ne donne plus « replier » à sa carte`).toMatch(/<Depliable ouvert=\{ouvert\} replier=\{replier\}>/);
   });
 });

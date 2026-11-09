@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { useT } from "@/i18n/client";
+import { PLUS_PAGES } from "@/lib/plus/pages";
 import { useFermeDehors } from "@/lib/ui/ferme-dehors";
 import styles from "./PlusDeLAccueil.module.css";
 
@@ -13,7 +14,7 @@ import styles from "./PlusDeLAccueil.module.css";
  * « Plus » ouvre, ancré à son rond, ce qui se fait chaque semaine ou chaque mois : ordres et intentions, sondages, coupons à réinvestir (un point vert quand il y a quelque chose à faire), rentabilité, provision, versements,
  * prélèvements, documents. « Tous les services » ferme la liste : c'était la destination de « Plus » avant ce menu, elle reste à un toucher.
  */
-const ICONES: Record<string, string> = {
+export const ICONES_DE_PLUS: Record<string, string> = {
   ordres: "M6 3h9l4 4v14H6z M9 12h6 M9 16h6",
   sondages: "M4 5h16v11H9l-5 4z",
   coupons: "M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3 M18 3v4h-4 M6 21v-4h4",
@@ -30,17 +31,7 @@ export function PlusDeLAccueil({ classeRaccourci, classeRond, pointCoupons }: { 
   const [ouvert, setOuvert] = useState(false);
   const boite = useRef<HTMLDivElement>(null);
   useFermeDehors(boite, ouvert, () => setOuvert(false));
-  const entrees: { cle: keyof typeof ICONES; href: string; mot: string; point?: boolean }[] = [
-    { cle: "ordres", href: "/moi/ordres", mot: "Mes ordres et intentions" },
-    { cle: "sondages", href: "/sondage", mot: "Mes sondages" },
-    { cle: "coupons", href: "/moi/reinvestir", mot: "Mes coupons à réinvestir", point: pointCoupons },
-    { cle: "rentabilite", href: "/moi/performance", mot: "Ma rentabilité" },
-    { cle: "provision", href: "/moi/provision", mot: "Ma provision" },
-    { cle: "versements", href: "/moi/epargne", mot: "Mes versements" },
-    { cle: "prelevements", href: "/moi/prelevements", mot: "Mes prélèvements" },
-    { cle: "documents", href: "/moi/documents", mot: "Mes documents" },
-    { cle: "services", href: "/trader", mot: "Tous les services" },
-  ];
+  const entrees = PLUS_PAGES.map((p) => ({ ...p, point: p.cle === "coupons" ? pointCoupons : undefined }));
   return (
     <div className={styles.boite} ref={boite}>
       <button type="button" className={classeRaccourci} onClick={() => setOuvert((o) => !o)} aria-haspopup="menu" aria-expanded={ouvert}>
@@ -54,7 +45,7 @@ export function PlusDeLAccueil({ classeRaccourci, classeRond, pointCoupons }: { 
         {entrees.map((e) => (
           <Link key={e.cle} href={e.href} role="menuitem" className={styles.entree} onClick={() => setOuvert(false)}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d={ICONES[e.cle]} />
+              <path d={ICONES_DE_PLUS[e.cle]} />
             </svg>
             <span>{t(e.mot)}</span>
             {e.point && <i className={styles.point} aria-label={t("à faire")} />}

@@ -27,18 +27,14 @@
   margin-bottom: var(--s-5);
 }
 
-
-
-/* Les boutons sous le calendrier (9 novembre 2026) : deux colonnes égales, 44 px de haut, dans la carte. */
-.boutonsCalendrier {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--s-4);
-  padding: 0 var(--tuile-pad-x) var(--s-6);
-}
-.boutonsCalendrier :global(.btn) {
+/* Le lien vers le calendrier des séances, en tête de la page des adjudications : or, 44 px de haut, à droite (9 novembre 2026). */
+.versCalendrier {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
   min-height: 44px;
-  justify-content: center;
-  text-align: center;
-  white-space: normal;
+  font-size: var(--t-4);
+  font-weight: 600;
+  color: var(--gold-ink);
+  text-decoration: none;
 }

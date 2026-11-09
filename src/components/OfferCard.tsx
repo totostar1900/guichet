@@ -15,10 +15,12 @@ import { famVars } from "@/lib/registry";
 import { useDensity } from "./Density";
 import { cadenceDuSuivi } from "@/lib/domain/sections";
 import { MiniCourbe } from "./MiniCourbe";
+import { CalendrierDeLaLigne } from "./CalendrierDeLaLigne";
 import { nomDeSeance } from "@/lib/domain/nom-de-ligne";
 import { issuerZone } from "@/data/issuer-registry";
 import { Drapeau } from "./Drapeau";
 import type { FenetreDuCours, FenetresDuCours } from "@/lib/market/performe";
+import { localIso } from "@/lib/format";
 import styles from "./OfferCard.module.css";
 
 /**
@@ -132,12 +134,12 @@ export interface CourbeDuTitre {
   fenetres?: FenetresDuCours;
 }
 
-export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferSummary; suivi?: boolean; /** Le petit graphe sur trois mois d'une action : la forme du cours, avec sa variation. */ courbe?: CourbeDuTitre }) {
+export function OfferCard({ o, s, suivi = false, courbe, extension = false }: { o: Offer; s: OfferSummary; suivi?: boolean; /** La ligne et son extension, quelle que soit la densité choisie : la page des adjudications, dont l'extension porte le calendrier de la ligne (9 novembre 2026). */ extension?: boolean; /** Le petit graphe sur trois mois d'une action : la forme du cours, avec sa variation. */ courbe?: CourbeDuTitre }) {
   const href = useLineHref()(o.id);
   const desk = useDeskView();
   const t = useT();
   const { fmtDate } = useDates();
-  const compact = useDensity() === "compact";
+  const compact = useDensity() === "compact" || extension;
   const estAction = o.kind === "MARCHE" && o.instrument === "action";
   const prix = estAction ? prixDe(s) : null;
   const avecCoupon = (o.kind === "OTA" || o.kind === "APE") && s.coupon !== "—";
@@ -148,13 +150,13 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
   const when = continuous ? t("cotation continue") : t(s.deadline);
   const whenLabel = continuous || !when ? null : <em className={styles.whenLabel}>{t("Clôture")}</em>;
   const more = useRef<(() => void) | null>(null);
-  const { ouvert, basculer, idRegion } = useDepliee();
+  const { ouvert, basculer, replier, idRegion } = useDepliee();
   const [suiviEtat] = useSuivi(o.id, suivi);
   const menu = { id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() };
   /* CE QUE L'EXTENSION APPORTE EN PLUS DE LA CARTE (1A) : pour une action, le dividende et son rendement ; pour une obligation, le coupon et le rendement avec leurs mots, puis la grille. Jamais le cours, qui est sur la carte. */
   const faitsDeLExtension: [string, string, string?][] = estAction && prix
     ? faitsAction(s).filter(([k]) => k !== "Cours inchangé depuis" && k !== "Ticket min.")
-    : [...(avecCoupon ? ([["Coupon", s.coupon]] as [string, string][]) : []), ...(s.hero && s.hero !== "—" ? ([["Rendement", s.hero, s.heroSub]] as [string, string, string?][]) : []), ...(avecCoupon ? s.facts.filter(([k]) => k !== "Coupon") : s.facts)];
+    : [...(avecCoupon ? ([["Coupon", s.coupon]] as [string, string][]) : []), ...(s.hero && s.hero !== "—" ? ([["Rendement", s.hero, s.heroSub]] as [string, string, string?][]) : []), ...(avecCoupon ? s.facts.filter(([k]) => k !== "Coupon") : s.facts)].filter(([k]) => !(extension && k === "Échéance"));
   /** Le corps de la vue détaillée. `dos` : le coin est porté par la tête de la face arrière. */
   const corps = (dos: boolean) => (
     <>
@@ -230,6 +232,8 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
               </div>
             ))}
           </div>
+          {/* LE CALENDRIER DE LA LIGNE (adjudications, 9 novembre 2026) : les étapes datées de la séance, à la place de l'échéance seule. */}
+          {dos && extension && <CalendrierDeLaLigne o={o} aujourdhui={localIso(new Date())} />}
           {/* LA VARIATION SUR SIX MOIS, DOUZE MOIS ET DEUX ANS, CÔTE À CÔTE (9 novembre 2026), à la place de « cours inchangé depuis » et de l'ISIN. Une ligne entrée à la cote depuis moins longtemps n'a pas de chiffre : elle dit depuis quand elle y est. */}
           {dos && estAction && courbe?.fenetres && (
             <div className={styles.facts} data-coach="titres-fenetres">
@@ -242,7 +246,8 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
               ))}
             </div>
           )}
-          {(!dos || !continuous) && (
+          {/* Le calendrier de la ligne dit déjà la clôture : le pied ne la redit pas dans l'extension d'une adjudication. */}
+          {(!dos || (!continuous && !extension)) && (
           <div className={styles.foot} data-coach="titres-pied">
             {/* L'ISIN DESCEND AU PIED, en face de « Voir la fiche ». Il ne sert
                 qu'à passer un ordre en banque, jamais à reconnaître une ligne :
@@ -294,7 +299,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
       cadence={cadence}
       suivi={suivi}
     >
-      <Depliable ouvert={ouvert}>
+      <Depliable ouvert={ouvert} replier={replier}>
         <article data-coach="titres-carte" className={`${styles.card} ${styles.compact} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
           <Link href={href} className={styles.cLink}>
             <span className={styles.cId}>

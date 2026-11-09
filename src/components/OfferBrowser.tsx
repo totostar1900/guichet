@@ -947,7 +947,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
               const pick = featured || (adj && pickIds.has(o.id));
               return (
                 <div key={o.id} className={pick ? styles.pickCard : undefined}>
-                  <OfferCard o={o} s={s} suivi={armees.has(o.id)} courbe={o.isin ? courbes?.[o.isin] : undefined} />
+                  <OfferCard o={o} s={s} suivi={armees.has(o.id)} courbe={o.isin ? courbes?.[o.isin] : undefined} extension={adj} />
                   {pick && <NoteDeSelection o={o} avertir={adj} />}
                 </div>
               );

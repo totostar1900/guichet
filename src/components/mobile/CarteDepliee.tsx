@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useState, useTransition } from "react";
+import { useCallback, useEffect, useId, useRef, useState, useTransition } from "react";
 import { toggleWatch } from "@/app/offres/[id]/actions";
 import { useT } from "@/i18n/client";
 import { useSuivi } from "@/lib/ui/suivi";
@@ -21,7 +21,8 @@ import styles from "./CarteDepliee.module.css";
 export function useDepliee() {
   const [ouvert, setOuvert] = useState(false);
   const id = useId();
-  return { ouvert, basculer: () => setOuvert((o) => !o), idRegion: `carte-${id.replace(/:/g, "")}` };
+  const replier = useCallback(() => setOuvert(false), []);
+  return { ouvert, basculer: () => setOuvert((o) => !o), replier, idRegion: `carte-${id.replace(/:/g, "")}` };
 }
 
 /** Le chevron, 34 px à anneau, sous les « ··· » : le même sur Titres, Fonds et Adjudications. */
@@ -45,9 +46,39 @@ export function Outils({ children }: { children: React.ReactNode }) {
 }
 
 /** La carte et son extension : l'extension s'ouvre sous la carte, collée à elle. */
-export function Depliable({ ouvert, children }: { ouvert: boolean; children: React.ReactNode }) {
+export function Depliable({ ouvert, replier, children }: { ouvert: boolean; replier?: () => void; children: React.ReactNode }) {
+  const hote = useRef<HTMLDivElement>(null);
+  /* UNE CARTE DÉPLIÉE SE REPLIE QUAND ELLE SORT DE L'ÉCRAN (9 novembre 2026) : on l'a ouverte, on a défilé, on ne la lit plus. Sortie par le bas, elle se replie sans que rien ne bouge. Sortie par le haut, elle se replie sans
+     animation et le défilement est corrigé de ce qu'elle perd, sinon tout ce qu'on lit remonterait d'un coup. Les marges sont celles de la barre du haut et de la barre du bas. */
+  useEffect(() => {
+    const el = hote.current;
+    if (!ouvert || !el || !replier) return;
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) return;
+        const r = el.getBoundingClientRect();
+        const auDessus = r.bottom <= 0;
+        const avant = r.height;
+        const region = el.querySelector<HTMLElement>("[data-region]");
+        if (auDessus && region) region.style.transition = "none";
+        replier();
+        if (auDessus) {
+          requestAnimationFrame(() => {
+            const perdu = avant - el.getBoundingClientRect().height;
+            if (perdu > 0) window.scrollBy(0, -perdu);
+            requestAnimationFrame(() => {
+              if (region) region.style.transition = "";
+            });
+          });
+        }
+      },
+      { rootMargin: "-60px 0px -56px 0px", threshold: 0 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [ouvert, replier]);
   return (
-    <div className={styles.depliable} data-ouvert={ouvert}>
+    <div ref={hote} className={styles.depliable} data-ouvert={ouvert}>
       {children}
     </div>
   );
@@ -55,7 +86,7 @@ export function Depliable({ ouvert, children }: { ouvert: boolean; children: Rea
 
 export function Extension({ ouvert, idRegion, children }: { ouvert: boolean; idRegion: string; children: React.ReactNode }) {
   return (
-    <div id={idRegion} className={styles.region} data-ouvert={ouvert} inert={!ouvert}>
+    <div id={idRegion} className={styles.region} data-region data-ouvert={ouvert} inert={!ouvert}>
       <div className={styles.interieur}>
         <div className={styles.contenu}>{children}</div>
       </div>
@@ -92,10 +123,17 @@ export function BoutonsDeLaCarte({ id, href, kind, past, cadence, suivi, agir = 
       )}
       {agir && (
         <button type="button" className={`btn ${styles.bouton} ${on ? styles.favori : ""}`} aria-pressed={on} disabled={attente} onClick={basculerFavori}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill={on ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
-            <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.2 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z" />
-          </svg>
-          {t("Favori")}
+          {/* UNE ADJUDICATION SE SUIT PAR UNE ALERTE (un message par jour jusqu'à la clôture), UNE LIGNE COTÉE PAR UN FAVORI (un message à chaque mouvement) : le bouton prend le nom de ce qu'il arme. */}
+          {cadence === "quotidien" ? (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill={on ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+              <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z M10 20h4" />
+            </svg>
+          ) : (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill={on ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.2 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z" />
+            </svg>
+          )}
+          {cadence === "quotidien" ? t("Alerte") : t("Favori")}
         </button>
       )}
       <Link className={`btn ${styles.bouton}`} href={href}>

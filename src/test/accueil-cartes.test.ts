@@ -35,7 +35,7 @@ describe("l'Accueil « cartes »", () => {
     for (const href of ["/moi/provision/alimenter", "/moi/provision/reprendre", "/titres"]) expect(page, `le geste vers ${href} a disparu`).toContain(`href: "${href}"`);
     /* « Plus » ouvre un menu ancré (3B, 9 novembre 2026) ; « Tous les services » garde la destination d'avant, /trader. */
     expect(page, "« Plus » n'ouvre plus le menu").toMatch(/<PlusDeLAccueil /);
-    expect(code("src/components/accueil/PlusDeLAccueil.tsx"), "le menu a perdu « Tous les services »").toMatch(/href: "\/trader", mot: "Tous les services"/);
+    expect(code("src/lib/plus/pages.ts"), "le menu a perdu « Tous les services »").toMatch(/href: "\/trader", mot: "Tous les services"/);
   });
 
   it("l'aspect « cartes » est posé sur la racine de la page, jamais sur <html>", () => {
