@@ -38,3 +38,18 @@
   color: var(--gold-ink);
   text-decoration: none;
 }
+
+/* Les séances closes, sous la liste : les résultats confirmés, une ligne chacune (9 novembre 2026). Le titre reprend celui d'un groupe. */
+.closes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tuiles-gap);
+}
+.tete {
+  margin: var(--s-8) 0 var(--s-3);
+  font-size: var(--t-3);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--navy-text);
+}

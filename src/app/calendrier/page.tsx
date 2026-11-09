@@ -10,6 +10,8 @@ import { seancesAnnoncees } from "@/lib/domain/listes";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import Link from "next/link";
+import { vueClient } from "@/lib/market/adjudications-client";
+import { CarteDeSeanceClose } from "@/components/market/CarteDeSeanceClose";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +57,11 @@ export default async function CalendrierPage() {
   const quand = getSession();
   const [t, offers, veilles, session] = await Promise.all([getT(), repo().listOffers(), quand.then((session) => (session ? repo().listWatches(session.userId) : [])), quand]);
   const seances = seancesAnnoncees(offers);
+  /* LES SÉANCES CLOSES SONT LES RÉSULTATS QUE LE DESK A CONFIRMÉS (9 novembre 2026, 1A) : chacune est une ligne, sans offre créée. Celles dont le code d'émission est déjà une ligne du catalogue n'y sont pas : la ligne les porte. Les six dernières ; l'historique est au Marché. */
+  const codesDuCatalogue = new Set(offers.map((o) => o.isin).filter(Boolean));
+  const closes = vueClient(await repo().listAuctionResults({ limit: 20_000 }).catch(() => []))
+    .filter((r) => !r.codeEmission || !codesDuCatalogue.has(r.codeEmission))
+    .slice(0, 6);
   const suivis = veilles.map((w) => w.offerId);
 
   return (
@@ -73,6 +80,19 @@ export default async function CalendrierPage() {
           <OfferBrowser offers={seances} nowIso={new Date().toISOString()} fundsCount={0} lieu="adjudications" suivis={suivis} />
         ) : (
           <p className="muted">{t("Aucune séance ouverte à Guichet pour l'instant. Les Trésors publient leurs communiqués par vagues, souvent une semaine avant la séance.")}</p>
+        )}
+        {closes.length > 0 && (
+          <section className={styles.closes} aria-labelledby="seances-closes">
+            <h2 id="seances-closes" className={styles.tete}>
+              {t("Séances closes")} · {closes.length}
+            </h2>
+            {closes.map((r) => (
+              <CarteDeSeanceClose key={r.id} s={r} />
+            ))}
+            <Link className={styles.versCalendrier} href="/marche/adjudications#seances">
+              {t("Tous les résultats")} ›
+            </Link>
+          </section>
         )}
       </div>
     </Glissement>

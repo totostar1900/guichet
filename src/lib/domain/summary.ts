@@ -71,7 +71,8 @@ export interface Badge {
 export function badgesFor(o: Offer, st: DisplayStatus, now: Date): Badge[] {
   const out: Badge[] = [];
   const iso = now.toISOString();
-  if (o.featured && o.featured.until >= iso.slice(0, 10)) out.push({ key: "selection", label: "Sélection du desk", note: o.featured.reason });
+  /* UNE SÉANCE CLOSE N'A PLUS DE « SÉLECTION DU DESK » (9 novembre 2026, planche « Séances closes et résultats », 2A) : la raison d'un choix regarde ce qui s'ouvre, pas ce qui est joué ; sur un résultat, la proposition de la maison ne s'affiche plus. */
+  if (o.featured && o.featured.until >= iso.slice(0, 10) && !isPast(st)) out.push({ key: "selection", label: "Sélection du desk", note: o.featured.reason });
   const h = (a: string) => (now.getTime() - parseDate(a).getTime()) / 3_600_000;
   if (o.kind !== "MARCHE" && o.kind !== "FONDS" && o.version <= 1 && o.pricedAt && h(o.pricedAt) >= 0 && h(o.pricedAt) < 72 && !isPast(st)) out.push({ key: "nouveau", label: "Nouveau" });
   if ((st === "open" || st === "closing") && o.deadlineAt) {

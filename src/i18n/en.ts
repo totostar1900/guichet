@@ -370,6 +370,8 @@ export const EN: Record<string, string> = {
   "à la cote depuis moins de {f}": "listed for less than {f}",
   "à la cote depuis le {d}": "listed since {d}",
   "Mes alertes": "My alerts",
+  "Séances closes": "Closed sessions",
+  "Tous les résultats": "All results",
   "Calendrier des séances": "Sessions calendar",
   "Les jours où une séance se clôt. Touchez un jour marqué pour lire ses séances.": "The days a session closes. Tap a marked day to read its sessions.",
   "Calendrier de la ligne": "The line's calendar",

@@ -142,3 +142,23 @@ export function BoutonsDeLaCarte({ id, href, kind, past, cadence, suivi, agir = 
     </div>
   );
 }
+
+/**
+ * LES BOUTONS D'UNE SÉANCE CLOSE (9 novembre 2026) : « Tous les résultats » (la page du Marché, qui garde l'historique) et, quand une ligne du catalogue porte le même code d'émission, « Voir la fiche ». Une séance close n'a plus d'ordre à passer :
+ * aucun bouton d'action.
+ */
+export function BoutonsDeSeanceClose({ href }: { href?: string }) {
+  const t = useT();
+  return (
+    <div className={styles.boutons}>
+      <Link className={`btn primary ${styles.bouton}`} href="/marche/adjudications#seances">
+        {t("Tous les résultats")}
+      </Link>
+      {href && (
+        <Link className={`btn ${styles.bouton}`} href={href}>
+          {t("Voir la fiche")}
+        </Link>
+      )}
+    </div>
+  );
+}

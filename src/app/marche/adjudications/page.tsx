@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
-import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
-import { COUVERTURE_FIABLE_DEPUIS, aServi, partCouverte, tauxLimiteParDuree, vueClient, type SeanceClient } from "@/lib/market/adjudications-client";
+import { fmtDate, fmtPct } from "@/lib/format";
+import { COUVERTURE_FIABLE_DEPUIS, partCouverte, tauxLimiteParDuree, vueClient } from "@/lib/market/adjudications-client";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
+import { CarteDeSeanceClose } from "@/components/market/CarteDeSeanceClose";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -35,17 +36,14 @@ export default async function AdjudicationsClientPage() {
         {dernieres.length === 0 ? (
           <div className="empty">{t("Aucune séance relue pour le moment.")}</div>
         ) : (
-          <section className="panel" id="seances">
-            <div className="panel-h">
-              <h2>{t("Les dernières séances")}</h2>
-            </div>
-            <ul className={styles.liste}>
-              {dernieres.map((s) => (
-                <li key={s.id} className={styles.seance}>
-                  <Seance s={s} t={t} />
-                </li>
-              ))}
-            </ul>
+          <section className={styles.seances} id="seances" aria-labelledby="dernieres-seances">
+            {/* UNE TUILE PAR SÉANCE, PLEINE LARGEUR (9 novembre 2026, 3A) : le même composant que les séances closes d'Investir, au lieu de rangées dans un panneau qui les rétrécissait et collait la première au bandeau. */}
+            <h2 id="dernieres-seances" className={styles.titreListe}>
+              {t("Les dernières séances")}
+            </h2>
+            {dernieres.map((s) => (
+              <CarteDeSeanceClose key={s.id} s={s} />
+            ))}
             <p className={styles.note}>{t("Les montants sont en francs CFA. Un taux ou un prix absent n'a pas été imprimé dans le communiqué.")}</p>
           </section>
         )}
@@ -102,52 +100,5 @@ export default async function AdjudicationsClientPage() {
         </p>
       </div>
     </Glissement>
-  );
-}
-
-type T = Awaited<ReturnType<typeof getT>>;
-
-function Case({ n, l }: { n: string; l: string }) {
-  return (
-    <div>
-      <dd>{n}</dd>
-      <dt>{l}</dt>
-    </div>
-  );
-}
-
-function Seance({ s, t }: { s: SeanceClient; t: T }) {
-  const bon = s.instrument === "BTA";
-  const moyen = bon ? s.rateAvg : s.priceAvg;
-  const [bas, haut] = bon ? [s.rateMin, s.rateMax] : [s.priceMin, s.priceMax];
-  const limite = bon ? s.rateLimit : s.priceLimit;
-  const unite = bon ? "taux" : "prix";
-  return (
-    <>
-      <div className={styles.tete}>
-        <div>
-          <b>
-            {s.country} · {s.instrument} {t(s.tenor)}
-          </b>
-          <span>{fmtDate(s.sessionOn)}{s.codeEmission ? ` · ${s.codeEmission}` : ""}</span>
-        </div>
-        {moyen != null && aServi(s) && (
-          <div className={styles.moyen}>
-            <b>{fmtPct(moyen, 2)}</b>
-            <span>{t(unite === "taux" ? "taux moyen pondéré" : "prix moyen pondéré")}</span>
-          </div>
-        )}
-      </div>
-      <dl className={styles.grille}>
-        {limite != null && <Case n={fmtPct(limite, 2)} l={t(bon ? "taux limite" : "prix limite")} />}
-        {bas != null && haut != null && <Case n={`${fmtPct(bas, 2)} – ${fmtPct(haut, 2)}`} l={t(bon ? "taux min – max" : "prix min – max")} />}
-        {s.announced != null && <Case n={money(s.announced)} l={t("annoncé")} />}
-        {s.bid != null && <Case n={money(s.bid)} l={t("soumissions")} />}
-        {s.served != null && <Case n={money(s.served)} l={t("servi")} />}
-        {s.coverage != null && <Case n={fmtPct(s.coverage, 0)} l={t("couverture")} />}
-        {s.bidders != null && <Case n={fmt(s.bidders)} l={t("soumissionnaires")} />}
-        {s.networkSize != null && <Case n={fmt(s.networkSize)} l={t("SVT du réseau")} />}
-      </dl>
-    </>
   );
 }

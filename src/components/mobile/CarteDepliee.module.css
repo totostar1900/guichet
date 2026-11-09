@@ -28,6 +28,8 @@
 }
 .contenu {
   display: grid;
+  /* UNE COLONNE QUI PEUT SE RÉTRÉCIR : sans elle, le contenu le plus large (une grille de huit chiffres) élargissait la carte au-delà de l'écran. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-6);
   min-width: 0;
   padding: var(--s-6) var(--tuile-pad-x) var(--s-7);
