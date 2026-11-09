@@ -70,20 +70,20 @@ export function Tuiles({ services, apercus }: { services: ServiceVu[]; apercus?:
               {siens.map((sv) => (
                 <li key={sv.cle} className={styles.case}>
                   <div className={styles.tuile} style={teinteDuService(sv.cle)}>
-                    <span className={styles.marque} aria-hidden="true">
-                      {ICONE_SERVICE[sv.cle]}
-                    </span>
-                    {/* LE LIEN S'ÉTEND SUR LA TUILE ENTIÈRE, par un calque posé
-                        en « ::after ». C'est ce qui permet au « i » d'être un
-                        VRAI bouton : un bouton dans un lien est invalide en
-                        HTML, et le navigateur ne le clique pas. Ici il n'y a
-                        qu'un lien et qu'un bouton, frères, et le second passe
-                        au-dessus du calque. */}
-                    <b>
-                      <Link href={sv.href} className={styles.lien}>
-                        {t(sv.nom)}
-                      </Link>
-                    </b>
+                    {/* LE BANDEAU DE LA TUILE (9 novembre 2026, planche « La page Trade », 2A) : l'icône, le nom en encre et « Ouvrir › » en or, une ligne de 1 px dessous, comme les blocs de l'Accueil.
+                        Le calque du lien couvre toujours la tuile entière : « Ouvrir › » n'est qu'un mot, pas un second lien. */}
+                    <div className={styles.entete}>
+                      <span className={styles.marque} aria-hidden="true">
+                        {ICONE_SERVICE[sv.cle]}
+                      </span>
+                      <b className={styles.nom}>
+                        <Link href={sv.href} className={styles.lien}>
+                          {t(sv.nom)}
+                        </Link>
+                      </b>
+                      <span className={styles.ouvrir}>{t("Ouvrir")} ›</span>
+                    </div>
+                    <div className={styles.corps}>
                     {/* CE DONT IL S'AGIT — ou, quand le compte n'est pas
                         ouvert, ce qu'il faut avoir d'abord : la tuile mène
                         alors à l'ouverture, et le taire ferait d'elle un
@@ -109,6 +109,7 @@ export function Tuiles({ services, apercus }: { services: ServiceVu[]; apercus?:
                         <BriefDuService cle={sv.cle} />
                       </span>
                     </span>
+                    </div>
                   </div>
                 </li>
               ))}

@@ -194,7 +194,9 @@ describe("l'aspect des tuiles", () => {
       expect(r, `${f} ${sel} : le bord n'est plus celui des tuiles`).toMatch(/(?<![-\w])border:\s*var\(--tuile-bord\);/);
       expect(r, `${f} ${sel} : le trait du bas n'est plus celui des tuiles`).toMatch(/border-bottom:\s*var\(--tuile-trait\);/);
       expect(r, `${f} ${sel} : le rayon n'est plus celui des tuiles`).toMatch(/border-radius:\s*var\(--tuile-rayon\);/);
-      expect(r, `${f} ${sel} : la marge intérieure n'est plus celle des tuiles`).toMatch(/padding:[^;]*var\(--tuile-pad-x\)/);
+      /* UNE TUILE À BANDEAU (9 novembre 2026) porte `padding: 0` : la marge est à son bandeau et à son corps, qui lisent le même jeton. */
+      const bandeau = /(?<![-\w])padding:\s*0;/.test(r) && /\.entete \{[^}]*padding:[^;]*var\(--tuile-pad-x\)/.test(sansNotes(lire(f))) && /\.corps \{[^}]*padding:[^;]*var\(--tuile-pad-x\)/.test(sansNotes(lire(f)));
+      expect(bandeau || /padding:[^;]*var\(--tuile-pad-x\)/.test(r), `${f} ${sel} : la marge intérieure n'est plus celle des tuiles`).toBe(true);
     }
   });
 

@@ -108,19 +108,14 @@ describe("les icônes de service se voient", () => {
    * derrière son icône — une fenêtre que personne ne regarde, puisqu'elle ne
    * s'ouvre ni sur un téléphone ni sur un écran de bureau.
    */
-  it("pose l'écusson dans le coin, et bascule au même seuil que les colonnes", () => {
+  it("pose l'écusson dans le bandeau de la tuile (9 novembre 2026, 2A), la tuile restant le repère du calque du lien", () => {
     const css = lire("src/app/trader/page.module.css");
-    expect(css, "l'écusson n'est plus dans le coin de la tuile").toMatch(/\.marque \{[\s\S]*?position: absolute/);
-    expect(css, "la tuile n'est plus le repère de ce coin : l'écusson se posera sur la page").toMatch(/\.tuile \{\n\s*position: relative/);
-
-    const seuils = [...css.matchAll(/@media \(min-width: (\d+)px\)/g)].map((m) => m[1]);
-    expect(seuils.length, "il n'y a plus deux bascules à accorder").toBeGreaterThanOrEqual(2);
-    expect(new Set(seuils).size, `les bascules ne sont plus au même seuil : ${seuils.join(", ")} — le titre se cachera derrière l'écusson entre les deux`).toBe(1);
-
-    /* Non vacuité : les deux blocs sont bien ceux qu'on croit. */
-    const deuxColonnes = css.slice(css.indexOf("@media (min-width:"));
-    expect(deuxColonnes, "la bascule des colonnes a disparu").toMatch(/grid-template-columns: repeat\(2/);
-    expect(css, "l'écusson ne revient plus dans le flux à deux colonnes").toMatch(/position: static/);
+    expect(css, "l'écusson n'est plus dans le flux du bandeau").toMatch(/\.marque \{[\s\S]*?flex: none;[\s\S]*?width: 32px/);
+    expect(css, "l'écusson a repris une position absolue : il passerait sous le nom").not.toMatch(/\.marque \{[^}]*position: absolute/);
+    expect(css, "la tuile n'est plus le repère du calque du lien").toMatch(/\.tuile \{\n\s*position: relative/);
+    expect(css, "le bandeau n'a plus sa ligne dessous").toMatch(/\.entete \{[^}]*border-bottom: 1px solid var\(--line\)/);
+    expect(css, "le bandeau n'atteint plus 44 px").toMatch(/\.entete \{[^}]*min-height: 44px/);
+    expect(css, "les deux colonnes ont disparu").toMatch(/@media \(min-width: 430px\)[\s\S]*grid-template-columns: repeat\(2/);
   });
 
   /* LES ICÔNES DE PAGE, ELLES, N'ONT QU'UN POSEUR et il déclare le trait :

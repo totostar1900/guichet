@@ -990,3 +990,5 @@ Décidé sur la planche « En-têtes de l'Accueil » (choix 1B · 2A). Il **remp
 - fond, bord et rayon (`--tuile-*`) sont à la **section**, jamais aux rangées ; le contenu garde son padding ;
 - **exception** : la fiche d'une ligne (« Lignes similaires », `fort`) et les blocs `plat` gardent leur titre à plat (§ 8.8, § 8.10) ;
 - composant : `TitreDeBloc` (`bandeau` par défaut tant que `fort` est faux) ; blocs : `BlocPlat`, `BlocDeLignes` (`enBandeau`), `SelectionDuDesk`, `CeQuiFermeBientot`, `IndexPulse` (`aPlat`), `CeQuiPerforme`, « À la une ». Gardé par `src/test/accueil-entetes.test.ts`.
+
+**Trade (9 novembre 2026, planche « La page Trade », 4A · 2A · 1A).** La page suit la même grammaire : « Ce qui ferme bientôt » est le bandeau de l'Accueil (`sobre`, lien « Le calendrier ›»), chaque tuile de service a son bandeau (icône 32 px, nom `--t-6` en encre, « Ouvrir › » or, ligne de 1 px, 44 px), le disponible est un montant à `--t-7` et un bouton « + Approvisionner » de 44 px. **Laissé tel quel :** les quatre tuiles du compte non ouvert qui répètent la même phrase (point 3, décision du client). Gardé par `accueil-entetes.test.ts`.

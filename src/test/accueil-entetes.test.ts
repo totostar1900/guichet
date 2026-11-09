@@ -46,3 +46,30 @@ describe("les en-têtes de l'Accueil", () => {
     expect(lire("src/app/Console.tsx")).toMatch(/<TitreDeBloc id="a-la-une"/);
   });
 });
+
+/**
+ * LA PAGE TRADE PARLE COMME L'ACCUEIL (9 novembre 2026, planche « La page Trade », choix 4A · 2A · 1A ; le compte non ouvert, point 3, est laissé tel quel).
+ */
+describe("la page Trade", () => {
+  const trade = css("src/app/trader/page.module.css");
+  const regle = (sel: string) => new RegExp(`(?:^|\\n)\\${sel} \\{([^}]*)\\}`).exec(trade)?.[1] ?? "";
+
+  it("« Ce qui ferme bientôt » est un bandeau dans la carte, avec « Le calendrier » pour mot", () => {
+    expect(lire("src/app/trader/page.tsx")).toMatch(/<CeQuiFermeBientot offres=\{offers\} sobre motDuLien="Le calendrier" \/>/);
+  });
+
+  it("une tuile de service a son bandeau : icône, nom en encre à --t-6, « Ouvrir › » en or, une ligne, 44 px", () => {
+    expect(regle(".entete"), "plus de ligne sous le bandeau").toMatch(/border-bottom:\s*1px solid var\(--line\)/);
+    expect(regle(".entete"), "le bandeau n'atteint plus 44 px").toMatch(/min-height:\s*44px/);
+    expect(regle(".nom"), "le nom n'est plus à --t-6 en encre").toMatch(/color:\s*var\(--ink\)[\s\S]*font-size:\s*var\(--t-6\)|font-size:\s*var\(--t-6\)[\s\S]*color:\s*var\(--ink\)/);
+    expect(regle(".ouvrir"), "« Ouvrir › » n'est plus en or").toMatch(/color:\s*var\(--gold-ink\)/);
+    expect(lire("src/app/trader/Tuiles.tsx")).toMatch(/<span className=\{styles\.ouvrir\}>\{t\("Ouvrir"\)\} ›<\/span>/);
+  });
+
+  it("le solde : montant à --t-7, « Rien en provision » à --t-5, geste écrit dans un bouton de 44 px", () => {
+    expect(regle(".montant")).toMatch(/font-size:\s*var\(--t-7\)/);
+    expect(regle(".vide")).toMatch(/font-size:\s*var\(--t-5\)/);
+    expect(regle(".geste"), "le geste n'est plus un bouton de 44 px").toMatch(/min-height:\s*44px[\s\S]*border-radius:\s*999px/);
+    expect(regle(".geste b"), "le geste est repassé sous la taille de lecture").toMatch(/font-size:\s*var\(--t-3\)/);
+  });
+});

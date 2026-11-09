@@ -307,3 +307,5 @@ La note de marché existe en page et en PDF ; chaque support avait son défaut p
 ## Leçon du 8 novembre 2026 : le titre d'un bloc de l'Accueil entre dans la carte (1B · 2A)
 
 La règle du 2 novembre (« le titre à plat, jamais dans la carte ») est levée **pour l'Accueil** : le bandeau (titre `--t-6`, ligne de 1 px, « Tout voir › » or, 44 px de haut) est la première rangée de la carte, et **fond, bord et rayon passent à la section** (`.bloc` / `.enBandeau` / `.sobre`), pas aux rangées. Une carte neuve de l'Accueil : `TitreDeBloc` dans une section qui porte les jetons de tuile, le corps dessous. La fiche (`fort`) et le mode `plat` gardent le titre à plat. Voir `ETALON.md` § 8.15. Piège : un composant dont la carte était la LISTE (`.liste`, `.groupe`) doit lui retirer son fond, sinon deux fonds se superposent.
+
+**Suite, 9 novembre 2026 : Trade.** La même grammaire s'applique à une tuile de service (`.entete` + `.corps` dans `.tuile`, qui passe à `padding: 0` : le test des familles de tuiles accepte ce cas quand bandeau et corps lisent `--tuile-pad-x`). Le calque du lien reste sur la tuile : « Ouvrir › » est un mot, pas un second lien.

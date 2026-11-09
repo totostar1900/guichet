@@ -109,7 +109,7 @@ export default async function TradePage() {
             est une page où l'on va : celle-ci est une bande qu'on croise. Vide —
             l'état le plus fréquent, les Trésors publiant par vagues — elle ne
             rend rien. */}
-        <CeQuiFermeBientot offres={offers} />
+        <CeQuiFermeBientot offres={offers} sobre motDuLien="Le calendrier" />
 
         <Tuiles services={services} apercus={apercus} />
       </div>

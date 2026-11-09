@@ -138,7 +138,34 @@
   border: var(--tuile-bord);
   border-bottom: var(--tuile-trait);
   border-radius: var(--tuile-rayon);
+  padding: 0;
+  overflow: hidden;
+}
+/* LE BANDEAU DE LA TUILE (9 novembre 2026, planche « La page Trade », 2A) : l'icône, le nom (--t-6, encre), « Ouvrir › » en or ; une ligne de 1 px dessous, au moins 44 px de haut. Le corps garde le padding qu'avait la tuile. */
+.entete {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  min-height: 44px;
+  padding: var(--s-5) var(--tuile-pad-x);
+  border-bottom: 1px solid var(--line);
+}
+.corps {
+  align-self: stretch;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-5);
   padding: calc(var(--tuile-pad-y) + 4px) var(--tuile-pad-x);
+}
+.ouvrir {
+  flex: none;
+  font-size: var(--t-4);
+  font-weight: 600;
+  color: var(--gold-ink);
+  white-space: nowrap;
 }
 .tuile:hover,
 .tuile:focus-within {
@@ -166,23 +193,16 @@
    descend sur le dessin, à deux centimètres au-dessus.
    Et un chiffre de même taille disputerait au titre la première lecture : le
    titre nomme, la valeur renseigne. */
-.tuile > b {
-  /* La réserve de l'écusson, qui est hors du flux : 38 px de dessin et la
-     marge de la tuile. Sans elle, un nom long passerait dessous. */
-  padding-right: calc(38px + var(--s-5));
-  color: var(--gold-ink);
-  font-size: var(--t-7);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  /* UN MOT PLUS LARGE QUE SA COLONNE SORTAIT DE LA TUILE. « Réinvestissement »
-     à 20,2 px faisait 188 px dans une colonne de 175, et passait par-dessus la
-     bordure. « overflow-wrap: anywhere » l'a coupé — en « Réinvestissem /
-     ent », sans césure, ce qui se lit comme une faute de frappe. La vraie
-     réponse est un NOM PLUS COURT, et c'est la règle que les en-têtes doublés
-     imposent de toute façon : le service s'appelle « Réinvestir ». Un cliquet
-     borne la longueur du plus long mot d'un nom, pour que la question se pose
-     à l'écriture et non à l'écran. La césure reste, en courtoisie. */
+.nom {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--t-6);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0;
+  /* Un nom plus long que sa colonne se coupe à la césure : la vraie réponse reste un nom court, borné par le cliquet de longueur. */
   hyphens: auto;
 }
 /* LE LIEN S'ÉTEND SUR LA TUILE ENTIÈRE, par un calque.
@@ -255,33 +275,20 @@
    descendre un peu pour obtenir. L'or reste le repli, pour un service dont
    la teinte manquerait. */
 .marque {
-  /* DANS LE COIN, ET HORS DU FLUX — 26 octobre 2026, sur demande du
-     dirigeant. La tuile est une colonne calée à gauche : l'écusson y ouvrait
-     la lecture au-dessus du titre, à la place même où l'œil cherche le nom.
-     Posé à droite, il devient ce qu'il est — une marque qu'on retrouve d'une
-     tuile à l'autre sans qu'elle précède le mot.
-     « align-self: flex-end » SUFFISAIT À LE DÉPLACER ET NE SUFFISAIT PAS :
-     il gardait sa rangée, et laissait une bande vide à sa gauche sur toute
-     la largeur de la tuile. Hors du flux, le titre récupère le haut, et
-     l'écusson tient le coin. La réserve à droite du titre est ce qui les
-     empêche de se croiser quand le nom s'allonge. */
-  position: absolute;
-  top: var(--s-7);
-  right: var(--s-7);
+  /* Dans le bandeau (9 novembre 2026) : à gauche du nom, 32 px, teinte du service. */
+  flex: none;
   display: grid;
-  /* Voir la règle à deux colonnes, plus bas : le coin ne tient que sur une
-     tuile large. */
   place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   background: var(--surface-2);
   border: 1px solid var(--line);
   color: var(--teinte, var(--gold-ink));
 }
 .marque svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 /* ── CE QUI ATTEND DERRIÈRE UNE TUILE ────────────────────────────────────────
    Deux lignes au plus, sous la ligne fixe : à gauche le nom de la ligne, à
@@ -431,15 +438,6 @@
    L'écusson revient donc dans le flux au-dessus de 430 px : il garde sa
    rangée, à droite, et le titre a toute la largeur. C'est le même seuil que
    celui des colonnes, et c'est voulu — une seule largeur à retenir. */
-@media (min-width: 430px) {
-  .marque {
-    position: static;
-    align-self: flex-end;
-  }
-  .tuile > b {
-    padding-right: 0;
-  }
-}
 
 /* ── LE DISPONIBLE, EN TÊTE DES GESTES ──────────────────────────────────────
    La page demande « qu'est-ce que je peux faire » ; la première réponse est
@@ -468,14 +466,14 @@
   text-decoration: none;
 }
 .etiquette {
-  font-size: 0.7rem;
+  font-size: var(--t-2);
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 .montant {
-  font-size: var(--t-6);
+  font-size: var(--t-7);
   font-weight: 700;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -488,38 +486,38 @@
 /* « 0 FCFA » se lit comme une panne : à zéro le chiffre se nomme. C'est la
    règle que la page d'arrivée applique déjà à une valorisation absente. */
 .vide {
-  font-size: var(--t-3);
+  font-size: var(--t-5);
   font-weight: 600;
   color: var(--ink-2);
 }
+/* LE GESTE EST UN BOUTON ÉCRIT EN TOUTES LETTRES (9 novembre 2026, planche « La page Trade », 4A) : « + Approvisionner » en --t-3, au lieu d'un rond avec sa légende de 10,2 px dessous. 44 px de haut au moins. */
 .geste {
   flex: none;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--s-4);
-  color: inherit;
+  gap: var(--s-3);
+  min-height: 44px;
+  padding: 0 var(--s-7);
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--navy);
   text-decoration: none;
 }
 .geste b {
-  font-size: var(--t-1);
-  font-weight: 600;
+  font-size: var(--t-3);
+  font-weight: 700;
 }
 .rond {
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  border: 1px solid var(--gold);
-  background: var(--gold);
-  color: var(--navy);
+  width: 18px;
+  height: 18px;
 }
 .rond svg {
-  width: 21px;
-  height: 21px;
+  width: 18px;
+  height: 18px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.2;
+  stroke-width: 2.4;
   stroke-linecap: round;
 }

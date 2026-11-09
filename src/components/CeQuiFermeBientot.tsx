@@ -48,9 +48,12 @@ export async function CeQuiFermeBientot({
   titre = "Ce qui ferme bientôt",
   lien = { href: "/calendrier", mot: "Le calendrier" },
   sobre = false,
+  motDuLien,
 }: {
   /** L'allure de l'Accueil : titre sobre à chevron, lignes en une carte, ronds. */
   sobre?: boolean;
+  /** Le mot du lien du bandeau quand il n'est pas « Tout voir » (« Le calendrier » sur Trade). */
+  motDuLien?: string;
   /** Les offres déjà en main, pour ne pas les relire. */
   offres?: Offer[];
   max?: number;
@@ -76,7 +79,7 @@ export async function CeQuiFermeBientot({
 
   return (
     <section className={`${styles.bloc} ${sobre ? styles.sobre : ""}`} aria-labelledby="ferme-bientot">
-      {entete && sobre && <TitreDeBloc id="ferme-bientot" titre={titre} href={lien.href} />}
+      {entete && sobre && <TitreDeBloc id="ferme-bientot" titre={titre} href={lien.href} tout={motDuLien} />}
       {entete && !sobre && (
         <div className={styles.tete}>
           <h2 id="ferme-bientot" className={styles.titre}>
