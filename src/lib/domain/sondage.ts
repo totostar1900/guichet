@@ -606,3 +606,52 @@ export function etatDeLAttente(l: Pick<LigneSondee, "state" | "origine" | "repon
       : "Votre ligne est au desk. Elle ne vous engage à rien, et elle attend d'autres clients : une ligne se porte à un Trésor quand plusieurs la demandent.",
   };
 }
+
+/* ------------------------------------------------------------------ *
+ * CE QUE LE DESK VOIT D'UNE MODIFICATION (9 novembre 2026)
+ * ------------------------------------------------------------------ */
+
+/** Les champs qu'un client peut modifier sur une intention : l'avant et l'après de l'audit portent exactement ceux-là. */
+export interface ChampsModifiables {
+  instrument: string;
+  country: string;
+  tenor: string;
+  rate?: number;
+  pricePct?: number;
+  montant: number;
+  seanceLe?: string;
+  dansJours?: number;
+  jusquA?: string;
+  note?: string;
+}
+
+export function champsModifiables(l: ChampsModifiables): ChampsModifiables {
+  return { instrument: l.instrument, country: l.country, tenor: l.tenor, rate: l.rate, pricePct: l.pricePct, montant: l.montant, seanceLe: l.seanceLe, dansJours: l.dansJours, jusquA: l.jusquA, note: l.note };
+}
+
+const LIBELLES: Record<keyof ChampsModifiables, string> = {
+  instrument: "instrument",
+  country: "Trésor",
+  tenor: "durée",
+  rate: "niveau",
+  pricePct: "prix",
+  montant: "montant",
+  seanceLe: "séance visée",
+  dansJours: "délai (jours)",
+  jusquA: "valable jusqu'au",
+  note: "note",
+};
+
+/**
+ * CE QUI A CHANGÉ, CHAMP PAR CHAMP, en une phrase que le desk lit sans rouvrir la page.
+ *
+ * Le fil ne disait que « montant → montant » : un client qui baisse son taux de 7 % à 6 % pour le même montant produisait « 100 → 100 FCFA », et le desk, qui porte au Trésor ce qu'il lit dans le
+ * consensus, ne voyait rien bouger. Vide quand rien n'a changé.
+ */
+export function changementsDeLaLigne(avant: ChampsModifiables, apres: ChampsModifiables, montrer: (k: keyof ChampsModifiables, v: unknown) => string = (_k, v) => (v == null || v === "" ? "—" : String(v))): string[] {
+  const out: string[] = [];
+  for (const k of Object.keys(LIBELLES) as (keyof ChampsModifiables)[]) {
+    if ((avant[k] ?? null) !== (apres[k] ?? null)) out.push(`${LIBELLES[k]} : ${montrer(k, avant[k])} → ${montrer(k, apres[k])}`);
+  }
+  return out;
+}

@@ -264,6 +264,7 @@ export const EN_SONDAGE: Record<string, string> = {
   "reçus sur {m} cherchés, de {n} réponse(s)": "received of {m} sought, from {n} answer(s)",
   "Poser une question à la place": "Ask the market a question",
   "Les {n} demandes, une par une": "The {n} requests, one by one",
+  "modifiée le {d}": "modified on {d}",
   "Prêt le": "Ready on",
   précompté: "discounted",
   Compartiment: "Compartment",

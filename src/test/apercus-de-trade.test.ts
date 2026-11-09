@@ -169,7 +169,7 @@ describe("les aperçus des tuiles de Trade", () => {
     const avecPart = apercusDuService("passage", offers, { ...CTX, partsDeFonds: { titre: "FCP Trésorerie", parts: 190 } });
     const sansPart = apercusDuService("passage", offers, CTX);
     expect(avecPart, "l'arbitrage ne dit plus la même chose selon ce qu'on détient").toEqual(sansPart);
-    expect(avecPart.map((a) => a.nom)).toEqual(["Rachat et souscription", "Les deux valeurs"]);
+    expect(avecPart.map((a) => a.nom)).toEqual(["Le rachat et la souscription se signent ensemble.", "Les deux valeurs vous sont dites avant de signer."]);
     expect(avecPart.every((a) => a.prose), "l'explication est revenue dans la case d'un chiffre").toBe(true);
     expect(JSON.stringify(avecPart), "un compte de parts est revenu sur la tuile d'arbitrage").not.toMatch(/parts?\b|190/);
   });
@@ -195,7 +195,7 @@ describe("les aperçus des tuiles de Trade", () => {
        qui ouvre la page un jour sans séance est celui qui ne sait pas encore
        ce qu'est un sondage. Ce qu'elles ne font PAS : annoncer une séance. */
     const muet = apercusDuService("sondage", [cotee("a1", "SEMC")], CTX);
-    expect(muet.map((a) => a.nom), "le repli du sondage a changé sans qu'on le dise").toEqual(["Dites votre taux", "Avant la clôture"]);
+    expect(muet.map((a) => a.nom), "le repli du sondage a changé sans qu'on le dise").toEqual(["Dites votre taux, sans engagement.", "Le desk vous rappelle avant la clôture."]);
     expect(JSON.stringify(muet), "le repli annonce une séance là où il n'y en a aucune").not.toMatch(/séance|taux de|%/);
     expect(apercusDuService("epargne", [cotee("a1", "SEMC")], CTX), "les rayons en bandes ont pris un aperçu").toEqual([]);
   });
@@ -261,15 +261,15 @@ describe("les aperçus des tuiles de Trade", () => {
   it("met du contenu quand aucune séance n'est ouverte", () => {
     const close = new Date(Date.now() - 5 * 86_400_000).toISOString();
     const vus = apercusDuService("primaire", [ota("o1", close), bta("b1", close)], CTX);
-    expect(vus.map((a) => a.nom)).toEqual(["Obligations du Trésor", "Bons du Trésor"]);
+    expect(vus.map((a) => a.nom)).toEqual(["Obligations du Trésor : un coupon et une durée.", "Bons du Trésor : précomptés, sous un an."]);
     /* Non vacuité : les mêmes séances OUVERTES donnent bien des taux. */
     const ouvert = new Date(Date.now() + 5 * 86_400_000).toISOString();
     expect(apercusDuService("primaire", [ota("o2", ouvert)], CTX)[0].dit.key, "le cas nominal ne rend plus de taux : le repli ci-dessus ne prouve rien").toBe("{r} / an");
     /* Et le repli ne contredit pas la note de section d'où il vient. */
     expect(SECTION_NOTE.obligations_tresor, "la note des OTA ne parle plus de coupon ni de durée : le repli a dérivé").toMatch(/coupon.*durée/i);
     expect(SECTION_NOTE.bons_tresor, "la note des BTA ne parle plus de précompte : le repli a dérivé").toMatch(/[Pp]récompt/);
-    expect(vus[0].dit.key).toMatch(/coupon.*durée/);
-    expect(vus[1].dit.key).toMatch(/précompt/);
+    expect(vus[0].nom).toMatch(/coupon.*durée/);
+    expect(vus[1].nom).toMatch(/précompt/);
     /* ET ELLES SE DISENT COMME DES PHRASES, pas comme des montants. La case de
        droite est celle d'un nombre — grasse, alignée à droite, au corps de
        lecture — et « un coupon, une durée » y criait sur deux hauteurs. Le

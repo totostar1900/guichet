@@ -992,3 +992,13 @@ Décidé sur la planche « En-têtes de l'Accueil » (choix 1B · 2A). Il **remp
 - composant : `TitreDeBloc` (`bandeau` par défaut tant que `fort` est faux) ; blocs : `BlocPlat`, `BlocDeLignes` (`enBandeau`), `SelectionDuDesk`, `CeQuiFermeBientot`, `IndexPulse` (`aPlat`), `CeQuiPerforme`, « À la une ». Gardé par `src/test/accueil-entetes.test.ts`.
 
 **Trade (9 novembre 2026, planche « La page Trade », 4A · 2A · 1A).** La page suit la même grammaire : « Ce qui ferme bientôt » est le bandeau de l'Accueil (`sobre`, lien « Le calendrier ›»), chaque tuile de service a son bandeau (icône 32 px, nom `--t-6` en encre, « Ouvrir › » or, ligne de 1 px, 44 px), le disponible est un montant à `--t-7` et un bouton « + Approvisionner » de 44 px. **Laissé tel quel :** les quatre tuiles du compte non ouvert qui répètent la même phrase (point 3, décision du client). Gardé par `accueil-entetes.test.ts`.
+
+## § 8.16 Gestes : l'extension d'une carte, le retour au toucher, la fermeture d'une feuille (9 novembre 2026)
+
+Décidé sur la planche « Gestes et feuilles » (1A · 2A · 3A · 4A).
+
+- **Le dos d'une carte est une extension vers le bas** (Titres, Fonds, Adjudications, vue compacte) : un chevron de 34 px sous les « ··· » (34 px aussi, mêmes places sur les trois pages), la hauteur glisse (`grid-template-rows` 0fr → 1fr, 340 ms, courbe 0,32 · 0,72 · 0 · 1), **sans fondu, sans voile, sans dépassement** ; la région fermée est `inert`. Elle porte tout le corps détaillé (état compris) puis trois boutons alignés : l'action de la ligne, Favori, la fiche. Un clic sur la carte mène à la fiche ; seul le chevron déplie. Composants : `mobile/CarteDepliee`. Gardé par `carte-depliee.test.ts`.
+- **Retour au toucher global** (`globals.css`) : un contrôle enfoncé se tasse (`scale`, 90 ms, retour 200 ms). On écrit `scale` et non `transform` : il se compose avec celui d'un composant. Gardé par `retour-au-toucher.test.ts`.
+- **Une feuille se ferme là où est le doigt** (`mobile/relacher`) : au relâchement, elle glisse depuis sa position, durée selon la vitesse (160 à 300 ms), sans repasser par la position ouverte. Gardé par `fermeture-des-feuilles.test.ts`.
+- **Une ligne de repli est une phrase entière** (`apercus.ts`), jamais deux moitiés aux deux bords d'une tuile.
+- **Une écriture du client sur le sondage passe par `audit()`** (dépôt, modification, remplacement, retrait) avec l'avant et l'après complets ; le desk voit « modifiée le … » et les champs changés. Gardé par `sondage-audit.test.ts`.

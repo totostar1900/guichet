@@ -122,9 +122,10 @@ export function nomDeFonds(titre: string): string {
  * Une définition écrite deux fois finit par se contredire ; celles-ci sont
  * des abrégés de la même source, et les épreuves le vérifient.
  */
+/* UNE LIGNE DE REPLI EST UNE PHRASE ENTIÈRE (9 novembre 2026, planche « Gestes et feuilles », 1A) : le texte est dans `nom`, `dit` reste vide. Coupées en deux moitiés aux deux bords de la tuile (« Dites votre taux » à gauche, « sans engagement » à droite), ces lignes se lisaient comme des fragments. */
 const SANS_SEANCE: Apercu[] = [
-  { nom: "Obligations du Trésor", dit: { key: "un coupon, une durée" }, prose: true },
-  { nom: "Bons du Trésor", dit: { key: "précomptés, sous un an" }, prose: true },
+  { nom: "Obligations du Trésor : un coupon et une durée.", dit: { key: "" }, prose: true },
+  { nom: "Bons du Trésor : précomptés, sous un an.", dit: { key: "" }, prose: true },
 ];
 
 /**
@@ -136,13 +137,13 @@ const SANS_SEANCE: Apercu[] = [
  * soir du 25 octobre 2026, et la règle vaut pour les quatre lignes.
  */
 const ARBITRAGE: Apercu[] = [
-  { nom: "Rachat et souscription", dit: { key: "signés ensemble" }, prose: true },
-  { nom: "Les deux valeurs", dit: { key: "dites avant de signer" }, prose: true },
+  { nom: "Le rachat et la souscription se signent ensemble.", dit: { key: "" }, prose: true },
+  { nom: "Les deux valeurs vous sont dites avant de signer.", dit: { key: "" }, prose: true },
 ];
 
 const SANS_SONDAGE: Apercu[] = [
-  { nom: "Dites votre taux", dit: { key: "sans engagement" }, prose: true },
-  { nom: "Avant la clôture", dit: { key: "le desk vous rappelle" }, prose: true },
+  { nom: "Dites votre taux, sans engagement.", dit: { key: "" }, prose: true },
+  { nom: "Le desk vous rappelle avant la clôture.", dit: { key: "" }, prose: true },
 ];
 
 /**

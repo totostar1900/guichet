@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { useSheetPresence } from "./useSheetPresence";
+import { commencerLeGeste, relacherLaFeuille, suivreLeGeste, type Geste } from "./relacher";
 import { texteDuSuivi, useBulle } from "./Bulle";
 import { toggleWatch } from "@/app/offres/[id]/actions";
 import styles from "./LineMenu.module.css";
@@ -48,7 +49,7 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
   const [on, setOn] = useSuivi(line.id, watching);
   const [pending, start] = useTransition();
   const sheet = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ y0: number; dy: number } | null>(null);
+  const drag = useRef<Geste | null>(null);
   // The sheet is a portal: only once the page is on the client.
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -136,20 +137,19 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
 
   // Pull the sheet down to close it.
   const onTouchStart = (e: React.TouchEvent) => {
-    drag.current = { y0: e.touches[0].clientY, dy: 0 };
+    drag.current = commencerLeGeste(e.touches[0].clientY);
     sheet.current?.classList.add(styles.drag);
   };
   const onTouchMove = (e: React.TouchEvent) => {
     if (!drag.current || !sheet.current) return;
-    drag.current.dy = Math.max(0, e.touches[0].clientY - drag.current.y0);
-    sheet.current.style.transform = `translate(-50%, calc(-50% + ${drag.current.dy}px))`;
+    const dy = suivreLeGeste(drag.current, e.touches[0].clientY, false);
+    sheet.current.style.transform = `translate(-50%, calc(-50% + ${dy}px))`;
   };
   const onTouchEnd = () => {
-    const dy = drag.current?.dy ?? 0;
+    const g = drag.current;
     drag.current = null;
-    sheet.current?.classList.remove(styles.drag);
-    if (sheet.current) sheet.current.style.transform = "";
-    if (dy > 80) close();
+    /* LA FERMETURE REPREND LÀ OÙ EST LE DOIGT (3A, 9 novembre 2026) : voir « relacher ». */
+    if (relacherLaFeuille(sheet.current, g, { centre: true, classeDeGlissement: styles.drag })) close();
   };
 
   const items: [string, string, string, string?][] = [

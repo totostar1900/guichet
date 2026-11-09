@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import styles from "./Sheet.module.css";
 import { useSheetPresence } from "./useSheetPresence";
 import { deverrouiller, verrouiller } from "./verrou-defilement";
+import { commencerLeGeste, relacherLaFeuille, suivreLeGeste, type Geste } from "./relacher";
 
 /**
  * A sheet over the page: from the bottom on the phone (pulled down or
@@ -43,7 +44,7 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, a
  */ plein?: boolean; foot?: React.ReactNode; /** un objet posé à droite du titre, avant la croix : un réglage qu'on veut en tête et non au fond */ action?: React.ReactNode; /** une fenêtre posée AU MILIEU de l'écran, sur téléphone aussi : un choix court, pas une feuille qui monte du bas */ centre?: boolean }) {
   const t = useT();
   const box = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ y0: number; dy: number } | null>(null);
+  const drag = useRef<Geste | null>(null);
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -89,7 +90,7 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, a
     const corps = cible.closest(`.${styles.body}`);
     const surLaTete = Boolean(cible.closest(`.${styles.head}`));
     if (!surLaTete && corps && corps.scrollTop > 0) return;
-    drag.current = { y0: e.touches[0].clientY, dy: 0 };
+    drag.current = commencerLeGeste(e.touches[0].clientY);
     box.current?.classList.add(styles.drag);
   };
   const onTouchMove = (e: React.TouchEvent) => {
@@ -97,15 +98,14 @@ export function Sheet({ open, onClose, title, sub, children, wide, navy, dock, a
     // Une feuille tombée du haut se repousse vers le haut : le geste va toujours
     // vers le bord d'où elle est venue.
     const up = dock === "under";
-    drag.current.dy = Math.max(0, up ? drag.current.y0 - e.touches[0].clientY : e.touches[0].clientY - drag.current.y0);
-    box.current.style.transform = centre ? `translate(-50%, calc(-50% + ${drag.current.dy}px))` : `translateY(${up ? -drag.current.dy : drag.current.dy}px)`;
+    const dy = suivreLeGeste(drag.current, e.touches[0].clientY, up);
+    box.current.style.transform = centre ? `translate(-50%, calc(-50% + ${dy}px))` : `translateY(${up ? -dy : dy}px)`;
   };
   const onTouchEnd = () => {
-    const dy = drag.current?.dy ?? 0;
+    const g = drag.current;
     drag.current = null;
-    box.current?.classList.remove(styles.drag);
-    if (box.current) box.current.style.transform = "";
-    if (dy > 80) onClose();
+    /* LA FERMETURE REPREND LÀ OÙ EST LE DOIGT (3A, 9 novembre 2026) : voir « relacher ». La feuille n'est plus remise en place avant de se fermer. */
+    if (relacherLaFeuille(box.current, g, { haut: dock === "under", centre: Boolean(centre), classeDeGlissement: styles.drag })) onClose();
   };
   return createPortal(
     <>

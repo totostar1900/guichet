@@ -6,7 +6,7 @@ import { useDensity } from "@/components/Density";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { useDeskView, useLineHref } from "@/components/DeskView";
 import { SwipeActions } from "@/components/mobile/SwipeActions";
-import { Turn } from "@/components/OfferCard";
+import { BoutonsDeLaCarte, ChevronDeplie, Depliable, Extension, Outils, useDepliee } from "@/components/mobile/CarteDepliee";
 import { useRef } from "react";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fundYtdPct } from "@/lib/domain/fund-curve";
@@ -74,7 +74,7 @@ export function FundCard({ r }: { r: FundRow }) {
   const href = useLineHref()(r.id);
   const desk = useDeskView();
   const more = useRef<(() => void) | null>(null);
-  const turn = useRef<(() => void) | null>(null);
+  const { ouvert, basculer, idRegion } = useDepliee();
   const ytd = fundYtdPct(r.curve);
   const menu = { id: r.id, title: r.title, isin: r.isin, kind: "FONDS", sub: `${r.manager} · VL ${fmt(r.nav)} FCFA` };
 
@@ -107,12 +107,11 @@ export function FundCard({ r }: { r: FundRow }) {
             </span>
           </div>
         </div>
-        {!dos && (
-          <div className={styles.corner}>
-            {pastille}
-            {!desk && <LineMenu line={menu} cadence="evenement" openRef={more} />}
-          </div>
-        )}
+        {/* LE COIN PORTE L'ÉTAT DANS LES DEUX FACES (4A) : la pastille n'est nulle part ailleurs en vue compacte, elle reste dans l'extension ; le « ··· » reste à la carte seule. */}
+        <div className={styles.corner}>
+          {pastille}
+          {!dos && !desk && <LineMenu line={menu} cadence="evenement" openRef={more} />}
+        </div>
       </div>
       <div className={styles.facts}>
         <div>
@@ -152,9 +151,12 @@ export function FundCard({ r }: { r: FundRow }) {
         <span className={styles.when}>
           {t("Dépositaire")} {r.depositary}
         </span>
-        <Link className="btn sm" href={href}>
-          {t("Voir la fiche")} →
-        </Link>
+        {/* « Voir la fiche » est dans la rangée de boutons de l'extension. */}
+        {!dos && (
+          <Link className="btn sm" href={href}>
+            {t("Voir la fiche")} →
+          </Link>
+        )}
       </div>
     </>
   );
@@ -169,51 +171,33 @@ export function FundCard({ r }: { r: FundRow }) {
     );
 
   return (
-    <SwipeActions
-      key="compacte"
-      id={r.id}
-      turnRef={turn}
-      backHead={
-        <div className={styles.corner}>
-          {pastille}
-          <button type="button" className={styles.dotsBack} onClick={() => more.current?.()} aria-label={t("Plus d'actions")}>
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="5" cy="12" r="2" />
-              <circle cx="12" cy="12" r="2" />
-              <circle cx="19" cy="12" r="2" />
-            </svg>
-          </button>
-          <button type="button" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
-            <Turn />
-          </button>
-        </div>
-      }
-      back={<div className={propres.dos}>{corps(true)}</div>}
-    >
-      <article className={`${styles.card} ${propres.compacte}`} style={{ ["--card-c" as string]: "var(--info)" }}>
-        <Link href={href} className={propres.cLien}>
-          <span className={propres.cNom}>
-            <b>{r.title}</b>
-            <small>
-              <i className={propres.point} data-cat={r.category} aria-hidden="true" />
-              {t(FUND_CATEGORY_LABEL[r.category])}
-            </small>
-          </span>
-          <span className={propres.cPerf}>
-            <b className={cls(perf)}>{signed(perf)}</b>
-            <em>{noms[fenetre]}</em>
-          </span>
-        </Link>
-        <span className={propres.cOutils}>
-          {!desk && <LineMenu line={menu} cadence="evenement" openRef={more} className={propres.cDots} />}
-          <button type="button" className={propres.cFlip} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3" />
-              <path d="M18 3v4h-4M6 21v-4h4" />
-            </svg>
-          </button>
-        </span>
-      </article>
+    <SwipeActions key="compacte" id={r.id} cadence="evenement">
+      <Depliable ouvert={ouvert}>
+        <article className={`${styles.card} ${propres.compacte}`} style={{ ["--card-c" as string]: "var(--info)" }}>
+          <Link href={href} className={propres.cLien}>
+            <span className={propres.cNom}>
+              <b>{r.title}</b>
+              <small>
+                <i className={propres.point} data-cat={r.category} aria-hidden="true" />
+                {t(FUND_CATEGORY_LABEL[r.category])}
+              </small>
+            </span>
+            <span className={propres.cPerf}>
+              <b className={cls(perf)}>{signed(perf)}</b>
+              <em>{noms[fenetre]}</em>
+            </span>
+          </Link>
+          <Outils>
+            {!desk && <LineMenu line={menu} cadence="evenement" openRef={more} />}
+            <ChevronDeplie ouvert={ouvert} onClick={basculer} idRegion={idRegion} />
+          </Outils>
+        </article>
+        {/* LE DOS EST L'EXTENSION (4A) : tout ce que disait le dos, puis les trois boutons. */}
+        <Extension ouvert={ouvert} idRegion={idRegion}>
+          <div className={propres.dos}>{corps(true)}</div>
+          <BoutonsDeLaCarte id={r.id} href={href} kind="FONDS" cadence="evenement" agir={!desk} />
+        </Extension>
+      </Depliable>
     </SwipeActions>
   );
 }

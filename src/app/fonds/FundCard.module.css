@@ -79,7 +79,7 @@
   display: flex;
   align-items: center;
   gap: 0;
-  padding: var(--s-4) calc(var(--s-9) + var(--s-4));
+  padding: 8px 24px;
 }
 .cLien {
   flex: 1 1 auto;
@@ -130,34 +130,6 @@
 /* La VL n'est pas une performance : elle ne prend donc ni le vert ni le
    rouge, qui sont réservés à ce qui monte et descend. */
 .vl {
-  color: var(--gold-ink);
-}
-
-/* LES OUTILS DE LA COMPACTE : le « ··· » et le retournement, dans leur
-   colonne, comme sur une carte de titre. Ils ne paraissent qu'ici, parce que
-   la vue normale n'a rien derrière elle. */
-.cOutils {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  margin-left: var(--s-9);
-}
-.cDots,
-.cFlip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--s-10);
-  height: var(--s-10);
-  border: 0;
-  background: transparent;
-  color: var(--ink-3);
-  cursor: pointer;
-}
-.cFlip:hover,
-.cDots:hover {
   color: var(--gold-ink);
 }
 

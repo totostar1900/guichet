@@ -9,6 +9,7 @@ import { LineIdentity } from "./LineIdentity";
 import { LineMenu } from "./mobile/LineMenu";
 import { useDeskView, useLineHref } from "./DeskView";
 import { SwipeActions } from "./mobile/SwipeActions";
+import { BoutonsDeLaCarte, ChevronDeplie, Depliable, Extension, Outils, useDepliee } from "./mobile/CarteDepliee";
 import { useRef } from "react";
 import { famVars } from "@/lib/registry";
 import { useDensity } from "./Density";
@@ -17,13 +18,6 @@ import { MiniCourbe } from "./MiniCourbe";
 import { issuerZone } from "@/data/issuer-registry";
 import { Drapeau } from "./Drapeau";
 import styles from "./OfferCard.module.css";
-
-export const Turn = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3" />
-    <path d="M18 3v4h-4M6 21v-4h4" />
-  </svg>
-);
 
 /**
  * One number, three facts, one action. The « ··· » sits in the corner by
@@ -144,7 +138,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
   const when = continuous ? t("cotation continue") : t(s.deadline);
   const whenLabel = continuous || !when ? null : <em className={styles.whenLabel}>{t("Clôture")}</em>;
   const more = useRef<(() => void) | null>(null);
-  const turn = useRef<(() => void) | null>(null);
+  const { ouvert, basculer, idRegion } = useDepliee();
   const [suiviEtat] = useSuivi(o.id, suivi);
   const menu = { id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() };
   /** Le corps de la vue détaillée. `dos` : le coin est porté par la tête de la face arrière. */
@@ -152,15 +146,14 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
     <>
           <div className={`${styles.head} ${dos ? styles.dosTete : ""}`}>
             <LineIdentity o={o} s={s} href={dos ? undefined : href} size="lg" isin={false} />
-            {!dos && (
-              <div className={styles.corner} data-coach="titres-etat">
-                <span className={styles.etat}>
-                  {suiviEtat && <Cloche />}
-                  <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
-                </span>
-                {!desk && <LineMenu line={menu} watching={suivi} cadence={cadenceDuSuivi(o)} openRef={more} />}
-              </div>
-            )}
+            {/* LE COIN PORTE L'ÉTAT DANS LES DEUX FACES : la pastille (et la cloche) ne sont nulle part ailleurs en vue compacte, donc elles restent dans l'extension. Le « ··· » reste à la carte seule. */}
+            <div className={styles.corner} data-coach={dos ? undefined : "titres-etat"}>
+              <span className={styles.etat}>
+                {suiviEtat && <Cloche />}
+                <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
+              </span>
+              {!dos && !desk && <LineMenu line={menu} watching={suivi} cadence={cadenceDuSuivi(o)} openRef={more} />}
+            </div>
           </div>
           {estAction && prix ? (
             <div className={styles.bigAction} data-coach="titres-prix">
@@ -233,9 +226,12 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
                 {when}
               </span>
             )}
-            <Link className="btn sm" href={href}>
-              {t("Voir la fiche")} →
-            </Link>
+            {/* « Voir la fiche » est dans la rangée de boutons de l'extension : le dos n'a plus le sien. */}
+            {!dos && (
+              <Link className="btn sm" href={href}>
+                {t("Voir la fiche")} →
+              </Link>
+            )}
           </div>
     </>
   );
@@ -258,36 +254,12 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
     <SwipeActions
       key="compacte"
       id={o.id}
-      turnRef={turn}
       /* Une seance se rappelle chaque jour jusqu a sa cloture, une ligne cotee
          se suit a chaque changement : deux marches, deux cadences. */
       cadence={cadence}
       suivi={suivi}
-      backHead={
-        <div className={styles.corner}>
-          <span className={styles.etat}>
-            {suiviEtat && <Cloche />}
-            <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
-          </span>
-          {/* LE DOS N'A PLUS SON ICÔNE DE RETOURNEMENT : elle proposait un
-              geste que le glissement fait déjà, et la bascule n'existe que
-              sous 760 px, où le doigt est toujours disponible. Le « ··· »
-              reste, lui : aucun geste ne l'ouvre. */}
-          <button type="button" className={styles.dotsBack} onClick={() => more.current?.()} aria-label={t("Plus d'actions")}>
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="5" cy="12" r="2" />
-              <circle cx="12" cy="12" r="2" />
-              <circle cx="19" cy="12" r="2" />
-            </svg>
-          </button>
-          {/* L'ICÔNE DE RETOURNEMENT EST REVENUE AU DOS (5 novembre 2026), sous le « ··· » : le glissement ne se devine pas, et sur le dos on cherche d'abord comment revenir. */}
-          <button type="button" className={styles.flipBtn} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
-            <Turn />
-          </button>
-        </div>
-      }
-      back={<div className={styles.dos}>{corps(true)}</div>}
     >
+      <Depliable ouvert={ouvert}>
         <article data-coach="titres-carte" className={`${styles.card} ${styles.compact} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
           <Link href={href} className={styles.cLink}>
             <span className={styles.cId}>
@@ -327,13 +299,17 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
               )}
             </span>
           </Link>
-          <span className={styles.cTools}>
-            {!desk && <LineMenu line={menu} watching={suivi} cadence={cadenceDuSuivi(o)} openRef={more} className={styles.cDots} />}
-            <button type="button" data-coach="titres-retourner" className={styles.cFlip} onClick={() => turn.current?.()} aria-label={t("Retourner la carte")} title={t("Retourner la carte")}>
-              <Turn />
-            </button>
-          </span>
+          <Outils>
+            {!desk && <LineMenu line={menu} watching={suivi} cadence={cadenceDuSuivi(o)} openRef={more} />}
+            <ChevronDeplie ouvert={ouvert} onClick={basculer} idRegion={idRegion} />
+          </Outils>
         </article>
+        {/* LE DOS EST L'EXTENSION (4A) : tout ce que disait le dos, puis les trois boutons. */}
+        <Extension ouvert={ouvert} idRegion={idRegion}>
+          <div className={styles.dos}>{corps(true)}</div>
+          <BoutonsDeLaCarte id={o.id} href={href} kind={o.kind} past={s.past} cadence={cadence} suivi={suivi} agir={!desk} />
+        </Extension>
+      </Depliable>
     </SwipeActions>
   );
 }

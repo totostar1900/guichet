@@ -2,7 +2,7 @@ import { DeskNav } from "@/components/DeskNav";
 import { getT } from "@/i18n/server";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { SEUIL_CLIENTS, SEUIL_MONTANT, cleDeGroupe, consensus, motDuNiveau, mur, prete } from "@/lib/domain/sondage";
+import { SEUIL_CLIENTS, SEUIL_MONTANT, changementsDeLaLigne, cleDeGroupe, consensus, motDuNiveau, mur, prete, type ChampsModifiables } from "@/lib/domain/sondage";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { Pourquoi } from "@/components/Pourquoi";
 import { PoserUneQuestion, Statuer } from "./Formulaires";
@@ -41,6 +41,17 @@ export default async function SondageDeskPage() {
   const jeunes = groupes.filter((c) => !mur(c));
   const questions = lignes.filter((l) => l.origine === "desk" && l.state !== "close");
   const parId = new Map(lignes.map((l) => [l.id, l]));
+  /* CE QU'UN CLIENT A MODIFIÉ SE VOIT (9 novembre 2026) : la dernière modification de chaque intention, lue dans l'audit, avec ce qui a changé champ par champ. Le fil ne dit que l'instant ; l'audit dit l'avant et l'après. */
+  const audits = await r.listAudit({ entity: "sondage", limit: 1000 }).catch(() => []);
+  const modifs = new Map<string, { at: string; resume: string }>();
+  for (const a of audits) {
+    if (a.action !== "sondage.modifie") continue;
+    const deja = modifs.get(a.entityId);
+    if (deja && deja.at >= a.at) continue;
+    const avant = a.before as ChampsModifiables | undefined;
+    const apres = a.after as ChampsModifiables | undefined;
+    modifs.set(a.entityId, { at: a.at, resume: avant && apres ? changementsDeLaLigne(avant, apres).join(" · ") : "" });
+  }
 
   /* UN SEUL NIVEAU, UNE SEULE UNITÉ : le taux. Mêler des prix à des taux dans
      la même colonne — 99,00 % à côté de 6,30 % — était illisible, et c'est ce
@@ -137,7 +148,7 @@ export default async function SondageDeskPage() {
                 </p>
               )}
               <Echelle c={c} t={t} />
-              <Detail lignes={demandesDe(c.cle)} t={t} />
+              <Detail lignes={demandesDe(c.cle)} modifs={modifs} t={t} />
               {c.surLigne && <Statuer id={c.surLigne} ref_={parId.get(c.surLigne)?.ref ?? ""} />}
             </article>
           ))
@@ -275,7 +286,7 @@ function Echelle({ c, t }: { c: ReturnType<typeof consensus>[number]; t: (s: str
  * ce qu'on vérifie avant de le porter, et ce qu'on rappelle quand une séance
  * s'ouvre — c'est de là que viennent les coups de fil avant la clôture.
  */
-function Detail({ lignes, t }: { lignes: Awaited<ReturnType<ReturnType<typeof repo>["listLignesSondees"]>>; t: (s: string, v?: Record<string, string>) => string }) {
+function Detail({ lignes, modifs, t }: { lignes: Awaited<ReturnType<ReturnType<typeof repo>["listLignesSondees"]>>; modifs: Map<string, { at: string; resume: string }>; t: (s: string, v?: Record<string, string>) => string }) {
   if (lignes.length === 0) return null;
   return (
     <details className={styles.detail}>
@@ -294,7 +305,15 @@ function Detail({ lignes, t }: { lignes: Awaited<ReturnType<ReturnType<typeof re
         <tbody>
           {lignes.map((l) => (
             <tr key={l.id}>
-              <td>{l.clientName ?? "—"}</td>
+              <td>
+                {l.clientName ?? "—"}
+                {modifs.get(l.id) && (
+                  <small className={styles.modifiee} title={modifs.get(l.id)!.resume}>
+                    {t("modifiée le {d}", { d: fmtDate(modifs.get(l.id)!.at.slice(0, 10), false) })}
+                    {modifs.get(l.id)!.resume ? ` · ${modifs.get(l.id)!.resume}` : ""}
+                  </small>
+                )}
+              </td>
               <td className={styles.n}>{fmt(l.montant)}</td>
               <td className={styles.n}>{l.rate != null ? fmtPct(l.rate, 2) : "—"}</td>
               <td className={styles.n}>{l.pricePct != null ? `${l.pricePct.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} %` : motDuNiveau(l.instrument) === "taux" ? t("précompté") : "—"}</td>

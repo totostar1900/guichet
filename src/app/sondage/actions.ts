@@ -4,9 +4,10 @@ import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth";
+import { audit } from "@/lib/audit";
 import { noter } from "@/lib/journal";
 import { repo } from "@/lib/data";
-import { INSTRUMENTS_SONDES, delaiDepuisLaCreation, manquesDeLaLigne } from "@/lib/domain/sondage";
+import { INSTRUMENTS_SONDES, changementsDeLaLigne, champsModifiables, delaiDepuisLaCreation, manquesDeLaLigne } from "@/lib/domain/sondage";
 import { PAYS_CEMAC } from "@/lib/market/budget";
 import { fmt, fmtPct, localIso, parseAmount } from "@/lib/format";
 import type { Country, NewLigneSondee } from "@/lib/domain/types";
@@ -126,7 +127,10 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
      remplace donc la première, qui se clôt avec son motif. */
   if (question) {
     const sienne = (await r.listLignesSondees({ userId: s.userId })).find((x) => x.repondA === question!.id && x.state !== "close");
-    if (sienne) await r.updateLigneSondee(sienne.id, { state: "close", closedReason: "Remplacée par votre nouvelle réponse." });
+    if (sienne) {
+      await r.updateLigneSondee(sienne.id, { state: "close", closedReason: "Remplacée par votre nouvelle réponse." });
+      await audit("sondage.remplace", "sondage", sienne.id, { before: { ref: sienne.ref, state: sienne.state, ...champsModifiables(sienne) }, after: { ref: sienne.ref, state: "close", closedReason: "Remplacée par votre nouvelle réponse." } });
+    }
   }
 
   /* LES SŒURS SE CRÉENT ENSEMBLE, et chacune laisse sa trace : le journal est
@@ -134,6 +138,8 @@ export async function deposerLaLigne(_p: SondageResult | null, form: FormData): 
   const creees = [];
   for (const l of lignes) creees.push(await r.createLigneSondee(l));
   const creee = creees[0];
+  /* TOUTE ÉCRITURE MÉTIER PASSE PAR L'AUDIT, AVANT ET APRÈS (9 novembre 2026) : le dépôt d'un client n'en avait pas, seulement le journal du client et le fil du desk. */
+  for (const c of creees) await audit("sondage.depose", "sondage", c.id, { before: null, after: { ref: c.ref, ...champsModifiables(c), famille: c.familleId } });
   for (const c of creees) await noter("sondage.depose", { objet: c.ref, detail: `${c.instrument} ${c.country} ${c.tenor} · ${fmt(c.montant)} FCFA${familleId ? ` · une de ${creees.length} alternatives` : ""}` });
   /**
    * ET LE DESK L'APPREND LÀ OÙ IL REGARDE.
@@ -235,14 +241,17 @@ export async function modifierLaLigne(_p: SondageResult | null, form: FormData):
   const manques = manquesDeLaLigne({ ...apres, createdAt: sienne.createdAt }, localIso(new Date()));
   if (manques.length) return { ok: false, error: manques.join(" ") };
 
+  const changements = changementsDeLaLigne(champsModifiables(sienne), champsModifiables({ ...apres, instrument: apres.instrument, country: apres.country }), (k, v) => (v == null || v === "" ? "—" : k === "montant" ? `${fmt(Number(v))} FCFA` : k === "rate" || k === "pricePct" ? fmtPct(Number(v), 2) : String(v)));
   await r.updateLigneSondee(id, apres);
-  await noter("sondage.modifie", { objet: sienne.ref, detail: `${fmt(sienne.montant)} → ${fmt(apres.montant)} FCFA` });
+  /* L'AUDIT PORTE L'AVANT ET L'APRÈS COMPLETS (9 novembre 2026) : sans lui, le desk ne pouvait pas savoir quels champs avaient bougé. */
+  await audit("sondage.modifie", "sondage", id, { before: { ref: sienne.ref, ...champsModifiables(sienne) }, after: { ref: sienne.ref, ...champsModifiables({ ...apres, instrument: apres.instrument, country: apres.country }) } });
+  await noter("sondage.modifie", { objet: sienne.ref, detail: changements.length ? changements.join(" · ") : "aucun champ changé" });
   /* LE FIL PORTE L'AVANT ET L'APRÈS : le desk a pu lire la première version et
      la porter dans sa tête ; « modifiée » sans chiffres l'obligerait à rouvrir
      la page pour savoir ce qui a bougé. */
   await r.logEvent({
     kind: "intent",
-    html: `Sondage <b>${sienne.ref}</b> : ${s.name} <b>modifie</b> son intention · ${fmt(sienne.montant)} → <b>${fmt(apres.montant)} FCFA</b>`,
+    html: `Sondage <b>${sienne.ref}</b> : ${s.name} <b>modifie</b> son intention · ${changements.length ? changements.map((c) => `<b>${c}</b>`).join(" · ") : "aucun champ changé"}`,
   });
   revalidatePath(PATH);
   revalidatePath("/desk/sondage");
@@ -265,6 +274,7 @@ export async function retirerLaLigne(id: string): Promise<{ ok: boolean; error?:
   if (!sienne) return { ok: false, error: "Cette attente n'est pas la vôtre." };
   if (sienne.state === "close") return { ok: true };
   await r.updateLigneSondee(id, { state: "close", closedReason: "Retirée par vous." });
+  await audit("sondage.retire", "sondage", id, { before: { ref: sienne.ref, state: sienne.state, montant: sienne.montant }, after: { ref: sienne.ref, state: "close", closedReason: "Retirée par vous." } });
   await noter("sondage.retire", { objet: sienne.ref });
   /* UN RETRAIT SE DIT PLUS FORT QU'UN DÉPÔT : il enlève des francs d'un
      consensus que le desk s'apprête peut-être à porter, et c'est le seul geste

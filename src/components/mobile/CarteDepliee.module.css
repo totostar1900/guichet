@@ -1,0 +1,98 @@
+/* LA CARTE DÉPLIÉE (9 novembre 2026, planche « Gestes et feuilles », 4A).
+   LE MOUVEMENT EST SEUL : la hauteur glisse, sans fondu, sans voile, sans dépassement (la courbe 0,32 · 0,72 · 0 · 1 ne dépasse jamais). */
+.depliable {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+/* La carte (le premier enfant) perd ses coins du bas quand l'extension s'ouvre, avec la même courbe : l'extension la prolonge. */
+.depliable > :first-child {
+  transition: border-color 0.15s, box-shadow 0.15s, border-radius 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.depliable[data-ouvert="true"] > :first-child {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-color: var(--line);
+}
+.region {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.region[data-ouvert="true"] {
+  grid-template-rows: 1fr;
+}
+.interieur {
+  min-height: 0;
+  overflow: hidden;
+}
+.contenu {
+  display: grid;
+  gap: var(--s-6);
+  min-width: 0;
+  padding: var(--s-6) var(--tuile-pad-x) var(--s-7);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-top: 0;
+  border-radius: 0 0 var(--tuile-rayon) var(--tuile-rayon);
+}
+/* LES OUTILS : « ··· » puis chevron, 34 px à anneau tous les deux, même colonne sur les trois pages. */
+.outils {
+  margin-left: 16px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.chevron {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  flex: none;
+  /* « rotate », la propriété à part : elle se compose avec le « scale » du retour au toucher. */
+  transition: rotate 0.34s cubic-bezier(0.32, 0.72, 0, 1), scale 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s;
+}
+.chevron[aria-expanded="true"] {
+  rotate: 180deg;
+}
+.chevron:hover,
+.chevron:focus-visible {
+  color: var(--ink);
+}
+/* LES TROIS BOUTONS, ALIGNÉS : trois colonnes égales, 44 px de haut, le libellé passe sur deux lignes plutôt que de couper. */
+.boutons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  grid-auto-flow: column;
+  gap: var(--s-4);
+}
+.bouton {
+  min-height: 44px;
+  justify-content: center;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.2;
+  padding-inline: var(--s-4);
+  font-size: var(--t-3);
+  min-width: 0;
+}
+.favori {
+  color: var(--gold-ink);
+  border-color: var(--gold-line);
+}
+@media (prefers-reduced-motion: reduce) {
+  .region,
+  .depliable > :first-child,
+  .chevron {
+    transition: none;
+  }
+}

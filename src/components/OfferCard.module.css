@@ -366,38 +366,6 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.cTools {
-  /* SEIZE, LA OU IL N Y AVAIT RIEN. Mesure sur la page vivante : l ecart
-     entre le rendement et les outils etait de ZERO pixel, pas de huit comme
-     je l avais d abord ecrit ici. Le chiffre est ce qu on lit, les outils ce
-     qu on vise : colles, on touchait le « ··· » en voulant lire le rendement
-     et le pouce couvrait le nombre. */
-  margin-left: 16px;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
-.cDots,
-.cFlip {
-  width: 30px;
-  height: 26px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin: 0;
-  border: 0;
-  background: none;
-  color: var(--ink-3);
-  cursor: pointer;
-}
-.cFlip:hover,
-.cDots:hover {
-  color: var(--ink);
-}
-
 /* a fund's card: the same shape, its own identity lines and the sign of a performance */
 .fundId {
   min-width: 0;
@@ -458,43 +426,6 @@
   box-shadow: 0 2px 4px rgba(11, 37, 69, 0.14), 0 12px 28px rgba(11, 37, 69, 0.22);
 }
 
-/* the flip icon: beside the « ··· », the same weight; phone only (the card turns there).
-   LE DOS NE LE PORTE PLUS : une fois la carte retournée, l'icône proposait un
-   geste que le glissement fait déjà, et la bascule n'existe que sous 760 px,
-   donc le doigt est toujours là pour le faire. Le dos garde la pastille et le
-   « ··· », qui eux n'ont pas d'équivalent au geste. */
-.flipBtn,
-.dotsBack {
-  display: none;
-  width: 34px;
-  height: 34px;
-  border: 0;
-  background: transparent;
-  color: var(--ink-3);
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-}
-.dotsBack {
-  color: var(--gold);
-}
-.dotsBack svg {
-  fill: currentColor;
-}
-.flipBtn {
-  margin-top: 6px;
-}
-
-@media (max-width: 760px) {
-  .flipBtn,
-  .dotsBack {
-    display: inline-flex;
-  }
-  .compact .flipBtn {
-    margin-top: 0;
-  }
-}
 .whenLabel {
   font-style: normal;
   font-weight: 700;

@@ -12,12 +12,12 @@ describe("« Comment lire cette page ? » suit la vue, couvre la carte et se lan
   it("la visite des cartes détaillées couvre l'état, le chiffre, la grille et le pied, et dit qu'il n'y a pas de dos", () => {
     const c = cibles("detaillees", "adjudications");
     for (const k of ["titres-groupe", "titres-etat", "titres-prix", "titres-grille", "titres-pied", "titres-carte"]) expect(c, `repère ${k} absent`).toContain(k);
-    expect(c, "le dos n'existe pas en vue détaillée").not.toContain("titres-retourner");
+    expect(c, "le dos n'existe pas en vue détaillée").not.toContain("titres-deplier");
   });
   it("la visite des cartes compactes parle du chiffre de la tuile et du dos", () => {
     const c = cibles("compactes", "cote");
     expect(c).toContain("titres-chiffre");
-    expect(c, "le dos manque à la visite compacte").toContain("titres-retourner");
+    expect(c, "l'extension manque à la visite compacte").toContain("titres-deplier");
     expect(c, "la grille détaillée est au dos, pas sur la tuile").not.toContain("titres-grille");
   });
   it("chaque vue a sa visite, et les deux pages ne disent pas la même chose du chiffre", () => {
@@ -27,7 +27,7 @@ describe("« Comment lire cette page ? » suit la vue, couvre la carte et se lan
     expect(texte("adjudications")).not.toBe(texte("cote"));
   });
   it("chaque repère de la visite existe dans le code de la carte ou de la barre", () => {
-    const code = [lire("src/components/OfferCard.tsx"), lire("src/components/market/TeteGroupe.tsx"), lire("src/components/OfferBrowser.tsx"), lire("src/components/MarketToggles.tsx"), lire("src/components/Affichage.tsx"), lire("src/components/market/OngletsMarche.tsx")].join("\n");
+    const code = [lire("src/components/OfferCard.tsx"), lire("src/components/mobile/CarteDepliee.tsx"), lire("src/components/market/TeteGroupe.tsx"), lire("src/components/OfferBrowser.tsx"), lire("src/components/MarketToggles.tsx"), lire("src/components/Affichage.tsx"), lire("src/components/market/OngletsMarche.tsx")].join("\n");
     const tous = new Set(["detaillees", "compactes", "liste", "tableau"].flatMap((v) => cibles(v as VueDeLaVisite, "cote")));
     for (const k of tous) expect(code, `aucun élément ne porte le repère ${k}`).toMatch(new RegExp(`data-coach=(\\{[^}]*)?"${k}"`));
   });
@@ -140,7 +140,7 @@ describe("retouches du 7 novembre au soir : tuile compacte, hauteurs, menu ⋯, 
   });
   it("le menu ⋯ est une fenêtre centrée, fermée en tirant vers le bas, avec « Contacter » et l'action de la ligne au pied", () => {
     const m = lire("src/components/mobile/LineMenu.tsx");
-    expect(m, "le glissement ne garde plus la fenêtre centrée").toMatch(/translate\(-50%, calc\(-50% \+ \$\{drag\.current\.dy\}px\)\)/);
+    expect(m, "le glissement ne garde plus la fenêtre centrée").toMatch(/translate\(-50%, calc\(-50% \+ \$\{dy\}px\)\)/);
     expect(m).toMatch(/\["contacter", "Contacter un conseiller"/);
     expect(m).toMatch(/\/moi\/contact\?ligne=/);
     expect(m, "l'action de la ligne a perdu ses trois libellés").toMatch(/"Souscrire ou racheter" : line\.kind === "MARCHE" \? "Passer un ordre" : "Déclarer une intention"/);
@@ -342,7 +342,7 @@ describe("bulles d'information au milieu, menu sans identité, résultat de séa
     expect(i, "l'explication n'est plus dans la fenêtre centrée").toMatch(/<Sheet open=\{open\} onClose=\{\(\) => setOpen\(false\)\} title=\{title \|\| tr\("Explication"\)\} centre>/);
     expect(i, "l'infobulle à flèche est revenue").not.toMatch(/role="tooltip"|createPortal|getBoundingClientRect/);
     expect(lire("src/components/Info.module.css")).not.toMatch(/\.bubble|border-top-color/);
-    expect(lire("src/components/mobile/Sheet.tsx"), "la fenêtre centrée ne se ferme plus au geste").toMatch(/centre \? `translate\(-50%, calc\(-50% \+ \$\{drag\.current\.dy\}px\)\)`/);
+    expect(lire("src/components/mobile/Sheet.tsx"), "la fenêtre centrée ne se ferme plus au geste").toMatch(/centre \? `translate\(-50%, calc\(-50% \+ \$\{dy\}px\)\)`/);
   });
   it("la règle des bulles est écrite dans le skill et dans l'étalon, avec ses exceptions", () => {
     const s = lire(".claude/skills/guichet-espace-tuiles/SKILL.md");

@@ -213,3 +213,12 @@
   font-size: var(--t-3);
   font-style: normal;
 }
+
+/* Une intention que son client a modifiée : la date et ce qui a changé, sous son nom (9 novembre 2026). */
+.modifiee {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--t-1);
+  font-weight: 600;
+  color: var(--gold-ink);
+}

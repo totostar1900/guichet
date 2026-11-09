@@ -210,16 +210,12 @@ export const EN_CONSOLE: Record<string, string> = {
      rien d'autre se lirait comme n'importe quel taux. */
   /* Le contenu des deux tuiles de séance quand il n'y en a aucune : des
      abrégés des notes de section, et non des phrases d'excuse. */
-  "un coupon, une durée": "a coupon and a term",
-  "Rachat et souscription": "Redemption and subscription",
-  "signés ensemble": "signed together",
-  "Les deux valeurs": "Both unit prices",
-  "dites avant de signer": "stated before you sign",
-  "précomptés, sous un an": "discounted, under a year",
-  "Dites votre taux": "State your rate",
-  "sans engagement": "no commitment",
-  "Avant la clôture": "Before the cut-off",
-  "le desk vous rappelle": "the desk calls you back",
+  "Obligations du Trésor : un coupon et une durée.": "Treasury bonds: a coupon and a term.",
+  "Bons du Trésor : précomptés, sous un an.": "Treasury bills: discounted, under a year.",
+  "Le rachat et la souscription se signent ensemble.": "The redemption and the subscription are signed together.",
+  "Les deux valeurs vous sont dites avant de signer.": "Both unit prices are stated to you before you sign.",
+  "Dites votre taux, sans engagement.": "State your rate, with no commitment.",
+  "Le desk vous rappelle avant la clôture.": "The desk calls you back before the cut-off.",
   "Prochain versement": "Next payment",
   "à chaque encaissement": "on every payment received",
   "En dessous, rien ne part": "Below that, nothing goes out",

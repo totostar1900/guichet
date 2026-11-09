@@ -782,6 +782,42 @@ summary,
 [role="tab"] {
   -webkit-tap-highlight-color: transparent;
 }
+/* LE RETOUR AU TOUCHER (9 novembre 2026, planche « Gestes et feuilles », 2A). Le rectangle de toucher du navigateur est retiré plus haut ; il lui fallait un retour de la maison, et il n'existait presque nulle part (une seule règle « :active » dans toute la plateforme).
+   UN SEUL POSEUR, GLOBAL : un contrôle enfoncé rapetisse (90 ms) puis revient (200 ms). On écrit « scale », la propriété à part, et non « transform » : elle se compose avec celui qu'un composant pose déjà (un chevron qui tourne, une carte centrée) au lieu de le remplacer. Un lien en ligne ne bouge pas (la transformation ne s'applique pas à lui) ; un lien-tuile en bloc se tasse à peine. Une règle de composant qui écrit sa propre « transition » prend le pas, par sa spécificité. */
+button:not(:disabled),
+[role="button"],
+[role="tab"],
+summary,
+a,
+.btn {
+  transition: scale 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s;
+}
+button:not(:disabled):active,
+[role="button"]:active,
+[role="tab"]:active,
+summary:active {
+  scale: 0.97;
+  filter: brightness(0.93);
+  transition-duration: 0.09s;
+}
+.btn:not(:disabled):active {
+  scale: 0.96;
+}
+a:active {
+  scale: 0.985;
+  transition-duration: 0.09s;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Le mouvement tombe, le retour reste : un léger voile. */
+  button:not(:disabled):active,
+  [role="button"]:active,
+  [role="tab"]:active,
+  summary:active,
+  .btn:not(:disabled):active,
+  a:active {
+    scale: none;
+  }
+}
 :focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;

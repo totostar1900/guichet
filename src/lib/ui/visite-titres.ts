@@ -51,9 +51,9 @@ export function visiteDesTitres({ vue, page, t }: { vue: VueDeLaVisite; page: Pa
     return [
       ...communs,
       groupe,
-      { target: "titres-chiffre", title: t("Le chiffre de la tuile"), text: adj ? t("Le rendement actuariel d'abord ; dessous, le prix servi ou attendu. Le nom, l'échéance et la clôture sont sur la tuile, le reste est au dos.") : t("Le cours d'une action, avec sa variation sur trois mois ; pour une obligation, son rendement actuariel. Le nom et le dividende sont sur la tuile, le reste est au dos.") },
+      { target: "titres-chiffre", title: t("Le chiffre de la tuile"), text: adj ? t("Le rendement actuariel d'abord ; dessous, le prix servi ou attendu. Le nom, l'échéance et la clôture sont sur la tuile, le reste est dans l'extension.") : t("Le cours d'une action, avec sa variation sur trois mois ; pour une obligation, son rendement actuariel. Le nom et le dividende sont sur la tuile, le reste est dans l'extension.") },
       swipe,
-      { target: "titres-retourner", title: t("Le dos est la carte détaillée"), text: t("Touchez l'icône, ou tirez vers la droite : le dos montre la carte détaillée de la ligne, avec la pastille d'état, le coupon et le rendement ou le cours, la grille, la clôture et l'ISIN. Retournez-la de la même façon pour revenir.") },
+      { target: "titres-deplier", title: t("La carte se déplie"), text: t("Touchez le chevron : la carte s'étend vers le bas et montre la carte détaillée de la ligne, avec la pastille d'état, le coupon et le rendement ou le cours, la grille, la clôture et l'ISIN. Dessous, trois boutons : l'action de la ligne, Favori et la fiche. Touchez la carte elle-même pour ouvrir la fiche.") },
     ];
   }
   if (vue === "liste") {

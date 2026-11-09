@@ -204,9 +204,9 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
   it("la tuile compacte porte le drapeau, le dos des cartes porte l'icône de retournement, et les tuiles tiennent sur une rangée", () => {
     const oc = lire("src/components/OfferCard.tsx");
     expect(oc, "la ligne compacte n'a plus le drapeau de son pays").toMatch(/<b className=\{styles\.cCode\}>\{issuerZone\(o\) !== "CEMAC" && <Drapeau pays=\{o\.country\}/);
-    expect(oc, "le dos d'une carte n'a plus son icône de retournement sous le « ··· »").toMatch(/<\/button>\s*\{\/\*[^*]*\*\/\}\s*<button type="button" className=\{styles\.flipBtn\} onClick=\{\(\) => turn\.current\?\.\(\)\}/);
+    expect(oc, "la carte compacte n'a plus son chevron sous le « ··· »").toMatch(/<LineMenu[^>]*\/>\}\s*<ChevronDeplie ouvert=\{ouvert\} onClick=\{basculer\} idRegion=\{idRegion\} \/>/);
     const fc = lire("src/app/fonds/FundCard.tsx");
-    expect(fc, "le dos d'un fonds n'a plus son icône de retournement").toMatch(/className=\{styles\.flipBtn\} onClick=\{\(\) => turn\.current\?\.\(\)\}/);
+    expect(fc, "la carte d'un fonds n'a plus son chevron").toMatch(/<ChevronDeplie ouvert=\{ouvert\} onClick=\{basculer\} idRegion=\{idRegion\} \/>/);
     expect(fc, "un drapeau est revenu sur la carte d'un fonds (retiré le 6 novembre 2026)").not.toMatch(/<Drapeau/);
   });
 
@@ -246,7 +246,7 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     expect(pleine, "la vue détaillée a de nouveau un dos").not.toMatch(/back=|backHead=|turnRef=/);
     expect(oc.slice(0, oc.indexOf('key="compacte"')), "la carte détaillée porte de nouveau un bouton de retournement").not.toMatch(/styles\.flipBtn[^}]*>\s*<Turn/);
     // vue compacte : le dos EST la carte détaillée
-    expect(oc, "le dos d'une carte compacte n'est plus la carte détaillée").toMatch(/back=\{<div className=\{styles\.dos\}>\{corps\(true\)\}<\/div>\}/);
+    expect(oc, "l'extension d'une carte compacte n'est plus la carte détaillée").toMatch(/<div className=\{styles\.dos\}>\{corps\(true\)\}<\/div>/);
     expect(oc, "l'ancien dos chiffré est revenu").not.toMatch(/CardBack|backFacts/);
     // suivi : le serveur sert de départ à tout menu et à tout glissement
     const su = lire("src/lib/ui/suivi.ts");
@@ -257,7 +257,7 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     // bulle : une seule, pour le menu, le glissement et l'étoile, au milieu de l'écran (7 puis 8 novembre 2026)
     expect(lire("src/components/mobile/Bulle.tsx"), "la bulle n'est plus la fenêtre centrée").toMatch(/<Sheet open=\{Boolean\(t\)\}[^>]*centre>/);
     // fenêtre centrée : se ferme d'un geste vers le bas
-    expect(lire("src/components/mobile/Sheet.tsx"), "la fenêtre centrée ne se ferme plus au geste").toMatch(/centre \? `translate\(-50%, calc\(-50% \+ \$\{drag\.current\.dy\}px\)\)`/);
+    expect(lire("src/components/mobile/Sheet.tsx"), "la fenêtre centrée ne se ferme plus au geste").toMatch(/centre \? `translate\(-50%, calc\(-50% \+ \$\{dy\}px\)\)`/);
     expect(lire("src/components/mobile/Sheet.tsx"), "la fenêtre centrée ignore de nouveau le geste").not.toMatch(/if \(centre\) return;/);
   });
 

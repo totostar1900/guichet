@@ -93,8 +93,15 @@ export function Tuiles({ services, apercus }: { services: ServiceVu[]; apercus?:
                       <span className={styles.apercus}>
                         {(apercus?.[sv.cle] ?? []).map((a) => (
                           <span key={a.nom} className={`${styles.apercuLigne}${a.prose ? ` ${styles.prose}` : ""}`}>
-                            <em>{t(a.nom)}</em>
-                            <b>{t(a.dit.key, a.dit.params)}</b>
+                            {/* Une ligne de repli est UNE phrase, lue d'un trait (1A, 9 novembre 2026). */}
+                            {a.prose ? (
+                              <b>{t(a.nom)}</b>
+                            ) : (
+                              <>
+                                <em>{t(a.nom)}</em>
+                                <b>{t(a.dit.key, a.dit.params)}</b>
+                              </>
+                            )}
                           </span>
                         ))}
                       </span>

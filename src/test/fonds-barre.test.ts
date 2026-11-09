@@ -305,11 +305,11 @@ describe("la carte compacte d'un fonds", () => {
        par carte, selon la longueur du nom. Après : nom à 47, performance
        finissant à 309, outils à 333, identiques sur les six premières. */
     expect(CARTE_CSS, "le lien ne grandit plus : le contenu se tasse à gauche et la colonne des chiffres se dérègle").toMatch(/\.cLien \{[^}]*flex: 1 1 auto;/);
-    expect(CARTE_CSS, "les outils retournent coller au chiffre : on touche le « ··· » en voulant lire la performance").toMatch(/\.cOutils \{[^}]*margin-left: var\(--s-9\);/);
+    expect(readFileSync("src/components/mobile/CarteDepliee.module.css", "utf8"), "les outils retournent coller au chiffre : on touche le « ··· » en voulant lire la performance").toMatch(/\.outils \{[^}]*margin-left: 16px;/);
     expect(CARTE_CSS, "les outils ne doivent plus être tirés vers le contenu par une marge négative").not.toMatch(/\.cOutils \{[^}]*margin-right: calc\(-1/);
     /* VINGT-QUATRE DE CHAQUE CÔTÉ, pour que les chevrons du glissement aient
-       leur voie : un chevron tient de 2 à 16 px du bord. */
-    expect(CARTE_CSS, "la voie du chevron est reprise par le texte").toMatch(/\.compacte \{[^}]*padding: var\(--s-4\) calc\(var\(--s-9\) \+ var\(--s-4\)\);/);
+       leur voie : un chevron tient de 2 à 16 px du bord. Même marge que la carte d'un titre (9 novembre 2026) : les « ··· » tombent au même endroit sur les trois pages. */
+    expect(CARTE_CSS, "la voie du chevron est reprise par le texte").toMatch(/\.compacte \{[^}]*padding: 8px 24px;/);
     expect(CARTE_CSS, "la performance n'est plus calée à droite : les chiffres ne font plus une colonne").toMatch(/\.cPerf \{[^}]*text-align: right;/);
   });
 
