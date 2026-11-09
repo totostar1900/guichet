@@ -48,3 +48,16 @@ Bandeau promotionnel, « plus fortes hausses / baisses » et « plus échangés 
 ## Mesures de départ de Guichet (Accueil, 390 px, 2 novembre 2026)
 
 Titre de section 10,5 px capitales · titre de tuile 12 px · nom de ligne 11,1 px · méta 10,2 px · tuile : rayon 6 px, padding 12 × 16 px, bord 1 px · chiffre du portefeuille 33 px, au troisième chapitre · écarts 44 / 28 / 12 px · page de 3 792 px. Capture : `docs/design-refs/guichet-actuel/accueil-390-2026-11-02.png`. **À refaire avant toute nouvelle comparaison** : les valeurs bougent avec le code.
+
+## Les six principes d'achat, d'alerte et de menu (9 novembre 2026)
+
+Sources : `trade-achat-montant-epure`, `trade-types-d-ordre-feuille`, `alerte-prix-creation`, `invest-accueil-menu-plus`, `notification-trois-boutons` (voir `ANALYSE-trade-alerte-menu.md`).
+
+| # | Principe | Dans Guichet | Réserve |
+|---|---|---|---|
+| 14 | **Un écran d'ordre ne dit que « combien »** : le montant en très grand, l'équivalent en titres dessous, le compte et le solde dans une pastille, un bouton plein « Revoir » grisé tant que le montant est nul | une page d'ordre épurée avant l'`IntentForm` complet ; le solde disponible sous le champ | les frais et les mentions restent dites avant l'engagement : « Revoir » est le lieu où elles s'écrivent, pas l'endroit d'où on les retire (§ 10) |
+| 15 | **Les options avancées sont derrière un rond**, et s'ouvrent en feuille du bas avec UNE PHRASE par option, qui nomme la valeur | feuille « Types d'ordre » : ferme, appétit, programmé, avec ce que chacun fait | la maison n'a pas d'ordre « au marché » : ne pas inventer de types qu'elle ne propose pas |
+| 16 | **L'alerte se pose sur une valeur** (un seuil), le cours du jour rappelé dessous, un seul bouton | alerte de seuil sur un cours ou un rendement | demande le robot de suivi et une donnée de plus par alerte (types + migration) : à discuter |
+| 17 | **Un clavier numérique maison avec opérateurs** (+ − × ÷ =) pour calculer son seuil ou son montant | le champ de montant de l'ordre et du versement | un clavier système suffit tant que la saisie reste courte |
+| 18 | **Un menu « Plus » court, ancré à son déclencheur**, icône + mot, une pastille de point vert pour « nouveau » ; les gestes de tous les jours sont à l'air libre | centre du portefeuille : ordres, intentions, sondages, provision, coupons, documents | un menu ne contient pas ce qui se fait chaque semaine : c'est un geste à l'air libre |
+| 19 | **Trois boutons-pastilles sous une tuile dépliée** (notification) | fait : `CarteDepliee` (l'action de la ligne, Favori, la fiche) | « Favori » est le suivi de la maison, pas une liste de souhaits |

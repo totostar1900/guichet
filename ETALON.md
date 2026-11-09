@@ -1002,3 +1002,9 @@ Décidé sur la planche « Gestes et feuilles » (1A · 2A · 3A · 4A).
 - **Une feuille se ferme là où est le doigt** (`mobile/relacher`) : au relâchement, elle glisse depuis sa position, durée selon la vitesse (160 à 300 ms), sans repasser par la position ouverte. Gardé par `fermeture-des-feuilles.test.ts`.
 - **Une ligne de repli est une phrase entière** (`apercus.ts`), jamais deux moitiés aux deux bords d'une tuile.
 - **Une écriture du client sur le sondage passe par `audit()`** (dépôt, modification, remplacement, retrait) avec l'avant et l'après complets ; le desk voit « modifiée le … » et les champs changés. Gardé par `sondage-audit.test.ts`.
+
+**Suite du 9 novembre 2026 (planche « Cartes, adjudications, portefeuille », 1A · 2B · 3B).**
+- **L'extension d'une carte ne redit pas la carte** : ni le cours, ni la variation, ni la courbe, ni le titre d'un fonds. Elle porte l'identité entière, l'**ISIN à côté de l'état** (une rangée au-dessus de l'identité), les chiffres propres (dividende et son rendement ; coupon, rendement, échéance, ticket ; les quatre rendements d'un fonds) et, pour une action, la **variation sur 6 mois, 12 mois et 2 ans côte à côte** (`performe.ts`, une seule lecture ; une ligne entrée à la cote plus tard n'a pas de chiffre, elle dit depuis quand elle y est).
+- **Adjudications** : la séance est nommée par sa ligne (« OTA 6,25 % · 5 ans »), le Trésor et l'échéance dessous, sur deux lignes au plus ; le titre de groupe ne colle plus et n'a plus de menu à droite ; un **calendrier du mois** (un point par jour de clôture) et ses boutons (« Proposer une adjudication », « Mes alertes ») ferment la page.
+- **« Plus » de l'Accueil** ouvre un menu ancré (ordres et intentions, sondages, coupons avec point vert, rentabilité, provision, versements, prélèvements, documents, puis « Tous les services » : l'ancienne destination).
+- **Fonds** : l'action de la ligne est « Souscrire » ; le rachat se fait depuis le portefeuille.

@@ -37,7 +37,7 @@ export type Groupe = { clef: string; nom: string; entier: string; /** Le pays de
  * est le mot qui le suit, parce qu'on ne compte pas des fonds sur une page
  * d'adjudications.
  */
-export function TeteGroupe({ id, nom, entier, pays, groupes, ouvert: replie, onBascule }: { id: string; nom: string; entier: string; pays?: Country; groupes: Groupe[]; /** Le groupe est-il déplié ? Avec « onBascule », un chevron à gauche du titre le replie. */ ouvert?: boolean; onBascule?: () => void }) {
+export function TeteGroupe({ id, nom, entier, pays, groupes, ouvert: replie, onBascule, collant = true }: { id: string; nom: string; entier: string; pays?: Country; groupes: Groupe[]; /** Le groupe est-il déplié ? Avec « onBascule », un chevron à gauche du titre le replie. */ ouvert?: boolean; /** Faux sur la page des adjudications (9 novembre 2026) : le titre ne colle plus, et il n'a plus de menu à chevron à droite (le sommaire). */ collant?: boolean; onBascule?: () => void }) {
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
   const boite = useRef<HTMLDivElement>(null);
@@ -45,7 +45,7 @@ export function TeteGroupe({ id, nom, entier, pays, groupes, ouvert: replie, onB
   useFermeDehors(boite, ouvert, () => setOuvert(false));
   const seul = groupes.length < 2;
   return (
-    <div className={styles.teteBoite} ref={boite}>
+    <div className={`${styles.teteBoite} ${collant ? "" : styles.teteLibre}`} ref={boite}>
       <h2 id={id} data-coach="titres-groupe" className={styles.teteGroupe} ref={tete} title={entier !== nom ? entier : undefined}>
         {onBascule && (
           <button type="button" className={`${styles.teteReplier} ${replie ? "" : styles.teteReplie}`} onClick={onBascule} aria-expanded={replie} aria-label={`${t(replie ? "Replier" : "Déplier")} : ${entier}`}>

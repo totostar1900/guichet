@@ -97,13 +97,62 @@ export function classerSurFenetre(cotations: Quote[], depuis: string): Performan
   return out.sort((a, b) => b.variationPct - a.variationPct || a.mnemo.localeCompare(b.mnemo, "fr"));
 }
 
-export async function performanceSur(mois = MOIS_FENETRE): Promise<Classement | undefined> {
+/** LA SEULE LECTURE DU FICHIER : le dernier bulletin (la date de fin), puis les cotations des actions depuis la borne, en une requête. Le classement et les fenêtres de six mois à deux ans la partagent. */
+async function lire(mois: number): Promise<{ jusquAu: string; depuis: string; cotations: Quote[] } | undefined> {
   const r = repo();
   const [dernier] = await r.listBulletins(1).catch(() => []);
   if (!dernier) return undefined;
   const jusquAu = dernier.sessionDate;
   const depuis = debutDeFenetre(jusquAu, mois);
-  const lignes = classerSurFenetre(await r.actionQuotesSince(depuis).catch(() => []), depuis);
+  return { jusquAu, depuis, cotations: await r.actionQuotesSince(depuis).catch(() => []) };
+}
+
+export async function performanceSur(mois = MOIS_FENETRE): Promise<Classement | undefined> {
+  const lu = await lire(mois);
+  if (!lu) return undefined;
+  const lignes = classerSurFenetre(lu.cotations, lu.depuis);
   if (!lignes.length) return undefined;
-  return { jusquAu, depuis: lignes.reduce((m, l) => (l.depuis < m ? l.depuis : m), lignes[0].depuis), lignes };
+  return { jusquAu: lu.jusquAu, depuis: lignes.reduce((m, l) => (l.depuis < m ? l.depuis : m), lignes[0].depuis), lignes };
+}
+
+/* ------------------------------------------------------------------ *
+ * LA VARIATION D'UNE ACTION SUR SIX MOIS, DOUZE MOIS ET DEUX ANS (9 novembre 2026)
+ * ------------------------------------------------------------------ */
+
+/** Une fenêtre de la variation : le pourcentage, ou rien quand la ligne n'est pas à la cote depuis assez longtemps (`depuis` dit alors son entrée). */
+export interface FenetreDuCours {
+  pct: number | null;
+  depuis?: string;
+}
+export interface FenetresDuCours {
+  mois6: FenetreDuCours;
+  mois12: FenetreDuCours;
+  ans2: FenetreDuCours;
+}
+export const MOIS_DES_FENETRES = [6, 12, 24] as const;
+
+/**
+ * Les trois fenêtres de chaque action, depuis UNE lecture des cotations (la plus longue) : jamais ligne par ligne.
+ *
+ * UNE LIGNE ENTRÉE À LA COTE PENDANT LA FENÊTRE n'a pas de cours de départ : son pourcentage est vide, et `depuis` dit son entrée. Lui prêter un chiffre « depuis six mois » serait l'inventer (même règle que
+ * le classement ci-dessus). Écrit sans base : il reçoit les cotations.
+ */
+export function fenetresDesCours(cotations: Quote[], jusquAu: string): Record<string, FenetresDuCours> {
+  const out: Record<string, FenetresDuCours> = {};
+  const clefs = ["mois6", "mois12", "ans2"] as const;
+  MOIS_DES_FENETRES.forEach((mois, i) => {
+    const depuis = debutDeFenetre(jusquAu, mois);
+    for (const l of classerSurFenetre(cotations, depuis)) {
+      const f: FenetreDuCours = l.entree ? { pct: null, depuis: l.depuis } : { pct: l.variationPct };
+      const cur = out[l.isin] ?? { mois6: { pct: null }, mois12: { pct: null }, ans2: { pct: null } };
+      cur[clefs[i]] = f;
+      out[l.isin] = cur;
+    }
+  });
+  return out;
+}
+
+export async function fenetresDeLaCote(): Promise<Record<string, FenetresDuCours>> {
+  const lu = await lire(MOIS_DES_FENETRES[MOIS_DES_FENETRES.length - 1]);
+  return lu ? fenetresDesCours(lu.cotations, lu.jusquAu) : {};
 }

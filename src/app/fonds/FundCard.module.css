@@ -142,5 +142,15 @@
   min-width: 0;
 }
 .dosTete {
-  padding-right: calc(var(--s-11) + var(--s-9));
+  /* L'ÉTAT ET L'ISIN AU-DESSUS DE L'IDENTITÉ (9 novembre 2026) : une rangée en tête, puis l'identité sur toute la largeur. À côté, le nom d'un Trésor ou d'une société de gestion tombait à quatre lignes. */
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: var(--s-4);
+  padding-right: 0;
+}
+.dosTete .coinDuDos {
+  margin: 0;
+  flex-direction: row;
+  align-items: center;
+  align-self: flex-start;
 }

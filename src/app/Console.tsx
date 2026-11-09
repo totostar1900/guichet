@@ -18,6 +18,7 @@ import { DossierAccueil } from "@/components/accueil/DossierAccueil";
 import { joursEnMots } from "@/lib/domain/echeances";
 import { IndexPulse } from "@/components/IndexPulse";
 import { CeQuiPerforme } from "@/components/CeQuiPerforme";
+import { PlusDeLAccueil } from "@/components/accueil/PlusDeLAccueil";
 import { TitreDeBloc } from "@/components/TitreDeBloc";
 import { aLaUne, pourquoiLu, publishedNews, titreLu } from "@/lib/news";
 import { TrustNudge } from "@/components/TrustNudge";
@@ -244,13 +245,14 @@ export async function Console({ session }: { session: Session }) {
             { href: "/moi/provision/alimenter", mot: "Verser", glyphe: "+" },
             { href: "/moi/provision/reprendre", mot: "Retrait", glyphe: "−" },
             { href: "/titres", mot: "Investir", glyphe: "↗" },
-            { href: "/trader", mot: "Plus", glyphe: "⋯" },
           ].map((g) => (
             <Link key={g.mot} href={g.href} className={styles.raccourci}>
               <span className={styles.rondGeste} aria-hidden="true">{g.glyphe}</span>
               <small>{t(g.mot)}</small>
             </Link>
           ))}
+          {/* « PLUS » OUVRE UN MENU ANCRÉ (3B, 9 novembre 2026), et non plus la page Trade : ordres, sondages, coupons, rentabilité, provision, versements, prélèvements, documents, puis « Tous les services » (l'ancienne destination). */}
+          <PlusDeLAccueil classeRaccourci={styles.raccourci} classeRond={styles.rondGeste} pointCoupons={Boolean(ctx.attendu) && !ctx.reinvestissement} />
         </nav>
       )}
       {/* CE QUI VA PARTIR, ET LE MOYEN DE DIRE NON.

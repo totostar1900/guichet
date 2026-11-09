@@ -4,7 +4,7 @@ import styles from "./TitresBody.module.css";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { fondsListes, lignesDeLaCote } from "@/lib/domain/listes";
-import { performanceSur } from "@/lib/market/performe";
+import { fenetresDeLaCote, performanceSur } from "@/lib/market/performe";
 
 
 /**
@@ -39,14 +39,16 @@ export async function TitresBody() {
    * prix de ce rattrapage est que la cloche se taira si la table boude — c'est
    * le même choix que « mes lignes suivies », pour la même raison.
    */
-  const [all, veilles, trois] = await Promise.all([
+  const [all, veilles, trois, fenetres] = await Promise.all([
     repo().listOffers(),
     session ? repo().listWatches(session.userId).catch(() => []) : Promise.resolve([]),
     performanceSur().catch(() => undefined),
+    /* LA VARIATION SUR SIX MOIS, DOUZE MOIS ET DEUX ANS (9 novembre 2026), lue en UNE requête pour toute la cote : elle vit dans l'extension de la carte. */
+    fenetresDeLaCote().catch((): Awaited<ReturnType<typeof fenetresDeLaCote>> => ({})),
   ]);
   /* LE PETIT GRAPHE DE CHAQUE ACTION (4 novembre 2026) : les trois mois de « Ce qui performe », lus en UNE requête pour toute la cote, jamais
      ligne par ligne. Les obligations n'y sont pas : leur mouvement dit l'état des taux, pas celui d'une société. */
-  const courbes = Object.fromEntries((trois?.lignes ?? []).map((l) => [l.isin, { serie: l.serie, variationPct: l.variationPct }]));
+  const courbes = Object.fromEntries((trois?.lignes ?? []).map((l) => [l.isin, { serie: l.serie, variationPct: l.variationPct, fenetres: fenetres[l.isin] }]));
   /* La cote et les fonds : le tri vit dans « domain/listes », avec ce qu'il
      écarte et pourquoi. Les séances ont leur page. */
   const offers = lignesDeLaCote(all);

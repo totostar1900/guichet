@@ -1,7 +1,7 @@
 "use client";
 
 import { useSuivi } from "@/lib/ui/suivi";
-import { useT } from "@/i18n/client";
+import { useDates, useT } from "@/i18n/client";
 import Link from "next/link";
 import type { Offer } from "@/lib/domain/types";
 import type { OfferSummary } from "@/lib/domain/summary";
@@ -9,14 +9,16 @@ import { LineIdentity } from "./LineIdentity";
 import { LineMenu } from "./mobile/LineMenu";
 import { useDeskView, useLineHref } from "./DeskView";
 import { SwipeActions } from "./mobile/SwipeActions";
-import { BoutonsDeLaCarte, ChevronDeplie, Depliable, Extension, Outils, useDepliee } from "./mobile/CarteDepliee";
+import { BoutonsDeLaCarte, ChevronDeplie, Depliable, Extension, Outils, classePoints, useDepliee } from "./mobile/CarteDepliee";
 import { useRef } from "react";
 import { famVars } from "@/lib/registry";
 import { useDensity } from "./Density";
 import { cadenceDuSuivi } from "@/lib/domain/sections";
 import { MiniCourbe } from "./MiniCourbe";
+import { nomDeSeance } from "@/lib/domain/nom-de-ligne";
 import { issuerZone } from "@/data/issuer-registry";
 import { Drapeau } from "./Drapeau";
+import type { FenetreDuCours, FenetresDuCours } from "@/lib/market/performe";
 import styles from "./OfferCard.module.css";
 
 /**
@@ -123,10 +125,18 @@ const prixDe = (s: OfferSummary): { nombre: string; unite: boolean } | null => {
   return { nombre: c.replace(/\s*FCFA$/, ""), unite: /FCFA$/.test(c) };
 };
 
-export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferSummary; suivi?: boolean; /** Le petit graphe sur trois mois d'une action : la forme du cours, avec sa variation. */ courbe?: { serie: number[]; variationPct: number } }) {
+/** Ce qu'une action porte en plus de son cours : la courbe de trois mois, et la variation sur six mois, douze mois et deux ans (voir `performe.ts`). */
+export interface CourbeDuTitre {
+  serie: number[];
+  variationPct: number;
+  fenetres?: FenetresDuCours;
+}
+
+export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferSummary; suivi?: boolean; /** Le petit graphe sur trois mois d'une action : la forme du cours, avec sa variation. */ courbe?: CourbeDuTitre }) {
   const href = useLineHref()(o.id);
   const desk = useDeskView();
   const t = useT();
+  const { fmtDate } = useDates();
   const compact = useDensity() === "compact";
   const estAction = o.kind === "MARCHE" && o.instrument === "action";
   const prix = estAction ? prixDe(s) : null;
@@ -141,6 +151,10 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
   const { ouvert, basculer, idRegion } = useDepliee();
   const [suiviEtat] = useSuivi(o.id, suivi);
   const menu = { id: o.id, title: o.title, isin: o.isin, kind: o.kind, past: s.past, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() };
+  /* CE QUE L'EXTENSION APPORTE EN PLUS DE LA CARTE (1A) : pour une action, le dividende et son rendement ; pour une obligation, le coupon et le rendement avec leurs mots, puis la grille. Jamais le cours, qui est sur la carte. */
+  const faitsDeLExtension: [string, string, string?][] = estAction && prix
+    ? faitsAction(s).filter(([k]) => k !== "Cours inchangé depuis" && k !== "Ticket min.")
+    : [...(avecCoupon ? ([["Coupon", s.coupon]] as [string, string][]) : []), ...(s.hero && s.hero !== "—" ? ([["Rendement", s.hero, s.heroSub]] as [string, string, string?][]) : []), ...(avecCoupon ? s.facts.filter(([k]) => k !== "Coupon") : s.facts)];
   /** Le corps de la vue détaillée. `dos` : le coin est porté par la tête de la face arrière. */
   const corps = (dos: boolean) => (
     <>
@@ -150,11 +164,16 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
             <div className={styles.corner} data-coach={dos ? undefined : "titres-etat"}>
               <span className={styles.etat}>
                 {suiviEtat && <Cloche />}
+                {/* L'ISIN PASSE AU-DESSUS, À CÔTÉ DE L'ÉTAT, dans l'extension (9 novembre 2026) : il n'a plus de place au pied. */}
+                {dos && <span className={styles.isinCoin}>{o.isin}</span>}
                 <span className={`pill ${s.statusClass}`}>{s.countdown ? s.countdown : t(s.status)}</span>
               </span>
               {!dos && !desk && <LineMenu line={menu} watching={suivi} cadence={cadenceDuSuivi(o)} openRef={more} />}
             </div>
           </div>
+          {/* LE CHIFFRE EN AVANT (le cours, sa variation, la courbe, le coupon, le rendement) EST SUR LA CARTE : l'extension ne le redit pas (1A, 9 novembre 2026). */}
+          {!dos && (
+            <>
           {estAction && prix ? (
             <div className={styles.bigAction} data-coach="titres-prix">
               <div className={styles.prixCol}>
@@ -200,8 +219,10 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
               </span>
             </div>
           )}
+            </>
+          )}
           <div className={styles.facts} data-coach="titres-grille">
-            {(estAction && prix ? faitsAction(s) : avecCoupon ? s.facts.filter(([k]) => k !== "Coupon") : s.facts).map(([k, v, note]) => (
+            {(dos ? faitsDeLExtension : estAction && prix ? faitsAction(s) : avecCoupon ? s.facts.filter(([k]) => k !== "Coupon") : s.facts).map(([k, v, note]) => (
               <div key={k}>
                 <span>{t(k)}</span>
                 <b>{v}</b>
@@ -209,6 +230,19 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
               </div>
             ))}
           </div>
+          {/* LA VARIATION SUR SIX MOIS, DOUZE MOIS ET DEUX ANS, CÔTE À CÔTE (9 novembre 2026), à la place de « cours inchangé depuis » et de l'ISIN. Une ligne entrée à la cote depuis moins longtemps n'a pas de chiffre : elle dit depuis quand elle y est. */}
+          {dos && estAction && courbe?.fenetres && (
+            <div className={styles.facts} data-coach="titres-fenetres">
+              {([["6 mois", courbe.fenetres.mois6], ["12 mois", courbe.fenetres.mois12], ["2 ans", courbe.fenetres.ans2]] as [string, FenetreDuCours][]).map(([k, f]) => (
+                <div key={k}>
+                  <span>{t(k)}</span>
+                  <b className={f.pct == null ? undefined : f.pct > 0.05 ? styles.hausseC : f.pct < -0.05 ? styles.baisseC : undefined}>{f.pct == null ? "—" : `${f.pct > 0.05 ? "+" : f.pct < -0.05 ? "−" : ""}${Math.abs(f.pct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`}</b>
+                  {f.pct == null && f.depuis && <em>{t("à la cote depuis le {d}", { d: fmtDate(f.depuis, false) })}</em>}
+                </div>
+              ))}
+            </div>
+          )}
+          {(!dos || !continuous) && (
           <div className={styles.foot} data-coach="titres-pied">
             {/* L'ISIN DESCEND AU PIED, en face de « Voir la fiche ». Il ne sert
                 qu'à passer un ordre en banque, jamais à reconnaître une ligne :
@@ -216,7 +250,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
                 ligne grise, où il coupait la lecture entre l'émetteur et le
                 chiffre. Le pied avait la place depuis que « cotation continue »
                 en est parti. */}
-            <span className={styles.footIsin}>{o.isin}</span>
+            {!dos && <span className={styles.footIsin}>{o.isin}</span>}
             {/* « Cotation continue » se lisait ici ET dans la ligne grise sous
                 le titre, à quatre lignes d'écart. Le pied ne garde que ce qui
                 presse : la clôture d'une séance. Une ligne cotée n'en a pas. */}
@@ -233,6 +267,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
               </Link>
             )}
           </div>
+          )}
     </>
   );
   const detaillee = () => (
@@ -263,17 +298,22 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
         <article data-coach="titres-carte" className={`${styles.card} ${styles.compact} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
           <Link href={href} className={styles.cLink}>
             <span className={styles.cId}>
-              <b className={styles.cCode}>{issuerZone(o) !== "CEMAC" && <Drapeau pays={o.country} largeur={17} />} {tresor && <span className={styles.cTresor}>{t("Trésor public")} </span>}{s.code}</b>
-              <small className={styles.cSub}>{avecCoupon ? (
-                  /* LE COUPON EN OR EN TÊTE DE LA LIGNE GRISE (7 novembre 2026) : « Coupon 6,50 % » était gris comme le reste ; il passe en or gras, et la ligne dit ensuite la clôture ou la date. */
-                  <>
-                    <b className={styles.cCoupon}>
-                      {t("coupon")} {s.coupon}
-                    </b>
-                    {" · "}
-                    {s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : t(s.promesse.key, s.promesse.params).replace(/^[^·]*·\s*/, "")}
-                  </>
-                ) : s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : estAction && prix && s.hero !== "—" ? `${t("Div.")} ${s.hero}` : s.promesse.key === "Dividende {n} FCFA" ? <Montant etiquette={t("Div.")} n={String(s.promesse.params?.n ?? "")} /> : t(s.promesse.key, s.promesse.params)}</small>
+              {tresor ? (
+                /* LA SÉANCE EST NOMMÉE PAR SA LIGNE, pas par son Trésor (2B, 9 novembre 2026) : « OTA 6,25 % · 5 ans », puis le Trésor et l'échéance en dessous. Deux lignes du même pays se distinguent d'un coup d'œil, et rien n'est coupé : la deuxième ligne passe à la ligne au lieu de finir en points de suspension. */
+                <>
+                  <b className={`${styles.cCode} ${styles.cCodeLong}`}>
+                    {issuerZone(o) !== "CEMAC" && <Drapeau pays={o.country} largeur={17} />} {nomDeSeance(o.title)}
+                  </b>
+                  <small className={`${styles.cSub} ${styles.cSubLong}`}>
+                    {t("Trésor public")} {s.code} · {s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : avecCoupon ? t(s.promesse.key, s.promesse.params).replace(/^[^·]*·\s*/, "") : t(s.promesse.key, s.promesse.params)}
+                  </small>
+                </>
+              ) : (
+                <>
+                  <b className={styles.cCode}>{issuerZone(o) !== "CEMAC" && <Drapeau pays={o.country} largeur={17} />} {s.code}</b>
+                  <small className={styles.cSub}>{s.countdown ? <em className={styles.cClose}>{t("clôture dans {d}", { d: s.countdown })}</em> : estAction && prix && s.hero !== "—" ? `${t("Div.")} ${s.hero}` : s.promesse.key === "Dividende {n} FCFA" ? <Montant etiquette={t("Div.")} n={String(s.promesse.params?.n ?? "")} /> : t(s.promesse.key, s.promesse.params)}</small>
+                </>
+              )}
             </span>
             {/* LE GRAPHE D'ÉVOLUTION DU TITRE, AU MILIEU DE LA TUILE (4 novembre 2026) : entre le nom et le chiffre, la forme du cours sur
                 trois mois. Seules les actions en ont un. */}
@@ -300,7 +340,7 @@ export function OfferCard({ o, s, suivi = false, courbe }: { o: Offer; s: OfferS
             </span>
           </Link>
           <Outils>
-            {!desk && <LineMenu line={menu} watching={suivi} cadence={cadenceDuSuivi(o)} openRef={more} />}
+            {!desk && <LineMenu line={menu} watching={suivi} cadence={cadenceDuSuivi(o)} openRef={more} className={classePoints} />}
             <ChevronDeplie ouvert={ouvert} onClick={basculer} idRegion={idRegion} />
           </Outils>
         </article>

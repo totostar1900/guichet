@@ -49,8 +49,9 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 1px solid var(--line);
-  background: var(--surface);
+  /* SANS CERCLE (9 novembre 2026) : le chevron et les « ··· » ne sont plus dans un disque ; la cible reste de 34 px. */
+  border: 0;
+  background: none;
   color: var(--ink-3);
   display: inline-flex;
   align-items: center;
@@ -67,6 +68,15 @@
 .chevron:hover,
 .chevron:focus-visible {
   color: var(--ink);
+}
+/* LES « ··· » DE LA CARTE, sans disque : même taille, même place sur les trois pages (la classe est posée par les deux cartes, deux classes de spécificité l'emportent sur celle du menu). */
+.outils .points {
+  border: 0;
+  background: none;
+}
+.outils .points:hover,
+.outils .points:focus-visible {
+  background: none;
 }
 /* LES TROIS BOUTONS, ALIGNÉS : trois colonnes égales, 44 px de haut, le libellé passe sur deux lignes plutôt que de couper. */
 .boutons {

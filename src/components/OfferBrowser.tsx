@@ -10,7 +10,7 @@ import { displayStatus, FAMILIES, familyLabel, familySegment, familyShort, headl
 import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
 import { parseDate } from "@/lib/finance";
 import { syntheseDesSeances } from "@/lib/domain/synthese-seances";
-import { OfferCard } from "./OfferCard";
+import { OfferCard, type CourbeDuTitre } from "./OfferCard";
 import { TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
 import { visiteDesTitres } from "@/lib/ui/visite-titres";
@@ -513,7 +513,7 @@ function FilterSheet({ open, onClose, groups, comptes, onToggle, onClear, gauge,
 /** Le nombre de lignes qu'une section montre avant « Voir les N lignes ». */
 const LIGNES_VISIBLES = 8;
 
-export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis, courbes }: { offers: Offer[]; nowIso: string; fundsCount: number; lieu?: Lieu; /** Les lignes sur lesquelles CE lecteur a armé une alerte, lues au serveur. */ suivis?: string[]; /** Le petit graphe sur trois mois de chaque action, par ISIN. */ courbes?: Record<string, { serie: number[]; variationPct: number }> }) {
+export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis, courbes }: { offers: Offer[]; nowIso: string; fundsCount: number; lieu?: Lieu; /** Les lignes sur lesquelles CE lecteur a armé une alerte, lues au serveur. */ suivis?: string[]; /** Le petit graphe sur trois mois de chaque action, par ISIN. */ courbes?: Record<string, CourbeDuTitre> }) {
   const now = useMemo(() => new Date(nowIso), [nowIso]);
   const t: T = useT();
   /* LES DATES DU RÉSUMÉ VIENNENT DU CONTEXTE, PAS DU MODULE : ce composant est
@@ -1014,7 +1014,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           <>
             {blocs.map((b, i) => (
               <section key={b.clef} className={styles.bloc} aria-labelledby={`sec-${b.clef}`}>
-                <BlocRepliable id={`sec-${b.clef}`} ouvertParDefaut={!(adj && b.clef === "closes") || Boolean(q) || filterCount > 0} tete={(ouvert, bascule) => <TeteGroupe id={`sec-${b.clef}`} nom={titres[i].nom} entier={b.entier} pays={b.pays} groupes={titres} ouvert={ouvert} onBascule={bascule} />}>
+                <BlocRepliable id={`sec-${b.clef}`} ouvertParDefaut={!(adj && b.clef === "closes") || Boolean(q) || filterCount > 0} tete={(ouvert, bascule) => <TeteGroupe id={`sec-${b.clef}`} nom={titres[i].nom} entier={b.entier} pays={b.pays} groupes={adj ? [] : titres} collant={!adj} ouvert={ouvert} onBascule={bascule} />}>
                   {b.rows.length > 0 && renderUn(b.rows, false, true)}
                 </BlocRepliable>
               </section>

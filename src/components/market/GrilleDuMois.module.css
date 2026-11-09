@@ -1,0 +1,110 @@
+/* Le calendrier des séances (9 novembre 2026, 2B) : un mois, sept colonnes, un point par jour de clôture. Les jetons de la maison, aucune valeur en dur. */
+.mois {
+  display: grid;
+  gap: var(--s-5);
+  padding: var(--s-6) var(--tuile-pad-x);
+  min-width: 0;
+}
+.tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+}
+.nom {
+  font-size: var(--t-5);
+  text-transform: capitalize;
+}
+.fleche {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font-size: var(--t-7);
+  cursor: pointer;
+}
+.grille {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--s-2);
+  text-align: center;
+}
+.jourNom {
+  font-size: var(--t-1);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding-bottom: var(--s-2);
+}
+.jour {
+  position: relative;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--tuile-rayon);
+  background: none;
+  color: var(--ink-3);
+  font-size: var(--t-4);
+  font-variant-numeric: tabular-nums;
+}
+.jour:not(:disabled) {
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+.auj {
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+.choisi {
+  background: var(--gold);
+  color: var(--navy);
+}
+.point {
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  width: 5px;
+  height: 5px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.choisi .point {
+  background: var(--navy);
+}
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-3);
+}
+.ligne {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-5);
+  min-height: 44px;
+  padding: var(--s-4) 0;
+  border-top: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+}
+.ligne b {
+  font-size: var(--t-4);
+}
+.ligne small {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.dit {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+@media (prefers-reduced-motion: reduce) {
+  .jour {
+    transition: none;
+  }
+}

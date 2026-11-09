@@ -26,6 +26,8 @@ Ce skill décrit les quatre premières étapes ; `guichet-maquette` mène la pla
 | Fiche d'une ligne : graphique à deux couleurs, jauge de fourchette, alerte de prix | une application de suivi de marchés (**à confirmer**, probablement Google Finance) : 3 captures | `docs/design-refs/concurrents/autre-application-a-confirmer/` |
 | Toute référence **Wise** | **aucune image identifiée comme telle** | à demander |
 
+| **Achat épuré, types d'ordre, alerte de seuil, menu « Plus », trois boutons sous une tuile** | cinq captures Android de Revolut Invest (9 novembre 2026) | `docs/design-refs/concurrents/revolut/` — `NOTES.md` (section du 9 novembre), `ANALYSE-trade-alerte-menu.md` (écart et idées) ; les principes 14 à 19 de `references/revolut-accueil.md` |
+
 | **Ligne d'une action : prix, variation, dividende** | fiches d'action et listes de cours de Revolut (Invest) et Yahoo Finance (déjà versées) | principes écrits au § 4 bis, « Règle du prix et de la variation » ; mesures de Guichet du 6 novembre 2026 dans `ETALON.md` § 8.7 |
 
 | **Fiche d'une action** : prix, graphe, statistiques clés, états financiers | `docs/design-refs/concurrents/revolut/fiche-capture-longue-*.jpeg` et `fiche-action-finances-*.jpeg` | principes repris le 9 novembre 2026 (ETALON § 8.10) : prix en grand et variation avec sa période, graphe en tête avec pastilles de période, cartes de chiffres sous un titre à plat, barres annuelles, lignes proches en cartes qui défilent ; refusés : suggestion d'analystes, CFD, carnet d'ordres |

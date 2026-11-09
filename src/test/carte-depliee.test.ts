@@ -29,11 +29,13 @@ describe("la carte dépliée", () => {
   });
   it("les « ··· » et le chevron sont les mêmes sur les trois pages : 34 px, même colonne", () => {
     expect(bloc(".chevron")).toMatch(/width:\s*34px;\s*height:\s*34px/);
+    expect(bloc(".chevron"), "le chevron est revenu dans un cercle").toMatch(/border:\s*0;[\s\S]*background:\s*none/);
+    expect(m, "les « ··· » de la carte sont revenus dans un cercle").toMatch(/\.outils \.points \{[^}]*border:\s*0;[^}]*background:\s*none/);
     expect(bloc(".outils")).toMatch(/margin-left:\s*16px/);
     for (const f of ["src/components/OfferCard.tsx", "src/app/fonds/FundCard.tsx"]) {
       const src = code(f);
       expect(src, `${f} n'a plus la colonne d'outils commune`).toMatch(/<Outils>[\s\S]*<LineMenu[^>]*\/>\}\s*<ChevronDeplie ouvert=\{ouvert\} onClick=\{basculer\} idRegion=\{idRegion\} \/>\s*<\/Outils>/);
-      expect(src, `${f} redonne à « ··· » sa propre classe : la taille redevient différente d'une page à l'autre`).not.toMatch(/<LineMenu[^>]*className=/);
+      expect(src, `${f} redonne à « ··· » une classe qui n'est pas la commune : la taille redevient différente d'une page à l'autre`).toMatch(/<LineMenu[^>]*className=\{classePoints\}/);
     }
   });
   it("il n'y a plus de retournement : ni dos 3D, ni icône, ni geste de tiré vers la droite", () => {
@@ -53,7 +55,7 @@ describe("la carte dépliée", () => {
   });
   it("trois boutons alignés sous l'extension : l'action de la ligne, favori, la fiche", () => {
     const tsx = code("src/components/mobile/CarteDepliee.tsx");
-    expect(tsx).toMatch(/kind === "FONDS" \? "Souscrire ou racheter" : kind === "MARCHE" \? "Passer un ordre" : "Déclarer une intention"/);
+    expect(tsx).toMatch(/kind === "FONDS" \? "Souscrire" : kind === "MARCHE" \? "Passer un ordre" : "Déclarer une intention"/);
     expect(tsx, "le favori a perdu son libellé").toMatch(/<\/svg>\s*\{t\("Favori"\)\}/);
     expect(tsx, "la fiche a perdu son bouton").toMatch(/<Link className=\{`btn \$\{styles\.bouton\}`\} href=\{href\}>\s*\{t\("Voir la fiche"\)\}/);
     expect(tsx, "l'action de la ligne ne mène plus à l'intention").toMatch(/href=\{`\/offres\/\$\{id\}\/intention`\}/);

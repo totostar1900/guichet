@@ -6,7 +6,7 @@ import { useDensity } from "@/components/Density";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { useDeskView, useLineHref } from "@/components/DeskView";
 import { SwipeActions } from "@/components/mobile/SwipeActions";
-import { BoutonsDeLaCarte, ChevronDeplie, Depliable, Extension, Outils, useDepliee } from "@/components/mobile/CarteDepliee";
+import { BoutonsDeLaCarte, ChevronDeplie, Depliable, Extension, Outils, classePoints, useDepliee } from "@/components/mobile/CarteDepliee";
 import { useRef } from "react";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_LABEL } from "@/lib/domain/market";
 import { fundYtdPct } from "@/lib/domain/fund-curve";
@@ -87,7 +87,8 @@ export function FundCard({ r }: { r: FundRow }) {
     <>
       <div className={`${styles.head} ${dos ? propres.dosTete : ""}`}>
         <div className={styles.fundId}>
-          <div className={styles.fundTitle}>{dos ? r.title : <Link href={href}>{r.title}</Link>}</div>
+          {/* LE TITRE N'EST PAS REDIT DANS L'EXTENSION (1A, 9 novembre 2026) : il est sur la carte. */}
+          {!dos && <div className={styles.fundTitle}><Link href={href}>{r.title}</Link></div>}
           {/* DEUX LIGNES SOUS LE NOM, ET LE GESTIONNAIRE D'ABORD.
               Les trois faits tenaient sur une ligne, séparés par des points
               médians : « Actions · Harvest Asset Management · VL hebdomadaire »,
@@ -108,8 +109,11 @@ export function FundCard({ r }: { r: FundRow }) {
           </div>
         </div>
         {/* LE COIN PORTE L'ÉTAT DANS LES DEUX FACES (4A) : la pastille n'est nulle part ailleurs en vue compacte, elle reste dans l'extension ; le « ··· » reste à la carte seule. */}
-        <div className={styles.corner}>
-          {pastille}
+        <div className={`${styles.corner} ${dos ? propres.coinDuDos : ""}`}>
+          <span className={styles.etat}>
+            {dos && <span className={styles.isinCoin}>{r.isin}</span>}
+            {pastille}
+          </span>
           {!dos && !desk && <LineMenu line={menu} cadence="evenement" openRef={more} />}
         </div>
       </div>
@@ -188,7 +192,7 @@ export function FundCard({ r }: { r: FundRow }) {
             </span>
           </Link>
           <Outils>
-            {!desk && <LineMenu line={menu} cadence="evenement" openRef={more} />}
+            {!desk && <LineMenu line={menu} cadence="evenement" openRef={more} className={classePoints} />}
             <ChevronDeplie ouvert={ouvert} onClick={basculer} idRegion={idRegion} />
           </Outils>
         </article>

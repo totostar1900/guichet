@@ -56,7 +56,6 @@ export const EN_MORE: Record<string, string> = {
   "À garder en tête": "Keep in mind",
   "Durée réelle": "Actual term",
   "règlement le": "settlement on",
-  "Souscrire ou racheter": "Subscribe or redeem",
   "Passer un ordre": "Place an order",
   "Déclarer une intention": "Declare an intention",
   "Essentiel": "Essentials",

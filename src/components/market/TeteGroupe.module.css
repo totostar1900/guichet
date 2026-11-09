@@ -9,6 +9,10 @@
   top: var(--barre-app, 0px);
   z-index: 5;
 }
+/* La page des adjudications n'a plus de titre collant ni de menu à chevron à droite (9 novembre 2026). */
+.teteLibre {
+  position: static;
+}
 .teteGroupe {
   margin: var(--s-8) -20px var(--s-4);
   background: var(--paper);

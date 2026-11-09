@@ -36,6 +36,9 @@ export function ChevronDeplie({ ouvert, onClick, idRegion }: { ouvert: boolean; 
   );
 }
 
+/** La classe des « ··· » d'une carte : sans disque, la même sur toutes les pages. */
+export const classePoints = styles.points;
+
 /** La colonne des outils de la carte : « ··· » puis chevron, mêmes dimensions et même place partout. */
 export function Outils({ children }: { children: React.ReactNode }) {
   return <span className={styles.outils}>{children}</span>;
@@ -70,7 +73,7 @@ export function BoutonsDeLaCarte({ id, href, kind, past, cadence, suivi, agir = 
   const { dire } = useBulle();
   const [on, setOn] = useSuivi(id, suivi);
   const [attente, demarrer] = useTransition();
-  const action = agir && !past ? (kind === "FONDS" ? "Souscrire ou racheter" : kind === "MARCHE" ? "Passer un ordre" : "Déclarer une intention") : null;
+  const action = agir && !past ? (kind === "FONDS" ? "Souscrire" : kind === "MARCHE" ? "Passer un ordre" : "Déclarer une intention") : null;
   const basculerFavori = () =>
     demarrer(async () => {
       const res = await toggleWatch(id, !on, cadence);

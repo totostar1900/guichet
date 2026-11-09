@@ -127,12 +127,12 @@ describe("la bande de menu de la fiche (7 novembre 2026, choix 1A · 2C · 3B ·
 });
 
 describe("retouches du 7 novembre au soir : tuile compacte, hauteurs, menu ⋯, toucher, onglets du « i »", () => {
-  it("la tuile compacte d'une adjudication nomme le Trésor et met le coupon en or", () => {
+  it("la tuile compacte d'une adjudication nomme sa ligne (2B, 9 novembre 2026), puis le Trésor, sur deux lignes au plus", () => {
     const o = lire("src/components/OfferCard.tsx");
     expect(o).toMatch(/const tresor = \/\^Trésor public\/\.test\(s\.subtitle\);/);
-    expect(o).toMatch(/\{tresor && <span className=\{styles\.cTresor\}>\{t\("Trésor public"\)\} <\/span>\}/);
-    expect(o).toMatch(/<b className=\{styles\.cCoupon\}>/);
-    expect(lire("src/components/OfferCard.module.css")).toMatch(/\.cCoupon \{[^}]*color: var\(--gold-ink\);/);
+    expect(o, "la carte n'écrit plus la ligne par son instrument et sa durée").toMatch(/\{nomDeSeance\(o\.title\)\}/);
+    expect(o, "le Trésor n'est plus sur la ligne grise").toMatch(/\{t\("Trésor public"\)\} \{s\.code\} · /);
+    expect(lire("src/components/OfferCard.module.css"), "la ligne grise d'une séance ne passe plus à la ligne").toMatch(/\.cSubLong \{[^}]*white-space: normal;/);
   });
   it("le champ de recherche a la hauteur de « Filtrer » et d'« Affichage » (44 px), sur Titres comme sur Fonds", () => {
     expect(lire("src/components/OfferBrowser.module.css")).toMatch(/max-width: none;\s*\/\*[^*]*\*\/\s*min-height: 44px;/);
@@ -143,7 +143,7 @@ describe("retouches du 7 novembre au soir : tuile compacte, hauteurs, menu ⋯, 
     expect(m, "le glissement ne garde plus la fenêtre centrée").toMatch(/translate\(-50%, calc\(-50% \+ \$\{dy\}px\)\)/);
     expect(m).toMatch(/\["contacter", "Contacter un conseiller"/);
     expect(m).toMatch(/\/moi\/contact\?ligne=/);
-    expect(m, "l'action de la ligne a perdu ses trois libellés").toMatch(/"Souscrire ou racheter" : line\.kind === "MARCHE" \? "Passer un ordre" : "Déclarer une intention"/);
+    expect(m, "l'action de la ligne a perdu ses trois libellés").toMatch(/"Souscrire" : line\.kind === "MARCHE" \? "Passer un ordre" : "Déclarer une intention"/);
     expect(m, "l'action reparaît sur la fiche ou sur une séance close").toMatch(/onFiche && !line\.past && line\.kind/);
     const c = lire("src/components/mobile/LineMenu.module.css");
     expect(c, "le menu redevient une feuille du bas sur téléphone").not.toMatch(/translateY\(105%\)/);

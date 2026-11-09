@@ -28,3 +28,17 @@
 }
 
 
+
+/* Les boutons sous le calendrier (9 novembre 2026) : deux colonnes égales, 44 px de haut, dans la carte. */
+.boutonsCalendrier {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-4);
+  padding: 0 var(--tuile-pad-x) var(--s-6);
+}
+.boutonsCalendrier :global(.btn) {
+  min-height: 44px;
+  justify-content: center;
+  text-align: center;
+  white-space: normal;
+}

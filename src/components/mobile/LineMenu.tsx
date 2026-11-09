@@ -19,7 +19,7 @@ import styles from "./LineMenu.module.css";
  * and a small dialog on a desk.
  *
  * LE MENU EST UNE FENÊTRE CENTRÉE, FERMÉE EN TIRANT VERS LE BAS (7 novembre 2026), et il porte l'action de la ligne en un bouton plein, visible au pied :
- * « Passer un ordre », « Souscrire ou racheter » ou « Déclarer une intention » selon la ligne, avec « Contacter » parmi les gestes. Il n'avait ni l'un
+ * « Passer un ordre », « Souscrire » ou « Déclarer une intention » selon la ligne, avec « Contacter » parmi les gestes. Il n'avait ni l'un
  * ni l'autre : on ouvrait le menu pour agir et il fallait refermer pour trouver le bouton.
  */
 export interface LineRef {
@@ -163,7 +163,7 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
   ];
 
   /* L'action de la ligne, la même que celle de sa fiche : pas sur la fiche elle-même (« onFiche » faux, le bouton y est déjà) ni sur une séance close. */
-  const action = onFiche && !line.past && line.kind ? { label: line.kind === "FONDS" ? "Souscrire ou racheter" : line.kind === "MARCHE" ? "Passer un ordre" : "Déclarer une intention", href: `/offres/${line.id}/intention` } : null;
+  const action = onFiche && !line.past && line.kind ? { label: line.kind === "FONDS" ? "Souscrire" : line.kind === "MARCHE" ? "Passer un ordre" : "Déclarer une intention", href: `/offres/${line.id}/intention` } : null;
 
   return (
     <>
