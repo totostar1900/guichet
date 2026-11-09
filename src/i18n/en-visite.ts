@@ -214,6 +214,7 @@ export const EN_VISITE: Record<string, string> = {
   "Ouvertes et à venir · {n}": "Open and upcoming · {n}",
   "Séances closes · {n}": "Closed sessions · {n}",
   "Aucune séance ouverte": "No open session",
+  "prix servi": "price served",
   "taux {a} – {b}": "rate {a} – {b}",
   "prix {a} – {b}": "price {a} – {b}",
   "Rechercher une séance": "Search a session",

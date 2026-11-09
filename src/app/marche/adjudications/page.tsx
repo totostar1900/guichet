@@ -36,7 +36,8 @@ export default async function AdjudicationsClientPage() {
       const offre = s.codeEmission ? parCode.get(s.codeEmission) : undefined;
       return { type: "resultat", s, offre, href: offre ? `/offres/${offre.id}` : undefined };
     }),
-    ...offres.filter((o) => isPast(displayStatus(o, maintenant)) && !(o.isin && toutes.some((s) => s.codeEmission === o.isin))).map((o): EntreeClose => ({ type: "ligne", o, href: `/offres/${o.id}` })),
+    /* UNE LIGNE SANS RÉSULTAT N'EST PAS AFFICHÉE (9 novembre 2026, planche « Résultats des séances », 1 et 3) : cette page dit ce qui a été servi. Une ligne du catalogue n'y entre que si sa fiche porte un prix servi (2B). */
+    ...offres.filter((o) => isPast(displayStatus(o, maintenant)) && o.servedPricePct != null && !(o.isin && toutes.some((s) => s.codeEmission === o.isin))).map((o): EntreeClose => ({ type: "ligne", o, href: `/offres/${o.id}` })),
   ];
   const durees = tauxLimiteParDuree(toutes);
   const part = toutes.length ? partCouverte(toutes, toutes[0].sessionOn) : undefined;

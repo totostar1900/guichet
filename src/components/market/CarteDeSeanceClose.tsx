@@ -47,6 +47,8 @@ export function CarteDeSeanceClose({ e }: { e: EntreeClose }) {
     if (r.networkSize != null) faits.push(["SVT du réseau", fmt(r.networkSize)]);
     if (sl) faits.push(["Échéance", sl.maturity]);
   } else if (sl) {
+    /* LE PRIX SERVI EST LE CHIFFRE, LE RENDEMENT EST DANS L'EXTENSION (planche « Résultats des séances », 2B). */
+    faits.push(["Rendement actuariel", sl.hero]);
     for (const [k, v, note] of sl.facts) faits.push([k, note ? `${v} · ${note}` : v]);
   }
   const pays = r ? r.country : (e as { o: Offer }).o.country;
@@ -57,8 +59,9 @@ export function CarteDeSeanceClose({ e }: { e: EntreeClose }) {
   const fourchette = bas != null && haut != null ? t(bon ? "taux {a} – {b}" : "prix {a} – {b}", { a: fmtPct(bas, 2), b: fmtPct(haut, 2) }) : null;
   const sub = [r ? t(r.country) : t((e as { o: Offer }).o.countryName), coupon != null ? t("coupon {c}", { c: fmtPct(coupon, 2) }) : null, fourchette, jour ? (r ? t("séance du {d}", { d: jour }) : t("clôturée le {d}", { d: jour })) : null].filter(Boolean).join(" · ");
   const servi = r ? moyen != null && aServi(r) : true;
-  const chiffre = r ? (servi ? fmtPct(moyen as number, 2) : "—") : (sl?.hero ?? "—");
-  const legende = r ? t(servi ? (bon ? "taux moyen pondéré" : "prix moyen pondéré") : "rien servi") : t(sl?.heroUnit ?? sl?.heroSub ?? "");
+  const prixServi = e.type === "ligne" ? e.o.servedPricePct : undefined;
+  const chiffre = r ? (servi ? fmtPct(moyen as number, 2) : "—") : prixServi != null ? fmtPct(prixServi, 2) : "—";
+  const legende = r ? t(servi ? (bon ? "taux moyen pondéré" : "prix moyen pondéré") : "rien servi") : t("prix servi");
   const code = r ? r.codeEmission : offre?.isin;
   return (
     <Depliable ouvert={ouvert} replier={replier}>

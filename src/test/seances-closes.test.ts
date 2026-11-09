@@ -33,6 +33,8 @@ describe("les séances closes", () => {
     const m = code("src/app/marche/adjudications/page.tsx");
     expect(m).toMatch(/toutes\.some\(\(s\) => s\.codeEmission === o\.isin\)/);
     expect(m, "la liste unique n'est plus rendue par ListeDesSeancesCloses").toMatch(/<ListeDesSeancesCloses entrees=\{entrees\} \/>/);
+    expect(m, "une ligne sans prix servi est revenue dans la liste des résultats").toMatch(/o\.servedPricePct != null && !\(o\.isin/);
+    expect(code("src/components/market/CarteDeSeanceClose.tsx"), "la carte d'une ligne montre de nouveau le chiffre d'avant-séance").toMatch(/prixServi != null \? fmtPct\(prixServi, 2\) : "—"/);
     expect(m, "une seconde liste de lignes closes est revenue").not.toMatch(/RangeeDeLigneClose|lignes-closes/);
   });
   it("la liste se cherche, se filtre et se range, et ne montre que ce qu'elle contient", () => {

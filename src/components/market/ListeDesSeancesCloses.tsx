@@ -1,10 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useDates, useT } from "@/i18n/client";
+import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { fold } from "@/lib/text";
-import { summarize } from "@/lib/domain/summary";
 import { CarteDeSeanceClose, type EntreeClose } from "./CarteDeSeanceClose";
 import styles from "./ListeDesSeancesCloses.module.css";
 
@@ -23,7 +22,6 @@ const jourDe = (e: EntreeClose) => (e.type === "resultat" ? e.s.sessionOn : e.o.
 
 export function ListeDesSeancesCloses({ entrees }: { entrees: EntreeClose[] }) {
   const t = useT();
-  const dates = useDates();
   const [q, setQ] = useState("");
   const [instrument, setInstrument] = useState("");
   const [pays, setPays] = useState("");
@@ -31,14 +29,13 @@ export function ListeDesSeancesCloses({ entrees }: { entrees: EntreeClose[] }) {
   const [nb, setNb] = useState(PAR_PAGE);
 
   const lignes = useMemo(() => {
-    const maintenant = new Date();
     return entrees.map((e) => {
         const o = e.type === "ligne" ? e.o : e.offre;
-        const taux = e.type === "resultat" ? (e.s.instrument === "BTA" ? e.s.rateAvg : e.s.priceAvg) : summarize(e.o, maintenant, { dates }).yieldPct;
+        const taux = e.type === "resultat" ? (e.s.instrument === "BTA" ? e.s.rateAvg : e.s.priceAvg) : e.o.servedPricePct;
         const texte = fold([instrumentDe(e), e.type === "resultat" ? e.s.tenor : e.o.title, paysDe(e), e.type === "ligne" ? e.o.countryName : "", e.type === "resultat" ? e.s.codeEmission : "", o?.isin, o?.title].filter(Boolean).join(" "));
         return { e, taux: taux ?? null, texte, jour: jourDe(e), pays: paysDe(e), instrument: instrumentDe(e) };
       });
-  }, [entrees, dates]);
+  }, [entrees]);
   const instruments = [...new Set(lignes.map((l) => l.instrument))];
   const paysPresents = [...new Set(lignes.map((l) => l.pays))].sort((a, b) => a.localeCompare(b));
   const filtre = fold(q.trim());
