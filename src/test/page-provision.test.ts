@@ -90,7 +90,7 @@ describe("les gestes", () => {
     const src = lire("src/app/moi/prelevements/MesMandats.tsx");
     expect(src).toMatch(/Préparer, puis signer/);
     expect(src, "« Retour » ne ramène plus au choix du type de versement").toMatch(/<Link href=\{retourHref\} className=\{`btn \$\{barre\.retour\}`\}>\s*\{t\("Retour"\)\}/);
-    expect(lire("src/app/moi/prelevements/page.tsx")).toMatch(/retourHref=\{deApprovisionner \? "\/moi\/provision\/alimenter" : "\/activite"\}/);
+    expect(lire("src/app/moi/prelevements/page.tsx")).toMatch(/retourHref=\{deApprovisionner \? "\/moi\/provision\/alimenter" : sp\.de === "regles" \? "\/moi\/regles" : "\/moi\/argent"\}/);
   });
 
   /* LE 25 OCTOBRE 2026 : CE QUI SÉPARE LES DEUX CHEMINS, ET LE RANG DU MOTIF.

@@ -37,6 +37,7 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
   const demandee = sp.instruction;
   /* ON ARRIVE DU CHOIX « PAR PRÉLÈVEMENT » (10 novembre 2026) : le formulaire est ouvert d'emblée, et « Retour » ramène à ce choix. */
   const deApprovisionner = sp.de === "alimenter";
+  const deArgent = sp.de === "argent";
   const t = await getT();
   const s = await requireSession("/moi/prelevements");
   const r = repo();
@@ -80,8 +81,8 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
             l'argent d'un compte vers un autre. */}
         <MesMandats
           instructionDemandee={demandee}
-          ouvertDEmblee={deApprovisionner}
-          retourHref={deApprovisionner ? "/moi/provision/alimenter" : "/activite"}
+          ouvertDEmblee={deApprovisionner || deArgent}
+          retourHref={deApprovisionner ? "/moi/provision/alimenter" : sp.de === "regles" ? "/moi/regles" : "/moi/argent"}
           mandats={mandats.map((m) => ({
             id: m.id,
             ref: m.ref,

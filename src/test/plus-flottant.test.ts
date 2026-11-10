@@ -10,7 +10,7 @@ const code = (f: string) => fs.readFileSync(path.join(process.cwd(), f), "utf8")
  */
 describe("la page Activité", () => {
   it("lit les rubriques d'une seule table, et la page « Mon activité » y renvoie", () => {
-    expect(PLUS_PAGES.map((p) => p.cle)).toEqual(["ordres", "sondages", "coupons", "rentabilite", "provision", "versements", "prelevements", "documents"]);
+    expect(PLUS_PAGES.map((p) => p.cle)).toEqual(["ordres", "sondages", "argent", "regles", "rentabilite", "provision", "documents"]);
     expect(code("src/app/activite/Rubriques.tsx")).toMatch(/PLUS_PAGES\.filter\(/);
     expect(code("src/app/moi/activite/page.tsx"), "l'ancienne page ne renvoie plus à l'Activité").toMatch(/redirect\("\/activite"\)/);
   });

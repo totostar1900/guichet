@@ -1,0 +1,88 @@
+/* « Ce qui part tout seul » : trois groupes, des lignes qui disent leur état (jetons de tuile de la maison). */
+.page {
+  padding-bottom: var(--s-10);
+}
+.groupe {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.titre {
+  margin: 0;
+  font-size: var(--t-6);
+  font-weight: 700;
+  color: var(--ink);
+}
+.lignes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tuiles-gap);
+}
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  min-height: 64px;
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+}
+.ligne > span {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.ligne b {
+  font-size: var(--t-3);
+}
+.ligne small {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.actif,
+.autre {
+  flex: none;
+  font-style: normal;
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px var(--s-5);
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.actif {
+  color: var(--good);
+  border-color: var(--good);
+}
+.autre {
+  color: var(--ink-3);
+}
+.vide {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+}
+.ajouter {
+  font-size: var(--t-3);
+  font-weight: 700;
+  color: var(--gold-ink);
+  text-decoration: none;
+}
+.pied {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  font-size: var(--t-3);
+  font-weight: 700;
+  color: var(--gold-ink);
+  text-decoration: none;
+  border: 1px dashed var(--gold);
+  border-radius: var(--tuile-rayon);
+}

@@ -1,0 +1,64 @@
+/* « Mon argent » : des verbes, et sous chacun des tuiles (jetons de tuile de la maison). */
+.page {
+  padding-bottom: var(--s-10);
+}
+.groupe {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.titre {
+  margin: 0;
+  font-size: var(--t-6);
+  font-weight: 700;
+  color: var(--ink);
+}
+.tuiles {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tuiles-gap);
+}
+.tuile {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  min-height: 64px;
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+}
+.tuile > span {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.tuile b {
+  font-size: var(--t-3);
+}
+.tuile small {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.tuile i {
+  flex: none;
+  font-style: normal;
+  color: var(--gold-ink);
+  font-size: var(--t-5);
+}
+.pied {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  font-size: var(--t-3);
+  font-weight: 700;
+  color: var(--gold-ink);
+  text-decoration: none;
+  border: 1px dashed var(--gold);
+  border-radius: var(--tuile-rayon);
+}

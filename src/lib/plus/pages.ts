@@ -1,11 +1,11 @@
 /**
- * LES ENTRÉES DE « PLUS », DÉCLARÉES UNE FOIS (9 novembre 2026).
+ * LES RUBRIQUES DE L'ACTIVITÉ, DÉCLARÉES UNE FOIS (9 novembre 2026, reprise le 10).
  *
- * Le menu ancré de l'Accueil et le bouton flottant des pages qu'il ouvre lisent la même table : une entrée écrite à la main d'un côté finit par manquer de l'autre. Le bouton flottant reprend les éléments de « Plus »
- * pour qu'on passe d'une page à l'autre sans repasser par l'Accueil, comme le bouton des pages du marché le fait pour la famille du marché.
+ * Elles venaient du menu « Plus » de l'Accueil, retiré. La page Activité les lit ici. « Mon argent » (ce que l'on peut faire) et « Ce qui part tout seul » (ce qui est en place) remplacent « Mes versements », « Mes prélèvements » et « Mes coupons à réinvestir », dont les pages restent
+ * comme destinations de gestion.
  */
 export interface PagePlus {
-  cle: "ordres" | "sondages" | "coupons" | "rentabilite" | "provision" | "versements" | "prelevements" | "documents" | "services";
+  cle: "ordres" | "sondages" | "argent" | "regles" | "rentabilite" | "provision" | "documents";
   href: string;
   mot: string;
 }
@@ -13,10 +13,9 @@ export interface PagePlus {
 export const PLUS_PAGES: PagePlus[] = [
   { cle: "ordres", href: "/moi/ordres", mot: "Mes ordres et intentions" },
   { cle: "sondages", href: "/sondage", mot: "Mes sondages" },
-  { cle: "coupons", href: "/moi/reinvestir", mot: "Mes coupons à réinvestir" },
+  { cle: "argent", href: "/moi/argent", mot: "Mon argent" },
+  { cle: "regles", href: "/moi/regles", mot: "Ce qui part tout seul" },
   { cle: "rentabilite", href: "/moi/performance", mot: "Ma rentabilité" },
   { cle: "provision", href: "/moi/provision", mot: "Ma provision" },
-  { cle: "versements", href: "/moi/epargne", mot: "Mes versements" },
-  { cle: "prelevements", href: "/moi/prelevements", mot: "Mes prélèvements" },
   { cle: "documents", href: "/moi/documents", mot: "Mes documents" },
 ];
