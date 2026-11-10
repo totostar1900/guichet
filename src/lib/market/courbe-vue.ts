@@ -101,6 +101,26 @@ export function releveDeLaBase(points: PointBeacDeLaBase[]): ReleveBeacVu | unde
 }
 
 /**
+ * LES RELEVÉS DE TOUS LES MOIS QUE LA BASE PORTE, du plus récent au plus ancien (10 novembre 2026).
+ *
+ * « releveDeLaBase » ne garde que la courbe la plus récente de chaque Trésor ; le desk veut aussi les anciennes : un relevé par mois, avec, pour chaque Trésor qui a une courbe CE mois-là. Un Trésor sans courbe un mois n'emprunte jamais
+ * celle d'un autre mois : le mois choisi dit ce qu'il a, et rien de plus.
+ */
+export function archiveBeac(points: PointBeacDeLaBase[]): ReleveBeacVu[] {
+  const mois = [...new Set(points.map((p) => p.mois.slice(0, 7)))].sort().reverse();
+  return mois.map((m) => {
+    const duMois = points.filter((p) => p.mois.slice(0, 7) === m);
+    const pays = [...new Set(duMois.map((p) => p.pays))].sort();
+    const series: SerieBeacVue[] = pays.map((nom) => {
+      const lignes = duMois.filter((p) => p.pays === nom);
+      const source = lignes.find((p) => p.sourceChemin && /^https?:\/\//.test(p.sourceChemin))?.sourceChemin;
+      return { pays: nom, mois: m, source, points: lignes.map((p) => ({ annees: p.annees, pct: p.taux })).sort((a, b) => a.annees - b.annees) };
+    });
+    return { mois: m, source: series.find((s) => s.source)?.source ?? "", series };
+  });
+}
+
+/**
  * La courbe de la BEAC qui se pose derrière celle d'un Trésor, s'il y en a une.
  *
  * Elle ne paraît que devant un seul Trésor : les deux courbes ne mesurent pas

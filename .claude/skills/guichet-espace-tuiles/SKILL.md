@@ -342,3 +342,9 @@ Une carte qui cache une face (3D) se remplace par une **extension** : `Depliable
 - **Une icône de la barre n'existe que si sa page a quelque chose à dire** : l'horloge compte les lignes que `/echeances` liste (le mois à venir) et disparaît à zéro ; l'étoile n'existe que s'il y a un favori. Une cible vers une page vide apprend à ne plus la toucher.
 - **Un tiroir latéral se ferme d'un glissement, sans rebond** : il suit le doigt, puis reprend là où il est à la courbe des feuilles ; le geste ne commence que s'il est plutôt horizontal (`touch-action: pan-y`), le défilement vertical reste libre.
 - **Un nom de page peut déjà exister** : « Mon activité » était le journal du compte ; les rubriques de « Plus » s'y ajoutent plutôt que de créer un homonyme.
+
+## Leçon du 10 novembre 2026 (courbe de la BEAC) : un relevé par mois, et jamais un point remplacé
+
+- **La courbe de la BEAC se choisit par mois** (`archiveBeac`, un relevé par mois ; un Trésor sans courbe un mois n'emprunte pas celle d'un autre). Un mois choisi à la main n'est pas jugé « trop vieux » : on l'a demandé, la figure dit son âge.
+- **La récupération des bulletins d'avant 2023 comble, elle ne remplace pas** : seuls les mois et les Trésors absents de la base reçoivent un point (`ajouterCourbesBeac`, `ignoreDuplicates`), chacun cite son bulletin et dit qu'il vient d'un tracé. Le robot a un diagnostic sans écriture (`?diagnostic=1`) à lancer avant de récupérer (`?recuperer=1`).
+- **Un essai local sur de fausses données se retire avant de conclure** : un jeu de points posé temporairement dans le dépôt mémoire pour voir le sélecteur est restauré, puis on cherche « ESSAI LOCAL » dans `src/` (zéro attendu).

@@ -1499,6 +1499,17 @@ export const memoryRepository: Repository = {
   async courbesBeac() {
     return structuredClone(store().courbesBeac ?? []);
   },
+  async ajouterCourbesBeac(points) {
+    const st = store();
+    const base = (st.courbesBeac ??= []);
+    let n = 0;
+    for (const p of points) {
+      if (base.some((q) => q.mois === p.mois && q.pays === p.pays && q.tenor === p.tenor)) continue;
+      base.push(structuredClone(p));
+      n++;
+    }
+    return n;
+  },
   async encoursOfficiel() {
     return structuredClone(store().encoursOfficiel ?? []);
   },

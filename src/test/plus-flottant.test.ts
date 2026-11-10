@@ -33,4 +33,14 @@ describe("le bouton flottant de « Plus »", () => {
     expect(a, "la page ne lit plus la table de « Plus »").toMatch(/PLUS_PAGES\.filter\(\(p\) => p\.cle !== "services"\)\.map/);
     expect(a, "les tracés ne viennent plus du module commun").toMatch(/from "@\/lib\/plus\/icones"/);
   });
+
+  it("le bouton flottant s'appelle « Mon activité », comme la page qui porte les mêmes rubriques", () => {
+    const f = code("src/components/mobile/PlusFab.tsx");
+    expect(f, "le bouton flottant redit « Plus »").not.toContain('t("Plus")');
+    expect((f.match(/t\("Mon activité"\)/g) ?? []).length).toBe(4);
+  });
+  it("la page « Mon activité » s'arrête aux rubriques : plus de journal, de compteurs ni de panneaux", () => {
+    const a = code("src/app/moi/activite/page.tsx");
+    expect(a).not.toMatch(/listClientActions|compteurs|Ce que nous notons|Recevoir toute mon activité/);
+  });
 });

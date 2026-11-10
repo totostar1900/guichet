@@ -7,7 +7,7 @@ import { Poignee } from "@/components/Poignee";
 import { PageOutline } from "@/components/PageOutline";
 import type { SectionItem } from "@/components/SectionLine";
 import { BEAC_COURBE } from "@/data/beac-courbe";
-import { releveDeLaBase } from "@/lib/market/courbe-vue";
+import { archiveBeac, releveDeLaBase } from "@/lib/market/courbe-vue";
 import { CourbeFusion } from "@/components/market/CourbeFusion";
 import type { CourbePays, Fenetre } from "@/lib/market/courbe-vue";
 import { DateObservation } from "@/components/market/DateObservation";
@@ -80,7 +80,10 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
    * Le robot le rafraîchit chaque mois. Avant son premier passage la semence
    * évite que la figure soit nue ; après, le dépôt gagne toujours.
    */
-  const [beacDepot, beacBase] = await Promise.all([r.latestBeacCurve(), r.courbesBeac().then(releveDeLaBase, () => undefined)]);
+  const [beacDepot, beacPoints] = await Promise.all([r.latestBeacCurve(), r.courbesBeac().catch(() => [])]);
+  const beacBase = releveDeLaBase(beacPoints);
+  /* Tous les mois de la base, pour que le desk choisisse la courbe de la BEAC par date (10 novembre 2026). */
+  const beacArchive = archiveBeac(beacPoints);
   const beacReleve = beacBase ?? beacDepot ?? {
     numero: BEAC_COURBE.numero,
     mois: BEAC_COURBE.arreteLe.slice(0, 7),
@@ -571,6 +574,7 @@ export default async function AnalysesPage({ searchParams }: { searchParams: Pro
                 choixDate={<DateObservation ancres={ancres} courant={leJour} />}
                 courbeDuJour={courbeDuJour}
                 beacReleve={beacReleve}
+                beacArchive={beacArchive}
                 ariaLabel={t("Les séances relues et la courbe qu'un modèle en déduit, par durée")}
               />
             </div>

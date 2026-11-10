@@ -31,15 +31,15 @@ export function PlusFab() {
   const voisines = PLUS_PAGES.filter((p) => p.cle !== ici.cle);
   return createPortal(
     <>
-      <button type="button" className={styles.fab} onClick={() => setOuvert(true)} aria-haspopup="dialog" aria-label={t("Plus")} title={t("Plus")}>
+      <button type="button" className={styles.fab} onClick={() => setOuvert(true)} aria-haspopup="dialog" aria-label={t("Mon activité")} title={t("Mon activité")}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="5" cy="12" r="1.4" />
           <circle cx="12" cy="12" r="1.4" />
           <circle cx="19" cy="12" r="1.4" />
         </svg>
       </button>
-      <Sheet open={ouvert} onClose={() => setOuvert(false)} title={t("Plus")} dock="bottom-left">
-        <nav className={styles.liste} aria-label={t("Plus")}>
+      <Sheet open={ouvert} onClose={() => setOuvert(false)} title={t("Mon activité")} dock="bottom-left">
+        <nav className={styles.liste} aria-label={t("Mon activité")}>
           {voisines.map((p) => (
             <Link key={p.cle} href={p.href} onClick={() => setOuvert(false)}>
               <b>{t(p.mot)}</b>

@@ -220,13 +220,12 @@ export function BarreDuHaut({ attentes, echeances, favoris }: BarreDuHautProps) 
                     <ListeAttentes attentes={attentes} brouillon={brouillon} fermer={fermer} />
                   </div>
                 )}
-                {echeances > 0 && (
-                  <Link href="/echeances" className={styles.ligne} onClick={fermer}>
-                    <Trace d={ICONE.horloge} />
-                    <span>{t("Ce qui ferme bientôt")}</span>
-                    <em className={`${styles.nb} ${styles.nbAmbre}`}>{echeances}</em>
-                  </Link>
-                )}
+                {/* LE LIEN RESTE DANS LE MENU, QUELLE QUE SOIT LA PAGE (10 novembre 2026) : seule l'icône de la barre disparaît quand sa page est vide ; la porte du menu, elle, ne bouge pas. */}
+                <Link href="/echeances" className={styles.ligne} onClick={fermer}>
+                  <Trace d={ICONE.horloge} />
+                  <span>{t("Ce qui ferme bientôt")}</span>
+                  {echeances > 0 && <em className={`${styles.nb} ${styles.nbAmbre}`}>{echeances}</em>}
+                </Link>
                 {/* UN SEUL NIVEAU DE FAVORIS DANS LE MENU (décidé le 31 octobre 2026). Il y avait
                     « Mes favoris » ET « Mettre cette page en favori » : deux lignes pour le même
                     sujet, dont l'une redoublait l'étoile de la barre. L'étoile ouvre la liste ;

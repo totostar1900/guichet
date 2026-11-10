@@ -11,6 +11,7 @@ import { AideReglage } from "./AideReglage";
 import { useT } from "@/i18n/client";
 import { lien as lienCourbesBeac } from "@/lib/market/courbes-beac-vue";
 import { coupeAu, seriesBeacDe, type CourbePays, type Fenetre, type ReleveBeacVu } from "@/lib/market/courbe-vue";
+import { Select } from "@/components/ui/Select";
 import styles from "./CourbeFusion.module.css";
 
 /**
@@ -108,6 +109,7 @@ export function CourbeFusion({
   choixDate,
   courbeDuJour,
   beacReleve,
+  beacArchive,
   visionParDefaut = "faits",
   tresorParDefaut = "tous",
 }: {
@@ -127,6 +129,8 @@ export function CourbeFusion({
    */
   courbeDuJour?: CourbePays[];
   beacReleve?: ReleveBeacVu;
+  /** Tous les mois de la base, du plus récent au plus ancien : le desk y choisit la courbe de la BEAC par date. */
+  beacArchive?: ReleveBeacVu[];
   /**
    * La vision à l'ouverture, et le Trésor affiché.
    *
@@ -160,6 +164,8 @@ export function CourbeFusion({
   const [voirPoints, setVoirPoints] = useState(true);
   const [voirBande, setVoirBande] = useState(true);
   const [voirBeac, setVoirBeac] = useState(true);
+  /** Le mois de la courbe de la BEAC que le desk a choisi ; vide : la plus récente de chaque Trésor. */
+  const [moisBeac, setMoisBeac] = useState("");
   const boite = useRef<HTMLDivElement | null>(null);
   const [vise, setVise] = useState<number | null>(null);
 
@@ -252,10 +258,14 @@ export function CourbeFusion({
   }, [courbeDuJour, choix, preparer, t]);
 
   /** Le filigrane de la BEAC : le Trésor choisi, ou tous ceux qu'elle publie (3 au plus), chacun à son mois. */
+  /* LA COURBE DE LA BEAC SE CHOISIT PAR DATE (10 novembre 2026) : les mois proposés sont ceux où le Trésor affiché a une courbe (ou, en vue d'ensemble, l'un des trois) ; un mois qui ne convient plus au Trésor choisi retombe sur la plus récente. Un mois choisi à la main n'est pas jugé trop vieux : on l'a demandé. */
+  const moisBeacDispo = useMemo(() => (beacArchive ?? []).filter((r) => r.series.some((s) => choix === "tous" || s.pays === choix)).map((r) => r.mois), [beacArchive, choix]);
+  const moisBeacEffectif = moisBeacDispo.includes(moisBeac) ? moisBeac : "";
+  const releveBeac = moisBeacEffectif ? (beacArchive ?? []).find((r) => r.mois === moisBeacEffectif) : beacReleve;
   const beac = useMemo(() => {
     if (!voirBeac) return [];
-    return seriesBeacDe(choix, beacReleve, new Date().toISOString().slice(0, 10)).map((s) => ({ nom: s.pays, pts: s.points, mois: s.mois ?? beacReleve!.mois, source: s.source }));
-  }, [voirBeac, choix, beacReleve]);
+    return seriesBeacDe(choix, releveBeac, new Date().toISOString().slice(0, 10), moisBeacEffectif ? 10_000 : 18).map((s) => ({ nom: s.pays, pts: s.points, mois: s.mois ?? releveBeac!.mois, source: s.source }));
+  }, [voirBeac, choix, releveBeac, moisBeacEffectif]);
 
   const tous = series.flatMap((s) => s.obs);
   const echelle = useMemo(() => {
@@ -641,12 +651,29 @@ export function CourbeFusion({
               type="button"
               aria-pressed={voirBeac && beac.length > 0}
               onClick={() => setVoirBeac((v) => !v)}
-              disabled={choix === "cemac" || !beacReleve}
+              disabled={choix === "cemac" || !releveBeac}
               title={choix === "cemac" ? t("La BEAC publie une feuille de zone, mais elle reprend celles des trois Trésors : ses courbes se posent derrière les Trésors, pas derrière la zone.") : undefined}
             >
               {t("la courbe de la BEAC")}
             </button>
           </>,
+        )}
+
+        {groupe(
+          "fu-beac",
+          t("Courbe de la BEAC du"),
+          false,
+          <Select
+            value={moisBeacEffectif}
+            onChange={setMoisBeac}
+            label={t("Mois de la courbe de la BEAC")}
+            options={[{ value: "", label: t("la plus récente") }, ...moisBeacDispo.map((m) => ({ value: m, label: fmtMois(m) }))]}
+            disabled={choix === "cemac" || moisBeacDispo.length === 0}
+            libelleVisible={false}
+            fixe
+            compact
+          />,
+          t("La BEAC publie une courbe par mois et par Trésor. Choisir un mois pose, derrière la nôtre, la courbe qu'elle avait publiée ce mois-là ; « la plus récente » reprend, pour chaque Trésor, sa dernière feuille. Un mois ne propose que les Trésors qui en ont une."),
         )}
       </div>
 
@@ -994,16 +1021,16 @@ export function CourbeFusion({
         </p>
       )}
 
-      {beac.length > 0 && beacReleve && (() => {
+      {beac.length > 0 && releveBeac && (() => {
         const plusAncien = beac.reduce((a, b) => (b.mois < a ? b.mois : a), beac[0].mois);
         return (
         <p className={`${styles.beacNote} ${jours(plusAncien) > 100 ? styles.beacVieux : ""}`}>
           <i aria-hidden="true" />
-          {beacReleve.numero != null && beacReleve.releveLe
+          {releveBeac.numero != null && releveBeac.releveLe
             ? t("En pointillé, la courbe que la BEAC publie dans ses statistiques mensuelles n° {n}, arrêtée en {d} et relevée le {r} dans le tracé de son PDF, faute de table publiée.", {
-                n: String(beacReleve.numero),
-                d: fmtMois(beacReleve.mois),
-                r: fmtJour(beacReleve.releveLe),
+                n: String(releveBeac.numero),
+                d: fmtMois(releveBeac.mois),
+                r: fmtJour(releveBeac.releveLe),
               })
             : t("En pointillé, les courbes que la BEAC publie chaque mois, une feuille par Trésor : {liste}. Les chiffres sont lus dans la table imprimée sur la feuille, confirmés par son tracé quand il se lit.", {
                 liste: beac.map((b) => `${t(b.nom)} ${fmtMois(b.mois)}`).join(", "),
@@ -1022,8 +1049,8 @@ export function CourbeFusion({
           ))}
           {" "}
           <a href={lienCourbesBeac({ axe: "duree", pays: beac.map((b) => b.nom), mois: [plusAncien], duree: 10, source: "deux" })}>{t("Voir en détail")} →</a>{" "}
-          {beac.every((b) => !b.source) && beacReleve.source && (
-            <a href={beacReleve.source} target="_blank" rel="noreferrer">
+          {beac.every((b) => !b.source) && releveBeac.source && (
+            <a href={releveBeac.source} target="_blank" rel="noreferrer">
               {t("sa pièce")}
             </a>
           )}

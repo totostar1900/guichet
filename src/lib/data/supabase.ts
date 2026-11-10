@@ -2877,6 +2877,18 @@ export const supabaseRepository: Repository = {
       sourceChemin: u(r.source_chemin as string | null),
     }));
   },
+  async ajouterCourbesBeac(points, reserve) {
+    if (!points.length) return 0;
+    const { data, error } = await db()
+      .from("beac_yield_curves")
+      .upsert(
+        points.map((p) => ({ mois: p.mois, pays: p.pays, tenor: p.tenor, annees: p.annees, taux: p.taux, source_titre: "Statistiques mensuelles du marché des valeurs du Trésor", source_chemin: p.sourceChemin ?? null, file_key: null, reserves: reserve })),
+        { onConflict: "mois,pays,tenor", ignoreDuplicates: true },
+      )
+      .select("id");
+    if (error) fail("ajouterCourbesBeac", error);
+    return data?.length ?? 0;
+  },
   async encoursOfficiel() {
     const lignes = await parLots<Record<string, unknown>>("encoursOfficiel", (de, a) =>
       db().from("beac_encours_officiel").select("mois, pays, encours, numero, file_key").order("mois").order("id").range(de, a),

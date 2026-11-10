@@ -252,4 +252,10 @@ describe("la loupe et l'étoile", () => {
     expect(sansNotes(lire("src/components/mobile/BarreDuHaut.module.css")), "le tiroir perd touch-action pan-y").toMatch(/touch-action: pan-y;/);
     expect(b, "le menu n'ouvre plus « Mon activité »").toMatch(/href="\/moi\/activite"[\s\S]*Mon activité/);
   });
+
+  it("le menu garde toujours le lien « Ce qui ferme bientôt » : seule l'icône de la barre disparaît quand sa page est vide", () => {
+    const b = sansNotes(lire("src/components/mobile/BarreDuHaut.tsx"));
+    expect(b, "le lien du menu est de nouveau conditionné au nombre").not.toMatch(/\{echeances > 0 && \(\s*<Link href="\/echeances" className=\{styles\.ligne\}/);
+    expect(b).toMatch(/<Link href="\/echeances" className=\{styles\.ligne\} onClick=\{fermer\}>/);
+  });
 });

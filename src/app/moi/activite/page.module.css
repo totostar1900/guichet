@@ -1,7 +1,4 @@
-/* Le fil de l'activité du client : une journée, puis ses gestes. */
-
-/* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
-   2026 : leurs mesures vivent dans sa feuille. */
+/* Les rubriques de « Mon activité » : sur-titre, titre et phrase viennent d'« EnTete ». */
 
 /* Les rubriques de « Plus » : une tuile par ligne, les jetons de tuile de la maison (10 novembre 2026). */
 .rubriques {
@@ -41,80 +38,4 @@
   flex: none;
   font-style: normal;
   color: var(--ink-3);
-}
-
-.compteurs {
-  display: flex;
-  flex-wrap: wrap;
-  border: 1px solid var(--line);
-  margin: 0;
-}
-
-.compteur {
-  flex: 1 1 9rem;
-  min-width: 0;
-  padding: var(--s-5) var(--s-6);
-  border-left: 1px solid var(--line);
-}
-
-.compteur:first-child {
-  border-left: 0;
-}
-
-.compteur b {
-  display: block;
-  margin-top: var(--s-2);
-  font-size: 1.05rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.fil {
-  border: 1px solid var(--line);
-}
-
-.jour {
-  margin: 0;
-  padding: var(--s-4) var(--s-6);
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--line);
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-}
-
-.ligne {
-  display: flex;
-  gap: var(--s-5);
-  padding: var(--s-5) var(--s-6);
-  border-bottom: 1px solid var(--line);
-  align-items: baseline;
-}
-
-.ligne:last-child {
-  border-bottom: 0;
-}
-
-.heure {
-  width: 3rem;
-  flex: none;
-  font-size: 0.82rem;
-  color: var(--ink-2);
-  font-variant-numeric: tabular-nums;
-}
-
-.quoi {
-  flex-grow: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-2);
-}
-
-.vide {
-  padding: var(--s-9) var(--s-6);
-  text-align: center;
-  color: var(--ink-2);
 }

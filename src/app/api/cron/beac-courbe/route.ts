@@ -3,6 +3,7 @@ import { routeDuRobot } from "@/lib/cron/tour";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import { abscisses, calibrer, listerBulletins, series, tresorsDuTitre, type ReleveBeac } from "@/lib/market/beac-bulletin";
 import { repo } from "@/lib/data";
+import { couvertureDe, estUneListeDeLaBeac, planDeRecuperation, pointsAEcrire, RESERVE_DU_TRACE } from "@/lib/market/beac-recuperation";
 
 /**
  * La courbe de la BEAC, relevée chaque mois dans son bulletin.
@@ -82,9 +83,48 @@ async function relever(url: string): Promise<{ series: ReleveBeac["series"] } | 
   return { refus: "le bulletin est un scan : aucun texte à relever" };
 }
 
+/**
+ * LA RÉCUPÉRATION DES BULLETINS D'AVANT 2023 (10 novembre 2026).
+ *
+ * `?diagnostic=1` : lit la page, dit jusqu'où elle remonte et quels mois manquent en base, sans rien écrire. `?recuperer=1` : relève les bulletins qui comblent un mois manquant (trois par tour, cinq au plus : un PDF se lit en plusieurs
+ * secondes) et ajoute leurs points sans jamais remplacer un point déjà en base. `avant=AAAA-MM` fixe la borne (2023-01 par défaut), `limite=N` le nombre de bulletins du tour, `liste=<adresse>` une autre page de liste (archives), pourvu qu'elle soit
+ * sur le site de la BEAC. Chaque tour dit ce qu'il a écrit et ce qu'il a écarté, et combien de bulletins restent à relever.
+ */
+async function recuperer(params: URLSearchParams) {
+  const demandee = params.get("liste");
+  const liste = demandee && estUneListeDeLaBeac(demandee) ? demandee : PAGE;
+  const avant = /^\d{4}-\d{2}$/.test(params.get("avant") ?? "") ? (params.get("avant") as string) : "2023-01";
+  const limite = Math.min(5, Math.max(1, Number(params.get("limite")) || 3));
+  const page = await fetch(liste, { headers: { "user-agent": UA }, cache: "no-store" });
+  if (!page.ok) return NextResponse.json({ ok: false, error: `la page des statistiques répond ${page.status}`, liste }, { status: 502 });
+  const bulletins = listerBulletins(await page.text());
+  const r0 = repo();
+  const couv = couvertureDe(await r0.courbesBeac());
+  const plan = planDeRecuperation(bulletins, couv, { avant, limite });
+  const resume = { liste, avant, bulletinsListes: bulletins.length, plusAncien: plan.plusAncien, plusRecent: plan.plusRecent, avantLaBorne: plan.avantLaBorne, dejaCouverts: plan.dejaCouverts, aComblerEnTout: plan.aComblerEnTout };
+  if (params.get("diagnostic") !== null) {
+    return NextResponse.json({ ok: true, diagnostic: true, ...resume, prochains: plan.aTenter.map((b) => ({ numero: b.numero, mois: b.mois, pour: b.pour })), dit: plan.avantLaBorne === 0 ? "la page ne liste aucun bulletin d'avant la borne : il faut une autre liste (paramètre liste)" : undefined });
+  }
+  const ecrits: { numero: number; mois: string; points: number; tresors: string[] }[] = [];
+  const ecartes: { numero: number; mois: string; pourquoi: string }[] = [];
+  for (const b of plan.aTenter) {
+    const r = await relever(b.url);
+    if ("refus" in r) {
+      ecartes.push({ numero: b.numero, mois: b.mois, pourquoi: r.refus });
+      continue;
+    }
+    const points = pointsAEcrire({ numero: b.numero, mois: b.mois, source: b.url, series: r.series }, b, couv);
+    const n = await r0.ajouterCourbesBeac(points, RESERVE_DU_TRACE);
+    ecrits.push({ numero: b.numero, mois: b.mois, points: n, tresors: [...new Set(points.map((p) => p.pays))] });
+  }
+  return NextResponse.json({ ok: true, ...resume, ecrits, ecartes, restent: Math.max(0, plan.aComblerEnTout - plan.aTenter.length) });
+}
+
 export async function GET(req: NextRequest) {
   return routeDuRobot("beac-courbe", req, async () => {
-  
+    const params = new URL(req.url).searchParams;
+    if (params.get("recuperer") !== null || params.get("diagnostic") !== null) return recuperer(params);
+
     const page = await fetch(PAGE, { headers: { "user-agent": UA }, cache: "no-store" });
     if (!page.ok) return NextResponse.json({ ok: false, error: `la page des statistiques répond ${page.status}` }, { status: 502 });
     const bulletins = listerBulletins(await page.text()).slice(0, A_ESSAYER);

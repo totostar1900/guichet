@@ -582,6 +582,8 @@ export interface Repository {
    * ses courbes de rendement, son encours officiel et son coût des ressources.
    */
   courbesBeac(): Promise<PointCourbeBeac[]>;
+  /** Ajoute des points de courbe de la BEAC, sans jamais remplacer un point déjà en base (mois, pays, durée). Rend le nombre de points ajoutés. */
+  ajouterCourbesBeac(points: PointCourbeBeac[], reserve: string): Promise<number>;
   encoursOfficiel(): Promise<EncoursOfficiel[]>;
   coutDesRessources(): Promise<CoutDesRessources[]>;
   /** Les comptes lus dans les états financiers des émetteurs cotés. */
