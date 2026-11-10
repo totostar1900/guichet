@@ -276,4 +276,6 @@ export const EN_VISITE: Record<string, string> = {
   "Retirer de l'argent": "Withdraw money",
   "Mon profil d'investisseur": "My investor profile",
   "Votre argent, ce qui vous attend, votre activité, votre dossier et tous les services de Guichet.": "Your money, what is waiting for you, your activity, your file and all of Guichet's services.",
+  "Voir tout": "See all",
+  "Voir plus": "See more",
 };

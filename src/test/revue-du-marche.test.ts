@@ -55,12 +55,15 @@ describe("la porte du marché", () => {
      quatre sections rendues finissent toutes à x = 1243. */
   it("aligne la flèche de chaque section au bord droit", () => {
     const page = code(MARCHE);
-    const liens = [...page.matchAll(/<Link className="([^"]*btn sm ghost[^"]*)"/g)].map((m) => m[1]);
+    const liens = [...page.matchAll(/<Link className=\{?[`"]([^`"]*btn sm ghost[^`"]*)[`"]/g)].map((m) => m[1]);
     expect(liens.length, "le relevé ne voit plus les liens des sections : son verdict ne prouve rien").toBeGreaterThanOrEqual(5);
     expect(
       liens.filter((c) => !c.includes("right")),
       "ces liens de section ne sont pas poussés au bord droit : leur flèche se posera après le titre, à une abscisse différente par carte",
     ).toEqual([]);
+    /* LES LIENS OR FINISSENT AU MÊME BORD QUE « L'INDICE » (10 novembre 2026) : chacun porte le retrait qui ramène son mot à 14 px du bord de la carte. */
+    expect([...page.matchAll(/btn sm ghost right \$\{styles\.lienDeCoin\}/g)].length, "un lien de section n'est plus aligné sur « L'indice »").toBeGreaterThanOrEqual(5);
+    expect(lire("src/app/marche/page.module.css"), "le retrait des liens de section a disparu").toMatch(/\.lienDeCoin \{\s*margin-right: -11px;/);
     /* ET LA CARTE DE L'INDICE PREND L'EN-TÊTE DE LA MAISON plutôt que de
        garder ses deux liens au bas de ses chiffres. */
     expect(page, "l'indice a repris ses liens du bas : ils retombent sous la courbe").toMatch(/<IndexPulse[^>]*liens=\{false\}/);

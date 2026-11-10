@@ -195,3 +195,8 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* LES LIENS OR DES CARTES S'ALIGNENT SUR « L'INDICE » (10 novembre 2026) : celui de la carte de l'indice finit à 14 px du bord de sa carte ; ceux des en-têtes de panneau, avec leur marge de bouton (9 px) et le retrait de l'en-tête (16 px), finissaient 12 px plus à l'intérieur. Le retrait négatif ramène le mot, pas la zone de toucher, au même bord. */
+.lienDeCoin {
+  margin-right: -11px;
+}

@@ -138,7 +138,7 @@ export default async function MarchePage() {
                   dont les deux flèches disaient la même chose et menaient à
                   la même page — celle-ci va au tableau des séances, qui est
                   ce qu'elle résume. */}
-              <Link className="btn sm ghost right" href="/indice#seances">
+              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/indice#seances">
                 {t("Les séances")} →
               </Link>
             </div>
@@ -181,7 +181,7 @@ export default async function MarchePage() {
           <section className="panel" id="societes">
             <div className="panel-h">
               <h2>{t("Les sociétés cotées")}</h2>
-              <Link className="btn sm ghost right" href="/societes">
+              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/societes">
                 {t("Toutes")} →
               </Link>
             </div>
@@ -214,8 +214,8 @@ export default async function MarchePage() {
           <section className="panel" id="adjudications">
             <div className="panel-h">
               <h2>{t("Les résultats d'adjudications")}</h2>
-              <Link className="btn sm ghost right" href="/marche/adjudications">
-                {t("Tous les résultats")} →
+              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/marche/adjudications">
+                {t("Voir tout")} →
               </Link>
             </div>
             <div className={styles.apercu}>
@@ -236,7 +236,7 @@ export default async function MarchePage() {
         <section className="panel" id="notes">
             <div className="panel-h">
               <h2>{t(derniere ? "La dernière note" : "Les notes de marché")}</h2>
-              <Link className="btn sm ghost right" href="/indice/notes">
+              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/indice/notes">
                 {t("Toutes les notes")} →
               </Link>
             </div>
@@ -268,7 +268,7 @@ export default async function MarchePage() {
           <section className="panel" id="eclairage">
             <div className="panel-h">
               <h2>{t("L'éclairage")}</h2>
-              <Link className="btn sm ghost right" href="/info/indice-bvmac">
+              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/info/indice-bvmac">
                 {t("Comment le lire")} →
               </Link>
             </div>
@@ -296,8 +296,8 @@ export default async function MarchePage() {
           <section className="panel" id="comparer">
             <div className="panel-h">
               <h2>{t("Comparer deux lignes")}</h2>
-              <Link className="btn sm ghost right" href="/comparer">
-                {t("La page de comparaison")} →
+              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/comparer">
+                {t("Voir plus")} →
               </Link>
             </div>
             <ChoisirDeuxLignes lignes={comparables} />
@@ -312,7 +312,7 @@ export default async function MarchePage() {
           <section className="panel" id="actualites">
             <div className="panel-h">
               <h2>{t("À la une")}</h2>
-              <Link className="btn sm ghost right" href="/actualites">
+              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/actualites">
                 {t("Toutes les actualités")} →
               </Link>
             </div>
