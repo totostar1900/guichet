@@ -5,6 +5,7 @@ import { ProfileQuiz } from "./ProfileQuiz";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
+import { Info } from "@/components/Info";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
@@ -36,6 +37,14 @@ export async function generateMetadata() {
  * La question du questionnaire reste en tête de son bloc, mais en « h2 » :
  * c'est un titre de section, pas le nom de la page.
  */
+const MODE_D_EMPLOI = [
+  "Dix-sept questions, une à la fois, en cinq minutes environ. Vous pouvez revenir en arrière.",
+  "Trois blocs : ce que vous pouvez supporter (horizon, objectif, tolérance, réserve) · ce que vous connaissez (expérience, quatre vérifications) · ce que vous pouvez engager (revenus, épargne, réserve, engagements, situation), en fourchettes.",
+  "Des fourchettes, jamais des chiffres exacts : elles dimensionnent, elles ne jugent pas. Une réponse fausse à une vérification est un éclairage à lire.",
+  "Un visiteur garde son profil sur cet appareil ; avec un compte, il rejoint votre dossier et les fiches vous montrent vos repères.",
+  "Vous pouvez le refaire en entier, ou rouvrir un seul bloc ou une seule question depuis le récapitulatif.",
+];
+
 export default async function ProfilPage() {
   const s = await getSession();
   const [t, profile] = await Promise.all([getT(), s ? repo().getFinancialProfile(s.userId) : undefined]);
@@ -49,6 +58,8 @@ export default async function ProfilPage() {
           surTitre={s ? t("Vous") : undefined}
           titre={t("Profil d'investisseur")}
           phrase={t("Votre horizon, votre tolérance au risque, et ce que la maison en déduit.")}
+          /* LE MODE D'EMPLOI VIT DANS LE « i » (10 novembre 2026) : les trois blocs, la durée, où reste le profil, ce que les fiches en font. Il n'est plus écrit sous les boutons du questionnaire. */
+          aCote={<Info titre label={t("Comment fonctionne le questionnaire")} text={MODE_D_EMPLOI.map((l) => t(l)).join("\n\n")} />}
         />
         {!s && (
           <p className={styles.guestNote}>

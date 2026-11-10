@@ -10,8 +10,8 @@
     z-index: 40;
     display: flex;
     align-items: center;
-    background: var(--gold-soft);
-    border: 1px solid var(--gold-line);
+    background: var(--surface);
+    border: 1px solid var(--gold);
     border-radius: 999px;
     box-shadow: 0 2px 8px rgba(11, 37, 69, 0.14);
   }

@@ -412,7 +412,6 @@ export function ProfileQuiz({ initial, guest }: { initial?: FinancialProfile; gu
           {t(pending ? "Un instant…" : last ? "Voir mon profil" : "Suivante")} →
         </button>
       </div>
-      <div className={styles.list}>{t("Trois blocs : ce que vous pouvez supporter (horizon, objectif, tolérance, réserve) · ce que vous connaissez (expérience, quatre vérifications) · ce que vous pouvez engager (revenus, épargne, réserve, engagements, situation), en fourchettes.")}</div>
     </div>
   );
 }

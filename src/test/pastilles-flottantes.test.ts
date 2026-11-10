@@ -20,10 +20,12 @@ describe("les pastilles flottantes", () => {
   it("se déplacent toutes à l'appui long", () => {
     for (const [tsx] of PASTILLES) expect(lire(tsx), `${tsx} ne se déplace pas`).toMatch(/useDeplacable\("[a-z]+"\)[\s\S]*ref=\{deplacable\}/);
   });
-  it("portent l'or doux, sur 34 px", () => {
+  it("portent le trait et l'icône or, sans fond jaune, sur 34 px", () => {
     for (const css of new Set(PASTILLES.map((p) => p[1]))) {
       const s = lire(css);
-      expect(s, `${css} a perdu l'or doux`).toMatch(/background:\s*var\(--gold-soft\)/);
+      expect(s, `${css} a perdu le trait or`).toMatch(/border:\s*1px solid var\(--gold\)/);
+      if (!css.includes("GuideBar")) expect(s, `${css} a retrouvé un fond jaune`).not.toMatch(/background:\s*var\(--gold-soft\)/);
+      else expect(s.slice(0, s.indexOf(".sommaire")), `${css} : la capsule a retrouvé un fond jaune`).not.toMatch(/gold-soft/);
       expect(s, `${css} n'est plus à 34 px`).toMatch(/(width|height):\s*34px/);
     }
   });

@@ -263,4 +263,9 @@ export const EN_VISITE: Record<string, string> = {
   "Séances et cotation": "Sessions and listing",
   "Ses lignes à Guichet": "Its lines at Guichet",
   "« aucun » : exercice sans dividende distribué.": "“none”: financial year with no dividend distributed.",
+  "Comment fonctionne le questionnaire": "How the questionnaire works",
+  "Dix-sept questions, une à la fois, en cinq minutes environ. Vous pouvez revenir en arrière.": "Seventeen questions, one at a time, about five minutes. You can go back.",
+  "Des fourchettes, jamais des chiffres exacts : elles dimensionnent, elles ne jugent pas. Une réponse fausse à une vérification est un éclairage à lire.": "Bands, never exact figures: they size, they do not judge. A wrong answer to a check is an insight to read.",
+  "Un visiteur garde son profil sur cet appareil ; avec un compte, il rejoint votre dossier et les fiches vous montrent vos repères.": "A visitor keeps the profile on this device; with an account it joins your file and the pages show you your benchmarks.",
+  "Vous pouvez le refaire en entier, ou rouvrir un seul bloc ou une seule question depuis le récapitulatif.": "You can redo it in full, or reopen a single block or question from the summary.",
 };

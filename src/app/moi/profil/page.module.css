@@ -144,16 +144,6 @@
   font: inherit;
   cursor: pointer;
 }
-.list {
-  margin-top: 8px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  font-size: 0.74rem;
-  color: var(--ink-3);
-  line-height: 1.5;
-}
 
 /* the result */
 .result {

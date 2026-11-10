@@ -6,8 +6,8 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid var(--gold-line);
-  background: var(--gold-soft);
+  border: 1px solid var(--gold);
+  background: var(--surface);
   color: var(--gold-ink);
   box-shadow: 0 2px 8px rgba(11, 37, 69, 0.14);
   display: inline-flex;
@@ -27,7 +27,7 @@
 }
 .btn:hover,
 .btn:focus-visible {
-  background: var(--gold-soft);
+  background: var(--surface);
   color: var(--gold-ink);
   border-color: var(--gold);
 }
