@@ -51,7 +51,6 @@ export default async function ReprendrePage() {
     <Glissement>
       <div className={styles.wrap}>
         <EnTete
-          retour={{ href: "/moi/provision", mot: t("Ma provision") }}
           /* Le retour dit « Votre provision » : le sur-titre dit la famille,
              pas le même mot — c'est celui que porte la page du solde. */
           surTitre={t("Mon argent chez nous")}

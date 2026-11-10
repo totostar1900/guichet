@@ -73,7 +73,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
               un déplacement dans la liste d'où l'on vient. L'en-tête, lui,
               passe à l'étalon — et la marge écrite en style en ligne s'en va
               avec, puisque l'écart sous un en-tête vit dans sa feuille. */}
-          <ListNav id={o.id} fallbackHref={listeDeLaFiche(o).href} fallbackLabel={listeDeLaFiche(o).label} />
+          <ListNav id={o.id} />
           <EnTete titre={t(o.title)} phrase={t("Cette ligne a été retirée de Guichet. Pour toute question, contactez le desk.")} />
         </div>
       </div>
@@ -106,7 +106,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
         {session && <Vu geste="vu.fiche" objet={o.id} detail={o.title} />}
         <SwipePager id={o.id} hintKey="fiche" hints={{ next: "Glissez vers la gauche : la ligne suivante", prev: "Glissez vers la droite : la ligne précédente" }}>
         <FichePanes className={styles.main} sans={voletsMasques(o)}>
-          <ListNav id={o.id} fallbackHref={listeDeLaFiche(o).href} fallbackLabel={listeDeLaFiche(o).label} />
+          <ListNav id={o.id} />
           <FicheHead o={o} s={summary} st={st} horizon={{ level: mark?.level, text: mark?.[lang], hasProfile: Boolean(fin) }} watching={watching} signedIn={Boolean(session)} />
 
           {/* LES SORTIES ET LE PIED SONT DANS LA PILE DES SECTIONS (8 novembre 2026), pour que l'écart des chapitres les sépare comme les autres.

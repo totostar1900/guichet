@@ -28,7 +28,7 @@ export default async function CalendrierDesSeancesPage() {
   return (
     <Glissement>
       <div className="pile">
-        <EnTete retour={{ href: "/calendrier", mot: t("Adjudications") }} surTitre={t("Investissez")} titre={t("Calendrier des séances")} phrase={t("Les jours où une séance se clôt. Touchez un jour marqué pour lire ses séances.")} />
+        <EnTete surTitre={t("Investissez")} titre={t("Calendrier des séances")} phrase={t("Les jours où une séance se clôt. Touchez un jour marqué pour lire ses séances.")} />
         <section className={styles.carte} aria-label={t("Calendrier des séances")}>
           <GrilleDuMois
             aujourdhui={localIso(new Date())}

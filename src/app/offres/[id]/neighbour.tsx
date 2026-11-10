@@ -10,7 +10,6 @@ import { ListNav } from "@/components/ListNav";
 import { FichePanes } from "@/components/mobile/FichePanes";
 import { summarize } from "@/lib/domain/summary";
 import { displayStatus } from "@/lib/domain/status";
-import { listeDeLaFiche } from "@/lib/domain/accueil";
 import styles from "./page.module.css";
 
 /**
@@ -42,7 +41,7 @@ export async function neighbourReading(offerId: string): Promise<React.ReactNode
   const now = new Date();
   return (
     <FichePanes className={styles.main} sans={voletsMasques(o)}>
-      <ListNav id={o.id} fallbackHref={listeDeLaFiche(o).href} fallbackLabel={listeDeLaFiche(o).label} />
+      <ListNav id={o.id} />
       <FicheHead o={o} s={summarize(o, now)} st={displayStatus(o, now)} />
       <FicheReading o={o} data={data} />
     </FichePanes>

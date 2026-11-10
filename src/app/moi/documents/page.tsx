@@ -49,7 +49,6 @@ export default async function DocumentsPage() {
     <Glissement>
       <div className={styles.page}>
         <EnTete
-          retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Mes papiers")}
           titre={t("Mes documents")}
           phrase={t("Tout ce qui porte votre nom et un numéro : ce que vous avez signé, ce que vos opérations ont produit, et les mouvements de votre argent.")}

@@ -335,3 +335,10 @@ Une carte qui cache une face (3D) se remplace par une **extension** : `Depliable
 - **Un chiffre comparable** : bon = taux moyen pondéré imprimé ; obligation = rendement actuariel (imprimé, sinon calculé par `auctionYield`, et la carte dit « calculé »). Sans coupon, l'obligation garde son prix, dit comme tel.
 - **Des détails qui se regroupent** : annoncé / soumissions, servi / couverture, soumissionnaires / SVT du réseau tiennent sur une cellule chacun ; l'ordre est le même pour toutes les cartes.
 - **Toute la carte déplie** (clic hors bouton et hors lien) ; le chevron reste le contrôle du clavier.
+
+## Leçon du 10 novembre 2026 : la barre du haut ramène au parent, la page ne le redit pas
+
+- **Plus de lien « ← page » dans un en-tête** : la barre du haut porte déjà le retour ; l'étalon refuse désormais tout `retour={{ … }}` (clause « n'écrit plus aucun lien de retour »). Le desk, qui n'a pas cette barre, garde les siens (`SocieteBody`). Le pas à pas d'une fiche (précédente / suivante) reste, sans le lien vers la liste.
+- **Une icône de la barre n'existe que si sa page a quelque chose à dire** : l'horloge compte les lignes que `/echeances` liste (le mois à venir) et disparaît à zéro ; l'étoile n'existe que s'il y a un favori. Une cible vers une page vide apprend à ne plus la toucher.
+- **Un tiroir latéral se ferme d'un glissement, sans rebond** : il suit le doigt, puis reprend là où il est à la courbe des feuilles ; le geste ne commence que s'il est plutôt horizontal (`touch-action: pan-y`), le défilement vertical reste libre.
+- **Un nom de page peut déjà exister** : « Mon activité » était le journal du compte ; les rubriques de « Plus » s'y ajoutent plutôt que de créer un homonyme.

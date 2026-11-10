@@ -46,7 +46,6 @@ export default async function ChapitrePage({ params }: { params: Promise<{ chapi
       {/* UNE PILE : l'espace entre l'en-tête, l'introduction, les questions et le bandeau d'aide vient du jeton des sections (ETALON.md § 8). */}
       <article className={`pile ${styles.doc}`}>
         <EnTete
-          retour={{ href: "/info/aide", mot: t("Questions courantes") }}
           surTitre={t("Aide")}
           titre={c.title[lang]}
           phrase={c.promesse?.[lang]}

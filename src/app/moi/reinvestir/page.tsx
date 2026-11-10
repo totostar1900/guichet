@@ -77,7 +77,6 @@ export default async function ReinvestirPage() {
             formes — un « nav » d'un lien, ou un chevron — et aucune épreuve ne
             pouvait les voir tant qu'ils étaient écrits à la main. */}
         <EnTete
-          retour={{ href: "/", mot: t("Tableau de bord") }}
           titre={t("Réinvestir vos encaissements")}
           phrase={t(
             "Un coupon qui dort sur un compte en banque cesse de rapporter pendant que la ligne qui l'a versé continue. Cette instruction replace ce qui vous revient, dès qu'il arrive, sur la ligne que vous choisissez maintenant.",

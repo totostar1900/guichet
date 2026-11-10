@@ -49,7 +49,6 @@ export default async function GardePage() {
       {/* UNE PILE : l'espace entre l'en-tête, les avis et le lien d'annexe vient du jeton des sections (ETALON.md § 8). */}
       <main className={`pile ${styles.wrap}`}>
         <EnTete
-          retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Mon dossier")}
           titre={t("Mes droits de garde")}
           phrase={t("Ce que la conservation de vos titres a coûté. Chaque avis s'ouvre ligne à ligne : c'est ce qui permet de le vérifier plutôt que de le subir.")}

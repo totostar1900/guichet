@@ -50,7 +50,7 @@ export interface BarreProps {
   /** Ce qui attend le client, en entier : le panneau de la pastille le déroule. */
   attentes?: Attente[];
   /** Les lignes qui ferment sous sept jours : le nombre de l'horloge, pour le client. */
-  urgentes?: number;
+  echeances?: number;
   /** Le client a au moins un favori : l'étoile de la barre n'existe qu'alors. */
   favoris?: boolean;
 }

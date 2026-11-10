@@ -122,7 +122,7 @@ function fallbackFor(path: string): string {
   return "/";
 }
 
-export function MobileShell({ signedIn, name, desk, deskHost = false, attentes = [], urgentes = 0, favoris = false, menu }: { signedIn: boolean; name?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; /** Ce qui attend le client, pour la pastille de la barre : voir BarreProps. */ attentes?: Attente[]; /** Les lignes qui ferment sous sept jours : le nombre de l'horloge. */ urgentes?: number; /** Le client a un favori : l'étoile paraît. */ favoris?: boolean; menu?: React.ReactNode }) {
+export function MobileShell({ signedIn, name, desk, deskHost = false, attentes = [], echeances = 0, favoris = false, menu }: { signedIn: boolean; name?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; /** Ce qui attend le client, pour la pastille de la barre : voir BarreProps. */ attentes?: Attente[]; /** Les lignes qui ferment sous sept jours : le nombre de l'horloge. */ echeances?: number; /** Le client a un favori : l'étoile paraît. */ favoris?: boolean; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const isRoot = SANS_FLECHE.includes(path);
@@ -269,7 +269,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
               écran, et reprendre au titre la largeur que la barre n'a pas. */}
           {/* UN CLIENT A L'HORLOGE, L'ÉTOILE ET LE MENU ; le desk garde la barre
               du compte et son lien « Desk ». Voir BarreDuHaut. */}
-          {signedIn && !desk && <BarreDuHaut attentes={attentes} urgentes={urgentes} favoris={favoris} />}
+          {signedIn && !desk && <BarreDuHaut attentes={attentes} echeances={echeances} favoris={favoris} />}
           {signedIn && desk && <BarreDuCompte name={name ?? "?"} desk={desk} attentes={attentes} />}
           {menu}
         </div>

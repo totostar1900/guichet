@@ -14,6 +14,7 @@ import { LangSwitch } from "../LangSwitch";
 import { PaletteSwitch } from "../PaletteSwitch";
 import { ListeAttentes, useBrouillon } from "./Attentes";
 import { titreDeLOnglet } from "./titre-onglet";
+import { COURBE_DES_FEUILLES } from "./relacher";
 import { useSheetPresence } from "./useSheetPresence";
 import { deverrouiller, verrouiller } from "./verrou-defilement";
 import styles from "./BarreDuHaut.module.css";
@@ -42,8 +43,8 @@ import styles from "./BarreDuHaut.module.css";
  */
 export interface BarreDuHautProps {
   attentes: Attente[];
-  /** Lignes qui ferment sous sept jours : le nombre de l'horloge. */
-  urgentes: number;
+  /** Les lignes que la page « Ce qui ferme bientôt » liste : le nombre de l'horloge. Sans aucune, l'horloge n'existe pas (10 novembre 2026). */
+  echeances: number;
   /** Le client a au moins un favori : sans, l'étoile n'existe pas (1er novembre 2026). */
   favoris: boolean;
 }
@@ -59,6 +60,7 @@ const ICONE = {
   aide: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5M12 17h.01",
   langue: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18",
   sortie: "M10 5H5v14h5M14 8l4 4-4 4M18 12H9",
+  activite: "M3 12h4l3-7 4 14 3-7h4",
   loupe: "M11 4.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM16 16l4 4",
 };
 /** Les trois pages d'Instruments, et le brief que chacune porte. */
@@ -72,7 +74,7 @@ function Trace({ d, plein }: { d: string; plein?: boolean }) {
   );
 }
 
-export function BarreDuHaut({ attentes, urgentes, favoris }: BarreDuHautProps) {
+export function BarreDuHaut({ attentes, echeances, favoris }: BarreDuHautProps) {
   const t = useT();
   const lang = useLang();
   const chemin = usePathname();
@@ -87,6 +89,55 @@ export function BarreDuHaut({ attentes, urgentes, favoris }: BarreDuHautProps) {
   const { shown, visible } = useSheetPresence(ouvert);
   const croix = useRef<HTMLButtonElement>(null);
   const fermer = () => setOuvert(false);
+  /* LE TIROIR SE FERME D'UN GLISSEMENT VERS LA DROITE, SANS REBOND (10 novembre 2026). Il suit le doigt, puis, au relâchement, REPREND LÀ OÙ IL EST et glisse vers le bord d'où il est venu, à la courbe des feuilles (qui ne dépasse jamais) ; un glissement trop court le ramène à sa place par la même courbe. Le geste ne commence que s'il est plutôt horizontal : le défilement vertical de la liste reste libre. */
+  const tiroir = useRef<HTMLElement>(null);
+  const doigt = useRef<{ x0: number; y0: number; x: number; t: number; v: number; dx: number; en: boolean } | null>(null);
+  const commencer = (e: React.TouchEvent) => {
+    const p = e.touches[0];
+    doigt.current = { x0: p.clientX, y0: p.clientY, x: p.clientX, t: performance.now(), v: 0, dx: 0, en: false };
+  };
+  const suivre = (e: React.TouchEvent) => {
+    const g = doigt.current;
+    const el = tiroir.current;
+    if (!g || !el) return;
+    const p = e.touches[0];
+    const dx = p.clientX - g.x0;
+    const dy = p.clientY - g.y0;
+    if (!g.en) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
+        doigt.current = null;
+        return;
+      }
+      if (dx > 10 && dx > Math.abs(dy) * 1.3) g.en = true;
+      else return;
+    }
+    const now = performance.now();
+    g.v = (p.clientX - g.x) / Math.max(1, now - g.t);
+    g.x = p.clientX;
+    g.t = now;
+    g.dx = Math.max(0, dx);
+    el.style.transition = "none";
+    el.style.transform = `translateX(${g.dx}px)`;
+  };
+  const relacher = () => {
+    const g = doigt.current;
+    const el = tiroir.current;
+    doigt.current = null;
+    if (!g || !g.en || !el) return;
+    if (g.dx > 80 || g.v > 0.5) {
+      const reste = Math.max(40, el.offsetWidth - g.dx);
+      const ms = Math.round(Math.min(300, Math.max(160, reste / Math.max(0.6, g.v || 1))));
+      el.style.transition = `transform ${ms}ms ${COURBE_DES_FEUILLES}`;
+      el.style.transform = "translateX(105%)";
+      setOuvert(false);
+      return;
+    }
+    el.style.transition = `transform 0.3s ${COURBE_DES_FEUILLES}`;
+    el.style.transform = "";
+    window.setTimeout(() => {
+      el.style.transition = "";
+    }, 320);
+  };
 
   /* Le tiroir s'ouvre : défilement verrouillé, Échap ferme, la croix reçoit le
      focus, et on lit si CETTE page est déjà un favori — lu, jamais deviné. */
@@ -122,10 +173,12 @@ export function BarreDuHaut({ attentes, urgentes, favoris }: BarreDuHautProps) {
     <>
       {/* LE « i » DES TROIS PAGES D'INSTRUMENTS EST DANS LA BARRE (4 novembre 2026, choix 1A) ET À GAUCHE DU GROUPE (7 novembre 2026) : en tête de rangée, avec son filet à droite, il se lit comme l'explication de la page et non comme une commande de plus entre l'horloge et la loupe : sans grand titre, il n'a plus de « face » où se poser, et il suit la page quand on défile. */}
       {BRIEF_DE_LA_PAGE[chemin] && <EnBrefInstruments page={BRIEF_DE_LA_PAGE[chemin]} className={`${styles.ic} ${styles.info}`} />}
-      <Link href="/echeances" className={`${styles.ic} ${styles.ambre}`} aria-label={urgentes > 0 ? t("Ce qui ferme bientôt · {n} sous sept jours", { n: String(urgentes) }) : t("Ce qui ferme bientôt")} title={t("Ce qui ferme bientôt")}>
-        <Trace d={ICONE.horloge} />
-        {urgentes > 0 && <em className={`${styles.pas} ${styles.pasAmbre}`}>{urgentes > 9 ? "9+" : urgentes}</em>}
-      </Link>
+      {echeances > 0 && (
+        <Link href="/echeances" className={`${styles.ic} ${styles.ambre}`} aria-label={t("Ce qui ferme bientôt · {n} à venir", { n: String(echeances) })} title={t("Ce qui ferme bientôt")}>
+          <Trace d={ICONE.horloge} />
+          <em className={`${styles.pas} ${styles.pasAmbre}`}>{echeances > 9 ? "9+" : echeances}</em>
+        </Link>
+      )}
       {aUnFavori && (
         <Link href="/favoris" className={`${styles.ic} ${styles.or}`} aria-label={t("Mes favoris")} title={t("Mes favoris")}>
           <Trace d={ICONE.etoile} />
@@ -148,7 +201,7 @@ export function BarreDuHaut({ attentes, urgentes, favoris }: BarreDuHautProps) {
         createPortal(
           <>
             <div className={`${styles.voile} ${visible ? styles.voileOuvert : ""}`} onClick={fermer} aria-hidden="true" />
-            <aside className={`${styles.tiroir} ${visible ? styles.tiroirOuvert : ""}`} role="dialog" aria-modal="true" aria-label={t("Menu")} aria-hidden={!ouvert}>
+            <aside ref={tiroir} className={`${styles.tiroir} ${visible ? styles.tiroirOuvert : ""}`} role="dialog" aria-modal="true" aria-label={t("Menu")} aria-hidden={!ouvert} onTouchStart={commencer} onTouchMove={suivre} onTouchEnd={relacher} onTouchCancel={relacher}>
               <div className={styles.haut}>
                 <button ref={croix} type="button" className={styles.fermer} onClick={fermer} aria-label={t("Fermer")}>
                   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -167,11 +220,13 @@ export function BarreDuHaut({ attentes, urgentes, favoris }: BarreDuHautProps) {
                     <ListeAttentes attentes={attentes} brouillon={brouillon} fermer={fermer} />
                   </div>
                 )}
-                <Link href="/echeances" className={styles.ligne} onClick={fermer}>
-                  <Trace d={ICONE.horloge} />
-                  <span>{t("Ce qui ferme bientôt")}</span>
-                  {urgentes > 0 && <em className={`${styles.nb} ${styles.nbAmbre}`}>{urgentes}</em>}
-                </Link>
+                {echeances > 0 && (
+                  <Link href="/echeances" className={styles.ligne} onClick={fermer}>
+                    <Trace d={ICONE.horloge} />
+                    <span>{t("Ce qui ferme bientôt")}</span>
+                    <em className={`${styles.nb} ${styles.nbAmbre}`}>{echeances}</em>
+                  </Link>
+                )}
                 {/* UN SEUL NIVEAU DE FAVORIS DANS LE MENU (décidé le 31 octobre 2026). Il y avait
                     « Mes favoris » ET « Mettre cette page en favori » : deux lignes pour le même
                     sujet, dont l'une redoublait l'étoile de la barre. L'étoile ouvre la liste ;
@@ -198,6 +253,11 @@ export function BarreDuHaut({ attentes, urgentes, favoris }: BarreDuHautProps) {
                 )}
 
                 <div className={styles.rub}>{t("Mon dossier")}</div>
+                {/* « MON ACTIVITÉ » RASSEMBLE CE QUE « PLUS » OUVRAIT À L'ACCUEIL (10 novembre 2026) : ordres, sondages, coupons, rentabilité, provision, versements, prélèvements, documents. */}
+                <Link href="/moi/activite" className={styles.ligne} onClick={fermer}>
+                  <Trace d={ICONE.activite} />
+                  <span>{t("Mon activité")}</span>
+                </Link>
                 <Link href="/moi/ordres" className={styles.ligne} onClick={fermer}>
                   <Trace d={ICONE.ordres} />
                   <span>{t("Mes ordres")}</span>

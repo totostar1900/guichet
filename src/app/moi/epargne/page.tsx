@@ -69,7 +69,6 @@ export default async function EpargnePage() {
             ont été reprises par l'épreuve de l'étalon le jour où elles sont
             passées au composant, et pas un jour avant. */}
         <EnTete
-          retour={{ href: "/", mot: t("Tableau de bord") }}
           titre={t("Épargne programmée")}
           phrase={t(
             "Une somme fixe, un jour du mois, une destination choisie maintenant : le versement part tout seul, et vous l'arrêtez quand vous voulez. C'est un placement qui se répète, pas une autorisation de débit.",

@@ -105,16 +105,19 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
   return (
     /* UNE PILE : l'espace entre les retours, l'en-tête, les chiffres et les panneaux vient du jeton des sections (ETALON.md § 8). Le desk, qui rend le même corps, en profite. */
     <div className="pile">
-      <div className={styles.backs}>
-        {sp.depuis === "indice" && (
-          <Link href={desk ? "/desk/indice/apercu" : "/indice"} className={`${styles.back} ${styles.backFrom}`}>
-            {t("← Retour à l'indice BVMAC")}
-          </Link>
-        )}
-        <LienRetour href={`${base}/societes`} className={styles.back}>
-          {t("← Toutes les sociétés cotées")}
-        </LienRetour>
-      </div>
+      {/* LES RETOURS NE SERVENT PLUS AU CLIENT (10 novembre 2026) : la barre du haut ramène à la liste. Le desk, qui n'a pas cette barre, les garde. */}
+      {desk && (
+        <div className={styles.backs}>
+          {sp.depuis === "indice" && (
+            <Link href={desk ? "/desk/indice/apercu" : "/indice"} className={`${styles.back} ${styles.backFrom}`}>
+              {t("← Retour à l'indice BVMAC")}
+            </Link>
+          )}
+          <LienRetour href={`${base}/societes`} className={styles.back}>
+            {t("← Toutes les sociétés cotées")}
+          </LienRetour>
+        </div>
+      )}
       {/* LA BANDE DE RETOUR RESTE AU-DESSUS, ET ELLE PORTE DEUX LIENS : « vers
           l'indice », quand on en vient, et « toutes les sociétés ». Le créneau
           de l'étalon ne porte QU'UN cran en arrière ; deux retours sont une

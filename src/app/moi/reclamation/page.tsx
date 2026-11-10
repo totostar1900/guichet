@@ -49,7 +49,6 @@ export default async function ComplaintPage() {
             faire entrer sous les épreuves auxquelles sa propre écriture
             l'exemptait. */}
         <EnTete
-          retour={{ href: "/", mot: t("Tableau de bord") }}
           titre={t("Déposer une réclamation")}
           phrase={t("Dites ce qui s'est passé et ce que vous demandez, avec vos mots. Purpose Capital accuse réception et répond dans un délai raisonnable ; sans réponse satisfaisante, la COSUMAF peut être saisie.")}
         />

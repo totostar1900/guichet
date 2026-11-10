@@ -2,7 +2,6 @@ import { fundAnnualPct } from "@/lib/domain/fund-perf";
 import Link from "next/link";
 import { LineIdentity } from "@/components/LineIdentity";
 import { Info } from "@/components/Info";
-import { BackButton } from "@/components/BackButton";
 import { getT } from "@/i18n/server";
 import { MarketStrip } from "@/components/MarketStrip";
 import { repo } from "@/lib/data";
@@ -133,14 +132,7 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
   return (
     /* UNE PILE : l'espace entre l'en-tête, le choix, la comparaison et les graphiques vient du jeton des sections (ETALON.md § 8). */
     <div className={`pile ${styles.page}`}>
-      {/* LE RETOUR RESTE UN « BackButton », ET C'EST VOULU. Le créneau de
-          l'étalon mène à un parent NOMMÉ ; cette page n'en a pas un seul — on
-          y arrive de la fiche d'une ligne comme du marché — et son retour est
-          donc celui de l'historique, avec une destination de repli. Deux
-          dispositifs pour deux questions : « remonter d'un cran » et
-          « revenir d'où je viens ». */}
       <div className={styles.head}>
-        <BackButton fallbackHref="/" fallbackLabel={t("Retour à Guichet")} />
         <EnTete
           titre={t("Comparer deux lignes")}
           phrase={t("Choisissez deux lignes de Guichet : rendement, échéance, ticket et calcul de référence côte à côte. Rendements bruts, avant frais et fiscalité.")}

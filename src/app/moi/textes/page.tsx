@@ -94,7 +94,6 @@ export default async function TextesPage() {
     <Glissement>
       <div className={styles.page}>
         <EnTete
-          retour={{ href: "/moi/documents", mot: t("Mes documents") }}
           surTitre={t("La maison")}
           titre={t("Textes et conditions")}
           phrase={t("Les mêmes pour tout le monde. Ils n'ont pas de numéro : ils ont une version, et vous lisez toujours celle qui est en vigueur. Ceux que vous avez acceptés portent leur date, et se retrouvent aussi dans vos documents.")}

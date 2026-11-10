@@ -39,7 +39,6 @@ export default async function AppareilPage() {
     <Glissement>
         <div className={styles.page}>
           <EnTete
-            retour={{ href: "/moi/compte", mot: t("Mon compte") }}
             surTitre={t("Vous")}
             titre={t("Paramétrages")}
             phrase={t("Ce que cet appareil-ci fait de lui-même, et ce que la maison fait partout : les alertes et les couleurs d'un côté, la façon de vous joindre de l'autre.")}

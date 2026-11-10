@@ -121,7 +121,6 @@ export default async function ConventionPage() {
             troisième qu'elle ne pouvait pas voir tant que le lien était écrit
             à la main. */}
         <EnTete
-          retour={{ href: "/ouvrir-un-compte", mot: t("Mes pièces") }}
           surTitre={t("Convention de compte-titres")}
           titre={t("Votre convention")}
           phrase={t("C'est le contrat entre vous et Purpose Capital. Il dit ce que vous nous confiez, et ce que nous vous devons en retour. Rien d'autre ne se passe sur cette page.")}

@@ -49,7 +49,6 @@ export default async function SuiviesPage() {
       {/* UNE PILE : l'espace entre l'en-tête et la liste vient du jeton des sections (ETALON.md § 8). */}
       <main className={`pile ${styles.wrap}`}>
         <EnTete
-          retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Mon dossier")}
           titre={t("Lignes suivies")}
           phrase={t("Ce que vous surveillez sans le détenir. Un message vous prévient à chaque changement de cours, de prix ou de statut.")}

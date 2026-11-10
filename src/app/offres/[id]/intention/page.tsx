@@ -60,7 +60,6 @@ export default async function IntentionPage({ params, searchParams }: Props) {
               C'est le créneau « aCote », et sa raison est celle qu'avait
               écrite la page des fonds. */}
           <EnTete
-            retour={{ href: `/offres/${o.id}`, mot: t("La fiche") }}
             surTitre={t(summary.subtitle)}
             titre={t(o.title)}
             aCote={

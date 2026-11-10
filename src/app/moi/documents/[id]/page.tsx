@@ -89,7 +89,6 @@ export default async function DocumentPage({ params, searchParams }: { params: P
             titre, un objet repousse d'un cran le début de ce pour quoi on
             vient ; en face, il ne coûte aucune hauteur. */}
         <EnTete
-          retour={{ href: retour, mot: retour === "/moi/documents" ? t("Mes documents") : intent ? t("Votre ordre {r}", { r: intent.ref }) : t("Retour") }}
           surTitre={t(DOC_LABEL[doc.type])}
           titre={doc.number}
           reference

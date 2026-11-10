@@ -173,7 +173,6 @@ export default async function OrdresPage() {
       {/* UNE PILE : l'espace entre l'en-tête et les sections vient du jeton des sections (ETALON.md § 8). */}
       <main className={`pile ${styles.wrap}`}>
         <EnTete
-          retour={{ href: "/", mot: t("Tableau de bord") }}
           surTitre={t("Mon dossier")}
           titre={t("Mes intentions")}
           phrase={t("Chaque ordre que vous avez dit, et où il en est. Un ordre en cours dit ce qu'il attend ; un ordre clos garde sa date et sa référence.")}

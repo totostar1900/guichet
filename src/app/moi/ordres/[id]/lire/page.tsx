@@ -38,7 +38,6 @@ export default async function LireOrdrePage({ params }: { params: Promise<{ id: 
             l'ordre et les mesures étaient à la page. La référence garde sa
             chasse fixe, qui est la raison du créneau « reference ». */}
         <EnTete
-          retour={{ href: `/moi/ordres/${intent.id}`, mot: t("Mon ordre") }}
           surTitre={intent.signedAt ? t("Ordre signé") : t("Avant signature")}
           titre={intent.ref}
           reference

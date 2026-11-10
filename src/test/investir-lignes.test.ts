@@ -96,8 +96,8 @@ describe("les rangées et la fiche (lecture du code)", () => {
     const page = code("src/app/offres/[id]/page.tsx");
     expect(page, "la fiche n'a plus de lignes similaires").toContain("<LignesSimilaires o={o} />");
     expect(page, "le retour d'une fiche retombe sur la racine").not.toContain('fallbackHref="/"');
-    expect(page).toMatch(/fallbackHref=\{listeDeLaFiche\(o\)\.href\}/);
-    expect(code("src/app/offres/[id]/neighbour.tsx")).toMatch(/fallbackHref=\{listeDeLaFiche\(o\)\.href\}/);
+    expect(page, "la fiche reprend un lien de retour vers la liste").not.toContain("fallbackHref");
+    expect(code("src/app/offres/[id]/neighbour.tsx"), "la fiche voisine reprend un lien de retour").not.toContain("fallbackHref");
     const sim = code("src/app/offres/[id]/LignesSimilaires.tsx");
     expect(sim, "le lien vers toutes les lignes de l'émetteur a disparu").toMatch(/`\$\{liste\.href\}\?q=\$\{encodeURIComponent\(o\.issuer\)\}`/);
     expect(sim, "le titre ne mène plus à la liste de la famille").toMatch(/href=\{liste\.href\}/);
@@ -218,7 +218,7 @@ describe("chaque rangée de l'Accueil ouvre la ligne qu'elle montre (2 novembre 
     expect(code("src/app/sondage/RangeeDeSondage.tsx"), "une rangée de la page du sondage n'ouvre plus sa ligne").toContain("href={`/sondage?ligne=${l.id}`}");
     const p = code("src/app/sondage/page.tsx");
     expect(p, "la page du sondage ne lit plus ?ligne=").toMatch(/const \{ ligne, pays, duree \} = await searchParams/);
-    expect(p, "le détail n'a plus son retour vers la liste").toMatch(/retour=\{\{ href: "\/sondage"/);
+    expect(p, "le détail reprend un lien de retour : la barre du haut ramène à la liste").not.toMatch(/retour=\{\{/);
   });
 
   it("une rangée d'intention, de ligne suivie, de titre, de fonds ou d'adjudication ouvre la fiche de SA ligne", () => {

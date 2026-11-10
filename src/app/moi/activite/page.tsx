@@ -9,6 +9,8 @@ import styles from "./page.module.css";
 import commun from "../page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
+import { PLUS_PAGES } from "@/lib/plus/pages";
+import { ICONES_DE_PLUS } from "@/lib/plus/icones";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Mon activité" };
@@ -52,6 +54,19 @@ export default async function ActivitePage() {
             "Tout ce qui a été fait sur votre compte. Vous y voyez ce que nous voyons. Si une ligne vous surprend, dites-le nous : c'est le moyen le plus rapide de repérer un accès qui ne serait pas le vôtre.",
           )}
         />
+
+        {/* LES RUBRIQUES DE « PLUS » ENTRENT ICI (10 novembre 2026) : le menu à trois barres ouvre « Mon activité », et la page porte ce que « Plus » ouvrait à l'Accueil (ordres, sondages, coupons, rentabilité, provision, versements, prélèvements, documents), sans « Tous les services ». */}
+        <nav className={styles.rubriques} aria-label={t("Mes rubriques")}>
+          {PLUS_PAGES.filter((p) => p.cle !== "services").map((p) => (
+            <Link key={p.cle} href={p.href} className={styles.rubrique}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d={ICONES_DE_PLUS[p.cle]} />
+              </svg>
+              <span>{t(p.mot)}</span>
+              <i aria-hidden="true">›</i>
+            </Link>
+          ))}
+        </nav>
 
         <div className={styles.compteurs}>
           <div className={styles.compteur}>

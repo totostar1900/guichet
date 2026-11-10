@@ -120,7 +120,7 @@ export default async function SondagePage({ searchParams }: Props) {
     return (
       <Glissement>
         <main className={styles.page}>
-          <EnTete surTitre={t("Mon intention")} titre={gabaritDeSondage(choisie)} retour={{ href: "/sondage", mot: t("Sondage") }} />
+          <EnTete surTitre={t("Mon intention")} titre={gabaritDeSondage(choisie)} />
           {/* TROIS BLOCS EMPILÉS : ce que le client a dit, ce que la place a servi, les gestes.
               Le chapitre de la place se tait quand aucune séance n'est comparable. */}
           <section className={styles.bloc}>

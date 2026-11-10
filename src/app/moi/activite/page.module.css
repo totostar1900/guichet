@@ -3,6 +3,46 @@
 /* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
    2026 : leurs mesures vivent dans sa feuille. */
 
+/* Les rubriques de « Plus » : une tuile par ligne, les jetons de tuile de la maison (10 novembre 2026). */
+.rubriques {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tuiles-gap);
+}
+.rubrique {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  min-height: 56px;
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+}
+.rubrique svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--gold-ink);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.rubrique span {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+.rubrique i {
+  flex: none;
+  font-style: normal;
+  color: var(--ink-3);
+}
+
 .compteurs {
   display: flex;
   flex-wrap: wrap;

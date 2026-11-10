@@ -58,7 +58,6 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
               remonte la HIÉRARCHIE, et le glissement vers la droite dit qu'on
               sort d'un cran. */}
         <EnTete
-          retour={{ href: "/aide", mot: t("Aide") }}
           titre={t("Nous contacter")}
           phrase={t("Une personne suit votre compte. Écrivez-lui : le message part avec ce qu'il faut pour qu'on n'ait pas à vous demander qui vous êtes.")}
         />

@@ -27,4 +27,10 @@ describe("le bouton flottant de « Plus »", () => {
     expect(code("src/components/mobile/MobileShell.tsx")).toMatch(/\{!deskHost && signedIn && <PlusFab \/>\}/);
     expect(code("src/components/mobile/PlusFab.tsx")).toMatch(/p\.cle !== ici\.cle/);
   });
+
+  it("« Mon activité » porte les rubriques de « Plus », sans « Tous les services »", () => {
+    const a = code("src/app/moi/activite/page.tsx");
+    expect(a, "la page ne lit plus la table de « Plus »").toMatch(/PLUS_PAGES\.filter\(\(p\) => p\.cle !== "services"\)\.map/);
+    expect(a, "les tracés ne viennent plus du module commun").toMatch(/from "@\/lib\/plus\/icones"/);
+  });
 });

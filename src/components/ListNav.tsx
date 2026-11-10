@@ -59,7 +59,8 @@ export function rememberList(m: ListMemory) {
   }
 }
 
-export function ListNav({ id, fallbackHref, fallbackLabel }: { id: string; fallbackHref: string; fallbackLabel: string }) {
+/** LE LIEN « ← LISTE » EST RETIRÉ (10 novembre 2026) : la barre du haut ramène déjà à la liste. Il ne reste que le pas à pas entre les lignes de la liste d'où l'on vient, et rien quand on n'en vient pas. */
+export function ListNav({ id }: { id: string }) {
   const t = useT();
   // Read once the page is on the client (the server knows nothing of the reader's list); the raw string is stable, so parsing it is cheap.
   const raw = useSyncExternalStore(
@@ -83,11 +84,9 @@ export function ListNav({ id, fallbackHref, fallbackLabel }: { id: string; fallb
   const i = known ? known.ids.indexOf(id) : -1;
   const prev = known && i > 0 ? known.ids[i - 1] : null;
   const next = known && i >= 0 && i < known.ids.length - 1 ? known.ids[i + 1] : null;
+  if (!known) return null;
   return (
     <div className={styles.bar}>
-      <Link href={known ? known.url : fallbackHref} className={`btn sm ${styles.back}`}>
-        ← {t(known ? known.label : fallbackLabel)}
-      </Link>
       {known && (
         <div className={styles.steps}>
           {prev ? (

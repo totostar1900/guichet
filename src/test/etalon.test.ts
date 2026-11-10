@@ -546,8 +546,8 @@ describe("le créneau d'avant-titre", () => {
     expect(fautifs, `ces retours nomment autre chose que leur destination :\n  ${fautifs.join("\n  ")}`).toEqual([]);
   });
 
-  /* Non vacuité : il y a bien des retours à juger. */
-  it("regarde bien quelque chose", () => {
-    expect(retoursEcrits().length).toBeGreaterThan(10);
+  /* LES LIENS « ← PAGE » ONT QUITTÉ LES PAGES DU CLIENT (10 novembre 2026) : la barre du haut ramène déjà au parent ; aucune page n'en écrit plus. */
+  it("n'écrit plus aucun lien de retour dans l'en-tête d'une page", () => {
+    expect(retoursEcrits().map((r) => `${r.ou} · ← ${r.mot}`), "un lien de retour est revenu dans un en-tête").toEqual([]);
   });
 });

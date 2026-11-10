@@ -44,7 +44,6 @@ export default async function NotesArchivePage() {
             fonte de l'interface sous un autre nom — le jeton vaut
             « var(--font-ui) » depuis le 24 octobre. */}
         <EnTete
-          retour={{ href: "/indice", mot: t("L'indice") }}
           titre={t("Les notes de marché")}
           phrase={t("Une note par trimestre sur l'indice BVMAC All Share : ce que le trimestre a fait, les sociétés derrière le chiffre, ce qui s'est échangé. Chacune est calculée sur les seules séances de son trimestre, et se lit donc de la même façon un an plus tard.")}
         />

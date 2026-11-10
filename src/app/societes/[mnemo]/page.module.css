@@ -370,8 +370,3 @@
   font-weight: 700;
 }
 
-/* Le retour vers la cote, au pied des autres émetteurs. */
-.retour {
-  margin: 0;
-  font-size: 0.86rem;
-}

@@ -40,7 +40,7 @@ import { cookies, headers } from "next/headers";
 import { clientOrigin, deskSplit, isDeskHost } from "@/lib/hosts";
 import { LEGAL_VERSION } from "@/data/legal";
 import { attentesPourLaBarre } from "@/lib/domain/contexte-client";
-import { aDesFavoris, echeancesUrgentes } from "@/lib/domain/favoris";
+import { aDesFavoris } from "@/lib/domain/favoris";
 import { RaccourcisColonne } from "@/components/RaccourcisColonne";
 import { echeancesProches } from "@/lib/domain/echeances";
 
@@ -144,15 +144,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
    * affiché derrière un clic : c'est le genre de ligne qui ne se retire que le
    * jour où son seul lecteur disparaît.
    */
-  const [account, attentes, consent, poste, urgentes, favoris] = session
+  const [account, attentes, consent, poste, echeances, favoris] = session
     ? await Promise.all([
         accountLine(session.userId),
         deskUi ? [] : attentesPourLaBarre(session.userId),
         // A client accepts the legal text once per version of it; the desk is bound by its contract, not by this box.
         !desk ? repo().getConsent(session.userId).catch(() => ({}) as { version?: string }) : undefined,
         deskUi ? chargerPoste(session.userId, session.role).catch(() => undefined) : undefined,
-        /* Le nombre de l'horloge : les lignes qui ferment sous sept jours. Les offres sont lues une fois par requête (memo), la page les relit sans coût. */
-        deskUi ? 0 : repo().listOffers().then((o) => echeancesUrgentes(echeancesProches(o))).catch(() => 0),
+        /* Le nombre de l'horloge : toutes les lignes que sa page liste (celles qui ferment dans le mois) ; sans aucune, l'horloge n'existe pas. Les offres sont lues une fois par requête (memo), la page les relit sans coût. */
+        deskUi ? 0 : repo().listOffers().then((o) => echeancesProches(o).length).catch(() => 0),
         /* L'ÉTOILE N'EXISTE QUE S'IL Y A UN FAVORI : deux lectures bornées au client (les offres sont déjà lues, par la mémoire de la requête). */
         deskUi ? false : Promise.all([repo().listWatches(session.userId), repo().listOffers(), repo().listFavoris(session.userId)]).then(([w, o, p]) => aDesFavoris(w, o, p)).catch(() => false),
       ])
@@ -225,12 +225,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   {t("démo · mémoire")}
                 </span>
               )}
-              <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, desk: deskUi, attentes: deskUi ? [] : attentes, urgentes: urgentes ?? 0, favoris: Boolean(favoris) } : undefined} />
+              <UserMenu session={session} deskUi={deskUi} account={session ? { name: session.name, desk: deskUi, attentes: deskUi ? [] : attentes, echeances: echeances ?? 0, favoris: Boolean(favoris) } : undefined} />
               {menu}
             </div>
           </div>
         </header>
-        <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} urgentes={urgentes ?? 0} favoris={Boolean(favoris)} desk={deskUi} deskHost={onDeskHost} menu={menu} />
+        <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} echeances={echeances ?? 0} favoris={Boolean(favoris)} desk={deskUi} deskHost={onDeskHost} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation />
         <Onboarding />
@@ -251,7 +251,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Colonne
             mode={deskUi ? "desk" : "client"}
             connecte={Boolean(session)}
-            raccourcis={session && !deskUi ? <RaccourcisColonne urgentes={urgentes ?? 0} favoris={Boolean(favoris)} /> : undefined}
+            raccourcis={session && !deskUi ? <RaccourcisColonne echeances={echeances ?? 0} favoris={Boolean(favoris)} /> : undefined}
             enseigne={
               /* Même règle qu'en haut de la barre : l'enseigne de la
                  colonne nomme la maison, et le groupe « Accueil » juste en

@@ -279,7 +279,6 @@ export default async function PaysFichePage({
     <Glissement>
       <div className={styles.page}>
         <EnTete
-          retour={{ href: "/marche", mot: t("Le marché") }}
           surTitre={t(
             etat ? "Émetteur · État" : "Émetteur · Institution régionale",
           )}

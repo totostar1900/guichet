@@ -49,7 +49,6 @@ export default async function EmetteurPage({ params }: Props) {
         {/* La flèche appartient au créneau, pas au texte : elle était écrite
             DANS la chaîne traduite, donc répétée dans chaque dictionnaire. */}
         <EnTete
-          retour={{ href: "/societes", mot: tr("Sociétés cotées et émetteurs") }}
           surTitre={
             <span className={styles.eyebrow}>
               <span className="cc">{COUNTRY_CODE[i.country]}</span> {i.sector} · émetteur obligataire BVMAC · {i.mnemo}
@@ -246,12 +245,6 @@ export default async function EmetteurPage({ params }: Props) {
                   </Link>
                 ))}
               </div>
-              {/* On arrive ici par le bas de la page des sociétés, et cette page
-                  ne proposait que d'aller vers un AUTRE émetteur : la famille se
-                  parcourait dans un seul sens. */}
-              <p className={styles.retour}>
-                <Link href="/societes">← {tr("Les sociétés cotées")}</Link>
-              </p>
             </div>
           </div>
         </div>

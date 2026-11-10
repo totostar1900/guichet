@@ -102,7 +102,6 @@ export default async function LessonPage({ params }: Props) {
             leur page depuis le 29 octobre 2026, « /info » ne fait plus que
             rediriger. */}
         <EnTete
-          retour={{ href: section ? "/info/parcours" : "/info/eclairages", mot: section ? t("Comprendre le marché CEMAC") : t("Éclairages") }}
           surTitre={
             <span className={styles.eyebrow}>
               {section && <SectionShape shape={section.shape} color={section.color} size={16} />}

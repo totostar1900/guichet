@@ -113,11 +113,12 @@ describe("la barre du client", () => {
     expect(b, "les trois barres n'ouvrent plus le tiroir").toMatch(/onClick=\{\(\) => setOuvert\(true\)\}[\s\S]{0,120}aria-haspopup="dialog"/);
   });
 
-  it("la pastille du menu compte ce qui attend, celle de l'horloge ce qui presse", () => {
+  it("la pastille du menu compte ce qui attend, l'horloge ce que sa page liste, et n'existe pas sans", () => {
     const b = sansNotes(lire("src/components/mobile/BarreDuHaut.tsx"));
     expect(b, "le menu ne compte plus les attentes ET le brouillon").toMatch(/const combien = attentes\.length \+ \(brouillon \? 1 : 0\)/);
     expect(b, "la pastille du menu n'est plus rouge par défaut").toMatch(/\{combien > 0 && <em className=\{styles\.pas\}>/);
-    expect(b, "l'horloge n'a plus sa pastille ambre, ou la montre à zéro").toMatch(/\{urgentes > 0 && <em className=\{`\$\{styles\.pas\} \$\{styles\.pasAmbre\}`\}/);
+    expect(b, "l'horloge a perdu son nombre ambre").toMatch(/<em className=\{`\$\{styles\.pas\} \$\{styles\.pasAmbre\}`\}>\{echeances > 9 \? "9\+" : echeances\}<\/em>/);
+    expect(b, "l'horloge reparaît alors que sa page est vide").toMatch(/\{echeances > 0 && \(\s*<Link href="\/echeances" className=\{`\$\{styles\.ic\} \$\{styles\.ambre\}`\}/);
   });
 
   it("le tiroir se ferme au voile, à la croix et à Échap, et verrouille la page", () => {
@@ -130,8 +131,8 @@ describe("la barre du client", () => {
 
   it("le nombre de l'horloge se lit dans la mise en page, une fois par requête", () => {
     const l = sansNotes(lire("src/app/layout.tsx"));
-    expect(l, "la mise en page ne calcule plus les échéances urgentes").toMatch(/echeancesUrgentes\(echeancesProches\(o\)\)/);
-    expect(l, "le nombre n'arrive plus à la barre").toMatch(/urgentes=\{urgentes \?\? 0\}/);
+    expect(l, "la mise en page ne compte plus les lignes de la page des échéances").toMatch(/echeancesProches\(o\)\.length/);
+    expect(l, "le nombre n'arrive plus à la barre").toMatch(/echeances=\{echeances \?\? 0\}/);
   });
 });
 
@@ -199,19 +200,19 @@ describe("grand écran : les mêmes raccourcis, là où la barre du téléphone 
     const u = sansNotes(lire("src/components/UserMenu.tsx"));
     expect(u, "l'en-tête de bureau n'a plus les trois boutons du client").toMatch(/!account\.desk && dock !== "bottom-left" \? <BarreDuHaut /);
     expect(u, "le desk ou le pied de colonne ont perdu la feuille du compte").toMatch(/: <BarreDuCompte \{\.\.\.account\} dock=\{dock\} \/>/);
-    expect(sansNotes(lire("src/app/layout.tsx")), "le nombre de l'horloge n'arrive plus à l'en-tête de bureau").toMatch(/attentes: deskUi \? \[\] : attentes, urgentes: urgentes \?\? 0/);
+    expect(sansNotes(lire("src/app/layout.tsx")), "le nombre de l'horloge n'arrive plus à l'en-tête de bureau").toMatch(/attentes: deskUi \? \[\] : attentes, echeances: echeances \?\? 0/);
   });
 
   it("à partir de 1041 px, la colonne du client porte l'horloge et l'étoile, sous l'enseigne", () => {
     const l = sansNotes(lire("src/app/layout.tsx"));
-    expect(l, "la colonne du client n'a plus ses raccourcis").toMatch(/raccourcis=\{session && !deskUi \? <RaccourcisColonne urgentes=\{urgentes \?\? 0\} favoris=\{Boolean\(favoris\)\} \/> : undefined\}/);
+    expect(l, "la colonne du client n'a plus ses raccourcis").toMatch(/raccourcis=\{session && !deskUi \? <RaccourcisColonne echeances=\{echeances \?\? 0\} favoris=\{Boolean\(favoris\)\} \/> : undefined\}/);
     const c = sansNotes(lire("src/components/Colonne.tsx"));
     expect(c.indexOf("{raccourcis}"), "la colonne ne rend plus ses raccourcis").toBeGreaterThan(-1);
     expect(c.indexOf("{raccourcis}") < c.indexOf("<Chercher groupes"), "les raccourcis ne sont plus au-dessus de la recherche").toBe(true);
     const r = sansNotes(lire("src/components/RaccourcisColonne.tsx"));
     expect(r, "l'horloge de la colonne ne mène plus aux échéances").toMatch(/<Link href="\/echeances"/);
     expect(r, "l'étoile de la colonne ne mène plus aux favoris").toMatch(/<Link href="\/favoris"/);
-    expect(r, "la pastille ambre n'est plus conditionnée à un nombre").toMatch(/\{urgentes > 0 && \(/);
+    expect(r, "l'horloge de la colonne reparaît alors que sa page est vide").toMatch(/\{echeances > 0 && \(\s*<Link href="\/echeances"/);
   });
 });
 
@@ -241,5 +242,14 @@ describe("la loupe et l'étoile", () => {
     const l = code("src/app/layout.tsx");
     expect(l, "le gabarit ne dit plus s'il y a un favori").toMatch(/aDesFavoris\(w, o, p\)/);
     for (const surface of [/favoris: Boolean\(favoris\)/, /favoris=\{Boolean\(favoris\)\} desk=/, /favoris=\{Boolean\(favoris\)\} \/> : undefined/]) expect(l, `une surface ne reçoit plus l'indicateur : ${surface.source}`).toMatch(surface);
+  });
+
+  it("le tiroir se ferme d'un glissement vers la droite, sans rebond, et le menu ouvre « Mon activité »", () => {
+    const b = sansNotes(lire("src/components/mobile/BarreDuHaut.tsx"));
+    expect(b, "le glissement ne ferme plus le tiroir").toMatch(/onTouchStart=\{commencer\} onTouchMove=\{suivre\} onTouchEnd=\{relacher\}/);
+    expect(b, "la fermeture ne reprend plus là où est le doigt, à la courbe des feuilles").toMatch(/el\.style\.transition = `transform \$\{ms\}ms \$\{COURBE_DES_FEUILLES\}`;\s*el\.style\.transform = "translateX\(105%\)";/);
+    expect(b, "le geste ne distingue plus l'horizontal du défilement vertical").toMatch(/dx > Math\.abs\(dy\) \* 1\.3/);
+    expect(sansNotes(lire("src/components/mobile/BarreDuHaut.module.css")), "le tiroir perd touch-action pan-y").toMatch(/touch-action: pan-y;/);
+    expect(b, "le menu n'ouvre plus « Mon activité »").toMatch(/href="\/moi\/activite"[\s\S]*Mon activité/);
   });
 });
