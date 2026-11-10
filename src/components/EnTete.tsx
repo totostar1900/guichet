@@ -113,16 +113,17 @@ export function EnTete({
           {aCote && <span className={styles.coteHorsTelephone}>{aCote}</span>}
         </header>
       ) : (
-      <header className={`${styles.tete} ${aCote ? styles.avecCote : ""}`}>
-        <div className={styles.mots}>
-          {surTitre && <div className={`eyebrow ${styles.surTitre}`}>{surTitre}</div>}
+      <header className={styles.tete}>
+        {surTitre && <div className={`eyebrow ${styles.surTitre}`}>{surTitre}</div>}
+        {/* L'OBJET DE LA PAGE (LE « i », UN ÉTAT) EST À L'EXTRÊME DROITE DE LA LIGNE DU TITRE (10 novembre 2026) : il ne passe plus sur sa propre ligne ; c'est le titre qui se replie avant lui. */}
+        <div className={styles.ligneTitre}>
           <h1 className={`display ${reference ? styles.ref : ""}`}>
             {titre}
             {titreApres && <> {titreApres}</>}
           </h1>
-          {phrase && <p className={styles.phrase}>{phrase}</p>}
+          {aCote && <span className={styles.cote}>{aCote}</span>}
         </div>
-        {aCote}
+        {phrase && <p className={styles.phrase}>{phrase}</p>}
       </header>
       )}
     </div>

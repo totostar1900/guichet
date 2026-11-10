@@ -3,6 +3,7 @@
 import { useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { useT } from "@/i18n/client";
 import styles from "./Fold.module.css";
+import { Deplie } from "@/components/ui/Deplie";
 
 /**
  * A page in sections that fold: each section is a thin gold line, its title
@@ -137,7 +138,7 @@ export function BlocRepliable({ id, tete, children, ouvertParDefaut = true }: { 
   return (
     <>
       {tete(open, toggle)}
-      {open && children}
+      <Deplie ouvert={open}>{children}</Deplie>
     </>
   );
 }

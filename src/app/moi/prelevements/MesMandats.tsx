@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useDates, useT } from "@/i18n/client";
-import { fmt } from "@/lib/format";
+import { fmt, parseAmount } from "@/lib/format";
 import { groupedInput } from "@/lib/ui/grouped";
 import { Select } from "@/components/ui/Select";
 import { creerMandatAction, envoyerCodeMandatAction, revoquerMandatAction, signerMandatAction, type MandatResult } from "./actions";
 import styles from "./page.module.css";
+import { BarreCollante } from "@/components/mobile/BarreDEtape";
+import barre from "@/components/mobile/BarreDEtape.module.css";
 
 interface Vu {
   id: string;
@@ -202,15 +204,17 @@ export function MesMandats({
                         {t("Code de démonstration :")} <b className="mono">{envoi.code}</b>
                       </div>
                     )}
-                    <form action={signAct} className={styles.codeRow}>
+                    <form action={signAct}>
                       <input type="hidden" name="id" value={m.id} />
                       <label className="field">
                         {t("Code reçu")}
                         <input name="code" inputMode="numeric" maxLength={6} placeholder={t("6 chiffres")} autoComplete="one-time-code" />
                       </label>
-                      <button className="btn primary" type="submit" disabled={signant}>
-                        {signant ? "…" : t("Je signe ce mandat")}
-                      </button>
+                      <BarreCollante>
+                        <button className={`btn primary ${barre.suivant}`} type="submit" disabled={signant}>
+                          {signant ? "…" : t("Je signe ce mandat")}
+                        </button>
+                      </BarreCollante>
                     </form>
                     <Msg state={sign} />
                   </div>
@@ -334,14 +338,15 @@ export function MesMandats({
             </label>
             <p className={styles.note}>{t("Ce compte doit être ouvert à votre nom. Nous ne présentons jamais de prélèvement sur le compte d'un tiers.")}</p>
 
-            <div className={styles.actions}>
-              <button type="button" className="btn ghost" onClick={() => setOuvert(false)}>
+            {/* COLLANTE EN BAS, GRISÉE TANT QUE LE MONTANT MANQUE (10 novembre 2026) : « Annuler » est le petit retour. */}
+            <BarreCollante indice={parseAmount(montant) > 0 ? undefined : t("Indiquez d'abord le montant prélevé chaque mois.")}>
+              <button type="button" className={`btn ${barre.retour}`} onClick={() => setOuvert(false)}>
                 {t("Annuler")}
               </button>
-              <button className="btn primary" type="submit" disabled={creation}>
+              <button className={`btn primary ${barre.suivant}`} type="submit" disabled={creation || !(parseAmount(montant) > 0)}>
                 {creation ? "…" : t("Préparer, puis signer")}
               </button>
-            </div>
+            </BarreCollante>
             <Msg state={creer} />
           </form>
         )}

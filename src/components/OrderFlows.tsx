@@ -8,6 +8,7 @@ import { bondCalc, btaCalc, type CashFlow } from "@/lib/finance";
 import { marketAmortInput, marketBondCalc, marketBondInput } from "@/lib/domain/status";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import styles from "./OrderFlows.module.css";
+import { Deplie } from "@/components/ui/Deplie";
 
 /**
  * Ce que la ligne verserait, date par date, pour la quantité saisie.
@@ -49,7 +50,7 @@ export function OrderFlows({ offer, quantity, amount, limit, type, settleOn }: {
           <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
-      {open && (
+      <Deplie ouvert={open}>
         <div id="order-flows">
           <div className={styles.views} role="group" aria-label={t("Affichage")}>
             {(["table", "chart"] as const).map((v) => (
@@ -94,7 +95,7 @@ export function OrderFlows({ offer, quantity, amount, limit, type, settleOn }: {
           )}
           <p className={styles.note}>{t("Montants bruts, avant commission et avant fiscalité, en gardant la ligne jusqu'à l'échéance. Le prix d'exécution peut changer le décaissement, pas ces versements.")}</p>
         </div>
-      )}
+      </Deplie>
     </div>
   );
 }

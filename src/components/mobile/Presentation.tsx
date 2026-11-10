@@ -93,7 +93,7 @@ const Art3 = () => {
       </text>
       <rect x="40" y="66" width="220" height="30" rx="0" fill="#fff" />
       <text x="52" y="86" fontSize="11" fill="#6b7386">
-        +237 6 87 67 67 67
+        <span style={{ whiteSpace: "nowrap" }}>+237 6 87 67 67 67</span>
       </text>
     </g>
     <g className={styles.rise2}>

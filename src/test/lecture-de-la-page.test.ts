@@ -37,8 +37,9 @@ describe("« Comment lire cette page ? » suit la vue, couvre la carte et se lan
   it("le bouton de rappel garde la largeur de son mot", () => {
     expect(lire("src/components/mobile/CoachMarks.module.css")).toMatch(/\.replay \{[^}]*width: fit-content;/);
   });
-  it("le « i » lance la visite : il ferme la feuille puis envoie le signal du menu", () => {
-    expect(lire("src/components/EnBrefInstruments.tsx")).toMatch(/setOpen\(false\);\s*window\.setTimeout\(\(\) => window\.dispatchEvent\(new Event\("guichet:coach:replay"\)\)/);
+  it("le « i » ne relance plus la visite : « Comment lire cette page ? » n'existe plus nulle part (10 novembre 2026)", () => {
+    expect(lire("src/components/EnBrefInstruments.tsx")).not.toMatch(/guichet:coach:replay|Comment lire cette page/);
+    for (const f of ["src/components/OfferBrowser.tsx", "src/app/fonds/FundsBrowser.tsx", "src/app/actualites/page.tsx", "src/app/info/aide/page.tsx", "src/app/info/glossaire/page.tsx"]) expect(lire(f), `${f} reprend un lien « Comment lire… »`).not.toMatch(/replayLabel=/);
   });
   it("le « i » est le premier objet de la barre, avant l'horloge", () => {
     const b = lire("src/components/mobile/BarreDuHaut.tsx");
@@ -202,7 +203,7 @@ describe("les confirmations disent la même chose partout, y compris sur la fich
     expect(f).toMatch(/<WatchButton [^>]*cadence=\{cadence\}/);
     expect(f).toMatch(/watching=\{watching\} cadence=\{cadence\}/);
     const w = lire("src/components/WatchButton.tsx");
-    expect(w).toMatch(/toggleWatch\(offerId, !on, cadence\)/);
+    expect(w).toMatch(/toggleWatch\(offerId, !avant, cadence\)/);
     expect(w).toMatch(/texteDuSuivi\(res\.watching, cadence, t\)/);
   });
 });
@@ -285,8 +286,7 @@ describe("la fiche d'une ligne : une pile sans cadre, un pied qui range les risq
 describe("la barre du haut dit la famille de la fiche (8 novembre 2026)", () => {
   it("la fiche publie la liste de sa famille, la barre la lit pour CETTE adresse seulement", async () => {
     expect(lire("src/app/offres/[id]/page.tsx")).toMatch(/<LieuDeLaFiche chemin=\{`\/offres\/\$\{o\.id\}`\} liste=\{listeDeLaFiche\(o\)\.href\} \/>/);
-    const sh = lire("src/components/mobile/MobileShell.tsx");
-    expect(sh).toMatch(/const lieu = lieuDe\(listeDeLaFiche \?\? path\);/);
+    expect(lire("src/components/mobile/MobileShell.tsx"), "la barre redit le lieu de la fiche").not.toMatch(/lieuDe/);
     expect(lire("src/components/LieuDeLaFiche.tsx"), "la fiche quittée laisse son lieu à la page suivante").toMatch(/c\.chemin === chemin \? c\.liste : undefined/);
     const { lieuDe } = await import("@/lib/domain/lieu");
     expect(lieuDe("/calendrier")?.rubrique, "l'adresse de la liste des adjudications ne dit plus « Adjudications »").toBe("Adjudications");

@@ -1,15 +1,13 @@
 import Link from "next/link";
-import { LineIdentity } from "@/components/LineIdentity";
 import { Glissement } from "@/components/mobile/Glissement";
 import { PagePleine } from "@/components/PagePleine";
-import { WatchButton } from "@/components/WatchButton";
 import { getT } from "@/i18n/server";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { lesFavoris } from "@/lib/domain/favoris";
 import { summarize } from "@/lib/domain/summary";
 import { cadenceDuSuivi } from "@/lib/domain/sections";
-import { RetirerFavori } from "./RetirerFavori";
+import { ListeDesFavoris } from "./ListeDesFavoris";
 import styles from "./favoris.module.css";
 
 export const dynamic = "force-dynamic";
@@ -71,28 +69,10 @@ export default async function FavorisPage({ searchParams }: { searchParams: Prom
           <Link href="/titres">{t("Parcourir les titres")}</Link>
         </p>
       ) : (
-        <div className={styles.liste}>
-          {montrerLignes &&
-            lignes.map((o) => {
-              const sm = summarize(o, now);
-              return (
-                <div key={o.id} className={styles.ligne}>
-                  <LineIdentity o={o} s={sm} href={`/offres/${o.id}`} />
-                  <WatchButton offerId={o.id} initial signedIn cadence={cadenceDuSuivi(o)} />
-                </div>
-              );
-            })}
-          {montrerPages &&
-            lesPages.map((f) => (
-              <div key={f.id} className={styles.ligne}>
-                <span className={styles.page}>
-                  <Link href={f.href}>{t(f.title)}</Link>
-                  <small>{t("Page")}</small>
-                </span>
-                <RetirerFavori href={f.href} titre={f.title} />
-              </div>
-            ))}
-        </div>
+        <ListeDesFavoris
+          lignes={montrerLignes ? lignes.map((o) => ({ o, s: summarize(o, now), cadence: cadenceDuSuivi(o) })) : []}
+          pages={montrerPages ? lesPages : []}
+        />
       )}
     </PagePleine>
     </Glissement>

@@ -116,7 +116,7 @@ describe("les gestes", () => {
     for (const f of [PAGE, "src/app/trader/page.tsx"]) {
       const src = code(f);
       expect(src, `${f} ne mène plus à la page : il n'y a plus de verbe à comparer`).toContain('href="/moi/provision/alimenter"');
-      expect(src, `${f} ouvre la page en l'annonçant d'un autre verbe`).toMatch(/<b>\{t\("Approvisionner"\)\}<\/b>/);
+      expect(src, `${f} ouvre la page en l'annonçant d'un autre verbe`).toMatch(/\{t\("Approvisionner"\)\}/);
     }
   });
 
@@ -179,12 +179,12 @@ describe("les gestes", () => {
      coûte un essai — sur un geste d'argent, il coûte la confiance. */
   it("écrit le mot sous chaque pastille", () => {
     const src = lire(PAGE);
-    const nav = src.slice(src.indexOf("styles.pastilles"));
+    const nav = src.slice(src.indexOf("<BarreCollante>"));
     /* « Approvisionner » depuis le 25 octobre 2026 : le mot du rond est celui
        du titre de la page qu'il ouvre, sans quoi le lecteur cherche s'il est
        au bon endroit. */
     for (const mot of ["Approvisionner", "Reprendre"]) {
-      expect(nav, `la pastille « ${mot} » a perdu son mot`).toMatch(new RegExp(`<b>\\{t\\("${mot}"\\)\\}</b>`));
+      expect(nav, `la pastille « ${mot} » a perdu son mot`).toMatch(new RegExp(`\\{t\\("${mot}"\\)\\}`));
     }
   });
 

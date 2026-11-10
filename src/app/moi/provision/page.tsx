@@ -11,6 +11,8 @@ import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { EnBref } from "@/components/EnBref";
+import { BarreCollante } from "@/components/mobile/BarreDEtape";
+import barre from "@/components/mobile/BarreDEtape.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -173,28 +175,15 @@ export default async function ProvisionPage() {
             Le mot est sous le rond et non dans un « aria-label » seul — un
             dessin qu'il faut deviner coûte un essai, et un essai sur un geste
             d'argent coûte la confiance. */}
-        <nav className={styles.pastilles} aria-label={t("Faire entrer ou sortir de l'argent")}>
-          <Link href="/moi/provision/alimenter" className={styles.pastille}>
-            <span className={`${styles.rond} ${styles.rondPlein}`}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </span>
-            {/* LE VERBE DE LA PAGE D'ARRIVÉE, et non celui de la maison : elle
-                s'appelle « Approvisionner votre compte » depuis le 25 octobre
-                2026, et un rond qui annoncerait « Alimenter » coûterait un
-                essai pour savoir si l'on est au bon endroit. */}
-            <b>{t("Approvisionner")}</b>
+        {/* LES DEUX GESTES DE LA PAGE SONT COLLÉS AU BAS (10 novembre 2026) : « Reprendre » est le petit bouton, « Approvisionner » l'action pleine. Le verbe est celui de la page d'arrivée (elle s'appelle « Approvisionner votre compte »). */}
+        <BarreCollante>
+          <Link href="/moi/provision/reprendre" className={`btn ${barre.retour}`}>
+            {t("Reprendre")}
           </Link>
-          <Link href="/moi/provision/reprendre" className={styles.pastille}>
-            <span className={styles.rond}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 5v14M6 13l6 6 6-6" />
-              </svg>
-            </span>
-            <b>{t("Reprendre")}</b>
+          <Link href="/moi/provision/alimenter" className={`btn primary ${barre.suivant}`}>
+            {t("Approvisionner")}
           </Link>
-        </nav>
+        </BarreCollante>
       </div>
     </Glissement>
   );

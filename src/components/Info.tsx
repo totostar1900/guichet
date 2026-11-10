@@ -3,6 +3,7 @@
 import { useT } from "@/i18n/client";
 import { useState } from "react";
 import { Sheet } from "@/components/mobile/Sheet";
+import { BoutonBrief } from "@/components/EnBref";
 import type { TermKey } from "@/lib/glossary";
 import { getRegistry, lessonForTerm } from "@/lib/registry";
 import styles from "./Info.module.css";
@@ -15,7 +16,7 @@ import styles from "./Info.module.css";
  * téléphone et ne se fermait que d'un toucher précis. On réutilise la fenêtre centrée de la maison (« Sheet » « centre ») : même voile, même geste, même croix.
  * Exceptions voulues : le « i » de la barre du haut (sa feuille d'onglets) ; le reste est à discuter (voir le skill guichet-espace-tuiles, « Les bulles »).
  */
-export function Info({ term, termes, text, label, subtle }: { term?: TermKey; /** UN SEUL « i » POUR UN GRAPHE OU UN TABLEAU (6 novembre 2026) : tous les termes qu'il emploie, chacun avec sa définition, dans une seule fenêtre. */ termes?: TermKey[]; text?: string; label?: string; subtle?: boolean }) {
+export function Info({ term, termes, text, label, subtle, titre }: { term?: TermKey; /** UN SEUL « i » POUR UN GRAPHE OU UN TABLEAU (6 novembre 2026) : tous les termes qu'il emploie, chacun avec sa définition, dans une seule fenêtre. */ termes?: TermKey[]; text?: string; label?: string; subtle?: boolean; /** Le « i » d'un titre de page : le même rond que celui des « En bref », à l'extrême droite de la ligne du titre (10 novembre 2026). */ titre?: boolean }) {
   const tr = useT();
   const t = term ? getRegistry().glossary[term] : undefined;
   const liste = (termes ?? []).flatMap((k) => {
@@ -31,6 +32,9 @@ export function Info({ term, termes, text, label, subtle }: { term?: TermKey; /*
 
   return (
     <span className={styles.wrap} onClick={stop} onTouchStart={stop}>
+      {titre ? (
+        <BoutonBrief titre={`${tr("Explication")} : ${title || tr("ce terme")}`} coach="info-de-page" onClick={() => setOpen(true)} />
+      ) : (
       <button
         type="button"
         className={`${styles.btn} ${subtle ? styles.subtle : ""} ${open ? styles.on : ""}`}
@@ -45,6 +49,7 @@ export function Info({ term, termes, text, label, subtle }: { term?: TermKey; /*
       >
         i
       </button>
+      )}
       <Sheet open={open} onClose={() => setOpen(false)} title={title || tr("Explication")} centre>
         {liste.length > 0 ? (
           <dl className={styles.termes}>

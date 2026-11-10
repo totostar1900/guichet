@@ -70,11 +70,6 @@
 }
 
 /* Le bouton de la visite, au pied de la feuille, à la largeur de son mot. */
-.lire {
-  justify-self: start;
-  width: fit-content;
-  margin-top: var(--s-6);
-}
 
 /* La zone de glissement : toute la feuille sous les onglets ; le défilement vertical reste celui de la feuille. */
 .glisse {

@@ -64,3 +64,30 @@
     font-size: 0.9rem;
   }
 }
+
+/* La variante collante : dans le flux, collée au bas de l'écran tant que le formulaire dépasse. Les boutons prennent « retour » et « suivant » comme dans la barre fixée. */
+.collante {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: var(--s-6);
+  padding: 8px 0 10px;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 760px) {
+  .collante {
+    bottom: calc(var(--dock-h, 56px) + env(safe-area-inset-bottom, 0px));
+    margin-left: -14px;
+    margin-right: -14px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .collante .suivant {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+  }
+}

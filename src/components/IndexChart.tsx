@@ -85,16 +85,11 @@ const CAP_HOW: Record<CapReading, string> = {
   part: "La part de chaque société dans la capitalisation de la cote, séance après séance. Une courbe qui monte gagne du terrain sur les autres, même si sa capitalisation baisse : c'est la lecture de la concentration dans le temps.",
 };
 
-/** « Comment lire » : one short paragraph the reader opens when a view needs it, closed by default. */
+/** One short paragraph under a view that needs it, always visible (the « Comment lire » toggle is gone, 10 novembre 2026). */
 function HowTo({ text }: { text: string }) {
-  const t = useT();
-  const [open, setOpen] = useState(false);
   return (
     <div className={styles.howTo}>
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-        {t("Comment lire ce graphique ?")} {open ? "×" : ""}
-      </button>
-      {open && <p>{text}</p>}
+      <p>{text}</p>
     </div>
   );
 }

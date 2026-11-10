@@ -42,15 +42,21 @@ export function WatchButton({ offerId, initial, signedIn, cadence }: { offerId: 
       aria-pressed={on}
       aria-label={t(on ? "Suivie" : "Suivre")}
       title={t(on ? "Vous êtes prévenu à chaque changement de cours, de prix ou de statut" : "Recevoir un message à chaque changement de cours, de prix ou de statut")}
-      onClick={() =>
+      onClick={() => {
+        /* LE GESTE SE VOIT TOUT DE SUITE (10 novembre 2026) : l'étoile bascule au toucher, avant la réponse du serveur ; sans cela il fallait toucher plusieurs fois pour comprendre qu'un seul suffisait. Si le serveur refuse, elle revient. */
+        const avant = on;
+        setOn(!avant);
         start(async () => {
-          const res = await toggleWatch(offerId, !on, cadence);
+          const res = await toggleWatch(offerId, !avant, cadence);
           if (res.ok) {
             setOn(res.watching);
             dire(texteDuSuivi(res.watching, cadence, t));
+          } else {
+            setOn(avant);
+            dire(t("Le suivi n'a pas pu être modifié. Réessayez."));
           }
-        })
-      }
+        });
+      }}
     >
       {star}
     </button>

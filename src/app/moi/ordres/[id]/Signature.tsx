@@ -4,6 +4,8 @@ import { useActionState, useEffect, useState } from "react";
 import { useT } from "@/i18n/client";
 import { envoyerCodeOrdreAction, signerOrdreAction, type OrdreResult } from "./actions";
 import styles from "./page.module.css";
+import { BarreCollante } from "@/components/mobile/BarreDEtape";
+import barre from "@/components/mobile/BarreDEtape.module.css";
 
 /**
  * SIGNER SON ORDRE, PAR LE CODE QUI SERT DÉJÀ À LA CONVENTION.
@@ -62,15 +64,15 @@ export function SignatureOrdre({ id, canal, codeEnvoyeLe }: { id: string; canal?
 
       <form action={signer} className={styles.bloc}>
         <input type="hidden" name="id" value={id} />
-        <div className={styles.codeRow}>
-          <label className="field">
-            {t("Code reçu")}
-            <input name="code" inputMode="numeric" maxLength={6} placeholder={t("6 chiffres")} autoComplete="one-time-code" />
-          </label>
-          <button className="btn primary" type="submit" disabled={signEnCours}>
+        <label className="field">
+          {t("Code reçu")}
+          <input name="code" inputMode="numeric" maxLength={6} placeholder={t("6 chiffres")} autoComplete="one-time-code" />
+        </label>
+        <BarreCollante>
+          <button className={`btn primary ${barre.suivant}`} type="submit" disabled={signEnCours}>
             {signEnCours ? "…" : t("Je signe mon ordre")}
           </button>
-        </div>
+        </BarreCollante>
         {validite ? <p className={styles.attente}>{t("Ce code reste valable {t}.", { t: mmss(validite) })}</p> : null}
         {sign && !sign.ok && <div className={styles.err}>{sign.error}</div>}
         {sign?.ok && sign.message && <div className={styles.ok}>{sign.message}</div>}

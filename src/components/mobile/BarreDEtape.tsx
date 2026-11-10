@@ -26,3 +26,22 @@ export function BarreDEtape({ indice, children }: { indice?: string; children: R
     </>
   );
 }
+
+/**
+ * LA VARIANTE COLLANTE, POUR UN FORMULAIRE QUI VIT DANS LE FLUX DE LA PAGE (10 novembre 2026).
+ *
+ * « BarreDEtape » est fixée et laisse une cale ; celle-ci est « sticky » : elle reste à sa place à la fin du formulaire quand il tient dans l'écran, et se colle au bas de l'écran (au-dessus de la barre de l'application, ou au ras du bas
+ * dans une page) tant que le formulaire dépasse. Les boutons qui valident la page (« Approvisionner », « Préparer, puis signer », « Signer ») y vivent : un bouton qu'il faut aller chercher en bas d'une page longue n'est pas un bouton.
+ */
+export function BarreCollante({ indice, children }: { indice?: string; children: React.ReactNode }) {
+  return (
+    <div className={styles.collante}>
+      {indice && (
+        <p className={styles.indice} role="status">
+          {indice}
+        </p>
+      )}
+      <div className={styles.rangee}>{children}</div>
+    </div>
+  );
+}

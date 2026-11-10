@@ -1031,7 +1031,6 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
       {filtered.length === 0 && <div className="empty">{t("Aucun fonds ne correspond à ces filtres.")}</div>}
       {!desk && <CoachMarks
         id="fonds"
-        replayLabel={t("Comment lire cette page ?")}
         stops={[
           { target: "fonds-enbref", title: t("Quatre catégories"), text: t("Monétaire, obligataire, diversifié, actions : du plus calme au plus mobile. « En bref » les définit en une phrase chacune, avec le nombre de fonds, et rappelle ce qu'est un OPCVM agréé.") },
           { target: "fonds-filtres", title: t("Trouver un fonds"), text: t("Le champ cherche dans trois choses : un nom de fonds, une société de gestion, un dépositaire. En dessous, la catégorie et la périodicité de la VL sont à plat, toutes leurs valeurs visibles : « Toutes » retire le filtre. Le tri est à droite du compte, avec la flèche qui retourne l'ordre.") },

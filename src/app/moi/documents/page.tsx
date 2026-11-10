@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/auth";
-import { LEGAL_VERSION } from "@/data/legal";
 import { getT } from "@/i18n/server";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { StatementButtons } from "../StatementButtons";
@@ -80,7 +79,6 @@ export default async function DocumentsPage() {
             {t("Textes et conditions")}
           </Link>
         </div>
-        <p className={styles.version}>{t("Mentions en vigueur : version {v}.", { v: LEGAL_VERSION })}</p>
       </div>
     </Glissement>
   );

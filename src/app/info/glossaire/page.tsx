@@ -45,7 +45,6 @@ export default async function GlossairePage() {
         {/* L'arrêt du Guide qui expliquait le glossaire vient avec lui. */}
         <CoachMarks
           id="glossaire"
-          replayLabel={t("Comment lire le glossaire ?")}
           stops={[{ target: "info-glossaire", title: t("Les mots de Guichet"), text: t("Le glossaire a sa propre recherche, un tri A → Z ou par catégorie, et un regroupement par catégorie : titres de dette, actions et sociétés, fonds, vos ordres, les états d'une ligne.") }]}
         />
       </div>

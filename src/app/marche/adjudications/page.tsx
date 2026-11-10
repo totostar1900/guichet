@@ -47,7 +47,7 @@ export default async function AdjudicationsClientPage() {
         <EnTete
           surTitre={`BVMAC · ${t("Le marché")}`}
           titre={t("Les résultats d'adjudications")}
-          titreApres={<Info termes={TERMES_DES_RESULTATS} label="Lire les résultats" />}
+          aCote={<Info termes={TERMES_DES_RESULTATS} label="Lire les résultats" titre />}
           phrase={t("Ce que les Trésors de la zone ont obtenu, séance après séance, tel que leur communiqué le publie.")}
         />
 

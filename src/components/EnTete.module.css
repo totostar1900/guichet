@@ -28,23 +28,27 @@
 }
 .tete {
   margin: 0;
-}
-.mots {
   display: grid;
   gap: var(--s-3);
 }
-/* EN FACE DU TITRE, pas dessous, et il passe à la ligne quand la place manque.
-   « min-width: 0 » sur les mots : sans lui, un titre long pousse l'objet hors
-   de la boîte au lieu de se replier. */
-.avecCote {
+/* LA LIGNE DU TITRE : le titre à gauche, qui se replie sur lui-même, l'objet de la page (« i », état) à l'extrême droite, aligné sur la première ligne. */
+.ligneTitre {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
-  gap: var(--s-8);
-  flex-wrap: wrap;
+  gap: var(--s-5);
 }
-.avecCote .mots {
+.ligneTitre h1 {
+  flex: 1 1 auto;
   min-width: 0;
+}
+.cote {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  /* Aligné sur le centre de la première ligne du titre. */
+  min-height: 2.2rem;
 }
 
 /* UN TITRE QUI EST UNE RÉFÉRENCE : la famille, pas la taille.

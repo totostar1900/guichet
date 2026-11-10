@@ -72,23 +72,6 @@
     gap: 2px;
     padding: 0 6px;
   }
-  .siege {
-    font-size: var(--t-1);
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    /* Écrit en dur : la barre est bleu nuit à toute surface (comme les pastilles), et --gold-line s'y éteint. */
-    color: #e2c466;
-    line-height: 1.1;
-  }
-  .rubrique {
-    font-weight: 700;
-    font-size: var(--t-4);
-    line-height: 1.15;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
   .right {
     grid-column: 3;
     display: flex;

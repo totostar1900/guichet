@@ -121,7 +121,6 @@ export default async function EclairagesPage() {
             seule façon de n'en perdre aucun. */}
         <CoachMarks
           id="eclairages"
-          replayLabel={t("Comment utiliser le Guide ?")}
           stops={[
             { target: "colonne-recherche", title: t("Cherchez un mot, une notion"), text: t("Un terme du glossaire, un éclairage, un outil, une page, une question de l'aide : tapez le mot, ouvrez le résultat. C'est le support en libre-service de Guichet.") },
             { target: "info-aide", title: t("Vos questions, nos réponses"), text: t("La page Aide répond à ce qu'on nous demande le plus : se connecter, ouvrir un compte, lire une ligne, déclarer une intention, régler, recevoir ses documents, nous joindre.") },

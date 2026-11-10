@@ -174,14 +174,15 @@ describe("l'étalon d'une page", () => {
 describe("les deux arbitrages", () => {
   const lire = (p: string) => fs.readFileSync(path.join(ROOT, p), "utf8");
 
-  it("dit le lieu dans la barre, et ne lui fait plus céder ni reprendre le nom de la page", () => {
+  it("ne dit plus ni lieu ni nom de page dans la barre, et ne lui fait plus céder ni reprendre le titre", () => {
     /* A A ÉTÉ RÉVISÉ LE 31 OCTOBRE 2026. La barre cédait le nom au `h1` tant
        qu'il était visible et le reprenait dès qu'il passait dessous : tantôt un
        titre, tantôt rien. Elle dit maintenant le LIEU — siège et rubrique — à
        toute hauteur de défilement, et le titre n'est écrit qu'une fois, dans la
        page. Le sur-titre se tait sur téléphone, où la barre le dit déjà. */
     const shell = lire("src/components/mobile/MobileShell.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(shell, "la barre ne dit plus où l'on est").toMatch(/const lieu = lieuDe\((listeDeLaFiche \?\? )?path\)/);
+    /* RÉVISÉ LE 10 NOVEMBRE 2026 : plus de fil d'Ariane ni de nom de page dans la barre du haut ; elle porte le retour et les boutons. */
+    expect(shell, "la barre redit le lieu (fil d'Ariane)").not.toMatch(/lieuDe|styles\.siege|styles\.rubrique/);
     expect(shell, "la barre observe de nouveau le titre de la page : elle va céder et reprendre").not.toMatch(/IntersectionObserver/);
     expect(shell, "la barre cède de nouveau la place au titre").not.toMatch(/titleCede/);
     const entete = lire("src/components/EnTete.module.css").replace(/\/\*[\s\S]*?\*\//g, "");
@@ -420,11 +421,11 @@ describe("l'en-tête d'une page", () => {
     const s = fs.readFileSync(path.join(ROOT, "src/components/EnTete.tsx"), "utf8");
     /* Posé en frère de « .mots », pas en enfant : entre lui et la fermeture
        de l'en-tête il ne reste donc aucune balise à fermer. */
-    const pose = s.indexOf("{aCote}");
+    const pose = s.lastIndexOf("{aCote &&");
     expect(pose, "le créneau « à côté » a disparu de la coquille").toBeGreaterThan(0);
-    expect(s.slice(pose, s.indexOf("</header>", pose)), "le « à côté » est repassé sous le titre, dans le bloc des mots").not.toContain("</div>");
+    expect(s.slice(s.indexOf("styles.ligneTitre"), pose), "le « à côté » n'est plus sur la ligne du titre").toContain("styles.ligneTitre");
     const css = fs.readFileSync(path.join(ROOT, "src/components/EnTete.module.css"), "utf8");
-    expect(css, "le « à côté » ne sait plus passer à la ligne quand la place manque").toMatch(/\.avecCote\s*{[^}]*flex-wrap:\s*wrap/);
+    expect(css, "le « à côté » ne sait plus passer à la ligne quand la place manque").toMatch(/\.ligneTitre\s*{[^}]*justify-content:\s*space-between/);
   });
 });
 

@@ -25,7 +25,7 @@ export const COMPANY = {
   tagline: "Guider le capital avec sens.",
   licence: "Société de bourse agréée COSUMAF · n° COSUMAF-SDB-01/2026",
   address: "Rue Joseph Essono Balla, Elig-Essono, Yaoundé, Cameroun",
-  phone: "+237 6 87 67 67 67",
+  phone: "+237\u00a06\u00a087\u00a067\u00a067\u00a067", // espaces insécables : un numéro ne se coupe jamais en deux lignes
   email: "info@purposecapital.africa",
   site: "purposecapital.africa",
 };

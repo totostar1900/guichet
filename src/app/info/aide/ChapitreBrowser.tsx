@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { useT } from "@/i18n/client";
 import type { AideRow } from "@/lib/guide-index-shared";
-import { helpFeedback } from "./actions";
+import { Deplie } from "@/components/ui/Deplie";
 import styles from "./aide.module.css";
 
 /**
@@ -20,11 +20,9 @@ import styles from "./aide.module.css";
  * alors : arriver sur un chapitre ne doit pas ouvrir huit réponses, et arriver
  * sur une réponse ne doit pas obliger à la chercher des yeux.
  */
-export function ChapitreBrowser({ id, rows, wa }: { id: string; rows: AideRow[]; wa: string }) {
+export function ChapitreBrowser({ id, rows }: { id: string; rows: AideRow[] }) {
   const t = useT();
   const [openSlug, setOpenSlug] = useState<string | null>(null);
-  const [voted, setVoted] = useState<Record<string, boolean>>({});
-  const [, start] = useTransition();
 
   useEffect(() => {
     const go = () => {
@@ -39,13 +37,6 @@ export function ChapitreBrowser({ id, rows, wa }: { id: string; rows: AideRow[];
     return () => window.removeEventListener("hashchange", go);
   }, []);
 
-  const vote = (r: AideRow, useful: boolean) => {
-    setVoted((v) => ({ ...v, [r.slug]: useful }));
-    start(async () => {
-      await helpFeedback(r.slug, useful);
-    });
-  };
-
   return (
     <div className={styles.chapitre} data-coach="aide-chapitre">
       {rows.map((r) => {
@@ -56,7 +47,7 @@ export function ChapitreBrowser({ id, rows, wa }: { id: string; rows: AideRow[];
               <b>{r.q}</b>
               <span aria-hidden="true">{open ? "−" : "+"}</span>
             </button>
-            {open && (
+            <Deplie ouvert={open}>
               <div className={styles.qaBody}>
                 <p>{r.a}</p>
                 <div className={styles.qaActions}>
@@ -75,25 +66,9 @@ export function ChapitreBrowser({ id, rows, wa }: { id: string; rows: AideRow[];
                       {t("Voir les lignes")}
                     </Link>
                   )}
-                  <a className="btn sm" href={wa} target="_blank" rel="noopener">
-                    {t("Écrire sur WhatsApp")}
-                  </a>
-                </div>
-                <div className={styles.vote}>
-                  <span>{voted[r.slug] == null ? t("Cette réponse vous a aidé ?") : voted[r.slug] ? t("Merci.") : t("Merci : nous la réécrivons.")}</span>
-                  {voted[r.slug] == null && (
-                    <>
-                      <button type="button" onClick={() => vote(r, true)}>
-                        {t("Oui")}
-                      </button>
-                      <button type="button" onClick={() => vote(r, false)}>
-                        {t("Non")}
-                      </button>
-                    </>
-                  )}
                 </div>
               </div>
-            )}
+            </Deplie>
           </div>
         );
       })}

@@ -165,7 +165,6 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
           </div>
           <CoachMarks
             id="actualites"
-            replayLabel={t("Comment lire cette page ?")}
             stops={[
               ...(featured ? [{ target: "featured", title: t("À la une"), text: t("Une seule publication en tête, choisie par le desk : celle qui change quelque chose pour le plus de lignes aujourd'hui. Le titre ouvre l'original chez son éditeur.") }] : []),
               ...(rest.length ? [{ target: "item", title: t("Pourquoi ça compte"), text: t("Sous chaque titre, deux lignes du desk : ce que la publication change pour vos lignes, sans recommandation. Les puces mènent à la ligne, à la société ou au terme concerné.") }] : []),

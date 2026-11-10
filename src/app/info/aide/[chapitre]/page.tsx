@@ -53,7 +53,7 @@ export default async function ChapitrePage({ params }: { params: Promise<{ chapi
         <div className={aide.intro}>
           <DocBlockList blocks={c.blocks.filter((b) => b.type !== "table")} lang={lang} />
         </div>
-        {rows.length > 0 && <ChapitreBrowser id={c.id} rows={rows} wa={wa} />}
+        {rows.length > 0 && <ChapitreBrowser id={c.id} rows={rows} />}
         <div className={aide.stuck}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1L4 20z" />
@@ -69,7 +69,6 @@ export default async function ChapitrePage({ params }: { params: Promise<{ chapi
         <GuideBar pos={{ label: `${t("Aide")} · ${c.title[lang]}` }} />
         <CoachMarks
           id={`aide-${c.id}`}
-          replayLabel={t("Comment lire ce chapitre ?")}
           stops={[{ target: "aide-chapitre", title: t("Une réponse, une adresse"), text: t("Ouvrez une question : son adresse s'écrit dans la barre, elle se partage et se met en favori. La recherche y mène directement.") }]}
         />
       </article>

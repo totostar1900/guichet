@@ -12,8 +12,6 @@ import { PlusFab } from "./PlusFab";
 import { reculer } from "./retour";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
-import { useListeDeLaFiche } from "@/components/LieuDeLaFiche";
-import { lieuDe } from "@/lib/domain/lieu";
 import { isAideSection, isEspaceSection, isInstrumentsSection, isMarcheSection, isTraderSection, listForFiche } from "@/lib/nav-section";
 
 /**
@@ -144,10 +142,6 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
    * pages. Le titre reste dans la page, une seule fois. Le nom lu dans
    * l'onglet ne sert plus qu'à ranger une page en favori (« BarreDuHaut »).
    */
-  /* UNE FICHE DIT SA FAMILLE (8 novembre 2026) : sous « /offres/… » l'adresse ne la porte pas, la barre disait « Titres » devant une adjudication. */
-  const listeDeLaFiche = useListeDeLaFiche(path);
-  const lieu = lieuDe(listeDeLaFiche ?? path);
-
   // Did this tab see another of our pages before this one? Then the browser history is ours.
   useEffect(() => {
     try {
@@ -249,14 +243,8 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
             <path d="M15 5l-7 7 7 7" />
           </svg>
         </button>
-        <div className={styles.lieu}>
-          {lieu && (
-            <>
-              <span className={styles.siege}>{t(lieu.siege)}</span>
-              {lieu.rubrique && <span className={styles.rubrique}>{t(lieu.rubrique)}</span>}
-            </>
-          )}
-        </div>
+        {/* PLUS DE FIL D'ARIANE NI DE NOM DE PAGE DANS LA BARRE (10 novembre 2026) : le retour, puis les boutons ; la colonne du milieu reste vide et pousse les boutons à droite. */}
+        <div className={styles.lieu} aria-hidden="true" />
         <div className={styles.right}>
           {/* LA LANGUE N'EST PAS ICI. Elle y est passée une matinée, le temps de
               constater que la barre tient un titre de 116 px et trois objets à
@@ -309,7 +297,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
              ils mènent à leur sommaire, qui a l'adresse, le retour système
              et la place d'une phrase entière. */
           return (
-            <Link key={tab.href} href={tab.href} aria-current={tab.match(path) ? "page" : undefined}>
+            <Link key={tab.href} href={tab.href} replace aria-current={tab.match(path) ? "page" : undefined}>
               {face}
             </Link>
           );

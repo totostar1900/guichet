@@ -4,6 +4,8 @@ import { useActionState, useEffect, useState } from "react";
 import { useT } from "@/i18n/client";
 import { sendConventionCodeAction, verifyConventionCodeAction, type StepResult } from "../actions";
 import styles from "./page.module.css";
+import { BarreCollante } from "@/components/mobile/BarreDEtape";
+import barre from "@/components/mobile/BarreDEtape.module.css";
 
 /**
  * LA SIGNATURE, SEULE, ET RIEN AUTOUR D'ELLE.
@@ -81,15 +83,15 @@ export function Signer({ canal, pending, reprise }: SignerProps) {
         </div>
       </form>
       <form action={verAct} className={styles.form}>
-        <div className={styles.rangee}>
-          <label className={`field ${styles.champ}`}>
-            {t("Code reçu")}
-            <input name="code" inputMode="numeric" maxLength={6} placeholder={t("6 chiffres")} autoComplete="one-time-code" />
-          </label>
-          <button className="btn primary" type="submit" disabled={verifying}>
+        <label className={`field ${styles.champ}`}>
+          {t("Code reçu")}
+          <input name="code" inputMode="numeric" maxLength={6} placeholder={t("6 chiffres")} autoComplete="one-time-code" />
+        </label>
+        <BarreCollante>
+          <button className={`btn primary ${barre.suivant}`} type="submit" disabled={verifying}>
             {verifying ? "…" : t(reprise ? "Je reprends ma convention" : "Je signe ma convention")}
           </button>
-        </div>
+        </BarreCollante>
         {validite ? <p className={styles.attente}>{t("Ce code reste valable {t}.", { t: mmss(validite) })}</p> : null}
         <Msg state={verState} />
       </form>

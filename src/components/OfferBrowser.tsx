@@ -1341,7 +1341,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       <div ref={searchList} className={styles.debutDeListe}>{rest.length > 0 && render(rest, false)}</div>
       {!desk && <CoachMarks
         id="titres"
-        replayLabel={t("Comment lire cette page ?")}
         stops={visiteDesTitres({ vue: view === "cards" ? (densite === "compact" ? "compactes" : "detaillees") : view === "list" ? "liste" : "tableau", page: lieu === "adjudications" ? "adjudications" : "cote", t })}
       />}
     </div>

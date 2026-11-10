@@ -62,7 +62,6 @@ export default async function AidePage() {
         <GuideBar pos={{ label: t("Aide") }} />
         <CoachMarks
           id="aide"
-          replayLabel={t("Comment utiliser cette aide ?")}
           stops={[
             { target: "aide-page", title: t("La question d'abord"), text: t("Tapez un mot ou une phrase : seules les réponses qui le contiennent restent, et chacune mène à sa page. Les trois questions les plus posées sont sous le champ.") },
             { target: "aide-nav", title: t("Ou un sujet"), text: t("Huit sujets, chacun sur sa page : une réponse s'y ouvre en place, avec le bouton qui va avec et une façon de nous dire si elle a aidé.") },

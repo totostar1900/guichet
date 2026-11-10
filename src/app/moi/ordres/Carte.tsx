@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useT } from "@/i18n/client";
 import { retirerMonOrdre } from "../counter-actions";
 import styles from "./Carte.module.css";
+import { Deplie } from "@/components/ui/Deplie";
 
 /**
  * UNE INTENTION EN COURS : CE QU'ELLE EST, OÙ ELLE EN EST, CE QU'ELLE ATTEND.
@@ -227,12 +228,12 @@ export function CarteOrdre({
           ⌄
         </i>
       </button>
-      {ouvert && (
+      <Deplie ouvert={ouvert}>
         <div className={styles.detail}>
           {details}
           {raisonNonRetrait && <p className={styles.pourquoi}>{raisonNonRetrait}</p>}
         </div>
-      )}
+      </Deplie>
     </div>
   );
 }
