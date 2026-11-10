@@ -1,0 +1,15 @@
+/* Sur téléphone, la copie « en ligne » n'est pas montrée : le bouton vit dans la barre du haut. */
+.enLigne {
+  display: contents;
+}
+@media (max-width: 760px) {
+  .enLigne {
+    display: none;
+  }
+}
+.dansLaBarre {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 3px;
+}

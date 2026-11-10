@@ -355,3 +355,11 @@ Une carte qui cache une face (3D) se remplace par une **extension** : `Depliable
 - **Le montant commande l'ordre sur une ligne cotée, à l'achat comme à la vente** (inverse du 7 novembre) : Montant, puis Cours, puis Quantité ; la quantité se déduit au cours, par le bas ; « tout vendre » repasse en titres.
 - **Une identité tient sur une ligne** : état, ISIN et tampon du prix ensemble ; à 360 px le tampon passe à la ligne, faute de place.
 - **Une validité lue dans le DOM se recalcule à chaque rendu**, après les variables dont elle dépend (le compilateur de React refuse de les lire avant leur déclaration).
+
+## Leçon du 10 novembre 2026 (navigation, option A) : sept racines, des pages, et des mouvements qui glissent
+
+- **Sur téléphone, les deux barres ne paraissent qu'aux racines** (`RACINES` : Accueil, Trade, Titres, Fonds, Adjudications, Marché, Aide). Dans une page, la barre du bas glisse hors de l'écran, la flèche de retour apparaît, et la barre du haut porte le menu et les boutons de la page (son favori, le suivi d'une ligne posé par `DansLaBarre`). Le saut d'onglet (l'éclairage ouvert du Marché allumait Aide) disparaît : une page n'allume aucun onglet.
+- **Tout ce qui se pose au-dessus de la barre lit `--dock-h`** (propriété enregistrée, animée de 56 px à 0), jamais « 56px » : barre d'étape, boutons flottants, réserve de fin de page. Même durée (0,34 s) et même courbe (0,32 · 0,72 · 0 · 1) que la barre, pour que tout descende ensemble.
+- **Une transition de vue ne gèle pas un élément nommé : sa vue « nouvelle » est vivante.** La barre du bas reste nommée, et sa transition CSS se voit pendant le changement de page ; ne pas couper les transitions pendant une transition de vue (j'avais ajouté `:active-view-transition { transition: none }` : le dock disparaissait d'un coup).
+- **Une règle de composant qui pose une `transition` doit être plus spécifique que la règle globale du toucher** (`button:not(:disabled)`) : la flèche apparaissait d'un coup. Mesurer le mouvement échantillon par échantillon (positions toutes les 40 ms), pas à l'œil.
+- **Deux barres du haut sont montées (téléphone et écran large)** : un emplacement ne s'identifie pas par un `id` (en double) mais par un attribut, et on prend celui qui se voit. Une fiche voisine du pager n'a pas le droit de poser ses boutons dans la barre.

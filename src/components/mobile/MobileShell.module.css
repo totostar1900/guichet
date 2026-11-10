@@ -25,6 +25,8 @@
   .back {
     width: 36px;
     height: 36px;
+    flex: none;
+    overflow: hidden;
     border: 0;
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.1);
@@ -32,6 +34,19 @@
     display: grid;
     place-items: center;
     cursor: pointer;
+  }
+  /* Sur une racine la flèche se replie : elle ne disparaît pas d'un coup, elle glisse vers la gauche en rendant sa place. */
+  .backCache {
+    width: 0;
+    padding: 0;
+    margin-right: -6px;
+    opacity: 0;
+    transform: translateX(-10px);
+    pointer-events: none;
+  }
+  /* Plus spécifique que la règle globale du toucher (« button:not(:disabled) »), qui pose sa propre « transition » : sans cela la flèche apparaissait d'un coup. On y rejoue aussi le retour au toucher. */
+  .top .back {
+    transition: width 0.3s cubic-bezier(0.32, 0.72, 0, 1), margin 0.3s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s linear, transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), scale 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s;
   }
   .back svg {
     width: 22px;
@@ -109,6 +124,13 @@
     background: var(--surface);
     border-top: 1px solid var(--line-2);
     padding-bottom: env(safe-area-inset-bottom, 0px);
+    /* GLISSE HORS DE L'ÉCRAN DANS UNE PAGE, REVIENT SUR UNE RACINE (10 novembre 2026) : la même durée et la même courbe que « --dock-h », pour que ce qui se pose au-dessus descende avec elle. */
+    transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.22s linear;
+  }
+  :global(html[data-profondeur="page"]) .tabs {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
   }
   /* Un onglet peut être un bouton : celui qui lève une feuille au lieu d’ouvrir
      une page. Sans ces quatre lignes il porte la parure que le navigateur donne
@@ -177,3 +199,10 @@
   }
 }
 
+
+@media (prefers-reduced-motion: reduce) {
+  .tabs,
+  .top .back {
+    transition: none;
+  }
+}

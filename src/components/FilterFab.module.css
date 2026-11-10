@@ -49,7 +49,7 @@
 @media (max-width: 760px) {
   .fab {
     left: 12px;
-    bottom: calc(56px + 12px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(var(--dock-h, 56px) + 12px + env(safe-area-inset-bottom, 0px));
     width: 34px;
     height: 34px;
   }

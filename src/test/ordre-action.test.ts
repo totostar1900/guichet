@@ -35,7 +35,7 @@ describe("l'ordre sur une action", () => {
     expect(form, "« Continuer » n'est plus grisé quand l'étape est incomplète").toMatch(/disabled=\{!etape\.ok\} onClick=\{\(\) => goTo\(step \+ 1\)\}/);
     expect(form, "le « Retour » de la première étape ne ramène plus à la fiche").toMatch(/href=\{`\/offres\/\$\{offer\.id\}`\}/);
     const css = readFileSync("src/components/mobile/BarreDEtape.module.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(css, "la barre n'est plus fixée en bas sur téléphone").toMatch(/\.barre \{[^}]*position: fixed;[^}]*bottom: calc\(56px \+ env\(safe-area-inset-bottom, 0px\)\)/);
+    expect(css, "la barre n'est plus fixée en bas sur téléphone").toMatch(/\.barre \{[^}]*position: fixed;[^}]*bottom: calc\(var\(--dock-h, 56px\) \+ env\(safe-area-inset-bottom, 0px\)\)/);
     expect(css, "le bouton grisé n'est plus grisé").toMatch(/\.suivant:disabled \{[^}]*background: var\(--surface-2\)/);
     expect(css, "le retour n'est plus plus petit que l'action").toMatch(/\.retour \{[^}]*font-size: 0\.8rem/);
   });

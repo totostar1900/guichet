@@ -9,6 +9,7 @@ import { estFavori, basculerFavori } from "@/app/favoris/actions";
 import { logout } from "@/app/connexion/actions";
 import { useLang, useT } from "@/i18n/client";
 import { cheminDeFavori } from "@/lib/domain/favoris";
+import { estRacine } from "@/lib/nav-profondeur";
 import type { Attente } from "@/lib/domain/services";
 import { LangSwitch } from "../LangSwitch";
 import { PaletteSwitch } from "../PaletteSwitch";
@@ -83,6 +84,19 @@ export function BarreDuHaut({ attentes, echeances, favoris }: BarreDuHautProps) 
   const [aUnFavori, setAUnFavori] = useState(favoris);
   const [attendu, setAttendu] = useState(false);
   const [favori, setFavori] = useState<boolean | null>(null);
+  /* LES DEUX GROUPES DE LA BARRE, SELON LA PROFONDEUR (10 novembre 2026, option A) : sur une racine, les raccourcis globaux (horloge, étoile des favoris, loupe, « i ») ; dans une page, ceux de la page (son favori, le suivi d'une ligne), et le menu ne bouge pas. Chaque groupe glisse vers le bord en se repliant, l'autre en sort. */
+  const racine = estRacine(chemin);
+  const rangeablePage = !racine && Boolean(cheminDeFavori(chemin));
+  const [favoriPage, setFavoriPage] = useState<boolean | null>(null);
+  const [pendantPage, startPage] = useTransition();
+  useEffect(() => {
+    let vivant = true;
+    if (rangeablePage) void estFavori(`${window.location.pathname}${window.location.search}`).then((v) => vivant && setFavoriPage(v));
+    else queueMicrotask(() => vivant && setFavoriPage(null));
+    return () => {
+      vivant = false;
+    };
+  }, [chemin, rangeablePage]);
   const [pending, start] = useTransition();
   const brouillon = useBrouillon();
   const combien = attentes.length + (brouillon ? 1 : 0);
@@ -172,6 +186,7 @@ export function BarreDuHaut({ attentes, echeances, favoris }: BarreDuHautProps) 
   return (
     <>
       {/* LE « i » DES TROIS PAGES D'INSTRUMENTS EST DANS LA BARRE (4 novembre 2026, choix 1A) ET À GAUCHE DU GROUPE (7 novembre 2026) : en tête de rangée, avec son filet à droite, il se lit comme l'explication de la page et non comme une commande de plus entre l'horloge et la loupe : sans grand titre, il n'a plus de « face » où se poser, et il suit la page quand on défile. */}
+      <div className={styles.groupe} data-racine={racine ? "oui" : "non"} inert={!racine}>
       {BRIEF_DE_LA_PAGE[chemin] && <EnBrefInstruments page={BRIEF_DE_LA_PAGE[chemin]} className={`${styles.ic} ${styles.info}`} />}
       {echeances > 0 && (
         <Link href="/echeances" className={`${styles.ic} ${styles.ambre}`} aria-label={t("Ce qui ferme bientôt · {n} à venir", { n: String(echeances) })} title={t("Ce qui ferme bientôt")}>
@@ -190,6 +205,32 @@ export function BarreDuHaut({ attentes, echeances, favoris }: BarreDuHautProps) 
           <Trace d={ICONE.loupe} />
         </Link>
       )}
+      </div>
+      {/* LES BOUTONS DE LA PAGE : son favori, et ce que la page y pose (« DansLaBarre »). */}
+      <div className={styles.groupe} data-contexte data-racine={racine ? "oui" : "non"} inert={racine}>
+        {rangeablePage && favoriPage !== null && (
+          <button
+            type="button"
+            className={`${styles.ic} ${styles.or}`}
+            disabled={pendantPage}
+            aria-pressed={favoriPage}
+            aria-label={favoriPage ? t("Retirer cette page des favoris") : t("Mettre cette page en favori")}
+            onClick={() =>
+              startPage(async () => {
+                const ici = `${window.location.pathname}${window.location.search}`;
+                const r = await basculerFavori(ici, titreDeLOnglet(), !favoriPage);
+                if (r.ok) {
+                  setFavoriPage(r.favori);
+                  if (r.favori) setAUnFavori(true);
+                }
+              })
+            }
+          >
+            <Trace d={ICONE.etoile} plein={favoriPage} />
+          </button>
+        )}
+        <span data-barre-contextuelle className={styles.slot} />
+      </div>
       <button type="button" className={styles.ic} onClick={() => setOuvert(true)} aria-haspopup="dialog" aria-expanded={ouvert} aria-label={libelleMenu} title={t("Menu")}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 7h16M4 12h16M4 17h16" />

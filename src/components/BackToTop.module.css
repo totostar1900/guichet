@@ -34,7 +34,7 @@
 @media (max-width: 760px) {
   .btn {
     right: 12px;
-    bottom: calc(56px + 12px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(var(--dock-h, 56px) + 12px + env(safe-area-inset-bottom, 0px));
     width: 34px;
     height: 34px;
   }
@@ -48,6 +48,6 @@
 /* above the Guide's corner capsule */
 @media (max-width: 760px) {
   .lift {
-    bottom: calc(56px + 12px + 66px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(var(--dock-h, 56px) + 12px + 66px + env(safe-area-inset-bottom, 0px));
   }
 }

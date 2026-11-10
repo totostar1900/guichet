@@ -49,7 +49,7 @@
     position: fixed;
     left: 0;
     right: 0;
-    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(var(--dock-h, 56px) + env(safe-area-inset-bottom, 0px));
     z-index: 39;
     padding: 8px 12px 10px;
     /* Pleine, et non un dégradé : la ligne d'indice se lit sur un fond, pas sur les champs qui passent dessous. */

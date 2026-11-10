@@ -81,10 +81,51 @@ describe("la barre du haut", () => {
     expect(bloc("right"), "les icônes n'ont plus de colonne : sans flèche elles glissent d'un cran").toMatch(/grid-column:\s*3/);
   });
 
-  /* DEPUIS LE 5 NOVEMBRE 2026 la flèche paraît sur toutes les pages sauf l'accueil et la connexion : la barre « n'avait pas toujours le retour ». */
-  it("ne pose la flèche de retour que là où l'on peut remonter", () => {
-    expect(lire("src/components/mobile/MobileShell.tsx"), "la liste des pages sans flèche a changé").toMatch(/const SANS_FLECHE = \["\/", "\/connexion"\];/);
-    expect(code(BARRE), "la flèche de retour n'est plus conditionnée à la racine").toMatch(/\{!isRoot && \(/);
+  /* DEPUIS LE 10 NOVEMBRE 2026 (option A) : la flèche paraît dans toute page, jamais sur une racine ; elle reste montée et se replie en glissant. */
+  it("ne pose la flèche de retour que là où l'on peut remonter : dans une page, jamais sur une racine", () => {
+    const m = lire("src/components/mobile/MobileShell.tsx");
+    expect(m, "la liste des pages sans flèche a changé").toMatch(/const SANS_FLECHE = \["\/connexion"\];/);
+    expect(m, "la flèche ne dépend plus des racines").toMatch(/const isRoot = racine \|\| SANS_FLECHE\.includes\(path\);/);
+    expect(m, "la flèche n'est plus repliée en glissant sur une racine").toMatch(/\$\{isRoot \? styles\.backCache : ""\}/);
+  });
+});
+
+/**
+ * LES RACINES ET LES PAGES (10 novembre 2026, option A).
+ * Sur téléphone, la barre du bas ne paraît qu'aux sept racines ; dans une page elle glisse hors de l'écran, la barre du haut porte le retour, le menu et les boutons de la page, et tout ce qui se posait au-dessus de la barre descend avec elle.
+ */
+describe("les racines et les pages", () => {
+  it("n'a que sept racines, et les connaît avant la première image", () => {
+    const n = lire("src/lib/nav-profondeur.ts");
+    expect(n).toMatch(/RACINES = \["\/", "\/trader", "\/titres", "\/fonds", "\/calendrier", "\/marche", "\/aide"\] as const/);
+    expect(sansNotes(lire("src/app/layout.tsx")), "le script de profondeur n'est plus dans le <head>").toMatch(/__html: PROFONDEUR_BOOT/);
+  });
+  it("le dock glisse hors de l'écran dans une page et revient sur une racine, à la même courbe que la variable de hauteur", () => {
+    const css = sansNotes(lire("src/components/mobile/MobileShell.module.css"));
+    expect(css).toMatch(/:global\(html\[data-profondeur="page"\]\) \.tabs \{\s*transform: translateY\(100%\);\s*opacity: 0;/);
+    expect(css, "le dock n'a plus de transition").toMatch(/transition: transform 0\.34s cubic-bezier\(0\.32, 0\.72, 0, 1\), opacity 0\.22s linear;/);
+    const g = sansNotes(lire("src/app/globals.css"));
+    expect(g, "la hauteur du dock n'est plus une propriété enregistrée, donc plus animable").toMatch(/@property --dock-h \{\s*syntax: "<length>";/);
+    expect(g).toMatch(/html\[data-profondeur="page"\] \{\s*--dock-h: 0px;/);
+    expect(g).toMatch(/html \{\s*transition: --dock-h 0\.34s cubic-bezier\(0\.32, 0\.72, 0, 1\);/);
+    expect(g, "la transition de vue masque le dock vivant (un gel) : plus de glissement visible").not.toMatch(/active-view-transition/);
+    expect(sansNotes(lire("src/components/mobile/MobileShell.tsx")), "la profondeur n'est plus posée sur <html> avant l'image").toMatch(/document\.documentElement\.dataset\.profondeur = racine \? "racine" : "page";/);
+  });
+  it("ce qui se posait à 56 px au-dessus du dock suit sa hauteur", () => {
+    for (const f of ["src/components/BackToTop.module.css", "src/components/FilterFab.module.css", "src/components/mobile/BarreDEtape.module.css", "src/components/mobile/FichePanes.module.css", "src/components/mobile/MarketFab.module.css", "src/app/layout.module.css"]) {
+      expect(sansNotes(lire(f)), `${f} fige encore la hauteur du dock à 56 px`).not.toMatch(/calc\(56px/);
+      expect(sansNotes(lire(f)), `${f} ne lit plus la hauteur animée du dock`).toMatch(/var\(--dock-h, 56px\)/);
+    }
+  });
+  it("la barre du haut a deux groupes qui glissent, dont celui de la page : son favori et ce que la page y pose", () => {
+    const b = sansNotes(lire("src/components/mobile/BarreDuHaut.tsx"));
+    expect(b).toMatch(/<div className=\{styles\.groupe\} data-racine=\{racine \? "oui" : "non"\} inert=\{!racine\}>/);
+    expect(b).toMatch(/<div className=\{styles\.groupe\} data-contexte data-racine=\{racine \? "oui" : "non"\} inert=\{racine\}>/);
+    expect(b, "l'emplacement des boutons de la page a disparu").toMatch(/data-barre-contextuelle/);
+    const c = sansNotes(lire("src/components/mobile/BarreDuHaut.module.css"));
+    expect(c, "les groupes n'ont plus leur glissement").toMatch(/\.groupe \{[^}]*transition: max-width 0\.34s cubic-bezier\(0\.32, 0\.72, 0, 1\), opacity 0\.22s linear, transform 0\.34s/);
+    expect(sansNotes(lire("src/app/offres/[id]/FicheHead.tsx")), "le suivi de la fiche n'est plus posé dans la barre").toMatch(/<DansLaBarre>\s*<WatchButton/);
+    expect(sansNotes(lire("src/app/offres/[id]/neighbour.tsx")), "la fiche voisine pose aussi son suivi dans la barre").toMatch(/<FicheHead [^>]*voisine \/>/);
   });
 });
 

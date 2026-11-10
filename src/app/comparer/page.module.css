@@ -301,7 +301,7 @@
     left: var(--s-4);
     right: var(--s-4);
     top: calc(var(--mobile-bar) + var(--s-4) + env(safe-area-inset-top, 0px));
-    bottom: calc(var(--mobile-tabs) + var(--s-4) + env(safe-area-inset-bottom, 0px));
+    bottom: calc(var(--dock-h, 56px) + var(--s-4) + env(safe-area-inset-bottom, 0px));
     max-height: none;
     display: flex;
     flex-direction: column;

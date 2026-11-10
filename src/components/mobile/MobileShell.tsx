@@ -3,7 +3,8 @@
 import { useT } from "@/i18n/client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
+import { estRacine } from "@/lib/nav-profondeur";
 import { BarreDuCompte } from "./BarreDuCompte";
 import { BarreDuHaut } from "./BarreDuHaut";
 import { MarketFab } from "./MarketFab";
@@ -27,7 +28,7 @@ export const LAST_LIST_KEY = "guichet:lastList";
 // LA FLÈCHE DE RETOUR PARAÎT SUR TOUTES LES PAGES, SAUF L'ACCUEIL ET LA CONNEXION (5 novembre 2026). Elle ne paraissait pas sur les sièges du
 // dock (Titres, Fonds, Marché, Aide…) et paraissait sur les autres : « la barre du haut n'a pas toujours le retour ». Sur un siège, « reculer »
 // revient à la page d'où l'on vient quand elle est de chez nous, et sinon au repli du siège (voir « retour.ts »).
-const SANS_FLECHE = ["/", "/connexion"];
+const SANS_FLECHE = ["/connexion"];
 
 /**
  * `feuille` : le siège ouvre sa liste au lieu de sauter sur une page.
@@ -125,7 +126,13 @@ function fallbackFor(path: string): string {
 export function MobileShell({ signedIn, name, desk, deskHost = false, attentes = [], echeances = 0, favoris = false, menu }: { signedIn: boolean; name?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; /** Ce qui attend le client, pour la pastille de la barre : voir BarreProps. */ attentes?: Attente[]; /** Les lignes qui ferment sous sept jours : le nombre de l'horloge. */ echeances?: number; /** Le client a un favori : l'étoile paraît. */ favoris?: boolean; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
-  const isRoot = SANS_FLECHE.includes(path);
+  /* LES RACINES N'ONT PAS DE FLÈCHE ET GARDENT LES DEUX BARRES (10 novembre 2026, option A) : sept entrées (nav-profondeur). Dans une page, la barre du bas glisse hors de l'écran, la flèche apparaît, et la barre du haut porte les boutons de la page. */
+  const racine = estRacine(path);
+  const isRoot = racine || SANS_FLECHE.includes(path);
+  /* La profondeur est posée sur <html> avant la première image du nouvel écran : les feuilles de style (dock, variable de hauteur) la lisent dans « data-profondeur ». */
+  useLayoutEffect(() => {
+    document.documentElement.dataset.profondeur = racine ? "racine" : "page";
+  }, [racine]);
 
   /**
    * LA BARRE DIT OÙ L'ON EST, ET NE DIT JAMAIS LE NOM DE LA PAGE.
@@ -237,13 +244,11 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
             le nom de la PAGE, et le cède au `h1` tant qu'il est à l'écran.
             Sur la racine, où il n'y a pas de parent, la flèche de retour ne
             paraît pas : un siège du dock n'a nulle part où remonter. */}
-        {!isRoot && (
-          <button type="button" className={styles.back} onClick={back} aria-label={t("Retour")}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M15 5l-7 7 7 7" />
-            </svg>
-          </button>
-        )}
+        <button type="button" className={`${styles.back} ${isRoot ? styles.backCache : ""}`} onClick={back} aria-label={t("Retour")} tabIndex={isRoot ? -1 : 0} aria-hidden={isRoot}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
+        </button>
         <div className={styles.lieu}>
           {lieu && (
             <>
@@ -288,7 +293,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
           fermees sous le pouce. Devant la porte, la page se suffit, avec son
           menu « ⋮ » et ses propres appels a l action. */}
       {!deskHost && signedIn && (
-      <nav className={styles.tabs} aria-label="Navigation principale" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)`, viewTransitionName: "barre-bas" }}>
+      <nav className={styles.tabs} aria-label="Navigation principale" inert={!racine} style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)`, viewTransitionName: "barre-bas" }}>
         {tabs.map((tab) => {
           const face = (
             <>

@@ -42,7 +42,7 @@ export async function neighbourReading(offerId: string): Promise<React.ReactNode
   return (
     <FichePanes className={styles.main} sans={voletsMasques(o)}>
       <ListNav id={o.id} />
-      <FicheHead o={o} s={summarize(o, now)} st={displayStatus(o, now)} />
+      <FicheHead o={o} s={summarize(o, now)} st={displayStatus(o, now)} voisine />
       <FicheReading o={o} data={data} />
     </FichePanes>
   );

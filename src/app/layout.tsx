@@ -32,6 +32,7 @@ import { PorteVitrine } from "@/components/PorteVitrine";
 import { SaufSurLaPorte } from "@/components/SaufSurLaPorte";
 import { ConsentGate } from "@/components/ConsentGate";
 import { TermSheetHost } from "@/components/TermSheet";
+import { PROFONDEUR_BOOT } from "@/lib/nav-profondeur";
 import { DESK_BOOT, DESK_T_COOKIE, PALETTE_BOOT, P_COOKIE, T_COOKIE, deskAttrs, paletteAttrs } from "@/lib/palette";
 import { PaletteKeeper } from "@/components/PaletteSwitch";
 import { DeskThemeKeeper, DeskThemeSwitch } from "@/components/DeskThemeSwitch";
@@ -173,6 +174,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         {/* the device's palette and theme, applied before the first paint */}
         <script dangerouslySetInnerHTML={{ __html: deskUi ? DESK_BOOT : PALETTE_BOOT }} />
+        {/* la profondeur (racine ou page) avant la première image : le dock et la barre du haut en dépendent (nav-profondeur) */}
+        <script dangerouslySetInnerHTML={{ __html: PROFONDEUR_BOOT }} />
       </head>
       <body>
         <LangProvider lang={lang}>

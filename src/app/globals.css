@@ -1704,6 +1704,9 @@ html[data-tuiles="lignes"] {
   animation: none;
 }
 
+/* LA BARRE DU BAS RESTE NOMMÉE, ET C'EST SA VUE « NOUVELLE » QUI GLISSE (10 novembre 2026) : cette vue n'est pas un cliché figé mais l'image vivante de l'élément, donc la transition CSS de la barre (hors de l'écran dans une page, de retour sur une racine) se voit pendant la
+   transition de vue. L'ancienne vue reste masquée. */
+
 /* Un mouvement qu'on n'a pas demandé est une gêne. */
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(*),
@@ -1736,4 +1739,26 @@ html[data-tuiles="lignes"] {
   --crit-soft: #f3d9d2;
   --info-soft: #dde6ee;
   --shadow: 0 8px 24px rgba(70, 50, 10, 0.14);
+}
+
+/* LA HAUTEUR DE LA BARRE DU BAS, ANIMÉE (10 novembre 2026).
+   Tout ce qui se pose au-dessus de la barre (barre d'étape, boutons flottants, réserve de fin de page) lit « --dock-h » : en entrant dans une page elle glisse de 56 px à zéro, et ces éléments descendent avec elle, à la même courbe que la barre. Propriété
+   enregistrée, sans quoi une variable ne s'anime pas. Sur grand écran il n'y a pas de barre, et la variable ne sert à rien. */
+@property --dock-h {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 56px;
+}
+@media (max-width: 760px) {
+  html {
+    transition: --dock-h 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  html[data-profondeur="page"] {
+    --dock-h: 0px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    transition: none;
+  }
 }

@@ -238,3 +238,30 @@
   background: currentColor;
   opacity: 0.35;
 }
+
+/* LES DEUX GROUPES DE LA BARRE GLISSENT VERS LE BORD EN SE REPLIANT (10 novembre 2026) : largeur, opacité et décalage jouent ensemble, à la courbe des feuilles ; aucune apparition brusque. */
+.groupe {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  max-width: 260px;
+  opacity: 1;
+  transform: none;
+  transition: max-width 0.34s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.22s linear, transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.groupe[data-racine="non"]:not([data-contexte]),
+.groupe[data-contexte][data-racine="oui"] {
+  max-width: 0;
+  opacity: 0;
+  transform: translateX(16px);
+  pointer-events: none;
+}
+.slot {
+  display: inline-flex;
+  align-items: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .groupe {
+    transition: none;
+  }
+}
