@@ -348,3 +348,10 @@ Une carte qui cache une face (3D) se remplace par une **extension** : `Depliable
 - **La courbe de la BEAC se choisit par mois** (`archiveBeac`, un relevé par mois ; un Trésor sans courbe un mois n'emprunte pas celle d'un autre). Un mois choisi à la main n'est pas jugé « trop vieux » : on l'a demandé, la figure dit son âge.
 - **La récupération des bulletins d'avant 2023 comble, elle ne remplace pas** : seuls les mois et les Trésors absents de la base reçoivent un point (`ajouterCourbesBeac`, `ignoreDuplicates`), chacun cite son bulletin et dit qu'il vient d'un tracé. Le robot a un diagnostic sans écriture (`?diagnostic=1`) à lancer avant de récupérer (`?recuperer=1`).
 - **Un essai local sur de fausses données se retire avant de conclure** : un jeu de points posé temporairement dans le dépôt mémoire pour voir le sélecteur est restauré, puis on cherche « ESSAI LOCAL » dans `src/` (zéro attendu).
+
+## Leçon du 10 novembre 2026 (formulaires) : la barre de l'étape, collante, grisée, pleine
+
+- **Tout bouton qui valide l'étape en cours vit dans `BarreDEtape`** : collée en bas (au-dessus de la barre de l'application sur téléphone, dans le flux sur grand écran), grisée tant que l'étape n'est pas remplie, pleine ensuite, avec un « Retour » plus petit vers la page ou l'étape précédente. Un bouton grisé dit pourquoi : une ligne d'`indice` au-dessus des boutons. Appliquée : ordre d'achat et de vente, versement programmé, réclamation. À faire pour les autres formulaires du client, un par un, avec leur état « rempli » lu dans des champs contrôlés.
+- **Le montant commande l'ordre sur une ligne cotée, à l'achat comme à la vente** (inverse du 7 novembre) : Montant, puis Cours, puis Quantité ; la quantité se déduit au cours, par le bas ; « tout vendre » repasse en titres.
+- **Une identité tient sur une ligne** : état, ISIN et tampon du prix ensemble ; à 360 px le tampon passe à la ligne, faute de place.
+- **Une validité lue dans le DOM se recalcule à chaque rendu**, après les variables dont elle dépend (le compilateur de React refuse de les lire avant leur déclaration).

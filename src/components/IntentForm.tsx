@@ -23,6 +23,8 @@ import { Select } from "@/components/ui/Select";
 import { INTENT_LABEL, sensDeLIntention } from "@/lib/domain/intent";
 import type { IntentType, Offer } from "@/lib/domain/types";
 import { fmt, parseAmount, parseUnits } from "@/lib/format";
+import { BarreDEtape } from "@/components/mobile/BarreDEtape";
+import barre from "@/components/mobile/BarreDEtape.module.css";
 import styles from "./IntentForm.module.css";
 import { useDates, useLang, useT } from "@/i18n/client";
 import { amountFlag } from "@/data/profile";
@@ -113,7 +115,8 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
    * donc que pour un achat, et il s'ouvre en francs.
    */
   /* Les deux sens d'une ligne cotée se lisent pareil (7 novembre 2026) : on tape la quantité, le total se déduit. On peut toujours taper le total à l'achat. */
-  const [unit, setUnit] = useState<"titres" | "francs">(offer.kind === "MARCHE" ? "titres" : "francs");
+  /* LE MONTANT EST EN AVANT, À L'ACHAT COMME À LA VENTE (10 novembre 2026) : on tape une somme, la quantité se déduit au cours. Seule une vente reprise avec une quantité (un lien qui en porte une) s'ouvre en titres. */
+  const [unit, setUnit] = useState<"titres" | "francs">(offer.kind === "MARCHE" && ["vente", "rachat", "cession"].includes(initialType) && initialAmount ? "titres" : "francs");
   /**
    * LA SOMME D'UN ORDRE DE BOURSE S'AMORÇAIT DEPUIS NULLE PART.
    *
@@ -299,7 +302,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   // Vendre ou racheter part d'un nombre de titres détenus : la somme n'y a pas
   // de sens, et « tout vendre » encore moins.
   const vend = type === "vente" || type === "rachat" || type === "cession";
-  const byCash = market && !vend && unit === "francs";
+  const byCash = market && unit === "francs";
   // Une seule quantité commande tout le reste : l’estimation, les contrôles, le passage
   // à l’étape suivante, et ce qui part au desk. Saisie en titres, ou déduite d’une somme.
   const ordered = byCash ? qtyForCash(offer, type, parseAmount(cash), lim) : parse(amount);
@@ -395,6 +398,27 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   // Consistency of the order as typed: minimum, whole titles, quotité, limit price, position held.
   const checks = needsAmount && ordered ? orderChecks(offer, type, ordered, lim, { held: sortie && held > 0 ? held : undefined, needsAccount: signedIn && tier < 2 && (type === "ferme" || type === "cession" || type === "achat" || type === "vente") }).filter((c) => c.level !== "ok") : [];
   const blocked = checks.some((c) => c.level === "block");
+
+  /* L'ÉTAPE EN COURS EST-ELLE REMPLIE ? (10 novembre 2026) : « Continuer » est grisé tant que non, et une ligne dit pourquoi. On lit les mêmes contrôles que « goTo » : les champs de l'étape, puis le montant de la première. Relu à chaque rendu, car chaque frappe en provoque un. */
+  const [etape, setEtape] = useState<{ ok: boolean; indice: string }>({ ok: false, indice: "" });
+  useLayoutEffect(() => {
+    const f = formRef.current;
+    if (!f) return;
+    let ok = true;
+    let indice = "";
+    for (const el of f.querySelectorAll<HTMLInputElement>(`[data-step="${step}"] input, [data-step="${step}"] textarea`)) {
+      if (!el.checkValidity()) {
+        ok = false;
+        indice = t("Ce champ n'est pas encore rempli.");
+        break;
+      }
+    }
+    if (ok && step === 1 && needsAmount && (!ordered || blocked)) {
+      ok = false;
+      indice = t("Indiquez d'abord le montant de votre demande.");
+    }
+    setEtape((cur) => (cur.ok === ok && cur.indice === indice ? cur : { ok, indice }));
+  }, [step, needsAmount, ordered, blocked, t, amount, cash, type, who, profileOk, amountOk, limit, floor, by, switchTo, channel]);
   /* LA PHRASE QU'ON SE DIT EN TAPANT. Elle se tait quand la position n'est pas
      lue : « il vous restera 0 » serait un mensonge présenté comme un calcul. */
   const reste = sortie && held > 0 ? resteApres(offer, type, held, ordered) : undefined;
@@ -579,23 +603,24 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                   c'est lui qui décide de « calculé » et de « vous tapez
                   ici ». Le chiffre qu'on écrit grandit ; celui qui se déduit
                   reste lisible sans prendre la parole. */}
-              <label className={`field ${byCash ? styles.chiffreSuit : styles.chiffreTape}`} data-calcule={byCash ? "" : undefined}>
-                <span>{t(offer.instrument === "obligation" ? "Quantité (titres)" : "Quantité (actions)")}</span>
+              <label className={`field ${byCash ? styles.chiffreTape : styles.chiffreSuit}`} data-calcule={byCash ? undefined : ""}>
+                <span>{t(vend && !byCash ? "Produit estimé (FCFA)" : "Montant (FCFA)")}</span>
                 <input
                   data-order-field
-                  name={byCash ? undefined : "amount"}
                   inputMode="numeric"
-                  placeholder="80"
-                  value={byCash ? (ordered ? groupDigits(String(ordered)) : "") : amount}
+                  placeholder="1 000 000"
+                  readOnly={vend && !byCash}
+                  value={byCash ? cash : ordered ? groupDigits(String(Math.round(ordered * unitPrice(offer, type, lim)))) : ""}
                   {...groupedInput((v) => {
-                    setUnit("titres");
-                    setAmount(v);
+                    if (vend && !byCash && unit !== "francs") return;
+                    setUnit("francs");
+                    setCash(v);
                   })}
                 />
-                <small className={byCash ? styles.calc : styles.typed}>{t(byCash ? "calculé, à la quotité par le bas" : "vous tapez ici")}</small>
+                <small className={byCash ? styles.typed : styles.calc}>{t(lim ? "au cours de votre limite" : "estimé au dernier cours")}</small>
               </label>
               <span className={styles.trioOp} aria-hidden="true">
-                ×
+                =
               </span>
               {coursImpose ? (
                 /* LE COURS D'UNE ACTION SE LIT, IL NE SE TAPE PAS : même place, même gabarit, un champ en lecture seule, et rien n'en part vers le desk. */
@@ -612,22 +637,21 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                 </label>
               )}
               <span className={styles.trioOp} aria-hidden="true">
-                =
+                ×
               </span>
-              <label className={`field ${byCash && !vend ? styles.chiffreTape : styles.chiffreSuit}`} data-calcule={byCash && !vend ? undefined : ""}>
-                <span>{t(vend ? "Produit estimé (FCFA)" : "Total (FCFA)")}</span>
+              <label className={`field ${byCash ? styles.chiffreSuit : styles.chiffreTape}`} data-calcule={byCash ? "" : undefined}>
+                <span>{t(offer.instrument === "obligation" ? "Quantité (titres)" : "Quantité (actions)")}</span>
                 <input
+                  name={byCash ? undefined : "amount"}
                   inputMode="numeric"
-                  placeholder="1 000 000"
-                  readOnly={vend}
-                  value={byCash ? cash : ordered ? groupDigits(String(Math.round(ordered * unitPrice(offer, type, lim)))) : ""}
+                  placeholder="80"
+                  value={byCash ? (ordered ? groupDigits(String(ordered)) : "") : amount}
                   {...groupedInput((v) => {
-                    if (vend) return;
-                    setUnit("francs");
-                    setCash(v);
+                    setUnit("titres");
+                    setAmount(v);
                   })}
                 />
-                <small className={byCash ? styles.typed : styles.calc}>{t(lim ? "au cours de votre limite" : "estimé au dernier cours")}</small>
+                <small className={byCash ? styles.calc : styles.typed}>{t(byCash ? "calculé, à la quotité par le bas" : "vous tapez ici")}</small>
               </label>
               {/* Ce qui part au desk reste une quantité : c'est ce que le carnet prend. */}
               {byCash && <input type="hidden" name="amount" value={ordered ? String(ordered) : ""} />}
@@ -1191,24 +1215,26 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
           <div className={styles.foot} data-step="3">
             <small>{t(offer.kind === "FONDS" ? "Une souscription est exécutée à la prochaine valeur liquidative ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; la performance dépend du marché." : "Une prise ferme engage la transmission de votre offre à l'adjudication ; elle est confirmée par un conseiller et un bulletin à signer. La décision reste la vôtre ; l'allocation dépend de l'adjudication.")}</small>
           </div>
-          <div className={styles.stepNav}>
-            {/* À la première étape, « Retour » remonte au choix plutôt que de
-                disparaître : sans lui on ne peut plus changer d'avis sans
-                recharger la page. */}
-            {(step > 1 || monthly) && (
-              <button type="button" className="btn ghost" onClick={() => (step > 1 ? goTo(step - 1) : setMode(""))}>
+          {/* LA BARRE EST COLLANTE EN BAS, grisée tant que l'étape n'est pas remplie, pleine ensuite ; « Retour » est plus petit, et à la première étape il ramène à la page précédente (la fiche), ou au choix quand il y en a un. Sur grand écran tout se voit d'un coup : seul l'envoi reste. */}
+          <BarreDEtape indice={step < 3 && !etape.ok ? etape.indice : undefined}>
+            {step > 1 || monthly ? (
+              <button type="button" className={`btn ${barre.retour} ${step === 1 ? "" : styles.etapeSeule}`.trim()} onClick={() => (step > 1 ? goTo(step - 1) : setMode(""))}>
                 {t("Retour")}
               </button>
+            ) : (
+              <Link className={`btn ${barre.retour} ${styles.etapeSeule}`} href={`/offres/${offer.id}`}>
+                {t("Retour")}
+              </Link>
             )}
             {step < 3 && (
-              <button type="button" className={`btn primary ${styles.next}`} onClick={() => goTo(step + 1)}>
+              <button type="button" className={`btn primary ${barre.suivant} ${styles.etapeSeule}`} disabled={!etape.ok} onClick={() => goTo(step + 1)}>
                 {t("Continuer")}
               </button>
             )}
-            <button className={`btn primary ${styles.send}`} type="submit" disabled={pending || !ready}>
+            <button className={`btn primary ${barre.suivant} ${styles.send}`} type="submit" disabled={pending || !ready}>
               {t(pending ? "Envoi…" : "Envoyer au desk")}
             </button>
-          </div>
+          </BarreDEtape>
         </div>
       </form>
     </div>

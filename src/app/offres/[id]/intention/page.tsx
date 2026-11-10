@@ -59,16 +59,13 @@ export default async function IntentionPage({ params, searchParams }: Props) {
               ils repoussaient d'un cran les chiffres pour lesquels on vient.
               C'est le créneau « aCote », et sa raison est celle qu'avait
               écrite la page des fonds. */}
-          <EnTete
-            surTitre={t(summary.subtitle)}
-            titre={t(o.title)}
-            aCote={
-              <span className={styles.meta}>
-                <span className={`pill ${c.st}`}>{t(statusLabel(o, c.st))}</span>
-                <span className="mono">{o.isin}</span>
-              </span>
-            }
-          />
+          <EnTete surTitre={t(summary.subtitle)} titre={t(o.title)} />
+          {/* L'ÉTAT, L'ISIN ET LE TAMPON SONT SUR UNE SEULE LIGNE (10 novembre 2026) : « Cotée · CM0000010025 · Dernier cours · lun. 9 nov. 19 h 30 ». Trois lignes empilées repoussaient d'un cran les champs pour lesquels on vient ; l'état et l'ISIN disent QUELLE ligne on engage, le tampon DE QUAND date le prix. */}
+          <span className={styles.meta}>
+            <span className={`pill ${c.st}`}>{t(statusLabel(o, c.st))}</span>
+            <span className="mono">{o.isin}</span>
+            <span className={`stamp ${stampPending ? "pending" : ""}`}>{t(stamp)}</span>
+          </span>
           {/* LES QUATRE CHIFFRES NE SONT PLUS EN TÊTE DE LA FEUILLE D'ORDRE.
               Demandé le 28 octobre 2026. Ils y occupaient le tiers supérieur
               de l'écran du téléphone, au-dessus du premier champ, alors que
@@ -77,7 +74,6 @@ export default async function IntentionPage({ params, searchParams }: Props) {
               porte déjà le cours dans son champ et le total qu'il calcule.
               Le tampon reste : il dit de QUAND date le prix, et c'est la seule
               chose qu'on ne peut pas retrouver ailleurs sans repartir. */}
-          <span className={`stamp ${stampPending ? "pending" : ""}`}>{t(stamp)}</span>
         </div>
 
         <div className={styles.form} id="intention" data-coach="action">

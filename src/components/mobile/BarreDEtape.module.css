@@ -1,0 +1,66 @@
+/* La barre de l'étape : sur téléphone, collée en bas au-dessus de la barre de l'application ; sur grand écran, dans le flux. */
+.cale {
+  display: none;
+}
+.barre {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: none;
+}
+.rangee {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.indice {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  text-align: right;
+}
+.retour {
+  flex: 0 0 auto;
+  padding: 9px 14px;
+  font-size: 0.8rem;
+}
+.suivant {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+/* GRISÉ TANT QUE L'ÉTAPE N'EST PAS REMPLIE : un fond de surface et une encre pâle, jamais un bouton plein qu'un toucher refuserait. */
+.suivant:disabled {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--ink-3);
+  opacity: 1;
+  cursor: not-allowed;
+}
+@media (max-width: 760px) {
+  .cale {
+    display: block;
+    height: 72px;
+  }
+  .caleHaute {
+    height: 96px;
+  }
+  .barre {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    z-index: 39;
+    padding: 8px 12px 10px;
+    /* Pleine, et non un dégradé : la ligne d'indice se lit sur un fond, pas sur les champs qui passent dessous. */
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+  }
+  .rangee {
+    justify-content: stretch;
+  }
+  .suivant {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+  }
+}

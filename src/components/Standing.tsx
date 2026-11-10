@@ -9,6 +9,8 @@ import { fmt, parseAmount } from "@/lib/format";
 import { premierVersement } from "@/lib/domain/standing";
 import { createStandingAction, stopStandingAction, type StandingResult } from "@/app/moi/standing-actions";
 import { ModifierInstruction, type FondsChoix } from "./ModifierInstruction";
+import { BarreDEtape } from "@/components/mobile/BarreDEtape";
+import barre from "@/components/mobile/BarreDEtape.module.css";
 import styles from "./Standing.module.css";
 
 function Msg({ state }: { state: StandingResult | null }) {
@@ -266,9 +268,10 @@ export function StandingForm({
           </div>
         </div>
       </div>
-      <div className={styles.pied}>
+      {/* LA BARRE DE L'ÉTAPE, COLLANTE ET GRISÉE TANT QUE LE MONTANT NE CONVIENT PAS (10 novembre 2026) : « Corriger » est le petit retour de la seconde étape. */}
+      <BarreDEtape indice={etape === 1 && !(verse > 0 && verse >= plancher) ? (verse > 0 ? t("Le minimum est de {n} FCFA.", { n: fmt(plancher) }) : t("Indiquez d'abord le montant du versement.")) : undefined}>
         {etape === 2 && (
-          <button className="btn ghost" type="button" onClick={() => setEtape(1)}>
+          <button className={`btn ${barre.retour}`} type="button" onClick={() => setEtape(1)}>
             {t("Corriger")}
           </button>
         )}
@@ -276,15 +279,15 @@ export function StandingForm({
           /* LE PASSAGE NE SE FAIT PAS SUR UN FORMULAIRE INCOMPLET : sans
              montant, le récapitulatif dirait « 0 FCFA sur douze mois », et un
              récapitulatif qui ment est pire que pas de récapitulatif. */
-          <button className="btn" type="button" disabled={!(verse > 0) || verse < plancher} onClick={() => setEtape(2)}>
+          <button className={`btn primary ${barre.suivant}`} type="button" disabled={!(verse > 0) || verse < plancher} onClick={() => setEtape(2)}>
             {t("Continuer")}
           </button>
         ) : (
-          <button className="btn primary" type="submit" disabled={pending}>
+          <button className={`btn primary ${barre.suivant}`} type="submit" disabled={pending}>
             {t(pending ? "…" : "Programmer ce versement")}
           </button>
         )}
-      </div>
+      </BarreDEtape>
       <Msg state={state} />
     </form>
   );

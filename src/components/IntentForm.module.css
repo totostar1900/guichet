@@ -263,15 +263,6 @@
 }
 /* La barre d'actions existe aux deux tailles : sur grand écran elle ne porte
    que l'envoi, puisqu'il n'y a ni étape ni retour. */
-.stepNav {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: none;
-}
-.stepNav button[type="button"] {
-  display: none;
-}
 .next,
 .send {
   margin-left: auto;
@@ -397,20 +388,10 @@
   .actions {
     display: block;
   }
-  .stepNav {
-    gap: 8px;
-    margin-top: 12px;
-  }
-  .stepNav button[type="button"] {
-    display: inline-flex;
-  }
   /* L'envoi n'apparaît qu'à l'étape où il a un sens. Le reste du temps,
      « Continuer » occupe sa place, et jamais les deux ensemble. */
   .form:not([data-at="3"]) .send {
     display: none;
-  }
-  .stepNav button {
-    min-width: 40%;
   }
   .foot {
     flex-direction: column;
@@ -1013,4 +994,11 @@
 .limite input {
   font-size: var(--t-5);
   font-variant-numeric: tabular-nums;
+}
+
+/* Retour et Continuer n'existent que dans le parcours par étapes (téléphone) : sur grand écran tout se voit d'un coup et seul l'envoi reste (10 novembre 2026). */
+@media (min-width: 761px) {
+  .etapeSeule {
+    display: none;
+  }
 }

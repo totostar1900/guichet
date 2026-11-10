@@ -17,12 +17,22 @@
 
 /* Sur-titre, titre et retour sont montés par « EnTete » depuis le 24 octobre
    2026 ; l'état et l'ISIN sont passés dans son créneau « aCote ». */
+/* Une seule ligne : l'état, l'ISIN, le tampon du prix ; elle ne passe à la suivante que faute de place. */
 .meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
   font-size: 0.74rem;
   color: var(--ink-3);
+}
+
+.meta :global(.stamp) {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.7rem;
+  white-space: nowrap;
 }
 
 .form {
