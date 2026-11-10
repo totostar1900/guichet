@@ -2,8 +2,8 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { JOUR_MAX, JOUR_MIN } from "@/lib/domain/mandat";
-import { MOTIFS } from "@/lib/domain/prelevement";
-import { fmt, fmtDate } from "@/lib/format";
+import { MOTIFS, prochaineEcheance } from "@/lib/domain/prelevement";
+import { fmt, fmtDate, localIso } from "@/lib/format";
 import { aucunCanalPossible, canalDuCode } from "@/lib/kyc/canal";
 import { MesMandats } from "./MesMandats";
 import styles from "./page.module.css";
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Mes prélèvements") };
+  return { title: t("Autoriser un prélèvement") };
 }
 
 /**
@@ -29,11 +29,14 @@ export async function generateMetadata() {
  * Deux décisions de la maison s'y lisent sans être expliquées : un mandat par
  * usage, et un calendrier, jamais un tirage à la demande.
  */
-export default async function PrelevementsPage({ searchParams }: { searchParams: Promise<{ instruction?: string }> }) {
+export default async function PrelevementsPage({ searchParams }: { searchParams: Promise<{ instruction?: string; de?: string }> }) {
   /* On arrive parfois d'une épargne programmée qu'on vient de signer, en ayant
      choisi « prélevez-moi » : le formulaire s'ouvre sur elle, au lieu de la
      faire retrouver dans une liste. */
-  const demandee = (await searchParams).instruction;
+  const sp = await searchParams;
+  const demandee = sp.instruction;
+  /* ON ARRIVE DU CHOIX « PAR PRÉLÈVEMENT » (10 novembre 2026) : le formulaire est ouvert d'emblée, et « Retour » ramène à ce choix. */
+  const deApprovisionner = sp.de === "alimenter";
   const t = await getT();
   const s = await requireSession("/moi/prelevements");
   const r = repo();
@@ -55,7 +58,7 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
       <div className={styles.wrap}>
         <EnTete
           surTitre={t("Payer sans y penser")}
-          titre={t("Mes prélèvements")}
+          titre={t("Autoriser un prélèvement")}
           /* LE PLAFOND EST PARTI DE LA PHRASE D'OUVERTURE, le 25 octobre 2026.
              Il se disait trois fois sur un même écran — ici, sous le champ du
              montant (« ce montant est aussi votre plafond »), et sur chaque
@@ -77,6 +80,8 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
             l'argent d'un compte vers un autre. */}
         <MesMandats
           instructionDemandee={demandee}
+          ouvertDEmblee={deApprovisionner}
+          retourHref={deApprovisionner ? "/moi/provision/alimenter" : "/activite"}
           mandats={mandats.map((m) => ({
             id: m.id,
             ref: m.ref,
@@ -96,6 +101,8 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
             codeEnvoyeA: m.pendingCodeTo,
             codeEnvoyeLe: m.pendingCodeAt,
             revoqueLe: m.revokedAt,
+            /* Le prochain tirage, dit sur la carte : l'écho de l'ancienne étape « par prélèvement », où il vivait. */
+            prochain: m.signedAt && m.state === "actif" && m.dayOfMonth ? prochaineEcheance(m.dayOfMonth, localIso(new Date())) : undefined,
           }))}
           instructions={instructions}
           titulaireParDefaut={fiche?.identity.name ?? s.name}

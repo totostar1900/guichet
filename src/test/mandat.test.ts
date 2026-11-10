@@ -175,7 +175,7 @@ describe("ce que le parcours du mandat doit dire", () => {
   });
 
   it("ouvre le formulaire quand il n'y a rien d'autre à lire", () => {
-    expect(vue, "le formulaire se referme derrière un bouton même sans autorisation").toMatch(/useState\(connue \|\| vivants\.length === 0\)/);
+    expect(vue, "le formulaire se referme derrière un bouton même sans autorisation").toMatch(/useState\(connue \|\| vivants\.length === 0 \|\| ouvertDEmblee\)/);
     /* Le repli garde son sens dès qu'une autorisation existe : on vient alors
        lire la liste, et en ajouter une seconde est délibéré. */
     /* LE BOUTON, ET NON LE MOT. Vérifié à l'envers le 1er novembre 2026 :

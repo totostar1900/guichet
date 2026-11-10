@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useDates, useT } from "@/i18n/client";
 import { fmt, parseAmount } from "@/lib/format";
+import { PREAVIS_JOURS } from "@/lib/domain/prelevement";
 import { groupedInput } from "@/lib/ui/grouped";
 import { Select } from "@/components/ui/Select";
 import { creerMandatAction, envoyerCodeMandatAction, revoquerMandatAction, signerMandatAction, type MandatResult } from "./actions";
@@ -28,6 +29,8 @@ interface Vu {
   codeEnvoyeA?: string;
   codeEnvoyeLe?: string;
   revoqueLe?: string;
+  /** Le prochain tirage (ISO), pour un mandat actif. */
+  prochain?: string;
 }
 
 function Msg({ state }: { state: MandatResult | null }) {
@@ -48,6 +51,8 @@ export function MesMandats({
   mandats,
   instructions,
   instructionDemandee,
+  ouvertDEmblee = false,
+  retourHref,
   titulaireParDefaut,
   banqueParDefaut,
   compteParDefaut,
@@ -71,6 +76,10 @@ export function MesMandats({
   jourMax: number;
   /** L'instruction qu'on vient de signer, quand on arrive de là. */
   instructionDemandee?: string;
+  /** Arrivé du choix « par prélèvement » : le formulaire est ouvert, même s'il y a déjà des autorisations. */
+  ouvertDEmblee?: boolean;
+  /** Où « Retour » ramène : le choix du type de versement, ou l'Activité. */
+  retourHref: string;
 }) {
   const { fmtDate, fmtDateTime } = useDates();
   const t = useT();
@@ -90,7 +99,7 @@ export function MesMandats({
      intermédiaire dans la page. Quand une autorisation existe déjà, le repli
      garde son sens : la liste est alors ce qu'on vient lire, et en ajouter une
      seconde est un geste délibéré. */
-  const [ouvert, setOuvert] = useState(connue || vivants.length === 0);
+  const [ouvert, setOuvert] = useState(connue || vivants.length === 0 || ouvertDEmblee);
   const [aRevoquer, setARevoquer] = useState<string | null>(null);
   const [quelle, setQuelle] = useState((connue && instructionDemandee) || instructions[0]?.id || "");
   /* Contrôlés, parce que le regroupement replace le curseur après chaque
@@ -154,6 +163,7 @@ export function MesMandats({
                         la même panne que sur le compte de règlement du desk,
                         le même jour, pour la même raison. */}
                     {sign?.ok && sign.message ? <p className={styles.ok}>{t(sign.message)}</p> : null}
+                    {m.prochain && <p className={styles.note}>{t("prochain prélèvement le {d}, annoncé {n} jours avant", { d: fmtDate(m.prochain, false), n: String(PREAVIS_JOURS) })}</p>}
                     <p className={styles.note}>
                       {t("Signé le {d}. Votre banque peut vous demander cet exemplaire.", { d: fmtDateTime(m.signeLe) })}{" "}
                       {/* L'ADRESSE DE LA PIÈCE, et non sa description : « dans
@@ -255,7 +265,7 @@ export function MesMandats({
       )}
 
       <section className={styles.bloc}>
-        <h2>{vivants.length ? t("En ajouter un") : t("Autoriser un prélèvement")}</h2>
+        {vivants.length > 0 && <h2>{t("En ajouter un")}</h2>}
         {/* LE DIRE AVANT, PAS APRÈS. Préparer un mandat qu'on ne pourra pas
             signer, c'est remplir sept champs pour s'entendre refuser au
             dernier geste. La condition se lit donc ici aussi, et elle est la
@@ -340,9 +350,9 @@ export function MesMandats({
 
             {/* COLLANTE EN BAS, GRISÉE TANT QUE LE MONTANT MANQUE (10 novembre 2026) : « Annuler » est le petit retour. */}
             <BarreCollante indice={parseAmount(montant) > 0 ? undefined : t("Indiquez d'abord le montant prélevé chaque mois.")}>
-              <button type="button" className={`btn ${barre.retour}`} onClick={() => setOuvert(false)}>
-                {t("Annuler")}
-              </button>
+              <Link href={retourHref} className={`btn ${barre.retour}`}>
+                {t("Retour")}
+              </Link>
               <button className={`btn primary ${barre.suivant}`} type="submit" disabled={creation || !(parseAmount(montant) > 0)}>
                 {creation ? "…" : t("Préparer, puis signer")}
               </button>

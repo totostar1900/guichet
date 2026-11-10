@@ -53,7 +53,7 @@ export default async function AlimenterPage() {
             </span>
           </Link>
 
-          <Link href="/moi/provision/alimenter/prelevement" className={`${styles.chemin} ${styles.choix}`}>
+          <Link href="/moi/prelevements?de=alimenter" className={`${styles.chemin} ${styles.choix}`}>
             <h2>
               {t("Par prélèvement")} <span>{t("chaque mois")}</span>
             </h2>

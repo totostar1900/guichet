@@ -9,6 +9,7 @@ import { BarreDuCompte } from "./BarreDuCompte";
 import { BarreDuHaut } from "./BarreDuHaut";
 import { MarketFab } from "./MarketFab";
 import { reculer } from "./retour";
+import { parentDe } from "@/lib/nav-parent";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
 import { isAideSection, isEspaceSection, isInstrumentsSection, isMarcheSection, isTraderSection, listForFiche } from "@/lib/nav-section";
@@ -157,6 +158,18 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
 
   /* Le repli d'un siège est parfois lui-même (« /fonds » → « /fonds ») : reculer n'irait nulle part, on retombe alors sur l'accueil. */
   const back = () => {
+    /* LES PAGES DE L'ACTIVITÉ REMONTENT D'UN CRAN DE L'ARBRE (10 novembre 2026) : voir « nav-parent ». */
+    let venuDe: string | null = null;
+    try {
+      venuDe = sessionStorage.getItem("guichet:cameFrom");
+    } catch {
+      // storage unavailable
+    }
+    const parent = parentDe(path, venuDe);
+    if (parent) {
+      router.push(parent, { transitionTypes: ["nav-retour"] });
+      return;
+    }
     const repli = fallbackFor(path);
     reculer(router, repli === path ? "/" : repli);
   };

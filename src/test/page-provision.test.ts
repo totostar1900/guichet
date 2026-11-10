@@ -50,7 +50,7 @@ describe("la prochaine échéance d'un mandat", () => {
   it("et le préavis se compte sur le même nombre de jours que le desk applique", () => {
     // La page annonce « annoncé {n} jours avant » : ce n doit être CELUI du robot.
     expect(PREAVIS_JOURS).toBe(5);
-    expect(lire(PRELEVEMENT)).toMatch(/n: String\(PREAVIS_JOURS\)/);
+    expect(lire("src/app/moi/prelevements/MesMandats.tsx")).toMatch(/n: String\(PREAVIS_JOURS\)/);
   });
 });
 
@@ -84,11 +84,13 @@ describe("les gestes", () => {
     /* Décidé le 9 octobre 2026 : une porte qui n'apparaît qu'à ceux qui l'ont
        déjà franchie n'ouvre sur personne. C'est la leçon des neuf services
        invisibles, et elle vaut ici. */
-    const src = lire(PRELEVEMENT);
-    expect(src).toMatch(/Mettre en place un prélèvement/);
-    expect(src).toMatch(/href="\/moi\/prelevements"/);
-    // Les deux branches existent : l'état du mandat, et l'invitation.
-    expect(src).toMatch(/\{mandat \? \(/);
+    /* Depuis le 10 novembre 2026 le choix « par prélèvement » mène droit au formulaire « Autoriser un prélèvement », ouvert d'emblée : plus d'étape intermédiaire. */
+    expect(code(ALIMENTER)).toContain('href="/moi/prelevements?de=alimenter"');
+    expect(code(PRELEVEMENT), "l'étape intermédiaire est revenue").toMatch(/redirect\("\/moi\/prelevements\?de=alimenter"\)/);
+    const src = lire("src/app/moi/prelevements/MesMandats.tsx");
+    expect(src).toMatch(/Préparer, puis signer/);
+    expect(src, "« Retour » ne ramène plus au choix du type de versement").toMatch(/<Link href=\{retourHref\} className=\{`btn \$\{barre\.retour\}`\}>\s*\{t\("Retour"\)\}/);
+    expect(lire("src/app/moi/prelevements/page.tsx")).toMatch(/retourHref=\{deApprovisionner \? "\/moi\/provision\/alimenter" : "\/activite"\}/);
   });
 
   /* LE 25 OCTOBRE 2026 : CE QUI SÉPARE LES DEUX CHEMINS, ET LE RANG DU MOTIF.
@@ -203,7 +205,7 @@ describe("approvisionner par étapes", () => {
   it("le choix ne porte aucune coordonnée et mène aux deux chemins", () => {
     const src = code(ALIMENTER);
     expect(src).toContain('href="/moi/provision/alimenter/virement"');
-    expect(src).toContain('href="/moi/provision/alimenter/prelevement"');
+    expect(src).toContain('href="/moi/prelevements?de=alimenter"');
     for (const mort of ["Copier", "loadReglement", "RIB / IBAN"]) expect(src, `« ${mort} » est remonté sur le choix`).not.toContain(mort);
   });
   it("« J'ai fait le virement » ne s'offre qu'avec des coordonnées publiées, et mène à la confirmation", () => {
