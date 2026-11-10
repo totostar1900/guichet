@@ -36,7 +36,7 @@ const code = (f: string) =>
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "");
 
-const PAGE_CLIENT = "src/app/moi/provision/alimenter/page.tsx";
+const PAGE_CLIENT = "src/app/moi/provision/alimenter/virement/page.tsx";
 const ACTIONS = "src/app/desk/referentiel/reglement/actions.ts";
 const PAGE_DESK = "src/app/desk/referentiel/reglement/page.tsx";
 const TEMPLATES = "src/lib/documents/pdf/templates.tsx";

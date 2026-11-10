@@ -459,3 +459,24 @@
   color: var(--ink);
   border-color: var(--line-2);
 }
+
+/* UNE TUILE DE CHOIX (10 novembre 2026) : un chemin d'approvisionnement qu'on touche en entier ; le chevron dit qu'il mène à l'étape suivante. */
+.choix {
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  padding-right: var(--s-10);
+}
+.choix:hover,
+.choix:focus-visible {
+  border-color: var(--gold);
+}
+.va {
+  position: absolute;
+  right: var(--s-6);
+  top: 50%;
+  translate: 0 -50%;
+  font-size: var(--t-6);
+  color: var(--gold-ink);
+  line-height: 1;
+}

@@ -18,6 +18,8 @@ import { prochaineEcheance, PREAVIS_JOURS } from "@/lib/domain/prelevement";
 const PAGE = "src/app/moi/provision/page.tsx";
 const PLACER = "src/app/moi/provision/PlacerLaProvision.tsx";
 const ALIMENTER = "src/app/moi/provision/alimenter/page.tsx";
+const VIREMENT = "src/app/moi/provision/alimenter/virement/page.tsx";
+const PRELEVEMENT = "src/app/moi/provision/alimenter/prelevement/page.tsx";
 const PLACER_PAGE = "src/app/moi/provision/placer/page.tsx";
 const lire = (f: string) => readFileSync(f, "utf8");
 /* Le code, pas ce qu'on en dit : la page cite l'ancre morte dans un
@@ -48,7 +50,7 @@ describe("la prochaine échéance d'un mandat", () => {
   it("et le préavis se compte sur le même nombre de jours que le desk applique", () => {
     // La page annonce « annoncé {n} jours avant » : ce n doit être CELUI du robot.
     expect(PREAVIS_JOURS).toBe(5);
-    expect(lire(ALIMENTER)).toMatch(/n: String\(PREAVIS_JOURS\)/);
+    expect(lire(PRELEVEMENT)).toMatch(/n: String\(PREAVIS_JOURS\)/);
   });
 });
 
@@ -82,7 +84,7 @@ describe("les gestes", () => {
     /* Décidé le 9 octobre 2026 : une porte qui n'apparaît qu'à ceux qui l'ont
        déjà franchie n'ouvre sur personne. C'est la leçon des neuf services
        invisibles, et elle vaut ici. */
-    const src = lire(ALIMENTER);
+    const src = lire(PRELEVEMENT);
     expect(src).toMatch(/Mettre en place un prélèvement/);
     expect(src).toMatch(/href="\/moi\/prelevements"/);
     // Les deux branches existent : l'état du mandat, et l'invitation.
@@ -121,7 +123,7 @@ describe("les gestes", () => {
   });
 
   it("recopie les coordonnées dans l'ordre du formulaire, motif en dernier", () => {
-    const src = code(ALIMENTER);
+    const src = code(VIREMENT);
     /* L'aiguille se compose par JSON.stringify, et non en interpolant la
        variable entre les guillemets de l'appel : écrite en clair, elle
        ressemble trait pour trait à un appel au traducteur portant une clef
@@ -193,5 +195,23 @@ describe("les gestes", () => {
   it("ne renvoie plus les ordres en cours sur une ancre morte", () => {
     expect(code(PAGE)).not.toContain("/#ordres-en-cours");
     expect(code(PAGE)).toContain('href="/moi/ordres"');
+  });
+});
+
+/* APPROVISIONNER EN TROIS ÉTAPES (10 novembre 2026, planche 2A) : le choix, le chemin, la confirmation. */
+describe("approvisionner par étapes", () => {
+  it("le choix ne porte aucune coordonnée et mène aux deux chemins", () => {
+    const src = code(ALIMENTER);
+    expect(src).toContain('href="/moi/provision/alimenter/virement"');
+    expect(src).toContain('href="/moi/provision/alimenter/prelevement"');
+    for (const mort of ["Copier", "loadReglement", "RIB / IBAN"]) expect(src, `« ${mort} » est remonté sur le choix`).not.toContain(mort);
+  });
+  it("« J'ai fait le virement » ne s'offre qu'avec des coordonnées publiées, et mène à la confirmation", () => {
+    const src = code(VIREMENT);
+    expect(src).toMatch(/virementPossible && \(\s*<Link href="\/moi\/provision\/alimenter\/virement\/envoye"/);
+    expect(src).toMatch(/<BarreCollante>/);
+    const conf = code("src/app/moi/provision/alimenter/virement/envoye/page.tsx");
+    expect(conf, "la confirmation écrit quelque chose : elle ne doit que dire").not.toMatch(/audit\(|\.insert|\.upsert/);
+    expect(conf).toContain('href="/moi/provision"');
   });
 });

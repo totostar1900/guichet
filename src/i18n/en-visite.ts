@@ -268,4 +268,8 @@ export const EN_VISITE: Record<string, string> = {
   "Des fourchettes, jamais des chiffres exacts : elles dimensionnent, elles ne jugent pas. Une réponse fausse à une vérification est un éclairage à lire.": "Bands, never exact figures: they size, they do not judge. A wrong answer to a check is an insight to read.",
   "Un visiteur garde son profil sur cet appareil ; avec un compte, il rejoint votre dossier et les fiches vous montrent vos repères.": "A visitor keeps the profile on this device; with an account it joins your file and the pages show you your benchmarks.",
   "Vous pouvez le refaire en entier, ou rouvrir un seul bloc ou une seule question depuis le récapitulatif.": "You can redo it in full, or reopen a single block or question from the summary.",
+  "J'ai fait le virement": "I have sent the transfer",
+  "Voir ma provision": "See my provision",
+  "Nous attendons votre virement": "We are waiting for your transfer",
+  "Nous le reconnaissons à son arrivée, grâce au motif ci-dessous. Votre solde se met à jour à ce moment-là.": "We recognise it when it arrives, thanks to the reference below. Your balance updates then.",
 };
