@@ -11,8 +11,3 @@
   flex-direction: column;
   gap: var(--tuiles-gap);
 }
-.titreListe {
-  margin: 0 0 var(--titre-gap);
-  font-size: var(--t-6);
-  font-weight: 700;
-}

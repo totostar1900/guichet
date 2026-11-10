@@ -10,12 +10,22 @@
   flex-direction: column;
   gap: var(--tuiles-gap);
 }
-.recherche {
+/* LA RECHERCHE EST SUR LA RANGÉE DES CHOIX (10 novembre 2026) : étroite, à leur droite ; elle prend ce qu'il reste de la ligne et se rétrécit avant de la casser. */
+.rangee {
   display: flex;
   align-items: center;
+  gap: var(--tuiles-gap);
+  min-width: 0;
+}
+.recherche {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 220px;
+  align-items: center;
   gap: var(--s-3);
-  min-height: 44px;
-  padding: 0 var(--s-5);
+  min-height: 36px;
+  padding: 0 var(--s-4);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -32,8 +42,8 @@
 }
 .choix {
   display: flex;
+  flex: none;
   gap: var(--s-3);
-  flex-wrap: wrap;
 }
 .choix button {
   min-height: 36px;

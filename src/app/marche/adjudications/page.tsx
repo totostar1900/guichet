@@ -44,23 +44,25 @@ export default async function AdjudicationsClientPage() {
   return (
     <Glissement>
       <div className="pile">
-        <EnTete surTitre={`BVMAC · ${t("Le marché")}`} titre={t("Les résultats d'adjudications")} phrase={t("Ce que les Trésors de la zone ont obtenu, séance après séance, tel que leur communiqué le publie.")} aCote={<Info termes={TERMES_DES_RESULTATS} label="Lire les résultats" />} />
+        <EnTete
+          surTitre={`BVMAC · ${t("Le marché")}`}
+          titre={t("Les résultats d'adjudications")}
+          titreApres={<Info termes={TERMES_DES_RESULTATS} label="Lire les résultats" />}
+          phrase={t("Ce que les Trésors de la zone ont obtenu, séance après séance, tel que leur communiqué le publie.")}
+        />
 
         {entrees.length === 0 ? (
           <div className="empty">{t("Aucune séance relue pour le moment.")}</div>
         ) : (
-          <section className={styles.seances} id="seances" aria-labelledby="dernieres-seances">
-            {/* UNE LISTE, UNE CARTE (9 novembre 2026, soir) : résultats confirmés et lignes closes du catalogue se cherchent, se filtrent et se rangent ensemble. */}
-            <h2 id="dernieres-seances" className={styles.titreListe}>
-              {t("Les dernières séances")}
-            </h2>
+          <section className={styles.seances} id="seances">
+            {/* UNE LISTE, UNE CARTE (9 novembre 2026, soir) : résultats confirmés et lignes closes du catalogue se cherchent, se filtrent et se rangent ensemble. Le titre « Les dernières séances » est retiré (10 novembre 2026) : le titre de la page suffit. */}
             <ListeDesSeancesCloses entrees={entrees} />
           </section>
         )}
 
         <p className={styles.source}>
           {t("Guichet reproduit les chiffres des communiqués des Trésors, relus avant publication ; il n'en ajoute aucun.")}{" "}
-          <Link href="/marche">{t("Le marché")}</Link> · <Link href="/calendrier/seances">{t("Calendrier des séances")}</Link>
+          <Link href="/marche">{t("Le marché")}</Link>
         </p>
       </div>
     </Glissement>

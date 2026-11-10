@@ -21,14 +21,6 @@ describe("la page des adjudications", () => {
     expect(b).toMatch(/groupes=\{adj \? \[\] : titres\} collant=\{!adj\}/);
     expect(fs.readFileSync(path.join(process.cwd(), "src/components/market/TeteGroupe.module.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).toMatch(/\.teteLibre \{\s*position: static;/);
   });
-  it("le calendrier a sa page, et plus de place sous la liste", () => {
-    const liste = code("src/app/calendrier/page.tsx");
-    expect(liste, "le calendrier est revenu sous la liste").not.toMatch(/GrilleDuMois|calendrier-des-seances/);
-    expect(code("src/components/OfferBrowser.tsx"), "la tuile vers la page dédiée a disparu de la rangée des filtres").toMatch(/cle: "calendrier", icone: "calendrier", nom: t\("Calendrier"\), href: "\/calendrier\/seances"/);
-    const page = code("src/app/calendrier/seances/page.tsx");
-    expect(page).toMatch(/<GrilleDuMois/);
-    for (const href of ["/sondage", "/moi/suivies", "/echeances"]) expect(page, `le bouton vers ${href} a disparu`).toContain(`href="${href}"`);
-  });
   it("la ligne d'une adjudication a son chevron et son calendrier, quelle que soit la densité", () => {
     expect(code("src/components/OfferBrowser.tsx")).toMatch(/<OfferCard [^>]*extension=\{adj\} \/>/);
     const oc = code("src/components/OfferCard.tsx");
@@ -38,10 +30,9 @@ describe("la page des adjudications", () => {
     for (const mot of ["Ouverture des soumissions", "Clôture des soumissions", "Résultats", "Règlement", "Échéance de la ligne"]) expect(cal, `l'étape « ${mot} » a disparu`).toContain(mot);
     expect(cal, "le temps qui reste est réécrit au lieu d'appeler joursEnMots").toMatch(/joursEnMots\(/);
   });
-  it("la grille du mois : lundi en premier, un point par jour de clôture, jours sans séance inertes", () => {
-    const g = code("src/components/market/GrilleDuMois.tsx");
-    expect(g).toMatch(/\(premier\.getUTCDay\(\) \+ 6\) % 7/);
-    expect(g).toMatch(/disabled=\{n === 0\}/);
-    expect(g, "la grille invente des séances").not.toMatch(/Math\.random|faker/);
+  it("le calendrier des séances n'existe plus : ni la page, ni la grille, ni un lien qui y mène", () => {
+    expect(fs.existsSync(path.join(process.cwd(), "src/app/calendrier/seances/page.tsx")), "la page du calendrier est revenue").toBe(false);
+    expect(fs.existsSync(path.join(process.cwd(), "src/components/market/GrilleDuMois.tsx")), "la grille du mois est revenue").toBe(false);
+    for (const f of ["src/components/OfferBrowser.tsx", "src/app/marche/adjudications/page.tsx", "src/app/calendrier/page.tsx"]) expect(code(f), `${f} mène de nouveau au calendrier des séances`).not.toContain("/calendrier/seances");
   });
 });

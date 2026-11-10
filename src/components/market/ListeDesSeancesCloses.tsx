@@ -59,6 +59,22 @@ export function ListeDesSeancesCloses({ entrees }: { entrees: EntreeClose[] }) {
   return (
     <div className={styles.liste}>
       <div className={styles.barre}>
+        <div className={styles.rangee}>
+        <div className={styles.choix} role="group" aria-label={t("Type de titre")}>
+          {["", ...instruments].map((k) => (
+            <button
+              key={k || "tous"}
+              type="button"
+              aria-pressed={instrument === k}
+              onClick={() => {
+                setInstrument(k);
+                setNb(PAR_PAGE);
+              }}
+            >
+              {k ? t(k) : t("Tout")}
+            </button>
+          ))}
+        </div>
         <label className={styles.recherche}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <circle cx="11" cy="11" r="7" />
@@ -75,20 +91,6 @@ export function ListeDesSeancesCloses({ entrees }: { entrees: EntreeClose[] }) {
             }}
           />
         </label>
-        <div className={styles.choix} role="group" aria-label={t("Type de titre")}>
-          {["", ...instruments].map((k) => (
-            <button
-              key={k || "tous"}
-              type="button"
-              aria-pressed={instrument === k}
-              onClick={() => {
-                setInstrument(k);
-                setNb(PAR_PAGE);
-              }}
-            >
-              {k ? t(k) : t("Tout")}
-            </button>
-          ))}
         </div>
         <div className={styles.selecteurs}>
           <Select

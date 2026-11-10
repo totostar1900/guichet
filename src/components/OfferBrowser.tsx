@@ -1079,7 +1079,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         liens={
           lieu === "adjudications" && !desk
             ? [
-                { cle: "calendrier", icone: "calendrier", nom: t("Calendrier"), href: "/calendrier/seances" },
                 { cle: "resultats", icone: "resultats", nom: t("Résultats"), href: "/marche/adjudications" },
               ]
             : []

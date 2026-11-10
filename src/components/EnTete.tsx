@@ -32,6 +32,7 @@ export function EnTete({
   retour,
   surTitre,
   titre,
+  titreApres,
   reference,
   phrase,
   aCote,
@@ -55,6 +56,8 @@ export function EnTete({
   surTitre?: React.ReactNode;
   /** Le nom de la page. */
   titre: string;
+  /** Un objet posé sur la ligne du titre, juste après son dernier mot (un « i »). Il ne fait pas partie du nom de la page (10 novembre 2026). */
+  titreApres?: React.ReactNode;
   /**
    * LE NOM DE LA PAGE EST UNE RÉFÉRENCE, et se lit donc à chasse fixe.
    *
@@ -113,7 +116,10 @@ export function EnTete({
       <header className={`${styles.tete} ${aCote ? styles.avecCote : ""}`}>
         <div className={styles.mots}>
           {surTitre && <div className={`eyebrow ${styles.surTitre}`}>{surTitre}</div>}
-          <h1 className={`display ${reference ? styles.ref : ""}`}>{titre}</h1>
+          <h1 className={`display ${reference ? styles.ref : ""}`}>
+            {titre}
+            {titreApres && <> {titreApres}</>}
+          </h1>
           {phrase && <p className={styles.phrase}>{phrase}</p>}
         </div>
         {aCote}

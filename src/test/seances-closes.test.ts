@@ -18,7 +18,7 @@ describe("les séances closes", () => {
     expect(badgesFor(offre({}), "closed" as never, now).map((b) => b.key), "la sélection du desk paraît sur une séance close").not.toContain("selection");
     expect(badgesFor(offre({ deadlineAt: "2026-11-20T12:00:00Z" }), "open" as never, now).map((b) => b.key)).toContain("selection");
   });
-  it("la page d'Investir ne montre aucune séance close : ni résultats, ni lignes closes, des liens vers le Marché et le calendrier", () => {
+  it("la page d'Investir ne montre aucune séance close : ni résultats, ni lignes closes, un lien vers les résultats du Marché", () => {
     const p = code("src/app/calendrier/page.tsx");
     expect(p, "les résultats confirmés sont revenus dans Investir").not.toMatch(/listAuctionResults|CarteDeSeanceClose|Séances closes/);
     expect(p, "une ligne close passe encore dans la liste d'Investir").toMatch(/!isPast\(displayStatus\(o, maintenant\)\)/);
@@ -28,7 +28,8 @@ describe("les séances closes", () => {
     expect(p, "le calendrier des séances passées est revenu").not.toMatch(/Calendrier des séances passées/);
     expect(p, "le lien en tête du calendrier est revenu : il est une tuile à côté des filtres").not.toMatch(/Calendrier des séances\} ›/);
     const b = code("src/components/OfferBrowser.tsx");
-    expect(b, "les tuiles Calendrier et Résultats ne sont plus sur la rangée des filtres").toMatch(/cle: "calendrier"[\s\S]*cle: "resultats"/);
+    expect(b, "la tuile Résultats n'est plus sur la rangée des filtres").toMatch(/cle: "resultats", icone: "resultats"/);
+    expect(b, "la tuile Calendrier est revenue : sa page n'existe plus").not.toMatch(/cle: "calendrier"/);
     expect(b, "le bloc des séances closes reparaît même vide").toMatch(/closes\.length > 0 \? \[\{ clef: "closes"/);
   });
   it("le Marché porte UNE liste : les résultats enrichis de leur ligne, et les lignes closes qu'aucun résultat ne porte", () => {
