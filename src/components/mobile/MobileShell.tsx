@@ -50,23 +50,26 @@ const I = {
       <path d="M12 17h.01" />
     </svg>
   ),
-  guichet: (
+  /* LE MARCHÉ : un bâtiment de Bourse, fronton et colonnes (10 novembre 2026, planche « Les icônes du menu du bas », 1B). Les trois traits qu'il portait dessinaient un menu « hamburger », voisin de celui de l'en-tête. */
+  bourse: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M4 7h16M4 12h16M4 17h10" />
+      <path d="M3 9l9-5 9 5" />
+      <path d="M3 9h18" />
+      <path d="M5.5 9v9M9.5 9v9M14.5 9v9M18.5 9v9" />
+      <path d="M3 20h18" />
     </svg>
   ),
-  // Trader : une courbe qui monte vers une flèche, donc le geste et non l'objet.
+  /* L'ACCUEIL : une maison simple, sans porte (10 novembre 2026) : un toit et quatre murs. */
+  maison: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 11l8-7 8 7v9H4z" />
+    </svg>
+  ),
+  // Investir : une courbe qui monte vers une flèche, donc le geste et non l'objet.
   trader: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M3 17l5-6 4 4 6-9" />
       <path d="M14 6h6v6" />
-    </svg>
-  ),
-  // Investir : un disque dont on sépare une part, les familles d'où l'on choisit sa ligne.
-  investir: (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 3v9h9" />
     </svg>
   ),
   fonds: (
@@ -181,16 +184,16 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
        change avec la destination : « Accueil » dit une page d'arrivée,
        « Portefeuille » disait un contenu — et le contenu n'est plus tout ce
        qu'elle porte. */
-    { href: "/", label: t("Accueil"), icon: I.moi, match: isEspaceSection },
+    { href: "/", label: t("Accueil"), icon: I.maison, match: isEspaceSection },
     /* TRADE A ABSORBÉ INSTRUMENTS. Les deux sièges répondaient au même sujet
        par deux axes : l'intention et l'objet. Les cinq services de « Placer »
        menaient déjà aux trois familles, donc le second siège nommait une
        seconde fois ce que le premier menait. Un siège de moins, et la
        quatrième place du dock libérée. */
-    { href: "/activite", label: t("Activité"), icon: I.trader, match: isTraderSection },
+    { href: "/activite", label: t("Activité"), icon: I.moi, match: isTraderSection },
     /* « INVESTIR » EST L'ENTRÉE DES LIGNES EN UN TOUCHER (10 novembre 2026) : Titres, Fonds et Adjudications. Trade garde sa page et ses services, et ne s'allume plus sur les listes ni sur les fiches. Le siège ouvre « /titres », dont les trois tuiles du haut mènent aux deux autres familles. */
-    { href: "/titres", label: t("Investir"), icon: I.investir, match: isInstrumentsSection },
-    { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection },
+    { href: "/titres", label: t("Investir"), icon: I.trader, match: isInstrumentsSection },
+    { href: "/marche", label: t("Marché"), icon: I.bourse, match: isMarcheSection },
     /* LE CINQUIÈME SIÈGE : DEMANDER, ET TROUVER SOI-MÊME. Quatre onglets
        menaient à ce qu'on possède, ce qu'on achète, ce qu'on fait et ce
        qu'on lit du marché ; aucun à la maison elle-même. Le conseiller et

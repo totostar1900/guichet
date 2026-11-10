@@ -31,13 +31,21 @@ describe("l'écran d'attente de toutes les pages", () => {
 
 describe("le siège « Investir » du menu du bas", () => {
   const dock = () => lire("src/components/mobile/MobileShell.tsx");
+  /* LES QUATRE ICÔNES DU MENU DU BAS (10 novembre 2026, planche « Les icônes du menu du bas », 1B) : une maison, une personne, une courbe qui monte, un bâtiment de Bourse. */
+  it("l'Accueil a une maison, l'Activité une personne, Investir une courbe, le Marché un bâtiment de Bourse", () => {
+    const d = lire("src/components/mobile/MobileShell.tsx");
+    expect(d).toMatch(/label: t\("Accueil"\), icon: I\.maison,/);
+    expect(d).toMatch(/label: t\("Marché"\), icon: I\.bourse,/);
+    /* Les trois traits horizontaux sont le dessin d'un menu : ils ne reviennent pas sur le Marché. */
+    expect(d).not.toMatch(/M4 7h16M4 12h16M4 17h10/);
+  });
   it("ouvre Titres, Fonds et Adjudications d'un toucher, entre Trade et Marché", () => {
     const d = dock();
     const ordre = [/href: "\/activite", label: t\("Activité"\)/, /href: "\/titres", label: t\("Investir"\)/, /href: "\/marche", label: t\("Marché"\)/].map((r) => d.search(r));
     expect(ordre.every((i) => i > 0), "un des trois sièges a disparu ou changé de mot").toBe(true);
     expect([...ordre].sort((a, b) => a - b), "« Investir » n'est plus entre Trade et Marché").toEqual(ordre);
-    expect(d, "« Investir » ne s'allume plus sur les trois familles et leurs fiches").toMatch(/label: t\("Investir"\), icon: I\.investir, match: isInstrumentsSection/);
-    expect(d, "Trade s'allume de nouveau sur les familles : deux sièges s'allumeraient ensemble").toMatch(/label: t\("Activité"\), icon: I\.trader, match: isTraderSection/);
+    expect(d, "« Investir » ne s'allume plus sur les trois familles et leurs fiches").toMatch(/label: t\("Investir"\), icon: I\.trader, match: isInstrumentsSection/);
+    expect(d, "Trade s'allume de nouveau sur les familles : deux sièges s'allumeraient ensemble").toMatch(/label: t\("Activité"\), icon: I\.moi, match: isTraderSection/);
   });
   it("Trade ne s'allume que sur sa page, Investir sur les trois familles et leurs fiches", () => {
     for (const p of ["/activite", "/activite/x"]) expect([isTraderSection(p), isInstrumentsSection(p)], p).toEqual([true, false]);
