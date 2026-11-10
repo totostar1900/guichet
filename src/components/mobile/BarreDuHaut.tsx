@@ -294,7 +294,7 @@ export function BarreDuHaut({ attentes, echeances, favoris }: BarreDuHautProps) 
 
                 <div className={styles.rub}>{t("Mon dossier")}</div>
                 {/* « MON ACTIVITÉ » RASSEMBLE CE QUE « PLUS » OUVRAIT À L'ACCUEIL (10 novembre 2026) : ordres, sondages, coupons, rentabilité, provision, versements, prélèvements, documents. */}
-                <Link href="/trader" className={styles.ligne} onClick={fermer}>
+                <Link href="/activite" className={styles.ligne} onClick={fermer}>
                   <Trace d={ICONE.activite} />
                   <span>{t("Mon activité")}</span>
                 </Link>

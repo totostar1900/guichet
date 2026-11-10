@@ -113,7 +113,7 @@ describe("les composants de l'Accueil", () => {
     expect(dossier, "le dossier ne dit plus au domaine qu'aucune adjudication n'est affichée").toMatch(/sansAdjudication: seancesOuvertes\(offers, now\)\.length === 0 && seancesPrevues\(offers, now, 1\)\.length === 0/);
   });
   it("mènent à tout le catalogue par un bouton sous les entrées, et plus par une tuile du bas", () => {
-    expect(grille, "le bouton « Tous vos services » a disparu").toMatch(/<Link href="\/trader#services" className=\{styles\.tous\}>/);
+    expect(grille, "le bouton « Tous vos services » a disparu").toMatch(/<Link href="\/activite#services" className=\{styles\.tous\}>/);
     expect(accueil, "la tuile « Vos services » est revenue au bas de la page").not.toMatch(/Vos services/);
   });
   it("n'annoncent le nombre de lignes dans aucune entrée d'« Investir »", () => {

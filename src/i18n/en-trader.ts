@@ -238,7 +238,7 @@ export const EN_TRADER: Record<string, string> = {
   "la répartition, le rendement, l'échéancier et vos opérations": "the breakdown, the return, the schedule and your operations",
   "Trader maintenant": "Trade now",
   /* Le siège s'appelle Agir depuis le 5 octobre 2026 : un verbe parmi trois
-     noms, et c'est ce qui le distingue. L'adresse reste « /trader ». */
+     noms, et c'est ce qui le distingue. L'adresse reste « /activite ». */
   "Ce que Guichet peut faire pour vous, et par où chaque geste commence.": "What Guichet can do for you, and where each step begins.",
   "Ouvrir un compte-titres": "Open a securities account",
   "Ce service s'écrit sur un compte-titres à votre nom. L'ouverture se fait en ligne et le desk vérifie les pièces.": "This service is written on a securities account in your name. Opening is done online and the desk checks the papers.",

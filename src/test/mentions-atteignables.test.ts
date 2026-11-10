@@ -13,7 +13,7 @@ const code = (p: string) =>
     .replace(/^\s*\/\/.*$/gm, "");
 
 /** Les quatre sièges du dock : ce qu'un client connecté atteint d'un toucher. */
-const SIEGES = ["src/app/page.tsx", "src/app/trader/page.tsx", "src/app/marche/page.tsx", "src/app/aide/page.tsx"];
+const SIEGES = ["src/app/page.tsx", "src/app/activite/page.tsx", "src/app/marche/page.tsx", "src/app/aide/page.tsx"];
 
 /**
  * L'AGRÉMENT RESTE ATTEIGNABLE, MÊME SANS PIED DE PAGE.

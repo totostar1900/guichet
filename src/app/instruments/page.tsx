@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
  * services du rayon « Placer » menaient DÉJÀ aux trois familles. Le siège les
  * nommait une seconde fois, par l'objet au lieu de l'intention.
  *
- * « /trader » porte maintenant les deux : les gestes, et les familles sur
+ * « /activite » porte maintenant les deux : les gestes, et les familles sur
  * lesquelles ils portent. Les trois pages ne bougent pas — « /titres »,
  * « /fonds », « /calendrier » gardent leur adresse, leurs colonnes et leurs
  * onglets de section. Seul le siège qui les abrite a changé de nom et
@@ -22,5 +22,5 @@ import { redirect } from "next/navigation";
  * Redirection temporaire : voir la note de « /portefeuille », même raison.
  */
 export default function InstrumentsDeplaces() {
-  redirect("/trader");
+  redirect("/activite");
 }

@@ -33,7 +33,7 @@ describe("l'Accueil « cartes »", () => {
 
   it("la rangée des quatre gestes est partie : « Verser » et « Retrait » vivent dans l'Activité (10 novembre 2026, planche 2A)", () => {
     expect(page, "la rangée des gestes est revenue sur l'Accueil").not.toMatch(/styles\.raccourcis|PlusDeLAccueil/);
-    const activite = code("src/app/trader/page.tsx");
+    const activite = code("src/app/activite/page.tsx");
     for (const href of ["/moi/provision/alimenter", "/moi/provision/reprendre"]) expect(activite, `le geste vers ${href} a quitté l'Activité`).toContain(`href="${href}"`);
   });
 

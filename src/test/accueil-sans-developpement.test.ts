@@ -204,7 +204,7 @@ describe("la page d'accueil", () => {
     const fautes: string[] = [];
     for (const [f, motifs] of [
       ["src/app/Console.tsx", [/"\{n\} au desk"/, /"1 au desk"/]],
-      ["src/app/trader/Tuiles.tsx", [/"\{n\} en place"/, /"1 en place"/]],
+      ["src/app/activite/Tuiles.tsx", [/"\{n\} en place"/, /"1 en place"/]],
     ] as const) {
       const src = code(f);
       for (const m of motifs) if (m.test(src)) fautes.push(`${f} : ${m.source}`);

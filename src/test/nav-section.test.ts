@@ -82,7 +82,7 @@ describe("la racine, depuis qu'elle est l'accueil", () => {
  * marqué courant. On touchait un siège, on arrivait à destination, et la seule
  * chose qui dit où l'on est restait éteinte.
  *
- * TROIS SIÈGES MARCHAIENT PAR CHANCE, pas par principe : « /trader »,
+ * TROIS SIÈGES MARCHAIENT PAR CHANCE, pas par principe : « /activite »,
  * « /marche » et « /aide » sont à la fois le sommaire et la racine du préfixe
  * que leur règle nomme. Les deux autres ont un sommaire dont l'adresse ne
  * ressemble à rien de ce que le siège contient — « /portefeuille » ne commence
@@ -114,7 +114,7 @@ describe("chaque siège s'allume sur son propre sommaire", () => {
      aussi, dire à quelle règle il appartient. */
   it("lit bien les cinq sièges du dock", () => {
     expect(sommaires.length, `sièges trouvés : ${sommaires.join(", ")}`).toBeGreaterThanOrEqual(5);
-    expect(sommaires, "la racine porte désormais le premier siège, et « Investir » ouvre les familles").toEqual(expect.arrayContaining(["/", "/trader", "/titres"]));
+    expect(sommaires, "la racine porte désormais le premier siège, et « Investir » ouvre les familles").toEqual(expect.arrayContaining(["/", "/activite", "/titres"]));
   });
 
   it("ne laisse aucun sommaire sans siège", () => {

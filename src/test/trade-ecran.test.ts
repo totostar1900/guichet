@@ -53,16 +53,16 @@ describe("l'écran de Trade", () => {
      contenu finissent toujours par diverger ». La meilleure façon de le tenir
      est de n'en avoir qu'un. */
   it("ne rend plus deux arrangements du même contenu", () => {
-    const page = code("src/app/trader/page.tsx");
+    const page = code("src/app/activite/page.tsx");
     for (const parti of ["<Parcours", "<Rayons", "<Fiche", "styles.large", "styles.petit"]) {
       expect(page, `« ${parti} » est revenu : la page rend de nouveau deux fois le même contenu`).not.toContain(parti);
     }
-    for (const f of ["src/app/trader/Parcours.tsx", "src/app/trader/Rayons.tsx", "src/app/trader/Fiche.tsx", "src/app/trader/niveaux.ts"]) {
+    for (const f of ["src/app/activite/Parcours.tsx", "src/app/activite/Rayons.tsx", "src/app/activite/Fiche.tsx", "src/app/activite/niveaux.ts"]) {
       expect(fs.existsSync(path.join(ROOT, f)), `« ${f} » est revenu : les crans intermédiaires avec lui`).toBe(false);
     }
     /* ET LA FICHE N'EST PAS REVENUE SOUS UN AUTRE NOM : ce qu'elle rendait,
        c'était la raison d'être et les étapes, que le brief rend déjà. */
-    const tuiles = code("src/app/trader/Tuiles.tsx");
+    const tuiles = code("src/app/activite/Tuiles.tsx");
     for (const table of ["RAISON", "ETAPES"]) {
       expect(tuiles, `les tuiles lisent « ${table} » : c'est la fiche intermédiaire qui revient, et le brief la dit déjà`).not.toContain(table);
     }
@@ -73,7 +73,7 @@ describe("l'écran de Trade", () => {
      page ». Une tuile qui se dessinerait son propre rond ouvrirait autre
      chose le jour où l'un des deux change. */
   it("ouvre le brief du service depuis la tuile, par le composant de la maison", () => {
-    const tuiles = code("src/app/trader/Tuiles.tsx");
+    const tuiles = code("src/app/activite/Tuiles.tsx");
     expect(tuiles, "les tuiles n'ouvrent plus le brief : le « i » a disparu").toContain("<BriefDuService");
     expect(tuiles, "la tuile s'est dessiné son propre rond : il divergera de celui des pages de service").not.toMatch(/<svg/);
     /* UN SEUL BOUTON DANS LA FEUILLE DU BRIEF : « rond seul partout », décidé
@@ -90,12 +90,12 @@ describe("l'écran de Trade", () => {
      et le rond doit passer au-dessus du calque qui étend le lien — sans quoi
      il répond au clavier et pas à la souris, ce qui ne tombe nulle part. */
   it("ne met pas le « i » dans le lien de la tuile, et le pose au-dessus du calque", () => {
-    const tuiles = code("src/app/trader/Tuiles.tsx");
+    const tuiles = code("src/app/activite/Tuiles.tsx");
     const lien = tuiles.indexOf("<Link");
     const ferme = tuiles.indexOf("</Link>", lien);
     expect(lien, "la tuile ne mène plus nulle part").toBeGreaterThan(0);
     expect(tuiles.slice(lien, ferme), "le « i » est emboîté dans le lien : le navigateur n'en cliquera qu'un").not.toContain("BriefDuService");
-    const css = lire("src/app/trader/page.module.css");
+    const css = lire("src/app/activite/page.module.css");
     expect(css, "le calque qui étend le lien sur la tuile a disparu : seul le nom est cliquable").toMatch(/\.lien::after\s*\{[^}]*position:\s*absolute/);
     expect(css.match(/\.info\s*\{([^}]*)\}/)?.[1], "le rond passe sous le calque du lien : la souris ouvre la page au lieu du brief, et le clavier non").toMatch(/z-index/);
   });
@@ -105,7 +105,7 @@ describe("l'écran de Trade", () => {
      place de sa ligne fixe. Les deux ne coexistent jamais — un service dont
      la porte est fermée n'a pas à expliquer en plus de quoi il s'agit. */
   it("dit la précondition sur la tuile quand il y en a une, à la place de la ligne fixe", () => {
-    const tuiles = code("src/app/trader/Tuiles.tsx");
+    const tuiles = code("src/app/activite/Tuiles.tsx");
     expect(tuiles, "la précondition a disparu de la tuile : quatre tuiles mènent à l'ouverture sans le dire").toMatch(/sv\.porte \? t\(sv\.porte\.key/);
     expect(tuiles, "la ligne fixe a disparu de la tuile").toContain("t(sv.sous)");
   });
@@ -115,21 +115,21 @@ describe("l'écran de Trade", () => {
      viser une fois par lecteur, et l'adresse « ?r=compte » qu'il portait
      n'ouvre plus rien. */
   it("range les tuiles sous deux intertitres qui ne mènent nulle part", () => {
-    const tuiles = code("src/app/trader/Tuiles.tsx");
+    const tuiles = code("src/app/activite/Tuiles.tsx");
     expect(tuiles, "les rayons ne rangent plus les tuiles").toContain("RAYONS.map");
     expect(tuiles, "l'intertitre du rayon a disparu").toMatch(/<h2 className=\{styles\.rayon\}/);
     expect(tuiles, "le rayon est redevenu un endroit où l'on va").not.toMatch(/aller\(|router\.push|<Rubriques/);
-    /* ET L'INDEX DU GUIDE NE PROMET PLUS DE CRAN : « /trader?r=compte »
+    /* ET L'INDEX DU GUIDE NE PROMET PLUS DE CRAN : « /activite?r=compte »
        ouvrirait la même page en annonçant autre chose. */
-    expect(lire("src/lib/guide-index.ts"), "le guide renvoie de nouveau à un cran de rayon qui n'existe plus").not.toContain("/trader?r=");
+    expect(lire("src/lib/guide-index.ts"), "le guide renvoie de nouveau à un cran de rayon qui n'existe plus").not.toContain("/activite?r=");
   });
 
   /* L'EN-TÊTE. La phrase partait en colonne 8 d'une grille de douze, soit huit
      cent vingt pixels à droite du titre qu'elle explique, sur une page dont
      tout le reste tient en une colonne. */
   it("prend son en-tête de l'étalon", () => {
-    expect(lire("src/app/trader/page.tsx"), "la page a repris un en-tête à elle").toContain("<EnTete");
-    expect(lire("src/app/trader/page.module.css"), "la grille de douze colonnes est revenue pour le seul en-tête").not.toMatch(/repeat\(12/);
+    expect(lire("src/app/activite/page.tsx"), "la page a repris un en-tête à elle").toContain("<EnTete");
+    expect(lire("src/app/activite/page.module.css"), "la grille de douze colonnes est revenue pour le seul en-tête").not.toMatch(/repeat\(12/);
   });
 
   /* LE MÊME FRANC, UNE SEULE FOIS. Trade porte en tête le disponible de la
@@ -147,10 +147,10 @@ describe("l'écran de Trade", () => {
      arrangements : la page en gardait un assemblage commun, passé à l'un et
      à l'autre. Il n'y a plus qu'un écran, donc plus de raison d'assembler. */
   it("ne dit le disponible qu'une fois sur la page qui sert à agir", () => {
-    const tsx = lire("src/app/trader/page.tsx");
+    const tsx = lire("src/app/activite/page.tsx");
     expect(tsx, "la bande du disponible a disparu, mais l'attente reste écartée : le chiffre n'est plus nulle part").toContain("styles.solde");
     expect(tsx, "l'attente « disponible » est revenue à côté de la bande : le même franc deux fois").toMatch(/<CeQuiVousAttend[^>]*sauf=\{\["disponible"\]\}/);
-    expect((code("src/app/trader/page.tsx").match(/styles\.solde/g) ?? []).length, "la bande du disponible est écrite plus d'une fois : les deux copies divergeront").toBe(1);
+    expect((code("src/app/activite/page.tsx").match(/styles\.solde/g) ?? []).length, "la bande du disponible est écrite plus d'une fois : les deux copies divergeront").toBe(1);
   });
 
   /* UNE CLEF ÉCARTÉE QUI N'EXISTE PAS N'ÉCARTE RIEN, et ne le dit pas. Le
@@ -160,7 +160,7 @@ describe("l'écran de Trade", () => {
     const corps = lire("src/lib/domain/services.ts");
     const debut = corps.indexOf("export function attentesDuClient");
     const clefs = new Set([...corps.slice(debut).matchAll(/cle:\s*"([^"]+)"/g)].map((m) => m[1]));
-    const ecartees = [...lire("src/app/trader/page.tsx").matchAll(/sauf=\{\[([^\]]*)\]\}/g)].flatMap((m) => [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]));
+    const ecartees = [...lire("src/app/activite/page.tsx").matchAll(/sauf=\{\[([^\]]*)\]\}/g)].flatMap((m) => [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]));
     expect(ecartees.length, "la page n'écarte plus rien : l'épreuve au-dessus devrait déjà l'avoir dit").toBeGreaterThan(0);
     expect(ecartees.filter((c) => !clefs.has(c)), "ces clefs n'existent dans aucune attente : le filtre ne retire rien et le doublon revient").toEqual([]);
   });
@@ -170,7 +170,7 @@ describe("l'écran de Trade", () => {
      justification, 20 en bas, et c'est le bas qui l'emportait. Les deux autres
      piles de plis de la maison sont à 32. */
   it("laisse l'écart de l'étalon entre ses rayons", () => {
-    const css = lire("src/app/trader/page.module.css");
+    const css = lire("src/app/activite/page.module.css");
     const rayons = [...css.matchAll(/\.rayons\s*\{([^}]*)\}/g)];
     expect(rayons.length, "« .rayons » est de nouveau écrit deux fois : la seconde écriture gagne en silence").toBe(1);
     expect(rayons[0][1], "l'écart des rayons n'est plus celui de l'étalon").toMatch(/gap:\s*var\(--sections-gap\)/);
@@ -212,7 +212,7 @@ const releveDesClasses = () => {
      même compteur, et le plus large : le relevé reconnaissait une feuille à son
      basename. Or « page.module.css » existe SOIXANTE-DIX-NEUF fois dans ce
      dépôt — une par route. Les soixante-dix-neuf se mélangeaient donc : une
-     classe de « app/trader/page.module.css » passait pour vivante dès qu'un
+     classe de « app/activite/page.module.css » passait pour vivante dès qu'un
      « page.module.css » quelconque la nommait, et il suffisait qu'UN SEUL de
      leurs lecteurs compose ses noms de classe pour que les soixante-dix-neuf
      sortent du relevé d'un coup. C'est ce qui s'est produit : une classe morte

@@ -62,7 +62,7 @@ export async function GrilleInvestir({ offres }: { offres: Offer[] }) {
         <BlocDeCartes id="investir-titres" titre={page("titres").label} href={page("titres").href} cartes={actions} suivis={suivis} now={now} />
         <BlocDeCartes id="investir-fonds" titre={page("fonds").label} href={page("fonds").href} cartes={fonds} suivis={suivis} now={now} />
         <BlocDeCartes id="investir-adjudications" titre={page("calendrier").label} href={page("calendrier").href} cartes={seances} suivis={suivis} now={now} />
-        <Link href="/trader#services" className={styles.tous}>
+        <Link href="/activite#services" className={styles.tous}>
           {t("Tous vos services")} →
         </Link>
       </section>

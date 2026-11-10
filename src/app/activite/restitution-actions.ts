@@ -25,7 +25,7 @@ export type RestitutionResult = { ok: true; message: string } | { ok: false; err
  * réclame ce qui est réclamable, et le desk recalcule au paiement.
  */
 export async function demanderRestitution(_p: RestitutionResult | null, form: FormData): Promise<RestitutionResult> {
-  const s = await requireSession("/trader");
+  const s = await requireSession("/activite");
   const note = String(form.get("note") ?? "").trim().slice(0, 240) || undefined;
   const r = repo();
   const [entries, intents, payouts, policy] = await Promise.all([r.listCash(s.userId).catch(() => []), r.listIntents(), r.listPayouts({ userId: s.userId }).catch(() => []), loadCashPolicy()]);
@@ -47,7 +47,7 @@ export async function demanderRestitution(_p: RestitutionResult | null, form: Fo
        nouvelle plutôt qu'une panne. */
     return { ok: false, error: "Une demande est déjà en cours. Le desk y répond, et vous recevez un avis." };
   }
-  revalidatePath("/trader");
+  revalidatePath("/activite");
   revalidatePath("/");
   return { ok: true, message: `Demande enregistrée pour ${fmt(montant)} FCFA. Le desk vire sur le compte déclaré à l'ouverture, et vous recevez un avis.` };
 }

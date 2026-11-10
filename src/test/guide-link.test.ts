@@ -49,6 +49,6 @@ describe("la porte du guide depuis une page", () => {
   it("ne force pas un éclairage là où aucune ne parle de la page", () => {
     /* Un lien qui mènerait « quelque part dans le guide » vaut moins que pas de
        lien : il apprend au lecteur que la porte ne sert à rien. */
-    for (const p of ["/", "/trader", "/moi/profil", "/moi/performance", "/moi/documents"]) expect(leconDuClient(p), p).toBeUndefined();
+    for (const p of ["/", "/activite", "/moi/profil", "/moi/performance", "/moi/documents"]) expect(leconDuClient(p), p).toBeUndefined();
   });
 });

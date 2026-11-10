@@ -53,7 +53,7 @@ describe("les icônes de service se voient", () => {
      trait rouvrirait la divergence que cette feuille ferme. Ils gardent la
      taille et la couleur, qui leur appartiennent. */
   it("ne laisse aucun poseur réécrire le trait de son côté", () => {
-    for (const f of ["src/app/trader/page.module.css", "src/components/Pli.module.css", "src/components/mobile/Rubriques.module.css"]) {
+    for (const f of ["src/app/activite/page.module.css", "src/components/Pli.module.css", "src/components/mobile/Rubriques.module.css"]) {
       const bloc = lire(f);
       const marque = bloc.slice(bloc.indexOf(".marque svg"), bloc.indexOf("}", bloc.indexOf(".marque svg")));
       expect(marque, `${f} réécrit la peinture des icônes`).not.toMatch(/fill:|stroke:/);
@@ -109,7 +109,7 @@ describe("les icônes de service se voient", () => {
    * s'ouvre ni sur un téléphone ni sur un écran de bureau.
    */
   it("pose l'écusson dans le bandeau de la tuile (9 novembre 2026, 2A), la tuile restant le repère du calque du lien", () => {
-    const css = lire("src/app/trader/page.module.css");
+    const css = lire("src/app/activite/page.module.css");
     expect(css, "l'écusson n'est plus dans le flux du bandeau").toMatch(/\.marque \{[\s\S]*?flex: none;[\s\S]*?width: 32px/);
     expect(css, "l'écusson a repris une position absolue : il passerait sous le nom").not.toMatch(/\.marque \{[^}]*position: absolute/);
     expect(css, "la tuile n'est plus le repère du calque du lien").toMatch(/\.tuile \{\n\s*position: relative/);

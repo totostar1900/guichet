@@ -62,7 +62,7 @@ export const INSTRUMENTS_PAGES: NavPage[] = [
  * exactement ce que la fusion des sièges a retiré.
  */
 export const AGIR_PAGES: NavPage[] = [
-  { key: "trader", href: "/trader", label: "Passer un ordre", tuile: "acheter ou vendre", hint: "acheter, souscrire, vendre ou demander un rachat" },
+  { key: "trader", href: "/activite", label: "Passer un ordre", tuile: "acheter ou vendre", hint: "acheter, souscrire, vendre ou demander un rachat" },
   { key: "prelevements", href: "/moi/prelevements", label: "Prélèvement automatique", tuile: "placer chaque mois", hint: "une somme prélevée à date fixe, sous un plafond que vous fixez" },
   /* DEUX DÉCISIONS, ET NON UNE. « Épargne programmée » dit combien part,
      quand, et vers quoi : c'est un placement qui se répète. Le mandat de

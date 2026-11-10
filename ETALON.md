@@ -42,7 +42,7 @@ Mesuré à 390 px, le format qui commande.
 | `/moi/provision` | 14 | 30 | 17 | sur-titre |
 | `/marche` | 14 | 30 | 17 | sur-titre |
 | `/` | 14 | **27→39** | 11 | rien |
-| `/trader` | 14 | 26 | 11 | rien |
+| `/activite` | 14 | 26 | 11 | rien |
 | `/moi/securite` | 14 | 24 | 17 | **fil d'Ariane** « Portefeuille › Sécurité » |
 | `/moi/ordres` | 46 | 24 | 14 | rien |
 | `/fonds` | 14 | 20 | — | rien |
@@ -199,7 +199,7 @@ où les choses sont.
 | `/titres` | titre 16 → 30 ; c'est le plus gros écart de l'application |
 | `/fonds`, `/calendrier` | titre 20 → 30 |
 | `/moi/securite`, `/moi/ordres` | titre 24 → 30 ; le fil d'Ariane devient un sur-titre |
-| `/trader`, `/moi/compte` | titre 26 → 30 ; retrait des trois points de Trade (point 12) |
+| `/activite`, `/moi/compte` | titre 26 → 30 ; retrait des trois points de Trade (point 12) |
 | `/` | titre fluide 27-39 → 30 fixe |
 | `/moi/documents`, `/moi/textes`, `/moi/performance` | la boîte perd ses 16 px latéraux : gouttière 30 → marge du gabarit |
 | toutes | un seul écart de sections ; un seul genre dans le créneau d'avant-titre |
@@ -277,7 +277,7 @@ pièces ». *L'épreuve des retours lit `retour={{ … }}` : elle ne pouvait rie
 voir d'un `<Link>` écrit à la main.*
 
 → *Deux grilles de douze colonnes montées pour un seul en-tête sont parties
-avec lui — celle de `/trader` en début de journée, celle d'`/info/risques` au
+avec lui — celle de `/activite` en début de journée, celle d'`/info/risques` au
 soir, où la phrase partait en colonne 9, loin à droite du titre qu'elle
 explique.*
 
@@ -808,7 +808,7 @@ Consigne du client : « s'inspirer fortement de la page Titres ». La fiche d'un
 
 ### 8.12 Entrer dans les lignes d'un toucher, et ne jamais laisser un lien muet (10 novembre 2026)
 
-- **Le menu du bas a cinq sièges : Accueil · Trade · Investir · Marché · Aide.** « Investir » ouvre `/titres`, dont les trois tuiles du haut mènent à Fonds et à Adjudications : les trois familles et les fiches qui en viennent lui appartiennent (`isInstrumentsSection`). **La page Trade n'est pas touchée** : son siège ne s'allume plus que sur `/trader` (`isTraderSection`), sans quoi deux sièges s'allumeraient ensemble sur une liste. La bande du haut dit « INVESTIR · Titres » ; la bande de l'écran large garde « Trade » (`isTradeSection`). C'est le cinquième siège que la fusion du 24 octobre avait retiré, remis à la demande du client : à 390 px chaque siège fait 78 px, et les cinq libellés tiennent.
+- **Le menu du bas a cinq sièges : Accueil · Trade · Investir · Marché · Aide.** « Investir » ouvre `/titres`, dont les trois tuiles du haut mènent à Fonds et à Adjudications : les trois familles et les fiches qui en viennent lui appartiennent (`isInstrumentsSection`). **La page Trade n'est pas touchée** : son siège ne s'allume plus que sur `/activite` (`isTraderSection`), sans quoi deux sièges s'allumeraient ensemble sur une liste. La bande du haut dit « INVESTIR · Titres » ; la bande de l'écran large garde « Trade » (`isTradeSection`). C'est le cinquième siège que la fusion du 24 octobre avait retiré, remis à la demande du client : à 390 px chaque siège fait 78 px, et les cinq libellés tiennent.
 - **Un écran d'attente à la racine** (`src/app/loading.tsx`) : squelette à l'instant du toucher (titre, phrase, trois encadrés en relief, jetons de la maison, pulsation arrêtée pour qui veut moins d'animation), menu et bande restant interactifs. Mesuré : le squelette paraît 104 ms après le toucher alors que le serveur répond 2,5 s plus tard. **Réserve connue** (docs Next, « Status Codes ») : une page qui répond « introuvable » après le début du flux répond 200 avec `noindex` et non 404.
 - **Simulation du point 2 (11 novembre 2026, latence de base simulée, client avec dossier, 6 pages)** : la réponse vaut ~3,3 fois la latence d'une lecture, en **trois étapes en série** : la fiche client (session), les préférences (la langue, relues APRÈS la session), puis les ~13 lectures du socle en parallèle. Retirer le socle du chemin critique : −32 % (207 → 140 ms à 60 ms de latence ; 389 → 261 à 120). Lire la langue sans attendre la session : −27 %. **Les deux : −61 %** (207 → 80 ms ; 389 → 141). Un client sans dossier propre paie deux étapes de plus (`accesDeLaPersonne`, `accesParCanal`, non classées dans `READS` : elles vident la mémoire de la requête). Rien de ce prototype n'est gardé : `SIMUL_LAT_MS` et les deux bascules ont été retirés.
 - **Livré le 11 novembre 2026 (point 2, partie « langue »)** : les préférences du compte partent avec la recherche du dossier (`lireLaSessionDeBase`, une authentification nue gardée par requête ; `getSession` en travaille une copie), au lieu d'attendre la session. La chaîne passe de trois étapes à deux (tracée : `getClientFileByUser` et `getPrefs` démarrent ensemble). **Mesuré à latence simulée égale : 207 → 145 ms (−30 %) à 60 ms, 389 → 263 ms (−32 %) à 120 ms.** Deux lectures de l'accès nommé (`accesDeLaPersonne`, `accesParCanal`) sont classées parmi les lectures de la mémoire de la requête : non classées, elles la vidaient et le dossier était relu (un nouveau client sans dossier payait deux étapes de plus).
@@ -952,7 +952,7 @@ Mesuré à l'écran, cette fois sur **trente-six pages** de l'application :
 La taille tenait donc partout, et la fonte nulle part. **Ce qui décidait
 n'était pas ce qu'EST la page, mais quelle coquille elle avait importée** :
 `Feuillet` pose le serif, `EnTete` ne pose rien. D'où `/portefeuille` et
-`/aide` en serif, `/marche` et `/trader` en sans — les quatre étant des
+`/aide` en serif, `/marche` et `/activite` en sans — les quatre étant des
 sommaires de siège.
 
 La ligne retenue était déjà écrite en tête de la feuille de la console : *« Le

@@ -175,7 +175,7 @@ export async function DossierAccueil({
 
   const GESTES: Record<GesteProposable, { href: string; nom: string; dit: string }> = {
     dossier: { href: "/ouvrir-un-compte", nom: t("Compléter mon dossier"), dit: t("Dix minutes pour pouvoir verser et placer") },
-    intention: { href: "/trader", nom: t("Déclarer une intention sur une ligne"), dit: t("Dites ce que vous prendriez, le desk revient vers vous") },
+    intention: { href: "/activite", nom: t("Déclarer une intention sur une ligne"), dit: t("Dites ce que vous prendriez, le desk revient vers vous") },
     versement: { href: "/moi/epargne", nom: t("Programmer un versement"), dit: t("Une somme chaque mois, sans y penser") },
     reinvestir: { href: "/moi/reinvestir", nom: t("Réinvestir mes coupons"), dit: t("Ne laissez pas dormir ce qui vous revient") },
     appareil: { href: "/moi/securite", nom: t("Ajouter ce téléphone"), dit: t("Ouvrir d'un doigt la prochaine fois") },

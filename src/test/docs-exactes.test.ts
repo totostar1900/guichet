@@ -184,7 +184,7 @@ describe("la date « vérifié le »", () => {
       " D src/data/docs/partie.ts", // supprimée : rendue, l'appelant l'écarte
       " M src/data/docs/index.ts", // le sommaire n'est pas une page
       " M src/data/docs/types.ts", // le type non plus
-      " M src/app/trader/page.tsx", // hors du dossier
+      " M src/app/activite/page.tsx", // hors du dossier
       /* ET UN « .ts » HORS DU DOSSIER, qui est le seul cas où le filtre du
          dossier travaille vraiment. Sans cette ligne, on pouvait retirer le
          « startsWith » sans que rien ne tombe : les deux autres intrus sont

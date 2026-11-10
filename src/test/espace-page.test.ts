@@ -158,7 +158,7 @@ describe("chaque feuille de page est convertie, ou le dit", () => {
 const FAMILLES_DE_TUILES: [string, string][] = [
   ["src/components/mobile/Rubriques.module.css", ".ligne"],
   ["src/components/CeQuiFermeBientot.module.css", ".ligne"],
-  ["src/app/trader/page.module.css", ".tuile"],
+  ["src/app/activite/page.module.css", ".tuile"],
   ["src/app/info/aide/aide.module.css", ".tile"],
   ["src/app/info/page.module.css", ".tile"],
   ["src/app/info/page.module.css", ".lesson"],
@@ -215,7 +215,7 @@ describe("l'aspect des tuiles", () => {
   });
 
   it("et l'écart des tuiles de Trade lit le jeton comme les autres", () => {
-    expect(sansNotes(lire("src/app/trader/page.module.css")), "les tuiles de Trade écrivent leur écart en dur").toMatch(/\.tuiles\s*\{[^}]*gap:\s*var\(--tuiles-gap\);/);
+    expect(sansNotes(lire("src/app/activite/page.module.css")), "les tuiles de Trade écrivent leur écart en dur").toMatch(/\.tuiles\s*\{[^}]*gap:\s*var\(--tuiles-gap\);/);
   });
 });
 

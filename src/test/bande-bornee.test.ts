@@ -51,7 +51,7 @@ describe("la bande se borne", () => {
    */
   it("distingue la page d'arrivée des deux sièges", () => {
     expect(sansCommentaires(lire("app/Console.tsx")), "la page d'arrivée ne porte plus la liste entière").toMatch(/<CeQuiVousAttend userId=\{session\.userId\} tout \/>/);
-    for (const p of ["app/portefeuille/page.tsx", "app/trader/page.tsx"]) {
+    for (const p of ["app/portefeuille/page.tsx", "app/activite/page.tsx"]) {
       expect(sansCommentaires(lire(p)), `${p} : un siège porte la file d'attente entière`).not.toContain("tout");
     }
   });

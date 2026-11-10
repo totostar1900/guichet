@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { useDates, useT } from "@/i18n/client";
 import { fmt } from "@/lib/format";
-import { demanderRestitution, type RestitutionResult } from "./trader/restitution-actions";
+import { demanderRestitution, type RestitutionResult } from "./activite/restitution-actions";
 import styles from "./Console.module.css";
 
 /**

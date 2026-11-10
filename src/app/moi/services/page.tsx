@@ -11,5 +11,5 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 export default function AnciensServices() {
-  redirect("/trader");
+  redirect("/activite");
 }

@@ -29,7 +29,7 @@ export interface Lieu {
 export const SIEGES = { accueil: "Accueil", trade: "Activité", investir: "Investir", marche: "Marché", aide: "Aide", compte: "Compte" } as const;
 
 /** L'adresse de chaque siège : sur elle, la bande ne dit que le siège. */
-const RACINES = ["/", "/trader", "/marche", "/aide"];
+const RACINES = ["/", "/activite", "/marche", "/aide"];
 
 const plusLong = (path: string, pages: NavPage[]): string | undefined => {
   let meilleur: NavPage | undefined;
@@ -37,7 +37,7 @@ const plusLong = (path: string, pages: NavPage[]): string | undefined => {
     const ok = p.href === "/" ? path === "/" : path === p.href || path.startsWith(`${p.href}/`);
     if (ok && (!meilleur || p.href.length > meilleur.href.length)) meilleur = p;
   }
-  // LA RACINE EST LE SIÈGE LUI-MÊME : « Trade › Passer un ordre » sur « /trader » redirait, comme « Accueil › Tableau de bord ».
+  // LA RACINE EST LE SIÈGE LUI-MÊME : « Trade › Passer un ordre » sur « /activite » redirait, comme « Accueil › Tableau de bord ».
   return meilleur && !RACINES.includes(meilleur.href) ? meilleur.label : undefined;
 };
 
@@ -47,7 +47,7 @@ export function lieuDe(brut: string): Lieu | null {
   const compte = path === "/moi/compte" || path.startsWith("/moi/compte/") || COMPTE_PAGES.some((p) => path === p.href || path.startsWith(`${p.href}/`));
   if (compte) return { siege: SIEGES.compte, rubrique: path === "/moi/compte" ? undefined : plusLong(path, COMPTE_PAGES) };
   if (isAideSection(path)) return { siege: SIEGES.aide, rubrique: plusLong(path, AIDE_PAGES) };
-  /* « INVESTIR » : les trois familles et les fiches qui en viennent. Trade garde sa page (« /trader »). */
+  /* « INVESTIR » : les trois familles et les fiches qui en viennent. Trade garde sa page (« /activite »). */
   if (isInstrumentsSection(path)) {
     const ref = path.startsWith("/offres/") ? listForFiche(path) : path;
     return { siege: SIEGES.investir, rubrique: plusLong(ref, INSTRUMENTS_PAGES) };

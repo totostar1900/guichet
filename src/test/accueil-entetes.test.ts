@@ -51,11 +51,11 @@ describe("les en-têtes de l'Accueil", () => {
  * LA PAGE TRADE PARLE COMME L'ACCUEIL (9 novembre 2026, planche « La page Trade », choix 4A · 2A · 1A ; le compte non ouvert, point 3, est laissé tel quel).
  */
 describe("la page Trade", () => {
-  const trade = css("src/app/trader/page.module.css");
+  const trade = css("src/app/activite/page.module.css");
   const regle = (sel: string) => new RegExp(`(?:^|\\n)\\${sel} \\{([^}]*)\\}`).exec(trade)?.[1] ?? "";
 
   it("« Ce qui ferme bientôt » n'est plus sur cette page : l'Activité ne le redit pas, la liste des adjudications et l'Accueil le disent (10 novembre 2026)", () => {
-    expect(lire("src/app/trader/page.tsx")).not.toMatch(/<CeQuiFermeBientot/);
+    expect(lire("src/app/activite/page.tsx")).not.toMatch(/<CeQuiFermeBientot/);
   });
 
   it("une tuile de service a son bandeau : icône, nom en encre à --t-6, « Ouvrir › » en or, une ligne, 44 px", () => {
@@ -63,7 +63,7 @@ describe("la page Trade", () => {
     expect(regle(".entete"), "le bandeau n'atteint plus 44 px").toMatch(/min-height:\s*44px/);
     expect(regle(".nom"), "le nom n'est plus à --t-6 en encre").toMatch(/color:\s*var\(--ink\)[\s\S]*font-size:\s*var\(--t-6\)|font-size:\s*var\(--t-6\)[\s\S]*color:\s*var\(--ink\)/);
     expect(regle(".ouvrir"), "« Ouvrir › » n'est plus en or").toMatch(/color:\s*var\(--gold-ink\)/);
-    expect(lire("src/app/trader/Tuiles.tsx")).toMatch(/<span className=\{styles\.ouvrir\}>\{t\("Ouvrir"\)\} ›<\/span>/);
+    expect(lire("src/app/activite/Tuiles.tsx")).toMatch(/<span className=\{styles\.ouvrir\}>\{t\("Ouvrir"\)\} ›<\/span>/);
   });
 
   it("le solde : montant à --t-7, « Rien en provision » à --t-5, geste écrit dans un bouton de 44 px", () => {

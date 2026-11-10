@@ -5,12 +5,12 @@ import { lieuDe, SIEGES } from "@/lib/domain/lieu";
 describe("lieuDe : où l'on est, en un siège et une rubrique", () => {
   it("un siège seul quand la page est sa racine", () => {
     expect(lieuDe("/")).toEqual({ siege: "Accueil", rubrique: undefined });
-    expect(lieuDe("/trader")?.siege).toBe("Activité");
+    expect(lieuDe("/activite")?.siege).toBe("Activité");
     expect(lieuDe("/marche")?.siege).toBe("Marché");
     expect(lieuDe("/aide")?.siege).toBe("Aide");
   });
   it("sur la racine d'un siège, la bande ne redit pas le siège par une rubrique", () => {
-    for (const r of ["/trader", "/marche", "/aide"]) expect(lieuDe(r)?.rubrique, `« ${r} » est la racine de son siège : pas de rubrique`).toBeUndefined();
+    for (const r of ["/activite", "/marche", "/aide"]) expect(lieuDe(r)?.rubrique, `« ${r} » est la racine de son siège : pas de rubrique`).toBeUndefined();
     // Non-vacuité : une page qui n'est pas une racine garde la sienne.
     expect(lieuDe("/titres")?.rubrique).toBeTruthy();
   });

@@ -6,7 +6,7 @@
  *
  * C'est aussi ce qui règle le saut de l'onglet : dans une page il n'y a plus d'onglet allumé à tort (l'éclairage ouvert depuis le Marché allumait « Aide »).
  */
-export const RACINES = ["/", "/trader", "/titres", "/fonds", "/calendrier", "/marche", "/aide"] as const;
+export const RACINES = ["/", "/activite", "/titres", "/fonds", "/calendrier", "/marche", "/aide"] as const;
 
 export const estRacine = (chemin: string): boolean => (RACINES as readonly string[]).includes(chemin.split("?")[0].replace(/(.)\/$/, "$1"));
 

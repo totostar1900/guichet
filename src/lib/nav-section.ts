@@ -35,7 +35,7 @@ export const TITRES = "/titres";
  *
  * La cause n'est pas dans le dock, elle est ici : chaque siège mène à son
  * sommaire, et deux de ces sommaires ne figuraient dans aucune des règles
- * d'appartenance. « /trader », « /marche » et « /aide » s'allumaient parce que
+ * d'appartenance. « /activite », « /marche » et « /aide » s'allumaient parce que
  * leur règle nomme leur propre adresse — par chance, pas par principe : elles
  * sont à la fois le sommaire et la racine d'un préfixe. Les deux autres ont un
  * sommaire dont l'adresse ne ressemble à rien de ce que le siège contient
@@ -47,7 +47,7 @@ export const TITRES = "/titres";
  */
 /* LES DEUX SOMMAIRES ONT DISPARU, le 24 octobre 2026, et avec eux le défaut
    qu'ils avaient créé. « /portefeuille » redirige vers la racine, qui porte
-   déjà le tableau de bord ; « /instruments » redirige vers « /trader », qui a
+   déjà le tableau de bord ; « /instruments » redirige vers « /activite », qui a
    absorbé les trois familles. Un siège dont le sommaire a sa propre adresse
    devait la déclarer ici pour s'allumer ; un siège dont le sommaire EST sa
    racine n'a plus rien à déclarer. */
@@ -111,7 +111,7 @@ export const isInstrumentsSection = (path: string): boolean =>
  * nommait par l'instrument ; Trade nomme par l'intention, et c'est l'axe que
  * le domaine avait déjà choisi.
  */
-export const isTradeSection = (path: string): boolean => path.startsWith("/trader") || isInstrumentsSection(path);
+export const isTradeSection = (path: string): boolean => path.startsWith("/activite") || isInstrumentsSection(path);
 
 /**
  * LE SIÈGE TRADE DU TÉLÉPHONE N'EST QUE SA PAGE (10 novembre 2026).
@@ -119,7 +119,7 @@ export const isTradeSection = (path: string): boolean => path.startsWith("/trade
  * Le dock a un siège « Investir » qui ouvre Titres, Fonds et Adjudications d'un geste : les trois familles et les fiches qui en viennent lui appartiennent (« isInstrumentsSection »). Trade garde sa page et ses services,
  * et ne s'allume plus que sur elle ; sans cela deux sièges s'allumeraient ensemble sur « /titres ». La bande de l'écran large, elle, garde « isTradeSection ».
  */
-export const isTraderSection = (path: string): boolean => path.startsWith("/trader");
+export const isTraderSection = (path: string): boolean => path.startsWith("/activite");
 
 /**
  * LE SIÈGE « AIDE » : DEMANDER, ET TROUVER SOI-MÊME.

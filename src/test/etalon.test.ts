@@ -436,7 +436,7 @@ describe("l'en-tête d'une page", () => {
  * Instrument Serif et vingt-huit en Manrope, toutes à 30 px. La taille de
  * l'étalon tenait donc partout, et la fonte nulle part — et ce qui décidait
  * n'était pas ce qu'EST la page, mais quelle coquille elle avait importée :
- * « /portefeuille » et « /aide » en serif, « /marche » et « /trader » en
+ * « /portefeuille » et « /aide » en serif, « /marche » et « /activite » en
  * sans, tous les quatre sommaires de siège.
  *
  * LA LIGNE ÉTAIT DÉJÀ ÉCRITE DANS CE DÉPÔT, en tête de la feuille de la

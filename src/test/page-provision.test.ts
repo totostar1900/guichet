@@ -115,7 +115,7 @@ describe("les gestes", () => {
      essai, et l'essai porte sur un geste d'argent. */
   it("nomme la page du verbe que portent les liens vers elle", () => {
     expect(code(ALIMENTER), "le titre de la page n'est plus celui du 25 octobre 2026").toContain('titre={t("Approvisionner votre compte")}');
-    for (const f of [PAGE, "src/app/trader/page.tsx"]) {
+    for (const f of [PAGE, "src/app/activite/page.tsx"]) {
       const src = code(f);
       expect(src, `${f} ne mène plus à la page : il n'y a plus de verbe à comparer`).toContain('href="/moi/provision/alimenter"');
       expect(src, `${f} ouvre la page en l'annonçant d'un autre verbe`).toMatch(/\{t\("Approvisionner"\)\}/);

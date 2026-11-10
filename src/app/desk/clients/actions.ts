@@ -210,7 +210,7 @@ export async function setAdvisorAction(form: FormData): Promise<void> {
       : `Rattachement <b>retiré</b> par ${desk.name}${porteur ? ` chez ${porteur}` : ""} : le desk répond`,
   });
   revalidatePath("/desk/clients");
-  revalidatePath("/trader");
+  revalidatePath("/activite");
 }
 
 export async function removeClientDeviceAction(form: FormData): Promise<void> {

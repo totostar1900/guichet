@@ -9,7 +9,7 @@
 
 /** [feuille, classe du conteneur] — le conteneur lit `--sections-gap`. */
 export const CONVERTIES: [string, string][] = [
-  ["src/app/trader/page.module.css", "page"],
+  ["src/app/activite/page.module.css", "page"],
   ["src/app/moi/reinvestir/page.module.css", "page"],
   ["src/app/moi/epargne/page.module.css", "page"],
   ["src/app/moi/documents/page.module.css", "page"],

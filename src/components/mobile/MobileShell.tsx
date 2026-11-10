@@ -187,7 +187,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
        menaient déjà aux trois familles, donc le second siège nommait une
        seconde fois ce que le premier menait. Un siège de moins, et la
        quatrième place du dock libérée. */
-    { href: "/trader", label: t("Activité"), icon: I.trader, match: isTraderSection },
+    { href: "/activite", label: t("Activité"), icon: I.trader, match: isTraderSection },
     /* « INVESTIR » EST L'ENTRÉE DES LIGNES EN UN TOUCHER (10 novembre 2026) : Titres, Fonds et Adjudications. Trade garde sa page et ses services, et ne s'allume plus sur les listes ni sur les fiches. Le siège ouvre « /titres », dont les trois tuiles du haut mènent aux deux autres familles. */
     { href: "/titres", label: t("Investir"), icon: I.investir, match: isInstrumentsSection },
     { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection },

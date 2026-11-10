@@ -332,7 +332,7 @@ describe("les aperçus des tuiles de Trade", () => {
 
     /* ET L'ENCRE S'EFFACE : la feuille pose « --ink-3 » sur les deux moitiés
        de la ligne, comme les sous-titres de la maison. */
-    const css = lire("src/app/trader/page.module.css");
+    const css = lire("src/app/activite/page.module.css");
     const bloc = css.slice(css.indexOf(".prose em,"));
     expect(bloc.slice(0, 120), "le repli ne s'efface plus : il se lit comme une donnée du client").toMatch(/color:\s*var\(--ink-3\)/);
   });
@@ -347,10 +347,10 @@ describe("les aperçus des tuiles de Trade", () => {
      et que la tuile rende ce qu'on lui confie — un aperçu calculé et jamais
      posé ne se voit nulle part. */
   it("calcule l'aperçu une seule fois, et la tuile le rend", () => {
-    const page = code("src/app/trader/page.tsx");
+    const page = code("src/app/activite/page.tsx");
     expect((page.match(/apercusDuService\(/g) ?? []).length, "la page ne calcule plus les aperçus une seule fois").toBe(1);
     expect(page, "les tuiles ne reçoivent plus les aperçus").toMatch(/<Tuiles[^>]*apercus=\{apercus\}/);
-    expect(code("src/app/trader/Tuiles.tsx"), "la tuile ne rend plus l'aperçu qu'on lui confie").toContain("a.dit.key");
+    expect(code("src/app/activite/Tuiles.tsx"), "la tuile ne rend plus l'aperçu qu'on lui confie").toContain("a.dit.key");
   });
 
   /* ET AUCUNE LECTURE DE PLUS : c'est la condition qui a permis de les écrire.

@@ -20,7 +20,7 @@ import { deskHostServes } from "@/lib/hosts";
  * Les fichiers servis aux deux publics vivent sous « /api », que les deux hôtes
  * servent (DESK_HOST_ALLOW), et gardent leur propre garde.
  */
-const SURFACES_CLIENT = ["src/app/moi", "src/app/ouvrir-un-compte", "src/app/offres", "src/app/trader", "src/app/indice", "src/app/titres", "src/app/fonds", "src/app/comparer", "src/app/societes"];
+const SURFACES_CLIENT = ["src/app/moi", "src/app/ouvrir-un-compte", "src/app/offres", "src/app/activite", "src/app/indice", "src/app/titres", "src/app/fonds", "src/app/comparer", "src/app/societes"];
 
 function fichiers(racine: string): string[] {
   const out: string[] = [];

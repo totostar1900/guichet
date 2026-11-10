@@ -68,7 +68,7 @@ const TABS = [
      « /titres » vit sous un siège dont le menu l'ignore. Les neuf services
      tiennent toujours sur sa page, avec leur état et leurs étapes ; le menu
      ne porte que les destinations. */
-  { href: "/trader", label: "Trade", match: isTradeSection, connecte: true, pages: TRADE_PAGES },
+  { href: "/activite", label: "Trade", match: isTradeSection, connecte: true, pages: TRADE_PAGES },
   // Le catalogue : les titres, les fonds, les adjudications, l'indice, les
   // sociétés, les analyses. La bande « Sur le même sujet » dit la même famille
   // au pied de chaque article, et les deux se lisent dans MARKET_PAGES.

@@ -297,7 +297,7 @@ export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
                         d'abord pour la maison : c'est précisément pour cela
                         qu'il se montre, et c'est aussi ainsi qu'un client
                         repère un accès qui n'est pas le sien avant nous. */}
-                    <Link className={styles.tile} href="/trader" onClick={close}>
+                    <Link className={styles.tile} href="/activite" onClick={close}>
                       <Icon d={D.clock} />
                       <b>{t("Mon activité")}</b>
                       <small>{t("tout ce qui a été fait sur votre compte")}</small>

@@ -136,7 +136,7 @@ describe("les deux gestes, bout à bout", () => {
 
   it("le client demande, le desk verse le disponible du jour, et l'écart est dit", async () => {
     const { repo } = await import("@/lib/data");
-    const { demanderRestitution } = await import("@/app/trader/restitution-actions");
+    const { demanderRestitution } = await import("@/app/activite/restitution-actions");
     const { payerRestitution } = await import("@/app/desk/encaissements/payout-actions");
     const r = repo();
     const u = sien();
@@ -168,7 +168,7 @@ describe("les deux gestes, bout à bout", () => {
 
   it("deux demandes ouvertes à la fois sont impossibles", async () => {
     const { repo } = await import("@/lib/data");
-    const { demanderRestitution } = await import("@/app/trader/restitution-actions");
+    const { demanderRestitution } = await import("@/app/activite/restitution-actions");
     const r = repo();
     const u = sien();
     await r.addCash({ userId: u, amount: 500_000, kind: "coupon", label: "Coupon" });
@@ -204,7 +204,7 @@ describe("les deux gestes, bout à bout", () => {
 
   it("un refus sans motif n'est pas une réponse", async () => {
     const { repo } = await import("@/lib/data");
-    const { demanderRestitution } = await import("@/app/trader/restitution-actions");
+    const { demanderRestitution } = await import("@/app/activite/restitution-actions");
     const { refuserRestitution } = await import("@/app/desk/encaissements/payout-actions");
     const r = repo();
     const u = sien();

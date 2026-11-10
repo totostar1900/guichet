@@ -138,7 +138,7 @@ describe("où la liste se lit", () => {
   it("un seul assemblage sert la bande et les services", () => {
     // La page « Agir » en refaisait un deuxième, et lui seul remplissait
     // compteOuvert : la bande supposait donc partout le compte ouvert.
-    const src = lire("src/app/trader/page.tsx");
+    const src = lire("src/app/activite/page.tsx");
     expect(src).toContain("contexteDuClient(s.userId)");
     expect(src).not.toContain("const ctx: ContexteClient = {");
   });

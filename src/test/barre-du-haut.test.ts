@@ -97,7 +97,7 @@ describe("la barre du haut", () => {
 describe("les racines et les pages", () => {
   it("n'a que sept racines, et les connaît avant la première image", () => {
     const n = lire("src/lib/nav-profondeur.ts");
-    expect(n).toMatch(/RACINES = \["\/", "\/trader", "\/titres", "\/fonds", "\/calendrier", "\/marche", "\/aide"\] as const/);
+    expect(n).toMatch(/RACINES = \["\/", "\/activite", "\/titres", "\/fonds", "\/calendrier", "\/marche", "\/aide"\] as const/);
     expect(sansNotes(lire("src/app/layout.tsx")), "le script de profondeur n'est plus dans le <head>").toMatch(/__html: PROFONDEUR_BOOT/);
   });
   it("le dock glisse hors de l'écran dans une page et revient sur une racine, à la même courbe que la variable de hauteur", () => {
@@ -291,7 +291,7 @@ describe("la loupe et l'étoile", () => {
     expect(b, "la fermeture ne reprend plus là où est le doigt, à la courbe des feuilles").toMatch(/el\.style\.transition = `transform \$\{ms\}ms \$\{COURBE_DES_FEUILLES\}`;\s*el\.style\.transform = "translateX\(105%\)";/);
     expect(b, "le geste ne distingue plus l'horizontal du défilement vertical").toMatch(/dx > Math\.abs\(dy\) \* 1\.3/);
     expect(sansNotes(lire("src/components/mobile/BarreDuHaut.module.css")), "le tiroir perd touch-action pan-y").toMatch(/touch-action: pan-y;/);
-    expect(b, "le menu n'ouvre plus « Mon activité »").toMatch(/href="\/trader"[\s\S]*Mon activité/);
+    expect(b, "le menu n'ouvre plus « Mon activité »").toMatch(/href="\/activite"[\s\S]*Mon activité/);
   });
 
   it("le menu garde toujours le lien « Ce qui ferme bientôt » : seule l'icône de la barre disparaît quand sa page est vide", () => {
