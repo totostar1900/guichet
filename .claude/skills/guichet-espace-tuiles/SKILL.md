@@ -328,3 +328,10 @@ Une carte qui cache une face (3D) se remplace par une **extension** : `Depliable
 - **Deux listes d'objets de même nature sont une liste** : résultats confirmés et lignes closes du catalogue partagent `CarteDeSeanceClose` (drapeau, nom, Trésor, date, coupon, fourchette, chiffre) ; un résultat emprunte coupon, échéance et fiche à la ligne qui porte son code d'émission.
 - **Une liste longue se cherche, se filtre, se range** (`ListeDesSeancesCloses`) : recherche sans accents, filtres limités à ce que la liste contient, vingt cartes puis « Voir plus ».
 - **Un appel `summarize` côté client passe une variable `now`**, pas `new Date()` : le cliquet `dates-du-client` lit l'appel jusqu'à la première parenthèse fermante.
+
+## Leçon du 10 novembre 2026 : une carte de résultat dit les mêmes choses d'une ligne à l'autre
+
+- **Une donnée présente côté domaine peut manquer côté client** : le coupon et l'échéance existaient sur les résultats mais la liste blanche `vueClient` les écartait, d'où des OTA tantôt avec coupon, tantôt sans. On les ajoute à la liste blanche (avec leur clause), on ne les redemande pas à la fiche.
+- **Un chiffre comparable** : bon = taux moyen pondéré imprimé ; obligation = rendement actuariel (imprimé, sinon calculé par `auctionYield`, et la carte dit « calculé »). Sans coupon, l'obligation garde son prix, dit comme tel.
+- **Des détails qui se regroupent** : annoncé / soumissions, servi / couverture, soumissionnaires / SVT du réseau tiennent sur une cellule chacun ; l'ordre est le même pour toutes les cartes.
+- **Toute la carte déplie** (clic hors bouton et hors lien) ; le chevron reste le contrôle du clavier.

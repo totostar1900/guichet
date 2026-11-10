@@ -22,6 +22,7 @@
  */
 import type { AuctionResult } from "./auction-results";
 import { compteDansLesResultats } from "./auction-results";
+import { auctionYield, type YieldOrigin } from "./yield";
 
 /** Les champs que le client peut lire, un à un. Tout le reste est écarté. */
 export const CHAMPS_CLIENT = [
@@ -41,6 +42,7 @@ export const CHAMPS_CLIENT = [
   "priceAvg",
   "yieldAvg",
   "yieldLimit",
+  "couponRate",
 ] as const;
 export type ChampClient = (typeof CHAMPS_CLIENT)[number];
 
@@ -51,6 +53,11 @@ export interface SeanceClient extends Partial<Record<ChampClient, number>> {
   instrument: AuctionResult["instrument"];
   tenor: string;
   codeEmission?: string;
+  /** L'échéance que le communiqué imprime. */
+  maturityOn?: string;
+  /** Le rendement actuariel, et son origine : imprimé par le Trésor, ou calculé (src/lib/market/yield.ts) à partir du prix et du coupon, ou du taux précompté. Le client lit les deux pour comparer un bon et une obligation. */
+  rendement?: number;
+  rendementOrigine?: YieldOrigin;
 }
 
 /** Le jour avant lequel l'état des offres n'est pas lisible : la couverture d'avant est une indication. */
@@ -62,6 +69,12 @@ export function vueClient(rows: AuctionResult[]): SeanceClient[] {
     if (!compteDansLesResultats(r) || !r.confirmedBy) continue;
     const s: SeanceClient = { id: r.id, sessionOn: r.sessionOn, country: r.country, instrument: r.instrument, tenor: r.tenor };
     if (r.codeEmission) s.codeEmission = r.codeEmission;
+    if (r.maturityOn) s.maturityOn = r.maturityOn;
+    const y = auctionYield(r);
+    if (y) {
+      s.rendement = y.pct;
+      s.rendementOrigine = y.origin;
+    }
     for (const c of CHAMPS_CLIENT) {
       const v = r[c];
       if (typeof v === "number" && Number.isFinite(v)) s[c] = v;

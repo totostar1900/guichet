@@ -16,7 +16,7 @@ describe("ce que le client lit des adjudications", () => {
       anomaliesVues: ["x"],
     } as unknown as Partial<AuctionResult>;
     const [v] = vueClient([seance({ id: "a", rateAvg: 3.1, served: 5, announced: 10, ...secret })]);
-    const permis = new Set<string>(["id", "sessionOn", "country", "instrument", "tenor", "codeEmission", ...CHAMPS_CLIENT]);
+    const permis = new Set<string>(["id", "sessionOn", "country", "instrument", "tenor", "codeEmission", "maturityOn", "rendement", "rendementOrigine", ...CHAMPS_CLIENT]);
     expect(Object.keys(v).filter((k) => !permis.has(k))).toEqual([]);
     expect(JSON.stringify(v)).not.toMatch(/carnet|rejet|secret|excel|desk/i);
   });

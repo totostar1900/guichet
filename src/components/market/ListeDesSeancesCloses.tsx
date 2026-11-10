@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { fold } from "@/lib/text";
+import { displayYield } from "@/lib/domain/status";
 import { CarteDeSeanceClose, type EntreeClose } from "./CarteDeSeanceClose";
 import styles from "./ListeDesSeancesCloses.module.css";
 
@@ -31,7 +32,7 @@ export function ListeDesSeancesCloses({ entrees }: { entrees: EntreeClose[] }) {
   const lignes = useMemo(() => {
     return entrees.map((e) => {
         const o = e.type === "ligne" ? e.o : e.offre;
-        const taux = e.type === "resultat" ? (e.s.instrument === "BTA" ? e.s.rateAvg : e.s.priceAvg) : e.o.servedPricePct;
+        const taux = e.type === "resultat" ? (e.s.rendement ?? (e.s.instrument === "BTA" ? e.s.rateAvg : undefined)) : displayYield(e.o).pct;
         const texte = fold([instrumentDe(e), e.type === "resultat" ? e.s.tenor : e.o.title, paysDe(e), e.type === "ligne" ? e.o.countryName : "", e.type === "resultat" ? e.s.codeEmission : "", o?.isin, o?.title].filter(Boolean).join(" "));
         return { e, taux: taux ?? null, texte, jour: jourDe(e), pays: paysDe(e), instrument: instrumentDe(e) };
       });
@@ -110,7 +111,7 @@ export function ListeDesSeancesCloses({ entrees }: { entrees: EntreeClose[] }) {
             options={[
               { value: "recent", label: t("Plus récentes") },
               { value: "ancien", label: t("Plus anciennes") },
-              { value: "taux", label: t("Taux ou prix moyen, du plus haut") },
+              { value: "taux", label: t("Rendement, du plus haut") },
               { value: "pays", label: t("Trésor") },
             ]}
             fixe

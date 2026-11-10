@@ -2,8 +2,12 @@
 
 import { useDates, useT } from "@/i18n/client";
 import { Drapeau } from "@/components/Drapeau";
+import { Info } from "@/components/Info";
+import type { TermKey } from "@/lib/glossary";
 import type { Offer } from "@/lib/domain/types";
 import { summarize } from "@/lib/domain/summary";
+import { displayYield } from "@/lib/domain/status";
+import { nomDeSeance } from "@/lib/domain/nom-de-ligne";
 import { fmt, fmtPct, money } from "@/lib/format";
 import type { SeanceClient } from "@/lib/market/adjudications-client";
 import { aServi } from "@/lib/market/adjudications-client";
@@ -20,6 +24,9 @@ import styles from "@/components/OfferCard.module.css";
  * Trésor et date, chiffre à droite, chevron) ; le chevron déplie les résultats complets. Les champs viennent de `vueClient`, la liste blanche : rien ne s'y ajoute ici. Aucune « sélection » ni proposition du desk sur un
  * résultat. Les dates de règlement et d'échéance ne sont pas dans un résultat : elles ne sont pas écrites.
  */
+/** LE « i » D'UNE SÉANCE CLOSE (10 novembre 2026) : le calcul du rendement et ce qu'il faut pour lire la carte (taux moyen, limite, couverture, SVT), dans une seule bulle. */
+const TERMES: TermKey[] = ["rendement_de_seance", "taux_moyen_pondere", "taux_limite", "couverture", "svt"];
+
 export type EntreeClose = { type: "resultat"; s: SeanceClient; offre?: Offer; href?: string } | { type: "ligne"; o: Offer; href: string };
 
 export function CarteDeSeanceClose({ e }: { e: EntreeClose }) {
@@ -35,37 +42,55 @@ export function CarteDeSeanceClose({ e }: { e: EntreeClose }) {
   const moyen = r ? (bon ? r.rateAvg : r.priceAvg) : undefined;
   const [bas, haut] = r ? (bon ? [r.rateMin, r.rateMax] : [r.priceMin, r.priceMax]) : [];
   const limite = r ? (bon ? r.rateLimit : r.priceLimit) : undefined;
-  const faits: [string, string][] = [];
+  const pays = r ? r.country : (e as { o: Offer }).o.country;
+  /* LE COUPON EST DANS LE NOM DE TOUTE OBLIGATION, quand il est connu (9 novembre 2026) : le communiqué le donne, ou la ligne du catalogue qui porte le même code d'émission. */
+  const coupon = r ? (r.couponRate ?? offre?.couponRate) : offre?.couponRate;
+  const echeance = r ? (r.maturityOn ?? offre?.maturityOn) : offre?.maturityOn;
+  const nom = r ? (bon ? `BTA ${t(r.tenor)}` : `OTA${coupon != null ? ` ${fmtPct(coupon, 2)}` : ""} · ${t(r.tenor)}`) : t(nomDeSeance((e as { o: Offer }).o.title));
+  const jour = r ? fmtDate(r.sessionOn, false) : sl?.deadlineParts?.[0];
+  /* LA FOURCHETTE EST DITE SOUS LE NOM : un taux ou un prix « min – max » n'attend plus le chevron. */
+  const fourchette = bas != null && haut != null ? t(bon ? "taux {a} – {b}" : "prix {a} – {b}", { a: fmtPct(bas, 2), b: fmtPct(haut, 2) }) : null;
+  const sub = [r ? t(r.country) : t((e as { o: Offer }).o.countryName), fourchette, jour ? (r ? t("séance du {d}", { d: jour }) : t("clôturée le {d}", { d: jour })) : null].filter(Boolean).join(" · ");
+  const servi = r ? moyen != null && aServi(r) : true;
+  /* LE CHIFFRE DE DROITE EST COMPARABLE D'UNE LIGNE À L'AUTRE (9 novembre 2026) : un bon dit son taux moyen pondéré tel que le Trésor l'imprime, une obligation son rendement actuariel. Sans coupon, une obligation ne donne pas de rendement : elle garde son prix, dit comme tel. */
+  const rendementLigne = e.type === "ligne" ? displayYield(e.o).pct : null;
+  let chiffre = "—";
+  let legende = "rien servi";
   if (r) {
+    if (servi && bon) [chiffre, legende] = [fmtPct(moyen as number, 2), "taux moyen pondéré"];
+    else if (servi && r.rendement != null) [chiffre, legende] = [fmtPct(r.rendement, 2), "rendement actuariel"];
+    else if (servi) [chiffre, legende] = [fmtPct(moyen as number, 2), "prix moyen pondéré"];
+  } else if (rendementLigne != null) [chiffre, legende] = [fmtPct(rendementLigne, 2), "rendement actuariel"];
+  /* LES DÉTAILS, DANS LE MÊME ORDRE POUR TOUTES : le titre (coupon, échéance), le prix et le rendement, la fourchette, puis les montants, réunis deux par deux (annoncé et soumis, servi et couverture, soumissionnaires et SVT). */
+  const faits: [string, string][] = [];
+  if (!bon) faits.push(["Coupon", coupon != null ? fmtPct(coupon, 2) : "non communiqué"]);
+  if (echeance) faits.push(["Échéance", fmtDate(echeance)]);
+  if (r) {
+    if (r.rendement != null) faits.push(["Rendement actuariel", fmtPct(r.rendement, 2)]);
+    if (!bon && moyen != null) faits.push(["Prix moyen pondéré", fmtPct(moyen, 2)]);
     if (limite != null) faits.push([bon ? "Taux limite" : "Prix limite", fmtPct(limite, 2)]);
     if (bas != null && haut != null) faits.push([bon ? "Taux min – max" : "Prix min – max", `${fmtPct(bas, 2)} – ${fmtPct(haut, 2)}`]);
-    if (r.announced != null) faits.push(["Annoncé", money(r.announced)]);
-    if (r.bid != null) faits.push(["Soumissions", money(r.bid)]);
-    if (r.served != null) faits.push(["Servi", money(r.served)]);
-    if (r.coverage != null) faits.push(["Couverture", fmtPct(r.coverage, 0)]);
-    if (r.bidders != null) faits.push(["Soumissionnaires", fmt(r.bidders)]);
-    if (r.networkSize != null) faits.push(["SVT du réseau", fmt(r.networkSize)]);
-    if (sl) faits.push(["Échéance", sl.maturity]);
+    if (r.announced != null || r.bid != null) faits.push([r.announced != null && r.bid != null ? "Annoncé / soumissions" : r.announced != null ? "Annoncé" : "Soumissions", [r.announced, r.bid].filter((v): v is number => v != null).map(money).join(" / ")]);
+    if (r.served != null || r.coverage != null) faits.push([r.served != null && r.coverage != null ? "Servi / couverture" : r.served != null ? "Servi" : "Couverture", [r.served != null ? money(r.served) : null, r.coverage != null ? fmtPct(r.coverage, 0) : null].filter(Boolean).join(" · ")]);
+    if (r.bidders != null || r.networkSize != null) faits.push([r.bidders != null && r.networkSize != null ? "Soumissionnaires / SVT du réseau" : r.bidders != null ? "Soumissionnaires" : "SVT du réseau", [r.bidders, r.networkSize].filter((v): v is number => v != null).map(fmt).join(" / ")]);
   } else if (sl) {
-    /* LE PRIX SERVI EST LE CHIFFRE, LE RENDEMENT EST DANS L'EXTENSION (planche « Résultats des séances », 2B). */
-    faits.push(["Rendement actuariel", sl.hero]);
-    for (const [k, v, note] of sl.facts) faits.push([k, note ? `${v} · ${note}` : v]);
+    const o = (e as { o: Offer }).o;
+    if (rendementLigne != null) faits.push(["Rendement actuariel", fmtPct(rendementLigne, 2)]);
+    if (o.servedPricePct != null) faits.push(["Prix servi", fmtPct(o.servedPricePct, 2)]);
+    faits.push(["Ticket min.", sl.minimum]);
   }
-  const pays = r ? r.country : (e as { o: Offer }).o.country;
-  const nom = r ? `${r.instrument} ${t(r.tenor)}` : t((e as { o: Offer }).o.title);
-  const jour = r ? fmtDate(r.sessionOn, false) : sl?.deadlineParts?.[0];
-  const coupon = offre?.couponRate;
-  /* LA FOURCHETTE EST DITE SOUS LE NOM (9 novembre 2026) : un taux ou un prix « min – max » n'attend plus le chevron. */
-  const fourchette = bas != null && haut != null ? t(bon ? "taux {a} – {b}" : "prix {a} – {b}", { a: fmtPct(bas, 2), b: fmtPct(haut, 2) }) : null;
-  const sub = [r ? t(r.country) : t((e as { o: Offer }).o.countryName), coupon != null ? t("coupon {c}", { c: fmtPct(coupon, 2) }) : null, fourchette, jour ? (r ? t("séance du {d}", { d: jour }) : t("clôturée le {d}", { d: jour })) : null].filter(Boolean).join(" · ");
-  const servi = r ? moyen != null && aServi(r) : true;
-  const prixServi = e.type === "ligne" ? e.o.servedPricePct : undefined;
-  const chiffre = r ? (servi ? fmtPct(moyen as number, 2) : "—") : prixServi != null ? fmtPct(prixServi, 2) : "—";
-  const legende = r ? t(servi ? (bon ? "taux moyen pondéré" : "prix moyen pondéré") : "rien servi") : t("prix servi");
   const code = r ? r.codeEmission : offre?.isin;
   return (
     <Depliable ouvert={ouvert} replier={replier}>
-      <article className={`${styles.card} ${styles.compact}`} data-seance-close>
+      {/* TOUTE LA CARTE S'OUVRE ET SE REFERME (9 novembre 2026) : un toucher n'importe où déplie ; le chevron reste le bouton qu'atteignent le clavier et le lecteur d'écran. */}
+      <article
+        className={`${styles.card} ${styles.compact}`}
+        data-seance-close
+        onClick={(ev) => {
+          if (!(ev.target as HTMLElement).closest("button, a")) basculer();
+        }}
+        style={{ cursor: "pointer" }}
+      >
         <div className={styles.cLink}>
           <span className={`${styles.cId}`}>
             <b className={`${styles.cCode} ${styles.cCodeLong}`}>
@@ -75,7 +100,15 @@ export function CarteDeSeanceClose({ e }: { e: EntreeClose }) {
           </span>
           <span className={styles.cNum}>
             <b>{chiffre}</b>
-            <small>{legende}</small>
+            <small>
+              {t(legende)}
+              {chiffre !== "—" && (
+                <>
+                  {" "}
+                  <Info termes={TERMES} label="Lire une séance close" subtle />
+                </>
+              )}
+            </small>
           </span>
         </div>
         <Outils>
@@ -95,7 +128,15 @@ export function CarteDeSeanceClose({ e }: { e: EntreeClose }) {
           <div className={styles.resultats}>
             {faits.map(([k, v]) => (
               <div key={k}>
-                <span>{t(k)}</span>
+                <span>
+                  {t(k)}
+                  {k === "Rendement actuariel" && (
+                    <>
+                      {" "}
+                      <Info termes={TERMES} label="Lire une séance close" subtle />
+                    </>
+                  )}
+                </span>
                 <b>{v}</b>
               </div>
             ))}
