@@ -6,9 +6,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid var(--line-2);
-  background: var(--surface);
-  color: var(--ink-2);
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
   box-shadow: 0 2px 8px rgba(11, 37, 69, 0.14);
   display: inline-flex;
   align-items: center;
@@ -27,9 +27,9 @@
 }
 .btn:hover,
 .btn:focus-visible {
-  background: var(--surface);
-  color: var(--navy-text);
-  border-color: var(--navy-text);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  border-color: var(--gold);
 }
 @media (max-width: 760px) {
   .btn {
@@ -48,6 +48,6 @@
 /* above the Guide's corner capsule */
 @media (max-width: 760px) {
   .lift {
-    bottom: calc(var(--dock-h, 56px) + 12px + 66px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(var(--dock-h, 56px) + 12px + 54px + env(safe-area-inset-bottom, 0px));
   }
 }

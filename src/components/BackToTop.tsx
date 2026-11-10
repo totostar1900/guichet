@@ -3,6 +3,7 @@
 import { useT } from "@/i18n/client";
 import { useEffect, useState, type RefObject } from "react";
 import { usePasse } from "@/lib/ui/passe";
+import { useDeplacable } from "@/lib/ui/deplacable";
 import styles from "./BackToTop.module.css";
 
 /**
@@ -24,6 +25,7 @@ import styles from "./BackToTop.module.css";
  */
 export function BackToTop({ screens = 0.8, lift = false, watch }: { screens?: number; lift?: boolean; watch?: RefObject<HTMLElement | null> }) {
   const t = useT();
+  const deplacable = useDeplacable("haut");
   const [on, setOn] = useState(false);
   const vide = { current: null } as RefObject<HTMLElement | null>;
   const passe = usePasse(watch ?? vide);
@@ -50,6 +52,7 @@ export function BackToTop({ screens = 0.8, lift = false, watch }: { screens?: nu
   return (
     <button
       type="button"
+      ref={deplacable}
       className={`${styles.btn} ${visible ? styles.on : ""} ${lift ? styles.lift : ""}`}
       onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}
       aria-label={t("Revenir en haut")}

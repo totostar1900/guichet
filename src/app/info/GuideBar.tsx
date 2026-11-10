@@ -7,6 +7,7 @@ import { Sheet } from "@/components/mobile/Sheet";
 import { useT } from "@/i18n/client";
 import type { GuideIndex, LessonSummary } from "@/lib/guide-index-shared";
 import { cachedGuideIndex, loadGuideIndex, readDoneLessons } from "@/lib/guide-index-client";
+import { useDeplacable } from "@/lib/ui/deplacable";
 import styles from "./GuideBar.module.css";
 
 /**
@@ -58,6 +59,7 @@ function Ring({ letter, color, done, total, place, size = 48 }: { letter: string
 
 export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePos; prev?: { href: string; title: string }; next?: { href: string; title: string }; chapter?: GuideChapter; lessonKey?: string }) {
   const t = useT();
+  const deplacable = useDeplacable("guide");
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>("guide");
   const [index, setIndex] = useState<GuideIndex | null>(cachedGuideIndex());
@@ -160,10 +162,10 @@ export function GuideBar({ pos, prev, next, chapter, lessonKey }: { pos: GuidePo
 
   return (
     <>
-      <div className={`${styles.corner} ${chapter ? styles.double : ""} ${folded ? styles.folded : ""}`} role="navigation" aria-label={t("Le Guide")}>
+      <div ref={deplacable} className={`${styles.corner} ${chapter ? styles.double : ""} ${folded ? styles.folded : ""}`} role="navigation" aria-label={t("Le Guide")}>
         {chapter && (
           <button type="button" className={styles.pastille} onClick={() => show("chapitre")} aria-haspopup="dialog" aria-label={`${t("Ce chapitre")} : ${chapter.letter} · ${chapter.title}${place ? `, ${t("éclairage {n} sur {total}", { n: pos.index ?? 0, total })}` : ""}`}>
-            <Ring letter={chapter.letter} color={chapter.color} done={mineDone} total={total} place={place} />
+            <Ring letter={chapter.letter} color={chapter.color} done={mineDone} total={total} size={34} />
             <span className={styles.badge} aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M4 7h16M4 12h16M4 17h10" />

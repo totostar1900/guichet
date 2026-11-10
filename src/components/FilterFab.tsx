@@ -4,6 +4,7 @@ import { useT } from "@/i18n/client";
 import { useSyncExternalStore } from "react";
 import { usePasse } from "@/lib/ui/passe";
 import { createPortal } from "react-dom";
+import { useDeplacable } from "@/lib/ui/deplacable";
 import styles from "./FilterFab.module.css";
 
 /**
@@ -20,6 +21,7 @@ import styles from "./FilterFab.module.css";
  */
 export function FilterFab({ watch, onClick, count, open, ouvre = true }: { watch: React.RefObject<HTMLElement | null>; onClick: () => void; count: number; open: boolean; ouvre?: boolean }) {
   const t = useT();
+  const deplacable = useDeplacable("filtres");
   /* LE MÊME SIGNAL QUE LE RETOUR EN HAUT : les deux boutons du coin
      paraissent ensemble, ou le coin change deux fois. */
   const gone = usePasse(watch);
@@ -33,7 +35,7 @@ export function FilterFab({ watch, onClick, count, open, ouvre = true }: { watch
   const quoi = ouvre ? t("Filtrer et trier") : t("Revenir aux filtres");
   const label = count > 0 ? `${quoi} · ${count}` : quoi;
   return createPortal(
-    <button type="button" className={`${styles.fab} ${on ? styles.on : ""}`} onClick={onClick} aria-haspopup={ouvre ? "dialog" : undefined} aria-hidden={!on} tabIndex={on ? 0 : -1} aria-label={label} title={label}>
+    <button type="button" ref={deplacable} className={`${styles.fab} ${on ? styles.on : ""}`} onClick={onClick} aria-haspopup={ouvre ? "dialog" : undefined} aria-hidden={!on} tabIndex={on ? 0 : -1} aria-label={label} title={label}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
         <path d="M4 6h16M7 12h10M10 18h4" />
       </svg>

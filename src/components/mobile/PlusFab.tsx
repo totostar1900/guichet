@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useT } from "@/i18n/client";
 import { PLUS_PAGES, pagePlusDe } from "@/lib/plus/pages";
 import { Sheet } from "./Sheet";
+import { useDeplacable } from "@/lib/ui/deplacable";
 import styles from "./MarketFab.module.css";
 
 /**
@@ -18,6 +19,7 @@ import styles from "./MarketFab.module.css";
  * Il ne paraît que sur les pages que « Plus » ouvre, sous-pages comprises, et jamais sur la page où l'on se tient déjà dans la liste (retirée, comme le fait le bouton du marché).
  */
 export function PlusFab() {
+  const deplacable = useDeplacable("navigation");
   const chemin = usePathname();
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
@@ -31,7 +33,7 @@ export function PlusFab() {
   const voisines = PLUS_PAGES.filter((p) => p.cle !== ici.cle);
   return createPortal(
     <>
-      <button type="button" className={styles.fab} onClick={() => setOuvert(true)} aria-haspopup="dialog" aria-label={t("Mon activité")} title={t("Mon activité")}>
+      <button type="button" ref={deplacable} className={styles.fab} onClick={() => setOuvert(true)} aria-haspopup="dialog" aria-label={t("Mon activité")} title={t("Mon activité")}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="5" cy="12" r="1.4" />
           <circle cx="12" cy="12" r="1.4" />

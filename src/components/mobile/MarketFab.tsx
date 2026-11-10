@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useT } from "@/i18n/client";
 import { Sheet } from "./Sheet";
 import { MARKET_PAGES, currentMarketPage } from "@/lib/market/pages";
+import { useDeplacable } from "@/lib/ui/deplacable";
 import styles from "./MarketFab.module.css";
 
 /**
@@ -64,6 +65,7 @@ import styles from "./MarketFab.module.css";
  * l'écran d'arrivée n'en aurait aucune.
  */
 export function MarketFab() {
+  const deplacable = useDeplacable("navigation");
   const path = usePathname();
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -84,7 +86,7 @@ export function MarketFab() {
   const voisines = MARKET_PAGES.filter((p) => p.key !== ici);
   return createPortal(
     <>
-      <button type="button" className={styles.fab} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label={t("Les pages du marché")} title={t("Les pages du marché")}>
+      <button type="button" ref={deplacable} className={styles.fab} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label={t("Les pages du marché")} title={t("Les pages du marché")}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 7h16M4 12h16M4 17h10" />
         </svg>

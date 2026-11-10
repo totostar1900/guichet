@@ -5,24 +5,24 @@
 @media (max-width: 760px) {
   .corner {
     position: fixed;
-    right: 14px;
-    bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 10px);
+    right: 12px;
+    bottom: calc(var(--dock-h, 56px) + 12px + env(safe-area-inset-bottom, 0px));
     z-index: 40;
     display: flex;
     align-items: center;
-    padding: 4px;
-    background: var(--surface);
+    background: var(--gold-soft);
+    border: 1px solid var(--gold-line);
     border-radius: 999px;
-    box-shadow: 0 8px 24px rgba(11, 37, 69, 0.24);
+    box-shadow: 0 2px 8px rgba(11, 37, 69, 0.14);
   }
 }
 .sommaire {
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
+  width: 34px;
+  height: 34px;
+  border-radius: 17px;
   border: 0;
   background: transparent;
-  color: var(--navy-text);
+  color: var(--gold-ink);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -32,17 +32,17 @@
   transition: width 0.22s, opacity 0.18s;
 }
 .sommaire svg {
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2.2;
   stroke-linecap: round;
 }
 .pastille {
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
+  width: 34px;
+  height: 34px;
+  border-radius: 17px;
   border: 0;
   background: transparent;
   display: grid;
@@ -57,8 +57,8 @@
   content: '';
   position: absolute;
   right: -1px;
-  top: 10px;
-  bottom: 10px;
+  top: 6px;
+  bottom: 6px;
   width: 1px;
   background: var(--line-2);
   transition: opacity 0.18s;

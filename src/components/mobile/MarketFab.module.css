@@ -22,9 +22,9 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    border: 1px solid var(--line-2);
-    background: var(--surface);
-    color: var(--ink-2);
+    border: 1px solid var(--gold-line);
+    background: var(--gold-soft);
+    color: var(--gold-ink);
     box-shadow: 0 2px 8px rgba(11, 37, 69, 0.14);
     display: inline-flex;
     align-items: center;
@@ -34,8 +34,8 @@
   }
   .fab:hover,
   .fab:focus-visible {
-    color: var(--navy-text);
-    border-color: var(--navy-text);
+    color: var(--gold-ink);
+    border-color: var(--gold);
   }
   .fab svg {
     width: 16px;
