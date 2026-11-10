@@ -34,7 +34,7 @@ describe("la carte dépliée", () => {
     expect(bloc(".outils")).toMatch(/margin-left:\s*16px/);
     for (const f of ["src/components/OfferCard.tsx", "src/app/fonds/FundCard.tsx"]) {
       const src = code(f);
-      expect(src, `${f} n'a plus la colonne d'outils commune`).toMatch(/<Outils>[\s\S]*<LineMenu[^>]*\/>\}\s*<ChevronDeplie ouvert=\{ouvert\} onClick=\{basculer\} idRegion=\{idRegion\} \/>\s*<\/Outils>/);
+      expect(src, `${f} n'a plus la colonne d'outils commune`).toMatch(/<Outils>[\s\S]*<LineMenu[^>]*\/>\}\s*\{!sansExtension && <ChevronDeplie ouvert=\{ouvert\} onClick=\{basculer\} idRegion=\{idRegion\} \/>\}\s*<\/Outils>/);
       expect(src, `${f} redonne à « ··· » une classe qui n'est pas la commune : la taille redevient différente d'une page à l'autre`).toMatch(/<LineMenu[^>]*className=\{classePoints\}/);
     }
   });

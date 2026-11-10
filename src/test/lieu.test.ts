@@ -5,7 +5,7 @@ import { lieuDe, SIEGES } from "@/lib/domain/lieu";
 describe("lieuDe : où l'on est, en un siège et une rubrique", () => {
   it("un siège seul quand la page est sa racine", () => {
     expect(lieuDe("/")).toEqual({ siege: "Accueil", rubrique: undefined });
-    expect(lieuDe("/trader")?.siege).toBe("Trade");
+    expect(lieuDe("/trader")?.siege).toBe("Activité");
     expect(lieuDe("/marche")?.siege).toBe("Marché");
     expect(lieuDe("/aide")?.siege).toBe("Aide");
   });

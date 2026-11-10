@@ -272,4 +272,8 @@ export const EN_VISITE: Record<string, string> = {
   "Voir ma provision": "See my provision",
   "Nous attendons votre virement": "We are waiting for your transfer",
   "Nous le reconnaissons à son arrivée, grâce au motif ci-dessous. Votre solde se met à jour à ce moment-là.": "We recognise it when it arrives, thanks to the reference below. Your balance updates then.",
+  "Activité": "Activity",
+  "Retirer de l'argent": "Withdraw money",
+  "Mon profil d'investisseur": "My investor profile",
+  "Votre argent, ce qui vous attend, votre activité, votre dossier et tous les services de Guichet.": "Your money, what is waiting for you, your activity, your file and all of Guichet's services.",
 };

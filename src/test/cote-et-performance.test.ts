@@ -204,9 +204,9 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
   it("la tuile compacte porte le drapeau, le dos des cartes porte l'icône de retournement, et les tuiles tiennent sur une rangée", () => {
     const oc = lire("src/components/OfferCard.tsx");
     expect(oc, "la ligne compacte n'a plus le drapeau de son pays").toMatch(/<b className=\{styles\.cCode\}>\{issuerZone\(o\) !== "CEMAC" && <Drapeau pays=\{o\.country\}/);
-    expect(oc, "la carte compacte n'a plus son chevron sous le « ··· »").toMatch(/<LineMenu[^>]*\/>\}\s*<ChevronDeplie ouvert=\{ouvert\} onClick=\{basculer\} idRegion=\{idRegion\} \/>/);
+    expect(oc, "la carte compacte n'a plus son chevron sous le « ··· »").toMatch(/<LineMenu[^>]*\/>\}\s*\{!sansExtension && <ChevronDeplie ouvert=\{ouvert\} onClick=\{basculer\} idRegion=\{idRegion\} \/>\}/);
     const fc = lire("src/app/fonds/FundCard.tsx");
-    expect(fc, "la carte d'un fonds n'a plus son chevron").toMatch(/<ChevronDeplie ouvert=\{ouvert\} onClick=\{basculer\} idRegion=\{idRegion\} \/>/);
+    expect(fc, "la carte d'un fonds n'a plus son chevron").toMatch(/\{!sansExtension && <ChevronDeplie ouvert=\{ouvert\} onClick=\{basculer\} idRegion=\{idRegion\} \/>\}/);
     expect(fc, "un drapeau est revenu sur la carte d'un fonds (retiré le 6 novembre 2026)").not.toMatch(/<Drapeau/);
   });
 

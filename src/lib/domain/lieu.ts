@@ -26,7 +26,7 @@ export interface Lieu {
 }
 
 /** Les cinq mots du dock, et « Compte ». Un cliquet les compare à ceux du dock. */
-export const SIEGES = { accueil: "Accueil", trade: "Trade", investir: "Investir", marche: "Marché", aide: "Aide", compte: "Compte" } as const;
+export const SIEGES = { accueil: "Accueil", trade: "Activité", investir: "Investir", marche: "Marché", aide: "Aide", compte: "Compte" } as const;
 
 /** L'adresse de chaque siège : sur elle, la bande ne dit que le siège. */
 const RACINES = ["/", "/trader", "/marche", "/aide"];

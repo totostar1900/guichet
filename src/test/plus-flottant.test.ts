@@ -1,46 +1,29 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { PLUS_PAGES, pagePlusDe } from "@/lib/plus/pages";
+import { PLUS_PAGES } from "@/lib/plus/pages";
 
 const code = (f: string) => fs.readFileSync(path.join(process.cwd(), f), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
 
 /**
- * « PLUS » SE RETROUVE SUR CHAQUE PAGE QU'IL OUVRE (9 novembre 2026) : un bouton flottant reprend ses entrées, pour passer d'une page à l'autre sans repasser par l'Accueil.
+ * L'ACTIVITÉ REMPLACE « PLUS » (10 novembre 2026, planche « Accueil et page Trade », 2A) : le menu de l'Accueil, son bouton flottant et la page « Mon activité » sont une seule page, l'onglet « Activité » (/trader).
  */
-describe("le bouton flottant de « Plus »", () => {
-  it("reconnaît les pages qu'ouvre « Plus », sous-pages comprises, et aucune autre", () => {
-    expect(pagePlusDe("/moi/ordres")?.cle).toBe("ordres");
-    expect(pagePlusDe("/moi/ordres/42")?.cle).toBe("ordres");
-    expect(pagePlusDe("/sondage")?.cle).toBe("sondages");
-    expect(pagePlusDe("/trader")?.cle).toBe("services");
-    expect(pagePlusDe("/moi/suivies"), "une page que « Plus » n'ouvre pas porte le bouton").toBeUndefined();
-    expect(pagePlusDe("/"), "l'Accueil a le menu, pas le bouton").toBeUndefined();
-    expect(pagePlusDe("/moi/ordresX")).toBeUndefined();
+describe("la page Activité", () => {
+  it("lit les rubriques d'une seule table, et la page « Mon activité » y renvoie", () => {
+    expect(PLUS_PAGES.map((p) => p.cle)).toEqual(["ordres", "sondages", "coupons", "rentabilite", "provision", "versements", "prelevements", "documents"]);
+    expect(code("src/app/trader/Rubriques.tsx")).toMatch(/PLUS_PAGES\.filter\(/);
+    expect(code("src/app/moi/activite/page.tsx"), "l'ancienne page ne renvoie plus à l'Activité").toMatch(/redirect\("\/trader"\)/);
   });
-  it("les neuf entrées sont celles du menu de l'Accueil, lues d'une seule table", () => {
-    expect(PLUS_PAGES.map((p) => p.cle)).toEqual(["ordres", "sondages", "coupons", "rentabilite", "provision", "versements", "prelevements", "documents", "services"]);
-    expect(code("src/components/accueil/PlusDeLAccueil.tsx")).toMatch(/PLUS_PAGES\.map\(/);
-    expect(code("src/components/mobile/PlusFab.tsx")).toMatch(/PLUS_PAGES\.filter\(/);
+  it("le menu de l'Accueil et le bouton flottant « Plus » ne reviennent pas", () => {
+    for (const f of ["src/components/accueil/PlusDeLAccueil.tsx", "src/components/mobile/PlusFab.tsx"]) expect(fs.existsSync(path.join(process.cwd(), f)), `${f} est revenu`).toBe(false);
+    expect(code("src/components/mobile/MobileShell.tsx")).not.toMatch(/PlusFab/);
   });
-  it("le bouton est monté avec l'enveloppe, pour un client connecté hors du desk, et retire la page où l'on se tient", () => {
-    expect(code("src/components/mobile/MobileShell.tsx")).toMatch(/\{!deskHost && signedIn && <PlusFab \/>\}/);
-    expect(code("src/components/mobile/PlusFab.tsx")).toMatch(/p\.cle !== ici\.cle/);
-  });
-
-  it("« Mon activité » porte les rubriques de « Plus », sans « Tous les services »", () => {
-    const a = code("src/app/moi/activite/page.tsx");
-    expect(a, "la page ne lit plus la table de « Plus »").toMatch(/PLUS_PAGES\.filter\(\(p\) => p\.cle !== "services"\)\.map/);
-    expect(a, "les tracés ne viennent plus du module commun").toMatch(/from "@\/lib\/plus\/icones"/);
-  });
-
-  it("le bouton flottant s'appelle « Mon activité », comme la page qui porte les mêmes rubriques", () => {
-    const f = code("src/components/mobile/PlusFab.tsx");
-    expect(f, "le bouton flottant redit « Plus »").not.toContain('t("Plus")');
-    expect((f.match(/t\("Mon activité"\)/g) ?? []).length).toBe(4);
-  });
-  it("la page « Mon activité » s'arrête aux rubriques : plus de journal, de compteurs ni de panneaux", () => {
-    const a = code("src/app/moi/activite/page.tsx");
-    expect(a).not.toMatch(/listClientActions|compteurs|Ce que nous notons|Recevoir toute mon activité/);
+  it("porte le disponible avec ses deux gestes, les rubriques du dossier et les services sous leur ancre", () => {
+    const p = code("src/app/trader/page.tsx");
+    expect(p).toContain('href="/moi/provision/alimenter"');
+    expect(p).toContain('href="/moi/provision/reprendre"');
+    expect(p).toMatch(/<section id="services"/);
+    const r = code("src/app/trader/Rubriques.tsx");
+    for (const h of ["/moi/profil", "/moi/compte", "/moi/securite", "/moi/documents"]) expect(r, `la rubrique ${h} a disparu`).toContain(h);
   });
 });

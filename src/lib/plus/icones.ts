@@ -11,4 +11,7 @@ export const ICONES_DE_PLUS: Record<string, string> = {
   prelevements: "M12 4v12 M7 11l5 5 5-5 M5 20h14",
   documents: "M3 6h7l2 2h9v11H3z",
   services: "M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z",
+  profil: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 20a8 8 0 0 1 16 0",
+  compte: "M4 4h16v16H4z M8 9h8 M8 13h5",
+  securite: "M12 3l8 3v6c0 4-3 7-8 9-5-2-8-5-8-9V6z",
 };

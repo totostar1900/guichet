@@ -1,0 +1,10 @@
+/* Un bloc de cartes : un titre à plat, puis les cartes à l'écart des tuiles. */
+.bloc {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.cartes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tuiles-gap);
+}

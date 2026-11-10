@@ -291,7 +291,7 @@ describe("la loupe et l'étoile", () => {
     expect(b, "la fermeture ne reprend plus là où est le doigt, à la courbe des feuilles").toMatch(/el\.style\.transition = `transform \$\{ms\}ms \$\{COURBE_DES_FEUILLES\}`;\s*el\.style\.transform = "translateX\(105%\)";/);
     expect(b, "le geste ne distingue plus l'horizontal du défilement vertical").toMatch(/dx > Math\.abs\(dy\) \* 1\.3/);
     expect(sansNotes(lire("src/components/mobile/BarreDuHaut.module.css")), "le tiroir perd touch-action pan-y").toMatch(/touch-action: pan-y;/);
-    expect(b, "le menu n'ouvre plus « Mon activité »").toMatch(/href="\/moi\/activite"[\s\S]*Mon activité/);
+    expect(b, "le menu n'ouvre plus « Mon activité »").toMatch(/href="\/trader"[\s\S]*Mon activité/);
   });
 
   it("le menu garde toujours le lien « Ce qui ferme bientôt » : seule l'icône de la barre disparaît quand sa page est vide", () => {

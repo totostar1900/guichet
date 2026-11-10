@@ -167,7 +167,7 @@ describe("les sièges de l'aide sont ceux du dock", () => {
     /* NON VACUITÉ, D'ABORD : le dock a bien été lu. Un motif qui ne trouve
        plus aucun siège rendrait « aucune annonce fausse » — c'est ce que
        répond aussi une page irréprochable. */
-    expect(dock, "le dock n'a pas été relu : le motif ne trouve plus ses étiquettes").toEqual(["Accueil", "Trade", "Investir", "Marché", "Aide"]);
+    expect(dock, "le dock n'a pas été relu : le motif ne trouve plus ses étiquettes").toEqual(["Accueil", "Activité", "Investir", "Marché", "Aide"]);
     const annonces = fr.flatMap((p) => annonceDeSieges(p.fr));
     expect(annonces.length, "la page ne dit plus combien de sièges porte la barre du bas : la clause ne garde plus rien").toBeGreaterThan(0);
     for (const a of annonces) {

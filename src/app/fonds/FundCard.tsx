@@ -53,7 +53,7 @@ const cls = (v?: number | null) => (v == null ? "" : v > 0 ? styles.up : v < 0 ?
  * performances. La VL garde sa place parce qu'elle est le prix auquel on
  * souscrit, mais au bout de la bande, avec sa date et son dernier mouvement.
  */
-export function FundCard({ r }: { r: FundRow }) {
+export function FundCard({ r, sansExtension = false }: { r: FundRow; /** La carte compacte seule, sans chevron ni extension : celle que l'Accueil montre (10 novembre 2026, planche 1A). */ sansExtension?: boolean }) {
   const { fmtDate } = useDates();
   const depuisQuand = useDepuisQuand();
   /* Un douze mois vide veut dire deux choses : le fonds n'a pas un an, ou nos
@@ -70,7 +70,7 @@ export function FundCard({ r }: { r: FundRow }) {
   const perf = valeurFenetre(r, fenetre);
   const raison = perf == null ? raisonSansFenetre(def.mois, r.inceptionDate, r.navDate, r.curve?.from) : undefined;
   const t = useT();
-  const compact = useDensity() === "compact";
+  const compact = useDensity() === "compact" || sansExtension;
   const href = useLineHref()(r.id);
   const desk = useDeskView();
   const more = useRef<(() => void) | null>(null);
@@ -174,9 +174,7 @@ export function FundCard({ r }: { r: FundRow }) {
       </SwipeActions>
     );
 
-  return (
-    <SwipeActions key="compacte" id={r.id} cadence="evenement">
-      <Depliable ouvert={ouvert} replier={replier}>
+  const carte = (
         <article className={`${styles.card} ${propres.compacte}`} style={{ ["--card-c" as string]: "var(--info)" }}>
           <Link href={href} className={propres.cLien}>
             <span className={propres.cNom}>
@@ -193,15 +191,24 @@ export function FundCard({ r }: { r: FundRow }) {
           </Link>
           <Outils>
             {!desk && <LineMenu line={menu} cadence="evenement" openRef={more} className={classePoints} />}
-            <ChevronDeplie ouvert={ouvert} onClick={basculer} idRegion={idRegion} />
+            {!sansExtension && <ChevronDeplie ouvert={ouvert} onClick={basculer} idRegion={idRegion} />}
           </Outils>
         </article>
+  );
+  return (
+    <SwipeActions key="compacte" id={r.id} cadence="evenement">
+      {sansExtension ? (
+        carte
+      ) : (
+      <Depliable ouvert={ouvert} replier={replier}>
+        {carte}
         {/* LE DOS EST L'EXTENSION (4A) : tout ce que disait le dos, puis les trois boutons. */}
         <Extension ouvert={ouvert} idRegion={idRegion}>
           <div className={propres.dos}>{corps(true)}</div>
           <BoutonsDeLaCarte id={r.id} href={href} kind="FONDS" cadence="evenement" agir={!desk} />
         </Extension>
       </Depliable>
+      )}
     </SwipeActions>
   );
 }

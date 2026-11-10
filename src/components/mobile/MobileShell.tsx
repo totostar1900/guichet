@@ -8,7 +8,6 @@ import { estRacine } from "@/lib/nav-profondeur";
 import { BarreDuCompte } from "./BarreDuCompte";
 import { BarreDuHaut } from "./BarreDuHaut";
 import { MarketFab } from "./MarketFab";
-import { PlusFab } from "./PlusFab";
 import { reculer } from "./retour";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
@@ -188,7 +187,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
        menaient déjà aux trois familles, donc le second siège nommait une
        seconde fois ce que le premier menait. Un siège de moins, et la
        quatrième place du dock libérée. */
-    { href: "/trader", label: t("Trade"), icon: I.trader, match: isTraderSection },
+    { href: "/trader", label: t("Activité"), icon: I.trader, match: isTraderSection },
     /* « INVESTIR » EST L'ENTRÉE DES LIGNES EN UN TOUCHER (10 novembre 2026) : Titres, Fonds et Adjudications. Trade garde sa page et ses services, et ne s'allume plus sur les listes ni sur les fiches. Le siège ouvre « /titres », dont les trois tuiles du haut mènent aux deux autres familles. */
     { href: "/titres", label: t("Investir"), icon: I.investir, match: isInstrumentsSection },
     { href: "/marche", label: t("Marché"), icon: I.guichet, match: isMarcheSection },
@@ -274,7 +273,6 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
           montrait que deux à la fois sur sept. Voir « MarketFab ». */}
       {!deskHost && <MarketFab />}
       {/* LES PAGES OUVERTES PAR « PLUS » portent le même menu en bouton flottant (9 novembre 2026) : on passe de l'une à l'autre sans repasser par l'Accueil. */}
-      {!deskHost && signedIn && <PlusFab />}
 
       {/* Le dock ne parait qu a qui est entre. Tout ce qu il porte demande une
           connexion : le montrer a un visiteur serait lui offrir quatre portes

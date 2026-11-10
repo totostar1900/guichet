@@ -6,15 +6,15 @@ import { contexteDuClient } from "@/lib/domain/contexte-client";
 import { getT } from "@/i18n/server";
 import { fmt } from "@/lib/format";
 import { CeQuiVousAttend } from "@/components/CeQuiVousAttend";
-import { CeQuiFermeBientot } from "@/components/CeQuiFermeBientot";
 import { Tuiles } from "./Tuiles";
+import { Rubriques } from "./Rubriques";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { apercusDuService } from "@/lib/domain/apercus";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Trade" };
+export const metadata = { title: "Activité" };
 
 /**
  * Trade : ce que vous pouvez faire, et par où chaque geste commence.
@@ -69,7 +69,7 @@ export default async function TradePage() {
             pixels à droite du titre qu'elle explique, sur une page dont le
             reste tient en une colonne. Pas de sur-titre : une racine n'est
             contenue nulle part. */}
-        <EnTete titre={t("Trade")} phrase={t("Ce que Guichet peut faire pour vous, et par où chaque geste commence.")} />
+        <EnTete titre={t("Activité")} phrase={t("Votre argent, ce qui vous attend, votre activité, votre dossier et tous les services de Guichet.")} />
         {/* LE DISPONIBLE PASSE DEVANT LES GESTES, parce qu'il les conditionne
             tous. La page demande « qu'est-ce que je peux faire » ; la première
             réponse est « avec quoi ». Ce franc n'est pas un reproche ici mais
@@ -89,14 +89,24 @@ export default async function TradePage() {
               <b className={styles.vide}>{t("Rien en provision")}</b>
             )}
           </Link>
-          <Link className={styles.geste} href="/moi/provision/alimenter">
-            <span className={styles.rond} aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </span>
-            <b>{t("Approvisionner")}</b>
-          </Link>
+          <div className={styles.gestes}>
+            <Link className={styles.geste} href="/moi/provision/alimenter">
+              <span className={styles.rond} aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </span>
+              <b>{t("Approvisionner")}</b>
+            </Link>
+            <Link className={`${styles.geste} ${styles.gesteDiscret}`} href="/moi/provision/reprendre">
+              <span className={styles.rond} aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M5 12h14" />
+                </svg>
+              </span>
+              <b>{t("Retirer de l'argent")}</b>
+            </Link>
+          </div>
         </div>
 
         {/* L'attente « disponible » n'y est pas : la bande ci-dessus dit le même
@@ -104,14 +114,14 @@ export default async function TradePage() {
             est le vrai. */}
         <CeQuiVousAttend userId={s.userId} sauf={["disponible"]} />
 
-        {/* LES SÉANCES QUI SE FERMENT, SUR LA PAGE OÙ L'ON VIENT AGIR. Une
-            adjudication s'annonce une semaine avant sa clôture, et le calendrier
-            est une page où l'on va : celle-ci est une bande qu'on croise. Vide —
-            l'état le plus fréquent, les Trésors publiant par vagues — elle ne
-            rend rien. */}
-        <CeQuiFermeBientot offres={offers} sobre motDuLien="Le calendrier" />
 
-        <Tuiles services={services} apercus={apercus} />
+        <Rubriques />
+
+        {/* LES SERVICES, EN BAS DE L'ACTIVITÉ (planche 2A) : les mêmes tuiles et leur « i », sous l'ancre que « Tous les services » de l'Accueil vise. */}
+        <section id="services" className={styles.services} aria-label={t("Les services")}>
+          <h2 className={styles.titreServices}>{t("Les services")}</h2>
+          <Tuiles services={services} apercus={apercus} />
+        </section>
       </div>
     </Glissement>
   );

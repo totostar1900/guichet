@@ -214,14 +214,6 @@ describe("la page dédiée : comparatif, boutons, listes (3 novembre 2026)", () 
     expect(g, "quand le nuage est vide, la page ne dit plus pourquoi").toMatch(/le nuage coupon × prix reste vide/);
   });
 
-  it("les icônes des gestes de l'Accueil (+, −, ↗, ⋯) sont en or et en gras", () => {
-    const css = lire("src/app/Console.module.css");
-    const m = /\.rondGeste \{([^}]*)\}/.exec(css);
-    expect(m, "« .rondGeste » est introuvable").not.toBeNull();
-    expect(m![1], "les icônes des gestes ne sont plus en or").toMatch(/color:\s*var\(--gold-ink\);/);
-    expect(m![1], "les icônes des gestes ne sont plus en gras").toMatch(/font-weight:\s*800;/);
-  });
-
   it("une tuile de chiffres impaire s'étale sur les deux colonnes, et les listes de la page n'ont pas de seconde étiquette", () => {
     expect(lire("src/app/sondage/page.module.css"), "la dernière tuile impaire laisse de nouveau un trou").toMatch(/\.tuileChiffre:last-child:nth-child\(odd\) \{\s*grid-column: 1 \/ -1;/);
     expect(lire("src/app/sondage/SelecteursDeComparaison.tsx"), "les listes redisent leur nom dans le champ, au-dessus du même mot").not.toMatch(/label=\{t\("(Pays|Durée)"\)\}/);

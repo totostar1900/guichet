@@ -24,7 +24,7 @@ describe("la page des adjudications", () => {
   it("la ligne d'une adjudication a son chevron et son calendrier, quelle que soit la densité", () => {
     expect(code("src/components/OfferBrowser.tsx")).toMatch(/<OfferCard [^>]*extension=\{adj\} \/>/);
     const oc = code("src/components/OfferCard.tsx");
-    expect(oc).toMatch(/const compact = useDensity\(\) === "compact" \|\| extension;/);
+    expect(oc).toMatch(/const compact = useDensity\(\) === "compact" \|\| extension \|\| sansExtension;/);
     expect(oc).toMatch(/\{dos && extension && <CalendrierDeLaLigne o=\{o\}/);
     const cal = code("src/components/CalendrierDeLaLigne.tsx");
     for (const mot of ["Ouverture des soumissions", "Clôture des soumissions", "Résultats", "Règlement", "Échéance de la ligne"]) expect(cal, `l'étape « ${mot} » a disparu`).toContain(mot);

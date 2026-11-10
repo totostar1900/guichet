@@ -42,7 +42,7 @@ export const COLONNE_CLIENT: GroupeColonne[] = [
      les gestes d'un côté, les familles de l'autre, alors que les cinq
      services menaient déjà aux trois familles. Un seul groupe, et l'ordre dit
      la lecture : ce qu'on fait, puis ce sur quoi on le fait. */
-  { label: "Trade", items: dePages(TRADE_PAGES) },
+  { label: "Activité", items: dePages(TRADE_PAGES) },
   { label: "Marché", items: dePages(MARKET_PAGES) },
   /* Ce qui se lit et ce qui se demande : deux pages sorties du bas de
      « Trade », où l'on ne les trouvait que par accident. */

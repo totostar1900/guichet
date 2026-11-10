@@ -10,7 +10,6 @@ const lire = (f: string) => fs.readFileSync(path.join(__dirname, "../..", f), "u
  */
 const PASTILLES = [
   ["src/components/mobile/MarketFab.tsx", "src/components/mobile/MarketFab.module.css"],
-  ["src/components/mobile/PlusFab.tsx", "src/components/mobile/MarketFab.module.css"],
   ["src/components/FilterFab.tsx", "src/components/FilterFab.module.css"],
   ["src/components/BackToTop.tsx", "src/components/BackToTop.module.css"],
   ["src/app/info/GuideBar.tsx", "src/app/info/GuideBar.module.css"],

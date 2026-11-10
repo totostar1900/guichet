@@ -134,12 +134,12 @@ export interface CourbeDuTitre {
   fenetres?: FenetresDuCours;
 }
 
-export function OfferCard({ o, s, suivi = false, courbe, extension = false }: { o: Offer; s: OfferSummary; suivi?: boolean; /** La ligne et son extension, quelle que soit la densité choisie : la page des adjudications, dont l'extension porte le calendrier de la ligne (9 novembre 2026). */ extension?: boolean; /** Le petit graphe sur trois mois d'une action : la forme du cours, avec sa variation. */ courbe?: CourbeDuTitre }) {
+export function OfferCard({ o, s, suivi = false, courbe, extension = false, sansExtension = false }: { o: Offer; s: OfferSummary; suivi?: boolean; /** La carte compacte seule, sans chevron ni extension : celle que l'Accueil montre (10 novembre 2026, planche « Accueil et page Trade », 1A). */ sansExtension?: boolean; /** La ligne et son extension, quelle que soit la densité choisie : la page des adjudications, dont l'extension porte le calendrier de la ligne (9 novembre 2026). */ extension?: boolean; /** Le petit graphe sur trois mois d'une action : la forme du cours, avec sa variation. */ courbe?: CourbeDuTitre }) {
   const href = useLineHref()(o.id);
   const desk = useDeskView();
   const t = useT();
   const { fmtDate } = useDates();
-  const compact = useDensity() === "compact" || extension;
+  const compact = useDensity() === "compact" || extension || sansExtension;
   const estAction = o.kind === "MARCHE" && o.instrument === "action";
   const prix = estAction ? prixDe(s) : null;
   const avecCoupon = (o.kind === "OTA" || o.kind === "APE") && s.coupon !== "—";
@@ -290,16 +290,7 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false }: { 
       </SwipeActions>
     );
   }
-  return (
-    <SwipeActions
-      key="compacte"
-      id={o.id}
-      /* Une seance se rappelle chaque jour jusqu a sa cloture, une ligne cotee
-         se suit a chaque changement : deux marches, deux cadences. */
-      cadence={cadence}
-      suivi={suivi}
-    >
-      <Depliable ouvert={ouvert} replier={replier}>
+  const carte = (
         <article data-coach="titres-carte" className={`${styles.card} ${styles.compact} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
           <Link href={href} className={styles.cLink}>
             <span className={styles.cId}>
@@ -346,15 +337,31 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false }: { 
           </Link>
           <Outils>
             {!desk && <LineMenu line={menu} watching={suivi} cadence={cadenceDuSuivi(o)} openRef={more} className={classePoints} />}
-            <ChevronDeplie ouvert={ouvert} onClick={basculer} idRegion={idRegion} />
+            {!sansExtension && <ChevronDeplie ouvert={ouvert} onClick={basculer} idRegion={idRegion} />}
           </Outils>
         </article>
+  );
+  return (
+    <SwipeActions
+      key="compacte"
+      id={o.id}
+      /* Une seance se rappelle chaque jour jusqu a sa cloture, une ligne cotee
+         se suit a chaque changement : deux marches, deux cadences. */
+      cadence={cadence}
+      suivi={suivi}
+    >
+      {sansExtension ? (
+        carte
+      ) : (
+      <Depliable ouvert={ouvert} replier={replier}>
+        {carte}
         {/* LE DOS EST L'EXTENSION (4A) : tout ce que disait le dos, puis les trois boutons. */}
         <Extension ouvert={ouvert} idRegion={idRegion}>
           <div className={styles.dos}>{corps(true)}</div>
           <BoutonsDeLaCarte id={o.id} href={href} kind={o.kind} past={s.past} cadence={cadence} suivi={suivi} agir={!desk} />
         </Extension>
       </Depliable>
+      )}
     </SwipeActions>
   );
 }

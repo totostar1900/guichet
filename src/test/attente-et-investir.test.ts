@@ -33,11 +33,11 @@ describe("le siège « Investir » du menu du bas", () => {
   const dock = () => lire("src/components/mobile/MobileShell.tsx");
   it("ouvre Titres, Fonds et Adjudications d'un toucher, entre Trade et Marché", () => {
     const d = dock();
-    const ordre = [/href: "\/trader", label: t\("Trade"\)/, /href: "\/titres", label: t\("Investir"\)/, /href: "\/marche", label: t\("Marché"\)/].map((r) => d.search(r));
+    const ordre = [/href: "\/trader", label: t\("Activité"\)/, /href: "\/titres", label: t\("Investir"\)/, /href: "\/marche", label: t\("Marché"\)/].map((r) => d.search(r));
     expect(ordre.every((i) => i > 0), "un des trois sièges a disparu ou changé de mot").toBe(true);
     expect([...ordre].sort((a, b) => a - b), "« Investir » n'est plus entre Trade et Marché").toEqual(ordre);
     expect(d, "« Investir » ne s'allume plus sur les trois familles et leurs fiches").toMatch(/label: t\("Investir"\), icon: I\.investir, match: isInstrumentsSection/);
-    expect(d, "Trade s'allume de nouveau sur les familles : deux sièges s'allumeraient ensemble").toMatch(/label: t\("Trade"\), icon: I\.trader, match: isTraderSection/);
+    expect(d, "Trade s'allume de nouveau sur les familles : deux sièges s'allumeraient ensemble").toMatch(/label: t\("Activité"\), icon: I\.trader, match: isTraderSection/);
   });
   it("Trade ne s'allume que sur sa page, Investir sur les trois familles et leurs fiches", () => {
     for (const p of ["/trader", "/trader/x"]) expect([isTraderSection(p), isInstrumentsSection(p)], p).toEqual([true, false]);

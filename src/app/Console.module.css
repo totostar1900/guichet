@@ -777,33 +777,3 @@
 .hero .horsTotal {
   padding-top: 0;
 }
-/* QUATRE GESTES RONDS sous le chiffre : un doigt, un mot, une page. */
-.raccourcis {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--tuiles-gap);
-}
-.raccourci {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--s-3);
-  color: var(--ink);
-  text-decoration: none;
-}
-.raccourci small {
-  font-size: var(--t-3);
-}
-.rondGeste {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 999px;
-  background: var(--tuile-fond);
-  /* LES ICÔNES SONT EN OR ET EN GRAS (3 novembre 2026) : « + », « − », « ↗ » et « ⋯ » sont les gestes de la page, pas du texte. */
-  color: var(--gold-ink);
-  font-size: var(--t-7);
-  font-weight: 800;
-  line-height: 1;
-}

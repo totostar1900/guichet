@@ -18,7 +18,6 @@ import { DossierAccueil } from "@/components/accueil/DossierAccueil";
 import { joursEnMots } from "@/lib/domain/echeances";
 import { IndexPulse } from "@/components/IndexPulse";
 import { CeQuiPerforme } from "@/components/CeQuiPerforme";
-import { PlusDeLAccueil } from "@/components/accueil/PlusDeLAccueil";
 import { TitreDeBloc } from "@/components/TitreDeBloc";
 import { aLaUne, pourquoiLu, publishedNews, titreLu } from "@/lib/news";
 import { TrustNudge } from "@/components/TrustNudge";
@@ -239,22 +238,7 @@ export async function Console({ session }: { session: Session }) {
           )}
         </section>
       )}
-      {peutOPCVM(session) && (
-        <nav className={styles.raccourcis} aria-label={t("Gestes rapides")}>
-          {[
-            { href: "/moi/provision/alimenter", mot: "Verser", glyphe: "+" },
-            { href: "/moi/provision/reprendre", mot: "Retrait", glyphe: "−" },
-            { href: "/titres", mot: "Investir", glyphe: "↗" },
-          ].map((g) => (
-            <Link key={g.mot} href={g.href} className={styles.raccourci}>
-              <span className={styles.rondGeste} aria-hidden="true">{g.glyphe}</span>
-              <small>{t(g.mot)}</small>
-            </Link>
-          ))}
-          {/* « PLUS » OUVRE UN MENU ANCRÉ (3B, 9 novembre 2026), et non plus la page Trade : ordres, sondages, coupons, rentabilité, provision, versements, prélèvements, documents, puis « Tous les services » (l'ancienne destination). */}
-          <PlusDeLAccueil classeRaccourci={styles.raccourci} classeRond={styles.rondGeste} pointCoupons={Boolean(ctx.attendu) && !ctx.reinvestissement} />
-        </nav>
-      )}
+      {/* LA RANGÉE DES QUATRE GESTES EST PARTIE (10 novembre 2026, planche 2A) : « Verser » et « Retrait » sont dans le bloc du disponible de l'Activité, « Investir » est un onglet, « Plus » a été remplacé par la page Activité. */}
       {/* CE QUI VA PARTIR, ET LE MOYEN DE DIRE NON.
           Le robot exécutait puis prévenait ; prévenir sans bouton d'arrêt
           n'aurait déplacé le problème que d'une case. Cette bande expire, d'où

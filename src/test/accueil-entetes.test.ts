@@ -54,8 +54,8 @@ describe("la page Trade", () => {
   const trade = css("src/app/trader/page.module.css");
   const regle = (sel: string) => new RegExp(`(?:^|\\n)\\${sel} \\{([^}]*)\\}`).exec(trade)?.[1] ?? "";
 
-  it("« Ce qui ferme bientôt » est un bandeau dans la carte, avec « Le calendrier » pour mot", () => {
-    expect(lire("src/app/trader/page.tsx")).toMatch(/<CeQuiFermeBientot offres=\{offers\} sobre motDuLien="Le calendrier" \/>/);
+  it("« Ce qui ferme bientôt » n'est plus sur cette page : l'Activité ne le redit pas, la liste des adjudications et l'Accueil le disent (10 novembre 2026)", () => {
+    expect(lire("src/app/trader/page.tsx")).not.toMatch(/<CeQuiFermeBientot/);
   });
 
   it("une tuile de service a son bandeau : icône, nom en encre à --t-6, « Ouvrir › » en or, une ligne, 44 px", () => {

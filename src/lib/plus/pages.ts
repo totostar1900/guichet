@@ -19,10 +19,4 @@ export const PLUS_PAGES: PagePlus[] = [
   { cle: "versements", href: "/moi/epargne", mot: "Mes versements" },
   { cle: "prelevements", href: "/moi/prelevements", mot: "Mes prélèvements" },
   { cle: "documents", href: "/moi/documents", mot: "Mes documents" },
-  { cle: "services", href: "/trader", mot: "Tous les services" },
 ];
-
-/** L'entrée de « Plus » que ce chemin ouvre, sous-pages comprises (`/moi/ordres/42` est « Mes ordres et intentions »). Aucune pour une page qui n'en est pas. */
-export function pagePlusDe(chemin: string): PagePlus | undefined {
-  return PLUS_PAGES.find((p) => chemin === p.href || chemin.startsWith(`${p.href}/`));
-}

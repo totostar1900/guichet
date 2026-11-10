@@ -1,6 +1,14 @@
-/* Les rubriques de « Mon activité » : sur-titre, titre et phrase viennent d'« EnTete ». */
-
-/* Les rubriques de « Plus » : une tuile par ligne, les jetons de tuile de la maison (10 novembre 2026). */
+/* Les rubriques de l'activité : un titre à plat, puis une tuile par ligne (jetons de tuile de la maison). */
+.groupe {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.titre {
+  margin: 0;
+  font-size: var(--t-6);
+  font-weight: 700;
+  color: var(--ink);
+}
 .rubriques {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

@@ -1,8 +1,8 @@
 import { repo } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import { fondsListes } from "@/lib/domain/listes";
-import { fundAnnualPct } from "@/lib/domain/fund-perf";
 import { FundsBrowser } from "./FundsBrowser";
+import { ligneDeFonds } from "./ligne-de-fonds";
 import { EnBrefInstruments } from "@/components/EnBrefInstruments";
 import styles from "./page.module.css";
 import { echantillonner } from "@/lib/domain/fund-curve";
@@ -58,7 +58,7 @@ export async function FondsBody() {
           vient. En face, il ne coute aucune hauteur. */}
       <EnTete surTitre={t("Investissez")} titre={t("Fonds communs de placement")} titreMasque aCote={<EnBrefInstruments page="fonds" />} />
 
-      <FundsBrowser suivis={veilles.map((w) => w.offerId)} rows={funds.map((o) => ({ id: o.id, title: o.title, isin: o.isin, category: o.fund.category, frequency: o.fund.frequency, manager: o.issuer, depositary: o.fund.depositary, nav: o.fund.nav, navDate: o.fund.navDate, variationPct: o.fund.variationPct, perf1yPct: o.fund.perf1yPct, perfSinceInceptionPct: o.fund.perfSinceInceptionPct, annualPct: fundAnnualPct(o.fund, maintenant) ?? undefined, inceptionDate: o.fund.inceptionDate, open: o.fund.distributed && !o.hidden, entryFeePct: o.fund.entryFeePct, exitFeePct: o.fund.exitFeePct, managementFeePct: o.fund.managementFeePct, minAmount: o.fund.minAmount, cutoff: o.fund.cutoff, settlementDays: o.fund.settlementDays, curve: curves.get(o.fund.key) }))} />
+      <FundsBrowser suivis={veilles.map((w) => w.offerId)} rows={funds.map((o) => ligneDeFonds(o, curves.get(o.fund.key), maintenant))} />
       {funds.length === 0 && <p className={styles.note}>{t("Les fonds apparaîtront ici dès que leurs valeurs liquidatives seront disponibles.")}</p>}
       <p className={styles.note}>
         {t("Les performances passées ne préjugent pas des performances futures. Une souscription est exécutée à la prochaine valeur liquidative ; droits d'entrée et de sortie selon le règlement de chaque fonds.")}

@@ -105,15 +105,15 @@ describe("les composants de l'Accueil", () => {
   const accueil = code("src/app/Console.tsx");
 
   it("ne posent le bloc des adjudications que s'il y a du contenu : les séances ouvertes, sinon les annoncées, sinon rien", () => {
-    expect(grille, "les séances annoncées ne se prennent plus qu'à défaut d'ouvertes").toMatch(/const prevues = ouvertes\.length \? \[\] : seancesPrevues\(offres, now, NB_LIGNES_PAR_BLOC\);/);
-    expect(grille, "le bloc des adjudications ne lit plus ouvertes puis prévues").toMatch(/lignesDeBloc\(ouvertes\.length \? ouvertes : prevues,/);
+    expect(grille, "les séances annoncées ne se prennent plus qu'à défaut d'ouvertes").toMatch(/const prevues = ouvertes\.length \? \[\] : seancesPrevues\(offres, now, NB_CARTES_PAR_BLOC\);/);
+    expect(grille, "le bloc des adjudications ne lit plus ouvertes puis prévues").toMatch(/\(ouvertes\.length \? ouvertes : prevues\)\.map\(/);
     expect(code("src/components/accueil/BlocDeLignes.tsx"), "un bloc sans ligne doit se taire, pas dire « rien »").toMatch(/if \(!lignes\.length\) return null;/);
     /* L'INVITATION À PROPOSER PASSE DANS « VOUS POUVEZ AUSSI » quand le bloc se tait : plus de tuile « Proposer » dans Investir. */
     expect(grille, "la tuile « Proposer une adjudication » est revenue dans Investir").not.toContain('href="/sondage"');
     expect(dossier, "le dossier ne dit plus au domaine qu'aucune adjudication n'est affichée").toMatch(/sansAdjudication: seancesOuvertes\(offers, now\)\.length === 0 && seancesPrevues\(offers, now, 1\)\.length === 0/);
   });
   it("mènent à tout le catalogue par un bouton sous les entrées, et plus par une tuile du bas", () => {
-    expect(grille, "le bouton « Tous vos services » a disparu").toMatch(/<Link href="\/trader" className=\{styles\.tous\}>/);
+    expect(grille, "le bouton « Tous vos services » a disparu").toMatch(/<Link href="\/trader#services" className=\{styles\.tous\}>/);
     expect(accueil, "la tuile « Vos services » est revenue au bas de la page").not.toMatch(/Vos services/);
   });
   it("n'annoncent le nombre de lignes dans aucune entrée d'« Investir »", () => {
