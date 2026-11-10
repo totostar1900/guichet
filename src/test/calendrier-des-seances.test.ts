@@ -24,7 +24,7 @@ describe("la page des adjudications", () => {
   it("le calendrier a sa page, et plus de place sous la liste", () => {
     const liste = code("src/app/calendrier/page.tsx");
     expect(liste, "le calendrier est revenu sous la liste").not.toMatch(/GrilleDuMois|calendrier-des-seances/);
-    expect(liste, "le lien vers la page dédiée a disparu").toMatch(/href="\/calendrier\/seances"/);
+    expect(code("src/components/OfferBrowser.tsx"), "la tuile vers la page dédiée a disparu de la rangée des filtres").toMatch(/cle: "calendrier", icone: "calendrier", nom: t\("Calendrier"\), href: "\/calendrier\/seances"/);
     const page = code("src/app/calendrier/seances/page.tsx");
     expect(page).toMatch(/<GrilleDuMois/);
     for (const href of ["/sondage", "/moi/suivies", "/echeances"]) expect(page, `le bouton vers ${href} a disparu`).toContain(`href="${href}"`);

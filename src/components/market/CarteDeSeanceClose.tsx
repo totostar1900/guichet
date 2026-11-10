@@ -2,8 +2,6 @@
 
 import { useDates, useT } from "@/i18n/client";
 import { Drapeau } from "@/components/Drapeau";
-import { Info } from "@/components/Info";
-import type { TermKey } from "@/lib/glossary";
 import type { Offer } from "@/lib/domain/types";
 import { summarize } from "@/lib/domain/summary";
 import { displayYield } from "@/lib/domain/status";
@@ -11,7 +9,8 @@ import { nomDeSeance } from "@/lib/domain/nom-de-ligne";
 import { fmt, fmtPct, money } from "@/lib/format";
 import type { SeanceClient } from "@/lib/market/adjudications-client";
 import { aServi } from "@/lib/market/adjudications-client";
-import { BoutonsDeSeanceClose, ChevronDeplie, Depliable, Extension, Outils, useDepliee } from "@/components/mobile/CarteDepliee";
+import { ChevronDeplie, Depliable, Extension, Outils, useDepliee } from "@/components/mobile/CarteDepliee";
+import { tenorDays } from "@/lib/market/yield";
 import styles from "@/components/OfferCard.module.css";
 
 /**
@@ -24,10 +23,7 @@ import styles from "@/components/OfferCard.module.css";
  * Trésor et date, chiffre à droite, chevron) ; le chevron déplie les résultats complets. Les champs viennent de `vueClient`, la liste blanche : rien ne s'y ajoute ici. Aucune « sélection » ni proposition du desk sur un
  * résultat. Les dates de règlement et d'échéance ne sont pas dans un résultat : elles ne sont pas écrites.
  */
-/** LE « i » D'UNE SÉANCE CLOSE (10 novembre 2026) : le calcul du rendement et ce qu'il faut pour lire la carte (taux moyen, limite, couverture, SVT), dans une seule bulle. */
-const TERMES: TermKey[] = ["rendement_de_seance", "taux_moyen_pondere", "taux_limite", "couverture", "svt"];
-
-export type EntreeClose = { type: "resultat"; s: SeanceClient; offre?: Offer; href?: string } | { type: "ligne"; o: Offer; href: string };
+export type EntreeClose = { type: "resultat"; s: SeanceClient; offre?: Offer } | { type: "ligne"; o: Offer };
 
 export function CarteDeSeanceClose({ e }: { e: EntreeClose }) {
   const t = useT();
@@ -64,7 +60,10 @@ export function CarteDeSeanceClose({ e }: { e: EntreeClose }) {
   /* LES DÉTAILS, DANS LE MÊME ORDRE POUR TOUTES : le titre (coupon, échéance), le prix et le rendement, la fourchette, puis les montants, réunis deux par deux (annoncé et soumis, servi et couverture, soumissionnaires et SVT). */
   const faits: [string, string][] = [];
   if (!bon) faits.push(["Coupon", coupon != null ? fmtPct(coupon, 2) : "non communiqué"]);
-  if (echeance) faits.push(["Échéance", fmtDate(echeance)]);
+  /* L'ÉCHÉANCE EST TOUJOURS DITE (10 novembre 2026) : la date imprimée ou celle de la ligne ; sinon une date approchée, séance plus durée annoncée, précédée d'un « ~ » ; sinon un tiret. */
+  const jours = tenorDays(r?.tenor);
+  const approchee = !echeance && r && jours != null ? new Date(Date.parse(r.sessionOn) + jours * 86_400_000).toISOString().slice(0, 10) : null;
+  faits.push(["Échéance", echeance ? fmtDate(echeance) : approchee ? `~ ${fmtDate(approchee)}` : "—"]);
   if (r) {
     if (r.rendement != null) faits.push(["Rendement actuariel", fmtPct(r.rendement, 2)]);
     if (!bon && moyen != null) faits.push(["Prix moyen pondéré", fmtPct(moyen, 2)]);
@@ -100,15 +99,7 @@ export function CarteDeSeanceClose({ e }: { e: EntreeClose }) {
           </span>
           <span className={styles.cNum}>
             <b>{chiffre}</b>
-            <small>
-              {t(legende)}
-              {chiffre !== "—" && (
-                <>
-                  {" "}
-                  <Info termes={TERMES} label="Lire une séance close" subtle />
-                </>
-              )}
-            </small>
+            <small>{t(legende)}</small>
           </span>
         </div>
         <Outils>
@@ -128,26 +119,12 @@ export function CarteDeSeanceClose({ e }: { e: EntreeClose }) {
           <div className={styles.resultats}>
             {faits.map(([k, v]) => (
               <div key={k}>
-                <span>
-                  {t(k)}
-                  {k === "Rendement actuariel" && (
-                    <>
-                      {" "}
-                      <Info termes={TERMES} label="Lire une séance close" subtle />
-                    </>
-                  )}
-                </span>
+                <span>{t(k)}</span>
                 <b>{v}</b>
               </div>
             ))}
           </div>
-          {r && (
-            <p className={styles.noteDeSeance}>
-              {t("Les montants sont en francs CFA. Un taux ou un prix absent n'a pas été imprimé dans le communiqué.")}
-            </p>
-          )}
         </div>
-        <BoutonsDeSeanceClose href={e.href} />
       </Extension>
     </Depliable>
   );

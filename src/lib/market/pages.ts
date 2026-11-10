@@ -55,7 +55,7 @@ export const MARKET_PAGES: MarketPage[] = [
   { key: "societes", href: "/societes", deskHref: "/desk/societes", label: "Les sociétés cotées", short: "Les sociétés cotées", tuile: "les sept de la cote", hint: "les sept actions de la cote, leur cours, leur poids, leur rendement" },
   { key: "notes", href: "/indice/notes", deskHref: "/desk/indice", label: "Les notes de marché", short: "Les notes", tuile: "un trimestre par note", hint: "un trimestre par note : ce qu'il a fait, les sociétés derrière le chiffre" },
   { key: "comparer", href: "/comparer", deskHref: "/desk/comparer", label: "Comparer deux lignes", short: "Comparer", tuile: "deux lignes côte à côte", hint: "deux titres côte à côte, avec l'indice en repère" },
-  { key: "adjudications", href: "/marche/adjudications", label: "Les adjudications", short: "Adjudications", tuile: "ce que le marché a payé", hint: "les séances closes des Trésors, telles que leur communiqué les publie : taux, couverture, montants servis" },
+  { key: "adjudications", href: "/marche/adjudications", label: "Les résultats d'adjudications", short: "Résultats", tuile: "ce que le marché a payé", hint: "les séances closes des Trésors, telles que leur communiqué les publie : taux, couverture, montants servis" },
   /* LES ADJUDICATIONS ONT QUITTÉ CETTE TABLE pour le siège Instruments. Elles y
      étaient rangées comme une publication, entre l'indice et les notes, alors
      qu'une séance annoncée est une occasion d'acheter et non un article. La

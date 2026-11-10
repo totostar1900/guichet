@@ -544,13 +544,6 @@
   line-height: 1.3;
 }
 
-/* La note d'une séance close : les montants sont en francs, un chiffre absent n'a pas été imprimé (9 novembre 2026). */
-.noteDeSeance {
-  margin: 0;
-  font-size: var(--t-2);
-  color: var(--ink-3);
-}
-
 /* Les chiffres d'une séance close : deux colonnes égales, quel qu'en soit le nombre (huit au plus) ; une colonne qui peut se rétrécir. */
 .resultats {
   display: grid;

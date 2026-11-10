@@ -23,7 +23,9 @@ describe("les séances closes", () => {
     expect(p, "les résultats confirmés sont revenus dans Investir").not.toMatch(/listAuctionResults|CarteDeSeanceClose|Séances closes/);
     expect(p, "une ligne close passe encore dans la liste d'Investir").toMatch(/!isPast\(displayStatus\(o, maintenant\)\)/);
     expect(p, "la page vide ne mène plus aux résultats passés").toMatch(/href="\/marche\/adjudications"/);
-    expect(p, "la page vide ne mène plus au calendrier").toMatch(/href="\/calendrier\/seances"/);
+    expect(p, "la page vide ne propose plus de proposer une adjudication").toMatch(/href="\/sondage"[\s\S]*Proposer une adjudication/);
+    expect(p, "le lien vers le calendrier des séances passées est revenu").not.toMatch(/séances passées\} ›[\s\S]*séances passées/);
+    expect(p, "le calendrier des séances passées est revenu").not.toMatch(/Calendrier des séances passées/);
     expect(p, "le lien en tête du calendrier est revenu : il est une tuile à côté des filtres").not.toMatch(/Calendrier des séances\} ›/);
     const b = code("src/components/OfferBrowser.tsx");
     expect(b, "les tuiles Calendrier et Résultats ne sont plus sur la rangée des filtres").toMatch(/cle: "calendrier"[\s\S]*cle: "resultats"/);
@@ -49,7 +51,7 @@ describe("les séances closes", () => {
     for (const k of ["Annoncé / soumissions", "Servi / couverture", "Soumissionnaires / SVT du réseau", "Rendement actuariel", "Prix moyen pondéré", "Taux limite", "Coupon", "Échéance"]) expect(c, `« ${k} » a disparu`).toMatch(new RegExp(`"${k}"`));
     expect(c, "la carte close porte un geste d'ordre").not.toMatch(/Passer un ordre|Déclarer|Souscrire|BoutonsDeLaCarte/);
     expect(c, "la carte close porte une sélection du desk").not.toMatch(/featured|Sélection du desk/);
-    expect(c).toMatch(/<BoutonsDeSeanceClose href=\{e\.href\} \/>/);
+    expect(c, "la carte close propose de nouveau un bouton ou la fiche").not.toMatch(/BoutonsDeSeanceClose|Voir la fiche|href=/);
   });
   it("la liste du Marché lit la même carte, en tuiles pleine largeur, sans panneau", () => {
     const m = code("src/app/marche/adjudications/page.tsx");
@@ -72,13 +74,23 @@ describe("les séances closes", () => {
     expect(a).toMatch(/"couponRate",/);
     expect(a).toMatch(/s\.rendementOrigine = y\.origin/);
   });
-  it("le « i » d'une séance close dit le calcul du rendement et ce qu'il faut pour lire la carte, sur le chiffre et sur la ligne des détails", () => {
+  it("un seul « i », en haut de la page des résultats, et aucun par ligne ; la mention des montants y est", () => {
     const c = code("src/components/market/CarteDeSeanceClose.tsx");
-    expect(c, "les termes du « i » ont changé").toMatch(/TERMES: TermKey\[\] = \["rendement_de_seance", "taux_moyen_pondere", "taux_limite", "couverture", "svt"\]/);
-    expect((c.match(/<Info termes=\{TERMES\}/g) ?? []).length, "le « i » doit paraître près du chiffre et près du rendement des détails").toBe(2);
-    expect(c, "la note du bas redit le calcul au lieu du « i »").not.toMatch(/calcul/i);
-    expect(c, "l'échéance perd son année").toMatch(/faits\.push\(\["Échéance", fmtDate\(echeance\)\]\)/);
+    expect(c, "un « i » est revenu sur la ligne").not.toMatch(/<Info|noteDeSeance|Les montants sont en francs/);
+    const m = code("src/app/marche/adjudications/page.tsx");
+    expect((m.match(/<Info /g) ?? []).length, "la page doit porter un seul « i »").toBe(1);
+    expect(m, "la mention des montants est revenue sur la page").not.toMatch(/Les montants sont en francs/);
+    const t = code("src/components/market/termes-des-resultats.ts");
+    expect(t).toMatch(/\["montants_communique", "rendement_de_seance", "taux_moyen_pondere", "taux_limite", "couverture", "svt"\]/);
     const g = code("src/lib/glossary.ts");
-    for (const k of ["rendement_de_seance", "taux_moyen_pondere", "taux_limite", "couverture"]) expect(g, `le terme ${k} a disparu`).toMatch(new RegExp(`\\n  ${k}: \\{`));
+    for (const k of ["montants_communique", "rendement_de_seance", "taux_moyen_pondere", "taux_limite", "couverture"]) expect(g, `le terme ${k} a disparu`).toMatch(new RegExp(`\\n  ${k}: \\{`));
+  });
+  it("l'échéance est toujours dite : la date, sinon une date approchée précédée de « ~ », sinon un tiret", () => {
+    const c = code("src/components/market/CarteDeSeanceClose.tsx");
+    expect(c).toMatch(/faits\.push\(\["Échéance", echeance \? fmtDate\(echeance\) : approchee \? `~ \$\{fmtDate\(approchee\)\}` : "—"\]\)/);
+  });
+  it("la page des résultats n'a plus ni « taux limite par durée » ni « part des séances couvertes »", () => {
+    const m = code("src/app/marche/adjudications/page.tsx");
+    expect(m).not.toMatch(/tauxLimiteParDuree|partCouverte|Taux limite par durée|Part des séances couvertes/);
   });
 });

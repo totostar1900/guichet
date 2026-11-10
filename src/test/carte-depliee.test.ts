@@ -82,9 +82,8 @@ describe("la carte dépliée", () => {
     expect(tsx, "ouvrir une carte ne referme plus celle qui l'était").toMatch(/basculer: \(\) => poser\(ouverteId === id \? null : id\)/);
     expect(tsx, "une carte garde son propre état local d'ouverture").not.toMatch(/const \[ouvert, setOuvert\] = useState/);
   });
-  it("« Tous les résultats » ne paraît pas sur la page des résultats", () => {
+  it("une séance close n'a plus de bouton : ni « Tous les résultats » ni « Voir la fiche »", () => {
     const tsx = code("src/components/mobile/CarteDepliee.tsx");
-    expect(tsx).toMatch(/usePathname\(\)\.startsWith\("\/marche\/adjudications"\)/);
-    expect(tsx).toMatch(/\{!surLesResultats && \(\s*<Link[^>]*>\s*\{t\("Tous les résultats"\)\}/);
+    expect(tsx, "les boutons d'une séance close sont revenus").not.toMatch(/BoutonsDeSeanceClose|Tous les résultats/);
   });
 });

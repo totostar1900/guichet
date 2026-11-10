@@ -213,9 +213,9 @@ export default async function MarchePage() {
         {derniereAdj && (
           <section className="panel" id="adjudications">
             <div className="panel-h">
-              <h2>{t("Les adjudications")}</h2>
+              <h2>{t("Les résultats d'adjudications")}</h2>
               <Link className="btn sm ghost right" href="/marche/adjudications">
-                {t("Toutes les séances")} →
+                {t("Tous les résultats")} →
               </Link>
             </div>
             <div className={styles.apercu}>

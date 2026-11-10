@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useSyncExternalStore, useTransition } from "react";
 import { toggleWatch } from "@/app/offres/[id]/actions";
 import { useT } from "@/i18n/client";
@@ -156,31 +156,6 @@ export function BoutonsDeLaCarte({ id, href, kind, past, cadence, suivi, agir = 
       <Link className={`btn ${styles.bouton}`} href={href}>
         {t("Voir la fiche")}
       </Link>
-    </div>
-  );
-}
-
-/**
- * LES BOUTONS D'UNE SÉANCE CLOSE (9 novembre 2026) : « Tous les résultats » (la page du Marché, qui garde l'historique) et, quand une ligne du catalogue porte le même code d'émission, « Voir la fiche ». Une séance close n'a plus d'ordre à passer :
- * aucun bouton d'action.
- */
-export function BoutonsDeSeanceClose({ href }: { href?: string }) {
-  const t = useT();
-  /* DÉJÀ SUR LA PAGE DES RÉSULTATS, le bouton qui y mène n'a plus lieu d'être (9 novembre 2026). */
-  const surLesResultats = usePathname().startsWith("/marche/adjudications");
-  if (surLesResultats && !href) return null;
-  return (
-    <div className={styles.boutons}>
-      {!surLesResultats && (
-        <Link className={`btn primary ${styles.bouton}`} href="/marche/adjudications#seances">
-          {t("Tous les résultats")}
-        </Link>
-      )}
-      {href && (
-        <Link className={`btn ${surLesResultats ? "primary" : ""} ${styles.bouton}`} href={href}>
-          {t("Voir la fiche")}
-        </Link>
-      )}
     </div>
   );
 }

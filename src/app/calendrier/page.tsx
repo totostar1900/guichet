@@ -74,11 +74,12 @@ export default async function CalendrierPage() {
           /* LA PAGE VIDE PARLE ET MÈNE AILLEUR : aucune séance ouverte, mais les séances passées se lisent aux Résultats et au calendrier. */
           <section className={styles.vide} aria-label={t("Aucune séance ouverte")}>
             <p className="muted">{t("Aucune séance ouverte à Guichet pour l'instant. Les Trésors publient leurs communiqués par vagues, souvent une semaine avant la séance.")}</p>
+            {/* LA PAGE VIDE PROPOSE QUELQUE CHOSE (10 novembre 2026) : proposer une adjudication, ou lire les résultats passés. Le lien vers le calendrier des séances passées est retiré. */}
+            <Link className="btn primary" href="/sondage">
+              {t("Proposer une adjudication")}
+            </Link>
             <Link className={styles.versCalendrier} href="/marche/adjudications">
               {t("Résultats des séances passées")} ›
-            </Link>
-            <Link className={styles.versCalendrier} href="/calendrier/seances">
-              {t("Calendrier des séances passées")} ›
             </Link>
           </section>
         )}
