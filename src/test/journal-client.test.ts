@@ -19,6 +19,7 @@ import { clefDuJour, estQuotidien, genreDe, GENRES, GESTES } from "@/lib/domain/
 const ROOT = process.cwd();
 const FICHIERS = [
   "src/app/favoris/actions.ts",
+  "src/app/moi/alertes-actions.ts",
   "src/app/moi/actions.ts",
   "src/app/moi/counter-actions.ts",
   "src/app/moi/modifier-actions.ts",
@@ -74,6 +75,11 @@ const DISPENSEES: Record<string, string> = {
   forgetDeviceAction: "noté par « securite.appareil.oublie » dans la même fonction",
   submitIntent: "noté par « ordre.depose » dans la même fonction",
   toggleWatch: "noté par « ligne.suivie » dans la même fonction",
+  suivreLaSerie: "noté par « serie.suivie » ou « serie.delaissee » dans la même fonction",
+  arreterLaSerie: "noté par « serie.delaissee » dans la même fonction",
+  armerUnSeuil: "noté par « seuil.arme » dans la même fonction",
+  annulerUnSeuil: "noté par « seuil.annule » dans la même fonction",
+  remettreUnSeuil: "noté par « seuil.remis » dans la même fonction",
   basculerFavori: "noté par « favori.pose » ou « favori.retire » dans la même fonction",
   estFavori: "lecture seule : rien n'est écrit",
   sendPhoneProof: "noté par « canal.preuve.envoyee » dans la même fonction",

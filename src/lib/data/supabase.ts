@@ -12,6 +12,7 @@ import type { Relance } from "@/lib/domain/relance";
 import type { Part } from "@/lib/domain/repartition";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde, BaremeGarde, DroitLigne } from "@/lib/domain/garde";
+import type { AlerteDeSeuil, SerieSuivie } from "@/lib/domain/alertes";
 import type { StandingOrder } from "@/lib/domain/standing";
 import type { ClientFile } from "@/lib/domain/kyc";
 import type { BulletinNote, FundNav, IssuerDocument, MarketBulletin, Quote } from "@/lib/domain/market";
@@ -631,6 +632,11 @@ const toPayout = (r: PayoutRow): CashPayout => ({
 type FavoriRow = { id: string; user_id: string; href: string; title: string; created_at: string };
 const toFavori = (r: FavoriRow): Favori => ({ id: r.id, userId: r.user_id, href: r.href, title: r.title, createdAt: r.created_at });
 type WatchRow = { id: string; user_id: string; offer_id: string; last_hero: string | null; last_status: string | null; alerted_at: string | null; created_at: string; mode?: string | null; last_daily?: string | null };
+type SerieRow = { id: string; user_id: string; country: string; kind: string; label: string; notified: string[] | null; created_at: string };
+const toSerie = (r: SerieRow): SerieSuivie => ({ id: r.id, userId: r.user_id, country: r.country, kind: r.kind, label: r.label, notified: r.notified ?? [], createdAt: r.created_at });
+type SeuilRow = { id: string; user_id: string; offer_id: string; metric: AlerteDeSeuil["metric"]; sens: AlerteDeSeuil["sens"]; value: number | string; state: AlerteDeSeuil["state"]; fired_at: string | null; fired_value: number | string | null; created_at: string };
+const toSeuil = (r: SeuilRow): AlerteDeSeuil => ({ id: r.id, userId: r.user_id, offerId: r.offer_id, metric: r.metric, sens: r.sens, value: Number(r.value), state: r.state, firedAt: r.fired_at ?? undefined, firedValue: r.fired_value != null ? Number(r.fired_value) : undefined, createdAt: r.created_at });
+
 const toWatch = (r: WatchRow): Watch => ({ id: r.id, userId: r.user_id, offerId: r.offer_id, lastHero: u(r.last_hero), lastStatus: u(r.last_status), alertedAt: u(r.alerted_at), createdAt: r.created_at, mode: (u(r.mode) as Watch["mode"]) ?? "evenement", lastDaily: u(r.last_daily) });
 /* Le sondage d'avant séance : « montant » et « dans_jours » reviennent en
    nombres, et la date en jour nu. Voir migration 0117. */
@@ -2274,6 +2280,67 @@ export const supabaseRepository: Repository = {
   async removeWatch(userId, offerId) {
     const { error } = await db().from("watchlist").delete().eq("user_id", userId).eq("offer_id", offerId);
     if (error) fail("removeWatch", error);
+  },
+  async listSerieFollows(userId) {
+    try {
+      const data = await parLots<SerieRow>("listSerieFollows", (de, a) => {
+        let q = db().from("serie_follows").select("*").order("created_at", { ascending: false }).order("id");
+        if (userId) q = q.eq("user_id", userId);
+        return q.range(de, a);
+      });
+      return data.map(toSerie);
+    } catch (e) {
+      if (/serie_follows/.test((e as Error).message)) return []; // migration 0129 not applied yet
+      throw e;
+    }
+  },
+  async addSerieFollow(userId, cle) {
+    const { data, error } = await db().from("serie_follows").upsert({ user_id: userId, country: cle.country, kind: cle.kind, label: cle.label }, { onConflict: "user_id,country,kind" }).select("*").single();
+    if (error) fail("addSerieFollow", error);
+    return toSerie(data as SerieRow);
+  },
+  async removeSerieFollow(userId, id) {
+    const { error } = await db().from("serie_follows").delete().eq("user_id", userId).eq("id", id);
+    if (error) fail("removeSerieFollow", error);
+  },
+  async markSerieNotified(id, offerId) {
+    const { data, error } = await db().from("serie_follows").select("notified").eq("id", id).maybeSingle();
+    if (error) fail("markSerieNotified", error);
+    const deja = ((data as { notified?: string[] | null } | null)?.notified ?? []) as string[];
+    if (deja.includes(offerId)) return;
+    const { error: e2 } = await db().from("serie_follows").update({ notified: [...deja, offerId] }).eq("id", id);
+    if (e2) fail("markSerieNotified", e2);
+  },
+  async listThresholdAlerts(userId) {
+    try {
+      const data = await parLots<SeuilRow>("listThresholdAlerts", (de, a) => {
+        let q = db().from("threshold_alerts").select("*").order("created_at", { ascending: false }).order("id");
+        if (userId) q = q.eq("user_id", userId);
+        return q.range(de, a);
+      });
+      return data.map(toSeuil);
+    } catch (e) {
+      if (/threshold_alerts/.test((e as Error).message)) return []; // migration 0129 not applied yet
+      throw e;
+    }
+  },
+  async addThresholdAlert(input) {
+    const { data, error } = await db().from("threshold_alerts").insert({ user_id: input.userId, offer_id: input.offerId, metric: input.metric, sens: input.sens, value: input.value }).select("*").single();
+    if (error) fail("addThresholdAlert", error);
+    return toSeuil(data as SeuilRow);
+  },
+  async updateThresholdAlert(id, patch) {
+    const row: Record<string, unknown> = {};
+    if (patch.state !== undefined) row.state = patch.state;
+    if (patch.firedAt !== undefined) row.fired_at = patch.firedAt;
+    if (patch.firedValue !== undefined) row.fired_value = patch.firedValue;
+    /* Remise en service : la trace du franchissement précédent s'efface. */
+    if (patch.state === "active") {
+      row.fired_at = null;
+      row.fired_value = null;
+    }
+    const { error } = await db().from("threshold_alerts").update(row).eq("id", id);
+    if (error) fail("updateThresholdAlert", error);
   },
   async listFavoris(userId) {
     try {

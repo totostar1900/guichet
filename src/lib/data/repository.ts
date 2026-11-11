@@ -13,6 +13,7 @@ import type { TourVu } from "@/lib/domain/robots";
 import type { Temoignage } from "@/lib/domain/temoignage";
 import type { AvisGarde } from "@/lib/domain/garde";
 import type { NewStandingOrder, StandingOrder } from "@/lib/domain/standing";
+import type { AlerteDeSeuil, SerieSuivie } from "@/lib/domain/alertes";
 import type { MandatPrelevement, NewMandat } from "@/lib/domain/mandat";
 import type { NewVirement, VirementRecu } from "@/lib/domain/virement";
 import type { NewTirage, RemiseDePrelevement, Tirage } from "@/lib/domain/prelevement";
@@ -443,6 +444,14 @@ export interface Repository {
   removeFavori(userId: string, href: string): Promise<void>;
   addWatch(userId: string, offerId: string, snapshot: { hero: string; status: string }, mode?: Watch["mode"]): Promise<Watch>;
   removeWatch(userId: string, offerId: string): Promise<void>;
+  /** Les séries suivies (la prochaine séance d'un Trésor et d'un instrument) et les seuils : planche « Alertes de séance et de seuil ». */
+  listSerieFollows(userId?: string): Promise<SerieSuivie[]>;
+  addSerieFollow(userId: string, cle: { country: string; kind: string; label: string }): Promise<SerieSuivie>;
+  removeSerieFollow(userId: string, id: string): Promise<void>;
+  markSerieNotified(id: string, offerId: string): Promise<void>;
+  listThresholdAlerts(userId?: string): Promise<AlerteDeSeuil[]>;
+  addThresholdAlert(input: { userId: string; offerId: string; metric: AlerteDeSeuil["metric"]; sens: AlerteDeSeuil["sens"]; value: number }): Promise<AlerteDeSeuil>;
+  updateThresholdAlert(id: string, patch: Partial<Pick<AlerteDeSeuil, "state" | "firedAt" | "firedValue">>): Promise<void>;
   updateWatch(id: string, patch: Partial<Pick<Watch, "lastHero" | "lastStatus" | "alertedAt" | "lastDaily">>): Promise<void>;
   /** Client-side updates to reachability (phone, e-mail) : the desk keeps the last one given. */
   updateContact(id: string, patch: Partial<Pick<Contact, "name" | "phone" | "email" | "segment">>): Promise<void>;

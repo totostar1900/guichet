@@ -123,6 +123,11 @@ export const GESTES: Record<string, Geste> = {
   "favori.pose": { genre: "relation", phrase: "Vous avez mis une page en favori", auDesk: "a mis une page en favori" },
   "favori.retire": { genre: "relation", phrase: "Vous avez retiré une page de vos favoris", auDesk: "a retiré une page de ses favoris" },
   "ligne.delaissee": { genre: "relation", phrase: "Vous ne suivez plus une ligne", auDesk: "ne suit plus une ligne" },
+  "serie.suivie": { genre: "relation", phrase: "Vous avez demandé à être prévenu de la prochaine séance d'une série", auDesk: "a demandé à être prévenu de la prochaine séance d'une série" },
+  "serie.delaissee": { genre: "relation", phrase: "Vous ne suivez plus une série de séances", auDesk: "ne suit plus une série de séances" },
+  "seuil.arme": { genre: "relation", phrase: "Vous avez armé une alerte de seuil", auDesk: "a armé une alerte de seuil" },
+  "seuil.annule": { genre: "relation", phrase: "Vous avez annulé une alerte de seuil", auDesk: "a annulé une alerte de seuil" },
+  "seuil.remis": { genre: "relation", phrase: "Vous avez remis une alerte de seuil", auDesk: "a remis une alerte de seuil" },
 };
 
 export const estGeste = (nom: string): boolean => nom in GESTES;

@@ -6,6 +6,8 @@ import { WatchButton } from "@/components/WatchButton";
 import { summarize } from "@/lib/domain/summary";
 import { cadenceDuSuivi } from "@/lib/domain/sections";
 import { lignesSuivies } from "@/lib/domain/suivies";
+import { NOM_DU_CHIFFRE, valeurSurveillee } from "@/lib/domain/alertes";
+import { AlertesSuivies } from "./AlertesSuivies";
 import { getT } from "@/i18n/server";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
@@ -37,7 +39,7 @@ export default async function SuiviesPage() {
   const t = await getT();
   const s = await requireSession("/moi/suivies");
   const r = repo();
-  const [watches, offers] = await Promise.all([r.listWatches(s.userId).catch(() => []), r.listOffers()]);
+  const [watches, offers, series, seuils] = await Promise.all([r.listWatches(s.userId).catch(() => []), r.listOffers(), r.listSerieFollows(s.userId).catch(() => []), r.listThresholdAlerts(s.userId).catch(() => [])]);
   /* Le tri vit dans le domaine : la page d'accueil compte les mêmes lignes
      pour l'étiquette de sa rubrique, et deux comptes du même objet finissent
      toujours par ne plus tomber sur le même nombre. */
@@ -51,7 +53,7 @@ export default async function SuiviesPage() {
         <EnTete
           surTitre={t("Mon dossier")}
           titre={t("Lignes suivies")}
-          phrase={t("Ce que vous surveillez sans le détenir. Un message vous prévient à chaque changement de cours, de prix ou de statut.")}
+          phrase={t("Ce que vous surveillez sans le détenir. Un message vous prévient à chaque changement de cours, de prix ou de statut, à la prochaine séance d'une série, ou quand un seuil est franchi.")}
         />
 
         <div className="panel">
@@ -78,6 +80,18 @@ export default async function SuiviesPage() {
             </div>
           )}
         </div>
+
+        {/* LES SÉRIES ET LES SEUILS (planche « Alertes de séance et de seuil », point 3) : deux genres d'alerte que le suivi d'une ligne ne couvre pas, sous les lignes, avec le même arrêt en un geste. */}
+        <AlertesSuivies
+          series={series.map((f) => ({ id: f.id, label: f.label }))}
+          seuils={seuils
+            .filter((a) => a.state !== "annulee")
+            .map((a) => {
+              const o = offers.find((x) => x.id === a.offerId);
+              const v = o ? valeurSurveillee(o, now) : null;
+              return { id: a.id, offerId: a.offerId, titre: o?.title ?? a.offerId, nom: NOM_DU_CHIFFRE[a.metric], unite: a.metric === "rendement" ? "%" : v?.unite ?? "FCFA", sens: a.sens, value: a.value, state: a.state as "active" | "declenchee", firedAt: a.firedAt, firedValue: a.firedValue };
+            })}
+        />
       </main>
     </Glissement>
   );

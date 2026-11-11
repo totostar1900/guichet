@@ -1,0 +1,48 @@
+/* Les séries et les seuils : un titre à plat, puis des lignes en tuiles (jetons de la maison, 11 novembre 2026). */
+.groupe {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.titre {
+  margin: 0;
+  font-size: var(--t-6);
+  font-weight: 700;
+  color: var(--ink);
+}
+.lignes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--tuiles-gap);
+}
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+}
+.ligne > span {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.ligne small {
+  color: var(--ink-2);
+  font-size: var(--t-2);
+  line-height: 1.45;
+}
+.ligne a {
+  color: var(--ink);
+  text-decoration: none;
+}
+.vide {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+}

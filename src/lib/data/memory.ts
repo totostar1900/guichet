@@ -9,6 +9,7 @@ import { coteDEssai } from "@/data/cote-seed";
 import { alignerSurLaCloture } from "@/lib/domain/cote-alignee";
 import type { NewsItem } from "@/lib/news/model";
 import { createHash } from "node:crypto";
+import type { AlerteDeSeuil, SerieSuivie } from "@/lib/domain/alertes";
 import { ConflictError, type Approval, type AuditEntry, type ChannelCode, type ChannelStatus, type ClientPrefs, type Contact, type TemplateText, type EventLog, type GeneratedDocument, type IntakeItem, type Intent, type Notification, type Offer, type OfferVersion, type PushSubscription, type ReferenceRow, type StaffMember, type TrustedDevice, type Watch, type Favori, type LigneSondee, type InboundMessage, type DeskThread, type DeskExchange, type BudgetEtat, type NoteBudget } from "@/lib/domain/types";
 import type { CashEntry, CashPayout } from "@/lib/domain/cash";
 import type { AccesCompte } from "@/lib/domain/acces-nomme";
@@ -244,6 +245,8 @@ interface Store {
   deskThreads: DeskThread[];
   deskExchanges: DeskExchange[];
   watches: Watch[];
+  serieFollows?: SerieSuivie[];
+  seuils?: AlerteDeSeuil[];
   favoris?: Favori[]; // a store kept alive across a code reload may predate the list
   sondages: LigneSondee[];
   cash: CashEntry[];
@@ -1149,6 +1152,36 @@ export const memoryRepository: Repository = {
   },
   async removeWatch(userId, offerId) {
     store().watches = store().watches.filter((w) => !(w.userId === userId && w.offerId === offerId));
+  },
+  async listSerieFollows(userId) {
+    return structuredClone((store().serieFollows ??= []).filter((f) => !userId || f.userId === userId));
+  },
+  async addSerieFollow(userId, cle) {
+    const liste = (store().serieFollows ??= []);
+    const existing = liste.find((f) => f.userId === userId && f.country === cle.country && f.kind === cle.kind);
+    if (existing) return structuredClone(existing);
+    const f: SerieSuivie = { id: uid(), userId, ...cle, notified: [], createdAt: nowIso() };
+    liste.push(f);
+    return structuredClone(f);
+  },
+  async removeSerieFollow(userId, id) {
+    store().serieFollows = (store().serieFollows ??= []).filter((f) => !(f.userId === userId && f.id === id));
+  },
+  async markSerieNotified(id, offerId) {
+    const f = (store().serieFollows ??= []).find((x) => x.id === id);
+    if (f && !f.notified.includes(offerId)) f.notified.push(offerId);
+  },
+  async listThresholdAlerts(userId) {
+    return structuredClone((store().seuils ??= []).filter((a) => !userId || a.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+  },
+  async addThresholdAlert(input) {
+    const a: AlerteDeSeuil = { id: uid(), state: "active", createdAt: nowIso(), ...input };
+    (store().seuils ??= []).push(a);
+    return structuredClone(a);
+  },
+  async updateThresholdAlert(id, patch) {
+    const a = (store().seuils ??= []).find((x) => x.id === id);
+    if (a) Object.assign(a, patch);
   },
   async listFavoris(userId) {
     return structuredClone((store().favoris ??= []).filter((f) => f.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)));

@@ -1,3 +1,4 @@
+import { alertesDeLaFiche } from "@/lib/alertes-fiche";
 import { ContactRapide } from "@/components/ContactRapide";
 import type { Channel } from "@/lib/domain/types";
 import { ListNav } from "@/components/ListNav";
@@ -83,10 +84,11 @@ export default async function OfferPage({ params, searchParams }: Props) {
   // de l'intention, le corps de la fiche, les actualités liées. Enchaînées, la
   // page payait quatre allers-retours avant de commencer à se rendre, et c'est
   // ce qu'on attendait en glissant d'une fiche à la suivante.
-  const [watching, ctx, fiche] = await Promise.all([
+  const [watching, ctx, fiche, alertes] = await Promise.all([
     session ? repo().listWatches(session.userId).then((w) => w.some((x) => x.offerId === id)) : Promise.resolve(false),
     loadIntentContext(o, sp, session),
     loadFiche(o),
+    alertesDeLaFiche(o, session?.userId),
   ]);
   const { channels, bridge, fin, mark, types, initial, held, qty, st, past, switchTargets } = ctx;
   const summary = summarize(o, new Date());
@@ -107,7 +109,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
         <SwipePager id={o.id} hintKey="fiche" hints={{ next: "Glissez vers la gauche : la ligne suivante", prev: "Glissez vers la droite : la ligne précédente" }}>
         <FichePanes className={styles.main} sans={voletsMasques(o)}>
           <ListNav id={o.id} />
-          <FicheHead o={o} s={summary} st={st} horizon={{ level: mark?.level, text: mark?.[lang], hasProfile: Boolean(fin) }} watching={watching} signedIn={Boolean(session)} />
+          <FicheHead o={o} s={summary} st={st} horizon={{ level: mark?.level, text: mark?.[lang], hasProfile: Boolean(fin) }} watching={watching} signedIn={Boolean(session)} alertes={alertes} />
 
           {/* LES SORTIES ET LE PIED SONT DANS LA PILE DES SECTIONS (8 novembre 2026), pour que l'écart des chapitres les sépare comme les autres.
               LES LIGNES SIMILAIRES (2 novembre) ne paraissent que dans l'Essentiel (choix 2A) : c'est « d'autres lignes », pas la suite d'un document ou d'un calendrier.

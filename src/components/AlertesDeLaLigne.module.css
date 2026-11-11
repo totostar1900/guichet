@@ -1,0 +1,44 @@
+/* La feuille des alertes d'une ligne : des blocs en pile, les mêmes jetons d'espace que le reste (11 novembre 2026). */
+.corps {
+  display: grid;
+  gap: var(--sections-gap);
+}
+.bloc {
+  display: grid;
+  gap: var(--s-4);
+  justify-items: start;
+}
+.bloc b {
+  font-size: var(--t-3);
+}
+.bloc small {
+  color: var(--ink-2);
+  font-size: var(--t-2);
+  line-height: 1.45;
+}
+.actives {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-3);
+  width: 100%;
+}
+.actives li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+  font-size: var(--t-2);
+}
+.form {
+  display: grid;
+  gap: var(--s-5);
+  width: 100%;
+  justify-items: start;
+}
+.erreur {
+  margin: 0;
+  color: var(--crit);
+  font-size: var(--t-2);
+}

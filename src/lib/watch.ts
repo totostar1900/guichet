@@ -8,6 +8,8 @@ import { summarize } from "@/lib/domain/summary";
 import type { Contact, Offer, Watch } from "@/lib/domain/types";
 import { COMPANY } from "@/lib/config";
 import { notifyRaw } from "@/lib/notify/dispatch";
+import { memeSerie, NOM_DU_CHIFFRE, seuilFranchi, valeurSurveillee, type AlerteDeSeuil, type SerieSuivie } from "@/lib/domain/alertes";
+import { fmt } from "@/lib/format";
 
 /**
  * Followed lines: what a client is told when the figure or the state of a
@@ -53,7 +55,71 @@ export function rappelMessage(o: Offer, jours: number, firstName?: string): { su
 }
 
 /** Daily pass: compare each watch with today's snapshot and message the client on change. */
-export async function runWatchAlerts(now = new Date()): Promise<{ watches: number; alerted: number; rappeles: number }> {
+const chiffre = (metric: AlerteDeSeuil["metric"], v: number): string => (metric === "rendement" ? `${v.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %` : `${fmt(v)} FCFA`);
+
+/** LA PROCHAINE SÉANCE D'UNE SÉRIE SUIVIE (planche « Alertes de séance et de seuil », 1B) : un fait, la clôture, et la porte vers la fiche. */
+export function serieMessage(o: Offer, serie: Pick<SerieSuivie, "label">, jours: number, firstName?: string): { subject: string; text: string } {
+  const quand = translate("fr", joursEnMots(jours).key, joursEnMots(jours).params);
+  const url = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/offres/${o.id}`;
+  return {
+    subject: `${o.title} : nouvelle séance annoncée`,
+    text: `${firstName ? `Bonjour ${firstName},\n\n` : ""}${COMPANY.name} · prochaine séance de la série ${serie.label}\n${o.title}\nLe dépôt des soumissions ferme ${quand}.\n\nLa fiche : ${url}\nPour ne plus être prévenu de cette série : votre espace › Lignes suivies.`,
+  };
+}
+
+/** UN SEUIL FRANCHI (2A) : le chiffre et le niveau fixé, sans conseil ni urgence ; la porte est la fiche, jamais un ordre. */
+export function seuilMessage(o: Offer, a: Pick<AlerteDeSeuil, "metric" | "sens" | "value">, valeur: number, firstName?: string): { subject: string; text: string } {
+  const url = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/offres/${o.id}`;
+  const sens = a.sens === "au_dessus" ? "au-dessus de" : "au niveau ou sous";
+  return {
+    subject: `${o.title} : seuil franchi`,
+    text: `${firstName ? `Bonjour ${firstName},\n\n` : ""}${COMPANY.name} · alerte de seuil\n${o.title}\nLe ${NOM_DU_CHIFFRE[a.metric]} est à ${chiffre(a.metric, valeur)}, ${sens} ${chiffre(a.metric, a.value)} que vous aviez fixé.\n\nLa fiche : ${url}\nCette alerte s'est éteinte ; vous pouvez la remettre depuis la fiche ou depuis votre espace › Lignes suivies.`,
+  };
+}
+
+/**
+ * LES ALERTES DE MARCHÉ, au passage du robot « suivi » (planche « Alertes de séance et de seuil »).
+ *
+ * UNE SÉRIE : chaque séance annoncée APRÈS l'armement de l'alerte, du même Trésor et du même instrument, est notifiée une fois ; « notified » garde celles qui l'ont été.
+ * UN SEUIL : lu une fois par passage (la cote ne change qu'une fois par séance) ; franchi, il notifie, puis s'éteint.
+ */
+export async function runAlertesDeMarche(now = new Date(), offers?: Offer[], contacts?: Contact[]): Promise<{ series: number; seuils: number }> {
+  const r = repo();
+  const [series, seuils, toutes, gens] = await Promise.all([r.listSerieFollows(), r.listThresholdAlerts(), offers ? Promise.resolve(offers) : r.listOffers(), contacts ? Promise.resolve(contacts) : r.listContacts()]);
+  const contactById = new Map<string, Contact>(gens.map((c) => [c.id, c]));
+  const byId = new Map(toutes.map((o) => [o.id, o]));
+  let nSeries = 0;
+  for (const f of series) {
+    for (const o of toutes) {
+      if (f.notified.includes(o.id) || !memeSerie(o, f)) continue;
+      const st = displayStatus(o, now);
+      if (st !== "upcoming" && st !== "open" && st !== "closing") continue;
+      if (o.opensAt.slice(0, 19) <= f.createdAt.slice(0, 19)) continue; // déjà ouverte quand l'alerte a été armée : ce n'est pas « la prochaine »
+      const c = contactById.get(f.userId);
+      if (c) {
+        await notifyRaw("watch", c, serieMessage(o, f, joursAvant(o.deadlineAt, now), c.name.split(" ")[0]), { offerId: o.id });
+        nSeries++;
+      }
+      await r.markSerieNotified(f.id, o.id);
+    }
+  }
+  let nSeuils = 0;
+  for (const a of seuils) {
+    if (a.state !== "active") continue;
+    const o = byId.get(a.offerId);
+    const v = o ? valeurSurveillee(o, now) : null;
+    if (!o || !v || v.metric !== a.metric || !seuilFranchi(a, v.valeur)) continue;
+    const c = contactById.get(a.userId);
+    if (c) {
+      await notifyRaw("watch", c, seuilMessage(o, a, v.valeur, c.name.split(" ")[0]), { offerId: o.id });
+      nSeuils++;
+    }
+    await r.updateThresholdAlert(a.id, { state: "declenchee", firedAt: now.toISOString(), firedValue: v.valeur });
+  }
+  return { series: nSeries, seuils: nSeuils };
+}
+
+export async function runWatchAlerts(now = new Date()): Promise<{ watches: number; alerted: number; rappeles: number; series: number; seuils: number }> {
   await loadRegistry();
   const r = repo();
   const [watches, offers, contacts] = await Promise.all([r.listWatches(), r.listOffers(), r.listContacts()]);
@@ -88,5 +154,6 @@ export async function runWatchAlerts(now = new Date()): Promise<{ watches: numbe
     }
     await r.updateWatch(w.id, { lastHero: next.hero, lastStatus: next.status, alertedAt: now.toISOString() });
   }
-  return { watches: watches.length, alerted, rappeles };
+  const marche = await runAlertesDeMarche(now, offers, contacts);
+  return { watches: watches.length, alerted, rappeles, ...marche };
 }

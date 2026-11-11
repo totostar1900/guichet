@@ -124,7 +124,7 @@ describe("les racines et les pages", () => {
     expect(b, "l'emplacement des boutons de la page a disparu").toMatch(/data-barre-contextuelle/);
     const c = sansNotes(lire("src/components/mobile/BarreDuHaut.module.css"));
     expect(c, "les groupes n'ont plus leur glissement").toMatch(/\.groupe \{[^}]*transition: max-width 0\.34s cubic-bezier\(0\.32, 0\.72, 0, 1\), opacity 0\.22s linear, transform 0\.34s/);
-    expect(sansNotes(lire("src/app/offres/[id]/FicheHead.tsx")), "le suivi de la fiche n'est plus posé dans la barre").toMatch(/<DansLaBarre>\s*<WatchButton/);
+    expect(sansNotes(lire("src/app/offres/[id]/FicheHead.tsx")), "le suivi de la fiche n'est plus posé dans la barre").toMatch(/<DansLaBarre>\s*<AlertesDeLaLigne[^>]*\/>\s*<WatchButton/);
     expect(sansNotes(lire("src/app/offres/[id]/neighbour.tsx")), "la fiche voisine pose aussi son suivi dans la barre").toMatch(/<FicheHead [^>]*voisine \/>/);
   });
 });

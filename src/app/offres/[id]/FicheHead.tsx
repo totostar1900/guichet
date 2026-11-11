@@ -1,6 +1,7 @@
 import { LineIdentity } from "@/components/LineIdentity";
 import { HorizonMark } from "@/components/HorizonMark";
 import { WatchButton } from "@/components/WatchButton";
+import { AlertesDeLaLigne, type SeuilProps } from "@/components/AlertesDeLaLigne";
 import { DansLaBarre } from "@/components/mobile/DansLaBarre";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import type { DisplayStatus, Offer } from "@/lib/domain/types";
@@ -36,6 +37,7 @@ export async function FicheHead({
   watching = false,
   signedIn = false,
   voisine = false,
+  alertes,
 }: {
   o: Offer;
   s: OfferSummary;
@@ -45,6 +47,8 @@ export async function FicheHead({
   signedIn?: boolean;
   /** L'aperçu d'une fiche voisine (la vignette du pager) : ses boutons ne vont jamais dans la barre du haut. */
   voisine?: boolean;
+  /** Les alertes de la ligne, lues par la page : la série d'une séance, ou le seuil d'un chiffre. */
+  alertes?: { serie?: { label: string; suivie: boolean } | null; seuil?: SeuilProps | null };
 }) {
   /* LA MÊME CADENCE QUE LES CARTES (7 novembre 2026) : une séance se rappelle chaque jour jusqu'à sa clôture, une ligne cotée à chaque mouvement. La fiche la disait toujours « à chaque mouvement ». */
   const cadence = cadenceDuSuivi(o);
@@ -77,6 +81,7 @@ export async function FicheHead({
               <WatchButton offerId={o.id} initial={watching} signedIn={signedIn} cadence={cadence} />
             ) : (
               <DansLaBarre>
+                <AlertesDeLaLigne offerId={o.id} signedIn={signedIn} serie={alertes?.serie} seuil={alertes?.seuil} />
                 <WatchButton offerId={o.id} initial={watching} signedIn={signedIn} cadence={cadence} />
               </DansLaBarre>
             )}
