@@ -6,6 +6,7 @@ import { Copier } from "../../../Copier";
 import styles from "../../../page.module.css";
 import barre from "@/components/mobile/BarreDEtape.module.css";
 import { BarreCollante } from "@/components/mobile/BarreDEtape";
+import { BoutonRetour } from "@/components/mobile/BoutonRetour";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 
@@ -43,9 +44,9 @@ export default async function VirementEnvoyePage() {
           </div>
         </dl>
         <BarreCollante>
-          <Link href="/moi/provision/alimenter/virement" className={`btn ${barre.retour}`}>
+          <BoutonRetour href="/moi/provision/alimenter/virement" className={`btn ${barre.retour}`}>
             {t("Retour")}
-          </Link>
+          </BoutonRetour>
           <Link href="/moi/provision" className={`btn primary ${barre.suivant}`}>
             {t("Voir ma provision")}
           </Link>

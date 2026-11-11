@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/auth";
+import { repo } from "@/lib/data";
+import { cashPosition } from "@/lib/domain/cash";
+import { fmt } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
@@ -20,22 +23,26 @@ export async function generateMetadata() {
  */
 export default async function ArgentPage() {
   const t = await getT();
-  await requireSession("/moi/argent");
+  const s = await requireSession("/moi/argent");
+  /* LE DISPONIBLE SE DIT SUR LES TUILES QUI EN VIVENT (audit « Mon argent », 10 novembre 2026) : retirer et placer n'ont rien à faire d'un disponible nul, et la tuile le dit avant qu'on l'ouvre. */
+  const r = repo();
+  const [cash, intents] = await Promise.all([r.listCash(s.userId).catch(() => []), r.listIntents().catch(() => [])]);
+  const dispo = t("{m} FCFA disponibles", { m: fmt(Math.round(cashPosition(cash, intents.filter((i) => i.clientId === s.userId)).idle)) });
   const groupes: { titre: string; tuiles: { href: string; nom: string; dit: string }[] }[] = [
     {
       titre: t("Verser"),
       tuiles: [
-        { href: "/moi/provision/alimenter/virement", nom: t("Une fois, par virement"), dit: t("C'est vous qui l'envoyez, depuis votre banque, quand vous voulez.") },
-        { href: "/moi/prelevements?de=argent", nom: t("Chaque mois, sur ma provision"), dit: t("C'est nous qui le prenons, sur une autorisation que vous signez.") },
-        { href: "/moi/epargne", nom: t("Chaque mois, dans un fonds"), dit: t("Une épargne programmée : une somme fixe, un jour du mois, un fonds choisi.") },
+        { href: "/moi/provision/alimenter/virement", nom: t("Par virement"), dit: t("Une fois : c'est vous qui l'envoyez, depuis votre banque, quand vous voulez.") },
+        { href: "/moi/prelevements?de=argent", nom: t("Autoriser un prélèvement"), dit: t("Chaque mois, sur ma provision : c'est nous qui le prenons, sur une autorisation que vous signez.") },
+        { href: "/moi/epargne", nom: t("Épargne programmée"), dit: t("Chaque mois, dans un fonds : une somme fixe, un jour du mois, un fonds choisi.") },
       ],
     },
-    { titre: t("Retirer"), tuiles: [{ href: "/moi/provision/reprendre", nom: t("Vers ma banque"), dit: t("Le disponible est viré sur le compte déclaré à l'ouverture.") }] },
+    { titre: t("Retirer"), tuiles: [{ href: "/moi/provision/reprendre", nom: t("Retirer de l'argent"), dit: `${t("Vers ma banque, sur le compte déclaré à l'ouverture.")} ${dispo}` }] },
     {
       titre: t("Placer"),
       tuiles: [
-        { href: "/moi/provision/placer", nom: t("Ma provision dans un fonds"), dit: t("Ce qui est disponible travaille, sans attendre un prochain ordre.") },
-        { href: "/moi/reinvestir", nom: t("Mes coupons, automatiquement"), dit: t("Chaque coupon reçu est replacé sur la ligne de votre choix.") },
+        { href: "/moi/provision/placer", nom: t("Placer ma provision"), dit: `${t("Dans un fonds monétaire, sans attendre un prochain ordre.")} ${dispo}` },
+        { href: "/moi/reinvestir", nom: t("Réinvestir mes coupons"), dit: t("Chaque coupon reçu est replacé automatiquement sur la ligne de votre choix.") },
       ],
     },
   ];

@@ -165,7 +165,7 @@ export default async function ProvisionPage() {
 
         <Rubriques
           items={[
-            { href: "/moi/provision/placer", nom: t("La faire travailler"), quoi: t("En parts d'un fonds monétaire, inscrites à votre nom") },
+            { href: "/moi/provision/placer", nom: t("Placer ma provision"), quoi: t("En parts d'un fonds monétaire, inscrites à votre nom") },
             { href: "/moi/performance#operations", nom: t("D'où vient ce solde"), quoi: t("Chaque mouvement au journal, à sa date de valeur") },
             { href: "/moi/tarifs", nom: t("Ce que cela coûte"), quoi: t("Rien : ni la tenue, ni le virement de retour") },
           ]}
@@ -180,7 +180,7 @@ export default async function ProvisionPage() {
           <Link href="/moi/provision/reprendre" className={`btn ${barre.retour}`}>
             {t("Reprendre")}
           </Link>
-          <Link href="/moi/provision/alimenter" className={`btn primary ${barre.suivant}`}>
+          <Link href="/moi/argent" className={`btn primary ${barre.suivant}`}>
             {t("Approvisionner")}
           </Link>
         </BarreCollante>

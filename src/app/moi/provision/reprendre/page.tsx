@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { cashPosition } from "@/lib/domain/cash";
@@ -54,8 +55,8 @@ export default async function ReprendrePage() {
           /* Le retour dit « Votre provision » : le sur-titre dit la famille,
              pas le même mot — c'est celui que porte la page du solde. */
           surTitre={t("Mon argent chez nous")}
-          titre={t("La reprendre")}
-          phrase={t("Versée sur le compte déclaré à l'ouverture, et sur lui seul, sous 72 heures ouvrables.")}
+          titre={t("Retirer de l'argent")}
+          phrase={t("Le disponible est viré sur le compte déclaré à l'ouverture, et sur lui seul, sous 72 heures ouvrables.")}
         />
 
         <div className={styles.gCorps}>
@@ -71,7 +72,11 @@ export default async function ReprendrePage() {
           {/* LE VIDE SE DIT. Le bouton disparaît à solde nul — c'est juste, on
               ne demande pas zéro — mais une page qui ne montre alors qu'un
               encadré et une note laisse croire à une panne. */}
-          {poche.idle <= 0 && !derniereDemande && <p className={styles.avert}>{t("Rien à reprendre pour l'instant : votre disponible est à zéro.")}</p>}
+          {poche.idle <= 0 && !derniereDemande && (
+            <p className={styles.avert}>
+              {t("Rien à reprendre pour l'instant : votre disponible est à zéro.")} <Link href="/moi/argent">{t("Verser de l'argent")} →</Link>
+            </p>
+          )}
           <p className={styles.avert}>{t("Il part dans les soixante-douze heures ouvrables qui suivent votre demande, et le desk recalcule au moment du virement : un coupon qui tombe d'ici là s'y ajoute.")}</p>
         </div>
       </div>

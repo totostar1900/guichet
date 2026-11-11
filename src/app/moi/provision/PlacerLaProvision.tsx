@@ -90,7 +90,9 @@ export function PlacerLaProvision({ disponible, fonds }: { disponible: number; f
             </ul>
           </>
         ) : (
-          <p className={styles.avert}>{t("Rien de disponible à placer pour l'instant.")}</p>
+          <p className={styles.avert}>
+            {t("Rien de disponible à placer pour l'instant.")} <Link href="/moi/argent">{t("Verser de l'argent")} →</Link>
+          </p>
         )}
         {/* LE PRIX SE DIT AVANT, PAS AU RACHAT. Une part de fonds ne se reprend
             pas dans la seconde : tant qu'elle est placée, la somme ne règle

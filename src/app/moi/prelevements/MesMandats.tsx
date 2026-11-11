@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { creerMandatAction, envoyerCodeMandatAction, revoquerMandatAction, signerMandatAction, type MandatResult } from "./actions";
 import styles from "./page.module.css";
 import { BarreCollante } from "@/components/mobile/BarreDEtape";
+import { BoutonRetour } from "@/components/mobile/BoutonRetour";
 import barre from "@/components/mobile/BarreDEtape.module.css";
 
 interface Vu {
@@ -163,6 +164,8 @@ export function MesMandats({
                         la même panne que sur le compte de règlement du desk,
                         le même jour, pour la même raison. */}
                     {sign?.ok && sign.message ? <p className={styles.ok}>{t(sign.message)}</p> : null}
+                    {/* LA FIN DU PARCOURS : le mandat est en place, on le retrouve avec ce qui part tout seul (audit « Mon argent », 10 novembre 2026). */}
+                    {sign?.ok ? <Link href="/moi/regles">{t("Ce qui part tout seul")} →</Link> : null}
                     {m.prochain && <p className={styles.note}>{t("prochain prélèvement le {d}, annoncé {n} jours avant", { d: fmtDate(m.prochain, false), n: String(PREAVIS_JOURS) })}</p>}
                     <p className={styles.note}>
                       {t("Signé le {d}. Votre banque peut vous demander cet exemplaire.", { d: fmtDateTime(m.signeLe) })}{" "}
@@ -275,6 +278,9 @@ export function MesMandats({
             {t("Il nous faut une adresse e-mail avant de signer : c'est là que part le code, puis l'annonce de chaque prélèvement.")}{" "}
             <Link href="/moi/securite#canaux">{t("Ajouter mon adresse →")}</Link>
           </p>
+        ) : creer?.ok ? (
+          /* LE MANDAT EST PRÉPARÉ : sa carte, au-dessus, porte la suite (le code, la signature). Le formulaire ne reste pas ouvert dessous (audit « Mon argent », 10 novembre 2026). */
+          <Msg state={creer} />
         ) : !ouvert ? (
           <button type="button" className="btn primary" onClick={() => setOuvert(true)}>
             {t("Préparer un mandat")}
@@ -350,9 +356,9 @@ export function MesMandats({
 
             {/* COLLANTE EN BAS, GRISÉE TANT QUE LE MONTANT MANQUE (10 novembre 2026) : « Annuler » est le petit retour. */}
             <BarreCollante indice={parseAmount(montant) > 0 ? undefined : t("Indiquez d'abord le montant prélevé chaque mois.")}>
-              <Link href={retourHref} className={`btn ${barre.retour}`}>
+              <BoutonRetour href={retourHref} className={`btn ${barre.retour}`}>
                 {t("Retour")}
-              </Link>
+              </BoutonRetour>
               <button className={`btn primary ${barre.suivant}`} type="submit" disabled={creation || !(parseAmount(montant) > 0)}>
                 {creation ? "…" : t("Préparer, puis signer")}
               </button>

@@ -90,7 +90,7 @@ export default async function TradePage() {
             )}
           </Link>
           <div className={styles.gestes}>
-            <Link className={styles.geste} href="/moi/provision/alimenter">
+            <Link className={styles.geste} href="/moi/argent">
               <span className={styles.rond} aria-hidden="true">
                 <svg viewBox="0 0 24 24">
                   <path d="M12 5v14M5 12h14" />

@@ -16,7 +16,7 @@ import { EnTete } from "@/components/EnTete";
 import { EnBref } from "@/components/EnBref";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Réinvestir vos encaissements" };
+export const metadata = { title: "Réinvestir mes coupons" };
 
 /**
  * Replacer ses coupons sans y penser.
@@ -77,7 +77,7 @@ export default async function ReinvestirPage() {
             formes — un « nav » d'un lien, ou un chevron — et aucune épreuve ne
             pouvait les voir tant qu'ils étaient écrits à la main. */}
         <EnTete
-          titre={t("Réinvestir vos encaissements")}
+          titre={t("Réinvestir mes coupons")}
           phrase={t(
             "Un coupon qui dort sur un compte en banque cesse de rapporter pendant que la ligne qui l'a versé continue. Cette instruction replace ce qui vous revient, dès qu'il arrive, sur la ligne que vous choisissez maintenant.",
           )}

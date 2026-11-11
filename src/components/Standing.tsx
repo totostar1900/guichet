@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDates, useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { groupDigits, groupedInput } from "@/lib/ui/grouped";
@@ -103,9 +104,20 @@ export function StandingForm({
    * récapitulatif les remet toutes les six côte à côte, et il ne demande rien
    * de neuf : c'est sa valeur, on n'y relit que ce qu'on a déjà dit.
    */
-  const [etape, setEtape] = useState<1 | 2>(1);
+  /* L'ÉTAPE EST DANS L'ADRESSE (« ?etape=2 », audit « Mon argent », 10 novembre 2026) : le retour Android et la flèche du haut reviennent à l'étape 1 au lieu de quitter la page. Sans montant, on retombe sur l'étape 1 (adresse rouverte à froid). */
+  const sp = useSearchParams();
+  const chemin = usePathname();
+  const router = useRouter();
   const verse = parseAmount(montant);
+  const etape: 1 | 2 = sp.get("etape") === "2" && verse > 0 ? 2 : 1;
+  const setEtape = (n: 1 | 2) => {
+    if (n === 2) router.push(`${chemin}?etape=2`, { scroll: false });
+    else router.back();
+  };
   const parts = valeur && valeur > 0 && verse > 0 ? verse / valeur : 0;
+  useEffect(() => {
+    if (state?.ok && window.location.search.includes("etape=")) window.history.replaceState(null, "", chemin);
+  }, [state?.ok, chemin]);
   if (state?.ok) {
     return (
       <div className={styles.done}>
@@ -121,7 +133,7 @@ export function StandingForm({
             {t("Signer le mandat de prélèvement")}
           </Link>
         ) : (
-          <Link href="/moi/epargne">{t("Voir mes versements programmés")} →</Link>
+          <Link href="/moi/regles">{t("Ce qui part tout seul")} →</Link>
         )}
       </div>
     );

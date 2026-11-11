@@ -30,7 +30,7 @@ export function DemanderVersement({ montant, demande }: { montant: number; deman
   if (demande?.state === "demandee")
     return (
       <p className={styles.versementEtat}>
-        {t("Versement demandé le {d} pour {m} FCFA. Le desk vire sur le compte déclaré à l'ouverture, et vous recevez un avis.", { d: fmtDate(demande.askedAt), m: fmt(Math.round(demande.askedAmount)) })}
+        {t("Retrait demandé le {d} pour {m} FCFA. Le desk vire sur le compte déclaré à l'ouverture, et vous recevez un avis.", { d: fmtDate(demande.askedAt), m: fmt(Math.round(demande.askedAmount)) })}
       </p>
     );
 
@@ -53,7 +53,7 @@ export function DemanderVersement({ montant, demande }: { montant: number; deman
     return (
       <p className={styles.versementEtat}>
         {demande?.state === "payee" && demande.paidAmount != null && (
-          <>{t("Dernier versement : {m} FCFA le {d}. ", { m: fmt(Math.round(demande.paidAmount)), d: fmtDate(demande.closedAt ?? demande.askedAt) })}</>
+          <>{t("Dernier retrait : {m} FCFA le {d}. ", { m: fmt(Math.round(demande.paidAmount)), d: fmtDate(demande.closedAt ?? demande.askedAt) })}</>
         )}
         {t("Ce solde reste ici aussi longtemps que vous le souhaitez.")}{" "}
         <button type="button" className={styles.versementLien} onClick={() => setOuvert(true)}>
@@ -71,7 +71,7 @@ function Formulaire({ action, pending, res, montant, t }: { action: (f: FormData
       <p>{t("{m} FCFA seront virés sur le compte déclaré à l'ouverture de votre compte-titres. Le desk recalcule au moment du virement : un coupon qui tombe d'ici là s'y ajoute.", { m: fmt(Math.round(montant)) })}</p>
       <input name="note" maxLength={240} placeholder={t("Un mot pour le desk (facultatif)")} />
       <button className="btn sm primary" type="submit" disabled={pending}>
-        {pending ? "…" : t("Demander le versement")}
+        {pending ? "…" : t("Demander le retrait")}
       </button>
       {res && <small className={res.ok ? styles.versementOk : styles.versementKo}>{res.ok ? res.message : res.error}</small>}
     </form>

@@ -20,7 +20,7 @@ describe("la page Activité", () => {
   });
   it("porte le disponible avec ses deux gestes, les rubriques du dossier et les services sous leur ancre", () => {
     const p = code("src/app/activite/page.tsx");
-    expect(p).toContain('href="/moi/provision/alimenter"');
+    expect(p).toContain('href="/moi/argent"');
     expect(p).toContain('href="/moi/provision/reprendre"');
     expect(p).toMatch(/<section id="services"/);
     const r = code("src/app/activite/Rubriques.tsx");

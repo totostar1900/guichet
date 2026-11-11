@@ -10,6 +10,8 @@ import { BarreDuHaut } from "./BarreDuHaut";
 import { MarketFab } from "./MarketFab";
 import { reculer } from "./retour";
 import { parentDe } from "@/lib/nav-parent";
+import { majPile, precedentDe } from "@/lib/nav-pile";
+import { retourEtape } from "./retourEtape";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
 import { isAideSection, isEspaceSection, isInstrumentsSection, isMarcheSection, isTraderSection, listForFiche } from "@/lib/nav-section";
@@ -148,8 +150,15 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
   // Did this tab see another of our pages before this one? Then the browser history is ours.
   useEffect(() => {
     try {
-      const prev = sessionStorage.getItem("guichet:here");
-      if (prev && prev !== path) sessionStorage.setItem("guichet:cameFrom", prev);
+      /* LA PILE DES PAGES VUES (audit « Mon argent », 10 novembre 2026) : voir « nav-pile ». « cameFrom » est la page d'avant dans cette pile, et elle recule avec l'historique. */
+      const pile: string[] = JSON.parse(sessionStorage.getItem("guichet:pile") ?? "[]");
+      const remplace = sessionStorage.getItem("guichet:remplace") === "1";
+      sessionStorage.removeItem("guichet:remplace");
+      const suite = majPile(pile, path, remplace);
+      sessionStorage.setItem("guichet:pile", JSON.stringify(suite));
+      const avant = precedentDe(suite);
+      if (avant) sessionStorage.setItem("guichet:cameFrom", avant);
+      else sessionStorage.removeItem("guichet:cameFrom");
       sessionStorage.setItem("guichet:here", path);
     } catch {
       // storage unavailable
@@ -165,9 +174,14 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
     } catch {
       // storage unavailable
     }
+    /* Une page à étapes (« ?etape=2 ») : la flèche revient à l'étape d'avant, dans l'historique. */
+    if (new URLSearchParams(window.location.search).get("etape")) {
+      router.back();
+      return;
+    }
     const parent = parentDe(path, venuDe);
     if (parent) {
-      router.push(parent, { transitionTypes: ["nav-retour"] });
+      retourEtape(router, parent);
       return;
     }
     const repli = fallbackFor(path);

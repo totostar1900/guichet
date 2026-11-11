@@ -130,7 +130,7 @@ export default async function ReglementPage() {
           <div className={styles.corps}>
             <ul className={styles.sorties}>
               <li>
-                <Link href="/moi/provision/alimenter">{t("Approvisionner votre compte")}</Link> — {t("les trois lignes et le motif, avec un bouton de recopie par ligne.")}
+                <Link href="/moi/provision/alimenter/virement">{t("Approvisionner votre compte")}</Link> — {t("les trois lignes et le motif, avec un bouton de recopie par ligne.")}
               </li>
               <li>{t("L'appel de fonds d'un ordre : le motif y est la référence de l'ordre, pas celle du compte.")}</li>
               <li>{t("L'appel de fonds d'une souscription de fonds, et celui d'un versement complémentaire.")}</li>

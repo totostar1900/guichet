@@ -91,7 +91,7 @@ export async function createStandingAction(_p: StandingResult | null, form: Form
   /* Le prélèvement ne se met pas en place ici : il se SIGNE, par un code, sur
      sa propre page. On y mène, l'instruction déjà choisie, plutôt que de
      laisser le client la retrouver dans une liste. */
-  const versLeMandat = p.data.reglement === "prelevement" ? `/moi/prelevements?instruction=${s.id}` : undefined;
+  const versLeMandat = p.data.reglement === "prelevement" ? `/moi/prelevements?instruction=${s.id}&de=epargne` : undefined;
   const comment = p.data.reglement === "prelevement" ? "Il reste à signer le mandat de prélèvement : sans lui, rien ne sera prélevé." : `Chaque mois, virez ${fmt(s.amount)} FCFA en citant la référence de l'appel de fonds que vous recevrez.`;
   return { ok: true, message: `Versement programmé : ${fmt(s.amount)} FCFA le ${s.dayOfMonth} de chaque mois. Référence ${s.ref}. ${comment}`, versLeMandat };
 }

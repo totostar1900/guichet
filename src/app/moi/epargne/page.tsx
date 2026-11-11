@@ -79,7 +79,7 @@ export default async function EpargnePage() {
         {versements.length > 0 && (
           <Pli
             cle="epargne:en-place"
-            titre={t("Mes versements programmés")}
+            titre={t("Mes épargnes programmées")}
             sous={t("Ce qui part chaque mois, et que vous arrêtez quand vous voulez.")}
             compte={t(actifs.length > 1 ? "{n} actifs" : actifs.length === 1 ? "1 actif" : "aucun actif", { n: String(actifs.length) })}
           >

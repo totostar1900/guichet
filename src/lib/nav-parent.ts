@@ -1,23 +1,36 @@
 /**
- * LE RETOUR D'UNE PAGE DE L'ACTIVITÉ EST SON ÉTAPE PRÉCÉDENTE, PAS LA DERNIÈRE PAGE VUE (10 novembre 2026).
+ * LE RETOUR D'UNE PAGE DE L'ACTIVITÉ EST SON ÉTAPE PRÉCÉDENTE, PAS LA DERNIÈRE PAGE VUE (10 novembre 2026, audit « Mon argent »).
  *
- * La flèche de la barre du haut reculait dans l'historique : après un parcours (Activité, Ma provision, Approvisionner, Par virement), elle repassait par chaque page visitée. Pour les pages de l'Activité elle remonte maintenant d'un cran de l'arbre : la confirmation
- * revient aux coordonnées, les coordonnées au choix, le choix à la provision, la provision à l'Activité — et l'Activité est une racine, où le menu de base est de nouveau là. Quelques retours suffisent, quel que soit le chemin pris.
+ * Une page de l'arbre de l'Activité a un parent par défaut et, quand elle a plusieurs portes d'entrée, la liste de celles d'où l'on peut venir : le retour va à la page d'où l'on vient si elle est dans cette liste, sinon au parent par défaut.
+ * Quelques retours suffisent ainsi pour retrouver le menu de base, quel que soit le chemin pris, et la flèche du haut et le retour Android disent la même chose (voir « nav-pile » : quand le parent est la page d'avant, la flèche recule dans l'historique au lieu d'ouvrir une page de plus).
  *
  * Une page qui n'est pas de l'Activité (une fiche, un éclairage…) garde le retour d'avant : l'historique, avec sa liste, ses filtres et son défilement.
  */
 const FAMILLE = ["argent", "regles", "provision", "prelevements", "epargne", "ordres", "reinvestir", "performance", "documents", "profil", "compte", "securite"];
-/** Les trois pages où se gère une règle automatique : on y vient de « Mon argent » ou de « Ce qui part tout seul ». */
-const REGLES = ["prelevements", "epargne", "reinvestir"];
 
-export function parentDe(chemin: string, venuDe?: string | null): string | undefined {
-  const p = chemin.split("?")[0].replace(/(.)\/$/, "$1");
+const ENTREES: Record<string, { defaut: string; ou: string[] }> = {
+  "/moi/argent": { defaut: "/activite", ou: [] },
+  "/moi/regles": { defaut: "/activite", ou: ["/moi/argent"] },
+  "/moi/provision": { defaut: "/activite", ou: ["/moi/argent"] },
+  "/moi/provision/alimenter/virement": { defaut: "/moi/argent", ou: [] },
+  "/moi/provision/alimenter/virement/envoye": { defaut: "/moi/provision/alimenter/virement", ou: [] },
+  "/moi/provision/reprendre": { defaut: "/moi/provision", ou: ["/moi/argent", "/activite"] },
+  "/moi/provision/placer": { defaut: "/moi/provision", ou: ["/moi/argent", "/activite"] },
+  "/moi/prelevements": { defaut: "/moi/argent", ou: ["/moi/regles", "/moi/epargne"] },
+  "/moi/epargne": { defaut: "/moi/argent", ou: ["/moi/regles"] },
+  "/moi/reinvestir": { defaut: "/moi/argent", ou: ["/moi/regles"] },
+};
+
+const nu = (c: string) => c.split("?")[0].replace(/(.)\/$/, "$1");
+
+export function parentDe(chemin: string, precedent?: string | null): string | undefined {
+  const p = nu(chemin);
   const seg = p.split("/").filter(Boolean);
   if (seg[0] !== "moi" || !FAMILLE.includes(seg[1] ?? "")) return undefined;
-  /* Une page de règle s'ouvre de « Mon argent », de « Ce qui part tout seul » ou, pour le prélèvement, du choix d'approvisionnement : on retourne d'où l'on vient, parmi ceux-là. */
-  if (seg.length === 2 && REGLES.includes(seg[1])) {
-    if (p === "/moi/prelevements" && venuDe?.startsWith("/moi/provision/alimenter")) return "/moi/provision/alimenter";
-    return venuDe === "/moi/regles" ? "/moi/regles" : "/moi/argent";
+  const e = ENTREES[p];
+  if (e) {
+    const prec = precedent ? nu(precedent) : undefined;
+    return prec && e.ou.includes(prec) ? prec : e.defaut;
   }
   if (seg.length === 2) return "/activite";
   return `/${seg.slice(0, -1).join("/")}`;

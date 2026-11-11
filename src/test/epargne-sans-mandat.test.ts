@@ -123,7 +123,7 @@ describe("la question posée à la signature de l'instruction", () => {
     form.set("reglement", "prelevement");
     const r = await createStandingAction(null, form);
     expect(r.ok).toBe(true);
-    expect(r).toMatchObject({ versLeMandat: "/moi/prelevements?instruction=st-9" });
+    expect(r).toMatchObject({ versLeMandat: "/moi/prelevements?instruction=st-9&de=epargne" });
     expect(r.ok && r.message).toContain("reste à signer le mandat");
   });
 

@@ -104,7 +104,7 @@ export async function publierReglementAction(_p: ReglementResult | null, form: F
     kind: "desk",
     html: `<b>Compte de règlement</b> publié : ${brouillon.banque} · <span class="mono">${brouillon.rib}</span> · écrit par ${parQui || "inconnu"}, publié par ${me.name}`,
   });
-  for (const path of ["/desk/referentiel/reglement", "/desk/referentiel", "/moi/provision/alimenter"]) revalidatePath(path);
+  for (const path of ["/desk/referentiel/reglement", "/desk/referentiel", "/moi/provision/alimenter/virement"]) revalidatePath(path);
   return { ok: true, message: "Publié. Les clients lisent ces coordonnées dès maintenant, et les appels de fonds les portent." };
 }
 

@@ -85,12 +85,12 @@ describe("les gestes", () => {
        déjà franchie n'ouvre sur personne. C'est la leçon des neuf services
        invisibles, et elle vaut ici. */
     /* Depuis le 10 novembre 2026 le choix « par prélèvement » mène droit au formulaire « Autoriser un prélèvement », ouvert d'emblée : plus d'étape intermédiaire. */
-    expect(code(ALIMENTER)).toContain('href="/moi/prelevements?de=alimenter"');
-    expect(code(PRELEVEMENT), "l'étape intermédiaire est revenue").toMatch(/redirect\("\/moi\/prelevements\?de=alimenter"\)/);
+    expect(code("src/app/moi/argent/page.tsx")).toContain('href: "/moi/prelevements?de=argent"');
+    expect(code(PRELEVEMENT), "l'étape intermédiaire est revenue").toMatch(/redirect\("\/moi\/prelevements\?de=argent"\)/);
     const src = lire("src/app/moi/prelevements/MesMandats.tsx");
     expect(src).toMatch(/Préparer, puis signer/);
-    expect(src, "« Retour » ne ramène plus au choix du type de versement").toMatch(/<Link href=\{retourHref\} className=\{`btn \$\{barre\.retour\}`\}>\s*\{t\("Retour"\)\}/);
-    expect(lire("src/app/moi/prelevements/page.tsx")).toMatch(/retourHref=\{deApprovisionner \? "\/moi\/provision\/alimenter" : sp\.de === "regles" \? "\/moi\/regles" : "\/moi\/argent"\}/);
+    expect(src, "« Retour » ne ramène plus au choix du type de versement").toMatch(/<BoutonRetour href=\{retourHref\} className=\{`btn \$\{barre\.retour\}`\}>\s*\{t\("Retour"\)\}/);
+    expect(lire("src/app/moi/prelevements/page.tsx")).toMatch(/retourHref=\{retourHref\}/);
   });
 
   /* LE 25 OCTOBRE 2026 : CE QUI SÉPARE LES DEUX CHEMINS, ET LE RANG DU MOTIF.
@@ -100,13 +100,10 @@ describe("les gestes", () => {
      bénéficiaire, est descendu au rang qu'il occupe dans le formulaire de la
      banque — dernier des quatre. */
   it("dit qui agit sur chacun des deux chemins", () => {
-    const src = code(ALIMENTER);
-    expect(src, "le chemin du virement ne dit plus que c'est le client qui l'envoie").toContain("C'est vous qui l'envoyez");
-    expect(src, "le chemin du prélèvement ne dit plus que c'est la maison qui le prend").toContain("C'est nous qui le prenons");
-    /* Non vacuité : les deux chemins sont bien les deux cases de la page, et
-       c'est sous leur titre que ces deux phrases se posent. */
-    expect((src.match(/styles\.chemin\b/g) ?? []).length, "les deux chemins ne sont plus deux").toBe(2);
-    expect((src.match(/styles\.qui\b/g) ?? []).length, "une des deux phrases a perdu son créneau").toBe(2);
+    /* Depuis le 10 novembre 2026 le choix est porté par « Mon argent » : chaque tuile dit qui agit. */
+    const src = code("src/app/moi/argent/page.tsx");
+    expect(src, "le virement ne dit plus que c'est le client qui l'envoie").toContain("c'est vous qui l'envoyez");
+    expect(src, "le prélèvement ne dit plus que c'est la maison qui le prend").toContain("c'est nous qui le prenons");
   });
 
   /* LE VERBE DE LA PAGE EST CELUI DES LIENS QUI Y MÈNENT. La page s'appelait
@@ -115,13 +112,13 @@ describe("les gestes", () => {
      ronds l'ouvrent, l'un sur la provision, l'autre en tête de Trade : un
      rond qui annonce un verbe et une page qui en répond un autre coûtent un
      essai, et l'essai porte sur un geste d'argent. */
-  it("nomme la page du verbe que portent les liens vers elle", () => {
-    expect(code(ALIMENTER), "le titre de la page n'est plus celui du 25 octobre 2026").toContain('titre={t("Approvisionner votre compte")}');
+  it("« Approvisionner » mène à « Mon argent », qui porte le choix : l'ancienne page de choix renvoie", () => {
     for (const f of [PAGE, "src/app/activite/page.tsx"]) {
       const src = code(f);
-      expect(src, `${f} ne mène plus à la page : il n'y a plus de verbe à comparer`).toContain('href="/moi/provision/alimenter"');
+      expect(src, `${f} ne mène plus à « Mon argent »`).toContain('href="/moi/argent"');
       expect(src, `${f} ouvre la page en l'annonçant d'un autre verbe`).toMatch(/\{t\("Approvisionner"\)\}/);
     }
+    expect(code(ALIMENTER), "l'étape de choix est revenue").toMatch(/redirect\("\/moi\/argent"\)/);
   });
 
   it("recopie les coordonnées dans l'ordre du formulaire, motif en dernier", () => {
@@ -173,7 +170,7 @@ describe("les gestes", () => {
     /* L'adresse entière, guillemet fermant compris : « .../placer » est un
        préfixe de « .../placerXX », et une recherche par morceau laisserait
        passer une adresse voisine qui n'existe pas. */
-    for (const page of ["alimenter", "placer", "reprendre"]) {
+    for (const page of ["placer", "reprendre"]) {
       expect(src, `la pastille ou la bande vers « ${page} » a disparu`).toContain(`"/moi/provision/${page}"`);
     }
   });
@@ -202,10 +199,10 @@ describe("les gestes", () => {
 
 /* APPROVISIONNER EN TROIS ÉTAPES (10 novembre 2026, planche 2A) : le choix, le chemin, la confirmation. */
 describe("approvisionner par étapes", () => {
-  it("le choix ne porte aucune coordonnée et mène aux deux chemins", () => {
-    const src = code(ALIMENTER);
-    expect(src).toContain('href="/moi/provision/alimenter/virement"');
-    expect(src).toContain('href="/moi/prelevements?de=alimenter"');
+  it("« Mon argent » porte le choix, sans coordonnée, et mène droit aux formulaires", () => {
+    const src = code("src/app/moi/argent/page.tsx");
+    expect(src).toContain('href: "/moi/provision/alimenter/virement"');
+    expect(src).toContain('href: "/moi/prelevements?de=argent"');
     for (const mort of ["Copier", "loadReglement", "RIB / IBAN"]) expect(src, `« ${mort} » est remonté sur le choix`).not.toContain(mort);
   });
   it("« J'ai fait le virement » ne s'offre qu'avec des coordonnées publiées, et mène à la confirmation", () => {

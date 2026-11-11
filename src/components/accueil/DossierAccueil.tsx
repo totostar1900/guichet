@@ -165,7 +165,7 @@ export async function DossierAccueil({
 
   type Compacte = { cle: CleDeRubrique; href: string; nom: string; resume: string; etiquette?: string };
   const toutesCompactes: Compacte[] = [
-    { cle: "versements", href: "/moi/epargne", nom: t("Mes versements programmés"), resume: actives[0] ? t("Le {j} de chaque mois · {m} FCFA", { j: String(actives[0].dayOfMonth), m: fmt(actives[0].amount) }) : "" },
+    { cle: "versements", href: "/moi/epargne", nom: t("Mes épargnes programmées"), resume: actives[0] ? t("Le {j} de chaque mois · {m} FCFA", { j: String(actives[0].dayOfMonth), m: fmt(actives[0].amount) }) : "" },
     { cle: "prelevements", href: "/moi/prelevements", nom: t("Mes prélèvements"), resume: t("Le mandat qui vous débite, et ce qu'il a payé"), etiquette: mandatASigner ? t("à signer") : undefined },
     { cle: "operations", href: "/moi/performance#operations", nom: t("Mes opérations et l'échéancier"), resume: prochaine ? t("Prochain flux le {d}", { d: fmtDate(prochaine.date, false) }) : t("Ce que votre argent a fait, et ce qui vient") },
     { cle: "garde", href: "/moi/garde", nom: t("Mes droits de garde"), resume: avis[0] ? t("Dernier avis : {p}", { p: avis[0].period }) : "" },

@@ -45,7 +45,7 @@ export default async function PlacerPage() {
           /* Le retour dit « Votre provision » : le sur-titre dit la famille,
              pas le même mot — c'est celui que porte la page du solde. */
           surTitre={t("Mon argent chez nous")}
-          titre={t("La faire travailler")}
+          titre={t("Placer ma provision")}
           phrase={t("En parts d'un fonds monétaire, inscrites à votre nom. Le rendement est celui du fonds ; nous n'en promettons aucun.")}
         />
         <PlacerLaProvision
