@@ -70,6 +70,7 @@ export async function createStandingAction(_p: StandingResult | null, form: Form
     clientSegment: session.segment ?? "",
     offerId: p.data.offerId,
     amount: montant,
+    reglement: p.data.reglement,
     dayOfMonth: p.data.dayOfMonth,
     startsOn: localIso(new Date()),
     endsOn: p.data.endsOn || undefined,
@@ -85,7 +86,7 @@ export async function createStandingAction(_p: StandingResult | null, form: Form
     offerId: p.data.offerId,
     html: `${s.ref} (${s.clientName}) : <b>épargne programmée</b> de ${fmt(s.amount)} FCFA le ${s.dayOfMonth} de chaque mois sur ${o?.title ?? p.data.offerId}`,
   });
-  await audit("standing.create", "standing", s.id, { after: { ref: s.ref, offerId: s.offerId, amount: s.amount, dayOfMonth: s.dayOfMonth, endsOn: s.endsOn } });
+  await audit("standing.create", "standing", s.id, { after: { ref: s.ref, offerId: s.offerId, amount: s.amount, reglement: s.reglement, dayOfMonth: s.dayOfMonth, endsOn: s.endsOn } });
   await noter("epargne.creee", { objet: s.ref, detail: fmt(s.amount) });
   revalidatePath("/");
   /* Le prélèvement ne se met pas en place ici : il se SIGNE, par un code, sur

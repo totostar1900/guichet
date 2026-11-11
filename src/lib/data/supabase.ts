@@ -434,6 +434,8 @@ type StandingRow = {
   offer_id: string;
   amount: number;
   source: StandingOrder["source"];
+  /** Migration 0128 : absent d'une base qui ne l'a pas encore. */
+  reglement?: StandingOrder["reglement"];
   min_amount: number;
   day_of_month: number;
   starts_on: string;
@@ -463,6 +465,7 @@ const toStanding = (r: StandingRow): StandingOrder => ({
   /* Les lignes écrites avant la migration 0051 n'ont pas de source : elles
      viennent toutes d'un virement, qui était la seule façon d'alimenter. */
   source: r.source ?? "virement",
+  reglement: r.reglement ?? "virement",
   minAmount: Number(r.min_amount ?? 0),
   dayOfMonth: Number(r.day_of_month),
   startsOn: String(r.starts_on).slice(0, 10),
@@ -1710,6 +1713,8 @@ export const supabaseRepository: Repository = {
       offer_id: input.offerId,
       amount: input.amount,
       source: input.source ?? "virement",
+      /* La colonne n'est écrite que si elle dit autre chose que son défaut : une base où la migration 0128 n'est pas encore passée continue de créer ses épargnes par virement. */
+      ...(input.reglement === "prelevement" ? { reglement: "prelevement" } : {}),
       min_amount: input.minAmount ?? 0,
       day_of_month: input.dayOfMonth,
       starts_on: input.startsOn,

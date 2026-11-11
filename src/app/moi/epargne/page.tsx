@@ -97,7 +97,7 @@ export default async function EpargnePage() {
                 dayOfMonth: x.dayOfMonth,
                 source: x.source,
                 minAmount: x.minAmount,
-                paiement: paiementDeLEpargne(x.id, mandats),
+                paiement: paiementDeLEpargne(x, mandats, standing),
                 state: x.state,
                 stateLabel: STANDING_STATE_LABEL[x.state],
                 /* LA PROCHAINE ÉCHÉANCE, calculée plutôt que tue. La liste sait

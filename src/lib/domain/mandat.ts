@@ -192,14 +192,24 @@ export const mandatVivant = (m: MandatPrelevement): boolean => m.state === "acti
 export const tirageAutorise = (m: MandatPrelevement, montant: number): boolean => mandatVivant(m) && montant === m.amount;
 
 /**
- * COMMENT UNE ÉPARGNE EST PAYÉE, LU DANS SES MANDATS (11 novembre 2026, audit « signature du mandat d'une épargne »).
+ * COMMENT UNE ÉPARGNE EST PAYÉE (11 novembre 2026, audit « signature du mandat d'une épargne »).
  *
- * L'ordre permanent ne retient pas le mode de règlement choisi ; c'est le mandat qui le dit. Un mandat signé : « prélèvement ». Un mandat préparé mais pas signé : « mandat à signer » — rien ne sera prélevé tant qu'il ne l'est pas. Aucun mandat : l'épargne s'exécute sur appel de fonds, par virement du client.
+ * Deux sources : le choix fait à la création (« reglement » de l'ordre permanent) et les mandats. Un mandat signé : « prélèvement ». Sinon, une épargne qui devait être prélevée, ou dont un mandat a été préparé, est « en attente du mandat » : rien ne sera prélevé tant qu'il n'est pas signé.
+ * Le reste est un virement du client, sur appel de fonds.
+ *
+ * Une modification remplace l'ordre par une nouvelle version : un mandat qui paie la version d'avant couvre la suivante, d'où la lignée.
  */
 export type PaiementDUneEpargne = "prelevement" | "mandat_a_signer" | "virement";
 
-export function paiementDeLEpargne(standingId: string, mandats: Pick<MandatPrelevement, "objet" | "standingId" | "state" | "signedAt">[]): PaiementDUneEpargne {
-  const siens = mandats.filter((m) => m.objet === "instruction" && m.standingId === standingId && m.state !== "revoque");
+export function paiementDeLEpargne(
+  epargne: { id: string; reglement?: "virement" | "prelevement" },
+  mandats: Pick<MandatPrelevement, "objet" | "standingId" | "state" | "signedAt">[],
+  toutes: { id: string; supersedes?: string }[] = [],
+): PaiementDUneEpargne {
+  const lignee = new Set<string>([epargne.id]);
+  for (let cur = toutes.find((x) => x.id === epargne.id); cur?.supersedes && !lignee.has(cur.supersedes); cur = toutes.find((x) => x.id === cur?.supersedes)) lignee.add(cur.supersedes);
+  const siens = mandats.filter((m) => m.objet === "instruction" && m.standingId && lignee.has(m.standingId) && m.state !== "revoque");
   if (siens.some((m) => m.state === "actif" && m.signedAt)) return "prelevement";
-  return siens.length ? "mandat_a_signer" : "virement";
+  if (epargne.reglement === "prelevement" || siens.length) return "mandat_a_signer";
+  return "virement";
 }

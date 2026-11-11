@@ -65,6 +65,9 @@ export type OnBlocked = "passer" | "arreter";
  */
 export type StandingSource = "virement" | "encaissements";
 
+/** Comment une épargne programmée est payée. */
+export type ReglementDeLEpargne = "virement" | "prelevement";
+
 export interface StandingOrder {
   id: string;
   ref: string;
@@ -79,6 +82,8 @@ export interface StandingOrder {
   source: StandingSource;
   /** En deçà, on ne place rien et on attend : un ordre dérisoire coûte plus qu'il ne rapporte. */
   minAmount: number;
+  /** Comment l'épargne est payée, choisi à la création : un virement sur appel de fonds, ou un prélèvement sous mandat signé. Absent : virement (migration 0128). */
+  reglement?: ReglementDeLEpargne;
   /** 1 à 28. Sans objet pour un réinvestissement, que l'encaissement déclenche. */
   dayOfMonth: number;
   startsOn: string;
@@ -120,6 +125,7 @@ export interface NewStandingOrder {
   amount: number;
   source?: StandingSource;
   minAmount?: number;
+  reglement?: ReglementDeLEpargne;
   dayOfMonth: number;
   startsOn: string;
   endsOn?: string;

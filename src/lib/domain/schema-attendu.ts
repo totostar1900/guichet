@@ -1,5 +1,5 @@
 /**
- * CE QUE LES 126 MIGRATIONS DU DÉPÔT DÉCLARENT.
+ * CE QUE LES 127 MIGRATIONS DU DÉPÔT DÉCLARENT.
  *
  * ÉCRIT PAR UN SCRIPT, JAMAIS À LA MAIN : `npm run schema:attendu`. Un cliquet
  * (src/test/schema-attendu.test.ts) refuse qu'il s'écarte des migrations, parce
@@ -212,6 +212,7 @@ export const SCHEMA_ATTENDU: Omit<SchemaDeclare, "incompris"> = {
   "reference.draft_at",
   "reference.draft_by",
   "standing_orders.min_amount",
+  "standing_orders.reglement",
   "standing_orders.source",
   "standing_orders.splits",
   "standing_orders.supersedes",

@@ -54,8 +54,8 @@ export default async function ReglesPage() {
         nom: t("Épargne vers {f}", { f: titre(x.offerId) }),
         dit: [t("{m} FCFA", { m: fmt(x.amount) }), t("le {j} de chaque mois", { j: String(x.dayOfMonth) }), prochain ? t("prochain le {d}", { d: fmtDate(prochain, false) }) : undefined].filter(Boolean).join(" · "),
         /* Une épargne dont le mandat attend sa signature n'est pas « active » : rien ne sera prélevé. */
-        etat: x.state === "active" && paiementDeLEpargne(x.id, mandats) === "mandat_a_signer" ? t("En attente du mandat") : t(STANDING_STATE_LABEL[x.state]),
-        actif: x.state === "active" && paiementDeLEpargne(x.id, mandats) !== "mandat_a_signer",
+        etat: x.state === "active" && paiementDeLEpargne(x, mandats, standing) === "mandat_a_signer" ? t("En attente du mandat") : t(STANDING_STATE_LABEL[x.state]),
+        actif: x.state === "active" && paiementDeLEpargne(x, mandats, standing) !== "mandat_a_signer",
       };
     });
   const reinvest = standing

@@ -861,7 +861,7 @@ export const memoryRepository: Repository = {
     const ref = `EP-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}-${tail}`;
     /* Une instruction sans source vient d'un virement : c'était la seule façon
        d'alimenter avant que le réinvestissement existe. */
-    const it: StandingOrder = { id: uid(), ref, state: "active", createdAt: at, updatedAt: at, ...input, source: input.source ?? "virement", minAmount: input.minAmount ?? 0 };
+    const it: StandingOrder = { id: uid(), ref, state: "active", createdAt: at, updatedAt: at, ...input, source: input.source ?? "virement", reglement: input.reglement ?? "virement", minAmount: input.minAmount ?? 0 };
     s.standing.unshift(it);
     return structuredClone(it);
   },

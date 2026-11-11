@@ -339,12 +339,21 @@ describe("un usage déjà couvert n'est plus proposé", () => {
 /* L'AUDIT DE LA SIGNATURE DU MANDAT D'UNE ÉPARGNE (11 novembre 2026). */
 describe("comment une épargne est payée, lu dans ses mandats", () => {
   const m = (state: "actif" | "suspendu" | "revoque", signedAt?: string, standingId = "st-1") => ({ objet: "instruction" as const, standingId, state, signedAt });
-  it("signé : prélèvement ; préparé sans signature : mandat à signer ; aucun : virement ; révoqué : n'existe plus", () => {
-    expect(paiementDeLEpargne("st-1", [m("actif", "2026-11-11")])).toBe("prelevement");
-    expect(paiementDeLEpargne("st-1", [m("actif")])).toBe("mandat_a_signer");
-    expect(paiementDeLEpargne("st-1", [])).toBe("virement");
-    expect(paiementDeLEpargne("st-1", [m("revoque", "2026-11-11")])).toBe("virement");
-    expect(paiementDeLEpargne("st-1", [m("actif", "2026-11-11", "st-2")]), "le mandat d'une autre épargne ne compte pas").toBe("virement");
+  const ep = (reglement?: "virement" | "prelevement", id = "st-1") => ({ id, reglement });
+  it("signé : prélèvement ; choisi sans mandat signé, ou mandat préparé : en attente du mandat ; sinon virement", () => {
+    expect(paiementDeLEpargne(ep("prelevement"), [m("actif", "2026-11-11")])).toBe("prelevement");
+    expect(paiementDeLEpargne(ep("virement"), [m("actif", "2026-11-11")]), "un mandat signé fait foi").toBe("prelevement");
+    expect(paiementDeLEpargne(ep("prelevement"), []), "le prélèvement choisi à la création attend son mandat dès la création").toBe("mandat_a_signer");
+    expect(paiementDeLEpargne(ep("virement"), [m("actif")]), "un mandat préparé mais pas signé attend").toBe("mandat_a_signer");
+    expect(paiementDeLEpargne(ep("virement"), [])).toBe("virement");
+    expect(paiementDeLEpargne(ep(), [])).toBe("virement");
+    expect(paiementDeLEpargne(ep("virement"), [m("revoque", "2026-11-11")]), "un mandat révoqué n'existe plus").toBe("virement");
+    expect(paiementDeLEpargne(ep("virement"), [m("actif", "2026-11-11", "st-2")]), "le mandat d'une autre épargne ne compte pas").toBe("virement");
+  });
+  it("une nouvelle version de l'épargne garde le mandat qui payait la précédente", () => {
+    const toutes = [{ id: "st-2", supersedes: "st-1" }, { id: "st-1" }];
+    expect(paiementDeLEpargne(ep("prelevement", "st-2"), [m("actif", "2026-11-11", "st-1")], toutes)).toBe("prelevement");
+    expect(paiementDeLEpargne(ep("prelevement", "st-2"), [m("actif", "2026-11-11", "st-1")]), "sans la lignée, le mandat d'avant ne se voit pas").toBe("mandat_a_signer");
   });
   it("le formulaire reprend le montant de l'épargne, la carte nomme son fonds, la liste dit « En attente du mandat »", () => {
     const vue = readFileSync("src/app/moi/prelevements/MesMandats.tsx", "utf8");
@@ -354,5 +363,11 @@ describe("comment une épargne est payée, lu dans ses mandats", () => {
     const r = readFileSync("src/app/moi/regles/page.tsx", "utf8");
     expect(r).toMatch(/=== "mandat_a_signer" \? t\("En attente du mandat"\)/);
     expect(r).toMatch(/m\.dayOfMonth \?\? epargne\?\.dayOfMonth/);
+  });
+  it("le mode de règlement est enregistré à la création, repris par une modification, et la migration le porte", () => {
+    expect(readFileSync("src/app/moi/standing-actions.ts", "utf8")).toMatch(/reglement: p\.data\.reglement,/);
+    expect(readFileSync("src/app/moi/modifier-actions.ts", "utf8")).toMatch(/reglement: s\.reglement,/);
+    expect(readFileSync("src/lib/data/supabase.ts", "utf8")).toMatch(/reglement: r\.reglement \?\? "virement"/);
+    expect(readFileSync("supabase/migrations/0128_reglement_de_l_epargne.sql", "utf8")).toMatch(/add column if not exists reglement text not null default 'virement'/);
   });
 });

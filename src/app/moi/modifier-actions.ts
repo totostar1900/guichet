@@ -93,6 +93,7 @@ export async function modifierStandingAction(_p: ModifResult | null, form: FormD
     offerId: cle[0].offerId,
     amount: s.source === "encaissements" ? 0 : montant,
     source: s.source,
+    reglement: s.reglement,
     minAmount: plancher,
     dayOfMonth: jour,
     startsOn: localIso(new Date()),
