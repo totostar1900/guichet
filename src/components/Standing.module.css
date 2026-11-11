@@ -388,3 +388,8 @@
   font-weight: 400;
   font-size: var(--t-1);
 }
+
+/* Une épargne dont le mandat attend sa signature : la ligne le dit en or, avec le lien (11 novembre 2026). */
+.attente {
+  color: var(--gold-ink);
+}

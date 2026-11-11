@@ -3,6 +3,7 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { JOUR_MAX, JOUR_MIN } from "@/lib/domain/mandat";
 import { MOTIFS, prochaineEcheance } from "@/lib/domain/prelevement";
+import { nextRun } from "@/lib/domain/standing";
 import { fmt, fmtDate, localIso } from "@/lib/format";
 import { aucunCanalPossible, canalDuCode } from "@/lib/kyc/canal";
 import { MesMandats } from "./MesMandats";
@@ -40,12 +41,16 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
   const t = await getT();
   const s = await requireSession("/moi/prelevements");
   const r = repo();
-  const [mandats, standing, fiche, tirages] = await Promise.all([
+  const [mandats, standing, fiche, tirages, offres] = await Promise.all([
     r.listMandats(s.userId),
     r.listStandingOrders(s.userId).catch(() => []),
     r.getClientFileByUser(s.userId),
     r.listTirages({ userId: s.userId }).catch(() => []),
+    r.listOffers().catch(() => []),
   ]);
+  const aujourdHui = localIso(new Date());
+  /* L'épargne que paie un mandat : son fonds, son jour et sa prochaine échéance se lisent sur elle (audit « signature du mandat d'une épargne », 11 novembre 2026). */
+  const epargneDe = (id?: string) => (id ? standing.find((x) => x.id === id) : undefined);
   const canal = fiche ? await canalDuCode(s.userId, fiche) : undefined;
   /* Injoignable : un mandat signé ici ne tirerait jamais rien, puisque rien ne
      part sans que son préavis soit parti. La page le dit avant, et non après
@@ -91,7 +96,8 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
             banque: m.bankName,
             compte: m.bankAccount,
             montant: m.amount,
-            jour: m.dayOfMonth,
+            jour: m.dayOfMonth ?? epargneDe(m.standingId)?.dayOfMonth,
+            fonds: epargneDe(m.standingId) ? offres.find((o) => o.id === epargneDe(m.standingId)?.offerId)?.title : undefined,
             etat: m.state,
             signeLe: m.signedAt,
             /* L'EXEMPLAIRE, PAR SON ADRESSE. La carte promettait « votre
@@ -103,7 +109,7 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
             codeEnvoyeLe: m.pendingCodeAt,
             revoqueLe: m.revokedAt,
             /* Le prochain tirage, dit sur la carte : l'écho de l'ancienne étape « par prélèvement », où il vivait. */
-            prochain: m.signedAt && m.state === "actif" && m.dayOfMonth ? prochaineEcheance(m.dayOfMonth, localIso(new Date())) : undefined,
+            prochain: m.signedAt && m.state === "actif" ? (m.dayOfMonth ? prochaineEcheance(m.dayOfMonth, aujourdHui) : ((e) => (e ? nextRun(e, aujourdHui) : null))(epargneDe(m.standingId)) ?? undefined) : undefined,
           }))}
           instructions={instructions}
           titulaireParDefaut={fiche?.identity.name ?? s.name}

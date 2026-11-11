@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { RACINE } from "./racine";
 import { describe, expect, it } from "vitest";
-import { JOUR_MAX, JOUR_MIN, mandatVivant, tirageAutorise, verifierLeMandat, type MandatPrelevement } from "@/lib/domain/mandat";
+import { JOUR_MAX, JOUR_MIN, mandatVivant, paiementDeLEpargne, tirageAutorise, verifierLeMandat, type MandatPrelevement } from "@/lib/domain/mandat";
 
 /**
  * LE MANDAT DE PRÉLÈVEMENT : la maison tire, au lieu que le client pousse.
@@ -333,5 +333,26 @@ describe("un usage déjà couvert n'est plus proposé", () => {
   it("la création d'une épargne recule d'un cran, et la liste de ce qui est en place est dépliée", () => {
     expect(readFileSync("src/components/Standing.tsx", "utf8")).toMatch(/if \(state\?\.ok && window\.location\.search\.includes\("etape="\)\) router\.back\(\);/);
     expect(readFileSync("src/app/moi/epargne/page.tsx", "utf8")).toMatch(/cle="epargne:en-place"\s*defaut/);
+  });
+});
+
+/* L'AUDIT DE LA SIGNATURE DU MANDAT D'UNE ÉPARGNE (11 novembre 2026). */
+describe("comment une épargne est payée, lu dans ses mandats", () => {
+  const m = (state: "actif" | "suspendu" | "revoque", signedAt?: string, standingId = "st-1") => ({ objet: "instruction" as const, standingId, state, signedAt });
+  it("signé : prélèvement ; préparé sans signature : mandat à signer ; aucun : virement ; révoqué : n'existe plus", () => {
+    expect(paiementDeLEpargne("st-1", [m("actif", "2026-11-11")])).toBe("prelevement");
+    expect(paiementDeLEpargne("st-1", [m("actif")])).toBe("mandat_a_signer");
+    expect(paiementDeLEpargne("st-1", [])).toBe("virement");
+    expect(paiementDeLEpargne("st-1", [m("revoque", "2026-11-11")])).toBe("virement");
+    expect(paiementDeLEpargne("st-1", [m("actif", "2026-11-11", "st-2")]), "le mandat d'une autre épargne ne compte pas").toBe("virement");
+  });
+  it("le formulaire reprend le montant de l'épargne, la carte nomme son fonds, la liste dit « En attente du mandat »", () => {
+    const vue = readFileSync("src/app/moi/prelevements/MesMandats.tsx", "utf8");
+    expect(vue).toMatch(/groupDigits\(String\(e\.montant\)\)/);
+    expect(vue).toContain('t("Alimenter mon épargne vers {f}", { f: m.fonds })');
+    expect(readFileSync("src/components/Standing.tsx", "utf8")).toMatch(/s\.paiement === "mandat_a_signer"/);
+    const r = readFileSync("src/app/moi/regles/page.tsx", "utf8");
+    expect(r).toMatch(/=== "mandat_a_signer" \? t\("En attente du mandat"\)/);
+    expect(r).toMatch(/m\.dayOfMonth \?\? epargne\?\.dayOfMonth/);
   });
 });

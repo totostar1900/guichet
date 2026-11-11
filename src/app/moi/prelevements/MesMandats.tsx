@@ -5,7 +5,7 @@ import { useActionState, useState } from "react";
 import { useDates, useT } from "@/i18n/client";
 import { fmt, parseAmount } from "@/lib/format";
 import { PREAVIS_JOURS } from "@/lib/domain/prelevement";
-import { groupedInput } from "@/lib/ui/grouped";
+import { groupDigits, groupedInput } from "@/lib/ui/grouped";
 import { Select } from "@/components/ui/Select";
 import { creerMandatAction, envoyerCodeMandatAction, revoquerMandatAction, signerMandatAction, type MandatResult } from "./actions";
 import styles from "./page.module.css";
@@ -16,6 +16,8 @@ import barre from "@/components/mobile/BarreDEtape.module.css";
 interface Vu {
   id: string;
   standingId?: string;
+  /** Le fonds de l'épargne que ce mandat paie. */
+  fonds?: string;
   ref: string;
   objet: "provision" | "instruction";
   titulaire: string;
@@ -110,7 +112,11 @@ export function MesMandats({
   const [quelle, setQuelle] = useState((connue && instructionDemandee) || epargnesLibres[0]?.id || instructions[0]?.id || "");
   /* Contrôlés, parce que le regroupement replace le curseur après chaque
      touche : un champ non contrôlé renverrait le curseur au bout. */
-  const [montant, setMontant] = useState("");
+  /* LE MONTANT DE L'ÉPARGNE EST REPRIS (audit « signature du mandat d'une épargne », 11 novembre 2026) : le client l'a déjà écrit, et le mandat présente ce même montant. */
+  const [montant, setMontant] = useState(() => {
+    const e = connue ? instructions.find((i) => i.id === instructionDemandee) : undefined;
+    return e ? groupDigits(String(e.montant)) : "";
+  });
 
   return (
     <>
@@ -125,7 +131,7 @@ export function MesMandats({
                  en haut d'une page et devait le retrouver. */
               <li key={m.id} className={styles.mandat} id={m.signeLe ? undefined : "mandat"}>
                 <div className={styles.mTete}>
-                  <b>{m.objet === "provision" ? t("Alimenter ma provision") : t("Alimenter mon épargne programmée")}</b>
+                  <b>{m.objet === "provision" ? t("Alimenter ma provision") : m.fonds ? t("Alimenter mon épargne vers {f}", { f: m.fonds }) : t("Alimenter mon épargne programmée")}</b>
                   {/* « ARRÊTÉ », et non « suspendu » : « suspendu » décrit ce que la
                       maison peut reprendre, et le client n'a pas à deviner s'il
                       sera prélevé le mois prochain. */}
@@ -307,7 +313,11 @@ export function MesMandats({
                 {t("Alimenter ma provision, chaque mois")}
               </label>
               <label>
-                <input type="radio" name="objet" value="instruction" checked={objet === "instruction"} onChange={() => setObjet("instruction")} disabled={!epargnesLibres.length} />
+                <input type="radio" name="objet" value="instruction" checked={objet === "instruction"} onChange={() => {
+                  setObjet("instruction");
+                  const e = instructions.find((i) => i.id === quelle);
+                  if (e && !montant) setMontant(groupDigits(String(e.montant)));
+                }} disabled={!epargnesLibres.length} />
                 {instructions.length ? t("Alimenter une épargne programmée") : t("Alimenter une épargne programmée (vous n'en avez pas encore)")}
               </label>
             </fieldset>
@@ -321,7 +331,11 @@ export function MesMandats({
                 label={t("Laquelle")}
                 block
                 value={quelle}
-                onChange={setQuelle}
+                onChange={(v) => {
+                  setQuelle(v);
+                  const e = instructions.find((i) => i.id === v);
+                  if (e) setMontant(groupDigits(String(e.montant)));
+                }}
                 options={(epargnesLibres.length ? epargnesLibres : instructions).map((i) => ({ value: i.id, label: t("{r} · {m} FCFA le {j}", { r: i.ref, m: fmt(i.montant), j: String(i.jour) }) }))}
               />
             )}

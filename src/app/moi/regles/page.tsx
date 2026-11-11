@@ -4,6 +4,7 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate, localIso } from "@/lib/format";
 import { nextRun, STANDING_STATE_LABEL } from "@/lib/domain/standing";
+import { paiementDeLEpargne } from "@/lib/domain/mandat";
 import { prochaineEcheance } from "@/lib/domain/prelevement";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
@@ -31,12 +32,15 @@ export default async function ReglesPage() {
   const titre = (id: string) => offers.find((o) => o.id === id)?.title ?? id;
 
   const prelevements = mandats.filter((m) => m.state !== "revoque").map((m) => {
-    const prochain = m.signedAt && m.state === "actif" && m.dayOfMonth ? prochaineEcheance(m.dayOfMonth, aujourdHui) : undefined;
+    /* Un mandat d'épargne prend le jour, la prochaine échéance et le fonds de l'épargne qu'il paie (audit « signature du mandat d'une épargne », 11 novembre 2026). */
+    const epargne = m.standingId ? standing.find((x) => x.id === m.standingId) : undefined;
+    const jour = m.dayOfMonth ?? epargne?.dayOfMonth;
+    const prochain = m.signedAt && m.state === "actif" ? (m.dayOfMonth ? prochaineEcheance(m.dayOfMonth, aujourdHui) : epargne ? (nextRun(epargne, aujourdHui) ?? undefined) : undefined) : undefined;
     const etat = !m.signedAt ? t("à signer") : m.state === "suspendu" ? t("arrêté") : t("actif");
     return {
       id: m.id,
-      nom: m.objet === "provision" ? t("Prélèvement vers ma provision") : t("Prélèvement vers mon épargne programmée"),
-      dit: [t("{m} FCFA", { m: fmt(m.amount) }), m.dayOfMonth ? t("le {j} de chaque mois", { j: String(m.dayOfMonth) }) : undefined, prochain ? t("prochain le {d}", { d: fmtDate(prochain, false) }) : undefined].filter(Boolean).join(" · "),
+      nom: m.objet === "provision" ? t("Prélèvement vers ma provision") : epargne ? t("Prélèvement vers {f}", { f: titre(epargne.offerId) }) : t("Prélèvement vers mon épargne programmée"),
+      dit: [t("{m} FCFA", { m: fmt(m.amount) }), jour ? t("le {j} de chaque mois", { j: String(jour) }) : undefined, prochain ? t("prochain le {d}", { d: fmtDate(prochain, false) }) : undefined].filter(Boolean).join(" · "),
       etat,
       actif: Boolean(m.signedAt) && m.state === "actif",
     };
@@ -49,8 +53,9 @@ export default async function ReglesPage() {
         id: x.id,
         nom: t("Épargne vers {f}", { f: titre(x.offerId) }),
         dit: [t("{m} FCFA", { m: fmt(x.amount) }), t("le {j} de chaque mois", { j: String(x.dayOfMonth) }), prochain ? t("prochain le {d}", { d: fmtDate(prochain, false) }) : undefined].filter(Boolean).join(" · "),
-        etat: t(STANDING_STATE_LABEL[x.state]),
-        actif: x.state === "active",
+        /* Une épargne dont le mandat attend sa signature n'est pas « active » : rien ne sera prélevé. */
+        etat: x.state === "active" && paiementDeLEpargne(x.id, mandats) === "mandat_a_signer" ? t("En attente du mandat") : t(STANDING_STATE_LABEL[x.state]),
+        actif: x.state === "active" && paiementDeLEpargne(x.id, mandats) !== "mandat_a_signer",
       };
     });
   const reinvest = standing

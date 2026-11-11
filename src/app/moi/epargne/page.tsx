@@ -4,6 +4,7 @@ import { StandingForm, StandingList } from "@/components/Standing";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { nextRun, recurringMinimum, STANDING_STATE_LABEL } from "@/lib/domain/standing";
+import { paiementDeLEpargne } from "@/lib/domain/mandat";
 import { getT } from "@/i18n/server";
 import { localIso } from "@/lib/format";
 import styles from "./page.module.css";
@@ -39,7 +40,7 @@ export default async function EpargnePage() {
   const s = await requireSession("/moi/epargne");
   const t = await getT();
   const r = repo();
-  const [offers, standing] = await Promise.all([r.listOffers(), r.listStandingOrders(s.userId).catch(() => [])]);
+  const [offers, standing, mandats] = await Promise.all([r.listOffers(), r.listStandingOrders(s.userId).catch(() => []), r.listMandats(s.userId).catch(() => [])]);
   const aujourdHui = localIso(new Date());
 
   /* Un versement mensuel va vers une PART, qui se divise. Un titre ne se
@@ -96,6 +97,7 @@ export default async function EpargnePage() {
                 dayOfMonth: x.dayOfMonth,
                 source: x.source,
                 minAmount: x.minAmount,
+                paiement: paiementDeLEpargne(x.id, mandats),
                 state: x.state,
                 stateLabel: STANDING_STATE_LABEL[x.state],
                 /* LA PROCHAINE ÉCHÉANCE, calculée plutôt que tue. La liste sait

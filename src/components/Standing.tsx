@@ -317,6 +317,8 @@ export interface StandingRow {
   source?: "virement" | "encaissements";
   /** Le plancher d'un réinvestissement, en deçà duquel on attend le coupon suivant. */
   minAmount?: number;
+  /** Comment l'épargne est payée, lu dans ses mandats (voir « paiementDeLEpargne »). */
+  paiement?: "prelevement" | "mandat_a_signer" | "virement";
   state: string;
   stateLabel: string;
   next: string | null;
@@ -381,6 +383,15 @@ export function StandingList({ rows, fonds = [] }: { rows: StandingRow[]; fonds?
             </small>
             {/* La clé se lit en entier : « 60 % ici, 40 % là » est l'ordre du
                 client, et le résumer à la première destination le trahirait. */}
+            {/* « ACTIVE » NE DIT PAS SI QUELQUE CHOSE PARTIRA (audit « signature du mandat d'une épargne », 11 novembre 2026) : un mandat préparé mais pas signé ne prélève rien. La ligne dit comment l'épargne est payée, et renvoie à la signature quand elle manque. */}
+            {s.source !== "encaissements" && s.state === "active" && s.paiement === "mandat_a_signer" && (
+              <small className={styles.attente}>
+                {t("En attente du mandat : rien ne sera prélevé tant qu'il n'est pas signé.")}{" "}
+                <Link href={`/moi/prelevements?instruction=${s.id}&de=epargne`}>{t("Signer le mandat")} →</Link>
+              </small>
+            )}
+            {s.source !== "encaissements" && s.state === "active" && s.paiement === "prelevement" && <small className="muted">{t("Payée par prélèvement.")}</small>}
+            {s.source !== "encaissements" && s.state === "active" && s.paiement === "virement" && <small className="muted">{t("Payée par virement, sur appel de fonds.")}</small>}
             {s.splits && s.splits.length > 1 && <small className={styles.cleDite}>{s.splits.map((x) => `${x.pct} % ${x.title}`).join(" · ")}</small>}
           </div>
           {s.state === "active" ? (

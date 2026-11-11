@@ -190,3 +190,16 @@ export const mandatVivant = (m: MandatPrelevement): boolean => m.state === "acti
  * remplit moins vite que ce que le client a lu, sans qu'il l'apprenne.
  */
 export const tirageAutorise = (m: MandatPrelevement, montant: number): boolean => mandatVivant(m) && montant === m.amount;
+
+/**
+ * COMMENT UNE ÉPARGNE EST PAYÉE, LU DANS SES MANDATS (11 novembre 2026, audit « signature du mandat d'une épargne »).
+ *
+ * L'ordre permanent ne retient pas le mode de règlement choisi ; c'est le mandat qui le dit. Un mandat signé : « prélèvement ». Un mandat préparé mais pas signé : « mandat à signer » — rien ne sera prélevé tant qu'il ne l'est pas. Aucun mandat : l'épargne s'exécute sur appel de fonds, par virement du client.
+ */
+export type PaiementDUneEpargne = "prelevement" | "mandat_a_signer" | "virement";
+
+export function paiementDeLEpargne(standingId: string, mandats: Pick<MandatPrelevement, "objet" | "standingId" | "state" | "signedAt">[]): PaiementDUneEpargne {
+  const siens = mandats.filter((m) => m.objet === "instruction" && m.standingId === standingId && m.state !== "revoque");
+  if (siens.some((m) => m.state === "actif" && m.signedAt)) return "prelevement";
+  return siens.length ? "mandat_a_signer" : "virement";
+}

@@ -325,4 +325,11 @@ export const EN_VISITE: Record<string, string> = {
   "Déjà en place": "Already in place",
   "À signer": "To sign",
   "Vos autorisations couvrent déjà tout ce que vous pouvez alimenter. Pour changer un montant ou un jour, révoquez l'autorisation concernée, puis signez-en une nouvelle.": "Your authorisations already cover everything you can fund. To change an amount or a day, revoke the authorisation concerned, then sign a new one.",
+  "Alimenter mon épargne vers {f}": "Funding my savings into {f}",
+  "En attente du mandat": "Waiting for the mandate",
+  "En attente du mandat : rien ne sera prélevé tant qu'il n'est pas signé.": "Waiting for the mandate: nothing will be debited until it is signed.",
+  "Payée par prélèvement.": "Paid by direct debit.",
+  "Payée par virement, sur appel de fonds.": "Paid by transfer, on a call for funds.",
+  "Prélèvement vers {f}": "Direct debit to {f}",
+  "Signer le mandat": "Sign the mandate",
 };
