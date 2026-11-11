@@ -175,7 +175,7 @@ describe("ce que le parcours du mandat doit dire", () => {
   });
 
   it("ouvre le formulaire quand il n'y a rien d'autre à lire", () => {
-    expect(vue, "le formulaire se referme derrière un bouton même sans autorisation").toMatch(/useState\(connue \|\| vivants\.length === 0 \|\| ouvertDEmblee\)/);
+    expect(vue, "le formulaire se referme derrière un bouton même sans autorisation").toMatch(/useState\(connue \|\| vivants\.length === 0 \|\| \(ouvertDEmblee && aUnUsageLibre\)\)/);
     /* Le repli garde son sens dès qu'une autorisation existe : on vient alors
        lire la liste, et en ajouter une seconde est délibéré. */
     /* LE BOUTON, ET NON LE MOT. Vérifié à l'envers le 1er novembre 2026 :
@@ -314,5 +314,24 @@ describe("l'action du mandat interroge le sens avant la forme", () => {
     expect(branche, "le refus de forme ne nomme pas le champ en dernier recours").toMatch(/CHAMPS\[/);
     // Non vacuité : la branche a bien été trouvée.
     expect(branche.length).toBeGreaterThan(200);
+  });
+});
+
+/* L'AUDIT DE LA SIGNATURE D'UN MANDAT (11 novembre 2026) : on ne fait pas remplir ce que le serveur refusera, et la création d'une épargne ne laisse pas d'entrée d'historique en trop. */
+describe("un usage déjà couvert n'est plus proposé", () => {
+  const vue = readFileSync("src/app/moi/prelevements/MesMandats.tsx", "utf8");
+  it("sans usage libre, le formulaire ne s'ouvre pas : la page dit que tout est couvert", () => {
+    expect(vue).toMatch(/const provisionLibre = !vivants\.some\(\(m\) => m\.objet === "provision"\)/);
+    expect(vue).toMatch(/const epargnesLibres = instructions\.filter\(\(i\) => !vivants\.some\(\(m\) => m\.objet === "instruction" && m\.standingId === i\.id\)\)/);
+    expect(vue).toMatch(/\) : !aUnUsageLibre \? \(/);
+  });
+  it("la tuile de « Mon argent » dit « Déjà en place » quand un mandat vivant existe", () => {
+    const a = readFileSync("src/app/moi/argent/page.tsx", "utf8");
+    expect(a).toMatch(/m\.objet === "provision" && m\.state !== "revoque"/);
+    expect(a).toContain('t("Déjà en place")');
+  });
+  it("la création d'une épargne recule d'un cran, et la liste de ce qui est en place est dépliée", () => {
+    expect(readFileSync("src/components/Standing.tsx", "utf8")).toMatch(/if \(state\?\.ok && window\.location\.search\.includes\("etape="\)\) router\.back\(\);/);
+    expect(readFileSync("src/app/moi/epargne/page.tsx", "utf8")).toMatch(/cle="epargne:en-place"\s*defaut/);
   });
 });

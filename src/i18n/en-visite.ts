@@ -322,4 +322,7 @@ export const EN_VISITE: Record<string, string> = {
   "Une fois : c'est vous qui l'envoyez, depuis votre banque, quand vous voulez.": "Once: you send it, from your bank, whenever you like.",
   "Vers ma banque, sur le compte déclaré à l'ouverture.": "To my bank, on the account declared at opening.",
   "Verser de l'argent": "Pay in money",
+  "Déjà en place": "Already in place",
+  "À signer": "To sign",
+  "Vos autorisations couvrent déjà tout ce que vous pouvez alimenter. Pour changer un montant ou un jour, révoquez l'autorisation concernée, puis signez-en une nouvelle.": "Your authorisations already cover everything you can fund. To change an amount or a day, revoke the authorisation concerned, then sign a new one.",
 };

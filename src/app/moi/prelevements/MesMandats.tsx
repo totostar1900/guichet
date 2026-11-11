@@ -15,6 +15,7 @@ import barre from "@/components/mobile/BarreDEtape.module.css";
 
 interface Vu {
   id: string;
+  standingId?: string;
   ref: string;
   objet: "provision" | "instruction";
   titulaire: string;
@@ -89,9 +90,13 @@ export function MesMandats({
   const [sign, signAct, signant] = useActionState<MandatResult | null, FormData>(signerMandatAction, null);
   const [revoc, revocAct, revoquant] = useActionState<MandatResult | null, FormData>(revoquerMandatAction, null);
   const connue = instructions.some((i) => i.id === instructionDemandee);
+  /* UN MANDAT PAR USAGE, ET LA PAGE LE DIT AVANT DE FAIRE REMPLIR (audit « Mon argent », 11 novembre 2026) : un usage déjà couvert par un mandat vivant (actif ou à signer) n'est plus proposé ; sans usage libre, le formulaire ne s'ouvre pas. La règle est celle du serveur (« creerMandatAction »). */
   const vivants = mandats.filter((m) => m.etat !== "revoque");
+  const provisionLibre = !vivants.some((m) => m.objet === "provision");
+  const epargnesLibres = instructions.filter((i) => !vivants.some((m) => m.objet === "instruction" && m.standingId === i.id));
+  const aUnUsageLibre = provisionLibre || epargnesLibres.length > 0;
   const anciens = mandats.filter((m) => m.etat === "revoque");
-  const [objet, setObjet] = useState<"provision" | "instruction">(connue ? "instruction" : "provision");
+  const [objet, setObjet] = useState<"provision" | "instruction">(connue || !provisionLibre ? "instruction" : "provision");
   /* LE FORMULAIRE EST OUVERT QUAND IL N'Y A RIEN D'AUTRE À LIRE.
      Relevé le 25 octobre 2026 : un client arrivait de « Approvisionner votre
      compte » en cliquant « Mettre en place un prélèvement », et tombait sur un
@@ -100,9 +105,9 @@ export function MesMandats({
      intermédiaire dans la page. Quand une autorisation existe déjà, le repli
      garde son sens : la liste est alors ce qu'on vient lire, et en ajouter une
      seconde est un geste délibéré. */
-  const [ouvert, setOuvert] = useState(connue || vivants.length === 0 || ouvertDEmblee);
+  const [ouvert, setOuvert] = useState(connue || vivants.length === 0 || (ouvertDEmblee && aUnUsageLibre));
   const [aRevoquer, setARevoquer] = useState<string | null>(null);
-  const [quelle, setQuelle] = useState((connue && instructionDemandee) || instructions[0]?.id || "");
+  const [quelle, setQuelle] = useState((connue && instructionDemandee) || epargnesLibres[0]?.id || instructions[0]?.id || "");
   /* Contrôlés, parce que le regroupement replace le curseur après chaque
      touche : un champ non contrôlé renverrait le curseur au bout. */
   const [montant, setMontant] = useState("");
@@ -278,6 +283,11 @@ export function MesMandats({
             {t("Il nous faut une adresse e-mail avant de signer : c'est là que part le code, puis l'annonce de chaque prélèvement.")}{" "}
             <Link href="/moi/securite#canaux">{t("Ajouter mon adresse →")}</Link>
           </p>
+        ) : !aUnUsageLibre ? (
+          <p className={styles.note}>
+            {t("Vos autorisations couvrent déjà tout ce que vous pouvez alimenter. Pour changer un montant ou un jour, révoquez l'autorisation concernée, puis signez-en une nouvelle.")}{" "}
+            <Link href="/moi/regles">{t("Ce qui part tout seul")} →</Link>
+          </p>
         ) : creer?.ok ? (
           /* LE MANDAT EST PRÉPARÉ : sa carte, au-dessus, porte la suite (le code, la signature). Le formulaire ne reste pas ouvert dessous (audit « Mon argent », 10 novembre 2026). */
           <Msg state={creer} />
@@ -293,11 +303,11 @@ export function MesMandats({
                   « les deux ». Un mandat général serait juridiquement fragile
                   et commercialement effrayant. */}
               <label>
-                <input type="radio" name="objet" value="provision" checked={objet === "provision"} onChange={() => setObjet("provision")} />
+                <input type="radio" name="objet" value="provision" checked={objet === "provision"} onChange={() => setObjet("provision")} disabled={!provisionLibre} />
                 {t("Alimenter ma provision, chaque mois")}
               </label>
               <label>
-                <input type="radio" name="objet" value="instruction" checked={objet === "instruction"} onChange={() => setObjet("instruction")} disabled={!instructions.length} />
+                <input type="radio" name="objet" value="instruction" checked={objet === "instruction"} onChange={() => setObjet("instruction")} disabled={!epargnesLibres.length} />
                 {instructions.length ? t("Alimenter une épargne programmée") : t("Alimenter une épargne programmée (vous n'en avez pas encore)")}
               </label>
             </fieldset>
@@ -312,7 +322,7 @@ export function MesMandats({
                 block
                 value={quelle}
                 onChange={setQuelle}
-                options={instructions.map((i) => ({ value: i.id, label: t("{r} · {m} FCFA le {j}", { r: i.ref, m: fmt(i.montant), j: String(i.jour) }) }))}
+                options={(epargnesLibres.length ? epargnesLibres : instructions).map((i) => ({ value: i.id, label: t("{r} · {m} FCFA le {j}", { r: i.ref, m: fmt(i.montant), j: String(i.jour) }) }))}
               />
             )}
 

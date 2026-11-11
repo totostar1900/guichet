@@ -84,6 +84,7 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
           retourHref={retourHref}
           mandats={mandats.map((m) => ({
             id: m.id,
+            standingId: m.standingId,
             ref: m.ref,
             objet: m.objet,
             titulaire: m.accountHolder,

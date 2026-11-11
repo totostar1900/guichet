@@ -26,14 +26,16 @@ export default async function ArgentPage() {
   const s = await requireSession("/moi/argent");
   /* LE DISPONIBLE SE DIT SUR LES TUILES QUI EN VIVENT (audit « Mon argent », 10 novembre 2026) : retirer et placer n'ont rien à faire d'un disponible nul, et la tuile le dit avant qu'on l'ouvre. */
   const r = repo();
-  const [cash, intents] = await Promise.all([r.listCash(s.userId).catch(() => []), r.listIntents().catch(() => [])]);
+  const [cash, intents, mandats] = await Promise.all([r.listCash(s.userId).catch(() => []), r.listIntents().catch(() => []), r.listMandats(s.userId).catch(() => [])]);
+  /* LA TUILE DU PRÉLÈVEMENT DIT SI IL EST DÉJÀ EN PLACE (audit « Mon argent », 11 novembre 2026) : un mandat vivant pour la provision rend le formulaire inutile, et mieux vaut le dire avant l'ouverture. */
+  const mandat = mandats.find((m) => m.objet === "provision" && m.state !== "revoque");
   const dispo = t("{m} FCFA disponibles", { m: fmt(Math.round(cashPosition(cash, intents.filter((i) => i.clientId === s.userId)).idle)) });
   const groupes: { titre: string; tuiles: { href: string; nom: string; dit: string }[] }[] = [
     {
       titre: t("Verser"),
       tuiles: [
         { href: "/moi/provision/alimenter/virement", nom: t("Par virement"), dit: t("Une fois : c'est vous qui l'envoyez, depuis votre banque, quand vous voulez.") },
-        { href: "/moi/prelevements?de=argent", nom: t("Autoriser un prélèvement"), dit: t("Chaque mois, sur ma provision : c'est nous qui le prenons, sur une autorisation que vous signez.") },
+        { href: "/moi/prelevements?de=argent", nom: t("Autoriser un prélèvement"), dit: mandat ? `${mandat.signedAt ? t("Déjà en place") : t("À signer")} : ${t("{m} FCFA le {j} de chaque mois", { m: fmt(mandat.amount), j: String(mandat.dayOfMonth ?? "") })}.` : t("Chaque mois, sur ma provision : c'est nous qui le prenons, sur une autorisation que vous signez.") },
         { href: "/moi/epargne", nom: t("Épargne programmée"), dit: t("Chaque mois, dans un fonds : une somme fixe, un jour du mois, un fonds choisi.") },
       ],
     },

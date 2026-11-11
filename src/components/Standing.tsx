@@ -115,9 +115,10 @@ export function StandingForm({
     else router.back();
   };
   const parts = valeur && valeur > 0 && verse > 0 ? verse / valeur : 0;
+  /* LA CRÉATION RÉUSSIE REND SON ENTRÉE D'HISTORIQUE (audit « Mon argent », 11 novembre 2026) : l'étape 2 en avait ajouté une, et la laisser faisait retomber la première flèche sur la même page. On recule d'un cran : la page affiche toujours la confirmation (elle vient de l'état du formulaire, pas de l'adresse). */
   useEffect(() => {
-    if (state?.ok && window.location.search.includes("etape=")) window.history.replaceState(null, "", chemin);
-  }, [state?.ok, chemin]);
+    if (state?.ok && window.location.search.includes("etape=")) router.back();
+  }, [state?.ok, router]);
   if (state?.ok) {
     return (
       <div className={styles.done}>
