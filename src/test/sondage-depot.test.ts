@@ -31,6 +31,17 @@ beforeAll(() => {
   delete process.env.NEXT_PUBLIC_SUPABASE_URL;
 });
 
+/** Une action qui réussit redirige désormais vers la page (voir « Fait ») : la redirection est un succès, et son adresse dit ce qui a été fait. */
+const aboutit = async <T,>(f: () => Promise<T>): Promise<T | { ok: true; vers: string }> => {
+  try {
+    return await f();
+  } catch (e) {
+    const d = (e as { digest?: unknown }).digest;
+    if (typeof d === "string" && d.startsWith("NEXT_REDIRECT")) return { ok: true, vers: d.split(";")[2] ?? "" };
+    throw e;
+  }
+};
+
 const form = (o: Record<string, string>) => {
   const f = new FormData();
   for (const [k, v] of Object.entries(o)) f.set(k, v);
@@ -187,8 +198,9 @@ describe("ce que le desk en fait", () => {
     courant = client;
     expect(rep.ok).toBe(true);
 
-    const res = await statuerSurLaLigne(null, form({ id: q.id, etat: "close", motif: "Le Trésor a confirmé qu'il n'émettra pas sur cette durée." }));
+    const res = await aboutit(() => statuerSurLaLigne(null, form({ id: q.id, etat: "close", motif: "Le Trésor a confirmé qu'il n'émettra pas sur cette durée." })));
     expect(res.ok, res.ok ? "" : res.error).toBe(true);
+    expect("vers" in res && res.vers, "la page doit dire quelle ligne est close").toMatch(/\/desk\/sondage\?clos=/);
     const toutes = await r.listLignesSondees();
     expect(toutes.find((x) => x.id === q.id)!.state).toBe("close");
     const suite = toutes.find((x) => x.repondA === q.id)!;

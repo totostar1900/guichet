@@ -1,4 +1,5 @@
 import { DeskNav } from "@/components/DeskNav";
+import { Fait } from "@/components/desk/Fait";
 import { getT } from "@/i18n/server";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -19,8 +20,10 @@ export const metadata = { title: "À la une" };
  * maison met devant les clients. Il garde exactement son contenu (les lignes à la une, les candidates, le segment, qui serait prévenu) ; seule sa place change. Le Carnet
  * ne garde que la tuile « À la une 1/3 », qui mène ici.
  */
-export default async function ALaUnePage() {
+export default async function ALaUnePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const t = await getT();
+  const sp = await searchParams;
+  const un = (k: string) => (Array.isArray(sp[k]) ? (sp[k] as string[])[0] : (sp[k] as string | undefined));
   await requireDesk("/desk/a-la-une");
   const now = new Date();
   const offers = await repo().listOffers();
@@ -41,6 +44,17 @@ export default async function ALaUnePage() {
           <h1>{t("À la une")}</h1>
           <p className="muted">{t("Les lignes que la maison met en avant dans le Guichet : trois au plus, une raison factuelle, une date de fin. Jamais un conseil.")}</p>
         </header>
+        {/* CE QUI VIENT D'ÊTRE FAIT reste écrit en tête : la rangée mise ou retirée a changé la liste, son message ne pouvait pas y rester. */}
+        {un("mise") && (
+          <Fait fermer="/desk/a-la-une" libelle={t("Fermer")}>
+            {t("« {l} » est à la une jusqu'au {d}.", { l: un("mise") ?? "", d: un("jusqu") ?? "" })}
+          </Fait>
+        )}
+        {un("retiree") && (
+          <Fait fermer="/desk/a-la-une" libelle={t("Fermer")}>
+            {t("« {l} » n'est plus à la une.", { l: un("retiree") ?? "" })}
+          </Fait>
+        )}
         <FeaturePanel active={featActive} candidates={featCandidates} comptes={cohortes.comptes} />
       </main>
     </>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useDates, useT } from "@/i18n/client";
-import { fmt, fmtPct } from "@/lib/format";
+import { fmtPct, fmtUnits } from "@/lib/format";
 import type { AnalyseDeGroupe } from "@/lib/domain/sondage-analyse";
 import { Reponses } from "./Reponses";
 import styles from "./page.module.css";
@@ -56,10 +56,10 @@ export function Accumulation({ groupes }: { groupes: AnalyseDeGroupe[] }) {
                   {x.clients > x.clientsFermes ? <small className={styles.muet}> / {x.clients}</small> : null}
                 </td>
                 <td className={styles.n}>
-                  {fmt(x.ferme)}
-                  {x.cherche ? <small className={styles.muet}> / {fmt(x.cherche)}</small> : null}
+                  {fmtUnits(x.ferme)}
+                  {x.cherche ? <small className={styles.muet}> / {fmtUnits(x.cherche)}</small> : null}
                 </td>
-                <td className={styles.n}>{x.possible > x.ferme ? fmt(x.possible) : "—"}</td>
+                <td className={styles.n}>{x.possible > x.ferme ? fmtUnits(x.possible) : "—"}</td>
                 <td>
                   {x.tauxMin == null ? "—" : `${niveau(x.tauxMin)} · ${niveau(x.tauxMoyen)} · ${niveau(x.tauxMax)}`}
                 </td>
@@ -83,7 +83,7 @@ export function Accumulation({ groupes }: { groupes: AnalyseDeGroupe[] }) {
             <dt>{t("Clients")}</dt>
             <dd>{g.clients === g.clientsFermes ? g.clients : t("{f} fermes sur {n}", { f: String(g.clientsFermes), n: String(g.clients) })}</dd>
             <dt>{t("Ferme")}</dt>
-            <dd>{fmt(g.ferme)} FCFA</dd>
+            <dd>{fmtUnits(g.ferme)} FCFA</dd>
             <dt>{t("Taux")}</dt>
             <dd>{g.tauxMin == null ? "—" : `${niveau(g.tauxMin)} · ${niveau(g.tauxMoyen)} · ${niveau(g.tauxMax)}`}</dd>
             <dt>{t("Prix min")}</dt>
@@ -100,7 +100,7 @@ export function Accumulation({ groupes }: { groupes: AnalyseDeGroupe[] }) {
                   <li key={c.de}>
                     <span>{c.de === c.a ? fmtPct(c.de, 2) : `${fmtPct(c.de, 2)} – ${fmtPct(c.a, 2)}`}</span>
                     <i style={{ width: `${Math.round((100 * c.montant) / plus)}%` }} />
-                    <b>{fmt(c.montant)}</b>
+                    <b>{fmtUnits(c.montant)}</b>
                   </li>
                 ))}
               </ul>
@@ -122,7 +122,7 @@ export function Accumulation({ groupes }: { groupes: AnalyseDeGroupe[] }) {
                   {g.echelle.map((r) => (
                     <tr key={String(r.limite)}>
                       <td>{r.limite == null ? t("sans condition") : fmtPct(r.limite, 2)}</td>
-                      <td className={styles.n}>{fmt(r.tenu)}</td>
+                      <td className={styles.n}>{fmtUnits(r.tenu)}</td>
                       <td className={styles.n}>{r.clients}</td>
                     </tr>
                   ))}

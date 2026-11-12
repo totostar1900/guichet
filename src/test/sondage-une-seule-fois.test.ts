@@ -125,8 +125,8 @@ describe("le montant d'un client se compte une seule fois", () => {
        desk lit ce qui vient : une seule colonne l'obligerait à choisir entre
        flatter et taire. */
     const table = lire("src/app/desk/sondage/Accumulation.tsx");
-    expect(table, "la table de ce qui s'accumule a perdu la colonne ferme").toMatch(/\{fmt\(x\.ferme\)\}/);
-    expect(table, "elle a perdu la colonne du possible").toMatch(/x\.possible > x\.ferme \? fmt\(x\.possible\) : "—"/);
+    expect(table, "la table de ce qui s'accumule a perdu la colonne ferme").toMatch(/\{fmtUnits\(x\.ferme\)\}/);
+    expect(table, "elle a perdu la colonne du possible").toMatch(/x\.possible > x\.ferme \? fmtUnits\(x\.possible\) : "—"/);
     /* Le possible n'est jamais compté deux fois : l'analyse le lit au consensus, elle ne le recalcule pas. */
     expect(lire("src/lib/domain/sondage-analyse.ts"), "le possible n'est plus celui du consensus").toMatch(/possible: c\.montant/);
     expect(lire("src/lib/domain/sondage-analyse.ts"), "le ferme n'est plus celui du consensus").toMatch(/ferme: c\.ferme/);

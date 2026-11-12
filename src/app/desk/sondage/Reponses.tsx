@@ -1,7 +1,7 @@
 "use client";
 
 import { useDates, useT } from "@/i18n/client";
-import { fmt, fmtPct } from "@/lib/format";
+import { fmtPct, fmtUnits } from "@/lib/format";
 import type { ReponseDeSondage } from "@/lib/domain/sondage-analyse";
 import styles from "./page.module.css";
 
@@ -36,7 +36,7 @@ export function Reponses({ reponses }: { reponses: ReponseDeSondage[] }) {
                 {r.modifiee && <small className={styles.modifiee}>{r.modifiee}</small>}
               </td>
               <td>{r.segment ?? "—"}</td>
-              <td className={styles.n}>{fmt(r.montant)}</td>
+              <td className={styles.n}>{fmtUnits(r.montant)}</td>
               <td className={styles.n}>{r.taux != null ? fmtPct(r.taux, 2) : "—"}</td>
               <td className={styles.n}>{r.prix != null ? `${r.prix.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} %` : "—"}</td>
               <td>{r.preteLe ? fmtDate(r.preteLe, false) : "—"}</td>

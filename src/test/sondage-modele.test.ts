@@ -496,7 +496,7 @@ describe("le modèle du sondage", () => {
        et pas le mot : « cherchés » paraît deux fois sur cette page, et la garde
        restait verte quand l'une des deux branches le perdait (vérifié à
        l'envers le 26 octobre 2026). */
-    expect(lire("src/app/desk/sondage/Questions.tsx"), "le desk ne voit plus la cible de sa propre question").toMatch(/fmt\(q\.cherche\)/);
+    expect(lire("src/app/desk/sondage/Questions.tsx"), "le desk ne voit plus la cible de sa propre question").toMatch(/fmtUnits\(q\.cherche\)/);
   });
 
   it("rend les montants du client en millions ou en milliards", () => {

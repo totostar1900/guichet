@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { cohorteDuSegment } from "@/lib/domain/cohortes";
@@ -59,7 +60,7 @@ export async function featureOfferAction(_p: FeatureResult | null, form: FormDat
   await audit("offer.feature", "offer", o.id, { before: { featured: o.featured ?? null }, after: { featured }, reason: p.data.reason });
   await r.logEvent({ kind: "desk", offerId: o.id, html: `<b>${o.title}</b> mise à la une par ${desk.name} : ${p.data.reason} (jusqu'au ${p.data.until})` });
   for (const path of ["/", "/desk", "/desk/a-la-une", `/offres/${o.id}`]) revalidatePath(path);
-  return { ok: true, message: `${o.title} est à la une jusqu'au ${p.data.until}.` };
+  redirect(`/desk/a-la-une?mise=${encodeURIComponent(o.title)}&jusqu=${encodeURIComponent(p.data.until)}`);
 }
 
 export async function unfeatureOfferAction(form: FormData): Promise<void> {
@@ -72,6 +73,7 @@ export async function unfeatureOfferAction(form: FormData): Promise<void> {
   await audit("offer.unfeature", "offer", o.id, { before: { featured: o.featured }, after: { featured: null } });
   await r.logEvent({ kind: "desk", offerId: o.id, html: `<b>${o.title}</b> retirée de la une par ${desk.name}` });
   for (const path of ["/", "/desk", "/desk/a-la-une", `/offres/${o.id}`]) revalidatePath(path);
+  redirect(`/desk/a-la-une?retiree=${encodeURIComponent(o.title)}`);
 }
 
 const bcSchema = z.object({ offerId: z.string().min(1), segment: z.string().default("Tous les clients"), confirm: z.string().optional() });

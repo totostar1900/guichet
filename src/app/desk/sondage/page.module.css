@@ -115,9 +115,6 @@
 .lien:hover {
   color: var(--ink);
 }
-.motif {
-  flex: 1 1 200px;
-}
 .ok {
   color: var(--good);
   font-size: var(--t-3);

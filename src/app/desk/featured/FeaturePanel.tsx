@@ -94,8 +94,12 @@ export function FeaturePanel({ active, candidates, comptes }: { active: FeatureR
   const [state, action, pending] = useActionState<FeatureResult | null, FormData>(featureOfferAction, null);
   const [pick, setPick] = useState("");
   const [reason, setReason] = useState<string>(FEATURE_REASONS[0]);
+  const [untilChoisi, setUntilChoisi] = useState("");
+  const featureId = useId();
   const chosen = candidates.find((c) => c.id === pick);
   const today = new Date().toISOString().slice(0, 10);
+  /* La fin se lit comme elle s'écrit : la date choisie, sinon celle de la clôture de la ligne, sinon aujourd'hui. */
+  const until = untilChoisi || chosen?.deadline || today;
   return (
     <div className={`panel ${styles.panneau}`}>
       <div className="panel-h">
@@ -115,22 +119,17 @@ export function FeaturePanel({ active, candidates, comptes }: { active: FeatureR
               </div>
               <div className={styles.rowActions}>
                 <BroadcastForm offerId={a.id} comptes={comptes} />
-                <form action={unfeatureOfferAction}>
-                  <input type="hidden" name="offerId" value={a.id} />
-                  <button className="btn sm ghost" type="submit">
-                    {t("Retirer")}
-                  </button>
-                </form>
+                <RetirerForm offerId={a.id} titre={a.title} />
               </div>
             </li>
           ))}
         </ul>
       )}
       {active.length < 3 && candidates.length > 0 && (
-        <form action={action} className={styles.form}>
+        <form id={featureId} action={action} className={styles.form}>
           <label>
             <span>{t("Ligne")}</span>
-            <LinePicker candidates={candidates} value={pick} onChange={setPick} />
+            <LinePicker candidates={candidates} value={pick} onChange={(id) => { setPick(id); setUntilChoisi(""); }} />
           </label>
           <label>
             <span>{t("Raison (factuelle)")}</span>
@@ -143,15 +142,48 @@ export function FeaturePanel({ active, candidates, comptes }: { active: FeatureR
           </label>
           <label>
             <span>{t("Jusqu'au")}</span>
-            <input name="until" type="date" key={pick} defaultValue={chosen?.deadline ?? today} min={today} required />
+            <input name="until" type="date" value={until} onChange={(e) => setUntilChoisi(e.target.value)} min={today} required />
           </label>
-          <button className="btn sm primary" type="submit" disabled={pending || !pick}>
-            {t(pending ? "…" : "Mettre à la une")}
-          </button>
+          {/* DEUX TEMPS (12 novembre 2026) : mettre une ligne à la une la place en tête du Guichet pour tous les clients. La relecture redit la ligne, la raison que les clients liront et la date de fin. */}
+          <ConfirmPublish
+            form={featureId}
+            label={t("Mettre à la une")}
+            title={t("Mettre cette ligne à la une ?")}
+            lines={[
+              t("« {l} » passe en tête du Guichet, pour tous les clients, dès maintenant.", { l: chosen?.title ?? "—" }),
+              t("Raison affichée : « {r} ».", { r: reason }),
+              t("Jusqu'au {d}.", { d: until }),
+              t("{n} ligne(s) à la une sur trois au plus, celle-ci comprise.", { n: active.length + 1 }),
+            ]}
+            confirmLabel={t("Mettre à la une")}
+            disabled={!pick || !reason.trim()}
+            pending={pending}
+          />
           {state && <small className={state.ok ? styles.ok : styles.err}>{said(state)}</small>}
         </form>
       )}
     </div>
+  );
+}
+
+/**
+ * RETIRER DE LA UNE, EN DEUX TEMPS (12 novembre 2026) : le geste est silencieux et immédiat côté clients, la ligne disparaît de leur tête de page. La relecture le dit avant.
+ */
+function RetirerForm({ offerId, titre }: { offerId: string; titre: string }) {
+  const t = useT();
+  const formId = useId();
+  return (
+    <form id={formId} action={unfeatureOfferAction}>
+      <input type="hidden" name="offerId" value={offerId} />
+      <ConfirmPublish
+        form={formId}
+        className="btn sm ghost"
+        label={t("Retirer")}
+        title={t("Retirer cette ligne de la une ?")}
+        lines={[t("« {l} » n'est plus à la une : les clients ne la voient plus en tête du Guichet.", { l: titre }), t("La ligne reste au catalogue, avec sa fiche.")]}
+        confirmLabel={t("Retirer de la une")}
+      />
+    </form>
   );
 }
 

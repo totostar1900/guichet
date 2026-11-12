@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -140,5 +141,7 @@ export async function statuerSurLaLigne(_p: DeskSondageResult | null, form: Form
 
   revalidatePath(PATH);
   revalidatePath("/sondage");
-  return { ok: true, message: etat === "consolidee" ? `${l.ref} est portée au Trésor, avec ${suites.length} réponse(s).` : `${l.ref} est close.` };
+  /* LA LIGNE CLOSE QUITTE LE TABLEAU, ET SON MESSAGE AVEC ELLE : on redirige, et la page écrit ce qui vient d'être fait (voir « Fait »). */
+  if (etat === "close") redirect(`${PATH}?clos=${encodeURIComponent(l.ref)}&reponses=${suites.length}`);
+  return { ok: true, message: `${l.ref} est portée au Trésor, avec ${suites.length} réponse(s).` };
 }

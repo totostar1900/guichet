@@ -20,6 +20,17 @@ vi.mock("@/lib/auth", () => ({ getSession: async () => current, requireSession: 
 vi.mock("next/cache", () => FAUX_NEXT_CACHE);
 vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
 
+/** Une action qui réussit redirige désormais vers la page (voir « Fait ») : la redirection est un succès, et son adresse dit ce qui a été fait. */
+const aboutit = async <T,>(f: () => Promise<T>): Promise<T | { ok: true; vers: string }> => {
+  try {
+    return await f();
+  } catch (e) {
+    const d = (e as { digest?: unknown }).digest;
+    if (typeof d === "string" && d.startsWith("NEXT_REDIRECT")) return { ok: true, vers: d.split(";")[2] ?? "" };
+    throw e;
+  }
+};
+
 beforeAll(() => {
   delete process.env.NEXT_PUBLIC_SUPABASE_URL;
   delete process.env.VAPID_PUBLIC_KEY;
@@ -85,8 +96,9 @@ describe("sélection du desk et diffusion", () => {
     const { id: ligne, until } = await ligneOuverte();
     const bad = await featureOfferAction(null, form({ offerId: ligne, reason: "Le meilleur placement du moment", until }));
     expect(bad.ok).toBe(false);
-    const ok = await featureOfferAction(null, form({ offerId: ligne, reason: "Clôture cette semaine", until }));
+    const ok = await aboutit(() => featureOfferAction(null, form({ offerId: ligne, reason: "Clôture cette semaine", until })));
     expect(ok.ok).toBe(true);
+    expect("vers" in ok && ok.vers, "la page doit dire ce qui a été fait").toMatch(/\/desk\/a-la-une\?mise=/);
     const o = (await repo().getOffer(ligne))!;
     expect(o.featured?.reason).toBe("Clôture cette semaine");
     const s = summarize(o, new Date());
@@ -124,7 +136,7 @@ describe("sélection du desk et diffusion", () => {
     const ouvertes = (await repo().listOffers()).filter((o) => !o.hidden && !o.featured && o.id !== ligne && (o.kind === "MARCHE" || o.kind === "FONDS" || Date.parse(o.deadlineAt) > Date.now())).map((o) => o.id);
     expect(ouvertes.length, "le jeu d'essai n'a plus assez de lignes ouvertes pour remplir le plafond puis le dépasser").toBeGreaterThan(libres);
     /* On remplit TOUTES les places, puis on en demande une de plus. */
-    for (const id of ouvertes.slice(0, libres)) expect((await featureOfferAction(null, form({ offerId: id, reason: "Nouvelle ligne", until }))).ok).toBe(true);
+    for (const id of ouvertes.slice(0, libres)) expect((await aboutit(() => featureOfferAction(null, form({ offerId: id, reason: "Nouvelle ligne", until })))).ok).toBe(true);
     const detrop = await featureOfferAction(null, form({ offerId: ouvertes[libres], reason: "Nouvelle ligne", until }));
     expect(detrop.ok).toBe(false);
     expect(said(detrop)).toMatch(/Trois lignes/);

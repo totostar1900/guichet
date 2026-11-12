@@ -38,6 +38,7 @@ export function ConfirmPublish({
   corps,
   className = "btn sm primary",
   disabled,
+  confirmDisabled,
   pending,
 }: {
   /** l'identifiant du formulaire que le bouton de confirmation envoie */
@@ -61,13 +62,15 @@ export function ConfirmPublish({
   corps?: ReactNode;
   className?: string;
   disabled?: boolean;
+  /** Verrouille le bouton de confirmation tant que la relecture n'est pas complète (un motif à écrire dans le corps, par exemple). */
+  confirmDisabled?: boolean;
   pending?: boolean;
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [word, setWord] = useState("");
   const id = useId();
-  const locked = Boolean(typed) && word.trim().toLowerCase() !== (typed ?? "").toLowerCase();
+  const locked = (Boolean(typed) && word.trim().toLowerCase() !== (typed ?? "").toLowerCase()) || Boolean(confirmDisabled);
 
   return (
     <>

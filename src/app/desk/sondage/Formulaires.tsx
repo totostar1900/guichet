@@ -124,10 +124,11 @@ export function PoserUneQuestion() {
 }
 
 /**
- * CLORE UNE LIGNE SONDÉE, EN DEUX TEMPS (12 novembre 2026).
+ * CLORE UNE LIGNE SONDÉE, EN DEUX TEMPS (12 novembre 2026, planche « Annonces », choix 3A ; motif déplacé dans la relecture le même jour).
  *
- * Le motif se saisit sur la ligne, puis « Clore » ouvre une relecture : la ligne, le nombre de réponses qui la suivent dans la clôture, et la phrase que le client lira
- * sur sa page. « Portée au Trésor » n'est plus offerte au desk : le geste de clôturer est le seul qui reste.
+ * « Clore » ouvre TOUJOURS la relecture : le bouton ne se grise plus en attendant un motif saisi ailleurs (il paraissait muet). La relecture dit la ligne et le nombre de réponses closes avec elle,
+ * et demande le motif que le client lira sur sa page : tant qu'il manque, c'est le bouton de confirmation qui reste verrouillé, avec la raison écrite au-dessus.
+ * « Portée au Trésor » n'est plus offerte au desk : le geste de clôturer est le seul qui reste.
  */
 export function Statuer({ id, ref_, reponses = 0 }: { id: string; ref_: string; reponses?: number }) {
   const t = useT();
@@ -141,20 +142,20 @@ export function Statuer({ id, ref_, reponses = 0 }: { id: string; ref_: string; 
     <form id={formId} action={action} className={styles.statuer}>
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="etat" value="close" />
-      {/* LE MOTIF EST DEMANDÉ, et il est lu : le client le lit sur sa page, et une attente qui disparaît sans un mot est une attente qu'on ne redonnera pas. */}
-      <input name="motif" value={motif} onChange={(e) => setMotif(e.target.value)} placeholder={t("Pourquoi ({r})", { r: ref_ })} className={styles.motif} />
       <ConfirmPublish
         form={formId}
         label={t("Clore")}
         title={t("Clore la ligne {r} ?", { r: ref_ })}
-        lines={[
-          t("La ligne {r} est close.", { r: ref_ }),
-          ...(reponses > 0 ? [t("Les {n} réponses qui la suivent sont closes avec elle.", { n: String(reponses) })] : []),
-          t("Les clients concernés lisent ce motif sur leur page : « {m} »", { m: motif.trim() || "—" }),
-        ]}
+        lines={[t("La ligne {r} est close.", { r: ref_ }), ...(reponses > 0 ? [t("Les {n} réponses qui la suivent sont closes avec elle.", { n: String(reponses) })] : []), t("Les clients concernés lisent le motif ci-dessous sur leur page.")]}
+        corps={
+          <label className="field">
+            {t("Motif (obligatoire)")}
+            <input name="motif" form={formId} value={motif} onChange={(e) => setMotif(e.target.value)} placeholder={t("Pourquoi cette ligne est close")} autoFocus />
+          </label>
+        }
         confirmLabel={t("Clore la ligne")}
+        confirmDisabled={motif.trim().length < 3}
         className={styles.lien}
-        disabled={motif.trim().length < 3}
         pending={pending}
       />
       {state && !state.ok && <em className={styles.erreur}>{state.error}</em>}

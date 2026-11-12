@@ -1,4 +1,5 @@
 import { DeskNav } from "@/components/DeskNav";
+import { Fait } from "@/components/desk/Fait";
 import { getT } from "@/i18n/server";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
@@ -34,8 +35,10 @@ export const metadata = { title: "Sondage" };
  * puis les questions ouvertes, puis la question qu'on pose. Un desk qui ouvre
  * cette page le matin veut savoir en une seconde s'il a un coup de fil à passer.
  */
-export default async function SondageDeskPage() {
+export default async function SondageDeskPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const t = await getT();
+  const sp = await searchParams;
+  const un = (k: string) => (Array.isArray(sp[k]) ? (sp[k] as string[])[0] : (sp[k] as string | undefined));
   await requireDesk("/desk/sondage");
   const r = repo();
     const lignes = await r.listLignesSondees();
@@ -85,6 +88,14 @@ export default async function SondageDeskPage() {
   return (
     <main className={styles.page}>
       <DeskNav current="/desk/sondage" />
+      {/* CE QUI VIENT D'ÊTRE FAIT reste écrit en tête : la ligne close a quitté le tableau, son message ne pouvait pas y rester. */}
+      {un("clos") && (
+        <Fait fermer="/desk/sondage" libelle={t("Fermer")}>
+          {Number(un("reponses")) > 0
+            ? t("La ligne {r} est close, avec ses {n} réponse(s). Les clients lisent le motif sur leur page.", { r: un("clos") ?? "", n: String(Number(un("reponses")) || 0) })
+            : t("La ligne {r} est close. Les clients lisent le motif sur leur page.", { r: un("clos") ?? "" })}
+        </Fait>
+      )}
       <header className={styles.tete}>
         <span className="eyebrow">{t("Marché primaire")}</span>
         <h1 className="display">{t("Sondage d'avant séance")}</h1>

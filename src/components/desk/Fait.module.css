@@ -1,0 +1,17 @@
+.fait {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-6);
+  margin: 0;
+  padding: var(--s-5) var(--s-7);
+  background: var(--good-soft);
+  border: 1px solid var(--good);
+  color: var(--ink);
+  font-size: var(--t-3);
+}
+.fait a {
+  color: var(--ink-2);
+  text-decoration: underline;
+  white-space: nowrap;
+}

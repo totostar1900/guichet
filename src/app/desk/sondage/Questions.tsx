@@ -2,7 +2,7 @@
 
 import { Fragment, useState } from "react";
 import { useDates, useT } from "@/i18n/client";
-import { fmt, fmtPct } from "@/lib/format";
+import { fmtPct, fmtUnits } from "@/lib/format";
 import type { ReponseDeSondage } from "@/lib/domain/sondage-analyse";
 import { Reponses } from "./Reponses";
 import { Statuer } from "./Formulaires";
@@ -60,8 +60,8 @@ export function Questions({ questions }: { questions: QuestionOuverte[] }) {
                 </td>
                 <td>{fmtDate(q.posee.slice(0, 10), false)}</td>
                 <td>{q.horizon ? fmtDate(q.horizon, false) : "—"}</td>
-                <td className={styles.n}>{fmt(q.cherche)}</td>
-                <td className={styles.n}>{fmt(q.recu)}</td>
+                <td className={styles.n}>{fmtUnits(q.cherche)}</td>
+                <td className={styles.n}>{fmtUnits(q.recu)}</td>
                 <td className={styles.n}>{q.reponses.length}</td>
                 <td className={styles.n}>{q.tauxMin != null ? fmtPct(q.tauxMin, 2) : "—"}</td>
                 <td className={styles.n}>{q.prixMin != null ? `${q.prixMin.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} %` : "—"}</td>
