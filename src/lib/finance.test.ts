@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bondCalc, btaCalc, daysBetween, tenorText } from "./finance";
+import { bondCalc, btaCalc, daysBetween, tendanceLineaire, tenorText } from "./finance";
 
 // Reference values come from the Purpose Capital note of 9 Sept 2026
 // (three RCA lines, 1 000 titres, settlement 16/09/2026).
@@ -157,5 +157,32 @@ describe("le rendement annualisé d'une période de VL", () => {
     expect(rendementAnnualisePct(10_000, 11_000, 730), "deux ans : la racine").toBeCloseTo(4.88, 2);
     expect(rendementAnnualisePct(10_000, 10_100, 29), "un mois ne dit rien de l'année").toBeNull();
     expect(rendementAnnualisePct(0, 10_100, 365)).toBeNull();
+  });
+});
+
+describe("la tendance linéaire d'une série de taux", () => {
+  const droite = (n: number, pente: number) => Array.from({ length: n }, (_, i) => ({ x: 2025 + i / 12, y: 8 + pente * (i / 12) }));
+  it("retrouve la pente d'une droite exacte et un R² de 1", () => {
+    const d = tendanceLineaire(droite(10, -1.5))!;
+    expect(d.pente).toBeCloseTo(-1.5, 9);
+    expect(d.r2).toBeCloseTo(1, 9);
+    expect(d.n).toBe(10);
+  });
+  it("une série bruitée a un R² entre 0 et 1, et le signe de sa pente", () => {
+    const pts = droite(12, 2).map((p, i) => ({ ...p, y: p.y + (i % 2 ? 0.6 : -0.6) }));
+    const d = tendanceLineaire(pts)!;
+    expect(d.pente).toBeGreaterThan(0);
+    expect(d.r2).toBeGreaterThan(0);
+    expect(d.r2).toBeLessThan(1);
+  });
+  it("une série plate est décrite par sa droite : pente nulle, R² de 1, pas de division par zéro", () => {
+    const d = tendanceLineaire(droite(8, 0))!;
+    expect(d.pente).toBeCloseTo(0, 12);
+    expect(d.r2).toBe(1);
+  });
+  it("ne calcule rien sous le minimum de points, ni quand tous les x sont égaux", () => {
+    expect(tendanceLineaire(droite(5, 1))).toBeUndefined();
+    expect(tendanceLineaire(droite(5, 1), 3)).toBeDefined();
+    expect(tendanceLineaire(Array.from({ length: 8 }, (_, i) => ({ x: 2025, y: i })))).toBeUndefined();
   });
 });

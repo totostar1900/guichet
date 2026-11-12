@@ -403,3 +403,36 @@ export const rendementCumulePct = (valeurDebut: number, valeurFin: number): numb
 
 /** L'intérêt simple d'un argent laissé sur un compte bancaire, au taux annuel donné, sur un nombre de jours (base 365). */
 export const facteurBancaire = (tauxPct: number, jours: number): number => 1 + (tauxPct / 100) * (jours / 365);
+
+/**
+ * LA DROITE DES MOINDRES CARRÉS D'UNE SÉRIE, ET CE QU'ELLE VAUT.
+ *
+ * Sert à suivre un point d'une courbe de taux mois après mois : la pente dit si le
+ * taux monte ou descend et à quel rythme, le R² dit si la droite décrit la série ou
+ * seulement son milieu. Au-dessous de `minimum` points, ou si tous les x sont égaux,
+ * on ne calcule rien : une droite par deux points n'est pas une tendance.
+ *
+ * Les x sont des années décimales : la pente est en points de % par an.
+ */
+export interface Tendance {
+  pente: number;
+  ordonnee: number;
+  r2: number;
+  n: number;
+}
+
+export function tendanceLineaire(pts: { x: number; y: number }[], minimum = 6): Tendance | undefined {
+  const n = pts.length;
+  if (n < minimum) return undefined;
+  const mx = pts.reduce((s, p) => s + p.x, 0) / n;
+  const my = pts.reduce((s, p) => s + p.y, 0) / n;
+  const sxx = pts.reduce((s, p) => s + (p.x - mx) ** 2, 0);
+  if (sxx < 1e-12) return undefined;
+  const sxy = pts.reduce((s, p) => s + (p.x - mx) * (p.y - my), 0);
+  const syy = pts.reduce((s, p) => s + (p.y - my) ** 2, 0);
+  const pente = sxy / sxx;
+  const ordonnee = my - pente * mx;
+  /* Une série plate est parfaitement décrite par sa droite : R² vaut 1, pas 0/0. */
+  const r2 = syy < 1e-12 ? 1 : (sxy * sxy) / (sxx * syy);
+  return { pente, ordonnee, r2, n };
+}

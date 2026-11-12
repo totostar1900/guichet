@@ -661,13 +661,20 @@ export function CourbeFusion({
 
         {groupe(
           "fu-beac",
-          t("Courbe de la BEAC du"),
+          choix === "tous" || choix === "cemac" ? t("Courbe de la BEAC du") : t("Courbe de la BEAC · {p}, du", { p: t(choix) }),
           false,
           <Select
             value={moisBeacEffectif}
             onChange={setMoisBeac}
             label={t("Mois de la courbe de la BEAC")}
-            options={[{ value: "", label: t("la plus récente") }, ...moisBeacDispo.map((m) => ({ value: m, label: fmtMois(m) }))]}
+            options={[
+              { value: "", label: t("la plus récente") },
+              /* En vue d'ensemble, un mois dit quels Trésors il porte : il n'en a pas toujours trois. */
+              ...moisBeacDispo.map((m) => ({
+                value: m,
+                label: choix === "tous" ? `${fmtMois(m)} · ${(beacArchive ?? []).find((r) => r.mois === m)?.series.map((s) => t(s.pays)).join(", ") ?? ""}` : fmtMois(m),
+              })),
+            ]}
             disabled={choix === "cemac" || moisBeacDispo.length === 0}
             libelleVisible={false}
             fixe
@@ -798,7 +805,7 @@ export function CourbeFusion({
                   {bout && beacReleve && (
                     <text x={X(bout.annees) + 6} y={Y(bout.pct)} className={styles.beacBout}>
                       <tspan x={X(bout.annees) + 6} dy={0}>
-                        {beac.length > 1 ? `${t("BEAC")} · ${t(b.nom)}` : t("BEAC")}
+                        {`${t("BEAC")} · ${t(b.nom)}`}
                       </tspan>
                       <tspan x={X(bout.annees) + 6} dy={11} className={styles.beacDate}>
                         {fmtMois(b.mois, true)}
@@ -983,7 +990,7 @@ export function CourbeFusion({
           {beac.length > 0 && (
             <span>
               <i className={styles.trBeac} aria-hidden="true" />
-              {t("la BEAC, par durée d'émission")}
+              {beac.length === 1 ? t("la BEAC · {p}, par durée d'émission", { p: t(beac[0].nom) }) : t("la BEAC, par durée d'émission")}
             </span>
           )}
         </div>
@@ -1048,7 +1055,7 @@ export function CourbeFusion({
             </a>
           ))}
           {" "}
-          <a href={lienCourbesBeac({ axe: "duree", pays: beac.map((b) => b.nom), mois: [plusAncien], duree: 10, source: "deux" })}>{t("Voir en détail")} →</a>{" "}
+          <a href={lienCourbesBeac({ axe: "duree", pays: beac.map((b) => b.nom), mois: [plusAncien], duree: 10 })}>{t("Voir en détail")} →</a>{" "}
           {beac.every((b) => !b.source) && releveBeac.source && (
             <a href={releveBeac.source} target="_blank" rel="noreferrer">
               {t("sa pièce")}

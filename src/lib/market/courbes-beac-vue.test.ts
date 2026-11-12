@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { donneesDe, lien, lireReglages, memeReglages, modeleDeLaFigure, PLAFOND, prereglages, type PointBeac } from "./courbes-beac-vue";
+import { donneesDe, lien, lignesBeac, lireReglages, memeReglages, modeleDeLaFigure, PLAFOND, prereglages, type PointBeac } from "./courbes-beac-vue";
 
 const p = (mois: string, pays: string, annees: number, taux: number): PointBeac => ({ mois: `${mois}-01`, pays, annees, tenor: `${annees} ans`, taux });
 const POINTS: PointBeac[] = [
@@ -20,7 +20,7 @@ describe("les données et les préréglages", () => {
 
   it("le préréglage par défaut compare les Trésors à jour au mois le plus récent", () => {
     const c = prereglages(D).comparer;
-    expect(c).toMatchObject({ axe: "duree", mois: ["2026-09"], source: "beac" });
+    expect(c).toMatchObject({ axe: "duree", mois: ["2026-09"]});
     expect(c.pays.sort()).toEqual(["Cameroun", "Congo", "Gabon"]);
     expect(c.pays).not.toContain("Tchad");
   });
@@ -42,13 +42,14 @@ describe("l'adresse", () => {
     const r = lireReglages({ axe: "temps", pays: "Atlantide,Gabon,RCA", d: "11,5" }, D);
     expect(r.pays).toEqual(["Gabon"]);
     expect(r.duree).toBe(10);
-    const s = lireReglages({ axe: "duree", mois: "1999-01", src: "n'importe" }, D);
+    const s = lireReglages({ axe: "duree", mois: "1999-01" }, D);
     expect(s.mois).toEqual(["2026-09"]);
-    expect(s.source).toBe("beac");
   });
 
-  it("n'offre pas « nous » en axe temps : nous n'avons pas d'historique de nos courbes", () => {
-    expect(lireReglages({ axe: "temps", src: "deux" }, D).source).toBe("beac");
+  it("la comparaison avec nos courbes n'est plus ici : ni préréglage « nous », ni source, ni paramètre « src »", () => {
+    expect(Object.keys(prereglages(D))).toEqual(["comparer", "point", "bouge"]);
+    expect(Object.keys(lireReglages({ axe: "duree", src: "deux" }, D))).not.toContain("source");
+    expect(lien(prereglages(D).comparer)).not.toContain("src=");
   });
 
   it("l'adresse d'un réglage se relit à l'identique", () => {
@@ -61,7 +62,7 @@ describe("l'adresse", () => {
 
 describe("le modèle de la figure", () => {
   it("axe durée : une courbe par Trésor et par mois, un mois sans feuille est un manque nommé", () => {
-    const m = modeleDeLaFigure(POINTS, { axe: "duree", pays: ["Congo", "Gabon"], mois: ["2026-09", "2026-03"], duree: 10, source: "beac" });
+    const m = modeleDeLaFigure(POINTS, { axe: "duree", pays: ["Congo", "Gabon"], mois: ["2026-09", "2026-03"], duree: 10 });
     expect(m.nCourbes).toBe(2);
     expect(m.manques).toEqual(expect.arrayContaining([{ pays: "Congo", mois: "2026-03" }, { pays: "Gabon", mois: "2026-03" }]));
     expect(m.series[0].pts.map((q) => q.x)).toEqual([1, 10]);
@@ -69,31 +70,63 @@ describe("le modèle de la figure", () => {
 
   it("axe temps : un mois manquant INTERROMPT la ligne, il ne la joint pas", () => {
     const pts = [p("2026-01", "Gabon", 10, 8), p("2026-02", "Gabon", 10, 8.2), p("2026-05", "Gabon", 10, 8.4)];
-    const m = modeleDeLaFigure(pts, { axe: "temps", pays: ["Gabon"], mois: [], duree: 10, source: "beac" });
+    const m = modeleDeLaFigure(pts, { axe: "temps", pays: ["Gabon"], mois: [], duree: 10 });
     expect(m.series.map((s) => s.pts.length)).toEqual([2, 1]);
   });
 
   it("signale un saut de trois points ou plus, avec ses deux valeurs et le mois d'où l'on vient", () => {
-    const m = modeleDeLaFigure(POINTS, { axe: "temps", pays: ["Gabon"], mois: [], duree: 10, source: "beac" });
+    const m = modeleDeLaFigure(POINTS, { axe: "temps", pays: ["Gabon"], mois: [], duree: 10 });
     expect(m.sauts).toEqual([{ pays: "Gabon", mois: "2026-09", de: 7.15, vers: 16.63, depuis: "2026-07" }]);
   });
 
   it("refuse de tracer au-delà de douze courbes", () => {
     const beaucoup: PointBeac[] = [];
     for (const m of ["2026-09", "2026-07", "2026-03", "2025-05"]) for (const pays of ["Cameroun", "Congo", "Gabon", "Tchad"]) beaucoup.push(p(m, pays, 1, 8));
-    const m = modeleDeLaFigure(beaucoup, { axe: "duree", pays: ["Cameroun", "Congo", "Gabon", "Tchad"], mois: ["2026-09", "2026-07", "2026-03", "2025-05"], duree: 1, source: "beac" });
+    const m = modeleDeLaFigure(beaucoup, { axe: "duree", pays: ["Cameroun", "Congo", "Gabon", "Tchad"], mois: ["2026-09", "2026-07", "2026-03", "2025-05"], duree: 1 });
     expect(m.nCourbes).toBe(16);
     expect(m.nCourbes).toBeGreaterThan(PLAFOND);
     expect(m.trop).toBe(true);
   });
 
-  it("la source « nous » ne trace que nos points ; « les deux » superpose", () => {
-    const nous = [{ pays: "Gabon", annees: 2, pct: 11 }];
-    const seul = modeleDeLaFigure(POINTS, { axe: "duree", pays: ["Gabon"], mois: ["2026-09"], duree: 10, source: "nous" }, nous);
-    expect(seul.series).toHaveLength(1);
-    expect(seul.series[0].ronds).toBe(true);
-    const deux = modeleDeLaFigure(POINTS, { axe: "duree", pays: ["Gabon"], mois: ["2026-09"], duree: 10, source: "deux" }, nous);
-    expect(deux.series).toHaveLength(2);
+  it("axe temps : la tendance est la droite des moindres carrés, en points de base par an, et se trace en pointillé", () => {
+    const pts = Array.from({ length: 8 }, (_, i) => p(`2025-${String(i + 1).padStart(2, "0")}`, "Gabon", 10, 8 - 0.1 * i));
+    const m = modeleDeLaFigure(pts, { axe: "temps", pays: ["Gabon"], mois: [], duree: 10 });
+    expect(m.tendances).toHaveLength(1);
+    expect(m.tendances[0].pbParAn).toBeCloseTo(-120, 4);
+    expect(m.tendances[0].r2).toBeCloseTo(1, 6);
+    expect(m.tendances[0]).toMatchObject({ n: 8, depuis: "2025-01", jusqua: "2025-08" });
+    expect(m.series.filter((s) => s.pointille)).toHaveLength(1);
+  });
+
+  it("sous six points, la tendance est dite non calculable et rien ne se trace", () => {
+    const pts = Array.from({ length: 5 }, (_, i) => p(`2025-0${i + 1}`, "Gabon", 10, 8 + i));
+    const m = modeleDeLaFigure(pts, { axe: "temps", pays: ["Gabon"], mois: [], duree: 10 });
+    expect(m.tendances[0].pbParAn).toBeUndefined();
+    expect(m.tendances[0].n).toBe(5);
+    expect(m.series.some((s) => s.pointille)).toBe(false);
+  });
+
+  it("axe durée : pas de tendance, une courbe par mois n'est pas une série dans le temps", () => {
+    expect(modeleDeLaFigure(POINTS, { axe: "duree", pays: ["Gabon"], mois: ["2026-09"], duree: 10 }).tendances).toEqual([]);
+  });
+});
+
+describe("l'extraction", () => {
+  const r = { axe: "duree" as const, pays: ["Gabon"], mois: ["2026-09"], duree: 10 };
+  it("la sélection suit les réglages de la figure ; « tout » les ignore", () => {
+    const sel = lignesBeac(POINTS, r);
+    expect(sel.length).toBeGreaterThan(0);
+    expect(sel.every((l) => l.pays === "Gabon" && l.mois === "2026-09")).toBe(true);
+    expect(lignesBeac(POINTS, r, true)).toHaveLength(POINTS.length);
+  });
+  it("axe temps : la durée suivie, tous les mois", () => {
+    const sel = lignesBeac(POINTS, { axe: "temps", pays: ["Gabon"], mois: [], duree: 10 });
+    expect(sel.every((l) => l.pays === "Gabon" && l.annees === 10)).toBe(true);
+  });
+  it("ce sont les chiffres de la BEAC et rien d'autre : la route ne lit aucune de nos séances", () => {
+    const src = fs.readFileSync(path.join(__dirname, "../../app/desk/courbes-beac/export/route.ts"), "utf8");
+    expect(src).not.toMatch(/listAuctionResults|buildCurve/);
+    expect(src).toMatch(/isDesk\(s\)/);
   });
 });
 

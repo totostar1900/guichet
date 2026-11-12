@@ -363,3 +363,12 @@ Une carte qui cache une face (3D) se remplace par une **extension** : `Depliable
 - **Une transition de vue ne gèle pas un élément nommé : sa vue « nouvelle » est vivante.** La barre du bas reste nommée, et sa transition CSS se voit pendant le changement de page ; ne pas couper les transitions pendant une transition de vue (j'avais ajouté `:active-view-transition { transition: none }` : le dock disparaissait d'un coup).
 - **Une règle de composant qui pose une `transition` doit être plus spécifique que la règle globale du toucher** (`button:not(:disabled)`) : la flèche apparaissait d'un coup. Mesurer le mouvement échantillon par échantillon (positions toutes les 40 ms), pas à l'œil.
 - **Deux barres du haut sont montées (téléphone et écran large)** : un emplacement ne s'identifie pas par un `id` (en double) mais par un attribut, et on prend celui qui se voit. Une fiche voisine du pager n'a pas le droit de poser ses boutons dans la barre.
+
+## Leçon du 12 novembre 2026 : une page à rail n'est pas une « route large », et un réglage ne fait pas sauter la page
+
+Le Marché des valeurs du Trésor (`/desk/beac`) était la seule page du desk où la colonne de la maison s'ouvrait escamotée : elle était dans `ROUTES_LARGES` (`nav-colonne.ts`), alors que la règle de ce fichier dit qu'**une page qui a un rail de sections n'y figure pas**. Elle a maintenant `<Sommaire>` (rail « Sur cette page », un `id` par panneau) et n'est plus dans la liste ; `desk-beac-pages.test.ts` le garde.
+
+- **Un réglage passe par le routeur avec `scroll: false`** (`ReglageAuto`, et `<Link scroll={false}>` pour les liens de réglage) ; un `<form method="get">` ou un `<a href>` rechargent la page en haut. Le formulaire porte une `key` des réglages, sinon ses listes (`defaultValue`) gardent l'ancienne valeur. **« Appliquer » ne vit que dans un `<noscript>`.**
+- **Des cases cochées de même nom partent en plusieurs `pays=`** : lire tous les paramètres, pas le premier (`un(p, "pays")` ne gardait qu'un Trésor).
+- **Tous les graphes d'une même grandeur partagent une échelle** (0 à un plafond rond, même pas) : la courbe de rendement, le rendement à une durée et les graphes des fiches se lisent l'un contre l'autre. Un graphe à demi-largeur passe `largeur` à `Trace` (le dessin fait 1 000 unités : rendu à 500 px, ses étiquettes seraient réduites de moitié).
+- **Une fiche à tableau et graphe les met côte à côte** (grille à deux colonnes, une pile sous 760 px), une fiche par rangée quand le rail rétrécit la place.

@@ -17,10 +17,7 @@ export const EN_BEAC: Record<string, string> = {
   "Ce que la BEAC publie sur les six Trésors de la zone : son encours officiel, ses courbes de rendement, le coût de ses ressources et les opérations de chaque semaine.":
     "What the BEAC publishes on the zone's six Treasuries: its official outstanding, its yield curves, the cost of its resources and each week's operations.",
   "Cette vue ne contient que des chiffres de la BEAC : elle peut partir chez un client.": "This view holds BEAC figures only: it can go to a client.",
-  "Cette vue contient nos propres relevés : elle ne sort pas de la maison.": "This view holds our own readings: it stays in house.",
   Vue: "View",
-  "À publier": "For publication",
-  "BEAC contre nous": "BEAC against us",
 
   /* ---- les réglages ---- */
   Trésors: "Treasuries",
@@ -28,7 +25,6 @@ export const EN_BEAC: Record<string, string> = {
   Courbe: "Curve",
   mois: "months",
   "maturité suivie": "maturity tracked",
-  "nos séances": "our sessions",
   Appliquer: "Apply",
   Tout: "All",
   "5 ans": "5 years",
@@ -43,9 +39,6 @@ export const EN_BEAC: Record<string, string> = {
   "publié par la BEAC": "published by the BEAC",
   "somme des rapports hebdomadaires BEAC": "sum of BEAC weekly reports",
   "dérivé des courbes BEAC": "derived from BEAC curves",
-  "notre lecture": "our reading",
-  "BEAC et notre lecture": "BEAC and our reading",
-  "BEAC et nos relevés": "BEAC and our readings",
 
   /* ---- les chiffres de tête ---- */
   "Ce que la sélection dit": "What the selection says",
@@ -60,7 +53,6 @@ export const EN_BEAC: Record<string, string> = {
   "Sur {n} séance(s) des rapports hebdomadaires.": "Over {n} session(s) from the weekly reports.",
   "coût moyen du bon": "average cost of the bill",
   "Moyenne des {n} Trésor(s) retenu(s), au dernier relevé.": "Average of the {n} Treasury(ies) selected, at the last reading.",
-  "expliqués par nos communiqués": "explained by our communiqués",
   "{n} Mds adjugés et non échus. Ne pas publier.": "{n} bn auctioned and not yet matured. Do not publish.",
 
   /* ---- la fiche d'un Trésor ---- */
@@ -75,7 +67,6 @@ export const EN_BEAC: Record<string, string> = {
   "Pente 10 ans − 1 an": "Slope, 10 years − 1 year",
   Souscription: "Subscription",
   "Taux de service": "Fill rate",
-  "Part couverte par nos pièces": "Share covered by our documents",
   "rien à {d}": "nothing at {d}",
 
   /* ---- l'encours ---- */
@@ -98,7 +89,6 @@ export const EN_BEAC: Record<string, string> = {
   "Aucune feuille lisible pour ce mois et ces Trésors : la BEAC l'a publiée en image, ou pas publiée.":
     "No readable sheet for this month and these Treasuries: the BEAC published it as an image, or not at all.",
   "Pas de mois précédent comparable pour cette sélection.": "No comparable previous month for this selection.",
-  "une séance que nous avons lue": "a session we have read",
   "le mois précédent": "the previous month",
   "{m}. Le cercle marque la maturité choisie dans les réglages.": "{m}. The circle marks the maturity chosen in the settings.",
   "L'écart en points de base contre {m}. Seules les maturités présentes les deux mois sont montrées : comparer un point à rien ne mesure rien.":
@@ -148,7 +138,6 @@ export const EN_BEAC: Record<string, string> = {
     "The average cost each Treasury paid, as the BEAC publishes it. The bill costs much the same everywhere, the bond does not.",
 
   /* ---- la couverture, au desk ---- */
-  "Ce que nos pièces expliquent": "What our documents explain",
   Trésor: "Treasury",
   "Encours BEAC": "BEAC outstanding",
   "Nos communiqués": "Our communiqués",
@@ -205,4 +194,6 @@ export const EN_BEAC: Record<string, string> = {
   "Rentabilité des fonds propres": "Return on equity",
   "Croissance du bénéfice": "Earnings growth",
   "Exercice": "Financial year",
+  "Même échelle verticale que les autres graphes de taux de la page : de 0 à {max} %.": "Same vertical scale as the other rate charts on the page: 0 to {max} %.",
+  "Explorer toutes les courbes dans Courbes BEAC": "Explore all curves in BEAC curves",
 };

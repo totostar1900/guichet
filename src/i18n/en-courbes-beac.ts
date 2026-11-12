@@ -2,14 +2,10 @@
 export const EN_COURBES_BEAC: Record<string, string> = {
   "Courbes BEAC": "BEAC curves",
   "Voir en détail": "See in detail",
-  "Nos points": "Our points",
   "Le {d} · {p}": "The {d} · {p}",
   "Comparer les pays": "Compare countries",
   "Suivre un point": "Follow a point",
   "Une courbe qui bouge": "A curve that moves",
-  "Nous contre la BEAC": "Us against the BEAC",
-  "Les courbes de rendement que la BEAC publie chaque mois, Trésor par Trésor : à comparer entre elles, à suivre point par point dans le temps, et à poser à côté des nôtres.":
-    "The yield curves the BEAC publishes every month, Treasury by Treasury: to compare with each other, to follow point by point over time, and to lay next to ours.",
   "Préréglages": "Presets",
   "Durée d'émission, en années : la BEAC range ainsi ses courbes, là où nous rangeons par vie restante.": "Issue term, in years: that is how the BEAC files its curves, where we file by remaining life.",
   "Taux en %, un point par feuille lisible ; un mois sans feuille interrompt la ligne.": "Rate in %, one point per readable sheet; a month without a sheet breaks the line.",
@@ -26,10 +22,19 @@ export const EN_COURBES_BEAC: Record<string, string> = {
   "les deux": "both",
   "Mois": "Month",
   "— comparer à —": "— compare with —",
-  "« Nous » n'est pas offert en axe temps : nous n'avons pas l'historique de nos courbes mois par mois.": "“Us” is not offered on the time axis: we do not have the history of our curves month by month.",
   "Ce que la figure ne dit pas": "What the figure does not say",
   "Sauts de plus de 3 points d'un point à l'autre : ce sont les chiffres de la BEAC, signalés et non lissés.": "Jumps of more than 3 points from one point to the next: these are the BEAC's figures, flagged and not smoothed.",
   "Sans feuille lisible : {liste}. Ce sont des trous, jamais des interpolations.": "No readable sheet: {liste}. These are gaps, never interpolations.",
-  "La BEAC ne publie aucune courbe pour la Centrafrique ni pour la Guinée équatoriale ; celle du Tchad ne couvre que 2016-2017.": "The BEAC publishes no curve for the Central African Republic or Equatorial Guinea; Chad's covers only 2016-2017.",
   "{n} points lus dans les feuilles de la BEAC, de {a} à {b}. Les feuilles scannées, sans échelle lisible, sont comptées et laissées : on ne relève pas un point à l'œil.": "{n} points read from the BEAC sheets, from {a} to {b}. Scanned sheets, with no readable scale, are counted and left out: no point is read by eye.",
+  "Les courbes de rendement que la BEAC publie chaque mois, Trésor par Trésor : à comparer entre elles et à suivre point par point dans le temps. La comparaison avec les nôtres se fait dans la Courbe des taux.":
+    "The yield curves the BEAC publishes every month, Treasury by Treasury: to compare with each other and to follow point by point over time. The comparison with ours is made in the Yield curve.",
+  "Tendance : la droite des moindres carrés de chaque point suivi, en pointillé. Elle ajuste les points lus et ne joint rien ; sous {n} points, elle n'est pas calculée.":
+    "Trend: the least-squares line of each followed point, dotted. It fits the points read and joins nothing; under {n} points, it is not computed.",
+  "non calculable, {n} points seulement": "not computable, only {n} points",
+  "{v} pb par an · R² {r} · {n} points, de {a} à {b}": "{v} bp a year · R² {r} · {n} points, from {a} to {b}",
+  "Extraction": "Export",
+  "La sélection en CSV": "The selection as CSV",
+  "Toute la base en CSV": "The whole database as CSV",
+  "la BEAC · {p}, par durée d'émission": "the BEAC · {p}, by maturity at issue",
+  "Courbe de la BEAC · {p}, du": "BEAC curve · {p}, of",
 };

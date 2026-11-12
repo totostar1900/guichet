@@ -90,6 +90,10 @@ export const COLONNE_VISITEUR: GroupeColonne[] = [
  *
  * Ces pages restent larges, mais c'est le lecteur qui escamote s'il le veut,
  * et son choix tient pour la session.
+ *
+ * « /desk/beac » (Marché des valeurs du Trésor) en est sorti le 12 novembre
+ * 2026, pour la même raison : elle porte maintenant son rail de sections, et
+ * la colonne de la maison s'y ouvrait escamotée, seule de tout le desk.
  */
 export const ROUTES_LARGES: string[] = [
   "/desk/adjudications/tableau",
@@ -97,7 +101,6 @@ export const ROUTES_LARGES: string[] = [
   "/desk/bulletins",
   "/desk/clients/quantitatif",
   "/desk/dette",
-  "/desk/beac",
   "/desk/comparer",
   "/comparer",
   "/titres",

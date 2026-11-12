@@ -100,21 +100,6 @@
   display: block;
   flex: none;
 }
-.vues {
-  display: inline-flex;
-  border: 1px solid var(--fill);
-}
-.vues a {
-  font-size: var(--t-3);
-  font-weight: 600;
-  padding: var(--s-4) var(--s-7);
-  color: var(--fill);
-  text-decoration: none;
-}
-.vues a[aria-current="true"] {
-  background: var(--fill);
-  color: var(--fill-ink);
-}
 .raccourcis {
   display: inline-flex;
   border: 1px solid var(--line-2);
@@ -150,6 +135,11 @@
 }
 
 /* ---------- les panneaux ---------- */
+.panneau,
+#fiches {
+  /* Une ancre s'arrête sous la barre de réglages collée, sinon le titre reste caché. */
+  scroll-margin-top: 16rem;
+}
 .panneau {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -218,8 +208,7 @@
 
 /* ---------- la provenance d'un chiffre ---------- */
 .provPublie,
-.provSomme,
-.provNous {
+.provSomme {
   font-size: var(--t-1);
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -237,11 +226,6 @@
   color: var(--info);
   border-color: var(--info);
   background: var(--info-soft);
-}
-.provNous {
-  color: var(--gold-ink);
-  border-color: var(--gold-line);
-  background: var(--gold-soft);
 }
 
 /* ---------- le choix d'affichage, posé sur son panneau ---------- */
@@ -311,7 +295,7 @@
 /* ---------- les fiches ---------- */
 .fiches {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-6);
   margin-bottom: var(--s-8);
 }
@@ -319,10 +303,16 @@
   background: var(--surface);
   border: 1px solid var(--line);
   border-top: 3px solid;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  /* Le tableau à gauche, son graphe à droite : une fiche se lit d'un seul regard. */
+  grid-template-columns: minmax(15rem, 22rem) minmax(0, 1fr);
+  grid-template-areas:
+    "tete tete"
+    "tab graphe";
+  align-items: start;
 }
 .fiche header {
+  grid-area: tete;
   padding: var(--s-6) var(--s-7) var(--s-3);
   display: flex;
   align-items: baseline;
@@ -347,6 +337,7 @@
   font-variant-numeric: tabular-nums;
 }
 .fiche table {
+  grid-area: tab;
   width: 100%;
   border-collapse: collapse;
   padding: 0 var(--s-7);
@@ -370,7 +361,28 @@
   border-bottom: none;
 }
 .mini {
-  padding: 0 var(--s-5) var(--s-5);
+  grid-area: graphe;
+  padding: 0 var(--s-7) var(--s-5) var(--s-3);
+  min-width: 0;
+}
+.mini h3 {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  font-weight: 600;
+}
+/* Sous 760 px, le graphe passe sous le tableau : deux colonnes ne tiennent plus. */
+@media (max-width: 760px) {
+  .fiche {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "tete"
+      "tab"
+      "graphe";
+  }
+  .mini {
+    padding: 0 var(--s-5) var(--s-5);
+  }
 }
 .hausse {
   color: var(--crit);
@@ -378,51 +390,8 @@
 .baisse {
   color: var(--good);
 }
-
-/* ---------- les tables ---------- */
-.deroule {
-  overflow-x: auto;
-}
-.table {
-  width: 100%;
-  min-width: 34rem;
-  border-collapse: collapse;
-  font-size: var(--t-3);
-}
-.table th {
-  text-align: left;
-  font-weight: 700;
-  color: var(--ink-3);
-  font-size: var(--t-1);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 0 var(--s-6) var(--s-4) 0;
-  border-bottom: 1px solid var(--line-2);
-  white-space: nowrap;
-}
-.table td {
-  padding: var(--s-4) var(--s-6) var(--s-4) 0;
-  border-bottom: 1px solid var(--line);
-  font-variant-numeric: tabular-nums;
-}
-.table td:first-child,
-.table th:first-child {
-  padding-left: 0;
-}
 .num {
   text-align: right;
-}
-.total td {
-  font-weight: 700;
-  border-bottom: none;
-  border-top: 2px solid var(--line-2);
-}
-.pave {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  margin-right: var(--s-4);
-  vertical-align: -1px;
 }
 
 /* ---------- les barres de coût ---------- */
@@ -486,15 +455,6 @@
   font-size: var(--t-3);
   background: var(--surface-2);
   border: 1px dashed var(--line-2);
-}
-.reserve {
-  background: var(--gold-soft);
-  border-left: 3px solid var(--gold-line);
-  padding: var(--s-5) var(--s-6);
-  font-size: var(--t-3);
-  color: var(--gold-ink);
-  margin: var(--s-6) 0 0;
-  line-height: 1.5;
 }
 .source {
   font-size: var(--t-2);

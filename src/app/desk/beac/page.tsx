@@ -1,11 +1,15 @@
+import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
+import { Sommaire } from "@/components/Sommaire";
+import type { SectionItem } from "@/components/SectionLine";
 import { Legende, Trace } from "@/components/desk/Trace";
 import { ReglageAuto } from "@/components/desk/ReglageAuto";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import type { T } from "@/i18n/core";
-import { couverture, PAYS_BEAC, rapprocher, vueBeac, ZONE } from "@/lib/market/beac-vue";
+import { lien as lienCourbesBeac, type Reglages } from "@/lib/market/courbes-beac-vue";
+import { PAYS_BEAC, vueBeac, ZONE } from "@/lib/market/beac-vue";
 import { anneesDe, auTemps, trimestreAuTemps, type Serie } from "@/lib/market/trace";
 import styles from "./page.module.css";
 
@@ -13,12 +17,12 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Marché des valeurs du Trésor" };
 
 /**
- * LA PAGE BEAC, ET LA DÉCISION QUI LA STRUCTURE : DEUX VUES.
+ * LA PAGE BEAC : UNE SEULE VUE, CELLE QUI PEUT PARTIR CHEZ UN CLIENT.
  *
- * « À publier » ne montre que ce que la BEAC imprime, ou une addition de ce
- * qu'elle imprime. Cette vue peut partir chez un client sans engager notre
- * lecture. « BEAC contre nous » y ajoute nos relevés et notre couverture, et
- * reste au desk.
+ * Elle ne montre que ce que la BEAC imprime, ou une addition de ce qu'elle
+ * imprime. La vue « BEAC contre nous » (nos relevés et notre couverture) a été
+ * retirée le 12 novembre 2026 : la comparaison de nos courbes avec celle de la
+ * BEAC se fait dans la Courbe des taux.
  *
  * CHAQUE PANNEAU PORTE SA PROVENANCE, parce qu'un chiffre publié et un chiffre
  * dérivé ne se ressemblent pas de loin et que, mélangés, ils deviennent tous
@@ -60,9 +64,9 @@ function Formes({ clef, actuel, choix, lien, t }: { clef: string; actuel: string
   return (
     <span className={styles.formes}>
       {choix.map(([v, l]) => (
-        <a key={v} href={lien({ [clef]: v })} aria-current={actuel === v ? "true" : undefined}>
+        <Link key={v} href={lien({ [clef]: v })} scroll={false} aria-current={actuel === v ? "true" : undefined}>
           {t(l)}
-        </a>
+        </Link>
       ))}
     </span>
   );
@@ -74,12 +78,11 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
   const r = repo();
   const p = await searchParams;
 
-  const [courbes, encoursLignes, coutsLignes, operations, seances] = await Promise.all([
+  const [courbes, encoursLignes, coutsLignes, operations] = await Promise.all([
     r.courbesBeac(),
     r.encoursOfficiel(),
     r.coutDesRessources(),
     r.operationsDuTresor(),
-    r.listAuctionResults({ limit: 5000 }),
   ]);
 
   const vue = vueBeac(
@@ -98,8 +101,9 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
   );
 
   /* ---------- les réglages, lus dans l'adresse ---------- */
-  const desk = un(p, "vue") === "desk";
-  const choisis = (un(p, "pays") ?? "Cameroun,Congo,Gabon").split(",").filter((x) => x === ZONE || (PAYS_BEAC as readonly string[]).includes(x));
+  /* LES CASES COCHÉES PARTENT EN PLUSIEURS « pays= » : tous se lisent, pas le premier seulement. */
+  const payVoulus = (Array.isArray(p.pays) ? p.pays : p.pays === undefined ? [] : [p.pays]).flatMap((x) => x.split(","));
+  const choisis = (payVoulus.length ? payVoulus : ["Cameroun", "Congo", "Gabon"]).filter((x) => x === ZONE || (PAYS_BEAC as readonly string[]).includes(x));
   const sel = choisis.length ? choisis : ["Cameroun", "Congo", "Gabon"];
   const seuls = sel.filter((x) => x !== ZONE);
   const mois = vue.moisTous;
@@ -111,7 +115,6 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
   const dansP = <T extends { m: string }>(s: T[] | undefined) => (s ?? []).filter((x) => dansFenetre(x.m));
 
   const maturite = Number(un(p, "maturite") ?? 10);
-  const instrument = un(p, "instrument") ?? "Tous";
   const avecCourbe = vue.moisCourbe.filter((m) => dansFenetre(m) && PAYS_BEAC.some((q) => vue.courbes[`${m}|${q}`]));
   const moisCourbe = avecCourbe.includes(un(p, "mois") ?? "") ? un(p, "mois")! : (avecCourbe[avecCourbe.length - 1] ?? "");
   const forme = (k: string, defaut: string) => un(p, `f${k}`) ?? defaut;
@@ -119,17 +122,6 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
   const fCourbe = forme("Courbe", "niveau");
   const fOffre = forme("Offre", "barres");
   const fMur = forme("Mur", "barres");
-
-  /* ---------- ce que nous, nous avons lu ---------- */
-  const rapprochements = rapprocher(
-    seances.map((s) => ({ pays: s.country, instrument: s.instrument, tenor: s.tenor, sessionOn: s.sessionOn, taux: s.rateAvg ?? s.yieldAvg })),
-    vue,
-  );
-  const couv = couverture(
-    encoursLignes.map((e) => ({ mois: e.mois, pays: e.pays, encours: e.encours })),
-    seances.map((s) => ({ pays: s.country, sessionOn: s.sessionOn, maturityOn: s.maturityOn, servi: s.served })),
-    operations.map((o) => ({ pays: o.pays, operation: o.operation, montantRealise: o.montantRealise, operationOn: o.operationOn })),
-  );
 
   /* ---------- les chiffres de tête ---------- */
   const encFin = (q: string) => dansP(vue.encours[q]).slice(-1)[0];
@@ -145,19 +137,14 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
   const sousMoy = nSous ? sousSel.reduce((s, x) => s + x.v * x.n, 0) / nSous : undefined;
   const coutsBta = seuls.map((q) => (vue.couts[`${q}|BTA`] ?? []).slice(-1)[0]).filter(Boolean);
   const coutMoy = coutsBta.length ? coutsBta.reduce((s, x) => s + x.v, 0) / coutsBta.length : undefined;
-  const couvSel = couv.lignes.filter((l) => sel.includes(l.pays));
-  const beacSel = couvSel.reduce((s, l) => s + l.beac, 0);
-  const nousSel = couvSel.reduce((s, l) => s + l.communiques, 0);
 
   const lien = (ajout: Record<string, string>) => {
     const q = new URLSearchParams();
-    q.set("vue", desk ? "desk" : "publier");
     q.set("pays", sel.join(","));
     q.set("de", de);
     q.set("a", a);
     q.set("mois", moisCourbe);
     q.set("maturite", String(maturite));
-    q.set("instrument", instrument);
     for (const [k, v] of Object.entries({ fEncours, fCourbe, fOffre, fMur })) q.set(k, v);
     for (const [k, v] of Object.entries(ajout)) q.set(k, v);
     return `?${q.toString()}`;
@@ -236,17 +223,6 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
         if (ici) out.push({ couleur: COULEURS[q], ronds: true, rayon: 5, pts: [{ x: ici.annees, y: ici.taux, titre: `${q} à ${ici.tenor} : ${nb(ici.taux, 2)} %` }] });
       }
     }
-    if (desk && fCourbe === "niveau") {
-      const miens = rapprochements.filter((x) => x.m === moisCourbe && seuls.includes(x.pays) && (instrument === "Tous" || x.instrument === instrument));
-      if (miens.length) {
-        out.push({
-          couleur: "#0b2545",
-          ronds: true,
-          rayon: 4,
-          pts: miens.map((x) => ({ x: x.annees, y: x.nous, titre: `${x.pays} ${x.instrument} ${x.tenor} : ${nb(x.nous, 2)} % chez nous, ${nb(x.beac, 2)} % chez eux` })),
-        });
-      }
-    }
     return out;
   })();
 
@@ -297,7 +273,25 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
           }))
           .filter((s) => s.pts.length);
 
+  /* UNE SEULE ÉCHELLE POUR TOUS LES GRAPHES DE TAUX : la courbe de rendement, le rendement à une durée et les graphes des fiches se lisent l'un contre l'autre, donc de 0 au même plafond, au même pas. Le plafond est le premier pas rond au-dessus du plus haut taux affiché par l'un d'eux. Les graphes d'une autre grandeur (encours, souscription, écart en points de base) gardent la leur. */
+  const tousTaux = [...(fCourbe === "niveau" ? serieCourbe : []), ...serieMaturite].flatMap((s) => s.pts.map((x) => x.y));
+  const echelleTaux = { y0: 0, y1: tousTaux.length ? Math.ceil(Math.max(...tousTaux) / 2) * 2 : 10, pas: 2 };
+  const fyTaux = (v: number) => `${nb(v, 0)} %`;
+
+  const reglagesCourbes: Reglages = { axe: "duree", pays: nomsCourbe.filter((q) => ["Cameroun", "Congo", "Gabon", "Tchad"].includes(q)), mois: moisCourbe ? [moisCourbe.slice(0, 7)] : [], duree: maturite };
   const nomsLegende = (qs: string[], trait = true) => qs.map((q) => ({ couleur: COULEURS[q], texte: q, trait }));
+
+  /* LE RAIL DE LA PAGE : une section par panneau, dans l'ordre où elles se lisent. Une page qui a son rail n'est pas une « route large » (nav-colonne.ts). */
+  const rail: SectionItem[] = [
+    { id: "chiffres", title: t("Ce que la sélection dit") },
+    { id: "fiches", title: t("Une fiche par Trésor") },
+    { id: "encours", title: t("Encours des valeurs du Trésor") },
+    { id: "courbe", title: t("Courbes de rendement") },
+    { id: "prix", title: t("Le prix du temps") },
+    { id: "demande", title: t("Demandé et obtenu") },
+    { id: "mur", title: t("Mur d'échéances") },
+    { id: "couts", title: t("Coût moyen des ressources") },
+  ];
 
   return (
     <>
@@ -309,23 +303,14 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
             {t(
               "Ce que la BEAC publie sur les six Trésors de la zone : son encours officiel, ses courbes de rendement, le coût de ses ressources et les opérations de chaque semaine.",
             )}{" "}
-            <b>{desk ? t("Cette vue contient nos propres relevés : elle ne sort pas de la maison.") : t("Cette vue ne contient que des chiffres de la BEAC : elle peut partir chez un client.")}</b>
+            <b>{t("Cette vue ne contient que des chiffres de la BEAC : elle peut partir chez un client.")}</b>
           </p>
         </header>
 
-        <form id="reglages" method="get" className={styles.reglages}>
+        <Sommaire label={t("Sur cette page")} sections={rail}>
+        <form key={lien({})} id="reglages" method="get" className={styles.reglages}>
           <ReglageAuto formId="reglages" />
           <div className={styles.rang}>
-            <span className={styles.etiq}>{t("Vue")}</span>
-            <span className={styles.vues}>
-              <a href={lien({ vue: "publier" })} aria-current={desk ? undefined : "true"}>
-                {t("À publier")}
-              </a>
-              <a href={lien({ vue: "desk" })} aria-current={desk ? "true" : undefined}>
-                {t("BEAC contre nous")}
-              </a>
-            </span>
-            <input type="hidden" name="vue" value={desk ? "desk" : "publier"} />
             {Object.entries({ fEncours, fCourbe, fOffre, fMur }).map(([k, v]) => (
               <input key={k} type="hidden" name={k} value={v} />
             ))}
@@ -366,9 +351,9 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
             </label>
             <span className={styles.raccourcis}>
               {([["Tout", mois.length], ["5 ans", 60], ["3 ans", 36], ["12 mois", 12]] as [string, number][]).map(([l, n]) => (
-                <a key={l} href={lien({ de: mois[Math.max(0, mois.length - n)] ?? mois[0], a: mois[mois.length - 1] })}>
+                <Link key={l} href={lien({ de: mois[Math.max(0, mois.length - n)] ?? mois[0], a: mois[mois.length - 1] })} scroll={false}>
                   {t(l)}
-                </a>
+                </Link>
               ))}
             </span>
             {/* SANS UNE SEULE SÉRIE, ON NE DIT PAS « 1 mois sur 0 ». Un compte
@@ -401,31 +386,20 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
                 ))}
               </select>
             </label>
-            {desk ? (
-              <label className={styles.champ}>
-                <span>{t("nos séances")}</span>
-                <select name="instrument" defaultValue={instrument}>
-                  {["Tous", "BTA", "OTA"].map((x) => (
-                    <option key={x} value={x}>
-                      {x}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : (
-              <input type="hidden" name="instrument" value={instrument} />
-            )}
-            <button type="submit" className={styles.appliquer}>
-              {t("Appliquer")}
-            </button>
+            {/* Le réglage part en changeant ; le bouton ne sert que si le script n'a pas tourné. */}
+            <noscript>
+              <button type="submit" className={styles.appliquer}>
+                {t("Appliquer")}
+              </button>
+            </noscript>
           </div>
         </form>
 
         {/* ---------- 1. les chiffres ---------- */}
-        <section className={styles.panneau}>
+        <section id="chiffres" className={styles.panneau}>
           <div className={styles.panneauH}>
             <h2>{t("Ce que la sélection dit")}</h2>
-            <span className={desk ? styles.provNous : styles.provPublie}>{desk ? t("BEAC et notre lecture") : t("publié par la BEAC")}</span>
+            <span className={styles.provPublie}>{t("publié par la BEAC")}</span>
           </div>
           <div className={styles.chiffres}>
             {[
@@ -439,9 +413,6 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
               { b: prevu ? nb((100 * realise) / prevu, 0) : "—", u: "%", s: t("taux de service"), e: t("{r} Mds levés pour {p} mis en adjudication.", { r: nb(realise, 1), p: nb(prevu, 1) }) },
               { b: sousMoy != null ? nb(sousMoy, 0) : "—", u: "%", s: t("souscription moyenne"), e: t("Sur {n} séance(s) des rapports hebdomadaires.", { n: nSous }) },
               { b: coutMoy != null ? nb(coutMoy, 2) : "—", u: "%", s: t("coût moyen du bon"), e: t("Moyenne des {n} Trésor(s) retenu(s), au dernier relevé.", { n: coutsBta.length }) },
-              ...(desk
-                ? [{ b: beacSel ? nb((100 * nousSel) / beacSel, 0) : "—", u: "%", s: t("expliqués par nos communiqués"), e: t("{n} Mds adjugés et non échus. Ne pas publier.", { n: nb(nousSel, 1) }) }]
-                : []),
             ].map((c) => (
               <div key={c.s} className={styles.chiffre}>
                 <b>
@@ -456,6 +427,7 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
         </section>
 
         {/* ---------- 2. une fiche par Trésor ---------- */}
+        <section id="fiches">
         <div className={styles.titreRang}>
           <h2>{t("Une fiche par Trésor")}</h2>
           <span className={styles.muted}>{t("au dernier mois connu de chacun")}</span>
@@ -468,7 +440,7 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
             const ota = (vue.couts[`${q}|OTA`] ?? []).slice(-1)[0];
             const pe = dansP(vue.pente[q]).slice(-1)[0];
             const so = dansP(vue.souscription[q]).slice(-1)[0];
-            const cv = couv.lignes.find((l) => l.pays === q);
+            const serieFiche: Serie[] = [{ couleur: COULEURS[q], pts: dansP(vue.parMaturite[`${q}|${maturite}`]).map((x) => ({ x: auTemps(x.m), y: x.v, titre: `${q} · ${moisCourt(x.m)} : ${nb(x.v, 2)} %` })) }];
             const base = sel.includes(ZONE) ? encFin(ZONE)?.v : seuls.reduce((s, x) => s + (encFin(x)?.v ?? 0), 0);
             const part = base && e ? (100 * e.v) / base : undefined;
             const varP = e && e0 && e0.v && e.m !== e0.m ? (100 * (e.v - e0.v)) / e0.v : undefined;
@@ -517,18 +489,13 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
                       <td>{t("Taux de service")}</td>
                       <td>{svc != null ? `${nb(svc, 0)} %` : "—"}</td>
                     </tr>
-                    {desk ? (
-                      <tr>
-                        <td>{t("Part couverte par nos pièces")}</td>
-                        <td>{cv && cv.beac ? `${nb((100 * cv.communiques) / cv.beac, 0)} %` : "—"}</td>
-                      </tr>
-                    ) : null}
                   </tbody>
                 </table>
                 <div className={styles.mini}>
+                  <h3>{t("Rendement à {d}", { d: duree(maturite) })}</h3>
                   <Trace
-                    series={[{ couleur: COULEURS[q], pts: dansP(vue.parMaturite[`${q}|${maturite}`]).map((x) => ({ x: auTemps(x.m), y: x.v })) }]}
-                    options={{ hauteur: 80, pas: 5, fy: (v) => nb(v, 0), marge: 0.02 }}
+                    series={serieFiche}
+                    options={{ hauteur: 230, largeur: 560, ...echelleTaux, fy: fyTaux, tx: anneesDe(serieFiche) }}
                     vide={t("rien à {d}", { d: duree(maturite) })}
                     titre={`${q} ${duree(maturite)}`}
                   />
@@ -537,9 +504,10 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
             );
           })}
         </div>
+        </section>
 
         {/* ---------- 3. l'encours ---------- */}
-        <section className={styles.panneau}>
+        <section id="encours" className={styles.panneau}>
           <div className={styles.panneauH}>
             <h2>{t("Encours des valeurs du Trésor")}</h2>
             <span className={styles.coin}>
@@ -571,11 +539,11 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
         </section>
 
         {/* ---------- 4. la courbe ---------- */}
-        <section className={styles.panneau}>
+        <section id="courbe" className={styles.panneau}>
           <div className={styles.panneauH}>
             <h2>{t("Courbes de rendement")}</h2>
             <span className={styles.coin}>
-              <span className={desk && fCourbe === "niveau" ? styles.provNous : styles.provPublie}>{desk && fCourbe === "niveau" ? t("BEAC et nos relevés") : t("publié par la BEAC")}</span>
+              <span className={styles.provPublie}>{t("publié par la BEAC")}</span>
               <Formes clef="fCourbe" actuel={fCourbe} choix={[["niveau", "Niveau"], ["variation", "Écart au mois précédent"]]} lien={lien} t={t} />
             </span>
           </div>
@@ -584,9 +552,8 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
               series={serieCourbe}
               options={{
                 hauteur: 290,
-                y0: fCourbe === "variation" ? undefined : 0,
-                pas: fCourbe === "variation" ? undefined : 2,
-                fy: fCourbe === "variation" ? (v) => sg(v, 0) : (v) => `${nb(v, 0)} %`,
+                ...(fCourbe === "variation" ? {} : echelleTaux),
+                fy: fCourbe === "variation" ? (v: number) => sg(v, 0) : fyTaux,
                 tx: (vue.courbes[`${moisCourbe}|${nomsCourbe[0]}`] ?? []).map((x) => ({ x: x.annees, l: x.tenor })),
               }}
               vide={
@@ -599,7 +566,6 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
             <Legende
               items={[
                 ...nomsLegende(nomsCourbe, fCourbe !== "variation"),
-                ...(desk && fCourbe === "niveau" && rapprochements.some((x) => x.m === moisCourbe) ? [{ couleur: "#0b2545", texte: t("une séance que nous avons lue"), trait: false }] : []),
               ]}
             />
             <p className={styles.note}>
@@ -609,11 +575,15 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
                   })
                 : t("{m}. Le cercle marque la maturité choisie dans les réglages.", { m: moisCourbe ? moisLong(moisCourbe) : "" })}
             </p>
+            <p className={styles.note}>
+              {fCourbe === "variation" ? null : <>{t("Même échelle verticale que les autres graphes de taux de la page : de 0 à {max} %.", { max: String(echelleTaux.y1) })} </>}
+              <Link href={lienCourbesBeac(reglagesCourbes)}>{t("Explorer toutes les courbes dans Courbes BEAC")} →</Link>
+            </p>
           </div>
         </section>
 
         {/* ---------- 5. le prix du temps ---------- */}
-        <section className={styles.panneau}>
+        <section id="prix" className={styles.panneau}>
           <div className={styles.panneauH}>
             <h2>{t("Le prix du temps")}</h2>
             <span className={styles.provSomme}>{t("dérivé des courbes BEAC")}</span>
@@ -624,7 +594,7 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
                 <h3>{t("Rendement à {d}", { d: duree(maturite) })}</h3>
                 <Trace
                   series={serieMaturite}
-                  options={{ hauteur: 220, y0: 0, pas: 2, fy: (v) => `${nb(v, 0)} %`, tx: anneesDe(serieMaturite) }}
+                  options={{ hauteur: 220, ...echelleTaux, fy: fyTaux, tx: anneesDe(serieMaturite) }}
                   vide={t("Aucune courbe lisible à {d}.", { d: duree(maturite) })}
                   titre={t("Rendement à {d}", { d: duree(maturite) })}
                 />
@@ -649,7 +619,7 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
         </section>
 
         {/* ---------- 6. la demande ---------- */}
-        <section className={styles.panneau}>
+        <section id="demande" className={styles.panneau}>
           <div className={styles.panneauH}>
             <h2>{t("Demandé et obtenu")}</h2>
             <span className={styles.coin}>
@@ -693,7 +663,7 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
         </section>
 
         {/* ---------- 7. le mur ---------- */}
-        <section className={styles.panneau}>
+        <section id="mur" className={styles.panneau}>
           <div className={styles.panneauH}>
             <h2>{t("Mur d'échéances")}</h2>
             <span className={styles.coin}>
@@ -713,7 +683,7 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
         </section>
 
         {/* ---------- 8. le coût ---------- */}
-        <section className={styles.panneau}>
+        <section id="couts" className={styles.panneau}>
           <div className={styles.panneauH}>
             <h2>{t("Coût moyen des ressources")}</h2>
             <span className={styles.provPublie}>{t("publié par la BEAC")}</span>
@@ -760,71 +730,13 @@ export default async function BeacPage({ searchParams }: { searchParams: Promise
           </div>
         </section>
 
-        {/* ---------- 9. contre nous, au desk seulement ---------- */}
-        {desk ? (
-          <section className={styles.panneau}>
-            <div className={styles.panneauH}>
-              <h2>{t("Ce que nos pièces expliquent")}</h2>
-              <span className={styles.provNous}>{t("notre lecture")}</span>
-            </div>
-            <div className={styles.panneauC}>
-              <div className={styles.deroule}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>{t("Trésor")}</th>
-                      <th className={styles.num}>{t("Encours BEAC")}</th>
-                      <th className={styles.num}>{t("Nos communiqués")}</th>
-                      <th className={styles.num}>{t("part")}</th>
-                      <th className={styles.num}>{t("Flux net lu")}</th>
-                      <th className={styles.num}>{t("pièces")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {couvSel.map((l) => (
-                      <tr key={l.pays}>
-                        <td>
-                          <i className={styles.pave} style={{ background: COULEURS[l.pays] }} />
-                          {l.pays}
-                        </td>
-                        <td className={styles.num}>{nb(l.beac, 1)}</td>
-                        <td className={styles.num}>{nb(l.communiques, 1)}</td>
-                        <td className={styles.num}>{l.beac ? `${nb((100 * l.communiques) / l.beac, 0)} %` : "—"}</td>
-                        <td className={styles.num}>{nb(l.flux, 1)}</td>
-                        <td className={styles.num}>
-                          {l.seances} + {l.operations}
-                        </td>
-                      </tr>
-                    ))}
-                    <tr className={styles.total}>
-                      <td>{t("Total")}</td>
-                      <td className={styles.num}>{nb(beacSel, 1)}</td>
-                      <td className={styles.num}>{nb(nousSel, 1)}</td>
-                      <td className={styles.num}>{beacSel ? `${nb((100 * nousSel) / beacSel, 0)} %` : "—"}</td>
-                      <td className={styles.num}>{nb(couvSel.reduce((s, l) => s + l.flux, 0), 1)}</td>
-                      <td className={styles.num}>
-                        {couvSel.reduce((s, l) => s + l.seances, 0)} + {couvSel.reduce((s, l) => s + l.operations, 0)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <p className={styles.reserve}>
-                <b>{t("Cette table ne sort pas de la maison.")}</b>{" "}
-                {t(
-                  "Elle mesure NOTRE couverture, pas le marché : un client y lirait un encours qui n'est pas l'encours. Trois choses en sortent par construction : les syndications et placements privés, les communiqués retirés du site, et les séances dont le montant servi n'a pas encore été relu chez nous.",
-                )}
-              </p>
-            </div>
-          </section>
-        ) : null}
-
         <p className={styles.source}>
           {t(
             "Sources : {feuilles} feuilles de courbes, les statistiques mensuelles du marché des valeurs du Trésor et les rapports hebdomadaires, BEAC. {points} points de courbe, {encours} encours officiels, {couts} coûts de ressources, {ops} opérations du Trésor. Chaque pièce est rangée dans la bibliothèque partagée.",
             { feuilles: new Set(courbes.map((c) => c.fileKey)).size, points: courbes.length, encours: encoursLignes.length, couts: coutsLignes.length, ops: operations.length },
           )}
         </p>
+        </Sommaire>
       </main>
     </>
   );

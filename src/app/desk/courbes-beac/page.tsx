@@ -1,11 +1,10 @@
+import Link from "next/link";
 import { DeskNav } from "@/components/DeskNav";
 import { Legende, Trace } from "@/components/desk/Trace";
 import { ReglageAuto } from "@/components/desk/ReglageAuto";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
-import { lireConvention } from "@/lib/market/convention";
-import { buildCurve, MIN_POINTS } from "@/lib/market/curve";
 import {
   COULEURS,
   donneesDe,
@@ -16,10 +15,10 @@ import {
   modeleDeLaFigure,
   PAYS_NON_PUBLIES,
   PAYS_PUBLIES,
+  MIN_POINTS_TENDANCE,
   PLAFOND,
   prereglages,
   type CleDePrereglage,
-  type PointNous,
 } from "@/lib/market/courbes-beac-vue";
 import { anneesDe } from "@/lib/market/trace";
 import styles from "./page.module.css";
@@ -61,16 +60,7 @@ export default async function CourbesBeacPage({ searchParams }: { searchParams: 
   const reglages = lireReglages(sp, donnees);
   const pre = prereglages(donnees);
 
-  /* NOS POINTS, seulement quand on les demande et en axe durée : ils viennent de nos adjudications relues, pas de l'historique de nos courbes. */
-  let nous: PointNous[] = [];
-  if (reglages.axe === "duree" && reglages.source !== "beac") {
-    const [seances, convention] = await Promise.all([r.listAuctionResults({ limit: 5000 }).catch(() => []), lireConvention()]);
-    const aujourdHui = new Date().toISOString().slice(0, 10);
-    const courbe = buildCurve(seances, { windowDays: 365, on: aujourdHui, convention });
-    nous = courbe.countries.filter((c) => c.points.length >= MIN_POINTS).flatMap((c) => c.points.map((p) => ({ pays: c.country, annees: p.years, pct: p.yield.pct })));
-  }
-
-  const modele = modeleDeLaFigure(points, reglages, nous);
+  const modele = modeleDeLaFigure(points, reglages);
   const enDuree = reglages.axe === "duree";
   const ys = modele.series.flatMap((s) => s.pts.map((p) => p.y));
   const y0 = ys.length ? Math.max(0, Math.floor(Math.min(...ys) - 1)) : 0;
@@ -79,13 +69,12 @@ export default async function CourbesBeacPage({ searchParams }: { searchParams: 
     : anneesDe(modele.series);
 
   const titre = enDuree
-    ? `${reglages.source === "nous" ? t("Nos points") : t("Courbes BEAC")} · ${reglages.pays.map((p) => t(p)).join(", ")} · ${reglages.mois.map(moisLong).join(", ")}`
+    ? `${t("Courbes BEAC")} · ${reglages.pays.map((p) => t(p)).join(", ")} · ${reglages.mois.map(moisLong).join(", ")}`
     : t("Le {d} · {p}", { d: duree(reglages.duree), p: reglages.pays.map((p) => t(p)).join(", ") });
   const PRE: { cle: CleDePrereglage; mot: string }[] = [
     { cle: "comparer", mot: t("Comparer les pays") },
     { cle: "point", mot: t("Suivre un point") },
     { cle: "bouge", mot: t("Une courbe qui bouge") },
-    { cle: "nous", mot: t("Nous contre la BEAC") },
   ];
 
   return (
@@ -95,16 +84,16 @@ export default async function CourbesBeacPage({ searchParams }: { searchParams: 
         <header className={styles.tete}>
           <h1>{t("Courbes BEAC")}</h1>
           <p className={styles.sous}>
-            {t("Les courbes de rendement que la BEAC publie chaque mois, Trésor par Trésor : à comparer entre elles, à suivre point par point dans le temps, et à poser à côté des nôtres.")}
+            {t("Les courbes de rendement que la BEAC publie chaque mois, Trésor par Trésor : à comparer entre elles et à suivre point par point dans le temps. La comparaison avec les nôtres se fait dans la Courbe des taux.")}
           </p>
         </header>
 
         <nav className={styles.prereglages} aria-label={t("Préréglages")}>
           <span>{t("Préréglages")}</span>
           {PRE.map((p) => (
-            <a key={p.cle} href={lien(pre[p.cle])} aria-current={memeReglages(reglages, pre[p.cle]) ? "true" : undefined}>
+            <Link key={p.cle} href={lien(pre[p.cle])} scroll={false} aria-current={memeReglages(reglages, pre[p.cle]) ? "true" : undefined}>
               {p.mot}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -130,7 +119,7 @@ export default async function CourbesBeacPage({ searchParams }: { searchParams: 
           )}
         </section>
 
-        <form id="reglages" method="get" className={styles.reglages}>
+        <form key={lien(reglages)} id="reglages" method="get" className={styles.reglages}>
           <ReglageAuto formId="reglages" />
           <div className={styles.rang}>
             <span className={styles.etiq}>{t("Axe")}</span>
@@ -160,14 +149,6 @@ export default async function CourbesBeacPage({ searchParams }: { searchParams: 
           {enDuree ? (
             <>
               <div className={styles.rang}>
-                <span className={styles.etiq}>{t("Source")}</span>
-                <select name="src" defaultValue={reglages.source} aria-label={t("Source")}>
-                  <option value="beac">{t("la BEAC")}</option>
-                  <option value="nous">{t("nous")}</option>
-                  <option value="deux">{t("les deux")}</option>
-                </select>
-              </div>
-              <div className={styles.rang}>
                 <span className={styles.etiq}>{t("Mois")}</span>
                 {Array.from({ length: MAX_MOIS }, (_, i) => (
                   <select key={i} name="mois" defaultValue={reglages.mois[i] ?? ""} aria-label={i === 0 ? t("Mois") : t("Comparer à")}>
@@ -191,15 +172,23 @@ export default async function CourbesBeacPage({ searchParams }: { searchParams: 
                   </option>
                 ))}
               </select>
-              <span className={styles.provenance}>{t("« Nous » n'est pas offert en axe temps : nous n'avons pas l'historique de nos courbes mois par mois.")}</span>
             </div>
           )}
-          <div className={styles.rang}>
-            <button type="submit" className={styles.appliquer}>
-              {t("Appliquer")}
-            </button>
-          </div>
+          {/* Le réglage part en changeant ; le bouton ne sert que si le script n'a pas tourné. */}
+          <noscript>
+            <div className={styles.rang}>
+              <button type="submit" className={styles.appliquer}>
+                {t("Appliquer")}
+              </button>
+            </div>
+          </noscript>
         </form>
+
+        <nav className={styles.exporter} aria-label={t("Extraction")}>
+          <span>{t("Extraction")}</span>
+          <a href={lien(reglages, "/desk/courbes-beac/export")}>{t("La sélection en CSV")}</a>
+          <a href="/desk/courbes-beac/export?tout=1">{t("Toute la base en CSV")}</a>
+        </nav>
 
         <section className={styles.notes} aria-label={t("Ce que la figure ne dit pas")}>
           {modele.sauts.length > 0 && (
@@ -214,6 +203,27 @@ export default async function CourbesBeacPage({ searchParams }: { searchParams: 
               </ul>
             </div>
           )}
+          {!enDuree && modele.tendances.length > 0 && (
+            <div>
+              <p>{t("Tendance : la droite des moindres carrés de chaque point suivi, en pointillé. Elle ajuste les points lus et ne joint rien ; sous {n} points, elle n'est pas calculée.", { n: String(MIN_POINTS_TENDANCE) })}</p>
+              <ul>
+                {modele.tendances.map((d) => (
+                  <li key={d.pays}>
+                    {t(d.pays)} :{" "}
+                    {d.pbParAn == null
+                      ? t("non calculable, {n} points seulement", { n: String(d.n) })
+                      : t("{v} pb par an · R² {r} · {n} points, de {a} à {b}", {
+                          v: `${d.pbParAn > 0 ? "+" : ""}${d.pbParAn.toLocaleString("fr-FR", { maximumFractionDigits: 0 })}`,
+                          r: (d.r2 ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                          n: String(d.n),
+                          a: moisLong(d.depuis),
+                          b: moisLong(d.jusqua),
+                        })}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {modele.manques.length > 0 && (
             <p>
               {t("Sans feuille lisible : {liste}. Ce sont des trous, jamais des interpolations.", {
@@ -221,7 +231,6 @@ export default async function CourbesBeacPage({ searchParams }: { searchParams: 
               })}
             </p>
           )}
-          <p>{t("La BEAC ne publie aucune courbe pour la Centrafrique ni pour la Guinée équatoriale ; celle du Tchad ne couvre que 2016-2017.")}</p>
           <p className={styles.provenance}>
             {t("{n} points lus dans les feuilles de la BEAC, de {a} à {b}. Les feuilles scannées, sans échelle lisible, sont comptées et laissées : on ne relève pas un point à l'œil.", {
               n: String(points.length),

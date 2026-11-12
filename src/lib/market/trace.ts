@@ -40,10 +40,14 @@ export interface Serie {
   rayon?: number;
   /** Des disques seuls, sans la ligne qui les joint : nos propres observations ne se relient pas d'office. */
   sansLigne?: boolean;
+  /** Un trait en pointillé : une droite d'ajustement, qu'on ne confond pas avec une mesure. */
+  pointille?: boolean;
 }
 
 export interface OptionsRepere {
   hauteur?: number;
+  /** La largeur du repère, en unités du dessin (1000 par défaut). Un graphe rendu à demi-largeur en prend moins, sinon ses étiquettes sont réduites de moitié. */
+  largeur?: number;
   /** Forcer les bornes verticales. Sans quoi : du zéro (ou du minimum) au maximum. */
   y0?: number;
   y1?: number;
@@ -114,6 +118,7 @@ export function repere(series: Serie[], o: OptionsRepere = {}): Repere | undefin
   const pts = series.flatMap((s) => s.pts);
   if (!pts.length) return undefined;
   const H = o.hauteur ?? 250;
+  const W = o.largeur ?? LARGEUR;
   const xs = pts.map((p) => p.x);
   const ys = pts.map((p) => p.y);
   let x0 = Math.min(...xs);
@@ -136,7 +141,7 @@ export function repere(series: Serie[], o: OptionsRepere = {}): Repere | undefin
     gauche: Math.max(26, Math.max(...grad.map((v) => large(fy(v), 6.2))) + 10),
     droite: 14,
   };
-  const px = (x: number) => marges.gauche + ((x - x0) / (x1 - x0)) * (LARGEUR - marges.gauche - marges.droite);
+  const px = (x: number) => marges.gauche + ((x - x0) / (x1 - x0)) * (W - marges.gauche - marges.droite);
   const py = (y: number) => H - marges.bas - ((y - y0) / (y1 - y0)) * (H - marges.haut - marges.bas);
 
   /**
@@ -157,19 +162,19 @@ export function repere(series: Serie[], o: OptionsRepere = {}): Repere | undefin
   const etiquettes: EtiquetteX[] = tx.map((t) => {
     const x = px(t.x);
     const demi = large(t.l) / 2;
-    const ancre = x - demi < marges.gauche ? "start" : x + demi > LARGEUR - marges.droite ? "end" : "middle";
-    return { x: ancre === "start" ? marges.gauche : ancre === "end" ? LARGEUR - marges.droite : x, l: t.l, ancre };
+    const ancre = x - demi < marges.gauche ? "start" : x + demi > W - marges.droite ? "end" : "middle";
+    return { x: ancre === "start" ? marges.gauche : ancre === "end" ? W - marges.droite : x, l: t.l, ancre };
   });
 
   return {
-    largeur: LARGEUR,
+    largeur: W,
     hauteur: H,
     marges,
     px,
     py,
     graduations: grad.map((v) => ({ v, y: py(v), texte: fy(v), zero: v === 0 && y0 < -1e-9 })),
     etiquettes,
-    largeurBarre: (n, part = 0.6) => Math.max(1.5, ((LARGEUR - marges.gauche - marges.droite) / Math.max(1, n)) * part),
+    largeurBarre: (n, part = 0.6) => Math.max(1.5, ((W - marges.gauche - marges.droite) / Math.max(1, n)) * part),
     base: py(Math.max(y0, 0)),
   };
 }
