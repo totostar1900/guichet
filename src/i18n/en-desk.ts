@@ -3754,4 +3754,10 @@ export const EN_MORE: Record<string, string> = {
   "Clair": "Light",
   "Sombre": "Dark",
   "Sable": "Sand",
+  "Aucune obligation retirée de la liste": "No bond removed from the list",
+  "{n} obligations retirées de la liste du Guichet": "{n} bonds removed from the Guichet list",
+  "remboursées, ou à échéance incertaine : leur fiche reste ouverte": "repaid, or with an uncertain maturity: their page stays open",
+  "Toutes les obligations de la liste ont une échéance connue et à venir.": "Every bond in the list has a known, upcoming maturity.",
+  "échéance incertaine : seule l'année est connue ({d} posé par défaut)": "uncertain maturity: only the year is known ({d} assumed by default)",
+  "dernier cours le {d}": "last price on {d}",
 };

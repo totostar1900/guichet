@@ -12,6 +12,8 @@ import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
 import { couvre, jugementVivant } from "@/lib/domain/jugement-bulletin";
 import { Juger } from "./Juger";
+import { motifDeRetrait } from "@/lib/domain/listes";
+import { fmtDate } from "@/lib/format";
 
 /**
  * Depuis quand la bourse publie ce que ces familles réclament.
@@ -164,6 +166,14 @@ export async function Rapport({ seance }: { seance: string }) {
      une séance lue avant cette date n'a que celles-là. */
   const notes = b.notes?.length ? b.notes : (frais?.notes ?? []);
   const jugements = await r.listJugementsBulletin().catch(() => []);
+  /* LES OBLIGATIONS QUE LA LISTE NE MONTRE PLUS, au jour de cette séance (12 novembre 2026) : remboursées, ou dont l'échéance est incertaine et proche. Elles sont nommées ici avec leur motif, pour que le retrait ne soit pas silencieux ; leur fiche reste ouverte. */
+  const retirees = (await r.listOffers().catch(() => []))
+    .filter((o) => !o.hidden)
+    .flatMap((o) => {
+      const motif = motifDeRetrait(o, seance);
+      return motif ? [{ o, motif }] : [];
+    })
+    .sort((x, y) => (x.o.maturityOn ?? "").localeCompare(y.o.maturityOn ?? ""));
   /* CE QUE LE LECTEUR D'AUJOURD'HUI DIT ENCORE, et ce qu'il ne dit plus.
      Les remarques affichées venaient de la base, donc de la PREMIÈRE lecture
      de la séance. Sur le bulletin du 22 décembre 2023, cinq des six
@@ -283,6 +293,28 @@ export async function Rapport({ seance }: { seance: string }) {
               ? t("Le lecteur d'aujourd'hui lit plus de lignes que la base n'en garde : relire cette séance lui ferait gagner quelque chose.")
               : t("Le lecteur d'aujourd'hui ne lit pas une ligne de plus que la base. La relire ne changerait rien : seule une correction du lecteur le pourrait.")}
           </p>
+        )}
+      </section>
+
+      <section className="panel">
+        <div className="panel-h">
+          <h2>{retirees.length === 0 ? t("Aucune obligation retirée de la liste") : t("{n} obligations retirées de la liste du Guichet", { n: retirees.length })}</h2>
+          <span className="muted">{t("remboursées, ou à échéance incertaine : leur fiche reste ouverte")}</span>
+        </div>
+        {retirees.length === 0 ? (
+          <p className={styles.p}>{t("Toutes les obligations de la liste ont une échéance connue et à venir.")}</p>
+        ) : (
+          <ul className={styles.retirees}>
+            {retirees.map(({ o, motif }) => (
+              <li key={o.id}>
+                <Link href={`/offres/${o.id}`}>{t(o.title)}</Link>
+                <span>
+                  {motif === "remboursee" ? t("remboursée le {d}", { d: fmtDate(o.maturityOn ?? "") }) : t("échéance incertaine : seule l'année est connue ({d} posé par défaut)", { d: fmtDate(o.maturityOn ?? "") })}
+                  {o.lastPriceOn ? ` · ${t("dernier cours le {d}", { d: fmtDate(o.lastPriceOn) })}` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 

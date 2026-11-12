@@ -1,6 +1,8 @@
 import type { Offer } from "./types";
 import { lieuDe, sectionDe } from "./sections";
-import { displayStatus, isActionable, offerFamily } from "./status";
+import { displayStatus, isActionable, maturityIsGuess, offerFamily } from "./status";
+import { yearsBetween } from "@/lib/finance";
+import { localIso } from "@/lib/format";
 
 /**
  * CE QUE CHAQUE LISTE CONTIENT, DÉCIDÉ UNE FOIS.
@@ -25,9 +27,30 @@ import { displayStatus, isActionable, offerFamily } from "./status";
  * attendait une cotation. Mesuré le 4 octobre 2026 : neuf séances closes depuis
  * deux à trois semaines dormaient dans cette liste.
  */
-export function lignesDeLaCote(all: Offer[]): Offer[] {
+export function lignesDeLaCote(all: Offer[], now = new Date()): Offer[] {
   const cotees = new Set(all.filter((o) => o.kind === "MARCHE" && !o.hidden && o.isin).map((o) => o.isin));
-  return all.filter((o) => !o.hidden && lieuDe(o) === "cote" && !((o.status === "live" || o.status === "matured") && o.kind !== "MARCHE" && cotees.has(o.isin)));
+  const jour = localIso(now);
+  return all.filter((o) => !o.hidden && lieuDe(o) === "cote" && !((o.status === "live" || o.status === "matured") && o.kind !== "MARCHE" && cotees.has(o.isin)) && !motifDeRetrait(o, jour));
+}
+
+/**
+ * LES OBLIGATIONS QUI SORTENT DE LA LISTE, ET POURQUOI (12 novembre 2026, à la demande du client).
+ *
+ * Une obligation déjà remboursée n'a plus rien à rapporter : le bulletin l'imprime encore quelque temps, la liste n'a pas à la montrer.
+ * Une obligation dont on ne connaît que l'ANNÉE d'échéance (le bulletin imprime « 2026 », la maison pose le 31 décembre) et qui arrive à terme dans
+ * l'année n'a pas de rendement publiable : le chiffre bougerait de dizaines de points selon le jour réel. C'est la même condition que celle qui retient
+ * son rendement (`headlineYield`) ; la liste ne montre plus ce que la fiche ne sait pas chiffrer.
+ *
+ * LA LIGNE N'EST PAS EFFACÉE : sa fiche reste ouverte à son adresse, avec ses documents et son historique ; elle cesse seulement de paraître dans les listes
+ * (Titres, Accueil). Le rapport BOC de la séance les nomme, avec leur motif : retirer sans le dire serait taire.
+ */
+export type MotifDeRetrait = "remboursee" | "echeance_incertaine";
+
+export function motifDeRetrait(o: Offer, jour: string): MotifDeRetrait | undefined {
+  if (o.kind !== "MARCHE" || o.instrument !== "obligation" || !o.maturityOn) return undefined;
+  if (o.maturityOn < jour) return "remboursee";
+  if (maturityIsGuess(o) && yearsBetween(jour, o.maturityOn) < 1) return "echeance_incertaine";
+  return undefined;
 }
 
 /** Les séances annoncées par les six Trésors, à leur page. */

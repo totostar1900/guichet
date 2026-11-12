@@ -15,6 +15,7 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import type { Confidence, OfferDraft } from "@/lib/domain/types";
 import { fmtPct } from "@/lib/format";
+import { lireDecision } from "@/lib/domain/decision-du-desk";
 import { buildOffer } from "@/lib/intake/publish";
 import { ingestSource } from "@/lib/intake/ingest";
 import { notifyOfferPublished } from "@/lib/notify/dispatch";
@@ -112,17 +113,6 @@ export async function saveDraftAction(_prev: IntakeResult | null, form: FormData
 
 /* ---------- Publier ---------- */
 
-const decisionSchema = z.object({
-  itemId: z.string().min(1),
-  pricePct: z.coerce.number().min(50).max(120).optional(),
-  precountRate: z.coerce.number().min(0).max(30).optional(),
-  commissionPct: z.coerce.number().min(0).max(5).default(0),
-  minTitles: z.coerce.number().int().min(1).optional(),
-  /** Un fonds : la première souscription se dit en francs. */
-  minAmount: z.coerce.number().int().min(0).optional(),
-  segment: z.string().default("Tous les clients"),
-});
-
 export async function publishAction(_prev: IntakeResult | null, form: FormData): Promise<IntakeResult> {
   await loadRegistry();
   const desk = await requireDesk("/desk/a-valider");
@@ -130,8 +120,8 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
   form.forEach((v, k) => {
     if (typeof v === "string" && v.trim() !== "") raw[k] = v.trim();
   });
-  const parsed = decisionSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, error: "Décision incomplète : prix (ou taux) et ticket minimum." };
+  const parsed = lireDecision(raw);
+  if (!parsed.ok) return { ok: false, error: parsed.error };
   const { itemId, ...decision } = parsed.data;
   const channels = form.getAll("channel").map(String);
 

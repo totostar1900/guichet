@@ -309,3 +309,25 @@
 .rangees > .remarques {
   margin-top: 12px;
 }
+
+/* Les obligations retirées de la liste : le nom, et son motif dessous. */
+.retirees {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--s-7) var(--s-6);
+  display: grid;
+  gap: var(--s-4);
+}
+.retirees li {
+  display: grid;
+  gap: var(--s-1);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+}
+.retirees li:first-child {
+  border-top: 0;
+}
+.retirees span {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
