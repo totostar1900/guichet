@@ -166,3 +166,8 @@
   color: var(--warn);
   font-weight: 700;
 }
+
+/* LA LISTE DU CHOIX DE LIGNE DÉPASSE DU PANNEAU (12 novembre 2026) : « .panel » coupe ce qui sort de sa boîte, et la liste, posée sous le champ tout en bas du panneau, n'en montrait que onze pixels sur trois cents. Le panneau laisse déborder ; ses coins arrondis ne portent que sa bordure. */
+div.panneau {
+  overflow: visible;
+}

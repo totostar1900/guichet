@@ -13,6 +13,8 @@ import styles from "./FeaturePanel.module.css";
 export interface FeatureRow {
   id: string;
   title: string;
+  /** L'ISIN de la ligne : on la cherche aussi par lui, le champ le promet. */
+  isin?: string;
   hero: string;
   deadline?: string; // YYYY-MM-DD default for « jusqu'au »
   featured?: { reason: string; until: string; by: string };
@@ -34,7 +36,7 @@ function LinePicker({ candidates, value, onChange }: { candidates: FeatureRow[];
      lien vers la liste manquaient, et eux seuls font tenir l'ensemble. */
   const listeId = useId();
   const q = fold(text.trim());
-  const hits = (q && text !== chosen?.title ? candidates.filter((c) => fold(c.title).includes(q) || fold(c.id).includes(q)) : candidates).slice(0, 8);
+  const hits = (q && text !== chosen?.title ? candidates.filter((c) => fold(c.title).includes(q) || fold(c.id).includes(q) || fold(c.isin ?? "").includes(q)) : candidates).slice(0, 8);
   return (
     <div className={styles.picker}>
       <input
@@ -74,6 +76,7 @@ function LinePicker({ candidates, value, onChange }: { candidates: FeatureRow[];
                 <small>
                   {c.hero}
                   {c.deadline ? ` · ${t("clôture")} ${c.deadline}` : ` · ${t("cotée")}`}
+                  {c.isin ? ` · ${c.isin}` : ""}
                 </small>
               </button>
             </li>
@@ -94,7 +97,7 @@ export function FeaturePanel({ active, candidates, comptes }: { active: FeatureR
   const chosen = candidates.find((c) => c.id === pick);
   const today = new Date().toISOString().slice(0, 10);
   return (
-    <div className="panel">
+    <div className={`panel ${styles.panneau}`}>
       <div className="panel-h">
         <h2>{t("À la une")}</h2>
         <span className="muted">{t(`Sélection du desk · ${active.length}/3 · une raison factuelle, une date de fin, jamais un conseil`)} · {t("seules les lignes ouvertes ou cotées")}</span>

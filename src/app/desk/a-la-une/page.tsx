@@ -29,7 +29,7 @@ export default async function ALaUnePage() {
 
   // À la une : ce qui l'est maintenant, et les lignes qui pourraient l'être (ouvertes ou cotées, non masquées).
   const today = now.toISOString().slice(0, 10);
-  const featRow = (o: Offer) => ({ id: o.id, title: o.title, hero: summarize(o, now, { fine: true }).hero, deadline: o.kind === "MARCHE" || o.kind === "FONDS" ? undefined : o.deadlineAt.slice(0, 10), featured: o.featured });
+  const featRow = (o: Offer) => ({ id: o.id, title: o.title, isin: o.isin, hero: summarize(o, now, { fine: true }).hero, deadline: o.kind === "MARCHE" || o.kind === "FONDS" ? undefined : o.deadlineAt.slice(0, 10), featured: o.featured });
   const featActive = offers.filter((o) => o.featured && o.featured.until >= today).map((o) => ({ ...featRow(o), closed: !isActionable(displayStatus(o, now)) }));
   const featCandidates = offers.filter((o) => !o.hidden && !(o.featured && o.featured.until >= today) && isActionable(displayStatus(o, now))).map(featRow);
 
