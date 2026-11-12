@@ -117,19 +117,10 @@ describe("le montant d'un client se compte une seule fois", () => {
      ferme, mais l'écran du desk imprimait « montant » — le chiffre qui compte
      les alternatives. La règle aurait été juste dans le calcul et fausse dans
      la bouche de celui qui parle au Trésor. */
-  it("porte la part ferme dans la phrase du desk, et le possible à part", () => {
+  /* LA PHRASE « À PORTER AU TRÉSOR » A QUITTÉ LE DESK (12 novembre 2026, à la demande du client) : il ne reste que la table, qui distingue toujours le ferme du possible. */
+  it("distingue la part ferme et le possible dans la table de ce qui s'accumule", () => {
     const src = lire("src/app/desk/sondage/page.tsx");
-    const deb = src.indexOf("styles.consensus");
-    expect(deb, "la phrase portée au Trésor est introuvable").toBeGreaterThan(0);
-    const phrase = src.slice(deb, deb + 400);
-    expect(phrase, "la phrase portée au Trésor dit de nouveau le montant possible").toMatch(/m: fmt\(c\.ferme\)/);
-    expect(phrase, "elle compte de nouveau les clients d'alternatives").toMatch(/n: String\(c\.clientsFermes\)/);
-    /* LA CLAUSE VISE LE PARAGRAPHE, ET NON LA COMPARAISON. Écrite sur
-       « c.montant > c.ferme » seule, elle ne tombait pas quand on retirait le
-       paragraphe : la même comparaison vit dans la cellule du tableau, et
-       suffisait à la satisfaire. Vérification inverse faite. */
-    expect(src, "ce qui pourrait venir en plus n'est plus dit au desk").toMatch(/styles\.possible/);
-    expect(src, "le possible n'est plus conditionné à l'écart entre les deux").toMatch(/c\.montant > c\.ferme && \(/);
+    expect(src, "la phrase portée au Trésor est revenue").not.toMatch(/styles\.consensus|À porter au Trésor/);
     /* ET « CE QUI S'ACCUMULE » DISTINGUE LES DEUX AUSSI. C'est la table où le
        desk lit ce qui vient : une seule colonne l'obligerait à choisir entre
        flatter et taire. */

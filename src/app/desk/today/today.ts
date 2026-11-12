@@ -206,8 +206,8 @@ export async function todayTiles(t: (s: string, v?: Record<string, string>) => s
     const attentes = lignes.filter((l) => l.state !== "close" && l.origine === "client").length;
     tiles.push({
       key: "sondage",
-      label: t("Sondage à porter"),
-      value: String(murs.length),
+      label: t("Sondage"),
+      value: String(attentes),
       detail: murs.length
         ? murs.slice(0, 2).map((c) => `${c.instrument} ${c.country} ${c.tenor} · ${fmtUnits(c.montant, true)}`).join(" · ")
         : attentes > 0
@@ -215,7 +215,6 @@ export async function todayTiles(t: (s: string, v?: Record<string, string>) => s
           : t("aucune attente en cours"),
       tone: "ok",
       href: "/desk/sondage",
-      action: murs.length ? t("porter au Trésor") : undefined,
     });
   } catch {
     /* quiet */

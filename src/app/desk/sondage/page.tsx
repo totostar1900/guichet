@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { DeskNav } from "@/components/DeskNav";
 import { getT } from "@/i18n/server";
 import { requireDesk } from "@/lib/auth";
@@ -37,8 +38,6 @@ export default async function SondageDeskPage() {
   const r = repo();
     const lignes = await r.listLignesSondees();
   const groupes = consensus(lignes);
-  const murs = groupes.filter(mur);
-  const jeunes = groupes.filter((c) => !mur(c));
   const questions = lignes.filter((l) => l.origine === "desk" && l.state !== "close");
   const parId = new Map(lignes.map((l) => [l.id, l]));
   /* CE QU'UN CLIENT A MODIFIÉ SE VOIT (9 novembre 2026) : la dernière modification de chaque intention, lue dans l'audit, avec ce qui a changé champ par champ. Le fil ne dit que l'instant ; l'audit dit l'avant et l'après. */
@@ -74,7 +73,7 @@ export default async function SondageDeskPage() {
 
   return (
     <main className={styles.page}>
-      <DeskNav current="/desk/sondage" badges={{ "/desk/sondage": murs.length }} />
+      <DeskNav current="/desk/sondage" />
       <header className={styles.tete}>
         <span className="eyebrow">{t("Marché primaire")}</span>
         <h1 className="display">{t("Sondage d'avant séance")}</h1>
@@ -102,65 +101,12 @@ export default async function SondageDeskPage() {
         </p>
       </header>
 
-      {/* CE QUI EST MÛR. En tête parce que c'est la seule chose de cette page
-          qui demande un geste aujourd'hui : un coup de fil au Trésor concerné. */}
-      <section className={styles.bloc}>
-        <h2 className={styles.titre}>{t("À porter au Trésor")}</h2>
-        {murs.length === 0 ? (
-          <div className="empty">{t("Aucune demande n'atteint encore le seuil. Ce n'est pas une panne : une ligne se porte quand elle pèse, et la page du dessous montre ce qui s'accumule.")}</div>
-        ) : (
-          murs.map((c) => (
-            <article key={c.cle} className={styles.mur}>
-              <div className={styles.entete}>
-                <b>
-                  {c.instrument} · {t(c.country)} · {c.tenor}
-                </b>
-                {c.surLigne && <span className="mono">{parId.get(c.surLigne)?.ref}</span>}
-              </div>
-              {/* LA PHRASE QU'ON PORTE, et c'est elle le livrable : une liste de
-                  vingt lignes ne se porte pas à un Trésor, une phrase se porte.
-                  ELLE DIT LA PART FERME, ET NON LE MONTANT POSSIBLE. Elle
-                  disait « montant », qui compte les alternatives : un client
-                  qui propose six lignes pour cinquante millions en apportait
-                  cinquante à CHACUN des six groupes. Porter ce chiffre à un
-                  Trésor, c'est promettre un argent déjà promis ailleurs — et
-                  c'est le crédit que la maison a mis des mois à prendre. Voir
-                  « DOCTRINE_UNE_SEULE_FOIS ». */}
-              <p className={styles.consensus}>
-                {t("{m} FCFA de {n} clients, autour de {r}, tous prêts à partir du {d}", {
-                  m: fmt(c.ferme),
-                  n: String(c.clientsFermes),
-                  r: niveau(c),
-                  d: c.auPlusTot ? fmtDate(c.auPlusTot, false) : "—",
-                })}
-              </p>
-              {/* CE QUE LA LIGNE POURRAIT PORTER EN PLUS, dit à part et jamais
-                  dans la phrase : ce sont des alternatives d'autres groupes, et
-                  elles ne viendront que si le Trésor sert celle-ci plutôt
-                  qu'une autre. Le desk doit le savoir ; le Trésor ne doit pas
-                  l'entendre comme un engagement. */}
-              {c.montant > c.ferme && (
-                <p className={styles.possible}>
-                  {t("Et jusqu'à {m} FCFA de {n} clients si les alternatives se portent sur cette ligne : elles sont proposées ailleurs aussi, et ne se comptent pas deux fois.", {
-                    m: fmt(c.montant),
-                    n: String(c.clients),
-                  })}
-                </p>
-              )}
-              <Echelle c={c} t={t} />
-              <Detail lignes={demandesDe(c.cle)} modifs={modifs} t={t} />
-              {c.surLigne && <Statuer id={c.surLigne} ref_={parId.get(c.surLigne)?.ref ?? ""} />}
-            </article>
-          ))
-        )}
-      </section>
-
       {/* CE QUI S'ACCUMULE. Sous le seuil, et ce n'est pas un rebut : c'est la
           matière des séances du trimestre prochain. Un desk qui ne voit que ce
           qui est mûr ne sait jamais ce qui vient. */}
       <section className={styles.bloc}>
         <h2 className={styles.titre}>{t("Ce qui s'accumule")}</h2>
-        {jeunes.length === 0 ? (
+        {groupes.length === 0 ? (
           <div className="empty">{t("Rien d'autre en attente.")}</div>
         ) : (
           <table className={styles.table}>
@@ -176,11 +122,13 @@ export default async function SondageDeskPage() {
                 <th>{t("Possible")}</th>
                 <th>{t("Taux")}</th>
                 <th>{t("Au plus tôt")}</th>
+                <th>{t("Seuil")}</th>
               </tr>
             </thead>
             <tbody>
-              {jeunes.map((c) => (
-                <tr key={c.cle}>
+              {groupes.map((c) => (
+                <Fragment key={c.cle}>
+                <tr>
                   <td>
                     {c.instrument} · {t(c.country)} · {c.tenor}
                   </td>
@@ -189,7 +137,16 @@ export default async function SondageDeskPage() {
                   <td className={styles.n}>{c.montant > c.ferme ? fmt(c.montant) : "—"}</td>
                   <td className={styles.n}>{niveau(c)}</td>
                   <td>{c.auPlusTot ? fmtDate(c.auPlusTot, false) : "—"}</td>
+                  <td>{mur(c) ? t("atteint") : t("sous le seuil")}</td>
                 </tr>
+                {/* LE DÉTAIL DE CHAQUE SONDAGE, sous sa ligne : les demandes une par une, et l'échelle de la demande. */}
+                <tr>
+                  <td colSpan={7}>
+                    <Echelle c={c} t={t} />
+                    <Detail lignes={demandesDe(c.cle)} modifs={modifs} t={t} />
+                  </td>
+                </tr>
+                </Fragment>
               ))}
             </tbody>
           </table>
@@ -229,7 +186,7 @@ export default async function SondageDeskPage() {
                       </>
                     )}
                   </p>
-                  <Statuer id={q.id} ref_={q.ref} />
+                  <Statuer id={q.id} ref_={q.ref} reponses={reponses.length} />
                 </li>
               );
             })}

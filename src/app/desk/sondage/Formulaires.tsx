@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useId, useState } from "react";
+import { ConfirmPublish } from "@/components/desk/ConfirmPublish";
 import { useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
 import { groupedInput } from "@/lib/ui/grouped";
@@ -32,9 +33,28 @@ export function PoserUneQuestion() {
   const [instrument, setInstrument] = useState<string>("OTA");
   const [country, setCountry] = useState("Cameroun");
   const [montant, setMontant] = useState("");
+  const [tenor, setTenor] = useState("");
+  const [rate, setRate] = useState("");
+  const [pricePct, setPricePct] = useState("");
+  const [seanceLe, setSeanceLe] = useState("");
+  const [dansJours, setDansJours] = useState("");
+  const [note, setNote] = useState("");
+  const formId = useId();
+
+  /* LA RELECTURE AVANT D'ENGAGER LA PAROLE DE LA MAISON (12 novembre 2026) : poser une question la publie à tous les clients, et on ne la retire qu'en la clôturant. Le bouton ne pose plus : il ouvre une relecture qui redit la ligne, le montant, l'horizon et ce que les clients liront. */
+  const horizon = seanceLe ? t("À partir du {d}", { d: seanceLe }) : dansJours ? t("Dans {n} jours", { n: dansJours }) : t("Sans horizon précisé");
+  const lines = [
+    t("Question : {i} · {c} · {d}", { i: instrument, c: t(country), d: tenor || "—" }),
+    t("Montant cherché : {m} FCFA", { m: montant || "—" }),
+    ...(rate ? [t(instrument === "BTA" ? "Taux indicatif : {r} %" : "Coupon indicatif : {r} %", { r: rate })] : []),
+    ...(instrument === "OTA" && pricePct ? [t("Prix indicatif : {p} %", { p: pricePct })] : []),
+    horizon,
+    t("Elle paraît dès maintenant sur la page de tous les clients. On ne la retire qu'en la clôturant."),
+    ...(note.trim() ? [t("Ce que les clients liront : « {n} »", { n: note.trim() })] : []),
+  ];
 
   return (
-    <form action={action} className={styles.form}>
+    <form id={formId} action={action} className={styles.form}>
       <div className={styles.quatre}>
         <Select
           name="instrument"
@@ -48,11 +68,11 @@ export function PoserUneQuestion() {
         <Select name="country" label={t("Trésor")} value={country} onChange={setCountry} block cherchable={false} options={PAYS_CEMAC.map((p) => ({ value: p, label: t(p) }))} />
         <label className="field">
           {t("Durée")}
-          <input name="tenor" placeholder={instrument === "BTA" ? "52 semaines" : "5 ans"} required />
+          <input name="tenor" placeholder={instrument === "BTA" ? "52 semaines" : "5 ans"} value={tenor} onChange={(e) => setTenor(e.target.value)} required />
         </label>
         <label className="field">
           {t(instrument === "BTA" ? "Taux indicatif (%)" : "Coupon indicatif (%)")}
-          <input name="rate" inputMode="decimal" placeholder="6,25" />
+          <input name="rate" inputMode="decimal" placeholder="6,25" value={rate} onChange={(e) => setRate(e.target.value)} />
         </label>
       </div>
       <div className={styles.quatre}>
@@ -67,7 +87,7 @@ export function PoserUneQuestion() {
         {instrument === "OTA" && (
           <label className="field">
             {t("Prix indicatif (%)")}
-            <input name="pricePct" inputMode="decimal" placeholder="97" />
+            <input name="pricePct" inputMode="decimal" placeholder="97" value={pricePct} onChange={(e) => setPricePct(e.target.value)} />
           </label>
         )}
         <label className="field">
@@ -86,46 +106,57 @@ export function PoserUneQuestion() {
             sur la tuile du client, « à partir du », pour la même date. */}
         <label className="field">
           {t("À partir du (date)")}
-          <input name="seanceLe" type="date" />
+          <input name="seanceLe" type="date" value={seanceLe} onChange={(e) => setSeanceLe(e.target.value)} />
         </label>
         <label className="field">
           {t("…ou dans (jours)")}
-          <input name="dansJours" type="number" min="0" max="365" placeholder="21" />
+          <input name="dansJours" type="number" min="0" max="365" placeholder="21" value={dansJours} onChange={(e) => setDansJours(e.target.value)} />
         </label>
       </div>
       <label className="field">
         {t("Ce que les clients doivent savoir")}
-        <textarea name="note" rows={2} maxLength={600} placeholder={t("Pourquoi cette ligne est sondée, et ce qu'on attend d'eux.")} />
+        <textarea name="note" rows={2} maxLength={600} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("Pourquoi cette ligne est sondée, et ce qu'on attend d'eux.")} />
       </label>
       {state && <em className={state.ok ? styles.ok : styles.erreur}>{state.ok ? state.message : state.error}</em>}
-      <button type="submit" className="btn primary" disabled={pending}>
-        {t(pending ? "Un instant…" : "Poser la question")}
-      </button>
+      <ConfirmPublish form={formId} label={t("Poser la question")} title={t("Poser cette question aux clients ?")} lines={lines} confirmLabel={t("Poser la question")} className="btn primary" disabled={!tenor.trim() || !montant.trim()} pending={pending} />
     </form>
   );
 }
 
-export function Statuer({ id, ref_ }: { id: string; ref_: string }) {
+/**
+ * CLORE UNE LIGNE SONDÉE, EN DEUX TEMPS (12 novembre 2026).
+ *
+ * Le motif se saisit sur la ligne, puis « Clore » ouvre une relecture : la ligne, le nombre de réponses qui la suivent dans la clôture, et la phrase que le client lira
+ * sur sa page. « Portée au Trésor » n'est plus offerte au desk : le geste de clôturer est le seul qui reste.
+ */
+export function Statuer({ id, ref_, reponses = 0 }: { id: string; ref_: string; reponses?: number }) {
   const t = useT();
   const [state, action, pending] = useActionState<DeskSondageResult | null, FormData>(statuerSurLaLigne, null);
-  const [etat, setEtat] = useState("");
+  const [motif, setMotif] = useState("");
+  const formId = useId();
 
   if (state?.ok) return <em className={styles.ok}>{state.message}</em>;
 
   return (
-    <form action={action} className={styles.statuer}>
+    <form id={formId} action={action} className={styles.statuer}>
       <input type="hidden" name="id" value={id} />
-      <input type="hidden" name="etat" value={etat} />
-      {/* LE MOTIF N'EST DEMANDÉ QU'À LA CLÔTURE, et il est demandé : le client
-          lit cette phrase sur sa page, et une attente qui disparaît sans un mot
-          est une attente qu'on ne redonnera pas. */}
-      {etat === "close" && <input name="motif" placeholder={t("Pourquoi ({r})", { r: ref_ })} className={styles.motif} />}
-      <button type="submit" className={styles.lien} disabled={pending} onClick={() => setEtat("consolidee")}>
-        {t("Portée au Trésor")}
-      </button>
-      <button type="submit" className={styles.lien} disabled={pending} onClick={() => setEtat("close")}>
-        {t("Clore")}
-      </button>
+      <input type="hidden" name="etat" value="close" />
+      {/* LE MOTIF EST DEMANDÉ, et il est lu : le client le lit sur sa page, et une attente qui disparaît sans un mot est une attente qu'on ne redonnera pas. */}
+      <input name="motif" value={motif} onChange={(e) => setMotif(e.target.value)} placeholder={t("Pourquoi ({r})", { r: ref_ })} className={styles.motif} />
+      <ConfirmPublish
+        form={formId}
+        label={t("Clore")}
+        title={t("Clore la ligne {r} ?", { r: ref_ })}
+        lines={[
+          t("La ligne {r} est close.", { r: ref_ }),
+          ...(reponses > 0 ? [t("Les {n} réponses qui la suivent sont closes avec elle.", { n: String(reponses) })] : []),
+          t("Les clients concernés lisent ce motif sur leur page : « {m} »", { m: motif.trim() || "—" }),
+        ]}
+        confirmLabel={t("Clore la ligne")}
+        className={styles.lien}
+        disabled={motif.trim().length < 3}
+        pending={pending}
+      />
       {state && !state.ok && <em className={styles.erreur}>{state.error}</em>}
     </form>
   );
