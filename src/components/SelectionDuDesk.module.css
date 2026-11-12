@@ -99,27 +99,40 @@
   }
 }
 
-/* L'ALLURE « SOBRE » DE L'ACCUEIL : les lignes se groupent en UNE carte, sans
-   trait, chacune précédée de son rond. Le jeton « --tuile-fond » vient de la
-   page (data-tuiles="cartes") ; la ligne elle-même n'a plus de fond. */
+/* L'ALLURE « SOBRE » DE L'ACCUEIL (12 novembre 2026, planche 1C) : une carte PAR ligne mise à la une, chacune cernée d'un filet
+   d'or tout autour, qui défilent côte à côte. La carte suivante dépasse du bord (86 % de large) : le geste se devine. Une seule
+   ligne prend toute la largeur. Le fond reste celui de la page (--tuile-fond) : l'or est le seul signe, pas un second fond. */
 .sobre {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0;
-  background: var(--tuile-fond);
-  border: var(--tuile-bord);
-  border-radius: var(--tuile-rayon);
-  overflow: hidden;
+  gap: var(--titre-gap);
 }
 .groupe {
-  gap: 0;
-  padding: var(--s-3) 0;
+  flex-direction: row;
+  gap: var(--tuiles-gap);
+  padding: 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.groupe::-webkit-scrollbar {
+  display: none;
+}
+.groupe > li {
+  flex: 0 0 86%;
+  display: flex;
+  scroll-snap-align: start;
+}
+.groupe > li:only-child {
+  flex-basis: 100%;
 }
 .groupe .lien {
+  width: 100%;
   align-items: center;
-  background: none;
-  border: 0;
-  border-radius: 0;
+  background: var(--tuile-fond);
+  border: 1px solid var(--gold);
+  border-radius: var(--tuile-rayon);
 }
 .groupe .nom {
   font-size: var(--accueil-nom, var(--t-4));

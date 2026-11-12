@@ -31,13 +31,20 @@ describe("les en-têtes de l'Accueil", () => {
     const sections: [string, RegExp][] = [
       ["src/components/accueil/BlocPlat.module.css", /\.bloc \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
       ["src/components/accueil/BlocDeLignes.module.css", /\.enBandeau \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
-      ["src/components/SelectionDuDesk.module.css", /\.sobre \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
       ["src/components/CeQuiFermeBientot.module.css", /\.sobre \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
       ["src/components/IndexPulse.module.css", /\.enBandeau \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
       ["src/components/CeQuiPerforme.module.css", /\.bloc \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
       ["src/app/Console.module.css", /\.blocUne \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
     ];
     for (const [f, motif] of sections) expect(css(f), `${f} : la section ne porte plus la carte`).toMatch(motif);
+  });
+
+  it("À la une de l'Accueil : une carte par ligne, filet d'or tout autour, qui défilent côte à côte", () => {
+    const c = css("src/components/SelectionDuDesk.module.css");
+    expect(c).toMatch(/\.groupe \{[^}]*flex-direction: row[^}]*overflow-x: auto[^}]*scroll-snap-type: x mandatory/);
+    expect(c).toMatch(/\.groupe > li \{[^}]*flex: 0 0 86%/);
+    expect(c).toMatch(/\.groupe \.lien \{[^}]*border: 1px solid var\(--gold\)/);
+    expect(c).not.toMatch(/\.sobre \{[^}]*background/);
   });
 
   it("la fiche garde son titre à plat, et « À la une » et « Ce qui performe » lisent le même composant", () => {
