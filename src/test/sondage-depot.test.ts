@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { FAUX_NEXT_CACHE } from "./faux-next-cache";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { Session } from "@/lib/auth/types";
@@ -206,6 +208,37 @@ describe("ce que le desk en fait", () => {
     const suite = toutes.find((x) => x.repondA === q.id)!;
     expect(suite.state, "la réponse est restée ouverte sous une question close").toBe("close");
     expect(suite.closedReason, "la réponse a été close sans un mot au client").toBeTruthy();
+  });
+
+  /* LE PRIX MAXIMAL D'UNE RÉPONSE OTA, « 100 » COMPRIS (12 novembre 2026) : au pair est un prix comme un autre, il ne se perd pas, et un bon (précompté) n'en a pas. */
+  it("garde le prix maximal d'une réponse OTA, au pair compris, et l'écarte sur un bon", async () => {
+    const { poserLaQuestion } = await import("@/app/desk/sondage/actions");
+    const { deposerLaLigne } = await import("@/app/sondage/actions");
+    const { repo } = await import("@/lib/data");
+    const r = repo();
+    await poserLaQuestion(null, form({ instrument: "OTA", country: "Tchad", tenor: "6 ans", montant: "100 000 000", dansJours: "30" }));
+    await poserLaQuestion(null, form({ instrument: "BTA", country: "Tchad", tenor: "26 semaines", montant: "100 000 000", dansJours: "30" }));
+    const toutes = await r.listLignesSondees({ origine: "desk" });
+    const ota = toutes.find((x) => x.tenor === "6 ans")!;
+    const bta = toutes.find((x) => x.tenor === "26 semaines")!;
+    courant = { ...client, userId: "u-prix-max" };
+    const a = await deposerLaLigne(null, form({ repondA: ota.id, instrument: "OTA", montant: "20 000 000", pricePct: "100", dansJours: "10" }));
+    const b = await deposerLaLigne(null, form({ repondA: bta.id, instrument: "BTA", montant: "20 000 000", pricePct: "99", dansJours: "10" }));
+    courant = client;
+    expect(a.ok, a.ok ? "" : a.error).toBe(true);
+    expect(b.ok, b.ok ? "" : b.error).toBe(true);
+    const lignes = await r.listLignesSondees();
+    expect(lignes.find((x) => x.repondA === ota.id)!.pricePct, "le prix « 100 » (au pair) doit être gardé").toBe(100);
+    expect(lignes.find((x) => x.repondA === bta.id)!.pricePct, "un bon est précompté : pas de prix").toBeUndefined();
+  });
+
+  it("le formulaire de réponse propose le prix maximal sur une OTA seulement", () => {
+    const src = fs.readFileSync(path.join(__dirname, "../app/sondage/Formulaires.tsx"), "utf8");
+    const debut = src.indexOf("export function Repondre");
+    const rep = src.slice(debut, src.indexOf("LE GABARIT : PROPOSER SA PROPRE LIGNE", debut));
+    expect(rep).toMatch(/question\.instrument === "OTA" && \(/);
+    expect(rep).toMatch(/name="pricePct"/);
+    expect(rep).toMatch(/placeholder="100"/);
   });
 
   it("constate « portée au Trésor » sur la question et ses réponses", async () => {

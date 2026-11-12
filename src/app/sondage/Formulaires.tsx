@@ -175,6 +175,19 @@ export function Repondre({ question, existante, forme = "primaire", aujourdHui }
           <input name="rate" inputMode="decimal" placeholder="6,25" defaultValue={existante?.rate ?? ""} />
         </label>
       </div>
+      {/* LE PRIX MAXIMAL SE DIT AUSSI SUR UNE RÉPONSE (12 novembre 2026), et « 100 » en est une valeur comme une autre : au pair, le client n'accepte pas de payer plus que le nominal. Un bon
+          se vend précompté et n'a pas de prix : le champ ne paraît que sur une OTA. Facultatif, comme le coupon. */}
+      {question.instrument === "OTA" && (
+        <div className={styles.deux}>
+          <label className="field">
+            <span className={styles.libelleChamp}>
+              {t("Au prix d'au plus (% du nominal)")}
+              <Info text="Facultatif. 100 % veut dire « au pair » : vous n'acceptez pas de payer plus que le nominal. Sans prix, votre réponse tient à n'importe quel prix." label={t("Votre prix maximal")} subtle />
+            </span>
+            <input name="pricePct" inputMode="decimal" placeholder="100" defaultValue={existante?.pricePct ?? ""} />
+          </label>
+        </div>
+      )}
       <Fenetre aujourdHui={aujourdHui} pretLe={existante?.pretLe} jusquA={existante?.jusquA} prefixe={`rep-${question.id}`} />
       {!state?.ok && state?.error && <em className={styles.erreur}>{state.error}</em>}
       <div className={styles.boutons}>

@@ -105,6 +105,21 @@ describe("sélection du desk et diffusion", () => {
     expect(s.badges.some((b) => b.key === "selection" && b.note === "Clôture cette semaine")).toBe(true);
   });
 
+  it("met une ligne à la une SANS COMMENTAIRE : la raison reste vide, le badge existe, une raison trop courte reste refusée", async () => {
+    const { featureOfferAction } = await import("@/app/desk/featured/actions");
+    const { repo } = await import("@/lib/data");
+    const { summarize } = await import("@/lib/domain/summary");
+    const { id: ligne, until } = await ligneOuverte();
+    const courte = await featureOfferAction(null, form({ offerId: ligne, reason: "ok", until }));
+    expect(courte.ok, "une raison de deux lettres n'est ni vide ni factuelle").toBe(false);
+    const sans = await aboutit(() => featureOfferAction(null, form({ offerId: ligne, reason: "", until })));
+    expect(sans.ok).toBe(true);
+    const o = (await repo().getOffer(ligne))!;
+    expect(o.featured?.reason).toBe("");
+    expect(summarize(o, new Date()).badges.some((b) => b.key === "selection"), "la ligne doit être à la une même sans phrase").toBe(true);
+    /* La ligne reste à la une : le test de diffusion qui suit en dépend, et il diffuse ainsi une sélection sans raison. */
+  });
+
   it("refuses a closed line and a date past the line's closing", async () => {
     const { featureOfferAction } = await import("@/app/desk/featured/actions");
     /* NI LA LIGNE NI LA DATE NE SONT ÉCRITES EN DUR : l'une et l'autre

@@ -82,7 +82,7 @@ export async function SelectionDuDesk({ offres, sobre = false }: { /** Le titre 
                   </>
                 )}
               </span>
-              <span className={styles.motif}>{t(o.featured!.reason)}</span>
+              {o.featured!.reason && <span className={styles.motif}>{t(o.featured!.reason)}</span>}
               <span className={styles.quand}>{t(s.status)}</span>
             </Link>
           </li>

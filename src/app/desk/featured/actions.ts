@@ -26,7 +26,12 @@ export interface BroadcastPlan {
 
 const schema = z.object({
   offerId: z.string().min(1),
-  reason: z.string().trim().min(4, "Donnez une raison factuelle (une phrase).").max(90, "Raison : 90 caractères maximum."),
+  /* SANS COMMENTAIRE (12 novembre 2026) : la raison peut rester vide, la mise à la une se passe alors de phrase. Écrite, elle reste factuelle (une phrase, 90 caractères). */
+  reason: z
+    .string()
+    .trim()
+    .max(90, "Raison : 90 caractères maximum.")
+    .refine((v) => v === "" || v.length >= 4, "Donnez une raison factuelle (une phrase), ou laissez « Sans commentaire »."),
   until: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date de fin requise."),
 });
 
@@ -52,13 +57,13 @@ export async function featureOfferAction(_p: FeatureResult | null, form: FormDat
   if (lineEnd && p.data.until > lineEnd) return { ok: false, error: `La mise à la une ne peut pas dépasser la clôture de la ligne (${lineEnd}).` };
   const featured = { reason: p.data.reason, until: p.data.until, by: desk.name, at: new Date().toISOString() };
   try {
-    await r.upsertOffer({ ...o, featured, version: o.version + 1 }, { expectedVersion: o.version, by: desk.name, note: `À la une : ${p.data.reason}` });
+    await r.upsertOffer({ ...o, featured, version: o.version + 1 }, { expectedVersion: o.version, by: desk.name, note: p.data.reason ? `À la une : ${p.data.reason}` : "À la une, sans commentaire" });
   } catch (e) {
     if (e instanceof ConflictError) return { ok: false, error: e.message };
     throw e;
   }
   await audit("offer.feature", "offer", o.id, { before: { featured: o.featured ?? null }, after: { featured }, reason: p.data.reason });
-  await r.logEvent({ kind: "desk", offerId: o.id, html: `<b>${o.title}</b> mise à la une par ${desk.name} : ${p.data.reason} (jusqu'au ${p.data.until})` });
+  await r.logEvent({ kind: "desk", offerId: o.id, html: `<b>${o.title}</b> mise à la une par ${desk.name}${p.data.reason ? ` : ${p.data.reason}` : " (sans commentaire)"} (jusqu'au ${p.data.until})` });
   for (const path of ["/", "/desk", "/desk/a-la-une", `/offres/${o.id}`]) revalidatePath(path);
   redirect(`/desk/a-la-une?mise=${encodeURIComponent(o.title)}&jusqu=${encodeURIComponent(p.data.until)}`);
 }

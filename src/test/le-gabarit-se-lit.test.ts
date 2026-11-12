@@ -53,7 +53,7 @@ describe("le gabarit se lit", () => {
        inverse faite. Si une bulle s'ajoute à bon escient, ce chiffre monte
        avec elle — et c'est le but : on relit la liste en le changeant. */
     const bulles = src.match(/<Info /g) ?? [];
-    expect(bulles.length, "une explication a été supprimée au lieu d'être mise en bulle").toBe(9);
+    expect(bulles.length, "une explication a été supprimée au lieu d'être mise en bulle").toBe(10);
   });
 
   /* LA BULLE D'UNE LISTE DÉROULANTE SE POSE AU COIN DU CHAMP, et le sélecteur

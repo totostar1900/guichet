@@ -124,16 +124,14 @@ export function PoserUneQuestion() {
 }
 
 /**
- * CLORE UNE LIGNE SONDÉE, EN DEUX TEMPS (12 novembre 2026, planche « Annonces », choix 3A ; motif déplacé dans la relecture le même jour).
+ * CLORE UNE LIGNE SONDÉE, EN DEUX TEMPS : « ok » SUFFIT (12 novembre 2026, planche « Annonces », choix 3A ; motif retiré à la demande du client).
  *
- * « Clore » ouvre TOUJOURS la relecture : le bouton ne se grise plus en attendant un motif saisi ailleurs (il paraissait muet). La relecture dit la ligne et le nombre de réponses closes avec elle,
- * et demande le motif que le client lira sur sa page : tant qu'il manque, c'est le bouton de confirmation qui reste verrouillé, avec la raison écrite au-dessus.
- * « Portée au Trésor » n'est plus offerte au desk : le geste de clôturer est le seul qui reste.
+ * « Clore » ouvre toujours la relecture : la ligne, les réponses closes avec elle. On la valide en écrivant « ok » : aucun motif n'est demandé, et la base garde sa phrase par défaut
+ * (le client lit « close par le desk »). « Portée au Trésor » n'est plus offerte au desk : le geste de clôturer est le seul qui reste.
  */
 export function Statuer({ id, ref_, reponses = 0 }: { id: string; ref_: string; reponses?: number }) {
   const t = useT();
   const [state, action, pending] = useActionState<DeskSondageResult | null, FormData>(statuerSurLaLigne, null);
-  const [motif, setMotif] = useState("");
   const formId = useId();
 
   if (state?.ok) return <em className={styles.ok}>{state.message}</em>;
@@ -146,15 +144,9 @@ export function Statuer({ id, ref_, reponses = 0 }: { id: string; ref_: string; 
         form={formId}
         label={t("Clore")}
         title={t("Clore la ligne {r} ?", { r: ref_ })}
-        lines={[t("La ligne {r} est close.", { r: ref_ }), ...(reponses > 0 ? [t("Les {n} réponses qui la suivent sont closes avec elle.", { n: String(reponses) })] : []), t("Les clients concernés lisent le motif ci-dessous sur leur page.")]}
-        corps={
-          <label className="field">
-            {t("Motif (obligatoire)")}
-            <input name="motif" form={formId} value={motif} onChange={(e) => setMotif(e.target.value)} placeholder={t("Pourquoi cette ligne est close")} autoFocus />
-          </label>
-        }
+        lines={[t("La ligne {r} est close.", { r: ref_ }), ...(reponses > 0 ? [t("Les {n} réponses qui la suivent sont closes avec elle.", { n: String(reponses) })] : []), t("Les clients concernés la voient close sur leur page.")]}
+        typed="ok"
         confirmLabel={t("Clore la ligne")}
-        confirmDisabled={motif.trim().length < 3}
         className={styles.lien}
         pending={pending}
       />

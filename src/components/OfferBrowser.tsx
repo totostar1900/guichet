@@ -304,10 +304,11 @@ function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections, p
  */
 function NoteDeSelection({ o, avertir = false }: { o: Offer; avertir?: boolean }) {
   const t = useT();
-  if (!o.featured?.reason) return null;
+  /* Sans commentaire, la raison se tait, mais la mise en garde reste : une sélection n'est jamais un conseil. */
+  if (!o.featured) return null;
   return (
     <>
-      <small className={styles.reason}>{o.featured.reason}</small>
+      {o.featured.reason && <small className={styles.reason}>{o.featured.reason}</small>}
       {avertir && <small className={styles.avertissement}>{t("Une sélection, pas un conseil : chaque ligne se lit dans sa fiche.")}</small>}
     </>
   );

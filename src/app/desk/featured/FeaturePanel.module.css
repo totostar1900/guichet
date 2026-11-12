@@ -171,3 +171,14 @@
 div.panneau {
   overflow: visible;
 }
+
+/* L'en-tête de la liste des lignes dit combien elle en porte ; le champ « autre raison » vient sous la liste des raisons. */
+.compte {
+  padding: 4px 10px 6px;
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.autre {
+  width: 100%;
+  margin-top: 6px;
+}

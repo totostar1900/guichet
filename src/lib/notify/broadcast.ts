@@ -76,12 +76,14 @@ function message(o: Offer, reason: string, firstName?: string): Message & { push
   const url = `${base}/offres/${o.id}`;
   const when = s.deadlineAt && o.kind !== "MARCHE" && o.kind !== "FONDS" ? ` · clôture ${fmtDateTime(s.deadlineAt)}` : "";
   const hero = s.gold ? `${s.hero} ${s.heroUnit ?? ""}`.trim() : s.hero;
-  const text = `${firstName ? `Bonjour ${firstName}, ` : ""}opportunité du moment au Guichet : ${o.title} : ${hero}${when}. ${reason}. Détails et intention : ${url}\n\nBrut, avant fiscalité, sous réserve du prix servi. Ceci est une information, pas un conseil. STOP pour ne plus recevoir ces messages.`;
+  /* Une mise à la une sans commentaire n'a pas de raison à dire : la phrase se tait plutôt que de laisser un point seul. */
+  const motif = reason.trim();
+  const text = `${firstName ? `Bonjour ${firstName}, ` : ""}opportunité du moment au Guichet : ${o.title} : ${hero}${when}.${motif ? ` ${motif}.` : ""} Détails et intention : ${url}\n\nBrut, avant fiscalité, sous réserve du prix servi. Ceci est une information, pas un conseil. STOP pour ne plus recevoir ces messages.`;
   return {
     subject: `Opportunité du moment : ${o.title}`,
     text,
-    template: { name: tmpl("WA_TEMPLATE_OFFER", "guichet_offre"), params: [o.title, `${hero}${when} · ${reason}`, s.deadline, url] },
-    push: { title: `${o.title} · ${hero}`, body: `${reason}${when}. Ouvrir la fiche.` },
+    template: { name: tmpl("WA_TEMPLATE_OFFER", "guichet_offre"), params: [o.title, `${hero}${when}${motif ? ` · ${motif}` : ""}`, s.deadline, url] },
+    push: { title: `${o.title} · ${hero}`, body: `${motif ? `${motif}${when}` : when.replace(/^ · /, "")}. Ouvrir la fiche.`.replace(/^\. /, "") },
   };
 }
 

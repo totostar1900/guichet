@@ -10,6 +10,9 @@ import { ConfirmPublish } from "@/components/desk/ConfirmPublish";
 import { broadcastOpportunityAction, featureOfferAction, unfeatureOfferAction, type FeatureResult } from "./actions";
 import styles from "./FeaturePanel.module.css";
 
+const SANS_COMMENTAIRE = "__sans__";
+const AUTRE_RAISON = "__autre__";
+
 export interface FeatureRow {
   id: string;
   title: string;
@@ -36,7 +39,8 @@ function LinePicker({ candidates, value, onChange }: { candidates: FeatureRow[];
      lien vers la liste manquaient, et eux seuls font tenir l'ensemble. */
   const listeId = useId();
   const q = fold(text.trim());
-  const hits = (q && text !== chosen?.title ? candidates.filter((c) => fold(c.title).includes(q) || fold(c.id).includes(q) || fold(c.isin ?? "").includes(q)) : candidates).slice(0, 8);
+  /* TOUTES LES LIGNES SE PROPOSENT (12 novembre 2026) : la liste n'en montrait que huit sans que rien ne dise qu'il y en avait d'autres, et une ligne au-delà de la huitième n'était trouvable qu'en tapant son nom. Elle défile, et son en-tête dit combien elle en porte. */
+  const hits = q && text !== chosen?.title ? candidates.filter((c) => fold(c.title).includes(q) || fold(c.id).includes(q) || fold(c.isin ?? "").includes(q)) : candidates;
   return (
     <div className={styles.picker}>
       <input
@@ -59,6 +63,9 @@ function LinePicker({ candidates, value, onChange }: { candidates: FeatureRow[];
       <input type="hidden" name="offerId" value={value} />
       {open && hits.length > 0 && (
         <ul id={listeId} className={styles.hits} role="listbox">
+          <li className={styles.compte} aria-hidden="true">
+            {t("{n} lignes ouvertes ou cotées", { n: String(hits.length) })}
+          </li>
           {hits.map((c) => (
             <li key={c.id}>
               <button
@@ -93,7 +100,10 @@ export function FeaturePanel({ active, candidates, comptes }: { active: FeatureR
   const t = useT();
   const [state, action, pending] = useActionState<FeatureResult | null, FormData>(featureOfferAction, null);
   const [pick, setPick] = useState("");
-  const [reason, setReason] = useState<string>(FEATURE_REASONS[0]);
+  /* LA RAISON SE CHOISIT DANS UNE LISTE (12 novembre 2026) : la liste native d'un champ texte ne montrait que ce qui ressemblait au texte déjà écrit, donc une seule raison. « Sans commentaire » met à la une sans phrase ; « Autre raison » rouvre le champ libre, qui reste factuel. */
+  const [choixRaison, setChoixRaison] = useState<string>(FEATURE_REASONS[0]);
+  const [autre, setAutre] = useState("");
+  const reason = choixRaison === SANS_COMMENTAIRE ? "" : choixRaison === AUTRE_RAISON ? autre.trim() : choixRaison;
   const [untilChoisi, setUntilChoisi] = useState("");
   const featureId = useId();
   const chosen = candidates.find((c) => c.id === pick);
@@ -113,7 +123,7 @@ export function FeaturePanel({ active, candidates, comptes }: { active: FeatureR
               <div>
                 <b>{a.title}</b>
                 <small>
-                  {a.featured?.reason} · jusqu&apos;au {a.featured?.until} · par {a.featured?.by}
+                  {a.featured?.reason ? `${a.featured.reason} · ` : `${t("sans commentaire")} · `}jusqu&apos;au {a.featured?.until} · par {a.featured?.by}
                   {a.closed && <em className={styles.closed}> · {t("clôturée : plus affichée aux clients, à retirer")}</em>}
                 </small>
               </div>
@@ -131,15 +141,22 @@ export function FeaturePanel({ active, candidates, comptes }: { active: FeatureR
             <span>{t("Ligne")}</span>
             <LinePicker candidates={candidates} value={pick} onChange={(id) => { setPick(id); setUntilChoisi(""); }} />
           </label>
-          <label>
-            <span>{t("Raison (factuelle)")}</span>
-            <input name="reason" list="feature-reasons" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={90} required />
-            <datalist id="feature-reasons">
-              {FEATURE_REASONS.map((r) => (
-                <option key={r} value={r} />
-              ))}
-            </datalist>
-          </label>
+          <div>
+            <Select
+              label={t("Raison (factuelle)")}
+              value={choixRaison}
+              onChange={setChoixRaison}
+              block
+              cherchable={false}
+              options={[
+                ...FEATURE_REASONS.map((r) => ({ value: r as string, label: t(r) })),
+                { value: SANS_COMMENTAIRE, label: t("Sans commentaire") },
+                { value: AUTRE_RAISON, label: t("Autre raison…") },
+              ]}
+            />
+            <input type="hidden" name="reason" value={reason} />
+            {choixRaison === AUTRE_RAISON && <input value={autre} onChange={(e) => setAutre(e.target.value)} maxLength={90} placeholder={t("Une phrase factuelle")} aria-label={t("Raison (factuelle)")} className={styles.autre} />}
+          </div>
           <label>
             <span>{t("Jusqu'au")}</span>
             <input name="until" type="date" value={until} onChange={(e) => setUntilChoisi(e.target.value)} min={today} required />
@@ -151,12 +168,12 @@ export function FeaturePanel({ active, candidates, comptes }: { active: FeatureR
             title={t("Mettre cette ligne à la une ?")}
             lines={[
               t("« {l} » passe en tête du Guichet, pour tous les clients, dès maintenant.", { l: chosen?.title ?? "—" }),
-              t("Raison affichée : « {r} ».", { r: reason }),
+              reason ? t("Raison affichée : « {r} ».", { r: reason }) : t("Sans commentaire : aucune raison n'est affichée."),
               t("Jusqu'au {d}.", { d: until }),
               t("{n} ligne(s) à la une sur trois au plus, celle-ci comprise.", { n: active.length + 1 }),
             ]}
             confirmLabel={t("Mettre à la une")}
-            disabled={!pick || !reason.trim()}
+            disabled={!pick || (choixRaison === AUTRE_RAISON && autre.trim().length < 4)}
             pending={pending}
           />
           {state && <small className={state.ok ? styles.ok : styles.err}>{said(state)}</small>}

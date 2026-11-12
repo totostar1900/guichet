@@ -19,15 +19,14 @@ describe("le sondage du desk : deux temps pour poser et pour clore", () => {
     for (const mot of ["Question : {i}", "Montant cherché : {m} FCFA", "Ce que les clients liront", "dès maintenant sur la page de tous les clients"]) expect(f).toContain(mot);
   });
 
-  it("« Clore » ouvre TOUJOURS une relecture (jamais grisé), qui demande le motif et verrouille seulement sa confirmation", () => {
+  it("« Clore » ouvre TOUJOURS une relecture, qui se valide par le mot « ok » : aucun motif n'est demandé", () => {
     const s = f.slice(f.indexOf("export function Statuer"));
     expect(s).toMatch(/<ConfirmPublish\s+form=\{formId\}\s+label=\{t\("Clore"\)\}/);
     expect(s).toContain("Les {n} réponses qui la suivent sont closes avec elle.");
-    expect(s).toMatch(/confirmDisabled=\{motif\.trim\(\)\.length < 3\}/);
-    expect(s, "le bouton « Clore » ne doit plus se griser : il paraissait muet").not.toMatch(/\n\s+disabled=/);
+    expect(s, "le mot à recopier est « ok »").toMatch(/typed="ok"/);
+    expect(s, "plus aucun champ de motif").not.toMatch(/name="motif"/);
+    expect(s).not.toMatch(/\n\s+disabled=/);
     expect(s).not.toMatch(/type="submit"/);
-    expect(s, "la boîte « Pourquoi » ne revient pas sur la ligne").not.toMatch(/placeholder=\{t\("Pourquoi \(\{r\}\)"/);
-    expect(s, "le motif se saisit dans la relecture, rattaché au formulaire").toMatch(/<input name="motif" form=\{formId\}/);
   });
 
   it("les montants des tableaux sont abrégés (milliards, millions) : un seul formateur, celui de la maison", () => {
