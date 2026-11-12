@@ -21,7 +21,7 @@ import { estFenetre, FENETRE_PAR_DEFAUT, FENETRES, type FenetreId, raisonSansFen
 import { TeteGroupe } from "@/components/market/TeteGroupe";
 import { FundCard } from "./FundCard";
 import { BandeFonds } from "./BandeFonds";
-import { FenetreCtx, useDepuisQuand, useFenetre, useNomFenetre, valeurFenetre } from "./fenetre";
+import { FenetreCtx, useDepuisQuand, useFenetre, useNomFenetre, sansChiffreEnBas, valeurFenetre } from "./fenetre";
 import { ChoixFenetre } from "./ChoixFenetre";
 import { BandeauRepliable } from "@/components/market/BandeauRepliable";
 import { LineMenu } from "@/components/mobile/LineMenu";
@@ -541,7 +541,8 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
      épingler est un geste de lecture et non un filtre, et une liste qui perd
      une ligne quand on la désigne cesse d'être la liste. */
   const fondsEpingles = useMemo(() => rows.filter((r) => epingles.includes(r.id)), [rows, epingles]);
-  const rowsShown = useMemo(() => (sort === "categorie" ? CATS.flatMap((c) => filtered.filter((r) => r.category === c)) : filtered), [filtered, sort]);
+  /* Les fonds sans chiffre sur la fenêtre choisie passent après les autres, quel que soit l'ordre (voir « sansChiffreEnBas »). */
+  const rowsShown = useMemo(() => sansChiffreEnBas(sort === "categorie" ? CATS.flatMap((c) => filtered.filter((r) => r.category === c)) : filtered, fenetre), [filtered, sort, fenetre]);
 
   /**
    * LA BANDE NE SE FILTRE PAS ELLE-MÊME. Elle montre les fonds retenus par

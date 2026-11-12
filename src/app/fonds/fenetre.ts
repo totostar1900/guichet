@@ -48,6 +48,19 @@ interface AvecCourbe {
 export const valeurFenetre = (r: AvecCourbe, f: FenetreId): number | undefined => r.curve?.fenetres?.[f]?.pct;
 
 /**
+ * LES FONDS SANS CHIFFRE SUR LA FENÊTRE VONT EN BAS DE LA LISTE (12 novembre 2026).
+ *
+ * Un fonds sans rentabilité sur 12 mois (créé il y a moins d'un an, ou publié au
+ * bulletin depuis moins d'un an : l'historique de VL manque) n'est pas « le pire » ni
+ * « le premier » : il n'est pas mesuré. Quel que soit l'ordre choisi, il passe donc
+ * après ceux qui le sont ; l'ordre de chaque moitié est conservé.
+ */
+export function sansChiffreEnBas<T extends AvecCourbe>(rows: T[], f: FenetreId): T[] {
+  const mesures = rows.filter((r) => valeurFenetre(r, f) != null);
+  return mesures.length === rows.length ? rows : [...mesures, ...rows.filter((r) => valeurFenetre(r, f) == null)];
+}
+
+/**
  * De quelle VL la mesure part, et jusqu'à laquelle.
  *
  * C'est ce qui explique un chiffre surprenant : une borne prise trois
