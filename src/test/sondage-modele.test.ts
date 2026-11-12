@@ -177,7 +177,10 @@ describe("le modèle du sondage", () => {
   it("ne laisse la clef de groupe s'écrire qu'au domaine", () => {
     const desk = lire("src/app/desk/sondage/page.tsx");
     expect(desk, "la clef de groupe est de nouveau recopiée au desk").not.toMatch(/\$\{l\.tenor/);
-    expect(desk, "le desk ne retrouve plus les demandes par la clef du domaine").toMatch(/cleDeGroupe\(l\) === cle/);
+    /* LA RECHERCHE PAR CLEF VIT DANS « sondage-analyse », que la page et l'export lisent tous deux (12 novembre 2026) : elle passe par la clef du domaine, et nulle part ailleurs. */
+    expect(desk, "la page ne retrouve plus les demandes par la fonction partagée").toMatch(/demandesDuGroupe\(lignes, cle\)/);
+    expect(lire("src/lib/domain/sondage-analyse.ts"), "le desk ne retrouve plus les demandes par la clef du domaine").toMatch(/cleDeGroupe\(l\) === cle/);
+    expect(lire("src/lib/domain/sondage-analyse.ts"), "la clef de groupe est de nouveau recopiée").not.toMatch(/\$\{l\.tenor/);
     /* NON VACUITÉ : le domaine la normalise vraiment — sans quoi la ligne
        ci-dessus ne garde qu'une recopie inoffensive. Son comportement est tenu
        par « sondage ». */
@@ -493,7 +496,7 @@ describe("le modèle du sondage", () => {
        et pas le mot : « cherchés » paraît deux fois sur cette page, et la garde
        restait verte quand l'une des deux branches le perdait (vérifié à
        l'envers le 26 octobre 2026). */
-    expect(lire("src/app/desk/sondage/page.tsx"), "le desk ne voit plus la cible de sa propre question").toMatch(/fmt\(q\.montant\)/);
+    expect(lire("src/app/desk/sondage/Questions.tsx"), "le desk ne voit plus la cible de sa propre question").toMatch(/fmt\(q\.cherche\)/);
   });
 
   it("rend les montants du client en millions ou en milliards", () => {

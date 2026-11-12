@@ -1,12 +1,14 @@
-import { Fragment } from "react";
 import { DeskNav } from "@/components/DeskNav";
 import { getT } from "@/i18n/server";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { SEUIL_CLIENTS, SEUIL_MONTANT, changementsDeLaLigne, cleDeGroupe, consensus, motDuNiveau, mur, prete, type ChampsModifiables } from "@/lib/domain/sondage";
-import { fmt, fmtDate, fmtPct } from "@/lib/format";
+import { SEUIL_CLIENTS, SEUIL_MONTANT, changementsDeLaLigne, consensus, mur, prete, type ChampsModifiables } from "@/lib/domain/sondage";
+import { analyserGroupe, ageEnJours, demandesDuGroupe, minimum, versReponse } from "@/lib/domain/sondage-analyse";
+import { fmt, fmtDate, localIso } from "@/lib/format";
 import { Pourquoi } from "@/components/Pourquoi";
-import { PoserUneQuestion, Statuer } from "./Formulaires";
+import { PoserUneQuestion } from "./Formulaires";
+import { Accumulation } from "./Accumulation";
+import { Questions, type QuestionOuverte } from "./Questions";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -52,24 +54,33 @@ export default async function SondageDeskPage() {
     modifs.set(a.entityId, { at: a.at, resume: avant && apres ? changementsDeLaLigne(avant, apres).join(" · ") : "" });
   }
 
-  /* UN SEUL NIVEAU, UNE SEULE UNITÉ : le taux. Mêler des prix à des taux dans
-     la même colonne — 99,00 % à côté de 6,30 % — était illisible, et c'est ce
-     que la capture du 26 octobre 2026 a montré. */
-  const niveau = (c: (typeof groupes)[number]) => (c.niveau == null ? t("sans condition") : fmtPct(c.niveau, 2));
 
-  /** Une ligne du groupe, telle qu'elle est arrivée : toutes ses caractéristiques. */
-  const demandesDe = (cle: string) =>
-    lignes.filter((l) => {
-      if (l.origine === "desk" || l.state === "close") return false;
-      const sur = l.repondA ? parId.get(l.repondA) : undefined;
-      /* LA CLEF VIENT DU DOMAINE, et elle y vient depuis le 26 octobre 2026 :
-         la formule était recopiée ici, et le jour où la durée a été réduite à
-         sa forme canonique là-bas, cette page aurait cessé de retrouver les
-         demandes de ses propres groupes — « les N demandes, une par une »
-         serait restée vide, sans rien dire. Une clef écrite deux fois est une
-         clef qui finit par valoir deux choses. */
-      return sur ? `desk:${sur.id}` === cle : cleDeGroupe(l) === cle;
-    });
+  const demandesDe = (cle: string) => demandesDuGroupe(lignes, cle);
+
+  const aujourdhui = localIso(new Date());
+  const modifsTexte = new Map([...modifs].map(([id, m]) => [id, `${t("modifiée le {d}", { d: fmtDate(m.at.slice(0, 10), false) })}${m.resume ? ` · ${m.resume}` : ""}`]));
+  /* Une ligne par sondage : tout ce que le desk lit pour analyser, calculé une fois, ici, et passé au tableau tel quel. */
+  const analyses = groupes.map((c) => {
+    const a = analyserGroupe(c, demandesDe(c.cle), c.surLigne ? parId.get(c.surLigne) : undefined, modifsTexte, mur(c));
+    return { ...a, age: ageEnJours(a.derniere, aujourdhui) };
+  });
+  const ouvertes: QuestionOuverte[] = questions.map((q) => {
+    const reps = lignes.filter((l) => l.repondA === q.id && l.state !== "close");
+    const dernieres = reps.map((l) => l.updatedAt || l.createdAt).sort();
+    return {
+      id: q.id,
+      ref: q.ref,
+      ligne: `${q.instrument} · ${t(q.country)} · ${q.tenor}`,
+      posee: q.createdAt,
+      horizon: prete(q),
+      cherche: q.montant,
+      recu: reps.reduce((s, l) => s + l.montant, 0),
+      tauxMin: minimum(reps.map((l) => l.rate)),
+      prixMin: minimum(reps.map((l) => l.pricePct)),
+      age: ageEnJours(dernieres[dernieres.length - 1], aujourdhui),
+      reponses: reps.map((l) => versReponse(l, modifsTexte)),
+    };
+  });
 
   return (
     <main className={styles.page}>
@@ -101,97 +112,23 @@ export default async function SondageDeskPage() {
         </p>
       </header>
 
-      {/* CE QUI S'ACCUMULE. Sous le seuil, et ce n'est pas un rebut : c'est la
-          matière des séances du trimestre prochain. Un desk qui ne voit que ce
-          qui est mûr ne sait jamais ce qui vient. */}
+      {/* CE QUI S'ACCUMULE, pour analyser. Sous le seuil, et ce n'est pas un rebut : c'est la matière des séances du trimestre prochain. Un desk qui ne voit que ce qui est mûr ne
+          sait jamais ce qui vient. Une ligne par sondage ; le volet dit ce qui la fonde, et l'export CSV permet de conduire l'analyse ailleurs. */}
       <section className={styles.bloc}>
-        <h2 className={styles.titre}>{t("Ce qui s'accumule")}</h2>
-        {groupes.length === 0 ? (
-          <div className="empty">{t("Rien d'autre en attente.")}</div>
-        ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>{t("Ligne")}</th>
-                <th>{t("Clients")}</th>
-                {/* DEUX COLONNES ET NON UNE : ce qu'on peut porter, et ce que
-                    la ligne porterait si les alternatives se posaient sur
-                    elle. Une seule colonne obligeait à choisir entre flatter
-                    et taire. */}
-                <th>{t("Ferme")}</th>
-                <th>{t("Possible")}</th>
-                <th>{t("Taux")}</th>
-                <th>{t("Au plus tôt")}</th>
-                <th>{t("Seuil")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {groupes.map((c) => (
-                <Fragment key={c.cle}>
-                <tr>
-                  <td>
-                    {c.instrument} · {t(c.country)} · {c.tenor}
-                  </td>
-                  <td className={styles.n}>{c.clientsFermes}</td>
-                  <td className={styles.n}>{fmt(c.ferme)}</td>
-                  <td className={styles.n}>{c.montant > c.ferme ? fmt(c.montant) : "—"}</td>
-                  <td className={styles.n}>{niveau(c)}</td>
-                  <td>{c.auPlusTot ? fmtDate(c.auPlusTot, false) : "—"}</td>
-                  <td>{mur(c) ? t("atteint") : t("sous le seuil")}</td>
-                </tr>
-                {/* LE DÉTAIL DE CHAQUE SONDAGE, sous sa ligne : les demandes une par une, et l'échelle de la demande. */}
-                <tr>
-                  <td colSpan={7}>
-                    <Echelle c={c} t={t} />
-                    <Detail lignes={demandesDe(c.cle)} modifs={modifs} t={t} />
-                  </td>
-                </tr>
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <div className={styles.titreRang}>
+          <h2 className={styles.titre}>{t("Ce qui s'accumule")}</h2>
+          {analyses.length > 0 && (
+            <a className={styles.exporter} href="/desk/sondage/export">
+              {t("Tout exporter en CSV")}
+            </a>
+          )}
+        </div>
+        {analyses.length === 0 ? <div className="empty">{t("Rien d'autre en attente.")}</div> : <Accumulation groupes={analyses} />}
       </section>
 
       <section className={styles.bloc}>
         <h2 className={styles.titre}>{t("Les questions ouvertes")}</h2>
-        {questions.length === 0 ? (
-          <div className="empty">{t("Aucune question posée en ce moment.")}</div>
-        ) : (
-          <ul className={styles.questions}>
-            {questions.map((q) => {
-              const reponses = lignes.filter((l) => l.repondA === q.id && l.state !== "close");
-              /* LA CIBLE EN REGARD DE CE QUI RÉPOND, et c'est la seule page qui
-                 a le droit de l'écrire : le montant cherché ne paraît plus sur
-                 la tuile du client, parce qu'il y donnait la réponse avant la
-                 question. Ici il est la mesure du chemin restant. */
-              const recu = reponses.reduce((s, l) => s + l.montant, 0);
-              return (
-                <li key={q.id}>
-                  <div className={styles.entete}>
-                    <b>
-                      {q.instrument} · {t(q.country)} · {q.tenor}
-                    </b>
-                    <span className={`mono ${styles.ref}`}>{q.ref}</span>
-                  </div>
-                  <p className={styles.faits}>
-                    {reponses.length === 0 ? (
-                      <>
-                        <b>{fmt(q.montant)} FCFA</b> {t("cherchés")} · <em className={styles.muet}>{t("aucune réponse encore")}</em>
-                      </>
-                    ) : (
-                      <>
-                        <b>{fmt(recu)} FCFA</b>{" "}
-                        {t("reçus sur {m} cherchés, de {n} réponse(s)", { m: fmt(q.montant), n: String(reponses.length) })}
-                      </>
-                    )}
-                  </p>
-                  <Statuer id={q.id} ref_={q.ref} reponses={reponses.length} />
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        {ouvertes.length === 0 ? <div className="empty">{t("Aucune question posée en ce moment.")}</div> : <Questions questions={ouvertes} />}
       </section>
 
       <section className={styles.bloc}>
@@ -199,87 +136,5 @@ export default async function SondageDeskPage() {
         <PoserUneQuestion />
       </section>
     </main>
-  );
-}
-
-/**
- * L'ÉCHELLE : OÙ LA DEMANDE S'ARRÊTE.
- *
- * C'est le renseignement que le Trésor achète, et la moyenne pondérée ne le
- * donne pas : « quatre cent vingt millions autour de 6,42 % » laisse croire
- * que tout tient à 6,42. L'échelle dit la vérité — à 6,10, deux cent
- * cinquante ; à 6,75, la totalité. C'est la même échelle que celle du sondage
- * d'une séance annoncée, et c'est la même fonction : voir « domain/survey ».
- */
-function Echelle({ c, t }: { c: ReturnType<typeof consensus>[number]; t: (s: string, v?: Record<string, string>) => string }) {
-  if (c.echelle.rows.length === 0) return null;
-  return (
-    <table className={styles.echelle}>
-      <thead>
-        <tr>
-          <th>{t("À ce taux ou mieux")}</th>
-          <th>{t("Demande tenue")}</th>
-          <th>{t("Clients")}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {c.echelle.rows.map((row) => (
-          <tr key={String(row.limit)}>
-            <td>{row.limit == null ? t("sans condition") : fmtPct(row.limit, 2)}</td>
-            <td className={styles.n}>{fmt(row.soft + row.firm)}</td>
-            <td className={styles.n}>{row.orders}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-/**
- * LE DÉTAIL, LIGNE PAR LIGNE, AVEC TOUTES LES CARACTÉRISTIQUES.
- *
- * Le dirigeant l'a demandé mot pour mot : « le desk recevra les lignes avec
- * toutes leurs caractéristiques ». Le consensus est ce qu'on porte ; ceci est
- * ce qu'on vérifie avant de le porter, et ce qu'on rappelle quand une séance
- * s'ouvre — c'est de là que viennent les coups de fil avant la clôture.
- */
-function Detail({ lignes, modifs, t }: { lignes: Awaited<ReturnType<ReturnType<typeof repo>["listLignesSondees"]>>; modifs: Map<string, { at: string; resume: string }>; t: (s: string, v?: Record<string, string>) => string }) {
-  if (lignes.length === 0) return null;
-  return (
-    <details className={styles.detail}>
-      <summary>{t("Les {n} demandes, une par une", { n: String(lignes.length) })}</summary>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>{t("Client")}</th>
-            <th>{t("Montant")}</th>
-            <th>{t("Coupon")}</th>
-            <th>{t("Prix")}</th>
-            <th>{t("Prêt le")}</th>
-            <th>{t("Référence")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {lignes.map((l) => (
-            <tr key={l.id}>
-              <td>
-                {l.clientName ?? "—"}
-                {modifs.get(l.id) && (
-                  <small className={styles.modifiee} title={modifs.get(l.id)!.resume}>
-                    {t("modifiée le {d}", { d: fmtDate(modifs.get(l.id)!.at.slice(0, 10), false) })}
-                    {modifs.get(l.id)!.resume ? ` · ${modifs.get(l.id)!.resume}` : ""}
-                  </small>
-                )}
-              </td>
-              <td className={styles.n}>{fmt(l.montant)}</td>
-              <td className={styles.n}>{l.rate != null ? fmtPct(l.rate, 2) : "—"}</td>
-              <td className={styles.n}>{l.pricePct != null ? `${l.pricePct.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} %` : motDuNiveau(l.instrument) === "taux" ? t("précompté") : "—"}</td>
-              <td>{prete(l) ? fmtDate(prete(l)!, false) : "—"}</td>
-              <td className="mono">{l.ref}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </details>
   );
 }

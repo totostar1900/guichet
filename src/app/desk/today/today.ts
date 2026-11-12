@@ -74,7 +74,7 @@ export async function todayTiles(t: (s: string, v?: Record<string, string>) => s
     value: `${featured.length}/3`,
     detail: closedFeatured ? t("{n} clôturée(s) à retirer", { n: String(closedFeatured) }) : featured.length ? t("sélection en place") : t("aucune ligne mise en avant"),
     tone: closedFeatured ? "warn" : featured.length ? "ok" : "quiet",
-    href: "/desk#une",
+    href: "/desk/a-la-une",
     action: closedFeatured ? t("retirer") : undefined,
   });
 

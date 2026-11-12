@@ -53,7 +53,7 @@ export const GUIDE: GuideSection[] = [
     purpose: "La page d'ouverture : ce qui clôture, ce qui attend, ce que les clients viennent de demander.",
     when: "Plusieurs fois par jour ; d'abord le matin, puis à chaque notification.",
     fields: [
-      { name: "À la une", what: "Les lignes mises en avant dans le Guichet (trois au plus), avec la raison neutre donnée et la date de fin.", how: "Choisir une ligne ouverte, écrire une raison factuelle (« clôture cette semaine », « nouvelle ligne »), fixer la fin ; retirer quand la raison ne tient plus. Une sélection n'est jamais un conseil." },
+      { name: "À la une (page à part)", what: "Les lignes mises en avant dans le Guichet (trois au plus), avec la raison neutre donnée et la date de fin. Elles ont leur page dans « La journée » : le Carnet ne garde que la tuile.", how: "Choisir une ligne ouverte, écrire une raison factuelle (« clôture cette semaine », « nouvelle ligne »), fixer la fin ; retirer quand la raison ne tient plus. Une sélection n'est jamais un conseil." },
       { name: "Prochaine clôture dans", what: "Le compte à rebours de la première ligne qui ferme.", how: "Si des prises fermes sont encore « reçues » à moins de deux heures, les confirmer ou appeler." },
       { name: "Prises fermes / Appétits à convertir", what: "Montants engagés (fermes) et montants pressentis (appétits) sur les lignes ouvertes.", how: "Les appétits se rappellent avant la clôture pour arrêter un montant." },
       { name: "Intentions non traitées", what: "Les demandes clients encore à l'état « reçue ».", how: "Objectif zéro à la clôture." },

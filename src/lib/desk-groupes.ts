@@ -19,6 +19,10 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/a-valider", "À valider"],
       ["/desk/approbations", "Approbations"],
       ["/desk/messages", "Messages"],
+      /* CE QUE LA MAISON MET DEVANT LES CLIENTS, à son tour dans la journée (12 novembre 2026, planche « Annonces », choix 1B) : les lignes « à la une », qui
+         vivaient dans un panneau du Carnet, et le sondage d'avant séance, qui vivait sous « Le marché ». Deux pages, aucune vue commune. */
+      ["/desk/a-la-une", "À la une"],
+      ["/desk/sondage", "Sondages"],
     ],
   },
   {
@@ -65,7 +69,6 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
          barre suit l'ordre du TRAVAIL, pas celui du temps. On lit les séances
          annoncées tous les jours ; on regarde ce que la place prendrait quand
          on prépare la suivante. Voir « domain/sondage ». */
-      ["/desk/sondage", "Sondage"],
       ["/desk/dette", "Dette des États"],
       /* Le stock, puis le FLUX qui le fabrique : les deux pages se lisent
          l'une après l'autre et se renvoient l'une à l'autre. Interne au

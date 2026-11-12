@@ -31,40 +31,12 @@
   color: var(--ink);
 }
 
-/* CE QUI EST MÛR prend le cadre doré : c'est la seule chose de la page qui
-   demande un geste aujourd'hui, et elle doit se voir d'un bout du bureau.
-
-   LE FOND DORÉ EST PARTI le 26 octobre 2026, sur la même demande que la page du
-   client : « moins chargé ». Un bloc entier teinté, avec dedans un titre doré,
-   un tableau et deux liens, ne met plus rien en avant — il déplace la question
-   « qu'est-ce qui compte ici ? » à l'intérieur du bloc. Le cadre suffit à
-   dire « celui-ci », et la phrase dorée à dire « ceci ». */
-.entete {
-  display: flex;
-  align-items: baseline;
-  gap: var(--s-4);
-  font-size: var(--t-5);
-  color: var(--ink);
-}
-.entete :global(.mono) {
-  margin-left: auto;
-  font-size: var(--t-2);
-  color: var(--ink-3);
-}
-/* LA PHRASE QU'ON PORTE AU TRÉSOR : c'est le livrable de cette page, donc
-   c'est la seule chose qui prend un degré de plus. */
-/* CE QUI POURRAIT VENIR EN PLUS, et jamais au même corps que ce qu'on porte :
-   la phrase du dessus est un engagement, celle-ci une possibilité. Les mettre
-   au même degré ferait lire la somme des deux. */
-
-.table,
-.echelle {
+.table {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--t-3);
 }
-.table th,
-.echelle th {
+.table th {
   text-align: left;
   padding: var(--s-3) var(--s-4);
   border-bottom: 1px solid var(--line-2);
@@ -73,12 +45,17 @@
   text-transform: uppercase;
   color: var(--ink-3);
   font-weight: 700;
+  white-space: nowrap;
 }
-.table td,
-.echelle td {
+.table th.n {
+  text-align: right;
+}
+.table td {
   padding: var(--s-3) var(--s-4);
   border-bottom: 1px solid var(--line);
   color: var(--ink-2);
+  vertical-align: top;
+  white-space: nowrap;
 }
 /* Les chiffres à chasse fixe et alignés à droite : c'est ce qui permet de les
    comparer d'un coup d'œil colonne par colonne. */
@@ -87,51 +64,9 @@
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
-.echelle {
-  background: var(--surface);
-}
-.detail summary {
-  cursor: pointer;
-  font-size: var(--t-3);
-  color: var(--ink-3);
-}
-.detail[open] summary {
-  margin-bottom: var(--s-4);
-}
 
-.questions {
-  display: grid;
-  gap: var(--s-5);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--t-4);
-  color: var(--ink-2);
-}
-.questions li {
-  display: grid;
-  gap: var(--s-4);
-  padding-bottom: var(--s-6);
-  border-bottom: 1px solid var(--line);
-}
-.questions .ref {
-  margin-left: auto;
-  font-size: var(--t-1);
-  color: var(--ink-3);
-}
 /* LES FAITS EN UNE PHRASE, comme sur la page du client : le montant porte le
    degré du chiffre, le reste suit en encre atténuée. */
-.faits {
-  margin: 0;
-  color: var(--ink-3);
-  font-size: var(--t-3);
-}
-.faits b {
-  color: var(--ink);
-  font-size: var(--t-5);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
 .muet {
   font-style: normal;
   color: var(--ink-3);
@@ -201,4 +136,123 @@
   font-size: var(--t-1);
   font-weight: 600;
   color: var(--gold-ink);
+}
+
+/* ── Le tableau de ce qui s'accumule, et son volet de détail (12 novembre 2026, choix 2A) ── */
+.titreRang {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+}
+.defile {
+  overflow-x: auto;
+}
+.accumulation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-7);
+  align-items: start;
+}
+/* Le volet est à droite du tableau quand la place le permet (écran très large), dessous sinon : neuf colonnes ne tiennent pas à côté d'un volet à 1440 px. */
+@media (min-width: 1760px) {
+  .accumulation {
+    grid-template-columns: minmax(0, 1fr) 26rem;
+  }
+}
+.choisie {
+  background: var(--surface-2);
+}
+.ligneBtn {
+  font: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 3px;
+}
+.pilDesk,
+.pilClients {
+  display: inline-block;
+  font-size: var(--t-1);
+  font-weight: 700;
+  padding: 1px var(--s-4);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.pilDesk {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.pilClients {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.refPetite {
+  display: block;
+  color: var(--ink-3);
+}
+.volet {
+  display: grid;
+  gap: var(--s-5);
+  padding: var(--s-6);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  min-width: 0;
+}
+.volet h3,
+.volet h4 {
+  margin: 0;
+}
+.volet h4 {
+  font-size: var(--t-2);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+}
+.kv {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-2) var(--s-5);
+  margin: 0;
+  font-size: var(--t-3);
+}
+.kv dt {
+  color: var(--ink-3);
+}
+.kv dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.barres {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-3);
+}
+.barres li {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-4);
+  font-size: var(--t-2);
+  font-variant-numeric: tabular-nums;
+}
+.barres i {
+  display: block;
+  height: 10px;
+  background: var(--gold);
+  border-radius: 2px;
+}
+.exporter {
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  text-decoration: underline;
+  width: fit-content;
 }

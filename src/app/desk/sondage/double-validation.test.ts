@@ -35,8 +35,7 @@ describe("le sondage du desk : deux temps pour poser et pour clore", () => {
   });
 
   it("une demande qui a franchi le seuil ne disparaît pas : la table de ce qui s'accumule les montre toutes, avec le seuil", () => {
-    const page = lire("page.tsx");
-    expect(page).toMatch(/\{groupes\.map\(\(c\) => \(/);
-    expect(page).toMatch(/mur\(c\) \? t\("atteint"\) : t\("sous le seuil"\)/);
+    expect(lire("page.tsx")).toMatch(/groupes\.map\(\(c\) => \{[\s\S]*?mur\(c\)/);
+    expect(lire("Accumulation.tsx")).toMatch(/x\.atteint \? t\("atteint"\) : t\("sous le seuil"\)/);
   });
 });

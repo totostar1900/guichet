@@ -16,13 +16,11 @@ import type { Intent, Offer } from "@/lib/domain/types";
 import { parseDate } from "@/lib/finance";
 import { fmt, fmtDateTime, fmtMillions, fmtPct, fmtPrice, fmtTime } from "@/lib/format";
 import { DeskLive } from "@/components/DeskLive";
-import { FeaturePanel } from "./featured/FeaturePanel";
 import { TodayPanel, type Tile } from "./today/TodayPanel";
 import { todayTiles } from "./today/today";
 import { LineIdentity } from "@/components/LineIdentity";
 import { summarize } from "@/lib/domain/summary";
 import { comptesDemo, ordreDeDemo } from "@/lib/domain/demo";
-import { cohortesDeTous } from "@/lib/desk/cohortes-data";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -60,9 +58,6 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
      de le traiter, ce qui est la seule raison de garder ces comptes. Il porte
      sa marque, et le compte des intentions dit sa part. */
   const demo = comptesDemo(contacts);
-  /* Les cohortes se comptent ici pour le choix du segment : écrire aux
-     « Fidèles » sans savoir combien ils sont, c est écrire à l aveugle. */
-  const cohortes = await cohortesDeTous().catch(() => ({ comptes: {}, parClient: new Map(), bareme: 0 }));
   const deDemo = intents.filter((i) => ordreDeDemo(demo, i.clientId)).length;
   const now = new Date();
   const byId = new Map(offers.map((o) => [o.id, o]));
@@ -231,12 +226,6 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
     );
   const lines = [...new Set(intents.map((i) => i.offerId))].map((id) => ({ value: id, label: byId.get(id)?.title ?? id })).sort((a, b) => a.label.localeCompare(b.label, "fr"));
 
-  // À la une: what is featured now, and which lines could be (open or quoted, not hidden).
-  const today = now.toISOString().slice(0, 10);
-  const featRow = (o: Offer) => ({ id: o.id, title: o.title, hero: summarize(o, now, { fine: true }).hero, deadline: o.kind === "MARCHE" || o.kind === "FONDS" ? undefined : o.deadlineAt.slice(0, 10), featured: o.featured });
-  const featActive = offers.filter((o) => o.featured && o.featured.until >= today).map((o) => ({ ...featRow(o), closed: !isActionable(displayStatus(o, now)) }));
-  const featCandidates = offers.filter((o) => !o.hidden && !(o.featured && o.featured.until >= today) && isActionable(displayStatus(o, now))).map(featRow);
-
   const today_ = await todayTiles(t, now, offers);
 
   const notifStatus: Record<string, [string, string]> = { sent: ["confirmee", "Envoyé"], skipped: ["recue", "Préparé"], failed: ["annulee", "Échec"], queued: ["info", "En file"] };
@@ -261,7 +250,6 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
         label={t("Le carnet")}
         sections={[
           { id: "aujourdhui", title: t("Aujourd'hui") },
-          { id: "une", title: t("À la une") },
           { id: "intentions", title: t("Intentions reçues") },
           { id: "offres", title: t("Carnet d'appétits") },
           { id: "diffusion", title: t("Diffusion") },
@@ -279,9 +267,6 @@ export default async function DeskPage({ searchParams }: { searchParams: Promise
             doublon disparaît de ce côté-ci : c'est « Aujourd'hui » qui le
             portait déjà. */}
         <TodayPanel tiles={[...today_.tiles, ...kpis]} bulletin={today_.bulletin} today={today_.today} />
-
-        <div id="une" />
-        <FeaturePanel active={featActive} candidates={featCandidates} comptes={cohortes.comptes} />
 
         <div className="panel" id="intentions" data-coach="intents">
           <div className="panel-h">

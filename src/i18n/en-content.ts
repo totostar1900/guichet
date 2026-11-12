@@ -186,7 +186,8 @@ export const EN_CONTENT: Record<string, string> = {
   "Brut : avant retenue à la source et avant frais éventuels.": "Gross: before withholding tax and before any fees.",
 
   /* ---------- guide: fields ---------- */
-  "Les lignes mises en avant dans le Guichet (trois au plus), avec la raison neutre donnée et la date de fin.": "The lines featured in Guichet (three at most), with the neutral reason given and the end date.",
+  "Les lignes mises en avant dans le Guichet (trois au plus), avec la raison neutre donnée et la date de fin. Elles ont leur page dans « La journée » : le Carnet ne garde que la tuile.": "The lines featured in Guichet (three at most), with the neutral reason given and the end date. They have their own page under “The day”: the Carnet keeps only the tile.",
+  "À la une (page à part)": "Featured (own page)",
   "Choisir une ligne ouverte, écrire une raison factuelle (« clôture cette semaine », « nouvelle ligne »), fixer la fin ; retirer quand la raison ne tient plus. Une sélection n'est jamais un conseil.": "Pick an open line, write a factual reason (“closes this week”, “new line”), set the end; remove it when the reason no longer holds. A selection is never advice.",
   "Le compte à rebours de la première ligne qui ferme.": "The countdown of the first line to close.",
   "Si des prises fermes sont encore « reçues » à moins de deux heures, les confirmer ou appeler.": "If firm orders are still “received” under two hours before, confirm them or call.",

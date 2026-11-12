@@ -166,6 +166,7 @@ export const EN_CONSOLE: Record<string, string> = {
      étaient déjà traduits ailleurs, et un doublon se contredit un jour. */
   "Adjudications et émissions": "Auctions and new issues",
   "Sondage": "Survey",
+  "Sondages": "Surveys",
   "Arbitrage": "Arbitrage",
   /* Deux noms raccourcis pour la même raison que les quatre autres : un
      en-tête doublé de taille veut un nom court, et « Réinvestissement » a
