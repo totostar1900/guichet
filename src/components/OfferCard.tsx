@@ -87,15 +87,15 @@ function Montant({ etiquette, n }: { etiquette: string; n: string }) {
  * Aucune application de référence ne met le rendement d'un dividende en gros sur une action : le prix domine, la variation est son satellite (couleur,
  * flèche, PÉRIODE ÉCRITE), le dividende est une case de la grille. Les obligations, bons, fonds et adjudications gardent leur chiffre en avant.
  */
-function Variation({ pct, court = false }: { pct: number; court?: boolean }) {
+function Variation({ pct, court = false, grande = false }: { pct: number; court?: boolean; /** Le chiffre de tête de la carte d'une action (12 novembre 2026) : la variation passe devant le cours. */ grande?: boolean }) {
   const t = useT();
   const sens = pct > 0.05 ? "hausse" : pct < -0.05 ? "baisse" : "";
   const flèche = sens === "hausse" ? "▲ " : sens === "baisse" ? "▼ " : "";
   const signe = sens === "hausse" ? "+" : sens === "baisse" ? "−" : "";
   return (
-    <span className={styles.variation}>
+    <span className={`${styles.variation} ${grande ? styles.variationGrande : ""}`}>
       <em className={`${styles.variationNb} ${sens === "hausse" ? styles.hausseC : sens === "baisse" ? styles.baisseC : ""}`}>
-        {flèche}
+        {flèche && <i className={styles.fleche}>{flèche}</i>}
         {signe}
         {Math.abs(pct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
       </em>
@@ -179,11 +179,21 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false, sans
           {estAction && prix ? (
             <div className={styles.bigAction} data-coach="titres-prix">
               <div className={styles.prixCol}>
-                <b className={styles.prix}>
-                  {prix.nombre}
-                  {prix.unite && <i className={styles.fcfa}>FCFA</i>}
-                </b>
-                {courbe && <Variation pct={courbe.variationPct} />}
+                {courbe ? (
+                  /* LA VARIATION EN TÊTE, LE COURS DESSOUS (12 novembre 2026). Sans variation connue, le cours reste en tête : un « 0 % » inventé ne remplace rien. */
+                  <>
+                    <Variation pct={courbe.variationPct} grande />
+                    <small className={styles.coursSous}>
+                      {t("cours")} {prix.nombre}
+                      {prix.unite && <i className={styles.fcfa}>FCFA</i>}
+                    </small>
+                  </>
+                ) : (
+                  <b className={styles.prix}>
+                    {prix.nombre}
+                    {prix.unite && <i className={styles.fcfa}>FCFA</i>}
+                  </b>
+                )}
               </div>
               {courbe && (
                 <span className={styles.courbe}>
@@ -316,17 +326,24 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false, sans
             {courbe && <MiniCourbe serie={courbe.serie} largeur={76} hauteur={28} />}
             <span className={styles.cNum} data-coach="titres-chiffre">
               {estAction && prix ? (
-                <>
+                courbe ? (
+                  /* LA VARIATION EN TÊTE, LE COURS DESSOUS, comme sur la carte détaillée. */
+                  <>
+                    <b className={courbe.variationPct > 0.05 ? styles.hausseC : courbe.variationPct < -0.05 ? styles.baisseC : undefined}>
+                      {courbe.variationPct > 0.05 ? "▲ +" : courbe.variationPct < -0.05 ? "▼ −" : ""}
+                      {Math.abs(courbe.variationPct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
+                    </b>
+                    <small>
+                      {t("3 mois")} · {prix.nombre}
+                      {prix.unite && <i className={styles.fcfa}>FCFA</i>}
+                    </small>
+                  </>
+                ) : (
                   <b>
                     {prix.nombre}
                     {prix.unite && <i className={styles.fcfa}>FCFA</i>}
                   </b>
-                  {courbe && (
-                    <small>
-                      <Variation pct={courbe.variationPct} court />
-                    </small>
-                  )}
-                </>
+                )
               ) : (
                 <>
               <b className={s.gold ? styles.taux : ""}>{s.hero}</b>

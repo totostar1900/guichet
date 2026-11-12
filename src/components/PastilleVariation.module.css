@@ -31,3 +31,12 @@
   font-weight: 500;
   opacity: 0.75;
 }
+
+/* LE CHIFFRE DE TÊTE D'UNE ACTION (12 novembre 2026) : la variation prend la taille qu'avait le cours ; la période reste petite à côté. */
+.grande {
+  font-size: var(--t-5);
+  line-height: 1.2;
+}
+.grande .periode {
+  font-size: var(--t-2);
+}

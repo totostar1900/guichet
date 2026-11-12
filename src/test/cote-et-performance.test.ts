@@ -274,13 +274,18 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     expect(lire("src/components/mobile/BarreDuHaut.tsx"), "« Nous contacter » a quitté le menu").toMatch(/href="\/moi\/contact"[^>]*>\s*<Trace d=\{ICONE\.contact\}/);
   });
 
-  it("le prix d'une action est en avant avec sa variation sur trois mois, la période écrite ; avertissement et risques ; titre sans « action cotée »", () => {
+  /* RENVERSÉ LE 12 NOVEMBRE 2026, à la demande du client : la variation est le chiffre de tête d'une action, le cours passe dessous. Le 6 novembre, la planche avait tranché l'inverse (les références mettent le prix en avant) ; le client a choisi, et l'on suit. Sans variation connue, le cours garde la tête. */
+  it("la variation d'une action est en tête avec sa période écrite, le cours dessous ; avertissement et risques ; titre sans « action cotée »", () => {
     const oc = lire("src/components/OfferCard.tsx");
     expect(oc, "la variation n'écrit plus sa période").toMatch(/\{court \? t\("3 mois"\) : t\("sur 3 mois"\)\}/);
-    expect(oc, "la carte détaillée d'une action n'a plus le prix en avant").toMatch(/estAction && prix \? \(\s*<div className=\{styles\.bigAction\}[^>]*>/);
+    expect(oc, "la carte détaillée d'une action n'a plus sa variation en tête").toMatch(/estAction && prix \? \(\s*<div className=\{styles\.bigAction\}[^>]*>/);
+    expect(oc, "la variation n'est plus le chiffre de tête de la carte détaillée").toMatch(/<Variation pct=\{courbe\.variationPct\} grande \/>/);
+    expect(oc, "le cours ne passe plus dessous la variation").toMatch(/<small className=\{styles\.coursSous\}>/);
+    expect(oc, "sans variation connue, le cours doit garder la tête de la carte").toMatch(/\) : \(\s*<b className=\{styles\.prix\}>/);
     expect(oc, "la grille d'une action redit de nouveau le cours ou le ticket").toMatch(/const faitsAction = /);
     expect(oc, "le ticket redit de nouveau le prix dans la grille d'une action").toMatch(/ticket && ticket\[1\] !== cours\?\.\[1\]/);
-    expect(oc, "la tuile compacte d'une action n'a plus le prix en avant").toMatch(/estAction && prix \? \(\s*<>\s*<b>\s*\{prix\.nombre\}/);
+    expect(oc, "la tuile compacte d'une action n'a plus sa variation en tête").toMatch(/estAction && prix \? \(\s*courbe \? \(/);
+    expect(oc, "la tuile compacte ne dit plus le cours dessous la variation").toMatch(/\{t\("3 mois"\)\} · \{prix\.nombre\}/);
     const css = lire("src/components/OfferCard.module.css");
     expect(css, "le prix d'une action n'est plus à l'encre").toMatch(/\.prix \{[^}]*color: var\(--ink\)/);
     expect(lire("src/lib/domain/carte-compacte.ts"), "le titre porte de nouveau « action cotée »").toMatch(/replace\(\/\\s\*:\\s\*action cotée\\s\*\$\/i, ""\)/);

@@ -48,14 +48,27 @@ export async function LignesSimilaires({ o }: { o: Offer }) {
               <li key={l.id}>
                 <Link href={l.href} className={cartes.carte}>
                   <b className={cartes.nom}>{l.nom}</b>
-                  <span className={cartes.chiffre}>
-                    {l.cours ? l.cours.texte : l.valeur}
-                    {l.cours?.unite && <i>{l.cours.unite}</i>}
-                  </span>
+                  {l.variationEnTete && l.variation ? (
+                    <span className={cartes.chiffre}>
+                      <PastilleVariation grande v={l.variation.v} titre={l.variation.titre} periode={l.variation.periode} />
+                    </span>
+                  ) : (
+                    <span className={cartes.chiffre}>
+                      {l.cours ? l.cours.texte : l.valeur}
+                      {l.cours?.unite && <i>{l.cours.unite}</i>}
+                    </span>
+                  )}
                   {/* LE LIBELLÉ DU CHIFFRE d'une séance (« si servi à 94 % ») : sans lui, 11,26 % ne dit pas de quoi il est le rendement. Les cartes d'une action ou d'un fonds n'en portent pas. */}
                   {seance && l.libelle && <span className={cartes.libelle}>{l.libelle}</span>}
                   <span className={cartes.perf}>
-                    {l.variation && <PastilleVariation v={l.variation.v} titre={l.variation.titre} periode={l.variation.periode} />}
+                    {l.variationEnTete && l.cours ? (
+                      <span className={cartes.libelle}>
+                        {l.cours.texte}
+                        {l.cours.unite && ` ${l.cours.unite}`}
+                      </span>
+                    ) : (
+                      l.variation && <PastilleVariation v={l.variation.v} titre={l.variation.titre} periode={l.variation.periode} />
+                    )}
                     {l.etat && <PastilleEtat ton={l.etat.ton}>{l.etat.texte}</PastilleEtat>}
                   </span>
                 </Link>

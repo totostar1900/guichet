@@ -114,4 +114,14 @@ export const EN_TRADE: Record<string, string> = {
   "Un repère simple : n'investissez que ce que vous pouvez conserver, et répartissez entre plusieurs sociétés.": "A simple rule of thumb: only invest what you can keep invested, and spread it across several companies.",
   "Tout savoir sur les risques et les limites": "Everything about the risks and limits",
   "Les variations de cours sont des performances passées, mesurées sur trois mois et hors dividendes : elles ne préjugent pas des performances futures. Un cours reste inchangé quand une ligne n'est pas échangée : la carte dit depuis quand.": "Price changes are past performance, measured over three months and excluding dividends: they do not predict future performance. A price stays unchanged when a line does not trade: the card says since when.",
+  "Actions et obligations cotées : deux lectures": "Listed shares and bonds: two ways to read them",
+  "Une action.": "A share.",
+  "Vous détenez une part d'une société. Son cours est en FCFA ; le chiffre de tête est la variation du cours, le cours est dessous. Le rendement est le dividende de la dernière année rapporté au cours : il dépend des résultats et se vote chaque année. Il n'y a pas d'échéance.":
+    "You hold a share of a company. Its price is in FCFA; the headline figure is the change in the price, with the price underneath. The yield is the last year's dividend divided by the price: it depends on results and is voted every year. There is no maturity date.",
+  "Une obligation cotée.": "A listed bond.",
+  "Vous prêtez à un émetteur, qui verse un coupon et rembourse le nominal à l'échéance. Son cours est en pourcentage du nominal : 100 % veut dire « au pair ». Le rendement est le taux actuariel, ce que vous gagnez au cours du jour si vous la gardez jusqu'à l'échéance, coupons compris : il diffère du coupon dès que le cours n'est pas à 100 %. La variation du cours compte moins, puisque le prix se rapproche de 100 % à mesure que l'échéance approche.":
+    "You lend to an issuer, who pays a coupon and repays the nominal at maturity. Its price is a percentage of the nominal: 100 % means “at par”. The yield is the yield to maturity, what you earn at today's price if you hold it to maturity, coupons included: it differs from the coupon as soon as the price is not 100 %. The change in price matters less, since the price moves towards 100 % as maturity approaches.",
+  "Pas de rendement affiché ?": "No yield shown?",
+  "Une action sans dividende connu, une obligation déjà remboursée, ou dont on ne connaît que l'année d'échéance et qui arrive à terme dans l'année : le chiffre serait faux, alors la ligne n'en montre pas.":
+    "A share with no known dividend, a bond already repaid, or one whose maturity is known only by year and falls due within the year: the figure would be wrong, so the line shows none.",
 };

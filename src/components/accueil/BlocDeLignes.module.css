@@ -116,3 +116,8 @@
   color: var(--ink-3);
   margin-left: 3px;
 }
+
+/* Le cours d'une action, dessous sa variation : lisible, mais ce n'est plus lui qu'on lit d'abord. */
+.coursSous {
+  font-variant-numeric: tabular-nums;
+}

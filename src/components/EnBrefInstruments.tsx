@@ -38,6 +38,21 @@ function VariationEtRisques() {
   const t = useT();
   return (
     <>
+      {/* ACTION ET OBLIGATION COTÉE NE SE LISENT PAS PAREIL (12 novembre 2026) : deux objets sur la même liste, deux chiffres qui ne veulent pas dire la même chose. Le dernier point dit pourquoi une ligne peut n'avoir aucun rendement : on n'écrit pas un chiffre faux. */}
+      <section className={styles.ajout}>
+        <h3>{t("Actions et obligations cotées : deux lectures")}</h3>
+        <ul>
+          <li>
+            <b>{t("Une action.")}</b> {t("Vous détenez une part d'une société. Son cours est en FCFA ; le chiffre de tête est la variation du cours, le cours est dessous. Le rendement est le dividende de la dernière année rapporté au cours : il dépend des résultats et se vote chaque année. Il n'y a pas d'échéance.")}
+          </li>
+          <li>
+            <b>{t("Une obligation cotée.")}</b> {t("Vous prêtez à un émetteur, qui verse un coupon et rembourse le nominal à l'échéance. Son cours est en pourcentage du nominal : 100 % veut dire « au pair ». Le rendement est le taux actuariel, ce que vous gagnez au cours du jour si vous la gardez jusqu'à l'échéance, coupons compris : il diffère du coupon dès que le cours n'est pas à 100 %. La variation du cours compte moins, puisque le prix se rapproche de 100 % à mesure que l'échéance approche.")}
+          </li>
+          <li>
+            <b>{t("Pas de rendement affiché ?")}</b> {t("Une action sans dividende connu, une obligation déjà remboursée, ou dont on ne connaît que l'année d'échéance et qui arrive à terme dans l'année : le chiffre serait faux, alors la ligne n'en montre pas.")}
+          </li>
+        </ul>
+      </section>
       <section className={styles.ajout}>
         <h3>{t("Comment lire la variation")}</h3>
         <p>{t("La variation d'une action est celle de son cours sur trois mois, hors dividendes. Elle décrit le passé : elle ne préjuge pas des performances futures.")}</p>

@@ -66,9 +66,21 @@ export async function SelectionDuDesk({ offres, sobre = false }: { /** Le titre 
                 <small>{t(s.subtitle)}</small>
               </span>
               <span className={styles.chiffre}>
-                <b>{s.hero}</b>
-                {s.heroUnit ? <small>{t(s.heroUnit)}</small> : null}
-                {sobre && <PastilleVariation v={variationAffichee(o, actions, t)?.v} titre={variationAffichee(o, actions, t)?.titre} periode={variationAffichee(o, actions, t)?.periode} />}
+                {sobre && o.instrument === "action" && variationAffichee(o, actions, t) ? (
+                  /* UNE ACTION : LA VARIATION EN TÊTE (12 novembre 2026), son rendement dessous. */
+                  <>
+                    <PastilleVariation grande v={variationAffichee(o, actions, t)?.v} titre={variationAffichee(o, actions, t)?.titre} periode={variationAffichee(o, actions, t)?.periode} />
+                    <small>
+                      {s.hero} {s.heroUnit ? t(s.heroUnit) : ""}
+                    </small>
+                  </>
+                ) : (
+                  <>
+                    <b>{s.hero}</b>
+                    {s.heroUnit ? <small>{t(s.heroUnit)}</small> : null}
+                    {sobre && <PastilleVariation v={variationAffichee(o, actions, t)?.v} titre={variationAffichee(o, actions, t)?.titre} periode={variationAffichee(o, actions, t)?.periode} />}
+                  </>
+                )}
               </span>
               <span className={styles.motif}>{t(o.featured!.reason)}</span>
               <span className={styles.quand}>{t(s.status)}</span>

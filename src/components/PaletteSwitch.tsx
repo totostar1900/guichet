@@ -61,20 +61,16 @@ export function PaletteSwitch({ lang }: { lang: "fr" | "en" }) {
   const [palette, theme] = useSyncExternalStore(subscribe, read, () => "navy|auto").split("|");
   return (
     <div className={styles.wrap}>
-      <div className={styles.row} role="group" aria-label={t("Palette")}>
+      {/* LES PALETTES SE LISENT COMME LES THÈMES (12 novembre 2026) : une liste de noms, la même forme que « auto · clair · tamisé · sombre ». Les petites pages de couleur sont retirées : un nom dit la palette, et le choix se voit dès qu'on le touche. */}
+      <small className={styles.etiq}>{t("Palette")}</small>
+      <div className={styles.seg} role="group" aria-label={t("Palette")}>
         {PALETTES.map((p) => (
-          <button key={p.key} type="button" className={`${styles.swatch} ${palette === p.key ? styles.on : ""}`} aria-pressed={palette === p.key} onClick={() => apply(p.key, theme)} title={p[lang]}>
-            {/* a tiny page: its paper, its header band, a gold mark and two lines of its ink; four palettes, four different pages */}
-            <i style={{ background: p.paper, borderColor: palette === p.key ? undefined : p.line }}>
-              <b style={{ background: p.a }} />
-              <em style={{ background: p.b }} />
-              <s style={{ background: p.ink }} />
-              <s style={{ background: p.ink, width: "60%" }} />
-            </i>
-            <small>{p[lang]}</small>
+          <button key={p.key} type="button" className={palette === p.key ? styles.segOn : ""} aria-pressed={palette === p.key} onClick={() => apply(p.key, theme)}>
+            {p[lang]}
           </button>
         ))}
       </div>
+      <small className={styles.etiq}>{t("Thème")}</small>
       <div className={styles.seg} role="group" aria-label={t("Thème")}>
         {THEMES.map((k) => (
           <button key={k} type="button" className={theme === k ? styles.segOn : ""} aria-pressed={theme === k} onClick={() => apply(palette, k)}>

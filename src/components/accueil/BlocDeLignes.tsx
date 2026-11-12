@@ -40,6 +40,8 @@ export interface LigneDeBloc {
   cours?: { texte: string; unite?: string };
   revenus?: { etiquette: string; texte: string; unite?: string }[];
   variation?: { v: number; titre: string; periode?: string };
+  /** Une action dont la variation est connue : elle est le chiffre de tête et le cours passe dessous (12 novembre 2026). Sans variation, le cours reste en tête : un « 0 % » inventé ne remplace rien. */
+  variationEnTete?: boolean;
   etat?: { texte: string; ton: TonDEtat };
 }
 
@@ -56,7 +58,10 @@ export async function lignesDeBloc(offres: Offer[], mode: "cote" | "fonds" | "ad
       return { ...base, etat: { texte: t(q.key, q.params), ton: j <= 7 ? "attention" : "neutre" } };
     }
     if (mode === "prevues") return { ...base, etat: { texte: t("ouvre le {d}", { d: fmtDate(o.opensAt.slice(0, 10), false) }), ton: "neutre" } };
-    if (mode === "cote") return { ...base, ...coursEtRevenus(o, s.hero, t), variation: variationAffichee(o, actions, t) };
+    if (mode === "cote") {
+      const variation = variationAffichee(o, actions, t);
+      return { ...base, ...coursEtRevenus(o, s.hero, t), variation, variationEnTete: Boolean(variation) && o.instrument === "action" };
+    }
     return { ...base, variation: variationAffichee(o, actions, t) };
   });
 }
@@ -86,16 +91,28 @@ export async function BlocDeLignes({ id, titre, href, tout, lignes, plat = false
                 {l.meta && <small>{l.meta}</small>}
               </span>
               <span className={styles.quoi}>
-                {l.cours ? (
-                  <b className={styles.cours}>
-                    {l.cours.texte}
-                    {l.cours.unite && <i className={styles.unite}>{l.cours.unite}</i>}
-                  </b>
+                {l.variationEnTete && l.variation && l.cours ? (
+                  <>
+                    <PastilleVariation grande v={l.variation.v} titre={l.variation.titre} periode={l.variation.periode} />
+                    <small className={styles.coursSous}>
+                      {l.cours.texte}
+                      {l.cours.unite && <i className={styles.unite}>{l.cours.unite}</i>}
+                    </small>
+                  </>
                 ) : (
-                  <b>{l.valeur}</b>
+                  <>
+                    {l.cours ? (
+                      <b className={styles.cours}>
+                        {l.cours.texte}
+                        {l.cours.unite && <i className={styles.unite}>{l.cours.unite}</i>}
+                      </b>
+                    ) : (
+                      <b>{l.valeur}</b>
+                    )}
+                    {!l.cours && l.libelle && <small>{l.libelle}</small>}
+                    {l.variation && <PastilleVariation v={l.variation.v} titre={l.variation.titre} periode={l.variation.periode} />}
+                  </>
                 )}
-                {!l.cours && l.libelle && <small>{l.libelle}</small>}
-                {l.variation && <PastilleVariation v={l.variation.v} titre={l.variation.titre} periode={l.variation.periode} />}
                 {l.etat && <PastilleEtat ton={l.etat.ton}>{l.etat.texte}</PastilleEtat>}
                 {l.revenus?.map((r) => (
                   <small key={r.etiquette} className={styles.revenu}>

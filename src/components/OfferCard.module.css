@@ -560,3 +560,32 @@
   font-size: var(--t-4);
   font-variant-numeric: tabular-nums;
 }
+
+/* LA VARIATION EN TÊTE D'UNE ACTION (12 novembre 2026) : elle prend la taille qu'avait le cours ; le cours passe dessous, en petit. */
+.variationGrande {
+  display: grid;
+  gap: var(--s-2);
+  font-size: 0.82rem;
+}
+.variationGrande .variationNb {
+  font-size: 1.75rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.coursSous {
+  font-size: 0.82rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+/* La couleur du sens l'emporte sur l'encre du chiffre (la règle « .variationNb » venait après « .hausseC » et la couvrait), et la flèche reste un repère, pas un pictogramme. */
+.variationNb.hausseC {
+  color: var(--good);
+}
+.variationNb.baisseC {
+  color: var(--crit);
+}
+.fleche {
+  font-style: normal;
+  font-size: 0.5em;
+  vertical-align: 0.28em;
+}
