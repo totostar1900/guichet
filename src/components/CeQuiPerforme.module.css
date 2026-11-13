@@ -103,13 +103,14 @@
   gap: var(--s-2);
 }
 .cours {
-  font-weight: 600;
-  font-size: var(--t-4);
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 .pilule {
   flex: none;
-  font-size: var(--t-1);
+  font-size: var(--t-4);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   border-radius: 999px;

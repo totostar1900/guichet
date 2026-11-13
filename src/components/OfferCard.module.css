@@ -304,7 +304,8 @@
      SOUS lui, et les outils finissaient à 4, donc sous l'autre. L'écart
      n'était pas petit, il était négatif. Seize de chevron plus huit d'air :
      la colonne voisine commence franchement après. */
-  padding: 8px 24px;
+  /* LES « ··· » SUR LA MARGE DE DROITE DES AUTRES TUILES (13 novembre 2026, 2A) : leur colonne de 34 px entre de 16 dans le gabarit, le glyphe tombe à 17 px du bord comme la pastille de « Ce qui performe ». L'air de 16 px entre le chiffre et les « ··· » reste : on ne touche pas le menu en lisant. */
+  padding: 8px 8px 8px 24px;
   border-radius: 10px;
 }
 .cLink {

@@ -63,6 +63,15 @@ describe("ce qui performe, à l'écran", () => {
     expect(code(SECTION), "la fenêtre n'est plus dite sur trois mois").toContain("sur trois mois");
   });
 
+  /* LA VARIATION EN TÊTE, LE COURS DESSOUS (13 novembre 2026), comme les actions des Titres. */
+  it("met la variation avant le cours, comme les titres, et le cours en second", () => {
+    const src = code(SENS);
+    expect(src.indexOf("styles.pilule"), "la variation n'est plus avant le cours").toBeLessThan(src.indexOf("<small className={styles.cours}>"));
+    const css = lire("src/components/CeQuiPerforme.module.css");
+    expect(css.match(/\.pilule\s*\{([^}]*)\}/)?.[1] ?? "", "la variation n'est plus le grand chiffre").toMatch(/font-size:\s*var\(--t-4\)/);
+    expect(css.match(/\.cours\s*\{([^}]*)\}/)?.[1] ?? "", "le cours est redevenu le grand chiffre").toMatch(/font-size:\s*var\(--t-1\)/);
+  });
+
   /* L'ÉTAT NON CHOISI GARDE SON CONTOUR, et les deux onglets se disent à qui
      écoute la page : un segmenté qui ne se distingue que par un remplissage
      disparaît pour qui ne voit pas la teinte. */

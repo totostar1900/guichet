@@ -79,7 +79,8 @@
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 8px 24px;
+  /* « ··· » sur la marge de droite des autres tuiles (13 novembre 2026), comme la carte d'un titre. */
+  padding: 8px 8px 8px 24px;
 }
 .cLien {
   flex: 1 1 auto;

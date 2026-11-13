@@ -47,6 +47,11 @@ describe("les en-têtes de l'Accueil", () => {
     expect(c).not.toMatch(/\.sobre \{[^}]*background/);
   });
 
+  it("les « ··· » d'une tuile Titres ou Fonds tombent sur la marge de droite des autres tuiles", () => {
+    expect(css("src/components/OfferCard.module.css"), "la tuile d'un titre reprend 24 px à droite").toMatch(/\.compact \{[^}]*padding: 8px 8px 8px 24px/);
+    expect(css("src/app/fonds/FundCard.module.css"), "la tuile d'un fonds reprend 24 px à droite").toMatch(/\.compacte \{[^}]*padding: 8px 8px 8px 24px/);
+  });
+
   it("la fiche garde son titre à plat, et « À la une » et « Ce qui performe » lisent le même composant", () => {
     expect(lire("src/components/accueil/BlocDeLignes.tsx")).toMatch(/const enBandeau = !fort && !plat;/);
     expect(lire("src/components/CeQuiPerforme.tsx")).toMatch(/<TitreDeBloc id="ce-qui-performe"/);

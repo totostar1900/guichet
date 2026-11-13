@@ -309,7 +309,7 @@ describe("la carte compacte d'un fonds", () => {
     expect(CARTE_CSS, "les outils ne doivent plus être tirés vers le contenu par une marge négative").not.toMatch(/\.cOutils \{[^}]*margin-right: calc\(-1/);
     /* VINGT-QUATRE DE CHAQUE CÔTÉ, pour que les chevrons du glissement aient
        leur voie : un chevron tient de 2 à 16 px du bord. Même marge que la carte d'un titre (9 novembre 2026) : les « ··· » tombent au même endroit sur les trois pages. */
-    expect(CARTE_CSS, "la voie du chevron est reprise par le texte").toMatch(/\.compacte \{[^}]*padding: 8px 24px;/);
+    expect(CARTE_CSS, "la voie du chevron est reprise par le texte").toMatch(/\.compacte \{[^}]*padding: 8px 8px 8px 24px;/);
     expect(CARTE_CSS, "la performance n'est plus calée à droite : les chiffres ne font plus une colonne").toMatch(/\.cPerf \{[^}]*text-align: right;/);
   });
 

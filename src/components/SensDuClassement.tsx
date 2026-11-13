@@ -62,13 +62,16 @@ export function SensDuClassement({ lignes, max = 3 }: { lignes: (Performance & {
                 </span>
                 <MiniCourbe serie={l.serie} />
                 <span className={styles.px}>
-                  <b className={styles.cours}>{fmt(Math.round(l.cours))}</b>
+                  {/* LA VARIATION EN TÊTE, LE COURS DESSOUS (13 novembre 2026), comme les actions des Titres : ce bloc classe par variation, c'est elle qu'on lit d'abord. */}
                   {/* LE SIGNE EST ÉCRIT, pas seulement teinté : qui ne distingue pas le vert du rouge lit
                       « −3,1 % » et sait tout. UNE LIGNE ENTRÉE PENDANT LA FENÊTRE le dit dans l'infobulle. */}
                   <span className={`${styles.pilule} ${ton}`} title={l.entree ? t("Depuis l'entrée à la cote, le {d}", { d: fmtDate(l.depuis, false) }) : undefined}>
                     {arrondi > 0 ? "+" : arrondi < 0 ? "−" : ""}
                     {Math.abs(l.variationPct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
                   </span>
+                  <small className={styles.cours}>
+                    {t("cours")} {fmt(Math.round(l.cours))}
+                  </small>
                 </span>
               </Link>
             </li>
