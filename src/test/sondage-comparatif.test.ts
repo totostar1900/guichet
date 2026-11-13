@@ -244,6 +244,7 @@ describe("la feuille d'une ligne : vous d'un côté, le marché de l'autre (12 n
     expect(p, "la phrase « ce n'est pas votre ligne » a disparu").toMatch(/Ce n'est pas votre ligne/);
     const css = lire("src/app/sondage/page.module.css");
     expect(css).toMatch(/\.moi \{[^}]*border: 1px solid var\(--gold\)/);
-    expect(css).toMatch(/\.marche \{[^}]*border: 1px dashed/);
+    expect(css).toMatch(/\.marche \{[^}]*border: 1px dashed color-mix\(in srgb, var\(--ink-3\)/);
+    expect(css, "le pointillé du marché est redevenu --line-2, 1,37 en clair").not.toMatch(/\.marche \{[^}]*dashed var\(--line-2\)/);
   });
 });

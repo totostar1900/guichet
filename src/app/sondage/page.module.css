@@ -48,7 +48,8 @@
   padding: var(--s-6);
 }
 .marche {
-  border: 1px dashed var(--line-2);
+  /* Le pointillé se voit dans les deux thèmes (13 novembre 2026) : --line-2 ne faisait que 1,37 en clair ; mélangé à l'encre il fait environ 2,2 en clair et 3 en sombre. */
+  border: 1px dashed color-mix(in srgb, var(--ink-3) 55%, var(--paper));
   border-radius: var(--tuile-rayon);
   padding: var(--s-6);
 }
