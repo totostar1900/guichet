@@ -79,6 +79,8 @@ export const EN_SONDAGE: Record<string, string> = {
   "Le trait or est le niveau indicatif.": "The gold line is the indicative level.",
   "Voir les séances passées": "See past auctions",
   "Ce que la place a servi": "What the market paid",
+  "Observé · séances passées. Ce n'est pas votre ligne : c'est ce que la place a servi.": "Observed · past sessions. This is not your line: it is what the market paid.",
+  "séances passées": "past sessions",
   "Prix moy.": "Avg. price",
   "Taux moy.": "Avg. rate",
   "Couv.": "Cover.",

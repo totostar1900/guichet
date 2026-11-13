@@ -36,6 +36,23 @@
   display: grid;
   gap: var(--s-6);
 }
+/* DEUX FAMILLES, DEUX SIGNES (12 novembre 2026, planche 2A) : l'or dit « vous » (votre intention, un filet plein), le pointillé
+   dit « le marché » (des observations, jamais votre ligne). Le bleu de la courbe et l'or de votre limite suivent le même partage. */
+.moi {
+  border: 1px solid var(--gold);
+  border-radius: var(--tuile-rayon);
+  padding: var(--s-6);
+}
+.marche {
+  border: 1px dashed var(--line-2);
+  border-radius: var(--tuile-rayon);
+  padding: var(--s-6);
+}
+.observe {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t-3);
+}
 
 /* LE TITRE DE CHAPITRE PORTE SON POINT, sur la même ligne de base : un point
    posé dessous ferait un second niveau de titre pour une parenthèse. */
@@ -67,7 +84,7 @@
   display: grid;
   gap: var(--s-6);
   padding: var(--s-6) var(--s-7);
-  border: 1px solid var(--line-2);
+  border: 1px dashed var(--line-2);
   border-left: 3px solid var(--crit);
   border-radius: var(--radius);
   background: var(--surface);

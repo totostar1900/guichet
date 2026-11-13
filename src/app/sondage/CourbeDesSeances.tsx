@@ -91,6 +91,18 @@ export function CourbeDesSeances({
           )}
           <h3 className={styles.sous}>{titre}</h3>
           <Graphique serie={serie.map((p) => ({ id: p.id, le: p.le, v: valeurDe(p)!, bas: active === "niveau" ? p.bas : undefined, haut: active === "niveau" ? p.haut : undefined }))} limite={lim} etiquette={etiquetteLimite} marches={active === "coupon"} decimales={active === "niveau" && unite === "prix" ? 0 : 1} />
+          <p className={styles.cle}>
+            <span>
+              <i className={styles.cleSerie} aria-hidden="true" />
+              {t("séances passées")}
+            </span>
+            {etiquetteLimite && (
+              <span>
+                <i className={styles.cleLimite} aria-hidden="true" />
+                {etiquetteLimite}
+              </span>
+            )}
+          </p>
           <p className={styles.legende}>{active === "niveau" ? t("Barre claire : fourchette min–max de la séance.") : t("Un point par séance.")}</p>
         </>
       )}
@@ -151,7 +163,6 @@ function Graphique({ serie, limite, etiquette, marches, decimales }: { serie: { 
     ligne = pp.join(" ");
   }
   const yl = limite != null ? Y(limite) : undefined;
-  const largeur = etiquette ? etiquette.length * 5.4 + 12 : 0;
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className={styles.courbe} role="img" aria-label={etiquette ?? ""}>
@@ -198,14 +209,6 @@ function Graphique({ serie, limite, etiquette, marches, decimales }: { serie: { 
           )}
         </g>
       ))}
-      {yl != null && etiquette && (
-        <>
-          <rect x={G + 4} y={yl - 19} width={largeur} height={16} rx={4} className={styles.puce} />
-          <text x={G + 10} y={yl - 7.5} className={styles.puceTexte}>
-            {etiquette}
-          </text>
-        </>
-      )}
     </svg>
   );
 }

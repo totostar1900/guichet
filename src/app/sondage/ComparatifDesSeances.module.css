@@ -85,10 +85,6 @@
   font-size: var(--t-2);
   font-weight: 500;
 }
-.vous td {
-  color: var(--gold-ink);
-  font-weight: 700;
-}
 .np {
   color: var(--ink-3);
   font-style: italic;
@@ -169,13 +165,30 @@
   stroke-width: 1.5;
   stroke-dasharray: 5 4;
 }
-.puce {
-  fill: var(--gold-ink);
+/* La clé du graphe : bleu = les séances (le marché), or en tirets = votre limite. Elle remplace l'étiquette posée dans le tracé,
+   qui pouvait recouvrir la première valeur de la courbe. */
+.cle {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
+  font-size: var(--t-3);
+  color: var(--ink-2);
 }
-.puceTexte {
-  font-size: 10px;
-  font-weight: 800;
-  fill: var(--paper);
+.cle span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.cleSerie {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--info);
+}
+.cleLimite {
+  width: 18px;
+  border-top: 2px dashed var(--gold-ink);
 }
 .zone {
   fill: var(--info);

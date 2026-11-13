@@ -158,7 +158,8 @@ describe("la page dédiée : comparatif, boutons, listes (3 novembre 2026)", () 
     const g = lire("src/app/sondage/CourbeDesSeances.tsx");
     expect(g, "la frise séparée est revenue").not.toMatch(/function Frise/);
     expect(g, "la fourchette n'est plus sur la courbe").toMatch(/className=\{styles\.fourchette\}/);
-    expect(g, "la limite n'est plus étiquetée sur la courbe").toMatch(/className=\{styles\.puce\}/);
+    expect(g, "la limite n'est plus nommée sous la courbe").toMatch(/className=\{styles\.cleLimite\}/);
+    expect(g, "l'étiquette de la limite est revenue dans le tracé, sur les valeurs").not.toMatch(/styles\.puce/);
     expect(g, "le nuage a disparu").toMatch(/function Nuage/);
     expect(g, "le sélecteur de mesure a disparu").toMatch(/aria-pressed=\{active === d\.m\}/);
   });
@@ -181,7 +182,8 @@ describe("la page dédiée : comparatif, boutons, listes (3 novembre 2026)", () 
     const p = lire("src/app/sondage/page.tsx");
     expect(p, "la page dédiée ne retrouve plus les questions du desk").toMatch(/questions\.find\(\(q\) => q\.id === ligne\)/);
     expect(p, "une question n'est plus lue comme une question").toMatch(/const role = duDesk && choisie === duDesk \? "question" : "attente"/);
-    expect(lire("src/app/sondage/ComparatifDesSeances.tsx"), "la limite d'une question se lit encore « Votre limite »").toMatch(/role === "question" \? "Niveau indicatif" : "Votre limite"/);
+    expect(lire("src/app/sondage/CourbeDesSeances.tsx"), "la limite d'une question ne se lit plus « niveau indicatif »").toMatch(/role === "question" \? "niveau indicatif \{v\}"/);
+    expect(lire("src/app/sondage/ComparatifDesSeances.tsx"), "votre limite est revenue dans le tableau des observations").not.toMatch(/styles\.vous/);
   });
 
   it("les intentions closes sont repliées sous la liste, et la réponse rapide se déplie sous la rangée", () => {
@@ -231,5 +233,17 @@ describe("la page dédiée : comparatif, boutons, listes (3 novembre 2026)", () 
     expect(f, "le formulaire dit de nouveau « le ou les Trésors »").not.toMatch(/Le ou les Trésors/);
     expect(f, "les durées ne sont plus multiples").toMatch(/bascule\(tenors, setTenors, d\)/);
     expect(lire("src/app/sondage/actions.ts"), "le serveur accepte de nouveau plusieurs Trésors").toMatch(/if \(pays\.length > 1\) return \{ ok: false, error: "Une proposition porte un seul Trésor/);
+  });
+});
+
+describe("la feuille d'une ligne : vous d'un côté, le marché de l'autre (12 novembre 2026, planche 2A)", () => {
+  it("votre intention a son filet d'or, le marché son pointillé et sa phrase", () => {
+    const p = lire("src/app/sondage/page.tsx");
+    expect(p, "votre intention n'a plus son cadre").toMatch(/role === "attente" \? styles\.moi : ""/);
+    expect(p, "le bloc du marché n'est plus distingué").toMatch(/styles\.bloc\} \$\{styles\.marche\}/);
+    expect(p, "la phrase « ce n'est pas votre ligne » a disparu").toMatch(/Ce n'est pas votre ligne/);
+    const css = lire("src/app/sondage/page.module.css");
+    expect(css).toMatch(/\.moi \{[^}]*border: 1px solid var\(--gold\)/);
+    expect(css).toMatch(/\.marche \{[^}]*border: 1px dashed/);
   });
 });

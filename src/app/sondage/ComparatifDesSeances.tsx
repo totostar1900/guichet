@@ -65,16 +65,6 @@ export function ComparatifDesSeances({ c, rendementLimite, role = "attente", bas
               </tr>
             </thead>
             <tbody>
-              {c.limite != null && (
-                <tr className={styles.vous}>
-                  <td>{t(role === "question" ? "Niveau indicatif" : "Votre limite")}</td>
-                  {prix && <td>{c.limiteCoupon != null ? `≥ ${fmtPct(c.limiteCoupon, 2)}` : ""}</td>}
-                  <td>
-                    {prix ? "≤" : "≥"} {fmtPct(c.limite, 2)}
-                  </td>
-                  <td>{rendementLimite != null ? `≥ ${fmtPct(rendementLimite, 2)}` : ""}</td>
-                </tr>
-              )}
               {c.seances.map((s) => (
                 <tr key={s.id}>
                   <td>

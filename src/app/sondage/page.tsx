@@ -123,7 +123,7 @@ export default async function SondagePage({ searchParams }: Props) {
           <EnTete surTitre={t("Mon intention")} titre={gabaritDeSondage(choisie)} />
           {/* TROIS BLOCS EMPILÉS : ce que le client a dit, ce que la place a servi, les gestes.
               Le chapitre de la place se tait quand aucune séance n'est comparable. */}
-          <section className={styles.bloc}>
+          <section className={`${styles.bloc} ${role === "attente" ? styles.moi : ""}`}>
             <h2 className={styles.titre}>{t(role === "attente" ? "Ce que vous avez dit" : "Ce que la maison demande")}</h2>
             <p className={styles.etatLigne}>
               {role === "attente" ? (
@@ -147,8 +147,9 @@ export default async function SondagePage({ searchParams }: Props) {
             {choisie.closedReason && <p className={styles.motif}>{choisie.closedReason}</p>}
           </section>
           {cmp && (
-            <section className={styles.bloc}>
+            <section className={`${styles.bloc} ${styles.marche}`}>
               <h2 className={styles.titre}>{t("Ce que la place a servi")}</h2>
+              <p className={styles.observe}>{t("Observé · séances passées. Ce n'est pas votre ligne : c'est ce que la place a servi.")}</p>
               <ComparatifDesSeances c={cmp} rendementLimite={rendementDeLaLigne(choisie)} role={role} base={`/sondage?ligne=${choisie.id}`} t={t} />
             </section>
           )}
