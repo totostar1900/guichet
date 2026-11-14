@@ -44,3 +44,27 @@ export function pctTotal(f: { entryFeePct: number; exitFeePct: number }, operati
   const base = operation === "souscription" ? f.entryFeePct : f.exitFeePct;
   return enVigueur(regle, jour) ? base + regle.clientPct : base;
 }
+
+export interface Fourchette {
+  min: number;
+  max: number;
+}
+
+/** La fourchette des frais totaux d'une opération, sur l'ensemble des fonds ouverts ; rien quand aucun fonds n'a de frais. */
+export function fourchetteDeFonds(fonds: { entryFeePct: number; exitFeePct: number }[], operation: "souscription" | "rachat", jour: string = aujourdHui()): Fourchette | undefined {
+  const taux = fonds.map((f) => pctTotal(f, operation, jour)).filter((x) => x > 0);
+  return taux.length ? { min: Math.min(...taux), max: Math.max(...taux) } : undefined;
+}
+
+/**
+ * LE PASSAGE D'UN FONDS À L'AUTRE, CUMULÉ (14 novembre 2026) : un rachat du premier puis une souscription du second. Le client lit une
+ * seule fourchette, la somme des deux totaux : du plus bas de chacun au plus haut de chacun. Les deux fourchettes n'existant pas
+ * toutes les deux (un côté sans frais), le côté sans frais compte zéro.
+ */
+export function fourchetteDePassage(fonds: { entryFeePct: number; exitFeePct: number }[], jour: string = aujourdHui()): Fourchette | undefined {
+  const sortie = fourchetteDeFonds(fonds, "rachat", jour) ?? { min: 0, max: 0 };
+  const entree = fourchetteDeFonds(fonds, "souscription", jour) ?? { min: 0, max: 0 };
+  const min = sortie.min + entree.min;
+  const max = sortie.max + entree.max;
+  return max > 0 ? { min, max } : undefined;
+}

@@ -6,7 +6,7 @@ import type { Intent, Offer } from "@/lib/domain/types";
 import { positionFor } from "@/lib/documents/position";
 import { plafondPropose } from "@/lib/domain/plafond";
 import { setFraisClient } from "@/lib/frais-registre";
-import { pctTotal, souscriptionNette } from "@/lib/domain/frais-fonds";
+import { fourchetteDePassage, fourchetteDeFonds, pctTotal, souscriptionNette } from "@/lib/domain/frais-fonds";
 
 const lire = (f: string) => readFileSync(f, "utf8");
 const JOUR = "2026-11-14";
@@ -283,6 +283,35 @@ describe("un fonds : les frais ajoutés se lisent en un seul total avec ceux du 
  * LA RÈGLE DE LA MAISON (14 novembre 2026) : le client ne voit jamais la destination d'un frais, ni sa décomposition. Pour toute
  * transaction il lit UNE ligne, les frais totaux à payer.
  */
+describe("le passage d'un fonds à l'autre se lit en une fourchette cumulée (14 novembre 2026)", () => {
+  const fonds = [{ entryFeePct: 1, exitFeePct: 0.5 }, { entryFeePct: 3, exitFeePct: 0 }, { entryFeePct: 0, exitFeePct: 1 }];
+
+  it("sans règle : du plus bas au plus haut de la sortie plus ceux de l'entrée", () => {
+    setFraisClient(BAREME_DE_FRAIS_FERME);
+    expect(fourchetteDeFonds(fonds, "souscription", "2027-03-01")).toEqual({ min: 1, max: 3 });
+    expect(fourchetteDeFonds(fonds, "rachat", "2027-03-01")).toEqual({ min: 0.5, max: 1 });
+    expect(fourchetteDePassage(fonds, "2027-03-01")).toEqual({ min: 1.5, max: 4 });
+  });
+
+  it("les règles de la maison s'ajoutent des deux côtés, seulement quand elles sont en vigueur", () => {
+    setFraisClient(baremePourLeClient({ ...BAREME_DE_FRAIS_FERME, "fonds.souscription": ouverte({ clientPct: 2, effetLe: "2027-02-03" }), "fonds.rachat": ouverte({ clientPct: 1, effetLe: "2027-02-03" }) }));
+    expect(fourchetteDePassage(fonds, "2027-03-01")).toEqual({ min: 3, max: 7 });
+    expect(fourchetteDePassage(fonds, "2027-01-01")).toEqual({ min: 1.5, max: 4 });
+  });
+
+  it("sans aucun frais d'un côté, ce côté compte zéro ; sans frais du tout, rien", () => {
+    setFraisClient(BAREME_DE_FRAIS_FERME);
+    expect(fourchetteDePassage([{ entryFeePct: 2, exitFeePct: 0 }], "2027-03-01")).toEqual({ min: 2, max: 2 });
+    expect(fourchetteDePassage([{ entryFeePct: 0, exitFeePct: 0 }], "2027-03-01")).toBeUndefined();
+  });
+
+  it("l'annexe lit la fourchette de passage au lieu d'une phrase", () => {
+    const a = lire("src/app/moi/tarifs/page.tsx");
+    expect(a).toMatch(/frais: fraisDePassage\(\)/);
+    expect(a).not.toMatch(/Deux ordres, un rachat puis une souscription/);
+  });
+});
+
 describe("une seule ligne de frais totaux, sans destination ni décomposition", () => {
   const ECRANS_DU_CLIENT = [
     "src/app/moi/tarifs/page.tsx",

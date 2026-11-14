@@ -2,7 +2,7 @@ import { repo } from "@/lib/data";
 import { baremeOuvert } from "@/lib/domain/garde";
 import { GRATUITS } from "@/lib/domain/tarifs";
 import { fraisLusParLeClient, type LigneDeFraisClient } from "@/lib/domain/frais";
-import { pctTotal } from "@/lib/domain/frais-fonds";
+import { fourchetteDeFonds, fourchetteDePassage, type Fourchette } from "@/lib/domain/frais-fonds";
 import { loadBaremeDeFrais, loadBaremeGarde, loadTarifs } from "@/lib/policy";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { getT } from "@/i18n/server";
@@ -63,15 +63,18 @@ export default async function TarifsPage() {
 
   /* UNE SEULE LIGNE DE FRAIS PAR OPÉRATION, TOTALE (règle du 14 novembre 2026) : jamais la part du fonds, ni celle de la maison, ni le nom de ce que le
      frais couvre. Sur un fonds, le total varie d'un fonds à l'autre : on dit la fourchette. Une règle dont la date n'est pas arrivée se lit à part, avec sa date. */
-  const fourchette = (op: "souscription" | "rachat", jour: string): { min: number; max: number } | undefined => {
-    const taux = fonds.map((f) => pctTotal(f, op, jour)).filter((x) => x > 0);
-    return taux.length ? { min: Math.min(...taux), max: Math.max(...taux) } : undefined;
-  };
-  const diteFourchette = (r: { min: number; max: number } | undefined, vide: string): string => (r ? (r.min === r.max ? fmtPct(r.min, 2) : t("de {a} à {b} selon le fonds", { a: fmtPct(r.min, 2), b: fmtPct(r.max, 2) })) : vide);
+  const diteFourchette = (r: Fourchette | undefined, vide: string): string => (r ? (r.min === r.max ? fmtPct(r.min, 2) : t("de {a} à {b} selon le fonds", { a: fmtPct(r.min, 2), b: fmtPct(r.max, 2) })) : vide);
   const fraisDeFonds = (op: "souscription" | "rachat"): string[] => {
     const regle = frais[op === "souscription" ? "fonds.souscription" : "fonds.rachat"];
-    const lignes = [diteFourchette(fourchette(op, jour), t("Voir la fiche du fonds"))];
-    if (regle.effetLe && regle.clientPct > 0 && regle.effetLe > jour) lignes.push(`${t("à partir du {d}", { d: fmtDate(regle.effetLe) })} : ${diteFourchette(fourchette(op, regle.effetLe), "")}`);
+    const lignes = [diteFourchette(fourchetteDeFonds(fonds, op, jour), t("Voir la fiche du fonds"))];
+    if (regle.effetLe && regle.clientPct > 0 && regle.effetLe > jour) lignes.push(`${t("à partir du {d}", { d: fmtDate(regle.effetLe) })} : ${diteFourchette(fourchetteDeFonds(fonds, op, regle.effetLe), "")}`);
+    return lignes;
+  };
+  /* LE PASSAGE, CUMULÉ : la somme du total de sortie et du total d'entrée, en une fourchette. Une règle de fonds datée dans l'avenir ajoute sa propre ligne. */
+  const fraisDePassage = (): string[] => {
+    const lignes = [diteFourchette(fourchetteDePassage(fonds, jour), t("Voir la fiche du fonds"))];
+    const dates = ["fonds.souscription", "fonds.rachat"].map((c) => frais[c as "fonds.souscription" | "fonds.rachat"]).filter((r) => r.effetLe && r.clientPct > 0 && r.effetLe > jour).map((r) => r.effetLe as string);
+    for (const d of [...new Set(dates)].sort()) lignes.push(`${t("à partir du {d}", { d: fmtDate(d) })} : ${diteFourchette(fourchetteDePassage(fonds, d), "")}`);
     return lignes;
   };
   const achat = ligne("titres.achat");
@@ -81,7 +84,7 @@ export default async function TarifsPage() {
   const rangees: { op: string; frais: string[] }[] = [
     { op: t("Investir dans un fonds"), frais: fraisDeFonds("souscription") },
     { op: t("Sortir d'un fonds"), frais: fraisDeFonds("rachat") },
-    { op: t("Passage d'un fonds à l'autre"), frais: [t("Deux ordres, un rachat puis une souscription : chacun porte sa ligne de frais.")] },
+    { op: t("Passage d'un fonds à l'autre"), frais: fraisDePassage() },
     { op: t("Adjudications et émissions"), frais: frais_(ligne("adjudication.souscription")).length ? frais_(ligne("adjudication.souscription")) : [rien] },
     { op: t("Acheter et vendre en bourse"), frais: bourse.length ? bourse : [rien] },
   ];
