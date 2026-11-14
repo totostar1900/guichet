@@ -68,7 +68,7 @@ describe("la page d'une société cotée", () => {
     const f = sans(FICHE);
     expect(f, "la fiche ne choisit plus la clôture la plus récente").toMatch(/const cloture = quotes\[0\] && \(!o\.lastPriceOn \|\| quotes\[0\]\.sessionDate >= o\.lastPriceOn\) \? quotes\[0\] : undefined;/);
     expect(f, "le cours de la fiche n'est plus la clôture datée").toMatch(/etiquette=\{coursLe \? t\("Cours · clôture \{d\}"/);
-    expect(f, "le rendement n'est plus calculé sur la clôture").toMatch(/const rendementRef = cloture \? rendementDividendePct\(o\.dividendPerShare, cloture\.close\) : null;/);
+    expect(f, "le rendement n'est plus calculé sur la clôture").toMatch(/const rendementRef = cloture \? rendementDividendePct\(dividendeAffiche, cloture\.close\) : null;/);
   });
 
   it("les séances n'ont qu'une définition, et le dernier échange dit son prix", () => {

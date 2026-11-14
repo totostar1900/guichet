@@ -8,7 +8,6 @@ import { InfoSearch } from "@/app/info/InfoSearch";
 import { TOP_QUESTIONS, type GuideIndex } from "@/lib/guide-index-shared";
 import { cachedGuideIndex, loadGuideIndex, readDoneLessons } from "@/lib/guide-index-client";
 import { Presentation } from "@/components/mobile/Presentation";
-import { Onboarding } from "@/components/mobile/Onboarding";
 import styles from "@/components/AppMenu.module.css";
 
 /**
@@ -79,8 +78,8 @@ export function MenuRecherche({ index, close }: { index: GuideIndex | null; clos
  */
 export function MenuRejouables({ close }: { /** Dans une feuille, elle se referme d'abord ; sur une page, il n'y a rien à fermer. */ close?: () => void }) {
   const t = useT();
-  const [joue, setJoue] = useState<"presentation" | "onboarding" | null>(null);
-  const lancer = (quoi: "presentation" | "onboarding") => () => {
+  const [joue, setJoue] = useState<"presentation" | null>(null);
+  const lancer = (quoi: "presentation") => () => {
     close?.();
     setJoue(quoi);
   };
@@ -94,16 +93,8 @@ export function MenuRejouables({ close }: { /** Dans une feuille, elle se referm
           <b>{t("Trente secondes")}</b>
           <small>{t("la présentation")}</small>
         </button>
-        <button type="button" className={styles.tile} onClick={lancer("onboarding")}>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 19V5l6 3v11zM14 16V4l6 3v11z" />
-          </svg>
-          <b>{t("Premiers pas")}</b>
-          <small>{t("six écrans")}</small>
-        </button>
       </div>
       {joue === "presentation" && <Presentation force onClose={() => setJoue(null)} />}
-      {joue === "onboarding" && <Onboarding force onClose={() => setJoue(null)} />}
     </>
   );
 }

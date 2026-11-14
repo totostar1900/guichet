@@ -1,0 +1,86 @@
+/* Les dessins de la vitrine : le téléphone de l'application et les formes de la donnée. Sans un chiffre, sans un mot (la règle de la vitrine).
+   Les couleurs viennent des jetons, donc des deux thèmes. */
+.telephone {
+  flex: 0 1 15rem;
+  min-width: 11rem;
+  max-width: 17rem;
+  margin-inline: auto;
+}
+.telephone svg,
+.formes svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.coque {
+  fill: var(--surface);
+  stroke: var(--line-2);
+  stroke-width: 2;
+}
+.encoche {
+  fill: var(--line);
+}
+.carteOr {
+  fill: var(--surface-2);
+  stroke: var(--gold);
+  stroke-width: 1.5;
+}
+.carte,
+.rangee {
+  fill: var(--surface-2);
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.rond {
+  fill: var(--gold-soft);
+  stroke: var(--gold-line);
+}
+.rondBleu {
+  fill: var(--surface);
+  stroke: var(--info);
+}
+.puce {
+  fill: var(--gold-soft);
+  stroke: var(--gold-line);
+}
+.barre {
+  fill: var(--ink-2);
+  opacity: 0.55;
+}
+.barreDouce {
+  fill: var(--ink-3);
+  opacity: 0.35;
+}
+.courbeOr {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.courbeBleue {
+  fill: none;
+  stroke: var(--info);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  stroke-linecap: round;
+}
+.formes {
+  margin: 0;
+  max-width: 24rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.formes figcaption {
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+.fond {
+  fill: var(--surface-2);
+  stroke: var(--line);
+}
+.volume {
+  fill: var(--ink-3);
+  opacity: 0.3;
+}

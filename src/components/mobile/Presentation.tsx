@@ -2,10 +2,10 @@
 
 import { useT } from "@/i18n/client";
 import { deverrouiller, verrouiller } from "./verrou-defilement";
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Presentation.module.css";
-import { OPEN_EVENT } from "./Onboarding";
 
 /**
  * « Guichet en trente secondes » : five screens of six seconds for whoever
@@ -18,7 +18,7 @@ import { OPEN_EVENT } from "./Onboarding";
  * the Guide and the sign-in page. SVG + CSS only: nothing to host.
  */
 const SEEN = "guichet:presented";
-const STEP_MS = 6000;
+const STEP_MS = 7000;
 
 interface Screen {
   kick: string;
@@ -27,89 +27,44 @@ interface Screen {
   art: React.ReactNode;
 }
 
+/* UNE SEULE INTRO, ET ELLE PARLE DES BIENFAITS (14 novembre 2026, planche « vitrine et intro », option A) : quatre scènes qui disent à quoi sert Guichet, ce que le client y gagne et ce qui le protège.
+   Elle remplace « Guichet en trente secondes » (le mode d'emploi en quatre gestes) ET « Premiers pas » (six écrans) : le mode d'emploi vit maintenant dans la vitrine (« Une fois votre
+   compte ouvert, quatre gestes ») et dans le Guide. Aucun dessin ne porte un chiffre, un taux ou un montant : la règle de la vitrine tient, et la séquence se joue d'abord devant la porte. */
 const Art1 = () => (
   <svg viewBox="0 0 300 180" aria-hidden="true">
-    <rect x="30" y="30" width="240" height="120" rx="0" fill="none" stroke="rgba(255,255,255,.35)" strokeWidth="2" className={styles.draw} />
-    <g className={styles.pop}>
-      <circle cx="90" cy="90" r="26" fill="#d4a63c" />
-      <text x="90" y="97" textAnchor="middle" fontSize="18" fontWeight="800" fill="#0d2b5b">
-        %
-      </text>
+    <rect x="30" y="24" width="240" height="132" rx="0" fill="none" stroke="rgba(255,255,255,.35)" strokeWidth="2" className={styles.draw} />
+    <g className={styles.rise}>
+      <circle cx="66" cy="58" r="14" fill="#d4a63c" />
+      <rect x="92" y="50" width="130" height="10" rx="0" fill="rgba(255,255,255,.4)" />
+      <rect x="92" y="66" width="86" height="8" rx="0" fill="rgba(255,255,255,.22)" />
     </g>
     <g className={styles.rise2}>
-      <rect x="140" y="62" width="110" height="12" rx="0" fill="rgba(255,255,255,.35)" />
-      <rect x="140" y="84" width="80" height="12" rx="0" fill="rgba(255,255,255,.25)" />
-      <rect x="140" y="106" width="95" height="12" rx="0" fill="rgba(255,255,255,.25)" />
+      <circle cx="66" cy="100" r="14" fill="rgba(255,255,255,.7)" />
+      <rect x="92" y="92" width="110" height="10" rx="0" fill="rgba(255,255,255,.4)" />
+      <rect x="92" y="108" width="72" height="8" rx="0" fill="rgba(255,255,255,.22)" />
+    </g>
+    <g className={styles.rise3}>
+      <circle cx="66" cy="136" r="10" fill="rgba(255,255,255,.45)" />
+      <rect x="92" y="130" width="96" height="8" rx="0" fill="rgba(255,255,255,.3)" />
     </g>
   </svg>
 );
-/* Les mots dessinés dans une scène passent par le dictionnaire comme les
-   autres : ils restaient en français sur l'écran anglais, parce qu'une
-   constante hors du composant ne pouvait pas appeler `t`. Chaque scène est
-   donc un composant à part entière. */
-const Art2 = () => {
-  const t = useT();
-  return (
+const Art2 = () => (
   <svg viewBox="0 0 300 180" aria-hidden="true">
     <g className={styles.rise}>
-      <rect x="30" y="34" width="240" height="112" rx="0" fill="#fff" />
-      <text x="48" y="70" fontSize="26" fontWeight="800" fill="#8a6a1d">
-        11,26 %
-      </text>
-      <text x="48" y="90" fontSize="10" fill="#6b7386">
-        {t("actuariel · si servi à 94 %")}
-      </text>
-      <rect x="48" y="104" width="60" height="8" rx="0" fill="#e3e7ee" />
-      <rect x="120" y="104" width="60" height="8" rx="0" fill="#e3e7ee" />
-      <rect x="192" y="104" width="60" height="8" rx="0" fill="#e3e7ee" />
+      <rect x="30" y="30" width="240" height="120" rx="0" fill="#fff" />
+      <polyline points="46,120 84,106 122,112 160,80 198,90 236,58" fill="none" stroke="#b8860b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points="46,130 100,122 154,112 208,104 254,96" fill="none" stroke="#0d2b5b" strokeWidth="2" strokeDasharray="6 5" strokeLinecap="round" />
     </g>
     <g className={styles.pop}>
-      <circle cx="236" cy="62" r="14" fill="#0d2b5b" />
-      <text x="236" y="67" textAnchor="middle" fontSize="13" fontWeight="800" fill="#d4a63c">
+      <circle cx="244" cy="46" r="14" fill="#0d2b5b" />
+      <text x="244" y="51" textAnchor="middle" fontSize="13" fontWeight="800" fill="#d4a63c">
         i
       </text>
     </g>
-    {/* the bubble a touch on « i » opens: kept inside the drawing, its text short enough for the box */}
-    <g className={styles.rise3}>
-      <rect x="118" y="122" width="164" height="44" rx="0" fill="#fff4d6" />
-      <text x="128" y="140" fontSize="9" fontWeight="700" fill="#8a6a1d">
-        {t("Rendement actuariel")}
-      </text>
-      <text x="128" y="154" fontSize="8" fill="#4a5266">
-        {t("ce que rapporte la ligne, par an")}
-      </text>
-    </g>
   </svg>
-  );
-};
+);
 const Art3 = () => {
-  const t = useT();
-  return (
-  <svg viewBox="0 0 300 180" aria-hidden="true">
-    <g className={styles.rise}>
-      <rect x="40" y="26" width="220" height="30" rx="0" fill="#fff" />
-      <text x="52" y="46" fontSize="11" fill="#16213a">
-        10 000 000 FCFA
-      </text>
-      <rect x="40" y="66" width="220" height="30" rx="0" fill="#fff" />
-      <text x="52" y="86" fontSize="11" fill="#6b7386">
-        <span style={{ whiteSpace: "nowrap" }}>+237 6 87 67 67 67</span>
-      </text>
-    </g>
-    <g className={styles.rise2}>
-      <rect x="40" y="110" width="220" height="34" rx="0" fill="#d4a63c" />
-      <text x="150" y="132" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0d2b5b">
-        {t("Déclarer une intention")}
-      </text>
-    </g>
-    <g className={styles.pop}>
-      <circle cx="150" cy="164" r="9" fill="#fff" />
-      <path d="M145 164l4 4 7-7" fill="none" stroke="#2f7d4f" strokeWidth="2" />
-    </g>
-  </svg>
-  );
-};
-const Art4 = () => {
   const t = useT();
   return (
   <svg viewBox="0 0 300 180" aria-hidden="true">
@@ -133,51 +88,29 @@ const Art4 = () => {
   </svg>
   );
 };
-const Art5 = () => {
-  const t = useT();
-  return (
+const Art4 = () => (
   <svg viewBox="0 0 300 180" aria-hidden="true">
-    {[
-      ["Intention reçue", 30],
-      ["Ordre exécuté · 1 000 titres", 62],
-      ["Relevé du 30 sept. · PDF", 94],
-    ].map(([label, y], k) => (
-      <g key={label} className={k === 0 ? styles.rise : k === 1 ? styles.rise2 : styles.rise3}>
-        <rect x="40" y={y} width="220" height="24" rx="0" fill="#fff" />
-        <text x="52" y={Number(y) + 16} fontSize="10" fill="#16213a">
-          {t(String(label))}
-        </text>
-        <path d={`M232 ${Number(y) + 12}l4 4 8-8`} fill="none" stroke="#2f7d4f" strokeWidth="2.5" strokeDasharray="40" className={styles.tick} />
-      </g>
-    ))}
-    {/* the one « Commencer » of the last screen: drawn in the picture, and a real button (the scene listens for data-start) */}
-    <g className={`${styles.pop} ${styles.start}`} data-start role="button" tabIndex={0}>
-      {/* Le dernier coin rond de la présentation : le reste est net depuis la
-          passe « moderne, tranchant » ; celui-ci était dessiné dans le SVG. */}
-      <rect x="40" y="130" width="220" height="30" rx="0" fill="#d4a63c" />
-      <text x="150" y="150" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0d2b5b">
-        {t("Commencer")}
-      </text>
+    <g className={styles.rise}>
+      <path d="M150 22l78 24v46c0 36-30 62-78 78c-48-16-78-42-78-78V46z" fill="#fff" />
     </g>
+    <path d="M114 94l26 26 48-52" fill="none" stroke="#2f7d4f" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="120" className={styles.tick} />
   </svg>
-  );
-};
+);
 
 const SCREENS: Screen[] = [
-  { kick: "Guichet · Purpose Capital", title: "Le marché de la CEMAC, sur votre téléphone.", text: "Obligations des Trésors, actions cotées à la BVMAC, fonds : tout ce qui se place dans la zone, au même endroit.", art: <Art1 /> },
-  { kick: "1 · Voir", title: "Chaque chiffre est expliqué, la décision reste la vôtre.", text: "Le rendement, le coupon, la clôture, le ticket : un « i » à côté de chaque mot, et une fiche par ligne avec ses risques écrits noir sur blanc.", art: <Art2 /> },
-  { kick: "2 · Dire", title: "Vous dites ce que vous voulez faire.", text: "Un montant, vos coordonnées, un récapitulatif. C'est une intention, que le desk reçoit : l'ordre vient après, avec un conseiller.", art: <Art3 /> },
-  { kick: "3 · Parler", title: "Un conseiller vous rappelle avant tout engagement.", text: "Rien n'est débité sans votre accord. Le règlement se fait par virement, sur le compte de l'appel de fonds que vous recevez.", art: <Art4 /> },
-  { kick: "4 · Suivre", title: "Vos ordres, vos titres, vos documents : votre tableau de bord.", text: "Chaque étape vous est notifiée ; relevés et avis se téléchargent ; vos parts sont à votre nom chez le dépositaire.", art: <Art5 /> },
+  { kick: "Guichet · Purpose Capital", title: "Épargnez, prêtez, investissez : dans la zone, depuis votre téléphone.", text: "Obligations des Trésors, actions cotées à la BVMAC, fonds agréés : tout ce qui se place dans la zone, au même endroit.", art: <Art1 /> },
+  { kick: "L'information", title: "Tout le marché, lu et expliqué.", text: "L'indice, la courbe des taux, les séances des Trésors, les sociétés et les fonds : le bureau lit et commente, et chaque mot a son « i ». Les chiffres s'ouvrent avec votre compte.", art: <Art2 /> },
+  { kick: "À vos côtés", title: "Vous dites ce que vous voulez ; un conseiller vous rappelle avant tout engagement.", text: "C'est une intention, pas un ordre : rien n'est débité sans votre accord, et la décision reste la vôtre.", art: <Art3 /> },
+  { kick: "En confiance", title: "Société de bourse agréée COSUMAF.", text: "Vos titres sont à votre nom, vos espèces séparées, et vous seul donnez les ordres. Tout placement comporte un risque de perte en capital.", art: <Art4 /> },
 ];
 const STEPS: [string, string][] = [
-  ["Voir", "chaque chiffre expliqué, la décision reste la vôtre"],
-  ["Dire", "une intention, pas un ordre"],
-  ["Parler", "un conseiller vous rappelle avant tout engagement"],
-  ["Suivre", "ordres, titres, documents au tableau de bord"],
+  ["Vos ambitions", "épargner, prêter, investir, dans la zone"],
+  ["L'information", "tout le marché, lu et expliqué"],
+  ["À vos côtés", "un conseiller vous rappelle avant tout engagement"],
+  ["En confiance", "agréée COSUMAF, vos titres à votre nom"],
 ];
 
-export function Presentation({ force = false, onClose }: { force?: boolean; onClose?: () => void }) {
+export function Presentation({ force = false, onClose, visiteur = false }: { force?: boolean; onClose?: () => void; /** Pas de session : la séquence se joue d'abord devant la porte, sur la vitrine. */ visiteur?: boolean }) {
   const t = useT();
   const path = usePathname();
   const [open, setOpen] = useState(force);
@@ -188,11 +121,9 @@ export function Presentation({ force = false, onClose }: { force?: boolean; onCl
   // Once per device, on a client page, after a moment; « Premiers pas » waits for this one to close.
   useEffect(() => {
     if (force) return;
-    // « / » ne la lève plus d'elle-même. Pour un visiteur, la racine EST la
-    // présentation, et la couvrir d'une seconde annule les deux : la page porte
-    // son propre bouton « Visite guidée ». Pour un client, la racine est sa
-    // console, et il n'a plus rien à se faire présenter.
-    if (path === "/" || path.startsWith("/desk") || path.startsWith("/connexion") || path.startsWith("/auth")) return;
+    // UNE SEULE INTRO (14 novembre 2026) : elle se joue d'abord devant la porte, sur la vitrine, au premier passage d'un visiteur. Pour un client, la racine est sa console, et il n'a plus
+    // rien à se faire présenter : elle l'attend alors sur la première autre page, une fois par appareil, comme avant.
+    if ((path === "/" && !visiteur) || path.startsWith("/desk") || path.startsWith("/connexion") || path.startsWith("/auth")) return;
     const timer = setTimeout(() => {
       try {
         if (!localStorage.getItem(SEEN)) setOpen(true);
@@ -201,7 +132,7 @@ export function Presentation({ force = false, onClose }: { force?: boolean; onCl
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [force, path]);
+  }, [force, path, visiteur]);
 
   const close = useCallback(() => {
     try {
@@ -281,23 +212,21 @@ export function Presentation({ force = false, onClose }: { force?: boolean; onCl
             <div className={styles.art} onClick={(e) => (e.target as Element).closest("[data-start]") && close()} onKeyDown={(e) => e.key === "Enter" && (e.target as Element).closest("[data-start]") && close()}>
               {s.art}
             </div>
-            {last && (
-              <button
-                type="button"
-                className={styles.more}
-                onClick={() => {
-                  close();
-                  window.dispatchEvent(new Event(OPEN_EVENT));
-                }}
-              >
-                {t("Les premiers pas, en six écrans")} →
-              </button>
-            )}
+            {last &&
+              (visiteur ? (
+                <Link href="/connexion?creer=1" className={styles.more} onClick={close}>
+                  {t("Créer mon compte")} →
+                </Link>
+              ) : (
+                <button type="button" className={styles.more} onClick={close}>
+                  {t("Voir les lignes")} →
+                </button>
+              ))}
           </div>
           <div className={styles.steps}>
-            <h3>{t("En quatre gestes")}</h3>
+            <h3>{t("Ce que Guichet vous apporte")}</h3>
             {STEPS.map(([name, what], k) => (
-              <button key={name} type="button" className={`${styles.step} ${k + 1 === i ? styles.on : k + 1 < i ? styles.doneStep : ""}`} onClick={() => setI(k + 1)}>
+              <button key={name} type="button" className={`${styles.step} ${k === i ? styles.on : k < i ? styles.doneStep : ""}`} onClick={() => setI(k)}>
                 <i>{k + 1}</i>
                 <span>
                   <b>{t(name)}</b>
@@ -306,9 +235,15 @@ export function Presentation({ force = false, onClose }: { force?: boolean; onCl
               </button>
             ))}
             <div className={styles.deskCta}>
-              <button type="button" className="btn primary" onClick={close}>
-                {t("Voir les lignes")}
-              </button>
+              {visiteur ? (
+                <Link href="/connexion?creer=1" className="btn primary" onClick={close}>
+                  {t("Créer mon compte")}
+                </Link>
+              ) : (
+                <button type="button" className="btn primary" onClick={close}>
+                  {t("Voir les lignes")}
+                </button>
+              )}
               <span className={styles.hint}>{t("← → pour passer d'un écran à l'autre")}</span>
             </div>
           </div>

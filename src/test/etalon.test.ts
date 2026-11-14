@@ -463,7 +463,6 @@ const DISPENSES = [
   /* Montés par le gabarit sur les deux domaines : ils ne sont ni l'un ni
      l'autre, et les trancher demanderait de trancher pour les deux. */
   "src/components/AppMenu.module.css",
-  "src/components/mobile/Onboarding.module.css",
   "src/components/mobile/Presentation.module.css",
 ];
 

@@ -10,6 +10,7 @@ import type { Offer } from "@/lib/domain/types";
 import { displayYield } from "@/lib/domain/status";
 import { serieDeValorisation } from "@/lib/market/valorisation";
 import { indexSeries } from "@/lib/market/index";
+import { dividendeBrut } from "@/lib/market/dividende-brut";
 import { SEUIL_SANS_SEANCE, contreLIndice, dividendesVerses, reperes52Semaines } from "@/lib/market/fiche-action";
 import { daysBetween, margeNettePct, partFondsPropresPct, rendementDividendePct, rentabiliteFondsPropresPct } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct, fmtScaled, localIso, pickScale } from "@/lib/format";
@@ -59,10 +60,12 @@ export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
   const cloture = quotes[0] && (!o.lastPriceOn || quotes[0].sessionDate >= o.lastPriceOn) ? quotes[0] : undefined;
   const cours = cloture ? cloture.close : o.lastPrice;
   const coursLe = cloture ? cloture.sessionDate : o.lastPriceOn;
-  const rendementRef = cloture ? rendementDividendePct(o.dividendPerShare, cloture.close) : null;
+  /* LE DIVIDENDE BRUT, celui que la société publie (14 novembre 2026) : le bulletin porte parfois le montant net de retenue, et la fiche écrit « brut ». */
+  const dividendeAffiche = (quotes[0] ? dividendeBrut(quotes[0], company?.figures) : undefined) ?? o.dividendPerShare;
+  const rendementRef = cloture ? rendementDividendePct(dividendeAffiche, cloture.close) : null;
   const yTxt = rendementRef != null ? fmtPct(rendementRef, 2) : dy.pct != null ? `${dy.approx ? "≈ " : ""}${fmtPct(dy.pct, 2)}` : "—";
   /* UN SEUL « i » POUR LES CHIFFRES CLÉS (9 novembre 2026) : la section dit ce qu'elle montre ET comment se calcule le rendement (le « ? » du chiffre est parti). */
-  const calcul = explainKpis(o, now)[0];
+  const calcul = explainKpis(dividendeAffiche ? { ...o, dividendPerShare: dividendeAffiche } : o, now)[0];
   const infoChiffresCles = [
     t("Le rendement du dernier dividende (dividende brut ÷ cours), puis les faits qui l'accompagnent."),
     ...(calcul ? ["", `${t(calcul.title)} :`, ...calcul.lines.map(([k, v]) => `• ${t(k)} : ${t(v)}`), ...calcul.caveats.map((c) => t(c))] : []),
@@ -80,7 +83,7 @@ export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
   const mention = <p className={fa.mention}>{t("Communication à caractère promotionnel. Risque de perte en capital.")}</p>;
 
   const tuilesCles: [string, string][] = [];
-  if (o.dividendPerShare) tuilesCles.push([t("Dividende brut"), `${fmt(o.dividendPerShare)} FCFA`]);
+  if (dividendeAffiche) tuilesCles.push([t("Dividende brut"), `${fmt(dividendeAffiche)} FCFA`]);
   if (company?.freeFloatPct) tuilesCles.push([t("Flottant"), fmtPct(company.freeFloatPct, 2)]);
   if (company?.ipoPrice) tuilesCles.push([t("Prix d'introduction"), `${fmt(company.ipoPrice)} FCFA`]);
   if (company?.listedOn) tuilesCles.push([t("Cotée depuis"), fmtDate(company.listedOn)]);

@@ -10,6 +10,7 @@ import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { MarketStrip } from "@/components/MarketStrip";
 import { performanceSur } from "@/lib/market/performe";
+import { dividendeBrut } from "@/lib/market/dividende-brut";
 import { EnTete } from "@/components/EnTete";
 
 
@@ -71,7 +72,7 @@ export async function SocietesBody({ mode = "client" }: { mode?: "client" | "des
           marketCap: a.marketCap,
           per: a.per,
           dividendYieldPct: a.dividendYieldPct,
-          lastDividend: a.quote?.lastDividend ?? a.latest.dividendPerShare,
+          lastDividend: (a.quote ? dividendeBrut(a.quote, a.company.figures) : undefined) ?? a.latest.dividendPerShare,
           dividendYear: a.quote?.dividendYear ?? a.latest.year,
         }))}
       />

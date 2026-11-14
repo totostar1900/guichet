@@ -26,6 +26,7 @@ import { IssuerCard } from "@/app/offres/[id]/IssuerCard";
 import { loadIssuerRegistry } from "@/lib/reference";
 import { issuerKey, resolveIssuer } from "@/data/issuer-registry";
 import { serieDeValorisation } from "@/lib/market/valorisation";
+import { dividendeBrut } from "@/lib/market/dividende-brut";
 import { margeNettePct, partFondsPropresPct, rendementDividendePct, rentabiliteFondsPropresPct } from "@/lib/finance";
 import { summarize } from "@/lib/domain/summary";
 import { VOLETS_SOCIETE } from "@/lib/ui/volets-societe";
@@ -90,7 +91,8 @@ export async function SocieteBody({ params, searchParams, mode = "client" }: Pro
   const resultatAuDessus = figs.some((f) => f.netIncome > f.revenue);
   const valorisation = client && figs.length > 0 ? serieDeValorisation(history.map((q) => ({ d: q.sessionDate, c: q.close, titres: q.sharesTotal, flottants: q.sharesFloat, valeur: q.valueTraded })), figs.map((f) => ({ year: f.year, netIncome: f.netIncome, equity: f.equity, dividendPerShare: f.dividendPerShare, publieLe: f.publieLe, publieLeDesk: f.publieLeDesk })), { titres: c.sharesTotal, flottants: c.sharesFloat }) : [];
   /* LA LÉGENDE DU RENDEMENT LIT LE MÊME DIVIDENDE QUE LE CHIFFRE (6 novembre 2026) : elle ne lisait que celui du bulletin et écrivait « pas de dividende récent » sous un rendement calculé sur le dividende des comptes. */
-  const legendeRendement = quote?.lastDividend != null ? `${fmt(quote.lastDividend)} FCFA ${t("brut")}${quote.dividendDate ? ` ${t("payé le")} ${fmtDate(quote.dividendDate)}` : ""}` : dernierDiv ? `${fmt(dernierDiv.dividendPerShare as number)} FCFA ${t("brut")} · ${t("exercice {y}", { y: String(dernierDiv.year) })}` : t("pas de dividende récent");
+  const brutLu = quote ? dividendeBrut(quote, figs) : undefined;
+  const legendeRendement = quote?.lastDividend != null ? `${fmt(brutLu ?? quote.lastDividend)} FCFA ${t("brut")}${quote.dividendDate ? ` ${t("payé le")} ${fmtDate(quote.dividendDate)}` : ""}` : dernierDiv ? `${fmt(dernierDiv.dividendPerShare as number)} FCFA ${t("brut")} · ${t("exercice {y}", { y: String(dernierDiv.year) })}` : t("pas de dividende récent");
   const enveloppe = (contenu: ReactNode) =>
     client ? (
       <FichePanes depart="marche">

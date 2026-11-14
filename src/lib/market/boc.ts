@@ -11,6 +11,7 @@ import { jugerLaVl, MOTIF_VL } from "./vl-coquille";
 import { VERSION_DU_LECTEUR } from "./lecteur-version";
 import { prettyName } from "./names";
 import type { Company } from "@/data/companies";
+import { dividendeBrut } from "./dividende-brut";
 import { loadCompanies, loadRegistry } from "@/lib/reference";
 import { bondTerms, SANS_CLOTURE } from "@/lib/domain/status";
 import { TOLERANCE_AN, variationSurMois } from "@/lib/domain/fund-perf";
@@ -388,7 +389,8 @@ export function offerFromQuote(q: Quote, bulletinNo: number, existing?: Offer, c
     // autre question que « à quelle date lu », et c'est celle qui qualifie un
     // cours sur une place où une ligne peut rester un an sans transaction.
     priceSince: base.lastPrice === q.close && base.priceSince ? base.priceSince : q.sessionDate,
-    dividendPerShare: q.lastDividend ?? base.dividendPerShare,
+    /* LE DIVIDENDE BRUT, celui que la société publie : le bulletin porte parfois le montant net de retenue (voir « dividende-brut »). */
+    dividendPerShare: dividendeBrut(q, companies.find((x) => x.isin === q.isin)?.figures) ?? base.dividendPerShare,
     pricedAt: new Date().toISOString(),
     priceSource: "boc",
     priceNote: source,

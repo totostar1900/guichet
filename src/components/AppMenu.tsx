@@ -11,7 +11,6 @@ import { LangSwitch } from "./LangSwitch";
 import { PaletteSwitch } from "./PaletteSwitch";
 import { Sheet } from "./mobile/Sheet";
 import { Presentation } from "./mobile/Presentation";
-import { Onboarding } from "./mobile/Onboarding";
 import { startDeskTour } from "./DeskTour";
 import { MenuContact, MenuPied, MenuRecherche, useGuideIndex } from "./menu/Pieces";
 import { usePhone } from "./chart-utils";
@@ -61,7 +60,6 @@ const D = {
   phone: "M5 4h3l2 5-2.5 1.5a11 11 0 0 0 5 5L14 13l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z",
   mail: "M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l9 6 9-6",
   play: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 8.5v7l5.5-3.5z",
-  steps: "M4 19V5l6 3v11zM14 16V4l6 3v11z",
   help: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5M12 17h.01",
   book: "M4 5h6a2 2 0 0 1 2 2v13a1.5 1.5 0 0 0-1.5-1.5H4zM20 5h-6a2 2 0 0 0-2 2v13a1.5 1.5 0 0 1 1.5-1.5H20z",
   marks: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v5M12 16h.01",
@@ -84,7 +82,7 @@ export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [play, setPlay] = useState<"presentation" | "onboarding" | null>(null);
+  const [play, setPlay] = useState<"presentation" | null>(null);
   const [coachLabel, setCoachLabel] = useState<string | null>(null);
   const [tourStep, setTourStep] = useState<number | null>(null);
   const firstTime = useSyncExternalStore(noop, firstTimeSnapshot, () => "");
@@ -261,11 +259,6 @@ export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
                       <b>{t("Trente secondes")}</b>
                       <small>{t("la présentation")}</small>
                     </button>
-                    <button type="button" className={styles.tile} onClick={go(() => setPlay("onboarding"))}>
-                      <Icon d={D.steps} />
-                      <b>{t("Premiers pas")}</b>
-                      <small>{t("six écrans")}</small>
-                    </button>
                     <Link className={styles.tile} href="/info/aide" onClick={close}>
                       <Icon d={D.help} />
                       <b>{t("Aide")}</b>
@@ -357,8 +350,7 @@ export function AppMenu({ signedIn, desk, name, build }: AppMenuProps) {
         </div>
       </Sheet>
 
-      {play === "presentation" && <Presentation force onClose={() => setPlay(desk ? "onboarding" : null)} />}
-      {play === "onboarding" && <Onboarding force onClose={() => setPlay(null)} />}
+      {play === "presentation" && <Presentation force onClose={() => setPlay(null)} />}
     </>
   );
 }

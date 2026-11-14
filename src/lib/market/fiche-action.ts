@@ -1,5 +1,6 @@
 import type { Quote } from "@/lib/domain/market";
 import type { IndexPoint } from "./index";
+import { RAPPORT_BRUT_MAX, RAPPORT_NET_MIN } from "./dividende-brut";
 import { JOURS_DE_GRACE, PERIODES, debutDeFenetre, lirePeriode, type PeriodeCours, type PointCours } from "./periodes";
 
 /**
@@ -70,8 +71,6 @@ export interface VersementDividende {
 }
 
 /** Le bulletin porte parfois un montant net de retenue, et une séance a déjà porté le dividende d'une autre société : une date ne vaut que si son montant est voisin du brut publié. */
-const RAPPORT_MIN = 0.85;
-const RAPPORT_MAX = 1.02;
 
 /**
  * Pour chaque exercice dont la société publie le dividende : le brut (chiffre de l'émetteur) et la date de paiement, la PLUS ANCIENNE vue
@@ -88,7 +87,7 @@ export function dividendesVerses(figures: { year: number; dividendPerShare?: num
       for (const q of quotes) {
         if (q.dividendYear !== f.year || !q.dividendDate || !q.lastDividend) continue;
         const rapport = q.lastDividend / brut;
-        if (rapport < RAPPORT_MIN || rapport > RAPPORT_MAX) continue;
+        if (rapport < RAPPORT_NET_MIN || rapport > RAPPORT_BRUT_MAX) continue;
         if (!payeLe || q.dividendDate < payeLe) payeLe = q.dividendDate;
       }
     }

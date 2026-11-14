@@ -230,7 +230,6 @@ export const GUIDE: GuideSection[] = [
       { key: "aide-client", caption: "La même aide, telle que le client la voit sur /info/aide" },
       { key: "aide-entretien", caption: "Aide : le chapitre « Comment Guichet est entretenu », la note d'entretien écrite pour les clients" },
       { key: "info-client", caption: "La page Guide du client : recherche, aide, éclairages, simulateur, glossaire" },
-      { key: "premiers-pas", caption: "Premiers pas : l'écran « Comprendre, et trouver de l'aide » (téléphone)" },
     ],
   },
   {

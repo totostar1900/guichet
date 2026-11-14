@@ -51,3 +51,14 @@ describe("la fiche d'une action : des ajouts, aucun retrait", () => {
     expect(l, "les bulletins sont lus pour toutes les fiches").toMatch(/o\.kind === "MARCHE" && o\.instrument === "action" && o\.priceSource === "boc" \? r\.listBulletins\(400\)/);
   });
 });
+
+describe("le dividende « brut » se lit une fois (14 novembre 2026, décision : brut)", () => {
+  it("la fiche, la page de la société, la liste des sociétés et l'offre ingérée passent par la même lecture du brut", () => {
+    for (const f of ["src/app/offres/[id]/FicheAction.tsx", "src/app/societes/[mnemo]/SocieteBody.tsx", "src/app/societes/SocietesBody.tsx", "src/lib/companies/analysis.ts", "src/lib/market/boc.ts"]) {
+      expect(lire(f), `${f} ne lit plus le brut par « dividendeBrut »`).toMatch(/dividendeBrut\(/);
+    }
+  });
+  it("la fiche affiche le brut aussi dans le « i » du rendement, pas seulement dans la tuile", () => {
+    expect(lire(FICHE)).toMatch(/explainKpis\(dividendeAffiche \? \{ \.\.\.o, dividendPerShare: dividendeAffiche \} : o, now\)/);
+  });
+});

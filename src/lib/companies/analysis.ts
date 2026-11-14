@@ -1,3 +1,4 @@
+import { dividendeBrut } from "@/lib/market/dividende-brut";
 import type { Company, YearFigures } from "@/data/companies";
 import type { Quote } from "@/lib/domain/market";
 import { fmt, fmtDate, fmtPct, localIso } from "@/lib/format";
@@ -92,7 +93,7 @@ export function analyse(company: Company, quote?: Quote): Analysis {
   const priceToBook = price != null && bookValuePerShare > 0 ? price / bookValuePerShare : undefined;
   /* Le dernier dividende CONNU : celui du bulletin, sinon celui du dernier exercice qui en a un (un exercice « non distribué » n'efface pas le rendement : voir « dividendeDeReference »). */
   const dernierAvecDividende = [...figs].reverse().find((f) => typeof f.dividendPerShare === "number");
-  const lastDividend = quote?.lastDividend ?? dernierAvecDividende?.dividendPerShare ?? undefined;
+  const lastDividend = (quote ? dividendeBrut(quote, figs) : undefined) ?? dernierAvecDividende?.dividendPerShare ?? undefined;
   const dividendYieldPct = price != null && lastDividend ? (lastDividend / price) * 100 : undefined;
   const payoutPct = latest.dividendPerShare && eps > 0 ? (latest.dividendPerShare / eps) * 100 : undefined;
   const netMarginPct = (latest.netIncome / latest.revenue) * 100;

@@ -16,7 +16,6 @@ import { PosteDuDesk } from "@/components/PosteDuDesk";
 import { chargerPoste } from "@/lib/desk/poste";
 import { ColonneStore } from "@/components/ColonneStore";
 import { MobileShell } from "@/components/mobile/MobileShell";
-import { Onboarding } from "@/components/mobile/Onboarding";
 import { Presentation } from "@/components/mobile/Presentation";
 import { isDesk } from "@/lib/auth/types";
 import type { ClientPrefs } from "@/lib/domain/types";
@@ -236,8 +235,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </header>
         <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} echeances={echeances ?? 0} favoris={Boolean(favoris)} desk={deskUi} deskHost={onDeskHost} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
-        <Presentation />
-        <Onboarding />
+        <Presentation visiteur={!session} />
         {/* LA NAVIGATION PASSE À GAUCHE AU-DELÀ DE 1040 PIXELS, et le haut est
             rendu à la page : 224 pixels gelés au desk, 62 au guichet.
             En dessous, rien ne change : la barre ci-dessus sert les écrans

@@ -322,13 +322,6 @@
     transform: none;
   }
 }
-.start {
-  cursor: pointer;
-}
-.start:focus-visible rect {
-  stroke: #fff;
-  stroke-width: 2;
-}
 .more {
   align-self: center;
   border: 0;

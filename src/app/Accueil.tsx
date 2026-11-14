@@ -2,6 +2,8 @@ import Link from "next/link";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { BandeInstruments, type LigneVitrine } from "@/components/accueil/BandeInstruments";
+import { FormesDeLaDonnee } from "@/components/accueil/FormesDeLaDonnee";
+import { VisuelProduit } from "@/components/accueil/VisuelProduit";
 import { familleDe, identite } from "./offres/[id]/identite";
 import type { Offer } from "@/lib/domain/types";
 import styles from "./Accueil.module.css";
@@ -96,24 +98,33 @@ export async function Accueil() {
    * dessus : du plus tranquille au plus engagé. Le numéro dit donc quelque
    * chose de vrai, et il donne à la rangée l'assise qui lui manquait.
    */
+  /* S'INFORMER OUVRE LA LISTE (14 novembre 2026, planche « vitrine », 1A) : lire le marché ne coûte rien et n'engage à rien, c'est donc le plus tranquille des quatre gestes, et l'ordre
+     de la page reste vrai. « Épargner, financer, investir » restent tels qu'ils étaient, renumérotés. */
   const gestes = [
     {
-      clef: "epargner",
+      clef: "informer",
       n: "01",
+      d: "M14 5a9 9 0 1 0 0 18a9 9 0 0 0 0-18z M14 12.5v6 M14 9.2v.3",
+      titre: t("S'informer"),
+      dit: t("Vous lisez le marché sans rien engager : l'indice, la courbe des taux, les notes du bureau, une fiche par société, par pays et par ligne. Les chiffres s'ouvrent avec votre compte."),
+    },
+    {
+      clef: "epargner",
+      n: "02",
       d: "M24 14a10 10 0 1 1-3.2-7.3 M24.5 3.5v6h-6",
       titre: t("Épargner"),
       dit: t("Vous arrêtez un montant et un jour du mois, et le prélèvement s'exécute de lui-même. Ce qui vous est remboursé repart vers la ligne que vous avez désignée d'avance."),
     },
     {
       clef: "financer",
-      n: "02",
+      n: "03",
       d: "M3 25h22 M6 25V11l8-6 8 6v14 M11 25v-7h6v7",
       titre: t("Financer"),
       dit: t("Vous prêtez aux six États de la zone, à la banque de développement de la région et aux grandes entreprises d'ici. Ils vous versent un intérêt et vous remboursent à une échéance connue d'avance."),
     },
     {
       clef: "investir",
-      n: "03",
+      n: "04",
       d: "M3 23l7-7 5 4 9.5-11 M25 5h-6 M25 5v6",
       titre: t("Investir"),
       dit: t("Vous prenez part au capital des sociétés cotées de la région, ou vous placez dans des fonds agréés par la COSUMAF. Votre gain n'y est plafonné par aucun taux, et c'est la contrepartie du risque que vous acceptez."),
@@ -133,6 +144,13 @@ export async function Accueil() {
     { d: "M21 25a10 10 0 1 1 0-20 M25 9v6h-6 M25 15a10 10 0 0 1-4 8", titre: t("Vous créez votre compte"), dit: t("Une adresse ou un numéro, un code reçu dans l'instant. Vous voyez alors le marché et vous recevez les avis de séance. Aucun document, aucun engagement.") },
     { d: "M6 3h11l5 5v17H6z M17 3v6h5 M10 16h9 M10 20h6", titre: t("Vous faites ouvrir votre compte-titres"), dit: t("Une pièce d'identité, un justificatif de domicile et le questionnaire de connaissance. Dix minutes, à votre rythme, et le desk vous rappelle si une pièce manque.") },
     { d: "M14 4v13 M8.5 11.5L14 17l5.5-5.5 M3 21v4h22v-4", titre: t("Vous approvisionnez et vous placez"), dit: t("Par virement, vers le compte espèces ouvert à votre nom. Vous choisissez une séance annoncée ou une ligne de la cote, et vous suivez votre allocation.") },
+  ];
+
+  const quatreGestes = [
+    { n: "1", nom: t("Voir"), dit: `${t("Chaque chiffre est expliqué, la décision reste la vôtre.")} ${t("Le rendement, le coupon, la clôture, le ticket : un « i » à côté de chaque mot, et une fiche par ligne avec ses risques écrits noir sur blanc.")}` },
+    { n: "2", nom: t("Dire"), dit: t("Un montant, vos coordonnées, un récapitulatif. C'est une intention, que le desk reçoit : l'ordre vient après, avec un conseiller.") },
+    { n: "3", nom: t("Parler"), dit: t("Rien n'est débité sans votre accord. Le règlement se fait par virement, sur le compte de l'appel de fonds que vous recevez.") },
+    { n: "4", nom: t("Suivre"), dit: t("Chaque étape vous est notifiée ; relevés et avis se téléchargent ; vos parts sont à votre nom chez le dépositaire.") },
   ];
 
   const publications = [
@@ -176,14 +194,16 @@ export async function Accueil() {
             </Link>
           </div>
         </div>
+        {/* L'ÉCRAN DE L'APPLICATION, EN PLUS DU TEXTE (14 novembre 2026, 1A) : un dessin sans chiffre ni mot, pour qu'un visiteur voie ce qu'il y a derrière la porte. Il retombe sous le texte sur téléphone. */}
+        <VisuelProduit />
       </section>
 
       {lignes.length > 0 && <BandeInstruments lignes={lignes} />}
 
       <section className={styles.troisGestes}>
         <div className={styles.tete}>
-          <h2>{t("Épargner, financer, investir.")}</h2>
-          <p>{t("Trois gestes, du plus tranquille au plus engagé. Ils se tiennent dans le même compte, et vous passez de l'un à l'autre sans rien rouvrir.")}</p>
+          <h2>{t("S'informer, épargner, financer, investir.")}</h2>
+          <p>{t("Quatre gestes, du plus tranquille au plus engagé. Ils se tiennent dans le même compte, et vous passez de l'un à l'autre sans rien rouvrir.")}</p>
         </div>
         <div className={styles.gestesListe}>
           {gestes.map((g) => (
@@ -208,6 +228,8 @@ export async function Accueil() {
           <p>
             {t("Le bureau suit les séances de la bourse régionale et les adjudications des Trésors, et publie ce qu'il en retient. Les chiffres et l'échelle s'ouvrent avec votre compte.")}
           </p>
+          {/* LA DONNÉE PAR SA FORME (14 novembre 2026, 1A) : des tracés sans graduation. La règle de la vitrine tient : aucune valeur, et la légende le dit. */}
+          <FormesDeLaDonnee legende={t("Les valeurs se lisent une fois connecté.")} />
         </div>
         <ul className={styles.publieListe}>
           {publications.map((p) => (
@@ -252,6 +274,24 @@ export async function Accueil() {
           <Link className={styles.principal} href="/connexion?creer=1">
             {t("Créer mon compte")}
           </Link>
+        </div>
+      </section>
+
+      {/* COMMENT ÇA MARCHE, UNE FOIS LE COMPTE OUVERT (14 novembre 2026, 1A) : les quatre gestes que disaient les deux intros animées, retirées. Les phrases qui protègent le client
+          (« une intention n'est pas un ordre », « rien n'est débité sans votre accord ») vivent ici, lisibles à tout moment, et pas seulement dans une séquence qu'on passe. */}
+      <section className={styles.entrer}>
+        <div className={styles.entrerTete}>
+          <h2>{t("Une fois votre compte ouvert, quatre gestes.")}</h2>
+          <span>{t("Voir, dire, parler, suivre : vous gardez la main à chaque étape.")}</span>
+        </div>
+        <div className={`${styles.etapes} ${styles.quatre}`}>
+          {quatreGestes.map((e) => (
+            <div className={styles.etape} key={e.nom}>
+              <span className={styles.rang}>{e.n}</span>
+              <b>{e.nom}</b>
+              <p>{e.dit}</p>
+            </div>
+          ))}
         </div>
       </section>
 

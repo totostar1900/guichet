@@ -163,8 +163,3 @@
   object-fit: cover;
   object-position: top;
 }
-.gallery .shot img[src*="premiers-pas"] {
-  width: auto;
-  max-width: 100%;
-  margin: 0 auto;
-}
