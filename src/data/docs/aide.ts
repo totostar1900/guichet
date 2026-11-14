@@ -14,7 +14,7 @@ export const AIDE: DocPage = {
   order: 0,
   /* Relue le 29 octobre 2026 : les huit chapitres ont reçu leur ligne de
      promesse, qui se lit sous leur titre. */
-  checkedOn: "2026-11-10",
+  checkedOn: "2026-11-14",
   owner: "Desk",
   chapters: [
     {
@@ -28,7 +28,7 @@ export const AIDE: DocPage = {
           items: [
             l("Guichet ne débite jamais votre compte : un règlement se fait par virement, uniquement sur le compte indiqué dans l'appel de fonds que vous recevez.", "Guichet never debits your account: settlement is a transfer, only to the account shown in the call for funds you receive."),
             l("Guichet explique chaque chiffre et vous laisse décider ; le conseil, c'est votre conseiller qui vous le donne en vous rappelant. Les risques de chaque ligne sont écrits sous « À garder en tête ».", "Guichet explains every figure and lets you decide; the advice comes from your adviser, who calls you back. Each line's risks are written under \"Keep in mind\"."),
-            l("Les rendements affichés sont bruts, avant commission et fiscalité ; les conditions vous sont communiquées par votre conseiller.", "Yields shown are gross, before commission and tax; terms are communicated by your adviser."),
+            l("Les rendements affichés sont bruts, avant frais et fiscalité ; les frais que vous couvrez sont dans « Ce que vous payez », rappelés sur votre ordre, et votre conseiller vous les confirme.", "Yields shown are gross, before fees and tax; the fees you cover are in \"What you pay\", repeated on your order, and your adviser confirms them to you."),
           ],
         },
       ],

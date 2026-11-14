@@ -1,0 +1,93 @@
+/* Le barème des frais : une grille de lecture, une fiche par règle. */
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--s-8) var(--s-7) var(--s-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+}
+.head h1 {
+  margin: 0 0 var(--s-3);
+  font-size: 1.35rem;
+}
+.head p {
+  margin: 0;
+  max-width: 72ch;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+.large {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.tableau {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.tableau th,
+.tableau td {
+  padding: var(--s-3) var(--s-4);
+  text-align: left;
+  border-top: 1px solid var(--line-2);
+  vertical-align: top;
+}
+.tableau th {
+  color: var(--ink-3);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.fiche > summary {
+  cursor: pointer;
+  padding: var(--s-4) var(--s-5);
+  font-weight: 600;
+}
+.pb {
+  padding: var(--s-4) var(--s-5) var(--s-5);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--s-5);
+}
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.champ > span {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.champ input {
+  min-width: 0;
+}
+.champ small {
+  color: var(--ink-3);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+.pied {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.ok {
+  color: var(--good);
+  font-size: 0.82rem;
+}
+.ko {
+  color: var(--crit);
+  font-size: 0.82rem;
+}

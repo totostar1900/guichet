@@ -53,6 +53,7 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/prelevements", "Prélèvements"],
       ["/desk/rapprochement", "Rapprochement"],
       ["/desk/garde", "Droits de garde"],
+      ["/desk/frais", "Frais"],
       ["/desk/documents", "Documents"],
     ],
   },

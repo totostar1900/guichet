@@ -8,7 +8,7 @@ export const SUPPORT: DocPage = {
   visibility: "desk",
   audience: ["desk"],
   order: 5,
-  checkedOn: "2026-11-01",
+  checkedOn: "2026-11-14",
   owner: "Desk",
   chapters: [
     {
@@ -71,7 +71,7 @@ export const SUPPORT: DocPage = {
             [l("« Pourquoi le rendement n'est pas le coupon ? »", "\"Why is the yield not the coupon?\""), l("« Le coupon est fixé à l'émission ; le rendement dépend du prix que vous payez. Sous 100 %, vous gagnez plus que le coupon ; le simulateur du guide le montre. »", "\"The coupon is set at issue; the yield depends on the price you pay. Below 100% you earn more than the coupon; the simulator in the guide shows it.\"")],
             [l("« Le cours de la société a baissé d'un coup »", "\"The company's price dropped suddenly\""), l("Vérifier Actualités et la fiche : dividende détaché ? suspension ? « C'est le dividende qui sort du cours » ou « la cotation est suspendue dans l'attente d'un communiqué ».", "Check News and the page: dividend detached? suspension? \"It is the dividend leaving the price\" or \"quotation is suspended pending a notice\".")],
             [l("« Est-ce que c'est garanti ? »", "\"Is it guaranteed?\""), l("« Non. Un titre du Trésor est une dette de l'État ; une action peut monter ou descendre ; un fonds se souscrit à la prochaine valeur. Les risques sont listés sous “À garder en tête” sur chaque fiche. »", "\"No. A Treasury security is State debt; a share can rise or fall; a fund is bought at the next value. The risks are listed under 'Keep in mind' on every page.\"")],
-            [l("« Quels sont vos frais ? »", "\"What are your fees?\""), l("« Les conditions vous sont communiquées par votre conseiller à la confirmation ; les chiffres affichés sont bruts, avant commission et fiscalité. »", "\"Terms are communicated by your adviser at confirmation; the figures shown are gross, before commission and tax.\"")],
+            [l("« Quels sont vos frais ? »", "\"What are your fees?\""), l("« Vos frais sont dans « Ce que vous payez » et rappelés sur votre ordre ; votre conseiller les confirme. Les chiffres affichés sont bruts, avant frais et fiscalité. »", "\"Your fees are in \"What you pay\" and repeated on your order; your adviser confirms them. The figures shown are gross, before fees and tax.\"")],
             [l("« Que me conseillez-vous ? »", "\"What do you recommend?\""), l("« Nous ne donnons pas de conseil ; nous pouvons vous expliquer chaque ligne et comparer deux lignes ensemble (Marché › Comparer). »", "\"We do not give advice; we can explain every line and compare two lines together (Market › Compare).\"")],
           ],
         },

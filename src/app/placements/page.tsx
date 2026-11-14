@@ -303,7 +303,7 @@ export default async function PlacementsPage() {
               </div>
               <div>
                 <dt>{t("Passer un ordre")}</dt>
-                <dd>{t("Une commission, connue avant que vous ne validiez, et rappelée sur votre avis d'opéré.")}</dd>
+                <dd>{t("Des frais, connus avant que vous ne validiez, et rappelés sur votre avis d'opéré.")}</dd>
               </div>
               <div>
                 <dt>{t("Conserver vos titres")}</dt>

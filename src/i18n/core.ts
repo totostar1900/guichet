@@ -39,6 +39,7 @@ import { EN_DOCUMENTS } from "./en-documents";
 import { EN_DOSSIER } from "./en-dossier";
 import { EN_VITRINE } from "./en-vitrine";
 import { EN_PAGES } from "./en-pages";
+import { EN_FRAIS } from "./en-frais";
 import { EN_COMPTE } from "./en-compte";
 
 const EN: Record<string, string> = {
@@ -83,6 +84,7 @@ const EN: Record<string, string> = {
   ...EN_DOSSIER,
   ...EN_VITRINE,
   ...EN_PAGES,
+  ...EN_FRAIS,
   ...EN_COMPTE,
 };
 

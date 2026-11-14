@@ -132,7 +132,7 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
                 )}
                 {offer.commissionPct > 0 && (
                   <div>
-                    <dt>{t("dont commission {p} %", { p: offer.commissionPct.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) })}</dt>
+                    <dt>{t("dont frais {p} %", { p: offer.commissionPct.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) })}</dt>
                     <dd className={styles.second}>{fmt(Math.round(positionFor(intent, offer, prixDuPlafond(intent, offer) != null ? { pricePct: prixDuPlafond(intent, offer) } : {}).commission))} FCFA</dd>
                   </div>
                 )}

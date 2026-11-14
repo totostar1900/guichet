@@ -8,7 +8,7 @@ export const FONCTIONNEMENT: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 1,
-  checkedOn: "2026-11-06",
+  checkedOn: "2026-11-14",
   owner: "Georges",
   chapters: [
     {
@@ -227,7 +227,7 @@ export const FONCTIONNEMENT: DocPage = {
           items: [
             l("Il n'exécute pas d'ordre et ne touche pas à l'argent : le règlement se fait par virement au SVT, sur appel de fonds.", "It executes no order and touches no money: settlement is a transfer to the primary dealer, on a call for funds."),
             l("Il ne conseille pas : chaque chiffre est expliqué, jamais recommandé ; les mots « achetez », « garanti », « à ne pas manquer » sont refusés à la publication.", "It does not advise: every figure is explained, never recommended; the words \"buy\", \"guaranteed\", \"not to be missed\" are refused at publication."),
-            l("Il n'affiche pas de commission : les conditions sont communiquées par le conseiller lors de la confirmation.", "It shows no commission: terms are communicated by the adviser at confirmation."),
+            l("Il affiche les frais que vous couvrez, sous le seul mot « Frais » : dans « Ce que vous payez » et sur votre ordre, sans dire qui les perçoit ; le conseiller les confirme à la confirmation.", "It shows the fees you cover, under the single word \"Fees\": in \"What you pay\" and on your order, without saying who receives them; the adviser confirms them at confirmation."),
             l("Il ne publie pas un chiffre non validé : tout communiqué passe par À valider et sa liste de contrôle.", "It publishes no unvalidated figure: every notice goes through To validate and its checklist."),
             l("Il n'efface rien : lignes retirées, versions, intentions, dossiers et décisions restent dans le journal, chaînés et horodatés.", "It deletes nothing: withdrawn lines, versions, intentions, files and decisions stay in the log, chained and time-stamped."),
             l("Il ne reproduit pas les articles : les actualités renvoient à l'original.", "It reproduces no article: news items link to the original."),

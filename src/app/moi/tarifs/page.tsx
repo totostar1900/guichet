@@ -1,8 +1,8 @@
-import { COMPANY } from "@/lib/config";
 import { repo } from "@/lib/data";
 import { baremeOuvert } from "@/lib/domain/garde";
-import { commissionOuverte, fourchetteDesDroits, GRATUITS } from "@/lib/domain/tarifs";
-import { loadBaremeGarde, loadTarifs } from "@/lib/policy";
+import { fourchetteDesDroits, GRATUITS } from "@/lib/domain/tarifs";
+import { fraisLusParLeClient, type LigneDeFraisClient } from "@/lib/domain/frais";
+import { loadBaremeDeFrais, loadBaremeGarde, loadTarifs } from "@/lib/policy";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
@@ -27,7 +27,7 @@ export async function generateMetadata() {
  *
  * ELLE SE CALCULE, ELLE NE S'ÉCRIT PAS. Le barème de garde vient de sa clef
  * de référentiel, la fourchette des droits d'entrée vient des fonds
- * eux-mêmes, la commission vient du tarif de la maison. Une annexe écrite en
+ * eux-mêmes, les frais du client viennent du barème des frais. Une annexe écrite en
  * dur serait vraie le jour de sa rédaction et fausse le mois suivant, et
  * c'est la seule page du site où cet écart se paie en réclamation.
  *
@@ -43,21 +43,40 @@ export async function generateMetadata() {
  */
 export default async function TarifsPage() {
   const t = await getT();
-  const [tarifs, bareme, offres] = await Promise.all([loadTarifs(), loadBaremeGarde(), repo().listOffers().catch(() => [])]);
+  const [tarifs, bareme, offres, frais] = await Promise.all([loadTarifs(), loadBaremeGarde(), repo().listOffers().catch(() => []), loadBaremeDeFrais()]);
   const fonds = offres.filter((o) => o.kind === "FONDS" && !o.hidden && o.fund?.distributed).map((o) => o.fund!);
   const droits = fourchetteDesDroits(fonds);
-  const commission = commissionOuverte(tarifs) ? `${fmtPct(tarifs.commissionPct, 2)}${tarifs.commissionMin > 0 ? ` · ${t("minimum {m} FCFA", { m: fmt(tarifs.commissionMin) })}` : ""}` : null;
+  const jour = new Date().toISOString().slice(0, 10);
+  const lignes = fraisLusParLeClient(frais, jour);
+  const ligne = (cle: LigneDeFraisClient["cle"]) => lignes.find((l) => l.cle === cle);
 
-  /* Le même mot partout : « 0 » se lit comme un oubli, « aucune commission »
-     se lit comme une position. */
+  /* Le même mot partout : « 0 » se lit comme un oubli, « aucune » se lit comme une position. */
   const rien = t("Aucune");
-  const parNous = commission ?? rien;
 
-  const duProduit = droits
+  /* LE CLIENT LIT CE QU'IL COUVRE, ET LE MOT « FRAIS ». Jamais qui perçoit quoi : la destination d'un frais n'est pas écrite ici
+     (décision du 14 novembre 2026). Une règle dont la date n'est pas arrivée se lit avec sa date, jamais comme déjà due. */
+  const dit = (l: LigneDeFraisClient): string => {
+    const taux = `${fmtPct(l.pct, 2)} ${t("du montant")}${l.min > 0 ? ` · ${t("minimum {m} FCFA", { m: fmt(l.min) })}` : ""}${l.max > 0 ? ` · ${t("plafond {m} FCFA", { m: fmt(l.max) })}` : ""}`;
+    return l.enVigueur ? taux : `${taux} · ${t("à partir du {d}", { d: fmtDate(l.effetLe) })}`;
+  };
+  const frais_ = (...ls: (LigneDeFraisClient | undefined)[]): string[] => ls.filter((l): l is LigneDeFraisClient => Boolean(l)).map(dit);
+
+  const entree = droits
     ? droits.min === droits.max
       ? t("Droits d'entrée du fonds : {p}", { p: fmtPct(droits.min, 2) })
       : t("Droits d'entrée du fonds, de {a} à {b} selon le fonds, indiqués sur sa fiche", { a: fmtPct(droits.min, 2), b: fmtPct(droits.max, 2) })
     : t("Les droits d'entrée figurent sur la fiche de chaque fonds.");
+  const achat = ligne("titres.achat");
+  const vente = ligne("titres.vente");
+  const bourse = [achat ? `${t("Achat")} : ${dit(achat)}` : "", vente ? `${t("Vente")} : ${dit(vente)}` : "", t("Frais de marché, s'il en est appliqué")].filter(Boolean);
+
+  const rangees: { op: string; frais: string[] }[] = [
+    { op: t("Investir dans un fonds"), frais: [...frais_(ligne("fonds.souscription")), entree] },
+    { op: t("Sortir d'un fonds"), frais: [...frais_(ligne("fonds.rachat")), t("Droits de sortie du fonds, le cas échéant")] },
+    { op: t("Passage d'un fonds à l'autre"), frais: [t("Les frais de sortie du premier, puis les frais d'entrée du second")] },
+    { op: t("Adjudications et émissions"), frais: frais_(ligne("adjudication.souscription")).length ? frais_(ligne("adjudication.souscription")) : [rien] },
+    { op: t("Acheter et vendre en bourse"), frais: bourse },
+  ];
 
   return (
     <Glissement>
@@ -70,42 +89,26 @@ export default async function TarifsPage() {
 
         <section className={styles.bloc}>
           <h2>{t("À l'opération")}</h2>
-          <p className={styles.sous}>{t("Ce qui est prélevé au moment où vous agissez, par nature d'opération.")}</p>
+          <p className={styles.sous}>{t("Les frais que vous couvrez au moment où vous agissez, par nature d'opération.")}</p>
           <div className="scroll-x">
             <table className={styles.tbl}>
               <thead>
                 <tr>
                   <th>{t("Ce que vous faites")}</th>
-                  <th>{t("Ce que {c} prend", { c: COMPANY.name })}</th>
-                  <th>{t("Ce que le produit prend")}</th>
+                  <th>{t("Frais")}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>{t("Investir dans un fonds")}</td>
-                  <td className={styles.prix}>{parNous}</td>
-                  <td className={styles.tiers}>{duProduit}</td>
-                </tr>
-                <tr>
-                  <td>{t("Sortir d'un fonds")}</td>
-                  <td className={styles.prix}>{parNous}</td>
-                  <td className={styles.tiers}>{t("Droits de sortie du fonds, le cas échéant")}</td>
-                </tr>
-                <tr>
-                  <td>{t("Passage d'un fonds à l'autre")}</td>
-                  <td className={styles.prix}>{parNous}</td>
-                  <td className={styles.tiers}>{t("Les droits de sortie du premier, puis les droits d'entrée du second")}</td>
-                </tr>
-                <tr>
-                  <td>{t("Adjudications et émissions")}</td>
-                  <td className={styles.prix}>{parNous}</td>
-                  <td className={styles.tiers}>{rien}</td>
-                </tr>
-                <tr>
-                  <td>{t("Acheter et vendre en bourse")}</td>
-                  <td className={styles.prix}>{parNous}</td>
-                  <td className={styles.tiers}>{t("Les frais de marché de la BVMAC, s'il en est appliqué")}</td>
-                </tr>
+                {rangees.map((r) => (
+                  <tr key={r.op}>
+                    <td>{r.op}</td>
+                    <td className={styles.tiers}>
+                      {r.frais.map((f) => (
+                        <div key={f}>{f}</div>
+                      ))}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -174,7 +177,7 @@ export default async function TarifsPage() {
             vérité, et la comparaison honnête des fonds est une position de la
             maison depuis le début. */}
         <section className={styles.apart}>
-          <h2>{t("Ce que vous payez sans que cela nous revienne")}</h2>
+          <h2>{t("Les frais d'un fonds, dans sa valeur")}</h2>
           <p>
             {t(
               "Les frais de gestion d'un fonds sont prélevés chaque année dans sa valeur liquidative. Vous ne les voyez pas passer, et ils réduisent pourtant votre rendement plus sûrement que tout le reste de cette page. La fiche de chaque fonds les indique.",
