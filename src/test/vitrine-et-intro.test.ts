@@ -50,6 +50,13 @@ describe("la vitrine : quatre gestes, un visuel du produit, la donnée par sa fo
   });
 });
 
+describe("la vitrine se lit en thème clair (vu le 14 novembre 2026 : 1,43 pour le rang, 1,37 pour le contour)", () => {
+  it("le rang des quatre gestes d'usage est à l'encre dorée, et le contour du téléphone à l'encre tertiaire", () => {
+    expect(lire("src/app/Accueil.module.css")).toMatch(/\.quatre \.rang \{[^}]*color: var\(--gold-ink\)/);
+    expect(lire("src/components/accueil/Visuels.module.css")).toMatch(/\.coque \{[^}]*stroke: var\(--ink-3\)/);
+  });
+});
+
 describe("une seule intro, qui parle des bienfaits", () => {
   const p = lire("src/components/mobile/Presentation.tsx");
   const l = lire("src/app/layout.tsx");

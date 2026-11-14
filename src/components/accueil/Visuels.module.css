@@ -14,7 +14,9 @@
 }
 .coque {
   fill: var(--surface);
-  stroke: var(--line-2);
+  /* Le contour du téléphone se voit sur la page claire (1,37 avec --line-2, vu le 14 novembre 2026) : l'encre tertiaire à moitié. */
+  stroke: var(--ink-3);
+  stroke-opacity: 0.55;
   stroke-width: 2;
 }
 .encoche {

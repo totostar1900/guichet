@@ -588,6 +588,8 @@
 }
 .quatre .rang {
   font-size: var(--t-6);
+  /* Le rang d'un geste d'usage se lit : --gold-line ne faisait que 1,43 sur la page claire (vu le 14 novembre 2026). */
+  color: var(--gold-ink);
 }
 @media (max-width: 900px) {
   .quatre {
