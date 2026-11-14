@@ -51,8 +51,10 @@ describe("la vitrine : quatre gestes, un visuel du produit, la donnée par sa fo
 });
 
 describe("la vitrine se lit en thème clair (vu le 14 novembre 2026 : 1,43 pour le rang, 1,37 pour le contour)", () => {
-  it("le rang des quatre gestes d'usage est à l'encre dorée, et le contour du téléphone à l'encre tertiaire", () => {
-    expect(lire("src/app/Accueil.module.css")).toMatch(/\.quatre \.rang \{[^}]*color: var\(--gold-ink\)/);
+  it("le rang de tous les gestes (01 à 04 et 1 à 4) est à l'encre dorée, et le contour du téléphone à l'encre tertiaire", () => {
+    const css = lire("src/app/Accueil.module.css");
+    expect(css, "le rang des gestes est revenu au filet pâle").toMatch(/\n\.rang \{[^}]*color: var\(--gold-ink\)/);
+    expect(css, "le rang des gestes est revenu au filet pâle").not.toMatch(/\.rang \{[^}]*color: var\(--gold-line\)/);
     expect(lire("src/components/accueil/Visuels.module.css")).toMatch(/\.coque \{[^}]*stroke: var\(--ink-3\)/);
   });
 });

@@ -187,7 +187,8 @@
   font-family: var(--font-titre);
   font-size: clamp(1.8rem, 3.2vw, 2.6rem);
   line-height: 1;
-  color: var(--gold-line);
+  /* L'encre dorée, pas le filet : --gold-line ne faisait que 1,43 sur la page claire (vu le 14 novembre 2026, décision : renforcer 01 à 04). */
+  color: var(--gold-ink);
 }
 .geste:first-child {
   border-left: 0;
@@ -588,8 +589,6 @@
 }
 .quatre .rang {
   font-size: var(--t-6);
-  /* Le rang d'un geste d'usage se lit : --gold-line ne faisait que 1,43 sur la page claire (vu le 14 novembre 2026). */
-  color: var(--gold-ink);
 }
 @media (max-width: 900px) {
   .quatre {
