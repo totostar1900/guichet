@@ -8,6 +8,8 @@ import { ISSUERS, type BondIssuer } from "@/data/issuers";
 import { cleDeGestionnaire, GESTIONNAIRES, type Gestionnaire } from "@/data/gestionnaires";
 import { GLOSSARY as GLOSSARY_DEFAULTS, type Term } from "@/lib/glossary";
 import { LESSONS, type Lesson } from "@/data/lessons";
+import { BAREME_DE_FRAIS_FERME, FRAIS_POLICY_KEY, baremeDeFraisLu, baremePourLeClient, type BaremeDeFrais } from "@/lib/domain/frais";
+import { setFraisClient } from "@/lib/frais-registre";
 import { BUILTIN_TYPES, type ProductType, type Registry, setRegistry } from "@/lib/registry";
 import { buildIssuerRegistry, setIssuerRegistry, type IssuerProfile } from "@/data/issuer-registry";
 
@@ -158,10 +160,21 @@ export const gestionnaireDe = async (nom: string): Promise<Gestionnaire | undefi
 export const issuerBySlug = async (slug: string) => (await loadIssuers()).find((i) => i.slug === slug.toLowerCase());
 export const issuerByIsin = async (isin: string) => (await loadIssuers()).find((i) => i.isins.includes(isin));
 
+/** Le barème des frais, réduit à ce que le client porte ; fermé sur une panne de lecture (un barème qui s'ouvrirait sur une panne prélèverait par accident). */
+async function loadFraisClient(): Promise<BaremeDeFrais> {
+  try {
+    const data = (await rows<Parameters<typeof baremeDeFraisLu>[0]>(REF.policy)).get(FRAIS_POLICY_KEY);
+    return baremePourLeClient(baremeDeFraisLu(data));
+  } catch {
+    return BAREME_DE_FRAIS_FERME;
+  }
+}
+
 /** Everything the domain layer reads synchronously, loaded once per request and installed. */
 export const loadRegistry = cache(async (): Promise<Registry> => {
-  const [types, bondTerms, glossary, lessons] = await Promise.all([loadTypes(), loadBondTerms(), loadGlossary(), loadLessons()]);
+  const [types, bondTerms, glossary, lessons, frais] = await Promise.all([loadTypes(), loadBondTerms(), loadGlossary(), loadLessons(), loadFraisClient()]);
   const reg = { types, bondTerms, glossary, lessons };
   setRegistry(reg);
+  setFraisClient(frais);
   return reg;
 });

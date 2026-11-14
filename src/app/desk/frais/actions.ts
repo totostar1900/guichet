@@ -5,7 +5,7 @@ import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { requireResponsable } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { CLES_DE_REGLE, LIBELLE_DE_REGLE, ORDRE_LIT_LE_BAREME, departRefuse, exigeUnPreavis, type BaremeDeFrais, type CleDeRegle, type RegleDeFrais } from "@/lib/domain/frais";
+import { CLES_DE_REGLE, LIBELLE_DE_REGLE, REGLES_LUES_PAR_L_ORDRE, departRefuse, exigeUnPreavis, type BaremeDeFrais, type CleDeRegle, type RegleDeFrais } from "@/lib/domain/frais";
 import { FRAIS_POLICY_KEY, loadBaremeDeFrais } from "@/lib/policy";
 import { REF } from "@/lib/reference";
 
@@ -38,7 +38,7 @@ const schema = z.object({
 
 export async function arreterRegle(_p: FraisResult | null, form: FormData): Promise<FraisResult> {
   const me = await requireResponsable("/desk/frais");
-  const p = schema.safeParse({ tiersPartDesDroitsPct: "0", tiersEncoursPct: "0", tiersEncoursMin: "0", tiersEncoursMax: "0", ...Object.fromEntries(form) });
+  const p = schema.safeParse({ clientPct: "0", tiersPartDesDroitsPct: "0", tiersEncoursPct: "0", tiersEncoursMin: "0", tiersEncoursMax: "0", ...Object.fromEntries(form) });
   if (!p.success) return { ok: false, error: "Règle invalide : des taux en pourcentage, des montants en francs." };
   const cle: CleDeRegle = p.data.cle;
   const avant = await loadBaremeDeFrais();
@@ -58,7 +58,7 @@ export async function arreterRegle(_p: FraisResult | null, form: FormData): Prom
     ...(effetLe ? { effetLe } : {}),
   };
   const aujourdHui = new Date().toISOString().slice(0, 10);
-  if (prochaine.clientPct > 0 && !ORDRE_LIT_LE_BAREME) return { ok: false, error: "Le calcul de l'ordre ne lit pas encore ce barème : un taux client ne peut pas recevoir de date de départ avant le branchement. Les champs « reçu » et la fermeture d'une règle restent possibles." };
+  if (prochaine.clientPct > 0 && !REGLES_LUES_PAR_L_ORDRE.includes(cle)) return { ok: false, error: "Le calcul de l'ordre ne lit pas encore cette règle : sur un fonds, les frais du client sont ceux du fonds. Les champs « reçu » et la fermeture d'une règle restent possibles." };
   if (prochaine.clientPct > 0 && !effetLe) return { ok: false, error: "Un taux sans date de départ ne s'applique à personne : fixez la date." };
   if (prochaine.clientMax > 0 && prochaine.clientMax < prochaine.clientMin) return { ok: false, error: "Frais du client : le plafond est inférieur au plancher." };
   if (prochaine.tiersMax > 0 && prochaine.tiersMax < prochaine.tiersMin) return { ok: false, error: "Reçu de tiers : le plafond est inférieur au plancher." };

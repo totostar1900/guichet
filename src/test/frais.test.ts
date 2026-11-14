@@ -1,6 +1,11 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { BAREME_DE_FRAIS_FERME, REGLE_FERMEE, baremeDeFraisLu, departRefuse, exigeUnPreavis, fraisDeLOrdre, fraisDuClient, fraisLusParLeClient, premierDepartPossible, recetteDeTiers, retrocessionDuMois, type BaremeDeFrais } from "@/lib/domain/frais";
+import { BAREME_DE_FRAIS_FERME, REGLES_LUES_PAR_L_ORDRE, REGLE_FERMEE, baremePourLeClient, baremeDeFraisLu, departRefuse, exigeUnPreavis, fraisDeLOrdre, fraisDuClient, fraisLusParLeClient, premierDepartPossible, recetteDeTiers, retrocessionDuMois, type BaremeDeFrais } from "@/lib/domain/frais";
+
+import type { Intent, Offer } from "@/lib/domain/types";
+import { positionFor } from "@/lib/documents/position";
+import { plafondPropose } from "@/lib/domain/plafond";
+import { setFraisClient } from "@/lib/frais-registre";
 
 const lire = (f: string) => readFileSync(f, "utf8");
 const JOUR = "2026-11-14";
@@ -148,14 +153,84 @@ describe("le desk arrête une règle par la direction, avec l'avant et l'après"
     expect(actions).toMatch(/exigeUnPreavis\(/);
   });
 
-  it("refuse un taux client avec date tant que le calcul de l'ordre ne lit pas le barème", async () => {
-    const { ORDRE_LIT_LE_BAREME } = await import("@/lib/domain/frais");
-    expect(actions).toMatch(/clientPct > 0 && !ORDRE_LIT_LE_BAREME/);
-    expect(ORDRE_LIT_LE_BAREME, "le branchement est fait ? retirer le refus du desk et ajouter le test de l'ordre").toBe(false);
+  it("refuse un taux client sur une règle que le calcul de l'ordre ne lit pas (les fonds)", () => {
+    expect(actions).toMatch(/clientPct > 0 && !REGLES_LUES_PAR_L_ORDRE\.includes\(cle\)/);
+    expect(REGLES_LUES_PAR_L_ORDRE).toEqual(["titres.achat", "titres.vente", "adjudication.souscription"]);
   });
 
   it("le barème se lit fermé sur une panne de lecture", () => {
     const p = lire("src/lib/policy.ts");
     expect(p).toMatch(/loadBaremeDeFrais[\s\S]*?catch \{\s*return BAREME_DE_FRAIS_FERME;/);
+  });
+});
+
+describe("le calcul d'un ordre lit le barème (14 novembre 2026)", () => {
+  const offre = (extra: Record<string, unknown> = {}) =>
+    ({ id: "o", kind: "MARCHE", instrument: "action", status: "published", hidden: false, isin: "CMX", title: "X", nominal: 10000, lastPrice: 1000, ask: 1000, bid: 1000, commissionPct: 0, country: "Cameroun", issuer: "x", blurb: "", documents: [], opensAt: "2020-01-01T09:00:00", deadlineAt: "2099-01-01T00:00:00", settleOn: "2027-03-05", version: 1, ...extra }) as unknown as Offer;
+  const ordre = (type: "achat" | "vente", extra: Record<string, unknown> = {}) => ({ id: "i", type, amount: 100, createdAt: "2027-03-01T10:00:00", limitPrice: 1000, ...extra }) as unknown as Intent;
+  const poser = (cle: keyof BaremeDeFrais, r: Partial<typeof REGLE_FERMEE>) => setFraisClient(baremePourLeClient(bareme(cle, r)));
+
+  it("avant la date de départ ou sans barème : rien, comme avant", () => {
+    setFraisClient(BAREME_DE_FRAIS_FERME);
+    expect(positionFor(ordre("achat"), offre()).commission).toBe(0);
+    poser("titres.achat", { clientPct: 0.5, effetLe: "2027-04-01" });
+    expect(positionFor(ordre("achat"), offre()).commission).toBe(0);
+  });
+
+  it("un achat de titres paie la règle « achat », plancher et plafond compris, et le total suit", () => {
+    poser("titres.achat", { clientPct: 0.5, clientMin: 700, clientMax: 800, effetLe: "2027-02-03" });
+    const p = positionFor(ordre("achat"), offre());
+    expect(p.principal).toBe(100_000);
+    expect(p.commission).toBe(700);
+    expect(p.total).toBe(100_700);
+    expect(positionFor(ordre("achat", { amount: 1000, limitPrice: 1000 }), offre()).commission).toBe(800);
+  });
+
+  it("une vente paie la règle « vente », et le client reçoit le net", () => {
+    setFraisClient(baremePourLeClient({ ...BAREME_DE_FRAIS_FERME, "titres.achat": ouverte({ clientPct: 2, effetLe: "2027-02-03" }), "titres.vente": ouverte({ clientPct: 1, effetLe: "2027-02-03" }) }));
+    const p = positionFor(ordre("vente"), offre());
+    expect(p.commission).toBe(1_000);
+    expect(p.total).toBe(-99_000);
+  });
+
+  it("le taux propre à la ligne l'emporte sur le barème, comme avant", () => {
+    poser("titres.achat", { clientPct: 0.5, effetLe: "2027-02-03" });
+    expect(positionFor(ordre("achat"), offre({ commissionPct: 1 })).commission).toBeCloseTo(1_000, 6);
+  });
+
+  it("le plafond signé couvre les frais : il ne peut pas être inférieur au coût avec frais", () => {
+    poser("titres.achat", { clientPct: 1, effetLe: "2027-02-03" });
+    const sans = positionFor(ordre("achat"), offre());
+    expect(sans.total).toBe(101_000);
+    expect(plafondPropose(ordre("achat"), offre())).toBeGreaterThanOrEqual(101_000);
+  });
+
+  it("l'adjudication paie sa règle ; un fonds n'est pas touché", () => {
+    poser("adjudication.souscription", { clientPct: 0.25, effetLe: "2027-02-03" });
+    const adj = positionFor({ id: "i", type: "ferme", amount: 1_000_000, createdAt: "2027-03-01T10:00:00" } as unknown as Intent, offre({ kind: "BTA", instrument: undefined, precountRate: 5, maturityOn: "2027-09-05", settleOn: "2027-03-05", nominal: 1_000_000 }));
+    expect(adj.commission).toBeGreaterThan(0);
+    setFraisClient(baremePourLeClient({ ...BAREME_DE_FRAIS_FERME, "fonds.souscription": ouverte({ clientPct: 2, effetLe: "2027-02-03" }) }));
+    const fonds = offre({ kind: "FONDS", fund: { nav: 10_000, entryFeePct: 1, exitFeePct: 0 } });
+    const f = positionFor({ id: "i", type: "souscription", amount: 1_010_000, createdAt: "2027-03-01T10:00:00" } as unknown as Intent, fonds);
+    expect(f.commission).toBeCloseTo(10_000, 0);
+  });
+
+  it("le barème posé pour le calcul ne porte jamais ce que la maison reçoit de tiers", () => {
+    const pose = baremePourLeClient(bareme("fonds.souscription", { clientPct: 1, effetLe: "2027-02-03", tiersPct: 1, tiersMin: 5, tiersMax: 9, tiersPartDesDroitsPct: 40, tiersEncoursPct: 0.3, tiersEncoursMin: 1, tiersEncoursMax: 2 }));
+    for (const cle of Object.keys(pose) as (keyof BaremeDeFrais)[]) {
+      expect(pose[cle].tiersPct + pose[cle].tiersMin + pose[cle].tiersMax + pose[cle].tiersPartDesDroitsPct + pose[cle].tiersEncoursPct + pose[cle].tiersEncoursMin + pose[cle].tiersEncoursMax).toBe(0);
+    }
+    expect(pose["fonds.souscription"].clientPct).toBe(1);
+  });
+
+  it("loadRegistry installe le barème, fermé sur une panne de lecture", () => {
+    const r = readFileSync("src/lib/reference.ts", "utf8");
+    expect(r).toMatch(/setFraisClient\(frais\)/);
+    expect(r).toMatch(/loadFraisClient[\s\S]*?catch \{\s*return BAREME_DE_FRAIS_FERME;/);
+  });
+
+  it("l'ordre signé, le plafond et les avis passent par la même fonction", () => {
+    const pos = readFileSync("src/lib/documents/position.ts", "utf8");
+    expect(pos.match(/\.\.\.frais\(offer, intent,/g)?.length).toBe(6);
   });
 });

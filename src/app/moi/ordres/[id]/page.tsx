@@ -103,6 +103,8 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
   const signable = ordreSignable(intent) && habilite && Boolean(dossier);
   const canal = signable && dossier ? await canalDuCode(s.userId, dossier) : undefined;
 
+  const fraisDuTitre = titre ? positionFor(intent, offer, prixDuPlafond(intent, offer) != null ? { pricePct: prixDuPlafond(intent, offer) } : {}).commission : 0;
+
   return (
     <Glissement>
       <div className={styles.wrap}>
@@ -130,10 +132,10 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
                     <dd>{intent.limitPrice.toLocaleString("fr-FR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} %</dd>
                   </div>
                 )}
-                {offer.commissionPct > 0 && (
+                {fraisDuTitre > 0 && (
                   <div>
-                    <dt>{t("dont frais {p} %", { p: offer.commissionPct.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) })}</dt>
-                    <dd className={styles.second}>{fmt(Math.round(positionFor(intent, offer, prixDuPlafond(intent, offer) != null ? { pricePct: prixDuPlafond(intent, offer) } : {}).commission))} FCFA</dd>
+                    <dt>{offer.commissionPct > 0 ? t("dont frais {p} %", { p: offer.commissionPct.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) }) : t("dont frais")}</dt>
+                    <dd className={styles.second}>{fmt(Math.round(fraisDuTitre))} FCFA</dd>
                   </div>
                 )}
                 <div>

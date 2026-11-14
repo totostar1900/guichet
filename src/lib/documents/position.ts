@@ -2,6 +2,8 @@ import type { Intent, Offer } from "@/lib/domain/types";
 import { addBusinessDays, bondCalc, btaCalc, type CashFlow } from "@/lib/finance";
 import { localIso } from "@/lib/format";
 import { marketBondCalc } from "@/lib/domain/status";
+import { fraisDeLOrdre } from "@/lib/domain/frais";
+import { getFraisClient } from "@/lib/frais-registre";
 
 /**
  * The money lines every document prints for one intent on one offer.
@@ -25,6 +27,25 @@ export interface Position {
 
 const pct3 = (v: number) => `${v.toLocaleString("fr-FR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} %`;
 
+/**
+ * LES FRAIS D'UN ORDRE, UNE SEULE FOIS POUR TOUS LES DOCUMENTS (14 novembre 2026).
+ * Le taux propre à la ligne (`Offer.commissionPct`) l'emporte et se calcule comme avant, au centime. Sinon le barème des frais
+ * (`frais-registre.ts`) : la règle de l'opération, au jour de l'ordre, plancher et plafond compris, en francs entiers. Les fonds n'y
+ * passent pas : leurs frais sont ceux du fonds. Sans barème posé ou avant la date de départ : zéro, comme avant.
+ */
+function frais(offer: Offer, intent: Intent, base: number, sell = false): { commission: number; total: number } {
+  if (!(offer.commissionPct > 0)) {
+    const famille = offer.kind === "MARCHE" ? "titres" : offer.kind === "OTA" || offer.kind === "APE" || offer.kind === "BTA" || offer.kind === "ACTIONS" ? "adjudication" : undefined;
+    if (famille) {
+      const operation = famille === "titres" ? (sell ? "vente" : "achat") : "souscription";
+      const f = fraisDeLOrdre(getFraisClient(), famille, operation, base, localIso(new Date(intent.createdAt)));
+      if (f.montant > 0) return { commission: f.montant, total: sell ? -(base - f.montant) : base + f.montant };
+    }
+  }
+  const com = offer.commissionPct / 100;
+  return { commission: base * com, total: sell ? -(base * (1 - com)) : base * (1 + com) };
+}
+
 export function positionFor(intent: Intent, offer: Offer, opts: { pricePct?: number; unitsOverride?: number } = {}): Position {
   const amount = intent.amount ?? 0;
   const com = offer.commissionPct / 100;
@@ -43,8 +64,7 @@ export function positionFor(intent: Intent, offer: Offer, opts: { pricePct?: num
       principal: r.titles * r.pricePerTitle,
       accrued: r.accrued,
       accruedDays: r.accruedDays,
-      commission: r.outlay * com,
-      total: r.outlay * (1 + com),
+      ...frais(offer, intent, r.outlay),
       irr: r.irr,
       schedule: r.flows,
     };
@@ -60,8 +80,7 @@ export function positionFor(intent: Intent, offer: Offer, opts: { pricePct?: num
       principal: r.outlay,
       accrued: 0,
       accruedDays: 0,
-      commission: r.outlay * com,
-      total: r.outlay * (1 + com),
+      ...frais(offer, intent, r.outlay),
       irr: r.yieldPct,
       schedule: [{ date: new Date(`${offer.maturityOn}T00:00:00`), t: r.days / 365, amount: r.redemption, label: "Remboursement" }],
     };
@@ -78,8 +97,7 @@ export function positionFor(intent: Intent, offer: Offer, opts: { pricePct?: num
       principal,
       accrued: 0,
       accruedDays: 0,
-      commission: principal * com,
-      total: principal * (1 + com),
+      ...frais(offer, intent, principal),
       schedule: [],
     };
   }
@@ -97,16 +115,16 @@ export function positionFor(intent: Intent, offer: Offer, opts: { pricePct?: num
     if (marketR) {
       const r = marketR;
       const gross = r.outlay;
-      return { label: `${n.toLocaleString("fr-FR")} titres`, units: n, unitWord: "titres", pricePct: ref, priceLabel: pct3(ref), nominalAmount: n * offer.nominal, principal: n * r.pricePerTitle, accrued: r.accrued, accruedDays: r.accruedDays, commission: gross * com, total: sell ? -(gross * (1 - com)) : gross * (1 + com), irr: r.irr, schedule: r.flows };
+      return { label: `${n.toLocaleString("fr-FR")} titres`, units: n, unitWord: "titres", pricePct: ref, priceLabel: pct3(ref), nominalAmount: n * offer.nominal, principal: n * r.pricePerTitle, accrued: r.accrued, accruedDays: r.accruedDays, ...frais(offer, intent, gross, sell), irr: r.irr, schedule: r.flows };
     }
     if (isBond) {
       // Une ligne arrivée à échéance n'a plus de flux devant elle : le principal
       // seul, et surtout pas l'habit d'une action, que la branche suivante donne.
       const p = n * ((offer.nominal * ref) / 100);
-      return { label: `${n.toLocaleString("fr-FR")} titres`, units: n, unitWord: "titres", pricePct: ref, priceLabel: pct3(ref), nominalAmount: n * offer.nominal, principal: p, accrued: 0, accruedDays: 0, commission: p * com, total: sell ? -(p * (1 - com)) : p * (1 + com), schedule: [] };
+      return { label: `${n.toLocaleString("fr-FR")} titres`, units: n, unitWord: "titres", pricePct: ref, priceLabel: pct3(ref), nominalAmount: n * offer.nominal, principal: p, accrued: 0, accruedDays: 0, ...frais(offer, intent, p, sell), schedule: [] };
     }
     const principal = n * ref;
-    return { label: `${n.toLocaleString("fr-FR")} actions`, units: n, unitWord: "actions", priceLabel: `${ref.toLocaleString("fr-FR")} FCFA`, nominalAmount: principal, principal, accrued: 0, accruedDays: 0, commission: principal * com, total: sell ? -(principal * (1 - com)) : principal * (1 + com), schedule: [] };
+    return { label: `${n.toLocaleString("fr-FR")} actions`, units: n, unitWord: "actions", priceLabel: `${ref.toLocaleString("fr-FR")} FCFA`, nominalAmount: principal, principal, accrued: 0, accruedDays: 0, ...frais(offer, intent, principal, sell), schedule: [] };
   }
   if (offer.kind === "FONDS" && offer.fund) {
     // Subscription: amount is FCFA, units = net of entry fee / NAV. Redemption: amount is units, proceeds net of exit fee.

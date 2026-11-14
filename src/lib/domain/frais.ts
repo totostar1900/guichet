@@ -69,13 +69,26 @@ export const BAREME_DE_FRAIS_FERME: BaremeDeFrais = {
   "adjudication.souscription": REGLE_FERMEE,
 };
 
+/** La clé du barème dans la table de référence (famille « policy »). */
+export const FRAIS_POLICY_KEY = "bareme-frais";
+
 /**
- * LE CALCUL DE L'ORDRE LIT-IL LE BARÈME ? Pas encore (14 novembre 2026). Les montants d'un ordre (récapitulatif, plafond, avis) se
- * calculent d'une seule source, `Offer.commissionPct`, dans `positionFor` et `finance.ts` ; tant qu'ils ne lisent pas ce barème, une
- * date de départ fixée ici serait une promesse faite au client dans l'annexe que l'ordre ne tiendrait pas. Le desk refuse donc
- * un taux client avec date tant que ceci est faux ; il s'inverse quand le branchement est fait et testé.
+ * LES RÈGLES QUE LE CALCUL DE L'ORDRE LIT (14 novembre 2026) : les titres cotés et l'adjudication. Un ordre se calcule dans `positionFor`,
+ * qui lit le barème posé avec le référentiel (`frais-registre.ts`). Les fonds n'y sont pas : leurs frais sont ceux du fonds (droits
+ * d'entrée et de sortie, dans le prix), et une règle client sur un fonds serait un prélèvement que l'ordre ne tiendrait pas. Le desk
+ * refuse donc un taux client avec date sur une règle qui n'est pas dans cette liste ; elle s'y ajoute quand le calcul la lit.
  */
-export const ORDRE_LIT_LE_BAREME = false;
+export const REGLES_LUES_PAR_L_ORDRE: readonly CleDeRegle[] = ["titres.achat", "titres.vente", "adjudication.souscription"];
+
+/** Le barème tel que le client peut le porter : ce que la maison reçoit de tiers est remis à zéro. Sûr à envoyer au navigateur. */
+export function baremePourLeClient(b: BaremeDeFrais): BaremeDeFrais {
+  const out = { ...BAREME_DE_FRAIS_FERME };
+  for (const cle of CLES_DE_REGLE) {
+    const { clientPct, clientMin, clientMax, effetLe, annonceLe } = b[cle];
+    out[cle] = { ...REGLE_FERMEE, clientPct, clientMin, clientMax, ...(effetLe ? { effetLe } : {}), ...(annonceLe ? { annonceLe } : {}) };
+  }
+  return out;
+}
 
 /** Le nombre de jours de préavis de l'article 6 de la convention. */
 export const PREAVIS_JOURS = 30;

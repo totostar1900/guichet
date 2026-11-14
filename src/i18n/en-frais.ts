@@ -32,6 +32,7 @@ export const EN_FRAIS: Record<string, string> = {
   "Titres · vente": "Securities · sale",
   "Adjudication": "Auction",
   "dont frais {p} %": "of which fees {p} %",
+  "dont frais": "of which fees",
   "du montant": "of the amount",
   "plafond {m} FCFA": "cap {m} FCFA",
   "à partir du {d}": "from {d}",
