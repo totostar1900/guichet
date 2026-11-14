@@ -1064,3 +1064,15 @@
   font-size: var(--t-2);
   color: var(--ink-3);
 }
+
+/* La colonne « Variation » du tableau d'une sélection d'actions, et le mot qui remplace un tiret quand la ligne n'a pas la donnée. */
+.hausse {
+  color: var(--good);
+}
+.baisse {
+  color: var(--crit);
+}
+.sans {
+  color: var(--ink-3);
+  font-size: var(--t-3);
+}

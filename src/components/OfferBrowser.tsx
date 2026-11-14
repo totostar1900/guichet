@@ -31,6 +31,7 @@ import { TeteGroupe, type Groupe } from "./market/TeteGroupe";
 import { nomsCourts } from "@/lib/domain/nom-court";
 import { Dropdown } from "./market/Dropdown";
 import { compterFacettes, impossibles, type Comptes } from "@/lib/domain/facettes";
+import { controlesOfferts, sensNaturel, triEffectif, type ControlesOfferts, type FaitsDeLigne, type SortKey } from "@/lib/domain/controles";
 import { cadenceDuSuivi, SECTIONS, SECTION_LABEL, sectionDe, type Lieu, type Section } from "@/lib/domain/sections";
 import { usePhone } from "./chart-utils";
 import { BlocRepliable, FoldAll, useFold } from "./Fold";
@@ -89,7 +90,7 @@ const TENORS: [string, string][] = [
   ["gt3", "Plus de 3 ans"],
   ["eq", "Actions et fonds"],
 ];
-export type SortKey = "deadline" | "yield" | "coupon" | "tenor" | "minimum" | "title" | "issuer" | "variation";
+export type { SortKey };
 type Dir = "asc" | "desc";
 type View = "table" | "list" | "cards";
 /**
@@ -252,13 +253,15 @@ const StatusPill = ({ s }: { s: OfferSummary }) => {
  * les cartes et la liste les affichent. Les recalculer ici aurait fait un
  * second découpage à tenir d'accord avec le premier.
  */
-function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections, picks }: { rows: Row[]; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean; chosen?: boolean; /** Les lignes retenues par le desk, rendues dans la liste même (adjudications). */ picks?: Set<string>; sections?: { clef: string; nom: string; rows: Row[] }[] }) {
+function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections, picks, cols, courbes }: { rows: Row[]; /** Les colonnes que la sélection porte (domain/controles.ts). */ cols: ControlesOfferts["colonnes"]; courbes?: Record<string, CourbeDuTitre>; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean; chosen?: boolean; /** Les lignes retenues par le desk, rendues dans la liste même (adjudications). */ picks?: Set<string>; sections?: { clef: string; nom: string; rows: Row[] }[] }) {
   const groups = sections
     ? sections.map((x) => ({ issuer: x.nom, zone: "Cameroun" as const, countryName: "", rows: x.rows, section: x.clef }))
     : grouped
       ? groupByIssuer(rows)
       : [{ issuer: "", zone: "Cameroun" as const, countryName: "", rows }];
   const t = useT();
+  /* Ligne, Statut et la colonne d'action tiennent toujours ; les autres suivent la sélection. */
+  const nbCols = 3 + Object.values(cols).filter(Boolean).length + (cols.tenor ? 1 : 0);
   return (
     <div className={styles.tableWrap} data-chosen={chosen ? "1" : undefined}>
       <table className={styles.table}>
@@ -266,11 +269,12 @@ function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections, p
           <tr>
             <Th k="title" label={t("Ligne")} sort={sort} dir={dir} onSort={onSort} />
             <th>{t("Statut")}</th>
-            <Th k="deadline" label={t("Clôture")} sort={sort} dir={dir} onSort={onSort} right />
-            <Th k="yield" label={t("Rendement")} sort={sort} dir={dir} onSort={onSort} right term="rendement_cours" />
-            <Th k="tenor" label={t("Échéance")} sort={sort} dir={dir} onSort={onSort} right className={styles.hideMd} />
-            <th className={`${styles.r} ${styles.hideMd}`}>{t("Durée")}</th>
-            <Th k="minimum" label={t("Ticket minimum")} sort={sort} dir={dir} onSort={onSort} right term="ticket" className={styles.hideSm} />
+            {cols.variation && <Th k="variation" label={t("Variation")} sort={sort} dir={dir} onSort={onSort} right />}
+            {cols.deadline && <Th k="deadline" label={t("Clôture")} sort={sort} dir={dir} onSort={onSort} right />}
+            {cols.yield && <Th k="yield" label={t("Rendement")} sort={sort} dir={dir} onSort={onSort} right term="rendement_cours" />}
+            {cols.tenor && <Th k="tenor" label={t("Échéance")} sort={sort} dir={dir} onSort={onSort} right className={styles.hideMd} />}
+            {cols.tenor && <th className={`${styles.r} ${styles.hideMd}`}>{t("Durée")}</th>}
+            {cols.minimum && <Th k="minimum" label={t("Ticket minimum")} sort={sort} dir={dir} onSort={onSort} right term="ticket" className={styles.hideSm} />}
             <th></th>
           </tr>
         </thead>
@@ -281,14 +285,14 @@ function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections, p
                groupe. */
             ...(sections ? [
               <tr key={`s-${g.issuer}`} className={styles.secRow}>
-                <th colSpan={8} scope="colgroup" id={`sec-${(g as { section?: string }).section ?? g.issuer}`}>
+                <th colSpan={nbCols} scope="colgroup" id={`sec-${(g as { section?: string }).section ?? g.issuer}`}>
                   {g.issuer}
                 </th>
               </tr>,
-            ] : grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} colSpan={8} />] : []),
+            ] : grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} colSpan={nbCols} />] : []),
             <GroupBody key={`b-${g.issuer}`} issuer={grouped && !sections ? g.issuer : ""}>
               {g.rows.map(({ o, s }) => (
-                <TableRow key={o.id} o={o} s={s} featured={featured || Boolean(picks?.has(o.id))} avertir={Boolean(picks)} />
+                <TableRow key={o.id} o={o} s={s} featured={featured || Boolean(picks?.has(o.id))} avertir={Boolean(picks)} cols={cols} variation={courbes?.[o.isin ?? ""]?.variationPct} />
               ))}
             </GroupBody>,
           ])}
@@ -360,7 +364,7 @@ function RangeeDeSeance({ o, s }: { o: Offer; s: OfferSummary }) {
 }
 
 /** One row of the table, with its « ··· ». */
-function TableRow({ o, s, featured, avertir }: { o: Offer; s: OfferSummary; featured?: boolean; avertir?: boolean }) {
+function TableRow({ o, s, featured, avertir, cols, variation }: { o: Offer; s: OfferSummary; featured?: boolean; avertir?: boolean; cols: ControlesOfferts["colonnes"]; variation?: number }) {
   const t = useT();
   const href = useLineHref();
   const desk = useDeskView();
@@ -373,23 +377,46 @@ function TableRow({ o, s, featured, avertir }: { o: Offer; s: OfferSummary; feat
           <td>
             <StatusPill s={s} />
           </td>
-          <td className={`${styles.r} num`}>
-            {s.deadlineParts ? s.deadlineParts[0] : t(s.deadline)}
-            {s.deadlineParts && <small>{s.deadlineParts[1]}</small>}
-          </td>
-          <td className={`${styles.r} ${styles.wrapCell}`} title={s.heroSub}>
-            <span className={`${styles.hero} ${s.gold ? styles.taux : ""}`}>{s.hero}</span>
-            <small>{t(s.heroUnit ?? s.heroSub)}</small>
-          </td>
-          <td className={`${styles.r} ${styles.hideMd} num`} title={s.maturityNote}>
-            {s.maturity}
-            {s.maturityNote && <span className={styles.approx} aria-label={s.maturityNote}>≈</span>}
-          </td>
-          <td className={`${styles.r} ${styles.hideMd} num`}>{s.tenor}</td>
-          <td className={`${styles.r} ${styles.hideSm} num`}>
-            {s.minimum}
-            {s.minimum !== "—" && <Info text={s.minimumSub} label={t("Ce ticket représente")} subtle />}
-          </td>
+          {cols.variation && (
+            <td className={`${styles.r} num`}>
+              {variation == null ? (
+                <span className={styles.sans}>{t("non connue")}</span>
+              ) : (
+                <>
+                  <b className={variation > 0.05 ? styles.hausse : variation < -0.05 ? styles.baisse : undefined}>
+                    {variation > 0.05 ? "▲ +" : variation < -0.05 ? "▼ −" : ""}
+                    {Math.abs(variation).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
+                  </b>
+                  <small>{t("sur 3 mois")}</small>
+                </>
+              )}
+            </td>
+          )}
+          {cols.deadline && (
+            <td className={`${styles.r} num`}>
+              {s.deadlineParts ? s.deadlineParts[0] : t(s.deadline)}
+              {s.deadlineParts && <small>{s.deadlineParts[1]}</small>}
+            </td>
+          )}
+          {cols.yield && (
+            <td className={`${styles.r} ${styles.wrapCell}`} title={s.heroSub}>
+              <span className={`${styles.hero} ${s.gold ? styles.taux : ""}`}>{s.hero}</span>
+              <small>{t(s.heroUnit ?? s.heroSub)}</small>
+            </td>
+          )}
+          {cols.tenor && (
+            <td className={`${styles.r} ${styles.hideMd} num`} title={s.maturityNote}>
+              {o.maturityOn ? s.maturity : <span className={styles.sans}>{t("sans échéance")}</span>}
+              {s.maturityNote && <span className={styles.approx} aria-label={s.maturityNote}>≈</span>}
+            </td>
+          )}
+          {cols.tenor && <td className={`${styles.r} ${styles.hideMd} num`}>{o.maturityOn ? s.tenor : <span className={styles.sans}>—</span>}</td>}
+          {cols.minimum && (
+            <td className={`${styles.r} ${styles.hideSm} num`}>
+              {s.minimum}
+              {s.minimum !== "—" && <Info text={s.minimumSub} label={t("Ce ticket représente")} subtle />}
+            </td>
+          )}
           <td className={styles.r}>
             <span className={styles.rowBtns}>
               <Link className="btn sm ghost" href={href(o.id)}>
@@ -606,8 +633,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   const sansGroupe = sp.get("groupe") === "aucun";
   const parEmetteur = sommaire && grouped;
   const q = sp.get("q") ?? "";
-  const sort = (sp.get("tri") as SortKey) || "deadline";
-  const dir = (sp.get("sens") as Dir) || (sort === "yield" || sort === "coupon" ? "desc" : "asc");
   const desk = useDeskView();
   // The phone reads cards, the desk a table: decided from the media query at hydration, not after a first paint (no compact flash).
   const phone = usePhone();
@@ -668,10 +693,6 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     router.replace(`${pathname}${next.toString() ? `?${next}` : ""}`, { scroll: false });
   };
   const setFilter = (k: string) => (s: Set<string>) => update({ [k]: [...s].join(",") || undefined });
-  const onSort = (k: SortKey) => {
-    if (sort === k) update({ sens: dir === "asc" ? "desc" : "asc" });
-    else update({ tri: k, sens: undefined });
-  };
   /* TOUT EFFACER VEUT DIRE TOUT : les filtres, la recherche, la section
      choisie, l'ordre et son sens. Il ne remettait que les filtres, et qui
      avait trié gardait son ordre après l'avoir touché. */
@@ -686,6 +707,28 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   const filterCount0 = kind.size + country.size + status.size + tenor.size;
   const sectionChoisie: Section | undefined = sectionParam === "tout" ? undefined : ((sectionParam as Section | null) ?? (lieu === "cote" && filterCount0 === 0 && !sp.get("q") && !sp.get("rendement") && !sp.get("ans") && !sp.get("marche") ? ("actions" as Section) : undefined));
   const filterCount = kind.size + country.size + status.size + tenor.size + (yr.min != null || yr.max != null ? 1 : 0) + (dr.min != null || dr.max != null ? 1 : 0) + (segment ? 1 : 0);
+  /**
+   * LES CONTRÔLES SUIVENT LA SÉLECTION (14 novembre 2026). La sélection est la section et l'instrument choisis, et eux seuls : un tri, un filtre
+   * ou une colonne n'est offert que si une ligne de la sélection porte la donnée qu'il lit. Une action n'a ni coupon, ni clôture, ni
+   * échéance : elle n'en reçoit pas les contrôles. Ce qui est déjà posé dans l'adresse reste offert, pour qu'on puisse le défaire.
+   * Voir `domain/controles.ts`.
+   */
+  const dispo = useMemo(() => {
+    const faits: FaitsDeLigne[] = offers
+      .filter((o) => (!segment || familySegment(offerFamily(o)) === segment) && (!sectionChoisie || sectionDe(o) === sectionChoisie) && (!kind.size || kind.has(offerFamily(o))))
+      .map((o) => {
+        const s = summarize(o, now, { dates });
+        return { deadline: Boolean(s.deadlineParts), coupon: o.couponRate != null, tenor: tenorYears(o) > 0, yield: s.yieldPct != null, variation: courbes?.[o.isin ?? ""]?.variationPct != null, minimum: s.minimum !== "—", famille: offerFamily(o), pays: o.country, statut: normStatus(s.st) };
+      });
+    return controlesOfferts(faits);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offers, now, segment, sectionChoisie, sp, courbes]);
+  const sort: SortKey = triEffectif(sp.get("tri"), dispo);
+  const dir: Dir = (sp.get("sens") as Dir) || sensNaturel(sort);
+  const onSort = (k: SortKey) => {
+    if (sort === k) update({ sens: dir === "asc" ? "desc" : "asc" });
+    else update({ tri: k, sens: undefined });
+  };
   /* Ce que « Tout effacer » aurait à défaire : il se lit après le compte des
      filtres, qui en fait partie. */
   /* « mesure » n'est pas un filtre, elle ne retire aucune ligne : elle est
@@ -993,6 +1036,8 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         grouped={grouped && !featured}
         featured={featured}
         chosen={Boolean(sp.get("vue"))}
+        cols={dispo.colonnes}
+        courbes={courbes}
         picks={adj ? pickIds : undefined}
         sections={!featured && !sansGroupe && !grouped && (!sectionChoisie || adj) ? blocsDuSommaire(list).map((b) => ({ clef: b.clef, nom: b.entier, rows: b.rows })) : undefined}
       />
@@ -1150,7 +1195,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
               la planche) : la même barre sur Titres, Fonds et Adjudications. Ces quatre commandes se règlent une fois ; elles tenaient
               autant de place que celles qu'on touche à chaque visite. Les adjudications ont la recherche depuis le 4 novembre 2026 ; leur tri reste celui de la page (clôture). */}
           <Affichage
-            tri={!adj ? { quoi: t("Trier par"), valeur: sort, options: (Object.keys(SORT_LABEL) as SortKey[]).map((k) => [k, t(SORT_LABEL[k])] as [string, string]), onChange: (v) => update({ tri: v, sens: undefined }), sens: dir, onSens: () => update({ sens: dir === "asc" ? "desc" : "asc" }) } : undefined}
+            tri={!adj ? { quoi: t("Trier par"), valeur: sort, options: dispo.tris.map((k) => [k, t(SORT_LABEL[k])] as [string, string]), onChange: (v) => update({ tri: v, sens: undefined }), sens: dir, onSens: () => update({ sens: dir === "asc" ? "desc" : "asc" }) } : undefined}
             groupe={sommaire ? { quoi: t("Grouper par"), valeur: sansGroupe ? "aucun" : grouped ? "emetteur" : "type", options: GROUPEMENTS.map(([k, l]) => [k, t(l)] as [string, string]), onChange: (v) => update({ groupe: v === "type" ? undefined : v }) } : undefined}
             vue={!phone ? { quoi: t("Vue"), valeur: view, options: VIEWS.map((v) => [v, t(VIEW_LABEL[v])] as [string, string]), onChange: (v) => update({ vue: v }) } : undefined}
             densite={view === "cards" && !desk}
@@ -1159,17 +1204,17 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           />
           {repli && repli.ids.length > 1 && <FoldAll group={repli.group} ids={repli.ids} />}
           <div className={styles.filters}>
-          <Dropdown
+          {(dispo.filtres.instrument || kind.size > 0) && <Dropdown
             label={t("Instrument")}
             items={SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => [[`#${sg}`, SEGMENT_LABEL[sg]] as [string, string], ...FAMILIES().filter((f) => familySegment(f) === sg).map((f) => [f, familyLabel(f)] as [string, string])])}
             selected={kind}
             comptes={comptes.instrument}
             onChange={setFilter("instrument")}
-          />
-          <Dropdown label={t("Pays")} items={COUNTRIES.map((c) => [c, c])} selected={country} comptes={comptes.pays} onChange={setFilter("pays")} />
-          <Dropdown label={t("Statut")} items={STATUSES} selected={status} comptes={comptes.statut} onChange={setFilter("statut")} />
-          <Dropdown label={t("Durée")} items={TENORS} selected={tenor} onChange={setFilter("duree")} />
-          <YieldDropdown values={yieldsRestants} ensemble={yields} min={yr.min} max={yr.max} onChange={setYield} />
+          />}
+          {(dispo.filtres.pays || country.size > 0) && <Dropdown label={t("Pays")} items={COUNTRIES.map((c) => [c, c])} selected={country} comptes={comptes.pays} onChange={setFilter("pays")} />}
+          {(dispo.filtres.statut || status.size > 0) && <Dropdown label={t("Statut")} items={STATUSES} selected={status} comptes={comptes.statut} onChange={setFilter("statut")} />}
+          {(dispo.filtres.duree || tenor.size > 0) && <Dropdown label={t("Durée")} items={TENORS} selected={tenor} onChange={setFilter("duree")} />}
+          {(dispo.filtres.rendement || yr.min != null || yr.max != null) && <YieldDropdown values={yieldsRestants} ensemble={yields} min={yr.min} max={yr.max} onChange={setYield} />}
           {(filterCount > 0 || q) && (
             <button type="button" className={styles.clear} onClick={reset}>
               {t("Effacer")}
@@ -1195,7 +1240,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         trie={false}
         open={sheet}
         onClose={() => setSheet(false)}
-        groups={groups}
+        groups={groups.filter((g) => dispo.filtres[g.key as "instrument" | "pays" | "statut"] || g.selected.size > 0)}
         comptes={comptes}
         onToggle={toggle}
         onClear={reset}
@@ -1203,9 +1248,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
            règle déjà cette plage, et la même borne commandée à deux endroits
            est une borne dont on ne sait plus lequel la tient. Elle reste aux
            adjudications, qui n'ont pas de nuage. */
-        gauge={adj ? <YieldGauge values={yieldsRestants} ensemble={yields} min={yr.min} max={yr.max} onChange={setYield} /> : null}
+        gauge={adj && (dispo.filtres.rendement || yr.min != null || yr.max != null) ? <YieldGauge values={yieldsRestants} ensemble={yields} min={yr.min} max={yr.max} onChange={setYield} /> : null}
         extra={
-          adj ? (
+          adj && (dispo.filtres.duree || dr.min != null || dr.max != null) ? (
             /* LA DURÉE EN JAUGE, et rien d'autre. Ce qui a été retiré de
                cette feuille pour la page des adjudications, et pourquoi :
                la RECHERCHE, parce qu'on ne connaît pas une séance par son

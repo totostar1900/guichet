@@ -33,6 +33,7 @@ export const EN_FRAIS: Record<string, string> = {
   "Adjudication": "Auction",
   "dont frais {p} %": "of which fees {p} %",
   "dont frais": "of which fees",
+  "non connue": "not available",
   "du montant": "of the amount",
   "plafond {m} FCFA": "cap {m} FCFA",
   "à partir du {d}": "from {d}",
