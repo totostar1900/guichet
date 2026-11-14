@@ -73,12 +73,11 @@ export const BAREME_DE_FRAIS_FERME: BaremeDeFrais = {
 export const FRAIS_POLICY_KEY = "bareme-frais";
 
 /**
- * LES RÈGLES QUE LE CALCUL DE L'ORDRE LIT (14 novembre 2026) : les titres cotés et l'adjudication. Un ordre se calcule dans `positionFor`,
- * qui lit le barème posé avec le référentiel (`frais-registre.ts`). Les fonds n'y sont pas : leurs frais sont ceux du fonds (droits
- * d'entrée et de sortie, dans le prix), et une règle client sur un fonds serait un prélèvement que l'ordre ne tiendrait pas. Le desk
- * refuse donc un taux client avec date sur une règle qui n'est pas dans cette liste ; elle s'y ajoute quand le calcul la lit.
+ * LES RÈGLES QUE LE CALCUL DE L'ORDRE LIT (14 novembre 2026) : les cinq (fonds, titres cotés, adjudication). Un ordre se calcule dans `positionFor`,
+ * qui lit le barème posé avec le référentiel (`frais-registre.ts`). Sur un fonds, la règle s'ajoute aux droits du fonds et le client lit le total (`frais-fonds.ts`).
+ * Le desk refuse un taux client avec date sur une règle qui n'est pas dans cette liste ; elle s'y ajoute quand le calcul la lit.
  */
-export const REGLES_LUES_PAR_L_ORDRE: readonly CleDeRegle[] = ["titres.achat", "titres.vente", "adjudication.souscription"];
+export const REGLES_LUES_PAR_L_ORDRE: readonly CleDeRegle[] = ["fonds.souscription", "fonds.rachat", "titres.achat", "titres.vente", "adjudication.souscription"];
 
 /** Le barème tel que le client peut le porter : ce que la maison reçoit de tiers est remis à zéro. Sûr à envoyer au navigateur. */
 export function baremePourLeClient(b: BaremeDeFrais): BaremeDeFrais {

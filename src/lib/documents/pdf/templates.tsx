@@ -85,7 +85,7 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
         rows={[
           [`Prix des ${p.unitWord} (${fmt(p.units)} × ${fmt(p.principal / Math.max(p.units, 1))})`, fmt(p.principal)],
           ...(isBond ? ([[`Coupon couru${p.accruedDays ? ` du ${offer.lastCouponOn ? fmtDate(offer.lastCouponOn, false) : "—"} au ${fmtDate(offer.settleOn, false)} (${p.accruedDays} jours)` : " (ligne nouvelle)"}`, p.accruedDays ? fmt(p.accrued) : "néant"]] as [string, string][]) : []),
-          ...(offer.commissionPct > 0 ? ([[`Commission d'intermédiation ${fmtPct(offer.commissionPct, 2)}`, fmt(p.commission)]] as [string, string][]) : []),
+          ...(p.commission > 0.5 ? ([["Frais", fmt(p.commission)]] as [string, string][]) : []),
         ]}
         total={
           /* « ESTIMÉ » N'EST PAS CE QUI SE SIGNE. Sur un titre, la dépense
@@ -103,7 +103,7 @@ export function Bulletin({ number, intent, offer, position: p, now, advisor, acc
       {plafond != null && (
         <View style={s.box}>
           <Text>
-            <Text style={s.b}>Plafond signé.</Text> {COMPANY.legalName} ne vous engage pas au-delà de {fmt(plafond)} FCFA, commission comprise, calculés au prix maximum que vous avez accepté
+            <Text style={s.b}>Plafond signé.</Text> {COMPANY.legalName} ne vous engage pas au-delà de {fmt(plafond)} FCFA, frais compris, calculés au prix maximum que vous avez accepté
             {intent.limitPrice != null ? ` (${fmtPct(intent.limitPrice, 3)})` : ""}. Servi à un meilleur prix, vous payez moins ; servi en partie, vous ne payez que votre part ; non servi, la totalité vous revient et votre solde disponible vous est versé sous soixante-douze heures ouvrables sur demande.
           </Text>
         </View>
@@ -166,7 +166,7 @@ export function OrdreDeCession({ number, intent, offer, position: p, now, adviso
       </Text>
       <Addr blocks={[["Cédant", [intent.clientName, intent.clientSegment]], ["Intermédiaire", [COMPANY.legalName, `Via ${SVT_BY_COUNTRY[offer.country]?.name ?? "SVT partenaire"}`]]]} />
       <Table
-        cols={[{ label: "Ligne", flex: 3 }, { label: "Code", flex: 1.4, mono: true }, { label: "Titres cédés", right: true }, { label: "Prix", right: true }, { label: "Nominal", flex: 1.2, right: true }, { label: `Com. ${fmtPct(offer.commissionPct, 2)}`, right: true }, { label: "Net attendu", flex: 1.2, right: true }]}
+        cols={[{ label: "Ligne", flex: 3 }, { label: "Code", flex: 1.4, mono: true }, { label: "Titres cédés", right: true }, { label: "Prix", right: true }, { label: "Nominal", flex: 1.2, right: true }, { label: "Frais", right: true }, { label: "Net attendu", flex: 1.2, right: true }]}
         rows={[[lineTitle(offer), offer.isin, fmt(p.units), p.priceLabel, fmt(p.nominalAmount), fmt(p.commission), fmt(-p.total)]]}
       />
       <Text style={s.p}>
@@ -204,7 +204,7 @@ export function AvisResultat({ number, intent, offer, position: p, now, allocati
           rows={[
             [`${servedPos.unitWord.charAt(0).toUpperCase() + servedPos.unitWord.slice(1)} alloués`, fmt(servedPos.units)],
             ["Prix servi", servedPos.priceLabel],
-            [`Montant définitif (titres + coupon couru${offer.commissionPct > 0 ? " + commission" : ""})`, `${fmt(servedPos.total)} FCFA`],
+            [`Montant définitif (titres + coupon couru${servedPos.commission > 0.5 ? " + frais" : ""})`, `${fmt(servedPos.total)} FCFA`],
             ["Fonds reçus", `${fmt(p.total)} FCFA`],
           ]}
           total={["Solde à restituer / à compléter", `${fmt(p.total - servedPos.total)} FCFA`]}
@@ -229,7 +229,7 @@ export function AvisOpere({ number, intent, offer, position: p, now, allocation 
       </Text>
       <Addr blocks={[["Titulaire", [intent.clientName, intent.clientSegment]], ["Opération", [offer.kind === "MARCHE" ? `${intent.type === "vente" ? "Vente" : "Achat"} sur ${offer.market} : ${offer.issuer}` : `${intent.type === "cession" ? "Cession" : "Achat"} sur le marché primaire : ${offer.issuer}`, `Intermédiaire : ${COMPANY.legalName} via ${SVT_BY_COUNTRY[offer.country]?.name ?? "SVT partenaire"}`]]]} />
       <Table
-        cols={[{ label: "Titre", flex: 2.4 }, { label: "Code", flex: 1.3, mono: true }, { label: "Quantité", right: true }, { label: "Cours", right: true }, { label: "Brut", flex: 1.2, right: true }, { label: "Coupon couru", flex: 1.1, right: true }, { label: "Commission", right: true }, { label: "Net", flex: 1.2, right: true }]}
+        cols={[{ label: "Titre", flex: 2.4 }, { label: "Code", flex: 1.3, mono: true }, { label: "Quantité", right: true }, { label: "Cours", right: true }, { label: "Brut", flex: 1.2, right: true }, { label: "Coupon couru", flex: 1.1, right: true }, { label: "Frais", right: true }, { label: "Net", flex: 1.2, right: true }]}
         rows={[[offer.title, offer.isin, fmt(pos.units), pos.priceLabel, fmt(pos.principal), fmt(pos.accrued), fmt(pos.commission), fmt(Math.abs(pos.total))]]}
       />
       {pos.schedule.length > 0 && (

@@ -51,4 +51,11 @@ export const EN_FRAIS: Record<string, string> = {
   "Rétrocession · plafond mensuel": "Rebate · monthly cap",
   "En francs par mois, appliqué à ce qui est déjà dû seulement.": "In francs per month, applied only to what is already due.",
   "En francs par mois ; zéro : pas de plafond.": "In francs per month; zero: no cap.",
+  "frais {p} %": "fees {p} %",
+  "de {a} à {b} selon le fonds": "from {a} to {b} depending on the fund",
+  "Voir la fiche du fonds": "See the fund's sheet",
+  "Deux ordres, un rachat puis une souscription : chacun porte sa ligne de frais.": "Two orders, a redemption then a subscription: each carries its own fees line.",
+  "Frais à la sortie": "Exit fees",
+  "après frais": "after fees",
+  "sans frais": "no fees",
 };

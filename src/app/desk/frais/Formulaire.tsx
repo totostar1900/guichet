@@ -19,7 +19,7 @@ export function RegleForm({ cle, regle, fonds, premier }: { cle: CleDeRegle; reg
       <div className={styles.champs}>
         <label className={styles.champ}>
           <span>{t("Frais du client")}</span>
-          <input name="clientPct" type="number" min={0} max={5} step={0.05} defaultValue={regle.clientPct} inputMode="decimal" disabled={fonds} />
+          <input name="clientPct" type="number" min={0} max={5} step={0.05} defaultValue={regle.clientPct} inputMode="decimal" />
           <small>{t("En % du montant, de 0 à 5. Zéro : rien n'est pris sur cette opération.")}</small>
         </label>
         <label className={styles.champ}>

@@ -1,3 +1,4 @@
+import { pctTotal } from "@/lib/domain/frais-fonds";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { cashPosition } from "@/lib/domain/cash";
@@ -50,7 +51,7 @@ export default async function PlacerPage() {
         />
         <PlacerLaProvision
           disponible={Math.round(poche.idle)}
-          fonds={monetaires.map((o) => ({ id: o.id, titre: o.title, gestionnaire: o.fund?.manager ?? o.issuer, droits: o.fund?.entryFeePct }))}
+          fonds={monetaires.map((o) => ({ id: o.id, titre: o.title, gestionnaire: o.fund?.manager ?? o.issuer, frais: o.fund ? pctTotal(o.fund, "souscription") : undefined }))}
         />
       </div>
     </Glissement>

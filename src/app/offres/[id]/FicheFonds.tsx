@@ -1,3 +1,4 @@
+import { pctTotal } from "@/lib/domain/frais-fonds";
 import type { ReactNode } from "react";
 import { Carte } from "@/components/Carte";
 import { CourbeDeLaVL } from "@/components/CourbeDeLaVL";
@@ -21,7 +22,7 @@ import fa from "./FicheAction.module.css";
  * Même langue que la fiche d'une action : titre à plat puis carte en relief, 44 px entre deux sections (le groupe « chapitres »), un chiffre majeur et des tuiles.
  * Trois onglets, comme Titres : Essentiel · Documents · Société de gestion (la société tient la place de l'émetteur).
  * L'Essentiel enchaîne : la valeur liquidative et sa courbe (une courbe, trois mesures, une liste de périodes), les chiffres clés, « Investir », puis les lignes
- * similaires et le pied de la page. Rien du barème du desk n'est montré ; les frais du fonds (entrée et sortie) restent écrits. Le desk garde la lecture d'avant.
+ * similaires et le pied de la page. Rien du barème du desk n'est montré ; le total des frais d'entrée et de sortie reste écrit. Le desk garde la lecture d'avant.
  */
 const signe = (v: number) => `${v > 0 ? "+" : ""}${fmtPct(v, 2)}`;
 
@@ -51,12 +52,12 @@ export async function FicheFonds({ o, data }: { o: Offer; data: FicheData }) {
   const documents = o.documents.filter((d) => !estUnBulletin(d));
   const initiales = f.manager.replace(/[^A-Za-zÀ-ÿ0-9 ]/g, "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 
-  /* CHIFFRES CLÉS (planche 2B, sans les droits d'entrée) : le chiffre du bulletin en majeur avec sa date, l'annualisé depuis la création DATÉ en tuile, puis les faits du fonds. La période choisie, elle, vit dans « Évolution » avec ses dates. */
+  /* CHIFFRES CLÉS (planche 2B, sans les frais d'entrée) : le chiffre du bulletin en majeur avec sa date, l'annualisé depuis la création DATÉ en tuile, puis les faits du fonds. La période choisie, elle, vit dans « Évolution » avec ses dates. */
   const tuilesCles: [string, string][] = [];
   if (annuel != null && f.inceptionDate) tuilesCles.push([t("Rendement annualisé depuis le {d}", { d: fmtDate(f.inceptionDate) }), signe(annuel)]);
   tuilesCles.push([t("Catégorie"), t(FUND_CATEGORY_LABEL[f.category])]);
   if (FUND_FREQUENCY_ADJ[f.frequency]) tuilesCles.push([t("Fréquence de la VL"), t(FUND_FREQUENCY_ADJ[f.frequency])]);
-  if (f.exitFeePct > 0) tuilesCles.push([t("Frais du fonds à la sortie"), fmtPct(f.exitFeePct, 2)]);
+  if (pctTotal(f, "rachat") > 0) tuilesCles.push([t("Frais à la sortie"), fmtPct(pctTotal(f, "rachat"), 2)]);
 
   /* SIÈGE ET AGRÉMENT : saisis au desk, jamais inventés. Une tuile sans valeur n'est pas écrite. */
   const tuilesGestion: [string, string][] = [];

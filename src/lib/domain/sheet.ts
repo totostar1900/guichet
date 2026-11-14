@@ -1,4 +1,5 @@
 import type { Offer } from "./types";
+import { pctTotal, souscriptionNette } from "./frais-fonds";
 import { displayYield, marketAmortInput, marketBondCalc, marketBondInput } from "./status";
 import { typeOf } from "@/lib/registry";
 import { bondCalc, type BondResult, btaCalc, btaAmountForBonds } from "../finance";
@@ -51,15 +52,15 @@ export function offerReference(o: Offer, now = new Date()): OfferReference | und
   if (o.kind === "FONDS" && o.fund) {
     const f = o.fund;
     const amount = Math.max(f.minAmount, 1_000_000);
-    const net = amount / (1 + f.entryFeePct / 100);
+    const { net, frais } = souscriptionNette(f, amount);
     const units = f.nav > 0 ? Math.floor((net / f.nav) * 1000) / 1000 : 0;
     return {
       title: `Pour ${fmt(amount)} FCFA à la dernière VL`,
       rows: [
-        ...(f.entryFeePct > 0 ? ([[`Frais du fonds à l'entrée ${fmtPct(f.entryFeePct, 2)}`, fmt(amount - net)]] as [string, string][]) : []),
+        ...(frais > 0.5 ? ([["Frais", fmt(frais)]] as [string, string][]) : []),
         ["Investi dans le fonds", fmt(net)],
         [`Parts (VL ${fmt(f.nav)} du ${fmtDate(f.navDate, false)})`, `≈ ${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}`],
-        ...(f.exitFeePct > 0 ? ([["Frais du fonds à la sortie", fmtPct(f.exitFeePct, 2)]] as [string, string][]) : []),
+        ...(pctTotal(f, "rachat") > 0 ? ([["Frais à la sortie", fmtPct(pctTotal(f, "rachat"), 2)]] as [string, string][]) : []),
       ],
     };
   }

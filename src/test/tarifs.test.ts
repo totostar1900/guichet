@@ -58,7 +58,7 @@ describe("la page lit les réglages vivants", () => {
     /* Recopier ici le barème ou les droits d'un fonds créerait deux vérités,
        et c'est toujours la plus ancienne qui finit par s'afficher. */
     expect(src()).toMatch(/loadTarifs\(\), loadBaremeGarde\(\)/);
-    expect(src()).toMatch(/fourchetteDesDroits\(fonds\)/);
+    expect(src()).toMatch(/pctTotal\(f, op, jour\)/);
     expect(src()).toMatch(/baremeOuvert\(bareme\)/);
   });
 

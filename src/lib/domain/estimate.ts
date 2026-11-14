@@ -2,6 +2,7 @@ import type { IntentType, Offer } from "./types";
 import { bondCalc, btaCalc } from "../finance";
 import { marketBondCalc } from "./status";
 import { fmt, fmtDate, fmtPct, fmtPrice } from "../format";
+import { rachatNet, souscriptionNette } from "./frais-fonds";
 
 /**
  * One-line sizing of a client's amount at the published price : used in the
@@ -57,9 +58,10 @@ export function estimate(o: Offer, amount: number): Estimate {
   if (o.kind === "FONDS" && o.fund) {
     const f = o.fund;
     if (amount < f.minAmount) return { ok: false, text: `Souscription minimale ${fmt(f.minAmount)} FCFA.` };
-    const net = amount / (1 + f.entryFeePct / 100);
+    const { net, frais } = souscriptionNette(f, amount);
     const units = f.nav > 0 ? Math.floor((net / f.nav) * 1000) / 1000 : 0;
-    return { ok: units > 0, titles: units, outlay: amount, text: `≈ ${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts à la VL du ${fmtDate(f.navDate, false)} (${fmt(f.nav)} FCFA)${f.entryFeePct ? ` · droits d'entrée ${fmtPct(f.entryFeePct, 2)} inclus` : " · sans droits d'entrée"} · le nombre exact de parts dépend de la VL retenue à la centralisation` };
+    /* UNE SEULE LIGNE DE FRAIS, TOTALE : jamais la part du fonds, ni celle de la maison (règle du 14 novembre 2026, `frais-fonds.ts`). */
+    return { ok: units > 0, titles: units, outlay: amount, text: `≈ ${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts à la VL du ${fmtDate(f.navDate, false)} (${fmt(f.nav)} FCFA)${frais > 0.5 ? ` · frais ${fmt(frais)} FCFA inclus` : " · sans frais"} · le nombre exact de parts dépend de la VL retenue à la centralisation` };
   }
   if (o.kind === "RACHAT") {
     const proceeds = amount * o.nominal;
@@ -134,15 +136,15 @@ export function marketEstimate(o: Offer, qty: number, type: IntentType, limit: n
 export function produitDuRachat(o: Offer, units: number): number {
   if (!o.fund || !(units > 0)) return 0;
   const gross = units * o.fund.nav;
-  return Math.round(gross - gross * (o.fund.exitFeePct / 100));
+  return Math.round(rachatNet(o.fund, gross).produit);
 }
 
 export function redemptionEstimate(o: Offer, units: number): string {
   if (!o.fund) return "";
   if (!units) return "Indiquez un nombre de parts pour voir l'estimation à la dernière VL.";
   const gross = units * o.fund.nav;
-  const fee = gross * (o.fund.exitFeePct / 100);
-  return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee ? ` · frais du fonds à la sortie ${fmt(fee)}` : ""} · net ≈ ${fmt(produitDuRachat(o, units))} FCFA à la VL de rachat`;
+  const fee = rachatNet(o.fund, gross).frais;
+  return `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts × VL ${fmt(o.fund.nav)} FCFA = ${fmt(gross)} FCFA${fee > 0.5 ? ` · frais ${fmt(fee)} FCFA` : ""} · net ≈ ${fmt(produitDuRachat(o, units))} FCFA à la VL de rachat`;
 }
 
 /**
@@ -251,7 +253,7 @@ export function equivalence(o: Offer, amount: number, type: IntentType): Equival
     const f = o.fund;
     const vl = `la VL du ${fmtDate(f.navDate, false)}, ${fmt(f.nav)} FCFA`;
     if (type === "rachat") return { line: `≈ ${fmt(Math.round(amount * f.nav))} FCFA à ${vl} · la VL de rachat arrêtera le montant`, rest: 0, restLine: "" };
-    const net = amount / (1 + f.entryFeePct / 100);
+    const net = souscriptionNette(f, amount).net;
     const units = f.nav > 0 ? Math.floor((net / f.nav) * 1000) / 1000 : 0;
     if (!units) return null;
     return { line: `≈ ${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts à ${vl} · le nombre exact sera celui de la VL d'exécution`, rest: 0, restLine: "" };

@@ -108,12 +108,14 @@ export const EN_TEMPLATES: Record<string, string> = {
   "Quantité minimale {n} : soit {v} FCFA au cours actuel.": "Minimum quantity {n} : i.e. {v} FCFA at the current price.",
   "Souscription minimale {n} FCFA.": "Minimum subscription {n} FCFA.",
   "Montant inférieur à une unité.": "Amount below one unit.",
-  "≈ {n} parts à la VL du {d} ({v} FCFA) · droits d'entrée {f} inclus · le nombre exact de parts dépend de la VL retenue à la centralisation": "≈ {n} units at the NAV of {d} ({v} FCFA) · entry fee {f} included · the exact number of units depends on the NAV applied at the cut-off",
-  "≈ {n} parts à la VL du {d} ({v} FCFA) · sans droits d'entrée · le nombre exact de parts dépend de la VL retenue à la centralisation": "≈ {n} units at the NAV of {d} ({v} FCFA) · no entry fee · the exact number of units depends on the NAV applied at the cut-off",
+  "frais {f} FCFA inclus": "fees {f} FCFA included",
+  "frais {f} FCFA": "fees {f} FCFA",
+  "≈ {n} parts à la VL du {d} ({v} FCFA) · frais {f} FCFA inclus · le nombre exact de parts dépend de la VL retenue à la centralisation": "≈ {n} units at the NAV of {d} ({v} FCFA) · fees {f} FCFA included · the exact number of units depends on the NAV applied at the cut-off",
+  "≈ {n} parts à la VL du {d} ({v} FCFA) · sans frais · le nombre exact de parts dépend de la VL retenue à la centralisation": "≈ {n} units at the NAV of {d} ({v} FCFA) · no fees · the exact number of units depends on the NAV applied at the cut-off",
   "≈ {n} {u} au cours de référence {p} · {o} FCFA · règlement T+{t} · le prix d'exécution dépend du marché": "≈ {n} {u} at the reference price {p} · {o} FCFA · settlement T+{t} · the execution price depends on the market",
   "≈ {n} {u} au cours de référence {p} · {o} FCFA dont {a} de coupon couru · règlement T+{t} · le prix d'exécution dépend du marché": "≈ {n} {u} at the reference price {p} · {o} FCFA of which {a} accrued interest · settlement T+{t} · the execution price depends on the market",
   "{n} parts × VL {v} FCFA = {g} FCFA · net ≈ {net} FCFA à la VL de rachat": "{n} units × NAV {v} FCFA = {g} FCFA · net ≈ {net} FCFA at the redemption NAV",
-  "{n} parts × VL {v} FCFA = {g} FCFA · frais du fonds à la sortie {f} · net ≈ {net} FCFA à la VL de rachat": "{n} units × NAV {v} FCFA = {g} FCFA · fund exit fee {f} · net ≈ {net} FCFA at the redemption NAV",
+  "{n} parts × VL {v} FCFA = {g} FCFA · frais {f} FCFA · net ≈ {net} FCFA à la VL de rachat": "{n} units × NAV {v} FCFA = {g} FCFA · fees {f} FCFA · net ≈ {net} FCFA at the redemption NAV",
   "Quantité minimale : {n}.": "Minimum quantity: {n}.",
 
   /* ---------- order checks ---------- */

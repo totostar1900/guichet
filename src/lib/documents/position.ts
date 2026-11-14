@@ -4,6 +4,7 @@ import { localIso } from "@/lib/format";
 import { marketBondCalc } from "@/lib/domain/status";
 import { fraisDeLOrdre } from "@/lib/domain/frais";
 import { getFraisClient } from "@/lib/frais-registre";
+import { fraisAjoutes, souscriptionNette } from "@/lib/domain/frais-fonds";
 
 /**
  * The money lines every document prints for one intent on one offer.
@@ -129,17 +130,18 @@ export function positionFor(intent: Intent, offer: Offer, opts: { pricePct?: num
   if (offer.kind === "FONDS" && offer.fund) {
     // Subscription: amount is FCFA, units = net of entry fee / NAV. Redemption: amount is units, proceeds net of exit fee.
     const f = offer.fund;
+    const jour = localIso(new Date(intent.createdAt));
     const nav = intent.executedPrice ?? f.nav;
     const navLabel = `VL ${nav.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} FCFA`;
     if (intent.type === "rachat") {
       const units = opts.unitsOverride ?? amount;
       const gross = units * nav;
-      const fee = gross * (f.exitFeePct / 100);
+      const fee = gross * (f.exitFeePct / 100) + fraisAjoutes("rachat", gross, jour);
       return { label: `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts`, units, unitWord: "parts", priceLabel: navLabel, nominalAmount: gross, principal: gross, accrued: 0, accruedDays: 0, commission: fee, total: -(gross - fee), schedule: [] };
     }
-    const units = opts.unitsOverride ?? (intent.servedUnits ?? (nav > 0 ? Math.floor((amount / (1 + f.entryFeePct / 100) / nav) * 1000) / 1000 : 0));
+    const units = opts.unitsOverride ?? (intent.servedUnits ?? (nav > 0 ? Math.floor((souscriptionNette(f, amount, jour).net / nav) * 1000) / 1000 : 0));
     const principal = units * nav;
-    const fee = principal * (f.entryFeePct / 100);
+    const fee = principal * (f.entryFeePct / 100) + fraisAjoutes("souscription", principal, jour);
     return { label: `${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })} parts`, units, unitWord: "parts", priceLabel: navLabel, nominalAmount: principal, principal, accrued: 0, accruedDays: 0, commission: fee, total: opts.unitsOverride != null ? principal + fee : amount, schedule: [] };
   }
   // RACHAT : the client sells `amount` titles at par and receives the proceeds.

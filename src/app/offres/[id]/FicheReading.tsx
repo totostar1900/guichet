@@ -1,3 +1,4 @@
+import { pctTotal, souscriptionNette } from "@/lib/domain/frais-fonds";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { RelatedNews } from "@/components/RelatedNews";
@@ -181,7 +182,7 @@ async function Reference({ o, mode = "client", fin }: { o: Offer; mode?: FicheMo
   if (o.kind === "FONDS" && o.fund) {
     const f = o.fund;
     const amount = Math.max(f.minAmount, 1_000_000);
-    const net = amount / (1 + f.entryFeePct / 100);
+    const { net, frais } = souscriptionNette(f, amount);
     const units = f.nav > 0 ? Math.floor((net / f.nav) * 1000) / 1000 : 0;
     return (
       <Decoupe
@@ -191,19 +192,19 @@ async function Reference({ o, mode = "client", fin }: { o: Offer; mode?: FicheMo
         titre={t(`Pour ${fmt(amount)} FCFA à la dernière VL`)}
         calcul={
         <div className="out">
-          {f.entryFeePct > 0 && (
+          {frais > 0.5 && (
             <>
-              <div>Frais du fonds à l&apos;entrée {fmtPct(f.entryFeePct, 2)}</div>
-              <div>{fmt(amount - net)}</div>
+              <div>{t("Frais")}</div>
+              <div>{fmt(frais)}</div>
             </>
           )}
           <div>{t("Investi dans le fonds")}</div>
           <div>{fmt(net)}</div>
 
-          {f.exitFeePct > 0 && (
+          {pctTotal(f, "rachat") > 0 && (
             <>
-              <div>{t("Frais du fonds à la sortie")}</div>
-              <div>{fmtPct(f.exitFeePct, 2)}</div>
+              <div>{t("Frais à la sortie")}</div>
+              <div>{fmtPct(pctTotal(f, "rachat"), 2)}</div>
             </>
           )}
         </div>
@@ -212,7 +213,7 @@ async function Reference({ o, mode = "client", fin }: { o: Offer; mode?: FicheMo
         <RefTotals
           plat={plat}
           figures={[
-            { label: t("Investi dans le fonds"), value: <Amount value={net} />, note: f.entryFeePct > 0 ? t("après {p} de droits d'entrée", { p: fmtPct(f.entryFeePct, 2) }) : t("sans droits d'entrée") },
+            { label: t("Investi dans le fonds"), value: <Amount value={net} />, note: frais > 0.5 ? t("après frais") : t("sans frais") },
             { label: t("Parts obtenues"), value: <span className="num">≈ {units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</span>, note: t(`VL ${fmt(f.nav)} du ${fmtDate(f.navDate, false)}`) },
           ]}
         />

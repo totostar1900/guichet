@@ -1,7 +1,8 @@
 import { repo } from "@/lib/data";
 import { baremeOuvert } from "@/lib/domain/garde";
-import { fourchetteDesDroits, GRATUITS } from "@/lib/domain/tarifs";
+import { GRATUITS } from "@/lib/domain/tarifs";
 import { fraisLusParLeClient, type LigneDeFraisClient } from "@/lib/domain/frais";
+import { pctTotal } from "@/lib/domain/frais-fonds";
 import { loadBaremeDeFrais, loadBaremeGarde, loadTarifs } from "@/lib/policy";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { getT } from "@/i18n/server";
@@ -26,7 +27,7 @@ export async function generateMetadata() {
  * voit que le jour où un client la réclame.
  *
  * ELLE SE CALCULE, ELLE NE S'ÉCRIT PAS. Le barème de garde vient de sa clef
- * de référentiel, la fourchette des droits d'entrée vient des fonds
+ * de référentiel, la fourchette des frais d'un fonds vient des fonds
  * eux-mêmes, les frais du client viennent du barème des frais. Une annexe écrite en
  * dur serait vraie le jour de sa rédaction et fausse le mois suivant, et
  * c'est la seule page du site où cet écart se paie en réclamation.
@@ -45,7 +46,6 @@ export default async function TarifsPage() {
   const t = await getT();
   const [tarifs, bareme, offres, frais] = await Promise.all([loadTarifs(), loadBaremeGarde(), repo().listOffers().catch(() => []), loadBaremeDeFrais()]);
   const fonds = offres.filter((o) => o.kind === "FONDS" && !o.hidden && o.fund?.distributed).map((o) => o.fund!);
-  const droits = fourchetteDesDroits(fonds);
   const jour = new Date().toISOString().slice(0, 10);
   const lignes = fraisLusParLeClient(frais, jour);
   const ligne = (cle: LigneDeFraisClient["cle"]) => lignes.find((l) => l.cle === cle);
@@ -61,21 +61,29 @@ export default async function TarifsPage() {
   };
   const frais_ = (...ls: (LigneDeFraisClient | undefined)[]): string[] => ls.filter((l): l is LigneDeFraisClient => Boolean(l)).map(dit);
 
-  const entree = droits
-    ? droits.min === droits.max
-      ? t("Droits d'entrée du fonds : {p}", { p: fmtPct(droits.min, 2) })
-      : t("Droits d'entrée du fonds, de {a} à {b} selon le fonds, indiqués sur sa fiche", { a: fmtPct(droits.min, 2), b: fmtPct(droits.max, 2) })
-    : t("Les droits d'entrée figurent sur la fiche de chaque fonds.");
+  /* UNE SEULE LIGNE DE FRAIS PAR OPÉRATION, TOTALE (règle du 14 novembre 2026) : jamais la part du fonds, ni celle de la maison, ni le nom de ce que le
+     frais couvre. Sur un fonds, le total varie d'un fonds à l'autre : on dit la fourchette. Une règle dont la date n'est pas arrivée se lit à part, avec sa date. */
+  const fourchette = (op: "souscription" | "rachat", jour: string): { min: number; max: number } | undefined => {
+    const taux = fonds.map((f) => pctTotal(f, op, jour)).filter((x) => x > 0);
+    return taux.length ? { min: Math.min(...taux), max: Math.max(...taux) } : undefined;
+  };
+  const diteFourchette = (r: { min: number; max: number } | undefined, vide: string): string => (r ? (r.min === r.max ? fmtPct(r.min, 2) : t("de {a} à {b} selon le fonds", { a: fmtPct(r.min, 2), b: fmtPct(r.max, 2) })) : vide);
+  const fraisDeFonds = (op: "souscription" | "rachat"): string[] => {
+    const regle = frais[op === "souscription" ? "fonds.souscription" : "fonds.rachat"];
+    const lignes = [diteFourchette(fourchette(op, jour), t("Voir la fiche du fonds"))];
+    if (regle.effetLe && regle.clientPct > 0 && regle.effetLe > jour) lignes.push(`${t("à partir du {d}", { d: fmtDate(regle.effetLe) })} : ${diteFourchette(fourchette(op, regle.effetLe), "")}`);
+    return lignes;
+  };
   const achat = ligne("titres.achat");
   const vente = ligne("titres.vente");
-  const bourse = [achat ? `${t("Achat")} : ${dit(achat)}` : "", vente ? `${t("Vente")} : ${dit(vente)}` : "", t("Frais de marché, s'il en est appliqué")].filter(Boolean);
+  const bourse = [achat ? `${t("Achat")} : ${dit(achat)}` : "", vente ? `${t("Vente")} : ${dit(vente)}` : ""].filter(Boolean);
 
   const rangees: { op: string; frais: string[] }[] = [
-    { op: t("Investir dans un fonds"), frais: [...frais_(ligne("fonds.souscription")), entree] },
-    { op: t("Sortir d'un fonds"), frais: [...frais_(ligne("fonds.rachat")), t("Droits de sortie du fonds, le cas échéant")] },
-    { op: t("Passage d'un fonds à l'autre"), frais: [t("Les frais de sortie du premier, puis les frais d'entrée du second")] },
+    { op: t("Investir dans un fonds"), frais: fraisDeFonds("souscription") },
+    { op: t("Sortir d'un fonds"), frais: fraisDeFonds("rachat") },
+    { op: t("Passage d'un fonds à l'autre"), frais: [t("Deux ordres, un rachat puis une souscription : chacun porte sa ligne de frais.")] },
     { op: t("Adjudications et émissions"), frais: frais_(ligne("adjudication.souscription")).length ? frais_(ligne("adjudication.souscription")) : [rien] },
-    { op: t("Acheter et vendre en bourse"), frais: bourse },
+    { op: t("Acheter et vendre en bourse"), frais: bourse.length ? bourse : [rien] },
   ];
 
   return (

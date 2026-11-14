@@ -30,7 +30,7 @@ import styles from "./page.module.css";
  * chaque fonds reçoit ce montant-là. La proposition reste une proposition :
  * rien n'est coché d'avance et le client reste maître de son argent.
  */
-export function PlacerLaProvision({ disponible, fonds }: { disponible: number; fonds: { id: string; titre: string; gestionnaire: string; droits?: number }[] }) {
+export function PlacerLaProvision({ disponible, fonds }: { disponible: number; fonds: { id: string; titre: string; gestionnaire: string; frais?: number }[] }) {
   const t = useT();
   const [montant, setMontant] = useState(() => regroup(String(disponible)));
   const valeur = parseAmount(montant);
@@ -73,7 +73,7 @@ export function PlacerLaProvision({ disponible, fonds }: { disponible: number; f
                     <b>{f.titre}</b>
                     <small>
                       {f.gestionnaire}
-                      {typeof f.droits === "number" ? ` · ${t("droits d'entrée {p} %", { p: f.droits.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) })}` : ""}
+                      {typeof f.frais === "number" && f.frais > 0 ? ` · ${t("frais {p} %", { p: f.frais.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) })}` : ""}
                     </small>
                   </span>
                   {utilisable ? (

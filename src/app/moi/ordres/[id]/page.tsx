@@ -12,6 +12,7 @@ import { positionFor } from "@/lib/documents/position";
 import { etatDArbitrage } from "@/lib/domain/arbitrage";
 import { peutOPCVM } from "@/lib/auth/types";
 import { fmt, fmtDate, fmtDateTime, localIso } from "@/lib/format";
+import { rachatNet, souscriptionNette } from "@/lib/domain/frais-fonds";
 import { getT } from "@/i18n/server";
 import { canalDuCode } from "@/lib/kyc/canal";
 import { AuDoigt } from "./AuDoigt";
@@ -59,15 +60,16 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
   const f = offer.fund;
   const montant = intent.amount ?? 0;
   const rachat = intent.type === "rachat";
-  /* Les mêmes calculs que l'estimation et que le document : le montant versé
-     porte les droits d'entrée, et ce qui est investi s'en déduit. On les montre
-     séparément, parce que ce qu'on paie en frais se lit sur sa propre ligne
-     quand on signe. */
-  const droitsPct = f?.entryFeePct ?? 0;
-  const investi = rachat ? 0 : Math.round(montant / (1 + droitsPct / 100));
-  const droits = rachat ? 0 : montant - investi;
-  const parts = !rachat && f && f.nav > 0 ? Math.floor((investi / f.nav) * 1000) / 1000 : 0;
-  const produit = rachat && f ? Math.round(montant * f.nav) : 0;
+  /* Les mêmes calculs que l'estimation et que le document (`frais-fonds.ts`) : le montant versé porte les frais, et ce qui est investi s'en
+     déduit. Le client lit UNE ligne, les frais totaux à payer : jamais la part du fonds, ni celle de la maison (règle du 14 novembre 2026). */
+  const jourDeLOrdre = localIso(new Date(intent.createdAt));
+  const souscrit = !rachat && f ? souscriptionNette(f, montant, jourDeLOrdre) : undefined;
+  const investi = souscrit ? Math.round(souscrit.net) : 0;
+  const droits = souscrit ? montant - investi : 0;
+  const parts = souscrit && f && f.nav > 0 ? Math.floor((souscrit.net / f.nav) * 1000) / 1000 : 0;
+  const rachete = rachat && f ? rachatNet(f, montant * f.nav, jourDeLOrdre) : undefined;
+  const produit = rachete ? Math.round(rachete.produit) : 0;
+  const fraisDuRachat = rachete ? Math.round(rachete.frais) : 0;
 
   /* ON NE SIGNE PAS UN ORDRE SANS DOSSIER APPROUVÉ.
      « ordreSignable » parle de l'ordre : le bon type, pas encore signé, pas
@@ -134,7 +136,7 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
                 )}
                 {fraisDuTitre > 0 && (
                   <div>
-                    <dt>{offer.commissionPct > 0 ? t("dont frais {p} %", { p: offer.commissionPct.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) }) : t("dont frais")}</dt>
+                    <dt>{t("dont frais")}</dt>
                     <dd className={styles.second}>{fmt(Math.round(fraisDuTitre))} FCFA</dd>
                   </div>
                 )}
@@ -149,6 +151,12 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
                   <dt>{t("Parts rachetées")}</dt>
                   <dd>{montant.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</dd>
                 </div>
+                {fraisDuRachat > 0 && (
+                  <div>
+                    <dt>{t("dont frais")}</dt>
+                    <dd className={styles.second}>≈ {fmt(fraisDuRachat)} FCFA</dd>
+                  </div>
+                )}
                 {f && (
                   <div>
                     <dt>{t("Produit, à la VL du {d}", { d: fmtDate(f.navDate, false) })}</dt>
@@ -162,9 +170,9 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
                   <dt>{t("Montant versé")}</dt>
                   <dd>{fmt(montant)} FCFA</dd>
                 </div>
-                {droitsPct > 0 && (
+                {droits > 0 && (
                   <div>
-                    <dt>{t("dont droits d'entrée {p} %", { p: droitsPct.toLocaleString("fr-FR", { minimumFractionDigits: 2 }) })}</dt>
+                    <dt>{t("dont frais")}</dt>
                     <dd className={styles.second}>{fmt(droits)} FCFA</dd>
                   </div>
                 )}

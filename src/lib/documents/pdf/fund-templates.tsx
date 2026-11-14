@@ -1,7 +1,7 @@
 import { COMPANY } from "@/lib/config";
 import type { FundTerms, Intent, Offer } from "@/lib/domain/types";
 import type { CoordonneesDeReglement } from "@/lib/domain/reglement";
-import { fmt, fmtDate, fmtDateTime, fmtPct } from "@/lib/format";
+import { fmt, fmtDate, fmtDateTime } from "@/lib/format";
 import type { Position } from "../position";
 import { lignesDeReglement, payoutLine, type ClientDocCtx } from "./templates";
 import { Addr, KV, Letter, Sig, Signature, Table, Text, s } from "./primitives";
@@ -69,7 +69,7 @@ export function BulletinSouscriptionOpcvm({ number, intent, offer, position: p, 
       <KV
         rows={[
           ["Montant de la souscription", `${fmt(intent.amount ?? 0)} FCFA`],
-          ...(f.entryFeePct > 0 ? ([[`Frais du fonds à l'entrée ${fmtPct(f.entryFeePct, 2)} (acquis au fonds / à la société de gestion)`, fmt(p.commission)]] as [string, string][]) : []),
+          ...(p.commission > 0.5 ? ([["Frais", fmt(p.commission)]] as [string, string][]) : []),
           ["Montant net investi", fmt(p.principal)],
           [`Parts estimées à la dernière VL (${fmt(f.nav)} FCFA)`, `≈ ${units3(p.units)}`],
         ]}
@@ -122,7 +122,7 @@ export function DemandeRachatOpcvm({ number, intent, offer, position: p, now, ad
         rows={[
           ["Parts à racheter", units3(p.units)],
           [`Valeur estimée à la dernière VL (${fmt(f.nav)} FCFA)`, fmt(p.principal)],
-          ...(f.exitFeePct > 0 ? ([[`Frais du fonds à la sortie ${fmtPct(f.exitFeePct, 2)}`, fmt(p.commission)]] as [string, string][]) : []),
+          ...(p.commission > 0.5 ? ([["Frais", fmt(p.commission)]] as [string, string][]) : []),
           ["Compte de règlement du porteur (virement du produit)", payoutLine(payout)],
         ]}
         total={["Produit net estimé", `${fmt(Math.abs(p.total))} FCFA`]}
@@ -150,7 +150,7 @@ export function AvisOperationOpcvm({ number, intent, offer, position: p, now, pa
       </Text>
       <Addr blocks={[["Porteur", [intent.clientName, intent.clientSegment]], ["Fonds", [offer.title, `Société de gestion : ${prettyName(f.manager)} · dépositaire : ${prettyName(f.depositary)}`, `Distributeur : ${COMPANY.legalName}`]]]} />
       <Table
-        cols={[{ label: "Fonds", flex: 2.6 }, { label: "Nature", flex: 1.2 }, { label: "Parts", right: true }, { label: "VL retenue", right: true }, { label: "Brut", flex: 1.2, right: true }, { label: redemption ? "Droits de sortie" : "Droits d'entrée", flex: 1.1, right: true }, { label: "Net", flex: 1.2, right: true }]}
+        cols={[{ label: "Fonds", flex: 2.6 }, { label: "Nature", flex: 1.2 }, { label: "Parts", right: true }, { label: "VL retenue", right: true }, { label: "Brut", flex: 1.2, right: true }, { label: "Frais", flex: 1.1, right: true }, { label: "Net", flex: 1.2, right: true }]}
         rows={[[offer.title, redemption ? "Rachat" : "Souscription", units3(p.units), fmt(nav), fmt(p.principal), fmt(p.commission), fmt(Math.abs(p.total))]]}
       />
       <Text style={s.p}>

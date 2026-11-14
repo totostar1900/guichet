@@ -1,4 +1,5 @@
 import type { Offer } from "./types";
+import { pctTotal, souscriptionNette } from "./frais-fonds";
 import { bondTerms, marketAmortInput, marketBondCalc, marketBondInput } from "./status";
 import { bondCalc, btaAmountForBonds, btaCalc, couponDates, daysBetween, firstCouponDate, parseDate } from "../finance";
 import { fmt, fmtDate, fmtDateTime, fmtPct, localIso } from "../format";
@@ -265,15 +266,15 @@ export function backFacts(o: Offer, now: Date, cours?: number[]): BackFacts {
 /** The back of a fund, from the few fields the list carries (the funds page has rows, not offers). */
 export function fundBackFacts(f: { nav: number; entryFeePct: number; exitFeePct: number; minAmount: number; cutoff?: string; settlementDays?: number; inceptionDate?: string }): BackFacts {
   const amount = Math.max(f.minAmount, 1_000_000);
-  const net = amount / (1 + f.entryFeePct / 100);
+  const { net, frais } = souscriptionNette(f, amount);
   const units = f.nav > 0 ? Math.floor((net / f.nav) * 1000) / 1000 : 0;
   const lines: [string, string][] = [["Prochaine VL · centralisation", f.cutoff ?? "sur demande"]];
   if (f.settlementDays != null) lines.push(["Règlement", `J+${f.settlementDays} après la VL`]);
   if (f.inceptionDate) lines.push(["Création du fonds", fmtDate(f.inceptionDate)]);
   const rows: [string, string, boolean?][] = [];
-  if (f.entryFeePct > 0) rows.push([`Frais du fonds à l'entrée ${fmtPct(f.entryFeePct, 2)}`, fmt(amount - net)]);
+  if (frais > 0.5) rows.push(["Frais", fmt(frais)]);
   rows.push(["Investi dans le fonds", fmt(net)]);
   rows.push([`Parts (VL ${fmt(f.nav)})`, `≈ ${units.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}`, true]);
-  if (f.exitFeePct > 0) rows.push(["Frais du fonds à la sortie", fmtPct(f.exitFeePct, 2)]);
+  if (pctTotal(f, "rachat") > 0) rows.push(["Frais à la sortie", fmtPct(pctTotal(f, "rachat"), 2)]);
   return { lines, reference: { title: `Pour ${fmt(amount)} FCFA à la dernière VL`, rows } };
 }

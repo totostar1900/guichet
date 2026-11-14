@@ -1,5 +1,7 @@
 "use client";
 
+import { setFraisClient } from "@/lib/frais-registre";
+import type { BaremeDeFrais } from "@/lib/domain/frais";
 import { useMemo } from "react";
 import type { BondTerms } from "@/data/bond-terms";
 import type { Term } from "@/lib/glossary";
@@ -17,10 +19,11 @@ import { setIssuerRegistry, type IssuerProfile } from "@/data/issuer-registry";
  * pavoisaient sur les fiches du code, pendant que le reste de l'application
  * lisait celles du desk.
  */
-export function RegistryProvider({ types, bondTerms, glossary, lessons, issuers, children }: { types: ProductType[]; bondTerms: BondTerms[]; glossary: Record<string, Term>; lessons: Lesson[]; issuers: IssuerProfile[]; children: React.ReactNode }) {
+export function RegistryProvider({ types, bondTerms, glossary, lessons, issuers, frais, children }: { types: ProductType[]; bondTerms: BondTerms[]; glossary: Record<string, Term>; lessons: Lesson[]; issuers: IssuerProfile[]; /** Le barème des frais, part client seule (`baremePourLeClient`) : le formulaire du navigateur calcule les mêmes frais que le serveur. */ frais: BaremeDeFrais; children: React.ReactNode }) {
   useMemo(() => {
     setRegistry({ types, bondTerms: new Map(bondTerms.map((b) => [b.isin, b])), glossary, lessons });
     setIssuerRegistry(issuers);
-  }, [types, bondTerms, glossary, lessons, issuers]);
+    setFraisClient(frais);
+  }, [types, bondTerms, glossary, lessons, issuers, frais]);
   return <>{children}</>;
 }

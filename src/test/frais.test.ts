@@ -6,11 +6,18 @@ import type { Intent, Offer } from "@/lib/domain/types";
 import { positionFor } from "@/lib/documents/position";
 import { plafondPropose } from "@/lib/domain/plafond";
 import { setFraisClient } from "@/lib/frais-registre";
+import { pctTotal, souscriptionNette } from "@/lib/domain/frais-fonds";
 
 const lire = (f: string) => readFileSync(f, "utf8");
 const JOUR = "2026-11-14";
 const ouverte = (o: Partial<typeof REGLE_FERMEE>) => ({ ...REGLE_FERMEE, ...o });
 const bareme = (cle: keyof BaremeDeFrais, r: Partial<typeof REGLE_FERMEE>): BaremeDeFrais => ({ ...BAREME_DE_FRAIS_FERME, [cle]: ouverte(r) });
+const offre = (extra: Record<string, unknown> = {}) =>
+  ({ id: "o", kind: "MARCHE", instrument: "action", status: "published", hidden: false, isin: "CMX", title: "X", nominal: 10000, lastPrice: 1000, ask: 1000, bid: 1000, commissionPct: 0, country: "Cameroun", issuer: "x", blurb: "", documents: [], opensAt: "2020-01-01T09:00:00", deadlineAt: "2099-01-01T00:00:00", settleOn: "2027-03-05", version: 1, ...extra }) as unknown as Offer;
+const ordre = (type: "achat" | "vente", extra: Record<string, unknown> = {}) => ({ id: "i", type, amount: 100, createdAt: "2027-03-01T10:00:00", limitPrice: 1000, ...extra }) as unknown as Intent;
+const poser = (cle: keyof BaremeDeFrais, r: Partial<typeof REGLE_FERMEE>) => setFraisClient(baremePourLeClient(bareme(cle, r)));
+
+
 
 describe("le barème des frais est fermé tant que la direction n'a rien arrêté", () => {
   it("ne prend rien, et ni plancher ni date ne déclenchent un prélèvement tout seuls", () => {
@@ -138,8 +145,8 @@ describe("l'écran du client dit « Frais » et ne nomme aucune destination (14 
 
   it("le récapitulatif de l'ordre dit « frais », pas « commission »", () => {
     const ordre = lire("src/app/moi/ordres/[id]/page.tsx");
-    expect(ordre).toMatch(/t\("dont frais \{p\} %"/);
-    expect(ordre).not.toMatch(/t\("dont commission/);
+    expect(ordre).toMatch(/t\("dont frais"\)/);
+    expect(ordre).not.toMatch(/t\("dont commission|droits d'entrée/);
   });
 });
 
@@ -153,9 +160,9 @@ describe("le desk arrête une règle par la direction, avec l'avant et l'après"
     expect(actions).toMatch(/exigeUnPreavis\(/);
   });
 
-  it("refuse un taux client sur une règle que le calcul de l'ordre ne lit pas (les fonds)", () => {
+  it("refuse un taux client sur une règle que le calcul de l'ordre ne lit pas", () => {
     expect(actions).toMatch(/clientPct > 0 && !REGLES_LUES_PAR_L_ORDRE\.includes\(cle\)/);
-    expect(REGLES_LUES_PAR_L_ORDRE).toEqual(["titres.achat", "titres.vente", "adjudication.souscription"]);
+    expect(REGLES_LUES_PAR_L_ORDRE).toEqual(["fonds.souscription", "fonds.rachat", "titres.achat", "titres.vente", "adjudication.souscription"]);
   });
 
   it("le barème se lit fermé sur une panne de lecture", () => {
@@ -165,11 +172,6 @@ describe("le desk arrête une règle par la direction, avec l'avant et l'après"
 });
 
 describe("le calcul d'un ordre lit le barème (14 novembre 2026)", () => {
-  const offre = (extra: Record<string, unknown> = {}) =>
-    ({ id: "o", kind: "MARCHE", instrument: "action", status: "published", hidden: false, isin: "CMX", title: "X", nominal: 10000, lastPrice: 1000, ask: 1000, bid: 1000, commissionPct: 0, country: "Cameroun", issuer: "x", blurb: "", documents: [], opensAt: "2020-01-01T09:00:00", deadlineAt: "2099-01-01T00:00:00", settleOn: "2027-03-05", version: 1, ...extra }) as unknown as Offer;
-  const ordre = (type: "achat" | "vente", extra: Record<string, unknown> = {}) => ({ id: "i", type, amount: 100, createdAt: "2027-03-01T10:00:00", limitPrice: 1000, ...extra }) as unknown as Intent;
-  const poser = (cle: keyof BaremeDeFrais, r: Partial<typeof REGLE_FERMEE>) => setFraisClient(baremePourLeClient(bareme(cle, r)));
-
   it("avant la date de départ ou sans barème : rien, comme avant", () => {
     setFraisClient(BAREME_DE_FRAIS_FERME);
     expect(positionFor(ordre("achat"), offre()).commission).toBe(0);
@@ -205,14 +207,10 @@ describe("le calcul d'un ordre lit le barème (14 novembre 2026)", () => {
     expect(plafondPropose(ordre("achat"), offre())).toBeGreaterThanOrEqual(101_000);
   });
 
-  it("l'adjudication paie sa règle ; un fonds n'est pas touché", () => {
+  it("l'adjudication paie sa règle", () => {
     poser("adjudication.souscription", { clientPct: 0.25, effetLe: "2027-02-03" });
     const adj = positionFor({ id: "i", type: "ferme", amount: 1_000_000, createdAt: "2027-03-01T10:00:00" } as unknown as Intent, offre({ kind: "BTA", instrument: undefined, precountRate: 5, maturityOn: "2027-09-05", settleOn: "2027-03-05", nominal: 1_000_000 }));
     expect(adj.commission).toBeGreaterThan(0);
-    setFraisClient(baremePourLeClient({ ...BAREME_DE_FRAIS_FERME, "fonds.souscription": ouverte({ clientPct: 2, effetLe: "2027-02-03" }) }));
-    const fonds = offre({ kind: "FONDS", fund: { nav: 10_000, entryFeePct: 1, exitFeePct: 0 } });
-    const f = positionFor({ id: "i", type: "souscription", amount: 1_010_000, createdAt: "2027-03-01T10:00:00" } as unknown as Intent, fonds);
-    expect(f.commission).toBeCloseTo(10_000, 0);
   });
 
   it("le barème posé pour le calcul ne porte jamais ce que la maison reçoit de tiers", () => {
@@ -232,5 +230,96 @@ describe("le calcul d'un ordre lit le barème (14 novembre 2026)", () => {
   it("l'ordre signé, le plafond et les avis passent par la même fonction", () => {
     const pos = readFileSync("src/lib/documents/position.ts", "utf8");
     expect(pos.match(/\.\.\.frais\(offer, intent,/g)?.length).toBe(6);
+  });
+});
+
+describe("un fonds : les frais ajoutés se lisent en un seul total avec ceux du fonds (14 novembre 2026)", () => {
+  const fonds = () => offre({ kind: "FONDS", fund: { nav: 10_000, entryFeePct: 1, exitFeePct: 0.5, navDate: "2027-03-01" } });
+  const souscription = (amount: number) => ({ id: "i", type: "souscription", amount, createdAt: "2027-03-01T10:00:00" }) as unknown as Intent;
+  const rachat = (units: number) => ({ id: "i", type: "rachat", amount: units, createdAt: "2027-03-01T10:00:00" }) as unknown as Intent;
+
+  it("sans règle en vigueur : exactement les droits du fonds, au même arrondi qu'avant", () => {
+    setFraisClient(BAREME_DE_FRAIS_FERME);
+    expect(souscriptionNette({ entryFeePct: 1 }, 1_010_000).net).toBe(1_010_000 / 1.01);
+    const p = positionFor(souscription(1_010_000), fonds());
+    expect(p.principal).toBe(1_000_000);
+    expect(p.commission).toBe(10_000);
+    expect(p.total).toBe(1_010_000);
+    poser("fonds.souscription", { clientPct: 2, effetLe: "2027-04-01" });
+    expect(positionFor(souscription(1_010_000), fonds()).commission).toBe(10_000);
+  });
+
+  it("la règle s'ajoute aux droits : le montant versé reste ferme, le net baisse, le total des frais est unique", () => {
+    poser("fonds.souscription", { clientPct: 2, effetLe: "2027-02-03" });
+    const p = positionFor(souscription(1_030_000), fonds());
+    expect(p.principal).toBe(1_000_000);
+    expect(p.commission).toBeCloseTo(30_000, 6);
+    expect(p.total).toBe(1_030_000);
+  });
+
+  it("le plancher de la règle se prend sur le montant versé : net + frais = montant", () => {
+    poser("fonds.souscription", { clientPct: 2, clientMin: 50_000, effetLe: "2027-02-03" });
+    const { net, frais } = souscriptionNette({ entryFeePct: 1 }, 1_060_000, "2027-03-01");
+    expect(Math.round(net)).toBe(1_000_000);
+    expect(Math.round(frais)).toBe(60_000);
+  });
+
+  it("un rachat : droits de sortie + règle, en un total, et le client reçoit le net", () => {
+    poser("fonds.rachat", { clientPct: 1, effetLe: "2027-02-03" });
+    const p = positionFor(rachat(100), fonds());
+    expect(p.commission).toBeCloseTo(15_000, 6);
+    expect(p.total).toBeCloseTo(-985_000, 6);
+  });
+
+  it("le taux affiché sur une carte ou une fiche est le total, seulement quand la règle est en vigueur", () => {
+    poser("fonds.souscription", { clientPct: 2, effetLe: "2027-02-03" });
+    expect(pctTotal({ entryFeePct: 1, exitFeePct: 0 }, "souscription", "2027-03-01")).toBe(3);
+    expect(pctTotal({ entryFeePct: 1, exitFeePct: 0 }, "souscription", "2027-01-01")).toBe(1);
+    expect(pctTotal({ entryFeePct: 1, exitFeePct: 0.5 }, "rachat", "2027-03-01")).toBe(0.5);
+  });
+});
+
+/**
+ * LA RÈGLE DE LA MAISON (14 novembre 2026) : le client ne voit jamais la destination d'un frais, ni sa décomposition. Pour toute
+ * transaction il lit UNE ligne, les frais totaux à payer.
+ */
+describe("une seule ligne de frais totaux, sans destination ni décomposition", () => {
+  const ECRANS_DU_CLIENT = [
+    "src/app/moi/tarifs/page.tsx",
+    "src/app/moi/ordres/[id]/page.tsx",
+    "src/app/moi/provision/PlacerLaProvision.tsx",
+    "src/app/offres/[id]/FicheReading.tsx",
+    "src/lib/documents/pdf/fund-templates.tsx",
+    "src/lib/documents/pdf/templates.tsx",
+    "src/lib/domain/estimate.ts",
+    "src/lib/domain/sheet.ts",
+    "src/lib/domain/back.ts",
+    "src/lib/domain/summary.ts",
+  ];
+  const INTERDITS = /droits d['’](entrée|sortie)|Droits d['’](entrée|sortie)|Frais du fonds|frais du fonds|acquis au fonds|Commission d'intermédiation|[Ff]rais de marché|sans que cela nous revienne/;
+
+  it("aucun écran ni document du client ne nomme une part du fonds, une destination ou une commission", () => {
+    for (const f of ECRANS_DU_CLIENT) expect(lire(f).match(INTERDITS)?.[0], `${f} décompose ou nomme la destination d'un frais`).toBeUndefined();
+  });
+
+  it("la fiche d'un fonds écrit le total des frais à la sortie ; l'avertissement de performance « avant frais » reste un texte réglementaire à part", () => {
+    const f = lire("src/app/offres/[id]/FicheFonds.tsx");
+    expect(f).toMatch(/pctTotal\(f, "rachat"\)/);
+    expect(f).toMatch(/t\("Frais à la sortie"\)/);
+    expect(f).not.toMatch(/Frais du fonds|frais du fonds|acquis au fonds/);
+  });
+
+  it("les calculs de fonds additionnent les droits et la règle à un seul endroit", () => {
+    for (const f of ["src/lib/documents/position.ts", "src/lib/domain/estimate.ts", "src/lib/domain/sheet.ts", "src/lib/domain/back.ts", "src/app/offres/[id]/FicheReading.tsx", "src/app/moi/ordres/[id]/page.tsx"]) {
+      expect(lire(f), `${f} ne passe pas par frais-fonds`).toMatch(/from "(@\/lib\/domain|\.)\/frais-fonds"/);
+    }
+    for (const f of ["src/lib/domain/estimate.ts", "src/lib/domain/sheet.ts", "src/lib/domain/back.ts", "src/app/offres/[id]/FicheReading.tsx"]) {
+      expect(lire(f), `${f} recalcule le net d'une souscription à la main`).not.toMatch(/amount \/ \(1 \+ f\.entryFeePct/);
+    }
+  });
+
+  it("le navigateur reçoit le même barème que le serveur (la part client seule)", () => {
+    expect(lire("src/app/layout.tsx")).toMatch(/frais=\{getFraisClient\(\)\}/);
+    expect(lire("src/components/RegistryProvider.tsx")).toMatch(/setFraisClient\(frais\)/);
   });
 });

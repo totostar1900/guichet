@@ -678,7 +678,7 @@ describe("la fiche d'un fonds, calquée sur celle d'un titre (10 novembre 2026, 
     expect(f, "l'annualisé depuis la création n'est plus une tuile datée").toMatch(/t\("Rendement annualisé depuis le \{d\}", \{ d: fmtDate\(f\.inceptionDate\) \}\)/);
     expect(f, "les droits d'entrée sont revenus dans les chiffres clés (choix : sans)").not.toMatch(/entryFeePct/);
     expect(f, "la société n'est plus dans l'onglet « emetteur »").toMatch(/<Bloc pane="emetteur" titre=\{t\("Société de gestion"\)\}/);
-    expect(f, "les frais à la sortie ne sont plus écrits").toMatch(/Frais du fonds à la sortie/);
+    expect(f, "les frais à la sortie ne sont plus écrits").toMatch(/Frais à la sortie/);
     expect(f, "une commission du desk est montrée au client").not.toMatch(/commission/i);
     expect(f, "la fiche du fonds justifie d'où vient la donnée").not.toMatch(/Source : /);
   });
