@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { translator } from "@/i18n/core";
 
 const lire = (f: string) => readFileSync(f, "utf8");
 
@@ -93,5 +94,34 @@ describe("une seule intro, qui parle des bienfaits", () => {
     expect(l).toMatch(/<Presentation visiteur=\{!session\} \/>/);
     expect(p).toMatch(/\(path === "\/" && !visiteur\)/);
     expect(p).toMatch(/href="\/connexion\?creer=1"/);
+  });
+});
+
+describe("l'anglais de l'intro et de la vitrine se lit (relu le 14 novembre 2026)", () => {
+  const en = translator("en");
+
+  it("traduit chaque scène de l'intro, titre, phrase et étiquette, sans laisser de français", () => {
+    const p = lire("src/components/mobile/Presentation.tsx");
+    const debut = p.indexOf("const SCREENS");
+    const scenes = p.slice(debut, p.indexOf("const STEPS", debut));
+    const textes = [...scenes.matchAll(/(?:kick|title|text): "((?:[^"\\]|\\.)*)"/g)].map((m) => m[1]);
+    expect(textes.length).toBe(12);
+    /* Un nom propre s'écrit pareil dans les deux langues. */
+    for (const fr of textes.filter((x) => x !== "Guichet · Purpose Capital")) expect(en(fr), `« ${fr} » n'est pas traduit`).not.toBe(fr);
+  });
+
+  it("dit « See · Say · Talk · Follow » pour les quatre gestes d'usage, et « licensed by COSUMAF » partout", () => {
+    expect(en("1 · Voir")).toBe("1 · See");
+    expect(en("2 · Dire")).toBe("2 · Say");
+    expect(en("3 · Parler")).toBe("3 · Talk");
+    expect(en("4 · Suivre")).toBe("4 · Follow");
+    expect(en("Société de bourse agréée COSUMAF.")).toBe("Brokerage firm licensed by COSUMAF.");
+    expect(en("Société de bourse agréée COSUMAF.")).not.toMatch(/the COSUMAF/);
+  });
+
+  it("garde la mise en garde du risque dans les mêmes mots que la vitrine : « a risk of losing capital »", () => {
+    const risque = en("Vos titres sont à votre nom, vos espèces séparées, et vous seul donnez les ordres. Tout placement comporte un risque de perte en capital.");
+    expect(risque).toMatch(/risk of losing capital/);
+    expect(risque).not.toMatch(/capital loss/);
   });
 });

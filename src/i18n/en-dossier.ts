@@ -16,7 +16,7 @@ export const EN_DOSSIER: Record<string, string> = {
   "Vous créez votre compte": "You create your account",
   "Une adresse ou un numéro, un code reçu dans l'instant. Vous voyez alors le marché et vous recevez les avis de séance. Aucun document, aucun engagement.":
     "An address or a number, and a code that arrives at once. You then see the market and receive session notices. No document, no commitment.",
-  "Vous faites ouvrir votre compte-titres": "You have your securities account opened",
+  "Vous faites ouvrir votre compte-titres": "You get your securities account opened",
   "Une pièce d'identité, un justificatif de domicile et le questionnaire de connaissance. Dix minutes, à votre rythme, et le desk vous rappelle si une pièce manque.":
     "Proof of identity, proof of address and the knowledge questionnaire. Ten minutes, at your own pace, and the desk calls you back if a document is missing.",
   "Vous approvisionnez et vous placez": "You fund your account and you invest",

@@ -282,7 +282,7 @@ export const EN: Record<string, string> = {
   "Obligations des Trésors, actions cotées à la BVMAC, fonds : tout ce qui se place dans la zone, au même endroit.": "Treasury bonds, shares listed on the BVMAC, funds: everything that can be invested in the zone, in one place.",
   "1 · Voir": "1 · See",
   "Chaque chiffre est expliqué, la décision reste la vôtre.": "Every figure is explained, the decision stays yours.",
-  "Le rendement, le coupon, la clôture, le ticket : un « i » à côté de chaque mot, et une fiche par ligne avec ses risques écrits noir sur blanc.": "The yield, the coupon, the closing, the ticket: an \"i\" beside every word, and a page per line with its risks in black and white.",
+  "Le rendement, le coupon, la clôture, le ticket : un « i » à côté de chaque mot, et une fiche par ligne avec ses risques écrits noir sur blanc.": "The yield, the coupon, the closing price, the ticket: an “i” beside every word, and a sheet for each line with its risks in black and white.",
   "2 · Dire": "2 · Say",
   "Vous dites ce que vous voulez faire.": "You say what you want to do.",
   "Un montant, vos coordonnées, un récapitulatif. C'est une intention, que le desk reçoit : l'ordre vient après, avec un conseiller.": "An amount, your details, a summary. It is an intention the desk receives: the order comes after, with an adviser.",

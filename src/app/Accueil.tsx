@@ -147,10 +147,10 @@ export async function Accueil() {
   ];
 
   const quatreGestes = [
-    { n: "1", nom: t("Voir"), dit: `${t("Chaque chiffre est expliqué, la décision reste la vôtre.")} ${t("Le rendement, le coupon, la clôture, le ticket : un « i » à côté de chaque mot, et une fiche par ligne avec ses risques écrits noir sur blanc.")}` },
-    { n: "2", nom: t("Dire"), dit: t("Un montant, vos coordonnées, un récapitulatif. C'est une intention, que le desk reçoit : l'ordre vient après, avec un conseiller.") },
-    { n: "3", nom: t("Parler"), dit: t("Rien n'est débité sans votre accord. Le règlement se fait par virement, sur le compte de l'appel de fonds que vous recevez.") },
-    { n: "4", nom: t("Suivre"), dit: t("Chaque étape vous est notifiée ; relevés et avis se téléchargent ; vos parts sont à votre nom chez le dépositaire.") },
+    { n: "1", nom: t("1 · Voir"), dit: `${t("Chaque chiffre est expliqué, la décision reste la vôtre.")} ${t("Le rendement, le coupon, la clôture, le ticket : un « i » à côté de chaque mot, et une fiche par ligne avec ses risques écrits noir sur blanc.")}` },
+    { n: "2", nom: t("2 · Dire"), dit: t("Un montant, vos coordonnées, un récapitulatif. C'est une intention, que le desk reçoit : l'ordre vient après, avec un conseiller.") },
+    { n: "3", nom: t("3 · Parler"), dit: t("Rien n'est débité sans votre accord. Le règlement se fait par virement, sur le compte de l'appel de fonds que vous recevez.") },
+    { n: "4", nom: t("4 · Suivre"), dit: t("Chaque étape vous est notifiée ; relevés et avis se téléchargent ; vos parts sont à votre nom chez le dépositaire.") },
   ];
 
   const publications = [
@@ -287,7 +287,6 @@ export async function Accueil() {
         <div className={`${styles.etapes} ${styles.quatre}`}>
           {quatreGestes.map((e) => (
             <div className={styles.etape} key={e.nom}>
-              <span className={styles.rang}>{e.n}</span>
               <b>{e.nom}</b>
               <p>{e.dit}</p>
             </div>

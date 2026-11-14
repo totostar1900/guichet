@@ -28,7 +28,7 @@ export const EN_VITRINE: Record<string, string> = {
     "Three things to do, from the quietest to the most committing. They all live in the same account, and you move between them without opening anything again.",
   "Épargner": "Save",
   "Vous arrêtez un montant et un jour du mois, et le prélèvement s'exécute de lui-même. Ce qui vous est remboursé repart vers la ligne que vous avez désignée d'avance.":
-    "You settle on an amount and a day of the month, and the debit runs by itself. What is repaid to you goes back out to the line you chose in advance.",
+    "You choose an amount and a day of the month, and the debit runs by itself. What is repaid to you goes back into the line you chose in advance.",
   "Financer": "Lend",
   "Vous prêtez aux six États de la zone, à la banque de développement de la région et aux grandes entreprises d'ici. Ils vous versent un intérêt et vous remboursent à une échéance connue d'avance.":
     "You lend to the region's six governments, to its development bank and to large local companies. They pay you interest and repay you on a date known in advance.",
