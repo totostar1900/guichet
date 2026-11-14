@@ -23,6 +23,8 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
          vivaient dans un panneau du Carnet, et le sondage d'avant séance, qui vivait sous « Le marché ». Deux pages, aucune vue commune. */
       ["/desk/a-la-une", "À la une"],
       ["/desk/sondage", "Sondages"],
+      /* L'ANNONCE DE LA MAISON (14 novembre 2026) : une phrase au-dessus des pages, EN PLUS de « À la une ». */
+      ["/desk/annonce", "Annonce"],
     ],
   },
   {

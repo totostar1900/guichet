@@ -1,0 +1,69 @@
+/* « Apprendre » : trois éclairages pas encore lus, en carte comme les autres blocs de l'Accueil (le bandeau est celui de TitreDeBloc).
+   SANS MARGE À ELLE : l'écart est déclaré par la colonne des chapitres. */
+.bloc {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  overflow: hidden;
+}
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: var(--s-3) 0;
+}
+.liste li + li {
+  border-top: 1px solid var(--line);
+}
+/* Toute la rangée est le lien, d'au moins 64 px (règle de la rangée généreuse). */
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  min-height: 64px;
+  padding: var(--s-5) var(--tuile-pad-x);
+  color: inherit;
+  text-decoration: none;
+}
+.ligne:hover,
+.ligne:focus-visible {
+  background: var(--surface-2);
+}
+.numero {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  font-style: normal;
+  font-size: var(--t-2);
+  font-weight: 700;
+}
+.texte {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.texte b {
+  font-size: var(--t-4);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.texte small {
+  font-size: var(--t-2);
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+.duree {
+  flex: none;
+  font-style: normal;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+  white-space: nowrap;
+}

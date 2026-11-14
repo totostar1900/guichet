@@ -1,0 +1,90 @@
+.page {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--s-9) clamp(var(--s-7), 3vw, var(--s-10)) var(--s-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sections-gap);
+}
+.tete h1 {
+  margin: 0 0 var(--s-2);
+}
+.tete p {
+  margin: 0;
+  max-width: 56rem;
+  font-size: var(--t-4);
+}
+.carte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--titre-gap);
+  padding: var(--s-7);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.carte h2 {
+  margin: 0;
+  font-size: var(--t-5);
+}
+.encours {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-4);
+}
+.encours p {
+  margin: 0;
+  font-size: var(--t-5);
+}
+.encours small,
+.passees small {
+  color: var(--ink-3);
+  font-size: var(--t-2);
+}
+.formulaire {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-6);
+}
+.formulaire label {
+  width: 100%;
+  max-width: 40rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.formulaire textarea,
+.formulaire input {
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s-5);
+}
+.compte {
+  align-self: flex-end;
+  color: var(--ink-3);
+  font-size: var(--t-1);
+}
+.err {
+  color: var(--crit);
+  font-size: var(--t-3);
+}
+.passees {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.passees li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}

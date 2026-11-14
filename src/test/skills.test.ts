@@ -11,13 +11,13 @@ import { describe, expect, it } from "vitest";
  */
 const ROOT = process.cwd();
 const lire = (p: string) => readFileSync(join(ROOT, p), "utf8");
-const SKILLS = ["guichet-maquette", "guichet-benchmark", "guichet-espace-tuiles"] as const;
+const SKILLS = ["guichet-maquette", "guichet-benchmark", "guichet-espace-tuiles", "guichet-bamboo"] as const;
 const skill = (n: string) => lire(`.claude/skills/${n}/SKILL.md`);
 
 describe("les skills du projet se consultent à chaque demande", () => {
   const claude = lire("CLAUDE.md");
 
-  it("CLAUDE.md nomme les trois skills et dit de les consulter à chaque amélioration", () => {
+  it("CLAUDE.md nomme les quatre skills et dit de les consulter à chaque amélioration", () => {
     for (const n of SKILLS) expect(claude, `« ${n} » n'est plus nommé dans CLAUDE.md`).toContain(`\`${n}\``);
     expect(claude, "la règle « chaque amélioration, pas une fois » a disparu").toMatch(/Les skills se consultent à chaque amélioration et à chaque développement d'écran, pas une fois/);
     expect(claude, "le compte rendu ne nomme plus les skills utilisés").toMatch(/Le compte rendu final nomme les skills utilisés/);
@@ -39,6 +39,16 @@ describe("les skills du projet se consultent à chaque demande", () => {
     expect(b, "le benchmark ne renvoie plus à guichet-maquette").toContain("guichet-maquette");
     expect(b, "le benchmark ne renvoie plus au ton des risques").toContain("§ 10");
     expect(b, "le benchmark a perdu la règle du prix et de la variation").toMatch(/Règle du prix et de la variation d'une action/);
+    const bb = skill("guichet-bamboo");
+    expect(bb, "le skill Bamboo ne renvoie plus à guichet-benchmark").toContain("guichet-benchmark");
+    expect(bb, "le skill Bamboo ne renvoie plus à guichet-maquette").toContain("guichet-maquette");
+    expect(bb, "le skill Bamboo ne renvoie plus au ton des risques").toContain("§ 10");
+    expect(bb, "le journal des mentions de Bamboo a disparu").toMatch(/## 1\. Journal des mentions/);
+    expect(bb, "la règle « une ligne au journal à chaque mention » a disparu").toMatch(/À chaque nouvelle mention, ajouter une ligne au journal/);
+    expect(bb, "le skill Bamboo n'interdit plus de reprendre la marque, le texte ou le visuel").toMatch(/Ce qu'on ne reprend jamais/);
+    expect(b, "le benchmark ne renvoie plus au skill Bamboo").toContain("guichet-bamboo");
+    expect(m, "la maquette ne renvoie plus au skill Bamboo").toContain("guichet-bamboo");
+    expect(claude, "CLAUDE.md ne dit plus de consulter guichet-bamboo quand le client cite Bamboo").toMatch(/dès que le client cite Bamboo, `guichet-bamboo`/);
     const e = skill("guichet-espace-tuiles");
     expect(e, "l'espace des tuiles ne renvoie plus à guichet-maquette").toContain("guichet-maquette");
     expect(e, "l'espace des tuiles ne renvoie plus à guichet-benchmark").toContain("guichet-benchmark");

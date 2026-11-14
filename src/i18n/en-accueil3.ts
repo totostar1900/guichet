@@ -70,4 +70,5 @@ export const EN_ACCUEIL3: Record<string, string> = {
   "Variation de la dernière valeur liquidative": "Change since the previous NAV",
   "Verser": "Deposit",
   "Retrait": "Withdraw",
+  "Apprendre": "Learn",
 };

@@ -381,7 +381,7 @@ export async function loadFiche(o: Offer) {
   // Le signal d'appariement part avec les autres lectures, et il ne lit rien du
   // tout sur une ligne qui n'est pas cotée : le carnet n'existe que sur la cote.
   const wantsFacing = o.kind === "MARCHE" && !o.hidden;
-  const [, offers, company, issuer, quotes, navs, btaBenchmark, signalPolicy, session, seances, gestionnaires] = await Promise.all([
+  const [, offers, company, issuer, quotes, navs, btaBenchmark, signalPolicy, session, seances, gestionnaires, bulletins] = await Promise.all([
     loadIssuerRegistry(),
     r.listOffers(),
     o.kind === "MARCHE" && o.instrument === "action" ? companyByIsin(o.isin) : undefined,
@@ -398,6 +398,8 @@ export async function loadFiche(o: Offer) {
     o.kind === "BTA" || o.kind === "OTA" || o.kind === "APE" ? r.listAuctionResults({ codeEmission: o.isin, confirmed: true, limit: 1 }) : [],
     // Les faits de la société de gestion (siège, agrément) : ceux de la liste de la COSUMAF livrés avec le code, ou saisis au desk.
     o.kind === "FONDS" && o.fund ? loadGestionnaires() : undefined,
+    /* L'INDICE DE LA PLACE, pour la comparaison d'une action avec lui (14 novembre 2026) : les bulletins qui le portent, lus une fois comme sur la page de la société. Une autre ligne n'en a pas besoin. */
+    o.kind === "MARCHE" && o.instrument === "action" && o.priceSource === "boc" ? r.listBulletins(400).catch(() => []) : [],
   ]);
   const profile = resolveIssuer(o);
   // Toutes ses lignes, sans plafond : l'État du Gabon en a seize, et un rayon
@@ -502,7 +504,7 @@ export async function loadFiche(o: Offer) {
       comparaison = { categorie: FUND_CATEGORY_LABEL[o.fund.category], moi: ligneDeComparaison(o.id, o.title, courbes.get(o.fund.key)), pairs: pairsOffres.map((x) => ligneDeComparaison(x.id, x.title, courbes.get(x.fund!.key))) };
     }
   }
-  return { profile, others, company, issuer, quotes, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance: seances[0], variation3m, gestionnaire, fondsDeLaSociete, autresSocietes, comparaison };
+  return { profile, others, company, issuer, quotes, bulletins, navs, btaBenchmark, stampPending, stamp, timeline, facing, seance: seances[0], variation3m, gestionnaire, fondsDeLaSociete, autresSocietes, comparaison };
 }
 
 export type FicheData = Awaited<ReturnType<typeof loadFiche>>;

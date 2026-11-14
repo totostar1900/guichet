@@ -33,6 +33,7 @@ describe("les en-têtes de l'Accueil", () => {
       ["src/components/accueil/BlocDeLignes.module.css", /\.enBandeau \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
       ["src/components/CeQuiFermeBientot.module.css", /\.sobre \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
       ["src/components/IndexPulse.module.css", /\.enBandeau \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
+      ["src/components/accueil/BlocApprendre.module.css", /\.bloc \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
       ["src/components/CeQuiPerforme.module.css", /\.bloc \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
       ["src/app/Console.module.css", /\.blocUne \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
     ];

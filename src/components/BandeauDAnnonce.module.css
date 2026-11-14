@@ -1,0 +1,41 @@
+/* L'annonce de la maison : une rangée d'une phrase, qui passe à la ligne sur téléphone. L'espace dessous est celui d'un titre à son contenu (--titre-gap). */
+.bandeau {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  margin-bottom: var(--titre-gap);
+  padding: var(--s-3) var(--s-3) var(--s-3) var(--s-7);
+  background: var(--gold-soft);
+  color: var(--ink);
+  border: 1px solid var(--gold-line);
+  border-radius: var(--radius);
+  font-size: var(--t-3);
+  line-height: 1.4;
+}
+.texte {
+  flex: 1;
+  min-width: 0;
+}
+.texte b {
+  color: var(--gold-ink);
+  margin-right: var(--s-2);
+}
+/* La croix a la cible d'un doigt : 44 px. */
+.croix {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-2);
+  font-size: var(--t-4);
+  cursor: pointer;
+}
+.croix:hover,
+.croix:focus-visible {
+  background: var(--surface-2);
+  color: var(--ink);
+}

@@ -29,6 +29,7 @@ import { getLang, getT } from "@/i18n/server";
 import { AuthHashRedirect } from "@/components/AuthHashRedirect";
 import { AppMenu } from "@/components/AppMenu";
 import { PorteVitrine } from "@/components/PorteVitrine";
+import { BandeauDAnnonce } from "@/components/BandeauDAnnonce";
 import { SaufSurLaPorte } from "@/components/SaufSurLaPorte";
 import { ConsentGate } from "@/components/ConsentGate";
 import { TermSheetHost } from "@/components/TermSheet";
@@ -304,7 +305,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               toute la plage : le composant n'a été visible à AUCUNE largeur
               depuis que la colonne existe, et chaque page du marché portait
               quand même sa grille à deux colonnes pour un rail invisible. */}
-          <main className={styles.main}>{children}</main>
+          {/* L'ANNONCE DE LA MAISON (14 novembre 2026) : au-dessus de la page, jamais au desk, et EN PLUS de ce que la page dit (le préavis d'un ordre reste le premier bloc de l'Accueil). */}
+          <main className={styles.main}>
+            {deskUi ? null : <BandeauDAnnonce />}
+            {children}
+          </main>
           <HoteDeLaBulle />
         </div>
         </RegistryProvider>

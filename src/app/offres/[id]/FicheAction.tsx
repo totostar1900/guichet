@@ -9,6 +9,8 @@ import { explainKpis } from "@/lib/domain/explain";
 import type { Offer } from "@/lib/domain/types";
 import { displayYield } from "@/lib/domain/status";
 import { serieDeValorisation } from "@/lib/market/valorisation";
+import { indexSeries } from "@/lib/market/index";
+import { SEUIL_SANS_SEANCE, contreLIndice, dividendesVerses, reperes52Semaines } from "@/lib/market/fiche-action";
 import { daysBetween, margeNettePct, partFondsPropresPct, rendementDividendePct, rentabiliteFondsPropresPct } from "@/lib/finance";
 import { fmt, fmtDate, fmtPct, fmtScaled, localIso, pickScale } from "@/lib/format";
 import { voletsMasques } from "@/lib/fiche-volets";
@@ -46,10 +48,12 @@ function Bloc({ pane, titre, children, plat = false, fin, info }: { pane: string
   );
 }
 
+const signe = (v: number) => `${v > 0 ? "+" : ""}${fmtPct(v, 2)}`;
+
 export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
   const t = await getT();
   const now = new Date();
-  const { company, quotes, facing, stamp, profile, others, issuer } = data;
+  const { company, quotes, bulletins, facing, stamp, profile, others, issuer } = data;
   const dy = displayYield(o);
   /* UN SEUL COURS, UNE SEULE DATE (6 novembre 2026, planche « 1A ») : le cours est la clôture de la dernière séance publiée, datée ; le dernier échange est écrit à part dans « Séances ». Le rendement du dividende se lit sur ce même cours : la page de la société et la fiche donnent le même chiffre. */
   const cloture = quotes[0] && (!o.lastPriceOn || quotes[0].sessionDate >= o.lastPriceOn) ? quotes[0] : undefined;
@@ -66,6 +70,11 @@ export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
   const age = o.priceSince ? daysBetween(o.priceSince, localIso(now)) : 0;
   const dernier = quotes[0];
   const points = [...quotes].reverse().map((q) => ({ d: q.sessionDate, c: q.close, v: q.volumeTraded, val: q.valueTraded }));
+  /* TROIS LECTURES EN PLUS (14 novembre 2026, planche 1A) : elles s'ajoutent au cours, aux chiffres clés et aux séances, sans en remplacer aucun. */
+  const joursSansSeance = dernier ? daysBetween(dernier.sessionDate, localIso(now)) : 0;
+  const reperes = reperes52Semaines(points.map((p) => ({ d: p.d, c: p.c, v: p.v })));
+  const contre = contreLIndice(points.map((p) => ({ d: p.d, c: p.c, v: p.v })), indexSeries(bulletins));
+  const versements = company ? dividendesVerses(company.figures, quotes) : [];
   /* LES BULLETINS DE LA COTE NE SONT PLUS DES DOCUMENTS de l'action (9 novembre 2026) : ce sont des pièces de la bourse, pas de la société. */
   const documents = o.documents.filter((d) => !/^bulletin\b/i.test(d.name));
   const mention = <p className={fa.mention}>{t("Communication à caractère promotionnel. Risque de perte en capital.")}</p>;
@@ -115,6 +124,15 @@ export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
           sous={age >= 1 && (!cloture || cloture.close === o.lastPrice) ? <span className={fa.age}>{t("même cours depuis {n} jours", { n: age })}</span> : undefined}
         />
         {points.length > 1 && <CourbeDuCours points={points} />}
+        {joursSansSeance >= SEUIL_SANS_SEANCE && dernier && <p className={fa.note}>{t("Aucune séance publiée depuis {n} jours : ce cours est celui de la clôture du {d}.", { n: String(joursSansSeance), d: fmtDate(dernier.sessionDate) })}</p>}
+        {reperes && (
+          <Tuiles
+            tuiles={[
+              [t("Plus bas · 52 semaines"), `${fmt(reperes.bas)} FCFA`],
+              [t("Plus haut · 52 semaines"), `${fmt(reperes.haut)} FCFA`],
+            ]}
+          />
+        )}
         {o.priceSource !== "boc" && <p className={fa.note}>{t(stamp)}</p>}
       </Bloc>
 
@@ -123,9 +141,62 @@ export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
         <CrossSignal o={o} facing={facing} />
       </Bloc>
 
+      {versements.length > 0 && (
+        <Bloc pane="essentiel" titre={t("Dividendes versés")} info={t("Le dividende brut par action que la société publie pour chaque exercice, et la date de paiement lue sur le bulletin de la bourse. La date de détachement n'est pas publiée dans les bulletins : elle n'est donc pas écrite.")}>
+          <table className={fa.seances}>
+            <thead>
+              <tr>
+                <th>{t("Exercice")}</th>
+                <th>{t("Payé le")}</th>
+                <th>{t("Brut par action")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {versements.map((v) => (
+                <tr key={v.exercice}>
+                  <td>{v.exercice}</td>
+                  <td>{v.brut == null ? "" : v.payeLe ? fmtDate(v.payeLe) : <span className={fa.age}>{t("non publié")}</span>}</td>
+                  <td>{v.brut == null ? <span className={fa.age}>{t("aucun dividende")}</span> : `${fmt(v.brut)} FCFA`}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className={fa.note}>{t("Montants bruts, avant retenue. Un dividende passé ne préjuge pas des suivants.")}</p>
+        </Bloc>
+      )}
+
       {dernier && (
         <Bloc pane="essentiel" titre={t("Séances")} info={t("La dernière séance de cotation : clôture, seuils de variation permis, volume échangé et référence de la prochaine séance. Le tableau liste les cinq dernières séances.")}>
           <SeancesDeLAction quotes={quotes} />
+        </Bloc>
+      )}
+
+      {contre.length > 0 && (
+        <Bloc pane="essentiel" titre={t("Contre l'indice")} info={t("La variation des clôtures de l'action et celle de l'indice de la place (BVMAC All Share) sur la même période, dividendes non compris. L'écart est la différence, en points de pourcentage : positif, l'action a monté plus que l'indice. L'indice bouge peu sur ce marché : un écart ne dit pas à lui seul si l'action est chère ou bon marché.")}>
+          <table className={fa.seances}>
+            <thead>
+              <tr>
+                <th>{t("Période")}</th>
+                <th>{t("Cette action")}</th>
+                <th>{t("Indice")}</th>
+                <th>{t("Écart")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {contre.map((l) => (
+                <tr key={l.cle}>
+                  <td>{t(l.libelle)}</td>
+                  <td>{signe(l.titrePct)}</td>
+                  <td>{signe(l.indicePct)}</td>
+                  <td className={l.ecartPts < 0 ? fa.baisse : l.ecartPts > 0 ? fa.hausse : undefined}>
+                    {l.ecartPts > 0 ? "+" : ""}
+                    {l.ecartPts.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} {t("pts")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className={fa.note}>{t("Variation des clôtures, dividendes non compris. Les séances passées ne préjugent pas des suivantes.")}</p>
         </Bloc>
       )}
 

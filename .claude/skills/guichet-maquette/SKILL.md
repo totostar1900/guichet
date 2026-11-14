@@ -13,6 +13,7 @@ La règle de la maison : **le client ne découvre pas une décision de conceptio
 |---|---|
 | on se compare à d'autres applications, on juge une hiérarchie, une densité, un chiffre en avant | `guichet-benchmark` (références déjà analysées d'abord : `docs/design-refs/`) |
 | on touche un écart, un chapitre, une tuile, un jeton d'espace | `guichet-espace-tuiles` |
+| le client cite Bamboo, ou demande une vitrine, une intro, une fiche de titre « comme » ce courtier | `guichet-bamboo` (journal, principes, ce qu'on ne reprend pas, règle de la vitrine sans chiffre) |
 | on écrit un texte de risque, de mise en garde, d'avertissement | `ETALON.md` § 10 — **rassurer sans rien retirer** |
 | on nomme un lieu du client ou on lui parle | `ETALON.md` § 9 — « Mes » pour ce qui est à lui, « Votre » pour la maison |
 

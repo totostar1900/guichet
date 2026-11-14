@@ -18,6 +18,7 @@ import { DossierAccueil } from "@/components/accueil/DossierAccueil";
 import { joursEnMots } from "@/lib/domain/echeances";
 import { IndexPulse } from "@/components/IndexPulse";
 import { CeQuiPerforme } from "@/components/CeQuiPerforme";
+import { BlocApprendre } from "@/components/accueil/BlocApprendre";
 import { TitreDeBloc } from "@/components/TitreDeBloc";
 import { aLaUne, pourquoiLu, publishedNews, titreLu } from "@/lib/news";
 import { TrustNudge } from "@/components/TrustNudge";
@@ -550,6 +551,9 @@ export async function Console({ session }: { session: Session }) {
           </Link>
         </section>
       )}
+
+      {/* 9 bis. APPRENDRE (14 novembre 2026, planche 3A) : trois éclairages pas encore lus, EN PLUS de « À la une » et de la porte « Aide ». La pièce se tait quand tout est lu, titre compris. */}
+      <BlocApprendre />
 
       {/* 10. S'INSCRIRE SANS ATTENDRE UN CODE. Une proposition qui se referme
           d'une croix, et ne revient pas. */}

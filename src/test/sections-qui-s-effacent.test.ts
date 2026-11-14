@@ -40,6 +40,8 @@ const QUI_SE_TAISENT = [
   /* LES DEUX NOUVEAUX CHAPITRES DE L'ACCUEIL (1er novembre 2026) : un chapitre vide laisserait un écart de 44 px pour rien, ils se taisent donc eux aussi. */
   "src/components/accueil/TuilesDuHaut.tsx",
   "src/components/accueil/DossierAccueil.tsx",
+  /* « APPRENDRE » (14 novembre 2026) : trois éclairages pas encore lus ; la pièce se tait quand les huit sont lus, titre compris. */
+  "src/components/accueil/ListeApprendre.tsx",
 ];
 
 const nomDe = (f: string) => path.basename(f, ".tsx");
