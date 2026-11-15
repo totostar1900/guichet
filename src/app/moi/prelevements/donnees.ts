@@ -2,7 +2,7 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { etapeDuMandat, MOTIFS_DE_REFUS_DE_COPIE } from "@/lib/domain/mandat";
 import { prochaineEcheance } from "@/lib/domain/prelevement";
-import { nextRun } from "@/lib/domain/standing";
+import { nextRun, premierVersement } from "@/lib/domain/standing";
 import { localIso } from "@/lib/format";
 import { aucunCanalPossible, canalDuCode } from "@/lib/kyc/canal";
 import type { Vu } from "./MesMandats";
@@ -43,6 +43,8 @@ export async function lireLesMandats(userId: string) {
     codeEnvoyeA: m.pendingCodeTo,
     codeEnvoyeLe: m.pendingCodeAt,
     revoqueLe: m.revokedAt,
+    /* Le premier prélèvement d'un mandat qui n'a pas encore prélevé : le jour de l'épargne qu'il paie, ou le jour qu'il porte. */
+    premier: m.dayOfMonth ? prochaineEcheance(m.dayOfMonth, aujourdHui) : epargneDe(m.standingId) ? premierVersement(epargneDe(m.standingId)!.dayOfMonth, aujourdHui) : undefined,
     prochain:
       m.signedAt && m.state === "actif" && etapeDuMandat(m) === "actif"
         ? m.dayOfMonth

@@ -130,9 +130,10 @@ describe("la page le propose là où le client s'apprête à signer", () => {
     expect(lien, "le lien d'aperçu a disparu de la page").toBeGreaterThan(0);
     expect(code).toBeGreaterThan(0);
     expect(lien, "le lien arrive après la demande de code : trop tard pour lire").toBeLessThan(code);
-    /* IL DIT CE QUE C'EST, et pourquoi le lire : « c'est le document que votre
-       banque vous demandera » est la raison pour laquelle on le relit. */
+    /* IL SE LIT AVANT DE SE SIGNER, et la page ne le commente plus (15 novembre 2026) : la phrase « c'est le document que votre banque vous demandera… corriger » est retirée ;
+       la lecture, elle, rassure toujours (« Rien n'est engagé tant que vous n'avez pas saisi le code »). */
     expect(vue).toMatch(/Lire le mandat avant de le signer/);
-    expect(vue).toMatch(/votre banque vous demandera/);
+    expect(vue, "la phrase explicative est revenue").not.toMatch(/votre banque vous demandera/);
+    expect(vue).toMatch(/Rien n'est engagé tant que vous n'avez pas saisi le code/);
   });
 });

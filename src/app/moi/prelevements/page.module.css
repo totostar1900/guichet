@@ -38,23 +38,6 @@
   display: grid;
   gap: var(--s-6);
 }
-.mandat {
-  display: grid;
-  gap: var(--s-4);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--gold);
-  padding: var(--s-6);
-}
-.mTete {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-5);
-  flex-wrap: wrap;
-}
-.mTete b {
-  font-size: var(--t-5);
-}
 .actif,
 .attente {
   font-size: var(--t-1);
@@ -69,49 +52,15 @@
   color: var(--gold-ink);
 }
 
-.mLignes {
-  display: grid;
-  gap: var(--s-3);
-  margin: 0;
-}
-.mLignes > div {
-  display: flex;
-  gap: var(--s-5);
-  align-items: baseline;
-  flex-wrap: wrap;
-}
-.mLignes dt {
-  min-width: 210px;
-  font-size: var(--t-3);
-  color: var(--ink-2);
-}
-.mLignes dd {
-  margin: 0;
-  font-size: var(--t-4);
-}
 /* Le jour, à côté du montant et non sur sa propre ligne : il n'y a plus qu'un
    nombre depuis le 25 octobre 2026, et « 50 000 FCFA le 5 de chaque mois » est
    une seule information. */
-.leJour {
-  margin-left: var(--s-4);
-  color: var(--ink-3);
-  font-size: var(--t-2);
-}
 
 .signer {
   display: grid;
   gap: var(--s-4);
   border-top: 1px solid var(--line);
   padding-top: var(--s-4);
-}
-.codeRow {
-  display: flex;
-  gap: var(--s-4);
-  align-items: flex-end;
-  flex-wrap: wrap;
-  border: 0;
-  margin: 0;
-  padding: 0;
 }
 .ok {
   margin: 0;
@@ -132,9 +81,6 @@
 }
 
 @media (max-width: 700px) {
-    .mLignes dt {
-    min-width: 100%;
-  }
 }
 
 /* Ce qui est annoncé, et ce qui est arrivé. Une ligne par prélèvement, et le
@@ -232,4 +178,46 @@
   border: 1px solid var(--gold);
   border-radius: 999px;
   padding: var(--s-1) var(--s-3);
+}
+
+/* La carte d'un mandat : sa pastille d'état, puis le récapitulatif en tableau resserré (15 novembre 2026). */
+.carte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+}
+.recapTab {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+.recapTab > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-6);
+  padding: var(--s-5) 0;
+  border-top: 1px solid var(--line);
+  font-size: var(--t-3);
+}
+.recapTab > div:first-child {
+  border-top: 0;
+}
+.recapTab dt {
+  color: var(--ink-3);
+}
+.recapTab dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+}
+.recapTab dd small {
+  display: block;
+  font-weight: 400;
+  font-size: var(--t-2);
+  color: var(--ink-3);
 }

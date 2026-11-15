@@ -158,8 +158,8 @@ describe("ce que le parcours du mandat doit dire", () => {
   const vue = readFileSync("src/app/moi/prelevements/MesMandats.tsx", "utf8");
 
   it("dit la signature après que le formulaire qui la portait a disparu", () => {
-    const debutSigne = vue.indexOf("{m.signeLe ? (");
-    const signe = vue.slice(debutSigne, vue.indexOf(") : (", debutSigne));
+    const debutSigne = vue.indexOf("{!signe ? (");
+    const signe = vue.slice(vue.indexOf(") : (", debutSigne));
     expect(signe, "la confirmation de signature n'est plus dans la branche qui survit").toMatch(/sign\?\.ok && sign\.message/);
     /* Non vacuité : le message vient bien de l'action de signature, et la
        branche examinée est bien celle du mandat signé. */
@@ -343,8 +343,9 @@ describe("comment une épargne est payée, lu dans ses mandats", () => {
     expect(paiementDeLEpargne(ep("prelevement", "st-2"), [m("actif", "2026-11-11", "st-1")]), "sans la lignée, le mandat d'avant ne se voit pas").toBe("mandat_a_signer");
   });
   it("la carte nomme son fonds, la liste dit « En attente du mandat »", () => {
-    const vue = readFileSync("src/app/moi/prelevements/MesMandats.tsx", "utf8");
-    expect(vue).toContain('t("Alimenter mon épargne vers {f}", { f: m.fonds })');
+    /* Le titre « Mon épargne vers {fonds} » est celui de la page (EnTete), plus celui de la carte (15 novembre 2026). */
+    const vue = readFileSync("src/app/moi/prelevements/[id]/page.tsx", "utf8");
+    expect(vue).toContain('t("Mon épargne vers {f}", { f: m.fonds })');
     expect(readFileSync("src/components/Standing.tsx", "utf8")).toMatch(/s\.paiement === "mandat_a_signer"/);
     const r = readFileSync("src/app/moi/regles/page.tsx", "utf8");
     expect(r).toMatch(/=== "mandat_a_signer" \? t\("En attente du mandat"\)/);

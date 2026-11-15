@@ -32,15 +32,33 @@ describe("le sommaire des prélèvements", () => {
 describe("les pages du parcours", () => {
   it("un mandat a sa page, qui ne montre que lui et refuse un mandat révoqué ou inconnu", () => {
     const m = lire("src/app/moi/prelevements/[id]/page.tsx");
-    expect(m).toMatch(/vus\.find\(\(x\) => x\.id === id && x\.etat !== "revoque"\)/);
+    expect(m).toMatch(/vus\.find\(\(x\) => x\.id === id\)/);
     expect(m).toMatch(/notFound\(\)/);
+    expect(m, "un mandat révoqué doit renvoyer au sommaire, pas répondre 404").toMatch(/m\.etat === "revoque"\) redirect\("\/moi\/prelevements"\)/);
     expect(m).toMatch(/<MesMandats mandats=\{\[m\]\}/);
   });
 
   it("la carte d'un mandat n'a plus de formulaire de création : la mise en place est le parcours", () => {
     const c = lire("src/app/moi/prelevements/MesMandats.tsx");
     expect(c).not.toMatch(/creerMandatAction|Préparer, puis signer|En ajouter un/);
-    expect(c, "le code et la signature ne se montrent pas ensemble").toMatch(/!\(m\.codeEnvoyeLe \|\| envoi\?\.ok\) \? \(/);
+    /* Un geste à la fois : « Recevoir mon code » avant l'envoi, « Je signe ce mandat » après, jamais les deux dans la barre. */
+    expect(c, "le code et la signature ne se montrent pas ensemble").toMatch(/!signe && !codeParti && \(/);
+    expect(c).toMatch(/!signe && codeParti && \(/);
+  });
+
+  it("la page d'un mandat : barre du bas, récapitulatif resserré, compte masqué, sans référence (15 novembre 2026)", () => {
+    const c = lire("src/app/moi/prelevements/MesMandats.tsx");
+    /* Les gestes vivent dans la barre collée au bas : le geste qui attend, et « Supprimer » (ou « Révoquer » une fois signé) à côté. */
+    expect(c, "la barre du bas a disparu").toMatch(/<BarreDEtape/);
+    expect(c).toMatch(/const retire = signe \? t\("Révoquer"\) : t\("Supprimer"\)/);
+    /* La suppression se confirme sur place, dans la barre. */
+    expect(c).toMatch(/Supprimer ce mandat \? Il ne sera jamais prélevé\./);
+    expect(c).toMatch(/Révoquer ce mandat \? Rien ne sera plus prélevé\./);
+    /* Le compte ne se montre qu'à ses quatre derniers chiffres, et la référence n'est plus sur la page. */
+    expect(c, "le compte n'est plus masqué").toMatch(/slice\(-4\)/);
+    expect(c, "le compte entier est revenu sur la page").not.toMatch(/\{m\.compte\}/);
+    expect(c, "la référence du mandat est revenue sur la page").not.toMatch(/Référence du mandat/);
+    expect(c, "la phrase « corriger » est revenue").not.toMatch(/pouvez encore le corriger/);
   });
 
   it("la provision passe par le parcours en cinq pages, sans fonds", () => {
