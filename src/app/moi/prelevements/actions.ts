@@ -10,7 +10,7 @@ import { attenteAvantRenvoi, empreinte, nouveauCode, verifier } from "@/lib/sign
 import { JOUR_MAX, JOUR_MIN, mandatVivant, verifierLeMandat, type MandatPrelevement } from "@/lib/domain/mandat";
 import { parseAmount } from "@/lib/format";
 
-export type MandatResult = { ok: true; message?: string; code?: string } | { ok: false; error: string };
+export type MandatResult = { ok: true; message?: string; code?: string; id?: string } | { ok: false; error: string };
 
 const PATH = "/moi/prelevements";
 
@@ -119,7 +119,7 @@ export async function creerMandatAction(_p: MandatResult | null, form: FormData)
   const passeM = await garde("mandat.creer");
   if (!passeM.ok) return { ok: false, error: passeM.raison! };
   await noter("mandat.cree", { objet: m.ref, detail: m.bankName });
-  return { ok: true, message: "Mandat préparé. Relisez-le, puis signez-le par un code à usage unique." };
+  return { ok: true, message: "Mandat préparé. Relisez-le, puis signez-le par un code à usage unique.", id: m.id };
 }
 
 export async function envoyerCodeMandatAction(_p: MandatResult | null, form: FormData): Promise<MandatResult> {

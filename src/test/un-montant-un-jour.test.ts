@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { nextRun, premierVersement, type StandingOrder } from "@/lib/domain/standing";
+import { dateDuVersement, isDue, JOUR_MAX_VERSEMENT, nextRun, premierVersement, type StandingOrder } from "@/lib/domain/standing";
 
 const ROOT = path.join(__dirname, "../..");
 const code = (p: string) =>
@@ -11,131 +11,111 @@ const code = (p: string) =>
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "");
 
-const TSX = "src/components/Standing.tsx";
+const TSX = "src/components/EpargneParcours.tsx";
+const uneEpargne = (patch: Partial<StandingOrder>) => ({ state: "active", dayOfMonth: 17, startsOn: "2026-01-01", ...patch }) as unknown as StandingOrder;
 
 /**
- * UN MONTANT, UN JOUR, ET CE QUE ÇA FAIT — RELEVÉ LE 29 OCTOBRE 2026.
- *
- * Le versement programmé est l'engagement le plus long du guichet : on le
- * signe une fois et il court jusqu'à ce qu'on l'arrête. Mesuré à l'écran, son
- * formulaire posait quatre questions justes et ne répondait à aucune.
- *
- *   LE MONTANT s'ouvrait sur « 100000 » — six chiffres collés, dans une case
- *   de douze pixels. C'est le moment précis où l'on compte les zéros, et c'est
- *   le défaut que « lib/ui/grouped » explique sur vingt lignes avant de le
- *   corriger partout ailleurs : le champ ne groupait qu'à la frappe, donc
- *   jamais sur la valeur qu'il affichait d'entrée.
- *
- *   LE JOUR était un « input type=number » : sur un téléphone, le clavier
- *   numérique ou deux flèches de huit pixels, pour une décision qui vaut un
- *   geste du pouce.
- *
- *   SOUS LES DEUX, DES BORNES ET NON DES CONSÉQUENCES : « minimum 100 000 »,
- *   « du 1 au 28 ». Ni ce qu'on aura mis de côté dans un an, ni quand le
- *   premier versement tombe.
+ * UN MONTANT, UN JOUR, ET CE QUE ÇA FAIT — relevé le 29 octobre 2026, repris le 15 novembre 2026 avec le parcours en quatre pages et le jour de 1 à 30.
  */
 describe("un montant, un jour", () => {
-  /* LA DATE DU PREMIER VERSEMENT, ET SON SEUL CALCUL. « nextRun » la posait
-     déjà ; une copie dans l'écran aurait divergé un 31 décembre. */
+  /* LA DATE DU PREMIER VERSEMENT, ET SON SEUL CALCUL. */
   it("place le premier versement ce mois-ci s'il est devant, le mois suivant sinon", () => {
-    expect(premierVersement(17, "2026-10-29"), "le 17 est passé, on reste en octobre").toBe("2026-11-17");
-    expect(premierVersement(31 - 1, "2026-10-29"), "le 30 est devant, on part en novembre").toBe("2026-10-30");
-    expect(premierVersement(29, "2026-10-29"), "le jour même n'est pas le premier versement").toBe("2026-10-29");
-    // Le passage d'année, qui est l'endroit où une copie se trompe.
+    expect(premierVersement(17, "2026-10-29"), "le 17 est passé, on part en novembre").toBe("2026-11-17");
+    expect(premierVersement(30, "2026-10-29"), "le 30 est devant, on reste en octobre").toBe("2026-10-30");
+    expect(premierVersement(29, "2026-10-29"), "le jour même est encore un premier versement").toBe("2026-10-29");
     expect(premierVersement(5, "2026-12-20"), "décembre ne roule pas sur janvier").toBe("2027-01-05");
   });
 
-  /* LA RÈGLE PLUTÔT QUE SA COPIE : « nextRun » doit la lire, sans quoi les
-     deux dates affichées au client finiraient par ne plus se répondre. */
-  it("laisse « nextRun » lire la même règle", () => {
-    const src = code("src/lib/domain/standing.ts");
-    expect(src, "« nextRun » s'est réécrit le calcul du premier versement").toMatch(/premierVersement\(s\.dayOfMonth, d\)/);
-    // Et les deux rendent bien la même date sur une instruction neuve.
-    const s = { state: "active", dayOfMonth: 17, startsOn: "2026-10-01" } as unknown as StandingOrder;
-    expect(nextRun(s, "2026-10-29")).toBe(premierVersement(17, "2026-10-29"));
+  /* LA RÈGLE DE FÉVRIER : le jour qui n'existe pas tombe le 1er du mois suivant. */
+  it("fait tomber le 29 et le 30 le 1er mars quand février ne les a pas", () => {
+    expect(JOUR_MAX_VERSEMENT).toBe(30);
+    expect(dateDuVersement(2027, 2, 29), "2027 n'est pas bissextile").toBe("2027-03-01");
+    expect(dateDuVersement(2027, 2, 30)).toBe("2027-03-01");
+    expect(dateDuVersement(2028, 2, 29), "2028 est bissextile : le 29 existe").toBe("2028-02-29");
+    expect(dateDuVersement(2028, 2, 30), "le 30 n'existe jamais en février").toBe("2028-03-01");
+    expect(dateDuVersement(2026, 4, 30), "avril a un 30").toBe("2026-04-30");
+    expect(premierVersement(30, "2027-02-10")).toBe("2027-03-01");
+    expect(premierVersement(29, "2028-02-10")).toBe("2028-02-29");
   });
 
-  /* LE MONTANT EST GROUPÉ DÈS L'OUVERTURE, et non seulement à la frappe. */
-  it("ouvre le montant sur un nombre qu'on peut compter", () => {
-    const src = code(TSX);
-    expect(src, "le montant s'ouvre de nouveau sur des chiffres collés").toMatch(/useState\(minimum \? groupDigits\(String\(minimum\)\) : ""\)/);
+  it("rattrape février le 1er mars sans empêcher le versement du 30 mars", () => {
+    const s = uneEpargne({ dayOfMonth: 30 });
+    expect(isDue(s, "2027-02-28"), "février : rien n'est dû, le versement est reporté").toBe(false);
+    expect(isDue(s, "2027-03-01"), "le 1er mars porte celui de février").toBe(true);
+    const faitLe1er = uneEpargne({ dayOfMonth: 30, lastRunOn: "2027-03-01" });
+    expect(isDue(faitLe1er, "2027-03-15"), "celui de février est fait").toBe(false);
+    expect(isDue(faitLe1er, "2027-03-30"), "celui de mars arrive ensuite, dans le même mois civil").toBe(true);
+    expect(nextRun(faitLe1er, "2027-03-02")).toBe("2027-03-30");
+    expect(nextRun(uneEpargne({ dayOfMonth: 30, lastRunOn: "2027-01-30" }), "2027-02-05")).toBe("2027-03-01");
   });
 
-  /* LE JOUR EST UNE GRILLE, et le montant porte le degré de ce qu'on écrit de
-     sa main — le même que dans le passage d'ordre, puisque c'est la même main. */
-  it("donne le jour au pouce et le chiffre à la main", () => {
-    const src = code(TSX);
-    expect(src, "le jour est redevenu un champ numérique").not.toMatch(/name="dayOfMonth" type="number"/);
-    expect(src, "la grille des vingt-huit jours a disparu").toMatch(/length: 28/);
-    expect(src, "le montant a perdu la carte du chiffre").toMatch(/styles\.carteDuChiffre/);
-    const css = fs.readFileSync(path.join(ROOT, "src/components/Standing.module.css"), "utf8");
-    expect(css, "le chiffre qu'on tape n'est plus au neuvième degré").toMatch(/\.chiffreTape input \{[^}]*--t-9/);
-    expect(css, "les cases du jour sont retombées sous la cible du pouce").toMatch(/\.jour,\s*\n\.jourOn \{\s*\n\s*min-height: 44px/);
+  it("garde le rattrapage des jours ordinaires, dans le mois et pas au-delà", () => {
+    const s = uneEpargne({ dayOfMonth: 5 });
+    expect(isDue(s, "2026-11-04")).toBe(false);
+    expect(isDue(s, "2026-11-09"), "le robot a manqué le 5 : il rattrape").toBe(true);
+    expect(isDue({ ...s, lastRunOn: "2026-11-05" } as StandingOrder, "2026-11-09")).toBe(false);
+    expect(isDue(uneEpargne({ dayOfMonth: 30 }), "2026-12-02"), "le 30 novembre manqué ne se rattrape pas en décembre").toBe(false);
   });
 
-  /* LES DEUX CONSÉQUENCES, ET LA BORNE QUI NE RESTE QUE TANT QU'IL N'Y A RIEN
-     À DIRE. Une borne affichée à la place d'une conséquence est une réponse à
-     une question que personne n'a posée. */
-  it("répond aux deux questions au lieu d'en rappeler les règles", () => {
+  /* LA RÈGLE PLUTÔT QUE SA COPIE : « nextRun » et « premierVersement » rendent la même date sur une épargne neuve. */
+  it("laisse « nextRun » et « premierVersement » dire la même date", () => {
+    for (const [j, d] of [[17, "2026-10-29"], [30, "2027-02-10"], [29, "2028-02-10"], [5, "2026-12-20"]] as const) {
+      expect(nextRun(uneEpargne({ dayOfMonth: j, startsOn: "2020-01-01" }), d), `jour ${j} au ${d}`).toBe(premierVersement(j, d));
+    }
+  });
+
+  /* LE MONTANT EST GROUPÉ DÈS L'OUVERTURE, et le jour est UN seul champ, d'un jour à trente. */
+  it("ouvre le montant sur un nombre qu'on peut compter, et donne le jour en un seul champ de 1 à 30", () => {
     const src = code(TSX);
-    expect(src, "ce que le versement fait sur douze mois a disparu").toMatch(/\{n\} FCFA sur douze mois/);
+    expect(src, "le montant s'ouvre de nouveau sur des chiffres collés").toMatch(/useState\(plancher \? groupDigits\(String\(plancher\)\) : ""\)/);
+    expect(src, "le jour n'est plus un champ de la maison à trente entrées").toMatch(/length: JOUR_MAX_VERSEMENT/);
+    expect(src, "la grille des vingt-huit jours est revenue").not.toMatch(/length: 28/);
+    expect(src, "la règle de février a disparu du formulaire").toMatch(/tombe le 1er mars quand ce jour n'existe pas/);
+  });
+
+  /* LES CONSÉQUENCES : la date du premier versement ; plus de « douze mois » ni de « valeur du jour » (15 novembre 2026). */
+  it("dit le premier versement, et plus ni les douze mois ni la valeur du jour", () => {
+    const src = code(TSX);
     expect(src, "la date du premier versement a disparu").toMatch(/Premier versement le \{d\}/);
-    // Le minimum ne s'affiche plus QUE tant que rien n'est tapé.
-    expect(src, "le minimum a repris la place de la conséquence").toMatch(/verse > 0 \?[\s\S]{0,600}plancher > 0 && <small className="muted">/);
+    expect(src, "« sur douze mois » est revenu").not.toMatch(/douze mois/);
+    expect(src, "« à la valeur du jour » est revenu").not.toMatch(/valeur du jour/);
+    expect(src, "la date de fin est revenue dans le parcours").not.toMatch(/Jusqu'au/);
   });
 
-  /**
-   * DEUX ÉCRANS, ET LE SECOND NE DEMANDE RIEN.
-   *
-   * ÉCARTÉ LE 29 OCTOBRE 2026 PUIS DEMANDÉ. J'avais mis les conséquences sous
-   * la main et gardé un seul écran, en jugeant qu'elles suffisaient au moment
-   * de décider. Elles suffisent à DÉCIDER ; elles ne suffisent pas à SIGNER :
-   * un versement programmé porte six décisions dont trois se prennent en bas
-   * de l'écran — la date de fin, ce qu'on fait si un mois bloque, comment
-   * l'argent arrive — et au moment d'appuyer les trois premières sont sorties
-   * du champ de vision.
-   */
-  it("redit les six décisions avant de signer, sans en demander une septième", () => {
+  /* QUATRE PAGES, UN BOUTON CHACUNE ; le récapitulatif redit les décisions sans en demander une de plus. */
+  it("redit les décisions avant de signer, sans en demander de nouvelle", () => {
     const src = code(TSX);
-    expect(src, "le formulaire est redevenu d'un seul tenant").toMatch(/data-at=\{etape\}/);
-    const deb = src.indexOf('data-step="2"');
-    expect(deb, "le récapitulatif a disparu").toBeGreaterThan(0);
-    const recap = src.slice(deb, src.indexOf("<BarreDEtape", deb));
-    for (const dit of ["Vers quel fonds", "Chaque mois", "Jusqu'au", "Si un mois l'exécution est impossible", "Comment l'argent arrivera", "Premier versement le \\{d\\}"]) {
+    expect(src, "le récapitulatif a disparu").toMatch(/etape === 3 &&/);
+    const deb = src.indexOf("etape === 3 &&");
+    const recap = src.slice(deb, src.indexOf("etape === 4 && mise?.ok &&", deb));
+    for (const dit of ["Vers quel fonds", "Chaque mois", "Premier versement le \\{d\\}", "Si un mois le prélèvement est impossible", "Compte débité"]) {
       expect(recap, `le récapitulatif ne redit plus « ${dit} »`).toMatch(new RegExp(dit));
     }
-    /* IL NE DEMANDE RIEN DE NEUF : c'est sa valeur. Un écran de confirmation
-       qui pose une question de plus n'est pas une confirmation, c'est une
-       septième décision glissée au moment où l'on n'attend plus rien. */
-    expect(recap, "le récapitulatif pose une question de plus").not.toMatch(/<input|<textarea|<Select/);
+    expect(recap.match(/<input/g)?.length ?? 0, "seuls les champs cachés de l'envoi vivent au récapitulatif").toBe(0);
   });
 
-  /* LES CHAMPS SONT CACHÉS, PAS DÉMONTÉS : le formulaire part entier, et
-     « Corriger » ne perd rien de ce qu'on a tapé. */
-  it("cache les champs au lieu de les démonter", () => {
-    const css = fs.readFileSync(path.join(ROOT, "src/components/Standing.module.css"), "utf8");
-    expect(css, "les étapes ne se cachent plus par la feuille").toMatch(/\.form\[data-at="2"\] \[data-step="1"\] \{\s*\n?\s*display: none/);
-    expect(code(TSX), "le retour en arrière a disparu").toMatch(/onClick=\{\(\) => setEtape\(1\)\}/);
+  it("ne laisse passer ni un montant sous le minimum ni un compte incomplet", () => {
+    const src = code(TSX);
+    expect(src).toMatch(/const montantOk = verse > 0 && verse >= plancher;/);
+    expect(src).toMatch(/disabled=\{!montantOk\} onClick=\{\(\) => aller\(2\)\}/);
+    expect(src).toMatch(/disabled=\{!compteOk\} onClick=\{\(\) => aller\(3\)\}/);
   });
 
-  /* ON NE PASSE PAS AU RÉCAPITULATIF SUR UN FORMULAIRE INCOMPLET : sans
-     montant, il dirait « 0 FCFA sur douze mois », et un récapitulatif qui ment
-     est pire que pas de récapitulatif. */
-  it("ne laisse pas passer un montant sous le minimum", () => {
-    expect(code(TSX), "le passage au récapitulatif ne vérifie plus le montant").toMatch(/disabled=\{!\(verse > 0\) \|\| verse < plancher\}/);
+  /* UN BOUTON PAR PAGE : le code ne se demande qu'à la page 3, il ne se signe qu'à la page 4. */
+  it("n'a qu'un bouton principal par page", () => {
+    const src = code(TSX);
+    for (const label of ["Recevoir mon code", "Je signe ce mandat"]) expect(src.match(new RegExp(`t\\("${label}"\\)`, "g"))?.length, label).toBe(1);
+    expect(src).toMatch(/\{etape === 3 && \(\s*<button[^>]*form="parcours-mise"/);
+    expect(src).toMatch(/\{etape === 4 && \(\s*<button[^>]*form="parcours-signe"/);
   });
 
-  /* LE JOUR D'AUJOURD'HUI VIENT DU SERVEUR. « new Date() » pendant un rendu
-     donne une valeur au serveur et une autre au navigateur : c'est une
-     discordance d'hydratation la nuit du passage à minuit, et la maison s'est
-     déjà fait prendre là-dessus sur la fenêtre d'un arbitrage. */
+  /* LE JOUR D'AUJOURD'HUI VIENT DU SERVEUR : « new Date() » pendant un rendu donne une valeur au serveur et une autre au navigateur. */
   it("ne lit pas l'horloge pendant le rendu", () => {
     const src = code(TSX);
-    expect(src, "le formulaire lit l'horloge pendant son rendu").not.toMatch(/new Date\(\)/);
+    expect(src, "le parcours lit l'horloge pendant son rendu").not.toMatch(/new Date\(\)/);
     expect(src, "le jour d'aujourd'hui ne vient plus du serveur").toMatch(/aujourdhui/);
-    /* Le formulaire a sa page depuis le 15 novembre 2026 ; la fiche d'un fonds y renvoie. */
     for (const page of ["src/app/moi/epargne/nouvelle/page.tsx"]) {
-      expect(code(page), `${page} ne passe pas le jour au formulaire`).toMatch(/aujourdhui=\{/);
+      expect(code(page), `${page} ne passe pas le jour au parcours`).toMatch(/aujourdhui=\{/);
     }
   });
 });

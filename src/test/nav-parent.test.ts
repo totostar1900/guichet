@@ -67,8 +67,8 @@ describe("la barre du haut et les boutons « Retour » s'en servent", () => {
     expect(readFileSync("src/components/mobile/retourEtape.ts", "utf8")).toMatch(/router\.back\(\);\s*return;[\s\S]*router\.replace\(cible/);
   });
   it("l'étape 2 de l'épargne programmée est dans l'adresse : Android et la flèche reviennent à l'étape 1", () => {
-    const st = readFileSync("src/components/Standing.tsx", "utf8");
-    expect(st).toMatch(/sp\.get\("etape"\) === "2" && verse > 0 \? 2 : 1/);
-    expect(st).toMatch(/router\.push\(`\$\{chemin\}\?etape=2`, \{ scroll: false \}\)/);
+    const st = readFileSync("src/components/EpargneParcours.tsx", "utf8");
+    expect(st).toMatch(/const demande = Number\(sp\.get\("etape"\)\) \|\| 1;/);
+    expect(st).toMatch(/router\.push\(`\$\{chemin\}\?etape=\$\{n\}`, \{ scroll: false \}\)/);
   });
 });

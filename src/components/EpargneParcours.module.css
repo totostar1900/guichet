@@ -1,0 +1,203 @@
+/* Mettre une épargne en place : une page de décision, découpée en sections espacées (--sections-gap, décision du 15 novembre 2026). */
+.parcours {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sections-gap);
+}
+.etape {
+  margin: 0;
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.phrase {
+  margin: 0;
+  font-size: var(--t-3);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--titre-gap);
+}
+.section h2 {
+  margin: 0;
+  font-size: var(--t-3);
+  font-weight: 700;
+  color: var(--ink);
+}
+.aide {
+  font-size: var(--t-2);
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+.aide b {
+  color: var(--ink-2);
+}
+/* LA LISTE DE LA MAISON, MISE EN AVANT : la boîte du Select prend la tuile de la maison, plus haute, sa valeur en gras. */
+.tuileSelect button {
+  min-height: 60px;
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+  font-size: var(--t-4);
+  font-weight: 600;
+}
+.chiffre {
+  display: block;
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+}
+.chiffre input,
+.champ {
+  width: 100%;
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+.chiffre input {
+  font-size: var(--t-8);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.champ {
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+  font-size: var(--t-4);
+}
+.lecteur {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.cartes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tuiles-gap);
+}
+.carte,
+.carteOn {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-5);
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+}
+.carteOn {
+  border-color: var(--gold);
+}
+.carte b,
+.carteOn b {
+  display: block;
+  font-size: var(--t-3);
+}
+.carte small,
+.carteOn small {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+.rond {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border-radius: 50%;
+  border: 2px solid var(--ink-3);
+}
+.carteOn .rond {
+  border-color: var(--gold);
+  background: radial-gradient(var(--gold) 45%, transparent 50%);
+}
+.recap {
+  display: flex;
+  flex-direction: column;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+}
+.recap > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-6);
+  padding: var(--s-5) var(--s-6);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-2);
+}
+.recap > div:first-child {
+  border-top: 0;
+}
+.recap span {
+  color: var(--ink-3);
+}
+.recap b {
+  text-align: right;
+}
+.recap b small {
+  display: block;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.garanties {
+  margin: 0;
+  font-size: var(--t-2);
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 68ch;
+}
+.erreur {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--crit);
+}
+.demo {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.renvoi {
+  margin: 0;
+}
+.lien {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--t-2);
+  color: var(--gold-ink);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.vide {
+  margin: 0;
+  font-size: var(--t-3);
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 68ch;
+}

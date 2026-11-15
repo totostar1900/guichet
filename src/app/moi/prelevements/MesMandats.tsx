@@ -216,30 +216,42 @@ export function MesMandats({
                           ? t(canal.parMail ? "Le code part par e-mail, à {o}" : "Le code part par WhatsApp, au {o}", { o: canal.to })
                           : t("Aucun canal d'envoi n'est configuré : le code s'affichera à l'écran.")}
                     </p>
-                    <form action={envoiAct}>
-                      <input type="hidden" name="id" value={m.id} />
-                      <button className="btn primary" type="submit" disabled={envoyant || !dossier || injoignable}>
-                        {envoyant ? "…" : m.codeEnvoyeLe ? t("Renvoyer un code") : t("Recevoir mon code")}
-                      </button>
-                    </form>
-                    <Msg state={envoi} />
-                    {envoi?.ok && envoi.code && (
-                      <div className={styles.demo}>
-                        {t("Code de démonstration :")} <b className="mono">{envoi.code}</b>
-                      </div>
-                    )}
-                    <form action={signAct}>
-                      <input type="hidden" name="id" value={m.id} />
-                      <label className="field">
-                        {t("Code reçu")}
-                        <input name="code" inputMode="numeric" maxLength={6} placeholder={t("6 chiffres")} autoComplete="one-time-code" />
-                      </label>
-                      <BarreCollante>
-                        <button className={`btn primary ${barre.suivant}`} type="submit" disabled={signant}>
-                          {signant ? "…" : t("Je signe ce mandat")}
+                    {/* UN SEUL BOUTON PRINCIPAL PAR ÉTAT (15 novembre 2026) : tant que le code n'est pas parti, la page ne propose que de le recevoir ; une fois parti, elle ne propose que de signer, et renvoyer le code devient un geste discret. */}
+                    {!(m.codeEnvoyeLe || envoi?.ok) ? (
+                      <form action={envoiAct}>
+                        <input type="hidden" name="id" value={m.id} />
+                        <button className="btn primary" type="submit" disabled={envoyant || !dossier || injoignable}>
+                          {envoyant ? "…" : t("Recevoir mon code")}
                         </button>
-                      </BarreCollante>
-                    </form>
+                      </form>
+                    ) : (
+                      <>
+                        <Msg state={envoi} />
+                        {envoi?.ok && envoi.code && (
+                          <div className={styles.demo}>
+                            {t("Code de démonstration :")} <b className="mono">{envoi.code}</b>
+                          </div>
+                        )}
+                        <form action={signAct}>
+                          <input type="hidden" name="id" value={m.id} />
+                          <label className="field">
+                            {t("Code reçu")}
+                            <input name="code" inputMode="numeric" maxLength={6} placeholder={t("6 chiffres")} autoComplete="one-time-code" />
+                          </label>
+                          <BarreCollante>
+                            <button className={`btn primary ${barre.suivant}`} type="submit" disabled={signant}>
+                              {signant ? "…" : t("Je signe ce mandat")}
+                            </button>
+                          </BarreCollante>
+                        </form>
+                        <form action={envoiAct}>
+                          <input type="hidden" name="id" value={m.id} />
+                          <button className="btn sm ghost" type="submit" disabled={envoyant || !dossier || injoignable}>
+                            {envoyant ? "…" : t("Renvoyer un code")}
+                          </button>
+                        </form>
+                      </>
+                    )}
                     <Msg state={sign} />
                   </div>
                 )}

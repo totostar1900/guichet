@@ -65,11 +65,11 @@ describe("ce qui empêche une instruction", () => {
     expect(standingBlock({ ...fonds, fund: { ...fonds.fund!, distributed: false } }, { amount: 100_000, dayOfMonth: 5, startsOn: "2026-10-05" })).toContain("Ce fonds n'est pas ouvert à la souscription.");
   });
 
-  it("refuse un jour qui n'existe pas tous les mois", () => {
-    const bad = "Le jour du versement va du 1 au 28 : tous les mois ont ces jours-là.";
+  it("refuse un jour hors de 1 à 30 ; le 29 et le 30 passent (règle de février : le 1er mars)", () => {
+    const bad = "Le jour du versement va du 1 au 30.";
     expect(standingBlock(fonds, { amount: 100_000, dayOfMonth: 31, startsOn: "2026-10-05" })).toContain(bad);
     expect(standingBlock(fonds, { amount: 100_000, dayOfMonth: 0, startsOn: "2026-10-05" })).toContain(bad);
-    expect(standingBlock(fonds, { amount: 100_000, dayOfMonth: 28, startsOn: "2026-10-05" })).toEqual([]);
+    for (const j of [28, 29, 30]) expect(standingBlock(fonds, { amount: 100_000, dayOfMonth: j, startsOn: "2026-10-05" }), `le ${j}`).toEqual([]);
   });
 
   it("refuse un versement sous le minimum du fonds, et nomme le chiffre", () => {

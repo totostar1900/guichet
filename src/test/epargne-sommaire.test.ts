@@ -30,11 +30,9 @@ describe("la page de l'épargne programmée", () => {
     expect(brief).toMatch(/Retirer l'épargne ne révoque pas le mandat, et révoquer le mandat ne retire pas l'épargne/);
   });
 
-  it("le formulaire sait atterrir sur la liste, sauf quand un mandat reste à signer", () => {
+  it("le parcours atterrit sur la liste une fois le mandat signé", () => {
     expect(lire("src/app/moi/epargne/nouvelle/page.tsx")).toMatch(/apres="\/moi\/epargne"/);
-    const s = lire("src/components/Standing.tsx");
-    expect(s).toMatch(/if \(state\?\.ok && apres && !state\.versLeMandat\) router\.replace\(apres\);/);
-    expect(s).toMatch(/if \(state\?\.ok && !apres && window\.location\.search\.includes\("etape="\)\) router\.back\(\);/);
+    expect(lire("src/components/EpargneParcours.tsx")).toMatch(/if \(sign\?\.ok\) router\.replace\(apres\);/);
   });
 });
 

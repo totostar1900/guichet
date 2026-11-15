@@ -330,9 +330,8 @@ describe("un usage déjà couvert n'est plus proposé", () => {
     expect(a).toMatch(/m\.objet === "provision" && m\.state !== "revoque"/);
     expect(a).toContain('t("Déjà en place")');
   });
-  it("la création d'une épargne recule d'un cran, et la liste de ce qui est en place est dépliée", () => {
-    expect(readFileSync("src/components/Standing.tsx", "utf8")).toMatch(/if \(state\?\.ok && !apres && window\.location\.search\.includes\("etape="\)\) router\.back\(\);/);
-    /* La liste de ce qui est en place vit sur la page de l'épargne (15 novembre 2026), et une épargne posée y atterrit. */
+  it("le parcours de l'épargne atterrit sur la liste une fois le mandat signé, et la liste vit sur la page de l'épargne", () => {
+    expect(readFileSync("src/components/EpargneParcours.tsx", "utf8")).toMatch(/if \(sign\?\.ok\) router\.replace\(apres\);/);
     expect(readFileSync("src/app/moi/epargne/page.tsx", "utf8")).toMatch(/<StandingList/);
     expect(readFileSync("src/app/moi/epargne/nouvelle/page.tsx", "utf8")).toMatch(/apres="\/moi\/epargne"/);
   });

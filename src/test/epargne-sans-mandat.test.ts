@@ -92,10 +92,11 @@ describe("ce que le client lit", () => {
 });
 
 describe("la question posée à la signature de l'instruction", () => {
-  it("le formulaire demande comment l'argent arrivera", () => {
-    const form = lire("src/components/Standing.tsx");
-    expect(form).toMatch(/name="reglement" value="virement"/);
+  it("le parcours ne demande plus comment l'argent arrivera : par prélèvement seul (15 novembre 2026)", () => {
+    const form = lire("src/components/EpargneParcours.tsx");
+    expect(form).not.toMatch(/value="virement"/);
     expect(form).toMatch(/name="reglement" value="prelevement"/);
+    expect(lire("src/app/moi/standing-actions.ts")).toMatch(/reglement: z\.literal\("prelevement"\)\.default\("prelevement"\)/);
   });
 
   it("et « prélevez-moi » mène au mandat, l'instruction déjà choisie", async () => {
@@ -127,7 +128,7 @@ describe("la question posée à la signature de l'instruction", () => {
     expect(r.ok && r.message).toContain("reste à signer le mandat");
   });
 
-  it("et « je vire moi-même » dit ce qu'il faudra faire chaque mois", async () => {
+  it("et une épargne sans règlement écrit est un prélèvement : il reste à signer le mandat", async () => {
     vi.resetModules();
     vi.doMock("next/cache", () => FAUX_NEXT_CACHE);
     vi.doMock("@/lib/audit", () => ({ audit: async () => ({}) }));
@@ -150,8 +151,8 @@ describe("la question posée à la signature de l'instruction", () => {
     form.set("amount", "50 000");
     form.set("dayOfMonth", "5");
     const r = await createStandingAction(null, form);
-    expect(r.ok && r.versLeMandat).toBeUndefined();
-    expect(r.ok && r.message).toContain("virez");
+    expect(r.ok && r.versLeMandat).toBe("/moi/prelevements?instruction=st-9&de=epargne");
+    expect(r.ok && r.message).toContain("reste à signer le mandat");
   });
 });
 

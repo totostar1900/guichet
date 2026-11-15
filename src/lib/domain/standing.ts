@@ -22,9 +22,10 @@ import type { Offer } from "./types";
  * La destination est une ligne, jamais une catégorie. Elle est fixée à la
  * signature.
  *
- * Le jour va de 1 à 28. Tous les mois ont ces jours-là. Accepter le 31
- * obligerait quelqu'un à décider ce qu'on fait en février, et cette décision
- * n'appartient pas à la maison.
+ * Le jour va de 1 à 30 (décision du 15 novembre 2026). Le 29 et le 30 n'existent
+ * pas en février : la règle est écrite d'avance, ici, et elle ne se décide pas
+ * un mois donné. Quand le jour n'existe pas dans le mois, le versement tombe le
+ * 1er du mois suivant (« dateDuVersement »). Le 31 reste refusé.
  *
  * Ce qu'on fait quand l'exécution est impossible se décide à la signature, par
  * le client, et pas au moment où ça bloque. Un fonds suspendu, un minimum
@@ -84,7 +85,7 @@ export interface StandingOrder {
   minAmount: number;
   /** Comment l'épargne est payée, choisi à la création : un virement sur appel de fonds, ou un prélèvement sous mandat signé. Absent : virement (migration 0128). */
   reglement?: ReglementDeLEpargne;
-  /** 1 à 28. Sans objet pour un réinvestissement, que l'encaissement déclenche. */
+  /** 1 à 30 (le 29 et le 30 tombent le 1er mars quand février ne les a pas). Sans objet pour un réinvestissement, que l'encaissement déclenche. */
   dayOfMonth: number;
   startsOn: string;
   endsOn?: string;
@@ -152,6 +153,35 @@ export const STANDING_STATE_LABEL: Record<StandingState, string> = {
 const day = (iso: string) => iso.slice(0, 10);
 const month = (iso: string) => iso.slice(0, 7);
 
+/** Le dernier jour qu'on peut choisir pour un versement mensuel. */
+export const JOUR_MAX_VERSEMENT = 30;
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * LA DATE D'UN VERSEMENT DANS UN MOIS, ET LA RÈGLE DE FÉVRIER (décision du 15 novembre 2026).
+ *
+ * Le jour choisi existe presque toujours. Quand il n'existe pas (le 29 en février d'une année ordinaire, le 30 en février), le versement tombe le 1er du mois
+ * suivant : le 1er mars. Écrit une fois, ici, pour que le formulaire, la liste, le robot et le préavis disent la même date.
+ */
+export function dateDuVersement(annee: number, mois: number, jour: number): string {
+  const dernier = new Date(Date.UTC(annee, mois, 0)).getUTCDate();
+  if (jour <= dernier) return `${annee}-${pad2(mois)}-${pad2(jour)}`;
+  return mois === 12 ? `${annee + 1}-01-01` : `${annee}-${pad2(mois + 1)}-01`;
+}
+
+/** Les dates où un versement tombe autour d'un jour : le mois d'avant (un débordement atterrit le 1er), le mois même et les deux suivants. */
+function datesAutour(jour: number, d: string): string[] {
+  const y = Number(d.slice(0, 4));
+  const m = Number(d.slice(5, 7));
+  const out: string[] = [];
+  for (let k = -1; k <= 2; k++) {
+    const mm = m + k;
+    const yy = y + Math.floor((mm - 1) / 12);
+    out.push(dateDuVersement(yy, ((mm - 1 + 12) % 12) + 1, jour));
+  }
+  return out.sort();
+}
+
 /**
  * Le minimum qui s'applique à un versement récurrent.
  *
@@ -192,8 +222,8 @@ export function standingBlock(o: Offer | undefined, i: { amount: number; dayOfMo
     if (!surEncaissements && min > 0 && i.amount < min) out.push(`Le versement minimum sur ce fonds est de ${min.toLocaleString("fr-FR")} FCFA.`);
   }
   if (!surEncaissements && !(i.amount > 0)) out.push("Le montant du versement manque.");
-  if (!surEncaissements && (!Number.isInteger(i.dayOfMonth) || i.dayOfMonth < 1 || i.dayOfMonth > 28))
-    out.push("Le jour du versement va du 1 au 28 : tous les mois ont ces jours-là.");
+  if (!surEncaissements && (!Number.isInteger(i.dayOfMonth) || i.dayOfMonth < 1 || i.dayOfMonth > JOUR_MAX_VERSEMENT))
+    out.push(`Le jour du versement va du 1 au ${JOUR_MAX_VERSEMENT}.`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(i.startsOn)) out.push("La date de départ manque.");
   if (i.endsOn && i.endsOn < i.startsOn) out.push("La fin ne peut pas précéder le départ.");
   return out;
@@ -212,8 +242,14 @@ export function isDue(s: StandingOrder, today: string): boolean {
   const d = day(today);
   if (d < day(s.startsOn)) return false;
   if (s.endsOn && d > day(s.endsOn)) return false;
-  if (s.lastRunOn && month(s.lastRunOn) >= month(d)) return false;
-  return Number(d.slice(8, 10)) >= s.dayOfMonth;
+  /* LA DERNIÈRE DATE PRÉVUE DANS LE MOIS EN COURS : celle du mois lui-même, ou un débordement de février tombé le 1er. Le rattrapage reste dans le mois civil,
+     et un versement du 30 mars n'est pas empêché par celui du 1er mars qui rattrapait février. */
+  const prevue = datesAutour(s.dayOfMonth, d)
+    .filter((x) => month(x) === month(d) && x <= d)
+    .pop();
+  if (!prevue) return false;
+  if (s.lastRunOn && day(s.lastRunOn) >= prevue) return false;
+  return true;
 }
 
 /**
@@ -239,22 +275,15 @@ export function isDue(s: StandingOrder, today: string): boolean {
  */
 export function premierVersement(dayOfMonth: number, today: string): string {
   const d = day(today);
-  const [y, m] = [Number(d.slice(0, 4)), Number(d.slice(5, 7))];
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const at = (yy: number, mm: number) => `${yy}-${pad(mm)}-${pad(dayOfMonth)}`;
-  const thisMonth = at(y, m);
-  return thisMonth >= d ? thisMonth : m === 12 ? at(y + 1, 1) : at(y, m + 1);
+  return datesAutour(dayOfMonth, d).find((x) => x >= d) ?? dateDuVersement(Number(d.slice(0, 4)) + 1, 1, dayOfMonth);
 }
 
 export function nextRun(s: StandingOrder, today: string): string | null {
   if (s.state !== "active") return null;
   const d = day(today > s.startsOn ? today : s.startsOn);
-  const [y, m] = [Number(d.slice(0, 4)), Number(d.slice(5, 7))];
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const at = (yy: number, mm: number) => `${yy}-${pad(mm)}-${pad(s.dayOfMonth)}`;
-  // Ce mois-ci s'il reste à venir et qu'aucun versement n'y a déjà eu lieu ; sinon le suivant.
-  const done = s.lastRunOn && month(s.lastRunOn) >= `${y}-${pad(m)}`;
-  const candidate = done ? (m === 12 ? at(y + 1, 1) : at(y, m + 1)) : premierVersement(s.dayOfMonth, d);
+  // La première date prévue qui reste à venir et que le robot n'a pas déjà traitée.
+  const candidate = datesAutour(s.dayOfMonth, d).find((x) => x >= d && !(s.lastRunOn && day(s.lastRunOn) >= x));
+  if (!candidate) return null;
   if (s.endsOn && candidate > day(s.endsOn)) return null;
   return candidate;
 }

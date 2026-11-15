@@ -1,5 +1,5 @@
 /**
- * CE QUE LES 130 MIGRATIONS DU DÉPÔT DÉCLARENT.
+ * CE QUE LES 131 MIGRATIONS DU DÉPÔT DÉCLARENT.
  *
  * ÉCRIT PAR UN SCRIPT, JAMAIS À LA MAIN : `npm run schema:attendu`. Un cliquet
  * (src/test/schema-attendu.test.ts) refuse qu'il s'écarte des migrations, parce

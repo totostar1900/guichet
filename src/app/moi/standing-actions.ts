@@ -8,9 +8,9 @@ import { audit } from "@/lib/audit";
 import { noter } from "@/lib/journal";
 import { garde } from "@/lib/garde";
 import { fmt, localIso, parseAmount } from "@/lib/format";
-import { standingBlock } from "@/lib/domain/standing";
+import { JOUR_MAX_VERSEMENT, standingBlock } from "@/lib/domain/standing";
 
-export type StandingResult = { ok: true; message: string; versLeMandat?: string } | { ok: false; error: string };
+export type StandingResult = { ok: true; message: string; versLeMandat?: string; standingId?: string } | { ok: false; error: string };
 
 /* Les montants arrivent GROUPÉS, « 10 000 » et non « 10000 » : ils se lisent
    comme ceux de l'intention, en chaîne puis par parseAmount, qui retire tout ce
@@ -19,16 +19,12 @@ export type StandingResult = { ok: true; message: string; versLeMandat?: string 
 const schema = z.object({
   offerId: z.string().min(1),
   amount: z.string().min(1),
-  dayOfMonth: z.coerce.number().int().min(1).max(28),
+  dayOfMonth: z.coerce.number().int().min(1).max(JOUR_MAX_VERSEMENT),
   endsOn: z.string().optional(),
   onBlocked: z.enum(["passer", "arreter"]).default("passer"),
-  /* COMMENT L'ARGENT ARRIVERA, demandé à la signature et non six mois plus
-     tard. On programmait un versement mensuel sans jamais poser la question :
-     le client repartait avec « versement programmé », et découvrait au premier
-     mois qu'il devait virer lui-même. La convention interdit d'imposer un
-     prélèvement (article 3), donc les deux chemins restent ouverts ; ce qui
-     change, c'est qu'il en choisit un. */
-  reglement: z.enum(["virement", "prelevement"]).default("virement"),
+  /* PAR PRÉLÈVEMENT SEUL (décision du 15 novembre 2026) : une nouvelle épargne ne se paie plus par virement. Les épargnes déjà en place par virement continuent
+     de tourner ; le champ garde donc sa valeur « virement » dans la base et dans le domaine, et ne s'écrit plus ici. */
+  reglement: z.literal("prelevement").default("prelevement"),
 });
 
 /**
@@ -94,7 +90,7 @@ export async function createStandingAction(_p: StandingResult | null, form: Form
      laisser le client la retrouver dans une liste. */
   const versLeMandat = p.data.reglement === "prelevement" ? `/moi/prelevements?instruction=${s.id}&de=epargne` : undefined;
   const comment = p.data.reglement === "prelevement" ? "Il reste à signer le mandat de prélèvement : sans lui, rien ne sera prélevé." : `Chaque mois, virez ${fmt(s.amount)} FCFA en citant la référence de l'appel de fonds que vous recevrez.`;
-  return { ok: true, message: `Versement programmé : ${fmt(s.amount)} FCFA le ${s.dayOfMonth} de chaque mois. Référence ${s.ref}. ${comment}`, versLeMandat };
+  return { ok: true, message: `Versement programmé : ${fmt(s.amount)} FCFA le ${s.dayOfMonth} de chaque mois. Référence ${s.ref}. ${comment}`, versLeMandat, standingId: s.id };
 }
 
 const reinvestSchema = z.object({
