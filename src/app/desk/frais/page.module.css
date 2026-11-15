@@ -9,12 +9,12 @@
 }
 .head h1 {
   margin: 0 0 var(--s-3);
-  font-size: 1.35rem;
+  font-size: var(--t-7);
 }
 .head p {
   margin: 0;
   max-width: 72ch;
-  font-size: 0.82rem;
+  font-size: var(--t-3);
   line-height: 1.55;
 }
 .large {
@@ -25,7 +25,7 @@
   width: 100%;
   min-width: 560px;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: var(--t-3);
 }
 .tableau th,
 .tableau td {
@@ -37,7 +37,7 @@
 .tableau th {
   color: var(--ink-3);
   font-weight: 600;
-  font-size: 0.72rem;
+  font-size: var(--t-1);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -66,7 +66,7 @@
   min-width: 0;
 }
 .champ > span {
-  font-size: 0.8rem;
+  font-size: var(--t-3);
   font-weight: 600;
 }
 .champ input {
@@ -74,7 +74,7 @@
 }
 .champ small {
   color: var(--ink-3);
-  font-size: 0.74rem;
+  font-size: var(--t-2);
   line-height: 1.45;
 }
 .pied {
@@ -85,9 +85,9 @@
 }
 .ok {
   color: var(--good);
-  font-size: 0.82rem;
+  font-size: var(--t-3);
 }
 .ko {
   color: var(--crit);
-  font-size: 0.82rem;
+  font-size: var(--t-3);
 }

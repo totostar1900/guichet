@@ -20,7 +20,7 @@ import { Presentation } from "@/components/mobile/Presentation";
 import { isDesk } from "@/lib/auth/types";
 import type { ClientPrefs } from "@/lib/domain/types";
 import { RegistryProvider } from "@/components/RegistryProvider";
-import { getFraisClient } from "@/lib/frais-registre";
+import { getFraisClient, getFraisHistorique } from "@/lib/frais-registre";
 import { loadIssuerRegistry, loadRegistry } from "@/lib/reference";
 import { issuersForClient } from "@/data/issuer-registry";
 import { lessonsForClient } from "@/data/lessons";
@@ -184,7 +184,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {deskUi ? <DeskThemeKeeper saved={account?.prefs?.deskTheme} /> : <PaletteKeeper saved={account?.prefs} />}
         <BarProbe />
         <ColonneStore>
-        <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={lessonsForClient(registry.lessons)} issuers={issuersForClient(issuers)} frais={getFraisClient()}>
+        <RegistryProvider types={registry.types} bondTerms={[...registry.bondTerms.values()]} glossary={registry.glossary} lessons={lessonsForClient(registry.lessons)} issuers={issuersForClient(issuers)} frais={getFraisClient()} historiqueDeFrais={getFraisHistorique()}>
         <TermSheetHost />
         <header className={styles.top}>
           <div className={styles.topIn}>

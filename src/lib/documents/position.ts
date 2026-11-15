@@ -3,7 +3,7 @@ import { addBusinessDays, bondCalc, btaCalc, type CashFlow } from "@/lib/finance
 import { localIso } from "@/lib/format";
 import { marketBondCalc } from "@/lib/domain/status";
 import { fraisDeLOrdre } from "@/lib/domain/frais";
-import { getFraisClient } from "@/lib/frais-registre";
+import { fraisClientAu } from "@/lib/frais-registre";
 import { fraisAjoutes, souscriptionNette } from "@/lib/domain/frais-fonds";
 
 /**
@@ -39,7 +39,8 @@ function frais(offer: Offer, intent: Intent, base: number, sell = false): { comm
     const famille = offer.kind === "MARCHE" ? "titres" : offer.kind === "OTA" || offer.kind === "APE" || offer.kind === "BTA" || offer.kind === "ACTIONS" ? "adjudication" : undefined;
     if (famille) {
       const operation = famille === "titres" ? (sell ? "vente" : "achat") : "souscription";
-      const f = fraisDeLOrdre(getFraisClient(), famille, operation, base, localIso(new Date(intent.createdAt)));
+      const jour = localIso(new Date(intent.createdAt));
+      const f = fraisDeLOrdre(fraisClientAu(jour), famille, operation, base, jour);
       if (f.montant > 0) return { commission: f.montant, total: sell ? -(base - f.montant) : base + f.montant };
     }
   }

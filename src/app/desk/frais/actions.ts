@@ -6,7 +6,7 @@ import { audit } from "@/lib/audit";
 import { requireResponsable } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { CLES_DE_REGLE, LIBELLE_DE_REGLE, REGLES_LUES_PAR_L_ORDRE, departRefuse, exigeUnPreavis, type BaremeDeFrais, type CleDeRegle, type RegleDeFrais } from "@/lib/domain/frais";
-import { FRAIS_POLICY_KEY, loadBaremeDeFrais } from "@/lib/policy";
+import { FRAIS_HISTORIQUE_KEY, FRAIS_POLICY_KEY, loadBaremeDeFrais, loadHistoriqueDeFrais } from "@/lib/policy";
 import { REF } from "@/lib/reference";
 
 export type FraisResult = { ok: true; message: string } | { ok: false; error: string };
@@ -74,6 +74,11 @@ export async function arreterRegle(_p: FraisResult | null, form: FormData): Prom
 
   const apres: BaremeDeFrais = { ...avant, [cle]: prochaine };
   const r = repo();
+  /* LE PASSÉ NE SE RÉÉCRIT PAS : l'ancienne règle est rangée avec le jour jusqu'auquel elle valait, et chaque ordre se calcule avec la règle de sa date. */
+  if (JSON.stringify(ancienne) !== JSON.stringify(prochaine)) {
+    const historique = [...(await loadHistoriqueDeFrais()), { cle, jusquAu: aujourdHui, regle: ancienne }];
+    await r.upsertReference(REF.policy, FRAIS_HISTORIQUE_KEY, historique, me.name);
+  }
   await r.upsertReference(REF.policy, FRAIS_POLICY_KEY, apres, me.name);
   await audit("policy.frais", "reference", `${REF.policy}/${FRAIS_POLICY_KEY}`, { before: ancienne, after: prochaine, reason: `règle « ${LIBELLE_DE_REGLE[cle]} »` });
   revalidatePath("/desk/frais");

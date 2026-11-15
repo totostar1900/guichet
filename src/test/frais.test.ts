@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { BAREME_DE_FRAIS_FERME, REGLES_LUES_PAR_L_ORDRE, REGLE_FERMEE, baremePourLeClient, baremeDeFraisLu, departRefuse, exigeUnPreavis, fraisDeLOrdre, fraisDuClient, fraisLusParLeClient, premierDepartPossible, recetteDeTiers, retrocessionDuMois, type BaremeDeFrais } from "@/lib/domain/frais";
+import { suiviDesFrais, type OrdreExecute } from "@/lib/domain/frais-suivi";
+import { BAREME_DE_FRAIS_FERME, REGLES_LUES_PAR_L_ORDRE, baremeALaDate, historiqueLu, historiquePourLeClient, regleALaDate, type HistoriqueDeFrais, REGLE_FERMEE, baremePourLeClient, baremeDeFraisLu, departRefuse, exigeUnPreavis, fraisDeLOrdre, fraisDuClient, fraisLusParLeClient, premierDepartPossible, recetteDeTiers, retrocessionDuMois, type BaremeDeFrais } from "@/lib/domain/frais";
 
 import type { Intent, Offer } from "@/lib/domain/types";
 import { positionFor } from "@/lib/documents/position";
@@ -223,8 +224,8 @@ describe("le calcul d'un ordre lit le barème (14 novembre 2026)", () => {
 
   it("loadRegistry installe le barème, fermé sur une panne de lecture", () => {
     const r = readFileSync("src/lib/reference.ts", "utf8");
-    expect(r).toMatch(/setFraisClient\(frais\)/);
-    expect(r).toMatch(/loadFraisClient[\s\S]*?catch \{\s*return BAREME_DE_FRAIS_FERME;/);
+    expect(r).toMatch(/setFraisClient\(frais\.bareme, frais\.historique\)/);
+    expect(r).toMatch(/loadFraisClient[\s\S]*?catch \{\s*return \{ bareme: BAREME_DE_FRAIS_FERME, historique: \[\] \};/);
   });
 
   it("l'ordre signé, le plafond et les avis passent par la même fonction", () => {
@@ -349,6 +350,102 @@ describe("une seule ligne de frais totaux, sans destination ni décomposition", 
 
   it("le navigateur reçoit le même barème que le serveur (la part client seule)", () => {
     expect(lire("src/app/layout.tsx")).toMatch(/frais=\{getFraisClient\(\)\}/);
-    expect(lire("src/components/RegistryProvider.tsx")).toMatch(/setFraisClient\(frais\)/);
+    expect(lire("src/components/RegistryProvider.tsx")).toMatch(/setFraisClient\(frais, historiqueDeFrais\)/);
+  });
+});
+
+describe("le passé ne se réécrit pas : chaque ordre se calcule avec la règle de sa date (14 novembre 2026)", () => {
+  const ancienne = ouverte({ clientPct: 0.5, effetLe: "2027-01-10" });
+  const nouvelle = ouverte({ clientPct: 1, effetLe: "2027-03-15", tiersPct: 0.2 });
+  const h: HistoriqueDeFrais = [{ cle: "titres.achat", jusquAu: "2027-02-10", regle: ancienne }];
+  const courant = { ...BAREME_DE_FRAIS_FERME, "titres.achat": nouvelle };
+
+  it("avant le changement : l'ancienne règle ; après : la courante", () => {
+    expect(regleALaDate(courant, h, "titres.achat", "2027-02-09")).toBe(ancienne);
+    expect(regleALaDate(courant, h, "titres.achat", "2027-02-10")).toBe(nouvelle);
+    expect(regleALaDate(courant, [], "titres.achat", "2020-01-01")).toBe(nouvelle);
+  });
+
+  it("deux changements : chaque période garde sa règle", () => {
+    const milieu = ouverte({ clientPct: 0.7, effetLe: "2027-02-20" });
+    const deux: HistoriqueDeFrais = [...h, { cle: "titres.achat", jusquAu: "2027-03-01", regle: milieu }];
+    expect(regleALaDate(courant, deux, "titres.achat", "2027-02-01").clientPct).toBe(0.5);
+    expect(regleALaDate(courant, deux, "titres.achat", "2027-02-25").clientPct).toBe(0.7);
+    expect(regleALaDate(courant, deux, "titres.achat", "2027-03-20").clientPct).toBe(1);
+  });
+
+  it("le barème d'un jour recompose toutes les règles", () => {
+    expect(baremeALaDate(courant, h, "2027-02-01")["titres.achat"]).toBe(ancienne);
+    expect(baremeALaDate(courant, h, "2027-03-20")["titres.achat"]).toBe(nouvelle);
+  });
+
+  it("le calcul d'un ordre prend la règle de sa date, même après un changement de taux", () => {
+    setFraisClient(baremePourLeClient(courant), historiquePourLeClient(h));
+    expect(positionFor(ordre("achat", { createdAt: "2027-02-01T10:00:00" }), offre()).commission).toBe(500);
+    expect(positionFor(ordre("achat", { createdAt: "2027-03-20T10:00:00" }), offre()).commission).toBe(1_000);
+    setFraisClient(BAREME_DE_FRAIS_FERME);
+  });
+
+  it("l'historique envoyé au navigateur ne porte rien de ce que la maison reçoit de tiers", () => {
+    const [v] = historiquePourLeClient([{ cle: "titres.achat", jusquAu: "2027-02-10", regle: ouverte({ clientPct: 1, effetLe: "2027-01-01", tiersPct: 2, tiersMax: 9, tiersEncoursPct: 1 }) }]);
+    expect(v.regle.tiersPct + v.regle.tiersMax + v.regle.tiersEncoursPct).toBe(0);
+    expect(v.regle.clientPct).toBe(1);
+  });
+
+  it("un historique mal formé se lit sans casser", () => {
+    expect(historiqueLu(undefined)).toEqual([]);
+    expect(historiqueLu([{ cle: "nimporte", jusquAu: "2027-01-01" }, { cle: "titres.achat" }, { cle: "titres.vente", jusquAu: "2027-01-01", regle: { clientPct: 1 } }])).toHaveLength(1);
+  });
+
+  it("le desk range l'ancienne règle quand elle change, et seulement alors", () => {
+    const a = lire("src/app/desk/frais/actions.ts");
+    expect(a).toMatch(/JSON\.stringify\(ancienne\) !== JSON\.stringify\(prochaine\)/);
+    expect(a).toMatch(/jusquAu: aujourdHui, regle: ancienne/);
+  });
+});
+
+describe("le suivi des frais : trois chiffres et un tableau, calculés avec la règle de la date (14 novembre 2026)", () => {
+  const regleTitres = ouverte({ clientPct: 1, effetLe: "2027-01-01", tiersPct: 0.3 });
+  const regleFonds = ouverte({ clientPct: 2, effetLe: "2027-01-01", tiersPartDesDroitsPct: 50, tiersPct: 0.1 });
+  const bar: BaremeDeFrais = { ...BAREME_DE_FRAIS_FERME, "titres.achat": regleTitres, "fonds.souscription": regleFonds };
+  const o = (extra: Partial<OrdreExecute>): OrdreExecute => ({ id: "x", ref: "R", jour: "2027-03-01", famille: "titres", operation: "achat", base: 1_000_000, droitsDuFonds: 0, fraisDeLaLigne: 0, regle: false, ...extra });
+
+  it("à encaisser : les frais du client sur les ordres non réglés ; encaissés : sur les réglés", () => {
+    const s = suiviDesFrais([o({ id: "a" }), o({ id: "b", regle: true, base: 500_000 })], bar, []);
+    expect(s.aEncaisser).toBe(10_000);
+    expect(s.encaisses).toBe(5_000);
+  });
+
+  it("à recevoir de tiers : le taux sur le montant plus la part des droits du fonds, jamais le frais du client", () => {
+    const s = suiviDesFrais([o({ famille: "fonds", operation: "souscription", base: 1_000_000, droitsDuFonds: 10_000 })], bar, []);
+    expect(s.aRecevoirDeTiers).toBe(1_000 + 5_000);
+    expect(s.aEncaisser).toBe(20_000);
+  });
+
+  it("une règle changée plus tard ne bouge pas le mois d'avant", () => {
+    const h: HistoriqueDeFrais = [{ cle: "titres.achat", jusquAu: "2027-04-01", regle: ouverte({ clientPct: 0.5, effetLe: "2027-01-01" }) }];
+    const nouveau = { ...bar, "titres.achat": ouverte({ clientPct: 3, effetLe: "2027-05-01" }) };
+    expect(suiviDesFrais([o({ jour: "2027-03-01" })], nouveau, h).aEncaisser).toBe(5_000);
+    expect(suiviDesFrais([o({ jour: "2027-06-01" })], nouveau, h).aEncaisser).toBe(30_000);
+  });
+
+  it("le taux propre à la ligne remplace la règle ; un ordre avant la date de départ ne doit rien", () => {
+    expect(suiviDesFrais([o({ fraisDeLaLigne: 12_345.4 })], bar, []).aEncaisser).toBe(12_345);
+    expect(suiviDesFrais([o({ jour: "2026-12-31" })], bar, []).aEncaisser).toBe(0);
+  });
+
+  it("le tableau garde une ligne par règle, même vide : une case absente se voit", () => {
+    const s = suiviDesFrais([o({})], bar, []);
+    expect(s.parRegle.map((l) => l.cle)).toEqual(["fonds.souscription", "fonds.rachat", "titres.achat", "titres.vente", "adjudication.souscription"]);
+    expect(s.parRegle.find((l) => l.cle === "fonds.rachat")!.ordres).toBe(0);
+    expect(s.parRegle.find((l) => l.cle === "titres.achat")!.ordres).toBe(1);
+  });
+
+  it("la page lit les ordres exécutés et ne s'ouvre qu'au desk, avec le registre chargé", () => {
+    const p = lire("src/app/desk/frais/suivi/page.tsx");
+    expect(p).toMatch(/requireDesk\("\/desk\/frais\/suivi"\)/);
+    expect(p).toMatch(/await loadRegistry\(\)/);
+    expect(p).toMatch(/i\.state === "servie" \|\| i\.state === "reglee"/);
+    expect(p).toMatch(/suiviDesFrais\(ordres, bareme, historique\)/);
   });
 });

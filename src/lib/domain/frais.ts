@@ -205,3 +205,48 @@ export function exigeUnPreavis(avant: RegleDeFrais, apres: RegleDeFrais): boolea
   if (avant.clientMax > 0 && (apres.clientMax === 0 || apres.clientMax > avant.clientMax)) return true;
   return avant.clientPct <= 0;
 }
+
+/**
+ * L'HISTORIQUE DES RÈGLES (14 novembre 2026) : une règle qui change ne doit pas réécrire le passé.
+ *
+ * Chaque fois que la direction arrête une règle, l'ancienne est rangée ici avec le jour jusqu'auquel elle valait (exclu). Un ordre
+ * se calcule avec la règle de SA date : un avis régénéré, ou le suivi du mois dernier, redit ce qu'il disait.
+ */
+export interface VersionDeRegle {
+  cle: CleDeRegle;
+  /** La règle valait pour les dates strictement antérieures à ce jour. */
+  jusquAu: string;
+  regle: RegleDeFrais;
+}
+export type HistoriqueDeFrais = VersionDeRegle[];
+
+export const FRAIS_HISTORIQUE_KEY = "bareme-frais-historique";
+
+/** La règle qui valait ce jour-là : la plus ancienne version dont le jour de fin est postérieur, sinon la règle courante. */
+export function regleALaDate(b: BaremeDeFrais, h: HistoriqueDeFrais, cle: CleDeRegle, jour: string): RegleDeFrais {
+  const anterieure = h.filter((v) => v.cle === cle && jour < v.jusquAu).sort((x, y) => x.jusquAu.localeCompare(y.jusquAu))[0];
+  return anterieure ? anterieure.regle : b[cle];
+}
+
+/** Le barème tel qu'il était un jour donné. */
+export function baremeALaDate(b: BaremeDeFrais, h: HistoriqueDeFrais, jour: string): BaremeDeFrais {
+  if (h.length === 0) return b;
+  const out = { ...b };
+  for (const cle of CLES_DE_REGLE) out[cle] = regleALaDate(b, h, cle, jour);
+  return out;
+}
+
+/** L'historique réduit à ce que le client porte : sûr à envoyer au navigateur. */
+export function historiquePourLeClient(h: HistoriqueDeFrais): HistoriqueDeFrais {
+  return h.map((v) => ({ cle: v.cle, jusquAu: v.jusquAu, regle: baremePourLeClient({ ...BAREME_DE_FRAIS_FERME, [v.cle]: v.regle })[v.cle] }));
+}
+
+/** Lit l'historique stocké sans faire confiance à sa forme. */
+export function historiqueLu(lu: unknown): HistoriqueDeFrais {
+  if (!Array.isArray(lu)) return [];
+  const out: HistoriqueDeFrais = [];
+  for (const v of lu as Partial<VersionDeRegle>[]) {
+    if (v && typeof v.jusquAu === "string" && (CLES_DE_REGLE as readonly string[]).includes(v.cle as string)) out.push({ cle: v.cle as CleDeRegle, jusquAu: v.jusquAu, regle: { ...REGLE_FERMEE, ...(v.regle ?? {}) } });
+  }
+  return out;
+}

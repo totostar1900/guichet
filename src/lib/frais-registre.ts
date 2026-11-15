@@ -1,4 +1,4 @@
-import { BAREME_DE_FRAIS_FERME, type BaremeDeFrais } from "@/lib/domain/frais";
+import { BAREME_DE_FRAIS_FERME, baremeALaDate, type BaremeDeFrais, type HistoriqueDeFrais } from "@/lib/domain/frais";
 
 /**
  * LE BARÈME DES FRAIS, LU DE FAÇON SYNCHRONE PAR LE CALCUL D'UN ORDRE.
@@ -8,8 +8,14 @@ import { BAREME_DE_FRAIS_FERME, type BaremeDeFrais } from "@/lib/domain/frais";
  * il n'invente rien. Il ne porte JAMAIS ce que la maison reçoit de tiers (voir `baremePourLeClient`).
  */
 let FRAIS: BaremeDeFrais = BAREME_DE_FRAIS_FERME;
+let HISTORIQUE: HistoriqueDeFrais = [];
 
 export const getFraisClient = (): BaremeDeFrais => FRAIS;
-export function setFraisClient(b: BaremeDeFrais): void {
+export const getFraisHistorique = (): HistoriqueDeFrais => HISTORIQUE;
+export function setFraisClient(b: BaremeDeFrais, historique: HistoriqueDeFrais = []): void {
   FRAIS = b;
+  HISTORIQUE = historique;
 }
+
+/** Le barème tel qu'il était le jour d'un ordre : un ordre se calcule avec la règle de sa date, jamais avec celle d'aujourd'hui. */
+export const fraisClientAu = (jour: string): BaremeDeFrais => baremeALaDate(FRAIS, HISTORIQUE, jour);

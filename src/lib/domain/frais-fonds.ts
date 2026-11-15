@@ -1,5 +1,5 @@
 import { enVigueur, fraisDuClient } from "@/lib/domain/frais";
-import { getFraisClient } from "@/lib/frais-registre";
+import { fraisClientAu } from "@/lib/frais-registre";
 
 /**
  * LES FRAIS D'UN FONDS, TOTAUX ET SANS DÉCOMPOSITION (14 novembre 2026, règle de la maison).
@@ -15,7 +15,7 @@ const aujourdHui = (): string => new Date().toISOString().slice(0, 10);
 
 /** Ce que la maison ajoute sur un montant de fonds, en francs, plancher et plafond compris ; zéro hors règle en vigueur. */
 export const fraisAjoutes = (operation: "souscription" | "rachat", base: number, jour: string = aujourdHui()): number =>
-  fraisDuClient(getFraisClient()[operation === "souscription" ? "fonds.souscription" : "fonds.rachat"], base, jour);
+  fraisDuClient(fraisClientAu(jour)[operation === "souscription" ? "fonds.souscription" : "fonds.rachat"], base, jour);
 
 /**
  * Pour un montant versé : ce qui est investi, et les frais totaux.
@@ -40,7 +40,7 @@ export function rachatNet(f: { exitFeePct: number }, brut: number, jour: string 
 
 /** Le taux total affiché sur une carte ou une fiche : les droits du fonds plus le taux de la règle en vigueur. Les bornes ne se lisent que sur un montant. */
 export function pctTotal(f: { entryFeePct: number; exitFeePct: number }, operation: "souscription" | "rachat", jour: string = aujourdHui()): number {
-  const regle = getFraisClient()[operation === "souscription" ? "fonds.souscription" : "fonds.rachat"];
+  const regle = fraisClientAu(jour)[operation === "souscription" ? "fonds.souscription" : "fonds.rachat"];
   const base = operation === "souscription" ? f.entryFeePct : f.exitFeePct;
   return enVigueur(regle, jour) ? base + regle.clientPct : base;
 }

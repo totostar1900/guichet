@@ -7,7 +7,7 @@ import { CROSS_CLOSED, type CrossPolicy } from "@/lib/domain/crossing";
 import { PREAVIS_DEFAUT, type StandingPolicy } from "@/lib/domain/preavis";
 import { BAREME_FERME, type BaremeGarde } from "@/lib/domain/garde";
 import { TARIFS_FERMES, type Tarifs } from "@/lib/domain/tarifs";
-import { BAREME_DE_FRAIS_FERME, FRAIS_POLICY_KEY, baremeDeFraisLu, type BaremeDeFrais } from "@/lib/domain/frais";
+import { BAREME_DE_FRAIS_FERME, FRAIS_HISTORIQUE_KEY, FRAIS_POLICY_KEY, baremeDeFraisLu, historiqueLu, type BaremeDeFrais, type HistoriqueDeFrais } from "@/lib/domain/frais";
 import { SOUFFRANCE_DEFAUT, SOUFFRANCE_KEY, type DelaiDeSouffrance } from "@/lib/domain/souffrance";
 import { RELANCE_DEFAUT, RELANCE_KEY, type PolitiqueDeRelance } from "@/lib/domain/relance";
 import { REGLEMENT_DEFAUT, REGLEMENT_KEY, type CoordonneesDeReglement } from "@/lib/domain/reglement";
@@ -290,4 +290,14 @@ export const loadTauxBancaire = cache(async (): Promise<TauxBancaire | undefined
   }
 });
 
-export { FRAIS_POLICY_KEY };
+/** L'historique complet des règles (tiers compris), pour le desk : le suivi recalcule chaque ordre avec la règle de sa date. */
+export const loadHistoriqueDeFrais = cache(async (): Promise<HistoriqueDeFrais> => {
+  try {
+    const rows = await repo().listReference(REF.policy);
+    return historiqueLu(rows.find((r) => r.key === FRAIS_HISTORIQUE_KEY)?.data);
+  } catch {
+    return [];
+  }
+});
+
+export { FRAIS_POLICY_KEY, FRAIS_HISTORIQUE_KEY };
