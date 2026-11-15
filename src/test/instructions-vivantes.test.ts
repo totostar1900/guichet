@@ -140,112 +140,40 @@ async function uneInstruction(userId: string) {
   return { r, s, fonds };
 }
 
-describe("modifier, c'est remplacer", () => {
+describe("retirer une instruction", () => {
   beforeEach(() => {
     vi.resetModules();
   });
 
-  it("l'ancienne garde ses termes, la nouvelle dit laquelle elle remplace", async () => {
+  it("retire une instruction active, et le client n'en voit plus que ce qui court", async () => {
     const u = sien();
     const { r, s } = await uneInstruction(u);
-    const { modifierStandingAction } = await import("@/app/moi/modifier-actions");
-
-    const res = await modifierStandingAction(null, champs({ id: s.id, amount: "400 000", dayOfMonth: "12" }));
+    const { stopStandingAction } = await import("@/app/moi/standing-actions");
+    const res = await stopStandingAction(null, champs({ id: s.id }));
     expect(res.ok).toBe(true);
-
-    const toutes = await r.listStandingOrders(u);
-    const ancienne = toutes.find((x) => x.id === s.id)!;
-    const neuve = toutes.find((x) => x.supersedes === s.id)!;
-    // Le passé ne mente pas : l'ancienne dit toujours 50 000 le 5.
-    expect(ancienne.state).toBe("remplacee");
-    expect(ancienne.amount).toBe(300_000);
-    expect(ancienne.dayOfMonth).toBe(5);
-    expect(neuve.state).toBe("active");
-    expect(neuve.amount).toBe(400_000);
-    expect(neuve.dayOfMonth).toBe(12);
-    // Une seule court : deux actives se prélèveraient deux fois le même mois.
-    expect(toutes.filter((x) => x.state === "active")).toHaveLength(1);
+    if (res.ok) expect(res.message).toMatch(/retirée/i);
+    expect((await r.listStandingOrders(u)).find((x) => x.id === s.id)!.state).toBe("annulee");
   });
 
-  it("périme l'occurrence déjà annoncée", async () => {
-    /* LE POINT QUI N'ÉTAIT PAS DANS LA DEMANDE. Sans cela, le robot exécuterait
-       demain les anciens termes sur une instruction qui n'existe plus. */
+  it("retire aussi une instruction suspendue, que le client voit avec sa raison", async () => {
     const u = sien();
     const { r, s } = await uneInstruction(u);
-    const annonce = await r.annoncerPreavis({ standingId: s.id, userId: u, dueOn: "2099-01-01", amount: 300_000 });
-    await r.cloturerPreavis(annonce.id, { noticeSent: true });
-
-    const { modifierStandingAction } = await import("@/app/moi/modifier-actions");
-    const res = await modifierStandingAction(null, champs({ id: s.id, amount: "400 000" }));
+    await r.updateStandingOrder(s.id, { state: "suspendue", stopReason: "fonds fermé" });
+    const { stopStandingAction } = await import("@/app/moi/standing-actions");
+    const res = await stopStandingAction(null, champs({ id: s.id }));
     expect(res.ok).toBe(true);
-    if (res.ok) expect(res.message).toMatch(/n'aura pas lieu/i);
-
-    expect((await r.listPreavis({ standingId: s.id })).find((x) => x.id === annonce.id)!.state).toBe("perimee");
+    expect((await r.listStandingOrders(u)).find((x) => x.id === s.id)!.state).toBe("annulee");
   });
 
-  it("écrit la clé de répartition du client", async () => {
-    const u = sien();
-    const { r, s, fonds } = await uneInstruction(u);
-    if (fonds.length < 2) return; // le jeu de données n'a qu'un fonds ouvert
-    const { modifierStandingAction } = await import("@/app/moi/modifier-actions");
-
-    const res = await modifierStandingAction(
-      null,
-      champs({ id: s.id, amount: "400 000", splitOffer: [fonds[0].id, fonds[1].id], splitPct: ["60", "40"] }),
-    );
-    expect(res.ok).toBe(true);
-    const neuve = (await r.listStandingOrders(u)).find((x) => x.supersedes === s.id)!;
-    expect(neuve.splits).toEqual([
-      { offerId: fonds[0].id, pct: 60 },
-      { offerId: fonds[1].id, pct: 40 },
-    ]);
-  });
-
-  it("refuse une clé dont une tranche tombe sous le minimum de sa destination", async () => {
-    /* Trouvé en écrivant ce test : 200 000 partagés 60/40 font 120 000 et
-       80 000, et un fonds qui exige 100 000 refuse la seconde. Chaque tranche se
-       relit donc contre SA destination, et une seule qui bloque bloque toute
-       l'occurrence : exécuter la clé en partie changerait la répartition que le
-       client a écrite sans qu'il l'ait dit. */
-    const u = sien();
-    const { r, s, fonds } = await uneInstruction(u);
-    if (fonds.length < 2) return;
-    const { modifierStandingAction } = await import("@/app/moi/modifier-actions");
-    const res = await modifierStandingAction(null, champs({ id: s.id, amount: "200 000", splitOffer: [fonds[0].id, fonds[1].id], splitPct: ["60", "40"] }));
-    expect(res.ok).toBe(false);
-    // Le message nomme la destination fautive, sans quoi le client cherche.
-    if (!res.ok) expect(res.error).toContain(fonds[1].title);
-    expect((await r.listStandingOrders(u)).find((x) => x.id === s.id)!.state).toBe("active");
-  });
-
-  it("refuse une clé qui ne fait pas cent, et ne touche à rien", async () => {
-    const u = sien();
-    const { r, s, fonds } = await uneInstruction(u);
-    if (fonds.length < 2) return;
-    const { modifierStandingAction } = await import("@/app/moi/modifier-actions");
-    const res = await modifierStandingAction(null, champs({ id: s.id, splitOffer: [fonds[0].id, fonds[1].id], splitPct: ["60", "30"] }));
-    expect(res.ok).toBe(false);
-    if (!res.ok) expect(res.error).toMatch(/100 %/);
-    // Rien n'a bougé : un refus ne laisse pas l'instruction à moitié remplacée.
-    expect((await r.listStandingOrders(u)).find((x) => x.id === s.id)!.state).toBe("active");
-  });
-
-  it("refuse de modifier une instruction qui ne court plus", async () => {
-    const u = sien();
-    const { r, s } = await uneInstruction(u);
-    await r.updateStandingOrder(s.id, { state: "annulee", stopReason: "arrêtée" });
-    const { modifierStandingAction } = await import("@/app/moi/modifier-actions");
-    const res = await modifierStandingAction(null, champs({ id: s.id, amount: "400 000" }));
-    expect(res.ok).toBe(false);
-    if (!res.ok) expect(res.error).toMatch(/ne court plus/i);
-  });
-
-  it("ne modifie pas l'instruction d'un autre", async () => {
+  it("ne retire pas ce qui ne court plus, ni l'instruction d'un autre", async () => {
     const autre = sien();
-    const { s } = await uneInstruction(autre);
+    const { r, s } = await uneInstruction(autre);
+    await r.updateStandingOrder(s.id, { state: "terminee" });
+    const { stopStandingAction } = await import("@/app/moi/standing-actions");
+    const fini = await stopStandingAction(null, champs({ id: s.id }));
+    expect(fini.ok).toBe(false);
     sien(); // la session change d'identité
-    const { modifierStandingAction } = await import("@/app/moi/modifier-actions");
-    const res = await modifierStandingAction(null, champs({ id: s.id, amount: "400 000" }));
+    const res = await stopStandingAction(null, champs({ id: s.id }));
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error).toMatch(/introuvable/i);
   });

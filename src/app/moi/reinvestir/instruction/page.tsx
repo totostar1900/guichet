@@ -15,7 +15,7 @@ export const metadata = { title: "Mon instruction" };
 export default async function InstructionPage() {
   const s = await requireSession("/moi/reinvestir/instruction");
   const t = await getT();
-  const { offers, enPlace, fonds, aujourdHui } = await lireLeReinvestissement(s.userId);
+  const { offers, enPlace, aujourdHui } = await lireLeReinvestissement(s.userId);
   return (
     <Glissement>
       <div className={styles.page}>
@@ -43,7 +43,7 @@ export default async function InstructionPage() {
                 stopReason: x.stopReason,
               };
             })}
-            fonds={fonds}
+           
           />
         ) : (
           <p className="muted">

@@ -5,74 +5,66 @@ import { parentDe } from "@/lib/nav-parent";
 const lire = (f: string) => readFileSync(f, "utf8");
 
 /**
- * L'ÉPARGNE PROGRAMMÉE EST UN SOMMAIRE DE TROIS TUILES-LIENS (décision du 15 novembre 2026) : chaque tuile mène à sa page, au lieu de s'étendre par un chevron.
+ * L'ÉPARGNE PROGRAMMÉE EST SA PROPRE LISTE (décision du 15 novembre 2026, maquette « Épargne » : 1A · 2A · 3 OK · 4 28) : la liste sur la page, un bouton collé en bas,
+ * le « i » qui porte l'explication, un retrait à la place de la modification.
  */
-describe("le sommaire de l'épargne programmée", () => {
+describe("la page de l'épargne programmée", () => {
   const p = lire("src/app/moi/epargne/page.tsx");
 
-  it("n'a plus de pli : trois tuiles-liens vers trois pages", () => {
+  it("porte la liste, sans pli ni tuile-lien", () => {
     expect(p).not.toMatch(/<Pli\b|components\/Pli/);
-    for (const href of ["/moi/epargne/en-place", "/moi/epargne/nouvelle", "/moi/epargne/fonctionnement"]) expect(p, `la tuile vers ${href} a disparu`).toContain(`href: "${href}"`);
-    expect(p).toMatch(/<Link key=\{x\.href\} href=\{x\.href\} className=\{styles\.tuile\}>/);
+    expect(p).not.toMatch(/styles\.tuile/);
+    expect(p).toMatch(/<StandingList/);
+    expect(p).toMatch(/x\.state === "active" \|\| x\.state === "suspendue"/);
   });
 
-  it("chaque tuile dit son état sans qu'on l'ouvre, et celle qui attend un geste le porte", () => {
-    expect(p).toMatch(/prochain versement le \{d\}/);
-    expect(p).toMatch(/attend: actifs\.length === 0 \? t\("rien en place"\) : undefined/);
-    expect(p).toMatch(/\{x\.attend && <em className=\{styles\.attend\}>\{x\.attend\}<\/em>\}/);
+  it("le bouton jaune est collé en bas et mène au formulaire", () => {
+    expect(p).toMatch(/<BarreDEtape>/);
+    expect(p).toMatch(/className=\{`btn primary \$\{barre\.suivant\}`\} href="\/moi\/epargne\/nouvelle"/);
   });
 
-  it("les trois pages existent et ne repliant rien", () => {
-    for (const f of ["en-place", "nouvelle", "fonctionnement"]) {
-      const s = lire(`src/app/moi/epargne/${f}/page.tsx`);
-      expect(s, `${f} garde un pli`).not.toMatch(/<Pli\b/);
-      expect(s).toMatch(/requireSession\(/);
-    }
-  });
-});
-
-describe("les trois pages de l'épargne", () => {
-  it("la liste de ce qui est en place dit son vide et renvoie au formulaire", () => {
-    const s = lire("src/app/moi/epargne/en-place/page.tsx");
-    expect(s).toMatch(/<StandingList/);
-    expect(s).toMatch(/Rien n'est en place pour l'instant/);
-    expect(s).toMatch(/href="\/moi\/epargne\/nouvelle"/);
-  });
-
-  it("le formulaire accepte le fonds de la fiche et atterrit sur la liste", () => {
-    const s = lire("src/app/moi/epargne/nouvelle/page.tsx");
-    expect(s).toMatch(/searchParams: Promise<\{ fonds\?: string \}>/);
-    expect(s).toMatch(/fondsInitial=\{choisi\?\.id\}/);
-    expect(s).toMatch(/apres="\/moi\/epargne\/en-place"/);
-    expect(s, "le jour vient du serveur").toMatch(/aujourdhui=\{aujourdHui\}/);
-  });
-
-  it("l'explication est une vraie page, avec le mandat nommé et non contenu", () => {
-    const s = lire("src/app/moi/epargne/fonctionnement/page.tsx");
-    expect(s).toMatch(/<ol className=\{styles\.steps\}>/);
-    expect(s).toMatch(/href="\/moi\/prelevements"/);
-    expect(s).not.toMatch(/StandingForm/);
+  it("le « i » porte l'explication, et les deux anciennes pages renvoient ici", () => {
+    expect(p).toMatch(/<EnBref brief="epargne" \/>/);
+    for (const f of ["en-place", "fonctionnement"]) expect(lire(`src/app/moi/epargne/${f}/page.tsx`), f).toMatch(/redirect\("\/moi\/epargne"\)/);
+    const brief = lire("src/lib/domain/services.ts");
+    expect(brief).toMatch(/Retirer l'épargne ne révoque pas le mandat, et révoquer le mandat ne retire pas l'épargne/);
   });
 
   it("le formulaire sait atterrir sur la liste, sauf quand un mandat reste à signer", () => {
+    expect(lire("src/app/moi/epargne/nouvelle/page.tsx")).toMatch(/apres="\/moi\/epargne"/);
     const s = lire("src/components/Standing.tsx");
     expect(s).toMatch(/if \(state\?\.ok && apres && !state\.versLeMandat\) router\.replace\(apres\);/);
-    expect(s, "le retour d'étape et l'atterrissage se courent de nouveau").toMatch(/if \(state\?\.ok && !apres && window\.location\.search\.includes\("etape="\)\) router\.back\(\);/);
-    expect(s).toMatch(/fondsInitial && fonds\?\.some\(\(f\) => f\.id === fondsInitial\)/);
+    expect(s).toMatch(/if \(state\?\.ok && !apres && window\.location\.search\.includes\("etape="\)\) router\.back\(\);/);
   });
 });
 
-describe("les autres portes d'entrée", () => {
-  it("la fiche d'un fonds renvoie à la page du formulaire avec le fonds déjà choisi, et n'embarque plus le formulaire", () => {
-    const s = lire("src/app/offres/[id]/intention/page.tsx");
-    expect(s).toMatch(/href=\{`\/moi\/epargne\/nouvelle\?fonds=\$\{encodeURIComponent\(o\.id\)\}`\}/);
-    expect(s).not.toMatch(/<StandingForm/);
+describe("la liste des instructions", () => {
+  const s = lire("src/components/Standing.tsx");
+  const css = lire("src/components/Standing.module.css");
+
+  it("retire au lieu de modifier, avec une confirmation qui dit ce qui reste", () => {
+    expect(s).not.toMatch(/ModifierInstruction|t\("Modifier"\)|Voir les \{n\} instructions arrêtées/);
+    expect(s).toMatch(/t\("Retirer"\)/);
+    expect(s).toMatch(/Les ordres déjà passés restent dans Mes ordres, et votre mandat de prélèvement n'est pas révoqué/);
   });
 
-  it("le retour d'une des trois pages est le sommaire, et celui du sommaire reste Mon argent", () => {
-    expect(parentDe("/moi/epargne/en-place")).toBe("/moi/epargne");
-    expect(parentDe("/moi/epargne/nouvelle")).toBe("/moi/epargne");
-    expect(parentDe("/moi/epargne/fonctionnement")).toBe("/moi/epargne");
+  it("ne montre que ce qui court et ce qui est suspendu, avec sa raison", () => {
+    expect(s).toMatch(/rows\.filter\(\(x\) => x\.state === "active" \|\| x\.state === "suspendue"\)/);
+    expect(s).toMatch(/s\.state === "suspendue" &&/);
+  });
+
+  it("espace les épargnes de l'écart de deux sections, et les pose sur la tuile de la maison", () => {
+    expect(css).toMatch(/\.list \{[^}]*gap: var\(--sections-gap\);/);
+    expect(css).toMatch(/\.item \{[^}]*background: var\(--tuile-fond\);/);
+  });
+
+  it("la modification n'existe plus côté serveur", () => {
+    expect(() => readFileSync("src/app/moi/modifier-actions.ts", "utf8")).toThrow();
+  });
+});
+
+describe("les adresses", () => {
+  it("le retour de l'épargne reste Mon argent", () => {
     expect(parentDe("/moi/epargne")).toBe("/moi/argent");
   });
 });

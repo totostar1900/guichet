@@ -825,9 +825,10 @@ export const ETAPES: Record<string, string[]> = {
     "À chaque encaissement, l'ordre se prépare tout seul et vous est présenté avant de partir.",
   ],
   epargne: [
-    "Fixer le montant, le jour du mois et la destination.",
-    "Signer une fois : c'est cette signature qui vaut pour les prélèvements suivants.",
-    "Le versement part chaque mois sans qu'on y revienne, et s'arrête au premier mot de votre part.",
+    "Vous choisissez le fonds, la somme et le jour du mois. Rien n'est prélevé à la signature.",
+    "Le jour venu, la somme est appelée. Vous la virez vous-même, ou vous nous autorisez à la prélever : c'est le mandat de prélèvement, une autorisation distincte, que vous signez une fois et révoquez quand vous voulez.",
+    "Chaque versement donne un ordre ordinaire : une référence, un avis d'opéré, et sa place dans votre espace avec les autres.",
+    "Vous retirez l'épargne d'un bouton, sans motif à donner. Retirer l'épargne ne révoque pas le mandat, et révoquer le mandat ne retire pas l'épargne : ce sont deux décisions.",
   ],
   /* LES ÉTAPES ONT CHANGÉ AVEC LA PAGE, le 26 octobre 2026. La première disait
      « une séance est annoncée », ce qui était l'inverse du service : on sonde

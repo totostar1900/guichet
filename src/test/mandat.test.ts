@@ -332,9 +332,9 @@ describe("un usage déjà couvert n'est plus proposé", () => {
   });
   it("la création d'une épargne recule d'un cran, et la liste de ce qui est en place est dépliée", () => {
     expect(readFileSync("src/components/Standing.tsx", "utf8")).toMatch(/if \(state\?\.ok && !apres && window\.location\.search\.includes\("etape="\)\) router\.back\(\);/);
-    /* Les plis ont laissé la place à un sommaire de tuiles-liens (15 novembre 2026) : la liste de ce qui est en place a sa page, et une épargne posée y atterrit. */
-    expect(readFileSync("src/app/moi/epargne/en-place/page.tsx", "utf8")).toMatch(/<StandingList/);
-    expect(readFileSync("src/app/moi/epargne/nouvelle/page.tsx", "utf8")).toMatch(/apres="\/moi\/epargne\/en-place"/);
+    /* La liste de ce qui est en place vit sur la page de l'épargne (15 novembre 2026), et une épargne posée y atterrit. */
+    expect(readFileSync("src/app/moi/epargne/page.tsx", "utf8")).toMatch(/<StandingList/);
+    expect(readFileSync("src/app/moi/epargne/nouvelle/page.tsx", "utf8")).toMatch(/apres="\/moi\/epargne"/);
   });
 });
 
@@ -366,9 +366,8 @@ describe("comment une épargne est payée, lu dans ses mandats", () => {
     expect(r).toMatch(/=== "mandat_a_signer" \? t\("En attente du mandat"\)/);
     expect(r).toMatch(/m\.dayOfMonth \?\? epargne\?\.dayOfMonth/);
   });
-  it("le mode de règlement est enregistré à la création, repris par une modification, et la migration le porte", () => {
+  it("le mode de règlement est enregistré à la création, et la migration le porte", () => {
     expect(readFileSync("src/app/moi/standing-actions.ts", "utf8")).toMatch(/reglement: p\.data\.reglement,/);
-    expect(readFileSync("src/app/moi/modifier-actions.ts", "utf8")).toMatch(/reglement: s\.reglement,/);
     expect(readFileSync("src/lib/data/supabase.ts", "utf8")).toMatch(/reglement: r\.reglement \?\? "virement"/);
     expect(readFileSync("supabase/migrations/0128_reglement_de_l_epargne.sql", "utf8")).toMatch(/add column if not exists reglement text not null default 'virement'/);
   });

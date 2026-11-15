@@ -1,69 +1,70 @@
 import Link from "next/link";
+import { StandingList } from "@/components/Standing";
 import { requireSession } from "@/lib/auth";
+import { STANDING_STATE_LABEL, nextRun } from "@/lib/domain/standing";
+import { paiementDeLEpargne } from "@/lib/domain/mandat";
 import { getT } from "@/i18n/server";
-import { fmt, fmtDate } from "@/lib/format";
 import { lireLEpargne } from "./donnees";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { EnBref } from "@/components/EnBref";
+import { BarreDEtape } from "@/components/mobile/BarreDEtape";
+import barre from "@/components/mobile/BarreDEtape.module.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Épargne programmée" };
 
 /**
- * L'ÉPARGNE PROGRAMMÉE EST UN SOMMAIRE DE TROIS PAGES (décision du 15 novembre 2026, planche « tuiles-liens »).
+ * L'ÉPARGNE PROGRAMMÉE EST SA PROPRE LISTE (décision du 15 novembre 2026, maquette « Épargne » : 1A · 2A · 3 OK · 4 28).
  *
- * Elle empilait trois plis à chevron : ce qui est en place, le formulaire (939 px dépliés à 390 px) et l'explication. Chaque tuile mène désormais à sa page,
- * et dit son état sans qu'on l'ouvre : « 2 actifs · prochain versement le 5 déc. », « rien en place ». Un sommaire ne cache jamais un devoir : la tuile
- * qui attend un geste le porte sur elle.
+ * Elle était un sommaire de trois tuiles : pour voir une épargne, deux pages. Elle porte maintenant la liste, un bouton jaune collé en bas pour en mettre une
+ * en place, et un « i » qui porte l'explication (« Comment cela marche » a été fusionné avec lui). Une épargne retirée ne se consulte plus ; une suspendue
+ * reste visible avec sa raison.
  *
  * PLACER CHAQUE MOIS N'EST PAS AUTORISER UN PRÉLÈVEMENT : ce sont deux décisions. L'épargne dit COMBIEN part, QUAND et VERS QUOI (un ordre debout) ;
- * le mandat dit seulement que la maison peut débiter un compte, sous un plafond. L'un peut vivre sans l'autre, et chacun nomme l'autre plutôt que de le contenir.
+ * le mandat dit seulement que la maison peut débiter un compte, sous un plafond. Le « i » nomme l'un dans l'autre sans les mêler.
  */
 export default async function EpargnePage() {
   const s = await requireSession("/moi/epargne");
   const t = await getT();
-  const { actifs, prochain } = await lireLEpargne(s.userId);
-  const parMois = actifs.reduce((somme, x) => somme + (x.amount ?? 0), 0);
-
-  const tuiles: { href: string; nom: string; dit: string; attend?: string }[] = [
-    {
-      href: "/moi/epargne/en-place",
-      nom: t("Mes épargnes programmées"),
-      dit: actifs.length
-        ? `${t(actifs.length > 1 ? "{n} actifs" : "1 actif", { n: String(actifs.length) })} · ${t("{m} FCFA par mois", { m: fmt(parMois) })}${prochain ? ` · ${t("prochain versement le {d}", { d: fmtDate(prochain, false) })}` : ""}`
-        : t("Ce qui part chaque mois, et que vous arrêtez quand vous voulez. Rien n'est en place pour l'instant."),
-    },
-    {
-      href: "/moi/epargne/nouvelle",
-      nom: t("Mettre une épargne en place"),
-      dit: t("Le fonds, la somme et le jour se choisissent ici."),
-      attend: actifs.length === 0 ? t("rien en place") : undefined,
-    },
-    { href: "/moi/epargne/fonctionnement", nom: t("Comment cela marche"), dit: t("Ce qui part, comment c'est payé, et comment cela s'arrête.") },
-  ];
-
+  const { offers, standing, mandats, versements, aujourdHui } = await lireLEpargne(s.userId);
+  const visibles = versements.filter((x) => x.state === "active" || x.state === "suspendue");
   return (
     <Glissement>
       <div className={styles.page}>
         <EnTete
           titre={t("Épargne programmée")}
-          phrase={t("Une somme fixe, un jour du mois, une destination choisie maintenant : le versement part tout seul, et vous l'arrêtez quand vous voulez. C'est un placement qui se répète, pas une autorisation de débit.")}
+          phrase={t("Une somme fixe, un jour du mois, une destination choisie maintenant : le versement part tout seul, et vous le retirez quand vous voulez. C'est un placement qui se répète, pas un prélèvement : les deux se décident séparément.")}
           aCote={<EnBref brief="epargne" />}
         />
-        <div className={styles.tuiles}>
-          {tuiles.map((x) => (
-            <Link key={x.href} href={x.href} className={styles.tuile}>
-              <span>
-                <b>{x.nom}</b>
-                <small>{x.dit}</small>
-              </span>
-              {x.attend && <em className={styles.attend}>{x.attend}</em>}
-              <i aria-hidden="true">›</i>
-            </Link>
-          ))}
-        </div>
+        <StandingList
+          rows={visibles.map((x) => ({
+            id: x.id,
+            ref: x.ref,
+            offerId: x.offerId,
+            title: offers.find((y) => y.id === x.offerId)?.title ?? x.offerId,
+            splits: x.splits?.map((y) => ({ offerId: y.offerId, title: offers.find((z) => z.id === y.offerId)?.title ?? y.offerId, pct: y.pct })),
+            href: `/offres/${x.offerId}`,
+            amount: x.amount,
+            dayOfMonth: x.dayOfMonth,
+            source: x.source,
+            minAmount: x.minAmount,
+            paiement: paiementDeLEpargne(x, mandats, standing),
+            state: x.state,
+            stateLabel: STANDING_STATE_LABEL[x.state],
+            // La prochaine échéance est calculée par le domaine (standing, « nextRun »), jamais tue.
+            next: nextRun(x, aujourdHui),
+            lastRunOn: x.lastRunOn,
+            stopReason: x.stopReason,
+          }))}
+          vide={<p className={styles.vide}>{t("Aucune épargne en place pour l'instant. Le fonds, la somme et le jour se choisissent avec le bouton ci-dessous.")}</p>}
+        />
+        <BarreDEtape>
+          <Link className={`btn primary ${barre.suivant}`} href="/moi/epargne/nouvelle">
+            {t("Mettre une épargne en place")}
+          </Link>
+        </BarreDEtape>
       </div>
     </Glissement>
   );

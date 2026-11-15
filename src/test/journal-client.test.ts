@@ -22,7 +22,6 @@ const FICHIERS = [
   "src/app/moi/alertes-actions.ts",
   "src/app/moi/actions.ts",
   "src/app/moi/counter-actions.ts",
-  "src/app/moi/modifier-actions.ts",
   "src/app/moi/ordres/[id]/actions.ts",
   "src/app/moi/standing-actions.ts",
   "src/app/moi/prelevements/actions.ts",

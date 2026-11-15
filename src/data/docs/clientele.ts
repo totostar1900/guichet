@@ -14,7 +14,7 @@ export const CLIENTELE: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 2,
-  checkedOn: "2026-11-11",
+  checkedOn: "2026-11-15",
   owner: "Georges",
   chapters: [
     {
@@ -265,8 +265,8 @@ export const CLIENTELE: DocPage = {
               "A measure NEVER cuts the way to us. A suspended account remains an account one can complain about.",
             ),
             l(
-              "Cesser de s'engager reste possible : arrêter son épargne, révoquer son mandat, refuser une contre-proposition ne sont pas gardés, sinon la mesure aggraverait ce qu'elle veut arrêter.",
-              "Ceasing to commit remains possible: stopping a savings plan, revoking a mandate, declining a counter-offer are not guarded, otherwise the measure would worsen what it means to stop.",
+              "Cesser de s'engager reste possible : retirer son épargne, révoquer son mandat, refuser une contre-proposition ne sont pas gardés, sinon la mesure aggraverait ce qu'elle veut arrêter.",
+              "Ceasing to commit remains possible: withdrawing a savings plan, revoking a mandate, declining a counter-offer are not guarded, otherwise the measure would worsen what it means to stop.",
             ),
             l(
               "Une mesure a une fin écrite d'avance, quatre-vingt-dix jours par défaut, et elle tombe d'elle-même : sinon un compte reste puni par oubli.",

@@ -9,7 +9,6 @@ import { groupDigits, groupedInput } from "@/lib/ui/grouped";
 import { fmt, parseAmount } from "@/lib/format";
 import { premierVersement } from "@/lib/domain/standing";
 import { createStandingAction, stopStandingAction, type StandingResult } from "@/app/moi/standing-actions";
-import { ModifierInstruction, type FondsChoix } from "./ModifierInstruction";
 import { BarreDEtape } from "@/components/mobile/BarreDEtape";
 import barre from "@/components/mobile/BarreDEtape.module.css";
 import styles from "./Standing.module.css";
@@ -342,30 +341,32 @@ export interface StandingRow {
   splits?: { offerId: string; title: string; pct: number }[];
 }
 
-/** Ce qui est programmé, et le bouton pour l'arrêter. */
 /**
- * LES INSTRUCTIONS ARRÊTÉES SE MASQUENT, ELLES NE SE SUPPRIMENT PAS.
+ * CE QUI EST PROGRAMMÉ, ET LE BOUTON POUR LE RETIRER (décision du 15 novembre 2026, maquette « Épargne » : 1A · 2A · 3 OK · 4 28).
  *
- * Elles portent la trace d'ordres réellement exécutés : un client qui voudrait
- * « faire le ménage » couperait le lien entre son argent et la raison pour
- * laquelle il est parti. Les masquer répond au besoin, qui est de ne pas lire
- * cinq lignes mortes au-dessus de celle qui court, sans couper la piste.
+ * UN RETRAIT, PAS DE MODIFICATION : pour changer un montant ou un jour, on retire et on remet en place. Une instruction retirée ne se consulte plus :
+ * les ordres qu'elle a produits restent dans « Mes ordres » avec leurs avis, et le desk garde tout (audit).
  *
- * Le compte reste visible, parce qu'un repli qui ne dit pas ce qu'il cache fait
- * douter qu'il cache quelque chose.
+ * UNE INSTRUCTION SUSPENDUE RESTE VISIBLE, avec sa raison : un versement qui cesse de partir sans que le client le sache est un devoir caché.
+ * Les autres états (arrêtée, terminée, remplacée) ne s'affichent plus.
  */
-export function StandingList({ rows, fonds = [] }: { rows: StandingRow[]; fonds?: FondsChoix[] }) {
+export function StandingList({ rows, vide }: { rows: StandingRow[]; vide?: React.ReactNode }) {
   const { fmtDate } = useDates();
   const t = useT();
   const [state, action, pending] = useActionState<StandingResult | null, FormData>(stopStandingAction, null);
-  const [tout, setTout] = useState(false);
-  const [modif, setModif] = useState<string | null>(null);
-  /* Le versement dont on vient de demander l'arrêt, et qui attend un oui. */
-  const [aArreter, setAArreter] = useState<string | null>(null);
+  /* L'instruction dont on vient de demander le retrait, et qui attend un oui. */
+  const [aRetirer, setARetirer] = useState<string | null>(null);
   if (!rows.length) return null;
-  const vivantes = rows.filter((x) => x.state === "active");
-  const closes = rows.filter((x) => x.state !== "active");
-  const montrees = tout ? [...vivantes, ...closes] : vivantes;
+  const montrees = rows.filter((x) => x.state === "active" || x.state === "suspendue");
+  /* La page vide vient d'être rendue de nouveau après un retrait : la confirmation « retirée » se dit quand même, au-dessus de l'état vide. */
+  if (!montrees.length) {
+    return (
+      <>
+        <Msg state={state} />
+        {vide}
+      </>
+    );
+  }
   return (
     <div className={styles.list}>
       {montrees.map((s) => (
@@ -391,11 +392,16 @@ export function StandingList({ rows, fonds = [] }: { rows: StandingRow[]; fonds?
                   : ""}
               {s.endsOn ? ` · ${t("jusqu'au {d}", { d: fmtDate(s.endsOn) })}` : ""}
               {s.lastRunOn ? ` · ${t("dernier versement le {d}", { d: fmtDate(s.lastRunOn) })}` : ""}
-              {s.stopReason ? ` · ${s.stopReason}` : ""}
             </small>
+            {s.state === "suspendue" && (
+              <>
+                <em className={styles.suspendue}>{t(s.stateLabel)}</em>
+                {s.stopReason && <small className={styles.attente}>{s.stopReason}</small>}
+              </>
+            )}
             {/* La clé se lit en entier : « 60 % ici, 40 % là » est l'ordre du
                 client, et le résumer à la première destination le trahirait. */}
-            {/* « ACTIVE » NE DIT PAS SI QUELQUE CHOSE PARTIRA (audit « signature du mandat d'une épargne », 11 novembre 2026) : un mandat préparé mais pas signé ne prélève rien. La ligne dit comment l'épargne est payée, et renvoie à la signature quand elle manque. */}
+            {/* « ACTIVE » NE DIT PAS SI QUELQUE CHOSE PARTIRA (audit « signature du mandat d'une épargne », 11 novembre 2026) : un mandat préparé mais pas signé ne prélève rien. La ligne le dit, avec le chemin pour signer. */}
             {s.source !== "encaissements" && s.state === "active" && s.paiement === "mandat_a_signer" && (
               <small className={styles.attente}>
                 {t("En attente du mandat : rien ne sera prélevé tant qu'il n'est pas signé.")}{" "}
@@ -406,53 +412,31 @@ export function StandingList({ rows, fonds = [] }: { rows: StandingRow[]; fonds?
             {s.source !== "encaissements" && s.state === "active" && s.paiement === "virement" && <small className="muted">{t("Payée par virement, sur appel de fonds.")}</small>}
             {s.splits && s.splits.length > 1 && <small className={styles.cleDite}>{s.splits.map((x) => `${x.pct} % ${x.title}`).join(" · ")}</small>}
           </div>
-          {s.state === "active" ? (
-            <div className={styles.actes}>
-              {fonds.length > 0 && (
-                <button className="btn sm ghost" type="button" onClick={() => setModif(modif === s.id ? null : s.id)}>
-                  {t("Modifier")}
-                </button>
-              )}
-              {/* ARRÊTER SE CONFIRME. Le bouton partait au premier clic, à
-                  côté de « Modifier » et de la même taille : un doigt qui
-                  glisse arrêtait un versement mensuel, et rien ne le
-                  rattrapait — l'instruction arrêtée ne se reprend pas, elle
-                  se repose. La confirmation tient sur place, sans fenêtre :
-                  ce qu'on arrête reste sous les yeux pendant qu'on décide. */}
-              {aArreter === s.id ? (
-                <form action={action} className={styles.confirme}>
-                  <input type="hidden" name="id" value={s.id} />
-                  <span>{t("Arrêter ce versement ?")}</span>
-                  <button className="btn sm" type="submit" disabled={pending}>
-                    {t("Oui, arrêter")}
-                  </button>
-                  <button className="btn sm ghost" type="button" onClick={() => setAArreter(null)}>
-                    {t("Annuler")}
-                  </button>
-                </form>
-              ) : (
-                <button className="btn sm ghost" type="button" onClick={() => setAArreter(s.id)}>
-                  {t("Arrêter")}
-                </button>
-              )}
-            </div>
+          {/* RETIRER SE CONFIRME : un doigt qui glisse ne retire pas un versement mensuel. La confirmation tient sur place, sans fenêtre, et dit ce qui reste : les ordres passés, et le mandat qui n'est pas révoqué. */}
+          {aRetirer === s.id ? (
+            <form action={action} className={styles.confirme}>
+              <input type="hidden" name="id" value={s.id} />
+              <span>
+                {s.source === "encaissements"
+                  ? t("Retirer cette instruction ? Elle ne figurera plus dans votre liste. Les ordres déjà passés restent dans Mes ordres.")
+                  : t("Retirer cette épargne ? Elle ne figurera plus dans votre liste. Les ordres déjà passés restent dans Mes ordres, et votre mandat de prélèvement n'est pas révoqué.")}
+              </span>
+              <button className="btn sm" type="submit" disabled={pending}>
+                {t("Oui, retirer")}
+              </button>
+              <button className="btn sm ghost" type="button" onClick={() => setARetirer(null)}>
+                {t("Annuler")}
+              </button>
+            </form>
           ) : (
-            <span className="muted">{t(s.stateLabel)}</span>
-          )}
-          {modif === s.id && (
-            <ModifierInstruction
-              s={{ id: s.id, ref: s.ref, amount: s.amount, dayOfMonth: s.dayOfMonth, minAmount: s.minAmount ?? 0, source: s.source, offerId: s.offerId, splits: s.splits?.map((x) => ({ offerId: x.offerId, pct: x.pct })) }}
-              fonds={fonds}
-              onClose={() => setModif(null)}
-            />
+            <div className={styles.actes}>
+              <button className="btn sm ghost" type="button" onClick={() => setARetirer(s.id)}>
+                {t("Retirer")}
+              </button>
+            </div>
           )}
         </div>
       ))}
-      {closes.length > 0 && (
-        <button type="button" className={styles.repli} onClick={() => setTout((x) => !x)}>
-          {tout ? t("Masquer les instructions arrêtées") : t("Voir les {n} instructions arrêtées", { n: String(closes.length) })}
-        </button>
-      )}
       <Msg state={state} />
     </div>
   );

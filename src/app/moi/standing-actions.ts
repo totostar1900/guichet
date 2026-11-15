@@ -188,11 +188,11 @@ export async function stopStandingAction(_p: StandingResult | null, form: FormDa
   const mine = await r.listStandingOrders(session.userId);
   const s = mine.find((x) => x.id === id);
   if (!s) return { ok: false, error: "Versement introuvable." };
-  if (s.state !== "active") return { ok: false, error: "Ce versement ne court plus." };
+  if (s.state !== "active" && s.state !== "suspendue") return { ok: false, error: "Ce versement ne court plus." };
   await r.updateStandingOrder(s.id, { state: "annulee", stopReason: "arrêté par le client" });
   await r.logEvent({ kind: "intent", offerId: s.offerId, html: `${s.ref} (${s.clientName}) : épargne programmée <b>arrêtée</b> par le client` });
   await audit("standing.stop", "standing", s.id, { before: { state: s.state }, after: { state: "annulee" } });
   await noter("epargne.arretee", { objet: s.ref });
   revalidatePath("/");
-  return { ok: true, message: "Versement arrêté. Rien ne partira le mois prochain." };
+  return { ok: true, message: "Épargne retirée. Rien ne partira le mois prochain." };
 }

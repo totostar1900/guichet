@@ -24,7 +24,7 @@ export default async function NouvellePage({ searchParams }: { searchParams: Pro
       <div className={styles.page}>
         <EnTete titre={t("Mettre une épargne en place")} phrase={t("Le fonds, la somme et le jour se choisissent ici.")} />
         {fonds.length ? (
-          <StandingForm fonds={fonds} fondsInitial={choisi?.id} minimum={choisi?.min ?? 0} aujourdhui={aujourdHui} apres="/moi/epargne/en-place" />
+          <StandingForm fonds={fonds} fondsInitial={choisi?.id} minimum={choisi?.min ?? 0} aujourdhui={aujourdHui} apres="/moi/epargne" />
         ) : (
           <p className="muted">{t("Aucun fonds n'est ouvert à la souscription en ce moment : l'épargne se programmera dès qu'il y en aura un.")}</p>
         )}

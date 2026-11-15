@@ -80,7 +80,7 @@ describe("fermeture seule", () => {
   it("et les gestes qui n'ont qu'un sens sont refusés sans qu'on le dise", () => {
     // Une épargne, un réinvestissement et un mandat font toujours grossir la
     // relation : l'appelant n'a rien à préciser.
-    for (const g of ["epargne.creer", "epargne.modifier", "reinvestir", "mandat.creer", "mandat.signer"] as const) {
+    for (const g of ["epargne.creer", "reinvestir", "mandat.creer", "mandat.signer"] as const) {
       expect(peutAgir(g, FERMETURE, MAINTENANT).ok, g).toBe(false);
     }
   });
@@ -194,7 +194,7 @@ describe("ce qu'une mesure ne touchera jamais", () => {
     /* La liste dit ce qu'on EMPÊCHE, jamais ce qu'on autorise : un geste
        ajouté demain ne doit pas se trouver bloqué par surprise. */
     expect([...GESTES_ENGAGEANTS].sort()).toEqual(
-      ["epargne.creer", "epargne.modifier", "mandat.creer", "mandat.signer", "ordre.accepter_contre", "ordre.deposer", "ordre.signer", "reinvestir"].sort(),
+      ["epargne.creer", "mandat.creer", "mandat.signer", "ordre.accepter_contre", "ordre.deposer", "ordre.signer", "reinvestir"].sort(),
     );
   });
 
@@ -242,7 +242,6 @@ describe("les huit gestes engageants passent tous par le garde", () => {
       "src/app/moi/ordres/[id]/actions.ts",
       "src/app/moi/counter-actions.ts",
       "src/app/moi/standing-actions.ts",
-      "src/app/moi/modifier-actions.ts",
       "src/app/moi/prelevements/actions.ts",
     ];
     const tout = fichiers.map((f) => readFileSync(f, "utf8")).join("\n");
