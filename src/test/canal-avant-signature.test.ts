@@ -64,11 +64,12 @@ describe("la page et l'action disent la même chose", () => {
     const action = readFileSync("src/app/moi/prelevements/actions.ts", "utf8");
     expect(action).toMatch(/aucunCanalPossible\(canal\)/);
     expect(action).toMatch(/adresse e-mail avant de signer/);
-    const page = readFileSync("src/app/moi/prelevements/page.tsx", "utf8");
-    expect(page).toMatch(/aucunCanalPossible\(canal\)/);
+    const lecture = readFileSync("src/app/moi/prelevements/donnees.ts", "utf8");
+    expect(lecture).toMatch(/aucunCanalPossible\(canal\)/);
     const ecran = readFileSync("src/app/moi/prelevements/MesMandats.tsx", "utf8");
-    // Le bouton du code est fermé, et celui qui ouvre le formulaire aussi.
+    // Le bouton du code est fermé ; et la mise en place d'un mandat (épargne ou provision) le dit avant de faire remplir.
     expect(ecran).toMatch(/disabled=\{envoyant \|\| !dossier \|\| injoignable\}/);
-    expect(ecran).toMatch(/\{injoignable \? \(/);
+    expect(readFileSync("src/app/moi/prelevements/nouveau/page.tsx", "utf8")).toMatch(/aucunCanalPossible\(canal\) \? "adresse"/);
+    expect(readFileSync("src/app/moi/epargne/nouvelle/page.tsx", "utf8")).toMatch(/aucunCanalPossible\(canal\) \? "adresse"/);
   });
 });

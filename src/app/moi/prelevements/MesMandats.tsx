@@ -3,19 +3,16 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useDates, useT } from "@/i18n/client";
-import { fmt, parseAmount } from "@/lib/format";
+import { fmt } from "@/lib/format";
 import { PREAVIS_JOURS } from "@/lib/domain/prelevement";
-import { groupDigits, groupedInput } from "@/lib/ui/grouped";
-import { Select } from "@/components/ui/Select";
-import { creerMandatAction, deposerCopieMandatAction, envoyerCodeMandatAction, revoquerMandatAction, signerMandatAction, type MandatResult } from "./actions";
+import { deposerCopieMandatAction, envoyerCodeMandatAction, revoquerMandatAction, signerMandatAction, type MandatResult } from "./actions";
 import type { EtapeDuMandat } from "@/lib/domain/mandat";
 import { hrefDeLecture } from "@/lib/lecture";
 import styles from "./page.module.css";
 import { BarreCollante } from "@/components/mobile/BarreDEtape";
-import { BoutonRetour } from "@/components/mobile/BoutonRetour";
 import barre from "@/components/mobile/BarreDEtape.module.css";
 
-interface Vu {
+export interface Vu {
   id: string;
   standingId?: string;
   /** Le fonds de l'épargne que ce mandat paie. */
@@ -59,78 +56,33 @@ function Msg({ state }: { state: MandatResult | null }) {
  */
 export function MesMandats({
   mandats,
-  instructions,
-  instructionDemandee,
-  ouvertDEmblee = false,
-  retourHref,
-  titulaireParDefaut,
-  banqueParDefaut,
-  compteParDefaut,
   canal,
   dossier,
   injoignable,
-  jourMin,
-  jourMax,
 }: {
+  /** Le ou les mandats montrés : la page d'un mandat n'en porte qu'un (« /moi/prelevements/[id] »). */
   mandats: Vu[];
-  instructions: { id: string; ref: string; montant: number; jour: number }[];
-  titulaireParDefaut: string;
-  banqueParDefaut: string;
-  compteParDefaut: string;
   canal?: { to: string; parMail: boolean };
   /** Le dossier existe-t-il ? Sans lui, aucun code ne peut partir. */
   dossier: boolean;
   /** Aucune adresse où faire parvenir le code, ni plus tard les préavis. */
   injoignable: boolean;
-  jourMin: number;
-  jourMax: number;
-  /** L'instruction qu'on vient de signer, quand on arrive de là. */
-  instructionDemandee?: string;
-  /** Arrivé du choix « par prélèvement » : le formulaire est ouvert, même s'il y a déjà des autorisations. */
-  ouvertDEmblee?: boolean;
-  /** Où « Retour » ramène : le choix du type de versement, ou l'Activité. */
-  retourHref: string;
 }) {
   const { fmtDate, fmtDateTime } = useDates();
   const t = useT();
-  const [creer, creerAct, creation] = useActionState<MandatResult | null, FormData>(creerMandatAction, null);
   const [envoi, envoiAct, envoyant] = useActionState<MandatResult | null, FormData>(envoyerCodeMandatAction, null);
   const [sign, signAct, signant] = useActionState<MandatResult | null, FormData>(signerMandatAction, null);
   const [revoc, revocAct, revoquant] = useActionState<MandatResult | null, FormData>(revoquerMandatAction, null);
   const [copie, copieAct, deposant] = useActionState<MandatResult | null, FormData>(deposerCopieMandatAction, null);
   const [fichier, setFichier] = useState("");
-  const connue = instructions.some((i) => i.id === instructionDemandee);
-  /* UN MANDAT PAR USAGE, ET LA PAGE LE DIT AVANT DE FAIRE REMPLIR (audit « Mon argent », 11 novembre 2026) : un usage déjà couvert par un mandat vivant (actif ou à signer) n'est plus proposé ; sans usage libre, le formulaire ne s'ouvre pas. La règle est celle du serveur (« creerMandatAction »). */
+  /* Un mandat révoqué ne se montre plus ici : sa référence se retrouve dans l'historique. */
   const vivants = mandats.filter((m) => m.etat !== "revoque");
-  const provisionLibre = !vivants.some((m) => m.objet === "provision");
-  const epargnesLibres = instructions.filter((i) => !vivants.some((m) => m.objet === "instruction" && m.standingId === i.id));
-  const aUnUsageLibre = provisionLibre || epargnesLibres.length > 0;
-  const anciens = mandats.filter((m) => m.etat === "revoque");
-  const [objet, setObjet] = useState<"provision" | "instruction">(connue || !provisionLibre ? "instruction" : "provision");
-  /* LE FORMULAIRE EST OUVERT QUAND IL N'Y A RIEN D'AUTRE À LIRE.
-     Relevé le 25 octobre 2026 : un client arrivait de « Approvisionner votre
-     compte » en cliquant « Mettre en place un prélèvement », et tombait sur un
-     écran dont le seul contenu était un bouton « Préparer un mandat ». Deux
-     clics pour la même intention, et le second n'apprend rien — c'est la page
-     intermédiaire dans la page. Quand une autorisation existe déjà, le repli
-     garde son sens : la liste est alors ce qu'on vient lire, et en ajouter une
-     seconde est un geste délibéré. */
-  const [ouvert, setOuvert] = useState(connue || vivants.length === 0 || (ouvertDEmblee && aUnUsageLibre));
   const [aRevoquer, setARevoquer] = useState<string | null>(null);
-  const [quelle, setQuelle] = useState((connue && instructionDemandee) || epargnesLibres[0]?.id || instructions[0]?.id || "");
-  /* Contrôlés, parce que le regroupement replace le curseur après chaque
-     touche : un champ non contrôlé renverrait le curseur au bout. */
-  /* LE MONTANT DE L'ÉPARGNE EST REPRIS (audit « signature du mandat d'une épargne », 11 novembre 2026) : le client l'a déjà écrit, et le mandat présente ce même montant. */
-  const [montant, setMontant] = useState(() => {
-    const e = connue ? instructions.find((i) => i.id === instructionDemandee) : undefined;
-    return e ? groupDigits(String(e.montant)) : "";
-  });
 
   return (
     <>
       {vivants.length > 0 && (
         <section className={styles.bloc}>
-          <h2>{t("Mes autorisations")}</h2>
           <ul className={styles.liste}>
             {vivants.map((m) => (
               /* L'ANCRE DU RAPPEL : son second lien renvoie ici, sur le
@@ -321,135 +273,6 @@ export function MesMandats({
         </section>
       )}
 
-      <section className={styles.bloc}>
-        {vivants.length > 0 && <h2>{t("En ajouter un")}</h2>}
-        {/* LE DIRE AVANT, PAS APRÈS. Préparer un mandat qu'on ne pourra pas
-            signer, c'est remplir sept champs pour s'entendre refuser au
-            dernier geste. La condition se lit donc ici aussi, et elle est la
-            même : une adresse où le code, puis chaque préavis, peut arriver. */}
-        {injoignable ? (
-          <p className={styles.note}>
-            {t("Il nous faut une adresse e-mail avant de signer : c'est là que part le code, puis l'annonce de chaque prélèvement.")}{" "}
-            <Link href="/moi/securite#canaux">{t("Ajouter mon adresse →")}</Link>
-          </p>
-        ) : !aUnUsageLibre ? (
-          <p className={styles.note}>
-            {t("Vos autorisations couvrent déjà tout ce que vous pouvez alimenter. Pour changer un montant ou un jour, révoquez l'autorisation concernée, puis signez-en une nouvelle.")}{" "}
-            <Link href="/moi/regles">{t("Ce qui part tout seul")} →</Link>
-          </p>
-        ) : creer?.ok ? (
-          /* LE MANDAT EST PRÉPARÉ : sa carte, au-dessus, porte la suite (le code, la signature). Le formulaire ne reste pas ouvert dessous (audit « Mon argent », 10 novembre 2026). */
-          <Msg state={creer} />
-        ) : !ouvert ? (
-          <button type="button" className="btn primary" onClick={() => setOuvert(true)}>
-            {t("Préparer un mandat")}
-          </button>
-        ) : (
-          <form action={creerAct} className={styles.form}>
-            <fieldset className={styles.choix}>
-              <legend>{t("À quoi sert ce prélèvement ?")}</legend>
-              {/* UN MANDAT PAR USAGE : le choix est ici, et il n'y a pas de
-                  « les deux ». Un mandat général serait juridiquement fragile
-                  et commercialement effrayant. */}
-              <label>
-                <input type="radio" name="objet" value="provision" checked={objet === "provision"} onChange={() => setObjet("provision")} disabled={!provisionLibre} />
-                {t("Alimenter ma provision, chaque mois")}
-              </label>
-              <label>
-                <input type="radio" name="objet" value="instruction" checked={objet === "instruction"} onChange={() => {
-                  setObjet("instruction");
-                  const e = instructions.find((i) => i.id === quelle);
-                  if (e && !montant) setMontant(groupDigits(String(e.montant)));
-                }} disabled={!epargnesLibres.length} />
-                {instructions.length ? t("Alimenter une épargne programmée") : t("Alimenter une épargne programmée (vous n'en avez pas encore)")}
-              </label>
-            </fieldset>
-
-            {/* La liste de la maison, pas la native : au téléphone, celle du
-                système s'ouvre en roue, sans la phrase qui dit ce que chaque
-                ligne est. Un cliquet garde la règle, invisible autrement. */}
-            {objet === "instruction" && (
-              <Select
-                name="standingId"
-                label={t("Laquelle")}
-                block
-                value={quelle}
-                onChange={(v) => {
-                  setQuelle(v);
-                  const e = instructions.find((i) => i.id === v);
-                  if (e) setMontant(groupDigits(String(e.montant)));
-                }}
-                options={(epargnesLibres.length ? epargnesLibres : instructions).map((i) => ({ value: i.id, label: t("{r} · {m} FCFA le {j}", { r: i.ref, m: fmt(i.montant), j: String(i.jour) }) }))}
-              />
-            )}
-
-            {/* UN SEUL MONTANT, ET POUR LES DEUX USAGES. Le formulaire
-                demandait un montant pour la provision et un « plafond par
-                échéance » pour une épargne programmée, dont le montant venait
-                de l'instruction : le client signait alors une autorisation sans
-                y écrire de chiffre. Depuis le 25 octobre 2026 il écrit le sien
-                dans les deux cas, et c'est celui-là qui est présenté. */}
-            <div className={styles.deux}>
-              <label className="field">
-                {t("Montant prélevé chaque mois")}
-                <input name="amount" inputMode="numeric" placeholder="50 000" value={montant} {...groupedInput(setMontant)} />
-              </label>
-              {objet === "provision" && (
-                <label className="field">
-                  {t("Jour du mois ({a} à {b})", { a: String(jourMin), b: String(jourMax) })}
-                  <input name="dayOfMonth" inputMode="numeric" placeholder="5" />
-                </label>
-              )}
-            </div>
-            <p className={styles.note}>{t("C'est ce montant exact qui sera présenté à votre banque, ni plus ni moins. Il n'y a pas de plafond à côté : pour le changer, vous signez un nouveau mandat.")}</p>
-
-            <div className={styles.deux}>
-              <label className="field">
-                {t("Titulaire du compte à débiter")}
-                <input name="accountHolder" defaultValue={titulaireParDefaut} maxLength={80} />
-              </label>
-              <label className="field">
-                {/* « Banque » seul est déjà le secteur d une société cotée : deuxième
-                    fois dans la journée que ce mot court fait une clef fragile. */}
-                {t("Banque du compte à débiter")}
-                <input name="bankName" defaultValue={banqueParDefaut} maxLength={80} />
-              </label>
-            </div>
-            <label className="field">
-              {t("RIB ou IBAN du compte à débiter")}
-              <input name="bankAccount" defaultValue={compteParDefaut} maxLength={60} />
-            </label>
-            <p className={styles.note}>{t("Ce compte doit être ouvert à votre nom. Nous ne présentons jamais de prélèvement sur le compte d'un tiers.")}</p>
-
-            {/* COLLANTE EN BAS, GRISÉE TANT QUE LE MONTANT MANQUE (10 novembre 2026) : « Annuler » est le petit retour. */}
-            <BarreCollante indice={parseAmount(montant) > 0 ? undefined : t("Indiquez d'abord le montant prélevé chaque mois.")}>
-              <BoutonRetour href={retourHref} className={`btn ${barre.retour}`}>
-                {t("Retour")}
-              </BoutonRetour>
-              <button className={`btn primary ${barre.suivant}`} type="submit" disabled={creation || !(parseAmount(montant) > 0)}>
-                {creation ? "…" : t("Préparer, puis signer")}
-              </button>
-            </BarreCollante>
-            <Msg state={creer} />
-          </form>
-        )}
-      </section>
-
-      {anciens.length > 0 && (
-        <section className={styles.bloc}>
-          <h2>{t("Révoqués")}</h2>
-          {/* ILS RESTENT, et ce n'est pas de l'encombrement : une contestation
-              porte sur un tirage passé, et une ligne effacée ne se conteste
-              plus. */}
-          <ul className={styles.liste}>
-            {anciens.map((m) => (
-              <li key={m.id} className={styles.ancien}>
-                <span className="mono">{m.ref}</span> · {m.objet === "provision" ? t("Provision") : t("Épargne programmée")} · {t("révoqué le {d}", { d: fmtDate(m.revoqueLe ?? "") })}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </>
   );
 }

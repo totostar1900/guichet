@@ -87,10 +87,9 @@ describe("les gestes", () => {
     /* Depuis le 10 novembre 2026 le choix « par prélèvement » mène droit au formulaire « Autoriser un prélèvement », ouvert d'emblée : plus d'étape intermédiaire. */
     expect(code("src/app/moi/argent/page.tsx")).toContain('href: "/moi/prelevements?de=argent"');
     expect(code(PRELEVEMENT), "l'étape intermédiaire est revenue").toMatch(/redirect\("\/moi\/prelevements\?de=argent"\)/);
-    const src = lire("src/app/moi/prelevements/MesMandats.tsx");
-    expect(src).toMatch(/Préparer, puis signer/);
-    expect(src, "« Retour » ne ramène plus au choix du type de versement").toMatch(/<BoutonRetour href=\{retourHref\} className=\{`btn \$\{barre\.retour\}`\}>\s*\{t\("Retour"\)\}/);
-    expect(lire("src/app/moi/prelevements/page.tsx")).toMatch(/retourHref=\{retourHref\}/);
+    /* Depuis le 15 novembre 2026 la mise en place est le parcours en cinq pages, à une adresse à part. */
+    expect(lire("src/app/moi/prelevements/page.tsx")).toMatch(/redirect\("\/moi\/prelevements\/nouveau"\)/);
+    expect(lire("src/app/moi/prelevements/nouveau/page.tsx")).toMatch(/usage="provision"/);
   });
 
   /* LE 25 OCTOBRE 2026 : CE QUI SÉPARE LES DEUX CHEMINS, ET LE RANG DU MOTIF.

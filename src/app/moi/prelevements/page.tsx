@@ -1,12 +1,9 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth";
-import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
-import { etapeDuMandat, JOUR_MAX, JOUR_MIN, MOTIFS_DE_REFUS_DE_COPIE } from "@/lib/domain/mandat";
-import { MOTIFS, prochaineEcheance } from "@/lib/domain/prelevement";
-import { nextRun } from "@/lib/domain/standing";
-import { fmt, fmtDate, localIso } from "@/lib/format";
-import { aucunCanalPossible, canalDuCode } from "@/lib/kyc/canal";
-import { MesMandats } from "./MesMandats";
+import { fmt } from "@/lib/format";
+import { lireLesMandats } from "./donnees";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
@@ -20,43 +17,41 @@ export async function generateMetadata() {
 }
 
 /**
- * LE DOMICILE DES MANDATS DE PRÉLÈVEMENT.
+ * AUTORISER UN PRÉLÈVEMENT EST UN SOMMAIRE (décision du 15 novembre 2026, option A : « même geste partout »).
  *
- * Tout le reste de la plateforme va dans un sens : le client signe, puis il
- * vire. Ici la maison tire, sur une autorisation donnée une fois. Une page à
- * part, et non une case au fond d'un formulaire : on ne glisse pas une
- * autorisation de débit dans un écran qui parle d'autre chose.
+ * La page mêlait quatre métiers sur 1 449 px : signer un mandat en attente, lire ceux qui sont en place, en ajouter un, relire l'historique. Elle les range : une tuile par
+ * mandat, qui dit où il en est, une tuile pour en mettre un en place (la provision, par le même parcours que l'épargne), et une pour l'historique. Chaque mandat a sa page,
+ * avec le seul geste qu'il attend. Une tuile qui attend un geste le porte sur elle.
  *
- * Deux décisions de la maison s'y lisent sans être expliquées : un mandat par
- * usage, et un calendrier, jamais un tirage à la demande.
+ * Les anciennes adresses restent valables : « ?instruction= » mène au mandat de cette épargne, « ?de=argent » à la mise en place d'une provision.
  */
 export default async function PrelevementsPage({ searchParams }: { searchParams: Promise<{ instruction?: string; de?: string }> }) {
-  /* On arrive parfois d'une épargne programmée qu'on vient de signer, en ayant
-     choisi « prélevez-moi » : le formulaire s'ouvre sur elle, au lieu de la
-     faire retrouver dans une liste. */
   const sp = await searchParams;
-  const demandee = sp.instruction;
-  /* ON ARRIVE DU CHOIX « PAR PRÉLÈVEMENT » (10 novembre 2026) : le formulaire est ouvert d'emblée, et « Retour » ramène à ce choix. */
-  const retourHref = sp.de === "regles" ? "/moi/regles" : sp.de === "epargne" || demandee ? "/moi/epargne" : "/moi/argent";
   const t = await getT();
   const s = await requireSession("/moi/prelevements");
-  const r = repo();
-  const [mandats, standing, fiche, tirages, offres] = await Promise.all([
-    r.listMandats(s.userId),
-    r.listStandingOrders(s.userId).catch(() => []),
-    r.getClientFileByUser(s.userId),
-    r.listTirages({ userId: s.userId }).catch(() => []),
-    r.listOffers().catch(() => []),
-  ]);
-  const aujourdHui = localIso(new Date());
-  /* L'épargne que paie un mandat : son fonds, son jour et sa prochaine échéance se lisent sur elle (audit « signature du mandat d'une épargne », 11 novembre 2026). */
-  const epargneDe = (id?: string) => (id ? standing.find((x) => x.id === id) : undefined);
-  const canal = fiche ? await canalDuCode(s.userId, fiche) : undefined;
-  /* Injoignable : un mandat signé ici ne tirerait jamais rien, puisque rien ne
-     part sans que son préavis soit parti. La page le dit avant, et non après
-     un code demandé pour rien. */
-  const injoignable = aucunCanalPossible(canal);
-  const instructions = standing.filter((x) => x.state === "active" && x.source === "virement").map((x) => ({ id: x.id, ref: x.ref, montant: x.amount, jour: x.dayOfMonth }));
+  const { mandats, vus, provisionLibre } = await lireLesMandats(s.userId);
+
+  const demande = sp.instruction ? mandats.find((m) => m.standingId === sp.instruction && m.state !== "revoque") : undefined;
+  if (demande) redirect(`/moi/prelevements/${demande.id}`);
+  if ((sp.de === "argent" || sp.de === "alimenter") && provisionLibre) redirect("/moi/prelevements/nouveau");
+
+  const ETAT: Record<string, string> = {
+    a_signer: t("à signer"),
+    copie_attendue: t("copie attendue"),
+    en_verification: t("en vérification"),
+    copie_refusee: t("copie refusée"),
+  };
+  const vivants = vus.filter((m) => m.etat !== "revoque");
+  const tuiles: { href: string; nom: string; dit: string; attend?: string }[] = vivants.map((m) => ({
+    href: `/moi/prelevements/${m.id}`,
+    nom: m.objet === "provision" ? t("Ma provision") : m.fonds ? t("Mon épargne vers {f}", { f: m.fonds }) : t("Mon épargne programmée"),
+    dit: `${fmt(m.montant)} FCFA${m.jour != null ? ` · ${t("le {j} de chaque mois", { j: String(m.jour) })}` : ""}${m.etat === "suspendu" ? ` · ${t("arrêté")}` : m.etape === "actif" ? ` · ${t("actif")}` : ""}`,
+    attend: m.etape !== "actif" ? ETAT[m.etape] : undefined,
+  }));
+  if (provisionLibre) {
+    tuiles.push({ href: "/moi/prelevements/nouveau", nom: t("Mettre un prélèvement en place"), dit: t("Alimenter votre provision chaque mois, par prélèvement sur votre compte bancaire."), attend: vivants.length === 0 ? t("rien en place") : undefined });
+  }
+  tuiles.push({ href: "/moi/prelevements/historique", nom: t("Mes prélèvements"), dit: t("Ce qui est passé, et les mandats révoqués.") });
 
   return (
     <Glissement>
@@ -64,100 +59,21 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
         <EnTete
           surTitre={t("Payer sans y penser")}
           titre={t("Autoriser un prélèvement")}
-          /* LE PLAFOND EST PARTI DE LA PHRASE D'OUVERTURE, le 25 octobre 2026.
-             Il se disait trois fois sur un même écran — ici, sous le champ du
-             montant (« ce montant est aussi votre plafond »), et sur chaque
-             carte d'autorisation (« plafond par échéance »). Pour la provision,
-             le plafond VAUT le montant que le client écrit : l'annoncer comme
-             un réglage à part faisait chercher un second champ qui n'existe
-             pas. Ce qui reste en tête, ce sont les deux promesses qui ne se
-             lisent nulle part ailleurs : on annonce avant, et on s'arrête sur
-             demande. */
-          phrase={t(
-            "Vous pouvez nous autoriser à prélever une somme sur votre compte bancaire, à une date fixe du mois. Chaque prélèvement est annoncé avant de partir, et vous pouvez révoquer votre autorisation à tout moment, sans motif.",
-          )}
+          phrase={t("Vous nous autorisez à prélever une somme sur votre compte bancaire, à une date fixe du mois. Chaque prélèvement est annoncé avant de partir, et vous révoquez votre autorisation à tout moment, sans motif.")}
           aCote={<EnBref brief="prelevement" />}
         />
-
-        {/* LE COMPTE DÉBITÉ EST CELUI DU CLIENT, et la page le redit là où il va
-            le saisir : c'est la règle de la convention sur l'origine des fonds,
-            et c'est elle qui empêche la plateforme de servir à déplacer
-            l'argent d'un compte vers un autre. */}
-        <MesMandats
-          instructionDemandee={demandee}
-          ouvertDEmblee={sp.de === "argent" || sp.de === "alimenter"}
-          retourHref={retourHref}
-          mandats={mandats.map((m) => ({
-            id: m.id,
-            standingId: m.standingId,
-            ref: m.ref,
-            objet: m.objet,
-            titulaire: m.accountHolder,
-            banque: m.bankName,
-            compte: m.bankAccount,
-            montant: m.amount,
-            jour: m.dayOfMonth ?? epargneDe(m.standingId)?.dayOfMonth,
-            fonds: epargneDe(m.standingId) ? offres.find((o) => o.id === epargneDe(m.standingId)?.offerId)?.title : undefined,
-            etat: m.state,
-            etape: etapeDuMandat(m),
-            refus: m.refusMotif && m.refusMotif in MOTIFS_DE_REFUS_DE_COPIE ? t(MOTIFS_DE_REFUS_DE_COPIE[m.refusMotif as keyof typeof MOTIFS_DE_REFUS_DE_COPIE]) : undefined,
-            signeLe: m.signedAt,
-            /* L'EXEMPLAIRE, PAR SON ADRESSE. La carte promettait « votre
-               exemplaire est dans vos documents » sans y mener : le client
-               devait traverser trois écrans pour trouver la pièce que sa
-               banque lui demande. */
-            piece: m.docId,
-            codeEnvoyeA: m.pendingCodeTo,
-            codeEnvoyeLe: m.pendingCodeAt,
-            revoqueLe: m.revokedAt,
-            /* Le prochain tirage, dit sur la carte : l'écho de l'ancienne étape « par prélèvement », où il vivait. */
-            prochain: m.signedAt && m.state === "actif" && etapeDuMandat(m) === "actif" ? (m.dayOfMonth ? prochaineEcheance(m.dayOfMonth, aujourdHui) : ((e) => (e ? nextRun(e, aujourdHui) : null))(epargneDe(m.standingId)) ?? undefined) : undefined,
-          }))}
-          instructions={instructions}
-          titulaireParDefaut={fiche?.identity.name ?? s.name}
-          banqueParDefaut={fiche?.funds.bankName ?? ""}
-          compteParDefaut={fiche?.funds.bankAccount ?? ""}
-          canal={canal ? { to: canal.to, parMail: canal.channel === "email" } : undefined}
-          dossier={Boolean(fiche)}
-          injoignable={injoignable}
-          jourMin={JOUR_MIN}
-          jourMax={JOUR_MAX}
-        />
-
-        {/* CE QUI EST ANNONCÉ, ET CE QUI EST ARRIVÉ.
-            La page promettait « chaque prélèvement est annoncé avant de partir »
-            et ne montrait aucun prélèvement : la promesse vivait dans un message
-            que le client reçoit une fois et qu'il perd. Un rejet, surtout, doit
-            se relire ici : sa banque le lui a peut-être facturé, et deviner
-            pourquoi n'est pas à lui de le faire. */}
-        {tirages.length > 0 && (
-          <section className={styles.bloc}>
-            <h2>{t("Mes prélèvements")}</h2>
-            <ul className={styles.tirages}>
-              {tirages.slice(0, 12).map((x) => {
-                const m = mandats.find((y) => y.id === x.mandatId);
-                return (
-                  <li key={x.id}>
-                    <span className={styles.tQuand}>{fmtDate(x.dueOn)}</span>
-                    <b className={styles.tMontant}>{t("{m} FCFA", { m: fmt(x.amount) })}</b>
-                    <span className={styles.tQuoi}>{m?.objet === "instruction" ? t("Épargne programmée") : t("Provision")}</span>
-                    <span className={x.state === "rejete" ? styles.tRejet : x.state === "encaisse" ? styles.tOk : styles.tAttente}>
-                      {x.state === "encaisse"
-                        ? t("reçu")
-                        : x.state === "rejete"
-                          ? t(MOTIFS[x.rejectCode ?? "autre"].auClient)
-                          : x.state === "remis"
-                            ? t("présenté à votre banque")
-                            : x.announcedAt
-                              ? t("annoncé, à venir")
-                              : t("à venir")}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        )}
+        <div className={styles.tuiles}>
+          {tuiles.map((x) => (
+            <Link key={x.href} href={x.href} className={styles.tuile}>
+              <span>
+                <b>{x.nom}</b>
+                <small>{x.dit}</small>
+              </span>
+              {x.attend && <em className={styles.attend}>{x.attend}</em>}
+              <i aria-hidden="true">›</i>
+            </Link>
+          ))}
+        </div>
       </div>
     </Glissement>
   );

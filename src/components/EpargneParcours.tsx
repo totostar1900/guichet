@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/Select";
 import { groupDigits, groupedInput } from "@/lib/ui/grouped";
 import { fmt, parseAmount } from "@/lib/format";
 import { JOUR_MAX_VERSEMENT, premierVersement } from "@/lib/domain/standing";
+import { JOUR_MAX } from "@/lib/domain/mandat";
 import { hrefDeLecture } from "@/lib/lecture";
 import { mettreEnPlaceAction, type MiseEnPlace } from "@/app/moi/epargne/actions";
 import { deposerCopieMandatAction, signerMandatAction, type MandatResult } from "@/app/moi/prelevements/actions";
@@ -44,6 +45,7 @@ export function EpargneParcours({
   compte,
   apres,
   empeche,
+  usage = "epargne",
 }: {
   fonds: FondsChoix[];
   fondsInitial?: string;
@@ -55,7 +57,10 @@ export function EpargneParcours({
   apres: string;
   /** Ce qui empêche de signer (pas de dossier, pas d'adresse où recevoir le code) : dit avant de faire remplir. */
   empeche?: "dossier" | "adresse";
+  /** « provision » : le mandat qui alimente la provision, sans fonds ni jour au-delà du 28 ; même parcours, mêmes cinq pages (15 novembre 2026, option A). */
+  usage?: "epargne" | "provision";
 }) {
+  const prov = usage === "provision";
   const t = useT();
   const { fmtDate } = useDates();
   const router = useRouter();
@@ -148,6 +153,7 @@ export function EpargneParcours({
 
       {etape === 1 && (
         <>
+          {!prov && (
           <section className={styles.section}>
             <h2>{t("Le fonds")}</h2>
             {/* La liste de la maison, mise en avant : une tuile à sa propre section, sa valeur en grand, « Changer » à droite. */}
@@ -155,6 +161,7 @@ export function EpargneParcours({
               <Select block name="offerIdChoix" value={choisi} onChange={setChoisi} options={fonds.map((f) => ({ value: f.id, label: f.title }))} />
             </div>
           </section>
+          )}
 
           <section className={styles.section}>
             <h2>{t("La somme chaque mois")}</h2>
@@ -174,15 +181,16 @@ export function EpargneParcours({
                 value={String(jour)}
                 onChange={(v) => setJour(Number(v))}
                 cherchable={false}
-                options={Array.from({ length: JOUR_MAX_VERSEMENT }, (_, i) => ({ value: String(i + 1), label: t("Le {j} de chaque mois", { j: String(i + 1) }) }))}
+                options={Array.from({ length: prov ? JOUR_MAX : JOUR_MAX_VERSEMENT }, (_, i) => ({ value: String(i + 1), label: t("Le {j} de chaque mois", { j: String(i + 1) }) }))}
               />
             </div>
             <small className={styles.aide}>
-              <b>{t("Premier versement le {d}", { d: premier })}</b>
+              <b>{prov ? t("Premier prélèvement le {d}", { d: premier }) : t("Premier versement le {d}", { d: premier })}</b>
             </small>
             {jour >= 29 && <small className={styles.aide}>{t("En février, un prélèvement du 29 ou du 30 tombe le 1er mars quand ce jour n'existe pas.")}</small>}
           </section>
 
+          {!prov && (
           <section className={styles.section}>
             <h2>{t("Si un mois le prélèvement est impossible")}</h2>
             {/* Deux choix : on les montre tous les deux, à cocher, plutôt que dans une liste qu'il faut ouvrir. */}
@@ -201,6 +209,7 @@ export function EpargneParcours({
               ))}
             </div>
           </section>
+          )}
         </>
       )}
 
@@ -226,10 +235,12 @@ export function EpargneParcours({
       {etape === 3 && (
         <>
           <div className={styles.recap}>
-            <div>
-              <span>{t("Vers quel fonds")}</span>
-              <b>{fonds.find((f) => f.id === choisi)?.title ?? "—"}</b>
-            </div>
+            {!prov && (
+              <div>
+                <span>{t("Vers quel fonds")}</span>
+                <b>{fonds.find((f) => f.id === choisi)?.title ?? "—"}</b>
+              </div>
+            )}
             <div>
               <span>{t("Chaque mois")}</span>
               <b>
@@ -240,13 +251,15 @@ export function EpargneParcours({
               <span>{t("Le")}</span>
               <b>
                 {t("{j} de chaque mois", { j: String(jour) })}
-                <small>{t("Premier versement le {d}", { d: premier })}</small>
+                <small>{prov ? t("Premier prélèvement le {d}", { d: premier }) : t("Premier versement le {d}", { d: premier })}</small>
               </b>
             </div>
-            <div>
-              <span>{t("Si un mois le prélèvement est impossible")}</span>
-              <b>{bloqueTexte(bloque)}</b>
-            </div>
+            {!prov && (
+              <div>
+                <span>{t("Si un mois le prélèvement est impossible")}</span>
+                <b>{bloqueTexte(bloque)}</b>
+              </div>
+            )}
             <div>
               <span>{t("Compte débité")}</span>
               <b>
@@ -348,11 +361,17 @@ export function EpargneParcours({
       {/* LA SEULE ACTION DE LA PAGE, dans la barre collée en bas. Chaque bouton n'existe que sur sa page. */}
       {etape === 3 ? (
         <form id="parcours-mise" action={miseAct}>
-          <input type="hidden" name="offerId" value={choisi} />
+          {prov ? (
+            <input type="hidden" name="objet" value="provision" />
+          ) : (
+            <>
+              <input type="hidden" name="offerId" value={choisi} />
+              <input type="hidden" name="onBlocked" value={bloque} />
+              <input type="hidden" name="reglement" value="prelevement" />
+            </>
+          )}
           <input type="hidden" name="amount" value={verse} />
           <input type="hidden" name="dayOfMonth" value={jour} />
-          <input type="hidden" name="onBlocked" value={bloque} />
-          <input type="hidden" name="reglement" value="prelevement" />
           <input type="hidden" name="accountHolder" value={nom} />
           <input type="hidden" name="bankName" value={bq} />
           <input type="hidden" name="bankAccount" value={rib} />

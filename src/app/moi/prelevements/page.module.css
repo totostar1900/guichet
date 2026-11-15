@@ -8,6 +8,8 @@
      2026. Le gabarit porte les deux. */
   max-width: var(--page-texte);
   margin-inline: auto;
+  /* LA MÊME GOUTTIÈRE QUE L'ÉPARGNE ET LES AUTRES PAGES (15 novembre 2026) : 14 px ici contre 30 ailleurs, c'était l'une des incohérences relevées à l'audit du parcours. */
+  padding: var(--s-8) var(--s-7) var(--s-10);
 }
 /* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
    2026 : leurs mesures vivent dans sa feuille. */
@@ -102,34 +104,6 @@
   border-top: 1px solid var(--line);
   padding-top: var(--s-4);
 }
-.form {
-  display: grid;
-  gap: var(--s-5);
-  max-width: 560px;
-}
-.deux {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s-5);
-}
-.choix {
-  display: grid;
-  gap: var(--s-3);
-  border: 0;
-  margin: 0;
-  padding: 0;
-}
-.choix legend {
-  padding: 0;
-  font-size: var(--t-3);
-  color: var(--ink-2);
-}
-.choix label {
-  display: flex;
-  gap: var(--s-3);
-  align-items: baseline;
-  font-size: var(--t-4);
-}
 .codeRow {
   display: flex;
   gap: var(--s-4);
@@ -158,10 +132,7 @@
 }
 
 @media (max-width: 700px) {
-  .deux {
-    grid-template-columns: 1fr;
-  }
-  .mLignes dt {
+    .mLignes dt {
     min-width: 100%;
   }
 }
@@ -208,4 +179,57 @@
 }
 .tRejet {
   color: var(--crit);
+}
+
+/* Le sommaire : trois tuiles-liens, mêmes jetons de tuile que « Mon argent ». */
+.tuiles {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tuiles-gap);
+}
+.tuile {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  min-height: 64px;
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+}
+.tuile > span {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.tuile b {
+  font-size: var(--t-3);
+}
+.tuile small {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.tuile i {
+  flex: none;
+  font-style: normal;
+  color: var(--gold-ink);
+  font-size: var(--t-5);
+}
+/* La pastille d'attente : la tuile qui attend un geste le dit sur elle. */
+.attend {
+  flex: none;
+  font-style: normal;
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: var(--s-1) var(--s-3);
 }

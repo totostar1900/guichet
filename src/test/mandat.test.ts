@@ -171,28 +171,16 @@ describe("ce que le parcours du mandat doit dire", () => {
     expect(vue, "la carte ne mène plus à la pièce").toMatch(/m\.piece \? `\/moi\/documents\/\$\{m\.piece\}/);
     /* Et la page passe bien l'adresse : sans elle, le lien retomberait pour
        toujours sur le rayon, c'est-à-dire sur la phrase qu'il remplace. */
-    expect(readFileSync("src/app/moi/prelevements/page.tsx", "utf8"), "la page ne passe plus l'exemplaire").toMatch(/piece: m\.docId/);
+    expect(readFileSync("src/app/moi/prelevements/donnees.ts", "utf8"), "la lecture ne passe plus l'exemplaire").toMatch(/piece: m\.docId/);
   });
 
-  it("ouvre le formulaire quand il n'y a rien d'autre à lire", () => {
-    expect(vue, "le formulaire se referme derrière un bouton même sans autorisation").toMatch(/useState\(connue \|\| vivants\.length === 0 \|\| \(ouvertDEmblee && aUnUsageLibre\)\)/);
-    /* Le repli garde son sens dès qu'une autorisation existe : on vient alors
-       lire la liste, et en ajouter une seconde est délibéré. */
-    /* LE BOUTON, ET NON LE MOT. Vérifié à l'envers le 1er novembre 2026 :
-       renommer le bouton laissait cette clause VERTE, parce que le fichier
-       explique le bouton deux fois dans ses commentaires — « un écran dont le
-       seul contenu était un bouton “Préparer un mandat” » — et que « vue »
-       lit le source tel quel. C'est le piège que la maison a nommé ailleurs,
-       « le code, pas ce qu'on en dit », et il avait franchi ce fichier-ci.
-       On lit donc le source sans ses notes, et c'est l'ÉTIQUETTE TRADUITE
-       qu'on y cherche, appel à la traduction compris : une phrase de
-       commentaire ne porte pas cet appel.
-       (Et ce commentaire-ci l'a écrit une fois, en exemple, avant que le
-        relevé du français sans anglais ne l'attrape comme une chaîne à
-        traduire. Un scanner qui ne retire pas les notes se prend aux notes :
-        c'est le défaut même qu'on répare dix lignes plus bas.) */
-    const sansNotes = vue.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
-    expect(sansNotes, "le bouton de repli a disparu : on ne peut plus refermer").toContain('t("Préparer un mandat")');
+  it("la provision se met en place par le même parcours que l'épargne, à une adresse à part", () => {
+    const n = readFileSync("src/app/moi/prelevements/nouveau/page.tsx", "utf8");
+    expect(n).toMatch(/usage="provision"/);
+    expect(n, "un usage déjà couvert n'est plus proposé").toMatch(/if \(!provisionLibre\) redirect\("\/moi\/prelevements"\)/);
+    const p = readFileSync("src/app/moi/prelevements/page.tsx", "utf8");
+    expect(p, "l'ancienne adresse « ?de=argent » mène à la mise en place").toMatch(/redirect\("\/moi\/prelevements\/nouveau"\)/);
+    expect(p, "l'ancienne adresse « ?instruction= » mène au mandat de l'épargne").toMatch(/redirect\(`\/moi\/prelevements\/\$\{demande\.id\}`\)/);
   });
 
   /* LA SIGNATURE MANUSCRITE, POUR LA BANQUE ET POUR ELLE SEULE. Plusieurs
@@ -319,11 +307,9 @@ describe("l'action du mandat interroge le sens avant la forme", () => {
 
 /* L'AUDIT DE LA SIGNATURE D'UN MANDAT (11 novembre 2026) : on ne fait pas remplir ce que le serveur refusera, et la création d'une épargne ne laisse pas d'entrée d'historique en trop. */
 describe("un usage déjà couvert n'est plus proposé", () => {
-  const vue = readFileSync("src/app/moi/prelevements/MesMandats.tsx", "utf8");
-  it("sans usage libre, le formulaire ne s'ouvre pas : la page dit que tout est couvert", () => {
-    expect(vue).toMatch(/const provisionLibre = !vivants\.some\(\(m\) => m\.objet === "provision"\)/);
-    expect(vue).toMatch(/const epargnesLibres = instructions\.filter\(\(i\) => !vivants\.some\(\(m\) => m\.objet === "instruction" && m\.standingId === i\.id\)\)/);
-    expect(vue).toMatch(/\) : !aUnUsageLibre \? \(/);
+  it("sans usage libre, la mise en place n'est plus proposée : la provision couverte n'a plus de tuile", () => {
+    expect(readFileSync("src/app/moi/prelevements/donnees.ts", "utf8")).toMatch(/provisionLibre: !mandats\.some\(\(m\) => m\.objet === "provision" && m\.state !== "revoque"\)/);
+    expect(readFileSync("src/app/moi/prelevements/page.tsx", "utf8")).toMatch(/if \(provisionLibre\) \{\s*tuiles\.push\(/);
   });
   it("la tuile de « Mon argent » dit « Déjà en place » quand un mandat vivant existe", () => {
     const a = readFileSync("src/app/moi/argent/page.tsx", "utf8");
@@ -356,9 +342,8 @@ describe("comment une épargne est payée, lu dans ses mandats", () => {
     expect(paiementDeLEpargne(ep("prelevement", "st-2"), [m("actif", "2026-11-11", "st-1")], toutes)).toBe("prelevement");
     expect(paiementDeLEpargne(ep("prelevement", "st-2"), [m("actif", "2026-11-11", "st-1")]), "sans la lignée, le mandat d'avant ne se voit pas").toBe("mandat_a_signer");
   });
-  it("le formulaire reprend le montant de l'épargne, la carte nomme son fonds, la liste dit « En attente du mandat »", () => {
+  it("la carte nomme son fonds, la liste dit « En attente du mandat »", () => {
     const vue = readFileSync("src/app/moi/prelevements/MesMandats.tsx", "utf8");
-    expect(vue).toMatch(/groupDigits\(String\(e\.montant\)\)/);
     expect(vue).toContain('t("Alimenter mon épargne vers {f}", { f: m.fonds })');
     expect(readFileSync("src/components/Standing.tsx", "utf8")).toMatch(/s\.paiement === "mandat_a_signer"/);
     const r = readFileSync("src/app/moi/regles/page.tsx", "utf8");

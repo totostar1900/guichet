@@ -68,7 +68,7 @@ describe("un montant, un jour", () => {
   it("ouvre le montant sur un nombre qu'on peut compter, et donne le jour en un seul champ de 1 à 30", () => {
     const src = code(TSX);
     expect(src, "le montant s'ouvre de nouveau sur des chiffres collés").toMatch(/useState\(plancher \? groupDigits\(String\(plancher\)\) : ""\)/);
-    expect(src, "le jour n'est plus un champ de la maison à trente entrées").toMatch(/length: JOUR_MAX_VERSEMENT/);
+    expect(src, "le jour n'est plus un champ de la maison à trente entrées").toMatch(/length: prov \? JOUR_MAX : JOUR_MAX_VERSEMENT/);
     expect(src, "la grille des vingt-huit jours est revenue").not.toMatch(/length: 28/);
     expect(src, "la règle de février a disparu du formulaire").toMatch(/tombe le 1er mars quand ce jour n'existe pas/);
   });

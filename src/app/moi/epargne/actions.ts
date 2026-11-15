@@ -8,7 +8,7 @@ import { createStandingAction } from "../standing-actions";
 import { creerMandatAction, envoyerCodeMandatAction } from "../prelevements/actions";
 
 export type MiseEnPlace =
-  | { ok: true; standingId: string; mandatId: string; message: string; code?: string }
+  | { ok: true; standingId?: string; mandatId: string; message: string; code?: string }
   | { ok: false; error: string; standingId?: string; mandatId?: string };
 
 /**
@@ -27,7 +27,17 @@ export async function mettreEnPlaceAction(_p: MiseEnPlace | null, form: FormData
   let standingId = String(form.get("standingId") ?? "");
   let mandatId = String(form.get("mandatId") ?? "");
 
-  if (!mandatId) {
+  const provision = String(form.get("objet") ?? "") === "provision";
+
+  /* LA PROVISION N'A PAS D'ÉPARGNE : le mandat naît seul, avec son jour (1 à 28), et suit la même route (code, signature, copie). */
+  if (!mandatId && provision) {
+    const m = new FormData();
+    m.set("objet", "provision");
+    for (const k of ["amount", "dayOfMonth", "accountHolder", "bankName", "bankAccount"]) m.set(k, String(form.get(k) ?? ""));
+    const mandat = await creerMandatAction(null, m);
+    if (!mandat.ok || !mandat.id) return { ok: false, error: mandat.ok ? "Le mandat n'a pas pu être préparé. Réessayez." : mandat.error };
+    mandatId = mandat.id;
+  } else if (!mandatId) {
     const e = await createStandingAction(null, form);
     if (!e.ok) return { ok: false, error: e.error };
     standingId = e.standingId ?? "";
