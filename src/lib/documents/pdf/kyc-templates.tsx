@@ -173,11 +173,20 @@ export function MandatPrelevementDoc({ number, mandat, now, reglement }: { numbe
           ligne manuscrite ordinaire que « Signature » pose déjà. */}
       {mandat.signedAt ? (
         <>
-          <Text style={s.p}>
-            <Text style={s.b}>Si votre banque réclame une signature manuscrite.</Text> Le mandat ci-dessus est déjà signé : la signature électronique vaut autorisation entre le débiteur et {COMPANY.legalName}, et aucun prélèvement
-            n&apos;attend ce cadre. Certaines banques de la zone exigent toutefois un exemplaire signé à la main pour leurs propres registres : imprimez cette page, signez le cadre de gauche, et remettez-la à votre agence en citant la
-            référence {mandat.ref}.
-          </Text>
+          {/* LA COPIE SIGNÉE À LA MAIN CONDITIONNE LE PRÉLÈVEMENT depuis le 15 novembre 2026 pour tout mandat créé après cette date ; les mandats d'avant gardent leur texte : le cadre ne conditionne rien pour eux. */}
+          {mandat.copieRequise ? (
+            <Text style={s.p}>
+              <Text style={s.b}>Pour que le prélèvement parte.</Text> Ce mandat est signé par code, ce qui vaut consentement en ligne. Il se signe aussi à la main, sur le même document : imprimez cette page en deux exemplaires, signez le cadre
+              de gauche, remettez un exemplaire à votre agence en citant la référence {mandat.ref}, et envoyez-nous une copie signée depuis votre espace. {COMPANY.legalName} garde cette copie à votre dossier, et aucun prélèvement
+              n&apos;est présenté avant qu&apos;elle ait été vérifiée.
+            </Text>
+          ) : (
+            <Text style={s.p}>
+              <Text style={s.b}>Si votre banque réclame une signature manuscrite.</Text> Le mandat ci-dessus est déjà signé : la signature électronique vaut autorisation entre le débiteur et {COMPANY.legalName}, et aucun prélèvement
+              n&apos;attend ce cadre. Certaines banques de la zone exigent toutefois un exemplaire signé à la main pour leurs propres registres : imprimez cette page, signez le cadre de gauche, et remettez-la à votre agence en citant la
+              référence {mandat.ref}.
+            </Text>
+          )}
           <Sig left="Signature manuscrite du débiteur, pour sa banque" right="Cachet et visa de la banque du débiteur" />
         </>
       ) : null}

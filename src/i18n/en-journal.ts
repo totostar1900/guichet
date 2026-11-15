@@ -171,6 +171,8 @@ export const EN_JOURNAL: Record<string, string> = {
   "a préparé un mandat de prélèvement": "prepared a direct debit mandate",
   "Vous avez signé un mandat de prélèvement": "You signed a direct debit mandate",
   "a signé un mandat de prélèvement": "signed a direct debit mandate",
+  "Vous avez envoyé la copie signée de votre mandat": "You sent the signed copy of your mandate",
+  "a envoyé la copie signée de son mandat": "sent the signed copy of their mandate",
   "Vous avez révoqué un mandat de prélèvement": "You revoked a direct debit mandate",
   "a révoqué un mandat de prélèvement": "revoked a direct debit mandate",
   "Vous avez demandé un relevé": "You asked for a statement",

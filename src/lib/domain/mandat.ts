@@ -99,11 +99,29 @@ export interface MandatPrelevement {
   revokedReason?: string;
   /** Combien de mois refusés de suite : au second, la maison arrête d'elle-même. */
   rejects?: number;
+  /**
+   * LA COPIE SIGNÉE À LA MAIN (décision du 15 novembre 2026, maquette « Signature manuelle » : 1A).
+   *
+   * Un mandat créé depuis cette date se signe deux fois : par code (le consentement, en ligne) puis à la main, sur le même document, déposé à la banque du client
+   * dont une copie vient au desk. Le prélèvement attend la vérification de cette copie. Les mandats déjà actifs ne sont pas concernés (`copieRequise` absent).
+   */
+  copieRequise?: boolean;
+  copieKey?: string;
+  copieNom?: string;
+  copieType?: string;
+  copieRecueLe?: string;
+  verifieLe?: string;
+  verifiePar?: string;
+  /** Le motif du dernier refus, pris dans MOTIFS_DE_REFUS_DE_COPIE. */
+  refusMotif?: string;
+  refusLe?: string;
+  /** Le rappel envoyé quand la copie tarde : une seule fois. */
+  relanceLe?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export type NewMandat = Pick<MandatPrelevement, "userId" | "objet" | "standingId" | "bankName" | "bankAccount" | "accountHolder" | "dayOfMonth" | "amount">;
+export type NewMandat = Pick<MandatPrelevement, "userId" | "objet" | "standingId" | "bankName" | "bankAccount" | "accountHolder" | "dayOfMonth" | "amount"> & { copieRequise?: boolean };
 
 /**
  * LE JOUR VA DE 1 À 28, comme pour les instructions permanentes.
@@ -178,8 +196,58 @@ export function verifierLeMandat(m: Partial<NewMandat>): string | undefined {
   return undefined;
 }
 
-/** Un mandat prélève-t-il encore ? Signé, actif, non révoqué. */
-export const mandatVivant = (m: MandatPrelevement): boolean => m.state === "actif" && Boolean(m.signedAt);
+/**
+ * OÙ EN EST UN MANDAT, DU CÔTÉ DU CLIENT (15 novembre 2026). Calculé, jamais rangé : l'étape se déduit des dates.
+ *
+ *   a_signer         pas encore signé par code
+ *   copie_attendue   signé par code ; la copie signée à la main n'est pas venue
+ *   en_verification  la copie est reçue ; le desk la vérifie
+ *   copie_refusee    la dernière copie a été refusée, et aucune plus récente n'est venue
+ *   actif            prélève (copie vérifiée, ou mandat d'avant la règle)
+ */
+export type EtapeDuMandat = "a_signer" | "copie_attendue" | "en_verification" | "copie_refusee" | "actif";
+
+type PourLEtape = Pick<MandatPrelevement, "signedAt" | "copieRequise" | "copieRecueLe" | "verifieLe" | "refusLe">;
+
+export function etapeDuMandat(m: PourLEtape): EtapeDuMandat {
+  if (!m.signedAt) return "a_signer";
+  if (!m.copieRequise || m.verifieLe) return "actif";
+  if (m.refusLe && (!m.copieRecueLe || m.refusLe >= m.copieRecueLe)) return "copie_refusee";
+  if (m.copieRecueLe) return "en_verification";
+  return "copie_attendue";
+}
+
+/** Les raisons qu'un desk peut donner en refusant une copie : une liste fermée, que le client lit. */
+export const MOTIFS_DE_REFUS_DE_COPIE = {
+  signature_illisible: "La signature est illisible.",
+  titulaire_different: "Le titulaire n'est pas celui de votre dossier.",
+  rib_different: "Le RIB n'est pas celui du mandat.",
+  copie_incomplete: "La copie est incomplète : toute la page doit se lire.",
+} as const;
+export type MotifDeRefusDeCopie = keyof typeof MOTIFS_DE_REFUS_DE_COPIE;
+
+/** Ce qu'on accepte comme copie : un PDF, une photo ou un scan, 10 Mo au plus. */
+export const COPIE_FORMATS = ["application/pdf", "image/jpeg", "image/png"] as const;
+export const COPIE_TAILLE_MAX = 10 * 1024 * 1024;
+
+/** Sans copie après 7 jours, un rappel ; après 30 jours, le brouillon est retiré. */
+export const JOURS_AVANT_RELANCE_DE_COPIE = 7;
+export const JOURS_AVANT_ABANDON_DE_COPIE = 30;
+
+/** Ce qu'il faut faire d'un mandat dont la copie tarde, au jour dit. Les jours se comptent depuis la signature, ou depuis le refus. */
+export function suiteDeLaCopie(m: PourLEtape & Pick<MandatPrelevement, "relanceLe" | "state">, aujourdHui: string): "relancer" | "abandonner" | null {
+  if (m.state === "revoque") return null;
+  const etape = etapeDuMandat(m);
+  if (etape !== "copie_attendue" && etape !== "copie_refusee") return null;
+  const depuis = etape === "copie_refusee" ? (m.refusLe as string) : (m.signedAt as string);
+  const jours = Math.floor((new Date(`${aujourdHui.slice(0, 10)}T12:00:00Z`).getTime() - new Date(`${depuis.slice(0, 10)}T12:00:00Z`).getTime()) / 86_400_000);
+  if (jours >= JOURS_AVANT_ABANDON_DE_COPIE) return "abandonner";
+  if (jours >= JOURS_AVANT_RELANCE_DE_COPIE && !m.relanceLe) return "relancer";
+  return null;
+}
+
+/** Un mandat prélève-t-il encore ? Signé, actif, non révoqué, et sa copie vérifiée quand elle est requise. */
+export const mandatVivant = (m: MandatPrelevement): boolean => m.state === "actif" && etapeDuMandat(m) === "actif";
 
 /**
  * NI PLUS, NI MOINS : le montant présenté est CELUI du mandat.
@@ -199,17 +267,20 @@ export const tirageAutorise = (m: MandatPrelevement, montant: number): boolean =
  *
  * Une modification remplace l'ordre par une nouvelle version : un mandat qui paie la version d'avant couvre la suivante, d'où la lignée.
  */
-export type PaiementDUneEpargne = "prelevement" | "mandat_a_signer" | "virement";
+export type PaiementDUneEpargne = "prelevement" | "mandat_a_signer" | "copie_attendue" | "en_verification" | "copie_refusee" | "virement";
 
 export function paiementDeLEpargne(
   epargne: { id: string; reglement?: "virement" | "prelevement" },
-  mandats: Pick<MandatPrelevement, "objet" | "standingId" | "state" | "signedAt">[],
+  mandats: Pick<MandatPrelevement, "objet" | "standingId" | "state" | "signedAt" | "copieRequise" | "copieRecueLe" | "verifieLe" | "refusLe">[],
   toutes: { id: string; supersedes?: string }[] = [],
 ): PaiementDUneEpargne {
   const lignee = new Set<string>([epargne.id]);
   for (let cur = toutes.find((x) => x.id === epargne.id); cur?.supersedes && !lignee.has(cur.supersedes); cur = toutes.find((x) => x.id === cur?.supersedes)) lignee.add(cur.supersedes);
   const siens = mandats.filter((m) => m.objet === "instruction" && m.standingId && lignee.has(m.standingId) && m.state !== "revoque");
-  if (siens.some((m) => m.state === "actif" && m.signedAt)) return "prelevement";
+  if (siens.some((m) => m.state === "actif" && etapeDuMandat(m) === "actif")) return "prelevement";
+  /* Signé par code mais pas encore prêt à prélever : l'étape de la copie se dit au client, et rien n'est prélevé. */
+  const enCours = siens.map((m) => etapeDuMandat(m)).find((e) => e === "copie_attendue" || e === "en_verification" || e === "copie_refusee");
+  if (enCours === "copie_attendue" || enCours === "en_verification" || enCours === "copie_refusee") return enCours;
   if (epargne.reglement === "prelevement" || siens.length) return "mandat_a_signer";
   return "virement";
 }

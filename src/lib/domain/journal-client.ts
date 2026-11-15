@@ -79,6 +79,7 @@ export const GESTES: Record<string, Geste> = {
   "epargne.arretee": { genre: "especes", phrase: "Vous avez arrêté votre épargne programmée", auDesk: "a arrêté son épargne programmée" },
   "mandat.cree": { genre: "especes", phrase: "Vous avez préparé un mandat de prélèvement", auDesk: "a préparé un mandat de prélèvement" },
   "mandat.signe": { genre: "especes", phrase: "Vous avez signé un mandat de prélèvement", auDesk: "a signé un mandat de prélèvement" },
+  "mandat.copie": { genre: "especes", phrase: "Vous avez envoyé la copie signée de votre mandat", auDesk: "a envoyé la copie signée de son mandat" },
   "mandat.revoque": { genre: "especes", phrase: "Vous avez révoqué un mandat de prélèvement", auDesk: "a révoqué un mandat de prélèvement" },
   "releve.demande": { genre: "especes", phrase: "Vous avez demandé un relevé", auDesk: "a demandé un relevé" },
 

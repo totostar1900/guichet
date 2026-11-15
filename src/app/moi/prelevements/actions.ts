@@ -7,10 +7,12 @@ import { noter } from "@/lib/journal";
 import { garde } from "@/lib/garde";
 import { repo } from "@/lib/data";
 import { attenteAvantRenvoi, empreinte, nouveauCode, verifier } from "@/lib/signature/code";
-import { JOUR_MAX, JOUR_MIN, mandatVivant, verifierLeMandat, type MandatPrelevement } from "@/lib/domain/mandat";
+import { COPIE_FORMATS, COPIE_TAILLE_MAX, etapeDuMandat, JOUR_MAX, JOUR_MIN, mandatVivant, verifierLeMandat, type MandatPrelevement } from "@/lib/domain/mandat";
+import { audit } from "@/lib/audit";
+import { saveSource } from "@/lib/intake/storage";
 import { parseAmount } from "@/lib/format";
 
-export type MandatResult = { ok: true; message?: string; code?: string; id?: string } | { ok: false; error: string };
+export type MandatResult = { ok: true; message?: string; code?: string; id?: string; piece?: string } | { ok: false; error: string };
 
 const PATH = "/moi/prelevements";
 
@@ -113,7 +115,7 @@ export async function creerMandatAction(_p: MandatResult | null, form: FormData)
   const siens = await repo().listMandats(s.userId);
   const double = siens.find((m) => m.state !== "revoque" && m.objet === d.objet && (d.objet !== "instruction" || m.standingId === d.standingId));
   if (double) return { ok: false, error: `Vous avez déjà un mandat pour cela (${double.ref}). Révoquez-le avant d'en signer un autre : deux mandats pour un même usage prélèveraient deux fois.` };
-  const m = await repo().createMandat({ ...d, userId: s.userId });
+  const m = await repo().createMandat({ ...d, userId: s.userId, copieRequise: true });
   await repo().logEvent({ kind: "system", html: `<b>Mandat de prélèvement créé</b> par ${s.name} · ${m.ref} · ${m.amount} FCFA par mois · à signer` });
   revalidatePath(PATH);
   const passeM = await garde("mandat.creer");
@@ -199,9 +201,11 @@ export async function signerMandatAction(_p: MandatResult | null, form: FormData
     pendingCodeTries: 0,
     pendingCodeTo: undefined,
   });
+  let piece: string | undefined;
   try {
     const { generateMandat } = await import("@/lib/documents/generate");
-    await r.updateMandat(m.id, { docId: (await generateMandat(m.id)).id });
+    piece = (await generateMandat(m.id)).id;
+    await r.updateMandat(m.id, { docId: piece });
   } catch (e) {
     await r.logEvent({ kind: "system", html: `Exemplaire du mandat ${m.ref} non produit : ${e instanceof Error ? e.message : "erreur"}` });
   }
@@ -211,7 +215,39 @@ export async function signerMandatAction(_p: MandatResult | null, form: FormData
   const passeS = await garde("mandat.signer");
   if (!passeS.ok) return { ok: false, error: passeS.raison! };
   await noter("mandat.signe", { objet: m.ref, detail: m.bankName });
-  return { ok: true, message: "Mandat signé. Votre exemplaire est dans vos documents." };
+  return { ok: true, message: "Mandat signé. Votre exemplaire est dans vos documents.", id: m.id, piece };
+}
+
+/**
+ * LA COPIE SIGNÉE À LA MAIN : le client la dépose, le desk la vérifie (15 novembre 2026, maquette « Signature manuelle » : 1A).
+ *
+ * Le mandat est déjà signé par code ; il reste le même document, signé à la main et déposé à la banque, dont une copie vient ici. Le prélèvement attend sa vérification.
+ * PDF, photo ou scan, 10 Mo au plus. Un renvoi remplace la copie refusée : la précédente reste en stockage, la dernière fait foi.
+ */
+export async function deposerCopieMandatAction(_p: MandatResult | null, form: FormData): Promise<MandatResult> {
+  const mien = await monMandat(String(form.get("id") ?? ""));
+  if (!mien) return { ok: false, error: "Mandat introuvable." };
+  const { m, userId } = mien;
+  if (m.state === "revoque") return { ok: false, error: "Ce mandat est révoqué." };
+  const etape = etapeDuMandat(m);
+  if (!m.copieRequise || (etape !== "copie_attendue" && etape !== "copie_refusee")) return { ok: false, error: "Ce mandat n'attend pas de copie." };
+  const f = form.get("file");
+  if (!(f instanceof File) || f.size === 0) return { ok: false, error: "Choisissez la copie signée (PDF, photo ou scan)." };
+  if (f.size > COPIE_TAILLE_MAX) return { ok: false, error: "Fichier trop lourd (10 Mo au plus)." };
+  const mime = f.type || "application/octet-stream";
+  if (!(COPIE_FORMATS as readonly string[]).includes(mime)) return { ok: false, error: "Formats acceptés : PDF, JPEG ou PNG." };
+  const ext = mime === "application/pdf" ? "pdf" : mime === "image/png" ? "png" : "jpg";
+  const copieKey = `mandats/${userId}/${m.ref}-copie-${Date.now().toString(36)}.${ext}`;
+  await saveSource(copieKey, new Uint8Array(await f.arrayBuffer()), mime);
+  const maintenant = new Date().toISOString();
+  await repo().updateMandat(m.id, { copieKey, copieNom: f.name.slice(0, 120), copieType: mime, copieRecueLe: maintenant });
+  await audit("mandat.copie", "mandat", m.id, { before: { etape }, after: { etape: "en_verification", copie: copieKey } });
+  await repo().logEvent({ kind: "system", html: `<b>Copie signée du mandat reçue</b> · ${m.ref} · ${m.accountHolder} · à vérifier au desk` });
+  await noter("mandat.copie", { objet: m.ref, detail: m.bankName });
+  revalidatePath(PATH);
+  revalidatePath("/moi/epargne");
+  revalidatePath("/desk/prelevements");
+  return { ok: true, message: "Copie reçue. Nous la vérifions : le premier prélèvement part dès qu'elle est validée." };
 }
 
 /**

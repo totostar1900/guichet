@@ -9,7 +9,7 @@ import { groupDigits, groupedInput } from "@/lib/ui/grouped";
 import { fmt, parseAmount } from "@/lib/format";
 import { JOUR_MAX_VERSEMENT, premierVersement } from "@/lib/domain/standing";
 import { mettreEnPlaceAction, type MiseEnPlace } from "@/app/moi/epargne/actions";
-import { signerMandatAction, type MandatResult } from "@/app/moi/prelevements/actions";
+import { deposerCopieMandatAction, signerMandatAction, type MandatResult } from "@/app/moi/prelevements/actions";
 import { BarreDEtape } from "@/components/mobile/BarreDEtape";
 import barre from "@/components/mobile/BarreDEtape.module.css";
 import styles from "./EpargneParcours.module.css";
@@ -18,7 +18,8 @@ import styles from "./EpargneParcours.module.css";
  * METTRE UNE ÉPARGNE EN PLACE : QUATRE PAGES, UN BOUTON CHACUNE (décision du 15 novembre 2026, maquette « Parcours » : 1A · 2B · 3 OK · 4 prélèvement seul · 5 OK · 6 OK · 7 28 · 8).
  *
  * 1 · l'épargne (le fonds, la somme, le jour, ce qui se passe si un mois bloque) ; 2 · le compte à débiter ; 3 · le récapitulatif, et le code qui part ;
- * 4 · le code, et la signature. L'épargne et le mandat sont créés d'un seul geste au bouton de la page 3, tous deux non signés.
+ * 4 · le code, et la signature ; 5 · l'exemplaire signé à la main, à déposer à la banque et dont la copie vient au desk (maquette « Signature manuelle » : 1A).
+ * L'épargne et le mandat sont créés d'un seul geste au bouton de la page 3, tous deux non signés ; le prélèvement attend la vérification de la copie.
  *
  * PAR PRÉLÈVEMENT SEUL : il n'y a plus de choix du mode de paiement. Le préavis de cinq jours se dit une fois, à la page 3, avec le droit de révoquer.
  *
@@ -61,6 +62,8 @@ export function EpargneParcours({
   const sp = useSearchParams();
   const [mise, miseAct, envoi] = useActionState<MiseEnPlace | null, FormData>(mettreEnPlaceAction, null);
   const [sign, signAct, signant] = useActionState<MandatResult | null, FormData>(signerMandatAction, null);
+  const [copie, copieAct, deposant] = useActionState<MandatResult | null, FormData>(deposerCopieMandatAction, null);
+  const [fichier, setFichier] = useState("");
 
   const [choisi, setChoisi] = useState(fondsInitial && fonds.some((f) => f.id === fondsInitial) ? fondsInitial : (fonds[0]?.id ?? ""));
   const plancher = fonds.find((f) => f.id === choisi)?.min ?? 0;
@@ -77,17 +80,21 @@ export function EpargneParcours({
   const compteOk = nom.trim().length >= 2 && bq.trim().length >= 2 && rib.trim().length >= 6;
   const demande = Number(sp.get("etape")) || 1;
   /* On ne saute pas une étape qu'on n'a pas remplie : sans montant retour à la première, sans code parti retour au récapitulatif. */
-  const etape: 1 | 2 | 3 | 4 = demande >= 4 && mise?.ok ? 4 : demande >= 3 && montantOk && compteOk ? 3 : demande >= 2 && montantOk ? 2 : 1;
+  const etape: 1 | 2 | 3 | 4 | 5 = demande >= 5 && sign?.ok ? 5 : demande >= 4 && mise?.ok ? 4 : demande >= 3 && montantOk && compteOk ? 3 : demande >= 2 && montantOk ? 2 : 1;
   const aller = (n: number) => router.push(`${chemin}?etape=${n}`, { scroll: false });
 
   /* Le code est parti : la page suivante est celle où on le saisit. */
   useEffect(() => {
     if (mise?.ok && etape === 3) router.push(`${chemin}?etape=4`, { scroll: false });
   }, [mise, etape, chemin, router]);
-  /* Le mandat est signé : l'épargne est en place, on la retrouve dans sa liste. « replace » : la signature ne se rejoue pas au retour. */
+  /* Le mandat est signé par code : reste l'exemplaire à la main. « replace » : la signature ne se rejoue pas au retour. */
   useEffect(() => {
-    if (sign?.ok) router.replace(apres);
-  }, [sign, apres, router]);
+    if (sign?.ok) router.replace(`${chemin}?etape=5`, { scroll: false });
+  }, [sign, chemin, router]);
+  /* La copie est envoyée : l'épargne attend sa vérification, on la retrouve dans sa liste. */
+  useEffect(() => {
+    if (copie?.ok) router.replace(apres);
+  }, [copie, apres, router]);
 
   if (empeche) {
     return (
@@ -105,7 +112,7 @@ export function EpargneParcours({
 
   return (
     <div className={styles.parcours}>
-      <p className={styles.etape}>{t("Étape {n} sur 4", { n: String(etape) })}</p>
+      <p className={styles.etape}>{t("Étape {n} sur 5", { n: String(etape) })}</p>
 
       {etape === 1 && (
         <>
@@ -265,6 +272,43 @@ export function EpargneParcours({
         </>
       )}
 
+      {etape === 5 && sign?.ok && (
+        <>
+          <p className={styles.phrase}>{t("Votre banque et nous gardons chacune un exemplaire signé à la main.")}</p>
+          <ol className={styles.pas}>
+            <li>
+              <b>{t("Téléchargez le mandat")}</b>
+              <small>
+                {t("Deux exemplaires à imprimer, à votre nom, avec la référence du mandat.")}{" "}
+                {sign.piece ? (
+                  <a href={`/api/documents/${sign.piece}`} target="_blank" rel="noopener noreferrer">
+                    {t("Télécharger le mandat")} ↓
+                  </a>
+                ) : (
+                  <Link href="/moi/documents/signes">{t("Ouvrir mes documents")} →</Link>
+                )}
+              </small>
+            </li>
+            <li>
+              <b>{t("Signez-le et déposez-en un à votre banque")}</b>
+              <small>{t("Votre signature dans le cadre prévu pour elle. Gardez le second exemplaire : c'est lui que vous nous envoyez.")}</small>
+            </li>
+            <li>
+              <b>{t("Envoyez-nous la copie signée")}</b>
+              <small>{t("PDF, photo ou scan, 10 Mo au plus. Rien n'est prélevé avant que nous l'ayons vérifiée.")}</small>
+            </li>
+          </ol>
+          <label className={styles.fichier}>
+            <input form="parcours-copie" type="file" name="file" accept="application/pdf,image/jpeg,image/png" onChange={(e) => setFichier(e.target.files?.[0]?.name ?? "")} />
+            <span>{fichier || t("Touchez pour choisir la copie signée")}</span>
+          </label>
+          {copie && !copie.ok && <p className={styles.erreur}>{t(copie.error)}</p>}
+          <p className={styles.garanties}>
+            <Link href={apres}>{t("Plus tard")}</Link> — {t("l'épargne reste en attente de la copie, et elle ne prélève rien.")}
+          </p>
+        </>
+      )}
+
       {/* LA SEULE ACTION DE LA PAGE, dans la barre collée en bas. Chaque bouton n'existe que sur sa page. */}
       {etape === 3 ? (
         <form id="parcours-mise" action={miseAct}>
@@ -288,6 +332,11 @@ export function EpargneParcours({
         <form id="parcours-signe" action={signAct}>
           <input type="hidden" name="id" value={mise.mandatId} />
           <input type="hidden" name="code" value={code} />
+        </form>
+      ) : null}
+      {etape === 5 && sign?.ok ? (
+        <form id="parcours-copie" action={copieAct}>
+          <input type="hidden" name="id" value={sign.id ?? mise?.mandatId ?? ""} />
         </form>
       ) : null}
 
@@ -315,6 +364,11 @@ export function EpargneParcours({
         {etape === 4 && (
           <button className={`btn primary ${barre.suivant}`} type="submit" form="parcours-signe" disabled={signant || code.length < 6}>
             {signant ? "…" : t("Je signe ce mandat")}
+          </button>
+        )}
+        {etape === 5 && (
+          <button className={`btn primary ${barre.suivant}`} type="submit" form="parcours-copie" disabled={deposant || !fichier}>
+            {deposant ? "…" : t("Envoyer ma copie signée")}
           </button>
         )}
       </BarreDEtape>

@@ -1,7 +1,7 @@
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
-import { JOUR_MAX, JOUR_MIN } from "@/lib/domain/mandat";
+import { etapeDuMandat, JOUR_MAX, JOUR_MIN, MOTIFS_DE_REFUS_DE_COPIE } from "@/lib/domain/mandat";
 import { MOTIFS, prochaineEcheance } from "@/lib/domain/prelevement";
 import { nextRun } from "@/lib/domain/standing";
 import { fmt, fmtDate, localIso } from "@/lib/format";
@@ -99,6 +99,8 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
             jour: m.dayOfMonth ?? epargneDe(m.standingId)?.dayOfMonth,
             fonds: epargneDe(m.standingId) ? offres.find((o) => o.id === epargneDe(m.standingId)?.offerId)?.title : undefined,
             etat: m.state,
+            etape: etapeDuMandat(m),
+            refus: m.refusMotif && m.refusMotif in MOTIFS_DE_REFUS_DE_COPIE ? t(MOTIFS_DE_REFUS_DE_COPIE[m.refusMotif as keyof typeof MOTIFS_DE_REFUS_DE_COPIE]) : undefined,
             signeLe: m.signedAt,
             /* L'EXEMPLAIRE, PAR SON ADRESSE. La carte promettait « votre
                exemplaire est dans vos documents » sans y mener : le client
@@ -109,7 +111,7 @@ export default async function PrelevementsPage({ searchParams }: { searchParams:
             codeEnvoyeLe: m.pendingCodeAt,
             revoqueLe: m.revokedAt,
             /* Le prochain tirage, dit sur la carte : l'écho de l'ancienne étape « par prélèvement », où il vivait. */
-            prochain: m.signedAt && m.state === "actif" ? (m.dayOfMonth ? prochaineEcheance(m.dayOfMonth, aujourdHui) : ((e) => (e ? nextRun(e, aujourdHui) : null))(epargneDe(m.standingId)) ?? undefined) : undefined,
+            prochain: m.signedAt && m.state === "actif" && etapeDuMandat(m) === "actif" ? (m.dayOfMonth ? prochaineEcheance(m.dayOfMonth, aujourdHui) : ((e) => (e ? nextRun(e, aujourdHui) : null))(epargneDe(m.standingId)) ?? undefined) : undefined,
           }))}
           instructions={instructions}
           titulaireParDefaut={fiche?.identity.name ?? s.name}

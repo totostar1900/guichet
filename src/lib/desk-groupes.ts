@@ -52,6 +52,7 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
          un sujet, parce qu'une autorisation qu'on donne et un travail qu'on
          fait n'ont ni le même lecteur ni le même geste. */
       ["/desk/prelevements", "Prélèvements"],
+      ["/desk/prelevements/copies", "Mandats à vérifier"],
       ["/desk/rapprochement", "Rapprochement"],
       ["/desk/garde", "Droits de garde"],
       ["/desk/frais", "Frais"],

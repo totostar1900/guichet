@@ -24,7 +24,7 @@ export interface StandingRow {
   /** Le plancher d'un réinvestissement, en deçà duquel on attend le coupon suivant. */
   minAmount?: number;
   /** Comment l'épargne est payée, lu dans ses mandats (voir « paiementDeLEpargne »). */
-  paiement?: "prelevement" | "mandat_a_signer" | "virement";
+  paiement?: "prelevement" | "mandat_a_signer" | "copie_attendue" | "en_verification" | "copie_refusee" | "virement";
   state: string;
   stateLabel: string;
   next: string | null;
@@ -103,6 +103,14 @@ export function StandingList({ rows, vide }: { rows: StandingRow[]; vide?: React
                 <Link href={`/moi/prelevements?instruction=${s.id}&de=epargne`}>{t("Signer le mandat")} →</Link>
               </small>
             )}
+            {/* LA COPIE SIGNÉE À LA MAIN CONDITIONNE LE PREMIER PRÉLÈVEMENT (15 novembre 2026) : l'étape se dit sur l'épargne, avec le chemin pour la franchir. */}
+            {s.source !== "encaissements" && s.state === "active" && (s.paiement === "copie_attendue" || s.paiement === "copie_refusee") && (
+              <small className={styles.attente}>
+                {t(s.paiement === "copie_refusee" ? "La copie signée a été refusée : renvoyez-en une. Rien n'est prélevé tant qu'elle n'est pas vérifiée." : "Mandat signé par code : il reste à envoyer la copie signée à la main. Rien n'est prélevé avant sa vérification.")}{" "}
+                <Link href={`/moi/prelevements?instruction=${s.id}&de=epargne#mandat`}>{t(s.paiement === "copie_refusee" ? "Renvoyer une copie" : "Envoyer ma copie")} →</Link>
+              </small>
+            )}
+            {s.source !== "encaissements" && s.state === "active" && s.paiement === "en_verification" && <small className={styles.attente}>{t("Copie reçue : nous la vérifions. Le premier prélèvement part dès qu'elle est validée.")}</small>}
             {s.source !== "encaissements" && s.state === "active" && s.paiement === "prelevement" && <small className="muted">{t("Payée par prélèvement.")}</small>}
             {s.source !== "encaissements" && s.state === "active" && s.paiement === "virement" && <small className="muted">{t("Payée par virement, sur appel de fonds.")}</small>}
             {s.splits && s.splits.length > 1 && <small className={styles.cleDite}>{s.splits.map((x) => `${x.pct} % ${x.title}`).join(" · ")}</small>}

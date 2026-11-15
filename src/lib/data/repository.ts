@@ -374,7 +374,7 @@ export interface Repository {
   updateMandat(
     id: string,
     patch: Partial<
-      Pick<MandatPrelevement, "state" | "signedAt" | "signedMethod" | "signedTo" | "docId" | "pendingCodeHash" | "pendingCodeAt" | "pendingCodeTries" | "pendingCodeTo" | "revokedAt" | "revokedReason" | "rejects">
+      Pick<MandatPrelevement, "state" | "signedAt" | "signedMethod" | "signedTo" | "docId" | "pendingCodeHash" | "pendingCodeAt" | "pendingCodeTries" | "pendingCodeTo" | "revokedAt" | "revokedReason" | "rejects" | "copieKey" | "copieNom" | "copieType" | "copieRecueLe" | "verifieLe" | "verifiePar" | "refusMotif" | "refusLe" | "relanceLe">
     >,
   ): Promise<MandatPrelevement>;
 

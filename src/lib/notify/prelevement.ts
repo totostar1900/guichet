@@ -146,3 +146,31 @@ export async function direLeRejet(m: MandatPrelevement, p: { dueOn: string; amou
     return { sent: false, error: e instanceof Error ? e.message : "échec de l'envoi" };
   }
 }
+
+/**
+ * LA COPIE SIGNÉE À LA MAIN, DITE AU CLIENT (15 novembre 2026) : validée, refusée avec son motif, rappelée quand elle tarde, ou le brouillon retiré faute de copie.
+ * Un message qui ne part pas ne retient rien : l'état se lit aussi dans la liste et sur la page du mandat.
+ */
+export async function direLaCopieDuMandat(
+  m: MandatPrelevement,
+  evt: "validee" | "refusee" | "relance" | "retiree",
+  p: { motif?: string } = {},
+): Promise<{ sent: boolean; error?: string }> {
+  const quoi = m.objet === "provision" ? "votre provision" : "votre épargne programmée";
+  const texte = {
+    validee: `Purpose Capital : la copie signée de votre mandat ${m.ref} est vérifiée. Le prélèvement qui alimente ${quoi} est en place ; chaque prélèvement vous sera annoncé cinq jours avant.`,
+    refusee: `Purpose Capital : la copie signée de votre mandat ${m.ref} n'a pas pu être validée. ${p.motif ?? ""} Renvoyez une copie signée depuis votre espace : rien n'est prélevé tant qu'elle n'est pas vérifiée.`,
+    relance: `Purpose Capital : il manque la copie signée à la main de votre mandat ${m.ref}. Signez le document, déposez-en un exemplaire à votre banque et envoyez-nous une copie depuis votre espace : rien n'est prélevé avant sa vérification.`,
+    retiree: `Purpose Capital : sans copie signée de votre mandat ${m.ref} depuis trente jours, nous l'avons retiré, avec ${quoi} qu'il devait alimenter. Rien n'a été prélevé. Vous pouvez remettre une épargne en place quand vous voulez.`,
+  }[evt];
+  const sujet = { validee: "Mandat vérifié", refusee: "Copie du mandat refusée", relance: "Copie du mandat attendue", retiree: "Mandat retiré" }[evt];
+  try {
+    const contact = await contactDe(m.userId, m);
+    if (!contact) return { sent: false, error: "Aucun canal : ni numéro WhatsApp avec opt-in, ni adresse e-mail." };
+    const rows = await notifyRaw("intent_update", contact, { subject: sujet, text: texte });
+    if (rows.some((x) => x.status === "sent")) return { sent: true };
+    return { sent: false, error: rows.map((x) => `${x.channel} : ${x.status}${x.error ? ` (${x.error})` : ""}`).join(" · ") || "aucun canal joignable" };
+  } catch (e) {
+    return { sent: false, error: e instanceof Error ? e.message : "échec de l'envoi" };
+  }
+}

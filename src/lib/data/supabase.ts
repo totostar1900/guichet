@@ -1823,6 +1823,7 @@ export const supabaseRepository: Repository = {
       account_holder: input.accountHolder,
       day_of_month: input.dayOfMonth ?? null,
       amount: input.amount,
+      ...(input.copieRequise ? { copy_required: true } : {}),
     };
     const { data, error } = await db().from("direct_debit_mandates").insert(row).select("*").single();
     if (error) fail("createMandat", error);
@@ -1842,6 +1843,15 @@ export const supabaseRepository: Repository = {
     if (patch.revokedAt !== undefined) row.revoked_at = patch.revokedAt ?? null;
     if (patch.revokedReason !== undefined) row.revoked_reason = patch.revokedReason ?? null;
     if (patch.rejects !== undefined) row.rejects = patch.rejects ?? 0;
+    if (patch.copieKey !== undefined) row.copy_key = patch.copieKey ?? null;
+    if (patch.copieNom !== undefined) row.copy_name = patch.copieNom ?? null;
+    if (patch.copieType !== undefined) row.copy_type = patch.copieType ?? null;
+    if (patch.copieRecueLe !== undefined) row.copy_received_at = patch.copieRecueLe ?? null;
+    if (patch.verifieLe !== undefined) row.verified_at = patch.verifieLe ?? null;
+    if (patch.verifiePar !== undefined) row.verified_by = patch.verifiePar ?? null;
+    if (patch.refusMotif !== undefined) row.refusal_reason = patch.refusMotif ?? null;
+    if (patch.refusLe !== undefined) row.refused_at = patch.refusLe ?? null;
+    if (patch.relanceLe !== undefined) row.reminded_at = patch.relanceLe ?? null;
     const { data, error } = await db().from("direct_debit_mandates").update(row).eq("id", id).select("*").single();
     if (error) fail("updateMandat", error);
     return toMandat(data as MandatRow);
@@ -3565,6 +3575,16 @@ type MandatRow = {
   revoked_at?: string | null;
   revoked_reason?: string | null;
   rejects?: number | null;
+  copy_required?: boolean | null;
+  copy_key?: string | null;
+  copy_name?: string | null;
+  copy_type?: string | null;
+  copy_received_at?: string | null;
+  verified_at?: string | null;
+  verified_by?: string | null;
+  refusal_reason?: string | null;
+  refused_at?: string | null;
+  reminded_at?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -3592,6 +3612,16 @@ const toMandat = (r: MandatRow): MandatPrelevement => ({
   revokedAt: u(r.revoked_at),
   revokedReason: u(r.revoked_reason),
   rejects: r.rejects ?? 0,
+  copieRequise: r.copy_required ?? undefined,
+  copieKey: u(r.copy_key),
+  copieNom: u(r.copy_name),
+  copieType: u(r.copy_type),
+  copieRecueLe: u(r.copy_received_at),
+  verifieLe: u(r.verified_at),
+  verifiePar: u(r.verified_by),
+  refusMotif: u(r.refusal_reason),
+  refusLe: u(r.refused_at),
+  relanceLe: u(r.reminded_at),
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });

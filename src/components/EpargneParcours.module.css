@@ -201,3 +201,63 @@
   color: var(--ink-2);
   max-width: 68ch;
 }
+
+/* L'exemplaire à la main : trois gestes numérotés, puis le fichier à choisir. */
+.pas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: pas;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tuiles-gap);
+}
+.pas li {
+  counter-increment: pas;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: var(--s-5);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+}
+.pas li::before {
+  content: counter(pas);
+  grid-row: 1 / span 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--t-2);
+  font-weight: 800;
+  background: var(--fill);
+  color: var(--fill-ink);
+}
+.pas b {
+  font-size: var(--t-3);
+}
+.pas small {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+.fichier {
+  display: block;
+  padding: var(--s-7) var(--tuile-pad-x);
+  text-align: center;
+  color: var(--ink-3);
+  font-size: var(--t-3);
+  cursor: pointer;
+  background: var(--tuile-fond);
+  border: 1px dashed var(--line-2);
+  border-radius: var(--tuile-rayon);
+}
+.fichier input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}

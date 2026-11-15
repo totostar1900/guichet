@@ -330,8 +330,8 @@ describe("un usage déjà couvert n'est plus proposé", () => {
     expect(a).toMatch(/m\.objet === "provision" && m\.state !== "revoque"/);
     expect(a).toContain('t("Déjà en place")');
   });
-  it("le parcours de l'épargne atterrit sur la liste une fois le mandat signé, et la liste vit sur la page de l'épargne", () => {
-    expect(readFileSync("src/components/EpargneParcours.tsx", "utf8")).toMatch(/if \(sign\?\.ok\) router\.replace\(apres\);/);
+  it("le parcours de l'épargne atterrit sur la liste une fois la copie envoyée, et la liste vit sur la page de l'épargne", () => {
+    expect(readFileSync("src/components/EpargneParcours.tsx", "utf8")).toMatch(/if \(copie\?\.ok\) router\.replace\(apres\);/);
     expect(readFileSync("src/app/moi/epargne/page.tsx", "utf8")).toMatch(/<StandingList/);
     expect(readFileSync("src/app/moi/epargne/nouvelle/page.tsx", "utf8")).toMatch(/apres="\/moi\/epargne"/);
   });

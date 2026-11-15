@@ -7,7 +7,8 @@ import { fmt, parseAmount } from "@/lib/format";
 import { PREAVIS_JOURS } from "@/lib/domain/prelevement";
 import { groupDigits, groupedInput } from "@/lib/ui/grouped";
 import { Select } from "@/components/ui/Select";
-import { creerMandatAction, envoyerCodeMandatAction, revoquerMandatAction, signerMandatAction, type MandatResult } from "./actions";
+import { creerMandatAction, deposerCopieMandatAction, envoyerCodeMandatAction, revoquerMandatAction, signerMandatAction, type MandatResult } from "./actions";
+import type { EtapeDuMandat } from "@/lib/domain/mandat";
 import styles from "./page.module.css";
 import { BarreCollante } from "@/components/mobile/BarreDEtape";
 import { BoutonRetour } from "@/components/mobile/BoutonRetour";
@@ -27,6 +28,10 @@ interface Vu {
   montant: number;
   jour?: number;
   etat: "actif" | "suspendu" | "revoque";
+  /** Où en est le mandat : signé par code, copie signée à la main attendue, en vérification, refusée, actif. */
+  etape: EtapeDuMandat;
+  /** Le motif du dernier refus de la copie, déjà traduit. */
+  refus?: string;
   signeLe?: string;
   /** L'exemplaire produit à la signature, s'il existe : la pièce que la banque réclame. */
   piece?: string;
@@ -91,6 +96,8 @@ export function MesMandats({
   const [envoi, envoiAct, envoyant] = useActionState<MandatResult | null, FormData>(envoyerCodeMandatAction, null);
   const [sign, signAct, signant] = useActionState<MandatResult | null, FormData>(signerMandatAction, null);
   const [revoc, revocAct, revoquant] = useActionState<MandatResult | null, FormData>(revoquerMandatAction, null);
+  const [copie, copieAct, deposant] = useActionState<MandatResult | null, FormData>(deposerCopieMandatAction, null);
+  const [fichier, setFichier] = useState("");
   const connue = instructions.some((i) => i.id === instructionDemandee);
   /* UN MANDAT PAR USAGE, ET LA PAGE LE DIT AVANT DE FAIRE REMPLIR (audit « Mon argent », 11 novembre 2026) : un usage déjà couvert par un mandat vivant (actif ou à signer) n'est plus proposé ; sans usage libre, le formulaire ne s'ouvre pas. La règle est celle du serveur (« creerMandatAction »). */
   const vivants = mandats.filter((m) => m.etat !== "revoque");
@@ -135,7 +142,9 @@ export function MesMandats({
                   {/* « ARRÊTÉ », et non « suspendu » : « suspendu » décrit ce que la
                       maison peut reprendre, et le client n'a pas à deviner s'il
                       sera prélevé le mois prochain. */}
-                  <span className={m.signeLe ? styles.actif : styles.attente}>{m.signeLe ? (m.etat === "suspendu" ? t("arrêté") : t("actif")) : t("à signer")}</span>
+                  <span className={m.etape === "actif" || (m.signeLe && m.etape === "a_signer") ? styles.actif : styles.attente}>
+                    {m.etape === "a_signer" ? t("à signer") : m.etat === "suspendu" ? t("arrêté") : m.etape === "copie_attendue" ? t("copie attendue") : m.etape === "en_verification" ? t("en vérification") : m.etape === "copie_refusee" ? t("copie refusée") : t("actif")}
+                  </span>
                 </div>
                 {/* UN SEUL NOMBRE depuis le 25 octobre 2026. La carte en portait
                     deux — « chaque mois 50 000 » puis « plafond par échéance
@@ -177,6 +186,27 @@ export function MesMandats({
                     {sign?.ok && sign.message ? <p className={styles.ok}>{t(sign.message)}</p> : null}
                     {/* LA FIN DU PARCOURS : le mandat est en place, on le retrouve avec ce qui part tout seul (audit « Mon argent », 10 novembre 2026). */}
                     {sign?.ok ? <Link href="/moi/regles">{t("Ce qui part tout seul")} →</Link> : null}
+                    {/* LA COPIE SIGNÉE À LA MAIN (15 novembre 2026) : trois états, un seul geste à la fois, et rien n'est prélevé avant la vérification. */}
+                    {(m.etape === "copie_attendue" || m.etape === "copie_refusee") && (
+                      <form action={copieAct} className={styles.signer}>
+                        <p className={styles.note}>
+                          {m.etape === "copie_refusee"
+                            ? `${t("La copie signée a été refusée.")} ${m.refus ?? ""} ${t("Renvoyez une copie signée.")}`
+                            : t("Il reste à signer le document à la main, à le déposer à votre banque et à nous en envoyer une copie. Rien n'est prélevé avant sa vérification.")}{" "}
+                          <Link href={m.piece ? `/api/documents/${m.piece}` : "/moi/documents/signes"}>{t("Télécharger le mandat")} ↓</Link>
+                        </p>
+                        <input type="hidden" name="id" value={m.id} />
+                        <label className="field">
+                          {t("Copie signée (PDF, photo ou scan, 10 Mo au plus)")}
+                          <input type="file" name="file" accept="application/pdf,image/jpeg,image/png" onChange={(e) => setFichier(e.target.files?.[0]?.name ?? "")} />
+                        </label>
+                        <button className="btn primary" type="submit" disabled={deposant || !fichier}>
+                          {deposant ? "…" : t("Envoyer ma copie signée")}
+                        </button>
+                        <Msg state={copie} />
+                      </form>
+                    )}
+                    {m.etape === "en_verification" && <p className={styles.note}>{t("Copie reçue : nous la vérifions. Le prélèvement part dès qu'elle est validée.")}</p>}
                     {m.prochain && <p className={styles.note}>{t("prochain prélèvement le {d}, annoncé {n} jours avant", { d: fmtDate(m.prochain, false), n: String(PREAVIS_JOURS) })}</p>}
                     <p className={styles.note}>
                       {t("Signé le {d}. Votre banque peut vous demander cet exemplaire.", { d: fmtDateTime(m.signeLe) })}{" "}

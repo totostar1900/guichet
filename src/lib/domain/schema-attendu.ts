@@ -1,5 +1,5 @@
 /**
- * CE QUE LES 131 MIGRATIONS DU DÉPÔT DÉCLARENT.
+ * CE QUE LES 132 MIGRATIONS DU DÉPÔT DÉCLARENT.
  *
  * ÉCRIT PAR UN SCRIPT, JAMAIS À LA MAIN : `npm run schema:attendu`. Un cliquet
  * (src/test/schema-attendu.test.ts) refuse qu'il s'écarte des migrations, parce
@@ -112,6 +112,16 @@ export const SCHEMA_ATTENDU: Omit<SchemaDeclare, "incompris"> = {
   "client_files.acts",
   "client_files.screening",
   "cron_runs.par",
+  "direct_debit_mandates.copy_key",
+  "direct_debit_mandates.copy_name",
+  "direct_debit_mandates.copy_received_at",
+  "direct_debit_mandates.copy_required",
+  "direct_debit_mandates.copy_type",
+  "direct_debit_mandates.refusal_reason",
+  "direct_debit_mandates.refused_at",
+  "direct_debit_mandates.reminded_at",
+  "direct_debit_mandates.verified_at",
+  "direct_debit_mandates.verified_by",
   "documents.client_file_id",
   "documents.client_id",
   "documents.flow_key",

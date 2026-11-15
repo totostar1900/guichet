@@ -1,4 +1,4 @@
-import { MOIS_REFUSES_AVANT_ARRET, type MandatPrelevement } from "./mandat";
+import { etapeDuMandat, MOIS_REFUSES_AVANT_ARRET, type MandatPrelevement } from "./mandat";
 import type { StandingOrder } from "./standing";
 
 /**
@@ -271,6 +271,12 @@ export function echeanceDuJour(mandats: MandatPrelevement[], standings: Standing
     }
     if (m.objet === "instruction" && (!s || s.state !== "active")) {
       ecartes.push({ mandat: m, raison: "L'instruction permanente qu'il alimente n'est plus active." });
+      continue;
+    }
+    /* LA COPIE SIGNÉE À LA MAIN CONDITIONNE LE PRÉLÈVEMENT (15 novembre 2026) : tant que le desk ne l'a pas vérifiée, rien n'est présenté, et le desk le voit ici. */
+    const etape = etapeDuMandat(m);
+    if (etape !== "actif") {
+      ecartes.push({ mandat: m, raison: etape === "en_verification" ? "La copie signée à la main est reçue : vérifiez-la pour que le prélèvement parte." : "La copie signée à la main n'est pas encore là (ou a été refusée) : rien n'est présenté." });
       continue;
     }
     const montant = montantDuTirage(m);

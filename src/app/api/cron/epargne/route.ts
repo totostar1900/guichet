@@ -11,6 +11,7 @@ import { aCouvrirPour } from "@/lib/domain/plafond";
 import { generateForIntent } from "@/lib/documents/generate";
 import { direLEtatDeLOrdre } from "@/lib/notify/dispatch";
 import { direLArretDeLInstruction, envoyerPreavis } from "@/lib/notify/preavis";
+import { suivreLesCopies } from "@/lib/mandat-copie";
 import { dueOnDuPreavis, montantAExecuter, pourquoiPasExecuter, type Preavis } from "@/lib/domain/preavis";
 import { cleEnMots, repartition, tranches } from "@/lib/domain/repartition";
 import { loadStandingPolicy } from "@/lib/policy";
@@ -418,6 +419,9 @@ export async function GET(req: NextRequest) {
       }
     }
   
-    return ({ ok: true, day: today, placed, couverts, reinvested, annonces, muets, skipped, ended, considered: orders.length });
+    /* La copie signée à la main qui tarde : un rappel après 7 jours, le mandat retiré après 30 (voir « suivreLesCopies »). */
+    const { relances, retires } = await suivreLesCopies(today, ROBOT);
+
+    return ({ ok: true, day: today, placed, couverts, reinvested, annonces, muets, skipped, ended, relances, retires, considered: orders.length });
   });
 }

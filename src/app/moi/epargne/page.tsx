@@ -54,7 +54,7 @@ export default async function EpargnePage() {
             state: x.state,
             stateLabel: STANDING_STATE_LABEL[x.state],
             // La prochaine échéance est calculée par le domaine (standing, « nextRun »), jamais tue.
-            next: nextRun(x, aujourdHui),
+            next: ["prelevement", "virement"].includes(paiementDeLEpargne(x, mandats, standing)) ? nextRun(x, aujourdHui) : null,
             lastRunOn: x.lastRunOn,
             stopReason: x.stopReason,
           }))}
