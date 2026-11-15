@@ -250,3 +250,44 @@ export function historiqueLu(lu: unknown): HistoriqueDeFrais {
   }
   return out;
 }
+
+/**
+ * CE QUE LA MAISON REÇOIT DE TIERS NE SE RANGE PAS OÙ LE CLIENT PEUT LIRE (14 novembre 2026).
+ *
+ * La table de référence est en lecture publique : n'importe qui avec la clef publique la lit. Le barème s'y range donc réduit à ce que
+ * le client couvre (`baremePourLeClient`), et les sept champs « tiers » vivent dans la table du desk (`desk_prive`, migration 0130),
+ * lisibles et modifiables par le desk seul. Le barème complet se recompose à la lecture, au desk.
+ */
+export const CHAMPS_TIERS = ["tiersPct", "tiersMin", "tiersMax", "tiersPartDesDroitsPct", "tiersEncoursPct", "tiersEncoursMin", "tiersEncoursMax"] as const;
+export type TiersDeRegle = Pick<RegleDeFrais, (typeof CHAMPS_TIERS)[number]>;
+export type BaremeTiers = Record<CleDeRegle, TiersDeRegle>;
+
+/** Les champs « tiers » d'une règle, et rien d'autre. */
+export const tiersDe = (r: RegleDeFrais): TiersDeRegle => ({ tiersPct: r.tiersPct, tiersMin: r.tiersMin, tiersMax: r.tiersMax, tiersPartDesDroitsPct: r.tiersPartDesDroitsPct, tiersEncoursPct: r.tiersEncoursPct, tiersEncoursMin: r.tiersEncoursMin, tiersEncoursMax: r.tiersEncoursMax });
+
+export const baremeTiersDe = (b: BaremeDeFrais): BaremeTiers => Object.fromEntries(CLES_DE_REGLE.map((c) => [c, tiersDe(b[c])])) as BaremeTiers;
+
+const nombre = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+const tiersLu = (v: unknown): TiersDeRegle => {
+  const x = (v ?? {}) as Record<string, unknown>;
+  return { tiersPct: nombre(x.tiersPct), tiersMin: nombre(x.tiersMin), tiersMax: nombre(x.tiersMax), tiersPartDesDroitsPct: nombre(x.tiersPartDesDroitsPct), tiersEncoursPct: nombre(x.tiersEncoursPct), tiersEncoursMin: nombre(x.tiersEncoursMin), tiersEncoursMax: nombre(x.tiersEncoursMax) };
+};
+
+/** Recompose le barème complet : ce que le client couvre (public) et ce que la maison reçoit (desk). Sans partie desk, les champs tiers valent zéro. */
+export function fusionnerTiers(client: BaremeDeFrais, prive: unknown): BaremeDeFrais {
+  const p = (prive ?? {}) as Record<string, unknown>;
+  const out = { ...client };
+  for (const cle of CLES_DE_REGLE) out[cle] = { ...client[cle], ...tiersLu(p[cle]) };
+  return out;
+}
+
+/** La partie desk de l'historique, dans le même ordre que la partie publique. */
+export const historiqueTiersDe = (h: HistoriqueDeFrais): TiersDeRegle[] => h.map((v) => tiersDe(v.regle));
+
+export function fusionnerHistorique(client: HistoriqueDeFrais, prive: unknown): HistoriqueDeFrais {
+  const p = Array.isArray(prive) ? prive : [];
+  return client.map((v, i) => ({ ...v, regle: { ...v.regle, ...tiersLu(p[i]) } }));
+}
+
+/** La clé de la partie desk dans `desk_prive`. */
+export const FRAIS_PRIVE_KIND = "frais";

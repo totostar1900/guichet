@@ -41,6 +41,7 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
          tapant l adresse. Mesure le 19 octobre 2026. */
       ["/desk/clients/quantitatif", "Vue quantitative"],
       ["/desk/repertoire", "Répertoire"],
+      ["/desk/registre", "Registre des parts"],
       ["/desk/resultats", "Allocations et règlement"],
       ["/desk/encaissements", "Encaissements"],
       /* Voisin d'Encaissements, et pas dedans : là, un émetteur doit une

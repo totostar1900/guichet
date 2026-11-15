@@ -3,7 +3,7 @@ import { baremeOuvert } from "@/lib/domain/garde";
 import { GRATUITS } from "@/lib/domain/tarifs";
 import { fraisLusParLeClient, type LigneDeFraisClient } from "@/lib/domain/frais";
 import { fourchetteDeFonds, fourchetteDePassage, type Fourchette } from "@/lib/domain/frais-fonds";
-import { loadBaremeDeFrais, loadBaremeGarde, loadTarifs } from "@/lib/policy";
+import { loadBaremeClient, loadBaremeGarde, loadTarifs } from "@/lib/policy";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { getT } from "@/i18n/server";
 import styles from "./page.module.css";
@@ -44,7 +44,7 @@ export async function generateMetadata() {
  */
 export default async function TarifsPage() {
   const t = await getT();
-  const [tarifs, bareme, offres, frais] = await Promise.all([loadTarifs(), loadBaremeGarde(), repo().listOffers().catch(() => []), loadBaremeDeFrais()]);
+  const [tarifs, bareme, offres, frais] = await Promise.all([loadTarifs(), loadBaremeGarde(), repo().listOffers().catch(() => []), loadBaremeClient()]);
   const fonds = offres.filter((o) => o.kind === "FONDS" && !o.hidden && o.fund?.distributed).map((o) => o.fund!);
   const jour = new Date().toISOString().slice(0, 10);
   const lignes = fraisLusParLeClient(frais, jour);

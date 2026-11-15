@@ -1694,6 +1694,20 @@ export const supabaseRepository: Repository = {
     const { error } = await db().from("reference").delete().eq("kind", kind).eq("key", key);
     if (error) fail("deleteReference", error);
   },
+  async listPrive(kind) {
+    let data: RefRow[];
+    try {
+      data = await parLots<RefRow>("listPrive", (de, a) => db().from("desk_prive").select("*").eq("kind", kind).order("key").order("kind").range(de, a));
+    } catch (e) {
+      if (/desk_prive/.test((e as Error).message)) return []; // migration 0130 pas encore appliquée
+      throw e;
+    }
+    return data.map(toReferenceRow);
+  },
+  async upsertPrive(kind, key, data, by) {
+    const { error } = await db().from("desk_prive").upsert({ kind, key, data, updated_at: new Date().toISOString(), updated_by: by ?? null }, { onConflict: "kind,key" });
+    if (error) fail("upsertPrive", error);
+  },
   // Le journal des espèces : la table est immuable, il n'y a donc ni mise à jour ni suppression.
   async listStandingOrders(userId) {
     let data: unknown[];

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { requireResponsable } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { CLES_DE_REGLE, LIBELLE_DE_REGLE, REGLES_LUES_PAR_L_ORDRE, departRefuse, exigeUnPreavis, type BaremeDeFrais, type CleDeRegle, type RegleDeFrais } from "@/lib/domain/frais";
+import { CLES_DE_REGLE, FRAIS_PRIVE_KIND, LIBELLE_DE_REGLE, REGLES_LUES_PAR_L_ORDRE, baremePourLeClient, baremeTiersDe, departRefuse, exigeUnPreavis, historiquePourLeClient, historiqueTiersDe, type BaremeDeFrais, type CleDeRegle, type RegleDeFrais } from "@/lib/domain/frais";
 import { FRAIS_HISTORIQUE_KEY, FRAIS_POLICY_KEY, loadBaremeDeFrais, loadHistoriqueDeFrais } from "@/lib/policy";
 import { REF } from "@/lib/reference";
 
@@ -74,14 +74,21 @@ export async function arreterRegle(_p: FraisResult | null, form: FormData): Prom
 
   const apres: BaremeDeFrais = { ...avant, [cle]: prochaine };
   const r = repo();
-  /* LE PASSÉ NE SE RÉÉCRIT PAS : l'ancienne règle est rangée avec le jour jusqu'auquel elle valait, et chaque ordre se calcule avec la règle de sa date. */
-  if (JSON.stringify(ancienne) !== JSON.stringify(prochaine)) {
-    const historique = [...(await loadHistoriqueDeFrais()), { cle, jusquAu: aujourdHui, regle: ancienne }];
-    await r.upsertReference(REF.policy, FRAIS_HISTORIQUE_KEY, historique, me.name);
+  /* LE PASSÉ NE SE RÉÉCRIT PAS : l'ancienne règle est rangée avec le jour jusqu'auquel elle valait, et chaque ordre se calcule avec la règle de sa date.
+     CE QUE LA MAISON REÇOIT DE TIERS NE SE RANGE PAS OÙ LE CLIENT PEUT LIRE : la table de référence est publique. Elle reçoit la part client, la table
+     du desk (`desk_prive`) la part tiers. La partie desk s'écrit d'abord : si elle échoue, rien de public n'a changé. */
+  const changee = JSON.stringify(ancienne) !== JSON.stringify(prochaine);
+  const historique = changee ? [...(await loadHistoriqueDeFrais()), { cle, jusquAu: aujourdHui, regle: ancienne }] : undefined;
+  try {
+    await r.upsertPrive(FRAIS_PRIVE_KIND, "bareme", baremeTiersDe(apres), me.name);
+    if (historique) await r.upsertPrive(FRAIS_PRIVE_KIND, "historique", historiqueTiersDe(historique), me.name);
+  } catch (e) {
+    return { ok: false, error: /desk_prive/.test((e as Error).message) ? "Le magasin réservé au desk n'existe pas encore : appliquer la migration 0130 avant d'arrêter une règle." : "Écriture impossible, réessayez." };
   }
-  await r.upsertReference(REF.policy, FRAIS_POLICY_KEY, apres, me.name);
+  if (historique) await r.upsertReference(REF.policy, FRAIS_HISTORIQUE_KEY, historiquePourLeClient(historique), me.name);
+  await r.upsertReference(REF.policy, FRAIS_POLICY_KEY, baremePourLeClient(apres), me.name);
   await audit("policy.frais", "reference", `${REF.policy}/${FRAIS_POLICY_KEY}`, { before: ancienne, after: prochaine, reason: `règle « ${LIBELLE_DE_REGLE[cle]} »` });
   revalidatePath("/desk/frais");
   revalidatePath("/moi/tarifs");
-  return { ok: true, message: prochaine.clientPct > 0 ? `Règle arrêtée, départ le ${effetLe}.` : "Règle fermée : rien n'est pris sur cette opération." };
+  return { ok: true, message: prochaine.clientPct > 0 ? `Règle arrêtée, départ le ${effetLe}.` : "Règle enregistrée : rien n'est pris au client sur cette opération." };
 }

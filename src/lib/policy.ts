@@ -7,7 +7,7 @@ import { CROSS_CLOSED, type CrossPolicy } from "@/lib/domain/crossing";
 import { PREAVIS_DEFAUT, type StandingPolicy } from "@/lib/domain/preavis";
 import { BAREME_FERME, type BaremeGarde } from "@/lib/domain/garde";
 import { TARIFS_FERMES, type Tarifs } from "@/lib/domain/tarifs";
-import { BAREME_DE_FRAIS_FERME, FRAIS_HISTORIQUE_KEY, FRAIS_POLICY_KEY, baremeDeFraisLu, historiqueLu, type BaremeDeFrais, type HistoriqueDeFrais } from "@/lib/domain/frais";
+import { BAREME_DE_FRAIS_FERME, FRAIS_HISTORIQUE_KEY, FRAIS_POLICY_KEY, FRAIS_PRIVE_KIND, baremeDeFraisLu, baremePourLeClient, fusionnerHistorique, fusionnerTiers, historiqueLu, type BaremeDeFrais, type HistoriqueDeFrais } from "@/lib/domain/frais";
 import { SOUFFRANCE_DEFAUT, SOUFFRANCE_KEY, type DelaiDeSouffrance } from "@/lib/domain/souffrance";
 import { RELANCE_DEFAUT, RELANCE_KEY, type PolitiqueDeRelance } from "@/lib/domain/relance";
 import { REGLEMENT_DEFAUT, REGLEMENT_KEY, type CoordonneesDeReglement } from "@/lib/domain/reglement";
@@ -104,11 +104,24 @@ export const loadTarifs = cache(async (): Promise<Tarifs> => {
  * LE BARÈME DES FRAIS (14 novembre 2026) : cinq règles, une date de départ par règle. Fermé par défaut, y compris sur une panne
  * de lecture : un barème qui s'ouvrirait sur une panne prélèverait par accident, l'inverse ne coûte qu'un jour à zéro.
  */
-export const loadBaremeDeFrais = cache(async (): Promise<BaremeDeFrais> => {
+/** Ce que le client couvre, lu de la table publique : seule lecture permise aux pages du client. */
+export const loadBaremeClient = cache(async (): Promise<BaremeDeFrais> => {
   try {
     const rows = await repo().listReference(REF.policy);
-    const row = rows.find((r) => r.key === FRAIS_POLICY_KEY);
-    return baremeDeFraisLu(row?.data as Parameters<typeof baremeDeFraisLu>[0]);
+    return baremePourLeClient(baremeDeFraisLu(rows.find((r) => r.key === FRAIS_POLICY_KEY)?.data as Parameters<typeof baremeDeFraisLu>[0]));
+  } catch {
+    return BAREME_DE_FRAIS_FERME;
+  }
+});
+
+/** Le barème complet, ce que la maison reçoit de tiers compris : le desk seul. La partie tiers vient de la table du desk (`desk_prive`). */
+export const loadBaremeDeFrais = cache(async (): Promise<BaremeDeFrais> => {
+  try {
+    const [publiques, privees] = await Promise.all([repo().listReference(REF.policy), repo().listPrive(FRAIS_PRIVE_KIND)]);
+    const client = baremeDeFraisLu(publiques.find((r) => r.key === FRAIS_POLICY_KEY)?.data as Parameters<typeof baremeDeFraisLu>[0]);
+    const prive = privees.find((r) => r.key === "bareme")?.data;
+    /* Sans partie desk, on garde ce que la ligne publique portait avant la migration : elle sera purgée à la prochaine écriture. */
+    return prive == null ? client : fusionnerTiers(client, prive);
   } catch {
     return BAREME_DE_FRAIS_FERME;
   }
@@ -293,8 +306,10 @@ export const loadTauxBancaire = cache(async (): Promise<TauxBancaire | undefined
 /** L'historique complet des règles (tiers compris), pour le desk : le suivi recalcule chaque ordre avec la règle de sa date. */
 export const loadHistoriqueDeFrais = cache(async (): Promise<HistoriqueDeFrais> => {
   try {
-    const rows = await repo().listReference(REF.policy);
-    return historiqueLu(rows.find((r) => r.key === FRAIS_HISTORIQUE_KEY)?.data);
+    const [publiques, privees] = await Promise.all([repo().listReference(REF.policy), repo().listPrive(FRAIS_PRIVE_KIND)]);
+    const client = historiqueLu(publiques.find((r) => r.key === FRAIS_HISTORIQUE_KEY)?.data);
+    const prive = privees.find((r) => r.key === "historique")?.data;
+    return prive == null ? client : fusionnerHistorique(client, prive);
   } catch {
     return [];
   }

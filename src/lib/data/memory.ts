@@ -264,6 +264,7 @@ interface Store {
   /** Les avis de droits de garde emis : ils ne se recalculent pas, ils se gardent. */
   avisGarde: AvisGarde[];
   reference: ReferenceRow[];
+  prive: ReferenceRow[];
   staff: StaffMember[];
   versions: OfferVersion[];
   audit: AuditEntry[];
@@ -362,6 +363,7 @@ function store(): Store {
       relances: [],
       tours: [],
       reference: [],
+      prive: [],
       news: structuredClone(SEED_NEWS),
       budgets: structuredClone(SEED_BUDGETS),
       notesBudget: structuredClone(SEED_NOTES_BUDGET),
@@ -411,6 +413,7 @@ function store(): Store {
   if (!g.__guichetStore.standing) g.__guichetStore.standing = [];
   if (!g.__guichetStore.staff) g.__guichetStore.staff = [{ id: "desk-georges", name: "Georges", email: "georges@purposecapital.africa", role: "responsable", mfaEnrolledAt: "2026-09-01T08:00:00Z" }];
   if (!g.__guichetStore.reference) g.__guichetStore.reference = [];
+  if (!g.__guichetStore.prive) g.__guichetStore.prive = [];
   if (!g.__guichetStore.versions) g.__guichetStore.versions = [];
   if (!g.__guichetStore.audit) g.__guichetStore.audit = [];
   if (!g.__guichetStore.gestes) g.__guichetStore.gestes = [];
@@ -818,6 +821,16 @@ export const memoryRepository: Repository = {
   },
   async deleteReference(kind, key) {
     store().reference = store().reference.filter((r) => !(r.kind === kind && r.key === key));
+  },
+  async listPrive(kind) {
+    return structuredClone(store().prive.filter((r) => r.kind === kind));
+  },
+  async upsertPrive(kind, key, data, by) {
+    const rows = store().prive;
+    const i = rows.findIndex((r) => r.kind === kind && r.key === key);
+    const row: ReferenceRow = { kind, key, data: structuredClone(data), updatedAt: nowIso(), updatedBy: by };
+    if (i >= 0) rows[i] = row;
+    else rows.push(row);
   },
   async saveReferenceDraft(kind, key, draft, by) {
     const rows = store().reference;

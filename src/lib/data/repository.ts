@@ -285,6 +285,12 @@ export interface Repository {
   listReference(kind: string): Promise<ReferenceRow[]>;
   upsertReference(kind: string, key: string, data: unknown, by?: string): Promise<void>;
   deleteReference(kind: string, key: string): Promise<void>;
+  /**
+   * Les données du desk que le client ne lit jamais : ce que la maison reçoit de tiers, les relevés d'un gestionnaire. La table de référence
+   * est en lecture publique et ne peut pas les porter (migration 0130). Même forme qu'une ligne de référence, sans brouillon.
+   */
+  listPrive(kind: string): Promise<ReferenceRow[]>;
+  upsertPrive(kind: string, key: string, data: unknown, by?: string): Promise<void>;
   /** Stages a change on one entry; nothing the app reads moves until publishReference. */
   saveReferenceDraft(kind: string, key: string, draft: ReferenceDraft, by: string): Promise<void>;
   /** Applies the drafts of one kind (all, or the given keys): set → published, reset → row removed. Returns the keys applied. */

@@ -1,5 +1,5 @@
 /**
- * CE QUE LES 128 MIGRATIONS DU DÉPÔT DÉCLARENT.
+ * CE QUE LES 129 MIGRATIONS DU DÉPÔT DÉCLARENT.
  *
  * ÉCRIT PAR UN SCRIPT, JAMAIS À LA MAIN : `npm run schema:attendu`. Un cliquet
  * (src/test/schema-attendu.test.ts) refuse qu'il s'écarte des migrations, parce
@@ -38,6 +38,7 @@ export const SCHEMA_ATTENDU: Omit<SchemaDeclare, "incompris"> = {
   "debit_draws",
   "debt_outstandings",
   "desk_exchanges",
+  "desk_prive",
   "desk_threads",
   "direct_debit_mandates",
   "documents",
