@@ -12,6 +12,8 @@ import { CLES_DE_REGLE, LIBELLE_DE_REGLE, baremeALaDate, cleDeRegle, fraisDuClie
  */
 export interface OrdreExecute {
   id: string;
+  /** La ligne de l'ordre : le rapprochement range ce qui est attendu par fonds. */
+  offerId: string;
   ref: string;
   /** Le jour de l'ordre (AAAA-MM-JJ) : la règle qui valait ce jour-là s'applique. */
   jour: string;

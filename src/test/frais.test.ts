@@ -408,7 +408,7 @@ describe("le suivi des frais : trois chiffres et un tableau, calculés avec la r
   const regleTitres = ouverte({ clientPct: 1, effetLe: "2027-01-01", tiersPct: 0.3 });
   const regleFonds = ouverte({ clientPct: 2, effetLe: "2027-01-01", tiersPartDesDroitsPct: 50, tiersPct: 0.1 });
   const bar: BaremeDeFrais = { ...BAREME_DE_FRAIS_FERME, "titres.achat": regleTitres, "fonds.souscription": regleFonds };
-  const o = (extra: Partial<OrdreExecute>): OrdreExecute => ({ id: "x", ref: "R", jour: "2027-03-01", famille: "titres", operation: "achat", base: 1_000_000, droitsDuFonds: 0, fraisDeLaLigne: 0, regle: false, ...extra });
+  const o = (extra: Partial<OrdreExecute>): OrdreExecute => ({ id: "x", offerId: "f1", ref: "R", jour: "2027-03-01", famille: "titres", operation: "achat", base: 1_000_000, droitsDuFonds: 0, fraisDeLaLigne: 0, regle: false, ...extra });
 
   it("à encaisser : les frais du client sur les ordres non réglés ; encaissés : sur les réglés", () => {
     const s = suiviDesFrais([o({ id: "a" }), o({ id: "b", regle: true, base: 500_000 })], bar, []);

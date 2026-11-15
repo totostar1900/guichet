@@ -3,10 +3,9 @@ import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { loadRegistry } from "@/lib/reference";
 import { loadBaremeDeFrais, loadHistoriqueDeFrais } from "@/lib/policy";
-import { positionFor } from "@/lib/documents/position";
-import { suiviDesFrais, type OrdreExecute } from "@/lib/domain/frais-suivi";
+import { ordreExecute } from "@/lib/frais-ordres";
+import { suiviDesFrais } from "@/lib/domain/frais-suivi";
 import { LIBELLE_DE_REGLE } from "@/lib/domain/frais";
-import type { Intent, Offer } from "@/lib/domain/types";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate, localIso } from "@/lib/format";
 import styles from "./page.module.css";
@@ -22,17 +21,6 @@ export const metadata = { title: "Suivi des frais" };
  * du reçu. Tout se calcule avec la règle de la date de chaque ordre (historique) : le mois dernier ne bouge pas quand un taux change.
  * Rien de cette page n'est lu par le client.
  */
-const FAMILLE = (o: Offer): "fonds" | "titres" | "adjudication" | undefined => (o.kind === "FONDS" ? "fonds" : o.kind === "MARCHE" ? "titres" : o.kind === "OTA" || o.kind === "APE" || o.kind === "BTA" || o.kind === "ACTIONS" ? "adjudication" : undefined);
-
-function ordreExecute(i: Intent, o: Offer): OrdreExecute | undefined {
-  const famille = FAMILLE(o);
-  if (!famille) return undefined;
-  const pos = positionFor(i, o);
-  const operation = famille === "fonds" ? (i.type === "rachat" ? "rachat" : "souscription") : famille === "titres" ? (i.type === "vente" ? "vente" : "achat") : "souscription";
-  const taux = famille === "fonds" ? (operation === "rachat" ? o.fund?.exitFeePct : o.fund?.entryFeePct) ?? 0 : 0;
-  return { id: i.id, ref: i.ref, jour: localIso(new Date(i.createdAt)), famille, operation, base: pos.principal, droitsDuFonds: (pos.principal * taux) / 100, fraisDeLaLigne: o.commissionPct > 0 && famille !== "fonds" ? pos.commission : 0, regle: i.state === "reglee" };
-}
-
 export default async function SuiviDesFraisPage({ searchParams }: { searchParams: Promise<{ m?: string }> }) {
   await requireDesk("/desk/frais/suivi");
   await loadRegistry();
@@ -163,7 +151,9 @@ export default async function SuiviDesFraisPage({ searchParams }: { searchParams
           </details>
         </section>
 
-        <p className={styles.note}>{t("Pas encore suivi : ce qui est réellement reçu d'un partenaire ou d'un émetteur (rapprochement avec leur relevé) et la rétrocession mensuelle sur l'encours.")}</p>
+        <p className={styles.note}>
+          {t("Ce qui est réellement reçu d'un partenaire ou d'un émetteur, et la rétrocession mensuelle sur l'encours, se rapprochent à part.")} <a href={`/desk/frais/rapprochement?m=${choisi}`}>{t("Rapprochement des frais de tiers")}</a>
+        </p>
       </div>
     </>
   );

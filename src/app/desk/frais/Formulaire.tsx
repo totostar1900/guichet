@@ -61,17 +61,17 @@ export function RegleForm({ cle, regle, fonds, premier }: { cle: CleDeRegle; reg
         </label>
         <label className={styles.champ}>
           <span>{t("Rétrocession sur encours (%/an)")}</span>
-          <input name="tiersEncoursPct" type="number" min={0} max={10} step={0.05} defaultValue={regle.tiersEncoursPct} inputMode="decimal" disabled={!fonds} />
-          <small>{t(fonds ? "Calculée chaque mois sur l'encours moyen, rapprochée du relevé." : "Sans objet hors des fonds.")}</small>
+          <input name="tiersEncoursPct" type="number" min={0} max={10} step={0.05} defaultValue={regle.tiersEncoursPct} inputMode="decimal" disabled={cle !== "fonds.souscription"} />
+          <small>{t(cle === "fonds.souscription" ? "Calculée chaque mois sur l'encours moyen, rapprochée du relevé." : "Elle se règle sur la règle « Fonds · souscription », une seule fois.")}</small>
         </label>
         <label className={styles.champ}>
           <span>{t("Rétrocession · plancher mensuel")}</span>
-          <input name="tiersEncoursMin" type="number" min={0} step={100} defaultValue={regle.tiersEncoursMin} inputMode="numeric" disabled={!fonds} />
+          <input name="tiersEncoursMin" type="number" min={0} step={100} defaultValue={regle.tiersEncoursMin} inputMode="numeric" disabled={cle !== "fonds.souscription"} />
           <small>{t("En francs par mois, appliqué à ce qui est déjà dû seulement.")}</small>
         </label>
         <label className={styles.champ}>
           <span>{t("Rétrocession · plafond mensuel")}</span>
-          <input name="tiersEncoursMax" type="number" min={0} step={1000} defaultValue={regle.tiersEncoursMax} inputMode="numeric" disabled={!fonds} />
+          <input name="tiersEncoursMax" type="number" min={0} step={1000} defaultValue={regle.tiersEncoursMax} inputMode="numeric" disabled={cle !== "fonds.souscription"} />
           <small>{t("En francs par mois ; zéro : pas de plafond.")}</small>
         </label>
       </div>
