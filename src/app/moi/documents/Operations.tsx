@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { useT } from "@/i18n/client";
-import { Pli } from "@/components/Pli";
 import { Annee, Ligne, type GesteDeLigne } from "./Ligne";
+import { groupesDesOperations, HORS_OPERATION } from "./operations/groupes";
 import styles from "./page.module.css";
 
 /**
@@ -69,10 +69,7 @@ export function Operations({ docs, ops }: { docs: DocLigne[]; ops: OpGroupe[] })
   };
 
   const parDate = [...docs].sort((a, b) => b.at.localeCompare(a.at));
-  const groupes = ops
-    .map((op) => ({ op, rows: docs.filter((d) => d.intentId === op.id).sort((a, b) => a.at.localeCompare(b.at)) }))
-    .filter((g) => g.rows.length > 0);
-  const orphelins = docs.filter((d) => !d.intentId || !ops.some((o) => o.id === d.intentId)).sort((a, b) => b.at.localeCompare(a.at));
+  const { groupes, orphelins } = groupesDesOperations(docs, ops);
 
   const barre = (
     <div className={styles.bascule} role="group" aria-label={t("Présentation")}>
@@ -91,40 +88,33 @@ export function Operations({ docs, ops }: { docs: DocLigne[]; ops: OpGroupe[] })
     <>
       <div className={styles.barreDuRayon}>{barre}</div>
       {parOperation ? (
-        <>
-          {groupes.map(({ op, rows }, i) => {
+        <div className={styles.tuiles}>
+          {groupes.map(({ op, rows }) => {
             const attend = rows.filter((r) => r.ton === "attend").length;
             const dernier = rows[rows.length - 1];
             return (
-              <Pli
-                key={op.id}
-                cle={`docs:op:${op.id}`}
-                niveau="filet"
-                titre={op.titre}
-                sous={op.sous}
-                /* Un groupe replié dit ce qu'il contient ET de quand date son
-                   dernier papier : sans cela, il faut l'ouvrir pour savoir. */
-                compte={`${rows.length} · ${t("dernier le {d}", { d: dernier.atText })}`}
-                attend={attend ? t(attend > 1 ? "{n} à faire" : "1 à faire", { n: String(attend) }) : undefined}
-                etiquette={<span className={`st ${op.etatKey}`}>{op.etat}</span>}
-                /* La plus récente s'ouvre, et toute opération qui attend un
-                   geste aussi : les anciennes se replient. */
-                defaut={i === 0 || attend > 0}
-              >
-                {rows.map((d) => (
-                  <Ligne key={d.id} titre={d.titre} sous={d.sous} etat={d.etat} ton={d.ton} geste={d.geste} />
-                ))}
-              </Pli>
+              <Link key={op.id} href={`/moi/documents/operations/${op.id}`} className={styles.tuile}>
+                <span>
+                  <b>{op.titre}</b>
+                  <small>{`${t(rows.length > 1 ? "{n} papiers" : "1 papier", { n: String(rows.length) })} · ${t("dernier le {d}", { d: dernier.atText })}`}</small>
+                  <span className={`st ${op.etatKey}`}>{op.etat}</span>
+                </span>
+                {/* Une tuile qui attend un geste le dit sur elle : un devoir ne se cache jamais derrière une page. */}
+                {attend > 0 && <em className={styles.attend}>{t(attend > 1 ? "{n} à faire" : "1 à faire", { n: String(attend) })}</em>}
+                <i aria-hidden="true">›</i>
+              </Link>
             );
           })}
           {orphelins.length > 0 && (
-            <Pli cle="docs:op:autres" niveau="filet" titre={t("Hors opération")} sous={t("des papiers dont l'opération n'est plus au catalogue")} compte={String(orphelins.length)} defaut={false}>
-              {orphelins.map((d) => (
-                <Ligne key={d.id} titre={d.titre} sous={d.sous} etat={d.etat} ton={d.ton} geste={d.geste} />
-              ))}
-            </Pli>
+            <Link href={`/moi/documents/operations/${HORS_OPERATION}`} className={styles.tuile}>
+              <span>
+                <b>{t("Hors opération")}</b>
+                <small>{t("des papiers dont l'opération n'est plus au catalogue")}</small>
+              </span>
+              <i aria-hidden="true">›</i>
+            </Link>
           )}
-        </>
+        </div>
       ) : (
         parDate.map((d, i) => {
           const an = d.at.slice(0, 4);

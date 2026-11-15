@@ -132,4 +132,6 @@ export const EN_FRAIS: Record<string, string> = {
   "Ce qui part chaque mois, et que vous arrêtez quand vous voulez. Rien n'est en place pour l'instant.": "What leaves each month, and that you stop whenever you like. Nothing is in place for now.",
   "Programmer un versement sur ce fonds": "Schedule a payment into this fund",
   "Voir mes épargnes": "See my savings plans",
+  "1 papier": "1 document",
+  "{n} papiers": "{n} documents",
 };
