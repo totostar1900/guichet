@@ -1,5 +1,6 @@
 import { fundAnnualPct } from "@/lib/domain/fund-perf";
 import Link from "next/link";
+import { hrefDeLecture } from "@/lib/lecture";
 import { LineIdentity } from "@/components/LineIdentity";
 import { Info } from "@/components/Info";
 import { getT } from "@/i18n/server";
@@ -260,9 +261,9 @@ export async function ComparerBody({ searchParams, mode = "client" }: { searchPa
                 <Link className="btn sm" href={fiche(o.id)}>
                   {t(desk ? "Voir la ligne" : data[i].s.primary ? "Voir la fiche" : "Fiche")}
                 </Link>
-                <a className="btn sm ghost" href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
+                <Link className="btn sm ghost" href={hrefDeLecture(`/offres/${o.id}/fiche`, { titre: o.title, de: "/comparer" })}>
                   PDF
-                </a>
+                </Link>
               </div>
             ))}
           </div>

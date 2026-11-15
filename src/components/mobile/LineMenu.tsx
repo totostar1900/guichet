@@ -5,6 +5,7 @@ import { useT } from "@/i18n/client";
 import { deverrouiller, verrouiller } from "./verrou-defilement";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { hrefDeLecture } from "@/lib/lecture";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { useSheetPresence } from "./useSheetPresence";
@@ -111,7 +112,7 @@ export function LineMenu({ line, watching, cadence, onFiche = true, pdf, classNa
     if (what === "fiche") router.push(href);
     else if (what === "comparer") router.push(`/comparer?a=${line.id}`);
     else if (what === "contacter") router.push(`/moi/contact?ligne=${encodeURIComponent(line.id)}`);
-    else if (what === "pdf") window.open(`${href}/fiche`, "_blank", "noopener");
+    else if (what === "pdf") router.push(hrefDeLecture(`${href}/fiche`, { titre: line.title, de: href }));
     else if (what === "isin") await copy(line.isin, t("ISIN copié"));
     else if (what === "partager") {
       const nav = navigator as Navigator & { share?: (d: { title: string; url: string }) => Promise<void> };

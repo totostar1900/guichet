@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/Select";
 import { groupDigits, groupedInput } from "@/lib/ui/grouped";
 import { fmt, parseAmount } from "@/lib/format";
 import { JOUR_MAX_VERSEMENT, premierVersement } from "@/lib/domain/standing";
+import { hrefDeLecture } from "@/lib/lecture";
 import { mettreEnPlaceAction, type MiseEnPlace } from "@/app/moi/epargne/actions";
 import { deposerCopieMandatAction, signerMandatAction, type MandatResult } from "@/app/moi/prelevements/actions";
 import { BarreDEtape } from "@/components/mobile/BarreDEtape";
@@ -60,8 +61,13 @@ export function EpargneParcours({
   const router = useRouter();
   const chemin = usePathname();
   const sp = useSearchParams();
-  const [mise, miseAct, envoi] = useActionState<MiseEnPlace | null, FormData>(mettreEnPlaceAction, null);
-  const [sign, signAct, signant] = useActionState<MandatResult | null, FormData>(signerMandatAction, null);
+  const [miseA, miseAct, envoi] = useActionState<MiseEnPlace | null, FormData>(mettreEnPlaceAction, null);
+  const [signA, signAct, signant] = useActionState<MandatResult | null, FormData>(signerMandatAction, null);
+  /* LIRE LE MANDAT EST UNE AUTRE PAGE (« /lire ») : en revenant, le parcours se remonte. Ce qui compte pour reprendre à l'étape 4 ou 5 (le mandat créé, le mandat signé) se garde
+     donc le temps de la session, et ne se relit que si l'adresse est déjà à l'étape 4 ou 5 : une épargne neuve ne reprend jamais un vieux parcours. */
+  const [garde, setGarde] = useState<{ mise?: MiseEnPlace; sign?: MandatResult }>({});
+  const mise = miseA ?? garde.mise ?? null;
+  const sign = signA ?? garde.sign ?? null;
   const [copie, copieAct, deposant] = useActionState<MandatResult | null, FormData>(deposerCopieMandatAction, null);
   const [fichier, setFichier] = useState("");
 
@@ -83,6 +89,26 @@ export function EpargneParcours({
   const etape: 1 | 2 | 3 | 4 | 5 = demande >= 5 && sign?.ok ? 5 : demande >= 4 && mise?.ok ? 4 : demande >= 3 && montantOk && compteOk ? 3 : demande >= 2 && montantOk ? 2 : 1;
   const aller = (n: number) => router.push(`${chemin}?etape=${n}`, { scroll: false });
 
+  useEffect(() => {
+    try {
+      const etapeUrl = Number(new URLSearchParams(window.location.search).get("etape")) || 1;
+      const brut = sessionStorage.getItem("guichet:parcours-epargne");
+      // Lecture du stockage de session, qui n'existe pas au rendu serveur : seul un effet peut la poser sans désaccord d'hydratation.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (etapeUrl >= 4 && brut) setGarde(JSON.parse(brut));
+      else sessionStorage.removeItem("guichet:parcours-epargne");
+    } catch {
+      // sans stockage, la lecture du mandat redémarre le parcours : acceptable
+    }
+  }, []);
+  useEffect(() => {
+    if (!miseA?.ok && !signA?.ok) return;
+    try {
+      sessionStorage.setItem("guichet:parcours-epargne", JSON.stringify({ mise: miseA?.ok ? miseA : garde.mise, sign: signA?.ok ? signA : garde.sign }));
+    } catch {
+      // idem
+    }
+  }, [miseA, signA, garde]);
   /* Le code est parti : la page suivante est celle où on le saisit. */
   useEffect(() => {
     if (mise?.ok && etape === 3) router.push(`${chemin}?etape=4`, { scroll: false });
@@ -93,7 +119,13 @@ export function EpargneParcours({
   }, [sign, chemin, router]);
   /* La copie est envoyée : l'épargne attend sa vérification, on la retrouve dans sa liste. */
   useEffect(() => {
-    if (copie?.ok) router.replace(apres);
+    if (!copie?.ok) return;
+    try {
+      sessionStorage.removeItem("guichet:parcours-epargne");
+    } catch {
+      // idem
+    }
+    router.replace(apres);
   }, [copie, apres, router]);
 
   if (empeche) {
@@ -237,9 +269,15 @@ export function EpargneParcours({
         <>
           <p className={styles.phrase}>{t(mise.code ? "Mode démonstration : le code s'affiche ci-dessous." : mise.message)}</p>
           <p className={styles.garanties}>
-            <a href={`/api/documents/mandat-apercu/${mise.mandatId}`} target="_blank" rel="noopener noreferrer">
-              {t("Lire le mandat avant de le signer")} ↗
-            </a>{" "}
+            <Link
+              href={hrefDeLecture(`/api/documents/mandat-apercu/${mise.mandatId}`, {
+                titre: t("Votre mandat"),
+                note: t("Le mandat tel que vous le signerez. Rien n'est engagé tant que vous n'avez pas saisi le code."),
+                de: `${chemin}?etape=4`,
+              })}
+            >
+              {t("Lire le mandat avant de le signer")} →
+            </Link>{" "}
             {t("— c'est le document que votre banque vous demandera.")}
           </p>
           <section className={styles.section}>
@@ -281,9 +319,7 @@ export function EpargneParcours({
               <small>
                 {t("Deux exemplaires à imprimer, à votre nom, avec la référence du mandat.")}{" "}
                 {sign.piece ? (
-                  <a href={`/api/documents/${sign.piece}`} target="_blank" rel="noopener noreferrer">
-                    {t("Télécharger le mandat")} ↓
-                  </a>
+                  <Link href={hrefDeLecture(`/api/documents/${sign.piece}`, { titre: t("Votre mandat"), de: `${chemin}?etape=5` })}>{t("Lire le mandat à imprimer")} →</Link>
                 ) : (
                   <Link href="/moi/documents/signes">{t("Ouvrir mes documents")} →</Link>
                 )}
@@ -304,7 +340,7 @@ export function EpargneParcours({
           </label>
           {copie && !copie.ok && <p className={styles.erreur}>{t(copie.error)}</p>}
           <p className={styles.garanties}>
-            <Link href={apres}>{t("Plus tard")}</Link> — {t("l'épargne reste en attente de la copie, et elle ne prélève rien.")}
+            <Link href={apres} onClick={() => { try { sessionStorage.removeItem("guichet:parcours-epargne"); } catch { /* idem */ } }}>{t("Plus tard")}</Link> — {t("l'épargne reste en attente de la copie, et elle ne prélève rien.")}
           </p>
         </>
       )}

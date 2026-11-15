@@ -84,7 +84,7 @@ describe("la page des adjudications", () => {
   it("ne renvoie plus aux annonces de la BEAC, et laisse le communiqué sur la fiche de la séance", () => {
     expect(BREF, "le lien vers les annonces de la BEAC est revenu au pied du brief").not.toMatch(/BEAC_ANNONCES|beac\.int/);
     const FICHE = readFileSync("src/app/offres/[id]/FicheReading.tsx", "utf8");
-    expect(FICHE, "la fiche d'une séance dépouillée ne porte plus son communiqué : la source n'est plus atteignable nulle part").toMatch(/href=\{seance\.sourceUrl\} target="_blank"/);
+    expect(FICHE, "la fiche d'une séance dépouillée ne porte plus son communiqué : la source n'est plus atteignable nulle part").toMatch(/<LienExterne [^>]*href=\{seance\.sourceUrl\}/);
     expect(FICHE, "le communiqué est revenu dans le résultat de la séance, hors des Documents").not.toMatch(/\{t\("Le communiqué"\)\} ↗/);
     expect(FICHE, "le lien du communiqué a perdu son libellé").toMatch(/\{t\("Communiqué des résultats"\)\}/);
   });

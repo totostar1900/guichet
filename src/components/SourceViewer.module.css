@@ -147,3 +147,38 @@
   color: var(--ink-3);
   font-style: italic;
 }
+
+/* LA LECTURE SEULE (« /lire », 15 novembre 2026) : le document prend tout l'écran, sans cadre ; zoom et pages dans une pastille qui flotte au pied. */
+.lecture {
+  position: relative;
+  gap: 0;
+  margin: 0;
+  height: 100%;
+}
+.lecture .viewerBox {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}
+.barreLecture {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--s-7) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-5);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  font-size: var(--t-2);
+  white-space: nowrap;
+}
+/* Le document se pose en haut de la boîte, sous la phrase fine : pas centré dans le vide d'une page courte. */
+.lecture .viewerBox {
+  align-items: flex-start;
+}

@@ -164,7 +164,7 @@ describe("le parcours du client", () => {
     expect(p).toMatch(/etape === 5 && sign\?\.ok/);
     expect(p.match(/t\("Envoyer ma copie signée"\)/g)?.length).toBe(1);
     expect(p).toMatch(/form="parcours-copie"/);
-    expect(p, "« Plus tard » laisse l'épargne en attente").toMatch(/<Link href=\{apres\}>\{t\("Plus tard"\)\}<\/Link>/);
+    expect(p, "« Plus tard » laisse l'épargne en attente").toMatch(/<Link href=\{apres\}[^\n]*\{t\("Plus tard"\)\}<\/Link>/);
   });
   it("l'épargne dit l'étape de la copie, et cache la prochaine date tant que rien ne part", () => {
     expect(lire("src/components/Standing.tsx")).toMatch(/s\.paiement === "en_verification"/);

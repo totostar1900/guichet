@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { LienDeDocument } from "@/components/LienDeDocument";
 import { GrapheComptes } from "@/components/GrapheComptes";
 import { Carte } from "@/components/Carte";
 import { CourbeDuCours } from "@/components/CourbeDuCours";
@@ -232,13 +233,13 @@ export async function FicheAction({ o, data }: { o: Offer; data: FicheData }) {
                 const href = d.url ?? (d.fileKey ? `/offres/${o.id}/doc/${i}` : undefined);
                 if (!href) return null;
                 return (
-                  <a key={`${d.name}-${i}`} className={fa.rangee} href={href} target="_blank" rel="noreferrer">
+                  <LienDeDocument key={`${d.name}-${i}`} className={fa.rangee} d={d} offerId={o.id} index={i}>
                     <span>
                       <b>{t(d.name)}</b>
                       <small>{d.meta}</small>
                     </span>
                     <i aria-hidden="true">↗</i>
-                  </a>
+                  </LienDeDocument>
                 );
               })}
             </div>

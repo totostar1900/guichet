@@ -47,7 +47,7 @@ import styles from "./SourceViewer.module.css";
 const ZOOM_USINE = 1.1;
 const MEMOIRE_ZOOM = "source.zoom";
 
-export function SourceViewer({ src, title, fill }: { src: string; title: string; fill?: boolean }) {
+export function SourceViewer({ src, title, fill, lecture }: { src: string; title: string; fill?: boolean; /** La lecture seule (page « /lire ») : le document prend tout l'écran, et ses seuls outils sont le zoom et les pages, dans une pastille flottante. */ lecture?: boolean }) {
   const t = useT();
   const mode = useModeAffichage();
   const wrap = useRef<HTMLDivElement | null>(null);
@@ -311,8 +311,33 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
   }
 
   return (
-    <div className={`${styles.viewer} ${fill ? styles.fill : ""}`}>
-      <div className={styles.viewerBar}>
+    <div className={`${styles.viewer} ${fill ? styles.fill : ""} ${lecture ? styles.lecture : ""}`}>
+      {lecture && (
+        <div className={styles.barreLecture}>
+          <button type="button" className="btn sm ghost" onClick={() => setZoom((z) => Math.max(0.5, z * 0.85))} aria-label={t("Réduire")}>
+            −
+          </button>
+          <span className={styles.zoomTxt}>{Math.round(zoom * 100)} %</span>
+          <button type="button" className="btn sm ghost" onClick={() => setZoom((z) => Math.min(4, z * 1.15))} aria-label={t("Agrandir")}>
+            +
+          </button>
+          <button type="button" className="btn sm ghost" onClick={ajusterALaLargeur}>
+            {t("Ajuster")}
+          </button>
+          {pages > 1 && (
+            <span className={styles.pager}>
+              <button type="button" className="btn sm ghost" onClick={() => setPage((n) => Math.max(1, n - 1))} disabled={page <= 1} aria-label={t("Page précédente")}>
+                ‹
+              </button>
+              {t("page {n} sur {m}", { n: String(page), m: String(pages) })}
+              <button type="button" className="btn sm ghost" onClick={() => setPage((n) => Math.min(pages, n + 1))} disabled={page >= pages} aria-label={t("Page suivante")}>
+                ›
+              </button>
+            </span>
+          )}
+        </div>
+      )}
+      {!lecture && <div className={styles.viewerBar}>
         <button type="button" className="btn sm ghost" onClick={() => setZoom((z) => Math.max(0.5, z * 0.85))} aria-label={t("Réduire")}>
           −
         </button>
@@ -372,7 +397,7 @@ export function SourceViewer({ src, title, fill }: { src: string; title: string;
             {t("Plein écran")} ↗
           </a>
         )}
-      </div>
+      </div>}
       <div
         ref={wrap}
         className={`${styles.viewerBox} ${tool === "main" ? styles.hand : styles.arrow} ${grabbing ? styles.grabbing : ""}`}

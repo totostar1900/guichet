@@ -4,6 +4,7 @@ import { Carte } from "@/components/Carte";
 import { CourbeDeLaVL } from "@/components/CourbeDeLaVL";
 import { Info } from "@/components/Info";
 import Link from "next/link";
+import { LienDeDocument } from "@/components/LienDeDocument";
 import { Majeur, Mosaique } from "@/components/Mosaique";
 import { PastilleVariation } from "@/components/PastilleVariation";
 import { FUND_CATEGORY_LABEL, FUND_FREQUENCY_ADJ } from "@/lib/domain/market";
@@ -92,13 +93,13 @@ export async function FicheFonds({ o, data }: { o: Offer; data: FicheData }) {
               const href = d.url ?? (d.fileKey ? `/offres/${o.id}/doc/${i}` : undefined);
               if (!href) return null;
               return (
-                <a key={`${d.name}-${i}`} className={fa.rangee} href={href} target="_blank" rel="noreferrer">
+                <LienDeDocument key={`${d.name}-${i}`} className={fa.rangee} d={d} offerId={o.id} index={i}>
                   <span>
                     <b>{t(d.name)}</b>
                     <small>{d.meta}</small>
                   </span>
                   <i aria-hidden="true">↗</i>
-                </a>
+                </LienDeDocument>
               );
             })}
           </div>

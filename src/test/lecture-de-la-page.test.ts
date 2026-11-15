@@ -360,7 +360,7 @@ describe("bulles d'information au milieu, menu sans identité, résultat de séa
     const f = lire("src/app/offres/[id]/FicheReading.tsx");
     expect(f, "la ligne de résultat du desk s'affiche de nouveau chez le client").toMatch(/\{mode === "desk" && o\.resultLine && <div className=\{styles\.result\}>/);
     expect(f, "la phrase sur les soumissions est revenue").not.toMatch(/Peu de soumissions/);
-    expect(f, "le communiqué n'est plus rangé avec les documents").toMatch(/\{seance && \(\s*<a className=\{`\$\{styles\.doc\} \$\{styles\.docLink\}`\} href=\{seance\.sourceUrl\}/);
+    expect(f, "le communiqué n'est plus rangé avec les documents").toMatch(/\{seance && \(\s*<LienExterne className=\{`\$\{styles\.doc\} \$\{styles\.docLink\}`\} href=\{seance\.sourceUrl\}/);
   });
   it("un émetteur souverain a son propre libellé, qui ne parle ni de comptes publiés ni d'actionnariat", () => {
     expect(lire("src/app/offres/[id]/IssuerCard.tsx")).toMatch(/sovereign \? "Ses emprunts, ses séances et son calendrier d'adjudications"/);

@@ -32,7 +32,7 @@ describe("la page de l'épargne programmée", () => {
 
   it("le parcours atterrit sur la liste une fois la copie envoyée", () => {
     expect(lire("src/app/moi/epargne/nouvelle/page.tsx")).toMatch(/apres="\/moi\/epargne"/);
-    expect(lire("src/components/EpargneParcours.tsx")).toMatch(/if \(copie\?\.ok\) router\.replace\(apres\);/);
+    expect(lire("src/components/EpargneParcours.tsx")).toMatch(/if \(!copie\?\.ok\) return;[\s\S]*router\.replace\(apres\)/);
   });
 });
 

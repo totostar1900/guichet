@@ -210,4 +210,12 @@ export const EN_FRAIS: Record<string, string> = {
   "Le titulaire n'est pas celui de votre dossier.": "The holder is not the one in your file.",
   "Le RIB n'est pas celui du mandat.": "The account number is not the mandate's.",
   "La copie est incomplète : toute la page doit se lire.": "The copy is incomplete: the whole page must be readable.",
+  "Fermer la lecture": "Close the reading",
+  "Lire le mandat à imprimer": "Read the mandate to print",
+  "Le mandat tel que vous le signerez. Rien n'est engagé tant que vous n'avez pas saisi le code.": "The mandate as you will sign it. Nothing is committed until you have entered the code.",
+  "Votre mandat": "Your mandate",
+  "Adresse copiée": "Address copied",
+  "Copier l'adresse": "Copy the address",
+  "Document": "Document",
+  "Mandat": "Mandate",
 };

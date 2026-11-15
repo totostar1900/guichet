@@ -9,6 +9,7 @@ import { groupDigits, groupedInput } from "@/lib/ui/grouped";
 import { Select } from "@/components/ui/Select";
 import { creerMandatAction, deposerCopieMandatAction, envoyerCodeMandatAction, revoquerMandatAction, signerMandatAction, type MandatResult } from "./actions";
 import type { EtapeDuMandat } from "@/lib/domain/mandat";
+import { hrefDeLecture } from "@/lib/lecture";
 import styles from "./page.module.css";
 import { BarreCollante } from "@/components/mobile/BarreDEtape";
 import { BoutonRetour } from "@/components/mobile/BoutonRetour";
@@ -193,7 +194,7 @@ export function MesMandats({
                           {m.etape === "copie_refusee"
                             ? `${t("La copie signée a été refusée.")} ${m.refus ?? ""} ${t("Renvoyez une copie signée.")}`
                             : t("Il reste à signer le document à la main, à le déposer à votre banque et à nous en envoyer une copie. Rien n'est prélevé avant sa vérification.")}{" "}
-                          <Link href={m.piece ? `/api/documents/${m.piece}` : "/moi/documents/signes"}>{t("Télécharger le mandat")} ↓</Link>
+                          <Link href={m.piece ? hrefDeLecture(`/api/documents/${m.piece}`, { titre: `${t("Mandat")} ${m.ref}`, de: "/moi/prelevements" }) : "/moi/documents/signes"}>{t("Lire le mandat à imprimer")} →</Link>
                         </p>
                         <input type="hidden" name="id" value={m.id} />
                         <label className="field">
@@ -227,9 +228,9 @@ export function MesMandats({
                         c'est l'ordre dans lequel on fait les choses : on lit,
                         puis on demande le code, puis on signe. */}
                     <p className={styles.note}>
-                      <a href={`/api/documents/mandat-apercu/${m.id}`} target="_blank" rel="noopener noreferrer">
-                        {t("Lire le mandat avant de le signer")} ↗
-                      </a>{" "}
+                      <Link href={hrefDeLecture(`/api/documents/mandat-apercu/${m.id}`, { titre: `${t("Mandat")} ${m.ref}`, note: t("Le mandat tel que vous le signerez. Rien n'est engagé tant que vous n'avez pas saisi le code."), de: "/moi/prelevements" })}>
+                        {t("Lire le mandat avant de le signer")} →
+                      </Link>{" "}
                       {t("— c'est le document que votre banque vous demandera. Tant qu'il n'est pas signé, vous pouvez encore le corriger.")}
                     </p>
                     {/* LA PAGE ET L'ACTION DOIVENT DIRE LA MÊME CHOSE. Sans

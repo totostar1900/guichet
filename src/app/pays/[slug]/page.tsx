@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { hrefDeLecture } from "@/lib/lecture";
+import { LienExterne } from "@/components/LienExterne";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { Info } from "@/components/Info";
@@ -427,19 +429,13 @@ export default async function PaysFichePage({
                         <td>{n.perspective ?? "—"}</td>
                         <td>{fmtDate(n.dateFait)}</td>
                         <td>
-                          <a
-                            href={n.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {t("Voir la pièce")} ↗
-                          </a>
+                          <LienExterne href={n.url}>{t("Voir la pièce")} ↗</LienExterne>
                           {piecesNotes.find((c) => c.urlOrigine === n.url) && (
                             <>
                               {" · "}
-                              <a href={`/pieces/${piecesNotes.find((c) => c.urlOrigine === n.url)!.id}`} target="_blank" rel="noopener">
+                              <Link href={hrefDeLecture(`/pieces/${piecesNotes.find((c) => c.urlOrigine === n.url)!.id}`, { titre: t("copie"), de: `/pays/${slug}` })}>
                                 {t("copie")}
-                              </a>
+                              </Link>
                             </>
                           )}
                         </td>
@@ -552,7 +548,7 @@ export default async function PaysFichePage({
                             {copie ? (
                               <>
                                 {" "}
-                                · <a href={`/pieces/${copie.id}`} target="_blank" rel="noopener">{t("copie conservée")}</a>
+                                · <Link href={hrefDeLecture(`/pieces/${copie.id}`, { titre: t("copie conservée"), de: `/pays/${slug}` })}>{t("copie conservée")}</Link>
                               </>
                             ) : null}
                           </span>

@@ -31,7 +31,7 @@ describe("pas de rectangle blanc", () => {
   });
 
   it("n'écrit aucun fond blanc en dur hors des pages qui montrent un document", () => {
-    const permis = new Set(["src/app/desk/a-valider/page.module.css"]);
+    const permis = new Set(["src/app/desk/a-valider/page.module.css", "src/app/lire/lecteur.module.css"]);
     const fautes: string[] = [];
     for (const f of css("src")) {
       if (/globals\.css$|palettes\.css$/.test(f) || permis.has(f)) continue;

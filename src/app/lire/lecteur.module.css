@@ -1,0 +1,77 @@
+/* Le lecteur : il recouvre le cadre de la maison, plein écran, sans marge. */
+.lecteur {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.barre {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  height: 48px;
+  padding: 0 var(--s-2) 0 var(--s-6);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.barre b {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--t-3);
+  font-weight: 600;
+}
+.croix {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink);
+  font-size: var(--t-6);
+  cursor: pointer;
+}
+.corps {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* La phrase fine tient sous la barre, sur deux lignes au plus : c'est la réassurance d'un document qu'on n'a pas encore signé. */
+.note {
+  flex: none;
+  margin: 0;
+  padding: var(--s-4) var(--s-6);
+  font-size: var(--t-2);
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.contenu {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.cadre {
+  display: block;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  border: 0;
+  background: #fff;
+}

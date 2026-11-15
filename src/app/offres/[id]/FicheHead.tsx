@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { hrefDeLecture } from "@/lib/lecture";
 import { LineIdentity } from "@/components/LineIdentity";
 import { HorizonMark } from "@/components/HorizonMark";
 import { WatchButton } from "@/components/WatchButton";
@@ -88,9 +90,9 @@ export async function FicheHead({
             <LineMenu line={{ id: o.id, title: o.title, isin: o.isin, sub: `${s.subtitle} · ${s.hero} ${s.heroUnit ?? ""}`.trim() }} watching={watching} cadence={cadence} onFiche={false} pdf />
           </div>
           <div className={styles.headBtns}>
-            <a className={`btn sm ${styles.pdfBtn}`} href={`/offres/${o.id}/fiche`} target="_blank" rel="noreferrer">
+            <Link className={`btn sm ${styles.pdfBtn}`} href={hrefDeLecture(`/offres/${o.id}/fiche`, { titre: `${t("Fiche")} ${o.title}`, de: `/offres/${o.id}` })}>
               {t("Fiche PDF")}
-            </a>
+            </Link>
           </div>
         </div>
       </div>

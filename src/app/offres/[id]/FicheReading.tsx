@@ -1,6 +1,8 @@
 import { pctTotal, souscriptionNette } from "@/lib/domain/frais-fonds";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { LienDeDocument } from "@/components/LienDeDocument";
+import { LienExterne } from "@/components/LienExterne";
 import { RelatedNews } from "@/components/RelatedNews";
 import { FlowsChart } from "@/components/FlowsChart";
 import { NavHistory } from "@/components/NavHistory";
@@ -697,21 +699,21 @@ export async function FicheReading({ o, data, mode = "client", qty, children }: 
             )}
             {/* LE COMMUNIQUÉ DE LA SÉANCE EST UN DOCUMENT (8 novembre 2026) : il n'était qu'un lien au bas du résultat. Il est maintenant rangé avec les autres. */}
             {seance && (
-              <a className={`${styles.doc} ${styles.docLink}`} href={seance.sourceUrl} target="_blank" rel="noreferrer">
+              <LienExterne className={`${styles.doc} ${styles.docLink}`} href={seance.sourceUrl}>
                 <span className="mono">PDF</span>
                 {t("Communiqué des résultats")}
                 <span className={styles.docMeta}>{t("Séance du {d}", { d: fmtDate(seance.sessionOn) })} ↗</span>
-              </a>
+              </LienExterne>
             )}
             {o.documents.map((d, n) => {
               const href = d.url ?? (d.fileKey ? `/offres/${o.id}/doc/${n}` : undefined);
               if (!href) return null;
               return (
-                <a key={`${d.name}-${n}`} className={`${styles.doc} ${styles.docLink}`} href={href} target="_blank" rel="noreferrer">
+                <LienDeDocument key={`${d.name}-${n}`} className={`${styles.doc} ${styles.docLink}`} d={d} offerId={o.id} index={n}>
                   <span className="mono">{/\.(png|jpe?g)$/i.test(d.url ?? d.mimeType ?? "") || /image\//.test(d.mimeType ?? "") ? "IMG" : "PDF"}</span>
                   {t(d.name)}
                   <span className={styles.docMeta}>{d.meta} ↗</span>
-                </a>
+                </LienDeDocument>
               );
             })}
           </div>
