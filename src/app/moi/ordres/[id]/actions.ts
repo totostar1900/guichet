@@ -1,5 +1,6 @@
 "use server";
 
+import { audit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { noter } from "@/lib/journal";
 import { garde } from "@/lib/garde";
@@ -109,16 +110,24 @@ async function acheverLaSignature(intent: Intent, userId: string, methode: strin
      vient d être calculée lui sert de réponse pour le prépaiement. */
   const passe = await garde("ordre.signer", { type: intent.type, couvert: du === 0 || couverture });
   if (!passe.ok) return { ok: false, error: passe.raison! };
+  const signeLe = new Date().toISOString();
   await r.updateIntent(intent.id, {
-    signedAt: new Date().toISOString(),
+    signedAt: signeLe,
     signedMethod: methode,
     signedTo: to,
     orderDocId: doc.id,
-    ...(couverture ? { coveredAt: new Date().toISOString(), coveredAmount: du } : {}),
+    ...(couverture ? { coveredAt: signeLe, coveredAmount: du } : {}),
     pendingCodeHash: undefined,
     pendingCodeAt: undefined,
     pendingCodeTries: 0,
     pendingCodeTo: undefined,
+  });
+  /* LA SIGNATURE ET LA COUVERTURE, AU REGISTRE (15 novembre 2026) : c'est l'engagement du client. Le registre dit quand, par quel moyen, vers où le code est
+     parti, quel document a été signé, et si la provision a réservé la somme. */
+  await audit("intent.sign", "intent", intent.id, {
+    before: { signedAt: null, coveredAt: intent.coveredAt ?? null },
+    after: { signedAt: signeLe, signedMethod: methode, signedTo: to ?? null, orderDocId: doc.id, ...(couverture ? { coveredAt: signeLe, coveredAmount: du } : {}) },
+    reason: `${intent.ref} · ${intent.clientName}${couverture ? " · couvert sur la provision" : ""}`,
   });
   await r.logEvent({
     kind: "intent",

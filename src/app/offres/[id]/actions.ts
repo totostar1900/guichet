@@ -1,5 +1,6 @@
 "use server";
 
+import { audit } from "@/lib/audit";
 import type { NotifyChannel } from "@/lib/domain/types";
 import { canauxOuverts, contactRapidePossible, messageParDefaut } from "@/lib/domain/contact-rapide";
 import type { Channel } from "@/lib/domain/types";
@@ -196,13 +197,22 @@ export async function submitIntent(_prev: IntentResult | null, form: FormData): 
      chiffre existe pourtant d'avance : ce que l'ordre coûterait au prix le
      plus cher que le client ait accepté. Calculé plus tard, il suivrait les
      conditions du jour et ne serait plus ce qu'il a lu en déclarant. */
+  let plafondFige: number | undefined;
   if (seSigneAuPlafond(type) && offer) {
     try {
-      await r.updateIntent(intent.id, { maxAmount: plafondPropose(intent, offer) });
+      plafondFige = plafondPropose(intent, offer);
+      await r.updateIntent(intent.id, { maxAmount: plafondFige });
     } catch (e) {
       await r.logEvent({ kind: "system", intentId: intent.id, html: `${intent.ref} : <b>plafond non calculé</b> (${e instanceof Error ? e.message : "erreur"}). L'ordre ne pourra pas se signer tant qu'il manque.` });
     }
   }
+  /* LA DEMANDE DU CLIENT, AU REGISTRE (15 novembre 2026) : le premier passage d'un ordre est celui qu'on produit le jour où un client dit « je n'ai pas
+     passé cet ordre ». Elle porte ce qu'il a demandé et le plafond figé à ce moment. */
+  await audit("intent.create", "intent", intent.id, {
+    before: null,
+    after: { ref: intent.ref, offerId, type, amount: intent.amount ?? null, limitPrice: intent.limitPrice ?? null, channel, maxAmount: plafondFige ?? null, needsAccount },
+    reason: `${intent.ref} · ${clientName} · ${offer?.title ?? offerId}`,
+  });
   // Keep the profile reachable with what the client just typed (the desk calls from there).
   await r.updateContact(session.userId, { name: clientName, phone: contactPhone || undefined, email: contactEmail || undefined });
   if (needsAccount) await r.logEvent({ kind: "system", intentId: intent.id, offerId, html: `${intent.ref} : <b>en attente d'ouverture de compte</b> (${session.name}, niveau ${session.tier}) : à prioriser avant la clôture` });
@@ -342,6 +352,7 @@ export async function contacterSurLigne(offerId: string, canal: Channel, message
     phoneVerified: telephoneProuve,
     emailVerified: emailProuve,
   });
+  await audit("intent.create", "intent", intent.id, { before: null, after: { ref: intent.ref, offerId, type: "rappel", channel: canal }, reason: `${intent.ref} · ${session.name} · ${offer.title}` });
   await notifyIntentReceived(intent, offer);
   await noter("message.envoye", { objet: offerId, detail: offer.title, canal });
   revalidatePath("/desk");

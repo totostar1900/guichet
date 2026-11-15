@@ -211,6 +211,11 @@ export async function executeOrderAction(_p: MarketResult | null, form: FormData
           switchFromIntentId: updated.id,
         });
         await r.updateIntent(next.id, { state: "confirmee" });
+        await audit("intent.create", "intent", next.id, {
+          before: null,
+          after: { ref: next.ref, state: "confirmee", offerId: dest.id, type: next.type, amount: quantite, switchFromIntentId: updated.id },
+          reason: `${next.ref} · ${next.clientName} · arbitrage depuis ${updated.ref}`,
+        });
         await r.logEvent({
           kind: "desk",
           intentId: next.id,

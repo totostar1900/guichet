@@ -1,4 +1,5 @@
 import "server-only";
+import { audit } from "@/lib/audit";
 import { loadRegistry } from "@/lib/reference";
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
@@ -111,6 +112,7 @@ ${positions.length ? `Ses positions : ${positions.map((p) => `${fmt(p.units)} ${
     const offer = byId.get(answer.intent.offerId)!;
     const created = await r.createIntent({ offerId: offer.id, type: answer.intent.type, amount: answer.intent.amount ?? null, channel: "WhatsApp", message: answer.intent.note ?? undefined, clientId: contact.id, clientName: contact.name, clientSegment: contact.segment });
     createdRef = created.ref;
+    await audit("intent.create", "intent", created.id, { before: null, after: { ref: created.ref, offerId: offer.id, type: answer.intent.type, amount: answer.intent.amount ?? null, channel: "WhatsApp" }, reason: `${created.ref} · ${contact.name} · ${offer.title}`, actor: "robot WhatsApp" });
     if (answer.intent.amount) answer.reply += `\n(Estimation : ${estimate(offer, answer.intent.amount).text})`;
   }
   if (!opts.dryRun && answer.handoff) {

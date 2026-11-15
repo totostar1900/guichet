@@ -1,4 +1,5 @@
 import "server-only";
+import { audit } from "@/lib/audit";
 import { repo } from "@/lib/data";
 import { generateForIntent } from "@/lib/documents/generate";
 import { positionFor } from "@/lib/documents/position";
@@ -68,6 +69,13 @@ export async function applyResults(lines: LineResult[], advisor: string): Promis
       }
       const state: Intent["state"] = units > 0 ? "servie" : "non_servie";
       const updated = await r.updateIntent(i.id, { state, allocationPct: a.allocationPct, servedUnits: units });
+      /* LE RÉSULTAT D'UNE ADJUDICATION, AU REGISTRE (15 novembre 2026) : il fixe ce que le client reçoit, ou non. L'avant et l'après disent la part servie et les titres,
+         et le motif dit si c'est le plafond signé qui a écarté l'ordre. */
+      await audit("intent.execute", "intent", i.id, {
+        before: { state: i.state, allocationPct: i.allocationPct ?? null, servedUnits: i.servedUnits ?? null },
+        after: { state, allocationPct: a.allocationPct, servedUnits: units },
+        reason: `${i.ref} · ${i.clientName} · ${priced.resultLine}${horsBorne ? " · au-delà du plafond signé" : ""}`,
+      });
       await r.logEvent({
         kind: "desk",
         intentId: i.id,
@@ -101,6 +109,11 @@ export async function applySettlement(offerIds: string[], advisor: string): Prom
     for (const i of intents.filter((x) => x.offerId === offerId && x.state === "servie")) {
       const updated = await r.updateIntent(i.id, { state: "reglee" });
       const units = servedUnits(updated, offer);
+      await audit("intent.settle", "intent", i.id, {
+        before: { state: i.state },
+        after: { state: "reglee", servedUnits: units, allocationPct: updated.allocationPct ?? null },
+        reason: `${i.ref} · ${i.clientName} · ${offer.title}`,
+      });
       await r.logEvent({ kind: "desk", intentId: i.id, offerId, html: `${i.ref} (${i.clientName}) : <b>réglée</b> · ${fmt(units)} titres inscrits · par ${advisor}` });
       try {
         await generateForIntent("opere", i.id, { advisor, allocation: (updated.allocationPct ?? 100) / 100 });
