@@ -25,7 +25,7 @@ import type { PieceArchivee } from "@/lib/market/pieces";
 import type { SourcesSeance } from "@/lib/market/sources-seance";
 import type { EmissionNotice, EmissionNoticePatch, NewEmissionNotice } from "@/lib/market/emission-notices";
 import type { NewsItem } from "@/lib/news/model";
-import { receivedLabel } from "@/lib/domain/intent";
+import { CHAMP_DATE_DE_L_ETAT, receivedLabel } from "@/lib/domain/intent";
 import { fmt } from "@/lib/format";
 import { makeMandatRef, makeOrderNo, makeRef, makeSondageRef, makeTirageRef, type OperationDuTresor, type Repository } from "./repository";
 import type { MandatPrelevement } from "@/lib/domain/mandat";
@@ -135,6 +135,12 @@ type IntentRow = {
   max_amount?: number | string | null;
   covered_at?: string | null;
   covered_amount?: number | string | null;
+  confirmed_at?: string | null;
+  transmitted_at?: string | null;
+  served_at?: string | null;
+  settled_at?: string | null;
+  closed_at?: string | null;
+  value_on?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -242,9 +248,31 @@ function toIntent(r: IntentRow): Intent {
     maxAmount: r.max_amount == null ? undefined : Number(r.max_amount),
     coveredAt: u(r.covered_at),
     coveredAmount: r.covered_amount == null ? undefined : Number(r.covered_amount),
+    confirmedAt: u(r.confirmed_at),
+    transmittedAt: u(r.transmitted_at),
+    servedAt: u(r.served_at),
+    settledAt: u(r.settled_at),
+    closedAt: u(r.closed_at),
+    valueOn: u(r.value_on),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
+}
+
+/** La colonne qui date le premier passage dans chaque état (voir `CHAMP_DATE_DE_L_ETAT`). */
+const COLONNE_DATE: Record<"confirmedAt" | "transmittedAt" | "servedAt" | "settledAt" | "closedAt", string> = { confirmedAt: "confirmed_at", transmittedAt: "transmitted_at", servedAt: "served_at", settledAt: "settled_at", closedAt: "closed_at" };
+
+/** Pose la date du premier passage dans l'état, UNE FOIS : la condition « encore vide » est dans la requête, deux passages simultanés ne se réécrivent pas. */
+async function poserLaDateDuPassage(id: string, etat: IntentState, repli: IntentRow): Promise<IntentRow> {
+  const champ = CHAMP_DATE_DE_L_ETAT[etat];
+  if (!champ) return repli;
+  const colonne = COLONNE_DATE[champ];
+  const { data, error } = await db().from("intents").update({ [colonne]: new Date().toISOString() }).eq("id", id).is(colonne, null).select("*").maybeSingle();
+  /* TANT QUE LA MIGRATION 0131 N'EST PAS APPLIQUÉE, la colonne n'existe pas : le passage de l'ordre ne doit pas échouer pour une date qu'on ne peut pas encore ranger.
+     Le passage a déjà eu lieu (la requête d'avant) ; la date manque, et c'est tout. Toute autre erreur reste une erreur. */
+  if (error && new RegExp(`${colonne}|schema cache|does not exist`).test(error.message)) return repli;
+  if (error) fail("poserLaDateDuPassage", error);
+  return (data as IntentRow | null) ?? repli;
 }
 
 type IntakeRow = {
@@ -1251,9 +1279,10 @@ export const supabaseRepository: Repository = {
     if (patch.maxAmount !== undefined) row.max_amount = patch.maxAmount ?? null;
     if (patch.coveredAt !== undefined) row.covered_at = patch.coveredAt ?? null;
     if (patch.coveredAmount !== undefined) row.covered_amount = patch.coveredAmount ?? null;
+    if (patch.valueOn !== undefined) row.value_on = patch.valueOn ?? null;
     const { data, error } = await db().from("intents").update(row).eq("id", id).select("*").single();
     if (error) fail("updateIntent", error);
-    return toIntent(data as IntentRow);
+    return toIntent(patch.state ? await poserLaDateDuPassage(id, patch.state, data as IntentRow) : (data as IntentRow));
   },
   async setIntentState(id, state, closedReason) {
     const { data, error } = await db()
@@ -1263,7 +1292,7 @@ export const supabaseRepository: Repository = {
       .select("*")
       .single();
     if (error) fail("setIntentState", error);
-    return toIntent(data as IntentRow);
+    return toIntent(await poserLaDateDuPassage(id, state, data as IntentRow));
   },
 
   async listEvents(limit = 50) {

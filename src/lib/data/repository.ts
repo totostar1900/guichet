@@ -175,6 +175,7 @@ export interface Repository {
         | "maxAmount"
         | "coveredAt"
         | "coveredAmount"
+        | "valueOn"
       >
     >,
   ): Promise<Intent>;

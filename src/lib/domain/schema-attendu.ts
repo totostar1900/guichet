@@ -1,5 +1,5 @@
 /**
- * CE QUE LES 129 MIGRATIONS DU DÉPÔT DÉCLARENT.
+ * CE QUE LES 130 MIGRATIONS DU DÉPÔT DÉCLARENT.
  *
  * ÉCRIT PAR UN SCRIPT, JAMAIS À LA MAIN : `npm run schema:attendu`. Un cliquet
  * (src/test/schema-attendu.test.ts) refuse qu'il s'écarte des migrations, parce
@@ -131,7 +131,9 @@ export const SCHEMA_ATTENDU: Omit<SchemaDeclare, "incompris"> = {
   "intake_items.reject_reason",
   "intake_items.review_by",
   "intents.allocation_pct",
+  "intents.closed_at",
   "intents.closed_reason",
+  "intents.confirmed_at",
   "intents.contact_email",
   "intents.contact_phone",
   "intents.counter",
@@ -149,7 +151,9 @@ export const SCHEMA_ATTENDU: Omit<SchemaDeclare, "incompris"> = {
   "intents.phone_verified",
   "intents.profile_flag",
   "intents.register_no",
+  "intents.served_at",
   "intents.served_units",
+  "intents.settled_at",
   "intents.signed_at",
   "intents.signed_method",
   "intents.signed_to",
@@ -158,6 +162,8 @@ export const SCHEMA_ATTENDU: Omit<SchemaDeclare, "incompris"> = {
   "intents.switch_floor",
   "intents.switch_from_intent",
   "intents.switch_to_offer",
+  "intents.transmitted_at",
+  "intents.value_on",
   "issuer_financials.periode",
   "market_bulletins.notes",
   "market_bulletins.reader_version",

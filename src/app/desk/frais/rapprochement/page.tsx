@@ -12,6 +12,7 @@ import { regleALaDate, retrocessionDuMois } from "@/lib/domain/frais";
 import { RECU_KIND, cleDuRecu, encoursMoyenDuMois, finDuMois, rapprocherLeRecu, type MouvementDeParts, type RecuDeTiers } from "@/lib/domain/retrocession";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate, localIso } from "@/lib/format";
+import { jourDesParts } from "@/lib/domain/intent";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -56,7 +57,7 @@ export default async function RapprochementPage({ searchParams }: { searchParams
   for (const o of offres.filter((x) => x.kind === "FONDS" && x.fund)) {
     const mouvements: MouvementDeParts[] = intents
       .filter((i) => i.offerId === o.id && i.state === "reglee")
-      .map((i) => ({ jour: localIso(new Date(i.updatedAt)), units: (sensDeLIntention(i.type) === "reduit" ? -1 : 1) * servedUnits(i, o) }));
+      .map((i) => ({ jour: jourDesParts(i), units: (sensDeLIntention(i.type) === "reduit" ? -1 : 1) * servedUnits(i, o) }));
     /* Sans historique de VL, la seule VL connue de la ligne (la dernière) : les jours d'avant sa date ne sont pas valorisés. */
     const historiqueDesVl = mouvements.length ? await r.listFundNavs(o.fund!.key, 500) : [];
     const navs = historiqueDesVl.length || !mouvements.length ? historiqueDesVl : [{ navDate: o.fund!.navDate, nav: o.fund!.nav }];

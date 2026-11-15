@@ -289,6 +289,18 @@ export interface Intent {
   coveredAt?: string;
   /** La somme réservée : le montant ferme, ou le plafond quand le prix est inconnu. */
   coveredAmount?: number;
+  /**
+   * LES DATES DES PASSAGES, POSÉES UNE FOIS (15 novembre 2026, migration 0131). Le dépôt les pose au premier passage dans l'état et ne les réécrit jamais :
+   * `updatedAt` bouge à chaque modification et ne date aucun passage. « settledAt » est le jour où le desk a cliqué « Réglé » ; « valueOn » est le
+   * règlement-livraison quand on le connaît, et il l'emporte pour dater les parts d'un client.
+   */
+  confirmedAt?: string;
+  transmittedAt?: string;
+  servedAt?: string;
+  settledAt?: string;
+  /** Non servi ou annulé. */
+  closedAt?: string;
+  valueOn?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -107,11 +107,12 @@ export async function applySettlement(offerIds: string[], advisor: string): Prom
     if (!offer) continue;
     await r.upsertOffer({ ...offer, status: "live", resultLine: `${offer.resultLine ?? ""} · réglée le ${offer.settleOn}`.replace(/^ · /, "") });
     for (const i of intents.filter((x) => x.offerId === offerId && x.state === "servie")) {
-      const updated = await r.updateIntent(i.id, { state: "reglee" });
+      /* Pour une adjudication le règlement-livraison est celui de la séance : la date de règlement de la ligne. */
+      const updated = await r.updateIntent(i.id, { state: "reglee", ...(/^\d{4}-\d{2}-\d{2}$/.test(offer.settleOn ?? "") ? { valueOn: offer.settleOn } : {}) });
       const units = servedUnits(updated, offer);
       await audit("intent.settle", "intent", i.id, {
         before: { state: i.state },
-        after: { state: "reglee", servedUnits: units, allocationPct: updated.allocationPct ?? null },
+        after: { state: "reglee", servedUnits: units, allocationPct: updated.allocationPct ?? null, settledAt: updated.settledAt ?? null, valueOn: updated.valueOn ?? null },
         reason: `${i.ref} · ${i.clientName} · ${offer.title}`,
       });
       await r.logEvent({ kind: "desk", intentId: i.id, offerId, html: `${i.ref} (${i.clientName}) : <b>réglée</b> · ${fmt(units)} titres inscrits · par ${advisor}` });

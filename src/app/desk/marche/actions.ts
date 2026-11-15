@@ -250,13 +250,16 @@ export async function settleOrderAction(_p: MarketResult | null, form: FormData)
   if (!i || i.state !== "servie") return { ok: false, error: "Ordre non exécuté." };
   const o = await r.getOffer(i.offerId);
   if (!o) return { ok: false, error: "Ligne introuvable." };
-  const updated = await r.updateIntent(i.id, { state: "reglee" });
+  /* LE RÈGLEMENT-LIVRAISON, SI LE DESK LE CONNAÎT : le jour de valeur chez le gestionnaire ou le teneur, qui peut différer du clic. Facultatif ; vide, l'ordre est daté du clic. */
+  const valeur = String(form.get("valeur") ?? "").trim();
+  if (valeur && !/^\d{4}-\d{2}-\d{2}$/.test(valeur)) return { ok: false, error: "Date de règlement-livraison invalide." };
+  const updated = await r.updateIntent(i.id, { state: "reglee", ...(valeur ? { valueOn: valeur } : {}) });
   /* LE RÈGLEMENT AUSSI : c'est lui qui fait entrer la ligne dans la position du
      client et qui produit l'avis d'opéré. Même raison que l'exécution — la
      transition générique le trace, celle-ci ne le traçait pas. */
   await audit("intent.settle", "intent", i.id, {
     before: { state: i.state },
-    after: { state: "reglee", executedPrice: updated.executedPrice, servedUnits: updated.servedUnits },
+    after: { state: "reglee", executedPrice: updated.executedPrice, servedUnits: updated.servedUnits, settledAt: updated.settledAt ?? null, valueOn: updated.valueOn ?? null },
     reason: `${i.ref} · ${i.clientName} · ${o.title}`,
   });
   await r.logEvent({ kind: "desk", intentId: i.id, offerId: o.id, html: `${i.ref} (${i.clientName}) : <b>réglé</b> · par ${desk.name}` });

@@ -50,6 +50,7 @@ export function SettleButton({ intentId }: { intentId: string }) {
   return (
     <form action={action} className={styles.inline}>
       <input type="hidden" name="intentId" value={intentId} />
+      <input name="valeur" type="date" aria-label="Règlement-livraison (facultatif)" title="Règlement-livraison, si connu : vide, l'ordre est daté d'aujourd'hui" className={styles.date} />
       <button className="btn sm primary" type="submit" disabled={pending}>
         {pending ? "…" : "Réglé"}
       </button>

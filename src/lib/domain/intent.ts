@@ -1,6 +1,7 @@
 import type { DisplayStatus, Intent, IntentState, IntentType, Offer } from "./types";
 import { typeOf } from "@/lib/registry";
 import { isPast } from "./status";
+import { localIso } from "../format";
 
 export const INTENT_LABEL: Record<IntentType, string> = {
   appetit: "Appétit",
@@ -241,3 +242,30 @@ export const attendUneSignature = ordreSignable;
  */
 export const retirableParLeClient = (i: Intent): boolean =>
   !i.signedAt && (i.state === "recue" || i.state === "contre_proposee" || i.state === "confirmee");
+
+/**
+ * LES DATES DES PASSAGES (15 novembre 2026) : à chaque état d'un ordre, le champ qui date son premier passage.
+ * Posées une fois, jamais réécrites : `datesDeTransition` ne rend que ce qui manque encore.
+ */
+export const CHAMP_DATE_DE_L_ETAT: Partial<Record<IntentState, "confirmedAt" | "transmittedAt" | "servedAt" | "settledAt" | "closedAt">> = {
+  confirmee: "confirmedAt",
+  transmise: "transmittedAt",
+  servie: "servedAt",
+  reglee: "settledAt",
+  non_servie: "closedAt",
+  annulee: "closedAt",
+};
+
+export function datesDeTransition(etat: IntentState, courant: Partial<Record<"confirmedAt" | "transmittedAt" | "servedAt" | "settledAt" | "closedAt", string>>, maintenant: string): Partial<Record<"confirmedAt" | "transmittedAt" | "servedAt" | "settledAt" | "closedAt", string>> {
+  const champ = CHAMP_DATE_DE_L_ETAT[etat];
+  return champ && !courant[champ] ? { [champ]: maintenant } : {};
+}
+
+/**
+ * LE JOUR OÙ LES PARTS D'UN CLIENT ENTRENT (OU SORTENT) DE SON COMPTE : le règlement-livraison quand il est connu, sinon le jour où le desk a réglé l'ordre,
+ * sinon, pour un ordre réglé avant que les dates soient posées, la dernière modification, faute de mieux. Le registre des parts et l'encours de
+ * la rétrocession datent leurs mouvements d'ici : jamais directement d'`updatedAt`.
+ */
+export function jourDesParts(i: Pick<Intent, "valueOn" | "settledAt" | "updatedAt">): string {
+  return i.valueOn ?? localIso(new Date(i.settledAt ?? i.updatedAt));
+}

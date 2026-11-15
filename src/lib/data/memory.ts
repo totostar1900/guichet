@@ -1,3 +1,4 @@
+import { datesDeTransition } from "@/lib/domain/intent";
 import type { ActionClient } from "@/lib/domain/journal-client";
 import type { FinancialProfile } from "@/data/profile";
 import { SEED_CONTACTS, SEED_INTAKE, SEED_INTENTS, SEED_OFFERS, SEED_SONDAGES } from "@/data/seed";
@@ -533,6 +534,7 @@ export const memoryRepository: Repository = {
     const it = s.intents.find((x) => x.id === id);
     if (!it) throw new Error(`Intent ${id} not found`);
     Object.assign(it, patch, { updatedAt: nowIso() });
+    if (patch.state) Object.assign(it, datesDeTransition(it.state, it, it.updatedAt));
     return structuredClone(it);
   },
   async setIntentState(id, state, closedReason) {
@@ -542,6 +544,7 @@ export const memoryRepository: Repository = {
     it.state = state;
     if (closedReason) it.closedReason = closedReason;
     it.updatedAt = nowIso();
+    Object.assign(it, datesDeTransition(state, it, it.updatedAt));
     return structuredClone(it);
   },
 
