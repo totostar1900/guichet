@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Select } from "@/components/ui/Select";
 import { groupedInput } from "@/lib/ui/grouped";
 import { useT } from "@/i18n/client";
@@ -19,14 +20,19 @@ import styles from "./page.module.css";
  * est le comportement que la plupart attendent. Le relever est une décision de
  * celui qui trouve qu'un ordre de mille francs ne vaut pas ses frais.
  */
-export function ReinvestForm({ fonds }: { fonds: { id: string; title: string; min: number }[] }) {
+export function ReinvestForm({ fonds, apres }: { fonds: { id: string; title: string; min: number }[]; apres?: string }) {
   const t = useT();
+  const router = useRouter();
   const [res, action, pending] = useActionState<StandingResult | null, FormData>(createReinvestAction, null);
   const [offerId, setOfferId] = useState(fonds[0]?.id ?? "");
   /* Le plancher est tenu en etat parce qu il se regroupe pendant la frappe : un
      champ non controle ne peut pas se reformater sous les doigts. */
   const [plancher, setPlancher] = useState("");
   const choisi = fonds.find((f) => f.id === offerId);
+  /* Une fois posée, l'instruction se lit dans sa liste : on y atterrit. */
+  useEffect(() => {
+    if (res?.ok && apres) router.replace(apres);
+  }, [res, apres, router]);
 
   if (!fonds.length) return <p className={styles.vide}>{t("Aucun fonds n'est ouvert à la souscription en ce moment : le réinvestissement se programmera dès qu'il y en aura un.")}</p>;
 
