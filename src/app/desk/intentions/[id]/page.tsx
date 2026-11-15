@@ -1,3 +1,5 @@
+import { Fragment } from "react";
+import { chronologieDeLOrdre } from "@/lib/domain/chronologie-ordre";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DeskNav } from "@/components/DeskNav";
@@ -259,6 +261,26 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                 </div>
                 <small className="muted">{TRACK.map((st) => t(INTENT_STATE_LABEL[st]).toLowerCase()).join(" → ")}</small>
               </dd>
+            </dl>
+          </div>
+
+          {/* LA CHRONOLOGIE, POUR LE DESK SEUL (15 novembre 2026) : toutes les dates de l'ordre. Le client n'en lit aucune : il reçoit les documents d'information et les contrats,
+              pas nos opérations internes. Un passage atteint sans date enregistrée le dit au lieu d'en inventer une. */}
+          <div className="panel">
+            <div className="panel-h">
+              <h2>{t("Chronologie")}</h2>
+              <span className="muted">{t("desk seulement")}</span>
+            </div>
+            <dl className={styles.dl}>
+              {chronologieDeLOrdre(it).map((e) => (
+                <Fragment key={e.cle}>
+                  <dt>{t(e.libelle)}</dt>
+                  <dd>
+                    {e.le ? fmtDateTime(e.le) : <span className="muted">{t("date non enregistrée")}</span>}
+                    {e.detail ? <small className="muted"> · {t(e.detail.texte, e.detail.vars)}</small> : null}
+                  </dd>
+                </Fragment>
+              ))}
             </dl>
           </div>
 
