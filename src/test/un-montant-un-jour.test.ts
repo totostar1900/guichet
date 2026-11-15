@@ -133,7 +133,8 @@ describe("un montant, un jour", () => {
     const src = code(TSX);
     expect(src, "le formulaire lit l'horloge pendant son rendu").not.toMatch(/new Date\(\)/);
     expect(src, "le jour d'aujourd'hui ne vient plus du serveur").toMatch(/aujourdhui/);
-    for (const page of ["src/app/offres/[id]/intention/page.tsx", "src/app/moi/epargne/page.tsx"]) {
+    /* Le formulaire a sa page depuis le 15 novembre 2026 ; la fiche d'un fonds y renvoie. */
+    for (const page of ["src/app/moi/epargne/nouvelle/page.tsx"]) {
       expect(code(page), `${page} ne passe pas le jour au formulaire`).toMatch(/aujourdhui=\{/);
     }
   });

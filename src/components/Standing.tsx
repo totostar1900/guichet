@@ -51,8 +51,14 @@ export function StandingForm({
   fonds,
   vl,
   aujourdhui,
+  fondsInitial,
+  apres,
 }: {
   offerId?: string;
+  /** Le fonds déjà choisi à l'arrivée (une fiche de fonds renvoie ici avec le sien). Ignoré s'il n'est pas dans la liste. */
+  fondsInitial?: string;
+  /** Où l'on atterrit une fois l'épargne posée : la liste de ce qui est en place. Sans cela, le message de réussite se lit sur place. */
+  apres?: string;
   minimum: number;
   unit?: string;
   fonds?: { id: string; title: string; min: number; vl?: number }[];
@@ -71,7 +77,7 @@ export function StandingForm({
   const { fmtDate } = useDates();
   const t = useT();
   const [state, action, pending] = useActionState<StandingResult | null, FormData>(createStandingAction, null);
-  const [choisi, setChoisi] = useState(offerId ?? fonds?.[0]?.id ?? "");
+  const [choisi, setChoisi] = useState(offerId ?? (fondsInitial && fonds?.some((f) => f.id === fondsInitial) ? fondsInitial : fonds?.[0]?.id) ?? "");
   const plancher = fonds ? (fonds.find((f) => f.id === choisi)?.min ?? 0) : minimum;
   const valeur = fonds ? fonds.find((f) => f.id === choisi)?.vl : vl;
   /* Le montant est tenu en etat : il se regroupe pendant la frappe — ET DÈS LE
@@ -117,8 +123,14 @@ export function StandingForm({
   const parts = valeur && valeur > 0 && verse > 0 ? verse / valeur : 0;
   /* LA CRÉATION RÉUSSIE REND SON ENTRÉE D'HISTORIQUE (audit « Mon argent », 11 novembre 2026) : l'étape 2 en avait ajouté une, et la laisser faisait retomber la première flèche sur la même page. On recule d'un cran : la page affiche toujours la confirmation (elle vient de l'état du formulaire, pas de l'adresse). */
   useEffect(() => {
-    if (state?.ok && window.location.search.includes("etape=")) router.back();
-  }, [state?.ok, router]);
+    if (state?.ok && !apres && window.location.search.includes("etape=")) router.back();
+  }, [state?.ok, apres, router]);
+  /* LA SUITE D'UNE ÉPARGNE POSÉE EST LA LISTE (décision du 15 novembre 2026) : on voit ce qu'on vient de mettre en place. Quand un mandat reste à signer, on ne quitte pas la page :
+     la seule suite est le mandat (voir ci-dessous). */
+  useEffect(() => {
+    /* « replace » ET NON « back » + « push » : les deux navigations se couraient après, et la plus lente gagnait : on retombait sur l'étape 1. */
+    if (state?.ok && apres && !state.versLeMandat) router.replace(apres);
+  }, [state, apres, router]);
   if (state?.ok) {
     return (
       <div className={styles.done}>
@@ -134,7 +146,7 @@ export function StandingForm({
             {t("Signer le mandat de prélèvement")}
           </Link>
         ) : (
-          <Link href="/moi/regles">{t("Ce qui part tout seul")} →</Link>
+          <Link href={apres ?? "/moi/regles"}>{apres ? t("Voir mes épargnes") : t("Ce qui part tout seul")} →</Link>
         )}
       </div>
     );

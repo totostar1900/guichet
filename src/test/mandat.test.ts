@@ -331,8 +331,10 @@ describe("un usage déjà couvert n'est plus proposé", () => {
     expect(a).toContain('t("Déjà en place")');
   });
   it("la création d'une épargne recule d'un cran, et la liste de ce qui est en place est dépliée", () => {
-    expect(readFileSync("src/components/Standing.tsx", "utf8")).toMatch(/if \(state\?\.ok && window\.location\.search\.includes\("etape="\)\) router\.back\(\);/);
-    expect(readFileSync("src/app/moi/epargne/page.tsx", "utf8")).toMatch(/cle="epargne:en-place"\s*defaut/);
+    expect(readFileSync("src/components/Standing.tsx", "utf8")).toMatch(/if \(state\?\.ok && !apres && window\.location\.search\.includes\("etape="\)\) router\.back\(\);/);
+    /* Les plis ont laissé la place à un sommaire de tuiles-liens (15 novembre 2026) : la liste de ce qui est en place a sa page, et une épargne posée y atterrit. */
+    expect(readFileSync("src/app/moi/epargne/en-place/page.tsx", "utf8")).toMatch(/<StandingList/);
+    expect(readFileSync("src/app/moi/epargne/nouvelle/page.tsx", "utf8")).toMatch(/apres="\/moi\/epargne\/en-place"/);
   });
 });
 

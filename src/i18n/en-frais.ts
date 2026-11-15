@@ -127,4 +127,9 @@ export const EN_FRAIS: Record<string, string> = {
   "par un autre moyen": "by another means",
   "{m} FCFA réservés": "{m} FCFA reserved",
   "règlement-livraison le {d}": "delivery versus payment on {d}",
+  "Rien n'est en place pour l'instant.": "Nothing is in place for now.",
+  "{m} FCFA par mois": "{m} FCFA per month",
+  "Ce qui part chaque mois, et que vous arrêtez quand vous voulez. Rien n'est en place pour l'instant.": "What leaves each month, and that you stop whenever you like. Nothing is in place for now.",
+  "Programmer un versement sur ce fonds": "Schedule a payment into this fund",
+  "Voir mes épargnes": "See my savings plans",
 };

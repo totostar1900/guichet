@@ -1,13 +1,12 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { IntentForm } from "@/components/IntentForm";
-import { StandingForm } from "@/components/Standing";
-import { recurringMinimum } from "@/lib/domain/standing";
 import { summarize } from "@/lib/domain/summary";
 import { getSession } from "@/lib/auth";
 import { peutOPCVM, isDesk } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
 import { statusLabel } from "@/lib/domain/status";
-import { fmtDate, fmtDateTime, localIso } from "@/lib/format";
+import { fmtDate, fmtDateTime } from "@/lib/format";
 import { tenorText } from "@/lib/finance";
 import { getLang, getT } from "@/i18n/server";
 import { loadIntentContext } from "../intent-context";
@@ -116,7 +115,10 @@ export default async function IntentionPage({ params, searchParams }: Props) {
                       "Vous donnez l'ordre une fois : le montant, le jour, la ligne. Chaque mois, le desk passe pour vous un ordre de souscription réel sur cette ligne, à votre nom. Rien n'est mis en commun, et vous l'arrêtez quand vous voulez.",
                     )}
                   </p>
-                  <StandingForm offerId={o.id} minimum={recurringMinimum(o)} vl={o.fund?.nav} aujourdhui={localIso(new Date())} />
+                  {/* LE FORMULAIRE A SA PAGE (15 novembre 2026) : on y arrive avec ce fonds déjà choisi, et on atterrit ensuite sur la liste de ce qui est en place. */}
+                  <Link className="btn primary" href={`/moi/epargne/nouvelle?fonds=${encodeURIComponent(o.id)}`}>
+                    {t("Programmer un versement sur ce fonds")} →
+                  </Link>
                 </div>
               ) : undefined
             }
