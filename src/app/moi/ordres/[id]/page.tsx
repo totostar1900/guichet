@@ -4,7 +4,6 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { ordreSignable } from "@/lib/domain/intent";
-import { RetirerOrdre } from "./Retirer";
 import { aCouvrirPour, plafondEnVigueur, prixDuPlafond, seSigneAuPlafond } from "@/lib/domain/plafond";
 import { disponibleDe } from "@/lib/domain/provision";
 import { ordreAcceptable } from "@/lib/domain/ouverture";
@@ -15,7 +14,6 @@ import { fmt, fmtDate, fmtDateTime, localIso } from "@/lib/format";
 import { rachatNet, souscriptionNette } from "@/lib/domain/frais-fonds";
 import { getT } from "@/i18n/server";
 import { canalDuCode } from "@/lib/kyc/canal";
-import { AuDoigt } from "./AuDoigt";
 import { SignatureOrdre } from "./Signature";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
@@ -203,6 +201,14 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
             {f ? t("Dépositaire {d} · parts inscrites à votre nom au registre du fonds", { d: f.depositary }) : ""}
             {f?.settlementDays ? ` · ${t("règlement J+{n}", { n: String(f.settlementDays) })}` : ""}
           </p>
+          {/* CE QUI RASSURE RESTE, SANS LE BLOC « ENSUITE » (16 novembre 2026) : la provision qui couvre, et ce qu'on ne paie jamais au-delà du plafond. */}
+          {couvert ? (
+            <p className={styles.fin}>{t("Cette somme est mise de côté sur votre solde : elle n'en sort qu'au règlement de l'opération. Ce qui n'est pas consommé y revient.")}</p>
+          ) : couvrirait ? (
+            <p className={styles.fin}>{t("Votre solde disponible couvre cet ordre : à la signature, la somme sera mise de côté et vous n'aurez rien à virer.")}</p>
+          ) : titre ? (
+            <p className={styles.fin}>{t("Vous ne payez jamais plus que le plafond. Servi en partie, vous ne payez que votre part ; non servi, tout vous revient, et le solde part sous 72 heures ouvrables si vous le demandez.")}</p>
+          ) : null}
           <p className={styles.lire}>
             <Link href={`/moi/ordres/${intent.id}/lire`}>{intent.signedAt ? t("Lire l'ordre signé") : t("Lire l'ordre complet")}</Link>
           </p>
@@ -251,20 +257,7 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
             {t("Ordre signé le {d} par {m}.", { d: fmtDateTime(intent.signedAt), m: t(intent.signedMethod ?? "code à usage unique") })} {t("Référence")} <b className="mono">{intent.ref}</b>
           </div>
         ) : signable ? (
-          <>
-            {/* L'APPAREIL D'ABORD, LE CODE ENSUITE. Un ordre couvert par la
-                provision n'attend plus rien : l'argent est là, le plafond est
-                signé, et il restait un code à aller chercher dans une boîte aux
-                lettres. Le bloc ne paraît que si le navigateur connaît un
-                appareil, ce que le serveur ignore : il se peint après. */}
-            <AuDoigt id={intent.id} couvert={couvrirait} />
-            <SignatureOrdre id={intent.id} canal={canal ? { to: canal.to, channel: canal.channel } : undefined} codeEnvoyeLe={intent.pendingCodeAt} />
-            {/* LES DEUX ISSUES, SUR LA PAGE OÙ LE RAPPEL RENVOIE. Signer est
-                au-dessus et pèse son poids ; renoncer est un lien de texte en
-                dessous. Mais il existe, et c'est tout le point : un panier
-                qu'on ne peut pas vider se garde plein. */}
-            <RetirerOrdre intentId={intent.id} ref_={intent.ref} ouvertDoffice={"retirer" in ((await searchParams) ?? {})} />
-          </>
+          <SignatureOrdre id={intent.id} ref_={intent.ref} canal={canal ? { to: canal.to, channel: canal.channel } : undefined} codeEnvoyeLe={intent.pendingCodeAt} ouvertDoffice={"retirer" in ((await searchParams) ?? {})} />
         ) : ordreSignable(intent) && !habilite ? (
           <p className={styles.hint}>
             {t("Votre ordre est enregistré. Il se signera dès que votre dossier sera approuvé et votre convention acceptée.")}{" "}
@@ -274,67 +267,6 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
           <p className={styles.hint}>{t("Cet ordre n'est plus à signer ici : le desk l'a pris en main. Vous le suivez dans vos documents.")}</p>
         )}
 
-        <section className={styles.suite}>
-          <div className={styles.recapH}>{t("Ensuite")}</div>
-          <ol className={styles.etapes}>
-            <li className={intent.signedAt ? styles.fait : styles.encours}>
-              <b>{t("Vous signez")}</b>
-              <small>{intent.signedAt ? fmtDateTime(intent.signedAt) : t("maintenant")}</small>
-            </li>
-            {/* L'ORDRE DES DEUX ÉTAPES SUIVANTES N'EST PAS LE MÊME SELON CE
-                QU'ON ACHÈTE, et s'y tromper ferait attendre le client pour rien
-                ou le ferait payer trop tôt. Sur une part, le desk centralise
-                puis appelle les fonds. Sur un titre, on ne transmet au marché
-                qu'un ordre COUVERT (convention, article 4) : le règlement
-                précède donc la transmission, à hauteur du plafond signé. */}
-            {couvert || couvrirait ? (
-              /* COUVERT, IL N'Y A PLUS DE SECOND GESTE. Garder « vous virez »
-                 sur un ordre déjà payé par la provision enverrait le client à
-                 sa banque pour rien, ce qui est la friction qu'on retire. */
-              <>
-                <li className={couvert ? styles.fait : undefined}>
-                  <b>{t("Réglé sur votre provision")}</b>
-                  <small>{t("{m} FCFA réservés, rien à virer", { m: fmt(couvert ? (intent.coveredAmount ?? 0) : aRegler) })}</small>
-                </li>
-                <li>
-                  <b>{titre ? t("Le desk transmet") : t("Le desk donne le go")}</b>
-                  <small>{titre ? t("au marché, puis le résultat") : t("puis la centralisation")}</small>
-                </li>
-              </>
-            ) : titre ? (
-              <>
-                <li>
-                  <b>{t("Vous réglez")}</b>
-                  <small>{t("au plus le plafond, avec la référence de l'ordre")}</small>
-                </li>
-                <li>
-                  <b>{t("Le desk transmet")}</b>
-                  <small>{t("au marché, puis le résultat")}</small>
-                </li>
-              </>
-            ) : (
-              <>
-                <li>
-                  <b>{t("Le desk donne le go")}</b>
-                  <small>{t("un numéro d'opération")}</small>
-                </li>
-                <li>
-                  <b>{rachat ? t("Vous êtes payé") : t("Vous virez")}</b>
-                  <small>{rachat ? t("sur votre compte de règlement") : t("avec ce numéro")}</small>
-                </li>
-              </>
-            )}
-          </ol>
-          {couvert ? (
-            <p className={styles.fin}>{t("Cette somme est mise de côté sur votre solde : elle n'en sort qu'au règlement de l'opération. Ce qui n'est pas consommé y revient.")}</p>
-          ) : couvrirait ? (
-            <p className={styles.fin}>{t("Votre solde disponible couvre cet ordre : à la signature, la somme sera mise de côté et vous n'aurez rien à virer.")}</p>
-          ) : titre ? (
-            <p className={styles.fin}>{t("Vous ne payez jamais plus que le plafond. Servi en partie, vous ne payez que votre part ; non servi, tout vous revient, et le solde part sous 72 heures ouvrables si vous le demandez.")}</p>
-          ) : (
-            !rachat && <p className={styles.fin}>{t("Signer n'est pas payer : rien n'est à verser avant le go.")}</p>
-          )}
-        </section>
       </div>
     </Glissement>
   );

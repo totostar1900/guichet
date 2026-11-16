@@ -235,8 +235,8 @@ describe("la couverture sur provision", () => {
        On tient donc les trois choses qui font la promesse : la condition qui
        la calcule, la ligne de la piste, et la phrase du bas. */
     expect(src, "la couverture ne se calcule plus du solde disponible").toMatch(/const couvrirait = !intent\.signedAt && aRegler > 0 && dispo >= aRegler;/);
-    expect(src, "la piste ne montre plus l'étape « réglé sur la provision » à qui la provision couvre").toMatch(/\{couvert \|\| couvrirait \?/);
-    expect(src).toContain("Réglé sur votre provision");
+    /* Le bloc « Ensuite » est retiré (16 novembre 2026) : la bonne nouvelle reste dite, en une phrase sous le récapitulatif. */
+    expect(src, "la phrase de la provision n'est plus conditionnée par la couverture").toMatch(/\) : couvrirait \? \(/);
     expect(src, "le bas de page ne dit plus qu'il n'y aura rien à virer").toContain("Votre solde disponible couvre cet ordre");
   });
 });

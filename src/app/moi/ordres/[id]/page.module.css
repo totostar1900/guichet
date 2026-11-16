@@ -7,12 +7,6 @@
 
 .recap,
 .signer,
-.suite {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: var(--s-7) var(--s-8);
-}
 /* Ce qui attend un geste porte le filet d'or : la même marque que la convention. */
 .signer {
   border-left: 4px solid var(--gold);
@@ -148,91 +142,10 @@
   line-height: 1.5;
 }
 /* Trois cases, pas un diagramme : il reste UN seul geste après la signature. */
-.etapes {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--s-4);
-}
-.etapes li {
-  background: var(--surface-2);
-  padding: var(--s-4) var(--s-6);
-  display: grid;
-  gap: var(--s-2);
-}
-.etapes b {
-  font-size: var(--t-3);
-}
-.etapes small {
-  color: var(--ink-3);
-  font-size: var(--t-2);
-}
-.encours {
-  border-left: 2px solid var(--gold);
-}
-.fait {
-  border-left: 2px solid var(--good);
-}
 
 /* Signer au doigt : le bloc de l'appareil, au-dessus du code reçu. Il se
    peint après la première image, parce que le serveur ignore quel appareil
    ce navigateur connaît. */
-.auDoigt {
-  display: grid;
-  gap: var(--s-4);
-  border: 1px solid var(--gold-line, var(--line));
-  border-left: 3px solid var(--gold);
-  border-radius: 8px;
-  padding: var(--s-6) var(--s-7);
-  margin-bottom: var(--s-6);
-}
-.auDoigtTete {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-5);
-  flex-wrap: wrap;
-}
-.auDoigtTete b {
-  font-size: var(--t-5);
-}
-.auDoigtNote {
-  margin: 0;
-  font-size: var(--t-3);
-  color: var(--ink-2);
-  max-width: 62ch;
-  line-height: 1.5;
-}
-.auDoigtFin {
-  margin: 0;
-  font-size: var(--t-2);
-  color: var(--ink-3);
-}
-.pinField {
-  display: grid;
-  gap: var(--s-2);
-  max-width: 11rem;
-}
-.pinField span {
-  font-size: var(--t-2);
-  color: var(--ink-2);
-}
-.pinField input {
-  font-size: var(--t-6);
-  letter-spacing: 0.5em;
-  text-align: center;
-}
-.lien {
-  background: none;
-  border: 0;
-  padding: 0;
-  font: inherit;
-  color: var(--gold-ink, var(--gold));
-  text-decoration: underline;
-  cursor: pointer;
-}
 
 /* ── Renoncer, sous la signature et jamais à côté ─────────────────────────────
    Un ordre laissé en route n'a longtemps eu qu'une issue : le finir. Celui qui
@@ -241,44 +154,8 @@
    Le lien existe donc, mais il ne pèse pas le poids d'un bouton : on ne met
    pas « signer » et « renoncer » au même rang, et deux cibles de même taille à
    un doigt l'une de l'autre finissent par se confondre. */
-.renonce {
-  margin: 0;
-  text-align: center;
-}
-.renonce button {
-  background: none;
-  border: 0;
-  padding: var(--s-3) var(--s-4);
-  font: inherit;
-  font-size: var(--t-2);
-  color: var(--ink-2);
-  text-decoration: underline;
-  cursor: pointer;
-}
-.renonce button:hover {
-  color: var(--ink);
-}
 /* La question pousse la page plutôt que de flotter : on lit ce qu'elle fait
    avant de répondre, et elle emprunte la bande d'or du retrait au relevé. */
-.renonceForm {
-  display: grid;
-  gap: var(--s-5);
-  margin-top: var(--s-6);
-  padding: var(--s-6);
-  background: var(--gold-soft);
-  border: 1px solid var(--gold-line);
-  font-size: var(--t-2);
-}
-.renonceForm p {
-  margin: 0;
-  line-height: 1.55;
-  color: var(--gold-ink);
-}
-.renonceBtns {
-  display: flex;
-  gap: var(--s-5);
-  flex-wrap: wrap;
-}
 
 /* L'ARBITRAGE DE CET ORDRE.
 

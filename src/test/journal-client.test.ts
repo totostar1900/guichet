@@ -89,9 +89,6 @@ const DISPENSEES: Record<string, string> = {
   saveProfile: "noté par « dossier.finances » dans la même fonction",
   envoyerCodeOrdreAction: "le code part, l ordre se note à la signature",
   signerOrdreAction: "noté par « ordre.signe » dans la même fonction",
-  optionsDeClefAction: "demande le défi au navigateur ; rien n est signé",
-  signerAvecLaClefAction: "passe par signerOrdreAction, qui note",
-  signerAvecLeCodeDeLAppareilAction: "passe par signerOrdreAction, qui note",
 };
 
 const lire = (f: string) => readFileSync(path.join(ROOT, f), "utf8");

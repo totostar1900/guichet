@@ -161,21 +161,6 @@ export async function passkeyAuthenticate(response: AuthenticationResponseJSON):
   return m.ok ? { ok: true, name: v.device.name } : m;
 }
 
-/**
- * CONFIRMER UN ACTE AVEC LA CLEF DÉJÀ ENREGISTRÉE, sans toucher à la session.
- *
- * La clef doit appartenir à la personne CONNECTÉE, et pas seulement être une
- * clef valable : une clef découvrable laisse le téléphone choisir le compte,
- * et sans ce contrôle on signerait l'ordre d'un autre avec son propre doigt
- * sur un appareil partagé.
- */
-export async function confirmerParClef(userId: string, response: AuthenticationResponseJSON): Promise<{ ok: true; name: string } | { ok: false; error: string }> {
-  const v = await verifierLaClef(response);
-  if (!v.ok) return v;
-  if (v.device.userId !== userId) return { ok: false, error: "Cette clé appartient à un autre compte : signez avec un code reçu." };
-  return { ok: true, name: v.device.name };
-}
-
 /* ---------- four-digit code, bound to this browser ---------- */
 
 const MAX_PIN_FAILURES = 5;
@@ -219,14 +204,6 @@ export async function pinAuthenticate(deviceId: string, token: string, pin: stri
   if (!v.ok) return v;
   const m = await mintSession(v.device.userId);
   return m.ok ? { ok: true, name: v.device.name } : m;
-}
-
-/** Confirmer un acte avec le code de cet appareil, sans toucher à la session. Voir `confirmerParClef`. */
-export async function confirmerParCode(userId: string, deviceId: string, token: string, pin: string): Promise<{ ok: true; name: string } | { ok: false; error: string; forgotten?: boolean; left?: number }> {
-  const v = await verifierLeCode(deviceId, token, pin);
-  if (!v.ok) return v;
-  if (v.device.userId !== userId) return { ok: false, error: "Cet appareil appartient à un autre compte : signez avec un code reçu." };
-  return { ok: true, name: v.device.name };
 }
 
 /* ---------- removal and the word sent on both channels ---------- */

@@ -228,6 +228,7 @@ export const EN_FRAIS: Record<string, string> = {
   "Lire mon exemplaire": "Read my copy",
   "Oui, révoquer": "Yes, revoke",
   "Oui, supprimer": "Yes, delete",
+  "Supprimer l'ordre {r} ? Il ne partira pas. Pour le replacer, il faudra en passer un nouveau, aux conditions du moment.": "Delete order {r}? It will not go through. To place it again you will need to place a new one, at the conditions of the day.",
   "Révoquer ce mandat ? Rien ne sera plus prélevé.": "Revoke this mandate? Nothing will be debited any more.",
   "Supprimer ce mandat ? Il ne sera jamais prélevé.": "Delete this mandate? It will never be debited.",
   "Ce qui est passé, ce qui est annoncé, et les mandats révoqués.": "What has gone through, what is announced, and the revoked mandates.",
