@@ -14,6 +14,10 @@ import { fmt, fmtDate, fmtDateTime, localIso } from "@/lib/format";
 import { rachatNet, souscriptionNette } from "@/lib/domain/frais-fonds";
 import { getT } from "@/i18n/server";
 import { canalDuCode } from "@/lib/kyc/canal";
+import { loadReglement } from "@/lib/policy";
+import { reglementUtilisable } from "@/lib/domain/reglement";
+import { Copier } from "@/app/moi/provision/Copier";
+import prov from "@/app/moi/provision/page.module.css";
 import { SignatureOrdre } from "./Signature";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
@@ -102,6 +106,11 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
   const couvert = Boolean(intent.coveredAt);
   const signable = ordreSignable(intent) && habilite && Boolean(dossier);
   const canal = signable && dossier ? await canalDuCode(s.userId, dossier) : undefined;
+
+  /* POUR FINIR : UN ORDRE SIGNÉ SUFFIT, la page dit comment le régler (16 novembre 2026, planche 6A). Les coordonnées viennent du desk (Référentiel › Règlement), le motif est la
+     référence de l'ordre. Rien à virer quand la provision a couvert l'ordre, ni pour un rachat : le produit part sur le compte de règlement. */
+  const reglement = intent.signedAt && !couvert && aRegler > 0 ? await loadReglement() : undefined;
+  const virementPossible = reglement ? reglementUtilisable(reglement) : false;
 
   const fraisDuTitre = titre ? positionFor(intent, offer, prixDuPlafond(intent, offer) != null ? { pricePct: prixDuPlafond(intent, offer) } : {}).commission : 0;
 
@@ -266,6 +275,51 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
         ) : (
           <p className={styles.hint}>{t("Cet ordre n'est plus à signer ici : le desk l'a pris en main. Vous le suivez dans vos documents.")}</p>
         )}
+
+        {intent.signedAt && reglement ? (
+          <section className={styles.recap}>
+            <div className={styles.recapH}>{t("Pour finir")}</div>
+            <p className={styles.virer}>{titre ? t("Virez au plus {m} FCFA", { m: fmt(aRegler) }) : t("Virez {m} FCFA", { m: fmt(aRegler) })}</p>
+            {virementPossible ? (
+              <dl className={prov.coord}>
+                <div>
+                  <dt>{t("Bénéficiaire")}</dt>
+                  <dd>
+                    <span>{reglement.beneficiaire}</span>
+                    <Copier valeur={reglement.beneficiaire} quoi={t("le bénéficiaire")} />
+                  </dd>
+                </div>
+                <div>
+                  <dt>{t("Banque du bénéficiaire")}</dt>
+                  <dd>
+                    <span>{reglement.banque}</span>
+                    <Copier valeur={reglement.banque} quoi={t("la banque")} />
+                  </dd>
+                </div>
+                <div>
+                  <dt>{t("RIB / IBAN")}</dt>
+                  <dd>
+                    <span className="mono">{reglement.rib}</span>
+                    <Copier valeur={reglement.rib} quoi={t("le RIB")} />
+                  </dd>
+                </div>
+                <div className={prov.ligneMotif}>
+                  <dt>
+                    {t("Motif du virement")} <span>{t("obligatoire")}</span>
+                  </dt>
+                  <dd>
+                    <b className="mono">{intent.ref}</b>
+                    <Copier valeur={intent.ref} quoi={t("le motif du virement")} />
+                  </dd>
+                </div>
+              </dl>
+            ) : (
+              <p className={styles.hint}>{t("Les coordonnées ne sont pas encore publiées : demandez-les à votre conseiller. Le motif de votre virement sera la référence {r}.", { r: intent.ref })}</p>
+            )}
+          </section>
+        ) : intent.signedAt && rachat ? (
+          <p className={styles.fin}>{t("Rien à virer : le produit sera viré sur votre compte de règlement après l'exécution.")}</p>
+        ) : null}
 
       </div>
     </Glissement>

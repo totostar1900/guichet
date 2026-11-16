@@ -345,7 +345,7 @@ export async function Console({ session }: { session: Session }) {
                 pouvait l'alimenter, voir ce qu'un ordre signé en avait mis de
                 côté, ni savoir en combien de temps il repart. Un solde qu'on
                 voit sans pouvoir agir dessus est un chiffre, pas un service. */}
-            <Link href="/moi/provision" className={poche.idle > 0 ? styles.dispo : undefined}>
+            <Link href="/moi/argent" className={poche.idle > 0 ? styles.dispo : undefined}>
               <small>{t("Disponible")}</small>
               <b>{fmt(Math.round(poche.idle))}</b>
             </Link>

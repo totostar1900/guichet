@@ -33,14 +33,19 @@ const DEMARCHES: DocumentType[] = ["reclamation", "transfert"];
  * versements, les avis de garde, les prélèvements), et les séparer demanderait
  * cinq requêtes au lieu d'une, pour les mêmes octets.
  */
+/** Le genre d'un mouvement de l'argent : les puces du journal filtrent là-dessus. */
+export type GenreDeMouvement = "versement" | "prelevement" | "retrait" | "papier";
+
 export async function chargerLesRayons(userId: string, t: (s: string, v?: Record<string, string>) => string) {
   const s = { userId };
   const r = repo();
   const [intents, offers, docs, myFile, consent] = await Promise.all([r.listIntents(), r.listOffers(), r.listDocuments(), r.getClientFileByUser(s.userId), r.getConsent(s.userId).catch(() => ({}) as { version?: string; at?: string })]);
-  const [payouts, garde, tirages] = await Promise.all([
+  const [payouts, garde, tirages, cash, mandats] = await Promise.all([
     r.listPayouts({ userId: s.userId }).catch(() => []),
     r.listCustodyNotices({ userId: s.userId }).catch(() => []),
     r.listTirages({ userId: s.userId }).catch(() => []),
+    r.listCash(s.userId).catch(() => []),
+    r.listMandats(s.userId).catch(() => []),
   ]);
   const mine = intents.filter((i) => i.clientId === s.userId);
   const byOffer = new Map(offers.map((o) => [o.id, o]));
@@ -136,6 +141,7 @@ export async function chargerLesRayons(userId: string, t: (s: string, v?: Record
       .filter((d) => d.type === "releve" || d.type === "attestation")
       .map((d) => ({
         clef: `doc-${d.id}`,
+        genre: "papier" as GenreDeMouvement,
         at: d.createdAt,
         titre: t(DOC_LABEL[d.type]),
         sous: d.number,
@@ -147,6 +153,7 @@ export async function chargerLesRayons(userId: string, t: (s: string, v?: Record
       .filter((p) => p.state === "payee")
       .map((p) => ({
         clef: `payout-${p.id}`,
+        genre: "retrait" as GenreDeMouvement,
         at: p.closedAt ?? p.askedAt,
         titre: t("Avis de versement"),
         sous: t("{m} FCFA vers votre compte bancaire", { m: fmt(Math.round(p.paidAmount ?? p.askedAmount)) }),
@@ -161,15 +168,42 @@ export async function chargerLesRayons(userId: string, t: (s: string, v?: Record
       .filter((x) => x.noticeSent || x.state === "remis" || x.state === "encaisse" || x.state === "rejete")
       .map((x) => ({
         clef: `tirage-${x.id}`,
+        genre: "prelevement" as GenreDeMouvement,
         at: x.settledAt ?? x.handedAt ?? x.announcedAt ?? x.createdAt,
         titre: x.state === "encaisse" ? t("Prélèvement encaissé") : x.state === "rejete" ? t("Prélèvement rejeté") : x.state === "remis" ? t("Prélèvement présenté") : t("Prélèvement annoncé"),
         sous: `${t("{m} FCFA le {d}", { m: fmt(x.amount), d: fmtDate(x.dueOn, false) })} · ${x.ref}`,
         etat: x.state === "encaisse" ? t("encaissé le {d}", { d: fmtDate(x.settledAt ?? x.dueOn, false) }) : x.state === "rejete" ? t("rejeté par votre banque") : t("annoncé le {d}", { d: fmtDate(x.announcedAt ?? x.createdAt, false) }),
         ton: (x.state === "encaisse" ? "fait" : x.state === "rejete" ? "attend" : undefined) as "fait" | "attend" | undefined,
-        geste: ouvrirLAvis(x.id, { label: t("Mes prélèvements"), href: "/moi/prelevements" }),
+        geste: ouvrirLAvis(x.id, { label: t("Mes prélèvements"), href: "/moi/argent#en-place" }),
+      })),
+    /* LES VERSEMENTS REÇUS ET LES MANDATS RETIRÉS ENTRENT ICI (16 novembre 2026, planche « Mon argent », 4A) : un seul journal de l'argent, avec ses filtres, au lieu de quatre. */
+    ...cash
+      .filter((c) => c.kind === "provision" && c.amount > 0)
+      .map((c) => ({
+        clef: `cash-${c.id}`,
+        genre: "versement" as GenreDeMouvement,
+        at: c.at,
+        titre: t("Virement reçu"),
+        sous: t("{m} FCFA", { m: fmt(Math.round(c.amount)) }),
+        etat: t("reçu le {d}", { d: fmtDate(c.at, false) }),
+        ton: "fait" as "fait" | "attend" | undefined,
+        geste: { label: t("Mon argent"), href: "/moi/argent" },
+      })),
+    ...mandats
+      .filter((m) => m.state === "revoque")
+      .map((m) => ({
+        clef: `mandat-${m.id}`,
+        genre: "prelevement" as GenreDeMouvement,
+        at: m.revokedAt ?? m.createdAt,
+        titre: m.signedAt ? t("Mandat révoqué") : t("Mandat supprimé"),
+        sous: `${m.ref} · ${m.objet === "provision" ? t("Verser chaque mois") : t("Épargne programmée")}`,
+        etat: t("révoqué le {d}", { d: fmtDate(m.revokedAt ?? m.createdAt, false) }),
+        ton: undefined as "fait" | "attend" | undefined,
+        geste: { label: t("Mon argent"), href: "/moi/argent" },
       })),
     ...garde.map((a) => ({
       clef: `garde-${a.id}`,
+      genre: "papier" as GenreDeMouvement,
       at: a.periodTo,
       titre: t("Avis de droits de garde · {p}", { p: a.period }),
       sous: `${a.du > 0 ? t("{m} FCFA", { m: fmt(Math.round(a.du)) }) : t("sans frais")} · ${a.ref}`,

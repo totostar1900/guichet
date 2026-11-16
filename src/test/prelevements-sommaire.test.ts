@@ -5,27 +5,23 @@ import { parentDe } from "@/lib/nav-parent";
 const lire = (f: string) => readFileSync(f, "utf8");
 
 /**
- * AUTORISER UN PRÉLÈVEMENT EST UN SOMMAIRE (15 novembre 2026, option A · 1 : la provision par le même parcours · 2 : révoqués ok · 3 : historique à part).
- *
- * La page faisait 1 449 px et mêlait quatre métiers. Elle les range : une tuile par mandat, une pour en mettre un en place, une pour l'historique.
+ * LE SOMMAIRE DES PRÉLÈVEMENTS REDIRIGE (16 novembre 2026, planche « Mon argent », 3A, 4A et 7). Avant : une tuile par mandat, une pour en mettre un en place, une pour l'historique
+ * (15 novembre, option A). Le mandat d'une épargne est une étape de l'épargne ; chaque mandat vit dans « Ce qui part tout seul », sur Mon argent, et garde sa page.
  */
-describe("le sommaire des prélèvements", () => {
+describe("le sommaire des prélèvements redirige", () => {
   const p = lire("src/app/moi/prelevements/page.tsx");
 
-  it("n'est plus qu'une liste de tuiles-liens, sans carte de mandat ni formulaire", () => {
-    expect(p).toMatch(/<Link key=\{x\.href\} href=\{x\.href\} className=\{styles\.tuile\}>/);
-    expect(p).not.toMatch(/<MesMandats|creerMandatAction|<form/);
-    expect(p).toMatch(/href: "\/moi\/prelevements\/historique"|href: `\/moi\/prelevements\/\$\{m\.id\}`/);
+  it("les anciennes adresses restent valables : mandat de l'épargne, mise en place de la provision, sinon la section de Mon argent", () => {
+    expect(p).toMatch(/redirect\(`\/moi\/prelevements\/\$\{demande\.id\}`\)/);
+    expect(p).toMatch(/\(sp\.de === "argent" \|\| sp\.de === "alimenter"\) && provisionLibre\) redirect\("\/moi\/prelevements\/nouveau"\)/);
+    expect(p).toMatch(/redirect\("\/moi\/argent#en-place"\)/);
+    expect(p, "le sommaire n'a plus de tuiles").not.toMatch(/styles\.tuile|<Link|<MesMandats|<form/);
   });
 
-  it("une tuile qui attend un geste le porte, et un mandat actif ne porte rien", () => {
-    expect(p).toMatch(/attend: m\.etape !== "actif" \? ETAT\[m\.etape\] : undefined/);
-    expect(p).toMatch(/\{x\.attend && <em className=\{styles\.attend\}>\{x\.attend\}<\/em>\}/);
-  });
-
-  it("les mandats révoqués n'ont plus de tuile : ils se retrouvent dans l'historique", () => {
-    expect(p).toMatch(/vus\.filter\(\(m\) => m\.etat !== "revoque"\)/);
-    expect(lire("src/app/moi/prelevements/historique/page.tsx")).toMatch(/mandats\.filter\(\(m\) => m\.state === "revoque"\)/);
+  it("l'historique est une puce du journal de l'argent, et les mandats révoqués y sont", () => {
+    expect(lire("src/app/moi/prelevements/historique/page.tsx")).toMatch(/redirect\("\/moi\/documents\/argent\?filtre=prelevements"\)/);
+    expect(lire("src/app/moi/documents/rayons.ts")).toMatch(/m\.state === "revoque"/);
+    expect(lire("src/app/moi/documents/argent/page.tsx")).toMatch(/genre: "prelevement"/);
   });
 });
 
@@ -34,7 +30,7 @@ describe("les pages du parcours", () => {
     const m = lire("src/app/moi/prelevements/[id]/page.tsx");
     expect(m).toMatch(/vus\.find\(\(x\) => x\.id === id\)/);
     expect(m).toMatch(/notFound\(\)/);
-    expect(m, "un mandat révoqué doit renvoyer au sommaire, pas répondre 404").toMatch(/m\.etat === "revoque"\) redirect\("\/moi\/prelevements"\)/);
+    expect(m, "un mandat révoqué doit renvoyer au sommaire, pas répondre 404").toMatch(/m\.etat === "revoque"\) redirect\("\/moi\/argent#en-place"\)/);
     expect(m).toMatch(/<MesMandats mandats=\{\[m\]\}/);
   });
 
@@ -70,8 +66,19 @@ describe("les pages du parcours", () => {
     expect(a).toMatch(/String\(form\.get\("objet"\) \?\? ""\) === "provision"/);
   });
 
-  it("le retour d'un mandat est le sommaire, celui du sommaire reste Mon argent", () => {
-    for (const f of ["abc", "nouveau", "historique"]) expect(parentDe(`/moi/prelevements/${f}`)).toBe("/moi/prelevements");
+  it("supprimer ou révoquer le mandat d'une épargne arrête l'épargne avec lui (16 novembre 2026, 3A)", () => {
+    const a = lire("src/app/moi/prelevements/actions.ts");
+    const i = a.indexOf("export async function revoquerMandatAction");
+    const corps = a.slice(i, a.indexOf("\n}\n", i));
+    expect(corps).toMatch(/m\.objet === "instruction" && m\.standingId/);
+    expect(corps).toMatch(/updateStandingOrder\(st\.id, \{ state: "annulee"/);
+    expect(corps).toMatch(/audit\("standing\.stop"/);
+    /* La confirmation le dit avant : on ne supprime pas l'épargne sans l'avoir écrit. */
+    expect(lire("src/app/moi/prelevements/MesMandats.tsx")).toMatch(/Supprimer ce mandat et l'épargne \? Rien ne sera jamais prélevé\./);
+  });
+
+  it("le retour d'un mandat est Mon argent, où vit sa rangée", () => {
+    for (const f of ["abc", "nouveau", "historique"]) expect(parentDe(`/moi/prelevements/${f}`)).toBe("/moi/argent");
     expect(parentDe("/moi/prelevements")).toBe("/moi/argent");
   });
 });

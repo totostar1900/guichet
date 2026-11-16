@@ -309,12 +309,13 @@ describe("l'action du mandat interroge le sens avant la forme", () => {
 describe("un usage déjà couvert n'est plus proposé", () => {
   it("sans usage libre, la mise en place n'est plus proposée : la provision couverte n'a plus de tuile", () => {
     expect(readFileSync("src/app/moi/prelevements/donnees.ts", "utf8")).toMatch(/provisionLibre: !mandats\.some\(\(m\) => m\.objet === "provision" && m\.state !== "revoque"\)/);
-    expect(readFileSync("src/app/moi/prelevements/page.tsx", "utf8")).toMatch(/if \(provisionLibre\) \{\s*tuiles\.push\(/);
+    /* Plus de tuile depuis le 16 novembre 2026 : la mise en place d'une provision déjà couverte n'est pas proposée, l'ancienne adresse n'y mène que si elle est libre, et « Verser » ouvre le mandat en place. */
+    expect(readFileSync("src/app/moi/prelevements/page.tsx", "utf8")).toMatch(/&& provisionLibre\) redirect\("\/moi\/prelevements\/nouveau"\)/);
   });
   it("la tuile de « Mon argent » dit « Déjà en place » quand un mandat vivant existe", () => {
     const a = readFileSync("src/app/moi/argent/page.tsx", "utf8");
     expect(a).toMatch(/m\.objet === "provision" && m\.state !== "revoque"/);
-    expect(a).toContain('t("Déjà en place")');
+    expect(readFileSync("src/app/moi/argent/Gestes.tsx", "utf8")).toContain('t("Déjà en place")');
   });
   it("le parcours de l'épargne atterrit sur la liste une fois la copie envoyée, et la liste vit sur la page de l'épargne", () => {
     expect(readFileSync("src/components/EpargneParcours.tsx", "utf8")).toMatch(/if \(!copie\?\.ok\) return;[\s\S]*router\.replace\(apres\)/);
@@ -347,9 +348,10 @@ describe("comment une épargne est payée, lu dans ses mandats", () => {
     const vue = readFileSync("src/app/moi/prelevements/[id]/page.tsx", "utf8");
     expect(vue).toContain('t("Mon épargne vers {f}", { f: m.fonds })');
     expect(readFileSync("src/components/Standing.tsx", "utf8")).toMatch(/s\.paiement === "mandat_a_signer"/);
-    const r = readFileSync("src/app/moi/regles/page.tsx", "utf8");
-    expect(r).toMatch(/=== "mandat_a_signer" \? t\("En attente du mandat"\)/);
-    expect(r).toMatch(/m\.dayOfMonth \?\? epargne\?\.dayOfMonth/);
+    /* Depuis le 16 novembre 2026 l'épargne et son mandat sont UNE rangée de « Mon argent » : l'état est celui du mandat (« à signer »), le geste « Signer le mandat ». */
+    const r = readFileSync("src/app/moi/argent/en-place.ts", "utf8");
+    expect(r).toMatch(/paiementDeLEpargne\(x, mandats, standing\)/);
+    expect(r).toMatch(/etat: t\("à signer"\)/);
   });
   it("le mode de règlement est enregistré à la création, et la migration le porte", () => {
     expect(readFileSync("src/app/moi/standing-actions.ts", "utf8")).toMatch(/reglement: p\.data\.reglement,/);

@@ -265,6 +265,17 @@ export async function revoquerMandatAction(_p: MandatResult | null, form: FormDa
   const motif = String(form.get("motif") ?? "").trim();
   await repo().updateMandat(m.id, { state: "revoque", revokedAt: new Date().toISOString(), revokedReason: motif || undefined });
   await repo().logEvent({ kind: "system", html: `<b>Mandat de prélèvement révoqué</b> · ${m.ref}${motif ? ` · ${motif}` : ""}` });
+  /* L'ÉPARGNE ET SON MANDAT NE FONT QU'UNE DÉCISION (16 novembre 2026, planche « Mon argent », 3A) : supprimer le mandat d'une épargne arrête l'épargne avec lui. Sans cela, l'épargne
+     resterait « à signer » dans « Ce qui part tout seul », attendant un mandat que le client vient de retirer. C'est une libération, comme stopStandingAction : aucune garde. */
+  if (m.objet === "instruction" && m.standingId) {
+    const st = (await repo().listStandingOrders(mien.userId)).find((x) => x.id === m.standingId);
+    if (st && (st.state === "active" || st.state === "suspendue")) {
+      await repo().updateStandingOrder(st.id, { state: "annulee", stopReason: "mandat retiré par le client" });
+      await audit("standing.stop", "standing", st.id, { before: { state: st.state }, after: { state: "annulee" }, reason: `${st.ref} · mandat ${m.ref} retiré par le client` });
+      await noter("epargne.arretee", { objet: st.ref });
+      revalidatePath("/moi/epargne");
+    }
+  }
   revalidatePath(PATH);
   revalidatePath("/desk");
   await noter("mandat.revoque", { objet: m.ref });

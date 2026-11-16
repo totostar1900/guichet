@@ -335,7 +335,7 @@ export const EN_MORE: Record<string, string> = {
   "Annulée": "Cancelled",
   "Confirmer": "Confirm",
   "Donner le go": "Give the go",
-  "Le client a signé : il ne manque que votre go.": "The client has signed: only your go is missing.",
+  "Le client a signé avant le 16 novembre 2026 : il ne manque que votre go.": "The client signed before 16 November 2026: only your go is missing.",
   "Transmettre": "Transmit",
   "Annuler": "Cancel",
 

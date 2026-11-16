@@ -122,6 +122,12 @@ async function acheverLaSignature(intent: Intent, userId: string, methode: strin
     pendingCodeTries: 0,
     pendingCodeTo: undefined,
   });
+  /* PAS DE VALIDATION DU DESK (16 novembre 2026) : l'ordre signé EST le go. Le passage « reçue → confirmée » se fait ici, à la signature, et le journal le dit : le desk ne
+     « donne » plus rien, il constate le règlement reçu puis transmet. Les ordres signés avant ce changement et restés « reçus » gardent leur bouton côté desk. */
+  if (intent.state === "recue") {
+    await r.setIntentState(intent.id, "confirmee");
+    await audit("intent.transition", "intent", intent.id, { before: { state: "recue" }, after: { state: "confirmee" }, reason: `${intent.ref} · ${intent.clientName} · confirmé par la signature du client` });
+  }
   /* LA SIGNATURE ET LA COUVERTURE, AU REGISTRE (15 novembre 2026) : c'est l'engagement du client. Le registre dit quand, par quel moyen, vers où le code est
      parti, quel document a été signé, et si la provision a réservé la somme. */
   await audit("intent.sign", "intent", intent.id, {

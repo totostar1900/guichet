@@ -44,3 +44,16 @@ describe("les gestes de l'ordre vivent dans la barre du bas", () => {
     expect(SIGNATURE).toMatch(/useState\(Boolean\(ouvertDoffice\)\)/);
   });
 });
+
+describe("la signature confirme l'ordre : pas de validation du desk (16 novembre 2026)", () => {
+  it("à la signature, l'ordre reçu passe à confirmé, et le registre le dit", () => {
+    expect(ACTIONS).toMatch(/if \(intent\.state === "recue"\) \{\s*await r\.setIntentState\(intent\.id, "confirmee"\);/);
+    expect(ACTIONS).toMatch(/confirmé par la signature du client/);
+  });
+  it("la page signée dit comment régler : coordonnées du desk, motif = référence de l'ordre", () => {
+    expect(PAGE).toMatch(/loadReglement\(\)/);
+    expect(PAGE).toMatch(/t\("Pour finir"\)/);
+    expect(PAGE).toMatch(/<b className="mono">\{intent\.ref\}<\/b>\s*<Copier valeur=\{intent\.ref\}/);
+    expect(PAGE, "rien à virer quand la provision a couvert l'ordre").toMatch(/intent\.signedAt && !couvert && aRegler > 0/);
+  });
+});

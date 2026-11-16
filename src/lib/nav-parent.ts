@@ -10,15 +10,13 @@ const FAMILLE = ["argent", "regles", "provision", "prelevements", "epargne", "or
 
 const ENTREES: Record<string, { defaut: string; ou: string[] }> = {
   "/moi/argent": { defaut: "/activite", ou: [] },
-  "/moi/regles": { defaut: "/activite", ou: ["/moi/argent"] },
-  "/moi/provision": { defaut: "/activite", ou: ["/moi/argent"] },
   "/moi/provision/alimenter/virement": { defaut: "/moi/argent", ou: [] },
   "/moi/provision/alimenter/virement/envoye": { defaut: "/moi/provision/alimenter/virement", ou: [] },
-  "/moi/provision/reprendre": { defaut: "/moi/provision", ou: ["/moi/argent", "/activite"] },
-  "/moi/provision/placer": { defaut: "/moi/provision", ou: ["/moi/argent", "/activite"] },
-  "/moi/prelevements": { defaut: "/moi/argent", ou: ["/moi/regles", "/moi/epargne"] },
-  "/moi/epargne": { defaut: "/moi/argent", ou: ["/moi/regles"] },
-  "/moi/reinvestir": { defaut: "/moi/argent", ou: ["/moi/regles"] },
+  "/moi/provision/reprendre": { defaut: "/moi/argent", ou: ["/activite"] },
+  "/moi/provision/placer": { defaut: "/moi/argent", ou: ["/activite"] },
+  "/moi/prelevements": { defaut: "/moi/argent", ou: ["/moi/epargne"] },
+  "/moi/epargne": { defaut: "/moi/argent", ou: [] },
+  "/moi/reinvestir": { defaut: "/moi/argent", ou: [] },
 };
 
 const nu = (c: string) => c.split("?")[0].replace(/(.)\/$/, "$1");
@@ -27,6 +25,8 @@ export function parentDe(chemin: string, precedent?: string | null): string | un
   const p = nu(chemin);
   const seg = p.split("/").filter(Boolean);
   if (seg[0] !== "moi" || !FAMILLE.includes(seg[1] ?? "")) return undefined;
+  /* La page d'un mandat (et sa mise en place) revient à « Mon argent », où vit sa rangée : l'ancien sommaire des prélèvements n'existe plus (16 novembre 2026). */
+  if (seg[1] === "prelevements" && seg.length > 2) return "/moi/argent";
   const e = ENTREES[p];
   if (e) {
     const prec = precedent ? nu(precedent) : undefined;

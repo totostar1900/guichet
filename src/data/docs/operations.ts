@@ -18,7 +18,7 @@ import { l, type DocPage } from "./types";
  */
 export const OPERATIONS: DocPage = {
   slug: "operations",
-  title: l("Opérations : les gestes du client, le go du desk", "Operations: the client's moves, the desk's go"),
+  title: l("Opérations : les gestes du client, et ce que le desk constate", "Operations: the client's moves, and what the desk records"),
   summary: l(
     "Combien de fois un client agit pour une opération, selon le moyen de paiement, et ce que le desk fait une seule fois. La règle de l'argent, le mandat d'ouverture, la provision et les soixante-douze heures.",
     "How many times a client acts for one operation, by means of payment, and what the desk does once. The money rule, the opening mandate, the provision and the seventy-two hours.",
@@ -60,8 +60,8 @@ export const OPERATIONS: DocPage = {
           type: "note",
           kind: "rule",
           text: l(
-            "Un seul go du desk par opération. Le desk décide ; il ne refait pas ce que le client a déjà signé, et il ne redemande rien que le dossier porte déjà.",
-            "One desk go per operation. The desk decides; it does not redo what the client has already signed, and asks for nothing the file already carries.",
+            "Aucune validation du desk sur un ordre signé (décidé le 16 novembre 2026). La signature confirme l'ordre ; la page de l'ordre dit comment le régler, avec la référence de l'ordre pour motif ; le desk constate le règlement reçu, puis transmet. Il ne refait pas ce que le client a déjà signé, et il ne redemande rien que le dossier porte déjà.",
+            "No desk validation on a signed order (decided on 16 November 2026). The signature confirms the order; the order page says how to settle it, with the order reference as the motive; the desk records the payment received, then transmits. It does not redo what the client has already signed, and asks for nothing the file already carries.",
           ),
         },
         {
@@ -94,20 +94,20 @@ export const OPERATIONS: DocPage = {
         },
         {
           type: "table",
-          head: [l("Opération", "Operation"), l("Paiement", "Payment"), l("Gestes", "Moves"), l("Quand, et en combien de temps", "When, and how long"), l("Go du desk", "Desk go")],
+          head: [l("Opération", "Operation"), l("Paiement", "Payment"), l("Gestes", "Moves"), l("Quand, et en combien de temps", "When, and how long"), l("Validation du desk", "Desk validation")],
           rows: [
-            [l("Souscription de parts d'OPCVM", "Fund units, subscription"), l("Carte, mobile money", "Card, mobile money"), l("2 : composer, puis confirmer-et-payer", "2: compose, then confirm-and-pay"), l("Un seul moment, une à deux minutes.", "One sitting, one to two minutes."), l("1", "1")],
-            [l("Souscription de parts d'OPCVM", "Fund units, subscription"), l("Sur provision", "From the provision"), l("2 : composer, signer avec un code", "2: compose, sign with a code"), l("Un seul moment, immédiat, sans frais d'encaissement.", "One sitting, immediate, no collection fee."), l("1", "1")],
-            [l("Souscription de parts d'OPCVM", "Fund units, subscription"), l("Virement", "Bank transfer"), l("3 : composer, signer, virer avec la référence", "3: compose, sign, transfer with the reference"), l("Deux moments : l'application tout de suite, la banque à son rythme.", "Two sittings: the app at once, the bank at its own pace."), l("1", "1")],
-            [l("Rachat de parts", "Fund units, redemption"), l("Aucun", "None"), l("2 : composer, signer", "2: compose, sign"), l("Un seul moment, une minute.", "One sitting, one minute."), l("1", "1")],
-            [l("Arbitrage d'un fonds à l'autre", "Switch between funds"), l("Aucun", "None"), l("2, pour les deux jambes", "2, for both legs"), l("Un seul moment. Un arbitrage ne se signe pas deux fois.", "One sitting. A switch is not signed twice."), l("1", "1")],
-            [l("Adjudication, ordre ferme à plafond", "Auction, firm order with a ceiling"), l("Carte, mobile money, provision", "Card, mobile money, provision"), l("2 : composer avec le plafond, confirmer-et-payer", "2: compose with the ceiling, confirm-and-pay"), l("Un seul moment, au plus tard la veille de la séance.", "One sitting, by the day before the auction at the latest."), l("1", "1")],
-            [l("Adjudication, ordre ferme à plafond", "Auction, firm order with a ceiling"), l("Virement", "Bank transfer"), l("3", "3"), l("Deux moments, à solder avant la veille de la séance.", "Two sittings, to be settled before the day of the auction."), l("1", "1")],
+            [l("Souscription de parts d'OPCVM", "Fund units, subscription"), l("Carte, mobile money", "Card, mobile money"), l("2 : composer, puis confirmer-et-payer", "2: compose, then confirm-and-pay"), l("Un seul moment, une à deux minutes.", "One sitting, one to two minutes."), l("0", "0")],
+            [l("Souscription de parts d'OPCVM", "Fund units, subscription"), l("Sur provision", "From the provision"), l("2 : composer, signer avec un code", "2: compose, sign with a code"), l("Un seul moment, immédiat, sans frais d'encaissement.", "One sitting, immediate, no collection fee."), l("0", "0")],
+            [l("Souscription de parts d'OPCVM", "Fund units, subscription"), l("Virement", "Bank transfer"), l("3 : composer, signer, virer avec la référence", "3: compose, sign, transfer with the reference"), l("Deux moments : l'application tout de suite, la banque à son rythme.", "Two sittings: the app at once, the bank at its own pace."), l("0", "0")],
+            [l("Rachat de parts", "Fund units, redemption"), l("Aucun", "None"), l("2 : composer, signer", "2: compose, sign"), l("Un seul moment, une minute.", "One sitting, one minute."), l("0", "0")],
+            [l("Arbitrage d'un fonds à l'autre", "Switch between funds"), l("Aucun", "None"), l("2, pour les deux jambes", "2, for both legs"), l("Un seul moment. Un arbitrage ne se signe pas deux fois.", "One sitting. A switch is not signed twice."), l("0", "0")],
+            [l("Adjudication, ordre ferme à plafond", "Auction, firm order with a ceiling"), l("Carte, mobile money, provision", "Card, mobile money, provision"), l("2 : composer avec le plafond, confirmer-et-payer", "2: compose with the ceiling, confirm-and-pay"), l("Un seul moment, au plus tard la veille de la séance.", "One sitting, by the day before the auction at the latest."), l("0", "0")],
+            [l("Adjudication, ordre ferme à plafond", "Auction, firm order with a ceiling"), l("Virement", "Bank transfer"), l("3", "3"), l("Deux moments, à solder avant la veille de la séance.", "Two sittings, to be settled before the day of the auction."), l("0", "0")],
             [l("Adjudication non servie, ou servie en partie", "Auction not served, or served in part"), l("—", "—"), l("0 ou 1 : rien, ou demander le versement", "0 or 1: nothing, or ask for payment"), l("Le solde redevient disponible dès le résultat ; il part sous 72 heures ouvrables sur demande.", "The balance becomes available as soon as the result is known; it leaves within 72 working hours on request."), l("0", "0")],
             [l("Sondage avant adjudication", "Poll before an auction"), l("Aucun, jamais", "None, ever"), l("1 : dire son intention", "1: state the intention"), l("Trente secondes. Aucun engagement, aucun versement.", "Thirty seconds. No commitment, no payment."), l("0", "0")],
-            [l("L'ordre qui suit un sondage", "The order that follows a poll"), l("Selon le moyen", "By the means used"), l("1 ou 2 : l'ordre est pré-rempli de l'intention", "1 or 2: the order is pre-filled from the intention"), l("Un seul moment, à l'ouverture de la séance.", "One sitting, when the auction opens."), l("1", "1")],
-            [l("Achat d'un titre coté", "Listed security, purchase"), l("Carte, mobile money, provision", "Card, mobile money, provision"), l("2 : composer avec la limite, confirmer-et-payer", "2: compose with the limit, confirm-and-pay"), l("Un seul moment. L'argent est bloqué, pas déplacé : il ne part qu'au dénouement.", "One sitting. The money is blocked, not moved: it leaves only at settlement."), l("1", "1")],
-            [l("Vente d'un titre coté", "Listed security, sale"), l("Aucun", "None"), l("2 : composer, signer", "2: compose, sign"), l("Un seul moment ; le produit arrive au dénouement.", "One sitting; the proceeds arrive at settlement."), l("1", "1")],
+            [l("L'ordre qui suit un sondage", "The order that follows a poll"), l("Selon le moyen", "By the means used"), l("1 ou 2 : l'ordre est pré-rempli de l'intention", "1 or 2: the order is pre-filled from the intention"), l("Un seul moment, à l'ouverture de la séance.", "One sitting, when the auction opens."), l("0", "0")],
+            [l("Achat d'un titre coté", "Listed security, purchase"), l("Carte, mobile money, provision", "Card, mobile money, provision"), l("2 : composer avec la limite, confirmer-et-payer", "2: compose with the limit, confirm-and-pay"), l("Un seul moment. L'argent est bloqué, pas déplacé : il ne part qu'au dénouement.", "One sitting. The money is blocked, not moved: it leaves only at settlement."), l("0", "0")],
+            [l("Vente d'un titre coté", "Listed security, sale"), l("Aucun", "None"), l("2 : composer, signer", "2: compose, sign"), l("Un seul moment ; le produit arrive au dénouement.", "One sitting; the proceeds arrive at settlement."), l("0", "0")],
             [l("Approvisionner la provision", "Funding the provision"), l("Carte, mobile money, virement", "Card, mobile money, transfer"), l("1", "1"), l("Un seul moment, sans ordre attaché. Elle sert les opérations suivantes.", "One sitting, with no order attached. It serves the operations that follow."), l("0", "0")],
             [l("La première fois seulement", "The first time only"), l("Aucun", "None"), l("Le dossier, puis la convention après l'approbation", "The file, then the agreement after approval"), l("Une fois dans la vie du compte. Rien ne se resigne ensuite.", "Once in the life of the account. Nothing is signed again afterwards."), l("1 approbation", "1 approval")],
           ],
@@ -117,7 +117,7 @@ export const OPERATIONS: DocPage = {
           items: [
             l("Deux gestes, un seul moment, moins de deux minutes : c'est le plancher. On ne descend pas sous « décider » et « confirmer ».", "Two moves, one sitting, under two minutes: that is the floor. One cannot go below “decide” and “confirm”."),
             l("Trois gestes quand l'argent passe par la banque, et le troisième n'est pas chez nous : il est chez elle.", "Three moves when money goes through the bank, and the third is not ours: it is the bank's."),
-            l("Zéro go du desk sur un sondage et sur un non-servi laissé en place. Un go n'existe que là où une décision est prise.", "Zero desk go on a poll and on an unserved amount left in place. A go exists only where a decision is made."),
+            l("Zéro validation du desk sur un ordre signé, sur un sondage et sur un non-servi laissé en place. Le desk ne valide que ce qui demande une décision : l'approbation d'un dossier.", "Zero desk validation on a signed order, on a poll and on an unserved amount left in place. The desk validates only what needs a decision: the approval of a file."),
           ],
         },
       ],

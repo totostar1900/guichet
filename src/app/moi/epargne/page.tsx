@@ -35,7 +35,7 @@ export default async function EpargnePage() {
       <div className={styles.page}>
         <EnTete
           titre={t("Épargne programmée")}
-          phrase={t("Une somme fixe, un jour du mois, une destination choisie maintenant : le versement part tout seul, et vous le retirez quand vous voulez. C'est un placement qui se répète, pas un prélèvement : les deux se décident séparément.")}
+          phrase={t("Une somme fixe, un jour du mois, une destination choisie maintenant : le versement part tout seul, et vous le retirez quand vous voulez. Chaque épargne se paie par un mandat de prélèvement, signé dans la même démarche.")}
           aCote={<EnBref brief="epargne" />}
         />
         <StandingList

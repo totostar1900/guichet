@@ -1,4 +1,5 @@
 import "server-only";
+import { paiementDeLEpargne } from "./mandat";
 import { cache } from "react";
 import { repo } from "@/lib/data";
 import { loadBeacAuctions } from "@/lib/market/beac-feed";
@@ -55,7 +56,8 @@ export const contexteDuClient = cache(async (userId: string): Promise<ContexteCl
   const part = positions.find((p) => p.offer.kind === "FONDS");
   const action = positions.find((p) => p.offer.kind === "ACTIONS");
   const reinv = standing.find((x) => x.state === "active" && x.source === "encaissements");
-  const epargne = standing.find((x) => x.state === "active" && x.source === "virement");
+  /* « EN PLACE » VEUT DIRE QU'ELLE PRÉLÈVE : une épargne dont le mandat attend sa signature ou sa copie n'est pas en place, et le rappel du mandat la porte (16 novembre 2026). */
+  const epargne = standing.find((x) => x.state === "active" && x.source === "virement" && ["prelevement", "virement"].includes(paiementDeLEpargne(x, mandats, standing)));
   /* Créé, pas révoqué, jamais signé : il ne prélève rien et ne se voyait que
      sur sa propre page. Le plus ancien d'abord, parce que c'est celui qui
      traîne. */

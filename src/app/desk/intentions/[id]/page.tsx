@@ -315,7 +315,7 @@ export default async function IntentionPage({ params }: { params: Promise<{ id: 
                     {t(INTENT_STATE_LABEL[it.state]).toLowerCase()} → {t(INTENT_STATE_LABEL[st]).toLowerCase()}
                   </em>
                 </span>
-                <b>{st === "confirmee" && it.signedAt ? t("Le client a signé : il ne manque que votre go.") : t(STATE_PASSAGE[st] ?? STATE_ACTION_LABEL[st] ?? INTENT_STATE_LABEL[st])}</b>
+                <b>{st === "confirmee" && it.signedAt ? t("Le client a signé avant le 16 novembre 2026 : il ne manque que votre go.") : t(STATE_PASSAGE[st] ?? STATE_ACTION_LABEL[st] ?? INTENT_STATE_LABEL[st])}</b>
                 {STATE_EFFECT[st] && <span className={styles.passageQuoi}>{t(STATE_EFFECT[st]!)}</span>}
                 <span className={styles.passageGeste}>
                   <form action={transitionIntent}>

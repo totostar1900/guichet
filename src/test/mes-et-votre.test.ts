@@ -78,7 +78,7 @@ describe("les noms de rubriques et de pages sont à la première personne", () =
 
   it("emploie bien la première personne sur les lieux les plus visibles", () => {
     expect(lire("src/components/mobile/BarreDuHaut.tsx"), "le tiroir ne dit plus « Mon compte »").toMatch(/t\("Mon compte"\)/);
-    expect(lire("src/app/moi/provision/page.tsx"), "la provision ne dit plus « Ma provision »").toMatch(/titre=\{t\("Ma provision"\)\}/);
+    expect(lire("src/app/moi/argent/page.tsx"), "l'argent ne dit plus « Mon argent »").toMatch(/titre=\{t\("Mon argent"\)\}/);
     expect(lire("src/app/moi/ordres/page.tsx"), "les ordres ne disent plus « Mes intentions »").toMatch(/titre=\{t\("Mes intentions"\)\}/);
   });
 });

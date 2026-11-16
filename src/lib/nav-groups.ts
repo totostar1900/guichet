@@ -31,7 +31,7 @@ export const PORTEFEUILLE_PAGES: NavPage[] = [
      place est ici, avec le reste de ce qu'on a. Elle avait été rangée dans
      « Agir » la veille, par la même main qui écrit ceci, et c'était la
      confondre avec les services qui la dépensent. */
-  { key: "provision", href: "/moi/provision", label: "Ma provision", tuile: "votre argent chez nous", hint: "ce que vous laissez chez nous règle vos ordres sans attendre un virement" },
+  { key: "provision", href: "/moi/argent", label: "Mon argent", tuile: "votre argent chez nous", hint: "ce que vous laissez chez nous règle vos ordres sans attendre un virement" },
 ];
 
 /**
@@ -63,14 +63,9 @@ export const INSTRUMENTS_PAGES: NavPage[] = [
  */
 export const AGIR_PAGES: NavPage[] = [
   { key: "trader", href: "/activite", label: "Passer un ordre", tuile: "acheter ou vendre", hint: "acheter, souscrire, vendre ou demander un rachat" },
-  { key: "prelevements", href: "/moi/prelevements", label: "Prélèvement automatique", tuile: "placer chaque mois", hint: "une somme prélevée à date fixe, sous un plafond que vous fixez" },
-  /* DEUX DÉCISIONS, ET NON UNE. « Épargne programmée » dit combien part,
-     quand, et vers quoi : c'est un placement qui se répète. Le mandat de
-     prélèvement dit seulement que la maison peut débiter un compte nommé,
-     sous un plafond : c'est une autorisation de paiement, qui sert aussi à
-     provisionner. On peut avoir l'une sans l'autre, et le mandat sert à plus
-     d'une chose. Deux lignes, donc, et deux pages. */
-  { key: "epargne", href: "/moi/epargne", label: "Épargne programmée", tuile: "placer chaque mois", hint: "une somme fixe, un jour du mois, vers le fonds que vous choisissez" },
+  /* UNE SEULE DÉCISION DEPUIS LE 16 NOVEMBRE 2026 (planche « Mon argent », point 7). Une épargne se paie par un mandat de prélèvement, signé dans la même démarche : le mandat est une
+     étape de l'épargne, plus une rubrique. La ligne « Prélèvement automatique » est retirée du menu ; le versement mensuel de la provision se trouve dans « Mon argent › Verser ». */
+  { key: "epargne", href: "/moi/epargne", label: "Épargne programmée", tuile: "une somme fixe, un jour du mois", hint: "une somme fixe, un jour du mois, vers le fonds que vous choisissez" },
 ];
 
 /**

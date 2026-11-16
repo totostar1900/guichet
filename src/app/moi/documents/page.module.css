@@ -156,3 +156,28 @@
   border-radius: 999px;
   padding: var(--s-1) var(--s-3);
 }
+
+/* Les puces du journal de l'argent : un filtre à un tap, la puce active pleine (16 novembre 2026). */
+.puces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+}
+.puce,
+.puceOn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--s-6);
+  font-size: var(--t-2);
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-2);
+}
+.puceOn {
+  color: var(--ink);
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}

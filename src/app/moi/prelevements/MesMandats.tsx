@@ -62,6 +62,7 @@ export function MesMandats({
   canal,
   dossier,
   injoignable,
+  ouvertDoffice,
 }: {
   /** Le mandat montré : la page d'un mandat n'en porte qu'un (« /moi/prelevements/[id] »). */
   mandats: Vu[];
@@ -70,6 +71,8 @@ export function MesMandats({
   dossier: boolean;
   /** Aucune adresse où faire parvenir le code, ni plus tard les préavis. */
   injoignable: boolean;
+  /** Le rappel arrive par « ?retirer » : la confirmation de la suppression est ouverte d'office. */
+  ouvertDoffice?: boolean;
 }) {
   const { fmtDate, fmtDateTime } = useDates();
   const t = useT();
@@ -79,7 +82,7 @@ export function MesMandats({
   const [copie, copieAct, deposant] = useActionState<MandatResult | null, FormData>(deposerCopieMandatAction, null);
   const [fichier, setFichier] = useState("");
   const [code, setCode] = useState("");
-  const [confirme, setConfirme] = useState(false);
+  const [confirme, setConfirme] = useState(Boolean(ouvertDoffice));
   /* Un mandat révoqué ne se montre plus ici : sa référence se retrouve dans l'historique. */
   const m = mandats.find((x) => x.etat !== "revoque");
   if (!m) return null;
@@ -212,7 +215,7 @@ export function MesMandats({
       <form id="f-envoi" action={envoiAct}>
         <input type="hidden" name="id" value={m.id} />
       </form>
-      <BarreDEtape indice={confirme ? (signe ? t("Révoquer ce mandat ? Rien ne sera plus prélevé.") : t("Supprimer ce mandat ? Il ne sera jamais prélevé.")) : undefined}>
+      <BarreDEtape indice={confirme ? (m.objet === "instruction" ? (signe ? t("Révoquer ce mandat et arrêter l'épargne ? Rien ne sera plus prélevé.") : t("Supprimer ce mandat et l'épargne ? Rien ne sera jamais prélevé.")) : signe ? t("Révoquer ce mandat ? Rien ne sera plus prélevé.") : t("Supprimer ce mandat ? Il ne sera jamais prélevé.")) : undefined}>
         {confirme ? (
           <>
             <button className={`btn primary ${barre.suivant}`} type="submit" form="f-revoc" disabled={revoquant}>

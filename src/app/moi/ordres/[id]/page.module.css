@@ -205,3 +205,10 @@
   font-size: var(--t-3);
   line-height: 1.5;
 }
+
+/* « Pour finir » : la somme à virer, avant les coordonnées (16 novembre 2026). */
+.virer {
+  margin: 0 0 var(--s-6);
+  font-size: var(--t-5);
+  font-weight: 700;
+}

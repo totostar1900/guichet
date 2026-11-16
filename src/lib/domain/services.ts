@@ -632,8 +632,8 @@ export function servicesDuClient(c: ContexteClient, fmt: (n: number) => string =
      la preuve qu'un rayon est mal nommé. */
   out.push(
     c.disponible > 0
-      ? enPlace({ rayon: "compte", cle: "provision", nom: "Ma provision", href: "/moi/provision", phrase: { key: "{m} FCFA vous attendent et règlent votre prochain ordre sans virement.", params: { m: fmt(c.disponible) } } })
-      : aActiver({ rayon: "compte", cle: "provision", nom: "Ma provision", href: "/moi/provision", phrase: { key: "Ce que vous laissez chez nous règle vos ordres sans attendre un virement, et repart sur demande." } }),
+      ? enPlace({ rayon: "compte", cle: "provision", nom: "Ma provision", href: "/moi/argent", phrase: { key: "{m} FCFA vous attendent et règlent votre prochain ordre sans virement.", params: { m: fmt(c.disponible) } } })
+      : aActiver({ rayon: "compte", cle: "provision", nom: "Ma provision", href: "/moi/argent", phrase: { key: "Ce que vous laissez chez nous règle vos ordres sans attendre un virement, et repart sur demande." } }),
   );
   out.push(
     aActiver({ rayon: "compte", cle: "prelevement", nom: "Prélèvement", href: "/moi/prelevements", phrase: { key: "Vous nous autorisez à prélever une somme sur votre compte, à une date fixe. C'est le montant que vous écrivez qui est présenté, ni plus ni moins." } }),
@@ -701,7 +701,7 @@ export const CATALOGUE: { cle: string; nom: string; rayon: Rayon; href: string }
   { cle: "epargne", nom: "Épargne programmée", rayon: "compte", href: "/moi/epargne" },
   { cle: "reinvestissement", nom: "Réinvestir", rayon: "compte", href: "/moi/reinvestir" },
   { cle: "prelevement", nom: "Prélèvement", rayon: "compte", href: "/moi/prelevements" },
-  { cle: "provision", nom: "Ma provision", rayon: "compte", href: "/moi/provision" },
+  { cle: "provision", nom: "Ma provision", rayon: "compte", href: "/moi/argent" },
 ];
 
 /**
@@ -1027,11 +1027,11 @@ export function attentesDuClient(c: ContexteClient, fmt: (n: number) => string):
       cle: "mandat",
       quand: { key: "Quand vous voudrez" },
       chiffre: { key: "Mandat" },
-      quoi: { key: "Pour {d}. Sans lui, vous virez vous-même.", params: { d: c.mandatASigner.destination } },
+      quoi: { key: "Pour {d}. Rien n'est prélevé avant sa signature.", params: { d: c.mandatASigner.destination } },
       geste: "Signer mon mandat",
-      href: "/moi/prelevements",
+      href: `/moi/prelevements/${c.mandatASigner.id}`,
       ton: "annonce",
-      sortie: { geste: "Supprimer ce mandat", href: "/moi/prelevements#mandat" },
+      sortie: { geste: "Supprimer ce mandat", href: `/moi/prelevements/${c.mandatASigner.id}?retirer` },
     });
   if (c.disponible > 0)
     out.push({

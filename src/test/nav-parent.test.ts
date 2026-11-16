@@ -11,26 +11,25 @@ describe("parentDe : l'étape précédente d'une page de l'Activité", () => {
     expect(parentDe("/moi/provision/alimenter/virement", null)).toBe("/moi/argent");
     expect(parentDe("/moi/argent")).toBe("/activite");
   });
-  it("retirer et placer reviennent d'où l'on vient (Mon argent ou Activité), sinon à la provision", () => {
+  it("retirer et placer reviennent d'où l'on vient (Mon argent ou Activité), sinon à Mon argent", () => {
     for (const p of ["/moi/provision/reprendre", "/moi/provision/placer"]) {
       expect(parentDe(p, "/moi/argent"), p).toBe("/moi/argent");
       expect(parentDe(p, "/activite"), p).toBe("/activite");
-      expect(parentDe(p, "/offres/x"), p).toBe("/moi/provision");
-      expect(parentDe(p, null), p).toBe("/moi/provision");
-    }
-  });
-  it("les pages de règle reviennent d'où l'on vient : Mon argent, Ce qui part tout seul, l'épargne (mandat)", () => {
-    expect(parentDe("/moi/prelevements?de=regles", "/moi/regles")).toBe("/moi/regles");
-    expect(parentDe("/moi/prelevements?instruction=st-1&de=epargne", "/moi/epargne")).toBe("/moi/epargne");
-    expect(parentDe("/moi/prelevements", null)).toBe("/moi/argent");
-    for (const p of ["/moi/epargne", "/moi/reinvestir"]) {
-      expect(parentDe(p, "/moi/regles"), p).toBe("/moi/regles");
+      expect(parentDe(p, "/offres/x"), p).toBe("/moi/argent");
       expect(parentDe(p, null), p).toBe("/moi/argent");
     }
   });
-  it("« Ce qui part tout seul » revient à « Mon argent » s'il en vient, sinon à l'Activité", () => {
-    expect(parentDe("/moi/regles", "/moi/argent")).toBe("/moi/argent");
-    expect(parentDe("/moi/regles", null)).toBe("/activite");
+  it("les pages de règle reviennent d'où l'on vient : Mon argent, Ce qui part tout seul, l'épargne (mandat)", () => {
+    expect(parentDe("/moi/prelevements?de=regles", "/moi/regles")).toBe("/moi/argent");
+    expect(parentDe("/moi/prelevements?instruction=st-1&de=epargne", "/moi/epargne")).toBe("/moi/epargne");
+    expect(parentDe("/moi/prelevements", null)).toBe("/moi/argent");
+    for (const p of ["/moi/epargne", "/moi/reinvestir"]) {
+      expect(parentDe(p, "/moi/regles"), p).toBe("/moi/argent");
+      expect(parentDe(p, null), p).toBe("/moi/argent");
+    }
+  });
+  it("« Ce qui part tout seul » n'est plus une page : sa section est dans « Mon argent », qui revient à l'Activité", () => {
+    expect(parentDe("/moi/argent", "/moi/regles")).toBe("/activite");
   });
   it("les autres rubriques de l'Activité remontent à l'Activité, leurs sous-pages à leur rubrique", () => {
     for (const p of ["/moi/ordres", "/moi/documents", "/moi/profil", "/moi/compte"]) expect(parentDe(p), p).toBe("/activite");

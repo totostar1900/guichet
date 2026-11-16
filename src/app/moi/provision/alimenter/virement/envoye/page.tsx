@@ -47,7 +47,7 @@ export default async function VirementEnvoyePage() {
           <BoutonRetour href="/moi/provision/alimenter/virement" className={`btn ${barre.retour}`}>
             {t("Retour")}
           </BoutonRetour>
-          <Link href="/moi/provision" className={`btn primary ${barre.suivant}`}>
+          <Link href="/moi/argent" className={`btn primary ${barre.suivant}`}>
             {t("Voir ma provision")}
           </Link>
         </BarreCollante>

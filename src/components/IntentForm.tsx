@@ -482,7 +482,7 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                 lieu d'annoncer une attente. L'ancienne phrase promettait un
                 bulletin par e-mail, donc un aller-retour : c'est exactement ce
                 qu'on supprime. */}
-            <li>{state.aSigner ? t("Il vous reste à lire et signer votre ordre, ici même : c'est le dernier geste avant le go du desk.") : t("Le bulletin à signer et l'appel de fonds arrivent par e-mail ; l'exécution vous est confirmée sur les deux canaux.")}</li>
+            <li>{state.aSigner ? t("Il vous reste à lire et signer votre ordre, ici même : c'est le dernier geste, le desk n'a rien à valider.") : t("Le bulletin à signer et l'appel de fonds arrivent par e-mail ; l'exécution vous est confirmée sur les deux canaux.")}</li>
           </ul>
           {state.aSigner && (
             <div className={styles.needAccount}>

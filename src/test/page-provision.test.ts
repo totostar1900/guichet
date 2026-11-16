@@ -15,7 +15,10 @@ import { prochaineEcheance, PREAVIS_JOURS } from "@/lib/domain/prelevement";
    encadrés numérotés est devenue trois pages, et la page d'arrivée ne porte
    plus que le solde. Les questions de ces épreuves n'ont pas bougé ; leurs
    réponses ont changé d'adresse. */
-const PAGE = "src/app/moi/provision/page.tsx";
+/* 16 novembre 2026 : « Ma provision » est le haut de « Mon argent ». Son solde vit dans Solde.tsx, ses gestes dans Gestes.tsx ; la page redirige. */
+const PAGE = "src/app/moi/provision/Solde.tsx";
+const REDIRECTION = "src/app/moi/provision/page.tsx";
+const GESTES = "src/app/moi/argent/Gestes.tsx";
 const PLACER = "src/app/moi/provision/PlacerLaProvision.tsx";
 const ALIMENTER = "src/app/moi/provision/alimenter/page.tsx";
 const VIREMENT = "src/app/moi/provision/alimenter/virement/page.tsx";
@@ -85,7 +88,7 @@ describe("les gestes", () => {
        déjà franchie n'ouvre sur personne. C'est la leçon des neuf services
        invisibles, et elle vaut ici. */
     /* Depuis le 10 novembre 2026 le choix « par prélèvement » mène droit au formulaire « Autoriser un prélèvement », ouvert d'emblée : plus d'étape intermédiaire. */
-    expect(code("src/app/moi/argent/page.tsx")).toContain('href: "/moi/prelevements?de=argent"');
+    expect(code(GESTES)).toContain('"/moi/prelevements/nouveau"');
     expect(code(PRELEVEMENT), "l'étape intermédiaire est revenue").toMatch(/redirect\("\/moi\/prelevements\?de=argent"\)/);
     /* Depuis le 15 novembre 2026 la mise en place est le parcours en cinq pages, à une adresse à part. */
     expect(lire("src/app/moi/prelevements/page.tsx")).toMatch(/redirect\("\/moi\/prelevements\/nouveau"\)/);
@@ -100,7 +103,7 @@ describe("les gestes", () => {
      banque — dernier des quatre. */
   it("dit qui agit sur chacun des deux chemins", () => {
     /* Depuis le 10 novembre 2026 le choix est porté par « Mon argent » : chaque tuile dit qui agit. */
-    const src = code("src/app/moi/argent/page.tsx");
+    const src = code(GESTES);
     expect(src, "le virement ne dit plus que c'est le client qui l'envoie").toContain("c'est vous qui l'envoyez");
     expect(src, "le prélèvement ne dit plus que c'est la maison qui le prend").toContain("c'est nous qui le prenons");
   });
@@ -112,11 +115,13 @@ describe("les gestes", () => {
      rond qui annonce un verbe et une page qui en répond un autre coûtent un
      essai, et l'essai porte sur un geste d'argent. */
   it("« Approvisionner » mène à « Mon argent », qui porte le choix : l'ancienne page de choix renvoie", () => {
-    for (const f of [PAGE, "src/app/activite/page.tsx"]) {
+    for (const f of ["src/app/activite/page.tsx"]) {
       const src = code(f);
       expect(src, `${f} ne mène plus à « Mon argent »`).toContain('href="/moi/argent"');
       expect(src, `${f} ouvre la page en l'annonçant d'un autre verbe`).toMatch(/\{t\("Approvisionner"\)\}/);
     }
+    expect(code(REDIRECTION), "l'ancienne page « Ma provision » ne renvoie plus à Mon argent").toMatch(/redirect\("\/moi\/argent"\)/);
+    expect(code(GESTES), "« Verser » n'ouvre plus le choix").toContain('t("Verser")');
     expect(code(ALIMENTER), "l'étape de choix est revenue").toMatch(/redirect\("\/moi\/argent"\)/);
   });
 
@@ -150,10 +155,9 @@ describe("les gestes", () => {
   });
 
   it("chaque chiffre de la page a son geste, et chaque geste sa page", () => {
-    const src = lire(PAGE);
-    // Le journal reste chez Analyse : une seconde table ferait une troisième
-    // lecture du même argent.
-    expect(src).toMatch(/href: "\/moi\/performance#operations"/);
+    const src = lire("src/app/moi/argent/page.tsx");
+    /* Le journal est UN seul, celui des Documents (planche du 16 novembre 2026, 4A) : « D'où vient ce solde » y mène. */
+    expect(src).toMatch(/href: "\/moi\/documents\/argent"/);
     expect(src).toMatch(/href: "\/moi\/tarifs"/);
   });
 
@@ -170,7 +174,7 @@ describe("les gestes", () => {
        préfixe de « .../placerXX », et une recherche par morceau laisserait
        passer une adresse voisine qui n'existe pas. */
     for (const page of ["placer", "reprendre"]) {
-      expect(src, `la pastille ou la bande vers « ${page} » a disparu`).toContain(`"/moi/provision/${page}"`);
+      expect(code(GESTES), `la pastille ou la bande vers « ${page} » a disparu`).toContain(`"/moi/provision/${page}"`);
     }
   });
 
@@ -178,12 +182,9 @@ describe("les gestes", () => {
      aller, un sommaire dit ce qu'il y a, et un dessin qu'il faut deviner
      coûte un essai — sur un geste d'argent, il coûte la confiance. */
   it("écrit le mot sous chaque pastille", () => {
-    const src = lire(PAGE);
-    const nav = src.slice(src.indexOf("<BarreCollante>"));
-    /* « Approvisionner » depuis le 25 octobre 2026 : le mot du rond est celui
-       du titre de la page qu'il ouvre, sans quoi le lecteur cherche s'il est
-       au bon endroit. */
-    for (const mot of ["Approvisionner", "Reprendre"]) {
+    const nav = lire(GESTES);
+    /* Les trois ronds de « Mon argent » : le mot est sous le rond, jamais un dessin seul. */
+    for (const mot of ["Verser", "Placer", "Retirer"]) {
       expect(nav, `la pastille « ${mot} » a perdu son mot`).toMatch(new RegExp(`\\{t\\("${mot}"\\)\\}`));
     }
   });
@@ -199,9 +200,9 @@ describe("les gestes", () => {
 /* APPROVISIONNER EN TROIS ÉTAPES (10 novembre 2026, planche 2A) : le choix, le chemin, la confirmation. */
 describe("approvisionner par étapes", () => {
   it("« Mon argent » porte le choix, sans coordonnée, et mène droit aux formulaires", () => {
-    const src = code("src/app/moi/argent/page.tsx");
-    expect(src).toContain('href: "/moi/provision/alimenter/virement"');
-    expect(src).toContain('href: "/moi/prelevements?de=argent"');
+    const src = code(GESTES) + code("src/app/moi/argent/page.tsx");
+    expect(src).toContain('"/moi/provision/alimenter/virement"');
+    expect(src).toContain('"/moi/prelevements/nouveau"');
     for (const mort of ["Copier", "loadReglement", "RIB / IBAN"]) expect(src, `« ${mort} » est remonté sur le choix`).not.toContain(mort);
   });
   it("« J'ai fait le virement » ne s'offre qu'avec des coordonnées publiées, et mène à la confirmation", () => {
@@ -210,6 +211,6 @@ describe("approvisionner par étapes", () => {
     expect(src).toMatch(/<BarreCollante>/);
     const conf = code("src/app/moi/provision/alimenter/virement/envoye/page.tsx");
     expect(conf, "la confirmation écrit quelque chose : elle ne doit que dire").not.toMatch(/audit\(|\.insert|\.upsert/);
-    expect(conf).toContain('href="/moi/provision"');
+    expect(conf).toContain('href="/moi/argent"');
   });
 });

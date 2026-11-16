@@ -13,16 +13,6 @@
 }
 /* Sur-titre, titre et phrase sont montés par « EnTete » depuis le 24 octobre
    2026 : leurs mesures vivent dans sa feuille. */
-.bloc {
-  display: grid;
-  gap: var(--s-5);
-  border-top: 1px solid var(--line);
-  padding-top: var(--s-6);
-}
-.bloc h2 {
-  margin: 0;
-  font-size: var(--t-6);
-}
 .note {
   margin: 0;
   max-width: 62ch;
@@ -31,13 +21,6 @@
   line-height: 1.5;
 }
 
-.liste {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--s-6);
-}
 .actif,
 .attente {
   font-size: var(--t-1);
@@ -74,110 +57,6 @@
 }
 .demo {
   font-size: var(--t-4);
-}
-.ancien {
-  font-size: var(--t-3);
-  color: var(--ink-2);
-}
-
-@media (max-width: 700px) {
-}
-
-/* Ce qui est annoncé, et ce qui est arrivé. Une ligne par prélèvement, et le
-   motif d'un rejet en toutes lettres : le client le relit ici parce que sa
-   banque le lui a peut-être facturé. */
-.tirages {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-.tirages li {
-  display: grid;
-  grid-template-columns: 7rem 8rem minmax(8rem, 1fr) minmax(0, 2fr);
-  gap: var(--s-4) var(--s-5);
-  align-items: baseline;
-  padding: var(--s-4) 0;
-  border-top: 1px solid var(--line);
-  font-size: var(--t-3);
-}
-.tirages li:first-child {
-  border-top: 0;
-}
-@media (max-width: 700px) {
-  .tirages li {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-}
-.tQuand,
-.tMontant {
-  font-variant-numeric: tabular-nums;
-}
-.tQuoi {
-  color: var(--ink-2);
-}
-.tOk {
-  color: var(--good, #15803d);
-}
-.tAttente {
-  color: var(--ink-2);
-}
-.tRejet {
-  color: var(--crit);
-}
-
-/* Le sommaire : trois tuiles-liens, mêmes jetons de tuile que « Mon argent ». */
-.tuiles {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--tuiles-gap);
-}
-.tuile {
-  display: flex;
-  align-items: center;
-  gap: var(--s-5);
-  min-height: 64px;
-  padding: var(--tuile-pad-y) var(--tuile-pad-x);
-  color: var(--ink);
-  text-decoration: none;
-  background: var(--tuile-fond);
-  border: var(--tuile-bord);
-  border-bottom: var(--tuile-trait);
-  border-radius: var(--tuile-rayon);
-}
-.tuile > span {
-  flex: 1;
-  min-width: 0;
-  display: grid;
-  gap: var(--s-2);
-}
-.tuile b {
-  font-size: var(--t-3);
-}
-.tuile small {
-  font-size: var(--t-2);
-  color: var(--ink-2);
-  line-height: 1.45;
-}
-.tuile i {
-  flex: none;
-  font-style: normal;
-  color: var(--gold-ink);
-  font-size: var(--t-5);
-}
-/* La pastille d'attente : la tuile qui attend un geste le dit sur elle. */
-.attend {
-  flex: none;
-  font-style: normal;
-  font-size: var(--t-1);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--gold-ink);
-  border: 1px solid var(--gold);
-  border-radius: 999px;
-  padding: var(--s-1) var(--s-3);
 }
 
 /* La carte d'un mandat : sa pastille d'état, puis le récapitulatif en tableau resserré (15 novembre 2026). */

@@ -79,7 +79,7 @@ export default async function TradePage() {
             lit comme une panne, et c'est justement le jour où « Approvisionner »
             sert le plus. */}
         <div className={styles.solde}>
-          <Link className={styles.combien} href="/moi/provision">
+          <Link className={styles.combien} href="/moi/argent">
             <span className={styles.etiquette}>{t("Disponible pour un ordre")}</span>
             {ctx.disponible > 0 ? (
               <b className={styles.montant}>
