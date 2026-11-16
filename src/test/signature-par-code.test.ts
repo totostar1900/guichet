@@ -57,3 +57,27 @@ describe("la signature confirme l'ordre : pas de validation du desk (16 novembre
     expect(PAGE, "rien à virer quand la provision a couvert l'ordre").toMatch(/intent\.signedAt && !couvert && aRegler > 0/);
   });
 });
+
+describe("le code de l'ordre marche jusqu'au bout (16 novembre 2026)", () => {
+  it("l'instant d'envoi ne se recalcule pas à chaque rendu : le compte à rebours baisse", () => {
+    /* Mesuré : « Renvoyer dans 45 s » restait à 45 s indéfiniment et la validité à 10:00, parce que « new Date() » était appelé à chaque rendu. */
+    expect(SIGNATURE).toMatch(/useMemo\(\(\) => \(envoi\?\.ok \? new Date\(\)\.toISOString\(\) : undefined\), \[envoi\]\)/);
+    expect(SIGNATURE, "la date est revenue dans le rendu").not.toMatch(/const parti = envoi\?\.ok \? new Date/);
+  });
+  it("chaque signature envoie son exemplaire par e-mail, sans jamais bloquer la signature", () => {
+    expect(ACTIONS).toMatch(/notifyDocument\(doc, "email"\)/);
+    const i = ACTIONS.indexOf("notifyDocument(doc");
+    expect(ACTIONS.slice(i - 400, i)).toMatch(/try \{/);
+    expect(ACTIONS, "l'envoi doit se faire après l'écriture de la signature").toMatch(/signedAt: signeLe[\s\S]*notifyDocument\(doc, "email"\)/);
+  });
+});
+
+describe("l'e-mail d'un ordre signé ne demande pas de le signer (16 novembre 2026)", () => {
+  it("l'exemplaire signé dit qu'il est signé, qu'il n'y a rien à renvoyer, et ce qu'il reste à faire", () => {
+    const compose = readFileSync("src/lib/notify/compose.ts", "utf8");
+    expect(compose).toMatch(/function exemplaireSigne\(/);
+    expect(compose).toMatch(/Rien à nous retourner/);
+    expect(compose).toMatch(/\(i && exemplaireSigne\(d, i, o\)\) \?\? action\[d\.type\]/);
+    expect(readFileSync("src/lib/notify/dispatch.ts", "utf8")).toMatch(/documentSent\(d, o, i\)/);
+  });
+});

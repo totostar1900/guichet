@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { useT } from "@/i18n/client";
 import { envoyerCodeOrdreAction, signerOrdreAction, type OrdreResult } from "./actions";
 import styles from "./page.module.css";
@@ -42,7 +42,10 @@ export function SignatureOrdre({ id, ref_, canal, codeEnvoyeLe, ouvertDoffice }:
   const [sign, signer, signEnCours] = useActionState<OrdreResult | null, FormData>(signerOrdreAction, null);
   const [code, setCode] = useState("");
   const [confirme, setConfirme] = useState(Boolean(ouvertDoffice));
-  const parti = envoi?.ok ? new Date().toISOString() : codeEnvoyeLe;
+  /* L'INSTANT D'ENVOI SE POSE UNE FOIS, à l'arrivée de la réponse. Recalculé à chaque rendu (« new Date() » en clair), il repartait de zéro à chaque seconde : le compte à rebours restait
+     figé à « 45 s », « Renvoyer » ne se rouvrait jamais et « ce code reste valable 10:00 » ne baissait pas (mesuré le 16 novembre 2026). */
+  const partiLe = useMemo(() => (envoi?.ok ? new Date().toISOString() : undefined), [envoi]);
+  const parti = partiLe ?? codeEnvoyeLe;
   const attente = useReste(parti, 45_000);
   const validite = useReste(parti, 10 * 60_000);
   const envoye = Boolean(parti) && validite !== 0;

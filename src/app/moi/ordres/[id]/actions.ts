@@ -141,13 +141,30 @@ async function acheverLaSignature(intent: Intent, userId: string, methode: strin
     html: `<b>Ordre signé</b> par ${intent.clientName} · ${intent.ref} · ${doc.number}${couverture ? ` · <b>couvert sur sa provision</b> (${fmt(du)} FCFA réservés)` : ""}`,
   });
   await noter("ordre.signe", { objet: intent.ref, detail: doc.number });
+  /* CHAQUE SIGNATURE ENVOIE SON EXEMPLAIRE PAR E-MAIL (16 novembre 2026) : le client a signé, il reçoit la pièce qu'il a signée, sans avoir à la chercher. L'envoi ne bloque jamais la
+     signature, qui est déjà acquise : s'il échoue ou si le client n'a pas d'adresse, la pièce reste dans ses documents et l'écran le dit. */
+  let envoi = "";
+  const pasPartie = " Votre exemplaire n'a pas pu partir par e-mail : il vous attend dans vos documents.";
+  try {
+    const { notifyDocument } = await import("@/lib/notify/dispatch");
+    const n = await notifyDocument(doc, "email");
+    if (n && n.status !== "skipped" && n.status !== "failed") envoi = " Votre exemplaire part aussi par e-mail.";
+    else {
+      envoi = pasPartie;
+      /* UN AVIS DÛ ET NON REMIS S'INSCRIT SOUS « avis_manque » : c'est le genre que la page Santé du desk relit, pour dire la pièce de la main (cliquet de avis-etat.test.ts). */
+      await r.logEvent({ kind: "avis_manque", intentId: intent.id, html: `Ordre <b>${intent.ref}</b> : <b>exemplaire non envoyé</b> au client · ${n?.error ?? "adresse e-mail injoignable"} · à lui remettre de la main` });
+    }
+  } catch (e) {
+    envoi = pasPartie;
+    await r.logEvent({ kind: "avis_manque", intentId: intent.id, html: `Ordre <b>${intent.ref}</b> : <b>exemplaire non envoyé</b> au client · ${e instanceof Error ? e.message : "erreur"} · à lui remettre de la main` });
+  }
   revalidatePath(chemin(intent.id));
   revalidatePath("/");
   revalidatePath("/desk");
   return {
     ok: true,
     message: couverture
-      ? "Ordre signé et couvert par votre provision : rien à virer. Votre exemplaire est dans vos documents."
-      : "Ordre signé. Votre exemplaire est dans vos documents.",
+      ? `Ordre signé et couvert par votre provision : rien à virer. Votre exemplaire est dans vos documents.${envoi}`
+      : `Ordre signé. Votre exemplaire est dans vos documents.${envoi}`,
   };
 }

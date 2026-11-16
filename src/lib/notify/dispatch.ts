@@ -289,7 +289,7 @@ export async function notifyDocument(d: GeneratedDocument, channel: NotifyChanne
   const c = await contactForIntent(i);
   if (!c) return undefined;
   const o = await r.getOffer(i.offerId);
-  const m = documentSent(d, o);
+  const m = documentSent(d, o, i);
   const [t] = targets(c, [channel], "document");
   if (!t) {
     return r.createNotification({ kind: "document", channel, to: "—", contactName: c.name, subject: m.subject, body: m.text, documentId: d.id, intentId: i.id, offerId: o?.id, status: "skipped", error: channel === "whatsapp" ? "Pas de numéro WhatsApp avec opt-in" : "Pas d'adresse e-mail" });

@@ -2,6 +2,7 @@ import { COMPANY, DISCLAIMER } from "@/lib/config";
 import { reasonForClient } from "@/lib/domain/cancel-reasons";
 import { counterText } from "@/lib/domain/counter";
 import { INTENT_LABEL } from "@/lib/domain/intent";
+import { aCouvrirPour } from "@/lib/domain/plafond";
 import { headlineYield } from "@/lib/domain/status";
 import type { DocumentType, GeneratedDocument, Intent, IntentState, Offer } from "@/lib/domain/types";
 import { tenorText } from "@/lib/finance";
@@ -129,7 +130,18 @@ export function intentUpdated(i: Intent, o: Offer, state: IntentState, advisor?:
   return { subject: `${o.title} : ${i.ref}`, text, template: { name: tmpl("WA_TEMPLATE_UPDATE", "guichet_maj"), params: [i.clientName, lines[state]] } };
 }
 
-export function documentSent(d: GeneratedDocument, o?: Offer): Message {
+/**
+ * L'EXEMPLAIRE D'UN ORDRE QUE LE CLIENT VIENT DE SIGNER ne lui demande rien : le bulletin partait avec « merci de le signer et de nous le retourner », phrase écrite pour la pièce que le
+ * desk envoyait à signer. Signé (16 novembre 2026), il dit qu'il est signé, qu'il n'y a rien à renvoyer, et ce qu'il reste à faire : virer, ou rien si la provision a couvert l'ordre.
+ */
+function exemplaireSigne(d: GeneratedDocument, i: Intent, o?: Offer): string | undefined {
+  if (!i.signedAt || !["bulletin", "cession", "fonds"].includes(d.type)) return undefined;
+  const aVirer = o ? aCouvrirPour(i, o) : 0;
+  const fin = i.coveredAt ? "Il est couvert par votre provision : rien à virer." : aVirer > 0 ? `Pour finir, virez ${i.type === "achat" || i.type === "ferme" ? "au plus " : ""}${fmt(aVirer)} FCFA en citant ${i.ref} ; les coordonnées sont sur la page de votre ordre.` : "Rien à virer de votre côté.";
+  return `Votre ordre ${i.ref} est signé : voici votre exemplaire, à conserver. Rien à nous retourner. ${fin}`;
+}
+
+export function documentSent(d: GeneratedDocument, o?: Offer, i?: Intent): Message {
   const action: Partial<Record<DocumentType, string>> = {
     bulletin: "Merci de le signer et de nous le retourner (photo ou scan suffit) avant la clôture.",
     fonds: "Merci d'effectuer le virement avec la référence indiquée en motif.",
@@ -141,7 +153,7 @@ export function documentSent(d: GeneratedDocument, o?: Offer): Message {
     reclamation: "Nous en accusons réception ; la réponse vous parvient dans le délai indiqué.",
     transfert: "Merci de le signer et de nous le retourner ; le transfert part à réception.",
   };
-  const text = `${COMPANY.name} : ${DOC_LABEL[d.type]} ${d.number}${o ? ` · ${o.title}` : ""}\n${action[d.type] ?? ""}`;
+  const text = `${COMPANY.name} : ${DOC_LABEL[d.type]} ${d.number}${o ? ` · ${o.title}` : ""}\n${(i && exemplaireSigne(d, i, o)) ?? action[d.type] ?? ""}`;
   return { subject: `${DOC_LABEL[d.type]} ${d.number}${o ? ` · ${o.title}` : ""}`, text };
 }
 
