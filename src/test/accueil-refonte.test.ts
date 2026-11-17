@@ -112,8 +112,8 @@ describe("les composants de l'Accueil", () => {
     expect(grille, "la tuile « Proposer une adjudication » est revenue dans Investir").not.toContain('href="/sondage"');
     expect(dossier, "le dossier ne dit plus au domaine qu'aucune adjudication n'est affichée").toMatch(/sansAdjudication: seancesOuvertes\(offers, now\)\.length === 0 && seancesPrevues\(offers, now, 1\)\.length === 0/);
   });
-  it("mènent à tout le catalogue par un bouton sous les entrées, et plus par une tuile du bas", () => {
-    expect(grille, "le bouton « Tous vos services » a disparu").toMatch(/<Link href="\/activite#services" className=\{styles\.tous\}>/);
+  it("ne mènent plus au catalogue par un bouton sous les entrées, ni par une tuile du bas", () => {
+    expect(grille, "le bouton « Tous vos services » est revenu sous les blocs de l'Accueil").not.toContain("Tous vos services");
     expect(accueil, "la tuile « Vos services » est revenue au bas de la page").not.toMatch(/Vos services/);
   });
   it("n'annoncent le nombre de lignes dans aucune entrée d'« Investir »", () => {
@@ -189,5 +189,14 @@ describe("l'Accueil sans phrase de vide ni titre de dossier", () => {
     const d = code("src/components/accueil/DossierAccueil.tsx");
     expect(d, "les intentions n'appellent plus « chiffresDeLIntention »").toMatch(/chiffresDeLIntention\(i, offre\(i\.offerId\)\?\.kind \?\? ""\)/);
     expect(d, "la part servie ne s'affiche plus").toMatch(/t\("servi à \{n\} %"/);
+  });
+});
+
+describe("la barre du bas rend un tic au doigt", () => {
+  it("chaque siège de la barre du bas vibre au toucher, sans casser là où le téléphone ne sait pas", () => {
+    const shell = lire("src/components/mobile/MobileShell.tsx");
+    expect(shell, "les sièges de la barre du bas ne vibrent plus").toMatch(/<Link key=\{tab\.href\} href=\{tab\.href\} replace onClick=\{\(\) => tic\(\)\}/);
+    const tic = lire("src/lib/ui/haptique.ts");
+    expect(tic, "le tic ne se protège plus quand la vibration manque").toMatch(/try \{\s*navigator\.vibrate\?\.\(ms\);\s*\} catch/);
   });
 });

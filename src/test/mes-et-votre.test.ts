@@ -73,7 +73,6 @@ describe("les noms de rubriques et de pages sont à la première personne", () =
     expect(lire("src/app/Dossier.tsx"), "la phrase de la maison a perdu sa voix").toMatch(/t\("Votre dossier est approuvé"\)/);
     expect(lire("src/app/moi/ordres/page.tsx"), "la ligne de formulaire a perdu sa voix").toMatch(/t\("Votre limite"\)/);
     expect(lire("src/app/ouvrir-un-compte/convention/page.tsx"), "le texte contractuel a perdu sa voix").toMatch(/titre=\{t\("Votre convention"\)\}/);
-    expect(lire("src/components/accueil/GrilleInvestir.tsx"), "le catalogue des services parle au client").toMatch(/t\("Tous vos services"\)/);
   });
 
   it("emploie bien la première personne sur les lieux les plus visibles", () => {

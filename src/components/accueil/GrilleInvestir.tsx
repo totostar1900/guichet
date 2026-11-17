@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { lignesActives, seancesOuvertes, seancesPrevues } from "@/lib/domain/accueil";
 import { fondsListes } from "@/lib/domain/listes";
@@ -11,7 +10,6 @@ import { performanceSur } from "@/lib/market/performe";
 import { ligneDeFonds } from "@/app/fonds/ligne-de-fonds";
 import { FournisseurDeSuivis } from "./FournisseurDeSuivis";
 import { BlocDeCartes, type CarteDeBloc } from "./BlocDeCartes";
-import styles from "./GrilleInvestir.module.css";
 
 /** Le nombre de cartes qu'un bloc montre au plus. */
 export const NB_CARTES_PAR_BLOC = 3;
@@ -32,7 +30,7 @@ export const NB_CARTES_PAR_BLOC = 3;
  *
  * LES LIGNES SONT LES CARTES DES LISTES (10 novembre 2026, planche 1A) : la carte compacte de Titres, de Fonds et d'Adjudications, sans extension. Voir « BlocDeCartes ».
  *
- * LE PIED MÈNE AUX SERVICES, sous les blocs : « Tous vos services » ouvre le rayon de l'Activité.
+ * PLUS DE PIED (17 novembre 2026) : le bouton de pied qui menait au catalogue est retiré de l'Accueil à la demande du client ; les services restent dans l'Activité, par la barre du bas.
  */
 export async function GrilleInvestir({ offres }: { offres: Offer[] }) {
   const t = await getT();
@@ -62,9 +60,6 @@ export async function GrilleInvestir({ offres }: { offres: Offer[] }) {
         <BlocDeCartes id="investir-titres" titre={page("titres").label} href={page("titres").href} cartes={actions} suivis={suivis} now={now} />
         <BlocDeCartes id="investir-fonds" titre={page("fonds").label} href={page("fonds").href} cartes={fonds} suivis={suivis} now={now} />
         <BlocDeCartes id="investir-adjudications" titre={page("calendrier").label} href={page("calendrier").href} cartes={seances} suivis={suivis} now={now} />
-        <Link href="/activite#services" className={styles.tous}>
-          {t("Tous vos services")} →
-        </Link>
       </section>
     </FournisseurDeSuivis>
   );

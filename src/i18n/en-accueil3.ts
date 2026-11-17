@@ -33,7 +33,6 @@ export const EN_ACCUEIL3: Record<string, string> = {
   "Prochaines adjudications": "Upcoming auctions",
   "ouvre le {d}": "opens on {d}",
   "Proposer une adjudication": "Suggest an auction",
-  "Tous vos services": "All your services",
   "Gestes rapides": "Quick actions",
   "Un bon n'a ni coupon ni prix : il n'y a pas de nuage coupon × prix.": "A bill has neither coupon nor price: there is no coupon × price scatter.",
   "Aucune séance de ce choix ne porte à la fois un coupon et un prix : le nuage coupon × prix reste vide.": "No auction in this choice carries both a coupon and a price: the coupon × price scatter stays empty.",

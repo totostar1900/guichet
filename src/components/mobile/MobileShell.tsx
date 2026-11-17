@@ -2,6 +2,7 @@
 
 import { useT } from "@/i18n/client";
 import Link from "next/link";
+import { tic } from "@/lib/ui/haptique";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect } from "react";
 import { estRacine } from "@/lib/nav-profondeur";
@@ -325,7 +326,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
              ils mènent à leur sommaire, qui a l'adresse, le retour système
              et la place d'une phrase entière. */
           return (
-            <Link key={tab.href} href={tab.href} replace aria-current={tab.match(path) ? "page" : undefined}>
+            <Link key={tab.href} href={tab.href} replace onClick={() => tic()} aria-current={tab.match(path) ? "page" : undefined}>
               {face}
             </Link>
           );
