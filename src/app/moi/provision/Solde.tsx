@@ -92,13 +92,7 @@ export async function SoldeDeLaProvision({ userId }: { userId: string }) {
               ))}
             </ul>
           )}
-          {/* L'ANCRE « /#ordres-en-cours » EST MORTE depuis que la page
-              d'accueil a cessé de déplier le relevé : la racine perdait le
-              fragment, et le client atterrissait en haut de son
-              portefeuille. La liste existe. */}
-          <div className={styles.gestesDeLEtat}>
-            <Link href="/moi/ordres">{t("Mes ordres")} →</Link>
-          </div>
+          {/* LE LIEN « MES ORDRES » A QUITTÉ CE BLOC (17 novembre 2026) : la page se trouve dans « Suivre mon argent », avec le compte de ses ordres ; ici, sous « Mis de côté », il doublait cette tuile. */}
         </div>
       </div>
 

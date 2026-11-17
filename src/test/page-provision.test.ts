@@ -193,7 +193,9 @@ describe("les gestes", () => {
      cessé de déplier le relevé : la racine perd le fragment. */
   it("ne renvoie plus les ordres en cours sur une ancre morte", () => {
     expect(code(PAGE)).not.toContain("/#ordres-en-cours");
-    expect(code(PAGE)).toContain('href="/moi/ordres"');
+    /* Le lien « Mes ordres » ne se pose plus sous « Mis de côté » (17 novembre 2026) : la page est une tuile de « Suivre mon argent », qui porte le compte de ses ordres. */
+    expect(code(PAGE), "le lien « Mes ordres » est revenu sous « Mis de côté »").not.toContain('href="/moi/ordres"');
+    expect(code("src/app/moi/argent/page.tsx")).toContain('href: "/moi/ordres"');
   });
 });
 
