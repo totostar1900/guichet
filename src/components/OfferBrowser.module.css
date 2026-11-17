@@ -1076,3 +1076,76 @@
   color: var(--ink-3);
   font-size: var(--t-3);
 }
+
+/* Les valeurs sans ligne, dites en une phrase sous les pastilles qui en ont (17 novembre 2026). */
+.sansLigne {
+  margin: 0;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+}
+.bandeauUneLigne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  padding: var(--s-5) var(--s-6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.bandeauUneLigne button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--gold-ink);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+/* Les titres des deux listes de la recherche à la mise au point du champ, et le geste qui élargit (17 novembre 2026). */
+.suggestTitre {
+  padding: var(--s-4) var(--s-6) var(--s-2);
+  font-size: var(--t-1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  list-style: none;
+}
+.elargir {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--gold-ink);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+/* La fourchette en une ligne quand le nuage n'a pas de quoi tracer, et le calendrier des clôtures (17 novembre 2026). */
+.resumeSeul {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.calendrier {
+  display: grid;
+  gap: var(--s-4);
+  margin: 0;
+  padding: var(--s-5) var(--s-6);
+  list-style: none;
+  font-size: var(--t-2);
+}
+.calendrier li {
+  display: flex;
+  gap: var(--s-5);
+  justify-content: space-between;
+}
+.calendrier span {
+  color: var(--ink-3);
+  white-space: nowrap;
+}

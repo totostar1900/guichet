@@ -31,13 +31,23 @@ export interface FaitsDeLigne {
   famille: string;
   pays: string;
   statut: string;
+  /**
+   * LES QUATRE FACETTES QUE LES LIGNES PORTENT ET QUE LA FEUILLE N'OFFRAIT PAS (17 novembre 2026, planche « Investir », 2) : la valeur de la ligne, ou rien quand la ligne n'en a pas.
+   * Une facette n'est offerte que si la sélection porte au moins DEUX de ses valeurs : une seule ne coupe rien.
+   */
+  cloture?: string;
+  ticket?: string;
+  dividende?: string;
+  sens?: string;
 }
 
 export interface ControlesOfferts {
   tris: SortKey[];
   /** Les colonnes du tableau qui portent une donnée. */
   colonnes: { deadline: boolean; yield: boolean; tenor: boolean; minimum: boolean; variation: boolean };
-  filtres: { instrument: boolean; pays: boolean; statut: boolean; duree: boolean; rendement: boolean };
+  filtres: { instrument: boolean; pays: boolean; statut: boolean; duree: boolean; rendement: boolean; cloture: boolean; ticket: boolean; dividende: boolean; variation: boolean };
+  /** Combien de lignes porte la sélection : à zéro ou une, la barre « Filtrer · Affichage » n'a rien à couper et cède la place à un bandeau. */
+  lignes: number;
 }
 
 /** L'ordre dans lequel les tris s'offrent, celui de la liste d'aujourd'hui. */
@@ -46,13 +56,14 @@ const ORDRE_DES_TRIS: SortKey[] = ["deadline", "yield", "coupon", "tenor", "mini
 const TOUT: ControlesOfferts = {
   tris: ORDRE_DES_TRIS,
   colonnes: { deadline: true, yield: true, tenor: true, minimum: true, variation: false },
-  filtres: { instrument: true, pays: true, statut: true, duree: true, rendement: true },
+  filtres: { instrument: true, pays: true, statut: true, duree: true, rendement: true, cloture: false, ticket: false, dividende: false, variation: false },
+  lignes: 0,
 };
 
 export function controlesOfferts(faits: FaitsDeLigne[]): ControlesOfferts {
   if (faits.length === 0) return TOUT;
   const un = (f: (x: FaitsDeLigne) => boolean) => faits.some(f);
-  const distincts = (f: (x: FaitsDeLigne) => string) => new Set(faits.map(f)).size;
+  const distincts = (f: (x: FaitsDeLigne) => string | undefined) => new Set(faits.map(f).filter((v): v is string => v != null)).size;
   const dispo: Record<SortKey, boolean> = {
     deadline: un((x) => x.deadline),
     yield: un((x) => x.yield),
@@ -72,7 +83,12 @@ export function controlesOfferts(faits: FaitsDeLigne[]): ControlesOfferts {
       statut: distincts((x) => x.statut) > 1,
       duree: dispo.tenor,
       rendement: dispo.yield,
+      cloture: distincts((x) => x.cloture) > 1,
+      ticket: distincts((x) => x.ticket) > 1,
+      dividende: distincts((x) => x.dividende) > 1,
+      variation: distincts((x) => x.sens) > 1,
     },
+    lignes: faits.length,
   };
 }
 

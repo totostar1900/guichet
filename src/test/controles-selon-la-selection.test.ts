@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { fenetreDeCloture, sensDeVariation, trancheDeTicket } from "@/lib/domain/facettes-lignes";
 import { describe, expect, it } from "vitest";
 import { controlesOfferts, sensNaturel, triEffectif, type FaitsDeLigne } from "@/lib/domain/controles";
 
@@ -23,7 +24,7 @@ describe("une sélection d'actions n'offre que ce que les actions ont", () => {
   });
 
   it("pas de filtre durée, ni de statut quand toutes sont cotées, ni d'instrument quand il n'y en a qu'un ; le pays reste quand il y en a deux", () => {
-    expect(o.filtres).toEqual({ instrument: false, pays: true, statut: false, duree: false, rendement: true });
+    expect(o.filtres).toMatchObject({ instrument: false, pays: true, statut: false, duree: false, rendement: true });
   });
 
   it("la variation est le tri par défaut, du plus haut au plus bas", () => {
@@ -38,7 +39,7 @@ describe("une sélection d'obligations garde les contrôles d'aujourd'hui, sans 
   it("les tris, colonnes et filtres des obligations", () => {
     expect(o.tris).toEqual(["deadline", "yield", "coupon", "tenor", "minimum", "title", "issuer"]);
     expect(o.colonnes).toEqual({ deadline: true, yield: true, tenor: true, minimum: true, variation: false });
-    expect(o.filtres).toEqual({ instrument: false, pays: true, statut: true, duree: true, rendement: true });
+    expect(o.filtres).toMatchObject({ instrument: false, pays: true, statut: true, duree: true, rendement: true });
   });
 
   it("la clôture est le tri par défaut", () => {
@@ -57,7 +58,7 @@ describe("une sélection mêlée offre l'union, et une sélection vide garde tou
 
   it("aucune ligne : tous les contrôles, rien ne se vide pour une section en attente", () => {
     const o = controlesOfferts([]);
-    expect(o.filtres).toEqual({ instrument: true, pays: true, statut: true, duree: true, rendement: true });
+    expect(o.filtres).toMatchObject({ instrument: true, pays: true, statut: true, duree: true, rendement: true });
     expect(o.tris).toContain("deadline");
   });
 });
@@ -113,5 +114,39 @@ describe("la liste lit ces contrôles, et seulement la section et l'instrument l
   it("une ligne sans échéance le dit, au lieu d'un tiret seul", () => {
     expect(src).toMatch(/t\("sans échéance"\)/);
     expect(src).toMatch(/t\("non connue"\)/);
+  });
+});
+
+describe("les quatre facettes ajoutées : clôture, ticket, dividende, variation (17 novembre 2026)", () => {
+  const base = { deadline: true, coupon: false, tenor: false, yield: false, variation: false, minimum: true, famille: "ipo", pays: "Gabon", statut: "open" };
+  it("une facette ne s'offre que si la sélection porte au moins deux de ses valeurs", () => {
+    const a = controlesOfferts([{ ...base, cloture: "7j", ticket: "grand" }, { ...base, cloture: "30j", ticket: "grand" }]);
+    expect(a.filtres.cloture).toBe(true);
+    expect(a.filtres.ticket, "une seule tranche ne coupe rien").toBe(false);
+    expect(a.filtres.dividende).toBe(false);
+  });
+  it("une ligne qui n'a pas la donnée ne compte pas comme une valeur", () => {
+    const a = controlesOfferts([{ ...base, cloture: "7j" }, { ...base }]);
+    expect(a.filtres.cloture, "« 7j » et rien : une seule valeur").toBe(false);
+  });
+  it("le nombre de lignes de la sélection se lit : à zéro ou une, la barre cède la place à un bandeau", () => {
+    expect(controlesOfferts([]).lignes).toBe(0);
+    expect(controlesOfferts([base]).lignes).toBe(1);
+    expect(controlesOfferts([base, base]).lignes).toBe(2);
+  });
+  it("les trois lectures : fenêtre de clôture, tranche de ticket, sens d'une variation", () => {
+    const J = 86_400_000;
+    expect(fenetreDeCloture(undefined, 0)).toBeUndefined();
+    expect(fenetreDeCloture(-1, 0)).toBe("passee");
+    expect(fenetreDeCloture(3 * J, 0)).toBe("7j");
+    expect(fenetreDeCloture(20 * J, 0)).toBe("30j");
+    expect(fenetreDeCloture(90 * J, 0)).toBe("plus");
+    expect(trancheDeTicket(undefined)).toBeUndefined();
+    expect(trancheDeTicket(50_000)).toBe("petit");
+    expect(trancheDeTicket(100_000)).toBe("moyen");
+    expect(trancheDeTicket(2_000_000)).toBe("grand");
+    expect(sensDeVariation(0), "une variation nulle n'est ni hausse ni baisse").toBeUndefined();
+    expect(sensDeVariation(1.2)).toBe("hausse");
+    expect(sensDeVariation(-0.4)).toBe("baisse");
   });
 });

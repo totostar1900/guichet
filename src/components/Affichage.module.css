@@ -129,3 +129,10 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* Les valeurs sans ligne, dites en une phrase (planche « Investir », 17 novembre 2026). */
+.sansLigne {
+  margin: 0;
+  font-size: var(--t-1);
+  color: var(--ink-3);
+}

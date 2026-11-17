@@ -54,7 +54,7 @@ describe("la liste des adjudications", () => {
     const b = lire("src/components/OfferBrowser.tsx");
     expect(b, "les blocs par état ont disparu").toMatch(/if \(adj && !sansGroupe\) \{\s*const ouvertes = list\.filter\(\(\{ s \}\) => !s\.past\);/);
     expect(b, "la ligne du desk n'est plus en tête des ouvertes").toMatch(/const premieres = \[\.\.\.ouvertes\.filter\(\(\{ o \}\) => pickIds\.has\(o\.id\)\), \.\.\.ouvertes\.filter\(\(\{ o \}\) => !pickIds\.has\(o\.id\)\)\];/);
-    expect(b, "les séances closes ne démarrent plus repliées").toMatch(/ouvertParDefaut=\{!\(adj && b\.clef === "closes"\) \|\| Boolean\(q\) \|\| filterCount > 0\}/);
+    expect(b, "les séances closes ne démarrent plus repliées").toMatch(/ouvertParDefaut=\{!\(\(adj && b\.clef === "closes"\) \|\| b\.clef === "souscription-closes"\) \|\| Boolean\(q\) \|\| filterCount > 0\}/);
     expect(lire("src/components/Fold.tsx"), "le bloc ne sait plus démarrer replié").toMatch(/ouvertParDefaut = true/);
   });
 
@@ -62,7 +62,7 @@ describe("la liste des adjudications", () => {
     const b = lire("src/components/OfferBrowser.tsx");
     expect(b, "le cadre « À la une » est revenu aux adjudications").toMatch(/const cadre = adj \? \[\] : picks;/);
     expect(b, "la ligne retenue sort de la liste aux adjudications").toMatch(/const rest = adj \? rows : rows\.filter\(\(\{ o \}\) => !pickIds\.has\(o\.id\)\);/);
-    expect(b, "le tableau ne suit plus l'ordre par état").toMatch(/sections=\{!featured && !sansGroupe && !grouped && \(!sectionChoisie \|\| adj\) \? blocsDuSommaire\(list\)/);
+    expect(b, "le tableau ne suit plus l'ordre par état").toMatch(/sections=\{!featured && !sansGroupe && !grouped && \(!sectionChoisie \|\| souscriptionChoisie \|\| adj\) \? blocsDuSommaire\(list\)/);
     expect(b, "la phrase du desk a quitté la ligne retenue").toMatch(/\{pick && <NoteDeSelection o=\{o\} avertir=\{adj\} \/>\}/);
     expect(b, "la phrase « Une sélection, pas un conseil » n'est plus écrite").toMatch(/t\("Une sélection, pas un conseil : chaque ligne se lit dans sa fiche\."\)/);
   });

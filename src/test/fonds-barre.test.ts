@@ -103,6 +103,10 @@ describe("les commandes de la page des fonds", () => {
       q: { quoi: "le champ de recherche", preuve: /type="search"/ },
       cat: { quoi: "la grille des catégories, en carrés", preuve: /<GrilleDInstruments\s+etiquette="Catégorie"/ },
       gestion: { quoi: "la pastille de la société de gestion", preuve: /clef: "gestion"/ },
+      /* Les trois facettes ajoutées le 17 novembre 2026 (planche « Investir ») : souscription ouverte, fréquence de la VL, ticket minimum. */
+      ouverte: { quoi: "la pastille de la souscription ouverte", preuve: /clef: "ouverte"/ },
+      vl: { quoi: "la pastille de la fréquence de la VL", preuve: /clef: "vl"/ },
+      ticket: { quoi: "la pastille du ticket minimum", preuve: /clef: "ticket"/ },
       depositaire: { quoi: "la pastille du dépositaire", preuve: /clef: "depositaire"/ },
       /* La fenêtre d'observation n'est pas un filtre — elle ne retire aucun
          fonds, elle change ce que la colonne mesure — mais elle est dans

@@ -23,7 +23,7 @@ describe("la cote : une section à la fois, « Actions » d'abord", () => {
     expect(b, "la bande ne filtre plus").toMatch(/<SectionChips[\s\S]*?\bfiltrant\b/);
     expect(b, "« Actions » n'est plus la première pastille").toMatch(/\["actions", "etats", "regionales", "entreprises", "souscription"\]/);
     expect(b, "le sélecteur d'instruments a quitté les adjudications : les trois pages n'ont plus la même forme").not.toMatch(/\{!adj && \(\s*<SectionChips/);
-    expect(b, "quand une section est choisie, la cote repasse par les blocs de tous les groupes").toMatch(/sommaire && !featured && !sansGroupe && \(!sectionChoisie \|\| \(adj && !parEmetteur\)\) \? \(/);
+    expect(b, "quand une section est choisie, la cote repasse par les blocs de tous les groupes").toMatch(/sommaire && !featured && !sansGroupe && \(!sectionChoisie \|\| souscriptionChoisie \|\| \(adj && !parEmetteur\)\) \? \(/);
   });
 
   it("abrège une section à huit lignes, avec « Voir les N lignes », sauf recherche ou filtre", () => {
@@ -101,7 +101,7 @@ describe("retouches du 4 novembre 2026 sur les titres", () => {
 
   it("le nuage « Rendement et durée » est caché sur la section Actions, qui n'a ni rendement à l'échéance ni durée", () => {
     const b = lire("src/components/OfferBrowser.tsx");
-    expect(b, "le nuage « Rendement et durée » paraît de nouveau sur les actions").toMatch(/lieu === "cote" && sectionChoisie !== "actions" && \(\s*<BandeauRepliable/);
+    expect(b, "le nuage « Rendement et durée » paraît de nouveau sur les actions").toMatch(/lieu === "cote" && sectionChoisie !== "actions" && sectionChoisie !== "souscription" && nuageUtile && \(\s*<BandeauRepliable/);
   });
 });
 
@@ -212,7 +212,7 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
 
   it("le bouton Filtrer est blanc sans filtre et doré avec (Titres, Adjudications, Fonds)", () => {
     expect(lire("src/components/OfferBrowser.tsx"), "le bouton Filtrer de Titres n'annonce plus s'il y a un filtre").toMatch(/className=\{styles\.sheetBtn\} data-actif=\{filterCount > 0 \? "oui" : undefined\}/);
-    expect(lire("src/app/fonds/FundsBrowser.tsx"), "le bouton Filtrer de Fonds n'annonce plus s'il y a un filtre").toMatch(/className=\{styles\.filtrer\} data-actif=\{manager \|\| depositary \? "oui" : undefined\}/);
+    expect(lire("src/app/fonds/FundsBrowser.tsx"), "le bouton Filtrer de Fonds n'annonce plus s'il y a un filtre").toMatch(/className=\{styles\.filtrer\} data-actif=\{choixDeFonds > 0 \? "oui" : undefined\}/);
     const oc = lire("src/components/OfferBrowser.module.css");
     expect(oc, "le bouton Filtrer de Titres est de nouveau doré sans filtre").not.toMatch(/\.sheetBtn \{[^}]*background: var\(--gold-soft\)/);
     expect(oc, "le bouton Filtrer de Titres ne se dore plus avec un filtre").toMatch(/\.sheetBtn\[data-actif="oui"\] \{[^}]*background: var\(--gold-soft\)/);
@@ -262,7 +262,7 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
   });
 
   it("série du 6 novembre 2026 : recherche, tuiles, « i », contact", () => {
-    expect(lire("src/components/OfferBrowser.tsx"), "le champ de Titres n'écrit plus « Recherche »").toMatch(/placeholder=\{t\("Recherche"\)\}/);
+    expect(lire("src/components/OfferBrowser.tsx"), "le champ de Titres n'écrit plus « Recherche »").toMatch(/: t\("Recherche"\)\}/);
     const fb = lire("src/app/fonds/FundsBrowser.tsx");
     expect(fb, "le champ de Fonds n'écrit plus « Recherche »").toMatch(/placeholder=\{t\("Recherche"\)\}/);
     expect(fb, "le champ de Fonds a perdu sa loupe").toMatch(/className=\{styles\.loupe\}/);

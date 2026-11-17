@@ -622,3 +622,10 @@
 .search input {
   padding-left: 34px;
 }
+
+/* La rentabilité depuis l'origine en une ligne, quand la bande n'a rien à tracer (17 novembre 2026). */
+.resumeSeul {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}

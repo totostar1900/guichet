@@ -4,7 +4,7 @@ import { fold } from "@/lib/text";
 import { useSearchCommit } from "@/lib/ui/commit-search";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { Country, DisplayStatus, Offer } from "@/lib/domain/types";
 import { displayStatus, FAMILIES, familyLabel, familySegment, familyShort, headlineYield, KIND_LABEL, type MarketSegment, offerFamily, SEGMENT_LABEL, tenorYears, clientStatusGroup } from "@/lib/domain/status";
 import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary";
@@ -31,8 +31,9 @@ import { TeteGroupe, type Groupe } from "./market/TeteGroupe";
 import { nomsCourts } from "@/lib/domain/nom-court";
 import { Dropdown } from "./market/Dropdown";
 import { compterFacettes, impossibles, type Comptes } from "@/lib/domain/facettes";
+import { fenetreDeCloture, sensDeVariation, TITRE_DE_FACETTE, trancheDeTicket, VALEURS_DE_FACETTE, type CleDeFacette } from "@/lib/domain/facettes-lignes";
 import { controlesOfferts, sensNaturel, triEffectif, type ControlesOfferts, type FaitsDeLigne, type SortKey } from "@/lib/domain/controles";
-import { cadenceDuSuivi, SECTIONS, SECTION_LABEL, sectionDe, type Lieu, type Section } from "@/lib/domain/sections";
+import { cadenceDuSuivi, SECTIONS, SECTION_LABEL, sectionDe, type Lieu, type Section, SECTION_COURT } from "@/lib/domain/sections";
 import { usePhone } from "./chart-utils";
 import { BlocRepliable, FoldAll, useFold } from "./Fold";
 import { SuivisContext } from "@/lib/ui/suivi";
@@ -487,11 +488,15 @@ function FilterSheet({ open, onClose, groups, comptes, onToggle, onClear, gauge,
     <Sheet open={open} onClose={onClose} title={t(trie ? "Filtrer et trier" : "Filtrer")} centre>
       <div className={styles.sheetBody}>
           {extra}
-          {groups.map((g) => (
+          {groups.map((g) => {
+            /* LES VALEURS SANS LIGNE SE RANGENT EN UNE PHRASE (planche « Investir », 6) : « Sans ligne : RCA, Congo… », au lieu de quatre pastilles pointillées sur six. Une valeur déjà choisie reste une pastille, barrée. */
+            const sansLigne = comptes ? g.items.filter(([v]) => (comptes[g.key]?.[v] ?? 0) === 0 && !g.selected.has(v)) : [];
+            const montrees = g.items.filter(([v]) => !sansLigne.some(([x]) => x === v));
+            return (
             <div key={g.key} className={styles.fg}>
               <span>{t(g.label)}</span>
               <div className={styles.chipRow}>
-                {g.items.map(([v, l]) => {
+                {montrees.map(([v, l]) => {
                   const n = comptes?.[g.key]?.[v] ?? 0;
                   const choisie = g.selected.has(v);
                   const vide = comptes != null && n === 0;
@@ -504,6 +509,7 @@ function FilterSheet({ open, onClose, groups, comptes, onToggle, onClear, gauge,
                   );
                 })}
               </div>
+              {sansLigne.length > 0 && <p className={styles.sansLigne}>{t("Sans ligne : {l}", { l: sansLigne.map(([, l]) => t(l)).join(", ") })}</p>}
               {comptes &&
                 impossibles(g.selected, comptes[g.key]).map((v) => (
                   <p key={v} className={styles.impossible} role="status">
@@ -514,7 +520,8 @@ function FilterSheet({ open, onClose, groups, comptes, onToggle, onClear, gauge,
                   </p>
                 ))}
             </div>
-          ))}
+            );
+          })}
           {/* Le titre ne paraît qu'avec sa jauge : la cote n'en a plus, le
               nuage réglant déjà cette plage, et « Rendement » tout seul
               annonçait une commande absente. */}
@@ -561,6 +568,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   const country = setOf("pays");
   const status = setOf("statut");
   const tenor = setOf("duree");
+  /* Les quatre facettes ajoutées le 17 novembre 2026 : clôture, ticket minimum, dividende, sens de la variation. */
+  const extra: Record<CleDeFacette, Set<string>> = { cloture: setOf("cloture"), ticket: setOf("ticket"), dividende: setOf("dividende"), variation: setOf("variation") };
+  const nExtra = extra.cloture.size + extra.ticket.size + extra.dividende.size + extra.variation.size;
   const yr = parseYieldRange(sp.get("rendement"));
   /* Ce que le nuage montre : les deux axes, ou l'un des deux seul. */
   const mesure: MesureNuage = estMesure(sp.get("mesure")) ? (sp.get("mesure") as MesureNuage) : MESURE_PAR_DEFAUT;
@@ -651,6 +661,30 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   const [deployee, setDeployee] = useState<string | null>(null);
   // The search's suggestions while typing: distinct lines, issuers and ISINs that contain the letters.
   const [draft, setDraft] = useState("");
+  /* LA RECHERCHE PROPOSE AVANT QU'ON TAPE (planche « Investir », 3A) : à la mise au point du champ vide, les trois dernières recherches du lieu, puis ce que la sélection contient. */
+  const [champ, setChamp] = useState(false);
+  const cleRecents = `guichet:recherches:${lieu}`;
+  const recentsBruts = useSyncExternalStore(
+    () => () => {},
+    () => {
+      try {
+        return localStorage.getItem(cleRecents) ?? "";
+      } catch {
+        return "";
+      }
+    },
+    () => "",
+  );
+  const recents = useMemo(() => recentsBruts.split("\u0001").filter(Boolean).slice(0, 3), [recentsBruts]);
+  const retenir = (texte: string) => {
+    const v = texte.trim();
+    if (v.length < 2) return;
+    try {
+      localStorage.setItem(cleRecents, [v, ...recents.filter((x) => x !== v)].slice(0, 3).join("\u0001"));
+    } catch {
+      // storage unavailable
+    }
+  };
   const suggestions = useMemo(() => {
     const d = fold(draft.trim());
     if (d.length < 2) return [];
@@ -696,7 +730,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   /* TOUT EFFACER VEUT DIRE TOUT : les filtres, la recherche, la section
      choisie, l'ordre et son sens. Il ne remettait que les filtres, et qui
      avait trié gardait son ordre après l'avoir touché. */
-  const reset = () => update({ marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, ans: undefined, rendement: undefined, q: undefined, section: undefined, tri: undefined, sens: undefined, mesure: undefined });
+  const reset = () => update({ cloture: undefined, ticket: undefined, dividende: undefined, variation: undefined, marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, ans: undefined, rendement: undefined, q: undefined, section: undefined, tri: undefined, sens: undefined, mesure: undefined });
   /**
    * UNE SECTION À LA FOIS, « ACTIONS » D'ABORD (3 novembre 2026).
    *
@@ -704,25 +738,34 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    * actions — ce que l'on cherche le plus — commençaient à 83 % de la page. La cote ouvre donc sur « Actions » ; « Tout »
    * (« ?section=tout ») rend les cinq. Une recherche ou un filtre actif ne force rien : on cherche dans tout.
    */
-  const filterCount0 = kind.size + country.size + status.size + tenor.size;
+  const filterCount0 = kind.size + country.size + status.size + tenor.size + nExtra;
   const sectionChoisie: Section | undefined = sectionParam === "tout" ? undefined : ((sectionParam as Section | null) ?? (lieu === "cote" && filterCount0 === 0 && !sp.get("q") && !sp.get("rendement") && !sp.get("ans") && !sp.get("marche") ? ("actions" as Section) : undefined));
-  const filterCount = kind.size + country.size + status.size + tenor.size + (yr.min != null || yr.max != null ? 1 : 0) + (dr.min != null || dr.max != null ? 1 : 0) + (segment ? 1 : 0);
+  const filterCount = kind.size + country.size + status.size + tenor.size + nExtra + (yr.min != null || yr.max != null ? 1 : 0) + (dr.min != null || dr.max != null ? 1 : 0) + (segment ? 1 : 0);
   /**
    * LES CONTRÔLES SUIVENT LA SÉLECTION (14 novembre 2026). La sélection est la section et l'instrument choisis, et eux seuls : un tri, un filtre
    * ou une colonne n'est offert que si une ligne de la sélection porte la donnée qu'il lit. Une action n'a ni coupon, ni clôture, ni
    * échéance : elle n'en reçoit pas les contrôles. Ce qui est déjà posé dans l'adresse reste offert, pour qu'on puisse le défaire.
    * Voir `domain/controles.ts`.
    */
+  const valeursExtra = (o: Offer, s: OfferSummary): Partial<Record<CleDeFacette, string>> => ({
+    cloture: fenetreDeCloture(s.deadlineAt ? parseDate(s.deadlineAt).getTime() : undefined, now.getTime()),
+    ticket: s.minimum !== "—" ? trancheDeTicket(parseNum(s.minimum)) : undefined,
+    dividende: o.kind === "ACTIONS" || o.instrument === "action" ? (o.dividendPerShare ? "avec" : "sans") : undefined,
+    variation: sensDeVariation(courbes?.[o.isin ?? ""]?.variationPct),
+  });
   const dispo = useMemo(() => {
     const faits: FaitsDeLigne[] = offers
       .filter((o) => (!segment || familySegment(offerFamily(o)) === segment) && (!sectionChoisie || sectionDe(o) === sectionChoisie) && (!kind.size || kind.has(offerFamily(o))))
       .map((o) => {
         const s = summarize(o, now, { dates });
-        return { deadline: Boolean(s.deadlineParts), coupon: o.couponRate != null, tenor: tenorYears(o) > 0, yield: s.yieldPct != null, variation: courbes?.[o.isin ?? ""]?.variationPct != null, minimum: s.minimum !== "—", famille: offerFamily(o), pays: o.country, statut: normStatus(s.st) };
+        return { deadline: Boolean(s.deadlineParts), coupon: o.couponRate != null, tenor: tenorYears(o) > 0, yield: s.yieldPct != null, variation: courbes?.[o.isin ?? ""]?.variationPct != null, minimum: s.minimum !== "—", famille: offerFamily(o), pays: o.country, statut: normStatus(s.st), cloture: valeursExtra(o, s).cloture, ticket: valeursExtra(o, s).ticket, dividende: valeursExtra(o, s).dividende, sens: valeursExtra(o, s).variation };
       });
     return controlesOfferts(faits);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offers, now, segment, sectionChoisie, sp, courbes]);
+  /* UNE LIGNE OU AUCUNE : LA BARRE N'A RIEN À COUPER (planche « Investir », 1A). « Filtrer » ouvrait une feuille vide et « Affichage » proposait de trier une ligne : un bandeau dit où l'on est, et
+     « Voir tous les titres » élargit. Les deux boutons reparaissent dès la deuxième ligne, et dès qu'un filtre, une recherche ou un tri est posé : on doit pouvoir le défaire. */
+  const minimal = dispo.lignes <= 1 && filterCount === 0 && !q && !sp.get("tri") && !sp.get("sens") && !sp.get("groupe");
   const sort: SortKey = triEffectif(sp.get("tri"), dispo);
   const dir: Dir = (sp.get("sens") as Dir) || sensNaturel(sort);
   const onSort = (k: SortKey) => {
@@ -742,6 +785,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     { key: "instrument", label: t("Instrument"), items: famItems, selected: kind },
     { key: "pays", label: t("Pays"), items: COUNTRIES.map((c) => [c, c] as [string, string]), selected: country },
     { key: "statut", label: t("Statut"), items: STATUSES, selected: status },
+    ...(["cloture", "ticket", "dividende", "variation"] as CleDeFacette[]).map((cle) => ({ key: cle, label: TITRE_DE_FACETTE[cle], items: VALEURS_DE_FACETTE[cle], selected: extra[cle] })),
     /* LES PALIERS DE DURÉE SONT PARTIS DU FILTRE. Le nuage règle la même
        borne, en continu et à la barre : trois paliers à côté d'une barre,
        c'est la même question posée deux fois, et deux réponses possibles. */
@@ -793,6 +837,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    * les deux bornes qu'il pose. Recopier le crible pour cela, c'était deux
    * vérités sur la même page le jour où l'une des deux change.
    */
+  const foinDe = (o: Offer, fam = offerFamily(o)) => fold([o.title, o.isin, o.issuer, issuerKey(o), o.countryName, KIND_LABEL[o.kind], familyLabel(fam), o.fund?.manager ?? ""].join(" "));
   const garde = (o: Offer, ql: string, avecPlages: boolean, sans?: string): boolean => {
     const st = displayStatus(o, now);
     const fam = offerFamily(o);
@@ -804,6 +849,11 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       const sel = status.has("selection") && summarize(o, now, { dates }).badges.some((b) => b.key === "selection");
       const rest = new Set([...status].filter((x) => x !== "selection"));
       if (!sel && (rest.size === 0 || !rest.has(normStatus(st)))) return false;
+    }
+    for (const cle of ["cloture", "ticket", "dividende", "variation"] as CleDeFacette[]) {
+      if (sans === cle || !extra[cle].size) continue;
+      const v = valeursExtra(o, summarize(o, now, { dates }))[cle];
+      if (!v || !extra[cle].has(v)) return false;
     }
     if (tenor.size) {
       const t = tenorYears(o);
@@ -820,12 +870,23 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     }
     if (ql) {
       // les deux écritures : celle de la ligne et celle du registre, qui rassemble les alias
-      const hay = [o.title, o.isin, o.issuer, issuerKey(o), o.countryName, KIND_LABEL[o.kind], familyLabel(fam), o.fund?.manager ?? ""].join(" ");
-      if (!fold(hay).includes(ql)) return false;
+      if (!foinDe(o, fam).includes(ql)) return false;
     }
     return true;
   };
 
+  /* CE QUE LA SÉLECTION CONTIENT, proposé à la mise au point du champ : ses émetteurs, puis ses pays, les plus fournis d'abord. */
+  const dansLaSelection = useMemo(() => {
+    const lignes = offers.filter((o) => (!segment || familySegment(offerFamily(o)) === segment) && (!sectionChoisie || sectionDe(o) === sectionChoisie));
+    const compte = (cle: (o: Offer) => string) => {
+      const c = new Map<string, number>();
+      for (const o of lignes) c.set(cle(o), (c.get(cle(o)) ?? 0) + 1);
+      return [...c.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "fr"));
+    };
+    return [...compte((o) => issuerKey(o)).slice(0, 3).map(([text, n]) => ({ kind: "Émetteur", text, n })), ...compte((o) => o.countryName).slice(0, 2).map(([text, n]) => ({ kind: "Pays", text, n }))];
+  }, [offers, segment, sectionChoisie]);
+  /* SANS RÉSULTAT, LA RECHERCHE PROPOSE D'ÉLARGIR : combien de lignes répondent hors de la section choisie. */
+  const horsSelection = q.trim() && sectionChoisie ? offers.filter((o) => foinDe(o).includes(fold(q.trim()))).length : 0;
   const rows = useMemo(() => {
     const ql = fold(q.trim());
     const out = offers.filter((o) => garde(o, ql, true)).map((o) => ({ o, s: summarize(o, now, { dates }) }));
@@ -879,9 +940,15 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     const ql = fold(q.trim());
     return compterFacettes(
       offers,
-      ["instrument", "pays", "statut"],
+      ["instrument", "pays", "statut", "cloture", "ticket", "dividende", "variation"],
       (o, cle) => garde(o, ql, true, cle),
-      (o, cle) => (cle === "instrument" ? [offerFamily(o)] : cle === "pays" ? [o.country] : valeursDeStatut(o)),
+      (o, cle) => {
+        if (cle === "instrument") return [offerFamily(o)];
+        if (cle === "pays") return [o.country];
+        if (cle === "statut") return valeursDeStatut(o);
+        const v = valeursExtra(o, summarize(o, now, { dates }))[cle as CleDeFacette];
+        return v ? [v] : [];
+      },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offers, now, sp]);
@@ -913,6 +980,18 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   /* CE QUE LE BANDEAU REPLIÉ MONTRE : les trois chiffres qui décident
      d'ouvrir. Calculés sur les points du tracé, donc après les autres
      filtres et avant les deux plages qu'il règle lui-même. */
+  /* Le nuage veut trois points au moins. */
+  const nuageUtile = pointsDuNuage.length >= 3;
+  /* LE CALENDRIER DES CLÔTURES de la section « Souscription » : les lignes à date de clôture, la plus proche d'abord. */
+  const calendrierDesClotures = useMemo(
+    () =>
+      offers
+        .filter((o) => sectionDe(o) === "souscription" && o.deadlineAt)
+        .map((o) => ({ id: o.id, titre: o.title, at: o.deadlineAt as string, ms: parseDate(o.deadlineAt as string).getTime() }))
+        .sort((a, b) => a.ms - b.ms),
+    [offers],
+  );
+  const prochaineCloture = calendrierDesClotures.find((c) => c.ms >= now.getTime())?.at;
   const resumeNuage = useMemo(() => {
     const ys = pointsDuNuage.map((p) => p.ytm).filter((v): v is number => v != null);
     return {
@@ -1009,7 +1088,22 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
    * n'est ouverte, ce qu'une section absente ne dit pas. Un émetteur vide,
    * lui, n'existe pas : on ne le nomme que parce qu'il a des lignes.
    */
+  /**
+   * « EN SOUSCRIPTION » SE RANGE PAR STATUT (planche « Investir », 5A, 17 novembre 2026) : les émissions ouvertes d'abord, celles qui viennent ensuite, les clôturées en dernier et repliées. Une émission
+   * clôturée ne se lit plus sous le titre « En souscription ». Le bloc des ouvertes paraît toujours, pour dire qu'il n'y en a aucune au lieu de se taire.
+   */
+  const parStatutDeSouscription = (list: Row[]): { clef: string; entier: string; rows: Row[] }[] => {
+    const ouvertes = list.filter(({ s }) => ["open", "quoted"].includes(normStatus(s.st)));
+    const avenir = list.filter(({ s }) => normStatus(s.st) === "upcoming");
+    const closes = list.filter(({ s }) => normStatus(s.st) === "closed");
+    return [
+      { clef: "souscription-ouvertes", entier: t("En souscription · ouvertes · {n}", { n: String(ouvertes.length) }), rows: ouvertes },
+      ...(avenir.length > 0 ? [{ clef: "souscription-avenir", entier: t("En souscription · à venir · {n}", { n: String(avenir.length) }), rows: avenir }] : []),
+      ...(closes.length > 0 ? [{ clef: "souscription-closes", entier: t("Souscriptions clôturées récemment · {n}", { n: String(closes.length) }), rows: closes }] : []),
+    ];
+  };
   const blocsDuSommaire = (list: Row[]): { clef: string; entier: string; rows: Row[]; pays?: Country }[] => {
+    if (lieu === "cote" && sectionChoisie === "souscription") return parStatutDeSouscription(list);
     if (parEmetteur) return groupByIssuer(list).map((g) => ({ clef: groupId(g.issuer), entier: g.issuer, rows: g.rows, pays: g.zone === "CEMAC" ? undefined : g.zone }));
     /* LES ADJUDICATIONS SE RANGENT PAR ÉTAT, non par type (6 novembre 2026, planche « 1A ») : ce qui se joue d'abord (la ligne retenue par le desk en tête), les séances closes ensuite, repliées. Les pastilles du haut filtrent déjà par type. */
     if (adj && !sansGroupe) {
@@ -1019,11 +1113,12 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       /* LES SÉANCES CLOSES ONT QUITTÉ CETTE PAGE (9 novembre 2026) : elles vivent aux Résultats (Marché). Le bloc ne reparaît que si une liste en porte encore (le desk). */
       return [{ clef: "ouvertes", entier: t("Ouvertes et à venir · {n}", { n: String(premieres.length) }), rows: premieres }, ...(closes.length > 0 ? [{ clef: "closes", entier: t("Séances closes · {n}", { n: String(closes.length) }), rows: closes }] : [])];
     }
-    return groupBySection(list, lieu).map((g) => ({ clef: g.section, entier: t(SECTION_LABEL[g.section]), rows: g.rows }));
+    return groupBySection(list, lieu).flatMap((g) => (lieu === "cote" && g.section === "souscription" && g.rows.length > 0 ? parStatutDeSouscription(g.rows) : [{ clef: g.section, entier: t(SECTION_LABEL[g.section]), rows: g.rows }]));
   };
 
   /* PLIER / DÉPLIER TOUT, QUAND LA LISTE EST GROUPÉE (5 novembre 2026) : un chevron à côté d'« Affichage ». Il agit sur les blocs de la liste (par type ou par émetteur) ou, dans une section, sur les groupes d'émetteur. */
-  const blocsEnVue = sommaire && !sansGroupe && (!sectionChoisie || (adj && !parEmetteur)) && view !== "table";
+  const souscriptionChoisie = lieu === "cote" && sectionChoisie === "souscription";
+  const blocsEnVue = sommaire && !sansGroupe && (!sectionChoisie || souscriptionChoisie || (adj && !parEmetteur)) && view !== "table";
   const repli = blocsEnVue ? { group: "blocs", ids: blocsDuSommaire(rest).map((b) => `sec-${b.clef}`) } : grouped && view !== "table" ? { group: "titres", ids: groupByIssuer(rest).map((g) => groupId(g.issuer)) } : null;
 
   const rendreListe = (list: Row[], featured: boolean) =>
@@ -1039,9 +1134,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         cols={dispo.colonnes}
         courbes={courbes}
         picks={adj ? pickIds : undefined}
-        sections={!featured && !sansGroupe && !grouped && (!sectionChoisie || adj) ? blocsDuSommaire(list).map((b) => ({ clef: b.clef, nom: b.entier, rows: b.rows })) : undefined}
+        sections={!featured && !sansGroupe && !grouped && (!sectionChoisie || souscriptionChoisie || adj) ? blocsDuSommaire(list).map((b) => ({ clef: b.clef, nom: b.entier, rows: b.rows })) : undefined}
       />
-    ) : sommaire && !featured && !sansGroupe && (!sectionChoisie || (adj && !parEmetteur)) ? (
+    ) : sommaire && !featured && !sansGroupe && (!sectionChoisie || souscriptionChoisie || (adj && !parEmetteur)) ? (
       (() => {
         const blocs = blocsDuSommaire(list);
         /* LES NOMS COURTS NE VALENT QUE POUR LES ÉMETTEURS. « Trésor public
@@ -1058,7 +1153,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           <>
             {blocs.map((b, i) => (
               <section key={b.clef} className={styles.bloc} aria-labelledby={`sec-${b.clef}`}>
-                <BlocRepliable id={`sec-${b.clef}`} ouvertParDefaut={!(adj && b.clef === "closes") || Boolean(q) || filterCount > 0} tete={(ouvert, bascule) => <TeteGroupe id={`sec-${b.clef}`} nom={titres[i].nom} entier={b.entier} pays={b.pays} groupes={adj ? [] : titres} collant={!adj} ouvert={ouvert} onBascule={bascule} />}>
+                <BlocRepliable id={`sec-${b.clef}`} ouvertParDefaut={!((adj && b.clef === "closes") || b.clef === "souscription-closes") || Boolean(q) || filterCount > 0} tete={(ouvert, bascule) => <TeteGroupe id={`sec-${b.clef}`} nom={titres[i].nom} entier={b.entier} pays={b.pays} groupes={adj ? [] : titres} collant={!adj} ouvert={ouvert} onBascule={bascule} />}>
                   {b.rows.length > 0 && renderUn(b.rows, false, true)}
                 </BlocRepliable>
               </section>
@@ -1141,7 +1236,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
             </svg>
             <input
               type="search"
-              placeholder={t("Recherche")}
+              placeholder={lieu === "cote" && sectionChoisie ? t("Recherche dans {s}", { s: t(SECTION_COURT[sectionChoisie]) }) : t("Recherche")}
               aria-label={t("Rechercher")}
               defaultValue={q}
               ref={searchInput}
@@ -1150,12 +1245,21 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
                 setDraft(e.target.value);
                 update({ q: e.target.value || undefined });
               }}
-              onFocus={(e) => setDraft(e.target.value)}
-              onBlur={() => window.setTimeout(() => setDraft(""), 150)}
+              onFocus={(e) => {
+                setDraft(e.target.value);
+                setChamp(true);
+              }}
+              onBlur={() => window.setTimeout(() => {
+                setDraft("");
+                setChamp(false);
+              }, 150)}
               onKeyDown={(e) => {
                 if (e.key === "Escape") setDraft("");
                 // Entrée vaut choisir : on a fini de taper, on veut voir.
-                if (e.key === "Enter") commitSearch(() => setDraft(""));
+                if (e.key === "Enter") {
+                  retenir(e.currentTarget.value);
+                  commitSearch(() => setDraft(""));
+                }
               }}
             />
             {/* what the typed letters match: lines, issuers, ISINs; a tap fills the field and filters the list */}
@@ -1171,6 +1275,55 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
                       onClick={(e) => {
                         const input = (e.currentTarget.closest("label") as HTMLLabelElement).querySelector("input");
                         if (input) input.value = sug.text;
+                        retenir(sug.text);
+                        commitSearch(() => {
+                          setDraft("");
+                          update({ q: sug.text });
+                        });
+                      }}
+                    >
+                      <em>{t(sug.kind)}</em>
+                      <b>{sug.text}</b>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {champ && draft === "" && !q && (recents.length > 0 || dansLaSelection.length > 0) && (
+              <ul className={styles.suggest} role="listbox">
+                {recents.length > 0 && <li className={styles.suggestTitre}>{t("Récents")}</li>}
+                {recents.map((texte) => (
+                  <li key={`r-${texte}`}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={false}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        const input = (e.currentTarget.closest("label") as HTMLLabelElement).querySelector("input");
+                        if (input) input.value = texte;
+                        commitSearch(() => {
+                          setDraft("");
+                          update({ q: texte });
+                        });
+                      }}
+                    >
+                      <b>{texte}</b>
+                    </button>
+                  </li>
+                ))}
+                {dansLaSelection.length > 0 && <li className={styles.suggestTitre}>{lieu === "cote" && sectionChoisie ? t("Dans {s}", { s: t(SECTION_COURT[sectionChoisie]) }) : t("Dans cette liste")}</li>}
+                {dansLaSelection.map((sug) => (
+                  <li key={`s-${sug.kind}-${sug.text}`}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={false}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        const input = (e.currentTarget.closest("label") as HTMLLabelElement).querySelector("input");
+                        if (input) input.value = sug.text;
+                        retenir(sug.text);
                         commitSearch(() => {
                           setDraft("");
                           update({ q: sug.text });
@@ -1185,23 +1338,25 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
               </ul>
             )}
           </label>
-          <button type="button" className={styles.sheetBtn} data-actif={filterCount > 0 ? "oui" : undefined} onClick={() => setSheet(true)} aria-haspopup="dialog">
+          {!minimal && <button type="button" className={styles.sheetBtn} data-actif={filterCount > 0 ? "oui" : undefined} onClick={() => setSheet(true)} aria-haspopup="dialog">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <path d="M4 6h16M7 12h10M10 18h4" />
             </svg>
             {t("Filtrer")}{filterCount > 0 ? ` · ${filterCount}` : ""}
-          </button>
+          </button>}
           {/* L'AFFICHAGE — TRI, REGROUPEMENT, VUE, DENSITÉ, TOUT EFFACER — EST DERRIÈRE UN SEUL BOUTON (4 novembre 2026, choix C de
               la planche) : la même barre sur Titres, Fonds et Adjudications. Ces quatre commandes se règlent une fois ; elles tenaient
               autant de place que celles qu'on touche à chaque visite. Les adjudications ont la recherche depuis le 4 novembre 2026 ; leur tri reste celui de la page (clôture). */}
+          {!minimal && (
           <Affichage
-            tri={!adj ? { quoi: t("Trier par"), valeur: sort, options: dispo.tris.map((k) => [k, t(SORT_LABEL[k])] as [string, string]), onChange: (v) => update({ tri: v, sens: undefined }), sens: dir, onSens: () => update({ sens: dir === "asc" ? "desc" : "asc" }) } : undefined}
-            groupe={sommaire ? { quoi: t("Grouper par"), valeur: sansGroupe ? "aucun" : grouped ? "emetteur" : "type", options: GROUPEMENTS.map(([k, l]) => [k, t(l)] as [string, string]), onChange: (v) => update({ groupe: v === "type" ? undefined : v }) } : undefined}
-            vue={!phone ? { quoi: t("Vue"), valeur: view, options: VIEWS.map((v) => [v, t(VIEW_LABEL[v])] as [string, string]), onChange: (v) => update({ vue: v }) } : undefined}
-            densite={view === "cards" && !desk}
-            onReset={reset}
-            aEffacer={aEffacer}
-          />
+              tri={!adj ? { quoi: t("Trier par"), valeur: sort, options: dispo.tris.map((k) => [k, t(SORT_LABEL[k])] as [string, string]), onChange: (v) => update({ tri: v, sens: undefined }), sens: dir, onSens: () => update({ sens: dir === "asc" ? "desc" : "asc" }) } : undefined}
+              groupe={sommaire ? { quoi: t("Grouper par"), valeur: sansGroupe ? "aucun" : grouped ? "emetteur" : "type", options: GROUPEMENTS.map(([k, l]) => [k, t(l)] as [string, string]), onChange: (v) => update({ groupe: v === "type" ? undefined : v }) } : undefined}
+              vue={!phone ? { quoi: t("Vue"), valeur: view, options: VIEWS.map((v) => [v, t(VIEW_LABEL[v])] as [string, string]), onChange: (v) => update({ vue: v }) } : undefined}
+              densite={view === "cards" && !desk}
+              onReset={reset}
+              aEffacer={aEffacer}
+            />
+          )}
           {repli && repli.ids.length > 1 && <FoldAll group={repli.group} ids={repli.ids} />}
           <div className={styles.filters}>
           {(dispo.filtres.instrument || kind.size > 0) && <Dropdown
@@ -1215,6 +1370,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           {(dispo.filtres.statut || status.size > 0) && <Dropdown label={t("Statut")} items={STATUSES} selected={status} comptes={comptes.statut} onChange={setFilter("statut")} />}
           {(dispo.filtres.duree || tenor.size > 0) && <Dropdown label={t("Durée")} items={TENORS} selected={tenor} onChange={setFilter("duree")} />}
           {(dispo.filtres.rendement || yr.min != null || yr.max != null) && <YieldDropdown values={yieldsRestants} ensemble={yields} min={yr.min} max={yr.max} onChange={setYield} />}
+          {(["cloture", "ticket", "dividende", "variation"] as CleDeFacette[]).map((cle) => (dispo.filtres[cle] || extra[cle].size > 0) && <Dropdown key={cle} label={t(TITRE_DE_FACETTE[cle])} items={VALEURS_DE_FACETTE[cle]} selected={extra[cle]} comptes={comptes[cle]} onChange={setFilter(cle)} />)}
           {(filterCount > 0 || q) && (
             <button type="button" className={styles.clear} onClick={reset}>
               {t("Effacer")}
@@ -1222,6 +1378,12 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           )}
           </div>
         </div>
+        {minimal && (
+          <div className={styles.bandeauUneLigne} role="status">
+            <span>{dispo.lignes === 1 ? t("1 ligne dans {s} : rien à filtrer.", { s: sectionChoisie ? t(SECTION_COURT[sectionChoisie]) : t("cette liste") }) : t("Aucune ligne dans {s}.", { s: sectionChoisie ? t(SECTION_COURT[sectionChoisie]) : t("cette liste") })}</span>
+            {lieu === "cote" && sectionChoisie && <button type="button" onClick={() => update({ section: "tout" })}>{t("Voir tous les titres")} →</button>}
+          </div>
+        )}
         {chipsVisibles.length > 0 && (
           <div className={styles.activeRow}>
             {chipsVisibles.map((c) => (
@@ -1240,7 +1402,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         trie={false}
         open={sheet}
         onClose={() => setSheet(false)}
-        groups={groups.filter((g) => dispo.filtres[g.key as "instrument" | "pays" | "statut"] || g.selected.size > 0)}
+        groups={groups.filter((g) => dispo.filtres[g.key as keyof typeof dispo.filtres] || g.selected.size > 0)}
         comptes={comptes}
         onToggle={toggle}
         onClear={reset}
@@ -1308,7 +1470,9 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
       {/* LE NUAGE « RENDEMENT ET DURÉE » NE S'APPLIQUE PAS AUX ACTIONS (3 novembre 2026). Il place chaque ligne par son rendement
           à l'échéance et sa durée : une action n'a ni l'un ni l'autre — son « rendement » est un dividende, et elle n'a pas
           d'échéance. Sur la section « Actions », il disait « 0 lignes » : il est donc caché, et il revient avec les autres sections. */}
-      {lieu === "cote" && sectionChoisie !== "actions" && (
+      {/* UNE BARRE N'EST OFFERTE QUE SI ELLE DESSINE QUELQUE CHOSE (planche « Investir », 4A, 17 novembre 2026). Le nuage veut au moins trois points : avec un ou deux, il déployait un cadre presque
+          vide sous « de 6,9 % à 6,9 % ». Sous ce seuil, une ligne de chiffres dit la fourchette ; sur « Souscription », le tracé utile est le calendrier des clôtures. */}
+      {lieu === "cote" && sectionChoisie !== "actions" && sectionChoisie !== "souscription" && nuageUtile && (
         <BandeauRepliable
           titre={t("Rendement et durée")}
           ouvert={nuageOuvert}
@@ -1338,6 +1502,26 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
             })
           }
         />
+        </BandeauRepliable>
+      )}
+      {lieu === "cote" && sectionChoisie !== "actions" && sectionChoisie !== "souscription" && !nuageUtile && resumeNuage.n > 0 && (
+        <p className={styles.resumeSeul}>{resumeNuage.bas === resumeNuage.haut ? t("Rendement : {v}", { v: fmtPct(resumeNuage.bas, 1) }) : t("Rendement : de {bas} à {haut}", { bas: fmtPct(resumeNuage.bas, 1), haut: fmtPct(resumeNuage.haut, 1) })}</p>
+      )}
+      {lieu === "cote" && sectionChoisie === "souscription" && calendrierDesClotures.length >= 2 && (
+        <BandeauRepliable
+          titre={t("Calendrier des clôtures")}
+          ouvert={nuageOuvert}
+          surOuvrir={(v) => update({ nuage: v ? "1" : undefined })}
+          resume={<span>{prochaineCloture ? t("prochaine : {d}", { d: dates.fmtDate(prochaineCloture, false) }) : t("{n} clôturées", { n: String(calendrierDesClotures.length) })}</span>}
+        >
+          <ul className={styles.calendrier}>
+            {calendrierDesClotures.map((c) => (
+              <li key={c.id}>
+                <span>{dates.fmtDate(c.at, false)}</span>
+                <b>{t(c.titre)}</b>
+              </li>
+            ))}
+          </ul>
         </BandeauRepliable>
       )}
 
@@ -1382,7 +1566,19 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         </section>
       )}
 
-      {rows.length === 0 && <div className="empty">{t("Aucune ligne ne correspond à ces filtres.")}</div>}
+      {rows.length === 0 && (
+        <div className="empty">
+          {q.trim() && sectionChoisie ? t("« {q} » : aucune ligne dans {s}.", { q: q.trim(), s: t(SECTION_COURT[sectionChoisie]) }) : t("Aucune ligne ne correspond à ces filtres.")}
+          {horsSelection > 0 && (
+            <>
+              {" "}
+              <button type="button" className={styles.elargir} onClick={() => update({ section: "tout" })}>
+                {horsSelection === 1 ? t("Chercher dans tous les titres (1 ligne)") : t("Chercher dans tous les titres ({n} lignes)", { n: String(horsSelection) })} →
+              </button>
+            </>
+          )}
+        </div>
+      )}
       {/* ce que la recherche vient de rendre : c’est cela qu’on ramène sous les yeux quand le clavier se retire */}
       <div ref={searchList} className={styles.debutDeListe}>{rest.length > 0 && render(rest, false)}</div>
       {!desk && <CoachMarks

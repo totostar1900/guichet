@@ -32,6 +32,7 @@ import { fmt, fmtPct } from "@/lib/format";
 import styles from "./page.module.css";
 import affichage from "@/components/Affichage.module.css";
 import { Sheet } from "@/components/mobile/Sheet";
+import { trancheDeTicket, VALEURS_DE_FACETTE } from "@/lib/domain/facettes-lignes";
 import { compterFacettes } from "@/lib/domain/facettes";
 import { useDates, useT } from "@/i18n/client";
 import type { FundCurve } from "@/lib/domain/fund-curve";
@@ -108,6 +109,10 @@ const SORT: [SortKey, string][] = [
     un nom de A à Z. Le second clic inverse, et c'est lui qui écrit « sens ». */
 const NATURAL: Record<SortKey, "asc" | "desc"> = { categorie: "asc", nom: "asc", gestion: "asc", vl: "desc", an: "desc" };
 const CATS: FundNav["category"][] = ["M", "O", "D", "A", "?"];
+/** La valeur de chaque facette pour un fonds, ou rien quand il n'a pas la donnée. */
+const valeursDeFonds = (r: FundRow): Record<string, string | undefined> => ({ gestion: r.manager, depositaire: r.depositary, ouverte: r.open ? "oui" : "non", vl: r.frequency !== "?" ? r.frequency : undefined, ticket: trancheDeTicket(r.minAmount) });
+/** Le fonds passe-t-il tous les choix posés, sauf celui de `sans` ? Écrit une fois pour la liste et pour les nombres des pastilles. */
+const passeFacettes = (r: FundRow, choisis: Record<string, string>, sans?: string) => Object.entries(choisis).every(([cle, v]) => cle === sans || !v || valeursDeFonds(r)[cle] === v);
 /**
  * TROIS FAÇONS DE RANGER LA LISTE, ET PAS UNE DE PLUS.
  *
@@ -322,6 +327,10 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
   const cat = (sp.get("cat") ?? "") as FundNav["category"] | "";
   const manager = sp.get("gestion") ?? "";
   const depositary = sp.get("depositaire") ?? "";
+  /* TROIS FACETTES DE PLUS (planche « Investir », 17 novembre 2026) : la souscription ouverte, la fréquence de la VL, le ticket minimum. La société de gestion et le dépositaire ne s'offrent plus que s'ils ont deux valeurs. */
+  const ouverte = sp.get("ouverte") ?? "";
+  const vl = sp.get("vl") ?? "";
+  const ticket = sp.get("ticket") ?? "";
   const groupe = (GROUPES.some(([k]) => k === sp.get("groupe")) ? sp.get("groupe") : "") as GroupKey | "";
   const sort = (SORT.some(([k]) => k === sp.get("tri")) ? sp.get("tri") : "categorie") as SortKey;
   const asc = (sp.get("sens") ?? NATURAL[sort]) === "asc";
@@ -425,11 +434,12 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
        filtre, mais « tout effacer » veut dire « rends-moi la liste comme elle
        s'ouvre », et elle s'ouvre sur un an sans plage. C'est déjà la règle du
        tri, qui n'est pas un filtre non plus. */
-    update({ q: undefined, cat: undefined, gestion: undefined, depositaire: undefined, tri: undefined, sens: undefined, periode: undefined, perf: undefined });
+    update({ q: undefined, cat: undefined, gestion: undefined, depositaire: undefined, ouverte: undefined, vl: undefined, ticket: undefined, tri: undefined, sens: undefined, periode: undefined, perf: undefined });
   };
   const setCat = (v: FundNav["category"] | "") => update({ cat: v || undefined });
   const setManager = (v: string) => update({ gestion: v || undefined });
   const setDepositary = (v: string) => update({ depositaire: v || undefined });
+
   const setGroupe = (v: GroupKey | "") => update({ groupe: v || undefined });
   const setSort = (v: SortKey) => update({ tri: v === "categorie" ? undefined : v, sens: undefined });
   // Depuis l'en-tête d'une colonne : la première fois son sens naturel, la
@@ -494,9 +504,12 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
       const v = valeurFenetre(r, fenetre);
       return v != null && v >= plage[0] - 0.001 && v <= plage[1] + 0.001;
     };
-    return compterFacettes(rows, ["gestion", "depositaire"], (r, cle) => (!cat || r.category === cat) && (cle === "gestion" || !manager || r.manager === manager) && (cle === "depositaire" || !depositary || r.depositary === depositary) && dansPlage(r) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)), (r, cle) => [cle === "gestion" ? r.manager : r.depositary]);
+    return compterFacettes(rows, ["gestion", "depositaire", "ouverte", "vl", "ticket"], (r, cle) => (!cat || r.category === cat) && passeFacettes(r, { gestion: manager, depositaire: depositary, ouverte, vl, ticket }, cle) && dansPlage(r) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)), (r, cle) => {
+      const v = valeursDeFonds(r)[cle];
+      return v ? [v] : [];
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, cat, manager, depositary, sp, fenetre, draft]);
+  }, [rows, cat, manager, depositary, ouverte, vl, ticket, sp, fenetre, draft]);
   const [chercheSheet, setChercheSheet] = useState<Record<string, string>>({});
 
   const filtered = useMemo(() => {
@@ -509,7 +522,7 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
       const v = valeurFenetre(r, fenetre);
       return v != null && v >= plage[0] - 0.001 && v <= plage[1] + 0.001;
     };
-    const list = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && dansLaPlage(r) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
+    const list = rows.filter((r) => (!cat || r.category === cat) && passeFacettes(r, { gestion: manager, depositaire: depositary, ouverte, vl, ticket }) && dansLaPlage(r) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
     const cmp = (a: FundRow, b: FundRow) => {
       switch (sort) {
         case "nom":
@@ -528,7 +541,7 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
     const dir = sort === "categorie" ? 1 : asc ? 1 : -1;
     return [...list].sort((a, b) => dir * cmp(a, b));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, draft, cat, manager, depositary, sort, asc, fenetre, plage?.[0], plage?.[1]]);
+  }, [rows, draft, cat, manager, depositary, ouverte, vl, ticket, sort, asc, fenetre, plage?.[0], plage?.[1]]);
 
   /* Les épinglés sortent de la liste : ils sont montrés à part, et les voir
      deux fois ferait croire à un doublon.
@@ -563,6 +576,8 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
   /* Le compte de chaque bouton : les fonds MESURABLES sur cette fenêtre,
      tous filtres appliqués sauf la plage. Un bouton qui annonce quarante-cinq
      et rend trente-huit lignes ment sur ce qu'il va faire. */
+  const bandeUtile = pourLaBande.length >= 2;
+  const depuisLOrigine = filtered.flatMap((r) => (r.perfSinceInceptionPct != null ? [r.perfSinceInceptionPct] : []));
   const comptes = useMemo(() => {
     const ql = fold(draft.trim());
     const base = rows.filter((r) => (!cat || r.category === cat) && (!manager || r.manager === manager) && (!depositary || r.depositary === depositary) && (!ql || fold(`${r.title} ${r.manager} ${r.depositary}`).includes(ql)));
@@ -672,6 +687,19 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
   const actifs: { clef: string; quoi?: string; valeur: string; retirer: () => void }[] = [];
   if (manager) actifs.push({ clef: "gestion", quoi: "Gestion", valeur: manager, retirer: () => setManager("") });
   if (depositary) actifs.push({ clef: "depositaire", quoi: "Dépositaire", valeur: depositary, retirer: () => setDepositary("") });
+  if (ouverte) actifs.push({ clef: "ouverte", valeur: t(ouverte === "oui" ? "Souscription ouverte" : "Information seulement"), retirer: () => update({ ouverte: undefined }) });
+  if (vl) actifs.push({ clef: "vl", valeur: t(FUND_FREQUENCY_LABEL[vl as FundNav["frequency"]] ?? vl), retirer: () => update({ vl: undefined }) });
+  const choixDeFonds = [manager, depositary, ouverte, vl, ticket].filter(Boolean).length;
+  /* LES FACETTES OFFERTES : une facette qui n'a qu'une valeur ne coupe rien (un seul dépositaire, une seule société) ; elle ne s'offre que si elle a deux valeurs, ou si elle est déjà choisie, pour pouvoir la défaire. */
+  const facettesDeFonds: [string, string, string[], string, (v: string) => void][] = ([
+    ["ouverte", t("Souscription"), [...new Set(rows.map((r) => valeursDeFonds(r).ouverte).filter((v): v is string => Boolean(v)))], ouverte, (v: string) => update({ ouverte: v || undefined })],
+    ["vl", t("Valeur liquidative"), [...new Set(rows.map((r) => valeursDeFonds(r).vl).filter((v): v is string => Boolean(v)))], vl, (v: string) => update({ vl: v || undefined })],
+    ["ticket", t("Ticket minimum"), VALEURS_DE_FACETTE.ticket.map(([v]) => v).filter((v) => rows.some((r) => valeursDeFonds(r).ticket === v)), ticket, (v: string) => update({ ticket: v || undefined })],
+    ["gestion", t("Société de gestion"), managers, manager, setManager],
+    ["depositaire", t("Dépositaire"), depositaries, depositary, setDepositary],
+  ] as [string, string, string[], string, (v: string) => void][]).filter(([, , valeurs, choisi]) => valeurs.length > 1 || Boolean(choisi));
+  const libelleDeFacette = (cle: string, v: string) => (cle === "ouverte" ? t(v === "oui" ? "Souscription ouverte" : "Information seulement") : cle === "vl" ? t(FUND_FREQUENCY_LABEL[v as FundNav["frequency"]] ?? v) : cle === "ticket" ? t(VALEURS_DE_FACETTE.ticket.find(([x]) => x === v)?.[1] ?? v) : v);
+  if (ticket) actifs.push({ clef: "ticket", valeur: t(VALEURS_DE_FACETTE.ticket.find(([v]) => v === ticket)?.[1] ?? ticket), retirer: () => update({ ticket: undefined }) });
 
   /**
    * LA BARRE DE RECHERCHE, TOUJOURS VISIBLE.
@@ -796,13 +824,13 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
         <div className={styles.barre}>
           {recherche}
           {/* LE FILTRE DES FONDS (5 novembre 2026) : la même fenêtre centrée que sur Titres et Adjudications, sur la société de gestion et le dépositaire. */}
-          <button type="button" className={styles.filtrer} data-actif={manager || depositary ? "oui" : undefined} onClick={() => setFiltres(true)} aria-haspopup="dialog">
+          {facettesDeFonds.length > 0 && <button type="button" className={styles.filtrer} data-actif={choixDeFonds > 0 ? "oui" : undefined} onClick={() => setFiltres(true)} aria-haspopup="dialog">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <path d="M4 6h16M7 12h10M10 18h4" />
             </svg>
             {t("Filtrer")}
-            {(manager ? 1 : 0) + (depositary ? 1 : 0) > 0 ? ` · ${(manager ? 1 : 0) + (depositary ? 1 : 0)}` : ""}
-          </button>
+            {choixDeFonds > 0 ? ` · ${choixDeFonds}` : ""}
+          </button>}
           <Sheet
             open={filtres}
             onClose={() => setFiltres(false)}
@@ -810,7 +838,7 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
             centre
             foot={
               <div className={affichage.pied}>
-                <button type="button" className={affichage.efface} onClick={() => update({ gestion: undefined, depositaire: undefined })} disabled={!manager && !depositary}>
+                <button type="button" className={affichage.efface} onClick={() => update({ gestion: undefined, depositaire: undefined, ouverte: undefined, vl: undefined, ticket: undefined })} disabled={choixDeFonds === 0}>
                   {t("Effacer")}
                 </button>
                 <button type="button" className="btn primary" onClick={() => setFiltres(false)}>
@@ -820,14 +848,12 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
             }
           >
             <div className={affichage.corps}>
-              {([
-                ["gestion", t("Société de gestion"), managers, manager, setManager],
-                ["depositaire", t("Dépositaire"), depositaries, depositary, setDepositary],
-              ] as [string, string, string[], string, (v: string) => void][]).map(([cle, quoi, valeurs, choisi, choisir]) => {
+              {facettesDeFonds.map(([cle, quoi, valeurs, choisi, choisir]) => {
                 const n = (v: string) => comptesFacettes[cle]?.[v] ?? 0;
                 const cherche = fold((chercheSheet[cle] ?? "").trim());
                 /* LES PLUS FOURNIES D'ABORD (planche 5B) : onze sociétés en colonne font une page entière sur un téléphone. Le tri par nombre met en haut ce qui compte, la recherche retrouve le reste, les sociétés à zéro vont en bas, grisées. Ce qui est choisi reste toujours visible. */
-                const montrees = [...valeurs].filter((v) => v === choisi || !cherche || fold(v).includes(cherche)).sort((x, y) => n(y) - n(x) || x.localeCompare(y, "fr"));
+                const sansLigne = valeurs.filter((v) => n(v) === 0 && v !== choisi);
+                const montrees = [...valeurs].filter((v) => !sansLigne.includes(v) && (v === choisi || !cherche || fold(libelleDeFacette(cle, v)).includes(cherche))).sort((x, y) => n(y) - n(x) || libelleDeFacette(cle, x).localeCompare(libelleDeFacette(cle, y), "fr"));
                 return (
                   <div className={affichage.groupe} role="group" aria-label={quoi} key={cle}>
                     <span className={affichage.etiquette}>{quoi}</span>
@@ -837,11 +863,12 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
                     <div className={affichage.options}>
                       {montrees.map((v) => (
                         <button key={v} type="button" aria-pressed={choisi === v} className={`${choisi === v ? affichage.on : ""} ${n(v) === 0 && choisi !== v ? affichage.vide : ""} ${n(v) === 0 && choisi === v ? affichage.impossible : ""}`} onClick={() => choisir(choisi === v ? "" : v)}>
-                          {v} <small className={affichage.n}>{n(v)}</small>
+                          {libelleDeFacette(cle, v)} <small className={affichage.n}>{n(v)}</small>
                           {n(v) === 0 && choisi === v && <span aria-hidden="true"> ×</span>}
                         </button>
                       ))}
                     </div>
+                    {sansLigne.length > 0 && <p className={affichage.sansLigne}>{t("Sans ligne : {l}", { l: sansLigne.map((v) => libelleDeFacette(cle, v)).join(", ") })}</p>}
                     {choisi && n(choisi) === 0 && (
                       <p className={affichage.phraseImpossible} role="status">
                         {t("{v} ne donne aucune ligne avec vos autres choix.", { v: choisi })}{" "}
@@ -891,7 +918,16 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
           change ce que la colonne MESURE. Les mêler ferait croire que choisir
           « 3 ans » retire les fonds plus jeunes, alors qu'elle les laisse
           avec un tiret qui dit pourquoi. */}
-      <BandeauRepliable
+      {/* UNE BARRE N'EST OFFERTE QUE SI ELLE DESSINE QUELQUE CHOSE (planche « Investir », 4A) : avec moins de deux fonds chiffrés sur la fenêtre, la bande n'a rien à tracer, et chaque carte répond
+          « année incomplète ». Une ligne dit alors la seule rentabilité que l'historique permet : depuis l'origine. */}
+      {!bandeUtile && depuisLOrigine.length > 0 && (
+        <p className={styles.resumeSeul}>
+          {depuisLOrigine.length === 1 || Math.min(...depuisLOrigine) === Math.max(...depuisLOrigine)
+            ? t("Rentabilité depuis l'origine : {v}", { v: fmtPct(depuisLOrigine[0], 1) })
+            : t("Rentabilité depuis l'origine : de {bas} à {haut}", { bas: fmtPct(Math.min(...depuisLOrigine), 1), haut: fmtPct(Math.max(...depuisLOrigine), 1) })}
+        </p>
+      )}
+      {bandeUtile && <BandeauRepliable
         titre={t("Rentabilité des fonds")}
         ouvert={bandeOuverte}
         surOuvrir={(v) => update({ bande: v ? "1" : undefined })}
@@ -916,7 +952,7 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
           surEpingle={basculerEpingle}
           surPlage={(p) => update({ perf: p ? `${p[0]}:${p[1]}` : undefined })}
         />
-      </BandeauRepliable>
+      </BandeauRepliable>}
 
       {/* LES FONDS ÉPINGLÉS, JUSTE SOUS LE TRACÉ. */}
       {fondsEpingles.length > 0 && (
