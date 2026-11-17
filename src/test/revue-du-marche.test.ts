@@ -173,8 +173,9 @@ describe("une intention en cours", () => {
      était le seul sans porte. */
   it("donne un bouton là où un geste est attendu, et rien là où il n'y en a pas", () => {
     const page = code(ORDRES);
-    expect(page, "le geste n'est plus calculé : la carte redonne un devoir sans moyen").toContain("ordreSignable(i)");
-    expect(page, "« signer » ne mène plus à l'écran de signature").toMatch(/mot: t\("Signer et payer"\), href: `\/moi\/ordres\/\$\{i\.id\}`/);
+    expect(page, "le geste n'est plus calculé : la carte redonne un devoir sans moyen").toMatch(/if \(ordreSignable\(i\)\) return \{ mot:/);
+    /* « Signer et payer » est devenu « Signer mon ordre » le 17 novembre 2026 : le paiement se lit après la signature, sur la page de l'ordre. */
+    expect(page, "« signer » ne mène plus à l'écran de signature").toMatch(/mot: t\("Signer mon ordre"\), href: `\/moi\/ordres\/\$\{i\.id\}`/);
     const carte = code(CARTE);
     expect(carte, "le geste n'est plus rendu en bouton").toMatch(/geste && \(/);
     /* ET LA FLÈCHE DÉCORATIVE NE REVIENT PAS. Elle précédait la phrase de

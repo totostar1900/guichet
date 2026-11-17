@@ -193,7 +193,7 @@ export async function DossierAccueil({
   return (
     <section className="pile" aria-label={t("Mon dossier")}>
       {presentes.has("intentions") && (
-        <BlocPlat id="dossier-intentions" titre="Mes intentions" href="/moi/ordres" etiquette={aSigner ? <PastilleEtat ton="attention">{t("à signer")}</PastilleEtat> : undefined}>
+        <BlocPlat id="dossier-intentions" titre="Mes ordres" href="/moi/ordres" etiquette={aSigner ? <PastilleEtat ton="attention">{t("à signer")}</PastilleEtat> : undefined}>
           {intentions.map((l, k) => (
             <Rang key={k} href={l.href}>
               <span className={styles.qui}>

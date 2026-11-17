@@ -166,3 +166,14 @@
   color: var(--gold-ink);
   text-decoration: none;
 }
+
+/* Un chapitre : son titre à plat, et une phrase qui dit ce qu'on y trouve (16 novembre 2026, planche « Signer et suivre », 1A). */
+.chapitre {
+  display: grid;
+  gap: var(--s-2);
+}
+.promesse {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}

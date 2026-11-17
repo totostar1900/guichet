@@ -96,3 +96,14 @@ export function nommerCanal(c: CanalDuCode | undefined): string {
   if (!c) return "";
   return c.channel === "email" ? `e-mail, à ${c.to}` : `WhatsApp, au ${c.to}`;
 }
+
+/**
+ * UNE ADRESSE SE DIT SANS SE LIVRER EN ENTIER (16 novembre 2026, planche « Signer et suivre », 3A) : « d···@exemple.org », « ···123 ». Assez pour reconnaître où part le code,
+ * pas assez pour qu'un écran lu par-dessus l'épaule donne l'adresse.
+ */
+export function masquerLAdresse(to: string): string {
+  const arobase = to.indexOf("@");
+  if (arobase > 0) return `${to[0]}···${to.slice(arobase)}`;
+  const chiffres = to.replace(/\s/g, "");
+  return chiffres.length > 4 ? `···${chiffres.slice(-3)}` : to;
+}

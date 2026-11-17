@@ -24,7 +24,7 @@ export type NavPage = Pick<MarketPage, "key" | "href" | "label" | "hint" | "shor
  */
 export const PORTEFEUILLE_PAGES: NavPage[] = [
   { key: "bord", href: "/", label: "Tableau de bord", tuile: "ce qui vous attend", hint: "ce que vous avez, ce qui vous attend, et ce qui est entré" },
-  { key: "performance", href: "/moi/performance", label: "Analyse", tuile: "répartition et rendement", hint: "la répartition, le rendement, l'échéancier et vos opérations" },
+  { key: "performance", href: "/moi/performance", label: "Mon rendement", tuile: "répartition et rendement", hint: "la répartition, le rendement, l'échéancier et vos opérations" },
   { key: "reinvestir", href: "/moi/reinvestir", label: "Réinvestir", tuile: "un coupon qui tombe", hint: "où remettre un coupon ou un remboursement qui vient de tomber" },
   { key: "documents", href: "/moi/documents", label: "Mes documents", tuile: "relevés, avis, bulletins", hint: "vos relevés, vos avis d'opéré, vos bulletins et vos appels de fonds" },
   /* LA PROVISION EST DE L'ARGENT QU'ON POSSÈDE, pas un geste qu'on pose : sa

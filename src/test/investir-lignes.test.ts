@@ -140,7 +140,7 @@ describe("la ligne d'un titre : le cours en tête, les revenus dessous (2 novemb
 describe("les titres à plat sur tout l'Accueil", () => {
   it("le dossier n'a plus de titre dans une carte : chaque rubrique est un BlocPlat", () => {
     const d = code("src/components/accueil/DossierAccueil.tsx");
-    for (const titre of ["Mes intentions", "Mes intentions au sondage", "Mes lignes suivies", "Mon espace", "Vous pouvez aussi"]) expect(d, `« ${titre} » n'est plus un bloc à plat`).toContain(`titre="${titre}"`);
+    for (const titre of ["Mes ordres", "Mes intentions au sondage", "Mes lignes suivies", "Mon espace", "Vous pouvez aussi"]) expect(d, `« ${titre} » n'est plus un bloc à plat`).toContain(`titre="${titre}"`);
     expect(d, "une rubrique est redevenue une tuile entière en lien").not.toMatch(/styles\.pleine|styles\.compacte|styles\.entete/);
     expect(code("src/components/accueil/BlocPlat.tsx"), "la carte d'un bloc à plat est devenue un lien").not.toContain("<Link");
   });

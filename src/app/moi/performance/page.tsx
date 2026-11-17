@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Analyse de votre portefeuille") };
+  return { title: t("Ce que mon épargne a rapporté") };
 }
 
 /**
@@ -65,7 +65,7 @@ export default async function PerformancePage() {
       <div className={styles.page}>
         <EnTete
           surTitre={t("Mon portefeuille")}
-          titre={t("Ce que votre épargne a rapporté")}
+          titre={t("Ce que mon épargne a rapporté")}
           phrase={t("Ce rapport paraît dès votre première opération réglée : il se calcule sur ce que vous avez versé et sur ce que vous détenez.")}
         />
       </div>
@@ -83,7 +83,7 @@ export default async function PerformancePage() {
             différentes au même endroit. Voir ETALON.md. */}
         <EnTete
           surTitre={t("Mon portefeuille")}
-          titre={t("Analyse de votre portefeuille")}
+          titre={t("Ce que mon épargne a rapporté")}
           phrase={t("Depuis le {d}, sur ce que vous avez réellement versé et pour le temps où chaque versement a couru.", { d: fmtDate(p.since ?? "") })}
         />
 

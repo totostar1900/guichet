@@ -37,3 +37,17 @@ describe("Ce qui part tout seul : chaque règle une seule fois, sans écriture",
     expect(r).not.toMatch(/"use server"|audit\(|\.insert|\.upsert|\.update\(/);
   });
 });
+
+/** MON ARGENT EN TROIS CHAPITRES (17 novembre 2026, planche « Signer et suivre », 1A) : un titre à plat et une phrase par chapitre, et le suivi trouve enfin une place nommée. */
+describe("Mon argent : trois chapitres identifiés", () => {
+  const a = code("src/app/moi/argent/page.tsx");
+  it("porte « Mon solde », « Ce qui part tout seul » et « Suivre mon argent », chacun avec sa phrase", () => {
+    for (const titre of ["Mon solde", "Ce qui part tout seul", "Suivre mon argent"]) expect(a, titre).toMatch(new RegExp(`<h2 className=\\{styles\\.titre\\}>\\{t\\("${titre}"\\)\\}</h2>`));
+    expect(a.match(/className=\{styles\.promesse\}/g) ?? []).toHaveLength(3);
+  });
+  it("le suivi porte ses quatre portes : ordres (avec leurs comptes), rendement (avec ses chiffres), mouvements, coûts", () => {
+    for (const href of ["/moi/ordres", "/moi/performance", "/moi/documents/argent", "/moi/tarifs"]) expect(a, href).toContain(`href: "${href}"`);
+    expect(a, "le rendement doit se lire du même calcul que sa page").toContain("buildPerformance(mes, offers, cash)");
+    expect(a, "un ordre à signer doit se voir sur la tuile").toMatch(/attend: aSigner \? t\("à signer"\) : undefined/);
+  });
+});

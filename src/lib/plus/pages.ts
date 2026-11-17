@@ -11,9 +11,9 @@ export interface PagePlus {
 }
 
 export const PLUS_PAGES: PagePlus[] = [
-  { cle: "ordres", href: "/moi/ordres", mot: "Mes ordres et intentions" },
+  { cle: "ordres", href: "/moi/ordres", mot: "Mes ordres" },
   { cle: "sondages", href: "/sondage", mot: "Mes sondages" },
   { cle: "argent", href: "/moi/argent", mot: "Mon argent" },
-  { cle: "rentabilite", href: "/moi/performance", mot: "Ma rentabilité" },
+  { cle: "rentabilite", href: "/moi/performance", mot: "Ce que mon épargne a rapporté" },
   { cle: "documents", href: "/moi/documents", mot: "Mes documents" },
 ];

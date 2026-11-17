@@ -5,14 +5,17 @@
   max-width: 56ch;
 }
 
+/* LE RÉCAPITULATIF, L'ARBITRAGE ET LA SIGNATURE SONT TROIS CARTES DU MÊME GABARIT (17 novembre 2026) : le filet d'or de gauche, l'encadré et la carte faisaient trois styles pour une page. */
 .recap,
-.signer,
-/* Ce qui attend un geste porte le filet d'or : la même marque que la convention. */
 .signer {
-  border-left: 4px solid var(--gold);
   display: flex;
   flex-direction: column;
   gap: var(--s-6);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
 }
 .recapH {
   font-size: var(--t-1);
@@ -93,10 +96,6 @@
   color: var(--ink-3);
   font-variant-numeric: tabular-nums;
 }
-.ok {
-  color: var(--good);
-  font-size: var(--t-3);
-}
 .err {
   color: var(--crit);
   font-size: var(--t-3);
@@ -164,9 +163,11 @@
    de celui-là. Le mêler aux lignes du récapitulatif le ferait lire comme une
    clause, et le client chercherait sa signature. */
 .arbitrage {
-  padding: var(--s-5);
-  border: 1px solid var(--line);
-  background: var(--surface);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
 }
 .arbH {
   display: flex;
@@ -211,4 +212,77 @@
   margin: 0 0 var(--s-6);
   font-size: var(--t-5);
   font-weight: 700;
+}
+
+/* Les deux étapes de la signature (17 novembre 2026) : repères, résumé de ce qu'on signe, champ du code. */
+.pas {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.pas i {
+  width: 22px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.pas .pasOn,
+.pasOn {
+  background: var(--gold);
+}
+.pas span {
+  margin-left: var(--s-3);
+}
+.etapeTitre {
+  margin: 0;
+  font-size: var(--t-6);
+  font-weight: 700;
+  color: var(--ink);
+}
+.resume {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+}
+.resume span {
+  font-size: var(--t-1);
+  color: var(--ink-3);
+}
+.resume b {
+  font-size: var(--t-3);
+}
+.resume small {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+}
+.codeChamp {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--t-5);
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+.lien {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--gold-ink);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.lien:disabled {
+  color: var(--ink-3);
+  cursor: default;
 }

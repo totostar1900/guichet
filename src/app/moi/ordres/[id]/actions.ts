@@ -2,6 +2,7 @@
 
 import { audit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { noter } from "@/lib/journal";
 import { garde } from "@/lib/garde";
 import { requireSession } from "@/lib/auth";
@@ -71,7 +72,11 @@ export async function signerOrdreAction(_p: OrdreResult | null, form: FormData):
     return { ok: false, error: verdict.erreur };
   }
 
-  return acheverLaSignature(intent, mien.userId, "code à usage unique", intent.pendingCodeTo);
+  const fin = await acheverLaSignature(intent, mien.userId, "code à usage unique", intent.pendingCodeTo);
+  /* LA PAGE DE CONFIRMATION S'OUVRE DEPUIS LE SERVEUR : la signature acquise, la page de l'ordre se rend déjà « signée » et le formulaire qui la portait disparaît avec son effet, de sorte qu'une
+     navigation lancée côté client ne partait jamais (mesuré le 17 novembre 2026, comme pour la révocation d'un mandat). La redirection reste hors de tout try/catch. */
+  if (fin.ok) redirect(`/moi/ordres/${intent.id}/signe`);
+  return fin;
 }
 
 /**

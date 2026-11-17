@@ -50,11 +50,14 @@ describe("la signature confirme l'ordre : pas de validation du desk (16 novembre
     expect(ACTIONS).toMatch(/if \(intent\.state === "recue"\) \{\s*await r\.setIntentState\(intent\.id, "confirmee"\);/);
     expect(ACTIONS).toMatch(/confirmé par la signature du client/);
   });
-  it("la page signée dit comment régler : coordonnées du desk, motif = référence de l'ordre", () => {
-    expect(PAGE).toMatch(/loadReglement\(\)/);
-    expect(PAGE).toMatch(/t\("Pour finir"\)/);
-    expect(PAGE).toMatch(/<b className="mono">\{intent\.ref\}<\/b>\s*<Copier valeur=\{intent\.ref\}/);
-    expect(PAGE, "rien à virer quand la provision a couvert l'ordre").toMatch(/intent\.signedAt && !couvert && aRegler > 0/);
+  it("la page signée dit comment régler : coordonnées du desk, motif = référence de l'ordre (écrit une seule fois, dans PourFinir)", () => {
+    const pf = readFileSync("src/app/moi/ordres/[id]/PourFinir.tsx", "utf8");
+    expect(pf).toMatch(/loadReglement\(\)/);
+    expect(pf).toMatch(/t\("Pour finir"\)/);
+    expect(pf).toMatch(/<b className="mono">\{intent\.ref\}<\/b>\s*<Copier valeur=\{intent\.ref\}/);
+    expect(pf, "rien à virer quand la provision a couvert l'ordre").toMatch(/if \(couvert \|\| aRegler <= 0\) return null/);
+    expect(PAGE).toMatch(/<PourFinir intent=\{intent\}/);
+    expect(readFileSync("src/app/moi/ordres/[id]/signe/page.tsx", "utf8")).toMatch(/<PourFinir intent=\{intent\}/);
   });
 });
 
@@ -79,5 +82,31 @@ describe("l'e-mail d'un ordre signé ne demande pas de le signer (16 novembre 20
     expect(compose).toMatch(/Rien à nous retourner/);
     expect(compose).toMatch(/\(i && exemplaireSigne\(d, i, o\)\) \?\? action\[d\.type\]/);
     expect(readFileSync("src/lib/notify/dispatch.ts", "utf8")).toMatch(/documentSent\(d, o, i\)/);
+  });
+});
+
+describe("signer en deux étapes, puis une page de confirmation (17 novembre 2026, planche « Signer et suivre », 3A et 4A)", () => {
+  it("les deux étapes ont chacune leur bouton : « Recevoir le code » puis « Je signe mon ordre », jamais les deux ensemble", () => {
+    expect(SIGNATURE).toMatch(/const enCode = Boolean\(parti\) && !retour && !confirme/);
+    expect(SIGNATURE).toMatch(/\) : enCode \? \(/);
+    expect(SIGNATURE).toMatch(/t\("Étape 1 sur 2 · relire"\)/);
+    expect(SIGNATURE).toMatch(/t\("Étape 2 sur 2 · code"\)/);
+    /* « Retour » revient à la relecture sans perdre le code envoyé. */
+    expect(SIGNATURE).toMatch(/onClick=\{\(\) => setRetour\(true\)\}/);
+  });
+  it("le serveur passe le récapitulatif à l'étape 1 et masque l'adresse du code", () => {
+    expect(PAGE).toMatch(/relire=\{/);
+    expect(PAGE).toMatch(/masquerLAdresse\(canal\.to\)/);
+    expect(readFileSync("src/lib/kyc/canal.ts", "utf8")).toMatch(/export function masquerLAdresse/);
+  });
+  it("la signature acquise ouvre la page de confirmation, qui dit l'e-mail réellement parti", () => {
+    /* Depuis le serveur : une navigation côté client ne partait pas, le composant étant démonté par le rendu « signé » (mesuré). */
+    expect(ACTIONS).toMatch(/if \(fin\.ok\) redirect\(`\/moi\/ordres\/\$\{intent\.id\}\/signe`\)/);
+    expect(SIGNATURE, "la navigation côté client est revenue").not.toMatch(/router\.replace/);
+    const p = readFileSync("src/app/moi/ordres/[id]/signe/page.tsx", "utf8");
+    expect(p).toMatch(/if \(!intent\.signedAt\) redirect\(`\/moi\/ordres\/\$\{id\}`\)/);
+    expect(p, "l'e-mail se lit de ce qui est parti").toMatch(/listNotifications\(500\)/);
+    expect(p).toMatch(/n\.status !== "skipped" && n\.status !== "failed"/);
+    expect(p).toContain('href="/moi/ordres"');
   });
 });

@@ -97,7 +97,7 @@ export async function SoldeDeLaProvision({ userId }: { userId: string }) {
               fragment, et le client atterrissait en haut de son
               portefeuille. La liste existe. */}
           <div className={styles.gestesDeLEtat}>
-            <Link href="/moi/ordres">{t("Mes ordres en cours")} →</Link>
+            <Link href="/moi/ordres">{t("Mes ordres")} →</Link>
           </div>
         </div>
       </div>

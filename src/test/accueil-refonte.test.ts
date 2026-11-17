@@ -122,7 +122,7 @@ describe("les composants de l'Accueil", () => {
   it("montrent d'office les rubriques qui ont de l'information, sans rien à déplier", () => {
     expect(dossier, "le dossier est redevenu un composant client : ses tuiles se déplieraient").not.toMatch(/"use client"|aria-expanded|useState/);
     /* LES TROIS BLOCS DE CONTENU, DANS CET ORDRE : intentions, sondage, lignes suivies — puis « Mon espace », puis « Vous pouvez aussi ». Chacun est un bloc à plat (titre au-dessus de la carte). */
-    const i = dossier.indexOf('titre="Mes intentions" href="/moi/ordres"');
+    const i = dossier.indexOf('titre="Mes ordres" href="/moi/ordres"');
     const sond = dossier.indexOf('titre="Mes intentions au sondage" href="/sondage"', i);
     const suiv = dossier.indexOf('titre="Mes lignes suivies" href="/moi/suivies"', sond);
     const espace = dossier.indexOf('titre="Mon espace"', suiv);

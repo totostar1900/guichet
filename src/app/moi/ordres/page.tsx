@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Mes intentions") };
+  return { title: t("Mes ordres") };
 }
 
 /**
@@ -58,6 +58,20 @@ const ARRET_NOM: Record<string, string> = { recue: "reçue", confirmee: "confirm
 const stopIndex = (st: Intent["state"]) => (st === "non_servie" ? 3 : st === "annulee" ? -1 : st === "contre_proposee" ? 0 : STOPS.indexOf(st));
 
 const EN_COURS: Intent["state"][] = ["recue", "contre_proposee", "confirmee", "transmise"];
+
+/**
+ * LA PHRASE DE SUITE DIT CE QUI EST VRAI DE CET ORDRE (17 novembre 2026, planche « Signer et suivre », 2A). « Signez le bulletin et effectuez le virement indiqué sur l'appel de fonds » était écrite
+ * pour le parcours d'avant : le bulletin se signe dans l'application, et le virement se lit sur la page de l'ordre. Un rachat y disait même « souscription » et « virement ».
+ */
+const suiteDe = (i: Intent): string | undefined => {
+  if (ordreSignable(i)) return "Il reste à signer votre ordre : un code reçu suffit.";
+  if (i.state === "confirmee" && i.signedAt) {
+    if (i.coveredAt) return "Signé et couvert par votre provision : rien à virer.";
+    if (i.type === "rachat" || i.type === "vente" || i.type === "cession") return "Signé : rien à virer, le produit sera viré sur votre compte de règlement.";
+    return "Signé : le virement et son motif sont sur la page de votre ordre.";
+  }
+  return undefined;
+};
 
 const NEXT: Record<string, string> = {
   recue: "Un conseiller vous rappelle avant la clôture.",
@@ -156,7 +170,7 @@ export default async function OrdresPage() {
    * n'attend de lui, et c'est exactement ce que la flèche dorée faisait.
    */
   const gesteDe = (i: Intent) => {
-    if (ordreSignable(i)) return { mot: t("Signer et payer"), href: `/moi/ordres/${i.id}` };
+    if (ordreSignable(i)) return { mot: t("Signer mon ordre"), href: `/moi/ordres/${i.id}` };
     /* UNE CONTRE-PROPOSITION SANS SES TERMES. Quand le desk a changé l'état
        sans poser les conditions, « CounterAnswer » rend null et la carte
        retombe sur sa phrase : « votre réponse est attendue ». C'était un
@@ -168,15 +182,74 @@ export default async function OrdresPage() {
     return undefined;
   };
 
+  const aSigner = ouvertes.filter((i) => ordreSignable(i));
+  const enCours = ouvertes.filter((i) => !ordreSignable(i));
+  const cartes = (liste: Intent[]) =>
+    liste.map((i) => {
+      const o = byOffer.get(i.offerId);
+      /* Une contre-proposition se décide sur la carte : c'est le oui
+         du client qui change l'ordre. « i.counter » est dans la
+         condition et pas seulement dans le composant : sans les
+         termes, celui-ci rend null, et la carte n'afficherait alors
+         RIEN à la place de sa phrase de suite — un ordre qui attend
+         une réponse sans dire laquelle. */
+      const counter = i.state === "contre_proposee" && o && i.counter ? <CounterAnswer intent={i} offer={o} now={new Date()} /> : undefined;
+      return (
+        <CarteOrdre
+          key={i.id}
+          id={i.id}
+          etat={i.state}
+          etatLabel={t(INTENT_STATE_LABEL[i.state])}
+          titre={o ? t(o.title) : i.offerId}
+          ligneHref={`/offres/${i.offerId}`}
+          /* LA DATE SANS SON ARTICLE : « Prise ferme · 1 500 000 FCFA · 20 oct. ».
+             Les points médians font déjà la liste, et « le » y ajoutait une
+             clef à trous de six caractères — la maison en borne le nombre,
+             parce qu'une clef trop courte se retrouve dans dix contextes et
+             ne se traduit juste dans aucun. Le dépli, lui, dit « Passé le ». */
+          resume={`${t(INTENT_LABEL[i.type])}${i.amount ? ` · ${montant(i, o?.kind)}` : ""} · ${fmtDate(i.createdAt, false)}`}
+          etape={stopIndex(i.state)}
+          arrets={STOPS.map((st) => t(ARRET_NOM[st]))}
+          suite={t(suiteDe(i) ?? (o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}
+          geste={gesteDe(i)}
+          counter={counter}
+          details={detailsDe(i, o)}
+          retirable={retirableParLeClient(i)}
+          raisonNonRetrait={
+            retirableParLeClient(i)
+              ? undefined
+              : t(
+                  i.state === "transmise" || i.state === "servie" || i.state === "non_servie" || i.state === "reglee"
+                    ? "L'ordre est parti au marché : il ne se retire plus, ni par vous ni par nous."
+                    : "Vous avez signé cet ordre : appelez-nous pour le retirer.",
+                )
+          }
+          refOrdre={i.ref}
+        />
+      );
+    });
+
   return (
     <Glissement>
       {/* UNE PILE : l'espace entre l'en-tête et les sections vient du jeton des sections (ETALON.md § 8). */}
-      <main className={`pile ${styles.wrap}`}>
+      <div className={`pile ${styles.wrap}`}>
         <EnTete
           surTitre={t("Mon dossier")}
-          titre={t("Mes intentions")}
-          phrase={t("Chaque ordre que vous avez dit, et où il en est. Un ordre en cours dit ce qu'il attend ; un ordre clos garde sa date et sa référence.")}
+          titre={t("Mes ordres")}
+          phrase={t("Chaque ordre que vous avez donné, et où il en est. Celui qui attend votre signature passe en premier ; un ordre terminé garde sa date et sa référence.")}
         />
+
+        {aSigner.length > 0 && (
+          <section className={styles.sec}>
+            <div className={styles.secTete}>
+              <h2>{t("À signer")}</h2>
+              <span className="muted">{t("un code reçu suffit")}</span>
+            </div>
+            <div className="panel">
+              <div className={styles.cards}>{cartes(aSigner)}</div>
+            </div>
+          </section>
+        )}
 
         <section className={styles.sec}>
           <div className={styles.secTete}>
@@ -188,52 +261,10 @@ export default async function OrdresPage() {
             <span className="muted">{t("ce qui attend quelque chose de quelqu'un")}</span>
           </div>
           <div className="panel">
-            {ouvertes.length === 0 && <div className="empty">{t("Aucune intention en cours : choisissez une ligne dans Guichet.")}</div>}
-            {ouvertes.length > 0 && (
+            {ouvertes.length === 0 && <div className="empty">{t("Aucun ordre en cours : choisissez une ligne dans Guichet.")}</div>}
+            {enCours.length > 0 && (
               <div className={styles.cards}>
-                {ouvertes.map((i) => {
-                  const o = byOffer.get(i.offerId);
-                  /* Une contre-proposition se décide sur la carte : c'est le oui
-                     du client qui change l'ordre. « i.counter » est dans la
-                     condition et pas seulement dans le composant : sans les
-                     termes, celui-ci rend null, et la carte n'afficherait alors
-                     RIEN à la place de sa phrase de suite — un ordre qui attend
-                     une réponse sans dire laquelle. */
-                  const counter = i.state === "contre_proposee" && o && i.counter ? <CounterAnswer intent={i} offer={o} now={new Date()} /> : undefined;
-                  return (
-                    <CarteOrdre
-                      key={i.id}
-                      id={i.id}
-                      etat={i.state}
-                      etatLabel={t(INTENT_STATE_LABEL[i.state])}
-                      titre={o ? t(o.title) : i.offerId}
-                      ligneHref={`/offres/${i.offerId}`}
-                      /* LA DATE SANS SON ARTICLE : « Prise ferme · 1 500 000 FCFA · 20 oct. ».
-                         Les points médians font déjà la liste, et « le » y ajoutait une
-                         clef à trous de six caractères — la maison en borne le nombre,
-                         parce qu'une clef trop courte se retrouve dans dix contextes et
-                         ne se traduit juste dans aucun. Le dépli, lui, dit « Passé le ». */
-                      resume={`${t(INTENT_LABEL[i.type])}${i.amount ? ` · ${montant(i, o?.kind)}` : ""} · ${fmtDate(i.createdAt, false)}`}
-                      etape={stopIndex(i.state)}
-                      arrets={STOPS.map((st) => t(ARRET_NOM[st]))}
-                      suite={t((o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}
-                      geste={gesteDe(i)}
-                      counter={counter}
-                      details={detailsDe(i, o)}
-                      retirable={retirableParLeClient(i)}
-                      raisonNonRetrait={
-                        retirableParLeClient(i)
-                          ? undefined
-                          : t(
-                              i.state === "transmise" || i.state === "servie" || i.state === "non_servie" || i.state === "reglee"
-                                ? "L'ordre est parti au marché : il ne se retire plus, ni par vous ni par nous."
-                                : "Vous avez signé cet ordre : appelez-nous pour le retirer.",
-                            )
-                      }
-                      refOrdre={i.ref}
-                    />
-                  );
-                })}
+                {cartes(enCours)}
               </div>
             )}
           </div>
@@ -243,7 +274,7 @@ export default async function OrdresPage() {
             n'attend rien de personne, et sa fiche dit le reste. */}
         <section className={styles.sec}>
           <div className={styles.secTete}>
-            <h2>{t("Passées")}</h2>
+            <h2>{t("Terminés")}</h2>
             <Link href="/moi/performance#operations">{t("Mes opérations")} →</Link>
           </div>
           <div className="panel">
@@ -272,7 +303,7 @@ export default async function OrdresPage() {
             )}
           </div>
         </section>
-      </main>
+      </div>
     </Glissement>
   );
 }

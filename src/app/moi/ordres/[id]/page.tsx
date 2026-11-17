@@ -14,11 +14,9 @@ import { fmt, fmtDate, fmtDateTime, localIso } from "@/lib/format";
 import { rachatNet, souscriptionNette } from "@/lib/domain/frais-fonds";
 import { getT } from "@/i18n/server";
 import { canalDuCode } from "@/lib/kyc/canal";
-import { loadReglement } from "@/lib/policy";
-import { reglementUtilisable } from "@/lib/domain/reglement";
-import { Copier } from "@/app/moi/provision/Copier";
-import prov from "@/app/moi/provision/page.module.css";
 import { SignatureOrdre } from "./Signature";
+import { PourFinir } from "./PourFinir";
+import { masquerLAdresse } from "@/lib/kyc/canal";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
@@ -109,10 +107,140 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
 
   /* POUR FINIR : UN ORDRE SIGNÉ SUFFIT, la page dit comment le régler (16 novembre 2026, planche 6A). Les coordonnées viennent du desk (Référentiel › Règlement), le motif est la
      référence de l'ordre. Rien à virer quand la provision a couvert l'ordre, ni pour un rachat : le produit part sur le compte de règlement. */
-  const reglement = intent.signedAt && !couvert && aRegler > 0 ? await loadReglement() : undefined;
-  const virementPossible = reglement ? reglementUtilisable(reglement) : false;
 
   const fraisDuTitre = titre ? positionFor(intent, offer, prixDuPlafond(intent, offer) != null ? { pricePct: prixDuPlafond(intent, offer) } : {}).commission : 0;
+
+  /* LE RÉSUMÉ DE L'ÉTAPE DU CODE : une ligne, ce qu'on est en train de signer (planche du 16 novembre 2026, 3A). */
+  const resumeChiffre = titre
+    ? `${positionFor(intent, offer).label} · ${t("au plus {m} FCFA", { m: fmt(plafondEnVigueur(intent, offer)) })}`
+    : rachat
+      ? `${t("{n} parts", { n: montant.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) })} · ≈ ${fmt(produit)} FCFA`
+      : t("{m} FCFA", { m: fmt(montant) });
+
+  const recapNode = (
+    <section className={styles.recap}>
+      <div className={styles.recapH}>{t("Ce que vous signez")}</div>
+      <dl className={styles.lignes}>
+        {titre ? (
+          /* UN TITRE SE LIT À L'ENVERS D'UNE PART : la quantité est ferme,
+             c'est la dépense qui flotte. Le plafond vient donc en dernier
+             et en gras, parce que c'est LUI qu'on signe ; le reste l'explique. */
+          <>
+            <div>
+              <dt>{t("Quantité demandée")}</dt>
+              <dd>{positionFor(intent, offer).label}</dd>
+            </div>
+            {intent.limitPrice != null && (
+              <div>
+                <dt>{t("Au prix maximum de")}</dt>
+                <dd>{intent.limitPrice.toLocaleString("fr-FR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} %</dd>
+              </div>
+            )}
+            {fraisDuTitre > 0 && (
+              <div>
+                <dt>{t("dont frais")}</dt>
+                <dd className={styles.second}>{fmt(Math.round(fraisDuTitre))} FCFA</dd>
+              </div>
+            )}
+            <div>
+              <dt>{t("Vous engagez au plus")}</dt>
+              <dd>{fmt(plafondEnVigueur(intent, offer))} FCFA</dd>
+            </div>
+          </>
+        ) : rachat ? (
+          <>
+            <div>
+              <dt>{t("Parts rachetées")}</dt>
+              <dd>{montant.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</dd>
+            </div>
+            {fraisDuRachat > 0 && (
+              <div>
+                <dt>{t("dont frais")}</dt>
+                <dd className={styles.second}>≈ {fmt(fraisDuRachat)} FCFA</dd>
+              </div>
+            )}
+            {f && (
+              <div>
+                <dt>{t("Produit, à la VL du {d}", { d: fmtDate(f.navDate, false) })}</dt>
+                <dd className={styles.approx}>≈ {fmt(produit)} FCFA</dd>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div>
+              <dt>{t("Montant versé")}</dt>
+              <dd>{fmt(montant)} FCFA</dd>
+            </div>
+            {droits > 0 && (
+              <div>
+                <dt>{t("dont frais")}</dt>
+                <dd className={styles.second}>{fmt(droits)} FCFA</dd>
+              </div>
+            )}
+            <div>
+              <dt>{t("Investi")}</dt>
+              <dd>{fmt(investi)} FCFA</dd>
+            </div>
+            {f && (
+              <div>
+                <dt>{t("Parts, à la VL du {d}", { d: fmtDate(f.navDate, false) })}</dt>
+                <dd className={styles.approx}>≈ {parts.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</dd>
+              </div>
+            )}
+          </>
+        )}
+      </dl>
+      {/* DIRE OÙ EST L'INCERTITUDE, ET OÙ ELLE N'EST PAS. Sur un OPCVM le
+          montant est ferme et seule la quantité flotte : un client qui l'a lu
+          ici ne sera pas surpris par son avis d'opéré. */}
+      <p className={styles.ferme}>
+        {titre
+          ? t("C'est ce plafond que vous signez, et rien au-delà. Si le prix servi est meilleur, vous payez moins ; s'il dépasse, l'ordre n'est pas exécuté pour vous. Vous pouvez aussi n'être servi qu'en partie : vous ne payez alors que ce qui vous revient.")
+          : rachat
+            ? t("Le nombre de parts est ferme. Le montant sera celui de la VL de rachat retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })
+            : t("Le montant est ferme. Le nombre de parts sera celui de la VL retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })}
+      </p>
+      <p className={styles.fin}>
+        {f ? t("Dépositaire {d} · parts inscrites à votre nom au registre du fonds", { d: f.depositary }) : ""}
+        {f?.settlementDays ? ` · ${t("règlement J+{n}", { n: String(f.settlementDays) })}` : ""}
+      </p>
+      {/* CE QUI RASSURE RESTE, SANS LE BLOC « ENSUITE » (16 novembre 2026) : la provision qui couvre, et ce qu'on ne paie jamais au-delà du plafond. */}
+      {couvert ? (
+        <p className={styles.fin}>{t("Cette somme est mise de côté sur votre solde : elle n'en sort qu'au règlement de l'opération. Ce qui n'est pas consommé y revient.")}</p>
+      ) : couvrirait ? (
+        <p className={styles.fin}>{t("Votre solde disponible couvre cet ordre : à la signature, la somme sera mise de côté et vous n'aurez rien à virer.")}</p>
+      ) : titre ? (
+        <p className={styles.fin}>{t("Vous ne payez jamais plus que le plafond. Servi en partie, vous ne payez que votre part ; non servi, tout vous revient, et le solde part sous 72 heures ouvrables si vous le demandez.")}</p>
+      ) : null}
+      <p className={styles.lire}>
+        <Link href={`/moi/ordres/${intent.id}/lire`}>{intent.signedAt ? t("Lire l'ordre signé") : t("Lire l'ordre complet")}</Link>
+      </p>
+    </section>
+  );
+  const arbitrageNode = arb ? (
+    <section className={styles.arbitrage}>
+      <div className={styles.arbH}>
+        <span className={styles.arbPastille} data-etat={arb.etat}>{t(arb.mot)}</span>
+        {t("Arbitrage vers {l}", { l: arrivee?.title ?? t("une ligne retirée") })}
+      </div>
+      <p className={styles.arbDit}>{t(arb.phrase)}</p>
+      <dl className={styles.lignes}>
+        {intent.switchFloor != null && (
+          <div>
+            <dt>{t("Plancher signé")}</dt>
+            <dd>{fmt(intent.switchFloor)} FCFA</dd>
+          </div>
+        )}
+        {intent.switchBy && (
+          <div>
+            <dt>{t("Date limite")}</dt>
+            <dd>{fmtDate(intent.switchBy, false)}</dd>
+          </div>
+        )}
+      </dl>
+    </section>
+  ) : null;
 
   return (
     <Glissement>
@@ -123,105 +251,7 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
           phrase={`${t(offer.title)}${f ? ` · ${f.manager}` : ""}`}
         />
 
-        <section className={styles.recap}>
-          <div className={styles.recapH}>{t("Ce que vous signez")}</div>
-          <dl className={styles.lignes}>
-            {titre ? (
-              /* UN TITRE SE LIT À L'ENVERS D'UNE PART : la quantité est ferme,
-                 c'est la dépense qui flotte. Le plafond vient donc en dernier
-                 et en gras, parce que c'est LUI qu'on signe ; le reste l'explique. */
-              <>
-                <div>
-                  <dt>{t("Quantité demandée")}</dt>
-                  <dd>{positionFor(intent, offer).label}</dd>
-                </div>
-                {intent.limitPrice != null && (
-                  <div>
-                    <dt>{t("Au prix maximum de")}</dt>
-                    <dd>{intent.limitPrice.toLocaleString("fr-FR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} %</dd>
-                  </div>
-                )}
-                {fraisDuTitre > 0 && (
-                  <div>
-                    <dt>{t("dont frais")}</dt>
-                    <dd className={styles.second}>{fmt(Math.round(fraisDuTitre))} FCFA</dd>
-                  </div>
-                )}
-                <div>
-                  <dt>{t("Vous engagez au plus")}</dt>
-                  <dd>{fmt(plafondEnVigueur(intent, offer))} FCFA</dd>
-                </div>
-              </>
-            ) : rachat ? (
-              <>
-                <div>
-                  <dt>{t("Parts rachetées")}</dt>
-                  <dd>{montant.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</dd>
-                </div>
-                {fraisDuRachat > 0 && (
-                  <div>
-                    <dt>{t("dont frais")}</dt>
-                    <dd className={styles.second}>≈ {fmt(fraisDuRachat)} FCFA</dd>
-                  </div>
-                )}
-                {f && (
-                  <div>
-                    <dt>{t("Produit, à la VL du {d}", { d: fmtDate(f.navDate, false) })}</dt>
-                    <dd className={styles.approx}>≈ {fmt(produit)} FCFA</dd>
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div>
-                  <dt>{t("Montant versé")}</dt>
-                  <dd>{fmt(montant)} FCFA</dd>
-                </div>
-                {droits > 0 && (
-                  <div>
-                    <dt>{t("dont frais")}</dt>
-                    <dd className={styles.second}>{fmt(droits)} FCFA</dd>
-                  </div>
-                )}
-                <div>
-                  <dt>{t("Investi")}</dt>
-                  <dd>{fmt(investi)} FCFA</dd>
-                </div>
-                {f && (
-                  <div>
-                    <dt>{t("Parts, à la VL du {d}", { d: fmtDate(f.navDate, false) })}</dt>
-                    <dd className={styles.approx}>≈ {parts.toLocaleString("fr-FR", { maximumFractionDigits: 3 })}</dd>
-                  </div>
-                )}
-              </>
-            )}
-          </dl>
-          {/* DIRE OÙ EST L'INCERTITUDE, ET OÙ ELLE N'EST PAS. Sur un OPCVM le
-              montant est ferme et seule la quantité flotte : un client qui l'a lu
-              ici ne sera pas surpris par son avis d'opéré. */}
-          <p className={styles.ferme}>
-            {titre
-              ? t("C'est ce plafond que vous signez, et rien au-delà. Si le prix servi est meilleur, vous payez moins ; s'il dépasse, l'ordre n'est pas exécuté pour vous. Vous pouvez aussi n'être servi qu'en partie : vous ne payez alors que ce qui vous revient.")
-              : rachat
-                ? t("Le nombre de parts est ferme. Le montant sera celui de la VL de rachat retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })
-                : t("Le montant est ferme. Le nombre de parts sera celui de la VL retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })}
-          </p>
-          <p className={styles.fin}>
-            {f ? t("Dépositaire {d} · parts inscrites à votre nom au registre du fonds", { d: f.depositary }) : ""}
-            {f?.settlementDays ? ` · ${t("règlement J+{n}", { n: String(f.settlementDays) })}` : ""}
-          </p>
-          {/* CE QUI RASSURE RESTE, SANS LE BLOC « ENSUITE » (16 novembre 2026) : la provision qui couvre, et ce qu'on ne paie jamais au-delà du plafond. */}
-          {couvert ? (
-            <p className={styles.fin}>{t("Cette somme est mise de côté sur votre solde : elle n'en sort qu'au règlement de l'opération. Ce qui n'est pas consommé y revient.")}</p>
-          ) : couvrirait ? (
-            <p className={styles.fin}>{t("Votre solde disponible couvre cet ordre : à la signature, la somme sera mise de côté et vous n'aurez rien à virer.")}</p>
-          ) : titre ? (
-            <p className={styles.fin}>{t("Vous ne payez jamais plus que le plafond. Servi en partie, vous ne payez que votre part ; non servi, tout vous revient, et le solde part sous 72 heures ouvrables si vous le demandez.")}</p>
-          ) : null}
-          <p className={styles.lire}>
-            <Link href={`/moi/ordres/${intent.id}/lire`}>{intent.signedAt ? t("Lire l'ordre signé") : t("Lire l'ordre complet")}</Link>
-          </p>
-        </section>
+        {!signable && recapNode}
 
         {/* L'ARBITRAGE PORTE SON ÉTAT EN CLAIR, ET C'EST LA MOITIÉ DU SERVICE.
 
@@ -237,36 +267,27 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
             client lit « ça n'a pas marché » et n'en reposera jamais. Les mots
             viennent du domaine, avec ceux du robot du soir, pour qu'ils ne
             divergent pas. */}
-        {arb && (
-          <section className={styles.arbitrage}>
-            <div className={styles.arbH}>
-              <span className={styles.arbPastille} data-etat={arb.etat}>{t(arb.mot)}</span>
-              {t("Arbitrage vers {l}", { l: arrivee?.title ?? t("une ligne retirée") })}
-            </div>
-            <p className={styles.arbDit}>{t(arb.phrase)}</p>
-            <dl className={styles.lignes}>
-              {intent.switchFloor != null && (
-                <div>
-                  <dt>{t("Plancher signé")}</dt>
-                  <dd>{fmt(intent.switchFloor)} FCFA</dd>
-                </div>
-              )}
-              {intent.switchBy && (
-                <div>
-                  <dt>{t("Date limite")}</dt>
-                  <dd>{fmtDate(intent.switchBy, false)}</dd>
-                </div>
-              )}
-            </dl>
-          </section>
-        )}
+        {!signable && arbitrageNode}
 
         {intent.signedAt ? (
           <div className={styles.signe}>
             {t("Ordre signé le {d} par {m}.", { d: fmtDateTime(intent.signedAt), m: t(intent.signedMethod ?? "code à usage unique") })} {t("Référence")} <b className="mono">{intent.ref}</b>
           </div>
         ) : signable ? (
-          <SignatureOrdre id={intent.id} ref_={intent.ref} canal={canal ? { to: canal.to, channel: canal.channel } : undefined} codeEnvoyeLe={intent.pendingCodeAt} ouvertDoffice={"retirer" in ((await searchParams) ?? {})} />
+          <SignatureOrdre
+            id={intent.id}
+            ref_={intent.ref}
+            canal={canal ? { to: masquerLAdresse(canal.to), channel: canal.channel } : undefined}
+            codeEnvoyeLe={intent.pendingCodeAt}
+            ouvertDoffice={"retirer" in ((await searchParams) ?? {})}
+            relire={
+              <>
+                {recapNode}
+                {arbitrageNode}
+              </>
+            }
+            resume={{ titre: `${t(INTENT_LABEL[intent.type])} · ${offer.title}`, chiffre: resumeChiffre }}
+          />
         ) : ordreSignable(intent) && !habilite ? (
           <p className={styles.hint}>
             {t("Votre ordre est enregistré. Il se signera dès que votre dossier sera approuvé et votre convention acceptée.")}{" "}
@@ -276,50 +297,7 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
           <p className={styles.hint}>{t("Cet ordre n'est plus à signer ici : le desk l'a pris en main. Vous le suivez dans vos documents.")}</p>
         )}
 
-        {intent.signedAt && reglement ? (
-          <section className={styles.recap}>
-            <div className={styles.recapH}>{t("Pour finir")}</div>
-            <p className={styles.virer}>{titre ? t("Virez au plus {m} FCFA", { m: fmt(aRegler) }) : t("Virez {m} FCFA", { m: fmt(aRegler) })}</p>
-            {virementPossible ? (
-              <dl className={prov.coord}>
-                <div>
-                  <dt>{t("Bénéficiaire")}</dt>
-                  <dd>
-                    <span>{reglement.beneficiaire}</span>
-                    <Copier valeur={reglement.beneficiaire} quoi={t("le bénéficiaire")} />
-                  </dd>
-                </div>
-                <div>
-                  <dt>{t("Banque du bénéficiaire")}</dt>
-                  <dd>
-                    <span>{reglement.banque}</span>
-                    <Copier valeur={reglement.banque} quoi={t("la banque")} />
-                  </dd>
-                </div>
-                <div>
-                  <dt>{t("RIB / IBAN")}</dt>
-                  <dd>
-                    <span className="mono">{reglement.rib}</span>
-                    <Copier valeur={reglement.rib} quoi={t("le RIB")} />
-                  </dd>
-                </div>
-                <div className={prov.ligneMotif}>
-                  <dt>
-                    {t("Motif du virement")} <span>{t("obligatoire")}</span>
-                  </dt>
-                  <dd>
-                    <b className="mono">{intent.ref}</b>
-                    <Copier valeur={intent.ref} quoi={t("le motif du virement")} />
-                  </dd>
-                </div>
-              </dl>
-            ) : (
-              <p className={styles.hint}>{t("Les coordonnées ne sont pas encore publiées : demandez-les à votre conseiller. Le motif de votre virement sera la référence {r}.", { r: intent.ref })}</p>
-            )}
-          </section>
-        ) : intent.signedAt && rachat ? (
-          <p className={styles.fin}>{t("Rien à virer : le produit sera viré sur votre compte de règlement après l'exécution.")}</p>
-        ) : null}
+        {intent.signedAt && <PourFinir intent={intent} aRegler={aRegler} titre={titre} rachat={rachat} couvert={couvert} />}
 
       </div>
     </Glissement>
