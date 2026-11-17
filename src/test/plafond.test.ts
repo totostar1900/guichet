@@ -91,16 +91,13 @@ describe("ce que la borne interdit", () => {
   });
 });
 
-describe("la signature s'ouvre aux titres, mais pas à vide", () => {
-  it("un ordre sur titre se signe dès qu'il porte sa borne", () => {
-    expect(ordreSignable(ordre({ maxAmount: 9_500_000 }))).toBe(true);
-    expect(ordreSignable(ordre({ type: "achat", maxAmount: 9_500_000 }))).toBe(true);
-  });
-
-  it("sans borne, il ne se signe pas : le desk le mènera par son canal", () => {
-    /* C'est la différence entre « pas encore construit » et « cassé ». Un
-       écran qui offrirait une signature sur un montant inconnu demanderait un
-       engagement que personne ne peut tenir. */
+describe("un titre ne se signe pas dans l'app, plafond ou non", () => {
+  /* Décidé le 17 novembre 2026 (planche « Feuilles et ordres », 3) : seuls les fonds sont
+     confirmés par la signature. Un ordre ferme ou d'achat sur un titre va au desk, même avec
+     son plafond « au plus » : le plafond reste porté pour que le desk exécute dans la borne. */
+  it("l'ordre sur titre va au desk, avec ou sans borne", () => {
+    expect(ordreSignable(ordre({ maxAmount: 9_500_000 }))).toBe(false);
+    expect(ordreSignable(ordre({ type: "achat", maxAmount: 9_500_000 }))).toBe(false);
     expect(ordreSignable(ordre())).toBe(false);
     expect(ordreSignable(ordre({ maxAmount: 0 }))).toBe(false);
   });

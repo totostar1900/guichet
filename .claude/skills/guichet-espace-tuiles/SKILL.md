@@ -372,3 +372,7 @@ Le Marché des valeurs du Trésor (`/desk/beac`) était la seule page du desk o�
 - **Des cases cochées de même nom partent en plusieurs `pays=`** : lire tous les paramètres, pas le premier (`un(p, "pays")` ne gardait qu'un Trésor).
 - **Tous les graphes d'une même grandeur partagent une échelle** (0 à un plafond rond, même pas) : la courbe de rendement, le rendement à une durée et les graphes des fiches se lisent l'un contre l'autre. Un graphe à demi-largeur passe `largeur` à `Trace` (le dessin fait 1 000 unités : rendu à 500 px, ses étiquettes seraient réduites de moitié).
 - **Une fiche à tableau et graphe les met côte à côte** (grille à deux colonnes, une pile sous 760 px), une fiche par rangée quand le rail rétrécit la place.
+
+## Leçon du 17 novembre 2026 : une fenêtre a son fond (`--feuille`), et il se mesure contre la page VOILÉE
+
+`Sheet` et `LineMenu` lisaient `--surface`, le fond des cartes : en sombre la feuille ressemblait à la page (rapport 1,10 contre la page voilée par le fond de la fenêtre ; 3,3 en clair et en atténué). **Une fenêtre lit `--feuille`** (calculé depuis `--surface`, donc les quatre palettes le suivent), cerné de `--feuille-trait` et d'`--feuille-ombre`. Mesure par capture : rapport feuille / page voilée, pris sur des pixels à gauche de la feuille (clair 3,80 · atténué 4,05 · sombre 1,41). Un voile plus profond seul ne règle rien en sombre : la page y est déjà presque noire. Ne pas redonner à une fenêtre le jeton des cartes.

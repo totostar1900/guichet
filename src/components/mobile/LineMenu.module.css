@@ -40,11 +40,12 @@
 .sheet {
   position: fixed;
   z-index: 61;
-  background: var(--surface);
+  background: var(--feuille);
+  border: 1px solid var(--feuille-trait);
   color: var(--ink);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--feuille-ombre);
   /* a desk: a small dialog in the middle */
   left: 50%;
   top: 50%;

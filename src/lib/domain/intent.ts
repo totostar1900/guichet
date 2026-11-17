@@ -186,15 +186,11 @@ export const STATE_ACTION_LABEL: Partial<Record<IntentState, string>> = {
 export const ordreSignable = (i: Intent): boolean =>
   !i.signedAt &&
   (i.state === "recue" || i.state === "confirmee") &&
-  (i.type === "souscription" || i.type === "rachat"
-    ? true
-    : /* LES TITRES SE SIGNENT DÈS QU'ILS PORTENT LEUR BORNE.
-         Sur une part, le montant versé est ferme. Sur un titre, c'est la
-         dépense qui flotte au prix servi, et une signature sur un montant
-         inconnu n'en est pas une : il y faut le plafond « au plus », figé à
-         la déclaration (domain/plafond). Sans lui, l'ordre reste au desk,
-         qui le mènera par son canal plutôt que de laisser signer à vide. */
-      (i.type === "ferme" || i.type === "achat") && typeof i.maxAmount === "number" && i.maxAmount > 0);
+  /* LES FONDS SEULS SE SIGNENT DANS L'APPLICATION (17 novembre 2026, planche « Feuilles et ordres », 3).
+     Sur une part, le montant versé est ferme et la signature confirme l'ordre. Un ordre ferme ou d'achat
+     sur un titre va au desk, qui le mène par son canal : il n'est pas géré automatiquement, même quand il
+     porte un plafond « au plus » (le plafond reste porté pour le desk). La vente et la cession y sont déjà. */
+  (i.type === "souscription" || i.type === "rachat");
 
 /**
  * CE QUE LA BANDE COMPTE SOUS « VOTRE SIGNATURE », ET POURQUOI C'EST LA MÊME

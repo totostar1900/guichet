@@ -224,7 +224,8 @@ describe("une intention en cours", () => {
   /* LA PISTE montrait cinq segments anonymes, et sa légende était écrite une
      fois en tête de section, à quatre cents pixels de la carte la plus basse. */
   it("nomme les cinq arrêts sous leurs segments", () => {
-    expect(code(ORDRES), "les arrêts n'ont plus de nom : la piste redevient cinq barres muettes").toContain("ARRET_NOM");
+    expect(code("src/app/moi/ordres/piste.ts"), "les arrêts n'ont plus de nom : la piste redevient cinq barres muettes").toMatch(/arrets: STOPS\.map\(\(st\) => ARRET_NOM\[st\]\)/);
+    expect(code(ORDRES), "la page ne lit plus la piste de piste.ts").toContain("pisteDe(i).arrets");
     const carte = code(CARTE);
     expect(carte, "la piste ne rend plus le nom de ses arrêts").toMatch(/arrets\.map\(\(nom, n\)/);
     expect(carte, "l'arrêt où l'on est ne se distingue plus des autres").toContain("styles.ici");

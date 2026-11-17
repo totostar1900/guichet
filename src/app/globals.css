@@ -1780,3 +1780,25 @@ details[open]::details-content {
     transition: none;
   }
 }
+
+/* LE FOND DES FENÊTRES GLISSANTES (17 novembre 2026, planche « Feuilles et ordres », 1A). La feuille lisait `--surface`, le jeton des cartes de la page : en sombre elle ne se détachait presque pas de la page voilée (rapport 1,10 mesuré). `--feuille` est lu par `Sheet` et `LineMenu`, et par eux seuls. Il se calcule depuis `--surface` : les quatre palettes le suivent. Clair : le blanc de la carte, cerné d'un pixel et d'une ombre plus profonde (3,80) ; atténué : un cran plus clair (4,12) ; sombre : un cran plus clair, bleuté (≈ 1,4). */
+:root {
+  --feuille: var(--surface);
+  --feuille-trait: var(--line-2);
+  --feuille-ombre: 0 -18px 44px rgba(5, 15, 35, 0.45);
+}
+:root[data-theme="dim"] {
+  --feuille: color-mix(in srgb, var(--surface) 50%, white);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dim"]) {
+    --feuille: color-mix(in srgb, var(--surface) 92%, var(--ink));
+    --feuille-trait: color-mix(in srgb, var(--surface) 80%, var(--ink));
+    --feuille-ombre: 0 -18px 44px rgba(0, 0, 0, 0.6);
+  }
+}
+:root[data-theme="dark"] {
+  --feuille: color-mix(in srgb, var(--surface) 92%, var(--ink));
+  --feuille-trait: color-mix(in srgb, var(--surface) 80%, var(--ink));
+  --feuille-ombre: 0 -18px 44px rgba(0, 0, 0, 0.6);
+}

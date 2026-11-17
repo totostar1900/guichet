@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
+import { etatDe, pisteDe } from "./piste";
 import { INTENT_LABEL, INTENT_STATE_LABEL, ordreSignable, retirableParLeClient } from "@/lib/domain/intent";
 import { fmt, fmtDate, fmtPct, fmtPrice } from "@/lib/format";
 import type { Intent, Offer } from "@/lib/domain/types";
@@ -53,10 +54,6 @@ export async function generateMetadata() {
    ILS SE NOMMENT SOUS LES SEGMENTS depuis le 1er novembre 2026. La piste
    montrait cinq barres anonymes et la légende était écrite une fois, en tête
    de section, à quatre cents pixels de la carte la plus basse. */
-const STOPS: Intent["state"][] = ["recue", "confirmee", "transmise", "servie", "reglee"];
-const ARRET_NOM: Record<string, string> = { recue: "reçue", confirmee: "confirmée", transmise: "transmise", servie: "servie", reglee: "réglée" };
-const stopIndex = (st: Intent["state"]) => (st === "non_servie" ? 3 : st === "annulee" ? -1 : st === "contre_proposee" ? 0 : STOPS.indexOf(st));
-
 const EN_COURS: Intent["state"][] = ["recue", "contre_proposee", "confirmee", "transmise"];
 
 /**
@@ -199,7 +196,7 @@ export default async function OrdresPage() {
           key={i.id}
           id={i.id}
           etat={i.state}
-          etatLabel={t(INTENT_STATE_LABEL[i.state])}
+          etatLabel={t(etatDe(i))}
           titre={o ? t(o.title) : i.offerId}
           ligneHref={`/offres/${i.offerId}`}
           /* LA DATE SANS SON ARTICLE : « Prise ferme · 1 500 000 FCFA · 20 oct. ».
@@ -208,8 +205,8 @@ export default async function OrdresPage() {
              parce qu'une clef trop courte se retrouve dans dix contextes et
              ne se traduit juste dans aucun. Le dépli, lui, dit « Passé le ». */
           resume={`${t(INTENT_LABEL[i.type])}${i.amount ? ` · ${montant(i, o?.kind)}` : ""} · ${fmtDate(i.createdAt, false)}`}
-          etape={stopIndex(i.state)}
-          arrets={STOPS.map((st) => t(ARRET_NOM[st]))}
+          etape={pisteDe(i).etape}
+          arrets={pisteDe(i).arrets.map((nom) => t(nom))}
           suite={t(suiteDe(i) ?? (o?.kind === "FONDS" ? NEXT_FUND : NEXT)[i.state])}
           geste={gesteDe(i)}
           counter={counter}

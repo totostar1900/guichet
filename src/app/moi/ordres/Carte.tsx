@@ -195,14 +195,14 @@ export function CarteOrdre({
       )}
 
       {/* LA PISTE, AVEC SES ARRÊTS NOMMÉS. */}
-      <ol className={styles.piste} aria-label={t("Étape {n} sur {m}", { n: etape + 1, m: arrets.length })}>
+      {arrets.length > 0 && <ol className={styles.piste} aria-label={t("Étape {n} sur {m}", { n: etape + 1, m: arrets.length })}>
         {arrets.map((nom, n) => (
           <li key={nom} className={n < etape ? styles.passe : n === etape ? styles.ici : undefined} aria-current={n === etape ? "step" : undefined}>
             <i />
             <span>{nom}</span>
           </li>
         ))}
-      </ol>
+      </ol>}
 
       {/* LA CONTRE-PROPOSITION PREND TOUTE LA PLACE quand il y en a une : c'est
           elle, le geste, et elle porte ses deux boutons. */}
