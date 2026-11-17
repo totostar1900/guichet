@@ -83,7 +83,7 @@ export const TECHNIQUE: DocPage = {
       id: "taches",
       title: l("Les tâches planifiées", "Scheduled tasks"),
       blocks: [
-        { type: "lead", text: l("17 tâches, déclenchées par Vercel (vercel.json) avec le jeton CRON_SECRET ; chacune peut aussi être lancée à la main depuis Vercel › Cron Jobs › Run ou par une requête avec le jeton.", "17 tasks, triggered by Vercel (vercel.json) with the CRON_SECRET token; each can also be run by hand from Vercel › Cron Jobs › Run or with a request carrying the token.") },
+        { type: "lead", text: l("18 tâches, déclenchées par Vercel (vercel.json) avec le jeton CRON_SECRET ; chacune peut aussi être lancée à la main depuis Vercel › Cron Jobs › Run ou par une requête avec le jeton.", "18 tasks, triggered by Vercel (vercel.json) with the CRON_SECRET token; each can also be run by hand from Vercel › Cron Jobs › Run or with a request carrying the token.") },
         {
           type: "table",
           head: [l("Adresse", "Address"), l("Quand (UTC)", "When (UTC)"), l("Fait", "Does")],
@@ -105,6 +105,7 @@ export const TECHNIQUE: DocPage = {
             [l("/api/cron/purge-gestes", "/api/cron/purge-gestes"), l("Le 2 du mois, 3 h", "2nd of the month, 3 am"), l("Les gestes de plus de treize mois deviennent des compteurs : c'est l'article 8 de la convention qui le promet.", "Moves older than thirteen months become counters: article 8 of the agreement promises it.")],
             [l("/api/cron/arbitrages", "/api/cron/arbitrages"), l("Jours de bourse, 19 h", "Trading days, 7 pm"), l("Éteint les arbitrages armés dont la date limite est passée : l'ordre est clos avec son motif, et rien n'a bougé. Après la séance, pour que la dernière chance ait eu lieu.", "Switches off armed arbitrages whose cut-off date has passed: the order is closed with its reason, and nothing has moved. After the session, so the last chance has happened.")],
             [l("/api/cron/sondage", "/api/cron/sondage"), l("6 h 40", "6:40 am"), l("Clôt les attentes du sondage dont la date est passée, puis inscrit au journal les demandes qui franchissent le seuil. Avant que le desk ouvre sa file : le consensus du matin doit porter sur ce qui tient encore.", "Closes survey expectations whose date has passed, then records in the journal the demands crossing the threshold. Before the desk opens its queue: the morning consensus must bear on what still holds.")],
+            [l("/api/chaud", "/api/chaud"), l("Toutes les 5 min, de 5 h à 21 h (UTC)", "Every 5 min, 5 am to 9 pm (UTC)"), l("Le réchauffeur : rend deux pages publiques et fait une lecture pour garder réveillées les fonctions qui servent les pages. N'écrit rien et n'est pas surveillé par la page Santé ; sans effet sur les pages derrière la connexion.", "The warm-up: renders two public pages and does one read to keep the functions that serve pages awake. Writes nothing and is not watched by the Health page; no effect on pages behind sign-in.")],
           ],
         },
       ],

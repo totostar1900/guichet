@@ -89,7 +89,8 @@ describe("l'état des robots", () => {
 describe("le tableau des cadences et vercel.json se répondent", () => {
   const programmes = (): string[] => {
     const j = JSON.parse(readFileSync(`${RACINE}/vercel.json`, "utf8")) as { crons: { path: string }[] };
-    return j.crons.map((c) => c.path.split("/").pop()!);
+    /* Le réchauffeur (/api/chaud) est programmé mais n'est pas un robot : il n'écrit aucun tour et la page Santé n'a rien à en attendre. Il se déclare ici, nommément, et son propre cliquet est plus bas. */
+    return j.crons.filter((c) => c.path.startsWith("/api/cron/")).map((c) => c.path.split("/").pop()!);
   };
 
   it("chaque robot programmé est surveillé", () => {
@@ -264,5 +265,21 @@ describe("le prochain tour", () => {
        passage, et une alerte qui crie toujours cesse d'être lue. */
     const dort = ROBOTS.filter((r) => (prochainTour(r.cron, NOW_UTC).getTime() - NOW_UTC.getTime()) / 3_600_000 > r.heures).map((r) => r.cle);
     expect(dort).toEqual([]);
+  });
+});
+
+describe("le réchauffeur n'est pas un robot, et le dit", () => {
+  const j = JSON.parse(readFileSync(`${RACINE}/vercel.json`, "utf8")) as { crons: { path: string; schedule: string }[] };
+  const route = readFileSync(`${RACINE}/src/app/api/chaud/route.ts`, "utf8");
+  it("est programmé, dans la journée du client, toutes les cinq minutes", () => {
+    expect(j.crons.find((c) => c.path === "/api/chaud")?.schedule).toBe("*/5 5-21 * * *");
+  });
+  it("ne passe pas par l'enveloppe : aucune ligne de registre à chaque passage", () => {
+    expect(route).not.toContain("routeDuRobot");
+    expect(route).not.toContain("ouvrirTour");
+  });
+  it("garde le secret comme les robots, et ne rend que des pages publiques", () => {
+    expect(route).toMatch(/process\.env\.CRON_SECRET/);
+    expect(route).toMatch(/const PAGES = \["\/", "\/a-propos"\]/);
   });
 });
