@@ -68,7 +68,6 @@ export const PAGES_FIXES: RegExp[] = [
 ];
 export const pageAnimee = (chemin: string): boolean => !PAGES_FIXES.some((r) => r.test(chemin));
 
-const animes = new WeakSet<Element>();
 const PAS_MS = 70;
 const PLAFOND_MS = 350;
 
@@ -101,12 +100,43 @@ export function cibles(page: Element, haut = typeof window === "undefined" ? 800
   return out;
 }
 
-function animer(el: HTMLElement, rang: number, force?: Genre) {
+/** Le dernier instant où une pièce a joué : une pièce qui frôle le bord de l'écran ne rejoue pas en rafale. */
+const dernier = new WeakMap<Element, number>();
+const REPOS_MS = 600;
+
+/**
+ * L'ARRIVÉE AU DÉFILEMENT (18 novembre 2026, le client : « on attend une animation à chaque défilement ») : plus marquée que celle de l'ouverture, DANS LE SENS DU GESTE (on descend, la pièce monte d'en bas ;
+ * on remonte, elle descend d'en haut), et REJOUÉE à chaque entrée dans l'écran, pas une seule fois. Un grand bloc n'a ni zoom ni flou.
+ */
+export const DEFILE = {
+  bloc: {
+    monte: (s: number) => ({ opacity: 0, transform: `translateY(${s * 44}px)` }),
+    "monte-zoom": (s: number) => ({ opacity: 0, transform: `translateY(${s * 32}px) scale(0.94)` }),
+    glisse: (s: number, i: number) => ({ opacity: 0, transform: `translate(${i % 2 ? 30 : -30}px, ${s * 22}px)` }),
+  },
+  montant: {
+    pose: (s: number) => ({ opacity: 0, transform: `translateY(${s * 24}px) scale(0.92)` }),
+    glisse: (s: number, i: number) => ({ opacity: 0, transform: `translate(${i % 2 ? 22 : -22}px, ${s * 12}px)` }),
+  },
+} as const;
+const MS_DEFILE = 560;
+
+function animer(el: HTMLElement, rang: number, force?: Genre, sens: 1 | -1 | 0 = 0) {
   const genre = force ?? (el.dataset.anim as Genre | undefined);
-  if (!genre || !(genre in RESERVES) || animes.has(el)) return;
-  animes.add(el);
+  if (!genre || !(genre in RESERVES)) return;
+  const maintenant = performance.now();
+  if (maintenant - (dernier.get(el) ?? -1e9) < REPOS_MS) return;
+  dernier.set(el, maintenant);
   const delay = Math.min(rang * PAS_MS, PLAFOND_MS);
-  const nom = tirer(genre, Math.random, genre === "bloc" && el.offsetHeight > GRAND_PX ? SANS_POUR_LES_GRANDS : []);
+  const grand = el.offsetHeight > GRAND_PX;
+  if (sens !== 0 && genre !== "courbe") {
+    const reserve = (genre === "montant" ? DEFILE.montant : DEFILE.bloc) as Record<string, (s: number, i: number) => Image>;
+    const noms = Object.keys(reserve).filter((n) => !(grand && n === "monte-zoom"));
+    const nom = noms[Math.floor(Math.random() * noms.length)];
+    el.animate([reserve[nom](sens, rang), {}], { duration: MS_DEFILE, delay, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "backwards" });
+    return;
+  }
+  const nom = tirer(genre, Math.random, genre === "bloc" && grand ? SANS_POUR_LES_GRANDS : []);
   const r = (RESERVES[genre] as Record<string, { de?: Image; ms: number; courbe?: string }>)[nom];
   if (genre === "courbe" && !r.de) {
     /* Le tracé : la longueur réelle du trait, du vide au plein ; aucun attribut n'est posé sur le dessin. */
@@ -124,33 +154,50 @@ export function Mouvement() {
   useEffect(() => {
     if (!permis()) return;
     const animee = pageAnimee(chemin);
-    /* Les pièces à animer : celles que la page a marquées, et, sur une racine, celles que « cibles » trouve. Chacune garde son genre. */
+    /* Les pièces à animer : celles que la page a marquées, et celles que « cibles » trouve. Chacune garde son genre. */
     const genres = new Map<HTMLElement, Genre | undefined>();
     const recolter = () => {
       if (animee) document.querySelectorAll<HTMLElement>("[data-anim]").forEach((el) => genres.set(el, undefined));
       const page = document.querySelector("main");
       if (animee && page) for (const el of cibles(page)) if (!genres.has(el)) genres.set(el, el.offsetHeight < RANGEE_PX ? "montant" : "bloc");
     };
+    /* Le sens du geste : on descend (1) ou on remonte (-1). */
+    let sens: 1 | -1 = 1;
+    let y = window.scrollY;
+    const surDefilement = () => {
+      const n = window.scrollY;
+      if (n !== y) {
+        sens = n > y ? 1 : -1;
+        y = n;
+      }
+    };
+    window.addEventListener("scroll", surDefilement, { passive: true });
+    /* Chaque ENTRÉE dans l'écran rejoue l'arrivée de la pièce, en descendant comme en remontant ; ce qui est déjà à l'écran à l'ouverture n'est pas rejoué par l'observateur. */
+    const visible = new Map<HTMLElement, boolean>();
     const io = new IntersectionObserver(
       (entrees) => {
         let lot = 0;
         for (const e of entrees) {
-          if (!e.isIntersecting) continue;
           const el = e.target as HTMLElement;
-          animer(el, lot++, genres.get(el));
-          io.unobserve(el);
+          const avant = visible.get(el) ?? false;
+          visible.set(el, e.isIntersecting);
+          if (e.isIntersecting && !avant) animer(el, lot++, genres.get(el), sens);
         }
       },
-      { threshold: 0.12 },
+      { threshold: 0.1, rootMargin: "0px 0px -4% 0px" },
     );
+    const ouverts = new WeakSet<HTMLElement>();
     const lancer = () => {
       recolter();
       let rang = 0;
       for (const [el, genre] of genres) {
-        if (animes.has(el)) continue;
+        if (ouverts.has(el)) continue;
+        ouverts.add(el);
         const r = el.getBoundingClientRect();
-        if (r.bottom > 0 && r.top < window.innerHeight) animer(el, rang++, genre);
-        else io.observe(el);
+        const dans = r.bottom > 0 && r.top < window.innerHeight;
+        visible.set(el, dans);
+        if (dans) animer(el, rang++, genre, 0);
+        io.observe(el);
       }
     };
     lancer();
@@ -158,6 +205,7 @@ export function Mouvement() {
     const tard = [setTimeout(lancer, 350), setTimeout(lancer, 1000)];
     return () => {
       io.disconnect();
+      window.removeEventListener("scroll", surDefilement);
       tard.forEach(clearTimeout);
     };
   }, [chemin]);

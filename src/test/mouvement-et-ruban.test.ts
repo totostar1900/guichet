@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { RACINES } from "@/lib/nav-profondeur";
 import { racineVoisine, rangDe, sensEntre } from "@/lib/nav-ruban";
 import { SIGNES_DU_PAYS, signesPossibles } from "@/lib/domain/filigrane";
-import { RESERVES, pageAnimee, tirer } from "@/components/mouvement/Mouvement";
+import { DEFILE, RESERVES, pageAnimee, tirer } from "@/components/mouvement/Mouvement";
 
 const lire = (f: string) => readFileSync(f, "utf8");
 
@@ -76,7 +76,7 @@ describe("le mouvement tiré au hasard", () => {
     const m = lire("src/components/mouvement/Mouvement.tsx");
     expect(m).toMatch(/prefers-reduced-motion: reduce/);
     expect(m).toMatch(/saveData/);
-    expect(m).toMatch(/if \(animes\.has\(el\)\) continue;/);
+    expect(m).toMatch(/if \(ouverts\.has\(el\)\) continue;/);
     expect(m, "la page ne rejoue plus à chaque ouverture : une mémoire par chemin est revenue").not.toMatch(/jouees/);
     expect(m, "une classe ou un attribut est posé sur un élément que React a rendu").not.toMatch(/classList|setAttribute|dataset\.\w+ =/);
     expect(m).toMatch(/\.animate\(/);
@@ -95,7 +95,17 @@ describe("le mouvement tiré au hasard", () => {
     expect(m, "une pile est animée d'un bloc au lieu de ses pièces").toMatch(/\(pile\|chapitres\)/);
     expect(m).toMatch(/SANS_POUR_LES_GRANDS = \["flou", "zoom"\]/);
     expect(m).toMatch(/new IntersectionObserver/);
+    expect(m, "une pièce n'est plus observée après sa première arrivée : le défilement ne rejoue plus").not.toMatch(/io\.unobserve/);
+    expect(m, "l'arrivée au défilement ne se rejoue plus à chaque entrée dans l'écran").toMatch(/if \(e\.isIntersecting && !avant\) animer\(el, lot\+\+, genres\.get\(el\), sens\);/);
     expect(tirer("bloc", () => 0, ["monte"])).toBe("fond");
+  });
+  it("l'arrivée au défilement suit le sens du geste, est plus marquée que celle de l'ouverture et ne rejoue pas en rafale", () => {
+    const m = lire("src/components/mouvement/Mouvement.tsx");
+    expect(m).toMatch(/sens = n > y \? 1 : -1;/);
+    expect(m).toMatch(/const REPOS_MS = 600;/);
+    expect(DEFILE.bloc.monte(1).transform).toBe("translateY(44px)");
+    expect(DEFILE.bloc.monte(-1).transform, "en remontant, la pièce doit venir d'en haut").toBe("translateY(-44px)");
+    expect(RESERVES.bloc.monte.de.transform, "l'ouverture doit rester plus douce que le défilement").toBe("translateY(14px)");
   });
   it("rien de contractuel ne porte data-anim : ni la signature, ni le récapitulatif, ni l'avis", () => {
     for (const f of ["src/app/moi/ordres/[id]/Signature.tsx", "src/app/moi/ordres/[id]/page.tsx", "src/app/moi/ordres/[id]/signe/page.tsx"]) expect(lire(f), f).not.toContain("data-anim");
