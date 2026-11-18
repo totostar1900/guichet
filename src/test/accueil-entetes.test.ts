@@ -42,6 +42,7 @@ describe("les en-têtes de l'Accueil", () => {
       ["src/components/accueil/BlocPlat.module.css", /\.bloc \{[^}]*gap: var\(--titre-gap\)/],
       ["src/components/accueil/BlocApprendre.module.css", /\.bloc \{[^}]*gap: var\(--titre-gap\)/],
       ["src/app/Console.module.css", /\.blocUne \{[^}]*gap: var\(--titre-gap\)/],
+      ["src/components/IndexPulse.module.css", /\.blocPlat \{[^}]*gap: var\(--titre-gap\)/],
     ];
     for (const [f, motif] of sections) expect(css(f), `${f} : le titre n'est plus à --titre-gap de sa carte`).toMatch(motif);
     expect(css("src/components/accueil/BlocPlat.module.css"), "BlocPlat : la section porte de nouveau le fond").not.toMatch(/\.bloc \{[^}]*background/);

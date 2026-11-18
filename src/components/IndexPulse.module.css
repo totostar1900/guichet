@@ -1,6 +1,12 @@
 .bloc {
   min-width: 0;
 }
+/* Avec un titre à plat (l'Accueil), le titre et la carte sont deux enfants du bloc : ils sont à --titre-gap l'un de l'autre, comme dans tous les blocs de la page. Sans cette règle ils se touchaient (mesuré le 18 novembre 2026 : 0 px, contre 12 px partout ailleurs). */
+.blocPlat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--titre-gap);
+}
 .pulse {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
