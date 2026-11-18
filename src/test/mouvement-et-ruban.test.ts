@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { RACINES } from "@/lib/nav-profondeur";
 import { racineVoisine, rangDe, sensEntre } from "@/lib/nav-ruban";
 import { SIGNES_DU_PAYS, signesPossibles } from "@/lib/domain/filigrane";
-import { RESERVES, tirer } from "@/components/mouvement/Mouvement";
+import { PAGES_FIXES, RESERVES, pageAnimee, tirer } from "@/components/mouvement/Mouvement";
 
 const lire = (f: string) => readFileSync(f, "utf8");
 
@@ -84,10 +84,13 @@ describe("le mouvement tiré au hasard", () => {
     const reserve = m.slice(debutReserve, m.indexOf("type Genre", debutReserve));
     expect(reserve, "une animation touche la mise en page").not.toMatch(/\b(width|height|margin|padding|top|left)\b/);
   });
-  it("les sept racines animent leurs pièces à chaque ouverture puis au défilement, sans flou sur un grand bloc ni pièce collante", () => {
+  it("toutes les pages animent leurs pièces à chaque ouverture puis au défilement, sans flou sur un grand bloc ni pièce collante ; celles qui engagent le client restent fixes", () => {
     const m = lire("src/components/mouvement/Mouvement.tsx");
-    expect(m).toMatch(/const racine = estRacine\(chemin\);/);
-    expect(m).toMatch(/if \(racine && page\) for \(const el of cibles\(page\)\)/);
+    expect(m).toMatch(/const animee = pageAnimee\(chemin\);/);
+    expect(m).toMatch(/if \(animee && page\) for \(const el of cibles\(page\)\)/);
+    expect(m, "le mouvement est de nouveau réservé aux racines").not.toMatch(/estRacine/);
+    for (const fixe of ["/desk/statuts", "/lire", "/offres/abc/intention", "/moi/ordres/o1", "/moi/ordres/o1/signe", "/moi/prelevements/nouveau", "/moi/prelevements/m1", "/moi/epargne/nouvelle", "/moi/provision/alimenter/virement", "/moi/documents/d1"]) expect(pageAnimee(fixe), `${fixe} bouge alors qu'elle engage le client`).toBe(false);
+    for (const libre of ["/", "/activite", "/titres", "/offres/abc", "/moi/ordres", "/moi/prelevements/historique", "/moi/documents", "/moi/documents/argent", "/moi/compte", "/aide"]) expect(pageAnimee(libre), `${libre} ne bouge pas`).toBe(true);
     expect(m, "une pièce collante ou fixe serait animée").toMatch(/pos === "fixed" \|\| pos === "sticky" \|\| pos === "absolute"/);
     expect(m, "une pile est animée d'un bloc au lieu de ses pièces").toMatch(/\(pile\|chapitres\)/);
     expect(m).toMatch(/SANS_POUR_LES_GRANDS = \["flou", "zoom"\]/);

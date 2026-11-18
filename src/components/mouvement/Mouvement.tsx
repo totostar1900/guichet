@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { estRacine } from "@/lib/nav-profondeur";
 
 /**
  * LE MOUVEMENT DES PAGES (18 novembre 2026, planche « Statuts et dynamisme », 2A + 2B) : des arrivées courtes, TIRÉES AU HASARD dans une réserve, une fois par visite d'une page.
@@ -11,9 +10,10 @@ import { estRacine } from "@/lib/nav-profondeur";
  * décalent de 70 ms (la cascade). Rien ne rejoue quand on revoit la page dans la même séance, rien ne bouge pour qui a demandé « réduire les animations » ou l'économiseur de données,
  * et rien ne touche à un chiffre contractuel : seuls les éléments marqués bougent, jamais un récapitulatif d'ordre, une signature ni un avis.
  *
- * LES SEPT RACINES (l'Accueil, l'Activité, Investir, le Marché, l'Aide…) ONT EN PLUS LEURS PIÈCES MARQUÉES PAR LA PAGE ELLE-MÊME (18 novembre 2026, le client : « des animations sur le défilement dans les 5 pages principales ainsi qu'à leur ouverture ») :
- * « cibles() » parcourt la page, descend dans tout bloc plus haut que l'écran, et retient chaque pièce (bloc, carte, rangée) qui n'est ni collante ni déjà marquée. Elles s'animent À CHAQUE OUVERTURE de la page
- * (les pièces du premier écran, en cascade), puis AU DÉFILEMENT, chacune à son entrée dans l'écran. Une rangée basse prend une arrivée douce (réserve « montant »), un grand bloc n'a jamais de flou (il coûterait cher sur un téléphone modeste).
+ * TOUTES LES PAGES LES REÇOIVENT, hors celles qui portent un engagement (18 novembre 2026, le client : « sur toutes les pages » ; d'abord sur les sept racines) : « cibles() » parcourt la page, descend dans tout bloc
+ * plus haut que l'écran et dans toute pile, et retient chaque pièce (bloc, carte, rangée) qui n'est ni collante, ni fixe, ni déjà marquée. Elles s'animent À CHAQUE OUVERTURE de la page (les pièces du
+ * premier écran, en cascade), puis AU DÉFILEMENT, chacune à son entrée dans l'écran. Une rangée basse prend une arrivée douce (réserve « montant »), un grand bloc n'a jamais de flou (il coûterait cher sur un
+ * téléphone modeste). LES PAGES QUI ENGAGENT NE BOUGENT PAS (voir « PAGES_FIXES ») : saisie et récapitulatif d'un ordre, signature, mandat, virement, lecteur de document, desk.
  *
  * LES ANIMATIONS SONT CELLES DU NAVIGATEUR (`element.animate`), jamais une classe ni un attribut posés sur un élément que React a rendu : ce serait écrire dans une page que React n'a pas
  * fini d'hydrater, et il refuse (« a tree hydrated but some attributes… didn't match »). Uniquement `transform`, `opacity`, `filter` et le tracé : aucune mise en page ne saute.
@@ -55,6 +55,19 @@ const SANS_POUR_LES_GRANDS = ["flou", "zoom"] as const;
 const GRAND_PX = 300;
 const RANGEE_PX = 140;
 
+/** Les pages où un chiffre ou un texte engage le client : rien n'y bouge, jamais. */
+export const PAGES_FIXES: RegExp[] = [
+  /^\/desk(\/|$)/,
+  /^\/lire(\/|$)/,
+  /^\/offres\/[^/]+\/intention/,
+  /^\/moi\/ordres\/[^/]+/,
+  /^\/moi\/prelevements\/(?!historique)[^/]+/,
+  /^\/moi\/epargne\/nouvelle/,
+  /^\/moi\/provision\/alimenter/,
+  /^\/moi\/documents\/(?!argent|signes|demarches|operations)[^/]+/,
+];
+export const pageAnimee = (chemin: string): boolean => !PAGES_FIXES.some((r) => r.test(chemin));
+
 const animes = new WeakSet<Element>();
 const PAS_MS = 70;
 const PLAFOND_MS = 350;
@@ -76,7 +89,11 @@ export function cibles(page: Element, haut = typeof window === "undefined" ? 800
       const pos = getComputedStyle(x).position;
       if (pos === "fixed" || pos === "sticky" || pos === "absolute") continue;
       /* On descend dans un bloc plus haut que l'écran, et dans une pile ou un groupe de chapitres : une pile est une page, pas une pièce. */
-      if (x.children.length > 1 && prof < 4 && (x.offsetHeight > haut * 0.9 || /(^|\s)(pile|chapitres)(\s|$)/.test(x.className))) marche(x, prof + 1);
+      const enfants = x.children.length;
+      /* Un simple emballage (un seul enfant) n'est pas une pièce : on le traverse. Le premier niveau est la page elle-même. */
+      const emballage = enfants === 1 || (prof === 0 && enfants > 0);
+      const groupe = /(^|\s)(pile|chapitres)(\s|$)/.test(x.className);
+      if (prof < 8 && (emballage || (enfants > 1 && (groupe || (prof < 6 && x.offsetHeight > haut * 0.9))))) marche(x, prof + 1);
       else if (!marque(x)) out.push(x);
     }
   };
@@ -106,13 +123,13 @@ export function Mouvement() {
   const chemin = usePathname();
   useEffect(() => {
     if (!permis()) return;
-    const racine = estRacine(chemin);
+    const animee = pageAnimee(chemin);
     /* Les pièces à animer : celles que la page a marquées, et, sur une racine, celles que « cibles » trouve. Chacune garde son genre. */
     const genres = new Map<HTMLElement, Genre | undefined>();
     const recolter = () => {
-      document.querySelectorAll<HTMLElement>("[data-anim]").forEach((el) => genres.set(el, undefined));
+      if (animee) document.querySelectorAll<HTMLElement>("[data-anim]").forEach((el) => genres.set(el, undefined));
       const page = document.querySelector("main");
-      if (racine && page) for (const el of cibles(page)) if (!genres.has(el)) genres.set(el, el.offsetHeight < RANGEE_PX ? "montant" : "bloc");
+      if (animee && page) for (const el of cibles(page)) if (!genres.has(el)) genres.set(el, el.offsetHeight < RANGEE_PX ? "montant" : "bloc");
     };
     const io = new IntersectionObserver(
       (entrees) => {
