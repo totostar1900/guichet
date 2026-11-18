@@ -1,597 +1,318 @@
-/* L'accueil public, refonte du 12 octobre 2026.
+/* L'accueil public : QUATRE ÉCRANS PLEIN ÉCRAN, FOND NUIT, LUEUR (18 novembre 2026, planche « Accueil en quatre écrans » ; le client : « un design qui glow, fonds et contenus comme Revolut »).
  *
- * Clair, aéré, et jamais une suite de blocs de même hauteur. Le rythme
- * alterne : ouverture asymétrique, bande pleine largeur, trois gestes réglés
- * par des filets, une seule surface navy pour l'accompagnement, un appel final.
+ * Le PRINCIPE repris : un fond sombre, une lueur derrière ce qui compte, des cartes de verre sans bord dur, de gros titres. Ni marque, ni texte, ni illustration d'un tiers.
+ * Tout vient des jetons de la maison : espacements (--s-*), tailles (--t-*), couleurs (--navy, --on-navy, --gold). Les lueurs sont des dégradés radiaux de ces mêmes couleurs, qui « respirent » (animation lente), et se taisent si le téléphone demande moins de mouvement.
  *
- * DEUX CLIQUETS VEILLENT, et ils ne remontent pas : les espacements sortent de
- * l'échelle (--s-*), les tailles de l'échelle typographique (--t-1 à --t-7).
- * Les filets d'un pixel se font en bordure, jamais en « gap: 1px », qui n'est
- * pas un pas de l'échelle.
- *
- * LA GOUTTIÈRE EST POSÉE UNE FOIS ET PERSONNE N'EN SORT. La version d'avant
- * laissait deux sections s'en échapper par une marge négative de 24 px alors
- * que la gouttière du téléphone en vaut 14 : elles dépassaient de 10 px de
- * chaque côté, et leur texte était rogné. Mesuré sur la page servie le
- * 12 octobre. Une section pleine largeur prend donc toute la largeur et remet
- * la gouttière À L'INTÉRIEUR.
+ * LA PAGE LAISSE LA PLACE DE LA BANDE BASSE : sous 761 px, chaque écran réserve en bas la hauteur de la bande d'entrée (PorteVitrine) plus la marge de sécurité de l'appareil.
+ * LE FOND TRAVERSE, LE CONTENU PREND LA MESURE : « .ecran » va d'un bord à l'autre, « .col » prend Texte (ce qui se lit) ou Large (ce qui se parcourt). Un cliquet garde la règle : src/test/mesures-accueil.test.ts.
  */
-
 .page {
-  /* LES DEUX MESURES DE LA PAGE, ET IL N'Y EN A PAS DE TROISIÈME.
-   *
-   * La page en déclarait SIX le 12 octobre 2026 : 22em, 36em, 38em, 38em,
-   * 42em, 60em, plus deux sections sans borne du tout. Aucune ne débordait,
-   * et c'est bien le problème : rien ne se voyait, sauf à l'œil, qui devait
-   * retrouver le bord droit à chaque section. Sur un écran de 1497 pixels le
-   * titre tenait dans 330 pendant que deux sections couraient sur 1340.
-   *
-   * TEXTE borne ce qui se LIT : un titre, un chapeau, un paragraphe.
-   * LARGE borne ce qui se PARCOURT : une grille, une liste, des cartes.
-   * La pleine laisse est réservée au FOND, jamais au contenu : le ruban
-   * d'instruments et la bande marine, dont la couleur va d'un bord à l'autre
-   * et dont le contenu, lui, reprend l'une des deux mesures.
-   *
-   * EN REM, ET C'EST LE POINT QUI A FAILLI ÊTRE MANQUÉ. La maquette les
-   * écrivait en « em », qui se résout sur la taille de police de l'ÉLÉMENT :
-   * 34em valent 510 pixels sur un paragraphe à 1rem et 408 sur
-   * l'avertissement à 0,8rem. Une mesure en em ne peut donc PAS donner un
-   * bord commun, qui est tout ce qu'on lui demande, et le défaut serait
-   * muet : chaque section aurait l'air bornée, et les bords ne
-   * s'aligneraient pas. Le rem est ancré à la racine et vaut partout la
-   * même chose.
-   *
-   * CE QUE CELA DONNE, mesuré sur la page servie à 1497 pixels, racine à
-   * 15 px : Texte vaut 510, Large vaut 1080, la coque 1340. Un bord gauche
-   * à 79 et DEUX bords droits, 589 et 1159, pour dix-neuf éléments bornés.
-   *
-   * CE QUE CELA COÛTE, dit plutôt que caché : l'avertissement réglementaire,
-   * en petit corps, porte environ 85 signes par ligne au lieu de 68. On
-   * accepte, parce que c'est une mention qu'on parcourt et non de la prose
-   * suivie, et parce que l'alignement vaut plus ici que la longueur idéale
-   * d'une ligne de bas de page.
-   *
-   * Un cliquet garde la règle : src/test/mesures-accueil.test.ts. */
+  /* Deux mesures, pas de troisième : TEXTE borne ce qui se LIT, LARGE ce qui se PARCOURT. En rem, ancrées à la racine : em ne peut pas donner un bord commun. */
   --mesure-texte: 34rem;
   --mesure-large: 72rem;
+  --bande: 5.5rem;
 
+  /* PLEINE LARGEUR, SANS MARGE NÉGATIVE QUI DÉBORDE : la page sort de la gouttière de « main » (20 px, 14 px sur téléphone) à gauche, à droite et en haut, et « main » est peint en nuit (« globals.css ») pour que le bas ne laisse rien de clair. */
+  margin: calc(-1 * var(--s-8)) calc(-1 * var(--marge-page)) 0;
   display: flex;
   flex-direction: column;
-  gap: var(--respiration);
-  padding-bottom: var(--respiration);
-}
-/* Les sections pleine largeur sortent de la gouttière de la page, et chacune
-   remet la sienne à l'intérieur : aucune marge négative nulle part. */
-.page > section {
-  padding-left: 0;
-  padding-right: 0;
+  background: var(--navy);
+  color: var(--on-navy);
 }
 
-/* ---------- Ouverture : le dire, et rien d autre ---------- */
-.ouverture {
+@media (max-width: 640px) {
+  .page {
+    margin: calc(-1 * var(--s-7)) calc(-1 * var(--s-7)) 0;
+  }
+}
+
+/* ---------- Un écran ---------- */
+.ecran {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: var(--s-11);
-  padding-top: var(--s-11);
-  padding-bottom: var(--s-11);
-  border-bottom: 1px solid var(--gold-line);
+  /* Un écran remplit la hauteur du téléphone, moins la barre du haut. */
+  min-height: calc(100svh - 3.5rem);
+  padding: var(--s-11) var(--s-8) calc(var(--bande) + env(safe-area-inset-bottom, 0px));
+  scroll-snap-align: start;
 }
-.dire {
-  /* UNE SEULE COLONNE DEPUIS LE RETRAIT DE LA FIGURE. La base de 440 px
-     survivait à la figure qu'elle accompagnait, sous un plafond de 352 : une
-     base plus large que son plafond, deux lignes qui se contredisaient au
-     même endroit, et aucune des deux ne produisait d'erreur. */
-  flex: 1 1 auto;
-  min-width: 0;
+.col {
+  width: 100%;
   max-width: var(--mesure-texte);
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--s-9);
+  gap: var(--s-8);
+}
+.ecran h1,
+.ecran h2 {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(2rem, 8.4vw, 3.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--on-navy);
+  text-wrap: balance;
+}
+/* Le titre du hub prend la lueur : un dégradé du blanc de la nuit à l'or. */
+.hub h1 {
+  background: linear-gradient(120deg, var(--on-navy) 30%, var(--gold) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.chapeau {
+  margin: 0;
+  font-size: var(--t-5);
+  line-height: 1.6;
+  color: var(--on-navy-2);
 }
 .agrement {
   align-self: flex-start;
   font-size: var(--t-1);
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gold-ink);
-  background: var(--gold-soft);
-  border: 1px solid var(--gold-line);
-  padding: var(--s-5) var(--s-7);
-}
-.dire h1 {
-  margin: 0;
-  font-family: var(--font-titre);
-  font-weight: 400;
-  font-size: clamp(2.3rem, 5.6vw, 4.2rem);
-  line-height: 1.02;
-  letter-spacing: -0.01em;
-  color: var(--navy-text);
-  text-wrap: balance;
-}
-.chapeau {
-  margin: 0;
-  /* Pas de borne ici : le chapeau en portait une de 36em DANS une colonne
-     bornée à 22em, donc une valeur écrite que personne ne lisait. Il hérite
-     de la mesure de « .dire », qui est la bonne et la seule. */
-  font-size: var(--t-6);
-  line-height: 1.6;
-  color: var(--ink-2);
-}
-.gestesBoutons {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s-7);
-}
-
-
-/* ---------- Les trois gestes ---------- */
-.troisGestes {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-10);
-}
-.tete {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-6);
-  max-width: var(--mesure-texte);
-}
-.tete h2,
-.publieDire h2,
-.entrerTete h2,
-.accDire h2,
-.confiance h2,
-.final h2 {
-  margin: 0;
-  /* Un titre se lit : il prend la mesure Texte, comme tout ce qui se lit.
-     Ceux qui vivent deja dans un conteneur borne n y perdent rien ; ceux de
-     « Ce qui protege » et de l appel final, qui n en avaient aucun, cessent
-     de courir sur toute la coque. */
-  max-width: var(--mesure-texte);
-  font-family: var(--font-titre);
-  font-weight: 400;
-  font-size: clamp(1.6rem, 3.4vw, 2.5rem);
-  line-height: 1.12;
-  color: var(--navy-text);
-}
-.tete p {
-  margin: 0;
-  font-size: var(--t-5);
-  line-height: 1.6;
-  color: var(--ink-2);
-}
-.gestesListe {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  max-width: var(--mesure-large);
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-.geste {
-  min-width: 0;
-  padding: var(--s-11) var(--s-9);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-6);
-  border-left: 1px solid var(--line);
-  transition: background 160ms ease;
-}
-.geste:hover {
-  background: var(--surface-2);
-}
-/* Le rang : il dit un ordre qui existe, du plus tranquille au plus engagé. */
-.rang {
-  font-family: var(--font-titre);
-  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
-  line-height: 1;
-  /* L'encre dorée, pas le filet : --gold-line ne faisait que 1,43 sur la page claire (vu le 14 novembre 2026, décision : renforcer 01 à 04). */
-  color: var(--gold-ink);
-}
-.geste:first-child {
-  border-left: 0;
-  padding-left: 0;
-}
-.geste h3 {
-  margin: 0;
-  font-family: var(--font-titre);
-  font-weight: 400;
-  font-size: clamp(1.5rem, 2.6vw, 2rem);
-  line-height: 1.15;
-  color: var(--navy-text);
-}
-.geste p {
-  margin: 0;
-  font-size: var(--t-4);
-  line-height: 1.65;
-  color: var(--ink-2);
-}
-.figurine {
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--gold-line);
-  background: var(--gold-soft);
-  color: var(--gold-ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* ---------- Publications ---------- */
-.publications {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-11);
-  align-items: flex-start;
-  max-width: var(--mesure-large);
-}
-.publieDire {
-  flex: 999 1 400px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-6);
-}
-.publieDire p {
-  margin: 0;
-  max-width: var(--mesure-texte);
-  font-size: var(--t-5);
-  line-height: 1.6;
-  color: var(--ink-2);
-}
-.etiquetteOr {
-  align-self: flex-start;
-  font-size: var(--t-1);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gold-ink);
-}
-.publieListe {
-  flex: 1 1 320px;
-  min-width: 0;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border-top: 1px solid var(--line);
-}
-.publieListe li {
-  padding: var(--s-9) 0;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-}
-.publieListe span {
-  font-size: var(--t-1);
-  font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--gold-ink);
+  color: var(--gold);
+  padding: var(--s-4) var(--s-7);
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+  box-shadow: 0 0 var(--s-9) color-mix(in srgb, var(--gold) 22%, transparent);
 }
-.publieListe b {
-  font-size: var(--t-5);
-  color: var(--navy-text);
-}
-.publieListe small {
-  font-size: var(--t-3);
-  line-height: 1.55;
-  color: var(--ink-2);
-}
-
-/* ---------- Les trois temps de l'entrée ---------- */
-.entrer {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-10);
-}
-.entrerTete {
-  display: flex;
-  flex-wrap: wrap;
-  max-width: var(--mesure-texte);
-  align-items: baseline;
-  gap: var(--s-7);
-}
-.entrerTete span {
-  font-size: var(--t-3);
-  color: var(--ink-3);
-}
-.etapes {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  max-width: var(--mesure-large);
-  border-top: 1px solid var(--line);
-}
-.etape {
-  min-width: 0;
-  padding: var(--s-10) var(--s-9);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-6);
-  border-left: 1px solid var(--line);
-}
-.etape:first-child {
-  border-left: 0;
-  padding-left: 0;
-}
-.etape b {
-  font-size: var(--t-5);
-  color: var(--navy-text);
-}
-.etape p {
-  margin: 0;
-  font-size: var(--t-4);
-  line-height: 1.65;
-  color: var(--ink-2);
-}
-.portes {
-  border: 1px solid var(--line);
-  max-width: var(--mesure-large);
-  padding: var(--s-9);
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--s-9);
-}
-.portes > div:first-child {
-  flex: 999 1 260px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-}
-.portes b {
-  font-family: var(--font-titre);
-  font-weight: 400;
-  font-size: var(--t-7);
-  line-height: 1.18;
-  color: var(--navy-text);
-}
-.portes > div:first-child span {
-  font-size: var(--t-3);
-  color: var(--ink-2);
-}
-
-/* ---------- L'accompagnement : la seule surface pleine ---------- */
-.accompagnement {
-  background: var(--navy);
-  color: var(--on-navy);
-  /* LE CONTENU TOUCHAIT LE BORD. Une surface pleine demande plus de marge
-     qu une section sur fond clair, parce que le bord y est une arête et non
-     une absence : à marge égale, elle paraît serrée. */
-  padding: var(--respiration);
-}
-/* LA PLEINE LAISSE EST POUR LE FOND, JAMAIS POUR LE CONTENU.
- *
- * Les deux bandes de la page, la marine de l'accompagnement et celle de
- * l'appel final, doivent aller d'un bord à l'autre : c'est leur couleur qui
- * traverse, et une bande qui s'arrête avant le bord n'est plus une bande.
- * Mais ce qui est ÉCRIT dedans n'a aucune raison d'aller plus loin que le
- * reste de la page, et il y allait : 1340 pixels de large, contre 1152 pour
- * les grilles juste au-dessus.
- *
- * Le fond garde donc la laisse, et une enveloppe à l'intérieur reprend la
- * mesure Large. Le bord gauche ne bouge pas, le bord droit rentre dans le
- * rang. */
-.dedans {
-  max-width: var(--mesure-large);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-11);
-}
-.accDire {
-  flex: 999 1 420px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-7);
-}
-.accDire h2 {
-  color: var(--on-navy);
-}
-.accDire p {
-  margin: 0;
-  max-width: var(--mesure-texte);
-  font-size: var(--t-5);
-  line-height: 1.65;
-  color: var(--on-navy-2);
-}
-.etiquetteClaire {
+.etiquette {
   align-self: flex-start;
-  font-size: var(--t-1);
+  font-size: var(--t-2);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--gold-line);
-}
-.accListe {
-  flex: 1 1 280px;
-  min-width: 0;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.accListe li {
-  padding: var(--s-8) 0;
-  border-top: 1px solid var(--navy-2);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-}
-.accListe b {
-  font-size: var(--t-5);
-  color: var(--on-navy);
-}
-.accListe small {
-  font-size: var(--t-3);
-  line-height: 1.6;
-  color: var(--on-navy-2);
+  color: var(--gold);
 }
 
-/* ---------- Ce qui protège ---------- */
-.confiance {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-10);
+/* ---------- La lueur : un halo qui respire derrière ce qui compte ---------- */
+.halo {
+  position: absolute;
+  z-index: -1;
+  top: -18%;
+  left: 50%;
+  width: 120%;
+  aspect-ratio: 1;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--gold) 34%, transparent), color-mix(in srgb, var(--gold) 8%, transparent) 55%, transparent);
+  filter: blur(var(--s-5));
+  pointer-events: none;
+  animation: respire 7s ease-in-out infinite alternate;
 }
-.garanties {
+.investir .halo {
+  top: auto;
+  bottom: -30%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--on-navy) 26%, transparent), color-mix(in srgb, var(--on-navy) 6%, transparent) 55%, transparent);
+}
+.region {
+  background: linear-gradient(180deg, var(--navy-2), var(--navy));
+}
+.region .halo {
+  top: 20%;
+  width: 150%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--gold) 46%, transparent), color-mix(in srgb, var(--gold) 10%, transparent) 55%, transparent);
+}
+.vous .halo {
+  top: auto;
+  bottom: -40%;
+}
+@keyframes respire {
+  from {
+    opacity: 0.65;
+    scale: 0.94;
+  }
+  to {
+    opacity: 1;
+    scale: 1.06;
+  }
+}
+/* Des anneaux concentriques autour du message de la région : le développement se propage du centre. */
+.anneaux {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  width: 90vmin;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
+  box-shadow:
+    0 0 0 var(--s-11) color-mix(in srgb, var(--gold) 5%, transparent),
+    0 0 0 calc(var(--s-11) * 2) color-mix(in srgb, var(--gold) 3%, transparent);
+  pointer-events: none;
+  animation: onde 9s ease-in-out infinite alternate;
+}
+@keyframes onde {
+  from {
+    scale: 0.92;
+    opacity: 0.6;
+  }
+  to {
+    scale: 1.08;
+    opacity: 1;
+  }
+}
+
+/* ---------- Les produits : des cartes de verre ---------- */
+.produits {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  max-width: var(--mesure-large);
-  gap: var(--s-10);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-5);
 }
-.garanties > div {
-  min-width: 0;
-  border-top: 1px solid var(--gold-line);
-  padding-top: var(--s-7);
+.produit,
+.carte {
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
+  padding: var(--s-7);
+  border-radius: var(--s-8);
+  border: 1px solid color-mix(in srgb, var(--on-navy) 14%, transparent);
+  background: color-mix(in srgb, var(--on-navy) 7%, transparent);
+  box-shadow: 0 var(--s-6) var(--s-10) color-mix(in srgb, var(--navy) 60%, transparent);
+  backdrop-filter: blur(var(--s-6));
 }
-.garanties b {
+.produit h3,
+.carte h3 {
+  margin: 0;
   font-size: var(--t-5);
-  color: var(--navy-text);
+  font-weight: 700;
+  color: var(--on-navy);
 }
-.garanties p {
+.produit p,
+.carte p {
   margin: 0;
   font-size: var(--t-3);
-  line-height: 1.6;
-  color: var(--ink-2);
+  line-height: 1.45;
+  color: var(--on-navy-2);
 }
-.avertissement {
+.icone {
+  display: grid;
+  place-items: center;
+  width: var(--s-11);
+  height: var(--s-11);
+  border-radius: 50%;
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  box-shadow: 0 0 var(--s-8) color-mix(in srgb, var(--gold) 38%, transparent);
+}
+.services {
   margin: 0;
-  max-width: var(--mesure-texte);
   font-size: var(--t-3);
-  line-height: 1.6;
-  color: var(--ink-3);
+  color: var(--on-navy-2);
 }
 
-/* ---------- L'appel final ---------- */
-.final {
-  background: var(--surface-2);
-  border-top: 1px solid var(--gold-line);
-  padding: var(--respiration);
+/* ---------- Investir : deux cartes ; Vous : trois pas ---------- */
+.cartes {
+  display: grid;
+  gap: var(--s-5);
 }
-.final .dedans {
-  align-items: center;
-  gap: var(--s-10);
+.rang {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--s-10);
+  height: var(--s-10);
+  border-radius: 50%;
+  font-family: var(--font-titre);
+  font-size: var(--t-5);
+  font-weight: 600;
+  color: var(--navy);
+  background: var(--gold);
+  box-shadow: 0 0 var(--s-8) color-mix(in srgb, var(--gold) 55%, transparent);
 }
-.final .dedans > div:first-child {
-  flex: 999 1 420px;
-  min-width: 0;
+.sousTitre {
+  margin: 0;
+  font-size: var(--t-6);
+  font-weight: 700;
+  color: var(--on-navy);
+}
+.pas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: var(--s-5);
 }
-.final p {
-  margin: 0;
-  font-size: var(--t-5);
-  line-height: 1.6;
-  color: var(--ink-2);
+.pas li {
+  display: flex;
+  gap: var(--s-6);
+  align-items: flex-start;
+  padding: var(--s-6) var(--s-7);
+  border-radius: var(--s-8);
+  border: 1px solid color-mix(in srgb, var(--on-navy) 14%, transparent);
+  background: color-mix(in srgb, var(--on-navy) 7%, transparent);
 }
-
-/* ---------- Les boutons ---------- */
-.principal,
-.second,
-.orBouton {
-  display: inline-block;
+.pas b {
   font-size: var(--t-4);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-decoration: none;
-  white-space: nowrap;
-  padding: var(--s-7) var(--s-10);
-  border: 1px solid var(--navy);
-}
-.principal {
-  background: var(--navy);
   color: var(--on-navy);
 }
-.principal:hover {
-  background: var(--navy-2);
-  border-color: var(--navy-2);
+.pas p {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-3);
+  line-height: 1.5;
+  color: var(--on-navy-2);
 }
-.second {
-  background: var(--surface);
-  color: var(--navy-text);
+.confiance {
+  margin: 0;
+  font-size: var(--t-4);
+  line-height: 1.55;
+  color: var(--on-navy);
 }
-.second:hover {
-  background: var(--surface-2);
+.avertissement {
+  margin: 0;
+  font-size: var(--t-2);
+  line-height: 1.55;
+  color: var(--on-navy-2);
 }
-.orBouton {
-  /* Le couple du bouton or vient de la maison : --gold-line sur --navy
-     tombe à 2,28:1 en thème sombre, où --navy s'éclaircit. Le cliquet de
-     contraste l'a dit avant qu'un lecteur ne le subisse. */
-  background: var(--gold);
-  color: var(--navy);
-  border-color: var(--gold);
-}
-.orBouton:hover {
-  background: var(--gold-line);
-  border-color: var(--gold-line);
+.avertissement a {
+  color: var(--on-navy);
+  text-decoration: underline;
 }
 
-/* ---------- Les largeurs qui tombent ---------- */
-@media (max-width: 900px) {
-  .page {
-    gap: var(--s-11);
+/* ---------- Au large : deux colonnes, quatre produits sur une rangée ---------- */
+@media (min-width: 761px) {
+  .ecran {
+    min-height: calc(100svh - 4rem);
     padding-bottom: var(--s-11);
   }
-  .gestesListe,
-  .etapes,
-  .garanties {
-    grid-template-columns: minmax(0, 1fr);
+  .col {
+    max-width: var(--mesure-large);
   }
-  .geste,
-  .etape {
-    border-left: 0;
-    border-top: 1px solid var(--line);
-    padding: var(--s-9) 0;
+  .ecran h1,
+  .ecran h2,
+  .chapeau,
+  .confiance,
+  .avertissement {
+    max-width: var(--mesure-texte);
   }
-  .geste:first-child,
-  .etape:first-child {
-    border-top: 0;
+  .produits {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
-  .gestesListe {
-    border-bottom: 0;
+  .cartes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  /* Les surfaces pleines gardent la gouttière de la page : elles ne la
-     quittent plus par une marge négative. */
-  .accompagnement,
-  .final {
-    padding-left: var(--s-9);
-    padding-right: var(--s-9);
+  .pas {
+    flex-direction: row;
   }
-  .accDire p,
-  .chapeau {
-    font-size: var(--t-5);
-  }
-}
-@media (max-width: 560px) {
-  .principal,
-  .second,
-  .orBouton {
-    white-space: normal;
-    text-align: center;
-  }
-  .accompagnement,
-  .final {
-    padding-left: var(--s-8);
-    padding-right: var(--s-8);
+  .pas li {
+    flex: 1 1 0;
   }
 }
 
-/* ---------- Quatre gestes, une fois le compte ouvert (14 novembre 2026, planche « vitrine », 1A) ---------- */
-.quatre {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-.quatre .rang {
-  font-size: var(--t-6);
-}
-@media (max-width: 900px) {
-  .quatre {
-    grid-template-columns: minmax(0, 1fr);
+/* Moins de mouvement : les lueurs restent posées. */
+@media (prefers-reduced-motion: reduce) {
+  .halo,
+  .anneaux {
+    animation: none;
   }
 }

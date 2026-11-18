@@ -86,3 +86,69 @@
     right: var(--s-7);
   }
 }
+
+/**
+ * LA BANDE BASSE (18 novembre 2026, planche « Accueil en quatre écrans », 3A ; le client : « un design qui glow »).
+ * Deux boutons en pastille, collés en bas : « Créer mon compte » plein, lumineux ; « Se connecter » en verre. Fond nuit, sur toutes les pages publiques : lisible sur la vitrine sombre comme sur une page claire.
+ * Elle ne paraît que sur téléphone ; au large, la pastille du haut garde ses deux boutons. La marge de sécurité de l'appareil est comptée, et le pied de page réserve sa hauteur.
+ */
+.bande {
+  display: none;
+}
+@media (max-width: 760px) {
+  .auLarge {
+    display: none;
+  }
+  .bande {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: var(--s-5);
+    padding: var(--s-6) var(--s-7) calc(var(--s-6) + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--navy) 88%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--on-navy) 16%, transparent);
+    backdrop-filter: blur(var(--s-7));
+    animation: bande-monte 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s backwards;
+  }
+  .creer,
+  .entrer {
+    display: block;
+    text-align: center;
+    font-size: var(--t-4);
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    padding: var(--s-7) var(--s-5);
+    border-radius: 999px;
+  }
+  .creer {
+    color: var(--navy);
+    background: var(--gold);
+    box-shadow: 0 0 var(--s-9) color-mix(in srgb, var(--gold) 55%, transparent);
+  }
+  .entrer {
+    color: var(--on-navy);
+    border: 1px solid color-mix(in srgb, var(--on-navy) 35%, transparent);
+    background: color-mix(in srgb, var(--on-navy) 8%, transparent);
+  }
+}
+@keyframes bande-monte {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bande {
+    animation: none;
+  }
+}
+

@@ -80,34 +80,20 @@ describe("les mesures de la page d'accueil", () => {
     expect(unites).toEqual(["texte=34rem", "large=72rem"]);
   });
 
-  it("borne chaque section, et laisse la pleine laisse aux deux fonds", () => {
-    /* Le compte du jour, gravé. Il dit que la règle est APPLIQUÉE et pas
-       seulement déclarée : treize bornes posées, sept en Texte et six en
-       Large.
-         Texte · .dire, .tete, .entrerTete, le groupe des h2, .publieDire p,
-                 .accDire p, .avertissement
-         Large · .gestesListe, .publications, .etapes, .portes, .garanties,
-                 .dedans
-       Il peut bouger quand une section naît ou disparaît, et alors ce chiffre
-       se met à jour en même temps que la feuille, à la main, ce qui est le
-       but : on ne change pas le rythme de la page sans le dire. */
+  it("borne le contenu de chaque écran, et laisse la pleine laisse au fond", () => {
+    /* Le compte du jour, gravé (18 novembre 2026, les quatre écrans) : deux bornes Texte et une Large en plus du bloc « .col ». Il peut bouger quand une section naît ou disparaît, et alors ce chiffre se met à jour en même temps que la feuille, à la main, ce qui est le but. */
     const texte = fs.readFileSync(path.join(ROOT, FEUILLE), "utf8");
     const nbTexte = (texte.match(/max-width:\s*var\(--mesure-texte\)/g) ?? []).length;
     const nbLarge = (texte.match(/max-width:\s*var\(--mesure-large\)/g) ?? []).length;
-    expect({ nbTexte, nbLarge }).toEqual({ nbTexte: 7, nbLarge: 6 });
+    expect({ nbTexte, nbLarge }).toEqual({ nbTexte: 2, nbLarge: 1 });
   });
 
-  it("garde le fond des deux bandes hors de toute borne", () => {
-    /* Une bande qui s'arrête avant le bord n'est plus une bande. Le fond
-       traverse, l'enveloppe « .dedans » rentre dans le rang : si quelqu'un
-       borne « .accompagnement » ou « .final » eux-mêmes, la couleur cesse de
-       traverser et le test le dit avant le lecteur. */
+  it("garde le fond de chaque écran hors de toute borne", () => {
+    /* Un écran qui s'arrête avant le bord n'est plus un écran. Le fond traverse, « .col » rentre dans le rang. */
     const texte = fs.readFileSync(path.join(ROOT, FEUILLE), "utf8");
-    for (const bande of [".accompagnement", ".final"]) {
-      const bloc = new RegExp(`\\n\\${bande} \\{([^}]*)\\}`).exec(texte);
-      expect(bloc, `le bloc ${bande} est introuvable`).not.toBeNull();
-      expect(bloc?.[1].includes("max-width"), `${bande} porte une borne : son fond ne traverse plus`).toBe(false);
-    }
-    expect(texte.includes(".dedans {")).toBe(true);
+    const bloc = /\n\.ecran \{([^}]*)\}/.exec(texte);
+    expect(bloc, "le bloc .ecran est introuvable").not.toBeNull();
+    expect(bloc?.[1].includes("max-width"), ".ecran porte une borne : son fond ne traverse plus").toBe(false);
+    expect(texte.includes(".col {")).toBe(true);
   });
 });

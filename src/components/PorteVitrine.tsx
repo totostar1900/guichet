@@ -50,27 +50,34 @@ export function PorteVitrine({ signedIn, deskHost = false }: { signedIn: boolean
   const suite = path === "/" ? "" : `&next=${encodeURIComponent(path)}`;
   const entrer = path === "/" ? "/connexion" : `/connexion?next=${encodeURIComponent(path)}`;
   return (
-    <div className={styles.coin} role="group" aria-label={t("Ouvrir un compte ou se connecter")}>
-      <LangSwitch compact clair />
+    <>
+      <div className={styles.coin} role="group" aria-label={t("Ouvrir un compte ou se connecter")}>
+        <LangSwitch compact clair />
+        {!surLaPorte && (
+          <>
+            {/* AU LARGE, LES DEUX PORTES RESTENT DANS LA PASTILLE DU HAUT. Sous 761 px elles passent dans la bande basse (ci-dessous) et la pastille ne garde que la langue : à 390 px, « Ouvrir un compte » et « Se connecter » faisaient 255 px à eux deux et recouvraient l'enseigne. Le libellé entier reste dans « aria-label ». */}
+            <Link className={`btn primary ${styles.porte} ${styles.auLarge}`} href={`/connexion?creer=1${suite}`} aria-label={t("Ouvrir un compte")}>
+              <span className={styles.long}>{t("Ouvrir un compte")}</span>
+              <span className={styles.court}>{t("Ouvrir")}</span>
+            </Link>
+            <Link className={`btn ${styles.porte} ${styles.second} ${styles.auLarge}`} href={entrer} aria-label={t("Se connecter")}>
+              <span className={styles.long}>{t("Se connecter")}</span>
+              <span className={styles.court}>{t("Entrer")}</span>
+            </Link>
+          </>
+        )}
+      </div>
+      {/* LA BANDE BASSE (18 novembre 2026, planche « Accueil en quatre écrans », 3A) : « Créer mon compte » et « Se connecter », collés en bas au pouce, sur chaque page publique. Elle n'existe que sur téléphone ; elle remplace les boutons de la pastille du haut, qui garde la langue. Le pied de la page réserve sa hauteur (« globals.css », body:has). La transition de page dit « on avance » vers la porte. */}
       {!surLaPorte && (
-        <>
-          {/* DEUX LONGUEURS POUR LE MÊME MOT, et c'est la barre du téléphone
-              qui l'impose : à 390 px, « Ouvrir un compte » et « Se connecter »
-              font 255 px à eux deux, et la pastille recouvrait l'enseigne
-              jusqu'à la couper en « PURPOSE CAP ». Le nom de la maison n'est
-              pas une chose qu'on masque pour vendre un bouton. Le libellé
-              entier reste dans « aria-label » : ce que l'œil abrège, la voix
-              de synthèse le dit en entier. */}
-          <Link className={`btn primary ${styles.porte}`} href={`/connexion?creer=1${suite}`} aria-label={t("Ouvrir un compte")}>
-            <span className={styles.long}>{t("Ouvrir un compte")}</span>
-            <span className={styles.court}>{t("Ouvrir")}</span>
+        <nav className={styles.bande} data-bande-entree="" aria-label={t("Ouvrir un compte ou se connecter")}>
+          <Link className={styles.creer} href={`/connexion?creer=1${suite}`} transitionTypes={["nav-avant"]}>
+            {t("Créer mon compte")}
           </Link>
-          <Link className={`btn ${styles.porte} ${styles.second}`} href={entrer} aria-label={t("Se connecter")}>
-            <span className={styles.long}>{t("Se connecter")}</span>
-            <span className={styles.court}>{t("Entrer")}</span>
+          <Link className={styles.entrer} href={entrer} transitionTypes={["nav-avant"]}>
+            {t("Se connecter")}
           </Link>
-        </>
+        </nav>
       )}
-    </div>
+    </>
   );
 }

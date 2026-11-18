@@ -1882,3 +1882,24 @@ a[data-dock][data-vers] {
     transition: none;
   }
 }
+
+/* L'ACCUEIL DU VISITEUR ACCROCHE AU DÉFILEMENT, UN ÉCRAN À LA FOIS (18 novembre 2026, planche « Accueil en quatre écrans »). « proximity » : l'écran se cale quand on s'en approche, sans jamais forcer un geste franc. */
+html:has([data-vitrine]) {
+  scroll-snap-type: y proximity;
+}
+/* LA BANDE D'ENTRÉE RÉSERVE SA PLACE EN BAS DE CHAQUE PAGE PUBLIQUE : le pied réglementaire n'est jamais caché derrière elle (décision du 22 octobre : une bande en bas disputait la place au pied). */
+@media (max-width: 760px) {
+  body:has([data-bande-entree]) {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has([data-vitrine]) {
+    scroll-snap-type: none;
+  }
+}
+/* L'accueil du visiteur est peint en nuit jusque dans la gouttière et sous le dernier écran : « main » prend le fond de la page, pour qu'aucune bande claire ne dépasse. */
+main:has([data-vitrine]) {
+  background: var(--navy);
+}
+

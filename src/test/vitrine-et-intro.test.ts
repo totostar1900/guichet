@@ -8,55 +8,62 @@ const lire = (f: string) => readFileSync(f, "utf8");
  * LA VITRINE ET L'INTRO UNIQUE (14 novembre 2026, planche « vitrine et intro », options 1A et 2A).
  * Les décisions du 12 octobre tiennent : un seul bouton en tête, aucun taux, aucun rendement, aucun montant. Ce qui change est dit ici, et gardé.
  */
-describe("la vitrine : quatre gestes, un visuel du produit, la donnée par sa forme", () => {
+describe("la vitrine : quatre écrans plein écran, un message chacun (18 novembre 2026, planche « Accueil en quatre écrans »)", () => {
   const v = lire("src/app/Accueil.tsx");
+  const css = lire("src/app/Accueil.module.css");
 
-  it("garde tout ce qu'elle disait avant et ajoute, sans retirer", () => {
-    for (const titre of ["La porte d'entrée des marchés financiers d'Afrique centrale.", "Le marché de la zone, lu et commenté.", "Créer votre compte, puis l'ouvrir", "Un conseiller vous répond.", "Ce qui protège votre argent.", "Le marché de la zone, à portée de main."]) {
-      expect(v, `« ${titre} » a disparu de la vitrine`).toContain(titre);
-    }
+  it("a quatre écrans : le hub, investir, la région, vous, et un message tiré au hasard dans chacun", () => {
+    for (const k of ["hub", "investir", "region", "vous"]) expect(v, `l'écran « ${k} » a disparu`).toContain(`styles.${k}`);
+    expect((v.match(/<section className=/g) ?? []).length, "la vitrine n'a plus quatre écrans").toBe(4);
+    expect(v).toMatch(/const m = tirerLesMessages\(\);/);
+    for (const k of ["hub", "investir", "region", "vous"]) expect(v, `le message « ${k} » n'est plus tiré`).toContain(`t(m.${k})`);
+  });
+
+  it("garde l'agrément COSUMAF, le risque écrit et le lien vers les risques", () => {
     expect(v).toMatch(/Société de bourse agréée COSUMAF/);
-    expect(v).toMatch(/<BandeInstruments lignes=\{lignes\} \/>/);
-    for (const k of ["epargner", "financer", "investir"]) expect(v, `le geste « ${k} » a disparu`).toContain(`clef: "${k}"`);
+    expect(v).toMatch(/Tout placement comporte un risque de perte en capital\./);
+    expect(v).toMatch(/Les performances passées ne préjugent pas des performances futures\./);
+    expect(v).toMatch(/href="\/info\/risques"/);
   });
 
-  it("ouvre la liste des gestes par « S'informer », le plus tranquille, et la numérote 01 à 04", () => {
-    expect(v).toMatch(/clef: "informer",\s*n: "01"/);
-    expect(v).toMatch(/clef: "epargner",\s*n: "02"/);
-    expect(v).toMatch(/clef: "financer",\s*n: "03"/);
-    expect(v).toMatch(/clef: "investir",\s*n: "04"/);
+  it("nomme les produits et les services, sans un chiffre ni un taux", () => {
+    for (const p of ["Titres du Trésor", "Actions cotées", "Fonds agréés", "Adjudications"]) expect(v, `« ${p} » a quitté le hub`).toContain(p);
+    expect(v).toMatch(/l'épargne programmée, les notes de marché, un conseiller qui répond/);
+    const code = v.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(COSUMAF-SDB-01\/2026|Dix minutes|path|d="[^"]*"|viewBox="[^"]*"|width="\d+"|height="\d+"|strokeWidth="[^"]*")/g, "");
+    expect(code, "un taux ou un montant est écrit dans la vitrine").not.toMatch(/\d+\s?%|\d[  ]\d{3}\s?FCFA|FCFA/);
   });
 
-  it("garde UN SEUL bouton en tête (la décision du 12 octobre) et le visuel du produit à côté du texte", () => {
-    const debut = v.indexOf("<section className={styles.ouverture}>");
-    const tete = v.slice(debut, v.indexOf("</section>", debut));
-    expect((tete.match(/<Link\b/g) ?? []).length, "l'ouverture porte plus d'un bouton").toBe(1);
-    expect(tete).toMatch(/<VisuelProduit \/>/);
+  it("n'a plus aucun bouton dans la page : l'entrée est dans la bande basse, un seul endroit", () => {
+    const code = v.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(code, "un bouton « Créer mon compte » est revenu dans la page").not.toMatch(/Créer mon compte/);
+    expect(code, "un lien de connexion est revenu dans la page").not.toMatch(/href="\/connexion/);
+    const porte = lire("src/components/PorteVitrine.tsx");
+    expect(porte).toMatch(/data-bande-entree=""/);
+    expect(porte).toMatch(/t\("Créer mon compte"\)/);
+    expect(porte).toMatch(/t\("Se connecter"\)/);
+    expect(porte, "la langue a quitté le coin haut-droit").toMatch(/<LangSwitch compact clair \/>/);
+    expect(lire("src/app/globals.css")).toMatch(/body:has\(\[data-bande-entree\]\) \{\s*padding-bottom:/);
   });
 
-  it("dit les quatre gestes d'usage, avec les phrases qui protègent le client", () => {
-    for (const phrase of ["C'est une intention, que le desk reçoit", "Rien n'est débité sans votre accord", "la décision reste la vôtre"]) {
-      expect(v, `la phrase « ${phrase} » a quitté la vitrine`).toContain(phrase);
-    }
-    expect(v).toMatch(/Une fois votre compte ouvert, quatre gestes\./);
+  it("chaque pièce arrive à son tour (le moteur de mouvement de la maison) et la page accroche au défilement", () => {
+    expect((v.match(/data-anim=""/g) ?? []).length, "les pièces de la vitrine ne sont plus marquées pour le mouvement").toBeGreaterThanOrEqual(14);
+    expect(v).toMatch(/data-vitrine=""/);
+    expect(lire("src/app/globals.css")).toMatch(/html:has\(\[data-vitrine\]\) \{\s*scroll-snap-type: y proximity;/);
+    expect(css).toMatch(/scroll-snap-align: start;/);
   });
 
-  it("ne dessine ni mot, ni chiffre, ni taux (la règle de la vitrine)", () => {
-    for (const f of ["src/components/accueil/VisuelProduit.tsx", "src/components/accueil/FormesDeLaDonnee.tsx"]) {
-      const c = lire(f).replace(/\/\*[\s\S]*?\*\//g, "");
-      expect(c, `${f} dessine un texte`).not.toMatch(/<text\b/);
-      expect(c, `${f} porte un chiffre ou un taux écrit`).not.toMatch(/\d+\s?%|\d[  ]\d{3}\s?FCFA/);
-    }
-    expect(v, "une légende de la donnée n'avertit plus que les valeurs s'ouvrent avec le compte").toMatch(/Les valeurs se lisent une fois connecté\./);
+  it("a le design qui glow : un halo qui respire, des cartes de verre, et se tait si le mouvement est réduit", () => {
+    expect(css).toMatch(/\.halo \{[^}]*animation: respire/);
+    expect(css).toMatch(/backdrop-filter: blur/);
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{\s*\.halo,\s*\.anneaux \{\s*animation: none;/);
   });
 });
 
-describe("la vitrine se lit en thème clair (vu le 14 novembre 2026 : 1,43 pour le rang, 1,37 pour le contour)", () => {
-  it("le rang de tous les gestes (01 à 04 et 1 à 4) est à l'encre dorée, et le contour du téléphone à l'encre tertiaire", () => {
+describe("la vitrine se lit : l'or sur la nuit, le blanc sur la nuit (les couples de la maison)", () => {
+  it("le rang des pas est du marine sur l'or, le titre du hub un dégradé blanc vers l'or", () => {
     const css = lire("src/app/Accueil.module.css");
-    expect(css, "le rang des gestes est revenu au filet pâle").toMatch(/\n\.rang \{[^}]*color: var\(--gold-ink\)/);
-    expect(css, "le rang des gestes est revenu au filet pâle").not.toMatch(/\.rang \{[^}]*color: var\(--gold-line\)/);
-    expect(lire("src/components/accueil/Visuels.module.css")).toMatch(/\.coque \{[^}]*stroke: var\(--ink-3\)/);
+    expect(css).toMatch(/\.rang \{[^}]*color: var\(--navy\);[^}]*background: var\(--gold\)/);
+    expect(css).toMatch(/\.hub h1 \{[^}]*linear-gradient\(120deg, var\(--on-navy\)/);
   });
 });
 
