@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { translator } from "@/i18n/core";
+import { estPublic } from "@/lib/porte";
 
 const lire = (f: string) => readFileSync(f, "utf8");
 
@@ -8,40 +9,58 @@ const lire = (f: string) => readFileSync(f, "utf8");
  * LA VITRINE ET L'INTRO UNIQUE (14 novembre 2026, planche « vitrine et intro », options 1A et 2A).
  * Les décisions du 12 octobre tiennent : un seul bouton en tête, aucun taux, aucun rendement, aucun montant. Ce qui change est dit ici, et gardé.
  */
-describe("la vitrine : quatre écrans plein écran, un message chacun (18 novembre 2026, planche « Accueil en quatre écrans »)", () => {
+describe("la vitrine : cinq écrans plein écran, un message chacun, un seul fond bleu nuit (18 novembre 2026)", () => {
   const v = lire("src/app/Accueil.tsx");
   const css = lire("src/app/Accueil.module.css");
+  const code = v.replace(/\/\*[\s\S]*?\*\//g, "");
 
-  it("a quatre écrans : le hub, investir, la région, vous, et un message tiré au hasard dans chacun", () => {
-    for (const k of ["hub", "investir", "region", "vous"]) expect(v, `l'écran « ${k} » a disparu`).toContain(`styles.${k}`);
-    expect((v.match(/<section className=/g) ?? []).length, "la vitrine n'a plus quatre écrans").toBe(4);
+  it("a cinq écrans : le hub, la durée, investir, la région, vous, et un message tiré au hasard dans chacun", () => {
+    expect((v.match(/<section className=/g) ?? []).length, "la vitrine n'a plus cinq écrans").toBe(5);
     expect(v).toMatch(/const m = tirerLesMessages\(\);/);
-    for (const k of ["hub", "investir", "region", "vous"]) expect(v, `le message « ${k} » n'est plus tiré`).toContain(`t(m.${k})`);
+    for (const k of ["hub", "futur", "investir", "region", "vous"]) expect(v, `le message « ${k} » n'est plus tiré`).toContain(`t(m.${k})`);
   });
 
-  it("garde l'agrément COSUMAF, le risque écrit et le lien vers les risques", () => {
+  it("l'écran de la durée explique les placements sans rien promettre : ni « rendement », ni « sécurise »", () => {
+    const debut = code.indexOf("const placements");
+    const ecran = code.slice(debut, code.indexOf("const garanties", debut));
+    expect(v, "la réserve sur l'émetteur a quitté l'écran de la durée").toMatch(/tant que l'émetteur tient ses engagements/);
+    expect(v, "la réserve sur le dividende a quitté l'écran de la durée").toMatch(/Rien ne le garantit/);
+    expect(ecran.length, "l'écran de la durée est introuvable").toBeGreaterThan(100);
+    expect(ecran, "l'écran de la durée promet un rendement ou une sécurité").not.toMatch(/rendement|s[ée]curis|\bgaranti(e|s|es)?\b/i);
+  });
+
+  it("garde l'agrément COSUMAF, le risque écrit, et le sérieux de la maison avec l'accompagnement à chaque étape", () => {
     expect(v).toMatch(/Société de bourse agréée COSUMAF/);
     expect(v).toMatch(/Tout placement comporte un risque de perte en capital\./);
     expect(v).toMatch(/Les performances passées ne préjugent pas des performances futures\./);
-    expect(v).toMatch(/href="\/info\/risques"/);
+    for (const k of ["Une société agréée", "Vos titres à votre nom", "Vos espèces séparées", "Vous seul donnez les ordres", "Ouvrir votre compte", "Choisir une ligne", "Passer votre ordre", "Suivre vos placements"]) expect(v, `« ${k} » a quitté l'écran « vous »`).toContain(k);
   });
 
-  it("nomme les produits et les services, sans un chiffre ni un taux", () => {
+  it("le pied a trois vrais liens vers des pages publiques, le nom de la maison et son agrément, et ni adresse, ni téléphone, ni mention longue", () => {
+    for (const h of ["/info/eclairages", "/info/aide", "/info/risques"]) expect(code, `le lien ${h} a disparu`).toContain(`href="${h}"`);
+    expect(code).toMatch(/COMPANY\.legalName/);
+    expect(code, "l'adresse est revenue dans la page").not.toMatch(/COMPANY\.(address|phone|email)/);
+    expect(code, "la mention longue est revenue dans la page").not.toMatch(/DISCLAIMER|Communication à caractère promotionnel/);
+    expect(lire("src/app/globals.css")).toMatch(/body:has\(\[data-vitrine\]\) footer \{\s*display: none;/);
+    for (const h of ["/info/eclairages", "/info/aide", "/info/risques"]) expect(estPublic(h), `${h} n'est pas public`).toBe(true);
+  });
+
+  it("n'a plus de texte retiré à la demande du client ni de carte « où va votre argent » / « ce que vous risquez »", () => {
+    for (const phrase of ["Voici ce que vous y trouvez", "Et aussi : l'épargne programmée", "Où va votre argent", "Ce que vous risquez"]) expect(code, `« ${phrase} » est revenu`).not.toContain(phrase);
+  });
+
+  it("nomme les produits, sans un chiffre ni un taux", () => {
     for (const p of ["Titres du Trésor", "Actions cotées", "Fonds agréés", "Adjudications"]) expect(v, `« ${p} » a quitté le hub`).toContain(p);
-    expect(v).toMatch(/l'épargne programmée, les notes de marché, un conseiller qui répond/);
-    const code = v.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(COSUMAF-SDB-01\/2026|Dix minutes|path|d="[^"]*"|viewBox="[^"]*"|width="\d+"|height="\d+"|strokeWidth="[^"]*")/g, "");
-    expect(code, "un taux ou un montant est écrit dans la vitrine").not.toMatch(/\d+\s?%|\d[  ]\d{3}\s?FCFA|FCFA/);
+    const net = code.replace(/(COSUMAF-SDB-01\/2026|path|d="[^"]*"|viewBox="[^"]*"|width="\d+"|height="\d+"|strokeWidth="[^"]*")/g, "");
+    expect(net, "un taux ou un montant est écrit dans la vitrine").not.toMatch(/\d+\s?%|\d[  ]\d{3}\s?FCFA|FCFA/);
   });
 
-  it("n'a plus aucun bouton dans la page : l'entrée est dans la bande basse, un seul endroit", () => {
-    const code = v.replace(/\/\*[\s\S]*?\*\//g, "");
+  it("n'a plus aucun bouton d'entrée dans la page : l'entrée est dans la bande basse, un seul endroit", () => {
     expect(code, "un bouton « Créer mon compte » est revenu dans la page").not.toMatch(/Créer mon compte/);
     expect(code, "un lien de connexion est revenu dans la page").not.toMatch(/href="\/connexion/);
     const porte = lire("src/components/PorteVitrine.tsx");
     expect(porte).toMatch(/data-bande-entree=""/);
-    expect(porte).toMatch(/t\("Créer mon compte"\)/);
-    expect(porte).toMatch(/t\("Se connecter"\)/);
-    expect(porte, "la langue a quitté le coin haut-droit").toMatch(/<LangSwitch compact clair \/>/);
+    expect(porte).toMatch(/<LangSwitch compact clair \/>/);
     expect(lire("src/app/globals.css")).toMatch(/body:has\(\[data-bande-entree\]\) \{\s*padding-bottom:/);
   });
 
@@ -52,18 +71,21 @@ describe("la vitrine : quatre écrans plein écran, un message chacun (18 novemb
     expect(css).toMatch(/scroll-snap-align: start;/);
   });
 
-  it("a le design qui glow : un halo qui respire, des cartes de verre, et se tait si le mouvement est réduit", () => {
-    expect(css).toMatch(/\.halo \{[^}]*animation: respire/);
-    expect(css).toMatch(/backdrop-filter: blur/);
-    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{\s*\.halo,\s*\.anneaux \{\s*animation: none;/);
+  it("n'a AUCUNE LUEUR et un seul fond : le bleu nuit, d'un bord à l'autre, pied compris", () => {
+    for (const mot of [/\.halo/, /\.anneaux/, /@keyframes respire/, /@keyframes onde/, /box-shadow/, /backdrop-filter/, /linear-gradient/, /radial-gradient/, /text-shadow/, /filter:\s*blur/]) expect(css, `la feuille de la vitrine garde ${mot}`).not.toMatch(mot);
+    expect(code, "un halo est revenu dans la page").not.toMatch(/halo|anneaux/);
+    expect(css).toMatch(/\.page \{[^}]*background: var\(--navy\)/);
+    const ecran = /\n\.ecran \{([^}]*)\}/.exec(css);
+    expect(ecran?.[1], "un écran pose son propre fond : le fond n'est plus le même tout le long").not.toMatch(/background/);
+    const g = lire("src/app/globals.css");
+    expect(g).toMatch(/main:has\(\[data-vitrine\]\),\s*body:has\(\[data-vitrine\]\),\s*html:has\(\[data-vitrine\]\) \{\s*background: var\(--navy\);/);
+    expect(lire("src/components/PorteVitrine.module.css"), "la bande d'entrée a gardé sa lueur").not.toMatch(/box-shadow: 0 0 var\(--s-9\)/);
   });
 });
 
-describe("la vitrine se lit : l'or sur la nuit, le blanc sur la nuit (les couples de la maison)", () => {
-  it("le rang des pas est du marine sur l'or, le titre du hub un dégradé blanc vers l'or", () => {
-    const css = lire("src/app/Accueil.module.css");
-    expect(css).toMatch(/\.rang \{[^}]*color: var\(--navy\);[^}]*background: var\(--gold\)/);
-    expect(css).toMatch(/\.hub h1 \{[^}]*linear-gradient\(120deg, var\(--on-navy\)/);
+describe("la vitrine se lit : le marine sur l'or, le blanc sur la nuit (les couples de la maison)", () => {
+  it("le rang des pas est du marine sur l'or", () => {
+    expect(lire("src/app/Accueil.module.css")).toMatch(/\.rang \{[^}]*color: var\(--navy\);[^}]*background: var\(--gold\)/);
   });
 });
 

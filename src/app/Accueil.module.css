@@ -1,7 +1,7 @@
-/* L'accueil public : QUATRE ÉCRANS PLEIN ÉCRAN, FOND NUIT, LUEUR (18 novembre 2026, planche « Accueil en quatre écrans » ; le client : « un design qui glow, fonds et contenus comme Revolut »).
+/* L'accueil public : CINQ ÉCRANS PLEIN ÉCRAN SUR UN SEUL FOND BLEU NUIT (18 novembre 2026, planche « Accueil en quatre écrans » ; le client : « retirer le glow », « un fond bleu nuit », « garder le même fond tout le long »).
  *
- * Le PRINCIPE repris : un fond sombre, une lueur derrière ce qui compte, des cartes de verre sans bord dur, de gros titres. Ni marque, ni texte, ni illustration d'un tiers.
- * Tout vient des jetons de la maison : espacements (--s-*), tailles (--t-*), couleurs (--navy, --on-navy, --gold). Les lueurs sont des dégradés radiaux de ces mêmes couleurs, qui « respirent » (animation lente), et se taisent si le téléphone demande moins de mouvement.
+ * AUCUNE LUEUR : ni halo, ni anneau, ni ombre dorée, ni dégradé de fond. Un seul fond, --navy, d'un bord à l'autre ; des cartes de verre sans bord dur, de gros titres. Ni marque, ni texte, ni illustration d'un tiers.
+ * Tout vient des jetons de la maison : espacements (--s-*), tailles (--t-*), couleurs (--navy, --on-navy, --gold).
  *
  * LA PAGE LAISSE LA PLACE DE LA BANDE BASSE : sous 761 px, chaque écran réserve en bas la hauteur de la bande d'entrée (PorteVitrine) plus la marge de sécurité de l'appareil.
  * LE FOND TRAVERSE, LE CONTENU PREND LA MESURE : « .ecran » va d'un bord à l'autre, « .col » prend Texte (ce qui se lit) ou Large (ce qui se parcourt). Un cliquet garde la règle : src/test/mesures-accueil.test.ts.
@@ -29,8 +29,6 @@
 /* ---------- Un écran ---------- */
 .ecran {
   position: relative;
-  isolation: isolate;
-  overflow: hidden;
   display: flex;
   align-items: center;
   /* Un écran remplit la hauteur du téléphone, moins la barre du haut. */
@@ -56,14 +54,6 @@
   color: var(--on-navy);
   text-wrap: balance;
 }
-/* Le titre du hub prend la lueur : un dégradé du blanc de la nuit à l'or. */
-.hub h1 {
-  background: linear-gradient(120deg, var(--on-navy) 30%, var(--gold) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
 .chapeau {
   margin: 0;
   font-size: var(--t-5);
@@ -81,7 +71,6 @@
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
   background: color-mix(in srgb, var(--gold) 10%, transparent);
-  box-shadow: 0 0 var(--s-9) color-mix(in srgb, var(--gold) 22%, transparent);
 }
 .etiquette {
   align-self: flex-start;
@@ -90,76 +79,6 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--gold);
-}
-
-/* ---------- La lueur : un halo qui respire derrière ce qui compte ---------- */
-.halo {
-  position: absolute;
-  z-index: -1;
-  top: -18%;
-  left: 50%;
-  width: 120%;
-  aspect-ratio: 1;
-  translate: -50% 0;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--gold) 34%, transparent), color-mix(in srgb, var(--gold) 8%, transparent) 55%, transparent);
-  filter: blur(var(--s-5));
-  pointer-events: none;
-  animation: respire 7s ease-in-out infinite alternate;
-}
-.investir .halo {
-  top: auto;
-  bottom: -30%;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--on-navy) 26%, transparent), color-mix(in srgb, var(--on-navy) 6%, transparent) 55%, transparent);
-}
-.region {
-  background: linear-gradient(180deg, var(--navy-2), var(--navy));
-}
-.region .halo {
-  top: 20%;
-  width: 150%;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--gold) 46%, transparent), color-mix(in srgb, var(--gold) 10%, transparent) 55%, transparent);
-}
-.vous .halo {
-  top: auto;
-  bottom: -40%;
-}
-@keyframes respire {
-  from {
-    opacity: 0.65;
-    scale: 0.94;
-  }
-  to {
-    opacity: 1;
-    scale: 1.06;
-  }
-}
-/* Des anneaux concentriques autour du message de la région : le développement se propage du centre. */
-.anneaux {
-  position: absolute;
-  z-index: -1;
-  top: 50%;
-  left: 50%;
-  width: 90vmin;
-  aspect-ratio: 1;
-  translate: -50% -50%;
-  border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
-  box-shadow:
-    0 0 0 var(--s-11) color-mix(in srgb, var(--gold) 5%, transparent),
-    0 0 0 calc(var(--s-11) * 2) color-mix(in srgb, var(--gold) 3%, transparent);
-  pointer-events: none;
-  animation: onde 9s ease-in-out infinite alternate;
-}
-@keyframes onde {
-  from {
-    scale: 0.92;
-    opacity: 0.6;
-  }
-  to {
-    scale: 1.08;
-    opacity: 1;
-  }
 }
 
 /* ---------- Les produits : des cartes de verre ---------- */
@@ -177,8 +96,6 @@
   border-radius: var(--s-8);
   border: 1px solid color-mix(in srgb, var(--on-navy) 14%, transparent);
   background: color-mix(in srgb, var(--on-navy) 7%, transparent);
-  box-shadow: 0 var(--s-6) var(--s-10) color-mix(in srgb, var(--navy) 60%, transparent);
-  backdrop-filter: blur(var(--s-6));
 }
 .produit h3,
 .carte h3 {
@@ -201,13 +118,7 @@
   height: var(--s-11);
   border-radius: 50%;
   color: var(--gold);
-  background: color-mix(in srgb, var(--gold) 14%, transparent);
-  box-shadow: 0 0 var(--s-8) color-mix(in srgb, var(--gold) 38%, transparent);
-}
-.services {
-  margin: 0;
-  font-size: var(--t-3);
-  color: var(--on-navy-2);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
 }
 
 /* ---------- Investir : deux cartes ; Vous : trois pas ---------- */
@@ -227,7 +138,6 @@
   font-weight: 600;
   color: var(--navy);
   background: var(--gold);
-  box-shadow: 0 0 var(--s-8) color-mix(in srgb, var(--gold) 55%, transparent);
 }
 .sousTitre {
   margin: 0;
@@ -309,10 +219,31 @@
   }
 }
 
-/* Moins de mouvement : les lueurs restent posées. */
-@media (prefers-reduced-motion: reduce) {
-  .halo,
-  .anneaux {
-    animation: none;
-  }
+/* ---------- Le pied de la page : trois vrais liens, et le nom de la maison ---------- */
+.liens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-5);
 }
+.liens a {
+  font-size: var(--t-3);
+  font-weight: 600;
+  color: var(--on-navy);
+  text-decoration: none;
+  padding: var(--s-5) var(--s-7);
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--on-navy) 30%, transparent);
+  background: color-mix(in srgb, var(--on-navy) 7%, transparent);
+}
+.liens a:hover {
+  background: color-mix(in srgb, var(--on-navy) 14%, transparent);
+}
+.maison {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--on-navy-2);
+}
+.maison b {
+  color: var(--on-navy);
+}
+

@@ -119,10 +119,19 @@ export async function passkeyRegister(s: Session, response: RegistrationResponse
   return { ok: true, device };
 }
 
-export async function passkeyAuthenticationOptions(): Promise<PublicKeyCredentialRequestOptionsJSON> {
+/**
+ * L'EMPREINTE OU LE VISAGE, DIRECTEMENT (18 novembre 2026, le client : « pourquoi la connexion via empreinte et Face ID me demande de choisir le used pass key ? Chez Revolut l'empreinte est directement sur l'écran »).
+ *
+ * SANS LISTE DE CLÉS, le téléphone ne sait pas laquelle proposer : il ouvre son sélecteur de comptes (« utiliser une clé d'accès »), puis seulement le visage. C'était le cas pour tout le monde.
+ * UN APPAREIL DÉJÀ RECONNU SAIT QUELLE CLÉ IL PORTE : la page envoie son identifiant d'appareil, le serveur retrouve la clé de cet appareil et la désigne (`allowCredentials`, transport « interne » : la clé de ce téléphone, pas une clé physique ni un autre appareil). Le téléphone passe alors directement à Face ID ou à l'empreinte.
+ * La vérification est la même : la clé répond au défi, et le serveur la retrouve par son identifiant (`verifierLaClef`). Un identifiant inconnu, ou celui d'un code à quatre chiffres, retombe sur la porte sans liste (« j'ai une clé d'accès sur cet appareil »), qui garde son sélecteur : c'est son rôle.
+ * Le visage ou l'empreinte sont EXIGÉS (« required ») : une simple présence ne suffit pas à ouvrir une session.
+ */
+export async function passkeyAuthenticationOptions(deviceId?: string): Promise<PublicKeyCredentialRequestOptionsJSON> {
   const { rpID } = await rp();
-  // No allow-list: a discoverable credential lets the phone pick the account itself.
-  const options = await generateAuthenticationOptions({ rpID, userVerification: "preferred" });
+  const connu = deviceId ? await repo().findDevice({ id: deviceId }).catch(() => null) : null;
+  const allowCredentials = connu && connu.kind === "passkey" && connu.credentialId ? [{ id: connu.credentialId, transports: ["internal" as const] }] : undefined;
+  const options = await generateAuthenticationOptions({ rpID, userVerification: "required", allowCredentials });
   await rememberChallenge(options.challenge);
   return options;
 }

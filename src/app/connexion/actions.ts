@@ -161,9 +161,10 @@ export async function logoutEverywhere(): Promise<void> {
 
 /* ---------- Appareils de confiance : clé d'accès ou code à 4 chiffres ---------- */
 
-export async function passkeyOptions() {
+export async function passkeyOptions(deviceId?: string) {
   const { passkeyAuthenticationOptions } = await import("@/lib/auth/devices");
-  return passkeyAuthenticationOptions();
+  /* Un identifiant mal formé ne désigne aucune clé : la porte sans liste s'ouvre à la place. */
+  return passkeyAuthenticationOptions(deviceId && /^[a-zA-Z0-9-]{4,60}$/.test(deviceId) ? deviceId : undefined);
 }
 
 export async function passkeyLogin(response: AuthenticationResponseJSON): Promise<{ ok: true; name: string } | { ok: false; error: string }> {

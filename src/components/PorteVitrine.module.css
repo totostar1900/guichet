@@ -88,8 +88,8 @@
 }
 
 /**
- * LA BANDE BASSE (18 novembre 2026, planche « Accueil en quatre écrans », 3A ; le client : « un design qui glow »).
- * Deux boutons en pastille, collés en bas : « Créer mon compte » plein, lumineux ; « Se connecter » en verre. Fond nuit, sur toutes les pages publiques : lisible sur la vitrine sombre comme sur une page claire.
+ * LA BANDE BASSE (18 novembre 2026, planche « Accueil en quatre écrans », 3A ; sans lueur depuis le même jour, à la demande du client).
+ * Deux boutons en pastille, collés en bas : « Créer mon compte » plein, or ; « Se connecter » en verre. Fond nuit, sur toutes les pages publiques : lisible sur la vitrine sombre comme sur une page claire.
  * Elle ne paraît que sur téléphone ; au large, la pastille du haut garde ses deux boutons. La marge de sécurité de l'appareil est comptée, et le pied de page réserve sa hauteur.
  */
 .bande {
@@ -128,7 +128,6 @@
   .creer {
     color: var(--navy);
     background: var(--gold);
-    box-shadow: 0 0 var(--s-9) color-mix(in srgb, var(--gold) 55%, transparent);
   }
   .entrer {
     color: var(--on-navy);

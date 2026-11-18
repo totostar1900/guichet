@@ -8,8 +8,8 @@ import { CATEGORIES, MESSAGES, tirerLesMessages } from "@/lib/domain/vitrine-mes
 describe("les messages de la vitrine", () => {
   const tous = CATEGORIES.flatMap((c) => MESSAGES[c].map((m) => ({ c, m })));
 
-  it("quatre catégories, trois variantes chacune, sans doublon", () => {
-    expect([...CATEGORIES]).toEqual(["hub", "investir", "region", "vous"]);
+  it("cinq catégories, trois variantes chacune, sans doublon", () => {
+    expect([...CATEGORIES]).toEqual(["hub", "futur", "investir", "region", "vous"]);
     for (const c of CATEGORIES) expect(MESSAGES[c].length, c).toBe(3);
     expect(new Set(tous.map((x) => x.m)).size).toBe(tous.length);
   });
@@ -19,6 +19,7 @@ describe("les messages de la vitrine", () => {
       expect(m, `« ${m} » (${c}) porte un chiffre`).not.toMatch(/\d/);
       expect(m, `« ${m} » (${c}) parle de taux, de rendement ou de gain`).not.toMatch(/\b(taux|rendement|rendements|gagn\w*|gain|gains|profit\w*|garanti\w*|assur\w*|sûr|sans risque)\b/i);
       expect(m, `« ${m} » (${c}) dit « toute la finance », que la maison n'offre pas`).not.toMatch(/toute la finance/i);
+      expect(m, `« ${m} » (${c}) dit « sécuris… » : un placement ne sécurise rien`).not.toMatch(/s[ée]curis/i);
     }
   });
 

@@ -75,7 +75,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <Glissement>
       <div className={styles.wrap}>
-        <div className={styles.card}>
+        <div className={`${styles.card} ${mode === "supabase" ? "" : styles.large}`.trim()}>
           <div className="eyebrow">{COMPANY.name}</div>
           <h1 className="display">{ouvrir ? t("Ouvrir votre compte-titres") : creerUnCompte ? t("Créer votre compte") : t("Se connecter")}</h1>
           {ouvrir && <p className={styles.lead}>{t("Première étape : recevez un code pour prouver votre adresse. Votre dossier s'ouvre juste après, et vous le remplissez à votre rythme.")}</p>}

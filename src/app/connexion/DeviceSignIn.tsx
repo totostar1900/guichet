@@ -45,7 +45,8 @@ export function DeviceSignIn({ next }: { next: string }) {
     start(async () => {
       setError(null);
       try {
-        const options = await passkeyOptions();
+        /* Un appareil reconnu désigne sa propre clé : le téléphone passe directement à Face ID ou à l'empreinte, sans sélecteur de comptes. */
+        const options = await passkeyOptions(device?.kind === "passkey" ? device.id : undefined);
         const response = await startAuthentication({ optionsJSON: options });
         const r = await passkeyLogin(response);
         if (!r.ok) {
@@ -98,15 +99,25 @@ export function DeviceSignIn({ next }: { next: string }) {
     return null;
   }
 
+  /* PAS DE « BONJOUR » AVEC LE NOM (18 novembre 2026, le client : « retirer le bonjour xxx sur l'écran de connexion ») : un écran qu'on ouvre devant d'autres personnes n'écrit pas son nom. La biométrie est au milieu de l'écran, un seul geste, comme sur une application de banque. */
   return (
     <div className={styles.device} aria-live="polite">
-      <div className={styles.deviceHead}>
-        <b>{t("Bonjour {name}", { name: device.who })}</b>
-        <span className="muted">{device.name}</span>
-      </div>
       {device.kind === "passkey" ? (
-        <button type="button" className="btn primary" onClick={openWithPasskey} disabled={pending || done}>
-          {t(pending ? "Vérification…" : "Ouvrir avec Face ID, empreinte ou code de l'appareil")}
+        <button type="button" className={styles.bio} onClick={openWithPasskey} disabled={pending || done} aria-label={t("Ouvrir avec Face ID, empreinte ou code de l'appareil")}>
+          <span className={styles.bioRond} data-attente={pending ? "oui" : undefined}>
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
+              <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
+              <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
+              <path d="M2 12a10 10 0 0 1 18-6" />
+              <path d="M2 16h.01" />
+              <path d="M21.8 16c.2-2 .131-5.354 0-6" />
+              <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
+              <path d="M8.65 22c.21-.66.45-1.32.57-2" />
+              <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
+            </svg>
+          </span>
+          <span className={styles.bioMot}>{t(pending ? "Vérification…" : "Ouvrir avec Face ID, empreinte ou code de l'appareil")}</span>
         </button>
       ) : (
         <label className={styles.pinField}>

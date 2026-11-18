@@ -1,20 +1,32 @@
+/* LA PAGE DE CONNEXION, REPRISE (18 novembre 2026, le client : « réorganiser la page de connexion plus élégamment »).
+ * Une colonne centrée, étroite (28rem), sans cadre à bord doré ; le nom de la maison, le titre et la phrase au centre ; la biométrie d'un appareil reconnu au milieu de l'écran ; puis Google, « ou », et le code par e-mail, en champs et boutons pleine largeur à bouts ronds.
+ * Le mode démonstration (deux formulaires côte à côte) garde sa largeur : « .large ». */
 .wrap {
   display: grid;
   place-items: start center;
-  padding-top: 24px;
+  padding-top: var(--s-10);
 }
 .card {
+  width: min(28rem, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-8);
+  padding: var(--s-4) 0 var(--s-10);
+  text-align: center;
+}
+.card.large {
+  width: min(720px, 100%);
+  text-align: left;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-top: 3px solid var(--gold);
   border-radius: var(--radius);
-  padding: 24px 28px 28px;
-  width: min(720px, 100%);
+  padding: var(--s-9) var(--s-10) var(--s-10);
 }
 .card h1 {
   /* Titre de page : le jeton. Voir ETALON.md. */
   font-size: var(--t-8);
-  margin: 4px 0 8px;
+  margin: 0;
+  text-wrap: balance;
 }
 .card h2 {
   font-family: var(--font-display);
@@ -22,18 +34,19 @@
   margin-bottom: 4px;
 }
 .lead {
-  font-size: 0.88rem;
+  font-size: var(--t-4);
+  line-height: 1.55;
   color: var(--ink-2);
-  margin: 0 0 18px;
+  margin: 0;
   max-width: 62ch;
+  align-self: center;
 }
 .two {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
-.devForm,
-.otp {
+.devForm {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -41,9 +54,37 @@
   border-radius: var(--radius);
   padding: 16px;
 }
-.devForm button,
-.otp button {
+.devForm button {
   align-self: flex-start;
+}
+.otp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  text-align: left;
+}
+.otp :global(.field) {
+  gap: var(--s-3);
+  font-size: var(--t-3);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.otp :global(.field) input {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 var(--s-7);
+  border-radius: 999px;
+  font-size: var(--t-5);
+}
+.otp > button,
+.otp .row > button:first-child {
+  min-height: 3rem;
+  border-radius: 999px;
+  font-size: var(--t-4);
+  font-weight: 700;
+}
+.otp > button {
+  width: 100%;
 }
 .hint {
   font-size: 0.8rem;
@@ -69,7 +110,8 @@
 
 /* a word about an expired link, above the form */
 .notice {
-  margin: 0 0 14px;
+  margin: 0;
+  text-align: left;
   padding: 10px 12px;
   border-left: 3px solid var(--warn);
   background: var(--warn-soft);
@@ -80,40 +122,73 @@
 }
 
 .discover {
-  margin: 16px 0 0;
+  order: 4;
+  margin: 0;
   font-size: 0.84rem;
   color: var(--ink-3);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-/* a known device opens first: the phone's lock or four digits */
+/* UN APPAREIL RECONNU S'OUVRE D'UN GESTE : la biométrie au milieu de l'écran (18 novembre 2026). Un grand rond, l'icône d'empreinte, une phrase dessous. */
 .device {
   display: grid;
-  gap: 10px;
-  margin: 0 0 18px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--gold);
-  border-radius: var(--radius);
+  justify-items: center;
+  gap: var(--s-7);
+  padding: var(--s-8) 0 var(--s-4);
+}
+.bio {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-6);
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.bioRond {
+  display: grid;
+  place-items: center;
+  width: 6.5rem;
+  height: 6.5rem;
+  border-radius: 50%;
+  color: var(--gold-ink);
   background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  transition: transform 0.15s ease-out;
 }
-.deviceHead {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  align-items: baseline;
-  font-size: 0.95rem;
+.bio:active .bioRond {
+  transform: scale(0.94);
 }
-/* « muted » et « btn » viennent de la maison : écrits sans « :global », ils
-   étaient hachés par le module et ces deux règles ne touchaient rien. */
-.deviceHead :global(.muted) {
-  font-size: 0.8rem;
+.bioRond[data-attente="oui"] {
+  animation: bio-attente 1.1s ease-in-out infinite alternate;
 }
-.device > :global(.btn) {
-  justify-self: start;
+@keyframes bio-attente {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.bioMot {
+  max-width: 18rem;
+  font-size: var(--t-4);
+  font-weight: 650;
+  line-height: 1.35;
+}
+.bio:disabled {
+  cursor: default;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bioRond[data-attente="oui"] {
+    animation: none;
+  }
 }
 .pinField {
   display: grid;
@@ -136,7 +211,8 @@
 .deviceFoot {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 16px;
+  justify-content: center;
+  gap: var(--s-3) var(--s-8);
   font-size: 0.8rem;
 }
 .linkBtn {
@@ -153,15 +229,18 @@
   text-underline-offset: 3px;
 }
 .passkeyHint {
-  margin: 12px 0 0;
+  /* Sans appareil reconnu, ce lien est un recours : il passe sous le formulaire, avant « Vous découvrez Guichet ? ». */
+  order: 3;
+  margin: 0;
   display: grid;
-  gap: 6px;
+  justify-items: center;
+  gap: var(--s-3);
 }
 
 /* La porte Google : un bouton blanc bordé, la convention que tout le monde
    reconnaît, mais aux arêtes de la maison plutôt qu'aux coins ronds. */
 .google {
-  margin-top: var(--s-8);
+  margin: 0;
 }
 .google button {
   width: 100%;
@@ -169,12 +248,14 @@
   align-items: center;
   justify-content: center;
   gap: var(--s-6);
-  padding: var(--s-7) var(--s-8);
+  min-height: 3rem;
+  padding: 0 var(--s-8);
   background: var(--surface);
   color: var(--ink);
   border: 1px solid var(--line-2);
+  border-radius: 999px;
   font: inherit;
-  font-size: 0.86rem;
+  font-size: var(--t-4);
   font-weight: 650;
   cursor: pointer;
 }
@@ -189,7 +270,7 @@
   display: flex;
   align-items: center;
   gap: var(--s-7);
-  margin: var(--s-8) 0;
+  margin: 0;
   font-size: 0.7rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;

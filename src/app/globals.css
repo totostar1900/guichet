@@ -1899,7 +1899,13 @@ html:has([data-vitrine]) {
   }
 }
 /* L'accueil du visiteur est peint en nuit jusque dans la gouttière et sous le dernier écran : « main » prend le fond de la page, pour qu'aucune bande claire ne dépasse. */
-main:has([data-vitrine]) {
+main:has([data-vitrine]),
+body:has([data-vitrine]),
+html:has([data-vitrine]) {
   background: var(--navy);
+}
+/* LE PIED DU GABARIT EST MASQUÉ SUR CETTE PAGE : la page a le sien (trois vrais liens et le nom de la maison), et le même fond tout le long. L'adresse et la mention longue n'y sont plus, à la demande du client ; les mentions légales complètes restent à « /info/mentions ». */
+body:has([data-vitrine]) footer {
+  display: none;
 }
 

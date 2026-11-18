@@ -1,20 +1,22 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
+import { COMPANY } from "@/lib/config";
 import { tirerLesMessages } from "@/lib/domain/vitrine-messages";
 import styles from "./Accueil.module.css";
 
 /**
- * L'accueil d'un visiteur qui n'est pas connecté : QUATRE ÉCRANS PLEIN ÉCRAN (18 novembre 2026, planche « Accueil en quatre écrans », un mélange de 1A et de 1B).
+ * L'accueil d'un visiteur qui n'est pas connecté : CINQ ÉCRANS PLEIN ÉCRAN, UN FOND BLEU NUIT UNI (18 novembre 2026).
  *
- * Avant : neuf sections, 7 037 px de haut à 390 px, 1 033 mots, « Créer mon compte » écrit trois fois, trois listes qui disaient « comment ça marche ». Le client : « très fouillie ».
- * Maintenant : un écran, un message. Le hub (ce qu'on trouve ici, produits et services nommés), investir, la région, vous.
+ * Avant : neuf sections, 7 037 px de haut à 390 px, 1 033 mots, « Créer mon compte » écrit trois fois. Le client : « très fouillie ».
+ * Maintenant : un écran, un message. Le hub (ce qu'on trouve ici, produits nommés), la durée (comment chaque placement fonctionne), investir, la région, vous (le sérieux de la maison et l'accompagnement).
  * LES MESSAGES CHANGENT À CHAQUE VISITE : trois variantes par écran, une tirée côté serveur (`vitrine-messages.ts`).
- * LES BOUTONS D'ENTRÉE NE SONT PLUS DANS LA PAGE : la bande basse (PorteVitrine) porte « Créer mon compte » et « Se connecter », collée au pouce ; au large, la pastille du haut. Un seul endroit pour entrer.
+ * LES BOUTONS D'ENTRÉE NE SONT PAS DANS LA PAGE : la bande basse (PorteVitrine) porte « Créer mon compte » et « Se connecter » ; au large, la pastille du haut.
  *
- * LE DESIGN (18 novembre 2026, le client : « un design qui glow, fonds et contenus comme Revolut ») : fond nuit, halos dorés qui respirent, cartes en verre, gros titres. On reprend le PRINCIPE (un fond sombre, une lueur derrière ce qui compte, des cartes sans bord dur), jamais leur marque, leurs textes ni leurs illustrations.
+ * LE DESIGN, RETIRÉ DE SA LUEUR LE MÊME JOUR (le client : « retirer le glow », « un fond bleu nuit », « garder le même fond tout le long ») : un seul fond, le bleu nuit de la maison, d'un bord à l'autre de la page, pied compris ; aucun halo, aucun anneau, aucune ombre dorée.
  *
- * CE QUI NE CHANGE PAS : aucun chiffre, aucun taux, aucun rendement, aucune promesse ; « Communication à caractère promotionnel » (au pied du gabarit) et la phrase sur le risque restent visibles ; la ligne d'agrément COSUMAF ouvre la page.
- * Le mouvement vient du moteur de la maison (`Mouvement`) : chaque pièce marquée « data-anim » arrive à son tour, d'un effet tiré au hasard, à l'ouverture et à chaque entrée dans l'écran en descendant.
+ * L'ÉCRAN « DURÉE » NE PROMET RIEN. Le client voulait « les rendements qui sécurisent le futur de l'investisseur » : la règle de la vitrine (aucun taux, aucun rendement, aucune promesse) l'interdit, et un placement ne sécurise rien. L'écran dit comment fonctionnent les obligations, les actions et les fonds, avec ce que rien ne garantit (« tant que l'émetteur tient ses engagements », « rien ne le garantit »).
+ *
+ * LE PIED DE LA PAGE EST LE SIEN (le pied du gabarit est masqué sur cette page, « globals.css ») : l'adresse, la localisation et la mention longue en sont retirées à la demande du client ; le nom de la maison et son agrément y restent, la phrase sur le risque de perte en capital est écrite à l'écran « vous », et « Éclairages », « Aide et contact », « Risques et limites » sont de vrais liens vers des pages publiques. Les mentions légales complètes restent à « /info/mentions ».
  */
 export async function Accueil() {
   const t = await getT();
@@ -27,25 +29,35 @@ export async function Accueil() {
     { clef: "adjudications", d: "M5 7h18v16H5z M5 12h18 M10 4v5 M18 4v5", titre: t("Adjudications"), dit: t("Le calendrier des séances d'emprunt des États.") },
   ];
 
+  const placements = [
+    { titre: t("Les obligations"), dit: t("Un intérêt versé à des dates connues d'avance, et votre capital remboursé à l'échéance, tant que l'émetteur tient ses engagements.") },
+    { titre: t("Les actions"), dit: t("Une part du capital d'une société cotée, qui peut verser un dividende. Rien ne le garantit, et son cours peut baisser.") },
+    { titre: t("Les fonds"), dit: t("Votre placement réparti sur plusieurs lignes, géré par des professionnels agréés par la COSUMAF.") },
+  ];
+
+  const garanties = [
+    { titre: t("Une société agréée"), dit: t("Purpose Capital est agréée en qualité de société de bourse par la COSUMAF, régulateur du marché financier de l'Afrique centrale.") },
+    { titre: t("Vos titres à votre nom"), dit: t("Les titres acquis sont inscrits à votre nom, et le demeurent si vous nous quittez.") },
+    { titre: t("Vos espèces séparées"), dit: t("Votre compte espèces est ouvert à votre nom. Chaque mouvement porte sa date de valeur.") },
+    { titre: t("Vous seul donnez les ordres"), dit: t("Aucun ordre ne part sans vous. Le conseiller éclaire et propose ; la décision vous appartient.") },
+  ];
+
   const etapes = [
-    { n: "1", titre: t("Vous créez votre compte"), dit: t("Une adresse ou un numéro, un code reçu dans l'instant. Vous voyez alors le marché et vous recevez les avis de séance. Aucun document, aucun engagement.") },
-    { n: "2", titre: t("Vous faites ouvrir votre compte-titres"), dit: t("Une pièce d'identité, un justificatif de domicile et le questionnaire de connaissance. Dix minutes, à votre rythme, et le desk vous rappelle si une pièce manque.") },
-    { n: "3", titre: t("Vous approvisionnez et vous placez"), dit: t("Par virement, vers le compte espèces ouvert à votre nom. Vous choisissez une séance annoncée ou une ligne de la cote, et vous suivez votre allocation.") },
+    { n: "1", titre: t("Ouvrir votre compte"), dit: t("Le desk vous rappelle si une pièce manque, à votre rythme.") },
+    { n: "2", titre: t("Choisir une ligne"), dit: t("Chaque chiffre est expliqué, la décision reste la vôtre.") },
+    { n: "3", titre: t("Passer votre ordre"), dit: t("Rien n'est débité sans votre accord.") },
+    { n: "4", titre: t("Suivre vos placements"), dit: t("Chaque étape vous est notifiée ; relevés et avis se téléchargent.") },
   ];
 
   return (
     <div className={styles.page} data-vitrine="">
       {/* ÉCRAN 1 · LE HUB : ce qu'on trouve ici, nommé, sans un chiffre. */}
-      <section className={`${styles.ecran} ${styles.hub}`}>
-        <span className={styles.halo} aria-hidden="true" />
+      <section className={styles.ecran}>
         <div className={styles.col}>
           <span className={styles.agrement} data-anim="">
             {t("Société de bourse agréée COSUMAF · n° COSUMAF-SDB-01/2026")}
           </span>
           <h1 data-anim="">{t(m.hub)}</h1>
-          <p className={styles.chapeau} data-anim="">
-            {t("Voici ce que vous y trouvez, depuis un seul compte.")}
-          </p>
           <div className={styles.produits} data-anim="">
             {produits.map((p) => (
               <article className={styles.produit} key={p.clef}>
@@ -59,15 +71,32 @@ export async function Accueil() {
               </article>
             ))}
           </div>
-          <p className={styles.services} data-anim="">
-            {t("Et aussi : l'épargne programmée, les notes de marché, un conseiller qui répond.")}
-          </p>
         </div>
       </section>
 
-      {/* ÉCRAN 2 · INVESTIR : le futur et le financement, avec le risque à côté. */}
-      <section className={`${styles.ecran} ${styles.investir}`}>
-        <span className={styles.halo} aria-hidden="true" />
+      {/* ÉCRAN 2 · LA DURÉE : comment chaque placement fonctionne, et ce que rien ne garantit. */}
+      <section className={styles.ecran}>
+        <div className={styles.col}>
+          <span className={styles.etiquette} data-anim="">
+            {t("Dans la durée")}
+          </span>
+          <h2 data-anim="">{t(m.futur)}</h2>
+          <p className={styles.chapeau} data-anim="">
+            {t("Ce que chaque placement peut vous apporter, et ce qu'il ne garantit pas.")}
+          </p>
+          <div className={styles.cartes} data-anim="">
+            {placements.map((p) => (
+              <article className={styles.carte} key={p.titre}>
+                <h3>{p.titre}</h3>
+                <p>{p.dit}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ÉCRAN 3 · INVESTIR : le futur et le financement. */}
+      <section className={styles.ecran}>
         <div className={styles.col}>
           <span className={styles.etiquette} data-anim="">
             {t("Investir")}
@@ -76,25 +105,11 @@ export async function Accueil() {
           <p className={styles.chapeau} data-anim="">
             {t("Prêtez aux États et aux institutions de la zone, prenez part au capital des sociétés cotées, placez dans des fonds agréés par la COSUMAF.")}
           </p>
-          <div className={styles.cartes} data-anim="">
-            <article className={styles.carte}>
-              <span className={styles.rang}>1</span>
-              <h3>{t("Où va votre argent")}</h3>
-              <p>{t("Chez les États de la zone, la banque de développement de la région et des entreprises cotées d'ici.")}</p>
-            </article>
-            <article className={styles.carte}>
-              <span className={styles.rang}>2</span>
-              <h3>{t("Ce que vous risquez")}</h3>
-              <p>{t("Un placement peut perdre de la valeur. Le risque est écrit en clair avant chaque décision.")}</p>
-            </article>
-          </div>
         </div>
       </section>
 
-      {/* ÉCRAN 3 · LA RÉGION : un seul message, le plus fort. */}
-      <section className={`${styles.ecran} ${styles.region}`}>
-        <span className={styles.halo} aria-hidden="true" />
-        <span className={styles.anneaux} aria-hidden="true" />
+      {/* ÉCRAN 4 · LA RÉGION : un seul message, le plus fort. */}
+      <section className={styles.ecran}>
         <div className={styles.col}>
           <span className={styles.etiquette} data-anim="">
             {t("La région")}
@@ -106,17 +121,24 @@ export async function Accueil() {
         </div>
       </section>
 
-      {/* ÉCRAN 4 · VOUS : la main, le risque écrit, les trois pas, et ce qui protège. */}
-      <section className={`${styles.ecran} ${styles.vous}`}>
-        <span className={styles.halo} aria-hidden="true" />
+      {/* ÉCRAN 5 · VOUS : le sérieux de la maison, l'accompagnement à chaque étape, et le pied. */}
+      <section className={styles.ecran}>
         <div className={styles.col}>
           <span className={styles.etiquette} data-anim="">
             {t("Vous")}
           </span>
           <h2 data-anim="">{t(m.vous)}</h2>
           <h3 className={styles.sousTitre} data-anim="">
-            {t("Trois pas, à votre rythme.")}
+            {t("Une maison sérieuse, à vos côtés à chaque étape.")}
           </h3>
+          <div className={styles.cartes} data-anim="">
+            {garanties.map((g) => (
+              <article className={styles.carte} key={g.titre}>
+                <h3>{g.titre}</h3>
+                <p>{g.dit}</p>
+              </article>
+            ))}
+          </div>
           <ol className={styles.pas} data-anim="">
             {etapes.map((e) => (
               <li key={e.n}>
@@ -129,13 +151,19 @@ export async function Accueil() {
             ))}
           </ol>
           <p className={styles.confiance} data-anim="">
-            {t("Société de bourse agréée par la COSUMAF. Vos titres sont inscrits à votre nom et vos espèces sont séparées.")}
+            {t("Un conseiller vous répond, en français et sans jargon, à chaque étape.")}
           </p>
           <p className={styles.avertissement} data-anim="">
-            {t("Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures. Les conditions de chaque placement vous sont remises avant toute décision.")}{" "}
-            <Link href="/info/risques">{t("Ce qu'il faut savoir sur les risques")}</Link>
-            {" · "}
-            <Link href="/info/aide">{t("Nous joindre")}</Link>
+            {t("Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures. Les conditions de chaque placement vous sont remises avant toute décision.")}
+          </p>
+          <nav className={styles.liens} aria-label={t("Pour en savoir plus")} data-anim="">
+            <Link href="/info/eclairages">{t("Éclairages")}</Link>
+            <Link href="/info/aide">{t("Aide et contact")}</Link>
+            <Link href="/info/risques">{t("Risques et limites")}</Link>
+          </nav>
+          <p className={styles.maison}>
+            <b>{COMPANY.legalName}</b>, {t(COMPANY.licence)}
+            {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ? ` · v${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.slice(0, 7)}` : ""}
           </p>
         </div>
       </section>
