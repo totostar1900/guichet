@@ -1822,3 +1822,15 @@ details[open]::details-content {
   0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
   60% { box-shadow: 0 0 0 6px transparent; opacity: 0.7; }
 }
+
+/* LE BALAYAGE ENTRE LES MENUS RÉSERVE LE SENS HORIZONTAL (18 novembre 2026) : sur le contenu d'une racine, le navigateur ne garde que le défilement vertical et le zoom, donc il ne prend plus le geste en route (« pointercancel »). Une zone qui défile de côté est son propre conteneur : elle garde son geste. */
+@media (max-width: 760px) {
+  html[data-profondeur="racine"] main {
+    touch-action: pan-y pinch-zoom;
+  }
+}
+
+/* PENDANT LE BALAYAGE, le corps coupe ce qui dépasse à droite : une page tirée de ce côté élargissait le document et la transition de page était abandonnée (voir « BalayageDesMenus »). « clip » ne crée pas de conteneur de défilement. */
+html[data-balayage] body {
+  overflow-x: clip;
+}

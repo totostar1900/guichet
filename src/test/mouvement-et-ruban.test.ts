@@ -46,9 +46,29 @@ describe("le balayage entre les menus", () => {
     expect(lire("src/lib/ui/feuille-ouverte.ts"), "une feuille fermée retient le balayage à tort").toContain(':not([aria-hidden="true"])');
     expect(b).toMatch(/const BORD = 24;/);
   });
-  it("ne tient que pour un geste franc : 35 % de la largeur (ou 60 px et vif), plus horizontal que vertical", () => {
-    expect(b).toMatch(/window\.innerWidth \* 0\.35/);
-    expect(b).toMatch(/Math\.abs\(dy\) > Math\.abs\(dx\) \* 0\.6/);
+  it("tient pour un geste courant : 22 % de la largeur, ou 40 px à 0,3 px/ms, plus horizontal que vertical (verrou à 10 px)", () => {
+    expect(b).toMatch(/const PART_DE_LARGEUR = 0\.22;/);
+    expect(b).toMatch(/const MIN_PX = 40;/);
+    expect(b).toMatch(/const VITESSE_PX_MS = 0\.3;/);
+    expect(b).toMatch(/const VERROU_PX = 10;/);
+    expect(b).toMatch(/Math\.abs\(dx\) > Math\.abs\(dy\) \* 1\.2 \? "h" : "v"/);
+    expect(b, "le seuil de 35 % de la largeur est revenu").not.toMatch(/0\.35/);
+  });
+  it("la page suit le doigt, résiste aux deux bouts du ruban, revient d'un mouvement doux et se remet en place avant la transition", () => {
+    expect(b).toMatch(/place\(contenu\(\), d\.vers \? dx : Math\.sign\(dx\) \* Math\.min\(RESISTANCE_MAX_PX, Math\.abs\(dx\) \* RESISTANCE\), false\)/);
+    expect(b).toMatch(/place\(contenu\(\), 0, true\)/);
+    expect(b, "la page déplacée n'est pas remise en place au changement de page, avant la transition").toMatch(/useLayoutEffect\(\(\) => \{\s*remetre\(contenu\(\)\);\s*\}, \[chemin\]\)/);
+    expect(b, "le défilement vertical peut repartir pendant qu'on tire de côté").toMatch(/if \(e\.cancelable\) e\.preventDefault\(\)/);
+    expect(b).toMatch(/document\.addEventListener\("touchmove", bouge, \{ passive: false \}\)/);
+    expect(b, "un geste annulé laisse la page décalée").toMatch(/document\.addEventListener\("touchcancel", annule/);
+    expect(b).toMatch(/router\.prefetch\(v\)/);
+    expect(b, "la page tirée vers la droite élargit le document : la transition est abandonnée et la navigation ne part pas").toMatch(/document\.documentElement\.toggleAttribute\("data-balayage", on\)/);
+    expect(lire("src/app/globals.css")).toMatch(/html\[data-balayage\] body \{\s*overflow-x: clip;/);
+    expect(b, "le corps est touché à la main : le verrou de défilement est le seul à le faire").not.toMatch(/body\.style/);
+    expect(b).toMatch(/if \(dx\) coupe\(el, true\);/);
+  });
+  it("le navigateur ne prend plus le geste : le contenu d'une racine ne garde que le défilement vertical et le zoom", () => {
+    expect(lire("src/app/globals.css")).toMatch(/html\[data-profondeur="racine"\] main \{\s*touch-action: pan-y pinch-zoom;/);
   });
   it("les rangées à glissement et les courbes qu'on touche se déclarent zones locales", () => {
     expect(lire("src/components/mobile/SwipeActions.tsx")).toMatch(/data-balayage-local=""/);
