@@ -1,5 +1,7 @@
 import { CeQuiFermeBientot } from "@/components/CeQuiFermeBientot";
 import { SelectionDuDesk, lignesDuDesk } from "@/components/SelectionDuDesk";
+import { Statuts } from "@/components/statuts/Statuts";
+import { chargerStatuts } from "@/components/statuts/chargerStatuts";
 import { echeancesProches } from "@/lib/domain/echeances";
 import type { Offer } from "@/lib/domain/types";
 
@@ -20,9 +22,13 @@ export async function TuilesDuHaut({ offres }: { offres: Offer[] }) {
   const now = new Date();
   const aDuDesk = lignesDuDesk(offres, now).length > 0;
   const aEcheances = echeancesProches(offres, now).length > 0;
-  if (!aDuDesk && !aEcheances) return null;
+  /* LES STATUTS OUVRENT LE CHAPITRE (17 novembre 2026) : les lignes que le desk retient, avant sa sélection. Sans ligne retenue, la rangée n'est pas rendue. */
+  const statuts = await chargerStatuts(offres, now);
+  const aDesStatuts = statuts.items.length > 0;
+  if (!aDuDesk && !aEcheances && !aDesStatuts) return null;
   return (
     <div className="pile">
+      {aDesStatuts && <Statuts message={statuts.message} items={statuts.items} />}
       <SelectionDuDesk offres={offres} sobre />
       <CeQuiFermeBientot offres={offres} max={2} titre="Échéances" lien={{ href: "/echeances", mot: "Toutes les échéances" }} sobre />
     </div>

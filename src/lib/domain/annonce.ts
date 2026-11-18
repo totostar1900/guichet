@@ -26,14 +26,14 @@ export const ANNONCE_MAX = 140;
 export const ANNONCE_JOURS_MAX = 30;
 
 /** Ce qu'une annonce ne dit pas : un conseil, une urgence fabriquée, une promesse (même règle que « À la une », plus l'urgence). */
-const INTERDITS = /\b(meilleur|recommand|conseill|à saisir|profitez|garanti|sûr|opportunité en or|exceptionnel|dernière chance|ne manquez pas|vite|urgent)/i;
+export const PHRASE_INTERDITE = /\b(meilleur|recommand|conseill|à saisir|profitez|garanti|sûr|opportunité en or|exceptionnel|dernière chance|ne manquez pas|vite|urgent)/i;
 
 /** Le message d'une saisie refusée, ou rien quand elle est recevable. */
 export function verifierAnnonce(texte: string, jusquAu: string, aujourdhui: string): string | undefined {
   const t = texte.trim();
   if (t.length < ANNONCE_MIN) return `Écrivez une phrase d'au moins ${ANNONCE_MIN} caractères.`;
   if (t.length > ANNONCE_MAX) return `Une annonce tient en ${ANNONCE_MAX} caractères au plus.`;
-  if (INTERDITS.test(t)) return "Une annonce informe : ni conseil, ni promesse, ni urgence (« meilleur », « garanti », « dernière chance »…).";
+  if (PHRASE_INTERDITE.test(t)) return "Une annonce informe : ni conseil, ni promesse, ni urgence (« meilleur », « garanti », « dernière chance »…).";
   if (!/^\d{4}-\d{2}-\d{2}$/.test(jusquAu)) return "Date de fin requise.";
   if (jusquAu < aujourdhui) return "La date de fin est déjà passée.";
   const limite = new Date(`${aujourdhui}T12:00:00Z`);

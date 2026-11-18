@@ -1,0 +1,110 @@
+.page {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--s-9) clamp(var(--s-7), 3vw, var(--s-10)) var(--s-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sections-gap);
+}
+.tete h1 {
+  margin: 0 0 var(--s-2);
+}
+.tete p {
+  margin: 0;
+  max-width: 56rem;
+  font-size: var(--t-4);
+}
+.carte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--titre-gap);
+  padding: var(--s-7);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.carte h2 {
+  margin: 0;
+  font-size: var(--t-5);
+}
+.carte p {
+  margin: 0;
+}
+.lignes,
+.passees {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.lignes li,
+.passees li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  padding: var(--s-4) 0;
+  border-top: 1px solid var(--line);
+}
+.lignes li:first-child,
+.passees li:first-child {
+  border-top: 0;
+}
+.rang {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  font-weight: 700;
+  font-size: var(--t-2);
+}
+.quoi {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.quoi small,
+.passees small {
+  color: var(--ink-3);
+  font-size: var(--t-2);
+}
+.passees li {
+  justify-content: space-between;
+}
+.gestes {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.formulaire,
+.ajout {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-6);
+}
+.ajout {
+  flex-direction: row;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.formulaire label,
+.ajout label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  width: min(100%, 36rem);
+}
+.compte {
+  align-self: flex-end;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+}
+.err {
+  color: var(--crit);
+}

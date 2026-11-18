@@ -51,7 +51,7 @@ describe("l'Accueil « cartes »", () => {
     expect(code("src/components/accueil/TuilesDuHaut.tsx")).toMatch(/<SelectionDuDesk offres=\{offres\} sobre \/>/);
     expect(code("src/components/SelectionDuDesk.tsx")).toContain("<TitreDeBloc");
     expect(code("src/components/CeQuiFermeBientot.tsx")).toContain("<TitreDeBloc");
-    expect(code("src/components/TitreDeBloc.module.css")).toMatch(/text-transform: uppercase;/);
+    expect(code("src/components/TitreDeBloc.module.css"), "le titre n'a plus son trait jaune ni son poids").toMatch(/\.titre \{[^}]*border-left: 3px solid var\(--gold\)[^}]*font-weight: 800/);
   });
 
   it("l'avatar : le drapeau pour le Trésor, le monogramme pour le reste", () => {
@@ -142,7 +142,7 @@ describe("l'Accueil « cartes »", () => {
     const debut = perf.indexOf(".liste {");
     const liste = perf.slice(debut, perf.indexOf(".ligne {", debut));
     expect(liste, "la piste de la liste peut de nouveau grandir jusqu'au plus long nom").toMatch(/grid-template-columns:\s*minmax\(0, 1fr\);/);
-    expect(perf, "la carte (bandeau compris) lit le fond de tuile").toMatch(/\.bloc \{[^}]*background: var\(--tuile-fond\)/);
+    expect(perf, "la carte lit le fond de tuile").toMatch(/\.corps \{[^}]*background: var\(--tuile-fond\)/);
     const idx = lire("src/components/IndexPulse.module.css");
     expect(idx).toMatch(/background: var\(--tuile-fond\);/);
     expect(idx).toMatch(/border-left: var\(--indice-barre, 4px solid var\(--gold\)\);/);

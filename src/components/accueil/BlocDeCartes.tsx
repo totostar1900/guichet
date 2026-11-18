@@ -18,7 +18,7 @@ export async function BlocDeCartes({ id, titre, href, cartes, suivis, now = new 
   if (!cartes.length) return null;
   return (
     <section className={styles.bloc} aria-labelledby={id}>
-      <TitreDeBloc id={id} titre={titre} href={href} bandeau={false} />
+      <TitreDeBloc id={id} titre={titre} href={href} />
       <div className={styles.cartes}>
         {cartes.map((c) =>
           c.type === "fonds" ? (

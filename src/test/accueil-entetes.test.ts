@@ -6,38 +6,45 @@ const lire = (f: string) => fs.readFileSync(path.join(process.cwd(), f), "utf8")
 const css = (f: string) => lire(f).replace(/\/\*[\s\S]*?\*\//g, "");
 
 /**
- * LES EN-TÊTES DE L'ACCUEIL SONT DES BANDEAUX DE LA CARTE (8 novembre 2026, planche « En-têtes de l'Accueil », choix 1B · 2A).
- * Un vrai titre (--t-6, casse normale), une ligne de 1 px dessous, « Tout voir › » en or à droite, la rangée entière en lien d'au moins 44 px. Le bandeau est DANS la carte : fond, bord et rayon
- * sont à la section. La fiche d'une ligne (`fort`) garde son titre à plat.
+ * LE TITRE D'UN BLOC DE L'ACCUEIL EST HORS DE LA CARTE, FORT, AVEC UN TRAIT JAUNE À GAUCHE (17 novembre 2026, planche « Accueil », 1A).
+ * Avant : un bandeau dans la carte (8 novembre, 1B · 2A), dont le titre et la première rangée avaient la même encre. Le titre est maintenant le même partout, y compris sur Titres, Fonds et
+ * Adjudications ; la carte porte fond, bord et rayon, et ne contient que des rangées. La fiche d'une ligne (`fort`) garde son titre sans trait.
  */
 describe("les en-têtes de l'Accueil", () => {
-  const bandeau = css("src/components/TitreDeBloc.module.css");
-  const regle = (sel: string) => new RegExp(`\\.bandeau${sel} \\{([^}]*)\\}`).exec(bandeau)?.[1] ?? "";
+  const titres = css("src/components/TitreDeBloc.module.css");
+  const regle = (sel: string) => new RegExp(`${sel} \\{([^}]*)\\}`).exec(titres)?.[1] ?? "";
 
-  it("le bandeau a son titre à --t-6, sa ligne dessous et une cible d'au moins 44 px", () => {
-    expect(regle(""), "plus de ligne sous le bandeau").toMatch(/border-bottom:\s*1px solid var\(--line\)/);
-    expect(regle(""), "la cible du lien n'atteint plus 44 px").toMatch(/min-height:\s*44px/);
-    expect(regle(" \\.titre"), "le titre n'est plus à --t-6 en casse normale").toMatch(/font-size:\s*var\(--t-6\)[\s\S]*text-transform:\s*none/);
-    expect(regle(" \\.tout"), "« Tout voir » n'est plus sur l'échelle").toMatch(/font-size:\s*var\(--t-4\)/);
+  it("le titre est à --t-6, en 800, avec un trait jaune de 3 px à gauche, et la ligne entière fait au moins 44 px", () => {
+    expect(regle("\\.titre"), "le titre n'est plus à --t-6 en 800").toMatch(/font-size:\s*var\(--t-6\)[\s\S]*font-weight:\s*800/);
+    expect(regle("\\.titre"), "le trait jaune a disparu").toMatch(/border-left:\s*3px solid var\(--gold\)/);
+    expect(regle("\\.tete"), "la cible du lien n'atteint plus 44 px").toMatch(/min-height:\s*44px/);
+    expect(regle("\\.tout"), "« Tout voir » n'est plus sur l'échelle").toMatch(/font-size:\s*var\(--t-4\)/);
+    expect(titres, "il reste un bandeau dans la carte").not.toMatch(/\.bandeau/);
   });
 
-  it("le composant écrit le chevron et laisse la fiche à plat", () => {
+  it("le composant écrit le chevron et laisse la fiche sans trait", () => {
     const tsx = lire("src/components/TitreDeBloc.tsx");
-    expect(tsx).toMatch(/bandeau = !fort/);
-    expect(tsx).toMatch(/t\(tout\)\}\{bandeau \? " ›" : ""\}/);
+    expect(tsx).not.toMatch(/bandeau/);
+    expect(tsx).toMatch(/t\(tout\)\}\{fort \? "" : " ›"\}/);
   });
 
-  it("chaque bloc de l'Accueil porte fond, bord et rayon à la section, pas aux rangées", () => {
-    const sections: [string, RegExp][] = [
-      ["src/components/accueil/BlocPlat.module.css", /\.bloc \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
-      ["src/components/accueil/BlocDeLignes.module.css", /\.enBandeau \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
-      ["src/components/CeQuiFermeBientot.module.css", /\.sobre \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
-      ["src/components/IndexPulse.module.css", /\.enBandeau \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
-      ["src/components/accueil/BlocApprendre.module.css", /\.bloc \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
-      ["src/components/CeQuiPerforme.module.css", /\.bloc \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
-      ["src/app/Console.module.css", /\.blocUne \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
+  it("chaque bloc de l'Accueil porte fond, bord et rayon à sa carte, jamais à la section qui porte aussi le titre", () => {
+    const cartes: [string, RegExp][] = [
+      ["src/components/accueil/BlocPlat.module.css", /\.carte \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
+      ["src/components/accueil/BlocDeLignes.module.css", /\.carte \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
+      ["src/components/CeQuiFermeBientot.module.css", /\.groupe \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
+      ["src/components/IndexPulse.module.css", /\.pulse \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
+      ["src/components/accueil/BlocApprendre.module.css", /\.liste \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
+      ["src/components/CeQuiPerforme.module.css", /\.corps \{[^}]*background: var\(--tuile-fond\)[^}]*border: var\(--tuile-bord\)/],
     ];
-    for (const [f, motif] of sections) expect(css(f), `${f} : la section ne porte plus la carte`).toMatch(motif);
+    for (const [f, motif] of cartes) expect(css(f), `${f} : la carte ne porte plus son fond`).toMatch(motif);
+    const sections: [string, RegExp][] = [
+      ["src/components/accueil/BlocPlat.module.css", /\.bloc \{[^}]*gap: var\(--titre-gap\)/],
+      ["src/components/accueil/BlocApprendre.module.css", /\.bloc \{[^}]*gap: var\(--titre-gap\)/],
+      ["src/app/Console.module.css", /\.blocUne \{[^}]*gap: var\(--titre-gap\)/],
+    ];
+    for (const [f, motif] of sections) expect(css(f), `${f} : le titre n'est plus à --titre-gap de sa carte`).toMatch(motif);
+    expect(css("src/components/accueil/BlocPlat.module.css"), "BlocPlat : la section porte de nouveau le fond").not.toMatch(/\.bloc \{[^}]*background/);
   });
 
   it("À la une de l'Accueil : une carte par ligne, filet d'or tout autour, qui défilent côte à côte", () => {
@@ -54,7 +61,7 @@ describe("les en-têtes de l'Accueil", () => {
   });
 
   it("la fiche garde son titre à plat, et « À la une » et « Ce qui performe » lisent le même composant", () => {
-    expect(lire("src/components/accueil/BlocDeLignes.tsx")).toMatch(/const enBandeau = !fort && !plat;/);
+    expect(lire("src/components/accueil/BlocDeLignes.tsx")).toMatch(/<TitreDeBloc id=\{id\} titre=\{titre\} href=\{href\} tout=\{tout\} fort=\{fort\} \/>/);
     expect(lire("src/components/CeQuiPerforme.tsx")).toMatch(/<TitreDeBloc id="ce-qui-performe"/);
     expect(lire("src/app/Console.tsx")).toMatch(/<TitreDeBloc id="a-la-une"/);
   });

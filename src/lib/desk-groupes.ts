@@ -25,6 +25,8 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/sondage", "Sondages"],
       /* L'ANNONCE DE LA MAISON (14 novembre 2026) : une phrase au-dessus des pages, EN PLUS de « À la une ». */
       ["/desk/annonce", "Annonce"],
+      /* LES STATUTS (17 novembre 2026) : la rangée de ronds de l'Accueil, choisie ici, avec son message de première page. */
+      ["/desk/statuts", "Statuts"],
     ],
   },
   {

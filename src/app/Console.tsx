@@ -537,6 +537,8 @@ export async function Console({ session }: { session: Session }) {
           ELLE S'EFFACE QUAND IL N'Y A RIEN : cinq dépêches reçues et relues,
           non publiées, ne sont pas une actualité, et une rubrique vide en
           tête de page apprend à ne plus l'ouvrir. */}
+      {/* CHAPITRE 5 : LIRE (17 novembre 2026, planche « Accueil », 3A). À la une et Apprendre sont deux blocs de même nature : 28 px entre eux, 44 avec ce qui les entoure. Vide, le chapitre ne laisse aucun écart. */}
+      <div className={`pile ${styles.chapitre}`}>
       {une && (
         <section className={styles.blocUne} aria-labelledby="a-la-une">
           <TitreDeBloc id="a-la-une" titre="À la une" href="/actualites" tout="Toutes les actualités" />
@@ -554,9 +556,12 @@ export async function Console({ session }: { session: Session }) {
 
       {/* 9 bis. APPRENDRE (14 novembre 2026, planche 3A) : trois éclairages pas encore lus, EN PLUS de « À la une » et de la porte « Aide ». La pièce se tait quand tout est lu, titre compris. */}
       <BlocApprendre />
+      </div>
 
       {/* 10. S'INSCRIRE SANS ATTENDRE UN CODE. Une proposition qui se referme
           d'une croix, et ne revient pas. */}
+      {/* CHAPITRE 6 : MON COMPTE (17 novembre 2026, 3A). L'appareil à ajouter ouvre le chapitre, avant ce que le dossier dit du client. */}
+      <div className={`pile ${styles.chapitre}`}>
       <TrustNudge />
 
       {/* 11. MON DOSSIER : UNE RUBRIQUE N'EXISTE QUE SI ELLE A QUELQUE CHOSE À MONTRER.
@@ -581,6 +586,7 @@ export async function Console({ session }: { session: Session }) {
         appareilAjoute={appareils.length > 0}
         couponsSansReinvestissement={Boolean(ctx.attendu) && !ctx.reinvestissement}
       />
+      </div>
     </div>
   );
 }

@@ -1,14 +1,14 @@
-/* Un bloc : le bandeau du titre est DANS la carte (8 novembre 2026, 1B) ; fond, bord et rayon sont au bloc ; aucune marge entre deux blocs (la pile qui les porte écarte). */
+/* Un bloc : le titre est HORS de la carte (17 novembre 2026, planche « Accueil », 1A) ; fond, bord et rayon sont à la carte ; aucune marge entre deux blocs (la pile qui les porte écarte). */
 .bloc {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: var(--titre-gap);
   min-width: 0;
+}
+.carte {
+  padding: var(--s-3) 0;
   background: var(--tuile-fond);
   border: var(--tuile-bord);
   border-radius: var(--tuile-rayon);
   overflow: hidden;
-}
-.carte {
-  padding: var(--s-3) 0;
 }

@@ -4,18 +4,18 @@
 .bloc {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  background: var(--tuile-fond);
-  border: var(--tuile-bord);
-  border-radius: var(--tuile-rayon);
-  overflow: hidden;
+  gap: var(--titre-gap);
 }
-/* Le bandeau (titre, ligne, « Les sociétés › ») est celui de TitreDeBloc, comme sur les autres blocs de l'Accueil (8 novembre 2026, 1B) ; ce qui suit est le corps de la carte. */
+/* Le titre est celui de TitreDeBloc, hors de la carte (17 novembre 2026, 1A) ; ce qui suit est la carte. */
 .corps {
   display: flex;
   flex-direction: column;
   gap: var(--s-6);
   padding: var(--s-5) 0;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  overflow: hidden;
 }
 .corps > .fenetre,
 .corps > .sens {

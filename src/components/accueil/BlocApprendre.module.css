@@ -1,18 +1,18 @@
-/* « Apprendre » : trois éclairages pas encore lus, en carte comme les autres blocs de l'Accueil (le bandeau est celui de TitreDeBloc).
+/* « Apprendre » : trois éclairages pas encore lus, en carte comme les autres blocs de l'Accueil (le titre est celui de TitreDeBloc, hors de la carte, 17 novembre 2026).
    SANS MARGE À ELLE : l'écart est déclaré par la colonne des chapitres. */
 .bloc {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  background: var(--tuile-fond);
-  border: var(--tuile-bord);
-  border-radius: var(--tuile-rayon);
-  overflow: hidden;
+  gap: var(--titre-gap);
 }
 .liste {
   list-style: none;
   margin: 0;
   padding: var(--s-3) 0;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  overflow: hidden;
 }
 .liste li + li {
   border-top: 1px solid var(--line);
