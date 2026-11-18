@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { RACINES } from "@/lib/nav-profondeur";
 import { racineVoisine, rangDe, sensEntre } from "@/lib/nav-ruban";
 import { SIGNES_DU_PAYS, signesPossibles } from "@/lib/domain/filigrane";
-import { DEFILE, RESERVES, pageAnimee, tirer } from "@/components/mouvement/Mouvement";
+import { DEFILE, INTENSITE, RESERVES, choisir, pageAnimee, tirer } from "@/components/mouvement/Mouvement";
 
 const lire = (f: string) => readFileSync(f, "utf8");
 
@@ -96,16 +96,33 @@ describe("le mouvement tiré au hasard", () => {
     expect(m).toMatch(/SANS_POUR_LES_GRANDS = \["flou", "zoom"\]/);
     expect(m).toMatch(/new IntersectionObserver/);
     expect(m, "une pièce n'est plus observée après sa première arrivée : le défilement ne rejoue plus").not.toMatch(/io\.unobserve/);
-    expect(m, "l'arrivée au défilement ne se rejoue plus à chaque entrée dans l'écran").toMatch(/if \(e\.isIntersecting && !avant\) animer\(el, lot\+\+, genres\.get\(el\), sens\);/);
+    expect(m, "l'arrivée au défilement ne se rejoue plus à chaque entrée dans l'écran").toMatch(/if \(e\.isIntersecting && !avant && descend\) animer\(el, lot\+\+, genres\.get\(el\), true\);/);
     expect(tirer("bloc", () => 0, ["monte"])).toBe("fond");
   });
-  it("l'arrivée au défilement suit le sens du geste, est plus marquée que celle de l'ouverture et ne rejoue pas en rafale", () => {
+  it("l'arrivée au défilement n'a lieu qu'en descendant, est plus marquée que celle de l'ouverture et ne rejoue pas en rafale", () => {
     const m = lire("src/components/mouvement/Mouvement.tsx");
-    expect(m).toMatch(/sens = n > y \? 1 : -1;/);
+    expect(m).toMatch(/descend = n > y;/);
+    expect(m, "en remontant, une pièce s'anime de nouveau").toMatch(/if \(e\.isIntersecting && !avant && descend\) animer\(el, lot\+\+, genres\.get\(el\), true\);/);
     expect(m).toMatch(/const REPOS_MS = 600;/);
-    expect(DEFILE.bloc.monte(1).transform).toBe("translateY(44px)");
-    expect(DEFILE.bloc.monte(-1).transform, "en remontant, la pièce doit venir d'en haut").toBe("translateY(-44px)");
-    expect(RESERVES.bloc.monte.de.transform, "l'ouverture doit rester plus douce que le défilement").toBe("translateY(14px)");
+    expect(DEFILE.bloc.monte().transform).toBe(`translateY(${Math.round(44 * INTENSITE * 10) / 10}px)`);
+    expect(Number.parseFloat((DEFILE.bloc.monte().transform as string).replace("translateY(", "")), "le défilement doit rester plus marqué que l'ouverture").toBeGreaterThan(Number.parseFloat((RESERVES.bloc.monte.de.transform as string).replace("translateY(", "")));
+  });
+  it("UN SEUL NOMBRE RÈGLE LA DOUCEUR : l'intensité multiplie les distances, à l'ouverture comme au défilement", () => {
+    expect(INTENSITE, "l'intensité demandée par le client est 0,65").toBe(0.65);
+    expect(RESERVES.bloc.monte.de.transform).toBe("translateY(9.1px)");
+    expect(RESERVES.bloc.zoom.de.transform).toBe("scale(0.974)");
+    expect(DEFILE.bloc.monte().transform).toBe("translateY(28.6px)");
+    expect(lire("src/components/mouvement/Mouvement.tsx"), "une distance est écrite en dur hors de l'intensité").not.toMatch(/translate[XY]\(-?\d+px\)/);
+  });
+  it("l'effet dominant prend 70 % des tirages, les autres se partagent le reste, et le premier de la réserve est le dominant", () => {
+    expect(choisir(["a", "b", "c"], () => 0)).toBe("a");
+    expect(choisir(["a", "b", "c"], () => 0.69)).toBe("a");
+    expect(choisir(["a", "b", "c"], () => 0.71)).toBe("b");
+    expect(choisir(["a", "b", "c"], () => 0.9999)).toBe("c");
+    let a = 0;
+    for (let i = 0; i < 4000; i++) if (tirer("bloc") === Object.keys(RESERVES.bloc)[0]) a++;
+    expect(a / 4000).toBeGreaterThan(0.64);
+    expect(a / 4000).toBeLessThan(0.76);
   });
   it("rien de contractuel ne porte data-anim : ni la signature, ni le récapitulatif, ni l'avis", () => {
     for (const f of ["src/app/moi/ordres/[id]/Signature.tsx", "src/app/moi/ordres/[id]/page.tsx", "src/app/moi/ordres/[id]/signe/page.tsx"]) expect(lire(f), f).not.toContain("data-anim");

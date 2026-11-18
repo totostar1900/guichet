@@ -21,20 +21,30 @@ import { useEffect } from "react";
 type Image = Keyframe;
 const STANDARD = "cubic-bezier(0.2, 0.8, 0.2, 1)";
 
+/**
+ * L'INTENSITÉ : UN SEUL NOMBRE RÈGLE LA DOUCEUR DE TOUT LE MOUVEMENT (18 novembre 2026, le client : « légèrement plus subtil » ; 0,65). Il multiplie chaque distance (px) et chaque écart d'échelle, à l'ouverture comme au défilement :
+ * 1 redonne les valeurs d'origine, 0 supprime le déplacement. Pour régler au doigt sur un téléphone, on change ce nombre et rien d'autre.
+ */
+export const INTENSITE = 0.65;
+const px = (n: number) => `${Math.round(n * INTENSITE * 10) / 10}px`;
+const echelle = (e: number) => Math.round((1 - (1 - e) * INTENSITE) * 1000) / 1000;
+/** La part des tirages qui prend l'effet dominant (le premier de la réserve) : le hasard reste, il agite moins. */
+const PART_DOMINANTE = 0.7;
+
 /** La réserve : par genre, des arrivées nommées (images de départ, durée, courbe). La dernière image est toujours l'état normal de l'élément. */
 export const RESERVES = {
   bloc: {
-    monte: { de: { opacity: 0, transform: "translateY(14px)" }, ms: 500 },
+    monte: { de: { opacity: 0, transform: `translateY(${px(14)})` }, ms: 500 },
     fond: { de: { opacity: 0 }, ms: 600 },
-    "glisse-g": { de: { opacity: 0, transform: "translateX(-18px)" }, ms: 500 },
-    "glisse-d": { de: { opacity: 0, transform: "translateX(18px)" }, ms: 500 },
-    zoom: { de: { opacity: 0, transform: "scale(0.96)" }, ms: 500 },
-    flou: { de: { opacity: 0, filter: "blur(4px)" }, ms: 550 },
+    "glisse-g": { de: { opacity: 0, transform: `translateX(${px(-18)})` }, ms: 500 },
+    "glisse-d": { de: { opacity: 0, transform: `translateX(${px(18)})` }, ms: 500 },
+    zoom: { de: { opacity: 0, transform: `scale(${echelle(0.96)})` }, ms: 500 },
+    flou: { de: { opacity: 0, filter: `blur(${px(4)})` }, ms: 550 },
   },
   montant: {
-    pose: { de: { opacity: 0, transform: "translateY(8px)", filter: "blur(2px)" }, ms: 450 },
-    tombe: { de: { opacity: 0, transform: "translateY(-10px)" }, ms: 450 },
-    "zoom-doux": { de: { opacity: 0, transform: "scale(0.94)" }, ms: 450 },
+    pose: { de: { opacity: 0, transform: `translateY(${px(8)})`, filter: `blur(${px(2)})` }, ms: 450 },
+    tombe: { de: { opacity: 0, transform: `translateY(${px(-10)})` }, ms: 450 },
+    "zoom-doux": { de: { opacity: 0, transform: `scale(${echelle(0.94)})` }, ms: 450 },
   },
   courbe: {
     trace: { ms: 700 },
@@ -44,11 +54,17 @@ export const RESERVES = {
 } as const;
 type Genre = keyof typeof RESERVES;
 
-/** Le tirage : un nom de la réserve du genre, au hasard. */
-export const tirer = (genre: Genre, hasard: () => number = Math.random, sans: readonly string[] = []): string => {
-  const noms = Object.keys(RESERVES[genre]).filter((n) => !sans.includes(n));
-  return noms[Math.floor(hasard() * noms.length)];
+/** Le choix dans une liste : l'effet dominant (le premier) à 70 %, les autres se partagent le reste. */
+export const choisir = (noms: readonly string[], hasard: () => number = Math.random): string => {
+  if (noms.length < 2) return noms[0];
+  const h = hasard();
+  if (h < PART_DOMINANTE) return noms[0];
+  const autres = noms.slice(1);
+  return autres[Math.min(autres.length - 1, Math.floor(((h - PART_DOMINANTE) / (1 - PART_DOMINANTE)) * autres.length))];
 };
+
+/** Le tirage : un nom de la réserve du genre, l'effet dominant en tête. */
+export const tirer = (genre: Genre, hasard: () => number = Math.random, sans: readonly string[] = []): string => choisir(Object.keys(RESERVES[genre]).filter((n) => !sans.includes(n)), hasard);
 
 /** Un grand bloc ne reçoit ni flou ni zoom : ils recalculent trop de pixels pour peu d'effet. */
 const SANS_POUR_LES_GRANDS = ["flou", "zoom"] as const;
@@ -105,23 +121,23 @@ const dernier = new WeakMap<Element, number>();
 const REPOS_MS = 600;
 
 /**
- * L'ARRIVÉE AU DÉFILEMENT (18 novembre 2026, le client : « on attend une animation à chaque défilement ») : plus marquée que celle de l'ouverture, DANS LE SENS DU GESTE (on descend, la pièce monte d'en bas ;
- * on remonte, elle descend d'en haut), et REJOUÉE à chaque entrée dans l'écran, pas une seule fois. Un grand bloc n'a ni zoom ni flou.
+ * L'ARRIVÉE AU DÉFILEMENT (18 novembre 2026, le client : « une animation à chaque défilement », puis « légèrement plus subtile » et « retirer l'effet à la remontée ») : une pièce rejoue son arrivée à CHAQUE ENTRÉE
+ * DANS L'ÉCRAN EN DESCENDANT, d'en bas ; en remontant, rien ne bouge. Un grand bloc n'a ni zoom ni flou. Les distances sont celles d'origine, multipliées par l'INTENSITÉ.
  */
 export const DEFILE = {
   bloc: {
-    monte: (s: number) => ({ opacity: 0, transform: `translateY(${s * 44}px)` }),
-    "monte-zoom": (s: number) => ({ opacity: 0, transform: `translateY(${s * 32}px) scale(0.94)` }),
-    glisse: (s: number, i: number) => ({ opacity: 0, transform: `translate(${i % 2 ? 30 : -30}px, ${s * 22}px)` }),
+    monte: () => ({ opacity: 0, transform: `translateY(${px(44)})` }),
+    "monte-zoom": () => ({ opacity: 0, transform: `translateY(${px(32)}) scale(${echelle(0.94)})` }),
+    glisse: (i: number) => ({ opacity: 0, transform: `translate(${px(i % 2 ? 30 : -30)}, ${px(22)})` }),
   },
   montant: {
-    pose: (s: number) => ({ opacity: 0, transform: `translateY(${s * 24}px) scale(0.92)` }),
-    glisse: (s: number, i: number) => ({ opacity: 0, transform: `translate(${i % 2 ? 22 : -22}px, ${s * 12}px)` }),
+    pose: () => ({ opacity: 0, transform: `translateY(${px(24)}) scale(${echelle(0.92)})` }),
+    glisse: (i: number) => ({ opacity: 0, transform: `translate(${px(i % 2 ? 22 : -22)}, ${px(12)})` }),
   },
 } as const;
-const MS_DEFILE = 560;
+const MS_DEFILE = 500;
 
-function animer(el: HTMLElement, rang: number, force?: Genre, sens: 1 | -1 | 0 = 0) {
+function animer(el: HTMLElement, rang: number, force?: Genre, defile = false) {
   const genre = force ?? (el.dataset.anim as Genre | undefined);
   if (!genre || !(genre in RESERVES)) return;
   const maintenant = performance.now();
@@ -129,11 +145,11 @@ function animer(el: HTMLElement, rang: number, force?: Genre, sens: 1 | -1 | 0 =
   dernier.set(el, maintenant);
   const delay = Math.min(rang * PAS_MS, PLAFOND_MS);
   const grand = el.offsetHeight > GRAND_PX;
-  if (sens !== 0 && genre !== "courbe") {
-    const reserve = (genre === "montant" ? DEFILE.montant : DEFILE.bloc) as Record<string, (s: number, i: number) => Image>;
+  if (defile && genre !== "courbe") {
+    const reserve = (genre === "montant" ? DEFILE.montant : DEFILE.bloc) as Record<string, (i: number) => Image>;
     const noms = Object.keys(reserve).filter((n) => !(grand && n === "monte-zoom"));
-    const nom = noms[Math.floor(Math.random() * noms.length)];
-    el.animate([reserve[nom](sens, rang), {}], { duration: MS_DEFILE, delay, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "backwards" });
+    const nom = choisir(noms);
+    el.animate([reserve[nom](rang), {}], { duration: MS_DEFILE, delay, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "backwards" });
     return;
   }
   const nom = tirer(genre, Math.random, genre === "bloc" && grand ? SANS_POUR_LES_GRANDS : []);
@@ -161,18 +177,18 @@ export function Mouvement() {
       const page = document.querySelector("main");
       if (animee && page) for (const el of cibles(page)) if (!genres.has(el)) genres.set(el, el.offsetHeight < RANGEE_PX ? "montant" : "bloc");
     };
-    /* Le sens du geste : on descend (1) ou on remonte (-1). */
-    let sens: 1 | -1 = 1;
+    /* Le sens du geste : on descend, ou on remonte. Seule la descente anime : en remontant, les pièces reviennent sans mouvement. */
+    let descend = true;
     let y = window.scrollY;
     const surDefilement = () => {
       const n = window.scrollY;
       if (n !== y) {
-        sens = n > y ? 1 : -1;
+        descend = n > y;
         y = n;
       }
     };
     window.addEventListener("scroll", surDefilement, { passive: true });
-    /* Chaque ENTRÉE dans l'écran rejoue l'arrivée de la pièce, en descendant comme en remontant ; ce qui est déjà à l'écran à l'ouverture n'est pas rejoué par l'observateur. */
+    /* Chaque ENTRÉE dans l'écran, en descendant, rejoue l'arrivée de la pièce ; ce qui est déjà à l'écran à l'ouverture n'est pas rejoué par l'observateur. */
     const visible = new Map<HTMLElement, boolean>();
     const io = new IntersectionObserver(
       (entrees) => {
@@ -181,7 +197,7 @@ export function Mouvement() {
           const el = e.target as HTMLElement;
           const avant = visible.get(el) ?? false;
           visible.set(el, e.isIntersecting);
-          if (e.isIntersecting && !avant) animer(el, lot++, genres.get(el), sens);
+          if (e.isIntersecting && !avant && descend) animer(el, lot++, genres.get(el), true);
         }
       },
       { threshold: 0.1, rootMargin: "0px 0px -4% 0px" },
@@ -196,7 +212,7 @@ export function Mouvement() {
         const r = el.getBoundingClientRect();
         const dans = r.bottom > 0 && r.top < window.innerHeight;
         visible.set(el, dans);
-        if (dans) animer(el, rang++, genre, 0);
+        if (dans) animer(el, rang++, genre);
         io.observe(el);
       }
     };
