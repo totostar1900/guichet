@@ -35,6 +35,7 @@
   min-height: calc(100svh - 3.5rem);
   padding: var(--s-11) var(--s-8) calc(var(--bande) + env(safe-area-inset-bottom, 0px));
   scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 .col {
   width: 100%;
@@ -66,112 +67,82 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--on-navy-2);
   padding: var(--s-4) var(--s-7);
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
-  background: color-mix(in srgb, var(--gold) 10%, transparent);
-}
-.etiquette {
-  align-self: flex-start;
-  font-size: var(--t-2);
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--gold);
+  border: 1px solid color-mix(in srgb, var(--on-navy) 30%, transparent);
 }
 
-/* ---------- Les produits : des cartes de verre ---------- */
-.produits {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--s-5);
-}
-.produit,
-.carte {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-  padding: var(--s-7);
-  border-radius: var(--s-8);
-  border: 1px solid color-mix(in srgb, var(--on-navy) 14%, transparent);
-  background: color-mix(in srgb, var(--on-navy) 7%, transparent);
-}
-.produit h3,
-.carte h3 {
-  margin: 0;
-  font-size: var(--t-5);
-  font-weight: 700;
+/* ---------- Le dessin de la famille : des traits, rien d'autre ---------- */
+.famille {
+  align-self: center;
+  width: min(11rem, 52vw);
   color: var(--on-navy);
 }
-.produit p,
-.carte p {
+.dessin {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.dessin [data-trait] {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.famille[data-pret="oui"] .dessin [data-trait] {
+  stroke-dashoffset: 1;
+}
+.famille[data-vu="oui"] .dessin [data-trait] {
+  animation: tracer 1.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes tracer {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.texte {
   margin: 0;
-  font-size: var(--t-3);
-  line-height: 1.45;
-  color: var(--on-navy-2);
-}
-.icone {
-  display: grid;
-  place-items: center;
-  width: var(--s-11);
-  height: var(--s-11);
-  border-radius: 50%;
-  color: var(--gold);
-  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
-}
-
-/* ---------- Investir : deux cartes ; Vous : trois pas ---------- */
-.cartes {
-  display: grid;
-  gap: var(--s-5);
-}
-.rang {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: var(--s-10);
-  height: var(--s-10);
-  border-radius: 50%;
+  /* Le texte sur la famille est un texte de lecture : la fonte de titre de la maison, en empattement, comme pour une page imprimée. */
   font-family: var(--font-titre);
-  font-size: var(--t-5);
-  font-weight: 600;
-  color: var(--navy);
-  background: var(--gold);
-}
-.sousTitre {
-  margin: 0;
   font-size: var(--t-6);
-  font-weight: 700;
+  line-height: 1.6;
   color: var(--on-navy);
 }
-.pas {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-5);
+
+/* Le signe qu'il y a une suite : un chevron qui respire, au pied du premier écran. */
+.defile {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--bande) + var(--s-8) + env(safe-area-inset-bottom, 0px));
+  width: var(--s-8);
+  height: var(--s-8);
+  translate: -50% 0;
+  border-right: 2px solid var(--on-navy-2);
+  border-bottom: 2px solid var(--on-navy-2);
+  rotate: 45deg;
+  animation: defile 1.8s ease-in-out infinite;
 }
-.pas li {
-  display: flex;
-  gap: var(--s-6);
-  align-items: flex-start;
-  padding: var(--s-6) var(--s-7);
-  border-radius: var(--s-8);
-  border: 1px solid color-mix(in srgb, var(--on-navy) 14%, transparent);
-  background: color-mix(in srgb, var(--on-navy) 7%, transparent);
+@keyframes defile {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(var(--s-3), var(--s-3));
+    opacity: 1;
+  }
 }
-.pas b {
-  font-size: var(--t-4);
-  color: var(--on-navy);
+@media (prefers-reduced-motion: reduce) {
+  .defile {
+    animation: none;
+  }
 }
-.pas p {
-  margin: var(--s-2) 0 0;
-  font-size: var(--t-3);
-  line-height: 1.5;
-  color: var(--on-navy-2);
-}
+
 .confiance {
   margin: 0;
   font-size: var(--t-4);
@@ -204,18 +175,6 @@
   .confiance,
   .avertissement {
     max-width: var(--mesure-texte);
-  }
-  .produits {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-  .cartes {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .pas {
-    flex-direction: row;
-  }
-  .pas li {
-    flex: 1 1 0;
   }
 }
 

@@ -1,0 +1,80 @@
+/* La liste à plat de la vitrine : une icône qui se dessine, un titre, une phrase, un filet entre deux rangées. Aucune carte, aucun bord, aucun fond.
+ *
+ * LE TRACÉ : « .trace » est posé par TraceSurVue. Sans « data-pret » (pas de script, « moins de mouvement ») tout est entier. Avec « data-pret », les traits sont cachés (« stroke-dashoffset: 1 » sur un trait de longueur 1) et les rangées décalées ; avec « data-vu », chaque rangée arrive à son tour et trace son icône. */
+.trace {
+  --pas: 0.32s;
+}
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ligne {
+  display: grid;
+  grid-template-columns: var(--s-11) minmax(0, 1fr);
+  gap: var(--s-7);
+  align-items: start;
+  padding: var(--s-7) 0;
+  border-top: 1px solid color-mix(in srgb, var(--on-navy) 16%, transparent);
+}
+.ligne:last-child {
+  border-bottom: 1px solid color-mix(in srgb, var(--on-navy) 16%, transparent);
+}
+.icone {
+  width: var(--s-11);
+  height: var(--s-11);
+  color: var(--on-navy);
+  overflow: visible;
+}
+.icone [data-trait] {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.ligne h3 {
+  margin: 0;
+  font-size: var(--t-5);
+  font-weight: 700;
+  color: var(--on-navy);
+}
+.ligne p {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-3);
+  line-height: 1.5;
+  color: var(--on-navy-2);
+}
+
+.trace[data-pret="oui"] .ligne {
+  opacity: 0;
+  transform: translateY(var(--s-6));
+}
+.trace[data-pret="oui"] .icone [data-trait] {
+  stroke-dashoffset: 1;
+}
+.trace[data-vu="oui"] .ligne {
+  animation: arrive 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--rang) * var(--pas));
+}
+.trace[data-vu="oui"] .icone [data-trait] {
+  animation: trace 1.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: calc(var(--rang) * var(--pas) + 0.2s);
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(var(--s-6));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes trace {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}

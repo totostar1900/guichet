@@ -129,4 +129,22 @@ export const EN_VITRINE: Record<string, string> = {
   "Chaque étape vous est notifiée ; relevés et avis se téléchargent.": "Every step is notified to you; statements and notices can be downloaded.",
   "Un conseiller vous répond, en français et sans jargon, à chaque étape.": "An adviser answers you, in plain language, at every step.",
   "Pour en savoir plus": "To find out more",
+
+  /* ---------- six écrans, listes à plat (18 novembre 2026, suite) ---------- */
+  "En toute sérénité.": "With peace of mind.",
+  "Investissez en toute sérénité.": "Invest with peace of mind.",
+  "Avancez en toute sérénité.": "Move forward with peace of mind.",
+  "À chaque étape, à vos côtés.": "At every step, by your side.",
+  "Des conseillers à votre écoute, en français, en anglais et sans jargon, à chaque étape.": "Advisers who listen, in French and in English, in plain language, at every step.",
+  "Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures.":
+    "Every investment carries a risk of losing capital. Past performance is no guide to future performance.",
+  "Investir, c'est penser à ceux qui comptent. Un placement fait avec méthode, dans la durée, peut aider à préparer les projets d'une famille : des études, un toit, une retraite tranquille. Rien n'est garanti, mais c'est une démarche qui se transmet, et elle se construit dans la région où grandiront vos enfants.":
+    "Investing means thinking of those who matter. An investment made with method, over time, can help prepare a family's plans: schooling, a roof, a quiet retirement. Nothing is guaranteed, but it is a habit that gets passed on, and it is built in the region where your children will grow up.",
+  "Les obligations et les bons des États de la zone. Un intérêt versé à des dates connues d'avance, et votre capital remboursé à l'échéance, tant que l'émetteur tient ses engagements.":
+    "Bonds and bills issued by the region's governments. Interest paid on dates known in advance, and your capital repaid at maturity, as long as the issuer keeps its commitments.",
+  "Les sociétés de la bourse régionale. Une part de leur capital, qui peut verser un dividende : rien ne le garantit, et le cours peut baisser.":
+    "The companies of the regional stock exchange. A share of their capital, which may pay a dividend: nothing guarantees it, and the price can fall.",
+  "Le calendrier des séances d'emprunt des États, annoncées à l'avance.": "The calendar of the governments' borrowing auctions, announced in advance.",
+  "Purpose Capital est agréée en qualité de société de bourse par la Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF).":
+    "Purpose Capital is licensed as a brokerage firm by the Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF), the financial market supervisory commission of Central Africa.",
 };

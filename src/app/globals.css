@@ -1883,9 +1883,9 @@ a[data-dock][data-vers] {
   }
 }
 
-/* L'ACCUEIL DU VISITEUR ACCROCHE AU DÉFILEMENT, UN ÉCRAN À LA FOIS (18 novembre 2026, planche « Accueil en quatre écrans »). « proximity » : l'écran se cale quand on s'en approche, sans jamais forcer un geste franc. */
+/* L'ACCUEIL DU VISITEUR ACCROCHE AU DÉFILEMENT, UN ÉCRAN À LA FOIS (18 novembre 2026, planche « Accueil en quatre écrans »). « mandatory » et « scroll-snap-stop: always » sur chaque écran (le client : « chaque page s'arrête pour une lecture, un peu comme des statuts ») : un geste s'arrête sur l'écran suivant, sans en sauter un. Un écran plus haut que le téléphone se parcourt librement, et se cale à ses bords. */
 html:has([data-vitrine]) {
-  scroll-snap-type: y proximity;
+  scroll-snap-type: y mandatory;
 }
 /* LA BANDE D'ENTRÉE RÉSERVE SA PLACE EN BAS DE CHAQUE PAGE PUBLIQUE : le pied réglementaire n'est jamais caché derrière elle (décision du 22 octobre : une bande en bas disputait la place au pied). */
 @media (max-width: 760px) {

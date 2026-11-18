@@ -9,49 +9,98 @@ const lire = (f: string) => readFileSync(f, "utf8");
  * LA VITRINE ET L'INTRO UNIQUE (14 novembre 2026, planche « vitrine et intro », options 1A et 2A).
  * Les décisions du 12 octobre tiennent : un seul bouton en tête, aucun taux, aucun rendement, aucun montant. Ce qui change est dit ici, et gardé.
  */
-describe("la vitrine : cinq écrans plein écran, un message chacun, un seul fond bleu nuit (18 novembre 2026)", () => {
+describe("la vitrine : six écrans, un par lecture, qui s'arrêtent comme des statuts, sur un seul fond bleu nuit (18 novembre 2026)", () => {
   const v = lire("src/app/Accueil.tsx");
   const css = lire("src/app/Accueil.module.css");
   const code = v.replace(/\/\*[\s\S]*?\*\//g, "");
+  const g = lire("src/app/globals.css");
 
-  it("a cinq écrans : le hub, la durée, investir, la région, vous, et un message tiré au hasard dans chacun", () => {
-    expect((v.match(/<section className=/g) ?? []).length, "la vitrine n'a plus cinq écrans").toBe(5);
+  it("a six écrans : le titre, les produits, investir, la région, « en toute sérénité », « à chaque étape », et un message tiré au hasard dans les cinq premiers", () => {
+    expect((v.match(/<section className=/g) ?? []).length, "la vitrine n'a plus six écrans").toBe(6);
     expect(v).toMatch(/const m = tirerLesMessages\(\);/);
     for (const k of ["hub", "futur", "investir", "region", "vous"]) expect(v, `le message « ${k} » n'est plus tiré`).toContain(`t(m.${k})`);
+    expect(code).toContain('t("À chaque étape, à vos côtés.")');
   });
 
-  it("l'écran de la durée explique les placements sans rien promettre : ni « rendement », ni « sécurise »", () => {
-    const debut = code.indexOf("const placements");
+  it("chaque écran est une page de lecture : la page s'arrête à chacun et n'en saute aucun", () => {
+    expect(g).toMatch(/html:has\(\[data-vitrine\]\) \{\s*scroll-snap-type: y mandatory;/);
+    expect(css).toMatch(/scroll-snap-align: start;\s*scroll-snap-stop: always;/);
+  });
+
+  it("n'a plus un seul titre jaune, plus un numéro, et l'agrément n'est plus en or", () => {
+    expect(code, "une étiquette dorée est revenue au-dessus d'un titre").not.toMatch(/styles\.etiquette/);
+    expect(code, "des numéros sont revenus dans les listes").not.toMatch(/styles\.rang|n: "\d"/);
+    expect(css).not.toMatch(/\.etiquette/);
+    const agrement = /\.agrement \{([^}]*)\}/.exec(css);
+    expect(agrement?.[1], "l'agrément est redevenu doré").not.toMatch(/--gold/);
+    expect(css, "un titre de la vitrine est doré").not.toMatch(/(h1|h2|h3|\.sousTitre)[^{]*\{[^}]*color: var\(--gold/);
+  });
+
+  it("l'écran des produits fusionne les quatre tuiles et leur contenu, à plat, et dit ce qu'ils ne garantissent pas", () => {
+    const debut = code.indexOf("const produits");
     const ecran = code.slice(debut, code.indexOf("const garanties", debut));
-    expect(v, "la réserve sur l'émetteur a quitté l'écran de la durée").toMatch(/tant que l'émetteur tient ses engagements/);
-    expect(v, "la réserve sur le dividende a quitté l'écran de la durée").toMatch(/Rien ne le garantit/);
-    expect(ecran.length, "l'écran de la durée est introuvable").toBeGreaterThan(100);
-    expect(ecran, "l'écran de la durée promet un rendement ou une sécurité").not.toMatch(/rendement|s[ée]curis|\bgaranti(e|s|es)?\b/i);
+    for (const p of ["Titres du Trésor", "Actions cotées", "Fonds agréés", "Adjudications"]) expect(ecran, `« ${p} » a quitté l'écran des produits`).toContain(p);
+    expect(v, "la réserve sur l'émetteur a quitté l'écran").toMatch(/tant que l'émetteur tient ses engagements/);
+    expect(v, "la réserve sur le dividende a quitté l'écran").toMatch(/rien ne le garantit/);
+    expect(ecran.length, "l'écran des produits est introuvable").toBeGreaterThan(300);
+    expect(ecran, "l'écran des produits promet un rendement ou une sécurité").not.toMatch(/rendement|s[ée]curis|\bgaranti(e|s|es)?\b/i);
+    expect(code, "les quatre tuiles sont revenues sur le premier écran").not.toMatch(/styles\.produit/);
   });
 
-  it("garde l'agrément COSUMAF, le risque écrit, et le sérieux de la maison avec l'accompagnement à chaque étape", () => {
+  it("les trois listes sont à plat et leurs icônes géométriques se dessinent à l'entrée dans l'écran", () => {
+    expect((code.match(/<ListeAPlat rangees=/g) ?? []).length, "une liste n'est plus à plat").toBe(3);
+    const l = lire("src/components/accueil/ListeAPlat.tsx");
+    expect(l).toMatch(/pathLength=\{1\} data-trait=""/);
+    expect(l).toMatch(/<TraceSurVue className=\{styles\.trace\}>/);
+    const lc = lire("src/components/accueil/ListeAPlat.module.css");
+    expect(lc).toMatch(/\.trace\[data-vu="oui"\] \.icone \[data-trait\] \{\s*animation: trace/);
+    expect(lc).toMatch(/\.trace\[data-pret="oui"\] \.icone \[data-trait\] \{\s*stroke-dashoffset: 1;/);
+    expect(lc, "une carte, un cadre ou un fond est revenu dans la liste").not.toMatch(/background|border-radius|box-shadow/);
+    const t = lire("src/components/accueil/TraceSurVue.tsx");
+    expect(t, "le tracé ne se retient plus quand le mouvement est réduit").toMatch(/prefers-reduced-motion: reduce/);
+    expect(t).toMatch(/el\.dataset\.pret = "oui"/);
+    expect(t).toMatch(/el\.dataset\.vu = "oui"/);
+  });
+
+  it("l'écran « sérénité » écrit la COSUMAF en toutes lettres, et l'accompagnement a quatre étapes sans numéro", () => {
+    expect(v).toContain("Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF)");
+    for (const k of ["Une société agréée", "Vos titres à votre nom", "Vos espèces séparées", "Vous seul donnez les ordres", "Ouvrir votre compte", "Choisir une ligne", "Passer votre ordre", "Suivre vos placements"]) expect(v, `« ${k} » a quitté la vitrine`).toContain(k);
+    expect(v).toContain("Des conseillers à votre écoute, en français, en anglais et sans jargon, à chaque étape.");
+  });
+
+  it("garde l'agrément, le risque de perte en capital et ses trois liens, sans la phrase retirée", () => {
     expect(v).toMatch(/Société de bourse agréée COSUMAF/);
     expect(v).toMatch(/Tout placement comporte un risque de perte en capital\./);
     expect(v).toMatch(/Les performances passées ne préjugent pas des performances futures\./);
-    for (const k of ["Une société agréée", "Vos titres à votre nom", "Vos espèces séparées", "Vous seul donnez les ordres", "Ouvrir votre compte", "Choisir une ligne", "Passer votre ordre", "Suivre vos placements"]) expect(v, `« ${k} » a quitté l'écran « vous »`).toContain(k);
+    for (const h of ["/info/eclairages", "/info/aide", "/info/risques"]) {
+      expect(code, `le lien ${h} a disparu`).toContain(`href="${h}"`);
+      expect(estPublic(h), `${h} n'est pas public`).toBe(true);
+    }
+    for (const phrase of ["Les conditions de chaque placement vous sont remises avant toute décision", "Un conseiller vous répond, en français et sans jargon", "Voici ce que vous y trouvez", "Et aussi : l'épargne programmée", "Où va votre argent", "Ce que vous risquez"]) expect(code, `« ${phrase} » est revenu`).not.toContain(phrase);
   });
 
-  it("le pied a trois vrais liens vers des pages publiques, le nom de la maison et son agrément, et ni adresse, ni téléphone, ni mention longue", () => {
-    for (const h of ["/info/eclairages", "/info/aide", "/info/risques"]) expect(code, `le lien ${h} a disparu`).toContain(`href="${h}"`);
+  it("le pied a le nom de la maison et son agrément, et ni adresse, ni téléphone, ni mention longue", () => {
     expect(code).toMatch(/COMPANY\.legalName/);
     expect(code, "l'adresse est revenue dans la page").not.toMatch(/COMPANY\.(address|phone|email)/);
     expect(code, "la mention longue est revenue dans la page").not.toMatch(/DISCLAIMER|Communication à caractère promotionnel/);
-    expect(lire("src/app/globals.css")).toMatch(/body:has\(\[data-vitrine\]\) footer \{\s*display: none;/);
-    for (const h of ["/info/eclairages", "/info/aide", "/info/risques"]) expect(estPublic(h), `${h} n'est pas public`).toBe(true);
+    expect(g).toMatch(/body:has\(\[data-vitrine\]\) footer \{\s*display: none;/);
   });
 
-  it("n'a plus de texte retiré à la demande du client ni de carte « où va votre argent » / « ce que vous risquez »", () => {
-    for (const phrase of ["Voici ce que vous y trouvez", "Et aussi : l'épargne programmée", "Où va votre argent", "Ce que vous risquez"]) expect(code, `« ${phrase} » est revenu`).not.toContain(phrase);
+  it("le dessin de la famille se trace sur l'écran investir, sans fond, avec un texte qui dit « peut » et « rien n'est garanti »", () => {
+    const debut = code.indexOf("<FamilleDessin");
+    expect(debut, "le dessin de la famille a quitté la vitrine").toBeGreaterThan(-1);
+    const d = lire("src/components/accueil/FamilleDessin.tsx");
+    const sansNotes = d.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect((sansNotes.match(/<circle /g) ?? []).length, "les trois têtes ne sont plus trois cercles").toBe(3);
+    expect((sansNotes.match(/data-trait=""/g) ?? []).length, "le dessin n'a plus ses traits").toBeGreaterThanOrEqual(9);
+    expect(sansNotes, "le dessin a un fond").not.toMatch(/<rect|fill="(?!none)/);
+    expect(v).toMatch(/peut aider à préparer les projets d'une famille/);
+    expect(v).toMatch(/Rien n'est garanti/);
+    expect(css).toMatch(/\.famille\[data-vu="oui"\] \.dessin \[data-trait\] \{\s*animation: tracer/);
   });
 
   it("nomme les produits, sans un chiffre ni un taux", () => {
-    for (const p of ["Titres du Trésor", "Actions cotées", "Fonds agréés", "Adjudications"]) expect(v, `« ${p} » a quitté le hub`).toContain(p);
-    const net = code.replace(/(COSUMAF-SDB-01\/2026|path|d="[^"]*"|viewBox="[^"]*"|width="\d+"|height="\d+"|strokeWidth="[^"]*")/g, "");
+    const net = code.replace(/(COSUMAF-SDB-01\/2026|path|d="[^"]*"|viewBox="[^"]*"|width="\d+"|height="\d+"|strokeWidth="[^"]*"|cx=\{[^}]*\}|cy=\{[^}]*\}|r=\{[^}]*\}|<T d="[^"]*" \/>)/g, "");
     expect(net, "un taux ou un montant est écrit dans la vitrine").not.toMatch(/\d+\s?%|\d[  ]\d{3}\s?FCFA|FCFA/);
   });
 
@@ -61,31 +110,21 @@ describe("la vitrine : cinq écrans plein écran, un message chacun, un seul fon
     const porte = lire("src/components/PorteVitrine.tsx");
     expect(porte).toMatch(/data-bande-entree=""/);
     expect(porte).toMatch(/<LangSwitch compact clair \/>/);
-    expect(lire("src/app/globals.css")).toMatch(/body:has\(\[data-bande-entree\]\) \{\s*padding-bottom:/);
+    expect(g).toMatch(/body:has\(\[data-bande-entree\]\) \{\s*padding-bottom:/);
   });
 
-  it("chaque pièce arrive à son tour (le moteur de mouvement de la maison) et la page accroche au défilement", () => {
-    expect((v.match(/data-anim=""/g) ?? []).length, "les pièces de la vitrine ne sont plus marquées pour le mouvement").toBeGreaterThanOrEqual(14);
+  it("chaque pièce arrive à son tour (le moteur de mouvement de la maison)", () => {
+    expect((v.match(/data-anim=""/g) ?? []).length, "les pièces de la vitrine ne sont plus marquées pour le mouvement").toBeGreaterThanOrEqual(12);
     expect(v).toMatch(/data-vitrine=""/);
-    expect(lire("src/app/globals.css")).toMatch(/html:has\(\[data-vitrine\]\) \{\s*scroll-snap-type: y proximity;/);
-    expect(css).toMatch(/scroll-snap-align: start;/);
   });
 
   it("n'a AUCUNE LUEUR et un seul fond : le bleu nuit, d'un bord à l'autre, pied compris", () => {
     for (const mot of [/\.halo/, /\.anneaux/, /@keyframes respire/, /@keyframes onde/, /box-shadow/, /backdrop-filter/, /linear-gradient/, /radial-gradient/, /text-shadow/, /filter:\s*blur/]) expect(css, `la feuille de la vitrine garde ${mot}`).not.toMatch(mot);
-    expect(code, "un halo est revenu dans la page").not.toMatch(/halo|anneaux/);
     expect(css).toMatch(/\.page \{[^}]*background: var\(--navy\)/);
     const ecran = /\n\.ecran \{([^}]*)\}/.exec(css);
     expect(ecran?.[1], "un écran pose son propre fond : le fond n'est plus le même tout le long").not.toMatch(/background/);
-    const g = lire("src/app/globals.css");
     expect(g).toMatch(/main:has\(\[data-vitrine\]\),\s*body:has\(\[data-vitrine\]\),\s*html:has\(\[data-vitrine\]\) \{\s*background: var\(--navy\);/);
     expect(lire("src/components/PorteVitrine.module.css"), "la bande d'entrée a gardé sa lueur").not.toMatch(/box-shadow: 0 0 var\(--s-9\)/);
-  });
-});
-
-describe("la vitrine se lit : le marine sur l'or, le blanc sur la nuit (les couples de la maison)", () => {
-  it("le rang des pas est du marine sur l'or", () => {
-    expect(lire("src/app/Accueil.module.css")).toMatch(/\.rang \{[^}]*color: var\(--navy\);[^}]*background: var\(--gold\)/);
   });
 });
 

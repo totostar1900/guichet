@@ -2,108 +2,91 @@ import Link from "next/link";
 import { getT } from "@/i18n/server";
 import { COMPANY } from "@/lib/config";
 import { tirerLesMessages } from "@/lib/domain/vitrine-messages";
+import { FamilleDessin } from "@/components/accueil/FamilleDessin";
+import { C, ListeAPlat, T, type Rangee } from "@/components/accueil/ListeAPlat";
+import { TraceSurVue } from "@/components/accueil/TraceSurVue";
 import styles from "./Accueil.module.css";
 
 /**
- * L'accueil d'un visiteur qui n'est pas connecté : CINQ ÉCRANS PLEIN ÉCRAN, UN FOND BLEU NUIT UNI (18 novembre 2026).
+ * L'accueil d'un visiteur qui n'est pas connecté : SIX ÉCRANS, UN PAR LECTURE, SUR UN SEUL FOND BLEU NUIT (18 novembre 2026).
  *
- * Avant : neuf sections, 7 037 px de haut à 390 px, 1 033 mots, « Créer mon compte » écrit trois fois. Le client : « très fouillie ».
- * Maintenant : un écran, un message. Le hub (ce qu'on trouve ici, produits nommés), la durée (comment chaque placement fonctionne), investir, la région, vous (le sérieux de la maison et l'accompagnement).
+ * Un écran, un message, et la page S'ARRÊTE à chaque écran, comme les statuts d'une messagerie (« scroll-snap-type: y mandatory » et « scroll-snap-stop: always », « globals.css »).
+ *   1 · le titre (l'agrément COSUMAF, un message tiré au hasard) ;
+ *   2 · les produits à plat, fusionnés avec ce que chacun peut apporter et ce qu'il ne garantit pas ; leurs icônes se dessinent ;
+ *   3 · investir, avec le dessin de la famille qui se trace et un texte sur ce que l'investissement peut apporter à l'investisseur et aux siens ;
+ *   4 · la région ;
+ *   5 · « en toute sérénité » : le sérieux de la maison, à plat, icônes qui se dessinent ;
+ *   6 · « à chaque étape » : l'accompagnement, à plat, le risque écrit et les trois liens du pied.
  * LES MESSAGES CHANGENT À CHAQUE VISITE : trois variantes par écran, une tirée côté serveur (`vitrine-messages.ts`).
- * LES BOUTONS D'ENTRÉE NE SONT PAS DANS LA PAGE : la bande basse (PorteVitrine) porte « Créer mon compte » et « Se connecter » ; au large, la pastille du haut.
+ * LES BOUTONS D'ENTRÉE NE SONT PAS DANS LA PAGE : la bande basse (PorteVitrine) ; au large, la pastille du haut.
+ * Aucun titre jaune (le client : « retirer tous les titres jaunes ») : plus d'étiquette dorée au-dessus des titres, et plus de numéros.
+ * Un seul fond, sans lueur : le bleu nuit de la maison, d'un bord à l'autre, pied compris.
  *
- * LE DESIGN, RETIRÉ DE SA LUEUR LE MÊME JOUR (le client : « retirer le glow », « un fond bleu nuit », « garder le même fond tout le long ») : un seul fond, le bleu nuit de la maison, d'un bord à l'autre de la page, pied compris ; aucun halo, aucun anneau, aucune ombre dorée.
- *
- * L'ÉCRAN « DURÉE » NE PROMET RIEN. Le client voulait « les rendements qui sécurisent le futur de l'investisseur » : la règle de la vitrine (aucun taux, aucun rendement, aucune promesse) l'interdit, et un placement ne sécurise rien. L'écran dit comment fonctionnent les obligations, les actions et les fonds, avec ce que rien ne garantit (« tant que l'émetteur tient ses engagements », « rien ne le garantit »).
- *
- * LE PIED DE LA PAGE EST LE SIEN (le pied du gabarit est masqué sur cette page, « globals.css ») : l'adresse, la localisation et la mention longue en sont retirées à la demande du client ; le nom de la maison et son agrément y restent, la phrase sur le risque de perte en capital est écrite à l'écran « vous », et « Éclairages », « Aide et contact », « Risques et limites » sont de vrais liens vers des pages publiques. Les mentions légales complètes restent à « /info/mentions ».
+ * L'ÉCRAN 2 NE PROMET RIEN (le client voulait « les rendements qui sécurisent le futur » : la règle de la vitrine l'interdit). Il dit ce que chaque produit est et ce qu'il ne garantit pas (« tant que l'émetteur tient ses engagements », « rien ne le garantit »).
+ * LE TEXTE DE L'ÉCRAN 3 DIT « PEUT » ET « RIEN N'EST GARANTI » : un placement fait avec méthode peut aider à préparer les projets d'une famille ; il n'en promet aucun.
+ * LE PIED est celui de la page (le pied du gabarit est masqué ici) : l'adresse et la mention longue en sont retirées à la demande du client ; le nom de la maison et son agrément restent, le risque de perte en capital est écrit à l'écran 6, et « Éclairages », « Aide et contact », « Risques et limites » sont de vrais liens vers des pages publiques. Les mentions légales complètes restent à « /info/mentions ».
  */
 export async function Accueil() {
   const t = await getT();
   const m = tirerLesMessages();
 
-  const produits = [
-    { clef: "tresor", d: "M4 21h20 M6 21V10l8-5 8 5v11 M10 21v-6h8v6", titre: t("Titres du Trésor"), dit: t("Les obligations et les bons des États de la zone.") },
-    { clef: "actions", d: "M3 22l7-8 5 4 9-11 M24 7h-6 M24 7v6", titre: t("Actions cotées"), dit: t("Les sociétés de la bourse régionale.") },
-    { clef: "fonds", d: "M14 4v10h10a10 10 0 1 1-10-10z M17 3a10 10 0 0 1 8 8h-8z", titre: t("Fonds agréés"), dit: t("Des placements gérés pour vous, agréés par la COSUMAF.") },
-    { clef: "adjudications", d: "M5 7h18v16H5z M5 12h18 M10 4v5 M18 4v5", titre: t("Adjudications"), dit: t("Le calendrier des séances d'emprunt des États.") },
+  const produits: Rangee[] = [
+    { clef: "tresor", titre: t("Titres du Trésor"), dit: t("Les obligations et les bons des États de la zone. Un intérêt versé à des dates connues d'avance, et votre capital remboursé à l'échéance, tant que l'émetteur tient ses engagements."), icone: (<><T d="M3 10 12 4l9 6" /><T d="M5 10v8" /><T d="M9.5 10v8" /><T d="M14.5 10v8" /><T d="M19 10v8" /><T d="M3 20h18" /></>) },
+    { clef: "actions", titre: t("Actions cotées"), dit: t("Les sociétés de la bourse régionale. Une part de leur capital, qui peut verser un dividende : rien ne le garantit, et le cours peut baisser."), icone: (<><T d="M3 17l6-6 4 4 8-9" /><T d="M15 6h6v6" /></>) },
+    { clef: "fonds", titre: t("Fonds agréés"), dit: t("Votre placement réparti sur plusieurs lignes, géré par des professionnels agréés par la COSUMAF."), icone: (<><T d="M12 3v9h9" /><C cx={12} cy={12} r={9} /></>) },
+    { clef: "adjudications", titre: t("Adjudications"), dit: t("Le calendrier des séances d'emprunt des États, annoncées à l'avance."), icone: (<><T d="M4 6h16v14H4z" /><T d="M4 10h16" /><T d="M8 3v5" /><T d="M16 3v5" /></>) },
   ];
 
-  const placements = [
-    { titre: t("Les obligations"), dit: t("Un intérêt versé à des dates connues d'avance, et votre capital remboursé à l'échéance, tant que l'émetteur tient ses engagements.") },
-    { titre: t("Les actions"), dit: t("Une part du capital d'une société cotée, qui peut verser un dividende. Rien ne le garantit, et son cours peut baisser.") },
-    { titre: t("Les fonds"), dit: t("Votre placement réparti sur plusieurs lignes, géré par des professionnels agréés par la COSUMAF.") },
+  const garanties: Rangee[] = [
+    { clef: "agrement", titre: t("Une société agréée"), dit: t("Purpose Capital est agréée en qualité de société de bourse par la Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF)."), icone: (<><T d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z" /><T d="M8.5 12l2.5 2.5 5-5" /></>) },
+    { clef: "titres", titre: t("Vos titres à votre nom"), dit: t("Les titres acquis sont inscrits à votre nom, et le demeurent si vous nous quittez."), icone: (<><T d="M4 5h16v14H4z" /><C cx={12} cy={10.5} r={2.2} /><T d="M8 16h8" /></>) },
+    { clef: "especes", titre: t("Vos espèces séparées"), dit: t("Votre compte espèces est ouvert à votre nom. Chaque mouvement porte sa date de valeur."), icone: (<><C cx={9} cy={12} r={5.5} /><C cx={15} cy={12} r={5.5} /></>) },
+    { clef: "ordres", titre: t("Vous seul donnez les ordres"), dit: t("Aucun ordre ne part sans vous. Le conseiller éclaire et propose ; la décision vous appartient."), icone: (<><T d="M12 3l9 9-9 9-9-9z" /><C cx={12} cy={12} r={2.4} /></>) },
   ];
 
-  const garanties = [
-    { titre: t("Une société agréée"), dit: t("Purpose Capital est agréée en qualité de société de bourse par la COSUMAF, régulateur du marché financier de l'Afrique centrale.") },
-    { titre: t("Vos titres à votre nom"), dit: t("Les titres acquis sont inscrits à votre nom, et le demeurent si vous nous quittez.") },
-    { titre: t("Vos espèces séparées"), dit: t("Votre compte espèces est ouvert à votre nom. Chaque mouvement porte sa date de valeur.") },
-    { titre: t("Vous seul donnez les ordres"), dit: t("Aucun ordre ne part sans vous. Le conseiller éclaire et propose ; la décision vous appartient.") },
-  ];
-
-  const etapes = [
-    { n: "1", titre: t("Ouvrir votre compte"), dit: t("Le desk vous rappelle si une pièce manque, à votre rythme.") },
-    { n: "2", titre: t("Choisir une ligne"), dit: t("Chaque chiffre est expliqué, la décision reste la vôtre.") },
-    { n: "3", titre: t("Passer votre ordre"), dit: t("Rien n'est débité sans votre accord.") },
-    { n: "4", titre: t("Suivre vos placements"), dit: t("Chaque étape vous est notifiée ; relevés et avis se téléchargent.") },
+  const etapes: Rangee[] = [
+    { clef: "ouvrir", titre: t("Ouvrir votre compte"), dit: t("Le desk vous rappelle si une pièce manque, à votre rythme."), icone: (<><T d="M4 5h16v14H4z" /><T d="M12 9v6" /><T d="M9 12h6" /></>) },
+    { clef: "choisir", titre: t("Choisir une ligne"), dit: t("Chaque chiffre est expliqué, la décision reste la vôtre."), icone: (<><C cx={12} cy={12} r={9} /><C cx={12} cy={12} r={5} /><C cx={12} cy={12} r={1.2} /></>) },
+    { clef: "ordre", titre: t("Passer votre ordre"), dit: t("Rien n'est débité sans votre accord."), icone: (<><T d="M5 19 19 5" /><T d="M9 5h10v10" /></>) },
+    { clef: "suivre", titre: t("Suivre vos placements"), dit: t("Chaque étape vous est notifiée ; relevés et avis se téléchargent."), icone: (<T d="M3 12h4l3-6 4 12 3-6h4" />) },
   ];
 
   return (
     <div className={styles.page} data-vitrine="">
-      {/* ÉCRAN 1 · LE HUB : ce qu'on trouve ici, nommé, sans un chiffre. */}
+      {/* ÉCRAN 1 · LE TITRE. */}
       <section className={styles.ecran}>
         <div className={styles.col}>
           <span className={styles.agrement} data-anim="">
             {t("Société de bourse agréée COSUMAF · n° COSUMAF-SDB-01/2026")}
           </span>
           <h1 data-anim="">{t(m.hub)}</h1>
-          <div className={styles.produits} data-anim="">
-            {produits.map((p) => (
-              <article className={styles.produit} key={p.clef}>
-                <span className={styles.icone}>
-                  <svg viewBox="0 0 28 28" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d={p.d} />
-                  </svg>
-                </span>
-                <h3>{p.titre}</h3>
-                <p>{p.dit}</p>
-              </article>
-            ))}
-          </div>
         </div>
+        <span className={styles.defile} aria-hidden="true" />
       </section>
 
-      {/* ÉCRAN 2 · LA DURÉE : comment chaque placement fonctionne, et ce que rien ne garantit. */}
+      {/* ÉCRAN 2 · LES PRODUITS, À PLAT, avec ce que chacun peut apporter et ce qu'il ne garantit pas. */}
       <section className={styles.ecran}>
         <div className={styles.col}>
-          <span className={styles.etiquette} data-anim="">
-            {t("Dans la durée")}
-          </span>
           <h2 data-anim="">{t(m.futur)}</h2>
           <p className={styles.chapeau} data-anim="">
             {t("Ce que chaque placement peut vous apporter, et ce qu'il ne garantit pas.")}
           </p>
-          <div className={styles.cartes} data-anim="">
-            {placements.map((p) => (
-              <article className={styles.carte} key={p.titre}>
-                <h3>{p.titre}</h3>
-                <p>{p.dit}</p>
-              </article>
-            ))}
-          </div>
+          <ListeAPlat rangees={produits} />
         </div>
       </section>
 
-      {/* ÉCRAN 3 · INVESTIR : le futur et le financement. */}
+      {/* ÉCRAN 3 · INVESTIR : le dessin de la famille qui se trace, et ce que l'investissement peut apporter aux siens. */}
       <section className={styles.ecran}>
         <div className={styles.col}>
-          <span className={styles.etiquette} data-anim="">
-            {t("Investir")}
-          </span>
           <h2 data-anim="">{t(m.investir)}</h2>
           <p className={styles.chapeau} data-anim="">
             {t("Prêtez aux États et aux institutions de la zone, prenez part au capital des sociétés cotées, placez dans des fonds agréés par la COSUMAF.")}
+          </p>
+          <TraceSurVue className={styles.famille}>
+            <FamilleDessin className={styles.dessin} />
+          </TraceSurVue>
+          <p className={styles.texte} data-anim="">
+            {t("Investir, c'est penser à ceux qui comptent. Un placement fait avec méthode, dans la durée, peut aider à préparer les projets d'une famille : des études, un toit, une retraite tranquille. Rien n'est garanti, mais c'est une démarche qui se transmet, et elle se construit dans la région où grandiront vos enfants.")}
           </p>
         </div>
       </section>
@@ -111,9 +94,6 @@ export async function Accueil() {
       {/* ÉCRAN 4 · LA RÉGION : un seul message, le plus fort. */}
       <section className={styles.ecran}>
         <div className={styles.col}>
-          <span className={styles.etiquette} data-anim="">
-            {t("La région")}
-          </span>
           <h2 data-anim="">{t(m.region)}</h2>
           <p className={styles.chapeau} data-anim="">
             {t("Les fonds levés sur ce marché financent des projets de la région : le marché existe pour les rendre possibles.")}
@@ -121,40 +101,27 @@ export async function Accueil() {
         </div>
       </section>
 
-      {/* ÉCRAN 5 · VOUS : le sérieux de la maison, l'accompagnement à chaque étape, et le pied. */}
+      {/* ÉCRAN 5 · EN TOUTE SÉRÉNITÉ : le sérieux de la maison, à plat. */}
       <section className={styles.ecran}>
         <div className={styles.col}>
-          <span className={styles.etiquette} data-anim="">
-            {t("Vous")}
-          </span>
           <h2 data-anim="">{t(m.vous)}</h2>
-          <h3 className={styles.sousTitre} data-anim="">
+          <p className={styles.chapeau} data-anim="">
             {t("Une maison sérieuse, à vos côtés à chaque étape.")}
-          </h3>
-          <div className={styles.cartes} data-anim="">
-            {garanties.map((g) => (
-              <article className={styles.carte} key={g.titre}>
-                <h3>{g.titre}</h3>
-                <p>{g.dit}</p>
-              </article>
-            ))}
-          </div>
-          <ol className={styles.pas} data-anim="">
-            {etapes.map((e) => (
-              <li key={e.n}>
-                <span className={styles.rang}>{e.n}</span>
-                <div>
-                  <b>{e.titre}</b>
-                  <p>{e.dit}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+          </p>
+          <ListeAPlat rangees={garanties} />
+        </div>
+      </section>
+
+      {/* ÉCRAN 6 · À CHAQUE ÉTAPE : l'accompagnement, le risque écrit, les trois liens et la maison. */}
+      <section className={styles.ecran}>
+        <div className={styles.col}>
+          <h2 data-anim="">{t("À chaque étape, à vos côtés.")}</h2>
+          <ListeAPlat rangees={etapes} />
           <p className={styles.confiance} data-anim="">
-            {t("Un conseiller vous répond, en français et sans jargon, à chaque étape.")}
+            {t("Des conseillers à votre écoute, en français, en anglais et sans jargon, à chaque étape.")}
           </p>
           <p className={styles.avertissement} data-anim="">
-            {t("Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures. Les conditions de chaque placement vous sont remises avant toute décision.")}
+            {t("Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures.")}
           </p>
           <nav className={styles.liens} aria-label={t("Pour en savoir plus")} data-anim="">
             <Link href="/info/eclairages">{t("Éclairages")}</Link>

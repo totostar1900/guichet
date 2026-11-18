@@ -1,7 +1,7 @@
 /**
  * LES MESSAGES DE LA VITRINE, ET CEUX QUI CHANGENT À CHAQUE VISITE (18 novembre 2026, planche « Accueil en quatre écrans », le client : « certains messages aléatoires dans chacune des catégories »).
  *
- * L'accueil du visiteur a cinq écrans, un message par écran : le hub (ce qu'on trouve ici), la durée, investir, la région, vous. Chaque écran a trois variantes ; une seule est tirée à chaque ouverture de la page, CÔTÉ SERVEUR : pas de saut à l'écran, et un visiteur qui revient n'a pas toujours la même accroche.
+ * L'accueil du visiteur a six écrans, un message par écran : le hub (ce qu'on trouve ici), la durée (les produits), investir, la région, vous (« en toute sérénité », le sérieux de la maison) ; un sixième écran, « à chaque étape », a un titre fixe. Chaque écran a trois variantes ; une seule est tirée à chaque ouverture de la page, CÔTÉ SERVEUR : pas de saut à l'écran, et un visiteur qui revient n'a pas toujours la même accroche.
  *
  * L'ÉCRAN « DURÉE » (18 novembre 2026, le client : « une page sur les rendements qui sécurisent le futur de l'investisseur ») NE DIT NI « RENDEMENT » NI « SÉCURISE » : la règle de la vitrine interdit toute promesse, et un placement ne sécurise rien. Il dit comment chaque placement fonctionne, avec ce que rien ne garantit.
  *
@@ -16,7 +16,7 @@ export const MESSAGES: Record<Categorie, readonly string[]> = {
   futur: ["Faites travailler votre épargne dans la durée.", "Pensez long terme : des placements faits pour durer.", "Préparez l'avenir, un placement à la fois."],
   investir: ["Investir pour le futur.", "Participez au financement des États et des entreprises de la zone.", "Votre épargne peut financer la région."],
   region: ["Contribuer au développement de la zone.", "Elle se construit ici, avec des fonds d'ici.", "Une région qui se finance est une région qui se construit."],
-  vous: ["Vous gardez la main, et le risque est écrit.", "Vos titres sont à votre nom, et aucun ordre ne part sans vous.", "Un compte qui se crée en quelques instants, et un conseiller qui répond."],
+  vous: ["En toute sérénité.", "Investissez en toute sérénité.", "Avancez en toute sérénité."],
 };
 
 /** Un message par catégorie, tiré au hasard (`hasard` rend un nombre de [0, 1[ ; injecté pour les tests). */

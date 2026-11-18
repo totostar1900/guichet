@@ -28,6 +28,11 @@ describe("les messages de la vitrine", () => {
     for (const { m } of tous) expect(en(m), `« ${m} » n'est pas traduit`).not.toBe(m);
   });
 
+  it("l'écran « vous » a pour titre « en toute sérénité », dans ses trois variantes", () => {
+    expect(MESSAGES.vous[0]).toBe("En toute sérénité.");
+    for (const m of MESSAGES.vous) expect(m).toMatch(/en toute sérénité|sérénité/i);
+  });
+
   it("le tirage rend une variante de chaque catégorie, et le hasard injecté décide", () => {
     const premier = tirerLesMessages(() => 0);
     const dernier = tirerLesMessages(() => 0.999);
