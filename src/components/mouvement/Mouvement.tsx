@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { estRacine } from "@/lib/nav-profondeur";
 
 /**
  * LE MOUVEMENT DES PAGES (18 novembre 2026, planche « Statuts et dynamisme », 2A + 2B) : des arrivées courtes, TIRÉES AU HASARD dans une réserve, une fois par visite d'une page.
@@ -9,6 +10,10 @@ import { useEffect } from "react";
  * Un élément porte `data-anim="bloc"`, `"montant"` ou `"courbe"` ; à son entrée dans l'écran il reçoit UNE animation de sa réserve, tirée au hasard. Ceux qui arrivent ensemble se
  * décalent de 70 ms (la cascade). Rien ne rejoue quand on revoit la page dans la même séance, rien ne bouge pour qui a demandé « réduire les animations » ou l'économiseur de données,
  * et rien ne touche à un chiffre contractuel : seuls les éléments marqués bougent, jamais un récapitulatif d'ordre, une signature ni un avis.
+ *
+ * LES SEPT RACINES (l'Accueil, l'Activité, Investir, le Marché, l'Aide…) ONT EN PLUS LEURS PIÈCES MARQUÉES PAR LA PAGE ELLE-MÊME (18 novembre 2026, le client : « des animations sur le défilement dans les 5 pages principales ainsi qu'à leur ouverture ») :
+ * « cibles() » parcourt la page, descend dans tout bloc plus haut que l'écran, et retient chaque pièce (bloc, carte, rangée) qui n'est ni collante ni déjà marquée. Elles s'animent À CHAQUE OUVERTURE de la page
+ * (les pièces du premier écran, en cascade), puis AU DÉFILEMENT, chacune à son entrée dans l'écran. Une rangée basse prend une arrivée douce (réserve « montant »), un grand bloc n'a jamais de flou (il coûterait cher sur un téléphone modeste).
  *
  * LES ANIMATIONS SONT CELLES DU NAVIGATEUR (`element.animate`), jamais une classe ni un attribut posés sur un élément que React a rendu : ce serait écrire dans une page que React n'a pas
  * fini d'hydrater, et il refuse (« a tree hydrated but some attributes… didn't match »). Uniquement `transform`, `opacity`, `filter` et le tracé : aucune mise en page ne saute.
@@ -40,12 +45,16 @@ export const RESERVES = {
 type Genre = keyof typeof RESERVES;
 
 /** Le tirage : un nom de la réserve du genre, au hasard. */
-export const tirer = (genre: Genre, hasard: () => number = Math.random): string => {
-  const noms = Object.keys(RESERVES[genre]);
+export const tirer = (genre: Genre, hasard: () => number = Math.random, sans: readonly string[] = []): string => {
+  const noms = Object.keys(RESERVES[genre]).filter((n) => !sans.includes(n));
   return noms[Math.floor(hasard() * noms.length)];
 };
 
-const jouees = new Set<string>();
+/** Un grand bloc ne reçoit ni flou ni zoom : ils recalculent trop de pixels pour peu d'effet. */
+const SANS_POUR_LES_GRANDS = ["flou", "zoom"] as const;
+const GRAND_PX = 300;
+const RANGEE_PX = 140;
+
 const animes = new WeakSet<Element>();
 const PAS_MS = 70;
 const PLAFOND_MS = 350;
@@ -57,12 +66,30 @@ function permis(): boolean {
   return !c?.saveData;
 }
 
-function animer(el: HTMLElement, rang: number) {
-  const genre = el.dataset.anim as Genre | undefined;
+/** Les pièces d'une page-racine : on descend dans un bloc plus haut que l'écran, on retient le reste. Aucune pièce collante, fixe ou déjà marquée, et aucune qui en contient une marquée. */
+export function cibles(page: Element, haut = typeof window === "undefined" ? 800 : window.innerHeight): HTMLElement[] {
+  const out: HTMLElement[] = [];
+  const marque = (el: Element) => el.hasAttribute("data-anim") || Boolean(el.closest("[data-anim]")) || Boolean(el.querySelector("[data-anim]"));
+  const marche = (el: HTMLElement, prof: number) => {
+    for (const x of Array.from(el.children) as HTMLElement[]) {
+      if (x.offsetHeight < 8 || x.hasAttribute("hidden")) continue;
+      const pos = getComputedStyle(x).position;
+      if (pos === "fixed" || pos === "sticky" || pos === "absolute") continue;
+      /* On descend dans un bloc plus haut que l'écran, et dans une pile ou un groupe de chapitres : une pile est une page, pas une pièce. */
+      if (x.children.length > 1 && prof < 4 && (x.offsetHeight > haut * 0.9 || /(^|\s)(pile|chapitres)(\s|$)/.test(x.className))) marche(x, prof + 1);
+      else if (!marque(x)) out.push(x);
+    }
+  };
+  marche(page as HTMLElement, 0);
+  return out;
+}
+
+function animer(el: HTMLElement, rang: number, force?: Genre) {
+  const genre = force ?? (el.dataset.anim as Genre | undefined);
   if (!genre || !(genre in RESERVES) || animes.has(el)) return;
   animes.add(el);
   const delay = Math.min(rang * PAS_MS, PLAFOND_MS);
-  const nom = tirer(genre);
+  const nom = tirer(genre, Math.random, genre === "bloc" && el.offsetHeight > GRAND_PX ? SANS_POUR_LES_GRANDS : []);
   const r = (RESERVES[genre] as Record<string, { de?: Image; ms: number; courbe?: string }>)[nom];
   if (genre === "courbe" && !r.de) {
     /* Le tracé : la longueur réelle du trait, du vide au plein ; aucun attribut n'est posé sur le dessin. */
@@ -78,41 +105,43 @@ function animer(el: HTMLElement, rang: number) {
 export function Mouvement() {
   const chemin = usePathname();
   useEffect(() => {
-    if (!permis() || jouees.has(chemin)) return;
-    jouees.add(chemin);
-    const tous = [...document.querySelectorAll<HTMLElement>("[data-anim]")];
-    let rang = 0;
-    const plusBas: HTMLElement[] = [];
-    for (const el of tous) {
-      const r = el.getBoundingClientRect();
-      if (r.bottom > 0 && r.top < window.innerHeight) animer(el, rang++);
-      else plusBas.push(el);
-    }
-    let lot = 0;
+    if (!permis()) return;
+    const racine = estRacine(chemin);
+    /* Les pièces à animer : celles que la page a marquées, et, sur une racine, celles que « cibles » trouve. Chacune garde son genre. */
+    const genres = new Map<HTMLElement, Genre | undefined>();
+    const recolter = () => {
+      document.querySelectorAll<HTMLElement>("[data-anim]").forEach((el) => genres.set(el, undefined));
+      const page = document.querySelector("main");
+      if (racine && page) for (const el of cibles(page)) if (!genres.has(el)) genres.set(el, el.offsetHeight < RANGEE_PX ? "montant" : "bloc");
+    };
     const io = new IntersectionObserver(
       (entrees) => {
-        lot = 0;
+        let lot = 0;
         for (const e of entrees) {
           if (!e.isIntersecting) continue;
-          animer(e.target as HTMLElement, lot++);
-          io.unobserve(e.target);
+          const el = e.target as HTMLElement;
+          animer(el, lot++, genres.get(el));
+          io.unobserve(el);
         }
       },
       { threshold: 0.12 },
     );
-    plusBas.forEach((el) => io.observe(el));
-    /* Une page qui se remplit après coup (un bloc rendu à son tour) reçoit son mouvement elle aussi, un instant après. */
-    const tard = setTimeout(() => {
-      document.querySelectorAll<HTMLElement>("[data-anim]").forEach((el, i) => {
-        if (animes.has(el)) return;
+    const lancer = () => {
+      recolter();
+      let rang = 0;
+      for (const [el, genre] of genres) {
+        if (animes.has(el)) continue;
         const r = el.getBoundingClientRect();
-        if (r.bottom > 0 && r.top < window.innerHeight) animer(el, i);
+        if (r.bottom > 0 && r.top < window.innerHeight) animer(el, rang++, genre);
         else io.observe(el);
-      });
-    }, 500);
+      }
+    };
+    lancer();
+    /* Une page qui se remplit après coup (un bloc rendu à son tour) reçoit son mouvement elle aussi, un instant après. */
+    const tard = [setTimeout(lancer, 350), setTimeout(lancer, 1000)];
     return () => {
       io.disconnect();
-      clearTimeout(tard);
+      tard.forEach(clearTimeout);
     };
   }, [chemin]);
   return null;

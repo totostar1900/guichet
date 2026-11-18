@@ -21,7 +21,6 @@ import { issuerZone } from "@/data/issuer-registry";
 import { Drapeau } from "./Drapeau";
 import type { FenetreDuCours, FenetresDuCours } from "@/lib/market/performe";
 import { localIso } from "@/lib/format";
-import { useFiligrane } from "@/lib/ui/filigrane";
 import styles from "./OfferCard.module.css";
 
 /**
@@ -139,7 +138,6 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false, sans
   const href = useLineHref()(o.id);
   const desk = useDeskView();
   const t = useT();
-  const signe = useFiligrane(o.country);
   const { fmtDate } = useDates();
   const compact = useDensity() === "compact" || extension || sansExtension;
   const estAction = o.kind === "MARCHE" && o.instrument === "action";
@@ -288,7 +286,7 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false, sans
     </>
   );
   const detaillee = () => (
-        <article data-coach="titres-carte" data-fili={signe} className={`${styles.card} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
+        <article data-coach="titres-carte" className={`${styles.card} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
       {corps(false)}
     </article>
   );
@@ -303,7 +301,7 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false, sans
     );
   }
   const carte = (
-        <article data-coach="titres-carte" data-fili={signe} className={`${styles.card} ${styles.compact} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
+        <article data-coach="titres-carte" className={`${styles.card} ${styles.compact} ${s.past ? styles.past : ""}`} style={{ ["--card-c" as string]: `var(--fam-${s.family}, ${famVars(s.family)["--fam-c"] ?? "var(--line-2)"})` }}>
           <Link href={href} className={styles.cLink}>
             <span className={styles.cId}>
               {tresor ? (

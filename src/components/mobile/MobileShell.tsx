@@ -278,7 +278,8 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
           </svg>
         </button>
         {/* PLUS DE FIL D'ARIANE NI DE NOM DE PAGE DANS LA BARRE (10 novembre 2026) : le retour, puis les boutons ; la colonne du milieu reste vide et pousse les boutons à droite. */}
-        <div className={styles.lieu} aria-hidden="true" />
+        {/* LA PASTILLE DES STATUTS EST ICI, À GAUCHE DE LA BARRE (18 novembre 2026) : sur une racine, à la place que la flèche de retour laisse libre. Elle se tait pour un visiteur, pour le desk et sans ligne retenue. */}
+        <div className={styles.lieu}>{!deskHost && signedIn && racine && <BulleDesStatuts />}</div>
         <div className={styles.right}>
           {/* LA LANGUE N'EST PAS ICI. Elle y est passée une matinée, le temps de
               constater que la barre tient un titre de 116 px et trois objets à
@@ -337,8 +338,6 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
         })}
       </nav>
       )}
-      {/* LA BULLE DES STATUTS (18 novembre 2026, 1B) : une seule, sur les racines ; elle se tait pour un visiteur, pour le desk et sans ligne retenue. */}
-      {!deskHost && signedIn && racine && <BulleDesStatuts />}
       {!deskHost && signedIn && racine && <BalayageDesMenus />}
       {!deskHost && <Mouvement />}
 

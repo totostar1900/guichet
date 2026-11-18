@@ -1,16 +1,13 @@
 /* LA BULLE : un rond flottant au-dessus de la barre du bas, à droite. Elle suit « --dock-h » : quand la barre glisse hors de l'écran dans une page, elle descend avec elle. */
 .bulle {
-  position: fixed;
-  right: calc(var(--s-6) + env(safe-area-inset-right, 0px));
-  bottom: calc(var(--dock-h, 56px) + env(safe-area-inset-bottom, 0px) + var(--s-6));
-  z-index: 39;
-  width: 56px;
-  height: 56px;
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: 0;
   border-radius: 50%;
   background: var(--navy);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -25,10 +22,6 @@
 .bulle:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 3px;
-}
-:global(html[data-profondeur="page"]) .bulle {
-  opacity: 0;
-  pointer-events: none;
 }
 .anneau {
   position: absolute;
@@ -51,15 +44,15 @@
 .g {
   position: relative;
   color: var(--gold);
-  font-size: var(--t-6);
+  font-size: var(--t-3);
   font-weight: 800;
 }
 .point {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 11px;
-  height: 11px;
+  top: 0;
+  right: 0;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--crit);
   border: 2px solid var(--navy);
@@ -116,13 +109,24 @@
 }
 .voile[data-fili^="monument:"]::before {
   content: "";
-  width: 46vw;
-  max-width: 220px;
-  height: 64vw;
-  max-height: 310px;
+  width: 52vw;
+  max-width: 230px;
+  height: 74vw;
+  max-height: 330px;
+  /* L'ENCRE NEUTRE : le monument, détouré de sa photo, est un masque dont la transparence porte l'ombre (public/filigrane/*.png) ; il prend la couleur du texte de la page. */
   background-color: var(--on-navy);
+  opacity: 0.22;
   -webkit-mask: var(--fili-masque) center / contain no-repeat;
   mask: var(--fili-masque) center / contain no-repeat;
+}
+.voile[data-fili="monument:reunification-statue"] {
+  --fili-masque: url("/filigrane/reunification-statue.png");
+}
+.voile[data-fili="monument:reunification"] {
+  --fili-masque: url("/filigrane/reunification.png");
+}
+.voile[data-fili="monument:nouvelle-liberte"] {
+  --fili-masque: url("/filigrane/nouvelle-liberte.png");
 }
 .fm0 {
   background: linear-gradient(160deg, #ff7a59, #c14bd1 60%, #0b2545);
@@ -201,8 +205,7 @@
   gap: var(--s-4);
   z-index: 2;
 }
-.entete small {
-  opacity: 0.8;
+.entete b {
   margin-right: auto;
 }
 .mini {

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { RACINES } from "@/lib/nav-profondeur";
 import { racineVoisine, rangDe, sensEntre } from "@/lib/nav-ruban";
@@ -72,16 +72,27 @@ describe("le mouvement tiré au hasard", () => {
     expect(tirer("bloc", () => 0)).toBe(Object.keys(RESERVES.bloc)[0]);
     expect(tirer("bloc", () => 0.9999)).toBe(Object.keys(RESERVES.bloc).at(-1));
   });
-  it("coupé par « réduire les animations » et par l'économiseur de données ; une fois par page ; seulement des propriétés sûres", () => {
+  it("coupé par « réduire les animations » et par l'économiseur de données ; une fois par pièce et par ouverture ; seulement des propriétés sûres", () => {
     const m = lire("src/components/mouvement/Mouvement.tsx");
     expect(m).toMatch(/prefers-reduced-motion: reduce/);
     expect(m).toMatch(/saveData/);
-    expect(m).toMatch(/jouees\.has\(chemin\)/);
+    expect(m).toMatch(/if \(animes\.has\(el\)\) continue;/);
+    expect(m, "la page ne rejoue plus à chaque ouverture : une mémoire par chemin est revenue").not.toMatch(/jouees/);
     expect(m, "une classe ou un attribut est posé sur un élément que React a rendu").not.toMatch(/classList|setAttribute|dataset\.\w+ =/);
     expect(m).toMatch(/\.animate\(/);
     const debutReserve = m.indexOf("export const RESERVES");
     const reserve = m.slice(debutReserve, m.indexOf("type Genre", debutReserve));
     expect(reserve, "une animation touche la mise en page").not.toMatch(/\b(width|height|margin|padding|top|left)\b/);
+  });
+  it("les sept racines animent leurs pièces à chaque ouverture puis au défilement, sans flou sur un grand bloc ni pièce collante", () => {
+    const m = lire("src/components/mouvement/Mouvement.tsx");
+    expect(m).toMatch(/const racine = estRacine\(chemin\);/);
+    expect(m).toMatch(/if \(racine && page\) for \(const el of cibles\(page\)\)/);
+    expect(m, "une pièce collante ou fixe serait animée").toMatch(/pos === "fixed" \|\| pos === "sticky" \|\| pos === "absolute"/);
+    expect(m, "une pile est animée d'un bloc au lieu de ses pièces").toMatch(/\(pile\|chapitres\)/);
+    expect(m).toMatch(/SANS_POUR_LES_GRANDS = \["flou", "zoom"\]/);
+    expect(m).toMatch(/new IntersectionObserver/);
+    expect(tirer("bloc", () => 0, ["monte"])).toBe("fond");
   });
   it("rien de contractuel ne porte data-anim : ni la signature, ni le récapitulatif, ni l'avis", () => {
     for (const f of ["src/app/moi/ordres/[id]/Signature.tsx", "src/app/moi/ordres/[id]/page.tsx", "src/app/moi/ordres/[id]/signe/page.tsx"]) expect(lire(f), f).not.toContain("data-anim");
@@ -111,22 +122,24 @@ describe("le filigrane patriote", () => {
     expect(signesPossibles("Gabon")).toEqual(["+241", "GAB"]);
     expect(signesPossibles(undefined)).toEqual([]);
   });
-  it("chaque monument a son dessin en masque, et les cartes comme la visionneuse le posent", () => {
-    const g = lire("src/app/globals.css");
-    for (const m of SIGNES_DU_PAYS.Cameroun.monuments ?? []) expect(g, `le monument « ${m.id} » n'a pas de dessin`).toContain(`[data-fili="monument:${m.id}"] { --fili-masque: url("data:image/svg+xml,`);
-    expect(lire("src/components/OfferCard.module.css")).toMatch(/\.card\[data-fili\^="monument:"\]::before \{[^}]*mask: var\(--fili-masque\)/);
-    expect(lire("src/components/statuts/Statuts.module.css")).toMatch(/\.voile\[data-fili\^="monument:"\]::before \{[^}]*mask: var\(--fili-masque\)/);
+  it("chaque monument est une image détourée de sa photo, en ombre d'encre neutre (un PNG à transparence), posée en masque sur la page de statut", () => {
+    const css = lire("src/components/statuts/Statuts.module.css");
+    for (const m of SIGNES_DU_PAYS.Cameroun.monuments ?? []) {
+      expect(existsSync(`public/filigrane/${m.id}.png`), `le monument « ${m.id} » n'a pas d'image`).toBe(true);
+      expect(css, `le monument « ${m.id} » n'est pas relié à son image`).toContain(`.voile[data-fili="monument:${m.id}"] {\n  --fili-masque: url("/filigrane/${m.id}.png");`);
+    }
+    expect(css).toMatch(/\.voile\[data-fili\^="monument:"\]::before \{[^}]*background-color: var\(--on-navy\)[^}]*mask: var\(--fili-masque\)/);
   });
   it("le logo n'est plus le fond d'une page de statut : c'est le signe du pays de la ligne, et la première page n'en a pas", () => {
     expect(lire("src/components/statuts/Statuts.module.css"), "le logo est revenu en fond").not.toContain("icon-512");
     expect(lire("src/components/statuts/Statuts.tsx")).toMatch(/data-fili=\{it \? signe : undefined\}/);
   });
-  it("il est pâle, hors du flux, derrière le contenu, et les cartes de titres et de fonds le posent", () => {
-    const css = lire("src/components/OfferCard.module.css");
-    expect(css).toMatch(/\.card\[data-fili\]::before \{[^}]*content: attr\(data-fili\)[^}]*z-index: -1[^}]*opacity: 0\.07[^}]*pointer-events: none/);
-    expect(css).toMatch(/\.card\[data-fili\] \{\s*position: relative;\s*isolation: isolate;/);
-    expect(lire("src/components/OfferCard.tsx").match(/data-fili=\{signe\}/g)).toHaveLength(2);
-    expect(lire("src/app/fonds/FundCard.tsx").match(/data-fili=\{signe\}/g)).toHaveLength(2);
+  it("il n'est QUE le fond d'une page de statut : ni une carte de titre, ni une carte de fonds, ni une ligne ne le portent", () => {
+    for (const f of ["src/components/OfferCard.tsx", "src/app/fonds/FundCard.tsx", "src/components/OfferCard.module.css", "src/app/globals.css"]) expect(lire(f), `${f} porte encore le filigrane`).not.toMatch(/data-fili|useFiligrane|fili-masque/);
+    expect(lire("src/components/statuts/Statuts.module.css")).toMatch(/\.voile\[data-fili\]::before \{[^}]*pointer-events: none/);
+  });
+  it("le signe tiré pour un autre pays ne se lit pas : il manque un instant plutôt que de montrer le monument de la page d'avant", () => {
+    expect(lire("src/lib/ui/filigrane.ts")).toMatch(/return tire\.pays === pays \? tire\.signe : undefined;/);
   });
   it("se tire après le montage, jamais au rendu", () => {
     const h = lire("src/lib/ui/filigrane.ts");

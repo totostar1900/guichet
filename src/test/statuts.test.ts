@@ -190,13 +190,13 @@ describe("la place des statuts", () => {
   const lire = (f: string) => readFileSync(f, "utf8");
   it("une seule bulle, sur les racines, pour qui est connecté et hors du desk ; plus de rangée dans l'Accueil", () => {
     const m = lire("src/components/mobile/MobileShell.tsx");
-    expect(m).toMatch(/\{!deskHost && signedIn && racine && <BulleDesStatuts \/>\}/);
+    expect(m).toMatch(/<div className=\{styles\.lieu\}>\{!deskHost && signedIn && racine && <BulleDesStatuts \/>\}<\/div>/);
     expect(lire("src/components/accueil/TuilesDuHaut.tsx"), "la rangée de ronds est revenue dans l'Accueil").not.toMatch(/Statuts/);
     expect(lire("src/app/api/statuts/route.ts")).toMatch(/if \(!s \|\| isDesk\(s\)\) return new NextResponse\(null, \{ status: 204 \}\)/);
   });
   it("la bulle s'ouvre sur la première page non vue, et se tait sans ligne retenue", () => {
     const st = lire("src/components/statuts/Statuts.tsx");
-    expect(st).toMatch(/setOuvert\(premiereNonVue\(groupes, vus\)\)/);
+    expect(st).toMatch(/setOuvert\(premiereNonVue\(toutes, vus\)\)/);
     expect(st).toMatch(/if \(!donnees \|\| donnees\.items\.length === 0\) return null;/);
     expect(st, "la mémoire des pages vues n'est plus sur l'appareil").toMatch(/localStorage\.setItem\(CLE_VUS/);
   });
@@ -208,9 +208,19 @@ describe("la place des statuts", () => {
     expect(lire("src/components/statuts/chargerStatuts.ts")).toMatch(/messagesPourLaLangue\(messagesActifs\(enBase\), lang\)/);
     expect(st, "tirer vers le bas ne ferme plus la page").toMatch(/ddy > 120/);
     expect(st, "la page ne suit plus le doigt").toMatch(/translateY\(\$\{dy\}px\)/);
-    expect(st, "un balayage de côté ne change plus de groupe").toMatch(/groupeSuivant\(\)/);
+    expect(st, "un balayage de côté n'avance plus d'une page").toMatch(/if \(ddx < -60\) avancer\(\);\s*else if \(ddx > 60\) precedent\(\);/);
     expect(st, "« Voir la fiche » ou « Passer un ordre » a disparu").toMatch(/t\("Voir la fiche"\)[\s\S]*t\("Passer un ordre"\)/);
     expect(st, "le cœur ne suit plus la ligne").toMatch(/toggleWatch\(item\.id, on,/);
+  });
+  it("UN SEUL STATUT : une suite de pages sans groupes, sans nom de famille ni compteur de groupes ; la pastille est dans la barre du haut, à gauche", () => {
+    const st = lire("src/components/statuts/Statuts.tsx");
+    expect(st, "un groupe revient dans la visionneuse").not.toMatch(/GROUPES|groupesDe|groupeSuivant|groupePrecedent|type Groupe\b|groupe\.nom|La maison/);
+    expect(st).toMatch(/export function pagesDe\(items: ItemStatut\[\]\): Page\[\]/);
+    expect(lire("src/lib/domain/statuts.ts"), "la liste des groupes nommés est revenue").not.toMatch(/export const GROUPES/);
+    const css = lire("src/components/statuts/Statuts.module.css");
+    expect(css, "la pastille est de nouveau flottante").not.toMatch(/\.bulle \{[^}]*position: fixed/);
+    expect(css).toMatch(/\.bulle \{\s*position: relative;/);
+    expect(lire("src/components/mobile/MobileShell.tsx"), "la pastille est redescendue au-dessus de la barre du bas").not.toMatch(/\{!deskHost && signedIn && racine && <BulleDesStatuts \/>\}\n/);
   });
   it("rien n'avance par une minuterie : la barre courante est l'animation, qui s'arrête avec « réduire les animations »", () => {
     const st = lire("src/components/statuts/Statuts.tsx");

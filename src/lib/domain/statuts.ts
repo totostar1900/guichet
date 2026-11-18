@@ -48,16 +48,10 @@ export function statutsAffiches(rows: StatutRow[], visibles: Offer[]): { ligne: 
 }
 
 /**
- * LES GROUPES DES STATUTS (18 novembre 2026, planche « Statuts et dynamisme », 1B) : « La maison » (le message tiré), puis une famille de lignes chacune. Un balayage de côté passe
- * au groupe suivant ; les nouveautés d'abord. « La cote » réunit les actions et les obligations cotées.
+ * UN SEUL STATUT (18 novembre 2026, le client : « un seul statut et non découpé en maison et autre ») : une suite de pages, le message de la maison d'abord, puis une page par ligne retenue.
+ * La famille d'une ligne ne sert qu'à la COULEUR de sa page (Trésor, fonds, cote) ; aucun nom de groupe n'est lu par le client.
  */
 export type GroupeDeStatut = "maison" | "tresor" | "fonds" | "cote";
-export const GROUPES: { id: GroupeDeStatut; nom: string }[] = [
-  { id: "maison", nom: "La maison" },
-  { id: "tresor", nom: "Trésor" },
-  { id: "fonds", nom: "Fonds" },
-  { id: "cote", nom: "La cote" },
-];
 export const groupeDe = (kind: string): GroupeDeStatut => (kind === "BTA" || kind === "OTA" ? "tresor" : kind === "FONDS" ? "fonds" : "cote");
 /** Combien de secondes dure une page avant la suivante. */
 export const SECONDES_PAR_PAGE = 5;

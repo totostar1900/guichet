@@ -8,7 +8,7 @@ import { toggleWatch } from "@/app/offres/[id]/actions";
 import { Drapeau } from "@/components/Drapeau";
 import { deverrouiller, verrouiller } from "@/components/mobile/verrou-defilement";
 import { useT } from "@/i18n/client";
-import { GROUPES, SECONDES_PAR_PAGE, type GroupeDeStatut } from "@/lib/domain/statuts";
+import { SECONDES_PAR_PAGE, type GroupeDeStatut } from "@/lib/domain/statuts";
 import type { Country } from "@/lib/domain/types";
 import { tic } from "@/lib/ui/haptique";
 import { useFiligrane } from "@/lib/ui/filigrane";
@@ -16,18 +16,19 @@ import type { ItemStatut } from "./chargerStatuts";
 import styles from "./Statuts.module.css";
 
 /**
- * LES STATUTS, FAÇON MESSAGERIE (18 novembre 2026, planche « Statuts et dynamisme », 1B) : UNE BULLE, UNE VISIONNEUSE, DES GROUPES.
+ * LES STATUTS, FAÇON MESSAGERIE (18 novembre 2026, planche « Statuts et dynamisme », 1B ; précisé le même jour : UN SEUL STATUT, la pastille dans la barre du haut).
  *
- * Une seule bulle « G » flotte au-dessus de la barre du bas, sur les racines. Son anneau est découpé en autant d'arcs que de pages : de la couleur pour ce qui est nouveau, du gris
+ * Une seule pastille « G » se tient à GAUCHE DE LA BARRE DU HAUT, sur les racines. Son anneau est découpé en autant d'arcs que de pages : de la couleur pour ce qui est nouveau, du gris
  * pour ce qui est vu (la mémoire est celle de l'appareil, comme la croix de l'annonce : aucun suivi du client). La toucher ouvre la visionneuse DIRECTEMENT sur la première page non vue.
  *
- * La visionneuse : « La maison » (un message tiré au hasard, sur un fond de la palette) puis un groupe par famille de lignes. Les barres du haut avancent seules (5 s) ; un doigt
- * maintenu met en pause (et le bouton ⏸) ; on touche à droite pour avancer, à gauche pour reculer ; un balayage de côté change de groupe ; TIRER VERS LE BAS ferme, la page suit le doigt.
+ * La visionneuse est UNE SEULE SUITE, sans groupes : un message de la maison tiré au hasard, puis une page par ligne que le desk retient. Les barres du haut avancent seules (5 s) ; un doigt
+ * maintenu met en pause (et le bouton ⏸) ; on touche à droite pour avancer, à gauche pour reculer ; un balayage de côté fait de même ; TIRER VERS LE BAS ferme, la page suit le doigt.
  * Pas de minuterie en JavaScript : l'avance est l'animation de la barre courante, qui s'arrête avec « réduire les animations » (alors rien n'avance seul). La croix et Échap ferment aussi.
+ *
+ * LE SIGNE DU PAYS (code, mot, monument) n'est QUE le fond d'une page de statut : jamais celui d'une carte ou d'une ligne.
  */
 type Donnees = { messages: string[]; items: ItemStatut[] };
 type Page = { cle: string; groupe: GroupeDeStatut; item?: ItemStatut };
-type Groupe = { id: GroupeDeStatut; nom: string; pages: Page[] };
 
 const CLE_VUS = "guichet:statuts:vus";
 const FONDS_DE_MESSAGE = ["fm0", "fm1", "fm2", "fm3", "fm4"] as const;
@@ -48,31 +49,22 @@ function ecrireVus(v: Set<string>) {
   }
 }
 
-/** Les groupes à montrer : « La maison » d'abord, puis chaque famille qui a des lignes. */
-export function groupesDe(items: ItemStatut[]): Groupe[] {
-  const jour = jourCourt();
-  const out: Groupe[] = [{ id: "maison", nom: "La maison", pages: [{ cle: `maison:${jour}`, groupe: "maison" }] }];
-  for (const g of GROUPES.filter((x) => x.id !== "maison")) {
-    const pages = items.filter((i) => i.groupe === g.id).map((item): Page => ({ cle: item.id, groupe: g.id, item }));
-    if (pages.length > 0) out.push({ id: g.id, nom: g.nom, pages });
-  }
-  return out;
+/** La suite des pages : le message de la maison d'abord, puis une page par ligne retenue. */
+export function pagesDe(items: ItemStatut[]): Page[] {
+  return [{ cle: `maison:${jourCourt()}`, groupe: "maison" }, ...items.map((item): Page => ({ cle: item.id, groupe: item.groupe, item }))];
 }
 
-/** La première page non vue, dans l'ordre des groupes ; sinon la toute première. */
-export function premiereNonVue(groupes: Groupe[], vus: ReadonlySet<string>): { g: number; p: number } {
-  for (let g = 0; g < groupes.length; g++) {
-    const p = groupes[g].pages.findIndex((x) => !vus.has(x.cle));
-    if (p >= 0) return { g, p };
-  }
-  return { g: 0, p: 0 };
+/** L'index de la première page non vue ; sinon la toute première. */
+export function premiereNonVue(pages: Page[], vus: ReadonlySet<string>): number {
+  const i = pages.findIndex((x) => !vus.has(x.cle));
+  return i >= 0 ? i : 0;
 }
 
 export function BulleDesStatuts() {
   const t = useT();
   const [donnees, setDonnees] = useState<Donnees | null>(null);
   const [vus, setVus] = useState<Set<string>>(new Set());
-  const [ouvert, setOuvert] = useState<{ g: number; p: number } | null>(null);
+  const [ouvert, setOuvert] = useState<number | null>(null);
   const [message, setMessage] = useState({ texte: "", fond: 0 });
 
   useEffect(() => {
@@ -90,8 +82,7 @@ export function BulleDesStatuts() {
     };
   }, []);
 
-  const groupes = useMemo(() => (donnees ? groupesDe(donnees.items) : []), [donnees]);
-  const toutes = useMemo(() => groupes.flatMap((g) => g.pages), [groupes]);
+  const toutes = useMemo(() => (donnees ? pagesDe(donnees.items) : []), [donnees]);
   const marquer = useCallback((cle: string) => {
     setVus((anciens) => {
       if (anciens.has(cle)) return anciens;
@@ -106,7 +97,7 @@ export function BulleDesStatuts() {
     tic(6);
     const pool = donnees.messages;
     setMessage({ texte: pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : "", fond: Math.floor(Math.random() * FONDS_DE_MESSAGE.length) });
-    setOuvert(premiereNonVue(groupes, vus));
+    setOuvert(premiereNonVue(toutes, vus));
   };
   const nouveaux = toutes.filter((p) => !vus.has(p.cle)).length;
   return (
@@ -116,7 +107,7 @@ export function BulleDesStatuts() {
         <b className={styles.g}>G</b>
         {nouveaux > 0 && <i className={styles.point} aria-hidden="true" />}
       </button>
-      {ouvert && <Visionneuse groupes={groupes} depart={ouvert} message={message} marquer={marquer} fermer={() => setOuvert(null)} />}
+      {ouvert !== null && <Visionneuse pages={toutes} depart={ouvert} message={message} marquer={marquer} fermer={() => setOuvert(null)} />}
     </>
   );
 }
@@ -144,7 +135,7 @@ function Anneau({ pages, vus }: { pages: Page[]; vus: ReadonlySet<string> }) {
   );
 }
 
-function Visionneuse({ groupes, depart, message, marquer, fermer }: { groupes: Groupe[]; depart: { g: number; p: number }; message: { texte: string; fond: number }; marquer: (cle: string) => void; fermer: () => void }) {
+function Visionneuse({ pages, depart, message, marquer, fermer }: { pages: Page[]; depart: number; message: { texte: string; fond: number }; marquer: (cle: string) => void; fermer: () => void }) {
   const t = useT();
   const router = useRouter();
   const [pos, setPos] = useState(depart);
@@ -156,8 +147,7 @@ function Visionneuse({ groupes, depart, message, marquer, fermer }: { groupes: G
   const [monte, setMonte] = useState(false);
   const geste = useRef<{ x: number; y: number; t: number; axe?: "h" | "v"; tenu?: ReturnType<typeof setTimeout> } | null>(null);
 
-  const groupe = groupes[pos.g];
-  const page = groupe.pages[pos.p];
+  const page = pages[pos];
   const it = page.item;
   const signe = useFiligrane(it?.pays as Country | undefined);
 
@@ -179,16 +169,12 @@ function Visionneuse({ groupes, depart, message, marquer, fermer }: { groupes: G
     courante.current = pos;
   }, [pos]);
   const suivant = useCallback(() => {
-    const c = courante.current;
-    if (c.p < groupes[c.g].pages.length - 1) setPos({ g: c.g, p: c.p + 1 });
-    else if (c.g < groupes.length - 1) setPos({ g: c.g + 1, p: 0 });
+    if (courante.current < pages.length - 1) setPos(courante.current + 1);
     else fermer();
-  }, [groupes, fermer]);
-  const precedent = useCallback(() => {
-    setPos((c) => (c.p > 0 ? { g: c.g, p: c.p - 1 } : c.g > 0 ? { g: c.g - 1, p: 0 } : c));
-  }, []);
-  const groupeSuivant = useCallback(() => setPos((c) => (c.g < groupes.length - 1 ? { g: c.g + 1, p: 0 } : c)), [groupes]);
-  const groupePrecedent = useCallback(() => setPos((c) => (c.g > 0 ? { g: c.g - 1, p: 0 } : c)), []);
+  }, [pages, fermer]);
+  const precedent = useCallback(() => setPos((c) => Math.max(0, c - 1)), []);
+  /* Un balayage de côté avance ou recule, et s'arrête aux bouts : il ne ferme pas. */
+  const avancer = useCallback(() => setPos((c) => Math.min(pages.length - 1, c + 1)), [pages]);
 
   useEffect(() => {
     const touche = (e: KeyboardEvent) => {
@@ -241,8 +227,8 @@ function Visionneuse({ groupes, depart, message, marquer, fermer }: { groupes: G
       return;
     }
     if (g.axe === "h") {
-      if (ddx < -60) groupeSuivant();
-      else if (ddx > 60) groupePrecedent();
+      if (ddx < -60) avancer();
+      else if (ddx > 60) precedent();
       return;
     }
     if (duree < 220) {
@@ -286,18 +272,15 @@ function Visionneuse({ groupes, depart, message, marquer, fermer }: { groupes: G
       onPointerCancel={fin}
     >
       <div className={styles.pages} aria-hidden="true">
-        {groupe.pages.map((p, n) => (
-          <i key={p.cle} className={n < pos.p ? styles.faite : n === pos.p ? styles.courante : undefined}>
-            {n === pos.p && <b key={`${pos.g}-${pos.p}`} style={{ animationDuration: `${SECONDES_PAR_PAGE}s`, animationPlayState: aDeux ? "paused" : "running" }} onAnimationEnd={suivant} />}
+        {pages.map((p, n) => (
+          <i key={p.cle} className={n < pos ? styles.faite : n === pos ? styles.courante : undefined}>
+            {n === pos && <b key={pos} style={{ animationDuration: `${SECONDES_PAR_PAGE}s`, animationPlayState: aDeux ? "paused" : "running" }} onAnimationEnd={suivant} />}
           </i>
         ))}
       </div>
       <div className={styles.entete}>
-        <span className={styles.mini}>{groupe.nom.slice(0, 1)}</span>
-        <b>{t(groupe.nom)}</b>
-        <small>
-          {pos.g + 1}/{groupes.length}
-        </small>
+        <span className={styles.mini}>G</span>
+        <b>{t("Statuts")}</b>
         <button type="button" className={styles.rond} onClick={() => setPause((p) => !p)} aria-pressed={pause} aria-label={pause ? t("Reprendre") : t("Pause")}>
           {pause ? "▶" : "⏸"}
         </button>

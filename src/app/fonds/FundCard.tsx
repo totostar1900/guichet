@@ -14,7 +14,6 @@ import { FENETRES, raisonSansFenetre } from "@/lib/domain/fund-perf";
 import { useDepuisQuand, useFenetre, useNomFenetre, valeurFenetre } from "./fenetre";
 import { fmt, fmtPct } from "@/lib/format";
 import type { FundRow } from "./FundsBrowser";
-import { useFiligrane } from "@/lib/ui/filigrane";
 import styles from "@/components/OfferCard.module.css";
 import propres from "./FundCard.module.css";
 
@@ -56,7 +55,6 @@ const cls = (v?: number | null) => (v == null ? "" : v > 0 ? styles.up : v < 0 ?
  */
 export function FundCard({ r, sansExtension = false }: { r: FundRow; /** La carte compacte seule, sans chevron ni extension : celle que l'Accueil montre (10 novembre 2026, planche 1A). */ sansExtension?: boolean }) {
   const { fmtDate } = useDates();
-  const signe = useFiligrane(r.pays);
   const depuisQuand = useDepuisQuand();
   /* Un douze mois vide veut dire deux choses : le fonds n'a pas un an, ou nos
      VL ne remontent pas à un an. La case ne peut pas les confondre. */
@@ -170,14 +168,14 @@ export function FundCard({ r, sansExtension = false }: { r: FundRow; /** La cart
   if (!compact)
     return (
       <SwipeActions key="pleine" id={r.id}>
-        <article className={styles.card} data-fili={signe} style={{ ["--card-c" as string]: "var(--info)" }}>
+        <article className={styles.card} style={{ ["--card-c" as string]: "var(--info)" }}>
           {corps(false)}
         </article>
       </SwipeActions>
     );
 
   const carte = (
-        <article className={`${styles.card} ${propres.compacte}`} data-fili={signe} style={{ ["--card-c" as string]: "var(--info)" }}>
+        <article className={`${styles.card} ${propres.compacte}`} style={{ ["--card-c" as string]: "var(--info)" }}>
           <Link href={href} className={propres.cLien}>
             <span className={propres.cNom}>
               <b>{r.title}</b>
