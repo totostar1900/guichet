@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { RACINES } from "@/lib/nav-profondeur";
 import { racineVoisine, rangDe, sensEntre } from "@/lib/nav-ruban";
 import { SIGNES_DU_PAYS, signesPossibles } from "@/lib/domain/filigrane";
-import { PAGES_FIXES, RESERVES, pageAnimee, tirer } from "@/components/mouvement/Mouvement";
+import { RESERVES, pageAnimee, tirer } from "@/components/mouvement/Mouvement";
 
 const lire = (f: string) => readFileSync(f, "utf8");
 

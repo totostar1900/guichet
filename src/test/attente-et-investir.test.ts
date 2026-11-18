@@ -5,6 +5,22 @@ import { isInstrumentsSection, isTraderSection } from "@/lib/nav-section";
 
 const lire = (p: string) => fs.readFileSync(path.join(__dirname, "../..", p), "utf8");
 
+/** Les fichiers d'actions serveur du client : tout « use server » hors du desk. */
+function lireFichiersDActions(dir = path.join(__dirname, "..")): { chemin: string; src: string }[] {
+  const out: { chemin: string; src: string }[] = [];
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) {
+      if (e.name === "desk" || e.name === "test") continue;
+      out.push(...lireFichiersDActions(p));
+    } else if (/\.(ts|tsx)$/.test(e.name)) {
+      const src = fs.readFileSync(p, "utf8");
+      if (/^["']use server["']/m.test(src.slice(0, 200))) out.push({ chemin: path.relative(path.join(__dirname, ".."), p), src });
+    }
+  }
+  return out;
+}
+
 /**
  * L'ÉCRAN D'ATTENTE ET LE SIÈGE « INVESTIR » (10 novembre 2026).
  *
@@ -53,13 +69,31 @@ describe("le siège « Investir » du menu du bas", () => {
   });
 });
 
-describe("la page gardée 30 secondes côté navigateur (11 novembre 2026, choix du client)", () => {
-  it("garde une page dynamique 30 s : un retour dans ce délai s'affiche d'un coup, au-delà elle est redemandée", () => {
+describe("la page gardée cinq minutes côté navigateur (11 novembre 2026 : 30 s ; 18 novembre 2026 : 300 s, choix du client)", () => {
+  it("garde une page dynamique 300 s : un retour dans ce délai s'affiche d'un coup, au-delà elle est redemandée", () => {
     const c = lire("next.config.ts");
-    expect(c, "la page dynamique n'est plus gardée 30 s côté navigateur : chaque retour recommence au serveur (mesuré : 660 ms au lieu de 32 ms)").toMatch(/experimental: \{ serverActions: \{ bodySizeLimit: "25mb" \}, staleTimes: \{ dynamic: 30 \} \}/);
+    expect(c, "la page dynamique n'est plus gardée 5 min côté navigateur : chaque retour recommence au serveur (mesuré : 660 ms au lieu de 32 ms)").toMatch(/experimental: \{ serverActions: \{ bodySizeLimit: "25mb" \}, staleTimes: \{ dynamic: 300 \} \}/);
   });
-  it("garde la mémoire courte : pas plus de 60 s, parce que les cours et les valeurs liquidatives s'y lisent", () => {
+  it("la mémoire ne dépasse pas cinq minutes : les cours ne changent qu'une fois par jour, mais le desk écrit à toute heure", () => {
     const m = lire("next.config.ts").match(/staleTimes: \{ dynamic: (\d+) \}/);
-    expect(Number(m?.[1]), "la page est gardée plus d'une minute : un cours périmé se lirait trop longtemps").toBeLessThanOrEqual(60);
+    expect(Number(m?.[1]), "la page est gardée plus de cinq minutes : un prix du desk se lirait trop longtemps périmé").toBeLessThanOrEqual(300);
+  });
+  it("le desk relit chaque page à son ouverture, et seulement lui ; la première page d'une visite ne se relit pas", () => {
+    const l = lire("src/app/layout.tsx");
+    expect(l).toMatch(/\{deskUi && <RelectureDuDesk \/>\}/);
+    const r = lire("src/components/RelectureDuDesk.tsx");
+    expect(r).toMatch(/router\.refresh\(\)/);
+    expect(r).toMatch(/if \(premiere\.current\) \{\s*premiere\.current = false;\s*return;\s*\}/);
+  });
+  it("chaque fonction d'écriture du client vide le cache du navigateur (directement ou par son aide), sinon une page gardée mentirait cinq minutes", () => {
+    const aides = /revalidatePath\(|updateTag\(|revalidateTag\(|cookies\(\)|\brafraichir\(|revaliderLaConvention\(/;
+    const hors: string[] = [];
+    for (const f of lireFichiersDActions()) {
+      for (const bloc of f.src.split(/\n(?=export async function )/).slice(1)) {
+        const nom = bloc.match(/^export async function (\w+)/)![1];
+        if (/audit\(/.test(bloc) && !aides.test(bloc)) hors.push(`${f.chemin} · ${nom}`);
+      }
+    }
+    expect(hors, `ces écritures du client ne purgent pas le cache : ${hors.join(", ")}`).toEqual([]);
   });
 });

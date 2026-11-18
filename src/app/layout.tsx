@@ -15,6 +15,7 @@ import { Colonne } from "@/components/Colonne";
 import { PosteDuDesk } from "@/components/PosteDuDesk";
 import { chargerPoste } from "@/lib/desk/poste";
 import { ColonneStore } from "@/components/ColonneStore";
+import { RelectureDuDesk } from "@/components/RelectureDuDesk";
 import { MobileShell } from "@/components/mobile/MobileShell";
 import { Presentation } from "@/components/mobile/Presentation";
 import { isDesk } from "@/lib/auth/types";
@@ -234,6 +235,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </div>
         </header>
+        {deskUi && <RelectureDuDesk />}
         <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} echeances={echeances ?? 0} favoris={Boolean(favoris)} desk={deskUi} deskHost={onDeskHost} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         <Presentation visiteur={!session} />

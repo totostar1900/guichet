@@ -25,8 +25,10 @@ const nextConfig: NextConfig = {
     "/desk/marche": ["./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"],
   },
   // Phone photos and PDFs go through server actions (KYC pieces, intake sources): the 1 MB default is far too small.
-  /* LA PAGE EST GARDÉE 30 SECONDES CÔTÉ NAVIGATEUR (11 novembre 2026, choix du client) : par défaut une page dynamique n'est pas gardée (« staleTimes.dynamic » vaut 0), donc chaque retour recommence au serveur. Revenir sur une page vue il y a moins de 30 s l'affiche d'un coup ; au-delà, elle est redemandée. Une écriture (server action avec « revalidatePath ») vide cette mémoire. */
-  experimental: { serverActions: { bodySizeLimit: "25mb" }, staleTimes: { dynamic: 30 } },
+  /* LA PAGE EST GARDÉE CINQ MINUTES CÔTÉ NAVIGATEUR (11 novembre 2026 : 30 s ; 18 novembre 2026 : 300 s, choix du client). Par défaut une page dynamique n'est pas gardée (« staleTimes.dynamic » vaut 0), donc chaque retour recommence au serveur. Revenir sur une page vue il y a moins de cinq minutes l'affiche d'un coup ; au-delà, elle est redemandée.
+     POURQUOI CINQ MINUTES : les cours et les valeurs liquidatives ne changent qu'une fois par jour (« boc », 18 h 30 UTC) et la BEAC une fois par jour (« beac », 9 h) ; le client consulte. Ce qu'il écrit lui-même vide cette mémoire : une server action avec « revalidatePath » purge tout le cache du navigateur, et les écritures du client en appellent toutes une (relevé du 18 novembre 2026).
+     CE QUE CE RÉGLAGE NE COUVRE PAS : le desk (« RelectureDuDesk » relit chaque page à l'ouverture) et l'écriture d'un ordre, que le serveur relit toujours (« allowedIntents » à l'envoi). L'âge de ce qu'on lit n'est pas affiché : c'est le choix du client. */
+  experimental: { serverActions: { bodySizeLimit: "25mb" }, staleTimes: { dynamic: 300 } },
   // « Apprendre » and « Simulateur & repères » merged into Info; old links keep working.
   async redirects() {
     return [

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { audit } from "@/lib/audit";
 import { authMode, getSession } from "@/lib/auth";
@@ -39,6 +40,8 @@ export async function verifyEnrol(prev: MfaState, form: FormData): Promise<MfaSt
     await audit("mfa.enrol", "profile", s.userId, { after: { mfa: "totp" } });
     await repo().logEvent({ kind: "system", html: `Second facteur activé par <b>${s.name}</b>` });
   }
+  /* Le navigateur garde les pages cinq minutes : un second facteur activé vide cette mémoire, pour que la page d'arrivée se relise. */
+  revalidatePath("/", "layout");
   redirect(safeNext(form.get("next")));
 }
 
