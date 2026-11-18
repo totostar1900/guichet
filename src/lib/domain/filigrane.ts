@@ -58,7 +58,14 @@ export const SIGNES_DU_PAYS: Record<Country, SignesDuPays> = {
       { id: "femme-a-la-sphere", nom: "Statue d'une femme tenant une sphère, sur un piédestal (la haie derrière porte « TOUMA… » ; nom à confirmer)" },
     ],
   },
-  "Guinée éq.": { tel: "+240", iso3: "GNQ" },
+  "Guinée éq.": {
+    tel: "+240",
+    iso3: "GNQ",
+    monuments: [
+      { id: "colonne-aux-visages", nom: "Colonne sculptée de visages, coiffée d'un toit de chaume, parmi des totems (nom à confirmer)" },
+      { id: "eglise-a-deux-tours", nom: "Église à deux tours rose et crème (nom et lieu à confirmer)" },
+    ],
+  },
 };
 
 /** Le préfixe d'un signe qui est un monument : « monument:reunification ». */

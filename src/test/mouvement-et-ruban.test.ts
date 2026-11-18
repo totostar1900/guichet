@@ -173,11 +173,12 @@ describe("le filigrane patriote", () => {
     expect(signesPossibles("Congo")).toEqual(["+242", "COG", "monument:femme-au-flambeau", "monument:deux-torses"]);
     expect(signesPossibles("RCA")).toEqual(["+236", "CAF", "monument:tour-aux-couleurs"]);
     expect(signesPossibles("Tchad")).toEqual(["+235", "TCD", "monument:homme-aux-chaines", "monument:femme-a-la-sphere"]);
+    expect(signesPossibles("Guinée éq.")).toEqual(["+240", "GNQ", "monument:colonne-aux-visages", "monument:eglise-a-deux-tours"]);
     expect(signesPossibles(undefined)).toEqual([]);
   });
   it("chaque monument est une image détourée de sa photo, en ombre d'encre neutre (un PNG à transparence), posée en masque sur la page de statut", () => {
     const css = lire("src/components/statuts/Statuts.module.css");
-    const tous = [...(SIGNES_DU_PAYS.Cameroun.monuments ?? []), ...(SIGNES_DU_PAYS.Gabon.monuments ?? []), ...(SIGNES_DU_PAYS.Congo.monuments ?? []), ...(SIGNES_DU_PAYS.RCA.monuments ?? []), ...(SIGNES_DU_PAYS.Tchad.monuments ?? [])];
+    const tous = [...(SIGNES_DU_PAYS.Cameroun.monuments ?? []), ...(SIGNES_DU_PAYS.Gabon.monuments ?? []), ...(SIGNES_DU_PAYS.Congo.monuments ?? []), ...(SIGNES_DU_PAYS.RCA.monuments ?? []), ...(SIGNES_DU_PAYS.Tchad.monuments ?? []), ...(SIGNES_DU_PAYS["Guinée éq."].monuments ?? [])];
     expect(tous.map((m) => m.id), "un identifiant de monument est en double").toEqual([...new Set(tous.map((m) => m.id))]);
     for (const m of tous) {
       expect(existsSync(`public/filigrane/${m.id}.png`), `le monument « ${m.id} » n'a pas d'image`).toBe(true);

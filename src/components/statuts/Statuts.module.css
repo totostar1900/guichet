@@ -152,6 +152,12 @@
 .voile[data-fili="monument:femme-a-la-sphere"] {
   --fili-masque: url("/filigrane/femme-a-la-sphere.png");
 }
+.voile[data-fili="monument:colonne-aux-visages"] {
+  --fili-masque: url("/filigrane/colonne-aux-visages.png");
+}
+.voile[data-fili="monument:eglise-a-deux-tours"] {
+  --fili-masque: url("/filigrane/eglise-a-deux-tours.png");
+}
 .fm0 {
   background: linear-gradient(160deg, #ff7a59, #c14bd1 60%, #0b2545);
 }
