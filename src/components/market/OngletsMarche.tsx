@@ -45,7 +45,7 @@ export function OngletsMarche() {
      pour ne pas la poser, parce qu'une page de plus naîtrait en la posant. */
   if (pages.length === 0) return null;
   return (
-    <nav className={styles.onglets} aria-label={t("Ce qui s'achète")}>
+    <nav className={styles.onglets} aria-label={t("Ce qui s'achète")} data-balayage-sections="">
       {pages.map((p) => (
         <Link key={p.key} href={p.href} replace data-coach={p.key === "fonds" ? "titres-fonds" : undefined} className={styles.onglet} aria-current={estIci(p, path) ? "page" : undefined}>
           <svg viewBox="0 0 24 24" aria-hidden="true" {...TRAIT}>

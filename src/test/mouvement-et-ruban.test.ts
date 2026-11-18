@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { RACINES } from "@/lib/nav-profondeur";
-import { racineVoisine, rangDe, sensEntre } from "@/lib/nav-ruban";
+import { PLACES, SECTIONS_INVESTIR, placeDe, racineVoisine, rangDe, sectionVoisine, sensEntre } from "@/lib/nav-ruban";
 import { SIGNES_DU_PAYS, signesPossibles } from "@/lib/domain/filigrane";
 import { DEFILE, INTENSITE, RESERVES, choisir, pageAnimee, tirer } from "@/components/mouvement/Mouvement";
 
@@ -11,10 +11,14 @@ const lire = (f: string) => readFileSync(f, "utf8");
  * Décidé le 18 novembre 2026 (planches « Statuts et mouvement » 2A·2B·3C et « Statuts et dynamisme » 2A·2B) : le ruban à sept racines, le balayage entre menus, le mouvement tiré au hasard,
  * le titre replié et le filigrane patriote.
  */
-describe("le ruban des sept racines", () => {
-  it("suit l'ordre des racines : Accueil, Activité, Titres, Fonds, Adjudications, Marché, Aide", () => {
+describe("le ruban du balayage : cinq places, Investir n'en compte qu'une (planche « Le balayage », 2A)", () => {
+  it("les sept racines gardent leur ordre pour les barres ; le ruban n'a que cinq places", () => {
     expect([...RACINES]).toEqual(["/", "/activite", "/titres", "/fonds", "/calendrier", "/marche", "/aide"]);
     expect(RACINES.map((r) => rangDe(r))).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect([...PLACES]).toEqual(["/", "/activite", "/titres", "/marche", "/aide"]);
+    expect([...SECTIONS_INVESTIR].map((r) => placeDe(r))).toEqual([2, 2, 2]);
+    expect(placeDe("/marche")).toBe(3);
+    expect(placeDe("/offres/x")).toBe(-1);
   });
   it("avancer glisse en avant, revenir glisse en arrière, et une page qui n'est pas une racine ne glisse pas", () => {
     expect(sensEntre("/", "/marche")).toEqual(["nav-avant"]);
@@ -22,17 +26,44 @@ describe("le ruban des sept racines", () => {
     expect(sensEntre("/titres", "/titres")).toBeUndefined();
     expect(sensEntre("/offres/x", "/marche")).toBeUndefined();
     expect(sensEntre("/titres?x=1", "/fonds")).toEqual(["nav-avant"]);
+    expect(sensEntre("/calendrier", "/fonds")).toEqual(["nav-retour"]);
+    expect(sensEntre("/calendrier", "/marche")).toEqual(["nav-avant"]);
   });
-  it("Titres, Fonds et Adjudications sont voisins ; les deux bouts du ruban n'ont qu'un voisin", () => {
-    expect(racineVoisine("/titres", 1)).toBe("/fonds");
-    expect(racineVoisine("/fonds", 1)).toBe("/calendrier");
-    expect(racineVoisine("/calendrier", 1)).toBe("/marche");
+  it("UN geste suffit pour quitter Investir, de n'importe laquelle de ses trois sections", () => {
+    for (const s of SECTIONS_INVESTIR) {
+      expect(racineVoisine(s, -1), s).toBe("/activite");
+      expect(racineVoisine(s, 1), s).toBe("/marche");
+    }
     expect(racineVoisine("/", -1)).toBeUndefined();
     expect(racineVoisine("/aide", 1)).toBeUndefined();
     expect(racineVoisine("/moi/ordres", 1)).toBeUndefined();
   });
+  it("en arrivant dans Investir, la dernière section vue ; Titres à défaut ou si la mémoire est fausse", () => {
+    expect(racineVoisine("/activite", 1)).toBe("/titres");
+    expect(racineVoisine("/activite", 1, "/fonds")).toBe("/fonds");
+    expect(racineVoisine("/marche", -1, "/calendrier")).toBe("/calendrier");
+    expect(racineVoisine("/marche", -1, "/aide")).toBe("/titres");
+  });
+  it("la rangée d'onglets change de section d'un balayage, et s'arrête aux bouts", () => {
+    expect(sectionVoisine("/titres", 1)).toBe("/fonds");
+    expect(sectionVoisine("/fonds", 1)).toBe("/calendrier");
+    expect(sectionVoisine("/calendrier", 1)).toBeUndefined();
+    expect(sectionVoisine("/titres", -1)).toBeUndefined();
+    expect(sectionVoisine("/activite", 1)).toBeUndefined();
+    expect(lire("src/components/market/OngletsMarche.tsx")).toContain('data-balayage-sections=""');
+  });
   it("le toucher d'un onglet glisse dans le bon sens, sauf sur l'onglet où l'on est déjà", () => {
     expect(lire("src/components/mobile/MobileShell.tsx")).toMatch(/transitionTypes=\{tab\.match\(path\) \? undefined : sensEntre\(path, tab\.href\)\}/);
+  });
+  it("la voisine se devine : son nom et ses lignes dans l'écart, son onglet allumé, rien d'autre à charger", () => {
+    const b = lire("src/components/mobile/BalayageDesMenus.tsx");
+    expect(b).toMatch(/NOM_DE_PLACE\[d\.vers\]/);
+    expect(b).toMatch(/document\.createElement\("div"\)/);
+    expect(b).toMatch(/const PARALLAXE = 0\.55;/);
+    expect(b, "l'aperçu doit disparaître à la fin du geste").toMatch(/retireApercu\(\);\s*place\(contenu\(\), 0, true\)/);
+    expect(lire("src/components/mobile/MobileShell.tsx")).toContain("data-dock={tab.href}");
+    expect(lire("src/app/globals.css")).toMatch(/a\[data-dock\]\[data-vers\] \{\s*color: var\(--gold\)/);
+    expect(lire("src/app/globals.css")).toMatch(/\[data-voisine\] \{\s*position: fixed;/);
   });
 });
 

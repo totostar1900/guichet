@@ -195,7 +195,7 @@ describe("l'Accueil sans phrase de vide ni titre de dossier", () => {
 describe("la barre du bas rend un tic au doigt", () => {
   it("chaque siège de la barre du bas vibre au toucher, sans casser là où le téléphone ne sait pas", () => {
     const shell = lire("src/components/mobile/MobileShell.tsx");
-    expect(shell, "les sièges de la barre du bas ne vibrent plus").toMatch(/<Link key=\{tab\.href\} href=\{tab\.href\} replace transitionTypes=\{[^}]*\} onClick=\{\(\) => tic\(\)\}/);
+    expect(shell, "les sièges de la barre du bas ne vibrent plus").toMatch(/<Link key=\{tab\.href\} href=\{tab\.href\} data-dock=\{tab\.href\} replace transitionTypes=\{[^}]*\} onClick=\{\(\) => tic\(\)\}/);
     const tic = lire("src/lib/ui/haptique.ts");
     expect(tic, "le tic ne se protège plus quand la vibration manque").toMatch(/try \{\s*navigator\.vibrate\?\.\(ms\);\s*\} catch/);
   });

@@ -3,7 +3,9 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect } from "react";
 import { FEUILLE_OUVERTE } from "@/lib/ui/feuille-ouverte";
-import { racineVoisine, sensEntre } from "@/lib/nav-ruban";
+import { NOM_DE_PLACE, placeDe, racineVoisine, sectionVoisine, sensEntre } from "@/lib/nav-ruban";
+import { lireDerniereSection, noterDerniereSection } from "@/lib/ui/derniere-section";
+import { useT } from "@/i18n/client";
 import { tic } from "@/lib/ui/haptique";
 
 /**
@@ -14,6 +16,9 @@ import { tic } from "@/lib/ui/haptique";
  *
  * IL TIENT POUR UN GESTE COURANT, pas pour un grand geste : au moins 22 % de la largeur, ou 40 px à 0,3 px/ms (un pouce qui glisse). Mesuré avant : un geste de 100 à 130 px en un quart de seconde ne passait presque jamais, il fallait 136 px
  * (35 %) ou 60 px à plus de 0,5 px/ms.
+ *
+ * LA VOISINE SE DEVINE (planche « Le balayage », 1A) : dans l'écart que le doigt ouvre, le nom de la page où le geste mène et la silhouette de ses lignes, qui glissent un peu moins vite que le doigt ; l'onglet de la barre du bas s'allume quand le geste suffit. Rien n'est chargé en plus : le nom est connu d'avance (`NOM_DE_PLACE`).
+ * CINQ PLACES, pas sept (planche « Le balayage », 2A) : Investir n'en compte qu'une, un balayage la quitte d'un seul geste ; les trois sections se changent par la rangée d'onglets (`data-balayage-sections`) et, d'un balayage posé sur elle, par la section voisine. En arrivant dans Investir, la dernière section vue.
  *
  * LE NAVIGATEUR NE LE PREND PLUS : « touch-action: pan-y pinch-zoom » sur le contenu d'une racine (voir « globals.css ») laisse le défilement vertical et le zoom au navigateur et réserve le sens horizontal à ce geste, sans « pointercancel ». Les zones qui
  * défilent de côté (leur propre conteneur) gardent leur geste.
@@ -29,6 +34,51 @@ const VITESSE_PX_MS = 0.3;
 const RESISTANCE = 0.25;
 const RESISTANCE_MAX_PX = 40;
 const RETOUR_MS = 220;
+/** La part du déplacement que prend la silhouette de la voisine : elle glisse moins vite que le doigt. */
+const PARALLAXE = 0.55;
+const NB_LIGNES = 3;
+
+const chercheOnglet = (e: Element | null) => (e ? e.closest("[data-balayage-sections]") : null);
+
+/** L'aperçu de la page voisine, posé dans l'écart ouvert par le doigt. Un élément, créé au premier mouvement et retiré à la fin. */
+function apercu(nom: string, dx: number, assez: boolean, reduit: boolean): void {
+  const main = contenu();
+  if (!main) return;
+  let el = document.querySelector<HTMLElement>("[data-voisine]");
+  if (!el) {
+    el = document.createElement("div");
+    el.setAttribute("data-voisine", "");
+    el.setAttribute("aria-hidden", "true");
+    const titre = document.createElement("b");
+    el.appendChild(titre);
+    for (let i = 0; i < NB_LIGNES; i++) el.appendChild(document.createElement("i"));
+    document.body.appendChild(el);
+  }
+  const r = main.getBoundingClientRect();
+  const l = Math.abs(dx);
+  const gauche = dx > 0;
+  el.style.top = `${Math.max(0, r.top)}px`;
+  el.style.width = `${l}px`;
+  el.style.left = gauche ? "0px" : "auto";
+  el.style.right = gauche ? "auto" : "0px";
+  el.toggleAttribute("data-assez", assez);
+  el.setAttribute("data-cote", gauche ? "g" : "d");
+  const titre = el.firstElementChild as HTMLElement;
+  if (titre.textContent !== nom) titre.textContent = nom;
+  const decale = reduit ? 0 : Math.max(0, (1 - PARALLAXE) * (gauche ? -1 : 1) * Math.max(0, 80 - l));
+  el.style.setProperty("--decale", `${Math.round(decale)}px`);
+}
+
+function retireApercu() {
+  document.querySelector("[data-voisine]")?.remove();
+  document.querySelectorAll("a[data-dock][data-vers]").forEach((a) => a.removeAttribute("data-vers"));
+}
+
+/** L'onglet de la barre du bas de la page où le geste mène s'allume quand le geste suffit. */
+function allumeOnglet(vers: string | undefined, on: boolean) {
+  document.querySelectorAll("a[data-dock][data-vers]").forEach((a) => a.removeAttribute("data-vers"));
+  if (on && vers) document.querySelector(`a[data-dock="${vers}"]`)?.setAttribute("data-vers", "");
+}
 
 function geste(e: Element | null): boolean {
   for (let el: Element | null = e; el && el !== document.body; el = el.parentElement) {
@@ -61,6 +111,7 @@ function place(el: HTMLElement | null, dx: number, doux: boolean) {
 }
 
 function remetre(el: HTMLElement | null) {
+  retireApercu();
   if (!el) return;
   el.style.transition = "";
   el.style.transform = "";
@@ -70,20 +121,27 @@ function remetre(el: HTMLElement | null) {
 export function BalayageDesMenus() {
   const router = useRouter();
   const chemin = usePathname();
+  const tr = useT();
 
   /* LA PAGE REVIENT À SA PLACE AU CHANGEMENT DE PAGE, avant que la transition ne photographie la nouvelle : un effet de mise en page, et non un effet ordinaire. */
   useLayoutEffect(() => {
     remetre(contenu());
   }, [chemin]);
 
+  /* La dernière section d'Investir vue : pour y revenir par un balayage. */
+  useEffect(() => {
+    noterDerniereSection(chemin);
+  }, [chemin]);
+
   useEffect(() => {
     const reduit = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     /* Les deux racines voisines sont préparées d'avance : au toucher validé, la page arrive sans attendre. */
     for (const pas of [1, -1] as const) {
-      const v = racineVoisine(chemin, pas);
-      if (v) router.prefetch(v);
+      for (const v of [racineVoisine(chemin, pas, lireDerniereSection()), sectionVoisine(chemin, pas)]) if (v) router.prefetch(v);
     }
-    type Doigt = { x: number; y: number; t: number; verrou: "h" | "v" | null; dx: number; tic: boolean; vers: string | undefined };
+    type Doigt = { x: number; y: number; t: number; verrou: "h" | "v" | null; dx: number; tic: boolean; vers: string | undefined; onglets: boolean };
+    /* Le voisin d'un geste : la section d'à côté pour un balayage posé sur la rangée d'onglets d'Investir, la place d'à côté sinon. */
+    const voisin = (onglets: boolean, pas: 1 | -1) => (onglets ? sectionVoisine(chemin, pas) : racineVoisine(chemin, pas, lireDerniereSection()));
     let d: Doigt | null = null;
     let reprise: ReturnType<typeof setTimeout> | undefined;
 
@@ -99,7 +157,7 @@ export function BalayageDesMenus() {
       if (geste(cible)) return;
       clearTimeout(reprise);
       remetre(main);
-      d = { x: t.clientX, y: t.clientY, t: Date.now(), verrou: null, dx: 0, tic: false, vers: undefined };
+      d = { x: t.clientX, y: t.clientY, t: Date.now(), verrou: null, dx: 0, tic: false, vers: undefined, onglets: !!chercheOnglet(cible) };
     };
 
     const bouge = (e: TouchEvent) => {
@@ -113,13 +171,19 @@ export function BalayageDesMenus() {
         if (d.verrou === "v") return;
       }
       d.dx = dx;
-      d.vers = racineVoisine(chemin, dx < 0 ? 1 : -1);
+      d.vers = voisin(d.onglets, dx < 0 ? 1 : -1);
       const assez = Math.abs(dx) >= window.innerWidth * PART_DE_LARGEUR;
       if (d.vers && assez && !d.tic) {
         d.tic = true;
         tic(6);
       } else if (!assez) d.tic = false;
       if (!reduit) place(contenu(), d.vers ? dx : Math.sign(dx) * Math.min(RESISTANCE_MAX_PX, Math.abs(dx) * RESISTANCE), false);
+      /* La voisine se devine : son nom et ses lignes dans l'écart, son onglet allumé quand le geste suffit (jamais aux bouts du ruban : rien à deviner). */
+      if (d.vers) {
+        apercu(tr(NOM_DE_PLACE[d.vers] ?? ""), dx, assez, reduit);
+        /* Dans la barre du bas, Investir est « /titres », quelle que soit la section où le geste mène. */
+        allumeOnglet(d.onglets ? undefined : placeDe(d.vers) === placeDe("/titres") ? "/titres" : d.vers, assez);
+      } else retireApercu();
       /* Le défilement vertical ne doit pas partir pendant qu'on tire de côté. */
       if (e.cancelable) e.preventDefault();
     };
@@ -132,22 +196,29 @@ export function BalayageDesMenus() {
       const dx = t ? t.clientX - g.x : g.dx;
       const vitesse = Math.abs(dx) / Math.max(1, Date.now() - g.t);
       const franc = Math.abs(dx) >= window.innerWidth * PART_DE_LARGEUR || (Math.abs(dx) >= MIN_PX && vitesse >= VITESSE_PX_MS);
-      const vers = racineVoisine(chemin, dx < 0 ? 1 : -1);
+      const vers = voisin(g.onglets, dx < 0 ? 1 : -1);
       if (!franc || !vers) {
+        retireApercu();
         place(contenu(), 0, true);
         return;
       }
       if (!g.tic) tic(8);
       router.replace(vers, { transitionTypes: sensEntre(chemin, vers) });
       /* Si la page ne change pas (réseau, erreur), elle revient à sa place plutôt que de rester décalée. */
-      reprise = setTimeout(() => place(contenu(), 0, true), 2500);
+      reprise = setTimeout(() => {
+        retireApercu();
+        place(contenu(), 0, true);
+      }, 2500);
     };
 
     const annule = () => {
       if (!d) return;
       const g = d;
       d = null;
-      if (g.verrou === "h") place(contenu(), 0, true);
+      if (g.verrou === "h") {
+        retireApercu();
+        place(contenu(), 0, true);
+      }
     };
 
     document.addEventListener("touchstart", debut, { passive: true });
@@ -160,7 +231,8 @@ export function BalayageDesMenus() {
       document.removeEventListener("touchend", fin);
       document.removeEventListener("touchcancel", annule);
       clearTimeout(reprise);
+      retireApercu();
     };
-  }, [chemin, router]);
+  }, [chemin, router, tr]);
   return null;
 }

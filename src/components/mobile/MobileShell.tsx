@@ -331,7 +331,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
              ils mènent à leur sommaire, qui a l'adresse, le retour système
              et la place d'une phrase entière. */
           return (
-            <Link key={tab.href} href={tab.href} replace transitionTypes={tab.match(path) ? undefined : sensEntre(path, tab.href)} onClick={() => tic()} aria-current={tab.match(path) ? "page" : undefined}>
+            <Link key={tab.href} href={tab.href} data-dock={tab.href} replace transitionTypes={tab.match(path) ? undefined : sensEntre(path, tab.href)} onClick={() => tic()} aria-current={tab.match(path) ? "page" : undefined}>
               {face}
             </Link>
           );

@@ -1834,3 +1834,51 @@ details[open]::details-content {
 html[data-balayage] body {
   overflow-x: clip;
 }
+
+/* LA VOISINE SE DEVINE (18 novembre 2026, planche « Le balayage », 1A) : dans l'écart que le doigt ouvre pendant un balayage entre les menus, le nom de la page où le geste mène et la silhouette de ses lignes (« BalayageDesMenus »). Elle est derrière les deux barres et ne prend pas le toucher. */
+[data-voisine] {
+  position: fixed;
+  bottom: 0;
+  z-index: 30;
+  overflow: hidden;
+  display: grid;
+  align-content: start;
+  gap: var(--tuiles-gap);
+  padding: var(--sections-gap) 16px 0;
+  background: var(--paper);
+  pointer-events: none;
+}
+[data-voisine] > * {
+  transform: translateX(var(--decale, 0px));
+}
+[data-voisine] b {
+  font-size: var(--t-6, 1.125rem);
+  font-weight: 800;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+[data-voisine][data-assez] b {
+  color: var(--ink);
+}
+[data-voisine] i {
+  display: block;
+  height: 56px;
+  min-width: 140px;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon, 14px);
+  opacity: 0.7;
+}
+[data-voisine][data-cote="g"] > * {
+  justify-self: end;
+}
+/* L'onglet de la barre du bas où le geste mène s'allume quand le geste suffit. */
+a[data-dock][data-vers] {
+  color: var(--gold);
+  transition: color 0.12s linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  a[data-dock][data-vers] {
+    transition: none;
+  }
+}

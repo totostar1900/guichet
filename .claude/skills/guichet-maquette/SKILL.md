@@ -13,7 +13,7 @@ La règle de la maison : **le client ne découvre pas une décision de conceptio
 |---|---|
 | on se compare à d'autres applications, on juge une hiérarchie, une densité, un chiffre en avant | `guichet-benchmark` (références déjà analysées d'abord : `docs/design-refs/`) |
 | on touche un écart, un chapitre, une tuile, un jeton d'espace | `guichet-espace-tuiles` |
-| le client cite Bamboo, ou demande une vitrine, une intro, une fiche de titre « comme » ce courtier | `guichet-bamboo` (journal, principes, ce qu'on ne reprend pas, règle de la vitrine sans chiffre) |
+| le client cite Bamboo, ou demande une vitrine, une intro, une fiche de titre « comme » ce courtier | `guichet-ad` (journal, principes, ce qu'on ne reprend pas, règle de la vitrine sans chiffre) |
 | on écrit un texte de risque, de mise en garde, d'avertissement | `ETALON.md` § 10 — **rassurer sans rien retirer** |
 | on nomme un lieu du client ou on lui parle | `ETALON.md` § 9 — « Mes » pour ce qui est à lui, « Votre » pour la maison |
 
@@ -162,3 +162,7 @@ La première maquette de la fiche d'une séance avait remplacé le graphique des
 - **On ne mesure sur une période que ce qu'on sait** : variation de la valeur liquidative pour un fonds, du cours (dividendes non compris) pour une action, bon tenu jusqu'à l'échéance et réinvesti pour un BTA. Un OTA, sans sortie anticipée, garde son rendement actuariel : « non mesuré sur la période » vaut mieux qu'un chiffre inventé.
 - **La plage se borne aux données communes et le dit** ; sous trente jours, pas de taux annuel ; le rétrospectif porte sa mise en garde en tête (`ETALON.md` § 10) et montre la dispersion selon le jour d'entrée sans nommer « le bon jour ».
 - **Un réglage de maison (taux bancaire) a une référence datée au Desk, que le client peut surcharger**, et la page dit toujours laquelle a servi.
+
+## Leçon du 18 novembre 2026 : un geste se compte en places que le client voit, pas en routes
+
+Le ruban du balayage suivait les sept routes (Titres, Fonds et Adjudications séparées) alors que la barre du bas n'en montre que cinq : il fallait trois gestes pour quitter Investir, et le client l'a écrit (« en un glissement et pas en 3 »). Quand un geste parcourt une suite, **compter les places telles que l'écran les montre**, et réserver aux onglets du dedans (ici la rangée d'onglets, `data-balayage-sections`) le passage d'une sous-page à l'autre. Deux autres règles de la même planche : le geste **montre où il mène** (nom et silhouette de la page voisine dans l'écart, onglet de la barre du bas qui s'allume) plutôt que de laisser un fond vide ; et **en arrivant dans un groupe, on retrouve la dernière section vue** (une préférence de l'appareil, `derniere-section.ts`). Reste connu : les rangées à glissement (`data-balayage-local`) et le champ de recherche gardent leur geste, donc le balayage de page ne part que d'une zone libre.
