@@ -146,6 +146,12 @@
 .voile[data-fili="monument:tour-aux-couleurs"] {
   --fili-masque: url("/filigrane/tour-aux-couleurs.png");
 }
+.voile[data-fili="monument:homme-aux-chaines"] {
+  --fili-masque: url("/filigrane/homme-aux-chaines.png");
+}
+.voile[data-fili="monument:femme-a-la-sphere"] {
+  --fili-masque: url("/filigrane/femme-a-la-sphere.png");
+}
 .fm0 {
   background: linear-gradient(160deg, #ff7a59, #c14bd1 60%, #0b2545);
 }

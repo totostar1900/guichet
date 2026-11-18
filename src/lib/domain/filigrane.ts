@@ -50,7 +50,14 @@ export const SIGNES_DU_PAYS: Record<Country, SignesDuPays> = {
     iso3: "CAF",
     monuments: [{ id: "tour-aux-couleurs", nom: "Tour en forme de tente aux couleurs du drapeau, avec une arche (nom à confirmer)" }],
   },
-  Tchad: { tel: "+235", iso3: "TCD" },
+  Tchad: {
+    tel: "+235",
+    iso3: "TCD",
+    monuments: [
+      { id: "homme-aux-chaines", nom: "Statue de bronze d'un homme aux poings levés et aux chaînes brisées, sur un socle de roche (nom à confirmer)" },
+      { id: "femme-a-la-sphere", nom: "Statue d'une femme tenant une sphère, sur un piédestal (la haie derrière porte « TOUMA… » ; nom à confirmer)" },
+    ],
+  },
   "Guinée éq.": { tel: "+240", iso3: "GNQ" },
 };
 
