@@ -20,6 +20,7 @@ import { IndexPulse } from "@/components/IndexPulse";
 import { CeQuiPerforme } from "@/components/CeQuiPerforme";
 import { BlocApprendre } from "@/components/accueil/BlocApprendre";
 import { TitreDeBloc } from "@/components/TitreDeBloc";
+import { TotalCollant } from "./TotalCollant";
 import { aLaUne, pourquoiLu, publishedNews, titreLu } from "@/lib/news";
 import { TrustNudge } from "@/components/TrustNudge";
 import { Reinvest } from "@/components/Reinvest";
@@ -203,7 +204,8 @@ export async function Console({ session }: { session: Session }) {
 
       {/* LE CHIFFRE DU PORTEFEUILLE EN TÊTE, AVANT LES DEVOIRS (2 novembre 2026, décidé sur la planche de référence). Ce que le client possède se lit d'abord ; ce qu'on attend de lui vient juste dessous. Quatre gestes ronds sous le chiffre, et la mention des lignes sans cours reste ici : un total qui omet une ligne le dit à côté du total. */}
       {positions.length > 0 && (
-        <section className={styles.hero} aria-label={t("Mon portefeuille")}>
+        <section className={styles.hero} data-hero="" aria-label={t("Mon portefeuille")}>
+          {!(total === 0 && perf.unvalued > 0) && <TotalCollant total={`${fmt(Math.round(total))} FCFA`} variation={perf.invested > 0 ? `${gain >= 0 ? "+" : ""}${fmt(Math.round(gain))}` : undefined} />}
           <div className={styles.grand}>
             <span className={styles.etiquette}>{t("Mon portefeuille")}</span>
             {/* Rien de valorisable et de l'argent versé : « 0 FCFA » serait
@@ -212,7 +214,7 @@ export async function Console({ session }: { session: Session }) {
             {total === 0 && perf.unvalued > 0 ? (
               <b className={styles.sansValeur}>{t("Pas encore de valorisation")}</b>
             ) : (
-              <b>
+              <b data-anim="montant">
                 {fmt(Math.round(total))} <em>FCFA</em>
               </b>
             )}
@@ -396,7 +398,7 @@ export async function Console({ session }: { session: Session }) {
             <b>{t("Ce que vous avez versé, ce qui vous est revenu")}</b>
             <Link href="/moi/performance">{t("Ce que mon épargne a rapporté")} →</Link>
           </div>
-          <svg className={styles.courbe} viewBox="0 0 1000 300" role="img" aria-label={t("Les versements et les retours cumulés, mois par mois, et la valeur du jour")}>
+          <svg className={styles.courbe} data-anim="courbe" viewBox="0 0 1000 300" role="img" aria-label={t("Les versements et les retours cumulés, mois par mois, et la valeur du jour")}>
             <line x1="52" y1="14" x2="52" y2="248" stroke="var(--line)" strokeWidth="1" />
             <line x1="52" y1="248" x2="986" y2="248" stroke="var(--line)" strokeWidth="1" />
             <path d={trace.verse} fill="none" stroke="var(--ink-3)" strokeWidth="2" strokeDasharray="4 5" />
@@ -540,7 +542,7 @@ export async function Console({ session }: { session: Session }) {
       {/* CHAPITRE 5 : LIRE (17 novembre 2026, planche « Accueil », 3A). À la une et Apprendre sont deux blocs de même nature : 28 px entre eux, 44 avec ce qui les entoure. Vide, le chapitre ne laisse aucun écart. */}
       <div className={`pile ${styles.chapitre}`}>
       {une && (
-        <section className={styles.blocUne} aria-labelledby="a-la-une">
+        <section className={styles.blocUne} data-anim="bloc" aria-labelledby="a-la-une">
           <TitreDeBloc id="a-la-une" titre="À la une" href="/actualites" tout="Toutes les actualités" />
           <Link href="/actualites" className={styles.une}>
             <small>

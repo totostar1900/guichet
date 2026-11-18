@@ -1,67 +1,165 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { toggleWatch } from "@/app/offres/[id]/actions";
 import { Drapeau } from "@/components/Drapeau";
 import { deverrouiller, verrouiller } from "@/components/mobile/verrou-defilement";
 import { useT } from "@/i18n/client";
+import { GROUPES, SECONDES_PAR_PAGE, type GroupeDeStatut } from "@/lib/domain/statuts";
+import type { Country } from "@/lib/domain/types";
 import { tic } from "@/lib/ui/haptique";
+import { useFiligrane } from "@/lib/ui/filigrane";
 import type { ItemStatut } from "./chargerStatuts";
 import styles from "./Statuts.module.css";
 
 /**
- * LES STATUTS (17 novembre 2026) : une rangée de ronds, un rond par ligne que le desk a retenue, et une visionneuse plein écran.
+ * LES STATUTS, FAÇON MESSAGERIE (18 novembre 2026, planche « Statuts et dynamisme », 1B) : UNE BULLE, UNE VISIONNEUSE, DES GROUPES.
  *
- * Le premier rond ouvre la première page : un message tiré au hasard dans la base du desk, sur le logo. Chaque autre rond ouvre la page de sa ligne, avec « Voir la fiche » et « Passer un ordre ».
- * L'anneau or dit « ouverte », pas « vite » : aucun compte à rebours, aucune urgence. Rien ne défile seul : on touche à droite pour avancer, à gauche pour reculer,
- * on tire vers le bas ou on touche la croix pour fermer (Échap et les flèches au clavier).
+ * Une seule bulle « G » flotte au-dessus de la barre du bas, sur les racines. Son anneau est découpé en autant d'arcs que de pages : de la couleur pour ce qui est nouveau, du gris
+ * pour ce qui est vu (la mémoire est celle de l'appareil, comme la croix de l'annonce : aucun suivi du client). La toucher ouvre la visionneuse DIRECTEMENT sur la première page non vue.
+ *
+ * La visionneuse : « La maison » (un message tiré au hasard, sur un fond de la palette) puis un groupe par famille de lignes. Les barres du haut avancent seules (5 s) ; un doigt
+ * maintenu met en pause (et le bouton ⏸) ; on touche à droite pour avancer, à gauche pour reculer ; un balayage de côté change de groupe ; TIRER VERS LE BAS ferme, la page suit le doigt.
+ * Pas de minuterie en JavaScript : l'avance est l'animation de la barre courante, qui s'arrête avec « réduire les animations » (alors rien n'avance seul). La croix et Échap ferment aussi.
  */
-export function Statuts({ messages, items }: { messages: string[]; items: ItemStatut[] }) {
+type Donnees = { messages: string[]; items: ItemStatut[] };
+type Page = { cle: string; groupe: GroupeDeStatut; item?: ItemStatut };
+type Groupe = { id: GroupeDeStatut; nom: string; pages: Page[] };
+
+const CLE_VUS = "guichet:statuts:vus";
+const FONDS_DE_MESSAGE = ["fm0", "fm1", "fm2", "fm3", "fm4"] as const;
+const jourCourt = () => new Date().toISOString().slice(0, 10);
+
+function lireVus(): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(CLE_VUS) ?? "[]") as string[]);
+  } catch {
+    return new Set();
+  }
+}
+function ecrireVus(v: Set<string>) {
+  try {
+    localStorage.setItem(CLE_VUS, JSON.stringify([...v].slice(-200)));
+  } catch {
+    // stockage indisponible : les pages reparaîtront comme nouvelles
+  }
+}
+
+/** Les groupes à montrer : « La maison » d'abord, puis chaque famille qui a des lignes. */
+export function groupesDe(items: ItemStatut[]): Groupe[] {
+  const jour = jourCourt();
+  const out: Groupe[] = [{ id: "maison", nom: "La maison", pages: [{ cle: `maison:${jour}`, groupe: "maison" }] }];
+  for (const g of GROUPES.filter((x) => x.id !== "maison")) {
+    const pages = items.filter((i) => i.groupe === g.id).map((item): Page => ({ cle: item.id, groupe: g.id, item }));
+    if (pages.length > 0) out.push({ id: g.id, nom: g.nom, pages });
+  }
+  return out;
+}
+
+/** La première page non vue, dans l'ordre des groupes ; sinon la toute première. */
+export function premiereNonVue(groupes: Groupe[], vus: ReadonlySet<string>): { g: number; p: number } {
+  for (let g = 0; g < groupes.length; g++) {
+    const p = groupes[g].pages.findIndex((x) => !vus.has(x.cle));
+    if (p >= 0) return { g, p };
+  }
+  return { g: 0, p: 0 };
+}
+
+export function BulleDesStatuts() {
   const t = useT();
-  const [page, setPage] = useState<number | null>(null);
-  /* Le message de la première page est tiré à l'ouverture, dans le geste du doigt (jamais au rendu : le serveur et le navigateur ne tireraient pas le même). */
-  const [message, setMessage] = useState("");
-  const total = items.length + 1;
-  const ouvrir = (n: number) => {
+  const [donnees, setDonnees] = useState<Donnees | null>(null);
+  const [vus, setVus] = useState<Set<string>>(new Set());
+  const [ouvert, setOuvert] = useState<{ g: number; p: number } | null>(null);
+  const [message, setMessage] = useState({ texte: "", fond: 0 });
+
+  useEffect(() => {
+    let annule = false;
+    fetch("/api/statuts")
+      .then((r) => (r.status === 200 ? (r.json() as Promise<Donnees>) : null))
+      .then((d) => {
+        if (annule || !d) return;
+        setDonnees(d);
+        setVus(lireVus());
+      })
+      .catch(() => {});
+    return () => {
+      annule = true;
+    };
+  }, []);
+
+  const groupes = useMemo(() => (donnees ? groupesDe(donnees.items) : []), [donnees]);
+  const toutes = useMemo(() => groupes.flatMap((g) => g.pages), [groupes]);
+  const marquer = useCallback((cle: string) => {
+    setVus((anciens) => {
+      if (anciens.has(cle)) return anciens;
+      const v = new Set(anciens).add(cle);
+      ecrireVus(v);
+      return v;
+    });
+  }, []);
+  if (!donnees || donnees.items.length === 0) return null;
+
+  const ouvrir = () => {
     tic(6);
-    setMessage(messages.length > 0 ? messages[Math.floor(Math.random() * messages.length)] : "");
-    setPage(n);
+    const pool = donnees.messages;
+    setMessage({ texte: pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : "", fond: Math.floor(Math.random() * FONDS_DE_MESSAGE.length) });
+    setOuvert(premiereNonVue(groupes, vus));
   };
-  const fermer = useCallback(() => setPage(null), []);
+  const nouveaux = toutes.filter((p) => !vus.has(p.cle)).length;
   return (
-    <section className={styles.rangee} aria-label={t("Statuts")}>
-      <h2 className={styles.titre}>{t("Statuts")}</h2>
-      <ul className={styles.ronds}>
-        <li>
-          <button type="button" className={`${styles.rond} ${styles.logo}`} onClick={() => ouvrir(0)} aria-haspopup="dialog">
-            <span className={styles.anneau} aria-hidden="true">
-              <b>G</b>
-            </span>
-            <span className={styles.nom}>{t("La semaine")}</span>
-          </button>
-        </li>
-        {items.map((it, i) => (
-          <li key={it.id}>
-            <button type="button" className={styles.rond} onClick={() => ouvrir(i + 1)} aria-haspopup="dialog">
-              <span className={`${styles.anneau} ${it.ouverte ? styles.ouverte : ""}`} aria-hidden="true">
-                <Drapeau pays={it.pays} largeur={26} />
-              </span>
-              <span className={styles.nom}>{it.nom}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-      {page !== null && <Visionneuse message={message} items={items} page={page} total={total} aller={setPage} fermer={fermer} />}
-    </section>
+    <>
+      <button type="button" className={styles.bulle} onClick={ouvrir} aria-haspopup="dialog" aria-label={nouveaux > 0 ? t("Statuts : {n} nouveaux", { n: nouveaux }) : t("Statuts")}>
+        <Anneau pages={toutes} vus={vus} />
+        <b className={styles.g}>G</b>
+        {nouveaux > 0 && <i className={styles.point} aria-hidden="true" />}
+      </button>
+      {ouvert && <Visionneuse groupes={groupes} depart={ouvert} message={message} marquer={marquer} fermer={() => setOuvert(null)} />}
+    </>
   );
 }
 
-function Visionneuse({ message, items, page, total, aller, fermer }: { message: string; items: ItemStatut[]; page: number; total: number; aller: (n: number) => void; fermer: () => void }) {
+/** L'anneau de la bulle : un arc par page, séparés par un blanc ; gris quand la page est vue. */
+function Anneau({ pages, vus }: { pages: Page[]; vus: ReadonlySet<string> }) {
+  const n = Math.max(1, pages.length);
+  const r = 24;
+  const C = 2 * Math.PI * r;
+  const trou = n > 1 ? 4 : 0;
+  const seg = C / n - trou;
+  return (
+    <svg className={styles.anneau} viewBox="0 0 56 56" aria-hidden="true">
+      <defs>
+        <linearGradient id="statuts-degrade" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#e2b94c" />
+          <stop offset="0.55" stopColor="#ff7a59" />
+          <stop offset="1" stopColor="#c14bd1" />
+        </linearGradient>
+      </defs>
+      {pages.map((p, i) => (
+        <circle key={p.cle} className={vus.has(p.cle) ? styles.vu : styles.nv} cx="28" cy="28" r={r} strokeDasharray={`${seg} ${C - seg}`} strokeDashoffset={-i * (seg + trou)} />
+      ))}
+    </svg>
+  );
+}
+
+function Visionneuse({ groupes, depart, message, marquer, fermer }: { groupes: Groupe[]; depart: { g: number; p: number }; message: { texte: string; fond: number }; marquer: (cle: string) => void; fermer: () => void }) {
   const t = useT();
+  const router = useRouter();
+  const [pos, setPos] = useState(depart);
+  const [pause, setPause] = useState(false);
+  const [maintenu, setMaintenu] = useState(false);
+  const [dy, setDy] = useState(0);
+  const [relache, setRelache] = useState(false);
+  const [suivis, setSuivis] = useState<Set<string>>(new Set());
   const [monte, setMonte] = useState(false);
-  const depart = useRef<{ x: number; y: number } | null>(null);
-  const it = page > 0 ? items[page - 1] : undefined;
+  const geste = useRef<{ x: number; y: number; t: number; axe?: "h" | "v"; tenu?: ReturnType<typeof setTimeout> } | null>(null);
+
+  const groupe = groupes[pos.g];
+  const page = groupe.pages[pos.p];
+  const it = page.item;
+  const signe = useFiligrane(it?.pays as Country | undefined);
 
   useEffect(() => {
     verrouiller();
@@ -71,8 +169,27 @@ function Visionneuse({ message, items, page, total, aller, fermer }: { message: 
       deverrouiller();
     };
   }, []);
-  const suivant = useCallback(() => (page < total - 1 ? aller(page + 1) : fermer()), [page, total, aller, fermer]);
-  const precedent = useCallback(() => (page > 0 ? aller(page - 1) : undefined), [page, aller]);
+  useEffect(() => {
+    marquer(page.cle);
+  }, [page.cle, marquer]);
+
+  /* LA POSITION COURANTE SE LIT DANS UNE RÉFÉRENCE, pas dans la mise à jour : fermer depuis une mise à jour de l'état est un effet de bord que React refuse en plein rendu. */
+  const courante = useRef(pos);
+  useEffect(() => {
+    courante.current = pos;
+  }, [pos]);
+  const suivant = useCallback(() => {
+    const c = courante.current;
+    if (c.p < groupes[c.g].pages.length - 1) setPos({ g: c.g, p: c.p + 1 });
+    else if (c.g < groupes.length - 1) setPos({ g: c.g + 1, p: 0 });
+    else fermer();
+  }, [groupes, fermer]);
+  const precedent = useCallback(() => {
+    setPos((c) => (c.p > 0 ? { g: c.g, p: c.p - 1 } : c.g > 0 ? { g: c.g - 1, p: 0 } : c));
+  }, []);
+  const groupeSuivant = useCallback(() => setPos((c) => (c.g < groupes.length - 1 ? { g: c.g + 1, p: 0 } : c)), [groupes]);
+  const groupePrecedent = useCallback(() => setPos((c) => (c.g > 0 ? { g: c.g - 1, p: 0 } : c)), []);
+
   useEffect(() => {
     const touche = (e: KeyboardEvent) => {
       if (e.key === "Escape") fermer();
@@ -83,26 +200,114 @@ function Visionneuse({ message, items, page, total, aller, fermer }: { message: 
     return () => window.removeEventListener("keydown", touche);
   }, [fermer, suivant, precedent]);
 
-  const fin = (x: number, y: number) => {
-    const d = depart.current;
-    depart.current = null;
-    if (!d) return;
-    if (y - d.y > 80 && Math.abs(x - d.x) < 60) fermer();
+  const aDeux = pause || maintenu;
+  const debut = (e: React.PointerEvent) => {
+    if ((e.target as HTMLElement).closest("button, a")) return;
+    const tenu = setTimeout(() => setMaintenu(true), 220);
+    geste.current = { x: e.clientX, y: e.clientY, t: Date.now(), tenu };
+    setRelache(false);
   };
+  const bouge = (e: React.PointerEvent) => {
+    const g = geste.current;
+    if (!g) return;
+    const ddx = e.clientX - g.x;
+    const ddy = e.clientY - g.y;
+    if (!g.axe && Math.hypot(ddx, ddy) > 10) {
+      g.axe = Math.abs(ddy) > Math.abs(ddx) * 1.2 ? "v" : "h";
+      if (g.tenu) clearTimeout(g.tenu);
+      setMaintenu(true);
+    }
+    if (g.axe === "v" && ddy > 0) setDy(ddy);
+  };
+  const fin = (e: React.PointerEvent) => {
+    const g = geste.current;
+    geste.current = null;
+    if (!g) return;
+    if (g.tenu) clearTimeout(g.tenu);
+    const ddx = e.clientX - g.x;
+    const ddy = e.clientY - g.y;
+    const duree = Math.max(1, Date.now() - g.t);
+    setMaintenu(false);
+    if (g.axe === "v") {
+      if (ddy > 120 || (ddy > 40 && ddy / duree > 0.6)) {
+        setRelache(true);
+        setDy(window.innerHeight);
+        tic(8);
+        setTimeout(fermer, 180);
+      } else {
+        setRelache(true);
+        setDy(0);
+      }
+      return;
+    }
+    if (g.axe === "h") {
+      if (ddx < -60) groupeSuivant();
+      else if (ddx > 60) groupePrecedent();
+      return;
+    }
+    if (duree < 220) {
+      if (e.clientX < window.innerWidth * 0.35) precedent();
+      else suivant();
+    }
+  };
+
+  const suivre = async (item: ItemStatut) => {
+    const on = !suivis.has(item.id);
+    setSuivis((s) => {
+      const n = new Set(s);
+      if (on) n.add(item.id);
+      else n.delete(item.id);
+      return n;
+    });
+    tic(8);
+    const res = await toggleWatch(item.id, on, item.groupe === "tresor" ? "quotidien" : "evenement").catch(() => ({ ok: false, watching: false }));
+    if (!res.ok) {
+      setSuivis((s) => {
+        const n = new Set(s);
+        n.delete(item.id);
+        return n;
+      });
+      router.push(`/connexion?next=${encodeURIComponent(item.fiche)}`);
+    }
+  };
+
+  const fond = it ? styles[`f${it.groupe === "tresor" && it.genre === "BTA" ? "bta" : it.groupe}` as keyof typeof styles] : styles[FONDS_DE_MESSAGE[message.fond]];
   return createPortal(
-    <div className={`${styles.voile} ${monte ? styles.monte : ""}`} role="dialog" aria-modal="true" aria-label={t("Statuts")} onPointerDown={(e) => (depart.current = { x: e.clientX, y: e.clientY })} onPointerUp={(e) => fin(e.clientX, e.clientY)}>
+    <div
+      data-fili={it ? signe : undefined}
+      className={`${styles.voile} ${monte ? styles.monte : ""} ${relache ? styles.relache : ""} ${fond}`}
+      style={{ transform: dy ? `translateY(${dy}px)` : undefined, opacity: dy ? Math.max(0.35, 1 - dy / 500) : undefined }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("Statuts")}
+      onPointerDown={debut}
+      onPointerMove={bouge}
+      onPointerUp={fin}
+      onPointerCancel={fin}
+    >
       <div className={styles.pages} aria-hidden="true">
-        {Array.from({ length: total }, (_, n) => (
-          <i key={n} className={n <= page ? styles.faite : undefined} />
+        {groupe.pages.map((p, n) => (
+          <i key={p.cle} className={n < pos.p ? styles.faite : n === pos.p ? styles.courante : undefined}>
+            {n === pos.p && <b key={`${pos.g}-${pos.p}`} style={{ animationDuration: `${SECONDES_PAR_PAGE}s`, animationPlayState: aDeux ? "paused" : "running" }} onAnimationEnd={suivant} />}
+          </i>
         ))}
       </div>
-      <button type="button" className={styles.fermer} onClick={fermer} aria-label={t("Fermer")}>
-        ×
-      </button>
-      <button type="button" className={`${styles.zone} ${styles.gauche}`} onClick={precedent} aria-label={t("Page précédente")} tabIndex={page > 0 ? 0 : -1} />
-      <button type="button" className={`${styles.zone} ${styles.droite}`} onClick={suivant} aria-label={page < total - 1 ? t("Page suivante") : t("Fermer")} />
+      <div className={styles.entete}>
+        <span className={styles.mini}>{groupe.nom.slice(0, 1)}</span>
+        <b>{t(groupe.nom)}</b>
+        <small>
+          {pos.g + 1}/{groupes.length}
+        </small>
+        <button type="button" className={styles.rond} onClick={() => setPause((p) => !p)} aria-pressed={pause} aria-label={pause ? t("Reprendre") : t("Pause")}>
+          {pause ? "▶" : "⏸"}
+        </button>
+        <button type="button" className={styles.rond} onClick={fermer} aria-label={t("Fermer")}>
+          ×
+        </button>
+      </div>
       {it ? (
         <article className={styles.ligne} aria-live="polite">
+          <Drapeau pays={it.pays as Country} largeur={44} />
           <span className={styles.pastille}>{it.etat}</span>
           <h2>{it.titre}</h2>
           <p className={styles.emetteur}>{it.emetteur}</p>
@@ -110,6 +315,7 @@ function Visionneuse({ message, items, page, total, aller, fermer }: { message: 
             <b>{it.hero}</b>
             <small>{it.heroSub}</small>
           </p>
+          {it.courbe && it.courbe.length > 1 && <Trace ys={it.courbe} />}
           <div className={styles.boutons}>
             <Link href={it.fiche} className="btn" onClick={fermer}>
               {t("Voir la fiche")}
@@ -120,13 +326,32 @@ function Visionneuse({ message, items, page, total, aller, fermer }: { message: 
               </Link>
             )}
           </div>
+          <div className={styles.actions}>
+            <button type="button" className={styles.rond} onClick={() => suivre(it)} aria-pressed={suivis.has(it.id)} aria-label={suivis.has(it.id) ? t("Ne plus suivre cette ligne") : t("Suivre cette ligne")}>
+              {suivis.has(it.id) ? "♥" : "♡"}
+            </button>
+            <span className={styles.indice}>{t("Glissez vers le bas pour fermer")}</span>
+          </div>
         </article>
       ) : (
         <article className={styles.premiere} aria-live="polite">
-          <p>{message}</p>
+          <p>{message.texte}</p>
         </article>
       )}
     </div>,
     document.body,
+  );
+}
+
+/** Le tracé d'un fonds : les VL, mises à l'échelle de leur plus bas et de leur plus haut ; il se dessine à l'arrivée de la page. */
+function Trace({ ys }: { ys: number[] }) {
+  const min = Math.min(...ys);
+  const max = Math.max(...ys);
+  const span = max - min || 1;
+  const d = ys.map((v, i) => `${i ? "L" : "M"}${((i / (ys.length - 1)) * 200).toFixed(1)} ${(44 - ((v - min) / span) * 40).toFixed(1)}`).join(" ");
+  return (
+    <svg className={styles.trace} viewBox="0 0 200 48" preserveAspectRatio="none" aria-hidden="true">
+      <path d={d} pathLength={1} />
+    </svg>
   );
 }

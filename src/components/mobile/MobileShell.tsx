@@ -3,6 +3,10 @@
 import { useT } from "@/i18n/client";
 import Link from "next/link";
 import { tic } from "@/lib/ui/haptique";
+import { BulleDesStatuts } from "@/components/statuts/Statuts";
+import { BalayageDesMenus } from "./BalayageDesMenus";
+import { Mouvement } from "@/components/mouvement/Mouvement";
+import { sensEntre } from "@/lib/nav-ruban";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect } from "react";
 import { estRacine } from "@/lib/nav-profondeur";
@@ -326,13 +330,17 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
              ils mènent à leur sommaire, qui a l'adresse, le retour système
              et la place d'une phrase entière. */
           return (
-            <Link key={tab.href} href={tab.href} replace onClick={() => tic()} aria-current={tab.match(path) ? "page" : undefined}>
+            <Link key={tab.href} href={tab.href} replace transitionTypes={tab.match(path) ? undefined : sensEntre(path, tab.href)} onClick={() => tic()} aria-current={tab.match(path) ? "page" : undefined}>
               {face}
             </Link>
           );
         })}
       </nav>
       )}
+      {/* LA BULLE DES STATUTS (18 novembre 2026, 1B) : une seule, sur les racines ; elle se tait pour un visiteur, pour le desk et sans ligne retenue. */}
+      {!deskHost && signedIn && racine && <BulleDesStatuts />}
+      {!deskHost && signedIn && racine && <BalayageDesMenus />}
+      {!deskHost && <Mouvement />}
 
       {/* LE TIROIR DE TUILES A VÉCU, le 23 octobre 2026. Les trois sièges
           ouvraient une feuille par le bas : une grille de trois mots posée

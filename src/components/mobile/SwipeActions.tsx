@@ -308,7 +308,7 @@ export function SwipeActions({ id, back, backHead, onTurn, turnRef, cadence = "e
   };
 
   return (
-    <div ref={wrap} className={`${styles.wrap} ${ligne ? styles.ligne : ""}`}>
+    <div ref={wrap} data-balayage-local="" className={`${styles.wrap} ${ligne ? styles.ligne : ""}`}>
       <div className={styles.under} aria-hidden="true">
         <button type="button" className={styles.handle} onClick={() => closeThen()} tabIndex={-1} aria-label={t("Fermer")}>
           ‹

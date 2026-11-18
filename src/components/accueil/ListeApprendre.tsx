@@ -42,7 +42,7 @@ export function ListeApprendre({ entete, lessons, min }: { entete: ReactNode; le
   const restants = premiersNonLus(lessons, lus);
   if (restants.length === 0) return null;
   return (
-    <section className={styles.bloc} aria-labelledby="apprendre">
+    <section className={styles.bloc} data-anim="bloc" aria-labelledby="apprendre">
       {entete}
       <ul className={styles.liste}>
         {restants.map((l) => (

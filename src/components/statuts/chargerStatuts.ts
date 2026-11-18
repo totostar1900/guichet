@@ -1,12 +1,19 @@
 import { getLang, getT } from "@/i18n/server";
 import { displayStatus, isActionable, statusLabel } from "@/lib/domain/status";
-import { messagesActifs, messagesPourLaLangue, statutsAffiches } from "@/lib/domain/statuts";
+import { groupeDe, messagesActifs, messagesPourLaLangue, statutsAffiches, type GroupeDeStatut } from "@/lib/domain/statuts";
+import { repo } from "@/lib/data";
 import { summarize } from "@/lib/domain/summary";
 import type { Country, Offer } from "@/lib/domain/types";
+import { echantillonner } from "@/lib/domain/fund-curve";
 import { listerMessages, listerStatuts } from "@/lib/statuts";
 
 export interface ItemStatut {
   id: string;
+  groupe: GroupeDeStatut;
+  /** BTA, OTA, Fonds, Action, Obligation : la couleur d'une page de Trésor en dépend. */
+  genre: string;
+  /** Les VL d'un fonds, de la plus ancienne à la plus récente (au plus 30) : le tracé de la page. */
+  courbe?: number[];
   /** Le nom court sous le rond : « OTA Gabon » ; un fonds se nomme par son titre (deux fonds d'un même pays ne se distingueraient pas). */
   nom: string;
   pays: Country;
@@ -32,11 +39,16 @@ export async function chargerStatuts(offres: Offer[], now: Date): Promise<{ mess
   const [t, lang] = await Promise.all([getT(), getLang()]);
   const [rows, enBase] = await Promise.all([listerStatuts(), listerMessages()]);
   const visibles = offres.filter((o) => !o.hidden && o.status !== "withdrawn");
-  const items = statutsAffiches(rows, visibles).map(({ offre: o }): ItemStatut => {
+  const affiches = statutsAffiches(rows, visibles);
+  const courbes = await repo().listFundCurves(affiches.filter((x) => x.offre.kind === "FONDS").map((x) => x.offre.fund?.key).filter((k): k is string => Boolean(k))).catch(() => new Map());
+  const items = affiches.map(({ offre: o }): ItemStatut => {
     const s = displayStatus(o, now);
     const resume = summarize(o, now);
     return {
       id: o.id,
+      groupe: groupeDe(o.kind),
+      genre: GENRE[o.kind] ?? "Titre",
+      courbe: o.kind === "FONDS" && o.fund?.key && courbes.get(o.fund.key) ? echantillonner(courbes.get(o.fund.key)!).ys : undefined,
       nom: o.kind === "FONDS" ? t(o.title) : `${GENRE[o.kind] ?? "Titre"} ${o.countryName}`,
       pays: o.country,
       ouverte: isActionable(s),

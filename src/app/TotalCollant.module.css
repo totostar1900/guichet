@@ -1,0 +1,47 @@
+/* Le total replié : fixe sous la barre du haut, sur téléphone ; il glisse de dessous la barre. */
+.barre {
+  display: none;
+}
+@media (max-width: 760px) {
+  .barre {
+    position: fixed;
+    top: var(--barre-app, 0px);
+    left: 0;
+    right: 0;
+    z-index: 39;
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-4);
+    padding: var(--s-3) var(--s-7);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line-2);
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.22s ease-out, opacity 0.18s;
+  }
+  .barre.visible {
+    transform: none;
+    opacity: 1;
+  }
+  .barre span {
+    font-size: var(--t-1);
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .barre b {
+    font-size: var(--t-5);
+    font-variant-numeric: tabular-nums;
+  }
+  .barre small {
+    margin-left: auto;
+    font-size: var(--t-2);
+    color: var(--ink-2);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .barre {
+    transition: none;
+  }
+}

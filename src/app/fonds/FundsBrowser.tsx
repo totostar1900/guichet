@@ -38,8 +38,12 @@ import { useDates, useT } from "@/i18n/client";
 import type { FundCurve } from "@/lib/domain/fund-curve";
 
 /** One fund as the browser needs it : flat, serialisable, computed on the server. */
+import type { Country } from "@/lib/domain/types";
+
 export interface FundRow {
   id: string;
+  /** Le pays du fonds, pour le filigrane de sa carte. */
+  pays?: Country;
   title: string;
   isin: string;
   category: FundNav["category"];

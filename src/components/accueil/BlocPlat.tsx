@@ -11,7 +11,7 @@ import styles from "./BlocPlat.module.css";
  */
 export async function BlocPlat({ id, titre, href, tout, etiquette, children }: { id: string; titre: string; href?: string; tout?: string; etiquette?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className={styles.bloc} aria-labelledby={id}>
+    <section className={styles.bloc} data-anim="bloc" aria-labelledby={id}>
       <TitreDeBloc id={id} titre={titre} href={href} tout={tout} etiquette={etiquette} />
       <div className={styles.carte}>{children}</div>
     </section>

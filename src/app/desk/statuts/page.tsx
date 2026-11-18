@@ -96,7 +96,7 @@ export default async function StatutsPage({ searchParams }: { searchParams: Prom
 
         <section className={styles.carte} aria-labelledby="message">
           <h2 id="message">{t("Première page")}</h2>
-          <p className="muted">{t("Chaque ouverture des statuts tire un message au hasard, dans la langue du client, et l'affiche sur le logo avant les lignes. Téléchargez le tableau, complétez-le, renvoyez-le : il remplace la base.")}</p>
+          <p className="muted">{t("Chaque ouverture des statuts tire un message au hasard, dans la langue du client, et l'affiche sur un fond de couleur avant les lignes. Téléchargez le tableau, complétez-le, renvoyez-le : il remplace la base.")}</p>
           <TableauDesMessages actifs={messages.length} fr={messages.filter((m) => m.langue === "fr").length} en={messages.filter((m) => m.langue === "en").length} parDefaut={messagesEnBase.length === 0} />
         </section>
 

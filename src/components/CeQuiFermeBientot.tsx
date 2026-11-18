@@ -78,7 +78,7 @@ export async function CeQuiFermeBientot({
   const reste = toutes.length - montrees.length;
 
   return (
-    <section className={`${styles.bloc} ${sobre ? styles.sobre : ""}`} aria-labelledby="ferme-bientot">
+    <section className={`${styles.bloc} ${sobre ? styles.sobre : ""}`} data-anim="bloc" aria-labelledby="ferme-bientot">
       {entete && sobre && <TitreDeBloc id="ferme-bientot" titre={titre} href={lien.href} tout={motDuLien} />}
       {entete && !sobre && (
         <div className={styles.tete}>

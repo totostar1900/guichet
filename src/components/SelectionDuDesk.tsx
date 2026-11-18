@@ -54,7 +54,7 @@ export async function SelectionDuDesk({ offres, sobre = false }: { /** Le titre 
   if (!picks.length) return null;
   const actions = sobre ? await variationsDesActions(picks.map((p) => p.o)) : new Map();
   return (
-    <section className={`${styles.bande} ${sobre ? styles.sobre : ""}`} aria-label={t("La sélection du desk")}>
+    <section className={`${styles.bande} ${sobre ? styles.sobre : ""}`} data-anim="bloc" aria-label={t("La sélection du desk")}>
       {sobre ? <TitreDeBloc titre="La sélection du desk" href="/titres" /> : <h2 className={styles.titre}>{t("La sélection du desk")}</h2>}
       <ul className={`${styles.liste} ${sobre ? styles.groupe : ""}`}>
         {picks.map(({ o, s }) => (

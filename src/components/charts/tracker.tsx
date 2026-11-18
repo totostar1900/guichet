@@ -96,6 +96,8 @@ export function useTracker<E extends Element = SVGSVGElement>({ keys, x, W, pins
   };
   const handlers = {
     ref: svgRef,
+    /* Une courbe qu'on touche garde son geste : le balayage entre menus s'y tait (voir « BalayageDesMenus »). */
+    "data-balayage-local": "",
     onPointerDown: (e: React.PointerEvent<E>) => {
       if (e.pointerType !== "touch") return;
       const svg = e.currentTarget;

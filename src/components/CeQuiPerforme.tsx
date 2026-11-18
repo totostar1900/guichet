@@ -38,7 +38,7 @@ export async function CeQuiPerforme({ max = 3 }: { max?: number }) {
   const ouvertes = new Set((await repo().listOffers().catch(() => [])).filter((o) => !o.hidden).map((o) => o.id));
 
   return (
-    <section className={styles.bloc} aria-labelledby="ce-qui-performe">
+    <section className={styles.bloc} data-anim="bloc" aria-labelledby="ce-qui-performe">
       <TitreDeBloc id="ce-qui-performe" titre="Ce qui performe" href="/societes" tout="Les sociétés" />
       <div className={styles.corps}>
       {/* LA FENÊTRE EST DANS LA PHRASE, PAS DANS UNE NOTE DE BAS DE BLOC : un

@@ -188,27 +188,35 @@ describe("ce que le client voit", () => {
 
 describe("la place des statuts", () => {
   const lire = (f: string) => readFileSync(f, "utf8");
-  it("ouvrent le chapitre du marché de l'Accueil et se taisent sans ligne", () => {
-    const t = lire("src/components/accueil/TuilesDuHaut.tsx");
-    expect(t).toMatch(/\{aDesStatuts && <Statuts messages=\{statuts\.messages\} items=\{statuts\.items\} \/>\}/);
-    expect(t, "le chapitre se rend vide quand il n'y a rien").toMatch(/if \(!aDuDesk && !aEcheances && !aDesStatuts\) return null;/);
+  it("une seule bulle, sur les racines, pour qui est connecté et hors du desk ; plus de rangée dans l'Accueil", () => {
+    const m = lire("src/components/mobile/MobileShell.tsx");
+    expect(m).toMatch(/\{!deskHost && signedIn && racine && <BulleDesStatuts \/>\}/);
+    expect(lire("src/components/accueil/TuilesDuHaut.tsx"), "la rangée de ronds est revenue dans l'Accueil").not.toMatch(/Statuts/);
+    expect(lire("src/app/api/statuts/route.ts")).toMatch(/if \(!s \|\| isDesk\(s\)\) return new NextResponse\(null, \{ status: 204 \}\)/);
   });
-  it("la première page tire un message dans la base, au geste du doigt et jamais au rendu", () => {
+  it("la bulle s'ouvre sur la première page non vue, et se tait sans ligne retenue", () => {
     const st = lire("src/components/statuts/Statuts.tsx");
-    expect(st).toMatch(/setMessage\(messages\.length > 0 \? messages\[Math\.floor\(Math\.random\(\) \* messages\.length\)\] : ""\)/);
-    const debut = st.indexOf("export function Statuts");
+    expect(st).toMatch(/setOuvert\(premiereNonVue\(groupes, vus\)\)/);
+    expect(st).toMatch(/if \(!donnees \|\| donnees\.items\.length === 0\) return null;/);
+    expect(st, "la mémoire des pages vues n'est plus sur l'appareil").toMatch(/localStorage\.setItem\(CLE_VUS/);
+  });
+  it("le message se tire au geste du doigt, jamais au rendu, et la visionneuse offre ses gestes", () => {
+    const st = lire("src/components/statuts/Statuts.tsx");
+    expect(st).toMatch(/pool\[Math\.floor\(Math\.random\(\) \* pool\.length\)\]/);
+    const debut = st.indexOf("export function BulleDesStatuts");
     expect(st.slice(debut, st.indexOf("const ouvrir", debut)), "le tirage est revenu dans le rendu").not.toMatch(/Math\.random/);
     expect(lire("src/components/statuts/chargerStatuts.ts")).toMatch(/messagesPourLaLangue\(messagesActifs\(enBase\), lang\)/);
+    expect(st, "tirer vers le bas ne ferme plus la page").toMatch(/ddy > 120/);
+    expect(st, "la page ne suit plus le doigt").toMatch(/translateY\(\$\{dy\}px\)/);
+    expect(st, "un balayage de côté ne change plus de groupe").toMatch(/groupeSuivant\(\)/);
+    expect(st, "« Voir la fiche » ou « Passer un ordre » a disparu").toMatch(/t\("Voir la fiche"\)[\s\S]*t\("Passer un ordre"\)/);
+    expect(st, "le cœur ne suit plus la ligne").toMatch(/toggleWatch\(item\.id, on,/);
   });
-  it("la première page est le message sur le logo, chaque ligne a « Voir la fiche » et « Passer un ordre »", () => {
-    const s = lire("src/components/statuts/Statuts.tsx");
-    expect(s).toMatch(/t\("Voir la fiche"\)/);
-    expect(s).toMatch(/t\("Passer un ordre"\)/);
-    expect(s).toMatch(/\{it\.ordre && \(/);
-    expect(lire("src/components/statuts/Statuts.module.css")).toMatch(/url\("\/icons\/icon-512\.png"\)/);
-  });
-  it("rien ne défile seul : ni minuterie ni compte à rebours dans la visionneuse", () => {
-    expect(lire("src/components/statuts/Statuts.tsx")).not.toMatch(/setInterval|setTimeout/);
+  it("rien n'avance par une minuterie : la barre courante est l'animation, qui s'arrête avec « réduire les animations »", () => {
+    const st = lire("src/components/statuts/Statuts.tsx");
+    expect(st).not.toMatch(/setInterval/);
+    expect(st).toMatch(/onAnimationEnd=\{suivant\}/);
+    expect(lire("src/components/statuts/Statuts.module.css")).toMatch(/prefers-reduced-motion: reduce\) \{\s*\.pages i b \{\s*animation: none/);
   });
   it("le desk les atteint par un onglet, et chaque geste passe par l'audit et la seconde question", () => {
     expect(lire("src/lib/desk-groupes.ts")).toMatch(/\["\/desk\/statuts", "Statuts"\]/);

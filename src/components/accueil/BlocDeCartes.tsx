@@ -17,7 +17,7 @@ export type CarteDeBloc = { type: "offre"; o: Offer; courbe?: CourbeDuTitre } | 
 export async function BlocDeCartes({ id, titre, href, cartes, suivis, now = new Date() }: { id: string; titre: string; href: string; cartes: CarteDeBloc[]; suivis: Set<string>; now?: Date }) {
   if (!cartes.length) return null;
   return (
-    <section className={styles.bloc} aria-labelledby={id}>
+    <section className={styles.bloc} data-anim="bloc" aria-labelledby={id}>
       <TitreDeBloc id={id} titre={titre} href={href} />
       <div className={styles.cartes}>
         {cartes.map((c) =>

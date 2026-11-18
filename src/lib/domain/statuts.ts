@@ -5,7 +5,7 @@ import type { Offer } from "./types";
  * LES STATUTS (17 novembre 2026, décidé sur la planche « Accueil et insights », idée 1) : UNE RANGÉE DE RONDS, UNE LIGNE PAR ROND, CHOISIE PAR LE DESK.
  *
  * Le desk décide quelles lignes y passent et dans quel ordre ; la première page tire un message dans une base qu'il alimente (voir plus bas). Le client touche un rond : une première page (le message,
- * le logo en fond), puis une page par ligne avec « Voir la fiche » et « Passer un ordre ». C'est une information de la maison : jamais un conseil, jamais une urgence.
+ * un fond de couleur), puis une page par ligne avec « Voir la fiche » et « Passer un ordre ». C'est une information de la maison : jamais un conseil, jamais une urgence.
  *
  * Ils vivent dans la table « reference » (genre « statut »), comme l'annonce : une ligne par ligne retenue. Rien ne s'efface : une ligne
  * retirée garde la date et la personne.
@@ -46,6 +46,21 @@ export function statutsAffiches(rows: StatutRow[], visibles: Offer[]): { ligne: 
     .filter((x): x is { ligne: StatutLigne; offre: Offer } => Boolean(x.offre))
     .slice(0, STATUTS_MAX);
 }
+
+/**
+ * LES GROUPES DES STATUTS (18 novembre 2026, planche « Statuts et dynamisme », 1B) : « La maison » (le message tiré), puis une famille de lignes chacune. Un balayage de côté passe
+ * au groupe suivant ; les nouveautés d'abord. « La cote » réunit les actions et les obligations cotées.
+ */
+export type GroupeDeStatut = "maison" | "tresor" | "fonds" | "cote";
+export const GROUPES: { id: GroupeDeStatut; nom: string }[] = [
+  { id: "maison", nom: "La maison" },
+  { id: "tresor", nom: "Trésor" },
+  { id: "fonds", nom: "Fonds" },
+  { id: "cote", nom: "La cote" },
+];
+export const groupeDe = (kind: string): GroupeDeStatut => (kind === "BTA" || kind === "OTA" ? "tresor" : kind === "FONDS" ? "fonds" : "cote");
+/** Combien de secondes dure une page avant la suivante. */
+export const SECONDES_PAR_PAGE = 5;
 
 /* ------------------------------------------------------------------ */
 /* LES MESSAGES DE LA PREMIÈRE PAGE : UNE BASE QUE LE DESK ALIMENTE PAR UN TABLEAU EXCEL, TIRÉE AU HASARD (18 novembre 2026).
