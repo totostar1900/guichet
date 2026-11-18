@@ -143,6 +143,9 @@
 .voile[data-fili="monument:deux-torses"] {
   --fili-masque: url("/filigrane/deux-torses.png");
 }
+.voile[data-fili="monument:tour-aux-couleurs"] {
+  --fili-masque: url("/filigrane/tour-aux-couleurs.png");
+}
 .fm0 {
   background: linear-gradient(160deg, #ff7a59, #c14bd1 60%, #0b2545);
 }

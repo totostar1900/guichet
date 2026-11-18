@@ -45,7 +45,11 @@ export const SIGNES_DU_PAYS: Record<Country, SignesDuPays> = {
       { id: "liberation-2023", nom: "Monument du Coup de la Libération d'août 2023 (trois statues de bronze et deux fusils)" },
     ],
   },
-  RCA: { tel: "+236", iso3: "CAF" },
+  RCA: {
+    tel: "+236",
+    iso3: "CAF",
+    monuments: [{ id: "tour-aux-couleurs", nom: "Tour en forme de tente aux couleurs du drapeau, avec une arche (nom à confirmer)" }],
+  },
   Tchad: { tel: "+235", iso3: "TCD" },
   "Guinée éq.": { tel: "+240", iso3: "GNQ" },
 };
