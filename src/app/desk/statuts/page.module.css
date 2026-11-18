@@ -105,6 +105,17 @@
   color: var(--ink-3);
   font-size: var(--t-2);
 }
+.messages {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-6);
+}
+.messages p {
+  margin: 0;
+}
 .err {
+  margin: 0;
+  padding-left: var(--s-7);
   color: var(--crit);
 }

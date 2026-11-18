@@ -4,10 +4,10 @@ import { getT } from "@/i18n/server";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { displayStatus, isActionable, statusLabel } from "@/lib/domain/status";
-import { lignesRetenues, messageDe, STATUTS_MAX, type StatutLigne } from "@/lib/domain/statuts";
+import { lignesRetenues, messagesActifs, STATUTS_MAX, type StatutLigne } from "@/lib/domain/statuts";
 import { fmtDate } from "@/lib/format";
-import { listerStatuts } from "@/lib/statuts";
-import { AjouterUneLigne, FormulaireMessage, GestesDeLaLigne } from "./Gestion";
+import { listerMessages, listerStatuts } from "@/lib/statuts";
+import { AjouterUneLigne, GestesDeLaLigne, TableauDesMessages } from "./Gestion";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export const metadata = { title: "Statuts" };
 /**
  * « STATUTS » : LA RANGÉE DE RONDS DE L'ACCUEIL, CHOISIE PAR LE DESK (17 novembre 2026).
  *
- * Le desk décide quelles lignes y passent (huit au plus), dans quel ordre, et écrit le message de la première page. Le client touche un rond : le message, puis une page
+ * Le desk décide quelles lignes y passent (huit au plus) et dans quel ordre, et alimente par un tableau Excel la base des messages que la première page tire au hasard. Le client touche un rond : le message, puis une page
  * par ligne avec « Voir la fiche » et « Passer un ordre ». Jamais un conseil ni une urgence ; chaque geste est écrit à l'audit, avec avant et après.
  */
 export default async function StatutsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -25,7 +25,8 @@ export default async function StatutsPage({ searchParams }: { searchParams: Prom
   const un = (k: string) => (Array.isArray(sp[k]) ? (sp[k] as string[])[0] : (sp[k] as string | undefined));
   await requireDesk("/desk/statuts");
   const now = new Date();
-  const [offers, rows] = await Promise.all([repo().listOffers(), listerStatuts()]);
+  const [offers, rows, messagesEnBase] = await Promise.all([repo().listOffers(), listerStatuts(), listerMessages()]);
+  const messages = messagesActifs(messagesEnBase);
   const parId = new Map(offers.map((o) => [o.id, o]));
   const retenues = lignesRetenues(rows);
   const dejaLa = new Set(retenues.map((l) => l.offerId));
@@ -53,9 +54,9 @@ export default async function StatutsPage({ searchParams }: { searchParams: Prom
             {t("La ligne n'est plus dans les statuts.")}
           </Fait>
         )}
-        {un("message") && (
+        {un("importes") && (
           <Fait fermer="/desk/statuts" libelle={t("Fermer")}>
-            {t("Le message de la première page est enregistré.")}
+            {t("Tableau importé : {n} messages en jeu, {a} ajoutés, {r} retirés.", { n: un("importes") ?? "0", a: un("ajoutes") ?? "0", r: un("retires") ?? "0" })}
           </Fait>
         )}
         {un("refus") && (
@@ -95,8 +96,8 @@ export default async function StatutsPage({ searchParams }: { searchParams: Prom
 
         <section className={styles.carte} aria-labelledby="message">
           <h2 id="message">{t("Première page")}</h2>
-          <p className="muted">{t("Le message s'affiche sur le logo, avant les lignes.")}</p>
-          <FormulaireMessage actuel={messageDe(rows)} />
+          <p className="muted">{t("Chaque ouverture des statuts tire un message au hasard, dans la langue du client, et l'affiche sur le logo avant les lignes. Téléchargez le tableau, complétez-le, renvoyez-le : il remplace la base.")}</p>
+          <TableauDesMessages actifs={messages.length} fr={messages.filter((m) => m.langue === "fr").length} en={messages.filter((m) => m.langue === "en").length} parDefaut={messagesEnBase.length === 0} />
         </section>
 
         {retirees.length > 0 && (

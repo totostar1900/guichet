@@ -13,16 +13,19 @@ import styles from "./Statuts.module.css";
 /**
  * LES STATUTS (17 novembre 2026) : une rangée de ronds, un rond par ligne que le desk a retenue, et une visionneuse plein écran.
  *
- * Le premier rond ouvre la première page : le message du desk, sur le logo. Chaque autre rond ouvre la page de sa ligne, avec « Voir la fiche » et « Passer un ordre ».
+ * Le premier rond ouvre la première page : un message tiré au hasard dans la base du desk, sur le logo. Chaque autre rond ouvre la page de sa ligne, avec « Voir la fiche » et « Passer un ordre ».
  * L'anneau or dit « ouverte », pas « vite » : aucun compte à rebours, aucune urgence. Rien ne défile seul : on touche à droite pour avancer, à gauche pour reculer,
  * on tire vers le bas ou on touche la croix pour fermer (Échap et les flèches au clavier).
  */
-export function Statuts({ message, items }: { message: string; items: ItemStatut[] }) {
+export function Statuts({ messages, items }: { messages: string[]; items: ItemStatut[] }) {
   const t = useT();
   const [page, setPage] = useState<number | null>(null);
+  /* Le message de la première page est tiré à l'ouverture, dans le geste du doigt (jamais au rendu : le serveur et le navigateur ne tireraient pas le même). */
+  const [message, setMessage] = useState("");
   const total = items.length + 1;
   const ouvrir = (n: number) => {
     tic(6);
+    setMessage(messages.length > 0 ? messages[Math.floor(Math.random() * messages.length)] : "");
     setPage(n);
   };
   const fermer = useCallback(() => setPage(null), []);

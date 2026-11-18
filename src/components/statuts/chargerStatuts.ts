@@ -1,9 +1,9 @@
-import { getT } from "@/i18n/server";
+import { getLang, getT } from "@/i18n/server";
 import { displayStatus, isActionable, statusLabel } from "@/lib/domain/status";
-import { messageDe, statutsAffiches } from "@/lib/domain/statuts";
+import { messagesActifs, messagesPourLaLangue, statutsAffiches } from "@/lib/domain/statuts";
 import { summarize } from "@/lib/domain/summary";
 import type { Country, Offer } from "@/lib/domain/types";
-import { listerStatuts } from "@/lib/statuts";
+import { listerMessages, listerStatuts } from "@/lib/statuts";
 
 export interface ItemStatut {
   id: string;
@@ -24,10 +24,13 @@ export interface ItemStatut {
 
 const GENRE: Record<string, string> = { BTA: "BTA", OTA: "OTA", FONDS: "Fonds", ACTIONS: "Action", APE: "Obligation", MARCHE: "Obligation", RACHAT: "Obligation" };
 
-/** Les statuts que le client lit : le message de la première page et un rond par ligne retenue que le client peut encore lire. */
-export async function chargerStatuts(offres: Offer[], now: Date): Promise<{ message: string; items: ItemStatut[] }> {
-  const t = await getT();
-  const rows = await listerStatuts();
+/** Combien de messages partent vers le navigateur : assez pour que le tirage varie, pas la base entière. */
+const MESSAGES_ENVOYES = 40;
+
+/** Les statuts que le client lit : des messages à tirer pour la première page (dans sa langue) et un rond par ligne retenue qu'il peut encore lire. */
+export async function chargerStatuts(offres: Offer[], now: Date): Promise<{ messages: string[]; items: ItemStatut[] }> {
+  const [t, lang] = await Promise.all([getT(), getLang()]);
+  const [rows, enBase] = await Promise.all([listerStatuts(), listerMessages()]);
   const visibles = offres.filter((o) => !o.hidden && o.status !== "withdrawn");
   const items = statutsAffiches(rows, visibles).map(({ offre: o }): ItemStatut => {
     const s = displayStatus(o, now);
@@ -46,5 +49,11 @@ export async function chargerStatuts(offres: Offer[], now: Date): Promise<{ mess
       ordre: isActionable(s) ? `/offres/${o.id}/intention` : undefined,
     };
   });
-  return { message: t(messageDe(rows)), items };
+  /* Le tirage se fait dans le navigateur, à chaque ouverture : le serveur envoie un échantillon mélangé de la base, dans la langue du client. */
+  const pool = messagesPourLaLangue(messagesActifs(enBase), lang).map((m) => m.texte);
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return { messages: pool.slice(0, MESSAGES_ENVOYES), items };
 }

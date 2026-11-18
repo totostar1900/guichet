@@ -5,10 +5,12 @@ import { redirect } from "next/navigation";
 import { audit } from "@/lib/audit";
 import { requireDesk } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { idDeLigne, lignesRetenues, messageDe, REF_STATUT, STATUTS_MAX, verifierMessage, type StatutLigne, type StatutMessage } from "@/lib/domain/statuts";
-import { listerStatuts } from "@/lib/statuts";
+import { randomUUID } from "node:crypto";
+import { baseCourante, idDeLigne, lignesRetenues, planifierImport, REF_STATUT, REF_STATUT_MESSAGE, STATUTS_MAX, type StatutLigne } from "@/lib/domain/statuts";
+import { listerMessages, listerStatuts } from "@/lib/statuts";
+import { lireClasseurDesMessages } from "@/lib/statuts-classeur";
 
-export type StatutResult = { ok: false; error: string };
+export type ImportResult = { ok: false; erreurs: string[] };
 
 const rafraichir = () => {
   revalidatePath("/", "layout");
@@ -68,17 +70,37 @@ export async function deplacerStatutAction(form: FormData): Promise<void> {
   redirect("/desk/statuts");
 }
 
-/** Écrire le message de la première page. Il remplace le précédent, qui reste à l'audit avec avant et après. */
-export async function publierMessageAction(_p: StatutResult | null, form: FormData): Promise<StatutResult> {
+/** Taille maximale d'un tableau de messages : cinq cents lignes tiennent dans bien moins. */
+const TAILLE_MAX = 1_000_000;
+
+/**
+ * Importer le tableau des messages de la première page : il REMPLACE la base. Rien n'est écrit si une seule ligne est refusée (la liste des lignes fautives revient) ; sinon
+ * chaque message du tableau s'écrit, ceux qui n'y sont plus sortent (sans être effacés), et un seul geste d'audit dit combien.
+ */
+export async function importerMessagesAction(_p: ImportResult | null, form: FormData): Promise<ImportResult> {
   const desk = await requireDesk("/desk/statuts");
-  const texte = String(form.get("texte") ?? "").trim();
-  const erreur = verifierMessage(texte);
-  if (erreur) return { ok: false, error: erreur };
-  const rows = await listerStatuts();
-  const avant = messageDe(rows);
-  const message: StatutMessage = { kind: "message", id: "message", texte, par: desk.name, le: new Date().toISOString() };
-  await repo().upsertReference(REF_STATUT, "message", message, desk.name);
-  await audit("statut.message", "statut", "message", { before: { texte: avant }, after: { texte } });
+  const fichier = form.get("tableau");
+  if (!(fichier instanceof File) || fichier.size === 0) return { ok: false, erreurs: ["Choisissez un fichier .xlsx."] };
+  if (fichier.size > TAILLE_MAX) return { ok: false, erreurs: ["Le fichier dépasse 1 Mo : un tableau de messages est bien plus léger."] };
+  let lignes;
+  try {
+    lignes = await lireClasseurDesMessages(await fichier.arrayBuffer());
+  } catch (e) {
+    return { ok: false, erreurs: [e instanceof Error ? e.message : "Fichier illisible."] };
+  }
+  const r = repo();
+  const maintenant = new Date().toISOString();
+  const avantRows = await listerMessages();
+  const base = baseCourante(avantRows);
+  const plan = planifierImport(base, lignes, desk.name, maintenant, () => `m-${randomUUID().slice(0, 8)}`);
+  if (plan.erreurs.length > 0) return { ok: false, erreurs: plan.erreurs.slice(0, 12).concat(plan.erreurs.length > 12 ? [`… et ${plan.erreurs.length - 12} autres.`] : []) };
+  for (const m of plan.ecrire) await r.upsertReference(REF_STATUT_MESSAGE, m.id, m, desk.name);
+  const avantActifs = base.filter((m) => !m.retireeLe).length;
+  await audit("statut.messages", "statut", "messages", {
+    before: { actifs: avantActifs, ...(avantRows.length === 0 ? { source: "base du code" } : {}) },
+    after: { actifs: plan.actifs, ajoutes: plan.ajoutes, modifies: plan.modifies, retires: plan.retires },
+    reason: `import du tableau « ${fichier.name.slice(0, 80)} »`,
+  });
   rafraichir();
-  redirect("/desk/statuts?message=1");
+  redirect(`/desk/statuts?importes=${plan.actifs}&ajoutes=${plan.ajoutes}&retires=${plan.retires}`);
 }

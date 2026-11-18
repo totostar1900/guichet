@@ -3,37 +3,46 @@
 import { useActionState, useId, useState } from "react";
 import { ConfirmPublish } from "@/components/desk/ConfirmPublish";
 import { useT } from "@/i18n/client";
-import { MESSAGE_MAX, MESSAGE_MIN } from "@/lib/domain/statuts";
-import { ajouterStatutAction, deplacerStatutAction, publierMessageAction, retirerStatutAction, type StatutResult } from "./actions";
+import { ajouterStatutAction, deplacerStatutAction, importerMessagesAction, retirerStatutAction, type ImportResult } from "./actions";
 import styles from "./page.module.css";
 
-/** Le message de la première page : une phrase, puis une seconde question qui redit ce que les clients liront. */
-export function FormulaireMessage({ actuel }: { actuel: string }) {
+/** Le tableau des messages : le télécharger, le renvoyer. Renvoyer REMPLACE la base ; une seconde question le redit, et une erreur refuse tout le fichier. */
+export function TableauDesMessages({ actifs, fr, en, parDefaut }: { actifs: number; fr: number; en: number; parDefaut: boolean }) {
   const t = useT();
   const id = useId();
-  const [state, action, pending] = useActionState<StatutResult | null, FormData>(publierMessageAction, null);
-  const [texte, setTexte] = useState(actuel);
-  const propre = texte.trim();
+  const [state, action, pending] = useActionState<ImportResult | null, FormData>(importerMessagesAction, null);
+  const [nom, setNom] = useState("");
   return (
-    <form id={id} action={action} className={styles.formulaire}>
-      <label>
-        <span>{t("Le message de la première page")}</span>
-        <textarea name="texte" rows={3} maxLength={MESSAGE_MAX} value={texte} onChange={(e) => setTexte(e.target.value)} required />
-        <small className={styles.compte}>
-          {propre.length} / {MESSAGE_MAX}
-        </small>
-      </label>
-      <ConfirmPublish
-        form={id}
-        label={t("Enregistrer le message")}
-        title={t("Changer le message des statuts ?")}
-        lines={[t("« {a} » s'affiche sur la première page des statuts, pour tous les clients, dès maintenant.", { a: propre || "—" })]}
-        confirmLabel={t("Enregistrer maintenant")}
-        disabled={propre.length < MESSAGE_MIN}
-        pending={pending}
-      />
-      {state && !state.ok && <small className={styles.err}>{state.error}</small>}
-    </form>
+    <div className={styles.messages}>
+      <p>
+        <b>{actifs}</b> {t("messages en jeu")} · {fr} fr · {en} en {parDefaut ? <small className={styles.compte}>· {t("la base de départ, pas encore importée")}</small> : null}
+      </p>
+      <a className="btn" href="/desk/statuts/messages" download>
+        {t("Télécharger le tableau (.xlsx)")}
+      </a>
+      <form id={id} action={action} className={styles.formulaire}>
+        <label>
+          <span>{t("Renvoyer le tableau complété")}</span>
+          <input type="file" name="tableau" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(e) => setNom(e.target.files?.[0]?.name ?? "")} required />
+        </label>
+        <ConfirmPublish
+          form={id}
+          label={t("Importer le tableau")}
+          title={t("Remplacer la base des messages ?")}
+          lines={[t("Le tableau « {n} » remplace la base : un message qui n'y est plus sort de la première page.", { n: nom || "—" }), t("Rien n'est effacé : un message retiré reste au journal, avec la date et le nom de qui l'a retiré."), t("Un seul message refusé, et rien n'est importé.")]}
+          confirmLabel={t("Importer maintenant")}
+          disabled={!nom}
+          pending={pending}
+        />
+        {state && !state.ok && (
+          <ul className={styles.err}>
+            {state.erreurs.map((e) => (
+              <li key={e}>{e}</li>
+            ))}
+          </ul>
+        )}
+      </form>
+    </div>
   );
 }
 
