@@ -128,6 +128,21 @@
 .voile[data-fili="monument:nouvelle-liberte"] {
   --fili-masque: url("/filigrane/nouvelle-liberte.png");
 }
+.voile[data-fili="monument:fraternite"] {
+  --fili-masque: url("/filigrane/fraternite.png");
+}
+.voile[data-fili="monument:statue-enchainee"] {
+  --fili-masque: url("/filigrane/statue-enchainee.png");
+}
+.voile[data-fili="monument:liberation-2023"] {
+  --fili-masque: url("/filigrane/liberation-2023.png");
+}
+.voile[data-fili="monument:femme-au-flambeau"] {
+  --fili-masque: url("/filigrane/femme-au-flambeau.png");
+}
+.voile[data-fili="monument:deux-torses"] {
+  --fili-masque: url("/filigrane/deux-torses.png");
+}
 .fm0 {
   background: linear-gradient(160deg, #ff7a59, #c14bd1 60%, #0b2545);
 }

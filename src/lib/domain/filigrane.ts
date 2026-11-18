@@ -28,8 +28,23 @@ export const SIGNES_DU_PAYS: Record<Country, SignesDuPays> = {
       { id: "nouvelle-liberte", nom: "La Nouvelle Liberté (Douala, Deïdo)" },
     ],
   },
-  Congo: { tel: "+242", iso3: "COG" },
-  Gabon: { tel: "+241", iso3: "GAB" },
+  Congo: {
+    tel: "+242",
+    iso3: "COG",
+    monuments: [
+      { id: "femme-au-flambeau", nom: "Statue de la femme au flambeau et à la tablette (nom à confirmer)" },
+      { id: "deux-torses", nom: "Monument des deux torses de granit (nom à confirmer)" },
+    ],
+  },
+  Gabon: {
+    tel: "+241",
+    iso3: "GAB",
+    monuments: [
+      { id: "fraternite", nom: "Place de la Fraternité, Libreville (deux mains et une flamme dorée ; plaque du 17 août 2007)" },
+      { id: "statue-enchainee", nom: "Statue aux chaînes brisées entre deux colonnes sculptées (nom à confirmer)" },
+      { id: "liberation-2023", nom: "Monument du Coup de la Libération d'août 2023 (trois statues de bronze et deux fusils)" },
+    ],
+  },
   RCA: { tel: "+236", iso3: "CAF" },
   Tchad: { tel: "+235", iso3: "TCD" },
   "Guinée éq.": { tel: "+240", iso3: "GNQ" },

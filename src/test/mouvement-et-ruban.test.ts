@@ -169,12 +169,16 @@ describe("le filigrane patriote", () => {
   });
   it("le Cameroun tire parmi ses deux codes, le mot Kontinent et ses trois monuments ; un pays sans mot ni monument garde ses deux codes", () => {
     expect(signesPossibles("Cameroun")).toEqual(["+237", "CMR", "Kontinent", "monument:reunification-statue", "monument:reunification", "monument:nouvelle-liberte"]);
-    expect(signesPossibles("Gabon")).toEqual(["+241", "GAB"]);
+    expect(signesPossibles("Gabon")).toEqual(["+241", "GAB", "monument:fraternite", "monument:statue-enchainee", "monument:liberation-2023"]);
+    expect(signesPossibles("Congo")).toEqual(["+242", "COG", "monument:femme-au-flambeau", "monument:deux-torses"]);
+    expect(signesPossibles("Tchad"), "le Tchad n'a pas encore de monument : ses photos sont à renvoyer").toEqual(["+235", "TCD"]);
     expect(signesPossibles(undefined)).toEqual([]);
   });
   it("chaque monument est une image détourée de sa photo, en ombre d'encre neutre (un PNG à transparence), posée en masque sur la page de statut", () => {
     const css = lire("src/components/statuts/Statuts.module.css");
-    for (const m of SIGNES_DU_PAYS.Cameroun.monuments ?? []) {
+    const tous = [...(SIGNES_DU_PAYS.Cameroun.monuments ?? []), ...(SIGNES_DU_PAYS.Gabon.monuments ?? []), ...(SIGNES_DU_PAYS.Congo.monuments ?? [])];
+    expect(tous.map((m) => m.id), "un identifiant de monument est en double").toEqual([...new Set(tous.map((m) => m.id))]);
+    for (const m of tous) {
       expect(existsSync(`public/filigrane/${m.id}.png`), `le monument « ${m.id} » n'a pas d'image`).toBe(true);
       expect(css, `le monument « ${m.id} » n'est pas relié à son image`).toContain(`.voile[data-fili="monument:${m.id}"] {\n  --fili-masque: url("/filigrane/${m.id}.png");`);
     }
