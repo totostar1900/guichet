@@ -60,12 +60,12 @@ export function EmailOtpForm({ next, phoneEnabled, withCode }: { next: string; p
       {mode === "email" ? (
         <label className="field">
           {t("Adresse e-mail")}
-          <input name="email" type="email" autoComplete="email" placeholder={t("vous@exemple.com")} autoFocus required />
+          <input name="email" type="email" autoComplete="email" placeholder={t("vous@exemple.com")} required />
         </label>
       ) : (
         <label className="field">
           {t("Numéro de téléphone (international)")}
-          <input name="phone" type="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" autoFocus required />
+          <input name="phone" type="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" required />
         </label>
       )}
       {state.error && <div className={styles.error}>{state.error}</div>}

@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { SectionLine, type SectionItem } from "./SectionLine";
 import styles from "./PageOutline.module.css";
+import { LienDAncre } from "@/components/LienDAncre";
 
 /**
  * « SUR CETTE PAGE » : LE SEUL SOMMAIRE DE SECTIONS DE LA MAISON.
@@ -52,10 +53,10 @@ export function PageOutline({ sections, label, meta, foot }: { sections: Section
         {sections.map((s, i) => (
           <Fragment key={s.id}>
             {ouvre[i] && <span className={styles.groupe}>{s.groupe}</span>}
-            <a href={`#${s.id}`} aria-current={s.id === active ? "true" : undefined}>
+            <LienDAncre href={`#${s.id}`} aria-current={s.id === active ? "true" : undefined}>
               <span>{s.title}</span>
               {s.alerte ? <em className={styles.compte}>{s.alerte}</em> : null}
-            </a>
+            </LienDAncre>
           </Fragment>
         ))}
         {meta && <div className={styles.meta}>{meta}</div>}

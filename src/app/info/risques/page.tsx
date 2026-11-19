@@ -6,6 +6,7 @@ import { GuideBar } from "../GuideBar";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
+import { LienDAncre } from "@/components/LienDAncre";
 
 export const dynamic = "force-dynamic";
 
@@ -56,9 +57,9 @@ export default async function RisquesPage() {
           {/* Le rail : il nomme les cinq étages, et rien d'autre. */}
           <nav className={styles.rail} aria-label={t("Les sections de cette page")}>
             {RISQUES.map((s) => (
-              <a key={s.id} href={`#${s.id}`}>
+              <LienDAncre key={s.id} href={`#${s.id}`}>
                 {s.titre[lang]}
-              </a>
+              </LienDAncre>
             ))}
           </nav>
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styles from "./BandeDeLaPage.module.css";
+import { LienDAncre } from "@/components/LienDAncre";
 
 /**
  * LA BANDE DE MENU DE LA PAGE (7 novembre 2026) : l'index de CETTE page, collé sous la barre de l'application. Un mot par section, un toucher y mène ;
@@ -28,9 +29,9 @@ export function BandeDeLaPage({ onglets, label }: { onglets: { id: string; nom: 
   return (
     <nav className={styles.bande} ref={bande} aria-label={label}>
       {onglets.map((o) => (
-        <a key={o.id} href={`#${o.id}`} className={styles.onglet} aria-current={o.id === actif ? "true" : undefined}>
+        <LienDAncre key={o.id} href={`#${o.id}`} className={styles.onglet} aria-current={o.id === actif ? "true" : undefined}>
           {o.nom}
-        </a>
+        </LienDAncre>
       ))}
     </nav>
   );

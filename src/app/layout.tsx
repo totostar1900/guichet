@@ -5,7 +5,7 @@ import "./globals.css";
 import "./palettes.css";
 import { HoteDeLaBulle } from "@/components/mobile/Bulle";
 import styles from "./layout.module.css";
-import { COMPANY, DISCLAIMER, PRODUCT, TUILES } from "@/lib/config";
+import { COMPANY, PRODUCT, TUILES } from "@/lib/config";
 import { NavTabs } from "@/components/NavTabs";
 import { repo } from "@/lib/data";
 import { backendName } from "@/lib/data";
@@ -373,10 +373,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           )}
           <p>
             <b>{COMPANY.legalName}</b>, {t(COMPANY.licence)}. {COMPANY.address} · {COMPANY.phone} · {COMPANY.email}
-          </p>
-          <p>
-            {t(DISCLAIMER)}
-            {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ? <span className={styles.build}> · v{process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.slice(0, 7)}</span> : null}
           </p>
         </footer>
         </SaufSurLaPorte>

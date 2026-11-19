@@ -136,13 +136,6 @@
   }
 }
 
-/* the version that is live, for whoever checks a deployment from a phone */
-.build {
-  color: var(--ink-3);
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.7em;
-}
-
 /* ===========================================================================
    LA NAVIGATION PASSE À GAUCHE AU-DELÀ DE 1040 PIXELS.
 

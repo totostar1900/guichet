@@ -164,7 +164,7 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion }: { dep
           </header>
           <label className={styles.champ}>
             {t("Adresse e-mail")}
-            <input type="email" autoComplete="email" inputMode="email" placeholder={t("vous@exemple.com")} value={email} onChange={(e) => setEmail(e.target.value)} autoFocus required />
+            <input type="email" autoComplete="email" inputMode="email" placeholder={t("vous@exemple.com")} value={email} onChange={(e) => setEmail(e.target.value)} required />
           </label>
           {champErreur}
           {demoLigne}
