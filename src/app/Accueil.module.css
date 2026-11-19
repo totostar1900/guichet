@@ -29,6 +29,7 @@
 /* ---------- Un écran ---------- */
 .ecran {
   position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   /* Un écran remplit la hauteur du téléphone, moins la barre du haut. */
@@ -61,16 +62,94 @@
   line-height: 1.6;
   color: var(--on-navy-2);
 }
-.agrement {
-  align-self: flex-start;
-  font-size: var(--t-1);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--on-navy-2);
-  padding: var(--s-4) var(--s-7);
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--on-navy) 30%, transparent);
+
+/* ---------- Les fonds dessinés : la courbe financière (écran 1) et la carte de la zone CEMAC (écran 4) ----------
+ * Des traits à peine visibles derrière le texte, qui se tracent à l'entrée dans l'écran (« TraceSurVue ») : « .fond » les pose derrière le contenu, sans prendre le toucher.
+ * Aucune graduation, aucune légende, aucun chiffre ; aucune lueur. Sans « data-pret » (pas de script, « moins de mouvement ») tout est entier. */
+.fond {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  color: var(--on-navy);
+}
+.courbe {
+  position: absolute;
+  inset: 22% 0 0;
+  width: 100%;
+  height: 78%;
+}
+.courbe [data-quadrillage] path {
+  stroke: color-mix(in srgb, var(--on-navy) 7%, transparent);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+.courbe [data-aire] {
+  fill: color-mix(in srgb, var(--on-navy) 5%, transparent);
+  stroke: none;
+}
+.courbe [data-trait] {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.courbe [data-ligne="cours"] {
+  stroke: color-mix(in srgb, var(--on-navy) 42%, transparent);
+  stroke-width: 2px;
+}
+.courbe [data-ligne="moyenne"] {
+  stroke: color-mix(in srgb, var(--on-navy) 22%, transparent);
+  stroke-width: 1.5px;
+}
+.fond[data-pret="oui"] .courbe [data-trait] {
+  stroke-dashoffset: 1;
+}
+.fond[data-vu="oui"] .courbe [data-trait] {
+  animation: tracer 3.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: var(--d, 0s);
+}
+.fond[data-pret="oui"] .courbe [data-aire] {
+  opacity: 0;
+}
+.fond[data-vu="oui"] .courbe [data-aire] {
+  animation: apparait 1.6s ease-out 1.8s both;
+}
+.carte {
+  /* La zone entière tient dans la largeur de l'écran, posée au-dessus de la bande d'entrée : les six pays se reconnaissent, le texte passe par-dessus sans les cacher. */
+  position: absolute;
+  bottom: calc(var(--bande) + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  width: min(100%, 46rem);
+  height: auto;
+  translate: -50% 0;
+}
+.carte path {
+  fill: color-mix(in srgb, var(--on-navy) 5%, transparent);
+  stroke: color-mix(in srgb, var(--on-navy) 38%, transparent);
+  stroke-width: 1.4px;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.fond[data-pret="oui"] .carte path {
+  stroke-dashoffset: 1;
+  fill-opacity: 0;
+}
+.fond[data-vu="oui"] .carte path {
+  animation:
+    tracer 2.4s cubic-bezier(0.4, 0, 0.2, 1) both,
+    apparait 1.2s ease-out 1.4s both;
+  animation-delay: var(--d, 0s), calc(var(--d, 0s) + 1.4s);
+}
+@keyframes apparait {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ---------- Le dessin de la famille : des traits, rien d'autre ---------- */
@@ -103,6 +182,12 @@
   to {
     stroke-dashoffset: 0;
   }
+}
+.phrase {
+  display: block;
+  margin-bottom: var(--s-4);
+  font-size: var(--t-7);
+  line-height: 1.25;
 }
 .texte {
   margin: 0;
@@ -143,11 +228,16 @@
   }
 }
 
-.confiance {
+.conseillers {
   margin: 0;
-  font-size: var(--t-4);
-  line-height: 1.55;
+  font-size: var(--t-7);
+  font-weight: 700;
+  line-height: 1.3;
   color: var(--on-navy);
+  text-wrap: balance;
+}
+.pied .col {
+  gap: var(--s-9);
 }
 .avertissement {
   margin: 0;
@@ -172,7 +262,6 @@
   .ecran h1,
   .ecran h2,
   .chapeau,
-  .confiance,
   .avertissement {
     max-width: var(--mesure-texte);
   }

@@ -147,4 +147,13 @@ export const EN_VITRINE: Record<string, string> = {
   "Le calendrier des séances d'emprunt des États, annoncées à l'avance.": "The calendar of the governments' borrowing auctions, announced in advance.",
   "Purpose Capital est agréée en qualité de société de bourse par la Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF).":
     "Purpose Capital is licensed as a brokerage firm by the Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF), the financial market supervisory commission of Central Africa.",
+  "Investir, c'est penser à ceux qui comptent.": "Investing means thinking of those who matter.",
+  "Un placement fait avec méthode peut aider à préparer les projets d'une famille ; rien n'est garanti, mais la démarche, elle, se transmet.":
+    "An investment made with method can help prepare a family's plans; nothing is guaranteed, but the habit itself gets passed on.",
+
+  /* ---------- la connexion : la biométrie en bas (18 novembre 2026) ---------- */
+  "Connexion biométrique": "Biometric sign-in",
+  "Cet appareil est reconnu : un geste suffit.": "This device is recognised: one touch is enough.",
+  "Si cet appareil a déjà une clé d'accès, utilisez-la.": "If this device already has a passkey, use it.",
+  "Utiliser la clé d'accès de cet appareil": "Use this device's passkey",
 };

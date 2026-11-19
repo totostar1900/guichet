@@ -171,3 +171,7 @@ Le ruban du balayage suivait les sept routes (Titres, Fonds et Adjudications sé
 
 La connexion par Face ID demandait de « choisir la clé d'accès » : le serveur n'envoyait aucune liste de clés (`allowCredentials` vide), et le téléphone ouvrait son sélecteur de comptes avant le visage. **Un appareil déjà reconnu désigne sa propre clé** (identifiant d'appareil envoyé au serveur, clé de CET appareil, transport « interne », visage ou empreinte exigés) et passe directement à la biométrie ; seule la porte « j'ai une clé d'accès » reste sans liste. Sur un écran qu'on ouvre devant d'autres personnes, **jamais le nom** (« Bonjour … ») : un grand bouton, un seul geste. Voir `src/test/connexion-biometrie.test.ts`.
 
+## Leçon du 18 novembre 2026 (suite) : « oublier cet appareil » n'oublie que le navigateur
+
+Sur la page de connexion, « Oublier cet appareil ici » efface seulement le souvenir de CE navigateur (`clearDevice`) : l'appareil de confiance reste enregistré côté serveur et ne se retire que dans Mon compte > Sécurité (`forgetDeviceAction`). Un libellé qui promet plus qu'il ne fait se corrige dans les mots ou dans le geste, jamais en silence. Même page : **le lien ou le code par e-mail d'abord, la biométrie en bas** (icône, titre, phrase, bouton à bouts ronds, d'après l'image du client) ; plus de « Pas vous ? » ni de « Vous découvrez Guichet ? » (le test lit le code SANS ses commentaires : un commentaire qui cite le mot retiré ne doit pas le faire revenir).
+

@@ -8,7 +8,6 @@ import { devLogin, googleLogin } from "./actions";
 import { Select } from "@/components/ui/Select";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
-import { ReplayPresentation } from "@/components/mobile/Presentation";
 import { DeviceSignIn } from "./DeviceSignIn";
 import { Glissement } from "@/components/mobile/Glissement";
 
@@ -82,7 +81,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           {creerUnCompte && <p className={styles.lead}>{t("Un code, une minute, et vous voyez le marché : les taux, les séances annoncées et les publications. Aucun document n'est demandé à ce stade, et créer un compte ne vous engage à rien.")}</p>}
           {erreur === "lien" && <p className={styles.notice}>{t("Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau lien ci-dessous : il arrive en quelques secondes.")}</p>}
           {erreur === "google" && <p className={styles.notice}>{t("La connexion par Google n'a pas abouti. Le code par e-mail ci-dessous fonctionne toujours.")}</p>}
-          <DeviceSignIn next={next} />
           {mode === "supabase" ? (
             <>
               {/* La phrase de tête a déjà été dite à qui vient ouvrir ou créer un compte. */}
@@ -115,11 +113,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 </>
               )}
               <EmailOtpForm next={next} phoneEnabled={telephoneOuvert} withCode={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY)} />
-              {!administration && (
-                <p className={styles.discover}>
-                  {t("Vous découvrez Guichet ?")} <ReplayPresentation className="btn sm ghost" label={t("Trente secondes pour comprendre")} />
-                </p>
-              )}
             </>
           ) : (
             <>
@@ -166,6 +159,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               </div>
             </>
           )}
+          {/* LA BIOMÉTRIE EST EN BAS (18 novembre 2026, le client : « inverser empreinte et adresse e-mail, la connexion par empreinte se fait en bas ») : le lien ou le code par e-mail d'abord, puis Face ID ou l'empreinte d'un appareil. */}
+          <DeviceSignIn next={next} />
         </div>
       </div>
     </Glissement>

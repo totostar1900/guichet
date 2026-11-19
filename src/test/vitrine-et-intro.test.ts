@@ -9,14 +9,16 @@ const lire = (f: string) => readFileSync(f, "utf8");
  * LA VITRINE ET L'INTRO UNIQUE (14 novembre 2026, planche « vitrine et intro », options 1A et 2A).
  * Les décisions du 12 octobre tiennent : un seul bouton en tête, aucun taux, aucun rendement, aucun montant. Ce qui change est dit ici, et gardé.
  */
-describe("la vitrine : six écrans, un par lecture, qui s'arrêtent comme des statuts, sur un seul fond bleu nuit (18 novembre 2026)", () => {
+describe("la vitrine : sept écrans, un par lecture, qui s'arrêtent comme des statuts, sur un seul fond bleu nuit (18 novembre 2026)", () => {
   const v = lire("src/app/Accueil.tsx");
   const css = lire("src/app/Accueil.module.css");
+  /* Une tranche de source : de son début à la première fin qui le suit. */
+  const tranche = (src: string, debut: string, fin: string) => src.split(debut)[1]?.split(fin)[0] ?? "";
   const code = v.replace(/\/\*[\s\S]*?\*\//g, "");
   const g = lire("src/app/globals.css");
 
-  it("a six écrans : le titre, les produits, investir, la région, « en toute sérénité », « à chaque étape », et un message tiré au hasard dans les cinq premiers", () => {
-    expect((v.match(/<section className=/g) ?? []).length, "la vitrine n'a plus six écrans").toBe(6);
+  it("a sept écrans : le titre, les produits, investir, la région, « en toute sérénité », « à chaque étape », l'espace dédié, et un message tiré au hasard dans les cinq premiers", () => {
+    expect((v.match(/<section className=/g) ?? []).length, "la vitrine n'a plus sept écrans").toBe(7);
     expect(v).toMatch(/const m = tirerLesMessages\(\);/);
     for (const k of ["hub", "futur", "investir", "region", "vous"]) expect(v, `le message « ${k} » n'est plus tiré`).toContain(`t(m.${k})`);
     expect(code).toContain('t("À chaque étape, à vos côtés.")');
@@ -27,12 +29,11 @@ describe("la vitrine : six écrans, un par lecture, qui s'arrêtent comme des st
     expect(css).toMatch(/scroll-snap-align: start;\s*scroll-snap-stop: always;/);
   });
 
-  it("n'a plus un seul titre jaune, plus un numéro, et l'agrément n'est plus en or", () => {
+  it("n'a plus un seul titre jaune, plus un numéro, et plus de ligne d'agrément sur le premier écran", () => {
     expect(code, "une étiquette dorée est revenue au-dessus d'un titre").not.toMatch(/styles\.etiquette/);
     expect(code, "des numéros sont revenus dans les listes").not.toMatch(/styles\.rang|n: "\d"/);
     expect(css).not.toMatch(/\.etiquette/);
-    const agrement = /\.agrement \{([^}]*)\}/.exec(css);
-    expect(agrement?.[1], "l'agrément est redevenu doré").not.toMatch(/--gold/);
+    expect(css, "l'agrément a quitté le premier écran et ne doit plus y revenir").not.toMatch(/\.agrement/);
     expect(css, "un titre de la vitrine est doré").not.toMatch(/(h1|h2|h3|\.sousTitre)[^{]*\{[^}]*color: var\(--gold/);
   });
 
@@ -68,15 +69,46 @@ describe("la vitrine : six écrans, un par lecture, qui s'arrêtent comme des st
     expect(v).toContain("Des conseillers à votre écoute, en français, en anglais et sans jargon, à chaque étape.");
   });
 
+  it("le dernier écran est un espace dédié : les conseillers, le risque, les trois liens et la maison (nom, agrément, version)", () => {
+    const debut = code.indexOf("styles.pied");
+    expect(debut, "l'espace dédié a disparu").toBeGreaterThan(-1);
+    const pied = code.slice(debut, code.length);
+    for (const k of ["styles.conseillers", "styles.avertissement", "styles.liens", "styles.maison", "COMPANY.legalName", "COMPANY.licence", "NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA"]) expect(pied, `« ${k} » a quitté l'espace dédié`).toContain(k);
+    for (const k of ["styles.conseillers", "styles.avertissement", "styles.liens", "styles.maison"]) expect(code.slice(0, debut), `« ${k} » est aussi dans un autre écran`).not.toContain(k);
+  });
+
+  it("la courbe financière est le fond du premier écran, et la carte de la zone CEMAC celui du quatrième : des traits, sans graduation, sans légende, sans chiffre", () => {
+    expect(tranche(v, "ÉCRAN 1", "ÉCRAN 2")).toContain("<CourbeFinanciere");
+    expect(tranche(v, "ÉCRAN 4", "ÉCRAN 5")).toContain("<CarteCemac");
+    const courbe = lire("src/components/accueil/CourbeFinanciere.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
+    const carte = lire("src/components/accueil/CarteCemac.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
+    for (const [nom, src] of [["la courbe", courbe], ["la carte", carte]] as const) {
+      expect(src, `${nom} écrit un texte`).not.toMatch(/<text\b|<title\b|<tspan\b/);
+      expect(src, `${nom} porte un taux ou un montant écrit`).not.toMatch(/\d+\s?%|FCFA/);
+      expect(src, `${nom} a un fond ou un dégradé`).not.toMatch(/<rect|Gradient|<image/);
+    }
+    for (const pays of ["Tchad", "Cameroun", "République centrafricaine", "Gabon", "Congo", "Guinée équatoriale"]) expect(carte, `le pays « ${pays} » manque à la carte`).toContain(`data-pays="${pays}"`);
+    expect((carte.match(/data-trait=""/g) ?? []).length).toBe(6);
+    expect((courbe.match(/data-ligne=/g) ?? []).length, "la courbe n'a plus son cours et sa moyenne").toBe(2);
+    expect(css).toMatch(/\.fond\[data-vu="oui"\] \.carte path \{/);
+    expect(css).toMatch(/\.fond\[data-vu="oui"\] \.courbe \[data-trait\] \{/);
+    expect(css, "un fond dessiné prend le toucher").toMatch(/\.fond \{[^}]*pointer-events: none;/);
+  });
+
+  it("toute la page de présentation est bleu nuit : le menu latéral et la pastille prennent les jetons sombres, quel que soit le thème", () => {
+    expect(g).toMatch(/\nbody:has\(\[data-vitrine\]\) \{\s*color-scheme: dark;\s*--paper: #0e1928;/);
+    expect(g, "le thème sombre doit rester écrit seul, intact").toMatch(/\n:root\[data-theme="dark"\] \{\s*color-scheme: dark;/);
+  });
+
   it("garde l'agrément, le risque de perte en capital et ses trois liens, sans la phrase retirée", () => {
-    expect(v).toMatch(/Société de bourse agréée COSUMAF/);
+    expect(code, "l'agrément a quitté la maison").toMatch(/COMPANY\.licence/);
     expect(v).toMatch(/Tout placement comporte un risque de perte en capital\./);
     expect(v).toMatch(/Les performances passées ne préjugent pas des performances futures\./);
     for (const h of ["/info/eclairages", "/info/aide", "/info/risques"]) {
       expect(code, `le lien ${h} a disparu`).toContain(`href="${h}"`);
       expect(estPublic(h), `${h} n'est pas public`).toBe(true);
     }
-    for (const phrase of ["Les conditions de chaque placement vous sont remises avant toute décision", "Un conseiller vous répond, en français et sans jargon", "Voici ce que vous y trouvez", "Et aussi : l'épargne programmée", "Où va votre argent", "Ce que vous risquez"]) expect(code, `« ${phrase} » est revenu`).not.toContain(phrase);
+    for (const phrase of ["Société de bourse agréée COSUMAF · n° COSUMAF-SDB-01/2026", "Prêtez aux États et aux institutions de la zone", "Ce que chaque placement peut vous apporter", "Les conditions de chaque placement vous sont remises avant toute décision", "Un conseiller vous répond, en français et sans jargon", "Voici ce que vous y trouvez", "Et aussi : l'épargne programmée", "Où va votre argent", "Ce que vous risquez"]) expect(code, `« ${phrase} » est revenu`).not.toContain(phrase);
   });
 
   it("le pied a le nom de la maison et son agrément, et ni adresse, ni téléphone, ni mention longue", () => {
@@ -94,8 +126,10 @@ describe("la vitrine : six écrans, un par lecture, qui s'arrêtent comme des st
     expect((sansNotes.match(/<circle /g) ?? []).length, "les trois têtes ne sont plus trois cercles").toBe(3);
     expect((sansNotes.match(/data-trait=""/g) ?? []).length, "le dessin n'a plus ses traits").toBeGreaterThanOrEqual(9);
     expect(sansNotes, "le dessin a un fond").not.toMatch(/<rect|fill="(?!none)/);
+    expect(v).toMatch(/Investir, c'est penser à ceux qui comptent\./);
     expect(v).toMatch(/peut aider à préparer les projets d'une famille/);
-    expect(v).toMatch(/Rien n'est garanti/);
+    expect(v, "le texte sur la famille ne dit plus que rien n'est garanti").toMatch(/rien n'est garanti/);
+    expect(tranche(code, "styles.texte", "</section>").length, "le texte sur la famille est redevenu long").toBeLessThan(520);
     expect(css).toMatch(/\.famille\[data-vu="oui"\] \.dessin \[data-trait\] \{\s*animation: tracer/);
   });
 

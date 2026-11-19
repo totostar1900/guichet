@@ -3,20 +3,23 @@ import { getT } from "@/i18n/server";
 import { COMPANY } from "@/lib/config";
 import { tirerLesMessages } from "@/lib/domain/vitrine-messages";
 import { FamilleDessin } from "@/components/accueil/FamilleDessin";
+import { CarteCemac } from "@/components/accueil/CarteCemac";
+import { CourbeFinanciere } from "@/components/accueil/CourbeFinanciere";
 import { C, ListeAPlat, T, type Rangee } from "@/components/accueil/ListeAPlat";
 import { TraceSurVue } from "@/components/accueil/TraceSurVue";
 import styles from "./Accueil.module.css";
 
 /**
- * L'accueil d'un visiteur qui n'est pas connecté : SIX ÉCRANS, UN PAR LECTURE, SUR UN SEUL FOND BLEU NUIT (18 novembre 2026).
+ * L'accueil d'un visiteur qui n'est pas connecté : SEPT ÉCRANS, UN PAR LECTURE, SUR UN SEUL FOND BLEU NUIT (18 novembre 2026).
  *
  * Un écran, un message, et la page S'ARRÊTE à chaque écran, comme les statuts d'une messagerie (« scroll-snap-type: y mandatory » et « scroll-snap-stop: always », « globals.css »).
- *   1 · le titre (l'agrément COSUMAF, un message tiré au hasard) ;
+ *   1 · le titre, sur un fond de courbe financière (le client a retiré la ligne d'agrément de cet écran : elle est au dernier) ;
  *   2 · les produits à plat, fusionnés avec ce que chacun peut apporter et ce qu'il ne garantit pas ; leurs icônes se dessinent ;
  *   3 · investir, avec le dessin de la famille qui se trace et un texte sur ce que l'investissement peut apporter à l'investisseur et aux siens ;
- *   4 · la région ;
+ *   4 · la région, sur la carte de la zone CEMAC ;
  *   5 · « en toute sérénité » : le sérieux de la maison, à plat, icônes qui se dessinent ;
- *   6 · « à chaque étape » : l'accompagnement, à plat, le risque écrit et les trois liens du pied.
+ *   6 · « à chaque étape » : l'accompagnement, à plat ;
+ *   7 · un espace dédié : les conseillers, le risque de perte en capital, les trois liens du pied, et la maison (nom, agrément, version).
  * LES MESSAGES CHANGENT À CHAQUE VISITE : trois variantes par écran, une tirée côté serveur (`vitrine-messages.ts`).
  * LES BOUTONS D'ENTRÉE NE SONT PAS DANS LA PAGE : la bande basse (PorteVitrine) ; au large, la pastille du haut.
  * Aucun titre jaune (le client : « retirer tous les titres jaunes ») : plus d'étiquette dorée au-dessus des titres, et plus de numéros.
@@ -53,12 +56,12 @@ export async function Accueil() {
 
   return (
     <div className={styles.page} data-vitrine="">
-      {/* ÉCRAN 1 · LE TITRE. */}
+      {/* ÉCRAN 1 · LE TITRE, sur un fond de courbe financière (sans graduation ni chiffre). */}
       <section className={styles.ecran}>
+        <TraceSurVue className={styles.fond}>
+          <CourbeFinanciere className={styles.courbe} />
+        </TraceSurVue>
         <div className={styles.col}>
-          <span className={styles.agrement} data-anim="">
-            {t("Société de bourse agréée COSUMAF · n° COSUMAF-SDB-01/2026")}
-          </span>
           <h1 data-anim="">{t(m.hub)}</h1>
         </div>
         <span className={styles.defile} aria-hidden="true" />
@@ -68,9 +71,6 @@ export async function Accueil() {
       <section className={styles.ecran}>
         <div className={styles.col}>
           <h2 data-anim="">{t(m.futur)}</h2>
-          <p className={styles.chapeau} data-anim="">
-            {t("Ce que chaque placement peut vous apporter, et ce qu'il ne garantit pas.")}
-          </p>
           <ListeAPlat rangees={produits} />
         </div>
       </section>
@@ -79,20 +79,20 @@ export async function Accueil() {
       <section className={styles.ecran}>
         <div className={styles.col}>
           <h2 data-anim="">{t(m.investir)}</h2>
-          <p className={styles.chapeau} data-anim="">
-            {t("Prêtez aux États et aux institutions de la zone, prenez part au capital des sociétés cotées, placez dans des fonds agréés par la COSUMAF.")}
-          </p>
           <TraceSurVue className={styles.famille}>
             <FamilleDessin className={styles.dessin} />
           </TraceSurVue>
           <p className={styles.texte} data-anim="">
-            {t("Investir, c'est penser à ceux qui comptent. Un placement fait avec méthode, dans la durée, peut aider à préparer les projets d'une famille : des études, un toit, une retraite tranquille. Rien n'est garanti, mais c'est une démarche qui se transmet, et elle se construit dans la région où grandiront vos enfants.")}
+            <span className={styles.phrase}>{t("Investir, c'est penser à ceux qui comptent.")}</span> {t("Un placement fait avec méthode peut aider à préparer les projets d'une famille ; rien n'est garanti, mais la démarche, elle, se transmet.")}
           </p>
         </div>
       </section>
 
-      {/* ÉCRAN 4 · LA RÉGION : un seul message, le plus fort. */}
+      {/* ÉCRAN 4 · LA RÉGION : un seul message, sur la carte de la zone CEMAC. */}
       <section className={styles.ecran}>
+        <TraceSurVue className={styles.fond}>
+          <CarteCemac className={styles.carte} />
+        </TraceSurVue>
         <div className={styles.col}>
           <h2 data-anim="">{t(m.region)}</h2>
           <p className={styles.chapeau} data-anim="">
@@ -112,12 +112,18 @@ export async function Accueil() {
         </div>
       </section>
 
-      {/* ÉCRAN 6 · À CHAQUE ÉTAPE : l'accompagnement, le risque écrit, les trois liens et la maison. */}
+      {/* ÉCRAN 6 · À CHAQUE ÉTAPE : l'accompagnement, à plat. */}
       <section className={styles.ecran}>
         <div className={styles.col}>
           <h2 data-anim="">{t("À chaque étape, à vos côtés.")}</h2>
           <ListeAPlat rangees={etapes} />
-          <p className={styles.confiance} data-anim="">
+        </div>
+      </section>
+
+      {/* ÉCRAN 7 · L'ESPACE DÉDIÉ : les conseillers, le risque écrit, les trois liens, et la maison (nom, agrément, version). */}
+      <section className={`${styles.ecran} ${styles.pied}`}>
+        <div className={styles.col}>
+          <p className={styles.conseillers} data-anim="">
             {t("Des conseillers à votre écoute, en français, en anglais et sans jargon, à chaque étape.")}
           </p>
           <p className={styles.avertissement} data-anim="">
@@ -128,7 +134,7 @@ export async function Accueil() {
             <Link href="/info/aide">{t("Aide et contact")}</Link>
             <Link href="/info/risques">{t("Risques et limites")}</Link>
           </nav>
-          <p className={styles.maison}>
+          <p className={styles.maison} data-anim="">
             <b>{COMPANY.legalName}</b>, {t(COMPANY.licence)}
             {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ? ` · v${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.slice(0, 7)}` : ""}
           </p>

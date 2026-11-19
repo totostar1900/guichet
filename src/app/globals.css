@@ -1909,3 +1909,19 @@ body:has([data-vitrine]) footer {
   display: none;
 }
 
+/* TOUTE LA PAGE DE PRÉSENTATION EST BLEU NUIT (18 novembre 2026, le client : « toute la page de présentation en fond bleu nuit »). Le menu latéral, la pastille de langue et tout ce que le gabarit pose autour de la vitrine prennent les jetons du thème sombre, quel que soit le thème du lecteur : un bloc à part, qui ne redit que les gris, les encres et l'ombre (le thème sombre lui-même reste écrit une fois, intact). */
+body:has([data-vitrine]) {
+  color-scheme: dark;
+  --paper: #0e1928;
+  --surface: #16233a;
+  --surface-2: #1d2d48;
+  --line: #2a3c58;
+  --line-2: #3a4e6e;
+  --ink: #eaeff6;
+  --ink-2: #b5c0d0;
+  --ink-3: #8e9db3;
+  --gold-ink: #e0b65a;
+  --navy-text: #9fc0f7;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+

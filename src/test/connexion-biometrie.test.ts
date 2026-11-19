@@ -10,7 +10,9 @@ const lire = (f: string) => readFileSync(f, "utf8");
 describe("l'appareil reconnu ouvre directement sur Face ID ou l'empreinte", () => {
   const d = lire("src/lib/auth/devices.ts");
   const a = lire("src/app/connexion/actions.ts");
-  const c = lire("src/app/connexion/DeviceSignIn.tsx");
+  const brut = lire("src/app/connexion/DeviceSignIn.tsx");
+  /* Le code sans ses commentaires : les commentaires citent les mots retirés pour dire pourquoi. */
+  const c = brut.replace(/\/\*[\s\S]*?\*\//g, "");
 
   it("le serveur désigne la clé de l'appareil reconnu (liste « allowCredentials », transport interne) et exige le visage ou l'empreinte", () => {
     const debut = d.indexOf("export async function passkeyAuthenticationOptions");
@@ -30,18 +32,27 @@ describe("l'appareil reconnu ouvre directement sur Face ID ou l'empreinte", () =
     expect(c).toMatch(/passkeyOptions\(device\?\.kind === "passkey" \? device\.id : undefined\)/);
   });
 
-  it("la biométrie est un grand bouton au milieu de l'écran, sans « Bonjour » ni nom", () => {
+  it("la biométrie est un bloc d'icône, titre, phrase et bouton à bouts ronds, sans « Bonjour », sans nom, sans « Pas vous ? »", () => {
     expect(c).not.toMatch(/Bonjour/);
     expect(c).not.toMatch(/device\.who/);
-    expect(c).toMatch(/className=\{styles\.bio\}/);
+    expect(c, "le lien « Pas vous ? » est revenu").not.toMatch(/Pas vous/);
+    expect(c).toMatch(/className=\{styles\.bioBloc\}/);
+    expect(c).toMatch(/className=\{styles\.bioBouton\}/);
     expect(c).toMatch(/Ouvrir avec Face ID, empreinte ou code de l'appareil/);
-    expect(lire("src/app/connexion/page.module.css")).toMatch(/\.bioRond \{[^}]*width: 6\.5rem;/);
+    expect(c).toMatch(/Connexion biométrique/);
+    expect(lire("src/app/connexion/page.module.css")).toMatch(/\.bioBouton \{[^}]*border-radius: 999px;/);
+  });
+
+  it("« Oublier cet appareil ici » ne retire que le souvenir de ce navigateur ; le retrait de l'appareil se fait à Mon compte > Sécurité", () => {
+    expect(c).toMatch(/clearDevice\(\);\s*setHidden\(true\);/);
+    expect(c, "la page de connexion ne doit pas oublier l'appareil côté serveur").not.toMatch(/forgetDevice/);
+    expect(lire("src/app/moi/securite/actions.ts")).toMatch(/export async function forgetDeviceAction/);
   });
 });
 
 describe("la page de connexion : une colonne centrée, des champs et des boutons pleine largeur", () => {
   const css = lire("src/app/connexion/page.module.css");
-  const p = lire("src/app/connexion/page.tsx");
+  const p = lire("src/app/connexion/page.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
   it("la colonne fait 28rem, sans cadre à bord doré ; la démonstration garde sa largeur", () => {
     expect(css).toMatch(/\.card \{[^}]*width: min\(28rem, 100%\);/);
     expect(css).not.toMatch(/border-top: 3px solid var\(--gold\)/);
@@ -52,7 +63,10 @@ describe("la page de connexion : une colonne centrée, des champs et des boutons
     expect(css).toMatch(/\.otp :global\(\.field\) input \{[^}]*width: 100%;[^}]*border-radius: 999px;/);
     expect(css).toMatch(/\.google button \{[^}]*border-radius: 999px;/);
   });
-  it("le recours « clé d'accès » passe sous le formulaire", () => {
-    expect(css).toMatch(/\.passkeyHint \{[^}]*order: 3;/);
+  it("l'e-mail est en haut et la biométrie en bas ; plus de « Vous découvrez Guichet ? »", () => {
+    expect(p.indexOf("<EmailOtpForm"), "le formulaire e-mail doit venir avant la biométrie").toBeLessThan(p.indexOf("<DeviceSignIn"));
+    expect(p.indexOf("<DeviceSignIn"), "la biométrie doit être en bas de la carte").toBeGreaterThan(p.indexOf("devForm"));
+    expect(p, "« Vous découvrez Guichet ? » est revenu").not.toMatch(/Vous découvrez Guichet|ReplayPresentation|Trente secondes pour comprendre/);
+    expect(css).toMatch(/\.bioBloc \{[^}]*border-top: 1px solid var\(--line\);/);
   });
 });
