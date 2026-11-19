@@ -54,7 +54,12 @@ describe("la documentation « services et risques associés » (7 novembre 2026)
     const ids = ORDRE_DE_LA_PAGE.map((e) => ("doc" in e ? e.doc.id : e.legal));
     expect(new Set(ids).size, "deux sections portent le même id").toBe(ids.length);
     for (const e of ORDRE_DE_LA_PAGE) if ("legal" in e) expect(LEGAL.some((s) => s.id === e.legal), `la section ${e.legal} n'existe plus dans legal.ts`).toBe(true);
-    expect(lire("src/app/info/mentions/page.tsx")).toMatch(/<BandeDeLaPage/);
+    /* Depuis le 19 novembre 2026 la bande vit dans la page de texte partagée, et chaque section de l'ancien document a UNE page. */
+    expect(lire("src/app/info/PageDeTexte.tsx")).toMatch(/<BandeDeLaPage/);
+    const pages = ["mentions", "conditions", "donnees", "reclamations", "en-bref"].map((d) => lire(`src/app/info/${d}/page.tsx`)).join("\n") + lire("src/app/info/risques/page.tsx");
+    const placees = [...pages.matchAll(/choisir\(([^)]*)\)/g)].flatMap((m) => [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]));
+    for (const id of ids) expect(placees, `la section ${id} n'a plus de page`).toContain(id);
+    expect(new Set(placees).size, "une section est lue sur deux pages").toBe(placees.length);
   });
   it("toutes les sections juridiques gardent leur place, et chaque ligne est écrite dans les deux langues", () => {
     const presents = ORDRE_DE_LA_PAGE.flatMap((e) => ("legal" in e ? [e.legal] : []));
@@ -277,7 +282,7 @@ describe("la fiche d'une ligne : une pile sans cadre, un pied qui range les risq
   });
   it("le pied de la fiche range les risques en trois liens : le texte opposable, la leçon, la documentation", () => {
     const p = lire("src/app/offres/[id]/PiedDeFiche.tsx");
-    for (const h of ['"/info/risques#risques"', '"/info/les-quatre-risques"', '"/info/mentions#types-de-risques"']) expect(p, h).toContain(h);
+    for (const h of ['"/info/risques#risques"', '"/info/les-quatre-risques"', '"/info/risques#types-de-risques"']) expect(p, h).toContain(h);
     expect(p).toMatch(/<footer className=\{styles\.pied\}/);
     expect(lire("src/app/offres/[id]/page.tsx")).toMatch(/<PiedDeFiche carte=\{/);
   });

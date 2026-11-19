@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useT } from "@/i18n/client";
 import { identityAction, type IdentityResult } from "@/app/moi/actions";
-import { telLisible } from "@/lib/format";
 import styles from "@/components/Feuillet.module.css";
 
 /**
@@ -25,7 +23,7 @@ import styles from "@/components/Feuillet.module.css";
  * une procédure et non un champ. La page de sécurité la porte déjà ; la
  * refaire ici en ferait une seconde, qui divergerait.
  */
-export function Identite({ nom, segment, email, emailOk, phone, phoneOk }: { nom: string; segment: string; email?: string; emailOk?: boolean; phone?: string; phoneOk?: boolean }) {
+export function Identite({ nom, segment }: { nom: string; segment: string }) {
   const t = useT();
   const [state, action, pending] = useActionState<IdentityResult | null, FormData>(identityAction, null);
   const [ouvert, setOuvert] = useState(false);
@@ -79,31 +77,6 @@ export function Identite({ nom, segment, email, emailOk, phone, phoneOk }: { nom
         {state?.ok && !ouvert && <small className={styles.ok}>{t("C'est enregistré.")}</small>}
       </section>
 
-      <section className={styles.bloc}>
-        <h2>{t("Mes canaux")}</h2>
-        {/* PROUVÉ VEUT DIRE QUELQUE CHOSE, et la page le dit : c'est le canal
-            sur lequel un code peut partir. Une adresse non prouvée reçoit les
-            avis mais ne signe rien. */}
-        <div className={styles.ligne}>
-          <span>
-            <b>{email ?? t("E-mail à renseigner")}</b>
-            <small>{email ? t(emailOk ? "prouvé" : "à prouver") : t("aucune adresse connue")}</small>
-          </span>
-          <Link href="/moi/securite#canaux" className={styles.chg}>
-            {t(email ? "Changer" : "Ajouter")}
-          </Link>
-        </div>
-        <div className={styles.ligne}>
-          <span>
-            <b>{phone ? telLisible(phone) : t("WhatsApp à renseigner")}</b>
-            <small>{phone ? t(phoneOk ? "prouvé" : "à prouver") : t("aucun numéro connu")}</small>
-          </span>
-          <Link href="/moi/securite#canaux" className={styles.chg}>
-            {t(phone ? "Changer" : "Ajouter")}
-          </Link>
-        </div>
-        <p className={styles.note}>{t("Un canal prouvé est celui sur lequel un code à usage unique peut partir : c'est ce qui vous permet de signer. Tant qu'aucun ne l'est, le desk vous appelle.")}</p>
-      </section>
     </>
   );
 }

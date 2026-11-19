@@ -1,0 +1,36 @@
+/* Les quatre ronds et le clavier du code de l'appareil (création et déverrouillage). Les jetons de la maison, aucune couleur écrite. */
+.ronds {
+  display: flex;
+  gap: var(--s-6);
+  justify-content: center;
+}
+.ronds i {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  border: 1.5px solid var(--good);
+}
+.ronds i[data-plein="1"] {
+  background: var(--good);
+}
+.clavier {
+  display: grid;
+  grid-template-columns: repeat(3, 4.2rem);
+  gap: var(--s-5);
+  justify-content: center;
+}
+.clavier button {
+  width: 4.2rem;
+  height: 4.2rem;
+  border-radius: 50%;
+  border: 0;
+  background: var(--surface-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-6);
+  font-weight: 600;
+  cursor: pointer;
+}
+.clavier button:disabled {
+  opacity: 0.5;
+}

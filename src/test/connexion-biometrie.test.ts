@@ -65,7 +65,7 @@ describe("la page de connexion : une colonne centrée, des champs et des boutons
   });
   it("l'e-mail est en haut et la biométrie en bas ; plus de « Vous découvrez Guichet ? »", () => {
     expect(p.indexOf("<EmailOtpForm"), "le formulaire e-mail doit venir avant la biométrie").toBeLessThan(p.indexOf("<DeviceSignIn"));
-    expect(p.indexOf("<DeviceSignIn"), "la biométrie doit être en bas de la carte").toBeGreaterThan(p.indexOf("devForm"));
+    expect(p.lastIndexOf("<DeviceSignIn"), "la biométrie doit être en bas de la carte de démonstration").toBeGreaterThan(p.indexOf("devForm"));
     expect(p, "« Vous découvrez Guichet ? » est revenu").not.toMatch(/Vous découvrez Guichet|ReplayPresentation|Trente secondes pour comprendre/);
     expect(css).toMatch(/\.bioBloc \{[^}]*border-top: 1px solid var\(--line\);/);
   });

@@ -7,6 +7,7 @@ import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { LienDAncre } from "@/components/LienDAncre";
+import { SectionsDeTexte, choisir } from "../PageDeTexte";
 
 export const dynamic = "force-dynamic";
 
@@ -126,6 +127,11 @@ export default async function RisquesPage() {
               </section>
             ))}
           </div>
+        </div>
+
+        {/* LES RISQUES, EN UN SEUL DOCUMENT (19 novembre 2026, planche « Compte, connexion et textes », 1A) : les trois sections de risques de l'ancienne page « Mentions légales » rejoignent cette page, sous les cinq étages. Le texte que le client accepte (`legal.ts`, « Les risques que vous portez ») n'a pas changé d'un mot. */}
+        <div className={styles.detail}>
+          <SectionsDeTexte blocs={choisir("risques", "types-de-risques", "reactions")} />
         </div>
 
         <GuideBar pos={{ label: t("Le Guide · risques et limites") }} />

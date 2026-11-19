@@ -21,8 +21,6 @@ import styles from "./page.module.css";
  */
 export function Deconnexion() {
   const t = useT();
-  const [partout, setPartout] = useState(false);
-
   return (
     <section className={styles.sortie}>
       <form action={logout}>
@@ -30,6 +28,18 @@ export function Deconnexion() {
           {t("Se déconnecter de cet appareil")}
         </button>
       </form>
+    </section>
+  );
+}
+
+/**
+ * « SE DÉCONNECTER PARTOUT » VIT AVEC LA SÉCURITÉ (19 novembre 2026, planche « Compte, connexion et textes », 3A) : c'est un geste de sécurité, il se range avec les appareils, et le sommaire du compte ne garde que la sortie d'ici. Il se demande encore : il ouvre une confirmation, « Oui, partout » ou « Annuler ».
+ */
+export function DeconnexionPartout() {
+  const t = useT();
+  const [partout, setPartout] = useState(false);
+  return (
+    <section className={styles.sortie}>
       {partout ? (
         <form action={logoutEverywhere} className={styles.sortieConfirme}>
           <span>{t("Déconnecter tous vos appareils ? Il faudra se reconnecter sur chacun.")}</span>

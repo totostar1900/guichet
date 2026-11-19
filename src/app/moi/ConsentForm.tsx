@@ -41,14 +41,14 @@ export function ConsentForm({ whatsapp, email, hasPhone, hasEmail }: { whatsapp:
         <input type="checkbox" checked={state.whatsapp} disabled={pending || !hasPhone} onChange={(e) => set("whatsapp", e.target.checked)} />
         <span>
           {t("Sur WhatsApp")}
-          {!hasPhone && <small className="muted"> · {t("ajoutez un numéro plus haut")}</small>}
+          {!hasPhone && <small className="muted"> · {t("ajoutez un numéro dans Profil et coordonnées")}</small>}
         </span>
       </label>
       <label>
         <input type="checkbox" checked={state.email} disabled={pending || !hasEmail} onChange={(e) => set("email", e.target.checked)} />
         <span>
           {t("Par e-mail")}
-          {!hasEmail && <small className="muted"> · {t("ajoutez une adresse plus haut")}</small>}
+          {!hasEmail && <small className="muted"> · {t("ajoutez une adresse dans Profil et coordonnées")}</small>}
         </span>
       </label>
       <small className="muted">{t("Les messages liés à vos ordres arrivent toujours : accusés de réception, avis de résultat, avis d'opéré, relevés. Ils découlent de ce que vous avez demandé.")}</small>

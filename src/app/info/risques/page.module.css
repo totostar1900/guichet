@@ -232,3 +232,10 @@
     row-gap: var(--s-10);
   }
 }
+
+/* Les sections de risques de l'ancien document « Mentions légales », sous les cinq étages. */
+.detail {
+  max-width: 720px;
+  display: grid;
+  gap: var(--sections-gap);
+}

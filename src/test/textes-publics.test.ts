@@ -21,7 +21,7 @@ describe("la page publique « Textes et conditions »", () => {
 
   it("liste les textes qui existent, chacun avec sa version, et renvoie aux sections des mentions plutôt que d'en inventer", () => {
     for (const v of ["LEGAL_VERSION", "RISQUES_VERSION", "CONVENTION_VERSION"]) expect(code, `la version ${v} n'est plus lue`).toContain(v);
-    for (const h of ["/info/mentions", "/info/risques", "/info/mentions#canaux", "/info/mentions#reclamation"]) expect(code, `la porte ${h} a disparu`).toContain(`"${h}"`);
+    for (const h of ["/info/mentions", "/info/conditions", "/info/risques", "/info/donnees", "/info/reclamations"]) expect(code, `la porte ${h} a disparu`).toContain(`"${h}"`);
     expect(code).toMatch(/version du \{d\}/);
   });
 
@@ -96,5 +96,27 @@ describe("la convention en lecture seule (19 novembre 2026, le client : « publi
     expect(ligne, "l'article 6 est introuvable").not.toBe("");
     expect(ligne).toMatch(/annexe tarifaire remise par le conseiller/);
     expect(ligne, "un montant ou un taux est écrit dans l'article 6").not.toMatch(/\d+\s?(%|FCFA|XAF)/);
+  });
+});
+
+/**
+ * UN TEXTE PAR SUJET (19 novembre 2026, planche « Compte, connexion et textes », 1A) : « les rubriques de textes et conditions renvoient au même document ».
+ */
+describe("la page « Textes et conditions » : une rubrique, un document", () => {
+  const src = lire("src/app/info/textes/page.tsx");
+  it("aucune rubrique ne partage l'adresse d'une autre, et aucune ne pointe une ancre d'un autre document", () => {
+    const hrefs = [...src.matchAll(/href: (?:client \? "[^"]+" : )?"(\/[^"]+)"/g)].map((m) => m[1]);
+    expect(hrefs.length, "le hub n'a plus six rubriques").toBe(6);
+    expect(new Set(hrefs).size, "deux rubriques ouvrent le même document").toBe(hrefs.length);
+    for (const h of hrefs) expect(h, `${h} pointe une ancre`).not.toContain("#");
+  });
+  it("les mentions légales ne portent plus la présentation des services : elle est dans « Guichet en bref »", () => {
+    expect(lire("src/app/info/mentions/page.tsx")).toMatch(/choisir\("qui"\)/);
+    expect(lire("src/app/info/en-bref/page.tsx")).toMatch(/choisir\("services", "instruments", "chiffres"\)/);
+    expect(lire("src/app/info/eclairages/page.tsx"), "« Guichet en bref » n'est plus atteignable depuis les éclairages").toContain('href="/info/en-bref"');
+  });
+  it("le texte que le client accepte (legal.ts) est toujours lu en entier, section par section", () => {
+    const pages = ["mentions", "conditions", "donnees", "reclamations", "risques"].map((d) => lire(`src/app/info/${d}/page.tsx`)).join("\n");
+    for (const id of ["qui", "conseil", "risques", "canaux", "reclamation"]) expect(pages, `la section acceptée « ${id} » n'a plus de page`).toContain(`"${id}"`);
   });
 });

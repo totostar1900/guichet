@@ -36,15 +36,26 @@ export default async function TextesPublicsPage() {
   const [consent, file] = client ? await Promise.all([r.getConsent(client.userId).catch(() => ({}) as { version?: string; at?: string }), r.getClientFileByUser(client.userId).catch(() => undefined)]) : [undefined, undefined];
   const conventionOk = file ? conventionAJour(file) : false;
 
+  /* UN SEUL GESTE D'ACCEPTATION couvre le texte de `legal.ts`, lu section par section sur quatre pages : chacune dit l'état de cette acceptation. */
+  const etatDesMentions = client ? (consent?.version === LEGAL_VERSION ? (consent.at ? t("acceptées le {d}", { d: fmtDate(consent.at, false) }) : t("acceptées")) : t("à accepter à votre prochaine connexion")) : undefined;
   type Texte = { cle: string; titre: string; quoi: string; version: string; href?: string; etat?: string; ok?: boolean; geste?: string };
   const textes: Texte[] = [
     {
       cle: "mentions",
-      titre: t("Mentions et responsabilités"),
-      quoi: t("Qui nous sommes, ce que le Guichet est, les risques, vos canaux et vos données."),
+      titre: t("Mentions légales"),
+      quoi: t("Qui est Purpose Capital, sous quel agrément, et qui le contrôle."),
       version: LEGAL_VERSION,
       href: "/info/mentions",
-      etat: client ? (consent?.version === LEGAL_VERSION ? (consent.at ? t("acceptées le {d}", { d: fmtDate(consent.at, false) }) : t("acceptées")) : t("à accepter à votre prochaine connexion")) : undefined,
+      etat: etatDesMentions,
+      ok: client ? consent?.version === LEGAL_VERSION : undefined,
+    },
+    {
+      cle: "conditions",
+      titre: t("Conditions d'utilisation"),
+      quoi: t("Le rôle de Guichet, de l'intention au titre inscrit, et la protection de votre argent."),
+      version: LEGAL_VERSION,
+      href: "/info/conditions",
+      etat: etatDesMentions,
       ok: client ? consent?.version === LEGAL_VERSION : undefined,
     },
     {
@@ -59,14 +70,18 @@ export default async function TextesPublicsPage() {
       titre: t("Vos données personnelles"),
       quoi: t("Ce que nous gardons, à quoi cela sert, et comment les consulter ou les corriger."),
       version: LEGAL_VERSION,
-      href: "/info/mentions#canaux",
+      href: "/info/donnees",
+      etat: etatDesMentions,
+      ok: client ? consent?.version === LEGAL_VERSION : undefined,
     },
     {
       cle: "reclamation",
-      titre: t("En cas de désaccord"),
+      titre: t("Réclamations"),
       quoi: t("À qui s'adresser d'abord, et la COSUMAF à défaut d'accord."),
       version: LEGAL_VERSION,
-      href: "/info/mentions#reclamation",
+      href: "/info/reclamations",
+      etat: etatDesMentions,
+      ok: client ? consent?.version === LEGAL_VERSION : undefined,
     },
     {
       cle: "convention",
@@ -111,7 +126,7 @@ export default async function TextesPublicsPage() {
           })}
         </ul>
 
-        <p className={styles.contrat}>{t("Votre contrat se compose de la convention de compte-titres, des mentions et responsabilités, et des conditions tarifaires que remet votre conseiller.")}</p>
+        <p className={styles.contrat}>{t("Votre contrat se compose de la convention de compte-titres, des mentions légales, des conditions d'utilisation et des conditions tarifaires que remet votre conseiller.")}</p>
         <p className={styles.pied}>
           {t("Un texte qui change vous est présenté à votre connexion suivante ; la version que vous avez acceptée reste lisible dans vos documents.")}
           {client && (

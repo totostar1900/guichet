@@ -7,6 +7,7 @@ import type { ClientPrefs } from "@/lib/domain/types";
 import { LangSwitch } from "@/components/LangSwitch";
 import { PaletteSwitch } from "@/components/PaletteSwitch";
 import { PushToggle } from "@/components/PushToggle";
+import { ConsentForm } from "@/app/moi/ConsentForm";
 import feuillet from "@/components/Feuillet.module.css";
 import styles from "./page.module.css";
 
@@ -36,7 +37,7 @@ import styles from "./page.module.css";
  * l'écriture échoue, l'état d'avant est remis et l'erreur s'écrit. Mentir à
  * l'œil une seconde est tenable, le laisser croire une minute ne l'est pas.
  */
-export function Appareil({ prefs: initial, phoneOk, vapidKey }: { prefs?: ClientPrefs; phoneOk?: boolean; vapidKey?: string }) {
+export function Appareil({ prefs: initial, phoneOk, vapidKey, whatsapp, emailOptIn, hasPhone, hasEmail }: { prefs?: ClientPrefs; phoneOk?: boolean; vapidKey?: string; whatsapp: boolean; emailOptIn: boolean; hasPhone: boolean; hasEmail: boolean }) {
   const t = useT();
   const lang = useLang();
   const [prefs, setPrefs] = useState<ClientPrefs>(initial ?? {});
@@ -64,19 +65,8 @@ export function Appareil({ prefs: initial, phoneOk, vapidKey }: { prefs?: Client
   return (
     <>
       <section className={feuillet.bloc}>
-        <h2>{t("Sur cet appareil")}</h2>
+        <h2>{t("Apparence et langue")}</h2>
         <div>
-          {/* SANS CLEF, PAS D'ALERTES, et la ligne ne paraît pas : un
-              interrupteur qui ne peut rien allumer est une promesse en trop. */}
-          {vapidKey ? (
-            <div className={`${styles.reglage} ${styles.colonne}`}>
-              <span>
-                <b>{t("Alertes")}</b>
-                <small>{t("Un bulletin à signer, une réponse du desk, une échéance : l'alerte part sur cet appareil-ci et sur aucun autre.")}</small>
-              </span>
-              <PushToggle vapidKey={vapidKey} compact />
-            </div>
-          ) : null}
           <div className={`${styles.reglage} ${styles.colonne}`}>
             <span>
               <b>{t("Couleurs")}</b>
@@ -95,8 +85,19 @@ export function Appareil({ prefs: initial, phoneOk, vapidKey }: { prefs?: Client
       </section>
 
       <section className={feuillet.bloc}>
-        <h2>{t("Sur tous vos appareils")}</h2>
+        <h2>{t("Notifications")}</h2>
         <div>
+          {/* SANS CLEF, PAS D'ALERTES, et la ligne ne paraît pas : un
+              interrupteur qui ne peut rien allumer est une promesse en trop. */}
+          {vapidKey ? (
+            <div className={`${styles.reglage} ${styles.colonne}`}>
+              <span>
+                <b>{t("Alertes")}</b>
+                <small>{t("Un bulletin à signer, une réponse du desk, une échéance : l'alerte part sur cet appareil-ci et sur aucun autre.")}</small>
+              </span>
+              <PushToggle vapidKey={vapidKey} compact />
+            </div>
+          ) : null}
           <div className={`${styles.reglage} ${styles.colonne}`}>
             <span>
               <b>{t("Comment vous joindre d'abord")}</b>
@@ -109,6 +110,13 @@ export function Appareil({ prefs: initial, phoneOk, vapidKey }: { prefs?: Client
                 </button>
               ))}
             </div>
+          </div>
+          <div className={`${styles.reglage} ${styles.colonne}`}>
+            <span>
+              <b>{t("Informations et opportunités")}</b>
+              <small>{t("Ce que vous acceptez de recevoir de notre initiative, canal par canal.")}</small>
+            </span>
+            <ConsentForm whatsapp={whatsapp} email={emailOptIn} hasPhone={hasPhone} hasEmail={hasEmail} />
           </div>
           <div className={styles.reglage}>
             <span>

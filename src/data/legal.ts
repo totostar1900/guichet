@@ -2,7 +2,7 @@
  * What a client accepts before using the Guichet: who we are, what the Guichet
  * is and is not, the risks, the channels and the data. Accepted once per
  * version; a new version (a changed text, a new date below) asks again at the
- * next sign-in. The same text is public at /info/mentions.
+ * next sign-in. The same text is public, section by section, on /info/mentions, /info/conditions, /info/donnees, /info/reclamations and /info/risques.
  */
 export const LEGAL_VERSION = "2026-09-20";
 

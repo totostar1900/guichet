@@ -274,6 +274,7 @@ const SANS_ENTETE: Record<string, string> = {
      page. */
   "src/app/connexion/page.tsx": "un écran de seuil : carte centrée, pas de section ni de parent, et le titre nomme l'étape",
   "src/app/connexion/mfa/page.tsx": "un écran de seuil : carte centrée, pas de section ni de parent",
+  "src/app/connexion/PorteDeConnexion.tsx": "un écran de seuil : le déverrouillage d'un appareil reconnu, sans section ni parent ; son titre nomme l'étape",
   "src/app/connexion/creer/CreerCompte.tsx": "un écran de seuil : un geste par écran, pas de section ni de parent, et chaque titre nomme l'étape en cours (adresse, numéro, mentions, code de l'appareil)",
   "src/app/ne-plus-recevoir/page.tsx": "une carte de confirmation atteinte par un lien de courriel : « C'est fait. » est une réponse, pas un nom de page",
   /* UN DOCUMENT PUBLIÉ, ET NON UNE PAGE DE L'APPLICATION. La note

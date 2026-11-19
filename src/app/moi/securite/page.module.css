@@ -161,23 +161,5 @@
 /* Les coordonnées, arrivées du tableau de bord le 2 octobre 2026 : le téléphone
    et l'adresse SONT les deux canaux prouvés, et c'est cette page qui les
    gouverne. */
-.h2 {
-  margin: 0;
-  font-size: 1.05rem;
-}
 /* Un titre et ce qu'il contient forment UNE section de la pile : « --titre-gap » entre eux,
    et le panneau perd sa marge basse (il est le dernier enfant d'une section, pas d'une pile). */
-.section {
-  display: grid;
-  gap: var(--titre-gap);
-}
-.section > :global(.panel) {
-  margin-bottom: 0;
-}
-.bloc {
-  margin-top: var(--s-7);
-  padding-top: var(--s-6);
-  border-top: 1px solid var(--line);
-  display: grid;
-  gap: var(--s-4);
-}

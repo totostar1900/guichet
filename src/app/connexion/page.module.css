@@ -197,3 +197,42 @@
   text-underline-offset: 3px;
 }
 
+
+/* LA PORTE : DÉVERROUILLER D'ABORD (19 novembre 2026, planche « Compte, connexion et textes », 2A). Une colonne centrée : Face ID ou l'empreinte, ou le clavier à quatre chiffres ; l'e-mail en secours, en lien. */
+.masque {
+  visibility: hidden;
+}
+.deverrouillage {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-7);
+}
+.deverrouillage h1 {
+  font-size: var(--t-8);
+  margin: 0;
+  text-wrap: balance;
+}
+.deverrouillage p {
+  margin: 0;
+  font-size: var(--t-4);
+  color: var(--ink-2);
+}
+.deverrouiller {
+  width: 100%;
+  min-height: 3rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-size: var(--t-4);
+  font-weight: 700;
+  cursor: pointer;
+}
+.deverrouiller:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.secours {
+  font-size: var(--t-3);
+}

@@ -184,3 +184,12 @@ Sur la page de connexion, « Oublier cet appareil ici » efface seulement le sou
 - **Un fichier « use server » n'exporte que des fonctions** : une constante partagée (ici le code de démonstration) vit dans un petit module à côté.
 - **Un minuteur qui attend une fonction du parent dans ses dépendances** est annulé à chaque rendu : garder la fonction dans une référence.
 - **Le build complet ne se lance pas hors ligne** (les polices Google sont téléchargées) : typecheck, lint et épreuves passent, et la compilation du développement a servi de contrôle des feuilles de style.
+
+## Leçon du 19 novembre 2026 (suite) : ranger par sujet, ne rien réécrire, et ne pas déplacer ce qu'on accepte sans l'avis de la conformité
+
+- **Découper un document sans toucher au texte accepté** : les pages par sujet lisent des TRANCHES des sources existantes (`legal.ts`, `services-risques.ts`) par identifiant ; le paquet que la ConsentGate fait accepter n'a pas changé d'un mot. Déplacer une section hors de ce paquet est une décision de conformité, pas de design.
+- **Une garde de « une rubrique, un document »** compte les adresses du sommaire : six, toutes différentes, aucune ancre d'un autre document.
+- **Un menu d'ancres ne pousse jamais l'historique** (`LienDAncre`, `replaceState`) : la flèche de retour quitte la page.
+- **Consolider un compte** : écrire l'inventaire « donnée → endroits » avant de dessiner (ici l'e-mail et le téléphone en trois endroits, le canal de contact en trois, les alertes en deux), puis une garde par donnée qui interdit qu'elle revienne.
+- **Une sous-page garde son adresse et sa place dans la recherche** : la table du sommaire porte `sousDe`, et le sommaire filtre ce qui n'est pas une rubrique.
+- **Un écran de déverrouillage ne montre rien avant l'hydratation** : l'état de l'appareil n'est connu que du navigateur, et un formulaire e-mail qui clignote sous un appareil reconnu est une faute.

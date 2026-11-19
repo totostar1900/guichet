@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/Select";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { DeviceSignIn } from "./DeviceSignIn";
+import { PorteDeConnexion } from "./PorteDeConnexion";
 import { Glissement } from "@/components/mobile/Glissement";
 
 /** The tab and the phone header read this title: in the reader's language. */
@@ -79,24 +80,35 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className={styles.wrap}>
         <div className={`${styles.card} ${mode === "supabase" ? "" : styles.large}`.trim()}>
           <div className="eyebrow">{COMPANY.name}</div>
-          <h1 className="display">{ouvrir ? t("Ouvrir votre compte-titres") : creerUnCompte ? t("Créer votre compte") : t("Se connecter")}</h1>
-          {ouvrir && <p className={styles.lead}>{t("Première étape : recevez un code pour prouver votre adresse. Votre dossier s'ouvre juste après, et vous le remplissez à votre rythme.")}</p>}
-          {creerUnCompte && <p className={styles.lead}>{t("Un code, une minute, et vous voyez le marché : les taux, les séances annoncées et les publications. Aucun document n'est demandé à ce stade, et créer un compte ne vous engage à rien.")}</p>}
-          {erreur === "lien" && <p className={styles.notice}>{t("Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau lien ci-dessous : il arrive en quelques secondes.")}</p>}
           {mode === "supabase" ? (
-            <>
-              {/* La phrase de tête a déjà été dite à qui vient ouvrir ou créer un compte. */}
-              {/* LA CONSOLE N'A QU'UN CANAL, L'E-MAIL. WhatsApp et le SMS
-                  servent un client qu'on joint là où il vit ; un opérateur a
-                  une adresse professionnelle, et c'est elle qui porte son
-                  habilitation. Deux canaux de plus, c'est deux surfaces de
-                  plus sur la porte de l'administration, pour personne. */}
-              {!ouvrir && !creerUnCompte && <p className={styles.lead}>{t(telephoneOuvert ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>}
-              {/* AUCUNE PORTE GOOGLE (19 novembre 2026, le client : « on veut les informations réelles, ce qui n'est pas toujours le cas en passant par Google »). Un profil Google rend le nom et l'adresse que la personne y a mis ; le dossier d'ouverture demande ceux de sa pièce d'identité. */}
-              <EmailOtpForm next={next} phoneEnabled={telephoneOuvert} withCode={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY)} />
-            </>
+            <PorteDeConnexion
+              next={next}
+              enTete={
+                <>
+            <h1 className="display">{ouvrir ? t("Ouvrir votre compte-titres") : creerUnCompte ? t("Créer votre compte") : t("Se connecter")}</h1>
+            {ouvrir && <p className={styles.lead}>{t("Première étape : recevez un code pour prouver votre adresse. Votre dossier s'ouvre juste après, et vous le remplissez à votre rythme.")}</p>}
+            {creerUnCompte && <p className={styles.lead}>{t("Un code, une minute, et vous voyez le marché : les taux, les séances annoncées et les publications. Aucun document n'est demandé à ce stade, et créer un compte ne vous engage à rien.")}</p>}
+            {erreur === "lien" && <p className={styles.notice}>{t("Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau lien ci-dessous : il arrive en quelques secondes.")}</p>}
+                {/* La phrase de tête a déjà été dite à qui vient ouvrir ou créer un compte. */}
+                {/* LA CONSOLE N'A QU'UN CANAL, L'E-MAIL. WhatsApp et le SMS
+                    servent un client qu'on joint là où il vit ; un opérateur a
+                    une adresse professionnelle, et c'est elle qui porte son
+                    habilitation. Deux canaux de plus, c'est deux surfaces de
+                    plus sur la porte de l'administration, pour personne. */}
+                {!ouvrir && !creerUnCompte && <p className={styles.lead}>{t(telephoneOuvert ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>}
+                {/* AUCUNE PORTE GOOGLE (19 novembre 2026, le client : « on veut les informations réelles, ce qui n'est pas toujours le cas en passant par Google »). Un profil Google rend le nom et l'adresse que la personne y a mis ; le dossier d'ouverture demande ceux de sa pièce d'identité. */}
+                </>
+              }
+            >
+              <EmailOtpForm next={administration ? next : `/connexion/creer?next=${encodeURIComponent(next)}`} phoneEnabled={telephoneOuvert} withCode={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY)} />
+              <DeviceSignIn next={next} seulementInconnu />
+            </PorteDeConnexion>
           ) : (
             <>
+            <h1 className="display">{ouvrir ? t("Ouvrir votre compte-titres") : creerUnCompte ? t("Créer votre compte") : t("Se connecter")}</h1>
+            {ouvrir && <p className={styles.lead}>{t("Première étape : recevez un code pour prouver votre adresse. Votre dossier s'ouvre juste après, et vous le remplissez à votre rythme.")}</p>}
+            {creerUnCompte && <p className={styles.lead}>{t("Un code, une minute, et vous voyez le marché : les taux, les séances annoncées et les publications. Aucun document n'est demandé à ce stade, et créer un compte ne vous engage à rien.")}</p>}
+            {erreur === "lien" && <p className={styles.notice}>{t("Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau lien ci-dessous : il arrive en quelques secondes.")}</p>}
               <p className={styles.lead}>
                 <b>{t("Mode démonstration")}</b> : {t(administration ? "aucun backend configuré. Choisissez un rôle pour parcourir Guichet comme un client ou comme le desk. En production, la connexion se fait par code e-mail." : "aucun backend configuré. Choisissez un rôle pour parcourir Guichet comme un client ou comme le desk. En production, la connexion se fait par code e-mail ou WhatsApp.")}
               </p>
@@ -138,10 +150,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                   </button>
                 </form>
               </div>
+              {/* LA BIOMÉTRIE EST EN BAS (18 novembre 2026). */}
+              <DeviceSignIn next={next} />
             </>
           )}
-          {/* LA BIOMÉTRIE EST EN BAS (18 novembre 2026, le client : « inverser empreinte et adresse e-mail, la connexion par empreinte se fait en bas ») : le lien ou le code par e-mail d'abord, puis Face ID ou l'empreinte d'un appareil. */}
-          <DeviceSignIn next={next} />
         </div>
       </div>
     </Glissement>

@@ -4,13 +4,14 @@ import { getT } from "@/i18n/server";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import { Identite } from "./Identite";
+import { Canaux } from "./Canaux";
 import styles from "@/components/Feuillet.module.css";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Profil") };
+  return { title: t("Profil et coordonnées") };
 }
 
 /**
@@ -43,27 +44,20 @@ export default async function IdentitePage() {
     r.getChannelStatus(s.userId).catch(() => undefined),
     r.getContact(s.userId).catch(() => undefined),
   ]);
-
-  const email = canaux?.email ?? contact?.email ?? s.email;
-  const phone = canaux?.phone ?? contact?.phone ?? s.phone;
+  /* Les coordonnées viennent de la table, pas de la session : un jeton dure, une adresse change. */
+  const canauxVus = { ...canaux, email: canaux?.email ?? contact?.email ?? s.email, phone: canaux?.phone ?? contact?.phone ?? s.phone };
 
   return (
     <Glissement>
         <div className={styles.page}>
           <EnTete
             surTitre={t("Vous")}
-            titre={t("Profil")}
+            titre={t("Profil et coordonnées")}
             phrase={t("Le nom qui s'imprime sur vos bulletins, et les deux canaux par lesquels la maison vous joint et vous fait signer.")}
           />
 
-          <Identite
-            nom={s.name}
-            segment={s.segment}
-            email={email}
-            emailOk={Boolean(canaux?.emailVerifiedAt)}
-            phone={phone}
-            phoneOk={Boolean(canaux?.phoneVerifiedAt)}
-          />
+          <Identite nom={s.name} segment={s.segment} />
+          <Canaux channels={canauxVus} sessionEmail={s.email} />
         </div>
     </Glissement>
   );

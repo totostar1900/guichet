@@ -160,9 +160,9 @@ describe("le compte en pages", () => {
    */
   it("donne une adresse à chacune des cinq rubriques", () => {
     const sommaire = lire("src/app/moi/compte/page.tsx");
-    expect(sommaire, "le sommaire du compte a réécrit sa propre liste").toContain("COMPTE_PAGES.map");
+    expect(sommaire, "le sommaire du compte a réécrit sa propre liste").toContain("COMPTE_PAGES.filter");
     const portes = COMPTE_PAGES.map((p) => p.href);
-    expect(portes, "une rubrique a quitté la table du compte").toEqual(["/moi/identite", "/ouvrir-un-compte", "/moi/profil", "/moi/securite", "/moi/appareil"]);
+    expect(portes, "une rubrique a quitté la table du compte").toEqual(["/moi/identite", "/moi/dossier", "/moi/securite", "/moi/appareil", "/ouvrir-un-compte", "/moi/profil"]);
   });
 
   /**
@@ -177,7 +177,7 @@ describe("le compte en pages", () => {
   it("garde tout ce que la feuille portait, chacun à son adresse", () => {
     const inventaire: [string, string, string][] = [
       ["identityAction", "src/app/moi/identite/Identite.tsx", "export function Identite"],
-      ["securite#canaux", "src/app/moi/identite/Identite.tsx", "export function Identite"],
+      ["ProofBlock", "src/app/moi/identite/Canaux.tsx", "export function Canaux"],
       ["PushToggle", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
       ["PaletteSwitch", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
       ["LangSwitch", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],

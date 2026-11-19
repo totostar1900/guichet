@@ -15,7 +15,7 @@ export async function PiedDeFiche({ carte = false }: { /** Les rangées dans un 
   const liens: { href: string; titre: string; sous: string }[] = [
     { href: "/info/risques#risques", titre: t("Risques et limites"), sous: t("Le texte qui s'applique à toutes les lignes") },
     { href: "/info/les-quatre-risques", titre: t("Les quatre risques, et ce qu'on peut faire"), sous: t("La leçon du Guide") },
-    { href: "/info/mentions#types-de-risques", titre: t("Services et risques associés"), sous: t("Chaque instrument, ses chiffres, vos ordres") },
+    { href: "/info/risques#types-de-risques", titre: t("Services et risques associés"), sous: t("Chaque instrument, ses chiffres, vos ordres") },
   ];
   return (
     <footer className={styles.pied} aria-labelledby="pied-fiche" data-pane={carte ? "essentiel" : undefined}>

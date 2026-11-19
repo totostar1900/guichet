@@ -11,7 +11,7 @@ import styles from "./ConsentGate.module.css";
 /**
  * Once per version of the legal text, after a sign-in: the text, a box to
  * tick, one button. Nothing else of the page is reachable until then; the
- * text stays readable afterwards at /info/mentions and from the ⋮ menu.
+ * text stays readable afterwards, document by document, at /info/textes.
  */
 export function ConsentGate({ previous }: { previous?: string }) {
   const t = useT();
@@ -54,7 +54,7 @@ export function ConsentGate({ previous }: { previous?: string }) {
           </label>
           {error && <em className={styles.error}>{error}</em>}
           <div className={styles.row}>
-            <Link href="/info/mentions" className={styles.link} target="_blank">
+            <Link href="/info/textes" className={styles.link} target="_blank">
               {t("Garder une copie")}
             </Link>
             <button type="button" className="btn primary" disabled={!read || pending} onClick={accept}>

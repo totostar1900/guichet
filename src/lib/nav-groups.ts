@@ -15,7 +15,10 @@ import { MARKET_PAGES, type MarketPage } from "./market/pages";
 /* « guide » entre dans la part partagee : la rangee d onglets s en sert pour
    ecarter la lecon, qui vit sous « /info » et dont la pastille ne
    s allumerait jamais. */
-export type NavPage = Pick<MarketPage, "key" | "href" | "label" | "hint" | "short" | "tuile" | "guide" | "mots">;
+export type NavPage = Pick<MarketPage, "key" | "href" | "label" | "hint" | "short" | "tuile" | "guide" | "mots"> & {
+  /** Cette page est une sous-page d'une rubrique du sommaire (sa clef) : elle se cherche et se situe, mais le sommaire ne la liste pas à part. */
+  sousDe?: string;
+};
 
 /**
  * Ce que je possède, et ce qui en découle. Le tableau de bord ouvre la liste
@@ -156,14 +159,13 @@ export const AIDE_PAGES: NavPage[] = [
  * n'a pas de client sous les yeux.
  */
 export const COMPTE_PAGES: NavPage[] = [
-  { key: "identite", href: "/moi/identite", label: "Profil", tuile: "nom, ville, canaux", hint: "nom, ville, e-mail, WhatsApp" },
-  { key: "pieces", href: "/ouvrir-un-compte", label: "Mes pièces", tuile: "votre dossier", hint: "votre dossier d'ouverture et les pièces qui le composent" },
-  { key: "profil", href: "/moi/profil", label: "Profil d'investisseur", tuile: "horizon et tolérance", hint: "votre horizon, votre tolérance au risque, et ce que la maison en déduit" },
-  { key: "securite", href: "/moi/securite", label: "Sécurité", tuile: "clés et appareils", hint: "vos clés d'accès, les appareils reconnus, et comment les retirer" },
-  /* « PARAMÉTRAGES » ET NON « CET APPAREIL ». Le nom disait la PORTÉE de deux
-     de ses réglages, pas ce qu'on vient y faire ; on y cherche la langue, les
-     alertes ou les couleurs, et personne ne tape « cet appareil ». La page dit
-     elle-même, sous son titre, lesquels valent ici et lesquels valent partout.
-     Les mots-clefs portent la langue, que ni le nom ni la phrase ne nommaient. */
-  { key: "appareil", href: "/moi/appareil", label: "Paramétrages", tuile: "langue, alertes et couleurs", hint: "la langue, les alertes, les couleurs, et par quel canal on vous joint d'abord", mots: "réglages paramètres préférences langue français anglais thème notifications relevés" },
+  /* QUATRE RUBRIQUES, UNE DONNÉE UNE FOIS (19 novembre 2026, planche « Compte, connexion et textes », 3A). L'e-mail et le téléphone figuraient en trois endroits, le canal de contact en trois, les alertes en deux. « Profil et coordonnées » porte l'identité et les deux canaux prouvés ; « Mon dossier » range les pièces et le profil d'investisseur ; « Sécurité et connexion » ne parle que de la façon d'ouvrir Guichet ; « Préférences » porte la langue, les couleurs et TOUTES les notifications. */
+  { key: "identite", href: "/moi/identite", label: "Profil et coordonnées", tuile: "nom, e-mail, téléphone", hint: "votre nom, votre ville, et vos deux canaux prouvés : e-mail et téléphone" },
+  { key: "dossier", href: "/moi/dossier", label: "Mon dossier", tuile: "pièces et profil", hint: "vos pièces d'ouverture et votre profil d'investisseur" },
+  { key: "securite", href: "/moi/securite", label: "Sécurité et connexion", tuile: "Face ID, code, appareils", hint: "Face ID ou empreinte, code à quatre chiffres, appareils reconnus, et comment les retirer" },
+  /* « PRÉFÉRENCES » (ex « Paramétrages ») : on y cherche la langue, les couleurs ou les notifications. Les mots-clefs portent ce que ni le nom ni la phrase ne nommaient. */
+  { key: "appareil", href: "/moi/appareil", label: "Préférences", tuile: "langue, couleurs, notifications", hint: "la langue, les couleurs, et tout ce qui vous notifie : alertes, canal d'abord, informations, relevés", mots: "réglages paramètres préférences langue français anglais thème notifications alertes relevés" },
+  /* Les deux pages du dossier : sous « Mon dossier », cherchées et situées comme avant. */
+  { key: "pieces", href: "/ouvrir-un-compte", label: "Mes pièces", tuile: "votre dossier", hint: "votre dossier d'ouverture et les pièces qui le composent", sousDe: "dossier" },
+  { key: "profil", href: "/moi/profil", label: "Profil d'investisseur", tuile: "horizon et tolérance", hint: "votre horizon, votre tolérance au risque, et ce que la maison en déduit", sousDe: "dossier" },
 ];

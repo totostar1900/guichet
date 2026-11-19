@@ -21,7 +21,7 @@ const snapshot = () => {
  * lock (passkey) or with its four digits. Anything else, or « pas vous ? »,
  * falls through to the code by e-mail below.
  */
-export function DeviceSignIn({ next }: { next: string }) {
+export function DeviceSignIn({ next, seulementInconnu }: { next: string; /** vrai sous la porte de déverrouillage : un appareil reconnu a son écran à part, ce bloc ne sert plus qu'à un appareil inconnu */ seulementInconnu?: boolean }) {
   const t = useT();
   const raw = useSyncExternalStore(noop, snapshot, () => "");
   const device = raw ? readDevice() : null;
@@ -116,6 +116,8 @@ export function DeviceSignIn({ next }: { next: string }) {
       )}
     </div>
   );
+
+  if (seulementInconnu && device && !hidden) return null;
 
   // No device remembered here: a way in for a passkey this phone already holds (or one synced from another device).
   if (!device || hidden) {

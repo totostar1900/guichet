@@ -220,7 +220,7 @@ describe("les chemins que l'aide cite existent", () => {
     /* La fonction est PURE, et c'est ce qui permet de l'éprouver sans l'état
        du dépôt : trois formes à refuser, deux à laisser. */
     const L = ["Accueil", "Trade", "Mon compte"];
-    const P = ["Mes documents", "Profil d'investisseur", "Sécurité", "Paramétrages"];
+    const P = ["Mes documents", "Profil d'investisseur", "Sécurité", "Préférences"];
     const X = new Set(["Ajouter cet appareil", "Cet appareil"]); // « Cet appareil » existe ailleurs que comme page : c'est le piège
     expect(cheminsInconnus("dans Portefeuille › Mes documents et vous", L, P, X), "un siège disparu n'est plus refusé").toHaveLength(1);
     expect(cheminsInconnus("dans Mon compte › Mon profil : votre horizon", L, P, X), "une page inexistante n'est plus refusée").toHaveLength(1);

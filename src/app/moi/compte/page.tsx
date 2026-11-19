@@ -55,7 +55,7 @@ export default async function ComptePage() {
   const prouves = [canaux?.emailVerifiedAt, canaux?.phoneVerifiedAt].filter(Boolean).length;
   const etat: Record<string, string | undefined> = {
     identite: prouves ? t(prouves > 1 ? "{n} canaux prouvés" : "1 canal prouvé", { n: String(prouves) }) : t("aucun canal prouvé"),
-    pieces: fiche?.status === "approuve" ? t("approuvé") : undefined,
+    dossier: fiche?.status === "approuve" ? t("approuvé") : undefined,
     securite: appareils.length ? t(appareils.length > 1 ? "{n} appareils" : "1 appareil", { n: String(appareils.length) }) : undefined,
   };
 
@@ -70,12 +70,20 @@ export default async function ComptePage() {
               Ce qui dépend du client — « 1 canal prouvé », « approuvé », « 2
               appareils » — se calcule ici, et nulle part ailleurs. */}
           <Rubriques
-            items={COMPTE_PAGES.map((p) => ({
+            items={COMPTE_PAGES.filter((p) => !p.sousDe).map((p) => ({
               href: p.href,
               nom: t(p.label),
               quoi: t(p.hint),
               etiquette: etat[p.key],
             }))}
+          />
+
+          {/* PLUS BAS : les textes que la maison opposable, et l'aide. Ce ne sont pas des rubriques de VOTRE compte, mais on les cherche ici (19 novembre 2026, planche « Compte, connexion et textes », 3A). */}
+          <Rubriques
+            items={[
+              { href: "/moi/textes", nom: t("Textes et conditions"), quoi: t("Vos textes et conditions : les versions que vous avez acceptées, et la convention.") },
+              { href: "/info/aide", nom: t("Aide et contact"), quoi: t("Vos questions, nos réponses, et un conseiller à joindre.") },
+            ]}
           />
 
           <Deconnexion />

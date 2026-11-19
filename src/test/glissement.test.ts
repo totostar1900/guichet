@@ -60,7 +60,7 @@ describe("le glissement entre pages", () => {
          pousserait à recopier l'en-tête quatre fois pour satisfaire une
          épreuve — ce qui est l'inverse de ce qu'elle protège. La coquille est
          donc admise, et vérifiée elle-même plus bas. */
-      if (!s.includes("<Glissement>") && !/<Rayon\b/.test(s)) nues.push(path.relative(ROOT, p));
+      if (!s.includes("<Glissement>") && !/<Rayon\b/.test(s) && !/<PageDeTexte\b/.test(s)) nues.push(path.relative(ROOT, p));
     }
     expect(nues, `ces pages ne glisseront jamais, et rien ne le signalera :\n  ${nues.join("\n  ")}`).toEqual([]);
   });

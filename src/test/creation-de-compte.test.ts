@@ -99,3 +99,27 @@ describe("la nationalité se choisit dans une liste, la zone CEMAC en tête", ()
     expect(sections, "le champ texte libre de la nationalité est revenu").not.toMatch(/<input name="nationality"/);
   });
 });
+
+/**
+ * LA PORTE : DÉVERROUILLER D'ABORD, L'E-MAIL EN SECOURS (19 novembre 2026, « 2A »).
+ */
+describe("la connexion sur un appareil reconnu", () => {
+  const porte = sansCommentaires(lire("src/app/connexion/PorteDeConnexion.tsx"));
+  const page = sansCommentaires(lire("src/app/connexion/page.tsx"));
+  it("n'offre que le déverrouillage : Face ID ou empreinte, ou le clavier à 4 chiffres ; l'e-mail est derrière « Recevoir un code »", () => {
+    expect(porte).toMatch(/device\.kind === "passkey"/);
+    expect(porte).toMatch(/<ClavierCode onFini=\{ouvrirParLeCode\}/);
+    expect(porte).toMatch(/const deverrouille = device && !autre && !oublie/);
+    expect(porte).toMatch(/onClick=\{\(\) => setAutre\(true\)\}/);
+  });
+  it("le formulaire e-mail ne s'affiche qu'à travers la porte, et mène à la création du code de l'appareil", () => {
+    expect(page).toMatch(/<PorteDeConnexion[\s\S]*<EmailOtpForm next=\{administration \? next : `\/connexion\/creer\?next=/);
+  });
+  it("rien n'est montré avant l'hydratation : pas de formulaire e-mail qui clignote sous un appareil reconnu", () => {
+    expect(porte).toMatch(/if \(!pret\) return <div className=\{styles\.masque\}>/);
+    expect(sansCommentaires(lire("src/app/connexion/page.module.css"))).toMatch(/\.masque \{[^}]*visibility: hidden;/);
+  });
+  it("le clavier est partagé avec la création du compte", () => {
+    expect(sansCommentaires(lire("src/app/connexion/creer/CreerCompte.tsx"))).toMatch(/<ClavierCode /);
+  });
+});

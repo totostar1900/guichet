@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
 export async function generateMetadata() {
   const t = await getT();
-  return { title: t("Paramétrages") };
+  return { title: t("Préférences") };
 }
 
 /**
@@ -30,9 +30,10 @@ export default async function AppareilPage() {
   const t = await getT();
   const r = repo();
 
-  const [prefs, canaux] = await Promise.all([
+  const [prefs, canaux, contact] = await Promise.all([
     r.getPrefs(s.userId).catch(() => undefined),
     r.getChannelStatus(s.userId).catch(() => undefined),
+    r.getContact(s.userId).catch(() => undefined),
   ]);
 
   return (
@@ -40,11 +41,11 @@ export default async function AppareilPage() {
         <div className={styles.page}>
           <EnTete
             surTitre={t("Vous")}
-            titre={t("Paramétrages")}
-            phrase={t("Ce que cet appareil-ci fait de lui-même, et ce que la maison fait partout : les alertes et les couleurs d'un côté, la façon de vous joindre de l'autre.")}
+            titre={t("Préférences")}
+            phrase={t("La langue et les couleurs, puis un seul endroit pour tout ce qui vous notifie : alertes, façon de vous joindre, informations et relevés.")}
           />
 
-          <Appareil prefs={prefs} phoneOk={Boolean(canaux?.phoneVerifiedAt)} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} />
+          <Appareil prefs={prefs} phoneOk={Boolean(canaux?.phoneVerifiedAt)} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} whatsapp={Boolean(contact?.whatsappOptIn)} emailOptIn={Boolean(contact?.emailOptIn)} hasPhone={Boolean(contact?.phone ?? s.phone)} hasEmail={Boolean(contact?.email ?? s.email)} />
         </div>
     </Glissement>
   );

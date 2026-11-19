@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { platformAuthenticatorIsAvailable, startRegistration } from "@simplewebauthn/browser";
 import { useDates, useT } from "@/i18n/client";
-import type { ChannelStatus, TrustedDevice } from "@/lib/domain/types";
-import { ProofBlock } from "@/components/ProofBlock";
+import type { TrustedDevice } from "@/lib/domain/types";
 import { clearDevice, deviceLabel, newDeviceToken, readDevice, saveDevice } from "@/lib/device-client";
 import { beginPasskey, enrolPin, finishPasskey, forgetDeviceAction } from "./actions";
 import styles from "./page.module.css";
@@ -23,13 +22,11 @@ const snapshot = () => {
  * takes the phone's lock (passkey) or four digits bound to this browser; each
  * change is told on both channels.
  */
-export function SecurityPanel({ who, channels, devices, sessionEmail }: { who: string; channels: ChannelStatus; devices: TrustedDevice[]; sessionEmail?: string }) {
+export function SecurityPanel({ who, devices }: { who: string; devices: TrustedDevice[] }) {
   const { fmtDateTime } = useDates();
   const t = useT();
   const raw = useSyncExternalStore(noop, snapshot, () => "");
   const here = raw ? readDevice() : null;
-  const [phone, setPhone] = useState(channels.phone ?? "");
-  const [proven, setProven] = useState<string | null>(channels.phoneVerifiedAt ? (channels.phone ?? null) : null);
   const [adding, setAdding] = useState<"idle" | "pin">("idle");
   const [pin, setPin] = useState(["", ""]);
   // Le curseur revient au premier champ apres un refus : effacer sans rendre la
@@ -76,6 +73,8 @@ export function SecurityPanel({ who, channels, devices, sessionEmail }: { who: s
         setMsg({ error: "Les deux codes ne sont pas identiques. Recommencez." });
         return;
       }
+      /* Changer le code, c'est remplacer l'ancien de CE navigateur : deux codes pour un appareil ne se retiendraient pas. */
+      if (here?.kind === "pin") await forgetDeviceAction(here.id);
       const token = newDeviceToken();
       const r = await enrolPin(token, pin[0], deviceLabel());
       if (!r.ok) {
@@ -100,38 +99,6 @@ export function SecurityPanel({ who, channels, devices, sessionEmail }: { who: s
 
   return (
     <div className={styles.grid}>
-      {/* L ancre que la feuille du compte vise : « Changer » doit tomber sur
-          le canal, pas en haut d une page qui porte aussi les appareils. */}
-      <section className="panel" id="canaux">
-        <div className="panel-h">
-          <h2>{t("Mes deux canaux")}</h2>
-          <span className={styles.sub}>{t("Prouvés une fois ; un nouveau numéro ou une nouvelle adresse se prouve à nouveau.")}</span>
-        </div>
-        <dl className={styles.channels}>
-          <div>
-            <dt>{t("E-mail")}</dt>
-            <dd>
-              <b>{sessionEmail ?? channels.email ?? "·"}</b>
-              <small className={styles.ok}>{sessionEmail ? t("prouvé par votre connexion") : channels.emailVerifiedAt ? t("prouvé le {date}", { date: fmtDateTime(channels.emailVerifiedAt) }) : t("à prouver à la prochaine intention")}</small>
-              <small className="muted">{t("Pour changer d'adresse : connectez-vous avec la nouvelle, par son code ; vos intentions vous suivent par le desk.")}</small>
-            </dd>
-          </div>
-          <div>
-            <dt>{t("Téléphone")}</dt>
-            <dd>
-              <input type="tel" inputMode="tel" autoComplete="tel" value={phone} placeholder="+237 6 87 67 67 67" onChange={(e) => setPhone(e.target.value)} aria-label={t("Numéro de téléphone")} />
-              {proven && phone.replace(/\D/g, "") === proven.replace(/\D/g, "") ? (
-                <small className={styles.ok}>{t("prouvé le {date}", { date: fmtDateTime(channels.phoneVerifiedAt ?? new Date().toISOString()) })}</small>
-              ) : phone.replace(/\D/g, "").length >= 8 ? (
-                <ProofBlock kind="phone" target={phone} onProven={setProven} />
-              ) : (
-                <small className="muted">{t("Le numéro sur lequel arrivent le code, les accusés de réception et les rappels.")}</small>
-              )}
-            </dd>
-          </div>
-        </dl>
-      </section>
-
       <section className="panel">
         <div className="panel-h">
           <h2>{t("Mes appareils")}</h2>
@@ -160,13 +127,14 @@ export function SecurityPanel({ who, channels, devices, sessionEmail }: { who: s
             </li>
           ))}
         </ul>
-        {!here && (
+        {/* TOUJOURS OFFERT (19 novembre 2026, planche « Compte, connexion et textes », 3A) : sur un appareil déjà reconnu, on change son code ou on ajoute Face ID ; sur un appareil inconnu, on l'ajoute. */}
+        {(
           <div className={styles.add}>
-            <b>{t("Ajouter cet appareil")}</b>
+            <b>{t(here ? "Changer le code ou ajouter Face ID" : "Ajouter cet appareil")}</b>
             <span className="muted">{t("Un doigt, ou quatre chiffres : le code par e-mail reste toujours possible.")}</span>
             {adding === "idle" ? (
               <div className={styles.addRow}>
-                {canPasskey && (
+                {canPasskey && here?.kind !== "passkey" && (
                   <button type="button" className="btn primary sm" disabled={pending} onClick={addPasskey}>
                     {t(pending ? "Un instant…" : "Face ID, empreinte ou code du téléphone")}
                   </button>

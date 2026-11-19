@@ -42,15 +42,47 @@ export default async function TextesPage() {
   const [consent, file] = await Promise.all([r.getConsent(s.userId).catch(() => ({}) as { version?: string; at?: string }), r.getClientFileByUser(s.userId).catch(() => undefined)]);
   const conventionOk = file ? conventionAJour(file) : false;
 
+  /* Un seul geste d'acceptation couvre le texte de `legal.ts`, lu section par section sur quatre pages. */
+  const etatDesMentions = consent.version === LEGAL_VERSION ? (consent.at ? t("acceptées le {d}", { d: fmtDate(consent.at, false) }) : t("acceptées")) : t("à accepter à votre prochaine connexion");
   const textes = [
     {
       cle: "mentions",
-      titre: t("Mentions et responsabilités"),
-      quoi: t("Qui nous sommes, ce que le Guichet est, les risques, vos canaux et vos données."),
+      titre: t("Mentions légales"),
+      quoi: t("Qui est Purpose Capital, sous quel agrément, et qui le contrôle."),
       version: LEGAL_VERSION,
-      etat: consent.version === LEGAL_VERSION ? (consent.at ? t("acceptées le {d}", { d: fmtDate(consent.at, false) }) : t("acceptées")) : t("à accepter à votre prochaine connexion"),
+      etat: etatDesMentions,
       ok: consent.version === LEGAL_VERSION,
       href: "/info/mentions",
+      geste: t("Lire"),
+    },
+    {
+      cle: "conditions",
+      titre: t("Conditions d'utilisation"),
+      quoi: t("Le rôle de Guichet, de l'intention au titre inscrit, et la protection de votre argent."),
+      version: LEGAL_VERSION,
+      etat: etatDesMentions,
+      ok: consent.version === LEGAL_VERSION,
+      href: "/info/conditions",
+      geste: t("Lire"),
+    },
+    {
+      cle: "donnees",
+      titre: t("Vos données personnelles"),
+      quoi: t("Ce que nous gardons, à quoi cela sert, et comment les consulter ou les corriger."),
+      version: LEGAL_VERSION,
+      etat: etatDesMentions,
+      ok: consent.version === LEGAL_VERSION,
+      href: "/info/donnees",
+      geste: t("Lire"),
+    },
+    {
+      cle: "reclamation",
+      titre: t("Réclamations"),
+      quoi: t("À qui s'adresser d'abord, et la COSUMAF à défaut d'accord."),
+      version: LEGAL_VERSION,
+      etat: etatDesMentions,
+      ok: consent.version === LEGAL_VERSION,
+      href: "/info/reclamations",
       geste: t("Lire"),
     },
     {

@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { platformAuthenticatorIsAvailable, startRegistration } from "@simplewebauthn/browser";
 import { useDates, useT } from "@/i18n/client";
 import { deviceLabel, newDeviceToken, readDevice, saveDevice } from "@/lib/device-client";
 import { acceptTerms } from "@/app/moi/actions";
 import { checkPhoneProof, sendPhoneProof } from "@/app/offres/[id]/actions";
 import { beginPasskey, enrolPin, finishPasskey } from "@/app/moi/securite/actions";
+import { ClavierCode } from "@/components/ClavierCode";
 import { creerEnvoyerCodeEmail, creerVerifierCodeEmail } from "./actions";
 import styles from "./creer.module.css";
 
@@ -238,7 +239,18 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion }: { dep
         </form>
       )}
 
-      {(etape === "code" || etape === "code-bis") && <Clavier titre={t(etape === "code" ? "Protégez votre compte" : "Saisissez-le encore")} phrase={t(etape === "code" ? "Un code à quatre chiffres protège l'accès à votre compte sur cet appareil." : "Pour éviter toute faute de frappe.")} erreur={champErreur} onFini={fixerCode} onPlusTard={() => (peutBio ? vers("bio") : fin())} occupe={enCours} cle={etape} />}
+      {(etape === "code" || etape === "code-bis") && (
+        <div className={styles.corps}>
+          <header className={styles.tete}>
+            <h1 className="display">{t(etape === "code" ? "Protégez votre compte" : "Saisissez-le encore")}</h1>
+            <p>{t(etape === "code" ? "Un code à quatre chiffres protège l'accès à votre compte sur cet appareil." : "Pour éviter toute faute de frappe.")}</p>
+          </header>
+          <ClavierCode onFini={fixerCode} occupe={enCours} cle={etape} erreur={champErreur} />
+          <div className={styles.bas}>
+            <button className={styles.secondaire} type="button" onClick={() => (peutBio ? vers("bio") : fin())}>{t("Plus tard")}</button>
+          </div>
+        </div>
+      )}
 
       {etape === "bio" && (
         <div className={styles.corps}>
@@ -283,66 +295,5 @@ function Empreinte({ ok }: { ok?: boolean }) {
       <path d="M8.65 22c.21-.66.45-1.32.57-2" />
       <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
     </svg>
-  );
-}
-
-/** Quatre ronds et un clavier à chiffres : le code de l'appareil se tape au pouce, sans champ à viser. */
-function Clavier({ titre, phrase, erreur, onFini, onPlusTard, occupe, cle }: { titre: string; phrase: string; erreur: React.ReactNode; onFini: (c: string) => void; onPlusTard: () => void; occupe: boolean; cle: string }) {
-  const t = useT();
-  const [saisi, setSaisi] = useState("");
-  const dernier = useRef("");
-  /* LA FONCTION CHANGE À CHAQUE RENDU DU PARENT : l'attendre dans les dépendances annulait la minuterie quand une erreur ou un état s'affichait entre-temps, et le code complet n'était jamais rendu. */
-  const rendre = useRef(onFini);
-  useEffect(() => {
-    rendre.current = onFini;
-  }, [onFini]);
-  const ajouter = useCallback(
-    (c: string) =>
-      setSaisi((s) => {
-        if (s.length >= 4) return s;
-        return s + c;
-      }),
-    [],
-  );
-  /* Le code est complet : on le rend une fois, puis le clavier se vide pour le pas suivant. */
-  useEffect(() => {
-    if (saisi.length === 4 && dernier.current !== `${cle}${saisi}`) {
-      dernier.current = `${cle}${saisi}`;
-      const c = saisi;
-      const id = setTimeout(() => {
-        setSaisi("");
-        rendre.current(c);
-      }, 160);
-      return () => clearTimeout(id);
-    }
-  }, [saisi, cle]);
-  useEffect(() => {
-    const touche = (e: KeyboardEvent) => {
-      if (/^\d$/.test(e.key)) ajouter(e.key);
-      else if (e.key === "Backspace") setSaisi((s) => s.slice(0, -1));
-    };
-    window.addEventListener("keydown", touche);
-    return () => window.removeEventListener("keydown", touche);
-  }, [ajouter]);
-  return (
-    <div className={styles.corps}>
-      <header className={styles.tete}>
-        <h1 className="display">{titre}</h1>
-        <p>{phrase}</p>
-      </header>
-      <div className={styles.ronds} aria-label={t("{n} chiffres saisis sur 4", { n: saisi.length })}>
-        {[0, 1, 2, 3].map((i) => <i key={i} data-plein={i < saisi.length ? "1" : "0"} />)}
-      </div>
-      {erreur}
-      <div className={styles.clavier}>
-        {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((c) => <button key={c} type="button" disabled={occupe} onClick={() => ajouter(c)}>{c}</button>)}
-        <span />
-        <button type="button" disabled={occupe} onClick={() => ajouter("0")}>0</button>
-        <button type="button" aria-label={t("Effacer")} onClick={() => setSaisi((s) => s.slice(0, -1))}>⌫</button>
-      </div>
-      <div className={styles.bas}>
-        <button className={styles.secondaire} type="button" onClick={onPlusTard}>{t("Plus tard")}</button>
-      </div>
-    </div>
   );
 }

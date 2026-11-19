@@ -102,6 +102,11 @@ export default async function EclairagesPage() {
             <b>{t("Votre profil financier en deux minutes")}</b>
             <span>{t("Sept questions : horizon, tolérance, connaissance, capacité. Un profil à titre d'information, à garder dans votre dossier avec un compte.")}</span>
           </Link>
+          <Link href="/info/en-bref" className={styles.tile}>
+            <span className={styles.k}>{t("Guide")}</span>
+            <b>{t("Guichet en bref")}</b>
+            <span>{t("Ce que fait Guichet, les instruments qu'il propose, et la façon de lire les chiffres d'une ligne.")}</span>
+          </Link>
           <Link href="/societes" className={styles.tile}>
             <span className={styles.k}>{t("Sociétés")}</span>
             <b>{t("Sociétés cotées et émetteurs")}</b>
