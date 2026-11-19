@@ -1,0 +1,57 @@
+/* La convention en lecture seule : un titre par article, du texte, un filet entre deux articles. Aucune carte. */
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding-block: var(--s-9) var(--s-11);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sections-gap);
+}
+.version {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: var(--t-2);
+}
+.exemplaire {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3) var(--s-7);
+  padding: var(--s-7) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: var(--t-3);
+}
+.exemplaire b {
+  color: var(--ink);
+}
+.exemplaire span {
+  flex: 1 1 18rem;
+}
+.articles {
+  display: flex;
+  flex-direction: column;
+}
+.articles section {
+  padding: var(--s-8) 0;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.articles h2 {
+  margin: 0;
+  font-size: var(--t-6);
+  font-weight: 700;
+}
+.articles p {
+  margin: 0;
+  font-size: var(--t-4);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.pied {
+  margin: 0;
+  font-size: var(--t-3);
+}

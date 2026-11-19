@@ -170,4 +170,12 @@ export const EN_VITRINE: Record<string, string> = {
   "Un texte qui change vous est présenté à votre connexion suivante ; la version que vous avez acceptée reste lisible dans vos documents.":
     "A text that changes is shown to you at your next sign-in; the version you accepted stays readable in your documents.",
   "Vos textes et conditions": "Your texts and conditions",
+
+  /* ---------- la convention en lecture seule (19 novembre 2026) ---------- */
+  "professionnel ou non professionnel, selon votre dossier": "professional or non-professional, according to your file",
+  "Exemplaire de lecture": "Reading copy",
+  "Ce texte ne se signe pas ici. La convention se signe après l'approbation de votre dossier, sur sa propre page.":
+    "This text is not signed here. The agreement is signed once your file is approved, on its own page.",
+  "Ma convention": "My agreement",
+  "Tous les textes et conditions": "All texts and conditions",
 };

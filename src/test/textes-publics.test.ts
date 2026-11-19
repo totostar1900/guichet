@@ -34,9 +34,10 @@ describe("la page publique « Textes et conditions »", () => {
     expect(code).toMatch(/des conditions tarifaires que remet votre conseiller/);
   });
 
-  it("ne publie pas le texte de la convention (son article 6 parle des tarifs) : il n'a de porte que pour un client connecté", () => {
-    expect(code).toMatch(/href: client \? "\/ouvrir-un-compte\/convention" : undefined/);
-    expect(code, "le texte de la convention est rendu en public").not.toMatch(/PASSAGES|resolvePassages/);
+  it("la convention est publiée en lecture seule, et le hub y mène un visiteur (un client connecté va à SA convention, qui se signe)", () => {
+    expect(code).toMatch(/href: client \? "\/ouvrir-un-compte\/convention" : "\/info\/convention"/);
+    expect(estPublic("/info/convention")).toBe(true);
+    expect(lire("src/app/sitemap.ts")).toContain('"/info/convention"');
   });
 
   it("ne signe rien en public, ne répète pas l'adresse, et dit le nom de la maison et son agrément", () => {
@@ -57,5 +58,43 @@ describe("la page publique « Textes et conditions »", () => {
     expect(lire("src/app/Accueil.tsx")).toContain('href="/info/textes"');
     const en = translator("en");
     for (const fr of ["Vos données personnelles", "En cas de désaccord", "Vos textes et conditions"]) expect(en(fr), `« ${fr} » n'est pas traduit`).not.toBe(fr);
+  });
+});
+
+describe("la convention en lecture seule (19 novembre 2026, le client : « publier la convention, article 6 compris »)", () => {
+  const brut = lire("src/app/info/convention/page.tsx");
+  const code = brut.replace(/\/\*[\s\S]*?\*\//g, "");
+
+  it("publie TOUS les articles du registre, sans en filtrer un, le sixième compris", () => {
+    expect(code).toMatch(/\(PASSAGES\.convention \?\? \[\]\)\.map\(/);
+    expect(code, "un article est écarté de l'exemplaire public").not.toMatch(/\.filter\(/);
+    expect(code, "l'article 6 est écarté nommément").not.toMatch(/art_tarifs/);
+    expect(lire("src/lib/documents/passages-catalog.ts")).toMatch(/P\("art_tarifs", "Article 6 · Tarifs"/);
+  });
+
+  it("lit le même registre et les mêmes variables que la page de signature, sauf la catégorie qui dépend du dossier", () => {
+    const signature = lire("src/app/ouvrir-un-compte/convention/page.tsx");
+    expect(code).toMatch(/resolvePassages\("convention", lang\)/);
+    expect(signature).toMatch(/resolvePassages\("convention", lang\)/);
+    for (const k of ["societe: COMPANY.legalName", "agrement: COMPANY.licence", "email: COMPANY.email"]) {
+      expect(code, `la variable ${k} diffère de l'exemplaire à signer`).toContain(k);
+      expect(signature).toContain(k);
+    }
+    expect(code).toMatch(/categorie: t\("professionnel ou non professionnel, selon votre dossier"\)/);
+  });
+
+  it("ne se signe pas en public, ne lit aucun dossier, et ne contient aucune grille", () => {
+    expect(code, "une signature est apparue sur la page publique").not.toMatch(/Signer|setConsent|conventionAt|getClientFile/);
+    expect(code, "un tarif ou un taux est écrit dans la page").not.toMatch(/FCFA|\d+\s?%/);
+    expect(code, "la page publique porte une porte vers l'annexe tarifaire").not.toMatch(/\/moi\/tarifs/);
+    expect(code).toMatch(/Exemplaire de lecture/);
+  });
+
+  it("l'article 6 ne contient aucune grille : il renvoie à l'annexe remise par le conseiller", () => {
+    const catalogue = lire("src/lib/documents/passages-catalog.ts");
+    const ligne = catalogue.split("\n").find((l) => l.includes('P("art_tarifs"')) ?? "";
+    expect(ligne, "l'article 6 est introuvable").not.toBe("");
+    expect(ligne).toMatch(/annexe tarifaire remise par le conseiller/);
+    expect(ligne, "un montant ou un taux est écrit dans l'article 6").not.toMatch(/\d+\s?(%|FCFA|XAF)/);
   });
 });

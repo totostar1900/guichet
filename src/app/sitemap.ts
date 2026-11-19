@@ -43,7 +43,7 @@ export const dynamic = "force-dynamic";
  * rien. Les trois pages nées de son démontage sont nommées à sa place ; les
  * huit chapitres de l'aide s'ajoutent plus bas, lus du document lui-même.
  */
-const GUIDE = ["/info/eclairages", "/info/glossaire", "/info/simulateur", "/info/aide", "/info/mentions", "/info/parcours", "/info/risques", "/info/textes"];
+const GUIDE = ["/info/eclairages", "/info/glossaire", "/info/simulateur", "/info/aide", "/info/mentions", "/info/parcours", "/info/risques", "/info/textes", "/info/convention"];
 
 /**
  * Les adresses qui ne dépendent d'aucune lecture, donc qui répondent toujours.

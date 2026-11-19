@@ -25,7 +25,7 @@ export async function generateMetadata() {
  * UN SUJET, UN DOMICILE (la règle de « /moi/textes ») : cette page est un SOMMAIRE, pas une copie. Chaque texte vit ailleurs ; ici, on dit où il est, quelle version est en vigueur, et, pour un client connecté, où il en est.
  * SIGNER NE SE FAIT PAS ICI : une page publique n'a pas d'identité, donc pas de signature. Les mentions s'acceptent à la connexion, la convention se signe sur sa page, après l'approbation du dossier.
  *
- * AUCUNE GRILLE, AUCUNE POLITIQUE TARIFAIRE EN PUBLIC (le client, le même jour) : ni l'annexe tarifaire ni les règles de chaque service (qui disent leur tarif) ne sont listées ici ; elles restent dans « /moi/textes », derrière la connexion. La convention n'est pas publiée non plus : son article 6 parle des tarifs. La ligne sur la composition du contrat nomme « les conditions tarifaires remises par votre conseiller », sans en dire le contenu.
+ * AUCUNE GRILLE, AUCUNE TARIFICATION EN PUBLIC (le client, le même jour) : ni l'annexe tarifaire ni les règles de chaque service (qui disent leur tarif) ne sont listées ici ; elles restent dans « /moi/textes », derrière la connexion. La convention, elle, EST publiée en lecture seule à « /info/convention », article 6 compris (le client, le lendemain) : cet article ne contient aucune grille, il renvoie à l'annexe tarifaire remise par le conseiller, comme les conditions de Revolut renvoient à leur page des frais. La ligne sur la composition du contrat nomme « les conditions tarifaires remises par votre conseiller », sans en dire le contenu.
  * L'ADRESSE n'est pas répétée ici (le client l'a retirée de la présentation) : le nom de la maison et son agrément, et le renvoi aux mentions, qui portent l'identité complète.
  */
 export default async function TextesPublicsPage() {
@@ -73,11 +73,11 @@ export default async function TextesPublicsPage() {
       titre: t("Convention de compte-titres"),
       quoi: t("Le contrat entre vous et Purpose Capital : ce que vous nous confiez, ce que nous vous devons."),
       version: CONVENTION_VERSION,
-      /* Le texte de la convention n'est pas public : il se lit sur sa page, pour qui a un dossier. */
-      href: client ? "/ouvrir-un-compte/convention" : undefined,
+      /* Publiée en lecture seule, article 6 compris (le client, le 19 novembre) ; un client connecté va à SA convention, qui se signe. */
+      href: client ? "/ouvrir-un-compte/convention" : "/info/convention",
       etat: conventionOk && file?.consents.conventionAt ? t("signée le {d}", { d: fmtDate(file.consents.conventionAt, false) }) : file?.consents.conventionAt ? t("à reprendre : le texte a changé") : t("se signe après l'approbation de votre dossier"),
       ok: client ? conventionOk : undefined,
-      geste: client ? (conventionOk ? t("Lire") : t("Ouvrir")) : undefined,
+      geste: client ? (conventionOk ? t("Lire") : t("Ouvrir")) : t("Lire"),
     },
   ];
 
