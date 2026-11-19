@@ -156,4 +156,18 @@ export const EN_VITRINE: Record<string, string> = {
   "Cet appareil est reconnu : un geste suffit.": "This device is recognised: one touch is enough.",
   "Si cet appareil a déjà une clé d'accès, utilisez-la.": "If this device already has a passkey, use it.",
   "Utiliser la clé d'accès de cet appareil": "Use this device's passkey",
+
+  /* ---------- la porte publique des textes (18 novembre 2026) ---------- */
+  "Vos données personnelles": "Your personal data",
+  "Ce que nous gardons, à quoi cela sert, et comment les consulter ou les corriger.": "What we keep, what it is for, and how to consult or correct it.",
+  "En cas de désaccord": "In case of disagreement",
+  "À qui s'adresser d'abord, et la COSUMAF à défaut d'accord.": "Who to turn to first, and COSUMAF failing agreement.",
+  "Les mêmes pour tout le monde. Chaque texte porte sa version, et vous lisez toujours celle qui est en vigueur.":
+    "The same for everyone. Each text carries its version, and you always read the one in force.",
+  "version du {d}": "version of {d}",
+  "Votre contrat se compose de la convention de compte-titres, des mentions et responsabilités, et des conditions tarifaires que remet votre conseiller.":
+    "Your contract is made up of the securities account agreement, the notices and responsibilities, and the fee terms your adviser gives you.",
+  "Un texte qui change vous est présenté à votre connexion suivante ; la version que vous avez acceptée reste lisible dans vos documents.":
+    "A text that changes is shown to you at your next sign-in; the version you accepted stays readable in your documents.",
+  "Vos textes et conditions": "Your texts and conditions",
 };

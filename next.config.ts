@@ -35,6 +35,8 @@ const nextConfig: NextConfig = {
       { source: "/apprendre", destination: "/info", permanent: true },
       { source: "/apprendre/:key", destination: "/info/:key", permanent: true },
       { source: "/simulateur", destination: "/info#simulateur", permanent: true },
+      /* Le nom que les clients connaissent des autres maisons : « /legal » mène aux textes et conditions. */
+      { source: "/legal", destination: "/info/textes", permanent: true },
     ];
   },
 };

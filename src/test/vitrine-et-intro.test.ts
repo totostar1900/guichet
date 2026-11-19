@@ -104,7 +104,7 @@ describe("la vitrine : sept écrans, un par lecture, qui s'arrêtent comme des s
     expect(code, "l'agrément a quitté la maison").toMatch(/COMPANY\.licence/);
     expect(v).toMatch(/Tout placement comporte un risque de perte en capital\./);
     expect(v).toMatch(/Les performances passées ne préjugent pas des performances futures\./);
-    for (const h of ["/info/eclairages", "/info/aide", "/info/risques"]) {
+    for (const h of ["/info/eclairages", "/info/aide", "/info/risques", "/info/textes"]) {
       expect(code, `le lien ${h} a disparu`).toContain(`href="${h}"`);
       expect(estPublic(h), `${h} n'est pas public`).toBe(true);
     }

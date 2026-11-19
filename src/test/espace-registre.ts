@@ -27,6 +27,7 @@ export const CONVERTIES: [string, string][] = [
   ["src/app/moi/reclamation/page.module.css", "wrap"],
   ["src/app/info/risques/page.module.css", "page"],
   ["src/app/info/mentions/page.module.css", "wrap"],
+  ["src/app/info/textes/page.module.css", "page"],
   ["src/app/actualites/page.module.css", "page"],
   ["src/app/info/aide/aide.module.css", "wrap"],
   ["src/app/info/parcours/page.module.css", "wrap"],

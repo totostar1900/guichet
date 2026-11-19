@@ -133,6 +133,7 @@ export async function Accueil() {
             <Link href="/info/eclairages">{t("Éclairages")}</Link>
             <Link href="/info/aide">{t("Aide et contact")}</Link>
             <Link href="/info/risques">{t("Risques et limites")}</Link>
+            <Link href="/info/textes">{t("Textes et conditions")}</Link>
           </nav>
           <p className={styles.maison} data-anim="">
             <b>{COMPANY.legalName}</b>, {t(COMPANY.licence)}
