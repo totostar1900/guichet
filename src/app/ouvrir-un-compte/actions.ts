@@ -48,6 +48,9 @@ export async function setKindAction(form: FormData): Promise<void> {
   await noter("dossier.ouvert", { detail: kind.data });
   await repo().updateClientFile(file.id, { kind: kind.data as ClientKind, profile: { ...file.profile, category: kind.data === "institutionnel" ? "professionnel" : "non_professionnel" } });
   revalidatePath(PATH);
+  /* Le parcours pas à pas passe à l'étape suivante dès que le type est choisi. Seules les étapes connues sont acceptées : l'adresse n'est jamais celle d'un autre site. */
+  const suite = form.get("suite");
+  if (typeof suite === "string" && /^(identite|personnes|fonds|consentements|envoyer)$/.test(suite)) redirect(`${PATH}?etape=${suite}`);
 }
 
 /* ---------- 2. Identité ---------- */

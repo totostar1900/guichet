@@ -1,0 +1,67 @@
+/* Le champ de nationalité et sa liste (planche « Parcours d'inscription », 6A). Les jetons de la maison, aucune couleur écrite. */
+.champ {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 var(--s-6);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.champ:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.vide {
+  color: var(--ink-3);
+}
+.liste {
+  display: grid;
+  gap: var(--s-4);
+}
+.recherche {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 var(--s-6);
+  border-radius: 999px;
+}
+.liste h3 {
+  margin: var(--s-4) 0 0;
+  font-size: var(--t-2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.liste ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pays {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 var(--s-2);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pays[aria-pressed="true"] {
+  font-weight: 700;
+  color: var(--info);
+}
+.rien {
+  margin: 0;
+  color: var(--ink-3);
+}

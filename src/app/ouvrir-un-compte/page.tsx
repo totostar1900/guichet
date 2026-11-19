@@ -1,7 +1,8 @@
+import Link from "next/link";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { emptyClientFile } from "@/lib/domain/kyc";
-import { conventionAReprendre, conventionSignable, KIND_LABEL, missingForSubmission, STATUS_LABEL } from "@/lib/kyc/checklist";
+import { conventionAReprendre, conventionSignable, KIND_LABEL, missingForSubmission, pasDeSaisie, STATUS_LABEL } from "@/lib/kyc/checklist";
 import { fmtDateTime } from "@/lib/format";
 import { setKindAction } from "./actions";
 import { ConsentSection, ConventionSection, DocsSection, FundsSection, IdentitySection, PersonsSection, SubmitSection } from "./Sections";
@@ -19,7 +20,7 @@ export async function generateMetadata() {
 
 const KINDS = ["physique", "morale", "groupement", "institutionnel"] as const;
 
-export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ soumis?: string; next?: string }> }) {
+export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ soumis?: string; next?: string; etape?: string }> }) {
   const t = await getT();
   const sp = await searchParams;
   const s = await requireSession("/ouvrir-un-compte");
@@ -65,6 +66,35 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
             : "Approuvé : compte en cours d'ouverture"
         : STATUS_LABEL[file.status];
 
+  /* LE DOSSIER PAS À PAS (planche « Parcours d'inscription », 4A + option B).
+     Tant que le dossier est un brouillon, UNE étape par écran : une barre de progression, un seul bouton « Continuer », et l'étape où l'on s'était arrêté. Les pièces n'en font pas partie : le desk les demande après l'envoi (« compléments demandés »), et elles se prennent alors en photo sur cette page. Dès que le dossier est envoyé, ou que le desk réclame des compléments, la page redevient la lecture complète du dossier. */
+  const pasAPas = file.status === "brouillon";
+  const { pas: PAS, premier } = pasDeSaisie(file, Boolean(enregistre));
+  const demande = (PAS as readonly string[]).includes(sp.etape ?? "") ? (sp.etape as (typeof PAS)[number]) : premier;
+  const rang = PAS.indexOf(demande);
+  const verc = (c: (typeof PAS)[number]) => `/ouvrir-un-compte?etape=${c}`;
+  const suiteDe = PAS[Math.min(rang + 1, PAS.length - 1)];
+
+  const typeSection = (
+    <section className={styles.sec} id="type">
+      <h2 className="display">{t("Type de client")}</h2>
+      <form action={setKindAction} className={styles.kinds}>
+        {pasAPas && <input type="hidden" name="suite" value="identite" />}
+        {KINDS.map((k) => (
+          <button key={k} name="kind" value={k} type="submit" disabled={!editable} className={`${styles.kind} ${file.kind === k ? styles.kindOn : ""}`}>
+            <b>{t(KIND_LABEL[k])}</b>
+            <span>
+              {k === "physique" && t("CNI ou passeport, justificatif de domicile, RIB, NIU.")}
+              {k === "morale" && t("RCCM, statuts, pouvoirs, bénéficiaires effectifs (> 25 %).")}
+              {k === "groupement" && t("Association déclarée, ou indivision de mandataires jusqu'à 25 M FCFA ; PV désignant les mandataires et la règle de décision.")}
+              {k === "institutionnel" && t("Assureur, caisse, trésorerie d'entreprise : matrice des signataires et plafonds.")}
+            </span>
+          </button>
+        ))}
+      </form>
+    </section>
+  );
+
   return (
     <Glissement>
       {/* UNE PILE : l'espace entre l'en-tête, la progression et les sections vient du jeton des sections (ETALON.md § 8). */}
@@ -76,7 +106,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
             <EnTete
               surTitre={t("Ouverture de compte-titres")}
               titre={t(file.status === "approuve" ? (signable ? (reprise ? "Votre convention a changé" : "Dossier approuvé : acceptez votre convention") : file.review.custodianAccount ? "Votre compte est actif" : "Dossier approuvé : compte en cours d'ouverture") : "Ouvrir mon compte")}
-              phrase={t(
+              phrase={pasAPas && rang > 0 ? undefined : t(
                 signable
                   ? reprise
                     ? "La convention a changé sur un point qui vous engage : vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres, et vous ne signerez plus rien pour cela. Sa page dit ce qui a changé, puis vous la reprenez par un code à usage unique. Vos positions et votre compte ne changent pas."
@@ -90,7 +120,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
                            accessibles ; les titres attendent le sous-compte. Le
                            dire évite de laisser croire que tout est bloqué. */
                         "Votre convention est acceptée : vous pouvez dès maintenant souscrire des parts de fonds, qui s'inscrivent à votre nom au registre du fonds. Pour les titres du Trésor et les lignes cotées, le sous-compte à votre nom s'ouvre chez le teneur de compte, en général sous 24 à 48 h ; nous vous confirmons son numéro dès réception."
-                    : "Dix minutes sur votre téléphone : votre identité, quelques pièces en photo, l'origine des fonds et votre profil. Un seul dossier ouvre les deux : les parts de fonds, inscrites au registre du fonds, et les titres, qui demandent en plus un compte-titres à votre nom. Un conseiller examine votre dossier et vous écrit dès la décision ; depuis l'étranger, un appel vidéo s'ajoute. Vous n'acceptez la convention qu'une fois le dossier approuvé.",
+                    : "Dix minutes sur votre téléphone : votre identité, l'origine des fonds et votre profil. Vos pièces, en photo, vous sont demandées après l'envoi. Un seul dossier ouvre les deux : les parts de fonds, inscrites au registre du fonds, et les titres, qui demandent en plus un compte-titres à votre nom. Un conseiller examine votre dossier et vous écrit dès la décision ; depuis l'étranger, un appel vidéo s'ajoute. Vous n'acceptez la convention qu'une fois le dossier approuvé.",
               )}
             />
           </div>
@@ -125,33 +155,48 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
             d'un très long défilement. */}
         {signable && conventionBloc}
 
-        <section className={styles.sec} id="type">
-          <h2 className="display">{t("1 · Type de client")}</h2>
-          <form action={setKindAction} className={styles.kinds}>
-            {KINDS.map((k) => (
-              <button key={k} name="kind" value={k} type="submit" disabled={!editable} className={`${styles.kind} ${file.kind === k ? styles.kindOn : ""}`}>
-                <b>{t(KIND_LABEL[k])}</b>
-                <span>
-                  {k === "physique" && t("CNI ou passeport, justificatif de domicile, RIB, NIU.")}
-                  {k === "morale" && t("RCCM, statuts, pouvoirs, bénéficiaires effectifs (> 25 %).")}
-                  {k === "groupement" && t("Association déclarée, ou indivision de mandataires jusqu'à 25 M FCFA ; PV désignant les mandataires et la règle de décision.")}
-                  {k === "institutionnel" && t("Assureur, caisse, trésorerie d'entreprise : matrice des signataires et plafonds.")}
-                </span>
-              </button>
-            ))}
-          </form>
-        </section>
-
-        <IdentitySection file={file} editable={editable} />
-        {file.kind !== "physique" && <PersonsSection file={file} editable={editable} />}
-        <DocsSection file={file} editable={editable} />
-        <FundsSection file={file} editable={editable} />
-        <ConsentSection file={file} editable={editable} />
-        <SubmitSection file={file} editable={editable} missing={missing} />
+        {pasAPas ? (
+          <div className={styles.pas}>
+            <div className={styles.progres} role="progressbar" aria-valuemin={1} aria-valuemax={PAS.length} aria-valuenow={rang + 1} aria-label={t("Étape {k} sur {n}", { k: rang + 1, n: PAS.length })}>
+              <small>{t("Étape {k} sur {n}", { k: rang + 1, n: PAS.length })}</small>
+              <div className={styles.barre}>
+                <i style={{ width: `${((rang + 1) / PAS.length) * 100}%` }} />
+              </div>
+            </div>
+            {demande === "type" && typeSection}
+            {demande === "identite" && <IdentitySection file={file} editable={editable} suite={verc(suiteDe)} />}
+            {demande === "personnes" && (
+              <>
+                <PersonsSection file={file} editable={editable} />
+                <Link className={`btn primary ${styles.continuer}`} href={verc(suiteDe)}>
+                  {t("Continuer")}
+                </Link>
+              </>
+            )}
+            {demande === "fonds" && <FundsSection file={file} editable={editable} suite={verc(suiteDe)} />}
+            {demande === "consentements" && <ConsentSection file={file} editable={editable} suite={verc(suiteDe)} />}
+            {demande === "envoyer" && <SubmitSection file={file} editable={editable} missing={missing} />}
+            {rang > 0 && (
+              <Link className={styles.retourPas} href={verc(PAS[rang - 1])}>
+                {t("Retour")}
+              </Link>
+            )}
+          </div>
+        ) : (
+          <>
+            {typeSection}
+            <IdentitySection file={file} editable={editable} />
+            {file.kind !== "physique" && <PersonsSection file={file} editable={editable} />}
+            <DocsSection file={file} editable={editable} />
+            <FundsSection file={file} editable={editable} />
+            <ConsentSection file={file} editable={editable} />
+            <SubmitSection file={file} editable={editable} missing={missing} />
+          </>
+        )}
         {/* Tant qu'elle n'est pas à portée, ou qu'elle est déjà signée, la
             convention ferme la page : dans l'ordre du temps, elle vient après
             l'envoi du dossier et après la décision du desk. */}
-        {!signable && conventionBloc}
+        {!signable && (!pasAPas || demande === "envoyer") && conventionBloc}
       </div>
     </Glissement>
   );

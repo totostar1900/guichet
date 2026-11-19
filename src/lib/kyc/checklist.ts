@@ -116,6 +116,22 @@ export function etapesDuDossier(f: ClientFile): { clef: string; fait: boolean; a
 }
 
 /**
+ * LES PAS DE SAISIE D'UN BROUILLON, UN ÉCRAN CHACUN (planche « Parcours d'inscription », 4A, 19 novembre 2026).
+ *
+ * Le dossier se remplit pas à pas : le type, l'identité, les personnes (hors personne physique), les fonds et le profil, les consentements, puis l'envoi. LES PIÈCES N'EN FONT PAS PARTIE (option B) : le desk les demande après l'envoi, par « compléments demandés ». Le premier pas à faire vient du même compte que les étapes du dossier (`etapesDuDossier`) : deux listes auraient divergé.
+ */
+export const PAS_DE_SAISIE = ["type", "identite", "personnes", "fonds", "consentements", "envoyer"] as const;
+export type PasDeSaisie = (typeof PAS_DE_SAISIE)[number];
+
+export function pasDeSaisie(f: ClientFile, enregistre: boolean): { pas: readonly PasDeSaisie[]; premier: PasDeSaisie } {
+  const pas = PAS_DE_SAISIE.filter((c) => c !== "personnes" || f.kind !== "physique");
+  const faits = etapesDuDossier(f);
+  const faitDe = (clef: string) => faits.find((e) => e.clef === clef)?.fait ?? false;
+  const fait: Record<PasDeSaisie, boolean> = { type: enregistre, identite: faitDe("Identité"), personnes: f.persons.length > 0, fonds: faitDe("Fonds & profil"), consentements: faitDe("Consentements"), envoyer: false };
+  return { pas, premier: pas.find((c) => !fait[c]) ?? "envoyer" };
+}
+
+/**
  * OÙ LE DOSSIER S'EST ARRÊTÉ.
  *
  * « Reprendre mon dossier » ramenait au HAUT du formulaire : un client qui

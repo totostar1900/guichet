@@ -160,7 +160,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         deskUi ? false : Promise.all([repo().listWatches(session.userId), repo().listOffers(), repo().listFavoris(session.userId)]).then(([w, o, p]) => aDesFavoris(w, o, p)).catch(() => false),
       ])
     : [undefined, [], undefined, undefined, 0, false];
-  const needsConsent = Boolean(session && !desk && consent?.version !== LEGAL_VERSION);
+  /* LA CRÉATION DE COMPTE PORTE SA PROPRE ACCEPTATION (« Avant d'entrer ») : la fenêtre générale se tait sur cette seule adresse, et reprend partout ailleurs. */
+  const creation = (hdrs.get("x-chemin") ?? "").startsWith("/connexion/creer");
+  const needsConsent = Boolean(session && !desk && !creation && consent?.version !== LEGAL_VERSION);
   /* LA SURFACE, ET POURQUOI C'EST LA SESSION QUI LA DIT.
      Le système de design décrit la vitrine devant la porte et l'espace de
      travail derrière, et « la porte » est la connexion : un visiteur est devant,

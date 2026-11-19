@@ -175,3 +175,12 @@ La connexion par Face ID demandait de « choisir la clé d'accès » : le serveu
 
 Sur la page de connexion, « Oublier cet appareil ici » efface seulement le souvenir de CE navigateur (`clearDevice`) : l'appareil de confiance reste enregistré côté serveur et ne se retire que dans Mon compte > Sécurité (`forgetDeviceAction`). Un libellé qui promet plus qu'il ne fait se corrige dans les mots ou dans le geste, jamais en silence. Même page : **le lien ou le code par e-mail d'abord, la biométrie en bas** (icône, titre, phrase, bouton à bouts ronds, d'après l'image du client) ; plus de « Pas vous ? » ni de « Vous découvrez Guichet ? » (le test lit le code SANS ses commentaires : un commentaire qui cite le mot retiré ne doit pas le faire revenir).
 
+
+## Leçon du 19 novembre 2026 : une planche se rouvre avec de nouvelles captures, et un compte neuf ne ressemble pas au compte de démonstration
+
+- **Rouvrir une planche déjà publiée** (mêmes lettres, URL conservée) quand le client apporte de nouvelles références : on ajoute des points (ici 5 à 7), on garde les anciens, et on dit dans le chat ce qui s'ajoute. Les captures d'un autre courtier ne partent pas au dépôt quand elles montrent un e-mail ou un numéro réels : le skill en garde le texte.
+- **« Les boutons de validation en bas de page »** : un écran de parcours est une colonne qui occupe la hauteur, et le bouton se pousse en bas (`margin-top: auto`) ; dans un long formulaire, il colle au bas de l'écran (`position: sticky`). C'est la zone du pouce.
+- **En démonstration, tout compte dont l'identifiant commence par `dev-client-` reçoit un dossier approuvé** (`dossierDeDemonstration`). Un parcours de CRÉATION doit créer un compte sans dossier (`dev-nouveau-…`), sinon on ne voit jamais l'état « brouillon » qu'on dessine.
+- **Un fichier « use server » n'exporte que des fonctions** : une constante partagée (ici le code de démonstration) vit dans un petit module à côté.
+- **Un minuteur qui attend une fonction du parent dans ses dépendances** est annulé à chaque rendu : garder la fonction dans une référence.
+- **Le build complet ne se lance pas hors ligne** (les polices Google sont téléchargées) : typecheck, lint et épreuves passent, et la compilation du développement a servi de contrôle des feuilles de style.

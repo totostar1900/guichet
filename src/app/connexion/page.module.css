@@ -1,5 +1,5 @@
 /* LA PAGE DE CONNEXION, REPRISE (18 novembre 2026, le client : « réorganiser la page de connexion plus élégamment »).
- * Une colonne centrée, étroite (28rem), sans cadre à bord doré ; le nom de la maison, le titre et la phrase au centre ; la biométrie d'un appareil reconnu au milieu de l'écran ; puis Google, « ou », et le code par e-mail, en champs et boutons pleine largeur à bouts ronds.
+ * Une colonne centrée, étroite (28rem), sans cadre à bord doré ; le nom de la maison, le titre et la phrase au centre ; l'e-mail en haut, la biométrie en bas ; AUCUNE porte Google depuis le 19 novembre 2026 (les informations réelles, pas celles d'un profil) ; champs et boutons pleine largeur à bouts ronds.
  * Le mode démonstration (deux formulaires côte à côte) garde sa largeur : « .large ». */
 .wrap {
   display: grid;
@@ -197,49 +197,3 @@
   text-underline-offset: 3px;
 }
 
-/* La porte Google : un bouton blanc bordé, la convention que tout le monde
-   reconnaît, mais aux arêtes de la maison plutôt qu'aux coins ronds. */
-.google {
-  margin: 0;
-}
-.google button {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s-6);
-  min-height: 3rem;
-  padding: 0 var(--s-8);
-  background: var(--surface);
-  color: var(--ink);
-  border: 1px solid var(--line-2);
-  border-radius: 999px;
-  font: inherit;
-  font-size: var(--t-4);
-  font-weight: 650;
-  cursor: pointer;
-}
-.google button:hover {
-  border-color: var(--ink-3);
-}
-.google svg {
-  flex: none;
-}
-/* « ou » : un filet coupé par un mot, pas une barre grise. */
-.ou {
-  display: flex;
-  align-items: center;
-  gap: var(--s-7);
-  margin: 0;
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-.ou::before,
-.ou::after {
-  content: "";
-  flex-grow: 1;
-  height: 1px;
-  background: var(--line);
-}

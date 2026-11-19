@@ -14,7 +14,7 @@ export const AIDE: DocPage = {
   order: 0,
   /* Relue le 29 octobre 2026 : les huit chapitres ont reçu leur ligne de
      promesse, qui se lit sous leur titre. */
-  checkedOn: "2026-11-14",
+  checkedOn: "2026-11-19",
   owner: "Desk",
   chapters: [
     {
@@ -64,7 +64,7 @@ export const AIDE: DocPage = {
           type: "table",
           head: [l("Question", "Question"), l("Réponse", "Answer")],
           rows: [
-            [l("Quelles pièces préparer ?", "Which documents to prepare?"), l("Personne physique : pièce d'identité, selfie, justificatif de domicile, RIB, attestation NIU. Entreprise : extrait RCCM, statuts, pouvoirs des signataires, bénéficiaires effectifs, RIB. Groupement : récépissé ou acte constitutif, PV des mandataires, liste des membres, matrice des signataires.", "Individual: ID, selfie, proof of address, bank details, tax identifier. Company: trade register extract, articles, signatories' powers, beneficial owners, bank details. Group: receipt or founding deed, proxies' minutes, list of members, signatory matrix.")],
+            [l("Quelles pièces préparer ?", "Which documents to prepare?"), l("Elles ne sont pas demandées avant l'envoi du dossier : le conseiller les réclame ensuite, et vous les prenez en photo sur la page du dossier. Personne physique : pièce d'identité, selfie, justificatif de domicile, RIB, attestation NIU. Entreprise : extrait RCCM, statuts, pouvoirs des signataires, bénéficiaires effectifs, RIB. Groupement : récépissé ou acte constitutif, PV des mandataires, liste des membres, matrice des signataires.", "They are not asked for before you send the file: the adviser requests them afterwards, and you photograph them on the file page. Individual: ID, selfie, proof of address, bank details, tax identifier. Company: trade register extract, articles, signatories' powers, beneficial owners, bank details. Group: receipt or founding deed, proxies' minutes, list of members, signatory matrix.")],
             [l("Puis-je déclarer une intention avant que mon dossier soit approuvé ?", "Can I declare an intention before my file is approved?"), l("Oui, dès qu'il est soumis. L'approbation est nécessaire avant que votre ordre soit transmis.", "Yes, as soon as it is submitted. Approval is needed before your order is transmitted.")],
             [l("Où en est mon dossier ?", "Where does my file stand?"), l("Dans votre compte, sous « Mes pièces » : brouillon, soumis, en revue (nous vous avons demandé un complément) ou approuvé.", "In your account, under \"My documents\": draft, submitted, under review (we asked you for more) or approved.")],
           ],

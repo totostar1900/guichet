@@ -317,3 +317,54 @@
 .secAction {
   border-left: 4px solid var(--gold);
 }
+
+/* LE DOSSIER PAS À PAS (planche « Parcours d'inscription », 4A) : une étape par écran, une barre de progression, « Continuer », « Retour ». */
+.pas {
+  display: grid;
+  gap: var(--sections-gap);
+}
+.progres {
+  display: grid;
+  gap: var(--s-3);
+}
+.progres small {
+  font-size: var(--t-2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.barre {
+  height: 0.3rem;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.barre i {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+.continuer {
+  justify-content: center;
+  min-height: 3rem;
+  border-radius: 999px;
+}
+.retourPas {
+  justify-self: center;
+  color: var(--ink-2);
+  font-size: var(--t-3);
+}
+/* LE BOUTON DE VALIDATION RESTE EN BAS (le client : « les boutons de validation en bas de page ») : collé au bas de l'écran pendant qu'on remplit, au bas de la carte quand elle est courte. */
+.pas .actions {
+  position: sticky;
+  bottom: var(--s-4);
+  padding-top: var(--s-4);
+  background: linear-gradient(to bottom, transparent, var(--surface) 35%);
+}
+.pas .actions button {
+  width: 100%;
+  min-height: 3rem;
+  border-radius: 999px;
+  font-size: var(--t-4);
+  font-weight: 700;
+}

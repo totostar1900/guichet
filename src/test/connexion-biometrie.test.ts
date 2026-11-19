@@ -61,7 +61,7 @@ describe("la page de connexion : une colonne centrée, des champs et des boutons
   });
   it("les champs et les boutons du code sont à bouts ronds et pleine largeur", () => {
     expect(css).toMatch(/\.otp :global\(\.field\) input \{[^}]*width: 100%;[^}]*border-radius: 999px;/);
-    expect(css).toMatch(/\.google button \{[^}]*border-radius: 999px;/);
+    expect(css, "la porte Google est revenue dans la feuille").not.toMatch(/\.google/);
   });
   it("l'e-mail est en haut et la biométrie en bas ; plus de « Vous découvrez Guichet ? »", () => {
     expect(p.indexOf("<EmailOtpForm"), "le formulaire e-mail doit venir avant la biométrie").toBeLessThan(p.indexOf("<DeviceSignIn"));

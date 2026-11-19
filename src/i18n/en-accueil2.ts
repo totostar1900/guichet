@@ -171,6 +171,4 @@ export const EN_ACCUEIL2: Record<string, string> = {
   "Sur la séance annoncée de votre choix, ou sur une ligne de la cote. Le desk confirme, et vous suivez l'allocation.":
     "In the announced session of your choice, or on a line of the exchange. The desk confirms, and you follow the allocation.",
   "Entrez par où vous voulez.": "Come in whichever way you like.",
-  "Par e-mail, par WhatsApp ou avec Google : c'est le même compte, et personne n'a de mot de passe à retenir.":
-    "By e-mail, by WhatsApp or with Google: it is the same account, and nobody has a password to remember.",
-};
+  };

@@ -4,7 +4,9 @@ import Link from "next/link";
 
 import { useDates, useT } from "@/i18n/client";
 import { Select } from "@/components/ui/Select";
-import { startTransition, useActionState } from "react";
+import { startTransition, useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { ChoixDuPays } from "@/components/ChoixDuPays";
 import { shrinkPhoto } from "@/lib/image-client";
 import type { ClientFile, KycDocKind, KycDocument } from "@/lib/domain/kyc";
 import { DOC_LABEL, requiredDocs } from "@/lib/kyc/checklist";
@@ -12,6 +14,16 @@ import { addPersonAction, removeDocAction, removePersonAction, saveConsentsActio
 import styles from "./page.module.css";
 
 type P = { file: ClientFile; editable: boolean };
+/** Le parcours pas à pas : l'étape suivante, où l'on va dès que l'enregistrement a réussi. Absent, la section s'enregistre et reste là. */
+type PasAPas = P & { suite?: string };
+
+/** Enregistrer puis passer à l'étape suivante : un seul geste, « Continuer ». */
+function useSuite(state: StepResult | null, suite?: string) {
+  const router = useRouter();
+  useEffect(() => {
+    if (suite && state?.ok) router.push(suite);
+  }, [state, suite, router]);
+}
 
 function Msg({ state }: { state: StepResult | null }) {
   if (!state) return null;
@@ -25,14 +37,16 @@ const Save = ({ pending, editable, label = "Enregistrer" }: { pending: boolean; 
 );
 
 /* ---------------- 2 · Identité ---------------- */
-export function IdentitySection({ file, editable }: P) {
+export function IdentitySection({ file, editable, suite }: PasAPas) {
   const t = useT();
   const [state, action, pending] = useActionState<StepResult | null, FormData>(saveIdentityAction, null);
+  useSuite(state, suite);
   const id = file.identity;
   const phys = file.kind === "physique";
   return (
     <section className={styles.sec} id="identite">
-      <h2 className="display">{t(phys ? "2 · Identité" : "2 · Identité de l'entité")}</h2>
+      <h2 className="display">{t(phys ? "Identité" : "Identité de l'entité")}</h2>
+      {editable && <p className={styles.hint}>{t("Saisissez vos informations réelles, telles qu'elles figurent sur votre pièce d'identité : elles ne se modifient plus une fois le dossier envoyé.")}</p>}
       <form action={action} className={styles.form}>
         <fieldset disabled={!editable} className={styles.grid}>
           <label className="field">
@@ -70,7 +84,7 @@ export function IdentitySection({ file, editable }: P) {
               </label>
               <label className="field">
                 {t("Nationalité")}
-                <input name="nationality" defaultValue={id.nationality} />
+                <ChoixDuPays name="nationality" defaultValue={id.nationality} disabled={!editable} aide={t("Le pays pour lequel vous avez une pièce d'identité valide.")} />
               </label>
               <label className="field">
                 {t("Profession / activité")}
@@ -127,7 +141,7 @@ export function IdentitySection({ file, editable }: P) {
         </fieldset>
         <Msg state={state} />
         <div className={styles.actions}>
-          <Save pending={pending} editable={editable} />
+          <Save pending={pending} editable={editable} label={suite ? t("Continuer") : undefined} />
         </div>
       </form>
     </section>
@@ -141,7 +155,7 @@ export function PersonsSection({ file, editable }: P) {
   const roleLabel = { representant: "Représentant légal", cotitulaire: "Cotitulaire désigné", beneficiaire_effectif: "Bénéficiaire effectif" };
   return (
     <section className={styles.sec}>
-      <h2 className="display">{t("2b · Représentants, cotitulaires, bénéficiaires effectifs")}</h2>
+      <h2 className="display">{t("Représentants, cotitulaires, bénéficiaires effectifs")}</h2>
       {/* LA MAISON N'ACCEPTE AUCUNE PROCURATION depuis le 10 octobre 2026 : le
           titulaire est seul à donner ses ordres. Ce qui reste ici n'est pas un
           tiers à qui il délègue, c'est le titulaire lui-même quand il n'est pas
@@ -275,7 +289,7 @@ export function DocsSection({ file, editable }: P) {
   const extra = file.documents.filter((d) => !req.includes(d.kind));
   return (
     <section className={styles.sec} id="pieces">
-      <h2 className="display">{t("3 · Pièces justificatives")}</h2>
+      <h2 className="display">{t("Pièces justificatives")}</h2>
       <p className={styles.hint}>{t("Photographiez chaque pièce avec votre téléphone : une photo nette suffit, elle est réduite avant l'envoi. Une pièce vous manque ? Envoyez le dossier quand même : un conseiller vous la demandera. Les originaux sont conservés de façon chiffrée et ne servent qu'à la vérification de votre identité.")}</p>
       <div className={styles.docs}>
         {req.map((k) => (
@@ -362,14 +376,15 @@ function AjouterPiece({ editable }: { editable: boolean }) {
 }
 
 /* ---------------- 4 · Fonds & profil ---------------- */
-export function FundsSection({ file, editable }: P) {
+export function FundsSection({ file, editable, suite }: PasAPas) {
   const t = useT();
   const [state, action, pending] = useActionState<StepResult | null, FormData>(saveFundsProfileAction, null);
+  useSuite(state, suite);
   const f = file.funds;
   const p = file.profile;
   return (
     <section className={styles.sec} id="fonds">
-      <h2 className="display">{t("4 · Origine des fonds et profil investisseur")}</h2>
+      <h2 className="display">{t("Origine des fonds et profil investisseur")}</h2>
       <form action={action} className={styles.form}>
         <fieldset disabled={!editable} className={styles.grid}>
           <label className="field">
@@ -422,7 +437,7 @@ export function FundsSection({ file, editable }: P) {
         </fieldset>
         <Msg state={state} />
         <div className={styles.actions}>
-          <Save pending={pending} editable={editable} />
+          <Save pending={pending} editable={editable} label={suite ? t("Continuer") : undefined} />
         </div>
       </form>
     </section>
@@ -430,14 +445,15 @@ export function FundsSection({ file, editable }: P) {
 }
 
 /* ---------------- 5 · Consentements ---------------- */
-export function ConsentSection({ file, editable }: P) {
+export function ConsentSection({ file, editable, suite }: PasAPas) {
   const { fmtDateTime } = useDates();
   const t = useT();
   const [state, action, pending] = useActionState<StepResult | null, FormData>(saveConsentsAction, null);
+  useSuite(state, suite);
   const c = file.consents;
   return (
     <section className={styles.sec} id="consentements">
-      <h2 className="display">{t("5 · Consentements")}</h2>
+      <h2 className="display">{t("Consentements")}</h2>
       <p className={styles.hint}>{t("Le premier est nécessaire pour que nous puissions instruire votre dossier. Le second est libre, et se retire à tout moment. L'acceptation de la convention, elle, vient après l'approbation, et elle a sa propre page.")}</p>
       <form action={action} className={styles.form}>
         <fieldset disabled={!editable} className={styles.consents}>
@@ -451,7 +467,7 @@ export function ConsentSection({ file, editable }: P) {
         <Msg state={state} />
         {c.dataAt && <p className={styles.okText}>{t("Consentement aux données donné le {d}.", { d: fmtDateTime(c.dataAt) })}</p>}
         <div className={styles.actions}>
-          <Save pending={pending} editable={editable} />
+          <Save pending={pending} editable={editable} label={suite ? t("Continuer") : undefined} />
         </div>
       </form>
     </section>
@@ -514,7 +530,7 @@ export function SubmitSection({ file, editable, missing }: P & { missing: string
   if (!editable) return null;
   return (
     <section className={styles.sec}>
-      <h2 className="display">{t("6 · Envoyer mon dossier")}</h2>
+      <h2 className="display">{t("Envoyer mon dossier")}</h2>
       {missing.length > 0 ? (
         <p className={styles.hint}>
           {/* Chaque manque se traduit à part : la phrase qui les assemble était
@@ -524,11 +540,15 @@ export function SubmitSection({ file, editable, missing }: P & { missing: string
       ) : (
         <p className={styles.hint}>{t("Tout y est. Un conseiller vérifie votre dossier et vous prévient dès l'ouverture du compte.")}</p>
       )}
+      {/* LES PIÈCES VIENNENT APRÈS L'ENVOI (planche « Parcours d'inscription », option B) : le desk les demande, en photo, sur cette même page. */}
+      {file.status === "brouillon" && <p className={styles.hint}>{t("Vos pièces (pièce d'identité, selfie, justificatif de domicile, RIB, NIU) ne sont pas demandées maintenant : le conseiller vous les réclame après l'envoi, et vous les prenez en photo sur cette page.")}</p>}
       <form action={action}>
         <Msg state={state} />
-        <button className="btn primary" type="submit" disabled={pending || missing.length > 0}>
-          {pending ? "Envoi…" : file.status === "complements" ? "Renvoyer mon dossier complété" : "Envoyer mon dossier"}
-        </button>
+        <div className={styles.actions}>
+          <button className="btn primary" type="submit" disabled={pending || missing.length > 0}>
+            {pending ? "Envoi…" : file.status === "complements" ? "Renvoyer mon dossier complété" : "Envoyer mon dossier"}
+          </button>
+        </div>
       </form>
     </section>
   );

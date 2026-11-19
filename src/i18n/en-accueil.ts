@@ -78,7 +78,5 @@ export const EN_ACCUEIL: Record<string, string> = {
 
   /* ---------- entrer ---------- */
   "Entrez par où vous voulez": "Come in whichever way you like",
-  "Par e-mail, par WhatsApp, ou par Google. C'est le même compte, et personne n'a de mot de passe à retenir.":
-    "By e-mail, by WhatsApp, or with Google. It is the same account, and nobody has a password to remember.",
-  Commencer: "Get started",
+    Commencer: "Get started",
 };

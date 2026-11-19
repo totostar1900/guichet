@@ -27,7 +27,13 @@ export async function proxy(req: NextRequest) {
     if (onDesk && !deskHostServes(path) && clientOrigin()) return NextResponse.redirect(clientOrigin() + path + req.nextUrl.search);
     if (!onDesk && wantsDesk) return NextResponse.redirect(deskOrigin() + path + req.nextUrl.search);
   }
-  const res = NextResponse.next({ request: req });
+  /* L'ADRESSE EST DITE À LA MISE EN PAGE. Elle ne la connaît pas, et la fenêtre
+     des mentions doit se taire pendant la création d'un compte : le parcours
+     a son propre écran « Avant d'entrer », et deux portes de suite feraient
+     lire le même texte deux fois. */
+  const entetes = new Headers(req.headers);
+  entetes.set("x-chemin", path);
+  const res = NextResponse.next({ request: { headers: entetes } });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   if (url) {

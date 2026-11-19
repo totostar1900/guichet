@@ -4,7 +4,7 @@ import { authMode, getSession } from "@/lib/auth";
 import { isDeskHost } from "@/lib/hosts";
 import { COMPANY } from "@/lib/config";
 import { EmailOtpForm } from "./EmailOtpForm";
-import { devLogin, googleLogin } from "./actions";
+import { devLogin } from "./actions";
 import { Select } from "@/components/ui/Select";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -28,11 +28,14 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (await getSession()) redirect(next.startsWith("/") ? next : "/", RedirectType.replace);
   const mode = authMode();
   const t = await getT();
+  /* CRÉER UN COMPTE A SON PARCOURS : /connexion/creer (adresse, numéro, mentions, code de l'appareil, biométrie). Cette page ne garde que « Se connecter ». Le desk, lui, n'a pas de création. */
+  const administrationHote = isDeskHost((await headers()).get("host"));
+  if ((creer === "1" || next.startsWith("/ouvrir-un-compte")) && !administrationHote) redirect(`/connexion/creer?next=${encodeURIComponent(next)}`, RedirectType.replace);
   /**
    * Ouvrir un compte passe par ici, et la page doit le dire.
    *
    * Le dossier d'ouverture est garde par `requireSession` : on prouve d'abord
-   * un canal, e-mail, WhatsApp ou Google, puis on remplit son dossier. Le flux
+   * un canal, e-mail ou WhatsApp, puis on remplit son dossier. Le flux
    * est juste, mais l'accueil repete « Ouvrir un compte-titres » et le visiteur
    * atterrissait sur « Se connecter » : il y lisait un mur au lieu du premier
    * pas. Les mots changent, le chemin ne change pas.
@@ -80,7 +83,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           {ouvrir && <p className={styles.lead}>{t("Première étape : recevez un code pour prouver votre adresse. Votre dossier s'ouvre juste après, et vous le remplissez à votre rythme.")}</p>}
           {creerUnCompte && <p className={styles.lead}>{t("Un code, une minute, et vous voyez le marché : les taux, les séances annoncées et les publications. Aucun document n'est demandé à ce stade, et créer un compte ne vous engage à rien.")}</p>}
           {erreur === "lien" && <p className={styles.notice}>{t("Ce lien de connexion a expiré, ou a déjà servi (certaines messageries ouvrent les liens avant vous). Demandez un nouveau lien ci-dessous : il arrive en quelques secondes.")}</p>}
-          {erreur === "google" && <p className={styles.notice}>{t("La connexion par Google n'a pas abouti. Le code par e-mail ci-dessous fonctionne toujours.")}</p>}
           {mode === "supabase" ? (
             <>
               {/* La phrase de tête a déjà été dite à qui vient ouvrir ou créer un compte. */}
@@ -90,28 +92,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                   habilitation. Deux canaux de plus, c'est deux surfaces de
                   plus sur la porte de l'administration, pour personne. */}
               {!ouvrir && !creerUnCompte && <p className={styles.lead}>{t(telephoneOuvert ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>}
-              {/* La porte Google est proposée avant le code : elle est plus courte,
-                  et l'adresse qu'elle rend est déjà vérifiée par Google. Elle ne
-                  paraît que si le fournisseur est activé côté Supabase. */}
-              {process.env.GOOGLE_OAUTH_ENABLED === "1" && (
-                <>
-                  <form action={googleLogin} className={styles.google}>
-                    <input type="hidden" name="next" value={next} />
-                    <button type="submit">
-                      <svg viewBox="0 0 48 48" aria-hidden="true" width="16" height="16">
-                        <path fill="#4285F4" d="M45 24c0-1.6-.1-2.7-.4-4H24v7.5h12c-.2 2-1.5 5-4.4 7l6.7 5.2C42.2 36.2 45 30.7 45 24z" />
-                        <path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.9 1.3-4.4 2.2-7.6 2.2-5.8 0-10.7-3.9-12.5-9.2l-7.1 5.5C8.1 41 15.4 46 24 46z" />
-                        <path fill="#FBBC05" d="M11.5 28.3A13.4 13.4 0 0 1 10.8 24c0-1.5.3-3 .7-4.3l-7.1-5.6A22 22 0 0 0 2 24c0 3.6.9 6.9 2.4 9.9z" />
-                        <path fill="#EA4335" d="M24 10.3c4.1 0 6.9 1.8 8.5 3.3l6.2-6C34.9 4.1 29.9 2 24 2 15.4 2 8.1 7 4.4 14.1l7.1 5.6C13.3 14.2 18.2 10.3 24 10.3z" />
-                      </svg>
-                      {t("Continuer avec Google")}
-                    </button>
-                  </form>
-                  <div className={styles.ou}>
-                    <span>{t("ou")}</span>
-                  </div>
-                </>
-              )}
+              {/* AUCUNE PORTE GOOGLE (19 novembre 2026, le client : « on veut les informations réelles, ce qui n'est pas toujours le cas en passant par Google »). Un profil Google rend le nom et l'adresse que la personne y a mis ; le dossier d'ouverture demande ceux de sa pièce d'identité. */}
               <EmailOtpForm next={next} phoneEnabled={telephoneOuvert} withCode={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY)} />
             </>
           ) : (

@@ -1,0 +1,191 @@
+/* LA CRÉATION D'UN COMPTE (19 novembre 2026, planche « Parcours d'inscription »).
+ * Une colonne étroite, un geste par écran. LE BOUTON DE VALIDATION EST EN BAS :
+ * l'écran est une colonne qui occupe la hauteur disponible, et `.bas` pousse
+ * le bouton au pouce. L'erreur s'écrit sous le champ. Aucune couleur écrite :
+ * les jetons de la maison. */
+.ecran {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--s-8);
+}
+.corps {
+  width: min(28rem, 100%);
+  min-height: calc(100dvh - 11rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-7);
+  padding-bottom: var(--s-8);
+}
+.tete {
+  display: grid;
+  gap: var(--s-4);
+  text-align: center;
+}
+.tete h1 {
+  font-size: var(--t-8);
+  margin: 0;
+  text-wrap: balance;
+}
+.tete p {
+  margin: 0;
+  font-size: var(--t-4);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.centre {
+  padding-top: var(--s-9);
+  justify-items: center;
+}
+.empreinte {
+  color: var(--ink-3);
+}
+.empreinteOk {
+  color: var(--good);
+}
+.champ {
+  display: grid;
+  gap: var(--s-3);
+  font-size: var(--t-3);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.champ input {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 var(--s-7);
+  border-radius: 999px;
+  font-size: var(--t-5);
+}
+.erreur {
+  margin: calc(var(--s-3) * -1) 0 0;
+  font-size: var(--t-3);
+  color: var(--crit);
+}
+.demo {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+.aide {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+  text-align: left;
+}
+.aide a {
+  color: var(--info);
+}
+.lien {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--info);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.bas {
+  margin-top: auto;
+  display: grid;
+  gap: var(--s-5);
+}
+.valider,
+.secondaire {
+  width: 100%;
+  min-height: 3rem;
+  border-radius: 999px;
+  font: inherit;
+  font-size: var(--t-4);
+  font-weight: 700;
+  cursor: pointer;
+}
+.valider {
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+}
+.valider:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.secondaire {
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+}
+.pied {
+  margin: 0;
+  text-align: center;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.pied a {
+  color: var(--ink);
+  font-weight: 700;
+}
+.trois {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.trois li {
+  display: grid;
+  gap: 2px;
+  padding: var(--s-5) 0;
+  border-top: 1px solid var(--line);
+}
+.trois li span {
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.case {
+  display: flex;
+  gap: var(--s-5);
+  align-items: flex-start;
+  font-size: var(--t-3);
+  line-height: 1.45;
+  color: var(--ink);
+}
+.case input {
+  margin-top: 2px;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+}
+.ronds {
+  display: flex;
+  gap: var(--s-6);
+  justify-content: center;
+}
+.ronds i {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  border: 1.5px solid var(--good);
+}
+.ronds i[data-plein="1"] {
+  background: var(--good);
+}
+.clavier {
+  display: grid;
+  grid-template-columns: repeat(3, 4.2rem);
+  gap: var(--s-5);
+  justify-content: center;
+}
+.clavier button {
+  width: 4.2rem;
+  height: 4.2rem;
+  border-radius: 50%;
+  border: 0;
+  background: var(--surface-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t-6);
+  font-weight: 600;
+  cursor: pointer;
+}
+.clavier button:disabled {
+  opacity: 0.5;
+}

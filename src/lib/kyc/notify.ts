@@ -43,13 +43,15 @@ export async function notifyKycDecision(f: ClientFile, decision: "approuve" | "c
   /* L'approbation ne dit plus « votre convention signée est dans votre espace » :
      elle ne l'est plus à cette minute, c'est maintenant au client de l'accepter. */
   const signee = Boolean(f.consents.conventionAt);
+  /* UN LIEN, ET NON « DANS GUICHET › OUVRIR UN COMPTE » (le client, 19 novembre 2026 : WhatsApp porte le code et les avis, avec un lien qui ouvre la bonne page de Guichet, où l'on agit). Le message dit ce qui se passe ; le geste se fait dans l'application, avec ses protections. */
+  const lien = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/ouvrir-un-compte`;
   const lines = {
     approuve: !signee
-      ? `Votre dossier d'ouverture de compte est approuvé. Dernière étape, à vous : acceptez la convention par code dans Guichet › Ouvrir un compte. Nous ouvrons ensuite le sous-compte à votre nom chez le teneur de compte.`
+      ? `Votre dossier d'ouverture de compte est approuvé. Dernière étape, à vous : acceptez la convention par code.\n${lien}\nNous ouvrons ensuite le sous-compte à votre nom chez le teneur de compte.`
       : f.review.custodianAccount
         ? `Votre compte-titres est actif : sous-compte n° ${f.review.custodianAccount} ouvert à votre nom chez le teneur de compte. Vous pouvez désormais passer des prises fermes dans le Guichet. Votre convention signée est dans votre espace.`
         : `Votre dossier est approuvé et votre convention signée est dans votre espace. Le sous-compte à votre nom est en cours d'ouverture chez le teneur de compte (24 à 48 h) ; nous vous confirmons le numéro dès réception.`,
-    complements: `Votre dossier d'ouverture de compte a besoin de compléments : ${details ?? "voir votre espace"}. Reprenez-le dans le Guichet › Ouvrir un compte.`,
+    complements: `Votre dossier d'ouverture de compte a besoin de compléments : ${details ?? "voir votre espace"}. Reprenez votre dossier :\n${lien}`,
     refuse: `Nous ne pouvons pas donner suite à votre demande d'ouverture de compte${details ? ` : ${details}` : ""}. Un conseiller reste à votre disposition.`,
   } as const;
   const text = `${COMPANY.name} : ${lines[decision]}`;
