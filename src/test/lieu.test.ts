@@ -20,9 +20,9 @@ describe("lieuDe : où l'on est, en un siège et une rubrique", () => {
     expect(lieuDe("/info/parcours?section=a")).toEqual({ siege: "Aide", rubrique: "Le parcours CEMAC" });
   });
   it("le compte est un lieu à part, pas la possession", () => {
-    expect(lieuDe("/moi/securite")).toEqual({ siege: "Compte", rubrique: "Sécurité et connexion" });
+    expect(lieuDe("/parametres")).toEqual({ siege: "Compte", rubrique: "Paramètres" });
+    expect(lieuDe("/parametres/code")).toEqual({ siege: "Compte", rubrique: "Paramètres" });
     expect(lieuDe("/moi/compte")).toEqual({ siege: "Compte", rubrique: undefined });
-    expect(lieuDe("/moi/appareil")?.rubrique).toBe("Préférences");
   });
   it("contact et réclamation sont de l'aide, pas de l'accueil, bien qu'ils vivent sous /moi", () => {
     expect(lieuDe("/moi/contact")?.siege).toBe("Aide");

@@ -178,7 +178,7 @@ export async function DossierAccueil({
     intention: { href: "/activite", nom: t("Déclarer une intention sur une ligne"), dit: t("Dites ce que vous prendriez, le desk revient vers vous") },
     versement: { href: "/moi/epargne", nom: t("Programmer un versement"), dit: t("Une somme chaque mois, sans y penser") },
     reinvestir: { href: "/moi/reinvestir", nom: t("Réinvestir mes coupons"), dit: t("Ne laissez pas dormir ce qui vous revient") },
-    appareil: { href: "/moi/securite", nom: t("Ajouter ce téléphone"), dit: t("Ouvrir d'un doigt la prochaine fois") },
+    appareil: { href: "/parametres", nom: t("Ajouter ce téléphone"), dit: t("Ouvrir d'un doigt la prochaine fois") },
     profil: { href: "/moi/profil", nom: t("Compléter mon profil d'investisseur"), dit: "" },
     suivre: { href: "/titres", nom: t("Suivre une ligne"), dit: t("Une alerte à la clôture ou au prix") },
     sondage: { href: "/sondage", nom: t("Proposer une adjudication"), dit: t("Dites ce que vous prendriez avant qu'une séance ouvre") },

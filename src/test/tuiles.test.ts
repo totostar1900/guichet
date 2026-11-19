@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { translatable } from "@/i18n/core";
-import { AIDE_PAGES, COMPTE_PAGES, INSTRUMENTS_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "@/lib/nav-groups";
+import { AIDE_PAGES, COMPTE_PAGES, INSTRUMENTS_PAGES, MARCHE_PAGES, PARAMETRES_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "@/lib/nav-groups";
 
 /**
  * LES MOTS DES TABLES NE PASSENT PAS PAR UN LITTÉRAL.
@@ -27,7 +27,7 @@ const TOUTES: NavPage[] = [...PORTEFEUILLE_PAGES, ...INSTRUMENTS_PAGES, ...MARCH
  * `TOUTES` : cette liste-là sert aussi à exiger une icône de tuile, et ces
  * neuf pages ne sont pas dans la grille du dock.
  */
-const TOUS_LES_MOTS: NavPage[] = [...TOUTES, ...COMPTE_PAGES, ...AIDE_PAGES];
+const TOUS_LES_MOTS: NavPage[] = [...TOUTES, ...COMPTE_PAGES, ...PARAMETRES_PAGES, ...AIDE_PAGES];
 
 describe("les mots de la navigation, en anglais", () => {
   it("couvre le nom, le nom court, la tuile et la phrase de chaque page", () => {
@@ -162,7 +162,7 @@ describe("le compte en pages", () => {
     const sommaire = lire("src/app/moi/compte/page.tsx");
     expect(sommaire, "le sommaire du compte a réécrit sa propre liste").toContain("COMPTE_PAGES.filter");
     const portes = COMPTE_PAGES.map((p) => p.href);
-    expect(portes, "une rubrique a quitté la table du compte").toEqual(["/moi/identite", "/moi/dossier", "/moi/securite", "/moi/appareil", "/ouvrir-un-compte", "/moi/profil"]);
+    expect(portes, "une rubrique a quitté la table du compte").toEqual(["/moi/identite", "/moi/dossier", "/ouvrir-un-compte", "/moi/profil"]);
   });
 
   /**
@@ -179,8 +179,8 @@ describe("le compte en pages", () => {
       ["identityAction", "src/app/moi/identite/Identite.tsx", "export function Identite"],
       ["ProofBlock", "src/app/moi/identite/Canaux.tsx", "export function Canaux"],
       ["PushToggle", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
-      ["PaletteSwitch", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
-      ["LangSwitch", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
+      ["PaletteSwitch", "src/components/mobile/BarreDuHaut.tsx", "export function BarreDuHaut"],
+      ["LangSwitch", "src/components/mobile/BarreDuHaut.tsx", "export function BarreDuHaut"],
       ["statementsByEmail", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
       ["reach", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
       ["logoutEverywhere", "src/app/moi/compte/Deconnexion.tsx", "export function Deconnexion"],

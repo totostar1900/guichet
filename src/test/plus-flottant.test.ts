@@ -24,6 +24,6 @@ describe("la page Activité", () => {
     expect(p).toContain('href="/moi/provision/reprendre"');
     expect(p).toMatch(/<section id="services"/);
     const r = code("src/app/activite/Rubriques.tsx");
-    for (const h of ["/moi/profil", "/moi/compte", "/moi/securite", "/moi/documents"]) expect(r, `la rubrique ${h} a disparu`).toContain(h);
+    for (const h of ["/moi/profil", "/moi/compte", "/parametres", "/moi/documents"]) expect(r, `la rubrique ${h} a disparu`).toContain(h);
   });
 });

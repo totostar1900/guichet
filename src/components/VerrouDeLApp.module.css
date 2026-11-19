@@ -1,0 +1,62 @@
+/* Le verrou de l'application (19 novembre 2026) : un voile qui couvre tout, au-dessus de la fenêtre des mentions. Les jetons de la maison. */
+.verrou,
+.masque {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background: var(--paper);
+}
+.verrou {
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: var(--s-8) var(--s-7);
+}
+.corps {
+  width: min(24rem, 100%);
+  display: grid;
+  justify-items: center;
+  gap: var(--s-7);
+  text-align: center;
+}
+.corps h1 {
+  font-size: var(--t-8);
+  margin: 0;
+  text-wrap: balance;
+}
+.corps p {
+  margin: 0;
+  font-size: var(--t-4);
+  color: var(--ink-2);
+}
+.cle {
+  width: 100%;
+  min-height: 3rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-size: var(--t-4);
+  font-weight: 700;
+  cursor: pointer;
+}
+.cle:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.erreur {
+  font-size: var(--t-3);
+  color: var(--crit);
+}
+.lien {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--t-3);
+  color: var(--info);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}

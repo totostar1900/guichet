@@ -13,7 +13,7 @@ import styles from "./Rubriques.module.css";
 const DOSSIER = [
   { href: "/moi/profil", cle: "profil", mot: "Mon profil d'investisseur" },
   { href: "/moi/compte", cle: "compte", mot: "Mon compte" },
-  { href: "/moi/securite", cle: "securite", mot: "Sécurité" },
+  { href: "/parametres", cle: "securite", mot: "Paramètres" },
   { href: "/moi/documents", cle: "documents", mot: "Mes documents" },
 ];
 

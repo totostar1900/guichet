@@ -33,6 +33,7 @@ import { PorteVitrine } from "@/components/PorteVitrine";
 import { BandeauDAnnonce } from "@/components/BandeauDAnnonce";
 import { SaufSurLaPorte } from "@/components/SaufSurLaPorte";
 import { ConsentGate } from "@/components/ConsentGate";
+import { VerrouDeLApp } from "@/components/VerrouDeLApp";
 import { TermSheetHost } from "@/components/TermSheet";
 import { PROFONDEUR_BOOT } from "@/lib/nav-profondeur";
 import { DESK_BOOT, DESK_T_COOKIE, PALETTE_BOOT, P_COOKIE, T_COOKIE, deskAttrs, paletteAttrs } from "@/lib/palette";
@@ -147,7 +148,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
    * affiché derrière un clic : c'est le genre de ligne qui ne se retire que le
    * jour où son seul lecteur disparaît.
    */
-  const [account, attentes, consent, poste, echeances, favoris] = session
+  const [account, attentes, consent, poste, echeances, favoris, codeDuCompte] = session
     ? await Promise.all([
         accountLine(session.userId),
         deskUi ? [] : attentesPourLaBarre(session.userId),
@@ -158,8 +159,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         deskUi ? 0 : repo().listOffers().then((o) => echeancesProches(o).length).catch(() => 0),
         /* L'ÉTOILE N'EXISTE QUE S'IL Y A UN FAVORI : deux lectures bornées au client (les offres sont déjà lues, par la mémoire de la requête). */
         deskUi ? false : Promise.all([repo().listWatches(session.userId), repo().listOffers(), repo().listFavoris(session.userId)]).then(([w, o, p]) => aDesFavoris(w, o, p)).catch(() => false),
+        /* LE CODE DU COMPTE (19 novembre 2026) : tout compte client en a un, sinon le verrou en fait poser un avant tout. En cas de doute (lecture en échec) on suppose qu'il existe : une panne ne doit pas enfermer un client. */
+        !desk ? repo().listDevices(session.userId).then((d) => d.some((x) => x.kind === "code")).catch(() => true) : true,
       ])
-    : [undefined, [], undefined, undefined, 0, false];
+    : [undefined, [], undefined, undefined, 0, false, true];
   /* LA CRÉATION DE COMPTE PORTE SA PROPRE ACCEPTATION (« Avant d'entrer ») : la fenêtre générale se tait sur cette seule adresse, et reprend partout ailleurs. */
   const creation = (hdrs.get("x-chemin") ?? "").startsWith("/connexion/creer");
   const needsConsent = Boolean(session && !desk && !creation && consent?.version !== LEGAL_VERSION);
@@ -240,6 +243,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {deskUi && <RelectureDuDesk />}
         <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} echeances={echeances ?? 0} favoris={Boolean(favoris)} desk={deskUi} deskHost={onDeskHost} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
+        {/* LE VERROU : les clients seulement, le desk a son second facteur (19 novembre 2026). */}
+        {session && !desk ? <VerrouDeLApp aUnCode={Boolean(codeDuCompte)} /> : null}
         <Presentation visiteur={!session} />
         {/* LA NAVIGATION PASSE À GAUCHE AU-DELÀ DE 1040 PIXELS, et le haut est
             rendu à la page : 224 pixels gelés au desk, 62 au guichet.

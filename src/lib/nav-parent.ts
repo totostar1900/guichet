@@ -6,7 +6,7 @@
  *
  * Une page qui n'est pas de l'Activité (une fiche, un éclairage…) garde le retour d'avant : l'historique, avec sa liste, ses filtres et son défilement.
  */
-const FAMILLE = ["argent", "regles", "provision", "prelevements", "epargne", "ordres", "reinvestir", "performance", "documents", "profil", "compte", "securite"];
+const FAMILLE = ["argent", "regles", "provision", "prelevements", "epargne", "ordres", "reinvestir", "performance", "documents", "profil", "compte", "securite", "parametres"];
 
 const ENTREES: Record<string, { defaut: string; ou: string[] }> = {
   "/moi/argent": { defaut: "/activite", ou: [] },

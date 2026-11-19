@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { reporterLeVerrou } from "@/lib/verrou";
 import { useT } from "@/i18n/client";
 import { sendConventionCodeAction, verifyConventionCodeAction, type StepResult } from "../actions";
 import styles from "./page.module.css";
@@ -54,6 +55,10 @@ export function Signer({ canal, pending, reprise }: SignerProps) {
   const t = useT();
   const [sendState, sendAct, sending] = useActionState<StepResult | null, FormData>(sendConventionCodeAction, null);
   const [verState, verAct, verifying] = useActionState<StepResult | null, FormData>(verifyConventionCodeAction, null);
+  /* Le code vient de partir : il faut sortir le chercher, et le verrou attend (5 minutes, `lib/verrou.ts`). */
+  useEffect(() => {
+    if (sendState?.ok) reporterLeVerrou();
+  }, [sendState]);
   const attente = useReste(pending?.at, 45_000);
   const validite = useReste(pending?.at, 10 * 60_000);
   const envoye = Boolean(pending?.at) && validite !== 0;

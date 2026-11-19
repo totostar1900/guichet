@@ -1,52 +1,6 @@
-import { requireSession } from "@/lib/auth";
-import { repo } from "@/lib/data";
-import { getT } from "@/i18n/server";
-import { Glissement } from "@/components/mobile/Glissement";
-import { EnTete } from "@/components/EnTete";
-import { Appareil } from "./Appareil";
-import styles from "@/components/Feuillet.module.css";
+import { redirect, RedirectType } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-/** The tab and the phone header read this title: in the reader's language. */
-export async function generateMetadata() {
-  const t = await getT();
-  return { title: t("Préférences") };
-}
-
-/**
- * LA CINQUIÈME RUBRIQUE DU COMPTE : CE QUE FAIT L'APPAREIL QU'ON TIENT.
- *
- * Les alertes, les couleurs, la langue, le canal préféré et les relevés par
- * e-mail étaient les cinq dernières lignes de la feuille du compte, qu'il
- * fallait atteindre en défilant sous dix-sept tuiles. Elles tiennent une page,
- * et la page dit laquelle des deux portées chaque réglage a.
- *
- * LA PRÉFÉRENCE SE LIT AU COMPTE, PAS À LA SESSION : elle change d'un appareil
- * à l'autre dans la même minute, et un jeton de session garderait celle qui
- * avait cours à la connexion.
- */
-export default async function AppareilPage() {
-  const s = await requireSession("/moi/appareil");
-  const t = await getT();
-  const r = repo();
-
-  const [prefs, canaux, contact] = await Promise.all([
-    r.getPrefs(s.userId).catch(() => undefined),
-    r.getChannelStatus(s.userId).catch(() => undefined),
-    r.getContact(s.userId).catch(() => undefined),
-  ]);
-
-  return (
-    <Glissement>
-        <div className={styles.page}>
-          <EnTete
-            surTitre={t("Vous")}
-            titre={t("Préférences")}
-            phrase={t("La langue et les couleurs, puis un seul endroit pour tout ce qui vous notifie : alertes, façon de vous joindre, informations et relevés.")}
-          />
-
-          <Appareil prefs={prefs} phoneOk={Boolean(canaux?.phoneVerifiedAt)} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} whatsapp={Boolean(contact?.whatsappOptIn)} emailOptIn={Boolean(contact?.emailOptIn)} hasPhone={Boolean(contact?.phone ?? s.phone)} hasEmail={Boolean(contact?.email ?? s.email)} />
-        </div>
-    </Glissement>
-  );
+/** « Préférences » a rejoint « Paramètres » (19 novembre 2026, planche « Paramètres et connexion », 1A) : l'ancienne adresse reste valable. */
+export default function AppareilPage() {
+  redirect("/parametres", RedirectType.replace);
 }

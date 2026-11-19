@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
+import { reporterLeVerrou } from "@/lib/verrou";
 import { useT } from "@/i18n/client";
 import { envoyerCodeOrdreAction, signerOrdreAction, type OrdreResult } from "./actions";
 import styles from "./page.module.css";
@@ -69,6 +70,10 @@ export function SignatureOrdre({
      figé à « 45 s », « Renvoyer » ne se rouvrait jamais et « ce code reste valable 10:00 » ne baissait pas (mesuré le 16 novembre 2026). */
   const partiLe = useMemo(() => (envoi?.ok ? new Date().toISOString() : undefined), [envoi]);
   const parti = partiLe ?? codeEnvoyeLe;
+  /* Le code vient de partir : il faut sortir le chercher, et le verrou attend (5 minutes, `lib/verrou.ts`). */
+  useEffect(() => {
+    if (envoi?.ok) reporterLeVerrou();
+  }, [envoi]);
   const attente = useReste(parti, 45_000);
   const validite = useReste(parti, 10 * 60_000);
   const envoye = Boolean(parti) && validite !== 0;

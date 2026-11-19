@@ -70,3 +70,29 @@ export function newDeviceToken(): string {
   crypto.getRandomValues(bytes);
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
+
+/**
+ * « CODE OUBLIÉ ? » (19 novembre 2026, planche « Paramètres et connexion », 4A) : le client n'a plus son code, il prouve l'adresse par le code reçu, puis en choisit un nouveau. Le drapeau vit dans l'onglet (sessionStorage) : il dit à la porte d'aller droit au code reçu, et à la création de proposer un NOUVEAU code au lieu de demander l'ancien.
+ */
+const OUBLI = "guichet_code_oublie";
+export function marquerCodeOublie(): void {
+  try {
+    sessionStorage.setItem(OUBLI, "1");
+  } catch {
+    // stockage refusé : le parcours demandera l'ancien code
+  }
+}
+export function codeOublie(): boolean {
+  try {
+    return sessionStorage.getItem(OUBLI) === "1";
+  } catch {
+    return false;
+  }
+}
+export function effacerCodeOublie(): void {
+  try {
+    sessionStorage.removeItem(OUBLI);
+  } catch {
+    // rien à effacer
+  }
+}

@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { buildGuideIndex } from "@/lib/guide-index";
 import { getRegistry } from "@/lib/registry";
 import { loadRegistry } from "@/lib/reference";
-import { AGIR_PAGES, AIDE_PAGES, COMPTE_PAGES, INSTRUMENTS_PAGES, PORTEFEUILLE_PAGES } from "@/lib/nav-groups";
+import { AGIR_PAGES, AIDE_PAGES, COMPTE_PAGES, INSTRUMENTS_PAGES, PARAMETRES_PAGES, PORTEFEUILLE_PAGES } from "@/lib/nav-groups";
 import { CATALOGUE } from "@/lib/domain/services";
 
 /**
@@ -39,7 +39,7 @@ describe("ce que la recherche connaît", () => {
   it("donne au client une entrée par page, par service et par instrument", async () => {
     const { entries } = await buildGuideIndex(t, "fr", { app: true });
     const portes = new Set(entries.map((e) => e.href));
-    const manquants = [...PORTEFEUILLE_PAGES, ...INSTRUMENTS_PAGES, ...AGIR_PAGES, ...AIDE_PAGES, ...COMPTE_PAGES]
+    const manquants = [...PORTEFEUILLE_PAGES, ...INSTRUMENTS_PAGES, ...AGIR_PAGES, ...AIDE_PAGES, ...COMPTE_PAGES, ...PARAMETRES_PAGES]
       .filter((p) => !portes.has(p.href))
       .map((p) => `${p.key} (${p.href})`);
     /* Le prélèvement et la provision sont des pages ET des services : le
@@ -72,7 +72,7 @@ describe("ce que la recherche connaît", () => {
    */
   it("ne montre au visiteur aucune porte fermée", async () => {
     const { entries } = await buildGuideIndex(t, "fr");
-    const fermees = [...AGIR_PAGES, ...COMPTE_PAGES].map((p) => p.href).filter((h) => h !== "/ouvrir-un-compte");
+    const fermees = [...AGIR_PAGES, ...COMPTE_PAGES, ...PARAMETRES_PAGES].map((p) => p.href).filter((h) => h !== "/ouvrir-un-compte");
     const fuites = entries
       .filter((e) => fermees.includes(e.href) || e.kind === "service" || e.kind === "instrument" || /#sec-|\?r=|\?instrument=/.test(e.href))
       .map((e) => `${e.kind} · ${e.title} → ${e.href}`);
@@ -104,14 +104,14 @@ describe("ce que la recherche connaît", () => {
        « settings » et « language » des synonymes, « anglais » et « relevés » des
        mots-clefs — eux seuls, puisque la page ne dit ni l'un ni l'autre d'elle
        même. Avant le 28 octobre, sur les neuf, DEUX répondaient. */
-    for (const mot of ["langue", "language", "réglages", "settings", "thème", "notifications", "paramètres", "anglais", "relevés"]) {
-      const rang = rankEntries(entries, mot).results.findIndex((r) => r.e.href === "/moi/appareil");
+    for (const mot of ["réglages", "settings", "notifications", "paramètres", "relevés", "empreinte", "face id"]) {
+      const rang = rankEntries(entries, mot).results.findIndex((r) => r.e.href === "/parametres");
       expect(rang, `« ${mot} » ne mène pas aux paramétrages`).toBeGreaterThanOrEqual(0);
       expect(rang, `« ${mot} » les relègue derrière trois autres réponses`).toBeLessThan(3);
     }
     /* Non vacuité : un mot qui n'a rien à y faire n'y mène pas. Sans cette
        ligne, une page qui répondrait à TOUT passerait l'épreuve. */
-    expect(rankEntries(entries, "coupon").results.some((r) => r.e.href === "/moi/appareil"), "les paramétrages répondent à n'importe quoi").toBe(false);
+    expect(rankEntries(entries, "coupon").results.some((r) => r.e.href === "/parametres"), "les paramétrages répondent à n'importe quoi").toBe(false);
   });
 
   it("ne sert pas la navigation du client au desk", async () => {

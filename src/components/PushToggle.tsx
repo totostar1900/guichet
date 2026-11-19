@@ -2,6 +2,7 @@
 
 import { useT } from "@/i18n/client";
 import { useEffect, useState } from "react";
+import { Interrupteur } from "@/components/Interrupteur";
 import styles from "./PushToggle.module.css";
 
 /**
@@ -17,7 +18,7 @@ const b64ToBytes = (b64: string) => {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 };
 
-export function PushToggle({ vapidKey, compact = false }: { vapidKey?: string; compact?: boolean }) {
+export function PushToggle({ vapidKey, compact = false, interrupteur = false }: { vapidKey?: string; compact?: boolean; /** un interrupteur à la place des deux boutons (page Paramètres) */ interrupteur?: boolean }) {
   const tr = useT();
   const [state, setState] = useState<State>("busy");
   const [err, setErr] = useState("");
@@ -96,6 +97,21 @@ export function PushToggle({ vapidKey, compact = false }: { vapidKey?: string; c
   if (state === "unconfigured") return compact ? null : <small className={styles.note}>{tr("Les alertes ne sont pas encore ouvertes ici : vos messages arrivent sur WhatsApp et par e-mail.")}</small>;
   if (state === "needs-install") return <small className={styles.note}>{tr("Sur iPhone : ajoutez le Guichet à l'écran d'accueil (Partager → « Sur l'écran d'accueil »), puis ouvrez-le de là pour activer les alertes.")}</small>;
   if (state === "denied") return <small className={styles.note}>{tr("Alertes bloquées dans les réglages du navigateur : autorisez les notifications pour ce site pour les recevoir.")}</small>;
+  if (interrupteur) {
+    return (
+      <span className={styles.wrap}>
+        <Interrupteur actif={state === "on"} occupe={state === "busy"} label={tr("Alertes")} onChange={(v) => void (v ? enable() : disable())} />
+        {state === "on" && (
+          <button type="button" className="btn sm" disabled={essai === "busy"} onClick={essayer}>
+            {essai === "busy" ? "…" : tr("Envoyer un essai")}
+          </button>
+        )}
+        {err && <small className={styles.err}>{err}</small>}
+        {essai === "ok" && <small className={styles.note}>{tr("Essai envoyé : la notification doit arriver dans quelques secondes.")}</small>}
+        {essai && essai !== "ok" && essai !== "busy" && <small className={styles.err}>{essai}</small>}
+      </span>
+    );
+  }
   return (
     <span className={styles.wrap}>
       <button type="button" className={`btn sm ${state === "on" ? "" : "primary"}`} disabled={state === "busy"} onClick={state === "on" ? disable : enable}>

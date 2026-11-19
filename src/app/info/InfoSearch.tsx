@@ -82,19 +82,19 @@ const SYN: Record<string, string[]> = {
      consulter cette table, donc « réglages » y entre comme « reglage » et
      « settings » comme « setting ». Une clef au pluriel ne serait jamais
      consultée. */
-  reglage: ["parametrages"],
-  parametre: ["parametrages"],
-  preference: ["parametrages"],
-  setting: ["parametrages", "langue"],
-  language: ["langue", "parametrages"],
-  langue: ["parametrages"],
-  english: ["langue", "parametrages"],
-  french: ["langue", "parametrages"],
+  reglage: ["parametres"],
+  parametre: ["parametres"],
+  preference: ["parametres"],
+  setting: ["parametres", "langue"],
+  language: ["langue", "parametres"],
+  langue: ["parametres"],
+  english: ["langue", "parametres"],
+  french: ["langue", "parametres"],
   traduction: ["langue"],
-  theme: ["couleurs", "parametrages"],
-  couleur: ["parametrages"],
+  theme: ["couleurs", "parametres"],
+  couleur: ["parametres"],
   dark: ["couleurs", "theme"],
-  notification: ["alertes", "parametrages"],
+  notification: ["alertes", "parametres"],
 };
 const stem = (w: string) => (w.length > 3 ? w.replace(/(s|x)$/, "") : w);
 

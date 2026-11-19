@@ -814,7 +814,8 @@ export interface ChannelCode {
  * or a four-digit code that unlocks a secret kept by that device. The server
  * keeps the public key, or the secret's hash, never the code.
  */
-export type DeviceKind = "passkey" | "pin";
+/** « code » n'est pas un appareil : c'est LE code du compte (quatre chiffres), le même sur tout appareil, qui lève le verrou de l'application. Il n'est jamais listé parmi « Mes appareils ». */
+export type DeviceKind = "passkey" | "pin" | "code";
 export interface TrustedDevice {
   id: string;
   userId: string;

@@ -239,3 +239,49 @@ async function notifyDeviceChange(userId: string, what: "added" | "removed" | "f
     // Telling is best effort; the change itself is done.
   }
 }
+
+
+/* ---------- le code du compte : le même sur tout appareil, il lève le verrou ---------- */
+
+/**
+ * LE CODE DU COMPTE (19 novembre 2026, le client : « tout compte doit avoir au moins un code de connexion utilisable sur tout appareil »).
+ *
+ * Quatre chiffres, gardés comme le condensé HMAC (code · compte) : le serveur ne connaît pas le code. Il lève le verrou de l'application sur n'importe quel appareil où une session existe ; il N'OUVRE AUCUNE SESSION à lui seul (le code par e-mail prouve toujours le compte sur un appareil neuf). Cinq essais ratés, et l'on est déconnecté.
+ *
+ * CHANGER LE CODE OUBLIE LES CODES D'APPAREIL des autres navigateurs : leur condensé ne portait plus les mêmes chiffres, et deux codes pour un compte ne se retiendraient pas. Les clés d'accès (Face ID, empreinte) ne dépendent pas du code et restent.
+ */
+export const ESSAIS_DU_CODE = 5;
+const codeHash = (userId: string, pin: string) => createHmac("sha256", pepper()).update(`code|${userId}|${pin}`).digest("hex");
+const TROP_SIMPLE = /^(\d)\1{3}$|^(0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210)$/;
+
+export async function aUnCodeDuCompte(userId: string): Promise<boolean> {
+  return (await repo().listDevices(userId)).some((d) => d.kind === "code");
+}
+
+export async function poserCodeDuCompte(s: Session, pin: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!/^\d{4}$/.test(pin)) return { ok: false, error: "Le code comporte 4 chiffres." };
+  if (TROP_SIMPLE.test(pin)) return { ok: false, error: "Trop simple : évitez les suites et les répétitions." };
+  const avait = await aUnCodeDuCompte(s.userId);
+  await repo().removeDevices(s.userId, "code");
+  await repo().addDevice({ userId: s.userId, kind: "code", name: "Code du compte", secretHash: codeHash(s.userId, pin) });
+  if (avait) await repo().removeDevices(s.userId, "pin");
+  return { ok: true };
+}
+
+export async function verifierCodeDuCompte(s: Session, pin: string): Promise<{ ok: true } | { ok: false; error: string; bloque?: boolean; left?: number }> {
+  if (!/^\d{4}$/.test(pin)) return { ok: false, error: "Le code comporte 4 chiffres." };
+  const d = (await repo().listDevices(s.userId)).find((x) => x.kind === "code");
+  if (!d?.secretHash) return { ok: false, error: "Aucun code n'est défini sur ce compte." };
+  const attendu = d.secretHash;
+  const recu = codeHash(s.userId, pin);
+  if (attendu.length !== recu.length || !timingSafeEqual(Buffer.from(attendu), Buffer.from(recu))) {
+    const failures = d.failures + 1;
+    await repo().updateDevice(d.id, { failures });
+    if (failures >= ESSAIS_DU_CODE) return { ok: false, error: "Cinq codes faux : vous êtes déconnecté. Reconnectez-vous par le code reçu.", bloque: true, left: 0 };
+    const left = ESSAIS_DU_CODE - failures;
+    return { ok: false, error: `Code incorrect. ${left} essai${left > 1 ? "s" : ""} restant${left > 1 ? "s" : ""}.`, left };
+  }
+  if (d.failures) await repo().updateDevice(d.id, { failures: 0, lastUsedAt: new Date().toISOString() });
+  else await repo().updateDevice(d.id, { lastUsedAt: new Date().toISOString() });
+  return { ok: true };
+}

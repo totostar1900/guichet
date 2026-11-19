@@ -36,14 +36,16 @@ export default async function CreerUnComptePage({ searchParams }: { searchParams
 
   let depart: EtapeDeDepart = "email";
   let adresse = "";
+  let codeExiste = false;
   if (session) {
     adresse = session.email ?? "";
     const [canaux, consentement] = await Promise.all([repo().getChannelStatus(session.userId), repo().getConsent(session.userId)]);
+    codeExiste = (await repo().listDevices(session.userId).catch(() => [])).some((d) => d.kind === "code");
     depart = !(canaux.phoneVerifiedAt || session.phoneVerified) ? "telephone" : consentement.version !== LEGAL_VERSION ? "avant" : "appareil";
   }
   return (
     <Glissement>
-      <CreerCompte depart={depart} adresse={adresse} next={next} demo={authMode() !== "supabase" ? CODE_DE_DEMONSTRATION : undefined} legalVersion={LEGAL_VERSION} />
+      <CreerCompte codeExiste={codeExiste} depart={depart} adresse={adresse} next={next} demo={authMode() !== "supabase" ? CODE_DE_DEMONSTRATION : undefined} legalVersion={LEGAL_VERSION} />
     </Glissement>
   );
 }

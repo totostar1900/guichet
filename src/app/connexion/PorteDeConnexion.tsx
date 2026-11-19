@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useSyncExternalStore, useTransition } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { useT } from "@/i18n/client";
 import { ClavierCode } from "@/components/ClavierCode";
-import { clearDevice, readDevice } from "@/lib/device-client";
+import { clearDevice, codeOublie, marquerCodeOublie, readDevice } from "@/lib/device-client";
 import { passkeyLogin, passkeyOptions, pinLogin } from "./actions";
 import styles from "./page.module.css";
 
@@ -29,7 +29,8 @@ export function PorteDeConnexion({ next, enTete, children }: { next: string; /**
   const raw = useSyncExternalStore(noop, snapshot, () => "");
   const pret = useSyncExternalStore(noop, () => true, () => false);
   const device = raw ? readDevice() : null;
-  const [autre, setAutre] = useState(false);
+  /* « Code oublié ? » posé avant un détour (déconnexion depuis le verrou) : la porte va droit au code reçu. */
+  const [autre, setAutre] = useState(() => typeof window !== "undefined" && codeOublie());
   const [oublie, setOublie] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, start] = useTransition();
@@ -70,6 +71,20 @@ export function PorteDeConnexion({ next, enTete, children }: { next: string; /**
       arriver();
     });
 
+  /* L'EMPREINTE SE PROPOSE D'ELLE-MÊME (19 novembre 2026, planche « Paramètres et connexion », 4A) : l'écran vient de dire « connexion requise », le téléphone demande tout de suite Face ID ou l'empreinte, sans bouton à chercher. Une fois par ouverture ; si le geste est annulé, « Toucher pour réessayer » reste. Certains navigateurs (Safari sur iPhone) exigent un toucher : l'essai échoue sans bruit et le bouton prend le relais. */
+  const proposee = useRef(false);
+  const auto = pret && device?.kind === "passkey" && !autre && !oublie;
+  useEffect(() => {
+    if (!auto || proposee.current) return;
+    /* Le drapeau se pose à l'échéance : le mode strict de React remonte l'effet. */
+    const id = setTimeout(() => {
+      proposee.current = true;
+      ouvrirParLaCle();
+    }, 150);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auto]);
+
   if (!pret) return <div className={styles.masque}>{enTete}{children}</div>;
 
   const deverrouille = device && !autre && !oublie;
@@ -105,16 +120,22 @@ export function PorteDeConnexion({ next, enTete, children }: { next: string; /**
           <p>{t("Cet appareil est reconnu : un geste suffit.")}</p>
           {erreur && <div className={styles.error}>{t(erreur)}</div>}
           <button type="button" className={styles.deverrouiller} onClick={ouvrirParLaCle} disabled={enCours || fini}>
-            {t(enCours ? "Vérification…" : "Ouvrir avec Face ID, empreinte ou code de l'appareil")}
+            {t(enCours ? "Vérification…" : erreur ? "Toucher pour réessayer" : "Ouvrir avec Face ID, empreinte ou code de l'appareil")}
           </button>
         </>
       ) : (
         <ClavierCode onFini={ouvrirParLeCode} occupe={enCours || fini} cle="pin" erreur={erreur ? <div className={styles.error}>{t(erreur)}</div> : null} />
       )}
       <p className={styles.secours}>
-        {t("Code oublié ou autre appareil ?")}{" "}
-        <button type="button" className={styles.linkBtn} onClick={() => setAutre(true)}>
-          {t("Recevoir un code")}
+        <button
+          type="button"
+          className={styles.linkBtn}
+          onClick={() => {
+            marquerCodeOublie();
+            setAutre(true);
+          }}
+        >
+          {t("Code oublié ?")}
         </button>
       </p>
       <button type="button" className={styles.linkBtn} onClick={oublier}>

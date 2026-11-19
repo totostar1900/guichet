@@ -1,4 +1,4 @@
-import { AIDE_PAGES, COMPTE_PAGES, INSTRUMENTS_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, TRADE_PAGES, type NavPage } from "@/lib/nav-groups";
+import { AIDE_PAGES, COMPTE_PAGES, INSTRUMENTS_PAGES, PARAMETRES_PAGES, MARCHE_PAGES, PORTEFEUILLE_PAGES, TRADE_PAGES, type NavPage } from "@/lib/nav-groups";
 import { isAideSection, isEspaceSection, isInstrumentsSection, isMarcheSection, isTradeSection, listForFiche } from "@/lib/nav-section";
 
 /**
@@ -46,6 +46,8 @@ export function lieuDe(brut: string): Lieu | null {
   if (path === "/connexion" || path.startsWith("/connexion/")) return null;
   const compte = path === "/moi/compte" || path.startsWith("/moi/compte/") || COMPTE_PAGES.some((p) => path === p.href || path.startsWith(`${p.href}/`));
   if (compte) return { siege: SIEGES.compte, rubrique: path === "/moi/compte" ? undefined : plusLong(path, COMPTE_PAGES) };
+  /* « Paramètres » est un lieu du compte sans être une rubrique de « Mon compte ». */
+  if (path === "/parametres" || path.startsWith("/parametres/")) return { siege: SIEGES.compte, rubrique: plusLong(path, PARAMETRES_PAGES) };
   if (isAideSection(path)) return { siege: SIEGES.aide, rubrique: plusLong(path, AIDE_PAGES) };
   /* « INVESTIR » : les trois familles et les fiches qui en viennent. Trade garde sa page (« /activite »). */
   if (isInstrumentsSection(path)) {

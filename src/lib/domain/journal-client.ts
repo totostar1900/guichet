@@ -107,6 +107,8 @@ export const GESTES: Record<string, Geste> = {
 
   /* La sécurité du compte : ce que le client doit pouvoir relire en premier. */
   "securite.clef.enrolee": { genre: "securite", phrase: "Vous avez enrôlé une clef d'accès", auDesk: "a enrôlé une clef d'accès" },
+  "securite.code.compte.pose": { genre: "securite", phrase: "Vous avez posé le code de votre compte", auDesk: "a posé ou changé le code de son compte" },
+  "securite.verrou.bloque": { genre: "securite", phrase: "Cinq codes faux ont fermé votre session", auDesk: "a été déconnecté après cinq codes faux au verrou" },
   "securite.code.pose": { genre: "securite", phrase: "Vous avez posé un code sur cet appareil", auDesk: "a posé un code sur un appareil" },
   "securite.appareil.oublie": { genre: "securite", phrase: "Vous avez retiré un appareil", auDesk: "a retiré un appareil" },
   "securite.banque.changee": { genre: "securite", phrase: "Vous avez modifié votre compte bancaire", auDesk: "a modifié son compte bancaire" },

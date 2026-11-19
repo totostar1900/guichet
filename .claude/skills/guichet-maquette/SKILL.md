@@ -193,3 +193,16 @@ Sur la page de connexion, « Oublier cet appareil ici » efface seulement le sou
 - **Consolider un compte** : écrire l'inventaire « donnée → endroits » avant de dessiner (ici l'e-mail et le téléphone en trois endroits, le canal de contact en trois, les alertes en deux), puis une garde par donnée qui interdit qu'elle revienne.
 - **Une sous-page garde son adresse et sa place dans la recherche** : la table du sommaire porte `sousDe`, et le sommaire filtre ce qui n'est pas une rubrique.
 - **Un écran de déverrouillage ne montre rien avant l'hydratation** : l'état de l'appareil n'est connu que du navigateur, et un formulaire e-mail qui clignote sous un appareil reconnu est une faute.
+
+## Leçon du 19 novembre 2026 (verrou) : une propriété de la mise en page ne se relit pas à chaque navigation
+
+- La mise en page racine ne se rend pas de nouveau à chaque `router.replace` : un composant qu'elle porte garde la propriété du premier rendu. Un état déduit d'une donnée serveur qu'on vient de changer (ici « le compte a son code ») se double d'un état local posé par le geste, sinon le voile « Choisissez votre code » revenait après la pose.
+- **Une panne ne doit pas enfermer** : une exigence qui bloque tout (« tout compte a un code ») garde une sortie quand le serveur échoue (« Continuer sans code pour l'instant »), et une lecture en échec suppose que la condition est remplie.
+- **Une migration qui élargit une contrainte se pose AVANT le déploiement du code qui l'emploie** ; le dire au client au moment de pousser.
+- Un verrou de navigateur se compare des HEURES (départ, retour), jamais des durées comptées : les minuteurs sont gelés en arrière-plan. Se vérifie avec une horloge avancée (`Date.now`) et un `visibilitychange` simulé.
+
+## Leçon du 19 novembre 2026 (Paramètres et connexion) : le mode strict de React remonte l'effet, un drapeau posé d'avance l'empêche de rien faire
+
+Pour proposer Face ID tout seul (verrou et porte), un effet planifiait l'essai avec un drapeau `useRef` posé AVANT la minuterie : en développement, React monte, démonte et remonte l'effet, la minuterie de la première montée était annulée et la seconde ne se lançait jamais (le téléphone n'aurait rien demandé). **Poser le drapeau dans la minuterie, à l'échéance.** Vu seulement en remontant la page avec une clé d'accès virtuelle (CDP `WebAuthn.addVirtualAuthenticator`, authentificateur interne, vérification d'utilisateur simulée) : le test de lecture seul ne l'aurait pas vu.
+
+Autres leçons du lot : (1) le dépôt mémoire du mode démonstration GARDE le code du compte d'un lancement à l'autre : un script de capture doit s'adapter à l'état (« poser » ou « saisir »), sinon il clique dans le vide ; (2) la porte de connexion (`PorteDeConnexion`) n'existe qu'avec Supabase, le mode démonstration montre le formulaire : le propos de la porte ne se vérifie pas à l'écran sans backend, on le dit ; (3) la voix d'un navigateur sur iPhone (Safari) peut exiger un geste pour WebAuthn : « Toucher pour réessayer » est le repli, pas une option ; (4) deux rubriques fusionnées (Sécurité, Préférences) laissent des liens, des phrases d'aide (« X › Y »), des synonymes de recherche (`InfoSearch`) et des clauses de tests : les chercher tous (`grep` des anciens noms et adresses) avant de lancer la suite.

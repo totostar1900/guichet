@@ -110,7 +110,10 @@ describe("la connexion sur un appareil reconnu", () => {
     expect(porte).toMatch(/device\.kind === "passkey"/);
     expect(porte).toMatch(/<ClavierCode onFini=\{ouvrirParLeCode\}/);
     expect(porte).toMatch(/const deverrouille = device && !autre && !oublie/);
-    expect(porte).toMatch(/onClick=\{\(\) => setAutre\(true\)\}/);
+    expect(porte).toMatch(/marquerCodeOublie\(\);\s*setAutre\(true\)/);
+    /* 4A : Face ID se propose de lui-même quand la connexion est requise ; « Toucher pour réessayer » prend le relais s'il échoue. */
+    expect(porte).toMatch(/proposee\.current = true;\s*ouvrirParLaCle\(\)/);
+    expect(porte).toMatch(/Toucher pour réessayer/);
   });
   it("le formulaire e-mail ne s'affiche qu'à travers la porte, et mène à la création du code de l'appareil", () => {
     expect(page).toMatch(/<PorteDeConnexion[\s\S]*<EmailOtpForm next=\{administration \? next : `\/connexion\/creer\?next=/);

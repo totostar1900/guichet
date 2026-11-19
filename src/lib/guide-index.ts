@@ -1,7 +1,7 @@
 import "server-only";
 import { AIDE } from "@/data/docs/aide";
 import { SECTIONS } from "@/data/parcours";
-import { AGIR_PAGES, AIDE_PAGES, COMPTE_PAGES, INSTRUMENTS_PAGES, PORTEFEUILLE_PAGES } from "@/lib/nav-groups";
+import { AGIR_PAGES, AIDE_PAGES, COMPTE_PAGES, INSTRUMENTS_PAGES, PARAMETRES_PAGES, PORTEFEUILLE_PAGES } from "@/lib/nav-groups";
 import { MARKET_PAGES } from "@/lib/market/pages";
 import { LIEU_LABEL, SECTIONS as SECTIONS_DU_MARCHE, SECTION_LABEL, SECTION_NOTE, type Lieu } from "@/lib/domain/sections";
 import { CATALOGUE, RAISON, RAYONS } from "@/lib/domain/services";
@@ -75,7 +75,7 @@ export async function buildGuideIndex(t: (s: string) => string, lang: Lang, { ap
    * première à vieillir, et personne ne la relirait, puisqu'elle ne s'affiche
    * nulle part.
    */
-  const pages = [...PORTEFEUILLE_PAGES, ...INSTRUMENTS_PAGES, ...AGIR_PAGES, ...AIDE_PAGES, ...COMPTE_PAGES, ...MARKET_PAGES];
+  const pages = [...PORTEFEUILLE_PAGES, ...INSTRUMENTS_PAGES, ...AGIR_PAGES, ...AIDE_PAGES, ...COMPTE_PAGES, ...PARAMETRES_PAGES, ...MARKET_PAGES];
   const lieuHref: Record<Lieu, string> = { cote: "/titres", adjudications: "/calendrier", fonds: "/fonds" };
   const types = getRegistry().types.filter((x) => x.enabled);
 

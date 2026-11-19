@@ -1,0 +1,77 @@
+/* La page du code : centrée, comme l'écran de verrou, avec le clavier de l'écran. */
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sections-gap);
+  text-align: center;
+  padding-block: var(--s-6);
+}
+.page h1 {
+  margin: 0;
+}
+.page p {
+  margin: 0;
+  color: var(--ink-2);
+  max-width: 34ch;
+}
+.erreur {
+  color: var(--crit);
+  font-size: var(--t-3);
+  text-align: center;
+}
+.annuler {
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-3);
+  min-height: 44px;
+  cursor: pointer;
+}
+.fait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--titre-gap);
+}
+/* La coche se dessine : le rond d'abord, puis le trait. */
+.rond {
+  stroke: var(--good);
+  stroke-width: 3;
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+  animation: trace 0.5s ease-out forwards;
+}
+.coche {
+  stroke: var(--good);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: trace 0.35s ease-out 0.45s forwards;
+}
+@keyframes trace {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rond,
+  .coche {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+.terminer {
+  min-height: 48px;
+  min-width: 60%;
+  border: 0;
+  border-radius: 999px;
+  background: var(--select);
+  color: var(--on-select);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}

@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import { platformAuthenticatorIsAvailable, startRegistration } from "@simplewebauthn/browser";
 import { useDates, useT } from "@/i18n/client";
-import { deviceLabel, newDeviceToken, readDevice, saveDevice } from "@/lib/device-client";
+import { codeOublie, deviceLabel, effacerCodeOublie, newDeviceToken, readDevice, saveDevice } from "@/lib/device-client";
 import { acceptTerms } from "@/app/moi/actions";
 import { checkPhoneProof, sendPhoneProof } from "@/app/offres/[id]/actions";
 import { beginPasskey, enrolPin, finishPasskey } from "@/app/moi/securite/actions";
 import { ClavierCode } from "@/components/ClavierCode";
+import { logout } from "@/app/connexion/actions";
+import { poserLeCode, verifierLeCode } from "@/app/verrou/actions";
 import { creerEnvoyerCodeEmail, creerVerifierCodeEmail } from "./actions";
 import styles from "./creer.module.css";
 
@@ -26,10 +28,13 @@ const ATTENTE = 60;
  *
  * Chaque preuve passe par l'action qui existait déjà : rien n'est écrit deux fois.
  */
-export function CreerCompte({ depart, adresse, next, demo, legalVersion }: { depart: EtapeDeDepart; adresse: string; next: string; demo?: string; legalVersion: string }) {
+export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExiste: codeExisteBrut }: { depart: EtapeDeDepart; adresse: string; next: string; demo?: string; legalVersion: string; /** le compte a déjà son code : on le saisit, on n'en choisit pas un autre */ codeExiste: boolean }) {
   const t = useT();
   const { fmtDate } = useDates();
   const router = useRouter();
+  /* « CODE OUBLIÉ ? » (19 novembre 2026, planche « Paramètres et connexion », 4A) : l'adresse vient d'être prouvée par le code reçu, le client choisit un NOUVEAU code au lieu de saisir l'ancien. */
+  const oublie = useSyncExternalStore(() => () => {}, codeOublie, () => false);
+  const codeExiste = codeExisteBrut && !oublie;
   const [etape, setEtape] = useState<Etape>(depart === "appareil" ? "code" : depart);
   const [email, setEmail] = useState(adresse);
   const [telephone, setTelephone] = useState("+237 ");
@@ -48,8 +53,8 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion }: { dep
   }, []);
   /* Un appareil déjà reconnu n'a pas besoin qu'on lui repose la question. */
   useEffect(() => {
-    if (depart === "appareil" && readDevice()) router.replace(next);
-  }, [depart, next, router]);
+    if (depart === "appareil" && readDevice() && !oublie) router.replace(next);
+  }, [depart, next, router, oublie]);
   useEffect(() => {
     if (attente <= 0) return;
     const id = setTimeout(() => setAttente((a) => a - 1), 1000);
@@ -62,6 +67,7 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion }: { dep
     setEtape(e);
   }, []);
   const fin = useCallback(() => {
+    effacerCodeOublie();
     router.replace(next);
     router.refresh();
   }, [next, router]);
@@ -107,7 +113,35 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion }: { dep
       vers("code");
     });
 
+  /* Le code est enrôlé pour ce navigateur avec les MÊMES chiffres que le code du compte : un seul code à retenir. */
+  const enroler = async (c: string) => {
+    const token = newDeviceToken();
+    const r = await enrolPin(token, c, deviceLabel());
+    if (!r.ok) {
+      setCodeA("");
+      setCode("");
+      setEtape("code");
+      setErreur(r.error);
+      return;
+    }
+    saveDevice({ id: r.device.id, kind: "pin", token, who: email, name: r.device.name, since: r.device.createdAt });
+    if (peutBio) vers("bio");
+    else fin();
+  };
   const fixerCode = (c: string) => {
+    /* Le compte a DÉJÀ son code (le même sur tout appareil) : on le saisit une fois, il prouve que c'est bien vous qui reconnaissez cet appareil. */
+    if (codeExiste) {
+      start(async () => {
+        const v = await verifierLeCode(c);
+        if (!v.ok) {
+          setErreur(v.error);
+          if (v.bloque) await logout();
+          return;
+        }
+        await enroler(c);
+      });
+      return;
+    }
     if (etape === "code") {
       setCodeA(c);
       setCode("");
@@ -122,18 +156,15 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion }: { dep
       return;
     }
     start(async () => {
-      const token = newDeviceToken();
-      const r = await enrolPin(token, c, deviceLabel());
-      if (!r.ok) {
+      const p = await poserLeCode(c);
+      if (!p.ok) {
         setCodeA("");
         setCode("");
         setEtape("code");
-        setErreur(r.error);
+        setErreur(p.error);
         return;
       }
-      saveDevice({ id: r.device.id, kind: "pin", token, who: email, name: r.device.name, since: r.device.createdAt });
-      if (peutBio) vers("bio");
-      else fin();
+      await enroler(c);
     });
   };
   const activerBio = () =>
@@ -242,8 +273,8 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion }: { dep
       {(etape === "code" || etape === "code-bis") && (
         <div className={styles.corps}>
           <header className={styles.tete}>
-            <h1 className="display">{t(etape === "code" ? "Protégez votre compte" : "Saisissez-le encore")}</h1>
-            <p>{t(etape === "code" ? "Un code à quatre chiffres protège l'accès à votre compte sur cet appareil." : "Pour éviter toute faute de frappe.")}</p>
+            <h1 className="display">{t(codeExiste ? "Saisissez votre code" : etape === "code" ? "Protégez votre compte" : "Saisissez-le encore")}</h1>
+            <p>{t(codeExiste ? "Le code de votre compte, le même sur tous vos appareils." : etape === "code" ? "Un code à quatre chiffres, le même sur tous vos appareils, protège l'accès à votre compte." : "Pour éviter toute faute de frappe.")}</p>
           </header>
           <ClavierCode onFini={fixerCode} occupe={enCours} cle={etape} erreur={champErreur} />
           <div className={styles.bas}>

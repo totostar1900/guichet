@@ -67,35 +67,12 @@
   color: var(--on-select);
 }
 
-/* L'interrupteur : la seule commande de la page qui dise oui ou non, et la
-   seule qui agisse sans qu'on la confirme. Elle n'en porte donc aucune : on la
-   rebascule du même doigt. */
-.switch {
-  flex: none;
-  width: 44px;
-  height: 26px;
-  border-radius: 13px;
-  border: 0;
-  background: var(--line-2);
-  padding: 0;
-  cursor: pointer;
-  position: relative;
-  transition: background 0.15s;
-}
-.switch i {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--surface);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  transition: left 0.15s;
-}
-.switchOn {
-  background: var(--select);
-}
-.switchOn i {
-  left: 21px;
+/* La mention qui ferme la section : ce qui arrive toujours, quoi qu'on coupe. */
+.note {
+  display: block;
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-2);
+  line-height: 1.45;
+  color: var(--ink-3);
 }

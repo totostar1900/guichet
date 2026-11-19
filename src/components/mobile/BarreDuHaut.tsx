@@ -57,6 +57,7 @@ const ICONE = {
   ordres: "M5 4h10l4 4v12H5zM9 12h6M9 16h6",
   documents: "M4 6h16v12H4zM4 10h16",
   compte: "M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0zM4 21c0-4 4-7 8-7s8 3 8 7",
+  parametres: "M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6",
   contact: "M3 6h18v12H3zM3.5 7l8.5 6 8.5-6",
   aide: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5M12 17h.01",
   langue: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18",
@@ -309,6 +310,11 @@ export function BarreDuHaut({ attentes, echeances, favoris }: BarreDuHautProps) 
                 <Link href="/moi/compte" className={styles.ligne} onClick={fermer}>
                   <Trace d={ICONE.compte} />
                   <span>{t("Mon compte")}</span>
+                </Link>
+                {/* « PARAMÈTRES » SORT DE « MON COMPTE » (19 novembre 2026, planche « Paramètres et connexion », 1A) : une ligne à part, sous lui, pour Face ID, le code et les notifications. */}
+                <Link href="/parametres" className={styles.ligne} onClick={fermer}>
+                  <Trace d={ICONE.parametres} />
+                  <span>{t("Paramètres")}</span>
                 </Link>
 
                 <div className={styles.rub}>{t("Besoin d'aide")}</div>

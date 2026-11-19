@@ -158,13 +158,15 @@ export const AIDE_PAGES: NavPage[] = [
  * prouvé », « approuvé », « 2 appareils » dépendent du client, et une table
  * n'a pas de client sous les yeux.
  */
+/** PARAMÈTRES, HORS DE « MON COMPTE » (19 novembre 2026, planche « Paramètres et connexion », 1A + 2A) : il a absorbé « Sécurité et connexion » et « Préférences » (comment Guichet s'ouvre : Face ID, code, appareils ; ce qui notifie : alertes, informations, relevés). Le sommaire du compte ne le range pas : il a sa ligne dans le menu. La langue et la palette restent dans le menu du coin ; les anciennes adresses redirigent ici. */
+export const PARAMETRES_PAGES: NavPage[] = [
+  { key: "parametres", href: "/parametres", label: "Paramètres", tuile: "Face ID, code, notifications", hint: "Face ID ou empreinte, code de connexion, appareils reconnus, alertes, informations et relevés", mots: "réglages sécurité connexion préférences face id empreinte code pin appareils notifications alertes relevés" },
+];
+
 export const COMPTE_PAGES: NavPage[] = [
   /* QUATRE RUBRIQUES, UNE DONNÉE UNE FOIS (19 novembre 2026, planche « Compte, connexion et textes », 3A). L'e-mail et le téléphone figuraient en trois endroits, le canal de contact en trois, les alertes en deux. « Profil et coordonnées » porte l'identité et les deux canaux prouvés ; « Mon dossier » range les pièces et le profil d'investisseur ; « Sécurité et connexion » ne parle que de la façon d'ouvrir Guichet ; « Préférences » porte la langue, les couleurs et TOUTES les notifications. */
   { key: "identite", href: "/moi/identite", label: "Profil et coordonnées", tuile: "nom, e-mail, téléphone", hint: "votre nom, votre ville, et vos deux canaux prouvés : e-mail et téléphone" },
   { key: "dossier", href: "/moi/dossier", label: "Mon dossier", tuile: "pièces et profil", hint: "vos pièces d'ouverture et votre profil d'investisseur" },
-  { key: "securite", href: "/moi/securite", label: "Sécurité et connexion", tuile: "Face ID, code, appareils", hint: "Face ID ou empreinte, code à quatre chiffres, appareils reconnus, et comment les retirer" },
-  /* « PRÉFÉRENCES » (ex « Paramétrages ») : on y cherche la langue, les couleurs ou les notifications. Les mots-clefs portent ce que ni le nom ni la phrase ne nommaient. */
-  { key: "appareil", href: "/moi/appareil", label: "Préférences", tuile: "langue, couleurs, notifications", hint: "la langue, les couleurs, et tout ce qui vous notifie : alertes, canal d'abord, informations, relevés", mots: "réglages paramètres préférences langue français anglais thème notifications alertes relevés" },
   /* Les deux pages du dossier : sous « Mon dossier », cherchées et situées comme avant. */
   { key: "pieces", href: "/ouvrir-un-compte", label: "Mes pièces", tuile: "votre dossier", hint: "votre dossier d'ouverture et les pièces qui le composent", sousDe: "dossier" },
   { key: "profil", href: "/moi/profil", label: "Profil d'investisseur", tuile: "horizon et tolérance", hint: "votre horizon, votre tolérance au risque, et ce que la maison en déduit", sousDe: "dossier" },

@@ -71,6 +71,7 @@ export const isTitresSection = (path: string): boolean => path.startsWith(TITRES
  * préfixe de l'adresse.
  */
 const AU_COMPTE = ["/moi/profil", "/moi/securite", "/moi/reclamation"];
+/* « /parametres » n'est pas sous /moi : il n'entre dans aucun siège du dock (le lieu « Compte » le porte). */
 export const isEspaceSection = (path: string): boolean =>
   (path === "/" || path.startsWith("/moi")) && !AU_COMPTE.some((p) => path === p || path.startsWith(p + "/"));
 
