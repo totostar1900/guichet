@@ -11,7 +11,7 @@ import { enabledTypes, kindForEngine, legacyTypeKey, typeByKey } from "@/lib/reg
 import { bondCalc, btaCalc, parseDate, tenorText } from "@/lib/finance";
 import { fmt, fmtPct } from "@/lib/format";
 import { missingFields } from "@/lib/intake/publish";
-import { lireSourceAction, publishAction, rejectAction, requestReviewAction, saveDraftAction, sendBackAction, type IntakeResult } from "./actions";
+import { lireSourceAction, publishAction, rejectAction, retirerSourceAction, requestReviewAction, saveDraftAction, sendBackAction, type IntakeResult } from "./actions";
 import { CAUSES_DE_REJET } from "@/lib/desk/rejet";
 import { SourceViewer } from "@/components/SourceViewer";
 import type { NiveauMarche } from "@/lib/market/niveau-marche";
@@ -19,6 +19,34 @@ import { NiveauEtPrix } from "./NiveauEtPrix";
 import styles from "./page.module.css";
 
 type Snap = Record<string, string>;
+
+/**
+ * « RETIRER » DEMANDE CONFIRMATION, DANS LA PAGE (pas de boîte du navigateur : elle ne se lit pas partout). Un premier geste arme le bouton et dit ce qui va se passer ; le second retire. Une pièce publiée n'a pas ce bouton.
+ */
+function BoutonRetirer() {
+  const tr = useT();
+  const [arme, setArme] = useState(false);
+  const { pending, data } = useFormStatus();
+  const enCours = pending && data?.get("geste") === "retirer";
+  if (!arme) {
+    return (
+      <button className="btn ghost sm" type="button" onClick={() => setArme(true)}>
+        {tr("Retirer de la file")}
+      </button>
+    );
+  }
+  return (
+    <span className={styles.reviewBox}>
+      <small>{tr("La pièce quitte la file ; le fichier reste au dépôt.")}</small>
+      <button className="btn sm" type="submit" name="geste" value="retirer" formAction={retirerSourceAction} formNoValidate disabled={pending} aria-busy={enCours}>
+        {enCours ? tr("Retrait…") : tr("Confirmer le retrait")}
+      </button>
+      <button className="btn ghost sm" type="button" onClick={() => setArme(false)} disabled={pending}>
+        {tr("Garder")}
+      </button>
+    </span>
+  );
+}
 
 /**
  * « LIRE LA PIÈCE » DIT QU'IL TRAVAILLE. La lecture d'un PDF dure de quelques secondes à deux minutes, et un bouton muet pendant ce temps se lit « il ne se passe rien » (20 novembre 2026, le client). Le bouton déclare son geste (`name="geste"`) : il est seul à se griser et à nommer l'attente quand c'est lui qui a envoyé le formulaire.
@@ -406,6 +434,7 @@ export function ValidateForm({ item, offer, niveau }: { item: IntakeItem; offer?
               des deux gestes il fait, parce qu'une relecture écrase ce que la
               première avait proposé. */}
           <BoutonLire relire={Boolean(item.readAt)} />
+          {!published && !item.offerId && <BoutonRetirer />}
           {/* REJETER DIT POURQUOI : c'était la seule décision du desk sans
               motif. La cause est nommée (elle décide de la suite et elle se
               compte), la précision est libre et obligatoire sous « Autre ». */}

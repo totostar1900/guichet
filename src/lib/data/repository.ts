@@ -198,6 +198,8 @@ export interface Repository {
   getIntake(id: string): Promise<IntakeItem | undefined>;
   createIntake(item: Omit<IntakeItem, "id">): Promise<IntakeItem>;
   updateIntake(id: string, patch: Partial<IntakeItem>): Promise<IntakeItem>;
+  /** Retire une pièce de la file « À valider ». Le fichier gardé au dépôt n'est pas touché. */
+  deleteIntake(id: string): Promise<void>;
   /** Create or replace a whole offer (publication from a draft). */
   /** Writes the offer; with expectedVersion, refuses (ConflictError) when the stored version moved. Keeps a full snapshot per version. */
   upsertOffer(offer: Offer, opts?: { expectedVersion?: number; by?: string; note?: string }): Promise<Offer>;

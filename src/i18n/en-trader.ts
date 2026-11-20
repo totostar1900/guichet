@@ -21,6 +21,10 @@ export const EN_TRADER: Record<string, string> = {
 
   /* ---------- lire une piece d intake, differee depuis le webhook ---------- */
   "Lire la pièce": "Read the document",
+  "Retirer de la file": "Remove from the queue",
+  "La pièce quitte la file ; le fichier reste au dépôt.": "The document leaves the queue; the file stays in storage.",
+  "Confirmer le retrait": "Confirm removal",
+  "Garder": "Keep it",
   "Lecture en cours… (jusqu'à deux minutes)": "Reading… (up to two minutes)",
 
   /* ---------- la piece dans le fil du message ---------- */

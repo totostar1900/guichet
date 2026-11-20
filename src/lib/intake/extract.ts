@@ -44,6 +44,8 @@ const LECTURE_MS = 40_000;
  */
 export const LECTURE_DESK_MS = 120_000;
 
+/* LE PLAFOND DE SORTIE EST CELUI DES FRÈRES (8 000 jetons, comme la lecture des résultats ; 4 000 pour les avis). À 16 000, une génération qui ne s'arrête pas (un JSON contraint qui répète de l'espace) peut courir plus de deux minutes avant de finir : le plafond borne la durée de l'appel, autant que sa taille. Une extraction réelle tient en quelques centaines de jetons. */
+
 /** Le modele employe, garde a cote de chaque lecture : sans lui, comparer deux lectures ne veut rien dire. */
 export const modeleDeLecture = (): string => MODEL;
 
@@ -143,7 +145,7 @@ export async function extractOffer(input: ExtractionInput, options: { delaiMs?: 
   const response = await avecReplisSansReflexion((reflechi) =>
     client.messages.parse({
       model: MODEL,
-      max_tokens: 16000,
+      max_tokens: 8000,
       ...(reflechi ? { thinking: { type: "adaptive" as const } } : {}),
       system: SYSTEM,
       messages: [{ role: "user", content }],

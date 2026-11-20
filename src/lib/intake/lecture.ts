@@ -115,7 +115,8 @@ export async function lireUnePiece(id: string, reprendre = false): Promise<Lue |
     secondes = lu.seconds;
     if (item.draft.official) draft.official = true;
   } catch (e) {
-    erreur = e instanceof Error ? e.message : "erreur inconnue";
+    /* LA DURÉE DANS LA REMARQUE : « Request timed out » seul ne dit pas si l'appel a tenu quarante secondes ou deux minutes (20 novembre 2026). */
+    erreur = `${e instanceof Error ? e.message : "erreur inconnue"} (après ${Math.round((Date.now() - t0) / 1000)} s)`;
     draft = emptyDraft(Boolean(item.draft.official));
     draft.remarks = [`Lecture échouée : ${erreur}. Renseignez les champs à la main.`];
   }

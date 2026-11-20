@@ -580,6 +580,12 @@ export const memoryRepository: Repository = {
     s.intake[i] = { ...s.intake[i], ...patch };
     return structuredClone(s.intake[i]);
   },
+  async deleteIntake(id) {
+    const s = store();
+    const i = s.intake.findIndex((x) => x.id === id);
+    if (i < 0) throw new Error(`Intake ${id} not found`);
+    s.intake.splice(i, 1);
+  },
   async upsertOffer(offer, opts = {}) {
     const s = store();
     const i = s.offers.findIndex((x) => x.id === offer.id);

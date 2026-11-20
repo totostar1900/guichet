@@ -1339,6 +1339,10 @@ export const supabaseRepository: Repository = {
     if (error) fail("updateIntake", error);
     return toIntake(data as IntakeRow);
   },
+  async deleteIntake(id) {
+    const { error } = await db().from("intake_items").delete().eq("id", id);
+    if (error) fail("deleteIntake", error);
+  },
   async upsertOffer(offer, opts = {}) {
     let row: OfferRow;
     if (opts.expectedVersion != null) {

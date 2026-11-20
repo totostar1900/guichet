@@ -267,6 +267,40 @@ export async function lireSourceAction(form: FormData): Promise<void> {
 }
 
 /**
+ * RETIRER UNE PIÈCE DE LA FILE (20 novembre 2026, le client : « permettre le retrait d'un communiqué rajouté via nouvelle source »).
+ *
+ * Rejeter garde la pièce et dit pourquoi ; retirer l'ôte de la file. C'est pour la pièce déposée par erreur ou en double (le communiqué du 18 novembre l'avait été deux fois). Trois garde-fous :
+ *  - UNE PIÈCE PUBLIÉE NE SE RETIRE PAS : une offre en est née, et son origine doit rester lisible. Il faut dépublier l'offre, ce qui est une autre décision.
+ *  - L'AUDIT GARDE L'ÉTAT D'AVANT (titre, source, fichier, brouillon) : retirer n'efface pas la trace de ce qu'on a retiré, ni qui l'a fait.
+ *  - LE FICHIER RESTE AU DÉPÔT : la ligne de la file part, la pièce reste dans le seau, pour qu'une erreur de clic ne détruise pas un document officiel.
+ */
+export async function retirerSourceAction(form: FormData): Promise<void> {
+  const desk = await requireDesk("/desk/a-valider");
+  const id = String(form.get("itemId") ?? "");
+  if (!id) return;
+  const item = await repo().getIntake(id);
+  if (!item) {
+    revalidatePath("/desk/a-valider");
+    return;
+  }
+  if (item.state === "publie" || item.offerId) {
+    await repo()
+      .logEvent({ kind: "desk", html: `Retrait refusé par ${desk.name} : <b>${item.title}</b> a donné une offre publiée, on ne retire pas sa source` })
+      .catch(() => undefined);
+    revalidatePath("/desk/a-valider");
+    return;
+  }
+  await audit("intake.remove", "intake", id, {
+    before: { title: item.title, source: item.source, state: item.state, fromLabel: item.fromLabel, fileName: item.fileName, receivedAt: item.receivedAt, draft: item.draft },
+    after: null,
+    reason: `retirée de la file par ${desk.name}`,
+  });
+  await repo().deleteIntake(id);
+  await repo().logEvent({ kind: "desk", html: `<b>${item.title}</b> : source retirée de la file par ${desk.name} (le fichier reste au dépôt)` });
+  revalidatePath("/desk/a-valider");
+}
+
+/**
  * REJETER UNE PIÈCE, AVEC SA CAUSE.
  *
  * C'était la seule décision du desk qui n'enregistrait aucun motif : refuser

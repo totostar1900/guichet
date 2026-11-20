@@ -32,3 +32,32 @@ describe("la lecture demandée depuis le desk", () => {
     expect(f).toMatch(/name="geste" value="lire" formAction=\{lireSourceAction\}/);
   });
 });
+
+/**
+ * RETIRER UNE PIÈCE DE LA FILE (20 novembre 2026, le client : « permettre le retrait d'un communiqué rajouté via nouvelle source »).
+ */
+describe("le retrait d'une pièce de la file « À valider »", () => {
+  const actions = lire("src/app/desk/a-valider/actions.ts");
+  const debut = actions.indexOf("export async function retirerSourceAction");
+  const corps = actions.slice(debut, actions.indexOf("export async function rejectAction", debut));
+  const form = lire("src/app/desk/a-valider/ValidateForm.tsx");
+
+  it("refuse une pièce publiée, garde l'état d'avant à l'audit, et ne touche pas au fichier", () => {
+    expect(corps).toMatch(/item\.state === "publie" \|\| item\.offerId/);
+    expect(corps).toMatch(/audit\("intake\.remove", "intake", id, \{\s*before: \{/);
+    expect(corps).toMatch(/await repo\(\)\.deleteIntake\(id\)/);
+    expect(corps, "le fichier du dépôt ne doit pas être effacé").not.toMatch(/supprimerSource|storage|remove\(/);
+  });
+
+  it("le bouton se confirme dans la page (aucune boîte du navigateur) et n'existe pas sur une pièce publiée", () => {
+    expect(form).toMatch(/\{!published && !item\.offerId && <BoutonRetirer \/>\}/);
+    expect(form).toMatch(/Confirmer le retrait/);
+    expect(form, "une boîte du navigateur est apparue").not.toMatch(/window\.confirm|confirm\(/);
+  });
+
+  it("le dépôt sait retirer, en mémoire comme en base", () => {
+    expect(lire("src/lib/data/repository.ts")).toMatch(/deleteIntake\(id: string\): Promise<void>/);
+    expect(lire("src/lib/data/memory.ts")).toMatch(/async deleteIntake\(id\)/);
+    expect(lire("src/lib/data/supabase.ts")).toMatch(/from\("intake_items"\)\.delete\(\)\.eq\("id", id\)/);
+  });
+});
