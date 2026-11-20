@@ -2,6 +2,7 @@ import "server-only";
 import { repo } from "@/lib/data";
 import type { IntakeItem, IntakeSource, OfferDraft } from "@/lib/domain/types";
 import { emptyDraft, extractionAvailable, extractOffer, type ExtractionInput } from "@/lib/intake/extract";
+import { lireUneAnnonce } from "@/lib/intake/annonce";
 import { saveSource } from "@/lib/intake/storage";
 import { loadRegistry } from "@/lib/reference";
 
@@ -127,7 +128,13 @@ export async function ingestSource(input: IngestInput): Promise<IngestResult> {
   if (aLire && !input.sansLecture) {
     let extractedIn: number | undefined;
     try {
-      const r = await extractOffer(extraction!);
+      /* UN PDF PASSE PAR LE LECTEUR DES AVIS (annonce.ts), seul à avoir abouti sur un communiqué BTA / OTA. Le dépôt n'a que soixante secondes : l'annonce y dispose de 40 s et le lecteur générique n'est pas rejoué ici. Un PDF qui n'est pas un communiqué du Trésor reste « à lire » ; « Lire la pièce » (lecture.ts) a plus de temps et le repli générique. */
+      let r: { draft: OfferDraft; seconds: number };
+      if (extraction!.kind === "pdf") {
+        const a = await lireUneAnnonce(extraction!.base64, { delaiMs: 40_000, officiel: Boolean(input.trusted) || source === "pdf" || source === "mail", indice: extraction!.hint });
+        if (!a.draft) throw new Error("ce n'est pas un communiqué d'annonce de bon ou d'obligation du Trésor : ouvrez la pièce et demandez la lecture, ou saisissez les champs");
+        r = { draft: a.draft, seconds: a.seconds };
+      } else r = await extractOffer(extraction!);
       draft = r.draft;
       extractedIn = r.seconds;
       if (input.trusted) draft.official = true;

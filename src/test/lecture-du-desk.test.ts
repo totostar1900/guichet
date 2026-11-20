@@ -15,7 +15,9 @@ describe("la lecture demandée depuis le desk", () => {
   it("dispose de deux minutes, la page « À valider » portant sa propre durée maximale", () => {
     expect(extract).toMatch(/LECTURE_DESK_MS = 120_000/);
     expect(extract).toMatch(/timeout: options\.delaiMs \?\? LECTURE_MS/);
-    expect(lecture).toMatch(/extractOffer\(input, \{ delaiMs: LECTURE_DESK_MS \}\)/);
+    /* Un PDF passe d'abord par le lecteur des avis (100 s), puis le générique n'a plus que 60 s ; tout le reste garde les deux minutes. */
+    expect(lecture).toMatch(/extractOffer\(input, \{ delaiMs: input\.kind === "pdf" \? REPLI_DESK_MS : LECTURE_DESK_MS \}\)/);
+    expect(lecture).toMatch(/ANNONCE_DESK_MS = 100_000/);
     expect(lire("src/app/desk/a-valider/page.tsx")).toMatch(/export const maxDuration = 300;/);
   });
 

@@ -2,6 +2,11 @@ import "server-only";
 import { repo } from "@/lib/data";
 import type { IntakeItem, OfferDraft } from "@/lib/domain/types";
 import { emptyDraft, extractionAvailable, extractOffer, LECTURE_DESK_MS, modeleDeLecture, type ExtractionInput } from "./extract";
+import { lireUneAnnonce } from "./annonce";
+
+/** Le temps de l'annonce au desk, puis du repli générique : à eux deux, moins que les 300 s de la page. */
+export const ANNONCE_DESK_MS = 100_000;
+export const REPLI_DESK_MS = 60_000;
 import { IMAGE_TYPES } from "./ingest";
 import { readSource } from "./storage";
 
@@ -106,17 +111,39 @@ export async function lireUnePiece(id: string, reprendre = false): Promise<Lue |
 
   const modele = modeleDeLecture();
   const t0 = Date.now();
-  let draft: OfferDraft;
+  let draft: OfferDraft | undefined;
   let secondes: number | undefined;
   let erreur: string | undefined;
-  try {
-    const lu = await extractOffer(input, { delaiMs: LECTURE_DESK_MS });
-    draft = lu.draft;
-    secondes = lu.seconds;
-    if (item.draft.official) draft.official = true;
-  } catch (e) {
-    /* LA DURÉE DANS LA REMARQUE : « Request timed out » seul ne dit pas si l'appel a tenu quarante secondes ou deux minutes (20 novembre 2026). */
-    erreur = `${e instanceof Error ? e.message : "erreur inconnue"} (après ${Math.round((Date.now() - t0) / 1000)} s)`;
+  let modeleLu = modele;
+  const ennuis: string[] = [];
+  /* UN PDF PASSE D'ABORD PAR LE LECTEUR DES AVIS (annonce.ts) : il lit les bons et obligations du Trésor sans incident depuis septembre, quand le lecteur générique n'a jamais abouti. Un PDF qui n'est pas un communiqué BTA / OTA (ni instrument ni code d'émission) retombe sur le générique, comme avant. */
+  if (input.kind === "pdf") {
+    const ta = Date.now();
+    try {
+      const a = await lireUneAnnonce(input.base64, { delaiMs: ANNONCE_DESK_MS, officiel: item.source === "pdf" || Boolean(item.draft.official), indice: input.hint });
+      if (a.draft) {
+        draft = a.draft;
+        secondes = a.seconds;
+        modeleLu = a.model;
+      } else ennuis.push("lecteur des avis : ni instrument ni code d'émission lus");
+    } catch (e) {
+      ennuis.push(`lecteur des avis : ${e instanceof Error ? e.message : "erreur inconnue"} (après ${Math.round((Date.now() - ta) / 1000)} s)`);
+    }
+  }
+  if (!draft) {
+    const tg = Date.now();
+    try {
+      const lu = await extractOffer(input, { delaiMs: input.kind === "pdf" ? REPLI_DESK_MS : LECTURE_DESK_MS });
+      draft = lu.draft;
+      secondes = lu.seconds;
+      if (item.draft.official) draft.official = true;
+    } catch (e) {
+      /* LA DURÉE DANS LA REMARQUE : « Request timed out » seul ne dit pas si l'appel a tenu quarante secondes ou deux minutes (20 novembre 2026). */
+      ennuis.push(`lecteur générique : ${e instanceof Error ? e.message : "erreur inconnue"} (après ${Math.round((Date.now() - tg) / 1000)} s)`);
+    }
+  }
+  if (!draft) {
+    erreur = ennuis.join(" ; ");
     draft = emptyDraft(Boolean(item.draft.official));
     draft.remarks = [`Lecture échouée : ${erreur}. Renseignez les champs à la main.`];
   }
@@ -130,11 +157,11 @@ export async function lireUnePiece(id: string, reprendre = false): Promise<Lue |
     draft,
     extractedIn: secondes,
     readAt: new Date().toISOString(),
-    readModel: modele,
+    readModel: modeleLu,
   });
   await r.logEvent({
     kind: "system",
-    html: erreur ? `Pièce <b>${apres.title}</b> : lecture échouée (${modele}), champs à saisir` : `Pièce <b>${apres.title}</b> lue en ${secondes ?? Math.round((Date.now() - t0) / 1000)} s (${modele}) : à valider par une personne`,
+    html: erreur ? `Pièce <b>${apres.title}</b> : lecture échouée (${modele}), champs à saisir` : `Pièce <b>${apres.title}</b> lue en ${secondes ?? Math.round((Date.now() - t0) / 1000)} s (${modeleLu}) : à valider par une personne`,
   });
   return { item: apres, secondes, erreur };
 }

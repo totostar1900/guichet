@@ -36,7 +36,7 @@ import type { NewEmissionNotice } from "./emission-notices";
 
 const MODEL = process.env.AUCTION_READ_MODEL || "claude-opus-5";
 
-const SYSTEM = `Tu lis des communiqués d'annonce d'émission de titres publics de la CEMAC (Trésors du Cameroun, Congo, Gabon, Guinée équatoriale, RCA, Tchad).
+export const SYSTEM = `Tu lis des communiqués d'annonce d'émission de titres publics de la CEMAC (Trésors du Cameroun, Congo, Gabon, Guinée équatoriale, RCA, Tchad).
 
 Ce sont des documents scannés. Tu recopies ce qui est imprimé, tu ne calcules rien et tu ne déduis rien.
 
@@ -70,11 +70,32 @@ export const Lecture = z.object({
   remarks: z.array(z.string()).describe("Ce qui gênerait une relecture"),
 });
 
+/**
+ * LA MÊME LECTURE, PLUS CE QU'UNE OFFRE EXIGE (20 novembre 2026).
+ *
+ * L'avis lu pour le calendrier n'a besoin ni du pays écrit en clair, ni de l'heure limite, ni de la référence du communiqué : une offre à publier, si. Le lecteur d'intake générique (25 champs facultatifs, une consigne de plusieurs pages) n'a jamais abouti en production, alors que celui-ci a lu 364 avis sans incident. On ne remplace donc pas celui-là par un autre : on ajoute à celui-ci les quatre champs qui manquent, et rien d'autre.
+ */
+export const LectureAvecDates = Lecture.extend({
+  countryName: z.string().optional().describe("Le pays émetteur en clair, tel qu'imprimé : « République Gabonaise », « République du Congo »…"),
+  deadlineAt: z.string().optional().describe("Date limite de souscription, ISO AAAA-MM-JJTHH:MM si l'heure est imprimée (« avant 9h00 » donne T09:00), sinon la date seule AAAA-MM-JJ"),
+  resultsAt: z.string().optional().describe("Annonce des résultats, ISO AAAA-MM-JJTHH:MM si l'heure est imprimée, sinon la date seule AAAA-MM-JJ"),
+  sourceRef: z.string().optional().describe("Numéro et date du communiqué s'ils sont imprimés (« n° 000473/MFBPP du 11 sept. 2026 »), sinon la date de signature (« Fait à Libreville, le 13 novembre 2026 »)"),
+});
+
 export interface NoticeReading {
   model: string;
   proposal: Partial<NewEmissionNotice>;
   remarks: string[];
   seconds: number;
+  /** Présent seulement quand la lecture a demandé `avecDates` : ce qu'une offre exige en plus. */
+  dates?: { countryName?: string; deadlineAt?: string; resultsAt?: string; sourceRef?: string };
+}
+
+export interface OptionsDeLecture {
+  /** Le temps laissé à l'appel. Sans lui, celui du SDK (dix minutes) : la lecture des avis du calendrier tourne ainsi depuis le début. */
+  delaiMs?: number;
+  /** Demander aussi le pays en clair, l'heure limite, l'annonce des résultats et la référence : la lecture d'une offre. */
+  avecDates?: boolean;
 }
 
 // Le champ est absent plutot que nul : nn ramene les deux au meme undefined.
@@ -85,9 +106,9 @@ const toFrancs = (v: number | null | undefined, unit: "millions" | "milliers" | 
 /** Une date ISO, ou rien. Une chaîne qui n'est pas une date ne doit pas atteindre une colonne date. */
 const isoDate = (v: string | null | undefined): string | undefined => (v && /^\d{4}-\d{2}-\d{2}$/.test(v.trim()) && !Number.isNaN(Date.parse(v)) ? v.trim() : undefined);
 
-export async function readEmissionNotice(pdfBase64: string, hint?: string, modele?: string): Promise<NoticeReading> {
+export async function readEmissionNotice(pdfBase64: string, hint?: string, modele?: string, options: OptionsDeLecture = {}): Promise<NoticeReading> {
   const t0 = Date.now();
-  const client = new Anthropic();
+  const client = options.delaiMs ? new Anthropic({ timeout: options.delaiMs, maxRetries: 0 }) : new Anthropic();
   const choisi = modele ?? MODEL;
   const requete = (reflechi: boolean) => ({
     model: choisi,
@@ -99,11 +120,11 @@ export async function readEmissionNotice(pdfBase64: string, hint?: string, model
         role: "user" as const,
         content: [
           { type: "document" as const, source: { type: "base64" as const, media_type: "application/pdf" as const, data: pdfBase64 } },
-          { type: "text" as const, text: `Lis les modalités de cet emprunt.${hint ? ` Consigne du desk : ${hint}` : ""}` },
+          { type: "text" as const, text: `Lis les modalités de cet emprunt.${options.avecDates ? " Relève aussi le pays émetteur en clair, la date limite de souscription avec son heure, l'annonce des résultats et la référence du communiqué, s'ils sont imprimés." : ""}${hint ? ` Consigne du desk : ${hint}` : ""}` },
         ],
       },
     ],
-    output_config: { format: zodOutputFormat(Lecture) },
+    output_config: { format: zodOutputFormat(options.avecDates ? LectureAvecDates : Lecture) },
   });
 
   // Même repli que pour les résultats, et il vit maintenant dans un seul
@@ -111,7 +132,7 @@ export async function readEmissionNotice(pdfBase64: string, hint?: string, model
   const response = await avecReplisSansReflexion((reflechi) => client.messages.parse(requete(reflechi)));
 
   if (response.stop_reason === "refusal") throw new Error("Lecture refusée par le modèle.");
-  const out = response.parsed_output;
+  const out = response.parsed_output as z.infer<typeof LectureAvecDates> | null | undefined;
   if (!out) throw new Error("Réponse de lecture illisible.");
 
   const remarks = [...out.remarks];
@@ -238,5 +259,6 @@ export async function readEmissionNotice(pdfBase64: string, hint?: string, model
     },
     remarks,
     seconds: Math.round((Date.now() - t0) / 100) / 10,
+    ...(options.avecDates ? { dates: { countryName: nn(out.countryName)?.trim(), deadlineAt: nn(out.deadlineAt)?.trim(), resultsAt: nn(out.resultsAt)?.trim(), sourceRef: nn(out.sourceRef)?.trim() } } : {}),
   };
 }
