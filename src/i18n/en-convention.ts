@@ -16,6 +16,11 @@
 export const EN_CONVENTION: Record<string, string> = {
   /* ---- la page ---- */
   "Convention de compte-titres": "Securities account agreement",
+  "Conditions générales": "General terms and conditions",
+  "Les règles du Guichet et du compte-titres : ce que nous faisons, ce que nous vous demandons, ce que vous pouvez attendre de nous.":
+    "The rules of Guichet and of the securities account: what we do, what we ask of you, what you can expect from us.",
+  "Ce texte est publié en français ; la version française fait foi.": "This text is published in French; the French version prevails.",
+  "Ce que le Guichet et le compte-titres vous doivent, et ce que vous leur devez.": "What Guichet and the securities account owe you, and what you owe them.",
   "C'est le contrat entre vous et Purpose Capital. Il dit ce que vous nous confiez, et ce que nous vous devons en retour. Rien d'autre ne se passe sur cette page.":
     "This is the contract between you and Purpose Capital. It says what you entrust to us, and what we owe you in return. Nothing else happens on this page.",
 

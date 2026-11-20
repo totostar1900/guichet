@@ -106,7 +106,7 @@ describe("la page « Textes et conditions » : une rubrique, un document", () =>
   const src = lire("src/app/info/textes/page.tsx");
   it("aucune rubrique ne partage l'adresse d'une autre, et aucune ne pointe une ancre d'un autre document", () => {
     const hrefs = [...src.matchAll(/href: (?:client \? "[^"]+" : )?"(\/[^"]+)"/g)].map((m) => m[1]);
-    expect(hrefs.length, "le hub n'a plus six rubriques").toBe(6);
+    expect(hrefs.length, "le hub n'a plus sept rubriques").toBe(7);
     expect(new Set(hrefs).size, "deux rubriques ouvrent le même document").toBe(hrefs.length);
     for (const h of hrefs) expect(h, `${h} pointe une ancre`).not.toContain("#");
   });
@@ -118,5 +118,37 @@ describe("la page « Textes et conditions » : une rubrique, un document", () =>
   it("le texte que le client accepte (legal.ts) est toujours lu en entier, section par section", () => {
     const pages = ["mentions", "conditions", "donnees", "reclamations", "risques"].map((d) => lire(`src/app/info/${d}/page.tsx`)).join("\n");
     for (const id of ["qui", "conseil", "risques", "canaux", "reclamation"]) expect(pages, `la section acceptée « ${id} » n'a plus de page`).toContain(`"${id}"`);
+  });
+});
+
+/**
+ * LES CONDITIONS GÉNÉRALES, EN LECTURE SEULE (20 novembre 2026, le client : « publie les conditions générales »).
+ */
+describe("les conditions générales publiées en lecture seule", () => {
+  const donnees = lire("src/data/conditions-generales.ts");
+  const texte = donnees.replace(/\/\*[\s\S]*?\*\//g, "");
+  const page = lire("src/app/info/conditions-generales/page.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
+
+  it("est publique, dans le plan du site, et le hub y mène", () => {
+    expect(estPublic("/info/conditions-generales")).toBe(true);
+    expect(lire("src/app/sitemap.ts")).toContain('"/info/conditions-generales"');
+    expect(lire("src/app/info/textes/page.tsx")).toContain('href: "/info/conditions-generales"');
+  });
+
+  it("ne change ni la version légale ni son acceptation : aucune signature, aucun consentement", () => {
+    expect(page).not.toMatch(/LEGAL_VERSION|setConsent|conventionAt|getClientFile|Signer/);
+    expect(texte).not.toMatch(/LEGAL_VERSION/);
+  });
+
+  it("ne publie AUCUN blanc à remplir, aucun tarif, et ne dit pas qui perçoit des frais", () => {
+    expect(texte, "un [crochet] est resté dans le texte publié").not.toMatch(/"[^"\n]*\[[^\]"\n]*\][^"\n]*"/);
+    expect(texte, "un chiffre de frais est écrit dans le texte").not.toMatch(/FCFA|frais[^."]*\d+\s?%/);
+    expect(texte, "la destination des frais ne se dit pas au client").not.toMatch(/commission(?! de surveillance)|rétrocession|dépositaire[^.]*frais|frais[^.]*dépositaire/i);
+    expect(texte).toMatch(/une seule ligne : les frais totaux à payer/);
+  });
+
+  it("garde les dix-neuf articles et l'annexe des pièces", () => {
+    for (let n = 1; n <= 19; n++) expect(texte, `l'article ${n} a disparu`).toContain(`Article ${n} ·`);
+    expect(page).toContain('id="annexe"');
   });
 });

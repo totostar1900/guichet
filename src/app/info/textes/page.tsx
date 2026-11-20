@@ -4,6 +4,7 @@ import { repo } from "@/lib/data";
 import { COMPANY } from "@/lib/config";
 import { CONVENTION_VERSION, LEGAL_VERSION } from "@/data/legal";
 import { RISQUES_VERSION } from "@/data/risques";
+import { CONDITIONS_GENERALES_VERSION } from "@/data/conditions-generales";
 import { conventionAJour } from "@/lib/kyc/checklist";
 import { fmtDate } from "@/lib/format";
 import { getT } from "@/i18n/server";
@@ -57,6 +58,13 @@ export default async function TextesPublicsPage() {
       href: "/info/conditions",
       etat: etatDesMentions,
       ok: client ? consent?.version === LEGAL_VERSION : undefined,
+    },
+    {
+      cle: "conditions-generales",
+      titre: t("Conditions générales"),
+      quoi: t("Ce que le Guichet et le compte-titres vous doivent, et ce que vous leur devez."),
+      version: CONDITIONS_GENERALES_VERSION,
+      href: "/info/conditions-generales",
     },
     {
       cle: "risques",
