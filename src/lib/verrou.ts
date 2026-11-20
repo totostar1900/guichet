@@ -2,16 +2,16 @@
  * QUAND L'APPLICATION SE VERROUILLE (19 novembre 2026, le client : « chez d'autres applications, l'application se verrouille quand on la laisse ouverte et inerte, ou quand on la quitte plus de 30 secondes » ; « pas réglable par le client »).
  *
  * Deux seuils, FIXES, qui ne se règlent pas :
- * - on QUITTE l'application plus de 30 secondes : verrou au retour ;
- * - on la LAISSE OUVERTE ET INERTE plus de 3 minutes (défiler, toucher, écrire comptent comme une activité) : verrou.
+ * - on QUITTE l'application plus de 5 minutes : verrou au retour ;
+ * - on la LAISSE OUVERTE ET INERTE plus de 5 minutes (défiler, toucher, écrire comptent comme une activité) : verrou.
  *
- * LA SIGNATURE D'UN ORDRE OBLIGE À SORTIR chercher le code dans l'e-mail ou dans WhatsApp, et le dossier à ouvrir l'appareil photo : quand un code vient d'être envoyé, la tolérance passe à 5 minutes.
+ * LA SIGNATURE D'UN ORDRE OBLIGE À SORTIR chercher le code dans l'e-mail ou dans WhatsApp, et le dossier à ouvrir l'appareil photo : quand un code vient d'être envoyé, la tolérance passe à 10 minutes.
  *
  * Fonction PURE, sans horloge ni stockage : le navigateur lui donne les heures, et l'épreuve lui en invente. Les minuteurs d'un navigateur sont gelés en arrière-plan : on compare des heures, jamais des durées comptées.
  */
-export const SEUIL_ARRIERE_PLAN = 30_000;
-export const SEUIL_INERTIE = 180_000;
-export const TOLERANCE_APRES_UN_CODE = 300_000;
+export const SEUIL_ARRIERE_PLAN = 300_000;
+export const SEUIL_INERTIE = 300_000;
+export const TOLERANCE_APRES_UN_CODE = 600_000;
 
 export type EtatDuVerrou = {
   maintenant: number;

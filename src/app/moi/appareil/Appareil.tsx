@@ -102,7 +102,6 @@ export function Appareil({ prefs: initial, phoneOk, vapidKey, whatsapp, emailOpt
             ))}
           </div>
         </div>
-        <small className={styles.note}>{t("Les messages liés à vos ordres arrivent toujours : accusés de réception, avis de résultat, avis d'opéré, relevés. Ils découlent de ce que vous avez demandé.")}</small>
         {err && <small className={feuillet.err}>{t(err)}</small>}
       </div>
     </section>

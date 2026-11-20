@@ -43,14 +43,16 @@
   gap: var(--s-5);
 }
 
+/* LE SEGMENT PREND TOUTE LA LARGEUR, ses trois boutons égaux (20 novembre 2026, « aligner les boutons ») : les interrupteurs et « Modifier » sont calés à droite, le segment aligné sur les deux bords. */
 .seg {
-  display: inline-flex;
-  align-self: flex-start;
+  display: flex;
+  width: 100%;
   border: 1px solid var(--line-2);
   border-radius: 999px;
   padding: 2px;
 }
 .seg button {
+  flex: 1 1 0;
   border: 0;
   background: transparent;
   color: var(--ink-2);
@@ -67,12 +69,3 @@
   color: var(--on-select);
 }
 
-/* La mention qui ferme la section : ce qui arrive toujours, quoi qu'on coupe. */
-.note {
-  display: block;
-  padding-top: var(--s-5);
-  border-top: 1px solid var(--line);
-  font-size: var(--t-2);
-  line-height: 1.45;
-  color: var(--ink-3);
-}

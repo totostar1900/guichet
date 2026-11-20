@@ -6,23 +6,23 @@ import { SEUIL_ARRIERE_PLAN, SEUIL_INERTIE, TOLERANCE_APRES_UN_CODE, faudraitVer
 const lire = (f: string) => readFileSync(f, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 
 /**
- * LE VERROU DE L'APPLICATION (19 novembre 2026) : 30 secondes hors de l'écran, 3 minutes d'inertie, 5 minutes après l'envoi d'un code ; fixes, jamais réglables par le client.
+ * LE VERROU DE L'APPLICATION (19 novembre 2026) : 5 minutes hors de l'écran, 5 minutes d'inertie, 10 minutes après l'envoi d'un code (délais portés à 5 minutes le 20 novembre 2026) ; fixes, jamais réglables par le client.
  */
 describe("quand l'application se verrouille", () => {
   const t0 = 1_000_000;
-  it("on la quitte moins de 30 secondes : rien ; plus : verrou au retour", () => {
-    expect(faudraitVerrouiller({ maintenant: t0 + 20_000, quitteLe: t0, derniereActivite: t0 })).toBe(false);
+  it("on la quitte moins de 5 minutes : rien ; plus : verrou au retour", () => {
+    expect(faudraitVerrouiller({ maintenant: t0 + 290_000, quitteLe: t0, derniereActivite: t0 })).toBe(false);
     expect(faudraitVerrouiller({ maintenant: t0 + SEUIL_ARRIERE_PLAN + 1, quitteLe: t0, derniereActivite: t0 })).toBe(true);
   });
-  it("elle reste ouverte et inerte : verrou après 3 minutes, pas avant", () => {
+  it("elle reste ouverte et inerte : verrou après 5 minutes, pas avant", () => {
     expect(faudraitVerrouiller({ maintenant: t0 + SEUIL_INERTIE - 1, derniereActivite: t0 })).toBe(false);
     expect(faudraitVerrouiller({ maintenant: t0 + SEUIL_INERTIE + 1, derniereActivite: t0 })).toBe(true);
   });
-  it("un code vient de partir : la tolérance passe à 5 minutes, puis les seuils ordinaires reviennent", () => {
+  it("un code vient de partir : la tolérance passe à 10 minutes, puis les seuils ordinaires reviennent", () => {
     const graceJusqua = t0 + TOLERANCE_APRES_UN_CODE;
-    expect(faudraitVerrouiller({ maintenant: t0 + 120_000, quitteLe: t0, derniereActivite: t0, graceJusqua })).toBe(false);
-    expect(faudraitVerrouiller({ maintenant: t0 + 290_000, quitteLe: t0, derniereActivite: t0, graceJusqua })).toBe(false);
-    expect(faudraitVerrouiller({ maintenant: t0 + 310_000, quitteLe: t0, derniereActivite: t0, graceJusqua })).toBe(true);
+    expect(faudraitVerrouiller({ maintenant: t0 + 400_000, quitteLe: t0, derniereActivite: t0, graceJusqua })).toBe(false);
+    expect(faudraitVerrouiller({ maintenant: t0 + 590_000, quitteLe: t0, derniereActivite: t0, graceJusqua })).toBe(false);
+    expect(faudraitVerrouiller({ maintenant: t0 + 610_000, quitteLe: t0, derniereActivite: t0, graceJusqua })).toBe(true);
     expect(faudraitVerrouiller({ maintenant: graceJusqua + 1, quitteLe: graceJusqua - 20_000, derniereActivite: graceJusqua - 20_000, graceJusqua })).toBe(false);
   });
   it("les seuils sont des constantes de la maison : aucun réglage client, le desk est ignoré, l'application ne s'ouvre pas sur la porte", () => {
@@ -30,7 +30,7 @@ describe("quand l'application se verrouille", () => {
     expect(verrou, "un réglage client est apparu").not.toMatch(/localStorage|prefs|setSeuil|preference/i);
     expect(verrou).toMatch(/chemin\.startsWith\("\/connexion"\)/);
     expect(lire("src/app/layout.tsx")).toMatch(/session && !desk \? <VerrouDeLApp aUnCode=\{Boolean\(codeDuCompte\)\} prenom=\{session\.name\} \/>/);
-    expect(lire("src/lib/verrou.ts")).toMatch(/SEUIL_ARRIERE_PLAN = 30_000[\s\S]*SEUIL_INERTIE = 180_000[\s\S]*TOLERANCE_APRES_UN_CODE = 300_000/);
+    expect(lire("src/lib/verrou.ts")).toMatch(/SEUIL_ARRIERE_PLAN = 300_000[\s\S]*SEUIL_INERTIE = 300_000[\s\S]*TOLERANCE_APRES_UN_CODE = 600_000/);
   });
   it("le voile couvre dès que l'application quitte l'écran, et ne navigue jamais", () => {
     const verrou = lire("src/components/VerrouDeLApp.tsx");

@@ -4,7 +4,7 @@
  * version; a new version (a changed text, a new date below) asks again at the
  * next sign-in. The same text is public, section by section, on /info/mentions, /info/conditions, /info/donnees, /info/reclamations and /info/risques.
  */
-export const LEGAL_VERSION = "2026-09-20";
+export const LEGAL_VERSION = "2026-11-20";
 
 /**
  * LA VERSION DE LA CONVENTION, ET POURQUOI ELLE MANQUAIT.
@@ -127,12 +127,12 @@ export const LEGAL: LegalSection[] = [
       fr: [
         "Votre e-mail et votre numéro WhatsApp servent à vous joindre pour vos intentions : accusés de réception, rappels d'un conseiller, bulletins et appels de fonds, avis d'opéré. En prouvant un numéro par son code, vous acceptez d'être contacté sur WhatsApp pour ces opérations ; STOP y met fin à tout moment.",
         "Vos données d'identification et vos ordres sont conservés le temps qu'exigent la réglementation des marchés et la lutte contre le blanchiment. Elles ne sont ni vendues ni cédées. Vous pouvez demander leur consultation ou leur rectification à info@purposecapital.africa.",
-        "Les appareils que vous ajoutez (clé d'accès ou code à quatre chiffres) ne servent qu'à vous reconnaître sur cet appareil ; chaque ajout et chaque retrait vous sont annoncés sur vos deux canaux.",
+        "Le code à six chiffres de votre compte, et celui de chaque navigateur que vous enregistrez, ne servent qu'à vous reconnaître. Guichet n'en garde pas le texte, seulement un condensé chiffré irréversible. Cinq codes faux le suppriment, et chaque appareil ajouté ou retiré vous est annoncé sur vos deux canaux.",
       ],
       en: [
         "Your e-mail and your WhatsApp number are used to reach you about your intentions: acknowledgements, an adviser's call-backs, order forms and calls for funds, execution notices. By proving a number with its code you agree to be contacted on WhatsApp for these operations; STOP ends it at any time.",
         "Your identification data and your orders are kept for as long as market regulation and anti-money-laundering rules require. They are neither sold nor transferred. You may ask to consult or correct them at info@purposecapital.africa.",
-        "The devices you add (a passkey or a four-digit code) serve only to recognise you on that device; every addition and removal is announced to you on both channels.",
+        "The six-digit code of your account, and that of each browser you register, serve only to recognise you. Guichet does not keep the code itself, only an irreversible encrypted digest. Five wrong codes delete it, and every device added or removed is announced to you on both channels.",
       ],
     },
   },

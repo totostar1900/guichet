@@ -101,14 +101,7 @@ export function PushToggle({ vapidKey, compact = false, interrupteur = false }: 
     return (
       <span className={styles.wrap}>
         <Interrupteur actif={state === "on"} occupe={state === "busy"} label={tr("Alertes")} onChange={(v) => void (v ? enable() : disable())} />
-        {state === "on" && (
-          <button type="button" className="btn sm" disabled={essai === "busy"} onClick={essayer}>
-            {essai === "busy" ? "…" : tr("Envoyer un essai")}
-          </button>
-        )}
         {err && <small className={styles.err}>{err}</small>}
-        {essai === "ok" && <small className={styles.note}>{tr("Essai envoyé : la notification doit arriver dans quelques secondes.")}</small>}
-        {essai && essai !== "ok" && essai !== "busy" && <small className={styles.err}>{essai}</small>}
       </span>
     );
   }
