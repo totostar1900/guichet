@@ -7,9 +7,11 @@
     display: none;
   }
 }
+/* LA CLOCHE ET L'ÉTOILE D'UNE FICHE SE TOUCHAIENT (20 novembre 2026) : deux boutons ronds de 34 px à gap 0 dans ce portail, hors des règles d'espace des autres icônes. Même pas qu'elles : 44 + 6 = 50 px de centre à centre, chaque rond centré dans sa boîte de 44 px. */
 .dansLaBarre {
   display: inline-flex;
   align-items: center;
-  height: 40px;
-  padding: 0 3px;
+  height: var(--barre-icones-cible);
+  gap: calc(var(--barre-icones-cible) - var(--barre-rond) + var(--barre-icones-gap));
+  padding-inline: calc((var(--barre-icones-cible) - var(--barre-rond)) / 2);
 }

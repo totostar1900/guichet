@@ -226,6 +226,19 @@ export async function forgetDevice(s: Session, id: string): Promise<void> {
 }
 
 /** Adding or removing a device is told on both proven channels: the one thing a thief cannot silence. */
+/** Une phrase au client sur ses deux canaux prouvés, et au journal : ce qu'un voleur ne peut pas faire taire. Au mieux de l'effort : le fait est déjà accompli. */
+async function annoncerAuClient(userId: string, sujet: string, texte: string): Promise<void> {
+  try {
+    const ch = await repo().getChannelStatus(userId);
+    const { whatsappConfigured, sendWhatsAppText, emailConfigured, sendEmail } = await import("@/lib/notify/providers");
+    if (ch.phone && ch.phoneVerifiedAt && whatsappConfigured()) await sendWhatsAppText(ch.phone, `${texte}\nPurpose Capital`);
+    if (ch.email && emailConfigured()) await sendEmail(ch.email, sujet, `<p>${texte}</p><p>Purpose Capital</p>`, `${texte}\nPurpose Capital`);
+    await repo().logEvent({ kind: "system", html: `${texte} <span class="muted">(${userId})</span>` });
+  } catch {
+    // Telling is best effort.
+  }
+}
+
 async function notifyDeviceChange(userId: string, what: "added" | "removed" | "forgotten", d: TrustedDevice): Promise<void> {
   try {
     const ch = await repo().getChannelStatus(userId);
@@ -277,7 +290,13 @@ export async function verifierCodeDuCompte(s: Session, pin: string): Promise<{ o
   if (attendu.length !== recu.length || !timingSafeEqual(Buffer.from(attendu), Buffer.from(recu))) {
     const failures = d.failures + 1;
     await repo().updateDevice(d.id, { failures });
-    if (failures >= ESSAIS_DU_CODE) return { ok: false, error: "Cinq codes faux : vous êtes déconnecté. Reconnectez-vous par le code reçu.", bloque: true, left: 0 };
+    /* CINQ CODES FAUX SUPPRIMENT LE CODE (20 novembre 2026, le client : « le client peut se reconnecter et recommencer indéfiniment »). La déconnexion seule n'engageait à rien : le compteur restait, un bon code passait encore, et l'e-mail rouvrait la session. Le code disparaît donc avec ses copies de navigateur ; seul « Code oublié ? » (code reçu, puis un nouveau code) y ramène. Le client est prévenu sur ses deux canaux. */
+    if (failures >= ESSAIS_DU_CODE) {
+      await repo().removeDevices(s.userId, "code");
+      await repo().removeDevices(s.userId, "pin");
+      await annoncerAuClient(s.userId, "Guichet : votre code", "Votre code de connexion Guichet a été supprimé après cinq codes faux. Si ce n'est pas vous, reconnectez-vous par le code reçu et choisissez-en un nouveau : « Code oublié ? » à l'ouverture.");
+      return { ok: false, error: "Cinq codes faux : le code est supprimé. Reconnectez-vous par le code reçu, puis choisissez-en un nouveau.", bloque: true, left: 0 };
+    }
     const left = ESSAIS_DU_CODE - failures;
     return { ok: false, error: `Code incorrect. ${left} essai${left > 1 ? "s" : ""} restant${left > 1 ? "s" : ""}.`, left };
   }

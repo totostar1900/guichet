@@ -82,6 +82,10 @@
   font-size: var(--t-2);
   color: var(--ink-3);
 }
+/* LA LIGNE « N séances · du … au … » D'UNE COURBE DE COURS DOUBLE SON AIR (20 novembre 2026, le client) : l'écart au dessin et aux tuiles vaut deux fois celui du bloc (le gap, puis autant en marge de la ligne). */
+.legendeAeree {
+  padding-block: var(--s-5);
+}
 /* LE COMMUTATEUR À PLAT d'une courbe de VL (10 novembre 2026) : trois mesures dans une même piste, la mesure lue pleine d'or. Aucun cadre, aucune ombre : il se pose sur la carte. */
 .commutateur {
   display: grid;

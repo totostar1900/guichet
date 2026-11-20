@@ -38,6 +38,8 @@ export function PorteDeConnexion({ next, enTete, children }: { next: string; /**
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, start] = useTransition();
   const [fini, setFini] = useState(false);
+  /* Le mode choisi, et lui seul : avec l'empreinte, le mot de bienvenue et le prompt ; le clavier et « Code oublié ? » après l'annulation, un échec ou 8 secondes. */
+  const [revele, setRevele] = useState(false);
 
   const arriver = () => {
     setFini(true);
@@ -50,12 +52,16 @@ export function PorteDeConnexion({ next, enTete, children }: { next: string; /**
         const options = await passkeyOptions(device?.kind === "passkey" ? device.id : undefined);
         const reponse = await startAuthentication({ optionsJSON: options });
         const r = await passkeyLogin(reponse);
-        if (!r.ok) return setErreur(r.error);
+        if (!r.ok) {
+          setErreur(r.error);
+          return setRevele(true);
+        }
         arriver();
       } catch (e) {
-        /* UN GESTE ANNULÉ NE SE DIT PAS : le clavier est là, c'est la réponse. Le reste (clé inconnue, panne) se dit. */
+        /* UN GESTE ANNULÉ NE SE DIT PAS : le clavier se révèle, c'est la réponse. Le reste (clé inconnue, panne) se dit. */
         const nom = (e as Error).name;
         if (nom !== "NotAllowedError" && nom !== "AbortError") setErreur(`Clé indisponible : ${(e as Error).message}`);
+        setRevele(true);
       }
   };
   const ouvrirParLeCode = (c: string) =>
@@ -92,6 +98,12 @@ export function PorteDeConnexion({ next, enTete, children }: { next: string; /**
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto]);
 
+  useEffect(() => {
+    if (!auto || revele) return;
+    const id = setTimeout(() => setRevele(true), 8000);
+    return () => clearTimeout(id);
+  }, [auto, revele]);
+
   if (!pret) return <div className={styles.masque}>{enTete}{children}</div>;
 
   const deverrouille = device && !autre && !oublie;
@@ -117,18 +129,22 @@ export function PorteDeConnexion({ next, enTete, children }: { next: string; /**
       <div className={styles.deverrouillage} aria-live="polite">
         <h1 className="display">{prenom ? t("Bonjour {prenom}", { prenom }) : t("Bonjour")}</h1>
         {erreur && <div className={styles.error}>{t(erreur)}</div>}
-        <button type="button" className={styles.deverrouiller} onClick={ouvrirParLaCle} disabled={enCours || fini}>
-          {t(enCours ? "Vérification…" : "Toucher pour réessayer")}
-        </button>
-        <button type="button" className={styles.linkBtn} onClick={codeOublieClic}>
-          {t("Code oublié ?")}
-        </button>
+        {revele && (
+          <>
+            <button type="button" className={styles.deverrouiller} onClick={ouvrirParLaCle} disabled={enCours || fini}>
+              {t(enCours ? "Vérification…" : "Toucher pour réessayer")}
+            </button>
+            <button type="button" className={styles.linkBtn} onClick={codeOublieClic}>
+              {t("Code oublié ?")}
+            </button>
+          </>
+        )}
       </div>
     );
   }
   return (
     <div className={styles.deverrouillage}>
-      <EcranDeCode prenom={prenom} onFini={ouvrirParLeCode} occupe={enCours || fini} cle="pin" erreur={erreur} empreinte={device.kind === "passkey" ? ouvrirParLaCle : undefined} onOubli={codeOublieClic} />
+      <EcranDeCode prenom={prenom} onFini={ouvrirParLeCode} occupe={enCours || fini} cle="pin" erreur={erreur} clavier={device.kind !== "passkey" || revele} empreinte={device.kind === "passkey" ? ouvrirParLaCle : undefined} onOubli={codeOublieClic} />
     </div>
   );
 }

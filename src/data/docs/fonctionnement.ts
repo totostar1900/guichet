@@ -8,7 +8,7 @@ export const FONCTIONNEMENT: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 1,
-  checkedOn: "2026-11-19",
+  checkedOn: "2026-11-20",
   owner: "Georges",
   chapters: [
     {

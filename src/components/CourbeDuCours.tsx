@@ -148,7 +148,7 @@ export function CourbeDuCours({ points, hauteur = 300 }: { points: PointCours[];
           )}
         </svg>
       </div>
-      <p className={styles.legende}>{t(serie.length > 1 ? "{n} séances · du {a} au {b}" : "1 séance · du {a} au {b}", { n: serie.length, a: fmtDate(serie[0].d), b: fmtDate(dernier.d) })}</p>
+      <p className={`${styles.legende} ${styles.legendeAeree}`}>{t(serie.length > 1 ? "{n} séances · du {a} au {b}" : "1 séance · du {a} au {b}", { n: serie.length, a: fmtDate(serie[0].d), b: fmtDate(dernier.d) })}</p>
       <Tuiles
         tuiles={[
           [t("Volume échangé"), `${fmt(vol.total)} ${t("titres")}`],

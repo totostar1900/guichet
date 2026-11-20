@@ -139,6 +139,8 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: 
   const [enCours, start] = useTransition();
   const appareil = typeof window === "undefined" ? null : readDevice();
   const clePasse = appareil?.kind === "passkey";
+  /* LE MODE CHOISI, ET LUI SEUL (20 novembre 2026, le client) : avec l'empreinte, le mot de bienvenue et le prompt du téléphone ; le clavier, la touche d'empreinte et « Code oublié ? » ne paraissent qu'après l'annulation, un échec, ou 8 secondes sans réponse (un prompt muet ne laisse personne dehors). Avec le code, le clavier tout de suite. */
+  const [revele, setRevele] = useState(false);
 
   const sortir = () =>
     start(async () => {
@@ -156,12 +158,16 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: 
         const options = await passkeyOptions(appareil?.kind === "passkey" ? appareil.id : undefined);
         const reponse = await startAuthentication({ optionsJSON: options });
         const r = await passkeyLogin(reponse);
-        if (!r.ok) return setErreur(r.error);
+        if (!r.ok) {
+          setErreur(r.error);
+          return setRevele(true);
+        }
         onLeve();
       } catch (e) {
-        /* Un geste annulé ne se dit pas : le clavier est là. */
+        /* Un geste annulé ne se dit pas : le clavier se révèle, c'est la réponse. */
         const nom = (e as Error).name;
         if (nom !== "NotAllowedError" && nom !== "AbortError") setErreur(`Clé indisponible : ${(e as Error).message}`);
+        setRevele(true);
       }
   };
   /* LA MÉTHODE PRÉFÉRÉE S'OFFRE TOUTE SEULE (19 novembre 2026, 4A + « coller à Revolut ») : avec Face ID ou l'empreinte, le téléphone la demande dès que le voile paraît, par-dessus le clavier ; annulée, elle laisse le clavier, et la touche en bas à gauche la rappelle. */
@@ -177,6 +183,11 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: 
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto]);
+  useEffect(() => {
+    if (!auto || revele) return;
+    const id = setTimeout(() => setRevele(true), 8000);
+    return () => clearTimeout(id);
+  }, [auto, revele]);
   const oublie = () => {
     marquerCodeOublie();
     sortir();
@@ -227,6 +238,7 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: 
           occupe={enCours}
           cle={aPoser ? `poser${premier === null ? 1 : 2}` : "lever"}
           erreur={erreur}
+          clavier={!auto || revele}
           empreinte={clePasse && !aPoser ? parLaCle : undefined}
           onOubli={aPoser ? undefined : oublie}
         />

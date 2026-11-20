@@ -329,6 +329,7 @@ export const EN_VITRINE: Record<string, string> = {
   "Utiliser le code": "Use the code",
   "Utiliser Face ID ou l'empreinte": "Use Face ID or fingerprint",
   "Code oublié ?": "Forgot your code?",
+  "Cinq codes faux : le code est supprimé. Reconnectez-vous par le code reçu, puis choisissez-en un nouveau.": "Five wrong codes: the code is deleted. Sign in again with the code you receive, then choose a new one.",
   /* ---------- six chiffres, l'écran de code (19 novembre 2026) ---------- */
   "Bonjour {prenom}": "Hello {prenom}",
   "Bonjour": "Hello",

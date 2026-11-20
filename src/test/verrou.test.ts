@@ -72,10 +72,16 @@ describe("le code du compte", () => {
     let dernier;
     for (let i = 0; i < 5; i++) dernier = await verifierCodeDuCompte(client, "999999");
     expect(dernier && !dernier.ok && dernier.bloque).toBe(true);
+    /* CINQ FAUX SUPPRIMENT LE CODE : se reconnecter ne le rend pas, et le bon code ne passe plus. */
+    expect(await aUnCodeDuCompte(client.userId), "le code est supprimé au cinquième échec").toBe(false);
+    const apres = await verifierCodeDuCompte(client, "258014");
+    expect(apres.ok, "même le bon code ne passe plus : il faut en choisir un nouveau").toBe(false);
   });
   it("changer le code remplace l'ancien et oublie les codes d'appareil ; les clés d'accès restent", async () => {
     const { repo } = await import("@/lib/data");
     const { poserCodeDuCompte, verifierCodeDuCompte } = await import("@/lib/auth/devices");
+    /* Le test précédent a fini sur un code supprimé : on en pose un d'abord, c'est de son remplacement qu'il s'agit. */
+    await poserCodeDuCompte(client, "258014");
     await repo().addDevice({ userId: client.userId, kind: "pin", name: "Autre navigateur", secretHash: "x" });
     await repo().addDevice({ userId: client.userId, kind: "passkey", name: "Téléphone", credentialId: "cred-1", publicKey: "k", counter: 0 });
     expect((await poserCodeDuCompte(client, "357913")).ok).toBe(true);

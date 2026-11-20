@@ -87,6 +87,25 @@ describe("La méthode choisie s'offre toute seule (4A)", () => {
   });
 });
 
+describe("Le mode choisi, et lui seul ; le blocage du code (20 novembre 2026)", () => {
+  it("avec l'empreinte, le clavier ne paraît qu'après l'annulation, un échec ou 8 secondes ; porte et verrou pareil", () => {
+    for (const f of ["src/components/VerrouDeLApp.tsx", "src/app/connexion/PorteDeConnexion.tsx"]) {
+      const c = lire(f);
+      expect(c, f).toMatch(/setRevele\(true\)/);
+      expect(c, f).toMatch(/setTimeout\(\(\) => setRevele\(true\), 8000\)/);
+    }
+    expect(lire("src/components/VerrouDeLApp.tsx")).toMatch(/clavier=\{!auto \|\| revele\}/);
+    expect(lire("src/app/connexion/PorteDeConnexion.tsx")).toMatch(/clavier=\{device\.kind !== "passkey" \|\| revele\}/);
+    expect(lire("src/components/EcranDeCode.tsx")).toMatch(/\{clavier && onOubli && \(/);
+  });
+  it("cinq codes faux suppriment le code, et le client en est prévenu sur ses deux canaux", () => {
+    const d = lire("src/lib/auth/devices.ts");
+    const f = d.slice(d.indexOf("export async function verifierCodeDuCompte"));
+    expect(f).toMatch(/failures >= ESSAIS_DU_CODE[\s\S]*removeDevices\(s\.userId, "code"\)[\s\S]*annoncerAuClient/);
+    expect(d).toMatch(/async function annoncerAuClient[\s\S]*sendWhatsAppText[\s\S]*sendEmail[\s\S]*logEvent/);
+  });
+});
+
 describe("La première connexion : e-mail, téléphone, prénom ; les pièces viennent après (19 novembre 2026)", () => {
   it("le prénom vient juste après le téléphone, avant « Avant d'entrer », et le parcours reprend par lui", () => {
     const c = lire("src/app/connexion/creer/CreerCompte.tsx");

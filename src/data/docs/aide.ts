@@ -14,7 +14,7 @@ export const AIDE: DocPage = {
   order: 0,
   /* Relue le 29 octobre 2026 : les huit chapitres ont reçu leur ligne de
      promesse, qui se lit sous leur titre. */
-  checkedOn: "2026-11-19",
+  checkedOn: "2026-11-20",
   owner: "Desk",
   chapters: [
     {
