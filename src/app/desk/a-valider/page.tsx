@@ -11,6 +11,8 @@ import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
+/* « Lire la pièce » s'exécute dans cette page : la lecture d'un PDF y dispose de LECTURE_DESK_MS (deux minutes), donc la fonction de plus de soixante secondes. */
+export const maxDuration = 300;
 export const metadata = { title: "À valider" };
 
 const SOURCE_LABEL: Record<IntakeItem["source"], string> = {

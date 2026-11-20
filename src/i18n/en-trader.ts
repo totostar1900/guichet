@@ -21,6 +21,7 @@ export const EN_TRADER: Record<string, string> = {
 
   /* ---------- lire une piece d intake, differee depuis le webhook ---------- */
   "Lire la pièce": "Read the document",
+  "Lecture en cours… (jusqu'à deux minutes)": "Reading… (up to two minutes)",
 
   /* ---------- la piece dans le fil du message ---------- */
   "gardé au dépôt": "kept in the vault",

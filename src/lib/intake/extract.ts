@@ -37,6 +37,13 @@ const MODEL = process.env.INTAKE_READ_MODEL || process.env.AUCTION_READ_MODEL ||
  */
 const LECTURE_MS = 40_000;
 
+/**
+ * LE GESTE D'UNE PERSONNE AU DESK A PLUS DE TEMPS (20 novembre 2026).
+ *
+ * Les quarante secondes ci-dessus protègent l'arrivée d'un courriel, dont le webhook n'a que soixante secondes. Le bouton « Lire la pièce » est une requête du desk, qui vit dans la page « À valider » : elle porte maintenant sa propre durée maximale (300 s), et la lecture y dispose de deux minutes. Trois clics, trois abandons à quarante secondes, même avec le modèle rapide : le délai était la seule chose qui coupait, et aucune lecture de l'extracteur n'avait jamais abouti en production.
+ */
+export const LECTURE_DESK_MS = 120_000;
+
 /** Le modele employe, garde a cote de chaque lecture : sans lui, comparer deux lectures ne veut rien dire. */
 export const modeleDeLecture = (): string => MODEL;
 
@@ -110,7 +117,7 @@ export function emptyDraft(official = false): OfferDraft {
   return { confidence: {}, official, remarks: extractionAvailable() ? [] : ["Extraction automatique désactivée (ANTHROPIC_API_KEY absente) : renseignez les champs à la main."] };
 }
 
-export async function extractOffer(input: ExtractionInput): Promise<{ draft: OfferDraft; seconds: number }> {
+export async function extractOffer(input: ExtractionInput, options: { delaiMs?: number } = {}): Promise<{ draft: OfferDraft; seconds: number }> {
   const t0 = Date.now();
   /* L'APPEL ABANDONNE AVANT QUE LA FONCTION SOIT TUÉE.
      Une fonction tuée au délai n'exécute aucun catch : l'échec le plus fréquent
@@ -119,7 +126,7 @@ export async function extractOffer(input: ExtractionInput): Promise<{ draft: Off
      « maxRetries: 0 » compte autant que le délai : le SDK réessaie deux fois par
      défaut, et trois appels dépassent le budget bien plus sûrement qu'un seul,
      la fonction étant tuée pendant la deuxième tentative, donc en silence. */
-  const client = new Anthropic({ timeout: LECTURE_MS, maxRetries: 0 });
+  const client = new Anthropic({ timeout: options.delaiMs ?? LECTURE_MS, maxRetries: 0 });
   // The desk's product types (registry) drive the type choice and its free fields.
   const types = enabledTypes().filter((t) => t.segment === "primaire");
   const catalogue = types.map((t) => `- ${t.key} : ${t.label} (moteur ${t.engine})${t.fields.length ? ` ; champs libres : ${t.fields.map((f) => `${f.key} = ${f.label}`).join(", ")}` : ""}`).join("\n");

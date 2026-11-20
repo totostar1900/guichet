@@ -1,7 +1,7 @@
 import "server-only";
 import { repo } from "@/lib/data";
 import type { IntakeItem, OfferDraft } from "@/lib/domain/types";
-import { emptyDraft, extractionAvailable, extractOffer, modeleDeLecture, type ExtractionInput } from "./extract";
+import { emptyDraft, extractionAvailable, extractOffer, LECTURE_DESK_MS, modeleDeLecture, type ExtractionInput } from "./extract";
 import { IMAGE_TYPES } from "./ingest";
 import { readSource } from "./storage";
 
@@ -110,7 +110,7 @@ export async function lireUnePiece(id: string, reprendre = false): Promise<Lue |
   let secondes: number | undefined;
   let erreur: string | undefined;
   try {
-    const lu = await extractOffer(input);
+    const lu = await extractOffer(input, { delaiMs: LECTURE_DESK_MS });
     draft = lu.draft;
     secondes = lu.seconds;
     if (item.draft.official) draft.official = true;
