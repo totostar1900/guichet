@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { usePathname } from "next/navigation";
-import { startAuthentication } from "@simplewebauthn/browser";
 import { useT } from "@/i18n/client";
 import { EcranDeCode } from "@/components/EcranDeCode";
-import { marquerCodeOublie, readDevice } from "@/lib/device-client";
+import { marquerCodeOublie } from "@/lib/device-client";
 import { CLE_GRACE, CLE_VERROU, faudraitVerrouiller } from "@/lib/verrou";
-import { logout, passkeyLogin, passkeyOptions } from "@/app/connexion/actions";
+import { logout } from "@/app/connexion/actions";
 import { poserLeCode, verifierLeCode } from "@/app/verrou/actions";
 import { useVerrouDeDefilement } from "@/components/mobile/verrou-defilement";
 import styles from "./VerrouDeLApp.module.css";
@@ -27,7 +26,7 @@ const lireNombre = (cle: string): number | undefined => {
  *
  * Un voile posé SUR la page, jamais une navigation : le formulaire à moitié rempli ou la signature en cours se retrouvent intacts après le déverrouillage. Deux seuils fixes (`lib/verrou.ts`) ; dès que l'application quitte l'écran, le voile est posé tout de suite (l'aperçu du sélecteur d'applications du téléphone ne montre ni solde ni titres), et levé au retour si l'absence a duré moins que le seuil.
  *
- * On le lève avec Face ID ou l'empreinte (si cet appareil en a une) ou avec le CODE DU COMPTE, le même sur tout appareil. Cinq codes faux : déconnexion. Un compte SANS code en reçoit un à poser avant tout : « tout compte doit avoir au moins un code ».
+ * On le lève avec le CODE DU COMPTE, le même sur tout appareil (jamais avec Face ID ni le code d'écran du téléphone : voir `parLeCode`). Cinq codes faux : déconnexion. Un compte SANS code en reçoit un à poser avant tout : « tout compte doit avoir au moins un code ».
  *
  * CE N'EST PAS UNE BARRIÈRE DE SÉCURITÉ : la session reste valable côté serveur, et un autre onglet n'est pas verrouillé. Le verrou protège contre l'œil qui passe ; ce qui protège l'argent, c'est le code reçu qu'il faut pour signer un ordre.
  */
@@ -137,10 +136,6 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: 
   const [erreur, setErreur] = useState<string | null>(null);
   const [panne, setPanne] = useState(false);
   const [enCours, start] = useTransition();
-  const appareil = typeof window === "undefined" ? null : readDevice();
-  const clePasse = appareil?.kind === "passkey";
-  /* LE MODE CHOISI, ET LUI SEUL (20 novembre 2026, le client) : avec l'empreinte, le mot de bienvenue et le prompt du téléphone ; le clavier, la touche d'empreinte et « Code oublié ? » ne paraissent qu'après l'annulation, un échec, ou 8 secondes sans réponse (un prompt muet ne laisse personne dehors). Avec le code, le clavier tout de suite. */
-  const [revele, setRevele] = useState(false);
 
   const sortir = () =>
     start(async () => {
@@ -151,47 +146,11 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: 
       }
       await logout();
     });
-  /* La clé n'est pas une transition : un geste en attente (ou un navigateur qui ne répond pas) ne doit jamais verrouiller le clavier. */
-  const parLaCle = async () => {
-      setErreur(null);
-      try {
-        const options = await passkeyOptions(appareil?.kind === "passkey" ? appareil.id : undefined);
-        const reponse = await startAuthentication({ optionsJSON: options });
-        const r = await passkeyLogin(reponse);
-        if (!r.ok) {
-          setErreur(r.error);
-          return setRevele(true);
-        }
-        onLeve();
-      } catch (e) {
-        /* Un geste annulé ne se dit pas : le clavier se révèle, c'est la réponse. */
-        const nom = (e as Error).name;
-        if (nom !== "NotAllowedError" && nom !== "AbortError") setErreur(`Clé indisponible : ${(e as Error).message}`);
-        setRevele(true);
-      }
-  };
-  /* LA MÉTHODE PRÉFÉRÉE S'OFFRE TOUTE SEULE (19 novembre 2026, 4A + « coller à Revolut ») : avec Face ID ou l'empreinte, le téléphone la demande dès que le voile paraît, par-dessus le clavier ; annulée, elle laisse le clavier, et la touche en bas à gauche la rappelle. */
-  const propose = useRef(false);
-  const auto = clePasse && !aPoser;
-  useEffect(() => {
-    if (!auto || propose.current) return;
-    /* Le drapeau se pose À L'ÉCHÉANCE, pas avant : le mode strict de React monte, démonte et remonte l'effet, et un drapeau posé d'avance empêchait la seconde montée de rien proposer. */
-    const id = setTimeout(() => {
-      propose.current = true;
-      parLaCle();
-    }, 150);
-    return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auto]);
-  useEffect(() => {
-    if (!auto || revele) return;
-    const id = setTimeout(() => setRevele(true), 8000);
-    return () => clearTimeout(id);
-  }, [auto, revele]);
   const oublie = () => {
     marquerCodeOublie();
     sortir();
   };
+  /* LE CODE GUICHET OUVRE, ET LUI SEUL (20 novembre 2026, le client : « le password de l'écran ne devrait pas pouvoir ouvrir l'application »). Le prompt d'empreinte est parti : le navigateur y accepte aussi le code d'écran du téléphone, connu des proches, et n'offre aucun réglage pour ne garder que la biométrie. L'empreinte reviendra avec une application native. */
   const parLeCode = (code: string) =>
     start(async () => {
       setErreur(null);
@@ -227,21 +186,10 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: 
     });
 
   const titre = aPoser ? (premier === null ? "Choisissez votre code" : "Saisissez-le encore") : undefined;
-  const prenomAffiche = prenom?.trim().split(/\s+/)[0] || (appareil?.who.includes("@") ? undefined : appareil?.who.trim().split(/\s+/)[0] || undefined);
   return (
     <div className={styles.verrou} role="dialog" aria-modal="true" aria-label={t(titre ?? "Guichet est verrouillé")}>
       <div className={styles.corps}>
-        <EcranDeCode
-          titre={titre}
-          prenom={prenomAffiche}
-          onFini={parLeCode}
-          occupe={enCours}
-          cle={aPoser ? `poser${premier === null ? 1 : 2}` : "lever"}
-          erreur={erreur}
-          clavier={!auto || revele}
-          empreinte={clePasse && !aPoser ? parLaCle : undefined}
-          onOubli={aPoser ? undefined : oublie}
-        />
+        <EcranDeCode titre={titre} prenom={prenom?.trim().split(/\s+/)[0]} onFini={parLeCode} occupe={enCours} cle={aPoser ? `poser${premier === null ? 1 : 2}` : "lever"} erreur={erreur} onOubli={aPoser ? undefined : oublie} />
         {aPoser && panne && (
           <button
             type="button"

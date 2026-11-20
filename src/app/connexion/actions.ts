@@ -8,7 +8,6 @@ import { z } from "zod";
 import { authMode } from "@/lib/auth";
 import { clearDevSession, writeDevSession } from "@/lib/auth/dev";
 import type { Session } from "@/lib/auth/types";
-import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
 
 export type LoginState = { step: "email"; error?: string } | { step: "code"; email: string; error?: string; withCode?: boolean } | { step: "phone"; error?: string } | { step: "phone-code"; phone: string; error?: string };
 
@@ -130,18 +129,9 @@ export async function logoutEverywhere(): Promise<void> {
   redirect("/");
 }
 
-/* ---------- Appareils de confiance : clé d'accès ou code à 4 chiffres ---------- */
+/* ---------- Appareils de confiance : le code à six chiffres de ce navigateur ---------- */
 
-export async function passkeyOptions(deviceId?: string) {
-  const { passkeyAuthenticationOptions } = await import("@/lib/auth/devices");
-  /* Un identifiant mal formé ne désigne aucune clé : la porte sans liste s'ouvre à la place. */
-  return passkeyAuthenticationOptions(deviceId && /^[a-zA-Z0-9-]{4,60}$/.test(deviceId) ? deviceId : undefined);
-}
-
-export async function passkeyLogin(response: AuthenticationResponseJSON): Promise<{ ok: true; name: string } | { ok: false; error: string }> {
-  const { passkeyAuthenticate } = await import("@/lib/auth/devices");
-  return passkeyAuthenticate(response);
-}
+/* LA CLÉ D'ACCÈS N'OUVRE PLUS GUICHET (20 novembre 2026, le client : « le password de l'écran ne devrait pas pouvoir ouvrir l'application. Uniquement celui rentré par le client »). Le navigateur accepte, pour une clé d'accès, la biométrie OU le code d'écran du téléphone, et n'offre aucun réglage pour n'accepter que la biométrie : le code d'écran, connu des proches, aurait ouvert le compte. Les deux entrées serveur (options et ouverture par clé) sont donc supprimées ; seul le code Guichet ouvre, ici pour ce navigateur et au verrou pour le compte. L'empreinte reviendra avec une application native, qui peut exiger la biométrie seule. */
 
 export async function pinLogin(deviceId: string, token: string, pin: string): Promise<{ ok: true; name: string } | { ok: false; error: string; forgotten?: boolean; left?: number }> {
   if (!/^[a-zA-Z0-9-]{4,60}$/.test(deviceId) || !FORME_DU_CODE.test(pin)) return { ok: false, error: MESSAGE_FORME_DU_CODE };

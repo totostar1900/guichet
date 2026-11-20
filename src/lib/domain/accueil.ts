@@ -131,7 +131,7 @@ export function gestesProposables(f: FaitsPourGestes): GesteProposable[] {
   if (f.conventionOk && f.intentions === 0) out.push("intention");
   if (f.conventionOk && f.versements === 0) out.push("versement");
   if (f.couponsSansReinvestissement) out.push("reinvestir");
-  if (!f.appareilAjoute) out.push("appareil");
+  /* « Ajouter ce téléphone » (ouvrir d'un doigt) n'est plus proposé (20 novembre 2026) : l'empreinte a quitté le navigateur. */
   if (!f.profilRenseigne) out.push("profil");
   if (f.lignesSuivies === 0) out.push("suivre");
   if (f.attentesSondees === 0 || f.sansAdjudication) out.push("sondage");

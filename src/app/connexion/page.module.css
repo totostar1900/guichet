@@ -122,67 +122,6 @@
 }
 
 
-/* LA BIOMÉTRIE, EN BAS DE LA PAGE (18 novembre 2026), d'après l'image du client : une grande icône d'empreinte, un titre, une phrase, un bouton à bouts ronds, centrés. Le lien ou le code par e-mail est au-dessus. */
-.bioBloc {
-  display: grid;
-  justify-items: center;
-  gap: var(--s-6);
-  padding: var(--s-10) 0 var(--s-4);
-  border-top: 1px solid var(--line);
-  text-align: center;
-}
-.bioIcone {
-  color: var(--ink-3);
-}
-.bioBloc h2 {
-  margin: 0;
-  font-size: var(--t-6);
-  font-weight: 700;
-}
-.bioBloc p {
-  margin: 0;
-  max-width: 22rem;
-  font-size: var(--t-3);
-  line-height: 1.5;
-  color: var(--ink-2);
-}
-.bioBouton {
-  width: 100%;
-  min-height: 3rem;
-  border-radius: 999px;
-  border: 1.5px solid var(--ink);
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: var(--t-4);
-  font-weight: 700;
-  cursor: pointer;
-}
-.bioBouton:hover:not(:disabled) {
-  background: var(--surface-2);
-}
-.bioBouton:disabled {
-  cursor: default;
-  opacity: 0.6;
-}
-.pinField {
-  display: grid;
-  gap: 6px;
-  font-size: 0.85rem;
-  color: var(--ink-2);
-}
-.pinField input {
-  width: 7.5ch;
-  font-size: 1.6rem;
-  letter-spacing: 0.5em;
-  text-align: center;
-  padding: 8px 6px 8px 14px;
-  border: 1px solid var(--line-2);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink);
-  font-family: inherit;
-}
 .linkBtn {
   background: none;
   border: none;
@@ -198,7 +137,7 @@
 }
 
 
-/* LA PORTE : DÉVERROUILLER D'ABORD (19 novembre 2026, planche « Compte, connexion et textes », 2A). Une colonne centrée : Face ID ou l'empreinte, ou le clavier à quatre chiffres ; l'e-mail en secours, en lien. */
+/* LA PORTE : DÉVERROUILLER D'ABORD (19 novembre 2026, planche « Compte, connexion et textes », 2A). Une colonne centrée : le clavier à six chiffres ; l'e-mail en secours, en lien. L'empreinte n'y est plus (20 novembre 2026). */
 .masque {
   visibility: hidden;
 }
@@ -217,19 +156,13 @@
   font-size: var(--t-4);
   color: var(--ink-2);
 }
-.deverrouiller {
-  width: 100%;
-  min-height: 3rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--paper);
-  font: inherit;
-  font-size: var(--t-4);
-  font-weight: 700;
-  cursor: pointer;
-}
-.deverrouiller:disabled {
-  opacity: 0.6;
-  cursor: default;
+
+/* L'ATTENTE DE LA PORTE (20 novembre 2026, planche « Écran d'attente », 1A) : le G se trace, rendu par le serveur, au lieu d'un écran vide pendant le chargement. */
+.attente {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-6);
+  padding-block: var(--s-9, 3rem);
+  color: var(--ink-3);
+  font-size: var(--t-3);
 }

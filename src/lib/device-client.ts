@@ -22,14 +22,7 @@ export function codeDeCetAppareil(d: RememberedDevice | null): { id: string; tok
   return d.pin ?? null;
 }
 
-/** Face ID ou l'empreinte devient la méthode préférée ; le code de ce navigateur, s'il existe, reste la seconde. */
-export function enregistrerLaCle(cle: { id: string; who: string; name: string; since: string }): void {
-  const avant = readDevice();
-  const code = codeDeCetAppareil(avant);
-  saveDevice({ id: cle.id, kind: "passkey", who: cle.who, name: cle.name, since: cle.since, ...(code ? { pin: code } : {}) });
-}
-
-/** Le code devient la seule méthode : la clé, s'il y en avait une, n'est plus proposée. */
+/** Le code de ce navigateur : la seule méthode d'ouverture. Une clé enregistrée avant le 20 novembre 2026 n'ouvre plus rien. */
 export function enregistrerLeCode(code: { id: string; token: string; who: string; name: string; since: string }): void {
   saveDevice({ id: code.id, kind: "pin", token: code.token, who: code.who, name: code.name, since: code.since });
 }

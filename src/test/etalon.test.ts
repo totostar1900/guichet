@@ -276,7 +276,6 @@ const SANS_ENTETE: Record<string, string> = {
   "src/app/connexion/mfa/page.tsx": "un écran de seuil : carte centrée, pas de section ni de parent",
   "src/app/parametres/code/ModifierLeCode.tsx": "un écran de pas à pas plein cadre (clavier à chiffres, coche finale) : le titre change à chaque pas (code actuel, nouveau, encore), comme celui du verrou",
   "src/components/EcranDeCode.tsx": "un écran de seuil réduit au mot de bienvenue, aux ronds et au clavier : le verrou et la porte le partagent, son titre nomme l'état (bienvenue, ou code à choisir)",
-  "src/app/connexion/PorteDeConnexion.tsx": "un écran de seuil : le déverrouillage d'un appareil reconnu, sans section ni parent ; son titre nomme l'étape",
   "src/app/connexion/creer/CreerCompte.tsx": "un écran de seuil : un geste par écran, pas de section ni de parent, et chaque titre nomme l'étape en cours (adresse, numéro, mentions, code de l'appareil)",
   "src/app/ne-plus-recevoir/page.tsx": "une carte de confirmation atteinte par un lien de courriel : « C'est fait. » est une réponse, pas un nom de page",
   /* UN DOCUMENT PUBLIÉ, ET NON UNE PAGE DE L'APPLICATION. La note

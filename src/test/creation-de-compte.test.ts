@@ -14,8 +14,8 @@ describe("la création d'un compte", () => {
   const css = sansCommentaires(lire("src/app/connexion/creer/creer.module.css"));
   const actions = sansCommentaires(lire("src/app/connexion/creer/actions.ts"));
 
-  it("les étapes sont celles choisies : adresse, code, numéro, code, mentions, code de l'appareil, biométrie", () => {
-    const ordre = ["email", "email-code", "telephone", "telephone-code", "avant", "code", "code-bis", "bio", "bio-fait"];
+  it("les étapes sont celles choisies : adresse, code, numéro, code, prénom, mentions, code de l'appareil (sans biométrie)", () => {
+    const ordre = ["email", "email-code", "telephone", "telephone-code", "prenom", "avant", "code", "code-bis"];
     const type = composant.match(/type Etape = ([^;]+);/)?.[1] ?? "";
     expect(ordre.map((e) => type.indexOf(`"${e}"`)).every((i, k, a) => i >= 0 && (k === 0 || i > a[k - 1])), "les étapes ne sont plus dans l'ordre choisi").toBe(true);
   });
@@ -34,12 +34,11 @@ describe("la création d'un compte", () => {
     expect(sansCommentaires(lire("src/app/layout.tsx"))).toMatch(/x-chemin[\s\S]{0,80}startsWith\("\/connexion\/creer"\)[\s\S]{0,160}!creation/);
   });
 
-  it("le code de l'appareil se saisit deux fois, puis la biométrie est proposée seulement si l'appareil la sait, avec « Plus tard »", () => {
+  it("le code de l'appareil se saisit deux fois, et la création ne propose plus d'empreinte (20 novembre 2026)", () => {
     expect(composant).toMatch(/enrolPin\(token, c, deviceLabel\(\)\)/);
     expect(composant).toMatch(/c !== codeA/);
-    expect(composant).toMatch(/platformAuthenticatorIsAvailable/);
-    expect(composant).toMatch(/if \(peutBio\) vers\("bio"\)/);
     expect(composant).toMatch(/t\("Plus tard"\)/);
+    expect(composant, "l'empreinte est revenue dans la création").not.toMatch(/platformAuthenticatorIsAvailable|startRegistration|"bio"|biométri/);
   });
 
   it("le bouton de validation est en bas de l'écran, et l'erreur s'écrit sous le champ, jamais dans une fenêtre", () => {
@@ -106,20 +105,19 @@ describe("la nationalité se choisit dans une liste, la zone CEMAC en tête", ()
 describe("la connexion sur un appareil reconnu", () => {
   const porte = sansCommentaires(lire("src/app/connexion/PorteDeConnexion.tsx"));
   const page = sansCommentaires(lire("src/app/connexion/page.tsx"));
-  it("n'offre que le déverrouillage : Face ID ou empreinte, ou le clavier à 4 chiffres ; l'e-mail est derrière « Recevoir un code »", () => {
-    expect(porte).toMatch(/device\.kind === "passkey"/);
+  it("n'offre que le code Guichet : le clavier à six chiffres ; l'e-mail est derrière « Code oublié ? »", () => {
     expect(porte).toMatch(/<EcranDeCode[^>]*onFini=\{ouvrirParLeCode\}/);
-    expect(porte).toMatch(/const deverrouille = device && !autre && !oublie/);
+    expect(porte).toMatch(/const deverrouille = device && code && !autre && !oublie/);
     expect(porte).toMatch(/marquerCodeOublie\(\);\s*setAutre\(true\)/);
-    /* 4A : Face ID se propose de lui-même quand la connexion est requise ; « Toucher pour réessayer » prend le relais s'il échoue. */
-    expect(porte).toMatch(/proposee\.current = true;\s*ouvrirParLaCle\(\)/);
-    expect(porte).toMatch(/Toucher pour réessayer/);
+    expect(porte, "l'empreinte est revenue sur la porte").not.toMatch(/startAuthentication|passkey|empreinte/i);
   });
   it("le formulaire e-mail ne s'affiche qu'à travers la porte, et mène à la création du code de l'appareil", () => {
     expect(page).toMatch(/<PorteDeConnexion[\s\S]*<EmailOtpForm next=\{administration \? next : `\/connexion\/creer\?next=/);
   });
   it("rien n'est montré avant l'hydratation : pas de formulaire e-mail qui clignote sous un appareil reconnu", () => {
-    expect(porte).toMatch(/if \(!pret\) return <div className=\{styles\.masque\}>/);
+    expect(porte).toMatch(/if \(!pret\)[\s\S]*<div className=\{styles\.masque\}>/);
+    /* L'ATTENTE : le G se trace, rendu par le serveur, au lieu d'un écran vide (20 novembre 2026, planche « Écran d'attente », 1A). */
+    expect(porte).toMatch(/<LogoDAttente \/>/);
     expect(sansCommentaires(lire("src/app/connexion/page.module.css"))).toMatch(/\.masque \{[^}]*visibility: hidden;/);
   });
   it("le clavier est partagé avec la création du compte", () => {

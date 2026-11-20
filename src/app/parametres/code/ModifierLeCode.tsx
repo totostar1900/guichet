@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/client";
 import { ClavierCode } from "@/components/ClavierCode";
-import { codeDeCetAppareil, deviceLabel, enregistrerLaCle, enregistrerLeCode, newDeviceToken, readDevice } from "@/lib/device-client";
+import { codeDeCetAppareil, deviceLabel, enregistrerLeCode, newDeviceToken, readDevice } from "@/lib/device-client";
 import { logout } from "@/app/connexion/actions";
 import { modifierLeCode, verifierLeCode } from "@/app/verrou/actions";
 import { enrolPin, forgetDeviceAction } from "@/app/moi/securite/actions";
@@ -76,11 +76,7 @@ export function ModifierLeCode({ aUnCode }: { aUnCode: boolean }) {
         const e = await enrolPin(token, c, deviceLabel());
         if (e.ok) {
           const nouveau = { id: e.device.id, token, who: ici.who, name: e.device.name, since: e.device.createdAt };
-          /* La méthode préférée reste celle qu'elle était : la clé garde la première place, le nouveau code est sa seconde. */
-          if (ici.kind === "passkey") {
-            enregistrerLeCode(nouveau);
-            enregistrerLaCle({ id: ici.id, who: ici.who, name: ici.name, since: ici.since });
-          } else enregistrerLeCode(nouveau);
+          enregistrerLeCode(nouveau);
         }
       }
       setEtape("fait");

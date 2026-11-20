@@ -1,51 +1,29 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const lire = (f: string) => readFileSync(f, "utf8");
 
 /**
- * LA BIOMÉTRIE DIRECTEMENT, ET UNE PAGE DE CONNEXION REPRISE (18 novembre 2026).
- * Le client : « pourquoi la connexion via empreinte et Face ID me demande de choisir le "use a passkey" ? Chez Revolut l'empreinte est directement sur l'écran. Retirer le "Bonjour xxx" sur l'écran de connexion. Réorganiser la page plus élégamment. »
+ * L'EMPREINTE A QUITTÉ LE NAVIGATEUR (20 novembre 2026, le client : « le password de l'écran ne devrait pas pouvoir ouvrir l'application. Uniquement celui rentré par le client »).
+ *
+ * Dans un navigateur, l'empreinte passe par une clé d'accès (WebAuthn), et le téléphone l'accorde aussi au code d'écran, connu des proches ; aucun réglage ne n'accepte que la biométrie. Les deux entrées serveur sont supprimées : seul le code Guichet ouvre. L'empreinte reviendra avec une application native.
  */
-describe("l'appareil reconnu ouvre directement sur Face ID ou l'empreinte", () => {
-  const d = lire("src/lib/auth/devices.ts");
+describe("aucune entrée n'ouvre Guichet par une clé d'accès", () => {
   const a = lire("src/app/connexion/actions.ts");
-  const brut = lire("src/app/connexion/DeviceSignIn.tsx");
-  /* Le code sans ses commentaires : les commentaires citent les mots retirés pour dire pourquoi. */
-  const c = brut.replace(/\/\*[\s\S]*?\*\//g, "");
-
-  it("le serveur désigne la clé de l'appareil reconnu (liste « allowCredentials », transport interne) et exige le visage ou l'empreinte", () => {
-    const debut = d.indexOf("export async function passkeyAuthenticationOptions");
-    const fonction = d.slice(debut, d.indexOf("/**", debut));
-    expect(fonction).toMatch(/passkeyAuthenticationOptions\(deviceId\?: string\)/);
-    expect(fonction).toMatch(/findDevice\(\{ id: deviceId \}\)/);
-    expect(fonction).toMatch(/transports: \["internal" as const\]/);
-    expect(fonction).toMatch(/userVerification: "required", allowCredentials/);
+  const code = (f: string) => lire(f).replace(/\/\*[\s\S]*?\*\//g, "");
+  it("le serveur n'expose ni les options ni l'ouverture par clé, ni l'enrôlement d'une clé", () => {
+    expect(code("src/app/connexion/actions.ts")).not.toMatch(/passkeyOptions|passkeyLogin|passkeyAuthenticate/);
+    expect(code("src/app/moi/securite/actions.ts")).not.toMatch(/beginPasskey|finishPasskey|passkeyRegister/);
+    expect(a).toMatch(/export async function pinLogin/);
   });
-
-  it("un identifiant mal formé ne désigne aucune clé : la porte sans liste s'ouvre à la place", () => {
-    expect(a).toMatch(/passkeyOptions\(deviceId\?: string\)/);
-    expect(a).toMatch(/\/\^\[a-zA-Z0-9-\]\{4,60\}\$\/\.test\(deviceId\)/);
+  it("aucun écran du navigateur n'appelle WebAuthn", () => {
+    for (const f of ["src/components/VerrouDeLApp.tsx", "src/app/connexion/PorteDeConnexion.tsx", "src/app/connexion/creer/CreerCompte.tsx", "src/app/parametres/Connexion.tsx", "src/components/ClavierCode.tsx", "src/components/EcranDeCode.tsx"]) {
+      expect(code(f), f).not.toMatch(/@simplewebauthn|startAuthentication|startRegistration|passkeyLogin|beginPasskey/);
+    }
+    expect(existsSync("src/app/connexion/DeviceSignIn.tsx"), "le bloc d'empreinte de la porte est revenu").toBe(false);
   });
-
-  it("la page envoie l'identifiant de l'appareil reconnu (jamais celui d'un code à quatre chiffres)", () => {
-    expect(c).toMatch(/passkeyOptions\(device\?\.kind === "passkey" \? device\.id : undefined\)/);
-  });
-
-  it("la biométrie est un bloc d'icône, titre, phrase et bouton à bouts ronds, sans « Bonjour », sans nom, sans « Pas vous ? »", () => {
-    expect(c).not.toMatch(/Bonjour/);
-    expect(c).not.toMatch(/device\.who/);
-    expect(c, "le lien « Pas vous ? » est revenu").not.toMatch(/Pas vous/);
-    expect(c).toMatch(/className=\{styles\.bioBloc\}/);
-    expect(c).toMatch(/className=\{styles\.bioBouton\}/);
-    expect(c).toMatch(/Ouvrir avec Face ID, empreinte ou code de l'appareil/);
-    expect(c).toMatch(/Connexion biométrique/);
-    expect(lire("src/app/connexion/page.module.css")).toMatch(/\.bioBouton \{[^}]*border-radius: 999px;/);
-  });
-
-  it("« Oublier cet appareil ici » ne retire que le souvenir de ce navigateur ; le retrait de l'appareil se fait à Mon compte > Sécurité", () => {
-    expect(c).toMatch(/clearDevice\(\);\s*setHidden\(true\);/);
-    expect(c, "la page de connexion ne doit pas oublier l'appareil côté serveur").not.toMatch(/forgetDevice/);
+  it("« Oublier » un appareil se fait à Paramètres ; la page de connexion n'oublie rien côté serveur", () => {
+    expect(code("src/app/connexion/PorteDeConnexion.tsx")).not.toMatch(/forgetDevice/);
     expect(lire("src/app/moi/securite/actions.ts")).toMatch(/export async function forgetDeviceAction/);
   });
 });
@@ -63,10 +41,8 @@ describe("la page de connexion : une colonne centrée, des champs et des boutons
     expect(css).toMatch(/\.otp :global\(\.field\) input \{[^}]*width: 100%;[^}]*border-radius: 999px;/);
     expect(css, "la porte Google est revenue dans la feuille").not.toMatch(/\.google/);
   });
-  it("l'e-mail est en haut et la biométrie en bas ; plus de « Vous découvrez Guichet ? »", () => {
-    expect(p.indexOf("<EmailOtpForm"), "le formulaire e-mail doit venir avant la biométrie").toBeLessThan(p.indexOf("<DeviceSignIn"));
-    expect(p.lastIndexOf("<DeviceSignIn"), "la biométrie doit être en bas de la carte de démonstration").toBeGreaterThan(p.indexOf("devForm"));
+  it("plus de « Vous découvrez Guichet ? » ni de bloc d'empreinte sous le formulaire", () => {
     expect(p, "« Vous découvrez Guichet ? » est revenu").not.toMatch(/Vous découvrez Guichet|ReplayPresentation|Trente secondes pour comprendre/);
-    expect(css).toMatch(/\.bioBloc \{[^}]*border-top: 1px solid var\(--line\);/);
+    expect(p, "le bloc d'empreinte est revenu").not.toMatch(/DeviceSignIn/);
   });
 });

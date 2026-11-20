@@ -8,7 +8,6 @@ import { devLogin } from "./actions";
 import { Select } from "@/components/ui/Select";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
-import { DeviceSignIn } from "./DeviceSignIn";
 import { PorteDeConnexion } from "./PorteDeConnexion";
 import { Glissement } from "@/components/mobile/Glissement";
 
@@ -101,7 +100,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               }
             >
               <EmailOtpForm next={administration ? next : `/connexion/creer?next=${encodeURIComponent(next)}`} phoneEnabled={telephoneOuvert} withCode={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY)} />
-              <DeviceSignIn next={next} seulementInconnu />
             </PorteDeConnexion>
           ) : (
             <>
@@ -150,8 +148,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                   </button>
                 </form>
               </div>
-              {/* LA BIOMÉTRIE EST EN BAS (18 novembre 2026). */}
-              <DeviceSignIn next={next} />
             </>
           )}
         </div>

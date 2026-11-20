@@ -61,7 +61,7 @@ describe("les rubriques du dossier", () => {
 describe("« Vous pouvez aussi »", () => {
   it("ne propose que des gestes que le client peut faire lui-même, les inachevés d'abord", () => {
     const tous = gestesProposables(pourGestes());
-    expect(tous).toEqual(["intention", "versement", "appareil", "profil", "suivre"]);
+    expect(tous).toEqual(["intention", "versement", "profil", "suivre", "sondage"]);
     /* Les droits de garde et les documents ne se créent pas : ils ne sont jamais proposés. */
     for (const g of tous) expect(["garde", "documents"]).not.toContain(g);
   });

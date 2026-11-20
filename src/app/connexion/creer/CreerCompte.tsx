@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useSyncExternalStore, useTransition } from "react";
-import { platformAuthenticatorIsAvailable, startRegistration } from "@simplewebauthn/browser";
 import { useDates, useT } from "@/i18n/client";
-import { codeOublie, deviceLabel, effacerCodeOublie, newDeviceToken, readDevice, enregistrerLaCle, enregistrerLeCode } from "@/lib/device-client";
+import { codeOublie, deviceLabel, effacerCodeOublie, newDeviceToken, readDevice, enregistrerLeCode } from "@/lib/device-client";
 import { acceptTerms } from "@/app/moi/actions";
 import { checkPhoneProof, sendPhoneProof } from "@/app/offres/[id]/actions";
-import { beginPasskey, enrolPin, finishPasskey } from "@/app/moi/securite/actions";
+import { enrolPin } from "@/app/moi/securite/actions";
 import { ClavierCode } from "@/components/ClavierCode";
 import { logout } from "@/app/connexion/actions";
 import { poserLeCode, verifierLeCode } from "@/app/verrou/actions";
@@ -16,7 +15,7 @@ import { creerEnregistrerPrenom, creerEnvoyerCodeEmail, creerVerifierCodeEmail }
 import styles from "./creer.module.css";
 
 export type EtapeDeDepart = "email" | "telephone" | "prenom" | "appareil";
-type Etape = "email" | "email-code" | "telephone" | "telephone-code" | "prenom" | "avant" | "code" | "code-bis" | "bio" | "bio-fait";
+type Etape = "email" | "email-code" | "telephone" | "telephone-code" | "prenom" | "avant" | "code" | "code-bis";
 
 /** Combien de secondes avant de pouvoir demander un nouveau code. */
 const ATTENTE = 60;
@@ -24,7 +23,7 @@ const ATTENTE = 60;
 /**
  * LA CRÉATION D'UN COMPTE, UN ÉCRAN PAR GESTE (19 novembre 2026, planche « Parcours d'inscription », 1A à 7B).
  *
- * L'adresse puis son code, le numéro puis son code, « Avant d'entrer » (les mentions, en trois lignes, une case), un code à six chiffres pour cet appareil, puis la biométrie si l'appareil la sait. Le bouton de validation est TOUJOURS en bas de l'écran, au pouce ; une erreur s'écrit sous le champ, jamais dans une fenêtre ; aucune porte Google (le client veut les informations réelles, pas celles d'un profil).
+ * L'adresse puis son code, le numéro puis son code, « Avant d'entrer » (les mentions, en trois lignes, une case), un code à six chiffres pour cet appareil. Le bouton de validation est TOUJOURS en bas de l'écran, au pouce ; une erreur s'écrit sous le champ, jamais dans une fenêtre ; aucune porte Google (le client veut les informations réelles, pas celles d'un profil).
  *
  * Chaque preuve passe par l'action qui existait déjà : rien n'est écrit deux fois.
  */
@@ -47,11 +46,7 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
   const [canal, setCanal] = useState<"whatsapp" | "sms">("whatsapp");
   const [enCours, start] = useTransition();
   const [codeA, setCodeA] = useState("");
-  const [peutBio, setPeutBio] = useState(false);
 
-  useEffect(() => {
-    platformAuthenticatorIsAvailable().then(setPeutBio, () => setPeutBio(false));
-  }, []);
   /* Un appareil déjà reconnu n'a pas besoin qu'on lui repose la question. */
   useEffect(() => {
     if (depart === "appareil" && readDevice() && !oublie) router.replace(next);
@@ -133,8 +128,7 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
       return;
     }
     enregistrerLeCode({ id: r.device.id, token, who: prenom || "", name: r.device.name, since: r.device.createdAt });
-    if (peutBio) vers("bio");
-    else fin();
+    fin();
   };
   const fixerCode = (c: string) => {
     /* Le compte a DÉJÀ son code (le même sur tout appareil) : on le saisit une fois, il prouve que c'est bien vous qui reconnaissez cet appareil. */
@@ -175,21 +169,6 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
       await enroler(c);
     });
   };
-  const activerBio = () =>
-    start(async () => {
-      try {
-        const options = await beginPasskey();
-        const reponse = await startRegistration({ optionsJSON: options });
-        const r = await finishPasskey(reponse, deviceLabel());
-        if (!r.ok) return setErreur(r.error);
-        enregistrerLaCle({ id: r.device.id, who: prenom || "", name: r.device.name, since: r.device.createdAt });
-        vers("bio-fait");
-      } catch (e) {
-        const nom = (e as Error).name;
-        setErreur(nom === "NotAllowedError" ? "Annulé. Vous pourrez l'activer plus tard, dans Mon compte, Sécurité." : nom === "InvalidStateError" ? "Cet appareil est déjà enregistré." : `Impossible : ${(e as Error).message}`);
-      }
-    });
-
   const decompte = attente > 0 ? `${Math.floor(attente / 60)}:${String(attente % 60).padStart(2, "0")}` : null;
   const champErreur = erreur ? <p className={styles.erreur} role="alert">{t(erreur)}</p> : null;
   const demoLigne = montre ? <p className={styles.demo}>{t("Serveur de démonstration, code :")} <b>{montre}</b></p> : demo && etape === "email" ? <p className={styles.demo}>{t("Serveur de démonstration : le code sera {code}.", { code: demo })}</p> : null;
@@ -303,53 +282,10 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
           </header>
           <ClavierCode onFini={fixerCode} occupe={enCours} cle={etape} erreur={champErreur} />
           <div className={styles.bas}>
-            <button className={styles.secondaire} type="button" onClick={() => (peutBio ? vers("bio") : fin())}>{t("Plus tard")}</button>
-          </div>
-        </div>
-      )}
-
-      {etape === "bio" && (
-        <div className={styles.corps}>
-          <header className={`${styles.tete} ${styles.centre}`}>
-            <Empreinte />
-            <h1 className="display">{t("La connexion biométrique est disponible")}</h1>
-            <p>{t("Connectez-vous à Guichet avec Face ID, votre empreinte ou le code de l'appareil.")}</p>
-          </header>
-          {champErreur}
-          <div className={styles.bas}>
-            <button className={styles.valider} type="button" disabled={enCours} onClick={activerBio}>{t(enCours ? "Un instant…" : "Activer la connexion biométrique")}</button>
             <button className={styles.secondaire} type="button" onClick={fin}>{t("Plus tard")}</button>
           </div>
         </div>
       )}
-
-      {etape === "bio-fait" && (
-        <div className={styles.corps}>
-          <header className={`${styles.tete} ${styles.centre}`}>
-            <Empreinte ok />
-            <h1 className="display">{t("La connexion biométrique est activée")}</h1>
-            <p>{t("Vous pouvez la désactiver à tout moment dans Mon compte, Sécurité.")}</p>
-          </header>
-          <div className={styles.bas}>
-            <button className={styles.valider} type="button" onClick={fin}>{t("Continuer")}</button>
-          </div>
-        </div>
-      )}
     </div>
-  );
-}
-
-function Empreinte({ ok }: { ok?: boolean }) {
-  return (
-    <svg className={ok ? styles.empreinteOk : styles.empreinte} viewBox="0 0 24 24" width="88" height="88" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
-      <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
-      <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
-      <path d="M2 12a10 10 0 0 1 18-6" />
-      <path d="M21.8 16c.2-2 .131-5.354 0-6" />
-      <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
-      <path d="M8.65 22c.21-.66.45-1.32.57-2" />
-      <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
-    </svg>
   );
 }

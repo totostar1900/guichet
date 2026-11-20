@@ -32,16 +32,6 @@
   line-height: 1.55;
   color: var(--ink-2);
 }
-.centre {
-  padding-top: var(--s-9);
-  justify-items: center;
-}
-.empreinte {
-  color: var(--ink-3);
-}
-.empreinteOk {
-  color: var(--good);
-}
 .champ {
   display: grid;
   gap: var(--s-3);

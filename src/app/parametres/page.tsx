@@ -41,7 +41,7 @@ export default async function ParametresPage() {
     <Glissement>
       <div className={styles.page}>
         <EnTete surTitre={t("Vous")} titre={t("Paramètres")} phrase={t("Comment Guichet s'ouvre, et ce qui vous notifie.")} />
-        <Connexion who={s.name} aUnCode={aUnCode} />
+        <Connexion aUnCode={aUnCode} />
         <Appareil prefs={prefs} phoneOk={Boolean(canaux?.phoneVerifiedAt)} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} whatsapp={Boolean(contact?.whatsappOptIn)} emailOptIn={Boolean(contact?.emailOptIn)} hasPhone={Boolean(contact?.phone ?? s.phone)} hasEmail={Boolean(contact?.email ?? s.email)} />
         <SecurityPanel devices={appareils} />
         {/* « Se déconnecter partout » vit avec la sécurité : c'est un geste, pas une destination. */}

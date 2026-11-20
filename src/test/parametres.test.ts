@@ -17,10 +17,10 @@ describe("Paramètres : une ligne du menu, hors de Mon compte (1A)", () => {
 });
 
 describe("Paramètres : des interrupteurs, sans Apparence ni langue (2A)", () => {
-  it("Face ID et le code ouvrent la section Connexion ; le code a sa page", () => {
+  it("la section Connexion ne porte que le code, avec sa page : plus d'interrupteur Face ID", () => {
     const c = lire("src/app/parametres/Connexion.tsx");
-    expect(c).toMatch(/<Interrupteur[^>]*label=\{t\("Face ID ou empreinte"\)\}/);
     expect(c).toMatch(/href="\/parametres\/code"/);
+    expect(c, "Face ID est revenu dans Paramètres").not.toMatch(/Interrupteur|Face ID|startRegistration|empreinte/);
   });
   it("le code du compte ne s'éteint pas : aucun interrupteur ne le porte", () => {
     expect(lire("src/app/parametres/Connexion.tsx")).not.toMatch(/Interrupteur[^>]*Code de connexion/);
@@ -51,11 +51,10 @@ describe("Modifier le code : l'actuel d'abord, la coche à la fin (3A)", () => {
   });
 });
 
-describe("La méthode choisie s'offre toute seule (4A)", () => {
-  it("le verrou propose Face ID dès qu'il paraît, par-dessus le clavier ; la touche d'empreinte la rappelle ; « Code oublié ? » est le seul lien", () => {
+describe("Le code Guichet, et lui seul (4A révisée le 20 novembre 2026)", () => {
+  it("le verrou n'a ni prompt d'empreinte ni touche d'empreinte : un clavier et « Code oublié ? »", () => {
     const v = lire("src/components/VerrouDeLApp.tsx");
-    expect(v).toMatch(/propose\.current = true;\s*parLaCle\(\)/);
-    expect(v).toMatch(/empreinte=\{clePasse && !aPoser \? parLaCle : undefined\}/);
+    expect(v).not.toMatch(/startAuthentication|passkey|empreinte|Face ID/i);
     expect(v).toMatch(/marquerCodeOublie\(\)/);
     expect(lire("src/components/EcranDeCode.tsx")).toMatch(/Code oublié \?/);
   });
@@ -65,17 +64,11 @@ describe("La méthode choisie s'offre toute seule (4A)", () => {
     expect(lire("src/components/ClavierCode.tsx")).toMatch(/Array\.from\(\{ length: CHIFFRES_DU_CODE \}/);
     expect(lire("src/lib/verrou.ts")).toMatch(/CHIFFRES_DU_CODE = 6/);
   });
-  it("un geste annulé ne se dit pas : le clavier est la réponse", () => {
-    for (const f of ["src/components/VerrouDeLApp.tsx", "src/app/connexion/PorteDeConnexion.tsx"]) expect(lire(f)).toMatch(/nom !== "NotAllowedError"/);
-  });
-  it("la clé garde le code de ce navigateur comme seconde méthode, et allumer Face ID demande le code", () => {
-    expect(lire("src/lib/device-client.ts")).toMatch(/pin\?: \{ id: string; token: string \}/);
-    expect(lire("src/app/parametres/Connexion.tsx")).toMatch(/verifierLeCode\(c\)[\s\S]*startRegistration/);
-  });
-  it("la porte propose l'empreinte d'elle-même, une fois ; sans code sur l'appareil, « Toucher pour réessayer » prend le relais", () => {
+  it("la porte : un G qui se trace avant l'hydratation, puis le clavier seul", () => {
     const p = lire("src/app/connexion/PorteDeConnexion.tsx");
-    expect(p).toMatch(/proposee\.current = true;\s*ouvrirParLaCle\(\)/);
-    expect(p).toMatch(/Toucher pour réessayer/);
+    expect(p).toMatch(/<LogoDAttente \/>/);
+    expect(p).not.toMatch(/startAuthentication|passkey|empreinte/i);
+    expect(lire("src/components/LogoDAttente.module.css")).toMatch(/prefers-reduced-motion/);
   });
   it("« Code oublié ? » : l'adresse est prouvée par le code reçu, puis un NOUVEAU code est choisi", () => {
     const c = lire("src/app/connexion/creer/CreerCompte.tsx");
@@ -87,17 +80,7 @@ describe("La méthode choisie s'offre toute seule (4A)", () => {
   });
 });
 
-describe("Le mode choisi, et lui seul ; le blocage du code (20 novembre 2026)", () => {
-  it("avec l'empreinte, le clavier ne paraît qu'après l'annulation, un échec ou 8 secondes ; porte et verrou pareil", () => {
-    for (const f of ["src/components/VerrouDeLApp.tsx", "src/app/connexion/PorteDeConnexion.tsx"]) {
-      const c = lire(f);
-      expect(c, f).toMatch(/setRevele\(true\)/);
-      expect(c, f).toMatch(/setTimeout\(\(\) => setRevele\(true\), 8000\)/);
-    }
-    expect(lire("src/components/VerrouDeLApp.tsx")).toMatch(/clavier=\{!auto \|\| revele\}/);
-    expect(lire("src/app/connexion/PorteDeConnexion.tsx")).toMatch(/clavier=\{device\.kind !== "passkey" \|\| revele\}/);
-    expect(lire("src/components/EcranDeCode.tsx")).toMatch(/\{clavier && onOubli && \(/);
-  });
+describe("Le blocage du code (20 novembre 2026)", () => {
   it("cinq codes faux suppriment le code, et le client en est prévenu sur ses deux canaux", () => {
     const d = lire("src/lib/auth/devices.ts");
     const f = d.slice(d.indexOf("export async function verifierCodeDuCompte"));
@@ -119,7 +102,7 @@ describe("La première connexion : e-mail, téléphone, prénom ; les pièces vi
     expect(c).not.toMatch(/uploadDoc|piece_identite|selfie|rib/);
   });
   it("on ne salue jamais une adresse e-mail : un appareil sans prénom dit « Bonjour »", () => {
-    for (const f of ["src/app/connexion/PorteDeConnexion.tsx", "src/components/VerrouDeLApp.tsx"]) expect(lire(f)).toMatch(/who\.includes\("@"\)/);
+    expect(lire("src/app/connexion/PorteDeConnexion.tsx")).toMatch(/who\.includes\("@"\)/);
   });
   it("les pièces viennent après, dans l'ordre : identité, selfie, RIB, puis justificatif et NIU", async () => {
     const { requiredDocs } = await import("@/lib/kyc/checklist");

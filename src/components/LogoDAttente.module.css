@@ -1,0 +1,82 @@
+/* Le G qui se trace : contour, remplissage d'or, trait du bas. Les jetons de la maison, l'or de la marque. */
+.logo {
+  display: block;
+}
+.logo text {
+  font-family: var(--font-sans, system-ui, sans-serif);
+  font-weight: 800;
+  font-size: 300px;
+}
+.trait {
+  fill: transparent;
+  stroke: var(--gold);
+  stroke-width: 6;
+  stroke-linejoin: round;
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation: trace 2.6s ease-in-out infinite;
+}
+.plein {
+  fill: var(--gold);
+  opacity: 0;
+  animation: remplit 2.6s ease-in-out infinite;
+}
+.barre {
+  fill: var(--gold);
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: barre 2.6s ease-in-out infinite;
+}
+@keyframes trace {
+  0% {
+    stroke-dashoffset: 1400;
+  }
+  55%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes remplit {
+  0%,
+  50% {
+    opacity: 0;
+  }
+  70%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes barre {
+  0%,
+  45% {
+    transform: scaleX(0);
+  }
+  70%,
+  90% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trait,
+  .plein,
+  .barre {
+    animation: none;
+  }
+  .plein {
+    opacity: 1;
+  }
+  .trait {
+    stroke-dashoffset: 0;
+  }
+  .barre {
+    transform: none;
+  }
+}
