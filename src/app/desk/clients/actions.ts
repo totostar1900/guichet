@@ -234,7 +234,7 @@ export async function removeClientDeviceAction(form: FormData): Promise<void> {
   const porteur = String(form.get("clientName") ?? "").trim();
   await repo().logEvent({
     kind: "desk",
-    html: `Appareil <b>retiré</b> par ${desk.name}${porteur ? ` chez ${porteur}` : ""} : ${device.name} (${device.kind === "passkey" ? "clef d'accès" : "code à quatre chiffres"})`,
+    html: `Appareil <b>retiré</b> par ${desk.name}${porteur ? ` chez ${porteur}` : ""} : ${device.name} (${device.kind === "passkey" ? "clef d'accès" : "code à six chiffres"})`,
   });
   revalidatePath("/desk/clients");
   revalidatePath("/moi/securite");

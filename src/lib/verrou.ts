@@ -43,3 +43,17 @@ export function reporterLeVerrou(): void {
     // stockage refusé : le verrou garde ses seuils ordinaires
   }
 }
+
+/**
+ * SIX CHIFFRES (19 novembre 2026, le client : « six chiffres », comme Revolut) : un million de combinaisons au lieu de dix mille, pour un code qui se tape au pouce. Un seul endroit dit le nombre : le clavier, le serveur et les textes le lisent ici.
+ */
+export const CHIFFRES_DU_CODE = 6;
+export const FORME_DU_CODE = new RegExp(`^\\d{${CHIFFRES_DU_CODE}}$`);
+export const MESSAGE_FORME_DU_CODE = `Le code comporte ${CHIFFRES_DU_CODE} chiffres.`;
+/** Un chiffre répété, ou une suite montante ou descendante : le premier code qu'on essaierait sur un téléphone trouvé. */
+export function codeTropSimple(pin: string): boolean {
+  if (/^(\d)\1+$/.test(pin)) return true;
+  const monte = "0123456789012345678901234567890123456789".includes(pin);
+  const descend = "9876543210987654321098765432109876543210".includes(pin);
+  return monte || descend;
+}

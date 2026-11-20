@@ -65,7 +65,7 @@ describe("la création d'un compte", () => {
   });
 
   it("le parcours se reprend là où il s'est arrêté", () => {
-    expect(page).toMatch(/!\(canaux\.phoneVerifiedAt \|\| session\.phoneVerified\) \? "telephone" : consentement\.version !== LEGAL_VERSION \? "avant" : "appareil"/);
+    expect(page).toMatch(/!\(canaux\.phoneVerifiedAt \|\| session\.phoneVerified\) \? "telephone" : consentement\.version !== LEGAL_VERSION \? "prenom" : "appareil"/);
   });
 });
 
@@ -108,7 +108,7 @@ describe("la connexion sur un appareil reconnu", () => {
   const page = sansCommentaires(lire("src/app/connexion/page.tsx"));
   it("n'offre que le déverrouillage : Face ID ou empreinte, ou le clavier à 4 chiffres ; l'e-mail est derrière « Recevoir un code »", () => {
     expect(porte).toMatch(/device\.kind === "passkey"/);
-    expect(porte).toMatch(/<ClavierCode onFini=\{ouvrirParLeCode\}/);
+    expect(porte).toMatch(/<EcranDeCode[^>]*onFini=\{ouvrirParLeCode\}/);
     expect(porte).toMatch(/const deverrouille = device && !autre && !oublie/);
     expect(porte).toMatch(/marquerCodeOublie\(\);\s*setAutre\(true\)/);
     /* 4A : Face ID se propose de lui-même quand la connexion est requise ; « Toucher pour réessayer » prend le relais s'il échoue. */

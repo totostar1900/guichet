@@ -16,7 +16,7 @@ export default async function CodePage() {
   const aUnCode = (await repo().listDevices(s.userId).catch(() => [])).some((d) => d.kind === "code");
   return (
     <Glissement>
-      <ModifierLeCode aUnCode={aUnCode} who={s.name} />
+      <ModifierLeCode aUnCode={aUnCode} />
     </Glissement>
   );
 }

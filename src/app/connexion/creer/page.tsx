@@ -41,7 +41,7 @@ export default async function CreerUnComptePage({ searchParams }: { searchParams
     adresse = session.email ?? "";
     const [canaux, consentement] = await Promise.all([repo().getChannelStatus(session.userId), repo().getConsent(session.userId)]);
     codeExiste = (await repo().listDevices(session.userId).catch(() => [])).some((d) => d.kind === "code");
-    depart = !(canaux.phoneVerifiedAt || session.phoneVerified) ? "telephone" : consentement.version !== LEGAL_VERSION ? "avant" : "appareil";
+    depart = !(canaux.phoneVerifiedAt || session.phoneVerified) ? "telephone" : consentement.version !== LEGAL_VERSION ? "prenom" : "appareil";
   }
   return (
     <Glissement>

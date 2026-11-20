@@ -1,5 +1,6 @@
 "use server";
 
+import { FORME_DU_CODE, MESSAGE_FORME_DU_CODE } from "@/lib/verrou";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { deskOrigin, isDeskHost } from "@/lib/hosts";
@@ -143,7 +144,7 @@ export async function passkeyLogin(response: AuthenticationResponseJSON): Promis
 }
 
 export async function pinLogin(deviceId: string, token: string, pin: string): Promise<{ ok: true; name: string } | { ok: false; error: string; forgotten?: boolean; left?: number }> {
-  if (!/^[a-zA-Z0-9-]{4,60}$/.test(deviceId) || !/^\d{4}$/.test(pin)) return { ok: false, error: "Le code comporte 4 chiffres." };
+  if (!/^[a-zA-Z0-9-]{4,60}$/.test(deviceId) || !FORME_DU_CODE.test(pin)) return { ok: false, error: MESSAGE_FORME_DU_CODE };
   const { pinAuthenticate } = await import("@/lib/auth/devices");
   return pinAuthenticate(deviceId, token, pin);
 }

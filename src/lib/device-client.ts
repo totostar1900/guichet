@@ -3,7 +3,36 @@
  * client on the sign-in page and to open with a finger or four digits. The
  * server holds the other half (public key, or the hash of token · code).
  */
-export type RememberedDevice = { id: string; kind: "passkey" | "pin"; token?: string; who: string; name: string; since: string };
+export type RememberedDevice = {
+  id: string;
+  /** la méthode PRÉFÉRÉE de ce navigateur : celle que la porte propose d'abord */
+  kind: "passkey" | "pin";
+  token?: string;
+  /** le code de ce navigateur, gardé même quand la clé est préférée : c'est lui qui répond quand le geste est annulé */
+  pin?: { id: string; token: string };
+  who: string;
+  name: string;
+  since: string;
+};
+
+/** Le code à six chiffres de ce navigateur (identifiant et jeton), qu'il soit la méthode préférée ou la seconde. */
+export function codeDeCetAppareil(d: RememberedDevice | null): { id: string; token: string } | null {
+  if (!d) return null;
+  if (d.kind === "pin" && d.token) return { id: d.id, token: d.token };
+  return d.pin ?? null;
+}
+
+/** Face ID ou l'empreinte devient la méthode préférée ; le code de ce navigateur, s'il existe, reste la seconde. */
+export function enregistrerLaCle(cle: { id: string; who: string; name: string; since: string }): void {
+  const avant = readDevice();
+  const code = codeDeCetAppareil(avant);
+  saveDevice({ id: cle.id, kind: "passkey", who: cle.who, name: cle.name, since: cle.since, ...(code ? { pin: code } : {}) });
+}
+
+/** Le code devient la seule méthode : la clé, s'il y en avait une, n'est plus proposée. */
+export function enregistrerLeCode(code: { id: string; token: string; who: string; name: string; since: string }): void {
+  saveDevice({ id: code.id, kind: "pin", token: code.token, who: code.who, name: code.name, since: code.since });
+}
 
 const KEY = "guichet_device";
 const NUDGE = "guichet_device_nudge";

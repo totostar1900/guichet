@@ -232,7 +232,7 @@ export function BarreDuHaut({ attentes, echeances, favoris }: BarreDuHautProps) 
         )}
         <span data-barre-contextuelle className={styles.slot} />
       </div>
-      <button type="button" className={styles.ic} onClick={() => setOuvert(true)} aria-haspopup="dialog" aria-expanded={ouvert} aria-label={libelleMenu} title={t("Menu")}>
+      <button type="button" className={`${styles.ic} ${styles.menu}`} onClick={() => setOuvert(true)} aria-haspopup="dialog" aria-expanded={ouvert} aria-label={libelleMenu} title={t("Menu")}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 7h16M4 12h16M4 17h16" />
         </svg>

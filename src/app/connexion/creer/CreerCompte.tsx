@@ -5,18 +5,18 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import { platformAuthenticatorIsAvailable, startRegistration } from "@simplewebauthn/browser";
 import { useDates, useT } from "@/i18n/client";
-import { codeOublie, deviceLabel, effacerCodeOublie, newDeviceToken, readDevice, saveDevice } from "@/lib/device-client";
+import { codeOublie, deviceLabel, effacerCodeOublie, newDeviceToken, readDevice, enregistrerLaCle, enregistrerLeCode } from "@/lib/device-client";
 import { acceptTerms } from "@/app/moi/actions";
 import { checkPhoneProof, sendPhoneProof } from "@/app/offres/[id]/actions";
 import { beginPasskey, enrolPin, finishPasskey } from "@/app/moi/securite/actions";
 import { ClavierCode } from "@/components/ClavierCode";
 import { logout } from "@/app/connexion/actions";
 import { poserLeCode, verifierLeCode } from "@/app/verrou/actions";
-import { creerEnvoyerCodeEmail, creerVerifierCodeEmail } from "./actions";
+import { creerEnregistrerPrenom, creerEnvoyerCodeEmail, creerVerifierCodeEmail } from "./actions";
 import styles from "./creer.module.css";
 
-export type EtapeDeDepart = "email" | "telephone" | "avant" | "appareil";
-type Etape = "email" | "email-code" | "telephone" | "telephone-code" | "avant" | "code" | "code-bis" | "bio" | "bio-fait";
+export type EtapeDeDepart = "email" | "telephone" | "prenom" | "appareil";
+type Etape = "email" | "email-code" | "telephone" | "telephone-code" | "prenom" | "avant" | "code" | "code-bis" | "bio" | "bio-fait";
 
 /** Combien de secondes avant de pouvoir demander un nouveau code. */
 const ATTENTE = 60;
@@ -24,7 +24,7 @@ const ATTENTE = 60;
 /**
  * LA CRÉATION D'UN COMPTE, UN ÉCRAN PAR GESTE (19 novembre 2026, planche « Parcours d'inscription », 1A à 7B).
  *
- * L'adresse puis son code, le numéro puis son code, « Avant d'entrer » (les mentions, en trois lignes, une case), un code à quatre chiffres pour cet appareil, puis la biométrie si l'appareil la sait. Le bouton de validation est TOUJOURS en bas de l'écran, au pouce ; une erreur s'écrit sous le champ, jamais dans une fenêtre ; aucune porte Google (le client veut les informations réelles, pas celles d'un profil).
+ * L'adresse puis son code, le numéro puis son code, « Avant d'entrer » (les mentions, en trois lignes, une case), un code à six chiffres pour cet appareil, puis la biométrie si l'appareil la sait. Le bouton de validation est TOUJOURS en bas de l'écran, au pouce ; une erreur s'écrit sous le champ, jamais dans une fenêtre ; aucune porte Google (le client veut les informations réelles, pas celles d'un profil).
  *
  * Chaque preuve passe par l'action qui existait déjà : rien n'est écrit deux fois.
  */
@@ -37,6 +37,7 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
   const codeExiste = codeExisteBrut && !oublie;
   const [etape, setEtape] = useState<Etape>(depart === "appareil" ? "code" : depart);
   const [email, setEmail] = useState(adresse);
+  const [prenom, setPrenom] = useState("");
   const [telephone, setTelephone] = useState("+237 ");
   const [code, setCode] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
@@ -92,7 +93,7 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
       const r = await sendPhoneProof(telephone);
       if (!r.ok) {
         /* Aucun fournisseur d'envoi : on ne bloque pas la personne, le desk confirmera le numéro. */
-        if ("unavailable" in r && r.unavailable) return vers("avant");
+        if ("unavailable" in r && r.unavailable) return vers("prenom");
         return setErreur(r.error);
       }
       if ("channel" in r && r.channel) setCanal(r.channel === "sms" ? "sms" : "whatsapp");
@@ -104,6 +105,13 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
     start(async () => {
       const r = await checkPhoneProof(telephone, code);
       if (!r.ok) return setErreur(r.error);
+      vers("prenom");
+    });
+  const enregistrerPrenom = () =>
+    start(async () => {
+      const r = await creerEnregistrerPrenom(prenom);
+      if (!r.ok) return setErreur(r.error);
+      setPrenom(r.prenom);
       vers("avant");
     });
   const accepter = () =>
@@ -124,7 +132,7 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
       setErreur(r.error);
       return;
     }
-    saveDevice({ id: r.device.id, kind: "pin", token, who: email, name: r.device.name, since: r.device.createdAt });
+    enregistrerLeCode({ id: r.device.id, token, who: prenom || "", name: r.device.name, since: r.device.createdAt });
     if (peutBio) vers("bio");
     else fin();
   };
@@ -174,7 +182,7 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
         const reponse = await startRegistration({ optionsJSON: options });
         const r = await finishPasskey(reponse, deviceLabel());
         if (!r.ok) return setErreur(r.error);
-        saveDevice({ id: r.device.id, kind: "passkey", who: email, name: r.device.name, since: r.device.createdAt });
+        enregistrerLaCle({ id: r.device.id, who: prenom || "", name: r.device.name, since: r.device.createdAt });
         vers("bio-fait");
       } catch (e) {
         const nom = (e as Error).name;
@@ -247,6 +255,23 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
         </form>
       )}
 
+      {etape === "prenom" && (
+        <form className={styles.corps} onSubmit={(e) => { e.preventDefault(); enregistrerPrenom(); }}>
+          <header className={styles.tete}>
+            <h1 className="display">{t("Comment vous appelle-t-on ?")}</h1>
+            <p>{t("Votre prénom, pour vous accueillir. Votre nom complet viendra avec votre dossier.")}</p>
+          </header>
+          <label className={styles.champ}>
+            {t("Prénom")}
+            <input type="text" autoComplete="given-name" autoCapitalize="words" maxLength={40} value={prenom} onChange={(e) => setPrenom(e.target.value)} autoFocus required />
+          </label>
+          {champErreur}
+          <div className={styles.bas}>
+            <button className={styles.valider} type="submit" disabled={enCours || prenom.trim().length < 2}>{t(enCours ? "Un instant…" : "Continuer")}</button>
+          </div>
+        </form>
+      )}
+
       {etape === "avant" && (
         <form className={styles.corps} onSubmit={(e) => { e.preventDefault(); accepter(); }}>
           <header className={styles.tete}>
@@ -274,7 +299,7 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
         <div className={styles.corps}>
           <header className={styles.tete}>
             <h1 className="display">{t(codeExiste ? "Saisissez votre code" : etape === "code" ? "Protégez votre compte" : "Saisissez-le encore")}</h1>
-            <p>{t(codeExiste ? "Le code de votre compte, le même sur tous vos appareils." : etape === "code" ? "Un code à quatre chiffres, le même sur tous vos appareils, protège l'accès à votre compte." : "Pour éviter toute faute de frappe.")}</p>
+            <p>{t(codeExiste ? "Le code de votre compte, le même sur tous vos appareils." : etape === "code" ? "Un code à six chiffres, le même sur tous vos appareils, protège l'accès à votre compte." : "Pour éviter toute faute de frappe.")}</p>
           </header>
           <ClavierCode onFini={fixerCode} occupe={enCours} cle={etape} erreur={champErreur} />
           <div className={styles.bas}>

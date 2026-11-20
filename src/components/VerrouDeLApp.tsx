@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTran
 import { usePathname } from "next/navigation";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { useT } from "@/i18n/client";
-import { ClavierCode } from "@/components/ClavierCode";
+import { EcranDeCode } from "@/components/EcranDeCode";
 import { marquerCodeOublie, readDevice } from "@/lib/device-client";
 import { CLE_GRACE, CLE_VERROU, faudraitVerrouiller } from "@/lib/verrou";
 import { logout, passkeyLogin, passkeyOptions } from "@/app/connexion/actions";
@@ -31,7 +31,7 @@ const lireNombre = (cle: string): number | undefined => {
  *
  * CE N'EST PAS UNE BARRIÈRE DE SÉCURITÉ : la session reste valable côté serveur, et un autre onglet n'est pas verrouillé. Le verrou protège contre l'œil qui passe ; ce qui protège l'argent, c'est le code reçu qu'il faut pour signer un ordre.
  */
-export function VerrouDeLApp({ aUnCode }: { aUnCode: boolean }) {
+export function VerrouDeLApp({ aUnCode, prenom }: { aUnCode: boolean; /** le prénom du client, pour le mot de bienvenue */ prenom?: string }) {
   const t = useT();
   const chemin = usePathname();
   const surLaPorte = chemin.startsWith("/connexion");
@@ -124,6 +124,7 @@ export function VerrouDeLApp({ aUnCode }: { aUnCode: boolean }) {
       }}
       onCodePose={() => setCodePose(true)}
       onReporter={() => setReporte(true)}
+      prenom={prenom}
       t={t}
     />
   );
@@ -131,15 +132,13 @@ export function VerrouDeLApp({ aUnCode }: { aUnCode: boolean }) {
 
 type Traduire = ReturnType<typeof useT>;
 
-function Ecran({ aPoser, onLeve, onCodePose, onReporter, t }: { aPoser: boolean; onLeve: () => void; onCodePose: () => void; onReporter: () => void; t: Traduire }) {
+function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: boolean; onLeve: () => void; onCodePose: () => void; onReporter: () => void; prenom?: string; t: Traduire }) {
   const [premier, setPremier] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [panne, setPanne] = useState(false);
   const [enCours, start] = useTransition();
   const appareil = typeof window === "undefined" ? null : readDevice();
   const clePasse = appareil?.kind === "passkey";
-  /* LA MÉTHODE PRÉFÉRÉE S'OFFRE TOUTE SEULE (19 novembre 2026, planche « Paramètres et connexion », 4A) : avec Face ID ou l'empreinte, le téléphone le demande dès que le voile paraît ; sinon le clavier est déjà là. Le coin dit l'autre méthode, une fois. */
-  const [mode, setMode] = useState<"cle" | "code">(clePasse && !aPoser ? "cle" : "code");
 
   const sortir = () =>
     start(async () => {
@@ -150,8 +149,8 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, t }: { aPoser: boolean;
       }
       await logout();
     });
-  const parLaCle = () =>
-    start(async () => {
+  /* La clé n'est pas une transition : un geste en attente (ou un navigateur qui ne répond pas) ne doit jamais verrouiller le clavier. */
+  const parLaCle = async () => {
       setErreur(null);
       try {
         const options = await passkeyOptions(appareil?.kind === "passkey" ? appareil.id : undefined);
@@ -160,12 +159,16 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, t }: { aPoser: boolean;
         if (!r.ok) return setErreur(r.error);
         onLeve();
       } catch (e) {
-        setErreur((e as Error).name === "NotAllowedError" ? "Annulé, ou l'appareil ne vous a pas reconnu : réessayez, ou entrez votre code." : `Clé indisponible : ${(e as Error).message}`);
+        /* Un geste annulé ne se dit pas : le clavier est là. */
+        const nom = (e as Error).name;
+        if (nom !== "NotAllowedError" && nom !== "AbortError") setErreur(`Clé indisponible : ${(e as Error).message}`);
       }
-    });
+  };
+  /* LA MÉTHODE PRÉFÉRÉE S'OFFRE TOUTE SEULE (19 novembre 2026, 4A + « coller à Revolut ») : avec Face ID ou l'empreinte, le téléphone la demande dès que le voile paraît, par-dessus le clavier ; annulée, elle laisse le clavier, et la touche en bas à gauche la rappelle. */
   const propose = useRef(false);
+  const auto = clePasse && !aPoser;
   useEffect(() => {
-    if (mode !== "cle" || propose.current) return;
+    if (!auto || propose.current) return;
     /* Le drapeau se pose À L'ÉCHÉANCE, pas avant : le mode strict de React monte, démonte et remonte l'effet, et un drapeau posé d'avance empêchait la seconde montée de rien proposer. */
     const id = setTimeout(() => {
       propose.current = true;
@@ -173,7 +176,7 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, t }: { aPoser: boolean;
     }, 150);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
+  }, [auto]);
   const oublie = () => {
     marquerCodeOublie();
     sortir();
@@ -212,35 +215,21 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, t }: { aPoser: boolean;
       if (r.bloque) await logout();
     });
 
-  const titre = aPoser ? (premier === null ? "Choisissez votre code" : "Saisissez-le encore") : "Guichet est verrouillé";
+  const titre = aPoser ? (premier === null ? "Choisissez votre code" : "Saisissez-le encore") : undefined;
+  const prenomAffiche = prenom?.trim().split(/\s+/)[0] || (appareil?.who.includes("@") ? undefined : appareil?.who.trim().split(/\s+/)[0] || undefined);
   return (
-    <div className={styles.verrou} role="dialog" aria-modal="true" aria-label={t(titre)}>
+    <div className={styles.verrou} role="dialog" aria-modal="true" aria-label={t(titre ?? "Guichet est verrouillé")}>
       <div className={styles.corps}>
-        <h1 className="display">{t(titre)}</h1>
-        <p>{t(aPoser ? "Quatre chiffres, les mêmes sur tous vos appareils : ils ouvrent Guichet quand il se verrouille." : "Entrez votre code pour continuer là où vous en étiez.")}</p>
-        {!aPoser && clePasse && mode === "cle" ? (
-          <>
-            {erreur && <div className={styles.erreur} role="alert">{t(erreur)}</div>}
-            <button type="button" className={styles.cle} onClick={parLaCle} disabled={enCours}>
-              {t(enCours ? "Vérification…" : erreur ? "Toucher pour réessayer" : "Ouvrir avec Face ID, empreinte ou code de l'appareil")}
-            </button>
-          </>
-        ) : (
-          <ClavierCode onFini={parLeCode} occupe={enCours} cle={aPoser ? `poser${premier === null ? 1 : 2}` : "lever"} erreur={erreur ? <div className={styles.erreur} role="alert">{t(erreur)}</div> : null} />
-        )}
-        {!aPoser && clePasse && (
-          <button
-            type="button"
-            className={styles.lien}
-            onClick={() => {
-              setErreur(null);
-              setMode(mode === "cle" ? "code" : "cle");
-              propose.current = false;
-            }}
-          >
-            {t(mode === "cle" ? "Utiliser le code" : "Utiliser Face ID ou l'empreinte")}
-          </button>
-        )}
+        <EcranDeCode
+          titre={titre}
+          prenom={prenomAffiche}
+          onFini={parLeCode}
+          occupe={enCours}
+          cle={aPoser ? `poser${premier === null ? 1 : 2}` : "lever"}
+          erreur={erreur}
+          empreinte={clePasse && !aPoser ? parLaCle : undefined}
+          onOubli={aPoser ? undefined : oublie}
+        />
         {aPoser && panne && (
           <button
             type="button"
@@ -251,11 +240,6 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, t }: { aPoser: boolean;
             }}
           >
             {t("Continuer sans code pour l'instant")}
-          </button>
-        )}
-        {!aPoser && (
-          <button type="button" className={styles.lien} onClick={oublie} disabled={enCours}>
-            {t("Code oublié ?")}
           </button>
         )}
       </div>

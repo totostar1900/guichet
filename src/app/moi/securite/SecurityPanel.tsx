@@ -56,7 +56,7 @@ export function SecurityPanel({ devices }: { devices: TrustedDevice[] }) {
                 {here?.id === d.id && <em className={styles.here}>{t("cet appareil")}</em>}
               </b>
               <small className="muted">
-                {t(d.kind === "passkey" ? "Face ID, empreinte ou code du téléphone" : "Code à 4 chiffres, lié à ce navigateur")} · {t("ajouté le {date}", { date: fmtDateTime(d.createdAt) })}
+                {t(d.kind === "passkey" ? "Face ID, empreinte ou code du téléphone" : "Code à 6 chiffres, lié à ce navigateur")} · {t("ajouté le {date}", { date: fmtDateTime(d.createdAt) })}
                 {d.lastUsedAt ? ` · ${t("utilisé le {date}", { date: fmtDateTime(d.lastUsedAt) })}` : ""}
               </small>
             </div>

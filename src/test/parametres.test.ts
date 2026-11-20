@@ -52,14 +52,27 @@ describe("Modifier le code : l'actuel d'abord, la coche à la fin (3A)", () => {
 });
 
 describe("La méthode choisie s'offre toute seule (4A)", () => {
-  it("le verrou propose Face ID dès qu'il paraît, avec le code dans un coin et « Code oublié ? » en bas", () => {
+  it("le verrou propose Face ID dès qu'il paraît, par-dessus le clavier ; la touche d'empreinte la rappelle ; « Code oublié ? » est le seul lien", () => {
     const v = lire("src/components/VerrouDeLApp.tsx");
     expect(v).toMatch(/propose\.current = true;\s*parLaCle\(\)/);
-    expect(v).toMatch(/Utiliser le code/);
-    expect(v).toMatch(/Utiliser Face ID ou l'empreinte/);
+    expect(v).toMatch(/empreinte=\{clePasse && !aPoser \? parLaCle : undefined\}/);
     expect(v).toMatch(/marquerCodeOublie\(\)/);
+    expect(lire("src/components/EcranDeCode.tsx")).toMatch(/Code oublié \?/);
   });
-  it("la porte propose l'empreinte d'elle-même, une fois, et « Toucher pour réessayer » prend le relais", () => {
+  it("l'écran de code est au plus petit : bienvenue avec le prénom, six ronds, le clavier, un lien", () => {
+    const e = lire("src/components/EcranDeCode.tsx");
+    expect(e).toMatch(/Bonjour \{prenom\}/);
+    expect(lire("src/components/ClavierCode.tsx")).toMatch(/Array\.from\(\{ length: CHIFFRES_DU_CODE \}/);
+    expect(lire("src/lib/verrou.ts")).toMatch(/CHIFFRES_DU_CODE = 6/);
+  });
+  it("un geste annulé ne se dit pas : le clavier est la réponse", () => {
+    for (const f of ["src/components/VerrouDeLApp.tsx", "src/app/connexion/PorteDeConnexion.tsx"]) expect(lire(f)).toMatch(/nom !== "NotAllowedError"/);
+  });
+  it("la clé garde le code de ce navigateur comme seconde méthode, et allumer Face ID demande le code", () => {
+    expect(lire("src/lib/device-client.ts")).toMatch(/pin\?: \{ id: string; token: string \}/);
+    expect(lire("src/app/parametres/Connexion.tsx")).toMatch(/verifierLeCode\(c\)[\s\S]*startRegistration/);
+  });
+  it("la porte propose l'empreinte d'elle-même, une fois ; sans code sur l'appareil, « Toucher pour réessayer » prend le relais", () => {
     const p = lire("src/app/connexion/PorteDeConnexion.tsx");
     expect(p).toMatch(/proposee\.current = true;\s*ouvrirParLaCle\(\)/);
     expect(p).toMatch(/Toucher pour réessayer/);
@@ -71,5 +84,27 @@ describe("La méthode choisie s'offre toute seule (4A)", () => {
   });
   it("les anciennes adresses mènent à Paramètres", () => {
     for (const f of ["src/app/moi/securite/page.tsx", "src/app/moi/appareil/page.tsx"]) expect(lire(f)).toMatch(/redirect\("\/parametres"/);
+  });
+});
+
+describe("La première connexion : e-mail, téléphone, prénom ; les pièces viennent après (19 novembre 2026)", () => {
+  it("le prénom vient juste après le téléphone, avant « Avant d'entrer », et le parcours reprend par lui", () => {
+    const c = lire("src/app/connexion/creer/CreerCompte.tsx");
+    expect(c).toMatch(/creerVerifierCodeEmail[\s\S]*vers\("telephone"\)/);
+    expect(c).toMatch(/checkPhoneProof[\s\S]*vers\("prenom"\)/);
+    expect(c).toMatch(/creerEnregistrerPrenom\(prenom\)[\s\S]*vers\("avant"\)/);
+    expect(lire("src/app/connexion/creer/page.tsx")).toMatch(/"prenom" : "appareil"/);
+  });
+  it("le prénom est seul : aucune pièce ne se demande à la création", () => {
+    const c = lire("src/app/connexion/creer/CreerCompte.tsx");
+    expect(c).not.toMatch(/uploadDoc|piece_identite|selfie|rib/);
+  });
+  it("on ne salue jamais une adresse e-mail : un appareil sans prénom dit « Bonjour »", () => {
+    for (const f of ["src/app/connexion/PorteDeConnexion.tsx", "src/components/VerrouDeLApp.tsx"]) expect(lire(f)).toMatch(/who\.includes\("@"\)/);
+  });
+  it("les pièces viennent après, dans l'ordre : identité, selfie, RIB, puis justificatif et NIU", async () => {
+    const { requiredDocs } = await import("@/lib/kyc/checklist");
+    expect(requiredDocs("physique")).toEqual(["piece_identite_recto", "piece_identite_verso", "selfie", "rib", "justificatif_domicile", "niu"]);
+    expect(requiredDocs("physique", true), "un résident à l'étranger n'a pas de NIU").toEqual(["piece_identite_recto", "piece_identite_verso", "selfie", "rib", "justificatif_domicile"]);
   });
 });

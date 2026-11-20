@@ -1,8 +1,8 @@
 /* ── LE COIN DROIT DE LA BARRE : horloge, étoile, trois barres ─────────────── */
 .ic {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: var(--barre-icones-cible);
+  height: var(--barre-icones-cible);
   flex: none;
   display: grid;
   place-items: center;
@@ -36,8 +36,8 @@
 /* LA PASTILLE : du blanc sur du rouge profond (6,0), du noir sur de l'ambre. Deux paires, mesurées comme telles. */
 .pas {
   position: absolute;
-  top: 1px;
-  right: 0;
+  top: 3px;
+  right: 3px;
   min-width: 17px;
   height: 17px;
   padding: 0 4px;
@@ -255,6 +255,11 @@
   opacity: 0;
   transform: translateX(16px);
   pointer-events: none;
+}
+/* Deux icônes voisines d'un groupe, et le bouton du menu après le groupe : l'espace est celui du jeton, par marge (un groupe replié n'en laisse aucune). */
+.groupe > * + *,
+.menu {
+  margin-left: var(--barre-icones-gap);
 }
 .slot {
   display: inline-flex;

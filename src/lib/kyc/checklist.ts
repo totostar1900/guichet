@@ -43,8 +43,8 @@ export function requiredDocs(kind: ClientKind, residentAbroad = false): KycDocKi
   switch (kind) {
     case "physique":
       return residentAbroad
-        ? ["piece_identite_recto", "piece_identite_verso", "selfie", "justificatif_domicile", "rib"]
-        : ["piece_identite_recto", "piece_identite_verso", "selfie", "justificatif_domicile", "rib", "niu"];
+        ? ["piece_identite_recto", "piece_identite_verso", "selfie", "rib", "justificatif_domicile"]
+        : ["piece_identite_recto", "piece_identite_verso", "selfie", "rib", "justificatif_domicile", "niu"];
     case "morale":
       return ["rccm", "statuts", "niu", "pouvoirs", "beneficiaires_effectifs", "piece_identite_recto", "rib"];
     case "groupement":

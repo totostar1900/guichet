@@ -24,23 +24,23 @@ describe("four-digit code bound to a device", () => {
     const { repo } = await import("@/lib/data");
     const token = newDeviceToken();
 
-    expect((await pinEnrol(client, token, "1234", "Test")).ok).toBe(false); // too simple
+    expect((await pinEnrol(client, token, "123456", "Test")).ok).toBe(false); // too simple
     expect((await pinEnrol(client, token, "12", "Test")).ok).toBe(false);
-    const e = await pinEnrol(client, token, "2580", "Chrome sur Windows");
+    const e = await pinEnrol(client, token, "258014", "Chrome sur Windows");
     expect(e.ok).toBe(true);
     if (!e.ok) return;
     expect((await repo().listDevices(client.userId)).map((d) => d.kind)).toEqual(["pin"]);
 
     // The right code with the wrong token opens nothing: the code is worth nothing off this browser.
-    expect((await pinAuthenticate(e.device.id, newDeviceToken(), "2580")).ok).toBe(false);
+    expect((await pinAuthenticate(e.device.id, newDeviceToken(), "258014")).ok).toBe(false);
     // The right pair mints a dev session cookie.
-    const ok = await pinAuthenticate(e.device.id, token, "2580");
+    const ok = await pinAuthenticate(e.device.id, token, "258014");
     expect(ok.ok).toBe(true);
     expect(jar.get("guichet_dev_session")).toBeTruthy();
 
     // Five wrong codes and the device is gone.
     let last;
-    for (let i = 0; i < 5; i++) last = await pinAuthenticate(e.device.id, token, "0000");
+    for (let i = 0; i < 5; i++) last = await pinAuthenticate(e.device.id, token, "000000");
     expect(last && !last.ok && last.forgotten).toBe(true);
     expect(await repo().listDevices(client.userId)).toEqual([]);
   });

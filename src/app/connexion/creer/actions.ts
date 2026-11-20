@@ -1,7 +1,8 @@
 "use server";
 
 import { z } from "zod";
-import { authMode } from "@/lib/auth";
+import { authMode, requireSession } from "@/lib/auth";
+import { noter } from "@/lib/journal";
 import { writeDevSession } from "@/lib/auth/dev";
 import type { Session } from "@/lib/auth/types";
 import { repo } from "@/lib/data";
@@ -56,4 +57,20 @@ export async function creerVerifierCodeEmail(rawEmail: string, code: string): Pr
   await writeDevSession(s);
   await repo().markChannelVerified(s.userId, "email", email);
   return { ok: true };
+}
+
+/**
+ * LE PRÉNOM, SEUL (19 novembre 2026, le client : « prénom B »).
+ *
+ * Un compte neuf ne porte que son adresse : le nom que la session en tirait (« G Nitcheu » de « g.nitcheu@… ») n'était pas le sien, et l'écran de code dit « Bonjour {prénom} ». On demande donc UN champ, le prénom, juste après le téléphone ; le nom complet, tel qu'il figure sur la pièce d'identité, vient avec le dossier. Le prénom n'est pas une pièce : aucune vérification, une longueur raisonnable.
+ */
+export async function creerEnregistrerPrenom(brut: string): Promise<{ ok: true; prenom: string } | { ok: false; error: string }> {
+  const s = await requireSession("/connexion/creer");
+  const prenom = brut.trim().replace(/\s+/g, " ");
+  if (prenom.length < 2 || prenom.length > 40) return { ok: false, error: "Indiquez votre prénom (deux lettres au moins)." };
+  if (/[@\d]/.test(prenom)) return { ok: false, error: "Un prénom ne contient ni chiffre ni arobase." };
+  await repo().updateContact(s.userId, { name: prenom });
+  if (authMode() !== "supabase") await writeDevSession({ ...s, name: prenom });
+  await noter("profil.modifie", { detail: "prénom" });
+  return { ok: true, prenom };
 }

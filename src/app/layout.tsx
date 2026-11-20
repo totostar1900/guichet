@@ -244,7 +244,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} echeances={echeances ?? 0} favoris={Boolean(favoris)} desk={deskUi} deskHost={onDeskHost} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         {/* LE VERROU : les clients seulement, le desk a son second facteur (19 novembre 2026). */}
-        {session && !desk ? <VerrouDeLApp aUnCode={Boolean(codeDuCompte)} /> : null}
+        {session && !desk ? <VerrouDeLApp aUnCode={Boolean(codeDuCompte)} prenom={session.name} /> : null}
         <Presentation visiteur={!session} />
         {/* LA NAVIGATION PASSE À GAUCHE AU-DELÀ DE 1040 PIXELS, et le haut est
             rendu à la page : 224 pixels gelés au desk, 62 au guichet.

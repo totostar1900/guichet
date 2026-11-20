@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { useT } from "@/i18n/client";
-import { ClavierCode } from "@/components/ClavierCode";
-import { clearDevice, codeOublie, marquerCodeOublie, readDevice } from "@/lib/device-client";
+import { EcranDeCode } from "@/components/EcranDeCode";
+import { clearDevice, codeDeCetAppareil, codeOublie, marquerCodeOublie, readDevice } from "@/lib/device-client";
 import { passkeyLogin, passkeyOptions, pinLogin } from "./actions";
 import styles from "./page.module.css";
 
@@ -18,9 +18,11 @@ const snapshot = () => {
 };
 
 /**
- * LA PORTE : DÉVERROUILLER D'ABORD, L'E-MAIL EN SECOURS (19 novembre 2026, planche « Compte, connexion et textes », 2A).
+ * LA PORTE : L'ÉCRAN DE CODE, L'EMPREINTE D'ABORD POUR QUI L'A CHOISIE (19 novembre 2026, « coller à Revolut »).
  *
- * Le client : « la connexion se fait soit avec un code, soit avec l'empreinte, soit avec Face ID, mais plus avec l'e-mail ou le numéro ». Sur un appareil reconnu, l'écran n'offre que le déverrouillage : Face ID ou l'empreinte (un bouton sur l'écran), ou le code à quatre chiffres au clavier de l'écran. L'adresse e-mail ne paraît qu'à « Code oublié ou autre appareil » ; un appareil inconnu passe par le code reçu, puis fixe son propre code (voir `/connexion/creer`).
+ * Sur un appareil reconnu, l'écran n'est qu'un mot de bienvenue avec le prénom, six ronds et le clavier (`EcranDeCode`). Quand le client a choisi Face ID ou l'empreinte, le téléphone la demande tout de suite, PAR-DESSUS ce clavier : annulée, elle laisse le clavier, déjà là, et la touche d'empreinte en bas à gauche la rappelle. « Code oublié ? » est le seul lien : le code reçu par e-mail, puis un nouveau code.
+ *
+ * Le code qui répond ici est celui de CE navigateur (identifiant et jeton gardés avec la clé) : il n'ouvre rien ailleurs. Un appareil qui n'a que la clé, sans code (enregistré avant ce changement), garde « Toucher pour réessayer » et « Code oublié ? ».
  *
  * L'état de l'appareil n'est connu que du navigateur : avant l'hydratation rien n'est montré, pour ne pas faire clignoter le formulaire e-mail sous un appareil reconnu.
  */
@@ -29,7 +31,8 @@ export function PorteDeConnexion({ next, enTete, children }: { next: string; /**
   const raw = useSyncExternalStore(noop, snapshot, () => "");
   const pret = useSyncExternalStore(noop, () => true, () => false);
   const device = raw ? readDevice() : null;
-  /* « Code oublié ? » posé avant un détour (déconnexion depuis le verrou) : la porte va droit au code reçu. */
+  const code = codeDeCetAppareil(device);
+  /* « Code oublié ? » posé avant un détour : la porte va droit au code reçu. */
   const [autre, setAutre] = useState(() => typeof window !== "undefined" && codeOublie());
   const [oublie, setOublie] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -40,12 +43,8 @@ export function PorteDeConnexion({ next, enTete, children }: { next: string; /**
     setFini(true);
     window.location.assign(next.startsWith("/") ? next : "/");
   };
-  const oublier = () => {
-    clearDevice();
-    setOublie(true);
-  };
-  const ouvrirParLaCle = () =>
-    start(async () => {
+  /* La clé n'est pas une transition : un geste en attente (ou un navigateur qui ne répond pas) ne doit jamais verrouiller le clavier. */
+  const ouvrirParLaCle = async () => {
       setErreur(null);
       try {
         const options = await passkeyOptions(device?.kind === "passkey" ? device.id : undefined);
@@ -54,24 +53,32 @@ export function PorteDeConnexion({ next, enTete, children }: { next: string; /**
         if (!r.ok) return setErreur(r.error);
         arriver();
       } catch (e) {
+        /* UN GESTE ANNULÉ NE SE DIT PAS : le clavier est là, c'est la réponse. Le reste (clé inconnue, panne) se dit. */
         const nom = (e as Error).name;
-        setErreur(nom === "NotAllowedError" ? "Annulé, ou l'appareil ne vous a pas reconnu : réessayez, ou recevez un code." : `Clé indisponible : ${(e as Error).message}`);
+        if (nom !== "NotAllowedError" && nom !== "AbortError") setErreur(`Clé indisponible : ${(e as Error).message}`);
       }
-    });
-  const ouvrirParLeCode = (code: string) =>
+  };
+  const ouvrirParLeCode = (c: string) =>
     start(async () => {
-      if (!device || device.kind !== "pin" || !device.token) return;
+      if (!code) return;
       setErreur(null);
-      const r = await pinLogin(device.id, device.token, code);
+      const r = await pinLogin(code.id, code.token, c);
       if (!r.ok) {
         setErreur(r.error);
-        if (r.forgotten) oublier();
+        if (r.forgotten) {
+          clearDevice();
+          setOublie(true);
+        }
         return;
       }
       arriver();
     });
+  const codeOublieClic = () => {
+    marquerCodeOublie();
+    setAutre(true);
+  };
 
-  /* L'EMPREINTE SE PROPOSE D'ELLE-MÊME (19 novembre 2026, planche « Paramètres et connexion », 4A) : l'écran vient de dire « connexion requise », le téléphone demande tout de suite Face ID ou l'empreinte, sans bouton à chercher. Une fois par ouverture ; si le geste est annulé, « Toucher pour réessayer » reste. Certains navigateurs (Safari sur iPhone) exigent un toucher : l'essai échoue sans bruit et le bouton prend le relais. */
+  /* L'EMPREINTE SE PROPOSE D'ELLE-MÊME : l'écran vient de dire « connexion requise ». Une fois par ouverture. Certains navigateurs (Safari sur iPhone) exigent un toucher : l'essai échoue sans bruit et la touche d'empreinte prend le relais. */
   const proposee = useRef(false);
   const auto = pret && device?.kind === "passkey" && !autre && !oublie;
   useEffect(() => {
@@ -95,52 +102,33 @@ export function PorteDeConnexion({ next, enTete, children }: { next: string; /**
         {children}
         {device && !oublie && (
           <button type="button" className={styles.linkBtn} onClick={() => setAutre(false)}>
-            {t("Retour au déverrouillage")}
+            {t("Retour au code")}
           </button>
         )}
       </>
     );
   }
 
-  return (
-    <div className={styles.deverrouillage} aria-live="polite">
-      <h1 className="display">{t("Déverrouillez Guichet")}</h1>
-      {device.kind === "passkey" ? (
-        <>
-          <svg className={styles.bioIcone} viewBox="0 0 24 24" width="72" height="72" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
-            <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
-            <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
-            <path d="M2 12a10 10 0 0 1 18-6" />
-            <path d="M21.8 16c.2-2 .131-5.354 0-6" />
-            <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
-            <path d="M8.65 22c.21-.66.45-1.32.57-2" />
-            <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
-          </svg>
-          <p>{t("Cet appareil est reconnu : un geste suffit.")}</p>
-          {erreur && <div className={styles.error}>{t(erreur)}</div>}
-          <button type="button" className={styles.deverrouiller} onClick={ouvrirParLaCle} disabled={enCours || fini}>
-            {t(enCours ? "Vérification…" : erreur ? "Toucher pour réessayer" : "Ouvrir avec Face ID, empreinte ou code de l'appareil")}
-          </button>
-        </>
-      ) : (
-        <ClavierCode onFini={ouvrirParLeCode} occupe={enCours || fini} cle="pin" erreur={erreur ? <div className={styles.error}>{t(erreur)}</div> : null} />
-      )}
-      <p className={styles.secours}>
-        <button
-          type="button"
-          className={styles.linkBtn}
-          onClick={() => {
-            marquerCodeOublie();
-            setAutre(true);
-          }}
-        >
+  /* Un appareil enregistré avant le prénom portait l'adresse e-mail : on ne salue pas une adresse. */
+  const prenom = device.who.includes("@") ? undefined : device.who.trim().split(/\s+/)[0] || undefined;
+  if (!code) {
+    /* Un appareil qui n'a que la clé : pas de clavier à offrir. */
+    return (
+      <div className={styles.deverrouillage} aria-live="polite">
+        <h1 className="display">{prenom ? t("Bonjour {prenom}", { prenom }) : t("Bonjour")}</h1>
+        {erreur && <div className={styles.error}>{t(erreur)}</div>}
+        <button type="button" className={styles.deverrouiller} onClick={ouvrirParLaCle} disabled={enCours || fini}>
+          {t(enCours ? "Vérification…" : "Toucher pour réessayer")}
+        </button>
+        <button type="button" className={styles.linkBtn} onClick={codeOublieClic}>
           {t("Code oublié ?")}
         </button>
-      </p>
-      <button type="button" className={styles.linkBtn} onClick={oublier}>
-        {t("Oublier cet appareil ici")}
-      </button>
+      </div>
+    );
+  }
+  return (
+    <div className={styles.deverrouillage}>
+      <EcranDeCode prenom={prenom} onFini={ouvrirParLeCode} occupe={enCours || fini} cle="pin" erreur={erreur} empreinte={device.kind === "passkey" ? ouvrirParLaCle : undefined} onOubli={codeOublieClic} />
     </div>
   );
 }

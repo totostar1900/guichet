@@ -1,0 +1,71 @@
+
+> guichet@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.5 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.0.2.2:3000
+✓ Ready in 365ms
+✓ Running next.config.ts took 41ms
+- Experiments (use with caution):
+  · serverActions
+  · staleTimes
+
+ GET /connexion 200 in 1213ms (next.js: 313ms, proxy.ts: 223ms, application-code: 678ms)
+ GET / 200 in 275ms (next.js: 77ms, proxy.ts: 7ms, application-code: 192ms)
+ POST /connexion 200 in 575ms (next.js: 4ms, proxy.ts: 6ms, application-code: 565ms)
+  └─ ƒ devLogin({}) in 5ms src/app/connexion/actions.ts
+ GET /api/statuts 200 in 296ms (next.js: 186ms, proxy.ts: 4ms, application-code: 106ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+ POST / 200 in 36ms (next.js: 11ms, proxy.ts: 7ms, application-code: 18ms)
+  └─ ƒ noterConsultation("vu.portefeuille", "portefeuille", undefined) in 6ms src/app/journal-actions.ts
+ POST / 200 in 119ms (next.js: 4ms, proxy.ts: 5ms, application-code: 110ms)
+  └─ ƒ poserLeCode("258014") in 99ms src/app/verrou/actions.ts
+ POST / 200 in 6.5s (next.js: 4ms, proxy.ts: 4ms, application-code: 6.5s)
+  └─ ƒ acceptTerms("2026-09-20") in 5ms src/app/moi/actions.ts
+ GET /parametres 200 in 4.7s (next.js: 26ms, proxy.ts: 7ms, application-code: 4.7s)
+ POST /parametres 200 in 25ms (next.js: 6ms, proxy.ts: 6ms, application-code: 13ms)
+  └─ ƒ estFavori("/parametres") in 3ms src/app/favoris/actions.ts
+ POST /parametres 200 in 21ms (next.js: 6ms, proxy.ts: 4ms, application-code: 10ms)
+  └─ ƒ estFavori("/parametres") in 2ms src/app/favoris/actions.ts
+ POST /parametres 200 in 26ms (next.js: 12ms, proxy.ts: 4ms, application-code: 10ms)
+  └─ ƒ estFavori("/parametres") in 2ms src/app/favoris/actions.ts
+ POST /parametres 200 in 14ms (next.js: 3ms, proxy.ts: 3ms, application-code: 8ms)
+  └─ ƒ estFavori("/parametres") in 2ms src/app/favoris/actions.ts
+ POST /parametres 200 in 18ms (next.js: 3ms, proxy.ts: 5ms, application-code: 10ms)
+  └─ ƒ verifierLeCode("258014") in 3ms src/app/verrou/actions.ts
+ POST /parametres 200 in 78ms (next.js: 4ms, proxy.ts: 4ms, application-code: 70ms)
+  └─ ƒ enrolPin("7UZCQS13Uiw1lO3dhoXVe2h9MWhIDT8_no4OREU9KMw", "258014", "Chrome sur Linux") in 4ms src/app/moi/securite/actions.ts
+ POST /parametres 200 in 65ms (next.js: 4ms, proxy.ts: 4ms, application-code: 57ms)
+  └─ ƒ beginPasskey() in 6ms src/app/moi/securite/actions.ts
+ POST /parametres 200 in 67ms (next.js: 3ms, proxy.ts: 5ms, application-code: 59ms)
+  └─ ƒ finishPasskey({"authenticatorAttachment":"platform","clientExtensionResults":{"credProps":"[Object]"},"id":"MW2vwx1Ic-V3t_2aFbgG7-RQVgYj5opt-IfoDUlvMX8","...":"3 items not stringified"}, "Chrome sur Linux") in 8ms src/app/moi/securite/actions.ts
+ GET /parametres 200 in 131ms (next.js: 4ms, proxy.ts: 3ms, application-code: 124ms)
+ POST /parametres 200 in 20ms (next.js: 5ms, proxy.ts: 6ms, application-code: 9ms)
+  └─ ƒ estFavori("/parametres") in 2ms src/app/favoris/actions.ts
+ POST /parametres 200 in 23ms (next.js: 4ms, proxy.ts: 5ms, application-code: 13ms)
+  └─ ƒ estFavori("/parametres") in 7ms src/app/favoris/actions.ts
+ POST /parametres 200 in 15ms (next.js: 3ms, proxy.ts: 3ms, application-code: 9ms)
+  └─ ƒ estFavori("/parametres") in 2ms src/app/favoris/actions.ts
+ POST /parametres 200 in 13ms (next.js: 3ms, proxy.ts: 3ms, application-code: 7ms)
+  └─ ƒ estFavori("/parametres") in 2ms src/app/favoris/actions.ts
+ POST /parametres 200 in 56ms (next.js: 3ms, proxy.ts: 3ms, application-code: 50ms)
+  └─ ƒ passkeyOptions("kgtmcjgo") in 4ms src/app/connexion/actions.ts
+ POST /parametres 200 in 65ms (next.js: 3ms, proxy.ts: 5ms, application-code: 56ms)
+  └─ ƒ passkeyLogin({"authenticatorAttachment":"platform","clientExtensionResults":{},"id":"MW2vwx1Ic-V3t_2aFbgG7-RQVgYj5opt-IfoDUlvMX8","...":"3 items not stringified"}) in 9ms src/app/connexion/actions.ts
+ GET /parametres 200 in 125ms (next.js: 3ms, proxy.ts: 3ms, application-code: 119ms)
+ POST /parametres 200 in 19ms (next.js: 5ms, proxy.ts: 5ms, application-code: 9ms)
+  └─ ƒ estFavori("/parametres") in 2ms src/app/favoris/actions.ts
+ POST /parametres 200 in 18ms (next.js: 3ms, proxy.ts: 5ms, application-code: 10ms)
+  └─ ƒ estFavori("/parametres") in 2ms src/app/favoris/actions.ts
+ POST /parametres 200 in 24ms (next.js: 4ms, proxy.ts: 8ms, application-code: 12ms)
+  └─ ƒ estFavori("/parametres") in 2ms src/app/favoris/actions.ts
+ POST /parametres 200 in 19ms (next.js: 4ms, proxy.ts: 5ms, application-code: 10ms)
+  └─ ƒ estFavori("/parametres") in 2ms src/app/favoris/actions.ts
+ POST /parametres 200 in 70ms (next.js: 3ms, proxy.ts: 4ms, application-code: 63ms)
+  └─ ƒ passkeyOptions("kgtmcjgo") in 3ms src/app/connexion/actions.ts
+ POST /parametres 200 in 19ms (next.js: 4ms, proxy.ts: 4ms, application-code: 11ms)
+  └─ ƒ verifierLeCode("111111") in 2ms src/app/verrou/actions.ts
+ POST /parametres 200 in 18ms (next.js: 4ms, proxy.ts: 5ms, application-code: 9ms)
+  └─ ƒ verifierLeCode("258014") in 1ms src/app/verrou/actions.ts
+[?25h

@@ -29,7 +29,7 @@ describe("quand l'application se verrouille", () => {
     const verrou = lire("src/components/VerrouDeLApp.tsx");
     expect(verrou, "un réglage client est apparu").not.toMatch(/localStorage|prefs|setSeuil|preference/i);
     expect(verrou).toMatch(/chemin\.startsWith\("\/connexion"\)/);
-    expect(lire("src/app/layout.tsx")).toMatch(/session && !desk \? <VerrouDeLApp aUnCode=\{Boolean\(codeDuCompte\)\} \/>/);
+    expect(lire("src/app/layout.tsx")).toMatch(/session && !desk \? <VerrouDeLApp aUnCode=\{Boolean\(codeDuCompte\)\} prenom=\{session\.name\} \/>/);
     expect(lire("src/lib/verrou.ts")).toMatch(/SEUIL_ARRIERE_PLAN = 30_000[\s\S]*SEUIL_INERTIE = 180_000[\s\S]*TOLERANCE_APRES_UN_CODE = 300_000/);
   });
   it("le voile couvre dès que l'application quitte l'écran, et ne navigue jamais", () => {
@@ -60,17 +60,17 @@ describe("le code du compte", () => {
   it("se pose, se vérifie sur tout appareil, compte les échecs et bloque au cinquième", async () => {
     const { poserCodeDuCompte, verifierCodeDuCompte, aUnCodeDuCompte } = await import("@/lib/auth/devices");
     expect(await aUnCodeDuCompte(client.userId)).toBe(false);
-    expect((await poserCodeDuCompte(client, "1234")).ok, "une suite passe").toBe(false);
+    expect((await poserCodeDuCompte(client, "123456")).ok, "une suite passe").toBe(false);
     expect((await poserCodeDuCompte(client, "12")).ok).toBe(false);
-    expect((await poserCodeDuCompte(client, "2580")).ok).toBe(true);
+    expect((await poserCodeDuCompte(client, "258014")).ok).toBe(true);
     expect(await aUnCodeDuCompte(client.userId)).toBe(true);
-    expect((await verifierCodeDuCompte(client, "2580")).ok).toBe(true);
-    const faux = await verifierCodeDuCompte(client, "9999");
+    expect((await verifierCodeDuCompte(client, "258014")).ok).toBe(true);
+    const faux = await verifierCodeDuCompte(client, "999999");
     expect(faux.ok).toBe(false);
     expect(!faux.ok && faux.left).toBe(4);
-    expect((await verifierCodeDuCompte(client, "2580")).ok, "un bon code remet le compte à zéro").toBe(true);
+    expect((await verifierCodeDuCompte(client, "258014")).ok, "un bon code remet le compte à zéro").toBe(true);
     let dernier;
-    for (let i = 0; i < 5; i++) dernier = await verifierCodeDuCompte(client, "9999");
+    for (let i = 0; i < 5; i++) dernier = await verifierCodeDuCompte(client, "999999");
     expect(dernier && !dernier.ok && dernier.bloque).toBe(true);
   });
   it("changer le code remplace l'ancien et oublie les codes d'appareil ; les clés d'accès restent", async () => {
@@ -78,11 +78,11 @@ describe("le code du compte", () => {
     const { poserCodeDuCompte, verifierCodeDuCompte } = await import("@/lib/auth/devices");
     await repo().addDevice({ userId: client.userId, kind: "pin", name: "Autre navigateur", secretHash: "x" });
     await repo().addDevice({ userId: client.userId, kind: "passkey", name: "Téléphone", credentialId: "cred-1", publicKey: "k", counter: 0 });
-    expect((await poserCodeDuCompte(client, "3579")).ok).toBe(true);
+    expect((await poserCodeDuCompte(client, "357913")).ok).toBe(true);
     const kinds = (await repo().listDevices(client.userId)).map((d) => d.kind).sort();
     expect(kinds, "un seul code du compte, la clé reste, le code d'appareil est oublié").toEqual(["code", "passkey"]);
-    expect((await verifierCodeDuCompte(client, "2580")).ok, "l'ancien code ne passe plus").toBe(false);
-    expect((await verifierCodeDuCompte(client, "3579")).ok).toBe(true);
+    expect((await verifierCodeDuCompte(client, "258014")).ok, "l'ancien code ne passe plus").toBe(false);
+    expect((await verifierCodeDuCompte(client, "357913")).ok).toBe(true);
   });
   it("le code du compte n'est jamais listé parmi les appareils, et la table l'accepte", () => {
     expect(lire("src/app/parametres/page.tsx")).toMatch(/filter\(\(d\) => d\.kind !== "code"\)/);

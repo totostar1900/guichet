@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/client";
 import { ClavierCode } from "@/components/ClavierCode";
-import { clearDevice, deviceLabel, newDeviceToken, readDevice, saveDevice } from "@/lib/device-client";
+import { codeDeCetAppareil, deviceLabel, enregistrerLaCle, enregistrerLeCode, newDeviceToken, readDevice } from "@/lib/device-client";
 import { logout } from "@/app/connexion/actions";
 import { modifierLeCode, verifierLeCode } from "@/app/verrou/actions";
 import { enrolPin, forgetDeviceAction } from "@/app/moi/securite/actions";
@@ -19,7 +19,7 @@ type Etape = "actuel" | "nouveau" | "confirmer" | "fait";
  *
  * Changer le code du compte oublie les codes des autres navigateurs (leurs chiffres ne seraient plus les mêmes) : celui de CE navigateur reprend donc les nouveaux chiffres, pour que la porte l'ouvre encore.
  */
-export function ModifierLeCode({ aUnCode, who }: { aUnCode: boolean; who: string }) {
+export function ModifierLeCode({ aUnCode }: { aUnCode: boolean }) {
   const t = useT();
   const routeur = useRouter();
   const [etape, setEtape] = useState<Etape>(aUnCode ? "actuel" : "nouveau");
@@ -30,7 +30,7 @@ export function ModifierLeCode({ aUnCode, who }: { aUnCode: boolean; who: string
 
   const TITRES: Record<Exclude<Etape, "fait">, [string, string]> = {
     actuel: ["Votre code actuel", "Saisissez le code que vous utilisez aujourd'hui."],
-    nouveau: ["Choisissez un nouveau code", "Quatre chiffres, les mêmes sur tous vos appareils."],
+    nouveau: ["Choisissez un nouveau code", "Six chiffres, les mêmes sur tous vos appareils."],
     confirmer: ["Saisissez-le encore", "Pour éviter toute faute de frappe."],
   };
 
@@ -69,12 +69,19 @@ export function ModifierLeCode({ aUnCode, who }: { aUnCode: boolean; who: string
       }
       /* Le code de ce navigateur reprend les mêmes chiffres : le serveur a oublié les anciens. */
       const ici = readDevice();
-      if (ici?.kind === "pin") {
-        await forgetDeviceAction(ici.id).catch(() => undefined);
-        clearDevice();
+      const ancien = codeDeCetAppareil(ici);
+      if (ici && ancien) {
+        await forgetDeviceAction(ancien.id).catch(() => undefined);
         const token = newDeviceToken();
         const e = await enrolPin(token, c, deviceLabel());
-        if (e.ok) saveDevice({ id: e.device.id, kind: "pin", token, who, name: e.device.name, since: e.device.createdAt });
+        if (e.ok) {
+          const nouveau = { id: e.device.id, token, who: ici.who, name: e.device.name, since: e.device.createdAt };
+          /* La méthode préférée reste celle qu'elle était : la clé garde la première place, le nouveau code est sa seconde. */
+          if (ici.kind === "passkey") {
+            enregistrerLeCode(nouveau);
+            enregistrerLaCle({ id: ici.id, who: ici.who, name: ici.name, since: ici.since });
+          } else enregistrerLeCode(nouveau);
+        }
       }
       setEtape("fait");
     });

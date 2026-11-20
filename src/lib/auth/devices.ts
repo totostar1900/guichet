@@ -1,3 +1,4 @@
+import { codeTropSimple, FORME_DU_CODE, MESSAGE_FORME_DU_CODE } from "@/lib/verrou";
 import "server-only";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { cookies, headers } from "next/headers";
@@ -180,8 +181,8 @@ export function newDeviceToken(): string {
 }
 
 export async function pinEnrol(s: Session, token: string, pin: string, name: string): Promise<{ ok: true; device: TrustedDevice } | { ok: false; error: string }> {
-  if (!/^\d{4}$/.test(pin)) return { ok: false, error: "Le code comporte 4 chiffres." };
-  if (/^(\d)\1{3}$|^(0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210)$/.test(pin)) return { ok: false, error: "Trop simple : évitez les suites et les répétitions." };
+  if (!FORME_DU_CODE.test(pin)) return { ok: false, error: MESSAGE_FORME_DU_CODE };
+  if (codeTropSimple(pin)) return { ok: false, error: "Trop simple : évitez les suites et les répétitions." };
   if (!/^[A-Za-z0-9_-]{40,50}$/.test(token)) return { ok: false, error: "Appareil non reconnu : rechargez la page." };
   const device = await repo().addDevice({ userId: s.userId, kind: "pin", name: name.trim().slice(0, 60) || "Ce navigateur", secretHash: pinHash(token, pin) });
   await notifyDeviceChange(s.userId, "added", device);
@@ -228,7 +229,7 @@ export async function forgetDevice(s: Session, id: string): Promise<void> {
 async function notifyDeviceChange(userId: string, what: "added" | "removed" | "forgotten", d: TrustedDevice): Promise<void> {
   try {
     const ch = await repo().getChannelStatus(userId);
-    const kind = d.kind === "passkey" ? "Face ID / empreinte" : "code à 4 chiffres";
+    const kind = d.kind === "passkey" ? "Face ID / empreinte" : "code à 6 chiffres";
     const line = what === "added" ? `Appareil ajouté à votre Guichet : ${d.name} (${kind}).` : what === "removed" ? `Appareil retiré de votre Guichet : ${d.name}.` : `Appareil oublié après cinq codes faux : ${d.name}.`;
     const tail = what === "added" ? " Si ce n'est pas vous, retirez-le depuis Mon compte › Sécurité." : "";
     const { whatsappConfigured, sendWhatsAppText, emailConfigured, sendEmail } = await import("@/lib/notify/providers");
@@ -252,15 +253,14 @@ async function notifyDeviceChange(userId: string, what: "added" | "removed" | "f
  */
 export const ESSAIS_DU_CODE = 5;
 const codeHash = (userId: string, pin: string) => createHmac("sha256", pepper()).update(`code|${userId}|${pin}`).digest("hex");
-const TROP_SIMPLE = /^(\d)\1{3}$|^(0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210)$/;
 
 export async function aUnCodeDuCompte(userId: string): Promise<boolean> {
   return (await repo().listDevices(userId)).some((d) => d.kind === "code");
 }
 
 export async function poserCodeDuCompte(s: Session, pin: string): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (!/^\d{4}$/.test(pin)) return { ok: false, error: "Le code comporte 4 chiffres." };
-  if (TROP_SIMPLE.test(pin)) return { ok: false, error: "Trop simple : évitez les suites et les répétitions." };
+  if (!FORME_DU_CODE.test(pin)) return { ok: false, error: MESSAGE_FORME_DU_CODE };
+  if (codeTropSimple(pin)) return { ok: false, error: "Trop simple : évitez les suites et les répétitions." };
   const avait = await aUnCodeDuCompte(s.userId);
   await repo().removeDevices(s.userId, "code");
   await repo().addDevice({ userId: s.userId, kind: "code", name: "Code du compte", secretHash: codeHash(s.userId, pin) });
@@ -269,7 +269,7 @@ export async function poserCodeDuCompte(s: Session, pin: string): Promise<{ ok: 
 }
 
 export async function verifierCodeDuCompte(s: Session, pin: string): Promise<{ ok: true } | { ok: false; error: string; bloque?: boolean; left?: number }> {
-  if (!/^\d{4}$/.test(pin)) return { ok: false, error: "Le code comporte 4 chiffres." };
+  if (!FORME_DU_CODE.test(pin)) return { ok: false, error: MESSAGE_FORME_DU_CODE };
   const d = (await repo().listDevices(s.userId)).find((x) => x.kind === "code");
   if (!d?.secretHash) return { ok: false, error: "Aucun code n'est défini sur ce compte." };
   const attendu = d.secretHash;

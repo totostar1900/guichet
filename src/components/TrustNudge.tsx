@@ -24,7 +24,7 @@ export function TrustNudge() {
   return (
     <div className={styles.nudge} role="note">
       <span>
-        <b>{t("Entrer sans attendre un code")}</b> {t("Enregistrez cet appareil : la prochaine fois, Face ID, votre empreinte ou un code à quatre chiffres vous connectent, sans passer par votre boîte mail.")}
+        <b>{t("Entrer sans attendre un code")}</b> {t("Enregistrez cet appareil : la prochaine fois, Face ID, votre empreinte ou un code à six chiffres vous connectent, sans passer par votre boîte mail.")}
       </span>
       <Link href="/parametres" className="btn sm primary">
         {t("Ajouter cet appareil")}

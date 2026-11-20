@@ -340,7 +340,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                         <span>
                           <b>{d.name}</b>
                           <small className="muted">
-                            {t(d.kind === "passkey" ? "clef d'accès" : "code à quatre chiffres")}
+                            {t(d.kind === "passkey" ? "clef d'accès" : "code à six chiffres")}
                             {d.lastUsedAt ? ` · ${t("dernier usage")} ${fmtDateTime(d.lastUsedAt)}` : ` · ${t("jamais utilisé")}`}
                             {d.failures > 0 ? ` · ${t("{n} échecs", { n: String(d.failures) })}` : ""}
                           </small>

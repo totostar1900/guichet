@@ -34,3 +34,9 @@
 .clavier button:disabled {
   opacity: 0.5;
 }
+.clavier button.empreinte {
+  background: transparent;
+  color: var(--good);
+  display: grid;
+  place-items: center;
+}
