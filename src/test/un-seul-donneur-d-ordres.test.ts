@@ -53,8 +53,10 @@ describe("la procuration n'existe plus", () => {
     expect(art9!.fr).toContain("ayants droit");
   });
 
-  it("et le client qui reprend la convention l'apprend", () => {
-    expect(CONVENTION_CHANGE.quoi).toContain("procuration");
+  it("et le client qui reprend la convention apprend ce qui a changé (20 novembre 2026 : l'article 4 ne cite plus que le code à usage unique)", () => {
+    expect(CONVENTION_CHANGE.quoi).toMatch(/article 4/);
+    expect(CONVENTION_CHANGE.quoi).toContain("code à usage unique");
+    expect(CONVENTION_CHANGE.quoi, "la clef d'accès n'a plus à être proposée comme moyen de signature").toContain("ne signent plus rien");
   });
 
   it("aucun rôle « mandataire » dans un dossier", () => {

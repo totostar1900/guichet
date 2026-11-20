@@ -41,7 +41,7 @@ export const LEGAL_VERSION = "2026-11-20";
  * matin, donc aucun exemplaire du 10 octobre n'existe. Le jour où il en
  * existera un, il faudra la lettre.
  */
-export const CONVENTION_VERSION = "2026-10-10";
+export const CONVENTION_VERSION = "2026-11-20";
 
 /**
  * CE QUI A CHANGÉ, DIT AU SIGNATAIRE QUI DOIT REPRENDRE.
@@ -58,8 +58,8 @@ export const CONVENTION_VERSION = "2026-10-10";
  */
 export const CONVENTION_CHANGE: { version: string; quoi: string; cote: "donne" | "devons" } = {
   version: CONVENTION_VERSION,
-  quoi: "Deux articles changent. L'article 8 dit quels gestes sont enregistrés dans le Guichet : vous les lisez vous-même dans « Votre activité », le détail est gardé treize mois, et aucune décision vous concernant n'est prise par une machine. L'article 9 ferme la procuration : vous êtes seul à donner vos ordres, et la maison n'en exécute d'aucun tiers.",
-  cote: "devons",
+  quoi: "L'article 4 dit comment se signe un ordre : par un code à usage unique, envoyé sur l'un de vos deux canaux. La clef d'accès et le code de l'appareil, que le texte citait, ne signent plus rien.",
+  cote: "donne",
 };
 
 export interface LegalSection {

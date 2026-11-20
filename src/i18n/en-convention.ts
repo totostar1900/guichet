@@ -92,10 +92,9 @@ export const EN_CONVENTION: Record<string, string> = {
      main avec la version, et sa traduction avec elle. */
   "Vous nous donnez désormais mandat d'ouvrir en votre nom les comptes nécessaires à vos ordres : vous ne signerez plus rien pour cela, et l'ouverture reste sans frais.":
     "You now give us a mandate to open in your name the accounts needed for your orders: you will sign nothing more for that, and opening remains free.",
-  /* La phrase de reprise du 10 octobre 2026 : l'article 8 dit désormais ce qui
-     est enregistré des gestes du client, et ce qui ne l'est pas. */
-  "Deux articles changent. L'article 8 dit quels gestes sont enregistrés dans le Guichet : vous les lisez vous-même dans « Votre activité », le détail est gardé treize mois, et aucune décision vous concernant n'est prise par une machine. L'article 9 ferme la procuration : vous êtes seul à donner vos ordres, et la maison n'en exécute d'aucun tiers.":
-    "Two articles change. Article 8 says which moves are recorded in the Guichet: you read them yourself under « Your activity », the detail is kept for thirteen months, and no decision about you is taken by a machine. Article 9 closes the power of attorney: you alone give your orders, and the firm executes none from any third party.",
+  /* La phrase de reprise du 20 novembre 2026 : l'article 4 ne cite plus que le code à usage unique. */
+  "L'article 4 dit comment se signe un ordre : par un code à usage unique, envoyé sur l'un de vos deux canaux. La clef d'accès et le code de l'appareil, que le texte citait, ne signent plus rien.":
+    "Article 4 says how an order is signed: by a one-time code, sent on one of your two channels. The passkey and the device code, which the text used to mention, no longer sign anything.",
 
   /* ---- la signature ---- */
   "Reprendre ma convention": "Sign my agreement again",
