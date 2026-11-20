@@ -1,0 +1,99 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sections-gap);
+  max-width: 980px;
+}
+.tete h1 {
+  margin: 0 0 var(--s-3);
+}
+.sous {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.85rem;
+}
+.etape {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-4);
+}
+.etape h2 {
+  margin: 0;
+  font-size: var(--t-5);
+}
+.choix {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4);
+}
+.erreur {
+  background: var(--crit-soft);
+  color: var(--crit);
+  border-radius: var(--radius);
+  padding: var(--s-4) var(--s-5);
+  font-size: 0.85rem;
+}
+.ok {
+  background: var(--ok-soft, var(--neutral-soft));
+  border-radius: var(--radius);
+  padding: var(--s-4) var(--s-5);
+  font-size: 0.9rem;
+}
+.compteurs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-5);
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+.compteurs b {
+  color: var(--ink);
+}
+.tableau {
+  overflow-x: auto;
+  width: 100%;
+}
+.tableau table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.tableau th,
+.tableau td {
+  text-align: left;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.tableau th {
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.st {
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+.st_ok {
+  background: var(--ok-soft, var(--neutral-soft));
+  color: var(--ok, var(--ink));
+}
+.st_doublon {
+  background: var(--neutral-soft);
+  color: var(--ink-2);
+}
+.st_erreur {
+  background: var(--crit-soft);
+  color: var(--crit);
+}
+.messages {
+  margin: 0;
+  padding-left: var(--s-5);
+  color: var(--ink-2);
+}
+.messages .alerte {
+  color: var(--warn);
+}

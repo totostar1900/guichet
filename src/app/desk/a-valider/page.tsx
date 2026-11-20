@@ -9,6 +9,7 @@ import { NewSourceForm } from "./NewSourceForm";
 import { ValidateForm } from "./ValidateForm";
 import { MenuDeLaPiece } from "./MenuDeLaPiece";
 import { Poignee } from "@/components/Poignee";
+import { emetteursDuRegistre } from "@/lib/chargement-plan";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -113,6 +114,7 @@ export default async function IntakePage({
       niveau = niveauDuMarche({ country: draft.country, instrument: draft.kind, annees, on }, historique);
     }
   }
+  const emetteurs = selected ? await emetteursDuRegistre() : [];
   const showNew = sp.nouveau === "1" || (!selected && queue.length === 0);
 
   return (
@@ -129,6 +131,9 @@ export default async function IntakePage({
             className={`btn ${styles.newBtn}`}
           >
             {t("+ Nouvelle source")}
+          </Link>
+          <Link href="/desk/a-valider/chargement" className={`btn ghost ${styles.newBtn}`}>
+            {t("Charger un classeur Excel")}
           </Link>
           {!extractionAvailable() && (
             <div className={styles.noApi}>
@@ -176,7 +181,7 @@ export default async function IntakePage({
           {showNew ? (
             <NewSourceForm extraction={extractionAvailable()} />
           ) : selected ? (
-            <ValidateForm key={selected.id} item={selected} offer={offer} niveau={niveau} />
+            <ValidateForm key={selected.id} item={selected} offer={offer} niveau={niveau} emetteurs={emetteurs} />
           ) : (
             <div className="empty">
               {t("Sélectionnez une source ou déposez-en une nouvelle.")}

@@ -33,7 +33,8 @@ describe("le brouillon tiré d'un communiqué d'annonce", () => {
     expect(d.sizeLabel).toBe("15 Mds FCFA");
     expect(d.title).toBe("BTA 26 semaines · 21 mai 2027");
     expect(d.couponRate, "un bon n'a pas de coupon").toBeUndefined();
-    expect(d.issuer).toBe("Trésor public de la République Gabonaise");
+    expect(d.issuer, "le nom officiel, déduit du pays : une seule orthographe").toBe("Trésor public de la République gabonaise");
+    expect(d.countryName).toBe("République gabonaise");
   });
 
   it("ne laisse manquer à la publication que ce que le communiqué ne dit pas", () => {

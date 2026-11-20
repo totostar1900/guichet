@@ -3,7 +3,6 @@ export const EN_PROSE: Record<string, string> = {
   "Ouvrez une application d'authentification (Google Authenticator, Microsoft Authenticator, Authy…), scannez ce code, puis saisissez le nombre à 6 chiffres qu'elle affiche. À faire une seule fois ; le téléphone devient votre clé.": "Open an authenticator app (Google Authenticator, Microsoft Authenticator, Authy…), scan this code, then enter the 6-digit number it shows. Done once; the phone becomes your key.",
   "Saisissez le code à 6 chiffres affiché par votre application d'authentification.": "Enter the 6-digit code shown by your authenticator app.",
   "Fichier (PDF, JPEG, PNG, WebP : 20 Mo max)": "File (PDF, JPEG, PNG, WebP : 20 MB max)",
-  "Consigne pour l'extraction (facultatif)": "Instruction for the extraction (optional)",
   "… ou collez le texte du message / de l'e-mail": "… or paste the text of the message / e-mail",
   "L'original est conservé tel quel : c'est la pièce justificative de l'offre.": "The original is kept as is: it is the offer's supporting document.",
   "Source officielle jointe (communiqué, note d'opération)": "Official source attached (notice, offering note)",

@@ -1,5 +1,6 @@
 import "server-only";
 import type { OfferDraft } from "@/lib/domain/types";
+import { completerLeBrouillon } from "@/lib/domain/chargement";
 import { readEmissionNotice, type NoticeReading } from "@/lib/market/notice-extract";
 
 /**
@@ -64,7 +65,7 @@ export function brouillonDepuisUneAnnonce(lecture: NoticeReading, officiel: bool
   if (p.instrument === "BTA") remarks.push("Taux non annoncé : les intérêts sont précomptés et le taux sort de l'adjudication.");
 
   const sure = (v: unknown, forte = true): "sure" | "check" | "missing" => (v == null || v === "" ? "missing" : forte ? "sure" : "check");
-  return {
+  const brouillon: OfferDraft = {
     kind: p.instrument,
     operation: p.abondement ? "abondement" : "nouvelle_ligne",
     country,
@@ -72,7 +73,6 @@ export function brouillonDepuisUneAnnonce(lecture: NoticeReading, officiel: bool
     issuer: emetteur,
     title: titre,
     isin: p.codeEmission,
-    sourceRef: d.sourceRef,
     nominal: p.nominalUnit,
     couponRate: p.instrument === "OTA" ? p.couponRate : undefined,
     maturityOn: echeance,
@@ -96,11 +96,12 @@ export function brouillonDepuisUneAnnonce(lecture: NoticeReading, officiel: bool
       settleOn: sure(p.settleOn),
       sizeLabel: sure(milliards, false),
       title: "check",
-      sourceRef: sure(d.sourceRef),
     },
     official: officiel,
     remarks,
   };
+  /* Le nom officiel du pays, l'émetteur du Trésor, le nominal d'usage et le titre : ceux que le formulaire du Desk et le classeur écrivent aussi (domain/chargement.ts). */
+  return completerLeBrouillon(brouillon);
 }
 
 /** Lire un PDF d'annonce. `delaiMs` borne l'appel : le dépôt a soixante secondes, le geste du desk plus. */

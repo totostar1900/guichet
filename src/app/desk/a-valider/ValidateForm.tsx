@@ -10,6 +10,7 @@ import { enabledTypes, kindForEngine, legacyTypeKey, typeByKey } from "@/lib/reg
 import { bondCalc, btaCalc, parseDate, tenorText } from "@/lib/finance";
 import { fmt, fmtPct } from "@/lib/format";
 import { missingFields } from "@/lib/intake/publish";
+import { completerLeBrouillon, emetteurDuTresor } from "@/lib/domain/chargement";
 import { publishAction, rejectAction, requestReviewAction, saveDraftAction, sendBackAction, type IntakeResult } from "./actions";
 import { CAUSES_DE_REJET } from "@/lib/desk/rejet";
 import { SourceViewer } from "@/components/SourceViewer";
@@ -94,7 +95,7 @@ function Field({ k, draft, type = "text", options, snapShot, onSelect }: { k: ke
    restante et ne propose rien. L'écran le dit déjà en toutes lettres. */
 const CAUSES = Object.entries(CAUSES_DE_REJET);
 
-export function ValidateForm({ item, offer, niveau }: { item: IntakeItem; offer?: Offer; niveau?: NiveauMarche }) {
+export function ValidateForm({ item, offer, niveau, emetteurs }: { item: IntakeItem; offer?: Offer; niveau?: NiveauMarche; /** Les émetteurs du registre : un emprunt ou une IPO en choisit un, il ne l'écrit pas. */ emetteurs: string[] }) {
   const { fmtDateTime } = useDates();
   const tr = useT();
   const d = item.draft;
@@ -119,7 +120,11 @@ export function ValidateForm({ item, offer, niveau }: { item: IntakeItem; offer?
   const kind = (type ? kindForEngine(type.engine, type.segment).kind : d.kind || "OTA") as Offer["kind"];
   const official = snap.official !== undefined ? snap.official === "on" : d.official;
   const checks = Object.values(d.confidence).filter((c) => c === "check").length;
-  const missing = missingFields({ ...d, ...Object.fromEntries(Object.entries(snap).filter(([, val]) => val !== "")) } as OfferDraft);
+  /* CE QUE LE DESK ÉCRIT À LA PLACE DE LA PERSONNE (nom du pays, émetteur du Trésor, nominal d'usage, titre de la fiche, dernier coupon) se recalcule à chaque frappe : « champs manquants » ne réclame jamais ce que l'enregistrement va déduire. */
+  const saisi = { ...d, ...Object.fromEntries(Object.entries(snap).filter(([, val]) => val !== "")) } as Record<string, unknown>;
+  for (const k of ["couponRate", "nominal", "pricePerShare"]) if (saisi[k] != null && saisi[k] !== "") saisi[k] = Number(saisi[k]);
+  const vivant = completerLeBrouillon({ ...(saisi as unknown as OfferDraft), kind });
+  const missing = missingFields(vivant);
   const published = item.state === "publie";
 
   // Live preview of what the client will read, from the current field values.
@@ -224,11 +229,16 @@ export function ValidateForm({ item, offer, niveau }: { item: IntakeItem; offer?
               <input type="hidden" name="kind" value={kind} />
               <Field k="operation" draft={d} snapShot={snap} onSelect={onSelect} options={(Object.keys(OPERATION_LABEL) as Offer["operation"][]).map((k) => [k, OPERATION_LABEL[k]])} />
               <Field k="country" draft={d} snapShot={snap} onSelect={onSelect} options={["RCA", "Congo", "Cameroun", "Gabon", "Tchad", "Guinée éq."].map((c) => [c, c])} />
-              <Field k="countryName" draft={d} />
-              <Field k="issuer" draft={d} />
+              {kind === "OTA" || kind === "BTA" || kind === "RACHAT" ? (
+                <label className={styles.fld}>
+                  <span>{tr("Émetteur")}</span>
+                  <input value={vivant.country ? emetteurDuTresor(vivant.country) : tr("déduit du pays")} readOnly aria-readonly="true" />
+                  <i className={`${styles.conf} ${styles[`conf_${vivant.country ? "sure" : "missing"}`]}`} title={tr("Déduit du pays : rien à saisir")} />
+                </label>
+              ) : (
+                <Field k="issuer" draft={d} snapShot={snap} onSelect={onSelect} options={[...new Set([...(d.issuer ? [d.issuer] : []), ...emetteurs])].map((e) => [e, e])} />
+              )}
               <Field k="isin" draft={d} />
-              <Field k="sourceRef" draft={d} />
-              <Field k="title" draft={d} />
               <Field k="nominal" draft={d} type="number" />
               {(kind === "OTA" || kind === "APE") && <Field k="couponRate" draft={d} type="number" />}
               {kind === "ACTIONS" ? (

@@ -17,6 +17,7 @@ import type { Confidence, OfferDraft } from "@/lib/domain/types";
 import { fmtPct } from "@/lib/format";
 import { lireDecision } from "@/lib/domain/decision-du-desk";
 import { buildOffer } from "@/lib/intake/publish";
+import { completerLeBrouillon } from "@/lib/domain/chargement";
 import { ingestSource } from "@/lib/intake/ingest";
 import { notifyOfferPublished } from "@/lib/notify/dispatch";
 
@@ -92,7 +93,8 @@ function draftFromForm(form: FormData, prev: OfferDraft): OfferDraft {
     if (k !== "official" && prev[k as keyof OfferDraft] !== next[k as keyof OfferDraft]) (conf as Record<string, Confidence>)[k] = "sure";
   });
   next.confidence = conf;
-  return next;
+  /* Le nom du pays, l'émetteur du Trésor, le nominal d'usage, le dernier coupon et le titre de la fiche se déduisent ici, une seule fois, pour l'enregistrement comme pour la publication. */
+  return completerLeBrouillon(next);
 }
 
 export async function saveDraftAction(_prev: IntakeResult | null, form: FormData): Promise<IntakeResult> {
