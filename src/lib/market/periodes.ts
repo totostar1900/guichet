@@ -2,7 +2,7 @@
  * LES PÉRIODES DU GRAPHE DU COURS ET LA VARIATION QUI LEUR RÉPOND (9 novembre 2026).
  *
  * UNE SEULE DÉFINITION, celle de « Ce qui performe » (`performe.ts`) : le début de la période est une date civile avant la dernière séance ; la première
- * clôture lue à partir de ce jour est la base ; la variation est (dernière clôture − base) / base, hors dividendes. La fiche, l'Accueil, la page Titres et le
+ * clôture lue à partir de ce jour (avec échange, pour un cours : voir `lirePeriode`) est la base ; la variation est (dernière clôture − base) / base, hors dividendes. La fiche, l'Accueil, la page Titres et le
  * comparateur disent donc la même chose pour la même période. Ce fichier ne lit rien : il reçoit les points, jamais le dépôt (il est partagé avec le navigateur).
  *
  * UNE PÉRIODE QUE L'HISTORIQUE NE COUVRE PAS N'A PAS DE VARIATION : on ne prête pas un chiffre à « 5 ans » quand la série tient en un an. « Max » prend toute la série.
@@ -49,7 +49,7 @@ export interface LecturePeriode {
   libelle: string;
   /** Faux quand l'historique ne couvre pas la période. */
   disponible: boolean;
-  /** La première séance lue de la période (la base de la variation). */
+  /** La première séance lue de la période (la base de la variation) : le premier ÉCHANGE quand la lecture l'exige. */
   depuis?: string;
   variationPct?: number;
   /** Les séances de la période, de la plus ancienne à la plus récente. */
@@ -66,8 +66,12 @@ export function debutDePeriode(cle: PeriodeCours, jusquAu: string): string | und
 
 const jours = (de: string, a: string): number => Math.round((Date.parse(`${a}T00:00:00Z`) - Date.parse(`${de}T00:00:00Z`)) / 86_400_000);
 
-/** Lit une période dans une série triée du plus ancien au plus récent. */
-export function lirePeriode(points: PointCours[], cle: PeriodeCours): LecturePeriode {
+/**
+ * Lit une période dans une série triée du plus ancien au plus récent.
+ *
+ * `echangesSeulement` : LA VARIATION D'UN COURS NE SE LIT QUE SUR DES SÉANCES AVEC ÉCHANGE (20 novembre 2026, le client, après BANGE). Le bulletin de la cote publie, un jour sans transaction, un cours ajusté (« cotation ex-dividende », statut NC, variation 0,00 %) ou un prix d'équilibre indicatif (PEq) : lire ces clôtures comme des prix faisait de BANGE une hausse de 2,16 % sur trois mois, alors que ses échanges disent 228 085 avant et après. Base et dernier cours sont donc le premier et le dernier échange de la période ; moins de deux échanges, pas de variation. Le dessin garde toutes les séances (`serie`). Une série qui n'a pas de volume (un indice, une VL) ne passe pas `echangesSeulement`.
+ */
+export function lirePeriode(points: PointCours[], cle: PeriodeCours, echangesSeulement = false): LecturePeriode {
   const libelle = PERIODES.find((x) => x.cle === cle)?.libelle ?? cle;
   if (points.length < 2) return { cle, libelle, disponible: false, serie: [] };
   const fin = points[points.length - 1].d;
@@ -76,8 +80,10 @@ export function lirePeriode(points: PointCours[], cle: PeriodeCours): LecturePer
   /* « Début d'année » d'une ligne entrée en cours d'année part de sa première cotation, comme « Max » : la série couvre la période dès qu'elle commence avant la grâce. */
   const couvre = !debut || jours(debut, points[0].d) <= JOURS_DE_GRACE || cle === "debut";
   if (!couvre || serie.length < 2) return { cle, libelle, disponible: false, serie: [] };
-  const base = serie[0];
-  const dernier = serie[serie.length - 1];
+  const lus = echangesSeulement ? serie.filter((p) => p.v > 0) : serie;
+  if (lus.length < 2) return { cle, libelle, disponible: true, serie };
+  const base = lus[0];
+  const dernier = lus[lus.length - 1];
   return { cle, libelle, disponible: true, depuis: base.d, variationPct: base.c > 0 ? ((dernier.c - base.c) / base.c) * 100 : undefined, serie };
 }
 

@@ -110,3 +110,23 @@ describe("La première connexion : e-mail, téléphone, prénom ; les pièces vi
     expect(requiredDocs("physique", true), "un résident à l'étranger n'a pas de NIU").toEqual(["piece_identite_recto", "piece_identite_verso", "selfie", "rib", "justificatif_domicile"]);
   });
 });
+
+describe("Lire les textes sans quitter le parcours (20 novembre 2026)", () => {
+  it("à la création, les textes se déplient sous la case : aucun lien ne s'ouvre dans un nouvel onglet", () => {
+    const c = lire("src/app/connexion/creer/CreerCompte.tsx");
+    expect(c).toMatch(/LEGAL\.map/);
+    expect(c).toMatch(/aria-expanded=\{texteOuvert\}/);
+    expect(c, "un lien vers /info/textes en nouvel onglet est revenu").not.toMatch(/target="_blank"/);
+  });
+  it("la porte des mentions ne propose aucun lien qui quitte la fenêtre", () => {
+    expect(lire("src/components/ConsentGate.tsx")).not.toMatch(/target="_blank"|href="\/info\/textes"/);
+  });
+});
+
+describe("La variation d'un cours ne se lit que sur des échanges (20 novembre 2026)", () => {
+  it("la fiche, le comparatif et « Ce qui performe » passent par la règle, et le dessin garde toutes les séances", () => {
+    expect(lire("src/components/CourbeDuCours.tsx")).toMatch(/lirePeriode\(points, p\.cle, true\)/);
+    expect(lire("src/lib/market/fiche-action.ts")).toMatch(/lirePeriode\(titre, cle, true\)/);
+    expect(lire("src/lib/market/performe.ts")).toMatch(/const echanges = l\.filter\(tradedSession\)/);
+  });
+});

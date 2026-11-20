@@ -35,7 +35,7 @@ export function contreLIndice(titre: PointCours[], indice: IndexPoint[]): LigneC
   const niveaux: PointCours[] = indice.map((p) => ({ d: p.date, c: p.value, v: 0 }));
   const out: LigneContreIndice[] = [];
   for (const cle of PERIODES_CONTRE_L_INDICE) {
-    const a = lirePeriode(titre, cle);
+    const a = lirePeriode(titre, cle, true);
     const b = lirePeriode(niveaux, cle);
     if (!a.disponible || !b.disponible || a.variationPct == null || b.variationPct == null || !a.depuis || !b.depuis) continue;
     if (Math.abs(jours(a.depuis, b.depuis)) > JOURS_DE_GRACE) continue;

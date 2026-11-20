@@ -6,7 +6,7 @@ import type { Quote } from "@/lib/domain/market";
 
 const lire = (f: string) => fs.readFileSync(path.join(process.cwd(), f), "utf8");
 const code = (f: string) => lire(f).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
-const q = (isin: string, sessionDate: string, close: number) => ({ instrument: "action", isin, mnemo: isin.slice(-3), designation: isin, sessionDate, close }) as unknown as Quote;
+const q = (isin: string, sessionDate: string, close: number) => ({ instrument: "action", isin, mnemo: isin.slice(-3), designation: isin, sessionDate, close, volumeTraded: 10, trades: 1 }) as unknown as Quote;
 
 /**
  * LA VARIATION D'UNE ACTION SUR SIX MOIS, DOUZE MOIS ET DEUX ANS (9 novembre 2026) vit dans l'extension de sa carte, à la place de « cours inchangé depuis » et de l'ISIN (qui passe à côté de l'état).

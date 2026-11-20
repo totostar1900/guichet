@@ -25,7 +25,7 @@ export function CourbeDuCours({ points, hauteur = 300 }: { points: PointCours[];
   const t = useT();
   const { fmtDate } = useDates();
   const [periode, setPeriode] = useState<PeriodeCours>(() => periodeParDefaut(points));
-  const lectures = PERIODES.map((p) => lirePeriode(points, p.cle));
+  const lectures = PERIODES.map((p) => lirePeriode(points, p.cle, true));
   const lue = lectures.find((l) => l.cle === periode && l.disponible) ?? lectures.find((l) => l.cle === "max")!;
   const serie = lue.serie.length >= 2 ? lue.serie : points.slice(-2);
   const W = 320;

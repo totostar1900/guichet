@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useSyncExternalStore, useTransition } from "react";
-import { useDates, useT } from "@/i18n/client";
+import { useDates, useLang, useT } from "@/i18n/client";
+import { LEGAL } from "@/data/legal";
 import { codeOublie, deviceLabel, effacerCodeOublie, newDeviceToken, readDevice, enregistrerLeCode } from "@/lib/device-client";
 import { acceptTerms } from "@/app/moi/actions";
 import { checkPhoneProof, sendPhoneProof } from "@/app/offres/[id]/actions";
@@ -31,6 +32,9 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
   const t = useT();
   const { fmtDate } = useDates();
   const router = useRouter();
+  const lang = useLang();
+  /* LES TEXTES SE LISENT ICI, SANS QUITTER LE PARCOURS (20 novembre 2026, le client : « la lecture des textes fait sortir complètement de l'application et ne permet pas le retour »). Le lien s'ouvrait dans un nouvel onglet : sur un téléphone, c'était hors de l'application, sans retour. Le texte se déplie sous la case. */
+  const [texteOuvert, setTexteOuvert] = useState(false);
   /* « CODE OUBLIÉ ? » (19 novembre 2026, planche « Paramètres et connexion », 4A) : l'adresse vient d'être prouvée par le code reçu, le client choisit un NOUVEAU code au lieu de saisir l'ancien. */
   const oublie = useSyncExternalStore(() => () => {}, codeOublie, () => false);
   const codeExiste = codeExisteBrut && !oublie;
@@ -262,7 +266,23 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
             <li><b>{t("Ce que vous risquez")}</b><span>{t("Un placement peut perdre de la valeur, y compris tout son capital.")}</span></li>
             <li><b>{t("Vos données")}</b><span>{t("Elles ne sont ni vendues ni cédées, et vous les consultez sur demande.")}</span></li>
           </ol>
-          <p className={styles.aide}><Link href="/info/textes" target="_blank">{t("Lire les textes complets")}</Link></p>
+          <div className={styles.aide}>
+            <button type="button" className={styles.lien} aria-expanded={texteOuvert} aria-controls="textes-complets" onClick={() => setTexteOuvert(!texteOuvert)}>
+              {t(texteOuvert ? "Replier les textes" : "Lire les textes complets")}
+            </button>
+          </div>
+          {texteOuvert && (
+            <div id="textes-complets" className={styles.texte} tabIndex={0}>
+              {LEGAL.map((s) => (
+                <section key={s.id}>
+                  <h2>{s.title[lang]}</h2>
+                  {s.body[lang].map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </section>
+              ))}
+            </div>
+          )}
           <label className={styles.case}>
             <input type="checkbox" checked={lu} onChange={(e) => setLu(e.target.checked)} />
             <span>{t("J'ai lu et j'accepte les mentions et responsabilités (version du {date}).", { date: fmtDate(legalVersion) })}</span>

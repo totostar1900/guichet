@@ -144,3 +144,26 @@
   height: 1.25rem;
   flex: none;
 }
+
+/* LES TEXTES, DÉPLIÉS DANS LE PARCOURS (20 novembre 2026) : une zone qui défile dans la page, jamais un nouvel onglet. */
+.texte {
+  max-height: 46dvh;
+  overflow-y: auto;
+  display: grid;
+  gap: var(--s-6);
+  padding: var(--s-6);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-align: left;
+  font-size: var(--t-3);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.texte h2 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-4);
+  color: var(--ink);
+}
+.texte p {
+  margin: 0 0 var(--s-4);
+}

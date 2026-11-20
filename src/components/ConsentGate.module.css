@@ -75,10 +75,6 @@
   align-items: center;
   gap: 10px;
 }
-.link {
-  font-size: 0.82rem;
-  color: var(--ink-2);
-}
 .error {
   font-style: normal;
   color: var(--crit);

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useTransition } from "react";
 import { LEGAL, LEGAL_VERSION } from "@/data/legal";
 import { useLang, useT } from "@/i18n/client";
@@ -12,6 +11,7 @@ import styles from "./ConsentGate.module.css";
  * Once per version of the legal text, after a sign-in: the text, a box to
  * tick, one button. Nothing else of the page is reachable until then; the
  * text stays readable afterwards, document by document, at /info/textes.
+ * AUCUN LIEN NE QUITTE LA FENÊTRE (20 novembre 2026) : « Garder une copie » ouvrait un nouvel onglet, hors de l'application sur un téléphone, et la porte aurait de toute façon recouvert la page ouverte. Le texte entier est déjà là ; il reste lisible ensuite à « Mes textes ».
  */
 export function ConsentGate({ previous }: { previous?: string }) {
   const t = useT();
@@ -54,9 +54,6 @@ export function ConsentGate({ previous }: { previous?: string }) {
           </label>
           {error && <em className={styles.error}>{error}</em>}
           <div className={styles.row}>
-            <Link href="/info/textes" className={styles.link} target="_blank">
-              {t("Garder une copie")}
-            </Link>
             <button type="button" className="btn primary" disabled={!read || pending} onClick={accept}>
               {t(pending ? "Un instant…" : "J'accepte")}
             </button>

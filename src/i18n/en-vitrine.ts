@@ -354,4 +354,5 @@ export const EN_VITRINE: Record<string, string> = {
   "Ouverture": "Opening",
   "Ouverture…": "Opening…",
   "Enregistrez cet appareil : la prochaine fois, votre code à six chiffres vous connecte, sans passer par votre boîte mail.": "Register this device: next time, your six-digit code signs you in, without going through your mailbox.",
+  "Replier les textes": "Collapse the texts",
 };

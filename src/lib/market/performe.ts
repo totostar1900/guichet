@@ -1,5 +1,5 @@
 import { repo } from "@/lib/data";
-import type { Quote } from "@/lib/domain/market";
+import { tradedSession, type Quote } from "@/lib/domain/market";
 
 /**
  * CE QUI A PERFORMÉ SUR TROIS MOIS, EN DEUX LECTURES BORNÉES (3 novembre 2026).
@@ -79,10 +79,12 @@ export function classerSurFenetre(cotations: Quote[], depuis: string): Performan
   const out: Performance[] = [];
   for (const lot of parLigne.values()) {
     const l = [...lot].sort((a, b) => a.sessionDate.localeCompare(b.sessionDate));
-    const premier = l[0];
-    const dernier = l[l.length - 1];
+    /* SEULS LES ÉCHANGES FONT UN PRIX (20 novembre 2026) : les bornes sont le premier et le dernier jour où quelque chose a traité. Une clôture sans transaction (cours ajusté ex-dividende, prix d'équilibre) n'est pas un prix formé. La ligne reste « entrée à la cote » selon sa première séance, échange ou non. */
+    const echanges = l.filter(tradedSession);
+    const premier = echanges[0];
+    const dernier = echanges[echanges.length - 1];
     /* UNE SEULE COTATION NE FAIT PAS UNE PERFORMANCE : il faut deux bornes. */
-    if (l.length < 2 || !premier.close || !dernier.close) continue;
+    if (echanges.length < 2 || !premier.close || !dernier.close) continue;
     out.push({
       isin: dernier.isin,
       mnemo: dernier.mnemo,
@@ -91,7 +93,7 @@ export function classerSurFenetre(cotations: Quote[], depuis: string): Performan
       variationPct: ((dernier.close - premier.close) / premier.close) * 100,
       serie: l.map((q) => q.close as number),
       depuis: premier.sessionDate,
-      entree: jours(depuis, premier.sessionDate) > JOURS_DE_GRACE,
+      entree: jours(depuis, l[0].sessionDate) > JOURS_DE_GRACE,
     });
   }
   return out.sort((a, b) => b.variationPct - a.variationPct || a.mnemo.localeCompare(b.mnemo, "fr"));

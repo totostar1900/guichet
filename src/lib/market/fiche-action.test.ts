@@ -4,7 +4,7 @@ import { contreLIndice, dividendesVerses, reperes52Semaines } from "./fiche-acti
 import type { PointCours } from "./periodes";
 
 const jour = (n: number, depart = "2025-01-01") => new Date(Date.parse(`${depart}T12:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
-const serie = (n: number, f: (i: number) => number, depart = "2025-01-01"): PointCours[] => Array.from({ length: n }, (_, i) => ({ d: jour(i * 7, depart), c: f(i), v: 0 }));
+const serie = (n: number, f: (i: number) => number, depart = "2025-01-01"): PointCours[] => Array.from({ length: n }, (_, i) => ({ d: jour(i * 7, depart), c: f(i), v: 10 }));
 
 describe("contre l'indice", () => {
   it("écrit la variation du titre, celle de l'indice et l'écart en points, sur la même fenêtre", () => {

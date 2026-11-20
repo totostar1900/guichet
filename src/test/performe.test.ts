@@ -28,10 +28,11 @@ const cote = (over: Partial<Quote>): Quote =>
     thresholdLow: 90,
     variationPct: 0,
     referenceNext: 100,
-    volumeTraded: 0,
-    valueTraded: 0,
-    trades: 0,
-    status: "NC",
+    /* Chaque séance des essais est un échange : seule une séance qui a traité fait un prix (20 novembre 2026). */
+    volumeTraded: 10,
+    valueTraded: 1000,
+    trades: 1,
+    status: "PEq",
     ...over,
   }) as Quote;
 
