@@ -1,0 +1,101 @@
+/* Le « ⋮ » d'une carte de la file : posé en haut à droite de l'encadré, sans le déborder. */
+.racine {
+  position: absolute;
+  top: var(--s-2);
+  right: var(--s-2);
+}
+.bouton {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.bouton svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+.bouton:hover,
+.bouton[aria-expanded="true"] {
+  background: var(--neutral-soft);
+  color: var(--ink);
+}
+.bouton:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.bouton[data-occupe="1"] {
+  color: var(--gold);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bouton[data-occupe="1"] {
+    animation: none;
+  }
+}
+/* Tant qu'une lecture dure, la carte le dit, menu fermé ou non. */
+.enCours {
+  position: absolute;
+  right: 40px;
+  top: var(--s-3);
+  font-size: 0.7rem;
+  color: var(--gold);
+}
+.liste {
+  position: fixed;
+  z-index: 60;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  padding: var(--s-2);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+.liste button {
+  text-align: left;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  padding: var(--s-3) var(--s-4);
+  cursor: pointer;
+}
+.liste button:hover:not(:disabled),
+.liste button:focus-visible {
+  background: var(--neutral-soft);
+  outline: none;
+}
+.liste button:disabled {
+  color: var(--ink-3);
+  cursor: default;
+}
+.titre {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink);
+}
+.texte {
+  margin: var(--s-3) 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+.pied {
+  display: flex;
+  gap: var(--s-3);
+  justify-content: flex-end;
+  width: 100%;
+}

@@ -23,8 +23,11 @@ export const EN_TRADER: Record<string, string> = {
   "Lire la pièce": "Read the document",
   "Retirer de la file": "Remove from the queue",
   "La pièce quitte la file ; le fichier reste au dépôt.": "The document leaves the queue; the file stays in storage.",
-  "Confirmer le retrait": "Confirm removal",
   "Garder": "Keep it",
+  "Actions de la pièce": "Document actions",
+  "Lecture en cours…": "Reading…",
+  "Retirer cette pièce de la file ?": "Remove this document from the queue?",
+  "Le retrait est inscrit à l'audit, avec l'état de la pièce avant qu'on la retire.": "The removal is written to the audit log, with the document's state before it is removed.",
   "Lecture en cours… (jusqu'à deux minutes)": "Reading… (up to two minutes)",
 
   /* ---------- la piece dans le fil du message ---------- */

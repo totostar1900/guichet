@@ -7,6 +7,8 @@ import { extractionAvailable } from "@/lib/intake/extract";
 import { fmtDateTime } from "@/lib/format";
 import { NewSourceForm } from "./NewSourceForm";
 import { ValidateForm } from "./ValidateForm";
+import { MenuDeLaPiece } from "./MenuDeLaPiece";
+import { Poignee } from "@/components/Poignee";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 
@@ -33,18 +35,25 @@ const STATE_LABEL: Record<IntakeItem["state"], [string, string]> = {
 /** Une ligne de la file : la source, son état, son titre, sa provenance. */
 function QueueItem({ q, current, label }: { q: IntakeItem; current: boolean; label: string }) {
   const cls = STATE_LABEL[q.state][0];
+  const peutLire = q.state !== "publie";
+  const peutRetirer = q.state !== "publie" && !q.offerId;
+  const aUnMenu = peutLire || peutRetirer;
   return (
-    <Link href={`/desk/a-valider?item=${q.id}`} className={styles.qitem} aria-current={current ? "true" : undefined}>
-      <div className={styles.meta}>
-        <span className={`${styles.src} ${styles[`src_${q.source}`]}`}>{SOURCE_LABEL[q.source]}</span>
-        <span className={`${styles.st} ${styles[`st_${cls}`]}`}>
-          {label}
-          {q.state === "publie" && q.publishedAt ? ` · ${fmtDateTime(q.publishedAt)}` : ""}
-        </span>
-      </div>
-      <b>{q.title}</b>
-      <span className={styles.meta}>{q.fromLabel}</span>
-    </Link>
+    <div className={styles.qcarte}>
+      <Link href={`/desk/a-valider?item=${q.id}`} className={`${styles.qitem} ${aUnMenu ? styles.qitemMenu : ""}`} aria-current={current ? "true" : undefined}>
+        <div className={styles.meta}>
+          <span className={`${styles.src} ${styles[`src_${q.source}`]}`}>{SOURCE_LABEL[q.source]}</span>
+          <span className={`${styles.st} ${styles[`st_${cls}`]}`}>
+            {label}
+            {q.state === "publie" && q.publishedAt ? ` · ${fmtDateTime(q.publishedAt)}` : ""}
+          </span>
+        </div>
+        <b>{q.title}</b>
+        <span className={styles.meta}>{q.fromLabel}</span>
+      </Link>
+      {/* Le menu n'est pas DANS le lien : une ancre ne porte pas de bouton. Il se pose sur l'encadré, en haut à droite. */}
+      <MenuDeLaPiece id={q.id} titre={q.title} peutLire={peutLire} relire={Boolean(q.readAt)} peutRetirer={peutRetirer} courant={current} />
+    </div>
   );
 }
 export default async function IntakePage({
@@ -155,6 +164,8 @@ export default async function IntakePage({
             </details>
           )}
         </aside>
+
+        <Poignee variable="--liste" min={240} max={520} memoire="av.liste" libelle="Régler la largeur de la liste" className={styles.poigneeFile} />
 
         <div className={styles.main}>
           {/* Une clef par fiche : sans elle, React garde le meme formulaire d une

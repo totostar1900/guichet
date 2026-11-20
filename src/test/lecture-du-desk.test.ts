@@ -25,11 +25,12 @@ describe("la lecture demandée depuis le desk", () => {
     expect(ingest).not.toMatch(/LECTURE_DESK_MS/);
   });
 
-  it("le bouton dit qu'il travaille, et seul celui qui a envoyé le formulaire se grise en le disant", () => {
-    const f = lire("src/app/desk/a-valider/ValidateForm.tsx");
-    expect(f).toMatch(/useFormStatus\(\)/);
-    expect(f).toMatch(/data\?\.get\("geste"\) === "lire"/);
-    expect(f).toMatch(/name="geste" value="lire" formAction=\{lireSourceAction\}/);
+  it("le menu de la carte dit que la lecture travaille, et le formulaire n'a plus ce bouton", () => {
+    const m = lire("src/app/desk/a-valider/MenuDeLaPiece.tsx");
+    expect(m).toMatch(/useTransition\(\)/);
+    expect(m).toMatch(/Lecture en cours… \(jusqu'à deux minutes\)/);
+    expect(m).toMatch(/aria-busy=\{lecture\}/);
+    expect(lire("src/app/desk/a-valider/ValidateForm.tsx"), "le bouton de lecture est revenu dans le formulaire").not.toMatch(/lireSourceAction|Lire la pièce/);
   });
 });
 
@@ -40,7 +41,6 @@ describe("le retrait d'une pièce de la file « À valider »", () => {
   const actions = lire("src/app/desk/a-valider/actions.ts");
   const debut = actions.indexOf("export async function retirerSourceAction");
   const corps = actions.slice(debut, actions.indexOf("export async function rejectAction", debut));
-  const form = lire("src/app/desk/a-valider/ValidateForm.tsx");
 
   it("refuse une pièce publiée, garde l'état d'avant à l'audit, et ne touche pas au fichier", () => {
     expect(corps).toMatch(/item\.state === "publie" \|\| item\.offerId/);
@@ -49,10 +49,28 @@ describe("le retrait d'une pièce de la file « À valider »", () => {
     expect(corps, "le fichier du dépôt ne doit pas être effacé").not.toMatch(/supprimerSource|storage|remove\(/);
   });
 
-  it("le bouton se confirme dans la page (aucune boîte du navigateur) et n'existe pas sur une pièce publiée", () => {
-    expect(form).toMatch(/\{!published && !item\.offerId && <BoutonRetirer \/>\}/);
-    expect(form).toMatch(/Confirmer le retrait/);
-    expect(form, "une boîte du navigateur est apparue").not.toMatch(/window\.confirm|confirm\(/);
+  it("le « ⋮ » est sur la carte de la file, hors du lien, et n'existe pas sur une pièce publiée", () => {
+    const page = lire("src/app/desk/a-valider/page.tsx");
+    expect(page).toMatch(/const peutRetirer = q\.state !== "publie" && !q\.offerId;/);
+    expect(page).toMatch(/<MenuDeLaPiece id=\{q\.id\}/);
+    const debutLien = page.indexOf("<Link href={`/desk/a-valider?item=");
+    const lien = page.slice(debutLien, page.indexOf("</Link>", debutLien));
+    expect(lien, "le menu est dans l'ancre : une ancre ne porte pas de bouton").not.toMatch(/MenuDeLaPiece/);
+    expect(lire("src/app/desk/a-valider/ValidateForm.tsx")).not.toMatch(/Retirer de la file|retirerSourceAction/);
+  });
+
+  it("le retrait se confirme dans la fenêtre centrée de la maison, jamais par une boîte du navigateur", () => {
+    const m = lire("src/app/desk/a-valider/MenuDeLaPiece.tsx");
+    expect(m).toMatch(/<Sheet\s+open=\{confirmer\}[\s\S]*?centre/);
+    expect(m).toMatch(/role="menu"/);
+    expect(m, "une boîte du navigateur est apparue").not.toMatch(/window\.confirm|confirm\(/);
+    expect(m).toMatch(/retirerSourceAction\(fd\)/);
+  });
+
+  it("la largeur de la file se tire à la poignée, comme le rail, et se retient", () => {
+    const page = lire("src/app/desk/a-valider/page.tsx");
+    expect(page).toMatch(/<Poignee variable="--liste" min=\{240\} max=\{520\} memoire="av\.liste"/);
+    expect(lire("src/app/desk/a-valider/page.module.css")).toMatch(/grid-template-columns: var\(--liste, 300px\) auto minmax\(0, 1fr\);/);
   });
 
   it("le dépôt sait retirer, en mémoire comme en base", () => {

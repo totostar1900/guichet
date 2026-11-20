@@ -14,7 +14,8 @@
 }
 .intake {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
+  /* LA LARGEUR DE LA FILE SE TIRE (20 novembre 2026, le client : « comme le rail est ajustable ») : la poignée écrit --liste sur cette grille, et le navigateur la retient. */
+  grid-template-columns: var(--liste, 300px) auto minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -69,6 +70,13 @@
   background: var(--warn-soft);
   border-radius: var(--radius);
   padding: 8px 10px;
+}
+.qcarte {
+  position: relative;
+}
+.qitemMenu {
+  /* La place du « ⋮ », en haut à droite de l'encadré. */
+  padding-right: 40px;
 }
 .qitem {
   background: var(--surface);
@@ -375,6 +383,10 @@
 @media (max-width: 1100px) {
   .intake {
     grid-template-columns: 1fr;
+  }
+  /* Sur une colonne, la poignée ne règle plus rien. */
+  .poigneeFile {
+    display: none;
   }
   .queue {
     position: static;
