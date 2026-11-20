@@ -7,7 +7,6 @@ export const EN_PROSE: Record<string, string> = {
   "… ou collez le texte du message / de l'e-mail": "… or paste the text of the message / e-mail",
   "L'original est conservé tel quel : c'est la pièce justificative de l'offre.": "The original is kept as is: it is the offer's supporting document.",
   "Source officielle jointe (communiqué, note d'opération)": "Official source attached (notice, offering note)",
-  "La diffusion WhatsApp / e-mail est journalisée aujourd'hui, envoyée à l'étape suivante.": "WhatsApp / e-mail broadcast is logged today, sent at the next step.",
   "Fonds : droits d'entrée maximum (%)": "Funds: maximum entry fee (%)",
   "Quatre yeux sans goulot d'étranglement : à l'intérieur de la fenêtre déléguée, un opérateur publie seul ; en dehors, sa proposition attend un responsable, qui la voit ici avec l'avant / après et l'approuve ou la refuse avec une note. La personne qui propose ne peut jamais approuver.": "Four eyes without a bottleneck: inside the delegated window an operator publishes alone; outside it, their proposal waits for a manager, who sees it here with the before / after and approves or refuses it with a note. The person who proposes can never approve.",
   "Nouvelle ligne (aucune version publiée à comparer).": "New line (no published version to compare).",

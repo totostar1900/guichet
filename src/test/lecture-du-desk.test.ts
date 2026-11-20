@@ -61,3 +61,31 @@ describe("le retrait d'une pièce de la file « À valider »", () => {
     expect(lire("src/lib/data/supabase.ts")).toMatch(/from\("intake_items"\)\.delete\(\)\.eq\("id", id\)/);
   });
 });
+
+/**
+ * LA PUBLICATION SE FAIT SUR LE GUICHET, ET SEULEMENT LÀ (20 novembre 2026, le client : « retirer "segments", pas de WhatsApp ni e-mail ; les boutons enregistrer et publier isolés dans leur encadré »).
+ */
+describe("le formulaire de publication de « À valider »", () => {
+  const form = lire("src/app/desk/a-valider/ValidateForm.tsx");
+  const actions = lire("src/app/desk/a-valider/actions.ts");
+  const css = lire("src/app/desk/a-valider/page.module.css");
+
+  it("ne propose ni segment ni canal de diffusion, et l'action ignore ce qu'un ancien formulaire enverrait", () => {
+    expect(form).not.toMatch(/name="segment"|name="channel"|Segments|WhatsApp|E-mail"\]/);
+    expect(actions).toMatch(/const channels = \["Guichet web"\];/);
+    expect(actions).toMatch(/segment: "Tous les clients"/);
+    expect(actions, "la publication lit encore les canaux du formulaire").not.toMatch(/form\.getAll\("channel"\)/);
+  });
+
+  it("isole « Enregistrer le brouillon » et « Publier » dans leur encadré, loin du message de blocage", () => {
+    const encadre = form.slice(form.lastIndexOf("styles.vPublier"));
+    expect(encadre).toMatch(/Enregistrer le brouillon/);
+    expect(encadre).toMatch(/Publier/);
+    const statut = form.indexOf("styles.vStatut");
+    const gestes = form.indexOf("styles.vFoot", statut);
+    const publier = form.indexOf("styles.vPublier", gestes);
+    expect(form.slice(statut, gestes), "le message de blocage doit être dans sa propre bande").toMatch(/Publication bloquée tant que/);
+    expect(form.slice(gestes, publier), "un bouton d'enregistrement est resté dans la rangée des gestes de tri").not.toMatch(/Enregistrer le brouillon|Publier/);
+    expect(css).toMatch(/\.vPublier \{[^}]*border: 1px solid var\(--line\)/);
+  });
+});

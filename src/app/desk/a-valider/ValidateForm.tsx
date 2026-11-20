@@ -369,10 +369,6 @@ export function ValidateForm({ item, offer, niveau }: { item: IntakeItem; offer?
                 <small className="muted">{tr("Laissé vide : un titre. À ne renseigner que si le communiqué fixe un minimum.")}</small>
               </label>
             )}
-            <label className="field">
-              {tr("Segments")}
-              <Select block name="segment" value="Tous les clients" options={["Tous les clients", "Institutionnels + entreprises", "Personnes physiques + groupements", "Porteurs de la ligne"].map((v) => ({ value: v, label: tr(v) }))} />
-            </label>
           </div>
           <div className={styles.preview}>
             <span className="eyebrow">{tr("Aperçu client")}</span>
@@ -388,16 +384,6 @@ export function ValidateForm({ item, offer, niveau }: { item: IntakeItem; offer?
               ))}
             </div>
           )}
-          <div className={styles.channels}>
-            {["Guichet web", "WhatsApp", "E-mail"].map((c) => (
-              <label key={c}>
-                <input type="checkbox" name="channel" value={c} defaultChecked={c !== "E-mail"} /> {c}
-              </label>
-            ))}
-            <span className="muted" style={{ fontSize: ".74rem" }}>
-              {tr("La diffusion WhatsApp / e-mail est journalisée aujourd'hui, envoyée à l'étape suivante.")}
-            </span>
-          </div>
         </div>
 
         {(saveState && !saveState.ok && <div className={styles.error}>{saveState.error}</div>) || (pubState && !pubState.ok && <div className={styles.error}>{pubState.error}</div>) || (revState && !revState.ok && <div className={styles.error}>{revState.error}</div>) || (backState && !backState.ok && <div className={styles.error}>{backState.error}</div>) || (rejState && !rejState.ok && <div className={styles.error}>{rejState.error}</div>)}
@@ -419,16 +405,18 @@ export function ValidateForm({ item, offer, niveau }: { item: IntakeItem; offer?
           </div>
         )}
 
-        <div className={styles.vFoot}>
+        <div className={styles.vStatut}>
           <small>
             {!official
               ? "Publication bloquée tant que la source officielle n'est pas jointe. Enregistrez le brouillon en attendant."
               : missing.length
                 ? `${tr("Champs manquants pour publier")} : ${missing.map((m) => tr(FIELD_LABEL[m as keyof OfferDraft] ?? m)).join(", ")}.`
                 : published
-                  ? tr("Déjà publié le {d}. Publier à nouveau crée la version {v} et renotifie les clients.", { d: item.publishedAt ? fmtDateTime(item.publishedAt) : "—", v: (offer?.version ?? 0) + 1 })
-                  : tr("Publier crée la version 1 de l'offre, l'affiche dans le Guichet et déclenche les diffusions cochées.")}
+                  ? tr("Déjà publié le {d}. Publier à nouveau crée la version {v}.", { d: item.publishedAt ? fmtDateTime(item.publishedAt) : "—", v: (offer?.version ?? 0) + 1 })
+                  : tr("Publier crée la version 1 de l'offre et l'affiche dans le Guichet.")}
           </small>
+        </div>
+        <div className={styles.vFoot}>
           {/* « À lire » est un état, pas une panne : la pièce est arrivée et
               gardée, la machine n'y est pas encore passée. Le bouton dit lequel
               des deux gestes il fait, parce qu'une relecture écrase ce que la
@@ -469,11 +457,13 @@ export function ValidateForm({ item, offer, niveau }: { item: IntakeItem; offer?
               )}
             </span>
           )}
+        </div>
+        <div className={styles.vPublier}>
           <button className="btn" type="submit" formAction={saveAct} disabled={saving}>
             {tr(saving ? "Enregistrement…" : "Enregistrer le brouillon")}
           </button>
           <button className="btn primary" type="submit" formAction={pubAct} disabled={publishing || !official || missing.length > 0}>
-            {publishing ? "Publication…" : published ? `Publier la version ${(offer?.version ?? 0) + 1}` : "Publier et diffuser"}
+            {publishing ? "Publication…" : published ? `Publier la version ${(offer?.version ?? 0) + 1}` : "Publier"}
           </button>
         </div>
       </form>

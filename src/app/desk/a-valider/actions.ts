@@ -122,8 +122,10 @@ export async function publishAction(_prev: IntakeResult | null, form: FormData):
   });
   const parsed = lireDecision(raw);
   if (!parsed.ok) return { ok: false, error: parsed.error };
-  const { itemId, ...decision } = parsed.data;
-  const channels = form.getAll("channel").map(String);
+  const { itemId, ...lu } = parsed.data;
+  const decision = { ...lu, segment: "Tous les clients" };
+  /* LA PUBLICATION SE FAIT SUR LE GUICHET, ET SEULEMENT LÀ (20 novembre 2026, le client : « pas de WhatsApp ni e-mail, retirer le segment »). Le formulaire ne propose plus ni canal ni segment, et ce qu'un ancien formulaire enverrait encore est ignoré : rien ne part par WhatsApp ou e-mail à la publication. */
+  const channels = ["Guichet web"];
 
   const r = repo();
   const item = await r.getIntake(itemId);

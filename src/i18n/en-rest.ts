@@ -743,7 +743,6 @@ export const EN_REST: Record<string, string> = {
   "Types de produits": "Product types",
   "Nouveau type de produit": "New product type",
   "Libellé": "Label",
-  "Segments": "Segments",
   "Moteur": "Engine",
   "Badge": "Badge",
   "Couleur du badge": "Badge colour",
