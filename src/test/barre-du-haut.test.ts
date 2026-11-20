@@ -285,12 +285,17 @@ describe("la loupe et l'étoile", () => {
     for (const surface of [/favoris: Boolean\(favoris\)/, /favoris=\{Boolean\(favoris\)\} desk=/, /favoris=\{Boolean\(favoris\)\} \/> : undefined/]) expect(l, `une surface ne reçoit plus l'indicateur : ${surface.source}`).toMatch(surface);
   });
 
-  it("le tiroir se ferme d'un glissement vers la droite, sans rebond, et le menu ouvre « Mon activité »", () => {
+  it("le menu est une page pleine, fermée par sa croix ou d'un glissement vers le bas, sans rebond ; il ouvre « Mon activité »", () => {
     const b = sansNotes(lire("src/components/mobile/BarreDuHaut.tsx"));
-    expect(b, "le glissement ne ferme plus le tiroir").toMatch(/onTouchStart=\{commencer\} onTouchMove=\{suivre\} onTouchEnd=\{relacher\}/);
-    expect(b, "la fermeture ne reprend plus là où est le doigt, à la courbe des feuilles").toMatch(/el\.style\.transition = `transform \$\{ms\}ms \$\{COURBE_DES_FEUILLES\}`;\s*el\.style\.transform = "translateX\(105%\)";/);
-    expect(b, "le geste ne distingue plus l'horizontal du défilement vertical").toMatch(/dx > Math\.abs\(dy\) \* 1\.3/);
-    expect(sansNotes(lire("src/components/mobile/BarreDuHaut.module.css")), "le tiroir perd touch-action pan-y").toMatch(/touch-action: pan-y;/);
+    expect(b, "le glissement ne ferme plus le menu").toMatch(/onTouchStart=\{commencer\} onTouchMove=\{suivre\} onTouchEnd=\{relacher\}/);
+    expect(b, "la fermeture ne reprend plus là où est le doigt, à la courbe des feuilles").toMatch(/el\.style\.transition = `transform \$\{ms\}ms \$\{COURBE_DES_FEUILLES\}`;\s*el\.style\.transform = "translateY\(105%\)";/);
+    expect(b, "le geste ne distingue plus le vertical du défilement horizontal").toMatch(/dy > Math\.abs\(dx\) \* 1\.3/);
+    expect(b, "le glissement s'arme alors que la liste est défilée : il fermerait le menu au lieu de la faire défiler").toMatch(/\(liste\.current\?\.scrollTop \?\? 0\) > 0/);
+    const css = sansNotes(lire("src/components/mobile/BarreDuHaut.module.css"));
+    expect(css, "le menu n'est plus une page pleine").toMatch(/\.tiroir \{[^}]*inset: 0;[^}]*width: 100%;/);
+    expect(css, "le menu ne monte plus du bas").toMatch(/transform: translateY\(100%\);/);
+    expect(css, "le menu perd touch-action pan-y").toMatch(/touch-action: pan-y;/);
+    expect(b, "la croix a disparu").toMatch(/styles\.fermer/);
     expect(b, "le menu n'ouvre plus « Mon activité »").toMatch(/href="\/activite"[\s\S]*Mon activité/);
   });
 

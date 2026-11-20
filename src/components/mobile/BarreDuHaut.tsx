@@ -104,12 +104,13 @@ export function BarreDuHaut({ attentes, echeances, favoris }: BarreDuHautProps) 
   const { shown, visible } = useSheetPresence(ouvert);
   const croix = useRef<HTMLButtonElement>(null);
   const fermer = () => setOuvert(false);
-  /* LE TIROIR SE FERME D'UN GLISSEMENT VERS LA DROITE, SANS REBOND (10 novembre 2026). Il suit le doigt, puis, au relâchement, REPREND LÀ OÙ IL EST et glisse vers le bord d'où il est venu, à la courbe des feuilles (qui ne dépasse jamais) ; un glissement trop court le ramène à sa place par la même courbe. Le geste ne commence que s'il est plutôt horizontal : le défilement vertical de la liste reste libre. */
+  /* LE MENU EST UNE PAGE PLEINE, FERMÉE PAR SA CROIX OU D'UN GLISSEMENT VERS LE BAS (20 novembre 2026, le client). Il suit le doigt, puis, au relâchement, REPREND LÀ OÙ IL EST et glisse vers le bas, à la vitesse du doigt ; sous le seuil, il revient. Le glissement ne s'arme que si la liste est tout en haut (`scrollTop` à 0) : sinon le doigt fait défiler la liste, jamais fermer la page. */
   const tiroir = useRef<HTMLElement>(null);
-  const doigt = useRef<{ x0: number; y0: number; x: number; t: number; v: number; dx: number; en: boolean } | null>(null);
+  const liste = useRef<HTMLDivElement>(null);
+  const doigt = useRef<{ x0: number; y0: number; y: number; t: number; v: number; dy: number; en: boolean } | null>(null);
   const commencer = (e: React.TouchEvent) => {
     const p = e.touches[0];
-    doigt.current = { x0: p.clientX, y0: p.clientY, x: p.clientX, t: performance.now(), v: 0, dx: 0, en: false };
+    doigt.current = { x0: p.clientX, y0: p.clientY, y: p.clientY, t: performance.now(), v: 0, dy: 0, en: false };
   };
   const suivre = (e: React.TouchEvent) => {
     const g = doigt.current;
@@ -119,31 +120,36 @@ export function BarreDuHaut({ attentes, echeances, favoris }: BarreDuHautProps) 
     const dx = p.clientX - g.x0;
     const dy = p.clientY - g.y0;
     if (!g.en) {
-      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
+      /* Un geste plutôt horizontal, ou vers le haut, ou sur une liste déjà défilée : ce n'est pas une fermeture. */
+      if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
         doigt.current = null;
         return;
       }
-      if (dx > 10 && dx > Math.abs(dy) * 1.3) g.en = true;
+      if (dy < -10 || (liste.current?.scrollTop ?? 0) > 0) {
+        doigt.current = null;
+        return;
+      }
+      if (dy > 10 && dy > Math.abs(dx) * 1.3) g.en = true;
       else return;
     }
     const now = performance.now();
-    g.v = (p.clientX - g.x) / Math.max(1, now - g.t);
-    g.x = p.clientX;
+    g.v = (p.clientY - g.y) / Math.max(1, now - g.t);
+    g.y = p.clientY;
     g.t = now;
-    g.dx = Math.max(0, dx);
+    g.dy = Math.max(0, dy);
     el.style.transition = "none";
-    el.style.transform = `translateX(${g.dx}px)`;
+    el.style.transform = `translateY(${g.dy}px)`;
   };
   const relacher = () => {
     const g = doigt.current;
     const el = tiroir.current;
     doigt.current = null;
     if (!g || !g.en || !el) return;
-    if (g.dx > 80 || g.v > 0.5) {
-      const reste = Math.max(40, el.offsetWidth - g.dx);
+    if (g.dy > 100 || g.v > 0.5) {
+      const reste = Math.max(40, el.offsetHeight - g.dy);
       const ms = Math.round(Math.min(300, Math.max(160, reste / Math.max(0.6, g.v || 1))));
       el.style.transition = `transform ${ms}ms ${COURBE_DES_FEUILLES}`;
-      el.style.transform = "translateX(105%)";
+      el.style.transform = "translateY(105%)";
       setOuvert(false);
       return;
     }
@@ -245,13 +251,14 @@ export function BarreDuHaut({ attentes, echeances, favoris }: BarreDuHautProps) 
             <div className={`${styles.voile} ${visible ? styles.voileOuvert : ""}`} onClick={fermer} aria-hidden="true" />
             <aside ref={tiroir} className={`${styles.tiroir} ${visible ? styles.tiroirOuvert : ""}`} role="dialog" aria-modal="true" aria-label={t("Menu")} aria-hidden={!ouvert} onTouchStart={commencer} onTouchMove={suivre} onTouchEnd={relacher} onTouchCancel={relacher}>
               <div className={styles.haut}>
+                <b className={styles.titreDeLaPage}>{t("Menu")}</b>
                 <button ref={croix} type="button" className={styles.fermer} onClick={fermer} aria-label={t("Fermer")}>
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M6 6l12 12M18 6L6 18" />
                   </svg>
                 </button>
               </div>
-              <div className={styles.corps}>
+              <div ref={liste} className={styles.corps}>
                 <button type="button" className={`${styles.ligne} ${combien > 0 ? styles.chaud : ""}`} aria-expanded={attendu} onClick={() => setAttendu(!attendu)} disabled={combien === 0}>
                   <Trace d={ICONE.cloche} />
                   <span>{t("Ce qui m'attend")}</span>
