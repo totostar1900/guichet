@@ -84,8 +84,8 @@ export const isEspaceSection = (path: string): boolean =>
  * calendrier. La règle vit ici pour que la bande de l'écran large et celle du
  * téléphone ne puissent pas en tenir deux versions.
  */
-export const isMarcheSection = (path: string): boolean =>
-  path.startsWith("/marche") || path.startsWith("/societes") || path.startsWith("/indice") || path.startsWith("/emetteurs") || path.startsWith("/actualites") || path.startsWith("/comparer");
+export const MARCHE_PREFIXES = ["/marche", "/societes", "/indice", "/emetteurs", "/actualites", "/comparer"] as const;
+export const isMarcheSection = (path: string): boolean => MARCHE_PREFIXES.some((p) => path.startsWith(p));
 
 /**
  * LE SIÈGE « INSTRUMENTS » : CE QUI S'ACHÈTE.

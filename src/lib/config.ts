@@ -13,6 +13,17 @@
 export type AspectDesTuiles = "tuiles" | "douces" | "lignes" | "cartes";
 export const TUILES: AspectDesTuiles = "tuiles";
 
+/**
+ * L'ACCENT D'UNE FAMILLE DE PAGES, EN UN MOT (21 novembre 2026, planche « Marché en bleu », 3A · 4A).
+ *
+ *   "or"   : l'accent de la maison, partout (liens, traits de titre, entrée de menu active, bouton) ;
+ *   "bleu" : dans les pages de la famille, tout cet or devient le bleu de l'information (« --info »).
+ *
+ * Changer ce mot rend ou retire la couleur de la famille entière, sans toucher une page. La famille « marché » est celle de la navigation : le Marché, l'indice, les sociétés, les émetteurs, les actualités, le comparateur (« familleDe », src/lib/famille.ts). La barre du haut, la cloche et le bouton flottant gardent l'or : ils servent toute l'application. Les règles vivent dans « globals.css » (« data-accent-marche ») ; la mise en page pose le mot sur « <html> ».
+ */
+export type Accent = "or" | "bleu";
+export const ACCENTS: { marche: Accent } = { marche: "bleu" };
+
 /** Product and company identity : the one place to change names. */
 export const PRODUCT = {
   name: "Guichet",

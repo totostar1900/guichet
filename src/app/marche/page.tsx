@@ -2,7 +2,7 @@ import Link from "next/link";
 import { IndexPulse } from "@/components/IndexPulse";
 import { COMPANY } from "@/lib/config";
 import { fmt, fmtDate, fmtPct, money } from "@/lib/format";
-import { dernierMouvement, echangesDeLaSeance } from "@/lib/market/echanges";
+import { dernierMouvement } from "@/lib/market/echanges";
 import { indexPageData } from "@/lib/market/index-data";
 import { quarters, quarterNote } from "@/lib/market/index-quarter";
 import { aLaUne, publishedNews, titreLu } from "@/lib/news";
@@ -15,6 +15,7 @@ import { getLang, getT } from "@/i18n/server";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
+import { TitreDeBloc } from "@/components/TitreDeBloc";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Le marché" };
@@ -41,7 +42,7 @@ export default async function MarchePage() {
   ]);
   /* La dernière séance close : une ligne, tirée de la même projection que la rubrique (jamais d'autre champ que ceux du communiqué). */
   const derniereAdj = vueClient(resultats)[0];
-  const { weights, nameOf, lastBulletin, histories, trading } = data;
+  const { weights, nameOf, histories } = data;
   const notes = quarters(data);
   /* La dernière note se calcule de « data », déjà en main : aucune lecture de
      plus. Les actualités, elles, vivent ailleurs, d'où la seule requête que
@@ -54,17 +55,7 @@ export default async function MarchePage() {
   const une = aLaUne(actualites);
   const capTotal = weights.reduce((s, w) => s + w.capTotal, 0);
   const capFloat = weights.reduce((s, w) => s + w.capFloat, 0);
-  /**
-   * CE QUI S'EST ÉCHANGÉ, ET QUAND CHAQUE LIGNE A BOUGÉ.
-   *
-   * L'indice bouge sur 70 des 271 séances lues, et une action garde son cours
-   * dans 95 % d'entre elles : une page qui ne montre que la variation du jour
-   * n'affiche que des zéros, trois fois sur quatre. Les deux lectures qui
-   * suivent sont dans la base depuis le premier jour et ne paraissaient nulle
-   * part. Elles ne coûtent aucune lecture de plus : « indexPageData » les
-   * portait déjà.
-   */
-  const ech = lastBulletin ? echangesDeLaSeance(trading, lastBulletin.sessionDate, weights.length) : undefined;
+  /* QUAND CHAQUE LIGNE A BOUGÉ (« dernierMouvement » plus bas) : l'indice bouge sur 70 des 271 séances lues, et une action garde son cours dans 95 % d'entre elles ; la variation du jour n'affichait que des zéros. La carte « Ce qui s'est échangé » est partie (21 novembre 2026) ; son lien vers les séances est au pied de la carte de l'indice. */
   /* Trois lignes, pas cinq : au-delà, on recopie la table qu'on voulait
      retirer. Les trois premières pèsent l'essentiel, et la phrase le dit. */
   const tete = weights.slice(0, 3);
@@ -107,7 +98,7 @@ export default async function MarchePage() {
           titre={t("Le marché")}
           phrase={
             <>
-              {t("La Bourse de l'Afrique Centrale, séance après séance : l'indice, ce qui s'est échangé, les sociétés cotées, les adjudications et les notes de marché.")}
+              {t("La Bourse de l'Afrique Centrale, séance après séance : l'indice, les sociétés cotées, les adjudications et les notes de marché.")}
               <span className={styles.provenance}>{`BVMAC · ${t("Bourse des Valeurs Mobilières de l'Afrique Centrale")}`}</span>
             </>
           }
@@ -123,58 +114,7 @@ export default async function MarchePage() {
             s'en sert — et cette page ne le lui demandait pas. Le second lien
             de sa carte, « comment le lire », descend dans la section de
             l'éclairage, qui est faite pour lui : une carte, une flèche. */}
-        <IndexPulse entete={{ lien: { href: "/indice", mot: t("L'indice") } }} liens={false} />
-
-        {ech && lastBulletin && (
-          <section className="panel" id="echanges">
-            <div className="panel-h">
-              {/* « right » POUSSE LA FLÈCHE AU BORD DROIT, et les cinq
-                  sections la portent. Sans elle, « .panel-h » empile ses
-                  enfants à gauche : le lien se posait juste après le titre,
-                  donc à une abscisse différente par section — « Toutes les
-                  notes » à 190 px, « Les 7 sociétés » à 140, « La page de
-                  comparaison » à 230. L'œil qui descend la page cherchait la
-                  sortie à chaque carte. La classe existe dans le globals
-                  depuis longtemps ; aucune de ces cartes ne s'en servait. */}
-              <h2>{t("Ce qui s'est échangé")}</h2>
-              {/* « LES SÉANCES » ET NON « SÉANCE PAR SÉANCE », depuis le
-                  1er novembre 2026 : l'en-tête de l'indice, à cent pixels
-                  au-dessus, porte désormais ce mot-là. Deux cartes voisines
-                  dont les deux flèches disaient la même chose et menaient à
-                  la même page — celle-ci va au tableau des séances, qui est
-                  ce qu'elle résume. */}
-              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/indice#seances">
-                {t("Les séances")} →
-              </Link>
-            </div>
-            <div className={styles.ech}>
-              <div>
-                <b>
-                  {ech.lignes}
-                  <small> / {ech.cotees}</small>
-                </b>
-                <span>{t("lignes servies le {d}", { d: fmtDate(lastBulletin.sessionDate, false) })}</span>
-              </div>
-              <div>
-                <b>{fmt(ech.transactions)}</b>
-                <span>{t("transactions")}</span>
-              </div>
-              <div>
-                <b>{money(ech.montant)}</b>
-                <span>{t("FCFA échangés")}</span>
-              </div>
-            </div>
-            <p className={styles.note}>
-              {ech.servies.length > 0 ? `${ech.servies.map((x) => `${x.mnemo} ${fmt(x.titres)}`).join(" · ")}. ` : `${t("Aucun titre n'a changé de mains ce jour-là.")} `}
-              {ech.part != null &&
-                t("Cette séance pèse {p} des trente derniers jours, qui ont vu {m} FCFA s'échanger en {n} séances.", {
-                  p: fmtPct(ech.part, 0),
-                  m: money(ech.fenetreMontant),
-                  n: ech.fenetreSeances,
-                })}
-            </p>
-          </section>
-        )}
+        <IndexPulse entete={{ lien: { href: "/indice", mot: t("L'indice") } }} liens={false} seances={{ href: "/indice#seances", mot: t("Les séances") }} />
 
         {/* TROIS LIGNES, ET NON SEPT. Les sept sociétés paraissaient sur quatre
             pages avec quatre jeux de colonnes : l'indice donne le capital global
@@ -183,13 +123,9 @@ export default async function MarchePage() {
             cherche « le poids de BHC » avait trois réponses. La porte en montre
             trois, celles qui pèsent, et la liste vit à un seul endroit. */}
         {weights.length > 0 && (
-          <section className="panel" id="societes">
-            <div className="panel-h">
-              <h2>{t("Les sociétés cotées")}</h2>
-              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/societes">
-                {t("Toutes")} →
-              </Link>
-            </div>
+          <section className={styles.bloc} id="societes">
+            <TitreDeBloc titre="Les sociétés cotées" href="/societes" tout="Toutes" />
+            <div className="panel">
             <div className={styles.apercu}>
               {tete.map((w) => {
                 const c = companies.find((x) => x.mnemo === w.mnemo);
@@ -211,17 +147,14 @@ export default async function MarchePage() {
             <p className={styles.note}>
               {t("Ces trois-là pèsent {p} de la capitalisation, {c} FCFA au total dont {f} de flottant coté.", { p: fmtPct(partDeTete, 1), c: money(capTotal), f: money(capFloat) })}
             </p>
+          </div>
           </section>
         )}
 
         {derniereAdj && (
-          <section className="panel" id="adjudications">
-            <div className="panel-h">
-              <h2>{t("Les résultats d'adjudications")}</h2>
-              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/marche/adjudications">
-                {t("Voir tout")} →
-              </Link>
-            </div>
+          <section className={styles.bloc} id="adjudications">
+            <TitreDeBloc titre="Les résultats d'adjudications" href="/marche/adjudications" tout="Voir tout" />
+            <div className="panel">
             <div className={styles.apercu}>
               <Link href="/marche/adjudications">
                 <b>
@@ -234,16 +167,13 @@ export default async function MarchePage() {
               </Link>
             </div>
             <p className={styles.note}>{t("Ce que les Trésors ont obtenu, tel que leur communiqué le publie.")}</p>
+          </div>
           </section>
         )}
 
-        <section className="panel" id="notes">
-            <div className="panel-h">
-              <h2>{t(derniere ? "La dernière note" : "Les notes de marché")}</h2>
-              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/indice/notes">
-                {t("Toutes les notes")} →
-              </Link>
-            </div>
+        <section className={styles.bloc} id="notes">
+            <TitreDeBloc titre={derniere ? "La dernière note" : "Les notes de marché"} href="/indice/notes" tout="Toutes les notes" />
+            <div className="panel">
             {derniere ? (
               <div className={styles.apercu}>
                 <Link href={`/indice/note/${derniere.quarter.key.toLowerCase()}`}>
@@ -259,7 +189,8 @@ export default async function MarchePage() {
             )}
           {/* Une annonce, pas un sommaire : le sommaire est dans la note. */}
           <p className={styles.note}>{t("Le pouls du trimestre, en une page.")}</p>
-        </section>
+        </div>
+          </section>
 
         {/* ─── L'ÉCLAIRAGE, ET CE QU'ON Y APPREND ───────────────────────────
             Il n'avait, sur cette page, qu'une tuile muette dans le sommaire
@@ -269,13 +200,9 @@ export default async function MarchePage() {
             ce qu'elle contient, et cela se lit dans le référentiel plutôt que
             de se recopier ici. Le desk réécrit la leçon, la tuile suit. */}
         {lecon && (
-          <section className="panel" id="eclairage">
-            <div className="panel-h">
-              <h2>{t("L'éclairage")}</h2>
-              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/info/indice-bvmac">
-                {t("Comment le lire")} →
-              </Link>
-            </div>
+          <section className={styles.bloc} id="eclairage">
+            <TitreDeBloc titre="L'éclairage" href="/info/indice-bvmac" tout="Comment le lire" />
+            <div className="panel">
             <div className={styles.lecon}>
               <b>{t(lecon.title)}</b>
               <p>{t(lecon.intro)}</p>
@@ -289,6 +216,7 @@ export default async function MarchePage() {
                 {lecon.terms.length > 0 ? ` · ${t("{n} termes expliqués", { n: lecon.terms.length })}` : ""}
               </span>
             </div>
+          </div>
           </section>
         )}
 
@@ -297,15 +225,12 @@ export default async function MarchePage() {
             de « ChoisirDeuxLignes ». Sous deux lignes au catalogue il n'y a
             rien à comparer, et la section ne paraît pas. */}
         {comparables.length >= 2 && (
-          <section className="panel" id="comparer">
-            <div className="panel-h">
-              <h2>{t("Comparer deux lignes")}</h2>
-              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/comparer">
-                {t("Voir plus")} →
-              </Link>
-            </div>
+          <section className={styles.bloc} id="comparer">
+            <TitreDeBloc titre="Comparer deux lignes" href="/comparer" tout="Voir plus" />
+            <div className="panel">
             <ChoisirDeuxLignes lignes={comparables} />
             <p className={styles.note}>{t("Rendement, échéance, ticket et calcul de référence côte à côte, avec l'indice en repère.")}</p>
+          </div>
           </section>
         )}
 
@@ -313,13 +238,9 @@ export default async function MarchePage() {
             tête de siège apprend à ne plus l'ouvrir ; cinq dépêches reçues et
             relues, non publiées, ne sont pas une actualité. */}
         {une && (
-          <section className="panel" id="actualites">
-            <div className="panel-h">
-              <h2>{t("À la une")}</h2>
-              <Link className={`btn sm ghost right ${styles.lienDeCoin}`} href="/actualites">
-                {t("Toutes les actualités")} →
-              </Link>
-            </div>
+          <section className={styles.bloc} id="actualites">
+            <TitreDeBloc titre="À la une" href="/actualites" tout="Toutes les actualités" />
+            <div className="panel">
             <div className={styles.apercu}>
               <Link href="/actualites">
                 <b>{une.source}</b>
@@ -327,6 +248,7 @@ export default async function MarchePage() {
                 <em>{une.publishedAt ? fmtDate(une.publishedAt.slice(0, 10), false) : ""}</em>
               </Link>
             </div>
+          </div>
           </section>
         )}
 

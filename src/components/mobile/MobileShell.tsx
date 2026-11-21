@@ -19,6 +19,7 @@ import { majPile, precedentDe } from "@/lib/nav-pile";
 import { retourEtape } from "./retourEtape";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
+import { familleDe } from "@/lib/famille";
 import { isAideSection, isEspaceSection, isInstrumentsSection, isMarcheSection, isTraderSection, listForFiche } from "@/lib/nav-section";
 
 /**
@@ -141,6 +142,12 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
   useLayoutEffect(() => {
     document.documentElement.dataset.profondeur = racine ? "racine" : "page";
   }, [racine]);
+  /* La famille de la page (l'accent bleu du Marché), posée de la même façon et suivie à chaque navigation. */
+  useLayoutEffect(() => {
+    const f = familleDe(path);
+    if (f) document.documentElement.dataset.famille = f;
+    else delete document.documentElement.dataset.famille;
+  }, [path]);
 
   /**
    * LA BARRE DIT OÙ L'ON EST, ET NE DIT JAMAIS LE NOM DE LA PAGE.

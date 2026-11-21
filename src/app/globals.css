@@ -1950,3 +1950,27 @@ body:has([data-vitrine]) {
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
+
+/* L'ACCENT BLEU DU MARCHÉ (21 novembre 2026, planche « Marché en bleu », 3A · 4A).
+   Le mot est « ACCENTS.marche » dans src/lib/config.ts : « bleu » pose ce bloc, « or » le retire, sans toucher une page. Dans les pages de la famille (« data-famille » sur <html>), le CONTENU et l'ENTRÉE DE MENU ACTIVE prennent le bleu de l'information là où l'or se lisait : liens, trait des titres, pastilles, bouton principal. La barre du haut (cloche, pastille des échéances) et le bouton flottant ne sont pas dans ces deux sélecteurs : ils gardent l'or, ils servent toute l'application.
+   Les jetons d'or sont redits pour le sous-arbre, et suivent le thème (« --info » change avec lui : 7,4:1 en sombre, 6,0:1 en clair sur le fond). Le bouton principal et les segments choisis ne sont dorés qu'en sombre (en clair ils sont marine) : le second bloc ne vaut que là. */
+html[data-accent-marche="bleu"][data-famille="marche"] :is(main, [aria-current="page"]) {
+  --gold: var(--info);
+  --gold-ink: var(--info);
+  --gold-soft: var(--info-soft);
+  --gold-line: color-mix(in srgb, var(--info) 40%, transparent);
+}
+@media (prefers-color-scheme: dark) {
+  html[data-accent-marche="bleu"][data-famille="marche"]:not([data-theme="light"]):not([data-theme="dim"]) :is(main, [aria-current="page"]) {
+    --fill: var(--info);
+    --fill-ink: #0b2545;
+    --select: var(--info);
+    --on-select: #0b2545;
+  }
+}
+html[data-accent-marche="bleu"][data-famille="marche"][data-theme="dark"] :is(main, [aria-current="page"]) {
+  --fill: var(--info);
+  --fill-ink: #0b2545;
+  --select: var(--info);
+  --on-select: #0b2545;
+}

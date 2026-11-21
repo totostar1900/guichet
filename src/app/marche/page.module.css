@@ -8,43 +8,6 @@
   line-height: 1.5;
 }
 
-/**
- * CE QUI S'EST ÉCHANGÉ : trois nombres, et rien autour.
- *
- * C'est la seule mesure d'activité de la page. Trois colonnes, sur une seule
- * ligne : en « flex », le troisième bloc réclamait à lui seul 313 des 345
- * pixels disponibles et passait à la ligne, laissant deux nombres en haut et
- * un en bas. Mesuré sur la production le 5 octobre 2026.
- */
-.ech {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--s-7);
-}
-/* Sans « min-width: 0 », une colonne de grille ne descend pas sous la largeur
-   minimale de son contenu, et les trois nombres se remettent a deborder. */
-.ech > div {
-  min-width: 0;
-}
-.ech b {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.15;
-}
-.ech b small {
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: var(--ink-3);
-}
-.ech span {
-  display: block;
-  font-size: 0.76rem;
-  color: var(--ink-3);
-  line-height: 1.3;
-  margin-top: var(--s-1);
-}
 .source {
   font-size: 0.78rem;
   color: var(--ink-3);
@@ -196,15 +159,21 @@
   cursor: not-allowed;
 }
 
-/* LES LIENS OR DES CARTES S'ALIGNENT SUR « L'INDICE » (10 novembre 2026) : celui de la carte de l'indice finit à 14 px du bord de sa carte ; ceux des en-têtes de panneau, avec leur marge de bouton (9 px) et le retrait de l'en-tête (16 px), finissaient 12 px plus à l'intérieur. Le retrait négatif ramène le mot, pas la zone de toucher, au même bord. */
-.lienDeCoin {
-  margin-right: -11px;
-}
-
 /* LA PROVENANCE SOUS LE TITRE (21 novembre 2026, planche « Cohérence des pages », 2A) : une ligne de plus sous la phrase, en note. */
 .provenance {
   display: block;
   margin-top: var(--s-3);
   font-size: var(--t-2);
   color: var(--ink-3);
+}
+
+/* UN BLOC DE LA PAGE : le titre à plat (celui de l'Accueil, avec son trait), puis la carte, à « --titre-gap » l'un de l'autre (21 novembre 2026, planche « Marché en bleu », 2A). */
+.bloc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--titre-gap);
+}
+/* La carte n'a plus d'en-tête : son contenu garde le souffle que l'en-tête lui donnait. */
+.bloc > div {
+  padding-top: var(--s-6);
 }

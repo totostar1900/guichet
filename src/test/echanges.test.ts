@@ -71,14 +71,12 @@ describe("ce qui s'est échangé, et quand le cours a bougé", () => {
     expect(e.part).toBeUndefined();
   });
 
-  /* La promesse de ce lot : deux lectures de plus, aucune requête de plus. */
-  it("tire ses deux mesures de ce que la page tient déjà", () => {
+  /* La promesse de ce lot : deux lectures de plus, aucune requête de plus. La carte « Ce qui s'est échangé » est partie du Marché le 21 novembre 2026 (planche « Marché en bleu ») : il reste « dernierMouvement », qui dit quand chaque ligne a bougé. */
+  it("tire sa mesure de ce que la page tient déjà", () => {
     const page = readFileSync(join(process.cwd(), "src/app/marche/page.tsx"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    expect(page).toContain("echangesDeLaSeance(");
     expect(page).toContain("dernierMouvement(");
-    /* Les deux se calculent de « indexPageData », qui porte déjà le négoce :
-       un aperçu qui aurait demandé une requête de plus aurait été écarté. */
-    expect(page, "la page relit le marché pour ce qu'elle a en main").toMatch(/echangesDeLaSeance\(trading,/);
+    expect(page, "la carte des échanges est revenue sur le Marché").not.toContain("echangesDeLaSeance(");
+    expect(page, "la page relit le marché pour ce qu'elle a en main").toMatch(/histories\.find/);
   });
 });
 

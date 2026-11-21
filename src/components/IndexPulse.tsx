@@ -32,6 +32,7 @@ export async function IndexPulse({
   liens = true,
   pied,
   aPlat,
+  seances,
 }: {
   compact?: boolean;
   /**
@@ -67,6 +68,10 @@ export async function IndexPulse({
    * la surface se touche. Sans chevron : le mot et sa flèche suffisent.
    */
   pied?: { href: string; mot: string };
+  /**
+   * LA PORTE DU TABLEAU DES SÉANCES (21 novembre 2026, planche « Marché en bleu », 1A) : la carte « Ce qui s'est échangé » est partie du Marché, et elle portait le seul lien direct vers « /indice#seances ». Il revient ici, au pied des chiffres de la carte, à côté de « L'indice → » du coin.
+   */
+  seances?: { href: string; mot: string };
 }) {
   const t = await getT();
   const bulletins = await repo().listBulletins(400).catch(() => []);
@@ -139,6 +144,11 @@ export async function IndexPulse({
           </span>
           {plat && bouge && <span className={styles.calme}>{t("dernier mouvement le {d}, {v}", { d: fmtDate(bouge.date, false), v: signed(bouge.variationPct, 2) })}</span>}
           {plat && !bouge && stats.points.length > 1 && <span className={styles.calme}>{t("aucun mouvement depuis la première séance lue, le {d}", { d: fmtDate(stats.points[0].date) })}</span>}
+          {seances && !pied && !aPlat && (
+            <Link href={seances.href} className={styles.how}>
+              {seances.mot} →
+            </Link>
+          )}
           {liens && !pied && !aPlat && (
             <>
               <Link href="/indice" className={styles.how}>

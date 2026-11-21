@@ -1262,7 +1262,7 @@ export const EN_REST: Record<string, string> = {
   /* Les aperçus de la porte du marché : un chiffre de chaque page. */
   "Les {n} sociétés": "All {n} companies",
   "Ces trois-là pèsent {p} de la capitalisation, {c} FCFA au total dont {f} de flottant coté.": "These three are {p} of the capitalisation, {c} FCFA in all, of which {f} is quoted float.",
-  "Les {n} autres, et toutes les colonnes, sur leur page.": "The other {n}, and every column, on their page.",
+  "La Bourse de l'Afrique Centrale, séance après séance : l'indice, les sociétés cotées, les adjudications et les notes de marché.": "The Central African stock exchange, session by session: the index, the listed companies, the auctions and the market notes.",
   "À la une": "Front page",
   "Toutes les actualités": "All the news",
   "La dernière note": "The latest note",

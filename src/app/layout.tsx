@@ -5,7 +5,8 @@ import "./globals.css";
 import "./palettes.css";
 import { HoteDeLaBulle } from "@/components/mobile/Bulle";
 import styles from "./layout.module.css";
-import { COMPANY, PRODUCT, TUILES } from "@/lib/config";
+import { ACCENTS, COMPANY, PRODUCT, TUILES } from "@/lib/config";
+import { FAMILLE_BOOT } from "@/lib/famille";
 import { NavTabs } from "@/components/NavTabs";
 import { repo } from "@/lib/data";
 import { backendName } from "@/lib/data";
@@ -177,12 +178,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const menu = <AppMenu signedIn={Boolean(session)} desk={deskUi} name={session?.name} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
-    <html lang={lang} data-tuiles={TUILES} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...(deskUi ? deskAttrs(jar.get(DESK_T_COOKIE)?.value) : paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value, surface))}>
+    <html lang={lang} data-tuiles={TUILES} data-accent-marche={ACCENTS.marche} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...(deskUi ? deskAttrs(jar.get(DESK_T_COOKIE)?.value) : paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value, surface))}>
       <head>
         {/* the device's palette and theme, applied before the first paint */}
         <script dangerouslySetInnerHTML={{ __html: deskUi ? DESK_BOOT : PALETTE_BOOT }} />
         {/* la profondeur (racine ou page) avant la première image : le dock et la barre du haut en dépendent (nav-profondeur) */}
         <script dangerouslySetInnerHTML={{ __html: PROFONDEUR_BOOT }} />
+        {/* la famille de la page (l'accent bleu du Marché) avant la première image */}
+        <script dangerouslySetInnerHTML={{ __html: FAMILLE_BOOT }} />
       </head>
       <body>
         <LangProvider lang={lang}>
