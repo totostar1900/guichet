@@ -4,13 +4,23 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTran
 import { usePathname } from "next/navigation";
 import { useT } from "@/i18n/client";
 import { EcranDeCode } from "@/components/EcranDeCode";
-import { appareilOublieVoulu, deviceLabel, enregistrerLeCode, marquerCodeOublie, newDeviceToken, readDevice } from "@/lib/device-client";
+import { appareilOublieVoulu, codeDeCetAppareil, deviceLabel, enregistrerLeCode, marquerCodeOublie, newDeviceToken, readDevice } from "@/lib/device-client";
 import { CLE_GRACE, CLE_VERROU, faudraitVerrouiller } from "@/lib/verrou";
 import { logout } from "@/app/connexion/actions";
 import { poserLeCode, verifierLeCode } from "@/app/verrou/actions";
 import { enrolPin } from "@/app/moi/securite/actions";
 import { useVerrouDeDefilement } from "@/components/mobile/verrou-defilement";
 import styles from "./VerrouDeLApp.module.css";
+
+/* Une fois par visite, tant que ce navigateur n'a pas de code : l'écran de code se pose de lui-même, et le code saisi enrôle l'appareil. */
+const CLE_RECO = "guichet_reconnaissance";
+const aReconnaitreIci = (): boolean => {
+  try {
+    return typeof window !== "undefined" && !codeDeCetAppareil(readDevice()) && !appareilOublieVoulu() && sessionStorage.getItem(CLE_RECO) !== "1";
+  } catch {
+    return false;
+  }
+};
 
 const noop = () => () => {};
 const lireNombre = (cle: string): number | undefined => {
@@ -44,6 +54,8 @@ export function VerrouDeLApp({ aUnCode, prenom }: { aUnCode: boolean; /** le pr�
     }
   });
   const [masque, setMasque] = useState(false);
+  /* UN NAVIGATEUR SANS CODE SE FAIT RECONNAÎTRE DÈS L'OUVERTURE (21 novembre 2026, le client : « rien n'a changé »). Le verrou ne se pose qu'après cinq minutes d'inertie : attendre qu'il tombe pour enrôler l'appareil ne réparait rien, et une clé d'accès d'avant le 20 novembre comptait à tort pour un appareil reconnu. */
+  const [aReconnaitre, setAReconnaitre] = useState(aReconnaitreIci);
   /* La propriété vient de la mise en page, qui ne se relit pas à chaque navigation : le code posé ici compte tout de suite, sans attendre qu'elle change. */
   const [codePose, setCodePose] = useState(false);
   const codeDefini = aUnCode || codePose;
@@ -102,7 +114,8 @@ export function VerrouDeLApp({ aUnCode, prenom }: { aUnCode: boolean; /** le pr�
   }, [surLaPorte, poser]);
 
   const aPoser = !codeDefini && !reporte && !surLaPorte && pret;
-  const ouvert = (verrouille || aPoser) && !surLaPorte;
+  const reconnaitre = aReconnaitre && codeDefini && !reporte && !aPoser;
+  const ouvert = (verrouille || aPoser || reconnaitre) && !surLaPorte;
   useVerrouDeDefilement(ouvert);
 
   if (surLaPorte || !pret) return null;
@@ -111,8 +124,11 @@ export function VerrouDeLApp({ aUnCode, prenom }: { aUnCode: boolean; /** le pr�
   return (
     <Ecran
       aPoser={aPoser}
+      reconnaitre={reconnaitre && !verrouille}
       onLeve={() => {
+        setAReconnaitre(false);
         try {
+          sessionStorage.setItem(CLE_RECO, "1");
           sessionStorage.removeItem(CLE_VERROU);
           sessionStorage.removeItem(CLE_GRACE);
         } catch {
@@ -136,7 +152,7 @@ type Traduire = ReturnType<typeof useT>;
    Le verrou posait le code du COMPTE, mais jamais l'appareil : aucun compte qui avait reçu son code par le verrou (tous ceux d'avant le parcours de création à code) n'était reconnu sur son navigateur. La sortie de « cet appareil » menait donc au champ e-mail, puis à « Créer votre compte ». On enrôle ce navigateur avec le MÊME code, une fois, à la pose comme au premier déverrouillage ; si le navigateur est déjà reconnu, ou si le serveur refuse, on ne fait rien (le code reste valable, rien n'est perdu). */
 async function reconnaitreCeNavigateur(code: string, prenom?: string): Promise<void> {
   try {
-    if (readDevice() || appareilOublieVoulu()) return;
+    if (codeDeCetAppareil(readDevice()) || appareilOublieVoulu()) return;
     const token = newDeviceToken();
     const r = await enrolPin(token, code, deviceLabel());
     if (r.ok) enregistrerLeCode({ id: r.device.id, token, who: prenom?.trim().split(/\s+/)[0] ?? "", name: r.device.name, since: r.device.createdAt });
@@ -145,7 +161,7 @@ async function reconnaitreCeNavigateur(code: string, prenom?: string): Promise<v
   }
 }
 
-function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: boolean; onLeve: () => void; onCodePose: () => void; onReporter: () => void; prenom?: string; t: Traduire }) {
+function Ecran({ aPoser, reconnaitre, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: boolean; reconnaitre: boolean; onLeve: () => void; onCodePose: () => void; onReporter: () => void; prenom?: string; t: Traduire }) {
   const [premier, setPremier] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [panne, setPanne] = useState(false);
@@ -203,7 +219,7 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: 
       if (r.bloque) await logout();
     });
 
-  const titre = aPoser ? (premier === null ? "Choisissez votre code" : "Saisissez-le encore") : undefined;
+  const titre = aPoser ? (premier === null ? "Choisissez votre code" : "Saisissez-le encore") : reconnaitre ? "Reconnaître cet appareil" : undefined;
   return (
     <div className={styles.verrou} role="dialog" aria-modal="true" aria-label={t(titre ?? "Guichet est verrouillé")}>
       <div className={styles.corps}>

@@ -15,9 +15,19 @@ describe("le verrou reconnaît le navigateur", () => {
     expect(verrou).toMatch(/const r = await verifierLeCode\(code\);\s*if \(r\.ok\) \{\s*await reconnaitreCeNavigateur\(code, prenom\);/);
   });
   it("ne refait rien si le navigateur est déjà reconnu, ni après « Oublier cet appareil »", () => {
-    expect(verrou).toMatch(/if \(readDevice\(\) \|\| appareilOublieVoulu\(\)\) return;/);
+    expect(verrou).toMatch(/if \(codeDeCetAppareil\(readDevice\(\)\) \|\| appareilOublieVoulu\(\)\) return;/);
     expect(securite).toMatch(/clearDevice\(\);\s*marquerAppareilOublie\(\);/);
     expect(appareil).toMatch(/localStorage\.removeItem\(OUBLI_VOULU\);\s*localStorage\.setItem\(KEY/);
+  });
+  it("une clé d'accès d'avant le 20 novembre ne compte pas pour un appareil reconnu : c'est le CODE du navigateur qui compte", () => {
+    expect(verrou).not.toMatch(/if \(readDevice\(\) \|\|/);
+    expect(verrou).toMatch(/!codeDeCetAppareil\(readDevice\(\)\) && !appareilOublieVoulu\(\)/);
+  });
+  it("l'écran de code se pose de lui-même à l'ouverture, une fois par visite, tant que ce navigateur n'a pas de code", () => {
+    expect(verrou).toMatch(/const CLE_RECO = "guichet_reconnaissance"/);
+    expect(verrou).toMatch(/sessionStorage\.getItem\(CLE_RECO\) !== "1"/);
+    expect(verrou).toMatch(/sessionStorage\.setItem\(CLE_RECO, "1"\)/);
+    expect(verrou).toMatch(/const ouvert = \(verrouille \|\| aPoser \|\| reconnaitre\) && !surLaPorte;/);
   });
   it("un échec d'enrôlement n'empêche jamais d'entrer", () => {
     expect(verrou).toMatch(/catch \{\s*\/\* un échec ne doit jamais empêcher d'entrer \*\//);

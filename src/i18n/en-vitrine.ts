@@ -296,6 +296,7 @@ export const EN_VITRINE: Record<string, string> = {
   "Pas encore défini : Guichet vous le demandera à la prochaine ouverture.": "Not set yet: Guichet will ask you for it the next time you open it.",
   "Guichet est verrouillé": "Guichet is locked",
   "Choisissez votre code": "Choose your code",
+  "Reconnaître cet appareil": "Recognise this device",
   "Quatre chiffres, les mêmes sur tous vos appareils : ils ouvrent Guichet quand il se verrouille.": "Four digits, the same on all your devices: they open Guichet when it locks.",
   "Entrez votre code pour continuer là où vous en étiez.": "Enter your code to carry on where you were.",
   "Le code de votre compte, le même sur tous vos appareils.": "Your account code, the same on all your devices.",
