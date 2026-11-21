@@ -82,8 +82,8 @@ export const EN_PAGES: Record<string, string> = {
     "Each lives in the same account. You move between them without opening anything again, and your adviser helps you choose if you wish.",
   "Commencer tient en trois temps": "Beginning takes three steps",
   "le premier prend une minute et ne demande aucun document": "the first takes a minute and asks for no documents",
-  "Vous donnez votre nom, une adresse électronique et un numéro. Un code à usage unique vous parvient dans l'instant et prouve que ce canal est bien le vôtre. Aucun mot de passe à retenir.":
-    "You give your name, an e-mail address and a number. A one-time code reaches you at once and proves that channel is yours. No password to remember.",
+  "Vous donnez votre nom, une adresse électronique et un numéro. Un code à usage unique vous parvient dans l'instant et prouve que ce canal est bien le vôtre.":
+    "You give your name, an e-mail address and a number. A one-time code reaches you at once and proves that channel is yours.",
   "Vous voyez les prix et la courbe": "You see prices and the curve",
   "Vous recevez les avis de séance": "You receive session notices",
   "Vous préparez votre dossier à votre rythme": "You prepare your application at your own pace",

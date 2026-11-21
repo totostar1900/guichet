@@ -34,17 +34,17 @@ export async function Accueil() {
   const m = tirerLesMessages();
 
   const produits: Rangee[] = [
-    { clef: "tresor", titre: t("Titres du Trésor"), dit: t("Les obligations et les bons des États de la zone. Un intérêt versé à des dates connues d'avance, et votre capital remboursé à l'échéance, tant que l'émetteur tient ses engagements."), icone: (<><T d="M3 10 12 4l9 6" /><T d="M5 10v8" /><T d="M9.5 10v8" /><T d="M14.5 10v8" /><T d="M19 10v8" /><T d="M3 20h18" /></>) },
-    { clef: "actions", titre: t("Actions cotées"), dit: t("Les sociétés de la bourse régionale. Une part de leur capital, qui peut verser un dividende : rien ne le garantit, et le cours peut baisser."), icone: (<><T d="M3 17l6-6 4 4 8-9" /><T d="M15 6h6v6" /></>) },
+    { clef: "tresor", titre: t("Titres du Trésor"), dit: t("Les obligations et les bons des États de la zone. Un échéancier connu d'avance."), icone: (<><T d="M3 10 12 4l9 6" /><T d="M5 10v8" /><T d="M9.5 10v8" /><T d="M14.5 10v8" /><T d="M19 10v8" /><T d="M3 20h18" /></>) },
+    { clef: "actions", titre: t("Actions cotées"), dit: t("Les sociétés de la bourse régionale. Une part de leur capital, qui peut verser un dividende."), icone: (<><T d="M3 17l6-6 4 4 8-9" /><T d="M15 6h6v6" /></>) },
     { clef: "fonds", titre: t("Fonds agréés"), dit: t("Votre placement réparti sur plusieurs lignes, géré par des professionnels agréés par la COSUMAF."), icone: (<><T d="M12 3v9h9" /><C cx={12} cy={12} r={9} /></>) },
     { clef: "adjudications", titre: t("Adjudications"), dit: t("Le calendrier des séances d'emprunt des États, annoncées à l'avance."), icone: (<><T d="M4 6h16v14H4z" /><T d="M4 10h16" /><T d="M8 3v5" /><T d="M16 3v5" /></>) },
   ];
 
   const garanties: Rangee[] = [
     { clef: "agrement", titre: t("Une société agréée"), dit: t("Purpose Capital est agréée en qualité de société de bourse par la Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF)."), icone: (<><T d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z" /><T d="M8.5 12l2.5 2.5 5-5" /></>) },
-    { clef: "titres", titre: t("Vos titres à votre nom"), dit: t("Les titres acquis sont inscrits à votre nom, et le demeurent si vous nous quittez."), icone: (<><T d="M4 5h16v14H4z" /><C cx={12} cy={10.5} r={2.2} /><T d="M8 16h8" /></>) },
+    { clef: "titres", titre: t("Vos titres à votre nom"), dit: t("Les titres acquis sont inscrits à votre nom."), icone: (<><T d="M4 5h16v14H4z" /><C cx={12} cy={10.5} r={2.2} /><T d="M8 16h8" /></>) },
     { clef: "especes", titre: t("Vos espèces séparées"), dit: t("Votre compte espèces est ouvert à votre nom. Chaque mouvement porte sa date de valeur."), icone: (<><C cx={9} cy={12} r={5.5} /><C cx={15} cy={12} r={5.5} /></>) },
-    { clef: "ordres", titre: t("Vous seul donnez les ordres"), dit: t("Aucun ordre ne part sans vous. Le conseiller éclaire et propose ; la décision vous appartient."), icone: (<><T d="M12 3l9 9-9 9-9-9z" /><C cx={12} cy={12} r={2.4} /></>) },
+    { clef: "ordres", titre: t("Vous seul donnez les ordres"), dit: t("Toutes les décisions vous appartiennent."), icone: (<><T d="M12 3l9 9-9 9-9-9z" /><C cx={12} cy={12} r={2.4} /></>) },
   ];
 
   const etapes: Rangee[] = [

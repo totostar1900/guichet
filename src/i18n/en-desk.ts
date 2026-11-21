@@ -191,8 +191,8 @@ export const EN_MORE: Record<string, string> = {
   "Sans montant, le desk ne peut ni réserver la ligne ni préparer le bulletin.": "Without an amount the desk can neither reserve the line nor prepare the order form.",
 
   /* ---------- login ---------- */
-  "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.": "Receive a one-time code by e-mail. No password to remember.",
-  "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir.": "Receive a one-time code by e-mail, WhatsApp or SMS. No password to remember.",
+  "Recevez un code à usage unique par e-mail.": "Receive a one-time code by e-mail.",
+  "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS.": "Receive a one-time code by e-mail, WhatsApp or SMS.",
   "Mode démonstration": "Demonstration mode",
   "aucun backend configuré. Choisissez un rôle pour parcourir Guichet comme un client ou comme le desk. En production, la connexion se fait par code e-mail ou WhatsApp.": "no backend configured. Choose a role to browse Guichet as a client or as the desk. In production you sign in with an e-mail or WhatsApp code.",
   /* Sur l'adresse du desk, un seul canal : voir connexion/page.tsx. */

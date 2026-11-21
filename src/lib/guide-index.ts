@@ -151,7 +151,7 @@ export async function buildGuideIndex(t: (s: string) => string, lang: Lang, { ap
     { kind: "page" as const, title: t("Données personnelles"), text: t("Ce que nous gardons, à quoi cela sert, et comment les consulter ou les corriger."), href: "/info/donnees", extra: "données personnelles confidentialité canaux" },
     { kind: "page" as const, title: t("Réclamations"), text: t("À qui s'adresser d'abord, et la COSUMAF à défaut d'accord."), href: "/info/reclamations", extra: "réclamation désaccord médiation COSUMAF" },
     { kind: "page" as const, title: t("Guichet en bref"), text: t("Ce que fait Guichet, les instruments qu'il propose, et la façon de lire les chiffres d'une ligne."), href: "/info/en-bref", extra: "services instruments chiffres présentation" },
-    { kind: "page" as const, title: t("Se connecter"), text: t("Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir."), href: "/connexion", extra: "connexion code mot de passe identifiant" },
+    { kind: "page" as const, title: t("Se connecter"), text: t("Recevez un code à usage unique par e-mail."), href: "/connexion", extra: "connexion code mot de passe identifiant" },
   ];
 
   /**

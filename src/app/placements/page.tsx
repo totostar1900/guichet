@@ -87,7 +87,7 @@ export default async function PlacementsPage() {
     {
       n: "1",
       titre: t("Vous créez votre compte"),
-      dit: t("Vous donnez votre nom, une adresse électronique et un numéro. Un code à usage unique vous parvient dans l'instant et prouve que ce canal est bien le vôtre. Aucun mot de passe à retenir."),
+      dit: t("Vous donnez votre nom, une adresse électronique et un numéro. Un code à usage unique vous parvient dans l'instant et prouve que ce canal est bien le vôtre."),
       points: [t("Vous voyez les prix et la courbe"), t("Vous recevez les avis de séance"), t("Vous préparez votre dossier à votre rythme")],
       cout: t("Une minute. Aucun document."),
     },

@@ -1,16 +1,16 @@
 .form {
   display: inline-flex;
 }
+/* LA LANGUE SE LIT SUR TOUTE SURFACE, SOUS TOUTE APPARENCE (21 novembre 2026, le client : « le contenu doit toujours être visible, quelle que soit la palette ; les langues ne le sont pas toujours »).
+   Le bouton naissait blanc (« --on-navy ») parce qu'il vivait dans la barre bleue ; posé dans le tiroir du menu, sur une surface claire (Clair, Ivoire, Tamisé), « EN » tombait à 1,0:1 et « FR » en or à 3:1 (mesuré). Il hérite maintenant de la couleur du texte de son support, donc du contraste que la page garantit déjà ; l'actif se distingue par un trait d'or dessous, non par une teinte d'or sur fond clair. */
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid currentColor;
   border-radius: 999px;
   background: transparent;
-  /* Le gris pale du second plan le rendait invisible : la langue est un
-     reglage qu'on cherche, pas une note de bas de page. */
-  color: var(--on-navy, #fff);
+  color: inherit;
   font: inherit;
   font-size: 0.86rem;
   font-weight: 700;
@@ -23,7 +23,10 @@
   border-color: var(--gold);
 }
 .on {
-  color: var(--gold);
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 .sep {
   opacity: 0.6;
@@ -35,17 +38,8 @@
   font-size: 0.8rem;
 }
 
-/**
- * SUR FOND CLAIR, et pourquoi il a fallu le dire.
- *
- * Le bouton naît blanc : « --on-navy » est sa couleur, parce qu'il a toujours
- * vécu dans la barre bleue. Posé dans la pastille du coin, qui porte un fond
- * de surface, il devenait blanc sur blanc — seul « FR », qui est en or parce
- * qu'il est actif, restait lisible, et « EN » disparaissait tout à fait. La
- * langue qu'on NE parle pas est précisément celle qu'on vient chercher.
- */
+/* « clair » ne choisit plus une couleur : le support décide. La classe reste pour les appelants qui la passent. */
 .clair .btn {
-  color: var(--ink-2);
   border-color: var(--line-2);
 }
 .clair .btn:hover {

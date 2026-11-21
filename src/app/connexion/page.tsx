@@ -98,7 +98,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                     une adresse professionnelle, et c'est elle qui porte son
                     habilitation. Deux canaux de plus, c'est deux surfaces de
                     plus sur la porte de l'administration, pour personne. */}
-                {!ouvrir && !creerUnCompte && <p className={styles.lead}>{t(telephoneOuvert ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS. Aucun mot de passe à retenir." : "Recevez un code à usage unique par e-mail. Aucun mot de passe à retenir.")}</p>}
+                {!ouvrir && !creerUnCompte && <p className={styles.lead}>{t(telephoneOuvert ? "Recevez un code à usage unique par e-mail, par WhatsApp ou par SMS." : "Recevez un code à usage unique par e-mail.")}</p>}
                 {/* AUCUNE PORTE GOOGLE (19 novembre 2026, le client : « on veut les informations réelles, ce qui n'est pas toujours le cas en passant par Google »). Un profil Google rend le nom et l'adresse que la personne y a mis ; le dossier d'ouverture demande ceux de sa pièce d'identité. */}
                 </>
               }

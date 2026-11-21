@@ -14,8 +14,8 @@ export type Categorie = (typeof CATEGORIES)[number];
 export const MESSAGES: Record<Categorie, readonly string[]> = {
   hub: ["Le hub des produits financiers d'Afrique centrale.", "La porte d'entrée des marchés financiers d'Afrique centrale.", "Accédez aux marchés financiers d'Afrique centrale."],
   futur: ["Faites travailler votre épargne dans la durée.", "Pensez long terme : des placements faits pour durer.", "Préparez l'avenir, un placement à la fois."],
-  investir: ["Investir pour le futur.", "Participez au financement des États et des entreprises de la zone.", "Votre épargne peut financer la région."],
-  region: ["Contribuer au développement de la zone.", "Elle se construit ici, avec des fonds d'ici.", "Une région qui se finance est une région qui se construit."],
+  investir: ["Investir pour le futur.", "Investir pour ceux qui comptent.", "Votre épargne peut financer la région."],
+  region: ["Contribuer au développement de la zone.", "Une région qui se construit grâce à vos placements.", "Une région qui se finance est une région qui se construit."],
   vous: ["En toute sérénité.", "Investissez en toute sérénité.", "Avancez en toute sérénité."],
 };
 

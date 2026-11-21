@@ -19,7 +19,8 @@
   gap: var(--s-7);
   text-align: center;
 }
-.corps h1 {
+.corps h1,
+.corps h2 {
   font-size: var(--t-8);
   margin: 0;
   text-wrap: balance;
@@ -39,4 +40,14 @@
   text-decoration: underline dotted;
   text-underline-offset: 3px;
   cursor: pointer;
+}
+
+.choix {
+  display: grid;
+  gap: var(--s-4);
+  justify-items: center;
+  width: 100%;
+}
+.choix :global(.btn) {
+  width: 100%;
 }

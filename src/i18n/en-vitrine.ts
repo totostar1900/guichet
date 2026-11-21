@@ -63,11 +63,11 @@ export const EN_VITRINE: Record<string, string> = {
   "Une société agréée": "An approved firm",
   "Purpose Capital est agréée en qualité de société de bourse par la COSUMAF, régulateur du marché financier de l'Afrique centrale.":
     "Purpose Capital is approved as a brokerage firm by COSUMAF, the regulator of Central Africa's financial market.",
-  "Les titres acquis sont inscrits à votre nom, et le demeurent si vous nous quittez.": "The securities you buy are registered in your name, and stay that way if you leave us.",
+  "Les titres acquis sont inscrits à votre nom.": "The securities you buy are registered in your name.",
   "Vos espèces séparées": "Your cash kept separate",
   "Votre compte espèces est ouvert à votre nom. Chaque mouvement porte sa date de valeur.": "Your cash account is opened in your name. Every movement carries its value date.",
   "Vous seul donnez les ordres": "You alone give the orders",
-  "Aucun ordre ne part sans vous. Le conseiller éclaire et propose ; la décision vous appartient.": "No order goes out without you. The adviser sheds light and suggests; the decision is yours.",
+  "Toutes les décisions vous appartiennent.": "All decisions are yours.",
   "Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures. Les conditions de chaque placement vous sont remises avant toute décision.":
     "Every investment carries a risk of losing capital. Past performance is no guide to future performance. The terms of each investment are given to you before any decision.",
   "Ce qu'il faut savoir sur les risques": "What you should know about the risks",
@@ -89,7 +89,7 @@ export const EN_VITRINE: Record<string, string> = {
   "Le calendrier des séances d'emprunt des États.": "The calendar of the governments' borrowing auctions.",
   "Et aussi : l'épargne programmée, les notes de marché, un conseiller qui répond.": "Also: scheduled savings, market notes, and an adviser who answers.",
   "Investir pour le futur.": "Invest for the future.",
-  "Participez au financement des États et des entreprises de la zone.": "Take part in financing the region's governments and companies.",
+  "Investir pour ceux qui comptent.": "Investing for the people who matter.",
   "Votre épargne peut financer la région.": "Your savings can help finance the region.",
   "Prêtez aux États et aux institutions de la zone, prenez part au capital des sociétés cotées, placez dans des fonds agréés par la COSUMAF.":
     "Lend to the region's governments and institutions, take a stake in listed companies, invest in funds approved by COSUMAF.",
@@ -99,7 +99,7 @@ export const EN_VITRINE: Record<string, string> = {
   "Un placement peut perdre de la valeur. Le risque est écrit en clair avant chaque décision.": "An investment can lose value. The risk is written in plain words before every decision.",
   "La région": "The region",
   "Contribuer au développement de la zone.": "Contribute to the development of the region.",
-  "Elle se construit ici, avec des fonds d'ici.": "It is built here, with money from here.",
+  "Une région qui se construit grâce à vos placements.": "A region that builds itself through your investments.",
   "Une région qui se finance est une région qui se construit.": "A region that finances itself is a region that builds itself.",
   "Les fonds levés sur ce marché financent des projets de la région : le marché existe pour les rendre possibles.": "The money raised on this market funds projects in the region: the market exists to make them possible.",
   "Vous gardez la main, et le risque est écrit.": "You stay in control, and the risk is written down.",
@@ -115,7 +115,7 @@ export const EN_VITRINE: Record<string, string> = {
   "Dans la durée": "For the long term",
   "Ce que chaque placement peut vous apporter, et ce qu'il ne garantit pas.": "What each investment can bring you, and what it does not guarantee.",
   "Les obligations": "Bonds",
-  "Un intérêt versé à des dates connues d'avance, et votre capital remboursé à l'échéance, tant que l'émetteur tient ses engagements.": "Interest paid on dates known in advance, and your capital repaid at maturity, as long as the issuer keeps its commitments.",
+  "Un échéancier connu d'avance.": "A schedule known in advance.",
   "Les actions": "Shares",
   "Une part du capital d'une société cotée, qui peut verser un dividende. Rien ne le garantit, et son cours peut baisser.": "A share in the capital of a listed company, which may pay a dividend. Nothing guarantees it, and the price can fall.",
   "Les fonds": "Funds",
@@ -140,10 +140,10 @@ export const EN_VITRINE: Record<string, string> = {
     "Every investment carries a risk of losing capital. Past performance is no guide to future performance.",
   "Investir, c'est penser à ceux qui comptent. Un placement fait avec méthode, dans la durée, peut aider à préparer les projets d'une famille : des études, un toit, une retraite tranquille. Rien n'est garanti, mais c'est une démarche qui se transmet, et elle se construit dans la région où grandiront vos enfants.":
     "Investing means thinking of those who matter. An investment made with method, over time, can help prepare a family's plans: schooling, a roof, a quiet retirement. Nothing is guaranteed, but it is a habit that gets passed on, and it is built in the region where your children will grow up.",
-  "Les obligations et les bons des États de la zone. Un intérêt versé à des dates connues d'avance, et votre capital remboursé à l'échéance, tant que l'émetteur tient ses engagements.":
-    "Bonds and bills issued by the region's governments. Interest paid on dates known in advance, and your capital repaid at maturity, as long as the issuer keeps its commitments.",
-  "Les sociétés de la bourse régionale. Une part de leur capital, qui peut verser un dividende : rien ne le garantit, et le cours peut baisser.":
-    "The companies of the regional stock exchange. A share of their capital, which may pay a dividend: nothing guarantees it, and the price can fall.",
+  "Les obligations et les bons des États de la zone. Un échéancier connu d'avance.":
+    "Bonds and bills issued by the region's governments. A schedule known in advance.",
+  "Les sociétés de la bourse régionale. Une part de leur capital, qui peut verser un dividende.":
+    "The companies of the regional stock exchange. A share of their capital, which may pay a dividend.",
   "Le calendrier des séances d'emprunt des États, annoncées à l'avance.": "The calendar of the governments' borrowing auctions, announced in advance.",
   "Purpose Capital est agréée en qualité de société de bourse par la Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF).":
     "Purpose Capital is licensed as a brokerage firm by the Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF), the financial market supervisory commission of Central Africa.",
@@ -297,6 +297,11 @@ export const EN_VITRINE: Record<string, string> = {
   "Guichet est verrouillé": "Guichet is locked",
   "Choisissez votre code": "Choose your code",
   "Reconnaître cet appareil": "Recognise this device",
+  "Faire confiance à cet appareil ?": "Trust this device?",
+  "Ici, votre code seul vous ouvrira Guichet : plus besoin d'attendre un code par e-mail.": "Here, your code alone will open Guichet: no more waiting for an e-mail code.",
+  "Oui, faire confiance": "Yes, trust it",
+  "Pas cette fois": "Not this time",
+  "Ne plus demander": "Don't ask again",
   "Aucun compte avec cette adresse.": "No account with this address.",
   "Pas encore de compte ?": "No account yet?",
   "Créer un compte": "Create an account",
