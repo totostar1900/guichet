@@ -3,6 +3,7 @@
    cible, et une cible sans bord ne se voit qu'une fois qu'on sait qu'elle est
    là. Le filet est discret, la surface suffit à la désigner. */
 .dots {
+  position: relative;
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -19,6 +20,13 @@
 .dots svg {
   fill: currentColor;
 }
+/* LA CIBLE DU DOIGT DÉPASSE LE DESSIN (21 novembre 2026, planche « Plaisir d'usage », 7) : le bouton se voit à 34 px, mais sa zone de toucher fait 46 px, comme les 44 px que demande l'iPhone. Rien ne bouge à l'écran. */
+.dots::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+}
+
 .dots:hover,
 .dots:focus-visible {
   color: var(--gold-ink);

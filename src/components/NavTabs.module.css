@@ -88,6 +88,7 @@
   min-width: 320px;
   max-width: 380px;
   max-height: calc(100vh - 78px);
+  max-height: calc(100dvh - 78px);
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--surface);

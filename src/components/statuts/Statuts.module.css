@@ -1,9 +1,9 @@
-/* LA BULLE : un rond flottant au-dessus de la barre du bas, à droite. Elle suit « --dock-h » : quand la barre glisse hors de l'écran dans une page, elle descend avec elle. */
+/* LA BULLE : un rond dans la barre du haut, à gauche (21 novembre 2026, planche « Plaisir d'usage », 6A : 44 px, la cible du doigt, au lieu de 36). Tant qu'un statut n'est pas vu, l'anneau respire quatre fois puis se fixe ; l'étiquette « Nouveautés » le dit jusqu'à la première ouverture. */
 .bulle {
   position: relative;
   flex: none;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -30,6 +30,22 @@
   height: 100%;
   transform: rotate(-90deg);
 }
+.bulle[data-nouveau] .anneau {
+  animation: bulle-respire 2.6s ease-in-out 4;
+}
+@keyframes bulle-respire {
+  50% {
+    transform: rotate(-90deg) scale(1.07);
+  }
+}
+/* L'étiquette de la première fois : à côté de la bulle, dans la colonne du milieu de la barre, qui est vide. */
+.etiquette {
+  margin-left: var(--s-4);
+  font-size: var(--t-2);
+  font-weight: 700;
+  color: var(--gold);
+  white-space: nowrap;
+}
 .anneau circle {
   fill: none;
   stroke-width: 3.4;
@@ -44,7 +60,7 @@
 .g {
   position: relative;
   color: var(--gold);
-  font-size: var(--t-3);
+  font-size: var(--t-4);
   font-weight: 800;
 }
 .point {
@@ -58,7 +74,8 @@
   border: 2px solid var(--navy);
 }
 @media (prefers-reduced-motion: reduce) {
-  .bulle {
+  .bulle,
+  .bulle[data-nouveau] .anneau {
     animation: none;
   }
 }

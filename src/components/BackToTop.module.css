@@ -39,6 +39,14 @@
     height: 34px;
   }
 }
+@media (max-width: 760px) {
+  /* LA CIBLE DU DOIGT DÉPASSE LE DESSIN (21 novembre 2026, planche « Plaisir d'usage », 7) : le bouton se voit à 34 px, mais sa zone de toucher fait 46 px, comme les 44 px que demande l'iPhone. Rien ne bouge à l'écran. */
+  .btn::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .btn {
     transition: none;

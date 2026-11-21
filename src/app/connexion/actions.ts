@@ -135,6 +135,16 @@ export async function logoutEverywhere(): Promise<void> {
 
 export async function pinLogin(deviceId: string, token: string, pin: string): Promise<{ ok: true; name: string } | { ok: false; error: string; forgotten?: boolean; left?: number }> {
   if (!/^[a-zA-Z0-9-]{4,60}$/.test(deviceId) || !FORME_DU_CODE.test(pin)) return { ok: false, error: MESSAGE_FORME_DU_CODE };
+  const { lireAppareil, oublierAppareil } = await import("@/lib/auth/appareil-cookie");
+  /* Le navigateur n'a plus son jeton (stockage effacé) : le cookie du serveur le porte, pour CET appareil seulement. */
+  let jeton = token;
+  if (!jeton) {
+    const c = await lireAppareil();
+    if (!c || c.id !== deviceId) return { ok: false, error: "Cet appareil n'est plus reconnu : connectez-vous par code.", forgotten: true };
+    jeton = c.token;
+  }
   const { pinAuthenticate } = await import("@/lib/auth/devices");
-  return pinAuthenticate(deviceId, token, pin);
+  const r = await pinAuthenticate(deviceId, jeton, pin);
+  if (!r.ok && r.forgotten) await oublierAppareil(deviceId);
+  return r;
 }

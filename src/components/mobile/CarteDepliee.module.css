@@ -48,6 +48,7 @@
   gap: 6px;
 }
 .chevron {
+  position: relative;
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -63,6 +64,12 @@
   flex: none;
   /* « rotate », la propriété à part : elle se compose avec le « scale » du retour au toucher. */
   transition: rotate 0.34s cubic-bezier(0.32, 0.72, 0, 1), scale 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s;
+}
+/* LA CIBLE DU DOIGT DÉPASSE LE DESSIN (21 novembre 2026, planche « Plaisir d'usage », 7) : le bouton se voit à 34 px, mais sa zone de toucher fait 46 px, comme les 44 px que demande l'iPhone. Rien ne bouge à l'écran. */
+.chevron::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
 }
 .chevron[aria-expanded="true"] {
   rotate: 180deg;

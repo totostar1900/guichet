@@ -22,7 +22,6 @@ import { BlocApprendre } from "@/components/accueil/BlocApprendre";
 import { TitreDeBloc } from "@/components/TitreDeBloc";
 import { TotalCollant } from "./TotalCollant";
 import { aLaUne, pourquoiLu, publishedNews, titreLu } from "@/lib/news";
-import { TrustNudge } from "@/components/TrustNudge";
 import { Reinvest } from "@/components/Reinvest";
 import { buildPerformanceParts } from "@/lib/performance-report";
 import { courbeDuPortefeuille } from "@/lib/domain/courbe-portefeuille";
@@ -560,11 +559,8 @@ export async function Console({ session }: { session: Session }) {
       <BlocApprendre />
       </div>
 
-      {/* 10. S'INSCRIRE SANS ATTENDRE UN CODE. Une proposition qui se referme
-          d'une croix, et ne revient pas. */}
-      {/* CHAPITRE 6 : MON COMPTE (17 novembre 2026, 3A). L'appareil à ajouter ouvre le chapitre, avant ce que le dossier dit du client. */}
+      {/* CHAPITRE 6 : MON COMPTE (17 novembre 2026, 3A). Le dossier dit ce qu'il en est du client (l'appareil se fait reconnaître à la connexion, plus ici). */}
       <div className={`pile ${styles.chapitre}`}>
-      <TrustNudge />
 
       {/* 11. MON DOSSIER : UNE RUBRIQUE N'EXISTE QUE SI ELLE A QUELQUE CHOSE À MONTRER.
           Chacune dit son dernier fait, jamais un compte (arbitrage du 29 octobre

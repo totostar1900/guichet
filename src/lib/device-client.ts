@@ -28,7 +28,6 @@ export function enregistrerLeCode(code: { id: string; token: string; who: string
 }
 
 const KEY = "guichet_device";
-const NUDGE = "guichet_device_nudge";
 
 export function readDevice(): RememberedDevice | null {
   try {
@@ -44,7 +43,6 @@ export function readDevice(): RememberedDevice | null {
 export function saveDevice(d: RememberedDevice): void {
   try {
     localStorage.setItem(KEY, JSON.stringify(d));
-    localStorage.removeItem(NUDGE);
   } catch {
     // Private window or storage blocked: the device simply is not remembered here.
   }
@@ -55,22 +53,6 @@ export function clearDevice(): void {
     localStorage.removeItem(KEY);
   } catch {
     // nothing to clear
-  }
-}
-
-/** The « un doigt la prochaine fois ? » nudge, shown once until dismissed or until a device is enrolled. */
-export function nudgeDismissed(): boolean {
-  try {
-    return Boolean(localStorage.getItem(NUDGE));
-  } catch {
-    return true;
-  }
-}
-export function dismissNudge(): void {
-  try {
-    localStorage.setItem(NUDGE, new Date().toISOString());
-  } catch {
-    // nothing
   }
 }
 

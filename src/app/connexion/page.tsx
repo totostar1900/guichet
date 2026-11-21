@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/Select";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { PorteDeConnexion } from "./PorteDeConnexion";
+import { lireAppareil } from "@/lib/auth/appareil-cookie";
 import { Glissement } from "@/components/mobile/Glissement";
 
 /** The tab and the phone header read this title: in the reader's language. */
@@ -73,6 +74,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   /* Le canal téléphone existe pour le client, et seulement pour lui : voir la
      note sur la phrase d'accueil, plus bas. */
   const telephoneOuvert = process.env.PHONE_OTP_ENABLED === "1" && !administration;
+  /* L'appareil que le serveur a retenu (cookie), pour la porte dont le navigateur a perdu la mémoire : le jeton ne sort jamais du serveur. */
+  const retenu = administration ? null : await lireAppareil();
 
   return (
     <Glissement>
@@ -82,6 +85,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           {mode === "supabase" ? (
             <PorteDeConnexion
               next={next}
+              retenu={retenu ? { id: retenu.id, who: retenu.who, name: retenu.name } : null}
               enTete={
                 <>
             <h1 className="display">{ouvrir ? t("Ouvrir votre compte-titres") : creerUnCompte ? t("Créer votre compte") : t("Se connecter")}</h1>

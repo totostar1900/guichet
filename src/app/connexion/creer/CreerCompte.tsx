@@ -38,6 +38,8 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
   /* « CODE OUBLIÉ ? » (19 novembre 2026, planche « Paramètres et connexion », 4A) : l'adresse vient d'être prouvée par le code reçu, le client choisit un NOUVEAU code au lieu de saisir l'ancien. */
   const oublie = useSyncExternalStore(() => () => {}, codeOublie, () => false);
   const codeExiste = codeExisteBrut && !oublie;
+  /* Arrivé ici APRÈS une connexion par e-mail, le code sert à faire reconnaître l'appareil : l'écran le dit, et le refus aussi (sans cela, chaque connexion repart de l'e-mail). */
+  const reconnaitre = depart === "appareil" && codeExiste;
   const [etape, setEtape] = useState<Etape>(depart === "appareil" ? "code" : depart);
   const [email, setEmail] = useState(adresse);
   const [prenom, setPrenom] = useState("");
@@ -297,12 +299,12 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
       {(etape === "code" || etape === "code-bis") && (
         <div className={styles.corps}>
           <header className={styles.tete}>
-            <h1 className="display">{t(codeExiste ? "Saisissez votre code" : etape === "code" ? "Protégez votre compte" : "Saisissez-le encore")}</h1>
-            <p>{t(codeExiste ? "Le code de votre compte, le même sur tous vos appareils." : etape === "code" ? "Un code à six chiffres, le même sur tous vos appareils, protège l'accès à votre compte." : "Pour éviter toute faute de frappe.")}</p>
+            <h1 className="display">{t(codeExiste ? (reconnaitre ? "Entrer sans attendre un code" : "Saisissez votre code") : etape === "code" ? "Protégez votre compte" : "Saisissez-le encore")}</h1>
+            <p>{t(codeExiste ? (reconnaitre ? "Saisissez votre code une fois : cet appareil vous reconnaîtra, et la prochaine fois ce code seul vous connectera, sans e-mail." : "Le code de votre compte, le même sur tous vos appareils.") : etape === "code" ? "Un code à six chiffres, le même sur tous vos appareils, protège l'accès à votre compte." : "Pour éviter toute faute de frappe.")}</p>
           </header>
           <ClavierCode onFini={fixerCode} occupe={enCours} cle={etape} erreur={champErreur} />
           <div className={styles.bas}>
-            <button className={styles.secondaire} type="button" onClick={fin}>{t("Plus tard")}</button>
+            <button className={styles.secondaire} type="button" onClick={fin}>{reconnaitre ? t("Pas sur cet appareil") : t("Plus tard")}</button>
           </div>
         </div>
       )}

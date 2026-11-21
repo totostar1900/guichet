@@ -262,6 +262,7 @@
   position: sticky;
   top: calc(72px + env(safe-area-inset-top, 0px));
   max-height: calc(100vh - 96px);
+  max-height: calc(100dvh - 96px);
   overflow-y: auto;
 }
 /* le rail ne colle plus de lui-meme, et son filet gauche tomberait dans la gouttiere de la page */
@@ -291,6 +292,7 @@
   position: sticky;
   top: calc(72px + env(safe-area-inset-top, 0px));
   max-height: calc(100vh - 96px);
+  max-height: calc(100dvh - 96px);
   overflow-y: auto;
 }
 .aside h4 {

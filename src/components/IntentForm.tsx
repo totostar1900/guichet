@@ -9,7 +9,6 @@ import { submitIntent } from "@/app/offres/[id]/actions";
 import type { ChannelStatus } from "@/lib/domain/types";
 import { normalizePhone, fmtPct } from "@/lib/format";
 import { ProofBlock } from "@/components/ProofBlock";
-import { TrustNudge } from "@/components/TrustNudge";
 import { equivalence, estimate, marketEstimate, montantPourUnites, produitAttendu, redemptionEstimate, surveyTrio } from "@/lib/domain/estimate";
 import { orderChecks, resteApres } from "@/lib/domain/checks";
 import { counterUnit } from "@/lib/domain/counter";
@@ -503,7 +502,6 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
               </Link>
             </div>
           )}
-          <TrustNudge />
           <div className={styles.doneActions}>
             <Link className="btn sm" href={`/offres/${offer.id}`}>
               {t("Autre intention")}

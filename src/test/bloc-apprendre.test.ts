@@ -24,12 +24,13 @@ describe("le bloc « Apprendre » de l'Accueil", () => {
     expect(premiersNonLus(huit, null).map((l) => l.key)).toEqual(["e1", "e2", "e3"]);
   });
 
-  it("vient EN PLUS : « À la une » et la porte vers le Guide restent, et le bloc est posé entre « À la une » et l'inscription", () => {
+  it("vient EN PLUS : « À la une » et la porte vers le Guide restent, et le bloc est posé après « À la une »", () => {
     const c = lire("src/app/Console.tsx");
     expect(c, "« À la une » a disparu de l'Accueil").toMatch(/titre="À la une" href="\/actualites"/);
     expect(c, "le bloc « Apprendre » n'est pas posé sur l'Accueil").toMatch(/<BlocApprendre \/>/);
     expect(c.indexOf('titre="À la une"'), "« Apprendre » ne suit plus « À la une »").toBeLessThan(c.indexOf("<BlocApprendre />"));
-    expect(c.indexOf("<BlocApprendre />"), "« Apprendre » précède de nouveau l'inscription").toBeLessThan(c.indexOf("<TrustNudge />"));
+    /* Le bandeau « Entrer sans attendre un code » est parti (21 novembre 2026, 5A) : l'appareil se fait reconnaître à la connexion. */
+    expect(c, "le bandeau de l'appareil est revenu sur l'Accueil").not.toMatch(/TrustNudge/);
     expect(lire("src/components/NavTabs.tsx"), "la porte « Guide » du menu a disparu").toMatch(/label: "Guide"/);
   });
 

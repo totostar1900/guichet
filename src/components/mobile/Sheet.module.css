@@ -24,6 +24,7 @@
   top: 50%;
   width: min(440px, calc(100vw - 32px));
   max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   border-radius: 14px;
   transform: translate(-50%, -50%) scale(0.96);
   opacity: 0;
@@ -150,6 +151,7 @@
   transform: translateY(-6px) scale(0.98);
   transform-origin: top right;
   max-height: calc(100vh - 72px);
+  max-height: calc(100dvh - 72px);
 }
 .dockTopRight.sheetOpen {
   transform: none;
@@ -386,6 +388,7 @@
   bottom: auto;
   width: min(420px, calc(100vw - 32px));
   max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   border-radius: 16px;
   transform: translate(-50%, -50%) scale(0.96);
   opacity: 0;

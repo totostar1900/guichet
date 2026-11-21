@@ -12,6 +12,7 @@
   position: sticky;
   top: calc(var(--gel-desk) + var(--s-5));
   max-height: calc(100vh - 96px);
+  max-height: calc(100dvh - 96px);
   display: flex;
   flex-direction: column;
   gap: 2px;

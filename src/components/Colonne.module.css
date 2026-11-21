@@ -7,6 +7,7 @@
   top: 0;
   height: 100vh;
   height: 100dvh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--line);
@@ -484,6 +485,7 @@
   left: 0;
   top: 0;
   height: 100vh;
+  height: 100dvh;
   height: 100dvh;
   width: var(--colonne-w);
   flex: none;

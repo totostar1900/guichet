@@ -397,3 +397,10 @@ Le moteur de mouvement posait des classes et des attributs (`data-anime`) sur de
 ## Leçon du 21 novembre 2026 : une ligne de réglage est en deux colonnes, et ne dit jamais sa largeur
 
 Sur Paramètres, la ligne mesurait 900 px et l'interrupteur tombait à 855 px de son texte. Choisi sur planche (1B · 2A · 3A · 4A) : **deux colonnes lues aux jetons** `--texte-max` (300 px, le texte passe sur deux lignes au-delà), `--commande-col` (72 px, commandes sur l'arête droite commune), `--ligne-gap`, `--ligne-largeur` (la somme, plafonnée à 100 % pour le téléphone). Ce qui n'est ni du texte ni une commande (sélecteur, boîte, bouton de sortie) prend les deux colonnes : `.colonne` / `.cadre`. Mesurer : 392 px de ligne à 1280 et 1700, 362 à 390, tous les interrupteurs à la même arête droite. Gardé par `ligne-deux-colonnes.test.ts` (vérifié par mutation) ; ETALON § 8.15. Une planche qui demande une longueur se chiffre en pixels, pas en caractères : la coupure ne dépend pas de la police.
+
+## Leçon du 21 novembre 2026 : l'iPhone se mesure dans la feuille de style, et une cible se grandit sans bouger le dessin
+
+- **Un champ qui écrit sous 16 px fait zoomer Safari** au toucher, sans remettre la page : sur écran tactile (`pointer: coarse`) tout champ est à 16 px (règle globale, `!important` voulu). Mesurer la taille CALCULÉE du champ, pas celle de la feuille du composant.
+- **« 100vh » coupe le bas de l'écran sur iPhone** (la barre d'adresse). Une hauteur bornée en `vh` est suivie de la même en `dvh` ; ne jamais remplacer en série sans lire chaque cas.
+- **Un bouton de 34 px se grandit par `::after { inset: -6px }`**, pas par sa taille : la zone de toucher passe à 46 px et rien ne bouge. `getBoundingClientRect` ne voit pas le pseudo-élément : vérifier avec `elementFromPoint` à 5 px du bord.
+- **Avant d'annoncer une cause, lire le parcours entier** : j'avais écrit que l'appareil n'était retenu que par un bandeau ; la porte renvoie déjà vers un écran « Saisissez votre code » après chaque connexion par e-mail, avec « Plus tard ». La cause était le refus de cet écran (et le stockage effacé), pas l'absence d'offre.

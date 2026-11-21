@@ -31,6 +31,15 @@ type Donnees = { messages: string[]; items: ItemStatut[] };
 type Page = { cle: string; groupe: GroupeDeStatut; item?: ItemStatut };
 
 const CLE_VUS = "guichet:statuts:vus";
+/** La première ouverture de la bulle : jusque-là, une étiquette « Nouveautés » l'accompagne. */
+const CLE_OUVERTE = "guichet:statuts:ouverte";
+function dejaOuverte(): boolean {
+  try {
+    return localStorage.getItem(CLE_OUVERTE) === "1";
+  } catch {
+    return true;
+  }
+}
 const FONDS_DE_MESSAGE = ["fm0", "fm1", "fm2", "fm3", "fm4"] as const;
 const jourCourt = () => new Date().toISOString().slice(0, 10);
 
@@ -66,6 +75,7 @@ export function BulleDesStatuts() {
   const [vus, setVus] = useState<Set<string>>(new Set());
   const [ouvert, setOuvert] = useState<number | null>(null);
   const [message, setMessage] = useState({ texte: "", fond: 0 });
+  const [premiere, setPremiere] = useState(false);
 
   useEffect(() => {
     let annule = false;
@@ -75,6 +85,7 @@ export function BulleDesStatuts() {
         if (annule || !d) return;
         setDonnees(d);
         setVus(lireVus());
+        setPremiere(!dejaOuverte());
       })
       .catch(() => {});
     return () => {
@@ -95,6 +106,12 @@ export function BulleDesStatuts() {
 
   const ouvrir = () => {
     tic(6);
+    try {
+      localStorage.setItem(CLE_OUVERTE, "1");
+    } catch {
+      // stockage refusé : l'étiquette reviendra
+    }
+    setPremiere(false);
     const pool = donnees.messages;
     setMessage({ texte: pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : "", fond: Math.floor(Math.random() * FONDS_DE_MESSAGE.length) });
     setOuvert(premiereNonVue(toutes, vus));
@@ -102,11 +119,12 @@ export function BulleDesStatuts() {
   const nouveaux = toutes.filter((p) => !vus.has(p.cle)).length;
   return (
     <>
-      <button type="button" className={styles.bulle} onClick={ouvrir} aria-haspopup="dialog" aria-label={nouveaux > 0 ? t("Statuts : {n} nouveaux", { n: nouveaux }) : t("Statuts")}>
+      <button type="button" className={styles.bulle} data-nouveau={nouveaux > 0 ? "" : undefined} onClick={ouvrir} aria-haspopup="dialog" aria-label={nouveaux > 0 ? t("Statuts : {n} nouveaux", { n: nouveaux }) : t("Statuts")}>
         <Anneau pages={toutes} vus={vus} />
         <b className={styles.g}>G</b>
         {nouveaux > 0 && <i className={styles.point} aria-hidden="true" />}
       </button>
+      {nouveaux > 0 && premiere && <span className={styles.etiquette}>{t("Nouveautés")}</span>}
       {ouvert !== null && <Visionneuse pages={toutes} depart={ouvert} message={message} marquer={marquer} fermer={() => setOuvert(null)} />}
     </>
   );

@@ -770,6 +770,14 @@ textarea {
   border: 1px solid var(--line-2);
   border-radius: 6px;
 }
+/* PAS DE ZOOM AU TOUCHER D'UN CHAMP (21 novembre 2026, planche « Plaisir d'usage », 7). Safari sur iPhone agrandit la page quand on touche un champ qui écrit sous 16 px, et ne la remet pas à sa place : la recherche de Titres, Fonds et Calendrier écrivait à 12,3 px. Sur un écran tactile, tout champ écrit en 16 px au moins ; « !important » à dessein, parce qu'une feuille de composant qui poserait sa taille rouvrirait le défaut. Un écran à souris garde les tailles de la maison. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="button"], [type="submit"], [type="hidden"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
 :where(input, textarea)::placeholder {
   color: var(--ink-3);
 }

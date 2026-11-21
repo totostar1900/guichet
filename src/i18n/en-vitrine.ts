@@ -353,6 +353,9 @@ export const EN_VITRINE: Record<string, string> = {
   /* ---------- l'empreinte quitte le web, le G se trace (20 novembre 2026) ---------- */
   "Ouverture": "Opening",
   "Ouverture…": "Opening…",
+  "Saisissez votre code une fois : cet appareil vous reconnaîtra, et la prochaine fois ce code seul vous connectera, sans e-mail.": "Enter your code once: this device will recognise you, and next time this code alone will sign you in, with no e-mail.",
+  "Nouveautés": "What's new",
+  "Pas sur cet appareil": "Not on this device",
   "Enregistrez cet appareil : la prochaine fois, votre code à six chiffres vous connecte, sans passer par votre boîte mail.": "Register this device: next time, your six-digit code signs you in, without going through your mailbox.",
   "Replier les textes": "Collapse the texts",
 };

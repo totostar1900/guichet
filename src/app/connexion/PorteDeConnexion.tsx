@@ -26,12 +26,14 @@ const snapshot = () => {
  *
  * L'état de l'appareil n'est connu que du navigateur : avant l'hydratation, le G se trace (rendu par le serveur) au lieu d'un écran vide, et rien d'autre ne se montre, pour ne pas faire clignoter le formulaire e-mail sous un appareil reconnu.
  */
-export function PorteDeConnexion({ next, enTete, children }: { next: string; /** le titre et la phrase de la vue « Se connecter » */ enTete: React.ReactNode; /** l'adresse e-mail et ce qui l'accompagne */ children: React.ReactNode }) {
+export function PorteDeConnexion({ next, retenu, enTete, children }: { next: string; /** l'appareil que le serveur a retenu (cookie), quand le navigateur a perdu le sien ; sans le jeton */ retenu: { id: string; who: string; name: string } | null; /** le titre et la phrase de la vue « Se connecter » */ enTete: React.ReactNode; /** l'adresse e-mail et ce qui l'accompagne */ children: React.ReactNode }) {
   const t = useT();
   const raw = useSyncExternalStore(noop, snapshot, () => "");
   const pret = useSyncExternalStore(noop, () => true, () => false);
-  const device = raw ? readDevice() : null;
-  const code = codeDeCetAppareil(device);
+  /* Le navigateur d'abord ; à défaut, ce que le serveur a retenu (Safari efface le stockage d'un site resté une semaine sans visite). Sans jeton ici : le serveur le lit dans son cookie. */
+  const local = raw ? readDevice() : null;
+  const device = local ?? (retenu ? { id: retenu.id, kind: "pin" as const, who: retenu.who, name: retenu.name, since: "" } : null);
+  const code = codeDeCetAppareil(local) ?? (retenu ? { id: retenu.id, token: "" } : null);
   /* « Code oublié ? » posé avant un détour : la porte va droit au code reçu. */
   const [autre, setAutre] = useState(() => typeof window !== "undefined" && codeOublie());
   const [oublie, setOublie] = useState(false);
