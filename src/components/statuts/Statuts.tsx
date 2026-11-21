@@ -10,6 +10,7 @@ import { deverrouiller, verrouiller } from "@/components/mobile/verrou-defilemen
 import { useT } from "@/i18n/client";
 import { SECONDES_PAR_PAGE, type GroupeDeStatut } from "@/lib/domain/statuts";
 import type { Country } from "@/lib/domain/types";
+import { MARQUE } from "@/lib/marque";
 import { tic } from "@/lib/ui/haptique";
 import { useFiligrane } from "@/lib/ui/filigrane";
 import type { ItemStatut } from "./chargerStatuts";
@@ -141,7 +142,7 @@ function Anneau({ pages, vus }: { pages: Page[]; vus: ReadonlySet<string> }) {
     <svg className={styles.anneau} viewBox="0 0 56 56" aria-hidden="true">
       <defs>
         <linearGradient id="statuts-degrade" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#e2b94c" />
+          <stop offset="0" stopColor={MARQUE.orVif} />
           <stop offset="0.55" stopColor="#ff7a59" />
           <stop offset="1" stopColor="#c14bd1" />
         </linearGradient>

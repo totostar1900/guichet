@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Presentation.module.css";
+import { MARQUE } from "@/lib/marque";
 
 /**
  * « Guichet en trente secondes » : five screens of six seconds for whoever
@@ -53,7 +54,7 @@ const Art2 = () => (
   <svg viewBox="0 0 300 180" aria-hidden="true">
     <g className={styles.rise}>
       <rect x="30" y="30" width="240" height="120" rx="0" fill="#fff" />
-      <polyline points="46,120 84,106 122,112 160,80 198,90 236,58" fill="none" stroke="#b8860b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points="46,120 84,106 122,112 160,80 198,90 236,58" fill="none" stroke={MARQUE.or} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       <polyline points="46,130 100,122 154,112 208,104 254,96" fill="none" stroke="#0d2b5b" strokeWidth="2" strokeDasharray="6 5" strokeLinecap="round" />
     </g>
     <g className={styles.pop}>

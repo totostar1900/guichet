@@ -172,7 +172,7 @@
   border-right: none;
 }
 .bAdj {
-  background: var(--gold, #b8860b);
+  background: var(--gold, var(--marque-or));
 }
 
 /* ---- Les trois alertes ---- */

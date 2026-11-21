@@ -1,3 +1,4 @@
+import { MARQUE } from "@/lib/marque";
 import type { Country } from "@/lib/domain/types";
 
 /**
@@ -22,4 +23,4 @@ export const COUNTRY_COLOR: Record<Country, string> = {
 };
 
 /** La zone prise ensemble : l'or de la maison, pour ne se confondre avec aucun Trésor. */
-export const CEMAC_COLOR = "#b8860b";
+export const CEMAC_COLOR = MARQUE.or;

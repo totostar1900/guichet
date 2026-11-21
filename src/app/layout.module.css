@@ -34,7 +34,7 @@
 }
 .brand em {
   font-style: normal;
-  color: #e0b65a;
+  color: var(--marque-or-sombre);
 }
 /* Un téléphone couché fait 812 px : l’en-tête de bureau n’y tenait pas. La
    signature passait à trois lignes, l’en-tête à 93 px au lieu de 62, et la
@@ -55,8 +55,8 @@
   font-size: 0.68rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #e0b65a;
-  border: 1px solid rgba(224, 182, 90, 0.5);
+  color: var(--marque-or-sombre);
+  border: 1px solid color-mix(in srgb, var(--marque-or-sombre) 50%, transparent);
   border-radius: 999px;
   padding: 2px 8px;
 }

@@ -16,7 +16,7 @@
 }
 .tab[aria-current="page"] {
   color: #fff;
-  border-bottom-color: #e0b65a;
+  border-bottom-color: var(--marque-or-sombre);
 }
 .tab:hover {
   color: #fff;

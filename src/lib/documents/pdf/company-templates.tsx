@@ -1,3 +1,4 @@
+import { MARQUE } from "@/lib/marque";
 import { Line, Path, Rect, Svg, Text as SvgText, View } from "@react-pdf/renderer";
 import type { Company } from "@/data/companies";
 import { COMPANY } from "@/lib/config";
@@ -22,7 +23,7 @@ export interface CompanyReportCtx {
 }
 
 const NAVY = "#0b2545";
-const GOLD = "#b8860b";
+const GOLD = MARQUE.or;
 const GREY = "#9aa3b2";
 const LINE = "#e5e7eb";
 const short = (v: number): string => {

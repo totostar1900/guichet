@@ -418,3 +418,10 @@ Après le sixième chiffre, les ronds se vidaient (160 ms) et les chiffres s'ét
 - **Un test de rendu mesure le bon élément** : `querySelector('[role=dialog]')` renvoyait la fenêtre des mentions (avant le verrou dans le DOM) et « prouvait » que rien n'attendait. Viser l'élément par ce qu'il contient (`:has(i[data-plein])`).
 - **Ralentir une action serveur pour la mesurer** : `page.route` sur les `POST` à en-tête `next-action`, avec un délai ; mesurer à 0,1 s, 0,4 s, 4,4 s et 14,9 s.
 - **La porte à six chiffres n'existe qu'avec Supabase** : en démonstration on mesure le verrou, qui partage `EcranDeCode` et `ClavierCode`. À dire.
+
+## Leçon du 21 novembre 2026 (suite) : l'accent est général, la marque est écrite une fois
+
+L'accent n'est plus propre au Marché : `ACCENTS` donne un mot (« or » | « bleu ») à chacune des cinq familles (instruments, trader, marché, aide, accueil) ; `REGLES` (`src/lib/famille.ts`) en trace les frontières, lues dans l'ordre (la première gagne) ; le script du `<head>` et `MobileShell` posent `data-famille` et `data-accent`, et `globals.css` ne lit que `data-accent`. Les 23 or écrits en dur sont ramenés à `MARQUE` (`src/lib/marque.ts`) sans changer une couleur ; `marque.test.ts` refuse un or de plus. **Pas de catalogue de couleurs** : une couleur nouvelle se mesure le jour d'une campagne (ETALON § 8.16).
+- **Une famille se décide sur le contenu, pas sur l'onglet de menu** : « /marche/adjudications » allume « Marché » dans le dock mais reste une famille « instruments » (ce sont des résultats qui se traitent).
+- **Un jeton injecté par la mise en page vaut une source pour deux langages** : `MARQUE_CSS` (`<style>` du `<head>`) donne au CSS les valeurs que le TypeScript lit dans `MARQUE`.
+- **Ce qu'on garde par thème** : `--gold`, `--gold-ink`, `--gold-soft` ne sont PAS dans `MARQUE` ; changer l'or d'une campagne dans l'application demande de les redire (une dizaine d'endroits), à moins d'un calque de campagne qui les surcharge (proposé, non fait).

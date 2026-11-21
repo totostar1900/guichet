@@ -1,3 +1,4 @@
+import { MARQUE } from "@/lib/marque";
 import { COMPANY, DISCLAIMER } from "@/lib/config";
 import { reasonForClient } from "@/lib/domain/cancel-reasons";
 import { counterText } from "@/lib/domain/counter";
@@ -164,4 +165,4 @@ export function documentSent(d: GeneratedDocument, o?: Offer, i?: Intent): Messa
  * découlent d'un ordre que le client a passé.
  */
 export const emailHtml = (m: Message, optOut?: string): string =>
-  `<div style="font-family:Inter,Segoe UI,Arial,sans-serif;font-size:14px;line-height:1.5;color:#14213A;max-width:640px"><div style="background:#0B2545;color:#fff;padding:14px 20px"><b style="letter-spacing:.14em;font-family:Georgia,serif">${COMPANY.name.toUpperCase()}</b><br><span style="color:#E0B65A;font-size:12px">${COMPANY.tagline}</span></div><div style="padding:20px;white-space:pre-line">${m.text.replace(/</g, "&lt;")}</div><div style="padding:0 20px 20px;font-size:11px;color:#7C8797">${COMPANY.legalName} · ${COMPANY.licence} · ${COMPANY.phone} · ${COMPANY.email}${optOut ? `<br><a href="${optOut}" style="color:#7C8797">Ne plus recevoir nos informations par e-mail</a>` : ""}</div></div>`;
+  `<div style="font-family:Inter,Segoe UI,Arial,sans-serif;font-size:14px;line-height:1.5;color:#14213A;max-width:640px"><div style="background:#0B2545;color:#fff;padding:14px 20px"><b style="letter-spacing:.14em;font-family:Georgia,serif">${COMPANY.name.toUpperCase()}</b><br><span style="color:${MARQUE.orSombre};font-size:12px">${COMPANY.tagline}</span></div><div style="padding:20px;white-space:pre-line">${m.text.replace(/</g, "&lt;")}</div><div style="padding:0 20px 20px;font-size:11px;color:#7C8797">${COMPANY.legalName} · ${COMPANY.licence} · ${COMPANY.phone} · ${COMPANY.email}${optOut ? `<br><a href="${optOut}" style="color:#7C8797">Ne plus recevoir nos informations par e-mail</a>` : ""}</div></div>`;

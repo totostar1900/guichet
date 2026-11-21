@@ -278,7 +278,7 @@
  *
  * « .pst:hover » vaut (0,2,0) et « .pstOn » (0,1,0) : le survol gagnait, et
  * sa couleur « --ink » (#eaeff6) se posait sur le fond doré « --select »
- * (#e0b65a). Rapport de contraste 1,65 contre 1 : le mot disparaissait.
+ * (l'or de la marque sur fond sombre). Rapport de contraste 1,65 contre 1 : le mot disparaissait.
  *
  * Sur un téléphone c'était pire qu'un survol, c'était l'état NORMAL : le
  * doigt qui touche laisse le survol collé jusqu'au prochain toucher ailleurs.

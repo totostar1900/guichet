@@ -19,7 +19,7 @@ import { majPile, precedentDe } from "@/lib/nav-pile";
 import { retourEtape } from "./retourEtape";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
-import { familleDe } from "@/lib/famille";
+import { accentDe, familleDe } from "@/lib/famille";
 import { isAideSection, isEspaceSection, isInstrumentsSection, isMarcheSection, isTraderSection, listForFiche } from "@/lib/nav-section";
 
 /**
@@ -145,8 +145,13 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
   /* La famille de la page (l'accent bleu du Marché), posée de la même façon et suivie à chaque navigation. */
   useLayoutEffect(() => {
     const f = familleDe(path);
-    if (f) document.documentElement.dataset.famille = f;
-    else delete document.documentElement.dataset.famille;
+    if (f) {
+      document.documentElement.dataset.famille = f;
+      document.documentElement.dataset.accent = accentDe(f);
+    } else {
+      delete document.documentElement.dataset.famille;
+      delete document.documentElement.dataset.accent;
+    }
   }, [path]);
 
   /**

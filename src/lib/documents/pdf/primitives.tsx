@@ -1,3 +1,4 @@
+import { MARQUE } from "@/lib/marque";
 import { Document, Page, StyleSheet, Text as PdfText, View } from "@react-pdf/renderer";
 import type { Style } from "@react-pdf/stylesheet";
 import { Children, type ComponentProps, type ReactNode } from "react";
@@ -21,7 +22,7 @@ export function Text({ children, ...rest }: TextProps) {
 }
 
 const NAVY = "#0B2545";
-const GOLD = "#B8860B";
+const GOLD = MARQUE.or;
 const GOLD_INK = "#8A6408";
 const INK = "#14213A";
 const INK2 = "#4A5568";
@@ -32,7 +33,7 @@ export const s = StyleSheet.create({
   page: { fontFamily: "Helvetica", fontSize: 9.5, color: INK, paddingTop: 0, paddingBottom: 70, paddingHorizontal: 0, lineHeight: 1.45 },
   lh: { backgroundColor: NAVY, color: "#fff", paddingVertical: 16, paddingHorizontal: 40, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
   lhBrand: { fontFamily: "Times-Bold", fontSize: 14, letterSpacing: 2.2 },
-  lhTag: { color: "#E0B65A", fontSize: 7.5, marginTop: 2 },
+  lhTag: { color: MARQUE.orSombre, fontSize: 7.5, marginTop: 2 },
   lhRight: { textAlign: "right", fontSize: 7, lineHeight: 1.4, color: "#D9E1EE" },
   body: { paddingHorizontal: 40 },
   // The letterhead is fixed (repeated on every page); this fixed band keeps the same air under it on pages 2+.

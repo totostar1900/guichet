@@ -31,7 +31,7 @@
   color: #f0a23a;
 }
 .or {
-  color: #e2b94c;
+  color: var(--marque-or-vif);
 }
 /* LA PASTILLE : du blanc sur du rouge profond (6,0), du noir sur de l'ambre. Deux paires, mesurées comme telles. */
 .pas {

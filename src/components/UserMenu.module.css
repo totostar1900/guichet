@@ -27,7 +27,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #e0b65a;
+  background: var(--marque-or-sombre);
   color: #0b2545;
   text-decoration: none;
   display: grid;
@@ -51,8 +51,8 @@
    pousser ses voisins, assez grandes pour se lire. La hauteur de la barre ne
    bouge pas, les deux lignes tenant dans l'interligne qu'elle avait déjà. */
 .open {
-  color: #e0b65a;
-  border: 1px solid rgba(224, 182, 90, 0.6);
+  color: var(--marque-or-sombre);
+  border: 1px solid color-mix(in srgb, var(--marque-or-sombre) 60%, transparent);
   border-radius: var(--radius);
   padding: var(--s-2) var(--s-4);
   font-size: var(--t-1);
@@ -63,7 +63,7 @@
   max-width: 11ch;
 }
 .open:hover {
-  background: rgba(224, 182, 90, 0.15);
+  background: color-mix(in srgb, var(--marque-or-sombre) 15%, transparent);
 }
 
 /* La pastille ouvre le compte, a toute largeur.

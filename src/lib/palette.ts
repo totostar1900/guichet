@@ -1,13 +1,14 @@
+import { MARQUE } from "./marque";
 /**
  * The palettes and the theme, shared by the server (which stamps <html> from
  * the cookies) and the client (the switch, the boot script). Four palettes,
  * all near the brand or neutral; the choice stays on the device.
  */
 export const PALETTES = [
-  { key: "navy", fr: "Navy et or", en: "Navy and gold", a: "#0b2545", b: "#b8860b", paper: "#eef2f8", line: "#b9c4d6", ink: "#3d5478" },
-  { key: "ivoire", fr: "Ivoire", en: "Ivory", a: "#0b2545", b: "#b8860b", paper: "#efe4c9", line: "#cdbf9c", ink: "#6b5a38" },
-  { key: "ardoise", fr: "Ardoise", en: "Slate", a: "#24303f", b: "#b8860b", paper: "#e3e7ec", line: "#b4bcc7", ink: "#3f4a58" },
-  { key: "encre", fr: "Encre", en: "Ink", a: "#111827", b: "#b8860b", paper: "#eeede8", line: "#bdbcb4", ink: "#2b2f37" },
+  { key: "navy", fr: "Navy et or", en: "Navy and gold", a: "#0b2545", b: MARQUE.or, paper: "#eef2f8", line: "#b9c4d6", ink: "#3d5478" },
+  { key: "ivoire", fr: "Ivoire", en: "Ivory", a: "#0b2545", b: MARQUE.or, paper: "#efe4c9", line: "#cdbf9c", ink: "#6b5a38" },
+  { key: "ardoise", fr: "Ardoise", en: "Slate", a: "#24303f", b: MARQUE.or, paper: "#e3e7ec", line: "#b4bcc7", ink: "#3f4a58" },
+  { key: "encre", fr: "Encre", en: "Ink", a: "#111827", b: MARQUE.or, paper: "#eeede8", line: "#bdbcb4", ink: "#2b2f37" },
 ] as const;
 export const THEMES = ["auto", "light", "dim", "dark"] as const;
 export const P_KEY = "guichet:palette";

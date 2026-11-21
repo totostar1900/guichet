@@ -1,3 +1,4 @@
+import { MARQUE } from "@/lib/marque";
 import { View } from "@react-pdf/renderer";
 import type { Offer } from "@/lib/domain/types";
 import type { OfferSummary } from "@/lib/domain/summary";
@@ -25,7 +26,7 @@ export interface OfferSheetCtx {
 }
 
 const NAVY = "#0b2545";
-const GOLD = "#b8860b";
+const GOLD = MARQUE.or;
 const H2 = { fontSize: 10.5, fontFamily: "Helvetica-Bold", color: NAVY, marginBottom: 4 } as const;
 
 export function FicheOffre({ number, offer: o, summary: sm, family, status, reference, flows, settleOn, risks, now }: OfferSheetCtx) {

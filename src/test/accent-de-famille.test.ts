@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ACCENTS } from "@/lib/config";
-import { FAMILLE_BOOT, familleDe } from "@/lib/famille";
+import { FAMILLE_BOOT, accentDe, familleDe } from "@/lib/famille";
 
 const lire = (f: string) => readFileSync(f, "utf8");
 const sansNotes = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
@@ -11,38 +11,55 @@ const sansNotes = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
  *
  * Le Marché passe de l'or au bleu par UN mot de configuration (`ACCENTS.marche`). « or » le rend tel qu'il était, sans toucher une page : c'est la promesse « défaire en un prompt », et ce fichier la garde. Les changements de structure (titres à plat, porte des séances) se défont par le dépôt, pas par ce mot.
  */
-describe("la famille « marché »", () => {
-  it("couvre les six pages de la navigation, et pas les adjudications ni le reste", () => {
-    for (const ok of ["/marche", "/indice", "/indice/notes", "/societes", "/societes/bhc", "/emetteurs", "/actualites", "/comparer"]) expect(familleDe(ok), ok).toBe("marche");
-    for (const non of ["/", "/titres", "/fonds", "/calendrier", "/activite", "/aide", "/marche/adjudications", "/moi/compte", "/parametres"]) expect(familleDe(non), non).toBeNull();
+describe("les familles", () => {
+  it("suivent les sièges de la navigation, dans l'ordre d'une lecture", () => {
+    const attendu: Record<string, string | null> = {
+      "/": "accueil", "/moi": "accueil", "/moi/argent": "accueil", "/moi/ordres": "accueil", "/moi/documents": "accueil",
+      "/marche": "marche", "/indice": "marche", "/indice/notes": "marche", "/societes": "marche", "/societes/bhc": "marche", "/emetteurs": "marche", "/actualites": "marche", "/comparer": "marche",
+      "/titres": "instruments", "/fonds": "instruments", "/offres/ota-1": "instruments", "/offres/fund-x": "instruments", "/calendrier": "instruments", "/marche/adjudications": "instruments",
+      "/activite": "trader",
+      "/aide": "aide", "/info/conditions-generales": "aide", "/moi/contact": "aide", "/moi/reclamation": "aide",
+      "/parametres": null, "/moi/profil": null, "/moi/securite": null, "/connexion": null, "/recherche": null,
+    };
+    for (const [p, f] of Object.entries(attendu)) expect(familleDe(p), p).toBe(f);
   });
-  it("le script du <head> lit les mêmes préfixes que la navigation", () => {
+  it("le script du <head> lit la même table, dans le même ordre, et pose aussi l'accent", () => {
     const run = (path: string) => {
       const attrs: Record<string, string> = {};
       const root = { setAttribute: (k: string, v: string) => (attrs[k] = v), removeAttribute: (k: string) => delete attrs[k] };
       new Function("location", "document", FAMILLE_BOOT)({ pathname: path }, { documentElement: root });
-      return attrs["data-famille"] ?? null;
+      return [attrs["data-famille"] ?? null, attrs["data-accent"] ?? null];
     };
-    for (const p of ["/marche", "/indice/note/2026-t3", "/societes/bhc", "/comparer"]) expect(run(p), p).toBe("marche");
-    for (const p of ["/", "/titres", "/marche/adjudications", "/activite"]) expect(run(p), p).toBeNull();
+    for (const p of ["/", "/moi/argent", "/marche", "/indice/note/2026-t3", "/societes/bhc", "/titres", "/offres/fund-x", "/marche/adjudications", "/activite", "/aide", "/moi/contact", "/moi/reclamation", "/parametres", "/moi/securite"]) {
+      const f = familleDe(p);
+      expect(run(p), p).toEqual([f, f ? ACCENTS[f] : null]);
+    }
+  });
+  it("chaque famille a son mot d'accent, « or » ou « bleu »", () => {
+    expect(Object.keys(ACCENTS).sort()).toEqual(["accueil", "aide", "instruments", "marche", "trader"]);
+    for (const a of Object.values(ACCENTS)) expect(["or", "bleu"]).toContain(a);
+    expect(ACCENTS.marche).toBe("bleu");
+    for (const f of ["instruments", "trader", "aide", "accueil"] as const) expect(ACCENTS[f], f).toBe("or");
+    expect(accentDe(null)).toBe("or");
   });
 });
 
-describe("l'accent bleu du Marché", () => {
+describe("l'accent bleu d'une famille", () => {
   const css = sansNotes(lire("src/app/globals.css"));
-  it("est choisi par UN mot, lu par la mise en page et par la feuille de style", () => {
-    expect(ACCENTS.marche).toBe("bleu");
-    expect(sansNotes(lire("src/app/layout.tsx"))).toMatch(/data-accent-marche=\{ACCENTS\.marche\}/);
+  it("est lu par la feuille de style depuis « data-accent », que le script et la navigation posent", () => {
     expect(sansNotes(lire("src/app/layout.tsx"))).toMatch(/__html: FAMILLE_BOOT/);
-    expect(css).toMatch(/html\[data-accent-marche="bleu"\]\[data-famille="marche"\] :is\(main, \[aria-current="page"\]\) \{\s*--gold: var\(--info\);\s*--gold-ink: var\(--info\);\s*--gold-soft: var\(--info-soft\);/);
+    expect(sansNotes(lire("src/app/layout.tsx")), "la mise en page ne pose plus un mot par famille").not.toMatch(/data-accent-marche/);
+    expect(css).toMatch(/html\[data-accent="bleu"\] :is\(main, \[aria-current="page"\]\) \{\s*--gold: var\(--info\);\s*--gold-ink: var\(--info\);\s*--gold-soft: var\(--info-soft\);/);
+    const ms = sansNotes(lire("src/components/mobile/MobileShell.tsx"));
+    expect(ms).toMatch(/dataset\.accent = accentDe\(f\)/);
   });
-  it("ne se pose QUE quand le mot est « bleu » : « or » retire tout le bloc", () => {
-    const blocs = css.match(/[^{}]*data-famille="marche"[^{}]*\{[^}]*\}/g) ?? [];
+  it("ne se pose QUE quand une famille dit « bleu » : « or » ne pose rien", () => {
+    const blocs = css.match(/[^{}]*data-accent="bleu"[^{}]*\{[^}]*\}/g) ?? [];
     expect(blocs.length).toBeGreaterThanOrEqual(3);
-    for (const b of blocs) expect(b, "un bloc de la famille ne dépend plus du mot").toMatch(/data-accent-marche="bleu"/);
+    expect(css, "un bloc d'accent dépend encore d'une famille écrite en dur").not.toMatch(/data-famille="marche"/);
   });
   it("laisse l'or à la barre du haut et au bouton flottant : seuls le contenu et l'entrée de menu active sont touchés", () => {
-    for (const b of css.match(/[^{}]*data-famille="marche"[^{}]*\{/g) ?? []) {
+    for (const b of css.match(/[^{}]*data-accent="bleu"[^{}]*\{/g) ?? []) {
       expect(b, "le bleu a quitté « main » et l'entrée active").toMatch(/:is\(main, \[aria-current="page"\]\)/);
       expect(b, "le bleu touche la barre du haut").not.toMatch(/\bheader\b|BarreDuHaut|MarketFab/);
     }
