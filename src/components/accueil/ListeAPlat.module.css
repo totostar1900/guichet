@@ -25,7 +25,8 @@
 .icone {
   width: var(--s-11);
   height: var(--s-11);
-  color: var(--on-navy);
+  /* le corail sur l'accueil (« --accent-icone »), le blanc partout ailleurs */
+  color: var(--accent-icone, var(--on-navy));
   overflow: visible;
 }
 .icone [data-trait] {

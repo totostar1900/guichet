@@ -4,6 +4,8 @@ import { translator } from "@/i18n/core";
 import { estPublic } from "@/lib/porte";
 
 const lire = (f: string) => readFileSync(f, "utf8");
+/* Les phrases de l'accueil vivent dans le fichier des messages (tirées au hasard) : elles s'y lisent. */
+const vm = () => lire("src/lib/domain/vitrine-messages.ts");
 
 /**
  * LA VITRINE ET L'INTRO UNIQUE (14 novembre 2026, planche « vitrine et intro », options 1A et 2A).
@@ -20,7 +22,7 @@ describe("la vitrine : sept écrans, un par lecture, qui s'arrêtent comme des s
   it("a sept écrans : le titre, les produits, investir, la région, « en toute sérénité », « à chaque étape », l'espace dédié, et un message tiré au hasard dans les cinq premiers", () => {
     expect((v.match(/<section className=/g) ?? []).length, "la vitrine n'a plus sept écrans").toBe(7);
     expect(v).toMatch(/const m = tirerLesMessages\(\);/);
-    for (const k of ["hub", "futur", "investir", "region", "vous"]) expect(v, `le message « ${k} » n'est plus tiré`).toContain(`t(m.${k})`);
+    for (const k of ["hub", "futur", "investir", "region", "vous"]) expect(v, `le message « ${k} » n'est plus tiré`).toContain(`titre(m.${k})`);
     expect(code).toContain('t("À chaque étape, à vos côtés.")');
   });
 
@@ -66,7 +68,8 @@ describe("la vitrine : sept écrans, un par lecture, qui s'arrêtent comme des s
   it("l'écran « sérénité » écrit la COSUMAF en toutes lettres, et l'accompagnement a quatre étapes sans numéro", () => {
     expect(v).toContain("Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF)");
     for (const k of ["Une société agréée", "Vos titres à votre nom", "Vos espèces séparées", "Vous seul donnez les ordres", "Ouvrir votre compte", "Choisir une ligne", "Passer votre ordre", "Suivre vos placements"]) expect(v, `« ${k} » a quitté la vitrine`).toContain(k);
-    expect(v).toContain("Des conseillers à votre écoute, en français, en anglais et sans jargon, à chaque étape.");
+    expect(v).toContain("t(ph.conseillers[0])");
+    expect(vm()).toContain("Des conseillers à votre écoute, en français, en anglais et sans jargon, à chaque étape.");
   });
 
   it("le dernier écran est un espace dédié : les conseillers, le risque, les trois liens et la maison (nom, agrément, version)", () => {
@@ -90,7 +93,8 @@ describe("la vitrine : sept écrans, un par lecture, qui s'arrêtent comme des s
     for (const pays of ["Tchad", "Cameroun", "République centrafricaine", "Gabon", "Congo", "Guinée équatoriale"]) expect(carte, `le pays « ${pays} » manque à la carte`).toContain(`data-pays="${pays}"`);
     expect((carte.match(/data-trait=""/g) ?? []).length).toBe(6);
     expect((courbe.match(/data-ligne=/g) ?? []).length, "la courbe n'a plus son cours et sa moyenne").toBe(2);
-    expect(css).toMatch(/\.fond\[data-vu="oui"\] \.carte path \{/);
+    expect(v, "la carte ne se trace plus avec le défilement").toMatch(/<TraceAuDefilement className=\{styles\.fond\}>\s*<CarteCemac/);
+    expect(css, "le filigrane de la carte n'est plus à 22 %").toMatch(/\.carte path \{[^}]*22%/);
     expect(css).toMatch(/\.fond\[data-vu="oui"\] \.courbe \[data-trait\] \{/);
     expect(css, "un fond dessiné prend le toucher").toMatch(/\.fond \{[^}]*pointer-events: none;/);
   });
@@ -126,9 +130,11 @@ describe("la vitrine : sept écrans, un par lecture, qui s'arrêtent comme des s
     expect((sansNotes.match(/<circle /g) ?? []).length, "les trois têtes ne sont plus trois cercles").toBe(3);
     expect((sansNotes.match(/data-trait=""/g) ?? []).length, "le dessin n'a plus ses traits").toBeGreaterThanOrEqual(9);
     expect(sansNotes, "le dessin a un fond").not.toMatch(/<rect|fill="(?!none)/);
-    expect(v).toMatch(/Investir, c'est penser à ceux qui comptent\./);
-    expect(v).toMatch(/peut aider à préparer les projets d'une famille/);
-    expect(v, "le texte sur la famille ne dit plus que rien n'est garanti").toMatch(/rien n'est garanti/);
+    expect(v).toContain("t(ph.famille[0])");
+    expect(vm()).toMatch(/Investir, c'est penser à ceux qui comptent\./);
+    expect(vm()).toMatch(/peut aider à préparer les projets d'une famille/);
+    expect(vm(), "le texte sur la famille ne dit plus que rien n'est garanti").toMatch(/rien n'est garanti/);
+    for (const jeu of vm().match(/famille: \[[\s\S]*?\n  \],/)?.[0].split("],\n    [") ?? []) expect(jeu, "un jeu de phrases sur la famille ne dit plus que rien n'est garanti").toMatch(/rien n'est garanti/i);
     expect(tranche(code, "styles.texte", "</section>").length, "le texte sur la famille est redevenu long").toBeLessThan(520);
     expect(css).toMatch(/\.famille\[data-vu="oui"\] \.dessin \[data-trait\] \{\s*animation: tracer/);
   });

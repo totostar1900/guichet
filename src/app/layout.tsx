@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
-import { Instrument_Serif, Manrope } from "next/font/google";
+import { Instrument_Serif, Manrope, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import "./palettes.css";
 import { HoteDeLaBulle } from "@/components/mobile/Bulle";
@@ -62,6 +62,8 @@ const ui = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "8
  * faire. Elle ne sert qu aux titres : les chiffres restent en Manrope, avec
  * ses chiffres tabulaires, plutot que d ouvrir une troisieme famille.
  */
+/** LA POLICE DE LA VITRINE (21 novembre 2026, planche « Accueil », 2A) : Plus Jakarta Sans, ronde et chaleureuse, pour l'accueil du visiteur seul ; le reste de l'application reste en Manrope. */
+const vitrine = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-vitrine", display: "swap" });
 const titre = Instrument_Serif({ subsets: ["latin"], weight: ["400"], variable: "--font-titre", display: "swap" });
 
 export const metadata: Metadata = {
@@ -180,7 +182,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const menu = <AppMenu signedIn={Boolean(session)} desk={deskUi} name={session?.name} vapidKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY} build={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} />;
   return (
-    <html lang={lang} data-tuiles={TUILES} className={`${ui.variable} ${titre.variable}`} suppressHydrationWarning {...(deskUi ? deskAttrs(jar.get(DESK_T_COOKIE)?.value) : paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value, surface))}>
+    <html lang={lang} data-tuiles={TUILES} className={`${ui.variable} ${titre.variable} ${vitrine.variable}`} suppressHydrationWarning {...(deskUi ? deskAttrs(jar.get(DESK_T_COOKIE)?.value) : paletteAttrs(jar.get(P_COOKIE)?.value, jar.get(T_COOKIE)?.value, surface))}>
       <head>
         {/* the device's palette and theme, applied before the first paint */}
         <script dangerouslySetInnerHTML={{ __html: deskUi ? DESK_BOOT : PALETTE_BOOT }} />

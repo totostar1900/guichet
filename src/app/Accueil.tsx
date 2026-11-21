@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { getT } from "@/i18n/server";
+import { getLang, getT } from "@/i18n/server";
 import { COMPANY } from "@/lib/config";
-import { tirerLesMessages } from "@/lib/domain/vitrine-messages";
+import { MOTS_CLES, tirerLesMessages, tirerLesPhrases } from "@/lib/domain/vitrine-messages";
 import { FamilleDessin } from "@/components/accueil/FamilleDessin";
 import { CarteCemac } from "@/components/accueil/CarteCemac";
 import { CourbeFinanciere } from "@/components/accueil/CourbeFinanciere";
 import { C, ListeAPlat, T, type Rangee } from "@/components/accueil/ListeAPlat";
 import { TraceSurVue } from "@/components/accueil/TraceSurVue";
+import { TraceAuDefilement } from "@/components/accueil/TraceAuDefilement";
 import styles from "./Accueil.module.css";
 
 /**
@@ -20,7 +21,7 @@ import styles from "./Accueil.module.css";
  *   5 · « en toute sérénité » : le sérieux de la maison, à plat, icônes qui se dessinent ;
  *   6 · « à chaque étape » : l'accompagnement, à plat ;
  *   7 · un espace dédié : les conseillers, le risque de perte en capital, les trois liens du pied, et la maison (nom, agrément, version).
- * LES MESSAGES CHANGENT À CHAQUE VISITE : trois variantes par écran, une tirée côté serveur (`vitrine-messages.ts`).
+ * LES MESSAGES CHANGENT À CHAQUE VISITE : plusieurs variantes par écran, une tirée côté serveur (`vitrine-messages.ts`) ; les phrases des écrans 3, 5, 6 et 7 aussi (« PHRASES »), et un mot par titre prend le corail (« MOTS_CLES »).
  * LES BOUTONS D'ENTRÉE NE SONT PAS DANS LA PAGE : la bande basse (PorteVitrine) ; au large, la pastille du haut.
  * Aucun titre jaune (le client : « retirer tous les titres jaunes ») : plus d'étiquette dorée au-dessus des titres, et plus de numéros.
  * Un seul fond, sans lueur : le bleu nuit de la maison, d'un bord à l'autre, pied compris.
@@ -29,9 +30,25 @@ import styles from "./Accueil.module.css";
  * LE TEXTE DE L'ÉCRAN 3 DIT « PEUT » ET « RIEN N'EST GARANTI » : un placement fait avec méthode peut aider à préparer les projets d'une famille ; il n'en promet aucun.
  * LE PIED est celui de la page (le pied du gabarit est masqué ici) : l'adresse et la mention longue en sont retirées à la demande du client ; le nom de la maison et son agrément restent, le risque de perte en capital est écrit à l'écran 6, et « Éclairages », « Aide et contact », « Risques et limites » sont de vrais liens vers des pages publiques. Les mentions légales complètes restent à « /info/mentions ».
  */
+/** Le titre, avec son mot clé en corail s'il figure dans la phrase affichée (dans la langue du lecteur) : sinon, le titre seul. */
+function avecMotCle(texte: string, mot: string | undefined) {
+  const i = mot ? texte.toLowerCase().indexOf(mot.toLowerCase()) : -1;
+  if (!mot || i < 0) return texte;
+  return (
+    <>
+      {texte.slice(0, i)}
+      <span className={styles.mot}>{texte.slice(i, i + mot.length)}</span>
+      {texte.slice(i + mot.length)}
+    </>
+  );
+}
+
 export async function Accueil() {
   const t = await getT();
   const m = tirerLesMessages();
+  const ph = tirerLesPhrases();
+  const lang = await getLang();
+  const titre = (msg: string) => avecMotCle(t(msg), MOTS_CLES[msg]?.[lang === "en" ? 1 : 0]);
 
   const produits: Rangee[] = [
     { clef: "tresor", titre: t("Titres du Trésor"), dit: t("Les obligations et les bons des États de la zone. Un échéancier connu d'avance."), icone: (<><T d="M3 10 12 4l9 6" /><T d="M5 10v8" /><T d="M9.5 10v8" /><T d="M14.5 10v8" /><T d="M19 10v8" /><T d="M3 20h18" /></>) },
@@ -48,9 +65,9 @@ export async function Accueil() {
   ];
 
   const etapes: Rangee[] = [
-    { clef: "ouvrir", titre: t("Ouvrir votre compte"), dit: t("Le desk vous rappelle si une pièce manque, à votre rythme."), icone: (<><T d="M4 5h16v14H4z" /><T d="M12 9v6" /><T d="M9 12h6" /></>) },
-    { clef: "choisir", titre: t("Choisir une ligne"), dit: t("Chaque chiffre est expliqué, la décision reste la vôtre."), icone: (<><C cx={12} cy={12} r={9} /><C cx={12} cy={12} r={5} /><C cx={12} cy={12} r={1.2} /></>) },
-    { clef: "ordre", titre: t("Passer votre ordre"), dit: t("Rien n'est débité sans votre accord."), icone: (<><T d="M5 19 19 5" /><T d="M9 5h10v10" /></>) },
+    { clef: "ouvrir", titre: t("Ouvrir votre compte"), dit: t(ph.ouvrir[0]), icone: (<><T d="M4 5h16v14H4z" /><T d="M12 9v6" /><T d="M9 12h6" /></>) },
+    { clef: "choisir", titre: t("Choisir une ligne"), dit: t(ph.choisir[0]), icone: (<><C cx={12} cy={12} r={9} /><C cx={12} cy={12} r={5} /><C cx={12} cy={12} r={1.2} /></>) },
+    { clef: "ordre", titre: t("Passer votre ordre"), dit: t(ph.ordre[0]), icone: (<><T d="M5 19 19 5" /><T d="M9 5h10v10" /></>) },
     { clef: "suivre", titre: t("Suivre vos placements"), dit: t("Chaque étape vous est notifiée ; relevés et avis se téléchargent."), icone: (<T d="M3 12h4l3-6 4 12 3-6h4" />) },
   ];
 
@@ -62,7 +79,7 @@ export async function Accueil() {
           <CourbeFinanciere className={styles.courbe} />
         </TraceSurVue>
         <div className={styles.col}>
-          <h1 data-anim="">{t(m.hub)}</h1>
+          <h1 data-anim="">{titre(m.hub)}</h1>
         </div>
         <span className={styles.defile} aria-hidden="true" />
       </section>
@@ -70,7 +87,7 @@ export async function Accueil() {
       {/* ÉCRAN 2 · LES PRODUITS, À PLAT, avec ce que chacun peut apporter et ce qu'il ne garantit pas. */}
       <section className={styles.ecran}>
         <div className={styles.col}>
-          <h2 data-anim="">{t(m.futur)}</h2>
+          <h2 data-anim="">{titre(m.futur)}</h2>
           <ListeAPlat rangees={produits} />
         </div>
       </section>
@@ -78,23 +95,23 @@ export async function Accueil() {
       {/* ÉCRAN 3 · INVESTIR : le dessin de la famille qui se trace, et ce que l'investissement peut apporter aux siens. */}
       <section className={styles.ecran}>
         <div className={styles.col}>
-          <h2 data-anim="">{t(m.investir)}</h2>
+          <h2 data-anim="">{titre(m.investir)}</h2>
           <TraceSurVue className={styles.famille}>
             <FamilleDessin className={styles.dessin} />
           </TraceSurVue>
           <p className={styles.texte} data-anim="">
-            <span className={styles.phrase}>{t("Investir, c'est penser à ceux qui comptent.")}</span> {t("Un placement fait avec méthode peut aider à préparer les projets d'une famille ; rien n'est garanti, mais la démarche, elle, se transmet.")}
+            <span className={styles.phrase}>{t(ph.famille[0])}</span> {t(ph.famille[1])}
           </p>
         </div>
       </section>
 
       {/* ÉCRAN 4 · LA RÉGION : un seul message, sur la carte de la zone CEMAC. */}
       <section className={styles.ecran}>
-        <TraceSurVue className={styles.fond}>
+        <TraceAuDefilement className={styles.fond}>
           <CarteCemac className={styles.carte} />
-        </TraceSurVue>
+        </TraceAuDefilement>
         <div className={styles.col}>
-          <h2 data-anim="">{t(m.region)}</h2>
+          <h2 data-anim="">{titre(m.region)}</h2>
           <p className={styles.chapeau} data-anim="">
             {t("Les fonds levés sur ce marché financent des projets de la région : le marché existe pour les rendre possibles.")}
           </p>
@@ -104,9 +121,9 @@ export async function Accueil() {
       {/* ÉCRAN 5 · EN TOUTE SÉRÉNITÉ : le sérieux de la maison, à plat. */}
       <section className={styles.ecran}>
         <div className={styles.col}>
-          <h2 data-anim="">{t(m.vous)}</h2>
+          <h2 data-anim="">{titre(m.vous)}</h2>
           <p className={styles.chapeau} data-anim="">
-            {t("Une maison sérieuse, à vos côtés à chaque étape.")}
+            {t(ph.vous[0])}
           </p>
           <ListeAPlat rangees={garanties} />
         </div>
@@ -124,7 +141,7 @@ export async function Accueil() {
       <section className={`${styles.ecran} ${styles.pied}`}>
         <div className={styles.col}>
           <p className={styles.conseillers} data-anim="">
-            {t("Des conseillers à votre écoute, en français, en anglais et sans jargon, à chaque étape.")}
+            {t(ph.conseillers[0])}
           </p>
           <p className={styles.avertissement} data-anim="">
             {t("Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures.")}

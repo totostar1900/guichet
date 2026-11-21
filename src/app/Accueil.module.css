@@ -11,6 +11,9 @@
   --mesure-texte: 34rem;
   --mesure-large: 72rem;
   --bande: 5.5rem;
+  /* 21 novembre 2026, planche « Accueil » : l'accent chaud (1C) et la police de la vitrine (2A, Plus Jakarta Sans, pour l'accueil seul). */
+  --accent-icone: var(--corail);
+  font-family: var(--font-vitrine), var(--font-ui);
 
   /* PLEINE LARGEUR, SANS MARGE NÉGATIVE QUI DÉBORDE : la page sort de la gouttière de « main » (20 px, 14 px sur téléphone) à gauche, à droite et en haut, et « main » est peint en nuit (« globals.css ») pour que le bas ne laisse rien de clair. */
   margin: calc(-1 * var(--s-8)) calc(-1 * var(--marge-page)) 0;
@@ -55,6 +58,9 @@
   letter-spacing: -0.02em;
   color: var(--on-navy);
   text-wrap: balance;
+}
+.mot {
+  color: var(--corail);
 }
 .chapeau {
   margin: 0;
@@ -107,14 +113,46 @@
   stroke-dashoffset: 1;
 }
 .fond[data-vu="oui"] .courbe [data-trait] {
-  animation: tracer 3.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+  /* EN BOUCLE (21 novembre 2026, planche « Accueil », 4A) : elle se trace, se tient, s'efface, recommence (7 s). « Moins de mouvement » : TraceSurVue ne pose rien, la courbe reste entière. */
+  animation: courbe-en-boucle 7s ease-in-out infinite;
   animation-delay: var(--d, 0s);
 }
 .fond[data-pret="oui"] .courbe [data-aire] {
   opacity: 0;
 }
 .fond[data-vu="oui"] .courbe [data-aire] {
-  animation: apparait 1.6s ease-out 1.8s both;
+  animation: aire-en-boucle 7s ease-in-out infinite;
+}
+@keyframes courbe-en-boucle {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 1;
+  }
+  55% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  80% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+@keyframes aire-en-boucle {
+  0%,
+  30% {
+    opacity: 0;
+  }
+  55%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 .carte {
   /* La zone entière tient dans la largeur de l'écran, posée au-dessus de la bande d'entrée : les six pays se reconnaissent, le texte passe par-dessus sans les cacher. */
@@ -126,22 +164,13 @@
   translate: -50% 0;
 }
 .carte path {
-  fill: color-mix(in srgb, var(--on-navy) 5%, transparent);
-  stroke: color-mix(in srgb, var(--on-navy) 38%, transparent);
+  /* PLUS DISCRÈTE (21 novembre 2026, planche « Accueil », 3A) : trait à 22 % au lieu de 38 %, fond à 3 % au lieu de 5 %. Le tracé suit le défilement : voir TraceAuDefilement. */
+  fill: color-mix(in srgb, var(--on-navy) 3%, transparent);
+  stroke: color-mix(in srgb, var(--on-navy) 22%, transparent);
   stroke-width: 1.4px;
   vector-effect: non-scaling-stroke;
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
-}
-.fond[data-pret="oui"] .carte path {
-  stroke-dashoffset: 1;
-  fill-opacity: 0;
-}
-.fond[data-vu="oui"] .carte path {
-  animation:
-    tracer 2.4s cubic-bezier(0.4, 0, 0.2, 1) both,
-    apparait 1.2s ease-out 1.4s both;
-  animation-delay: var(--d, 0s), calc(var(--d, 0s) + 1.4s);
 }
 @keyframes apparait {
   from {

@@ -20,6 +20,8 @@
   --choisi-ink: var(--surface);
   --choisi-line: var(--ink);
   --navy: #0b2545;
+  /* LE CORAIL DE L'ACCUEIL (21 novembre 2026, planche « Accueil », 1C) : l'accent chaud du visiteur, sur marine (6,4:1), pour le bouton d'entrée, les icônes et un mot par titre. Il ne sert que sur la vitrine ; l'or de la marque reste celui de la barre et des thèmes. */
+  --corail: #f28b6d;
   --navy-2: #13315c;
   --gold: #b8860b;
   --gold-ink: #7f5c06;
