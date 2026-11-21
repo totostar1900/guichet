@@ -119,7 +119,6 @@ export default async function TradePage() {
 
         {/* LES SERVICES, EN BAS DE L'ACTIVITÉ (planche 2A) : les mêmes tuiles et leur « i », sous l'ancre que « Tous les services » de l'Accueil vise. */}
         <section id="services" className={styles.services} aria-label={t("Les services")}>
-          <h2 className={styles.titreServices}>{t("Les services")}</h2>
           <Tuiles services={services} apercus={apercus} />
         </section>
       </div>

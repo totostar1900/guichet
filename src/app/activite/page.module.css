@@ -34,12 +34,6 @@
      avait relevé). Voir ETALON.md. */
   gap: var(--sections-gap);
 }
-.rayon {
-  margin: 0;
-  font-size: var(--t-5);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
 /* La ligne du rayon : ce qu'on vient y faire, au degré de la prose. Elle
    portait déjà ces mots sous le pli ; elle les garde sous l'intertitre. */
 .quoi {
@@ -538,10 +532,4 @@
   display: grid;
   gap: var(--titre-gap);
   scroll-margin-top: var(--s-10);
-}
-.titreServices {
-  margin: 0;
-  font-size: var(--t-6);
-  font-weight: var(--titre-section-poids);
-  color: var(--ink);
 }

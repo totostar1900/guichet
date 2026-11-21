@@ -14,7 +14,6 @@ const regle = (f: string, sel: string) => (sansNotes(lire(f)).match(new RegExp(`
 describe("le titre d'une section", () => {
   const TITRES: Array<[string, string]> = [
     ["src/components/TitreDeBloc.module.css", ".titre"],
-    ["src/app/activite/page.module.css", ".titreServices"],
     ["src/app/moi/argent/page.module.css", ".titre"],
     ["src/components/Feuillet.module.css", ".bloc h2"],
     ["src/app/globals.css", ".panel-h h2"],
@@ -29,6 +28,15 @@ describe("le titre d'une section", () => {
     expect(r, `${sel} de ${f} introuvable`).not.toBe("");
     expect(r, `${sel} écrit sa propre graisse`).toMatch(/font-weight:\s*var\(--titre-section-poids\);/);
     expect(r, `${sel} sort de l'échelle`).toMatch(/font-size:\s*var\(--t-6\);/);
+  });
+  it("Activité prend le titre de l'Accueil : ses rubriques et ses rayons, et plus de « Les services »", () => {
+    const rub = sansNotes(lire("src/app/activite/Rubriques.tsx"));
+    expect(rub).toMatch(/<TitreDeBloc titre=\{g\.titre\} \/>/);
+    expect(rub).not.toMatch(/<h2/);
+    const tu = sansNotes(lire("src/app/activite/Tuiles.tsx"));
+    expect(tu).toMatch(/<h2 className=\{titres\.titre\}>/);
+    const page = sansNotes(lire("src/app/activite/page.tsx"));
+    expect(page, "la mention « Les services » est revenue en titre").not.toMatch(/<h2[^>]*>\{t\("Les services"\)\}<\/h2>/);
   });
   it("Marché ouvre sur son titre seul ; la provenance est sous la phrase", () => {
     const p = lire("src/app/marche/page.tsx");

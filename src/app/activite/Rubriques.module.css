@@ -3,12 +3,6 @@
   display: grid;
   gap: var(--titre-gap);
 }
-.titre {
-  margin: 0;
-  font-size: var(--t-6);
-  font-weight: 700;
-  color: var(--ink);
-}
 .rubriques {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

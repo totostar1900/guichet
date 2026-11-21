@@ -117,7 +117,7 @@ describe("l'écran de Trade", () => {
   it("range les tuiles sous deux intertitres qui ne mènent nulle part", () => {
     const tuiles = code("src/app/activite/Tuiles.tsx");
     expect(tuiles, "les rayons ne rangent plus les tuiles").toContain("RAYONS.map");
-    expect(tuiles, "l'intertitre du rayon a disparu").toMatch(/<h2 className=\{styles\.rayon\}/);
+    expect(tuiles, "l'intertitre du rayon a disparu").toMatch(/<h2 className=\{titres\.titre\}/);
     expect(tuiles, "le rayon est redevenu un endroit où l'on va").not.toMatch(/aller\(|router\.push|<Rubriques/);
     /* ET L'INDEX DU GUIDE NE PROMET PLUS DE CRAN : « /activite?r=compte »
        ouvrirait la même page en annonçant autre chose. */

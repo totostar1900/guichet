@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getT } from "@/i18n/server";
+import { TitreDeBloc } from "@/components/TitreDeBloc";
 import { PLUS_PAGES } from "@/lib/plus/pages";
 import { ICONES_DE_PLUS } from "@/lib/plus/icones";
 import styles from "./Rubriques.module.css";
@@ -21,14 +22,15 @@ export async function Rubriques() {
   const t = await getT();
   const activite = PLUS_PAGES.filter((p) => !["services", "provision", "documents"].includes(p.cle));
   const groupes = [
-    { titre: t("Mon activité"), lignes: activite.map((p) => ({ href: p.href, cle: p.cle, mot: p.mot })) },
-    { titre: t("Mon dossier"), lignes: DOSSIER },
+    { titre: "Mon activité", lignes: activite.map((p) => ({ href: p.href, cle: p.cle, mot: p.mot })) },
+    { titre: "Mon dossier", lignes: DOSSIER },
   ];
   return (
     <>
       {groupes.map((g) => (
-        <section key={g.titre} className={styles.groupe} aria-label={g.titre}>
-          <h2 className={styles.titre}>{g.titre}</h2>
+        <section key={g.titre} className={styles.groupe} aria-label={t(g.titre)}>
+          {/* LE TITRE DE L'ACCUEIL (21 novembre 2026) : à plat, hors de la liste, avec son trait. */}
+          <TitreDeBloc titre={g.titre} />
           <nav className={styles.rubriques}>
             {g.lignes.map((l) => (
               <Link key={l.cle} href={l.href} className={styles.rubrique}>

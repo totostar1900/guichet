@@ -6,6 +6,7 @@ import { BriefDuService } from "@/components/EnBref";
 import { ICONE_SERVICE, teinteDuService } from "@/components/nav/IconesServices";
 import { RAYONS, type ServiceVu } from "@/lib/domain/services";
 import type { Apercu } from "@/lib/domain/apercus";
+import titres from "@/components/TitreDeBloc.module.css";
 import styles from "./page.module.css";
 
 /**
@@ -64,7 +65,7 @@ export function Tuiles({ services, apercus }: { services: ServiceVu[]; apercus?:
                 ouvrait ; il ne range plus qu'une grille qu'on voit. Un titre
                 qui ressemble à un lien et n'en est pas se fait viser une fois
                 par lecteur. */}
-            <h2 className={styles.rayon}>{t(r.nom)}</h2>
+            <h2 className={titres.titre}>{t(r.nom)}</h2>
             <p className={styles.quoi}>{t(r.quoi)}</p>
             <ul className={styles.tuiles}>
               {siens.map((sv) => (
