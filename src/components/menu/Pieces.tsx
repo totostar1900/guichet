@@ -220,7 +220,7 @@ export function MenuPied({ close, build }: { close: () => void; build?: string }
         <Link href="/info/mentions" onClick={close}>
           {t("Mentions")}
         </Link>
-        <Link href="/info/aide#entretien" onClick={close}>
+        <Link href="/a-propos" onClick={close}>
           {t("À propos")}
           {build ? ` · v${build}` : ""}
         </Link>

@@ -41,7 +41,6 @@ export const ICON: Record<string, string> = {
   intentions: "M4 12h12M12 6l6 6-6 6",
   reglement: "M6 3h9l4 4v14H6zM9 12h6M9 16h6",
   contact: "M4 20l1.3-3.9A8 8 0 1 1 8 19.1L4 20z",
-  entretien: "M14 6a4 4 0 0 0-5.6 3.7L3 15l2 2 5.3-5.4A4 4 0 0 0 16 8l-2.5 2.5-1.5-1.5z",
 };
 
 /** L'adresse d'une réponse : sa page de chapitre, puis son ancre. */
@@ -128,7 +127,7 @@ export function AideBrowser({ chapters, wa }: { chapters: AideChapter[]; wa: str
             /* La tuile porte le repère que portait le chapitre déplié : la
                visite guidée garde son arrêt, il vise la porte au lieu du
                contenu. */
-            <Link key={c.id} href={`/info/aide/${c.id}`} className={styles.tile} data-coach={c.id === "entretien" ? "aide-entretien" : undefined}>
+            <Link key={c.id} href={`/info/aide/${c.id}`} className={styles.tile}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d={ICON[c.id] ?? ICON.guichet} />
               </svg>

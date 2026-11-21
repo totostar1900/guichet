@@ -49,7 +49,9 @@
   padding: var(--s-5) var(--s-3);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--surface);
+  /* RELIEF DOUX (21 novembre 2026, 1A) : le même reflet et la même ombre que les icônes de sections, lus aux jetons du thème. */
+  background: linear-gradient(180deg, var(--reflet), transparent 70%), var(--surface);
+  box-shadow: inset 0 1px 0 var(--reflet), var(--tuile-ombre);
   color: var(--ink-2);
   text-align: center;
   text-decoration: none;
@@ -72,12 +74,13 @@
   border-color: var(--line-2);
 }
 .onglet[aria-current="page"] {
-  border-color: var(--gold-ink);
-  background: var(--surface-2);
+  border-color: var(--select);
+  background: var(--select);
 }
 .onglet[aria-current="page"] svg,
-.onglet[aria-current="page"] b {
-  color: var(--gold-ink);
+.onglet[aria-current="page"] b,
+.onglet[aria-current="page"] small {
+  color: var(--on-select);
 }
 @media (max-width: 760px) {
   .onglets {

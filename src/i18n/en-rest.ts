@@ -1505,7 +1505,7 @@ export const EN_REST: Record<string, string> = {
   "Une réponse, une adresse": "One answer, one address",
   "Ouvrez une question : son adresse s'écrit dans la barre, elle se partage et se met en favori. La recherche y mène directement.": "Open a question: its address is written in the bar, it can be shared and bookmarked. The search leads straight to it.",
   "Tapez un mot ou une phrase : seules les réponses qui le contiennent restent, et chacune mène à sa page. Les trois questions les plus posées sont sous le champ.": "Type a word or a phrase: only the answers containing it remain, and each leads to its page. The three most asked questions are under the field.",
-  "Huit sujets, chacun sur sa page : une réponse s'y ouvre en place, avec le bouton qui va avec et une façon de nous dire si elle a aidé.": "Eight subjects, each on its page: an answer opens there in place, with the button that goes with it and a way to tell us whether it helped.",
+  "Sept sujets, chacun sur sa page : une réponse s'y ouvre en place, avec le bouton qui va avec et une façon de nous dire si elle a aidé.": "Seven subjects, each on its page: an answer opens there in place, with the button that goes with it and a way to tell us whether it helped.",
   /* Les visites guidées du Guide ont suivi leurs cibles : le simulateur et le
      glossaire ont la leur, donc leur bouton de rejeu. */
   "À quoi sert le simulateur ?": "What is the simulator for?",

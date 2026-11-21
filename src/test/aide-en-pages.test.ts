@@ -76,8 +76,8 @@ describe("l'aide se lit en pages", () => {
        répétés sous les tuiles, à déplier un par un. */
     expect(src, "un accordéon est revenu sur l'index de l'aide").not.toMatch(/FoldSection|FoldAll/);
     expect(code("src/app/info/aide/page.tsx"), "un accordéon est revenu sur l'index de l'aide").not.toMatch(/FoldSection|FoldAll/);
-    // Non-vacuité : les huit chapitres sont bien ceux qu'on attend.
-    expect(PUBLIC_DOCS[0]?.chapters.length, "l'aide n'a plus ses huit chapitres").toBe(8);
+    // Non-vacuité : les sept chapitres sont bien ceux qu'on attend.
+    expect(PUBLIC_DOCS[0]?.chapters.length, "l'aide n'a plus ses sept chapitres").toBe(7);
   });
 
   /* CHAQUE CHAPITRE DIT CE QU'ON Y TROUVE, puisqu'il ne compte plus. */
@@ -101,7 +101,7 @@ describe("l'aide se lit en pages", () => {
     expect(perdues, `ces entrées visent une ancre de « /info », qui ne rend plus rien : ${perdues.slice(0, 4).join(" · ")}`).toEqual([]);
     // Et les deux destinations qui ont absorbé l'essentiel sont bien visées.
     expect(idx.filter((e) => e.href.startsWith("/info/glossaire#")).length, "le glossaire n'est plus indexé terme par terme").toBeGreaterThanOrEqual(60);
-    expect(idx.filter((e) => /^\/info\/aide\/[a-z]+#q-/.test(e.href)).length, "les réponses ne visent plus la page de leur chapitre").toBeGreaterThanOrEqual(40);
+    expect(idx.filter((e) => /^\/info\/aide\/[a-z]+#q-/.test(e.href)).length, "les réponses ne visent plus la page de leur chapitre").toBeGreaterThanOrEqual(36);
   });
 
   /* LE CHAMP DE LA COLONNE CHERCHE DANS L'AIDE, et c'est le seul champ. */
@@ -147,7 +147,7 @@ describe("l'aide se lit en pages", () => {
     const sansCible = famille(vises).filter((n) => !poses.has(n));
     expect(sansCible, `ces arrêts visent une cible qui n'existe nulle part : ${sansCible.join(", ")}`).toEqual([]);
     // Non-vacuité : les cibles déplacées par le démontage sont bien du nombre.
-    for (const n of ["info-insights", "info-sim", "info-glossaire", "info-aide", "colonne-recherche", "aide-entretien", "aide-chapitre"]) {
+    for (const n of ["info-insights", "info-sim", "info-glossaire", "info-aide", "colonne-recherche", "aide-chapitre"]) {
       expect(famille(poses), `la cible « ${n} » a disparu du balisage`).toContain(n);
     }
     /* ET LES TEXTES EUX-MÊMES, qu'une cible présente ne garantit pas. */
@@ -157,7 +157,6 @@ describe("l'aide se lit en pages", () => {
       "chaque éclairage se lit en deux minutes", // l'arrêt sur les éclairages
       "un tri A → Z ou par catégorie", // l'arrêt sur le glossaire
       "vous voyez le rendement bouger", // l'arrêt sur le simulateur
-      "d'où viennent les cours, ce qui se passe en cas de panne", // l'arrêt sur l'entretien
       "Aide : vos questions, nos réponses", // le renvoi posé près des éclairages
     ]) {
       expect(tout, `ce texte du Guide démonté n'est plus nulle part : « ${phrase} »`).toContain(phrase);

@@ -64,11 +64,8 @@ export default async function AidePage() {
           id="aide"
           stops={[
             { target: "aide-page", title: t("La question d'abord"), text: t("Tapez un mot ou une phrase : seules les réponses qui le contiennent restent, et chacune mène à sa page. Les trois questions les plus posées sont sous le champ.") },
-            { target: "aide-nav", title: t("Ou un sujet"), text: t("Huit sujets, chacun sur sa page : une réponse s'y ouvre en place, avec le bouton qui va avec et une façon de nous dire si elle a aidé.") },
+            { target: "aide-nav", title: t("Ou un sujet"), text: t("Sept sujets, chacun sur sa page : une réponse s'y ouvre en place, avec le bouton qui va avec et une façon de nous dire si elle a aidé.") },
             { target: "aide-contact", title: t("Quand ça ne suffit pas"), text: t("Le bouton « Information » de chaque fiche ouvre WhatsApp ; un robot répond aux questions simples, un conseiller prend le relais. Pour une réclamation, écrivez-nous avec la référence concernée.") },
-            /* L'ARRÊT SUR L'ENTRETIEN RESTE, et il vise maintenant la tuile :
-               il visait le chapitre déplié, qui est parti sur sa page. */
-            { target: "aide-entretien", title: t("Comment Guichet est entretenu"), text: t("Qui écrit ce que vous lisez, d'où viennent les cours, ce qui se passe en cas de panne, où sont vos données : en clair, sans jargon. Un doute sur un chiffre ? Dites-le-nous, il est corrigé pour tout le monde.") },
           ]}
         />
       </article>

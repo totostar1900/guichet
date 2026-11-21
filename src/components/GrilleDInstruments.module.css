@@ -30,8 +30,10 @@
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  background: var(--surface);
+  /* RELIEF DOUX (21 novembre 2026, planche « Tuiles et thèmes », 1A) : un reflet en haut et une ombre en bas, lus aux jetons du thème (--reflet, --tuile-ombre). */
+  background: linear-gradient(180deg, var(--reflet), transparent 70%), var(--surface);
   border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 var(--reflet), var(--tuile-ombre);
   color: var(--ink-2);
 }
 .tuile:hover:not(:disabled) i {
@@ -41,9 +43,10 @@
   color: var(--ink);
 }
 .on i {
-  background: var(--surface-2);
-  border-color: var(--gold-ink);
-  color: var(--gold-ink);
+  /* LA TUILE ACTIVE EST PLEINE, à la couleur de la famille (or, bleu au Marché) : --select et --on-select suivent le thème et l'accent. */
+  background: var(--select);
+  border-color: var(--select);
+  color: var(--on-select);
 }
 /* Éteinte, pas cachée : sans nombre, c'est l'éclat qui dit l'absence. */
 .empty {

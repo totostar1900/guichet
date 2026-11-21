@@ -88,9 +88,9 @@ describe("le sitemap s'accorde avec la porte et avec robots.txt", () => {
   it("le socle et les pages tirées des données y sont", async () => {
     const chemins = await rendre("guichet.purposecapital.africa");
     for (const p of ["/", "/info/eclairages", "/info/glossaire", "/info/simulateur", "/info/aide", "/info/mentions", "/indice/notes"]) expect(chemins).toContain(p);
-    /* LES HUIT CHAPITRES DE L'AIDE, lus du document : ils portent les
-       quarante et une réponses depuis le 29 octobre 2026. */
-    expect(chemins.filter((p) => /^\/info\/aide\/[a-z]+$/.test(p)).length, "les chapitres de l'aide ne sont plus proposés").toBe(8);
+    /* LES SEPT CHAPITRES DE L'AIDE, lus du document : ils portent les
+       trente-sept réponses depuis le 29 octobre 2026. */
+    expect(chemins.filter((p) => /^\/info\/aide\/[a-z]+$/.test(p)).length, "les chapitres de l'aide ne sont plus proposés").toBe(7);
     /* ET « /INFO » N'Y EST PLUS : elle ne fait que rediriger, et proposer une
        redirection fait payer au moteur un aller pour rien. */
     expect(chemins, "« /info » ne rend qu'une redirection : elle n'a rien à faire ici").not.toContain("/info");

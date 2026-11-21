@@ -10,7 +10,7 @@ export function DocBlocks({ chapters, lang, stats }: { chapters: DocChapter[]; l
   return (
     <>
       {chapters.map((c) => (
-        <section key={c.id} data-coach={c.id === "contact" ? "aide-contact" : c.id === "entretien" ? "aide-entretien" : undefined}>
+        <section key={c.id} data-coach={c.id === "contact" ? "aide-contact" : undefined}>
           <h2 id={c.id}>{L(c.title)}</h2>
           <DocBlockList blocks={c.blocks} lang={lang} stats={stats} />
         </section>

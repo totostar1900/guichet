@@ -228,7 +228,6 @@ export const GUIDE: GuideSection[] = [
       { key: "docs-aide", caption: "Aide : vos questions, nos réponses (côté desk)" },
       { key: "docs-notes", caption: "Notes de travail de l'assistant, lues depuis docs/notes" },
       { key: "aide-client", caption: "La même aide, telle que le client la voit sur /info/aide" },
-      { key: "aide-entretien", caption: "Aide : le chapitre « Comment Guichet est entretenu », la note d'entretien écrite pour les clients" },
       { key: "info-client", caption: "La page Guide du client : recherche, aide, éclairages, simulateur, glossaire" },
     ],
   },
@@ -271,7 +270,6 @@ export const GUIDE: GuideSection[] = [
     shots: [
       { key: "info-client", caption: "La page Guide du client : le glossaire et les éclairages de ces onglets, tels que le client les lit" },
       { key: "aide-client", caption: "La page Aide du client, reliée depuis Info" },
-      { key: "aide-entretien", caption: "Ce que le client lit sur l'entretien de l'application" },
       { key: "parcours-client", caption: "Le parcours « Comprendre le marché CEMAC » : cinq sections repliables, vingt éclairages, la progression du client" },
       { key: "lecon-carte", caption: "Un éclairage du parcours avec la carte des acteurs : les acteurs concernés en couleur, les autres estompés" },
     ],
